@@ -75,82 +75,88 @@ const makeTeleportMesh = (lineMesh, index) => {
   teleportMesh.visible = false;
   teleportMesh.frustumCulled = false;
 
-  teleportMesh.update = (position, quaternion) => {
+  teleportMesh.update = (position, quaternion, visible, onTeleport) => {
+    const wasVisible = teleportMesh.visible;
     teleportMesh.visible = false;
+    lineMesh.visible = false;
 
-    localVector.copy(position);
-    localEuler.setFromQuaternion(quaternion, 'YXZ');
-
-    let i;
-    const maxSteps = 50;
-    for (i = 0; i < maxSteps; i++, localVector.add(localVector2), localEuler.x = Math.max(localEuler.x - Math.PI*0.01, -Math.PI/2)) {
-      localQuaternion.setFromEuler(localEuler);
-
-      const positionsArray = lineMesh.geometry.attributes.position.array;
-      const positions = new Float32Array(positionsArray.buffer, positionsArray.byteOffset + i*72 * Float32Array.BYTES_PER_ELEMENT, 72);
-      const positionsSrcArray = lineMeshGeometry.attributes.position.array;
-      localMatrix.compose(localVector, localQuaternion, localVector2.set(0.01, 0.01, 0.1));
-      for (let i = 0; i < positions.length; i += 3) {
-        localVector3.fromArray(positionsSrcArray, i)
-          .applyMatrix4(localMatrix)
-          .toArray(positions, i);
-      }
-      lineMesh.geometry.attributes.position.needsUpdate = true;
-
-      localRay.set(localVector, localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
-      localVector2.multiplyScalar(0.2);
-      const intersection = localRay.intersectPlane(floorPlane, localVector3);
-      if (intersection && intersection.distanceTo(localRay.origin) <= 1) {
-        teleportMesh.position.copy(intersection);
-        localEuler2.setFromQuaternion(localQuaternion, 'YXZ');
-        localEuler2.x = 0;
-        localEuler2.z = 0;
-        teleportMesh.quaternion.setFromEuler(localEuler2);
-        teleportMesh.visible = true;
-        break;
-      }
-    }
-    if (i < maxSteps) {
-      lineMesh.geometry.setDrawRange(0, i*36);
-      lineMesh.visible = true;
-    } else {
-      lineMesh.visible = false;
-    }
-
-    /* if (pad) {
-      localVector.copy(vrCamera.position).applyMatrix4(localMatrix.getInverse(container.matrix));
+    if (visible) {
+      localVector.copy(position);
       localEuler.setFromQuaternion(quaternion, 'YXZ');
 
-      for (let i = 0; i < 20; i++, localVector.add(localVector2), localEuler.x = Math.max(localEuler.x - Math.PI*0.07, -Math.PI/2)) {
-        localRay.set(localVector, localVector2.set(0, 0, -1).applyQuaternion(localQuaternion.setFromEuler(localEuler)));
+      let i;
+      const maxSteps = 50;
+      for (i = 0; i < maxSteps; i++, localVector.add(localVector2), localEuler.x = Math.max(localEuler.x - Math.PI*0.01, -Math.PI/2)) {
+        localQuaternion.setFromEuler(localEuler);
+
+        const positionsArray = lineMesh.geometry.attributes.position.array;
+        const positions = new Float32Array(positionsArray.buffer, positionsArray.byteOffset + i*72 * Float32Array.BYTES_PER_ELEMENT, 72);
+        const positionsSrcArray = lineMeshGeometry.attributes.position.array;
+        localMatrix.compose(localVector, localQuaternion, localVector2.set(0.01, 0.01, 0.1));
+        for (let i = 0; i < positions.length; i += 3) {
+          localVector3.fromArray(positionsSrcArray, i)
+            .applyMatrix4(localMatrix)
+            .toArray(positions, i);
+        }
+        lineMesh.geometry.attributes.position.needsUpdate = true;
+
+        localRay.set(localVector, localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
+        localVector2.multiplyScalar(0.2);
         const intersection = localRay.intersectPlane(floorPlane, localVector3);
         if (intersection && intersection.distanceTo(localRay.origin) <= 1) {
           teleportMesh.position.copy(intersection);
-          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.z = 0;
-          teleportMesh.quaternion.setFromEuler(localEuler);
+          localEuler2.setFromQuaternion(localQuaternion, 'YXZ');
+          localEuler2.x = 0;
+          localEuler2.z = 0;
+          teleportMesh.quaternion.setFromEuler(localEuler2);
           teleportMesh.visible = true;
           break;
         }
       }
-    } else if (lastPad) {
-      localVector.copy(teleportMesh.position).applyMatrix4(container.matrix).sub(vrCamera.position);
-      localVector.y = 0;
-      container.position.sub(localVector);
+      if (i < maxSteps) {
+        lineMesh.geometry.setDrawRange(0, i*36);
+        lineMesh.visible = true;
+      }
+
+      /* if (pad) {
+        localVector.copy(vrCamera.position).applyMatrix4(localMatrix.getInverse(container.matrix));
+        localEuler.setFromQuaternion(quaternion, 'YXZ');
+
+        for (let i = 0; i < 20; i++, localVector.add(localVector2), localEuler.x = Math.max(localEuler.x - Math.PI*0.07, -Math.PI/2)) {
+          localRay.set(localVector, localVector2.set(0, 0, -1).applyQuaternion(localQuaternion.setFromEuler(localEuler)));
+          const intersection = localRay.intersectPlane(floorPlane, localVector3);
+          if (intersection && intersection.distanceTo(localRay.origin) <= 1) {
+            teleportMesh.position.copy(intersection);
+            localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+            localEuler.x = 0;
+            localEuler.z = 0;
+            teleportMesh.quaternion.setFromEuler(localEuler);
+            teleportMesh.visible = true;
+            break;
+          }
+        }
+      } else if (lastPad) {
+        localVector.copy(teleportMesh.position).applyMatrix4(container.matrix).sub(vrCamera.position);
+        localVector.y = 0;
+        container.position.sub(localVector);
+      }
+
+      if (padX !== 0 || padY !== 0) {
+        localVector.set(padX, 0, padY);
+        const moveLength = localVector.length();
+        if (moveLength > 1) {
+          localVector.divideScalar(moveLength);
+        }
+        const hmdEuler = localEuler.setFromQuaternion(rig.inputs.hmd.quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        container.position.sub(localVector.multiplyScalar(walkSpeed * timeDiff * (stick ? 3 : 1) * rig.height).applyEuler(hmdEuler));
+      } */
     }
 
-    if (padX !== 0 || padY !== 0) {
-      localVector.set(padX, 0, padY);
-      const moveLength = localVector.length();
-      if (moveLength > 1) {
-        localVector.divideScalar(moveLength);
-      }
-      const hmdEuler = localEuler.setFromQuaternion(rig.inputs.hmd.quaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      container.position.sub(localVector.multiplyScalar(walkSpeed * timeDiff * (stick ? 3 : 1) * rig.height).applyEuler(hmdEuler));
-    } */
+    if (wasVisible && !visible) {
+      onTeleport(position, quaternion);
+    }
   };
 
   return teleportMesh;
