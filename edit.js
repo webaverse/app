@@ -175,6 +175,7 @@ scene.add(wristMenu); */
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
+let lastTeleport = false;
 const timeFactor = 500;
 let lastTimestamp = performance.now();
 function animate(timestamp, frame) {
@@ -248,6 +249,7 @@ function animate(timestamp, frame) {
           ) {
             _applyRotation(Math.PI * 0.2);
           }
+          lastTeleport = (axes[1] < -0.5 || axes[3] < -0.5);
         }
         lastAxes[index][0] = axes[0];
         lastAxes[index][1] = axes[1];
@@ -344,7 +346,9 @@ function animate(timestamp, frame) {
     if (pose = frame.getPose(inputSource.targetRaySpace, renderer.xr.getReferenceSpace())) {
       localMatrix.fromArray(pose.transform.matrix)
         .decompose(localVector, localQuaternion, localVector2);
-      teleportMeshes[1].update(localVector, localQuaternion);
+      teleportMeshes[1].update(localVector, localQuaternion, lastTeleport, (position, quaternion) => {
+        localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1));
+      });
     }
   }
 
@@ -673,14 +677,19 @@ window.addEventListener('keyup', e => {
 });
 window.addEventListener('mousedown', e => {
   if (document.pointerLockElement) {
-    pe.grabtriggerdown('right');
-    pe.grabuse('right');
+    if (e.button === 1) {
+      pe.grabtriggerdown('right');
+      pe.grabuse('right');
+    } else if (e.button === 2) {
+      lastTeleport = true;
+    }
   }
 });
 window.addEventListener('mouseup', e => {
   if (document.pointerLockElement) {
     pe.grabtriggerup('right');
   }
+  lastTeleport = false;
 });
 
 /* document.getElementById('world-name').addEventListener('change', e => {
