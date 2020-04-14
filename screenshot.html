@@ -1,0 +1,59 @@
+<html>
+
+<body>
+  <script type=module>
+import THREE from './three.module.js';
+window.THREE = THREE;
+</script>
+  <h1 id=text>Screenshotting...</h1>
+  <script type=module>
+import {screenshotObject, exportObject} from './screenshot-object.js';
+import {XRPackage} from './xrpackage.js';
+
+(async () => {
+
+function parseQuery(queryString) {
+  var query = {};
+  var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
+const {srcWbn, dstGif, dstGlb} = parseQuery(window.location.search);
+const req = await fetch(srcWbn);
+const arrayBuffer = await req.arrayBuffer();
+const uint8Array = new Uint8Array(arrayBuffer);
+const p = new XRPackage(uint8Array);
+await new Promise((accept, reject) => {
+  p.addEventListener('load', e => {
+    accept();
+  });
+});
+
+const o = p.getObject();
+const gifBlob = await screenshotObject(o);
+const data = await exportObject(o);
+{
+  const res = await fetch(dstGif, {
+    method: 'PUT',
+    body: gifBlob,
+  });
+  await res.blob();
+}
+{
+  const res = await fetch(dstGlb, {
+    method: 'PUT',
+    body: data,
+  });
+  await res.blob();
+}
+
+document.getElementById('text').innerText = 'Done. You can close this tab.';
+
+})();
+</script>
+</body>
+
+</html>

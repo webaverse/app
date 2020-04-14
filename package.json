@@ -1,0 +1,40 @@
+{
+  "name": "xrpackage-site",
+  "version": "0.0.1",
+  "description": "",
+  "main": "cli.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "xrpk": "./cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/exokitxr/xrpackage.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/exokitxr/xrpackage/issues"
+  },
+  "homepage": "https://github.com/exokitxr/xrpackage#readme",
+  "dependencies": {
+    "bignumber.js": "^9.0.0",
+    "eth-lightwallet": "^4.0.0",
+    "ethereumjs-tx": "^2.1.2",
+    "express": "^4.17.1",
+    "mime": "^2.4.4",
+    "mkdirp": "^1.0.4",
+    "node-fetch": "^2.6.0",
+    "opn": "^6.0.0",
+    "read": "^1.0.7",
+    "wbn": "0.0.4",
+    "web3": "^1.2.6",
+    "yargs": "^15.3.1"
+  },
+  "browserslist": [
+    "last 1 chrome version"
+  ]
+}

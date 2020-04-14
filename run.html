@@ -1,0 +1,322 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>xrpackage | run</title>
+  <link href="index.css" rel=stylesheet>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+  <!-- <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script> -->
+  <script
+    src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
+</head>
+
+<body>
+  <header id=header>
+    <a href="/" class="nav">メマアムく匕ムウヨ</a>
+    <a href="/browse.html" class="nav">Browse</a>
+    <a href="/inventory.html" class="nav">Inventory</a>
+    <a href="/create.html" class="nav">Create</a>
+    <a href="https://www.npmjs.com/package/xrpk" class="nav" target="_blank" rel="noopener noreferrer">CLI</a>
+    <a href="/run.html" class="nav open">Run</a>
+    <div class="buttons right">
+      <nav class=button id=enter-xr-button>Enter XR</nav>
+    </div>
+  </header>
+  <!-- s<iframe class=popup id=popup src="popup.html"></iframe> -->
+  <script type=module>
+  import THREE from './three.module.js';
+  window.THREE = THREE;
+</script>
+  <script type=module>
+import * as THREE from './three.module.js';
+import {OrbitControls} from './OrbitControls.js';
+import {XRPackageEngine, XRPackage} from './xrpackage.js';
+import address from 'https://contracts.webaverse.com/address.js';
+import abi from 'https://contracts.webaverse.com/abi.js';
+
+const apiHost = `https://ipfs.exokit.org/ipfs`;
+const network = 'rinkeby';
+const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
+const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
+const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+// window.web3 = web3;
+const contract = new web3.eth.Contract(abi, address);
+
+function parseQuery(queryString) {
+  var query = {};
+  var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
+
+(async () => {
+
+let currentSession = null;
+
+const pe = new XRPackageEngine();
+
+/* const canvas = document.createElement('canvas');
+const context = canvas.getContext('webgl', {
+  antialias: true,
+  alpha: true,
+  preserveDrawingBuffer: false,
+}); */
+const renderer = new THREE.WebGLRenderer({
+  canvas: pe.domElement,
+  context: pe.context,
+  antialias: true,
+  alpha: true,
+  // preserveDrawingBuffer: true,
+});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.autoClear = false;
+renderer.sortObjects = false;
+renderer.physicallyCorrectLights = true;
+renderer.xr.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 0.5, 1);
+
+const orbitControls = new OrbitControls(camera, renderer.domElement);
+// orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -1.5));
+orbitControls.screenSpacePanning = true;
+// orbitControls.enabled = !!loginToken;
+orbitControls.enableMiddleZoom = false;
+orbitControls.update();
+
+const ambientLight = new THREE.AmbientLight(0xFFFFFF);
+scene.add(ambientLight);
+const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
+scene.add(directionalLight);
+const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
+scene.add(directionalLight2);
+
+const cubeMesh = (() => {
+  const geometry = new THREE.BoxBufferGeometry(10, 1, 10);
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x666666,
+    // side: THREE.DoubleSide,
+  });
+  const mesh = new THREE.Mesh(geometry, material);  
+  mesh.frustumCulled = false;
+  return mesh;
+})();
+cubeMesh.position.set(0, -1/2, 0);
+// cubeMesh.rotation.order = 'YXZ';
+scene.add(cubeMesh);
+
+pe.addEventListener('tick', () => {
+  if (!currentSession) {
+    orbitControls.update();
+    pe.setCamera(camera);
+  }
+});
+
+function animate(timestamp, frame) {
+  renderer.state.reset();
+
+  /* const f = (Date.now()%2000)/2000 * Math.PI*2;
+  cubeMesh.rotation.x = f;
+  cubeMesh.rotation.y = f;
+  cubeMesh.rotation.z = f; */
+
+  for (let i = 0; i < objects.length; i++) {
+    objects[i].setMatrix(new THREE.Matrix4().compose(new THREE.Vector3(0, Math.sin((Date.now()%2000)/2000 * Math.PI*2), 0), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)));
+  }
+
+  renderer.render(scene, camera);
+}
+renderer.setAnimationLoop(animate);
+renderer.xr.setSession(pe.fakeSession);
+
+const objects = [];
+document.addEventListener('dragover', e => {
+  e.preventDefault();
+});
+const _handleUpload = async file => {
+  const d = await XRPackage.compileFromFile(file);
+  const p = new XRPackage(d);
+  await pe.add(p);
+
+  if (/\.vrm$/.test(file.name)) {
+    p.wearAvatar();
+  } else {
+    objects.push(p);
+  }
+};
+document.addEventListener('drop', e => {
+  e.preventDefault();
+
+  if (e.dataTransfer.files.length > 0){
+    const [file] = e.dataTransfer.files;
+    _handleUpload(file);
+  }
+});
+
+function onSessionStarted(session) {
+  session.addEventListener('end', onSessionEnded);
+  
+  currentSession = session;
+
+  // renderer.xr.setSession(session);
+  pe.setSession(session);
+}
+function onSessionEnded() {
+  currentSession.removeEventListener('end', onSessionEnded);
+
+  currentSession = null;
+
+  // renderer.xr.setSession(null);
+  pe.setSession(null);
+}
+document.getElementById('enter-xr-button').addEventListener('click', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  if (currentSession === null) {
+    navigator.xr.requestSession('immersive-vr', {
+      optionalFeatures: [
+        'local-floor',
+        'bounded-floor',
+      ],
+    }).then(onSessionStarted);
+  } else {
+    currentSession.end();
+  }
+});
+
+window.addEventListener('message', async e => {
+  const {method, url} = e.data;
+  switch (method) {
+    case 'loadpackage': {
+      const res = await fetch(url);
+      const arrayBuffer = await res.arrayBuffer();
+      const p = new XRPackage(new Uint8Array(arrayBuffer));
+      pe.add(p);
+
+      console.log('load package', p);
+      break;
+    }
+  }
+});
+/* const popup = document.getElementById('popup');
+popup.addEventListener('load', e => {
+  popup.contentWindow
+}); */
+
+{
+  const q = parseQuery(window.location.search);
+  if (q.i) {
+    const metadataHash = await contract.methods.getMetadata(parseInt(q.i, 10), 'hash').call();
+    const metadata = await fetch(`${apiHost}/${metadataHash}`)
+      .then(res => res.json());
+    const {dataHash} = metadata;
+
+    const arrayBuffer = await fetch(`${apiHost}/${dataHash}.wbn`)
+      .then(res => res.arrayBuffer());
+
+    const p = new XRPackage(new Uint8Array(arrayBuffer));
+    pe.add(p);
+  } else if (q.u) {
+    const arrayBuffer = await fetch(q.u)
+      .then(res => res.arrayBuffer());
+
+    const p = new XRPackage(new Uint8Array(arrayBuffer));
+    pe.add(p);
+  } else {
+    (async () => {
+      const [cubeHtml, cubeManifest, modelVrm, catVox]= await Promise.all([
+        (async () => {
+          const res = await fetch('examples/html/cube.html');
+          return await res.text();
+        })(),
+        (async () => {
+          const res = await fetch('examples/html/manifest.json');
+          return await res.text();
+        })(),
+        (async () => {
+          const res = await fetch('examples/vrm/model.vrm');
+          return await res.arrayBuffer();
+        })(),
+        (async () => {
+          const res = await fetch('examples/vox/cat.vox');
+          return await res.arrayBuffer();
+        })(),
+      ]);
+
+      {
+        const d = XRPackage.compileRaw(
+          [
+            {
+              url: '/cube.html',
+              type: 'text/html',
+              data: cubeHtml,
+            },
+            {
+              url: '/manifest.json',
+              type: 'application/json',
+              data: cubeManifest,
+            }
+          ]
+        );
+        const p = new XRPackage(d);
+        pe.add(p);
+      }
+      {
+        const d = XRPackage.compileRaw(
+          [
+            {
+              url: '/model.vrm',
+              type: 'application/octet-stream',
+              data: new Uint8Array(modelVrm),
+            },
+            {
+              url: '/manifest.json',
+              type: 'application/json',
+              data: JSON.stringify({
+                xr_type: 'vrm@0.0.1',
+                xr_main: 'model.vrm',
+              }),
+            }
+          ]
+        );
+        const p = new XRPackage(d);
+        pe.add(p);
+      }
+      {
+        const d = XRPackage.compileRaw(
+          [
+            {
+              url: '/cat.vox',
+              type: 'application/octet-stream',
+              data: new Uint8Array(catVox),
+            },
+            {
+              url: '/manifest.json',
+              type: 'application/json',
+              data: JSON.stringify({
+                xr_type: 'vox@0.0.1',
+                xr_main: 'cat.vox',
+              }),
+            }
+          ]
+        );
+        const p = new XRPackage(d);
+        pe.add(p);
+      }
+    })();
+  }
+}
+
+})();
+</script>
+</body>
+
+</html>

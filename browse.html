@@ -1,0 +1,188 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>xrpackage | browse</title>
+  <link rel=icon type="image/png" href="favicon.png">
+  <link href="index.css" rel=stylesheet>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
+  <script
+    src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
+</head>
+
+<body class="header-gap">
+  <header id=header>
+    <a href="/" class="nav">メマアムく匕ムウヨ</a>
+    <!-- <a href="/" class="nav open">Home</a> -->
+    <a href="/browse.html" class="nav open">Browse</a>
+    <a href="/inventory.html" class="nav">Inventory</a>
+    <a href="/create.html" class="nav">Create</a>
+    <a href="https://www.npmjs.com/package/xrpk" class="nav" target="_blank" rel="noopener noreferrer">CLI</a>
+    <a href="/run.html" class="nav">Run</a>
+  </header>
+
+  <div class=loader id=loader>
+    <h1>Loading...</h1>
+  </div>
+
+  <div class=main>
+    <section class=grid id=grid></section>
+  </div>
+
+  <div class="pagination buttons" id=pagination>
+    <div class="button pagination-control" id=first>First</div>
+    <div class="button pagination-control" id=prev>Prev</div>
+
+    <div class="page-display pagination-control" id=pageNumEl>1</div>
+    <div class="button pagination-control" id=next>Next</div>
+    <div class="button pagination-control" id=last>Last</div>
+  </div>
+
+  <!-- <script src="https://kit.fontawesome.com/0735724151.js"></script> -->
+
+  <script type=module>
+import address from 'https://contracts.webaverse.com/address.js';
+import abi from 'https://contracts.webaverse.com/abi.js';
+
+const apiHost = `https://ipfs.exokit.org/ipfs`;
+const network = 'rinkeby';
+const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
+const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
+const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+// window.web3 = web3;
+const contract = new web3.eth.Contract(abi, address);
+
+const resultsPerPage = 10;
+let currentPage = 0;
+let totalObjects = 0;
+let totalPages = 0;
+let objectResults = [];
+
+function makePromise() {
+  let accept, reject;
+  const p = new Promise((a, r) => {
+    accept = a;
+    reject = r;
+  });
+  p.accept = accept;
+  p.reject = reject;
+  return p;
+}
+
+function drawCard(cardData) {
+  const {index, name, img, metadataHash, dataHash, modelHash} = cardData;
+  const div = document.createElement('div');
+  div.classList.add('object');
+  div.classList.add('card');
+  div.innerHTML = `\
+    <a href="/run.html?i=${index}">
+      <img src="${img}" width=256 height=256>
+    </a>
+    <div class=text>
+      <div class="name cardTitle">${name}</div>
+      <input type=text value="xrpk install ${index}" readonly class="cardCode">
+      <a href="/run.html?i=${index}" class="cardAction"><span>Run</span><i class="fa fa-chevron-right"></i></a>
+      <a href="https://cryptopolys.com/create.html?o=${encodeURIComponent(metadataHash)}" class="cardAction"><span>Edit</span><i class="fa fa-chevron-right"></i></a>
+      <a href="https://ipfs.exokit.org/ipfs/${dataHash}.wbn" class="cardAction"><span>Download package</span><i class="fa fa-chevron-right"></i></a>
+      <a href="https://ipfs.exokit.org/ipfs/${modelHash}.glb" class="cardAction"><span>Download model</span><i class="fa fa-chevron-right"></i></a>
+      <a href="https://${network}.opensea.io/assets/${address}/${index}" class="cardAction"><span>Opensea</span><i class="fa fa-chevron-right"></i></a>
+    </div>
+  `;
+  const input = div.querySelector('input');
+  input.addEventListener('click', e => {
+    input.select();
+  });
+  grid.appendChild(div);
+}
+
+async function setCurrentPage(pageNum) {
+  if (pageNum > totalPages) pageNum = totalPages;
+  if (pageNum < 0) pageNum = 0;
+
+  let startIndex = pageNum * resultsPerPage;
+  let endIndex = (startIndex + resultsPerPage);
+  if (!startIndex) startIndex = 1
+  else startIndex += 1
+  if (endIndex >= totalObjects) endIndex = totalObjects;
+  currentPage = pageNum;
+
+  grid.style.display = 'none';
+  loader.style.display = 'block';
+  pagination.style.display = 'none';
+  objectResults = [];
+  grid.innerHTML = '';
+  window.scrollTo(0, 0);
+
+  for (let i = startIndex; i <= endIndex; i++) {
+    let object = await getObjectByIndex(i);
+    objectResults.push(object);
+    drawCard(object);
+
+    if (i === startIndex) {
+      loader.style.display = 'none';
+      grid.style.display = 'flex';
+    }
+  }
+
+  pageNumEl.innerHTML = `Page ${currentPage + 1}/${totalPages}`;
+  pagination.style.display = 'flex';
+}
+
+async function getObjectByIndex(index) {
+  const metadataHash = await contract.methods.getMetadata(index, 'hash').call();
+  const metadata = await fetch(`${apiHost}/${metadataHash}`).then(res => res.json());
+  const {dataHash, screenshotHash, modelHash} = metadata;
+  return {
+    index: index,
+    name: metadata.objectName,
+    img: `${apiHost}/${screenshotHash}`,
+    metadataHash: metadataHash,
+    dataHash: dataHash,
+    modelHash: modelHash
+  }
+}
+
+// contract.init();
+
+const gridEl = document.getElementById('grid');
+(async () => {
+  totalObjects = await contract.methods.getNonce().call();
+  totalObjects = parseInt(totalObjects, 10);
+  totalPages = Math.ceil(totalObjects / resultsPerPage);
+
+  for (let i = 1; i <= resultsPerPage; i++) {
+    let object = await getObjectByIndex(i);
+    objectResults.push(object);
+    drawCard(object);
+
+    if (i === 1) {
+      loader.style.display = 'none';
+      grid.style.display = 'flex';
+    }
+  }
+
+  pageNumEl.innerHTML = `Page ${currentPage + 1}/${totalPages}`;
+  pagination.style.display = 'flex';
+
+  prev.addEventListener('click', e => {
+    setCurrentPage(currentPage - 1);
+  });
+
+  next.addEventListener('click', e => {
+    setCurrentPage(currentPage + 1);
+  });
+
+  first.addEventListener('click', e => {
+    setCurrentPage(0);
+  });
+
+  last.addEventListener('click', e => {
+    setCurrentPage(totalPages - 1);
+  });
+})();
+
+</script>
+</body>
+
+</html>

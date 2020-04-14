@@ -1,0 +1,466 @@
+* {
+  box-sizing: border-box;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+body {
+  margin: 0;
+  font-family: 'Open Sans';
+  font-size: 12px;
+}
+
+header {
+  position: fixed;
+  display: flex;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 50px;
+  background-color: #FFF;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  align-items: center;
+  user-select: none;
+  z-index: 1;
+}
+
+header .icon {
+  height: 25px;
+  margin: 0 10px;
+}
+
+header .nav {
+  display: flex;
+  height: 100%;
+  padding: 0 10px;
+  justify-content: center;
+  align-items: center;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  color: inherit;
+  font-size: 14px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+header .nav:hover, header .nav.open {
+  border-bottom-color: #7986cb;
+}
+
+header .nav i {
+  display: inline-block;
+  padding: 0 7px;
+  padding-top: 2px;
+}
+
+.pagination {
+  display: none;
+  margin-bottom: 25px;
+  justify-content: center;
+}
+
+.pagination-control {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  margin: 0 10px 0 10px;
+  cursor: pointer;
+}
+
+.header-gap {
+  margin-top: 50px;
+}
+
+.loader {
+  text-align: center;
+  margin-top: 100px;
+  font-size: 2em;
+}
+
+.body {
+  background-color: #7986cb;
+}
+
+.hero, .detail {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.hero {
+  min-width: 100vw;
+  min-height: 100vh;
+  padding-top: 50px;
+}
+
+.container {
+  display: flex;
+  width: 600px;
+  margin-left: 100px;
+}
+
+.hero .container h1 {
+  padding: 20px 0;
+  border-bottom: 2px solid #000;
+  font-size: 40px;
+  font-weight: 400;
+}
+
+header .wallet {
+  display: flex;
+  height: 37px;
+  margin-right: 10px;
+  padding: 5px 10px;
+  background-color: #F4F4F4;
+  border-radius: 7px;
+  align-items: center;
+}
+
+header .wallet.none, header .wallet.import, header .wallet.locked, header .wallet.unlocked, header.builtin .blocker .button, header.extension .blocker .button {
+  display: none;
+}
+
+header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, header.builtin.unlocked .wallet.unlocked, header.builtin:not(.import):not(.locked):not(.unlocked) .wallet.none {
+  display: flex;
+}
+
+header .button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 10px;
+  background-color: #42a5f5;
+  color: #FFF;
+  border-radius: 8px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+header .button:hover {
+  background-color: #1e88e5;
+}
+
+h header .button:active {
+  transform: translateY(1px);
+}
+
+header .button.secondary {
+  background-color: #ef5350;
+}
+
+header .button.secondary:hover {
+  background-color: #e53935;
+}
+
+header .button:not(:first-child) {
+  margin-left: 10px;
+}
+
+.grid {
+  display: flex;
+  /* margin-top: 50px; */
+  flex-wrap: wrap;
+}
+
+.grid a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.grid>.object {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  margin: 15px;
+  border: 1px solid #EEE;
+  border-radius: 7px;
+  overflow: hidden;
+  max-height: 480px;
+}
+
+.grid>.object>img {
+  /* margin-bottom: 10px; */
+}
+
+.grid>.object .text {
+  display: flex;
+  padding: 15px;
+  flex-direction: column;
+}
+
+.grid>.object a {
+  display: flex;
+}
+
+.grid>.object a:hover {
+  color: #42a5f5;
+}
+
+.grid>.object a:active {
+  color: #1e88e5;
+}
+
+.grid>.object a span {
+  margin-right: auto;
+}
+
+.grid>.object input {
+  padding: 5px;
+  background-color: #EEE;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: inherit;
+}
+
+.grid>.object input:focus {
+  border-color: #000;
+  background-color: #FFF;
+  outline: none;
+}
+
+canvas {
+  outline: none;
+}
+
+.popup {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  height: 100vh;
+  border: 0;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  z-index: 1;
+}
+
+.right {
+  margin-left: auto;
+}
+
+.buttons {
+  padding-right: 10px;
+  /* display: flex;
+  position: absolute;
+  top: 60px;
+  left: 10px;
+  z-index: 1; */
+}
+
+.buttons .button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 10px;
+  background-color: #42a5f5;
+  color: #FFF;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.main {
+  display: flex;
+  padding-top: 50px;
+  min-height: 100vh;
+}
+
+.main .sidebar {
+  display: flex;
+  width: 200px;
+  padding: 0 20px;
+  background-color: #F8F8F8;
+  /* box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08); */
+  flex-direction: column;
+}
+
+.main .sidebar .sidebarTextInput {
+  padding: 5px 10px 5px 10px;
+  margin: 5px 0 5px 0;
+  border-color: #42a5f5;
+  border-radius: 8px;
+}
+
+.main .sidebar .sidebarSetButton {
+  padding: 5px 10px;
+  background-color: #42a5f5;
+  color: #FFF;
+  border-radius: 8px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.main .sidebar .sidebarSetButton:hover {
+  background-color: #1e88e5;
+}
+
+.main .createForm .sidebarTextInput {
+  padding: 5px 10px 5px 10px;
+  margin: 5px 0 5px 0;
+  border-color: #42a5f5;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.main .createForm .sidebarCreateButton,
+.main .createForm .sidebarProgressButton
+{
+  padding: 0 10px;
+  display: flex;
+  height: 32px;
+  background-color: #42a5f5;
+  color: #FFF;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-size: 13px;
+  margin-top: 30px;
+  width: 100%;
+  align-items: center;
+}
+
+.main .createForm .sidebarCreateButton {
+  cursor: pointer;
+}
+
+.main .createForm .sidebarCreateButton:hover,
+.main .createForm .sidebarProgressButton
+{
+  background-color: #1e88e5;
+}
+
+.main.minting .createForm .sidebarCreateButton,
+.main:not(.minting) .createForm .sidebarProgressButton
+{
+  display: none;
+}
+
+.main .createForm .sidebarCreateButton,
+.main .createForm .sidebarProgressButton
+{
+  justify-content: center;
+}
+
+.main .createForm .sidebarProgressButton i {
+  font-size: 18px;
+  line-height: 1;
+  animation: spin 1s linear infinite;
+}
+
+.main #formContainer {
+  width: 100%;
+}
+
+.main .createForm {
+  width: 300px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.main .createForm input[type=file] {
+  width: 100%;
+}
+
+.main .grid {
+  flex: 1;
+}
+
+.main .blocker {
+  display: flex;
+  width: 300px;
+  margin: 0 auto;
+  padding-top: 20vh;
+  font-size: 50px;
+  flex-direction: column;
+}
+
+.main .blocker h1 {
+  font-size: 15px;
+}
+
+.main .blocker > i,
+.main .blocker > h1
+{
+  margin: 0 auto;
+  margin-bottom: 15px;
+}
+.main .blocker > i {
+  font-size: 50px;
+}
+
+.main.unlocked .blocker,
+.main:not(.unlocked) .unblocker,
+header.unlocking + .main .blocker .button
+{
+  display: none;
+}
+
+.main .blocker .button {
+  display: flex;
+  margin-bottom: 5px;
+  padding: 5px 10px;
+  border: 2px solid;
+  border-radius: 100px;
+  font-size: 13px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.main .blocker .button:hover {
+  background-color: #000;
+  border-color: transparent;
+  color: #FFF;
+}
+
+.main .blocker .button i,
+.main .blocker .button img
+{
+  margin-right: 5px;
+}
+
+.main .blocker .button i {
+  font-size: 24px;
+  line-height: 30px;
+}
+
+.main .blocker img {
+  width: 30px;
+  height: 30px;
+}
+
+.form {
+  display: flex;
+  margin: 0 auto;
+  padding: 0 10px;
+  flex-direction: column;
+}
+
+.card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
+}
+
+.card:hover {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1), 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.cardTitle {
+  font-size: 18px;
+}
+
+.cardCode {
+  margin-bottom: 5px;
+  margin-top: 5px;
+}
+
+.cardAction {
+  padding: 5px;
+}
+
+.error {
+  font-family: monospace;
+  white-space: nowrap;
+  color: #ef5350;
+}
