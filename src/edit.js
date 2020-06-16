@@ -1,14 +1,14 @@
-import * as THREE from '../../xrpackage/xrpackage/three.module.js';
-import {XRPackageEngine, XRPackage} from '../../xrpackage/xrpackage.js';
-import {BufferGeometryUtils} from '../../xrpackage/BufferGeometryUtils.js';
-import {TransformControls} from '../../xrpackage/TransformControls.js';
+import * as THREE from 'https://xrpackage.org/xrpackage/three.module.js';
+import {XRPackageEngine, XRPackage} from 'https://xrpackage.org/xrpackage.js';
+import {BufferGeometryUtils} from 'https://xrpackage.org/BufferGeometryUtils.js';
+import {TransformControls} from 'https://xrpackage.org/TransformControls.js';
 import {XRChannelConnection} from 'https://metartc.com/xrrtc.js';
 import {JSONClient} from 'https://sync.webaverse.com/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
-import {pe, renderer, scene, camera, container, floorMesh, proxySession, getRealSession} from '../../xrpackage/run.js';
-import {downloadFile, readFile, bindUploadFileButton} from '../../xrpackage/xrpackage/util.js';
-import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from '../../xrpackage/volume.js';
+import {pe, renderer, scene, camera, container, floorMesh, proxySession, getRealSession} from './run.js';
+import {downloadFile, readFile, bindUploadFileButton} from 'https://xrpackage.org/xrpackage/util.js';
+import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from 'https://xrpackage.org/volume.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
 const presenceEndpoint = `wss://presence.exokit.org`;
@@ -977,7 +977,7 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
 const worlds = document.getElementById('worlds');
 const _makeWorldHtml = w => `
   <div class="world ${currentWorldHash === w.hash ? 'open' : ''}" type="${w.type}" hash="${w.hash}">
-    <img src=question.png>
+    <img src=assets/question.png>
     <div class=wrap>
       <h1>${w.name}</h1>
       <p>This is a world description.</p>
@@ -1158,7 +1158,7 @@ multiplayerButton.addEventListener('click', async e => {
 
 const _makePackageHtml = p => `
   <div class=package>
-    <img src="question.png">
+    <img src="assets/question.png">
     <!-- <img src="${p.img}" width=256 height=256> -->
     <div class=text>
       <div class="name cardTitle">${p.name}</div>
@@ -1369,7 +1369,7 @@ const _renderAvatars = () => {
     // .filter(pc => !!pc.avatar)
     .map(pc => `
       <nav class=avatar>
-        <img src="question.png">
+        <img src="assets/question.png">
         <div class=name>${pc.name}</div>
         ${pc.avatar ? `<nav class="button unwear-button">Wear</nav>` : ''}
         <!-- <div class=tag>You</div> -->
