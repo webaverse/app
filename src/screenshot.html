@@ -1,0 +1,103 @@
+<html>
+
+<body>
+  <script type=module>
+import THREE from './xrpackage/three.module.js';
+window.THREE = THREE;
+</script>
+  <h1 id=text>Screenshotting...</h1>
+  <pre><code id=error></code></pre>
+  <script type=module>
+import {XRPackage, XRPackageEngine} from './xrpackage.js';
+import {readFile} from './xrpackage/util.js';
+import {screenshotEngine} from './screenshot-object.js';
+
+(async () => {
+
+function parseQuery(queryString) {
+  var query = {};
+  var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
+const {srcWbn, dstGif} = parseQuery(decodeURIComponent(window.location.search));
+const req = await fetch(srcWbn);
+const arrayBuffer = await req.arrayBuffer();
+const uint8Array = new Uint8Array(arrayBuffer);
+const pe = new XRPackageEngine({
+  width: 256,
+  height: 256,
+  pixelRatio: 1,
+  autoStart: false,
+  autoListen: false,
+});
+const p = await (async () => {
+  try {
+    const p = new XRPackage(uint8Array);
+    await pe.add(p);
+    await p.waitForLoad();
+    return p;
+  } catch(err) {
+    console.warn(err.stack);
+    return null;
+  }
+})();
+let gifBlob;
+if (p) {
+  gifBlob = await screenshotEngine(pe);
+  if (dstGif) {
+    const res = await fetch(dstGif, {
+      method: 'PUT',
+      body: gifBlob,
+    });
+    await res.blob();
+  }
+
+  const img = document.createElement('img');
+  img.src = URL.createObjectURL(gifBlob);
+  img.style.backgroundColor = '#EEE';
+  img.style.borderRadius = '10px';
+  document.body.appendChild(img);
+} else {
+  gifBlob = new Blob([], {
+    type: 'image/gif',
+  });
+  if (dstGif) {
+    const res = await fetch(dstGif, {
+      method: 'PUT',
+      body: gifBlob,
+    });
+    await res.blob();
+  }
+}
+
+return gifBlob;
+
+})().then(async screenshotBlob => {
+  document.getElementById('text').innerText = 'Screenshotting done. You can close this tab.';
+
+  const screenshotArrayBuffer = await readFile(screenshotBlob);
+
+  window.parent.postMessage({
+    method: 'result',
+    result: {
+      screenshot: screenshotArrayBuffer,
+    },
+  }, '*', [screenshotArrayBuffer.buffer]);
+}).catch(err => {
+  console.warn(err.stack);
+  document.getElementById('text').innerText = 'Error screenshotting. You can close this tab.';
+  document.getElementById('error').innerText = err.stack;
+
+  window.parent.postMessage({
+    method: 'error',
+    error: err.stack,
+  }, '*');
+});
+</script>
+</body>
+
+</html>

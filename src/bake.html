@@ -1,0 +1,81 @@
+<html>
+
+<body>
+  <h1 id=text>Baking...</h1>
+  <pre><code id=error></code></pre>
+  <script type=module>
+(async () => {
+
+function parseQuery(queryString) {
+  var query = {};
+  var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
+const {srcWbn, dstGif, dstVolume, dstAabb} = parseQuery(decodeURIComponent(window.location.search));
+
+const {screenshot} = await new Promise((accept, reject) => {
+  const iframe = document.createElement('iframe');
+  iframe.src = `screenshot.html?srcWbn=${srcWbn}${dstGif ? `&dstGif=${dstGif}` : ''}`;
+  document.body.appendChild(iframe);
+  const _message = e => {
+    if (e.data && e.data.method === 'result') {
+      accept(e.data.result);
+      window.removeEventListener('message', _message);
+    } else if (e.data && e.data.method === 'error') {
+      reject(e.data.error);
+      window.removeEventListener('message', _message);
+    }
+  };
+  window.addEventListener('message', _message);
+});
+const {volume, aabb} = await new Promise((accept, reject) => {
+  const iframe = document.createElement('iframe');
+  iframe.src = `volume.html?srcWbn=${srcWbn}${dstVolume ? `&dstVolume=${dstVolume}` : ''}${dstAabb ? `&dstAabb=${dstAabb}` : ''}`;
+  document.body.appendChild(iframe);
+  const _message = e => {
+    if (e.data && e.data.method === 'result') {
+      accept(e.data.result);
+      window.removeEventListener('message', _message);
+    } else if (e.data && e.data.method === 'error') {
+      reject(e.data.error);
+      window.removeEventListener('message', _message);
+    }
+  };
+  window.addEventListener('message', _message);
+});
+
+return {
+  screenshot,
+  volume,
+  aabb,
+};
+
+})().then(({screenshot, volume, aabb}) => {
+  document.getElementById('text').innerText = 'Baking done. You can close this tab.';
+
+  window.parent.postMessage({
+    method: 'result',
+    result: {
+      screenshot,
+      volume,
+      aabb,
+    },
+  }, '*', [screenshot.buffer, volume.buffer]);
+}).catch(err => {
+  console.warn(err.stack);
+  document.getElementById('text').innerText = 'Error baking. You can close this tab.';
+  document.getElementById('error').innerText = err.stack;
+
+  window.parent.postMessage({
+    method: 'error',
+    error: err.stack,
+  }, '*');
+});
+</script>
+</body>
+
+</html>

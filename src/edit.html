@@ -1,0 +1,243 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>xrpackage | run</title>
+  <link href="index.css" rel=stylesheet>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
+  <script src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
+</head>
+
+<body>
+  <header class=header id=header>
+    <a href="/" class="nav icon">山</a>
+    <nav class="selector nav bar" id=selector>
+      <i class="fa fa-map-marker-alt head"></i>
+      <div class=header-label id=header-label>Sandbox</div>
+      <i class="fa fa-chevron-down tail"></i>
+      <div class=selections id=selections>
+        <a href="run.html" class=selection id=run-mode>
+          <i class="fa fa-play"></i>
+          <div class=wrap>
+            <h3>Run mode</h3>
+            <p>Switch to run mode</p>
+          </div>
+        </a>
+        <a href="edit.html" class="selection dim" id=edit-mode>
+          <i class="fa fa-pencil"></i>
+          <div class=wrap>
+            <h3>Edit mode</h3>
+            <p>You are currently editing this world</p>
+          </div>
+        </a>
+        <a href="browse.html" class=selection>
+          <i class="fa fa-solar-system"></i>
+          <div class=wrap>
+            <h3>Browse packages</h3>
+            <p>Explore the XRPackage registry</p>
+          </div>
+        </a>
+        <a href="help.html" class=selection>
+          <i class="fa fa-book"></i>
+          <div class=wrap>
+            <h3>Documentation</h3>
+            <p>Learn how to make packages and worlds</p>
+          </div>
+        </a>
+      </div>
+    </nav>
+
+    <div class="buttons right">
+      <div class=tools style="transform-origin: 0 0;">
+        <div class=row>
+          <a id=tool-1 class="tool selected" tool="camera">
+            <i class="fal fa-camera"></i>
+            <div class=label>Camera tool</div>
+          </a>
+          <a id=tool-2 class="tool" tool="firstperson">
+            <i class="fal fa-eye"></i>
+            <div class=label>First person</div>
+          </a>
+          <a id=tool-3 class="tool" tool="thirdperson">
+            <i class="fal fa-walking"></i>
+            <div class=label>Third person</div>
+          </a>
+          <a id=tool-4 class="tool" tool="isometric">
+            <i class="fal fa-cubes"></i>
+            <div class=label>Isometric view</div>
+          </a>
+          <a id=tool-5 class="tool" tool="birdseye">
+            <i class="fal fa-feather-alt"></i>
+            <div class=label>Birds eye view</div>
+          </a>
+          <a id=tool-6 class="tool" tool="select">
+            <i class="fal fa-mouse-pointer"></i>
+            <div class=label>Select tool</div>
+          </a>
+        </div>
+      </div>
+      <nav class="nav full" id=enter-xr-button>
+        <i class="fa fa-vr-cardboard"></i>
+        <span>Enter</span>
+      </nav>
+      <nav class="nav full square" id=worlds-button>
+        <i class="fa fa-planet-ringed"></i>
+        <div class=label>Select the current world</div>
+      </nav>
+      <nav class="nav full square" id=inventory-button>
+        <i class="fa fa-backpack"></i>
+        <div class=label>Manage your packages</div>
+      </nav>
+      <form id=login-form></form>
+      <nav class="nav full square" id=dropdown-button>
+        <i class="fa fa-bars"></i>
+        <div class=label>Open the main menu</div>
+      </nav>
+    </div>
+  </header>
+  <aside class=subpage id=worlds-subpage>
+    <div class=subtabs>
+      <nav class="subtab open" id=subtab-1>Creative</nav>
+      <nav class=subtab id=subtab-2>Worlds</nav>
+    </div>
+    <div class=subpage-wrap>
+      <div class="subtab-content open" id=subtab-content-1>
+        <div class=worlds-wrap>
+          <div class=world-buttons>
+            <div class="world open" id=singleplayer-button>
+              <i class="fa fa-user"></i>
+              <div class=wrap>
+                <h1>Singleplayer creative</h1>
+                <p>This scene is only visible to you. You can publish it for others to see.</p>
+              </div>
+              <!-- <nav class=button>Join</nav> -->
+            </div>
+            <div class=world id=multiplayer-button>
+              <i class="fa fa-users"></i>
+              <div class=wrap>
+                <h1>Multiplayer creative</h1>
+                <p>When you're ready, publish this scene into a world anyone can join.</p>
+              </div>
+              <!-- <nav class=button>Join</nav> -->
+            </div>
+          </div>
+          <div class=world-tools style="visibility: hidden;" id=world-tools>
+            <h3>Make public</h3>
+            <nav class=world-tool id=publish-world-button>
+              Publish world <i class="fa fa-arrow-right"></i>
+            </nav>
+          </div>
+        </div>
+      </div>
+      <div class="subtab-content" id=subtab-content-2>
+        <div class=worlds-wrap>
+          <div class=worlds>
+            <div class=worlds id=worlds>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <aside class=subpage id=inventory-subpage>
+    <div class=subtabs>
+      <nav class="subtab open" id=subtab-1>Inventory</nav>
+      <nav class=subtab id=subtab-2>Commons</nav>
+      <nav class=subtab id=subtab-3>Uniques</nav>
+    </div>
+    <div class=subpage-wrap>
+      <div class=subtab-content id=subtab-content-1>
+        <div class=packages id=inventory>
+          <!-- Nothing here :'( -->
+        </div>
+      </div>
+      <div class=subtab-content id=subtab-content-2>
+        <div class=packages id=packages>
+          
+        </div>
+      </div>
+      <div class=subtab-content id=subtab-content-3>
+        <div class=tokens id=tokens>
+          
+        </div>
+      </div>
+    </div>
+  </aside>
+  <aside class="dropdown" id=dropdown>
+    <div class=tabs>
+      <nav class="tab open" id=tab-1>
+        <span>Objects</span>
+        <nav>
+          <i class="fa fa-plus"></i>
+          <input type=file class=hidden id=load-package-input>
+        </nav>
+      </nav>
+      <nav class=tab id=tab-2>Scene</nav>
+      <nav class=tab id=tab-3>Social</nav>
+      <nav class=tab id=tab-4>Settings</nav>
+    </div>
+    <section class="tab-content open" id=tab-1-content>
+      <div class=objects id=objects></div>
+    </section>
+    <section class=tab-content id=tab-2-content>
+      <!-- <div class=row>
+        <input type=text placeholder="World name" id=world-name>
+      </div> -->
+      <!-- <div class=row>
+        <input type=text placeholder="Multiplayer room name" id=room-name>
+        <nav class=button id=connect-button>Connect</nav>
+        <nav class=button id=disconnect-button style="display: none;">Disconnect</nav>
+      </div> -->
+      <div class=row>
+        <nav class=button id=reset-scene-button>
+          <i class="fa fa-sparkles"></i> Reset scene
+        </nav>
+      </div>
+      <div class=row>
+        <nav class=button>
+          <i class="fa fa-upload"></i> Import scene
+          <input type=file class=hidden id=import-scene-input>
+        </nav>
+      </div>
+      <div class=row>
+        <nav class=button id=export-scene-button>
+          <i class="fa fa-download"></i> Export scene
+        </nav>
+      </div>
+    </section>
+    <section class=tab-content id=tab-3-content>
+      <div class=avatars>
+        <div class="avatar me" id=avatar-me>
+          <img src=question.png class=preview>
+          <div class=name>No avatar</div>
+          <nav class="button unwear-button" style="display: none;">Unwear</nav>
+          <div class=tag>You</div>
+        </div>
+        <div class=avatars id=avatars>
+          
+        </div>
+      </div>
+    </section>
+    <section class=tab-content id=tab-4-content>
+      <div class=row>
+        <label>
+          <span>Shield</span>
+          <input type=range min=0 max=2 value=2 id=shield-slider>
+        </label>
+      </div>
+      <div class=row>
+        <nav class=button id=toggle-stage-button>Toggle stage</nav>
+      </div>
+    </section>
+  </aside>
+<script type=module>
+  import THREE from './xrpackage/three.module.js';
+  window.THREE = THREE;
+</script>
+<script type=module src="run.js"></script>
+<script type=module src="edit.js"></script>
+</body>
+
+</html>
