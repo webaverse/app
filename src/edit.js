@@ -1,14 +1,14 @@
-import * as THREE from 'https://xrpackage.org/xrpackage/three.module.js';
-import {XRPackageEngine, XRPackage} from 'https://xrpackage.org/xrpackage.js';
-import {BufferGeometryUtils} from 'https://xrpackage.org/BufferGeometryUtils.js';
-import {TransformControls} from 'https://xrpackage.org/TransformControls.js';
+import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
+import {XRPackageEngine, XRPackage} from 'https://static.xrpackage.org/xrpackage.js';
+import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
+import {TransformControls} from 'https://static.xrpackage.org/TransformControls.js';
 import {XRChannelConnection} from 'https://metartc.com/xrrtc.js';
 import {JSONClient} from 'https://sync.webaverse.com/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 import {pe, renderer, scene, camera, container, floorMesh, proxySession, getRealSession} from './run.js';
-import {downloadFile, readFile, bindUploadFileButton} from 'https://xrpackage.org/xrpackage/util.js';
-import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from 'https://xrpackage.org/volume.js';
+import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
+import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from 'https://static.xrpackage.org/volume.js';
 
 const apiHost = `https://ipfs.exokit.org/ipfs`;
 const presenceEndpoint = `wss://presence.exokit.org`;
