@@ -2,15 +2,15 @@
 
 <body>
   <script type=module>
-import THREE from './xrpackage/three.module.js';
+import THREE from 'https://xrpackage.org/xrpackage/three.module.js';
 window.THREE = THREE;
 </script>
   <h1 id=text>Screenshotting...</h1>
   <pre><code id=error></code></pre>
   <script type=module>
-import {XRPackage, XRPackageEngine} from './xrpackage.js';
-import {readFile} from './xrpackage/util.js';
-import {screenshotEngine} from './screenshot-object.js';
+import {XRPackage, XRPackageEngine} from 'https://xrpackage.org/xrpackage.js';
+import {readFile} from 'https://xrpackage.org/xrpackage/util.js';
+import {screenshotEngine} from 'https://xrpackage.org/screenshot-object.js';
 
 (async () => {
 
