@@ -1,7 +1,7 @@
-import * as THREE from 'https://xrpackage.org/xrpackage/three.module.js';
-import {XRPackageEngine, XRPackage} from 'https://xrpackage.org/xrpackage.js';
-import {tryLogin} from 'https://xrpackage.org/xrpackage/login.js';
-import {bindUploadFileButton} from 'https://xrpackage.org/xrpackage/util.js';
+import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
+import {XRPackageEngine, XRPackage} from 'https://static.xrpackage.org/xrpackage.js';
+import {tryLogin} from 'https://static.xrpackage.org/xrpackage/login.js';
+import {bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import './selector.js';
 
 const localVector = new THREE.Vector3();
@@ -182,7 +182,7 @@ window.addEventListener('upload', async e => {
 
 function onSessionStarted(session) {
   session.addEventListener('end', onSessionEnded);
-  
+
   currentSession = session;
 
   pe.setSession(session);
@@ -197,7 +197,7 @@ function onSessionEnded() {
 document.getElementById('enter-xr-button').addEventListener('click', e => {
   e.preventDefault();
   e.stopPropagation();
-  
+
   if (currentSession === null) {
     navigator.xr.requestSession('immersive-vr', {
       optionalFeatures: [
