@@ -1,7 +1,7 @@
-import * as THREE from './xrpackage/three.module.js';
-import {XRPackageEngine, XRPackage} from './xrpackage.js';
-import {tryLogin} from './xrpackage/login.js';
-import {bindUploadFileButton} from './xrpackage/util.js';
+import * as THREE from 'https://xrpackage.org/xrpackage/three.module.js';
+import {XRPackageEngine, XRPackage} from 'https://xrpackage.org/xrpackage.js';
+import {tryLogin} from 'https://xrpackage.org/xrpackage/login.js';
+import {bindUploadFileButton} from 'https://xrpackage.org/xrpackage/util.js';
 import './selector.js';
 
 const localVector = new THREE.Vector3();
