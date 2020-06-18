@@ -1,0 +1,230 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>xrpackage | run</title>
+  <link href="index.css" rel=stylesheet>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
+  <script
+    src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
+</head>
+
+<body>
+  <header class=header id=header>
+    <a href="/" class="nav icon">山</a>
+    <nav class="selector nav bar" id=selector>
+      <i class="fa fa-play head"></i>
+      <div class=header-label id=header-label>Run mode</div>
+      <i class="fa fa-chevron-down tail"></i>
+      <div class=selections id=selections>
+        <a href="run.html" class="selection dim" id=run-mode>
+          <i class="fa fa-play"></i>
+          <div class=wrap>
+            <h3>Run mode</h3>
+            <p>Switch to run mode</p>
+          </div>
+        </a>
+        <a href="edit.html" class=selection id=edit-mode>
+          <i class="fa fa-pencil"></i>
+          <div class=wrap>
+            <h3>Edit mode</h3>
+            <p>You are currently editing this world</p>
+          </div>
+        </a>
+        <a href="browse.html" class=selection>
+          <i class="fa fa-solar-system"></i>
+          <div class=wrap>
+            <h3>Browse packages</h3>
+            <p>Explore the XRPackage registry</p>
+          </div>
+        </a>
+        <a href="help.html" class=selection>
+          <i class="fa fa-book"></i>
+          <div class=wrap>
+            <h3>Documentation</h3>
+            <p>Learn how to make packages and worlds</p>
+          </div>
+        </a>
+      </div>
+    </nav>
+    <nav class="nav full right hidden">
+      <i class="fa fa-plus"></i>
+      <input type=file class=hidden id=load-package-input>
+      <span>Load package</span>
+    </nav>
+    <nav class="nav full" id=enter-xr-button>
+      <i class="fa fa-vr-cardboard"></i>
+      <span>Enter</span>
+    </nav>
+    <form id=login-form></form>
+  </header>
+
+<script type=module>
+  import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
+  window.THREE = THREE;
+</script>
+<script type="module">
+import {XRPackage} from 'https://static.xrpackage.org/xrpackage.js';
+import {pe} from './run.js';
+
+const apiHost = `https://ipfs.exokit.org/ipfs`;
+const packagesEndpoint = 'https://packages.exokit.org';
+
+(async () => {
+  function parseQuery(queryString) {
+    var query = {};
+    var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+    for (var i = 0; i < pairs.length; i++) {
+      var pair = pairs[i].split('=');
+      query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+    }
+    return query;
+  }
+  const q = parseQuery(window.location.search);
+  if (q.p) { // package
+    const metadata = await fetch(packagesEndpoint + '/' + q.p)
+      .then(res => res.json())
+    const {dataHash} = metadata;
+
+    const arrayBuffer = await fetch(`${apiHost}/${dataHash}.wbn`)
+      .then(res => res.arrayBuffer());
+
+    const p = new XRPackage(new Uint8Array(arrayBuffer));
+    await pe.add(p);
+  } else if (q.i) { // index
+    const metadataHash = await contract.methods.getMetadata(parseInt(q.i, 10), 'hash').call();
+    const metadata = await fetch(`${apiHost}/${metadataHash}`)
+      .then(res => res.json());
+    const {dataHash} = metadata;
+
+    const arrayBuffer = await fetch(`${apiHost}/${dataHash}.wbn`)
+      .then(res => res.arrayBuffer());
+
+    const p = new XRPackage(new Uint8Array(arrayBuffer));
+    await pe.add(p);
+  } else if (q.u) { // url
+    const arrayBuffer = await fetch(q.u)
+      .then(res => res.arrayBuffer());
+
+    const p = new XRPackage(new Uint8Array(arrayBuffer));
+    await pe.add(p);
+  } else if (q.h) { // hash
+    const p = await XRPackage.download(q.h);
+    pe.add(p);
+  /* } else if (q.h) { // home
+    const [cubeHtml, cubeManifest] = await Promise.all([
+      (async () => {
+        const res = await fetch('examples/html/cube.html');
+        return await res.text();
+      })(),
+      (async () => {
+        const res = await fetch('examples/html/manifest.json');
+        return await res.text();
+      })(),
+    ]);
+
+    const d = XRPackage.compileRaw(
+      [
+        {
+          url: '/cube.html',
+          type: 'text/html',
+          data: cubeHtml,
+        },
+        {
+          url: '/manifest.json',
+          type: 'application/json',
+          data: cubeManifest,
+        }
+      ]
+    );
+    const p = new XRPackage(d);
+    await pe.add(p); */
+  } else { // default
+    const [cubeHtml, cubeManifest, modelVrm, catVox] = await Promise.all([
+      (async () => {
+        const res = await fetch('examples/html/cube.html');
+        return await res.text();
+      })(),
+      (async () => {
+        const res = await fetch('examples/html/manifest.json');
+        return await res.text();
+      })(),
+      (async () => {
+        const res = await fetch('examples/vrm/model.vrm');
+        return await res.arrayBuffer();
+      })(),
+      (async () => {
+        const res = await fetch('examples/vox/cat.vox');
+        return await res.arrayBuffer();
+      })(),
+    ]);
+
+    {
+      const d = XRPackage.compileRaw(
+        [
+          {
+            url: '/cube.html',
+            type: 'text/html',
+            data: cubeHtml,
+          },
+          {
+            url: '/manifest.json',
+            type: 'application/json',
+            data: cubeManifest,
+          }
+        ]
+      );
+      const p = new XRPackage(d);
+      await pe.add(p);
+    }
+    {
+      const d = XRPackage.compileRaw(
+        [
+          {
+            url: '/model.vrm',
+            type: 'application/octet-stream',
+            data: new Uint8Array(modelVrm),
+          },
+          {
+            url: '/manifest.json',
+            type: 'application/json',
+            data: JSON.stringify({
+              name: 'Avatar',
+              xr_type: 'vrm@0.0.1',
+              start_url: 'model.vrm',
+            }),
+          }
+        ]
+      );
+      const p = new XRPackage(d);
+      await pe.add(p);
+    }
+    {
+      const d = XRPackage.compileRaw(
+        [
+          {
+            url: '/cat.vox',
+            type: 'application/octet-stream',
+            data: new Uint8Array(catVox),
+          },
+          {
+            url: '/manifest.json',
+            type: 'application/json',
+            data: JSON.stringify({
+              name: 'Cat',
+              xr_type: 'vox@0.0.1',
+              start_url: 'cat.vox',
+            }),
+          }
+        ]
+      );
+      const p = new XRPackage(d);
+      await pe.add(p);
+    }
+  }
+})();
+</script>
+</body>
+
+</html>
