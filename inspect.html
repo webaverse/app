@@ -145,16 +145,14 @@
   </div>
 
 <script type=module>
-  import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-  window.THREE = THREE;
-</script>
-<script type="module">
+import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
+window.THREE = THREE;
 import './selector.js';
 import {XRPackage, XRPackageEngine} from 'https://static.xrpackage.org/xrpackage.js';
-import {tryLogin} from 'https://static.xrpackage.org/xrpackage/login.js';
-import {getWireframeMesh} from 'https://static.xrpackage.org/volume.js';
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {OrbitControls} from 'https://static.xrpackage.org/xrpackage/OrbitControls.js';
+import {tryLogin} from './login.js';
+import {getWireframeMesh} from './volume.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 
