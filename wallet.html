@@ -67,12 +67,10 @@
     </form>
   </div>
 </header>
-<script type=module>
-  import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-  window.THREE = THREE;
-</script>
   <script type=module>
-import {screenshotObject, exportObject} from 'https://static.xrpackage.org/screenshot-object.js';
+import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
+window.THREE = THREE;
+import {screenshotObject, exportObject} from './screenshot-object.js';
 import {XRPackage} from 'https://static.xrpackage.org/xrpackage.js';
 import {bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {contractManager, getContract} from 'https://static.xrpackage.org/wallet.js';

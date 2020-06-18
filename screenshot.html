@@ -1,16 +1,14 @@
 <html>
 
 <body>
-  <script type=module>
-import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-window.THREE = THREE;
-</script>
   <h1 id=text>Screenshotting...</h1>
   <pre><code id=error></code></pre>
   <script type=module>
+import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
+window.THREE = THREE;
 import {XRPackage, XRPackageEngine} from 'https://static.xrpackage.org/xrpackage.js';
 import {readFile} from 'https://static.xrpackage.org/xrpackage/util.js';
-import {screenshotEngine} from 'https://static.xrpackage.org/screenshot-object.js';
+import {screenshotEngine} from './screenshot-object.js';
 
 (async () => {
 
