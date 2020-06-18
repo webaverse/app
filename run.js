@@ -221,6 +221,8 @@ const getRealSession = () => {
 };
 
 export {
+  XRPackageEngine,
+  XRPackage,
   pe,
   renderer,
   scene,
