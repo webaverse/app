@@ -9,16 +9,6 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 
-function makePromise() {
-  let accept, reject;
-  const p = new Promise((a, r) => {
-    accept = a;
-    reject = r;
-  });
-  p.accept = accept;
-  p.reject = reject;
-  return p;
-}
 const wireframeMaterial = new THREE.ShaderMaterial({
   vertexShader: `\
     uniform vec3 uHoverId;
@@ -232,7 +222,6 @@ export class VolumeRaycaster {
   }
 }
 
-const modulePromise = makePromise();
 self.wasmModule = (moduleName, moduleFn) => {
   if (moduleName === 'mc') {
     self.Module = moduleFn({
@@ -244,9 +233,6 @@ self.wasmModule = (moduleName, moduleFn) => {
         } else {
           return path;
         }
-      },
-      onRuntimeInitialized: () => {
-        modulePromise.accept();
       },
     });
 
