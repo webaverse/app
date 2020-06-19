@@ -1,3 +1,4 @@
+/* global GIF */
 import THREE from './xrpackage/three.module.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import './gif.js';
