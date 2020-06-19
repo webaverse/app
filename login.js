@@ -3,7 +3,7 @@ import storage from './storage.js';
 const loginEndpoint = 'https://login.exokit.org';
 
 let loginToken = null;
-async function doLogin(email, code) {
+async function doLogin (email, code) {
   const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
     method: 'POST',
   });
@@ -39,7 +39,7 @@ async function doLogin(email, code) {
     return false;
   }
 }
-async function tryLogin() {
+async function tryLogin () {
   const localLoginToken = await storage.get('loginToken');
   if (localLoginToken) {
     const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(localLoginToken.email)}&token=${encodeURIComponent(localLoginToken.token)}`, {
@@ -103,7 +103,7 @@ async function tryLogin() {
   const loginEmailStatic = document.getElementById('login-email-static');
   if (loginToken) {
     loginEmailStatic.innerText = loginToken.email;
-    
+
     document.body.classList.add('logged-in');
     loginForm.classList.add('phase-3');
   } else {
@@ -119,7 +119,7 @@ async function tryLogin() {
 
       const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(loginEmail.value)}`, {
         method: 'POST',
-      })
+      });
       if (res.status >= 200 && res.status < 300) {
         loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
         loginForm.classList.add('phase-2');
@@ -128,7 +128,7 @@ async function tryLogin() {
       } else {
         throw new Error(`invalid status code: ${res.status}`);
       }
-   } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
+    } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
       loginNotice.innerHTML = '';
       loginError.innerHTML = '';
       loginForm.classList.remove('phase-2');
