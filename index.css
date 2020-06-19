@@ -179,6 +179,42 @@ img:not([src]) {
 
 }
 
+.footer {
+  position: absolute;
+  display: flex;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  padding: 30px;
+}
+
+.footer .nav {
+  display: flex;
+  padding: 10px 20px;
+  background-color: #808080;
+  border-radius: 10px;
+  font-size: 16px;
+  align-items: center;
+  opacity: 0.5;
+  cursor: pointer;
+}
+.footer .nav:hover {
+  opacity: 1;
+}
+.footer .nav:first-child {
+  margin-right: auto;
+}
+.footer .nav + .nav {
+  margin-left: 10px;
+}
+.footer .nav i {
+  margin-right: 5px;
+}
+.footer .nav .label {
+  display: none;
+}
+
 .selections {
   display: flex;
   position: absolute;
@@ -495,13 +531,14 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .subpage {
   position: absolute;
   right: 0;
-  top: 50px;
-  width: 640px;
-  height: calc(100% - 50px);
-  padding: 20px;
-  background-color: #FFF;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
-  overflow: auto;
+  bottom: 0;
+  width: 100vw;
+  height: 200px;
+  /* padding: 20px; */
+  background-color: #111;
+  color: #FFF;
+  /* box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  overflow: auto; */
 }
 
 .subpage:not(.open) {
