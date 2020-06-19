@@ -3,7 +3,7 @@ import {GLTFExporter} from './GLTFExporter.js';
 import './gif.js';
 import screenshot from './screenshot.js';
 
-function makePromise () {
+function makePromise() {
   let accept, reject;
   const p = new Promise((a, r) => {
     accept = a;
@@ -13,7 +13,7 @@ function makePromise () {
   p.reject = reject;
   return p;
 }
-export async function screenshotObject (o) {
+export async function screenshotObject(o) {
   console.log('add o', o);
 
   const newScene = new THREE.Scene();
@@ -54,7 +54,7 @@ export async function screenshotObject (o) {
   console.log('got gif data', blob);
   return blob;
 }
-export async function exportObject (o) {
+export async function exportObject(o) {
   const dataPromise = makePromise();
   const exporter = new GLTFExporter();
   const exportScene = new THREE.Scene();
@@ -69,7 +69,7 @@ export async function exportObject (o) {
   console.log('got gltf data', data);
   return data;
 }
-export async function screenshotEngine (pe) {
+export async function screenshotEngine(pe) {
   const center = new THREE.Vector3(0, 0, 0);
   const size = new THREE.Vector3(3, 3, 3);
   const up = new THREE.Vector3(0, 1, 0);

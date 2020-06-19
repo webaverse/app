@@ -3,7 +3,7 @@ import storage from './storage.js';
 const loginEndpoint = 'https://login.exokit.org';
 
 let loginToken = null;
-async function doLogin (email, code) {
+async function doLogin(email, code) {
   const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
     method: 'POST',
   });
@@ -39,7 +39,7 @@ async function doLogin (email, code) {
     return false;
   }
 }
-async function tryLogin () {
+async function tryLogin() {
   const localLoginToken = await storage.get('loginToken');
   if (localLoginToken) {
     const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(localLoginToken.email)}&token=${encodeURIComponent(localLoginToken.token)}`, {

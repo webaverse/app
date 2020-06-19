@@ -3,7 +3,8 @@
     "rules": {
         "comma-dangle": ["error", "always-multiline"],
         "object-curly-spacing": ["error", "never"],
-        "linebreak-style": ["error", "unix"]
+        "linebreak-style": ["error", "unix"],
+        "space-before-function-paren": ["error", "never"]
     },
     "env": {
         "browser": true

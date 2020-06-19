@@ -9,7 +9,7 @@ const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
-(async () => {
+(async() => {
   await XRPackageEngine.waitForLoad();
   await tryLogin();
 })();
@@ -56,7 +56,7 @@ container.add(directionalLight);
 const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
 container.add(directionalLight2);
 
-function mod (a, n) {
+function mod(a, n) {
   return ((a % n) + n) % n;
 }
 const parcelSize = 10;
@@ -125,7 +125,7 @@ const _makeFloorMesh = () => {
 const floorMesh = _makeFloorMesh();
 pe.scene.add(floorMesh);
 
-function animate (timestamp, frame) {
+function animate(timestamp, frame) {
   /* const timeFactor = 1000;
   targetMesh.material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor; */
 
@@ -180,14 +180,14 @@ window.addEventListener('upload', async e => {
   } */
 });
 
-function onSessionStarted (session) {
+function onSessionStarted(session) {
   session.addEventListener('end', onSessionEnded);
 
   currentSession = session;
 
   pe.setSession(session);
 }
-function onSessionEnded () {
+function onSessionEnded() {
   currentSession.removeEventListener('end', onSessionEnded);
 
   currentSession = null;

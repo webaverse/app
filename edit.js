@@ -30,7 +30,7 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
-function parseQuery (queryString) {
+function parseQuery(queryString) {
   var query = {};
   var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
   for (var i = 0; i < pairs.length; i++) {
@@ -152,7 +152,7 @@ const _makeVolumeMesh = async p => {
   downloadFile(b, 'target.glb');
 }; */
 
-(async () => {
+(async() => {
   const res = await fetch('./assets/avatar.vrm');
   const b = await res.blob();
   b.name = 'model.vrm';
@@ -167,7 +167,7 @@ const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
 // let lastTimestamp = performance.now();
-function animate (timestamp, frame) {
+function animate(timestamp, frame) {
   /* const timeFactor = 1000;
   targetMesh.material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor; */
 
@@ -691,7 +691,7 @@ shieldSlider.addEventListener('change', async e => {
 document.getElementById('toggle-stage-button').addEventListener('click', e => {
   floorMesh.visible = !floorMesh.visible;
 });
-function _matrixUpdate (e) {
+function _matrixUpdate(e) {
   const p = this;
   const matrix = e.data;
   p.placeholderBox && p.placeholderBox.matrix.copy(matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
@@ -1069,7 +1069,7 @@ const _bindWorld = w => {
     _pushWorld(name);
   });
 };
-(async () => {
+(async() => {
   const res = await fetch(worldsEndpoint);
   const children = await res.json();
   const ws = await Promise.all(children.map(child =>
@@ -1142,7 +1142,7 @@ const _bindPackage = (pE, pJ) => {
   }); */
 };
 const packages = document.getElementById('packages');
-(async () => {
+(async() => {
   const res = await fetch(packagesEndpoint);
   const children = await res.json();
   const ps = await Promise.all(children.map(child =>
@@ -1153,7 +1153,7 @@ const packages = document.getElementById('packages');
   Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i]));
 })();
 const tokens = document.getElementById('tokens');
-async function getTokenByIndex (index) {
+async function getTokenByIndex(index) {
   const metadataHash = await contract.methods.getMetadata(index, 'hash').call();
   const metadata = await fetch(`${apiHost}/${metadataHash}`).then(res => res.json());
   const {dataHash, screenshotHash, modelHash} = metadata;
@@ -1209,7 +1209,7 @@ pe.domElement.addEventListener('drop', async e => {
     </div>
   `;
 };
-(async () => {
+(async() => {
   const totalObjects = await contract.methods.getNonce().call();
   const ts = [];
   for (let i = 1; i <= totalObjects; i++) {
