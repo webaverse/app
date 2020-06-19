@@ -7,7 +7,7 @@ app.use((req, res, next) => {
   res.set('Access-Control-Allow-Origin', '*');
   next();
 });
-app.use(express.static(path.join(__dirname, 'src')));
+app.use(express.static(__dirname));
 
 http.createServer(app)
   .listen(3000);
