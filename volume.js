@@ -9,7 +9,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 
-function makePromise () {
+function makePromise() {
   let accept, reject;
   const p = new Promise((a, r) => {
     accept = a;
@@ -106,7 +106,7 @@ const _getFirstMesh = o => {
   });
   return firstMesh;
 };
-export function getWireframeMesh (o) {
+export function getWireframeMesh(o) {
   const firstMesh = _getFirstMesh(o);
   if (firstMesh) {
     const geometry = firstMesh.geometry.toNonIndexed();
@@ -161,14 +161,14 @@ const idMaterial = new THREE.ShaderMaterial({
   side: THREE.DoubleSide,
 });
 
-export function meshIdToArray (meshId) {
+export function meshIdToArray(meshId) {
   return [
     ((meshId >> 16) & 0xFF),
     ((meshId >> 8) & 0xFF),
     (meshId & 0xFF),
   ];
 }
-export function decorateRaycastMesh (o, meshId) {
+export function decorateRaycastMesh(o, meshId) {
   const firstMesh = _getFirstMesh(o);
   if (firstMesh) {
     const {geometry} = firstMesh;
@@ -183,7 +183,7 @@ export function decorateRaycastMesh (o, meshId) {
   o.meshId = meshId;
 }
 export class VolumeRaycaster {
-  constructor () {
+  constructor() {
     this.renderer = new THREE.WebGLRenderer({
       alpha: true,
     });
@@ -196,7 +196,7 @@ export class VolumeRaycaster {
     this.pixels = new Uint8Array(4);
   }
 
-  raycastMeshes (meshes, origin, direction) {
+  raycastMeshes(meshes, origin, direction) {
     const oldParents = meshes.map(mesh => mesh.parent);
     for (let i = 0; i < meshes.length; i++) {
       this.scene.add(meshes[i]);
@@ -236,9 +236,9 @@ const modulePromise = makePromise();
 self.wasmModule = (moduleName, moduleFn) => {
   if (moduleName === 'mc') {
     self.Module = moduleFn({
-      print (text) { console.log(text); },
-      printErr (text) { console.warn(text); },
-      locateFile (path, scriptDirectory) {
+      print(text) { console.log(text); },
+      printErr(text) { console.warn(text); },
+      locateFile(path, scriptDirectory) {
         if (path === 'mc.wasm') {
           return 'bin/' + path;
         } else {
@@ -258,11 +258,11 @@ self.wasmModule = (moduleName, moduleFn) => {
 import('./bin/mc.js');
 
 class Allocator {
-  constructor () {
+  constructor() {
     this.offsets = [];
   }
 
-  alloc (constructor, size) {
+  alloc(constructor, size) {
     const offset = self.Module._doMalloc(size * constructor.BYTES_PER_ELEMENT);
     const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
     b.offset = offset;
@@ -270,7 +270,7 @@ class Allocator {
     return b;
   }
 
-  freeAll () {
+  freeAll() {
     for (let i = 0; i < this.offsets.length; i++) {
       self.Module._doFree(this.offsets[i]);
     }
@@ -292,7 +292,7 @@ const getPreviewMesh = async p => {
   });
   await pe.add(p);
 
-  async function marchPotentials (data) {
+  async function marchPotentials(data) {
     const {depthTextures: depthTexturesData, dims: dimsData, shift: shiftData, size: sizeData, pixelRatio, value, nvalue} = data;
 
     const allocator = new Allocator();
@@ -469,7 +469,7 @@ void main() {
   float z_e = 2.0 * uNear * uFar / (uFar + uNear - z_n * (uFar - uNear));
   gl_FragColor = encodePixelDepth(z_e);
 }`;
-  function compileShader (gl, shaderSource, shaderType) {
+  function compileShader(gl, shaderSource, shaderType) {
     // Create the shader object
     const shader = gl.createShader(shaderType);
 
@@ -488,7 +488,7 @@ void main() {
 
     return shader;
   }
-  function createProgram (gl, vertexShader, fragmentShader) {
+  function createProgram(gl, vertexShader, fragmentShader) {
     // create a program.
     const program = gl.createProgram();
 
