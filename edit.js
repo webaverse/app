@@ -1,9 +1,10 @@
+/* global Web3 */
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
 import {TransformControls} from 'https://static.xrpackage.org/TransformControls.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
-import {XRPackageEngine, XRPackage, pe, renderer, scene, camera, container, floorMesh, proxySession, getRealSession} from './run.js';
+import {XRPackage, pe, renderer, scene, camera, floorMesh, proxySession, getRealSession} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 
@@ -28,7 +29,6 @@ const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
-const localBox = new THREE.Box3();
 
 function parseQuery (queryString) {
   var query = {};
@@ -197,7 +197,7 @@ function animate (timestamp, frame) {
 
         // axes
         const {axes} = gamepad;
-        if (handedness == 'left') {
+        if (handedness === 'left') {
           localVector.set(0, 0, 0);
           if (axes[0] < -0.5) {
             localVector.x += 0.015;
@@ -667,7 +667,6 @@ const shieldSlider = document.getElementById('shield-slider');
 let shieldLevel = parseInt(shieldSlider.value, 10);
 shieldSlider.addEventListener('change', async e => {
   const newShieldLevel = parseInt(e.target.value, 10);
-  const {packages} = pe;
   switch (newShieldLevel) {
     case 0: {
       shieldLevel = newShieldLevel;
@@ -777,7 +776,6 @@ pe.addEventListener('packageremove', e => {
   }
 });
 
-let transformControlsHovered = false;
 const _bindTransformControls = o => {
   const control = new TransformControls(camera, renderer.domElement, document);
   // control.setMode(transformMode);
@@ -787,22 +785,12 @@ const _bindTransformControls = o => {
   /* control.addEventListener('dragging-changed', e => {
     orbitControls.enabled = !e.value;
   }); */
-  control.addEventListener('mouseEnter', () => {
-    transformControlsHovered = true;
-  });
-  control.addEventListener('mouseLeave', () => {
-    transformControlsHovered = false;
-  });
   const _snapshotTransform = o => ({
     position: o.position.clone(),
     quaternion: o.quaternion.clone(),
     scale: o.scale.clone(),
   });
-  let lastTransform = _snapshotTransform(o);
   let changed = false;
-  control.addEventListener('mouseDown', () => {
-    lastTransform = _snapshotTransform(o);
-  });
   control.addEventListener('mouseUp', () => {
     if (changed) {
       changed = false;
@@ -813,13 +801,6 @@ const _bindTransformControls = o => {
       o.scale.copy(newTransform.scale);
       o.updateMatrixWorld();
       o.package.setMatrix(o.matrix);
-      /* const action = createAction('transform', {
-        object: o,
-        oldTransform: lastTransform,
-        newTransform,
-      });
-      execute(action); */
-      lastTransform = newTransform;
     }
   });
   control.addEventListener('objectChange', e => {
@@ -833,7 +814,6 @@ const _unbindTransformControls = o => {
   scene.remove(o.control);
   o.control.dispose();
   o.control = null;
-  transformControlsHovered = false;
 };
 
 const raycaster = new THREE.Raycaster();
@@ -1372,14 +1352,11 @@ const unwearButton = avatarMe.querySelector('.unwear-button');
 const avatars = document.getElementById('avatars');
 const _renderAvatars = () => {
   const {avatar} = pe;
-  const previewEl = avatarMe.querySelector('.preview');
   const nameEl = avatarMe.querySelector('.name');
   if (avatar) {
-    // previewEl.src = avatar.getPreviewUrl();
     nameEl.innerText = avatar.name;
     unwearButton.style.display = null;
   } else {
-    // previewEl.src = avatar.getPreviewUrl();
     nameEl.innerText = 'No avatar';
     unwearButton.style.display = 'none';
   }
