@@ -1,10 +1,11 @@
 {
     "extends": "semistandard",
     "rules": {
-        "comma-dangle": ["error", "always"],
-        "object-curly-spacing": ["error", "never"]
+        "comma-dangle": ["error", "always-multiline"],
+        "object-curly-spacing": ["error", "never"],
+        "linebreak-style": ["error", "unix"]
     },
     "env": {
-        "browser": true // or `"node": true `, for different projects
+        "browser": true
     }
 }
