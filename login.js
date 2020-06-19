@@ -68,7 +68,6 @@ async function tryLogin () {
     }
   }
 
-  const header = document.getElementById('header');
   const loginForm = document.getElementById('login-form');
   loginForm.classList.add('login-form');
   loginForm.innerHTML = `
