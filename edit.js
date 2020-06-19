@@ -7,8 +7,8 @@ import {XRPackageEngine, XRPackage, pe, renderer, scene, camera, container, floo
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 
-const apiHost = `https://ipfs.exokit.org/ipfs`;
-const presenceEndpoint = `wss://presence.exokit.org`;
+const apiHost = 'https://ipfs.exokit.org/ipfs';
+const presenceEndpoint = 'wss://presence.exokit.org';
 const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
 // const scenesEndpoint = 'https://scenes.exokit.org';
@@ -30,7 +30,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localBox = new THREE.Box3();
 
-function parseQuery(queryString) {
+function parseQuery (queryString) {
   var query = {};
   var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
   for (var i = 0; i < pairs.length; i++) {
@@ -78,7 +78,7 @@ const targetMeshGeometry = (() => {
     targetGeometry.clone()
       .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0.5)),
-  ])// .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+  ]);// .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
 })();
 const targetVsh = `
   #define M_PI 3.1415926535897932384626433832795
@@ -167,7 +167,7 @@ const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
 // let lastTimestamp = performance.now();
-function animate(timestamp, frame) {
+function animate (timestamp, frame) {
   /* const timeFactor = 1000;
   targetMesh.material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor; */
 
@@ -232,9 +232,9 @@ function animate(timestamp, frame) {
             pe.setMatrix(localMatrix);
           };
           if (axes[0] < -0.5 && !(lastAxes[index][0] < -0.5)) {
-            _applyRotation(-Math.PI*0.2);
+            _applyRotation(-Math.PI * 0.2);
           } else if (axes[0] > 0.5 && !(lastAxes[index][0] > 0.5)) {
-            _applyRotation(Math.PI*0.2);
+            _applyRotation(Math.PI * 0.2);
           }
         }
         lastAxes[index][0] = axes[0];
@@ -311,13 +311,13 @@ function animate(timestamp, frame) {
     }
   }
   if (hoverTarget) {
-    wireframeMaterial.uniforms.uHoverId.value.fromArray(meshIdToArray(hoverTarget.meshId).map(n => n/255));
+    wireframeMaterial.uniforms.uHoverId.value.fromArray(meshIdToArray(hoverTarget.meshId).map(n => n / 255));
     wireframeMaterial.uniforms.uHoverColor.value.fromArray(new THREE.Color(0x5c6bc0).toArray());
   } else {
     wireframeMaterial.uniforms.uHoverId.value.set(0, 0, 0);
   }
   if (selectTarget) {
-    wireframeMaterial.uniforms.uSelectId.value.fromArray(meshIdToArray(selectTarget.meshId).map(n => n/255));
+    wireframeMaterial.uniforms.uSelectId.value.fromArray(meshIdToArray(selectTarget.meshId).map(n => n / 255));
     wireframeMaterial.uniforms.uSelectColor.value.fromArray(new THREE.Color(0x66bb6a).toArray());
   } else {
     wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
@@ -336,13 +336,13 @@ bindUploadFileButton(document.getElementById('import-scene-input'), async file =
 });
 
 let selectedTool = 'camera';
-let avatarHeight = 1.2;
+const avatarHeight = 1.2;
 const birdsEyeHeight = 10;
 const avatarCameraOffset = new THREE.Vector3(0, 0, -1);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -5);
 const tools = Array.from(document.querySelectorAll('.tool'));
 for (let i = 0; i < tools.length; i++) {
-  const tool = document.getElementById('tool-' + (i+1));
+  const tool = document.getElementById('tool-' + (i + 1));
   tool.addEventListener('click', e => {
     for (let i = 0; i < tools.length; i++) {
       tools[i].classList.remove('selected');
@@ -410,7 +410,7 @@ for (let i = 0; i < tools.length; i++) {
           break;
         }
         case 'isometric': {
-          pe.camera.rotation.x = -Math.PI/4;
+          pe.camera.rotation.x = -Math.PI / 4;
           pe.camera.quaternion.setFromEuler(pe.camera.rotation);
           pe.camera.position.y = avatarHeight;
           pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
@@ -425,7 +425,7 @@ for (let i = 0; i < tools.length; i++) {
         }
         case 'birdseye': {
           pe.camera.position.y = birdsEyeHeight;
-          pe.camera.rotation.x = -Math.PI/2;
+          pe.camera.rotation.x = -Math.PI / 2;
           pe.camera.quaternion.setFromEuler(pe.camera.rotation);
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
@@ -692,7 +692,7 @@ shieldSlider.addEventListener('change', async e => {
 document.getElementById('toggle-stage-button').addEventListener('click', e => {
   floorMesh.visible = !floorMesh.visible;
 });
-function _matrixUpdate(e) {
+function _matrixUpdate (e) {
   const p = this;
   const matrix = e.data;
   p.placeholderBox && p.placeholderBox.matrix.copy(matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
@@ -730,7 +730,7 @@ const _setSelectTarget = newSelectTarget => {
     }
     // const object = objectsEl.querySelector(`[packageid="${selectTarget.package.id}"]`);
     // object.click();
-    
+
     _bindTransformControls(selectTarget);
   }
   _renderObjects();
@@ -758,7 +758,7 @@ pe.addEventListener('packageremove', e => {
     package: p,
     reason,
   } = e.data;
-  
+
   if (p.placeholderBox) {
     scene.remove(p.placeholderBox);
   }
@@ -838,7 +838,7 @@ const _unbindTransformControls = o => {
 
 const raycaster = new THREE.Raycaster();
 const _updateRaycasterFromMouseEvent = (raycaster, e) => {
-  const mouse = new THREE.Vector2(( ( e.clientX ) / window.innerWidth ) * 2 - 1, - ( ( e.clientY ) / window.innerHeight ) * 2 + 1);
+  const mouse = new THREE.Vector2(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(mouse, pe.camera);
   const candidateMeshes = pe.packages
     .map(p => p.volumeMesh)
@@ -852,16 +852,16 @@ const _updateMouseMovement = e => {
   } else if (selectedTool === 'isometric') {
     pe.camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
   } else if (selectedTool === 'birdseye') {
-    pe.camera.rotation.x = -Math.PI/2;
+    pe.camera.rotation.x = -Math.PI / 2;
     pe.camera.quaternion.setFromEuler(pe.camera.rotation);
     // pe.camera.updateMatrixWorld();
     // pe.setCamera(camera);
   }
 
-  pe.camera.rotation.y -= movementX * Math.PI*2*0.001;
+  pe.camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
   if (selectedTool !== 'isometric' && selectedTool !== 'birdseye') {
-    pe.camera.rotation.x -= movementY * Math.PI*2*0.001;
-    pe.camera.rotation.x = Math.min(Math.max(pe.camera.rotation.x, -Math.PI/2), Math.PI/2);
+    pe.camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
+    pe.camera.rotation.x = Math.min(Math.max(pe.camera.rotation.x, -Math.PI / 2), Math.PI / 2);
     pe.camera.quaternion.setFromEuler(pe.camera.rotation);
   }
 
@@ -1075,7 +1075,7 @@ const _enterWorld = async name => {
   } else {
     pe.reset();
   }
-  
+
   currentWorldChanged = false;
   _updateWorldSaveButton();
 };
@@ -1094,7 +1094,7 @@ const _bindWorld = w => {
   const children = await res.json();
   const ws = await Promise.all(children.map(child =>
     fetch(worldsEndpoint + '/' + child)
-      .then(res => res.json())
+      .then(res => res.json()),
   ));
   worlds.innerHTML = ws.map(w => _makeWorldHtml(w)).join('\n');
   Array.from(worlds.querySelectorAll('.world')).forEach((w, i) => _bindWorld(w, ws[i]));
@@ -1167,13 +1167,13 @@ const packages = document.getElementById('packages');
   const children = await res.json();
   const ps = await Promise.all(children.map(child =>
     fetch(packagesEndpoint + '/' + child)
-      .then(res => res.json())
+      .then(res => res.json()),
   ));
   packages.innerHTML = ps.map(p => _makePackageHtml(p)).join('\n');
   Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i]));
 })();
 const tokens = document.getElementById('tokens');
-async function getTokenByIndex(index) {
+async function getTokenByIndex (index) {
   const metadataHash = await contract.methods.getMetadata(index, 'hash').call();
   const metadata = await fetch(`${apiHost}/${metadataHash}`).then(res => res.json());
   const {dataHash, screenshotHash, modelHash} = metadata;
@@ -1183,8 +1183,8 @@ async function getTokenByIndex(index) {
     img: `${apiHost}/${screenshotHash}`,
     metadataHash: metadataHash,
     dataHash: dataHash,
-    modelHash: modelHash
-  }
+    modelHash: modelHash,
+  };
 }
 pe.domElement.addEventListener('dragover', e => {
   e.preventDefault();
@@ -1197,7 +1197,7 @@ pe.domElement.addEventListener('drop', async e => {
     const dataHash = await new Promise((resolve, reject) => {
       item.getAsString(resolve);
     });
-    
+
     _updateRaycasterFromMouseEvent(raycaster, e);
     localMatrix.compose(
       raycaster.ray.origin.clone()

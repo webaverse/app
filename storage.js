@@ -1,5 +1,5 @@
 const storage = {
-  async get(k) {
+  async get (k) {
     const res = await fetch(`/xrpackage/storage/${k}`);
     if (res.status >= 200 && res.status < 300) {
       const s = await res.text();
@@ -8,7 +8,7 @@ const storage = {
       return undefined;
     }
   },
-  async set(k, v) {
+  async set (k, v) {
     const res = await fetch(`/xrpackage/storage/${k}`, {
       method: 'PUT',
       body: JSON.stringify(v),
@@ -19,7 +19,7 @@ const storage = {
       throw new Error(`invalid status code: ${res.status}`);
     }
   },
-  async remove(k) {
+  async remove (k) {
     const res = await fetch(`/xrpackage/storage/${k}`, {
       method: 'DELETE',
     });

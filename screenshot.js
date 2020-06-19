@@ -17,7 +17,7 @@ const screenshot = (scene, cameraPosition, cameraTarget, options = {}) => {
   camera.position.copy(cameraPosition);
   camera.lookAt(cameraTarget);
   // camera.quaternion.copy(cameraQuaternion);
-  //camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
+  // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
   // const localAabb = model.boundingBoxMesh.scale.clone().applyQuaternion(model.quaternion);
   // const modelHeight = Math.max(model.boundingBoxMesh.scale.x, model.boundingBoxMesh.scale.y, model.boundingBoxMesh.scale.z);
   // camera.fov = 2 * Math.atan( modelHeight / ( 2 * dist ) ) * ( 180 / Math.PI );
