@@ -1,0 +1,10 @@
+{
+    "extends": "semistandard",
+    "rules": {
+        "comma-dangle": ["error", "always"],
+        "object-curly-spacing": ["error", "never"]
+    },
+    "env": {
+        "browser": true // or `"node": true `, for different projects
+    }
+}
