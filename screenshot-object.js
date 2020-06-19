@@ -6,6 +6,7 @@ import screenshot from './screenshot.js';
 
 function makePromise() {
   let accept, reject;
+  // eslint-disable-next-line promise/param-names
   const p = new Promise((a, r) => {
     accept = a;
     reject = r;
