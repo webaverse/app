@@ -1,10 +1,9 @@
+/* eslint-disable no-throw-literal */
 import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {XRPackageEngine} from 'https://static.xrpackage.org/xrpackage.js';
 
 const voxelWidth = 100;
-const voxelSize = 1;
 const pixelRatio = 3;
-const voxelResolution = voxelSize / voxelWidth;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -21,7 +20,6 @@ function makePromise () {
   return p;
 }
 const wireframeMaterial = new THREE.ShaderMaterial({
-  uniforms: {},
   vertexShader: `\
     uniform vec3 uHoverId;
     uniform vec3 uHoverColor;
@@ -293,6 +291,78 @@ const getPreviewMesh = async p => {
     autoListen: false,
   });
   await pe.add(p);
+
+  async function marchPotentials (data) {
+    const {depthTextures: depthTexturesData, dims: dimsData, shift: shiftData, size: sizeData, pixelRatio, value, nvalue} = data;
+
+    const allocator = new Allocator();
+
+    const depthTextures = allocator.alloc(Float32Array, depthTexturesData.length);
+    depthTextures.set(depthTexturesData);
+
+    const positions = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
+    const indices = allocator.alloc(Uint32Array, 1024 * 1024 * Uint32Array.BYTES_PER_ELEMENT);
+
+    const numPositions = allocator.alloc(Uint32Array, 1);
+    numPositions[0] = positions.length;
+    const numIndices = allocator.alloc(Uint32Array, 1);
+    numIndices[0] = indices.length;
+
+    const dims = allocator.alloc(Int32Array, 3);
+    dims.set(Int32Array.from(dimsData));
+
+    const shift = allocator.alloc(Float32Array, 3);
+    shift.set(Float32Array.from(shiftData));
+
+    const size = allocator.alloc(Float32Array, 3);
+    size.set(Float32Array.from(sizeData));
+
+    self.Module._doMarchPotentials(
+      depthTextures.offset,
+      dims.offset,
+      shift.offset,
+      size.offset,
+      pixelRatio,
+      value,
+      nvalue,
+      positions.offset,
+      indices.offset,
+      numPositions.offset,
+      numIndices.offset,
+    );
+
+    const arrayBuffer2 = new ArrayBuffer(
+      Uint32Array.BYTES_PER_ELEMENT +
+      numPositions[0] * Float32Array.BYTES_PER_ELEMENT +
+      Uint32Array.BYTES_PER_ELEMENT +
+      numIndices[0] * Uint32Array.BYTES_PER_ELEMENT,
+    );
+    let index = 0;
+
+    const outP = new Float32Array(arrayBuffer2, index, numPositions[0]);
+    outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
+    index += Float32Array.BYTES_PER_ELEMENT * numPositions[0];
+
+    const outI = new Uint32Array(arrayBuffer2, index, numIndices[0]);
+    outI.set(new Uint32Array(indices.buffer, indices.byteOffset, numIndices[0]));
+    index += Uint32Array.BYTES_PER_ELEMENT * numIndices[0];
+
+    return {
+      // result: {
+      positions: outP,
+      indices: outI,
+      /* },
+      cleanup: () => {
+        allocator.freeAll();
+
+        this.running = false;
+        if (this.queue.length > 0) {
+          const fn = this.queue.shift();
+          fn();
+        }
+      }, */
+    };
+  }
 
   const camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
   pe.camera = camera;
@@ -609,78 +679,6 @@ void main() {
 
       getDepthPixels(depthTextures, i);
     });
-
-    async function marchPotentials (data) {
-      const {depthTextures: depthTexturesData, dims: dimsData, shift: shiftData, size: sizeData, pixelRatio, value, nvalue} = data;
-
-      const allocator = new Allocator();
-
-      const depthTextures = allocator.alloc(Float32Array, depthTexturesData.length);
-      depthTextures.set(depthTexturesData);
-
-      const positions = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
-      const indices = allocator.alloc(Uint32Array, 1024 * 1024 * Uint32Array.BYTES_PER_ELEMENT);
-
-      const numPositions = allocator.alloc(Uint32Array, 1);
-      numPositions[0] = positions.length;
-      const numIndices = allocator.alloc(Uint32Array, 1);
-      numIndices[0] = indices.length;
-
-      const dims = allocator.alloc(Int32Array, 3);
-      dims.set(Int32Array.from(dimsData));
-
-      const shift = allocator.alloc(Float32Array, 3);
-      shift.set(Float32Array.from(shiftData));
-
-      const size = allocator.alloc(Float32Array, 3);
-      size.set(Float32Array.from(sizeData));
-
-      self.Module._doMarchPotentials(
-        depthTextures.offset,
-        dims.offset,
-        shift.offset,
-        size.offset,
-        pixelRatio,
-        value,
-        nvalue,
-        positions.offset,
-        indices.offset,
-        numPositions.offset,
-        numIndices.offset,
-      );
-
-      const arrayBuffer2 = new ArrayBuffer(
-        Uint32Array.BYTES_PER_ELEMENT +
-        numPositions[0] * Float32Array.BYTES_PER_ELEMENT +
-        Uint32Array.BYTES_PER_ELEMENT +
-        numIndices[0] * Uint32Array.BYTES_PER_ELEMENT,
-      );
-      let index = 0;
-
-      const outP = new Float32Array(arrayBuffer2, index, numPositions[0]);
-      outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
-      index += Float32Array.BYTES_PER_ELEMENT * numPositions[0];
-
-      const outI = new Uint32Array(arrayBuffer2, index, numIndices[0]);
-      outI.set(new Uint32Array(indices.buffer, indices.byteOffset, numIndices[0]));
-      index += Uint32Array.BYTES_PER_ELEMENT * numIndices[0];
-
-      return {
-        // result: {
-        positions: outP,
-        indices: outI,
-        /* },
-        cleanup: () => {
-          allocator.freeAll();
-
-          this.running = false;
-          if (this.queue.length > 0) {
-            const fn = this.queue.shift();
-            fn();
-          }
-        }, */
-      };
-    }
 
     pe.remove(p);
 
