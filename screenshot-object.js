@@ -48,8 +48,8 @@ export async function screenshotObject (o) {
   }
   gif.render();
 
-  const blob = await new Promise((accept, reject) => {
-    gif.on('finished', accept);
+  const blob = await new Promise((resolve, reject) => {
+    gif.on('finished', resolve);
   });
   console.log('got gif data', blob);
   return blob;
@@ -99,8 +99,8 @@ export async function screenshotEngine (pe) {
   }
   gif.render();
 
-  const blob = await new Promise((accept, reject) => {
-    gif.on('finished', accept);
+  const blob = await new Promise((resolve, reject) => {
+    gif.on('finished', resolve);
   });
   return blob;
 }
