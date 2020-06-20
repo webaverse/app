@@ -970,7 +970,6 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
   });
 }
 
-console.log('got close buttons', [worldsCloseButton, packagesCloseButton, inventoryCloseButton]);
 [worldsCloseButton, packagesCloseButton, inventoryCloseButton].forEach(closeButton => {
   closeButton.addEventListener('click', e => {
     dropdownButton.classList.remove('open');
