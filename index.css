@@ -760,6 +760,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   margin-bottom: 10px;
   background-color: #F8F8F8;
   border-radius: 5px;
+  font-size: 30px;
   color: #000;
   justify-content: center;
   align-items: center;

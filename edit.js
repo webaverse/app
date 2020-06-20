@@ -1026,7 +1026,7 @@ const _enterWorld = async name => {
   }
 };
 const _pushWorld = name => {
-  history.pushState({}, '', window.location.protocol + '//' + window.location.host + window.location.pathname + '?w=' + name);
+  history.pushState({}, '', window.location.protocol + '//' + window.location.host + window.location.pathname + (name ? ('?w=' + name) : ''));
   _handleUrl(window.location.href);
 };
 const _bindWorld = w => {
@@ -1250,6 +1250,10 @@ publishWorldButton.addEventListener('click', async e => {
     console.warn('invalid status code: ' + res.status);
   }
 }); */
+const sandboxButton = document.getElementById('sandbox-button');
+sandboxButton.addEventListener('click', e => {
+  _pushWorld(null);
+});
 function makeId(length) {
   var result           = '';
   var characters       = 'abcdefghijklmnopqrstuvwxyz0123456789';
