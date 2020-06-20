@@ -859,16 +859,19 @@ const runMode = document.getElementById('run-mode');
 const editMode = document.getElementById('edit-mode');
 
 const worldsButton = document.getElementById('worlds-button');
+const packagesButton = document.getElementById('packages-button');
 const inventoryButton = document.getElementById('inventory-button');
 const dropdownButton = document.getElementById('dropdown-button');
 const dropdown = document.getElementById('dropdown');
 const worldsSubpage = document.getElementById('worlds-subpage');
+const packagesSubpage = document.getElementById('packages-subpage');
 const inventorySubpage = document.getElementById('inventory-subpage');
 const tabs = Array.from(dropdown.querySelectorAll('.tab'));
 const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
 const worldsSubtabs = Array.from(worldsSubpage.querySelectorAll('.subtab'));
 const worldsCloseButton = worldsSubpage.querySelector('.close-button');
 const worldsSubtabContents = Array.from(worldsSubpage.querySelectorAll('.subtab-content'));
+const packagesCloseButton = packagesSubpage.querySelector('.close-button');
 const inventorySubtabs = Array.from(inventorySubpage.querySelectorAll('.subtab'));
 const inventoryCloseButton = inventorySubpage.querySelector('.close-button');
 const inventorySubtabContents = Array.from(inventorySubpage.querySelectorAll('.subtab-content'));
@@ -878,8 +881,21 @@ worldsButton.addEventListener('click', e => {
 
   dropdownButton.classList.remove('open');
   dropdown.classList.remove('open');
+  packagesButton.classList.remove('open');
+  packagesSubpage.classList.remove('open');
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
+});
+packagesButton.addEventListener('click', e => {
+  packagesButton.classList.add('open');
+  packagesSubpage.classList.add('open');
+
+  dropdownButton.classList.remove('open');
+  dropdown.classList.remove('open');
+  inventoryButton.classList.remove('open');
+  inventorySubpage.classList.remove('open');
+  worldsButton.classList.remove('open');
+  worldsSubpage.classList.remove('open');
 });
 inventoryButton.addEventListener('click', e => {
   inventoryButton.classList.toggle('open');
@@ -887,6 +903,8 @@ inventoryButton.addEventListener('click', e => {
 
   dropdownButton.classList.remove('open');
   dropdown.classList.remove('open');
+  packagesButton.classList.remove('open');
+  packagesSubpage.classList.remove('open');
   worldsButton.classList.remove('open');
   worldsSubpage.classList.remove('open');
 });
@@ -895,6 +913,8 @@ dropdownButton.addEventListener('click', e => {
   dropdown.classList.toggle('open');
 
   worldsButton.classList.remove('open');
+  packagesButton.classList.remove('open');
+  packagesSubpage.classList.remove('open');
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
   worldsSubpage.classList.remove('open');
@@ -950,11 +970,13 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
   });
 }
 
-console.log('got buttons', [worldsCloseButton, inventoryCloseButton]);
-[worldsCloseButton, inventoryCloseButton].forEach(closeButton => {
+console.log('got close buttons', [worldsCloseButton, packagesCloseButton, inventoryCloseButton]);
+[worldsCloseButton, packagesCloseButton, inventoryCloseButton].forEach(closeButton => {
   closeButton.addEventListener('click', e => {
     dropdownButton.classList.remove('open');
     dropdown.classList.remove('open');
+    packagesButton.classList.remove('open');
+    packagesSubpage.classList.remove('open');
     worldsButton.classList.remove('open');
     worldsSubpage.classList.remove('open');
     inventoryButton.classList.remove('open');
