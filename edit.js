@@ -720,8 +720,10 @@ let currentWorldChanged = false;
 const _updateWorldSaveButton = () => {
   if (currentWorldChanged && currentWorldName) {
     worldSaveButton.classList.remove('hidden');
+    worldRevertButton.classList.remove('hidden');
   } else {
     worldSaveButton.classList.add('hidden');
+    worldRevertButton.classList.add('hidden');
   }
 };
 pe.addEventListener('packageadd', async e => {
@@ -874,6 +876,7 @@ const editMode = document.getElementById('edit-mode');
 
 const worldsButton = document.getElementById('worlds-button');
 const worldSaveButton = document.getElementById('world-save-button');
+const worldRevertButton = document.getElementById('world-revert-button');
 const packagesButton = document.getElementById('packages-button');
 const inventoryButton = document.getElementById('inventory-button');
 const dropdownButton = document.getElementById('dropdown-button');
@@ -1017,6 +1020,9 @@ worldSaveButton.addEventListener('click', async e => {
   currentWorldChanged = false;
   _updateWorldSaveButton();
 });
+worldRevertButton.addEventListener('click', async e => {
+  _enterWorld(currentWorldName);
+});
 
 const worlds = document.getElementById('worlds');
 const _makeWorldHtml = w => `
@@ -1035,9 +1041,6 @@ const _enterWorld = async name => {
   headerLabel.innerText = name || 'Sandbox';
   runMode.setAttribute('href', 'run.html' + (name ? ('?w=' + name) : ''));
   editMode.setAttribute('href', 'edit.html' + (name ? ('?w=' + name) : ''));
-
-  currentWorldChanged = false;
-  _updateWorldSaveButton();
 
   /* singleplayerButton.classList.remove('open');
   multiplayerButton.classList.remove('open');
@@ -1062,6 +1065,9 @@ const _enterWorld = async name => {
   } else {
     pe.reset();
   }
+  
+  currentWorldChanged = false;
+  _updateWorldSaveButton();
 };
 const _pushWorld = name => {
   history.pushState({}, '', window.location.protocol + '//' + window.location.host + window.location.pathname + (name ? ('?w=' + name) : ''));
