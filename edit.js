@@ -1150,7 +1150,7 @@ const _getTokenHtml = cardData => {
     </div>
   `;
 };
-(async () => {
+/* (async () => {
   const totalObjects = await contract.methods.getNonce().call();
   const ts = [];
   for (let i = 1; i <= totalObjects; i++) {
@@ -1173,7 +1173,7 @@ const _getTokenHtml = cardData => {
       });
     });
   }
-})();
+})(); */
 /* const scenes = document.getElementById('scenes');
 (async () => {
   const res = await fetch(scenesEndpoint);
