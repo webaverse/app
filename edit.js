@@ -727,7 +727,7 @@ const _updateWorldSaveButton = () => {
   }
 };
 pe.addEventListener('packageadd', async e => {
-  const p = e.data;
+  const {package: p} = e.data;
 
   _ensurePlaceholdMesh(p);
   await _ensureVolumeMesh(p);
@@ -739,7 +739,7 @@ pe.addEventListener('packageadd', async e => {
   _updateWorldSaveButton();
 });
 pe.addEventListener('packageremove', e => {
-  const p = e.data;
+  const {package: p} = e.data;
   if (p.placeholderBox) {
     scene.remove(p.placeholderBox);
   }
