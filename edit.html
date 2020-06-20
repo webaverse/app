@@ -100,6 +100,12 @@
       <div class=name>Revert</div>
       <div class=label>Revert the world to saved state</div>
     </nav>
+    <nav class="nav full square">
+      <i class="fa fa-plus"></i>
+      <div class=name>Add package</div>
+      <div class=label>Add a new package to the scene</div>
+      <input type=file class=hidden id=load-package-input>
+    </nav>
     <nav class="nav full square" id=packages-button>
       <i class="fa fa-box-open"></i>
       <div class=name>Packages</div>
@@ -180,13 +186,7 @@
   </aside>
   <aside class="dropdown" id=dropdown>
     <div class=tabs>
-      <nav class="tab open" id=tab-1>
-        <span>Objects</span>
-        <nav>
-          <i class="fa fa-plus"></i>
-          <input type=file class=hidden id=load-package-input>
-        </nav>
-      </nav>
+      <nav class="tab open" id=tab-1>Objects</nav>
       <nav class=tab id=tab-2>Scene</nav>
       <nav class=tab id=tab-3>Social</nav>
       <nav class=tab id=tab-4>Settings</nav>

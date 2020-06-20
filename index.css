@@ -190,6 +190,7 @@ img:not([src]) {
 }
 
 .footer .nav {
+  position: relative;
   display: flex;
   padding: 10px 20px;
   background-color: #808080;
@@ -197,6 +198,7 @@ img:not([src]) {
   font-size: 16px;
   align-items: center;
   opacity: 0.5;
+  overflow: hidden;
   cursor: pointer;
 }
 .footer .nav:hover {
