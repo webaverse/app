@@ -1,8 +1,6 @@
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
 import {TransformControls} from 'https://static.xrpackage.org/TransformControls.js';
-import {XRChannelConnection} from 'https://metartc.com/xrrtc.js';
-import {JSONClient} from 'https://sync.webaverse.com/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 import {XRPackageEngine, XRPackage, pe, renderer, scene, camera, container, floorMesh, proxySession, getRealSession} from './run.js';
@@ -13,7 +11,7 @@ const apiHost = `https://ipfs.exokit.org/ipfs`;
 const presenceEndpoint = `wss://presence.exokit.org`;
 const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
-const scenesEndpoint = 'https://scenes.exokit.org';
+// const scenesEndpoint = 'https://scenes.exokit.org';
 const network = 'rinkeby';
 const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
 const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
@@ -326,14 +324,6 @@ function animate(timestamp, frame) {
   }
 
   renderer.render(scene, camera);
-
-  if (pe.avatar) {
-    const {pose} = pe.avatar;
-    for (let i = 0; i < peerConnections.length; i++) {
-      const peerConnection = peerConnections[i];
-      peerConnection.send('pose', pose);
-    }
-  }
 }
 renderer.setAnimationLoop(animate);
 renderer.xr.setSession(proxySession);
@@ -364,10 +354,7 @@ for (let i = 0; i < tools.length; i++) {
 
     if (selectedTool !== oldSelectedTool) {
       hoverTarget = null;
-      if (selectTarget && selectTarget.control) {
-        _unbindTransformControls(selectTarget);
-      }
-      selectTarget = null;
+      _setSelectTarget(null);
 
       switch (oldSelectedTool) {
         case 'thirdperson': {
@@ -676,11 +663,6 @@ const _ensureVolumeMesh = async p => {
     scene.add(p.volumeMesh);
   }
 };
-const _unbindSelectTargets = () => {
-  if (selectTarget && selectTarget.control) {
-    _unbindTransformControls(selectTarget);
-  }
-};
 const shieldSlider = document.getElementById('shield-slider');
 let shieldLevel = parseInt(shieldSlider.value, 10);
 shieldSlider.addEventListener('change', async e => {
@@ -690,21 +672,19 @@ shieldSlider.addEventListener('change', async e => {
     case 0: {
       shieldLevel = newShieldLevel;
       hoverTarget = null;
-      selectTarget = null;
+      _setSelectTarget(null);
       break;
     }
     case 1: {
-      _unbindSelectTargets();
       shieldLevel = newShieldLevel;
       hoverTarget = null;
-      selectTarget = null;
+      _setSelectTarget(null);
       break;
     }
     case 2: {
-      _unbindSelectTargets();
       shieldLevel = newShieldLevel;
       hoverTarget = null;
-      selectTarget = null;
+      _setSelectTarget(null);
       break;
     }
   }
@@ -716,7 +696,6 @@ function _matrixUpdate(e) {
   const p = this;
   const matrix = e.data;
   p.placeholderBox && p.placeholderBox.matrix.copy(matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
-  channelConnection && jsonClient.setItem(['children', p.id, 'matrix'], matrix.toArray());
 }
 const _bindObject = p => {
   p.addEventListener('matrixupdate', _matrixUpdate);
@@ -727,45 +706,76 @@ const _unbindObject = p => {
 pe.packages.forEach(p => {
   _bindObject(p);
 });
+let currentWorldChanged = false;
+const _updateWorldSaveButton = () => {
+  if (currentWorldChanged && currentWorldName) {
+    worldSaveButton.classList.remove('hidden');
+    worldRevertButton.classList.remove('hidden');
+  } else {
+    worldSaveButton.classList.add('hidden');
+    worldRevertButton.classList.add('hidden');
+  }
+};
+
+let hoverTarget = null;
+let selectTarget = null;
+const _setSelectTarget = newSelectTarget => {
+  if (selectTarget && selectTarget.control) {
+    _unbindTransformControls(selectTarget);
+  }
+  selectTarget = newSelectTarget;
+  if (selectTarget) {
+    if (!dropdownButton.classList.contains('open')) {
+      dropdownButton.click();
+    }
+    // const object = objectsEl.querySelector(`[packageid="${selectTarget.package.id}"]`);
+    // object.click();
+    
+    _bindTransformControls(selectTarget);
+  }
+  _renderObjects();
+};
+
 pe.addEventListener('packageadd', async e => {
-  const p = e.data;
+  const {
+    package: p,
+    reason,
+  } = e.data;
 
   _ensurePlaceholdMesh(p);
   await _ensureVolumeMesh(p);
   _renderObjects();
 
-  if (channelConnection) {
-    p.hash = await p.upload();
-
-    if (p.parent) {
-      jsonClient.setItem(['children', p.id], {
-        id: p.id,
-        hash: p.hash,
-        matrix: p.matrix.toArray(),
-      });
-    }
-  }
   _bindObject(p);
+
+  if (!reason) {
+    currentWorldChanged = true;
+    _updateWorldSaveButton();
+  }
 });
 pe.addEventListener('packageremove', e => {
-  const p = e.data;
+  const {
+    package: p,
+    reason,
+  } = e.data;
+  
   if (p.placeholderBox) {
     scene.remove(p.placeholderBox);
   }
 
-  if (selectedObject === p) {
-    selectedObject = null;
+  if (selectTarget === p) {
+    _setSelectTarget(null);
+  } else {
+    _renderObjects();
   }
-  _renderObjects();
 
-  if (channelConnection) {
-    jsonClient.removeItem(['children', p.id]);
-  }
   _unbindObject(p);
-});
 
-let hoverTarget = null;
-let selectTarget = null;
+  if (!reason) {
+    currentWorldChanged = true;
+    _updateWorldSaveButton();
+  }
+});
 
 let transformControlsHovered = false;
 const _bindTransformControls = o => {
@@ -870,30 +880,31 @@ renderer.domElement.addEventListener('mousemove', e => {
     _updateRaycasterFromMouseEvent(raycaster, e);
   }
 });
-renderer.domElement.addEventListener('click', e => {
-  if (selectTarget && selectTarget.control) {
-    _unbindTransformControls(selectTarget);
-  }
-  selectTarget = hoverTarget;
-  if (selectTarget) {
-    _bindTransformControls(selectTarget);
-  }
+renderer.domElement.addEventListener('mousedown', e => {
+  _setSelectTarget(hoverTarget);
 });
 
 const runMode = document.getElementById('run-mode');
 const editMode = document.getElementById('edit-mode');
 
 const worldsButton = document.getElementById('worlds-button');
+const worldSaveButton = document.getElementById('world-save-button');
+const worldRevertButton = document.getElementById('world-revert-button');
+const packagesButton = document.getElementById('packages-button');
 const inventoryButton = document.getElementById('inventory-button');
 const dropdownButton = document.getElementById('dropdown-button');
 const dropdown = document.getElementById('dropdown');
 const worldsSubpage = document.getElementById('worlds-subpage');
+const packagesSubpage = document.getElementById('packages-subpage');
 const inventorySubpage = document.getElementById('inventory-subpage');
 const tabs = Array.from(dropdown.querySelectorAll('.tab'));
 const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
 const worldsSubtabs = Array.from(worldsSubpage.querySelectorAll('.subtab'));
+const worldsCloseButton = worldsSubpage.querySelector('.close-button');
 const worldsSubtabContents = Array.from(worldsSubpage.querySelectorAll('.subtab-content'));
+const packagesCloseButton = packagesSubpage.querySelector('.close-button');
 const inventorySubtabs = Array.from(inventorySubpage.querySelectorAll('.subtab'));
+const inventoryCloseButton = inventorySubpage.querySelector('.close-button');
 const inventorySubtabContents = Array.from(inventorySubpage.querySelectorAll('.subtab-content'));
 worldsButton.addEventListener('click', e => {
   worldsButton.classList.toggle('open');
@@ -901,8 +912,21 @@ worldsButton.addEventListener('click', e => {
 
   dropdownButton.classList.remove('open');
   dropdown.classList.remove('open');
+  packagesButton.classList.remove('open');
+  packagesSubpage.classList.remove('open');
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
+});
+packagesButton.addEventListener('click', e => {
+  packagesButton.classList.add('open');
+  packagesSubpage.classList.add('open');
+
+  dropdownButton.classList.remove('open');
+  dropdown.classList.remove('open');
+  inventoryButton.classList.remove('open');
+  inventorySubpage.classList.remove('open');
+  worldsButton.classList.remove('open');
+  worldsSubpage.classList.remove('open');
 });
 inventoryButton.addEventListener('click', e => {
   inventoryButton.classList.toggle('open');
@@ -910,6 +934,8 @@ inventoryButton.addEventListener('click', e => {
 
   dropdownButton.classList.remove('open');
   dropdown.classList.remove('open');
+  packagesButton.classList.remove('open');
+  packagesSubpage.classList.remove('open');
   worldsButton.classList.remove('open');
   worldsSubpage.classList.remove('open');
 });
@@ -918,6 +944,8 @@ dropdownButton.addEventListener('click', e => {
   dropdown.classList.toggle('open');
 
   worldsButton.classList.remove('open');
+  packagesButton.classList.remove('open');
+  packagesSubpage.classList.remove('open');
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
   worldsSubpage.classList.remove('open');
@@ -936,10 +964,7 @@ for (let i = 0; i < tabs.length; i++) {
     tab.classList.add('open');
     tabContent.classList.add('open');
 
-    if (selectedObject) {
-      selectedObject = null;
-      _renderObjects();
-    }
+    _setSelectTarget(null);
   });
 }
 for (let i = 0; i < worldsSubtabs.length; i++) {
@@ -972,111 +997,62 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
     subtabContent.classList.add('open');
   });
 }
+[worldsCloseButton, packagesCloseButton, inventoryCloseButton].forEach(closeButton => {
+  closeButton.addEventListener('click', e => {
+    dropdownButton.classList.remove('open');
+    dropdown.classList.remove('open');
+    packagesButton.classList.remove('open');
+    packagesSubpage.classList.remove('open');
+    worldsButton.classList.remove('open');
+    worldsSubpage.classList.remove('open');
+    inventoryButton.classList.remove('open');
+    inventorySubpage.classList.remove('open');
+  });
+});
+worldSaveButton.addEventListener('click', async e => {
+  const hash = await pe.uploadScene();
+
+  const w = {
+    name: currentWorldName,
+    description: 'This is a world description',
+    hash,
+  };
+  const res = await fetch(worldsEndpoint + '/' + w.name, {
+    method: 'PUT',
+    body: JSON.stringify(w),
+  });
+  if (res.ok) {
+    // nothing
+  } else {
+    console.warn('invalid status code: ' + res.status);
+  }
+
+  currentWorldChanged = false;
+  _updateWorldSaveButton();
+});
+worldRevertButton.addEventListener('click', async e => {
+  _enterWorld(currentWorldName);
+});
 
 const worlds = document.getElementById('worlds');
 const _makeWorldHtml = w => `
-  <div class="world ${currentWorldHash === w.hash ? 'open' : ''}" type="${w.type}" hash="${w.hash}">
+  <div class="world ${currentWorldName === w.name ? 'open' : ''}" name="${w.name}">
     <img src=assets/question.png>
-    <div class=wrap>
-      <h1>${w.name}</h1>
-      <p>This is a world description.</p>
+    <div class="text">
+      <div class="name cardTitle">${w.name}</div>
     </div>
-    <nav class=button>${w.type}</nav>
   </div>
 `;
-let channelConnection = null;
-const peerConnections = [];
-const _connect = roomName => {
-  channelConnection && channelConnection.close();
-
-  let name = 'Player';
-  channelConnection = new XRChannelConnection(`${presenceEndpoint}/?c=${encodeURIComponent(roomName)}`);
-  channelConnection.addEventListener('open', e => {
-    // console.log('got open', e);
-  });
-  channelConnection.addEventListener('peerconnection', e => {
-    const peerConnection = e.data;
-    console.log('got peer connection', peerConnection);
-
-    peerConnection.name = 'User';
-    peerConnection.addEventListener('name', async e => {
-      const name = e.data;
-      peerConnection.name = name;
-      _renderAvatars();
-    });
-    peerConnection.send('name', name);
-    peerConnection.avatar = null;
-    // peerConnection.avatar = new XRPackage();
-    // peerConnection.avatar.setAvatar(true);
-    peerConnection.addEventListener('pose', e => {
-      const pose = e.data;
-      if (!peerConnection.avatar) {
-        peerConnection.avatar = new XRPackage();
-        pe.add(peerConnection.avatar);
-      }
-      peerConnection.avatar.setPose(pose);
-    });
-    peerConnection.addEventListener('avatar', async e => {
-      const hash = e.data;
-      const p = await XRPackage.download(hash);
-
-      if (peerConnection.avatar) {
-        pe.remove(peerConnection.avatar);
-        peerConnection.avatar = null;
-      }
-
-      p.setAvatar(true);
-      pe.add(p);
-      peerConnection.avatar = p;
-
-      _renderAvatars();
-    });
-    peerConnection.addEventListener('close', e => {
-      peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
-      _renderAvatars();
-    });
-    peerConnections.push(peerConnection);
-    _renderAvatars();
-  });
-  channelConnection.addEventListener('message', e => {
-    const m = e.data;
-    const {method} = m;
-    switch (method) {
-      case 'init': {
-        const {json, baseIndex} = m;
-        console.log('got init', json, baseIndex);
-        jsonClient.pullInit(json, baseIndex);
-        break;
-      }
-      case 'ops': {
-        const {ops, baseIndex} = m;
-        jsonClient.pullOps(ops, baseIndex);
-        break;
-      }
-      default: {
-        console.warn('unknown channel connection method: ', JSON.stringify(method), m);
-        break;
-      }
-    }
-    // console.log('xr channel message', m);
-  });
-  channelConnection.addEventListener('close', e => {
-    console.log('channel connection close', e);
-
-    pe.reset();
-    channelConnection = null;
-  });
-}
 const headerLabel = document.getElementById('header-label');
-let currentWorldHash = '';
-const _enterWorld = async hash => {
-  currentWorldHash = hash;
+let currentWorldName = '';
+const _enterWorld = async name => {
+  currentWorldName = name;
 
-  headerLabel.innerText = hash || 'Sandbox';
-  runMode.setAttribute('href', 'run.html' + (hash ? ('?w=' + hash) : ''));
-  editMode.setAttribute('href', 'edit.html' + (hash ? ('?w=' + hash) : ''));
+  headerLabel.innerText = name || 'Sandbox';
+  runMode.setAttribute('href', 'run.html' + (name ? ('?w=' + name) : ''));
+  editMode.setAttribute('href', 'edit.html' + (name ? ('?w=' + name) : ''));
 
-  singleplayerButton.classList.remove('open');
+  /* singleplayerButton.classList.remove('open');
   multiplayerButton.classList.remove('open');
   Array.from(worlds.querySelectorAll('.world')).forEach(w => {
     w.classList.remove('open');
@@ -1085,34 +1061,32 @@ const _enterWorld = async hash => {
   w && w.classList.add('open');
 
   worldType = null;
-  worldTools.style.visibility = 'hidden';
+  worldTools.style.visibility = 'hidden'; */
 
-  if (hash) {
-    const res = await fetch(worldsEndpoint + '/' + hash);
+  if (name) {
+    const res = await fetch(worldsEndpoint + '/' + name);
     if (res.ok) {
       const j = await res.json();
-      const {type, hash} = j;
-      if (type === 'singleplayer') {
-        // console.log('download scene', hash);
-        pe.downloadScene(hash);
-      } else if (type === 'multiplayer') {
-        _connect(hash);
-      }
+      const {hash} = j;
+      await pe.downloadScene(hash);
     } else {
       console.warn('invalid world status code: ' + w + ' ' + res.status);
     }
   } else {
     pe.reset();
   }
+  
+  currentWorldChanged = false;
+  _updateWorldSaveButton();
 };
-const _pushWorld = hash => {
-  history.pushState({}, '', window.location.protocol + '//' + window.location.host + window.location.pathname + '?w=' + hash);
+const _pushWorld = name => {
+  history.pushState({}, '', window.location.protocol + '//' + window.location.host + window.location.pathname + (name ? ('?w=' + name) : ''));
   _handleUrl(window.location.href);
 };
 const _bindWorld = w => {
   w.addEventListener('click', async e => {
-    const hash = w.getAttribute('hash');
-    _pushWorld(hash);
+    const name = w.getAttribute('name');
+    _pushWorld(name);
   });
 };
 (async () => {
@@ -1125,11 +1099,9 @@ const _bindWorld = w => {
   worlds.innerHTML = ws.map(w => _makeWorldHtml(w)).join('\n');
   Array.from(worlds.querySelectorAll('.world')).forEach((w, i) => _bindWorld(w, ws[i]));
 })();
-let worldType = 'singleplayer';
+/* let worldType = 'singleplayer';
 const singleplayerButton = document.getElementById('singleplayer-button');
 singleplayerButton.addEventListener('click', e => {
-  channelConnection && channelConnection.close();
-
   pe.reset();
 
   singleplayerButton.classList.add('open');
@@ -1142,8 +1114,6 @@ singleplayerButton.addEventListener('click', e => {
 });
 const multiplayerButton = document.getElementById('multiplayer-button');
 multiplayerButton.addEventListener('click', async e => {
-  channelConnection && channelConnection.close();
-
   pe.reset();
 
   singleplayerButton.classList.remove('open');
@@ -1153,10 +1123,10 @@ multiplayerButton.addEventListener('click', async e => {
   });
   worldType = 'multiplayer';
   worldTools.style.visibility = null;
-});
+}); */
 
 const _makePackageHtml = p => `
-  <div class=package>
+  <div class=package draggable=true>
     <img src="assets/question.png">
     <!-- <img src="${p.img}" width=256 height=256> -->
     <div class=text>
@@ -1168,12 +1138,21 @@ const _makePackageHtml = p => `
     </div>
   </div>
 `;
+const _addPackageFromHash = async (hash, matrix) => {
+  const p = await XRPackage.download(hash);
+  if (matrix) {
+    p.setMatrix(matrix);
+  }
+  await pe.add(p);
+};
 const _bindPackage = (pE, pJ) => {
+  const {dataHash} = pJ;
+  pE.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('text/plain', dataHash);
+  });
   const addButton = pE.querySelector('.add-button');
-  addButton.addEventListener('click', async e => {
-    const {hash} = pJ;
-    const p = await XRPackage.download(hash);
-    pe.add(p);
+  addButton.addEventListener('click', () => {
+    _addPackageFromHash(dataHash);
   });
   /* const runButton = pE.querySelector('.run-button');
   runButton.addEventListener('click', async e => {
@@ -1207,7 +1186,30 @@ async function getTokenByIndex(index) {
     modelHash: modelHash
   }
 }
-const _getTokenHtml = cardData => {
+pe.domElement.addEventListener('dragover', e => {
+  e.preventDefault();
+});
+pe.domElement.addEventListener('drop', async e => {
+  e.preventDefault();
+
+  if (e.dataTransfer.items.length > 0) {
+    const [item] = e.dataTransfer.items;
+    const dataHash = await new Promise((resolve, reject) => {
+      item.getAsString(resolve);
+    });
+    
+    _updateRaycasterFromMouseEvent(raycaster, e);
+    localMatrix.compose(
+      raycaster.ray.origin.clone()
+        .add(raycaster.ray.direction.clone().multiplyScalar(2)),
+      new THREE.Quaternion(),
+      new THREE.Vector3(1, 1, 1)
+    )
+
+    await _addPackageFromHash(dataHash, localMatrix);
+  }
+});
+/* const _getTokenHtml = cardData => {
   const {index, name, img, metadataHash, dataHash, modelHash} = cardData;
   return `\
     <div class="token card">
@@ -1250,7 +1252,7 @@ const _getTokenHtml = cardData => {
       });
     });
   }
-})();
+})(); */
 /* const scenes = document.getElementById('scenes');
 (async () => {
   const res = await fetch(scenesEndpoint);
@@ -1269,7 +1271,7 @@ const _getTokenHtml = cardData => {
       pe.downloadScene(hash);
     });
   });
-})(); */
+})();
 const worldTools = document.getElementById('world-tools');
 const publishWorldButton = document.getElementById('publish-world-button');
 publishWorldButton.addEventListener('click', async e => {
@@ -1289,6 +1291,43 @@ publishWorldButton.addEventListener('click', async e => {
     type: worldType,
   };
   const res = await fetch(worldsEndpoint + '/' + hash, {
+    method: 'PUT',
+    body: JSON.stringify(w),
+  });
+  if (res.ok) {
+    worlds.innerHTML += '\n' + _makeWorldHtml(w);
+    const ws = Array.from(worlds.querySelectorAll('.world'));
+    Array.from(worlds.querySelectorAll('.world')).forEach(w => _bindWorld(w));
+    const newW = ws[ws.length - 1];
+    newW.click();
+  } else {
+    console.warn('invalid status code: ' + res.status);
+  }
+}); */
+const sandboxButton = document.getElementById('sandbox-button');
+sandboxButton.addEventListener('click', e => {
+  _pushWorld(null);
+});
+function makeId(length) {
+  var result           = '';
+  var characters       = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for ( var i = 0; i < length; i++ ) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+const newWorldButton = document.getElementById('new-world-button');
+newWorldButton.addEventListener('click', async e => {
+  pe.reset();
+  const hash = await pe.uploadScene();
+
+  const w = {
+    name: makeId(8),
+    description: 'This is a world description',
+    hash,
+  };
+  const res = await fetch(worldsEndpoint + '/' + w.name, {
     method: 'PUT',
     body: JSON.stringify(w),
   });
@@ -1328,25 +1367,6 @@ const _pullPackages = async children => {
   }
 };
 
-const jsonClient = new JSONClient({});
-jsonClient.addEventListener('localUpdate', e => {
-  const j = e.data;
-  const {children = []} = j;
-  _pullPackages(children);
-});
-jsonClient.addEventListener('message', e => {
-  // console.log('send ops 1', e.data);
-  if (channelConnection) {
-    const {ops, baseIndex} = e.data;
-    // console.log('send ops 2', {ops, baseIndex});
-    channelConnection.send(JSON.stringify({
-      method: 'ops',
-      ops,
-      baseIndex,
-    }));
-  }
-});
-
 const avatarMe = document.getElementById('avatar-me');
 const unwearButton = avatarMe.querySelector('.unwear-button');
 const avatars = document.getElementById('avatars');
@@ -1363,17 +1383,6 @@ const _renderAvatars = () => {
     nameEl.innerText = 'No avatar';
     unwearButton.style.display = 'none';
   }
-
-  avatars.innerHTML = peerConnections
-    // .filter(pc => !!pc.avatar)
-    .map(pc => `
-      <nav class=avatar>
-        <img src="assets/question.png">
-        <div class=name>${pc.name}</div>
-        ${pc.avatar ? `<nav class="button unwear-button">Wear</nav>` : ''}
-        <!-- <div class=tag>You</div> -->
-      </nav>
-    `).join('\n');
 };
 pe.addEventListener('avatarchange', e => {
   _renderAvatars();
@@ -1382,11 +1391,11 @@ unwearButton.addEventListener('click', e => {
   pe.defaultAvatar();
 });
 
-let selectedObject = null;
+// let selectedObject = null;
 const objectsEl = document.getElementById('objects');
 const _renderObjects = () => {
-  if (selectedObject) {
-    let p = selectedObject;
+  if (selectTarget) {
+    let {package: p} = selectTarget;
     const schemas = Object.keys(p.schema);
     const {events} = p;
     objectsEl.innerHTML = `
@@ -1472,8 +1481,7 @@ const _renderObjects = () => {
     `;
     const backButton = objectsEl.querySelector('.back-button');
     backButton.addEventListener('click', e => {
-      selectedObject = null;
-      _renderObjects();
+      _setSelectTarget(null);
     });
     const inspectButton = objectsEl.querySelector('.inspect-button');
     inspectButton.addEventListener('click', async e => {
@@ -1568,7 +1576,7 @@ const _renderObjects = () => {
     });
   } else {
     objectsEl.innerHTML = pe.packages.map((p, i) => `
-      <div class=object index=${i}>
+      <div class=object packageid="${p.id}" index="${i}">
         <span class=name>${p.name}</span>
         <nav class=close-button><i class="fa fa-times"></i></nav>
       </div>
@@ -1580,8 +1588,8 @@ const _renderObjects = () => {
         e.preventDefault();
         e.stopPropagation();
 
-        selectedObject = p;
-        _renderObjects();
+        document.querySelector('.tool[tool="select"]').click();
+        _setSelectTarget(p.volumeMesh);
       });
       const closeButton = packageEl.querySelector('.close-button');
       closeButton.addEventListener('click', e => {
