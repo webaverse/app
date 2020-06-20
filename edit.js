@@ -1,8 +1,6 @@
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
 import {TransformControls} from 'https://static.xrpackage.org/TransformControls.js';
-import {XRChannelConnection} from 'https://metartc.com/xrrtc.js';
-import {JSONClient} from 'https://sync.webaverse.com/sync-client.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
 import {XRPackageEngine, XRPackage, pe, renderer, scene, camera, container, floorMesh, proxySession, getRealSession} from './run.js';
@@ -326,14 +324,6 @@ function animate(timestamp, frame) {
   }
 
   renderer.render(scene, camera);
-
-  if (pe.avatar) {
-    const {pose} = pe.avatar;
-    for (let i = 0; i < peerConnections.length; i++) {
-      const peerConnection = peerConnections[i];
-      peerConnection.send('pose', pose);
-    }
-  }
 }
 renderer.setAnimationLoop(animate);
 renderer.xr.setSession(proxySession);
@@ -716,7 +706,6 @@ function _matrixUpdate(e) {
   const p = this;
   const matrix = e.data;
   p.placeholderBox && p.placeholderBox.matrix.copy(matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
-  channelConnection && jsonClient.setItem(['children', p.id, 'matrix'], matrix.toArray());
 }
 const _bindObject = p => {
   p.addEventListener('matrixupdate', _matrixUpdate);
@@ -734,17 +723,6 @@ pe.addEventListener('packageadd', async e => {
   await _ensureVolumeMesh(p);
   _renderObjects();
 
-  if (channelConnection) {
-    p.hash = await p.upload();
-
-    if (p.parent) {
-      jsonClient.setItem(['children', p.id], {
-        id: p.id,
-        hash: p.hash,
-        matrix: p.matrix.toArray(),
-      });
-    }
-  }
   _bindObject(p);
 });
 pe.addEventListener('packageremove', e => {
@@ -758,9 +736,6 @@ pe.addEventListener('packageremove', e => {
   }
   _renderObjects();
 
-  if (channelConnection) {
-    jsonClient.removeItem(['children', p.id]);
-  }
   _unbindObject(p);
 });
 
@@ -892,8 +867,10 @@ const inventorySubpage = document.getElementById('inventory-subpage');
 const tabs = Array.from(dropdown.querySelectorAll('.tab'));
 const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
 const worldsSubtabs = Array.from(worldsSubpage.querySelectorAll('.subtab'));
+const worldsCloseButton = worldsSubpage.querySelector('.close-button');
 const worldsSubtabContents = Array.from(worldsSubpage.querySelectorAll('.subtab-content'));
 const inventorySubtabs = Array.from(inventorySubpage.querySelectorAll('.subtab'));
+const inventoryCloseButton = inventorySubpage.querySelector('.close-button');
 const inventorySubtabContents = Array.from(inventorySubpage.querySelectorAll('.subtab-content'));
 worldsButton.addEventListener('click', e => {
   worldsButton.classList.toggle('open');
@@ -973,6 +950,18 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
   });
 }
 
+console.log('got buttons', [worldsCloseButton, inventoryCloseButton]);
+[worldsCloseButton, inventoryCloseButton].forEach(closeButton => {
+  closeButton.addEventListener('click', e => {
+    dropdownButton.classList.remove('open');
+    dropdown.classList.remove('open');
+    worldsButton.classList.remove('open');
+    worldsSubpage.classList.remove('open');
+    inventoryButton.classList.remove('open');
+    inventorySubpage.classList.remove('open');
+  });
+});
+
 const worlds = document.getElementById('worlds');
 const _makeWorldHtml = w => `
   <div class="world ${currentWorldHash === w.hash ? 'open' : ''}" type="${w.type}" hash="${w.hash}">
@@ -984,89 +973,6 @@ const _makeWorldHtml = w => `
     <nav class=button>${w.type}</nav>
   </div>
 `;
-let channelConnection = null;
-const peerConnections = [];
-const _connect = roomName => {
-  channelConnection && channelConnection.close();
-
-  let name = 'Player';
-  channelConnection = new XRChannelConnection(`${presenceEndpoint}/?c=${encodeURIComponent(roomName)}`);
-  channelConnection.addEventListener('open', e => {
-    // console.log('got open', e);
-  });
-  channelConnection.addEventListener('peerconnection', e => {
-    const peerConnection = e.data;
-    console.log('got peer connection', peerConnection);
-
-    peerConnection.name = 'User';
-    peerConnection.addEventListener('name', async e => {
-      const name = e.data;
-      peerConnection.name = name;
-      _renderAvatars();
-    });
-    peerConnection.send('name', name);
-    peerConnection.avatar = null;
-    // peerConnection.avatar = new XRPackage();
-    // peerConnection.avatar.setAvatar(true);
-    peerConnection.addEventListener('pose', e => {
-      const pose = e.data;
-      if (!peerConnection.avatar) {
-        peerConnection.avatar = new XRPackage();
-        pe.add(peerConnection.avatar);
-      }
-      peerConnection.avatar.setPose(pose);
-    });
-    peerConnection.addEventListener('avatar', async e => {
-      const hash = e.data;
-      const p = await XRPackage.download(hash);
-
-      if (peerConnection.avatar) {
-        pe.remove(peerConnection.avatar);
-        peerConnection.avatar = null;
-      }
-
-      p.setAvatar(true);
-      pe.add(p);
-      peerConnection.avatar = p;
-
-      _renderAvatars();
-    });
-    peerConnection.addEventListener('close', e => {
-      peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
-      _renderAvatars();
-    });
-    peerConnections.push(peerConnection);
-    _renderAvatars();
-  });
-  channelConnection.addEventListener('message', e => {
-    const m = e.data;
-    const {method} = m;
-    switch (method) {
-      case 'init': {
-        const {json, baseIndex} = m;
-        console.log('got init', json, baseIndex);
-        jsonClient.pullInit(json, baseIndex);
-        break;
-      }
-      case 'ops': {
-        const {ops, baseIndex} = m;
-        jsonClient.pullOps(ops, baseIndex);
-        break;
-      }
-      default: {
-        console.warn('unknown channel connection method: ', JSON.stringify(method), m);
-        break;
-      }
-    }
-    // console.log('xr channel message', m);
-  });
-  channelConnection.addEventListener('close', e => {
-    console.log('channel connection close', e);
-
-    pe.reset();
-    channelConnection = null;
-  });
-}
 const headerLabel = document.getElementById('header-label');
 let currentWorldHash = '';
 const _enterWorld = async hash => {
@@ -1128,8 +1034,6 @@ const _bindWorld = w => {
 let worldType = 'singleplayer';
 const singleplayerButton = document.getElementById('singleplayer-button');
 singleplayerButton.addEventListener('click', e => {
-  channelConnection && channelConnection.close();
-
   pe.reset();
 
   singleplayerButton.classList.add('open');
@@ -1142,8 +1046,6 @@ singleplayerButton.addEventListener('click', e => {
 });
 const multiplayerButton = document.getElementById('multiplayer-button');
 multiplayerButton.addEventListener('click', async e => {
-  channelConnection && channelConnection.close();
-
   pe.reset();
 
   singleplayerButton.classList.remove('open');
@@ -1328,25 +1230,6 @@ const _pullPackages = async children => {
   }
 };
 
-const jsonClient = new JSONClient({});
-jsonClient.addEventListener('localUpdate', e => {
-  const j = e.data;
-  const {children = []} = j;
-  _pullPackages(children);
-});
-jsonClient.addEventListener('message', e => {
-  // console.log('send ops 1', e.data);
-  if (channelConnection) {
-    const {ops, baseIndex} = e.data;
-    // console.log('send ops 2', {ops, baseIndex});
-    channelConnection.send(JSON.stringify({
-      method: 'ops',
-      ops,
-      baseIndex,
-    }));
-  }
-});
-
 const avatarMe = document.getElementById('avatar-me');
 const unwearButton = avatarMe.querySelector('.unwear-button');
 const avatars = document.getElementById('avatars');
@@ -1363,17 +1246,6 @@ const _renderAvatars = () => {
     nameEl.innerText = 'No avatar';
     unwearButton.style.display = 'none';
   }
-
-  avatars.innerHTML = peerConnections
-    // .filter(pc => !!pc.avatar)
-    .map(pc => `
-      <nav class=avatar>
-        <img src="assets/question.png">
-        <div class=name>${pc.name}</div>
-        ${pc.avatar ? `<nav class="button unwear-button">Wear</nav>` : ''}
-        <!-- <div class=tag>You</div> -->
-      </nav>
-    `).join('\n');
 };
 pe.addEventListener('avatarchange', e => {
   _renderAvatars();

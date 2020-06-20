@@ -589,6 +589,19 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: #FFF; */
 }
 
+.subtabs .close-button {
+  display: flex;
+  margin-left: auto;
+  width: 40px;
+  font-size: 16px;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.subtabs .close-button:hover {
+  color: #ef5350;
+}
+
 .subtab-content {
   display: flex;
   flex-direction: column;
