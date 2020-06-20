@@ -1091,9 +1091,12 @@ const _makePackageHtml = p => `
     </div>
   </div>
 `;
-const _addPackageFromHash = async hash => {
+const _addPackageFromHash = async (hash, matrix) => {
   const p = await XRPackage.download(hash);
-  pe.add(p);
+  if (matrix) {
+    p.setMatrix(matrix);
+  }
+  await pe.add(p);
 };
 const _bindPackage = (pE, pJ) => {
   const {dataHash} = pJ;
@@ -1147,7 +1150,16 @@ pe.domElement.addEventListener('drop', async e => {
     const dataHash = await new Promise((resolve, reject) => {
       item.getAsString(resolve);
     });
-    _addPackageFromHash(dataHash);
+    
+    _updateRaycasterFromMouseEvent(raycaster, e);
+    localMatrix.compose(
+      raycaster.ray.origin.clone()
+        .add(raycaster.ray.direction.clone().multiplyScalar(2)),
+      new THREE.Quaternion(),
+      new THREE.Vector3(1, 1, 1)
+    )
+
+    await _addPackageFromHash(dataHash, localMatrix);
   }
 });
 /* const _getTokenHtml = cardData => {
