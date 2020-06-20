@@ -985,7 +985,7 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
 
 const worlds = document.getElementById('worlds');
 const _makeWorldHtml = w => `
-  <div class="world ${currentWorldHash === w.hash ? 'open' : ''}" name="${w.name}">
+  <div class="world ${currentWorldName === w.name ? 'open' : ''}" name="${w.name}">
     <img src=assets/question.png>
     <div class="text">
       <div class="name cardTitle">${w.name}</div>
@@ -993,13 +993,13 @@ const _makeWorldHtml = w => `
   </div>
 `;
 const headerLabel = document.getElementById('header-label');
-let currentWorldHash = '';
-const _enterWorld = async hash => {
-  currentWorldHash = hash;
+let currentWorldName = '';
+const _enterWorld = async name => {
+  currentWorldName = name;
 
-  headerLabel.innerText = hash || 'Sandbox';
-  runMode.setAttribute('href', 'run.html' + (hash ? ('?w=' + hash) : ''));
-  editMode.setAttribute('href', 'edit.html' + (hash ? ('?w=' + hash) : ''));
+  headerLabel.innerText = name || 'Sandbox';
+  runMode.setAttribute('href', 'run.html' + (name ? ('?w=' + name) : ''));
+  editMode.setAttribute('href', 'edit.html' + (name ? ('?w=' + name) : ''));
 
   /* singleplayerButton.classList.remove('open');
   multiplayerButton.classList.remove('open');
@@ -1010,25 +1010,20 @@ const _enterWorld = async hash => {
   w && w.classList.add('open');
 
   worldType = null;
-  worldTools.style.visibility = 'hidden';
+  worldTools.style.visibility = 'hidden'; */
 
-  if (hash) {
-    const res = await fetch(worldsEndpoint + '/' + hash);
+  if (name) {
+    const res = await fetch(worldsEndpoint + '/' + name);
     if (res.ok) {
       const j = await res.json();
-      const {type, hash} = j;
-      if (type === 'singleplayer') {
-        // console.log('download scene', hash);
-        pe.downloadScene(hash);
-      } else if (type === 'multiplayer') {
-        _connect(hash);
-      }
+      const {hash} = j;
+      await pe.downloadScene(hash);
     } else {
       console.warn('invalid world status code: ' + w + ' ' + res.status);
     }
   } else {
     pe.reset();
-  } */
+  }
 };
 const _pushWorld = name => {
   history.pushState({}, '', window.location.protocol + '//' + window.location.host + window.location.pathname + '?w=' + name);
