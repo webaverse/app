@@ -872,7 +872,7 @@ renderer.domElement.addEventListener('mousemove', e => {
     _updateRaycasterFromMouseEvent(raycaster, e);
   }
 });
-renderer.domElement.addEventListener('click', e => {
+renderer.domElement.addEventListener('mousedown', e => {
   if (selectTarget && selectTarget.control) {
     _unbindTransformControls(selectTarget);
   }
