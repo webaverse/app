@@ -716,6 +716,14 @@ const _unbindObject = p => {
 pe.packages.forEach(p => {
   _bindObject(p);
 });
+let currentWorldChanged = false;
+const _updateWorldSaveButton = () => {
+  if (currentWorldChanged && currentWorldName) {
+    worldSaveButton.classList.remove('hidden');
+  } else {
+    worldSaveButton.classList.add('hidden');
+  }
+};
 pe.addEventListener('packageadd', async e => {
   const p = e.data;
 
@@ -724,6 +732,9 @@ pe.addEventListener('packageadd', async e => {
   _renderObjects();
 
   _bindObject(p);
+
+  currentWorldChanged = true;
+  _updateWorldSaveButton();
 });
 pe.addEventListener('packageremove', e => {
   const p = e.data;
@@ -737,6 +748,9 @@ pe.addEventListener('packageremove', e => {
   _renderObjects();
 
   _unbindObject(p);
+
+  currentWorldChanged = true;
+  _updateWorldSaveButton();
 });
 
 let hoverTarget = null;
@@ -859,6 +873,7 @@ const runMode = document.getElementById('run-mode');
 const editMode = document.getElementById('edit-mode');
 
 const worldsButton = document.getElementById('worlds-button');
+const worldSaveButton = document.getElementById('world-save-button');
 const packagesButton = document.getElementById('packages-button');
 const inventoryButton = document.getElementById('inventory-button');
 const dropdownButton = document.getElementById('dropdown-button');
@@ -969,7 +984,6 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
     subtabContent.classList.add('open');
   });
 }
-
 [worldsCloseButton, packagesCloseButton, inventoryCloseButton].forEach(closeButton => {
   closeButton.addEventListener('click', e => {
     dropdownButton.classList.remove('open');
@@ -981,6 +995,27 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
     inventoryButton.classList.remove('open');
     inventorySubpage.classList.remove('open');
   });
+});
+worldSaveButton.addEventListener('click', async e => {
+  const hash = await pe.uploadScene();
+
+  const w = {
+    name: currentWorldName,
+    description: 'This is a world description',
+    hash,
+  };
+  const res = await fetch(worldsEndpoint + '/' + w.name, {
+    method: 'PUT',
+    body: JSON.stringify(w),
+  });
+  if (res.ok) {
+    // nothing
+  } else {
+    console.warn('invalid status code: ' + res.status);
+  }
+
+  currentWorldChanged = false;
+  _updateWorldSaveButton();
 });
 
 const worlds = document.getElementById('worlds');
@@ -1000,6 +1035,9 @@ const _enterWorld = async name => {
   headerLabel.innerText = name || 'Sandbox';
   runMode.setAttribute('href', 'run.html' + (name ? ('?w=' + name) : ''));
   editMode.setAttribute('href', 'edit.html' + (name ? ('?w=' + name) : ''));
+
+  currentWorldChanged = false;
+  _updateWorldSaveButton();
 
   /* singleplayerButton.classList.remove('open');
   multiplayerButton.classList.remove('open');
@@ -1265,6 +1303,7 @@ function makeId(length) {
 }
 const newWorldButton = document.getElementById('new-world-button');
 newWorldButton.addEventListener('click', async e => {
+  pe.reset();
   const hash = await pe.uploadScene();
 
   const w = {
