@@ -727,32 +727,43 @@ const _updateWorldSaveButton = () => {
   }
 };
 pe.addEventListener('packageadd', async e => {
-  const {package: p} = e.data;
+  const {
+    package: p,
+    reason,
+  } = e.data;
 
-  _ensurePlaceholdMesh(p);
-  await _ensureVolumeMesh(p);
-  _renderObjects();
+  if (!reason) {
+    _ensurePlaceholdMesh(p);
+    await _ensureVolumeMesh(p);
+    _renderObjects();
 
-  _bindObject(p);
+    _bindObject(p);
 
-  currentWorldChanged = true;
-  _updateWorldSaveButton();
+    currentWorldChanged = true;
+    _updateWorldSaveButton();
+  }
 });
 pe.addEventListener('packageremove', e => {
-  const {package: p} = e.data;
-  if (p.placeholderBox) {
-    scene.remove(p.placeholderBox);
+  const {
+    package: p,
+    reason,
+  } = e.data;
+  
+  if (!reason) {
+    if (p.placeholderBox) {
+      scene.remove(p.placeholderBox);
+    }
+
+    if (selectedObject === p) {
+      selectedObject = null;
+    }
+    _renderObjects();
+
+    _unbindObject(p);
+
+    currentWorldChanged = true;
+    _updateWorldSaveButton();
   }
-
-  if (selectedObject === p) {
-    selectedObject = null;
-  }
-  _renderObjects();
-
-  _unbindObject(p);
-
-  currentWorldChanged = true;
-  _updateWorldSaveButton();
 });
 
 let hoverTarget = null;
