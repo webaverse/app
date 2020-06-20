@@ -1094,8 +1094,8 @@ const _makePackageHtml = p => `
 const _bindPackage = (pE, pJ) => {
   const addButton = pE.querySelector('.add-button');
   addButton.addEventListener('click', async e => {
-    const {hash} = pJ;
-    const p = await XRPackage.download(hash);
+    const {dataHash} = pJ;
+    const p = await XRPackage.download(dataHash);
     pe.add(p);
   });
   /* const runButton = pE.querySelector('.run-button');
