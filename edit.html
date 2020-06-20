@@ -77,66 +77,94 @@
           </a>
         </div>
       </div>
-      <nav class="nav full" id=enter-xr-button>
-        <i class="fa fa-vr-cardboard"></i>
-        <span>Enter</span>
-      </nav>
-      <nav class="nav full square" id=worlds-button>
-        <i class="fa fa-planet-ringed"></i>
-        <div class=label>Select the current world</div>
-      </nav>
-      <nav class="nav full square" id=inventory-button>
-        <i class="fa fa-backpack"></i>
-        <div class=label>Manage your packages</div>
-      </nav>
-      <form id=login-form></form>
-      <nav class="nav full square" id=dropdown-button>
-        <i class="fa fa-bars"></i>
-        <div class=label>Open the main menu</div>
-      </nav>
     </div>
+    <form id=login-form></form>
+    <nav class="nav full square" id=dropdown-button>
+      <i class="fa fa-bars"></i>
+      <div class=label>Open the main menu</div>
+    </nav>
   </header>
+  <footer class=footer>
+    <nav class="nav full square" id=worlds-button>
+      <i class="fa fa-planet-ringed"></i>
+      <div class=name>World</div>
+      <div class=label>Choose a world</div>
+    </nav>
+    <nav class="nav hidden" id=world-save-button>
+      <i class="fa fa-save"></i>
+      <div class=name>Save</div>
+      <div class=label>Save the current world</div>
+    </nav>
+    <nav class="nav hidden" id=world-revert-button>
+      <i class="fa fa-undo"></i>
+      <div class=name>Revert</div>
+      <div class=label>Revert the world to saved state</div>
+    </nav>
+    <nav class="nav full square">
+      <i class="fa fa-plus"></i>
+      <div class=name>Add package</div>
+      <div class=label>Add a new package to the scene</div>
+      <input type=file class=hidden id=load-package-input>
+    </nav>
+    <nav class="nav full square" id=packages-button>
+      <i class="fa fa-box-open"></i>
+      <div class=name>Packages</div>
+      <div class=label>Show package list</div>
+    </nav>
+    <nav class="nav full square" id=inventory-button>
+      <i class="fa fa-backpack"></i>
+      <div class=name>Inventory</div>
+      <div class=label>Manage your packages</div>
+    </nav>
+    <nav class="nav full" id=enter-xr-button>
+      <i class="fa fa-vr-cardboard"></i>
+      <div class=name>Enter</dive>
+    </nav>
+  </footer>
   <aside class=subpage id=worlds-subpage>
     <div class=subtabs>
-      <nav class="subtab open" id=subtab-1>Creative</nav>
-      <nav class=subtab id=subtab-2>Worlds</nav>
+      <nav class=subtab id=subtab-1>Worlds</nav>
+      <nav class=close-button>
+        <i class="fa fa-close"></i>
+      </nav>
     </div>
     <div class=subpage-wrap>
-      <div class="subtab-content open" id=subtab-content-1>
+      <div class="subtab-content open" id=subtab-content-2>
         <div class=worlds-wrap>
-          <div class=world-buttons>
-            <div class="world open" id=singleplayer-button>
-              <i class="fa fa-user"></i>
-              <div class=wrap>
-                <h1>Singleplayer creative</h1>
-                <p>This scene is only visible to you. You can publish it for others to see.</p>
+          <div class=worlds>
+            <div class=world id=sandbox-button>
+              <!-- <img src="assets/question.png"> -->
+              <i class="fa fa-brush"></i>
+              <div class=text>
+                <div class="name cardTitle">Sandbox</div>
               </div>
-              <!-- <nav class=button>Join</nav> -->
             </div>
-            <div class=world id=multiplayer-button>
-              <i class="fa fa-users"></i>
-              <div class=wrap>
-                <h1>Multiplayer creative</h1>
-                <p>When you're ready, publish this scene into a world anyone can join.</p>
+            <div class=world id=new-world-button>
+              <!-- <img src="assets/question.png"> -->
+              <i class="fa fa-plus"></i>
+              <div class=text>
+                <div class="name cardTitle">New world</div>
               </div>
-              <!-- <nav class=button>Join</nav> -->
             </div>
           </div>
-          <div class=world-tools style="visibility: hidden;" id=world-tools>
-            <h3>Make public</h3>
-            <nav class=world-tool id=publish-world-button>
-              Publish world <i class="fa fa-arrow-right"></i>
-            </nav>
+          <div class=worlds id=worlds>
+
           </div>
         </div>
       </div>
-      <div class="subtab-content" id=subtab-content-2>
-        <div class=worlds-wrap>
-          <div class=worlds>
-            <div class=worlds id=worlds>
+    </div>
+  </aside>
+  <aside class=subpage id=packages-subpage>
+    <div class=subtabs>
+      <nav class="subtab open" id=subtab-1>XRPKs</nav>
+      <nav class=close-button>
+        <i class="fa fa-close"></i>
+      </nav>
+    </div>
+    <div class=subpage-wrap>
+      <div class="subtab-content open" id=subtab-content-2>
+        <div class=packages id=packages>
 
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -144,36 +172,21 @@
   <aside class=subpage id=inventory-subpage>
     <div class=subtabs>
       <nav class="subtab open" id=subtab-1>Inventory</nav>
-      <nav class=subtab id=subtab-2>Commons</nav>
-      <nav class=subtab id=subtab-3>Uniques</nav>
+      <nav class=close-button>
+        <i class="fa fa-close"></i>
+      </nav>
     </div>
     <div class=subpage-wrap>
       <div class=subtab-content id=subtab-content-1>
         <div class=packages id=inventory>
-          <!-- Nothing here :'( -->
-        </div>
-      </div>
-      <div class=subtab-content id=subtab-content-2>
-        <div class=packages id=packages>
-
-        </div>
-      </div>
-      <div class=subtab-content id=subtab-content-3>
-        <div class=tokens id=tokens>
-
+          
         </div>
       </div>
     </div>
   </aside>
   <aside class="dropdown" id=dropdown>
     <div class=tabs>
-      <nav class="tab open" id=tab-1>
-        <span>Objects</span>
-        <nav>
-          <i class="fa fa-plus"></i>
-          <input type=file class=hidden id=load-package-input>
-        </nav>
-      </nav>
+      <nav class="tab open" id=tab-1>Objects</nav>
       <nav class=tab id=tab-2>Scene</nav>
       <nav class=tab id=tab-3>Social</nav>
       <nav class=tab id=tab-4>Settings</nav>
@@ -232,10 +245,6 @@
       </div>
     </section>
   </aside>
-<script type=module>
-  import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-  window.THREE = THREE;
-</script>
 <script type=module src="run.js"></script>
 <script type=module src="edit.js"></script>
 </body>

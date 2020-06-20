@@ -179,6 +179,47 @@ img:not([src]) {
 
 }
 
+.footer {
+  position: absolute;
+  display: flex;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  padding: 30px;
+}
+
+.footer .nav {
+  position: relative;
+  display: flex;
+  padding: 10px 20px;
+  background-color: #808080;
+  border-radius: 10px;
+  font-size: 16px;
+  align-items: center;
+  opacity: 0.5;
+  overflow: hidden;
+  cursor: pointer;
+}
+.footer .nav:hover {
+  opacity: 1;
+}
+.footer .nav:nth-child(3) {
+  margin-right: auto;
+}
+.footer .nav + .nav {
+  margin-left: 10px;
+}
+.footer .nav i {
+  margin-right: 5px;
+}
+.footer .nav .label {
+  display: none;
+}
+.footer .nav.hidden {
+  visibility: hidden;
+}
+
 .selections {
   display: flex;
   position: absolute;
@@ -495,13 +536,14 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .subpage {
   position: absolute;
   right: 0;
-  top: 50px;
-  width: 640px;
-  height: calc(100% - 50px);
-  padding: 20px;
-  background-color: #FFF;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
-  overflow: auto;
+  bottom: 0;
+  width: 100vw;
+  height: 200px;
+  /* padding: 20px; */
+  background-color: #111;
+  color: #FFF;
+  /* box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  overflow: auto; */
 }
 
 .subpage:not(.open) {
@@ -552,6 +594,19 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: #FFF; */
 }
 
+.subtabs .close-button {
+  display: flex;
+  margin-left: auto;
+  width: 40px;
+  font-size: 16px;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.subtabs .close-button:hover {
+  color: #ef5350;
+}
+
 .subtab-content {
   display: flex;
   flex-direction: column;
@@ -565,7 +620,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   align-items: flex-start;
 }
 
-.worlds {
+/* .worlds {
   width: 600px;
 }
 .world-buttons {
@@ -609,7 +664,6 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   margin-bottom: 10px;
   padding: 10px;
   align-items: flex-start;
-  /* border-radius: 5px; */
   cursor: pointer;
 }
 
@@ -668,19 +722,24 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .world-buttons .world .button
 {
   
-}
+} */
 
 .packages {
   display: flex;
 }
-.packages .package {
+.packages .package,
+.worlds .world
+{
   position: relative;
   display: inline-flex;
   margin-right: 20px;
   margin-bottom: 20px;
   flex-direction: column;
+  cursor: pointer;
 }
-.packages .package .background {
+.packages .package .background,
+.worlds .world .background
+{
   position: absolute;
   top: 0;
   bottom: 0;
@@ -689,24 +748,37 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   display: flex;
   flex-direction: column;
 }
-.packages .package:not(:hover) .background {
+.packages .package:not(:hover) .background,
+.worlds .world:not(:hover) .background
+{
   display: none;
   padding: 10px;
 }
-.packages .package img {
+.packages .package img,
+.packages .package i,
+.worlds .world img,
+.worlds .world i
+{
   display: flex;
   width: 100px;
   height: 100px;
   margin-bottom: 10px;
   background-color: #F8F8F8;
   border-radius: 5px;
+  font-size: 30px;
+  color: #000;
   justify-content: center;
   align-items: center;
+  pointer-events: none;
 }
-.packages .package .name {
+.packages .package .name,
+.worlds .world .name
+{
   font-size: 13px;
 }
-.packages .package .button {
+.packages .package .button,
+.worlds .world .button
+{
   margin-bottom: 5px;
 }
 
