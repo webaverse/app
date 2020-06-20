@@ -732,13 +732,13 @@ pe.addEventListener('packageadd', async e => {
     reason,
   } = e.data;
 
+  _ensurePlaceholdMesh(p);
+  await _ensureVolumeMesh(p);
+  _renderObjects();
+
+  _bindObject(p);
+
   if (!reason) {
-    _ensurePlaceholdMesh(p);
-    await _ensureVolumeMesh(p);
-    _renderObjects();
-
-    _bindObject(p);
-
     currentWorldChanged = true;
     _updateWorldSaveButton();
   }
@@ -749,18 +749,18 @@ pe.addEventListener('packageremove', e => {
     reason,
   } = e.data;
   
+  if (p.placeholderBox) {
+    scene.remove(p.placeholderBox);
+  }
+
+  if (selectedObject === p) {
+    selectedObject = null;
+  }
+  _renderObjects();
+
+  _unbindObject(p);
+
   if (!reason) {
-    if (p.placeholderBox) {
-      scene.remove(p.placeholderBox);
-    }
-
-    if (selectedObject === p) {
-      selectedObject = null;
-    }
-    _renderObjects();
-
-    _unbindObject(p);
-
     currentWorldChanged = true;
     _updateWorldSaveButton();
   }
