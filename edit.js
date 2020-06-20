@@ -354,10 +354,7 @@ for (let i = 0; i < tools.length; i++) {
 
     if (selectedTool !== oldSelectedTool) {
       hoverTarget = null;
-      if (selectTarget && selectTarget.control) {
-        _unbindTransformControls(selectTarget);
-      }
-      selectTarget = null;
+      _setSelectTarget(null);
 
       switch (oldSelectedTool) {
         case 'thirdperson': {
@@ -666,11 +663,6 @@ const _ensureVolumeMesh = async p => {
     scene.add(p.volumeMesh);
   }
 };
-const _unbindSelectTargets = () => {
-  if (selectTarget && selectTarget.control) {
-    _unbindTransformControls(selectTarget);
-  }
-};
 const shieldSlider = document.getElementById('shield-slider');
 let shieldLevel = parseInt(shieldSlider.value, 10);
 shieldSlider.addEventListener('change', async e => {
@@ -680,21 +672,19 @@ shieldSlider.addEventListener('change', async e => {
     case 0: {
       shieldLevel = newShieldLevel;
       hoverTarget = null;
-      selectTarget = null;
+      _setSelectTarget(null);
       break;
     }
     case 1: {
-      _unbindSelectTargets();
       shieldLevel = newShieldLevel;
       hoverTarget = null;
-      selectTarget = null;
+      _setSelectTarget(null);
       break;
     }
     case 2: {
-      _unbindSelectTargets();
       shieldLevel = newShieldLevel;
       hoverTarget = null;
-      selectTarget = null;
+      _setSelectTarget(null);
       break;
     }
   }
@@ -726,6 +716,26 @@ const _updateWorldSaveButton = () => {
     worldRevertButton.classList.add('hidden');
   }
 };
+
+let hoverTarget = null;
+let selectTarget = null;
+const _setSelectTarget = newSelectTarget => {
+  if (selectTarget && selectTarget.control) {
+    _unbindTransformControls(selectTarget);
+  }
+  selectTarget = newSelectTarget;
+  if (selectTarget) {
+    if (!dropdownButton.classList.contains('open')) {
+      dropdownButton.click();
+    }
+    // const object = objectsEl.querySelector(`[packageid="${selectTarget.package.id}"]`);
+    // object.click();
+    
+    _bindTransformControls(selectTarget);
+  }
+  _renderObjects();
+};
+
 pe.addEventListener('packageadd', async e => {
   const {
     package: p,
@@ -753,10 +763,11 @@ pe.addEventListener('packageremove', e => {
     scene.remove(p.placeholderBox);
   }
 
-  if (selectedObject === p) {
-    selectedObject = null;
+  if (selectTarget === p) {
+    _setSelectTarget(null);
+  } else {
+    _renderObjects();
   }
-  _renderObjects();
 
   _unbindObject(p);
 
@@ -765,9 +776,6 @@ pe.addEventListener('packageremove', e => {
     _updateWorldSaveButton();
   }
 });
-
-let hoverTarget = null;
-let selectTarget = null;
 
 let transformControlsHovered = false;
 const _bindTransformControls = o => {
@@ -873,13 +881,7 @@ renderer.domElement.addEventListener('mousemove', e => {
   }
 });
 renderer.domElement.addEventListener('mousedown', e => {
-  if (selectTarget && selectTarget.control) {
-    _unbindTransformControls(selectTarget);
-  }
-  selectTarget = hoverTarget;
-  if (selectTarget) {
-    _bindTransformControls(selectTarget);
-  }
+  _setSelectTarget(hoverTarget);
 });
 
 const runMode = document.getElementById('run-mode');
@@ -962,10 +964,7 @@ for (let i = 0; i < tabs.length; i++) {
     tab.classList.add('open');
     tabContent.classList.add('open');
 
-    if (selectedObject) {
-      selectedObject = null;
-      _renderObjects();
-    }
+    _setSelectTarget(null);
   });
 }
 for (let i = 0; i < worldsSubtabs.length; i++) {
@@ -1392,11 +1391,11 @@ unwearButton.addEventListener('click', e => {
   pe.defaultAvatar();
 });
 
-let selectedObject = null;
+// let selectedObject = null;
 const objectsEl = document.getElementById('objects');
 const _renderObjects = () => {
-  if (selectedObject) {
-    let p = selectedObject;
+  if (selectTarget) {
+    let {package: p} = selectTarget;
     const schemas = Object.keys(p.schema);
     const {events} = p;
     objectsEl.innerHTML = `
@@ -1482,8 +1481,7 @@ const _renderObjects = () => {
     `;
     const backButton = objectsEl.querySelector('.back-button');
     backButton.addEventListener('click', e => {
-      selectedObject = null;
-      _renderObjects();
+      _setSelectTarget(null);
     });
     const inspectButton = objectsEl.querySelector('.inspect-button');
     inspectButton.addEventListener('click', async e => {
@@ -1578,7 +1576,7 @@ const _renderObjects = () => {
     });
   } else {
     objectsEl.innerHTML = pe.packages.map((p, i) => `
-      <div class=object index=${i}>
+      <div class=object packageid="${p.id}" index="${i}">
         <span class=name>${p.name}</span>
         <nav class=close-button><i class="fa fa-times"></i></nav>
       </div>
@@ -1590,8 +1588,8 @@ const _renderObjects = () => {
         e.preventDefault();
         e.stopPropagation();
 
-        selectedObject = p;
-        _renderObjects();
+        document.querySelector('.tool[tool="select"]').click();
+        _setSelectTarget(p.volumeMesh);
       });
       const closeButton = packageEl.querySelector('.close-button');
       closeButton.addEventListener('click', e => {
