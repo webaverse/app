@@ -615,7 +615,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   align-items: flex-start;
 }
 
-.worlds {
+/* .worlds {
   width: 600px;
 }
 .world-buttons {
@@ -659,7 +659,6 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   margin-bottom: 10px;
   padding: 10px;
   align-items: flex-start;
-  /* border-radius: 5px; */
   cursor: pointer;
 }
 
@@ -718,19 +717,24 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .world-buttons .world .button
 {
   
-}
+} */
 
 .packages {
   display: flex;
 }
-.packages .package {
+.packages .package,
+.worlds .world
+{
   position: relative;
   display: inline-flex;
   margin-right: 20px;
   margin-bottom: 20px;
   flex-direction: column;
+  cursor: pointer;
 }
-.packages .package .background {
+.packages .package .background,
+.worlds .world .background
+{
   position: absolute;
   top: 0;
   bottom: 0;
@@ -739,25 +743,36 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   display: flex;
   flex-direction: column;
 }
-.packages .package:not(:hover) .background {
+.packages .package:not(:hover) .background,
+.worlds .world:not(:hover) .background
+{
   display: none;
   padding: 10px;
 }
-.packages .package img {
+.packages .package img,
+.packages .package i,
+.worlds .world img,
+.worlds .world i
+{
   display: flex;
   width: 100px;
   height: 100px;
   margin-bottom: 10px;
   background-color: #F8F8F8;
   border-radius: 5px;
+  color: #000;
   justify-content: center;
   align-items: center;
   pointer-events: none;
 }
-.packages .package .name {
+.packages .package .name,
+.worlds .world .name
+{
   font-size: 13px;
 }
-.packages .package .button {
+.packages .package .button,
+.worlds .world .button
+{
   margin-bottom: 5px;
 }
 
