@@ -985,13 +985,11 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
 
 const worlds = document.getElementById('worlds');
 const _makeWorldHtml = w => `
-  <div class="world ${currentWorldHash === w.hash ? 'open' : ''}" type="${w.type}" hash="${w.hash}">
+  <div class="world ${currentWorldHash === w.hash ? 'open' : ''}" name="${w.name}">
     <img src=assets/question.png>
-    <div class=wrap>
-      <h1>${w.name}</h1>
-      <p>This is a world description.</p>
+    <div class="text">
+      <div class="name cardTitle">${w.name}</div>
     </div>
-    <nav class=button>${w.type}</nav>
   </div>
 `;
 const headerLabel = document.getElementById('header-label');
@@ -1003,7 +1001,7 @@ const _enterWorld = async hash => {
   runMode.setAttribute('href', 'run.html' + (hash ? ('?w=' + hash) : ''));
   editMode.setAttribute('href', 'edit.html' + (hash ? ('?w=' + hash) : ''));
 
-  singleplayerButton.classList.remove('open');
+  /* singleplayerButton.classList.remove('open');
   multiplayerButton.classList.remove('open');
   Array.from(worlds.querySelectorAll('.world')).forEach(w => {
     w.classList.remove('open');
@@ -1030,16 +1028,16 @@ const _enterWorld = async hash => {
     }
   } else {
     pe.reset();
-  }
+  } */
 };
-const _pushWorld = hash => {
-  history.pushState({}, '', window.location.protocol + '//' + window.location.host + window.location.pathname + '?w=' + hash);
+const _pushWorld = name => {
+  history.pushState({}, '', window.location.protocol + '//' + window.location.host + window.location.pathname + '?w=' + name);
   _handleUrl(window.location.href);
 };
 const _bindWorld = w => {
   w.addEventListener('click', async e => {
-    const hash = w.getAttribute('hash');
-    _pushWorld(hash);
+    const name = w.getAttribute('name');
+    _pushWorld(name);
   });
 };
 (async () => {
@@ -1052,7 +1050,7 @@ const _bindWorld = w => {
   worlds.innerHTML = ws.map(w => _makeWorldHtml(w)).join('\n');
   Array.from(worlds.querySelectorAll('.world')).forEach((w, i) => _bindWorld(w, ws[i]));
 })();
-let worldType = 'singleplayer';
+/* let worldType = 'singleplayer';
 const singleplayerButton = document.getElementById('singleplayer-button');
 singleplayerButton.addEventListener('click', e => {
   pe.reset();
@@ -1076,7 +1074,7 @@ multiplayerButton.addEventListener('click', async e => {
   });
   worldType = 'multiplayer';
   worldTools.style.visibility = null;
-});
+}); */
 
 const _makePackageHtml = p => `
   <div class=package draggable=true>
@@ -1224,7 +1222,7 @@ pe.domElement.addEventListener('drop', async e => {
       pe.downloadScene(hash);
     });
   });
-})(); */
+})();
 const worldTools = document.getElementById('world-tools');
 const publishWorldButton = document.getElementById('publish-world-button');
 publishWorldButton.addEventListener('click', async e => {
@@ -1244,6 +1242,38 @@ publishWorldButton.addEventListener('click', async e => {
     type: worldType,
   };
   const res = await fetch(worldsEndpoint + '/' + hash, {
+    method: 'PUT',
+    body: JSON.stringify(w),
+  });
+  if (res.ok) {
+    worlds.innerHTML += '\n' + _makeWorldHtml(w);
+    const ws = Array.from(worlds.querySelectorAll('.world'));
+    Array.from(worlds.querySelectorAll('.world')).forEach(w => _bindWorld(w));
+    const newW = ws[ws.length - 1];
+    newW.click();
+  } else {
+    console.warn('invalid status code: ' + res.status);
+  }
+}); */
+function makeId(length) {
+  var result           = '';
+  var characters       = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for ( var i = 0; i < length; i++ ) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+const newWorldButton = document.getElementById('new-world-button');
+newWorldButton.addEventListener('click', async e => {
+  const hash = await pe.uploadScene();
+
+  const w = {
+    name: makeId(8),
+    description: 'This is a world description',
+    hash,
+  };
+  const res = await fetch(worldsEndpoint + '/' + w.name, {
     method: 'PUT',
     body: JSON.stringify(w),
   });
