@@ -202,7 +202,7 @@ img:not([src]) {
 .footer .nav:hover {
   opacity: 1;
 }
-.footer .nav:first-child {
+.footer .nav:nth-child(2) {
   margin-right: auto;
 }
 .footer .nav + .nav {
@@ -213,6 +213,9 @@ img:not([src]) {
 }
 .footer .nav .label {
   display: none;
+}
+.footer .nav.hidden {
+  visibility: hidden;
 }
 
 .selections {
