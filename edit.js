@@ -1079,7 +1079,7 @@ multiplayerButton.addEventListener('click', async e => {
 });
 
 const _makePackageHtml = p => `
-  <div class=package>
+  <div class=package draggable=true>
     <img src="assets/question.png">
     <!-- <img src="${p.img}" width=256 height=256> -->
     <div class=text>
@@ -1091,12 +1091,18 @@ const _makePackageHtml = p => `
     </div>
   </div>
 `;
+const _addPackageFromHash = async hash => {
+  const p = await XRPackage.download(hash);
+  pe.add(p);
+};
 const _bindPackage = (pE, pJ) => {
+  const {dataHash} = pJ;
+  pE.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('text/plain', dataHash);
+  });
   const addButton = pE.querySelector('.add-button');
-  addButton.addEventListener('click', async e => {
-    const {dataHash} = pJ;
-    const p = await XRPackage.download(dataHash);
-    pe.add(p);
+  addButton.addEventListener('click', () => {
+    _addPackageFromHash(dataHash);
   });
   /* const runButton = pE.querySelector('.run-button');
   runButton.addEventListener('click', async e => {
@@ -1130,7 +1136,21 @@ async function getTokenByIndex(index) {
     modelHash: modelHash
   }
 }
-const _getTokenHtml = cardData => {
+pe.domElement.addEventListener('dragover', e => {
+  e.preventDefault();
+});
+pe.domElement.addEventListener('drop', async e => {
+  e.preventDefault();
+
+  if (e.dataTransfer.items.length > 0) {
+    const [item] = e.dataTransfer.items;
+    const dataHash = await new Promise((resolve, reject) => {
+      item.getAsString(resolve);
+    });
+    _addPackageFromHash(dataHash);
+  }
+});
+/* const _getTokenHtml = cardData => {
   const {index, name, img, metadataHash, dataHash, modelHash} = cardData;
   return `\
     <div class="token card">
@@ -1150,7 +1170,7 @@ const _getTokenHtml = cardData => {
     </div>
   `;
 };
-/* (async () => {
+(async () => {
   const totalObjects = await contract.methods.getNonce().call();
   const ts = [];
   for (let i = 1; i <= totalObjects; i++) {

@@ -752,6 +752,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   border-radius: 5px;
   justify-content: center;
   align-items: center;
+  pointer-events: none;
 }
 .packages .package .name {
   font-size: 13px;
