@@ -1,3 +1,4 @@
+/* global object */
 console.log('load', object);
 
 setInterval(() => {
