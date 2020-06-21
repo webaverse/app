@@ -795,6 +795,11 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   align-items: center;
 }
 
+.objects .placeholder {
+  display: flex;
+  justify-content: center;
+}
+
 .objects .object .close-button {
   margin-left: auto;
   cursor: pointer;
