@@ -1520,7 +1520,7 @@ header.unlocking + .main .blocker .button
   color: #FFFFFF80;
   text-transform: uppercase;
 }
-.user-button .user-details .item {
+.user-button .user-details .item:not(:last-child) {
   margin-bottom: 10px;
 }
 
