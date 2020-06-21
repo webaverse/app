@@ -734,8 +734,12 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   display: inline-flex;
   margin-right: 20px;
   margin-bottom: 20px;
+  border: 5px solid transparent;
   flex-direction: column;
   cursor: pointer;
+}
+.worlds .world.open {
+  background-color: #64b5f6;
 }
 .packages .package .background,
 .worlds .world .background
