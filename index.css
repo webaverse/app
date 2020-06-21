@@ -186,7 +186,7 @@ img:not([src]) {
   left: 0;
   right: 0;
   width: 100vw;
-  padding: 30px;
+  padding: 15px;
 }
 
 .footer .nav {
