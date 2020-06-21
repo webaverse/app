@@ -1166,6 +1166,33 @@ window.addEventListener('dragend', e => {
     dropZone.classList.remove('hover');
   });
 });
+document.getElementById('inventory-drop-zone').addEventListener('drop', async e => {
+  e.preventDefault();
+
+  if (e.dataTransfer.items.length > 0) {
+    const [item] = e.dataTransfer.items;
+    const dataHash = await new Promise((resolve, reject) => {
+      item.getAsString(resolve);
+    });
+
+    console.log('got drop', dataHash);
+  }
+});
+document.getElementById('avatar-drop-zone').addEventListener('drop', async e => {
+  e.preventDefault();
+
+  if (e.dataTransfer.items.length > 0) {
+    const [item] = e.dataTransfer.items;
+    const dataHash = await new Promise((resolve, reject) => {
+      item.getAsString(resolve);
+    });
+
+    console.log('got drop', dataHash);
+
+    const p = await XRPackage.download(dataHash);
+    await pe.wearAvatar(p);
+  }
+});
 
 const _makePackageHtml = p => `
   <div class=package draggable=true>
