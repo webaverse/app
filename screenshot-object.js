@@ -1,3 +1,4 @@
+/* global GIF */
 import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import './gif.js';
@@ -5,6 +6,7 @@ import screenshot from './screenshot.js';
 
 function makePromise() {
   let accept, reject;
+  // eslint-disable-next-line promise/param-names
   const p = new Promise((a, r) => {
     accept = a;
     reject = r;
@@ -36,10 +38,10 @@ export async function screenshotObject(o) {
     workers: 2,
     quality: 10,
   });
-  for (let i = 0; i < Math.PI*2; i += Math.PI*0.05) {
+  for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.05) {
     const position = center.clone()
       .add(new THREE.Vector3(0, size.y / 2, 0))
-      .add(new THREE.Vector3(Math.cos(i + Math.PI/2), 0, Math.sin(i + Math.PI/2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
+      .add(new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
     const canvas = screenshot(newScene, position, center, {
       width,
       height,
@@ -48,8 +50,8 @@ export async function screenshotObject(o) {
   }
   gif.render();
 
-  const blob = await new Promise((accept, reject) => {
-    gif.on('finished', accept);
+  const blob = await new Promise((resolve, reject) => {
+    gif.on('finished', resolve);
   });
   console.log('got gif data', blob);
   return blob;
@@ -78,10 +80,10 @@ export async function screenshotEngine(pe) {
     workers: 2,
     quality: 10,
   });
-  for (let i = 0; i < Math.PI*2; i += Math.PI*0.025) {
+  for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.025) {
     pe.camera.position.copy(center).add(new THREE.Vector3(Math.cos(i) * size.x, size.y / 2, Math.sin(i) * size.z));
     pe.camera.quaternion.setFromRotationMatrix(
-      new THREE.Matrix4().lookAt(pe.camera.position, center, up)
+      new THREE.Matrix4().lookAt(pe.camera.position, center, up),
     );
     pe.camera.scale.set(1, 1, 1);
     pe.camera.matrix.compose(pe.camera.position, pe.camera.quaternion, pe.camera.scale);
@@ -99,8 +101,8 @@ export async function screenshotEngine(pe) {
   }
   gif.render();
 
-  const blob = await new Promise((accept, reject) => {
-    gif.on('finished', accept);
+  const blob = await new Promise((resolve, reject) => {
+    gif.on('finished', resolve);
   });
   return blob;
 }

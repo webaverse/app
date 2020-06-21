@@ -68,7 +68,6 @@ async function tryLogin() {
     }
   }
 
-  const header = document.getElementById('header');
   const loginForm = document.getElementById('login-form');
   loginForm.classList.add('login-form');
   loginForm.innerHTML = `
@@ -103,7 +102,7 @@ async function tryLogin() {
   const loginEmailStatic = document.getElementById('login-email-static');
   if (loginToken) {
     loginEmailStatic.innerText = loginToken.email;
-    
+
     document.body.classList.add('logged-in');
     loginForm.classList.add('phase-3');
   } else {
@@ -119,7 +118,7 @@ async function tryLogin() {
 
       const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(loginEmail.value)}`, {
         method: 'POST',
-      })
+      });
       if (res.status >= 200 && res.status < 300) {
         loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
         loginForm.classList.add('phase-2');
@@ -128,7 +127,7 @@ async function tryLogin() {
       } else {
         throw new Error(`invalid status code: ${res.status}`);
       }
-   } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
+    } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
       loginNotice.innerHTML = '';
       loginError.innerHTML = '';
       loginForm.classList.remove('phase-2');
