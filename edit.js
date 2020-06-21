@@ -1193,9 +1193,13 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
 
     console.log('got drop', j);
 
-    const {dataHash} = j;
+    const {dataHash, id} = j;
     if (dataHash) {
       const p = await XRPackage.download(dataHash);
+      await pe.wearAvatar(p);
+    } else if (id) {
+      let p = pe.packages.find(p => p.id === id);
+      p = p.clone();
       await pe.wearAvatar(p);
     }
   }
