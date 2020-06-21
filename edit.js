@@ -1367,7 +1367,7 @@ const _pullPackages = async children => {
   }
 };
 
-const avatarMe = document.getElementById('avatar-me');
+/* const avatarMe = document.getElementById('avatar-me');
 const unwearButton = avatarMe.querySelector('.unwear-button');
 const avatars = document.getElementById('avatars');
 const _renderAvatars = () => {
@@ -1389,7 +1389,7 @@ pe.addEventListener('avatarchange', e => {
 });
 unwearButton.addEventListener('click', e => {
   pe.defaultAvatar();
-});
+}); */
 
 // let selectedObject = null;
 const objectsEl = document.getElementById('objects');
