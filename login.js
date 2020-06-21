@@ -1,8 +1,30 @@
 import storage from './storage.js';
 
 const loginEndpoint = 'https://login.exokit.org';
+const usersEndpoint = 'https://users.exokit.org';
 
 let loginToken = null;
+async function updateLoginToken() {
+  const res = await fetch(`${usersEndpoint}/${loginToken.name}`);
+  let userObject;
+  if (res.ok) {
+    userObject = await res.json();
+  } else if (res.status === 404) {
+    userObject = {
+      name: loginToken.name,
+      avatarHash: null,
+    };
+  } else {
+    throw new Error(`invalid status code: ${res.status}`);
+  }
+
+  const loginEmailStatic = document.getElementById('login-email-static');
+  const userName = document.getElementById('user-name');
+  const avatarName = document.getElementById('avatar-name');
+  loginEmailStatic.innerText = userObject.name;
+  userName.innerText = userObject.name;
+  avatarName.innerText = userObject.avatarHash !== null ? userObject.avatarHash : 'None';
+}
 async function doLogin(email, code) {
   const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
     method: 'POST',
@@ -15,13 +37,12 @@ async function doLogin(email, code) {
     loginToken = newLoginToken;
 
     const loginForm = document.getElementById('login-form');
-    const loginEmailStatic = document.getElementById('login-email-static');
-    loginEmailStatic.innerText = loginToken.name;
-
-    document.body.classList.add('logged-in');
+    // document.body.classList.add('logged-in');
     loginForm.classList.remove('phase-1');
     loginForm.classList.remove('phase-2');
     loginForm.classList.add('phase-3');
+
+    await updateLoginToken();
 
     return true;
   } else {
@@ -82,14 +103,12 @@ async function tryLogin() {
 
   const userButton = document.getElementById('user-button');
   const userDetails = document.getElementById('user-details');
-  const userName = document.getElementById('user-name');
   const unwearButton = document.getElementById('unwear-button');
   const avatarName = document.getElementById('avatar-name');
   const loginEmail = document.getElementById('login-email');
   const loginVerificationCode = document.getElementById('login-verification-code');
   const loginNotice = document.getElementById('login-notice');
   const loginError = document.getElementById('login-error');
-  const loginEmailStatic = document.getElementById('login-email-static');
   userButton.addEventListener('click', e => {
     userButton.classList.toggle('open');
   });
@@ -98,10 +117,9 @@ async function tryLogin() {
     e.stopPropagation();
   });
   if (loginToken) {
-    loginEmailStatic.innerText = loginToken.name;
-    userName.innerText = loginToken.name;
+    await updateLoginToken();
 
-    document.body.classList.add('logged-in');
+    // document.body.classList.add('logged-in');
     loginForm.classList.add('phase-3');
   } else {
     loginForm.classList.add('phase-1');
