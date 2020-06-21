@@ -1247,7 +1247,19 @@ header.unlocking + .main .blocker .button
 }
 
 .object-detail {
+  display: flex;
   padding: 0 10px;
+  flex-direction: column;
+}
+.object-detail h1 {
+  margin: 10px 0;
+}
+.object-detail .screenshot {
+  /* margin: 0 auto; */
+  width: 150px;
+  height: 150px;
+  margin-bottom: 10px;
+  border-radius: 8px;
 }
 
 .schema {

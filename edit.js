@@ -1401,6 +1401,7 @@ const _renderObjects = () => {
     objectsEl.innerHTML = `
       <div class=object-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
+        <img class=screenshot>
         <nav class="button reload-button">Reload</nav>
         <nav class="button wear-button">Wear</nav>
         <nav class="button inspect-button">Inspect</nav>
@@ -1574,6 +1575,19 @@ const _renderObjects = () => {
         p.sendEvent(name, value);
       });
     });
+
+    (async () => {
+      const img = objectsEl.querySelector('img');
+      const u = await p.getScreenshotImageUrl();
+      img.src = u;
+      img.onload = () => {
+        URL.revokeObjectURL(u);
+      };
+      img.onerror = err => {
+        console.warn(err);
+        URL.revokeObjectURL(u);
+      };
+    })();
   } else {
     objectsEl.innerHTML = pe.packages.map((p, i) => `
       <div class=object packageid="${p.id}" index="${i}">
