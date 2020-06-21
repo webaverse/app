@@ -152,7 +152,7 @@ const _makeVolumeMesh = async p => {
   downloadFile(b, 'target.glb');
 }; */
 
-(async() => {
+(async () => {
   const res = await fetch('./assets/avatar.vrm');
   const b = await res.blob();
   b.name = 'model.vrm';
@@ -1069,7 +1069,7 @@ const _bindWorld = w => {
     _pushWorld(name);
   });
 };
-(async() => {
+(async () => {
   const res = await fetch(worldsEndpoint);
   const children = await res.json();
   const ws = await Promise.all(children.map(child =>
@@ -1142,7 +1142,7 @@ const _bindPackage = (pE, pJ) => {
   }); */
 };
 const packages = document.getElementById('packages');
-(async() => {
+(async () => {
   const res = await fetch(packagesEndpoint);
   const children = await res.json();
   const ps = await Promise.all(children.map(child =>
@@ -1209,7 +1209,7 @@ pe.domElement.addEventListener('drop', async e => {
     </div>
   `;
 };
-(async() => {
+(async () => {
   const totalObjects = await contract.methods.getNonce().call();
   const ts = [];
   for (let i = 1; i <= totalObjects; i++) {
