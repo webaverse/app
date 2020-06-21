@@ -1171,26 +1171,32 @@ document.getElementById('inventory-drop-zone').addEventListener('drop', async e 
 
   if (e.dataTransfer.items.length > 0) {
     const [item] = e.dataTransfer.items;
-    const dataHash = await new Promise((resolve, reject) => {
+    const s = await new Promise((resolve, reject) => {
       item.getAsString(resolve);
     });
+    const j = JSON.parse(s);
 
-    console.log('got drop', dataHash);
+    console.log('got drop', j);
   }
 });
 document.getElementById('avatar-drop-zone').addEventListener('drop', async e => {
   e.preventDefault();
 
-  if (e.dataTransfer.items.length > 0) {
-    const [item] = e.dataTransfer.items;
-    const dataHash = await new Promise((resolve, reject) => {
-      item.getAsString(resolve);
+  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json');
+  if (jsonItem) {
+    const s = await new Promise((resolve, reject) => {
+      jsonItem.getAsString(resolve);
     });
+    console.log('got s', s);
+    const j = JSON.parse(s);
 
-    console.log('got drop', dataHash);
+    console.log('got drop', j);
 
-    const p = await XRPackage.download(dataHash);
-    await pe.wearAvatar(p);
+    const {dataHash} = j;
+    if (dataHash) {
+      const p = await XRPackage.download(dataHash);
+      await pe.wearAvatar(p);
+    }
   }
 });
 
@@ -1214,14 +1220,18 @@ const _addPackageFromHash = async (hash, matrix) => {
   }
   await pe.add(p);
 };
+const _startPackageDrag = (e, j) => {
+  e.dataTransfer.setData('application/json', JSON.stringify(j));
+  setTimeout(() => {
+    dropdown.classList.remove('open');
+    packagesSubpage.classList.remove('open');
+    document.body.classList.add('dragging');
+  });
+};
 const _bindPackage = (pE, pJ) => {
   const {dataHash} = pJ;
   pE.addEventListener('dragstart', e => {
-    e.dataTransfer.setData('text/plain', dataHash);
-    setTimeout(() => {
-      packagesSubpage.classList.remove('open');
-      document.body.classList.add('dragging');
-    });
+    _startPackageDrag(e, {dataHash});
   });
   const addButton = pE.querySelector('.add-button');
   addButton.addEventListener('click', () => {
@@ -1265,21 +1275,26 @@ pe.domElement.addEventListener('dragover', e => {
 pe.domElement.addEventListener('drop', async e => {
   e.preventDefault();
 
-  if (e.dataTransfer.items.length > 0) {
-    const [item] = e.dataTransfer.items;
-    const dataHash = await new Promise((resolve, reject) => {
-      item.getAsString(resolve);
+  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json');
+  if (jsonItem) {
+    const s = await new Promise((resolve, reject) => {
+      jsonItem.getAsString(resolve);
     });
-    
-    _updateRaycasterFromMouseEvent(raycaster, e);
-    localMatrix.compose(
-      raycaster.ray.origin.clone()
-        .add(raycaster.ray.direction.clone().multiplyScalar(2)),
-      new THREE.Quaternion(),
-      new THREE.Vector3(1, 1, 1)
-    )
+    const j = JSON.parse(s);
 
-    await _addPackageFromHash(dataHash, localMatrix);
+    const {dataHash} = j;
+
+    if (dataHash) {
+      _updateRaycasterFromMouseEvent(raycaster, e);
+      localMatrix.compose(
+        raycaster.ray.origin.clone()
+          .add(raycaster.ray.direction.clone().multiplyScalar(2)),
+        new THREE.Quaternion(),
+        new THREE.Vector3(1, 1, 1)
+      )
+
+      await _addPackageFromHash(dataHash, localMatrix);
+    }
   }
 });
 /* const _getTokenHtml = cardData => {
@@ -1474,7 +1489,7 @@ const _renderObjects = () => {
     objectsEl.innerHTML = `
       <div class=object-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
-        <img class=screenshot>
+        <img class=screenshot draggable=true>
         <nav class="button reload-button">Reload</nav>
         <nav class="button wear-button">Wear</nav>
         <nav class="button inspect-button">Inspect</nav>
@@ -1650,7 +1665,7 @@ const _renderObjects = () => {
     });
 
     (async () => {
-      const img = objectsEl.querySelector('img');
+      const img = objectsEl.querySelector('.screenshot');
       const u = await p.getScreenshotImageUrl();
       img.src = u;
       img.onload = () => {
@@ -1660,6 +1675,9 @@ const _renderObjects = () => {
         console.warn(err);
         URL.revokeObjectURL(u);
       };
+      img.addEventListener('dragstart', e => {
+        _startPackageDrag(e, {id: p.id});
+      });
     })();
   } else {
     objectsEl.innerHTML = pe.packages.length > 0 ?
