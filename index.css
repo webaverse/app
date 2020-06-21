@@ -1505,6 +1505,7 @@ header.unlocking + .main .blocker .button
 .user-button .user-details .label {
   font-weight: 600;
   font-size: 10px;
+  color: #FFFFFF80;
   text-transform: uppercase;
 }
 .user-button .user-details .item {
