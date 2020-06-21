@@ -13,6 +13,7 @@ async function pullUserObject() {
     userObject = {
       name: loginToken.name,
       avatarHash: null,
+      inventory: [],
     };
   } else {
     throw new Error(`invalid status code: ${res.status}`);
@@ -32,10 +33,10 @@ async function pushUserObject() {
 function updateUserObject() {
  const loginEmailStatic = document.getElementById('login-email-static');
   const userName = document.getElementById('user-name');
-  const avatarName = document.getElementById('avatar-name');
+  // const avatarName = document.getElementById('avatar-name');
   loginEmailStatic.innerText = userObject.name;
   userName.innerText = userObject.name;
-  avatarName.innerText = userObject.avatarHash !== null ? userObject.avatarHash : 'None';
+  // avatarName.innerText = userObject.avatarHash !== null ? userObject.avatarHash : 'None';
 }
 async function doLogin(email, code) {
   const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
@@ -103,9 +104,9 @@ async function tryLogin() {
         <div class=user-details id=user-details>
           <div class=label>Alias</div>
           <div class="user-name item" id=user-name></div>
-          <div class=label>Avatar</div>
+          <!-- <div class=label>Avatar</div>
           <div class="avatar-name item" id=avatar-name></div>
-          <nav class="button" style="display: none;" id=unwear-button>Unwear</nav>
+          <nav class="button" style="display: none;" id=unwear-button>Unwear</nav> -->
         </div>
       </nav>
     </div>
@@ -191,7 +192,12 @@ class LoginManager extends EventTarget {
   async setAvatar(avatarHash) {
     userObject.avatarHash = avatarHash;
     await pushUserObject();
-    updateUserObject();
+    // updateUserObject();
+  }
+  async setInventory(inventory) {
+    userObject.inventory = inventory;
+    await pushUserObject();
+    // updateUserObject();
   }
 }
 const loginManager = new LoginManager();
