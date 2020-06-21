@@ -1662,12 +1662,15 @@ const _renderObjects = () => {
       };
     })();
   } else {
-    objectsEl.innerHTML = pe.packages.map((p, i) => `
-      <div class=object packageid="${p.id}" index="${i}">
-        <span class=name>${p.name}</span>
-        <nav class=close-button><i class="fa fa-times"></i></nav>
-      </div>
-    `).join('\n');
+    objectsEl.innerHTML = pe.packages.length > 0 ?
+      pe.packages.map((p, i) => `
+        <div class=object packageid="${p.id}" index="${i}">
+          <span class=name>${p.name}</span>
+          <nav class=close-button><i class="fa fa-times"></i></nav>
+        </div>
+      `).join('\n')
+    :
+      `<h1 class=placeholder>No objects in scene</h1>`;
     Array.from(objectsEl.querySelectorAll('.object')).forEach(packageEl => {
       const index = parseInt(packageEl.getAttribute('index'), 10);
       const p = pe.packages[index];
@@ -1688,6 +1691,7 @@ const _renderObjects = () => {
     });
   }
 };
+_renderObjects();
 const _handleUrl = u => {
   const {search} = new URL(u);
   const q = parseQuery(search);
