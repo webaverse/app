@@ -1,4 +1,5 @@
 /* global Web3 */
+/* eslint no-unused-vars: 0 */
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
 import {TransformControls} from 'https://static.xrpackage.org/TransformControls.js';
@@ -549,18 +550,18 @@ window.addEventListener('keydown', e => {
     case 46: // del
     {
       /* if (selectedObjectMeshes.length > 0) {
-        const oldSelectedObjectMeshes = selectedObjectMeshes;
+          const oldSelectedObjectMeshes = selectedObjectMeshes;
 
-        _setHoveredObjectMesh(null);
-        _setSelectedObjectMesh(null, false);
+          _setHoveredObjectMesh(null);
+          _setSelectedObjectMesh(null, false);
 
-        const action = createAction('removeObjects', {
-          oldObjectMeshes: oldSelectedObjectMeshes,
-          container,
-          objectMeshes,
-        });
-        execute(action);
-      } */
+          const action = createAction('removeObjects', {
+            oldObjectMeshes: oldSelectedObjectMeshes,
+            container,
+            objectMeshes,
+          });
+          execute(action);
+        } */
       break;
     }
   }
@@ -667,6 +668,7 @@ const shieldSlider = document.getElementById('shield-slider');
 let shieldLevel = parseInt(shieldSlider.value, 10);
 shieldSlider.addEventListener('change', async e => {
   const newShieldLevel = parseInt(e.target.value, 10);
+  const {packages} = pe;
   switch (newShieldLevel) {
     case 0: {
       shieldLevel = newShieldLevel;
@@ -776,6 +778,7 @@ pe.addEventListener('packageremove', e => {
   }
 });
 
+let transformControlsHovered = false;
 const _bindTransformControls = o => {
   const control = new TransformControls(camera, renderer.domElement, document);
   // control.setMode(transformMode);
@@ -785,12 +788,22 @@ const _bindTransformControls = o => {
   /* control.addEventListener('dragging-changed', e => {
     orbitControls.enabled = !e.value;
   }); */
+  control.addEventListener('mouseEnter', () => {
+    transformControlsHovered = true;
+  });
+  control.addEventListener('mouseLeave', () => {
+    transformControlsHovered = false;
+  });
   const _snapshotTransform = o => ({
     position: o.position.clone(),
     quaternion: o.quaternion.clone(),
     scale: o.scale.clone(),
   });
+  let lastTransform = _snapshotTransform(o);
   let changed = false;
+  control.addEventListener('mouseDown', () => {
+    lastTransform = _snapshotTransform(o);
+  });
   control.addEventListener('mouseUp', () => {
     if (changed) {
       changed = false;
@@ -801,6 +814,13 @@ const _bindTransformControls = o => {
       o.scale.copy(newTransform.scale);
       o.updateMatrixWorld();
       o.package.setMatrix(o.matrix);
+      /* const action = createAction('transform', {
+        object: o,
+        oldTransform: lastTransform,
+        newTransform,
+      });
+      execute(action); */
+      lastTransform = newTransform;
     }
   });
   control.addEventListener('objectChange', e => {
@@ -814,6 +834,7 @@ const _unbindTransformControls = o => {
   scene.remove(o.control);
   o.control.dispose();
   o.control = null;
+  transformControlsHovered = false;
 };
 
 const raycaster = new THREE.Raycaster();
@@ -1183,8 +1204,8 @@ pe.domElement.addEventListener('drop', async e => {
       raycaster.ray.origin.clone()
         .add(raycaster.ray.direction.clone().multiplyScalar(2)),
       new THREE.Quaternion(),
-      new THREE.Vector3(1, 1, 1)
-    )
+      new THREE.Vector3(1, 1, 1),
+    );
 
     await _addPackageFromHash(dataHash, localMatrix);
   }
@@ -1289,10 +1310,10 @@ sandboxButton.addEventListener('click', e => {
   _pushWorld(null);
 });
 function makeId(length) {
-  var result           = '';
-  var characters       = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  var result = '';
+  var characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
   var charactersLength = characters.length;
-  for ( var i = 0; i < length; i++ ) {
+  for (var i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
@@ -1352,11 +1373,14 @@ const unwearButton = avatarMe.querySelector('.unwear-button');
 const avatars = document.getElementById('avatars');
 const _renderAvatars = () => {
   const {avatar} = pe;
+  const previewEl = avatarMe.querySelector('.preview');
   const nameEl = avatarMe.querySelector('.name');
   if (avatar) {
+    // previewEl.src = avatar.getPreviewUrl();
     nameEl.innerText = avatar.name;
     unwearButton.style.display = null;
   } else {
+    // previewEl.src = avatar.getPreviewUrl();
     nameEl.innerText = 'No avatar';
     unwearButton.style.display = 'none';
   }
@@ -1372,7 +1396,7 @@ unwearButton.addEventListener('click', e => {
 const objectsEl = document.getElementById('objects');
 const _renderObjects = () => {
   if (selectTarget) {
-    let {package: p} = selectTarget;
+    const {package: p} = selectTarget;
     const schemas = Object.keys(p.schema);
     const {events} = p;
     objectsEl.innerHTML = `
