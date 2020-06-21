@@ -4,9 +4,9 @@ const loginEndpoint = 'https://login.exokit.org';
 const usersEndpoint = 'https://users.exokit.org';
 
 let loginToken = null;
-async function updateLoginToken() {
+let userObject = null;
+async function pullUserObject() {
   const res = await fetch(`${usersEndpoint}/${loginToken.name}`);
-  let userObject;
   if (res.ok) {
     userObject = await res.json();
   } else if (res.status === 404) {
@@ -17,8 +17,20 @@ async function updateLoginToken() {
   } else {
     throw new Error(`invalid status code: ${res.status}`);
   }
-
-  const loginEmailStatic = document.getElementById('login-email-static');
+}
+async function pushUserObject() {
+  const res = await fetch(`${usersEndpoint}/${loginToken.name}`, {
+    method: 'PUT',
+    body: JSON.stringify(userObject),
+  });
+  if (res.ok) {
+    // nothing
+  } else {
+    throw new Error(`invalid status code: ${res.status}`);
+  }
+}
+function updateUserObject() {
+ const loginEmailStatic = document.getElementById('login-email-static');
   const userName = document.getElementById('user-name');
   const avatarName = document.getElementById('avatar-name');
   loginEmailStatic.innerText = userObject.name;
@@ -42,7 +54,8 @@ async function doLogin(email, code) {
     loginForm.classList.remove('phase-2');
     loginForm.classList.add('phase-3');
 
-    await updateLoginToken();
+    await pullUserObject();
+    updateUserObject();
 
     return true;
   } else {
@@ -117,7 +130,8 @@ async function tryLogin() {
     e.stopPropagation();
   });
   if (loginToken) {
-    await updateLoginToken();
+    await pullUserObject();
+    updateUserObject();
 
     // document.body.classList.add('logged-in');
     loginForm.classList.add('phase-3');
@@ -162,7 +176,28 @@ async function tryLogin() {
   });
 }
 
+class LoginManager extends EventTarget {
+  constructor() {
+    super();
+  }
+  isLoggedIn() {
+    return !!userObject;
+  }
+  async setUsername(name) {
+    userObject.name = name;
+    await pushUserObject();
+    updateUserObject();
+  }
+  async setAvatar(avatarHash) {
+    userObject.avatarHash = avatarHash;
+    await pushUserObject();
+    updateUserObject();
+  }
+}
+const loginManager = new LoginManager();
+
 export {
   doLogin,
   tryLogin,
+  loginManager,
 };
