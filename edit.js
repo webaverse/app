@@ -892,11 +892,13 @@ const worldSaveButton = document.getElementById('world-save-button');
 const worldRevertButton = document.getElementById('world-revert-button');
 const packagesButton = document.getElementById('packages-button');
 const inventoryButton = document.getElementById('inventory-button');
+const avatarButton = document.getElementById('avatar-button');
 const dropdownButton = document.getElementById('dropdown-button');
 const dropdown = document.getElementById('dropdown');
 const worldsSubpage = document.getElementById('worlds-subpage');
 const packagesSubpage = document.getElementById('packages-subpage');
 const inventorySubpage = document.getElementById('inventory-subpage');
+const avatarSubpage = document.getElementById('avatar-subpage');
 const tabs = Array.from(dropdown.querySelectorAll('.tab'));
 const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
 const worldsSubtabs = Array.from(worldsSubpage.querySelectorAll('.subtab'));
@@ -906,6 +908,7 @@ const packagesCloseButton = packagesSubpage.querySelector('.close-button');
 const inventorySubtabs = Array.from(inventorySubpage.querySelectorAll('.subtab'));
 const inventoryCloseButton = inventorySubpage.querySelector('.close-button');
 const inventorySubtabContents = Array.from(inventorySubpage.querySelectorAll('.subtab-content'));
+const avatarCloseButton = avatarSubpage.querySelector('.close-button');
 worldsButton.addEventListener('click', e => {
   worldsButton.classList.toggle('open');
   worldsSubpage.classList.toggle('open');
@@ -916,6 +919,8 @@ worldsButton.addEventListener('click', e => {
   packagesSubpage.classList.remove('open');
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
+  avatarButton.classList.remove('open');
+  avatarSubpage.classList.remove('open');
 });
 packagesButton.addEventListener('click', e => {
   packagesButton.classList.add('open');
@@ -927,6 +932,8 @@ packagesButton.addEventListener('click', e => {
   inventorySubpage.classList.remove('open');
   worldsButton.classList.remove('open');
   worldsSubpage.classList.remove('open');
+  avatarButton.classList.remove('open');
+  avatarSubpage.classList.remove('open');
 });
 inventoryButton.addEventListener('click', e => {
   inventoryButton.classList.toggle('open');
@@ -938,6 +945,21 @@ inventoryButton.addEventListener('click', e => {
   packagesSubpage.classList.remove('open');
   worldsButton.classList.remove('open');
   worldsSubpage.classList.remove('open');
+  avatarButton.classList.remove('open');
+  avatarSubpage.classList.remove('open');
+});
+avatarButton.addEventListener('click', e => {
+  avatarButton.classList.toggle('open');
+  avatarSubpage.classList.toggle('open');
+
+  dropdownButton.classList.remove('open');
+  dropdown.classList.remove('open');
+  packagesButton.classList.remove('open');
+  packagesSubpage.classList.remove('open');
+  worldsButton.classList.remove('open');
+  worldsSubpage.classList.remove('open');
+  inventoryButton.classList.remove('open');
+  inventorySubpage.classList.remove('open');
 });
 dropdownButton.addEventListener('click', e => {
   dropdownButton.classList.toggle('open');
@@ -949,6 +971,8 @@ dropdownButton.addEventListener('click', e => {
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
   worldsSubpage.classList.remove('open');
+  avatarButton.classList.remove('open');
+  avatarSubpage.classList.remove('open');
 });
 for (let i = 0; i < tabs.length; i++) {
   const tab = tabs[i];
@@ -997,7 +1021,7 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
     subtabContent.classList.add('open');
   });
 }
-[worldsCloseButton, packagesCloseButton, inventoryCloseButton].forEach(closeButton => {
+[worldsCloseButton, packagesCloseButton, inventoryCloseButton, avatarCloseButton].forEach(closeButton => {
   closeButton.addEventListener('click', e => {
     dropdownButton.classList.remove('open');
     dropdown.classList.remove('open');
@@ -1007,6 +1031,8 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
     worldsSubpage.classList.remove('open');
     inventoryButton.classList.remove('open');
     inventorySubpage.classList.remove('open');
+    avatarButton.classList.remove('open');
+    avatarSubpage.classList.remove('open');
   });
 });
 worldSaveButton.addEventListener('click', async e => {
