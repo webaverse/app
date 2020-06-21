@@ -1439,9 +1439,9 @@ header.unlocking + .main .blocker .button
   align-items: flex-start;
 }
 
-#login-form {
+/* #login-form {
   width: 200px;
-}
+} */
 .login-form {
   display: flex;
   height: 100%;
@@ -1463,12 +1463,15 @@ header.unlocking + .main .blocker .button
   align-items: center;
 }
 .user-button {
+  position: relative;
   display: flex;
   height: 100%;
+  padding: 0 10px;
   align-items: center;
   cursor: pointer;
 }
-.user-button:hover {
+.user-button:hover,
+.user-button.open {
   background-color: #ff7043;
   color: #FFF;
 }
@@ -1481,7 +1484,31 @@ header.unlocking + .main .blocker .button
   padding: 0 10px;
   align-items: center;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
+}
+.user-button:not(.open) .user-details {
+  display: none;
+}
+.user-button .user-details {
+  position: absolute;
+  display: flex;
+  top: 50px;
+  right: 0;
+  min-width: 100%;
+  padding: 20px;
+  background-color: #111;
+  color: #FFF;
+  flex-direction: column;
+  cursor: auto;
+}
+.user-button .user-details .label {
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+.user-button .user-details .item {
+  margin-bottom: 10px;
 }
 
 .error {

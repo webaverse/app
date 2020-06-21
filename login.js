@@ -16,18 +16,7 @@ async function doLogin(email, code) {
 
     const loginForm = document.getElementById('login-form');
     const loginEmailStatic = document.getElementById('login-email-static');
-    loginEmailStatic.innerText = loginToken.email;
-    /* loginNameStatic.innerText = loginToken.name;
-    loginEmailStatic.innerText = loginToken.email;
-    if (loginToken.stripeConnectState) {
-      statusConnected.classList.add('open');
-      statusNotConnected.classList.remove('open');
-      connectStripeButton.classList.remove('visible');
-    } else {
-      statusNotConnected.classList.add('open');
-      statusConnected.classList.remove('open');
-      connectStripeButton.classList.add('visible');
-    } */
+    loginEmailStatic.innerText = loginToken.name;
 
     document.body.classList.add('logged-in');
     loginForm.classList.remove('phase-1');
@@ -49,18 +38,6 @@ async function tryLogin() {
       loginToken = await res.json();
 
       await storage.set('loginToken', loginToken);
-
-      /* loginNameStatic.innerText = loginToken.name;
-      loginEmailStatic.innerText = loginToken.email;
-      if (loginToken.stripeConnectState) {
-        statusConnected.classList.add('open');
-        statusNotConnected.classList.remove('open');
-        connectStripeButton.classList.remove('visible');
-      } else {
-        statusNotConnected.classList.add('open');
-        statusConnected.classList.remove('open');
-        connectStripeButton.classList.add('visible');
-      } */
     } else {
       await storage.remove('loginToken');
 
@@ -89,6 +66,13 @@ async function tryLogin() {
         <img src="favicon.ico">
         <span class=name id=login-email-static></span>
         <input type=submit value="Log out" class="button highlight">
+        <div class=user-details id=user-details>
+          <div class=label>Alias</div>
+          <div class="user-name item" id=user-name></div>
+          <div class=label>Avatar</div>
+          <div class="avatar-name item" id=avatar-name></div>
+          <nav class="button" style="display: none;" id=unwear-button>Unwear</nav>
+        </div>
       </nav>
     </div>
     <div class="phase-content phaseless-content">
@@ -96,14 +80,27 @@ async function tryLogin() {
     </div>
   `;
 
+  const userButton = document.getElementById('user-button');
+  const userDetails = document.getElementById('user-details');
+  const userName = document.getElementById('user-name');
+  const unwearButton = document.getElementById('unwear-button');
+  const avatarName = document.getElementById('avatar-name');
   const loginEmail = document.getElementById('login-email');
   const loginVerificationCode = document.getElementById('login-verification-code');
   const loginNotice = document.getElementById('login-notice');
   const loginError = document.getElementById('login-error');
   const loginEmailStatic = document.getElementById('login-email-static');
+  userButton.addEventListener('click', e => {
+    userButton.classList.toggle('open');
+  });
+  userDetails.addEventListener('click', e => {
+    // e.preventDefault();
+    e.stopPropagation();
+  });
   if (loginToken) {
-    loginEmailStatic.innerText = loginToken.email;
-    
+    loginEmailStatic.innerText = loginToken.name;
+    userName.innerText = loginToken.name;
+
     document.body.classList.add('logged-in');
     loginForm.classList.add('phase-3');
   } else {
