@@ -9,7 +9,7 @@ const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
-(async() => {
+(async () => {
   await XRPackageEngine.waitForLoad();
   await tryLogin();
 })();
