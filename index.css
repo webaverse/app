@@ -1529,3 +1529,60 @@ header.unlocking + .main .blocker .button
   white-space: nowrap;
   color: #ef5350;
 }
+
+.drop-zones {
+  display: flex;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+.drop-zones .drop-zone {
+  display: flex;
+  width: 50%;
+  margin: 0 3px;
+  padding: 0 10px;
+  background-color: #111;
+  color: #FFF;
+  /* flex-direction: column; */
+  align-items: center;
+}
+.drop-zones .drop-zone:hover,
+.drop-zones .drop-zone.hover
+{
+  background-color: #ffa726;
+}
+.drop-zones .drop-zone:not(:hover):not(.hover) .description
+{
+  display: none;
+}
+.drop-zones .drop-zone .label,
+.drop-zones .drop-zone .description
+{
+  pointer-events: none;
+}
+.drop-zones .drop-zone .label {
+  display: flex;
+  height: 50px;
+  margin-right: auto;
+  font-size: 16px;
+  align-items: center;
+}
+.drop-zones .drop-zone .label i {
+  margin-right: 10px;
+}
+.drop-zones .drop-zone .description {
+  margin: 0 10px;
+  padding: 5px;
+  /* border: 3px solid; */
+  border-radius: 8px;
+  background-color: #FFF;
+  color: #ffa726;
+  font-size: 16px;
+}
+body:not(.dragging) .drop-zones {
+  display: none;
+}
+body.dragging .footer {
+  display: none;
+}

@@ -1151,6 +1151,22 @@ multiplayerButton.addEventListener('click', async e => {
   worldTools.style.visibility = null;
 }); */
 
+const dropZones = Array.from(document.querySelectorAll('.drop-zone'));
+dropZones.forEach(dropZone => {
+  dropZone.addEventListener('dragenter', e => {
+    dropZone.classList.add('hover');
+  });
+  dropZone.addEventListener('dragleave', e => {
+    dropZone.classList.remove('hover');
+  });
+});
+window.addEventListener('dragend', e => {
+  document.body.classList.remove('dragging');
+  dropZones.forEach(dropZone => {
+    dropZone.classList.remove('hover');
+  });
+});
+
 const _makePackageHtml = p => `
   <div class=package draggable=true>
     <img src="assets/question.png">
@@ -1175,6 +1191,10 @@ const _bindPackage = (pE, pJ) => {
   const {dataHash} = pJ;
   pE.addEventListener('dragstart', e => {
     e.dataTransfer.setData('text/plain', dataHash);
+    setTimeout(() => {
+      packagesSubpage.classList.remove('open');
+      document.body.classList.add('dragging');
+    });
   });
   const addButton = pE.querySelector('.add-button');
   addButton.addEventListener('click', () => {
