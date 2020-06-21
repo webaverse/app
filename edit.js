@@ -1078,16 +1078,17 @@ const _enterWorld = async name => {
   runMode.setAttribute('href', 'run.html' + (name ? ('?w=' + name) : ''));
   editMode.setAttribute('href', 'edit.html' + (name ? ('?w=' + name) : ''));
 
-  /* singleplayerButton.classList.remove('open');
-  multiplayerButton.classList.remove('open');
-  Array.from(worlds.querySelectorAll('.world')).forEach(w => {
-    w.classList.remove('open');
+  const worlds = Array.from(document.querySelectorAll('.world'));
+  worlds.forEach(world => {
+    world.classList.remove('open');
   });
-  const w = worlds.querySelector(`[hash=${hash}]`);
-  w && w.classList.add('open');
-
-  worldType = null;
-  worldTools.style.visibility = 'hidden'; */
+  let world;
+  if (name) {
+    world = worlds.find(w => w.getAttribute('name') === name);
+  } else {
+    world = worlds[0];
+  }
+  world.classList.add('open');
 
   if (name) {
     const res = await fetch(worldsEndpoint + '/' + name);
