@@ -1248,7 +1248,7 @@ loginManager.addEventListener('avatarchange', async e => {
 
 const _changeInventory = inventory => {
   inventorySubtabContent.innerHTML = inventory.map(item => `\
-    <div class=item>
+    <div class=item draggable=true>
       <img class=screenshot>
       <div class=name>${item.name}</div>
       <div class=details>
@@ -1261,7 +1261,14 @@ const _changeInventory = inventory => {
   const is = inventorySubtabContent.querySelectorAll('.item');
   is.forEach((itemEl, i) => {
     const item = inventory[i];
-    const {hash} = item;
+    const {name, hash} = item;
+
+    itemEl.addEventListener('dragstart', e => {
+      _startPackageDrag(e, {
+        name,
+        dataHash: hash,
+      });
+    });
 
     (async () => {
       const img = itemEl.querySelector('.screenshot');
