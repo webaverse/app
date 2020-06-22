@@ -107,9 +107,9 @@ async function tryLogin() {
         <input type=submit value="Log out" class="button highlight">
         <div class=user-details id=user-details>
           <div class=label>Alias</div>
-          <div class="user-name item" id=user-name></div>
+          <div class="user-name" id=user-name></div>
           <!-- <div class=label>Avatar</div>
-          <div class="avatar-name item" id=avatar-name></div>
+          <div class="avatar-name" id=avatar-name></div>
           <nav class="button" style="display: none;" id=unwear-button>Unwear</nav> -->
         </div>
       </nav>
