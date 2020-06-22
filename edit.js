@@ -39,26 +39,6 @@ function parseQuery(queryString) {
   }
   return query;
 }
-const _hashPackage = (() => {
-  let nodePromise = null;
-  return async p => {
-    if (!nodePromise) {
-      nodePromise = import('https://cdn.jsdelivr.net/npm/ipfs/dist/index.min.js')
-        .then(() =>
-          Ipfs.create({
-            repo: 'inmem',
-            offline: true,
-            start: false,
-            silent: true,
-            // init: false,
-          })
-        );
-    }
-    const node = await nodePromise;
-    const {value: {path}} = await node.add(p.data).next();
-    return path;
-  };
-})();
 
 const targetMeshGeometry = (() => {
   const targetGeometry = BufferGeometryUtils.mergeBufferGeometries([
@@ -1213,7 +1193,7 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
     let {dataHash, id} = j;
     if (!dataHash) {
       const p = pe.packages.find(p => p.id === id);
-      dataHash = await _hashPackage(p);
+      dataHash = await p.getHash();
     }
 
     loginManager.setAvatar(dataHash);
@@ -1222,6 +1202,7 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
 loginManager.addEventListener('avatarchange', async e => {
   const dataHash = e.data;
   const p = await XRPackage.download(dataHash);
+  p.hash = dataHash;
   await pe.wearAvatar(p);
 });
 
@@ -1240,6 +1221,7 @@ const _makePackageHtml = p => `
 `;
 const _addPackageFromHash = async (hash, matrix) => {
   const p = await XRPackage.download(hash);
+  p.hash = hash;
   if (matrix) {
     p.setMatrix(matrix);
   }
@@ -1266,6 +1248,7 @@ const _bindPackage = (pE, pJ) => {
   runButton.addEventListener('click', async e => {
     const {hash} = pJ;
     const p = await XRPackage.download(hash);
+    p.hash = hash;
     pe.add(p);
   }); */
 };
@@ -1357,6 +1340,7 @@ pe.domElement.addEventListener('drop', async e => {
         const t = ts[i];
         const {dataHash} = t;
         const p = await XRPackage.download(dataHash);
+        p.hash = dataHash;
         pe.add(p);
       });
       const input = token.querySelector('input');
@@ -1612,7 +1596,7 @@ const _renderObjects = () => {
     });
     const wearButton = objectsEl.querySelector('.wear-button');
     wearButton.addEventListener('click', async e => {
-      const dataHash = await _hashPackage(p);
+      const dataHash = await p.getHash();
       loginManager.setAvatar(dataHash);
     });
     const removeButton = objectsEl.querySelector('.remove-button');
