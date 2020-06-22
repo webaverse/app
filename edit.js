@@ -1179,14 +1179,13 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
       jsonItem.getAsString(resolve);
     });
     const j = JSON.parse(s);
-
     let {dataHash, id} = j;
     if (!dataHash) {
       const p = pe.packages.find(p => p.id === id);
       dataHash = await p.getHash();
     }
 
-    loginManager.setAvatar(dataHash);
+    await loginManager.setAvatar(dataHash);
   }
 });
 
