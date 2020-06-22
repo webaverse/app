@@ -1253,7 +1253,8 @@ const _makePackageHtml = p => `
     </div>
     <div class=background>
       <nav class="button add-button">Add</nav>
-      <a class="button" target="_blank" href="/run.html?h=${p.hash}">Test</a>
+      <nav class="button wear-button">Wear</nav>
+      <a class="button" target="_blank" href="/inspect.html?p=${p.name}">Inspect</a>
     </div>
   </div>
 `;
@@ -1282,13 +1283,10 @@ const _bindPackage = (pE, pJ) => {
   addButton.addEventListener('click', () => {
     _addPackageFromHash(dataHash);
   });
-  /* const runButton = pE.querySelector('.run-button');
-  runButton.addEventListener('click', async e => {
-    const {hash} = pJ;
-    const p = await XRPackage.download(hash);
-    p.hash = hash;
-    pe.add(p);
-  }); */
+  const wearButton = pE.querySelector('.wear-button');
+  wearButton.addEventListener('click', () => {
+    loginManager.setAvatar(dataHash);
+  });
 };
 const packages = document.getElementById('packages');
 (async () => {
