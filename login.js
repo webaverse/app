@@ -184,20 +184,42 @@ class LoginManager extends EventTarget {
   isLoggedIn() {
     return !!userObject;
   }
+  getUsername() {
+    return userObject && userObject.name;
+  }
   async setUsername(name) {
-    userObject.name = name;
-    await pushUserObject();
-    updateUserObject();
+    if (userObject) {
+      userObject.name = name;
+      await pushUserObject();
+      updateUserObject();
+    }
+    this.dispatchEvent(new MessageEvent('usernamechange', {
+      data: name,
+    }));
+  }
+  getAvatar() {
+    return userObject && userObject.avatarHash;
   }
   async setAvatar(avatarHash) {
-    userObject.avatarHash = avatarHash;
-    await pushUserObject();
-    // updateUserObject();
+    if (userObject) {
+      userObject.avatarHash = avatarHash;
+      await pushUserObject();
+      // updateUserObject();
+    }
+    console.log('avatar change', avatarHash);
+    this.dispatchEvent(new MessageEvent('avatarchange', {
+      data: avatarHash,
+    }));
   }
   async setInventory(inventory) {
-    userObject.inventory = inventory;
-    await pushUserObject();
-    // updateUserObject();
+    if (userObject) {
+      userObject.inventory = inventory;
+      await pushUserObject();
+      // updateUserObject();
+    }
+    this.dispatchEvent(new MessageEvent('inventorychange', {
+      data: inventory,
+    }));
   }
 }
 const loginManager = new LoginManager();
