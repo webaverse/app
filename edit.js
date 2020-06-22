@@ -1254,7 +1254,7 @@ const _makePackageHtml = p => `
     <div class=background>
       <nav class="button add-button">Add</nav>
       <nav class="button wear-button">Wear</nav>
-      <a class="button" target="_blank" href="/inspect.html?p=${p.name}">Inspect</a>
+      <a class="button inspect-button" target="_blank" href="inspect.html?p=${p.name}">Inspect</a>
     </div>
   </div>
 `;
@@ -1286,6 +1286,12 @@ const _bindPackage = (pE, pJ) => {
   const wearButton = pE.querySelector('.wear-button');
   wearButton.addEventListener('click', () => {
     loginManager.setAvatar(dataHash);
+  });
+  const inspectButton = pE.querySelector('.inspect-button');
+  inspectButton.addEventListener('click', e => {
+    e.preventDefault();
+    console.log('open', inspectButton.getAttribute('href'));
+    window.open(inspectButton.getAttribute('href'), '_blank');
   });
 };
 const packages = document.getElementById('packages');
