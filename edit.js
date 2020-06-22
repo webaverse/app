@@ -981,7 +981,7 @@ for (let i = 0; i < tabs.length; i++) {
     _setSelectTarget(null);
   });
 }
-for (let i = 0; i < worldsSubtabs.length; i++) {
+/* for (let i = 0; i < worldsSubtabs.length; i++) {
   const subtab = worldsSubtabs[i];
   const subtabContent = worldsSubtabContents[i];
   subtab.addEventListener('click', e => {
@@ -1010,7 +1010,7 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
     subtab.classList.add('open');
     subtabContent.classList.add('open');
   });
-}
+} */
 [worldsCloseButton, packagesCloseButton, inventoryCloseButton, avatarCloseButton].forEach(closeButton => {
   closeButton.addEventListener('click', e => {
     dropdownButton.classList.remove('open');
