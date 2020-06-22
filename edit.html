@@ -116,6 +116,11 @@
       <div class=name>Inventory</div>
       <div class=label>Manage your packages</div>
     </nav>
+    <nav class="nav full square" id=avatar-button>
+      <i class="fa fa-user-astronaut"></i>
+      <div class=name>Avatar</div>
+      <div class=label>Change your avatar</div>
+    </nav>
     <nav class="nav full" id=enter-xr-button>
       <i class="fa fa-vr-cardboard"></i>
       <div class=name>Enter</dive>
@@ -171,16 +176,26 @@
   </aside>
   <aside class=subpage id=inventory-subpage>
     <div class=subtabs>
-      <nav class="subtab open" id=subtab-1>Inventory</nav>
+      <nav class="subtab open">Inventory</nav>
       <nav class=close-button>
         <i class="fa fa-close"></i>
       </nav>
     </div>
     <div class=subpage-wrap>
-      <div class=subtab-content id=subtab-content-1>
-        <div class=packages id=inventory>
-          
-        </div>
+      <div class="subtab-content open">
+      </div>
+    </div>
+  </aside>
+  <aside class=subpage id=avatar-subpage>
+    <div class=subtabs>
+      <nav class="subtab open">Avatar</nav>
+      <nav class=close-button>
+        <i class="fa fa-close"></i>
+      </nav>
+    </div>
+    <div class=subpage-wrap>
+      <div class="subtab-content open">
+
       </div>
     </div>
   </aside>
@@ -188,21 +203,13 @@
     <div class=tabs>
       <nav class="tab open" id=tab-1>Objects</nav>
       <nav class=tab id=tab-2>Scene</nav>
-      <nav class=tab id=tab-3>Social</nav>
-      <nav class=tab id=tab-4>Settings</nav>
+      <!-- <nav class=tab id=tab-3>Social</nav> -->
+      <nav class=tab id=tab-3>Settings</nav>
     </div>
     <section class="tab-content open" id=tab-1-content>
       <div class=objects id=objects></div>
     </section>
     <section class=tab-content id=tab-2-content>
-      <!-- <div class=row>
-        <input type=text placeholder="World name" id=world-name>
-      </div> -->
-      <!-- <div class=row>
-        <input type=text placeholder="Multiplayer room name" id=room-name>
-        <nav class=button id=connect-button>Connect</nav>
-        <nav class=button id=disconnect-button style="display: none;">Disconnect</nav>
-      </div> -->
       <div class=row>
         <nav class=button id=reset-scene-button>
           <i class="fa fa-sparkles"></i> Reset scene
@@ -220,7 +227,7 @@
         </nav>
       </div>
     </section>
-    <section class=tab-content id=tab-3-content>
+    <!-- <section class=tab-content id=tab-3-content>
       <div class=avatars>
         <div class="avatar me" id=avatar-me>
           <img src="assets/question.png" class=preview>
@@ -228,12 +235,10 @@
           <nav class="button unwear-button" style="display: none;">Unwear</nav>
           <div class=tag>You</div>
         </div>
-        <div class=avatars id=avatars>
-
-        </div>
+        <div class=avatars id=avatars></div>
       </div>
-    </section>
-    <section class=tab-content id=tab-4-content>
+    </section> -->
+    <section class=tab-content id=tab-3-content>
       <div class=row>
         <label>
           <span>Shield</span>
@@ -245,8 +250,19 @@
       </div>
     </section>
   </aside>
-<script type=module src="run.js"></script>
-<script type=module src="edit.js"></script>
+
+  <aside class=drop-zones id=drop-zones>
+    <div class=drop-zone id=inventory-drop-zone>
+      <div class=label><i class="fa fa fa-backpack"></i>Inventory</div>
+      <div class=description>Add package to inventory</div>
+    </div>
+    <div class=drop-zone id=avatar-drop-zone>
+      <div class=label><i class="fa fa-user-astronaut"></i>Avatar</div>
+      <div class=description>Set package as avatar</div>
+    </div>
+  </aside>
+<script type=module src=run.js></script>
+<script type=module src=edit.js></script>
 </body>
 
 </html>

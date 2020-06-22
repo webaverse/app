@@ -1,8 +1,47 @@
 import storage from './storage.js';
 
 const loginEndpoint = 'https://login.exokit.org';
+const usersEndpoint = 'https://users.exokit.org';
+
+const _clone = o => JSON.parse(JSON.stringify(o));
 
 let loginToken = null;
+let userObject = null;
+async function pullUserObject() {
+  const res = await fetch(`${usersEndpoint}/${loginToken.name}`);
+  if (res.ok) {
+    userObject = await res.json();
+  } else if (res.status === 404) {
+    userObject = {
+      name: loginToken.name,
+      avatarHash: null,
+      inventory: [],
+    };
+  } else {
+    throw new Error(`invalid status code: ${res.status}`);
+  }
+}
+async function pushUserObject() {
+  const res = await fetch(`${usersEndpoint}/${loginToken.name}`, {
+    method: 'PUT',
+    body: JSON.stringify(userObject),
+  });
+  if (res.ok) {
+    // nothing
+  } else {
+    throw new Error(`invalid status code: ${res.status}`);
+  }
+}
+function updateUserObject() {
+ const loginEmailStatic = document.getElementById('login-email-static');
+  const userName = document.getElementById('user-name');
+  // const avatarName = document.getElementById('avatar-name');
+  loginEmailStatic.innerText = userObject.name;
+  userName.innerText = userObject.name;
+  // avatarName.innerText = userObject.avatarHash !== null ? userObject.avatarHash : 'None';
+
+  loginManager.pushUpdate();
+}
 async function doLogin(email, code) {
   const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
     method: 'POST',
@@ -15,24 +54,13 @@ async function doLogin(email, code) {
     loginToken = newLoginToken;
 
     const loginForm = document.getElementById('login-form');
-    const loginEmailStatic = document.getElementById('login-email-static');
-    loginEmailStatic.innerText = loginToken.email;
-    /* loginNameStatic.innerText = loginToken.name;
-    loginEmailStatic.innerText = loginToken.email;
-    if (loginToken.stripeConnectState) {
-      statusConnected.classList.add('open');
-      statusNotConnected.classList.remove('open');
-      connectStripeButton.classList.remove('visible');
-    } else {
-      statusNotConnected.classList.add('open');
-      statusConnected.classList.remove('open');
-      connectStripeButton.classList.add('visible');
-    } */
-
-    document.body.classList.add('logged-in');
+    // document.body.classList.add('logged-in');
     loginForm.classList.remove('phase-1');
     loginForm.classList.remove('phase-2');
     loginForm.classList.add('phase-3');
+
+    await pullUserObject();
+    updateUserObject();
 
     return true;
   } else {
@@ -49,18 +77,6 @@ async function tryLogin() {
       loginToken = await res.json();
 
       await storage.set('loginToken', loginToken);
-
-      /* loginNameStatic.innerText = loginToken.name;
-      loginEmailStatic.innerText = loginToken.email;
-      if (loginToken.stripeConnectState) {
-        statusConnected.classList.add('open');
-        statusNotConnected.classList.remove('open');
-        connectStripeButton.classList.remove('visible');
-      } else {
-        statusNotConnected.classList.add('open');
-        statusConnected.classList.remove('open');
-        connectStripeButton.classList.add('visible');
-      } */
     } else {
       await storage.remove('loginToken');
 
@@ -88,6 +104,13 @@ async function tryLogin() {
         <img src="favicon.ico">
         <span class=name id=login-email-static></span>
         <input type=submit value="Log out" class="button highlight">
+        <div class=user-details id=user-details>
+          <div class=label>Alias</div>
+          <div class="user-name" id=user-name></div>
+          <!-- <div class=label>Avatar</div>
+          <div class="avatar-name" id=avatar-name></div>
+          <nav class="button" style="display: none;" id=unwear-button>Unwear</nav> -->
+        </div>
       </nav>
     </div>
     <div class="phase-content phaseless-content">
@@ -95,15 +118,25 @@ async function tryLogin() {
     </div>
   `;
 
+  const userButton = document.getElementById('user-button');
+  const userDetails = document.getElementById('user-details');
+  const unwearButton = document.getElementById('unwear-button');
+  const avatarName = document.getElementById('avatar-name');
   const loginEmail = document.getElementById('login-email');
   const loginVerificationCode = document.getElementById('login-verification-code');
   const loginNotice = document.getElementById('login-notice');
   const loginError = document.getElementById('login-error');
-  const loginEmailStatic = document.getElementById('login-email-static');
+  userButton.addEventListener('click', e => {
+    userButton.classList.toggle('open');
+  });
+  userDetails.addEventListener('click', e => {
+    // e.preventDefault();
+    e.stopPropagation();
+  });
   if (loginToken) {
-    loginEmailStatic.innerText = loginToken.email;
+    await pullUserObject();
+    updateUserObject();
 
-    document.body.classList.add('logged-in');
     loginForm.classList.add('phase-3');
   } else {
     loginForm.classList.add('phase-1');
@@ -146,7 +179,68 @@ async function tryLogin() {
   });
 }
 
+class LoginManager extends EventTarget {
+  constructor() {
+    super();
+  }
+  isLoggedIn() {
+    return !!userObject;
+  }
+  getUsername() {
+    return userObject && userObject.name;
+  }
+  async setUsername(name) {
+    if (userObject) {
+      userObject.name = name;
+      await pushUserObject();
+      updateUserObject();
+    }
+    this.dispatchEvent(new MessageEvent('usernamechange', {
+      data: name,
+    }));
+  }
+  getAvatar() {
+    return userObject && userObject.avatarHash;
+  }
+  async setAvatar(avatarHash) {
+    if (userObject) {
+      userObject.avatarHash = avatarHash;
+      await pushUserObject();
+      // updateUserObject();
+    }
+    this.dispatchEvent(new MessageEvent('avatarchange', {
+      data: avatarHash,
+    }));
+  }
+  getInventory() {
+    return userObject ? _clone(userObject.inventory) : [];
+  }
+  async setInventory(inventory) {
+    if (userObject) {
+      userObject.inventory = inventory;
+      await pushUserObject();
+      // updateUserObject();
+    }
+    this.dispatchEvent(new MessageEvent('inventorychange', {
+      data: _clone(inventory),
+    }));
+  }
+  pushUpdate() {
+    this.dispatchEvent(new MessageEvent('usernamechange', {
+      data: userObject && userObject.name,
+    }));
+    this.dispatchEvent(new MessageEvent('avatarchange', {
+      data: userObject && userObject.avatarHash,
+    }));
+    this.dispatchEvent(new MessageEvent('inventorychange', {
+      data: userObject && _clone(userObject.inventory),
+    }));
+  }
+}
+const loginManager = new LoginManager();
+
 export {
   doLogin,
   tryLogin,
+  loginManager,
 };
