@@ -813,7 +813,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: #ef5350;
 }
 
-.avatars {
+/* .avatars {
   display: flex;
   flex-direction: column;
 }
@@ -854,9 +854,8 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: #FFF;
   justify-content: center;
   align-items: center;
-  /* transform-origin: 0 50%; */
   transform: rotatez(90deg);
-}
+} */
 
 .tokens {
   display: flex;
