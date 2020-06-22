@@ -152,17 +152,6 @@ const _makeVolumeMesh = async p => {
   downloadFile(b, 'target.glb');
 }; */
 
-(async () => {
-  const res = await fetch('./assets/avatar.vrm');
-  const b = await res.blob();
-  b.name = 'model.vrm';
-  const d = await XRPackage.compileFromFile(b);
-  const p = new XRPackage(d);
-  pe.wearAvatar(p);
-})();
-// pe.defaultAvatar();
-// pe.setGamepadsConnected(true);
-
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
@@ -899,6 +888,7 @@ const worldsSubpage = document.getElementById('worlds-subpage');
 const packagesSubpage = document.getElementById('packages-subpage');
 const inventorySubpage = document.getElementById('inventory-subpage');
 const avatarSubpage = document.getElementById('avatar-subpage');
+const avatarSubpageContent = avatarSubpage.querySelector('.subtab-content');
 const tabs = Array.from(dropdown.querySelectorAll('.tab'));
 const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
 const worldsSubtabs = Array.from(worldsSubpage.querySelectorAll('.subtab'));
@@ -1199,11 +1189,52 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
     loginManager.setAvatar(dataHash);
   }
 });
+
+const _changeAvatar = async avatarHash => {
+  let p;
+  if (avatarHash) {
+    p = await XRPackage.download(avatarHash);
+    p.hash = avatarHash;
+  }
+
+  avatarSubpageContent.innerHTML = `\
+    <div class=avatar>
+      <img class=screenshot>
+      <div class=wrap>
+        <div class=hash>${p ? p.hash : 'No avatar'}</div>
+        ${p ? `<nav class="button unwear-button">Unwear</nab>` : ''}
+      </div>
+    </div>
+  `;
+  (async () => {
+    const img = avatarSubpageContent.querySelector('.screenshot');
+    if (p) {
+      const u = await p.getScreenshotImageUrl();
+      img.src = u;
+      img.onload = () => {
+        URL.revokeObjectURL(u);
+      };
+      img.onerror = err => {
+        console.warn(err);
+        URL.revokeObjectURL(u);
+      };
+    } else {
+      img.src = 'assets/question.png';
+    }
+  })();
+  const unwearButton = avatarSubpageContent.querySelector('.unwear-button');
+  unwearButton && unwearButton.addEventListener('click', e => {
+    loginManager.setAvatar(null);
+  });
+
+  if (p) {
+    await pe.wearAvatar(p);
+  }
+};
+_changeAvatar(loginManager.getAvatar());
 loginManager.addEventListener('avatarchange', async e => {
-  const dataHash = e.data;
-  const p = await XRPackage.download(dataHash);
-  p.hash = dataHash;
-  await pe.wearAvatar(p);
+  const avatarHash = e.data;
+  _changeAvatar(avatarHash);
 });
 
 const _makePackageHtml = p => `

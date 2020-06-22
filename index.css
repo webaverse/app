@@ -1594,3 +1594,19 @@ body:not(.dragging) .drop-zones {
 body.dragging .footer {
   display: none;
 }
+
+.avatar {
+  display: flex;
+}
+.avatar img {
+  width: 130px;
+  height: 130px;
+  margin-right: 10px;
+  /* margin-bottom: 10px; */
+  background-color: #FFF;
+  border-radius: 8px;
+}
+.avatar .wrap {
+  display: flex;
+  flex-direction: column;
+}
