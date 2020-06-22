@@ -212,6 +212,9 @@ class LoginManager extends EventTarget {
       data: avatarHash,
     }));
   }
+  getInventory() {
+    return userObject ? userObject.inventory.slice() : [];
+  }
   async setInventory(inventory) {
     if (userObject) {
       userObject.inventory = inventory;
