@@ -1166,14 +1166,17 @@ document.getElementById('inventory-drop-zone').addEventListener('drop', async e 
       jsonItem.getAsString(resolve);
     });
     const j = JSON.parse(s);
-    let {dataHash, id} = j;
+    let {name, dataHash, id} = j;
     if (!dataHash) {
       const p = pe.packages.find(p => p.id === id);
       dataHash = await p.getHash();
     }
 
     const inventory = loginManager.getInventory();
-    inventory.push(dataHash);
+    inventory.push({
+      name,
+      hash: dataHash,
+    });
     await loginManager.setInventory(inventory);
   }
 });
@@ -1274,9 +1277,9 @@ const _startPackageDrag = (e, j) => {
   });
 };
 const _bindPackage = (pE, pJ) => {
-  const {dataHash} = pJ;
+  const {name, dataHash} = pJ;
   pE.addEventListener('dragstart', e => {
-    _startPackageDrag(e, {dataHash});
+    _startPackageDrag(e, {name, dataHash});
   });
   const addButton = pE.querySelector('.add-button');
   addButton.addEventListener('click', () => {
@@ -1330,9 +1333,7 @@ pe.domElement.addEventListener('drop', async e => {
       jsonItem.getAsString(resolve);
     });
     const j = JSON.parse(s);
-
     const {dataHash} = j;
-
     if (dataHash) {
       _updateRaycasterFromMouseEvent(raycaster, e);
       localMatrix.compose(
@@ -1727,7 +1728,10 @@ const _renderObjects = () => {
         URL.revokeObjectURL(u);
       };
       img.addEventListener('dragstart', e => {
-        _startPackageDrag(e, {id: p.id});
+        _startPackageDrag(e, {
+          name: p.name,
+          id: p.id,
+        });
       });
     })();
   } else {
