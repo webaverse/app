@@ -206,7 +206,6 @@ class LoginManager extends EventTarget {
       await pushUserObject();
       // updateUserObject();
     }
-    console.log('avatar change', avatarHash);
     this.dispatchEvent(new MessageEvent('avatarchange', {
       data: avatarHash,
     }));
