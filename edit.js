@@ -1169,7 +1169,6 @@ document.getElementById('inventory-drop-zone').addEventListener('drop', async e 
     let {dataHash, id} = j;
     if (!dataHash) {
       const p = pe.packages.find(p => p.id === id);
-      console.log('get id', j, p);
       dataHash = await p.getHash();
     }
 
