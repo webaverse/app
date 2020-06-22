@@ -897,7 +897,7 @@ const worldsSubtabContents = Array.from(worldsSubpage.querySelectorAll('.subtab-
 const packagesCloseButton = packagesSubpage.querySelector('.close-button');
 const inventorySubtabs = Array.from(inventorySubpage.querySelectorAll('.subtab'));
 const inventoryCloseButton = inventorySubpage.querySelector('.close-button');
-const inventorySubtabContents = Array.from(inventorySubpage.querySelectorAll('.subtab-content'));
+const inventorySubtabContent = inventorySubpage.querySelector('.subtab-content');
 const avatarCloseButton = avatarSubpage.querySelector('.close-button');
 worldsButton.addEventListener('click', e => {
   worldsButton.classList.toggle('open');
@@ -1244,6 +1244,56 @@ _changeAvatar(loginManager.getAvatar());
 loginManager.addEventListener('avatarchange', async e => {
   const avatarHash = e.data;
   _changeAvatar(avatarHash);
+});
+
+const _changeInventory = inventory => {
+  console.log('change inventory', inventory);
+  inventorySubtabContent.innerHTML = inventory.map(item => `\
+    <div class=item>
+      <img class=screenshot>
+      <div class=name>${item.name}</div>
+      <div class=details>
+        <a class="button inspect-button" target="_blank" href="inspect.html?h=${item.hash}">Inspect</a>
+        <nav class="button wear-button">Wear</nav>
+        <nav class="button remove-button">Remove</nav>
+      </div>
+    </div>
+  `).join('\n');
+  const is = inventorySubtabContent.querySelectorAll('.item');
+  is.forEach((itemEl, i) => {
+    const item = inventory[i];
+    const {hash} = item;
+
+    (async () => {
+      const img = itemEl.querySelector('.screenshot');
+      /* if (p) {
+        const u = await p.getScreenshotImageUrl();
+        img.src = u;
+        img.onload = () => {
+          URL.revokeObjectURL(u);
+        };
+        img.onerror = err => {
+          console.warn(err);
+          URL.revokeObjectURL(u);
+        };
+      } else { */
+        img.src = 'assets/question.png';
+      // }
+    })();
+    const wearButton = itemEl.querySelector('.wear-button');
+    wearButton.addEventListener('click', () => {
+      loginManager.setAvatar(hash);
+    });
+    const removeButton = itemEl.querySelector('.remove-button');
+    removeButton.addEventListener('click', () => {
+      console.log('remove', item);
+    });
+  });
+};
+_changeInventory(loginManager.getInventory());
+loginManager.addEventListener('inventorychange', async e => {
+  const inventory = e.data;
+  _changeInventory(inventory);
 });
 
 const _makePackageHtml = p => `
