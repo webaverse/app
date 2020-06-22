@@ -1287,12 +1287,12 @@ const _bindPackage = (pE, pJ) => {
   wearButton.addEventListener('click', () => {
     loginManager.setAvatar(dataHash);
   });
-  const inspectButton = pE.querySelector('.inspect-button');
+  /* const inspectButton = pE.querySelector('.inspect-button');
   inspectButton.addEventListener('click', e => {
     e.preventDefault();
     console.log('open', inspectButton.getAttribute('href'));
     window.open(inspectButton.getAttribute('href'), '_blank');
-  });
+  }); */
 };
 const packages = document.getElementById('packages');
 (async () => {
