@@ -1602,11 +1602,35 @@ body.dragging .footer {
   width: 130px;
   height: 130px;
   margin-right: 10px;
-  /* margin-bottom: 10px; */
   background-color: #FFF;
   border-radius: 8px;
 }
 .avatar .wrap {
   display: flex;
   flex-direction: column;
+}
+.item {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+}
+.item img {
+  width: 100px;
+  height: 100px;
+  margin-right: 10px;
+  background-color: #FFF;
+  border-radius: 8px;
+}
+.item .details {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  flex-direction: column;
+}
+.item:not(:hover) .details {
+  display: none;
+}
+.item .details .button {
+  margin-bottom: 5px;
 }
