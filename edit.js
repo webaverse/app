@@ -5,7 +5,7 @@ import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUt
 import {TransformControls} from 'https://static.xrpackage.org/TransformControls.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
-import {XRPackage, pe, renderer, scene, camera, floorMesh, proxySession, getRealSession} from './run.js';
+import {XRPackage, pe, renderer, scene, camera, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 
@@ -152,17 +152,6 @@ const _makeVolumeMesh = async p => {
   });
   downloadFile(b, 'target.glb');
 }; */
-
-(async () => {
-  const res = await fetch('./assets/avatar.vrm');
-  const b = await res.blob();
-  b.name = 'model.vrm';
-  const d = await XRPackage.compileFromFile(b);
-  const p = new XRPackage(d);
-  pe.wearAvatar(p);
-})();
-// pe.defaultAvatar();
-// pe.setGamepadsConnected(true);
 
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
@@ -893,11 +882,14 @@ const worldSaveButton = document.getElementById('world-save-button');
 const worldRevertButton = document.getElementById('world-revert-button');
 const packagesButton = document.getElementById('packages-button');
 const inventoryButton = document.getElementById('inventory-button');
+const avatarButton = document.getElementById('avatar-button');
 const dropdownButton = document.getElementById('dropdown-button');
 const dropdown = document.getElementById('dropdown');
 const worldsSubpage = document.getElementById('worlds-subpage');
 const packagesSubpage = document.getElementById('packages-subpage');
 const inventorySubpage = document.getElementById('inventory-subpage');
+const avatarSubpage = document.getElementById('avatar-subpage');
+const avatarSubpageContent = avatarSubpage.querySelector('.subtab-content');
 const tabs = Array.from(dropdown.querySelectorAll('.tab'));
 const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
 const worldsSubtabs = Array.from(worldsSubpage.querySelectorAll('.subtab'));
@@ -906,7 +898,8 @@ const worldsSubtabContents = Array.from(worldsSubpage.querySelectorAll('.subtab-
 const packagesCloseButton = packagesSubpage.querySelector('.close-button');
 const inventorySubtabs = Array.from(inventorySubpage.querySelectorAll('.subtab'));
 const inventoryCloseButton = inventorySubpage.querySelector('.close-button');
-const inventorySubtabContents = Array.from(inventorySubpage.querySelectorAll('.subtab-content'));
+const inventorySubtabContent = inventorySubpage.querySelector('.subtab-content');
+const avatarCloseButton = avatarSubpage.querySelector('.close-button');
 worldsButton.addEventListener('click', e => {
   worldsButton.classList.toggle('open');
   worldsSubpage.classList.toggle('open');
@@ -917,6 +910,8 @@ worldsButton.addEventListener('click', e => {
   packagesSubpage.classList.remove('open');
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
+  avatarButton.classList.remove('open');
+  avatarSubpage.classList.remove('open');
 });
 packagesButton.addEventListener('click', e => {
   packagesButton.classList.add('open');
@@ -928,6 +923,8 @@ packagesButton.addEventListener('click', e => {
   inventorySubpage.classList.remove('open');
   worldsButton.classList.remove('open');
   worldsSubpage.classList.remove('open');
+  avatarButton.classList.remove('open');
+  avatarSubpage.classList.remove('open');
 });
 inventoryButton.addEventListener('click', e => {
   inventoryButton.classList.toggle('open');
@@ -939,6 +936,21 @@ inventoryButton.addEventListener('click', e => {
   packagesSubpage.classList.remove('open');
   worldsButton.classList.remove('open');
   worldsSubpage.classList.remove('open');
+  avatarButton.classList.remove('open');
+  avatarSubpage.classList.remove('open');
+});
+avatarButton.addEventListener('click', e => {
+  avatarButton.classList.toggle('open');
+  avatarSubpage.classList.toggle('open');
+
+  dropdownButton.classList.remove('open');
+  dropdown.classList.remove('open');
+  packagesButton.classList.remove('open');
+  packagesSubpage.classList.remove('open');
+  worldsButton.classList.remove('open');
+  worldsSubpage.classList.remove('open');
+  inventoryButton.classList.remove('open');
+  inventorySubpage.classList.remove('open');
 });
 dropdownButton.addEventListener('click', e => {
   dropdownButton.classList.toggle('open');
@@ -950,6 +962,8 @@ dropdownButton.addEventListener('click', e => {
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
   worldsSubpage.classList.remove('open');
+  avatarButton.classList.remove('open');
+  avatarSubpage.classList.remove('open');
 });
 for (let i = 0; i < tabs.length; i++) {
   const tab = tabs[i];
@@ -968,7 +982,7 @@ for (let i = 0; i < tabs.length; i++) {
     _setSelectTarget(null);
   });
 }
-for (let i = 0; i < worldsSubtabs.length; i++) {
+/* for (let i = 0; i < worldsSubtabs.length; i++) {
   const subtab = worldsSubtabs[i];
   const subtabContent = worldsSubtabContents[i];
   subtab.addEventListener('click', e => {
@@ -997,8 +1011,8 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
     subtab.classList.add('open');
     subtabContent.classList.add('open');
   });
-}
-[worldsCloseButton, packagesCloseButton, inventoryCloseButton].forEach(closeButton => {
+} */
+[worldsCloseButton, packagesCloseButton, inventoryCloseButton, avatarCloseButton].forEach(closeButton => {
   closeButton.addEventListener('click', e => {
     dropdownButton.classList.remove('open');
     dropdown.classList.remove('open');
@@ -1008,6 +1022,8 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
     worldsSubpage.classList.remove('open');
     inventoryButton.classList.remove('open');
     inventorySubpage.classList.remove('open');
+    avatarButton.classList.remove('open');
+    avatarSubpage.classList.remove('open');
   });
 });
 worldSaveButton.addEventListener('click', async e => {
@@ -1053,16 +1069,17 @@ const _enterWorld = async name => {
   runMode.setAttribute('href', 'run.html' + (name ? ('?w=' + name) : ''));
   editMode.setAttribute('href', 'edit.html' + (name ? ('?w=' + name) : ''));
 
-  /* singleplayerButton.classList.remove('open');
-  multiplayerButton.classList.remove('open');
-  Array.from(worlds.querySelectorAll('.world')).forEach(w => {
-    w.classList.remove('open');
+  const worlds = Array.from(document.querySelectorAll('.world'));
+  worlds.forEach(world => {
+    world.classList.remove('open');
   });
-  const w = worlds.querySelector(`[hash=${hash}]`);
-  w && w.classList.add('open');
-
-  worldType = null;
-  worldTools.style.visibility = 'hidden'; */
+  let world;
+  if (name) {
+    world = worlds.find(w => w.getAttribute('name') === name);
+  } else {
+    world = worlds[0];
+  }
+  world && world.classList.add('open');
 
   if (name) {
     const res = await fetch(worldsEndpoint + '/' + name);
@@ -1126,6 +1143,166 @@ multiplayerButton.addEventListener('click', async e => {
   worldTools.style.visibility = null;
 }); */
 
+const dropZones = Array.from(document.querySelectorAll('.drop-zone'));
+dropZones.forEach(dropZone => {
+  dropZone.addEventListener('dragenter', e => {
+    dropZone.classList.add('hover');
+  });
+  dropZone.addEventListener('dragleave', e => {
+    dropZone.classList.remove('hover');
+  });
+});
+window.addEventListener('dragend', e => {
+  document.body.classList.remove('dragging');
+  dropZones.forEach(dropZone => {
+    dropZone.classList.remove('hover');
+  });
+});
+document.getElementById('inventory-drop-zone').addEventListener('drop', async e => {
+  e.preventDefault();
+
+  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json');
+  if (jsonItem) {
+    const s = await new Promise((resolve, reject) => {
+      jsonItem.getAsString(resolve);
+    });
+    const j = JSON.parse(s);
+    let {name, dataHash, id} = j;
+    if (!dataHash) {
+      const p = pe.packages.find(p => p.id === id);
+      dataHash = await p.getHash();
+    }
+
+    const inventory = loginManager.getInventory();
+    inventory.push({
+      name,
+      hash: dataHash,
+    });
+    await loginManager.setInventory(inventory);
+  }
+});
+document.getElementById('avatar-drop-zone').addEventListener('drop', async e => {
+  e.preventDefault();
+
+  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json');
+  if (jsonItem) {
+    const s = await new Promise((resolve, reject) => {
+      jsonItem.getAsString(resolve);
+    });
+    const j = JSON.parse(s);
+    let {dataHash, id} = j;
+    if (!dataHash) {
+      const p = pe.packages.find(p => p.id === id);
+      dataHash = await p.getHash();
+    }
+
+    await loginManager.setAvatar(dataHash);
+  }
+});
+
+const _changeAvatar = async avatarHash => {
+  let p;
+  if (avatarHash) {
+    p = await XRPackage.download(avatarHash);
+    p.hash = avatarHash;
+  }
+
+  avatarSubpageContent.innerHTML = `\
+    <div class=avatar>
+      <img class=screenshot>
+      <div class=wrap>
+        <div class=hash>${p ? p.hash : 'No avatar'}</div>
+        ${p ? `<nav class="button unwear-button">Unwear</nab>` : ''}
+      </div>
+    </div>
+  `;
+  (async () => {
+    const img = avatarSubpageContent.querySelector('.screenshot');
+    if (p) {
+      const u = await p.getScreenshotImageUrl();
+      img.src = u;
+      img.onload = () => {
+        URL.revokeObjectURL(u);
+      };
+      img.onerror = err => {
+        console.warn(err);
+        URL.revokeObjectURL(u);
+      };
+    } else {
+      img.src = 'assets/question.png';
+    }
+  })();
+  const unwearButton = avatarSubpageContent.querySelector('.unwear-button');
+  unwearButton && unwearButton.addEventListener('click', e => {
+    loginManager.setAvatar(null);
+  });
+
+  if (p) {
+    await pe.wearAvatar(p);
+  }
+};
+_changeAvatar(loginManager.getAvatar());
+loginManager.addEventListener('avatarchange', async e => {
+  const avatarHash = e.data;
+  _changeAvatar(avatarHash);
+});
+
+const _changeInventory = inventory => {
+  inventorySubtabContent.innerHTML = inventory.map(item => `\
+    <div class=item draggable=true>
+      <img class=screenshot>
+      <div class=name>${item.name}</div>
+      <div class=details>
+        <a class="button inspect-button" target="_blank" href="inspect.html?h=${item.hash}">Inspect</a>
+        <nav class="button wear-button">Wear</nav>
+        <nav class="button remove-button">Remove</nav>
+      </div>
+    </div>
+  `).join('\n');
+  const is = inventorySubtabContent.querySelectorAll('.item');
+  is.forEach((itemEl, i) => {
+    const item = inventory[i];
+    const {name, hash} = item;
+
+    itemEl.addEventListener('dragstart', e => {
+      _startPackageDrag(e, {
+        name,
+        dataHash: hash,
+      });
+    });
+
+    (async () => {
+      const img = itemEl.querySelector('.screenshot');
+      /* if (p) {
+        const u = await p.getScreenshotImageUrl();
+        img.src = u;
+        img.onload = () => {
+          URL.revokeObjectURL(u);
+        };
+        img.onerror = err => {
+          console.warn(err);
+          URL.revokeObjectURL(u);
+        };
+      } else { */
+        img.src = 'assets/question.png';
+      // }
+    })();
+    const wearButton = itemEl.querySelector('.wear-button');
+    wearButton.addEventListener('click', () => {
+      loginManager.setAvatar(hash);
+    });
+    const removeButton = itemEl.querySelector('.remove-button');
+    removeButton.addEventListener('click', () => {
+      console.log('remove', item);
+    });
+  });
+};
+_changeInventory(loginManager.getInventory());
+loginManager.addEventListener('inventorychange', async e => {
+  const inventory = e.data;
+  _changeInventory(inventory);
+});
+
 const _makePackageHtml = p => `
   <div class=package draggable=true>
     <img src="assets/question.png">
@@ -1135,31 +1312,45 @@ const _makePackageHtml = p => `
     </div>
     <div class=background>
       <nav class="button add-button">Add</nav>
-      <a class="button" target="_blank" href="/run.html?h=${p.hash}">Test</a>
+      <nav class="button wear-button">Wear</nav>
+      <a class="button inspect-button" target="_blank" href="inspect.html?p=${p.name}">Inspect</a>
     </div>
   </div>
 `;
 const _addPackageFromHash = async (hash, matrix) => {
   const p = await XRPackage.download(hash);
+  p.hash = hash;
   if (matrix) {
     p.setMatrix(matrix);
   }
   await pe.add(p);
 };
+const _startPackageDrag = (e, j) => {
+  e.dataTransfer.setData('application/json', JSON.stringify(j));
+  setTimeout(() => {
+    dropdown.classList.remove('open');
+    packagesSubpage.classList.remove('open');
+    document.body.classList.add('dragging');
+  });
+};
 const _bindPackage = (pE, pJ) => {
-  const {dataHash} = pJ;
+  const {name, dataHash} = pJ;
   pE.addEventListener('dragstart', e => {
-    e.dataTransfer.setData('text/plain', dataHash);
+    _startPackageDrag(e, {name, dataHash});
   });
   const addButton = pE.querySelector('.add-button');
   addButton.addEventListener('click', () => {
     _addPackageFromHash(dataHash);
   });
-  /* const runButton = pE.querySelector('.run-button');
-  runButton.addEventListener('click', async e => {
-    const {hash} = pJ;
-    const p = await XRPackage.download(hash);
-    pe.add(p);
+  const wearButton = pE.querySelector('.wear-button');
+  wearButton.addEventListener('click', () => {
+    loginManager.setAvatar(dataHash);
+  });
+  /* const inspectButton = pE.querySelector('.inspect-button');
+  inspectButton.addEventListener('click', e => {
+    e.preventDefault();
+    console.log('open', inspectButton.getAttribute('href'));
+    window.open(inspectButton.getAttribute('href'), '_blank');
   }); */
 };
 const packages = document.getElementById('packages');
@@ -1193,21 +1384,24 @@ pe.domElement.addEventListener('dragover', e => {
 pe.domElement.addEventListener('drop', async e => {
   e.preventDefault();
 
-  if (e.dataTransfer.items.length > 0) {
-    const [item] = e.dataTransfer.items;
-    const dataHash = await new Promise((resolve, reject) => {
-      item.getAsString(resolve);
+  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json');
+  if (jsonItem) {
+    const s = await new Promise((resolve, reject) => {
+      jsonItem.getAsString(resolve);
     });
+    const j = JSON.parse(s);
+    const {dataHash} = j;
+    if (dataHash) {
+      _updateRaycasterFromMouseEvent(raycaster, e);
+      localMatrix.compose(
+        raycaster.ray.origin.clone()
+          .add(raycaster.ray.direction.clone().multiplyScalar(2)),
+        new THREE.Quaternion(),
+        new THREE.Vector3(1, 1, 1)
+      )
 
-    _updateRaycasterFromMouseEvent(raycaster, e);
-    localMatrix.compose(
-      raycaster.ray.origin.clone()
-        .add(raycaster.ray.direction.clone().multiplyScalar(2)),
-      new THREE.Quaternion(),
-      new THREE.Vector3(1, 1, 1),
-    );
-
-    await _addPackageFromHash(dataHash, localMatrix);
+      await _addPackageFromHash(dataHash, localMatrix);
+    }
   }
 });
 /* const _getTokenHtml = cardData => {
@@ -1245,6 +1439,7 @@ pe.domElement.addEventListener('drop', async e => {
         const t = ts[i];
         const {dataHash} = t;
         const p = await XRPackage.download(dataHash);
+        p.hash = dataHash;
         pe.add(p);
       });
       const input = token.querySelector('input');
@@ -1343,13 +1538,14 @@ newWorldButton.addEventListener('click', async e => {
   }
 });
 
-const _pullPackages = async children => {
+/* const _pullPackages = async children => {
   const keepPackages = [];
   for (const id in children) {
     const child = children[id];
     let p = pe.packages.find(p => p.id === child.id);
     if (!p) {
       p = await XRPackage.download(child.hash);
+      p.hash = child.hash;
       p.id = child.id;
       pe.add(p);
     }
@@ -1366,9 +1562,9 @@ const _pullPackages = async children => {
       pe.remove(p);
     }
   }
-};
+}; */
 
-const avatarMe = document.getElementById('avatar-me');
+/* const avatarMe = document.getElementById('avatar-me');
 const unwearButton = avatarMe.querySelector('.unwear-button');
 const avatars = document.getElementById('avatars');
 const _renderAvatars = () => {
@@ -1390,7 +1586,7 @@ pe.addEventListener('avatarchange', e => {
 });
 unwearButton.addEventListener('click', e => {
   pe.defaultAvatar();
-});
+}); */
 
 // let selectedObject = null;
 const objectsEl = document.getElementById('objects');
@@ -1402,6 +1598,7 @@ const _renderObjects = () => {
     objectsEl.innerHTML = `
       <div class=object-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
+        <img class=screenshot draggable=true>
         <nav class="button reload-button">Reload</nav>
         <nav class="button wear-button">Wear</nav>
         <nav class="button inspect-button">Inspect</nav>
@@ -1498,8 +1695,8 @@ const _renderObjects = () => {
     });
     const wearButton = objectsEl.querySelector('.wear-button');
     wearButton.addEventListener('click', async e => {
-      const p2 = p.clone();
-      await pe.wearAvatar(p2);
+      const dataHash = await p.getHash();
+      loginManager.setAvatar(dataHash);
     });
     const removeButton = objectsEl.querySelector('.remove-button');
     removeButton.addEventListener('click', e => {
@@ -1575,13 +1772,35 @@ const _renderObjects = () => {
         p.sendEvent(name, value);
       });
     });
+
+    (async () => {
+      const img = objectsEl.querySelector('.screenshot');
+      const u = await p.getScreenshotImageUrl();
+      img.src = u;
+      img.onload = () => {
+        URL.revokeObjectURL(u);
+      };
+      img.onerror = err => {
+        console.warn(err);
+        URL.revokeObjectURL(u);
+      };
+      img.addEventListener('dragstart', e => {
+        _startPackageDrag(e, {
+          name: p.name,
+          id: p.id,
+        });
+      });
+    })();
   } else {
-    objectsEl.innerHTML = pe.packages.map((p, i) => `
-      <div class=object packageid="${p.id}" index="${i}">
-        <span class=name>${p.name}</span>
-        <nav class=close-button><i class="fa fa-times"></i></nav>
-      </div>
-    `).join('\n');
+    objectsEl.innerHTML = pe.packages.length > 0 ?
+      pe.packages.map((p, i) => `
+        <div class=object packageid="${p.id}" index="${i}">
+          <span class=name>${p.name}</span>
+          <nav class=close-button><i class="fa fa-times"></i></nav>
+        </div>
+      `).join('\n')
+    :
+      `<h1 class=placeholder>No objects in scene</h1>`;
     Array.from(objectsEl.querySelectorAll('.object')).forEach(packageEl => {
       const index = parseInt(packageEl.getAttribute('index'), 10);
       const p = pe.packages[index];
@@ -1602,6 +1821,7 @@ const _renderObjects = () => {
     });
   }
 };
+_renderObjects();
 const _handleUrl = u => {
   const {search} = new URL(u);
   const q = parseQuery(search);

@@ -186,7 +186,7 @@ img:not([src]) {
   left: 0;
   right: 0;
   width: 100vw;
-  padding: 30px;
+  padding: 15px;
 }
 
 .footer .nav {
@@ -734,8 +734,12 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   display: inline-flex;
   margin-right: 20px;
   margin-bottom: 20px;
+  border: 5px solid transparent;
   flex-direction: column;
   cursor: pointer;
+}
+.worlds .world.open {
+  background-color: #64b5f6;
 }
 .packages .package .background,
 .worlds .world .background
@@ -795,6 +799,11 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   align-items: center;
 }
 
+.objects .placeholder {
+  display: flex;
+  justify-content: center;
+}
+
 .objects .object .close-button {
   margin-left: auto;
   cursor: pointer;
@@ -804,7 +813,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: #ef5350;
 }
 
-.avatars {
+/* .avatars {
   display: flex;
   flex-direction: column;
 }
@@ -845,9 +854,8 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: #FFF;
   justify-content: center;
   align-items: center;
-  /* transform-origin: 0 50%; */
   transform: rotatez(90deg);
-}
+} */
 
 .tokens {
   display: flex;
@@ -1247,7 +1255,19 @@ header.unlocking + .main .blocker .button
 }
 
 .object-detail {
+  display: flex;
   padding: 0 10px;
+  flex-direction: column;
+}
+.object-detail h1 {
+  margin: 10px 0;
+}
+.object-detail .screenshot {
+  /* margin: 0 auto; */
+  width: 150px;
+  height: 150px;
+  margin-bottom: 10px;
+  border-radius: 8px;
 }
 
 .schema {
@@ -1439,9 +1459,9 @@ header.unlocking + .main .blocker .button
   align-items: flex-start;
 }
 
-#login-form {
+/* #login-form {
   width: 200px;
-}
+} */
 .login-form {
   display: flex;
   height: 100%;
@@ -1463,12 +1483,15 @@ header.unlocking + .main .blocker .button
   align-items: center;
 }
 .user-button {
+  position: relative;
   display: flex;
   height: 100%;
+  padding: 0 10px;
   align-items: center;
   cursor: pointer;
 }
-.user-button:hover {
+.user-button:hover,
+.user-button.open {
   background-color: #ff7043;
   color: #FFF;
 }
@@ -1481,11 +1504,133 @@ header.unlocking + .main .blocker .button
   padding: 0 10px;
   align-items: center;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
+}
+.user-button:not(.open) .user-details {
+  display: none;
+}
+.user-button .user-details {
+  position: absolute;
+  display: flex;
+  top: 50px;
+  right: 0;
+  min-width: 100%;
+  padding: 20px;
+  background-color: #111;
+  color: #FFF;
+  flex-direction: column;
+  cursor: auto;
+}
+.user-button .user-details .label {
+  font-weight: 600;
+  font-size: 10px;
+  color: #FFFFFF80;
+  text-transform: uppercase;
+}
+.user-button .user-details .user-name:not(:last-child) {
+  margin-bottom: 10px;
 }
 
 .error {
   font-family: monospace;
   white-space: nowrap;
   color: #ef5350;
+}
+
+.drop-zones {
+  display: flex;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+.drop-zones .drop-zone {
+  display: flex;
+  width: 50%;
+  margin: 0 3px;
+  padding: 0 10px;
+  background-color: #111;
+  color: #FFF;
+  /* flex-direction: column; */
+  align-items: center;
+}
+.drop-zones .drop-zone:hover,
+.drop-zones .drop-zone.hover
+{
+  background-color: #ffa726;
+}
+.drop-zones .drop-zone:not(:hover):not(.hover) .description
+{
+  display: none;
+}
+.drop-zones .drop-zone .label,
+.drop-zones .drop-zone .description
+{
+  pointer-events: none;
+}
+.drop-zones .drop-zone .label {
+  display: flex;
+  height: 50px;
+  margin-right: auto;
+  font-size: 16px;
+  align-items: center;
+}
+.drop-zones .drop-zone .label i {
+  margin-right: 10px;
+}
+.drop-zones .drop-zone .description {
+  margin: 0 10px;
+  padding: 5px;
+  /* border: 3px solid; */
+  border-radius: 8px;
+  background-color: #FFF;
+  color: #ffa726;
+  font-size: 16px;
+}
+body:not(.dragging) .drop-zones {
+  display: none;
+}
+body.dragging .footer {
+  display: none;
+}
+
+.avatar {
+  display: flex;
+}
+.avatar img {
+  width: 130px;
+  height: 130px;
+  margin-right: 10px;
+  background-color: #FFF;
+  border-radius: 8px;
+}
+.avatar .wrap {
+  display: flex;
+  flex-direction: column;
+}
+.item {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+}
+.item img {
+  width: 100px;
+  height: 100px;
+  margin-right: 10px;
+  background-color: #FFF;
+  border-radius: 8px;
+}
+.item .details {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  flex-direction: column;
+}
+.item:not(:hover) .details {
+  display: none;
+}
+.item .details .button {
+  margin-bottom: 5px;
 }
