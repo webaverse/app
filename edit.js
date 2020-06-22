@@ -883,6 +883,7 @@ const worldRevertButton = document.getElementById('world-revert-button');
 const packagesButton = document.getElementById('packages-button');
 const inventoryButton = document.getElementById('inventory-button');
 const avatarButton = document.getElementById('avatar-button');
+const micButton = document.getElementById('mic-button');
 const dropdownButton = document.getElementById('dropdown-button');
 const dropdown = document.getElementById('dropdown');
 const worldsSubpage = document.getElementById('worlds-subpage');
@@ -964,6 +965,9 @@ dropdownButton.addEventListener('click', e => {
   worldsSubpage.classList.remove('open');
   avatarButton.classList.remove('open');
   avatarSubpage.classList.remove('open');
+});
+micButton.addEventListener('click', e => {
+  micButton.classList.toggle('enabled');
 });
 for (let i = 0; i < tabs.length; i++) {
   const tab = tabs[i];

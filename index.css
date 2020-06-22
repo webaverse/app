@@ -207,6 +207,15 @@ img:not([src]) {
 .footer .nav:nth-child(3) {
   margin-right: auto;
 }
+.footer .nav.enabled {
+  background-color: #5c6bc0;
+  opacity: 1;
+}
+.footer .nav.enabled .enable-icon,
+.footer .nav:not(.enabled) .disable-icon
+{
+  display: none;
+}
 .footer .nav + .nav {
   margin-left: 10px;
 }
