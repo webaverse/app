@@ -3,6 +3,8 @@ import storage from './storage.js';
 const loginEndpoint = 'https://login.exokit.org';
 const usersEndpoint = 'https://users.exokit.org';
 
+const _clone = o => JSON.parse(JSON.stringify(o));
+
 let loginToken = null;
 let userObject = null;
 async function pullUserObject() {
@@ -213,7 +215,7 @@ class LoginManager extends EventTarget {
     }));
   }
   getInventory() {
-    return userObject ? userObject.inventory.slice() : [];
+    return userObject ? _clone(userObject.inventory) : [];
   }
   async setInventory(inventory) {
     if (userObject) {
@@ -222,7 +224,7 @@ class LoginManager extends EventTarget {
       // updateUserObject();
     }
     this.dispatchEvent(new MessageEvent('inventorychange', {
-      data: inventory,
+      data: _clone(inventory),
     }));
   }
   pushUpdate() {
@@ -233,7 +235,7 @@ class LoginManager extends EventTarget {
       data: userObject && userObject.avatarHash,
     }));
     this.dispatchEvent(new MessageEvent('inventorychange', {
-      data: userObject && userObject.inventory,
+      data: userObject && _clone(userObject.inventory),
     }));
   }
 }
