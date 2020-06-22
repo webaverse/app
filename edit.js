@@ -3,7 +3,7 @@ import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUt
 import {TransformControls} from 'https://static.xrpackage.org/TransformControls.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
-import {XRPackageEngine, XRPackage, pe, renderer, scene, camera, container, floorMesh, proxySession, getRealSession} from './run.js';
+import {XRPackageEngine, XRPackage, pe, renderer, scene, camera, container, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 
@@ -39,6 +39,26 @@ function parseQuery(queryString) {
   }
   return query;
 }
+const _hashPackage = (() => {
+  let nodePromise = null;
+  return async p => {
+    if (!nodePromise) {
+      nodePromise = import('https://cdn.jsdelivr.net/npm/ipfs/dist/index.min.js')
+        .then(() =>
+          Ipfs.create({
+            repo: 'inmem',
+            offline: true,
+            start: false,
+            silent: true,
+            // init: false,
+          })
+        );
+    }
+    const node = await nodePromise;
+    const {value: {path}} = await node.add(p.data).next();
+    return path;
+  };
+})();
 
 const targetMeshGeometry = (() => {
   const targetGeometry = BufferGeometryUtils.mergeBufferGeometries([
@@ -1180,26 +1200,6 @@ document.getElementById('inventory-drop-zone').addEventListener('drop', async e 
     console.log('got drop', j);
   }
 });
-const _hashPackage = (() => {
-  let nodePromise = null;
-  return async p => {
-    if (!nodePromise) {
-      nodePromise = import('https://cdn.jsdelivr.net/npm/ipfs/dist/index.min.js')
-        .then(() =>
-          Ipfs.create({
-            repo: 'inmem',
-            offline: true,
-            start: false,
-            silent: true,
-            // init: false,
-          })
-        );
-    }
-    const node = await nodePromise;
-    const {value: {path}} = await node.add(p.data).next();
-    return path;
-  };
-})();
 document.getElementById('avatar-drop-zone').addEventListener('drop', async e => {
   e.preventDefault();
 
@@ -1211,19 +1211,18 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
     const j = JSON.parse(s);
 
     let {dataHash, id} = j;
-    if (dataHash) {
-      const p = await XRPackage.download(dataHash);
-      await pe.wearAvatar(p);
-    } else if (id) {
-      let p = pe.packages.find(p => p.id === id);
-      p = p.clone();
-      await pe.wearAvatar(p);
+    if (!dataHash) {
+      const p = pe.packages.find(p => p.id === id);
       dataHash = await _hashPackage(p);
     }
 
-    console.log('got data hash', dataHash);
-    // setAvatar
+    loginManager.setAvatar(dataHash);
   }
+});
+loginManager.addEventListener('avatarchange', async e => {
+  const dataHash = e.data;
+  const p = await XRPackage.download(dataHash);
+  await pe.wearAvatar(p);
 });
 
 const _makePackageHtml = p => `
@@ -1612,8 +1611,8 @@ const _renderObjects = () => {
     });
     const wearButton = objectsEl.querySelector('.wear-button');
     wearButton.addEventListener('click', async e => {
-      const p2 = p.clone();
-      await pe.wearAvatar(p2);
+      const dataHash = await _hashPackage(p);
+      loginManager.setAvatar(dataHash);
     });
     const removeButton = objectsEl.querySelector('.remove-button');
     removeButton.addEventListener('click', e => {
