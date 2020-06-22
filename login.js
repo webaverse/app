@@ -37,6 +37,8 @@ function updateUserObject() {
   loginEmailStatic.innerText = userObject.name;
   userName.innerText = userObject.name;
   // avatarName.innerText = userObject.avatarHash !== null ? userObject.avatarHash : 'None';
+
+  loginManager.pushUpdate();
 }
 async function doLogin(email, code) {
   const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
@@ -218,6 +220,17 @@ class LoginManager extends EventTarget {
     }
     this.dispatchEvent(new MessageEvent('inventorychange', {
       data: inventory,
+    }));
+  }
+  pushUpdate() {
+    this.dispatchEvent(new MessageEvent('usernamechange', {
+      data: userObject && userObject.name,
+    }));
+    this.dispatchEvent(new MessageEvent('avatarchange', {
+      data: userObject && userObject.avatarHash,
+    }));
+    this.dispatchEvent(new MessageEvent('inventorychange', {
+      data: userObject && userObject.inventory,
     }));
   }
 }
