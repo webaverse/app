@@ -1078,7 +1078,7 @@ const _enterWorld = async name => {
   } else {
     world = worlds[0];
   }
-  world.classList.add('open');
+  world && world.classList.add('open');
 
   if (name) {
     const res = await fetch(worldsEndpoint + '/' + name);
