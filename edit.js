@@ -1160,14 +1160,22 @@ window.addEventListener('dragend', e => {
 document.getElementById('inventory-drop-zone').addEventListener('drop', async e => {
   e.preventDefault();
 
-  if (e.dataTransfer.items.length > 0) {
-    const [item] = e.dataTransfer.items;
+  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json');
+  if (jsonItem) {
     const s = await new Promise((resolve, reject) => {
-      item.getAsString(resolve);
+      jsonItem.getAsString(resolve);
     });
     const j = JSON.parse(s);
+    let {dataHash, id} = j;
+    if (!dataHash) {
+      const p = pe.packages.find(p => p.id === id);
+      console.log('get id', j, p);
+      dataHash = await p.getHash();
+    }
 
-    console.log('got drop', j);
+    const inventory = loginManager.getInventory();
+    inventory.push(dataHash);
+    await loginManager.setInventory(inventory);
   }
 });
 document.getElementById('avatar-drop-zone').addEventListener('drop', async e => {
