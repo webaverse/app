@@ -1455,13 +1455,14 @@ newWorldButton.addEventListener('click', async e => {
   }
 });
 
-const _pullPackages = async children => {
+/* const _pullPackages = async children => {
   const keepPackages = [];
   for (const id in children) {
     const child = children[id];
     let p = pe.packages.find(p => p.id === child.id);
     if (!p) {
       p = await XRPackage.download(child.hash);
+      p.hash = child.hash;
       p.id = child.id;
       pe.add(p);
     }
@@ -1478,7 +1479,7 @@ const _pullPackages = async children => {
       pe.remove(p);
     }
   }
-};
+}; */
 
 /* const avatarMe = document.getElementById('avatar-me');
 const unwearButton = avatarMe.querySelector('.unwear-button');
