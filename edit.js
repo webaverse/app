@@ -1180,6 +1180,26 @@ document.getElementById('inventory-drop-zone').addEventListener('drop', async e 
     console.log('got drop', j);
   }
 });
+const _hashPackage = (() => {
+  let nodePromise = null;
+  return async p => {
+    if (!nodePromise) {
+      nodePromise = import('https://cdn.jsdelivr.net/npm/ipfs/dist/index.min.js')
+        .then(() =>
+          Ipfs.create({
+            repo: 'inmem',
+            offline: true,
+            start: false,
+            silent: true,
+            // init: false,
+          })
+        );
+    }
+    const node = await nodePromise;
+    const {value: {path}} = await node.add(p.data).next();
+    return path;
+  };
+})();
 document.getElementById('avatar-drop-zone').addEventListener('drop', async e => {
   e.preventDefault();
 
@@ -1188,12 +1208,9 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
     const s = await new Promise((resolve, reject) => {
       jsonItem.getAsString(resolve);
     });
-    console.log('got s', s);
     const j = JSON.parse(s);
 
-    console.log('got drop', j);
-
-    const {dataHash, id} = j;
+    let {dataHash, id} = j;
     if (dataHash) {
       const p = await XRPackage.download(dataHash);
       await pe.wearAvatar(p);
@@ -1201,7 +1218,11 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
       let p = pe.packages.find(p => p.id === id);
       p = p.clone();
       await pe.wearAvatar(p);
+      dataHash = await _hashPackage(p);
     }
+
+    console.log('got data hash', dataHash);
+    // setAvatar
   }
 });
 
