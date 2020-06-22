@@ -1247,7 +1247,6 @@ loginManager.addEventListener('avatarchange', async e => {
 });
 
 const _changeInventory = inventory => {
-  console.log('change inventory', inventory);
   inventorySubtabContent.innerHTML = inventory.map(item => `\
     <div class=item>
       <img class=screenshot>
