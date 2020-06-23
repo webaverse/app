@@ -618,7 +618,6 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .subtab-content {
   display: flex;
-  flex-direction: column;
 }
 .subtab-content:not(.open) {
   display: none;
