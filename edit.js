@@ -966,8 +966,16 @@ dropdownButton.addEventListener('click', e => {
   avatarButton.classList.remove('open');
   avatarSubpage.classList.remove('open');
 });
-micButton.addEventListener('click', e => {
+micButton.addEventListener('click', async e => {
   micButton.classList.toggle('enabled');
+  if (micButton.classList.contains('enabled')) {
+    const mediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    });
+    pe.setMicrophoneMediaStream(mediaStream);
+  } else {
+    pe.setMicrophoneMediaStream(null);
+  }
 });
 for (let i = 0; i < tabs.length; i++) {
   const tab = tabs[i];
