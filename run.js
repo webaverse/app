@@ -19,6 +19,39 @@ let currentSession = null;
 const pe = new XRPackageEngine({
   orbitControls: true,
 });
+pe.setEnv('username', loginManager.getUsername());
+loginManager.addEventListener('usernamechange', e => {
+  const username = e.data;
+  pe.setEnv('username', username);
+});
+pe.setEnv('avatar', loginManager.getAvatar());
+loginManager.addEventListener('avatarchange', e => {
+  const avatar = e.data;
+  pe.setEnv('avatar', avatar);
+});
+
+const _changeAvatar = async avatarHash => {
+  let p;
+  if (avatarHash) {
+    p = await XRPackage.download(avatarHash);
+    p.hash = avatarHash;
+    await pe.wearAvatar(p);
+  } else {
+    pe.defaultAvatar();
+    p = null;
+  }
+
+  window.dispatchEvent(new MessageEvent('avatarchange', {
+    data: p,
+  }));
+};
+_changeAvatar(pe.getEnv('avatar'));
+pe.addEventListener('envchange', e => {
+  const {key, value} = e.data;
+  if (key === 'avatar') {
+    _changeAvatar(value);
+  }
+});
 
 /* const canvas = document.createElement('canvas');
 const context = canvas.getContext('webgl', {
