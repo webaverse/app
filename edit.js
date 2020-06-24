@@ -1212,12 +1212,8 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
   }
 });
 
-const _changeAvatar = async avatarHash => {
-  let p;
-  if (avatarHash) {
-    p = await XRPackage.download(avatarHash);
-    p.hash = avatarHash;
-  }
+window.addEventListener('avatarchange', e => {
+  const p = e.data;
 
   avatarSubpageContent.innerHTML = `\
     <div class=avatar>
@@ -1248,15 +1244,6 @@ const _changeAvatar = async avatarHash => {
   unwearButton && unwearButton.addEventListener('click', e => {
     loginManager.setAvatar(null);
   });
-
-  if (p) {
-    await pe.wearAvatar(p);
-  }
-};
-_changeAvatar(loginManager.getAvatar());
-loginManager.addEventListener('avatarchange', async e => {
-  const avatarHash = e.data;
-  _changeAvatar(avatarHash);
 });
 
 const _changeInventory = inventory => {
