@@ -1383,13 +1383,13 @@ pe.domElement.addEventListener('dragover', e => {
 pe.domElement.addEventListener('drop', async e => {
   e.preventDefault();
 
-  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json');
+  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json+package');
   if (jsonItem) {
     const s = await new Promise((resolve, reject) => {
       jsonItem.getAsString(resolve);
     });
     const j = JSON.parse(s);
-    const {dataHash} = j;
+    const {type, dataHash} = j;
     if (dataHash) {
       _updateRaycasterFromMouseEvent(raycaster, e);
       localMatrix.compose(
@@ -1800,7 +1800,8 @@ const _renderObjects = () => {
       `).join('\n')
     :
       `<h1 class=placeholder>No objects in scene</h1>`;
-    Array.from(objectsEl.querySelectorAll('.object')).forEach(packageEl => {
+    const packageEls = Array.from(objectsEl.querySelectorAll('.object'));
+    packageEls.forEach(packageEl => {
       const index = parseInt(packageEl.getAttribute('index'), 10);
       const p = pe.packages[index];
 
