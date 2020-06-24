@@ -1599,8 +1599,8 @@ const _renderObjects = () => {
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
         <img class=screenshot draggable=true>
         <!-- <nav class="button reload-button">Reload</nav> -->
-        <nav class="button wear-button">Wear</nav>
         <nav class="button inspect-button">Inspect</nav>
+        <nav class="button wear-button">Wear</nav>
         <nav class="button remove-button">Remove</nav>
         <b>Position</b>
         <div class=row>
