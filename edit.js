@@ -1165,7 +1165,7 @@ dropZones.forEach(dropZone => {
   });
 });
 window.addEventListener('dragend', e => {
-  document.body.classList.remove('dragging');
+  document.body.classList.remove('dragging-package');
   dropZones.forEach(dropZone => {
     dropZone.classList.remove('hover');
   });
@@ -1173,7 +1173,7 @@ window.addEventListener('dragend', e => {
 document.getElementById('inventory-drop-zone').addEventListener('drop', async e => {
   e.preventDefault();
 
-  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json');
+  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json+package');
   if (jsonItem) {
     const s = await new Promise((resolve, reject) => {
       jsonItem.getAsString(resolve);
@@ -1196,7 +1196,7 @@ document.getElementById('inventory-drop-zone').addEventListener('drop', async e 
 document.getElementById('avatar-drop-zone').addEventListener('drop', async e => {
   e.preventDefault();
 
-  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json');
+  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json+package');
   if (jsonItem) {
     const s = await new Promise((resolve, reject) => {
       jsonItem.getAsString(resolve);
@@ -1325,11 +1325,11 @@ const _addPackageFromHash = async (hash, matrix) => {
   await pe.add(p);
 };
 const _startPackageDrag = (e, j) => {
-  e.dataTransfer.setData('application/json', JSON.stringify(j));
+  e.dataTransfer.setData('application/json+package', JSON.stringify(j));
   setTimeout(() => {
     dropdown.classList.remove('open');
     packagesSubpage.classList.remove('open');
-    document.body.classList.add('dragging');
+    document.body.classList.add('dragging-package');
   });
 };
 const _bindPackage = (pE, pJ) => {
@@ -1793,7 +1793,7 @@ const _renderObjects = () => {
   } else {
     objectsEl.innerHTML = pe.packages.length > 0 ?
       pe.packages.map((p, i) => `
-        <div class=object packageid="${p.id}" index="${i}">
+        <div class=object draggable=true packageid="${p.id}" index="${i}">
           <span class=name>${p.name}</span>
           <nav class=close-button><i class="fa fa-times"></i></nav>
         </div>
@@ -1803,6 +1803,35 @@ const _renderObjects = () => {
     Array.from(objectsEl.querySelectorAll('.object')).forEach(packageEl => {
       const index = parseInt(packageEl.getAttribute('index'), 10);
       const p = pe.packages[index];
+
+      packageEl.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('application/json+object', JSON.stringify({
+          index,
+        }));
+      });
+      packageEl.addEventListener('dragover', e => {
+        e.preventDefault();
+      });
+      packageEl.addEventListener('dragenter', e => {
+        packageEl.classList.add('hover');
+      });
+      packageEl.addEventListener('dragleave', e => {
+        packageEl.classList.remove('hover');
+      });
+      packageEl.addEventListener('drop', async e => {
+        e.preventDefault();
+
+        const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json+object');
+        if (jsonItem) {
+          const s = await new Promise((resolve, reject) => {
+            jsonItem.getAsString(resolve);
+          });
+          const j = JSON.parse(s);
+          const {index} = j;
+          const p = pe.packages[index];
+          console.log('drop package', jsonItem, p);
+        }
+      });
       packageEl.addEventListener('click', e => {
         e.preventDefault();
         e.stopPropagation();

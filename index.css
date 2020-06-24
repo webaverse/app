@@ -805,6 +805,12 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   padding: 10px;
   background-color: #F8F8F8;
   align-items: center;
+  cursor: pointer;
+}
+
+.objects .object.hover {
+  background-color: #42a5f5;
+  color: #FFF;
 }
 
 .objects .placeholder {
@@ -1596,10 +1602,10 @@ header.unlocking + .main .blocker .button
   color: #ffa726;
   font-size: 16px;
 }
-body:not(.dragging) .drop-zones {
+body:not(.dragging-package) .drop-zones {
   display: none;
 }
-body.dragging .footer {
+body.dragging-package .footer {
   display: none;
 }
 
