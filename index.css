@@ -813,8 +813,8 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: #FFF;
 }
 
-.objects .object .name,
-.objects .object .close-button
+.objects .object .name/*,
+.objects .object .close-button */
 {
   pointer-events: none;
 }
