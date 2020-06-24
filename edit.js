@@ -1830,6 +1830,10 @@ const _renderObjects = () => {
           const j = JSON.parse(s);
           const {index} = j;
           const cp = pe.children[index];
+
+          localMatrix.copy(cp.matrixWorld)
+            .premultiply(localMatrix2.getInverse(p.matrixWorld));
+          cp.setMatrix(localMatrix);
           p.add(cp);
         }
       });
