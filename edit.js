@@ -291,7 +291,7 @@ function animate(timestamp, frame) {
   const isVisible = shieldLevel === 2;
   const isTarget = shieldLevel === 0 && selectedTool !== 'select';
   const isVolume = shieldLevel === 1 || selectedTool === 'select';
-  for (const p of pe.packages) {
+  for (const p of pe.children) {
     p.visible = isVisible;
     if (p.placeholderBox) {
       p.placeholderBox.visible = isTarget;
@@ -693,7 +693,7 @@ const _bindObject = p => {
 const _unbindObject = p => {
   p.removeEventListener('matrixupdate', _matrixUpdate);
 };
-pe.packages.forEach(p => {
+pe.children.forEach(p => {
   _bindObject(p);
 });
 let currentWorldChanged = false;
@@ -830,7 +830,7 @@ const raycaster = new THREE.Raycaster();
 const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(mouse, pe.camera);
-  const candidateMeshes = pe.packages
+  const candidateMeshes = pe.children
     .map(p => p.volumeMesh)
     .filter(o => !!o);
   hoverTarget = volumeRaycaster.raycastMeshes(candidateMeshes, raycaster.ray.origin, raycaster.ray.direction);
@@ -1181,7 +1181,7 @@ document.getElementById('inventory-drop-zone').addEventListener('drop', async e 
     const j = JSON.parse(s);
     let {name, dataHash, id} = j;
     if (!dataHash) {
-      const p = pe.packages.find(p => p.id === id);
+      const p = pe.children.find(p => p.id === id);
       dataHash = await p.getHash();
     }
 
@@ -1204,7 +1204,7 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
     const j = JSON.parse(s);
     let {dataHash, id} = j;
     if (!dataHash) {
-      const p = pe.packages.find(p => p.id === id);
+      const p = pe.children.find(p => p.id === id);
       dataHash = await p.getHash();
     }
 
@@ -1541,7 +1541,7 @@ newWorldButton.addEventListener('click', async e => {
   const keepPackages = [];
   for (const id in children) {
     const child = children[id];
-    let p = pe.packages.find(p => p.id === child.id);
+    let p = pe.children.find(p => p.id === child.id);
     if (!p) {
       p = await XRPackage.download(child.hash);
       p.hash = child.hash;
@@ -1554,7 +1554,7 @@ newWorldButton.addEventListener('click', async e => {
     }
     keepPackages.push(p);
   }
-  const packages = pe.packages.slice();
+  const packages = pe.children.slice();
   for (let i = 0; i < packages.length; i++) {
     const p = packages[i];
     if (!keepPackages.includes(p)) {
@@ -1791,8 +1791,8 @@ const _renderObjects = () => {
       });
     })();
   } else {
-    objectsEl.innerHTML = pe.packages.length > 0 ?
-      pe.packages.map((p, i) => `
+    objectsEl.innerHTML = pe.children.length > 0 ?
+      pe.children.map((p, i) => `
         <div class=object draggable=true packageid="${p.id}" index="${i}">
           <span class=name>${p.name}</span>
           <nav class=close-button><i class="fa fa-times"></i></nav>
@@ -1803,7 +1803,7 @@ const _renderObjects = () => {
     const packageEls = Array.from(objectsEl.querySelectorAll('.object'));
     packageEls.forEach(packageEl => {
       const index = parseInt(packageEl.getAttribute('index'), 10);
-      const p = pe.packages[index];
+      const p = pe.children[index];
 
       packageEl.addEventListener('dragstart', e => {
         e.dataTransfer.setData('application/json+object', JSON.stringify({
@@ -1829,8 +1829,8 @@ const _renderObjects = () => {
           });
           const j = JSON.parse(s);
           const {index} = j;
-          const p = pe.packages[index];
-          console.log('drop package', jsonItem, p);
+          const cp = pe.children[index];
+          p.add(cp);
         }
       });
       packageEl.addEventListener('click', e => {
