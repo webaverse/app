@@ -1796,9 +1796,9 @@ const _renderObjects = () => {
     })();
   } else {
     if (pe.children.length > 0) {
-      const _renderChildren = (objectsEl, children) => {
+      const _renderChildren = (objectsEl, children, depth) => {
         objectsEl.innerHTML = children.map((p, i) => `
-          <div class=object draggable=true packageid="${p.id}" index="${i}">
+          <div class="object depth-${depth}" draggable=true packageid="${p.id}" index="${i}">
             <span class=name>${p.name}</span>
             <nav class=close-button><i class="fa fa-times"></i></nav>
           </div>
@@ -1858,10 +1858,10 @@ const _renderObjects = () => {
             pe.remove(p);
           });
 
-          _renderChildren(childrenEl, p.children);
+          _renderChildren(childrenEl, p.children, depth + 1);
         });
       };
-      _renderChildren(objectsEl, pe.children);
+      _renderChildren(objectsEl, pe.children, 0);
     } else {
       objectsEl.innerHTML = `<h1 class=placeholder>No objects in scene</h1>`;
     }
