@@ -682,30 +682,6 @@ shieldSlider.addEventListener('change', async e => {
 document.getElementById('toggle-stage-button').addEventListener('click', e => {
   floorMesh.visible = !floorMesh.visible;
 });
-function _matrixUpdate(e) {
-  const p = this;
-  const matrix = e.data;
-  p.placeholderBox && p.placeholderBox.matrix.copy(matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
-}
-const _bindObject = p => {
-  p.addEventListener('matrixupdate', _matrixUpdate);
-};
-const _unbindObject = p => {
-  p.removeEventListener('matrixupdate', _matrixUpdate);
-};
-pe.children.forEach(p => {
-  _bindObject(p);
-});
-let currentWorldChanged = false;
-const _updateWorldSaveButton = () => {
-  if (currentWorldChanged && currentWorldName) {
-    worldSaveButton.classList.remove('hidden');
-    worldRevertButton.classList.remove('hidden');
-  } else {
-    worldSaveButton.classList.add('hidden');
-    worldRevertButton.classList.add('hidden');
-  }
-};
 
 let hoverTarget = null;
 let selectTarget = null;
@@ -718,15 +694,13 @@ const _setSelectTarget = newSelectTarget => {
     if (!dropdownButton.classList.contains('open')) {
       dropdownButton.click();
     }
-    // const object = objectsEl.querySelector(`[packageid="${selectTarget.package.id}"]`);
-    // object.click();
 
     _bindTransformControls(selectTarget);
   }
   _renderObjects();
 };
 
-pe.addEventListener('packageadd', async e => {
+const _packageadd = async e => {
   const {
     package: p,
     reason,
@@ -742,8 +716,8 @@ pe.addEventListener('packageadd', async e => {
     currentWorldChanged = true;
     _updateWorldSaveButton();
   }
-});
-pe.addEventListener('packageremove', e => {
+};
+const _packageremove = e => {
   const {
     package: p,
     reason,
@@ -765,7 +739,37 @@ pe.addEventListener('packageremove', e => {
     currentWorldChanged = true;
     _updateWorldSaveButton();
   }
+};
+let currentWorldChanged = false;
+const _updateWorldSaveButton = () => {
+  if (currentWorldChanged && currentWorldName) {
+    worldSaveButton.classList.remove('hidden');
+    worldRevertButton.classList.remove('hidden');
+  } else {
+    worldSaveButton.classList.add('hidden');
+    worldRevertButton.classList.add('hidden');
+  }
+};
+function _matrixUpdate(e) {
+  const p = this;
+  const matrix = e.data;
+  p.placeholderBox && p.placeholderBox.matrix.copy(matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
+}
+const _bindObject = p => {
+  p.addEventListener('matrixupdate', _matrixUpdate);
+  p.addEventListener('packageadd', _packageadd);
+  p.addEventListener('packageremove', _packageremove);
+};
+const _unbindObject = p => {
+  p.removeEventListener('matrixupdate', _matrixUpdate);
+  p.removeEventListener('packageadd', _packageadd);
+  p.removeEventListener('packageremove', _packageremove);
+};
+pe.children.forEach(p => {
+  _bindObject(p);
 });
+pe.addEventListener('packageadd', _packageadd);
+pe.addEventListener('packageremove', _packageremove);
 
 let transformControlsHovered = false;
 const _bindTransformControls = o => {
@@ -1791,67 +1795,76 @@ const _renderObjects = () => {
       });
     })();
   } else {
-    objectsEl.innerHTML = pe.children.length > 0 ?
-      pe.children.map((p, i) => `
-        <div class=object draggable=true packageid="${p.id}" index="${i}">
-          <span class=name>${p.name}</span>
-          <nav class=close-button><i class="fa fa-times"></i></nav>
-        </div>
-      `).join('\n')
-    :
-      `<h1 class=placeholder>No objects in scene</h1>`;
-    const packageEls = Array.from(objectsEl.querySelectorAll('.object'));
-    packageEls.forEach(packageEl => {
-      const index = parseInt(packageEl.getAttribute('index'), 10);
-      const p = pe.children[index];
+    if (pe.children.length > 0) {
+      const _renderChildren = (objectsEl, children) => {
+        objectsEl.innerHTML = children.map((p, i) => `
+          <div class=object draggable=true packageid="${p.id}" index="${i}">
+            <span class=name>${p.name}</span>
+            <nav class=close-button><i class="fa fa-times"></i></nav>
+          </div>
+          <div class=children></div>
+        `).join('\n');
+        const packageEls = Array.from(objectsEl.querySelectorAll('.object'));
+        const childrenEls = Array.from(objectsEl.querySelectorAll('.children'));
+        packageEls.forEach((packageEl, i) => {
+          const index = parseInt(packageEl.getAttribute('index'), 10);
+          const p = children[i];
+          const childrenEl = childrenEls[i];
 
-      packageEl.addEventListener('dragstart', e => {
-        e.dataTransfer.setData('application/json+object', JSON.stringify({
-          index,
-        }));
-      });
-      packageEl.addEventListener('dragover', e => {
-        e.preventDefault();
-      });
-      packageEl.addEventListener('dragenter', e => {
-        packageEl.classList.add('hover');
-      });
-      packageEl.addEventListener('dragleave', e => {
-        packageEl.classList.remove('hover');
-      });
-      packageEl.addEventListener('drop', async e => {
-        e.preventDefault();
-
-        const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json+object');
-        if (jsonItem) {
-          const s = await new Promise((resolve, reject) => {
-            jsonItem.getAsString(resolve);
+          packageEl.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('application/json+object', JSON.stringify({
+              index,
+            }));
           });
-          const j = JSON.parse(s);
-          const {index} = j;
-          const cp = pe.children[index];
+          packageEl.addEventListener('dragover', e => {
+            e.preventDefault();
+          });
+          packageEl.addEventListener('dragenter', e => {
+            packageEl.classList.add('hover');
+          });
+          packageEl.addEventListener('dragleave', e => {
+            packageEl.classList.remove('hover');
+          });
+          packageEl.addEventListener('drop', async e => {
+            e.preventDefault();
 
-          localMatrix.copy(cp.matrixWorld)
-            .premultiply(localMatrix2.getInverse(p.matrixWorld));
-          cp.setMatrix(localMatrix);
-          p.add(cp);
-        }
-      });
-      packageEl.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
+            const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json+object');
+            if (jsonItem) {
+              const s = await new Promise((resolve, reject) => {
+                jsonItem.getAsString(resolve);
+              });
+              const j = JSON.parse(s);
+              const {index} = j;
+              const cp = pe.children[index];
 
-        document.querySelector('.tool[tool="select"]').click();
-        _setSelectTarget(p.volumeMesh);
-      });
-      const closeButton = packageEl.querySelector('.close-button');
-      closeButton.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
+              localMatrix.copy(cp.matrixWorld)
+                .premultiply(localMatrix2.getInverse(p.matrixWorld));
+              cp.setMatrix(localMatrix);
+              p.add(cp);
+            }
+          });
+          packageEl.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
 
-        pe.remove(p);
-      });
-    });
+            document.querySelector('.tool[tool="select"]').click();
+            _setSelectTarget(p.volumeMesh);
+          });
+          const closeButton = packageEl.querySelector('.close-button');
+          closeButton.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            pe.remove(p);
+          });
+
+          _renderChildren(childrenEl, p.children);
+        });
+      };
+      _renderChildren(objectsEl, pe.children);
+    } else {
+      objectsEl.innerHTML = `<h1 class=placeholder>No objects in scene</h1>`;
+    }
   }
 };
 _renderObjects();
