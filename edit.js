@@ -1598,7 +1598,7 @@ const _renderObjects = () => {
       <div class=object-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
         <img class=screenshot draggable=true>
-        <nav class="button reload-button">Reload</nav>
+        <!-- <nav class="button reload-button">Reload</nav> -->
         <nav class="button wear-button">Wear</nav>
         <nav class="button inspect-button">Inspect</nav>
         <nav class="button remove-button">Remove</nav>
@@ -1688,10 +1688,10 @@ const _renderObjects = () => {
       const u = URL.createObjectURL(b);
       window.open(`inspect.html?u=${u}`, '_blank');
     });
-    const reloadButton = objectsEl.querySelector('.reload-button');
+    /* const reloadButton = objectsEl.querySelector('.reload-button');
     reloadButton.addEventListener('click', async e => {
       await p.reload();
-    });
+    }); */
     const wearButton = objectsEl.querySelector('.wear-button');
     wearButton.addEventListener('click', async e => {
       const dataHash = await p.getHash();
