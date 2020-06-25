@@ -833,6 +833,15 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: #ef5350;
 }
 
+.objects .object .children {
+  display: flex;
+  flex-direction: column;
+}
+
+.objects .object.depth-1 {
+  border-left: 10px solid var(--color);
+}
+
 /* .avatars {
   display: flex;
   flex-direction: column;

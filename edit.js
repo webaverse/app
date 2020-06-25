@@ -291,7 +291,7 @@ function animate(timestamp, frame) {
   const isVisible = shieldLevel === 2;
   const isTarget = shieldLevel === 0 && selectedTool !== 'select';
   const isVolume = shieldLevel === 1 || selectedTool === 'select';
-  for (const p of pe.packages) {
+  for (const p of pe.children) {
     p.visible = isVisible;
     if (p.placeholderBox) {
       p.placeholderBox.visible = isTarget;
@@ -682,30 +682,6 @@ shieldSlider.addEventListener('change', async e => {
 document.getElementById('toggle-stage-button').addEventListener('click', e => {
   floorMesh.visible = !floorMesh.visible;
 });
-function _matrixUpdate(e) {
-  const p = this;
-  const matrix = e.data;
-  p.placeholderBox && p.placeholderBox.matrix.copy(matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
-}
-const _bindObject = p => {
-  p.addEventListener('matrixupdate', _matrixUpdate);
-};
-const _unbindObject = p => {
-  p.removeEventListener('matrixupdate', _matrixUpdate);
-};
-pe.packages.forEach(p => {
-  _bindObject(p);
-});
-let currentWorldChanged = false;
-const _updateWorldSaveButton = () => {
-  if (currentWorldChanged && currentWorldName) {
-    worldSaveButton.classList.remove('hidden');
-    worldRevertButton.classList.remove('hidden');
-  } else {
-    worldSaveButton.classList.add('hidden');
-    worldRevertButton.classList.add('hidden');
-  }
-};
 
 let hoverTarget = null;
 let selectTarget = null;
@@ -718,15 +694,13 @@ const _setSelectTarget = newSelectTarget => {
     if (!dropdownButton.classList.contains('open')) {
       dropdownButton.click();
     }
-    // const object = objectsEl.querySelector(`[packageid="${selectTarget.package.id}"]`);
-    // object.click();
 
     _bindTransformControls(selectTarget);
   }
   _renderObjects();
 };
 
-pe.addEventListener('packageadd', async e => {
+const _packageadd = async e => {
   const {
     package: p,
     reason,
@@ -742,8 +716,8 @@ pe.addEventListener('packageadd', async e => {
     currentWorldChanged = true;
     _updateWorldSaveButton();
   }
-});
-pe.addEventListener('packageremove', e => {
+};
+const _packageremove = e => {
   const {
     package: p,
     reason,
@@ -765,7 +739,37 @@ pe.addEventListener('packageremove', e => {
     currentWorldChanged = true;
     _updateWorldSaveButton();
   }
+};
+let currentWorldChanged = false;
+const _updateWorldSaveButton = () => {
+  if (currentWorldChanged && currentWorldName) {
+    worldSaveButton.classList.remove('hidden');
+    worldRevertButton.classList.remove('hidden');
+  } else {
+    worldSaveButton.classList.add('hidden');
+    worldRevertButton.classList.add('hidden');
+  }
+};
+function _matrixUpdate(e) {
+  const p = this;
+  const matrix = e.data;
+  p.placeholderBox && p.placeholderBox.matrix.copy(matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
+}
+const _bindObject = p => {
+  p.addEventListener('matrixupdate', _matrixUpdate);
+  p.addEventListener('packageadd', _packageadd);
+  p.addEventListener('packageremove', _packageremove);
+};
+const _unbindObject = p => {
+  p.removeEventListener('matrixupdate', _matrixUpdate);
+  p.removeEventListener('packageadd', _packageadd);
+  p.removeEventListener('packageremove', _packageremove);
+};
+pe.children.forEach(p => {
+  _bindObject(p);
 });
+pe.addEventListener('packageadd', _packageadd);
+pe.addEventListener('packageremove', _packageremove);
 
 let transformControlsHovered = false;
 const _bindTransformControls = o => {
@@ -830,7 +834,7 @@ const raycaster = new THREE.Raycaster();
 const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(mouse, pe.camera);
-  const candidateMeshes = pe.packages
+  const candidateMeshes = pe.children
     .map(p => p.volumeMesh)
     .filter(o => !!o);
   hoverTarget = volumeRaycaster.raycastMeshes(candidateMeshes, raycaster.ray.origin, raycaster.ray.direction);
@@ -1181,7 +1185,7 @@ document.getElementById('inventory-drop-zone').addEventListener('drop', async e 
     const j = JSON.parse(s);
     let {name, dataHash, id} = j;
     if (!dataHash) {
-      const p = pe.packages.find(p => p.id === id);
+      const p = pe.children.find(p => p.id === id);
       dataHash = await p.getHash();
     }
 
@@ -1204,7 +1208,7 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
     const j = JSON.parse(s);
     let {dataHash, id} = j;
     if (!dataHash) {
-      const p = pe.packages.find(p => p.id === id);
+      const p = pe.children.find(p => p.id === id);
       dataHash = await p.getHash();
     }
 
@@ -1541,7 +1545,7 @@ newWorldButton.addEventListener('click', async e => {
   const keepPackages = [];
   for (const id in children) {
     const child = children[id];
-    let p = pe.packages.find(p => p.id === child.id);
+    let p = pe.children.find(p => p.id === child.id);
     if (!p) {
       p = await XRPackage.download(child.hash);
       p.hash = child.hash;
@@ -1554,7 +1558,7 @@ newWorldButton.addEventListener('click', async e => {
     }
     keepPackages.push(p);
   }
-  const packages = pe.packages.slice();
+  const packages = pe.children.slice();
   for (let i = 0; i < packages.length; i++) {
     const p = packages[i];
     if (!keepPackages.includes(p)) {
@@ -1791,63 +1795,76 @@ const _renderObjects = () => {
       });
     })();
   } else {
-    objectsEl.innerHTML = pe.packages.length > 0 ?
-      pe.packages.map((p, i) => `
-        <div class=object draggable=true packageid="${p.id}" index="${i}">
-          <span class=name>${p.name}</span>
-          <nav class=close-button><i class="fa fa-times"></i></nav>
-        </div>
-      `).join('\n')
-    :
-      `<h1 class=placeholder>No objects in scene</h1>`;
-    const packageEls = Array.from(objectsEl.querySelectorAll('.object'));
-    packageEls.forEach(packageEl => {
-      const index = parseInt(packageEl.getAttribute('index'), 10);
-      const p = pe.packages[index];
+    if (pe.children.length > 0) {
+      const _renderChildren = (objectsEl, children, depth) => {
+        objectsEl.innerHTML = children.map((p, i) => `
+          <div class="object depth-${depth}" draggable=true packageid="${p.id}" index="${i}">
+            <span class=name>${p.name}</span>
+            <nav class=close-button><i class="fa fa-times"></i></nav>
+          </div>
+          <div class=children></div>
+        `).join('\n');
+        const packageEls = Array.from(objectsEl.querySelectorAll('.object'));
+        const childrenEls = Array.from(objectsEl.querySelectorAll('.children'));
+        packageEls.forEach((packageEl, i) => {
+          const index = parseInt(packageEl.getAttribute('index'), 10);
+          const p = children[i];
+          const childrenEl = childrenEls[i];
 
-      packageEl.addEventListener('dragstart', e => {
-        e.dataTransfer.setData('application/json+object', JSON.stringify({
-          index,
-        }));
-      });
-      packageEl.addEventListener('dragover', e => {
-        e.preventDefault();
-      });
-      packageEl.addEventListener('dragenter', e => {
-        packageEl.classList.add('hover');
-      });
-      packageEl.addEventListener('dragleave', e => {
-        packageEl.classList.remove('hover');
-      });
-      packageEl.addEventListener('drop', async e => {
-        e.preventDefault();
-
-        const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json+object');
-        if (jsonItem) {
-          const s = await new Promise((resolve, reject) => {
-            jsonItem.getAsString(resolve);
+          packageEl.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('application/json+object', JSON.stringify({
+              index,
+            }));
           });
-          const j = JSON.parse(s);
-          const {index} = j;
-          const p = pe.packages[index];
-          console.log('drop package', jsonItem, p);
-        }
-      });
-      packageEl.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
+          packageEl.addEventListener('dragover', e => {
+            e.preventDefault();
+          });
+          packageEl.addEventListener('dragenter', e => {
+            packageEl.classList.add('hover');
+          });
+          packageEl.addEventListener('dragleave', e => {
+            packageEl.classList.remove('hover');
+          });
+          packageEl.addEventListener('drop', async e => {
+            e.preventDefault();
 
-        document.querySelector('.tool[tool="select"]').click();
-        _setSelectTarget(p.volumeMesh);
-      });
-      const closeButton = packageEl.querySelector('.close-button');
-      closeButton.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
+            const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json+object');
+            if (jsonItem) {
+              const s = await new Promise((resolve, reject) => {
+                jsonItem.getAsString(resolve);
+              });
+              const j = JSON.parse(s);
+              const {index} = j;
+              const cp = pe.children[index];
 
-        pe.remove(p);
-      });
-    });
+              localMatrix.copy(cp.matrixWorld)
+                .premultiply(localMatrix2.getInverse(p.matrixWorld));
+              cp.setMatrix(localMatrix);
+              p.add(cp);
+            }
+          });
+          packageEl.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            document.querySelector('.tool[tool="select"]').click();
+            _setSelectTarget(p.volumeMesh);
+          });
+          const closeButton = packageEl.querySelector('.close-button');
+          closeButton.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            pe.remove(p);
+          });
+
+          _renderChildren(childrenEl, p.children, depth + 1);
+        });
+      };
+      _renderChildren(objectsEl, pe.children, 0);
+    } else {
+      objectsEl.innerHTML = `<h1 class=placeholder>No objects in scene</h1>`;
+    }
   }
 };
 _renderObjects();
