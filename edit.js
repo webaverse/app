@@ -156,13 +156,9 @@ const _makeVolumeMesh = async p => {
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
-// let lastTimestamp = performance.now();
+const timeFactor = 500;
 function animate(timestamp, frame) {
-  /* const timeFactor = 1000;
-  targetMesh.material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor; */
-
-  /* const timeDiff = (timestamp - lastTimestamp) / 1000;
-  lastTimestamp = timestamp; */
+  loadMeshMaterial.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
 
   const currentSession = getRealSession();
   if (currentSession) {
@@ -633,14 +629,56 @@ document.getElementById('export-scene-button').addEventListener('click', async e
   });
   downloadFile(b, 'scene.wbn');
 });
+const loadVsh = `
+  #define M_PI 3.1415926535897932384626433832795
+  uniform float uTime;
+  
+  mat4 rotationMatrix(vec3 axis, float angle)
+  {
+      axis = normalize(axis);
+      float s = sin(angle);
+      float c = cos(angle);
+      float oc = 1.0 - c;
+      
+      return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                  oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                  oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                  0.0,                                0.0,                                0.0,                                1.0);
+  }
+
+  void main() {
+    // float f = 1.0 + pow(sin(uTime * M_PI), 0.5) * 0.2;
+    gl_Position = projectionMatrix * modelViewMatrix * rotationMatrix(vec3(0, 0, 1), -uTime * M_PI * 2.0) * vec4(position, 1.);
+  }
+`;
+const loadFsh = `
+  uniform float uHighlight;
+  uniform float uTime;
+  void main() {
+    float f = 1.0 + max(1.0 - uTime, 0.0);
+    gl_FragColor = vec4(vec3(${new THREE.Color(0xf4511e).toArray().join(', ')}) * f, 1.0);
+  }
+`;
+const loadMeshMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    /* uHighlight: {
+      type: 'f',
+      value: 0,
+    }, */
+    uTime: {
+      type: 'f',
+      value: 0,
+    },
+  },
+  vertexShader: loadVsh,
+  fragmentShader: loadFsh,
+  side: THREE.DoubleSide,
+});
 const _makeLoadMesh = (() => {
-  const geometry = new THREE.RingBufferGeometry(0.08, 0.1, 6, 0, 0, Math.PI*2*0.9);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0xef5350,
-    side: THREE.DoubleSide,
-  });
+  const geometry = new THREE.RingBufferGeometry(0.05, 0.08, 128, 0, Math.PI/2, Math.PI*2*0.9)
+    // .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI)));
   return() => {
-    const mesh = new THREE.Mesh(geometry, material);
+    const mesh = new THREE.Mesh(geometry, loadMeshMaterial);
     // mesh.frustumCulled = false;
     return mesh;
   };
