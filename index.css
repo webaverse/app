@@ -961,15 +961,17 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   height: 300px;
   overflow: hidden;
 }
-.tokens > .token:hover .actions {
+.tokens > .token:hover .actions,
+.tokens > .token:hover .label
+{
   transform: none;
   opacity: 1;
 }
-.tokens > .token:hover img {
+.tokens > .token:hover > .preview img {
   transform: scale(1.3);
 }
 
-.tokens > .token img {
+.tokens > .token > .preview img {
   transition: transform 0.3s ease-out;
 }
 
@@ -988,9 +990,10 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   transition: all 0.5s cubic-bezier(0, 1, 0, 1);
 }
 
-.tokens > .token .action {
+.tokens > .token .actions .action {
   display: flex;
   padding: 5px;
+  font-size: 16px;
   cursor: pointer;
 }
 
@@ -1020,6 +1023,27 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   /* border-color: #000; */
   /* background-color: #FFF; */
   /* outline: none; */
+}
+
+.tokens > .token .label {
+  margin-top: auto;
+  padding: 5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  transform: translatex(-10px);
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0, 1, 0, 1);
+}
+.tokens > .token .world-objects {
+  display: flex;
+  padding: 5px;
+}
+.tokens > .token .world-objects .world-object img {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  border-radius: 3px;
 }
 
 .big-buttons {
@@ -1363,10 +1387,6 @@ header.unlocking + .main .blocker .button
   background-color: #7986cb;
   border-radius: 8px;
   color: #FFF;
-  font-size: 16px;
-}
-
-.token .action {
   font-size: 16px;
 }
 
