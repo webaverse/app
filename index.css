@@ -957,20 +957,22 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   position: relative;
   margin-right: 15px;
   margin-bottom: 15px;
-  /* background-color: #EEE; */
-  /* border: 1px solid #EEE; */
   background-image: linear-gradient(to right, rgba(0, 0, 0, 0.08) 0%, rgba(255, 255, 255, 1) 100%);
   border-radius: 7px;
   color: #434a60;
   overflow: hidden;
+  transition: box-shadow 0.1s ease-out;
 }
 
 .tokens > .token .preview {
   position: relative;
   display: flex;
-  width: 300px;
-  height: 300px;
+  width: 256px;
+  height: 256px;
   overflow: hidden;
+}
+.tokens > .token:hover {
+  box-shadow: inset 0 0 1px #333;
 }
 .tokens > .token:hover .actions,
 .tokens > .token:hover .label
@@ -988,7 +990,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .tokens > .token .text {
   display: flex;
-  width: 300px;
+  width: 400px;
   padding: 15px;
   flex-direction: column;
 }
@@ -1047,7 +1049,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 }
 .tokens > .token .world-objects {
   display: flex;
-  padding: 5px;
+  padding: 0 5px;
 }
 .tokens > .token .world-objects .world-object {
   position: relative;
@@ -1198,7 +1200,7 @@ input[type=file].hidden {
 
 .main {
   display: flex;
-  padding-left: 130px;
+  padding-left: calc(50px + 3px);
   padding-top: 15px;
   /* height: calc(100vh - 100px); */
   flex-direction: column;
