@@ -809,7 +809,7 @@ const _packageremove = e => {
 };
 let currentWorldChanged = false;
 const _updateWorldSaveButton = () => {
-  if (currentWorldChanged && currentWorldName) {
+  if (currentWorldChanged && currentWorldId) {
     worldSaveButton.classList.remove('hidden');
     worldRevertButton.classList.remove('hidden');
   } else {
@@ -1110,14 +1110,25 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
   });
 });
 worldSaveButton.addEventListener('click', async e => {
+  const {name} = pe;
   const hash = await pe.uploadScene();
 
+  const objects = await Promise.all(pe.children.map(async p => {
+    const {name} = p;
+    const previewImgSrc = await p.getScreenshotImageUrl();
+    return {
+      name,
+      previewImgSrc,
+    };
+  }));
   const w = {
-    name: currentWorldName,
+    id: currentWorldId,
+    name,
     description: 'This is a world description',
     hash,
+    objects,
   };
-  const res = await fetch(worldsEndpoint + '/' + w.name, {
+  const res = await fetch(worldsEndpoint + '/' + currentWorldId, {
     method: 'PUT',
     body: JSON.stringify(w),
   });
@@ -1131,12 +1142,12 @@ worldSaveButton.addEventListener('click', async e => {
   _updateWorldSaveButton();
 });
 worldRevertButton.addEventListener('click', async e => {
-  _enterWorld(currentWorldName);
+  _enterWorld(currentWorldId);
 });
 
 const worlds = document.getElementById('worlds');
 const _makeWorldHtml = w => `
-  <div class="world ${currentWorldName === w.name ? 'open' : ''}" name="${w.name}">
+  <div class="world ${currentWorldId === w.id ? 'open' : ''}" worldId="${w.id}">
     <img src=assets/question.png>
     <div class="text">
       <input type=text class=name-input value="${w.name}" disabled>
@@ -1147,34 +1158,34 @@ const _makeWorldHtml = w => `
   </div>
 `;
 const headerLabel = document.getElementById('header-label');
-let currentWorldName = '';
-const _enterWorld = async name => {
-  currentWorldName = name;
+let currentWorldId = '';
+const _enterWorld = async worldId => {
+  currentWorldId = worldId;
 
   headerLabel.innerText = name || 'Sandbox';
-  runMode.setAttribute('href', 'run.html' + (name ? ('?w=' + name) : ''));
-  editMode.setAttribute('href', 'edit.html' + (name ? ('?w=' + name) : ''));
+  runMode.setAttribute('href', 'run.html' + (worldId ? ('?w=' + worldId) : ''));
+  editMode.setAttribute('href', 'edit.html' + (worldId ? ('?w=' + worldId) : ''));
 
   const worlds = Array.from(document.querySelectorAll('.world'));
   worlds.forEach(world => {
     world.classList.remove('open');
   });
   let world;
-  if (name) {
-    world = worlds.find(w => w.getAttribute('name') === name);
+  if (worldId) {
+    world = worlds.find(w => w.getAttribute('worldId') === worldId);
   } else {
     world = worlds[0];
   }
   world && world.classList.add('open');
 
-  if (name) {
-    const res = await fetch(worldsEndpoint + '/' + name);
+  if (worldId) {
+    const res = await fetch(worldsEndpoint + '/' + worldId);
     if (res.ok) {
       const j = await res.json();
       const {hash} = j;
       await pe.downloadScene(hash);
     } else {
-      console.warn('invalid world status code: ' + w + ' ' + res.status);
+      console.warn('invalid world status code: ' + worldId + ' ' + res.status);
     }
   } else {
     pe.reset();
@@ -1189,13 +1200,18 @@ const _pushWorld = name => {
 };
 const _bindWorld = w => {
   w.addEventListener('click', async e => {
-    const name = w.getAttribute('name');
-    _pushWorld(name);
+    const worldId = w.getAttribute('worldId');
+    if (worldId !== currentWorldId) {
+      _pushWorld(worldId);
+    }
   });
   const nameInput = w.querySelector('.name-input');
   const renameButton = w.querySelector('.rename-button');
   let oldValue = '';
   renameButton.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+
     w.classList.add('renaming');
     oldValue = nameInput.value;
     nameInput.removeAttribute('disabled');
@@ -1208,7 +1224,10 @@ const _bindWorld = w => {
   });
   nameInput.addEventListener('keydown', e => {
     if (e.which === 13) { // enter
-      console.log('rename to', nameInput.value);
+      pe.name = nameInput.value;
+      currentWorldChanged = true;
+      _updateWorldSaveButton();
+
       oldValue = nameInput.value;
       nameInput.blur();
     } else if (e.which === 27) { // esc
@@ -1615,10 +1634,13 @@ newWorldButton.addEventListener('click', async e => {
   pe.reset();
   const hash = await pe.uploadScene();
 
+  const worldId = makeId(8);
   const w = {
-    name: makeId(8),
+    id: worldId,
+    name: worldId,
     description: 'This is a world description',
     hash,
+    objects: [],
   };
   const res = await fetch(worldsEndpoint + '/' + w.name, {
     method: 'PUT',
