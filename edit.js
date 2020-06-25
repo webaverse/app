@@ -1114,7 +1114,7 @@ async function screenshotEngine() {
   const center = new THREE.Vector3(0, 0, 0);
   const size = new THREE.Vector3(3, 3, 3);
 
-  const width = 256;
+  const width = 512;
   const height = width;
   const gif = new GIF({
     workers: 2,
