@@ -96,7 +96,7 @@ paginations.forEach(pagination => {
 
   (async () => {
     const drawWorld = w => {
-      const {id, name, description, hash, objects} = w;
+      const {id, name, description, hash, previewIconHash, objects} = w;
 
       const gifIconSrc = 'https://ipfs.exokit.org/ipfs/QmXstavAFhhPLahYXw47xvo4kr7J4RxdhBy25EgaSktGbp.gif';
 
@@ -106,7 +106,7 @@ paginations.forEach(pagination => {
       const size = 300;
       div.innerHTML = `\
         <a href="${href}" class=preview>
-          ${gifIconSrc ? `<img src="${gifIconSrc}" width=${size} height=${size}>` : '<img width=${size} height=${size}>'}
+          <img src="${apiHost}/${previewIconHash}.gif" width=${size} height=${size}>
         </a>
         <div class=text>
           <a href="${href}" class=name>${name}</a>
