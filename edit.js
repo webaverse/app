@@ -186,14 +186,14 @@ function animate(timestamp, frame) {
         const {axes} = gamepad;
         if (handedness === 'left') {
           localVector.set(0, 0, 0);
-          if (axes[0] < -0.5) {
+          if (axes[0] < -0.5 || axes[2] < -0.5) {
             localVector.x += 0.015;
-          } else if (axes[0] > 0.5) {
+          } else if (axes[0] > 0.5 || axes[2] > 0.5) {
             localVector.x -= 0.015;
           }
-          if (axes[1] < -0.5) {
+          if (axes[1] < -0.5 || axes[3] < -0.5) {
             localVector.z += 0.015;
-          } else if (axes[1] > 0.5) {
+          } else if (axes[1] > 0.5 || axes[3] > 0.5) {
             localVector.z -= 0.015;
           }
           pe.matrix.decompose(localVector2, localQuaternion, localVector3);
