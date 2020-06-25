@@ -1139,7 +1139,10 @@ const _makeWorldHtml = w => `
   <div class="world ${currentWorldName === w.name ? 'open' : ''}" name="${w.name}">
     <img src=assets/question.png>
     <div class="text">
-      <div class="name cardTitle">${w.name}</div>
+      <input type=text class=name-input value="${w.name}" disabled>
+    </div>
+    <div class=background>
+      <nav class="button rename-button">Rename</nav>
     </div>
   </div>
 `;
@@ -1188,6 +1191,29 @@ const _bindWorld = w => {
   w.addEventListener('click', async e => {
     const name = w.getAttribute('name');
     _pushWorld(name);
+  });
+  const nameInput = w.querySelector('.name-input');
+  const renameButton = w.querySelector('.rename-button');
+  let oldValue = '';
+  renameButton.addEventListener('click', e => {
+    w.classList.add('renaming');
+    oldValue = nameInput.value;
+    nameInput.removeAttribute('disabled');
+    nameInput.select();
+  });
+  nameInput.addEventListener('blur', e => {
+    nameInput.value = oldValue;
+    nameInput.setAttribute('disabled', '');
+    oldValue = '';
+  });
+  nameInput.addEventListener('keydown', e => {
+    if (e.which === 13) { // enter
+      console.log('rename to', nameInput.value);
+      oldValue = nameInput.value;
+      nameInput.blur();
+    } else if (e.which === 27) { // esc
+      nameInput.blur();
+    }
   });
 };
 (async () => {
@@ -1378,7 +1404,7 @@ const _makePackageHtml = p => `
     <img src="assets/question.png">
     <!-- <img src="${p.img}" width=256 height=256> -->
     <div class=text>
-      <div class="name cardTitle">${p.name}</div>
+      <div class=name>${p.name}</div>
     </div>
     <div class=background>
       <nav class="button add-button">Add</nav>

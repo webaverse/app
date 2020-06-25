@@ -798,6 +798,19 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .worlds .world.open {
   background-color: #64b5f6;
 }
+.worlds .name-input {
+  width: 100px;
+  background-color: transparent;
+  border: 0;
+  border-radius: 3px;
+  font-family: inherit;
+  color: inherit;
+  outline: none;
+}
+.worlds .name-input:not([disabled]) {
+  background-color: #FFF;
+  color: #000;
+}
 .packages .package .background,
 .worlds .world .background
 {
