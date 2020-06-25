@@ -1124,27 +1124,23 @@ async function screenshotEngine() {
   const framebuffer = (() => {
     const fbo = gl.createFramebuffer();
 
-    const oldFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-    const oldTex = gl.getParameter(gl.TEXTURE_BINDING_2D);
+    const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
+    const oldRbo = gl.getParameter(gl.RENDERBUFFER_BINDING);
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbo);
 
-    const colorTex = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, colorTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTex, 0);
+    const colorRenderbuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, width, height);
+    gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
 
-    const depthTex = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, depthTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH24_STENCIL8, width, height, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, null);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTex, 0);
+    const depthRenderbuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderbuffer);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH32F_STENCIL8, width, height);
+    gl.framebufferRenderbuffer(gl.DRAW_FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthRenderbuffer);
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, oldFbo);
-    gl.bindTexture(gl.TEXTURE_2D, oldTex);
+    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
+    gl.bindRenderbuffer(gl.RENDERBUFFER, oldRbo);
 
     return fbo;
   })();
@@ -1171,10 +1167,23 @@ async function screenshotEngine() {
     const writeCtx = writeCanvas.getContext('2d');
     const imageData = writeCtx.createImageData(width, height);
     {
-      const oldFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+      const oldReadFbo = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
+      const oldDrawFbo = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
+
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, framebuffer);
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+      
+      gl.blitFramebuffer(
+        0, 0, width, height,
+        0, 0, width, height,
+        gl.COLOR_BUFFER_BIT, gl.LINEAR
+      );
+
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
       gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, imageData.data);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, oldFbo);
+      
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, oldReadFbo);
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, oldDrawFbo);
     }
     // draw
     writeCtx.putImageData(imageData, 0, 0);
