@@ -111,7 +111,7 @@ const packagesEndpoint = 'https://packages.exokit.org';
     await pe.add(p);
   } else if (q.h) { // hash
     const p = await XRPackage.download(q.h);
-    pe.add(p);
+    await pe.add(p);
   /* } else if (q.h) { // home
     const [cubeHtml, cubeManifest] = await Promise.all([
       (async () => {
