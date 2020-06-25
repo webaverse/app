@@ -218,9 +218,15 @@ function animate(timestamp, frame) {
               .multiply(localMatrix2.getInverse(xrCamera.matrix));
             pe.setMatrix(localMatrix);
           };
-          if (axes[0] < -0.5 && !(lastAxes[index][0] < -0.5)) {
+          if (
+            (axes[0] < -0.5 && !(lastAxes[index][0] < -0.5)) ||
+            (axes[2] < -0.5 && !(lastAxes[index][2] < -0.5))
+          ) {
             _applyRotation(-Math.PI * 0.2);
-          } else if (axes[0] > 0.5 && !(lastAxes[index][0] > 0.5)) {
+          } else if (
+            (axes[0] > 0.5 && !(lastAxes[index][0] > 0.5) ||
+            (axes[2] > 0.5 && !(lastAxes[index][2] > 0.5)
+          ) {
             _applyRotation(Math.PI * 0.2);
           }
         }
