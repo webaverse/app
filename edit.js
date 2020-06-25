@@ -688,6 +688,11 @@ const _ensureLoadMesh = p => {
     p.loadMesh = _makeLoadMesh();
     p.loadMesh.matrix.copy(p.matrix).decompose(p.loadMesh.position, p.loadMesh.quaternion, p.loadMesh.scale);
     scene.add(p.loadMesh);
+
+    p.waitForRun()
+      .then(() => {
+        p.loadMesh.visible = false;
+      });
   }
 };
 const _ensurePlaceholdMesh = p => {
