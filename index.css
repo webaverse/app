@@ -369,6 +369,7 @@ img:not([src]) {
   margin: 30px auto;
   padding: 50px;
   color: #2a2b56;
+  font-size: 36px;
   background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.08) 0%, rgba(255, 255, 255, 1) 100%);
   border-radius: 7px;
   text-align: center;
@@ -376,10 +377,7 @@ img:not([src]) {
   /* margin-top: 100px; */
 }
 .loader h1 {
-  font-size: 36px;
-}
-.loader .spinner {
-  font-size: 30px;
+  font-size: inherit;
 }
 
 body:not(.loading) .loader,
