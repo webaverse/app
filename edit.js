@@ -1855,7 +1855,7 @@ const _renderObjects = () => {
             e.preventDefault();
             e.stopPropagation();
 
-            pe.remove(p);
+            p.parent.remove(p);
           });
 
           _renderChildren(childrenEl, p.children, depth + 1);
