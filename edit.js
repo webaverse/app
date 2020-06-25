@@ -224,8 +224,8 @@ function animate(timestamp, frame) {
           ) {
             _applyRotation(-Math.PI * 0.2);
           } else if (
-            (axes[0] > 0.5 && !(lastAxes[index][0] > 0.5) ||
-            (axes[2] > 0.5 && !(lastAxes[index][2] > 0.5)
+            (axes[0] > 0.5 && !(lastAxes[index][0] > 0.5)) ||
+            (axes[2] > 0.5 && !(lastAxes[index][2] > 0.5))
           ) {
             _applyRotation(Math.PI * 0.2);
           }
