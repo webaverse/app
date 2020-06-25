@@ -30,6 +30,20 @@ img:not([src]) {
   visibility: hidden;
 }
 
+.progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+.progress-bar .bar {
+  color: #ef5350;
+  background-color: currentColor;
+  box-shadow: 0 0 10px currentColor;
+  height: 2px;
+}
+
 .header
 {
   position: fixed;
@@ -82,7 +96,7 @@ img:not([src]) {
   cursor: default;
 }
 
-.header .nav.bar {
+.header .nav.bar-left {
   border: 0;
   border-left: 3px solid #000;
 }
