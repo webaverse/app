@@ -1400,6 +1400,7 @@ const _startPackageDrag = (e, j) => {
   setTimeout(() => {
     dropdown.classList.remove('open');
     packagesSubpage.classList.remove('open');
+    inventorySubpage.classList.remove('open');
     document.body.classList.add('dragging-package');
   });
 };
