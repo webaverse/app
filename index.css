@@ -1051,12 +1051,27 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   display: flex;
   padding: 5px;
 }
+.tokens > .token .world-objects .world-object {
+  position: relative;
+}
 .tokens > .token .world-objects .world-object img {
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
   margin-right: 5px;
   margin-bottom: 5px;
   border-radius: 3px;
+}
+.tokens > .token .world-objects .world-object .description {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  padding: 5px;
+  background-color: #111;
+  color: #FFF;
+  font-size: 13px;
+}
+.tokens > .token .world-objects .world-object:not(:hover) .description {
+  display: none;
 }
 
 .big-buttons {
