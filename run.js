@@ -3,6 +3,7 @@ import {XRPackageEngine, XRPackage} from 'https://static.xrpackage.org/xrpackage
 import {bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import './selector.js';
 import {tryLogin, loginManager} from './login.js';
+import './progress.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
