@@ -10,14 +10,10 @@ import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpac
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 
 const nanobar = new Nanobar({
-  // classname: 'nano-bar',
-  // id: 'my-id',
   target: document.getElementById('progress-bar'),
 });
-//move bar
-nanobar.go( 30 ); // size bar 30%
-nanobar.go( 76 ); // size bar 76%
-// nanobar.go(100);
+nanobar.go(30);
+nanobar.go(76);
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
