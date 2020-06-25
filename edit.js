@@ -1114,11 +1114,18 @@ worldSaveButton.addEventListener('click', async e => {
   const hash = await pe.uploadScene();
 
   const objects = await Promise.all(pe.children.map(async p => {
-    const {name} = p;
-    const previewImgSrc = await p.getScreenshotImageUrl();
+    const {name, hash} = p;
+    const screenshotImgUrl = await p.getScreenshotImageUrl();
+    const screenshotBlob = await fetch(screenshotImgUrl)
+      .then(res => res.blob());
+    const {hash: previewIconHash} = await fetch(`${apiHost}/`, {
+      method: 'PUT',
+      body: screenshotBlob,
+    })
+      .then(res => res.json());
     return {
       name,
-      previewImgSrc,
+      previewIconHash,
     };
   }));
   const w = {
