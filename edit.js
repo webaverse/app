@@ -9,12 +9,6 @@ import {XRPackage, pe, renderer, scene, camera, floorMesh, proxySession, getReal
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 
-const nanobar = new Nanobar({
-  target: document.getElementById('progress-bar'),
-});
-nanobar.go(30);
-nanobar.go(76);
-
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
 const worldsEndpoint = 'https://worlds.exokit.org';
