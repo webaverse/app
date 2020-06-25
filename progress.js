@@ -29,7 +29,7 @@ class Progress {
   }
   update() {
   	if (this.numerator < this.denominator) {
-  	  nanobar.go((this.numerator + 1) / (this.denominator + 1));
+      nanobar.go((this.numerator + 1) / (this.denominator + 1) * 100);
   	} else {
   	  nanobar.go(100);
   	}
