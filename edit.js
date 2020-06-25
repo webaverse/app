@@ -318,7 +318,7 @@ const volumeRaycaster = new VolumeRaycaster();
 
 bindUploadFileButton(document.getElementById('import-scene-input'), async file => {
   const uint8Array = await readFile(file);
-  pe.importScene(uint8Array);
+  await pe.importScene(uint8Array);
 });
 
 let selectedTool = 'camera';
