@@ -633,6 +633,25 @@ document.getElementById('export-scene-button').addEventListener('click', async e
   });
   downloadFile(b, 'scene.wbn');
 });
+const _makeLoadMesh = (() => {
+  const geometry = new THREE.RingBufferGeometry(0.08, 0.1, 6, 0, 0, Math.PI*2*0.9);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xef5350,
+    side: THREE.DoubleSide,
+  });
+  return() => {
+    const mesh = new THREE.Mesh(geometry, material);
+    // mesh.frustumCulled = false;
+    return mesh;
+  };
+})();
+const _ensureLoadMesh = p => {
+  if (!p.loadMesh) {
+    p.loadMesh = _makeLoadMesh();
+    p.loadMesh.matrix.copy(p.matrix).decompose(p.loadMesh.position, p.loadMesh.quaternion, p.loadMesh.scale);
+    scene.add(p.loadMesh);
+  }
+};
 const _ensurePlaceholdMesh = p => {
   if (!p.placeholderBox) {
     p.placeholderBox = _makeTargetMesh();
@@ -706,6 +725,7 @@ const _packageadd = async e => {
     reason,
   } = e.data;
 
+  _ensureLoadMesh(p);
   _ensurePlaceholdMesh(p);
   await _ensureVolumeMesh(p);
   _renderObjects();
@@ -722,6 +742,10 @@ const _packageremove = e => {
     package: p,
     reason,
   } = e.data;
+
+  if (p.loadMesh) {
+    scene.remove(p.loadMesh);
+  }
 
   if (p.placeholderBox) {
     scene.remove(p.placeholderBox);
