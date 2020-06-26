@@ -752,6 +752,8 @@ shieldSlider.addEventListener('change', async e => {
 });
 const scaleSlider = document.getElementById('scale-slider');
 scaleSlider.addEventListener('change', async e => {
+  const newScale = parseFloat(e.target.value);
+  pe.setScale(newScale);
 });
 document.getElementById('toggle-stage-button').addEventListener('click', e => {
   floorMesh.visible = !floorMesh.visible;
