@@ -594,12 +594,12 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   right: 0;
   bottom: 0;
   width: 100vw;
-  height: 200px;
+  min-height: 200px;
   /* padding: 20px; */
   background-color: #111;
   color: #FFF;
-  /* box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
-  overflow: auto; */
+  /* box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08); */
+  overflow: auto;
 }
 
 .subpage:not(.open) {
