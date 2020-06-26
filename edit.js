@@ -167,7 +167,7 @@ function animate(timestamp, frame) {
     for (let i = 0; i < inputSources.length; i++) {
       const inputSource = inputSources[i];
       const {handedness, gamepad} = inputSource;
-      if (gamepad) {
+      if (gamepad && gamepad.buttons.length >= 2) {
         const index = handedness === 'right' ? 1 : 0;
 
         // buttons
