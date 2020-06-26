@@ -232,6 +232,8 @@ function animate(timestamp, frame) {
         }
         lastAxes[index][0] = axes[0];
         lastAxes[index][1] = axes[1];
+        lastAxes[index][2] = axes[2];
+        lastAxes[index][3] = axes[3];
       }
     }
 
