@@ -1527,8 +1527,8 @@ loginManager.addEventListener('inventorychange', async e => {
 
 const _makePackageHtml = p => `
   <div class=package draggable=true>
-    <img src="assets/question.png">
-    <!-- <img src="${p.img}" width=256 height=256> -->
+    <!-- <img src="assets/question.png"> -->
+    <img src="${apiHost}/${p.icons[0].hash}.gif" width=256 height=256>
     <div class=text>
       <div class=name>${p.name}</div>
     </div>
