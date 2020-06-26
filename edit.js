@@ -750,6 +750,9 @@ shieldSlider.addEventListener('change', async e => {
     }
   }
 });
+const scaleSlider = document.getElementById('scale-slider');
+scaleSlider.addEventListener('change', async e => {
+});
 document.getElementById('toggle-stage-button').addEventListener('click', e => {
   floorMesh.visible = !floorMesh.visible;
 });
