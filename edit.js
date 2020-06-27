@@ -1453,7 +1453,7 @@ window.addEventListener('avatarchange', e => {
 
   avatarSubpageContent.innerHTML = `\
     <div class=avatar>
-      <img class=screenshot>
+      <img class=screenshot style="display: none;">
       <div class=wrap>
         <div class=hash>${p ? p.hash : 'No avatar'}</div>
         ${p ? `<nav class="button unwear-button">Unwear</nab>` : ''}
@@ -1464,14 +1464,17 @@ window.addEventListener('avatarchange', e => {
     const img = avatarSubpageContent.querySelector('.screenshot');
     if (p) {
       const u = await p.getScreenshotImageUrl();
-      img.src = u;
-      img.onload = () => {
-        URL.revokeObjectURL(u);
-      };
-      img.onerror = err => {
-        console.warn(err);
-        URL.revokeObjectURL(u);
-      };
+      if (u) {
+        img.src = u;
+        img.onload = () => {
+          img.style.display = null;
+          URL.revokeObjectURL(u);
+        };
+        img.onerror = err => {
+          console.warn(err);
+          URL.revokeObjectURL(u);
+        };
+      }
     } else {
       img.src = 'assets/question.png';
     }
