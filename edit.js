@@ -1414,7 +1414,7 @@ document.getElementById('inventory-drop-zone').addEventListener('drop', async e 
       jsonItem.getAsString(resolve);
     });
     const j = JSON.parse(s);
-    let {name, dataHash, id} = j;
+    let {name, dataHash, id, iconHash} = j;
     if (!dataHash) {
       const p = pe.children.find(p => p.id === id);
       dataHash = await p.getHash();
@@ -1424,6 +1424,7 @@ document.getElementById('inventory-drop-zone').addEventListener('drop', async e 
     inventory.push({
       name,
       hash: dataHash,
+      iconHash,
     });
     await loginManager.setInventory(inventory);
   }
@@ -1496,12 +1497,13 @@ const _changeInventory = inventory => {
   const is = inventorySubtabContent.querySelectorAll('.item');
   is.forEach((itemEl, i) => {
     const item = inventory[i];
-    const {name, hash} = item;
+    const {name, hash, iconHash} = item;
 
     itemEl.addEventListener('dragstart', e => {
       _startPackageDrag(e, {
         name,
         dataHash: hash,
+        iconHash,
       });
     });
 
@@ -1518,7 +1520,7 @@ const _changeInventory = inventory => {
           URL.revokeObjectURL(u);
         };
       } else { */
-        img.src = 'assets/question.png';
+        img.src = `${apiHost}/${iconHash}.gif`;
       // }
     })();
     const wearButton = itemEl.querySelector('.wear-button');
@@ -1570,8 +1572,9 @@ const _startPackageDrag = (e, j) => {
 };
 const _bindPackage = (pE, pJ) => {
   const {name, dataHash} = pJ;
+  const iconHash = pJ.icons.find(i => i.type === 'image/gif').hash;
   pE.addEventListener('dragstart', e => {
-    _startPackageDrag(e, {name, dataHash});
+    _startPackageDrag(e, {name, dataHash, iconHash});
   });
   const addButton = pE.querySelector('.add-button');
   addButton.addEventListener('click', () => {
