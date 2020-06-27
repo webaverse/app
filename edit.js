@@ -280,7 +280,7 @@ function animate(timestamp, frame) {
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
     } else if (selectedTool === 'birdseye') {
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      localVector.add(localVector3.set(0, -birdsEyeHeight + avatarHeight, 0));
+      localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
       if (velocity.lengthSq() > 0) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
       }
@@ -331,7 +331,7 @@ bindUploadFileButton(document.getElementById('import-scene-input'), async file =
 });
 
 let selectedTool = 'camera';
-const avatarHeight = 1.2;
+const _getAvatarHeight = () => (pe.rig ? pe.rig.height : 1) * 0.9;
 const birdsEyeHeight = 10;
 const avatarCameraOffset = new THREE.Vector3(0, 0, -1);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -5);
@@ -383,7 +383,7 @@ for (let i = 0; i < tools.length; i++) {
           break;
         }
         case 'firstperson': {
-          pe.camera.position.y = avatarHeight;
+          pe.camera.position.y = _getAvatarHeight();
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
 
@@ -393,7 +393,7 @@ for (let i = 0; i < tools.length; i++) {
           break;
         }
         case 'thirdperson': {
-          pe.camera.position.y = avatarHeight;
+          pe.camera.position.y = _getAvatarHeight();
           pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
@@ -407,7 +407,7 @@ for (let i = 0; i < tools.length; i++) {
         case 'isometric': {
           pe.camera.rotation.x = -Math.PI / 4;
           pe.camera.quaternion.setFromEuler(pe.camera.rotation);
-          pe.camera.position.y = avatarHeight;
+          pe.camera.position.y = _getAvatarHeight();
           pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
