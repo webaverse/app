@@ -1452,17 +1452,29 @@ window.addEventListener('avatarchange', e => {
   const p = e.data;
 
   avatarSubpageContent.innerHTML = `\
-    <div class=avatar>
+    <div class=avatar draggable=true>
       <img class=screenshot style="display: none;">
       <div class=wrap>
-        <div class=hash>${p ? p.hash : 'No avatar'}</div>
-        ${p ? `<nav class="button unwear-button">Unwear</nab>` : ''}
+        ${p ? `\
+          <div class=name>${p.name}</div>
+          <div class=hash>${p.hash}</div>
+          <nav class="button unwear-button">Unwear</nab>
+        ` : `\
+          <div class=name>No avatar</div>
+        `}
       </div>
     </div>
   `;
-  (async () => {
-    const img = avatarSubpageContent.querySelector('.screenshot');
-    if (p) {
+  if (p) {
+    avatarSubpageContent.addEventListener('dragstart', e => {
+      _startPackageDrag(e, {
+        name: p.name,
+        dataHash: p.hash,
+        iconHash: null,
+      });
+    });
+    (async () => {
+      const img = avatarSubpageContent.querySelector('.screenshot');
       const u = await p.getScreenshotImageUrl();
       if (u) {
         img.src = u;
@@ -1474,15 +1486,15 @@ window.addEventListener('avatarchange', e => {
           console.warn(err);
           URL.revokeObjectURL(u);
         };
-      }
-    } else {
-      img.src = 'assets/question.png';
-    }
-  })();
-  const unwearButton = avatarSubpageContent.querySelector('.unwear-button');
-  unwearButton && unwearButton.addEventListener('click', e => {
-    loginManager.setAvatar(null);
-  });
+      } /* else {
+        img.src = 'assets/question.png';
+      } */
+    })();
+    const unwearButton = avatarSubpageContent.querySelector('.unwear-button');
+    unwearButton && unwearButton.addEventListener('click', e => {
+      loginManager.setAvatar(null);
+    });
+  }
 });
 
 const _changeInventory = inventory => {
