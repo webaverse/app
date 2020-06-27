@@ -1839,10 +1839,13 @@ const _renderObjects = () => {
     objectsEl.innerHTML = `
       <div class=object-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
-        <img class=screenshot draggable=true>
-        <!-- <nav class="button reload-button">Reload</nav> -->
-        <nav class="button inspect-button">Inspect</nav>
-        <nav class="button wear-button">Wear</nav>
+        <img class=screenshot draggable=true style="display: none;">
+        ${p.hash ? `\
+          <nav class="button inspect-button">Inspect</nav>
+          <nav class="button wear-button">Wear</nav>
+        ` : `\
+          <nav class="button upload-button">Upload</nav>
+        `}
         <nav class="button remove-button">Remove</nav>
         <b>Position</b>
         <div class=row>
@@ -1922,23 +1925,51 @@ const _renderObjects = () => {
     backButton.addEventListener('click', e => {
       _setSelectTarget(null);
     });
-    const inspectButton = objectsEl.querySelector('.inspect-button');
-    inspectButton.addEventListener('click', async e => {
-      const b = new Blob([p.data], {
-        type: 'application/webbundle',
+    (async () => {
+      const img = objectsEl.querySelector('.screenshot');
+      const u = await p.getScreenshotImageUrl();
+      img.src = u;
+      img.onload = () => {
+        URL.revokeObjectURL(u);
+        img.style.display = null;
+      };
+      img.onerror = err => {
+        console.warn(err);
+        URL.revokeObjectURL(u);
+      };
+      img.addEventListener('dragstart', e => {
+        _startPackageDrag(e, {
+          name: p.name,
+          id: p.id,
+        });
       });
-      const u = URL.createObjectURL(b);
-      window.open(`inspect.html?u=${u}`, '_blank');
-    });
-    /* const reloadButton = objectsEl.querySelector('.reload-button');
-    reloadButton.addEventListener('click', async e => {
-      await p.reload();
-    }); */
-    const wearButton = objectsEl.querySelector('.wear-button');
-    wearButton.addEventListener('click', async e => {
-      const dataHash = await p.getHash();
-      loginManager.setAvatar(dataHash);
-    });
+    })();
+    if (p.hash) {
+      const inspectButton = objectsEl.querySelector('.inspect-button');
+      inspectButton.addEventListener('click', async e => {
+        const b = new Blob([p.data], {
+          type: 'application/webbundle',
+        });
+        const u = URL.createObjectURL(b);
+        window.open(`inspect.html?u=${u}`, '_blank');
+      });
+      const wearButton = objectsEl.querySelector('.wear-button');
+      wearButton.addEventListener('click', async e => {
+        const dataHash = await p.getHash();
+        loginManager.setAvatar(dataHash);
+      });
+    } else {
+      const uploadButton = objectsEl.querySelector('.upload-button');
+      uploadButton.addEventListener('click', async e => {
+        const {hash} = await fetch(`${apiHost}/`, {
+          method: 'PUT',
+          body: p.data,
+        })
+          .then(res => res.json());
+        p.hash = hash;
+        _renderObjects();
+      });
+    }
     const removeButton = objectsEl.querySelector('.remove-button');
     removeButton.addEventListener('click', e => {
       pe.remove(p);
@@ -2013,25 +2044,6 @@ const _renderObjects = () => {
         p.sendEvent(name, value);
       });
     });
-
-    (async () => {
-      const img = objectsEl.querySelector('.screenshot');
-      const u = await p.getScreenshotImageUrl();
-      img.src = u;
-      img.onload = () => {
-        URL.revokeObjectURL(u);
-      };
-      img.onerror = err => {
-        console.warn(err);
-        URL.revokeObjectURL(u);
-      };
-      img.addEventListener('dragstart', e => {
-        _startPackageDrag(e, {
-          name: p.name,
-          id: p.id,
-        });
-      });
-    })();
   } else {
     if (pe.children.length > 0) {
       const _renderChildren = (objectsEl, children, depth) => {
