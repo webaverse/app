@@ -1582,6 +1582,7 @@ const _startPackageDrag = (e, j) => {
     dropdown.classList.remove('open');
     packagesSubpage.classList.remove('open');
     inventorySubpage.classList.remove('open');
+    avatarSubpage.classList.remove('open');
     document.body.classList.add('dragging-package');
   });
 };
