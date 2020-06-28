@@ -18,23 +18,16 @@ import CreateFlowAccount from './dist/create-flow-account.js';
 window.fcl = fcl;
 window.sdk = sdk;
 window.t = t;
-window.SigningFunction = SigningFunction;
-window.CreateFlowAccount = CreateFlowAccount;
+// window.SigningFunction = SigningFunction;
+// window.CreateFlowAccount = CreateFlowAccount;
 
-fcl.config().put("accessNode", "http://localhost:8080");
-fcl.config().put("challenge.handshake", "http://localhost:8701/flow/authenticate");
+// fcl.config().put("accessNode", "http://localhost:8080");
+// fcl.config().put("challenge.handshake", "http://localhost:8701/flow/authenticate");
 
-/* fcl.currentUser().subscribe(u => {
-  console.log('got user', u);
-  window.user = u;
-}); */
-
-// fcl.authenticate();
+const serviceAddress = 'f8d6e0586b0a20c7';
+const sf = SigningFunction.signingFunction('68ee617d9bf67a4677af80aaca5a090fcda80ff2f4dbc340e0e36201fa1f1d8c');
 
 window.send = async () => {
-  const serviceAddress = 'f8d6e0586b0a20c7';
-  const sf = SigningFunction.signingFunction('68ee617d9bf67a4677af80aaca5a090fcda80ff2f4dbc340e0e36201fa1f1d8c');
-
   const code = `\
 // FungibleToken.cdc
 //
@@ -228,11 +221,6 @@ pub contract FungibleToken {
 }
   `;
 
-  function buf2hex(buffer) { // buffer is an ArrayBuffer
-    buffer = new TextEncoder().encode(buffer);
-    return Array.prototype.map.call(buffer, x => ('00' + x.toString(16)).slice(-2)).join('');
-  }
-
   const keys2 = CreateFlowAccount.genKeys();
   let addr2, sf2;
   {
@@ -249,7 +237,7 @@ pub contract FungibleToken {
     const response = await sdk.send(await sdk.pipe(await sdk.build([
 
       sdk.params([
-        fcl.param(keys2.flowKey, t.Identity, "publicKey"),
+        sdk.param(keys2.flowKey, t.Identity, "publicKey"),
         sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
       ]),
 
@@ -297,7 +285,7 @@ pub contract FungibleToken {
     const response = await sdk.send(await sdk.pipe(await sdk.build([
 
       /* sdk.params([
-        // fcl.param(keys.flowKey, t.Identity, "publicKey"),
+        // sdk.param(keys.flowKey, t.Identity, "publicKey"),
         // sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
       ]), */
 
@@ -364,7 +352,7 @@ pub contract FungibleToken {
 
     const response = await sdk.send(await sdk.pipe(await sdk.build([
       sdk.params([
-        fcl.param(keys3.flowKey, t.Identity, "publicKey"),
+        sdk.param(keys3.flowKey, t.Identity, "publicKey"),
       ]),
 
       sdk.authorizations([sdk.authorization(serviceAddress, sf, 0)]),
@@ -408,7 +396,7 @@ pub contract FungibleToken {
 
     const response = await sdk.send(await sdk.pipe(await sdk.build([
       /* sdk.params([
-        fcl.param(keys3.flowKey, t.Identity, "publicKey"),
+        sdk.param(keys3.flowKey, t.Identity, "publicKey"),
         sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
       ]), */
 
@@ -471,7 +459,7 @@ pub contract FungibleToken {
 
     const response = await sdk.send(await sdk.pipe(await sdk.build([
       sdk.params([
-        fcl.param(keys2.flowKey, t.Identity, "publicKey"),
+        sdk.param(keys2.flowKey, t.Identity, "publicKey"),
         sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
       ]),
 
@@ -540,7 +528,7 @@ pub contract FungibleToken {
 
     const response = await sdk.send(await sdk.pipe(await sdk.build([
       /* sdk.params([
-        fcl.param(keys3.flowKey, t.Identity, "publicKey"),
+        sdk.param(keys3.flowKey, t.Identity, "publicKey"),
         sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
       ]), */
 
@@ -601,6 +589,453 @@ pub contract FungibleToken {
   }
 
   // console.log('got res', seal);
+};
+window.send2 = async () => {
+  const code = `\
+    // NFTv2.cdc
+    //
+    // This is a complete version of the NonFungibleToken contract
+    // that includes withdraw and deposit functionality, as well as a
+    // collection resource that can be used to bundle NFTs together.
+    //
+    // It also includes a definition for the Minter resource,
+    // which can be used by admins to mint new NFTs.
+    //
+    // Learn more about non-fungible tokens in this tutorial: https://docs.onflow.org/docs/non-fungible-tokens
+
+    pub contract NonFungibleToken {
+
+        pub event KVIEvent(key: String, value: Int)
+        pub fun kviEvent(key: String, value: Int) {
+          emit KVIEvent(key: key, value: value)
+        }
+        pub event KVSEvent(key: String, value: String)
+        pub fun kvsEvent(key: String, value: String) {
+          emit KVSEvent(key: key, value: value)
+        }
+
+        // Declare the NFT resource type
+        pub resource NFT {
+            // The unique ID that differentiates each NFT
+            pub let id: UInt64
+
+            // Initialize both fields in the init function
+            init(initID: UInt64) {
+                self.id = initID
+            }
+        }
+
+        // We define this interface purely as a way to allow users
+        // to create public, restricted references to their NFT Collection.
+        // They would use this to only expose the deposit, getIDs,
+        // and idExists fields in their Collection
+        pub resource interface NFTReceiver {
+
+            pub fun deposit(token: @NFT)
+
+            pub fun getIDs(): [UInt64]
+
+            pub fun idExists(id: UInt64): Bool
+        }
+
+        // The definition of the Collection resource that
+        // holds the NFTs that a user owns
+        pub resource Collection: NFTReceiver {
+            // dictionary of NFT conforming tokens
+            // NFT is a resource type with an UInt64 ID field
+            pub var ownedNFTs: @{UInt64: NFT}
+
+            // Initialize the NFTs field to an empty collection
+            init () {
+                self.ownedNFTs <- {}
+            }
+
+            // withdraw 
+            //
+            // Function that removes an NFT from the collection 
+            // and moves it to the calling context
+            pub fun withdraw(withdrawID: UInt64): @NFT {
+                // If the NFT isn't found, the transaction panics and reverts
+                let token <- self.ownedNFTs.remove(key: withdrawID)!
+
+                return <-token
+            }
+
+            // deposit 
+            //
+            // Function that takes a NFT as an argument and 
+            // adds it to the collections dictionary
+            pub fun deposit(token: @NFT) {
+                // add the new token to the dictionary which removes the old one
+                let oldToken <- self.ownedNFTs[token.id] <- token
+                destroy oldToken
+            }
+
+            // idExists checks to see if a NFT 
+            // with the given ID exists in the collection
+            pub fun idExists(id: UInt64): Bool {
+                return self.ownedNFTs[id] != nil
+            }
+
+            // getIDs returns an array of the IDs that are in the collection
+            pub fun getIDs(): [UInt64] {
+                return self.ownedNFTs.keys
+            }
+
+            destroy() {
+                destroy self.ownedNFTs
+            }
+        }
+
+        // creates a new empty Collection resource and returns it 
+        pub fun createEmptyCollection(): @Collection {
+            return <- create Collection()
+        }
+
+        // NFTMinter
+        //
+        // Resource that would be owned by an admin or by a smart contract 
+        // that allows them to mint new NFTs when needed
+        pub resource NFTMinter {
+
+            // the ID that is used to mint NFTs
+            // it is onlt incremented so that NFT ids remain
+            // unique. It also keeps track of the total number of NFTs
+            // in existence
+            pub var idCount: UInt64
+
+            init() {
+                self.idCount = 1
+            }
+
+            // mintNFT 
+            //
+            // Function that mints a new NFT with a new ID
+            // and deposits it in the recipients collection 
+            // using their collection reference
+            pub fun mintNFT(recipient: &AnyResource{NFTReceiver}) {
+
+                // create a new NFT
+                var newNFT <- create NFT(initID: self.idCount)
+                
+                // deposit it in the recipient's account using their reference
+                recipient.deposit(token: <-newNFT)
+
+                // change the id so that each ID is unique
+                self.idCount = self.idCount + UInt64(1)
+            }
+        }
+
+      init() {
+        // store an empty NFT Collection in account storage
+            self.account.save(<-self.createEmptyCollection(), to: /storage/NFTCollection)
+
+            // publish a reference to the Collection in storage
+            self.account.link<&{NFTReceiver}>(/public/NFTReceiver, target: /storage/NFTCollection)
+
+            // store a minter resource in account storage
+            self.account.save(<-create NFTMinter(), to: /storage/NFTMinter)
+      }
+    }
+  `;
+
+  const keys2 = CreateFlowAccount.genKeys();
+  let addr2, sf2;
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(serviceAddress),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: "http://localhost:8080" })
+
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+
+      sdk.params([
+        sdk.param(keys2.flowKey, t.Identity, "publicKey"),
+        sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
+      ]),
+
+      sdk.authorizations([sdk.authorization(serviceAddress, sf, 0)]),
+      sdk.payer(sdk.authorization(serviceAddress, sf, 0)),
+      sdk.proposer(sdk.authorization(serviceAddress, sf, 0, seqNum)),
+      sdk.limit(100),
+
+      sdk.transaction`
+        transaction {
+          let payer: AuthAccount
+          prepare(payer: AuthAccount) {
+            self.payer = payer
+          }
+          execute {
+            let account = AuthAccount(payer: self.payer)
+            account.addPublicKey("${p => p.publicKey}".decodeHex())
+            account.setCode(${p => p.code})
+          }
+        }
+      `,
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: "http://localhost:8080" });
+    const seal = await fcl.tx(response).onceSealed();
+    addr2 = seal.events.length >= 1 ? seal.events[0].data.address.slice(2) : null;
+    sf2 = SigningFunction.signingFunction(keys2.privateKey);
+    console.log('seal 1', seal, addr2);
+  }
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(addr2),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: "http://localhost:8080" });
+
+    const seqNum = acctResponse.account.keys[0].sequenceNumber
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+
+      /* sdk.params([
+        // sdk.param(keys.flowKey, t.Identity, "publicKey"),
+        // sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
+      ]), */
+
+      sdk.authorizations([sdk.authorization(addr2, sf2, 0)]),
+      sdk.payer(sdk.authorization(addr2, sf2, 0)),
+      sdk.proposer(sdk.authorization(addr2, sf2, 0, seqNum)),
+      sdk.limit(100),
+
+      sdk.transaction`
+        // Transaction2.cdc
+
+        import NonFungibleToken from 0x${addr2}
+
+        // This transaction allows the Minter account to mint an NFT
+        // and deposit it into its collection.
+
+        transaction {
+
+            // The reference to the collection that will be receiving the NFT
+            let receiverRef: &{NonFungibleToken.NFTReceiver}
+
+            // The reference to the Minter resource stored in account storage
+            let minterRef: &NonFungibleToken.NFTMinter
+
+            prepare(acct: AuthAccount) {
+                // Get the owner's collection capability and borrow a reference
+                self.receiverRef = acct.getCapability(/public/NFTReceiver)!
+                                       .borrow<&{NonFungibleToken.NFTReceiver}>()!
+                
+                // Borrow a capability for the NFTMinter in storage
+                self.minterRef = acct.borrow<&NonFungibleToken.NFTMinter>(from: /storage/NFTMinter)!
+            }
+
+            execute {
+                // Use the minter reference to mint an NFT, which deposits
+                // the NFT into the collection that is sent as a parameter.
+                self.minterRef.mintNFT(recipient: self.receiverRef)
+
+                log("NFT Minted and deposited to Account 2's Collection")
+            }
+        }
+      `,
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: "http://localhost:8080" });
+    const seal = await fcl.tx(response).onceSealed();
+    console.log('seal 3', seal);
+  }
+  const keys3 = CreateFlowAccount.genKeys();
+  let addr3, sf3;
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(serviceAddress),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: "http://localhost:8080" })
+
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.params([
+        sdk.param(keys3.flowKey, t.Identity, "publicKey"),
+      ]),
+
+      sdk.authorizations([sdk.authorization(serviceAddress, sf, 0)]),
+      sdk.payer(sdk.authorization(serviceAddress, sf, 0)),
+      sdk.proposer(sdk.authorization(serviceAddress, sf, 0, seqNum)),
+
+      sdk.transaction`
+        transaction {
+          let payer: AuthAccount
+          prepare(payer: AuthAccount) {
+            self.payer = payer
+          }
+          execute {
+            let account = AuthAccount(payer: self.payer)
+            account.addPublicKey("${p => p.publicKey}".decodeHex())
+          }
+        }
+      `,
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: "http://localhost:8080" });
+    const seal = await fcl.tx(response).onceSealed();
+    addr3 = seal.events.length >= 1 ? seal.events[0].data.address.slice(2) : null;
+    sf3 = SigningFunction.signingFunction(keys3.privateKey);
+    console.log('seal 4', seal, addr3);
+  }
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(addr3),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: "http://localhost:8080" });
+
+    const seqNum = acctResponse.account.keys[0].sequenceNumber
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+
+      /* sdk.params([
+        // sdk.param(keys.flowKey, t.Identity, "publicKey"),
+        // sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
+      ]), */
+
+      sdk.authorizations([sdk.authorization(addr3, sf3, 0)]),
+      sdk.payer(sdk.authorization(addr3, sf3, 0)),
+      sdk.proposer(sdk.authorization(addr3, sf3, 0, seqNum)),
+      sdk.limit(100),
+
+      sdk.transaction`
+        // Transaction3.cdc
+
+        import NonFungibleToken from 0x${addr2}
+
+        // This transaction configures a user's account
+        // to use the NFT contract by creating a new empty collection,
+        // storing it in their account storage, and publishing a capability
+        transaction {
+            prepare(acct: AuthAccount) {
+
+                // Create a new empty collection
+                let collection <- NonFungibleToken.createEmptyCollection()
+
+                // store the empty NFT Collection in account storage
+                acct.save<@NonFungibleToken.Collection>(<-collection, to: /storage/NFTCollection)
+
+                log("Collection created for account 1")
+
+                // create a public capability for the Collection
+                acct.link<&{NonFungibleToken.NFTReceiver}>(/public/NFTReceiver, target: /storage/NFTCollection)
+
+                log("Capability created")
+            }
+        }
+      `,
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: "http://localhost:8080" });
+    const seal = await fcl.tx(response).onceSealed();
+    console.log('seal 5', seal);
+  }
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(addr2),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: "http://localhost:8080" });
+
+    const seqNum = acctResponse.account.keys[0].sequenceNumber
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+
+      /* sdk.params([
+        // sdk.param(keys.flowKey, t.Identity, "publicKey"),
+        // sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
+      ]), */
+
+      sdk.authorizations([sdk.authorization(addr2, sf2, 0)]),
+      sdk.payer(sdk.authorization(addr2, sf2, 0)),
+      sdk.proposer(sdk.authorization(addr2, sf2, 0, seqNum)),
+      sdk.limit(100),
+
+      sdk.transaction`
+        // Transaction4.cdc
+
+        import NonFungibleToken from 0x${addr2}
+
+        // This transaction transfers an NFT from one user's collection
+        // to another user's collection.
+        transaction {
+
+            // The field that will hold the NFT as it is being
+            // transferred to the other account
+            let transferToken: @NonFungibleToken.NFT
+          
+            prepare(acct: AuthAccount) {
+
+                // Borrow a reference from the stored collection
+                let collectionRef = acct.borrow<&NonFungibleToken.Collection>(from: /storage/NFTCollection)!
+
+                // Call the withdraw function on the sender's Collection
+                // to move the NFT out of the collection
+                self.transferToken <- collectionRef.withdraw(withdrawID: 1)
+            }
+
+            execute {
+                // Get the recipient's public account object
+                let recipient = getAccount(0x${addr3})
+
+                // Get the Collection reference for the receiver
+                // getting the public capability and borrowing a reference from it
+                let receiverRef = recipient.getCapability(/public/NFTReceiver)!
+                                           .borrow<&{NonFungibleToken.NFTReceiver}>()!
+
+                // Deposit the NFT in the receivers collection
+                receiverRef.deposit(token: <-self.transferToken)
+
+                NonFungibleToken.kviEvent(key: "lol", value: 10)
+                NonFungibleToken.kvsEvent(key: "lol2", value: "zol2")
+
+                log("NFT ID 1 transferred from account 2 to account 1")
+            }
+        }
+      `,
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: "http://localhost:8080" });
+    const seal = await fcl.tx(response).onceSealed();
+    console.log('seal 6', seal);
+  }
 };
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
