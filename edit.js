@@ -31,75 +31,10 @@ fcl.config().put("challenge.handshake", "http://localhost:8701/flow/authenticate
 
 // fcl.authenticate();
 
-const serviceAddress = 'f8d6e0586b0a20c7';
-const sf = SigningFunction.signingFunction('68ee617d9bf67a4677af80aaca5a090fcda80ff2f4dbc340e0e36201fa1f1d8c');
-
 window.send = async () => {
-  // const {flowKey, privateKey, publicKey} = CreateFlowAccount.genKeys();
-  const keys = CreateFlowAccount.genKeys();
+  const serviceAddress = 'f8d6e0586b0a20c7';
+  const sf = SigningFunction.signingFunction('68ee617d9bf67a4677af80aaca5a090fcda80ff2f4dbc340e0e36201fa1f1d8c');
 
-  const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-    sdk.getAccount(serviceAddress),
-  ]), [
-    sdk.resolve([
-      sdk.resolveParams,
-    ]),
-  ]), { node: "http://localhost:8080" });
-
-  const seqNum = acctResponse.account.keys[0].sequenceNumber
-
-  const response = await sdk.send(await sdk.pipe(await sdk.build([
-
-    fcl.params([
-      fcl.param(keys.flowKey, t.Identity, "publicKey"),
-      /* fcl.param(
-        Buffer.from(contract, "utf8").toString("hex"),
-        t.Identity,
-        "code"
-      ), */
-    ]),
-
-    sdk.authorizations([sdk.authorization(serviceAddress, sf, 0)]),
-    sdk.payer(sdk.authorization(serviceAddress, sf, 0)),
-    sdk.proposer(sdk.authorization(serviceAddress, sf, 0, seqNum)),
-
-    sdk.transaction`
-      transaction {
-        let payer: AuthAccount
-        prepare(payer: AuthAccount) {
-          self.payer = payer
-        }
-        execute {
-          let account = AuthAccount(payer: self.payer)
-          account.addPublicKey("${p => p.publicKey}".decodeHex())
-          // account.setCode("${p => p.code}".decodeHex())
-        }
-      }
-    `,
-
-  ]), [
-    sdk.resolve([
-      sdk.resolveParams,
-      sdk.resolveAccounts,
-      sdk.resolveSignatures,
-    ]),
-  ]), { node: "http://localhost:8080" });
-
-  const {events} = await fcl.tx(response).onceSealed()
-  const accountCreatedEvent = events.find(d => d.type === "flow.AccountCreated")
-  // invariant(accountCreatedEvent, "No flow.AccountCreated found", events)
-  const address = accountCreatedEvent.data.address;
-
-  const {flowKey, privateKey, publicKey} = keys;
-
-  return {
-    address,
-    flowKey,
-    privateKey,
-    publicKey,
-  };
-};
-window.send2 = async () => {
   const code = `\
 // FungibleToken.cdc
 //
