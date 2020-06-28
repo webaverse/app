@@ -1795,56 +1795,6 @@ newWorldButton.addEventListener('click', async e => {
   }
 });
 
-/* const _pullPackages = async children => {
-  const keepPackages = [];
-  for (const id in children) {
-    const child = children[id];
-    let p = pe.children.find(p => p.id === child.id);
-    if (!p) {
-      p = await XRPackage.download(child.hash);
-      p.hash = child.hash;
-      p.id = child.id;
-      pe.add(p);
-    }
-    localMatrix.fromArray(child.matrix);
-    if (!p.matrix.equals(localMatrix)) {
-      p.setMatrix(localMatrix);
-    }
-    keepPackages.push(p);
-  }
-  const packages = pe.children.slice();
-  for (let i = 0; i < packages.length; i++) {
-    const p = packages[i];
-    if (!keepPackages.includes(p)) {
-      pe.remove(p);
-    }
-  }
-}; */
-
-/* const avatarMe = document.getElementById('avatar-me');
-const unwearButton = avatarMe.querySelector('.unwear-button');
-const avatars = document.getElementById('avatars');
-const _renderAvatars = () => {
-  const {avatar} = pe;
-  const previewEl = avatarMe.querySelector('.preview');
-  const nameEl = avatarMe.querySelector('.name');
-  if (avatar) {
-    // previewEl.src = avatar.getPreviewUrl();
-    nameEl.innerText = avatar.name;
-    unwearButton.style.display = null;
-  } else {
-    // previewEl.src = avatar.getPreviewUrl();
-    nameEl.innerText = 'No avatar';
-    unwearButton.style.display = 'none';
-  }
-};
-pe.addEventListener('avatarchange', e => {
-  _renderAvatars();
-});
-unwearButton.addEventListener('click', e => {
-  pe.defaultAvatar();
-}); */
-
 // let selectedObject = null;
 const objectsEl = document.getElementById('objects');
 const _renderObjects = () => {
