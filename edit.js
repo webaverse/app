@@ -10,6 +10,664 @@ import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpac
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
 
+import fcl from './dist/fcl.js';
+import sdk from './dist/sdk.js';
+import t from './dist/types.js';
+import SigningFunction from './dist/signing-function.js';
+import CreateFlowAccount from './dist/create-flow-account.js';
+window.fcl = fcl;
+window.sdk = sdk;
+window.t = t;
+window.SigningFunction = SigningFunction;
+window.CreateFlowAccount = CreateFlowAccount;
+
+fcl.config().put("accessNode", "http://localhost:8080");
+fcl.config().put("challenge.handshake", "http://localhost:8701/flow/authenticate");
+
+/* fcl.currentUser().subscribe(u => {
+  console.log('got user', u);
+  window.user = u;
+}); */
+
+// fcl.authenticate();
+
+const serviceAddress = 'f8d6e0586b0a20c7';
+const sf = SigningFunction.signingFunction('68ee617d9bf67a4677af80aaca5a090fcda80ff2f4dbc340e0e36201fa1f1d8c');
+
+window.send = async () => {
+  // const {flowKey, privateKey, publicKey} = CreateFlowAccount.genKeys();
+  const keys = CreateFlowAccount.genKeys();
+
+  const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+    sdk.getAccount(serviceAddress),
+  ]), [
+    sdk.resolve([
+      sdk.resolveParams,
+    ]),
+  ]), { node: "http://localhost:8080" });
+
+  const seqNum = acctResponse.account.keys[0].sequenceNumber
+
+  const response = await sdk.send(await sdk.pipe(await sdk.build([
+
+    fcl.params([
+      fcl.param(keys.flowKey, t.Identity, "publicKey"),
+      /* fcl.param(
+        Buffer.from(contract, "utf8").toString("hex"),
+        t.Identity,
+        "code"
+      ), */
+    ]),
+
+    sdk.authorizations([sdk.authorization(serviceAddress, sf, 0)]),
+    sdk.payer(sdk.authorization(serviceAddress, sf, 0)),
+    sdk.proposer(sdk.authorization(serviceAddress, sf, 0, seqNum)),
+
+    sdk.transaction`
+      transaction {
+        let payer: AuthAccount
+        prepare(payer: AuthAccount) {
+          self.payer = payer
+        }
+        execute {
+          let account = AuthAccount(payer: self.payer)
+          account.addPublicKey("${p => p.publicKey}".decodeHex())
+          // account.setCode("${p => p.code}".decodeHex())
+        }
+      }
+    `,
+
+  ]), [
+    sdk.resolve([
+      sdk.resolveParams,
+      sdk.resolveAccounts,
+      sdk.resolveSignatures,
+    ]),
+  ]), { node: "http://localhost:8080" });
+
+  const {events} = await fcl.tx(response).onceSealed()
+  const accountCreatedEvent = events.find(d => d.type === "flow.AccountCreated")
+  // invariant(accountCreatedEvent, "No flow.AccountCreated found", events)
+  const address = accountCreatedEvent.data.address;
+
+  const {flowKey, privateKey, publicKey} = keys;
+
+  return {
+    address,
+    flowKey,
+    privateKey,
+    publicKey,
+  };
+};
+window.send2 = async () => {
+  const code = `\
+// FungibleToken.cdc
+//
+// The FungibleToken contract is a sample implementation of a fungible token on Flow.
+//
+// Fungible tokens behave like everyday currencies -- they can be minted, transferred or
+// traded for digital goods.
+//
+// Follow the fungible tokens tutorial to learn more: https://docs.onflow.org/docs/fungible-tokens
+
+pub contract FungibleToken {
+
+    pub event KVIEvent(key: String, value: Int)
+    pub fun kviEvent(key: String, value: Int) {
+      emit KVIEvent(key: key, value: value)
+    }
+    pub event KVSEvent(key: String, value: String)
+    pub fun kvsEvent(key: String, value: String) {
+      emit KVSEvent(key: key, value: value)
+    }
+
+    // Total supply of all tokens in existence.
+    pub var totalSupply: UFix64
+
+    // Provider
+    // 
+    // Interface that enforces the requirements for withdrawing
+    // tokens from the implementing type.
+    //
+    // We don't enforce requirements on self.balance here because
+    // it leaves open the possibility of creating custom providers
+    // that don't necessarily need their own balance.
+    //
+    pub resource interface Provider {
+
+        // withdraw
+        //
+        // Function that subtracts tokens from the owner's Vault
+        // and returns a Vault resource (@Vault) with the removed tokens.
+        //
+        // The function's access level is public, but this isn't a problem
+        // because even the public functions are not fully public at first.
+        // anyone in the network can call them, but only if the owner grants
+        // them access by publishing a resource that exposes the withdraw
+        // function.
+        //
+        pub fun withdraw(amount: UFix64): @Vault {
+            post {
+                // result refers to the return value of the function
+                result.balance == UFix64(amount):
+                    "Withdrawal amount must be the same as the balance of the withdrawn Vault"
+            }
+        }
+    }
+
+    // Receiver 
+    //
+    // Interface that enforces the requirements for depositing
+    // tokens into the implementing type.
+    //
+    // We don't include a condition that checks the balance because
+    // we want to give users the ability to make custom Receivers that
+    // can do custom things with the tokens, like split them up and
+    // send them to different places.
+    //
+  pub resource interface Receiver {
+        // deposit
+        //
+        // Function that can be called to deposit tokens 
+        // into the implementing resource type
+        //
+        pub fun deposit(from: @Vault) {
+            pre {
+                from.balance > UFix64(0):
+                    "Deposit balance must be positive"
+            }
+        }
+    }
+
+    // Balance
+    //
+    // Interface that specifies a public balance field for the vault
+    //
+    pub resource interface Balance {
+        pub var balance: UFix64
+    }
+
+    // Vault
+    //
+    // Each user stores an instance of only the Vault in their storage
+    // The functions in the Vault and governed by the pre and post conditions
+    // in the interfaces when they are called. 
+    // The checks happen at runtime whenever a function is called.
+    //
+    // Resources can only be created in the context of the contract that they
+    // are defined in, so there is no way for a malicious user to create Vaults
+    // out of thin air. A special Minter resource needs to be defined to mint
+    // new tokens.
+    // 
+    pub resource Vault: Provider, Receiver, Balance {
+        
+    // keeps track of the total balance of the account's tokens
+        pub var balance: UFix64
+
+        // initialize the balance at resource creation time
+        init(balance: UFix64) {
+            self.balance = balance
+        }
+
+        // withdraw
+        //
+        // Function that takes an integer amount as an argument
+        // and withdraws that amount from the Vault.
+        //
+        // It creates a new temporary Vault that is used to hold
+        // the money that is being transferred. It returns the newly
+        // created Vault to the context that called so it can be deposited
+        // elsewhere.
+        //
+        pub fun withdraw(amount: UFix64): @Vault {
+            self.balance = self.balance - amount
+            return <-create Vault(balance: amount)
+        }
+        
+        // deposit
+        //
+        // Function that takes a Vault object as an argument and adds
+        // its balance to the balance of the owners Vault.
+        //
+        // It is allowed to destroy the sent Vault because the Vault
+        // was a temporary holder of the tokens. The Vault's balance has
+        // been consumed and therefore can be destroyed.
+        pub fun deposit(from: @Vault) {
+            self.balance = self.balance + from.balance
+            destroy from
+        }
+    }
+
+    // createEmptyVault
+    //
+    // Function that creates a new Vault with a balance of zero
+    // and returns it to the calling context. A user must call this function
+    // and store the returned Vault in their storage in order to allow their
+    // account to be able to receive deposits of this token type.
+    //
+    pub fun createEmptyVault(): @Vault {
+        return <-create Vault(balance: 0.0)
+    }
+
+  // VaultMinter
+    //
+    // Resource object that an admin can control to mint new tokens
+    pub resource VaultMinter {
+
+    // Function that mints new tokens and deposits into an account's vault
+    // using their Receiver reference.
+        // We say &AnyResource{Receiver} to say that the recipient can be any resource
+        // as long as it implements the Receiver interface
+        pub fun mintTokens(amount: UFix64, recipient: &AnyResource{Receiver}) {
+      FungibleToken.totalSupply = FungibleToken.totalSupply + amount
+            recipient.deposit(from: <-create Vault(balance: amount))
+        }
+    }
+
+    // The init function for the contract. All fields in the contract must
+    // be initialized at deployment. This is just an example of what
+    // an implementation could do in the init function. The numbers are arbitrary.
+    init() {
+        self.totalSupply = 30.0
+
+        // create the Vault with the initial balance and put it in storage
+        // account.save saves an object to the specified to path
+        // The path is a literal path that consists of a domain and identifier
+        // The domain must be storage, private, or public
+        // the identifier can be any name
+        let vault <- create Vault(balance: self.totalSupply)
+        self.account.save(<-vault, to: /storage/MainVault)
+
+        // Create a new MintAndBurn resource and store it in account storage
+        self.account.save(<-create VaultMinter(), to: /storage/MainMinter)
+
+        // Create a private capability link for the Minter
+        // Capabilities can be used to create temporary references to an object
+        // so that callers can use the reference to access fields and functions
+        // of the objet.
+        // 
+        // The capability is stored in the /private/ domain, which is only
+        // accesible by the owner of the account
+        self.account.link<&VaultMinter>(/private/Minter, target: /storage/MainMinter)
+    }
+}
+  `;
+
+  function buf2hex(buffer) { // buffer is an ArrayBuffer
+    buffer = new TextEncoder().encode(buffer);
+    return Array.prototype.map.call(buffer, x => ('00' + x.toString(16)).slice(-2)).join('');
+  }
+
+  const keys2 = CreateFlowAccount.genKeys();
+  let addr2, sf2;
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(serviceAddress),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: "http://localhost:8080" })
+
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+
+      sdk.params([
+        fcl.param(keys2.flowKey, t.Identity, "publicKey"),
+        sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
+      ]),
+
+      sdk.authorizations([sdk.authorization(serviceAddress, sf, 0)]),
+      sdk.payer(sdk.authorization(serviceAddress, sf, 0)),
+      sdk.proposer(sdk.authorization(serviceAddress, sf, 0, seqNum)),
+      sdk.limit(100),
+
+      sdk.transaction`
+        transaction {
+          let payer: AuthAccount
+          prepare(payer: AuthAccount) {
+            self.payer = payer
+          }
+          execute {
+            let account = AuthAccount(payer: self.payer)
+            account.addPublicKey("${p => p.publicKey}".decodeHex())
+            account.setCode(${p => p.code})
+          }
+        }
+      `,
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: "http://localhost:8080" });
+    const seal = await fcl.tx(response).onceSealed();
+    addr2 = seal.events.length >= 1 ? seal.events[0].data.address.slice(2) : null;
+    sf2 = SigningFunction.signingFunction(keys2.privateKey);
+    console.log('seal 1', seal, addr2);
+  }
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(addr2),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: "http://localhost:8080" });
+
+    const seqNum = acctResponse.account.keys[0].sequenceNumber
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+
+      /* sdk.params([
+        // fcl.param(keys.flowKey, t.Identity, "publicKey"),
+        // sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
+      ]), */
+
+      sdk.authorizations([sdk.authorization(addr2, sf2, 0)]),
+      sdk.payer(sdk.authorization(addr2, sf2, 0)),
+      sdk.proposer(sdk.authorization(addr2, sf2, 0, seqNum)),
+
+      sdk.transaction`
+        // Transaction1.cdc
+
+        import FungibleToken from 0x${addr2}
+
+        // This transaction creates a capability 
+        // that is linked to the account's token vault.
+        // The capability is restricted to the fields in the Receiver interface,
+        // so it can only be used to deposit funds into the account.
+        transaction {
+          prepare(acct: AuthAccount) {
+
+            // Create a link to the Vault in storage that is restricted to the
+            // fields and functions in Receiver and Balance interfaces, 
+            // this only exposes the balance field 
+            // and deposit function of the underlying vault.
+            //
+            acct.link<&FungibleToken.Vault{FungibleToken.Receiver, FungibleToken.Balance}>(/public/MainReceiver, target: /storage/MainVault)
+
+            log("Public Receiver reference created!")
+          }
+
+          post {
+            // Check that the capabilities were created correctly
+            // by getting the public capability and checking 
+            // that it points to a valid Vault object 
+            // that implements the Receiver interface
+            getAccount(0x${addr2}).getCapability(/public/MainReceiver)!
+                            .check<&FungibleToken.Vault{FungibleToken.Receiver}>():
+                            "Vault Receiver Reference was not created correctly"
+            }
+        }
+      `,
+
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: "http://localhost:8080" });
+    const seal = await fcl.tx(response).onceSealed();
+    console.log('seal 3', seal);
+  }
+  const keys3 = CreateFlowAccount.genKeys();
+  let addr3, sf3;
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(serviceAddress),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: "http://localhost:8080" })
+
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.params([
+        fcl.param(keys3.flowKey, t.Identity, "publicKey"),
+      ]),
+
+      sdk.authorizations([sdk.authorization(serviceAddress, sf, 0)]),
+      sdk.payer(sdk.authorization(serviceAddress, sf, 0)),
+      sdk.proposer(sdk.authorization(serviceAddress, sf, 0, seqNum)),
+
+      sdk.transaction`
+        transaction {
+          let payer: AuthAccount
+          prepare(payer: AuthAccount) {
+            self.payer = payer
+          }
+          execute {
+            let account = AuthAccount(payer: self.payer)
+            account.addPublicKey("${p => p.publicKey}".decodeHex())
+          }
+        }
+      `,
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: "http://localhost:8080" });
+    const seal = await fcl.tx(response).onceSealed();
+    addr3 = seal.events.length >= 1 ? seal.events[0].data.address.slice(2) : null;
+    sf3 = SigningFunction.signingFunction(keys3.privateKey);
+    console.log('seal 4', seal, addr3);
+  }
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(addr3),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: "http://localhost:8080" })
+
+    const seqNum = acctResponse.account.keys[0].sequenceNumber
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      /* sdk.params([
+        fcl.param(keys3.flowKey, t.Identity, "publicKey"),
+        sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
+      ]), */
+
+      sdk.authorizations([sdk.authorization(addr3, sf3, 0)]),
+      sdk.payer(sdk.authorization(addr3, sf3, 0)),
+      sdk.proposer(sdk.authorization(addr3, sf3, 0, seqNum)),
+      sdk.limit(100),
+
+      sdk.transaction`
+        // Transaction2.cdc
+
+        import FungibleToken from 0x${addr2}
+
+        // This transaction configures an account to store and receive tokens defined by
+        // the FungibleToken contract.
+        transaction {
+          prepare(acct: AuthAccount) {
+            // Create a new empty Vault object
+            let vaultA <- FungibleToken.createEmptyVault()
+              
+            // Store the vault in the account storage
+            acct.save<@FungibleToken.Vault>(<-vaultA, to: /storage/MainVault)
+
+            log("Empty Vault stored")
+
+            // Create a public Receiver capability to the Vault
+            let ReceiverRef = acct.link<&FungibleToken.Vault{FungibleToken.Receiver, FungibleToken.Balance}>(/public/MainReceiver, target: /storage/MainVault)
+
+            log("References created")
+          }
+
+            post {
+                // Check that the capabilities were created correctly
+                getAccount(0x${addr2}).getCapability(/public/MainReceiver)!
+                                .check<&FungibleToken.Vault{FungibleToken.Receiver}>():  
+                                "Vault Receiver Reference was not created correctly"
+            }
+        }
+      `,
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: "http://localhost:8080" });
+    const seal = await fcl.tx(response).onceSealed();
+    console.log('seal 5', seal);
+  }
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(addr2),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: "http://localhost:8080" })
+
+    const seqNum = acctResponse.account.keys[0].sequenceNumber
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.params([
+        fcl.param(keys2.flowKey, t.Identity, "publicKey"),
+        sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
+      ]),
+
+      sdk.authorizations([sdk.authorization(addr2, sf2, 0)]),
+      sdk.payer(sdk.authorization(addr2, sf2, 0)),
+      sdk.proposer(sdk.authorization(addr2, sf2, 0, seqNum)),
+      sdk.limit(100),
+
+      sdk.transaction`
+        // Transaction3.cdc
+
+        import FungibleToken from 0x${addr2}
+
+        // This transaction mints tokens and deposits them into account 2's vault
+        transaction {
+
+            // Local variable for storing the reference to the minter resource
+            let mintingRef: &FungibleToken.VaultMinter
+
+            // Local variable for storing the reference to the Vault of
+            // the account that will receive the newly minted tokens
+            var receiverRef: &FungibleToken.Vault{FungibleToken.Receiver}
+
+          prepare(acct: AuthAccount) {
+                // Borrow a reference to the stored, private minter resource
+                self.mintingRef = acct.borrow<&FungibleToken.VaultMinter>(from: /storage/MainMinter)!
+                
+                // Get the public account object for account 0x${addr3}
+                let recipient = getAccount(0x${addr3})
+
+                // Get their public receiver capability
+                let capability = recipient.getCapability(/public/MainReceiver)!
+
+                // Borrow a reference from the capability
+                self.receiverRef = capability.borrow<&FungibleToken.Vault{FungibleToken.Receiver}>()!
+          }
+
+            execute {
+                // Mint 30 tokens and deposit them into the recipient's Vault
+                self.mintingRef.mintTokens(amount: 30.0, recipient: self.receiverRef)
+
+                log("30 tokens minted and deposited to account 0x${addr3}")
+            }
+        }
+      `,
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: "http://localhost:8080" });
+    const seal = await fcl.tx(response).onceSealed();
+    console.log('seal 6', seal);
+  }
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(addr3),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: "http://localhost:8080" })
+
+    const seqNum = acctResponse.account.keys[0].sequenceNumber
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      /* sdk.params([
+        fcl.param(keys3.flowKey, t.Identity, "publicKey"),
+        sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
+      ]), */
+
+      sdk.authorizations([sdk.authorization(addr3, sf3, 0)]),
+      sdk.payer(sdk.authorization(addr3, sf3, 0)),
+      sdk.proposer(sdk.authorization(addr3, sf3, 0, seqNum)),
+      sdk.limit(100),
+
+      sdk.transaction`
+        // Transaction4.cdc
+
+        import FungibleToken from 0x${addr2}
+
+        // This transaction is a template for a transaction that
+        // could be used by anyone to send tokens to another account
+        // that owns a Vault
+        transaction {
+
+          // Temporary Vault object that holds the balance that is being transferred
+          var temporaryVault: @FungibleToken.Vault
+
+          prepare(acct: AuthAccount) {
+            // withdraw tokens from your vault by borrowing a reference to it
+            // and calling the withdraw function with that reference
+            let vaultRef = acct.borrow<&FungibleToken.Vault>(from: /storage/MainVault)!
+              
+            self.temporaryVault <- vaultRef.withdraw(amount: UFix64(10))
+          }
+
+          execute {
+            // get the recipient's public account object
+            let recipient = getAccount(0x${addr2})
+
+            // get the recipient's Receiver reference to their Vault
+            // by borrowing the reference from the public capability
+            let receiverRef = recipient.getCapability(/public/MainReceiver)!
+                              .borrow<&FungibleToken.Vault{FungibleToken.Receiver}>()!
+
+            // deposit your tokens to their Vault
+            receiverRef.deposit(from: <-self.temporaryVault)
+
+            FungibleToken.kviEvent(key: "lol", value: 10)
+            FungibleToken.kvsEvent(key: "lol2", value: "zol2")
+
+            log("Transfer succeeded!")
+          }
+        }
+      `,
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: "http://localhost:8080" });
+    const seal = await fcl.tx(response).onceSealed();
+    console.log('seal 7', seal);
+  }
+
+  // console.log('got res', seal);
+};
+
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
 const worldsEndpoint = 'https://worlds.exokit.org';
