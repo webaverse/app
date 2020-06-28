@@ -618,13 +618,15 @@ window.send2 = async () => {
         pub resource NFT {
             // The unique ID that differentiates each NFT
             pub let id: UInt64
+            pub let hash: String
 
             // String mapping to hold metadata
             pub var metadata: {String: String}
 
             // Initialize both fields in the init function
-            init(initID: UInt64) {
+            init(initID: UInt64, initHash: String) {
                 self.id = initID
+                self.hash = initHash;
                 self.metadata = {}
             }
         }
@@ -707,9 +709,11 @@ window.send2 = async () => {
             // unique. It also keeps track of the total number of NFTs
             // in existence
             pub var idCount: UInt64
+            pub var hashes: {String: Bool}
 
             init() {
                 self.idCount = 1
+                self.hashes = {}
             }
 
             // mintNFT 
@@ -717,10 +721,15 @@ window.send2 = async () => {
             // Function that mints a new NFT with a new ID
             // and deposits it in the recipients collection 
             // using their collection reference
-            pub fun mintNFT(recipient: &AnyResource{NFTReceiver}) {
+            pub fun mintNFT(recipient: &AnyResource{NFTReceiver}, hash: String) {
+                if (self.hashes[hash] == nil) {
+                  self.hashes[hash] = true;
+                } else {
+                  panic("Hash already taken")
+                }
 
                 // create a new NFT
-                var newNFT <- create NFT(initID: self.idCount)
+                var newNFT <- create NFT(initID: self.idCount, initHash: hash)
                 
                 // deposit it in the recipient's account using their reference
                 recipient.deposit(token: <-newNFT)
@@ -844,7 +853,7 @@ window.send2 = async () => {
             execute {
                 // Use the minter reference to mint an NFT, which deposits
                 // the NFT into the collection that is sent as a parameter.
-                self.minterRef.mintNFT(recipient: self.receiverRef)
+                self.minterRef.mintNFT(recipient: self.receiverRef, hash: "lol")
 
                 log("NFT Minted and deposited to Account 2's Collection")
             }
