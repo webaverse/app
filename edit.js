@@ -619,9 +619,13 @@ window.send2 = async () => {
             // The unique ID that differentiates each NFT
             pub let id: UInt64
 
+            // String mapping to hold metadata
+            pub var metadata: {String: String}
+
             // Initialize both fields in the init function
             init(initID: UInt64) {
                 self.id = initID
+                self.metadata = {}
             }
         }
 
@@ -1015,6 +1019,8 @@ window.send2 = async () => {
                 // getting the public capability and borrowing a reference from it
                 let receiverRef = recipient.getCapability(/public/NFTReceiver)!
                                            .borrow<&{NonFungibleToken.NFTReceiver}>()!
+
+                self.transferToken.metadata["lol"] = "zol";
 
                 // Deposit the NFT in the receivers collection
                 receiverRef.deposit(token: <-self.transferToken)
