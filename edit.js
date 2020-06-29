@@ -224,52 +224,13 @@ pub contract FungibleToken {
   const keys2 = CreateFlowAccount.genKeys();
   let addr2, sf2;
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(serviceAddress),
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-      ]),
-    ]), { node: "http://localhost:8080" })
-
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
-
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-
-      sdk.params([
-        sdk.param(keys2.flowKey, t.Identity, "publicKey"),
-        sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
-      ]),
-
-      sdk.authorizations([sdk.authorization(serviceAddress, sf, 0)]),
-      sdk.payer(sdk.authorization(serviceAddress, sf, 0)),
-      sdk.proposer(sdk.authorization(serviceAddress, sf, 0, seqNum)),
-      sdk.limit(100),
-
-      sdk.transaction`
-        transaction {
-          let payer: AuthAccount
-          prepare(payer: AuthAccount) {
-            self.payer = payer
-          }
-          execute {
-            let account = AuthAccount(payer: self.payer)
-            account.addPublicKey("${p => p.publicKey}".decodeHex())
-            account.setCode(${p => p.code})
-          }
-        }
-      `,
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveSignatures,
-      ]),
-    ]), { node: "http://localhost:8080" });
-    const seal = await fcl.tx(response).onceSealed();
-    addr2 = seal.events.length >= 1 ? seal.events[0].data.address.slice(2) : null;
-    sf2 = SigningFunction.signingFunction(keys2.privateKey);
-    console.log('seal 1', seal, addr2);
+    const res = await fetch(`http://contracts.exokit.org:3001/lol?userFlowKey=${keys2.flowKey}`, {method: 'PUT', body: code});
+    const j = await res.json();
+    addr2 = j.address;
+    const {keys} = j;
+    // addr2 = seal.events.length >= 1 ? seal.events[0].data.address.slice(2) : null;
+    sf2 = SigningFunction.signingFunction(keys.privateKey);
+    console.log('seal 1', j, addr2);
   }
   {
     const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
@@ -279,8 +240,7 @@ pub contract FungibleToken {
         sdk.resolveParams,
       ]),
     ]), { node: "http://localhost:8080" });
-
-    const seqNum = acctResponse.account.keys[0].sequenceNumber
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
     const response = await sdk.send(await sdk.pipe(await sdk.build([
 
@@ -340,48 +300,11 @@ pub contract FungibleToken {
   const keys3 = CreateFlowAccount.genKeys();
   let addr3, sf3;
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(serviceAddress),
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-      ]),
-    ]), { node: "http://localhost:8080" })
-
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
-
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.params([
-        sdk.param(keys3.flowKey, t.Identity, "publicKey"),
-      ]),
-
-      sdk.authorizations([sdk.authorization(serviceAddress, sf, 0)]),
-      sdk.payer(sdk.authorization(serviceAddress, sf, 0)),
-      sdk.proposer(sdk.authorization(serviceAddress, sf, 0, seqNum)),
-
-      sdk.transaction`
-        transaction {
-          let payer: AuthAccount
-          prepare(payer: AuthAccount) {
-            self.payer = payer
-          }
-          execute {
-            let account = AuthAccount(payer: self.payer)
-            account.addPublicKey("${p => p.publicKey}".decodeHex())
-          }
-        }
-      `,
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveSignatures,
-      ]),
-    ]), { node: "http://localhost:8080" });
-    const seal = await fcl.tx(response).onceSealed();
-    addr3 = seal.events.length >= 1 ? seal.events[0].data.address.slice(2) : null;
-    sf3 = SigningFunction.signingFunction(keys3.privateKey);
-    console.log('seal 4', seal, addr3);
+    const res = await fetch(`http://contracts.exokit.org:3001/lol2`, {method: 'PUT'});
+    const j = await res.json();
+    addr3 = j.address;
+    sf3 = SigningFunction.signingFunction(j.keys.privateKey);
+    console.log('seal 4', j, addr3);
   }
   {
     const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
@@ -390,9 +313,8 @@ pub contract FungibleToken {
       sdk.resolve([
         sdk.resolveParams,
       ]),
-    ]), { node: "http://localhost:8080" })
-
-    const seqNum = acctResponse.account.keys[0].sequenceNumber
+    ]), { node: "http://localhost:8080" });
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
     const response = await sdk.send(await sdk.pipe(await sdk.build([
       /* sdk.params([
@@ -755,52 +677,13 @@ window.send2 = async () => {
   const keys2 = CreateFlowAccount.genKeys();
   let addr2, sf2;
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(serviceAddress),
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-      ]),
-    ]), { node: "http://localhost:8080" })
-
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
-
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-
-      sdk.params([
-        sdk.param(keys2.flowKey, t.Identity, "publicKey"),
-        sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
-      ]),
-
-      sdk.authorizations([sdk.authorization(serviceAddress, sf, 0)]),
-      sdk.payer(sdk.authorization(serviceAddress, sf, 0)),
-      sdk.proposer(sdk.authorization(serviceAddress, sf, 0, seqNum)),
-      sdk.limit(100),
-
-      sdk.transaction`
-        transaction {
-          let payer: AuthAccount
-          prepare(payer: AuthAccount) {
-            self.payer = payer
-          }
-          execute {
-            let account = AuthAccount(payer: self.payer)
-            account.addPublicKey("${p => p.publicKey}".decodeHex())
-            account.setCode(${p => p.code})
-          }
-        }
-      `,
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveSignatures,
-      ]),
-    ]), { node: "http://localhost:8080" });
-    const seal = await fcl.tx(response).onceSealed();
-    addr2 = seal.events.length >= 1 ? seal.events[0].data.address.slice(2) : null;
-    sf2 = SigningFunction.signingFunction(keys2.privateKey);
-    console.log('seal 1', seal, addr2);
+    const res = await fetch('http://contracts.exokit.org:3001/createContractAccount', {method: 'PUT', body: code});
+    const j = await res.json();
+    addr2 = j.address;
+    const {keys} = j;
+    // addr2 = seal.events.length >= 1 ? seal.events[0].data.address.slice(2) : null;
+    sf2 = SigningFunction.signingFunction(keys.privateKey);
+    console.log('seal 1', j, addr2);
   }
   {
     const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
