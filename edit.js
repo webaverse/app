@@ -14,7 +14,7 @@ import './gif.js';
 import sdk from './dist/sdk.js';
 import t from './dist/types.js';
 import SigningFunction from './dist/signing-function.js';
-import CreateFlowAccount from './dist/create-flow-account.js';
+// import CreateFlowAccount from './dist/create-flow-account.js';
 
 const flowAccessNode = 'http://localhost:8080';
 
