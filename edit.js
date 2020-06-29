@@ -26,9 +26,39 @@ window.t = t;
 
 const serviceAddress = 'f8d6e0586b0a20c7';
 const sf = SigningFunction.signingFunction('68ee617d9bf67a4677af80aaca5a090fcda80ff2f4dbc340e0e36201fa1f1d8c');
+const _executeTransaction = async (address, privateKey, args) => {
+  const sf = SigningFunction.signingFunction(privateKey);
+  const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+    sdk.getAccount(address),
+  ]), [
+    sdk.resolve([
+      sdk.resolveParams,
+    ]),
+  ]), { node: "http://localhost:8080" });
+  const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+  const response = await sdk.send(await sdk.pipe(await sdk.build([
+    sdk.authorizations([sdk.authorization(address, sf, 0)]),
+    sdk.payer(sdk.authorization(address, sf, 0)),
+    sdk.proposer(sdk.authorization(address, sf, 0, seqNum)),
+    sdk.limit(100),
+  ].concat(args)), [
+    sdk.resolve([
+      sdk.resolveParams,
+      sdk.resolveAccounts,
+      sdk.resolveSignatures,
+    ]),
+  ]), { node: "http://localhost:8080" });
+  const seal = await fcl.tx(response).onceSealed();
+  // console.log('seal 3', seal);
+  return seal;
+};
 
 window.send = async () => {
-  const code = `\
+  // const keys2 = CreateFlowAccount.genKeys();
+  let addr2, keys2, sf2;
+  {
+    const code = `\
 // FungibleToken.cdc
 //
 // The FungibleToken contract is a sample implementation of a fungible token on Flow.
@@ -219,12 +249,9 @@ pub contract FungibleToken {
         self.account.link<&VaultMinter>(/private/Minter, target: /storage/MainMinter)
     }
 }
-  `;
+    `;
 
-  const keys2 = CreateFlowAccount.genKeys();
-  let addr2, sf2;
-  {
-    const res = await fetch(`http://contracts.exokit.org:3001/lol?userFlowKey=${keys2.flowKey}`, {method: 'PUT', body: code});
+    const res = await fetch(`http://contracts.exokit.org:3001/lol`, {method: 'PUT', body: code});
     const j = await res.json();
     addr2 = j.address;
     const {keys} = j;
@@ -233,26 +260,209 @@ pub contract FungibleToken {
     console.log('seal 1', j, addr2);
   }
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(addr2),
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-      ]),
-    ]), { node: "http://localhost:8080" });
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+    const code = `\
+// FungibleToken.cdc
+//
+// The FungibleToken contract is a sample implementation of a fungible token on Flow.
+//
+// Fungible tokens behave like everyday currencies -- they can be minted, transferred or
+// traded for digital goods.
+//
+// Follow the fungible tokens tutorial to learn more: https://docs.onflow.org/docs/fungible-tokens
 
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
+pub contract FungibleToken {
 
-      /* sdk.params([
-        // sdk.param(keys.flowKey, t.Identity, "publicKey"),
-        // sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
-      ]), */
+    pub event KVIEvent(key: String, value: Int)
+    pub fun kviEvent(key: String, value: Int) {
+      emit KVIEvent(key: key, value: value)
+    }
+    pub event KVSEvent(key: String, value: String)
+    pub fun kvsEvent(key: String, value: String) {
+      emit KVSEvent(key: key, value: value)
+    }
 
-      sdk.authorizations([sdk.authorization(addr2, sf2, 0)]),
-      sdk.payer(sdk.authorization(addr2, sf2, 0)),
-      sdk.proposer(sdk.authorization(addr2, sf2, 0, seqNum)),
+    // Total supply of all tokens in existence.
+    pub var totalSupply: UFix64
 
+    // Provider
+    // 
+    // Interface that enforces the requirements for withdrawing
+    // tokens from the implementing type.
+    //
+    // We don't enforce requirements on self.balance here because
+    // it leaves open the possibility of creating custom providers
+    // that don't necessarily need their own balance.
+    //
+    pub resource interface Provider {
+
+        // withdraw
+        //
+        // Function that subtracts tokens from the owner's Vault
+        // and returns a Vault resource (@Vault) with the removed tokens.
+        //
+        // The function's access level is public, but this isn't a problem
+        // because even the public functions are not fully public at first.
+        // anyone in the network can call them, but only if the owner grants
+        // them access by publishing a resource that exposes the withdraw
+        // function.
+        //
+        pub fun withdraw(amount: UFix64): @Vault {
+            post {
+                // result refers to the return value of the function
+                result.balance == UFix64(amount):
+                    "Withdrawal amount must be the same as the balance of the withdrawn Vault"
+            }
+        }
+    }
+
+    // Receiver 
+    //
+    // Interface that enforces the requirements for depositing
+    // tokens into the implementing type.
+    //
+    // We don't include a condition that checks the balance because
+    // we want to give users the ability to make custom Receivers that
+    // can do custom things with the tokens, like split them up and
+    // send them to different places.
+    //
+  pub resource interface Receiver {
+        // deposit
+        //
+        // Function that can be called to deposit tokens 
+        // into the implementing resource type
+        //
+        pub fun deposit(from: @Vault) {
+            pre {
+                from.balance > UFix64(0):
+                    "Deposit balance must be positive"
+            }
+        }
+    }
+
+    // Balance
+    //
+    // Interface that specifies a public balance field for the vault
+    //
+    pub resource interface Balance {
+        pub var balance: UFix64
+    }
+
+    // Vault
+    //
+    // Each user stores an instance of only the Vault in their storage
+    // The functions in the Vault and governed by the pre and post conditions
+    // in the interfaces when they are called. 
+    // The checks happen at runtime whenever a function is called.
+    //
+    // Resources can only be created in the context of the contract that they
+    // are defined in, so there is no way for a malicious user to create Vaults
+    // out of thin air. A special Minter resource needs to be defined to mint
+    // new tokens.
+    // 
+    pub resource Vault: Provider, Receiver, Balance {
+        
+    // keeps track of the total balance of the account's tokens
+        pub var balance: UFix64
+
+        // initialize the balance at resource creation time
+        init(balance: UFix64) {
+            self.balance = balance
+        }
+
+        // withdraw
+        //
+        // Function that takes an integer amount as an argument
+        // and withdraws that amount from the Vault.
+        //
+        // It creates a new temporary Vault that is used to hold
+        // the money that is being transferred. It returns the newly
+        // created Vault to the context that called so it can be deposited
+        // elsewhere.
+        //
+        pub fun withdraw(amount: UFix64): @Vault {
+            self.balance = self.balance - amount
+            return <-create Vault(balance: amount)
+        }
+        
+        // deposit
+        //
+        // Function that takes a Vault object as an argument and adds
+        // its balance to the balance of the owners Vault.
+        //
+        // It is allowed to destroy the sent Vault because the Vault
+        // was a temporary holder of the tokens. The Vault's balance has
+        // been consumed and therefore can be destroyed.
+        pub fun deposit(from: @Vault) {
+            self.balance = self.balance + from.balance
+            destroy from
+        }
+    }
+
+    // createEmptyVault
+    //
+    // Function that creates a new Vault with a balance of zero
+    // and returns it to the calling context. A user must call this function
+    // and store the returned Vault in their storage in order to allow their
+    // account to be able to receive deposits of this token type.
+    //
+    pub fun createEmptyVault(): @Vault {
+        return <-create Vault(balance: 0.0)
+    }
+
+  // VaultMinter
+    //
+    // Resource object that an admin can control to mint new tokens
+    pub resource VaultMinter {
+
+    // Function that mints new tokens and deposits into an account's vault
+    // using their Receiver reference.
+        // We say &AnyResource{Receiver} to say that the recipient can be any resource
+        // as long as it implements the Receiver interface
+        pub fun mintTokens(amount: UFix64, recipient: &AnyResource{Receiver}) {
+      FungibleToken.totalSupply = FungibleToken.totalSupply + amount
+            recipient.deposit(from: <-create Vault(balance: amount))
+        }
+    }
+
+    // The init function for the contract. All fields in the contract must
+    // be initialized at deployment. This is just an example of what
+    // an implementation could do in the init function. The numbers are arbitrary.
+    init() {
+        self.totalSupply = 30.0
+
+        /* // create the Vault with the initial balance and put it in storage
+        // account.save saves an object to the specified to path
+        // The path is a literal path that consists of a domain and identifier
+        // The domain must be storage, private, or public
+        // the identifier can be any name
+        let vault <- create Vault(balance: self.totalSupply)
+        self.account.save(<-vault, to: /storage/MainVault)
+
+        // Create a new MintAndBurn resource and store it in account storage
+        self.account.save(<-create VaultMinter(), to: /storage/MainMinter) */
+
+        // Create a private capability link for the Minter
+        // Capabilities can be used to create temporary references to an object
+        // so that callers can use the reference to access fields and functions
+        // of the objet.
+        // 
+        // The capability is stored in the /private/ domain, which is only
+        // accesible by the owner of the account
+        self.account.link<&VaultMinter>(/private/Minter, target: /storage/MainMinter)
+    }
+}
+  `;
+
+    const res = await fetch(`http://contracts.exokit.org:3001/lol`, {method: 'PUT', body: code});
+    const j = await res.json();
+    addr2 = j.address;
+    keys2 = j.keys;
+    // addr2 = seal.events.length >= 1 ? seal.events[0].data.address.slice(2) : null;
+    sf2 = SigningFunction.signingFunction(keys2.privateKey);
+    console.log('seal 2', j, addr2);
+  }
+  {
+    const seal = await _executeTransaction(addr2, keys2.privateKey, [
       sdk.transaction`
         // Transaction1.cdc
 
@@ -286,47 +496,21 @@ pub contract FungibleToken {
             }
         }
       `,
-
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveSignatures,
-      ]),
-    ]), { node: "http://localhost:8080" });
-    const seal = await fcl.tx(response).onceSealed();
+    ]);
     console.log('seal 3', seal);
   }
-  const keys3 = CreateFlowAccount.genKeys();
-  let addr3, sf3;
+  // const keys3 = CreateFlowAccount.genKeys();
+  let addr3, keys3, sf3;
   {
     const res = await fetch(`http://contracts.exokit.org:3001/lol2`, {method: 'PUT'});
     const j = await res.json();
     addr3 = j.address;
-    sf3 = SigningFunction.signingFunction(j.keys.privateKey);
+    keys3 = j.keys;
+    sf3 = SigningFunction.signingFunction(keys3.privateKey);
     console.log('seal 4', j, addr3);
   }
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(addr3),
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-      ]),
-    ]), { node: "http://localhost:8080" });
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
-
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      /* sdk.params([
-        sdk.param(keys3.flowKey, t.Identity, "publicKey"),
-        sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
-      ]), */
-
-      sdk.authorizations([sdk.authorization(addr3, sf3, 0)]),
-      sdk.payer(sdk.authorization(addr3, sf3, 0)),
-      sdk.proposer(sdk.authorization(addr3, sf3, 0, seqNum)),
-      sdk.limit(100),
-
+    const seal = await _executeTransaction(addr3, keys3.privateKey, [
       sdk.transaction`
         // Transaction2.cdc
 
@@ -358,38 +542,14 @@ pub contract FungibleToken {
             }
         }
       `,
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveSignatures,
-      ]),
-    ]), { node: "http://localhost:8080" });
-    const seal = await fcl.tx(response).onceSealed();
+    ]);
     console.log('seal 5', seal);
   }
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(addr2),
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-      ]),
-    ]), { node: "http://localhost:8080" })
-
-    const seqNum = acctResponse.account.keys[0].sequenceNumber
-
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
+    const seal = await _executeTransaction(addr2, keys2.privateKey, [
       sdk.params([
         sdk.param(keys2.flowKey, t.Identity, "publicKey"),
-        sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
       ]),
-
-      sdk.authorizations([sdk.authorization(addr2, sf2, 0)]),
-      sdk.payer(sdk.authorization(addr2, sf2, 0)),
-      sdk.proposer(sdk.authorization(addr2, sf2, 0, seqNum)),
-      sdk.limit(100),
-
       sdk.transaction`
         // Transaction3.cdc
 
@@ -427,38 +587,11 @@ pub contract FungibleToken {
             }
         }
       `,
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveSignatures,
-      ]),
-    ]), { node: "http://localhost:8080" });
-    const seal = await fcl.tx(response).onceSealed();
+    ]);
     console.log('seal 6', seal);
   }
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(addr3),
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-      ]),
-    ]), { node: "http://localhost:8080" })
-
-    const seqNum = acctResponse.account.keys[0].sequenceNumber
-
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      /* sdk.params([
-        sdk.param(keys3.flowKey, t.Identity, "publicKey"),
-        sdk.param('[' + new TextEncoder().encode(code).map(n => '0x' + n.toString(16)).join(',') + ']', t.Identity, "code"),
-      ]), */
-
-      sdk.authorizations([sdk.authorization(addr3, sf3, 0)]),
-      sdk.payer(sdk.authorization(addr3, sf3, 0)),
-      sdk.proposer(sdk.authorization(addr3, sf3, 0, seqNum)),
-      sdk.limit(100),
-
+    const seal = _executeTransaction(addr3, keys3.privateKey, [
       sdk.transaction`
         // Transaction4.cdc
 
@@ -499,14 +632,7 @@ pub contract FungibleToken {
           }
         }
       `,
-    ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveSignatures,
-      ]),
-    ]), { node: "http://localhost:8080" });
-    const seal = await fcl.tx(response).onceSealed();
+    ]);
     console.log('seal 7', seal);
   }
 
