@@ -10,19 +10,13 @@ import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpac
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
 
-import fcl from './dist/fcl.js';
+// import fcl from './dist/fcl.js';
 import sdk from './dist/sdk.js';
 import t from './dist/types.js';
 import SigningFunction from './dist/signing-function.js';
 import CreateFlowAccount from './dist/create-flow-account.js';
-window.fcl = fcl;
-window.sdk = sdk;
-window.t = t;
-// window.SigningFunction = SigningFunction;
-// window.CreateFlowAccount = CreateFlowAccount;
 
-// fcl.config().put("accessNode", "http://localhost:8080");
-// fcl.config().put("challenge.handshake", "http://localhost:8701/flow/authenticate");
+const flowAccessNode = 'http://localhost:8080';
 
 const serviceAddress = 'f8d6e0586b0a20c7';
 const sf = SigningFunction.signingFunction('68ee617d9bf67a4677af80aaca5a090fcda80ff2f4dbc340e0e36201fa1f1d8c');
@@ -34,7 +28,7 @@ const _executeTransaction = async (address, privateKey, args) => {
     sdk.resolve([
       sdk.resolveParams,
     ]),
-  ]), { node: "http://localhost:8080" });
+  ]), { node: flowAccessNode });
   const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
   const response = await sdk.send(await sdk.pipe(await sdk.build([
@@ -48,10 +42,17 @@ const _executeTransaction = async (address, privateKey, args) => {
       sdk.resolveAccounts,
       sdk.resolveSignatures,
     ]),
-  ]), { node: "http://localhost:8080" });
-  const seal = await fcl.tx(response).onceSealed();
+  ]), { node: flowAccessNode });
+  const response2 = await sdk.send(await sdk.pipe(await sdk.build([
+    sdk.getTransactionStatus(response.transactionId),
+  ]), [
+    sdk.resolve([
+      sdk.resolveParams,
+    ]),
+  ]), { node: flowAccessNode });
+  console.log('got contract response 2', response2);
   // console.log('seal 3', seal);
-  return seal;
+  return response2;
 };
 
 window.send = async () => {
