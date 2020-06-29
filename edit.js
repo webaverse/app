@@ -207,17 +207,17 @@ pub contract FungibleToken {
         return <-create Vault(balance: 0.0)
     }
 
-  // VaultMinter
+    // VaultMinter
     //
     // Resource object that an admin can control to mint new tokens
     pub resource VaultMinter {
 
-    // Function that mints new tokens and deposits into an account's vault
-    // using their Receiver reference.
+        // Function that mints new tokens and deposits into an account's vault
+        // using their Receiver reference.
         // We say &AnyResource{Receiver} to say that the recipient can be any resource
         // as long as it implements the Receiver interface
         pub fun mintTokens(amount: UFix64, recipient: &AnyResource{Receiver}) {
-      FungibleToken.totalSupply = FungibleToken.totalSupply + amount
+            FungibleToken.totalSupply = FungibleToken.totalSupply + amount
             recipient.deposit(from: <-create Vault(balance: amount))
         }
     }
@@ -233,10 +233,14 @@ pub contract FungibleToken {
         // The path is a literal path that consists of a domain and identifier
         // The domain must be storage, private, or public
         // the identifier can be any name
+        let oldVault <- self.account.load<@Vault>(from: /storage/MainVault)
+        destroy oldVault;
         let vault <- create Vault(balance: self.totalSupply)
         self.account.save(<-vault, to: /storage/MainVault)
 
         // Create a new MintAndBurn resource and store it in account storage
+        let oldVaultMinter <- self.account.load<@VaultMinter>(from: /storage/MainMinter)
+        destroy oldVaultMinter;
         self.account.save(<-create VaultMinter(), to: /storage/MainMinter)
 
         // Create a private capability link for the Minter
@@ -409,17 +413,17 @@ pub contract FungibleToken {
         return <-create Vault(balance: 0.0)
     }
 
-  // VaultMinter
+    // VaultMinter
     //
     // Resource object that an admin can control to mint new tokens
     pub resource VaultMinter {
 
-    // Function that mints new tokens and deposits into an account's vault
-    // using their Receiver reference.
+        // Function that mints new tokens and deposits into an account's vault
+        // using their Receiver reference.
         // We say &AnyResource{Receiver} to say that the recipient can be any resource
         // as long as it implements the Receiver interface
         pub fun mintTokens(amount: UFix64, recipient: &AnyResource{Receiver}) {
-      FungibleToken.totalSupply = FungibleToken.totalSupply + amount
+            FungibleToken.totalSupply = FungibleToken.totalSupply + amount
             recipient.deposit(from: <-create Vault(balance: amount))
         }
     }
@@ -430,16 +434,20 @@ pub contract FungibleToken {
     init() {
         self.totalSupply = 30.0
 
-        /* // create the Vault with the initial balance and put it in storage
+        // create the Vault with the initial balance and put it in storage
         // account.save saves an object to the specified to path
         // The path is a literal path that consists of a domain and identifier
         // The domain must be storage, private, or public
         // the identifier can be any name
+        let oldVault <- self.account.load<@Vault>(from: /storage/MainVault)
+        destroy oldVault;
         let vault <- create Vault(balance: self.totalSupply)
         self.account.save(<-vault, to: /storage/MainVault)
 
         // Create a new MintAndBurn resource and store it in account storage
-        self.account.save(<-create VaultMinter(), to: /storage/MainMinter) */
+        let oldVaultMinter <- self.account.load<@VaultMinter>(from: /storage/MainMinter)
+        destroy oldVaultMinter;
+        self.account.save(<-create VaultMinter(), to: /storage/MainMinter)
 
         // Create a private capability link for the Minter
         // Capabilities can be used to create temporary references to an object
