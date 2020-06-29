@@ -2475,10 +2475,11 @@ document.getElementById('inventory-drop-zone').addEventListener('drop', async e 
       jsonItem.getAsString(resolve);
     });
     const j = JSON.parse(s);
-    let {name, dataHash, id, iconHash} = j;
+    let {name, dataHash, id, iconHash, contractAddress} = j;
     if (!dataHash) {
       const p = pe.children.find(p => p.id === id);
       dataHash = await p.getHash();
+      contractAddress = p.contractAddress;
     }
 
     const inventory = loginManager.getInventory();
@@ -2486,6 +2487,7 @@ document.getElementById('inventory-drop-zone').addEventListener('drop', async e 
       name,
       hash: dataHash,
       iconHash,
+      contractAddress,
     });
     await loginManager.setInventory(inventory);
   }
@@ -2532,6 +2534,7 @@ window.addEventListener('avatarchange', e => {
         name: p.name,
         dataHash: p.hash,
         iconHash: null,
+        contractAddress: null,
       });
     });
     (async () => {
@@ -2573,13 +2576,14 @@ const _changeInventory = inventory => {
   const is = inventorySubtabContent.querySelectorAll('.item');
   is.forEach((itemEl, i) => {
     const item = inventory[i];
-    const {name, hash, iconHash} = item;
+    const {name, hash, iconHash, contractAddress} = item;
 
     itemEl.addEventListener('dragstart', e => {
       _startPackageDrag(e, {
         name,
         dataHash: hash,
         iconHash,
+        contractAddress,
       });
     });
 
@@ -2629,9 +2633,12 @@ const _makePackageHtml = p => `
     </div>
   </div>
 `;
-const _addPackageFromHash = async (hash, matrix) => {
-  const p = await XRPackage.download(hash);
-  p.hash = hash;
+const _addPackageFromHash = async (dataHash, contractAddress, matrix) => {
+  if (!contractAddress) {
+    debugger;
+  }
+  const p = await XRPackage.download(dataHash);
+  p.contractAddress = contractAddress;
   if (matrix) {
     p.setMatrix(matrix);
   }
@@ -2648,14 +2655,14 @@ const _startPackageDrag = (e, j) => {
   });
 };
 const _bindPackage = (pE, pJ) => {
-  const {name, dataHash} = pJ;
+  const {name, dataHash, contractAddress} = pJ;
   const iconHash = pJ.icons.find(i => i.type === 'image/gif').hash;
   pE.addEventListener('dragstart', e => {
-    _startPackageDrag(e, {name, dataHash, iconHash});
+    _startPackageDrag(e, {name, dataHash, iconHash, contractAddress});
   });
   const addButton = pE.querySelector('.add-button');
   addButton.addEventListener('click', () => {
-    _addPackageFromHash(dataHash);
+    _addPackageFromHash(dataHash, contractAddress);
   });
   const wearButton = pE.querySelector('.wear-button');
   wearButton.addEventListener('click', () => {
@@ -2705,7 +2712,7 @@ pe.domElement.addEventListener('drop', async e => {
       jsonItem.getAsString(resolve);
     });
     const j = JSON.parse(s);
-    const {type, dataHash} = j;
+    const {type, dataHash, contractAddress} = j;
     if (dataHash) {
       _updateRaycasterFromMouseEvent(raycaster, e);
       localMatrix.compose(
@@ -2715,7 +2722,7 @@ pe.domElement.addEventListener('drop', async e => {
         new THREE.Vector3(1, 1, 1)
       )
 
-      await _addPackageFromHash(dataHash, localMatrix);
+      await _addPackageFromHash(dataHash, contractAddress, localMatrix);
     }
   }
 });
@@ -3152,12 +3159,15 @@ const _handleUrl = async u => {
   if (q.p) { // package
     const metadata = await fetch(packagesEndpoint + '/' + q.p)
       .then(res => res.json())
-    const {dataHash} = metadata;
+    const {dataHash, contractAddress} = metadata;
 
     const arrayBuffer = await fetch(`${apiHost}/${dataHash}.wbn`)
       .then(res => res.arrayBuffer());
 
     const p = new XRPackage(new Uint8Array(arrayBuffer));
+    if (contractAddress) {
+      p.contractAddress = contractAddress;
+    }
     await p.waitForLoad();
     await pe.add(p);
   } else if (q.i) { // index
