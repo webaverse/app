@@ -18,8 +18,8 @@ import SigningFunction from './dist/signing-function.js';
 
 const flowAccessNode = 'http://localhost:8080';
 
-const serviceAddress = 'f8d6e0586b0a20c7';
-const sf = SigningFunction.signingFunction('68ee617d9bf67a4677af80aaca5a090fcda80ff2f4dbc340e0e36201fa1f1d8c');
+// const serviceAddress = 'f8d6e0586b0a20c7';
+// const sf = SigningFunction.signingFunction('68ee617d9bf67a4677af80aaca5a090fcda80ff2f4dbc340e0e36201fa1f1d8c');
 const _executeTransaction = async (address, privateKey, args) => {
   const sf = SigningFunction.signingFunction(privateKey);
   const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
