@@ -574,7 +574,7 @@ pub contract FungibleToken {
             // the account that will receive the newly minted tokens
             var receiverRef: &FungibleToken.Vault{FungibleToken.Receiver}
 
-          prepare(acct: AuthAccount) {
+            prepare(acct: AuthAccount) {
                 // Borrow a reference to the stored, private minter resource
                 self.mintingRef = acct.borrow<&FungibleToken.VaultMinter>(from: /storage/MainMinter)!
                 
@@ -586,7 +586,7 @@ pub contract FungibleToken {
 
                 // Borrow a reference from the capability
                 self.receiverRef = capability.borrow<&FungibleToken.Vault{FungibleToken.Receiver}>()!
-          }
+            }
 
             execute {
                 // Mint 30 tokens and deposit them into the recipient's Vault
