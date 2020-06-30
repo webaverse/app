@@ -2629,8 +2629,7 @@ const _makePackageHtml = p => `
     </div>
   </div>
 `;
-const _addPackageFromHash = async (dataHash, matrix) => {
-  const p = await XRPackage.download(dataHash);
+const _addPackage = async (p, matrix) => {
   if (matrix) {
     p.setMatrix(matrix);
   }
@@ -2653,8 +2652,9 @@ const _bindPackage = (pE, pJ) => {
     _startPackageDrag(e, {name, dataHash, iconHash});
   });
   const addButton = pE.querySelector('.add-button');
-  addButton.addEventListener('click', () => {
-    _addPackageFromHash(dataHash);
+  addButton.addEventListener('click', async () => {
+    const p = await XRPackage.download(dataHash);
+    await _addPackage(p);
   });
   const wearButton = pE.querySelector('.wear-button');
   wearButton.addEventListener('click', () => {
@@ -2714,7 +2714,8 @@ pe.domElement.addEventListener('drop', async e => {
         new THREE.Vector3(1, 1, 1)
       )
 
-      await _addPackageFromHash(dataHash, localMatrix);
+      const p = await XRPackage.download(dataHash);
+      await _addPackage(p, localMatrix);
     }
   }
 });
@@ -3157,8 +3158,7 @@ const _handleUrl = async u => {
       .then(res => res.arrayBuffer());
 
     const p = new XRPackage(new Uint8Array(arrayBuffer));
-    await p.waitForLoad();
-    await pe.add(p);
+    await _addPackage(p);
   } else if (q.i) { // index
     const metadataHash = await contract.methods.getMetadata(parseInt(q.i, 10), 'hash').call();
     const metadata = await fetch(`${apiHost}/${metadataHash}`)
@@ -3169,7 +3169,7 @@ const _handleUrl = async u => {
       .then(res => res.arrayBuffer());
 
     const p = new XRPackage(new Uint8Array(arrayBuffer));
-    await pe.add(p);
+    await _addPackage(p);
   } else if (q.u) { // url
     const arrayBuffer = await fetch(q.u)
       .then(res => res.arrayBuffer());
@@ -3178,7 +3178,7 @@ const _handleUrl = async u => {
     await pe.add(p);
   } else if (q.h) { // hash
     const p = await XRPackage.download(q.h);
-    await pe.add(p);
+    await _addPackage(p);
   } else {
     const w = q.w || null;
     _enterWorld(w);
