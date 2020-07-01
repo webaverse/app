@@ -3,8 +3,8 @@
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
 import {TransformControls} from 'https://static.xrpackage.org/TransformControls.js';
-import address from 'https://contracts.webaverse.com/address.js';
-import abi from 'https://contracts.webaverse.com/abi.js';
+// import address from 'https://contracts.webaverse.com/address.js';
+// import abi from 'https://contracts.webaverse.com/abi.js';
 import {XRPackage, pe, renderer, scene, camera, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
@@ -1079,9 +1079,9 @@ const packagesEndpoint = 'https://packages.exokit.org';
 const network = 'rinkeby';
 const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
 const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
-const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+// const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
 // window.web3 = web3;
-const contract = new web3.eth.Contract(abi, address);
+// const contract = new web3.eth.Contract(abi, address);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
