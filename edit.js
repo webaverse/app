@@ -1801,7 +1801,6 @@ const _renderObjects = () => {
   if (selectTarget) {
     const {package: p} = selectTarget;
     const schemas = Object.keys(p.schema);
-    const {events} = p;
     objectsEl.innerHTML = `
       <div class=object-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
@@ -1869,18 +1868,6 @@ const _renderObjects = () => {
               <label class=schema>
                 <span class=name>${name}</span>
                 <input class="schema-input" name="${escape(name)}" type=text value="${escape(p.schema[name])}">
-              </label>
-            `).join('\n')}
-          </div>
-        ` : ''}
-        ${events.length > 0 ? `
-          <b>Events</b>
-          <div class=row>
-            ${events.map(e => `
-              <label class=event name="${escape(e.name)}">
-                <span>${e.name}</span>
-                <input class="event-input" type=text>
-                <nav class="button event-send-button">Send</nav>
               </label>
             `).join('\n')}
           </div>
@@ -1998,16 +1985,6 @@ const _renderObjects = () => {
       schemaInput.addEventListener('change', e => {
         const value = e.target.value;
         p.setSchema(name, value);
-      });
-    });
-
-    Array.from(objectsEl.querySelectorAll('.event')).forEach(event => {
-      const name = event.getAttribute('name');
-      const eventInput = event.querySelector('.event-input');
-      const eventSendButton = event.querySelector('.event-send-button');
-      eventSendButton.addEventListener('click', e => {
-        const {value} = eventInput;
-        p.sendEvent(name, value);
       });
     });
   } else {
