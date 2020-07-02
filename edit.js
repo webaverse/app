@@ -3,8 +3,8 @@
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
 import {TransformControls} from 'https://static.xrpackage.org/TransformControls.js';
-import address from 'https://contracts.webaverse.com/address.js';
-import abi from 'https://contracts.webaverse.com/abi.js';
+// import address from 'https://contracts.webaverse.com/address.js';
+// import abi from 'https://contracts.webaverse.com/abi.js';
 import {XRPackage, pe, renderer, scene, camera, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
@@ -18,9 +18,9 @@ const packagesEndpoint = 'https://packages.exokit.org';
 const network = 'rinkeby';
 const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
 const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
-const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+// const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
 // window.web3 = web3;
-const contract = new web3.eth.Contract(abi, address);
+// const contract = new web3.eth.Contract(abi, address);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1568,9 +1568,7 @@ const _makePackageHtml = p => `
     </div>
   </div>
 `;
-const _addPackageFromHash = async (hash, matrix) => {
-  const p = await XRPackage.download(hash);
-  p.hash = hash;
+const _addPackage = async (p, matrix) => {
   if (matrix) {
     p.setMatrix(matrix);
   }
@@ -1593,8 +1591,9 @@ const _bindPackage = (pE, pJ) => {
     _startPackageDrag(e, {name, dataHash, iconHash});
   });
   const addButton = pE.querySelector('.add-button');
-  addButton.addEventListener('click', () => {
-    _addPackageFromHash(dataHash);
+  addButton.addEventListener('click', async () => {
+    const p = await XRPackage.download(dataHash);
+    await _addPackage(p);
   });
   const wearButton = pE.querySelector('.wear-button');
   wearButton.addEventListener('click', () => {
@@ -1654,7 +1653,8 @@ pe.domElement.addEventListener('drop', async e => {
         new THREE.Vector3(1, 1, 1)
       )
 
-      await _addPackageFromHash(dataHash, localMatrix);
+      const p = await XRPackage.download(dataHash);
+      await _addPackage(p, localMatrix);
     }
   }
 });
@@ -1801,7 +1801,6 @@ const _renderObjects = () => {
   if (selectTarget) {
     const {package: p} = selectTarget;
     const schemas = Object.keys(p.schema);
-    const {events} = p;
     objectsEl.innerHTML = `
       <div class=object-detail>
         <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
@@ -1869,18 +1868,6 @@ const _renderObjects = () => {
               <label class=schema>
                 <span class=name>${name}</span>
                 <input class="schema-input" name="${escape(name)}" type=text value="${escape(p.schema[name])}">
-              </label>
-            `).join('\n')}
-          </div>
-        ` : ''}
-        ${events.length > 0 ? `
-          <b>Events</b>
-          <div class=row>
-            ${events.map(e => `
-              <label class=event name="${escape(e.name)}">
-                <span>${e.name}</span>
-                <input class="event-input" type=text>
-                <nav class="button event-send-button">Send</nav>
               </label>
             `).join('\n')}
           </div>
@@ -2000,16 +1987,6 @@ const _renderObjects = () => {
         p.setSchema(name, value);
       });
     });
-
-    Array.from(objectsEl.querySelectorAll('.event')).forEach(event => {
-      const name = event.getAttribute('name');
-      const eventInput = event.querySelector('.event-input');
-      const eventSendButton = event.querySelector('.event-send-button');
-      eventSendButton.addEventListener('click', e => {
-        const {value} = eventInput;
-        p.sendEvent(name, value);
-      });
-    });
   } else {
     if (pe.children.length > 0) {
       const _renderChildren = (objectsEl, children, depth) => {
@@ -2097,8 +2074,7 @@ const _handleUrl = async u => {
       .then(res => res.arrayBuffer());
 
     const p = new XRPackage(new Uint8Array(arrayBuffer));
-    await p.waitForLoad();
-    await pe.add(p);
+    await _addPackage(p);
   } else if (q.i) { // index
     const metadataHash = await contract.methods.getMetadata(parseInt(q.i, 10), 'hash').call();
     const metadata = await fetch(`${apiHost}/${metadataHash}`)
@@ -2109,7 +2085,7 @@ const _handleUrl = async u => {
       .then(res => res.arrayBuffer());
 
     const p = new XRPackage(new Uint8Array(arrayBuffer));
-    await pe.add(p);
+    await _addPackage(p);
   } else if (q.u) { // url
     const arrayBuffer = await fetch(q.u)
       .then(res => res.arrayBuffer());
@@ -2118,7 +2094,7 @@ const _handleUrl = async u => {
     await pe.add(p);
   } else if (q.h) { // hash
     const p = await XRPackage.download(q.h);
-    await pe.add(p);
+    await _addPackage(p);
   } else {
     const w = q.w || null;
     _enterWorld(w);
