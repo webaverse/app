@@ -9,17 +9,16 @@ import {XRPackage, pe, renderer, scene, camera, floorMesh, proxySession, getReal
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
-import {makeCredentials} from 'https://flow.webaverse.com/flow.js';
+import {contractsHost, makeCredentials} from 'https://flow.webaverse.com/flow.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
 const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
-const contractsHost = 'http://contracts.exokit.org:3001';
 // const scenesEndpoint = 'https://scenes.exokit.org';
-const network = 'rinkeby';
-const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
-const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
+// const network = 'rinkeby';
+// const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
+// const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
 // const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
 // window.web3 = web3;
 // const contract = new web3.eth.Contract(abi, address);
