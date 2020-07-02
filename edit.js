@@ -24,6 +24,8 @@ const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
 // window.web3 = web3;
 // const contract = new web3.eth.Contract(abi, address);
 
+const flowEnabled = false;
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -1572,7 +1574,7 @@ const _addPackage = async (p, matrix) => {
     p.setMatrix(matrix);
   }
   await pe.add(p);
-  if (p.type === 'webxr-site@0.0.1' && p.hash) {
+  if (flowEnabled && p.type === 'webxr-site@0.0.1' && p.hash) {
     const [res, res2] = await Promise.all([
       fetch(`${contractsHost}/${p.hash}`),
       fetch(`${contractsHost}/${p.hash}/${pe.getEnv('username')}`, {
