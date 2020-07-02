@@ -9,11 +9,13 @@ import {XRPackage, pe, renderer, scene, camera, floorMesh, proxySession, getReal
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
+import {makeCredentials} from 'https://flow.webaverse.com/flow.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
 const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
+const contractsHost = 'http://contracts.exokit.org:3001';
 // const scenesEndpoint = 'https://scenes.exokit.org';
 const network = 'rinkeby';
 const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
@@ -1570,6 +1572,32 @@ const _addPackage = async (p, matrix) => {
     p.setMatrix(matrix);
   }
   await pe.add(p);
+  if (p.type === 'webxr-site@0.0.1' && p.hash) {
+    const [res, res2] = await Promise.all([
+      fetch(`${contractsHost}/${p.hash}`),
+      fetch(`${contractsHost}/${p.hash}/${pe.getEnv('username')}`, {
+        method: 'PUT',
+      }),
+    ]);
+    if (res.ok && res2.ok) {
+      const [packageResponse, userResponse] = await Promise.all([
+        res.json(),
+        res2.json(),
+      ]);
+      if (packageResponse !== null && userResponse !== null) {
+        const credentials = makeCredentials(userResponse.address, userResponse.keys.privateKey);
+        p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage &&
+          p.context.iframe.contentWindow.navigator.xr.dispatchEvent(new MessageEvent('secure', {
+            data: {
+              packageAddress: packageResponse.address,
+              credentials,
+            },
+          }));
+      }
+    } else {
+      console.warn('contract requests failed', res, res2);
+    }
+  }
 };
 const _startPackageDrag = (e, j) => {
   e.dataTransfer.setData('application/json+package', JSON.stringify(j));
