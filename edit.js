@@ -183,19 +183,16 @@ function animate(timestamp, frame) {
         lastGrabs[index] = grab;
 
         // axes
-        const {axes} = gamepad;
+        const {axes: axesSrc} = gamepad;
+        const axes = [
+          axesSrc[0] || 0,
+          axesSrc[1] || 0,
+          axesSrc[2] || 0,
+          axesSrc[3] || 0,
+        ];
         if (handedness === 'left') {
-          localVector.set(0, 0, 0);
-          if (axes[0] < -0.5 || axes[2] < -0.5) {
-            localVector.x += 0.015;
-          } else if (axes[0] > 0.5 || axes[2] > 0.5) {
-            localVector.x -= 0.015;
-          }
-          if (axes[1] < -0.5 || axes[3] < -0.5) {
-            localVector.z += 0.015;
-          } else if (axes[1] > 0.5 || axes[3] > 0.5) {
-            localVector.z -= 0.015;
-          }
+          localVector.set(-(axes[0] + axes[2]), 0, -(axes[1] + axes[3]))
+            .multiplyScalar(0.01);
           pe.matrix.decompose(localVector2, localQuaternion, localVector3);
           const xrCamera = renderer.xr.getCamera(pe.camera);
           localQuaternion2.copy(xrCamera.quaternion).premultiply(localQuaternion);
