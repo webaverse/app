@@ -158,9 +158,7 @@ let lastMouseup = false;
 const lastMouse = new THREE.Vector2(0.5, 0.5);
 (async () => {
   await TransformGizmo.load();
-  spokeControls = new SpokeControls(camera);
-  spokeControls.enable();
-  spokeControls.setTransformMode(TransformMode.Translate);
+  spokeControls = new SpokeControls(pe.camera);
   spokeControls.update(lastMousedown, lastMouseup, lastMouse);
   pe.scene.add(spokeControls.transformGizmo);
 })();
@@ -170,12 +168,6 @@ const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
 const timeFactor = 500;
 function animate(timestamp, frame) {
-  if (spokeControls) {
-    spokeControls.update(lastMousedown, lastMouseup, lastMouse);
-    lastMousedown = false;
-    lastMouseup = false;
-  }
-
   loadMeshMaterial.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
 
   const currentSession = getRealSession();
@@ -384,6 +376,9 @@ for (let i = 0; i < tools.length; i++) {
           pe.setCamera(camera);
           break;
         } */
+        case 'select': {
+          spokeControls.disable();
+        }
       }
 
       let decapitate = true;
@@ -494,7 +489,7 @@ window.addEventListener('keydown', e => {
     }
     case 87: { // W
       if (!document.pointerLockElement) {
-        spokeControls.transformGizmo.setTransformMode(TransformMode.Translate);
+        spokeControls.setTransformMode(TransformMode.Translate);
       } else {
         keys.up = true;
       }
@@ -779,7 +774,7 @@ let hoverTarget = null;
 let selectTarget = null;
 const _setSelectTarget = newSelectTarget => {
   if (selectTarget && selectTarget.control) {
-    _unbindTransformControls(selectTarget);
+    // _unbindTransformControls(selectTarget);
   }
   selectTarget = newSelectTarget;
   if (selectTarget) {
@@ -787,7 +782,17 @@ const _setSelectTarget = newSelectTarget => {
       dropdownButton.click();
     }
 
-    _bindTransformControls(selectTarget);
+    // _bindTransformControls(selectTarget);
+
+    spokeControls.transformGizmo.position.copy(selectTarget.position);
+    // spokeControls.transformGizmo.quaternion.copy(selectTarget.quaternion);
+    // spokeControls.transformGizmo.scale.copy(selectTarget.scale);
+    spokeControls.setTransformMode(TransformMode.Translate);
+    spokeControls.enable();
+  } else {
+    spokeControls.setTransformMode(TransformMode.Disabled);
+    spokeControls.update();
+    spokeControls.disable();
   }
   _renderObjects();
 };
@@ -868,16 +873,10 @@ pe.children.forEach(p => {
 pe.addEventListener('packageadd', _packageadd);
 pe.addEventListener('packageremove', _packageremove);
 
-let transformControlsHovered = false;
+/* let transformControlsHovered = false;
 const _bindTransformControls = o => {
   const control = new TransformControls(camera, renderer.domElement, document);
-  // control.setMode(transformMode);
   control.size = 3;
-  // control.visible = toolManager.getSelectedElement() === xrIframe;
-  // control.enabled = control.visible;
-  /* control.addEventListener('dragging-changed', e => {
-    orbitControls.enabled = !e.value;
-  }); */
   control.addEventListener('mouseEnter', () => {
     transformControlsHovered = true;
   });
@@ -904,12 +903,6 @@ const _bindTransformControls = o => {
       o.scale.copy(newTransform.scale);
       o.updateMatrixWorld();
       o.package.setMatrix(o.matrix);
-      /* const action = createAction('transform', {
-        object: o,
-        oldTransform: lastTransform,
-        newTransform,
-      });
-      execute(action); */
       lastTransform = newTransform;
     }
   });
@@ -925,7 +918,7 @@ const _unbindTransformControls = o => {
   o.control.dispose();
   o.control = null;
   transformControlsHovered = false;
-};
+}; */
 
 const raycaster = new THREE.Raycaster();
 const _updateRaycasterFromMouseEvent = (raycaster, e) => {
@@ -970,16 +963,42 @@ renderer.domElement.addEventListener('mousemove', e => {
   } else if (selectedTool === 'select' && !getRealSession()) {
     _updateRaycasterFromMouseEvent(raycaster, e);
 
-    spokeControls.transformGizmo.highlightHoveredAxis(raycaster);
+    // spokeControls.transformGizmo.highlightHoveredAxis(raycaster);
+
+    if (spokeControls) {
+      const mutated = spokeControls.update(lastMousedown, lastMouseup, lastMouse, p => {
+        // console.log('pos', p.toArray());
+        selectTarget.position.add(p);
+      }, (p, n, a) => {
+        // console.log('rotate', n.toArray(), a);
+        selectTarget.quaternion.premultiply(localQuaternion.setFromAxisAngle(n, a));
+      }, s => {
+        s.x = Math.min(s.x, 100);
+        s.y = Math.min(s.y, 100);
+        s.z = Math.min(s.z, 100);
+        selectTarget.scale.multiply(s);
+        selectTarget.scale.x = Math.max(selectTarget.scale.x, 0.01);
+        selectTarget.scale.y = Math.max(selectTarget.scale.y, 0.01);
+        selectTarget.scale.z = Math.max(selectTarget.scale.z, 0.01);
+      });
+      lastMousedown = false;
+      lastMouseup = false;
+      /* if (mutated) {
+        selectTarget.position.copy(spokeControls.transformGizmo.position);
+        selectTarget.quaternion.copy(spokeControls.transformGizmo.quaternion);
+        selectTarget.scale.copy(spokeControls.transformGizmo.scale);
+      } */
+    }
   }
 });
 
 renderer.domElement.addEventListener('mousedown', e => {
-  // _setSelectTarget(hoverTarget);
+  if (!(spokeControls.enabled && spokeControls.transformGizmo.hoveredAxis)) {
+    _setSelectTarget(hoverTarget);
+  }
   lastMousedown = true;
 });
 renderer.domElement.addEventListener('mouseup', e => {
-  // _setSelectTarget(hoverTarget);
   lastMouseup = true;
 });
 renderer.domElement.addEventListener('mousemove', e => {
