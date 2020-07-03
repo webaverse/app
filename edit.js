@@ -9,6 +9,7 @@ import {XRPackage, pe, renderer, scene, camera, floorMesh, proxySession, getReal
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
+import {TextMesh} from './textmesh-standalone.esm.js'
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
@@ -122,6 +123,64 @@ const _makeVolumeMesh = async p => {
     return new THREE.Object3D();
   }
 };
+
+const _makeTextMesh = (text, fontSize) => {
+  const textMesh = new TextMesh();
+  textMesh.text = text;
+  textMesh.font = './GeosansLight.ttf';
+  textMesh.fontSize = fontSize;
+  textMesh.color = 0x000000;
+  textMesh.anchorX = 'left';
+  // textMesh.anchorY = 'left';
+  textMesh.frustumCulled = false;
+  textMesh.sync();
+  return textMesh;
+};
+const wristMenu = (() => {
+  const object = new THREE.Object3D();
+  
+  const size = 0.1;
+  const background = new THREE.Mesh(
+    new THREE.PlaneBufferGeometry(size, size),
+    new THREE.MeshBasicMaterial({
+      color: 0xEEEEEE,
+    })
+  );
+  object.add(background);
+  
+  const sidebarSize = size*0.02;
+  const sidebarBack = new THREE.Mesh(
+    new THREE.PlaneBufferGeometry(sidebarSize, size).applyMatrix4(new THREE.Matrix4().makeTranslation(size/2 - sidebarSize/2, 0, 0.001)),
+    new THREE.MeshBasicMaterial({
+      color: 0xcfd8dc,
+    })
+  );
+  object.add(sidebarBack);
+
+  const sidebarFront = new THREE.Mesh(
+    new THREE.PlaneBufferGeometry(sidebarSize, size).applyMatrix4(new THREE.Matrix4().makeTranslation(size/2 - sidebarSize/2, 0, 0.001*2)),
+    new THREE.MeshBasicMaterial({
+      color: 0x64b5f6,
+    })
+  );
+  object.add(sidebarFront);
+  
+  object.setScroll = (y, ratio) => {
+    sidebarFront.position.y = size/2 - ratio*size/2 - y*(size-ratio*size);
+    sidebarFront.scale.y = ratio;
+  };
+
+  const textMesh = _makeTextMesh('Packages', 0.01);
+  textMesh.position.x = -size/2;
+  textMesh.position.y = size/2;
+  textMesh.position.z = 0.001;
+  object.add(textMesh);
+  
+  return object;
+})();
+wristMenu.position.y = 1;
+wristMenu.setScroll(1, 0.1);
+scene.add(wristMenu);
 
 /* window.downloadTargetMesh = async () => {
   const {GLTFExporter} = await import('./GLTFExporter.js');
