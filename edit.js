@@ -924,17 +924,7 @@ renderer.domElement.addEventListener('mousedown', e => {
   if (!transformControlsHovered) {
     _setSelectTarget(hoverTarget);
   }
-  lastMousedown = true;
 });
-/* renderer.domElement.addEventListener('mouseup', e => {
-  lastMouseup = true;
-});
-renderer.domElement.addEventListener('mousemove', e => {
-  if (!document.pointerLockElement) {
-    // console.log('got', ((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
-    lastMouse.set(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
-  }
-}); */
 
 const runMode = document.getElementById('run-mode');
 const editMode = document.getElementById('edit-mode');
