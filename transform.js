@@ -517,8 +517,10 @@ export class SpokeControls extends EventTarget {
     // this.inputManager.disableInputMapping(Spoke);
   }
 
-  update(_selectStart, _selectEnd, _cursorPosition) {
-    if (!this.enabled) return;
+  update(_selectStart, _selectEnd, _cursorPosition, translateSelected, rotateAroundSelected, scaleSelected) {
+    if (!this.enabled) return false;
+
+    let mutated = false;
 
     const input = this.inputManager;
 
@@ -665,7 +667,7 @@ export class SpokeControls extends EventTarget {
 
     const selectEnd = _selectEnd; // input.get(Spoke.selectEnd) === 1;
 
-    if (this.dragging || this.transformMode === TransformMode.Grab || this.transformMode === TransformMode.Placement) {
+    if ((this.dragging || this.transformMode === TransformMode.Grab || this.transformMode === TransformMode.Placement) && cursorPosition) {
       let constraint;
 
       if (this.transformMode === TransformMode.Grab || this.transformMode === TransformMode.Placement) {
@@ -708,7 +710,12 @@ export class SpokeControls extends EventTarget {
         this.translationVector
           .subVectors(this.planeIntersection, this.transformGizmo.position)
           .applyQuaternion(this.inverseGizmoQuaternion)
+        const old = this.translationVector.clone();
+        this.translationVector
           .multiply(constraint);
+        if (old.distanceTo(this.translationVector) > 1) {
+          this.translationVector.set(0, 0, 0);
+        }
 
         this.translationVector.applyQuaternion(this.transformGizmo.quaternion);
 
@@ -746,7 +753,8 @@ export class SpokeControls extends EventTarget {
           );
         }
 
-        // const cmd = this.editor.translateSelected(this.translationVector, this.transformSpace);
+        translateSelected && translateSelected(this.translationVector, this.transformSpace);
+        mutated = true;
 
         if (grabStart && this.transformMode === TransformMode.Grab) {
           this.grabHistoryCheckpoint = cmd.id;
@@ -781,7 +789,8 @@ export class SpokeControls extends EventTarget {
 
         this.prevRotationAngle = rotationAngle;
 
-        // this.editor.rotateAroundSelected(this.transformGizmo.position, this.planeNormal, relativeRotationAngle);
+        rotateAroundSelected && rotateAroundSelected(this.transformGizmo.position, this.planeNormal, relativeRotationAngle);
+        mutated = true;
 
         const selectedAxisInfo = this.transformGizmo.selectedAxis.axisInfo;
 
@@ -871,7 +880,8 @@ export class SpokeControls extends EventTarget {
 
         this.scaleVector.copy(this.curScale).divide(this.prevScale);
         this.prevScale.copy(this.curScale);
-        // this.editor.scaleSelected(this.scaleVector, this.transformSpace);
+        scaleSelected && scaleSelected(this.scaleVector, this.transformSpace);
+        mutated = true;
       }
     }
 
@@ -1044,6 +1054,8 @@ export class SpokeControls extends EventTarget {
     }
 
     this.updateTransformGizmoScale(); */
+
+    return mutated;
   }
 
   raycastNode(coords) {
