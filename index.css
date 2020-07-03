@@ -217,6 +217,7 @@ img:not([src]) {
   right: 0;
   width: 100vw;
   padding: 15px;
+  pointer-events: none;
 }
 
 .footer .nav {
@@ -229,6 +230,7 @@ img:not([src]) {
   align-items: center;
   opacity: 0.5;
   overflow: hidden;
+  pointer-events: all;
   cursor: pointer;
 }
 .footer .nav:hover {
