@@ -138,8 +138,36 @@ const _makeTextMesh = (text, fontSize) => {
 };
 const wristMenu = (() => {
   const object = new THREE.Object3D();
-  
+
   const size = 0.1;
+  const packageWidth = size*0.9;
+  const packageHeight = size*0.2;
+  const sidebarSize = size*0.02;
+  const _makePackageMesh = p => {
+    const object = new THREE.Object3D();
+    object.position.x = -size/2 + packageWidth/2;
+
+    const backgroundMesh = new THREE.Mesh(
+      new THREE.PlaneBufferGeometry(packageWidth, packageHeight),
+      new THREE.MeshBasicMaterial({
+        color: 0xb0bec5,
+      })
+    );
+    object.add(backgroundMesh);
+
+    const textMesh = _makeTextMesh(p.name, 0.005);
+    textMesh.position.x = -packageWidth/2;
+    textMesh.position.y = packageHeight/2;
+    textMesh.position.z = 0.001;
+    object.add(textMesh);
+
+    object.setY = y => {
+      object.position.y = size*0.9/2 - size*0.1 - size*0.1;
+    };
+
+    return object;
+  };
+  
   const background = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(size, size),
     new THREE.MeshBasicMaterial({
@@ -148,7 +176,6 @@ const wristMenu = (() => {
   );
   object.add(background);
   
-  const sidebarSize = size*0.02;
   const sidebarBack = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(sidebarSize, size).applyMatrix4(new THREE.Matrix4().makeTranslation(size/2 - sidebarSize/2, 0, 0.001)),
     new THREE.MeshBasicMaterial({
@@ -164,17 +191,26 @@ const wristMenu = (() => {
     })
   );
   object.add(sidebarFront);
-  
-  object.setScroll = (y, ratio) => {
-    sidebarFront.position.y = size/2 - ratio*size/2 - y*(size-ratio*size);
-    sidebarFront.scale.y = ratio;
-  };
 
   const textMesh = _makeTextMesh('Packages', 0.01);
   textMesh.position.x = -size/2;
   textMesh.position.y = size/2;
   textMesh.position.z = 0.001;
   object.add(textMesh);
+  
+  const packages = new THREE.Object3D();
+  packages.position.z = 0.001;
+  object.add(packages);
+  
+  object.setScroll = (y, ratio) => {
+    sidebarFront.position.y = size/2 - ratio*size/2 - y*(size-ratio*size);
+    sidebarFront.scale.y = ratio;
+  };
+  object.addPackage = p => {
+    const packageMesh = _makePackageMesh(p);
+    packageMesh.setY(packages.children.length);
+    packages.add(packageMesh);
+  };
   
   return object;
 })();
@@ -879,6 +915,8 @@ const _packageadd = async e => {
   _renderObjects();
 
   _bindObject(p);
+  
+  wristMenu.addPackage(p);
 
   if (!reason) {
     currentWorldChanged = true;
