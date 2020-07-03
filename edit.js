@@ -16,8 +16,6 @@ const presenceEndpoint = 'wss://presence.exokit.org';
 const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
 
-const flowEnabled = true;
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -1535,32 +1533,6 @@ const _addPackage = async (p, matrix) => {
     p.setMatrix(matrix);
   }
   await pe.add(p);
-  if (flowEnabled && p.type === 'webxr-site@0.0.1' && p.hash) {
-    const [res, res2] = await Promise.all([
-      fetch(`${contractsHost}/${p.hash}`),
-      fetch(`${contractsHost}/${p.hash}/${pe.getEnv('username')}`, {
-        method: 'PUT',
-      }),
-    ]);
-    if (res.ok && res2.ok) {
-      const [packageResponse, userResponse] = await Promise.all([
-        res.json(),
-        res2.json(),
-      ]);
-      if (packageResponse !== null && userResponse !== null) {
-        const credentials = makeCredentials(userResponse.address, userResponse.keys.privateKey);
-        p.context.iframe && p.context.iframe.contentWindow && p.context.iframe.contentWindow.xrpackage &&
-          p.context.iframe.contentWindow.navigator.xr.dispatchEvent(new MessageEvent('secure', {
-            data: {
-              packageAddress: packageResponse.address,
-              credentials,
-            },
-          }));
-      }
-    } else {
-      console.warn('contract requests failed', res, res2);
-    }
-  }
 };
 const _startPackageDrag = (e, j) => {
   e.dataTransfer.setData('application/json+package', JSON.stringify(j));
