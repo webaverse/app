@@ -825,6 +825,8 @@ function _matrixUpdate(e) {
   const p = this;
   const matrix = e.data;
   p.placeholderBox && p.placeholderBox.matrix.copy(matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
+  p.volumeMesh && p.volumeMesh.matrix.copy(matrix).decompose(p.volumeMesh.position, p.volumeMesh.quaternion, p.volumeMesh.scale);
+  _updateObjectDetailsTransform(matrix);
 }
 const _bindObject = p => {
   p.addEventListener('matrixupdate', _matrixUpdate);
@@ -1754,8 +1756,120 @@ newWorldButton.addEventListener('click', async e => {
   }
 });
 
-// let selectedObject = null;
 const objectsEl = document.getElementById('objects');
+const _getObjectDetailEls = () => {
+  const positionX = objectsEl.querySelector('.position-x');
+  const positionY = objectsEl.querySelector('.position-y');
+  const positionZ = objectsEl.querySelector('.position-z');
+  const quaternionX = objectsEl.querySelector('.quaternion-x');
+  const quaternionY = objectsEl.querySelector('.quaternion-y');
+  const quaternionZ = objectsEl.querySelector('.quaternion-z');
+  const quaternionW = objectsEl.querySelector('.quaternion-w');
+  const scaleX = objectsEl.querySelector('.scale-x');
+  const scaleY = objectsEl.querySelector('.scale-y');
+  const scaleZ = objectsEl.querySelector('.scale-z');
+  return {
+    positionX,
+    positionY,
+    positionZ,
+    quaternionX,
+    quaternionY,
+    quaternionZ,
+    quaternionW,
+    scaleX,
+    scaleY,
+    scaleZ,
+  };
+};
+const _updateObjectDetailsTransform = matrix => {
+  matrix.decompose(localVector, localQuaternion, localVector2);
+  const {
+    positionX,
+    positionY,
+    positionZ,
+    quaternionX,
+    quaternionY,
+    quaternionZ,
+    quaternionW,
+    scaleX,
+    scaleY,
+    scaleZ,
+  } = _getObjectDetailEls();
+  positionX.value = localVector.x;
+  positionY.value = localVector.y;
+  positionZ.value = localVector.z;
+  quaternionX.value = localQuaternion.x;
+  quaternionY.value = localQuaternion.y;
+  quaternionZ.value = localQuaternion.z;
+  quaternionW.value = localQuaternion.w;
+  scaleX.value = localVector2.x;
+  scaleY.value = localVector2.y;
+  scaleZ.value = localVector2.z;
+};
+const _bindObjectDetails = p => {
+  const {
+    positionX,
+    positionY,
+    positionZ,
+    quaternionX,
+    quaternionY,
+    quaternionZ,
+    quaternionW,
+    scaleX,
+    scaleY,
+    scaleZ,
+  } = _getObjectDetailEls();
+  
+  const _setPosition = (e, key) => {
+    p.matrix.decompose(localVector, localQuaternion, localVector2);
+    localVector[key] = parseFloat(e.target.value);
+    p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+  };
+  const _setQuaternion = (e, key) => {
+    p.matrix.decompose(localVector, localQuaternion, localVector2);
+    localQuaternion[key] = e.target.value;
+    localQuaternion.normalize();
+    ['x', 'y', 'z', 'w'].forEach(k => {
+      objectsEl.querySelector('.quaternion-' + k).value = parseFloat(localQuaternion[k]);
+    });
+    p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+  };
+  const _setScale = (e, key) => {
+    p.matrix.decompose(localVector, localQuaternion, localVector2);
+    localVector2[key] = parseFloat(e.target.value);
+    p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+  };
+  positionX.addEventListener('change', e => {
+    _setPosition(e, 'x');
+  });
+  positionY.addEventListener('change', e => {
+    _setPosition(e, 'y');
+  });
+  positionZ.addEventListener('change', e => {
+    _setPosition(e, 'z');
+  });
+  quaternionX.addEventListener('change', e => {
+    _setQuaternion(e, 'x');
+  });
+  quaternionY.addEventListener('change', e => {
+    _setQuaternion(e, 'y');
+  });
+  quaternionZ.addEventListener('change', e => {
+    _setQuaternion(e, 'z');
+  });
+  quaternionW.addEventListener('change', e => {
+    _setQuaternion(e, 'w');
+  });
+  scaleX.addEventListener('change', e => {
+    _setScale(e, 'x');
+  });
+  scaleY.addEventListener('change', e => {
+    _setScale(e, 'y');
+  });
+  scaleZ.addEventListener('change', e => {
+    _setScale(e, 'z');
+  });
+};
 const _renderObjects = () => {
   if (selectTarget) {
     const {package: p} = selectTarget;
@@ -1886,56 +2000,9 @@ const _renderObjects = () => {
     removeButton.addEventListener('click', e => {
       pe.remove(p);
     });
-
-    const _setPosition = (e, key) => {
-      p.matrix.decompose(localVector, localQuaternion, localVector2);
-      localVector[key] = parseFloat(e.target.value);
-      p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
-    };
-    const _setQuaternion = (e, key) => {
-      p.matrix.decompose(localVector, localQuaternion, localVector2);
-      localQuaternion[key] = e.target.value;
-      localQuaternion.normalize();
-      ['x', 'y', 'z', 'w'].forEach(k => {
-        objectsEl.querySelector('.quaternion-' + k).value = parseFloat(localQuaternion[k]);
-      });
-      p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
-    };
-    const _setScale = (e, key) => {
-      p.matrix.decompose(localVector, localQuaternion, localVector2);
-      localVector2[key] = parseFloat(e.target.value);
-      p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
-    };
-    objectsEl.querySelector('.position-x').addEventListener('change', e => {
-      _setPosition(e, 'x');
-    });
-    objectsEl.querySelector('.position-y').addEventListener('change', e => {
-      _setPosition(e, 'y');
-    });
-    objectsEl.querySelector('.position-z').addEventListener('change', e => {
-      _setPosition(e, 'z');
-    });
-    objectsEl.querySelector('.quaternion-x').addEventListener('change', e => {
-      _setQuaternion(e, 'x');
-    });
-    objectsEl.querySelector('.quaternion-y').addEventListener('change', e => {
-      _setQuaternion(e, 'y');
-    });
-    objectsEl.querySelector('.quaternion-z').addEventListener('change', e => {
-      _setQuaternion(e, 'z');
-    });
-    objectsEl.querySelector('.quaternion-w').addEventListener('change', e => {
-      _setQuaternion(e, 'w');
-    });
-    objectsEl.querySelector('.scale-x').addEventListener('change', e => {
-      _setScale(e, 'x');
-    });
-    objectsEl.querySelector('.scale-y').addEventListener('change', e => {
-      _setScale(e, 'y');
-    });
-    objectsEl.querySelector('.scale-z').addEventListener('change', e => {
-      _setScale(e, 'z');
-    });
+ 
+    _updateObjectDetailsTransform(p.matrix);
+    _bindObjectDetails(p);
 
     Array.from(objectsEl.querySelectorAll('.schema-input')).forEach(schemaInput => {
       const name = schemaInput.getAttribute('name');
