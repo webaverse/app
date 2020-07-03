@@ -2,7 +2,7 @@
 /* eslint no-unused-vars: 0 */
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
-import {TransformControls} from 'https://static.xrpackage.org/TransformControls.js';
+import {TransformControls} from './TransformControls.js';
 // import address from 'https://contracts.webaverse.com/address.js';
 // import abi from 'https://contracts.webaverse.com/abi.js';
 import {XRPackage, pe, renderer, scene, camera, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
@@ -10,7 +10,6 @@ import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpac
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
 import {contractsHost, makeCredentials} from 'https://flow.webaverse.com/flow.js';
-import {TransformGizmo, SpokeControls, TransformMode} from './transform.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
@@ -774,7 +773,7 @@ let hoverTarget = null;
 let selectTarget = null;
 const _setSelectTarget = newSelectTarget => {
   if (selectTarget && selectTarget.control) {
-    // _unbindTransformControls(selectTarget);
+    _unbindTransformControls(selectTarget);
   }
   selectTarget = newSelectTarget;
   if (selectTarget) {
@@ -782,17 +781,7 @@ const _setSelectTarget = newSelectTarget => {
       dropdownButton.click();
     }
 
-    // _bindTransformControls(selectTarget);
-
-    spokeControls.transformGizmo.position.copy(selectTarget.position);
-    // spokeControls.transformGizmo.quaternion.copy(selectTarget.quaternion);
-    // spokeControls.transformGizmo.scale.copy(selectTarget.scale);
-    spokeControls.setTransformMode(TransformMode.Translate);
-    spokeControls.enable();
-  } else {
-    spokeControls.setTransformMode(TransformMode.Disabled);
-    spokeControls.update();
-    spokeControls.disable();
+    _bindTransformControls(selectTarget);
   }
   _renderObjects();
 };
@@ -873,9 +862,9 @@ pe.children.forEach(p => {
 pe.addEventListener('packageadd', _packageadd);
 pe.addEventListener('packageremove', _packageremove);
 
-/* let transformControlsHovered = false;
+let transformControlsHovered = false;
 const _bindTransformControls = o => {
-  const control = new TransformControls(camera, renderer.domElement, document);
+  const control = new TransformControls(pe.camera, renderer.domElement);
   control.size = 3;
   control.addEventListener('mouseEnter', () => {
     transformControlsHovered = true;
@@ -883,42 +872,20 @@ const _bindTransformControls = o => {
   control.addEventListener('mouseLeave', () => {
     transformControlsHovered = false;
   });
-  const _snapshotTransform = o => ({
-    position: o.position.clone(),
-    quaternion: o.quaternion.clone(),
-    scale: o.scale.clone(),
-  });
-  let lastTransform = _snapshotTransform(o);
-  let changed = false;
-  control.addEventListener('mouseDown', () => {
-    lastTransform = _snapshotTransform(o);
-  });
-  control.addEventListener('mouseUp', () => {
-    if (changed) {
-      changed = false;
-
-      const newTransform = _snapshotTransform(o);
-      o.position.copy(newTransform.position);
-      o.quaternion.copy(newTransform.quaternion);
-      o.scale.copy(newTransform.scale);
-      o.updateMatrixWorld();
-      o.package.setMatrix(o.matrix);
-      lastTransform = newTransform;
-    }
-  });
   control.addEventListener('objectChange', e => {
-    changed = true;
+    o.updateMatrixWorld();
+    o.package.setMatrix(o.matrix);
   });
   control.attach(o);
-  scene.add(control);
+  pe.scene.add(control);
   o.control = control;
 };
 const _unbindTransformControls = o => {
-  scene.remove(o.control);
+  o.control.parent.remove(o.control);
   o.control.dispose();
   o.control = null;
   transformControlsHovered = false;
-}; */
+};
 
 const raycaster = new THREE.Raycaster();
 const _updateRaycasterFromMouseEvent = (raycaster, e) => {
@@ -962,43 +929,16 @@ renderer.domElement.addEventListener('mousemove', e => {
     _updateMouseMovement(e);
   } else if (selectedTool === 'select' && !getRealSession()) {
     _updateRaycasterFromMouseEvent(raycaster, e);
-
-    // spokeControls.transformGizmo.highlightHoveredAxis(raycaster);
-
-    if (spokeControls) {
-      const mutated = spokeControls.update(lastMousedown, lastMouseup, lastMouse, p => {
-        // console.log('pos', p.toArray());
-        selectTarget.position.add(p);
-      }, (p, n, a) => {
-        // console.log('rotate', n.toArray(), a);
-        selectTarget.quaternion.premultiply(localQuaternion.setFromAxisAngle(n, a));
-      }, s => {
-        s.x = Math.min(s.x, 100);
-        s.y = Math.min(s.y, 100);
-        s.z = Math.min(s.z, 100);
-        selectTarget.scale.multiply(s);
-        selectTarget.scale.x = Math.max(selectTarget.scale.x, 0.01);
-        selectTarget.scale.y = Math.max(selectTarget.scale.y, 0.01);
-        selectTarget.scale.z = Math.max(selectTarget.scale.z, 0.01);
-      });
-      lastMousedown = false;
-      lastMouseup = false;
-      /* if (mutated) {
-        selectTarget.position.copy(spokeControls.transformGizmo.position);
-        selectTarget.quaternion.copy(spokeControls.transformGizmo.quaternion);
-        selectTarget.scale.copy(spokeControls.transformGizmo.scale);
-      } */
-    }
   }
 });
 
 renderer.domElement.addEventListener('mousedown', e => {
-  if (!(spokeControls.enabled && spokeControls.transformGizmo.hoveredAxis)) {
+  if (!transformControlsHovered) {
     _setSelectTarget(hoverTarget);
   }
   lastMousedown = true;
 });
-renderer.domElement.addEventListener('mouseup', e => {
+/* renderer.domElement.addEventListener('mouseup', e => {
   lastMouseup = true;
 });
 renderer.domElement.addEventListener('mousemove', e => {
@@ -1006,7 +946,7 @@ renderer.domElement.addEventListener('mousemove', e => {
     // console.log('got', ((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
     lastMouse.set(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
   }
-});
+}); */
 
 const runMode = document.getElementById('run-mode');
 const editMode = document.getElementById('edit-mode');
