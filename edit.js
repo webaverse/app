@@ -2,25 +2,19 @@
 /* eslint no-unused-vars: 0 */
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
-import {TransformControls} from 'https://static.xrpackage.org/TransformControls.js';
+import {TransformControls} from './TransformControls.js';
 // import address from 'https://contracts.webaverse.com/address.js';
 // import abi from 'https://contracts.webaverse.com/abi.js';
 import {XRPackage, pe, renderer, scene, camera, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
+import {contractsHost, makeCredentials} from 'https://flow.webaverse.com/flow.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
 const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
-// const scenesEndpoint = 'https://scenes.exokit.org';
-const network = 'rinkeby';
-const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
-const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
-// const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
-// window.web3 = web3;
-// const contract = new web3.eth.Contract(abi, address);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -851,58 +845,24 @@ pe.addEventListener('packageremove', _packageremove);
 
 let transformControlsHovered = false;
 const _bindTransformControls = o => {
-  const control = new TransformControls(camera, renderer.domElement, document);
-  // control.setMode(transformMode);
+  const control = new TransformControls(pe.camera, renderer.domElement);
   control.size = 3;
-  // control.visible = toolManager.getSelectedElement() === xrIframe;
-  // control.enabled = control.visible;
-  /* control.addEventListener('dragging-changed', e => {
-    orbitControls.enabled = !e.value;
-  }); */
   control.addEventListener('mouseEnter', () => {
     transformControlsHovered = true;
   });
   control.addEventListener('mouseLeave', () => {
     transformControlsHovered = false;
   });
-  const _snapshotTransform = o => ({
-    position: o.position.clone(),
-    quaternion: o.quaternion.clone(),
-    scale: o.scale.clone(),
-  });
-  let lastTransform = _snapshotTransform(o);
-  let changed = false;
-  control.addEventListener('mouseDown', () => {
-    lastTransform = _snapshotTransform(o);
-  });
-  control.addEventListener('mouseUp', () => {
-    if (changed) {
-      changed = false;
-
-      const newTransform = _snapshotTransform(o);
-      o.position.copy(newTransform.position);
-      o.quaternion.copy(newTransform.quaternion);
-      o.scale.copy(newTransform.scale);
-      o.updateMatrixWorld();
-      o.package.setMatrix(o.matrix);
-      /* const action = createAction('transform', {
-        object: o,
-        oldTransform: lastTransform,
-        newTransform,
-      });
-      execute(action); */
-      lastTransform = newTransform;
-    }
-  });
   control.addEventListener('objectChange', e => {
-    changed = true;
+    o.updateMatrixWorld();
+    o.package.setMatrix(o.matrix);
   });
   control.attach(o);
-  scene.add(control);
+  pe.scene.add(control);
   o.control = control;
 };
 const _unbindTransformControls = o => {
-  scene.remove(o.control);
+  o.control.parent.remove(o.control);
   o.control.dispose();
   o.control = null;
   transformControlsHovered = false;
@@ -952,8 +912,11 @@ renderer.domElement.addEventListener('mousemove', e => {
     _updateRaycasterFromMouseEvent(raycaster, e);
   }
 });
+
 renderer.domElement.addEventListener('mousedown', e => {
-  _setSelectTarget(hoverTarget);
+  if (!transformControlsHovered) {
+    _setSelectTarget(hoverTarget);
+  }
 });
 
 const runMode = document.getElementById('run-mode');
