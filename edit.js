@@ -150,18 +150,6 @@ const _makeVolumeMesh = async p => {
   downloadFile(b, 'target.glb');
 }; */
 
-
-let spokeControls = null;
-let lastMousedown = false;
-let lastMouseup = false;
-const lastMouse = new THREE.Vector2(0.5, 0.5);
-(async () => {
-  await TransformGizmo.load();
-  spokeControls = new SpokeControls(pe.camera);
-  spokeControls.update(lastMousedown, lastMouseup, lastMouse);
-  pe.scene.add(spokeControls.transformGizmo);
-})();
-
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
