@@ -1758,53 +1758,62 @@ newWorldButton.addEventListener('click', async e => {
 
 const objectsEl = document.getElementById('objects');
 const _getObjectDetailEls = () => {
-  const positionX = objectsEl.querySelector('.position-x');
-  const positionY = objectsEl.querySelector('.position-y');
-  const positionZ = objectsEl.querySelector('.position-z');
-  const quaternionX = objectsEl.querySelector('.quaternion-x');
-  const quaternionY = objectsEl.querySelector('.quaternion-y');
-  const quaternionZ = objectsEl.querySelector('.quaternion-z');
-  const quaternionW = objectsEl.querySelector('.quaternion-w');
-  const scaleX = objectsEl.querySelector('.scale-x');
-  const scaleY = objectsEl.querySelector('.scale-y');
-  const scaleZ = objectsEl.querySelector('.scale-z');
-  return {
-    positionX,
-    positionY,
-    positionZ,
-    quaternionX,
-    quaternionY,
-    quaternionZ,
-    quaternionW,
-    scaleX,
-    scaleY,
-    scaleZ,
-  };
+  const objectDetail = objectsEl.querySelector('.object-detail');
+  if (objectDetail) {
+    const positionX = objectDetail.querySelector('.position-x');
+    const positionY = objectDetail.querySelector('.position-y');
+    const positionZ = objectDetail.querySelector('.position-z');
+    const quaternionX = objectDetail.querySelector('.quaternion-x');
+    const quaternionY = objectDetail.querySelector('.quaternion-y');
+    const quaternionZ = objectDetail.querySelector('.quaternion-z');
+    const quaternionW = objectDetail.querySelector('.quaternion-w');
+    const scaleX = objectDetail.querySelector('.scale-x');
+    const scaleY = objectDetail.querySelector('.scale-y');
+    const scaleZ = objectDetail.querySelector('.scale-z');
+    return {
+      positionX,
+      positionY,
+      positionZ,
+      quaternionX,
+      quaternionY,
+      quaternionZ,
+      quaternionW,
+      scaleX,
+      scaleY,
+      scaleZ,
+    };
+  } else {
+    return null;
+  }
 };
 const _updateObjectDetailsTransform = matrix => {
   matrix.decompose(localVector, localQuaternion, localVector2);
-  const {
-    positionX,
-    positionY,
-    positionZ,
-    quaternionX,
-    quaternionY,
-    quaternionZ,
-    quaternionW,
-    scaleX,
-    scaleY,
-    scaleZ,
-  } = _getObjectDetailEls();
-  positionX.value = localVector.x;
-  positionY.value = localVector.y;
-  positionZ.value = localVector.z;
-  quaternionX.value = localQuaternion.x;
-  quaternionY.value = localQuaternion.y;
-  quaternionZ.value = localQuaternion.z;
-  quaternionW.value = localQuaternion.w;
-  scaleX.value = localVector2.x;
-  scaleY.value = localVector2.y;
-  scaleZ.value = localVector2.z;
+  const details = _getObjectDetailEls();
+  if (details) {
+    const {
+      positionX,
+      positionY,
+      positionZ,
+      quaternionX,
+      quaternionY,
+      quaternionZ,
+      quaternionW,
+      scaleX,
+      scaleY,
+      scaleZ,
+    } = details;
+
+    positionX.value = localVector.x;
+    positionY.value = localVector.y;
+    positionZ.value = localVector.z;
+    quaternionX.value = localQuaternion.x;
+    quaternionY.value = localQuaternion.y;
+    quaternionZ.value = localQuaternion.z;
+    quaternionW.value = localQuaternion.w;
+    scaleX.value = localVector2.x;
+    scaleY.value = localVector2.y;
+    scaleZ.value = localVector2.z;
+  }
 };
 const _bindObjectDetails = p => {
   const {
