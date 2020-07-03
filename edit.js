@@ -363,9 +363,6 @@ for (let i = 0; i < tools.length; i++) {
           pe.setCamera(camera);
           break;
         } */
-        case 'select': {
-          spokeControls.disable();
-        }
       }
 
       let decapitate = true;
@@ -476,7 +473,7 @@ window.addEventListener('keydown', e => {
     }
     case 87: { // W
       if (!document.pointerLockElement) {
-        spokeControls.setTransformMode(TransformMode.Translate);
+        // nothing
       } else {
         keys.up = true;
       }
@@ -513,7 +510,6 @@ window.addEventListener('keydown', e => {
         if (selectTarget && selectTarget.control) {
           selectTarget.control.setMode('rotate');
         }
-        spokeControls.setTransformMode(TransformMode.Rotate);
       }
       break;
     }
@@ -524,7 +520,6 @@ window.addEventListener('keydown', e => {
         if (selectTarget && selectTarget.control) {
           selectTarget.control.setMode('scale');
         }
-        spokeControls.setTransformMode(TransformMode.Scale);
       }
       break;
     }
