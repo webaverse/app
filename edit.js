@@ -225,10 +225,6 @@ const wristMenu = (() => {
     textMesh.position.z = 0.001;
     object.add(textMesh);
 
-    object.setY = y => {
-      object.position.y = size/2 - packageMargin - packageHeight/2 - y*packageHeight;
-    };
-
     return object;
   };
   
@@ -272,17 +268,24 @@ const wristMenu = (() => {
   object.add(packages);
   
   const _getPackagesFullHeight = () => packages.children.length * packageHeight;
-  const _getPackagesScrollHeight = () => _getPackagesFullHeight() - (size - packageMargin);
+  const _getPackagesWindowHeight = () => size - packageMargin;
+  const _getPackagesScrollHeight = () => _getPackagesFullHeight() - _getPackagesWindowHeight();
   object.setScroll = (y, ratio) => {
     sidebarFront.position.y = size/2 - ratio*size/2 - y*(size-ratio*size);
     sidebarFront.scale.y = ratio;
 
     const packagesScrollHeight = _getPackagesScrollHeight();
     packages.position.y = y*packagesScrollHeight;
+    packages.children.forEach(p => {
+      let {offset} = p;
+      // offset += packageHeight;
+      p.visible = offset >= packages.position.y && offset <= packages.position.y + _getPackagesWindowHeight();
+    });
   };
   object.addPackage = p => {
     const packageMesh = _makePackageMesh(p);
-    packageMesh.setY(packages.children.length);
+    packageMesh.offset = packages.children.length*packageHeight;
+    packageMesh.position.y = size/2 - packageMargin - packageHeight/2 - packageMesh.offset;
     packages.add(packageMesh);
   };
   object.update = () => {
