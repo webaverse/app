@@ -151,9 +151,9 @@ const _makePlanetMesh = () => {
   return mesh;
 };
 const planetMesh = _makePlanetMesh();
-planetMesh.position.x = -30;
-planetMesh.position.y = 30;
-planetMesh.position.z = -30;
+planetMesh.position.x = -10;
+planetMesh.position.y = 10;
+planetMesh.position.z = -10;
 scene.add(planetMesh);
 
 /* const rayMesh = makeRayMesh();
