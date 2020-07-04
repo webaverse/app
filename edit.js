@@ -10,7 +10,7 @@ import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpac
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
 // import {makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
-import {makeTeleportMeshes} from './teleport.js';
+import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
@@ -125,7 +125,14 @@ const _makeVolumeMesh = async p => {
   }
 };
 
-const teleportMeshes = makeTeleportMeshes();
+const lineMeshes = [
+  makeLineMesh(),
+  makeLineMesh(),
+];
+lineMeshes.forEach(lineMesh => {
+  scene.add(lineMesh);
+});
+const teleportMeshes = lineMeshes.map((lineMesh, i) => makeTeleportMesh(lineMesh, i));
 teleportMeshes.forEach(teleportMesh => {
   scene.add(teleportMesh);
 });
