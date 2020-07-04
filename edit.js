@@ -2167,7 +2167,7 @@ const _renderObjects = () => {
       };
       _renderChildren(objectsEl, pe.children, 0);
       
-      wristMenu.objectsSide.setObjects(pe.children);
+      // wristMenu.objectsSide.setObjects(pe.children);
     } else {
       objectsEl.innerHTML = `<h1 class=placeholder>No objects in scene</h1>`;
     }
