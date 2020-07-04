@@ -1942,16 +1942,7 @@ let s;
   const children = JSON.parse(s);
   const ps = await Promise.all(children.map(child =>
     fetch(packagesEndpoint + '/' + child)
-      .then(async res => {
-        const s = await res.text();
-        try {
-          return JSON.parse(s);
-        } catch(err) {
-          console.warn(s, err);
-          debugger;
-          return null;
-        }
-      }),
+      .then(res => res.json())
   ));
   packages.innerHTML = ps.map(p => _makePackageHtml(p)).join('\n');
   Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i]));
