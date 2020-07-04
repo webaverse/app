@@ -203,15 +203,8 @@ function animate(timestamp, frame) {
           }
         }
 
-        // pe.matrix.decompose(localVector, localQuaternion, localVector2);
-        // localVector.copy(position)
-          // .add(localVector2.set(0, _getAvatarHeight(), 0));
-          // .multiplyScalar(pe.scale);
-        // localQuaternion.copy(quaternion);
         pe.camera.position.x = position.x;
         pe.camera.position.z = position.z;
-        // pe.camera.quaternion.copy(localQuaternion);
-        // pe.camera.rotation.setFromQuaternion(pe.camera.quaternion, 'YXZ');
 
         switch (selectedTool) {
           case 'thirdperson': {
