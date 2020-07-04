@@ -410,7 +410,7 @@ const wristMenu = (() => {
 
       const object = new THREE.Object3D();
       object.position.x = -size/2 + packageWidth/2;
-      object.dataHash = dataHash;
+      object.object = oJ;
 
       const backgroundMesh = new THREE.Mesh(
         new THREE.PlaneBufferGeometry(1, 1),
@@ -519,22 +519,19 @@ const wristMenu = (() => {
             intersectObject.getWorldScale(highlightMesh.scale);
             highlightMesh.visible = true;
 
-            const packageMesh = intersectObject.parent;
+            const objectMesh = intersectObject.parent;
             highlightMesh.onmousedown = () => {
-              dragMesh = packageMesh.clone(true);
-              dragMesh.dataHash = packageMesh.dataHash;
-              dragMesh.startMatrix = packageMesh.matrixWorld.clone();
-              dragMesh.startRayMatrix = ray.matrixWorld.clone();
-              scene.add(dragMesh);
+              const {object} = objectMesh;
+              console.log('click object', object);
             };
             highlightMesh.onmouseup = () => {
-              (async () => {
+              /* (async () => {
                 const {dataHash, matrix} = dragMesh;
                 const p = await XRPackage.download(dataHash);
                 await _addPackage(p, matrix);
               })();
               scene.remove(dragMesh);
-              dragMesh = null;
+              dragMesh = null; */
             };
 
             return true;
