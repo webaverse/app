@@ -165,6 +165,7 @@ const wristMenu = (() => {
   const size = 1;
   const packageWidth = size*0.9;
   const packageHeight = size*0.1;
+  const packageMargin = size*0.2;
   const sidebarSize = size*0.02;
   const _makePackageMesh = pJ => {
     const {name, dataHash, icons} = pJ;
@@ -225,7 +226,7 @@ const wristMenu = (() => {
     object.add(textMesh);
 
     object.setY = y => {
-      object.position.y = size*0.9/2 - size*0.2 - y*0.1;
+      object.position.y = size/2 - packageMargin - packageHeight/2 - y*packageHeight;
     };
 
     return object;
@@ -270,9 +271,16 @@ const wristMenu = (() => {
   packages.position.z = 0.001;
   object.add(packages);
   
+  const _getPackagesFullHeight = () => packages.children.length * packageHeight;
+  const _getPackagesScrollHeight = () => {
+    return _getPackagesFullHeight() - (size - packageMargin);
+  };
   object.setScroll = (y, ratio) => {
     sidebarFront.position.y = size/2 - ratio*size/2 - y*(size-ratio*size);
     sidebarFront.scale.y = ratio;
+
+    const packagesScrollHeight = _getPackagesScrollHeight();
+    packages.position.y = y*packagesScrollHeight;
   };
   object.addPackage = p => {
     const packageMesh = _makePackageMesh(p);
@@ -1201,10 +1209,14 @@ renderer.domElement.addEventListener('mousedown', e => {
   if (!transformControlsHovered) {
     _setSelectTarget(hoverTarget);
   }
-  highlightMesh.onmousedown && highlightMesh.onmousedown();
+  if (document.pointerLockElement) {
+    highlightMesh.onmousedown && highlightMesh.onmousedown();
+  }
 });
 renderer.domElement.addEventListener('mouseup', e => {
-  highlightMesh.onmouseup && highlightMesh.onmouseup();
+  if (document.pointerLockElement) {
+    highlightMesh.onmouseup && highlightMesh.onmouseup();
+  }
 });
 
 const runMode = document.getElementById('run-mode');
