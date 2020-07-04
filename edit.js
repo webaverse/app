@@ -9,7 +9,7 @@ import {XRPackage, pe, renderer, scene, camera, floorMesh, proxySession, getReal
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
-import {makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
+// import {makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
@@ -124,7 +124,7 @@ const _makeVolumeMesh = async p => {
   }
 };
 
-const rayMesh = makeRayMesh();
+/* const rayMesh = makeRayMesh();
 scene.add(rayMesh);
 
 const highlightScene = new THREE.Scene();
@@ -133,7 +133,7 @@ highlightScene.add(highlightMesh);
 
 const wristMenu = makeWristMenu({scene, ray: rayMesh, highlightMesh, addPackage: _addPackage});
 wristMenu.position.y = 1;
-scene.add(wristMenu);
+scene.add(wristMenu); */
 
 /* window.downloadTargetMesh = async () => {
   const {GLTFExporter} = await import('./GLTFExporter.js');
@@ -324,10 +324,10 @@ function animate(timestamp, frame) {
     pe.setRigMatrix(null);
   }
 
-  const session = renderer.xr.getSession();
+  /* const session = renderer.xr.getSession();
   if (session) {
     wristMenu.update(frame, session, renderer.xr.getReferenceSpace());
-  }
+  } */
 
   // packages
   const isVisible = shieldLevel === 2;
@@ -356,7 +356,7 @@ function animate(timestamp, frame) {
   }
 
   renderer.render(scene, camera);
-  renderer.render(highlightScene, camera);
+  // renderer.render(highlightScene, camera);
 }
 renderer.setAnimationLoop(animate);
 renderer.xr.setSession(proxySession);
@@ -980,15 +980,15 @@ renderer.domElement.addEventListener('mousedown', e => {
   if (!transformControlsHovered) {
     _setSelectTarget(hoverTarget);
   }
-  if (document.pointerLockElement) {
+  /* if (document.pointerLockElement) {
     highlightMesh.onmousedown && highlightMesh.onmousedown();
-  }
+  } */
 });
-renderer.domElement.addEventListener('mouseup', e => {
+/* renderer.domElement.addEventListener('mouseup', e => {
   if (document.pointerLockElement) {
     highlightMesh.onmouseup && highlightMesh.onmouseup();
   }
-});
+}); */
 
 const runMode = document.getElementById('run-mode');
 const editMode = document.getElementById('edit-mode');
@@ -1579,7 +1579,7 @@ const _changeInventory = inventory => {
     });
   });
 
-  wristMenu.inventorySide.setPackages(inventory);
+  // wristMenu.inventorySide.setPackages(inventory);
 };
 _changeInventory(loginManager.getInventory());
 loginManager.addEventListener('inventorychange', async e => {
