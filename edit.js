@@ -184,6 +184,51 @@ function animate(timestamp, frame) {
 
   loadMeshMaterial.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
 
+  const session = renderer.xr.getSession();
+  if (session) {
+    const inputSource = session.inputSources[1];
+    let pose;
+    if (pose = frame.getPose(inputSource.targetRaySpace, renderer.xr.getReferenceSpace())) {
+      localMatrix.fromArray(pose.transform.matrix)
+        .decompose(localVector, localQuaternion, localVector2);
+      teleportMeshes[1].update(localVector, localQuaternion, lastTeleport, (position, quaternion) => {
+        switch (selectedTool) {
+          case 'thirdperson': {
+            pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
+            break;
+          }
+          case 'isometric': {
+            pe.camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
+            break;
+          }
+        }
+
+        // pe.matrix.decompose(localVector, localQuaternion, localVector2);
+        // localVector.copy(position)
+          // .add(localVector2.set(0, _getAvatarHeight(), 0));
+          // .multiplyScalar(pe.scale);
+        // localQuaternion.copy(quaternion);
+        pe.camera.position.x = position.x;
+        pe.camera.position.z = position.z;
+        // pe.camera.quaternion.copy(localQuaternion);
+        // pe.camera.rotation.setFromQuaternion(pe.camera.quaternion, 'YXZ');
+
+        switch (selectedTool) {
+          case 'thirdperson': {
+            pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
+            break;
+          }
+          case 'isometric': {
+            pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
+            break;
+          }
+        }
+
+        pe.camera.updateMatrixWorld();
+      });
+    }
+  }
+
   const currentSession = getRealSession();
   if (currentSession) {
     const {inputSources} = currentSession;
@@ -337,19 +382,6 @@ function animate(timestamp, frame) {
     }
   } else {
     pe.setRigMatrix(null);
-  }
-
-  const session = renderer.xr.getSession();
-  if (session) {
-    const inputSource = session.inputSources[1];
-    let pose;
-    if (pose = frame.getPose(inputSource.targetRaySpace, renderer.xr.getReferenceSpace())) {
-      localMatrix.fromArray(pose.transform.matrix)
-        .decompose(localVector, localQuaternion, localVector2);
-      teleportMeshes[1].update(localVector, localQuaternion, lastTeleport, (position, quaternion) => {
-        localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1));
-      });
-    }
   }
 
   /* if (session) {

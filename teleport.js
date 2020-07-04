@@ -155,7 +155,7 @@ const makeTeleportMesh = (lineMesh, index) => {
     }
 
     if (wasVisible && !visible) {
-      onTeleport(position, quaternion);
+      onTeleport(teleportMesh.position, teleportMesh.quaternion);
     }
   };
 
