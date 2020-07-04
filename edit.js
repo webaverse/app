@@ -164,12 +164,15 @@ const wristMenu = (() => {
 
   const size = 1;
   const packageWidth = size*0.9;
-  const packageHeight = size*0.2;
+  const packageHeight = size*0.1;
   const sidebarSize = size*0.02;
-  const _makePackageMesh = p => {
+  const _makePackageMesh = pJ => {
+    const {name, dataHash, icons} = pJ;
+    const iconHash = icons.find(i => i.type === 'image/gif').hash;
+
     const object = new THREE.Object3D();
     object.position.x = -size/2 + packageWidth/2;
-    object.package = p;
+    object.dataHash = dataHash;
 
     const backgroundMesh = new THREE.Mesh(
       new THREE.PlaneBufferGeometry(1, 1),
@@ -194,8 +197,8 @@ const wristMenu = (() => {
     const img = new Image();
     const texture = new THREE.Texture(img);
     (async () => {
-      const u = await p.getScreenshotImageUrl();
-      img.src = u;
+      img.crossOrigin = 'Anonymous';
+      img.src = `${apiHost}/${iconHash}.gif`;
       await new Promise((accept, reject) => {
         img.onload = () => {
           texture.needsUpdate = true;
@@ -215,14 +218,14 @@ const wristMenu = (() => {
     imgMesh.position.z = 0.001;
     object.add(imgMesh);
 
-    const textMesh = _makeTextMesh(p.name, size*0.05);
+    const textMesh = _makeTextMesh(name, size*0.05);
     textMesh.position.x = -packageWidth/2 + packageHeight;
     textMesh.position.y = packageHeight/2;
     textMesh.position.z = 0.001;
     object.add(textMesh);
 
     object.setY = y => {
-      object.position.y = size*0.9/2 - size*0.1 - size*0.1;
+      object.position.y = size*0.9/2 - size*0.2 - y*0.1;
     };
 
     return object;
@@ -307,16 +310,18 @@ const wristMenu = (() => {
           const packageMesh = intersectObject.parent;
           highlightMesh.onmousedown = () => {
             dragMesh = packageMesh.clone(true);
-            dragMesh.package = packageMesh.package;
+            dragMesh.dataHash = packageMesh.dataHash;
             dragMesh.startMatrix = packageMesh.matrixWorld.clone();
             dragMesh.startRayMatrix = ray.matrixWorld.clone();
             scene.add(dragMesh);
           };
           highlightMesh.onmouseup = () => {
             (async () => {
-              const p = dragMesh.package;
-              await _addPackage(dragMesh.package, dragMesh.matrix);
+              const {dataHash, matrix} = dragMesh;
+              const p = await XRPackage.download(dataHash);
+              await _addPackage(p, matrix);
             })();
+            scene.remove(dragMesh);
             dragMesh = null;
           };
         }
@@ -1055,8 +1060,6 @@ const _packageadd = async e => {
   _renderObjects();
 
   _bindObject(p);
-  
-  wristMenu.addPackage(p);
 
   if (!reason) {
     currentWorldChanged = true;
@@ -1861,6 +1864,10 @@ const packages = document.getElementById('packages');
   ));
   packages.innerHTML = ps.map(p => _makePackageHtml(p)).join('\n');
   Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i]));
+
+  ps.forEach(p => {
+    wristMenu.addPackage(p);
+  });
 })();
 const tokens = document.getElementById('tokens');
 async function getTokenByIndex(index) {
