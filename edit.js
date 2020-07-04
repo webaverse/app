@@ -1269,15 +1269,17 @@ const _setSelectTarget = newSelectTarget => {
   if (selectTarget && selectTarget.control) {
     _unbindTransformControls(selectTarget);
   }
-  selectTarget = newSelectTarget;
-  if (selectTarget) {
-    if (!dropdownButton.classList.contains('open')) {
-      dropdownButton.click();
-    }
+  if (newSelectTarget !== selectTarget) {
+    selectTarget = newSelectTarget;
+    if (selectTarget) {
+      if (!dropdownButton.classList.contains('open')) {
+        dropdownButton.click();
+      }
 
-    _bindTransformControls(selectTarget);
+      _bindTransformControls(selectTarget);
+    }
+    _renderObjects();
   }
-  _renderObjects();
 };
 
 const _packageadd = async e => {
