@@ -439,7 +439,7 @@ const lastAxes = [[0, 0], [0, 0]];
 const timeFactor = 500;
 let lastTimestamp = performance.now();
 function animate(timestamp, frame) {
-  const timeDiff = (timestamp - lastTimestamp) / 1000;
+  const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
 
   loadMeshMaterial.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
