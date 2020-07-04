@@ -169,6 +169,7 @@ const wristMenu = (() => {
   const _makePackageMesh = p => {
     const object = new THREE.Object3D();
     object.position.x = -size/2 + packageWidth/2;
+    object.package = p;
 
     const backgroundMesh = new THREE.Mesh(
       new THREE.PlaneBufferGeometry(1, 1),
@@ -306,12 +307,16 @@ const wristMenu = (() => {
           const packageMesh = intersectObject.parent;
           highlightMesh.onmousedown = () => {
             dragMesh = packageMesh.clone(true);
+            dragMesh.package = packageMesh.package;
             dragMesh.startMatrix = packageMesh.matrixWorld.clone();
             dragMesh.startRayMatrix = ray.matrixWorld.clone();
             scene.add(dragMesh);
           };
           highlightMesh.onmouseup = () => {
-            console.log('on mouse up');
+            (async () => {
+              const p = dragMesh.package;
+              await _addPackage(dragMesh.package, dragMesh.matrix);
+            })();
             dragMesh = null;
           };
         }
