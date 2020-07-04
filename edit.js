@@ -124,6 +124,29 @@ const _makeVolumeMesh = async p => {
   }
 };
 
+const ray = new THREE.Mesh(
+  new THREE.CylinderBufferGeometry(0.01, 0.01, 10, 3, 1)
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 10/2, 0))
+    .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2))),
+  new THREE.MeshBasicMaterial({
+    color: 0x64b5f6,
+  })
+);
+ray.frustumCulled = false;
+scene.add(ray);
+
+const highlightScene = new THREE.Scene();
+const highlightMesh = new THREE.Mesh(
+  new THREE.BoxBufferGeometry(1, 1, 1),
+  new THREE.MeshBasicMaterial({
+    color: 0x4fc3f7,
+    transparent: true,
+    opacity: 0.1,
+  })
+);
+highlightMesh.visible = false;
+highlightScene.add(highlightMesh);
+
 const _makeTextMesh = (text, fontSize) => {
   const textMesh = new TextMesh();
   textMesh.text = text;
@@ -139,7 +162,7 @@ const _makeTextMesh = (text, fontSize) => {
 const wristMenu = (() => {
   const object = new THREE.Object3D();
 
-  const size = 0.1;
+  const size = 1;
   const packageWidth = size*0.9;
   const packageHeight = size*0.2;
   const sidebarSize = size*0.02;
@@ -148,15 +171,51 @@ const wristMenu = (() => {
     object.position.x = -size/2 + packageWidth/2;
 
     const backgroundMesh = new THREE.Mesh(
-      new THREE.PlaneBufferGeometry(packageWidth, packageHeight),
+      new THREE.PlaneBufferGeometry(1, 1),
       new THREE.MeshBasicMaterial({
         color: 0xb0bec5,
+        side: THREE.DoubleSide,
       })
     );
+    backgroundMesh.scale.set(packageWidth, packageHeight, 0.01);
     object.add(backgroundMesh);
+    object.backgroundMesh = backgroundMesh;
 
-    const textMesh = _makeTextMesh(p.name, 0.005);
-    textMesh.position.x = -packageWidth/2;
+    /* (async () => {
+      const u = await p.getScreenshotImageUrl();
+      const res = await fetch(u);
+      const ab = await res.arrayBuffer();
+      const uint8Array = new Uint8Array(ab);
+      const gif = parseGIF(uint8Array);
+      const frames = decompressFrames(gif, true);
+    })(); */
+
+    const img = new Image();
+    const texture = new THREE.Texture(img);
+    (async () => {
+      const u = await p.getScreenshotImageUrl();
+      img.src = u;
+      await new Promise((accept, reject) => {
+        img.onload = () => {
+          texture.needsUpdate = true;
+        };
+        img.onerror = reject;
+      });
+    })();
+
+    const imgMesh = new THREE.Mesh(
+      new THREE.PlaneBufferGeometry(packageHeight, packageHeight),
+      new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+      })
+    );
+    imgMesh.position.x = -packageWidth/2 + packageHeight/2;
+    imgMesh.position.z = 0.001;
+    object.add(imgMesh);
+
+    const textMesh = _makeTextMesh(p.name, size*0.05);
+    textMesh.position.x = -packageWidth/2 + packageHeight;
     textMesh.position.y = packageHeight/2;
     textMesh.position.z = 0.001;
     object.add(textMesh);
@@ -172,6 +231,7 @@ const wristMenu = (() => {
     new THREE.PlaneBufferGeometry(size, size),
     new THREE.MeshBasicMaterial({
       color: 0xEEEEEE,
+      side: THREE.DoubleSide,
     })
   );
   object.add(background);
@@ -180,6 +240,7 @@ const wristMenu = (() => {
     new THREE.PlaneBufferGeometry(sidebarSize, size).applyMatrix4(new THREE.Matrix4().makeTranslation(size/2 - sidebarSize/2, 0, 0.001)),
     new THREE.MeshBasicMaterial({
       color: 0xcfd8dc,
+      side: THREE.DoubleSide,
     })
   );
   object.add(sidebarBack);
@@ -188,11 +249,12 @@ const wristMenu = (() => {
     new THREE.PlaneBufferGeometry(sidebarSize, size).applyMatrix4(new THREE.Matrix4().makeTranslation(size/2 - sidebarSize/2, 0, 0.001*2)),
     new THREE.MeshBasicMaterial({
       color: 0x64b5f6,
+      side: THREE.DoubleSide,
     })
   );
   object.add(sidebarFront);
 
-  const textMesh = _makeTextMesh('Packages', 0.01);
+  const textMesh = _makeTextMesh('Packages', size*0.1);
   textMesh.position.x = -size/2;
   textMesh.position.y = size/2;
   textMesh.position.z = 0.001;
@@ -210,6 +272,20 @@ const wristMenu = (() => {
     const packageMesh = _makePackageMesh(p);
     packageMesh.setY(packages.children.length);
     packages.add(packageMesh);
+  };
+  object.update = () => {
+    highlightMesh.visible = false;
+
+    raycaster.ray.origin.copy(ray.position);
+    raycaster.ray.direction.set(0, 0, -1).applyQuaternion(ray.quaternion);
+    const intersects = raycaster.intersectObjects(packages.children.map(p => p.backgroundMesh));
+    if (intersects.length > 0) {
+      const [{object: intersectObject}] = intersects;
+      intersectObject.getWorldPosition(highlightMesh.position);
+      intersectObject.getWorldQuaternion(highlightMesh.quaternion);
+      intersectObject.getWorldScale(highlightMesh.scale);
+      highlightMesh.visible = true;
+    }
   };
   
   return object;
@@ -407,6 +483,28 @@ function animate(timestamp, frame) {
     pe.setRigMatrix(null);
   }
 
+  const session = renderer.xr.getSession();
+  if (session) {
+    const inputSources = Array.from(session.inputSources);
+
+    const _loadGamepad = i => {
+      const inputSource = inputSources[i];
+      if (inputSource) {
+        // const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
+
+        let pose, gamepad;
+        if ((pose = frame.getPose(inputSource.targetRaySpace, renderer.xr.getReferenceSpace())) && (gamepad = inputSource.gamepad)) {
+          localMatrix.fromArray(pose.transform.matrix)
+            .decompose(ray.position, ray.quaternion, ray.scale);
+          // _scaleMatrixPQS(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
+        }
+      }
+    };
+    // _loadGamepad(0);
+    _loadGamepad(1);
+    wristMenu.update();
+  }
+
   // packages
   const isVisible = shieldLevel === 2;
   const isTarget = shieldLevel === 0 && selectedTool !== 'select';
@@ -434,6 +532,7 @@ function animate(timestamp, frame) {
   }
 
   renderer.render(scene, camera);
+  renderer.render(highlightScene, camera);
 }
 renderer.setAnimationLoop(animate);
 renderer.xr.setSession(proxySession);
