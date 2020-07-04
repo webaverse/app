@@ -147,7 +147,7 @@ const highlightMesh = new THREE.Mesh(
 highlightMesh.visible = false;
 highlightScene.add(highlightMesh);
 
-const _makeTextMesh = (text, fontSize, clippingPlanes) => {
+const _makeTextMesh = (text, fontSize) => {
   const textMesh = new TextMesh();
   textMesh.text = text;
   textMesh.font = './GeosansLight.ttf';
@@ -157,24 +157,16 @@ const _makeTextMesh = (text, fontSize, clippingPlanes) => {
   // textMesh.anchorY = 'left';
   textMesh.frustumCulled = false;
   textMesh.sync();
-  if (clippingPlanes) {
-    textMesh.material.clippingPlanes = clippingPlanes;
-  }
   return textMesh;
 };
 const wristMenu = (() => {
   const object = new THREE.Object3D();
 
-  const clippingPlanes = [
-    new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.5),
-    new THREE.Plane(new THREE.Vector3(0, -1, 0), 1),
-  ];
-
   const size = 1;
   const packageWidth = size*0.9;
   const packageHeight = size*0.1;
   const packageMargin = size*0.2;
-  const sidebarSize = size*0.02;
+  const sidebarSize = size*0.1;
   const _makePackageMesh = pJ => {
     const {name, dataHash, icons} = pJ;
     const iconHash = icons.find(i => i.type === 'image/gif').hash;
@@ -188,7 +180,6 @@ const wristMenu = (() => {
       new THREE.MeshBasicMaterial({
         color: 0xb0bec5,
         side: THREE.DoubleSide,
-        clippingPlanes,
       })
     );
     backgroundMesh.scale.set(packageWidth, packageHeight, 0.01);
@@ -222,14 +213,13 @@ const wristMenu = (() => {
       new THREE.MeshBasicMaterial({
         map: texture,
         side: THREE.DoubleSide,
-        clippingPlanes,
       })
     );
     imgMesh.position.x = -packageWidth/2 + packageHeight/2;
     imgMesh.position.z = 0.001;
     object.add(imgMesh);
 
-    const textMesh = _makeTextMesh(name, size*0.05, clippingPlanes);
+    const textMesh = _makeTextMesh(name, size*0.05);
     textMesh.position.x = -packageWidth/2 + packageHeight;
     textMesh.position.y = packageHeight/2;
     textMesh.position.z = 0.001;
@@ -246,57 +236,96 @@ const wristMenu = (() => {
     })
   );
   object.add(background);
-  
-  const sidebarBack = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(1, 1),
-    new THREE.MeshBasicMaterial({
-      color: 0xcfd8dc,
-      side: THREE.DoubleSide,
-    })
-  );
-  sidebarBack.position.set(size/2 - sidebarSize/2, 0, 0.001);
-  sidebarBack.scale.set(sidebarSize, size, 0.001);
-  object.add(sidebarBack);
-
-  const sidebarFront = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(sidebarSize, size).applyMatrix4(new THREE.Matrix4().makeTranslation(size/2 - sidebarSize/2, 0, 0.001*2)),
-    new THREE.MeshBasicMaterial({
-      color: 0x64b5f6,
-      side: THREE.DoubleSide,
-    })
-  );
-  object.add(sidebarFront);
 
   const textMesh = _makeTextMesh('Packages', size*0.1);
   textMesh.position.x = -size/2;
   textMesh.position.y = size/2;
   textMesh.position.z = 0.001;
   object.add(textMesh);
+
+  {
+    const img = new Image();
+    const texture = new THREE.Texture(img);
+    (async () => {
+      img.crossOrigin = 'Anonymous';
+      img.src = './chevron-up.png';
+      await new Promise((accept, reject) => {
+        img.onload = () => {
+          texture.needsUpdate = true;
+        };
+        img.onerror = reject;
+      });
+    })();
+    const chevronUp = new THREE.Mesh(
+      new THREE.PlaneBufferGeometry(1, 1),
+      new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+        transparent: true,
+        alphaTest: 0.5,
+      })
+    );
+    chevronUp.scale.set(sidebarSize, sidebarSize, 0.001);
+    chevronUp.position.x = size/2 - sidebarSize/2;
+    chevronUp.position.y = size/2 - sidebarSize/2;
+    chevronUp.position.z = 0.001;
+    object.add(chevronUp);
+    object.chevronUp = chevronUp;
+  }
+  {
+    const img = new Image();
+    const texture = new THREE.Texture(img);
+    (async () => {
+      img.crossOrigin = 'Anonymous';
+      img.src = './chevron-down.png';
+      await new Promise((accept, reject) => {
+        img.onload = () => {
+          texture.needsUpdate = true;
+        };
+        img.onerror = reject;
+      });
+    })();
+    const chevronDown = new THREE.Mesh(
+      new THREE.PlaneBufferGeometry(1, 1),
+      new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+        transparent: true,
+        alphaTest: 0.5,
+      })
+    );
+    chevronDown.scale.set(sidebarSize, sidebarSize, 0.001);
+    chevronDown.position.x = size/2 - sidebarSize/2;
+    chevronDown.position.y = -size/2 + sidebarSize/2;
+    chevronDown.position.z = 0.001;
+    object.add(chevronDown);
+    object.chevronDown = chevronDown;
+  }
   
   const packages = new THREE.Object3D();
   packages.position.z = 0.001;
   object.add(packages);
-  
-  const _getPackagesFullHeight = () => packages.children.length * packageHeight;
-  const _getPackagesWindowHeight = () => size - packageMargin;
-  const _getPackagesScrollHeight = () => _getPackagesFullHeight() - _getPackagesWindowHeight();
-  object.setScroll = (y, ratio) => {
-    sidebarFront.position.y = size/2 - ratio*size/2 - y*(size-ratio*size);
-    sidebarFront.scale.y = ratio;
 
-    const packagesScrollHeight = _getPackagesScrollHeight();
-    packages.position.y = y*packagesScrollHeight;
-    /* packages.children.forEach(p => {
-      let {offset} = p;
-      // offset += packageHeight;
-      p.visible = offset >= packages.position.y && offset <= packages.position.y + _getPackagesWindowHeight();
-    }); */
+  let currentPage = 0;
+  const packagesPerPage = 8;
+  let ps = [];
+  object.setPackages = newPs => {
+    ps = newPs;
+    object.renderPackages();
   };
-  object.addPackage = p => {
-    const packageMesh = _makePackageMesh(p);
-    packageMesh.offset = packages.children.length*packageHeight;
-    packageMesh.position.y = size/2 - packageMargin - packageHeight/2 - packageMesh.offset;
-    packages.add(packageMesh);
+  object.goPage = n => {
+    currentPage += n;
+    currentPage = Math.min(Math.max(currentPage, 0), Math.floor(ps.length / packagesPerPage));
+    object.renderPackages();
+  };
+  object.renderPackages = () => {
+    packages.children.length = 0;
+    ps.slice(currentPage * packagesPerPage, (currentPage + 1) * packagesPerPage).forEach((p, i) => {
+      const packageMesh = _makePackageMesh(p);
+      packageMesh.offset = i*packageHeight;
+      packageMesh.position.y = size/2 - packageMargin - packageHeight/2 - packageMesh.offset;
+      packages.add(packageMesh);
+    });
   };
   object.update = () => {
     highlightMesh.visible = false;
@@ -308,24 +337,27 @@ const wristMenu = (() => {
       raycaster.ray.origin.copy(ray.position);
       raycaster.ray.direction.set(0, 0, -1).applyQuaternion(ray.quaternion);
       const intersects = raycaster.intersectObjects(
-        [sidebarBack].concat(
+        [object.chevronUp, object.chevronDown].concat(
           packages.children.map(p => p.backgroundMesh)
         )
       );
       if (intersects.length > 0) {
         const [intersect] = intersects;
         const {object: intersectObject} = intersect;
-        intersectObject.getWorldPosition(highlightMesh.position);
-        intersectObject.getWorldQuaternion(highlightMesh.quaternion);
-        intersectObject.getWorldScale(highlightMesh.scale);
-        highlightMesh.visible = true;
-
-        if (intersectObject === sidebarBack) {
-          const packageMesh = intersectObject.parent;
+        if (intersectObject === object.chevronUp) {
           highlightMesh.onmousedown = () => {
-            packageMesh.setScroll(1-intersect.uv.y, 0.1);
+            object.goPage(-1);
+          };
+        } else if (intersectObject === object.chevronDown) {
+          highlightMesh.onmousedown = () => {
+            object.goPage(1);
           };
         } else {
+          intersectObject.getWorldPosition(highlightMesh.position);
+          intersectObject.getWorldQuaternion(highlightMesh.quaternion);
+          intersectObject.getWorldScale(highlightMesh.scale);
+          highlightMesh.visible = true;
+
           const packageMesh = intersectObject.parent;
           highlightMesh.onmousedown = () => {
             dragMesh = packageMesh.clone(true);
@@ -351,7 +383,6 @@ const wristMenu = (() => {
   return object;
 })();
 wristMenu.position.y = 1;
-wristMenu.setScroll(0, 0.1);
 scene.add(wristMenu);
 
 /* window.downloadTargetMesh = async () => {
