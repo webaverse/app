@@ -139,17 +139,18 @@ const parcelGeometry = (() => {
   geometry.setAttribute('typez', new THREE.BufferAttribute(typesz, 1)); */
   return geometry;
 })();
+const parcelMaterial = new THREE.MeshBasicMaterial({
+  color: 0x333333,
+  // opacity: 0.9,
+  side: THREE.DoubleSide,
+  // transparent: true,
+  /* polygonOffset: true,
+  polygonOffsetFactor: 1,
+  polygonOffsetUnits: 1, */
+});
 const _makeFloorMesh = () => {
   const geometry = parcelGeometry;
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x333333,
-    // opacity: 0.9,
-    side: THREE.DoubleSide,
-    // transparent: true,
-    /* polygonOffset: true,
-    polygonOffsetFactor: 1,
-    polygonOffsetUnits: 1, */
-  });
+  const material = parcelMaterial;
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.y = -0.01;
   mesh.frustumCulled = false;
@@ -262,6 +263,8 @@ export {
   scene,
   camera,
   container,
+  parcelGeometry,
+  parcelMaterial,
   floorMesh,
   bindUploadFileButton,
   proxySession,
