@@ -5,7 +5,7 @@ import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUt
 import {TransformControls} from './TransformControls.js';
 // import address from 'https://contracts.webaverse.com/address.js';
 // import abi from 'https://contracts.webaverse.com/abi.js';
-import {XRPackage, pe, renderer, scene, camera, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
+import {XRPackage, pe, renderer, scene, camera, parcelGeometry, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
@@ -136,6 +136,25 @@ const teleportMeshes = lineMeshes.map((lineMesh, i) => makeTeleportMesh(lineMesh
 teleportMeshes.forEach(teleportMesh => {
   scene.add(teleportMesh);
 });
+
+const _makePlanetMesh = () => {
+  const geometries = [
+    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(10/2, 0, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0)), new THREE.Vector3(1, 1, 1))),
+    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(-10/2, 0, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0)), new THREE.Vector3(1, 1, 1))),
+    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, 10/2, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 1, 0)), new THREE.Vector3(1, 1, 1))),
+    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, -10/2, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0)), new THREE.Vector3(1, 1, 1))),
+    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, 0, 10/2), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)), new THREE.Vector3(1, 1, 1))),
+    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, 0, -10/2), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1)), new THREE.Vector3(1, 1, 1))),
+  ];
+  const geometry =  BufferGeometryUtils.mergeBufferGeometries(geometries);
+  const mesh = new THREE.Mesh(geometry, parcelMaterial);
+  return mesh;
+};
+const planetMesh = _makePlanetMesh();
+planetMesh.position.x = -30;
+planetMesh.position.y = 30;
+planetMesh.position.z = -30;
+scene.add(planetMesh);
 
 /* const rayMesh = makeRayMesh();
 scene.add(rayMesh);
