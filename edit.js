@@ -162,222 +162,240 @@ const _makeTextMesh = (text, fontSize) => {
 const wristMenu = (() => {
   const object = new THREE.Object3D();
 
-  const size = 1;
-  const packageWidth = size*0.9;
-  const packageHeight = size*0.1;
-  const packageMargin = size*0.2;
-  const sidebarSize = size*0.1;
-  const _makePackageMesh = pJ => {
-    const {name, dataHash, icons} = pJ;
-    const iconHash = icons.find(i => i.type === 'image/gif').hash;
-
+  const _makePackageSide = name => {
     const object = new THREE.Object3D();
-    object.position.x = -size/2 + packageWidth/2;
-    object.dataHash = dataHash;
 
-    const backgroundMesh = new THREE.Mesh(
-      new THREE.PlaneBufferGeometry(1, 1),
+    const size = 1;
+    const packageWidth = size*0.9;
+    const packageHeight = size*0.1;
+    const packageMargin = size*0.2;
+    const sidebarSize = size*0.1;
+    const _makePackageMesh = pJ => {
+      const {name, dataHash, icons} = pJ;
+      const iconHash = icons && icons.find(i => i.type === 'image/gif').hash;
+
+      const object = new THREE.Object3D();
+      object.position.x = -size/2 + packageWidth/2;
+      object.dataHash = dataHash;
+
+      const backgroundMesh = new THREE.Mesh(
+        new THREE.PlaneBufferGeometry(1, 1),
+        new THREE.MeshBasicMaterial({
+          color: 0xb0bec5,
+          side: THREE.DoubleSide,
+        })
+      );
+      backgroundMesh.scale.set(packageWidth, packageHeight, 0.01);
+      object.add(backgroundMesh);
+      object.backgroundMesh = backgroundMesh;
+
+      /* (async () => {
+        const u = await p.getScreenshotImageUrl();
+        const res = await fetch(u);
+        const ab = await res.arrayBuffer();
+        const uint8Array = new Uint8Array(ab);
+        const gif = parseGIF(uint8Array);
+        const frames = decompressFrames(gif, true);
+      })(); */
+
+      const img = new Image();
+      const texture = new THREE.Texture(img);
+      (async () => {
+        img.crossOrigin = 'Anonymous';
+        img.src = `${apiHost}/${iconHash}.gif`;
+        await new Promise((accept, reject) => {
+          img.onload = () => {
+            texture.needsUpdate = true;
+          };
+          img.onerror = reject;
+        });
+      })();
+
+      const imgMesh = new THREE.Mesh(
+        new THREE.PlaneBufferGeometry(packageHeight, packageHeight),
+        new THREE.MeshBasicMaterial({
+          map: texture,
+          side: THREE.DoubleSide,
+        })
+      );
+      imgMesh.position.x = -packageWidth/2 + packageHeight/2;
+      imgMesh.position.z = 0.001;
+      object.add(imgMesh);
+
+      const textMesh = _makeTextMesh(name, size*0.05);
+      textMesh.position.x = -packageWidth/2 + packageHeight;
+      textMesh.position.y = packageHeight/2;
+      textMesh.position.z = 0.001;
+      object.add(textMesh);
+
+      return object;
+    };
+    
+    const background = new THREE.Mesh(
+      new THREE.PlaneBufferGeometry(size, size),
       new THREE.MeshBasicMaterial({
-        color: 0xb0bec5,
+        color: 0xEEEEEE,
         side: THREE.DoubleSide,
       })
     );
-    backgroundMesh.scale.set(packageWidth, packageHeight, 0.01);
-    object.add(backgroundMesh);
-    object.backgroundMesh = backgroundMesh;
+    object.add(background);
 
-    /* (async () => {
-      const u = await p.getScreenshotImageUrl();
-      const res = await fetch(u);
-      const ab = await res.arrayBuffer();
-      const uint8Array = new Uint8Array(ab);
-      const gif = parseGIF(uint8Array);
-      const frames = decompressFrames(gif, true);
-    })(); */
-
-    const img = new Image();
-    const texture = new THREE.Texture(img);
-    (async () => {
-      img.crossOrigin = 'Anonymous';
-      img.src = `${apiHost}/${iconHash}.gif`;
-      await new Promise((accept, reject) => {
-        img.onload = () => {
-          texture.needsUpdate = true;
-        };
-        img.onerror = reject;
-      });
-    })();
-
-    const imgMesh = new THREE.Mesh(
-      new THREE.PlaneBufferGeometry(packageHeight, packageHeight),
-      new THREE.MeshBasicMaterial({
-        map: texture,
-        side: THREE.DoubleSide,
-      })
-    );
-    imgMesh.position.x = -packageWidth/2 + packageHeight/2;
-    imgMesh.position.z = 0.001;
-    object.add(imgMesh);
-
-    const textMesh = _makeTextMesh(name, size*0.05);
-    textMesh.position.x = -packageWidth/2 + packageHeight;
-    textMesh.position.y = packageHeight/2;
+    const textMesh = _makeTextMesh(name, size*0.1);
+    textMesh.position.x = -size/2;
+    textMesh.position.y = size/2;
     textMesh.position.z = 0.001;
     object.add(textMesh);
 
-    return object;
-  };
-  
-  const background = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(size, size),
-    new THREE.MeshBasicMaterial({
-      color: 0xEEEEEE,
-      side: THREE.DoubleSide,
-    })
-  );
-  object.add(background);
-
-  const textMesh = _makeTextMesh('Packages', size*0.1);
-  textMesh.position.x = -size/2;
-  textMesh.position.y = size/2;
-  textMesh.position.z = 0.001;
-  object.add(textMesh);
-
-  {
-    const img = new Image();
-    const texture = new THREE.Texture(img);
-    (async () => {
-      img.crossOrigin = 'Anonymous';
-      img.src = './chevron-up.png';
-      await new Promise((accept, reject) => {
-        img.onload = () => {
-          texture.needsUpdate = true;
-        };
-        img.onerror = reject;
-      });
-    })();
-    const chevronUp = new THREE.Mesh(
-      new THREE.PlaneBufferGeometry(1, 1),
-      new THREE.MeshBasicMaterial({
-        map: texture,
-        side: THREE.DoubleSide,
-        transparent: true,
-        alphaTest: 0.5,
-      })
-    );
-    chevronUp.scale.set(sidebarSize, sidebarSize, 0.001);
-    chevronUp.position.x = size/2 - sidebarSize/2;
-    chevronUp.position.y = size/2 - sidebarSize/2;
-    chevronUp.position.z = 0.001;
-    object.add(chevronUp);
-    object.chevronUp = chevronUp;
-  }
-  {
-    const img = new Image();
-    const texture = new THREE.Texture(img);
-    (async () => {
-      img.crossOrigin = 'Anonymous';
-      img.src = './chevron-down.png';
-      await new Promise((accept, reject) => {
-        img.onload = () => {
-          texture.needsUpdate = true;
-        };
-        img.onerror = reject;
-      });
-    })();
-    const chevronDown = new THREE.Mesh(
-      new THREE.PlaneBufferGeometry(1, 1),
-      new THREE.MeshBasicMaterial({
-        map: texture,
-        side: THREE.DoubleSide,
-        transparent: true,
-        alphaTest: 0.5,
-      })
-    );
-    chevronDown.scale.set(sidebarSize, sidebarSize, 0.001);
-    chevronDown.position.x = size/2 - sidebarSize/2;
-    chevronDown.position.y = -size/2 + sidebarSize/2;
-    chevronDown.position.z = 0.001;
-    object.add(chevronDown);
-    object.chevronDown = chevronDown;
-  }
-  
-  const packages = new THREE.Object3D();
-  packages.position.z = 0.001;
-  object.add(packages);
-
-  let currentPage = 0;
-  const packagesPerPage = 8;
-  let ps = [];
-  object.setPackages = newPs => {
-    ps = newPs;
-    object.renderPackages();
-  };
-  object.goPage = n => {
-    currentPage += n;
-    currentPage = Math.min(Math.max(currentPage, 0), Math.floor(ps.length / packagesPerPage));
-    object.renderPackages();
-  };
-  object.renderPackages = () => {
-    packages.children.length = 0;
-    ps.slice(currentPage * packagesPerPage, (currentPage + 1) * packagesPerPage).forEach((p, i) => {
-      const packageMesh = _makePackageMesh(p);
-      packageMesh.offset = i*packageHeight;
-      packageMesh.position.y = size/2 - packageMargin - packageHeight/2 - packageMesh.offset;
-      packages.add(packageMesh);
-    });
-  };
-  object.update = () => {
-    highlightMesh.visible = false;
-
-    if (!dragMesh) {
-      highlightMesh.onmousedown = null;
-      highlightMesh.onmouseup = null;
-
-      raycaster.ray.origin.copy(ray.position);
-      raycaster.ray.direction.set(0, 0, -1).applyQuaternion(ray.quaternion);
-      const intersects = raycaster.intersectObjects(
-        [object.chevronUp, object.chevronDown].concat(
-          packages.children.map(p => p.backgroundMesh)
-        )
+    {
+      const img = new Image();
+      const texture = new THREE.Texture(img);
+      (async () => {
+        img.crossOrigin = 'Anonymous';
+        img.src = './chevron-up.png';
+        await new Promise((accept, reject) => {
+          img.onload = () => {
+            texture.needsUpdate = true;
+          };
+          img.onerror = reject;
+        });
+      })();
+      const chevronUp = new THREE.Mesh(
+        new THREE.PlaneBufferGeometry(1, 1),
+        new THREE.MeshBasicMaterial({
+          map: texture,
+          side: THREE.DoubleSide,
+          transparent: true,
+          alphaTest: 0.5,
+        })
       );
-      if (intersects.length > 0) {
-        const [intersect] = intersects;
-        const {object: intersectObject} = intersect;
-        if (intersectObject === object.chevronUp) {
-          highlightMesh.onmousedown = () => {
-            object.goPage(-1);
+      chevronUp.scale.set(sidebarSize, sidebarSize, 0.001);
+      chevronUp.position.x = size/2 - sidebarSize/2;
+      chevronUp.position.y = size/2 - sidebarSize/2;
+      chevronUp.position.z = 0.001;
+      object.add(chevronUp);
+      object.chevronUp = chevronUp;
+    }
+    {
+      const img = new Image();
+      const texture = new THREE.Texture(img);
+      (async () => {
+        img.crossOrigin = 'Anonymous';
+        img.src = './chevron-down.png';
+        await new Promise((accept, reject) => {
+          img.onload = () => {
+            texture.needsUpdate = true;
           };
-        } else if (intersectObject === object.chevronDown) {
-          highlightMesh.onmousedown = () => {
-            object.goPage(1);
-          };
-        } else {
-          intersectObject.getWorldPosition(highlightMesh.position);
-          intersectObject.getWorldQuaternion(highlightMesh.quaternion);
-          intersectObject.getWorldScale(highlightMesh.scale);
-          highlightMesh.visible = true;
+          img.onerror = reject;
+        });
+      })();
+      const chevronDown = new THREE.Mesh(
+        new THREE.PlaneBufferGeometry(1, 1),
+        new THREE.MeshBasicMaterial({
+          map: texture,
+          side: THREE.DoubleSide,
+          transparent: true,
+          alphaTest: 0.5,
+        })
+      );
+      chevronDown.scale.set(sidebarSize, sidebarSize, 0.001);
+      chevronDown.position.x = size/2 - sidebarSize/2;
+      chevronDown.position.y = -size/2 + sidebarSize/2;
+      chevronDown.position.z = 0.001;
+      object.add(chevronDown);
+      object.chevronDown = chevronDown;
+    }
+    
+    const packages = new THREE.Object3D();
+    packages.position.z = 0.001;
+    object.add(packages);
 
-          const packageMesh = intersectObject.parent;
-          highlightMesh.onmousedown = () => {
-            dragMesh = packageMesh.clone(true);
-            dragMesh.dataHash = packageMesh.dataHash;
-            dragMesh.startMatrix = packageMesh.matrixWorld.clone();
-            dragMesh.startRayMatrix = ray.matrixWorld.clone();
-            scene.add(dragMesh);
-          };
-          highlightMesh.onmouseup = () => {
-            (async () => {
-              const {dataHash, matrix} = dragMesh;
-              const p = await XRPackage.download(dataHash);
-              await _addPackage(p, matrix);
-            })();
-            scene.remove(dragMesh);
-            dragMesh = null;
-          };
+    let currentPage = 0;
+    const packagesPerPage = 8;
+    let ps = [];
+    object.setPackages = newPs => {
+      ps = newPs;
+      object.renderPackages();
+    };
+    object.goPage = n => {
+      currentPage += n;
+      currentPage = Math.min(Math.max(currentPage, 0), Math.floor(ps.length / packagesPerPage));
+      object.renderPackages();
+    };
+    object.renderPackages = () => {
+      packages.children.length = 0;
+      ps.slice(currentPage * packagesPerPage, (currentPage + 1) * packagesPerPage).forEach((p, i) => {
+        const packageMesh = _makePackageMesh(p);
+        packageMesh.offset = i*packageHeight;
+        packageMesh.position.y = size/2 - packageMargin - packageHeight/2 - packageMesh.offset;
+        packages.add(packageMesh);
+      });
+    };
+    object.update = () => {
+      highlightMesh.visible = false;
+
+      if (!dragMesh) {
+        highlightMesh.onmousedown = null;
+        highlightMesh.onmouseup = null;
+
+        raycaster.ray.origin.copy(ray.position);
+        raycaster.ray.direction.set(0, 0, -1).applyQuaternion(ray.quaternion);
+        const intersects = raycaster.intersectObjects(
+          [object.chevronUp, object.chevronDown].concat(
+            packages.children.map(p => p.backgroundMesh)
+          )
+        );
+        if (intersects.length > 0) {
+          const [intersect] = intersects;
+          const {object: intersectObject} = intersect;
+          if (intersectObject === object.chevronUp) {
+            highlightMesh.onmousedown = () => {
+              object.goPage(-1);
+            };
+          } else if (intersectObject === object.chevronDown) {
+            highlightMesh.onmousedown = () => {
+              object.goPage(1);
+            };
+          } else {
+            intersectObject.getWorldPosition(highlightMesh.position);
+            intersectObject.getWorldQuaternion(highlightMesh.quaternion);
+            intersectObject.getWorldScale(highlightMesh.scale);
+            highlightMesh.visible = true;
+
+            const packageMesh = intersectObject.parent;
+            highlightMesh.onmousedown = () => {
+              dragMesh = packageMesh.clone(true);
+              dragMesh.dataHash = packageMesh.dataHash;
+              dragMesh.startMatrix = packageMesh.matrixWorld.clone();
+              dragMesh.startRayMatrix = ray.matrixWorld.clone();
+              scene.add(dragMesh);
+            };
+            highlightMesh.onmouseup = () => {
+              (async () => {
+                const {dataHash, matrix} = dragMesh;
+                const p = await XRPackage.download(dataHash);
+                await _addPackage(p, matrix);
+              })();
+              scene.remove(dragMesh);
+              dragMesh = null;
+            };
+          }
         }
       }
-    }
+    };
+    return object;
+  };
+  const packageSide = _makePackageSide('Packages');
+  object.add(packageSide);
+  object.packageSide = packageSide;
+
+  const inventorySide = _makePackageSide('Inventory');
+  inventorySide.position.x = 1;
+  object.add(inventorySide);
+  object.inventorySide = inventorySide;
+
+  object.update = () => {
+    packageSide.update();
+    inventorySide.update();
   };
   
   return object;
@@ -1849,6 +1867,8 @@ const _changeInventory = inventory => {
       console.log('remove', item);
     });
   });
+
+  wristMenu.inventorySide.setPackages(inventory);
 };
 _changeInventory(loginManager.getInventory());
 loginManager.addEventListener('inventorychange', async e => {
@@ -1910,18 +1930,27 @@ const _bindPackage = (pE, pJ) => {
 };
 const packages = document.getElementById('packages');
 (async () => {
+let s;
   const res = await fetch(packagesEndpoint);
-  const children = await res.json();
+  s = await res.text();
+  const children = JSON.parse(s);
   const ps = await Promise.all(children.map(child =>
     fetch(packagesEndpoint + '/' + child)
-      .then(res => res.json()),
+      .then(async res => {
+        const s = await res.text();
+        try {
+          return JSON.parse(s);
+        } catch(err) {
+          console.warn(s, err);
+          debugger;
+          return null;
+        }
+      }),
   ));
   packages.innerHTML = ps.map(p => _makePackageHtml(p)).join('\n');
   Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i]));
 
-  ps.forEach(p => {
-    wristMenu.addPackage(p);
-  });
+  wristMenu.packageSide.setPackages(ps);
 })();
 const tokens = document.getElementById('tokens');
 async function getTokenByIndex(index) {
