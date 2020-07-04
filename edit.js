@@ -285,7 +285,7 @@ function animate(timestamp, frame) {
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
       if (velocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
+        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(velocity.x, 0, velocity.z).normalize());
       }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
       _collideFloor(pe.rigMatrix);
@@ -293,7 +293,7 @@ function animate(timestamp, frame) {
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
       if (velocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
+        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(velocity.x, 0, velocity.z).normalize());
       }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
       _collideFloor(pe.rigMatrix);
@@ -301,7 +301,7 @@ function animate(timestamp, frame) {
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
       if (velocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
+        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(velocity.x, 0, velocity.z).normalize());
       }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
       _collideFloor(pe.rigMatrix);
