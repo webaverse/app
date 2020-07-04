@@ -10,6 +10,7 @@ import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpac
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
 // import {makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
+import {makeTeleportMeshes} from './teleport.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
@@ -123,6 +124,11 @@ const _makeVolumeMesh = async p => {
     return new THREE.Object3D();
   }
 };
+
+const teleportMeshes = makeTeleportMeshes();
+teleportMeshes.forEach(teleportMesh => {
+  scene.add(teleportMesh);
+});
 
 /* const rayMesh = makeRayMesh();
 scene.add(rayMesh);
@@ -324,8 +330,18 @@ function animate(timestamp, frame) {
     pe.setRigMatrix(null);
   }
 
-  /* const session = renderer.xr.getSession();
+  const session = renderer.xr.getSession();
   if (session) {
+    const inputSource = session.inputSources[1];
+    let pose;
+    if (pose = frame.getPose(inputSource.targetRaySpace, renderer.xr.getReferenceSpace())) {
+      localMatrix.fromArray(pose.transform.matrix)
+        .decompose(localVector, localQuaternion, localVector2);
+      teleportMeshes[1].update(localVector, localQuaternion);
+    }
+  }
+
+  /* if (session) {
     wristMenu.update(frame, session, renderer.xr.getReferenceSpace());
   } */
 
