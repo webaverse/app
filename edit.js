@@ -145,6 +145,7 @@ const highlightMesh = new THREE.Mesh(
   })
 );
 highlightMesh.visible = false;
+highlightMesh.packageMesh = null;
 highlightScene.add(highlightMesh);
 
 const _makeTextMesh = (text, fontSize) => {
@@ -275,6 +276,7 @@ const wristMenu = (() => {
   };
   object.update = () => {
     highlightMesh.visible = false;
+    highlightMesh.packageMesh = null;
 
     raycaster.ray.origin.copy(ray.position);
     raycaster.ray.direction.set(0, 0, -1).applyQuaternion(ray.quaternion);
@@ -285,6 +287,7 @@ const wristMenu = (() => {
       intersectObject.getWorldQuaternion(highlightMesh.quaternion);
       intersectObject.getWorldScale(highlightMesh.scale);
       highlightMesh.visible = true;
+      highlightMesh.packageMesh = intersectObject.parent;
     }
   };
   
@@ -490,19 +493,23 @@ function animate(timestamp, frame) {
     const _loadGamepad = i => {
       const inputSource = inputSources[i];
       if (inputSource) {
-        // const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
 
         let pose, gamepad;
         if ((pose = frame.getPose(inputSource.targetRaySpace, renderer.xr.getReferenceSpace())) && (gamepad = inputSource.gamepad)) {
           localMatrix.fromArray(pose.transform.matrix)
             .decompose(ray.position, ray.quaternion, ray.scale);
-          // _scaleMatrixPQS(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
         }
       }
     };
     // _loadGamepad(0);
     _loadGamepad(1);
     wristMenu.update();
+    if (dragMesh) {
+      dragMesh.matrix.copy(dragMesh.startMatrix)
+        .premultiply(localMatrix2.getInverse(dragMesh.startRayMatrix))
+        .premultiply(ray.matrixWorld)
+        .decompose(dragMesh.position, dragMesh.quaternion, dragMesh.scale);
+    }
   }
 
   // packages
@@ -1152,10 +1159,20 @@ renderer.domElement.addEventListener('mousemove', e => {
   }
 });
 
+let dragMesh = null;
 renderer.domElement.addEventListener('mousedown', e => {
   if (!transformControlsHovered) {
     _setSelectTarget(hoverTarget);
   }
+  if (highlightMesh.packageMesh) {
+    dragMesh = highlightMesh.packageMesh.clone(true);
+    dragMesh.startMatrix = highlightMesh.packageMesh.matrixWorld.clone();
+    dragMesh.startRayMatrix = ray.matrixWorld.clone();
+    scene.add(dragMesh);
+  }
+});
+renderer.domElement.addEventListener('mouseup', e => {
+  dragMesh = null;
 });
 
 const runMode = document.getElementById('run-mode');
