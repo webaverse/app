@@ -330,7 +330,7 @@ const wristMenu = (() => {
         packages.add(packageMesh);
       });
     };
-    object.update = () => {
+    object.updateIntersect = () => {
       highlightMesh.visible = false;
 
       if (!dragMesh) {
@@ -351,10 +351,14 @@ const wristMenu = (() => {
             highlightMesh.onmousedown = () => {
               object.goPage(-1);
             };
+
+            return true;
           } else if (intersectObject === object.chevronDown) {
             highlightMesh.onmousedown = () => {
               object.goPage(1);
             };
+
+            return true;
           } else {
             intersectObject.getWorldPosition(highlightMesh.position);
             intersectObject.getWorldQuaternion(highlightMesh.quaternion);
@@ -378,9 +382,12 @@ const wristMenu = (() => {
               scene.remove(dragMesh);
               dragMesh = null;
             };
+
+            return true;
           }
         }
       }
+      return false;
     };
     return object;
   };
@@ -394,8 +401,7 @@ const wristMenu = (() => {
   object.inventorySide = inventorySide;
 
   object.update = () => {
-    packageSide.update();
-    inventorySide.update();
+    packageSide.updateIntersect() || inventorySide.updateIntersect();
   };
   
   return object;
