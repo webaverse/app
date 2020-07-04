@@ -1,6 +1,6 @@
 /* eslint-disable no-throw-literal */
 import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-import {XRPackageEngine} from '/x/xrpackage.js';
+import {XRPackageEngine} from 'https://static.xrpackage.org/xrpackage.js';
 
 const voxelWidth = 100;
 const pixelRatio = 3;

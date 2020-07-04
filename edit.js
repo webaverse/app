@@ -1426,7 +1426,7 @@ document.getElementById('inventory-drop-zone').addEventListener('drop', async e 
     const inventory = loginManager.getInventory();
     inventory.push({
       name,
-      dataHash,
+      hash: dataHash,
       iconHash,
     });
     await loginManager.setInventory(inventory);
@@ -1506,7 +1506,7 @@ const _changeInventory = inventory => {
       <img class=screenshot>
       <div class=name>${item.name}</div>
       <div class=details>
-        <a class="button inspect-button" target="_blank" href="inspect.html?h=${item.dataHash}">Inspect</a>
+        <a class="button inspect-button" target="_blank" href="inspect.html?h=${item.hash}">Inspect</a>
         <nav class="button wear-button">Wear</nav>
         <nav class="button remove-button">Remove</nav>
       </div>
@@ -1515,12 +1515,12 @@ const _changeInventory = inventory => {
   const is = inventorySubtabContent.querySelectorAll('.item');
   is.forEach((itemEl, i) => {
     const item = inventory[i];
-    const {name, dataHash, iconHash} = item;
+    const {name, hash, iconHash} = item;
 
     itemEl.addEventListener('dragstart', e => {
       _startPackageDrag(e, {
         name,
-        dataHash,
+        dataHash: hash,
         iconHash,
       });
     });
@@ -1543,7 +1543,7 @@ const _changeInventory = inventory => {
     })();
     const wearButton = itemEl.querySelector('.wear-button');
     wearButton.addEventListener('click', () => {
-      loginManager.setAvatar(dataHash);
+      loginManager.setAvatar(hash);
     });
     const removeButton = itemEl.querySelector('.remove-button');
     removeButton.addEventListener('click', () => {
