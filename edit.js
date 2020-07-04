@@ -145,7 +145,6 @@ const highlightMesh = new THREE.Mesh(
   })
 );
 highlightMesh.visible = false;
-highlightMesh.packageMesh = null;
 highlightScene.add(highlightMesh);
 
 const _makeTextMesh = (text, fontSize) => {
@@ -238,12 +237,14 @@ const wristMenu = (() => {
   object.add(background);
   
   const sidebarBack = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(sidebarSize, size).applyMatrix4(new THREE.Matrix4().makeTranslation(size/2 - sidebarSize/2, 0, 0.001)),
+    new THREE.PlaneBufferGeometry(1, 1),
     new THREE.MeshBasicMaterial({
       color: 0xcfd8dc,
       side: THREE.DoubleSide,
     })
   );
+  sidebarBack.position.set(size/2 - sidebarSize/2, 0, 0.001);
+  sidebarBack.scale.set(sidebarSize, size, 0.001);
   object.add(sidebarBack);
 
   const sidebarFront = new THREE.Mesh(
@@ -276,25 +277,52 @@ const wristMenu = (() => {
   };
   object.update = () => {
     highlightMesh.visible = false;
-    highlightMesh.packageMesh = null;
 
-    raycaster.ray.origin.copy(ray.position);
-    raycaster.ray.direction.set(0, 0, -1).applyQuaternion(ray.quaternion);
-    const intersects = raycaster.intersectObjects(packages.children.map(p => p.backgroundMesh));
-    if (intersects.length > 0) {
-      const [{object: intersectObject}] = intersects;
-      intersectObject.getWorldPosition(highlightMesh.position);
-      intersectObject.getWorldQuaternion(highlightMesh.quaternion);
-      intersectObject.getWorldScale(highlightMesh.scale);
-      highlightMesh.visible = true;
-      highlightMesh.packageMesh = intersectObject.parent;
+    if (!dragMesh) {
+      highlightMesh.onmousedown = null;
+      highlightMesh.onmouseup = null;
+
+      raycaster.ray.origin.copy(ray.position);
+      raycaster.ray.direction.set(0, 0, -1).applyQuaternion(ray.quaternion);
+      const intersects = raycaster.intersectObjects(
+        [sidebarBack].concat(
+          packages.children.map(p => p.backgroundMesh)
+        )
+      );
+      if (intersects.length > 0) {
+        const [intersect] = intersects;
+        const {object: intersectObject} = intersect;
+        intersectObject.getWorldPosition(highlightMesh.position);
+        intersectObject.getWorldQuaternion(highlightMesh.quaternion);
+        intersectObject.getWorldScale(highlightMesh.scale);
+        highlightMesh.visible = true;
+
+        if (intersectObject === sidebarBack) {
+          const packageMesh = intersectObject.parent;
+          highlightMesh.onmousedown = () => {
+            packageMesh.setScroll(1-intersect.uv.y, 0.1);
+          };
+        } else {
+          const packageMesh = intersectObject.parent;
+          highlightMesh.onmousedown = () => {
+            dragMesh = packageMesh.clone(true);
+            dragMesh.startMatrix = packageMesh.matrixWorld.clone();
+            dragMesh.startRayMatrix = ray.matrixWorld.clone();
+            scene.add(dragMesh);
+          };
+          highlightMesh.onmouseup = () => {
+            console.log('on mouse up');
+            dragMesh = null;
+          };
+        }
+      }
     }
   };
   
   return object;
 })();
 wristMenu.position.y = 1;
-wristMenu.setScroll(1, 0.1);
+wristMenu.setScroll(0, 0.1);
 scene.add(wristMenu);
 
 /* window.downloadTargetMesh = async () => {
@@ -498,6 +526,7 @@ function animate(timestamp, frame) {
         if ((pose = frame.getPose(inputSource.targetRaySpace, renderer.xr.getReferenceSpace())) && (gamepad = inputSource.gamepad)) {
           localMatrix.fromArray(pose.transform.matrix)
             .decompose(ray.position, ray.quaternion, ray.scale);
+          ray.updateMatrixWorld();
         }
       }
     };
@@ -1164,15 +1193,10 @@ renderer.domElement.addEventListener('mousedown', e => {
   if (!transformControlsHovered) {
     _setSelectTarget(hoverTarget);
   }
-  if (highlightMesh.packageMesh) {
-    dragMesh = highlightMesh.packageMesh.clone(true);
-    dragMesh.startMatrix = highlightMesh.packageMesh.matrixWorld.clone();
-    dragMesh.startRayMatrix = ray.matrixWorld.clone();
-    scene.add(dragMesh);
-  }
+  highlightMesh.onmousedown && highlightMesh.onmousedown();
 });
 renderer.domElement.addEventListener('mouseup', e => {
-  dragMesh = null;
+  highlightMesh.onmouseup && highlightMesh.onmouseup();
 });
 
 const runMode = document.getElementById('run-mode');
