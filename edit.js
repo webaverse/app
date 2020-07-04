@@ -272,9 +272,7 @@ const wristMenu = (() => {
   object.add(packages);
   
   const _getPackagesFullHeight = () => packages.children.length * packageHeight;
-  const _getPackagesScrollHeight = () => {
-    return _getPackagesFullHeight() - (size - packageMargin);
-  };
+  const _getPackagesScrollHeight = () => _getPackagesFullHeight() - (size - packageMargin);
   object.setScroll = (y, ratio) => {
     sidebarFront.position.y = size/2 - ratio*size/2 - y*(size-ratio*size);
     sidebarFront.scale.y = ratio;
