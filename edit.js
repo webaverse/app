@@ -147,7 +147,7 @@ const highlightMesh = new THREE.Mesh(
 highlightMesh.visible = false;
 highlightScene.add(highlightMesh);
 
-const _makeTextMesh = (text, fontSize) => {
+const _makeTextMesh = (text, fontSize, clippingPlanes) => {
   const textMesh = new TextMesh();
   textMesh.text = text;
   textMesh.font = './GeosansLight.ttf';
@@ -157,10 +157,18 @@ const _makeTextMesh = (text, fontSize) => {
   // textMesh.anchorY = 'left';
   textMesh.frustumCulled = false;
   textMesh.sync();
+  if (clippingPlanes) {
+    textMesh.material.clippingPlanes = clippingPlanes;
+  }
   return textMesh;
 };
 const wristMenu = (() => {
   const object = new THREE.Object3D();
+
+  const clippingPlanes = [
+    new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.5),
+    new THREE.Plane(new THREE.Vector3(0, -1, 0), 1),
+  ];
 
   const size = 1;
   const packageWidth = size*0.9;
@@ -180,6 +188,7 @@ const wristMenu = (() => {
       new THREE.MeshBasicMaterial({
         color: 0xb0bec5,
         side: THREE.DoubleSide,
+        clippingPlanes,
       })
     );
     backgroundMesh.scale.set(packageWidth, packageHeight, 0.01);
@@ -213,13 +222,14 @@ const wristMenu = (() => {
       new THREE.MeshBasicMaterial({
         map: texture,
         side: THREE.DoubleSide,
+        clippingPlanes,
       })
     );
     imgMesh.position.x = -packageWidth/2 + packageHeight/2;
     imgMesh.position.z = 0.001;
     object.add(imgMesh);
 
-    const textMesh = _makeTextMesh(name, size*0.05);
+    const textMesh = _makeTextMesh(name, size*0.05, clippingPlanes);
     textMesh.position.x = -packageWidth/2 + packageHeight;
     textMesh.position.y = packageHeight/2;
     textMesh.position.z = 0.001;
@@ -276,11 +286,11 @@ const wristMenu = (() => {
 
     const packagesScrollHeight = _getPackagesScrollHeight();
     packages.position.y = y*packagesScrollHeight;
-    packages.children.forEach(p => {
+    /* packages.children.forEach(p => {
       let {offset} = p;
       // offset += packageHeight;
       p.visible = offset >= packages.position.y && offset <= packages.position.y + _getPackagesWindowHeight();
-    });
+    }); */
   };
   object.addPackage = p => {
     const packageMesh = _makePackageMesh(p);
