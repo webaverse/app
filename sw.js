@@ -1,2 +1,2 @@
 /* eslint-env serviceworker */
-importScripts('./x/sw.js');
+importScripts('https://static.xrpackage.org/sw.js');

@@ -1,5 +1,5 @@
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-import {XRPackageEngine, XRPackage} from '/x/xrpackage.js';
+import {XRPackageEngine, XRPackage} from 'https://static.xrpackage.org/xrpackage.js';
 import {bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import './selector.js';
 import {tryLogin, loginManager} from './login.js';
@@ -20,7 +20,6 @@ let currentSession = null;
 const pe = new XRPackageEngine({
   orbitControls: true,
 });
-window.pe = pe;
 pe.setEnv('username', loginManager.getUsername());
 loginManager.addEventListener('usernamechange', e => {
   const username = e.data;
