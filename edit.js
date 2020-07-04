@@ -151,7 +151,11 @@ const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
 const timeFactor = 500;
+let lastTimestamp = performance.now();
 function animate(timestamp, frame) {
+  const timeDiff = (timestamp - lastTimestamp) / 1000;
+  lastTimestamp = timestamp;
+
   loadMeshMaterial.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
 
   const currentSession = getRealSession();
@@ -229,7 +233,7 @@ function animate(timestamp, frame) {
 
     pe.setRigMatrix(null);
   } else if (document.pointerLockElement) {
-    const speed = 0.015 * (keys.shift ? 3 : 1);
+    const speed = 30 * (keys.shift ? 3 : 1);
     const cameraEuler = pe.camera.rotation.clone();
     cameraEuler.x = 0;
     cameraEuler.z = 0;
@@ -249,18 +253,42 @@ function animate(timestamp, frame) {
     if (localVector.length() > 0) {
       localVector.normalize().multiplyScalar(speed);
     }
-    velocity.add(localVector);
-    pe.camera.position.add(velocity);
-    pe.camera.updateMatrixWorld();
-    velocity.multiplyScalar(0.7);
 
-    if (selectedTool === 'thirdperson') {
+    if (jumpState) {
+      localVector.y -= 9.8;
+    }
+    localVector.multiplyScalar(timeDiff);
+    velocity.add(localVector);
+    pe.camera.position.add(localVector.copy(velocity).multiplyScalar(timeDiff));
+    pe.camera.updateMatrixWorld();
+    velocity.x *= 0.7;
+    velocity.z *= 0.7;
+
+    const _collideFloor = matrix => {
+      matrix.decompose(localVector, localQuaternion, localVector2);
+      const {rig, rigPackage} = pe;
+      if (rig || rigPackage) {
+        const avatarHeight = rig ? _getAvatarHeight() : 1;
+        if (localVector.y < avatarHeight) {
+          localVector.y = avatarHeight;
+          matrix.compose(localVector, localQuaternion, localVector2);
+          velocity.y = 0;
+          jumpState = null;
+        }
+      }
+    };
+
+    if (selectedTool === 'firstperson') {
+      _collideFloor(pe.camera.matrix);
+      pe.setRigMatrix(null);
+    } else if (selectedTool === 'thirdperson') {
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
       if (velocity.lengthSq() > 0) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
       }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+      _collideFloor(pe.rigMatrix);
     } else if (selectedTool === 'isometric') {
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
@@ -268,6 +296,7 @@ function animate(timestamp, frame) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
       }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+      _collideFloor(pe.rigMatrix);
     } else if (selectedTool === 'birdseye') {
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
@@ -275,6 +304,7 @@ function animate(timestamp, frame) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
       }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+      _collideFloor(pe.rigMatrix);
     } else {
       pe.setRigMatrix(null);
     }
@@ -456,6 +486,7 @@ const _resetKeys = () => {
     keys[k] = false;
   }
 };
+let jumpState = null;
 window.addEventListener('keydown', e => {
   switch (e.which) {
     case 49: // 1
@@ -527,6 +558,17 @@ window.addEventListener('keydown', e => {
     case 16: { // shift
       if (document.pointerLockElement) {
         keys.shift = true;
+      }
+      break;
+    }
+    case 32: { // space
+      if (document.pointerLockElement) {
+        if (!jumpState) {
+          jumpState = {
+            air: true,
+          };
+          velocity.y += 5;
+        }
       }
       break;
     }
