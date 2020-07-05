@@ -303,15 +303,18 @@ const _makePlanetMesh = (tileScale = 1) => {
   const mesh = new THREE.Mesh(geometry, material);
   return mesh;
 };
-const planetMesh = _makePlanetMesh(0.95);
-// planetMesh.position.x = -10;
-planetMesh.position.y = -10/2;
-// planetMesh.position.z = -10;
-scene.add(planetMesh);
+const planetContainer = new THREE.Object3D();
+scene.add(planetContainer);
 
+const planetMesh = _makePlanetMesh(0.95);
+planetMesh.position.y = -10/2;
+planetContainer.add(planetMesh);
+
+const planetAuxContainer = new THREE.Object3D();
 const planetAuxMesh = _makePlanetMesh();
 planetAuxMesh.position.copy(planetMesh.position);
 planetAuxMesh.updateMatrixWorld();
+planetAuxContainer.add(planetAuxMesh);
 
 const numRemotePlanetMeshes = 10;
 for (let i = 0; i < numRemotePlanetMeshes; i++) {
@@ -322,7 +325,7 @@ for (let i = 0; i < numRemotePlanetMeshes; i++) {
   textMesh.position.y = 10;
   remotePlanetMesh.add(textMesh);
 
-  scene.add(remotePlanetMesh);
+  planetContainer.add(remotePlanetMesh);
 }
 
 
@@ -378,22 +381,22 @@ const _animatePlanet = (startMatrix, pivot, startQuaternion, endQuaternion) => {
     startQuaternion,
     endQuaternion,
   };
-  planetAuxMesh.matrix
+  planetAuxContainer.matrix
     .copy(startMatrix)
     .premultiply(localMatrix2.makeTranslation(-pivot.x, -pivot.y, -pivot.z))
     .premultiply(localMatrix2.makeRotationFromQuaternion(localQuaternion.copy(startQuaternion).slerp(endQuaternion, 1)))
     .premultiply(localMatrix2.makeTranslation(pivot.x, pivot.y, pivot.z))
-    .decompose(planetAuxMesh.position, planetAuxMesh.quaternion, planetAuxMesh.scale)
-  planetAuxMesh.updateMatrixWorld();
+    .decompose(planetAuxContainer.position, planetAuxContainer.quaternion, planetAuxContainer.scale)
+  planetAuxContainer.updateMatrixWorld();
 };
 const _tickPlanetAnimation = factor => {
   const {startTime, endTime, startMatrix, pivot, startQuaternion, endQuaternion} = planetAnimation;
-  planetMesh.matrix
+  planetContainer.matrix
     .copy(startMatrix)
     .premultiply(localMatrix2.makeTranslation(-pivot.x, -pivot.y, -pivot.z))
     .premultiply(localMatrix2.makeRotationFromQuaternion(localQuaternion.copy(startQuaternion).slerp(endQuaternion, factor)))
     .premultiply(localMatrix2.makeTranslation(pivot.x, pivot.y, pivot.z))
-    .decompose(planetMesh.position, planetMesh.quaternion, planetMesh.scale);
+    .decompose(planetContainer.position, planetContainer.quaternion, planetContainer.scale);
   if (factor >= 1) {
     planetAnimation = null;
   }
@@ -430,7 +433,7 @@ function animate(timestamp, frame) {
         planetAnimation && _tickPlanetAnimation(1);
         const sub = lastParcel.clone().sub(currentParcel);
         const pivot = currentParcel.clone().add(lastParcel).multiplyScalar(10/2);
-        _animatePlanet(planetMesh.matrix.clone(), pivot, new THREE.Quaternion(), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), sub));
+        _animatePlanet(planetContainer.matrix.clone(), pivot, new THREE.Quaternion(), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), sub));
         lastParcel = currentParcel;
       }
 
