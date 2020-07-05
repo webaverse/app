@@ -152,7 +152,11 @@ const HEIGHTFIELD_SHADER = {
       float dotNL = abs(dot( tV, normalize(vec3(-1.0, -1.0, -1.0))));
       vec3 irradiance = ambientLightColor + dotNL;
       // vec3 diffuseColor = vColor * irradiance * (0.1 + lightColor * 0.9);
-      vec3 diffuseColor = texture2D(heightColorTex, uv).rgb * irradiance * (0.1 + lightColor * 0.9);
+      float d = length(vPosition - vec3(5, 5, 5));
+      float dMax = length(vec3(5, 5, 5));
+      vec2 uv2 = vec2(d / dMax, 0.5);
+      vec3 c = texture2D(heightColorTex, uv2).rgb;
+      vec3 diffuseColor = c * (0.5 + uv2.x) * irradiance * (0.1 + lightColor * 0.9);
 
       // diffuseColor *= 0.02 + pow(min(max((vPosition.y - 55.0) / 64.0, 0.0), 1.0), 1.0) * 5.0;
 
@@ -175,7 +179,7 @@ const {potentials, dims} = (() => {
     4,
     dims.offset,
     1,
-    -0.7,
+    -0.5,
     potentials.offset
   );
 
@@ -310,9 +314,9 @@ const chunkMesh = (() => {
     const endIndex = nextStop ? nextStop[0] : 256;
     const color = new THREE.Color(colorValue);
     const colorArray = Uint8Array.from([
-      color.r*256,
-      color.g*256,
-      color.b*256,
+      color.r*255,
+      color.g*255,
+      color.b*255,
     ]);
     for (let j = startIndex; j < endIndex; j++) {
       heightfieldMaterial.uniforms.heightColorTex.value.image.data.set(colorArray, j*3);
