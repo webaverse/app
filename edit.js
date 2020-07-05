@@ -140,7 +140,7 @@ teleportMeshes.forEach(teleportMesh => {
 });
 
 const _makePlanetMesh = () => {
-  const parcelSize = 10;
+  const parcelSize = 11;
   const tileGeometry = new THREE.BoxBufferGeometry(0.95, 0.95, 0.95);
   const parcelGeometry = (() => {
     const numCoords = tileGeometry.attributes.position.array.length;
@@ -213,12 +213,12 @@ const _makePlanetMesh = () => {
     }
   }
   const geometries = [
-    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(10/2, 0, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0)), new THREE.Vector3(1, 1, 1))),
-    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(-10/2, 0, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0)), new THREE.Vector3(1, 1, 1))),
-    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, 10/2, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 1, 0)), new THREE.Vector3(1, 1, 1))),
-    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, -10/2, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0)), new THREE.Vector3(1, 1, 1))),
-    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, 0, 10/2), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)), new THREE.Vector3(1, 1, 1))),
-    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, 0, -10/2), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1)), new THREE.Vector3(1, 1, 1))),
+    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(parcelSize/2, 0, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0)), new THREE.Vector3(1, 1, 1))),
+    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(-parcelSize/2, 0, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0)), new THREE.Vector3(1, 1, 1))),
+    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, parcelSize/2, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 1, 0)), new THREE.Vector3(1, 1, 1))),
+    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, -parcelSize/2, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0)), new THREE.Vector3(1, 1, 1))),
+    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, 0, parcelSize/2), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)), new THREE.Vector3(1, 1, 1))),
+    parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, 0, -parcelSize/2), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1)), new THREE.Vector3(1, 1, 1))),
   ];
   const geometry =  BufferGeometryUtils.mergeBufferGeometries(geometries);
 
@@ -289,9 +289,9 @@ const _makePlanetMesh = () => {
   return mesh;
 };
 const planetMesh = _makePlanetMesh();
-planetMesh.position.x = -10;
-planetMesh.position.y = 1;
-planetMesh.position.z = -10;
+// planetMesh.position.x = -10;
+planetMesh.position.y = -10/2;
+// planetMesh.position.z = -10;
 scene.add(planetMesh);
 
 /* const rayMesh = makeRayMesh();
@@ -329,12 +329,44 @@ scene.add(wristMenu); */
   downloadFile(b, 'target.glb');
 }; */
 
+const _getCurrentParcel = p => new THREE.Vector3(
+  Math.floor((p.x+5)/10),
+  Math.floor(p.y/10),
+  Math.floor((p.z+5)/10),
+);
+let planetAnimation = null;
+const _animatePlanet = (startMatrix, pivot, startQuaternion, endQuaternion) => {
+  const startTime = Date.now();
+  const endTime = startTime + 300;
+  planetAnimation = {
+    startTime,
+    endTime,
+    startMatrix,
+    pivot,
+    startQuaternion,
+    endQuaternion,
+  };
+};
+const _tickPlanetAnimation = factor => {
+  const {startTime, endTime, startMatrix, pivot, startQuaternion, endQuaternion} = planetAnimation;
+  planetMesh.matrix
+    .copy(startMatrix)
+    .premultiply(localMatrix2.makeTranslation(-pivot.x, -pivot.y, -pivot.z))
+    .premultiply(localMatrix2.makeRotationFromQuaternion(localQuaternion.copy(startQuaternion).slerp(endQuaternion, factor)))
+    .premultiply(localMatrix2.makeTranslation(pivot.x, pivot.y, pivot.z))
+    .decompose(planetMesh.position, planetMesh.quaternion, planetMesh.scale);
+  if (factor >= 1) {
+    planetAnimation = null;
+  }
+};
+
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
 let lastTeleport = false;
 const timeFactor = 500;
 let lastTimestamp = performance.now();
+let lastParcel  = new THREE.Vector3(0, 0, 0);
 function animate(timestamp, frame) {
   const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
@@ -348,6 +380,16 @@ function animate(timestamp, frame) {
     if (pose = frame.getPose(inputSource.targetRaySpace, renderer.xr.getReferenceSpace())) {
       localMatrix.fromArray(pose.transform.matrix)
         .decompose(localVector, localQuaternion, localVector2);
+
+      const currentParcel = _getCurrentParcel(localVector);
+      if (!currentParcel.equals(lastParcel)) {
+        planetAnimation && _tickPlanetAnimation(1);
+        const sub = lastParcel.clone().sub(currentParcel);
+        const pivot = currentParcel.clone().add(lastParcel).multiplyScalar(10/2);
+        _animatePlanet(planetMesh.matrix.clone(), pivot, new THREE.Quaternion(), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), sub));
+        lastParcel = currentParcel;
+      }
+
       teleportMeshes[1].update(localVector, localQuaternion, lastTeleport, (position, quaternion) => {
         switch (selectedTool) {
           case 'thirdperson': {
@@ -377,6 +419,13 @@ function animate(timestamp, frame) {
         pe.camera.updateMatrixWorld();
       });
     }
+  }
+
+  if (planetAnimation) {
+    const {startTime, endTime} = planetAnimation;
+    const now = Date.now();
+    const factor = Math.min((now - startTime) / (endTime - startTime), 1);
+    _tickPlanetAnimation(factor);
   }
 
   const currentSession = getRealSession();
