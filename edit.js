@@ -145,10 +145,9 @@ const _makePlanetMesh = () => {
   const parcelGeometry = (() => {
     const numCoords = tileGeometry.attributes.position.array.length;
     const positions = new Float32Array(numCoords * parcelSize * parcelSize);
-    const numIndices = tileGeometry.index.array.length;
     const indices = new Uint16Array(numCoords * parcelSize * parcelSize);
-    const edges = new Uint16Array(numCoords * parcelSize * parcelSize);
-    const ids = new Uint16Array(numCoords * parcelSize * parcelSize);
+    const edges = new Uint16Array(numCoords/3 * parcelSize * parcelSize);
+    const ids = new Uint16Array(numCoords/3 * parcelSize * parcelSize);
     let i = 0;
     let indexIndex = 0;
     for (let x = -parcelSize / 2 + 1; x < parcelSize / 2; x++) {
@@ -164,7 +163,7 @@ const _makePlanetMesh = () => {
           for (let j = 0; j < tileGeometry.attributes.position.array.length; j += 3) {
             localVector.fromArray(tileGeometry.attributes.position.array, j);
             if (localVector.x < 0) {
-              edges.fill(1, i * tileGeometry.attributes.position.array.length + j, i * tileGeometry.attributes.position.array.length + j + 3);
+              edges.fill(1, i * tileGeometry.attributes.position.array.length/3 + j/3, i * tileGeometry.attributes.position.array.length/3 + j/3 + 1);
             }
           }
         }
@@ -172,7 +171,7 @@ const _makePlanetMesh = () => {
           for (let j = 0; j < tileGeometry.attributes.position.array.length; j += 3) {
             localVector.fromArray(tileGeometry.attributes.position.array, j);
             if (localVector.x > 0) {
-              edges.fill(1, i * tileGeometry.attributes.position.array.length + j, i * tileGeometry.attributes.position.array.length + j + 3);
+              edges.fill(1, i * tileGeometry.attributes.position.array.length/3 + j/3, i * tileGeometry.attributes.position.array.length/3 + j/3 + 1);
             }
           }
         }
@@ -180,7 +179,7 @@ const _makePlanetMesh = () => {
           for (let j = 0; j < tileGeometry.attributes.position.array.length; j += 3) {
             localVector.fromArray(tileGeometry.attributes.position.array, j);
             if (localVector.z < 0) {
-              edges.fill(1, i * tileGeometry.attributes.position.array.length + j, i * tileGeometry.attributes.position.array.length + j + 3);
+              edges.fill(1, i * tileGeometry.attributes.position.array.length/3 + j/3, i * tileGeometry.attributes.position.array.length/3 + j/3 + 1);
             }
           }
         }
@@ -188,12 +187,12 @@ const _makePlanetMesh = () => {
           for (let j = 0; j < tileGeometry.attributes.position.array.length; j += 3) {
             localVector.fromArray(tileGeometry.attributes.position.array, j);
             if (localVector.z > 0) {
-              edges.fill(1, i * tileGeometry.attributes.position.array.length + j, i * tileGeometry.attributes.position.array.length + j + 3);
+              edges.fill(1, i * tileGeometry.attributes.position.array.length/3 + j/3, i * tileGeometry.attributes.position.array.length/3 + j/3 + 1);
             }
           }
         }
-        for (let j = 0; j < newTileGeometry.attributes.position.array.length; j++) {
-          ids[i * newTileGeometry.attributes.position.array.length + j] = i;
+        for (let j = 0; j < newTileGeometry.attributes.position.array.length/3; j++) {
+          ids[i * newTileGeometry.attributes.position.array.length/3 + j] = i;
         }
         i++;
         indexIndex += newTileGeometry.attributes.position.array.length/3;
@@ -232,6 +231,11 @@ const _makePlanetMesh = () => {
     new THREE.Vector3(0, 0, -1),
   ];
   for (let i = 0; i < axes.length; i++) {
+    for (let j = 0; j < parcelGeometry.attributes.id.array.length; j++) {
+      geometry.attributes.id.array[i * parcelGeometry.attributes.id.array.length + j] += i * parcelGeometry.attributes.id.array.length;
+    }
+  }
+  for (let i = 0; i < axes.length; i++) {
     const axis = axes[i];
     const io = i*parcelGeometry.attributes.position.array.length;
     for (let jo = 0; jo < parcelGeometry.attributes.position.array.length; jo += tileGeometry.attributes.position.array.length) {
@@ -239,7 +243,7 @@ const _makePlanetMesh = () => {
         const ko = yIndices[k];
         const index = io+jo+ko;
         localVector.fromArray(geometry.attributes.position.array, index);
-        if (geometry.attributes.edge.array[index] === 0) {
+        if (geometry.attributes.edge.array[index/3] === 0) {
           localVector.add(localVector2.copy(axis).multiplyScalar(perlin.simplex3(localVector.x/2, localVector.y/2, localVector.z/2)));
         } else {
           localVector.add(localVector2.copy(axis).multiplyScalar(-0.95));
@@ -250,20 +254,34 @@ const _makePlanetMesh = () => {
   }
 
   const loadVsh = `
+    attribute float id;
     varying vec3 pos;
+    varying float vId;
     void main() {
       vec4 p = projectionMatrix * modelViewMatrix * vec4(position, 1.);
       pos = p.xyz/p.w;
       gl_Position = p;
+      vId = id;
     }
   `;
   const loadFsh = `
+    uniform float selectedId;
     varying vec3 pos;
+    varying float vId;
     void main() {
       gl_FragColor = vec4(vec3(pow(pos.z, 4.0)), 1.0);
+      if (selectedId == vId) {
+        gl_FragColor.b += 0.5;
+      }
     }
   `;
   const material = new THREE.ShaderMaterial({
+    uniforms: {
+      selectedId: {
+        type: 'f',
+        value: -1,
+      }
+    },
     vertexShader: loadVsh,
     fragmentShader: loadFsh,
   });
@@ -1135,6 +1153,14 @@ const _updateRaycasterFromMouseEvent = (raycaster, e) => {
     .map(p => p.volumeMesh)
     .filter(o => !!o);
   hoverTarget = volumeRaycaster.raycastMeshes(candidateMeshes, raycaster.ray.origin, raycaster.ray.direction);
+  const intersects = raycaster.intersectObject(planetMesh);
+  if (intersects.length > 0) {
+    const [intersect] = intersects;
+    const {faceIndex} = intersect;
+    const a = planetMesh.geometry.index.array[faceIndex * 3];
+    const id = planetMesh.geometry.attributes.id.array[a];
+    planetMesh.material.uniforms.selectedId.value = id;
+  }
 };
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
