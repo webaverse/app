@@ -237,7 +237,7 @@ const _makePlanetMesh = () => {
         if (geometry.attributes.edge.array[index] === 0) {
           localVector.add(localVector2.copy(axis).multiplyScalar(perlin.simplex3(localVector.x/2, localVector.y/2, localVector.z/2)));
         } else {
-          localVector.add(localVector2.copy(axis).multiplyScalar(-1));
+          localVector.add(localVector2.copy(axis).multiplyScalar(-0.95));
         }
         localVector.toArray(geometry.attributes.position.array, index);
       }
