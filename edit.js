@@ -1047,8 +1047,8 @@ renderer.domElement.addEventListener('mousedown', e => {
   }
 }); */
 
-const runMode = document.getElementById('run-mode');
-const editMode = document.getElementById('edit-mode');
+// const runMode = document.getElementById('run-mode');
+// const editMode = document.getElementById('edit-mode');
 
 const worldsButton = document.getElementById('worlds-button');
 const worldSaveButton = document.getElementById('world-save-button');
@@ -1364,14 +1364,14 @@ const _makeWorldHtml = w => `
     </div>
   </div>
 `;
-const headerLabel = document.getElementById('header-label');
+// const headerLabel = document.getElementById('header-label');
 let currentWorldId = '';
 const _enterWorld = async worldId => {
   currentWorldId = worldId;
 
-  headerLabel.innerText = name || 'Sandbox';
+  /* headerLabel.innerText = name || 'Sandbox';
   runMode.setAttribute('href', 'run.html' + (worldId ? ('?w=' + worldId) : ''));
-  editMode.setAttribute('href', 'edit.html' + (worldId ? ('?w=' + worldId) : ''));
+  editMode.setAttribute('href', 'edit.html' + (worldId ? ('?w=' + worldId) : '')); */
 
   const worlds = Array.from(document.querySelectorAll('.world'));
   worlds.forEach(world => {
