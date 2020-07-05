@@ -21,6 +21,9 @@ const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
 const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
+const parcelSize = 11;
+const PARCEL_SIZE = 10;
+const PARCEL_SIZE_P2 = PARCEL_SIZE + 2;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -31,6 +34,261 @@ const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+
+(async () => {
+
+const {promise} = await import('./bin/objectize2.js');
+await promise;
+
+class Allocator {
+  constructor() {
+    this.offsets = [];
+  }
+  alloc(constructor, size) {
+    const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
+    const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
+    b.offset = offset;
+    this.offsets.push(offset);
+    return b;
+  }
+  freeAll() {
+    for (let i = 0; i < this.offsets.length; i++) {
+      self.Module._doFree(this.offsets[i]);
+    }
+    this.offsets.length = 0;
+  }
+}
+
+const HEIGHTFIELD_SHADER = {
+  uniforms: {
+    fogColor: {
+      type: '3f',
+      value: new THREE.Color(),
+    },
+    fogDensity: {
+      type: 'f',
+      value: 0,
+    },
+    sunIntensity: {
+      type: 'f',
+      value: 0,
+    },
+    tex: {
+      type: 't',
+      value: new THREE.Texture(),
+    },
+  },
+  vertexShader: `\
+    #define LOG2 1.442695
+    precision highp float;
+    precision highp int;
+    uniform float fogDensity;
+    attribute vec3 color;
+    attribute float skyLightmap;
+    attribute float torchLightmap;
+
+    varying vec3 vPosition;
+    // varying vec3 vViewPosition;
+    varying vec3 vColor;
+    // varying vec3 vNormal;
+    // varying float vSkyLightmap;
+    // varying float vTorchLightmap;
+    // varying float vFog;
+
+    void main() {
+      vColor = color;
+      // vNormal = normal;
+
+      vec4 mvPosition = modelViewMatrix * vec4( position.xyz, 1.0 );
+      gl_Position = projectionMatrix * mvPosition;
+
+      vPosition = position.xyz;
+      // vViewPosition = -mvPosition.xyz;
+      // vSkyLightmap = skyLightmap;
+      // vTorchLightmap = torchLightmap;
+      // float fogDepth = -mvPosition.z;
+      // vFog = 1.0 - exp2( - fogDensity * fogDensity * fogDepth * fogDepth * LOG2 );
+    }
+  `,
+  fragmentShader: `\
+    precision highp float;
+    precision highp int;
+    // uniform vec3 ambientLightColor;
+    uniform float sunIntensity;
+    uniform vec3 fogColor;
+    // uniform vec3 cameraPosition;
+    uniform sampler2D tex;
+
+    varying vec3 vPosition;
+    // varying vec3 vViewPosition;
+    varying vec3 vColor;
+    // varying vec3 vNormal;
+    // varying float vSkyLightmap;
+    // varying float vTorchLightmap;
+    // varying float vFog;
+
+    #define saturate(a) clamp( a, 0.0, 1.0 )
+
+    void main() {
+      /* float lightColor = floor(
+        (
+          min((vSkyLightmap * sunIntensity) + vTorchLightmap, 1.0)
+        ) * 4.0 + 0.5
+      ) / 4.0; */
+      vec3 ambientLightColor = vec3(0.5, 0.5, 0.5);
+      float lightColor = 0.5;
+
+      vec2 uv = vec2(
+        mod((vPosition.x) / 4.0, 1.0),
+        mod((vPosition.z) / 4.0, 1.0)
+      );
+
+      vec3 tV = texture2D(tex, uv).rgb;
+      float dotNL = abs(dot( tV, normalize(vec3(-1.0, -1.0, -1.0))));
+      vec3 irradiance = ambientLightColor + dotNL;
+      vec3 diffuseColor = vColor * irradiance * (0.1 + lightColor * 0.9);
+
+      // diffuseColor *= 0.02 + pow(min(max((vPosition.y - 55.0) / 64.0, 0.0), 1.0), 1.0) * 5.0;
+
+      gl_FragColor = vec4( diffuseColor, 1.0 );
+    }
+  `
+};
+
+const _getChunkMesh = () => {
+  const allocator = new Allocator();
+
+  const seed = rng();
+  const potentials = allocator.alloc(Float32Array, PARCEL_SIZE_P2 * PARCEL_SIZE_P2 * PARCEL_SIZE_P2);
+  const dims = allocator.alloc(Int32Array, 3);
+  dims.set(Int32Array.from([PARCEL_SIZE_P2, PARCEL_SIZE_P2, PARCEL_SIZE_P2]));
+
+  Module._doNoise2(
+    seed.offet,
+    0.02,
+    4,
+    dims.offset,
+    1,
+    -0.7,
+    potentials.offset
+  );
+
+  const positions = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
+  const indices = allocator.alloc(Uint32Array, 1024 * 1024 * Uint32Array.BYTES_PER_ELEMENT);
+
+  const numPositions = allocator.alloc(Uint32Array, 1);
+  numPositions[0] = positions.length;
+  const numIndices = allocator.alloc(Uint32Array, 1);
+  numIndices[0] = indices.length;
+
+  const shift = allocator.alloc(Float32Array, 3);
+  shift.set(Float32Array.from([0, 0, 0]));
+
+  const scale = allocator.alloc(Float32Array, 3);
+  scale.set(Float32Array.from([1, 1, 1]));
+
+  self.Module._doMarchingCubes2(
+    dims.offset,
+    potentials.offset,
+    shift.offset,
+    scale.offset,
+    positions.offset,
+    indices.offset,
+    numPositions.offset,
+    numIndices.offset
+  );
+
+  const arrayBuffer2 = new ArrayBuffer(
+    Uint32Array.BYTES_PER_ELEMENT +
+    numPositions[0] * Float32Array.BYTES_PER_ELEMENT +
+    Uint32Array.BYTES_PER_ELEMENT +
+    numIndices[0] * Uint32Array.BYTES_PER_ELEMENT,
+  );
+  let index = 0;
+
+  const outP = new Float32Array(arrayBuffer2, index, numPositions[0]);
+  outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
+  index += Float32Array.BYTES_PER_ELEMENT * numPositions[0];
+
+  const outI = new Uint32Array(arrayBuffer2, index, numIndices[0]);
+  outI.set(new Uint32Array(indices.buffer, indices.byteOffset, numIndices[0]));
+  index += Uint32Array.BYTES_PER_ELEMENT * numIndices[0];
+
+  allocator.freeAll();
+
+  const colors = new Float32Array(outP.length);
+  const c = new THREE.Color(0xaed581).toArray(new Float32Array(3));
+  for (let i = 0; i < colors.length; i += 3) {
+    colors.set(c, i);
+  }
+
+  return {
+    // result: {
+    positions: outP,
+    colors,
+    indices: outI,
+    /* },
+    cleanup: () => {
+      allocator.freeAll();
+
+      this.running = false;
+      if (this.queue.length > 0) {
+        const fn = this.queue.shift();
+        fn();
+      }
+    }, */
+  };
+};
+const chunkMesh = (() => {
+  const spec = _getChunkMesh();
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
+  geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
+
+  const heightfieldMaterial = new THREE.ShaderMaterial({
+    uniforms: (() => {
+      const uniforms = Object.assign(
+        THREE.UniformsUtils.clone(THREE.UniformsLib.lights),
+        THREE.UniformsUtils.clone(HEIGHTFIELD_SHADER.uniforms)
+      );
+      // uniforms.fogColor.value = scene.fog.color;
+      // uniforms.fogDensity.value = scene.fog.density;
+      return uniforms;
+    })(),
+    vertexShader: HEIGHTFIELD_SHADER.vertexShader,
+    fragmentShader: HEIGHTFIELD_SHADER.fragmentShader,
+    lights: true,
+    extensions: {
+      derivatives: true,
+    },
+  });
+  const img = document.createElement('img');
+  img.src = 'grass.png';
+  img.onload = () => {
+    heightfieldMaterial.uniforms.tex.value.image = img;
+    heightfieldMaterial.uniforms.tex.value.needsUpdate = true;
+  };
+  img.onerror = err => {
+    console.warn(err);
+  };
+
+  const mesh = new THREE.Mesh(geometry, heightfieldMaterial);
+  mesh.frustumCulled = false;
+  return mesh;
+})();
+console.log('got chunk mesh', chunkMesh);
+scene.add(chunkMesh);
+})();
+
+
+
+
+
+
+
+
+
 
 function parseQuery(queryString) {
   var query = {};
@@ -142,8 +400,51 @@ teleportMeshes.forEach(teleportMesh => {
   scene.add(teleportMesh);
 });
 
+const planetMaterial = (() => {
+  const loadVsh = `
+    attribute float id;
+    varying vec3 vPosition;
+    varying float vId;
+    void main() {
+      vec4 p = modelViewMatrix * vec4(position, 1.);
+      vPosition = p.xyz;
+      gl_Position = projectionMatrix * p;
+      vId = id;
+    }
+  `;
+  const loadFsh = `
+    uniform float selectedId;
+    varying vec3 vPosition;
+    varying float vId;
+    vec3 lightDirection = vec3(0.0, 0.0, 1.0);
+    void main() {
+      vec3 xTangent = dFdx( vPosition );
+      vec3 yTangent = dFdy( vPosition );
+      vec3 faceNormal = normalize( cross( xTangent, yTangent ) );
+      float lightFactor = dot(faceNormal, lightDirection);
+      vec3 c = vec3(${new THREE.Color(0x333333).toArray().join(',')});
+      gl_FragColor = vec4(
+        c * (0.5 + lightFactor * 0.5),
+        1.0
+      );
+      if (selectedId == vId) {
+        gl_FragColor.b += 0.5;
+      }
+    }
+  `;
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      selectedId: {
+        type: 'f',
+        value: -1,
+      }
+    },
+    vertexShader: loadVsh,
+    fragmentShader: loadFsh,
+  });
+  return material;
+})();
 const _makePlanetMesh = (tileScale = 1) => {
-  const parcelSize = 11;
   const noiseHeight = 0.5;
   const noiseScale = 0.5;
   const tileGeometry = new THREE.BoxBufferGeometry(tileScale, tileScale, tileScale);
@@ -258,49 +559,7 @@ const _makePlanetMesh = (tileScale = 1) => {
       }
     }
   }
-
-  const loadVsh = `
-    attribute float id;
-    varying vec3 vPosition;
-    varying float vId;
-    void main() {
-      vec4 p = modelViewMatrix * vec4(position, 1.);
-      vPosition = p.xyz;
-      gl_Position = projectionMatrix * p;
-      vId = id;
-    }
-  `;
-  const loadFsh = `
-    uniform float selectedId;
-    varying vec3 vPosition;
-    varying float vId;
-    vec3 lightDirection = vec3(0.0, 0.0, 1.0);
-    void main() {
-      vec3 xTangent = dFdx( vPosition );
-      vec3 yTangent = dFdy( vPosition );
-      vec3 faceNormal = normalize( cross( xTangent, yTangent ) );
-      float lightFactor = dot(faceNormal, lightDirection);
-      vec3 c = vec3(${new THREE.Color(0x333333).toArray().join(',')});
-      gl_FragColor = vec4(
-        c * (0.5 + lightFactor * 0.5),
-        1.0
-      );
-      if (selectedId == vId) {
-        gl_FragColor.b += 0.5;
-      }
-    }
-  `;
-  const material = new THREE.ShaderMaterial({
-    uniforms: {
-      selectedId: {
-        type: 'f',
-        value: -1,
-      }
-    },
-    vertexShader: loadVsh,
-    fragmentShader: loadFsh,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
+  const mesh = new THREE.Mesh(geometry, planetMaterial);
   return mesh;
 };
 const planetContainer = new THREE.Object3D();
