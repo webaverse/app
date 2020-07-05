@@ -198,9 +198,6 @@ const _makePlanetMesh = () => {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-    /* geometry.setAttribute('center', new THREE.BufferAttribute(centers, 3));
-    geometry.setAttribute('typex', new THREE.BufferAttribute(typesx, 1));
-    geometry.setAttribute('typez', new THREE.BufferAttribute(typesz, 1)); */
     geometry.setAttribute('edge', new THREE.BufferAttribute(edges, 1));
     return geometry;
   })();
@@ -209,7 +206,6 @@ const _makePlanetMesh = () => {
     localVector.fromArray(tileGeometry.attributes.position.array, i);
     if (localVector.y > 0) {
       yIndices.push(i);
-      // console.log('got i', i, tileGeometry.attributes.position.array.length);
     }
   }
   const geometries = [
@@ -221,7 +217,6 @@ const _makePlanetMesh = () => {
     parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, 0, -10/2), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1)), new THREE.Vector3(1, 1, 1))),
   ];
   const geometry =  BufferGeometryUtils.mergeBufferGeometries(geometries);
-  // geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-1, 0, -1));
 
   const axes = [
     new THREE.Vector3(1, 0, 0),
