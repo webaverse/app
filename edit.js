@@ -190,7 +190,7 @@ const _makePotentials = () => {
 
   return {potentials, dims, allocator};
 };
-const _getChunkMesh = (potentials, dims) => {
+const _getChunkSpec = (potentials, dims) => {
   const allocator = new Allocator();
 
   const positions = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
@@ -259,16 +259,14 @@ const _getChunkMesh = (potentials, dims) => {
     }, */
   };
 };
-const chunkMesh = (() => {
+const _makeChunkMesh = () => {
   const {potentials, dims} = _makePotentials();
-  const spec = _getChunkMesh(potentials, dims);
+  const spec = _getChunkSpec(potentials, dims);
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
   geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
-
-
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
     uniforms: (() => {
@@ -287,15 +285,6 @@ const chunkMesh = (() => {
       derivatives: true,
     },
   });
-  const img = document.createElement('img');
-  img.src = 'grass.png';
-  img.onload = () => {
-    heightfieldMaterial.uniforms.tex.value.image = img;
-    heightfieldMaterial.uniforms.tex.value.needsUpdate = true;
-  };
-  img.onerror = err => {
-    console.warn(err);
-  };
 
   const stops = [
     [0, 0xff7043],
@@ -323,7 +312,19 @@ const chunkMesh = (() => {
   mesh.potentials = potentials;
   mesh.dims = dims;
   return mesh;
-})();
+};
+const chunkMesh = _makeChunkMesh();
+{
+  const img = document.createElement('img');
+  img.src = 'grass.png';
+  img.onload = () => {
+    chunkMesh.material.uniforms.tex.value.image = img;
+    chunkMesh.material.uniforms.tex.value.needsUpdate = true;
+  };
+  img.onerror = err => {
+    console.warn(err);
+  };
+}
 scene.add(chunkMesh);
 
 window.addEventListener('mousedown', e => {
@@ -334,11 +335,17 @@ window.addEventListener('mousedown', e => {
   const potentialIndex = localVector.x + localVector.y*PARCEL_SIZE_P2*PARCEL_SIZE_P2 + localVector.z*PARCEL_SIZE_P2;
   chunkMesh.potentials[potentialIndex] += 0.25;
 
-  const spec = _getChunkMesh(chunkMesh.potentials, chunkMesh.dims);
+  const spec = _getChunkSpec(chunkMesh.potentials, chunkMesh.dims);
   chunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
   chunkMesh.geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
   chunkMesh.geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
 });
+
+for (let i = 0; i < 10; i++) {
+  const chunkMesh = _makeChunkMesh();
+  chunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(30);
+  scene.add(chunkMesh);
+}
 
 })();
 
