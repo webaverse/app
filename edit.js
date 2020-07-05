@@ -159,14 +159,38 @@ const _makePlanetMesh = () => {
           newTileGeometry.index.array[i] += indexIndex;
         }
         indices.set(newTileGeometry.index.array, i * newTileGeometry.index.array.length);
-        edges.fill(
-          (x === (-parcelSize / 2 + 1) || x === (parcelSize / 2 - 1) || z === (-parcelSize / 2 + 1) || z === (parcelSize / 2 - 1)) ?
-            1
-          :
-            0,
-          i * newTileGeometry.attributes.position.array.length,
-          (i+1) * newTileGeometry.attributes.position.array.length
-        );
+        if (x === (-parcelSize / 2 + 1)) {
+          for (let j = 0; j < tileGeometry.attributes.position.array.length; j += 3) {
+            localVector.fromArray(tileGeometry.attributes.position.array, j);
+            if (localVector.x < 0) {
+              edges.fill(1, i * tileGeometry.attributes.position.array.length + j, i * tileGeometry.attributes.position.array.length + j + 3);
+            }
+          }
+        }
+        if (x === (parcelSize / 2 - 1)) {
+          for (let j = 0; j < tileGeometry.attributes.position.array.length; j += 3) {
+            localVector.fromArray(tileGeometry.attributes.position.array, j);
+            if (localVector.x > 0) {
+              edges.fill(1, i * tileGeometry.attributes.position.array.length + j, i * tileGeometry.attributes.position.array.length + j + 3);
+            }
+          }
+        }
+        if (z === (-parcelSize / 2 + 1)) {
+          for (let j = 0; j < tileGeometry.attributes.position.array.length; j += 3) {
+            localVector.fromArray(tileGeometry.attributes.position.array, j);
+            if (localVector.z < 0) {
+              edges.fill(1, i * tileGeometry.attributes.position.array.length + j, i * tileGeometry.attributes.position.array.length + j + 3);
+            }
+          }
+        }
+        if (z === (parcelSize / 2 - 1)) {
+          for (let j = 0; j < tileGeometry.attributes.position.array.length; j += 3) {
+            localVector.fromArray(tileGeometry.attributes.position.array, j);
+            if (localVector.z > 0) {
+              edges.fill(1, i * tileGeometry.attributes.position.array.length + j, i * tileGeometry.attributes.position.array.length + j + 3);
+            }
+          }
+        }
         i++;
         indexIndex += newTileGeometry.attributes.position.array.length/3;
       }
