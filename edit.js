@@ -317,6 +317,10 @@ planetAuxMesh.updateMatrixWorld();
 planetAuxContainer.add(planetAuxMesh);
 
 const numRemotePlanetMeshes = 10;
+const remotePlanetCubeMeshes = [];
+const fakeMaterial = new THREE.MeshBasicMaterial({
+  color: 0x333333,
+});
 for (let i = 0; i < numRemotePlanetMeshes; i++) {
   const remotePlanetMesh = _makePlanetMesh(0.95);
   remotePlanetMesh.position.set(-1 + rng() * 2, -1 + rng() * 2, -1 + rng() * 2).multiplyScalar(30);
@@ -326,8 +330,12 @@ for (let i = 0; i < numRemotePlanetMeshes; i++) {
   remotePlanetMesh.add(textMesh);
 
   planetContainer.add(remotePlanetMesh);
-}
 
+  const remotePlanetCubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(10, 10, 10), fakeMaterial);
+  remotePlanetCubeMesh.position.copy(remotePlanetMesh.position);
+  planetContainer.add(remotePlanetCubeMesh);
+  remotePlanetCubeMeshes.push(remotePlanetCubeMesh);
+}
 
 /* const rayMesh = makeRayMesh();
 scene.add(rayMesh);
@@ -405,6 +413,7 @@ const _tickPlanetAnimation = factor => {
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
+let currentTeleport = false;
 let lastTeleport = false;
 const timeFactor = 500;
 let lastTimestamp = performance.now();
@@ -437,7 +446,7 @@ function animate(timestamp, frame) {
         lastParcel = currentParcel;
       }
 
-      teleportMeshes[1].update(localVector, localQuaternion, lastTeleport, (position, quaternion) => {
+      const _teleportTo = (position, quaternion) => {
         switch (selectedTool) {
           case 'thirdperson': {
             pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
@@ -464,7 +473,23 @@ function animate(timestamp, frame) {
         }
 
         pe.camera.updateMatrixWorld();
-      });
+      };
+
+      raycaster.ray.origin.copy(localVector);
+      raycaster.ray.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
+      const intersects = raycaster.intersectObjects(remotePlanetCubeMeshes);
+      if (intersects.length > 0) {
+        const [intersect] = intersects;
+        const {point, face: {normal}} = intersect;
+        teleportMeshes[1].position.copy(point);
+        teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), normal);
+        teleportMeshes[1].visible = currentTeleport;
+        if (!currentTeleport && lastTeleport) {
+          // _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
+        }
+      } else {
+        teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, _teleportTo);
+      }
     }
   }
 
@@ -540,7 +565,7 @@ function animate(timestamp, frame) {
           ) {
             _applyRotation(Math.PI * 0.2);
           }
-          lastTeleport = (axes[1] < -0.5 || axes[3] < -0.5);
+          currentTeleport = (axes[1] < -0.5 || axes[3] < -0.5);
         }
         lastAxes[index][0] = axes[0];
         lastAxes[index][1] = axes[1];
@@ -681,6 +706,8 @@ function animate(timestamp, frame) {
   } else {
     wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
   }
+
+  lastTeleport = currentTeleport;
 
   renderer.render(scene, camera);
   // renderer.render(highlightScene, camera);
@@ -981,7 +1008,7 @@ window.addEventListener('mousedown', e => {
       pe.grabtriggerdown('right');
       pe.grabuse('right');
     } else if (e.button === 2) {
-      lastTeleport = true;
+      currentTeleport = true;
     }
   }
 });
@@ -989,7 +1016,7 @@ window.addEventListener('mouseup', e => {
   if (document.pointerLockElement) {
     pe.grabtriggerup('right');
   }
-  lastTeleport = false;
+  currentTeleport = false;
 });
 
 /* document.getElementById('world-name').addEventListener('change', e => {
