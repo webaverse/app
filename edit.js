@@ -134,6 +134,8 @@ const HEIGHTFIELD_SHADER = {
 
     #define saturate(a) clamp( a, 0.0, 1.0 )
 
+    vec3 lightDirection = normalize(vec3(-1.0, -1.0, -1.0));
+
     void main() {
       /* float lightColor = floor(
         (
@@ -141,7 +143,10 @@ const HEIGHTFIELD_SHADER = {
         ) * 4.0 + 0.5
       ) / 4.0; */
       vec3 ambientLightColor = vec3(0.5, 0.5, 0.5);
-      float lightColor = 0.5;
+      vec3 xTangent = dFdx( vPosition );
+      vec3 yTangent = dFdy( vPosition );
+      vec3 faceNormal = normalize( cross( xTangent, yTangent ) );
+      float lightColor = dot(faceNormal, lightDirection);
 
       vec2 uv = vec2(
         mod((vPosition.x) / 4.0, 1.0),
@@ -149,14 +154,14 @@ const HEIGHTFIELD_SHADER = {
       );
 
       vec3 tV = texture2D(tex, uv).rgb;
-      float dotNL = abs(dot( tV, normalize(vec3(-1.0, -1.0, -1.0))));
+      float dotNL = abs(dot( tV, lightDirection));
       vec3 irradiance = ambientLightColor + dotNL;
       // vec3 diffuseColor = vColor * irradiance * (0.1 + lightColor * 0.9);
       float d = length(vPosition - vec3(5, 5, 5));
       float dMax = length(vec3(5, 5, 5));
       vec2 uv2 = vec2(d / dMax, 0.5);
       vec3 c = texture2D(heightColorTex, uv2).rgb;
-      vec3 diffuseColor = c * (0.5 + uv2.x) * irradiance * (0.1 + lightColor * 0.9);
+      vec3 diffuseColor = c * uv2.x * irradiance * (0.9 + lightColor*0.1);
 
       // diffuseColor *= 0.02 + pow(min(max((vPosition.y - 55.0) / 64.0, 0.0), 1.0), 1.0) * 5.0;
 
@@ -267,7 +272,6 @@ const chunkMesh = (() => {
     localVector.y = Math.floor(localVector.y);
     localVector.z = Math.floor(localVector.z);
     const potentialIndex = localVector.x + localVector.y*PARCEL_SIZE_P2*PARCEL_SIZE_P2 + localVector.z*PARCEL_SIZE_P2;
-    console.log('got potential index', potentialIndex, potentials.length);
     potentials[potentialIndex] += 0.25;
 
     const spec = _getChunkMesh(potentials, dims);
