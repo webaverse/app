@@ -12,7 +12,9 @@ import './gif.js';
 // import {makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import perlin from './perlin.js';
-perlin.seed(Math.random());
+import alea from './alea.js';
+const rng = alea('lol');
+perlin.seed(rng());
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
