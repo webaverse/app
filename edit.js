@@ -77,6 +77,10 @@ const HEIGHTFIELD_SHADER = {
       type: 't',
       value: new THREE.Texture(),
     },
+    heightColorTex: {
+      type: 't',
+      value: new THREE.DataTexture(new Uint8Array(256*3), 256, 1, THREE.RGBFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter, 1),
+    },
   },
   vertexShader: `\
     #define LOG2 1.442695
@@ -118,10 +122,11 @@ const HEIGHTFIELD_SHADER = {
     uniform vec3 fogColor;
     // uniform vec3 cameraPosition;
     uniform sampler2D tex;
+    uniform sampler2D heightColorTex;
 
     varying vec3 vPosition;
     // varying vec3 vViewPosition;
-    varying vec3 vColor;
+    // varying vec3 vColor;
     // varying vec3 vNormal;
     // varying float vSkyLightmap;
     // varying float vTorchLightmap;
@@ -146,7 +151,8 @@ const HEIGHTFIELD_SHADER = {
       vec3 tV = texture2D(tex, uv).rgb;
       float dotNL = abs(dot( tV, normalize(vec3(-1.0, -1.0, -1.0))));
       vec3 irradiance = ambientLightColor + dotNL;
-      vec3 diffuseColor = vColor * irradiance * (0.1 + lightColor * 0.9);
+      // vec3 diffuseColor = vColor * irradiance * (0.1 + lightColor * 0.9);
+      vec3 diffuseColor = texture2D(heightColorTex, uv).rgb * irradiance * (0.1 + lightColor * 0.9);
 
       // diffuseColor *= 0.02 + pow(min(max((vPosition.y - 55.0) / 64.0, 0.0), 1.0), 1.0) * 5.0;
 
@@ -272,6 +278,27 @@ const chunkMesh = (() => {
   img.onerror = err => {
     console.warn(err);
   };
+
+  const stops = [
+    [0, 0xff7043],
+    [120, 0x64b5f6],
+    [200, 0x9ccc65],
+  ];
+  stops.forEach((stop, i) => {
+    const [startIndex, colorValue] = stop;
+    const nextStop = stops[i+1] || null;
+    const endIndex = nextStop ? nextStop[0] : 256;
+    const color = new THREE.Color(colorValue);
+    const colorArray = Uint8Array.from([
+      color.r*256,
+      color.g*256,
+      color.b*256,
+    ]);
+    for (let j = startIndex; j < endIndex; j++) {
+      heightfieldMaterial.uniforms.heightColorTex.value.image.data.set(colorArray, j*3);
+    }
+  });
+  heightfieldMaterial.uniforms.heightColorTex.value.needsUpdate = true;
 
   const mesh = new THREE.Mesh(geometry, heightfieldMaterial);
   mesh.frustumCulled = false;
