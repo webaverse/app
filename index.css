@@ -105,13 +105,9 @@ img:not([src]) {
   cursor: default;
 }
 
-.header .nav.bar-left, .spacer {
+.header .nav.bar-left {
   border: 0;
   border-left: 3px solid #000;
-}
-.spacer {
-  height: 100%;
-  margin-right: 10px;
 }
 .marginer {
   margin-right: auto;
@@ -184,10 +180,14 @@ img:not([src]) {
   display: none;
 }
 
+.header .selector,
+.header .spacer
+{
+  margin-right: auto;
+}
 .header .selector {
   width: 500px;
   padding-left: 0;
-  margin-right: auto;
   justify-content: flex-start;
 }
 .header .selector:hover,
