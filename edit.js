@@ -161,7 +161,7 @@ const HEIGHTFIELD_SHADER = {
   `
 };
 
-const _getChunkMesh = () => {
+const {potentials, dims} = (() => {
   const allocator = new Allocator();
 
   const seed = rng();
@@ -178,6 +178,11 @@ const _getChunkMesh = () => {
     -0.7,
     potentials.offset
   );
+
+  return {potentials, dims};
+})();
+const _getChunkMesh = (potentials, dims) => {
+  const allocator = new Allocator();
 
   const positions = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
   const indices = allocator.alloc(Uint32Array, 1024 * 1024 * Uint32Array.BYTES_PER_ELEMENT);
@@ -246,11 +251,26 @@ const _getChunkMesh = () => {
   };
 };
 const chunkMesh = (() => {
-  const spec = _getChunkMesh();
+  const spec = _getChunkMesh(potentials, dims);
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
   geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
+
+  window.addEventListener('mousedown', e => {
+    localVector.copy(cubeMesh.position);
+    localVector.x = Math.floor(localVector.x);
+    localVector.y = Math.floor(localVector.y);
+    localVector.z = Math.floor(localVector.z);
+    const potentialIndex = localVector.x + localVector.y*PARCEL_SIZE_P2*PARCEL_SIZE_P2 + localVector.z*PARCEL_SIZE_P2;
+    console.log('got potential index', potentialIndex, potentials.length);
+    potentials[potentialIndex] += 0.25;
+
+    const spec = _getChunkMesh(potentials, dims);
+    geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
+    geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
+  });
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
     uniforms: (() => {
@@ -306,10 +326,13 @@ const chunkMesh = (() => {
 })();
 console.log('got chunk mesh', chunkMesh);
 scene.add(chunkMesh);
+
 })();
 
-
-
+const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({
+  color: 0xFF0000,
+}));
+scene.add(cubeMesh);
 
 
 
@@ -717,6 +740,8 @@ function animate(timestamp, frame) {
     if (pose = frame.getPose(inputSource.targetRaySpace, renderer.xr.getReferenceSpace())) {
       localMatrix.fromArray(pose.transform.matrix)
         .decompose(localVector, localQuaternion, localVector2);
+
+      cubeMesh.position.copy(localVector).add(localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
 
       const currentParcel = _getCurrentParcel(localVector);
       if (!currentParcel.equals(lastParcel)) {
