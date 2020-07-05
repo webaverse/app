@@ -40,6 +40,11 @@ const localMatrix2 = new THREE.Matrix4();
 const {promise} = await import('./bin/objectize2.js');
 await promise;
 
+const colors = await (async () => {
+  const res = await fetch('./colors.json');
+  return await res.json();
+})();
+
 class Allocator {
   constructor() {
     this.offsets = [];
@@ -79,7 +84,7 @@ const HEIGHTFIELD_SHADER = {
     },
     heightColorTex: {
       type: 't',
-      value: new THREE.DataTexture(new Uint8Array(256*3), 256, 1, THREE.RGBFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter, 1),
+      value: null,
     },
   },
   vertexShader: `\
@@ -173,13 +178,13 @@ const HEIGHTFIELD_SHADER = {
 const _makePotentials = () => {
   const allocator = new Allocator();
 
-  const seed = rng();
+  const seed = Math.floor(rng() * 0xFFFFFF);
   const potentials = allocator.alloc(Float32Array, PARCEL_SIZE_P2 * PARCEL_SIZE_P2 * PARCEL_SIZE_P2);
   const dims = allocator.alloc(Int32Array, 3);
   dims.set(Int32Array.from([PARCEL_SIZE_P2, PARCEL_SIZE_P2, PARCEL_SIZE_P2]));
 
   Module._doNoise2(
-    seed.offet,
+    seed,
     0.02,
     4,
     dims.offset,
@@ -286,11 +291,18 @@ const _makeChunkMesh = () => {
     },
   });
 
-  const stops = [
-    [0, 0xff7043],
-    [120, 0x64b5f6],
-    [200, 0x9ccc65],
-  ];
+  const numStops = Math.floor(2 + rng() * 5);
+  const stops = Array(numStops);
+  const colorKeys = Object.keys(colors);
+  for (let i = 0; i < numStops; i++) {
+    const pos = i === 0 ? 0 : Math.floor(rng() *255);
+    const colorIndex = colorKeys[Math.floor(rng() * colorKeys.length)];
+    const color = colors[colorIndex];
+    const col = parseInt('0x' + color[400].slice(1));
+    stops[i] = [pos, col];
+  }
+  stops.sort((a, b) => a[0] - b[0]);
+  heightfieldMaterial.uniforms.heightColorTex.value = new THREE.DataTexture(new Uint8Array(256*3), 256, 1, THREE.RGBFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter, 1);
   stops.forEach((stop, i) => {
     const [startIndex, colorValue] = stop;
     const nextStop = stops[i+1] || null;
@@ -341,9 +353,9 @@ window.addEventListener('mousedown', e => {
   chunkMesh.geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
 });
 
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 30; i++) {
   const chunkMesh = _makeChunkMesh();
-  chunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(30);
+  chunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(100);
   scene.add(chunkMesh);
 }
 
