@@ -11,6 +11,7 @@ import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh,
 import './gif.js';
 // import {makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
+import perlin from './perlin.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
@@ -138,6 +139,31 @@ teleportMeshes.forEach(teleportMesh => {
 });
 
 const _makePlanetMesh = () => {
+  const parcelSize = 10;
+  const parcelGeometry = (() => {
+    const tileGeometry = new THREE.BoxBufferGeometry(0.95, 0.95, 0.95)
+      .applyMatrix4(localMatrix.makeTranslation(0, 0, 0))
+      .applyMatrix4(localMatrix.makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)))
+      .toNonIndexed();
+    const numCoords = tileGeometry.attributes.position.array.length;
+    const numVerts = numCoords / 3;
+    const positions = new Float32Array(numCoords * parcelSize * parcelSize);
+    let i = 0;
+    for (let x = -parcelSize / 2 + 1; x < parcelSize / 2; x++) {
+      for (let z = -parcelSize / 2 + 1; z < parcelSize / 2; z++) {
+        const newTileGeometry = tileGeometry.clone()
+          .applyMatrix4(localMatrix.makeTranslation(x, 0, z));
+        positions.set(newTileGeometry.attributes.position.array, i * newTileGeometry.attributes.position.array.length);
+        i++;
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    /* geometry.setAttribute('center', new THREE.BufferAttribute(centers, 3));
+    geometry.setAttribute('typex', new THREE.BufferAttribute(typesx, 1));
+    geometry.setAttribute('typez', new THREE.BufferAttribute(typesz, 1)); */
+    return geometry;
+  })();
   const geometries = [
     parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(10/2, 0, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0)), new THREE.Vector3(1, 1, 1))),
     parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(-10/2, 0, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0)), new THREE.Vector3(1, 1, 1))),
@@ -147,12 +173,31 @@ const _makePlanetMesh = () => {
     parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, 0, -10/2), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1)), new THREE.Vector3(1, 1, 1))),
   ];
   const geometry =  BufferGeometryUtils.mergeBufferGeometries(geometries);
-  const mesh = new THREE.Mesh(geometry, parcelMaterial);
+
+  const loadVsh = `
+    varying vec3 pos;
+    void main() {
+      vec4 p = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+      pos = p.xyz/p.w;
+      gl_Position = p;
+    }
+  `;
+  const loadFsh = `
+    varying vec3 pos;
+    void main() {
+      gl_FragColor = vec4(vec3(pow(pos.z, 3.0)), 1.0);
+    }
+  `;
+  const material = new THREE.ShaderMaterial({
+    vertexShader: loadVsh,
+    fragmentShader: loadFsh,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
   return mesh;
 };
 const planetMesh = _makePlanetMesh();
 planetMesh.position.x = -10;
-planetMesh.position.y = 10;
+planetMesh.position.y = 1;
 planetMesh.position.z = -10;
 scene.add(planetMesh);
 
