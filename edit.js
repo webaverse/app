@@ -395,6 +395,11 @@ function animate(timestamp, frame) {
 
       const currentParcel = _getCurrentParcel(localVector);
       if (!currentParcel.equals(lastParcel)) {
+        if (currentParcel.x !== lastParcel.x) {
+          currentParcel.z = lastParcel.z;
+        } else if (currentParcel.z !== lastParcel.z) {
+          currentParcel.x = lastParcel.x;
+        }
         planetAnimation && _tickPlanetAnimation(1);
         const sub = lastParcel.clone().sub(currentParcel);
         const pivot = currentParcel.clone().add(lastParcel).multiplyScalar(10/2);
