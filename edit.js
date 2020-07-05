@@ -702,7 +702,7 @@ window.addEventListener('keyup', e => {
 });
 window.addEventListener('mousedown', e => {
   if (document.pointerLockElement) {
-    if (e.button === 1) {
+    if (e.button === 0) {
       pe.grabtriggerdown('right');
       pe.grabuse('right');
     } else if (e.button === 2) {
