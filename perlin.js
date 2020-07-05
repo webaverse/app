@@ -16,9 +16,7 @@
 
 const exports = {};
 
-(function(global){
-  var module = global.noise = {};
-
+(function(module){
   function Grad(x, y, z) {
     this.x = x; this.y = y; this.z = z;
   }

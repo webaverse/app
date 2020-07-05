@@ -5,13 +5,14 @@ import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUt
 import {TransformControls} from './TransformControls.js';
 // import address from 'https://contracts.webaverse.com/address.js';
 // import abi from 'https://contracts.webaverse.com/abi.js';
-import {XRPackage, pe, renderer, scene, camera, parcelGeometry, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
+import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
 // import {makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import perlin from './perlin.js';
+perlin.seed(Math.random());
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
@@ -140,30 +141,53 @@ teleportMeshes.forEach(teleportMesh => {
 
 const _makePlanetMesh = () => {
   const parcelSize = 10;
+  const tileGeometry = new THREE.BoxBufferGeometry(0.95, 0.95, 0.95);
   const parcelGeometry = (() => {
-    const tileGeometry = new THREE.BoxBufferGeometry(0.95, 0.95, 0.95)
-      .applyMatrix4(localMatrix.makeTranslation(0, 0, 0))
-      .applyMatrix4(localMatrix.makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)))
-      .toNonIndexed();
     const numCoords = tileGeometry.attributes.position.array.length;
-    const numVerts = numCoords / 3;
     const positions = new Float32Array(numCoords * parcelSize * parcelSize);
+    const numIndices = tileGeometry.index.array.length;
+    const indices = new Uint16Array(numCoords * parcelSize * parcelSize);
+    const edges = new Uint16Array(numCoords * parcelSize * parcelSize);
     let i = 0;
+    let indexIndex = 0;
     for (let x = -parcelSize / 2 + 1; x < parcelSize / 2; x++) {
       for (let z = -parcelSize / 2 + 1; z < parcelSize / 2; z++) {
         const newTileGeometry = tileGeometry.clone()
           .applyMatrix4(localMatrix.makeTranslation(x, 0, z));
         positions.set(newTileGeometry.attributes.position.array, i * newTileGeometry.attributes.position.array.length);
+        for (let i = 0; i < newTileGeometry.index.array.length; i++) {
+          newTileGeometry.index.array[i] += indexIndex;
+        }
+        indices.set(newTileGeometry.index.array, i * newTileGeometry.index.array.length);
+        edges.fill(
+          (x === (-parcelSize / 2 + 1) || x === (parcelSize / 2 - 1) || z === (-parcelSize / 2 + 1) || z === (parcelSize / 2 - 1)) ?
+            1
+          :
+            0,
+          i * newTileGeometry.attributes.position.array.length,
+          (i+1) * newTileGeometry.attributes.position.array.length
+        );
         i++;
+        indexIndex += newTileGeometry.attributes.position.array.length/3;
       }
     }
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
     /* geometry.setAttribute('center', new THREE.BufferAttribute(centers, 3));
     geometry.setAttribute('typex', new THREE.BufferAttribute(typesx, 1));
     geometry.setAttribute('typez', new THREE.BufferAttribute(typesz, 1)); */
+    geometry.setAttribute('edge', new THREE.BufferAttribute(edges, 1));
     return geometry;
   })();
+  const yIndices = [];
+  for (let i = 0; i < tileGeometry.attributes.position.array.length; i += 3) {
+    localVector.fromArray(tileGeometry.attributes.position.array, i);
+    if (localVector.y > 0) {
+      yIndices.push(i);
+      // console.log('got i', i, tileGeometry.attributes.position.array.length);
+    }
+  }
   const geometries = [
     parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(10/2, 0, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0)), new THREE.Vector3(1, 1, 1))),
     parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(-10/2, 0, 0), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0)), new THREE.Vector3(1, 1, 1))),
@@ -173,6 +197,33 @@ const _makePlanetMesh = () => {
     parcelGeometry.clone().applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, 0, -10/2), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1)), new THREE.Vector3(1, 1, 1))),
   ];
   const geometry =  BufferGeometryUtils.mergeBufferGeometries(geometries);
+  // geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-1, 0, -1));
+
+  const axes = [
+    new THREE.Vector3(1, 0, 0),
+    new THREE.Vector3(-1, 0, 0),
+    new THREE.Vector3(0, 1, 0),
+    new THREE.Vector3(0, -1, 0),
+    new THREE.Vector3(0, 0, 1),
+    new THREE.Vector3(0, 0, -1),
+  ];
+  for (let i = 0; i < axes.length; i++) {
+    const axis = axes[i];
+    const io = i*parcelGeometry.attributes.position.array.length;
+    for (let jo = 0; jo < parcelGeometry.attributes.position.array.length; jo += tileGeometry.attributes.position.array.length) {
+      for (let k = 0; k < yIndices.length; k++) {
+        const ko = yIndices[k];
+        const index = io+jo+ko;
+        localVector.fromArray(geometry.attributes.position.array, index);
+        if (geometry.attributes.edge.array[index] === 0) {
+          localVector.add(localVector2.copy(axis).multiplyScalar(perlin.simplex3(localVector.x/2, localVector.y/2, localVector.z/2)));
+        } else {
+          localVector.add(localVector2.copy(axis).multiplyScalar(-1));
+        }
+        localVector.toArray(geometry.attributes.position.array, index);
+      }
+    }
+  }
 
   const loadVsh = `
     varying vec3 pos;
@@ -185,7 +236,7 @@ const _makePlanetMesh = () => {
   const loadFsh = `
     varying vec3 pos;
     void main() {
-      gl_FragColor = vec4(vec3(pow(pos.z, 3.0)), 1.0);
+      gl_FragColor = vec4(vec3(pow(pos.z, 4.0)), 1.0);
     }
   `;
   const material = new THREE.ShaderMaterial({
