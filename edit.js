@@ -7,7 +7,7 @@ import {TransformControls} from './TransformControls.js';
 // import abi from 'https://contracts.webaverse.com/abi.js';
 import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
-import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
+// import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
 // import {makeTextMesh, makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
 import {makeTextMesh} from './vr-ui.js';
@@ -422,7 +422,7 @@ function animate(timestamp, frame) {
   const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
 
-  loadMeshMaterial.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
+  // loadMeshMaterial.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
 
   const session = renderer.xr.getSession();
   if (session) {
@@ -694,7 +694,7 @@ function animate(timestamp, frame) {
       p.volumeMesh.visible = isVolume;
     }
   }
-  if (hoverTarget) {
+  /* if (hoverTarget) {
     wireframeMaterial.uniforms.uHoverId.value.fromArray(meshIdToArray(hoverTarget.meshId).map(n => n / 255));
     wireframeMaterial.uniforms.uHoverColor.value.fromArray(new THREE.Color(0x5c6bc0).toArray());
   } else {
@@ -705,7 +705,7 @@ function animate(timestamp, frame) {
     wireframeMaterial.uniforms.uSelectColor.value.fromArray(new THREE.Color(0x66bb6a).toArray());
   } else {
     wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
-  }
+  } */
 
   lastTeleport = currentTeleport;
 
@@ -715,7 +715,7 @@ function animate(timestamp, frame) {
 renderer.setAnimationLoop(animate);
 renderer.xr.setSession(proxySession);
 
-const volumeRaycaster = new VolumeRaycaster();
+// const volumeRaycaster = new VolumeRaycaster();
 
 bindUploadFileButton(document.getElementById('import-scene-input'), async file => {
   const uint8Array = await readFile(file);
@@ -1297,7 +1297,7 @@ const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const candidateMeshes = pe.children
     .map(p => p.volumeMesh)
     .filter(o => !!o);
-  hoverTarget = volumeRaycaster.raycastMeshes(candidateMeshes, raycaster.ray.origin, raycaster.ray.direction);
+  // hoverTarget = volumeRaycaster.raycastMeshes(candidateMeshes, raycaster.ray.origin, raycaster.ray.direction);
   const intersects = raycaster.intersectObject(planetMesh);
   if (intersects.length > 0) {
     const [intersect] = intersects;
