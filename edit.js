@@ -1709,7 +1709,7 @@ let s;
   packages.innerHTML = ps.map(p => _makePackageHtml(p)).join('\n');
   Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i]));
 
-  wristMenu.packageSide.setPackages(ps);
+  // wristMenu.packageSide.setPackages(ps);
 })();
 const tokens = document.getElementById('tokens');
 async function getTokenByIndex(index) {
