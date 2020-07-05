@@ -139,9 +139,9 @@ teleportMeshes.forEach(teleportMesh => {
   scene.add(teleportMesh);
 });
 
-const _makePlanetMesh = () => {
+const _makePlanetMesh = tileScale => {
   const parcelSize = 11;
-  const tileGeometry = new THREE.BoxBufferGeometry(0.95, 0.95, 0.95);
+  const tileGeometry = new THREE.BoxBufferGeometry(tileScale, tileScale, tileScale);
   const parcelGeometry = (() => {
     const numCoords = tileGeometry.attributes.position.array.length;
     const positions = new Float32Array(numCoords * parcelSize * parcelSize);
@@ -246,7 +246,7 @@ const _makePlanetMesh = () => {
         if (geometry.attributes.edge.array[index/3] === 0) {
           localVector.add(localVector2.copy(axis).multiplyScalar(perlin.simplex3(localVector.x/2, localVector.y/2, localVector.z/2)));
         } else {
-          localVector.add(localVector2.copy(axis).multiplyScalar(-0.95));
+          localVector.add(localVector2.copy(axis).multiplyScalar(-tileScale));
         }
         localVector.toArray(geometry.attributes.position.array, index);
       }
@@ -288,11 +288,16 @@ const _makePlanetMesh = () => {
   const mesh = new THREE.Mesh(geometry, material);
   return mesh;
 };
-const planetMesh = _makePlanetMesh();
+const planetMesh = _makePlanetMesh(0.95);
 // planetMesh.position.x = -10;
 planetMesh.position.y = -10/2;
 // planetMesh.position.z = -10;
 scene.add(planetMesh);
+
+const planetAuxMesh = _makePlanetMesh(1);
+planetAuxMesh.position.copy(planetMesh.position);
+planetAuxMesh.updateMatrixWorld();
+// scene.add(planetAuxMesh);
 
 /* const rayMesh = makeRayMesh();
 scene.add(rayMesh);
@@ -331,7 +336,7 @@ scene.add(wristMenu); */
 
 const _getCurrentParcel = p => new THREE.Vector3(
   Math.floor((p.x+5)/10),
-  Math.floor(p.y/10),
+  0,
   Math.floor((p.z+5)/10),
 );
 let planetAnimation = null;
@@ -346,6 +351,13 @@ const _animatePlanet = (startMatrix, pivot, startQuaternion, endQuaternion) => {
     startQuaternion,
     endQuaternion,
   };
+  planetAuxMesh.matrix
+    .copy(startMatrix)
+    .premultiply(localMatrix2.makeTranslation(-pivot.x, -pivot.y, -pivot.z))
+    .premultiply(localMatrix2.makeRotationFromQuaternion(localQuaternion.copy(startQuaternion).slerp(endQuaternion, 1)))
+    .premultiply(localMatrix2.makeTranslation(pivot.x, pivot.y, pivot.z))
+    .decompose(planetAuxMesh.position, planetAuxMesh.quaternion, planetAuxMesh.scale)
+  planetAuxMesh.updateMatrixWorld();
 };
 const _tickPlanetAnimation = factor => {
   const {startTime, endTime, startMatrix, pivot, startQuaternion, endQuaternion} = planetAnimation;
@@ -540,17 +552,39 @@ function animate(timestamp, frame) {
       const {rig, rigPackage} = pe;
       if (rig || rigPackage) {
         const avatarHeight = rig ? _getAvatarHeight() : 1;
-        if (localVector.y < avatarHeight) {
-          localVector.y = avatarHeight;
+        const floorHeight = (() => {
+          raycaster.ray.origin.copy(localVector);
+          raycaster.ray.origin.y += 10;
+          raycaster.ray.direction.set(0, -1, 0);
+          const intersects = raycaster.intersectObject(planetAuxMesh);
+          if (intersects.length) {
+            const [intersect] = intersects;
+            const {point} = intersect;
+            return point.y;
+          } else {
+            return 0;
+          }
+        })();
+        const minHeight = floorHeight + avatarHeight;
+        if (!jumpState) {
+          localVector.y = minHeight;
           matrix.compose(localVector, localQuaternion, localVector2);
-          velocity.y = 0;
-          jumpState = null;
+        } else {
+          if (localVector.y < minHeight) {
+            localVector.y = minHeight;
+            matrix.compose(localVector, localQuaternion, localVector2);
+            velocity.y = 0;
+            jumpState = null;
+          }
         }
       }
     };
 
     if (selectedTool === 'firstperson') {
       _collideFloor(pe.camera.matrix);
+      pe.camera.matrix.decompose(pe.camera.position, pe.camera.quaternion, pe.camera.scale);
+      // pe.camera.updateMatrixWorld();
+      // pe.setCamera(pe.camera);
       pe.setRigMatrix(null);
     } else if (selectedTool === 'thirdperson') {
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
