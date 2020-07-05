@@ -141,6 +141,8 @@ teleportMeshes.forEach(teleportMesh => {
 
 const _makePlanetMesh = tileScale => {
   const parcelSize = 11;
+  const noiseHeight = 0.5;
+  const noiseScale = 0.5;
   const tileGeometry = new THREE.BoxBufferGeometry(tileScale, tileScale, tileScale);
   const parcelGeometry = (() => {
     const numCoords = tileGeometry.attributes.position.array.length;
@@ -244,7 +246,8 @@ const _makePlanetMesh = tileScale => {
         const index = io+jo+ko;
         localVector.fromArray(geometry.attributes.position.array, index);
         if (geometry.attributes.edge.array[index/3] === 0) {
-          localVector.add(localVector2.copy(axis).multiplyScalar(perlin.simplex3(localVector.x/2, localVector.y/2, localVector.z/2)));
+          const f = perlin.simplex3(localVector.x*noiseScale, localVector.y*noiseScale, localVector.z*noiseScale);
+          localVector.add(localVector2.copy(axis).multiplyScalar(-1 + (1 + f)*noiseHeight));
         } else {
           localVector.add(localVector2.copy(axis).multiplyScalar(-tileScale));
         }
@@ -255,21 +258,30 @@ const _makePlanetMesh = tileScale => {
 
   const loadVsh = `
     attribute float id;
-    varying vec3 pos;
+    varying vec3 vPosition;
     varying float vId;
     void main() {
-      vec4 p = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-      pos = p.xyz/p.w;
-      gl_Position = p;
+      vec4 p = modelViewMatrix * vec4(position, 1.);
+      vPosition = p.xyz;
+      gl_Position = projectionMatrix * p;
       vId = id;
     }
   `;
   const loadFsh = `
     uniform float selectedId;
-    varying vec3 pos;
+    varying vec3 vPosition;
     varying float vId;
+    vec3 lightDirection = vec3(0.0, 0.0, 1.0);
     void main() {
-      gl_FragColor = vec4(vec3(pow(pos.z, 4.0)), 1.0);
+      vec3 xTangent = dFdx( vPosition );
+      vec3 yTangent = dFdy( vPosition );
+      vec3 faceNormal = normalize( cross( xTangent, yTangent ) );
+      float lightFactor = dot(faceNormal, lightDirection);
+      vec3 c = vec3(${new THREE.Color(0x333333).toArray().join(',')});
+      gl_FragColor = vec4(
+        c * (0.5 + lightFactor * 0.5),
+        1.0
+      );
       if (selectedId == vId) {
         gl_FragColor.b += 0.5;
       }
