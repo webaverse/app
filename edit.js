@@ -148,6 +148,7 @@ const _makePlanetMesh = () => {
     const numIndices = tileGeometry.index.array.length;
     const indices = new Uint16Array(numCoords * parcelSize * parcelSize);
     const edges = new Uint16Array(numCoords * parcelSize * parcelSize);
+    const ids = new Uint16Array(numCoords * parcelSize * parcelSize);
     let i = 0;
     let indexIndex = 0;
     for (let x = -parcelSize / 2 + 1; x < parcelSize / 2; x++) {
@@ -191,6 +192,9 @@ const _makePlanetMesh = () => {
             }
           }
         }
+        for (let j = 0; j < newTileGeometry.attributes.position.array.length; j++) {
+          ids[i * newTileGeometry.attributes.position.array.length + j] = i;
+        }
         i++;
         indexIndex += newTileGeometry.attributes.position.array.length/3;
       }
@@ -199,6 +203,7 @@ const _makePlanetMesh = () => {
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
     geometry.setAttribute('edge', new THREE.BufferAttribute(edges, 1));
+    geometry.setAttribute('id', new THREE.BufferAttribute(ids, 1));
     return geometry;
   })();
   const yIndices = [];
