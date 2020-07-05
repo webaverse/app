@@ -9,7 +9,8 @@ import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxy
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
-// import {makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
+// import {makeTextMesh, makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
+import {makeTextMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import perlin from './perlin.js';
 import alea from './alea.js';
@@ -141,7 +142,7 @@ teleportMeshes.forEach(teleportMesh => {
   scene.add(teleportMesh);
 });
 
-const _makePlanetMesh = tileScale => {
+const _makePlanetMesh = (tileScale = 1) => {
   const parcelSize = 11;
   const noiseHeight = 0.5;
   const noiseScale = 0.5;
@@ -308,10 +309,22 @@ planetMesh.position.y = -10/2;
 // planetMesh.position.z = -10;
 scene.add(planetMesh);
 
-const planetAuxMesh = _makePlanetMesh(1);
+const planetAuxMesh = _makePlanetMesh();
 planetAuxMesh.position.copy(planetMesh.position);
 planetAuxMesh.updateMatrixWorld();
-// scene.add(planetAuxMesh);
+
+const numRemotePlanetMeshes = 10;
+for (let i = 0; i < numRemotePlanetMeshes; i++) {
+  const remotePlanetMesh = _makePlanetMesh(0.95);
+  remotePlanetMesh.position.set(-1 + rng() * 2, -1 + rng() * 2, -1 + rng() * 2).multiplyScalar(30);
+
+  const textMesh = makeTextMesh('Planet 0', 3, 'center');
+  textMesh.position.y = 10;
+  remotePlanetMesh.add(textMesh);
+
+  scene.add(remotePlanetMesh);
+}
+
 
 /* const rayMesh = makeRayMesh();
 scene.add(rayMesh);
