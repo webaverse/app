@@ -146,7 +146,7 @@ const HEIGHTFIELD_SHADER = {
       vec3 xTangent = dFdx( vPosition );
       vec3 yTangent = dFdy( vPosition );
       vec3 faceNormal = normalize( cross( xTangent, yTangent ) );
-      float lightColor = dot(faceNormal, lightDirection);
+      float lightColor = 0.5; // dot(faceNormal, lightDirection);
 
       vec2 uv = vec2(
         mod((vPosition.x) / 4.0, 1.0),
@@ -170,7 +170,7 @@ const HEIGHTFIELD_SHADER = {
   `
 };
 
-const {potentials, dims} = (() => {
+const _makePotentials = () => {
   const allocator = new Allocator();
 
   const seed = rng();
@@ -188,8 +188,8 @@ const {potentials, dims} = (() => {
     potentials.offset
   );
 
-  return {potentials, dims};
-})();
+  return {potentials, dims, allocator};
+};
 const _getChunkMesh = (potentials, dims) => {
   const allocator = new Allocator();
 
@@ -260,25 +260,15 @@ const _getChunkMesh = (potentials, dims) => {
   };
 };
 const chunkMesh = (() => {
+  const {potentials, dims} = _makePotentials();
   const spec = _getChunkMesh(potentials, dims);
+
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
   geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
 
-  window.addEventListener('mousedown', e => {
-    localVector.copy(cubeMesh.position);
-    localVector.x = Math.floor(localVector.x);
-    localVector.y = Math.floor(localVector.y);
-    localVector.z = Math.floor(localVector.z);
-    const potentialIndex = localVector.x + localVector.y*PARCEL_SIZE_P2*PARCEL_SIZE_P2 + localVector.z*PARCEL_SIZE_P2;
-    potentials[potentialIndex] += 0.25;
 
-    const spec = _getChunkMesh(potentials, dims);
-    geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-    geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
-    geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
-  });
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
     uniforms: (() => {
@@ -330,10 +320,25 @@ const chunkMesh = (() => {
 
   const mesh = new THREE.Mesh(geometry, heightfieldMaterial);
   mesh.frustumCulled = false;
+  mesh.potentials = potentials;
+  mesh.dims = dims;
   return mesh;
 })();
-console.log('got chunk mesh', chunkMesh);
 scene.add(chunkMesh);
+
+window.addEventListener('mousedown', e => {
+  localVector.copy(cubeMesh.position);
+  localVector.x = Math.floor(localVector.x);
+  localVector.y = Math.floor(localVector.y);
+  localVector.z = Math.floor(localVector.z);
+  const potentialIndex = localVector.x + localVector.y*PARCEL_SIZE_P2*PARCEL_SIZE_P2 + localVector.z*PARCEL_SIZE_P2;
+  chunkMesh.potentials[potentialIndex] += 0.25;
+
+  const spec = _getChunkMesh(chunkMesh.potentials, chunkMesh.dims);
+  chunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
+  chunkMesh.geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
+  chunkMesh.geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
+});
 
 })();
 
