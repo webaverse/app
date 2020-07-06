@@ -38,26 +38,6 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
-let remoteChunkMeshes = [];
-const chunkMeshContainer = new THREE.Object3D();
-scene.add(chunkMeshContainer);
-let currentChunkMesh = null;
-(async () => {
-
-const [
-  objectize,
-  colors,
-] = await Promise.all([
-  (async () => {
-    const {promise} = await import('./bin/objectize2.js');
-    await promise;
-  })(),
-  (async () => {
-    const res = await fetch('./colors.json');
-    return await res.json();
-  })(),
-]);
-
 const HEIGHTFIELD_SHADER = {
   uniforms: {
     /* fogColor: {
@@ -100,7 +80,7 @@ const HEIGHTFIELD_SHADER = {
     uniform float fogDensity;
     // attribute vec3 color;
     attribute vec3 barycentric;
-    attribute float index3;
+    attribute float index;
     // attribute float skyLightmap;
     // attribute float torchLightmap;
 
@@ -125,7 +105,7 @@ const HEIGHTFIELD_SHADER = {
       vPosition = position.xyz;
       vWorldPosition = mvPosition.xyz;
       vBarycentric = barycentric;
-      vIndex = index3;
+      vIndex = index;
     }
   `,
   fragmentShader: `\
@@ -242,7 +222,7 @@ const _makePotentials = () => {
 
   return {potentials, dims, allocator};
 };
-const _getChunkSpec = (potentials, dims) => {
+const _getChunkSpec = (potentials, dims, meshId) => {
   const allocator = new Allocator();
 
   const positions = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
@@ -305,10 +285,25 @@ const _getChunkSpec = (potentials, dims) => {
     colors.set(c, i);
   } */
 
+  const c = Uint8Array.from(meshIdToArray(meshId));
+  const ids = new Uint8Array(numPositions[0]);
+  for (let i = 0; i < numPositions[0]; i += 3) {
+    ids.set(c, i);
+  }
+
+  const indices = new Float32Array(numPositions[0]/3);
+  for (let i = 0; i < numPositions[0]/3/3; i++) {
+    indices[i*3] = i;
+    indices[i*3+1] = i;
+    indices[i*3+2] = i;
+  }
+
   return {
     // result: {
     positions: outP,
     barycentrics: outB,
+    ids,
+    indices,
     // colors,
     // indices: outI,
     /* },
@@ -331,31 +326,38 @@ function meshIdToArray(meshId) {
     (meshId & 0xFF),
   ];
 }
+
+let remoteChunkMeshes = [];
+const chunkMeshContainer = new THREE.Object3D();
+scene.add(chunkMeshContainer);
+let currentChunkMesh = null;
+(async () => {
+
+const [
+  objectize,
+  colors,
+] = await Promise.all([
+  (async () => {
+    const {promise} = await import('./bin/objectize2.js');
+    await promise;
+  })(),
+  (async () => {
+    const res = await fetch('./colors.json');
+    return await res.json();
+  })(),
+]);
+
 const _makeChunkMesh = () => {
   const {potentials, dims} = _makePotentials();
-  const spec = _getChunkSpec(potentials, dims);
 
   const meshId = ++nextId;
+  const spec = _getChunkSpec(potentials, dims, meshId);
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
   geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
-  const c = Uint8Array.from(meshIdToArray(meshId));
-  const numPositions = spec.positions.length;
-  const ids = new Uint8Array(numPositions);
-  for (let i = 0; i < numPositions; i += 3) {
-    ids.set(c, i);
-  }
-  geometry.setAttribute('id', new THREE.BufferAttribute(ids, 3, true));
-  const indices = new Float32Array(numPositions/3);
-  for (let i = 0; i < numPositions/3/3; i++) {
-    indices[i*3] = i;
-    indices[i*3+1] = i;
-    indices[i*3+2] = i;
-  }
-  geometry.setAttribute('index3', new THREE.BufferAttribute(indices, 1));
-  // geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
-  // geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
+  geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 3, true));
+  geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1));
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
     uniforms: (() => {
@@ -425,21 +427,6 @@ const chunkMesh = _makeChunkMesh();
 } */
 chunkMeshContainer.add(chunkMesh);
 
-/* window.addEventListener('mousedown', e => {
-  localVector.copy(cubeMesh.position);
-  localVector.x = Math.floor(localVector.x);
-  localVector.y = Math.floor(localVector.y);
-  localVector.z = Math.floor(localVector.z);
-  const potentialIndex = localVector.x + localVector.y*PARCEL_SIZE_P2*PARCEL_SIZE_P2 + localVector.z*PARCEL_SIZE_P2;
-  chunkMesh.potentials[potentialIndex] += 0.25;
-
-  const spec = _getChunkSpec(chunkMesh.potentials, chunkMesh.dims);
-  chunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-  chunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
-  // chunkMesh.geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
-  // chunkMesh.geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
-}); */
-
 const numRemoteChunkMeshes = 30;
 remoteChunkMeshes = Array(numRemoteChunkMeshes);
 for (let i = 0; i < numRemoteChunkMeshes; i++) {
@@ -502,13 +489,13 @@ scene.add(removeMesh);
 const idMaterial = new THREE.ShaderMaterial({
   vertexShader: `
     attribute vec3 id;
-    attribute float index3;
+    attribute float index;
     varying vec3 vId;
     varying float vIndex;
     void main() {
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
       vId = id;
-      vIndex = index3;
+      vIndex = index;
     }
   `,
   fragmentShader: `
@@ -1055,16 +1042,31 @@ function animate(timestamp, frame) {
         } */
       }
       if (currentWeaponDown && !lastWeaponDown) {
+        const _applyPotentialDelta = (position, delta) => {
+          localVector2.copy(position)
+            .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+          localVector2.x = Math.floor(localVector2.x);
+          localVector2.y = Math.floor(localVector2.y);
+          localVector2.z = Math.floor(localVector2.z);
+          const potentialIndex = localVector2.x + localVector2.y*PARCEL_SIZE_P2*PARCEL_SIZE_P2 + localVector2.z*PARCEL_SIZE_P2;
+          currentChunkMesh.potentials[potentialIndex] += delta;
+
+          const spec = _getChunkSpec(currentChunkMesh.potentials, currentChunkMesh.dims, currentChunkMesh.meshId);
+          currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
+          currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
+          currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 3, true));
+          currentChunkMesh.geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1));
+        };
         switch (selectedWeapon) {
           case 'wrench': {
             if (addMesh.visible) {
-              console.log('add', addMesh.position.toArray());
+              _applyPotentialDelta(addMesh.position, 0.25);
             }
             break;
           }
           case 'sledgehammer': {
             if (removeMesh.visible) {
-              console.log('remove', removeMesh.position.toArray());
+              _applyPotentialDelta(removeMesh.position, -0.5);
             }
             break;
           }
