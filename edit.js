@@ -22,8 +22,9 @@ const presenceEndpoint = 'wss://presence.exokit.org';
 const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
 const parcelSize = 11;
-const PARCEL_SIZE = 10;
-const PARCEL_SIZE_P2 = PARCEL_SIZE + 2;
+const PARCEL_SIZE = 30;
+const PARCEL_SIZE_D2 = PARCEL_SIZE/2;
+const PARCEL_SIZE_P2 = PARCEL_SIZE+2;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -129,7 +130,7 @@ const HEIGHTFIELD_SHADER = {
     uniform float sunIntensity;
     uniform vec3 fogColor;
     // uniform vec3 cameraPosition;
-    uniform sampler2D tex;
+    // uniform sampler2D tex;
     uniform sampler2D heightColorTex;
 
     varying vec3 vPosition;
@@ -168,15 +169,15 @@ const HEIGHTFIELD_SHADER = {
         mod((vPosition.z) / 4.0, 1.0)
       );
 
-      vec3 tV = texture2D(tex, uv).rgb;
-      float dotNL = abs(dot( tV, lightDirection));
-      vec3 irradiance = ambientLightColor + dotNL;
+      // vec3 tV = texture2D(tex, uv).rgb;
+      // float dotNL = abs(dot( tV, lightDirection));
+      // vec3 irradiance = ambientLightColor + dotNL;
       // vec3 diffuseColor = vColor * irradiance * (0.1 + lightColor * 0.9);
-      float d = length(vPosition - vec3(5, 5, 5));
-      float dMax = length(vec3(5, 5, 5));
+      float d = length(vPosition - vec3(${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}));
+      float dMax = length(vec3(${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}));
       vec2 uv2 = vec2(d / dMax, 0.5);
       vec3 c = texture2D(heightColorTex, uv2).rgb;
-      vec3 diffuseColor = c * uv2.x * irradiance * (0.9 + lightColor*0.1);
+      vec3 diffuseColor = c * uv2.x;
       float a = 1.0;
       float ef = edgeFactor();
       if (ef <= 0.99) {
@@ -322,7 +323,7 @@ const _makeChunkMesh = () => {
     },
   });
 
-  const numStops = Math.floor(2 + rng() * 5);
+  const numStops = 1;// Math.floor(2 + rng() * 5);
   const stops = Array(numStops);
   const colorKeys = Object.keys(colors);
   for (let i = 0; i < numStops; i++) {
@@ -357,7 +358,7 @@ const _makeChunkMesh = () => {
   return mesh;
 };
 const chunkMesh = _makeChunkMesh();
-{
+/* {
   const img = document.createElement('img');
   img.src = 'grass.png';
   img.onload = () => {
@@ -367,7 +368,7 @@ const chunkMesh = _makeChunkMesh();
   img.onerror = err => {
     console.warn(err);
   };
-}
+} */
 scene.add(chunkMesh);
 
 window.addEventListener('mousedown', e => {
