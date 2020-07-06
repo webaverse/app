@@ -1436,40 +1436,7 @@ for (let i = 0; i < weapons.length; i++) {
     }
     weapon.classList.add('selected');
 
-    const oldSelectedWeapon = selectedWeapon;
     selectedWeapon = weapon.getAttribute('weapon');
-
-    if (selectedWeapon !== oldSelectedWeapon) {
-      /* switch (oldSelectedWeapon) {
-        case 'wrench': {
-          wrenchMesh.visible = false;
-          break;
-        }
-        case 'sledgehammer': {
-          sledgehammerMesh.visible = false;
-          break;
-        }
-        case 'paintbrush': {
-          paintBrushMesh.visible = false;
-          break;
-        }
-      }
-
-      switch (selectedWeapon) {
-        case 'wrench': {
-          wrenchMesh.visible = true;
-          break;
-        }
-        case 'sledgehammer': {
-          sledgehammerMesh.visible = true;
-          break;
-        }
-        case 'paintbrush': {
-          paintBrushMesh.visible = true;
-          break;
-        }
-      } */
-    }
   });
 }
 document.addEventListener('pointerlockchange', e => {
