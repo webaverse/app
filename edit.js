@@ -473,10 +473,31 @@ let paintBrushMesh = null;
   scene.add(paintBrushMesh);
 })();
 
-const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({
-  color: 0xFF0000,
-}));
-scene.add(cubeMesh);
+const addMesh = (() => {
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([
+    new THREE.BoxBufferGeometry(0.1, 0.1, 0.1),
+  ]);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x0000FF,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  return mesh;
+})();
+addMesh.visible = false;
+scene.add(addMesh);
+
+const removeMesh = (() => {
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([
+    new THREE.BoxBufferGeometry(0.1, 0.1, 0.1),
+  ]);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xFF0000,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  return mesh;
+})();
+removeMesh.visible = false;
+scene.add(removeMesh);
 
 const idMaterial = new THREE.ShaderMaterial({
   vertexShader: `
@@ -958,7 +979,6 @@ const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
 let currentTeleport = false;
 let lastTeleport = false;
-let lastTeleportChunkMesh = null;
 const timeFactor = 2000;
 let lastTimestamp = performance.now();
 let lastParcel  = new THREE.Vector3(0, 0, 0);
@@ -979,7 +999,9 @@ function animate(timestamp, frame) {
       localMatrix.fromArray(pose.transform.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
-      cubeMesh.position.copy(localVector).add(localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
+      // cubeMesh.position.copy(localVector).add(localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
+
+      const raycastChunkSpec = volumeRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
 
       [wrenchMesh, sledgehammerMesh, paintBrushMesh].forEach(weaponMesh => {
         if (weaponMesh) {
@@ -1007,8 +1029,55 @@ function animate(timestamp, frame) {
         selectedWeaponModel.quaternion.copy(localQuaternion);
         selectedWeaponModel.visible = true;
       }
+      addMesh.visible = false;
+      removeMesh.visible = false;
+      switch (selectedWeapon) {
+        case 'wrench': {
+          addMesh.position.copy(localVector)
+            .add(new THREE.Vector3(0, 0, -1).applyQuaternion(localQuaternion));
+          addMesh.quaternion.copy(localQuaternion);
+          addMesh.visible = true;
+          break;
+        }
+        case 'sledgehammer': {
+          if (raycastChunkSpec && raycastChunkSpec.mesh === currentChunkMesh) {
+            removeMesh.position.copy(raycastChunkSpec.point);
+            removeMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), raycastChunkSpec.normal);
+            removeMesh.visible = true;
+          }
+          break;
+        }
+        /* case 'paintbrush': {
+          return paintBrushMesh;
+        } */
+        /* default: {
+          return null;
+        } */
+      }
+      if (currentWeaponDown && !lastWeaponDown) {
+        switch (selectedWeapon) {
+          case 'wrench': {
+            if (addMesh.visible) {
+              console.log('add', addMesh.position.toArray());
+            }
+            break;
+          }
+          case 'sledgehammer': {
+            if (removeMesh.visible) {
+              console.log('remove', removeMesh.position.toArray());
+            }
+            break;
+          }
+          /* case 'paintbrush': {
+            return paintBrushMesh;
+          } */
+          /* default: {
+            return null;
+          } */
+        }
+      }
 
-      const currentParcel = _getCurrentParcel(localVector);
+      /* const currentParcel = _getCurrentParcel(localVector);
       if (!currentParcel.equals(lastParcel)) {
         if (currentParcel.x !== lastParcel.x) {
           currentParcel.z = lastParcel.z;
@@ -1020,7 +1089,7 @@ function animate(timestamp, frame) {
         const pivot = currentParcel.clone().add(lastParcel).multiplyScalar(10/2);
         _animatePlanet(planetContainer.matrix.clone(), pivot, new THREE.Quaternion(), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), sub));
         lastParcel = currentParcel;
-      }
+      } */
 
       const _teleportTo = (position, quaternion) => {
         localMatrix.fromArray(pose.transform.matrix)
@@ -1050,33 +1119,30 @@ function animate(timestamp, frame) {
           .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
       };
 
-      const currentTeleportChunkMeshSpec = currentTeleport ? volumeRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion) : null;
-      const currentTeleportChunkMesh = currentTeleportChunkMeshSpec && currentTeleportChunkMeshSpec.mesh;
-      if (currentTeleportChunkMesh) {
-        currentTeleportChunkMesh.material.uniforms.selectedIndex.value = currentTeleportChunkMeshSpec.index;
+      const currentTeleportChunkMesh = raycastChunkSpec && raycastChunkSpec.mesh;
+      if (currentTeleport && currentTeleportChunkMesh) {
+        currentTeleportChunkMesh.material.uniforms.selectedIndex.value = raycastChunkSpec.index;
 
-        if (currentTeleportChunkMeshSpec.point) {
-          teleportMeshes[1].position.copy(currentTeleportChunkMeshSpec.point);
-          teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), currentTeleportChunkMeshSpec.normal);
+        if (raycastChunkSpec.point) {
+          teleportMeshes[1].position.copy(raycastChunkSpec.point);
+          teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), raycastChunkSpec.normal);
           teleportMeshes[1].visible = true;
           teleportMeshes[1].lineMesh.visible = false;
         }
-      } else if (lastTeleportChunkMesh && !currentTeleport) {
-        // console.log('second');
+      } else if (lastTeleport && !currentTeleport && currentTeleportChunkMesh) {
         teleportMeshes[1].visible = false;
        _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
        if (currentChunkMesh) {
         currentChunkMesh.material.uniforms.isCurrent.value = 0;
         currentChunkMesh = null;
        }
-       currentChunkMesh = lastTeleportChunkMesh;
+       currentChunkMesh = currentTeleportChunkMesh;
        if (currentChunkMesh) {
          currentChunkMesh.material.uniforms.isCurrent.value = 1;
         }
       } else {
         teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, _teleportTo);
       }
-      lastTeleportChunkMesh = currentTeleportChunkMesh;
     }
   }
 
@@ -1296,6 +1362,7 @@ function animate(timestamp, frame) {
   } */
 
   lastTeleport = currentTeleport;
+  lastWeaponDown = currentWeaponDown;
 
   renderer.render(scene, camera);
   // renderer.render(highlightScene, camera);
@@ -1427,6 +1494,8 @@ for (let i = 0; i < tools.length; i++) {
   });
 }
 let selectedWeapon = 'hand';
+let currentWeaponDown = false;
+let lastWeaponDown = false;
 const weapons = Array.from(document.querySelectorAll('.weapon'));
 for (let i = 0; i < weapons.length; i++) {
   const weapon = document.getElementById('weapon-' + (i + 1));
@@ -1606,6 +1675,7 @@ window.addEventListener('mousedown', e => {
     if (e.button === 0) {
       pe.grabtriggerdown('right');
       pe.grabuse('right');
+      currentWeaponDown = true;
     } else if (e.button === 2) {
       currentTeleport = true;
     }
@@ -1615,6 +1685,7 @@ window.addEventListener('mouseup', e => {
   if (document.pointerLockElement) {
     pe.grabtriggerup('right');
   }
+  currentWeaponDown = false;
   currentTeleport = false;
 });
 
