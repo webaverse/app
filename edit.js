@@ -2,6 +2,7 @@
 /* eslint no-unused-vars: 0 */
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
+import {GLTFLoader} from './GLTFLoader.js';
 import {TransformControls} from './TransformControls.js';
 // import address from 'https://contracts.webaverse.com/address.js';
 // import abi from 'https://contracts.webaverse.com/abi.js';
@@ -43,13 +44,19 @@ scene.add(chunkMeshContainer);
 let currentChunkMesh = null;
 (async () => {
 
-const {promise} = await import('./bin/objectize2.js');
-await promise;
-
-const colors = await (async () => {
-  const res = await fetch('./colors.json');
-  return await res.json();
-})();
+const [
+  objectize,
+  colors,
+] = await Promise.all([
+  (async () => {
+    const {promise} = await import('./bin/objectize2.js');
+    await promise;
+  })(),
+  (async () => {
+    const res = await fetch('./colors.json');
+    return await res.json();
+  })(),
+]);
 
 const HEIGHTFIELD_SHADER = {
   uniforms: {
@@ -445,6 +452,23 @@ remoteChunkMeshes.push(chunkMesh);
 
 })();
 
+let paintBrushMesh = null;
+let sledgehammerMesh = null;
+(async () => {
+  const toolsModels = await new Promise((accept, reject) => {
+    new GLTFLoader().load('./tools.glb', o => {
+      o = o.scene;
+      accept(o);
+    }, xhr => {}, reject);
+  });
+  paintBrushMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Pipe_Wrench_01');
+  paintBrushMesh.visible = false;
+  scene.add(paintBrushMesh);
+  sledgehammerMesh = toolsModels.children.find(c => c.name, 'SM_Tool_Hammer_Sledge');
+  sledgehammerMesh.visible = false;
+  scene.add(sledgehammerMesh);
+})();
+
 const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({
   color: 0xFF0000,
 }));
@@ -553,7 +577,6 @@ class VolumeRaycaster {
 }
 
 const volumeRaycaster = new VolumeRaycaster();
-
 
 
 function parseQuery(queryString) {
@@ -953,6 +976,12 @@ function animate(timestamp, frame) {
         .decompose(localVector, localQuaternion, localVector2);
 
       cubeMesh.position.copy(localVector).add(localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
+
+      if (paintBrushMesh) {
+        paintBrushMesh.position.copy(localVector);
+        paintBrushMesh.quaternion.copy(localQuaternion);
+        paintBrushMesh.visible = true;
+      }
 
       const currentParcel = _getCurrentParcel(localVector);
       if (!currentParcel.equals(lastParcel)) {
