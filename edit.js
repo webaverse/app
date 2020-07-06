@@ -49,7 +49,7 @@ const colors = await (async () => {
 
 const HEIGHTFIELD_SHADER = {
   uniforms: {
-    fogColor: {
+    /* fogColor: {
       type: '3f',
       value: new THREE.Color(),
     },
@@ -58,6 +58,10 @@ const HEIGHTFIELD_SHADER = {
       value: 0,
     },
     sunIntensity: {
+      type: 'f',
+      value: 0,
+    }, */
+    selectedIndex: {
       type: 'f',
       value: 0,
     },
@@ -77,13 +81,15 @@ const HEIGHTFIELD_SHADER = {
     uniform float fogDensity;
     // attribute vec3 color;
     attribute vec3 barycentric;
+    attribute float index3;
     // attribute float skyLightmap;
     // attribute float torchLightmap;
 
     varying vec3 vPosition;
     varying vec3 vBarycentric;
     // varying vec3 vViewPosition;
-    varying vec3 vColor;
+    // varying vec3 vColor;
+    varying float vIndex;
     // varying vec3 vNormal;
     // varying float vSkyLightmap;
     // varying float vTorchLightmap;
@@ -98,6 +104,7 @@ const HEIGHTFIELD_SHADER = {
 
       vPosition = position.xyz;
       vBarycentric = barycentric;
+      vIndex = index3;
       // vViewPosition = -mvPosition.xyz;
       // vSkyLightmap = skyLightmap;
       // vTorchLightmap = torchLightmap;
@@ -114,9 +121,11 @@ const HEIGHTFIELD_SHADER = {
     // uniform vec3 cameraPosition;
     // uniform sampler2D tex;
     uniform sampler2D heightColorTex;
+    uniform float selectedIndex;
 
     varying vec3 vPosition;
     varying vec3 vBarycentric;
+    varying float vIndex;
     // varying vec3 vViewPosition;
     // varying vec3 vColor;
     // varying vec3 vNormal;
@@ -172,6 +181,10 @@ const HEIGHTFIELD_SHADER = {
       // diffuseColor *= 0.02 + pow(min(max((vPosition.y - 55.0) / 64.0, 0.0), 1.0), 1.0) * 5.0;
 
       gl_FragColor = vec4( diffuseColor, a );
+
+      if (vIndex == selectedIndex) {
+        gl_FragColor.b = 1.0;
+      }
     }
   `
 };
@@ -320,6 +333,13 @@ const _makeChunkMesh = () => {
     ids.set(c, i);
   }
   geometry.setAttribute('id', new THREE.BufferAttribute(ids, 3, true));
+  const indices = new Float32Array(numPositions/3);
+  for (let i = 0; i < numPositions/3/3; i++) {
+    indices[i*3] = i;
+    indices[i*3+1] = i;
+    indices[i*3+2] = i;
+  }
+  geometry.setAttribute('index3', new THREE.BufferAttribute(indices, 1));
   // geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
   // geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
 
@@ -390,7 +410,7 @@ const chunkMesh = _makeChunkMesh();
 } */
 scene.add(chunkMesh);
 
-window.addEventListener('mousedown', e => {
+/* window.addEventListener('mousedown', e => {
   localVector.copy(cubeMesh.position);
   localVector.x = Math.floor(localVector.x);
   localVector.y = Math.floor(localVector.y);
@@ -403,7 +423,7 @@ window.addEventListener('mousedown', e => {
   chunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
   // chunkMesh.geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
   // chunkMesh.geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
-});
+}); */
 
 const numRemoteChunkMeshes = 30;
 remoteChunkMeshes = Array(numRemoteChunkMeshes);
@@ -424,16 +444,20 @@ scene.add(cubeMesh);
 const idMaterial = new THREE.ShaderMaterial({
   vertexShader: `
     attribute vec3 id;
+    attribute float index3;
     varying vec3 vId;
+    varying float vIndex;
     void main() {
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
       vId = id;
+      vIndex = index3;
     }
   `,
   fragmentShader: `
     varying vec3 vId;
+    varying float vIndex;
     void main() {
-      gl_FragColor = vec4(vId, 0.0);
+      gl_FragColor = vec4(vId, (vIndex+1.0)/64000.0);
     }
   `,
   side: THREE.DoubleSide,
@@ -448,6 +472,7 @@ class VolumeRaycaster {
     this.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1);
     const renderTarget = new THREE.WebGLRenderTarget(1, 1, {
       type: THREE.FloatType,
+      format: THREE.RGBAFormat,
     });
     this.renderer.setRenderTarget(renderTarget);
     this.renderTarget = renderTarget;
@@ -482,16 +507,19 @@ class VolumeRaycaster {
     // const gl = this.renderer.getContext();
     this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 1, 1, this.pixels);
     // gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
-    let result;
+    let mesh;
+    let index;
     // console.log('pixels', Array.from(this.pixels).map(n => n*255).join(', '));
-    if (this.pixels[3] === 0) {
+    if (this.pixels[3] !== 1) {
       const meshId = (Math.floor(this.pixels[0]*255) << 16) | (Math.floor(this.pixels[1]*255) << 8) | Math.floor(this.pixels[2]*255);
-      result = meshes.find(mesh => mesh.meshId === meshId) || null;
+      mesh = meshes.find(mesh => mesh.meshId === meshId) || null;
+      index = Math.floor(this.pixels[3]*64000)-1;
     } else {
-      result = null;
+      mesh = null;
+      index = -1;
     }
 
-    return result;
+    return mesh ? {mesh, index} : null;
   }
 }
 
@@ -937,9 +965,11 @@ function animate(timestamp, frame) {
         pe.camera.updateMatrixWorld();
       };
 
-      const currentChunkMesh = currentTeleport ? volumeRaycaster.raycastMeshes(remoteChunkMeshes, localVector, localQuaternion) : null;
+      const currentChunkMeshSpec = currentTeleport ? volumeRaycaster.raycastMeshes(remoteChunkMeshes, localVector, localQuaternion) : null;
+      const currentChunkMesh = currentChunkMeshSpec && currentChunkMeshSpec.mesh;
       if (currentChunkMesh) {
-        console.log('raycasted', currentChunkMesh);
+        console.log('intersect', currentChunkMeshSpec.index);
+        currentChunkMesh.material.uniforms.selectedIndex.value = currentChunkMeshSpec.index;
 
         /* teleportMeshes[1].position.copy(point);
         teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), normal);
