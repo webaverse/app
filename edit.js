@@ -961,9 +961,14 @@ function animate(timestamp, frame) {
       }
 
       const _teleportTo = (position, quaternion) => {
+        localMatrix.fromArray(pose.transform.matrix)
+          .decompose(localVector, localQuaternion, localVector2);
         chunkMeshContainer.position.sub(
-          localVector.copy(position).sub(pe.camera.position)
+          localVector2.copy(position).sub(localVector)
         );
+        localVector.x = 0;
+        localVector.z = 0;
+        chunkMeshContainer.position.sub(localVector);
         // chunkMeshContainer.matrix.compose(position, quaternion, localVector2.set(1, 1, 1))
           // .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
         /* switch (selectedTool) {
