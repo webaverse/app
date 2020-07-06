@@ -1,81 +1,82 @@
 <html>
+<head>
+  <title>Baking XRPK</title>
+  <style>
+    body {
+      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    }
+    h3 {
+      text-align: center;
+    }
+    p {
+      font-size: 1.2em;
+    }
+    .results {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+    }
+    .results>div {
+      max-width: 50%;
+      float: right;
+    }
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
 
+    #baking {
+      display: block;
+    }
+    #baked {
+      display: none;
+    }
+    #error {
+      display: none;
+    }
+  </style>
+</head>
 <body>
-  <h1 id=text>Baking...</h1>
-  <pre><code id=error></code></pre>
-  <script type=module>
-(async () => {
+  <div id=baking>
+    <h1>Baking... Please do not close this tab!</h1>
+    <p>
+      <i>Baking</i> is the process of automatically screenshotting an XRPK in the browser, and generating collision meshes.
+      <br />
+      It's important that you keep this tab open until it is complete!
+    </p>
+  </div>
+  <div id=baked>
+    <h1>Baking complete! You can close this tab.</h1>
+    <p>
+      Your XRPK's screenshot and collision mesh have been succesfully generated.
+      <br />
+      You can now close this tab and return to the <code>xrpk</code> CLI tool!
+    </p>
+  </div>
+  <div id=error>
+    <h1>There was an error baking your XRPK.</h1>
+    <p>
+      The stack trace is below. You can close this tab.
+      <br />
+      <pre id=error-trace></pre>
+    </p>
+  </div>
 
-function parseQuery(queryString) {
-  var query = {};
-  var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
-  for (var i = 0; i < pairs.length; i++) {
-    var pair = pairs[i].split('=');
-    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
-  }
-  return query;
-}
-const {srcWbn, dstGif, dstVolume, dstAabb} = parseQuery(decodeURIComponent(window.location.search));
-
-const {screenshot} = await new Promise((accept, reject) => {
-  const iframe = document.createElement('iframe');
-  iframe.src = `screenshot.html?srcWbn=${srcWbn}${dstGif ? `&dstGif=${dstGif}` : ''}`;
-  document.body.appendChild(iframe);
-  const _message = e => {
-    if (e.data && e.data.method === 'result') {
-      accept(e.data.result);
-      window.removeEventListener('message', _message);
-    } else if (e.data && e.data.method === 'error') {
-      reject(e.data.error);
-      window.removeEventListener('message', _message);
-    }
-  };
-  window.addEventListener('message', _message);
-});
-const {volume, aabb} = await new Promise((accept, reject) => {
-  const iframe = document.createElement('iframe');
-  iframe.src = `volume.html?srcWbn=${srcWbn}${dstVolume ? `&dstVolume=${dstVolume}` : ''}${dstAabb ? `&dstAabb=${dstAabb}` : ''}`;
-  document.body.appendChild(iframe);
-  const _message = e => {
-    if (e.data && e.data.method === 'result') {
-      accept(e.data.result);
-      window.removeEventListener('message', _message);
-    } else if (e.data && e.data.method === 'error') {
-      reject(e.data.error);
-      window.removeEventListener('message', _message);
-    }
-  };
-  window.addEventListener('message', _message);
-});
-
-return {
-  screenshot,
-  volume,
-  aabb,
-};
-
-})().then(({screenshot, volume, aabb}) => {
-  document.getElementById('text').innerText = 'Baking done. You can close this tab.';
-
-  window.parent.postMessage({
-    method: 'result',
-    result: {
-      screenshot,
-      volume,
-      aabb,
-    },
-  }, '*', [screenshot.buffer, volume.buffer]);
-}).catch(err => {
-  console.warn(err.stack);
-  document.getElementById('text').innerText = 'Error baking. You can close this tab.';
-  document.getElementById('error').innerText = err.stack;
-
-  window.parent.postMessage({
-    method: 'error',
-    error: err.stack,
-  }, '*');
-});
-</script>
+  <div class=results>
+    <div id=screenshot>
+      <h3 id=screenshot-header></h3>
+      <div id=screenshot-result></div>
+    </div>
+    <div id=volume>
+      <h3 id=volume-header></h3>
+      <div id=volume-result></div>
+    </div>
+    <div id=aabb>
+      <h3 id=aabb-header></h3>
+      <pre id=aabb-result></pre>
+    </div>
+  </div>
+  <script type=module src='bake.js'></script>
 </body>
 
 </html>
