@@ -1021,7 +1021,7 @@ function animate(timestamp, frame) {
       switch (selectedWeapon) {
         case 'wrench': {
           addMesh.position.copy(localVector)
-            .add(new THREE.Vector3(0, 0, -1).applyQuaternion(localQuaternion));
+            .add(new THREE.Vector3(0, 0, -2).applyQuaternion(localQuaternion));
           addMesh.quaternion.copy(localQuaternion);
           addMesh.visible = true;
           break;
@@ -1048,25 +1048,38 @@ function animate(timestamp, frame) {
           localVector2.x = Math.floor(localVector2.x);
           localVector2.y = Math.floor(localVector2.y);
           localVector2.z = Math.floor(localVector2.z);
-          const potentialIndex = localVector2.x + localVector2.y*PARCEL_SIZE_P2*PARCEL_SIZE_P2 + localVector2.z*PARCEL_SIZE_P2;
-          currentChunkMesh.potentials[potentialIndex] += delta;
+          const maxDistScale = 1;
+          const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dz = -1; dz <= 1; dz++) {
+              for (let dx = -1; dx <= 1; dx++) {
+                const ax = localVector2.x + dx;
+                const ay = localVector2.y + dy;
+                const az = localVector2.z + dz;
+                const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-          const spec = _getChunkSpec(currentChunkMesh.potentials, currentChunkMesh.dims, currentChunkMesh.meshId);
-          currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-          currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
-          currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 3, true));
-          currentChunkMesh.geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1));
+                const potentialIndex = ax + ay*PARCEL_SIZE_P2*PARCEL_SIZE_P2 + az*PARCEL_SIZE_P2;
+                currentChunkMesh.potentials[potentialIndex] = Math.min(Math.max(currentChunkMesh.potentials[potentialIndex] + (maxDist - dist) * delta, -2), 2);
+
+                const spec = _getChunkSpec(currentChunkMesh.potentials, currentChunkMesh.dims, currentChunkMesh.meshId);
+                currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
+                currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
+                currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 3, true));
+                currentChunkMesh.geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1));
+              }
+            }
+          }
         };
         switch (selectedWeapon) {
           case 'wrench': {
             if (addMesh.visible) {
-              _applyPotentialDelta(addMesh.position, 0.25);
+              _applyPotentialDelta(addMesh.position, 0.2);
             }
             break;
           }
           case 'sledgehammer': {
             if (removeMesh.visible) {
-              _applyPotentialDelta(removeMesh.position, -0.5);
+              _applyPotentialDelta(removeMesh.position, -0.2);
             }
             break;
           }
