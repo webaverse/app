@@ -32,7 +32,7 @@ const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
-const localQuaternion3 = new THREE.Quaternion();
+// const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
@@ -968,11 +968,11 @@ function animate(timestamp, frame) {
         chunkMeshContainer.matrix
           .premultiply(localMatrix.makeTranslation(-position.x, -position.y, -position.z));
 
-        localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+        /* localEuler.setFromQuaternion(localQuaternion, 'YXZ');
         localEuler.x = 0;
         localEuler.z = 0;
         localQuaternion3.setFromEuler(localEuler);
-        localQuaternion3.inverse();
+        localQuaternion3.inverse(); */
 
         chunkMeshContainer.matrix
           // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion2.copy(localQuaternion).inverse()))
