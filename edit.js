@@ -92,11 +92,13 @@ const HEIGHTFIELD_SHADER = {
     precision highp float;
     precision highp int;
     uniform float fogDensity;
-    attribute vec3 color;
-    attribute float skyLightmap;
-    attribute float torchLightmap;
+    // attribute vec3 color;
+    attribute vec3 barycentric;
+    // attribute float skyLightmap;
+    // attribute float torchLightmap;
 
     varying vec3 vPosition;
+    varying vec3 vBarycentric;
     // varying vec3 vViewPosition;
     varying vec3 vColor;
     // varying vec3 vNormal;
@@ -105,13 +107,14 @@ const HEIGHTFIELD_SHADER = {
     // varying float vFog;
 
     void main() {
-      vColor = color;
+      // vColor = color;
       // vNormal = normal;
 
       vec4 mvPosition = modelViewMatrix * vec4( position.xyz, 1.0 );
       gl_Position = projectionMatrix * mvPosition;
 
       vPosition = position.xyz;
+      vBarycentric = barycentric;
       // vViewPosition = -mvPosition.xyz;
       // vSkyLightmap = skyLightmap;
       // vTorchLightmap = torchLightmap;
@@ -130,6 +133,7 @@ const HEIGHTFIELD_SHADER = {
     uniform sampler2D heightColorTex;
 
     varying vec3 vPosition;
+    varying vec3 vBarycentric;
     // varying vec3 vViewPosition;
     // varying vec3 vColor;
     // varying vec3 vNormal;
@@ -140,6 +144,12 @@ const HEIGHTFIELD_SHADER = {
     #define saturate(a) clamp( a, 0.0, 1.0 )
 
     vec3 lightDirection = normalize(vec3(-1.0, -1.0, -1.0));
+
+    float edgeFactor() {
+      vec3 d = fwidth(vBarycentric);
+      vec3 a3 = smoothstep(vec3(0.0), d, vBarycentric);
+      return min(min(a3.x, a3.y), a3.z);
+    }
 
     void main() {
       /* float lightColor = floor(
@@ -167,10 +177,18 @@ const HEIGHTFIELD_SHADER = {
       vec2 uv2 = vec2(d / dMax, 0.5);
       vec3 c = texture2D(heightColorTex, uv2).rgb;
       vec3 diffuseColor = c * uv2.x * irradiance * (0.9 + lightColor*0.1);
+      float a = 1.0;
+      float ef = edgeFactor();
+      if (ef <= 0.99) {
+        diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
+        // a = 0.9;
+        // diffuseColor.rgb = vec3(0.0);
+        // discard;
+      }
 
       // diffuseColor *= 0.02 + pow(min(max((vPosition.y - 55.0) / 64.0, 0.0), 1.0), 1.0) * 5.0;
 
-      gl_FragColor = vec4( diffuseColor, 1.0 );
+      gl_FragColor = vec4( diffuseColor, a );
     }
   `
 };
@@ -199,12 +217,15 @@ const _getChunkSpec = (potentials, dims) => {
   const allocator = new Allocator();
 
   const positions = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
-  const indices = allocator.alloc(Uint32Array, 1024 * 1024 * Uint32Array.BYTES_PER_ELEMENT);
+  const barycentrics = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
+  // const indices = allocator.alloc(Uint32Array, 1024 * 1024 * Uint32Array.BYTES_PER_ELEMENT);
 
   const numPositions = allocator.alloc(Uint32Array, 1);
   numPositions[0] = positions.length;
-  const numIndices = allocator.alloc(Uint32Array, 1);
-  numIndices[0] = indices.length;
+  const numBarycentrics = allocator.alloc(Uint32Array, 1);
+  numBarycentrics[0] = barycentrics.length;
+  // const numIndices = allocator.alloc(Uint32Array, 1);
+  // numIndices[0] = indices.length;
 
   const shift = allocator.alloc(Float32Array, 3);
   shift.set(Float32Array.from([0, 0, 0]));
@@ -218,16 +239,20 @@ const _getChunkSpec = (potentials, dims) => {
     shift.offset,
     scale.offset,
     positions.offset,
-    indices.offset,
+    barycentrics.offset,
+    // indices.offset,
     numPositions.offset,
-    numIndices.offset
+    // numIndices.offset,
+    numBarycentrics.offset
   );
 
   const arrayBuffer2 = new ArrayBuffer(
     Uint32Array.BYTES_PER_ELEMENT +
     numPositions[0] * Float32Array.BYTES_PER_ELEMENT +
     Uint32Array.BYTES_PER_ELEMENT +
-    numIndices[0] * Uint32Array.BYTES_PER_ELEMENT,
+    numBarycentrics[0] * Float32Array.BYTES_PER_ELEMENT,
+    // Uint32Array.BYTES_PER_ELEMENT +
+    // numIndices[0] * Uint32Array.BYTES_PER_ELEMENT,
   );
   let index = 0;
 
@@ -235,23 +260,28 @@ const _getChunkSpec = (potentials, dims) => {
   outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
   index += Float32Array.BYTES_PER_ELEMENT * numPositions[0];
 
-  const outI = new Uint32Array(arrayBuffer2, index, numIndices[0]);
+  const outB = new Float32Array(arrayBuffer2, index, numBarycentrics[0]);
+  outB.set(new Float32Array(barycentrics.buffer, barycentrics.byteOffset, numBarycentrics[0]));
+  index += Float32Array.BYTES_PER_ELEMENT * numBarycentrics[0];
+
+  /* const outI = new Uint32Array(arrayBuffer2, index, numIndices[0]);
   outI.set(new Uint32Array(indices.buffer, indices.byteOffset, numIndices[0]));
-  index += Uint32Array.BYTES_PER_ELEMENT * numIndices[0];
+  index += Uint32Array.BYTES_PER_ELEMENT * numIndices[0]; */
 
   allocator.freeAll();
 
-  const colors = new Float32Array(outP.length);
+  /* const colors = new Float32Array(outP.length);
   const c = new THREE.Color(0xaed581).toArray(new Float32Array(3));
   for (let i = 0; i < colors.length; i += 3) {
     colors.set(c, i);
-  }
+  } */
 
   return {
     // result: {
     positions: outP,
-    colors,
-    indices: outI,
+    barycentrics: outB,
+    // colors,
+    // indices: outI,
     /* },
     cleanup: () => {
       allocator.freeAll();
@@ -270,8 +300,9 @@ const _makeChunkMesh = () => {
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-  geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
-  geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
+  geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
+  // geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
+  // geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
     uniforms: (() => {
@@ -349,8 +380,9 @@ window.addEventListener('mousedown', e => {
 
   const spec = _getChunkSpec(chunkMesh.potentials, chunkMesh.dims);
   chunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-  chunkMesh.geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
-  chunkMesh.geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
+  chunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
+  // chunkMesh.geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
+  // chunkMesh.geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
 });
 
 for (let i = 0; i < 30; i++) {
