@@ -446,10 +446,15 @@ class VolumeRaycaster {
     this.renderer.setSize(1, 1);
     this.renderer.setPixelRatio(1);
     this.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1);
+    const renderTarget = new THREE.WebGLRenderTarget(1, 1, {
+      type: THREE.FloatType,
+    });
+    this.renderer.setRenderTarget(renderTarget);
+    this.renderTarget = renderTarget;
     this.scene = new THREE.Scene();
     this.scene.overrideMaterial = idMaterial;
     this.camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
-    this.pixels = new Uint8Array(4);
+    this.pixels = new Float32Array(4);
   }
 
   raycastMeshes(meshes, position, quaternion) {
@@ -474,11 +479,13 @@ class VolumeRaycaster {
       }
     }
 
-    const gl = this.renderer.getContext();
-    gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+    // const gl = this.renderer.getContext();
+    this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 1, 1, this.pixels);
+    // gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
     let result;
+    // console.log('pixels', Array.from(this.pixels).map(n => n*255).join(', '));
     if (this.pixels[3] === 0) {
-      const meshId = (this.pixels[0] << 16) | (this.pixels[1] << 8) | this.pixels[2];
+      const meshId = (Math.floor(this.pixels[0]*255) << 16) | (Math.floor(this.pixels[1]*255) << 8) | Math.floor(this.pixels[2]*255);
       result = meshes.find(mesh => mesh.meshId === meshId) || null;
     } else {
       result = null;
