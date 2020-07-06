@@ -509,17 +509,41 @@ class VolumeRaycaster {
     // gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
     let mesh;
     let index;
+    let point;
+    let normal;
     // console.log('pixels', Array.from(this.pixels).map(n => n*255).join(', '));
     if (this.pixels[3] !== 1) {
       const meshId = (Math.floor(this.pixels[0]*255) << 16) | (Math.floor(this.pixels[1]*255) << 8) | Math.floor(this.pixels[2]*255);
       mesh = meshes.find(mesh => mesh.meshId === meshId) || null;
       index = Math.floor(this.pixels[3]*64000)-1;
+
+      const triangle = new THREE.Triangle(
+        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9).applyMatrix4(mesh.matrixWorld),
+        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+3).applyMatrix4(mesh.matrixWorld),
+        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+6).applyMatrix4(mesh.matrixWorld)
+      );
+      normal = triangle.getNormal(new THREE.Vector3());
+      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, triangle.a);
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.ray.origin.copy(position);
+      raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
+
+      point = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
+      if (point) {
+        // console.log('got point', point);
+      } else {
+        // console.log('no point');
+        debugger;
+      }
     } else {
       mesh = null;
       index = -1;
+      point = null;
+      normal = null;
     }
 
-    return mesh ? {mesh, index} : null;
+    return mesh ? {mesh, index, point, normal} : null;
   }
 }
 
@@ -968,20 +992,19 @@ function animate(timestamp, frame) {
       const currentChunkMeshSpec = currentTeleport ? volumeRaycaster.raycastMeshes(remoteChunkMeshes, localVector, localQuaternion) : null;
       const currentChunkMesh = currentChunkMeshSpec && currentChunkMeshSpec.mesh;
       if (currentChunkMesh) {
-        console.log('intersect', currentChunkMeshSpec.index);
+        // console.log('intersect', currentChunkMeshSpec.index);
         currentChunkMesh.material.uniforms.selectedIndex.value = currentChunkMeshSpec.index;
 
-        /* teleportMeshes[1].position.copy(point);
-        teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), normal);
-        teleportMeshes[1].visible = currentTeleport;
-        if (!currentTeleport && lastTeleport) {
-          // _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
-        } */
+        if (currentChunkMeshSpec.point) {
+          teleportMeshes[1].position.copy(currentChunkMeshSpec.point);
+          teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), currentChunkMeshSpec.normal);
+          teleportMeshes[1].visible = true;
+        }
       } else if (lastChunkMesh && !currentTeleport) {
         console.log('second');
+        teleportMeshes[1].visible = false;
        //  _teleportTo();
       } else {
-        console.log('update');
         teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, _teleportTo);
       }
       lastChunkMesh = currentChunkMesh;
