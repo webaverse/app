@@ -452,8 +452,9 @@ remoteChunkMeshes.push(chunkMesh);
 
 })();
 
-let paintBrushMesh = null;
+let wrenchMesh = null;
 let sledgehammerMesh = null;
+let paintBrushMesh = null;
 (async () => {
   const toolsModels = await new Promise((accept, reject) => {
     new GLTFLoader().load('./tools.glb', o => {
@@ -461,12 +462,15 @@ let sledgehammerMesh = null;
       accept(o);
     }, xhr => {}, reject);
   });
-  paintBrushMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Pipe_Wrench_01');
-  paintBrushMesh.visible = false;
-  scene.add(paintBrushMesh);
-  sledgehammerMesh = toolsModels.children.find(c => c.name, 'SM_Tool_Hammer_Sledge');
+  wrenchMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Pipe_Wrench_01');
+  wrenchMesh.visible = false;
+  scene.add(wrenchMesh);
+  sledgehammerMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Hammer_Sledge');
   sledgehammerMesh.visible = false;
   scene.add(sledgehammerMesh);
+  paintBrushMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Paint_Brush_02');
+  paintBrushMesh.visible = false;
+  scene.add(paintBrushMesh);
 })();
 
 const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({
@@ -977,10 +981,31 @@ function animate(timestamp, frame) {
 
       cubeMesh.position.copy(localVector).add(localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
 
-      if (paintBrushMesh) {
-        paintBrushMesh.position.copy(localVector);
-        paintBrushMesh.quaternion.copy(localQuaternion);
-        paintBrushMesh.visible = true;
+      [wrenchMesh, sledgehammerMesh, paintBrushMesh].forEach(weaponMesh => {
+        if (weaponMesh) {
+          weaponMesh.visible = false;
+        }
+      });
+      const selectedWeaponModel = (() => {
+        switch (selectedWeapon) {
+          case 'wrench': {
+            return wrenchMesh;
+          }
+          case 'sledgehammer': {
+            return sledgehammerMesh;
+          }
+          case 'paintbrush': {
+            return paintBrushMesh;
+          }
+          default: {
+            return null;
+          }
+        }
+      })();
+      if (selectedWeaponModel) {
+        selectedWeaponModel.position.copy(localVector);
+        selectedWeaponModel.quaternion.copy(localQuaternion);
+        selectedWeaponModel.visible = true;
       }
 
       const currentParcel = _getCurrentParcel(localVector);
@@ -1398,6 +1423,52 @@ for (let i = 0; i < tools.length; i++) {
           pe.rig.undecapitate();
         }
       }
+    }
+  });
+}
+let selectedWeapon = 'hand';
+const weapons = Array.from(document.querySelectorAll('.weapon'));
+for (let i = 0; i < weapons.length; i++) {
+  const weapon = document.getElementById('weapon-' + (i + 1));
+  weapon.addEventListener('click', e => {
+    for (let i = 0; i < weapons.length; i++) {
+      weapons[i].classList.remove('selected');
+    }
+    weapon.classList.add('selected');
+
+    const oldSelectedWeapon = selectedWeapon;
+    selectedWeapon = weapon.getAttribute('weapon');
+
+    if (selectedWeapon !== oldSelectedWeapon) {
+      /* switch (oldSelectedWeapon) {
+        case 'wrench': {
+          wrenchMesh.visible = false;
+          break;
+        }
+        case 'sledgehammer': {
+          sledgehammerMesh.visible = false;
+          break;
+        }
+        case 'paintbrush': {
+          paintBrushMesh.visible = false;
+          break;
+        }
+      }
+
+      switch (selectedWeapon) {
+        case 'wrench': {
+          wrenchMesh.visible = true;
+          break;
+        }
+        case 'sledgehammer': {
+          sledgehammerMesh.visible = true;
+          break;
+        }
+        case 'paintbrush': {
+          paintBrushMesh.visible = true;
+          break;
+        }
+      } */
     }
   });
 }
