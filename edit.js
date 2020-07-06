@@ -36,6 +36,7 @@ const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
+let remoteChunkMeshes = [];
 (async () => {
 
 const {promise} = await import('./bin/objectize2.js');
@@ -45,25 +46,6 @@ const colors = await (async () => {
   const res = await fetch('./colors.json');
   return await res.json();
 })();
-
-class Allocator {
-  constructor() {
-    this.offsets = [];
-  }
-  alloc(constructor, size) {
-    const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
-    const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
-    b.offset = offset;
-    this.offsets.push(offset);
-    return b;
-  }
-  freeAll() {
-    for (let i = 0; i < this.offsets.length; i++) {
-      self.Module._doFree(this.offsets[i]);
-    }
-    this.offsets.length = 0;
-  }
-}
 
 const HEIGHTFIELD_SHADER = {
   uniforms: {
@@ -194,6 +176,25 @@ const HEIGHTFIELD_SHADER = {
   `
 };
 
+class Allocator {
+  constructor() {
+    this.offsets = [];
+  }
+  alloc(constructor, size) {
+    const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
+    const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
+    b.offset = offset;
+    this.offsets.push(offset);
+    return b;
+  }
+  freeAll() {
+    for (let i = 0; i < this.offsets.length; i++) {
+      self.Module._doFree(this.offsets[i]);
+    }
+    this.offsets.length = 0;
+  }
+}
+
 const _makePotentials = () => {
   const allocator = new Allocator();
 
@@ -295,13 +296,30 @@ const _getChunkSpec = (potentials, dims) => {
     }, */
   };
 };
+let nextId = 0;
+function meshIdToArray(meshId) {
+  return [
+    ((meshId >> 16) & 0xFF),
+    ((meshId >> 8) & 0xFF),
+    (meshId & 0xFF),
+  ];
+}
 const _makeChunkMesh = () => {
   const {potentials, dims} = _makePotentials();
   const spec = _getChunkSpec(potentials, dims);
 
+  const meshId = ++nextId;
+
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
   geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
+  const c = Uint8Array.from(meshIdToArray(meshId));
+  const numPositions = spec.positions.length;
+  const ids = new Uint8Array(numPositions);
+  for (let i = 0; i < numPositions; i += 3) {
+    ids.set(c, i);
+  }
+  geometry.setAttribute('id', new THREE.BufferAttribute(ids, 3, true));
   // geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
   // geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
 
@@ -353,6 +371,7 @@ const _makeChunkMesh = () => {
 
   const mesh = new THREE.Mesh(geometry, heightfieldMaterial);
   mesh.frustumCulled = false;
+  mesh.meshId = meshId;
   mesh.potentials = potentials;
   mesh.dims = dims;
   return mesh;
@@ -386,10 +405,13 @@ window.addEventListener('mousedown', e => {
   // chunkMesh.geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
 });
 
-for (let i = 0; i < 30; i++) {
-  const chunkMesh = _makeChunkMesh();
-  chunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(100);
-  scene.add(chunkMesh);
+const numRemoteChunkMeshes = 30;
+remoteChunkMeshes = Array(numRemoteChunkMeshes);
+for (let i = 0; i < numRemoteChunkMeshes; i++) {
+  const remoteChunkMesh = _makeChunkMesh();
+  remoteChunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(100);
+  scene.add(remoteChunkMesh);
+  remoteChunkMeshes[i] = remoteChunkMesh;
 }
 
 })();
@@ -399,9 +421,74 @@ const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.1, 0.1), new 
 }));
 scene.add(cubeMesh);
 
+const idMaterial = new THREE.ShaderMaterial({
+  vertexShader: `
+    attribute vec3 id;
+    varying vec3 vId;
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+      vId = id;
+    }
+  `,
+  fragmentShader: `
+    varying vec3 vId;
+    void main() {
+      gl_FragColor = vec4(vId, 0.0);
+    }
+  `,
+  side: THREE.DoubleSide,
+});
+class VolumeRaycaster {
+  constructor() {
+    this.renderer = new THREE.WebGLRenderer({
+      alpha: true,
+    });
+    this.renderer.setSize(1, 1);
+    this.renderer.setPixelRatio(1);
+    this.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1);
+    this.scene = new THREE.Scene();
+    this.scene.overrideMaterial = idMaterial;
+    this.camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+    this.pixels = new Uint8Array(4);
+  }
 
+  raycastMeshes(meshes, position, quaternion) {
+    const oldParents = meshes.map(mesh => mesh.parent);
+    for (let i = 0; i < meshes.length; i++) {
+      this.scene.add(meshes[i]);
+    }
 
+    this.camera.position.copy(position);
+    this.camera.quaternion.copy(quaternion);
+    this.camera.updateMatrixWorld();
 
+    this.renderer.render(this.scene, this.camera);
+
+    for (let i = 0; i < meshes.length; i++) {
+      const mesh = meshes[i];
+      const oldParent = oldParents[i];
+      if (oldParent) {
+        oldParent.add(mesh);
+      } else {
+        mesh.parent.remove(mesh);
+      }
+    }
+
+    const gl = this.renderer.getContext();
+    gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+    let result;
+    if (this.pixels[3] === 0) {
+      const meshId = (this.pixels[0] << 16) | (this.pixels[1] << 8) | this.pixels[2];
+      result = meshes.find(mesh => mesh.meshId === meshId) || null;
+    } else {
+      result = null;
+    }
+
+    return result;
+  }
+}
+
+const volumeRaycaster = new VolumeRaycaster();
 
 
 
@@ -691,10 +778,6 @@ planetAuxMesh.updateMatrixWorld();
 planetAuxContainer.add(planetAuxMesh);
 
 const numRemotePlanetMeshes = 10;
-const remotePlanetCubeMeshes = [];
-const fakeMaterial = new THREE.MeshBasicMaterial({
-  color: 0x333333,
-});
 for (let i = 0; i < numRemotePlanetMeshes; i++) {
   const remotePlanetMesh = _makePlanetMesh(0.95);
   remotePlanetMesh.position.set(-1 + rng() * 2, -1 + rng() * 2, -1 + rng() * 2).multiplyScalar(30);
@@ -704,11 +787,6 @@ for (let i = 0; i < numRemotePlanetMeshes; i++) {
   remotePlanetMesh.add(textMesh);
 
   planetContainer.add(remotePlanetMesh);
-
-  const remotePlanetCubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(10, 10, 10), fakeMaterial);
-  remotePlanetCubeMesh.position.copy(remotePlanetMesh.position);
-  planetContainer.add(remotePlanetCubeMesh);
-  remotePlanetCubeMeshes.push(remotePlanetCubeMesh);
 }
 
 /* const rayMesh = makeRayMesh();
@@ -789,6 +867,7 @@ const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
 let currentTeleport = false;
 let lastTeleport = false;
+let lastChunkMesh = null;
 const timeFactor = 500;
 let lastTimestamp = performance.now();
 let lastParcel  = new THREE.Vector3(0, 0, 0);
@@ -851,21 +930,24 @@ function animate(timestamp, frame) {
         pe.camera.updateMatrixWorld();
       };
 
-      raycaster.ray.origin.copy(localVector);
-      raycaster.ray.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
-      const intersects = raycaster.intersectObjects(remotePlanetCubeMeshes);
-      if (intersects.length > 0) {
-        const [intersect] = intersects;
-        const {point, face: {normal}} = intersect;
-        teleportMeshes[1].position.copy(point);
+      const currentChunkMesh = currentTeleport ? volumeRaycaster.raycastMeshes(remoteChunkMeshes, localVector, localQuaternion) : null;
+      if (currentChunkMesh) {
+        console.log('raycasted', currentChunkMesh);
+
+        /* teleportMeshes[1].position.copy(point);
         teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), normal);
         teleportMeshes[1].visible = currentTeleport;
         if (!currentTeleport && lastTeleport) {
           // _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
-        }
+        } */
+      } else if (lastChunkMesh && !currentTeleport) {
+        console.log('second');
+       //  _teleportTo();
       } else {
+        console.log('update');
         teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, _teleportTo);
       }
+      lastChunkMesh = currentChunkMesh;
     }
   }
 
@@ -1090,8 +1172,6 @@ function animate(timestamp, frame) {
 }
 renderer.setAnimationLoop(animate);
 renderer.xr.setSession(proxySession);
-
-// const volumeRaycaster = new VolumeRaycaster();
 
 bindUploadFileButton(document.getElementById('import-scene-input'), async file => {
   const uint8Array = await readFile(file);
