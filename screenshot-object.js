@@ -79,6 +79,7 @@ export async function screenshotEngine(pe) {
   const gif = new GIF({
     workers: 2,
     quality: 10,
+    transparent: 'rgba(0,0,0,0)',
   });
   for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.025) {
     pe.camera.position.copy(center).add(new THREE.Vector3(Math.cos(i) * size.x, size.y / 2, Math.sin(i) * size.z));
