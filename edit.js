@@ -185,11 +185,11 @@ const HEIGHTFIELD_SHADER = {
       vec2 uv2 = vec2(d / dMax, 0.5);
       vec3 c = texture2D(heightColorTex, uv2).rgb;
       vec3 diffuseColor = c * uv2.x;
-      if (isCurrent != 0.0 && edgeFactor() <= 0.99) {
-        diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - pow(length(vWorldPosition) - uTime*5.0, 3.0), 0.0)*0.5);
-
+      if (edgeFactor() <= 0.99) {
+        if (isCurrent != 0.0) {
+          diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - pow(length(vWorldPosition) - uTime*5.0, 3.0), 0.0)*0.5);
+        }
         diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
-        // diffuseColor *= 0.9;
       }
 
       // diffuseColor *= 0.02 + pow(min(max((vPosition.y - 55.0) / 64.0, 0.0), 1.0), 1.0) * 5.0;
