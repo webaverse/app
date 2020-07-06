@@ -1633,8 +1633,8 @@ const _changeInventory = inventory => {
     const removeButton = itemEl.querySelector('.remove-button');
     removeButton.addEventListener('click', async () => {
       console.log('remove', item);
-      const inventory = loginManager.getInventory().filter(i => i.dataHash !== item.dataHash);
-      await loginManager.setInventory(inventory);
+      const newInventory = inventory.filter(i => i.dataHash !== item.dataHash);
+      await loginManager.setInventory(newInventory);
     });
   });
 
