@@ -8,6 +8,14 @@ import {OrbitControls} from 'https://static.xrpackage.org/xrpackage/OrbitControl
 import {screenshotEngine} from './screenshot-object.js';
 import {getWireframeMesh, getDefaultAabb, getPreviewMesh} from './volume.js';
 
+const screenshotHeaderEl = document.getElementById('screenshot-header');
+const screenshotResultEl = document.getElementById('screenshot-result');
+const volumeHeaderEl = document.getElementById('volume-header');
+const volumeResultEl = document.getElementById('volume-result');
+const aabbHeaderEl = document.getElementById('aabb-header');
+const aabbResultEl = document.getElementById('aabb-result');
+const errorTraceEl = document.getElementById('error-trace');
+
 const parseQuery = queryString => {
   const query = {};
   const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
@@ -39,7 +47,7 @@ const toggleElements = baked => {
 };
 
 const _screenshot = async (srcWbn, dstGif) => {
-  document.getElementById('screenshot-header').innerText = 'Screenshotting...';
+  screenshotHeaderEl.innerText = 'Screenshotting...';
 
   const req = await fetch(srcWbn);
   const arrayBuffer = await req.arrayBuffer();
@@ -79,7 +87,7 @@ const _screenshot = async (srcWbn, dstGif) => {
     img.src = URL.createObjectURL(screenshotBlob);
     img.style.backgroundColor = '#EEE';
     img.style.borderRadius = '10px';
-    document.getElementById('screenshot-result').appendChild(img);
+    screenshotResultEl.appendChild(img);
   } else {
     screenshotBlob = new Blob([], {type: 'image/gif'});
     if (dstGif) {
@@ -91,13 +99,13 @@ const _screenshot = async (srcWbn, dstGif) => {
     }
   }
 
-  document.getElementById('screenshot-header').innerText = 'Screenshotting done';
+  screenshotHeaderEl.innerText = 'Screenshotting done';
   const screenshotArrayBuffer = await readFile(screenshotBlob);
   return {screenshot: screenshotArrayBuffer};
 };
 
 const _volume = async (srcWbn, dstVolume, dstAabb) => {
-  document.getElementById('volume-header').innerText = 'Volumizing...';
+  volumeHeaderEl.innerText = 'Volumizing...';
 
   const req = await fetch(srcWbn);
   const arrayBuffer = await req.arrayBuffer();
@@ -203,19 +211,19 @@ const _volume = async (srcWbn, dstVolume, dstAabb) => {
   await p.waitForLoad();
   pe.scene.add(wireframeMesh);
 
-  document.getElementById('volume-result').appendChild(pe.domElement);
+  volumeResultEl.appendChild(pe.domElement);
   pe.domElement.style.backgroundColor = '#EEE';
   pe.domElement.style.borderRadius = '10px';
 
-  document.getElementById('aabb-header').innerText = 'AABB';
-  document.getElementById('aabb-result').innerText = JSON.stringify(aabb, null, 2);
+  aabbHeaderEl.innerText = 'AABB';
+  aabbResultEl.innerText = JSON.stringify(aabb, null, 2);
 
   function animate(timestamp, frame) {
     orbitControls.update();
     renderer.render(scene, camera);
   }
   renderer.setAnimationLoop(animate);
-  document.getElementById('volume-header').innerText = 'Volumizing done';
+  volumeHeaderEl.innerText = 'Volumizing done';
 
   const volumeArrayBuffer = await readFile(volumeBlob);
   return {
@@ -240,7 +248,9 @@ const _volume = async (srcWbn, dstVolume, dstAabb) => {
   } catch (err) {
     toggleElements(null);
     console.warn(err.stack);
-    document.getElementById('error-trace').innerText = err.stack;
+    screenshotHeaderEl.innerText = '';
+    volumeHeaderEl.innerText = '';
+    errorTraceEl.innerText = err.stack;
 
     window.parent.postMessage({
       method: 'error',
