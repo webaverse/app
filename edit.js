@@ -1631,8 +1631,10 @@ const _changeInventory = inventory => {
       loginManager.setAvatar(dataHash);
     });
     const removeButton = itemEl.querySelector('.remove-button');
-    removeButton.addEventListener('click', () => {
+    removeButton.addEventListener('click', async () => {
       console.log('remove', item);
+      const inventory = loginManager.getInventory().filter(i => i.dataHash !== item.dataHash);
+      await loginManager.setInventory(inventory);
     });
   });
 
