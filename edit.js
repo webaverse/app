@@ -584,7 +584,7 @@ class VolumeRaycaster {
       normal = null;
     }
 
-    return mesh ? {mesh, index, point, normal} : null;
+    return point ? {mesh, index, point, normal} : null;
   }
 }
 
