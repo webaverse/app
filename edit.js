@@ -32,6 +32,7 @@ const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
+const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
@@ -963,47 +964,34 @@ function animate(timestamp, frame) {
       const _teleportTo = (position, quaternion) => {
         localMatrix.fromArray(pose.transform.matrix)
           .decompose(localVector, localQuaternion, localVector2);
-        chunkMeshContainer.position.sub(
-          localVector2.copy(position).sub(localVector)
-        );
-        localVector.x = 0;
-        localVector.z = 0;
-        chunkMeshContainer.position.sub(localVector);
-        // chunkMeshContainer.matrix.compose(position, quaternion, localVector2.set(1, 1, 1))
-          // .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
-        /* switch (selectedTool) {
-          case 'thirdperson': {
-            pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
-            break;
-          }
-          case 'isometric': {
-            pe.camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
-            break;
-          }
-        }
 
-        pe.camera.position.x = position.x;
-        pe.camera.position.z = position.z;
-        pe.camera.quaternion.copy(quaternion);
+        chunkMeshContainer.matrix
+          .premultiply(localMatrix.makeTranslation(-position.x, -position.y, -position.z));
 
-        switch (selectedTool) {
-          case 'thirdperson': {
-            pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
-            break;
-          }
-          case 'isometric': {
-            pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
-            break;
-          }
-        }
+        localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        localQuaternion3.setFromEuler(localEuler);
+        localQuaternion3.inverse();
 
-        pe.camera.updateMatrixWorld(); */
+        chunkMeshContainer.matrix
+          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion2.copy(localQuaternion).inverse()))
+          .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion2.copy(quaternion).inverse()))
+          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion));
+
+        chunkMeshContainer.matrix
+          .premultiply(localMatrix.makeTranslation(localVector.x, localVector.y, localVector.z));
+
+        chunkMeshContainer.matrix
+          .premultiply(localMatrix.makeTranslation(0, -localVector.y, 0));
+
+        chunkMeshContainer.matrix
+          .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
       };
 
       const currentChunkMeshSpec = currentTeleport ? volumeRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion) : null;
       const currentChunkMesh = currentChunkMeshSpec && currentChunkMeshSpec.mesh;
       if (currentChunkMesh) {
-        // console.log('intersect', currentChunkMeshSpec.index);
         currentChunkMesh.material.uniforms.selectedIndex.value = currentChunkMeshSpec.index;
 
         if (currentChunkMeshSpec.point) {
