@@ -504,14 +504,11 @@ class VolumeRaycaster {
       }
     }
 
-    // const gl = this.renderer.getContext();
     this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 1, 1, this.pixels);
-    // gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
     let mesh;
     let index;
     let point;
     let normal;
-    // console.log('pixels', Array.from(this.pixels).map(n => n*255).join(', '));
     if (this.pixels[3] !== 1) {
       const meshId = (Math.floor(this.pixels[0]*255) << 16) | (Math.floor(this.pixels[1]*255) << 8) | Math.floor(this.pixels[2]*255);
       mesh = meshes.find(mesh => mesh.meshId === meshId) || null;
@@ -530,12 +527,6 @@ class VolumeRaycaster {
       raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
 
       point = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
-      if (point) {
-        // console.log('got point', point);
-      } else {
-        // console.log('no point');
-        debugger;
-      }
     } else {
       mesh = null;
       index = -1;
