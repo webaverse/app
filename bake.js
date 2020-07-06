@@ -39,6 +39,8 @@ const toggleElements = baked => {
 };
 
 const _screenshot = async (srcWbn, dstGif) => {
+  document.getElementById('screenshot-header').innerText = 'Screenshotting...';
+
   const req = await fetch(srcWbn);
   const arrayBuffer = await req.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
@@ -90,12 +92,13 @@ const _screenshot = async (srcWbn, dstGif) => {
   }
 
   document.getElementById('screenshot-header').innerText = 'Screenshotting done';
-
   const screenshotArrayBuffer = await readFile(screenshotBlob);
   return {screenshot: screenshotArrayBuffer};
 };
 
 const _volume = async (srcWbn, dstVolume, dstAabb) => {
+  document.getElementById('volume-header').innerText = 'Volumizing...';
+
   const req = await fetch(srcWbn);
   const arrayBuffer = await req.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
@@ -204,7 +207,7 @@ const _volume = async (srcWbn, dstVolume, dstAabb) => {
   pe.domElement.style.backgroundColor = '#EEE';
   pe.domElement.style.borderRadius = '10px';
 
-  document.getElementById('aabb-header').style.display = 'block';
+  document.getElementById('aabb-header').innerText = 'AABB';
   document.getElementById('aabb-result').innerText = JSON.stringify(aabb, null, 2);
 
   function animate(timestamp, frame) {
@@ -215,7 +218,6 @@ const _volume = async (srcWbn, dstVolume, dstAabb) => {
   document.getElementById('volume-header').innerText = 'Volumizing done';
 
   const volumeArrayBuffer = await readFile(volumeBlob);
-
   return {
     volume: volumeArrayBuffer,
     aabb,
