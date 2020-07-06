@@ -74,6 +74,7 @@ const makeTeleportMesh = (lineMesh, index) => {
   const teleportMesh = new THREE.Mesh(geometry, material);
   teleportMesh.visible = false;
   teleportMesh.frustumCulled = false;
+  teleportMesh.lineMesh = lineMesh;
 
   teleportMesh.update = (position, quaternion, visible, onTeleport) => {
     const wasVisible = teleportMesh.visible;
