@@ -67,7 +67,7 @@ const _screenshot = async (srcWbn, dstGif) => {
       await p.waitForLoad();
       return p;
     } catch (err) {
-      console.warn(err.stack);
+      console.error(err.stack);
       return null;
     }
   })();
@@ -116,7 +116,7 @@ const _volume = async (srcWbn, dstVolume, dstAabb) => {
       await p.waitForLoad();
       return p;
     } catch (err) {
-      console.warn(err.stack);
+      console.error(err.stack);
       return null;
     }
   })();
@@ -247,7 +247,7 @@ const _volume = async (srcWbn, dstVolume, dstAabb) => {
     toggleElements(true);
   } catch (err) {
     toggleElements(null);
-    console.warn(err.stack);
+    console.error(err.stack);
     screenshotHeaderEl.innerText = '';
     volumeHeaderEl.innerText = '';
     errorTraceEl.innerText = err.stack;
