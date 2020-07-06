@@ -37,6 +37,8 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 
 let remoteChunkMeshes = [];
+const chunkMeshContainer = new THREE.Object3D();
+scene.add(chunkMeshContainer);
 (async () => {
 
 const {promise} = await import('./bin/objectize2.js');
@@ -396,6 +398,7 @@ const _makeChunkMesh = () => {
   mesh.dims = dims;
   return mesh;
 };
+
 const chunkMesh = _makeChunkMesh();
 /* {
   const img = document.createElement('img');
@@ -408,7 +411,7 @@ const chunkMesh = _makeChunkMesh();
     console.warn(err);
   };
 } */
-scene.add(chunkMesh);
+chunkMeshContainer.add(chunkMesh);
 
 /* window.addEventListener('mousedown', e => {
   localVector.copy(cubeMesh.position);
@@ -430,9 +433,10 @@ remoteChunkMeshes = Array(numRemoteChunkMeshes);
 for (let i = 0; i < numRemoteChunkMeshes; i++) {
   const remoteChunkMesh = _makeChunkMesh();
   remoteChunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(100);
-  scene.add(remoteChunkMesh);
+  chunkMeshContainer.add(remoteChunkMesh);
   remoteChunkMeshes[i] = remoteChunkMesh;
 }
+remoteChunkMeshes.push(chunkMesh);
 
 })();
 
@@ -482,11 +486,9 @@ class VolumeRaycaster {
     this.pixels = new Float32Array(4);
   }
 
-  raycastMeshes(meshes, position, quaternion) {
-    const oldParents = meshes.map(mesh => mesh.parent);
-    for (let i = 0; i < meshes.length; i++) {
-      this.scene.add(meshes[i]);
-    }
+  raycastMeshes(container, position, quaternion) {
+    const oldParent = container.parent;
+    this.scene.add(container);
 
     this.camera.position.copy(position);
     this.camera.quaternion.copy(quaternion);
@@ -494,15 +496,21 @@ class VolumeRaycaster {
 
     this.renderer.render(this.scene, this.camera);
 
-    for (let i = 0; i < meshes.length; i++) {
-      const mesh = meshes[i];
-      const oldParent = oldParents[i];
-      if (oldParent) {
-        oldParent.add(mesh);
-      } else {
-        mesh.parent.remove(mesh);
-      }
+    if (oldParent) {
+      oldParent.add(container);
+    } else {
+      container.parent.remove(container);
     }
+
+    const _findMeshWithMeshId = meshId => {
+      let result = null;
+      container.traverse(o => {
+        if (result === null && o.meshId === meshId) {
+          result = o;
+        }
+      });
+      return result;
+    };
 
     this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 1, 1, this.pixels);
     let mesh;
@@ -511,7 +519,8 @@ class VolumeRaycaster {
     let normal;
     if (this.pixels[3] !== 1) {
       const meshId = (Math.floor(this.pixels[0]*255) << 16) | (Math.floor(this.pixels[1]*255) << 8) | Math.floor(this.pixels[2]*255);
-      mesh = meshes.find(mesh => mesh.meshId === meshId) || null;
+      // mesh = meshes.find(mesh => mesh.meshId === meshId) || null;
+      mesh = _findMeshWithMeshId(meshId);
       index = Math.floor(this.pixels[3]*64000)-1;
 
       const triangle = new THREE.Triangle(
@@ -952,7 +961,12 @@ function animate(timestamp, frame) {
       }
 
       const _teleportTo = (position, quaternion) => {
-        switch (selectedTool) {
+        chunkMeshContainer.position.sub(
+          localVector.copy(position).sub(pe.camera.position)
+        );
+        // chunkMeshContainer.matrix.compose(position, quaternion, localVector2.set(1, 1, 1))
+          // .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
+        /* switch (selectedTool) {
           case 'thirdperson': {
             pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
             break;
@@ -965,6 +979,7 @@ function animate(timestamp, frame) {
 
         pe.camera.position.x = position.x;
         pe.camera.position.z = position.z;
+        pe.camera.quaternion.copy(quaternion);
 
         switch (selectedTool) {
           case 'thirdperson': {
@@ -977,10 +992,10 @@ function animate(timestamp, frame) {
           }
         }
 
-        pe.camera.updateMatrixWorld();
+        pe.camera.updateMatrixWorld(); */
       };
 
-      const currentChunkMeshSpec = currentTeleport ? volumeRaycaster.raycastMeshes(remoteChunkMeshes, localVector, localQuaternion) : null;
+      const currentChunkMeshSpec = currentTeleport ? volumeRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion) : null;
       const currentChunkMesh = currentChunkMeshSpec && currentChunkMeshSpec.mesh;
       if (currentChunkMesh) {
         // console.log('intersect', currentChunkMeshSpec.index);
@@ -990,11 +1005,12 @@ function animate(timestamp, frame) {
           teleportMeshes[1].position.copy(currentChunkMeshSpec.point);
           teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), currentChunkMeshSpec.normal);
           teleportMeshes[1].visible = true;
+          teleportMeshes[1].lineMesh.visible = false;
         }
       } else if (lastChunkMesh && !currentTeleport) {
-        console.log('second');
+        // console.log('second');
         teleportMeshes[1].visible = false;
-       //  _teleportTo();
+       _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
       } else {
         teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, _teleportTo);
       }
@@ -1121,7 +1137,7 @@ function animate(timestamp, frame) {
       const {rig, rigPackage} = pe;
       if (rig || rigPackage) {
         const avatarHeight = rig ? _getAvatarHeight() : 1;
-        const floorHeight = (() => {
+        /* const floorHeight = (() => {
           raycaster.ray.origin.copy(localVector);
           raycaster.ray.origin.y += 10;
           raycaster.ray.direction.set(0, -1, 0);
@@ -1133,7 +1149,8 @@ function animate(timestamp, frame) {
           } else {
             return 0;
           }
-        })();
+        })(); */
+        const floorHeight = 0;
         const minHeight = floorHeight + avatarHeight;
         if (!jumpState) {
           localVector.y = minHeight;
