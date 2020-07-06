@@ -40,6 +40,7 @@ const localMatrix2 = new THREE.Matrix4();
 let remoteChunkMeshes = [];
 const chunkMeshContainer = new THREE.Object3D();
 scene.add(chunkMeshContainer);
+let currentChunkMesh = null;
 (async () => {
 
 const {promise} = await import('./bin/objectize2.js');
@@ -68,6 +69,14 @@ const HEIGHTFIELD_SHADER = {
       type: 'f',
       value: 0,
     },
+    isCurrent: {
+      type: 'f',
+      value: 0,
+    },
+    uTime: {
+      type: 'f',
+      value: 0,
+    },
     tex: {
       type: 't',
       value: new THREE.Texture(),
@@ -89,6 +98,7 @@ const HEIGHTFIELD_SHADER = {
     // attribute float torchLightmap;
 
     varying vec3 vPosition;
+    varying vec3 vWorldPosition;
     varying vec3 vBarycentric;
     // varying vec3 vViewPosition;
     // varying vec3 vColor;
@@ -102,17 +112,13 @@ const HEIGHTFIELD_SHADER = {
       // vColor = color;
       // vNormal = normal;
 
-      vec4 mvPosition = modelViewMatrix * vec4( position.xyz, 1.0 );
+      vec4 mvPosition = modelViewMatrix * vec4(position.xyz, 1.0);
       gl_Position = projectionMatrix * mvPosition;
 
       vPosition = position.xyz;
+      vWorldPosition = mvPosition.xyz;
       vBarycentric = barycentric;
       vIndex = index3;
-      // vViewPosition = -mvPosition.xyz;
-      // vSkyLightmap = skyLightmap;
-      // vTorchLightmap = torchLightmap;
-      // float fogDepth = -mvPosition.z;
-      // vFog = 1.0 - exp2( - fogDensity * fogDensity * fogDepth * fogDepth * LOG2 );
     }
   `,
   fragmentShader: `\
@@ -127,6 +133,7 @@ const HEIGHTFIELD_SHADER = {
     uniform float selectedIndex;
 
     varying vec3 vPosition;
+    varying vec3 vWorldPosition;
     varying vec3 vBarycentric;
     varying float vIndex;
     // varying vec3 vViewPosition;
@@ -135,6 +142,9 @@ const HEIGHTFIELD_SHADER = {
     // varying float vSkyLightmap;
     // varying float vTorchLightmap;
     // varying float vFog;
+
+    uniform float isCurrent;
+    uniform float uTime;
 
     #define saturate(a) clamp( a, 0.0, 1.0 )
 
@@ -163,27 +173,21 @@ const HEIGHTFIELD_SHADER = {
         mod((vPosition.z) / 4.0, 1.0)
       );
 
-      // vec3 tV = texture2D(tex, uv).rgb;
-      // float dotNL = abs(dot( tV, lightDirection));
-      // vec3 irradiance = ambientLightColor + dotNL;
-      // vec3 diffuseColor = vColor * irradiance * (0.1 + lightColor * 0.9);
       float d = length(vPosition - vec3(${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}));
       float dMax = length(vec3(${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}));
       vec2 uv2 = vec2(d / dMax, 0.5);
       vec3 c = texture2D(heightColorTex, uv2).rgb;
       vec3 diffuseColor = c * uv2.x;
-      float a = 1.0;
-      float ef = edgeFactor();
-      if (ef <= 0.99) {
+      if (isCurrent != 0.0 && edgeFactor() <= 0.99) {
+        diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - pow(length(vWorldPosition) - uTime*5.0, 3.0), 0.0)*0.5);
+
         diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
-        // a = 0.9;
-        // diffuseColor.rgb = vec3(0.0);
-        // discard;
+        // diffuseColor *= 0.9;
       }
 
       // diffuseColor *= 0.02 + pow(min(max((vPosition.y - 55.0) / 64.0, 0.0), 1.0), 1.0) * 5.0;
 
-      gl_FragColor = vec4( diffuseColor, a );
+      gl_FragColor = vec4(diffuseColor, 1.0);
 
       if (vIndex == selectedIndex) {
         gl_FragColor.b = 1.0;
@@ -927,8 +931,8 @@ const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
 let currentTeleport = false;
 let lastTeleport = false;
-let lastChunkMesh = null;
-const timeFactor = 500;
+let lastTeleportChunkMesh = null;
+const timeFactor = 2000;
 let lastTimestamp = performance.now();
 let lastParcel  = new THREE.Vector3(0, 0, 0);
 function animate(timestamp, frame) {
@@ -936,6 +940,9 @@ function animate(timestamp, frame) {
   lastTimestamp = timestamp;
 
   // loadMeshMaterial.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
+  for (let i = 0; i < remoteChunkMeshes.length; i++) {
+    remoteChunkMeshes[i].material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
+  }
 
   const session = renderer.xr.getSession();
   if (session) {
@@ -989,25 +996,33 @@ function animate(timestamp, frame) {
           .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
       };
 
-      const currentChunkMeshSpec = currentTeleport ? volumeRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion) : null;
-      const currentChunkMesh = currentChunkMeshSpec && currentChunkMeshSpec.mesh;
-      if (currentChunkMesh) {
-        currentChunkMesh.material.uniforms.selectedIndex.value = currentChunkMeshSpec.index;
+      const currentTeleportChunkMeshSpec = currentTeleport ? volumeRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion) : null;
+      const currentTeleportChunkMesh = currentTeleportChunkMeshSpec && currentTeleportChunkMeshSpec.mesh;
+      if (currentTeleportChunkMesh) {
+        currentTeleportChunkMesh.material.uniforms.selectedIndex.value = currentTeleportChunkMeshSpec.index;
 
-        if (currentChunkMeshSpec.point) {
-          teleportMeshes[1].position.copy(currentChunkMeshSpec.point);
-          teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), currentChunkMeshSpec.normal);
+        if (currentTeleportChunkMeshSpec.point) {
+          teleportMeshes[1].position.copy(currentTeleportChunkMeshSpec.point);
+          teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), currentTeleportChunkMeshSpec.normal);
           teleportMeshes[1].visible = true;
           teleportMeshes[1].lineMesh.visible = false;
         }
-      } else if (lastChunkMesh && !currentTeleport) {
+      } else if (lastTeleportChunkMesh && !currentTeleport) {
         // console.log('second');
         teleportMeshes[1].visible = false;
        _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
+       if (currentChunkMesh) {
+        currentChunkMesh.material.uniforms.isCurrent.value = 0;
+        currentChunkMesh = null;
+       }
+       currentChunkMesh = lastTeleportChunkMesh;
+       if (currentChunkMesh) {
+         currentChunkMesh.material.uniforms.isCurrent.value = 1;
+        }
       } else {
         teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, _teleportTo);
       }
-      lastChunkMesh = currentChunkMesh;
+      lastTeleportChunkMesh = currentTeleportChunkMesh;
     }
   }
 
