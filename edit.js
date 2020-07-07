@@ -819,7 +819,7 @@ const idMaterial = new THREE.ShaderMaterial({
   `,
   side: THREE.DoubleSide,
 });
-class VolumeRaycaster {
+class PointRaycaster {
   constructor() {
     this.renderer = new THREE.WebGLRenderer({
       alpha: true,
@@ -899,8 +899,156 @@ class VolumeRaycaster {
     return point ? {mesh, index, point, normal} : null;
   }
 }
+const pointRaycaster = new PointRaycaster();
 
-const volumeRaycaster = new VolumeRaycaster();
+const depthMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    uNear: {
+      type: 'f',
+      value: 0,
+    },
+    uFar: {
+      type: 'f',
+      value: 1,
+    },
+  },
+  vertexShader: `\
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+    }
+  `,
+  fragmentShader: `\
+    varying vec2 vTexCoords;
+
+    uniform float uNear;
+    uniform float uFar;
+    vec4 encodePixelDepth(float v) {
+      float x = fract(v);
+      v -= x;
+      v /= 255.0;
+      float y = fract(v);
+      v -= y;
+      v /= 255.0;
+      float z = fract(v);
+      /* v -= y;
+      v /= 255.0;
+      float w = fract(v);
+      float w = 0.0;
+      if (x == 0.0 && y == 0.0 && z == 0.0 && w == 0.0) {
+        return vec4(0.0, 0.0, 0.0, 1.0);
+      } else { */
+        return vec4(x, y, z, 0.0);
+      // }
+    }
+    void main() {
+      /* float z_b = texture2D(colorMap, vTexCoords).r;
+      float z_n = 2.0 * z_b - 1.0;
+      float z_e = 2.0 * uNear * uFar / (uFar + uNear - z_n * (uFar - uNear)); */
+      float z_e = gl_FragCoord.z/gl_FragCoord.w;
+      gl_FragColor = encodePixelDepth(z_e);
+    }
+  `,
+  side: THREE.DoubleSide,
+});
+class CollisionRaycaster {
+  constructor() {
+    this.renderer = new THREE.WebGLRenderer({
+      alpha: true,
+    });
+    this.renderer.setSize(10, 10);
+    this.renderer.setPixelRatio(1);
+    this.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1);
+    const renderTarget = new THREE.WebGLRenderTarget(10, 10, {
+      // type: THREE.FloatType,
+      format: THREE.RGBAFormat,
+    });
+    this.renderer.setRenderTarget(renderTarget);
+    this.renderTarget = renderTarget;
+    this.scene = new THREE.Scene();
+    this.scene.overrideMaterial = depthMaterial;
+    this.camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
+    this.pixels = new Uint8Array(10*10*4);
+    this.depths = new Float32Array(10*10);
+  }
+
+  raycastMeshes(container, position, quaternion, uSize, vSize, dSize) {
+    const oldParent = container.parent;
+    this.scene.add(container);
+
+    this.camera.position.copy(position);
+    this.camera.quaternion.copy(quaternion);
+    this.camera.updateMatrixWorld();
+
+    this.camera.left = uSize / -2;
+    this.camera.right = uSize / 2;
+    this.camera.top = vSize / 2;
+    this.camera.bottom = vSize / -2;
+    this.camera.near = 0.001;
+    this.camera.far = dSize;
+    this.camera.updateProjectionMatrix();
+
+    this.scene.overrideMaterial.uniforms.uNear.value = this.camera.near;
+    this.scene.overrideMaterial.uniforms.uFar.value = this.camera.far;
+
+    this.renderer.render(this.scene, this.camera);
+
+    if (oldParent) {
+      oldParent.add(container);
+    } else {
+      container.parent.remove(container);
+    }
+
+    this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 10, 10, this.pixels);
+
+    let j = 0;
+    for (let i = 0; i < this.depths.length; i++) {
+      let v =
+        this.pixels[j++] / 255.0 +
+        this.pixels[j++] +
+        this.pixels[j++] * 255.0 +
+        this.pixels[j++] * 255.0 * 255.0;
+      if (v > camera.far) {
+        v = Infinity;
+      }
+      this.depths[i] = v;
+    }
+
+    // console.log('got pixels', this.depths);
+
+    /* let mesh;
+    let index;
+    let point;
+    let normal;
+    if (this.pixels[3] !== 1) {
+      const meshId = (Math.floor(this.pixels[0]*255) << 16) | (Math.floor(this.pixels[1]*255) << 8) | Math.floor(this.pixels[2]*255);
+      // mesh = meshes.find(mesh => mesh.meshId === meshId) || null;
+      mesh = _findMeshWithMeshId(meshId);
+      index = Math.floor(this.pixels[3]*64000)-1;
+
+      const triangle = new THREE.Triangle(
+        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9).applyMatrix4(mesh.matrixWorld),
+        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+3).applyMatrix4(mesh.matrixWorld),
+        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+6).applyMatrix4(mesh.matrixWorld)
+      );
+      normal = triangle.getNormal(new THREE.Vector3());
+      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, triangle.a);
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.ray.origin.copy(position);
+      raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
+
+      point = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
+    } else {
+      mesh = null;
+      index = -1;
+      point = null;
+      normal = null;
+    }
+
+    return point ? {mesh, index, point, normal} : null; */
+  }
+}
+const collisionRaycaster = new CollisionRaycaster();
 
 function parseQuery(queryString) {
   var query = {};
@@ -1312,7 +1460,7 @@ function animate(timestamp, frame) {
 
       // cubeMesh.position.copy(localVector).add(localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
 
-      const raycastChunkSpec = volumeRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
+      const raycastChunkSpec = pointRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
 
       [wrenchMesh, sledgehammerMesh, paintBrushMesh].forEach(weaponMesh => {
         if (weaponMesh) {
