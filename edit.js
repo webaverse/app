@@ -1799,15 +1799,27 @@ function animate(timestamp, frame) {
         localVector3.copy(localVector)
           .add(localVector4.set(0, -0.5, 0));
         collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector3, localQuaternion2, width, height, depth);
+
         let i = 0;
         for (let y = 0; y < 10; y++) {
           for (let x = 0; x < 10; x++) {
             const cubeMesh = collisionCubes[i];
             const d = collisionRaycaster.depths[i];
             if (isFinite(d)) {
+              const normal = collisionRaycaster.normals[i];
+              if (d < 0.5) {
+                localVector4.copy(normal);
+                localVector4.y = 0;
+                localVector4.normalize();
+                const restitutionMagnitude = localVector4.dot(velocity);
+                if (restitutionMagnitude < 0) {
+                  velocity.add(localVector4);
+                }
+              }
+
               cubeMesh.position.copy(localVector3)
                 .add(localVector4.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
-              cubeMesh.quaternion.setFromUnitVectors(localVector4.set(0, 1, 0), collisionRaycaster.normals[i]);
+              cubeMesh.quaternion.setFromUnitVectors(localVector4.set(0, 1, 0), normal);
               cubeMesh.visible = true;
             } else {
               cubeMesh.visible = false;
