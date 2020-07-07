@@ -1010,7 +1010,7 @@ class CollisionRaycaster {
       if (v > camera.far) {
         v = Infinity;
       }
-      this.depths[i] = v;
+      this.depths[i] = this.camera.near + v * (this.camera.far - this.camera.near);
     }
 
     // console.log('got pixels', this.depths);
