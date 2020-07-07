@@ -1019,16 +1019,16 @@ class CollisionRaycaster {
           this.pixels[j] +
           this.pixels[j+1] * 255.0;
         this.depths[i] = this.camera.near + v * (this.camera.far - this.camera.near);
-        const meshId = Math.floor(this.pixels[2]*64000)-1;
-        const index = Math.floor(this.pixels[3]*64000)-1;
+        const meshId = Math.floor(this.pixels[j+2]*64000)-1;
+        const index = Math.floor(this.pixels[j+3]*64000)-1;
 
-        /* const mesh = _findMeshWithMeshId(container, meshId);
+        const mesh = _findMeshWithMeshId(container, meshId);
         const triangle = new THREE.Triangle(
           new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9).applyMatrix4(mesh.matrixWorld),
           new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+3).applyMatrix4(mesh.matrixWorld),
           new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+6).applyMatrix4(mesh.matrixWorld)
         );
-        triangle.getNormal(this.normals[i]); */
+        triangle.getNormal(this.normals[i]);
       } else {
         this.depths[i] = Infinity;
       }
