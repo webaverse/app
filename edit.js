@@ -1050,6 +1050,24 @@ class CollisionRaycaster {
 }
 const collisionRaycaster = new CollisionRaycaster();
 
+const collisionCubeGeometry = new THREE.BoxBufferGeometry(0.1, 0.1, 0.1);
+const collisionCubeMaterial = new THREE.MeshBasicMaterial({
+  color: 0xFF0000,
+});
+const collisionCubes = (() => {
+  const result = Array(10*10);
+  for (let i = 0; i < 10*10; i++) {
+    const mesh = new THREE.Mesh(collisionCubeGeometry, collisionCubeMaterial);
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    result[i] = mesh;
+  }
+  return result;
+})();
+for (let i = 0; i < collisionCubes.length; i++) {
+  scene.add(collisionCubes[i]);
+}
+
 function parseQuery(queryString) {
   var query = {};
   var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
@@ -1751,7 +1769,30 @@ function animate(timestamp, frame) {
     const _collideFloor = matrix => {
       matrix.decompose(localVector, localQuaternion, localVector2);
 
-      collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion, 1, 0.5, 10);
+      if (velocity.x !== 0 || velocity.y !== 0 || velocity.z !== 0) {
+        const width = 0.5;
+        const height = 2;
+        const depth = 10;
+        localQuaternion2.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
+        localVector3.copy(localVector)
+          .add(localVector4.set(0, -0.5, 0));
+        collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector3, localQuaternion2, width, height, depth);
+        let i = 0;
+        for (let y = 0; y < 10; y++) {
+          for (let x = 0; x < 10; x++) {
+            const cubeMesh = collisionCubes[i];
+            const d = collisionRaycaster.depths[i];
+            if (isFinite(d)) {
+              cubeMesh.position.copy(localVector3)
+                .add(localVector4.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
+              cubeMesh.visible = true;
+            } else {
+              cubeMesh.visible = false;
+            }
+            i++;
+          }
+        }
+      }
 
       const {rig, rigPackage} = pe;
       if (rig || rigPackage) {
