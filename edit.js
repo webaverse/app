@@ -333,6 +333,7 @@ scene.add(chunkMeshContainer);
 let currentChunkMesh = null;
 let physics = null;
 let physicalMesh = null;
+let capsuleMesh = null;
 (async () => {
 
 const [
@@ -362,12 +363,20 @@ physics = (() => {
   const ammoQuaternion = new Ammo.btQuaternion();
   const localTransform = new Ammo.btTransform();
 
-  var collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
-  var dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
-  var overlappingPairCache = new Ammo.btDbvtBroadphase();
-  var solver = new Ammo.btSequentialImpulseConstraintSolver();
+  const collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
+  const dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
+  const overlappingPairCache = new Ammo.btDbvtBroadphase();
+  const solver = new Ammo.btSequentialImpulseConstraintSolver();
   const dynamicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
   dynamicsWorld.setGravity(new Ammo.btVector3(0, -9.8, 0));
+
+  // window.dispatcher = dispatcher;
+  // window.dynamicsWorld = dynamicsWorld;
+
+  /* const collisionConfiguration2 = new Ammo.btDefaultCollisionConfiguration();
+  const dispatcher2 = new Ammo.btCollisionDispatcher(collisionConfiguration2);
+  const broadphase = new Ammo.btDbvtBroadphase();
+  const collisionWorld = new Ammo.btCollisionWorld(dispatcher2, broadphase, collisionConfiguration2); */
 
   {
     var groundShape = new Ammo.btBoxShape(new Ammo.btVector3(100, 100, 100));
@@ -451,6 +460,28 @@ physics = (() => {
   };
 
   return {
+    bindCapsuleMeshPhysics(objectMesh) {
+      const shape = new Ammo.btCapsuleShape(0.5, 2);
+
+      const transform = new Ammo.btTransform();
+      transform.setIdentity();
+      transform.setOrigin(new Ammo.btVector3(objectMesh.position.x, objectMesh.position.y, objectMesh.position.z));
+
+      const mass = 1;
+      const localInertia = new Ammo.btVector3(0, 0, 0);
+      shape.calculateLocalInertia(mass, localInertia);
+
+      const myMotionState = new Ammo.btDefaultMotionState(transform);
+      const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
+      const body = new Ammo.btRigidBody(rbInfo);
+
+      dynamicsWorld.addRigidBody(body);
+
+      objectMesh.body = body;
+      objectMesh.originalPosition = objectMesh.position.clone();
+      objectMesh.originalQuaternion = objectMesh.quaternion.clone();
+      objectMesh.originalScale = objectMesh.scale.clone();
+    },
     bindStaticMeshPhysics(objectMesh) {
       const shape = _makeTriangleMeshShape(objectMesh);
 
@@ -467,6 +498,10 @@ physics = (() => {
       const body = new Ammo.btRigidBody(rbInfo);
 
       dynamicsWorld.addRigidBody(body);
+
+      /* const collisionObject = new Ammo.btCollisionObject();
+      collisionObject.setCollisionShape(shape);
+      collisionWorld.addCollisionObject(collisionObject); */
     },
     bindMeshPhysics(objectMesh) {
       if (!objectMesh.body) {
@@ -483,6 +518,14 @@ physics = (() => {
         const myMotionState = new Ammo.btDefaultMotionState(transform);
         const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
         const body = new Ammo.btRigidBody(rbInfo);
+        // body.setActivationState(4);
+        /* const STATE = {
+          ACTIVE : 1,
+          ISLAND_SLEEPING : 2,
+          WANTS_DEACTIVATION : 3,
+          DISABLE_DEACTIVATION : 4,
+          DISABLE_SIMULATION : 5
+        }; */
 
         dynamicsWorld.addRigidBody(body);
 
@@ -537,6 +580,12 @@ physics = (() => {
         mesh.quaternion.set(rotation.x(), rotation.y(), rotation.z(), rotation.w());
       // }
     },
+    pushObjectMesh(mesh) {
+      localTransform.setOrigin(new Ammo.btVector3(mesh.position.x, mesh.position.y, mesh.position.z));
+      localTransform.setRotation(new Ammo.btQuaternion(mesh.quaternion.x, mesh.quaternion.y, mesh.quaternion.z, mesh.quaternion.w));
+      mesh.body.setWorldTransform(localTransform);
+      mesh.body.activate(true);
+    },
     resetObjectMesh(mesh) {
       // if (mesh.body) {
         localTransform.setOrigin(new Ammo.btVector3(mesh.originalPosition.x, mesh.originalPosition.y, mesh.originalPosition.z));
@@ -548,6 +597,30 @@ physics = (() => {
         mesh.quaternion.copy(mesh.originalQuaternion);
         mesh.scale.copy(mesh.originalScale);
       // }
+    },
+    checkCollisions() {
+      const numManifolds = dispatcher.getNumManifolds();
+      console.log('num manifolds', numManifolds);
+
+      for (let i = 0; i < numManifolds; i++) {
+        const manifold = dispatcher.getManifoldByIndexInternal(i);
+        const num_contacts = manifold.getNumContacts();
+
+        const body0 = manifold.getBody0();
+        const body1 = manifold.getBody1();
+        // window.body0 = body0;
+        // window.body1 = body1;
+
+        if (body0.hy === capsuleMesh.body.hy, body1.hy === capsuleMesh.body.hy) {
+          console.log('get contacts', num_contacts);
+        }
+
+        for (let j = 0; j < num_contacts; j++) {
+          const pt = manifold.getContactPoint(j);
+
+          // debugger;
+        }
+      }
     },
   };
 })();
@@ -561,10 +634,23 @@ physicalMesh = (() => {
   mesh.frustumCulled = false;
   return mesh;
 })();
-physicalMesh.position.set(10, 20, 10);
+physicalMesh.position.set(0, 20, 0);
 scene.add(physicalMesh);
 physics.bindMeshPhysics(physicalMesh);
-window.physicalMesh = physicalMesh;
+// window.physicalMesh = physicalMesh;
+
+capsuleMesh = (() => {
+  const geometry = new THREE.SphereBufferGeometry(0.5);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xFF0000,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+})();
+scene.add(capsuleMesh);
+physics.bindCapsuleMeshPhysics(capsuleMesh);
+// window.capsuleMesh = capsuleMesh;
 
 const _makeChunkMesh = () => {
   const {potentials, dims} = _makePotentials();
@@ -1201,6 +1287,7 @@ function animate(timestamp, frame) {
   if (physics) {
     physics.simulate();
     physics.pullObjectMesh(physicalMesh);
+    // physics.checkCollisions();
   }
 
   // loadMeshMaterial.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
@@ -1215,6 +1302,13 @@ function animate(timestamp, frame) {
     if (pose = frame.getPose(inputSource.targetRaySpace, renderer.xr.getReferenceSpace())) {
       localMatrix.fromArray(pose.transform.matrix)
         .decompose(localVector, localQuaternion, localVector2);
+
+      if (capsuleMesh) {
+        capsuleMesh.position.copy(localVector);
+        capsuleMesh.quaternion.copy(localQuaternion);
+        physics.pushObjectMesh(capsuleMesh);
+        physicalMesh.body.activate(true);
+      }
 
       // cubeMesh.position.copy(localVector).add(localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
 
@@ -1507,6 +1601,9 @@ function animate(timestamp, frame) {
 
     const _collideFloor = matrix => {
       matrix.decompose(localVector, localQuaternion, localVector2);
+
+      collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion, 1, 0.5, 10);
+
       const {rig, rigPackage} = pe;
       if (rig || rigPackage) {
         const avatarHeight = rig ? _getAvatarHeight() : 1;
