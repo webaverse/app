@@ -1807,6 +1807,7 @@ function animate(timestamp, frame) {
             if (isFinite(d)) {
               cubeMesh.position.copy(localVector3)
                 .add(localVector4.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
+              cubeMesh.quaternion.setFromUnitVectors(localVector4.set(0, 1, 0), collisionRaycaster.normals[i]);
               cubeMesh.visible = true;
             } else {
               cubeMesh.visible = false;
