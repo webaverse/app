@@ -285,14 +285,12 @@ const _getChunkSpec = (potentials, dims, meshId) => {
     colors.set(c, i);
   } */
 
-  const c = Uint8Array.from(meshIdToArray(meshId));
-  const ids = new Uint8Array(numPositions[0]);
-  for (let i = 0; i < numPositions[0]; i += 3) {
-    ids.set(c, i);
-  }
-
+  const ids = new Float32Array(numPositions[0]/3);
   const indices = new Float32Array(numPositions[0]/3);
   for (let i = 0; i < numPositions[0]/3/3; i++) {
+    ids[i*3] = meshId;
+    ids[i*3+1] = meshId;
+    ids[i*3+2] = meshId;
     indices[i*3] = i;
     indices[i*3+1] = i;
     indices[i*3+2] = i;
@@ -661,7 +659,7 @@ const _makeChunkMesh = () => {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
   geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
-  geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 3, true));
+  geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
   geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1));
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
@@ -798,11 +796,21 @@ const removeMesh = (() => {
 removeMesh.visible = false;
 scene.add(removeMesh);
 
+const _findMeshWithMeshId = (container, meshId) => {
+  let result = null;
+  container.traverse(o => {
+    if (result === null && o.meshId === meshId) {
+      result = o;
+    }
+  });
+  return result;
+};
+
 const idMaterial = new THREE.ShaderMaterial({
   vertexShader: `
-    attribute vec3 id;
+    attribute float id;
     attribute float index;
-    varying vec3 vId;
+    varying float vId;
     varying float vIndex;
     void main() {
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
@@ -811,10 +819,10 @@ const idMaterial = new THREE.ShaderMaterial({
     }
   `,
   fragmentShader: `
-    varying vec3 vId;
+    varying float vId;
     varying float vIndex;
     void main() {
-      gl_FragColor = vec4(vId, (vIndex+1.0)/64000.0);
+      gl_FragColor = vec4((vId+1.0)/64000.0, (vIndex+1.0)/64000.0, 0.0, 0.0);
     }
   `,
   side: THREE.DoubleSide,
@@ -826,7 +834,7 @@ class PointRaycaster {
     });
     this.renderer.setSize(1, 1);
     this.renderer.setPixelRatio(1);
-    this.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1);
+    this.renderer.setClearColor(new THREE.Color(0x000000), 0);
     const renderTarget = new THREE.WebGLRenderTarget(1, 1, {
       type: THREE.FloatType,
       format: THREE.RGBAFormat,
@@ -855,26 +863,15 @@ class PointRaycaster {
       container.parent.remove(container);
     }
 
-    const _findMeshWithMeshId = meshId => {
-      let result = null;
-      container.traverse(o => {
-        if (result === null && o.meshId === meshId) {
-          result = o;
-        }
-      });
-      return result;
-    };
-
     this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 1, 1, this.pixels);
     let mesh;
     let index;
     let point;
     let normal;
-    if (this.pixels[3] !== 1) {
-      const meshId = (Math.floor(this.pixels[0]*255) << 16) | (Math.floor(this.pixels[1]*255) << 8) | Math.floor(this.pixels[2]*255);
-      // mesh = meshes.find(mesh => mesh.meshId === meshId) || null;
-      mesh = _findMeshWithMeshId(meshId);
-      index = Math.floor(this.pixels[3]*64000)-1;
+    if (this.pixels[0] !== 0) {
+      const meshId = Math.floor(this.pixels[0]*64000)-1; // (Math.floor(this.pixels[0]*255) << 16) | (Math.floor(this.pixels[1]*255) << 8) | Math.floor(this.pixels[2]*255);
+      mesh = _findMeshWithMeshId(container, meshId);
+      index = Math.floor(this.pixels[1]*64000)-1;
 
       const triangle = new THREE.Triangle(
         new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9).applyMatrix4(mesh.matrixWorld),
@@ -913,16 +910,25 @@ const depthMaterial = new THREE.ShaderMaterial({
     },
   },
   vertexShader: `\
+    attribute float id;
+    attribute float index;
+    varying float vId;
+    varying float vIndex;
     void main() {
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+      vId = id;
+      vIndex = index;
     }
   `,
   fragmentShader: `\
-    varying vec2 vTexCoords;
+    // varying vec2 vTexCoords;
+
+    varying float vId;
+    varying float vIndex;
 
     uniform float uNear;
     uniform float uFar;
-    vec4 encodePixelDepth(float v) {
+    /* vec4 encodePixelDepth(float v) {
       float x = fract(v);
       v -= x;
       v /= 255.0;
@@ -930,22 +936,21 @@ const depthMaterial = new THREE.ShaderMaterial({
       v -= y;
       v /= 255.0;
       float z = fract(v);
-      /* v -= y;
+      return vec4(x, y, z, 0.0);
+    } */
+    vec2 encodePixelDepth(float v) {
+      float x = fract(v);
+      v -= x;
       v /= 255.0;
-      float w = fract(v);
-      float w = 0.0;
-      if (x == 0.0 && y == 0.0 && z == 0.0 && w == 0.0) {
-        return vec4(0.0, 0.0, 0.0, 1.0);
-      } else { */
-        return vec4(x, y, z, 0.0);
-      // }
+      float y = fract(v);
+      return vec2(x, y);
     }
     void main() {
       /* float z_b = texture2D(colorMap, vTexCoords).r;
       float z_n = 2.0 * z_b - 1.0;
       float z_e = 2.0 * uNear * uFar / (uFar + uNear - z_n * (uFar - uNear)); */
-      float z_e = gl_FragCoord.z/gl_FragCoord.w;
-      gl_FragColor = encodePixelDepth(z_e);
+
+      gl_FragColor = vec4(encodePixelDepth(gl_FragCoord.z/gl_FragCoord.w), (vId+1.0)/64000.0, (vIndex+1.0)/64000.0);
     }
   `,
   side: THREE.DoubleSide,
@@ -957,7 +962,7 @@ class CollisionRaycaster {
     });
     this.renderer.setSize(10, 10);
     this.renderer.setPixelRatio(1);
-    this.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1);
+    this.renderer.setClearColor(new THREE.Color(0x000000), 0);
     const renderTarget = new THREE.WebGLRenderTarget(10, 10, {
       type: THREE.FloatType,
       format: THREE.RGBAFormat,
@@ -969,6 +974,13 @@ class CollisionRaycaster {
     this.camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
     this.pixels = new Float32Array(10*10*4);
     this.depths = new Float32Array(10*10);
+    this.normals = (() => {
+      const result = Array(10*10);
+      for (let i = 0; i < 10*10; i++) {
+        result[i] = new THREE.Vector3();
+      }
+      return result;
+    })();
   }
 
   raycastMeshes(container, position, quaternion, uSize, vSize, dSize) {
@@ -1002,15 +1014,25 @@ class CollisionRaycaster {
 
     let j = 0;
     for (let i = 0; i < this.depths.length; i++) {
-      let v =
-        this.pixels[j++] +
-        this.pixels[j++] * 255.0 +
-        this.pixels[j++] * 255.0 * 255.0 +
-        this.pixels[j++] * 255.0 * 255.0 * 255.0;
-      if (v > camera.far) {
-        v = Infinity;
+      if (this.pixels[j + 3] !== 0) {
+        let v =
+          this.pixels[j] +
+          this.pixels[j+1] * 255.0;
+        this.depths[i] = this.camera.near + v * (this.camera.far - this.camera.near);
+        const meshId = Math.floor(this.pixels[2]*64000)-1;
+        const index = Math.floor(this.pixels[3]*64000)-1;
+
+        /* const mesh = _findMeshWithMeshId(container, meshId);
+        const triangle = new THREE.Triangle(
+          new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9).applyMatrix4(mesh.matrixWorld),
+          new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+3).applyMatrix4(mesh.matrixWorld),
+          new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+6).applyMatrix4(mesh.matrixWorld)
+        );
+        triangle.getNormal(this.normals[i]); */
+      } else {
+        this.depths[i] = Infinity;
       }
-      this.depths[i] = this.camera.near + v * (this.camera.far - this.camera.near);
+      j += 4;
     }
 
     // console.log('got pixels', this.depths);
@@ -1555,7 +1577,7 @@ function animate(timestamp, frame) {
                 const spec = _getChunkSpec(currentChunkMesh.potentials, currentChunkMesh.dims, currentChunkMesh.meshId);
                 currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
                 currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
-                currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 3, true));
+                currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
                 currentChunkMesh.geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1));
               }
             }
