@@ -332,6 +332,7 @@ const chunkMeshContainer = new THREE.Object3D();
 scene.add(chunkMeshContainer);
 let currentChunkMesh = null;
 let physics = null;
+let physicalMesh = null;
 (async () => {
 
 const [
@@ -392,8 +393,7 @@ physics = (() => {
     object.updateMatrixWorld();
     object.traverse(o => {
       if (o.isMesh) {
-        const {geometry} = o;
-        const positions = geometry.attributes.position.array;
+        const positions = o.geometry.attributes.position.array;
         for (let i = 0; i < positions.length; i += 3) {
           localVector.set(positions[i], positions[i+1], positions[i+2])
             // .applyMatrix4(o.matrixWorld);
@@ -409,8 +409,65 @@ physics = (() => {
     // console.log('sword points', numPoints);
     return shape;
   };
+  const _makeTriangleMeshShape = object => {
+    const triangle_mesh = new Ammo.btTriangleMesh();
+    const _vec3_1 = new Ammo.btVector3(0, 0, 0);
+    const _vec3_2 = new Ammo.btVector3(0, 0, 0);
+    const _vec3_3 = new Ammo.btVector3(0, 0, 0);
+
+    object.updateMatrixWorld();
+    object.traverse(o => {
+      if (o.isMesh) {
+        const positions = o.geometry.attributes.position.array;
+        for (let i = 0; i < positions.length; i += 9) {
+          _vec3_1.setX(positions[i]);
+          _vec3_1.setY(positions[i+1]);
+          _vec3_1.setZ(positions[i+2]);
+
+          _vec3_2.setX(positions[i+3]);
+          _vec3_2.setY(positions[i+4]);
+          _vec3_2.setZ(positions[i+5]);
+
+          _vec3_3.setX(positions[i+6]);
+          _vec3_3.setY(positions[i+7]);
+          _vec3_3.setZ(positions[i+8]);
+
+          triangle_mesh.addTriangle(
+            _vec3_1,
+            _vec3_2,
+            _vec3_3,
+            true
+          );
+        }
+      }
+    });
+    
+    const shape = new Ammo.btBvhTriangleMeshShape(
+      triangle_mesh,
+      true,
+      true
+    );
+    return shape;
+  };
 
   return {
+    bindStaticMeshPhysics(objectMesh) {
+      const shape = _makeTriangleMeshShape(objectMesh);
+
+      const transform = new Ammo.btTransform();
+      transform.setIdentity();
+      transform.setOrigin(new Ammo.btVector3(objectMesh.position.x, objectMesh.position.y, objectMesh.position.z));
+
+      const mass = 0;
+      const localInertia = new Ammo.btVector3(0, 0, 0);
+      shape.calculateLocalInertia(mass, localInertia);
+
+      const myMotionState = new Ammo.btDefaultMotionState(transform);
+      const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
+      const body = new Ammo.btRigidBody(rbInfo);
+
+      dynamicsWorld.addRigidBody(body);
+    },
     bindMeshPhysics(objectMesh) {
       if (!objectMesh.body) {
         const shape = _makeConvexHullShape(objectMesh);
@@ -470,8 +527,44 @@ physics = (() => {
 
       lastTimestamp = now;
     },
+    pullObjectMesh(mesh) {
+      // if (mesh.body) {
+        mesh.body.getMotionState().getWorldTransform(localTransform);
+        const origin = localTransform.getOrigin();
+        mesh.position.set(origin.x(), origin.y(), origin.z());
+        // console.log('mesh pos', mesh.position.toArray());
+        const rotation = localTransform.getRotation();
+        mesh.quaternion.set(rotation.x(), rotation.y(), rotation.z(), rotation.w());
+      // }
+    },
+    resetObjectMesh(mesh) {
+      // if (mesh.body) {
+        localTransform.setOrigin(new Ammo.btVector3(mesh.originalPosition.x, mesh.originalPosition.y, mesh.originalPosition.z));
+        localTransform.setRotation(new Ammo.btQuaternion(mesh.originalQuaternion.x, mesh.originalQuaternion.y, mesh.originalQuaternion.z, mesh.originalQuaternion.w));
+        mesh.body.setWorldTransform(localTransform);
+        mesh.body.activate(true);
+
+        mesh.position.copy(mesh.originalPosition);
+        mesh.quaternion.copy(mesh.originalQuaternion);
+        mesh.scale.copy(mesh.originalScale);
+      // }
+    },
   };
 })();
+
+physicalMesh = (() => {
+  const geometry = new THREE.TetrahedronBufferGeometry(1, 0);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x0000FF,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+})();
+physicalMesh.position.set(10, 20, 10);
+scene.add(physicalMesh);
+physics.bindMeshPhysics(physicalMesh);
+window.physicalMesh = physicalMesh;
 
 const _makeChunkMesh = () => {
   const {potentials, dims} = _makePotentials();
@@ -563,9 +656,11 @@ for (let i = 0; i < numRemoteChunkMeshes; i++) {
 }
 remoteChunkMeshes.push(chunkMesh);
 
-physics.bindMeshPhysics(chunkMesh);
+physics.bindStaticMeshPhysics(chunkMesh);
 /* for (let i = 0; i < remoteChunkMeshes.length; i++) {
-  physics.bindMeshPhysics(remoteChunkMeshes[i]);
+  console.time('lol');
+  physics.bindStaticMeshPhysics(remoteChunkMeshes[i]);
+  console.timeEnd('lol');
 } */
 
 })();
@@ -1103,7 +1198,10 @@ function animate(timestamp, frame) {
   const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
 
-  physics && physics.simulate();
+  if (physics) {
+    physics.simulate();
+    physics.pullObjectMesh(physicalMesh);
+  }
 
   // loadMeshMaterial.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
   for (let i = 0; i < remoteChunkMeshes.length; i++) {
@@ -1757,6 +1855,10 @@ window.addEventListener('keydown', e => {
           velocity.y += 5;
         }
       }
+      break;
+    }
+    case 80: { // P
+      physics.resetObjectMesh(physicalMesh);
       break;
     }
     case 8: // backspace
