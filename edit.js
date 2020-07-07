@@ -648,7 +648,7 @@ capsuleMesh = (() => {
   mesh.frustumCulled = false;
   return mesh;
 })();
-scene.add(capsuleMesh);
+// scene.add(capsuleMesh);
 physics.bindCapsuleMeshPhysics(capsuleMesh);
 // window.capsuleMesh = capsuleMesh;
 
