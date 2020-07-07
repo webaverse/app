@@ -1320,6 +1320,7 @@ const _makePlanetMesh = (tileScale = 1) => {
     }
   }
   const mesh = new THREE.Mesh(geometry, planetMaterial);
+  mesh.visible = false;
   return mesh;
 };
 const planetContainer = new THREE.Object3D();
