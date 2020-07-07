@@ -331,11 +331,13 @@ let remoteChunkMeshes = [];
 const chunkMeshContainer = new THREE.Object3D();
 scene.add(chunkMeshContainer);
 let currentChunkMesh = null;
+let physics = null;
 (async () => {
 
 const [
   objectize,
   colors,
+  ammo,
 ] = await Promise.all([
   (async () => {
     const {promise} = await import('./bin/objectize2.js');
@@ -345,7 +347,131 @@ const [
     const res = await fetch('./colors.json');
     return await res.json();
   })(),
+  await new Promise((accept, reject) => {
+    Ammo()
+      .then(ammo => {
+        accept(ammo);
+      })
+      .catch(reject);
+  }),
 ]);
+
+physics = (() => {
+  const ammoVector3 = new Ammo.btVector3();
+  const ammoQuaternion = new Ammo.btQuaternion();
+  const localTransform = new Ammo.btTransform();
+
+  var collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
+  var dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
+  var overlappingPairCache = new Ammo.btDbvtBroadphase();
+  var solver = new Ammo.btSequentialImpulseConstraintSolver();
+  const dynamicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+  dynamicsWorld.setGravity(new Ammo.btVector3(0, -9.8, 0));
+
+  {
+    var groundShape = new Ammo.btBoxShape(new Ammo.btVector3(100, 100, 100));
+
+    var groundTransform = new Ammo.btTransform();
+    groundTransform.setIdentity();
+    groundTransform.setOrigin(new Ammo.btVector3(0, -100, 0));
+
+    var mass = 0;
+    var localInertia = new Ammo.btVector3(0, 0, 0);
+    var myMotionState = new Ammo.btDefaultMotionState(groundTransform);
+    var rbInfo = new Ammo.btRigidBodyConstructionInfo(0, myMotionState, groundShape, localInertia);
+    var body = new Ammo.btRigidBody(rbInfo);
+
+    dynamicsWorld.addRigidBody(body);
+  }
+
+  let lastTimestamp = 0;
+
+  const _makeConvexHullShape = object => {
+    const shape = new Ammo.btConvexHullShape();
+    // let numPoints = 0;
+    object.updateMatrixWorld();
+    object.traverse(o => {
+      if (o.isMesh) {
+        const {geometry} = o;
+        const positions = geometry.attributes.position.array;
+        for (let i = 0; i < positions.length; i += 3) {
+          localVector.set(positions[i], positions[i+1], positions[i+2])
+            // .applyMatrix4(o.matrixWorld);
+          // console.log('point', localVector.x, localVector.y, localVector.z);
+          ammoVector3.setValue(localVector.x, localVector.y, localVector.z);
+          const lastOne = i >= (positions.length - 3);
+          shape.addPoint(ammoVector3, lastOne);
+          // numPoints++;
+        }
+      }
+    });
+    shape.setMargin(0);
+    // console.log('sword points', numPoints);
+    return shape;
+  };
+
+  return {
+    bindMeshPhysics(objectMesh) {
+      if (!objectMesh.body) {
+        const shape = _makeConvexHullShape(objectMesh);
+
+        const transform = new Ammo.btTransform();
+        transform.setIdentity();
+        transform.setOrigin(new Ammo.btVector3(objectMesh.position.x, objectMesh.position.y, objectMesh.position.z));
+
+        const mass = 1;
+        const localInertia = new Ammo.btVector3(0, 0, 0);
+        shape.calculateLocalInertia(mass, localInertia);
+
+        const myMotionState = new Ammo.btDefaultMotionState(transform);
+        const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
+        const body = new Ammo.btRigidBody(rbInfo);
+
+        dynamicsWorld.addRigidBody(body);
+
+        objectMesh.body = body;
+        objectMesh.ammoObjects = [
+          transform,
+          localInertia,
+          myMotionState,
+          rbInfo,
+          body,
+        ];
+        objectMesh.originalPosition = objectMesh.position.clone();
+        objectMesh.originalQuaternion = objectMesh.quaternion.clone();
+        objectMesh.originalScale = objectMesh.scale.clone();
+      }
+    },
+    unbindMeshPhysics(objectMesh) {
+      if (objectMesh.body) {
+        dynamicsWorld.removeRigidBody(objectMesh.body);
+        objectMesh.body = null;
+        objectMesh.ammoObjects.forEach(o => {
+          Ammo.destroy(o);
+        });
+        objectMesh.ammoObjects.length = null;
+
+        objectMesh.position.copy(objectMesh.originalPosition);
+        objectMesh.quaternion.copy(objectMesh.originalQuaternion);
+        objectMesh.scale.copy(objectMesh.originalScale);
+        objectMesh.originalPosition = null;
+        objectMesh.originalQuaternion = null;
+        objectMesh.originalScale = null;
+      }
+    },
+    simulate() {
+      const now = Date.now();
+      if (lastTimestamp === 0) {
+        lastTimestamp = now;
+      }
+      const timeDiff = now - lastTimestamp;
+
+      dynamicsWorld.stepSimulation(timeDiff/1000, 2);
+
+      lastTimestamp = now;
+    },
+  };
+})();
 
 const _makeChunkMesh = () => {
   const {potentials, dims} = _makePotentials();
@@ -436,6 +562,11 @@ for (let i = 0; i < numRemoteChunkMeshes; i++) {
   remoteChunkMeshes[i] = remoteChunkMesh;
 }
 remoteChunkMeshes.push(chunkMesh);
+
+physics.bindMeshPhysics(chunkMesh);
+/* for (let i = 0; i < remoteChunkMeshes.length; i++) {
+  physics.bindMeshPhysics(remoteChunkMeshes[i]);
+} */
 
 })();
 
@@ -589,7 +720,6 @@ class VolumeRaycaster {
 }
 
 const volumeRaycaster = new VolumeRaycaster();
-
 
 function parseQuery(queryString) {
   var query = {};
@@ -972,6 +1102,8 @@ let lastParcel  = new THREE.Vector3(0, 0, 0);
 function animate(timestamp, frame) {
   const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
+
+  physics && physics.simulate();
 
   // loadMeshMaterial.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
   for (let i = 0; i < remoteChunkMeshes.length; i++) {
