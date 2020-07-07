@@ -959,7 +959,7 @@ class CollisionRaycaster {
     this.renderer.setPixelRatio(1);
     this.renderer.setClearColor(new THREE.Color(0xFFFFFF), 1);
     const renderTarget = new THREE.WebGLRenderTarget(10, 10, {
-      // type: THREE.FloatType,
+      type: THREE.FloatType,
       format: THREE.RGBAFormat,
     });
     this.renderer.setRenderTarget(renderTarget);
@@ -967,7 +967,7 @@ class CollisionRaycaster {
     this.scene = new THREE.Scene();
     this.scene.overrideMaterial = depthMaterial;
     this.camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
-    this.pixels = new Uint8Array(10*10*4);
+    this.pixels = new Float32Array(10*10*4);
     this.depths = new Float32Array(10*10);
   }
 
@@ -1003,10 +1003,10 @@ class CollisionRaycaster {
     let j = 0;
     for (let i = 0; i < this.depths.length; i++) {
       let v =
-        this.pixels[j++] / 255.0 +
         this.pixels[j++] +
         this.pixels[j++] * 255.0 +
-        this.pixels[j++] * 255.0 * 255.0;
+        this.pixels[j++] * 255.0 * 255.0 +
+        this.pixels[j++] * 255.0 * 255.0 * 255.0;
       if (v > camera.far) {
         v = Infinity;
       }
