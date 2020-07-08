@@ -1355,7 +1355,7 @@ worldRevertButton.addEventListener('click', async e => {
 const worlds = document.getElementById('worlds');
 const _makeWorldHtml = w => `
   <div class="world ${currentWorldId === w.id ? 'open' : ''}" worldId="${w.id}">
-    <img src=assets/question.png>
+    <img src=${w.previewIconHash ? `${apiHost}/${w.previewIconHash}.gif` : 'assets/question.png'}>
     <div class="text">
       <input type=text class=name-input value="${w.name}" disabled>
     </div>
@@ -1868,12 +1868,20 @@ newWorldButton.addEventListener('click', async e => {
   pe.reset();
   const hash = await pe.uploadScene();
 
+  const screenshotBlob = await screenshotEngine();
+  const {hash: previewIconHash} = await fetch(`${apiHost}/`, {
+    method: 'PUT',
+    body: screenshotBlob,
+  })
+    .then(res => res.json());
+
   const worldId = makeId(8);
   const w = {
     id: worldId,
     name: worldId,
     description: 'This is a world description',
     hash,
+    previewIconHash,
     objects: [],
   };
   const res = await fetch(worldsEndpoint + '/' + w.name, {
