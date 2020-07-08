@@ -1,0 +1,58 @@
+<html>
+<head>
+  <title>Screenshotting XRPK</title>
+  <link rel=stylesheet type='text/css' href="bake.css">
+</head>
+<body>
+  <div id=baking>
+    <h1>Screenshotting... Please do not close this tab!</h1>
+  </div>
+  <div id=baked>
+    <h1>Screenshotting complete! You can close this tab.</h1>
+  </div>
+  <div id=error>
+    <h1>There was an error screeshotting your XRPK.</h1>
+    <p>
+      The stack trace is below. You can close this tab.
+      <br />
+      <pre id=error-trace></pre>
+    </p>
+  </div>
+
+  <div class=results>
+    <div id=screenshot>
+      <h3 id=screenshot-header></h3>
+      <div id=screenshot-result></div>
+    </div>
+  </div>
+
+  <script type=module>
+    import {screenshotWbn, parseQuery, toggleElements} from './bakeUtils.js';
+
+    (async () => {
+      const {srcWbn, dstGif} = parseQuery(decodeURIComponent(window.location.search));
+
+      try {
+        toggleElements(false);
+        const {screenshot} = await screenshotWbn(srcWbn, dstGif);
+
+        window.parent.postMessage({
+          method: 'result',
+          result: {screenshot},
+        }, '*', [screenshot.buffer]);
+
+        toggleElements(true);
+      } catch (err) {
+        toggleElements(null, err);
+        console.warn(err.stack);
+
+        window.parent.postMessage({
+          method: 'error',
+          error: err.stack,
+        }, '*');
+      }
+    })();
+  </script>
+</body>
+
+</html>

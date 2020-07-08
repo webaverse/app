@@ -1,0 +1,62 @@
+<html>
+<head>
+  <title>Volumizing XRPK</title>
+  <link rel=stylesheet type='text/css' href="bake.css">
+</head>
+<body>
+  <div id=baking>
+    <h1>Volumizing... Please do not close this tab!</h1>
+  </div>
+  <div id=baked>
+    <h1>Volumizing complete! You can close this tab.</h1>
+  </div>
+  <div id=error>
+    <h1>There was an error volumizing your XRPK.</h1>
+    <p>
+      The stack trace is below. You can close this tab.
+      <br />
+      <pre id=error-trace></pre>
+    </p>
+  </div>
+
+  <div class=results>
+    <div id=volume>
+      <h3 id=volume-header></h3>
+      <div id=volume-result></div>
+    </div>
+    <div id=aabb>
+      <h3 id=aabb-header></h3>
+      <pre id=aabb-result></pre>
+    </div>
+  </div>
+
+  <script type=module>
+    import {volumizeWbn, parseQuery, toggleElements} from './bakeUtils.js';
+
+    (async () => {
+      const {srcWbn, dstVolume, dstAabb} = parseQuery(decodeURIComponent(window.location.search));
+
+      try {
+        toggleElements(false);
+        const {volume, aabb} = await volumizeWbn(srcWbn, dstVolume, dstAabb);
+
+        window.parent.postMessage({
+          method: 'result',
+          result: {volume, aabb},
+        }, '*', [volume.buffer]);
+
+        toggleElements(true);
+      } catch (err) {
+        toggleElements(null, err);
+        console.warn(err.stack);
+
+        window.parent.postMessage({
+          method: 'error',
+          error: err.stack,
+        }, '*');
+      }
+    })();
+  </script>
+</body>
+
+</html>
