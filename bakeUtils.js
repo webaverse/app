@@ -5,9 +5,83 @@ import {XRPackage, XRPackageEngine} from 'https://static.xrpackage.org/xrpackage
 import {GLTFExporter} from 'https://static.xrpackage.org/GLTFExporter.js';
 import {OrbitControls} from 'https://static.xrpackage.org/xrpackage/OrbitControls.js';
 import {getWireframeMesh, getDefaultAabb, getPreviewMesh} from './volume.js';
+import {readFile} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {screenshotEngine} from './screenshot-object.js';
 
+const screenshotHeaderEl = document.getElementById('screenshot-header');
+const screenshotResultEl = document.getElementById('screenshot-result');
+const volumeHeaderEl = document.getElementById('volume-header');
+const volumeResultEl = document.getElementById('volume-result');
+const aabbHeaderEl = document.getElementById('aabb-header');
+const aabbResultEl = document.getElementById('aabb-result');
+const errorTraceEl = document.getElementById('error-trace');
+
+const parseQuery = queryString => {
+  const query = {};
+  const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+};
+
+const toggleElements = (baked, err) => {
+  const bakedEl = document.getElementById('baked');
+  const bakingEl = document.getElementById('baking');
+  const errorEl = document.getElementById('error');
+
+  if (baked === true) {
+    bakedEl.style.display = 'block';
+    bakingEl.style.display = 'none';
+    errorEl.style.display = 'none';
+  } else if (baked === false) {
+    bakedEl.style.display = 'none';
+    bakingEl.style.display = 'block';
+    errorEl.style.display = 'none';
+  } else if (err) {
+    bakedEl.style.display = 'none';
+    bakingEl.style.display = 'none';
+    errorEl.style.display = 'block';
+
+    if (screenshotHeaderEl) screenshotHeaderEl.innerText = '';
+    if (volumeHeaderEl) volumeHeaderEl.innerText = '';
+    errorTraceEl.innerText = err.stack;
+  }
+};
+
 const screenshotWbn = async (srcWbn, dstGif) => {
+  screenshotHeaderEl.innerText = 'Screenshotting...';
+  const {screenshotBlob} = await _screenshot(srcWbn, dstGif);
+
+  const img = document.createElement('img');
+  img.src = URL.createObjectURL(screenshotBlob);
+  img.style.backgroundColor = '#EEE';
+  img.style.borderRadius = '10px';
+  screenshotResultEl.appendChild(img);
+
+  screenshotHeaderEl.innerText = 'Screenshotting done';
+  const screenshot = await readFile(screenshotBlob);
+  return {screenshot};
+};
+
+const volumizeWbn = async (srcWbn, dstVolume, dstAabb) => {
+  volumeHeaderEl.innerText = 'Volumizing...';
+  const {volumeBlob, aabb, domElement} = await _volumeize(srcWbn, dstVolume, dstAabb);
+
+  volumeResultEl.appendChild(domElement);
+  domElement.style.backgroundColor = '#EEE';
+  domElement.style.borderRadius = '10px';
+
+  aabbHeaderEl.innerText = 'AABB';
+  aabbResultEl.innerText = JSON.stringify(aabb, null, 2);
+  volumeHeaderEl.innerText = 'Volumizing done';
+
+  const volume = await readFile(volumeBlob);
+  return {volume, aabb};
+};
+
+const _screenshot = async (srcWbn, dstGif) => {
   const req = await fetch(srcWbn);
   const arrayBuffer = await req.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
@@ -55,7 +129,7 @@ const screenshotWbn = async (srcWbn, dstGif) => {
   return {screenshotBlob};
 };
 
-const volumeizeWbn = async (srcWbn, dstVolume, dstAabb) => {
+const _volumeize = async (srcWbn, dstVolume, dstAabb) => {
   const req = await fetch(srcWbn);
   const arrayBuffer = await req.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
@@ -173,4 +247,4 @@ const volumeizeWbn = async (srcWbn, dstVolume, dstAabb) => {
   };
 };
 
-export {screenshotWbn, volumeizeWbn};
+export {screenshotWbn, volumizeWbn, parseQuery, toggleElements};
