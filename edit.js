@@ -1931,24 +1931,6 @@ function animate(timestamp, frame) {
       } else {
         return 0;
       }
-
-      /* const {rig, rigPackage} = pe;
-      if (rig || rigPackage) {
-        const avatarHeight = rig ? _getAvatarHeight() : 1;
-        const floorHeight = 0;
-        const minHeight = floorHeight + avatarHeight;
-        if (!jumpState) {
-          localVector.y = minHeight;
-          matrix.compose(localVector, localQuaternion, localVector2);
-        } else {
-          if (localVector.y < minHeight) {
-            localVector.y = minHeight;
-            matrix.compose(localVector, localQuaternion, localVector2);
-            velocity.y = 0;
-            jumpState = null;
-          }
-        }
-      } */
     };
 
     if (selectedTool === 'firstperson') {
