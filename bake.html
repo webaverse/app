@@ -44,7 +44,35 @@
       <pre id=aabb-result></pre>
     </div>
   </div>
-  <script type=module src='bake.js'></script>
+
+  <script type=module>
+    import {screenshotWbn, volumizeWbn, toggleElements, parseQuery} from './bakeUtils.js';
+
+    (async () => {
+      const {srcWbn, dstGif, dstVolume, dstAabb} = parseQuery(decodeURIComponent(window.location.search));
+
+      try {
+        toggleElements(false);
+        const {screenshot} = await screenshotWbn(srcWbn, dstGif);
+        const {volume, aabb} = await volumizeWbn(srcWbn, dstVolume, dstAabb);
+
+        window.parent.postMessage({
+          method: 'result',
+          result: {screenshot, volume, aabb},
+        }, '*', [screenshot.buffer, volume.buffer]);
+
+        toggleElements(true);
+      } catch (err) {
+        toggleElements(null, err);
+        console.warn(err.stack);
+
+        window.parent.postMessage({
+          method: 'error',
+          error: err.stack,
+        }, '*');
+      }
+    })();
+  </script>
 </body>
 
 </html>
