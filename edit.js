@@ -1587,7 +1587,7 @@ function animate(timestamp, frame) {
           return null;
         } */
       }
-      if (currentWeaponDown && !lastWeaponDown) {
+      if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
         const _applyPotentialDelta = (position, delta) => {
           localVector2.copy(position)
             .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
