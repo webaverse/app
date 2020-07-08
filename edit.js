@@ -1622,7 +1622,7 @@ function animate(timestamp, frame) {
 
       const _teleportTo = (position, quaternion) => {
         localMatrix.fromArray(pose.transform.matrix)
-          .decompose(localVector, localQuaternion, localVector2);
+          .decompose(localVector2, localQuaternion2, localVector3);
 
         chunkMeshContainer.matrix
           .premultiply(localMatrix.makeTranslation(-position.x, -position.y, -position.z));
@@ -1635,14 +1635,14 @@ function animate(timestamp, frame) {
 
         chunkMeshContainer.matrix
           // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion2.copy(localQuaternion).inverse()))
-          .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion2.copy(quaternion).inverse()))
+          .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
           // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion));
 
         chunkMeshContainer.matrix
-          .premultiply(localMatrix.makeTranslation(localVector.x, localVector.y, localVector.z));
+          .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z));
 
         chunkMeshContainer.matrix
-          .premultiply(localMatrix.makeTranslation(0, -localVector.y, 0));
+          .premultiply(localMatrix.makeTranslation(0, -localVector2.y, 0));
 
         chunkMeshContainer.matrix
           .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
