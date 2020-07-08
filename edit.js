@@ -1811,7 +1811,7 @@ function animate(timestamp, frame) {
         const height = 2;
         const depth = 2;
         const bodyWidth = 0.3;
-        localQuaternion2.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
+        localQuaternion2.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(velocity.x, 0, velocity.z).normalize());
         localVector3.copy(localVector)
           .add(localVector4.set(0, -0.5, bodyWidth).applyQuaternion(localQuaternion2));
         collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector3, localQuaternion2, width, height, depth);
