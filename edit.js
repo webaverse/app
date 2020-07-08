@@ -1822,7 +1822,7 @@ function animate(timestamp, frame) {
           let i = 0;
           for (let y = 0; y < 10; y++) {
             for (let x = 0; x < 10; x++) {
-              const cubeMesh = collisionCubes[i];
+              const cubeMesh = sideCollisionCubes[i];
               const d = collisionRaycaster.depths[i];
               if (isFinite(d)) {
                 const normal = collisionRaycaster.normals[i];
@@ -1880,22 +1880,78 @@ function animate(timestamp, frame) {
     };
     const _collideFloor = matrix => {
       matrix.decompose(localVector, localQuaternion, localVector2);
-      const {rig, rigPackage} = pe;
+      localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+      localEuler.x = -Math.PI/2;
+      localQuaternion2.setFromEuler(localEuler);
+
+      const width = 1;
+      const height = 1;
+      const depth = 10;
+
+      collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
+
+      const minHeight = (() => {
+        const {rig, rigPackage} = pe;
+        if (rig || rigPackage) {
+          const avatarHeight = rig ? _getAvatarHeight() : 1;
+          const floorHeight = 0;
+          const minHeight = floorHeight + avatarHeight;
+          return minHeight;
+        } else {
+          return 1;
+        }
+      })();
+
+      let groundedDistance = Infinity;
+
+      let i = 0;
+      for (let y = 0; y < 10; y++) {
+        for (let x = 0; x < 10; x++) {
+          const cubeMesh = floorCollisionCubes[i];
+          const d = collisionRaycaster.depths[i];
+
+          if (isFinite(d)) {
+            // console.log('finite');
+            const normal = collisionRaycaster.normals[i];
+
+            cubeMesh.position.copy(localVector)
+              .add(localVector3.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
+            cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
+            cubeMesh.visible = true;
+
+            // localVector.y = minHeight;
+            // matrix.compose(localVector, localQuaternion, localVector2);
+            if (d < minHeight && d < groundedDistance) {
+              groundedDistance = d;
+            }
+
+            /* if (d < bodyWidth*2) {
+              localVector4.y = 0;
+              localVector4.normalize();
+              const restitutionMagnitude = velocity.dot(localVector4);
+              if (restitutionMagnitude > 0) {
+                localVector5.copy(localVector4).multiplyScalar(-restitutionMagnitude);
+                velocity.add(localVector5);
+              }
+            } */
+          } else {
+            cubeMesh.visible = false;
+          }
+          i++;
+        }
+      }
+
+      if (isFinite(groundedDistance)) {
+        // console.log('grounded disance', localVector.y, minHeight, groundedDistance);
+        localVector.y = localVector.y - groundedDistance + minHeight;
+        matrix.compose(localVector, localQuaternion, localVector2);
+        velocity.y = 0;
+        jumpState = null;
+      }
+
+      /* const {rig, rigPackage} = pe;
       if (rig || rigPackage) {
         const avatarHeight = rig ? _getAvatarHeight() : 1;
-        /* const floorHeight = (() => {
-          raycaster.ray.origin.copy(localVector);
-          raycaster.ray.origin.y += 10;
-          raycaster.ray.direction.set(0, -1, 0);
-          const intersects = raycaster.intersectObject(planetAuxMesh);
-          if (intersects.length) {
-            const [intersect] = intersects;
-            const {point} = intersect;
-            return point.y;
-          } else {
-            return 0;
-          }
-        })(); */
         const floorHeight = 0;
         const minHeight = floorHeight + avatarHeight;
         if (!jumpState) {
@@ -1909,7 +1965,7 @@ function animate(timestamp, frame) {
             jumpState = null;
           }
         }
-      }
+      } */
     };
 
     if (selectedTool === 'firstperson') {
