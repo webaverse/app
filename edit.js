@@ -1804,6 +1804,18 @@ function animate(timestamp, frame) {
     const _applyVelocity = position => {
       position.add(localVector4.copy(velocity).multiplyScalar(timeDiff));
     };
+    const _getFloorOffset = groundedDistance => {
+      if (isFinite(groundedDistance)) {
+        const minHeight = _getMinHeight();
+        if ((groundedDistance + velocity.y * 10/1000) < minHeight) {
+          return -groundedDistance + minHeight;
+        } else {
+          return 0;
+        }
+      } else {
+        return 0;
+      }
+    };
     const _collideWall = matrix => {
       matrix.decompose(localVector, localQuaternion, localVector2);
       if (velocity.x !== 0 || velocity.y !== 0 || velocity.z !== 0) {
@@ -1888,8 +1900,6 @@ function animate(timestamp, frame) {
 
       collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
 
-      const minHeight = _getMinHeight();
-
       let groundedDistance = Infinity;
 
       let i = 0;
@@ -1906,7 +1916,7 @@ function animate(timestamp, frame) {
             cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
             cubeMesh.visible = true;
 
-            if ((d + velocity.y * 10/1000) < minHeight && d < groundedDistance) {
+            if (d < groundedDistance) {
               groundedDistance = d;
             }
           } else {
@@ -1916,24 +1926,33 @@ function animate(timestamp, frame) {
         }
       }
 
-      if (isFinite(groundedDistance)) {
-        return -groundedDistance + minHeight;
-      } else {
-        return 0;
-      }
+      return groundedDistance;
     };
 
     if (selectedTool === 'firstperson') {
       _collideWall(pe.camera.matrix);
       _applyVelocity(pe.camera.position);
       pe.camera.updateMatrixWorld();
-      const offset = _collideFloor(pe.camera.matrix);
+      const groundedDistance = _collideFloor(pe.camera.matrix);
+      const offset = _getFloorOffset(groundedDistance);
       if (offset) {
         pe.camera.position.y += offset;
         velocity.y = 0;
       }
       jumpState = velocity.y !== 0;
       pe.setRigMatrix(null);
+
+      if (pe.rig) {
+        if (!jumpState) {
+          pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
+        } else {
+          if (isFinite(groundedDistance)) {
+            pe.rig.setFloorHeight(localVector.y - groundedDistance);
+          } else {
+            pe.rig.setFloorHeight(-0xFFFFFF);
+          }
+        }
+      }
     } else if (selectedTool === 'thirdperson') {
       const oldVelocity = velocity.clone();
 
@@ -1947,7 +1966,8 @@ function animate(timestamp, frame) {
       localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
-      const offset = _collideFloor(localMatrix);
+      const groundedDistance = _collideFloor(localMatrix);
+      const offset = _getFloorOffset(groundedDistance);
       if (offset) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
@@ -1960,6 +1980,18 @@ function animate(timestamp, frame) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
       }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+
+      if (pe.rig) {
+        if (!jumpState) {
+          pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
+        } else {
+          if (isFinite(groundedDistance)) {
+            pe.rig.setFloorHeight(localVector.y - groundedDistance);
+          } else {
+            pe.rig.setFloorHeight(-0xFFFFFF);
+          }
+        }
+      }
     } else if (selectedTool === 'isometric') {
       const oldVelocity = velocity.clone();
 
@@ -1973,7 +2005,8 @@ function animate(timestamp, frame) {
       localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
-      const offset = _collideFloor(localMatrix);
+      const groundedDistance = _collideFloor(localMatrix);
+      const offset = _getFloorOffset(groundedDistance);
       if (offset) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
@@ -1986,6 +2019,18 @@ function animate(timestamp, frame) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
       }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+
+      if (pe.rig) {
+        if (!jumpState) {
+          pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
+        } else {
+          if (isFinite(groundedDistance)) {
+            pe.rig.setFloorHeight(localVector.y - groundedDistance);
+          } else {
+            pe.rig.setFloorHeight(-0xFFFFFF);
+          }
+        }
+      }
     } else if (selectedTool === 'birdseye') {
       const oldVelocity = velocity.clone();
       const yOffset = -birdsEyeHeight + _getAvatarHeight();
@@ -2000,7 +2045,8 @@ function animate(timestamp, frame) {
       localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
-      const offset = _collideFloor(localMatrix);
+      const groundedDistance = _collideFloor(localMatrix);
+      const offset = _getFloorOffset(groundedDistance);
       if (offset) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
@@ -2013,6 +2059,18 @@ function animate(timestamp, frame) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
       }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
+
+      if (pe.rig) {
+        if (!jumpState) {
+          pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
+        } else {
+          if (isFinite(groundedDistance)) {
+            pe.rig.setFloorHeight(localVector.y - groundedDistance);
+          } else {
+            pe.rig.setFloorHeight(-0xFFFFFF);
+          }
+        }
+      }
     } else {
       pe.setRigMatrix(null);
     }
@@ -2071,7 +2129,8 @@ bindUploadFileButton(document.getElementById('import-scene-input'), async file =
 });
 
 let selectedTool = 'camera';
-const _getAvatarHeight = () => (pe.rig ? pe.rig.height : 1) * 0.9;
+const _getFullAvatarHeight = () => pe.rig ? pe.rig.height : 1;
+const _getAvatarHeight = () => _getFullAvatarHeight() * 0.9;
 const _getMinHeight = () => {
   const {rig, rigPackage} = pe;
   if (rig || rigPackage) {
