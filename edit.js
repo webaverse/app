@@ -2118,12 +2118,12 @@ for (let i = 0; i < tools.length; i++) {
           pe.setCamera(camera);
           break;
         }
-        /* case 'birdseye': {
-          pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
+        case 'birdseye': {
+          pe.camera.position.y += -birdsEyeHeight + _getAvatarHeight();
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
           break;
-        } */
+        }
       }
 
       let decapitate = true;
@@ -2137,9 +2137,9 @@ for (let i = 0; i < tools.length; i++) {
           break;
         }
         case 'firstperson': {
-          pe.camera.position.y = _getAvatarHeight();
+          /* pe.camera.position.y = _getAvatarHeight();
           pe.camera.updateMatrixWorld();
-          pe.setCamera(camera);
+          pe.setCamera(camera); */
 
           document.dispatchEvent(new MouseEvent('mouseup'));
           pe.orbitControls.enabled = false;
@@ -2147,7 +2147,11 @@ for (let i = 0; i < tools.length; i++) {
           break;
         }
         case 'thirdperson': {
-          pe.camera.position.y = _getAvatarHeight();
+          /* pe.camera.position.y = _getAvatarHeight();
+          pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
+          pe.camera.updateMatrixWorld();
+          pe.setCamera(camera); */
+
           pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
@@ -2159,9 +2163,15 @@ for (let i = 0; i < tools.length; i++) {
           break;
         }
         case 'isometric': {
-          pe.camera.rotation.x = -Math.PI / 4;
+          /* pe.camera.rotation.x = -Math.PI / 4;
           pe.camera.quaternion.setFromEuler(pe.camera.rotation);
           pe.camera.position.y = _getAvatarHeight();
+          pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
+          pe.camera.updateMatrixWorld();
+          pe.setCamera(camera); */
+
+          pe.camera.rotation.x = -Math.PI / 6;
+          pe.camera.quaternion.setFromEuler(pe.camera.rotation);
           pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
@@ -2173,9 +2183,15 @@ for (let i = 0; i < tools.length; i++) {
           break;
         }
         case 'birdseye': {
-          pe.camera.position.y = birdsEyeHeight;
+          /* pe.camera.position.y = birdsEyeHeight;
           pe.camera.rotation.x = -Math.PI / 2;
           pe.camera.quaternion.setFromEuler(pe.camera.rotation);
+          pe.camera.updateMatrixWorld();
+          pe.setCamera(camera); */
+
+          pe.camera.rotation.x = -Math.PI / 2;
+          pe.camera.quaternion.setFromEuler(pe.camera.rotation);
+          pe.camera.position.y -= -birdsEyeHeight + _getAvatarHeight();
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera);
 
