@@ -1355,7 +1355,7 @@ worldRevertButton.addEventListener('click', async e => {
 const worlds = document.getElementById('worlds');
 const _makeWorldHtml = w => `
   <div class="world ${currentWorldId === w.id ? 'open' : ''}" worldId="${w.id}">
-    <img src=assets/question.png>
+    <img src=${w.previewIconHash ? `${apiHost}/${w.previewIconHash}.gif` : 'assets/question.png'}>
     <div class="text">
       <input type=text class=name-input value="${w.name}" disabled>
     </div>
