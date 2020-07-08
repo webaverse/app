@@ -1922,8 +1922,8 @@ function animate(timestamp, frame) {
       localEuler.x = -Math.PI/2;
       localQuaternion2.setFromEuler(localEuler);
 
-      const width = 1;
-      const height = 1;
+      const width = 0.5;
+      const height = 0.5;
       const depth = 100;
 
       collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
@@ -1962,8 +1962,8 @@ function animate(timestamp, frame) {
       localEuler.x = Math.PI/2;
       localQuaternion2.setFromEuler(localEuler);
 
-      const width = 1;
-      const height = 1;
+      const width = 0.5;
+      const height = 0.5;
       const depth = 100;
 
       collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
