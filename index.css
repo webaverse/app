@@ -611,6 +611,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .subtabs {
   display: flex;
   margin-bottom: 10px;
+  justify-content: space-between;
 }
 
 .subtabs .subtab {
@@ -652,9 +653,12 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: #FFF; */
 }
 
+.subtabs .search {
+  margin: auto;
+}
+
 .subtabs .close-button {
   display: flex;
-  margin-left: auto;
   width: 40px;
   font-size: 16px;
   justify-content: center;
@@ -778,7 +782,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .worlds .world .button,
 .world-buttons .world .button
 {
-  
+
 } */
 
 .packages {
