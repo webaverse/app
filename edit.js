@@ -2041,6 +2041,9 @@ function animate(timestamp, frame) {
       pe.camera.updateMatrixWorld();
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
+      if (oldVelocity.lengthSq() > 0) {
+        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
+      }
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
       const groundedDistance = _collideFloor(localMatrix);
@@ -2061,9 +2064,6 @@ function animate(timestamp, frame) {
       }
       jumpState = offset === null;
 
-      if (oldVelocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
-      }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
 
       if (pe.rig) {
@@ -2088,6 +2088,9 @@ function animate(timestamp, frame) {
       pe.camera.updateMatrixWorld();
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
+      if (oldVelocity.lengthSq() > 0) {
+        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
+      }
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
       const groundedDistance = _collideFloor(localMatrix);
@@ -2108,9 +2111,6 @@ function animate(timestamp, frame) {
       }
       jumpState = offset === null;
 
-      if (oldVelocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
-      }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
 
       if (pe.rig) {
@@ -2136,6 +2136,9 @@ function animate(timestamp, frame) {
       pe.camera.updateMatrixWorld();
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
+      if (oldVelocity.lengthSq() > 0) {
+        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
+      }
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
       const groundedDistance = _collideFloor(localMatrix);
@@ -2156,9 +2159,6 @@ function animate(timestamp, frame) {
       }
       jumpState = offset === null;
 
-      if (oldVelocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
-      }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
 
       if (pe.rig) {
