@@ -1929,7 +1929,6 @@ function animate(timestamp, frame) {
       }
 
       if (isFinite(groundedDistance)) {
-        // console.log('grounded disance', localVector.y, minHeight, groundedDistance);
         localVector.y = localVector.y - groundedDistance + minHeight;
         matrix.compose(localVector, localQuaternion, localVector2);
         velocity.y = 0;
