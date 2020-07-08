@@ -1080,6 +1080,9 @@ const sideCollisionCubeMaterial = new THREE.MeshBasicMaterial({
 const floorCollisionCubeMaterial = new THREE.MeshBasicMaterial({
   color: 0x00FF00,
 });
+const ceilingCollisionCubeMaterial = new THREE.MeshBasicMaterial({
+  color: 0x0000FF,
+});
 const sideCollisionCubes = (() => {
   const result = Array(10*10);
   for (let i = 0; i < 10*10; i++) {
@@ -1105,6 +1108,19 @@ const floorCollisionCubes = (() => {
 })();
 for (let i = 0; i < floorCollisionCubes.length; i++) {
   scene.add(floorCollisionCubes[i]);
+}
+const ceilingCollisionCubes = (() => {
+  const result = Array(10*10);
+  for (let i = 0; i < 10*10; i++) {
+    const mesh = new THREE.Mesh(collisionCubeGeometry, ceilingCollisionCubeMaterial);
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    result[i] = mesh;
+  }
+  return result;
+})();
+for (let i = 0; i < ceilingCollisionCubes.length; i++) {
+  scene.add(ceilingCollisionCubes[i]);
 }
 
 function parseQuery(queryString) {
@@ -1810,10 +1826,22 @@ function animate(timestamp, frame) {
         if ((groundedDistance + velocity.y * 10/1000) < minHeight) {
           return -groundedDistance + minHeight;
         } else {
-          return 0;
+          return null;
         }
       } else {
-        return 0;
+        return null;
+      }
+    };
+    const _getCeilingOffset = ceilingDistance => {
+      if (isFinite(ceilingDistance)) {
+        const maxHeight = 0.2;
+        if ((ceilingDistance + velocity.y * 10/1000) < maxHeight) {
+          return ceilingDistance - maxHeight;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
       }
     };
     const _collideWall = matrix => {
@@ -1928,6 +1956,46 @@ function animate(timestamp, frame) {
 
       return groundedDistance;
     };
+    const _collideCeiling = matrix => {
+      matrix.decompose(localVector, localQuaternion, localVector2);
+      localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+      localEuler.x = Math.PI/2;
+      localQuaternion2.setFromEuler(localEuler);
+
+      const width = 1;
+      const height = 1;
+      const depth = 100;
+
+      collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
+
+      let ceilingDistance = Infinity;
+
+      let i = 0;
+      for (let y = 0; y < 10; y++) {
+        for (let x = 0; x < 10; x++) {
+          const cubeMesh = ceilingCollisionCubes[i];
+          const d = collisionRaycaster.depths[i];
+
+          if (isFinite(d)) {
+            const normal = collisionRaycaster.normals[i];
+
+            cubeMesh.position.copy(localVector)
+              .add(localVector3.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
+            cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
+            cubeMesh.visible = true;
+
+            if (d < ceilingDistance) {
+              ceilingDistance = d;
+            }
+          } else {
+            cubeMesh.visible = false;
+          }
+          i++;
+        }
+      }
+
+      return ceilingDistance;
+    };
 
     if (selectedTool === 'firstperson') {
       _collideWall(pe.camera.matrix);
@@ -1935,11 +2003,20 @@ function animate(timestamp, frame) {
       pe.camera.updateMatrixWorld();
       const groundedDistance = _collideFloor(pe.camera.matrix);
       const offset = _getFloorOffset(groundedDistance);
-      if (offset) {
+      if (offset !== null) {
         pe.camera.position.y += offset;
         velocity.y = 0;
       }
-      jumpState = velocity.y !== 0;
+      const ceilingDistance = _collideCeiling(pe.camera.matrix);
+      const ceilingOffset = _getCeilingOffset(ceilingDistance);
+      if (ceilingOffset !== null) {
+        pe.camera.position.y += ceilingOffset;
+        pe.camera.updateMatrixWorld();
+        localVector.y += ceilingOffset;
+        velocity.y = 0;
+      }
+      jumpState = offset === null;
+
       pe.setRigMatrix(null);
 
       if (pe.rig) {
@@ -1968,13 +2045,21 @@ function animate(timestamp, frame) {
 
       const groundedDistance = _collideFloor(localMatrix);
       const offset = _getFloorOffset(groundedDistance);
-      if (offset) {
+      if (offset !== null) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
         localVector.y += offset;
         velocity.y = 0;
       }
-      jumpState = velocity.y !== 0;
+      const ceilingDistance = _collideCeiling(localMatrix);
+      const ceilingOffset = _getCeilingOffset(ceilingDistance);
+      if (ceilingOffset !== null) {
+        pe.camera.position.y += ceilingOffset;
+        pe.camera.updateMatrixWorld();
+        localVector.y += ceilingOffset;
+        velocity.y = 0;
+      }
+      jumpState = offset === null;
 
       if (oldVelocity.lengthSq() > 0) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
@@ -2007,13 +2092,21 @@ function animate(timestamp, frame) {
 
       const groundedDistance = _collideFloor(localMatrix);
       const offset = _getFloorOffset(groundedDistance);
-      if (offset) {
+      if (offset !== null) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
         localVector.y += offset;
         velocity.y = 0;
       }
-      jumpState = velocity.y !== 0;
+      const ceilingDistance = _collideCeiling(localMatrix);
+      const ceilingOffset = _getCeilingOffset(ceilingDistance);
+      if (ceilingOffset !== null) {
+        pe.camera.position.y += ceilingOffset;
+        pe.camera.updateMatrixWorld();
+        localVector.y += ceilingOffset;
+        velocity.y = 0;
+      }
+      jumpState = offset === null;
 
       if (oldVelocity.lengthSq() > 0) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
@@ -2047,13 +2140,21 @@ function animate(timestamp, frame) {
 
       const groundedDistance = _collideFloor(localMatrix);
       const offset = _getFloorOffset(groundedDistance);
-      if (offset) {
+      if (offset !== null) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
         localVector.y += offset;
         velocity.y = 0;
       }
-      jumpState = velocity.y !== 0;
+      const ceilingDistance = _collideCeiling(localMatrix);
+      const ceilingOffset = _getCeilingOffset(ceilingDistance);
+      if (ceilingOffset !== null) {
+        pe.camera.position.y += ceilingOffset;
+        pe.camera.updateMatrixWorld();
+        localVector.y += ceilingOffset;
+        velocity.y = 0;
+      }
+      jumpState = offset === null;
 
       if (oldVelocity.lengthSq() > 0) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
