@@ -31,9 +31,10 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
+const localVector5 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
-// const localQuaternion3 = new THREE.Quaternion();
+const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
@@ -825,7 +826,7 @@ const idMaterial = new THREE.ShaderMaterial({
       gl_FragColor = vec4((vId+1.0)/64000.0, (vIndex+1.0)/64000.0, 0.0, 0.0);
     }
   `,
-  side: THREE.DoubleSide,
+  // side: THREE.DoubleSide,
 });
 class PointRaycaster {
   constructor() {
@@ -953,7 +954,7 @@ const depthMaterial = new THREE.ShaderMaterial({
       gl_FragColor = vec4(encodePixelDepth(gl_FragCoord.z/gl_FragCoord.w), (vId+1.0)/64000.0, (vIndex+1.0)/64000.0);
     }
   `,
-  side: THREE.DoubleSide,
+  // side: THREE.DoubleSide,
 });
 class CollisionRaycaster {
   constructor() {
@@ -1669,7 +1670,9 @@ function animate(timestamp, frame) {
          currentChunkMesh.material.uniforms.isCurrent.value = 1;
         }
       } else {
-        teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, _teleportTo);
+        teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, (position, quaternion) => {
+          _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
+        });
       }
     }
   }
@@ -1783,52 +1786,84 @@ function animate(timestamp, frame) {
     }
     localVector.multiplyScalar(timeDiff);
     velocity.add(localVector);
-    pe.camera.position.add(localVector.copy(velocity).multiplyScalar(timeDiff));
-    pe.camera.updateMatrixWorld();
-    velocity.x *= 0.7;
-    velocity.z *= 0.7;
 
-    const _collideFloor = matrix => {
+    const _applyVelocity = position => {
+      position.add(localVector4.copy(velocity).multiplyScalar(timeDiff));
+    };
+    const _collideWall = matrix => {
       matrix.decompose(localVector, localQuaternion, localVector2);
-
       if (velocity.x !== 0 || velocity.y !== 0 || velocity.z !== 0) {
         const width = 0.5;
         const height = 2;
-        const depth = 10;
+        const depth = 2;
+        const bodyWidth = 0.3;
         localQuaternion2.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.copy(velocity).normalize());
         localVector3.copy(localVector)
-          .add(localVector4.set(0, -0.5, 0));
+          .add(localVector4.set(0, -0.5, bodyWidth).applyQuaternion(localQuaternion2));
         collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector3, localQuaternion2, width, height, depth);
 
-        let i = 0;
-        for (let y = 0; y < 10; y++) {
-          for (let x = 0; x < 10; x++) {
-            const cubeMesh = collisionCubes[i];
+        {
+          let i = 0;
+          for (let y = 0; y < 10; y++) {
+            for (let x = 0; x < 10; x++) {
+              const cubeMesh = collisionCubes[i];
+              const d = collisionRaycaster.depths[i];
+              if (isFinite(d)) {
+                const normal = collisionRaycaster.normals[i];
+
+                cubeMesh.position.copy(localVector3)
+                  .add(localVector4.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
+                cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
+                cubeMesh.visible = true;
+
+                if (d < bodyWidth*2) {
+                  localVector4.y = 0;
+                  localVector4.normalize();
+                  const restitutionMagnitude = velocity.dot(localVector4);
+                  if (restitutionMagnitude > 0) {
+                    localVector5.copy(localVector4).multiplyScalar(-restitutionMagnitude);
+                    velocity.add(localVector5);
+                  }
+                }
+              } else {
+                cubeMesh.visible = false;
+              }
+              i++;
+            }
+          }
+        }
+
+        /* for (let j = 0; j < 10; j++) {
+          let minRestitutionMagnitude = 0;
+          const restitutionVector = new THREE.Vector3();
+
+          for (let i = 0; i < 10*10; i++) {
             const d = collisionRaycaster.depths[i];
             if (isFinite(d)) {
               const normal = collisionRaycaster.normals[i];
-              if (d < 0.5) {
+              if (d < 0.2) {
                 localVector4.copy(normal);
                 localVector4.y = 0;
                 localVector4.normalize();
                 const restitutionMagnitude = localVector4.dot(velocity);
-                if (restitutionMagnitude < 0) {
-                  velocity.add(localVector4);
+                if (restitutionMagnitude < minRestitutionMagnitude) {
+                  minRestitutionMagnitude = restitutionMagnitude;
+                  restitutionVector.copy(localVector4);
                 }
               }
-
-              cubeMesh.position.copy(localVector3)
-                .add(localVector4.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
-              cubeMesh.quaternion.setFromUnitVectors(localVector4.set(0, 1, 0), normal);
-              cubeMesh.visible = true;
-            } else {
-              cubeMesh.visible = false;
             }
-            i++;
           }
-        }
-      }
 
+          if (minRestitutionMagnitude < 0) {
+            velocity.add(restitutionVector);
+          } else {
+            break;
+          }
+        } */
+      }
+    };
+    const _collideFloor = matrix => {
+      matrix.decompose(localVector, localQuaternion, localVector2);
       const {rig, rigPackage} = pe;
       if (rig || rigPackage) {
         const avatarHeight = rig ? _getAvatarHeight() : 1;
@@ -1862,32 +1897,59 @@ function animate(timestamp, frame) {
     };
 
     if (selectedTool === 'firstperson') {
+      _collideWall(pe.camera.matrix);
+      _applyVelocity(pe.camera.position);
+      pe.camera.updateMatrixWorld();
       _collideFloor(pe.camera.matrix);
       pe.camera.matrix.decompose(pe.camera.position, pe.camera.quaternion, pe.camera.scale);
       // pe.camera.updateMatrixWorld();
       // pe.setCamera(pe.camera);
       pe.setRigMatrix(null);
     } else if (selectedTool === 'thirdperson') {
+      const oldVelocity = velocity.clone();
+
+      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localVector3.copy(localVector).add(localVector4.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
+      localMatrix.compose(localVector3, localQuaternion, localVector2);
+      _collideWall(localMatrix);
+      _applyVelocity(pe.camera.position);
+      pe.camera.updateMatrixWorld();
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
-      if (velocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(velocity.x, 0, velocity.z).normalize());
+      if (oldVelocity.lengthSq() > 0) {
+        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
       }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
       _collideFloor(pe.rigMatrix);
     } else if (selectedTool === 'isometric') {
+      const oldVelocity = velocity.clone();
+
+      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localVector3.copy(localVector).add(localVector4.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
+      localMatrix.compose(localVector3, localQuaternion, localVector2);
+      _collideWall(localMatrix);
+      _applyVelocity(pe.camera.position);
+      pe.camera.updateMatrixWorld();
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
-      if (velocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(velocity.x, 0, velocity.z).normalize());
+      if (oldVelocity.lengthSq() > 0) {
+        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
       }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
       _collideFloor(pe.rigMatrix);
     } else if (selectedTool === 'birdseye') {
+      const oldVelocity = velocity.clone();
+
+      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localVector3.copy(localVector).add(localVector4.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
+      localMatrix.compose(localVector3, localQuaternion, localVector2);
+      _collideWall(localMatrix);
+      _applyVelocity(pe.camera.position);
+      pe.camera.updateMatrixWorld();
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
-      if (velocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(velocity.x, 0, velocity.z).normalize());
+      if (oldVelocity.lengthSq() > 0) {
+        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
       }
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
       _collideFloor(pe.rigMatrix);
@@ -1897,6 +1959,9 @@ function animate(timestamp, frame) {
   } else {
     pe.setRigMatrix(null);
   }
+
+  velocity.x *= 0.7;
+  velocity.z *= 0.7;
 
   /* if (session) {
     wristMenu.update(frame, session, renderer.xr.getReferenceSpace());
