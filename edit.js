@@ -1535,6 +1535,23 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
     await loginManager.setAvatar(dataHash);
   }
 });
+document.getElementById('packages-search').addEventListener('input', e => {
+  const searchTerm = e.target.value.toLowerCase();
+  const packages = [...document.querySelectorAll('#packages .package')];
+
+  if (!searchTerm) {
+    packages.forEach(p => (p.style.display = 'block'));
+    return;
+  }
+
+  packages.forEach(p => {
+    if (p.getAttribute('data-name').includes(searchTerm)) {
+      p.style.display = 'block';
+    } else {
+      p.style.display = 'none';
+    }
+  });
+});
 
 window.addEventListener('avatarchange', e => {
   const p = e.data;
@@ -1647,7 +1664,7 @@ loginManager.addEventListener('inventorychange', async e => {
 });
 
 const _makePackageHtml = p => `
-  <div class=package draggable=true>
+  <div class=package draggable=true data-name=${p.name}>
     <!-- <img src="assets/question.png"> -->
     <img src="${apiHost}/${p.icons[0].hash}.gif" width=256 height=256>
     <div class=text>
