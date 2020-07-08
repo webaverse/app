@@ -1656,10 +1656,13 @@ function animate(timestamp, frame) {
           .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z));
 
         chunkMeshContainer.matrix
-          .premultiply(localMatrix.makeTranslation(0, -localVector2.y, 0));
+          // .premultiply(localMatrix.makeTranslation(0, -localVector2.y, 0));
+          .premultiply(localMatrix.makeTranslation(0, -_getMinHeight(), 0));
 
         chunkMeshContainer.matrix
           .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
+
+        velocity.set(0, 0, 0);
       };
 
       const currentTeleportChunkMesh = raycastChunkSpec && raycastChunkSpec.mesh;
@@ -1884,21 +1887,11 @@ function animate(timestamp, frame) {
 
       const width = 1;
       const height = 1;
-      const depth = 10;
+      const depth = 100;
 
       collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
 
-      const minHeight = (() => {
-        const {rig, rigPackage} = pe;
-        if (rig || rigPackage) {
-          const avatarHeight = rig ? _getAvatarHeight() : 1;
-          const floorHeight = 0;
-          const minHeight = floorHeight + avatarHeight;
-          return minHeight;
-        } else {
-          return 1;
-        }
-      })();
+      const minHeight = _getMinHeight();
 
       let groundedDistance = Infinity;
 
@@ -2079,6 +2072,17 @@ bindUploadFileButton(document.getElementById('import-scene-input'), async file =
 
 let selectedTool = 'camera';
 const _getAvatarHeight = () => (pe.rig ? pe.rig.height : 1) * 0.9;
+const _getMinHeight = () => {
+  const {rig, rigPackage} = pe;
+  if (rig || rigPackage) {
+    const avatarHeight = rig ? _getAvatarHeight() : 1;
+    const floorHeight = 0;
+    const minHeight = floorHeight + avatarHeight;
+    return minHeight;
+  } else {
+    return 1;
+  }
+};
 const birdsEyeHeight = 10;
 const avatarCameraOffset = new THREE.Vector3(0, 0, -1);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -5);
