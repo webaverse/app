@@ -1073,22 +1073,38 @@ class CollisionRaycaster {
 }
 const collisionRaycaster = new CollisionRaycaster();
 
-const collisionCubeGeometry = new THREE.BoxBufferGeometry(0.1, 0.1, 0.1);
-const collisionCubeMaterial = new THREE.MeshBasicMaterial({
+const collisionCubeGeometry = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
+const sideCollisionCubeMaterial = new THREE.MeshBasicMaterial({
   color: 0xFF0000,
 });
-const collisionCubes = (() => {
+const floorCollisionCubeMaterial = new THREE.MeshBasicMaterial({
+  color: 0x00FF00,
+});
+const sideCollisionCubes = (() => {
   const result = Array(10*10);
   for (let i = 0; i < 10*10; i++) {
-    const mesh = new THREE.Mesh(collisionCubeGeometry, collisionCubeMaterial);
+    const mesh = new THREE.Mesh(collisionCubeGeometry, sideCollisionCubeMaterial);
     mesh.frustumCulled = false;
     mesh.visible = false;
     result[i] = mesh;
   }
   return result;
 })();
-for (let i = 0; i < collisionCubes.length; i++) {
-  scene.add(collisionCubes[i]);
+for (let i = 0; i < sideCollisionCubes.length; i++) {
+  scene.add(sideCollisionCubes[i]);
+}
+const floorCollisionCubes = (() => {
+  const result = Array(10*10);
+  for (let i = 0; i < 10*10; i++) {
+    const mesh = new THREE.Mesh(collisionCubeGeometry, floorCollisionCubeMaterial);
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    result[i] = mesh;
+  }
+  return result;
+})();
+for (let i = 0; i < floorCollisionCubes.length; i++) {
+  scene.add(floorCollisionCubes[i]);
 }
 
 function parseQuery(queryString) {
