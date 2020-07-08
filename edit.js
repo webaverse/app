@@ -2003,13 +2003,12 @@ function animate(timestamp, frame) {
       pe.camera.updateMatrixWorld();
       const groundedDistance = _collideFloor(pe.camera.matrix);
       const offset = _getFloorOffset(groundedDistance);
+      const ceilingDistance = _collideCeiling(pe.camera.matrix);
+      const ceilingOffset = _getCeilingOffset(ceilingDistance);
       if (offset !== null) {
         pe.camera.position.y += offset;
         velocity.y = 0;
-      }
-      const ceilingDistance = _collideCeiling(pe.camera.matrix);
-      const ceilingOffset = _getCeilingOffset(ceilingDistance);
-      if (ceilingOffset !== null) {
+      } else if (ceilingOffset !== null) {
         pe.camera.position.y += ceilingOffset;
         pe.camera.updateMatrixWorld();
         localVector.y += ceilingOffset;
@@ -2048,15 +2047,14 @@ function animate(timestamp, frame) {
 
       const groundedDistance = _collideFloor(localMatrix);
       const offset = _getFloorOffset(groundedDistance);
+      const ceilingDistance = _collideCeiling(localMatrix);
+      const ceilingOffset = _getCeilingOffset(ceilingDistance);
       if (offset !== null) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
         localVector.y += offset;
         velocity.y = 0;
-      }
-      const ceilingDistance = _collideCeiling(localMatrix);
-      const ceilingOffset = _getCeilingOffset(ceilingDistance);
-      if (ceilingOffset !== null) {
+      } else if (ceilingOffset !== null) {
         pe.camera.position.y += ceilingOffset;
         pe.camera.updateMatrixWorld();
         localVector.y += ceilingOffset;
@@ -2095,15 +2093,14 @@ function animate(timestamp, frame) {
 
       const groundedDistance = _collideFloor(localMatrix);
       const offset = _getFloorOffset(groundedDistance);
+      const ceilingDistance = _collideCeiling(localMatrix);
+      const ceilingOffset = _getCeilingOffset(ceilingDistance);
       if (offset !== null) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
         localVector.y += offset;
         velocity.y = 0;
-      }
-      const ceilingDistance = _collideCeiling(localMatrix);
-      const ceilingOffset = _getCeilingOffset(ceilingDistance);
-      if (ceilingOffset !== null) {
+      } else if (ceilingOffset !== null) {
         pe.camera.position.y += ceilingOffset;
         pe.camera.updateMatrixWorld();
         localVector.y += ceilingOffset;
@@ -2143,15 +2140,14 @@ function animate(timestamp, frame) {
 
       const groundedDistance = _collideFloor(localMatrix);
       const offset = _getFloorOffset(groundedDistance);
+      const ceilingDistance = _collideCeiling(localMatrix);
+      const ceilingOffset = _getCeilingOffset(ceilingDistance);
       if (offset !== null) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
         localVector.y += offset;
         velocity.y = 0;
-      }
-      const ceilingDistance = _collideCeiling(localMatrix);
-      const ceilingOffset = _getCeilingOffset(ceilingDistance);
-      if (ceilingOffset !== null) {
+      } else if (ceilingOffset !== null) {
         pe.camera.position.y += ceilingOffset;
         pe.camera.updateMatrixWorld();
         localVector.y += ceilingOffset;
