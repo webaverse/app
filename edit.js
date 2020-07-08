@@ -1911,7 +1911,6 @@ function animate(timestamp, frame) {
           const d = collisionRaycaster.depths[i];
 
           if (isFinite(d)) {
-            // console.log('finite');
             const normal = collisionRaycaster.normals[i];
 
             cubeMesh.position.copy(localVector)
@@ -1919,21 +1918,9 @@ function animate(timestamp, frame) {
             cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
             cubeMesh.visible = true;
 
-            // localVector.y = minHeight;
-            // matrix.compose(localVector, localQuaternion, localVector2);
             if (d < minHeight && d < groundedDistance) {
               groundedDistance = d;
             }
-
-            /* if (d < bodyWidth*2) {
-              localVector4.y = 0;
-              localVector4.normalize();
-              const restitutionMagnitude = velocity.dot(localVector4);
-              if (restitutionMagnitude > 0) {
-                localVector5.copy(localVector4).multiplyScalar(-restitutionMagnitude);
-                velocity.add(localVector5);
-              }
-            } */
           } else {
             cubeMesh.visible = false;
           }
