@@ -1650,9 +1650,7 @@ function animate(timestamp, frame) {
         localQuaternion3.inverse(); */
 
         chunkMeshContainer.matrix
-          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion2.copy(localQuaternion).inverse()))
           .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion));
 
         chunkMeshContainer.matrix
           .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z));
