@@ -2023,8 +2023,11 @@ function animate(timestamp, frame) {
     pe.setRigMatrix(null);
   }
 
-  velocity.x *= 0.7;
-  velocity.z *= 0.7;
+  const terminalVelocity = 50;
+  const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
+  velocity.x = _clampToTerminalVelocity(velocity.x*0.7);
+  velocity.z = _clampToTerminalVelocity(velocity.z*0.7);
+  velocity.y = _clampToTerminalVelocity(velocity.y);
 
   /* if (session) {
     wristMenu.update(frame, session, renderer.xr.getReferenceSpace());
