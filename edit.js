@@ -1798,9 +1798,9 @@ function animate(timestamp, frame) {
       localVector.normalize().multiplyScalar(speed);
     }
 
-    if (jumpState) {
+    // if (jumpState) {
       localVector.y -= 9.8;
-    }
+    // }
     localVector.multiplyScalar(timeDiff);
     velocity.add(localVector);
 
@@ -1909,7 +1909,7 @@ function animate(timestamp, frame) {
             cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
             cubeMesh.visible = true;
 
-            if (velocity.y <= 0 && d < minHeight && d < groundedDistance) {
+            if ((d + velocity.y * 10/1000) < minHeight && d < groundedDistance) {
               groundedDistance = d;
             }
           } else {
@@ -1935,7 +1935,7 @@ function animate(timestamp, frame) {
         pe.camera.position.y += offset;
         velocity.y = 0;
       }
-      jumpState = offset === 0;
+      jumpState = velocity.y !== 0;
       pe.setRigMatrix(null);
     } else if (selectedTool === 'thirdperson') {
       const oldVelocity = velocity.clone();
@@ -1957,7 +1957,7 @@ function animate(timestamp, frame) {
         localVector.y += offset;
         velocity.y = 0;
       }
-      jumpState = offset === 0;
+      jumpState = velocity.y !== 0;
 
       if (oldVelocity.lengthSq() > 0) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
@@ -1983,7 +1983,7 @@ function animate(timestamp, frame) {
         localVector.y += offset;
         velocity.y = 0;
       }
-      jumpState = offset === 0;
+      jumpState = velocity.y !== 0;
 
       if (oldVelocity.lengthSq() > 0) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
@@ -2010,7 +2010,7 @@ function animate(timestamp, frame) {
         localVector.y += offset;
         velocity.y = 0;
       }
-      jumpState = offset === 0;
+      jumpState = velocity.y !== 0;
 
       if (oldVelocity.lengthSq() > 0) {
         localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
