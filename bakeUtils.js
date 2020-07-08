@@ -2,11 +2,11 @@
 
 import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {XRPackage, XRPackageEngine} from 'https://static.xrpackage.org/xrpackage.js';
-import {readFile} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {GLTFExporter} from 'https://static.xrpackage.org/GLTFExporter.js';
 import {OrbitControls} from 'https://static.xrpackage.org/xrpackage/OrbitControls.js';
-import {screenshotEngine} from './screenshot-object.js';
 import {getWireframeMesh, getDefaultAabb, getPreviewMesh} from './volume.js';
+import {readFile} from 'https://static.xrpackage.org/xrpackage/util.js';
+import {screenshotEngine} from './screenshot-object.js';
 
 const screenshotHeaderEl = document.getElementById('screenshot-header');
 const screenshotResultEl = document.getElementById('screenshot-result');
@@ -26,7 +26,7 @@ const parseQuery = queryString => {
   return query;
 };
 
-const toggleElements = baked => {
+const toggleElements = (baked, err) => {
   const bakedEl = document.getElementById('baked');
   const bakingEl = document.getElementById('baking');
   const errorEl = document.getElementById('error');
@@ -39,16 +39,49 @@ const toggleElements = baked => {
     bakedEl.style.display = 'none';
     bakingEl.style.display = 'block';
     errorEl.style.display = 'none';
-  } else {
+  } else if (err) {
     bakedEl.style.display = 'none';
     bakingEl.style.display = 'none';
     errorEl.style.display = 'block';
+
+    if (screenshotHeaderEl) screenshotHeaderEl.innerText = '';
+    if (volumeHeaderEl) volumeHeaderEl.innerText = '';
+    errorTraceEl.innerText = err.stack;
   }
 };
 
-const _screenshot = async (srcWbn, dstGif) => {
+const screenshotWbn = async (srcWbn, dstGif) => {
   screenshotHeaderEl.innerText = 'Screenshotting...';
+  const {screenshotBlob} = await _screenshot(srcWbn, dstGif);
 
+  const img = document.createElement('img');
+  img.src = URL.createObjectURL(screenshotBlob);
+  img.style.backgroundColor = '#EEE';
+  img.style.borderRadius = '10px';
+  screenshotResultEl.appendChild(img);
+
+  screenshotHeaderEl.innerText = 'Screenshotting done';
+  const screenshot = await readFile(screenshotBlob);
+  return {screenshot};
+};
+
+const volumizeWbn = async (srcWbn, dstVolume, dstAabb) => {
+  volumeHeaderEl.innerText = 'Volumizing...';
+  const {volumeBlob, aabb, domElement} = await _volumeize(srcWbn, dstVolume, dstAabb);
+
+  volumeResultEl.appendChild(domElement);
+  domElement.style.backgroundColor = '#EEE';
+  domElement.style.borderRadius = '10px';
+
+  aabbHeaderEl.innerText = 'AABB';
+  aabbResultEl.innerText = JSON.stringify(aabb, null, 2);
+  volumeHeaderEl.innerText = 'Volumizing done';
+
+  const volume = await readFile(volumeBlob);
+  return {volume, aabb};
+};
+
+const _screenshot = async (srcWbn, dstGif) => {
   const req = await fetch(srcWbn);
   const arrayBuffer = await req.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
@@ -82,12 +115,6 @@ const _screenshot = async (srcWbn, dstGif) => {
       });
       await res.blob();
     }
-
-    const img = document.createElement('img');
-    img.src = URL.createObjectURL(screenshotBlob);
-    img.style.backgroundColor = '#EEE';
-    img.style.borderRadius = '10px';
-    screenshotResultEl.appendChild(img);
   } else {
     screenshotBlob = new Blob([], {type: 'image/gif'});
     if (dstGif) {
@@ -99,14 +126,10 @@ const _screenshot = async (srcWbn, dstGif) => {
     }
   }
 
-  screenshotHeaderEl.innerText = 'Screenshotting done';
-  const screenshotArrayBuffer = await readFile(screenshotBlob);
-  return {screenshot: screenshotArrayBuffer};
+  return {screenshotBlob};
 };
 
-const _volume = async (srcWbn, dstVolume, dstAabb) => {
-  volumeHeaderEl.innerText = 'Volumizing...';
-
+const _volumeize = async (srcWbn, dstVolume, dstAabb) => {
   const req = await fetch(srcWbn);
   const arrayBuffer = await req.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
@@ -211,50 +234,17 @@ const _volume = async (srcWbn, dstVolume, dstAabb) => {
   await p.waitForLoad();
   pe.scene.add(wireframeMesh);
 
-  volumeResultEl.appendChild(pe.domElement);
-  pe.domElement.style.backgroundColor = '#EEE';
-  pe.domElement.style.borderRadius = '10px';
-
-  aabbHeaderEl.innerText = 'AABB';
-  aabbResultEl.innerText = JSON.stringify(aabb, null, 2);
-
   function animate(timestamp, frame) {
     orbitControls.update();
     renderer.render(scene, camera);
   }
   renderer.setAnimationLoop(animate);
-  volumeHeaderEl.innerText = 'Volumizing done';
 
-  const volumeArrayBuffer = await readFile(volumeBlob);
   return {
-    volume: volumeArrayBuffer,
+    domElement: pe.domElement,
+    volumeBlob,
     aabb,
   };
 };
 
-(async () => {
-  try {
-    toggleElements(false);
-    const {srcWbn, dstGif, dstVolume, dstAabb} = parseQuery(decodeURIComponent(window.location.search));
-    const {screenshot} = await _screenshot(srcWbn, dstGif);
-    const {volume, aabb} = await _volume(srcWbn, dstVolume, dstAabb);
-
-    window.parent.postMessage({
-      method: 'result',
-      result: {screenshot, volume, aabb},
-    }, '*', [screenshot.buffer, volume.buffer]);
-
-    toggleElements(true);
-  } catch (err) {
-    toggleElements(null);
-    console.error(err.stack);
-    screenshotHeaderEl.innerText = '';
-    volumeHeaderEl.innerText = '';
-    errorTraceEl.innerText = err.stack;
-
-    window.parent.postMessage({
-      method: 'error',
-      error: err.stack,
-    }, '*');
-  }
-})();
+export {screenshotWbn, volumizeWbn, parseQuery, toggleElements};
