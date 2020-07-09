@@ -28,16 +28,25 @@ const contract = new web3.eth.Contract(abi, address);
 
 const subtabs = Array.from(document.querySelectorAll('.subtab'));
 const subcontents = Array.from(document.querySelectorAll('.subcontent'));
-for (let i = 0; i < subtabs.length; i++) {
+const closeTabs = i => {
+  subtabs.forEach((subtab, i) => {
+    subtab.classList.remove('open');
+    subcontents[i].classList.remove('open');
+  });
+};
+const openTab = i => {
   const subtab = subtabs[i];
   const subcontent = subcontents[i];
-  subtab.addEventListener('click', e => {
-    subtabs.forEach((subtab, i) => {
-      subtab.classList.remove('open');
-      subcontents[i].classList.remove('open');
-    });
-    subtab.classList.add('open');
-    subcontent.classList.add('open');
+  closeTabs();
+  subtab.classList.add('open');
+  subcontent.classList.add('open');
+};
+
+for (let i = 0; i < subtabs.length; i++) {
+  const subtab = subtabs[i];
+  subtab.addEventListener('click', () => {
+    closeTabs();
+    openTab(i);
   });
 }
 
@@ -131,9 +140,9 @@ const _renderFiles = p => {
   });
 };
 
-const _renderPackage = async (p, viewsId) => {
+const _renderPackage = async p => {
   // views
-  const views = document.getElementById(viewsId);
+  const views = document.getElementById('views');
   {
     const canvas = pe.domElement;
     canvas.classList.add('side-content');
@@ -271,7 +280,7 @@ const _renderPackage = async (p, viewsId) => {
     p = null;
   }
 
-  if (p) await _renderPackage(p, 'views');
+  if (p) await _renderPackage(p);
 
   // manifest
   const saveManifestButton = document.getElementById('save-manifest-button');
@@ -312,7 +321,8 @@ const _renderPackage = async (p, viewsId) => {
 
     inspectMode.classList.add('open');
     createMode.classList.remove('open');
-    await _renderPackage(p, 'views');
+    openTab(0);
+    await _renderPackage(p);
   };
   bindUploadFileButton(createFromFileInput, _importFromFile);
   const bakePackageButton = document.getElementById('bake-package-button');
@@ -355,7 +365,13 @@ const _renderPackage = async (p, viewsId) => {
     const uint8Array = await readFile(file);
     p = new XRPackage(uint8Array);
     await p.waitForLoad();
+    await pe.add(p);
     console.log('got new package', p);
+
+    inspectMode.classList.add('open');
+    createMode.classList.remove('open');
+    openTab(0);
+    await _renderPackage(p);
   });
   const exportPackageButton = document.getElementById('export-package-button');
   exportPackageButton.addEventListener('click', async e => {
