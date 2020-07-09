@@ -193,6 +193,7 @@ function meshIdToArray(meshId) {
   ];
 }
 
+let worker = null;
 let remoteChunkMeshes = [];
 const chunkMeshContainer = new THREE.Object3D();
 scene.add(chunkMeshContainer);
@@ -203,7 +204,7 @@ let capsuleMesh = null;
 (async () => {
 
 const [
-  worker,
+  w,
   colors,
   ammo,
 ] = await Promise.all([
@@ -250,6 +251,31 @@ const [
         } */
       });
     };
+    w.requestMine = (potentialsAddress, potentialsLength, dimsAddress, dimsLength, delta, meshId, position) => {
+      return w.request({
+        method: 'mine',
+        potentialsAddress,
+        potentialsLength,
+        dimsAddress,
+        dimsLength,
+        delta,
+        meshId,
+        position,
+      }).then(res => {
+        return res;
+        /* if (res.positions.length > 0) {
+          mesh.geometry.setAttribute('position', new THREE.BufferAttribute(res.positions, 3));
+          mesh.geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(res.positions.length*2/3), 2));
+          mesh.geometry.setAttribute('color', new THREE.BufferAttribute(res.colors, 3));
+          mesh.geometry.deleteAttribute('normal');
+          mesh.geometry.setIndex(new THREE.BufferAttribute(res.faces, 1));
+          mesh.geometry.computeVertexNormals();
+          mesh.visible = true;
+        } else {
+          mesh.visible = false;
+        } */
+      });
+    };
     return w;
   })(),
   (async () => {
@@ -265,6 +291,7 @@ const [
   }),
 ]);
 
+worker = w;
 physics = (() => {
   const ammoVector3 = new Ammo.btVector3();
   const ammoQuaternion = new Ammo.btQuaternion();
@@ -622,7 +649,10 @@ const _makeChunkMesh = async () => {
   const mesh = new THREE.Mesh(geometry, heightfieldMaterial);
   mesh.frustumCulled = false;
   mesh.meshId = meshId;
-  // mesh.potentials = spec.potentials;
+  mesh.potentialsAddress = spec.potentialsAddress;
+  mesh.potentialsLength = spec.potentialsLength;
+  mesh.dimsAddress = spec.dimsAddress;
+  mesh.dimsLength = spec.dimsLength;
   // mesh.dims = dims;
   return mesh;
 };
@@ -1500,33 +1530,26 @@ function animate(timestamp, frame) {
         } */
       }
       if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
-        const _applyPotentialDelta = (position, delta) => {
+        const _applyPotentialDelta = async (position, delta) => {
           localVector2.copy(position)
             .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
           localVector2.x = Math.floor(localVector2.x);
           localVector2.y = Math.floor(localVector2.y);
           localVector2.z = Math.floor(localVector2.z);
-          const maxDistScale = 1;
-          const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
-          for (let dy = -1; dy <= 1; dy++) {
-            for (let dz = -1; dz <= 1; dz++) {
-              for (let dx = -1; dx <= 1; dx++) {
-                const ax = localVector2.x + dx;
-                const ay = localVector2.y + dy;
-                const az = localVector2.z + dz;
-                const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-                const potentialIndex = ax + ay*PARCEL_SIZE_P2*PARCEL_SIZE_P2 + az*PARCEL_SIZE_P2;
-                currentChunkMesh.potentials[potentialIndex] = Math.min(Math.max(currentChunkMesh.potentials[potentialIndex] + (maxDist - dist) * delta, -2), 2);
-
-                const spec = _getChunkSpec(currentChunkMesh.potentials, currentChunkMesh.dims, currentChunkMesh.meshId);
-                currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-                currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
-                currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
-                currentChunkMesh.geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1));
-              }
-            }
-          }
+          const spec = await worker.requestMine(
+            currentChunkMesh.potentialsAddress,
+            currentChunkMesh.potentialsLength,
+            currentChunkMesh.dimsAddress,
+            currentChunkMesh.dimsLength,
+            delta,
+            currentChunkMesh.meshId,
+            localVector2.toArray()
+          );
+          currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
+          currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
+          currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
+          currentChunkMesh.geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1));
         };
         switch (selectedWeapon) {
           case 'wrench': {
