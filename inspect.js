@@ -83,6 +83,21 @@ function parseQuery(queryString) {
   return query;
 }
 
+const isValidManifest = str => {
+  if (!str) return false;
+  try {
+    const json = JSON.parse(str);
+    const {name, xr_type: xrType, start_url: startUrl} = json;
+    if (!name || !xrType || !startUrl) return false;
+    if (!(/^[a-z0-9][a-z0-9-._~]*$/.test(name))) return false;
+  } catch (err) {
+    console.warn('invalid manifest json', err);
+    return false;
+  }
+
+  return true;
+};
+
 const _makeScene = () => {
   const renderer = new THREE.WebGLRenderer({
     // canvas: pe.domElement,
@@ -286,6 +301,8 @@ const _renderPackage = async p => {
   saveManifestButton.addEventListener('click', async () => {
     const manifest = document.getElementById('manifest').value;
     console.log('save manifest', manifest);
+    if (!isValidManifest(manifest)) return window.alert('Error: invalid manifest!');
+
     const compileRawData = [{
       url: '/manifest.json',
       type: 'application/json',
@@ -307,6 +324,7 @@ const _renderPackage = async p => {
     pe.reset();
     await pe.add(p);
     await _renderPackage(p);
+    openTab(0);
   });
 
   // files
