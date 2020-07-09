@@ -785,14 +785,16 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 } */
 
-.packages {
+.packages,
+.inventory {
   display: flex;
   overflow: auto;
   max-height: 200px;
   flex-wrap: wrap;
 }
 .packages .package,
-.worlds .world
+.worlds .world,
+.inventory .item
 {
   position: relative;
   display: inline-flex;
@@ -819,7 +821,8 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: #000;
 }
 .packages .package .background,
-.worlds .world .background
+.worlds .world .background,
+.inventory .item .background
 {
   position: absolute;
   top: 0;
@@ -830,7 +833,8 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   flex-direction: column;
 }
 .packages .package:not(:hover) .background,
-.worlds .world:not(:hover) .background
+.worlds .world:not(:hover) .background,
+.inventory .item:not(:hover) .background
 {
   display: none;
   padding: 10px;
@@ -838,7 +842,9 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .packages .package img,
 .packages .package i,
 .worlds .world img,
-.worlds .world i
+.worlds .world i,
+.inventory .item img,
+.inventory .item i
 {
   display: flex;
   width: 100px;
@@ -858,7 +864,8 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   font-size: 13px;
 }
 .packages .package .button,
-.worlds .world .button
+.worlds .world .button,
+.inventory .item .button
 {
   margin-bottom: 5px;
 }
@@ -1505,7 +1512,6 @@ header.unlocking + .main .blocker .button
 }
 .details {
   display: flex;
-  width: 400px;
   flex-direction: column;
   align-items: flex-start;
 }
@@ -1787,29 +1793,4 @@ body.dragging-package .footer {
 .avatar .wrap {
   display: flex;
   flex-direction: column;
-}
-.item {
-  display: flex;
-  position: relative;
-  flex-direction: column;
-}
-.item img {
-  width: 100px;
-  height: 100px;
-  margin-right: 10px;
-  background-color: #FFF;
-  border-radius: 8px;
-}
-.item .details {
-  display: flex;
-  position: absolute;
-  top: 0;
-  left: 0;
-  flex-direction: column;
-}
-.item:not(:hover) .details {
-  display: none;
-}
-.item .details .button {
-  margin-bottom: 5px;
 }
