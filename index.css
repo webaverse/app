@@ -1153,8 +1153,12 @@ canvas {
   cursor: pointer;
 } */
 
-.button:hover {
+.button:hover:enabled {
   background-color: #1e88e5;
+}
+
+.button:disabled {
+  background-color: gray;
 }
 
 .button:active {
