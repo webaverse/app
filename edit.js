@@ -1886,6 +1886,7 @@ function animate(timestamp, frame) {
       const depth = 100;
 
       collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
+      collisionRaycaster.readRaycast(chunkMeshContainer);
 
       let ceilingDistance = Infinity;
 
