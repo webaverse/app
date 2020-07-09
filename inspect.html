@@ -57,7 +57,7 @@
       <nav class="subtab open" id=subtab-1>Details</nav>
       <nav class=subtab id=subtab-2>Manifest</nav>
       <nav class=subtab id=subtab-3>Files</nav>
-      <nav class=subtab id=subtab-4>Import/Export</nav>
+      <nav class=subtab id=subtab-4>Export</nav>
     </header>
 
     <section class="subcontent open" id=subcontent-1>
@@ -106,13 +106,6 @@
     <section class=subcontent id=subcontent-4>
       <div class=exports id=exports>
         <div class=export-button>
-          <nav class=button>
-            Import from file
-            <input type=file class=hidden id=import-from-file-input>
-          </nav>
-          <span class=label>Magically create a package from file (.gltf, .glb, .vrm, .html)</span>
-        </div>
-        <div class=export-button>
           <nav class=button id=bake-package-button>Bake package</nav>
           <span class=label>Create screenshot and collision mesh icons for this package</span>
         </div>
@@ -121,32 +114,39 @@
           <span class=label>Publish package to IPFS</span>
         </div>
         <div class=export-button>
-          <nav class=button id=import-package-button>
-            Import package
-            <input type=file class=hidden id=import-package-input>
-          </nav>
-          <span class=label>Upload package for inspection</span>
-        </div>
-        <div class=export-button>
           <nav class=button id=export-package-button>Export package</nav>
           <span class=label>Download package locally</span>
         </div>
       </div>
     </section>
   </div>
-  <div class=mode id=create-mode>
-    <div class=subheader>
-      <h1>Create a package</h1>
-    </div>
-    <div class=create-ui>
-      <nav class=button>
-        Create from file
-        <input type=file class=hidden id=create-from-file-input>
-      </nav>
-    </div>
-  </div>
 
-<script type=module src='inspect.js'></script>
+  <div class=mode id=create-mode>
+    <header class=subheader>
+      <nav class="subtab open" id=subtab-1>Create a package from file</nav>
+      <nav class=subtab id=subtab-2>Import a package</nav>
+    </header>
+
+    <section class="subcontent open" id=subcontent-1>
+      <div class=create-ui>
+        <p>Magically create an XRPackage from file (.gltf, .glb, .vrm, .html)</p>
+        <nav class=button>
+          Create from file
+          <input type=file class=hidden id=create-from-file-input>
+        </nav>
+      </div>
+    </section>
+    <section class=subcontent id=subcontent-2>
+      <div class=create-ui>
+        <p>Upload an XRPackage (.wbn) for inspection</p>
+        <nav class=button id=import-package-button>
+          Import package
+          <input type=file class=hidden id=import-package-input>
+        </nav>
+      </div>
+    </section>
+  </div>
+  <script type=module src='inspect.js'></script>
 </body>
 
 </html>

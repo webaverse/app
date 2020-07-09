@@ -3,7 +3,7 @@
 
 import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import './selector.js';
-import {XRPackage, XRPackageEngine} from 'http://localhost:3001/xrpackage.js';
+import {XRPackage, XRPackageEngine} from 'https://static.xrpackage.org/xrpackage.js';
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 import {OrbitControls} from 'https://static.xrpackage.org/xrpackage/OrbitControls.js';
 import {tryLogin} from './login.js';
@@ -131,9 +131,9 @@ const _renderFiles = p => {
   });
 };
 
-const _renderPackage = async p => {
+const _renderPackage = async (p, viewsId) => {
   // views
-  const views = document.getElementById('views');
+  const views = document.getElementById(viewsId);
   {
     const canvas = pe.domElement;
     canvas.classList.add('side-content');
@@ -271,9 +271,7 @@ const _renderPackage = async p => {
     p = null;
   }
 
-  if (p) {
-    await _renderPackage(p);
-  }
+  if (p) await _renderPackage(p, 'views');
 
   // manifest
   const saveManifestButton = document.getElementById('save-manifest-button');
@@ -303,16 +301,19 @@ const _renderPackage = async p => {
     }
   });
 
-  // import/export
-  const importFromFileInput = document.getElementById('import-from-file-input');
+  // Create from file
   const createFromFileInput = document.getElementById('create-from-file-input');
   const _importFromFile = async file => {
     const uint8Array = await XRPackage.compileFromFile(file);
     const p = new XRPackage(uint8Array);
     await p.waitForLoad();
+    await pe.add(p);
     console.log('got new package', p);
+
+    inspectMode.classList.add('open');
+    createMode.classList.remove('open');
+    await _renderPackage(p, 'views');
   };
-  bindUploadFileButton(importFromFileInput, _importFromFile);
   bindUploadFileButton(createFromFileInput, _importFromFile);
   const bakePackageButton = document.getElementById('bake-package-button');
   bakePackageButton.addEventListener('click', async e => {
