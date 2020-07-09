@@ -1605,9 +1605,9 @@ window.addEventListener('avatarchange', e => {
 const _changeInventory = inventory => {
   inventorySubtabContent.innerHTML = inventory.map(item => `\
     <div class=item draggable=true>
-      <img class=screenshot>
+      <img class=screenshot width=256 height=256>
       <div class=name>${item.name}</div>
-      <div class=details>
+      <div class=background>
         <a class="button inspect-button" target="_blank" href="inspect.html?h=${item.dataHash}">Inspect</a>
         <nav class="button wear-button">Wear</nav>
         <nav class="button remove-button">Remove</nav>
