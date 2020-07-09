@@ -311,7 +311,7 @@ const _renderPackage = async p => {
   });
 
   const _importPackage = async uint8Array => {
-    const p = new XRPackage(uint8Array);
+    p = new XRPackage(uint8Array);
     await p.waitForLoad();
     await pe.add(p);
     console.log('got new package', p);
