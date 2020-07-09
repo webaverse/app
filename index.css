@@ -787,6 +787,9 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .packages {
   display: flex;
+  overflow: auto;
+  max-height: 200px;
+  flex-wrap: wrap;
 }
 .packages .package,
 .worlds .world
