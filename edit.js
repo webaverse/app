@@ -849,8 +849,10 @@ class PointRaycaster {
     } else {
       container.parent.remove(container);
     }
-
+  }
+  readRaycast(container, position, quaternion) {
     this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 1, 1, this.pixels);
+
     let mesh;
     let index;
     let point;
@@ -996,7 +998,8 @@ class CollisionRaycaster {
     } else {
       container.parent.remove(container);
     }
-
+  }
+  readRaycast(container) {
     this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 10, 10, this.pixels);
 
     let j = 0;
@@ -1021,40 +1024,6 @@ class CollisionRaycaster {
       }
       j += 4;
     }
-
-    // console.log('got pixels', this.depths);
-
-    /* let mesh;
-    let index;
-    let point;
-    let normal;
-    if (this.pixels[3] !== 1) {
-      const meshId = (Math.floor(this.pixels[0]*255) << 16) | (Math.floor(this.pixels[1]*255) << 8) | Math.floor(this.pixels[2]*255);
-      // mesh = meshes.find(mesh => mesh.meshId === meshId) || null;
-      mesh = _findMeshWithMeshId(meshId);
-      index = Math.floor(this.pixels[3]*64000)-1;
-
-      const triangle = new THREE.Triangle(
-        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9).applyMatrix4(mesh.matrixWorld),
-        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+3).applyMatrix4(mesh.matrixWorld),
-        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+6).applyMatrix4(mesh.matrixWorld)
-      );
-      normal = triangle.getNormal(new THREE.Vector3());
-      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, triangle.a);
-
-      const raycaster = new THREE.Raycaster();
-      raycaster.ray.origin.copy(position);
-      raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
-
-      point = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
-    } else {
-      mesh = null;
-      index = -1;
-      point = null;
-      normal = null;
-    }
-
-    return point ? {mesh, index, point, normal} : null; */
   }
 }
 const collisionRaycaster = new CollisionRaycaster();
@@ -1518,9 +1487,8 @@ function animate(timestamp, frame) {
         physicalMesh.body.activate(true);
       }
 
-      // cubeMesh.position.copy(localVector).add(localVector2.set(0, 0, -1).applyQuaternion(localQuaternion));
-
-      const raycastChunkSpec = pointRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
+      pointRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
+      const raycastChunkSpec = pointRaycaster.readRaycast(chunkMeshContainer, localVector, localQuaternion);
 
       [wrenchMesh, sledgehammerMesh, paintBrushMesh].forEach(weaponMesh => {
         if (weaponMesh) {
@@ -1834,65 +1802,36 @@ function animate(timestamp, frame) {
         localVector3.copy(localVector)
           .add(localVector4.set(0, -0.5, bodyWidth).applyQuaternion(localQuaternion2));
         collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector3, localQuaternion2, width, height, depth);
+        collisionRaycaster.readRaycast(chunkMeshContainer);
 
-        {
-          let i = 0;
-          for (let y = 0; y < 10; y++) {
-            for (let x = 0; x < 10; x++) {
-              const cubeMesh = sideCollisionCubes[i];
-              const d = collisionRaycaster.depths[i];
-              if (isFinite(d)) {
-                const normal = collisionRaycaster.normals[i];
-
-                cubeMesh.position.copy(localVector3)
-                  .add(localVector4.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
-                cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
-                cubeMesh.visible = true;
-
-                if (d < bodyWidth*2) {
-                  localVector4.y = 0;
-                  localVector4.normalize();
-                  const restitutionMagnitude = velocity.dot(localVector4);
-                  if (restitutionMagnitude > 0) {
-                    localVector5.copy(localVector4).multiplyScalar(-restitutionMagnitude);
-                    velocity.add(localVector5);
-                  }
-                }
-              } else {
-                cubeMesh.visible = false;
-              }
-              i++;
-            }
-          }
-        }
-
-        /* for (let j = 0; j < 10; j++) {
-          let minRestitutionMagnitude = 0;
-          const restitutionVector = new THREE.Vector3();
-
-          for (let i = 0; i < 10*10; i++) {
+        let i = 0;
+        for (let y = 0; y < 10; y++) {
+          for (let x = 0; x < 10; x++) {
+            const cubeMesh = sideCollisionCubes[i];
             const d = collisionRaycaster.depths[i];
             if (isFinite(d)) {
               const normal = collisionRaycaster.normals[i];
-              if (d < 0.2) {
-                localVector4.copy(normal);
+
+              cubeMesh.position.copy(localVector3)
+                .add(localVector4.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
+              cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
+              cubeMesh.visible = true;
+
+              if (d < bodyWidth*2) {
                 localVector4.y = 0;
                 localVector4.normalize();
-                const restitutionMagnitude = localVector4.dot(velocity);
-                if (restitutionMagnitude < minRestitutionMagnitude) {
-                  minRestitutionMagnitude = restitutionMagnitude;
-                  restitutionVector.copy(localVector4);
+                const restitutionMagnitude = velocity.dot(localVector4);
+                if (restitutionMagnitude > 0) {
+                  localVector5.copy(localVector4).multiplyScalar(-restitutionMagnitude);
+                  velocity.add(localVector5);
                 }
               }
+            } else {
+              cubeMesh.visible = false;
             }
+            i++;
           }
-
-          if (minRestitutionMagnitude < 0) {
-            velocity.add(restitutionVector);
-          } else {
-            break;
-          }
-        } */
+        }
       }
     };
     const _collideFloor = matrix => {
@@ -1906,6 +1845,7 @@ function animate(timestamp, frame) {
       const depth = 100;
 
       collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
+      collisionRaycaster.readRaycast(chunkMeshContainer);
 
       let groundedDistance = Infinity;
 
