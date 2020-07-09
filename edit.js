@@ -25,7 +25,6 @@ const packagesEndpoint = 'https://packages.exokit.org';
 const parcelSize = 11;
 const PARCEL_SIZE = 30;
 const PARCEL_SIZE_D2 = PARCEL_SIZE/2;
-const PARCEL_SIZE_P2 = PARCEL_SIZE+2;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -230,25 +229,11 @@ const [
         }
       });
     });
-    w.requestMarch = (seed, dims, meshId) => {
+    w.requestMarch = (seed, meshId) => {
       return w.request({
         method: 'march',
         seed,
-        dims,
         meshId,
-      }).then(res => {
-        return res;
-        /* if (res.positions.length > 0) {
-          mesh.geometry.setAttribute('position', new THREE.BufferAttribute(res.positions, 3));
-          mesh.geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(res.positions.length*2/3), 2));
-          mesh.geometry.setAttribute('color', new THREE.BufferAttribute(res.colors, 3));
-          mesh.geometry.deleteAttribute('normal');
-          mesh.geometry.setIndex(new THREE.BufferAttribute(res.faces, 1));
-          mesh.geometry.computeVertexNormals();
-          mesh.visible = true;
-        } else {
-          mesh.visible = false;
-        } */
       });
     };
     w.requestMine = (potentialsAddress, potentialsLength, dimsAddress, dimsLength, delta, meshId, position) => {
@@ -261,19 +246,6 @@ const [
         delta,
         meshId,
         position,
-      }).then(res => {
-        return res;
-        /* if (res.positions.length > 0) {
-          mesh.geometry.setAttribute('position', new THREE.BufferAttribute(res.positions, 3));
-          mesh.geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(res.positions.length*2/3), 2));
-          mesh.geometry.setAttribute('color', new THREE.BufferAttribute(res.colors, 3));
-          mesh.geometry.deleteAttribute('normal');
-          mesh.geometry.setIndex(new THREE.BufferAttribute(res.faces, 1));
-          mesh.geometry.computeVertexNormals();
-          mesh.visible = true;
-        } else {
-          mesh.visible = false;
-        } */
       });
     };
     return w;
@@ -587,18 +559,8 @@ physics.bindCapsuleMeshPhysics(capsuleMesh);
 // window.capsuleMesh = capsuleMesh;
 
 const _makeChunkMesh = async () => {
-  // const {potentials, dims} = _makePotentials();
-
   const meshId = ++nextId;
-  const spec = await worker.requestMarch(Math.floor(rng() * 0xFFFFFF), [PARCEL_SIZE_P2, PARCEL_SIZE_P2, PARCEL_SIZE_P2], meshId);
-
-  // const spec = _getChunkSpec(potentials, dims, meshId);
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-  geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
-  geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
-  geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1));
+  const specs = await worker.requestMarch(Math.floor(rng() * 0xFFFFFF), meshId);
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
     uniforms: (() => {
@@ -646,15 +608,29 @@ const _makeChunkMesh = async () => {
   });
   heightfieldMaterial.uniforms.heightColorTex.value.needsUpdate = true;
 
-  const mesh = new THREE.Mesh(geometry, heightfieldMaterial);
-  mesh.frustumCulled = false;
-  mesh.meshId = meshId;
-  mesh.potentialsAddress = spec.potentialsAddress;
-  mesh.potentialsLength = spec.potentialsLength;
-  mesh.dimsAddress = spec.dimsAddress;
-  mesh.dimsLength = spec.dimsLength;
-  // mesh.dims = dims;
-  return mesh;
+  const object = new THREE.Object3D();
+  for (let i = 0; i < specs.length; i++) {
+    const spec = specs[i];
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
+    geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
+    geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
+    geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1));
+
+    const mesh = new THREE.Mesh(geometry, heightfieldMaterial);
+    mesh.frustumCulled = false;
+    mesh.meshId = meshId;
+    mesh.potentialsAddress = spec.potentialsAddress;
+    mesh.potentialsLength = spec.potentialsLength;
+    mesh.dimsAddress = spec.dimsAddress;
+    mesh.dimsLength = spec.dimsLength;
+    // mesh.dims = dims;
+
+    object.add(mesh);
+  }
+  object.material = heightfieldMaterial;
+  return object;
 };
 
 const chunkMesh = await _makeChunkMesh();
