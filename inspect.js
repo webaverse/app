@@ -64,6 +64,16 @@ const pe = new XRPackageEngine({
   autoListen: false,
 });
 
+function parseQuery(queryString) {
+  const query = {};
+  const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
+
 const _makeScene = () => {
   const renderer = new THREE.WebGLRenderer({
     // canvas: pe.domElement,
@@ -95,16 +105,122 @@ const _makeScene = () => {
   return {renderer, scene, camera};
 };
 
-(async () => {
-  function parseQuery(queryString) {
-    var query = {};
-    var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
-    for (var i = 0; i < pairs.length; i++) {
-      var pair = pairs[i].split('=');
-      query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
-    }
-    return query;
+const _renderFiles = p => {
+  const manifestJson = p.getManifestJson();
+  const files = document.getElementById('files');
+
+  files.innerHTML = p.files.map(f => {
+    const u = f.url.replace(/^https:\/\/xrpackage\.org\//, '');
+    return `
+        <div class=file pathname="${u}"">
+          <a class=name href="${u}">${u}</a>
+          ${u !== manifestJson.start_url ? `<nav class=remove-button>
+            <i class="fa fa-times"></i>
+          </nav>` : ''}
+        </div>
+      `;
+  }).join('\n');
+
+  Array.from(files.querySelectorAll('.file')).forEach(f => {
+    const pathname = f.getAttribute('pathname');
+    const removeButton = f.querySelector('.remove-button');
+    removeButton && removeButton.addEventListener('click', e => {
+      p.removeFile(pathname);
+      _renderFiles(p);
+    });
+  });
+};
+
+const _renderPackage = async p => {
+  // views
+  const views = document.getElementById('views');
+  {
+    const canvas = pe.domElement;
+    canvas.classList.add('side-content');
+    canvas.classList.add('view');
+    canvas.classList.add('open');
+    views.appendChild(canvas);
   }
+  {
+    let screenshotImage = await p.getScreenshotImage();
+    if (!screenshotImage) {
+      screenshotImage = document.createElement('img');
+    }
+    screenshotImage.style.width = `${size}px`;
+    screenshotImage.style.height = `${size}px`;
+    screenshotImage.style.objectFit = 'contain';
+    screenshotImage.classList.add('side-content');
+    screenshotImage.classList.add('view');
+    views.appendChild(screenshotImage);
+  }
+  {
+    const {renderer, scene, camera} = _makeScene();
+
+    const volumeMesh = await p.getVolumeMesh();
+    if (volumeMesh) {
+      const wireframeMesh = getWireframeMesh(volumeMesh);
+      scene.add(wireframeMesh);
+    }
+
+    const orbitControls = new OrbitControls(camera, renderer.domElement, document);
+    orbitControls.screenSpacePanning = true;
+    orbitControls.enableMiddleZoom = false;
+    orbitControls.update();
+
+    function animate(timestamp, frame) {
+      orbitControls.update();
+
+      renderer.render(scene, camera);
+    }
+    renderer.setAnimationLoop(animate);
+
+    const canvas = renderer.domElement;
+    canvas.classList.add('side-content');
+    canvas.classList.add('view');
+    views.appendChild(canvas);
+  }
+  {
+    const {renderer, scene, camera} = _makeScene();
+
+    const modelMesh = await p.getModel();
+    scene.add(modelMesh);
+
+    const orbitControls = new OrbitControls(camera, renderer.domElement, document);
+    orbitControls.screenSpacePanning = true;
+    orbitControls.enableMiddleZoom = false;
+    orbitControls.update();
+
+    function animate(timestamp, frame) {
+      orbitControls.update();
+
+      renderer.render(scene, camera);
+    }
+    renderer.setAnimationLoop(animate);
+
+    const canvas = renderer.domElement;
+    canvas.classList.add('side-content');
+    canvas.classList.add('view');
+    views.appendChild(canvas);
+  }
+
+  // manifest
+  const manifestJson = p.getManifestJson();
+
+  const manifest = document.getElementById('manifest');
+  manifest.value = JSON.stringify(manifestJson, null, 2);
+
+  // files
+  const type = document.getElementById('type');
+  const name = document.getElementById('name');
+  const description = document.getElementById('description');
+  type.innerText = manifestJson.xr_type;
+  name.innerText = manifestJson.name || '';
+  description.innerText = manifestJson.description || '';
+
+  _renderFiles(p);
+};
+
+(async () => {
   const q = parseQuery(window.location.search);
 
   const inspectMode = document.getElementById('inspect-mode');
@@ -155,116 +271,6 @@ const _makeScene = () => {
     p = null;
   }
 
-  const _renderPackage = async p => {
-    // views
-    const views = document.getElementById('views');
-    {
-      const canvas = pe.domElement;
-      canvas.classList.add('side-content');
-      canvas.classList.add('view');
-      canvas.classList.add('open');
-      views.appendChild(canvas);
-    }
-    {
-      let screenshotImage = await p.getScreenshotImage();
-      if (!screenshotImage) {
-        screenshotImage = document.createElement('img');
-      }
-      screenshotImage.style.width = `${size}px`;
-      screenshotImage.style.height = `${size}px`;
-      screenshotImage.style.objectFit = 'contain';
-      screenshotImage.classList.add('side-content');
-      screenshotImage.classList.add('view');
-      views.appendChild(screenshotImage);
-    }
-    {
-      const {renderer, scene, camera} = _makeScene();
-
-      const volumeMesh = await p.getVolumeMesh();
-      if (volumeMesh) {
-        const wireframeMesh = getWireframeMesh(volumeMesh);
-        scene.add(wireframeMesh);
-      }
-
-      const orbitControls = new OrbitControls(camera, renderer.domElement, document);
-      orbitControls.screenSpacePanning = true;
-      orbitControls.enableMiddleZoom = false;
-      orbitControls.update();
-
-      function animate(timestamp, frame) {
-        orbitControls.update();
-
-        renderer.render(scene, camera);
-      }
-      renderer.setAnimationLoop(animate);
-
-      const canvas = renderer.domElement;
-      canvas.classList.add('side-content');
-      canvas.classList.add('view');
-      views.appendChild(canvas);
-    }
-    {
-      const {renderer, scene, camera} = _makeScene();
-
-      const modelMesh = await p.getModel();
-      scene.add(modelMesh);
-
-      const orbitControls = new OrbitControls(camera, renderer.domElement, document);
-      orbitControls.screenSpacePanning = true;
-      orbitControls.enableMiddleZoom = false;
-      orbitControls.update();
-
-      function animate(timestamp, frame) {
-        orbitControls.update();
-
-        renderer.render(scene, camera);
-      }
-      renderer.setAnimationLoop(animate);
-
-      const canvas = renderer.domElement;
-      canvas.classList.add('side-content');
-      canvas.classList.add('view');
-      views.appendChild(canvas);
-    }
-
-    // manifest
-    const manifestJson = p.getManifestJson();
-
-    const manifest = document.getElementById('manifest');
-    manifest.value = JSON.stringify(manifestJson, null, 2);
-
-    // files
-    const type = document.getElementById('type');
-    const name = document.getElementById('name');
-    const description = document.getElementById('description');
-    type.innerText = manifestJson.xr_type;
-    name.innerText = manifestJson.name || '';
-    description.innerText = manifestJson.description || '';
-
-    const files = document.getElementById('files');
-    const _renderFiles = () => {
-      files.innerHTML = p.files.map(f => {
-        const u = f.url.replace(/^https:\/\/xrpackage\.org\//, '');
-        return `
-          <div class=file pathname="${u}"">
-            <a class=name href="${u}">${u}</a>
-            ${u !== manifestJson.start_url ? `<nav class=remove-button>
-              <i class="fa fa-times"></i>
-            </nav>` : ''}
-          </div>
-        `;
-      }).join('\n');
-      Array.from(files.querySelectorAll('.file')).forEach(f => {
-        const pathname = f.getAttribute('pathname');
-        const removeButton = f.querySelector('.remove-button');
-        removeButton && removeButton.addEventListener('click', e => {
-          p.removeFile(pathname);
-          _renderFiles();
-        });
-      });
-    };
-    _renderFiles();
-  };
   if (p) {
     await _renderPackage(p);
   }
@@ -290,7 +296,7 @@ const _makeScene = () => {
     if (file && fileName.value) {
       const uint8Array = await readFile(file);
       p.addFile(fileName.value, uint8Array, file.type);
-      _renderFiles();
+      _renderFiles(p);
 
       file = null;
       fileName.value = '';
