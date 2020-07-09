@@ -184,139 +184,6 @@ const HEIGHTFIELD_SHADER = {
   `
 };
 
-class Allocator {
-  constructor() {
-    this.offsets = [];
-  }
-  alloc(constructor, size) {
-    const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
-    const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
-    b.offset = offset;
-    this.offsets.push(offset);
-    return b;
-  }
-  freeAll() {
-    for (let i = 0; i < this.offsets.length; i++) {
-      self.Module._doFree(this.offsets[i]);
-    }
-    this.offsets.length = 0;
-  }
-}
-
-const _makePotentials = () => {
-  const allocator = new Allocator();
-
-  const seed = Math.floor(rng() * 0xFFFFFF);
-  const potentials = allocator.alloc(Float32Array, PARCEL_SIZE_P2 * PARCEL_SIZE_P2 * PARCEL_SIZE_P2);
-  const dims = allocator.alloc(Int32Array, 3);
-  dims.set(Int32Array.from([PARCEL_SIZE_P2, PARCEL_SIZE_P2, PARCEL_SIZE_P2]));
-
-  Module._doNoise2(
-    seed,
-    0.02,
-    4,
-    dims.offset,
-    1,
-    -0.5,
-    potentials.offset
-  );
-
-  return {potentials, dims, allocator};
-};
-const _getChunkSpec = (potentials, dims, meshId) => {
-  const allocator = new Allocator();
-
-  const positions = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
-  const barycentrics = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
-  // const indices = allocator.alloc(Uint32Array, 1024 * 1024 * Uint32Array.BYTES_PER_ELEMENT);
-
-  const numPositions = allocator.alloc(Uint32Array, 1);
-  numPositions[0] = positions.length;
-  const numBarycentrics = allocator.alloc(Uint32Array, 1);
-  numBarycentrics[0] = barycentrics.length;
-  // const numIndices = allocator.alloc(Uint32Array, 1);
-  // numIndices[0] = indices.length;
-
-  const shift = allocator.alloc(Float32Array, 3);
-  shift.set(Float32Array.from([0, 0, 0]));
-
-  const scale = allocator.alloc(Float32Array, 3);
-  scale.set(Float32Array.from([1, 1, 1]));
-
-  self.Module._doMarchingCubes2(
-    dims.offset,
-    potentials.offset,
-    shift.offset,
-    scale.offset,
-    positions.offset,
-    barycentrics.offset,
-    // indices.offset,
-    numPositions.offset,
-    // numIndices.offset,
-    numBarycentrics.offset
-  );
-
-  const arrayBuffer2 = new ArrayBuffer(
-    Uint32Array.BYTES_PER_ELEMENT +
-    numPositions[0] * Float32Array.BYTES_PER_ELEMENT +
-    Uint32Array.BYTES_PER_ELEMENT +
-    numBarycentrics[0] * Float32Array.BYTES_PER_ELEMENT,
-    // Uint32Array.BYTES_PER_ELEMENT +
-    // numIndices[0] * Uint32Array.BYTES_PER_ELEMENT,
-  );
-  let index = 0;
-
-  const outP = new Float32Array(arrayBuffer2, index, numPositions[0]);
-  outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
-  index += Float32Array.BYTES_PER_ELEMENT * numPositions[0];
-
-  const outB = new Float32Array(arrayBuffer2, index, numBarycentrics[0]);
-  outB.set(new Float32Array(barycentrics.buffer, barycentrics.byteOffset, numBarycentrics[0]));
-  index += Float32Array.BYTES_PER_ELEMENT * numBarycentrics[0];
-
-  /* const outI = new Uint32Array(arrayBuffer2, index, numIndices[0]);
-  outI.set(new Uint32Array(indices.buffer, indices.byteOffset, numIndices[0]));
-  index += Uint32Array.BYTES_PER_ELEMENT * numIndices[0]; */
-
-  allocator.freeAll();
-
-  /* const colors = new Float32Array(outP.length);
-  const c = new THREE.Color(0xaed581).toArray(new Float32Array(3));
-  for (let i = 0; i < colors.length; i += 3) {
-    colors.set(c, i);
-  } */
-
-  const ids = new Float32Array(numPositions[0]/3);
-  const indices = new Float32Array(numPositions[0]/3);
-  for (let i = 0; i < numPositions[0]/3/3; i++) {
-    ids[i*3] = meshId;
-    ids[i*3+1] = meshId;
-    ids[i*3+2] = meshId;
-    indices[i*3] = i;
-    indices[i*3+1] = i;
-    indices[i*3+2] = i;
-  }
-
-  return {
-    // result: {
-    positions: outP,
-    barycentrics: outB,
-    ids,
-    indices,
-    // colors,
-    // indices: outI,
-    /* },
-    cleanup: () => {
-      allocator.freeAll();
-
-      this.running = false;
-      if (this.queue.length > 0) {
-        const fn = this.queue.shift();
-        fn();
-      }
-    }, */
-  };
-};
 let nextId = 0;
 function meshIdToArray(meshId) {
   return [
@@ -336,13 +203,54 @@ let capsuleMesh = null;
 (async () => {
 
 const [
-  objectize,
+  worker,
   colors,
   ammo,
 ] = await Promise.all([
   (async () => {
-    const {promise} = await import('./bin/objectize2.js');
-    await promise;
+    let cbs = [];
+    const w = new Worker('worker.js');
+    w.onmessage = e => {
+      const {data} = e;
+      const {error, result} = data;
+      cbs.shift()(error, result);
+    };
+    w.onerror = err => {
+      console.warn(err);
+    };
+    w.request = (req, transfers) => new Promise((accept, reject) => {
+      w.postMessage(req, transfers);
+
+      cbs.push((err, result) => {
+        if (!err) {
+          accept(result);
+        } else {
+          reject(err);
+        }
+      });
+    });
+    w.requestMarch = (seed, dims, meshId) => {
+      return w.request({
+        method: 'march',
+        seed,
+        dims,
+        meshId,
+      }).then(res => {
+        return res;
+        /* if (res.positions.length > 0) {
+          mesh.geometry.setAttribute('position', new THREE.BufferAttribute(res.positions, 3));
+          mesh.geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(res.positions.length*2/3), 2));
+          mesh.geometry.setAttribute('color', new THREE.BufferAttribute(res.colors, 3));
+          mesh.geometry.deleteAttribute('normal');
+          mesh.geometry.setIndex(new THREE.BufferAttribute(res.faces, 1));
+          mesh.geometry.computeVertexNormals();
+          mesh.visible = true;
+        } else {
+          mesh.visible = false;
+        } */
+      });
+    };
+    return w;
   })(),
   (async () => {
     const res = await fetch('./colors.json');
@@ -651,11 +559,13 @@ capsuleMesh = (() => {
 physics.bindCapsuleMeshPhysics(capsuleMesh);
 // window.capsuleMesh = capsuleMesh;
 
-const _makeChunkMesh = () => {
-  const {potentials, dims} = _makePotentials();
+const _makeChunkMesh = async () => {
+  // const {potentials, dims} = _makePotentials();
 
   const meshId = ++nextId;
-  const spec = _getChunkSpec(potentials, dims, meshId);
+  const spec = await worker.requestMarch(Math.floor(rng() * 0xFFFFFF), [PARCEL_SIZE_P2, PARCEL_SIZE_P2, PARCEL_SIZE_P2], meshId);
+
+  // const spec = _getChunkSpec(potentials, dims, meshId);
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
@@ -712,12 +622,15 @@ const _makeChunkMesh = () => {
   const mesh = new THREE.Mesh(geometry, heightfieldMaterial);
   mesh.frustumCulled = false;
   mesh.meshId = meshId;
-  mesh.potentials = potentials;
-  mesh.dims = dims;
+  // mesh.potentials = spec.potentials;
+  // mesh.dims = dims;
   return mesh;
 };
 
-const chunkMesh = _makeChunkMesh();
+const chunkMesh = await _makeChunkMesh();
+chunkMesh.position.y = -32;
+chunkMesh.position.x = -20;
+chunkMesh.position.z = -10;
 /* {
   const img = document.createElement('img');
   img.src = 'grass.png';
@@ -732,12 +645,11 @@ const chunkMesh = _makeChunkMesh();
 chunkMeshContainer.add(chunkMesh);
 
 const numRemoteChunkMeshes = 30;
-remoteChunkMeshes = Array(numRemoteChunkMeshes);
 for (let i = 0; i < numRemoteChunkMeshes; i++) {
-  const remoteChunkMesh = _makeChunkMesh();
+  const remoteChunkMesh = await _makeChunkMesh();
   remoteChunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(100);
   chunkMeshContainer.add(remoteChunkMesh);
-  remoteChunkMeshes[i] = remoteChunkMesh;
+  remoteChunkMeshes.push(remoteChunkMesh);
 }
 remoteChunkMeshes.push(chunkMesh);
 
