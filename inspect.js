@@ -330,14 +330,15 @@ const _renderPackage = async p => {
   // files
   const fileName = document.getElementById('file-name');
   const fileUploadInput = document.getElementById('file-upload-input');
+  const addFileButton = document.getElementById('add-file-button');
   let file = null;
   bindUploadFileButton(fileUploadInput, f => {
     if (!fileName.value) {
       fileName.value = f.name;
     }
     file = f;
+    addFileButton.disabled = false;
   });
-  const addFileButton = document.getElementById('add-file-button');
   addFileButton.addEventListener('click', async e => {
     if (file && fileName.value) {
       const uint8Array = await readFile(file);
@@ -346,6 +347,7 @@ const _renderPackage = async p => {
 
       file = null;
       fileName.value = '';
+      addFileButton.disabled = true;
     }
   });
 
