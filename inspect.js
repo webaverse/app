@@ -1,4 +1,6 @@
+/* eslint-disable no-inner-declarations */
 /* global Web3 */
+
 import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import './selector.js';
 import {XRPackage, XRPackageEngine} from 'http://localhost:3001/xrpackage.js';
@@ -318,11 +320,11 @@ const _makeScene = () => {
     iframe.style.left = '-10000px';
     iframe.style.visibility = 'hidden';
     document.body.appendChild(iframe);
-    const {screenshot, volume, aabb} = await new Promise((accept, reject) => {
+    const {screenshot, volume, aabb} = await new Promise((resolve, reject) => {
       iframe.addEventListener('load', e => {
         const _message = e => {
           if (e.data && e.data.method === 'result') {
-            accept(e.data.result);
+            resolve(e.data.result);
             window.removeEventListener('message', _message);
           } else if (e.data && e.data.method === 'error') {
             reject(e.data.error);
