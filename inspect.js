@@ -405,10 +405,13 @@ const _renderPackage = async p => {
       });
     });
   });
-  const publishPackageButton = document.getElementById('publish-package-button');
-  publishPackageButton.addEventListener('click', async e => {
+  const uploadPackageButton = document.getElementById('upload-package-button');
+  uploadPackageButton.addEventListener('click', async e => {
     const hash = await p.upload();
-    console.log('got hash', hash);
+    const url = `https://ipfs.exokit.org/ipfs/${hash}.wbn`;
+
+    console.log('uploaded package to IPFS', url);
+    window.alert(`Your package was uploaded to IPFS! ${url}`);
   });
 
   const exportPackageButton = document.getElementById('export-package-button');
