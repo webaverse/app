@@ -310,10 +310,7 @@ const _renderPackage = async p => {
     }
   });
 
-  // Create from file
-  const createFromFileInput = document.getElementById('create-from-file-input');
-  const _importFromFile = async file => {
-    const uint8Array = await XRPackage.compileFromFile(file);
+  const _importPackage = async uint8Array => {
     const p = new XRPackage(uint8Array);
     await p.waitForLoad();
     await pe.add(p);
@@ -324,21 +321,19 @@ const _renderPackage = async p => {
     openTab(0);
     await _renderPackage(p);
   };
-  bindUploadFileButton(createFromFileInput, _importFromFile);
+
+  // Create from file
+  const createFromFileInput = document.getElementById('create-from-file-input');
+  bindUploadFileButton(createFromFileInput, async file => {
+    const uint8Array = await XRPackage.compileFromFile(file);
+    await _importPackage(uint8Array);
+  });
 
   // Import wbn package
   const importPackageInput = document.getElementById('import-package-input');
   bindUploadFileButton(importPackageInput, async file => {
     const uint8Array = await readFile(file);
-    p = new XRPackage(uint8Array);
-    await p.waitForLoad();
-    await pe.add(p);
-    console.log('got new package', p);
-
-    inspectMode.classList.add('open');
-    createMode.classList.remove('open');
-    openTab(0);
-    await _renderPackage(p);
+    await _importPackage(uint8Array);
   });
 
   const bakePackageButton = document.getElementById('bake-package-button');
