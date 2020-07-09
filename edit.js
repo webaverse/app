@@ -25,6 +25,13 @@ const packagesEndpoint = 'https://packages.exokit.org';
 const parcelSize = 11;
 const PARCEL_SIZE = 30;
 const PARCEL_SIZE_D2 = PARCEL_SIZE/2;
+const SUBPARCEL_SIZE = 10;
+const NUM_PARCELS = PARCEL_SIZE/SUBPARCEL_SIZE;
+const slabTotalSize = 8 * 1024 * 1024;
+const slabAttributeSize = slabTotalSize/4;
+const numSlices = NUM_PARCELS*NUM_PARCELS*NUM_PARCELS;
+const slabSliceTris = Math.floor(slabAttributeSize/numSlices/9/Float32Array.BYTES_PER_ELEMENT);
+const slabSliceVertices = slabSliceTris * 3;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -229,11 +236,12 @@ const [
         }
       });
     });
-    w.requestMarch = (seed, meshId) => {
+    w.requestMarch = (seed, meshId, slabSliceTris) => {
       return w.request({
         method: 'march',
         seed,
         meshId,
+        slabSliceTris,
       });
     };
     w.requestMine = (potentialsAddress, potentialsLength, dimsAddress, dimsLength, delta, meshId, position) => {
@@ -560,7 +568,7 @@ physics.bindCapsuleMeshPhysics(capsuleMesh);
 
 const _makeChunkMesh = async () => {
   const meshId = ++nextId;
-  const specs = await worker.requestMarch(Math.floor(rng() * 0xFFFFFF), meshId);
+  const specs = await worker.requestMarch(Math.floor(rng() * 0xFFFFFF), meshId, slabSliceTris);
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
     uniforms: (() => {
@@ -608,29 +616,89 @@ const _makeChunkMesh = async () => {
   });
   heightfieldMaterial.uniforms.heightColorTex.value.needsUpdate = true;
 
-  const object = new THREE.Object3D();
+  /* const _makeMultipleOf4 = n => {
+    const d = n%4;
+    n -= d;
+    return n;
+  }; */
+
+  const slabArrayBuffer = new ArrayBuffer(slabTotalSize);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 0*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
+  geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 1*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
+  geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices), 1));
+  geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 3*slabAttributeSize, slabSliceVertices*numSlices), 1));
+
+  let index = 0;
+  const _allocateSlab = () => {
+    const result = {
+      offset: index,
+      position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+      barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+      id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+      index: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+    };
+    index++;
+    return result;
+  };
+
+  const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
   for (let i = 0; i < specs.length; i++) {
     const spec = specs[i];
+    const slab = _allocateSlab();
+    slab.position.set(spec.positions);
+    slab.barycentric.set(spec.barycentrics);
+    slab.id.set(spec.ids);
+    slab.index.set(spec.indices);
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-    geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
-    geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
-    geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1));
+    // const gl = renderer.getContext();
 
-    const mesh = new THREE.Mesh(geometry, heightfieldMaterial);
+    // console.log('update range', geometry.attributes.position.updateRange, spec.positions);
+
+    /* const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(slab.position, 3));
+    geometry.setAttribute('barycentric', new THREE.BufferAttribute(slab.barycentric, 3));
+    geometry.setAttribute('id', new THREE.BufferAttribute(slab.id, 1));
+    geometry.setAttribute('index', new THREE.BufferAttribute(slab.index, 1));
+    const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
     mesh.frustumCulled = false;
-    mesh.meshId = meshId;
-    mesh.potentialsAddress = spec.potentialsAddress;
+    mesh.meshId = meshId; */
+
+    geometry.addGroup(i * slabSliceVertices, spec.positions.length/3, 0);
+    /* mesh.potentialsAddress = spec.potentialsAddress;
     mesh.potentialsLength = spec.potentialsLength;
     mesh.dimsAddress = spec.dimsAddress;
     mesh.dimsLength = spec.dimsLength;
-    // mesh.dims = dims;
+    // mesh.dims = dims; */
+    // return mesh;
 
-    object.add(mesh);
+    /* geometry.attributes.position.updateRange = {
+      offset: slab.offset/Float32Array.BYTES_PER_ELEMENT,
+      count: spec.positions.length,
+    };
+    geometry.attributes.position.needsUpdate = true;
+    geometry.attributes.barycentric.updateRange = {
+      offset: slab.offset/Float32Array.BYTES_PER_ELEMENT,
+      count: spec.barycentrics.length,
+    };
+    geometry.attributes.position.needsUpdate = true;
+    geometry.attributes.id.updateRange = {
+      offset: slab.offset/Float32Array.BYTES_PER_ELEMENT,
+      count: spec.ids.length,
+    };
+    geometry.attributes.id.needsUpdate = true;
+    geometry.attributes.index.updateRange = {
+      offset: slab.offset/Float32Array.BYTES_PER_ELEMENT,
+      count: spec.indices.length,
+    };
+    geometry.attributes.index.needsUpdate = true;
+    renderer.geometries.update(geometry);
+
+    geometry.addGroup(i*slabSliceSize/3/Float32Array.BYTES_PER_ELEMENT, spec.positions.length/3, 0); */
   }
-  object.material = heightfieldMaterial;
-  return object;
+  // mesh.frustumCulled = false;
+  mesh.meshId = meshId;
+  return mesh;
 };
 
 const chunkMesh = await _makeChunkMesh();
@@ -1594,7 +1662,7 @@ function animate(timestamp, frame) {
 
       const currentTeleportChunkMesh = raycastChunkSpec && raycastChunkSpec.mesh;
       if (currentTeleport && currentTeleportChunkMesh) {
-        currentTeleportChunkMesh.material.uniforms.selectedIndex.value = raycastChunkSpec.index;
+        currentTeleportChunkMesh.material[0].uniforms.selectedIndex.value = raycastChunkSpec.index;
 
         if (raycastChunkSpec.point) {
           teleportMeshes[1].position.copy(raycastChunkSpec.point);
@@ -1606,12 +1674,12 @@ function animate(timestamp, frame) {
         teleportMeshes[1].visible = false;
        _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
        if (currentChunkMesh) {
-        currentChunkMesh.material.uniforms.isCurrent.value = 0;
+        currentChunkMesh.material[0].uniforms.isCurrent.value = 0;
         currentChunkMesh = null;
        }
        currentChunkMesh = currentTeleportChunkMesh;
        if (currentChunkMesh) {
-         currentChunkMesh.material.uniforms.isCurrent.value = 1;
+         currentChunkMesh.material[0].uniforms.isCurrent.value = 1;
         }
       } else {
         teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, (position, quaternion) => {

@@ -1,5 +1,11 @@
 importScripts('./bin/objectize2.js');
 
+const PARCEL_SIZE = 30;
+const PARCEL_SIZE_P2 = PARCEL_SIZE+2;
+const SUBPARCEL_SIZE = 10;
+const SUBPARCEL_SIZE_P2 = SUBPARCEL_SIZE+2;
+const NUM_PARCELS = PARCEL_SIZE/SUBPARCEL_SIZE;
+
 class Allocator {
   constructor() {
     this.offsets = [];
@@ -19,141 +25,258 @@ class Allocator {
   }
 }
 
+const _getPotentialIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P2*SUBPARCEL_SIZE_P2 + z*SUBPARCEL_SIZE_P2;
+const _makePotentials = (seedData, shifts) => {
+  const allocator = new Allocator();
+
+  const potentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE_P2 * SUBPARCEL_SIZE_P2 * SUBPARCEL_SIZE_P2);
+  const dims = allocator.alloc(Int32Array, 3);
+  dims.set(Int32Array.from([SUBPARCEL_SIZE_P2, SUBPARCEL_SIZE_P2, SUBPARCEL_SIZE_P2]));
+  const shift = allocator.alloc(Float32Array, 3);
+  shift.set(Float32Array.from(shifts));
+
+  Module._doNoise2(
+    seedData,
+    0.02,
+    4,
+    dims.offset,
+    shift.offset,
+    0,
+    -0.5,
+    potentials.offset
+  );
+
+  return {potentials, dims, shift/*, allocator*/};
+};
+const _getChunkSpec = (potentials, dims, shift, meshId, indexOffset) => {
+  const allocator = new Allocator();
+
+  const positions = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
+  const barycentrics = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
+  // const indices = allocator.alloc(Uint32Array, 1024 * 1024 * Uint32Array.BYTES_PER_ELEMENT);
+
+  const numPositions = allocator.alloc(Uint32Array, 1);
+  numPositions[0] = positions.length;
+  const numBarycentrics = allocator.alloc(Uint32Array, 1);
+  numBarycentrics[0] = barycentrics.length;
+  // const numIndices = allocator.alloc(Uint32Array, 1);
+  // numIndices[0] = indices.length;
+
+  const scale = allocator.alloc(Float32Array, 3);
+  scale.set(Float32Array.from([1, 1, 1]));
+
+  self.Module._doMarchingCubes2(
+    dims.offset,
+    potentials.offset,
+    shift.offset,
+    scale.offset,
+    positions.offset,
+    barycentrics.offset,
+    // indices.offset,
+    numPositions.offset,
+    // numIndices.offset,
+    numBarycentrics.offset
+  );
+
+  const arrayBuffer2 = new ArrayBuffer(
+    potentials.length * Float32Array.BYTES_PER_ELEMENT +
+    // Uint32Array.BYTES_PER_ELEMENT +
+    numPositions[0] * Float32Array.BYTES_PER_ELEMENT +
+    // Uint32Array.BYTES_PER_ELEMENT +
+    numBarycentrics[0] * Float32Array.BYTES_PER_ELEMENT +
+    // Uint32Array.BYTES_PER_ELEMENT +
+    numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
+    // Uint32Array.BYTES_PER_ELEMENT +
+    numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT
+  );
+
+  let index = 0;
+
+  const outPotentials = new Float32Array(arrayBuffer2, index, potentials.length);
+  outPotentials.set(potentials);
+  index += Float32Array.BYTES_PER_ELEMENT * potentials.length;
+
+  const outP = new Float32Array(arrayBuffer2, index, numPositions[0]);
+  outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
+  index += Float32Array.BYTES_PER_ELEMENT * numPositions[0];
+
+  const outB = new Float32Array(arrayBuffer2, index, numBarycentrics[0]);
+  outB.set(new Float32Array(barycentrics.buffer, barycentrics.byteOffset, numBarycentrics[0]));
+  index += Float32Array.BYTES_PER_ELEMENT * numBarycentrics[0];
+
+  /* const outI = new Uint32Array(arrayBuffer2, index, numIndices[0]);
+  outI.set(new Uint32Array(indices.buffer, indices.byteOffset, numIndices[0]));
+  index += Uint32Array.BYTES_PER_ELEMENT * numIndices[0]; */
+
+  allocator.freeAll();
+
+  /* const colors = new Float32Array(outP.length);
+  const c = new THREE.Color(0xaed581).toArray(new Float32Array(3));
+  for (let i = 0; i < colors.length; i += 3) {
+    colors.set(c, i);
+  } */
+
+  const ids = new Float32Array(arrayBuffer2, index, numPositions[0]/3);
+  index += numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT;
+  const indices = new Float32Array(arrayBuffer2, index, numPositions[0]/3);
+  index += numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT;
+  for (let i = 0; i < numPositions[0]/3/3; i++) {
+    ids[i*3] = meshId;
+    ids[i*3+1] = meshId;
+    ids[i*3+2] = meshId;
+    const i2 = i + indexOffset;
+    indices[i*3] = i2;
+    indices[i*3+1] = i2;
+    indices[i*3+2] = i2;
+  }
+
+  return {
+    // result: {
+    potentials: outPotentials,
+    positions: outP,
+    barycentrics: outB,
+    ids,
+    indices,
+    arrayBuffer: arrayBuffer2,
+    // colors,
+    // indices: outI,
+    /* },
+    cleanup: () => {
+      allocator.freeAll();
+
+      this.running = false;
+      if (this.queue.length > 0) {
+        const fn = this.queue.shift();
+        fn();
+      }
+    }, */
+  };
+};
+
 const queue = [];
 let loaded = false;
 const _handleMessage = data => {
   const {method} = data;
   switch (method) {
     case 'march': {
-      const {seed: seedData, dims: dimsData, meshId: meshIdData} = data;
+      const {seed: seedData, meshId: meshIdData, slabSliceTris} = data;
 
-      const _makePotentials = (seedData, dimsData) => {
-        const allocator = new Allocator();
+      const results = [];
+      const transfers = [];
 
-        // const seed = Math.floor(rng() * 0xFFFFFF);
-        const potentials = allocator.alloc(Float32Array, dimsData[0] * dimsData[1] * dimsData[2]);
-        const dims = allocator.alloc(Int32Array, 3);
-        dims.set(Int32Array.from(dimsData));
-
-        Module._doNoise2(
-          seedData,
-          0.02,
-          4,
-          dims.offset,
-          1,
-          -0.5,
-          potentials.offset
-        );
-
-        return {potentials, dims, allocator};
-      };
-      const _getChunkSpec = (potentials, dims, meshId) => {
-        const allocator = new Allocator();
-
-        const positions = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
-        const barycentrics = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
-        // const indices = allocator.alloc(Uint32Array, 1024 * 1024 * Uint32Array.BYTES_PER_ELEMENT);
-
-        const numPositions = allocator.alloc(Uint32Array, 1);
-        numPositions[0] = positions.length;
-        const numBarycentrics = allocator.alloc(Uint32Array, 1);
-        numBarycentrics[0] = barycentrics.length;
-        // const numIndices = allocator.alloc(Uint32Array, 1);
-        // numIndices[0] = indices.length;
-
-        const shift = allocator.alloc(Float32Array, 3);
-        shift.set(Float32Array.from([0, 0, 0]));
-
-        const scale = allocator.alloc(Float32Array, 3);
-        scale.set(Float32Array.from([1, 1, 1]));
-
-        self.Module._doMarchingCubes2(
-          dims.offset,
-          potentials.offset,
-          shift.offset,
-          scale.offset,
-          positions.offset,
-          barycentrics.offset,
-          // indices.offset,
-          numPositions.offset,
-          // numIndices.offset,
-          numBarycentrics.offset
-        );
-
-        const arrayBuffer2 = new ArrayBuffer(
-          // Uint32Array.BYTES_PER_ELEMENT +
-          numPositions[0] * Float32Array.BYTES_PER_ELEMENT +
-          // Uint32Array.BYTES_PER_ELEMENT +
-          numBarycentrics[0] * Float32Array.BYTES_PER_ELEMENT +
-          // Uint32Array.BYTES_PER_ELEMENT +
-          numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
-          // Uint32Array.BYTES_PER_ELEMENT +
-          numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT
-        );
-
-        let index = 0;
-
-        const outP = new Float32Array(arrayBuffer2, index, numPositions[0]);
-        outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
-        index += Float32Array.BYTES_PER_ELEMENT * numPositions[0];
-
-        const outB = new Float32Array(arrayBuffer2, index, numBarycentrics[0]);
-        outB.set(new Float32Array(barycentrics.buffer, barycentrics.byteOffset, numBarycentrics[0]));
-        index += Float32Array.BYTES_PER_ELEMENT * numBarycentrics[0];
-
-        /* const outI = new Uint32Array(arrayBuffer2, index, numIndices[0]);
-        outI.set(new Uint32Array(indices.buffer, indices.byteOffset, numIndices[0]));
-        index += Uint32Array.BYTES_PER_ELEMENT * numIndices[0]; */
-
-        allocator.freeAll();
-
-        /* const colors = new Float32Array(outP.length);
-        const c = new THREE.Color(0xaed581).toArray(new Float32Array(3));
-        for (let i = 0; i < colors.length; i += 3) {
-          colors.set(c, i);
-        } */
-
-        const ids = new Float32Array(arrayBuffer2, index, numPositions[0]/3);
-        index += numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT;
-        const indices = new Float32Array(arrayBuffer2, index, numPositions[0]/3);
-        index += numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT;
-        for (let i = 0; i < numPositions[0]/3/3; i++) {
-          ids[i*3] = meshId;
-          ids[i*3+1] = meshId;
-          ids[i*3+2] = meshId;
-          indices[i*3] = i;
-          indices[i*3+1] = i;
-          indices[i*3+2] = i;
-        }
-
-        return {
-          // result: {
-          positions: outP,
-          barycentrics: outB,
-          ids,
-          indices,
-          arrayBuffer: arrayBuffer2,
-          // colors,
-          // indices: outI,
-          /* },
-          cleanup: () => {
-            allocator.freeAll();
-
-            this.running = false;
-            if (this.queue.length > 0) {
-              const fn = this.queue.shift();
-              fn();
-            }
-          }, */
-        };
-      };
-      const {potentials, dims, allocator} = _makePotentials(seedData, dimsData);
       const meshId = meshIdData;
+      for (let ix = 0; ix < NUM_PARCELS; ix++) {
+        for (let iy = 0; iy < NUM_PARCELS; iy++) {
+          for (let iz = 0; iz < NUM_PARCELS; iz++) {
+            const shifts = [ix*SUBPARCEL_SIZE-1, iy*SUBPARCEL_SIZE-1, iz*SUBPARCEL_SIZE-1];
+            const {potentials, dims, shift/*, allocator*/} = _makePotentials(seedData, shifts);
+
+            if (ix === 0) {
+              for (let dy = 0; dy < SUBPARCEL_SIZE_P2; dy++) {
+                for (let dz = 0; dz < SUBPARCEL_SIZE_P2; dz++) {
+                  potentials[_getPotentialIndex(0, dy, dz)] = 0;
+                }
+              }
+            }
+            if (iy === 0) {
+              for (let dx = 0; dx < SUBPARCEL_SIZE_P2; dx++) {
+                for (let dz = 0; dz < SUBPARCEL_SIZE_P2; dz++) {
+                  potentials[_getPotentialIndex(dx, 0, dz)] = 0;
+                }
+              }
+            }
+            if (iz === 0) {
+              for (let dx = 0; dx < SUBPARCEL_SIZE_P2; dx++) {
+                for (let dy = 0; dy < SUBPARCEL_SIZE_P2; dy++) {
+                  potentials[_getPotentialIndex(dx, dy, 0)] = 0;
+                }
+              }
+            }
+            if (ix === NUM_PARCELS-1) {
+              for (let dy = 0; dy < SUBPARCEL_SIZE_P2; dy++) {
+                for (let dz = 0; dz < SUBPARCEL_SIZE_P2; dz++) {
+                  potentials[_getPotentialIndex(SUBPARCEL_SIZE_P2-1, dy, dz)] = 0;
+                }
+              }
+            }
+            if (iy === NUM_PARCELS-1) {
+              for (let dx = 0; dx < SUBPARCEL_SIZE_P2; dx++) {
+                for (let dz = 0; dz < SUBPARCEL_SIZE_P2; dz++) {
+                  potentials[_getPotentialIndex(dx, SUBPARCEL_SIZE_P2-1, dz)] = 0;
+                }
+              }
+            }
+            if (iz === NUM_PARCELS-1) {
+              for (let dx = 0; dx < SUBPARCEL_SIZE_P2; dx++) {
+                for (let dy = 0; dy < SUBPARCEL_SIZE_P2; dy++) {
+                  potentials[_getPotentialIndex(dx, dy, SUBPARCEL_SIZE_P2-1)] = 0;
+                }
+              }
+            }
+
+            const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, dims, shift, meshId, results.length*slabSliceTris);
+            results.push({
+              potentialsAddress: potentials.offset,
+              potentialsLength: potentials.length,
+              dimsAddress: dims.offset,
+              dimsLength: dims.length,
+              positions,
+              barycentrics,
+              ids,
+              indices,
+              // arrayBuffer2,
+            });
+            transfers.push(arrayBuffer2);
+          }
+        }
+      }
+
+      self.postMessage({
+        result: results,
+      }, transfers);
+      // allocator.freeAll();
+      break;
+    }
+    case 'mine': {
+      const {potentialsAddress, potentialsLength, dimsAddress, dimsLength, delta, meshId, position} = data;
+
+      const potentials = new Float32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + potentialsAddress, potentialsLength);
+      potentials.offset = potentialsAddress;
+      const dims = new Int32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + dimsAddress, dimsLength);
+      dims.offset = dimsAddress;
+
+      // console.log('got dims', dims[0], dims[1], dims[2], delta, meshId, position);
+
+      const maxDistScale = 1;
+      const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dz = -1; dz <= 1; dz++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const ax = position[0] + dx;
+            const ay = position[1] + dy;
+            const az = position[2] + dz;
+            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+            const potentialIndex = _getPotentialIndex(ax, ay, az);
+            potentials[potentialIndex] = Math.min(Math.max(potentials[potentialIndex] + (maxDist - dist) * delta, -2), 2);
+
+            /* const spec = _getChunkSpec(currentChunkMesh.potentials, currentChunkMesh.dims, currentChunkMesh.meshId);
+            currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
+            currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
+            currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
+            currentChunkMesh.geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1)); */
+          }
+        }
+      }
+
       const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, dims, meshId);
 
       self.postMessage({
         result: {
-          // potentials,
+          potentialsAddress,
+          potentialsLength,
+          dimsAddress,
+          dimsLength,
           positions,
           barycentrics,
           ids,
@@ -161,7 +284,7 @@ const _handleMessage = data => {
           // arrayBuffer2,
         },
       }, [arrayBuffer2]);
-      allocator.freeAll();
+      // allocator.freeAll();
       break;
     }
     /* case 'uvParameterize': {
