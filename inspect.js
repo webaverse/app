@@ -325,6 +325,22 @@ const _renderPackage = async p => {
     await _renderPackage(p);
   };
   bindUploadFileButton(createFromFileInput, _importFromFile);
+
+  // Import wbn package
+  const importPackageInput = document.getElementById('import-package-input');
+  bindUploadFileButton(importPackageInput, async file => {
+    const uint8Array = await readFile(file);
+    p = new XRPackage(uint8Array);
+    await p.waitForLoad();
+    await pe.add(p);
+    console.log('got new package', p);
+
+    inspectMode.classList.add('open');
+    createMode.classList.remove('open');
+    openTab(0);
+    await _renderPackage(p);
+  });
+
   const bakePackageButton = document.getElementById('bake-package-button');
   bakePackageButton.addEventListener('click', async e => {
     const b = new Blob([p.data], {
@@ -360,19 +376,7 @@ const _renderPackage = async p => {
     const hash = await p.upload();
     console.log('got hash', hash);
   });
-  const importPackageInput = document.getElementById('import-package-input');
-  bindUploadFileButton(importPackageInput, async file => {
-    const uint8Array = await readFile(file);
-    p = new XRPackage(uint8Array);
-    await p.waitForLoad();
-    await pe.add(p);
-    console.log('got new package', p);
 
-    inspectMode.classList.add('open');
-    createMode.classList.remove('open');
-    openTab(0);
-    await _renderPackage(p);
-  });
   const exportPackageButton = document.getElementById('export-package-button');
   exportPackageButton.addEventListener('click', async e => {
     const uint8Array = await p.export();
