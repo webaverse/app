@@ -8,8 +8,7 @@ function makePromise() {
   p.reject = reject;
   return p;
 }
-const promise = makePromise();
-export {promise};
+globalThis.wasmModulePromise = makePromise();
 
 globalThis.wasmModule = (moduleName, moduleFn) => {
   if (moduleName === 'vxl') {
@@ -20,7 +19,7 @@ globalThis.wasmModule = (moduleName, moduleFn) => {
         return 'bin/objectize.wasm';
       },
       onRuntimeInitialized: () => {
-        promise.accept();
+        wasmModulePromise.accept();
       },
     });
   } else {
