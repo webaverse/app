@@ -282,10 +282,31 @@ const _renderPackage = async p => {
 
   if (p) await _renderPackage(p);
 
-  // manifest
   const saveManifestButton = document.getElementById('save-manifest-button');
-  saveManifestButton.addEventListener('click', e => {
-    console.log('save manifest', manifest.value);
+  saveManifestButton.addEventListener('click', async () => {
+    const manifest = document.getElementById('manifest').value;
+    console.log('save manifest', manifest);
+    const compileRawData = [{
+      url: '/manifest.json',
+      type: 'application/json',
+      data: manifest,
+    }];
+
+    p.files.forEach(f => {
+      if (f.url.endsWith('/manifest.json')) return;
+
+      const filename = f.url.match(/([^/]+$)/)[1];
+      compileRawData.push({
+        url: `/${filename}`,
+        type: f.response.headers['content-type'],
+        data: f.response.body,
+      });
+    });
+
+    p = new XRPackage(XRPackage.compileRaw(compileRawData));
+    pe.reset();
+    await pe.add(p);
+    await _renderPackage(p);
   });
 
   // files
