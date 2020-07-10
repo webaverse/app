@@ -1535,6 +1535,22 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
     await loginManager.setAvatar(dataHash);
   }
 });
+document.getElementById('packages-search').addEventListener('input', e => {
+  const searchTerm = e.target.value.toLowerCase();
+  const packages = [...document.querySelectorAll('#packages .package')];
+
+  if (searchTerm) {
+    packages.forEach(p => {
+      if (p.getAttribute('data-name').includes(searchTerm)) {
+        p.style.display = 'block';
+      } else {
+        p.style.display = 'none';
+      }
+    });
+  } else {
+    packages.forEach(p => (p.style.display = 'block'));
+  }
+});
 
 window.addEventListener('avatarchange', e => {
   const p = e.data;
@@ -1588,9 +1604,9 @@ window.addEventListener('avatarchange', e => {
 const _changeInventory = inventory => {
   inventorySubtabContent.innerHTML = inventory.map(item => `\
     <div class=item draggable=true>
-      <img class=screenshot>
+      <img class=screenshot width=256 height=256>
       <div class=name>${item.name}</div>
-      <div class=details>
+      <div class=background>
         <a class="button inspect-button" target="_blank" href="inspect.html?h=${item.dataHash}">Inspect</a>
         <nav class="button wear-button">Wear</nav>
         <nav class="button remove-button">Remove</nav>
@@ -1647,7 +1663,7 @@ loginManager.addEventListener('inventorychange', async e => {
 });
 
 const _makePackageHtml = p => `
-  <div class=package draggable=true>
+  <div class=package draggable=true data-name=${p.name}>
     <!-- <img src="assets/question.png"> -->
     <img src="${apiHost}/${p.icons[0].hash}.gif" width=256 height=256>
     <div class=text>
