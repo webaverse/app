@@ -1590,7 +1590,6 @@ function animate(timestamp, frame) {
             }
           }
 
-          console.log('mining', oldSpecs);
           const specs = await worker.requestMine(
             oldSpecs,
             delta,
@@ -1598,11 +1597,11 @@ function animate(timestamp, frame) {
             localVector2.toArray(),
             slabSliceTris,
           );
-          console.log('got mine', oldSpecs, specs);
 
           for (let i = 0; i < specs.length; i++) {
             const spec = specs[i];
-            const index = _getSliceIndex(spec.x, spec.y, spec.z);
+            // const index = _getSliceIndex(spec.x, spec.y, spec.z);
+            const {sliceIndex: index} = spec;
             const {geometry} = currentChunkMesh;
             const slab = {
               position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
@@ -1621,6 +1620,9 @@ function animate(timestamp, frame) {
             geometry.attributes.barycentric.needsUpdate = true;
             geometry.attributes.id.needsUpdate = true;
             geometry.attributes.index.needsUpdate = true;
+
+            const group = geometry.groups[index];
+            group.count = spec.positions.length/3;
 
             /* currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
             currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
