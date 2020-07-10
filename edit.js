@@ -174,7 +174,7 @@ const HEIGHTFIELD_SHADER = {
       vec3 diffuseColor = c * uv2.x;
       if (edgeFactor() <= 0.99) {
         if (isCurrent != 0.0) {
-          diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - pow(length(vWorldPosition) - uTime*5.0, 3.0), 0.0)*0.5);
+          diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(length(vWorldPosition) - uTime*5.0), 0.0)*0.5);
         }
         diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
       }
