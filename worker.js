@@ -9,6 +9,8 @@ const NUM_PARCELS = PARCEL_SIZE/SUBPARCEL_SIZE;
 const maxDistScale = 1;
 const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
 
+const potentialsMap = {};
+
 class Allocator {
   constructor() {
     this.offsets = [];
@@ -34,7 +36,7 @@ function mod(a, b) {
 const _getSliceIndex = (x, y, z) => z + y*NUM_PARCELS + x*NUM_PARCELS*NUM_PARCELS;
 const _getPotentialIndex = (x, y, z) => x + y*SUBPARCEL_SIZE*SUBPARCEL_SIZE + z*SUBPARCEL_SIZE;
 const _getPotentialFullIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + z*SUBPARCEL_SIZE_P1;
-const _getPotentialKey = (x, y, z) => [x,y,z].join(':');
+const _getPotentialKey = (meshId, x, y, z) => [meshId,x,y,z].join(':');
 const _makePotentials = (seedData, shiftsData) => {
   const allocator = new Allocator();
 
@@ -165,7 +167,10 @@ const _getChunkSpec = (potentials, shiftsData, meshId, indexOffset) => {
     }, */
   };
 };
-const _meshChunk = (ix, iy, iz, meshId, sliceIndex, slabSliceTris, potentialsMap) => {
+const _meshChunk = (ix, iy, iz, meshId, sliceIndex, slabSliceTris) => {
+  if (ix === undefined) {
+    debugger;
+  }
   const allocator = new Allocator();
   const fullPotentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1);
   for (let dx = 0; dx < SUBPARCEL_SIZE_P1; dx++) {
@@ -174,10 +179,21 @@ const _meshChunk = (ix, iy, iz, meshId, sliceIndex, slabSliceTris, potentialsMap
         const lix = ix + Math.floor(dx/SUBPARCEL_SIZE);
         const liy = iy + Math.floor(dy/SUBPARCEL_SIZE);
         const liz = iz + Math.floor(dz/SUBPARCEL_SIZE);
+        if (lix === undefined) {
+          debugger;
+        }
         const fullIndex = _getPotentialFullIndex(dx, dy, dz);
         if (lix >= 0 && lix < NUM_PARCELS && liy >= 0 && liy < NUM_PARCELS && liz >= 0 && liz < NUM_PARCELS) {
-          const potentialKey = _getPotentialKey(lix, liy, liz);
-          const {potentials} = potentialsMap[potentialKey];
+          const potentialKey = _getPotentialKey(meshId, lix, liy, liz);
+          if (!potentialKey) {
+            debugger;
+          }
+          const m = potentialsMap[potentialKey];
+          if (!m) {
+            console.log('got potential key', potentialKey, ix, iy, iz, dx, dy, dz, lix, liy, liz)
+            debugger;
+          }
+          const {potentials} = m;
           const lx = mod(dx, SUBPARCEL_SIZE);
           const ly = mod(dy, SUBPARCEL_SIZE)
           const lz = mod(dz, SUBPARCEL_SIZE)
@@ -226,7 +242,6 @@ const _handleMessage = data => {
     case 'march': {
       const {seed: seedData, meshId, slabSliceTris} = data;
 
-      const potentialsMap = {};
       for (let ix = 0; ix < NUM_PARCELS; ix++) {
         for (let iy = 0; iy < NUM_PARCELS; iy++) {
           for (let iz = 0; iz < NUM_PARCELS; iz++) {
@@ -275,7 +290,7 @@ const _handleMessage = data => {
                 }
               }
             }
-            potentialsMap[_getPotentialKey(ix, iy, iz)] = spec;
+            potentialsMap[_getPotentialKey(meshId, ix, iy, iz)] = spec;
           }
         }
       }
@@ -287,14 +302,8 @@ const _handleMessage = data => {
         for (let iy = 0; iy < NUM_PARCELS; iy++) {
           for (let iz = 0; iz < NUM_PARCELS; iz++) {
             const [result, transfer] = _meshChunk(ix, iy, iz, meshId, sliceIndex, slabSliceTris, potentialsMap);
-            const potentialKey = _getPotentialKey(ix, iy, iz);
+            const potentialKey = _getPotentialKey(meshId, ix, iy, iz);
             const {potentials} = potentialsMap[potentialKey];
-            result.potentialsAddress = potentials.offset;
-            result.potentialsLength = potentials.length;
-            result.x = ix;
-            result.y = iy;
-            result.z = iz;
-            result.sliceIndex = sliceIndex;
             results.push(result);
             transfers.push(transfer);
             sliceIndex++;
@@ -308,7 +317,7 @@ const _handleMessage = data => {
       break;
     }
     case 'mine': {
-      const {specs, /*potentialsAddress, potentialsLength, dimsAddress, dimsLength,*/ delta, meshId, position, slabSliceTris} = data;
+      const {/*potentialsAddress, potentialsLength, dimsAddress, dimsLength,*/ delta, meshId, position, slabSliceTris} = data;
 
       const requiredSlices = [];
       const [x, y, z] = position;
@@ -322,57 +331,36 @@ const _handleMessage = data => {
               const sx = Math.floor(ax/SUBPARCEL_SIZE);
               const sy = Math.floor(ay/SUBPARCEL_SIZE);
               const sz = Math.floor(az/SUBPARCEL_SIZE);
+
+              const potentialKey = _getPotentialKey(meshId, sx, sy, sz);
+              const {potentials} = potentialsMap[potentialKey];
+
+              const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+              const lx = mod(ax, SUBPARCEL_SIZE);
+              const ly = mod(ay, SUBPARCEL_SIZE);
+              const lz = mod(az, SUBPARCEL_SIZE);
+              const potentialIndex = _getPotentialIndex(lx, ly, lz);
+              potentials[potentialIndex] = Math.min(Math.max(potentials[potentialIndex] + (maxDist - dist) * delta, -2), 2);
+
               const sliceIndex = _getSliceIndex(sx, sy, sz);
-
-              const spec = specs.find(spec => spec.sliceIndex === sliceIndex);
-              if (spec) {
-                const {potentialsAddress, potentialsLength} = spec;
-
-                const potentials = new Float32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + potentialsAddress, potentialsLength);
-                potentials.offset = potentialsAddress;
-
-                const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-                const lx = mod(ax, SUBPARCEL_SIZE);
-                const ly = mod(ay, SUBPARCEL_SIZE);
-                const lz = mod(az, SUBPARCEL_SIZE);
-                const potentialIndex = _getPotentialIndex(lx, ly, lz);
-                potentials[potentialIndex] = Math.min(Math.max(potentials[potentialIndex] + (maxDist - dist) * delta, -2), 2);
-
-                if (!requiredSlices.some(slice => slice.sliceIndex === sliceIndex)) {
-                  requiredSlices.push({
-                    x: sx,
-                    y: sy,
-                    z: sz,
-                    potentialsAddress,
-                    potentialsLength,
-                    sliceIndex,
-                  });
-                }
+              if (!requiredSlices.some(slice => slice.sliceIndex === sliceIndex)) {
+                requiredSlices.push({
+                  x: sx,
+                  y: sy,
+                  z: sz,
+                  sliceIndex,
+                });
               }
             }
           }
         }
       }
 
-      const potentialsMap = {};
-      specs.forEach(spec => {
-        const {x, y, z, potentialsAddress, potentialsLength} = spec;
-        const potentials = new Float32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + potentialsAddress, potentialsLength);
-        potentials.offset = potentialsAddress;
-        const potentialKey = _getPotentialKey(x, y, z);
-        potentialsMap[potentialKey] = {potentials};
-      });
-
       const results = [];
       const transfers = [];
       requiredSlices.forEach(slice => {
-        const {x, y, z, potentialsAddress, potentialsLength, sliceIndex} = slice;
-        const [result, transfer] = _meshChunk(x, y, z, meshId, sliceIndex, slabSliceTris, potentialsMap);
-        result.x = x;
-        result.y = y;
-        result.z = z;
-        result.potentialsAddress = potentialsAddress;
-        result.potentialsLength = potentialsLength;
+        const {x, y, z, sliceIndex} = slice;
+        const [result, transfer] = _meshChunk(x, y, z, meshId, sliceIndex, slabSliceTris);
         result.sliceIndex = sliceIndex;
         results.push(result);
         transfers.push(transfer);
