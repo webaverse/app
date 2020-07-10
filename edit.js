@@ -1539,18 +1539,17 @@ document.getElementById('packages-search').addEventListener('input', e => {
   const searchTerm = e.target.value.toLowerCase();
   const packages = [...document.querySelectorAll('#packages .package')];
 
-  if (!searchTerm) {
+  if (searchTerm) {
+    packages.forEach(p => {
+      if (p.getAttribute('data-name').includes(searchTerm)) {
+        p.style.display = 'block';
+      } else {
+        p.style.display = 'none';
+      }
+    });
+  } else {
     packages.forEach(p => (p.style.display = 'block'));
-    return;
   }
-
-  packages.forEach(p => {
-    if (p.getAttribute('data-name').includes(searchTerm)) {
-      p.style.display = 'block';
-    } else {
-      p.style.display = 'none';
-    }
-  });
 });
 
 window.addEventListener('avatarchange', e => {
