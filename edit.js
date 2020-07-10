@@ -189,6 +189,7 @@ const HEIGHTFIELD_SHADER = {
     }
   `
 };
+const _getSliceIndex = (x, y, z) => z + y*NUM_PARCELS + x*NUM_PARCELS*NUM_PARCELS;
 
 let nextId = 0;
 function meshIdToArray(meshId) {
@@ -244,16 +245,14 @@ const [
         slabSliceTris,
       });
     };
-    w.requestMine = (potentialsAddress, potentialsLength, dimsAddress, dimsLength, delta, meshId, position) => {
+    w.requestMine = (specsBuffer, delta, meshId, position, slabSliceTris) => {
       return w.request({
         method: 'mine',
-        potentialsAddress,
-        potentialsLength,
-        dimsAddress,
-        dimsLength,
+        specsBuffer,
         delta,
         meshId,
         position,
+        slabSliceTris,
       });
     };
     return w;
@@ -698,6 +697,16 @@ const _makeChunkMesh = async () => {
   }
   // mesh.frustumCulled = false;
   mesh.meshId = meshId;
+  const specsBuffer = new Int32Array(specs.length * 6);
+  specs.forEach((spec, i) => {
+    specsBuffer[i*6] = spec.potentialsAddress;
+    specsBuffer[i*6+1] = spec.potentialsLength;
+    specsBuffer[i*6+2] = spec.dimsAddress;
+    specsBuffer[i*6+3] = spec.dimsLength;
+    specsBuffer[i*6+4] = spec.shiftsAddress;
+    specsBuffer[i*6+5] = spec.shiftsLength;
+  });
+  mesh.specsBuffer = specsBuffer;
   return mesh;
 };
 
@@ -1549,19 +1558,42 @@ function animate(timestamp, frame) {
           localVector2.y = Math.floor(localVector2.y);
           localVector2.z = Math.floor(localVector2.z);
 
-          const spec = await worker.requestMine(
-            currentChunkMesh.potentialsAddress,
-            currentChunkMesh.potentialsLength,
-            currentChunkMesh.dimsAddress,
-            currentChunkMesh.dimsLength,
+          const specs = await worker.requestMine(
+            currentChunkMesh.specsBuffer,
             delta,
             currentChunkMesh.meshId,
-            localVector2.toArray()
+            localVector2.toArray(),
+            slabSliceTris,
           );
-          currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-          currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
-          currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
-          currentChunkMesh.geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1));
+          // console.log('got mine', spec);
+
+          for (let i = 0; i < specs.length; i++) {
+            const spec = specs[i];
+            const index = _getSliceIndex(spec.x, spec.y, spec.z);
+            const {geometry} = currentChunkMesh;
+            const slab = {
+              position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+              barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+              id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+              index: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+            };
+            slab.position.set(spec.positions);
+            slab.barycentric.set(spec.barycentrics);
+            slab.id.set(spec.ids);
+            slab.index.set(spec.indices);
+
+            // console.log('get spec', spec, index);
+
+            geometry.attributes.position.needsUpdate = true;
+            geometry.attributes.barycentric.needsUpdate = true;
+            geometry.attributes.id.needsUpdate = true;
+            geometry.attributes.index.needsUpdate = true;
+
+            /* currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
+            currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
+            currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
+            currentChunkMesh.geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1)); */
+          }
         };
         switch (selectedWeapon) {
           case 'wrench': {
