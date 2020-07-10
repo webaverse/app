@@ -164,6 +164,64 @@ const _getChunkSpec = (potentials, shiftsData, meshId, indexOffset) => {
     }, */
   };
 };
+const _meshChunk = (ix, iy, iz, meshId, sliceIndex, slabSliceTris, potentialsMap, allocator) => {
+  const fullPotentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE_P2 * SUBPARCEL_SIZE_P2 * SUBPARCEL_SIZE_P2);
+  for (let dx = -1; dx < SUBPARCEL_SIZE + 1; dx++) {
+    for (let dy = -1; dy < SUBPARCEL_SIZE + 1; dy++) {
+      for (let dz = -1; dz < SUBPARCEL_SIZE + 1; dz++) {
+        const lix = ix + Math.floor(dx/SUBPARCEL_SIZE);
+        const liy = iy + Math.floor(dy/SUBPARCEL_SIZE);
+        const liz = iz + Math.floor(dz/SUBPARCEL_SIZE);
+        const lfx = dx + 1;
+        const lfy = dy + 1;
+        const lfz = dz + 1;
+        const fullIndex = _getPotentialFullIndex(lfx, lfy, lfz);
+        if (lix >= 0 && lix < NUM_PARCELS && liy >= 0 && liy < NUM_PARCELS && liz >= 0 && liz < NUM_PARCELS) {
+          const potentialKey = _getPotentialKey(lix, liy, liz);
+          const m = potentialsMap[potentialKey];
+          if (!m) {
+            debugger;
+          }
+          const {potentials} = m;
+          const lx = mod(dx, SUBPARCEL_SIZE);
+          const ly = mod(dy, SUBPARCEL_SIZE)
+          const lz = mod(dz, SUBPARCEL_SIZE)
+          const index = _getPotentialIndex(lx, ly, lz);
+          /* if (fullIndex < 0 || fullIndex >= fullPotentials.length || index < 0 || index >= potentials.length) {
+            debugger;
+          } */
+          fullPotentials[fullIndex] = potentials[index];
+        } else {
+          fullPotentials[fullIndex] = 0;
+        }
+      }
+    }
+  }
+
+  const shiftsData = [
+    ix*SUBPARCEL_SIZE-1,
+    iy*SUBPARCEL_SIZE-1,
+    iz*SUBPARCEL_SIZE-1,
+  ];
+  const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(fullPotentials, shiftsData, meshId, sliceIndex*slabSliceTris);
+  return [
+    {
+      /* sliceIndex,
+      potentialsAddress: potentials.offset,
+      potentialsLength: potentials.length,
+      dimsAddress: dims.offset,
+      dimsLength: dims.length,
+      shiftsAddress: shifts.offset,
+      shiftsLength: shifts.length, */
+      positions,
+      barycentrics,
+      ids,
+      indices,
+      // arrayBuffer2,
+    },
+    arrayBuffer2
+  ];
+};
 
 const queue = [];
 let loaded = false;
@@ -171,62 +229,15 @@ const _handleMessage = data => {
   const {method} = data;
   switch (method) {
     case 'march': {
-      const {seed: seedData, meshId: meshIdData, slabSliceTris} = data;
+      const {seed: seedData, meshId, slabSliceTris} = data;
 
-      // const potentialsList = [];
       const potentialsMap = {};
-
-      const meshId = meshIdData;
       for (let ix = 0; ix < NUM_PARCELS; ix++) {
         for (let iy = 0; iy < NUM_PARCELS; iy++) {
           for (let iz = 0; iz < NUM_PARCELS; iz++) {
             const shiftsData = [ix*SUBPARCEL_SIZE, iy*SUBPARCEL_SIZE, iz*SUBPARCEL_SIZE];
             const spec = _makePotentials(seedData, shiftsData);
-            // potentialsList.push(potentials);
             potentialsMap[_getPotentialKey(ix, iy, iz)] = spec;
-
-            /* if (ix === 0) {
-              for (let dy = 0; dy < SUBPARCEL_SIZE; dy++) {
-                for (let dz = 0; dz < SUBPARCEL_SIZE; dz++) {
-                  potentials[_getPotentialIndex(0, dy, dz)] = 0;
-                }
-              }
-            }
-            if (iy === 0) {
-              for (let dx = 0; dx < SUBPARCEL_SIZE; dx++) {
-                for (let dz = 0; dz < SUBPARCEL_SIZE; dz++) {
-                  potentials[_getPotentialIndex(dx, 0, dz)] = 0;
-                }
-              }
-            }
-            if (iz === 0) {
-              for (let dx = 0; dx < SUBPARCEL_SIZE; dx++) {
-                for (let dy = 0; dy < SUBPARCEL_SIZE; dy++) {
-                  potentials[_getPotentialIndex(dx, dy, 0)] = 0;
-                }
-              }
-            }
-            if (ix === NUM_PARCELS-1) {
-              for (let dy = 0; dy < SUBPARCEL_SIZE; dy++) {
-                for (let dz = 0; dz < SUBPARCEL_SIZE; dz++) {
-                  potentials[_getPotentialIndex(SUBPARCEL_SIZE-1, dy, dz)] = 0;
-                }
-              }
-            }
-            if (iy === NUM_PARCELS-1) {
-              for (let dx = 0; dx < SUBPARCEL_SIZE; dx++) {
-                for (let dz = 0; dz < SUBPARCEL_SIZE; dz++) {
-                  potentials[_getPotentialIndex(dx, SUBPARCEL_SIZE-1, dz)] = 0;
-                }
-              }
-            }
-            if (iz === NUM_PARCELS-1) {
-              for (let dx = 0; dx < SUBPARCEL_SIZE; dx++) {
-                for (let dy = 0; dy < SUBPARCEL_SIZE; dy++) {
-                  potentials[_getPotentialIndex(dx, dy, SUBPARCEL_SIZE-1)] = 0;
-                }
-              }
-            } */
           }
         }
       }
@@ -235,58 +246,22 @@ const _handleMessage = data => {
 
       const results = [];
       const transfers = [];
+      let sliceIndex = 0;
       for (let ix = 0; ix < NUM_PARCELS; ix++) {
         for (let iy = 0; iy < NUM_PARCELS; iy++) {
           for (let iz = 0; iz < NUM_PARCELS; iz++) {
-            const fullPotentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE_P2 * SUBPARCEL_SIZE_P2 * SUBPARCEL_SIZE_P2); // new Float32Array(SUBPARCEL_SIZE_P2 * SUBPARCEL_SIZE_P2 * SUBPARCEL_SIZE_P2);
-            for (let dx = -1; dx < SUBPARCEL_SIZE + 1; dx++) {
-              for (let dy = -1; dy < SUBPARCEL_SIZE + 1; dy++) {
-                for (let dz = -1; dz < SUBPARCEL_SIZE + 1; dz++) {
-                  const lix = ix + Math.floor(dx/SUBPARCEL_SIZE);
-                  const liy = iy + Math.floor(dy/SUBPARCEL_SIZE);
-                  const liz = iz + Math.floor(dz/SUBPARCEL_SIZE);
-                  const lfx = dx + 1;
-                  const lfy = dy + 1;
-                  const lfz = dz + 1;
-                  const fullIndex = _getPotentialFullIndex(lfx, lfy, lfz);
-                  if (lix >= 0 && lix < NUM_PARCELS && liy >= 0 && liy < NUM_PARCELS && liz >= 0 && liz < NUM_PARCELS) {
-                    const lx = mod(dx, SUBPARCEL_SIZE);
-                    const ly = mod(dy, SUBPARCEL_SIZE)
-                    const lz = mod(dz, SUBPARCEL_SIZE)
-                    const potentialKey = _getPotentialKey(lix, liy, liz);
-                    const {potentials} = potentialsMap[potentialKey];
-                    const index = _getPotentialIndex(lx, ly, lz);
-                    if (fullIndex < 0 || fullIndex >= fullPotentials.length || index < 0 || index >= potentials.length) {
-                      debugger;
-                    }
-                    fullPotentials[fullIndex] = potentials[index];
-                  } else {
-                    fullPotentials[fullIndex] = 0;
-                  }
-                }
-              }
-            }
-
-            const shiftsData = [
-              ix*SUBPARCEL_SIZE-1,
-              iy*SUBPARCEL_SIZE-1,
-              iz*SUBPARCEL_SIZE-1,
-            ];
-            const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(fullPotentials, shiftsData, meshId, results.length*slabSliceTris);
-            results.push({
-              /* potentialsAddress: potentials.offset,
-              potentialsLength: potentials.length,
-              dimsAddress: dims.offset,
-              dimsLength: dims.length,
-              shiftsAddress: shifts.offset,
-              shiftsLength: shifts.length, */
-              positions,
-              barycentrics,
-              ids,
-              indices,
-              // arrayBuffer2,
-            });
-            transfers.push(arrayBuffer2);
+            const [result, transfer] = _meshChunk(ix, iy, iz, meshId, sliceIndex, slabSliceTris, potentialsMap, allocator);
+            const potentialKey = _getPotentialKey(ix, iy, iz);
+            const {potentials} = potentialsMap[potentialKey];
+            result.potentialsAddress = potentials.offset;
+            result.potentialsLength = potentials.length;
+            result.x = ix;
+            result.y = iy;
+            result.z = iz;
+            result.sliceIndex = sliceIndex;
+            results.push(result);
+            transfers.push(transfer);
+            sliceIndex++;
           }
         }
       }
@@ -298,46 +273,58 @@ const _handleMessage = data => {
       break;
     }
     case 'mine': {
-      const {specsBuffer, /*potentialsAddress, potentialsLength, dimsAddress, dimsLength,*/ delta, meshId, position, slabSliceTris} = data;
+      const {specs, /*potentialsAddress, potentialsLength, dimsAddress, dimsLength,*/ delta, meshId, position, slabSliceTris} = data;
+
+      const allocator = new Allocator();
 
       const requiredSlices = [];
       const [x, y, z] = position;
-      if (x >= 0 && x < SUBPARCEL_SIZE_P2 && y >=0 && y < SUBPARCEL_SIZE_P2 && z >=0 && z < SUBPARCEL_SIZE_P2) {
-        for (let dy = -1; dy <= 1; dy++) {
-          for (let dz = -1; dz <= 1; dz++) {
-            for (let dx = -1; dx <= 1; dx++) {
-              const ax = x + dx;
-              const ay = y + dy;
-              const az = z + dz;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dz = -1; dz <= 1; dz++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const ax = x + dx;
+            const ay = y + dy;
+            const az = z + dz;
+            if (ax >= 0 && ax < PARCEL_SIZE && ay >=0 && ay < PARCEL_SIZE && az >=0 && az < PARCEL_SIZE) {
               const sx = Math.floor(ax/SUBPARCEL_SIZE);
               const sy = Math.floor(ay/SUBPARCEL_SIZE);
               const sz = Math.floor(az/SUBPARCEL_SIZE);
               const sliceIndex = _getSliceIndex(sx, sy, sz);
 
-              const potentialsAddress = specsBuffer[sliceIndex*6];
-              const potentialsLength = specsBuffer[sliceIndex*6+1];
-              const dimsAddress = specsBuffer[sliceIndex*6+2];
-              const dimsLength = specsBuffer[sliceIndex*6+3];
-              const shiftsAddress = specsBuffer[sliceIndex*6+4];
-              const shiftsLength = specsBuffer[sliceIndex*6+5];
+              const spec = specs.find(spec => spec.sliceIndex === sliceIndex);
+              if (spec) {
+                const {potentialsAddress, potentialsLength} = spec;
+                const shiftsData = [
+                  sx*SUBPARCEL_SIZE-1,
+                  sy*SUBPARCEL_SIZE-1,
+                  sz*SUBPARCEL_SIZE-1,
+                ];
 
-              const potentials = new Float32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + potentialsAddress, potentialsLength);
-              potentials.offset = potentialsAddress;
-              const dims = new Int32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + dimsAddress, dimsLength);
-              dims.offset = dimsAddress;
-              const shifts = new Int32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + shiftsAddress, shiftsLength);
-              shifts.offset = shiftsAddress;
+                const potentials = new Float32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + potentialsAddress, potentialsLength);
+                potentials.offset = potentialsAddress;
+                const dims = allocator.alloc(Int32Array, 3);
+                dims.set(Int32Array.from([SUBPARCEL_SIZE, SUBPARCEL_SIZE, SUBPARCEL_SIZE]));
+                const shifts = allocator.alloc(Float32Array, 3);
+                shifts.set(Float32Array.from(shiftsData));
 
-              const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-              const lx = ax - sx*SUBPARCEL_SIZE;
-              const ly = ay - sy*SUBPARCEL_SIZE;
-              const lz = az - sz*SUBPARCEL_SIZE;
-              const potentialIndex = _getPotentialIndex(lx, ly, lz);
-              // console.log('set index', lx, ly, lz, potentialIndex)
-              potentials[potentialIndex] = Math.min(Math.max(potentials[potentialIndex] + (maxDist - dist) * delta, -2), 2);
+                const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                const lx = mod(ax, SUBPARCEL_SIZE);
+                const ly = mod(ay, SUBPARCEL_SIZE)
+                const lz = mod(az, SUBPARCEL_SIZE)
+                const potentialIndex = _getPotentialIndex(lx, ly, lz);
+                potentials[potentialIndex] = Math.min(Math.max(potentials[potentialIndex] + (maxDist - dist) * delta, -2), 2);
 
-              if (!requiredSlices.some(slice => slice.x === sx && slice.y === sy && slice.z === sz)) {
-                requiredSlices.push({
+                if (!requiredSlices.some(slice => slice.sliceIndex === sliceIndex)) {
+                  requiredSlices.push({
+                    x: sx,
+                    y: sy,
+                    z: sz,
+                    potentialsAddress,
+                    potentialsLength,
+                    sliceIndex,
+                  });
+                }
+                /* potentialsMap[_getPotentialKey(sx, sy, sz)] = {
                   x: sx,
                   y: sy,
                   z: sz,
@@ -346,44 +333,46 @@ const _handleMessage = data => {
                   shifts,
                   potentialsAddress,
                   potentialsLength,
-                  dimsAddress,
-                  dimsLength,
                   sliceIndex,
-                });
+                }; */
               }
             }
           }
         }
       }
 
+      console.log('got specs', specs);
+
+      const potentialsMap = {};
+      specs.forEach(spec => {
+        const {x, y, z, potentialsAddress, potentialsLength} = spec;
+        const potentials = new Float32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + potentialsAddress, potentialsLength);
+        potentials.offset = potentialsAddress;
+        const potentialKey = _getPotentialKey(x, y, z);
+        potentialsMap[potentialKey] = {potentials};
+      });
+
       const results = [];
       const transfers = [];
-      for (let i = 0; i < requiredSlices.length; i++) {
-        const slice = requiredSlices[i];
-        const {x, y, z, potentials, dims, shifts, potentialsAddress, potentialsLength, dimsAddress, dimsLength, shiftsAddress, shiftsLength, sliceIndex} = slice;
-        const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, dims, shifts, meshId, sliceIndex*slabSliceTris);
-        results.push({
-          x,
-          y,
-          z,
-          positions,
-          barycentrics,
-          ids,
-          indices,
-          potentialsAddress,
-          potentialsLength,
-          dimsAddress,
-          dimsLength,
-          shiftsAddress,
-          shiftsLength,
-        });
-        transfers.push(arrayBuffer2);
-      }
+      requiredSlices.forEach(slice => {
+        const {x, y, z, potentialsAddress, potentialsLength, sliceIndex} = slice;
+        const [result, transfer] = _meshChunk(x, y, z, meshId, sliceIndex, slabSliceTris, potentialsMap, allocator);
+        result.x = x;
+        result.y = y;
+        result.z = z;
+        result.potentialsAddress = potentialsAddress;
+        result.potentialsLength = potentialsLength;
+        result.sliceIndex = sliceIndex;
+        results.push(result);
+        transfers.push(transfer);
+      });
+
+      console.log('got specs 2');
 
       self.postMessage({
         result: results,
       }, transfers);
-      // allocator.freeAll();
+      allocator.freeAll();
       break;
     }
     /* case 'uvParameterize': {
