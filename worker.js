@@ -5,6 +5,8 @@ const PARCEL_SIZE_P2 = PARCEL_SIZE+2;
 const SUBPARCEL_SIZE = 10;
 const SUBPARCEL_SIZE_P2 = SUBPARCEL_SIZE+2;
 const NUM_PARCELS = PARCEL_SIZE/SUBPARCEL_SIZE;
+const maxDistScale = 1;
+const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
 
 class Allocator {
   constructor() {
@@ -25,30 +27,31 @@ class Allocator {
   }
 }
 
+const _getSliceIndex = (x, y, z) => z + y*NUM_PARCELS + x*NUM_PARCELS*NUM_PARCELS;
 const _getPotentialIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P2*SUBPARCEL_SIZE_P2 + z*SUBPARCEL_SIZE_P2;
-const _makePotentials = (seedData, shifts) => {
+const _makePotentials = (seedData, shiftsData) => {
   const allocator = new Allocator();
 
   const potentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE_P2 * SUBPARCEL_SIZE_P2 * SUBPARCEL_SIZE_P2);
   const dims = allocator.alloc(Int32Array, 3);
   dims.set(Int32Array.from([SUBPARCEL_SIZE_P2, SUBPARCEL_SIZE_P2, SUBPARCEL_SIZE_P2]));
-  const shift = allocator.alloc(Float32Array, 3);
-  shift.set(Float32Array.from(shifts));
+  const shifts = allocator.alloc(Float32Array, 3);
+  shifts.set(Float32Array.from(shiftsData));
 
   Module._doNoise2(
     seedData,
     0.02,
     4,
     dims.offset,
-    shift.offset,
+    shifts.offset,
     0,
     -0.5,
     potentials.offset
   );
 
-  return {potentials, dims, shift/*, allocator*/};
+  return {potentials, dims, shifts/*, allocator*/};
 };
-const _getChunkSpec = (potentials, dims, shift, meshId, indexOffset) => {
+const _getChunkSpec = (potentials, dims, shifts, meshId, indexOffset) => {
   const allocator = new Allocator();
 
   const positions = allocator.alloc(Float32Array, 1024 * 1024 * Float32Array.BYTES_PER_ELEMENT);
@@ -68,7 +71,7 @@ const _getChunkSpec = (potentials, dims, shift, meshId, indexOffset) => {
   self.Module._doMarchingCubes2(
     dims.offset,
     potentials.offset,
-    shift.offset,
+    shifts.offset,
     scale.offset,
     positions.offset,
     barycentrics.offset,
@@ -168,8 +171,8 @@ const _handleMessage = data => {
       for (let ix = 0; ix < NUM_PARCELS; ix++) {
         for (let iy = 0; iy < NUM_PARCELS; iy++) {
           for (let iz = 0; iz < NUM_PARCELS; iz++) {
-            const shifts = [ix*SUBPARCEL_SIZE-1, iy*SUBPARCEL_SIZE-1, iz*SUBPARCEL_SIZE-1];
-            const {potentials, dims, shift/*, allocator*/} = _makePotentials(seedData, shifts);
+            const shiftsData = [ix*SUBPARCEL_SIZE-1, iy*SUBPARCEL_SIZE-1, iz*SUBPARCEL_SIZE-1];
+            const {potentials, dims, shifts/*, allocator*/} = _makePotentials(seedData, shiftsData);
 
             if (ix === 0) {
               for (let dy = 0; dy < SUBPARCEL_SIZE_P2; dy++) {
@@ -214,12 +217,14 @@ const _handleMessage = data => {
               }
             }
 
-            const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, dims, shift, meshId, results.length*slabSliceTris);
+            const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, dims, shifts, meshId, results.length*slabSliceTris);
             results.push({
               potentialsAddress: potentials.offset,
               potentialsLength: potentials.length,
               dimsAddress: dims.offset,
               dimsLength: dims.length,
+              shiftsAddress: shifts.offset,
+              shiftsLength: shifts.length,
               positions,
               barycentrics,
               ids,
@@ -238,52 +243,91 @@ const _handleMessage = data => {
       break;
     }
     case 'mine': {
-      const {potentialsAddress, potentialsLength, dimsAddress, dimsLength, delta, meshId, position} = data;
+      const {specsBuffer, /*potentialsAddress, potentialsLength, dimsAddress, dimsLength,*/ delta, meshId, position, slabSliceTris} = data;
 
-      const potentials = new Float32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + potentialsAddress, potentialsLength);
-      potentials.offset = potentialsAddress;
-      const dims = new Int32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + dimsAddress, dimsLength);
-      dims.offset = dimsAddress;
-
-      // console.log('got dims', dims[0], dims[1], dims[2], delta, meshId, position);
-
-      const maxDistScale = 1;
-      const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
+      const requiredSlices = [];
       for (let dy = -1; dy <= 1; dy++) {
         for (let dz = -1; dz <= 1; dz++) {
           for (let dx = -1; dx <= 1; dx++) {
             const ax = position[0] + dx;
             const ay = position[1] + dy;
             const az = position[2] + dz;
-            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-            const potentialIndex = _getPotentialIndex(ax, ay, az);
-            potentials[potentialIndex] = Math.min(Math.max(potentials[potentialIndex] + (maxDist - dist) * delta, -2), 2);
+            if (ax >= 0 && ax < PARCEL_SIZE && ay >=0 && ay < PARCEL_SIZE && az >=0 && az < PARCEL_SIZE) {
+              const sx = Math.floor(ax/SUBPARCEL_SIZE);
+              const sy = Math.floor(ay/SUBPARCEL_SIZE);
+              const sz = Math.floor(az/SUBPARCEL_SIZE);
+              const sliceIndex = _getSliceIndex(sx, sy, sz);
 
-            /* const spec = _getChunkSpec(currentChunkMesh.potentials, currentChunkMesh.dims, currentChunkMesh.meshId);
-            currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-            currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
-            currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
-            currentChunkMesh.geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1)); */
+              const potentialsAddress = specsBuffer[sliceIndex*6];
+              const potentialsLength = specsBuffer[sliceIndex*6+1];
+              const dimsAddress = specsBuffer[sliceIndex*6+2];
+              const dimsLength = specsBuffer[sliceIndex*6+3];
+              const shiftsAddress = specsBuffer[sliceIndex*6+4];
+              const shiftsLength = specsBuffer[sliceIndex*6+5];
+
+              const potentials = new Float32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + potentialsAddress, potentialsLength);
+              potentials.offset = potentialsAddress;
+              const dims = new Int32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + dimsAddress, dimsLength);
+              dims.offset = dimsAddress;
+              const shifts = new Int32Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + shiftsAddress, shiftsLength);
+              shifts.offset = shiftsAddress;
+
+              const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+              const lx = ax - sx*SUBPARCEL_SIZE + 1;
+              const ly = ay - sy*SUBPARCEL_SIZE + 1;
+              const lz = az - sz*SUBPARCEL_SIZE + 1;
+              const potentialIndex = _getPotentialIndex(lx, ly, lz);
+              // console.log('set index', lx, ly, lz, potentialIndex)
+              potentials[potentialIndex] = Math.min(Math.max(potentials[potentialIndex] + (maxDist - dist) * delta, -2), 2);
+
+              if (!requiredSlices.some(slice => slice.x === sx && slice.y === sy && slice.z === sz)) {
+                requiredSlices.push({
+                  x: sx,
+                  y: sy,
+                  z: sz,
+                  potentials,
+                  dims,
+                  shifts,
+                  potentialsAddress,
+                  potentialsLength,
+                  dimsAddress,
+                  dimsLength,
+                  sliceIndex,
+                });
+              }
+            }
           }
         }
       }
 
-      const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, dims, meshId);
-
-      self.postMessage({
-        result: {
-          potentialsAddress,
-          potentialsLength,
-          dimsAddress,
-          dimsLength,
+      const results = [];
+      const transfers = [];
+      for (let i = 0; i < requiredSlices.length; i++) {
+        const slice = requiredSlices[i];
+        const {x, y, z, potentials, dims, shifts, potentialsAddress, potentialsLength, dimsAddress, dimsLength, shiftsAddress, shiftsLength, sliceIndex} = slice;
+        const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, dims, shifts, meshId, sliceIndex*slabSliceTris);
+        results.push({
+          x,
+          y,
+          z,
           positions,
           barycentrics,
           ids,
           indices,
-          // arrayBuffer2,
-        },
-      }, [arrayBuffer2]);
+          potentialsAddress,
+          potentialsLength,
+          dimsAddress,
+          dimsLength,
+          shiftsAddress,
+          shiftsLength,
+        });
+        transfers.push(arrayBuffer2);
+      }
+
+      self.postMessage({
+        result: results,
+      }, transfers);
       // allocator.freeAll();
       break;
     }
