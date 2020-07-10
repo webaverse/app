@@ -807,7 +807,7 @@ const idMaterial = new THREE.ShaderMaterial({
     varying float vId;
     varying float vIndex;
     void main() {
-      gl_FragColor = vec4((vId+1.0)/64000.0, (vIndex+1.0)/64000.0, 0.0, 0.0);
+      gl_FragColor = vec4(vId/64000.0, vIndex/64000.0, 0.0, 0.0);
     }
   `,
   // side: THREE.DoubleSide,
@@ -856,9 +856,9 @@ class PointRaycaster {
     let point;
     let normal;
     if (this.pixels[0] !== 0) {
-      const meshId = Math.floor(this.pixels[0]*64000)-1; // (Math.floor(this.pixels[0]*255) << 16) | (Math.floor(this.pixels[1]*255) << 8) | Math.floor(this.pixels[2]*255);
+      const meshId = Math.round(this.pixels[0]*64000); // (Math.floor(this.pixels[0]*255) << 16) | (Math.floor(this.pixels[1]*255) << 8) | Math.floor(this.pixels[2]*255);
       mesh = _findMeshWithMeshId(container, meshId);
-      index = Math.floor(this.pixels[1]*64000)-1;
+      index = Math.round(this.pixels[1]*64000);
 
       const triangle = new THREE.Triangle(
         new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9).applyMatrix4(mesh.matrixWorld),
@@ -937,7 +937,7 @@ const depthMaterial = new THREE.ShaderMaterial({
       float z_n = 2.0 * z_b - 1.0;
       float z_e = 2.0 * uNear * uFar / (uFar + uNear - z_n * (uFar - uNear)); */
 
-      gl_FragColor = vec4(encodePixelDepth(gl_FragCoord.z/gl_FragCoord.w), (vId+1.0)/64000.0, (vIndex+1.0)/64000.0);
+      gl_FragColor = vec4(encodePixelDepth(gl_FragCoord.z/gl_FragCoord.w), vId/64000.0, vIndex/64000.0);
     }
   `,
   // side: THREE.DoubleSide,
@@ -1002,13 +1002,13 @@ class CollisionRaycaster {
 
     let j = 0;
     for (let i = 0; i < this.depths.length; i++) {
-      if (this.pixels[j + 3] !== 0) {
+      if (this.pixels[j] !== 0) {
         let v =
           this.pixels[j] +
           this.pixels[j+1] * 255.0;
         this.depths[i] = this.camera.near + v * (this.camera.far - this.camera.near);
-        const meshId = Math.floor(this.pixels[j+2]*64000)-1;
-        const index = Math.floor(this.pixels[j+3]*64000)-1;
+        const meshId = Math.round(this.pixels[j+2]*64000);
+        const index = Math.round(this.pixels[j+3]*64000);
 
         const mesh = _findMeshWithMeshId(container, meshId);
         const triangle = new THREE.Triangle(
