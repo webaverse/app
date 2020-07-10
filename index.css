@@ -596,7 +596,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   right: 0;
   bottom: 0;
   width: 100vw;
-  min-height: 200px;
+  height: 200px;
   /* padding: 20px; */
   background-color: #111;
   color: #FFF;
@@ -624,7 +624,6 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   font-size: 20px;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
   user-select: none;
 }
 
@@ -656,7 +655,14 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .subtabs .search {
   margin: auto;
 }
-
+.subtabs .search .search-input {
+  border-radius: 4px;
+  border: none;
+  padding: 4px;
+}
+.subtabs .title {
+  display: flex;
+}
 .subtabs .close-button {
   display: flex;
   width: 40px;
@@ -669,9 +675,6 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: #ef5350;
 }
 
-.subtab-content {
-  display: flex;
-}
 .subtab-content:not(.open) {
   display: none;
 }
@@ -786,11 +789,13 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 } */
 
 .packages,
-.inventory {
-  display: flex;
-  overflow: auto;
+.inventory,
+.worlds-list {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 120px);
   max-height: 200px;
-  flex-wrap: wrap;
+  justify-content: space-around;
 }
 .packages .package,
 .worlds .world,
@@ -798,11 +803,17 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 {
   position: relative;
   display: inline-flex;
-  margin-right: 20px;
+  margin: auto;
   margin-bottom: 20px;
   border: 5px solid transparent;
   flex-direction: column;
   cursor: pointer;
+}
+.worlds-subpage {
+  height: 400px;
+}
+.worlds {
+  text-align: center;
 }
 .worlds .world.open {
   background-color: #64b5f6;
@@ -859,7 +870,8 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   pointer-events: none;
 }
 .packages .package .name,
-.worlds .world .name
+.worlds .world .name,
+.inventory .item .name
 {
   font-size: 13px;
 }
@@ -1469,10 +1481,7 @@ header.unlocking + .main .blocker .button
 }
 
 .subpage-wrap {
-  display: flex;
-  padding: 0 30px;
   max-height: 100vh;
-  overflow: auto;
 }
 .details-wrap {
   display: flex;
