@@ -1465,7 +1465,7 @@ function animate(timestamp, frame) {
 
   // loadMeshMaterial.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
   for (let i = 0; i < remoteChunkMeshes.length; i++) {
-    remoteChunkMeshes[i].material.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
+    remoteChunkMeshes[i].material[0].uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
   }
 
   const session = renderer.xr.getSession();
