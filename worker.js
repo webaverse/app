@@ -319,37 +319,55 @@ const _handleMessage = data => {
     case 'mine': {
       const {/*potentialsAddress, potentialsLength, dimsAddress, dimsLength,*/ delta, meshId, position, slabSliceTris} = data;
 
+      const seenSlices = {};
       const requiredSlices = [];
       const [x, y, z] = position;
       for (let dy = -1; dy <= 1; dy++) {
+        const ay = y + dy;
         for (let dz = -1; dz <= 1; dz++) {
+          const az = z + dz;
           for (let dx = -1; dx <= 1; dx++) {
             const ax = x + dx;
-            const ay = y + dy;
-            const az = z + dz;
             if (ax >= 0 && ax < PARCEL_SIZE && ay >= 0 && ay < PARCEL_SIZE && az >=0 && az < PARCEL_SIZE) {
-              const sx = Math.floor(ax/SUBPARCEL_SIZE);
-              const sy = Math.floor(ay/SUBPARCEL_SIZE);
-              const sz = Math.floor(az/SUBPARCEL_SIZE);
-
-              const potentialKey = _getPotentialKey(meshId, sx, sy, sz);
-              const {potentials} = potentialsMap[potentialKey];
-
               const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-              const lx = mod(ax, SUBPARCEL_SIZE);
-              const ly = mod(ay, SUBPARCEL_SIZE);
-              const lz = mod(az, SUBPARCEL_SIZE);
-              const potentialIndex = _getPotentialIndex(lx, ly, lz);
-              potentials[potentialIndex] = Math.min(Math.max(potentials[potentialIndex] + (maxDist - dist) * delta, -2), 2);
+              const dv = maxDist - dist;
+              if (dv > 0) {
+                const sx = Math.floor(ax/SUBPARCEL_SIZE);
+                const sy = Math.floor(ay/SUBPARCEL_SIZE);
+                const sz = Math.floor(az/SUBPARCEL_SIZE);
+                const potentialKey = _getPotentialKey(meshId, sx, sy, sz);
+                const {potentials} = potentialsMap[potentialKey];
 
-              const sliceIndex = _getSliceIndex(sx, sy, sz);
-              if (!requiredSlices.some(slice => slice.sliceIndex === sliceIndex)) {
-                requiredSlices.push({
-                  x: sx,
-                  y: sy,
-                  z: sz,
-                  sliceIndex,
-                });
+                const lx = mod(ax, SUBPARCEL_SIZE);
+                const ly = mod(ay, SUBPARCEL_SIZE);
+                const lz = mod(az, SUBPARCEL_SIZE);
+                const potentialIndex = _getPotentialIndex(lx, ly, lz);
+                potentials[potentialIndex] = Math.min(Math.max(potentials[potentialIndex] + dv * delta, -2), 2);
+
+                for (let ddy = -1; ddy <= 1; ddy++) {
+                  const ady = ay + ddy;
+                  for (let ddz = -1; ddz <= 1; ddz++) {
+                    const adz = az + ddz;
+                    for (let ddx = -1; ddx <= 1; ddx++) {
+                      const adx = ax + ddx;
+                      if (adx >= 0 && adx < PARCEL_SIZE && ady >= 0 && ady < PARCEL_SIZE && adz >=0 && adz < PARCEL_SIZE) {
+                        const sdx = Math.floor(adx/SUBPARCEL_SIZE);
+                        const sdy = Math.floor(ady/SUBPARCEL_SIZE);
+                        const sdz = Math.floor(adz/SUBPARCEL_SIZE);
+                        const sliceIndex = _getSliceIndex(sdx, sdy, sdz);
+                        if (!seenSlices[sliceIndex]) {
+                          seenSlices[sliceIndex] = true;
+                          requiredSlices.push({
+                            x: sdx,
+                            y: sdy,
+                            z: sdz,
+                            sliceIndex,
+                          });
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
           }
