@@ -179,8 +179,6 @@ const HEIGHTFIELD_SHADER = {
         diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
       }
 
-      // diffuseColor *= 0.02 + pow(min(max((vPosition.y - 55.0) / 64.0, 0.0), 1.0), 1.0) * 5.0;
-
       gl_FragColor = vec4(diffuseColor, 1.0);
 
       if (vIndex == selectedIndex) {
