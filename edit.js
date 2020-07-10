@@ -245,10 +245,9 @@ const [
         slabSliceTris,
       });
     };
-    w.requestMine = (specs, delta, meshId, position, slabSliceTris) => {
+    w.requestMine = (delta, meshId, position, slabSliceTris) => {
       return w.request({
         method: 'mine',
-        specs,
         delta,
         meshId,
         position,
@@ -697,26 +696,6 @@ const _makeChunkMesh = async () => {
   }
   // mesh.frustumCulled = false;
   mesh.meshId = meshId;
-  mesh.specs = specs.map(spec => {
-    return {
-      x: spec.x,
-      y: spec.y,
-      z: spec.z,
-      potentialsAddress: spec.potentialsAddress,
-      potentialsLength: spec.potentialsLength,
-      sliceIndex: spec.sliceIndex,
-    };
-  });
-  /* const specsBuffer = new Int32Array(specs.length * 6);
-  specs.forEach((spec, i) => {
-    specsBuffer[i*6] = spec.potentialsAddress;
-    specsBuffer[i*6+1] = spec.potentialsLength;
-    specsBuffer[i*6+2] = spec.dimsAddress;
-    specsBuffer[i*6+3] = spec.dimsLength;
-    specsBuffer[i*6+4] = spec.shiftsAddress;
-    specsBuffer[i*6+5] = spec.shiftsLength;
-  }); */
-  // mesh.specsBuffer = specsBuffer;
   return mesh;
 };
 
@@ -1572,26 +1551,7 @@ function animate(timestamp, frame) {
           const sy = Math.floor(localVector2.y/SUBPARCEL_SIZE);
           const sz = Math.floor(localVector2.z/SUBPARCEL_SIZE);
 
-          const oldSpecs = [];
-          for (let dx = -1; dx <= 1; dx++) {
-            for (let dy = -1; dy <= 1; dy++) {
-              for (let dz = -1; dz <= 1; dz++) {
-                const ax = sx + dx;
-                const ay = sy + dy;
-                const az = sz + dz;
-                if (ax >= 0 && ax < NUM_PARCELS && ay >= 0 && ay < NUM_PARCELS && az >= 0 && az < NUM_PARCELS) {
-                  const sliceIndex = _getSliceIndex(ax, ay, az);
-                  // if (!oldSpecs.some(oldSpec => oldSpec.sliceIndex === sliceIndex)) {
-                    const oldSpec = currentChunkMesh.specs[sliceIndex];
-                    oldSpecs.push(oldSpec);
-                  // }
-                }
-              }
-            }
-          }
-
           const specs = await worker.requestMine(
-            oldSpecs,
             delta,
             currentChunkMesh.meshId,
             localVector2.toArray(),
