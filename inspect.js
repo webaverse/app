@@ -363,19 +363,18 @@ const _renderPackage = async p => {
     await _renderPackage(p);
   };
 
-  // Create from file
-  const createFromFileInput = document.getElementById('create-from-file-input');
-  bindUploadFileButton(createFromFileInput, async file => {
+  const _importFile = async file => {
     const uint8Array = await XRPackage.compileFromFile(file);
     await _importPackage(uint8Array);
-  });
+  };
+
+  // Create from file
+  const createFromFileInput = document.getElementById('create-from-file-input');
+  bindUploadFileButton(createFromFileInput, _importFile);
 
   // Import wbn package
   const importPackageInput = document.getElementById('import-package-input');
-  bindUploadFileButton(importPackageInput, async file => {
-    const uint8Array = await readFile(file);
-    await _importPackage(uint8Array);
-  });
+  bindUploadFileButton(importPackageInput, _importFile);
 
   const bakePackageButton = document.getElementById('bake-package-button');
   bakePackageButton.addEventListener('click', async e => {
