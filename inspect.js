@@ -429,14 +429,18 @@ const _bakePackage = async p => {
 
     const manifest = document.getElementById('manifest').value;
     console.log('save manifest', manifest);
-    if (!isValidManifest(manifest)) return window.alert('Error: invalid manifest!');
-    p = _updateManifest(p, manifest);
-    pe.reset();
-    await pe.add(p);
-    await _renderPackage(p);
+    if (isValidManifest(manifest)) {
+      p = _updateManifest(p, manifest);
+      pe.reset();
+      await pe.add(p);
+      await _renderPackage(p);
+
+      openTab(0);
+    } else {
+      window.alert('Error: invalid manifest!');
+    }
 
     progress.stopTrickle();
-    openTab(0);
   });
 
   // files
