@@ -203,10 +203,10 @@ const buildMap = {};
 const buildMeshes = [];
 const itemMeshes = [];
 const _decorateMeshForRaycast = mesh => {
-  const meshId = ++nextId;
-
   mesh.traverse(o => {
     if (o.isMesh) {
+      const meshId = ++nextId;
+
       const {geometry} = o;
       const numPositions = geometry.attributes.position.array.length;
       const arrayBuffer2 = new ArrayBuffer(
@@ -232,6 +232,8 @@ const _decorateMeshForRaycast = mesh => {
 
       geometry.setAttribute('id', new THREE.BufferAttribute(ids, 1));
       geometry.setAttribute('index', new THREE.BufferAttribute(indices, 1));
+
+      mesh.meshId = meshId;
     }
   });
 };
@@ -807,29 +809,46 @@ const _loadGltf = u => new Promise((accept, reject) => {
   scene.add(paintBrushMesh);
 })();
 let buildMode = null;
-let platformMesh = null;
 let stairsMesh = null;
+let platformMesh = null;
 let wallMesh = null;
 let woodMesh = null;
 let stoneMesh = null;
 let metalMesh = null;
 (async () => {
   const buildModels = await _loadGltf('./build.glb');
-  stairsMesh = buildModels.children.find(c => c.name === 'Node_1003');
+  stairsMesh = buildModels.children.find(c => c.name === 'SM_Bld_Snow_Platform_Stairs_01001');
   stairsMesh.visible = false;
   worldContainer.add(stairsMesh);
+  stairsMesh.hullMesh = buildModels.children.find(c => c.name === 'SM_Bld_Snow_Platform_Stairs_01001hull');
+  stairsMesh.hullMesh.geometry = stairsMesh.hullMesh.geometry.toNonIndexed();
+  stairsMesh.hullMesh.visible = false;
+  stairsMesh.hullMesh.parent.remove(stairsMesh.hullMesh);
+
   platformMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01');
   platformMesh.visible = false;
   worldContainer.add(platformMesh);
+  platformMesh.hullMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01hull');
+  platformMesh.hullMesh.geometry = platformMesh.hullMesh.geometry.toNonIndexed();
+  platformMesh.hullMesh.visible = false;
+  platformMesh.hullMesh.parent.remove(platformMesh.hullMesh);
+
   wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06');
   wallMesh.visible = false;
   worldContainer.add(wallMesh);
+  wallMesh.hullMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06hull');
+  wallMesh.hullMesh.geometry = wallMesh.hullMesh.geometry.toNonIndexed();
+  wallMesh.hullMesh.visible = false;
+  wallMesh.hullMesh.parent.remove(wallMesh.hullMesh);
+
   woodMesh = buildModels.children.find(c => c.name === 'SM_Prop_Plank_01');
   woodMesh.visible = false;
   worldContainer.add(woodMesh);
+
   stoneMesh = buildModels.children.find(c => c.name === 'SM_Env_Rock_01');
   stoneMesh.visible = false;
   worldContainer.add(stoneMesh);
+
   metalMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSheet_01');
   metalMesh.visible = false;
   worldContainer.add(metalMesh);
@@ -947,6 +966,12 @@ class PointRaycaster {
       this.scene.quaternion.copy(oldParent.quaternion);
       this.scene.scale.copy(oldParent.scale);
     }
+    container.traverse(o => {
+      if (o.isMesh) {
+        o.oldVisible = o.visible;
+        o.visible = true;
+      }
+    });
 
     this.camera.position.copy(position);
     this.camera.quaternion.copy(quaternion);
@@ -954,6 +979,11 @@ class PointRaycaster {
 
     this.renderer.render(this.scene, this.camera);
 
+    container.traverse(o => {
+      if (o.isMesh) {
+        o.visible = o.oldVisible;
+      }
+    });
     if (oldParent) {
       oldParent.add(container);
     } else {
@@ -968,7 +998,7 @@ class PointRaycaster {
     let point;
     let normal;
     if (this.pixels[0] !== 0) {
-      const meshId = Math.round(this.pixels[0]*64000); // (Math.floor(this.pixels[0]*255) << 16) | (Math.floor(this.pixels[1]*255) << 8) | Math.floor(this.pixels[2]*255);
+      const meshId = Math.round(this.pixels[0]*64000);
       mesh = _findMeshWithMeshId(container, meshId);
       index = Math.round(this.pixels[1]*64000);
 
@@ -1090,6 +1120,12 @@ class CollisionRaycaster {
       this.scene.quaternion.copy(oldParent.quaternion);
       this.scene.scale.copy(oldParent.scale);
     }
+    container.traverse(o => {
+      if (o.isMesh) {
+        o.oldVisible = o.visible;
+        o.visible = true;
+      }
+    });
 
     this.camera.position.copy(position);
     this.camera.quaternion.copy(quaternion);
@@ -1108,6 +1144,11 @@ class CollisionRaycaster {
 
     this.renderer.render(this.scene, this.camera);
 
+    container.traverse(o => {
+      if (o.isMesh) {
+        o.visible = o.oldVisible;
+      }
+    });
     if (oldParent) {
       oldParent.add(container);
     } else {
@@ -1812,12 +1853,14 @@ function animate(timestamp, frame) {
           const buildKey = _getBuildKey(buildMesh.position);
           if (!buildMap[buildKey]) {
             const buildMeshClone = buildMesh.clone();
-            _decorateMeshForRaycast(buildMeshClone);
             buildMeshClone.traverse(o => {
               if (o.isMesh) {
                 o.material = o.material.clone();
               }
             });
+            buildMeshClone.hullMesh = buildMesh.hullMesh.clone();
+            buildMeshClone.hullMesh.geometry = buildMesh.hullMesh.geometry.clone();
+            _decorateMeshForRaycast(buildMeshClone.hullMesh);
             let animation = null;
             let hp = 100;
             buildMeshClone.hit = dmg => {
@@ -1864,6 +1907,7 @@ function animate(timestamp, frame) {
                 worldContainer.remove(buildMeshClone);
                 buildMap[buildKey] = null;
                 buildMeshes.splice(buildMeshes.indexOf(buildMeshClone), 1);
+                chunkMeshContainer.remove(buildMeshClone.hullMesh);
 
                 const radius = 0.5;
                 const segments = 12;
@@ -2036,7 +2080,6 @@ function animate(timestamp, frame) {
                 itemMesh.quaternion.copy(buildMeshClone.quaternion);
                 // itemMesh.scale.copy(buildMeshClone.scale);
                 worldContainer.add(itemMesh);
-
                 itemMeshes.push(itemMesh);
               }
             };
@@ -2046,6 +2089,11 @@ function animate(timestamp, frame) {
             worldContainer.add(buildMeshClone);
             buildMap[buildKey] = buildMeshClone;
             buildMeshes.push(buildMeshClone);
+
+            buildMeshClone.hullMesh.position.copy(buildMeshClone.position);
+            buildMeshClone.hullMesh.quaternion.copy(buildMeshClone.quaternion);
+            buildMeshClone.hullMesh.scale.copy(buildMeshClone.scale);
+            chunkMeshContainer.add(buildMeshClone.hullMesh);
           }
         }
       }
