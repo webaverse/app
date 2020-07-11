@@ -1818,11 +1818,29 @@ function animate(timestamp, frame) {
             }
             case 'sledgehammer': {
               if (removeMesh.visible) {
-                _applyPotentialDelta(removeMesh.position, -0.2);
+                if (raycastChunkSpec.mesh === currentChunkMesh) {
+                  _applyPotentialDelta(removeMesh.position, -0.2);
+                } else {
+                  const {buildMesh} = raycastChunkSpec.mesh;
+
+                  localVector2.copy(localVector)
+                    .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
+                    .add(localVector3.set(0, -BUILD_SNAP/2, 0));
+                  _snapBuildPosition(localVector2);
+
+                  localMatrix.compose(localVector2, localQuaternion, localVector3.set(1, 1, 1))
+                    .premultiply(localMatrix2.getInverse(worldContainer.matrix))
+                    .decompose(localVector2, localQuaternion2, localVector3);
+
+                  const buildKey = _getBuildKey(localVector2);
+                  const oldBuildMesh = buildMap[buildKey];
+
+                  buildMesh.hit(30);
+                }
               }
               break;
             }
-            case 'pickaxe': {
+            /* case 'pickaxe': {
               localVector2.copy(localVector)
                 .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
                 .add(localVector3.set(0, -BUILD_SNAP/2, 0));
@@ -1837,7 +1855,7 @@ function animate(timestamp, frame) {
 
               oldBuildMesh && oldBuildMesh.hit(30);
               break;
-            }
+            } */
             /* case 'paintbrush': {
               return paintBrushMesh;
             } */
@@ -1866,6 +1884,7 @@ function animate(timestamp, frame) {
             buildMeshClone.hullMesh = buildMesh.hullMesh.clone();
             buildMeshClone.hullMesh.geometry = buildMesh.hullMesh.geometry.clone();
             _decorateMeshForRaycast(buildMeshClone.hullMesh);
+            buildMeshClone.hullMesh.buildMesh = buildMeshClone;
             let animation = null;
             let hp = 100;
             buildMeshClone.hit = dmg => {
@@ -1909,11 +1928,6 @@ function animate(timestamp, frame) {
                   }
                 });
               } else {
-                buildMeshClone.parent.remove(buildMeshClone);
-                buildMap[buildKey] = null;
-                buildMeshes.splice(buildMeshes.indexOf(buildMeshClone), 1);
-                buildMeshClone.hullMesh.parent.remove(buildMeshClone.hullMesh);
-
                 const radius = 0.5;
                 const segments = 12;
                 const color = 0x66bb6a; // 0x5c6bc0;
@@ -1983,6 +1997,7 @@ function animate(timestamp, frame) {
                   const matMeshClone = matMesh.clone();
                   matMeshClone.position.y = 0.5;
                   matMeshClone.visible = true;
+                  matMeshClone.isBuildMesh = true;
                   object.add(matMeshClone);
 
                   const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
@@ -2037,6 +2052,7 @@ function animate(timestamp, frame) {
                   });
                   const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
                   skirtMesh.frustumCulled = false;
+                  skirtMesh.isBuildMesh = true;
                   object.add(skirtMesh);
 
                   let animation = null;
@@ -2061,7 +2077,7 @@ function animate(timestamp, frame) {
                             const localFactor = (factor-0.5)/0.5;
                             object.position.copy(posePosition);
                           } else {
-                            worldContainer.remove(object);
+                            object.parent.remove(object);
                             itemMeshes.splice(itemMeshes.indexOf(object), 1);
                             animation = null;
                           }
@@ -2084,8 +2100,13 @@ function animate(timestamp, frame) {
                 itemMesh.position.copy(buildMeshClone.position);
                 itemMesh.quaternion.copy(buildMeshClone.quaternion);
                 // itemMesh.scale.copy(buildMeshClone.scale);
-                worldContainer.add(itemMesh);
+                buildMeshClone.parent.add(itemMesh);
                 itemMeshes.push(itemMesh);
+
+                buildMeshClone.parent.remove(buildMeshClone);
+                buildMap[buildKey] = null;
+                buildMeshes.splice(buildMeshes.indexOf(buildMeshClone), 1);
+                buildMeshClone.hullMesh.parent.remove(buildMeshClone.hullMesh);
               }
             };
             buildMeshClone.update = () => {
@@ -2447,7 +2468,7 @@ function animate(timestamp, frame) {
         if (itemMesh.getWorldPosition(localVector5).distanceTo(localVector4) < 1) {
           itemMesh.pickUp();
         }
-        itemMesh.update(localVector5.copy(localVector3).applyMatrix4(localMatrix2.getInverse(worldContainer.matrix)));
+        itemMesh.update(localVector5.copy(localVector3).applyMatrix4(localMatrix2.getInverse(currentChunkMesh.matrixWorld)));
       }
     };
 
