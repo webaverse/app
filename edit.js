@@ -202,15 +202,48 @@ const _snapBuildPosition = p => {
 const buildMap = {};
 const buildMeshes = [];
 const itemMeshes = [];
+const _decorateMeshForRaycast = mesh => {
+  const meshId = ++nextId;
+
+  mesh.traverse(o => {
+    if (o.isMesh) {
+      const {geometry} = o;
+      const numPositions = geometry.attributes.position.array.length;
+      const arrayBuffer2 = new ArrayBuffer(
+        numPositions/3 * Float32Array.BYTES_PER_ELEMENT +
+        numPositions/3 * Float32Array.BYTES_PER_ELEMENT
+      );
+      let index = 0;
+      const indexOffset = 0;
+
+      const ids = new Float32Array(arrayBuffer2, index, numPositions/3);
+      index += numPositions/3 * Float32Array.BYTES_PER_ELEMENT;
+      const indices = new Float32Array(arrayBuffer2, index, numPositions/3);
+      index += numPositions/3 * Float32Array.BYTES_PER_ELEMENT;
+      for (let i = 0; i < numPositions/3/3; i++) {
+        ids[i*3] = meshId;
+        ids[i*3+1] = meshId;
+        ids[i*3+2] = meshId;
+        const i2 = i + indexOffset;
+        indices[i*3] = i2;
+        indices[i*3+1] = i2;
+        indices[i*3+2] = i2;
+      }
+
+      geometry.setAttribute('id', new THREE.BufferAttribute(ids, 1));
+      geometry.setAttribute('index', new THREE.BufferAttribute(indices, 1));
+    }
+  });
+};
 
 let nextId = 0;
-function meshIdToArray(meshId) {
+/* function meshIdToArray(meshId) {
   return [
     ((meshId >> 16) & 0xFF),
     ((meshId >> 8) & 0xFF),
     (meshId & 0xFF),
   ];
-}
+} */
 
 let worker = null;
 let remoteChunkMeshes = [];
@@ -600,7 +633,7 @@ const _makeChunkMesh = async () => {
     },
   });
 
-  const numStops = 1;// Math.floor(2 + rng() * 5);
+  const numStops = 1;
   const stops = Array(numStops);
   const colorKeys = Object.keys(colors);
   for (let i = 0; i < numStops; i++) {
@@ -715,7 +748,7 @@ const _makeChunkMesh = async () => {
 
 const chunkMesh = await _makeChunkMesh();
 chunkMesh.position.y = -32;
-chunkMesh.position.x = -20;
+chunkMesh.position.x = -12;
 chunkMesh.position.z = -10;
 /* {
   const img = document.createElement('img');
@@ -1270,7 +1303,7 @@ teleportMeshes.forEach(teleportMesh => {
   scene.add(teleportMesh);
 });
 
-const planetMaterial = (() => {
+/* const planetMaterial = (() => {
   const loadVsh = `
     attribute float id;
     varying vec3 vPosition;
@@ -1456,7 +1489,7 @@ for (let i = 0; i < numRemotePlanetMeshes; i++) {
   remotePlanetMesh.add(textMesh);
 
   planetContainer.add(remotePlanetMesh);
-}
+} */
 
 /* const rayMesh = makeRayMesh();
 scene.add(rayMesh);
@@ -1779,6 +1812,7 @@ function animate(timestamp, frame) {
           const buildKey = _getBuildKey(buildMesh.position);
           if (!buildMap[buildKey]) {
             const buildMeshClone = buildMesh.clone();
+            _decorateMeshForRaycast(buildMeshClone);
             buildMeshClone.traverse(o => {
               if (o.isMesh) {
                 o.material = o.material.clone();
