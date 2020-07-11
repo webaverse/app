@@ -15,6 +15,7 @@ import {makeTextMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import perlin from './perlin.js';
 import alea from './alea.js';
+import easing from './easing.js';
 const rng = alea('lol');
 perlin.seed(rng());
 
@@ -45,6 +46,8 @@ const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+
+const cubicBezier = easing(0, 1, 0, 1);
 
 const HEIGHTFIELD_SHADER = {
   uniforms: {
@@ -1957,20 +1960,28 @@ function animate(timestamp, frame) {
                   object.pickUp = () => {
                     if (!animation) {
                       skirtMesh.visible = false;
-                      // matMeshClone.position.y = 0;
 
                       const now = Date.now();
                       const startTime = now;
                       const endTime = startTime + 1000;
-                      const startPosition = object.position.clone()
-                        // .applyMatrix4(localMatrix2.getInverse(worldContainer.matrix));
+                      const startPosition = object.position.clone();
                       animation = {
                         update(posePosition) {
                           const now = Date.now();
                           const factor = Math.min((now - startTime) / (endTime - startTime), 1);
 
-                          object.position.copy(startPosition)
-                            .lerp(posePosition, factor);
+                          if (factor < 0.5) {
+                            const localFactor = factor/0.5;
+                            object.position.copy(startPosition)
+                              .lerp(posePosition, cubicBezier(localFactor));
+                          } else if (factor < 1) {
+                            const localFactor = (factor-0.5)/0.5;
+                            object.position.copy(posePosition);
+                          } else {
+                            worldContainer.remove(object);
+                            itemMeshes.splice(itemMeshes.indexOf(object), 1);
+                            animation = null;
+                          }
                         },
                       };
                     }
