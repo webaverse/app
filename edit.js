@@ -201,8 +201,10 @@ function meshIdToArray(meshId) {
 
 let worker = null;
 let remoteChunkMeshes = [];
+const worldContainer = new THREE.Object3D();
+scene.add(worldContainer);
 const chunkMeshContainer = new THREE.Object3D();
-scene.add(chunkMeshContainer);
+worldContainer.add(chunkMeshContainer);
 let currentChunkMesh = null;
 let physics = null;
 let physicalMesh = null;
@@ -758,7 +760,7 @@ const _loadGltf = u => new Promise((accept, reject) => {
   paintBrushMesh.visible = false;
   scene.add(paintBrushMesh);
 })();
-let buildMode = false;
+let buildMode = null;
 let platformMesh = null;
 let stairsMesh = null;
 let wallMesh = null;
@@ -766,14 +768,13 @@ let wallMesh = null;
   const buildModels = await _loadGltf('./build.glb');
   stairsMesh = buildModels.children.find(c => c.name === 'Node_1003');
   stairsMesh.visible = false;
-  scene.add(stairsMesh);
+  worldContainer.add(stairsMesh);
   platformMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01');
   platformMesh.visible = false;
-  scene.add(platformMesh);
+  worldContainer.add(platformMesh);
   wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06');
   wallMesh.visible = false;
-  scene.add(wallMesh);
-  // scene.add(buildModels);
+  worldContainer.add(wallMesh);
 })();
 
 const addMesh = (() => {
@@ -856,6 +857,11 @@ class PointRaycaster {
   raycastMeshes(container, position, quaternion) {
     const oldParent = container.parent;
     this.scene.add(container);
+    if (oldParent) {
+      this.scene.position.copy(oldParent.position);
+      this.scene.quaternion.copy(oldParent.quaternion);
+      this.scene.scale.copy(oldParent.scale);
+    }
 
     this.camera.position.copy(position);
     this.camera.quaternion.copy(quaternion);
@@ -994,6 +1000,11 @@ class CollisionRaycaster {
   raycastMeshes(container, position, quaternion, uSize, vSize, dSize) {
     const oldParent = container.parent;
     this.scene.add(container);
+    if (oldParent) {
+      this.scene.position.copy(oldParent.position);
+      this.scene.quaternion.copy(oldParent.quaternion);
+      this.scene.scale.copy(oldParent.scale);
+    }
 
     this.camera.position.copy(position);
     this.camera.quaternion.copy(quaternion);
@@ -1573,6 +1584,9 @@ function animate(timestamp, frame) {
         } */
       }
       if (wallMesh) {
+        [wallMesh, platformMesh, stairsMesh].forEach(buildMesh => {
+          buildMesh.visible = false;
+        });
         if (buildMode) {
           const _snapPosition = p => {
             p.x = Math.floor(p.x/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
@@ -1580,39 +1594,34 @@ function animate(timestamp, frame) {
             p.z = Math.floor(p.z/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
             return p;
           };
+
+          const buildMesh = (() => {
+            switch (buildMode) {
+              case 'wall': return wallMesh;
+              case 'floor': return platformMesh;
+              case 'stair': return stairsMesh;
+              default: return null;
+            }
+          })();
+
+          buildMesh.position.copy(localVector)
+            .add(localVector2.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
+            .add(localVector2.set(0, -BUILD_SNAP/2, 0))
+            // .add(localVector2.set(BUILD_SNAP/2, 0, 0).applyQuaternion(localQuaternion2));
+          _snapPosition(buildMesh.position);
+
           localEuler.setFromQuaternion(localQuaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.y += Math.PI*2;
           localEuler.y = Math.round(localEuler.y/(Math.PI/2))*(Math.PI/2);
           localEuler.z = 0;
-          localQuaternion2.setFromEuler(localEuler);
-          localEuler.y += Math.PI/2;
-          wallMesh.quaternion.setFromEuler(localEuler);
+          buildMesh.quaternion.setFromEuler(localEuler);
 
-          wallMesh.position.copy(localVector)
-            .add(localVector2.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
-            .add(localVector2.set(BUILD_SNAP/2, 0, 0).applyQuaternion(localQuaternion2));
-          _snapPosition(wallMesh.position);
-          // wallMesh.position.add(localVector2.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion2));
-          /* // wallMesh.quaternion.set(0, 0, 0, 1);
-          const currentPosition = localVector;
-          const positionDiff = localVector2.copy(currentPosition).sub(wallMesh.position);
-          if (Math.abs(positionDiff.x) > Math.abs(positionDiff.z)) {
-            if (positionDiff.x < 0) {
-              wallMesh.quaternion.premultiply(localQuaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0)));
-            } else if (positionDiff.x > 0) {
-              wallMesh.quaternion.premultiply(localQuaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0)));
-            }
-          } else {
-            if (positionDiff.z < 0) {
-              wallMesh.quaternion.premultiply(localQuaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, -1)));
-            } else if (positionDiff.z > 0) {
-              wallMesh.quaternion.premultiply(localQuaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, 1)));
-            }
-          } */
-          wallMesh.visible = true;
-        } else {
-          wallMesh.visible = false;
+          buildMesh.matrix.compose(buildMesh.position, buildMesh.quaternion, buildMesh.scale)
+            .premultiply(localMatrix2.getInverse(worldContainer.matrix))
+            .decompose(buildMesh.position, buildMesh.quaternion, buildMesh.scale);
+
+          buildMesh.visible = true;
         }
       }
       if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
@@ -1712,7 +1721,7 @@ function animate(timestamp, frame) {
         localMatrix.fromArray(pose.transform.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
 
-        chunkMeshContainer.matrix
+        worldContainer.matrix
           .premultiply(localMatrix.makeTranslation(-position.x, -position.y, -position.z));
 
         /* localEuler.setFromQuaternion(localQuaternion, 'YXZ');
@@ -1721,18 +1730,18 @@ function animate(timestamp, frame) {
         localQuaternion3.setFromEuler(localEuler);
         localQuaternion3.inverse(); */
 
-        chunkMeshContainer.matrix
+        worldContainer.matrix
           .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
 
-        chunkMeshContainer.matrix
+        worldContainer.matrix
           .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z));
 
-        chunkMeshContainer.matrix
+        worldContainer.matrix
           // .premultiply(localMatrix.makeTranslation(0, -localVector2.y, 0));
           .premultiply(localMatrix.makeTranslation(0, -_getMinHeight(), 0));
 
-        chunkMeshContainer.matrix
-          .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
+        worldContainer.matrix
+          .decompose(worldContainer.position, worldContainer.quaternion, worldContainer.scale);
 
         velocity.set(0, 0, 0);
       };
@@ -2478,10 +2487,6 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
-    case 81: { // Q
-      buildMode = !buildMode;
-      break;
-    }
     case 69: { // E
       if (document.pointerLockElement) {
         // nothing
@@ -2519,6 +2524,22 @@ window.addEventListener('keydown', e => {
           velocity.y += 5;
         }
       }
+      break;
+    }
+    case 81: { // Q
+      buildMode = buildMode ? null : 'wall';
+      break;
+    }
+    case 90: { // Z
+      buildMode = 'wall';
+      break;
+    }
+    case 88: { // X
+      buildMode = 'floor';
+      break;
+    }
+    case 67: { // C
+      buildMode = 'stair';
       break;
     }
     case 80: { // P
