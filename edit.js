@@ -1741,7 +1741,7 @@ function animate(timestamp, frame) {
               const buildKey = _getBuildKey(localVector2);
               const oldBuildMesh = buildMap[buildKey];
 
-              oldBuildMesh && oldBuildMesh.hit();
+              oldBuildMesh && oldBuildMesh.hit(30);
               break;
             }
             /* case 'paintbrush': {
@@ -1769,44 +1769,169 @@ function animate(timestamp, frame) {
               }
             });
             let animation = null;
-            buildMeshClone.hit = () => {
+            let hp = 100;
+            buildMeshClone.hit = dmg => {
               if (animation) {
                 animation.end();
                 animation = null;
               }
 
-              const startTime = Date.now();
-              const endTime = startTime + 500;
-              animation = {
-                startTime,
-                endTime,
-                update() {
-                  const now = Date.now();
-                  const {startTime, endTime} = animation;
-                  const factor = (now - startTime) / (endTime - startTime);
-                  if (factor < 1) {
-                    buildMeshClone.position.copy(buildMeshClone.originalPosition)
-                      .add(localVector2.set(-1+Math.random(), -1+Math.random(), -1+Math.random()).multiplyScalar((1-factor)*0.2/2));
-                  } else {
-                    animation.end();
-                    animation = null;
-                  }
-                },
-                end() {
-                  buildMeshClone.position.copy(buildMeshClone.originalPosition);
-                  buildMeshClone.traverse(o => {
-                    if (o.isMesh) {
-                      o.material.color.setHex(0xFFFFFF);
+              hp = Math.max(hp - dmg, 0);
+              if (hp > 0) {
+                const startTime = Date.now();
+                const endTime = startTime + 500;
+                animation = {
+                  startTime,
+                  endTime,
+                  update() {
+                    const now = Date.now();
+                    const {startTime, endTime} = animation;
+                    const factor = (now - startTime) / (endTime - startTime);
+                    if (factor < 1) {
+                      buildMeshClone.position.copy(buildMeshClone.originalPosition)
+                        .add(localVector2.set(-1+Math.random(), -1+Math.random(), -1+Math.random()).multiplyScalar((1-factor)*0.2/2));
+                    } else {
+                      animation.end();
+                      animation = null;
                     }
-                  });
-                },
-              };
-              buildMeshClone.originalPosition = buildMeshClone.position.clone();
-              buildMeshClone.traverse(o => {
-                if (o.isMesh) {
-                  o.material.color.setHex(0xef5350).multiplyScalar(2);
+                  },
+                  end() {
+                    buildMeshClone.position.copy(buildMeshClone.originalPosition);
+                    buildMeshClone.traverse(o => {
+                      if (o.isMesh) {
+                        o.material.color.setHex(0xFFFFFF);
+                      }
+                    });
+                  },
+                };
+                buildMeshClone.originalPosition = buildMeshClone.position.clone();
+                buildMeshClone.traverse(o => {
+                  if (o.isMesh) {
+                    o.material.color.setHex(0xef5350).multiplyScalar(2);
+                  }
+                });
+              } else {
+                worldContainer.remove(buildMeshClone);
+                buildMap[buildKey] = null;
+                buildMeshes.splice(buildMeshes.indexOf(buildMeshClone), 1);
+
+                const radius = 0.5;
+                const segments = 12;
+                const color = 0x66bb6a; // 0x5c6bc0;
+                const opacity = 0.5;
+                /* const circleGeometry = new THREE.CircleBufferGeometry(radius, segments)
+                  .applyMatrix4(new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), -Math.PI/2))
+                  .applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.5, 0));
+                const uvs = new Float32Array(circleGeometry.attributes.position.array.length/3);
+                for (let i = 0; i < circleGeometry.attributes.position.array.length/3; i++) {
+                  uvs[i] = new THREE.Vector2(circleGeometry.attributes.position.array[i*3+0], circleGeometry.attributes.position.array[i*3+2]).length()/radius;
                 }
-              });
+                circleGeometry.setAttribute('uv2', new THREE.BufferAttribute(uvs, 1));
+                const circleMaterial = new THREE.ShaderMaterial({
+                  uniforms: {
+                    uAnimation: {
+                      type: 'f',
+                      value: 0,
+                    },
+                  },
+                  vertexShader: `\
+                    #define PI 3.1415926535897932384626433832795
+
+                    uniform float uAnimation;
+                    attribute float uv2;
+                    varying float vBC;
+                    varying float vOpacity;
+
+                    void main() {
+                      vBC = uv2;
+                      vOpacity = 0.5 + 0.5 * (sin(uAnimation*20.0*PI*2.0)+1.0)/2.0;
+                      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                  `,
+                  fragmentShader: `\
+                    uniform sampler2D uCameraTex;
+                    varying float vBC;
+                    varying float vOpacity;
+
+                    void main() {
+                      if (vBC > 0.95) {
+                        vec3 c = vec3(${new THREE.Color(color).toArray().join(', ')});
+                        float a = vOpacity * ${opacity.toFixed(8)};
+                        gl_FragColor = vec4(c, a);
+                      } else {
+                        discard;
+                      }
+                    }
+                  `,
+                  side: THREE.DoubleSide,
+                  transparent: true,
+                  // depthWrite: false,
+                });
+                const circleMesh = new THREE.Mesh(circleGeometry, circleMaterial);
+                // const circleMesh = new THREE.Mesh(circleGeometry, circleMaterial);
+                circleMesh.position.copy(buildMeshClone.position);
+                circleMesh.quaternion.copy(buildMeshClone.quaternion);
+                // circleMesh.scale.copy(buildMeshClone.scale);
+                circleMesh.frustumCulled = false;
+                worldContainer.add(circleMesh); */
+
+                const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
+                  .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius/2, 0));
+                const ys = new Float32Array(skirtGeometry.attributes.position.array.length/3);
+                for (let i = 0; i < skirtGeometry.attributes.position.array.length/3; i++) {
+                  ys[i] = 1-skirtGeometry.attributes.position.array[i*3+1]/radius;
+                }
+                skirtGeometry.setAttribute('y', new THREE.BufferAttribute(ys, 1));
+                // skirtGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.5, 0));
+                const skirtMaterial = new THREE.ShaderMaterial({
+                  uniforms: {
+                    uAnimation: {
+                      type: 'f',
+                      value: 0,
+                    },
+                  },
+                  vertexShader: `\
+                    #define PI 3.1415926535897932384626433832795
+
+                    uniform float uAnimation;
+                    attribute float y;
+                    attribute vec3 barycentric;
+                    varying float vY;
+                    varying float vUv;
+                    varying float vOpacity;
+                    void main() {
+                      vY = y * ${opacity.toFixed(8)};
+                      vUv = uv.x + uAnimation;
+                      vOpacity = 0.5 + 0.5 * (sin(uAnimation*20.0*PI*2.0)+1.0)/2.0;
+                      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                  `,
+                  fragmentShader: `\
+                    #define PI 3.1415926535897932384626433832795
+
+                    uniform sampler2D uCameraTex;
+                    varying float vY;
+                    varying float vUv;
+                    varying float vOpacity;
+
+                    vec3 c = vec3(${new THREE.Color(color).toArray().join(', ')});
+
+                    void main() {
+                      float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
+                      gl_FragColor = vec4(c, a);
+                    }
+                  `,
+                  side: THREE.DoubleSide,
+                  transparent: true,
+                  depthWrite: false,
+                });
+                const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
+                skirtMesh.position.copy(buildMeshClone.position);
+                skirtMesh.quaternion.copy(buildMeshClone.quaternion);
+                // circleMesh.scale.copy(buildMeshClone.scale);
+                skirtMesh.frustumCulled = false;
+                worldContainer.add(skirtMesh);
+              }
             };
             buildMeshClone.update = () => {
               animation && animation.update();
