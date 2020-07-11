@@ -190,7 +190,14 @@ const HEIGHTFIELD_SHADER = {
 };
 const _getSliceIndex = (x, y, z) => z + y*NUM_PARCELS + x*NUM_PARCELS*NUM_PARCELS;
 const _getBuildKey = p => [p.x,p.y,p.z].join(':');
+const _snapBuildPosition = p => {
+  p.x = Math.floor(p.x/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
+  p.y = Math.floor(p.y/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
+  p.z = Math.floor(p.z/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
+  return p;
+};
 const buildMap = {};
+const buildMeshes = [];
 
 let nextId = 0;
 function meshIdToArray(meshId) {
@@ -791,6 +798,19 @@ const redBuildMeshMaterial = new THREE.ShaderMaterial({
   `,
   // side: THREE.DoubleSide,
   transparent: true,
+});
+const hitMaterial = new THREE.ShaderMaterial({
+  vertexShader: `
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+    }
+  `,
+  fragmentShader: `
+    void main() {
+      gl_FragColor = vec4(${new THREE.Color(0xef5350).toArray().join(', ')}, 1.0);
+    }
+  `,
+  // transparent: true,
 });
 
 const addMesh = (() => {
@@ -1583,13 +1603,7 @@ function animate(timestamp, frame) {
           }
           break;
         }
-        case 'pickaxe': {
-          // if (raycastChunkSpec && raycastChunkSpec.mesh === currentChunkMesh) {
-            addMesh.position.copy(localVector)
-              .add(localVector2.set(0, 0, -2).applyQuaternion(localQuaternion));
-            addMesh.quaternion.copy(localQuaternion);
-            addMesh.visible = true;
-          // }
+        /* case 'pickaxe': {
           break;
         }
         /* case 'paintbrush': {
@@ -1604,13 +1618,6 @@ function animate(timestamp, frame) {
           buildMesh.visible = false;
         });
         if (buildMode) {
-          const _snapPosition = p => {
-            p.x = Math.floor(p.x/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
-            p.y = Math.floor(p.y/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
-            p.z = Math.floor(p.z/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
-            return p;
-          };
-
           const buildMesh = (() => {
             switch (buildMode) {
               case 'wall': return wallMesh;
@@ -1621,10 +1628,9 @@ function animate(timestamp, frame) {
           })();
 
           buildMesh.position.copy(localVector)
-            .add(localVector2.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
-            .add(localVector2.set(0, -BUILD_SNAP/2, 0))
-            // .add(localVector2.set(BUILD_SNAP/2, 0, 0).applyQuaternion(localQuaternion2));
-          _snapPosition(buildMesh.position);
+            .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
+            .add(localVector3.set(0, -BUILD_SNAP/2, 0));
+          _snapBuildPosition(buildMesh.position);
 
           localEuler.setFromQuaternion(localQuaternion, 'YXZ');
           localEuler.x = 0;
@@ -1723,9 +1729,19 @@ function animate(timestamp, frame) {
               break;
             }
             case 'pickaxe': {
-              if (addMesh.visible) {
-                console.log('click', addMesh.position.toArray());
-              }
+              localVector2.copy(localVector)
+                .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
+                .add(localVector3.set(0, -BUILD_SNAP/2, 0));
+              _snapBuildPosition(localVector2);
+
+              localMatrix.compose(localVector2, localQuaternion, localVector3.set(1, 1, 1))
+                .premultiply(localMatrix2.getInverse(worldContainer.matrix))
+                .decompose(localVector2, localQuaternion2, localVector3);
+
+              const buildKey = _getBuildKey(localVector2);
+              const oldBuildMesh = buildMap[buildKey];
+
+              oldBuildMesh && oldBuildMesh.hit();
               break;
             }
             /* case 'paintbrush': {
@@ -1747,8 +1763,57 @@ function animate(timestamp, frame) {
           const buildKey = _getBuildKey(buildMesh.position);
           if (!buildMap[buildKey]) {
             const buildMeshClone = buildMesh.clone();
+            buildMeshClone.traverse(o => {
+              if (o.isMesh) {
+                o.material = o.material.clone();
+              }
+            });
+            let animation = null;
+            buildMeshClone.hit = () => {
+              if (animation) {
+                animation.end();
+                animation = null;
+              }
+
+              const startTime = Date.now();
+              const endTime = startTime + 500;
+              animation = {
+                startTime,
+                endTime,
+                update() {
+                  const now = Date.now();
+                  const {startTime, endTime} = animation;
+                  const factor = (now - startTime) / (endTime - startTime);
+                  if (factor < 1) {
+                    buildMeshClone.position.copy(buildMeshClone.originalPosition)
+                      .add(localVector2.set(-1+Math.random(), -1+Math.random(), -1+Math.random()).multiplyScalar((1-factor)*0.2/2));
+                  } else {
+                    animation.end();
+                    animation = null;
+                  }
+                },
+                end() {
+                  buildMeshClone.position.copy(buildMeshClone.originalPosition);
+                  buildMeshClone.traverse(o => {
+                    if (o.isMesh) {
+                      o.material.color.setHex(0xFFFFFF);
+                    }
+                  });
+                },
+              };
+              buildMeshClone.originalPosition = buildMeshClone.position.clone();
+              buildMeshClone.traverse(o => {
+                if (o.isMesh) {
+                  o.material.color.setHex(0xef5350).multiplyScalar(2);
+                }
+              });
+            };
+            buildMeshClone.update = () => {
+              animation && animation.update();
+            };
             worldContainer.add(buildMeshClone);
-            buildMap[buildKey] = true;
+            buildMap[buildKey] = buildMeshClone;
+            buildMeshes.push(buildMeshClone);
           }
         }
       }
@@ -1825,12 +1890,16 @@ function animate(timestamp, frame) {
     }
   }
 
-  if (planetAnimation) {
+  for (let i = 0; i < buildMeshes.length; i++) {
+    buildMeshes[i].update();
+  }
+
+  /* if (planetAnimation) {
     const {startTime, endTime} = planetAnimation;
     const now = Date.now();
     const factor = Math.min((now - startTime) / (endTime - startTime), 1);
     _tickPlanetAnimation(factor);
-  }
+  } */
 
   const currentSession = getRealSession();
   if (currentSession) {
