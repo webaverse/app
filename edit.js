@@ -198,6 +198,7 @@ const _snapBuildPosition = p => {
 };
 const buildMap = {};
 const buildMeshes = [];
+const itemMeshes = [];
 
 let nextId = 0;
 function meshIdToArray(meshId) {
@@ -1875,62 +1876,76 @@ function animate(timestamp, frame) {
                 circleMesh.frustumCulled = false;
                 worldContainer.add(circleMesh); */
 
-                const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
-                  .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius/2, 0));
-                const ys = new Float32Array(skirtGeometry.attributes.position.array.length/3);
-                for (let i = 0; i < skirtGeometry.attributes.position.array.length/3; i++) {
-                  ys[i] = 1-skirtGeometry.attributes.position.array[i*3+1]/radius;
-                }
-                skirtGeometry.setAttribute('y', new THREE.BufferAttribute(ys, 1));
-                // skirtGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.5, 0));
-                const skirtMaterial = new THREE.ShaderMaterial({
-                  uniforms: {
-                    uAnimation: {
-                      type: 'f',
-                      value: 0,
+                const itemMesh = (() => {
+                  const object = new THREE.Object3D();
+
+                  const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
+                    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius/2, 0));
+                  const ys = new Float32Array(skirtGeometry.attributes.position.array.length/3);
+                  for (let i = 0; i < skirtGeometry.attributes.position.array.length/3; i++) {
+                    ys[i] = 1-skirtGeometry.attributes.position.array[i*3+1]/radius;
+                  }
+                  skirtGeometry.setAttribute('y', new THREE.BufferAttribute(ys, 1));
+                  // skirtGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.5, 0));
+                  const skirtMaterial = new THREE.ShaderMaterial({
+                    uniforms: {
+                      uAnimation: {
+                        type: 'f',
+                        value: 0,
+                      },
                     },
-                  },
-                  vertexShader: `\
-                    #define PI 3.1415926535897932384626433832795
+                    vertexShader: `\
+                      #define PI 3.1415926535897932384626433832795
 
-                    uniform float uAnimation;
-                    attribute float y;
-                    attribute vec3 barycentric;
-                    varying float vY;
-                    varying float vUv;
-                    varying float vOpacity;
-                    void main() {
-                      vY = y * ${opacity.toFixed(8)};
-                      vUv = uv.x + uAnimation;
-                      vOpacity = 0.5 + 0.5 * (sin(uAnimation*20.0*PI*2.0)+1.0)/2.0;
-                      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                    }
-                  `,
-                  fragmentShader: `\
-                    #define PI 3.1415926535897932384626433832795
+                      uniform float uAnimation;
+                      attribute float y;
+                      attribute vec3 barycentric;
+                      varying float vY;
+                      varying float vUv;
+                      varying float vOpacity;
+                      void main() {
+                        vY = y * ${opacity.toFixed(8)};
+                        vUv = uv.x + uAnimation;
+                        vOpacity = 0.5 + 0.5 * (sin(uAnimation*20.0*PI*2.0)+1.0)/2.0;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                      }
+                    `,
+                    fragmentShader: `\
+                      #define PI 3.1415926535897932384626433832795
 
-                    uniform sampler2D uCameraTex;
-                    varying float vY;
-                    varying float vUv;
-                    varying float vOpacity;
+                      uniform sampler2D uCameraTex;
+                      varying float vY;
+                      varying float vUv;
+                      varying float vOpacity;
 
-                    vec3 c = vec3(${new THREE.Color(color).toArray().join(', ')});
+                      vec3 c = vec3(${new THREE.Color(color).toArray().join(', ')});
 
-                    void main() {
-                      float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
-                      gl_FragColor = vec4(c, a);
-                    }
-                  `,
-                  side: THREE.DoubleSide,
-                  transparent: true,
-                  depthWrite: false,
-                });
-                const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
-                skirtMesh.position.copy(buildMeshClone.position);
-                skirtMesh.quaternion.copy(buildMeshClone.quaternion);
-                // circleMesh.scale.copy(buildMeshClone.scale);
-                skirtMesh.frustumCulled = false;
-                worldContainer.add(skirtMesh);
+                      void main() {
+                        float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
+                        gl_FragColor = vec4(c, a);
+                      }
+                    `,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    depthWrite: false,
+                  });
+                  const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
+                  skirtMesh.frustumCulled = false;
+                  object.add(skirtMesh);
+
+                  object.update = () => {
+                    const now = Date.now();
+                    skirtMaterial.uniforms.uAnimation.value = (now%60000)/60000;
+                  };
+
+                  return object;
+                })();
+                itemMesh.position.copy(buildMeshClone.position);
+                itemMesh.quaternion.copy(buildMeshClone.quaternion);
+                // itemMesh.scale.copy(buildMeshClone.scale);
+                worldContainer.add(itemMesh);
+
+                itemMeshes.push(itemMesh);
               }
             };
             buildMeshClone.update = () => {
@@ -2017,6 +2032,9 @@ function animate(timestamp, frame) {
 
   for (let i = 0; i < buildMeshes.length; i++) {
     buildMeshes[i].update();
+  }
+  for (let i = 0; i < itemMeshes.length; i++) {
+    itemMeshes[i].update();
   }
 
   /* if (planetAnimation) {
