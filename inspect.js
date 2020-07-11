@@ -8,9 +8,10 @@ import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpac
 import {OrbitControls} from 'https://static.xrpackage.org/xrpackage/OrbitControls.js';
 import {tryLogin} from './login.js';
 import {getWireframeMesh} from './volume.js';
-import './progress.js';
+import {progress} from './progress.js';
 import address from 'https://contracts.webaverse.com/address.js';
 import abi from 'https://contracts.webaverse.com/abi.js';
+
 window.THREE = THREE;
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
@@ -411,6 +412,9 @@ const _bakePackage = async p => {
 
   const saveManifestButton = document.getElementById('save-manifest-button');
   saveManifestButton.addEventListener('click', async () => {
+    progress.setNumeratorDenominator(0, 1);
+    progress.trickle();
+
     const manifest = document.getElementById('manifest').value;
     console.log('save manifest', manifest);
     if (!isValidManifest(manifest)) return window.alert('Error: invalid manifest!');
@@ -418,6 +422,8 @@ const _bakePackage = async p => {
     pe.reset();
     await pe.add(p);
     await _renderPackage(p);
+
+    progress.stopTrickle();
     openTab(0);
   });
 
@@ -458,8 +464,11 @@ const _bakePackage = async p => {
   };
 
   const _importFile = async file => {
+    progress.setNumeratorDenominator(0, 1);
+    progress.trickle();
     const uint8Array = await XRPackage.compileFromFile(file);
     await _importPackage(uint8Array);
+    progress.stopTrickle();
   };
 
   // Create from file
@@ -471,13 +480,21 @@ const _bakePackage = async p => {
   bindUploadFileButton(importPackageInput, _importFile);
 
   const bakePackageButton = document.getElementById('bake-package-button');
-  bakePackageButton.addEventListener('click', async e => _bakePackage(p));
+  bakePackageButton.addEventListener('click', async () => {
+    progress.setNumeratorDenominator(0, 1);
+    progress.trickle();
+    await _bakePackage(p);
+    progress.stopTrickle();
+  });
 
   const uploadPackageButton = document.getElementById('upload-package-button');
-  uploadPackageButton.addEventListener('click', async e => {
+  uploadPackageButton.addEventListener('click', async () => {
+    progress.setNumeratorDenominator(0, 1);
+    progress.trickle();
     const hash = await p.upload();
-    const url = `https://ipfs.exokit.org/ipfs/${hash}.wbn`;
+    progress.stopTrickle();
 
+    const url = `https://ipfs.exokit.org/ipfs/${hash}.wbn`;
     console.log('uploaded package to IPFS', url);
     window.alert(`Your package was uploaded to IPFS! ${url}`);
   });
