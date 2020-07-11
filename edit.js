@@ -1624,6 +1624,7 @@ function animate(timestamp, frame) {
             .add(localVector2.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
             .add(localVector2.set(0, -BUILD_SNAP/2, 0))
             // .add(localVector2.set(BUILD_SNAP/2, 0, 0).applyQuaternion(localQuaternion2));
+          _snapPosition(buildMesh.position);
 
           localEuler.setFromQuaternion(localQuaternion, 'YXZ');
           localEuler.x = 0;
@@ -1635,7 +1636,6 @@ function animate(timestamp, frame) {
           buildMesh.matrix.compose(buildMesh.position, buildMesh.quaternion, buildMesh.scale)
             .premultiply(localMatrix2.getInverse(worldContainer.matrix))
             .decompose(buildMesh.position, buildMesh.quaternion, buildMesh.scale);
-          _snapPosition(buildMesh.position);
 
           const buildKey = _getBuildKey(buildMesh.position);
           if (!buildMap[buildKey]) {
