@@ -774,6 +774,9 @@ let buildMode = null;
 let platformMesh = null;
 let stairsMesh = null;
 let wallMesh = null;
+let woodMesh = null;
+let stoneMesh = null;
+let metalMesh = null;
 (async () => {
   const buildModels = await _loadGltf('./build.glb');
   stairsMesh = buildModels.children.find(c => c.name === 'Node_1003');
@@ -785,6 +788,15 @@ let wallMesh = null;
   wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06');
   wallMesh.visible = false;
   worldContainer.add(wallMesh);
+  woodMesh = buildModels.children.find(c => c.name === 'SM_Prop_Plank_01');
+  woodMesh.visible = false;
+  worldContainer.add(woodMesh);
+  stoneMesh = buildModels.children.find(c => c.name === 'SM_Env_Rock_01');
+  stoneMesh.visible = false;
+  worldContainer.add(stoneMesh);
+  metalMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSheet_01');
+  metalMesh.visible = false;
+  worldContainer.add(metalMesh);
 })();
 const redBuildMeshMaterial = new THREE.ShaderMaterial({
   vertexShader: `
@@ -1879,6 +1891,14 @@ function animate(timestamp, frame) {
                 const itemMesh = (() => {
                   const object = new THREE.Object3D();
 
+                  const matMeshes = [woodMesh, stoneMesh, metalMesh];
+                  const matIndex = Math.floor(Math.random()*matMeshes.length);
+                  const matMesh = matMeshes[matIndex];
+                  const matMeshClone = matMesh.clone();
+                  matMeshClone.position.y = 0.5;
+                  matMeshClone.visible = true;
+                  object.add(matMeshClone);
+
                   const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
                     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius/2, 0));
                   const ys = new Float32Array(skirtGeometry.attributes.position.array.length/3);
@@ -1936,6 +1956,7 @@ function animate(timestamp, frame) {
                   object.update = () => {
                     const now = Date.now();
                     skirtMaterial.uniforms.uAnimation.value = (now%60000)/60000;
+                    matMeshClone.rotation.y = (now%5000)/5000*Math.PI*2;
                   };
 
                   return object;
