@@ -158,6 +158,7 @@ const _renderFiles = p => {
 const _renderPackage = async p => {
   // views
   const views = document.getElementById('views');
+  views.innerHTML = '';
   {
     const canvas = pe.domElement;
     canvas.classList.add('side-content');
@@ -244,6 +245,117 @@ const _renderPackage = async p => {
   _renderFiles(p);
 };
 
+const _updateManifest = (p, manifestString) => {
+  const compileRawData = [{
+    url: '/manifest.json',
+    type: 'application/json',
+    data: manifestString,
+  }];
+
+  p.files.forEach(f => {
+    if (f.url.endsWith('/manifest.json')) return;
+
+    const filename = f.url.match(/([^/]+$)/)[1];
+    compileRawData.push({
+      url: `/${filename}`,
+      type: f.response.headers['content-type'],
+      data: f.response.body,
+    });
+  });
+
+  return new XRPackage(XRPackage.compileRaw(compileRawData));
+};
+
+const _bakePackage = async p => {
+  const b = new Blob([p.data], {
+    type: 'application/webbundle',
+  });
+  const srcWbn = URL.createObjectURL(b);
+  const iframe = document.createElement('iframe');
+  iframe.src = `bake.html?srcWbn=${srcWbn}`;
+  iframe.style.top = '-10000px';
+  iframe.style.left = '-10000px';
+  iframe.style.visibility = 'hidden';
+  document.body.appendChild(iframe);
+  const {screenshot, volume, aabb} = await new Promise((resolve, reject) => {
+    iframe.addEventListener('load', e => {
+      const _message = e => {
+        if (e.data && e.data.method === 'result') {
+          resolve(e.data.result);
+          window.removeEventListener('message', _message);
+        } else if (e.data && e.data.method === 'error') {
+          reject(e.data.error);
+          window.removeEventListener('message', _message);
+        }
+      };
+      window.addEventListener('message', _message);
+    });
+    iframe.addEventListener('error', err => {
+      reject(err);
+    });
+  });
+
+  // Baking logic from xrpk CLI: https://github.com/webaverse/xrpackage-cli/blob/master/commands/bake.js
+  const manifestJson = p.getManifestJson();
+  manifestJson.icons = Array.isArray(manifestJson.icons) ? manifestJson.icons : [];
+  if (screenshot.length > 0) {
+    p.addFile('xrpackage_icon.gif', screenshot, 'image/gif');
+    let gifIcon = manifestJson.icons.find(icon => icon.type === 'image/gif');
+    if (!gifIcon) {
+      gifIcon = {
+        src: '',
+        type: 'image/gif',
+      };
+      manifestJson.icons.push(gifIcon);
+    }
+    gifIcon.src = 'xrpackage_icon.gif';
+  }
+
+  if (volume.length > 0) {
+    p.addFile('xrpackage_volume.glb', volume, 'model/gltf-binary+preview');
+    let volumeIcon = manifestJson.icons.find(icon => icon.type === 'model/gltf-binary+preview');
+    if (!volumeIcon) {
+      volumeIcon = {
+        src: '',
+        type: 'model/gltf-binary+preview',
+      };
+      manifestJson.icons.push(volumeIcon);
+    }
+    volumeIcon.src = 'xrpackage_volume.glb';
+  }
+
+  manifestJson.xr_details = manifestJson.xr_details || {aabb};
+  let modelIcon = manifestJson.icons.find(icon => icon.type === 'model/gltf-binary');
+  if (!modelIcon) {
+    let modelPath;
+    switch (manifestJson.xr_type) {
+      case 'gltf@0.0.1':
+      case 'vrm@0.0.1': {
+        modelPath = manifestJson.start_url;
+        break;
+      }
+      default: {
+        modelPath = 'xrpackage_model.glb';
+
+        const res = await fetch('/assets/w.glb');
+        const modelUint8Array = await res.arrayBuffer();
+        p.addFile(modelPath, modelUint8Array, 'model/gltf-binary');
+        break;
+      }
+    }
+
+    modelIcon = {
+      src: modelPath,
+      type: 'model/gltf-binary',
+    };
+    manifestJson.icons.push(modelIcon);
+  }
+
+  p = _updateManifest(p, JSON.stringify(manifestJson));
+  openTab(0);
+  await _renderPackage(p);
+};
+
 (async () => {
   const q = parseQuery(window.location.search);
 
@@ -302,25 +414,7 @@ const _renderPackage = async p => {
     const manifest = document.getElementById('manifest').value;
     console.log('save manifest', manifest);
     if (!isValidManifest(manifest)) return window.alert('Error: invalid manifest!');
-
-    const compileRawData = [{
-      url: '/manifest.json',
-      type: 'application/json',
-      data: manifest,
-    }];
-
-    p.files.forEach(f => {
-      if (f.url.endsWith('/manifest.json')) return;
-
-      const filename = f.url.match(/([^/]+$)/)[1];
-      compileRawData.push({
-        url: `/${filename}`,
-        type: f.response.headers['content-type'],
-        data: f.response.body,
-      });
-    });
-
-    p = new XRPackage(XRPackage.compileRaw(compileRawData));
+    p = _updateManifest(p, manifest);
     pe.reset();
     await pe.add(p);
     await _renderPackage(p);
@@ -377,35 +471,8 @@ const _renderPackage = async p => {
   bindUploadFileButton(importPackageInput, _importFile);
 
   const bakePackageButton = document.getElementById('bake-package-button');
-  bakePackageButton.addEventListener('click', async e => {
-    const b = new Blob([p.data], {
-      type: 'application/webbundle',
-    });
-    const srcWbn = URL.createObjectURL(b);
-    const iframe = document.createElement('iframe');
-    iframe.src = `bake.html?srcWbn=${srcWbn}`;
-    iframe.style.top = '-10000px';
-    iframe.style.left = '-10000px';
-    iframe.style.visibility = 'hidden';
-    document.body.appendChild(iframe);
-    const {screenshot, volume, aabb} = await new Promise((resolve, reject) => {
-      iframe.addEventListener('load', e => {
-        const _message = e => {
-          if (e.data && e.data.method === 'result') {
-            resolve(e.data.result);
-            window.removeEventListener('message', _message);
-          } else if (e.data && e.data.method === 'error') {
-            reject(e.data.error);
-            window.removeEventListener('message', _message);
-          }
-        };
-        window.addEventListener('message', _message);
-      });
-      iframe.addEventListener('error', err => {
-        reject(err);
-      });
-    });
-  });
+  bakePackageButton.addEventListener('click', async e => _bakePackage(p));
+
   const uploadPackageButton = document.getElementById('upload-package-button');
   uploadPackageButton.addEventListener('click', async e => {
     const hash = await p.upload();
