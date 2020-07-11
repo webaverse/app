@@ -1689,7 +1689,7 @@ function animate(timestamp, frame) {
           break;
         }
         case 'sledgehammer': {
-          if (raycastChunkSpec && raycastChunkSpec.mesh === currentChunkMesh) {
+          if (raycastChunkSpec) {
             removeMesh.position.copy(raycastChunkSpec.point);
             removeMesh.quaternion.setFromUnitVectors(localVector2.set(0, 1, 0), raycastChunkSpec.normal);
             removeMesh.visible = true;
