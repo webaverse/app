@@ -1625,81 +1625,94 @@ function animate(timestamp, frame) {
         }
       }
       if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
-        const _applyPotentialDelta = async (position, delta) => {
-          localVector2.copy(position)
-            .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
-          localVector2.x = Math.floor(localVector2.x);
-          localVector2.y = Math.floor(localVector2.y);
-          localVector2.z = Math.floor(localVector2.z);
+        if (!buildMode) {
+          const _applyPotentialDelta = async (position, delta) => {
+            localVector2.copy(position)
+              .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+            localVector2.x = Math.floor(localVector2.x);
+            localVector2.y = Math.floor(localVector2.y);
+            localVector2.z = Math.floor(localVector2.z);
 
-          const sx = Math.floor(localVector2.x/SUBPARCEL_SIZE);
-          const sy = Math.floor(localVector2.y/SUBPARCEL_SIZE);
-          const sz = Math.floor(localVector2.z/SUBPARCEL_SIZE);
+            const sx = Math.floor(localVector2.x/SUBPARCEL_SIZE);
+            const sy = Math.floor(localVector2.y/SUBPARCEL_SIZE);
+            const sz = Math.floor(localVector2.z/SUBPARCEL_SIZE);
 
-          const specs = await worker.requestMine(
-            delta,
-            currentChunkMesh.meshId,
-            localVector2.toArray(),
-            slabSliceTris,
-          );
+            const specs = await worker.requestMine(
+              delta,
+              currentChunkMesh.meshId,
+              localVector2.toArray(),
+              slabSliceTris,
+            );
 
-          for (let i = 0; i < specs.length; i++) {
-            const spec = specs[i];
-            // const index = _getSliceIndex(spec.x, spec.y, spec.z);
-            const {sliceIndex: index} = spec;
-            const {geometry} = currentChunkMesh;
-            const slab = {
-              position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
-              barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
-              id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
-              index: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
-            };
-            slab.position.set(spec.positions);
-            slab.barycentric.set(spec.barycentrics);
-            slab.id.set(spec.ids);
-            slab.index.set(spec.indices);
+            for (let i = 0; i < specs.length; i++) {
+              const spec = specs[i];
+              // const index = _getSliceIndex(spec.x, spec.y, spec.z);
+              const {sliceIndex: index} = spec;
+              const {geometry} = currentChunkMesh;
+              const slab = {
+                position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+                barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+                id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+                index: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+              };
+              slab.position.set(spec.positions);
+              slab.barycentric.set(spec.barycentrics);
+              slab.id.set(spec.ids);
+              slab.index.set(spec.indices);
 
-            // console.log('get spec', spec, index);
+              // console.log('get spec', spec, index);
 
-            geometry.attributes.position.needsUpdate = true;
-            geometry.attributes.barycentric.needsUpdate = true;
-            geometry.attributes.id.needsUpdate = true;
-            geometry.attributes.index.needsUpdate = true;
+              geometry.attributes.position.needsUpdate = true;
+              geometry.attributes.barycentric.needsUpdate = true;
+              geometry.attributes.id.needsUpdate = true;
+              geometry.attributes.index.needsUpdate = true;
 
-            const group = geometry.groups[index];
-            group.count = spec.positions.length/3;
+              const group = geometry.groups[index];
+              group.count = spec.positions.length/3;
 
-            /* currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-            currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
-            currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
-            currentChunkMesh.geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1)); */
-          }
-        };
-        switch (selectedWeapon) {
-          case 'wrench': {
-            if (addMesh.visible) {
-              _applyPotentialDelta(addMesh.position, 0.2);
+              /* currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
+              currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
+              currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
+              currentChunkMesh.geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1)); */
             }
-            break;
-          }
-          case 'sledgehammer': {
-            if (removeMesh.visible) {
-              _applyPotentialDelta(removeMesh.position, -0.2);
+          };
+          switch (selectedWeapon) {
+            case 'wrench': {
+              if (addMesh.visible) {
+                _applyPotentialDelta(addMesh.position, 0.2);
+              }
+              break;
             }
-            break;
-          }
-          case 'pickaxe': {
-            if (addMesh.visible) {
-              console.log('click', addMesh.position.toArray());
+            case 'sledgehammer': {
+              if (removeMesh.visible) {
+                _applyPotentialDelta(removeMesh.position, -0.2);
+              }
+              break;
             }
-            break;
+            case 'pickaxe': {
+              if (addMesh.visible) {
+                console.log('click', addMesh.position.toArray());
+              }
+              break;
+            }
+            /* case 'paintbrush': {
+              return paintBrushMesh;
+            } */
+            /* default: {
+              return null;
+            } */
           }
-          /* case 'paintbrush': {
-            return paintBrushMesh;
-          } */
-          /* default: {
-            return null;
-          } */
+        } else {
+          const buildMesh = (() => {
+            switch (buildMode) {
+              case 'wall': return wallMesh;
+              case 'floor': return platformMesh;
+              case 'stair': return stairsMesh;
+              default: return null;
+            }
+          })();
+          const buildMeshClone = buildMesh.clone();
+          worldContainer.add(buildMeshClone);
         }
       }
 
