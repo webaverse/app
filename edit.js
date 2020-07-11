@@ -1953,10 +1953,36 @@ function animate(timestamp, frame) {
                   skirtMesh.frustumCulled = false;
                   object.add(skirtMesh);
 
-                  object.update = () => {
+                  let animation = null;
+                  object.pickUp = () => {
+                    if (!animation) {
+                      skirtMesh.visible = false;
+                      // matMeshClone.position.y = 0;
+
+                      const now = Date.now();
+                      const startTime = now;
+                      const endTime = startTime + 1000;
+                      const startPosition = object.position.clone()
+                        // .applyMatrix4(localMatrix2.getInverse(worldContainer.matrix));
+                      animation = {
+                        update(posePosition) {
+                          const now = Date.now();
+                          const factor = Math.min((now - startTime) / (endTime - startTime), 1);
+
+                          object.position.copy(startPosition)
+                            .lerp(posePosition, factor);
+                        },
+                      };
+                    }
+                  };
+                  object.update = posePosition => {
                     const now = Date.now();
-                    skirtMaterial.uniforms.uAnimation.value = (now%60000)/60000;
-                    matMeshClone.rotation.y = (now%5000)/5000*Math.PI*2;
+                    if (!animation) {
+                      skirtMaterial.uniforms.uAnimation.value = (now%60000)/60000;
+                      matMeshClone.rotation.y = (now%5000)/5000*Math.PI*2;
+                    } else {
+                      animation.update(posePosition);
+                    }
                   };
 
                   return object;
@@ -2053,9 +2079,6 @@ function animate(timestamp, frame) {
 
   for (let i = 0; i < buildMeshes.length; i++) {
     buildMeshes[i].update();
-  }
-  for (let i = 0; i < itemMeshes.length; i++) {
-    itemMeshes[i].update();
   }
 
   /* if (planetAnimation) {
@@ -2317,6 +2340,18 @@ function animate(timestamp, frame) {
 
       return ceilingDistance;
     };
+    const _collideItems = matrix => {
+      matrix.decompose(localVector3, localQuaternion2, localVector4);
+      localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
+
+      for (let i = 0; i < itemMeshes.length; i++) {
+        const itemMesh = itemMeshes[i];
+        if (itemMesh.getWorldPosition(localVector5).distanceTo(localVector4) < 1) {
+          itemMesh.pickUp();
+        }
+        itemMesh.update(localVector5.copy(localVector3).applyMatrix4(localMatrix2.getInverse(worldContainer.matrix)));
+      }
+    };
 
     if (selectedTool === 'firstperson') {
       _collideWall(pe.camera.matrix);
@@ -2326,6 +2361,7 @@ function animate(timestamp, frame) {
       const offset = _getFloorOffset(groundedDistance);
       const ceilingDistance = _collideCeiling(pe.camera.matrix);
       const ceilingOffset = _getCeilingOffset(ceilingDistance);
+      _collideItems(pe.camera.matrix);
       if (offset !== null) {
         pe.camera.position.y += offset;
         velocity.y = 0;
@@ -2370,6 +2406,7 @@ function animate(timestamp, frame) {
       const offset = _getFloorOffset(groundedDistance);
       const ceilingDistance = _collideCeiling(localMatrix);
       const ceilingOffset = _getCeilingOffset(ceilingDistance);
+      _collideItems(localMatrix);
       if (offset !== null) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
@@ -2416,6 +2453,7 @@ function animate(timestamp, frame) {
       const offset = _getFloorOffset(groundedDistance);
       const ceilingDistance = _collideCeiling(localMatrix);
       const ceilingOffset = _getCeilingOffset(ceilingDistance);
+      _collideItems(localMatrix);
       if (offset !== null) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
@@ -2463,6 +2501,7 @@ function animate(timestamp, frame) {
       const offset = _getFloorOffset(groundedDistance);
       const ceilingDistance = _collideCeiling(localMatrix);
       const ceilingOffset = _getCeilingOffset(ceilingDistance);
+      _collideItems(localMatrix);
       if (offset !== null) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
