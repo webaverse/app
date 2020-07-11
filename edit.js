@@ -745,6 +745,7 @@ const _makeChunkMesh = async () => {
   }
   // mesh.frustumCulled = false;
   mesh.meshId = meshId;
+  mesh.isChunkMesh = true;
   return mesh;
 };
 
@@ -1818,9 +1819,9 @@ function animate(timestamp, frame) {
             }
             case 'sledgehammer': {
               if (removeMesh.visible) {
-                if (raycastChunkSpec.mesh === currentChunkMesh) {
+                if (raycastChunkSpec.mesh.isChunkMesh) {
                   _applyPotentialDelta(removeMesh.position, -0.2);
-                } else {
+                } else if (raycastChunkSpec.mesh.isHullMesh) {
                   const {buildMesh} = raycastChunkSpec.mesh;
 
                   localVector2.copy(localVector)
@@ -1884,6 +1885,7 @@ function animate(timestamp, frame) {
             buildMeshClone.hullMesh = buildMesh.hullMesh.clone();
             buildMeshClone.hullMesh.geometry = buildMesh.hullMesh.geometry.clone();
             _decorateMeshForRaycast(buildMeshClone.hullMesh);
+            buildMeshClone.hullMesh.isHullMesh = true;
             buildMeshClone.hullMesh.buildMesh = buildMeshClone;
             let animation = null;
             let hp = 100;
