@@ -734,6 +734,7 @@ physics.bindStaticMeshPhysics(chunkMesh);
 
 let wrenchMesh = null;
 let sledgehammerMesh = null;
+let pickaxeMesh = null;
 let paintBrushMesh = null;
 (async () => {
   const toolsModels = await new Promise((accept, reject) => {
@@ -748,6 +749,9 @@ let paintBrushMesh = null;
   sledgehammerMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Hammer_Sledge');
   sledgehammerMesh.visible = false;
   scene.add(sledgehammerMesh);
+  pickaxeMesh = toolsModels.children.find(c => c.name === 'SM_Wep_Pickaxe_01');
+  pickaxeMesh.visible = false;
+  scene.add(pickaxeMesh);
   paintBrushMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Paint_Brush_02');
   paintBrushMesh.visible = false;
   scene.add(paintBrushMesh);
@@ -1486,7 +1490,7 @@ function animate(timestamp, frame) {
       pointRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
       const raycastChunkSpec = pointRaycaster.readRaycast(chunkMeshContainer, localVector, localQuaternion);
 
-      [wrenchMesh, sledgehammerMesh, paintBrushMesh].forEach(weaponMesh => {
+      [wrenchMesh, sledgehammerMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
         if (weaponMesh) {
           weaponMesh.visible = false;
         }
@@ -1498,6 +1502,9 @@ function animate(timestamp, frame) {
           }
           case 'sledgehammer': {
             return sledgehammerMesh;
+          }
+          case 'pickaxe': {
+            return pickaxeMesh;
           }
           case 'paintbrush': {
             return paintBrushMesh;
@@ -1527,6 +1534,15 @@ function animate(timestamp, frame) {
             removeMesh.position.copy(raycastChunkSpec.point);
             removeMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), raycastChunkSpec.normal);
             removeMesh.visible = true;
+          }
+          break;
+        }
+        case 'pickaxe': {
+          if (raycastChunkSpec && raycastChunkSpec.mesh === currentChunkMesh) {
+            addMesh.position.copy(localVector)
+              .add(new THREE.Vector3(0, 0, -2).applyQuaternion(localQuaternion));
+            addMesh.quaternion.copy(localQuaternion);
+            addMesh.visible = true;
           }
           break;
         }
@@ -1598,6 +1614,12 @@ function animate(timestamp, frame) {
           case 'sledgehammer': {
             if (removeMesh.visible) {
               _applyPotentialDelta(removeMesh.position, -0.2);
+            }
+            break;
+          }
+          case 'pickaxe': {
+            if (addMesh.visible) {
+              console.log('click', addMesh.position.toArray());
             }
             break;
           }
