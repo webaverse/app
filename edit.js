@@ -32,6 +32,7 @@ const slabAttributeSize = slabTotalSize/4;
 const numSlices = NUM_PARCELS*NUM_PARCELS*NUM_PARCELS;
 const slabSliceTris = Math.floor(slabAttributeSize/numSlices/9/Float32Array.BYTES_PER_ELEMENT);
 const slabSliceVertices = slabSliceTris * 3;
+const BUILD_SNAP = 2;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -736,13 +737,14 @@ let wrenchMesh = null;
 let sledgehammerMesh = null;
 let pickaxeMesh = null;
 let paintBrushMesh = null;
+const _loadGltf = u => new Promise((accept, reject) => {
+  new GLTFLoader().load(u, o => {
+    o = o.scene;
+    accept(o);
+  }, xhr => {}, reject);
+});
 (async () => {
-  const toolsModels = await new Promise((accept, reject) => {
-    new GLTFLoader().load('./tools.glb', o => {
-      o = o.scene;
-      accept(o);
-    }, xhr => {}, reject);
-  });
+  const toolsModels = await _loadGltf('./tools.glb');
   wrenchMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Pipe_Wrench_01');
   wrenchMesh.visible = false;
   scene.add(wrenchMesh);
@@ -755,6 +757,23 @@ let paintBrushMesh = null;
   paintBrushMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Paint_Brush_02');
   paintBrushMesh.visible = false;
   scene.add(paintBrushMesh);
+})();
+let buildMode = false;
+let platformMesh = null;
+let stairsMesh = null;
+let wallMesh = null;
+(async () => {
+  const buildModels = await _loadGltf('./build.glb');
+  stairsMesh = buildModels.children.find(c => c.name === 'Node_1003');
+  stairsMesh.visible = false;
+  scene.add(stairsMesh);
+  platformMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01');
+  platformMesh.visible = false;
+  scene.add(platformMesh);
+  wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06');
+  wallMesh.visible = false;
+  scene.add(wallMesh);
+  // scene.add(buildModels);
 })();
 
 const addMesh = (() => {
@@ -1524,7 +1543,7 @@ function animate(timestamp, frame) {
       switch (selectedWeapon) {
         case 'wrench': {
           addMesh.position.copy(localVector)
-            .add(new THREE.Vector3(0, 0, -2).applyQuaternion(localQuaternion));
+            .add(localVector2.set(0, 0, -2).applyQuaternion(localQuaternion));
           addMesh.quaternion.copy(localQuaternion);
           addMesh.visible = true;
           break;
@@ -1532,18 +1551,18 @@ function animate(timestamp, frame) {
         case 'sledgehammer': {
           if (raycastChunkSpec && raycastChunkSpec.mesh === currentChunkMesh) {
             removeMesh.position.copy(raycastChunkSpec.point);
-            removeMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), raycastChunkSpec.normal);
+            removeMesh.quaternion.setFromUnitVectors(localVector2.set(0, 1, 0), raycastChunkSpec.normal);
             removeMesh.visible = true;
           }
           break;
         }
         case 'pickaxe': {
-          if (raycastChunkSpec && raycastChunkSpec.mesh === currentChunkMesh) {
+          // if (raycastChunkSpec && raycastChunkSpec.mesh === currentChunkMesh) {
             addMesh.position.copy(localVector)
-              .add(new THREE.Vector3(0, 0, -2).applyQuaternion(localQuaternion));
+              .add(localVector2.set(0, 0, -2).applyQuaternion(localQuaternion));
             addMesh.quaternion.copy(localQuaternion);
             addMesh.visible = true;
-          }
+          // }
           break;
         }
         /* case 'paintbrush': {
@@ -1552,6 +1571,49 @@ function animate(timestamp, frame) {
         /* default: {
           return null;
         } */
+      }
+      if (wallMesh) {
+        if (buildMode) {
+          const _snapPosition = p => {
+            p.x = Math.floor(p.x/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
+            p.y = Math.floor(p.y/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
+            p.z = Math.floor(p.z/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
+            return p;
+          };
+          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+          localEuler.x = 0;
+          localEuler.y += Math.PI*2;
+          localEuler.y = Math.round(localEuler.y/(Math.PI/2))*(Math.PI/2);
+          localEuler.z = 0;
+          localQuaternion2.setFromEuler(localEuler);
+          localEuler.y += Math.PI/2;
+          wallMesh.quaternion.setFromEuler(localEuler);
+
+          wallMesh.position.copy(localVector)
+            .add(localVector2.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
+            .add(localVector2.set(BUILD_SNAP/2, 0, 0).applyQuaternion(localQuaternion2));
+          _snapPosition(wallMesh.position);
+          // wallMesh.position.add(localVector2.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion2));
+          /* // wallMesh.quaternion.set(0, 0, 0, 1);
+          const currentPosition = localVector;
+          const positionDiff = localVector2.copy(currentPosition).sub(wallMesh.position);
+          if (Math.abs(positionDiff.x) > Math.abs(positionDiff.z)) {
+            if (positionDiff.x < 0) {
+              wallMesh.quaternion.premultiply(localQuaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0)));
+            } else if (positionDiff.x > 0) {
+              wallMesh.quaternion.premultiply(localQuaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0)));
+            }
+          } else {
+            if (positionDiff.z < 0) {
+              wallMesh.quaternion.premultiply(localQuaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, -1)));
+            } else if (positionDiff.z > 0) {
+              wallMesh.quaternion.premultiply(localQuaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, 1)));
+            }
+          } */
+          wallMesh.visible = true;
+        } else {
+          wallMesh.visible = false;
+        }
       }
       if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
         const _applyPotentialDelta = async (position, delta) => {
@@ -2414,6 +2476,10 @@ window.addEventListener('keydown', e => {
       } else {
         keys.right = true;
       }
+      break;
+    }
+    case 81: { // Q
+      buildMode = !buildMode;
       break;
     }
     case 69: { // E
