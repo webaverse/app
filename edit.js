@@ -1570,7 +1570,7 @@ scene.add(wristMenu); */
   downloadFile(b, 'target.glb');
 }; */
 
-const _getCurrentParcel = p => new THREE.Vector3(
+/* const _getCurrentParcel = p => new THREE.Vector3(
   Math.floor((p.x+5)/10),
   0,
   Math.floor((p.z+5)/10),
@@ -1606,7 +1606,7 @@ const _tickPlanetAnimation = factor => {
   if (factor >= 1) {
     planetAnimation = null;
   }
-};
+}; */
 
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
