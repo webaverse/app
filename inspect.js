@@ -367,6 +367,8 @@ const _bakePackage = async p => {
   if (q.p) { // package
     inspectMode.classList.add('open');
 
+    progress.setNumeratorDenominator(0, 1);
+    progress.trickle();
     const metadata = await fetch(packagesEndpoint + '/' + q.p)
       .then(res => res.json());
     const {dataHash} = metadata;
@@ -376,9 +378,12 @@ const _bakePackage = async p => {
 
     p = new XRPackage(new Uint8Array(arrayBuffer));
     await pe.add(p);
+    progress.stopTrickle();
   } else if (q.i) { // index
     inspectMode.classList.add('open');
 
+    progress.setNumeratorDenominator(0, 1);
+    progress.trickle();
     const metadataHash = await contract.methods.getMetadata(parseInt(q.i, 10), 'hash').call();
     const metadata = await fetch(`${apiHost}/${metadataHash}`)
       .then(res => res.json());
@@ -389,19 +394,26 @@ const _bakePackage = async p => {
 
     p = new XRPackage(new Uint8Array(arrayBuffer));
     await pe.add(p);
+    progress.stopTrickle();
   } else if (q.u) { // url
     inspectMode.classList.add('open');
 
+    progress.setNumeratorDenominator(0, 1);
+    progress.trickle();
     const arrayBuffer = await fetch(q.u)
       .then(res => res.arrayBuffer());
 
     p = new XRPackage(new Uint8Array(arrayBuffer));
     await pe.add(p);
+    progress.stopTrickle();
   } else if (q.h) { // hash
     inspectMode.classList.add('open');
 
+    progress.setNumeratorDenominator(0, 1);
+    progress.trickle();
     p = await XRPackage.download(q.h);
     await pe.add(p);
+    progress.stopTrickle();
   } else {
     createMode.classList.add('open');
 
