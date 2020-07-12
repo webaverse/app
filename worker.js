@@ -168,9 +168,6 @@ const _getChunkSpec = (potentials, shiftsData, meshId, indexOffset) => {
   };
 };
 const _meshChunk = (ix, iy, iz, meshId, sliceIndex, slabSliceTris) => {
-  if (ix === undefined) {
-    debugger;
-  }
   const allocator = new Allocator();
   const fullPotentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1);
   for (let dx = 0; dx < SUBPARCEL_SIZE_P1; dx++) {
@@ -179,20 +176,10 @@ const _meshChunk = (ix, iy, iz, meshId, sliceIndex, slabSliceTris) => {
         const lix = ix + Math.floor(dx/SUBPARCEL_SIZE);
         const liy = iy + Math.floor(dy/SUBPARCEL_SIZE);
         const liz = iz + Math.floor(dz/SUBPARCEL_SIZE);
-        if (lix === undefined) {
-          debugger;
-        }
         const fullIndex = _getPotentialFullIndex(dx, dy, dz);
         if (lix >= 0 && lix < NUM_PARCELS && liy >= 0 && liy < NUM_PARCELS && liz >= 0 && liz < NUM_PARCELS) {
           const potentialKey = _getPotentialKey(meshId, lix, liy, liz);
-          if (!potentialKey) {
-            debugger;
-          }
           const m = potentialsMap[potentialKey];
-          if (!m) {
-            console.log('got potential key', potentialKey, ix, iy, iz, dx, dy, dz, lix, liy, liz)
-            debugger;
-          }
           const {potentials} = m;
           const lx = mod(dx, SUBPARCEL_SIZE);
           const ly = mod(dy, SUBPARCEL_SIZE)
