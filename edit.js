@@ -191,7 +191,7 @@ const HEIGHTFIELD_SHADER = {
     }
   `
 };
-const _getSliceIndex = (x, y, z) => z + y*NUM_PARCELS + x*NUM_PARCELS*NUM_PARCELS;
+// const _getSliceIndex = (x, y, z) => z + y*NUM_PARCELS + x*NUM_PARCELS*NUM_PARCELS;
 const _getBuildKey = p => [p.x,p.y,p.z].join(':');
 const _snapBuildPosition = p => {
   p.x = Math.floor(p.x/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
