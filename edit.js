@@ -4,6 +4,7 @@ import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import {TransformControls} from './TransformControls.js';
+import CapsuleGeometry from './CapsuleGeometry.js';
 // import address from 'https://contracts.webaverse.com/address.js';
 // import abi from 'https://contracts.webaverse.com/abi.js';
 import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
@@ -728,6 +729,42 @@ for (let i = 0; i < numRemoteChunkMeshes; i++) {
 }
 remoteChunkMeshes.push(chunkMesh);
 _setCurrentChunkMesh(chunkMesh);
+
+{
+  const npcMesh = await _loadGltf('./npc.vrm');
+  npcMesh.position.y = -3;
+  npcMesh.position.z = -3;
+  npcMesh.traverse(o => {
+    if (o.isMesh) {
+      o.isBuildMesh = true;
+    }
+  });
+  npcMesh.hit = () => {
+    console.log('hit!');
+  };
+  npcMesh.updateMatrixWorld();
+  npcMesh.matrix.premultiply(localMatrix2.getInverse(currentChunkMesh.matrixWorld))
+    .decompose(npcMesh.position, npcMesh.quaternion, npcMesh.scale);
+  currentChunkMesh.add(npcMesh);
+
+  let geometry = new CapsuleGeometry(0.5, 0.5, 16)
+    .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2)))
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5/2+0.5, 0))
+    // .toNonIndexed();
+  geometry = new THREE.BufferGeometry().fromGeometry(geometry);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x008000,
+  });
+  const capsuleMesh = new THREE.Mesh(geometry, material);
+  capsuleMesh.position.copy(npcMesh.position);
+  _decorateMeshForRaycast(capsuleMesh);
+  capsuleMesh.isNpcHullMesh = true;
+  capsuleMesh.npcMesh = npcMesh;
+  capsuleMesh.position.copy(npcMesh.position);
+  capsuleMesh.quaternion.copy(npcMesh.quaternion);
+  capsuleMesh.scale.copy(npcMesh.scale);
+  currentChunkMesh.add(capsuleMesh);
+}
 
 // physics.bindStaticMeshPhysics(chunkMesh);
 /* for (let i = 0; i < remoteChunkMeshes.length; i++) {
@@ -1703,13 +1740,6 @@ const hpMesh = (() => {
 })();
 scene.add(hpMesh);
 
-(async () => {
-  const npcModel = await _loadGltf('./npc.vrm');
-  npcModel.position.y = -3;
-  npcModel.position.z = -3;
-  scene.add(npcModel);
-})();
-
 const _applyVelocity = (position, timeDiff) => {
   position.add(localVector4.copy(velocity).multiplyScalar(timeDiff));
 };
@@ -2107,7 +2137,7 @@ function animate(timestamp, frame) {
               if (removeMesh.visible) {
                 if (raycastChunkSpec.mesh.isChunkMesh) {
                   _applyPotentialDelta(removeMesh.position, -0.2);
-                } else if (raycastChunkSpec.mesh.isHullMesh) {
+                } else if (raycastChunkSpec.mesh.isBuildHullMesh) {
                   const {buildMesh} = raycastChunkSpec.mesh;
 
                   localVector2.copy(localVector)
@@ -2123,6 +2153,25 @@ function animate(timestamp, frame) {
                   const oldBuildMesh = buildMap[buildKey];
 
                   buildMesh.hit(30);
+                } else if (raycastChunkSpec.mesh.isNpcHullMesh) {
+                  const {npcMesh} = raycastChunkSpec.mesh;
+
+                  npcMesh.hit(30);
+                  /* const {buildMesh} = raycastChunkSpec.mesh;
+
+                  localVector2.copy(localVector)
+                    .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
+                    .add(localVector3.set(0, -BUILD_SNAP/2, 0));
+                  _snapBuildPosition(localVector2);
+
+                  localMatrix.compose(localVector2, localQuaternion, localVector3.set(1, 1, 1))
+                    .premultiply(localMatrix2.getInverse(worldContainer.matrix))
+                    .decompose(localVector2, localQuaternion2, localVector3);
+
+                  const buildKey = _getBuildKey(localVector2);
+                  const oldBuildMesh = buildMap[buildKey];
+
+                  buildMesh.hit(30); */
                 }
               }
               break;
@@ -2149,7 +2198,7 @@ function animate(timestamp, frame) {
             buildMeshClone.hullMesh = buildMesh.hullMesh.clone();
             buildMeshClone.hullMesh.geometry = buildMesh.hullMesh.geometry.clone();
             _decorateMeshForRaycast(buildMeshClone.hullMesh);
-            buildMeshClone.hullMesh.isHullMesh = true;
+            buildMeshClone.hullMesh.isBuildHullMesh = true;
             buildMeshClone.hullMesh.buildMesh = buildMeshClone;
             let animation = null;
             let hp = 100;
