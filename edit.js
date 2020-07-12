@@ -2144,8 +2144,8 @@ function animate(timestamp, frame) {
                     }
                   };
                   object.update = posePosition => {
-                    const now = Date.now();
                     if (!animation) {
+                      const now = Date.now();
                       skirtMaterial.uniforms.uAnimation.value = (now%60000)/60000;
                       matMeshClone.rotation.y = (now%5000)/5000*Math.PI*2;
                     } else {
