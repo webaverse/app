@@ -1790,18 +1790,21 @@ function animate(timestamp, frame) {
           buildMesh.position.copy(localVector)
             .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
             .add(localVector3.set(0, -BUILD_SNAP/2, 0));
+          buildMesh.quaternion.copy(localQuaternion);
 
           buildMesh.matrix.compose(buildMesh.position, buildMesh.quaternion, buildMesh.scale)
             .premultiply(localMatrix2.getInverse(currentChunkMesh.matrixWorld))
             .decompose(buildMesh.position, buildMesh.quaternion, buildMesh.scale);
           _snapBuildPosition(buildMesh.position);
 
-          localEuler.setFromQuaternion(buildMesh.quaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.y += Math.PI*2;
-          localEuler.y = Math.round(localEuler.y/(Math.PI/2))*(Math.PI/2);
-          localEuler.z = 0;
-          buildMesh.quaternion.setFromEuler(localEuler);
+          localVector3.set(0, 1, 0).applyQuaternion(buildMesh.quaternion);
+          if (Math.abs(localVector3.x) > Math.abs(localVector3.y) && Math.abs(localVector3.x) > Math.abs(localVector3.z)) {
+            buildMesh.quaternion.setFromUnitVectors(localVector4.set(0, 1, 0), localVector5.set(Math.sign(localVector3.x), 0, 0));
+          } else if (Math.abs(localVector3.y) > Math.abs(localVector3.x) && Math.abs(localVector3.y) > Math.abs(localVector3.z)) {
+            buildMesh.quaternion.setFromUnitVectors(localVector4.set(0, 1, 0), localVector5.set(0, Math.sign(localVector3.y), 0));
+          } else {
+            buildMesh.quaternion.setFromUnitVectors(localVector4.set(0, 1, 0), localVector5.set(0, 0, Math.sign(localVector3.z)));
+          }
 
           const buildKey = _getBuildKey(buildMesh.position);
           if (!buildMap[buildKey]) {
