@@ -1791,17 +1791,17 @@ function animate(timestamp, frame) {
             .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
             .add(localVector3.set(0, -BUILD_SNAP/2, 0));
 
-          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+          buildMesh.matrix.compose(buildMesh.position, buildMesh.quaternion, buildMesh.scale)
+            .premultiply(localMatrix2.getInverse(currentChunkMesh.matrixWorld))
+            .decompose(buildMesh.position, buildMesh.quaternion, buildMesh.scale);
+          _snapBuildPosition(buildMesh.position);
+
+          localEuler.setFromQuaternion(buildMesh.quaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.y += Math.PI*2;
           localEuler.y = Math.round(localEuler.y/(Math.PI/2))*(Math.PI/2);
           localEuler.z = 0;
           buildMesh.quaternion.setFromEuler(localEuler);
-
-          buildMesh.matrix.compose(buildMesh.position, buildMesh.quaternion, buildMesh.scale)
-            .premultiply(localMatrix2.getInverse(currentChunkMesh.matrixWorld))
-            .decompose(buildMesh.position, buildMesh.quaternion, buildMesh.scale);
-          _snapBuildPosition(buildMesh.position);
 
           const buildKey = _getBuildKey(buildMesh.position);
           if (!buildMap[buildKey]) {
