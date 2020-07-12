@@ -1179,8 +1179,12 @@ canvas {
   cursor: pointer;
 } */
 
-.button:hover {
+.button:hover:enabled {
   background-color: #1e88e5;
+}
+
+.button:disabled {
+  background-color: gray;
 }
 
 .button:active {
@@ -1647,10 +1651,13 @@ header.unlocking + .main .blocker .button
 
 .create-ui {
   display: flex;
-  margin-left: 130px;
-  margin-top: 15px;
+  margin-left: 100px;
   flex-direction: column;
   align-items: flex-start;
+}
+.create-ui a {
+  color: unset;
+  text-decoration: underline;
 }
 
 /* #login-form {
