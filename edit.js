@@ -785,7 +785,6 @@ physics.bindStaticMeshPhysics(chunkMesh);
 })();
 
 let wrenchMesh = null;
-let sledgehammerMesh = null;
 let pickaxeMesh = null;
 let paintBrushMesh = null;
 const _loadGltf = u => new Promise((accept, reject) => {
@@ -799,9 +798,6 @@ const _loadGltf = u => new Promise((accept, reject) => {
   wrenchMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Pipe_Wrench_01');
   wrenchMesh.visible = false;
   scene.add(wrenchMesh);
-  sledgehammerMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Hammer_Sledge');
-  sledgehammerMesh.visible = false;
-  scene.add(sledgehammerMesh);
   pickaxeMesh = toolsModels.children.find(c => c.name === 'SM_Wep_Pickaxe_01');
   pickaxeMesh.visible = false;
   scene.add(pickaxeMesh);
@@ -1650,7 +1646,7 @@ function animate(timestamp, frame) {
       pointRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
       const raycastChunkSpec = pointRaycaster.readRaycast(chunkMeshContainer, localVector, localQuaternion);
 
-      [wrenchMesh, sledgehammerMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
+      [wrenchMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
         if (weaponMesh) {
           weaponMesh.visible = false;
         }
@@ -1659,9 +1655,6 @@ function animate(timestamp, frame) {
         switch (selectedWeapon) {
           case 'wrench': {
             return wrenchMesh;
-          }
-          case 'sledgehammer': {
-            return sledgehammerMesh;
           }
           case 'pickaxe': {
             return pickaxeMesh;
@@ -1689,15 +1682,12 @@ function animate(timestamp, frame) {
           addMesh.visible = true;
           break;
         }
-        case 'sledgehammer': {
+        case 'pickaxe': {
           if (raycastChunkSpec) {
             removeMesh.position.copy(raycastChunkSpec.point);
             removeMesh.quaternion.setFromUnitVectors(localVector2.set(0, 1, 0), raycastChunkSpec.normal);
             removeMesh.visible = true;
           }
-          break;
-        }
-        /* case 'pickaxe': {
           break;
         }
         /* case 'paintbrush': {
@@ -1817,7 +1807,7 @@ function animate(timestamp, frame) {
               }
               break;
             }
-            case 'sledgehammer': {
+            case 'pickaxe': {
               if (removeMesh.visible) {
                 if (raycastChunkSpec.mesh.isChunkMesh) {
                   _applyPotentialDelta(removeMesh.position, -0.2);
@@ -1841,28 +1831,6 @@ function animate(timestamp, frame) {
               }
               break;
             }
-            /* case 'pickaxe': {
-              localVector2.copy(localVector)
-                .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
-                .add(localVector3.set(0, -BUILD_SNAP/2, 0));
-              _snapBuildPosition(localVector2);
-
-              localMatrix.compose(localVector2, localQuaternion, localVector3.set(1, 1, 1))
-                .premultiply(localMatrix2.getInverse(worldContainer.matrix))
-                .decompose(localVector2, localQuaternion2, localVector3);
-
-              const buildKey = _getBuildKey(localVector2);
-              const oldBuildMesh = buildMap[buildKey];
-
-              oldBuildMesh && oldBuildMesh.hit(30);
-              break;
-            } */
-            /* case 'paintbrush': {
-              return paintBrushMesh;
-            } */
-            /* default: {
-              return null;
-            } */
           }
         } else {
           const buildMesh = (() => {
