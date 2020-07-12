@@ -62,11 +62,11 @@ const HEIGHTFIELD_SHADER = {
     sunIntensity: {
       type: 'f',
       value: 0,
-    }, */
+    },
     selectedIndex: {
       type: 'f',
       value: 0,
-    },
+    }, */
     isCurrent: {
       type: 'f',
       value: 0,
@@ -91,7 +91,7 @@ const HEIGHTFIELD_SHADER = {
     uniform float fogDensity;
     // attribute vec3 color;
     attribute vec3 barycentric;
-    attribute float index;
+    // attribute float index;
     // attribute float skyLightmap;
     // attribute float torchLightmap;
 
@@ -100,7 +100,7 @@ const HEIGHTFIELD_SHADER = {
     varying vec3 vBarycentric;
     // varying vec3 vViewPosition;
     // varying vec3 vColor;
-    varying float vIndex;
+    // varying float vIndex;
     // varying vec3 vNormal;
     // varying float vSkyLightmap;
     // varying float vTorchLightmap;
@@ -116,7 +116,7 @@ const HEIGHTFIELD_SHADER = {
       vPosition = position.xyz;
       vWorldPosition = mvPosition.xyz;
       vBarycentric = barycentric;
-      vIndex = index;
+      // vIndex = index;
     }
   `,
   fragmentShader: `\
@@ -128,12 +128,12 @@ const HEIGHTFIELD_SHADER = {
     // uniform vec3 cameraPosition;
     // uniform sampler2D tex;
     uniform sampler2D heightColorTex;
-    uniform float selectedIndex;
+    // uniform float selectedIndex;
 
     varying vec3 vPosition;
     varying vec3 vWorldPosition;
     varying vec3 vBarycentric;
-    varying float vIndex;
+    // varying float vIndex;
     // varying vec3 vViewPosition;
     // varying vec3 vColor;
     // varying vec3 vNormal;
@@ -185,9 +185,9 @@ const HEIGHTFIELD_SHADER = {
 
       gl_FragColor = vec4(diffuseColor, 1.0);
 
-      if (vIndex == selectedIndex) {
+      /* if (vIndex == selectedIndex) {
         gl_FragColor.b = 1.0;
-      }
+      } */
     }
   `
 };
