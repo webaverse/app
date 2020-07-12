@@ -1645,12 +1645,12 @@ function animate(timestamp, frame) {
       localMatrix.fromArray(pose.transform.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
-      if (capsuleMesh) {
+      /* if (capsuleMesh) {
         capsuleMesh.position.copy(localVector);
         capsuleMesh.quaternion.copy(localQuaternion);
         physics.pushObjectMesh(capsuleMesh);
         physicalMesh.body.activate(true);
-      }
+      } */
 
       pointRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
       const raycastChunkSpec = pointRaycaster.readRaycast(chunkMeshContainer, localVector, localQuaternion);
