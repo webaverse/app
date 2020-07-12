@@ -1670,6 +1670,39 @@ const cometFireMesh = (() => {
 })();
 scene.add(cometFireMesh);
 
+const hpMesh = (() => {
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([
+    new THREE.PlaneBufferGeometry(1, 0.02).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.02, 0)),
+    new THREE.PlaneBufferGeometry(1, 0.02).applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.02, 0)),
+    new THREE.PlaneBufferGeometry(0.02, 0.04).applyMatrix4(new THREE.Matrix4().makeTranslation(-1/2, 0, 0)),
+    new THREE.PlaneBufferGeometry(0.02, 0.04).applyMatrix4(new THREE.Matrix4().makeTranslation(1/2, 0, 0)),
+  ]);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+
+  const geometry2 = new THREE.PlaneBufferGeometry(1, 0.02).applyMatrix4(new THREE.Matrix4().makeTranslation(1/2, 0, 0))
+  const material2 = new THREE.MeshBasicMaterial({
+    color: 0x81c784,
+  });
+  const barMesh = new THREE.Mesh(geometry2, material2);
+  barMesh.position.x = -1/2;
+  barMesh.position.z = -0.001;
+  barMesh.scale.x = 37/100;
+  barMesh.frustumCulled = false;
+  mesh.add(barMesh);
+
+  const textMesh = makeTextMesh('HP 37/100', './Bangers-Regular.ttf', 0.05, 'left', 'bottom');
+  textMesh.position.x = -1/2;
+  textMesh.position.y = 0.05;
+  mesh.add(textMesh);
+
+  return mesh;
+})();
+scene.add(hpMesh);
+
 const _applyVelocity = (position, timeDiff) => {
   position.add(localVector4.copy(velocity).multiplyScalar(timeDiff));
 };
