@@ -10,10 +10,10 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localRaycater = new THREE.Raycaster();
 
-const makeTextMesh = (text = '', fontSize = 1, anchorX = 'left', anchorY = 'middle') => {
+const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anchorX = 'left', anchorY = 'middle') => {
   const textMesh = new TextMesh();
   textMesh.text = text;
-  textMesh.font = './GeosansLight.ttf';
+  textMesh.font = font;
   textMesh.fontSize = fontSize;
   textMesh.color = 0x000000;
   textMesh.anchorX = anchorX;
@@ -44,7 +44,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
     );
     object.add(background);
 
-    const textMesh = makeTextMesh(name, size*0.1);
+    const textMesh = makeTextMesh(name, undefined, size*0.1);
     textMesh.position.x = -size/2;
     textMesh.position.y = size/2;
     textMesh.position.z = 0.001;
@@ -166,7 +166,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
       imgMesh.position.z = 0.001;
       object.add(imgMesh);
 
-      const textMesh = makeTextMesh(name, size*0.05);
+      const textMesh = makeTextMesh(name, undefined, size*0.05);
       textMesh.position.x = -packageWidth/2 + packageHeight;
       textMesh.position.y = packageHeight/2;
       textMesh.position.z = 0.001;
@@ -321,7 +321,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
       imgMesh.position.z = 0.001;
       object.add(imgMesh);
 
-      const textMesh = makeTextMesh(name, size*0.05);
+      const textMesh = makeTextMesh(name, undefined, size*0.05);
       textMesh.position.x = -packageWidth/2 + packageHeight;
       textMesh.position.y = packageHeight/2;
       textMesh.position.z = 0.001;
