@@ -1670,6 +1670,171 @@ const cometFireMesh = (() => {
 })();
 scene.add(cometFireMesh);
 
+const _applyVelocity = (position, timeDiff) => {
+  position.add(localVector4.copy(velocity).multiplyScalar(timeDiff));
+};
+const _getFloorOffset = groundedDistance => {
+  if (isFinite(groundedDistance)) {
+    const minHeight = _getMinHeight();
+    if ((groundedDistance + velocity.y * 10/1000) < minHeight) {
+      return -groundedDistance + minHeight;
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+};
+const _getCeilingOffset = ceilingDistance => {
+  if (isFinite(ceilingDistance)) {
+    const maxHeight = 0.2;
+    if ((ceilingDistance + velocity.y * 10/1000) < maxHeight) {
+      return ceilingDistance - maxHeight;
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+};
+const _collideWall = matrix => {
+  matrix.decompose(localVector, localQuaternion, localVector2);
+  if (velocity.x !== 0 || velocity.y !== 0 || velocity.z !== 0) {
+    const width = 0.5;
+    const height = 2;
+    const depth = 2;
+    const bodyWidth = 0.3;
+    localQuaternion2.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(velocity.x, 0, velocity.z).normalize());
+    localVector3.copy(localVector)
+      .add(localVector4.set(0, -0.5, bodyWidth).applyQuaternion(localQuaternion2));
+    collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector3, localQuaternion2, width, height, depth);
+    collisionRaycaster.readRaycast(chunkMeshContainer);
+
+    let i = 0;
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 10; x++) {
+        const cubeMesh = sideCollisionCubes[i];
+        const d = collisionRaycaster.depths[i];
+        if (isFinite(d)) {
+          const normal = collisionRaycaster.normals[i];
+
+          cubeMesh.position.copy(localVector3)
+            .add(localVector4.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
+          cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
+          cubeMesh.visible = true;
+
+          if (d < bodyWidth*2) {
+            localVector4.y = 0;
+            localVector4.normalize();
+            const restitutionMagnitude = velocity.dot(localVector4);
+            if (restitutionMagnitude > 0) {
+              localVector5.copy(localVector4).multiplyScalar(-restitutionMagnitude);
+              velocity.add(localVector5);
+            }
+          }
+        } else {
+          cubeMesh.visible = false;
+        }
+        i++;
+      }
+    }
+  }
+};
+const _collideFloor = matrix => {
+  matrix.decompose(localVector, localQuaternion, localVector2);
+  localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+  localEuler.x = -Math.PI/2;
+  localQuaternion2.setFromEuler(localEuler);
+
+  const width = 0.5;
+  const height = 0.5;
+  const depth = 100;
+
+  collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
+  collisionRaycaster.readRaycast(chunkMeshContainer);
+
+  let groundedDistance = Infinity;
+
+  let i = 0;
+  for (let y = 0; y < 10; y++) {
+    for (let x = 0; x < 10; x++) {
+      const cubeMesh = floorCollisionCubes[i];
+      const d = collisionRaycaster.depths[i];
+
+      if (isFinite(d)) {
+        const normal = collisionRaycaster.normals[i];
+
+        cubeMesh.position.copy(localVector)
+          .add(localVector3.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
+        cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
+        cubeMesh.visible = true;
+
+        if (d < groundedDistance) {
+          groundedDistance = d;
+        }
+      } else {
+        cubeMesh.visible = false;
+      }
+      i++;
+    }
+  }
+
+  return groundedDistance;
+};
+const _collideCeiling = matrix => {
+  matrix.decompose(localVector, localQuaternion, localVector2);
+  localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+  localEuler.x = Math.PI/2;
+  localQuaternion2.setFromEuler(localEuler);
+
+  const width = 0.5;
+  const height = 0.5;
+  const depth = 100;
+
+  collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
+  collisionRaycaster.readRaycast(chunkMeshContainer);
+
+  let ceilingDistance = Infinity;
+
+  let i = 0;
+  for (let y = 0; y < 10; y++) {
+    for (let x = 0; x < 10; x++) {
+      const cubeMesh = ceilingCollisionCubes[i];
+      const d = collisionRaycaster.depths[i];
+
+      if (isFinite(d)) {
+        const normal = collisionRaycaster.normals[i];
+
+        cubeMesh.position.copy(localVector)
+          .add(localVector3.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
+        cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
+        cubeMesh.visible = true;
+
+        if (d < ceilingDistance) {
+          ceilingDistance = d;
+        }
+      } else {
+        cubeMesh.visible = false;
+      }
+      i++;
+    }
+  }
+
+  return ceilingDistance;
+};
+const _collideItems = matrix => {
+  matrix.decompose(localVector3, localQuaternion2, localVector4);
+  localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
+
+  for (let i = 0; i < itemMeshes.length; i++) {
+    const itemMesh = itemMeshes[i];
+    if (itemMesh.getWorldPosition(localVector5).distanceTo(localVector4) < 1) {
+      itemMesh.pickUp();
+    }
+    itemMesh.update(localVector5.copy(localVector3).applyMatrix4(localMatrix2.getInverse(currentChunkMesh.matrixWorld)));
+  }
+};
+
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
@@ -2360,174 +2525,9 @@ function animate(timestamp, frame) {
     localVector.multiplyScalar(timeDiff);
     velocity.add(localVector);
 
-    const _applyVelocity = position => {
-      position.add(localVector4.copy(velocity).multiplyScalar(timeDiff));
-    };
-    const _getFloorOffset = groundedDistance => {
-      if (isFinite(groundedDistance)) {
-        const minHeight = _getMinHeight();
-        if ((groundedDistance + velocity.y * 10/1000) < minHeight) {
-          return -groundedDistance + minHeight;
-        } else {
-          return null;
-        }
-      } else {
-        return null;
-      }
-    };
-    const _getCeilingOffset = ceilingDistance => {
-      if (isFinite(ceilingDistance)) {
-        const maxHeight = 0.2;
-        if ((ceilingDistance + velocity.y * 10/1000) < maxHeight) {
-          return ceilingDistance - maxHeight;
-        } else {
-          return null;
-        }
-      } else {
-        return null;
-      }
-    };
-    const _collideWall = matrix => {
-      matrix.decompose(localVector, localQuaternion, localVector2);
-      if (velocity.x !== 0 || velocity.y !== 0 || velocity.z !== 0) {
-        const width = 0.5;
-        const height = 2;
-        const depth = 2;
-        const bodyWidth = 0.3;
-        localQuaternion2.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(velocity.x, 0, velocity.z).normalize());
-        localVector3.copy(localVector)
-          .add(localVector4.set(0, -0.5, bodyWidth).applyQuaternion(localQuaternion2));
-        collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector3, localQuaternion2, width, height, depth);
-        collisionRaycaster.readRaycast(chunkMeshContainer);
-
-        let i = 0;
-        for (let y = 0; y < 10; y++) {
-          for (let x = 0; x < 10; x++) {
-            const cubeMesh = sideCollisionCubes[i];
-            const d = collisionRaycaster.depths[i];
-            if (isFinite(d)) {
-              const normal = collisionRaycaster.normals[i];
-
-              cubeMesh.position.copy(localVector3)
-                .add(localVector4.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
-              cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
-              cubeMesh.visible = true;
-
-              if (d < bodyWidth*2) {
-                localVector4.y = 0;
-                localVector4.normalize();
-                const restitutionMagnitude = velocity.dot(localVector4);
-                if (restitutionMagnitude > 0) {
-                  localVector5.copy(localVector4).multiplyScalar(-restitutionMagnitude);
-                  velocity.add(localVector5);
-                }
-              }
-            } else {
-              cubeMesh.visible = false;
-            }
-            i++;
-          }
-        }
-      }
-    };
-    const _collideFloor = matrix => {
-      matrix.decompose(localVector, localQuaternion, localVector2);
-      localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-      localEuler.x = -Math.PI/2;
-      localQuaternion2.setFromEuler(localEuler);
-
-      const width = 0.5;
-      const height = 0.5;
-      const depth = 100;
-
-      collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
-      collisionRaycaster.readRaycast(chunkMeshContainer);
-
-      let groundedDistance = Infinity;
-
-      let i = 0;
-      for (let y = 0; y < 10; y++) {
-        for (let x = 0; x < 10; x++) {
-          const cubeMesh = floorCollisionCubes[i];
-          const d = collisionRaycaster.depths[i];
-
-          if (isFinite(d)) {
-            const normal = collisionRaycaster.normals[i];
-
-            cubeMesh.position.copy(localVector)
-              .add(localVector3.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
-            cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
-            cubeMesh.visible = true;
-
-            if (d < groundedDistance) {
-              groundedDistance = d;
-            }
-          } else {
-            cubeMesh.visible = false;
-          }
-          i++;
-        }
-      }
-
-      return groundedDistance;
-    };
-    const _collideCeiling = matrix => {
-      matrix.decompose(localVector, localQuaternion, localVector2);
-      localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-      localEuler.x = Math.PI/2;
-      localQuaternion2.setFromEuler(localEuler);
-
-      const width = 0.5;
-      const height = 0.5;
-      const depth = 100;
-
-      collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
-      collisionRaycaster.readRaycast(chunkMeshContainer);
-
-      let ceilingDistance = Infinity;
-
-      let i = 0;
-      for (let y = 0; y < 10; y++) {
-        for (let x = 0; x < 10; x++) {
-          const cubeMesh = ceilingCollisionCubes[i];
-          const d = collisionRaycaster.depths[i];
-
-          if (isFinite(d)) {
-            const normal = collisionRaycaster.normals[i];
-
-            cubeMesh.position.copy(localVector)
-              .add(localVector3.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
-            cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
-            cubeMesh.visible = true;
-
-            if (d < ceilingDistance) {
-              ceilingDistance = d;
-            }
-          } else {
-            cubeMesh.visible = false;
-          }
-          i++;
-        }
-      }
-
-      return ceilingDistance;
-    };
-    const _collideItems = matrix => {
-      matrix.decompose(localVector3, localQuaternion2, localVector4);
-      localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
-
-      for (let i = 0; i < itemMeshes.length; i++) {
-        const itemMesh = itemMeshes[i];
-        if (itemMesh.getWorldPosition(localVector5).distanceTo(localVector4) < 1) {
-          itemMesh.pickUp();
-        }
-        itemMesh.update(localVector5.copy(localVector3).applyMatrix4(localMatrix2.getInverse(currentChunkMesh.matrixWorld)));
-      }
-    };
-
     if (selectedTool === 'firstperson') {
       _collideWall(pe.camera.matrix);
-      _applyVelocity(pe.camera.position);
+      _applyVelocity(pe.camera.position, timeDiff);
       pe.camera.updateMatrixWorld();
       const groundedDistance = _collideFloor(pe.camera.matrix);
       const offset = _getFloorOffset(groundedDistance);
@@ -2565,7 +2565,7 @@ function animate(timestamp, frame) {
       localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
       localMatrix.compose(localVector, localQuaternion, localVector2);
       _collideWall(localMatrix);
-      _applyVelocity(pe.camera.position);
+      _applyVelocity(pe.camera.position, timeDiff);
       pe.camera.updateMatrixWorld();
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
@@ -2612,7 +2612,7 @@ function animate(timestamp, frame) {
       localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
       localMatrix.compose(localVector, localQuaternion, localVector2);
       _collideWall(localMatrix);
-      _applyVelocity(pe.camera.position);
+      _applyVelocity(pe.camera.position, timeDiff);
       pe.camera.updateMatrixWorld();
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
@@ -2660,7 +2660,7 @@ function animate(timestamp, frame) {
       localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
       localMatrix.compose(localVector, localQuaternion, localVector2);
       _collideWall(localMatrix);
-      _applyVelocity(pe.camera.position);
+      _applyVelocity(pe.camera.position, timeDiff);
       pe.camera.updateMatrixWorld();
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
@@ -2701,9 +2701,11 @@ function animate(timestamp, frame) {
         }
       }
     } else {
+      _collideItems(pe.camera.matrix);
       pe.setRigMatrix(null);
     }
   } else {
+    _collideItems(pe.camera.matrix);
     pe.setRigMatrix(null);
   }
 
