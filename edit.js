@@ -30,7 +30,7 @@ const SUBPARCEL_SIZE = 10;
 const NUM_PARCELS = PARCEL_SIZE/SUBPARCEL_SIZE;
 const slabTotalSize = 8 * 1024 * 1024;
 const slabAttributeSize = slabTotalSize/4;
-const numSlices = NUM_PARCELS*NUM_PARCELS*NUM_PARCELS;
+const numSlices = 40;
 const slabSliceTris = Math.floor(slabAttributeSize/numSlices/9/Float32Array.BYTES_PER_ELEMENT);
 const slabSliceVertices = slabSliceTris * 3;
 const BUILD_SNAP = 2;
@@ -191,7 +191,6 @@ const HEIGHTFIELD_SHADER = {
     }
   `
 };
-// const _getSliceIndex = (x, y, z) => z + y*NUM_PARCELS + x*NUM_PARCELS*NUM_PARCELS;
 const _getBuildKey = p => [p.x,p.y,p.z].join(':');
 const _snapBuildPosition = p => {
   p.x = Math.floor(p.x/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
@@ -319,7 +318,7 @@ const [
 ]);
 
 worker = w;
-physics = (() => {
+/* physics = (() => {
   const ammoVector3 = new Ammo.btVector3();
   const ammoQuaternion = new Ammo.btQuaternion();
   const localTransform = new Ammo.btTransform();
@@ -330,14 +329,6 @@ physics = (() => {
   const solver = new Ammo.btSequentialImpulseConstraintSolver();
   const dynamicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
   dynamicsWorld.setGravity(new Ammo.btVector3(0, -9.8, 0));
-
-  // window.dispatcher = dispatcher;
-  // window.dynamicsWorld = dynamicsWorld;
-
-  /* const collisionConfiguration2 = new Ammo.btDefaultCollisionConfiguration();
-  const dispatcher2 = new Ammo.btCollisionDispatcher(collisionConfiguration2);
-  const broadphase = new Ammo.btDbvtBroadphase();
-  const collisionWorld = new Ammo.btCollisionWorld(dispatcher2, broadphase, collisionConfiguration2); */
 
   {
     var groundShape = new Ammo.btBoxShape(new Ammo.btVector3(100, 100, 100));
@@ -459,10 +450,6 @@ physics = (() => {
       const body = new Ammo.btRigidBody(rbInfo);
 
       dynamicsWorld.addRigidBody(body);
-
-      /* const collisionObject = new Ammo.btCollisionObject();
-      collisionObject.setCollisionShape(shape);
-      collisionWorld.addCollisionObject(collisionObject); */
     },
     bindMeshPhysics(objectMesh) {
       if (!objectMesh.body) {
@@ -480,13 +467,13 @@ physics = (() => {
         const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
         const body = new Ammo.btRigidBody(rbInfo);
         // body.setActivationState(4);
-        /* const STATE = {
-          ACTIVE : 1,
-          ISLAND_SLEEPING : 2,
-          WANTS_DEACTIVATION : 3,
-          DISABLE_DEACTIVATION : 4,
-          DISABLE_SIMULATION : 5
-        }; */
+        // const STATE = {
+          // ACTIVE : 1,
+          // ISLAND_SLEEPING : 2,
+          // WANTS_DEACTIVATION : 3,
+          // DISABLE_DEACTIVATION : 4,
+          // DISABLE_SIMULATION : 5
+        // };
 
         dynamicsWorld.addRigidBody(body);
 
@@ -584,9 +571,9 @@ physics = (() => {
       }
     },
   };
-})();
+})(); */
 
-physicalMesh = (() => {
+/* physicalMesh = (() => {
   const geometry = new THREE.TetrahedronBufferGeometry(1, 0);
   const material = new THREE.MeshBasicMaterial({
     color: 0x0000FF,
@@ -598,7 +585,6 @@ physicalMesh = (() => {
 physicalMesh.position.set(0, 20, 0);
 scene.add(physicalMesh);
 physics.bindMeshPhysics(physicalMesh);
-// window.physicalMesh = physicalMesh;
 
 capsuleMesh = (() => {
   const geometry = new THREE.SphereBufferGeometry(0.5);
@@ -609,9 +595,7 @@ capsuleMesh = (() => {
   mesh.frustumCulled = false;
   return mesh;
 })();
-// scene.add(capsuleMesh);
-physics.bindCapsuleMeshPhysics(capsuleMesh);
-// window.capsuleMesh = capsuleMesh;
+physics.bindCapsuleMeshPhysics(capsuleMesh); */
 
 const _makeChunkMesh = async () => {
   const meshId = ++nextId;
@@ -663,12 +647,6 @@ const _makeChunkMesh = async () => {
   });
   heightfieldMaterial.uniforms.heightColorTex.value.needsUpdate = true;
 
-  /* const _makeMultipleOf4 = n => {
-    const d = n%4;
-    n -= d;
-    return n;
-  }; */
-
   const slabArrayBuffer = new ArrayBuffer(slabTotalSize);
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 0*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
@@ -676,76 +654,41 @@ const _makeChunkMesh = async () => {
   geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices), 1));
   geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 3*slabAttributeSize, slabSliceVertices*numSlices), 1));
 
-  let index = 0;
-  const _allocateSlab = () => {
-    const result = {
-      offset: index,
-      position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
-      barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
-      id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
-      index: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
-    };
-    index++;
-    return result;
-  };
-
   const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
+  mesh.meshId = meshId;
+  mesh.isChunkMesh = true;
+  const slabs = [];
+  let index = 0;
+  mesh.getSlab = (x, y, z) => {
+    let slab = slabs.find(slab => slab.x === x && slab.y === y && slab.z === z);
+    if (!slab) {
+      slab = {
+        position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+        barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+        id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+        index: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+        x,
+        y,
+        z,
+        slabIndex: index,
+      };
+      slabs.push(slab);
+      geometry.addGroup(index * slabSliceVertices, slab.position.length/3, 0);
+      index++;
+    }
+    return slab;
+  };
   for (let i = 0; i < specs.length; i++) {
     const spec = specs[i];
-    const slab = _allocateSlab();
+    const {x, y, z} = spec;
+    const slab = mesh.getSlab(x, y, z);
     slab.position.set(spec.positions);
     slab.barycentric.set(spec.barycentrics);
     slab.id.set(spec.ids);
     slab.index.set(spec.indices);
 
-    // const gl = renderer.getContext();
-
-    // console.log('update range', geometry.attributes.position.updateRange, spec.positions);
-
-    /* const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(slab.position, 3));
-    geometry.setAttribute('barycentric', new THREE.BufferAttribute(slab.barycentric, 3));
-    geometry.setAttribute('id', new THREE.BufferAttribute(slab.id, 1));
-    geometry.setAttribute('index', new THREE.BufferAttribute(slab.index, 1));
-    const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
-    mesh.frustumCulled = false;
-    mesh.meshId = meshId; */
-
-    geometry.addGroup(i * slabSliceVertices, spec.positions.length/3, 0);
-    /* mesh.potentialsAddress = spec.potentialsAddress;
-    mesh.potentialsLength = spec.potentialsLength;
-    mesh.dimsAddress = spec.dimsAddress;
-    mesh.dimsLength = spec.dimsLength;
-    // mesh.dims = dims; */
-    // return mesh;
-
-    /* geometry.attributes.position.updateRange = {
-      offset: slab.offset/Float32Array.BYTES_PER_ELEMENT,
-      count: spec.positions.length,
-    };
-    geometry.attributes.position.needsUpdate = true;
-    geometry.attributes.barycentric.updateRange = {
-      offset: slab.offset/Float32Array.BYTES_PER_ELEMENT,
-      count: spec.barycentrics.length,
-    };
-    geometry.attributes.position.needsUpdate = true;
-    geometry.attributes.id.updateRange = {
-      offset: slab.offset/Float32Array.BYTES_PER_ELEMENT,
-      count: spec.ids.length,
-    };
-    geometry.attributes.id.needsUpdate = true;
-    geometry.attributes.index.updateRange = {
-      offset: slab.offset/Float32Array.BYTES_PER_ELEMENT,
-      count: spec.indices.length,
-    };
-    geometry.attributes.index.needsUpdate = true;
-    renderer.geometries.update(geometry);
-
-    geometry.addGroup(i*slabSliceSize/3/Float32Array.BYTES_PER_ELEMENT, spec.positions.length/3, 0); */
+    geometry.groups[slab.slabIndex].count = spec.positions.length/3;
   }
-  // mesh.frustumCulled = false;
-  mesh.meshId = meshId;
-  mesh.isChunkMesh = true;
   return mesh;
 };
 
@@ -775,7 +718,7 @@ for (let i = 0; i < numRemoteChunkMeshes; i++) {
 }
 remoteChunkMeshes.push(chunkMesh);
 
-physics.bindStaticMeshPhysics(chunkMesh);
+// physics.bindStaticMeshPhysics(chunkMesh);
 /* for (let i = 0; i < remoteChunkMeshes.length; i++) {
   console.time('lol');
   physics.bindStaticMeshPhysics(remoteChunkMeshes[i]);
@@ -1896,39 +1839,24 @@ function animate(timestamp, frame) {
               delta,
               currentChunkMesh.meshId,
               localVector2.toArray(),
-              slabSliceTris,
+              slabSliceTris
             );
-
             for (let i = 0; i < specs.length; i++) {
               const spec = specs[i];
-              // const index = _getSliceIndex(spec.x, spec.y, spec.z);
-              const {sliceIndex: index} = spec;
-              const {geometry} = currentChunkMesh;
-              const slab = {
-                position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
-                barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
-                id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
-                index: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
-              };
+              const {x, y, z} = spec;
+              const slab = currentChunkMesh.getSlab(x, y, z);
               slab.position.set(spec.positions);
               slab.barycentric.set(spec.barycentrics);
               slab.id.set(spec.ids);
               slab.index.set(spec.indices);
 
-              // console.log('get spec', spec, index);
-
+              const {geometry} = currentChunkMesh;
               geometry.attributes.position.needsUpdate = true;
               geometry.attributes.barycentric.needsUpdate = true;
               geometry.attributes.id.needsUpdate = true;
               geometry.attributes.index.needsUpdate = true;
 
-              const group = geometry.groups[index];
-              group.count = spec.positions.length/3;
-
-              /* currentChunkMesh.geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-              currentChunkMesh.geometry.setAttribute('barycentric', new THREE.BufferAttribute(spec.barycentrics, 3));
-              currentChunkMesh.geometry.setAttribute('id', new THREE.BufferAttribute(spec.ids, 1));
-              currentChunkMesh.geometry.setAttribute('index', new THREE.BufferAttribute(spec.indices, 1)); */
+              geometry.groups[slab.slabIndex].count = spec.positions.length/3;
             }
           };
           switch (selectedWeapon) {
