@@ -261,7 +261,7 @@ let capsuleMesh = null;
 const [
   w,
   colors,
-  ammo,
+  // ammo,
 ] = await Promise.all([
   (async () => {
     let cbs = [];
@@ -308,13 +308,13 @@ const [
     const res = await fetch('./colors.json');
     return await res.json();
   })(),
-  await new Promise((accept, reject) => {
+  /* await new Promise((accept, reject) => {
     Ammo()
       .then(ammo => {
         accept(ammo);
       })
       .catch(reject);
-  }),
+  }), */
 ]);
 
 worker = w;
