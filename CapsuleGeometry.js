@@ -1,4 +1,4 @@
-import * as THREE from "three";
+import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 
 /*
   Implemented from a technique described here:
@@ -16,7 +16,7 @@ import * as THREE from "three";
     using a positive PID2 will invert the caps
 */
 
-const CapsuleGeometry = (radius = 1, height = 2, N = 32) => {
+function CapsuleGeometry(radius = 1, height = 2, N = 32) {
   const geometry = new THREE.Geometry();
   const TWOPI = Math.PI*2;
 
