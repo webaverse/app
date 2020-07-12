@@ -1734,14 +1734,16 @@ function animate(timestamp, frame) {
             .decompose(localVector3, localQuaternion2, localVector4);
 
           selectedWeaponModel.forEach((weaponMesh, i) => {
-            if (i === 0) {
-              weaponMesh.position.copy(localVector3);
-              weaponMesh.quaternion.copy(localQuaternion2);
-              weaponMesh.visible = true;
-            } else if (i === 1) {
-              weaponMesh.position.copy(localVector);
-              weaponMesh.quaternion.copy(localQuaternion);
-              weaponMesh.visible = true;
+            if (weaponMesh) {
+              if (i === 0) {
+                weaponMesh.position.copy(localVector3);
+                weaponMesh.quaternion.copy(localQuaternion2);
+                weaponMesh.visible = true;
+              } else if (i === 1) {
+                weaponMesh.position.copy(localVector);
+                weaponMesh.quaternion.copy(localQuaternion);
+                weaponMesh.visible = true;
+              }
             }
           });
         }
