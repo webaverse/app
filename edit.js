@@ -1810,12 +1810,25 @@ function animate(timestamp, frame) {
 
           localVector3.set(0, 1, 0).applyQuaternion(buildMesh.quaternion);
           if (Math.abs(localVector3.x) > Math.abs(localVector3.y) && Math.abs(localVector3.x) > Math.abs(localVector3.z)) {
-            buildMesh.quaternion.setFromUnitVectors(localVector4.set(0, 1, 0), localVector5.set(Math.sign(localVector3.x), 0, 0));
+            localVector3.set(Math.sign(localVector3.x), 0, 0);
           } else if (Math.abs(localVector3.y) > Math.abs(localVector3.x) && Math.abs(localVector3.y) > Math.abs(localVector3.z)) {
-            buildMesh.quaternion.setFromUnitVectors(localVector4.set(0, 1, 0), localVector5.set(0, Math.sign(localVector3.y), 0));
+            localVector3.set(0, Math.sign(localVector3.y), 0);
           } else {
-            buildMesh.quaternion.setFromUnitVectors(localVector4.set(0, 1, 0), localVector5.set(0, 0, Math.sign(localVector3.z)));
+            localVector3.set(0, 0, Math.sign(localVector3.z));
           }
+          localVector4.set(0, 0, -1).applyQuaternion(buildMesh.quaternion);
+          if (Math.abs(localVector4.x) > Math.abs(localVector4.y) && Math.abs(localVector4.x) > Math.abs(localVector4.z)) {
+            localVector4.set(Math.sign(localVector4.x), 0, 0);
+          } else if (Math.abs(localVector4.y) > Math.abs(localVector4.x) && Math.abs(localVector4.y) > Math.abs(localVector4.z)) {
+            localVector4.set(0, Math.sign(localVector4.y), 0);
+          } else {
+            localVector4.set(0, 0, Math.sign(localVector4.z));
+          }
+          buildMesh.quaternion.setFromRotationMatrix(localMatrix2.lookAt(
+            localVector2.set(0, 0, 0),
+            localVector4,
+            localVector3
+          ));
 
           const buildKey = _getBuildKey(buildMesh.position);
           if (!buildMap[buildKey]) {
