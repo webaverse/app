@@ -2157,21 +2157,6 @@ function animate(timestamp, frame) {
                   const {npcMesh} = raycastChunkSpec.mesh;
 
                   npcMesh.hit(30);
-                  /* const {buildMesh} = raycastChunkSpec.mesh;
-
-                  localVector2.copy(localVector)
-                    .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
-                    .add(localVector3.set(0, -BUILD_SNAP/2, 0));
-                  _snapBuildPosition(localVector2);
-
-                  localMatrix.compose(localVector2, localQuaternion, localVector3.set(1, 1, 1))
-                    .premultiply(localMatrix2.getInverse(worldContainer.matrix))
-                    .decompose(localVector2, localQuaternion2, localVector3);
-
-                  const buildKey = _getBuildKey(localVector2);
-                  const oldBuildMesh = buildMap[buildKey];
-
-                  buildMesh.hit(30); */
                 }
               }
               break;
