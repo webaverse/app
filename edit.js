@@ -2200,7 +2200,7 @@ function animate(timestamp, frame) {
 
       const currentTeleportChunkMesh = raycastChunkSpec && raycastChunkSpec.mesh;
       if (currentTeleport && currentTeleportChunkMesh) {
-        currentTeleportChunkMesh.material[0].uniforms.selectedIndex.value = raycastChunkSpec.index;
+        // currentTeleportChunkMesh.material[0].uniforms.selectedIndex.value = raycastChunkSpec.index;
 
         if (raycastChunkSpec.point) {
           teleportMeshes[1].position.copy(raycastChunkSpec.point);
