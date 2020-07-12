@@ -47,6 +47,7 @@ const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const zeroVector = new THREE.Vector3(0, 0, 0);
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -2969,13 +2970,20 @@ function animate(timestamp, frame) {
     wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
   } */
 
-  physicsRaycaster.raycastMeshes(chunkMeshContainer, pxMesh.position, pxMesh.quaternion, 1, 1, 10);
+  for (let i = 0; i < physicsMeshContainer.children.length; i++) {
+    const pxMesh = physicsMeshContainer.children[i];
+    if (!pxMesh.velocity.equals(zeroVector)) {
+      physicsRaycaster.raycastMeshes(chunkMeshContainer, pxMesh.position, pxMesh.quaternion, 1, 1, 10);
+    }
+  }
   physicsRaycaster.readRaycast();
-  if (physicsRaycaster.depths[0] < pxMesh.velocity.length()*1.1) {
-    pxMesh.position.add(pxMesh.velocity.multiplyScalar(physicsRaycaster.depths[0]));
-    pxMesh.velocity.set(0, 0, 0);
-  } else {
-    pxMesh.position.add(pxMesh.velocity);
+  for (let i = 0; i < physicsMeshContainer.children.length; i++) {
+    if (physicsRaycaster.depths[i] < pxMesh.velocity.length()*1.1) {
+      pxMesh.position.add(pxMesh.velocity.multiplyScalar(physicsRaycaster.depths[0]));
+      pxMesh.velocity.copy(zeroVector);
+    } else {
+      pxMesh.position.add(pxMesh.velocity);
+    }
   }
 
   lastTeleport = currentTeleport;
