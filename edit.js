@@ -253,9 +253,19 @@ scene.add(worldContainer);
 const chunkMeshContainer = new THREE.Object3D();
 worldContainer.add(chunkMeshContainer);
 let currentChunkMesh = null;
-let physics = null;
-let physicalMesh = null;
-let capsuleMesh = null;
+// let physics = null;
+// let physicalMesh = null;
+// let capsuleMesh = null;
+const _setCurrentChunkMesh = chunkMesh => {
+  if (currentChunkMesh) {
+    currentChunkMesh.material[0].uniforms.isCurrent.value = 0;
+    currentChunkMesh = null;
+  }
+  currentChunkMesh = chunkMesh;
+  if (currentChunkMesh) {
+    currentChunkMesh.material[0].uniforms.isCurrent.value = 1;
+  }
+};
 (async () => {
 
 const [
@@ -717,6 +727,7 @@ for (let i = 0; i < numRemoteChunkMeshes; i++) {
   remoteChunkMeshes.push(remoteChunkMesh);
 }
 remoteChunkMeshes.push(chunkMesh);
+_setCurrentChunkMesh(chunkMesh);
 
 // physics.bindStaticMeshPhysics(chunkMesh);
 /* for (let i = 0; i < remoteChunkMeshes.length; i++) {
@@ -2214,15 +2225,8 @@ function animate(timestamp, frame) {
       } else if (lastTeleport && !currentTeleport && currentTeleportChunkMesh) {
         teleportMeshes[1].visible = false;
         _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
-        if (currentChunkMesh) {
-          currentChunkMesh.material[0].uniforms.isCurrent.value = 0;
-          currentChunkMesh = null;
-        }
         if (currentTeleportChunkMesh.isChunkMesh) {
-          currentChunkMesh = currentTeleportChunkMesh;
-          if (currentChunkMesh) {
-            currentChunkMesh.material[0].uniforms.isCurrent.value = 1;
-          }
+          _setCurrentChunkMesh(currentTeleportChunkMesh);
         }
       } else {
         teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, (position, quaternion) => {
