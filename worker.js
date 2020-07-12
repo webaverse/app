@@ -204,17 +204,14 @@ const _meshChunk = (ix, iy, iz, meshId, sliceIndex, slabSliceTris) => {
   allocator.freeAll();
   return [
     {
-      /* sliceIndex,
-      potentialsAddress: potentials.offset,
-      potentialsLength: potentials.length,
-      dimsAddress: dims.offset,
-      dimsLength: dims.length,
-      shiftsAddress: shifts.offset,
-      shiftsLength: shifts.length, */
       positions,
       barycentrics,
       ids,
       indices,
+      x: ix,
+      y: iy,
+      z: iz,
+      sliceIndex,
       // arrayBuffer2,
     },
     arrayBuffer2
@@ -366,7 +363,7 @@ const _handleMessage = data => {
       requiredSlices.forEach(slice => {
         const {x, y, z, sliceIndex} = slice;
         const [result, transfer] = _meshChunk(x, y, z, meshId, sliceIndex, slabSliceTris);
-        result.sliceIndex = sliceIndex;
+        // result.sliceIndex = sliceIndex;
         results.push(result);
         transfers.push(transfer);
       });
