@@ -2210,14 +2210,16 @@ function animate(timestamp, frame) {
         }
       } else if (lastTeleport && !currentTeleport && currentTeleportChunkMesh) {
         teleportMeshes[1].visible = false;
-       _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
-       if (currentChunkMesh) {
-        currentChunkMesh.material[0].uniforms.isCurrent.value = 0;
-        currentChunkMesh = null;
-       }
-       currentChunkMesh = currentTeleportChunkMesh;
-       if (currentChunkMesh) {
-         currentChunkMesh.material[0].uniforms.isCurrent.value = 1;
+        _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
+        if (currentChunkMesh) {
+          currentChunkMesh.material[0].uniforms.isCurrent.value = 0;
+          currentChunkMesh = null;
+        }
+        if (currentTeleportChunkMesh.isChunkMesh) {
+          currentChunkMesh = currentTeleportChunkMesh;
+          if (currentChunkMesh) {
+            currentChunkMesh.material[0].uniforms.isCurrent.value = 1;
+          }
         }
       } else {
         teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, (position, quaternion) => {
