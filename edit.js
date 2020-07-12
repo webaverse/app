@@ -784,7 +784,9 @@ physics.bindStaticMeshPhysics(chunkMesh);
 
 })();
 
-let wrenchMesh = null;
+// let wrenchMesh = null;
+let plansMesh = null;
+let pencilMesh = null;
 let pickaxeMesh = null;
 let paintBrushMesh = null;
 const _loadGltf = u => new Promise((accept, reject) => {
@@ -795,9 +797,15 @@ const _loadGltf = u => new Promise((accept, reject) => {
 });
 (async () => {
   const toolsModels = await _loadGltf('./tools.glb');
-  wrenchMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Pipe_Wrench_01');
+  /* wrenchMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Pipe_Wrench_01');
   wrenchMesh.visible = false;
-  scene.add(wrenchMesh);
+  scene.add(wrenchMesh); */
+  plansMesh = toolsModels.children.find(c => c.name === 'SM_Prop_Plans_01');
+  plansMesh.visible = false;
+  scene.add(plansMesh);
+  pencilMesh = toolsModels.children.find(c => c.name === 'SM_Item_Pencil_02');
+  pencilMesh.visible = false;
+  scene.add(pencilMesh);
   pickaxeMesh = toolsModels.children.find(c => c.name === 'SM_Wep_Pickaxe_01');
   pickaxeMesh.visible = false;
   scene.add(pickaxeMesh);
@@ -1632,7 +1640,8 @@ function animate(timestamp, frame) {
   if (session) {
     const inputSource = session.inputSources[1];
     let pose;
-    if (pose = frame.getPose(inputSource.targetRaySpace, renderer.xr.getReferenceSpace())) {
+    const referenceSpace = renderer.xr.getReferenceSpace();
+    if (pose = frame.getPose(inputSource.targetRaySpace, referenceSpace)) {
       localMatrix.fromArray(pose.transform.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
@@ -1646,15 +1655,15 @@ function animate(timestamp, frame) {
       pointRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
       const raycastChunkSpec = pointRaycaster.readRaycast(chunkMeshContainer, localVector, localQuaternion);
 
-      [wrenchMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
+      [plansMesh, pencilMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
         if (weaponMesh) {
           weaponMesh.visible = false;
         }
       });
       const selectedWeaponModel = (() => {
         switch (selectedWeapon) {
-          case 'wrench': {
-            return wrenchMesh;
+          case 'build': {
+            return [plansMesh, pencilMesh];
           }
           case 'pickaxe': {
             return pickaxeMesh;
@@ -1668,14 +1677,32 @@ function animate(timestamp, frame) {
         }
       })();
       if (selectedWeaponModel) {
-        selectedWeaponModel.position.copy(localVector);
-        selectedWeaponModel.quaternion.copy(localQuaternion);
-        selectedWeaponModel.visible = true;
+        if (!Array.isArray(selectedWeaponModel)) {
+          selectedWeaponModel.position.copy(localVector);
+          selectedWeaponModel.quaternion.copy(localQuaternion);
+          selectedWeaponModel.visible = true;
+        } else {
+          const pose2 = frame.getPose(session.inputSources[0].targetRaySpace, referenceSpace);
+          localMatrix.fromArray(pose.transform.matrix)
+            .decompose(localVector3, localQuaternion2, localVector4);
+
+          selectedWeaponModel.forEach((weaponMesh, i) => {
+            if (i === 0) {
+              weaponMesh.position.copy(localVector3);
+              weaponMesh.quaternion.copy(localQuaternion2);
+              weaponMesh.visible = true;
+            } else if (i === 1) {
+              weaponMesh.position.copy(localVector);
+              weaponMesh.quaternion.copy(localQuaternion);
+              weaponMesh.visible = true;
+            }
+          });
+        }
       }
       addMesh.visible = false;
       removeMesh.visible = false;
       switch (selectedWeapon) {
-        case 'wrench': {
+        case 'build': {
           addMesh.position.copy(localVector)
             .add(localVector2.set(0, 0, -2).applyQuaternion(localQuaternion));
           addMesh.quaternion.copy(localQuaternion);
@@ -1801,7 +1828,7 @@ function animate(timestamp, frame) {
             }
           };
           switch (selectedWeapon) {
-            case 'wrench': {
+            case 'build': {
               if (addMesh.visible) {
                 _applyPotentialDelta(addMesh.position, 0.2);
               }
@@ -2833,6 +2860,7 @@ for (let i = 0; i < weapons.length; i++) {
     weapon.classList.add('selected');
 
     selectedWeapon = weapon.getAttribute('weapon');
+    buildMode = null;
   });
 }
 document.addEventListener('pointerlockchange', e => {
@@ -2938,18 +2966,21 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 81: { // Q
-      buildMode = buildMode ? null : 'wall';
+      document.querySelector('.weapon[weapon="build"]').click();
       break;
     }
     case 90: { // Z
+      document.querySelector('.weapon[weapon="build"]').click();
       buildMode = 'wall';
       break;
     }
     case 88: { // X
+      document.querySelector('.weapon[weapon="build"]').click();
       buildMode = 'floor';
       break;
     }
     case 67: { // C
+      document.querySelector('.weapon[weapon="build"]').click();
       buildMode = 'stair';
       break;
     }
