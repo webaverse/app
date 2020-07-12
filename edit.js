@@ -1703,6 +1703,13 @@ const hpMesh = (() => {
 })();
 scene.add(hpMesh);
 
+(async () => {
+  const npcModel = await _loadGltf('./npc.vrm');
+  npcModel.position.y = -3;
+  npcModel.position.z = -3;
+  scene.add(npcModel);
+})();
+
 const _applyVelocity = (position, timeDiff) => {
   position.add(localVector4.copy(velocity).multiplyScalar(timeDiff));
 };
