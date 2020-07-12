@@ -2966,7 +2966,11 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 81: { // Q
-      document.querySelector('.weapon[weapon="build"]').click();
+      if (selectedWeapon !== 'build') {
+        document.querySelector('.weapon[weapon="build"]').click();
+      } else {
+        document.querySelector('.weapon[weapon="pickaxe"]').click();
+      }
       break;
     }
     case 90: { // Z
