@@ -1857,8 +1857,11 @@ const _collideCeiling = matrix => {
 };
 const _collideItems = matrix => {
   matrix.decompose(localVector3, localQuaternion2, localVector4);
-  localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
 
+  hpMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
+  hpMesh.quaternion.slerp(localQuaternion2, 0.1);
+
+  localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
   for (let i = 0; i < itemMeshes.length; i++) {
     const itemMesh = itemMeshes[i];
     if (itemMesh.getWorldPosition(localVector5).distanceTo(localVector4) < 1) {
