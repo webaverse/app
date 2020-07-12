@@ -296,7 +296,6 @@ const _bakePackage = async p => {
     });
   });
 
-  // Baking logic from xrpk CLI: https://github.com/webaverse/xrpackage-cli/blob/master/commands/bake.js
   const manifestJson = p.getManifestJson();
   manifestJson.icons = Array.isArray(manifestJson.icons) ? manifestJson.icons : [];
   if (screenshot.length > 0) {
