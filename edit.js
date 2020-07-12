@@ -1647,7 +1647,7 @@ const cometFireMesh = (() => {
   };
   const cometFireGeometry = BufferGeometryUtils.mergeBufferGeometries([
     _makeSphereGeometry(radius, 0x5c6bc0, new THREE.Vector3(0, 0.9, 0), new THREE.Vector3(0.8, 10, 0.8)),
-    _makeSphereGeometry(radius, 0xef5350, new THREE.Vector3(0, 0.7, 0), new THREE.Vector3(1.5, 5, 1.5)),
+    _makeSphereGeometry(radius, 0xef5350, new THREE.Vector3(0, 0.7, 0), new THREE.Vector3(2, 5, 2)),
     _makeSphereGeometry(radius, 0xffa726, new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 1, 1)),
   ]);
   /* const ys = new Float32Array(cometFireGeometry.attributes.position.array.length/3);
