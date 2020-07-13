@@ -1957,6 +1957,101 @@ const hpMesh = (() => {
 })();
 scene.add(hpMesh);
 
+const explosionMesh = (() => {
+  const cubeGeometry = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
+  const geometries = [];
+  const numSmokes = 10;
+  const numZs = 10;
+  for (let i = 0; i < numSmokes; i++) {
+    const qs = new Float32Array(cubeGeometry.attributes.position.array.length/3*4);
+    const q = new THREE.Quaternion().setFromEuler(
+      new THREE.Euler((-1+Math.random()*2)*Math.PI*2*0.05, (-1+Math.random()*2)*Math.PI*2*0.05, (-1+Math.random()*2)*Math.PI*2*0.05, 'YXZ')
+    );
+    for (let i = 0; i < qs.length; i += 4) {
+      q.toArray(qs, i);
+    }
+    const maxZ = Math.random();
+    for (let j = 0; j < numZs; j++) {
+      const geometry = cubeGeometry.clone();
+      const zs = new Float32Array(geometry.attributes.position.array.length/3);
+      const z = j/numZs;
+      for (let k = 0; k < zs.length; k++) {
+        zs[k] = z;
+      }
+      geometry.setAttribute('z', new THREE.BufferAttribute(zs, 1));
+      const maxZs = new Float32Array(geometry.attributes.position.array.length/3);
+      for (let k = 0; k < maxZs.length; k++) {
+        maxZs[k] = maxZ;
+      }
+      geometry.setAttribute('maxZ', new THREE.BufferAttribute(maxZs, 1));
+      geometry.setAttribute('q', new THREE.BufferAttribute(qs, 4));
+      const scales = new Float32Array(geometry.attributes.position.array.length/3);
+      const scale = 0.9 + Math.random()*0.2;
+      for (let k = 0; k < scales.length; k++) {
+        scales[k] = scale;
+      }
+      geometry.setAttribute('scale', new THREE.BufferAttribute(scales, 1));
+      geometries.push(geometry);
+    }
+  }
+  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uAnimation: {
+        type: 'f',
+        value: 0,
+      },
+    },
+    vertexShader: `\
+      #define PI 3.1415926535897932384626433832795
+
+      uniform float uAnimation;
+      attribute float z;
+      attribute float maxZ;
+      attribute vec4 q;
+      attribute float scale;
+      varying float vZ;
+
+      vec3 applyQuaternion(vec3 v, vec4 q) {
+        return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+      }
+
+      void main() {
+        vZ = z;
+        vec3 p = applyQuaternion(position*scale + vec3(0., 0., -z*maxZ), q);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+      }
+    `,
+    fragmentShader: `\
+      #define PI 3.1415926535897932384626433832795
+
+      varying float vZ;
+
+      vec3 c = vec3(${new THREE.Color(0xff7043).toArray().join(', ')});
+      vec3 s = vec3(${new THREE.Color(0x546e7a).toArray().join(', ')});
+
+      void main() {
+        // float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
+        gl_FragColor = vec4(mix(c, s, vZ) * (2.0 - vZ*1.5), 1.0);
+      }
+    `,
+    /* side: THREE.DoubleSide,
+    transparent: true,
+    depthWrite: false, */
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.visible = false;
+  mesh.frustumCulled = false;
+  mesh.trigger = (position, quaternion) => {
+    mesh.position.copy(position)
+      .add(localVector3.set(0, 0.1, -0.35).applyQuaternion(quaternion))
+    mesh.quaternion.copy(quaternion);
+    mesh.visible = true;
+  };
+  return mesh;
+})();
+scene.add(explosionMesh);
+
 const pxMeshes = [];
 
 const _applyVelocity = (position, velocity, timeDiff) => {
@@ -2147,6 +2242,8 @@ function animate(timestamp, frame) {
   }
 
   const now = Date.now();
+  explosionMesh.material.uniforms.uAnimation.value = (now % 2000) / 2000;
+
   for (let i = 0; i < remoteChunkMeshes.length; i++) {
     const chunkMesh = remoteChunkMeshes[i];
     chunkMesh.material[0].uniforms.uTime.value = (now % timeFactor) / timeFactor;
@@ -2395,7 +2492,7 @@ function animate(timestamp, frame) {
           };
           switch (selectedWeapon) {
             case 'rifle': {
-              console.log('fire rifle');
+              explosionMesh.trigger(assaultRifleMesh.position, assaultRifleMesh.quaternion);
               break;
             }
             case 'build': {
