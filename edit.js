@@ -1324,7 +1324,7 @@ class PhysicsRaycaster {
     this.renderer.clear();
   }
 }
-const physicsRaycasters = [];
+const physicsRaycaster = new PhysicsRaycaster();
 
 const collisionCubeGeometry = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
 const sideCollisionCubeMaterial = new THREE.MeshBasicMaterial({
@@ -3001,9 +3001,6 @@ function animate(timestamp, frame) {
     wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
   } */
 
-  while (physicsRaycasters.length < 1) {
-    physicsRaycasters.push(new PhysicsRaycaster(physicsRaycasters.length));
-  }
   for (let i = 0; i < pxMeshes.length; i++) {
     const pxMesh = pxMeshes[i];
     if (!pxMesh.velocity.equals(zeroVector)) {
@@ -3019,19 +3016,17 @@ function animate(timestamp, frame) {
       )
         .premultiply(pxMesh.parent.matrixWorld)
         .decompose(localVector, localQuaternion, localVector2);
-      pxMesh.collisionIndex = physicsRaycasters[0].raycastMeshes(chunkMeshContainer, localVector, localQuaternion, 1, 1, 100);
+      pxMesh.collisionIndex = physicsRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion, 1, 1, 100);
     } else {
       pxMesh.collisionIndex = -1;
     }
   }
-  for (let i = 0; i < physicsRaycasters.length; i++) {
-    physicsRaycasters[i].readRaycast();
-  }
+  physicsRaycaster.readRaycast();
   for (let i = 0; i < pxMeshes.length; i++) {
     const pxMesh = pxMeshes[i];
     if (pxMesh.collisionIndex !== -1) {
-      if ((physicsRaycasters[0].depths[pxMesh.collisionIndex] - 0.4 - pxMesh.velocity.length()*timeDiff) < 0) {
-        pxMesh.position.add(pxMesh.velocity.normalize().multiplyScalar(physicsRaycasters[0].depths[pxMesh.collisionIndex] - 0.4));
+      if ((physicsRaycaster.depths[pxMesh.collisionIndex] - 0.4 - pxMesh.velocity.length()*timeDiff) < 0) {
+        pxMesh.position.add(pxMesh.velocity.normalize().multiplyScalar(physicsRaycaster.depths[pxMesh.collisionIndex] - 0.4));
         pxMesh.velocity.copy(zeroVector);
       } else {
         _applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
