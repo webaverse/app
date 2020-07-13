@@ -2637,25 +2637,10 @@ function animate(timestamp, frame) {
           .decompose(localVector2, localQuaternion2, localVector3);
 
         worldContainer.matrix
-          .premultiply(localMatrix.makeTranslation(-position.x, -position.y, -position.z));
-
-        /* localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        localQuaternion3.setFromEuler(localEuler);
-        localQuaternion3.inverse(); */
-
-        worldContainer.matrix
+          .premultiply(localMatrix.makeTranslation(-position.x, -position.y, -position.z))
           .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-
-        worldContainer.matrix
-          .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z));
-
-        worldContainer.matrix
-          // .premultiply(localMatrix.makeTranslation(0, -localVector2.y, 0));
-          .premultiply(localMatrix.makeTranslation(0, -_getMinHeight(), 0));
-
-        worldContainer.matrix
+          .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+          .premultiply(localMatrix.makeTranslation(0, -_getMinHeight(), 0))
           .decompose(worldContainer.position, worldContainer.quaternion, worldContainer.scale);
 
         velocity.set(0, 0, 0);
