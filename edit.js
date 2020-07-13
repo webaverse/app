@@ -1890,7 +1890,7 @@ pxMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vect
 pxMesh.velocity = new THREE.Vector3(0, -0.1, 0);
 physicsMeshContainer.add(pxMesh);
 
-const _applyVelocity = (position, timeDiff) => {
+const _applyVelocity = (position, velocity, timeDiff) => {
   position.add(localVector4.copy(velocity).multiplyScalar(timeDiff));
 };
 const _getFloorOffset = groundedDistance => {
@@ -2754,7 +2754,7 @@ function animate(timestamp, frame) {
 
     if (selectedTool === 'firstperson') {
       _collideWall(pe.camera.matrix);
-      _applyVelocity(pe.camera.position, timeDiff);
+      _applyVelocity(pe.camera.position, velocity, timeDiff);
       pe.camera.updateMatrixWorld();
       const groundedDistance = _collideFloor(pe.camera.matrix);
       const offset = _getFloorOffset(groundedDistance);
@@ -2792,7 +2792,7 @@ function animate(timestamp, frame) {
       localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
       localMatrix.compose(localVector, localQuaternion, localVector2);
       _collideWall(localMatrix);
-      _applyVelocity(pe.camera.position, timeDiff);
+      _applyVelocity(pe.camera.position, velocity, timeDiff);
       pe.camera.updateMatrixWorld();
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
@@ -2839,7 +2839,7 @@ function animate(timestamp, frame) {
       localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
       localMatrix.compose(localVector, localQuaternion, localVector2);
       _collideWall(localMatrix);
-      _applyVelocity(pe.camera.position, timeDiff);
+      _applyVelocity(pe.camera.position, velocity, timeDiff);
       pe.camera.updateMatrixWorld();
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
@@ -2887,7 +2887,7 @@ function animate(timestamp, frame) {
       localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
       localMatrix.compose(localVector, localQuaternion, localVector2);
       _collideWall(localMatrix);
-      _applyVelocity(pe.camera.position, timeDiff);
+      _applyVelocity(pe.camera.position, velocity, timeDiff);
       pe.camera.updateMatrixWorld();
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
