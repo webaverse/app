@@ -2309,7 +2309,7 @@ function animate(timestamp, frame) {
                 const pxMesh = new THREE.Mesh(tetrehedronGeometry, currentChunkMesh.material[0]);
                 currentChunkMesh.getWorldQuaternion(localQuaternion2).inverse();
                 pxMesh.position.copy(applyPosition)
-                  .add(localVector2.set(0, 0.1, 0).applyQuaternion(localQuaternion2));
+                  .add(localVector2.set((-1+Math.random()*2)*0.2, 0.2, (-1+Math.random()*2)*0.2).applyQuaternion(localQuaternion2));
                 pxMesh.velocity = new THREE.Vector3((-1+Math.random()*2)*0.5, Math.random()*3, (-1+Math.random()*2)*0.5)
                   .applyQuaternion(localQuaternion2);
                 pxMesh.angularVelocity = new THREE.Vector3((-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01);
@@ -3006,16 +3006,16 @@ function animate(timestamp, frame) {
     if (!pxMesh.velocity.equals(zeroVector)) {
       localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), localVector2.set(0, -1, 0));
       localMatrix.compose(
-        localVector.copy(pxMesh.position)
-          .add(
-            localVector2.set(0, 0, 0.2)
-              .applyQuaternion(localQuaternion)
-          ),
+        localVector.copy(pxMesh.position),
         localQuaternion,
         localVector4.set(1, 1, 1)
       )
         .premultiply(pxMesh.parent.matrixWorld)
-        .decompose(localVector, localQuaternion, localVector2);
+        .decompose(localVector, localQuaternion2, localVector2);
+      /* localVector.add(
+        localVector2.set(0, 0, 0.2)
+          .applyQuaternion(localQuaternion2)
+      ); */
       pxMesh.collisionIndex = physicsRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion, 1, 1, 100);
     } else {
       pxMesh.collisionIndex = -1;
@@ -3025,8 +3025,13 @@ function animate(timestamp, frame) {
   for (let i = 0; i < pxMeshes.length; i++) {
     const pxMesh = pxMeshes[i];
     if (pxMesh.collisionIndex !== -1) {
-      if ((physicsRaycaster.depths[pxMesh.collisionIndex] - 0.4 - pxMesh.velocity.length()*timeDiff) < 0) {
-        pxMesh.position.add(pxMesh.velocity.normalize().multiplyScalar(physicsRaycaster.depths[pxMesh.collisionIndex] - 0.4));
+      if ((physicsRaycaster.depths[pxMesh.collisionIndex] - 0.2 - pxMesh.velocity.length()*timeDiff) < 0) {
+        pxMesh.position.add(
+          pxMesh.velocity
+            .normalize()
+            // .applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion))
+            .multiplyScalar(physicsRaycaster.depths[pxMesh.collisionIndex] - 0.2)
+          );
         pxMesh.velocity.copy(zeroVector);
       } else {
         _applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
