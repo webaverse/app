@@ -1487,7 +1487,7 @@ teleportMeshes.forEach(teleportMesh => {
 });
 
 const tetrehedronGeometry = (() => {
-  const geometry = new THREE.TetrahedronBufferGeometry(0.2, 0)// .toNonIndexed();
+  const geometry = new THREE.TetrahedronBufferGeometry(0.2, 0);
   const barycentrics = new Float32Array(geometry.attributes.position.array.length);
   let barycentricIndex = 0;
   for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
