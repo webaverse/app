@@ -2018,7 +2018,10 @@ const explosionMesh = (() => {
 
       void main() {
         vZ = z;
-        vec3 p = applyQuaternion(position*scale + vec3(0., 0., -z*maxZ), q);
+        float forwardFactor = min(uAnimation, 0.5)*2.0;
+        float upFactor = max(uAnimation - 0.5, 0.)*2.0;
+        vec3 p = applyQuaternion(position*scale + vec3(0., 0., -z*maxZ*forwardFactor), q);
+        p += vec3(0., 1., 0.)*upFactor;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
       }
     `,
