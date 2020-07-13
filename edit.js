@@ -1873,10 +1873,7 @@ const hpMesh = (() => {
 })();
 scene.add(hpMesh);
 
-
-const physicsMeshContainer = new THREE.Object3D();
-scene.add(physicsMeshContainer);
-const pxMesh = (() => {
+/* const pxMesh = (() => {
   const geometry = new THREE.TetrahedronBufferGeometry(1, 0);
   const material = new THREE.MeshBasicMaterial({
     color: 0x0000FF,
@@ -1887,8 +1884,8 @@ const pxMesh = (() => {
 })();
 // pxMesh.position.set(0, 20, 0);
 pxMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0));
-pxMesh.velocity = new THREE.Vector3(0, -0.1, 0);
-physicsMeshContainer.add(pxMesh);
+pxMesh.velocity = new THREE.Vector3(0, -0.1, 0); */
+const pxMeshes = [];
 
 const _applyVelocity = (position, velocity, timeDiff) => {
   position.add(localVector4.copy(velocity).multiplyScalar(timeDiff));
@@ -2244,6 +2241,7 @@ function animate(timestamp, frame) {
           const _applyPotentialDelta = async (position, delta) => {
             localVector2.copy(position)
               .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+            const applyPosition = localVector2.clone();
             localVector2.x = Math.floor(localVector2.x);
             localVector2.y = Math.floor(localVector2.y);
             localVector2.z = Math.floor(localVector2.z);
@@ -2274,6 +2272,19 @@ function animate(timestamp, frame) {
               geometry.attributes.index.needsUpdate = true;
 
               geometry.groups[slab.slabIndex].count = spec.positions.length/3;
+            }
+            if (specs.length > 0 && delta < 0) {
+              const geometry = new THREE.TetrahedronBufferGeometry(0.2, 0);
+              for (let i = 0; i < 1; i++) {
+                const pxMesh = new THREE.Mesh(geometry, currentChunkMesh.material[0]);
+                pxMesh.position.copy(applyPosition)
+                  .add(localVector2.set(0, 1, 0));
+                pxMesh.velocity = new THREE.Vector3(Math.random()*0.1, Math.random(), Math.random()*0.1);
+                pxMesh.collisionIndex = -1;
+                pxMesh.isBuildMesh = true;
+                currentChunkMesh.add(pxMesh);
+                pxMeshes.push(pxMesh);
+              }
             }
           };
           switch (selectedWeapon) {
@@ -2972,19 +2983,28 @@ function animate(timestamp, frame) {
     wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
   } */
 
-  for (let i = 0; i < physicsMeshContainer.children.length; i++) {
-    const pxMesh = physicsMeshContainer.children[i];
+  for (let i = 0; i < pxMeshes.length; i++) {
+    const pxMesh = pxMeshes[i];
     if (!pxMesh.velocity.equals(zeroVector)) {
-      physicsRaycaster.raycastMeshes(chunkMeshContainer, pxMesh.position, pxMesh.quaternion, 1, 1, 10);
+      localMatrix.compose(pxMesh.position, localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), localVector2.copy(pxMesh.velocity).normalize()), localVector3.set(1, 1, 1))
+        .premultiply(pxMesh.parent.matrixWorld)
+        .decompose(localVector, localQuaternion, localVector2);
+      pxMesh.collisionIndex = physicsRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion, 1, 1, 10);
+    } else {
+      pxMesh.collisionIndex = -1;
     }
   }
   physicsRaycaster.readRaycast();
-  for (let i = 0; i < physicsMeshContainer.children.length; i++) {
-    if (physicsRaycaster.depths[i] < pxMesh.velocity.length()*1.1) {
-      pxMesh.position.add(pxMesh.velocity.multiplyScalar(physicsRaycaster.depths[0]));
-      pxMesh.velocity.copy(zeroVector);
-    } else {
-      pxMesh.position.add(pxMesh.velocity);
+  for (let i = 0; i < pxMeshes.length; i++) {
+    const pxMesh = pxMeshes[i];
+    if (pxMesh.collisionIndex !== -1) {
+      if ((physicsRaycaster.depths[pxMesh.collisionIndex] - pxMesh.velocity.length()*10/1000) < 0.2) {
+        pxMesh.position.add(pxMesh.velocity.normalize().multiplyScalar(physicsRaycaster.depths[pxMesh.collisionIndex] - 0.2/2));
+        pxMesh.velocity.copy(zeroVector);
+      } else {
+        _applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
+        pxMesh.velocity.y -= 9.8*timeDiff;
+      }
     }
   }
 
