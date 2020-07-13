@@ -2307,9 +2307,11 @@ function animate(timestamp, frame) {
             if (specs.length > 0 && delta < 0) {
               for (let i = 0; i < 3; i++) {
                 const pxMesh = new THREE.Mesh(tetrehedronGeometry, currentChunkMesh.material[0]);
+                currentChunkMesh.getWorldQuaternion(localQuaternion2).inverse();
                 pxMesh.position.copy(applyPosition)
-                  .add(localVector2.set(0, 0.1, 0).applyQuaternion(currentChunkMesh.getWorldQuaternion(localQuaternion2).inverse()));
-                pxMesh.velocity = new THREE.Vector3((-1+Math.random()*2)*0.5, Math.random()*3, (-1+Math.random()*2)*0.5);
+                  .add(localVector2.set(0, 0.1, 0).applyQuaternion(localQuaternion2));
+                pxMesh.velocity = new THREE.Vector3((-1+Math.random()*2)*0.5, Math.random()*3, (-1+Math.random()*2)*0.5)
+                  .applyQuaternion(localQuaternion2);
                 pxMesh.angularVelocity = new THREE.Vector3((-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01);
                 pxMesh.collisionIndex = -1;
                 pxMesh.isBuildMesh = true;
