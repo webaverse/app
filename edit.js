@@ -883,6 +883,30 @@ let metalMesh = null;
   metalMesh.visible = false;
   worldContainer.add(metalMesh);
 })();
+let assaultRifleMesh = null;
+let smgMesh = null;
+let crosshairMesh = null;
+(async () => {
+  const weaponsModels = await _loadGltf('./weapons.glb');
+  assaultRifleMesh = weaponsModels.children.find(c => c.name === 'SM_Wep_Rifle_Assault_01');
+  assaultRifleMesh.visible = false;
+  scene.add(assaultRifleMesh);
+  smgMesh = weaponsModels.children.find(c => c.name === 'SM_Wep_SubMGun_Lite_01');
+  smgMesh.visible = false;
+  scene.add(smgMesh);
+  crosshairMesh = weaponsModels.children.find(c => c.name === 'SM_Wep_Crosshair_04');
+  crosshairMesh.traverse(o => {
+    if (o.isMesh) {
+      o.material = new THREE.MeshBasicMaterial({
+        color: 0x111111,
+        depthTest: false,
+      });
+    }
+  });
+  crosshairMesh.visible = false;
+  scene.add(crosshairMesh);
+  console.log('got weapons', weaponsModels, assaultRifleMesh, crosshairMesh);
+})();
 const redBuildMeshMaterial = new THREE.ShaderMaterial({
   vertexShader: `
     void main() {
@@ -2151,13 +2175,19 @@ function animate(timestamp, frame) {
       pointRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
       const raycastChunkSpec = pointRaycaster.readRaycast(chunkMeshContainer, localVector, localQuaternion);
 
-      [plansMesh, pencilMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
+      [assaultRifleMesh, crosshairMesh, plansMesh, pencilMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
         if (weaponMesh) {
           weaponMesh.visible = false;
         }
       });
       const selectedWeaponModel = (() => {
         switch (selectedWeapon) {
+          case 'rifle': {
+            return {
+              weapon: assaultRifleMesh,
+              crosshair: crosshairMesh,
+            };
+          }
           case 'build': {
             return [plansMesh, pencilMesh];
           }
@@ -2173,33 +2203,55 @@ function animate(timestamp, frame) {
         }
       })();
       if (selectedWeaponModel) {
-        if (!Array.isArray(selectedWeaponModel)) {
+        if (typeof selectedWeaponModel === 'object') {
+          if (Array.isArray(selectedWeaponModel)) {
+            const pose2 = frame.getPose(session.inputSources[0].targetRaySpace, referenceSpace);
+            localMatrix.fromArray(pose.transform.matrix)
+              .decompose(localVector3, localQuaternion2, localVector4);
+
+            selectedWeaponModel.forEach((weaponMesh, i) => {
+              if (weaponMesh) {
+                if (i === 0) {
+                  weaponMesh.position.copy(localVector3);
+                  weaponMesh.quaternion.copy(localQuaternion2);
+                  weaponMesh.visible = true;
+                } else if (i === 1) {
+                  weaponMesh.position.copy(localVector);
+                  weaponMesh.quaternion.copy(localQuaternion);
+                  weaponMesh.visible = true;
+                }
+              }
+            });
+          } else {
+            const {weapon, crosshair} = selectedWeaponModel;
+            if (weapon) {
+              weapon.position.copy(localVector);
+              weapon.quaternion.copy(localQuaternion);
+              weapon.visible = true;
+            }
+            if (crosshair) {
+              crosshair.visible = true;
+            }
+          }
+        } else {
           selectedWeaponModel.position.copy(localVector);
           selectedWeaponModel.quaternion.copy(localQuaternion);
           selectedWeaponModel.visible = true;
-        } else {
-          const pose2 = frame.getPose(session.inputSources[0].targetRaySpace, referenceSpace);
-          localMatrix.fromArray(pose.transform.matrix)
-            .decompose(localVector3, localQuaternion2, localVector4);
-
-          selectedWeaponModel.forEach((weaponMesh, i) => {
-            if (weaponMesh) {
-              if (i === 0) {
-                weaponMesh.position.copy(localVector3);
-                weaponMesh.quaternion.copy(localQuaternion2);
-                weaponMesh.visible = true;
-              } else if (i === 1) {
-                weaponMesh.position.copy(localVector);
-                weaponMesh.quaternion.copy(localQuaternion);
-                weaponMesh.visible = true;
-              }
-            }
-          });
         }
       }
       addMesh.visible = false;
       removeMesh.visible = false;
       switch (selectedWeapon) {
+        case 'rifle': {
+          if (crosshairMesh) {
+            crosshairMesh.position.copy(localVector)
+              .add(localVector2.set(0, 0, -5).applyQuaternion(localQuaternion));
+            crosshairMesh.quaternion.copy(localQuaternion);
+            crosshairMesh.scale.set(0.5, 0.5, 0.5);
+            crosshairMesh.visible = true;
+          }
+          break;
+        }
         case 'build': {
           addMesh.position.copy(localVector)
             .add(localVector2.set(0, 0, -2).applyQuaternion(localQuaternion));
@@ -2342,6 +2394,10 @@ function animate(timestamp, frame) {
             }
           };
           switch (selectedWeapon) {
+            case 'rifle': {
+              console.log('fire rifle');
+              break;
+            }
             case 'build': {
               if (addMesh.visible) {
                 _applyPotentialDelta(addMesh.position, 0.2);
