@@ -201,6 +201,21 @@ const _snapBuildPosition = p => {
   p.z = Math.floor(p.z/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
   return p;
 };
+const _buildMeshEquals = (a, b) => {
+  if (a.position.equals(b.position)) {
+    if (a.buildMeshType === b.buildMeshType) {
+      if (a.buildMeshType === 'wall') {
+        return a.quaternion.equals(b.quaternion);
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+};
 const itemMeshes = [];
 const _decorateMeshForRaycast = mesh => {
   mesh.traverse(o => {
@@ -815,6 +830,7 @@ let metalMesh = null;
 (async () => {
   const buildModels = await _loadGltf('./build.glb');
   stairsMesh = buildModels.children.find(c => c.name === 'SM_Bld_Snow_Platform_Stairs_01001');
+  stairsMesh.buildMeshType = 'stair';
   stairsMesh.visible = false;
   stairsMesh.traverse(o => {
     if (o.isMesh) {
@@ -828,6 +844,7 @@ let metalMesh = null;
   stairsMesh.hullMesh.parent.remove(stairsMesh.hullMesh);
 
   platformMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01');
+  platformMesh.buildMeshType = 'floor';
   platformMesh.visible = false;
   platformMesh.traverse(o => {
     if (o.isMesh) {
@@ -841,6 +858,7 @@ let metalMesh = null;
   platformMesh.hullMesh.parent.remove(platformMesh.hullMesh);
 
   wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06');
+  wallMesh.buildMeshType = 'wall';
   wallMesh.visible = false;
   wallMesh.traverse(o => {
     if (o.isMesh) {
@@ -2250,7 +2268,7 @@ function animate(timestamp, frame) {
             localVector3
           ));
 
-          if (!currentChunkMesh.buildMeshes.some(bm => bm.position.equals(buildMesh.position))) {
+          if (!currentChunkMesh.buildMeshes.some(bm => _buildMeshEquals(bm, buildMesh))) {
             buildMesh.traverse(o => {
               if (o.isMesh && o.originalMaterial) {
                 o.material = o.originalMaterial;
@@ -2365,7 +2383,7 @@ function animate(timestamp, frame) {
               default: return null;
             }
           })();
-          if (!currentChunkMesh.buildMeshes.some(bm => bm.position.equals(buildMesh.position))) {
+          if (!currentChunkMesh.buildMeshes.some(bm => _buildMeshEquals(bm, buildMesh))) {
             const buildMeshClone = buildMesh.clone();
             buildMeshClone.traverse(o => {
               if (o.isMesh) {
@@ -2373,6 +2391,7 @@ function animate(timestamp, frame) {
                 o.material = o.material.clone();
               }
             });
+            buildMeshClone.buildMeshType = buildMesh.buildMeshType;
             buildMeshClone.hullMesh = buildMesh.hullMesh.clone();
             buildMeshClone.hullMesh.geometry = buildMesh.hullMesh.geometry.clone();
             _decorateMeshForRaycast(buildMeshClone.hullMesh);
@@ -2598,7 +2617,6 @@ function animate(timestamp, frame) {
 
                 buildMeshClone.parent.buildMeshes.splice(buildMeshClone.parent.buildMeshes.indexOf(buildMeshClone), 1);
                 buildMeshClone.parent.remove(buildMeshClone);
-                buildMeshes.splice(buildMeshes.indexOf(buildMeshClone), 1);
                 buildMeshClone.hullMesh.parent.remove(buildMeshClone.hullMesh);
               }
             };
