@@ -2297,6 +2297,7 @@ function animate(timestamp, frame) {
                 pxMesh.position.copy(applyPosition)
                   .add(localVector2.set(0, 0.1, 0).applyQuaternion(currentChunkMesh.getWorldQuaternion(localQuaternion2).inverse()));
                 pxMesh.velocity = new THREE.Vector3((-1+Math.random()*2)*0.5, Math.random()*3, (-1+Math.random()*2)*0.5);
+                pxMesh.angularVelocity = new THREE.Vector3((-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01);
                 pxMesh.collisionIndex = -1;
                 pxMesh.isBuildMesh = true;
                 currentChunkMesh.add(pxMesh);
@@ -3034,7 +3035,10 @@ function animate(timestamp, frame) {
         pxMesh.velocity.copy(zeroVector);
       } else {
         _applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
-        pxMesh.velocity.add(localVector.set(0, -9.8*timeDiff, 0).applyQuaternion(pxMesh.getWorldQuaternion(localQuaternion).inverse()));
+        pxMesh.velocity.add(localVector.set(0, -9.8*timeDiff, 0).applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse()));
+        pxMesh.rotation.x += pxMesh.angularVelocity.x;
+        pxMesh.rotation.y += pxMesh.angularVelocity.y;
+        pxMesh.rotation.z += pxMesh.angularVelocity.z;
       }
     }
   }
