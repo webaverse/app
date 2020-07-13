@@ -195,15 +195,12 @@ const HEIGHTFIELD_SHADER = {
     }
   `
 };
-const _getBuildKey = p => [p.x,p.y,p.z].join(':');
 const _snapBuildPosition = p => {
   p.x = Math.floor(p.x/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
   p.y = Math.floor(p.y/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
   p.z = Math.floor(p.z/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
   return p;
 };
-const buildMap = {};
-const buildMeshes = [];
 const itemMeshes = [];
 const _decorateMeshForRaycast = mesh => {
   mesh.traverse(o => {
@@ -671,6 +668,7 @@ const _makeChunkMesh = async () => {
   const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
   mesh.meshId = meshId;
   mesh.isChunkMesh = true;
+  mesh.buildMeshes = [];
   const slabs = [];
   let index = 0;
   mesh.getSlab = (x, y, z) => {
@@ -2106,9 +2104,13 @@ function animate(timestamp, frame) {
     // physics.checkCollisions();
   }
 
-  // loadMeshMaterial.uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
+  const now = Date.now();
   for (let i = 0; i < remoteChunkMeshes.length; i++) {
-    remoteChunkMeshes[i].material[0].uniforms.uTime.value = (Date.now() % timeFactor) / timeFactor;
+    const chunkMesh = remoteChunkMeshes[i];
+    chunkMesh.material[0].uniforms.uTime.value = (now % timeFactor) / timeFactor;
+    for (let j = 0; j < chunkMesh.buildMeshes.length; j++) {
+      chunkMesh.buildMeshes[j].update();
+    }
   }
   cometFireMesh.material.uniforms.uAnimation.value = (Date.now() % 2000) / 2000;
 
@@ -2248,8 +2250,7 @@ function animate(timestamp, frame) {
             localVector3
           ));
 
-          const buildKey = _getBuildKey(buildMesh.position);
-          if (!buildMap[buildKey]) {
+          if (!currentChunkMesh.buildMeshes.some(bm => bm.position.equals(buildMesh.position))) {
             buildMesh.traverse(o => {
               if (o.isMesh && o.originalMaterial) {
                 o.material = o.originalMaterial;
@@ -2345,9 +2346,6 @@ function animate(timestamp, frame) {
                     .premultiply(localMatrix2.getInverse(worldContainer.matrix))
                     .decompose(localVector2, localQuaternion2, localVector3);
 
-                  const buildKey = _getBuildKey(localVector2);
-                  const oldBuildMesh = buildMap[buildKey];
-
                   buildMesh.hit(30);
                 } else if (raycastChunkSpec.mesh.isNpcHullMesh) {
                   const {npcMesh} = raycastChunkSpec.mesh;
@@ -2367,8 +2365,7 @@ function animate(timestamp, frame) {
               default: return null;
             }
           })();
-          const buildKey = _getBuildKey(buildMesh.position);
-          if (!buildMap[buildKey]) {
+          if (!currentChunkMesh.buildMeshes.some(bm => bm.position.equals(buildMesh.position))) {
             const buildMeshClone = buildMesh.clone();
             buildMeshClone.traverse(o => {
               if (o.isMesh) {
@@ -2599,8 +2596,8 @@ function animate(timestamp, frame) {
                 buildMeshClone.parent.add(itemMesh);
                 itemMeshes.push(itemMesh);
 
+                buildMeshClone.parent.buildMeshes.splice(buildMeshClone.parent.buildMeshes.indexOf(buildMeshClone), 1);
                 buildMeshClone.parent.remove(buildMeshClone);
-                buildMap[buildKey] = null;
                 buildMeshes.splice(buildMeshes.indexOf(buildMeshClone), 1);
                 buildMeshClone.hullMesh.parent.remove(buildMeshClone.hullMesh);
               }
@@ -2609,8 +2606,7 @@ function animate(timestamp, frame) {
               animation && animation.update();
             };
             currentChunkMesh.add(buildMeshClone);
-            buildMap[buildKey] = buildMeshClone;
-            buildMeshes.push(buildMeshClone);
+            currentChunkMesh.buildMeshes.push(buildMeshClone);
 
             buildMeshClone.hullMesh.position.copy(buildMeshClone.position);
             buildMeshClone.hullMesh.quaternion.copy(buildMeshClone.quaternion);
@@ -2670,10 +2666,6 @@ function animate(timestamp, frame) {
         });
       }
     }
-  }
-
-  for (let i = 0; i < buildMeshes.length; i++) {
-    buildMeshes[i].update();
   }
 
   /* if (planetAnimation) {
