@@ -1279,7 +1279,8 @@ class PhysicsRaycaster {
     this.scene.overrideMaterial.uniforms.uNear.value = this.camera.near;
     this.scene.overrideMaterial.uniforms.uFar.value = this.camera.far;
 
-    this.renderer.setViewport(this.index++, 0, 1, 1);
+    const collisionIndex = this.index++;
+    this.renderer.setViewport(collisionIndex, 0, 1, 1);
     this.renderer.render(this.scene, this.camera);
 
     container.traverse(o => {
@@ -1292,6 +1293,7 @@ class PhysicsRaycaster {
     } else {
       container.parent.remove(container);
     }
+    return collisionIndex;
   }
   readRaycast() {
     this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 1024, 1, this.pixels);
