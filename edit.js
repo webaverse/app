@@ -36,6 +36,9 @@ const slabSliceTris = Math.floor(slabAttributeSize/numSlices/9/Float32Array.BYTE
 const slabSliceVertices = slabSliceTris * 3;
 const BUILD_SNAP = 2;
 
+const zeroVector = new THREE.Vector3(0, 0, 0);
+const downQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0));
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -47,7 +50,6 @@ const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
-const zeroVector = new THREE.Vector3(0, 0, 0);
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -3004,19 +3006,9 @@ function animate(timestamp, frame) {
   for (let i = 0; i < pxMeshes.length; i++) {
     const pxMesh = pxMeshes[i];
     if (!pxMesh.velocity.equals(zeroVector)) {
-      localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), localVector2.set(0, -1, 0));
-      localMatrix.compose(
-        localVector.copy(pxMesh.position),
-        localQuaternion,
-        localVector4.set(1, 1, 1)
-      )
-        .premultiply(pxMesh.parent.matrixWorld)
-        .decompose(localVector, localQuaternion2, localVector2);
-      /* localVector.add(
-        localVector2.set(0, 0, 0.2)
-          .applyQuaternion(localQuaternion2)
-      ); */
-      pxMesh.collisionIndex = physicsRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion, 1, 1, 100);
+      localVector.copy(pxMesh.position)
+        .applyMatrix4(pxMesh.parent.matrixWorld);
+      pxMesh.collisionIndex = physicsRaycaster.raycastMeshes(chunkMeshContainer, localVector, downQuaternion, 1, 1, 100);
     } else {
       pxMesh.collisionIndex = -1;
     }
