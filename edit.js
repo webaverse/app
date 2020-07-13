@@ -951,6 +951,8 @@ class PointRaycaster {
       format: THREE.RGBAFormat,
     });
     this.renderer.setRenderTarget(renderTarget);
+    this.renderer.autoClear = false;
+    this.renderer.clear();
     this.renderTarget = renderTarget;
     this.scene = new THREE.Scene();
     this.scene.overrideMaterial = idMaterial;
@@ -1021,14 +1023,14 @@ class PointRaycaster {
       point = null;
       normal = null;
     }
-
+    this.renderer.clear();
     return point ? {mesh, index, point, normal} : null;
   }
 }
 const pointRaycaster = new PointRaycaster();
 
 const depthMaterial = new THREE.ShaderMaterial({
-  uniforms: {
+  /* uniforms: {
     uNear: {
       type: 'f',
       value: 0,
@@ -1037,7 +1039,7 @@ const depthMaterial = new THREE.ShaderMaterial({
       type: 'f',
       value: 1,
     },
-  },
+  }, */
   vertexShader: `\
     attribute float id;
     attribute float index;
@@ -1055,8 +1057,8 @@ const depthMaterial = new THREE.ShaderMaterial({
     varying float vId;
     varying float vIndex;
 
-    uniform float uNear;
-    uniform float uFar;
+    // uniform float uNear;
+    // uniform float uFar;
     /* vec4 encodePixelDepth(float v) {
       float x = fract(v);
       v -= x;
@@ -1097,6 +1099,8 @@ class CollisionRaycaster {
       format: THREE.RGBAFormat,
     });
     this.renderer.setRenderTarget(renderTarget);
+    this.renderer.autoClear = false;
+    this.renderer.clear();
     this.renderTarget = renderTarget;
     this.scene = new THREE.Scene();
     this.scene.overrideMaterial = depthMaterial;
@@ -1139,8 +1143,8 @@ class CollisionRaycaster {
     this.camera.far = dSize;
     this.camera.updateProjectionMatrix();
 
-    this.scene.overrideMaterial.uniforms.uNear.value = this.camera.near;
-    this.scene.overrideMaterial.uniforms.uFar.value = this.camera.far;
+    // this.scene.overrideMaterial.uniforms.uNear.value = this.camera.near;
+    // this.scene.overrideMaterial.uniforms.uFar.value = this.camera.far;
 
     this.renderer.render(this.scene, this.camera);
 
@@ -1180,12 +1184,13 @@ class CollisionRaycaster {
       }
       j += 4;
     }
+    this.renderer.clear();
   }
 }
 const collisionRaycaster = new CollisionRaycaster();
 
 const physicsMaterial = new THREE.ShaderMaterial({
-  uniforms: {
+  /* uniforms: {
     uNear: {
       type: 'f',
       value: 0,
@@ -1194,7 +1199,7 @@ const physicsMaterial = new THREE.ShaderMaterial({
       type: 'f',
       value: 1,
     },
-  },
+  }, */
   vertexShader: `\
     // attribute float id;
     // attribute float index;
@@ -1212,8 +1217,8 @@ const physicsMaterial = new THREE.ShaderMaterial({
     // varying float vId;
     // varying float vIndex;
 
-    uniform float uNear;
-    uniform float uFar;
+    // uniform float uNear;
+    // uniform float uFar;
     vec2 encodePixelDepth(float v) {
       float x = fract(v);
       v -= x;
@@ -1222,31 +1227,33 @@ const physicsMaterial = new THREE.ShaderMaterial({
       return vec2(x, y);
     }
     void main() {
-      gl_FragColor = vec4(encodePixelDepth(gl_FragCoord.z/gl_FragCoord.w), 0.0, 0.0);
+      gl_FragColor = vec4(encodePixelDepth(gl_FragCoord.z/gl_FragCoord.w), 1.0, 1.0);
     }
   `,
   // side: THREE.DoubleSide,
 });
 class PhysicsRaycaster {
-  constructor() {
+  constructor(index) {
     this.renderer = new THREE.WebGLRenderer({
       alpha: true,
     });
-    this.renderer.setSize(1024, 1);
+    this.renderer.setSize(64, 1);
     this.renderer.setPixelRatio(1);
     this.renderer.setClearColor(new THREE.Color(0x000000), 0);
-    const renderTarget = new THREE.WebGLRenderTarget(1024, 1, {
+    const renderTarget = new THREE.WebGLRenderTarget(64, 1, {
       type: THREE.FloatType,
       format: THREE.RGBAFormat,
     });
     this.renderer.setRenderTarget(renderTarget);
+    this.renderer.autoClear = false;
+    this.renderer.clear();
     this.renderTarget = renderTarget;
     this.scene = new THREE.Scene();
     this.scene.overrideMaterial = physicsMaterial;
     this.camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
-    this.index = 0;
-    this.pixels = new Float32Array(1024*1*4);
-    this.depths = new Float32Array(1024*1);
+    this.index = index;
+    this.pixels = new Float32Array(64*4);
+    this.depths = new Float32Array(64);
   }
 
   raycastMeshes(container, position, quaternion, uSize, vSize, dSize) {
@@ -1276,8 +1283,8 @@ class PhysicsRaycaster {
     this.camera.far = dSize;
     this.camera.updateProjectionMatrix();
 
-    this.scene.overrideMaterial.uniforms.uNear.value = this.camera.near;
-    this.scene.overrideMaterial.uniforms.uFar.value = this.camera.far;
+    // this.scene.overrideMaterial.uniforms.uNear.value = this.camera.near;
+    // this.scene.overrideMaterial.uniforms.uFar.value = this.camera.far;
 
     const collisionIndex = this.index++;
     this.renderer.setViewport(collisionIndex, 0, 1, 1);
@@ -1296,11 +1303,11 @@ class PhysicsRaycaster {
     return collisionIndex;
   }
   readRaycast() {
-    this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 1024, 1, this.pixels);
+    this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, this.index, 1, this.pixels);
 
     let j = 0;
-    for (let i = 0; i < this.depths.length; i++) {
-      if (this.pixels[j] !== 0) {
+    for (let i = 0; i < this.index; i++) {
+      if (this.pixels[j+2] !== 0) {
         let v =
           this.pixels[j] +
           this.pixels[j+1] * 255.0;
@@ -1311,10 +1318,13 @@ class PhysicsRaycaster {
       j += 4;
     }
 
+    /* this.renderer.setViewport(0, 0, 64, 1);
+    this.renderer.clear(); */
     this.index = 0;
+    this.renderer.clear();
   }
 }
-const physicsRaycaster = new PhysicsRaycaster();
+const physicsRaycasters = [];
 
 const collisionCubeGeometry = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
 const sideCollisionCubeMaterial = new THREE.MeshBasicMaterial({
@@ -1475,6 +1485,26 @@ const teleportMeshes = lineMeshes.map((lineMesh, i) => makeTeleportMesh(lineMesh
 teleportMeshes.forEach(teleportMesh => {
   scene.add(teleportMesh);
 });
+
+const tetrehedronGeometry = (() => {
+  const geometry = new THREE.TetrahedronBufferGeometry(0.2, 0).toNonIndexed();
+  const barycentrics = new Float32Array(geometry.attributes.position.array.length);
+  let barycentricIndex = 0;
+  for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
+    geometry.attributes.position.array
+    barycentrics[barycentricIndex++] = 1;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 1;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 1;
+  }
+  geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3));
+  return geometry;
+})();
 
 /* const planetMaterial = (() => {
   const loadVsh = `
@@ -1873,18 +1903,6 @@ const hpMesh = (() => {
 })();
 scene.add(hpMesh);
 
-/* const pxMesh = (() => {
-  const geometry = new THREE.TetrahedronBufferGeometry(1, 0);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x0000FF,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.frustumCulled = false;
-  return mesh;
-})();
-// pxMesh.position.set(0, 20, 0);
-pxMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0));
-pxMesh.velocity = new THREE.Vector3(0, -0.1, 0); */
 const pxMeshes = [];
 
 const _applyVelocity = (position, velocity, timeDiff) => {
@@ -2274,12 +2292,11 @@ function animate(timestamp, frame) {
               geometry.groups[slab.slabIndex].count = spec.positions.length/3;
             }
             if (specs.length > 0 && delta < 0) {
-              const geometry = new THREE.TetrahedronBufferGeometry(0.2, 0);
-              for (let i = 0; i < 1; i++) {
-                const pxMesh = new THREE.Mesh(geometry, currentChunkMesh.material[0]);
+              for (let i = 0; i < 3; i++) {
+                const pxMesh = new THREE.Mesh(tetrehedronGeometry, currentChunkMesh.material[0]);
                 pxMesh.position.copy(applyPosition)
-                  .add(localVector2.set(0, 1, 0));
-                pxMesh.velocity = new THREE.Vector3(Math.random()*0.1, Math.random(), Math.random()*0.1);
+                  .add(localVector2.set(0, 0.1, 0).applyQuaternion(currentChunkMesh.getWorldQuaternion(localQuaternion2).inverse()));
+                pxMesh.velocity = new THREE.Vector3((-1+Math.random()*2)*0.5, Math.random()*3, (-1+Math.random()*2)*0.5);
                 pxMesh.collisionIndex = -1;
                 pxMesh.isBuildMesh = true;
                 currentChunkMesh.add(pxMesh);
@@ -2983,27 +3000,41 @@ function animate(timestamp, frame) {
     wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
   } */
 
+  while (physicsRaycasters.length < 1) {
+    physicsRaycasters.push(new PhysicsRaycaster(physicsRaycasters.length));
+  }
   for (let i = 0; i < pxMeshes.length; i++) {
     const pxMesh = pxMeshes[i];
     if (!pxMesh.velocity.equals(zeroVector)) {
-      localMatrix.compose(pxMesh.position, localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), localVector2.copy(pxMesh.velocity).normalize()), localVector3.set(1, 1, 1))
+      localQuaternion.setFromUnitVectors(localVector.set(0, 0, -1), localVector2.set(0, -1, 0));
+      localMatrix.compose(
+        localVector.copy(pxMesh.position)
+          .add(
+            localVector2.set(0, 0, 0.2)
+              .applyQuaternion(localQuaternion)
+          ),
+        localQuaternion,
+        localVector4.set(1, 1, 1)
+      )
         .premultiply(pxMesh.parent.matrixWorld)
         .decompose(localVector, localQuaternion, localVector2);
-      pxMesh.collisionIndex = physicsRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion, 1, 1, 10);
+      pxMesh.collisionIndex = physicsRaycasters[0].raycastMeshes(chunkMeshContainer, localVector, localQuaternion, 1, 1, 100);
     } else {
       pxMesh.collisionIndex = -1;
     }
   }
-  physicsRaycaster.readRaycast();
+  for (let i = 0; i < physicsRaycasters.length; i++) {
+    physicsRaycasters[i].readRaycast();
+  }
   for (let i = 0; i < pxMeshes.length; i++) {
     const pxMesh = pxMeshes[i];
     if (pxMesh.collisionIndex !== -1) {
-      if ((physicsRaycaster.depths[pxMesh.collisionIndex] - pxMesh.velocity.length()*10/1000) < 0.2) {
-        pxMesh.position.add(pxMesh.velocity.normalize().multiplyScalar(physicsRaycaster.depths[pxMesh.collisionIndex] - 0.2/2));
+      if ((physicsRaycasters[0].depths[pxMesh.collisionIndex] - 0.4 - pxMesh.velocity.length()*timeDiff) < 0) {
+        pxMesh.position.add(pxMesh.velocity.normalize().multiplyScalar(physicsRaycasters[0].depths[pxMesh.collisionIndex] - 0.4));
         pxMesh.velocity.copy(zeroVector);
       } else {
         _applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
-        pxMesh.velocity.y -= 9.8*timeDiff;
+        pxMesh.velocity.add(localVector.set(0, -9.8*timeDiff, 0).applyQuaternion(pxMesh.getWorldQuaternion(localQuaternion).inverse()));
       }
     }
   }
