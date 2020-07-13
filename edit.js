@@ -2203,7 +2203,7 @@ function animate(timestamp, frame) {
         }
       })();
       if (selectedWeaponModel) {
-        if (typeof selectedWeaponModel === 'object') {
+        if (!selectedWeaponModel.isMesh) {
           if (Array.isArray(selectedWeaponModel)) {
             const pose2 = frame.getPose(session.inputSources[0].targetRaySpace, referenceSpace);
             localMatrix.fromArray(pose.transform.matrix)
