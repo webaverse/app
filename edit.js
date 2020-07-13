@@ -816,7 +816,11 @@ let metalMesh = null;
   const buildModels = await _loadGltf('./build.glb');
   stairsMesh = buildModels.children.find(c => c.name === 'SM_Bld_Snow_Platform_Stairs_01001');
   stairsMesh.visible = false;
-  stairsMesh.isBuildMesh = true;
+  stairsMesh.traverse(o => {
+    if (o.isMesh) {
+      o.isBuildMesh = true;
+    }
+  });
   worldContainer.add(stairsMesh);
   stairsMesh.hullMesh = buildModels.children.find(c => c.name === 'SM_Bld_Snow_Platform_Stairs_01001hull');
   stairsMesh.hullMesh.geometry = stairsMesh.hullMesh.geometry.toNonIndexed();
@@ -825,7 +829,11 @@ let metalMesh = null;
 
   platformMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01');
   platformMesh.visible = false;
-  platformMesh.isBuildMesh = true;
+  platformMesh.traverse(o => {
+    if (o.isMesh) {
+      o.isBuildMesh = true;
+    }
+  });
   worldContainer.add(platformMesh);
   platformMesh.hullMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01hull');
   platformMesh.hullMesh.geometry = platformMesh.hullMesh.geometry.toNonIndexed();
@@ -834,7 +842,11 @@ let metalMesh = null;
 
   wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06');
   wallMesh.visible = false;
-  wallMesh.isBuildMesh = true;
+  wallMesh.traverse(o => {
+    if (o.isMesh) {
+      o.isBuildMesh = true;
+    }
+  });
   worldContainer.add(wallMesh);
   wallMesh.hullMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06hull');
   wallMesh.hullMesh.geometry = wallMesh.hullMesh.geometry.toNonIndexed();
@@ -2355,10 +2367,10 @@ function animate(timestamp, frame) {
             const buildMeshClone = buildMesh.clone();
             buildMeshClone.traverse(o => {
               if (o.isMesh) {
+                o.isBuildMesh = true;
                 o.material = o.material.clone();
               }
             });
-            buildMeshClone.isBuildMesh = buildMesh.isBuildMesh;
             buildMeshClone.hullMesh = buildMesh.hullMesh.clone();
             buildMeshClone.hullMesh.geometry = buildMesh.hullMesh.geometry.clone();
             _decorateMeshForRaycast(buildMeshClone.hullMesh);
