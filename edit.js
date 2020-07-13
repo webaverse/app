@@ -1825,7 +1825,7 @@ const cometFireMesh = (() => {
       attribute vec3 barycentric;
       // varying float vY;
       varying vec2 vUv;
-      varying float vOpacity;
+      // varying float vOpacity;
       varying vec3 vColor;
       void main() {
         // vY = y * ${opacity.toFixed(8)};
@@ -1850,7 +1850,7 @@ const cometFireMesh = (() => {
       uniform sampler2D uCameraTex;
       // varying float vY;
       varying vec2 vUv;
-      varying float vOpacity;
+      // varying float vOpacity;
       varying vec3 vColor;
 
       void main() {
