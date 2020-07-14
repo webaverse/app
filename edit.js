@@ -1985,6 +1985,12 @@ const explosionMesh = (() => {
       }
       geometry.setAttribute('maxZ', new THREE.BufferAttribute(maxZs, 1));
       geometry.setAttribute('q', new THREE.BufferAttribute(qs, 4));
+      const phases = new Float32Array(geometry.attributes.position.array.length/3*4);
+      const phase = new THREE.Vector4(Math.random()*Math.PI*2, Math.random()*Math.PI*2, 0.1+Math.random()*0.2, 0.1+Math.random()*0.2);
+      for (let i = 0; i < phases.length; i += 4) {
+        phase.toArray(phases, i);
+      }
+      geometry.setAttribute('phase', new THREE.BufferAttribute(phases, 4));
       const scales = new Float32Array(geometry.attributes.position.array.length/3);
       const scale = 0.9 + Math.random()*0.2;
       for (let k = 0; k < scales.length; k++) {
@@ -2009,6 +2015,7 @@ const explosionMesh = (() => {
       attribute float z;
       attribute float maxZ;
       attribute vec4 q;
+      attribute vec4 phase;
       attribute float scale;
       varying float vZ;
 
@@ -2026,35 +2033,37 @@ const explosionMesh = (() => {
       void main() {
         vZ = z;
         float forwardFactor = pow(uAnimation, 0.2);
-        float upFactor = pow(uAnimation, 2.0);
-        vec3 p = applyQuaternion(position*scale + vec3(0., 0., -z*maxZ*forwardFactor), q);
-        p += vec3(0., 1., 0.)*upFactor;
+        float upFactor = uAnimation * 0.1;
+        vec2 sideFactor = vec2(sin(phase.x + uAnimation*PI*2.*phase.z), sin(phase.y + uAnimation*PI*2.*phase.w));
+        vec3 p = applyQuaternion(position * scale * pow(1.0-uAnimation, 0.5) + vec3(0., 0., -z*maxZ*forwardFactor), q) +
+          vec3(0., 1., 0.) * upFactor +
+          vec3(uAnimation * sideFactor.x, uAnimation * sideFactor.y, 0.)*0.1;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
       }
     `,
     fragmentShader: `\
       #define PI 3.1415926535897932384626433832795
 
+      uniform float uAnimation;
       varying float vZ;
 
       vec3 c = vec3(${new THREE.Color(0xff7043).toArray().join(', ')});
       vec3 s = vec3(${new THREE.Color(0x546e7a).toArray().join(', ')});
 
       void main() {
-        // float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
-        gl_FragColor = vec4(mix(c, s, vZ) * (2.0 - vZ*1.5), 1.0);
+        float factor = min(vZ + pow(uAnimation, 0.5), 1.0);
+        gl_FragColor = vec4(mix(c, s, factor) * (2.0 - factor*1.0), 1.0);
       }
     `,
     /* side: THREE.DoubleSide,
-    transparent: true,
     depthWrite: false, */
+    transparent: true,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.visible = false;
   mesh.frustumCulled = false;
   mesh.trigger = (position, quaternion) => {
-    mesh.position.copy(position)
-      .add(localVector3.set(0, 0.1, -0.35).applyQuaternion(quaternion))
+    mesh.position.copy(position);
     mesh.quaternion.copy(quaternion);
     mesh.visible = true;
   };
