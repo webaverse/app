@@ -960,6 +960,7 @@ let crosshairMesh = null;
   scene.add(grenadeMesh);
 
   crosshairMesh = weaponsModels.children.find(c => c.name === 'SM_Wep_Crosshair_04');
+  crosshairMesh.scale.set(50, 50, 50);
   crosshairMesh.traverse(o => {
     if (o.isMesh) {
       o.material = new THREE.MeshBasicMaterial({
@@ -970,6 +971,35 @@ let crosshairMesh = null;
     }
   });
   crosshairMesh.visible = false;
+  let animation = null;
+  crosshairMesh.trigger = () => {
+    if (animation) {
+      animation.end();
+      animation = null;
+    }
+    const startTime = Date.now();
+    const endTime = startTime + 300;
+    const originalScale = crosshairMesh.scale.clone();
+    animation = {
+      update() {
+        const now = Date.now();
+        const factor = (now - startTime) / (endTime - startTime);
+        if (factor < 1) {
+          crosshairMesh.scale.copy(originalScale)
+            .multiplyScalar(1 + (1-factor));
+        } else {
+          animation.end();
+          animation = null;
+        }
+      },
+      end() {
+        crosshairMesh.scale.copy(originalScale);
+      },
+    };
+  };
+  crosshairMesh.update = () => {
+    animation && animation.update();
+  };
   scene.add(crosshairMesh);
 })();
 const redBuildMeshMaterial = new THREE.ShaderMaterial({
@@ -2414,6 +2444,7 @@ function animate(timestamp, frame) {
   for (let i = 0; i < npcMeshes.length; i++) {
     npcMeshes[i].update();
   }
+  crosshairMesh && crosshairMesh.update();
 
   const session = renderer.xr.getSession();
   if (session) {
@@ -2514,7 +2545,6 @@ function animate(timestamp, frame) {
             crosshairMesh.position.copy(localVector)
               .add(localVector2.set(0, 0, -500).applyQuaternion(localQuaternion));
             crosshairMesh.quaternion.copy(localQuaternion);
-            crosshairMesh.scale.set(50, 50, 50);
             crosshairMesh.visible = true;
           }
           break;
@@ -2696,8 +2726,9 @@ function animate(timestamp, frame) {
             case 'rifle': {
               _hit()
               localVector2.copy(assaultRifleMesh.position)
-                .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(assaultRifleMesh.quaternion))
+                .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(assaultRifleMesh.quaternion));
               _explode(localVector2, assaultRifleMesh.quaternion);
+              crosshairMesh.trigger();
               break;
             }
             case 'grenade': {
