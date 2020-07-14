@@ -2564,8 +2564,34 @@ function animate(timestamp, frame) {
               }
             }
           };
+          const _hit = () => {
+            if (raycastChunkSpec) {
+              if (raycastChunkSpec.mesh.isChunkMesh) {
+                _applyPotentialDelta(raycastChunkSpec.point, -0.2);
+              } else if (raycastChunkSpec.mesh.isBuildHullMesh) {
+                const {buildMesh} = raycastChunkSpec.mesh;
+
+                localVector2.copy(localVector)
+                  .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
+                  .add(localVector3.set(0, -BUILD_SNAP/2, 0));
+                _snapBuildPosition(localVector2);
+
+                localMatrix.compose(localVector2, localQuaternion, localVector3.set(1, 1, 1))
+                  .premultiply(localMatrix2.getInverse(worldContainer.matrix))
+                  .decompose(localVector2, localQuaternion2, localVector3);
+
+                buildMesh.hit(30);
+              } else if (raycastChunkSpec.mesh.isNpcHullMesh) {
+                const {npcMesh} = raycastChunkSpec.mesh;
+
+                npcMesh.hit(30);
+              }
+            }
+          };
           switch (selectedWeapon) {
             case 'rifle': {
+              _hit()
+
               const explosionMesh = _makeExplosionMesh();
               explosionMesh.position.copy(assaultRifleMesh.position)
                 .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(assaultRifleMesh.quaternion));
@@ -2581,28 +2607,7 @@ function animate(timestamp, frame) {
               break;
             }
             case 'pickaxe': {
-              if (removeMesh.visible) {
-                if (raycastChunkSpec.mesh.isChunkMesh) {
-                  _applyPotentialDelta(removeMesh.position, -0.2);
-                } else if (raycastChunkSpec.mesh.isBuildHullMesh) {
-                  const {buildMesh} = raycastChunkSpec.mesh;
-
-                  localVector2.copy(localVector)
-                    .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
-                    .add(localVector3.set(0, -BUILD_SNAP/2, 0));
-                  _snapBuildPosition(localVector2);
-
-                  localMatrix.compose(localVector2, localQuaternion, localVector3.set(1, 1, 1))
-                    .premultiply(localMatrix2.getInverse(worldContainer.matrix))
-                    .decompose(localVector2, localQuaternion2, localVector3);
-
-                  buildMesh.hit(30);
-                } else if (raycastChunkSpec.mesh.isNpcHullMesh) {
-                  const {npcMesh} = raycastChunkSpec.mesh;
-
-                  npcMesh.hit(30);
-                }
-              }
+              _hit();
               break;
             }
           }
