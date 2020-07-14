@@ -900,6 +900,7 @@ let crosshairMesh = null;
       o.material = new THREE.MeshBasicMaterial({
         color: 0x111111,
         depthTest: false,
+        transparent: true,
       });
     }
   });
