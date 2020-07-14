@@ -2164,7 +2164,7 @@ const _makeExplosionMesh = () => {
 };
 let explosionMeshes = [];
 
-const pxMeshes = [];
+let pxMeshes = [];
 
 const _applyVelocity = (position, velocity, timeDiff) => {
   position.add(localVector4.copy(velocity).multiplyScalar(timeDiff));
@@ -2612,6 +2612,9 @@ function animate(timestamp, frame) {
                 pxMesh.angularVelocity = new THREE.Vector3((-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01);
                 pxMesh.collisionIndex = -1;
                 pxMesh.isBuildMesh = true;
+                const startTime = Date.now();
+                const endTime = startTime + 3000;
+                pxMesh.update = () => Date.now() < endTime;
                 currentChunkMesh.add(pxMesh);
                 pxMeshes.push(pxMesh);
               }
@@ -2641,16 +2644,19 @@ function animate(timestamp, frame) {
               }
             }
           };
+          const _explode = (position, quaternion) => {
+            const explosionMesh = _makeExplosionMesh();
+            explosionMesh.position.copy(position);
+            explosionMesh.quaternion.copy(quaternion);
+            scene.add(explosionMesh);
+            explosionMeshes.push(explosionMesh);
+          };
           switch (selectedWeapon) {
             case 'rifle': {
               _hit()
-
-              const explosionMesh = _makeExplosionMesh();
-              explosionMesh.position.copy(assaultRifleMesh.position)
-                .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(assaultRifleMesh.quaternion));
-              explosionMesh.quaternion.copy(assaultRifleMesh.quaternion);
-              scene.add(explosionMesh);
-              explosionMeshes.push(explosionMesh);
+              localVector2.copy(assaultRifleMesh.position)
+                .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(assaultRifleMesh.quaternion))
+              _explode(localVector2, assaultRifleMesh.quaternion);
               break;
             }
             case 'grenade': {
@@ -2667,19 +2673,21 @@ function animate(timestamp, frame) {
                 pxMesh.angularVelocity = new THREE.Vector3((-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01);
                 pxMesh.collisionIndex = -1;
                 pxMesh.isBuildMesh = true;
+                const startTime = Date.now();
+                const endTime = startTime + 3000;
+                pxMesh.update = () => {
+                  if (Date.now() < endTime) {
+                    return true;
+                  } else {
+                    pxMesh.getWorldPosition(localVector2);
+                    pxMesh.getWorldQuaternion(localQuaternion2);
+                    // localQuaternion2.set(0, 0, 0, 1);
+                    _explode(localVector2, localQuaternion2);
+                    return false;
+                  }
+                };
                 currentChunkMesh.add(pxMesh);
                 pxMeshes.push(pxMesh);
-
-                console.log('throw grenade', pxMesh);
-
-                /* _hit()
-
-                const explosionMesh = _makeExplosionMesh();
-                explosionMesh.position.copy(assaultRifleMesh.position)
-                  .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(assaultRifleMesh.quaternion));
-                explosionMesh.quaternion.copy(assaultRifleMesh.quaternion);
-                scene.add(explosionMesh);
-                explosionMeshes.push(explosionMesh); */
               }
               break;
             }
@@ -3334,16 +3342,21 @@ function animate(timestamp, frame) {
     wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
   } */
 
-  for (let i = 0; i < pxMeshes.length; i++) {
-    const pxMesh = pxMeshes[i];
-    if (!pxMesh.velocity.equals(zeroVector)) {
-      localVector.copy(pxMesh.position)
-        .applyMatrix4(pxMesh.parent.matrixWorld);
-      pxMesh.collisionIndex = physicsRaycaster.raycastMeshes(chunkMeshContainer, localVector, downQuaternion, 1, 1, 100);
+  pxMeshes = pxMeshes.filter(pxMesh => {
+    if (pxMesh.update()) {
+      if (!pxMesh.velocity.equals(zeroVector)) {
+        localVector.copy(pxMesh.position)
+          .applyMatrix4(pxMesh.parent.matrixWorld);
+        pxMesh.collisionIndex = physicsRaycaster.raycastMeshes(chunkMeshContainer, localVector, downQuaternion, 1, 1, 100);
+      } else {
+        pxMesh.collisionIndex = -1;
+      }
+      return true;
     } else {
-      pxMesh.collisionIndex = -1;
+      pxMesh.parent.remove(pxMesh);
+      return false;
     }
-  }
+  });
   physicsRaycaster.readRaycast();
   for (let i = 0; i < pxMeshes.length; i++) {
     const pxMesh = pxMeshes[i];
