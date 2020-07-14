@@ -2057,7 +2057,7 @@ const explosionMesh = (() => {
     `,
     /* side: THREE.DoubleSide,
     depthWrite: false, */
-    transparent: true,
+    // transparent: true,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.visible = false;
