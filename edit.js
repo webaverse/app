@@ -3647,7 +3647,7 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 86: { // V
-      document.querySelector('.weapon[weapon="trap"]').click();
+      document.querySelector('.weapon[weapon="build"]').click();
       buildMode = 'trap';
       break;
     }
