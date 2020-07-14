@@ -217,6 +217,7 @@ const _buildMeshEquals = (a, b) => {
   }
 };
 const itemMeshes = [];
+const npcMeshes = [];
 const _decorateMeshForRaycast = mesh => {
   mesh.traverse(o => {
     if (o.isMesh) {
@@ -755,13 +756,52 @@ _setCurrentChunkMesh(chunkMesh);
       o.isBuildMesh = true;
     }
   });
+  let animation = null;
   npcMesh.hit = () => {
-    console.log('hit!');
+    if (animation) {
+      animation.end();
+      animation = null;
+    }
+    const startTime = Date.now();
+    const endTime = startTime + 300;
+    const originalPosition = npcMesh.position.clone();
+    animation = {
+      /* startTime,
+      endTime, */
+      update() {
+        const now = Date.now();
+        const factor = (now - startTime) / (endTime - startTime);
+        if (factor < 1) {
+          npcMesh.position.copy(originalPosition)
+            .add(localVector2.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2));
+        } else {
+          animation.end();
+          animation = null;
+        }
+      },
+      end() {
+        npcMesh.position.copy(originalPosition);
+        npcMesh.traverse(o => {
+          if (o.isMesh) {
+            o.material.color.setHex(0xFFFFFF);
+          }
+        });
+      },
+    };
+    npcMesh.traverse(o => {
+      if (o.isMesh) {
+        o.material.color.setHex(0xef5350);
+      }
+    });
+  };
+  npcMesh.update = () => {
+    animation && animation.update();
   };
   npcMesh.updateMatrixWorld();
   npcMesh.matrix.premultiply(localMatrix2.getInverse(currentChunkMesh.matrixWorld))
     .decompose(npcMesh.position, npcMesh.quaternion, npcMesh.scale);
   currentChunkMesh.add(npcMesh);
+  npcMeshes.push(npcMesh);
 
   let geometry = new CapsuleGeometry(0.5, 0.5, 16)
     .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2)))
@@ -2327,6 +2367,10 @@ function animate(timestamp, frame) {
     }
   }
   cometFireMesh.material.uniforms.uAnimation.value = (Date.now() % 2000) / 2000;
+
+  for (let i = 0; i < npcMeshes.length; i++) {
+    npcMeshes[i].update();
+  }
 
   const session = renderer.xr.getSession();
   if (session) {
