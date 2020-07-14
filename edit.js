@@ -779,6 +779,7 @@ _setCurrentChunkMesh(chunkMesh);
   capsuleMesh.position.copy(npcMesh.position);
   capsuleMesh.quaternion.copy(npcMesh.quaternion);
   capsuleMesh.scale.copy(npcMesh.scale);
+  capsuleMesh.visible = false;
   currentChunkMesh.add(capsuleMesh);
 }
 
