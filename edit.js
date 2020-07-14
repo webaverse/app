@@ -923,10 +923,10 @@ let metalMesh = null;
     }
   });
   worldContainer.add(spikesMesh);
-  /* spikesMesh.hullMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01hull');
+  spikesMesh.hullMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSpikes_01hull');
   spikesMesh.hullMesh.geometry = spikesMesh.hullMesh.geometry.toNonIndexed();
   spikesMesh.hullMesh.visible = false;
-  spikesMesh.hullMesh.parent.remove(spikesMesh.hullMesh); */
+  spikesMesh.hullMesh.parent.remove(spikesMesh.hullMesh);
 
   woodMesh = buildModels.children.find(c => c.name === 'SM_Prop_Plank_01');
   woodMesh.visible = false;
@@ -2507,7 +2507,7 @@ function animate(timestamp, frame) {
         } */
       }
       if (wallMesh && currentChunkMesh) {
-        [wallMesh, platformMesh, stairsMesh].forEach(buildMesh => {
+        [wallMesh, platformMesh, stairsMesh, spikesMesh].forEach(buildMesh => {
           buildMesh.parent && buildMesh.parent.remove(buildMesh);
         });
         if (buildMode) {
@@ -2516,6 +2516,7 @@ function animate(timestamp, frame) {
               case 'wall': return wallMesh;
               case 'floor': return platformMesh;
               case 'stair': return stairsMesh;
+              case 'trap': return spikesMesh;
               default: return null;
             }
           })();
@@ -2678,6 +2679,7 @@ function animate(timestamp, frame) {
               case 'wall': return wallMesh;
               case 'floor': return platformMesh;
               case 'stair': return stairsMesh;
+              case 'trap': return spikesMesh;
               default: return null;
             }
           })();
