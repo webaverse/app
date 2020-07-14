@@ -2059,7 +2059,6 @@ const _makeExplosionMesh = () => {
   const numIndicesPerZ = numIndicesPerSmoke/numZs;
 
   for (let i = 0; i < numSmokes; i++) {
-    // const qs = new Float32Array(cubeGeometry.attributes.position.array.length/3*4);
     const q = new THREE.Quaternion().setFromEuler(
       new THREE.Euler((-1+Math.random()*2)*Math.PI*2*0.05, (-1+Math.random()*2)*Math.PI*2*0.05, (-1+Math.random()*2)*Math.PI*2*0.05, 'YXZ')
     );
@@ -2069,37 +2068,26 @@ const _makeExplosionMesh = () => {
     const maxZ = Math.random();
     for (let j = 0; j < numZs; j++) {
       positions.set(explosionCubeGeometry.attributes.position.array, i*numPositionsPerSmoke + j*numPositionsPerZ);
-      // indices.set(explosionCubeGeometry.index.array, i*numIndicesPerSmoke + j*numIndicesPerZ);
       const indexOffset = i*numPositionsPerSmoke/3 + j*numPositionsPerZ/3;
       for (let k = 0; k < numIndicesPerZ; k++) {
         indices[i*numIndicesPerSmoke + j*numIndicesPerZ + k] = explosionCubeGeometry.index.array[k] + indexOffset;
       }
 
-      // const geometry = cubeGeometry.clone();
-      // const zs = new Float32Array(geometry.attributes.position.array.length/3);
       const z = j/numZs;
       for (let k = 0; k < numPositionsPerZ/3; k++) {
         zs[i*numPositionsPerSmoke/3 + j*numPositionsPerZ/3 + k] = z;
       }
-      // const maxZs = new Float32Array(geometry.attributes.position.array.length/3);
       for (let k = 0; k < numPositionsPerZ/3; k++) {
         maxZs[i*numPositionsPerSmoke/3 + j*numPositionsPerZ/3 + k] = maxZ;
       }
-      // geometry.setAttribute('maxZ', new THREE.BufferAttribute(maxZs, 1));
-      // geometry.setAttribute('q', new THREE.BufferAttribute(qs, 4));
-      // const phases = new Float32Array(geometry.attributes.position.array.length/3*4);
       const phase = new THREE.Vector4(Math.random()*Math.PI*2, Math.random()*Math.PI*2, 0.1+Math.random()*0.2, 0.1+Math.random()*0.2);
       for (let k = 0; k < numPositionsPerZ/3*4; k += 4) {
         phase.toArray(phases, i*numPositionsPerSmoke/3*4 + j*numPositionsPerZ/3*4 + k);
       }
-      // geometry.setAttribute('phase', new THREE.BufferAttribute(phases, 4));
-      // const scales = new Float32Array(geometry.attributes.position.array.length/3);
       const scale = 0.9 + Math.random()*0.2;
       for (let k = 0; k < numPositionsPerZ/3; k++) {
         scales[i*numPositionsPerSmoke/3*4 + j*numPositionsPerZ/3*4 + k] = scale;
       }
-      // geometry.setAttribute('scale', new THREE.BufferAttribute(scales, 1));
-      // geometries.push(geometry);
     }
   }
   const geometry = new THREE.BufferGeometry();
@@ -2165,18 +2153,12 @@ const _makeExplosionMesh = () => {
         gl_FragColor = vec4(mix(c, s, factor) * (2.0 - pow(uAnimation, 0.2)), 1.0);
       }
     `,
-    /* side: THREE.DoubleSide,
-    depthWrite: false, */
     // transparent: true,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  // mesh.visible = false;
   mesh.frustumCulled = false;
   mesh.trigger = (position, quaternion) => {
     material.uniform.uAnimation = 0;
-    /* mesh.position.copy(position);
-    mesh.quaternion.copy(quaternion);
-    mesh.visible = true; */
   };
   return mesh;
 };
