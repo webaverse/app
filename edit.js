@@ -1957,50 +1957,95 @@ const hpMesh = (() => {
 })();
 scene.add(hpMesh);
 
-const explosionMesh = (() => {
-  const cubeGeometry = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
-  const geometries = [];
-  const numSmokes = 10;
-  const numZs = 10;
+const numSmokes = 10;
+const numZs = 10;
+const explosionCubeGeometry = new THREE.BoxBufferGeometry(0.04, 0.04, 0.04);
+const _makeExplosionMesh = () => {
+  const numPositions = explosionCubeGeometry.attributes.position.array.length * numSmokes * numZs;
+  const numIndices = explosionCubeGeometry.index.array.length * numSmokes * numZs;
+  const arrayBuffer = new ArrayBuffer(
+    numPositions * Float32Array.BYTES_PER_ELEMENT + // position
+    numPositions/3 * Float32Array.BYTES_PER_ELEMENT + // z
+    numPositions/3 * Float32Array.BYTES_PER_ELEMENT + // maxZ
+    numPositions/3*4 * Float32Array.BYTES_PER_ELEMENT + // q
+    numPositions/3*4 * Float32Array.BYTES_PER_ELEMENT + // phase
+    numPositions/3 * Float32Array.BYTES_PER_ELEMENT + // scale
+    numIndices * Int16Array.BYTES_PER_ELEMENT // index
+  );
+  let index = 0;
+  const positions = new Float32Array(arrayBuffer, index, numPositions);
+  index += numPositions*Float32Array.BYTES_PER_ELEMENT;
+  const zs = new Float32Array(arrayBuffer, index, numPositions/3);
+  index += numPositions/3*Float32Array.BYTES_PER_ELEMENT;
+  const maxZs = new Float32Array(arrayBuffer, index, numPositions/3);
+  index += numPositions/3*Float32Array.BYTES_PER_ELEMENT;
+  const qs = new Float32Array(arrayBuffer, index, numPositions/3*4);
+  index += numPositions/3*4*Float32Array.BYTES_PER_ELEMENT;
+  const phases = new Float32Array(arrayBuffer, index, numPositions/3*4);
+  index += numPositions/3*4*Float32Array.BYTES_PER_ELEMENT;
+  const scales = new Float32Array(arrayBuffer, index, numPositions/3);
+  index += numPositions/3*Float32Array.BYTES_PER_ELEMENT;
+  const indices = new Uint16Array(arrayBuffer, index, numIndices);
+  index += numIndices*Uint16Array.BYTES_PER_ELEMENT;
+
+  const numPositionsPerSmoke = numPositions/numSmokes;
+  const numPositionsPerZ = numPositionsPerSmoke/numZs;
+  const numIndicesPerSmoke = numIndices/numSmokes;
+  const numIndicesPerZ = numIndicesPerSmoke/numZs;
+
   for (let i = 0; i < numSmokes; i++) {
-    const qs = new Float32Array(cubeGeometry.attributes.position.array.length/3*4);
+    // const qs = new Float32Array(cubeGeometry.attributes.position.array.length/3*4);
     const q = new THREE.Quaternion().setFromEuler(
       new THREE.Euler((-1+Math.random()*2)*Math.PI*2*0.05, (-1+Math.random()*2)*Math.PI*2*0.05, (-1+Math.random()*2)*Math.PI*2*0.05, 'YXZ')
     );
-    for (let i = 0; i < qs.length; i += 4) {
-      q.toArray(qs, i);
+    for (let j = 0; j < numPositionsPerSmoke/3*4; j += 4) {
+      q.toArray(qs, i*numPositionsPerSmoke/3*4 + j);
     }
     const maxZ = Math.random();
     for (let j = 0; j < numZs; j++) {
-      const geometry = cubeGeometry.clone();
-      const zs = new Float32Array(geometry.attributes.position.array.length/3);
+      positions.set(explosionCubeGeometry.attributes.position.array, i*numPositionsPerSmoke + j*numPositionsPerZ);
+      // indices.set(explosionCubeGeometry.index.array, i*numIndicesPerSmoke + j*numIndicesPerZ);
+      const indexOffset = i*numPositionsPerSmoke/3 + j*numPositionsPerZ/3;
+      for (let k = 0; k < numIndicesPerZ; k++) {
+        indices[i*numIndicesPerSmoke + j*numIndicesPerZ + k] = explosionCubeGeometry.index.array[k] + indexOffset;
+      }
+
+      // const geometry = cubeGeometry.clone();
+      // const zs = new Float32Array(geometry.attributes.position.array.length/3);
       const z = j/numZs;
-      for (let k = 0; k < zs.length; k++) {
-        zs[k] = z;
+      for (let k = 0; k < numPositionsPerZ/3; k++) {
+        zs[i*numPositionsPerSmoke/3 + j*numPositionsPerZ/3 + k] = z;
       }
-      geometry.setAttribute('z', new THREE.BufferAttribute(zs, 1));
-      const maxZs = new Float32Array(geometry.attributes.position.array.length/3);
-      for (let k = 0; k < maxZs.length; k++) {
-        maxZs[k] = maxZ;
+      // const maxZs = new Float32Array(geometry.attributes.position.array.length/3);
+      for (let k = 0; k < numPositionsPerZ/3; k++) {
+        maxZs[i*numPositionsPerSmoke/3 + j*numPositionsPerZ/3 + k] = maxZ;
       }
-      geometry.setAttribute('maxZ', new THREE.BufferAttribute(maxZs, 1));
-      geometry.setAttribute('q', new THREE.BufferAttribute(qs, 4));
-      const phases = new Float32Array(geometry.attributes.position.array.length/3*4);
+      // geometry.setAttribute('maxZ', new THREE.BufferAttribute(maxZs, 1));
+      // geometry.setAttribute('q', new THREE.BufferAttribute(qs, 4));
+      // const phases = new Float32Array(geometry.attributes.position.array.length/3*4);
       const phase = new THREE.Vector4(Math.random()*Math.PI*2, Math.random()*Math.PI*2, 0.1+Math.random()*0.2, 0.1+Math.random()*0.2);
-      for (let i = 0; i < phases.length; i += 4) {
-        phase.toArray(phases, i);
+      for (let k = 0; k < numPositionsPerZ/3*4; k += 4) {
+        phase.toArray(phases, i*numPositionsPerSmoke/3*4 + j*numPositionsPerZ/3*4 + k);
       }
-      geometry.setAttribute('phase', new THREE.BufferAttribute(phases, 4));
-      const scales = new Float32Array(geometry.attributes.position.array.length/3);
+      // geometry.setAttribute('phase', new THREE.BufferAttribute(phases, 4));
+      // const scales = new Float32Array(geometry.attributes.position.array.length/3);
       const scale = 0.9 + Math.random()*0.2;
-      for (let k = 0; k < scales.length; k++) {
-        scales[k] = scale;
+      for (let k = 0; k < numPositionsPerZ/3; k++) {
+        scales[i*numPositionsPerSmoke/3*4 + j*numPositionsPerZ/3*4 + k] = scale;
       }
-      geometry.setAttribute('scale', new THREE.BufferAttribute(scales, 1));
-      geometries.push(geometry);
+      // geometry.setAttribute('scale', new THREE.BufferAttribute(scales, 1));
+      // geometries.push(geometry);
     }
   }
-  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('z', new THREE.BufferAttribute(zs, 1));
+  geometry.setAttribute('maxZ', new THREE.BufferAttribute(maxZs, 1));
+  geometry.setAttribute('q', new THREE.BufferAttribute(qs, 4));
+  geometry.setAttribute('phase', new THREE.BufferAttribute(phases, 4));
+  geometry.setAttribute('scale', new THREE.BufferAttribute(scales, 1));
+  geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+
   const material = new THREE.ShaderMaterial({
     uniforms: {
       uAnimation: {
@@ -2032,10 +2077,10 @@ const explosionMesh = (() => {
 
       void main() {
         vZ = z;
-        float forwardFactor = pow(uAnimation, 0.2);
+        float forwardFactor = pow(uAnimation, 0.5);
         float upFactor = uAnimation * 0.1;
         vec2 sideFactor = vec2(sin(phase.x + uAnimation*PI*2.*phase.z), sin(phase.y + uAnimation*PI*2.*phase.w));
-        vec3 p = applyQuaternion(position * scale * pow(1.0-uAnimation, 0.5) + vec3(0., 0., -z*maxZ*forwardFactor), q) +
+        vec3 p = applyQuaternion(position * scale * (1.0-uAnimation) + vec3(0., 0., -z*maxZ*forwardFactor), q) +
           vec3(0., 1., 0.) * upFactor +
           vec3(uAnimation * sideFactor.x, uAnimation * sideFactor.y, 0.)*0.1;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
@@ -2048,11 +2093,11 @@ const explosionMesh = (() => {
       varying float vZ;
 
       vec3 c = vec3(${new THREE.Color(0xff7043).toArray().join(', ')});
-      vec3 s = vec3(${new THREE.Color(0x546e7a).toArray().join(', ')});
+      vec3 s = vec3(${new THREE.Color(0x263238).toArray().join(', ')});
 
       void main() {
         float factor = min(vZ + pow(uAnimation, 0.5), 1.0);
-        gl_FragColor = vec4(mix(c, s, factor) * (2.0 - factor*1.0), 1.0);
+        gl_FragColor = vec4(mix(c, s, factor) * (2.0 - pow(uAnimation, 0.2)), 1.0);
       }
     `,
     /* side: THREE.DoubleSide,
@@ -2060,16 +2105,17 @@ const explosionMesh = (() => {
     // transparent: true,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.visible = false;
+  // mesh.visible = false;
   mesh.frustumCulled = false;
   mesh.trigger = (position, quaternion) => {
-    mesh.position.copy(position);
+    material.uniform.uAnimation = 0;
+    /* mesh.position.copy(position);
     mesh.quaternion.copy(quaternion);
-    mesh.visible = true;
+    mesh.visible = true; */
   };
   return mesh;
-})();
-scene.add(explosionMesh);
+};
+let explosionMeshes = [];
 
 const pxMeshes = [];
 
@@ -2251,17 +2297,25 @@ const timeFactor = 1000;
 let lastTimestamp = performance.now();
 let lastParcel  = new THREE.Vector3(0, 0, 0);
 function animate(timestamp, frame) {
-  const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+  const timeDiff = 30/1000;// Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
 
-  if (physics) {
+  /* if (physics) {
     physics.simulate();
     physics.pullObjectMesh(physicalMesh);
     // physics.checkCollisions();
-  }
+  } */
 
   const now = Date.now();
-  explosionMesh.material.uniforms.uAnimation.value = (now % 2000) / 2000;
+  explosionMeshes = explosionMeshes.filter(explosionMesh => {
+    explosionMesh.material.uniforms.uAnimation.value += timeDiff;
+    if (explosionMesh.material.uniforms.uAnimation.value < 1) {
+      return true;
+    } else {
+      scene.remove(explosionMesh);
+      return false;
+    }
+  });
 
   for (let i = 0; i < remoteChunkMeshes.length; i++) {
     const chunkMesh = remoteChunkMeshes[i];
@@ -2511,7 +2565,12 @@ function animate(timestamp, frame) {
           };
           switch (selectedWeapon) {
             case 'rifle': {
-              explosionMesh.trigger(assaultRifleMesh.position, assaultRifleMesh.quaternion);
+              const explosionMesh = _makeExplosionMesh();
+              explosionMesh.position.copy(assaultRifleMesh.position)
+                .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(assaultRifleMesh.quaternion));
+              explosionMesh.quaternion.copy(assaultRifleMesh.quaternion);
+              scene.add(explosionMesh);
+              explosionMeshes.push(explosionMesh);
               break;
             }
             case 'build': {
