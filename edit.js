@@ -928,7 +928,7 @@ let metalMesh = null;
   spikesMesh.hullMesh.visible = false;
   spikesMesh.hullMesh.parent.remove(spikesMesh.hullMesh);
 
-  woodMesh = buildModels.children.find(c => c.name === 'SM_Prop_Plank_01');
+  woodMesh = buildModels.children.find(c => c.name === 'SM_Item_Log_01');
   woodMesh.visible = false;
   worldContainer.add(woodMesh);
 
