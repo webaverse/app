@@ -2691,23 +2691,24 @@ function animate(timestamp, frame) {
               if (hp > 0) {
                 const startTime = Date.now();
                 const endTime = startTime + 500;
+                const originalPosition = buildMeshClone.position.clone();
                 animation = {
-                  startTime,
-                  endTime,
+                  /* startTime,
+                  endTime, */
                   update() {
                     const now = Date.now();
-                    const {startTime, endTime} = animation;
+                    // const {startTime, endTime} = animation;
                     const factor = (now - startTime) / (endTime - startTime);
                     if (factor < 1) {
-                      buildMeshClone.position.copy(buildMeshClone.originalPosition)
-                        .add(localVector2.set(-1+Math.random(), -1+Math.random(), -1+Math.random()).multiplyScalar((1-factor)*0.2/2));
+                      buildMeshClone.position.copy(originalPosition)
+                        .add(localVector2.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2));
                     } else {
                       animation.end();
                       animation = null;
                     }
                   },
                   end() {
-                    buildMeshClone.position.copy(buildMeshClone.originalPosition);
+                    buildMeshClone.position.copy(originalPosition);
                     buildMeshClone.traverse(o => {
                       if (o.isMesh) {
                         o.material.color.setHex(0xFFFFFF);
@@ -2715,7 +2716,6 @@ function animate(timestamp, frame) {
                     });
                   },
                 };
-                buildMeshClone.originalPosition = buildMeshClone.position.clone();
                 buildMeshClone.traverse(o => {
                   if (o.isMesh) {
                     o.material.color.setHex(0xef5350).multiplyScalar(2);
