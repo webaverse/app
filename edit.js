@@ -3628,10 +3628,15 @@ window.addEventListener('keydown', e => {
       buildMode = 'stair';
       break;
     }
-    case 80: { // P
-      physics.resetObjectMesh(physicalMesh);
+    case 86: { // V
+      document.querySelector('.weapon[weapon="trap"]').click();
+      buildMode = 'trap';
       break;
     }
+    /* case 80: { // P
+      physics.resetObjectMesh(physicalMesh);
+      break;
+    } */
     case 8: // backspace
     case 46: // del
     {
