@@ -942,15 +942,23 @@ let metalMesh = null;
 })();
 let assaultRifleMesh = null;
 let smgMesh = null;
+let grenadeMesh = null;
 let crosshairMesh = null;
 (async () => {
   const weaponsModels = await _loadGltf('./weapons.glb');
+
   assaultRifleMesh = weaponsModels.children.find(c => c.name === 'SM_Wep_Rifle_Assault_01');
   assaultRifleMesh.visible = false;
   scene.add(assaultRifleMesh);
+
   smgMesh = weaponsModels.children.find(c => c.name === 'SM_Wep_SubMGun_Lite_01');
   smgMesh.visible = false;
   scene.add(smgMesh);
+
+  grenadeMesh = weaponsModels.children.find(c => c.name === 'SM_Wep_Grenade_01');
+  grenadeMesh.visible = false;
+  scene.add(grenadeMesh);
+
   crosshairMesh = weaponsModels.children.find(c => c.name === 'SM_Wep_Crosshair_04');
   crosshairMesh.traverse(o => {
     if (o.isMesh) {
@@ -963,7 +971,6 @@ let crosshairMesh = null;
   });
   crosshairMesh.visible = false;
   scene.add(crosshairMesh);
-  console.log('got weapons', weaponsModels, assaultRifleMesh, crosshairMesh);
 })();
 const redBuildMeshMaterial = new THREE.ShaderMaterial({
   vertexShader: `
@@ -2407,7 +2414,7 @@ function animate(timestamp, frame) {
       pointRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
       const raycastChunkSpec = pointRaycaster.readRaycast(chunkMeshContainer, localVector, localQuaternion);
 
-      [assaultRifleMesh, crosshairMesh, plansMesh, pencilMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
+      [assaultRifleMesh, grenadeMesh, crosshairMesh, plansMesh, pencilMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
         if (weaponMesh) {
           weaponMesh.visible = false;
         }
@@ -2417,6 +2424,12 @@ function animate(timestamp, frame) {
           case 'rifle': {
             return {
               weapon: assaultRifleMesh,
+              crosshair: crosshairMesh,
+            };
+          }
+          case 'grenade': {
+            return {
+              weapon: grenadeMesh,
               crosshair: crosshairMesh,
             };
           }
@@ -2474,7 +2487,9 @@ function animate(timestamp, frame) {
       addMesh.visible = false;
       removeMesh.visible = false;
       switch (selectedWeapon) {
-        case 'rifle': {
+        case 'rifle':
+        case 'grenade':
+        {
           if (crosshairMesh) {
             crosshairMesh.position.copy(localVector)
               .add(localVector2.set(0, 0, -500).applyQuaternion(localQuaternion));
@@ -2499,12 +2514,6 @@ function animate(timestamp, frame) {
           }
           break;
         }
-        /* case 'paintbrush': {
-          return paintBrushMesh;
-        } */
-        /* default: {
-          return null;
-        } */
       }
       if (wallMesh && currentChunkMesh) {
         [wallMesh, platformMesh, stairsMesh, spikesMesh].forEach(buildMesh => {
@@ -2660,6 +2669,36 @@ function animate(timestamp, frame) {
               explosionMesh.quaternion.copy(assaultRifleMesh.quaternion);
               scene.add(explosionMesh);
               explosionMeshes.push(explosionMesh);
+              break;
+            }
+            case 'grenade': {
+              if (currentChunkMesh) {
+                const pxMesh = grenadeMesh.clone();
+
+                localVector2.copy(grenadeMesh.position)
+                  .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+                localQuaternion2.copy(grenadeMesh.quaternion)
+                  .premultiply(currentChunkMesh.getWorldQuaternion(localQuaternion3).inverse());
+                pxMesh.position.copy(localVector2)
+                pxMesh.velocity = new THREE.Vector3(0, 0, -10)
+                  .applyQuaternion(localQuaternion2);
+                pxMesh.angularVelocity = new THREE.Vector3((-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01);
+                pxMesh.collisionIndex = -1;
+                pxMesh.isBuildMesh = true;
+                currentChunkMesh.add(pxMesh);
+                pxMeshes.push(pxMesh);
+
+                console.log('throw grenade', pxMesh);
+
+                /* _hit()
+
+                const explosionMesh = _makeExplosionMesh();
+                explosionMesh.position.copy(assaultRifleMesh.position)
+                  .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(assaultRifleMesh.quaternion));
+                explosionMesh.quaternion.copy(assaultRifleMesh.quaternion);
+                scene.add(explosionMesh);
+                explosionMeshes.push(explosionMesh); */
+              }
               break;
             }
             case 'build': {
