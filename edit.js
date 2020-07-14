@@ -2461,9 +2461,9 @@ function animate(timestamp, frame) {
         case 'rifle': {
           if (crosshairMesh) {
             crosshairMesh.position.copy(localVector)
-              .add(localVector2.set(0, 0, -5).applyQuaternion(localQuaternion));
+              .add(localVector2.set(0, 0, -500).applyQuaternion(localQuaternion));
             crosshairMesh.quaternion.copy(localQuaternion);
-            crosshairMesh.scale.set(0.5, 0.5, 0.5);
+            crosshairMesh.scale.set(50, 50, 50);
             crosshairMesh.visible = true;
           }
           break;
