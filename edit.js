@@ -865,11 +865,13 @@ let buildMode = null;
 let stairsMesh = null;
 let platformMesh = null;
 let wallMesh = null;
+let spikesMesh = null;
 let woodMesh = null;
 let stoneMesh = null;
 let metalMesh = null;
 (async () => {
   const buildModels = await _loadGltf('./build.glb');
+
   stairsMesh = buildModels.children.find(c => c.name === 'SM_Bld_Snow_Platform_Stairs_01001');
   stairsMesh.buildMeshType = 'stair';
   stairsMesh.visible = false;
@@ -911,6 +913,20 @@ let metalMesh = null;
   wallMesh.hullMesh.geometry = wallMesh.hullMesh.geometry.toNonIndexed();
   wallMesh.hullMesh.visible = false;
   wallMesh.hullMesh.parent.remove(wallMesh.hullMesh);
+
+  spikesMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSpikes_01');
+  spikesMesh.buildMeshType = 'floor';
+  spikesMesh.visible = false;
+  spikesMesh.traverse(o => {
+    if (o.isMesh) {
+      o.isBuildMesh = true;
+    }
+  });
+  worldContainer.add(spikesMesh);
+  /* spikesMesh.hullMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01hull');
+  spikesMesh.hullMesh.geometry = spikesMesh.hullMesh.geometry.toNonIndexed();
+  spikesMesh.hullMesh.visible = false;
+  spikesMesh.hullMesh.parent.remove(spikesMesh.hullMesh); */
 
   woodMesh = buildModels.children.find(c => c.name === 'SM_Prop_Plank_01');
   woodMesh.visible = false;
