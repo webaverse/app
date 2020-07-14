@@ -2681,7 +2681,6 @@ function animate(timestamp, frame) {
                   } else {
                     pxMesh.getWorldPosition(localVector2);
                     pxMesh.getWorldQuaternion(localQuaternion2);
-                    // localQuaternion2.set(0, 0, 0, 1);
                     _explode(localVector2, localQuaternion2);
                     return false;
                   }
