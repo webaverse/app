@@ -2015,11 +2015,18 @@ const explosionMesh = (() => {
       vec3 applyQuaternion(vec3 v, vec4 q) {
         return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
       }
+      float easeBezier(float p, vec4 curve) {
+        float ip = 1.0 - p;
+        return (3.0 * ip * ip * p * curve.xy + 3.0 * ip * p * p * curve.zw + p * p * p).y;
+      }
+      float ease(float p) {
+        return easeBezier(p, vec4(0., 1., 0., 1.));
+      }
 
       void main() {
         vZ = z;
-        float forwardFactor = min(uAnimation, 0.5)*2.0;
-        float upFactor = max(uAnimation - 0.5, 0.)*2.0;
+        float forwardFactor = pow(uAnimation, 0.2);
+        float upFactor = pow(uAnimation, 2.0);
         vec3 p = applyQuaternion(position*scale + vec3(0., 0., -z*maxZ*forwardFactor), q);
         p += vec3(0., 1., 0.)*upFactor;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
