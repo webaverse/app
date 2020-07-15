@@ -646,7 +646,7 @@ const _makeChunkMesh = async () => {
     },
   });
 
-  const numStops = 1;//+Math.floor(rng()*3);
+  const numStops = 1;
   const stops = Array(numStops);
   const colorKeys = Object.keys(colors);
   for (let i = 0; i < numStops; i++) {
