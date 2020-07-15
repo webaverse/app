@@ -265,6 +265,7 @@ let nextId = 0;
 
 let worker = null;
 let remoteChunkMeshes = [];
+let chunkMesh = null;
 const worldContainer = new THREE.Object3D();
 scene.add(worldContainer);
 const chunkMeshContainer = new THREE.Object3D();
@@ -312,9 +313,19 @@ const [
         }
       });
     });
-    w.requestMarch = (seed, meshId, slabSliceTris) => {
+    w.requestMarchLand = (seed, meshId, x, z, slabSliceTris) => {
       return w.request({
-        method: 'march',
+        method: 'marchLand',
+        seed,
+        meshId,
+        x,
+        z,
+        slabSliceTris,
+      });
+    };
+    w.requestMarchPlanet = (seed, meshId, slabSliceTris) => {
+      return w.request({
+        method: 'marchPlanet',
         seed,
         meshId,
         slabSliceTris,
@@ -624,9 +635,177 @@ capsuleMesh = (() => {
 })();
 physics.bindCapsuleMeshPhysics(capsuleMesh); */
 
-const _makeChunkMesh = async () => {
+const _makeLandChunkMesh = async () => {
   const meshId = ++nextId;
-  const specs = await worker.requestMarch(Math.floor(rng() * 0xFFFFFF), meshId, slabSliceTris);
+
+  const heightfieldMaterial = new THREE.ShaderMaterial({
+    uniforms: (() => {
+      const uniforms = Object.assign(
+        THREE.UniformsUtils.clone(THREE.UniformsLib.lights),
+        THREE.UniformsUtils.clone(HEIGHTFIELD_SHADER.uniforms)
+      );
+      // uniforms.fogColor.value = scene.fog.color;
+      // uniforms.fogDensity.value = scene.fog.density;
+      return uniforms;
+    })(),
+    vertexShader: HEIGHTFIELD_SHADER.vertexShader,
+    fragmentShader: HEIGHTFIELD_SHADER.fragmentShader,
+    lights: true,
+    extensions: {
+      derivatives: true,
+    },
+  });
+
+  const numStops = 1;
+  const stops = Array(numStops);
+  const colorKeys = Object.keys(colors);
+  for (let i = 0; i < numStops; i++) {
+    const pos = i === 0 ? 0 : Math.floor(rng() *255);
+    const colorIndex = colorKeys[Math.floor(rng() * colorKeys.length)];
+    const color = colors[colorIndex];
+    const col = parseInt('0x' + color[400].slice(1));
+    stops[i] = [pos, col];
+  }
+  stops.sort((a, b) => a[0] - b[0]);
+  heightfieldMaterial.uniforms.heightColorTex.value = new THREE.DataTexture(new Uint8Array(256*3), 256, 1, THREE.RGBFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter, 1);
+  stops.forEach((stop, i) => {
+    const [startIndex, colorValue] = stop;
+    const nextStop = stops[i+1] || null;
+    const endIndex = nextStop ? nextStop[0] : 256;
+    const color = new THREE.Color(colorValue);
+    const colorArray = Uint8Array.from([
+      color.r*255,
+      color.g*255,
+      color.b*255,
+    ]);
+    for (let j = startIndex; j < endIndex; j++) {
+      heightfieldMaterial.uniforms.heightColorTex.value.image.data.set(colorArray, j*3);
+    }
+  });
+  heightfieldMaterial.uniforms.heightColorTex.value.needsUpdate = true;
+
+  const slabArrayBuffer = new ArrayBuffer(slabTotalSize);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 0*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
+  geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 1*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
+  geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices), 1));
+  geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 3*slabAttributeSize, slabSliceVertices*numSlices), 1));
+
+  const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
+  mesh.meshId = meshId;
+  mesh.isChunkMesh = true;
+  mesh.buildMeshes = [];
+  mesh.frustumCulled = false;
+  const slabs = [];
+  const freeSlabs = [];
+  let index = 0;
+  mesh.getSlab = (x, y, z) => {
+    let slab = slabs.find(slab => slab.x === x && slab.y === y && slab.z === z);
+    if (!slab) {
+      slab = freeSlabs.pop();
+      if (slab) {
+        slab.x = x;
+        slab.y = y;
+        slab.z = z;
+        slabs.push(slab);
+        geometry.addGroup(slab.slabIndex * slabSliceVertices, slab.position.length/3, 0);
+      } else {
+        slab = {
+          x,
+          y,
+          z,
+          slabIndex: index,
+          position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+          barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+          id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+          index: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+        };
+        slabs.push(slab);
+        geometry.addGroup(index * slabSliceVertices, slab.position.length/3, 0);
+        index++;
+      }
+    }
+    return slab;
+  };
+  mesh.removeSlab = slab => {
+    const groupIndex = geometry.groups.findIndex(group => group.start === slab.slabIndex * slabSliceVertices);
+    if (groupIndex === -1) {
+      debugger;
+    }
+    geometry.groups.splice(groupIndex, 1);
+    if (slabs.indexOf(slab) === -1) {
+      debugger;
+    }
+    slabs.splice(slabs.indexOf(slab), 1);
+    freeSlabs.push(slab);
+  };
+  const lastCoord = new THREE.Vector2(0, 0);
+  let running = false;
+  let nextPosition = null;
+  mesh.update = async position => {
+    if (!running) {
+      running = true;
+
+      localVector2.copy(position)
+        .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
+      const coord = new THREE.Vector2(Math.floor(localVector2.x/SUBPARCEL_SIZE), Math.floor(localVector2.z/SUBPARCEL_SIZE));
+      if (!coord.equals(lastCoord)) {
+        const neededCoords = [];
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dz = -1; dz <= 1; dz++) {
+            const ax = dx + coord.x;
+            const az = dz + coord.y;
+            neededCoords.push([ax, az]);
+          }
+        }
+        for (let i = 0; i < neededCoords.length; i++) {
+          const [ax, az] = neededCoords[i];
+          if (!slabs.some(slab => slab.x === ax && slab.z === az)) {
+            const specs = await worker.requestMarchLand(Math.floor(rng() * 0xFFFFFF), meshId, ax, az, slabSliceTris);
+            for (let i = 0; i < specs.length; i++) {
+              const spec = specs[i];
+              const {x, y, z} = spec;
+              const slab = mesh.getSlab(x, y, z);
+              slab.position.set(spec.positions);
+              slab.barycentric.set(spec.barycentrics);
+              slab.id.set(spec.ids);
+              slab.index.set(spec.indices);
+
+              geometry.attributes.position.needsUpdate = true;
+              geometry.attributes.barycentric.needsUpdate = true;
+              geometry.attributes.id.needsUpdate = true;
+              geometry.attributes.index.needsUpdate = true;
+
+              const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
+              group.count = spec.positions.length/3;
+            }
+          }
+        }
+        slabs.slice().forEach(slab => {
+          if (!neededCoords.some(([x, z]) => x === slab.x && z === slab.z)) {
+            mesh.removeSlab(slab);
+          }
+        });
+
+        lastCoord.copy(coord);
+      }
+
+      running = false;
+
+      if (nextPosition) {
+        const localNextPosition = nextPosition;
+        nextPosition = null;
+        mesh.update(localNextPosition);
+      }
+    } else {
+      nextPosition = position.clone();
+    }
+  };
+  return mesh;
+};
+const _makePlanetChunkMesh = async () => {
+  const meshId = ++nextId;
+  const specs = await worker.requestMarchPlanet(Math.floor(rng() * 0xFFFFFF), meshId, slabSliceTris);
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
     uniforms: (() => {
@@ -715,15 +894,18 @@ const _makeChunkMesh = async () => {
     slab.id.set(spec.ids);
     slab.index.set(spec.indices);
 
-    geometry.groups[slab.slabIndex].count = spec.positions.length/3;
+    const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
+    group.count = spec.positions.length/3;
   }
   return mesh;
 };
 
-const chunkMesh = await _makeChunkMesh();
+chunkMesh = await _makeLandChunkMesh();
 chunkMesh.position.y = -32;
 chunkMesh.position.x = -12;
 chunkMesh.position.z = -10;
+chunkMesh.updateMatrixWorld();
+await chunkMesh.update(new THREE.Vector3(0, 0, 0));
 /* {
   const img = document.createElement('img');
   img.src = 'grass.png';
@@ -739,7 +921,7 @@ chunkMeshContainer.add(chunkMesh);
 
 const numRemoteChunkMeshes = 30;
 for (let i = 0; i < numRemoteChunkMeshes; i++) {
-  const remoteChunkMesh = await _makeChunkMesh();
+  const remoteChunkMesh = await _makePlanetChunkMesh();
   remoteChunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(100);
   chunkMeshContainer.add(remoteChunkMesh);
   remoteChunkMeshes.push(remoteChunkMesh);
@@ -747,7 +929,7 @@ for (let i = 0; i < numRemoteChunkMeshes; i++) {
 remoteChunkMeshes.push(chunkMesh);
 _setCurrentChunkMesh(chunkMesh);
 
-const generateModels = await _loadGltf('./generate.glb');
+/* const generateModels = await _loadGltf('./generate.glb');
 for (let i = 0; i < 30; i++) {
   for (;;) {
     localVector.copy(chunkMesh.position)
@@ -767,11 +949,9 @@ for (let i = 0; i < 30; i++) {
       generateModelClone.isBuildMesh = true;
       chunkMesh.add(generateModelClone);
       break;
-    } /* else {
-      console.log('miss', localVector.toArray().join(','), localQuaternion.toArray().join(','));
-    } */
+    }
   }
-}
+} */
 
 {
   const npcMesh = await _loadGltf('./npc.vrm');
@@ -2430,6 +2610,10 @@ const _collideItems = matrix => {
     itemMesh.update(localVector5.copy(localVector3).applyMatrix4(localMatrix2.getInverse(currentChunkMesh.matrixWorld)));
   }
 };
+const _collideChunk = matrix => {
+  matrix.decompose(localVector3, localQuaternion2, localVector4);
+  chunkMesh && chunkMesh.update(localVector3);
+};
 
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
@@ -2694,7 +2878,8 @@ function animate(timestamp, frame) {
               geometry.attributes.id.needsUpdate = true;
               geometry.attributes.index.needsUpdate = true;
 
-              geometry.groups[slab.slabIndex].count = spec.positions.length/3;
+              const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
+              group.count = spec.positions.length/3;
             }
             if (specs.length > 0 && delta < 0) {
               for (let i = 0; i < 3; i++) {
@@ -3230,6 +3415,7 @@ function animate(timestamp, frame) {
       const ceilingDistance = _collideCeiling(pe.camera.matrix);
       const ceilingOffset = _getCeilingOffset(ceilingDistance);
       _collideItems(pe.camera.matrix);
+      _collideChunk(pe.camera.matrix);
       if (offset !== null) {
         pe.camera.position.y += offset;
         velocity.y = 0;
@@ -3275,6 +3461,7 @@ function animate(timestamp, frame) {
       const ceilingDistance = _collideCeiling(localMatrix);
       const ceilingOffset = _getCeilingOffset(ceilingDistance);
       _collideItems(localMatrix);
+      _collideChunk(localMatrix);
       if (offset !== null) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
@@ -3322,6 +3509,7 @@ function animate(timestamp, frame) {
       const ceilingDistance = _collideCeiling(localMatrix);
       const ceilingOffset = _getCeilingOffset(ceilingDistance);
       _collideItems(localMatrix);
+      _collideChunk(localMatrix);
       if (offset !== null) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
@@ -3370,6 +3558,7 @@ function animate(timestamp, frame) {
       const ceilingDistance = _collideCeiling(localMatrix);
       const ceilingOffset = _getCeilingOffset(ceilingDistance);
       _collideItems(localMatrix);
+      _collideChunk(localMatrix);
       if (offset !== null) {
         pe.camera.position.y += offset;
         pe.camera.updateMatrixWorld();
@@ -3398,10 +3587,12 @@ function animate(timestamp, frame) {
       }
     } else {
       _collideItems(pe.camera.matrix);
+      _collideChunk(pe.camera.matrix);
       pe.setRigMatrix(null);
     }
   } else {
     _collideItems(pe.camera.matrix);
+    _collideChunk(pe.camera.matrix);
     pe.setRigMatrix(null);
   }
 
