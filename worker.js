@@ -78,7 +78,29 @@ function mod(a, b) {
 const _getSliceIndex = (x, y, z) => z + y*NUM_PARCELS + x*NUM_PARCELS*NUM_PARCELS;
 const _getPotentialIndex = (x, y, z) => x + y*SUBPARCEL_SIZE*SUBPARCEL_SIZE + z*SUBPARCEL_SIZE;
 const _getPotentialFullIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + z*SUBPARCEL_SIZE_P1;
-const _makePotentials = (seedData, shiftsData) => {
+const _makeLandPotentials = (seedData, shiftsData) => {
+  const allocator = new Allocator();
+
+  const potentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE * SUBPARCEL_SIZE * SUBPARCEL_SIZE);
+  const dims = allocator.alloc(Int32Array, 3);
+  dims.set(Int32Array.from([SUBPARCEL_SIZE, SUBPARCEL_SIZE, SUBPARCEL_SIZE]));
+  const shifts = allocator.alloc(Float32Array, 3);
+  shifts.set(Float32Array.from(shiftsData));
+
+  Module._doNoise3(
+    seedData,
+    0.1,
+    6,
+    16,
+    dims.offset,
+    shifts.offset,
+    potentialDefault,
+    potentials.offset
+  );
+
+  return {potentials, dims, shifts/*, allocator*/};
+};
+const _makePlanetPotentials = (seedData, shiftsData) => {
   const allocator = new Allocator();
 
   const potentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE * SUBPARCEL_SIZE * SUBPARCEL_SIZE);
@@ -93,7 +115,6 @@ const _makePotentials = (seedData, shiftsData) => {
     4,
     dims.offset,
     shifts.offset,
-    0,
     potentialDefault,
     potentials.offset
   );
@@ -259,7 +280,48 @@ let loaded = false;
 const _handleMessage = data => {
   const {method} = data;
   switch (method) {
-    case 'march': {
+    case 'marchLand': {
+      const {seed: seedData, meshId, x, z, slabSliceTris} = data;
+
+      const chunk = _getChunk(meshId);
+      for (let dx = 0; dx <= 1; dx++) {
+        const ix = x + dx;
+        for (let dy = 0; dy < 2; dy++) {
+          const iy = dy;
+          for (let dz = 0; dz <= 1; dz++) {
+            const iz = z + dz;
+            const slab = chunk.getSlab(ix, iy, iz);
+            if (!slab) {
+              const shiftsData = [ix*SUBPARCEL_SIZE, iy*SUBPARCEL_SIZE, iz*SUBPARCEL_SIZE];
+              const {potentials} = _makeLandPotentials(seedData, shiftsData);
+              chunk.setSlab(ix, iy, iz, potentials);
+            }
+          }
+        }
+      }
+
+      const results = [];
+      const transfers = [];
+      for (let dx = 0; dx < 1; dx++) {
+        const ix = x + dx;
+        for (let dy = 0; dy < 2; dy++) {
+          const iy = dy;
+          for (let dz = 0; dz < 1; dz++) {
+            const iz = z + dz;
+            const slab = chunk.getSlab(ix, iy, iz);
+            const [result, transfer] = _meshChunkSlab(chunk, slab, slabSliceTris);
+            results.push(result);
+            transfers.push(transfer);
+          }
+        }
+      }
+
+      self.postMessage({
+        result: results,
+      }, transfers);
+      break;
+    }
+    case 'marchPlanet': {
       const {seed: seedData, meshId, slabSliceTris} = data;
 
       const chunk = _getChunk(meshId);
@@ -267,7 +329,7 @@ const _handleMessage = data => {
         for (let iy = 0; iy < NUM_PARCELS; iy++) {
           for (let iz = 0; iz < NUM_PARCELS; iz++) {
             const shiftsData = [ix*SUBPARCEL_SIZE, iy*SUBPARCEL_SIZE, iz*SUBPARCEL_SIZE];
-            const {potentials} = _makePotentials(seedData, shiftsData);
+            const {potentials} = _makePlanetPotentials(seedData, shiftsData);
             if (ix === 0) {
               for (let dy = 0; dy < SUBPARCEL_SIZE; dy++) {
                 for (let dz = 0; dz < SUBPARCEL_SIZE; dz++) {
