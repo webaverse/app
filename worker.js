@@ -8,6 +8,7 @@ const SUBPARCEL_SIZE_P1 = SUBPARCEL_SIZE+1;
 const NUM_PARCELS = PARCEL_SIZE/SUBPARCEL_SIZE;
 const maxDistScale = 1;
 const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
+const potentialDefault = -0.5;
 
 class Chunk {
   constructor(meshId) {
@@ -19,6 +20,16 @@ class Chunk {
   getSlab(x, y, z) {
     return this.slabs.find(slab => slab.x === x && slab.y === y && slab.z === z);
   }
+  getOrCreateSlab(x, y, z) {
+    let slab = this.getSlab(x, y, z);
+    if (!slab) {
+      const allocator = new Allocator();
+      const potentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE * SUBPARCEL_SIZE * SUBPARCEL_SIZE);
+      potentials.fill(potentialDefault);
+      slab = this.setSlab(x, y, z, potentials);
+    }
+    return slab;
+  }
   setSlab(x, y, z, potentials) {
     const slab = {
       potentials,
@@ -29,6 +40,7 @@ class Chunk {
     };
     this.slabs.push(slab);
     this.index++;
+    return slab;
   }
 }
 const chunks = [];
@@ -82,7 +94,7 @@ const _makePotentials = (seedData, shiftsData) => {
     dims.offset,
     shifts.offset,
     0,
-    -0.5,
+    potentialDefault,
     potentials.offset
   );
 
@@ -206,8 +218,8 @@ const _meshChunkSlab = (chunk, slab, slabSliceTris) => {
         const liy = slab.y + Math.floor(dy/SUBPARCEL_SIZE);
         const liz = slab.z + Math.floor(dz/SUBPARCEL_SIZE);
         const fullIndex = _getPotentialFullIndex(dx, dy, dz);
-        if (lix >= 0 && lix < NUM_PARCELS && liy >= 0 && liy < NUM_PARCELS && liz >= 0 && liz < NUM_PARCELS) {
-          const localSlab = chunk.getSlab(lix, liy, liz);
+        const localSlab = chunk.getSlab(lix, liy, liz);
+        if (localSlab) {
           const {potentials} = localSlab;
           const lx = mod(dx, SUBPARCEL_SIZE);
           const ly = mod(dy, SUBPARCEL_SIZE)
@@ -215,7 +227,7 @@ const _meshChunkSlab = (chunk, slab, slabSliceTris) => {
           const index = _getPotentialIndex(lx, ly, lz);
           fullPotentials[fullIndex] = potentials[index];
         } else {
-          fullPotentials[fullIndex] = 0;
+          fullPotentials[fullIndex] = potentialDefault;
         }
       }
     }
@@ -259,42 +271,42 @@ const _handleMessage = data => {
             if (ix === 0) {
               for (let dy = 0; dy < SUBPARCEL_SIZE; dy++) {
                 for (let dz = 0; dz < SUBPARCEL_SIZE; dz++) {
-                  potentials[_getPotentialIndex(0, dy, dz)] = 0;
+                  potentials[_getPotentialIndex(0, dy, dz)] = potentialDefault;
                 }
               }
             }
             if (iy === 0) {
               for (let dx = 0; dx < SUBPARCEL_SIZE; dx++) {
                 for (let dz = 0; dz < SUBPARCEL_SIZE; dz++) {
-                  potentials[_getPotentialIndex(dx, 0, dz)] = 0;
+                  potentials[_getPotentialIndex(dx, 0, dz)] = potentialDefault;
                 }
               }
             }
             if (iz === 0) {
               for (let dx = 0; dx < SUBPARCEL_SIZE; dx++) {
                 for (let dy = 0; dy < SUBPARCEL_SIZE; dy++) {
-                  potentials[_getPotentialIndex(dx, dy, 0)] = 0;
+                  potentials[_getPotentialIndex(dx, dy, 0)] = potentialDefault;
                 }
               }
             }
             if (ix === NUM_PARCELS-1) {
               for (let dy = 0; dy < SUBPARCEL_SIZE; dy++) {
                 for (let dz = 0; dz < SUBPARCEL_SIZE; dz++) {
-                  potentials[_getPotentialIndex(SUBPARCEL_SIZE-1, dy, dz)] = 0;
+                  potentials[_getPotentialIndex(SUBPARCEL_SIZE-1, dy, dz)] = potentialDefault;
                 }
               }
             }
             if (iy === NUM_PARCELS-1) {
               for (let dx = 0; dx < SUBPARCEL_SIZE; dx++) {
                 for (let dz = 0; dz < SUBPARCEL_SIZE; dz++) {
-                  potentials[_getPotentialIndex(dx, SUBPARCEL_SIZE-1, dz)] = 0;
+                  potentials[_getPotentialIndex(dx, SUBPARCEL_SIZE-1, dz)] = potentialDefault;
                 }
               }
             }
             if (iz === NUM_PARCELS-1) {
               for (let dx = 0; dx < SUBPARCEL_SIZE; dx++) {
                 for (let dy = 0; dy < SUBPARCEL_SIZE; dy++) {
-                  potentials[_getPotentialIndex(dx, dy, SUBPARCEL_SIZE-1)] = 0;
+                  potentials[_getPotentialIndex(dx, dy, SUBPARCEL_SIZE-1)] = potentialDefault;
                 }
               }
             }
@@ -334,40 +346,38 @@ const _handleMessage = data => {
           const az = z + dz;
           for (let dx = -1; dx <= 1; dx++) {
             const ax = x + dx;
-            if (ax >= 0 && ax < PARCEL_SIZE && ay >= 0 && ay < PARCEL_SIZE && az >=0 && az < PARCEL_SIZE) {
-              const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-              const dv = maxDist - dist;
-              if (dv > 0) {
-                const sx = Math.floor(ax/SUBPARCEL_SIZE);
-                const sy = Math.floor(ay/SUBPARCEL_SIZE);
-                const sz = Math.floor(az/SUBPARCEL_SIZE);
-                const slab = chunk.getSlab(sx, sy, sz);
-                const {potentials} = slab;
 
-                const lx = mod(ax, SUBPARCEL_SIZE);
-                const ly = mod(ay, SUBPARCEL_SIZE);
-                const lz = mod(az, SUBPARCEL_SIZE);
-                const potentialIndex = _getPotentialIndex(lx, ly, lz);
-                potentials[potentialIndex] = Math.min(Math.max(potentials[potentialIndex] + dv * delta, -2), 2);
+            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+            const dv = maxDist - dist;
+            if (dv > 0) {
+              const sx = Math.floor(ax/SUBPARCEL_SIZE);
+              const sy = Math.floor(ay/SUBPARCEL_SIZE);
+              const sz = Math.floor(az/SUBPARCEL_SIZE);
+              const slab = chunk.getOrCreateSlab(sx, sy, sz);
+              const {potentials} = slab;
 
-                for (let ddy = -1; ddy <= 1; ddy++) {
-                  const ady = ay + ddy;
-                  for (let ddz = -1; ddz <= 1; ddz++) {
-                    const adz = az + ddz;
-                    for (let ddx = -1; ddx <= 1; ddx++) {
-                      const adx = ax + ddx;
-                      if (adx >= 0 && adx < PARCEL_SIZE && ady >= 0 && ady < PARCEL_SIZE && adz >=0 && adz < PARCEL_SIZE) {
-                        const sdx = Math.floor(adx/SUBPARCEL_SIZE);
-                        const sdy = Math.floor(ady/SUBPARCEL_SIZE);
-                        const sdz = Math.floor(adz/SUBPARCEL_SIZE);
-                        if (!requiredSlices.some(slice => slice.x === sdx && slice.y === sdy && slice.z === sdz)) {
-                          requiredSlices.push({
-                            x: sdx,
-                            y: sdy,
-                            z: sdz,
-                          });
-                        }
-                      }
+              const lx = mod(ax, SUBPARCEL_SIZE);
+              const ly = mod(ay, SUBPARCEL_SIZE);
+              const lz = mod(az, SUBPARCEL_SIZE);
+              const potentialIndex = _getPotentialIndex(lx, ly, lz);
+              potentials[potentialIndex] = Math.min(Math.max(potentials[potentialIndex] + dv * delta, -2), 2);
+
+              for (let ddy = -1; ddy <= 1; ddy++) {
+                const ady = ay + ddy;
+                for (let ddz = -1; ddz <= 1; ddz++) {
+                  const adz = az + ddz;
+                  for (let ddx = -1; ddx <= 1; ddx++) {
+                    const adx = ax + ddx;
+
+                    const sdx = Math.floor(adx/SUBPARCEL_SIZE);
+                    const sdy = Math.floor(ady/SUBPARCEL_SIZE);
+                    const sdz = Math.floor(adz/SUBPARCEL_SIZE);
+                    if (!requiredSlices.some(slice => slice.x === sdx && slice.y === sdy && slice.z === sdz)) {
+                      requiredSlices.push({
+                        x: sdx,
+                        y: sdy,
+                        z: sdz,
+                      });
                     }
                   }
                 }
@@ -381,7 +391,7 @@ const _handleMessage = data => {
       const transfers = [];
       requiredSlices.forEach(slice => {
         const {x, y, z} = slice;
-        const slab = chunk.getSlab(x, y, z);
+        const slab = chunk.getOrCreateSlab(x, y, z);
         const [result, transfer] = _meshChunkSlab(chunk, slab, slabSliceTris);
         results.push(result);
         transfers.push(transfer);
