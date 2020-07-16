@@ -768,38 +768,40 @@ const _makeLandChunkMesh = async (parcelSize, subparcelSize) => {
   };
   const lastCoord = new THREE.Vector3(NaN, NaN, NaN);
   let running = false;
-  mesh.setNeedsUpdate = () => {
-    lastCoord.set(NaN, NaN, NaN);
+  let chunksNeedUpdate = false;
+  let buildMeshesNeedUpdate = false;
+  mesh.updateBuildMeshes = () => {
+    buildMeshesNeedUpdate = true;
   };
   mesh.update = async position => {
-    if (!running) {
-      running = true;
+    localVector3.copy(position)
+      .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
+    const coord = new THREE.Vector3(
+      Math.floor(localVector3.x/subparcelSize),
+      Math.floor(localVector3.y/subparcelSize),
+      Math.floor(localVector3.z/subparcelSize)
+    );
 
-      localVector3.copy(position)
-        .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
-      const coord = new THREE.Vector3(
-        Math.floor(localVector3.x/subparcelSize),
-        Math.floor(localVector3.y/subparcelSize),
-        Math.floor(localVector3.z/subparcelSize)
-      );
+    if (!coord.equals(lastCoord)) {
+      chunksNeedUpdate = true;
+      buildMeshesNeedUpdate = true;
+    }
 
-      if (!coord.equals(lastCoord)) {
-        const neededCoords = [];
-        for (let dx = -1; dx <= 1; dx++) {
-          for (let dy = -1; dy <= 1; dy++) {
-            for (let dz = -1; dz <= 1; dz++) {
-              neededCoords.push(new THREE.Vector3(dx + coord.x, dy + coord.y, dz + coord.z));
-            }
+    let neededCoords;
+    if (chunksNeedUpdate || buildMeshesNeedUpdate) {
+      neededCoords = [];
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dz = -1; dz <= 1; dz++) {
+            neededCoords.push(new THREE.Vector3(dx + coord.x, dy + coord.y, dz + coord.z));
           }
         }
-
-        for (const subparcel of mesh.subparcels) {
-          const isSubparcelNeeded = neededCoords.some(nc => nc.x === subparcel.x && nc.y === subparcel.y && nc.z === subparcel.z);
-          for (const build of subparcel.builds) {
-            const buildMesh = mesh.buildMeshes.find(bm => bm.buildId === build.id);
-            buildMesh.visible = isSubparcelNeeded;
-          }
-        }
+      }
+    }
+    if (chunksNeedUpdate) {
+      if (!running) {
+        running = true;
+        chunksNeedUpdate = false;
 
         for (let i = 0; i < neededCoords.length; i++) {
           const {x: ax, y: ay, z: az} = neededCoords[i];
@@ -863,9 +865,20 @@ const _makeLandChunkMesh = async (parcelSize, subparcelSize) => {
         });
 
         lastCoord.copy(coord);
-      }
 
-      running = false;
+        running = false;
+      }
+    }
+    if (buildMeshesNeedUpdate) {
+      buildMeshesNeedUpdate = false;
+
+      for (const subparcel of mesh.subparcels) {
+        const isSubparcelNeeded = neededCoords.some(nc => nc.x === subparcel.x && nc.y === subparcel.y && nc.z === subparcel.z);
+        for (const build of subparcel.builds) {
+          const buildMesh = mesh.buildMeshes.find(bm => bm.buildId === build.id);
+          buildMesh.visible = isSubparcelNeeded;
+        }
+      }
     }
   };
   return mesh;
@@ -3278,7 +3291,7 @@ function animate(timestamp, frame) {
               position: buildMeshClone.position.toArray(),
               quaternion: buildMeshClone.quaternion.toArray(),
             });
-            buildMeshClone.parent.setNeedsUpdate();
+            buildMeshClone.parent.updateBuildMeshes();
           }
         }
       }
