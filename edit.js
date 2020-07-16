@@ -316,12 +316,13 @@ const [
         }
       });
     });
-    w.requestMarchLand = (seed, meshId, x, z, baseHeight, freqs, octaves, scales, uvs, amps) => {
+    w.requestMarchLand = (seed, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps) => {
       return w.request({
         method: 'marchLand',
         seed,
         meshId,
         x,
+        y,
         z,
         baseHeight,
         freqs,
@@ -745,7 +746,7 @@ const _makeLandChunkMesh = async () => {
     slabs.splice(slabs.indexOf(slab), 1);
     freeSlabs.push(slab);
   };
-  const lastCoord = new THREE.Vector2(0, 0);
+  const lastCoord = new THREE.Vector3(0, 0, 0);
   let running = false;
   mesh.update = async position => {
     if (!running) {
@@ -753,21 +754,28 @@ const _makeLandChunkMesh = async () => {
 
       localVector3.copy(position)
         .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
-      const coord = new THREE.Vector2(Math.floor(localVector3.x/SUBPARCEL_SIZE), Math.floor(localVector3.z/SUBPARCEL_SIZE));
+      const coord = new THREE.Vector3(
+        Math.floor(localVector3.x/SUBPARCEL_SIZE),
+        Math.floor(localVector3.y/SUBPARCEL_SIZE),
+        Math.floor(localVector3.z/SUBPARCEL_SIZE)
+      );
       if (!coord.equals(lastCoord)) {
         const neededCoords = [];
         for (let dx = -1; dx <= 1; dx++) {
-          for (let dz = -1; dz <= 1; dz++) {
-            const ax = dx + coord.x;
-            const az = dz + coord.y;
-            neededCoords.push([ax, az]);
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dz = -1; dz <= 1; dz++) {
+              neededCoords.push(new THREE.Vector3(dx + coord.x, dy + coord.y, dz + coord.z));
+            }
           }
         }
         for (let i = 0; i < neededCoords.length; i++) {
-          const [ax, az] = neededCoords[i];
-          if (!slabs.some(slab => slab.x === ax && slab.z === az)) {
-            const specs = await worker.requestMarchLand(Math.floor(rng() * 0xFFFFFF), meshId, ax, az,
-              7,
+          const {x: ax, y: ay, z: az} = neededCoords[i];
+          if (!slabs.some(slab => slab.x === ax && slab.y === ay && slab.z === az)) {
+            const specs = await worker.requestMarchLand(
+              Math.floor(rng() * 0xFFFFFF),
+              meshId,
+              ax, ay, az,
+              PARCEL_SIZE/2-10,
               [
                 1,
                 1,
@@ -814,7 +822,7 @@ const _makeLandChunkMesh = async () => {
           }
         }
         slabs.slice().forEach(slab => {
-          if (!neededCoords.some(([x, z]) => x === slab.x && z === slab.z)) {
+          if (!neededCoords.some(nc => nc.x === slab.x && nc.y === slab.y && nc.z === slab.z)) {
             mesh.removeSlab(slab);
           }
         });
@@ -929,9 +937,9 @@ const _makePlanetChunkMesh = async () => {
 };
 
 chunkMesh = await _makeLandChunkMesh();
-chunkMesh.position.y = -32;
-chunkMesh.position.x = -12;
-chunkMesh.position.z = -10;
+chunkMesh.position.y = -PARCEL_SIZE - 5;
+chunkMesh.position.x = -PARCEL_SIZE/2;
+chunkMesh.position.z = -PARCEL_SIZE/2;
 chunkMesh.updateMatrixWorld();
 await chunkMesh.update(new THREE.Vector3(0, 0, 0));
 /* {
