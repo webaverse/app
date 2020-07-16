@@ -177,8 +177,8 @@ const HEIGHTFIELD_SHADER = {
         mod((vPosition.z) / 4.0, 1.0)
       ); */
 
-      // float d = length(vPosition - vec3(${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}));
-      // float dMax = length(vec3(${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}));
+      // float d = length(vPosition - vec3(${PARCEL_SIZE/2}, ${PARCEL_SIZE/2}, ${PARCEL_SIZE/2}));
+      // float dMax = length(vec3(${PARCEL_SIZE/2}, ${PARCEL_SIZE/2}, ${PARCEL_SIZE/2}));
       // vec2 uv2 = vec2(d / dMax, 0.5);
       vec2 uv2 = vec2(gl_FragCoord.z/gl_FragCoord.w/10.0 + vPosition.y/30.0, 0.5);
       vec3 c = texture2D(heightColorTex, uv2).rgb;
