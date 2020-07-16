@@ -768,6 +768,10 @@ const _makeLandChunkMesh = async () => {
               slab.position.set(spec.positions);
               slab.barycentric.set(spec.barycentrics);
               slab.id.set(spec.ids);
+              const indexOffset = slab.slabIndex * slabSliceTris;
+              for (let i = 0; i < spec.indices.length; i++) {
+                spec.indices[i] += indexOffset;
+              }
               slab.index.set(spec.indices);
 
               geometry.attributes.position.needsUpdate = true;
@@ -883,6 +887,10 @@ const _makePlanetChunkMesh = async () => {
     slab.position.set(spec.positions);
     slab.barycentric.set(spec.barycentrics);
     slab.id.set(spec.ids);
+    const indexOffset = slab.slabIndex * slabSliceTris;
+    for (let i = 0; i < spec.indices.length; i++) {
+      spec.indices[i] += indexOffset;
+    }
     slab.index.set(spec.indices);
 
     const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
@@ -2861,6 +2869,10 @@ function animate(timestamp, frame) {
               slab.position.set(spec.positions);
               slab.barycentric.set(spec.barycentrics);
               slab.id.set(spec.ids);
+              const indexOffset = slab.slabIndex * slabSliceTris;
+              for (let i = 0; i < spec.indices.length; i++) {
+                spec.indices[i] += indexOffset;
+              }
               slab.index.set(spec.indices);
 
               const {geometry} = currentChunkMesh;
