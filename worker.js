@@ -1,18 +1,19 @@
-importScripts('./bin/objectize2.js', './constants.js');
+importScripts('./bin/objectize2.js');
 
-const {
+/* const {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
   SUBPARCEL_SIZE_P1,
   NUM_PARCELS,
-} = globalThis.constants;
+} = globalThis.constants; */
 const maxDistScale = 1;
 const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
 const potentialDefault = -0.5;
 
 class Chunk {
-  constructor(meshId) {
+  constructor({meshId, subparcelSize}) {
     this.meshId = meshId;
+    this.subparcelSize = subparcelSize;
 
     this.index = 0;
     this.slabs = [];
@@ -24,7 +25,7 @@ class Chunk {
     let slab = this.getSlab(x, y, z);
     if (!slab) {
       const allocator = new Allocator();
-      const potentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE * SUBPARCEL_SIZE * SUBPARCEL_SIZE);
+      const potentials = allocator.alloc(Float32Array, this.subparcelSize * this.subparcelSize * this.subparcelSize);
       potentials.fill(potentialDefault);
       slab = this.setSlab(x, y, z, potentials);
     }
@@ -44,10 +45,10 @@ class Chunk {
   }
 }
 const chunks = [];
-const _getChunk = meshId => {
+const _getChunk = (meshId, subparcelSize) => {
   let chunk = chunks.find(chunk => chunk.meshId === meshId);
   if (!chunk) {
-    chunk = new Chunk(meshId);
+    chunk = new Chunk({meshId, subparcelSize});
     chunks.push(chunk);
   }
   return chunk;
@@ -75,13 +76,12 @@ class Allocator {
 function mod(a, b) {
   return ((a%b)+b)%b;
 };
-const _getSliceIndex = (x, y, z) => z + y*NUM_PARCELS + x*NUM_PARCELS*NUM_PARCELS;
-const _getPotentialIndex = (x, y, z) => x + y*SUBPARCEL_SIZE*SUBPARCEL_SIZE + z*SUBPARCEL_SIZE;
-const _getPotentialFullIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + z*SUBPARCEL_SIZE_P1;
-const _makeLandPotentials = (seedData, baseHeight, freqsData, octavesData, scalesData, uvsData, ampsData, shiftsData) => {
+const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
+const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSizeP1*subparcelSizeP1 + z*subparcelSizeP1;
+const _makeLandPotentials = (seedData, baseHeight, freqsData, octavesData, scalesData, uvsData, ampsData, shiftsData, parcelSize, subparcelSize) => {
   const allocator = new Allocator();
 
-  const potentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE * SUBPARCEL_SIZE * SUBPARCEL_SIZE);
+  const potentials = allocator.alloc(Float32Array, subparcelSize * subparcelSize * subparcelSize);
   const freqs = allocator.alloc(Float32Array, freqsData.length);
   freqs.set(Float32Array.from(freqsData));
   const octaves = allocator.alloc(Int32Array, octavesData.length);
@@ -93,9 +93,9 @@ const _makeLandPotentials = (seedData, baseHeight, freqsData, octavesData, scale
   const amps = allocator.alloc(Float32Array, ampsData.length);
   amps.set(Float32Array.from(ampsData));
   const dims = allocator.alloc(Int32Array, 3);
-  dims.set(Int32Array.from([SUBPARCEL_SIZE, SUBPARCEL_SIZE, SUBPARCEL_SIZE]));
+  dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
   const limits = allocator.alloc(Int32Array, 3);
-  limits.set(Int32Array.from([PARCEL_SIZE, PARCEL_SIZE, PARCEL_SIZE]));
+  limits.set(Int32Array.from([parcelSize, parcelSize, parcelSize]));
   const shifts = allocator.alloc(Float32Array, 3);
   shifts.set(Float32Array.from(shiftsData));
 
@@ -121,9 +121,9 @@ const _makeLandPotentials = (seedData, baseHeight, freqsData, octavesData, scale
     potentials.offset
   );
 
-  return {potentials, dims, shifts/*, allocator*/};
+  return {potentials, dims, shifts};
 };
-const _makePlanetPotentials = (seedData, shiftsData) => {
+/* const _makePlanetPotentials = (seedData, shiftsData) => {
   const allocator = new Allocator();
 
   const potentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE * SUBPARCEL_SIZE * SUBPARCEL_SIZE);
@@ -142,13 +142,15 @@ const _makePlanetPotentials = (seedData, shiftsData) => {
     potentials.offset
   );
 
-  return {potentials, dims, shifts/*, allocator*/};
-};
-const _getChunkSpec = (potentials, shiftsData, meshId) => {
+  return {potentials, dims, shifts};
+}; */
+const _getChunkSpec = (potentials, shiftsData, meshId, subparcelSize) => {
+  const subparcelSizeP1 = subparcelSize+1;
+
   const allocator = new Allocator();
 
   const dims = allocator.alloc(Int32Array, 3);
-  dims.set(Int32Array.from([SUBPARCEL_SIZE_P1, SUBPARCEL_SIZE_P1, SUBPARCEL_SIZE_P1]));
+  dims.set(Int32Array.from([subparcelSizeP1, subparcelSizeP1, subparcelSizeP1]));
   const shifts = allocator.alloc(Float32Array, 3);
   shifts.set(Float32Array.from(shiftsData));
   const positions = allocator.alloc(Float32Array, 4 * 1024 * 1024);
@@ -224,23 +226,25 @@ const _getChunkSpec = (potentials, shiftsData, meshId) => {
     // indices: outI,
   };
 };
-const _meshChunkSlab = (chunk, slab) => {
+const _meshChunkSlab = (chunk, slab, subparcelSize) => {
+  const subparcelSizeP1 = subparcelSize+1;
+
   const allocator = new Allocator();
-  const fullPotentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1);
-  for (let dx = 0; dx < SUBPARCEL_SIZE_P1; dx++) {
-    const lix = slab.x + Math.floor(dx/SUBPARCEL_SIZE);
-    for (let dy = 0; dy < SUBPARCEL_SIZE_P1; dy++) {
-      const liy = slab.y + Math.floor(dy/SUBPARCEL_SIZE);
-      for (let dz = 0; dz < SUBPARCEL_SIZE_P1; dz++) {
-        const liz = slab.z + Math.floor(dz/SUBPARCEL_SIZE);
-        const fullIndex = _getPotentialFullIndex(dx, dy, dz);
+  const fullPotentials = allocator.alloc(Float32Array, subparcelSizeP1 * subparcelSizeP1 * subparcelSizeP1);
+  for (let dx = 0; dx < subparcelSizeP1; dx++) {
+    const lix = slab.x + Math.floor(dx/subparcelSize);
+    for (let dy = 0; dy < subparcelSizeP1; dy++) {
+      const liy = slab.y + Math.floor(dy/subparcelSize);
+      for (let dz = 0; dz < subparcelSizeP1; dz++) {
+        const liz = slab.z + Math.floor(dz/subparcelSize);
+        const fullIndex = _getPotentialFullIndex(dx, dy, dz, subparcelSizeP1);
         const localSlab = chunk.getSlab(lix, liy, liz);
         if (localSlab) {
           const {potentials} = localSlab;
-          const lx = mod(dx, SUBPARCEL_SIZE);
-          const ly = mod(dy, SUBPARCEL_SIZE)
-          const lz = mod(dz, SUBPARCEL_SIZE)
-          const index = _getPotentialIndex(lx, ly, lz);
+          const lx = mod(dx, subparcelSize);
+          const ly = mod(dy, subparcelSize)
+          const lz = mod(dz, subparcelSize)
+          const index = _getPotentialIndex(lx, ly, lz, subparcelSize);
           fullPotentials[fullIndex] = potentials[index];
         } else {
           fullPotentials[fullIndex] = potentialDefault;
@@ -249,11 +253,11 @@ const _meshChunkSlab = (chunk, slab) => {
     }
   }
   const shiftsData = [
-    slab.x*SUBPARCEL_SIZE,
-    slab.y*SUBPARCEL_SIZE,
-    slab.z*SUBPARCEL_SIZE,
+    slab.x*subparcelSize,
+    slab.y*subparcelSize,
+    slab.z*subparcelSize,
   ];
-  const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(fullPotentials, shiftsData, chunk.meshId);
+  const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(fullPotentials, shiftsData, chunk.meshId, subparcelSize);
   allocator.freeAll();
   return [
     {
@@ -276,9 +280,9 @@ const _handleMessage = data => {
   const {method} = data;
   switch (method) {
     case 'marchLand': {
-      const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps} = data;
+      const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize} = data;
 
-      const chunk = _getChunk(meshId);
+      const chunk = _getChunk(meshId, subparcelSize);
       for (let dx = 0; dx <= 1; dx++) {
         const ix = x + dx;
         for (let dy = 0; dy <= 1; dy++) {
@@ -287,8 +291,8 @@ const _handleMessage = data => {
             const iz = z + dz;
             const slab = chunk.getSlab(ix, iy, iz);
             if (!slab) {
-              const shiftsData = [ix*SUBPARCEL_SIZE, iy*SUBPARCEL_SIZE, iz*SUBPARCEL_SIZE];
-              const {potentials} = _makeLandPotentials(seedData, baseHeight, freqs, octaves, scales, uvs, amps, shiftsData);
+              const shiftsData = [ix*subparcelSize, iy*subparcelSize, iz*subparcelSize];
+              const {potentials} = _makeLandPotentials(seedData, baseHeight, freqs, octaves, scales, uvs, amps, shiftsData, parcelSize, subparcelSize);
               chunk.setSlab(ix, iy, iz, potentials);
             }
           }
@@ -298,7 +302,7 @@ const _handleMessage = data => {
       const results = [];
       const transfers = [];
       const slab = chunk.getSlab(x, y, z);
-      const [result, transfer] = _meshChunkSlab(chunk, slab);
+      const [result, transfer] = _meshChunkSlab(chunk, slab, subparcelSize);
       results.push(result);
       transfers.push(transfer);
 
@@ -307,7 +311,7 @@ const _handleMessage = data => {
       }, transfers);
       break;
     }
-    case 'marchPlanet': {
+    /* case 'marchPlanet': {
       const {seed: seedData, meshId} = data;
 
       const chunk = _getChunk(meshId);
@@ -380,11 +384,11 @@ const _handleMessage = data => {
         result: results,
       }, transfers);
       break;
-    }
+    } */
     case 'mine': {
-      const {delta, meshId, position} = data;
+      const {delta, meshId, position, subparcelSize} = data;
 
-      const chunk = _getChunk(meshId);
+      const chunk = _getChunk(meshId, subparcelSize);
 
       const requiredSlices = [];
       const [x, y, z] = position;
@@ -398,16 +402,16 @@ const _handleMessage = data => {
             const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
             const dv = maxDist - dist;
             if (dv > 0) {
-              const sx = Math.floor(ax/SUBPARCEL_SIZE);
-              const sy = Math.floor(ay/SUBPARCEL_SIZE);
-              const sz = Math.floor(az/SUBPARCEL_SIZE);
+              const sx = Math.floor(ax/subparcelSize);
+              const sy = Math.floor(ay/subparcelSize);
+              const sz = Math.floor(az/subparcelSize);
               const slab = chunk.getOrCreateSlab(sx, sy, sz);
               const {potentials} = slab;
 
-              const lx = mod(ax, SUBPARCEL_SIZE);
-              const ly = mod(ay, SUBPARCEL_SIZE);
-              const lz = mod(az, SUBPARCEL_SIZE);
-              const potentialIndex = _getPotentialIndex(lx, ly, lz);
+              const lx = mod(ax, subparcelSize);
+              const ly = mod(ay, subparcelSize);
+              const lz = mod(az, subparcelSize);
+              const potentialIndex = _getPotentialIndex(lx, ly, lz, subparcelSize);
               potentials[potentialIndex] = Math.min(Math.max(potentials[potentialIndex] + dv * delta, -2), 2);
 
               for (let ddy = -1; ddy <= 1; ddy++) {
@@ -417,9 +421,9 @@ const _handleMessage = data => {
                   for (let ddx = -1; ddx <= 1; ddx++) {
                     const adx = ax + ddx;
 
-                    const sdx = Math.floor(adx/SUBPARCEL_SIZE);
-                    const sdy = Math.floor(ady/SUBPARCEL_SIZE);
-                    const sdz = Math.floor(adz/SUBPARCEL_SIZE);
+                    const sdx = Math.floor(adx/subparcelSize);
+                    const sdy = Math.floor(ady/subparcelSize);
+                    const sdz = Math.floor(adz/subparcelSize);
                     if (!requiredSlices.some(slice => slice.x === sdx && slice.y === sdy && slice.z === sdz)) {
                       requiredSlices.push({
                         x: sdx,
@@ -440,7 +444,7 @@ const _handleMessage = data => {
       requiredSlices.forEach(slice => {
         const {x, y, z} = slice;
         const slab = chunk.getOrCreateSlab(x, y, z);
-        const [result, transfer] = _meshChunkSlab(chunk, slab);
+        const [result, transfer] = _meshChunkSlab(chunk, slab, subparcelSize);
         results.push(result);
         transfers.push(transfer);
       });

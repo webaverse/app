@@ -316,7 +316,7 @@ const [
         }
       });
     });
-    w.requestMarchLand = (seed, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps) => {
+    w.requestMarchLand = (seed, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize) => {
       return w.request({
         method: 'marchLand',
         seed,
@@ -329,7 +329,9 @@ const [
         octaves,
         scales,
         uvs,
-        amps
+        amps,
+        parcelSize,
+        subparcelSize
       });
     };
     w.requestMarchPlanet = (seed, meshId) => {
@@ -339,12 +341,13 @@ const [
         meshId,
       });
     };
-    w.requestMine = (delta, meshId, position) => {
+    w.requestMine = (delta, meshId, position, subparcelSize) => {
       return w.request({
         method: 'mine',
         delta,
         meshId,
         position,
+        subparcelSize,
       });
     };
     return w;
@@ -642,7 +645,7 @@ capsuleMesh = (() => {
 })();
 physics.bindCapsuleMeshPhysics(capsuleMesh); */
 
-const _makeLandChunkMesh = async () => {
+const _makeLandChunkMesh = async (parcelSize, subparcelSize) => {
   const meshId = ++nextId;
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
@@ -699,10 +702,12 @@ const _makeLandChunkMesh = async () => {
   geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 3*slabAttributeSize, slabSliceVertices*numSlices), 1));
 
   const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
+  mesh.frustumCulled = false;
   mesh.meshId = meshId;
   mesh.isChunkMesh = true;
   mesh.buildMeshes = [];
-  mesh.frustumCulled = false;
+  mesh.parcelSize = parcelSize;
+  mesh.subparcelSize = subparcelSize;
   const slabs = [];
   const freeSlabs = [];
   let index = 0;
@@ -755,9 +760,9 @@ const _makeLandChunkMesh = async () => {
       localVector3.copy(position)
         .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
       const coord = new THREE.Vector3(
-        Math.floor(localVector3.x/SUBPARCEL_SIZE),
-        Math.floor(localVector3.y/SUBPARCEL_SIZE),
-        Math.floor(localVector3.z/SUBPARCEL_SIZE)
+        Math.floor(localVector3.x/subparcelSize),
+        Math.floor(localVector3.y/subparcelSize),
+        Math.floor(localVector3.z/subparcelSize)
       );
       if (!coord.equals(lastCoord)) {
         const neededCoords = [];
@@ -775,7 +780,7 @@ const _makeLandChunkMesh = async () => {
               Math.floor(rng() * 0xFFFFFF),
               meshId,
               ax, ay, az,
-              PARCEL_SIZE/2-10,
+              parcelSize/2-10,
               [
                 1,
                 1,
@@ -796,7 +801,9 @@ const _makeLandChunkMesh = async () => {
                 1,
                 1.5,
                 4,
-              ]
+              ],
+              parcelSize,
+              subparcelSize
             );
             for (let i = 0; i < specs.length; i++) {
               const spec = specs[i];
@@ -835,7 +842,7 @@ const _makeLandChunkMesh = async () => {
   };
   return mesh;
 };
-const _makePlanetChunkMesh = async () => {
+/* const _makePlanetChunkMesh = async () => {
   const meshId = ++nextId;
   const specs = await worker.requestMarchPlanet(Math.floor(rng() * 0xFFFFFF), meshId);
 
@@ -934,36 +941,26 @@ const _makePlanetChunkMesh = async () => {
     group.count = spec.positions.length/3;
   }
   return mesh;
-};
+}; */
 
-chunkMesh = await _makeLandChunkMesh();
+chunkMesh = await _makeLandChunkMesh(PARCEL_SIZE, SUBPARCEL_SIZE);
 chunkMesh.position.y = -PARCEL_SIZE - 5;
 chunkMesh.position.x = -PARCEL_SIZE/2;
 chunkMesh.position.z = -PARCEL_SIZE/2;
 chunkMesh.updateMatrixWorld();
 await chunkMesh.update(new THREE.Vector3(0, 0, 0));
-/* {
-  const img = document.createElement('img');
-  img.src = 'grass.png';
-  img.onload = () => {
-    chunkMesh.material.uniforms.tex.value.image = img;
-    chunkMesh.material.uniforms.tex.value.needsUpdate = true;
-  };
-  img.onerror = err => {
-    console.warn(err);
-  };
-} */
 chunkMeshContainer.add(chunkMesh);
-
-/* const numRemoteChunkMeshes = 30;
-for (let i = 0; i < numRemoteChunkMeshes; i++) {
-  const remoteChunkMesh = await _makePlanetChunkMesh();
-  remoteChunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(100);
-  chunkMeshContainer.add(remoteChunkMesh);
-  remoteChunkMeshes.push(remoteChunkMesh);
-} */
 remoteChunkMeshes.push(chunkMesh);
 _setCurrentChunkMesh(chunkMesh);
+
+const numRemoteChunkMeshes = 1;
+for (let i = 0; i < numRemoteChunkMeshes; i++) {
+  // const remoteChunkMesh = await _makeLandChunkMesh(PARCEL_SIZE, SUBPARCEL_SIZE);
+  /* const remoteChunkMesh = await _makePlanetChunkMesh();
+  remoteChunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(100);
+  chunkMeshContainer.add(remoteChunkMesh);
+  remoteChunkMeshes.push(remoteChunkMesh); */
+}
 
 /* const generateModels = await _loadGltf('./generate.glb');
 for (let i = 0; i < 30; i++) {
@@ -2889,14 +2886,15 @@ function animate(timestamp, frame) {
             localVector2.y = Math.floor(localVector2.y);
             localVector2.z = Math.floor(localVector2.z);
 
-            const sx = Math.floor(localVector2.x/SUBPARCEL_SIZE);
-            const sy = Math.floor(localVector2.y/SUBPARCEL_SIZE);
-            const sz = Math.floor(localVector2.z/SUBPARCEL_SIZE);
+            const sx = Math.floor(localVector2.x/currentChunkMesh.subparcelSize);
+            const sy = Math.floor(localVector2.y/currentChunkMesh.subparcelSize);
+            const sz = Math.floor(localVector2.z/currentChunkMesh.subparcelSize);
 
             const specs = await worker.requestMine(
               delta,
               currentChunkMesh.meshId,
-              localVector2.toArray()
+              localVector2.toArray(),
+              currentChunkMesh.subparcelSize
             );
             for (let i = 0; i < specs.length; i++) {
               const spec = specs[i];
@@ -4198,7 +4196,7 @@ const _ensurePlaceholdMesh = p => {
     scene.add(p.placeholderBox);
   }
 };
-const _ensureVolumeMesh = async p => {
+/* const _ensureVolumeMesh = async p => {
   if (!p.volumeMesh) {
     p.volumeMesh = await _makeVolumeMesh(p);
     p.volumeMesh = getWireframeMesh(p.volumeMesh);
@@ -4208,7 +4206,7 @@ const _ensureVolumeMesh = async p => {
     p.volumeMesh.visible = false;
     scene.add(p.volumeMesh);
   }
-};
+}; */
 const shieldSlider = document.getElementById('shield-slider');
 let shieldLevel = parseInt(shieldSlider.value, 10);
 shieldSlider.addEventListener('change', async e => {
@@ -4271,7 +4269,7 @@ const _packageadd = async e => {
 
   _ensureLoadMesh(p);
   _ensurePlaceholdMesh(p);
-  await _ensureVolumeMesh(p);
+  // await _ensureVolumeMesh(p);
   _renderObjects();
 
   _bindObject(p);
