@@ -1,11 +1,11 @@
-importScripts('./bin/objectize2.js');
+importScripts('./bin/objectize2.js', './constants.js');
 
-const PARCEL_SIZE = 30;
-// const PARCEL_SIZE_P2 = PARCEL_SIZE+2;
-const SUBPARCEL_SIZE = 10;
-// const SUBPARCEL_SIZE_P2 = SUBPARCEL_SIZE+2;
-const SUBPARCEL_SIZE_P1 = SUBPARCEL_SIZE+1;
-const NUM_PARCELS = PARCEL_SIZE/SUBPARCEL_SIZE;
+const {
+  PARCEL_SIZE,
+  SUBPARCEL_SIZE,
+  SUBPARCEL_SIZE_P1,
+  NUM_PARCELS,
+} = globalThis.constants;
 const maxDistScale = 1;
 const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
 const potentialDefault = -0.5;
