@@ -741,14 +741,13 @@ const _makeLandChunkMesh = async () => {
   };
   const lastCoord = new THREE.Vector2(0, 0);
   let running = false;
-  let nextPosition = null;
   mesh.update = async position => {
     if (!running) {
       running = true;
 
-      localVector2.copy(position)
+      localVector3.copy(position)
         .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
-      const coord = new THREE.Vector2(Math.floor(localVector2.x/SUBPARCEL_SIZE), Math.floor(localVector2.z/SUBPARCEL_SIZE));
+      const coord = new THREE.Vector2(Math.floor(localVector3.x/SUBPARCEL_SIZE), Math.floor(localVector3.z/SUBPARCEL_SIZE));
       if (!coord.equals(lastCoord)) {
         const neededCoords = [];
         for (let dx = -1; dx <= 1; dx++) {
@@ -791,14 +790,6 @@ const _makeLandChunkMesh = async () => {
       }
 
       running = false;
-
-      if (nextPosition) {
-        const localNextPosition = nextPosition;
-        nextPosition = null;
-        mesh.update(localNextPosition);
-      }
-    } else {
-      nextPosition = position.clone();
     }
   };
   return mesh;
