@@ -29,8 +29,9 @@ const PARCEL_SIZE = 30;
 const PARCEL_SIZE_D2 = PARCEL_SIZE/2;
 const SUBPARCEL_SIZE = 10;
 const NUM_PARCELS = PARCEL_SIZE/SUBPARCEL_SIZE;
-const slabTotalSize = 8 * 1024 * 1024;
-const slabAttributeSize = slabTotalSize/4;
+const slabTotalSize = 10 * 1024 * 1024;
+const slabNumAttributes = 5;
+const slabAttributeSize = slabTotalSize/slabNumAttributes;
 const numSlices = 40;
 const slabSliceTris = Math.floor(slabAttributeSize/numSlices/9/Float32Array.BYTES_PER_ELEMENT);
 const slabSliceVertices = slabSliceTris * 3;
@@ -93,7 +94,7 @@ const HEIGHTFIELD_SHADER = {
     precision highp float;
     precision highp int;
     uniform float fogDensity;
-    // attribute vec3 color;
+    attribute vec4 color;
     attribute vec3 barycentric;
     // attribute float index;
     // attribute float skyLightmap;
@@ -103,7 +104,7 @@ const HEIGHTFIELD_SHADER = {
     varying vec3 vWorldPosition;
     varying vec3 vBarycentric;
     // varying vec3 vViewPosition;
-    // varying vec3 vColor;
+    varying vec4 vColor;
     // varying float vIndex;
     // varying vec3 vNormal;
     // varying float vSkyLightmap;
@@ -111,7 +112,7 @@ const HEIGHTFIELD_SHADER = {
     // varying float vFog;
 
     void main() {
-      // vColor = color;
+      vColor = color;
       // vNormal = normal;
 
       vec4 mvPosition = modelViewMatrix * vec4(position.xyz, 1.0);
@@ -139,7 +140,7 @@ const HEIGHTFIELD_SHADER = {
     varying vec3 vBarycentric;
     // varying float vIndex;
     // varying vec3 vViewPosition;
-    // varying vec3 vColor;
+    varying vec4 vColor;
     // varying vec3 vNormal;
     // varying float vSkyLightmap;
     // varying float vTorchLightmap;
@@ -175,9 +176,10 @@ const HEIGHTFIELD_SHADER = {
         mod((vPosition.z) / 4.0, 1.0)
       );
 
-      float d = length(vPosition - vec3(${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}));
-      float dMax = length(vec3(${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}));
-      vec2 uv2 = vec2(d / dMax, 0.5);
+      // float d = length(vPosition - vec3(${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}));
+      // float dMax = length(vec3(${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}));
+      // vec2 uv2 = vec2(d / dMax, 0.5);
+      vec2 uv2 = vec2(gl_FragCoord.z/gl_FragCoord.w/10.0 + vPosition.y/30.0, 0.5);
       vec3 c = texture2D(heightColorTex, uv2).rgb;
       vec3 diffuseColor = c * uv2.x;
       if (edgeFactor() <= 0.99) {
@@ -313,31 +315,34 @@ const [
         }
       });
     });
-    w.requestMarchLand = (seed, meshId, x, z, slabSliceTris) => {
+    w.requestMarchLand = (seed, meshId, x, z, baseHeight, freqs, octaves, scales, uvs, amps) => {
       return w.request({
         method: 'marchLand',
         seed,
         meshId,
         x,
         z,
-        slabSliceTris,
+        baseHeight,
+        freqs,
+        octaves,
+        scales,
+        uvs,
+        amps
       });
     };
-    w.requestMarchPlanet = (seed, meshId, slabSliceTris) => {
+    w.requestMarchPlanet = (seed, meshId) => {
       return w.request({
         method: 'marchPlanet',
         seed,
         meshId,
-        slabSliceTris,
       });
     };
-    w.requestMine = (delta, meshId, position, slabSliceTris) => {
+    w.requestMine = (delta, meshId, position) => {
       return w.request({
         method: 'mine',
         delta,
         meshId,
         position,
-        slabSliceTris,
       });
     };
     return w;
@@ -687,9 +692,10 @@ const _makeLandChunkMesh = async () => {
   const slabArrayBuffer = new ArrayBuffer(slabTotalSize);
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 0*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
-  geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 1*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
-  geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices), 1));
-  geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 3*slabAttributeSize, slabSliceVertices*numSlices), 1));
+  geometry.setAttribute('color', new THREE.BufferAttribute(new Uint8Array(slabArrayBuffer, 1*slabAttributeSize, slabSliceVertices*numSlices*4), 4, true));
+  geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
+  geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 3*slabAttributeSize, slabSliceVertices*numSlices), 1));
+  geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 4*slabAttributeSize, slabSliceVertices*numSlices), 1));
 
   const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
   mesh.meshId = meshId;
@@ -716,6 +722,7 @@ const _makeLandChunkMesh = async () => {
           z,
           slabIndex: index,
           position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+          color: new Uint32Array(geometry.attributes.color.array.buffer, geometry.attributes.color.array.byteOffset + index*slabSliceVertices*Uint32Array.BYTES_PER_ELEMENT, slabSliceVertices),
           barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
           id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
           index: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
@@ -760,12 +767,36 @@ const _makeLandChunkMesh = async () => {
         for (let i = 0; i < neededCoords.length; i++) {
           const [ax, az] = neededCoords[i];
           if (!slabs.some(slab => slab.x === ax && slab.z === az)) {
-            const specs = await worker.requestMarchLand(Math.floor(rng() * 0xFFFFFF), meshId, ax, az, slabSliceTris);
+            const specs = await worker.requestMarchLand(Math.floor(rng() * 0xFFFFFF), meshId, ax, az,
+              7,
+              [
+                1,
+                1,
+                1,
+              ], [
+                3,
+                3,
+                3,
+              ], [
+                0.08,
+                0.012,
+                0.016,
+              ], [
+                0,
+                0,
+                0,
+              ], [
+                1,
+                1.5,
+                4,
+              ]
+            );
             for (let i = 0; i < specs.length; i++) {
               const spec = specs[i];
               const {x, y, z} = spec;
               const slab = mesh.getSlab(x, y, z);
               slab.position.set(spec.positions);
+              slab.color.set(spec.colors);
               slab.barycentric.set(spec.barycentrics);
               slab.id.set(spec.ids);
               const indexOffset = slab.slabIndex * slabSliceTris;
@@ -775,6 +806,7 @@ const _makeLandChunkMesh = async () => {
               slab.index.set(spec.indices);
 
               geometry.attributes.position.needsUpdate = true;
+              geometry.attributes.color.needsUpdate = true;
               geometry.attributes.barycentric.needsUpdate = true;
               geometry.attributes.id.needsUpdate = true;
               geometry.attributes.index.needsUpdate = true;
@@ -800,7 +832,7 @@ const _makeLandChunkMesh = async () => {
 };
 const _makePlanetChunkMesh = async () => {
   const meshId = ++nextId;
-  const specs = await worker.requestMarchPlanet(Math.floor(rng() * 0xFFFFFF), meshId, slabSliceTris);
+  const specs = await worker.requestMarchPlanet(Math.floor(rng() * 0xFFFFFF), meshId);
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
     uniforms: (() => {
@@ -865,14 +897,14 @@ const _makePlanetChunkMesh = async () => {
     let slab = slabs.find(slab => slab.x === x && slab.y === y && slab.z === z);
     if (!slab) {
       slab = {
-        position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
-        barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
-        id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
-        index: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
         x,
         y,
         z,
         slabIndex: index,
+        position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+        barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+        id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+        index: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
       };
       slabs.push(slab);
       geometry.addGroup(index * slabSliceVertices, slab.position.length/3, 0);
@@ -885,6 +917,7 @@ const _makePlanetChunkMesh = async () => {
     const {x, y, z} = spec;
     const slab = mesh.getSlab(x, y, z);
     slab.position.set(spec.positions);
+    slab.color.set(spec.colors);
     slab.barycentric.set(spec.barycentrics);
     slab.id.set(spec.ids);
     const indexOffset = slab.slabIndex * slabSliceTris;
@@ -918,13 +951,13 @@ await chunkMesh.update(new THREE.Vector3(0, 0, 0));
 } */
 chunkMeshContainer.add(chunkMesh);
 
-const numRemoteChunkMeshes = 30;
+/* const numRemoteChunkMeshes = 30;
 for (let i = 0; i < numRemoteChunkMeshes; i++) {
   const remoteChunkMesh = await _makePlanetChunkMesh();
   remoteChunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(100);
   chunkMeshContainer.add(remoteChunkMesh);
   remoteChunkMeshes.push(remoteChunkMesh);
-}
+} */
 remoteChunkMeshes.push(chunkMesh);
 _setCurrentChunkMesh(chunkMesh);
 
@@ -2859,8 +2892,7 @@ function animate(timestamp, frame) {
             const specs = await worker.requestMine(
               delta,
               currentChunkMesh.meshId,
-              localVector2.toArray(),
-              slabSliceTris
+              localVector2.toArray()
             );
             for (let i = 0; i < specs.length; i++) {
               const spec = specs[i];
@@ -2877,6 +2909,7 @@ function animate(timestamp, frame) {
 
               const {geometry} = currentChunkMesh;
               geometry.attributes.position.needsUpdate = true;
+              geometry.attributes.color.needsUpdate = true;
               geometry.attributes.barycentric.needsUpdate = true;
               geometry.attributes.id.needsUpdate = true;
               geometry.attributes.index.needsUpdate = true;
@@ -4338,14 +4371,14 @@ const _updateRaycasterFromMouseEvent = (raycaster, e) => {
     .map(p => p.volumeMesh)
     .filter(o => !!o);
   // hoverTarget = volumeRaycaster.raycastMeshes(candidateMeshes, raycaster.ray.origin, raycaster.ray.direction);
-  const intersects = raycaster.intersectObject(planetMesh);
+  /* const intersects = raycaster.intersectObject(planetMesh);
   if (intersects.length > 0) {
     const [intersect] = intersects;
     const {faceIndex} = intersect;
     const a = planetMesh.geometry.index.array[faceIndex * 3];
     const id = planetMesh.geometry.attributes.id.array[a];
     planetMesh.material.uniforms.selectedId.value = id;
-  }
+  } */
 };
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
