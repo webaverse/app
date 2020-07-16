@@ -26,16 +26,13 @@ class Chunk {
       const allocator = new Allocator();
       const potentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE * SUBPARCEL_SIZE * SUBPARCEL_SIZE);
       potentials.fill(potentialDefault);
-      const biomeColors = allocator.alloc(Uint32Array, SUBPARCEL_SIZE * SUBPARCEL_SIZE);
-      biomeColors.fill(0);
-      slab = this.setSlab(x, y, z, potentials, biomeColors);
+      slab = this.setSlab(x, y, z, potentials);
     }
     return slab;
   }
-  setSlab(x, y, z, potentials, biomeColors) {
+  setSlab(x, y, z, potentials) {
     const slab = {
       potentials,
-      biomeColors,
       x,
       y,
       z,
@@ -80,14 +77,11 @@ function mod(a, b) {
 };
 const _getSliceIndex = (x, y, z) => z + y*NUM_PARCELS + x*NUM_PARCELS*NUM_PARCELS;
 const _getPotentialIndex = (x, y, z) => x + y*SUBPARCEL_SIZE*SUBPARCEL_SIZE + z*SUBPARCEL_SIZE;
-const _getPotentialFlatIndex = (x, z) => x + z*SUBPARCEL_SIZE;
 const _getPotentialFullIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + z*SUBPARCEL_SIZE_P1;
-const _getPotentialFullFlatIndex = (x, z) => x + z*SUBPARCEL_SIZE_P1;
 const _makeLandPotentials = (seedData, baseHeight, freqsData, octavesData, scalesData, uvsData, ampsData, shiftsData) => {
   const allocator = new Allocator();
 
   const potentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE * SUBPARCEL_SIZE * SUBPARCEL_SIZE);
-  const biomeColors = allocator.alloc(Uint32Array, SUBPARCEL_SIZE * SUBPARCEL_SIZE);
   const freqs = allocator.alloc(Float32Array, freqsData.length);
   freqs.set(Float32Array.from(freqsData));
   const octaves = allocator.alloc(Int32Array, octavesData.length);
@@ -114,11 +108,10 @@ const _makeLandPotentials = (seedData, baseHeight, freqsData, octavesData, scale
     dims.offset,
     shifts.offset,
     potentialDefault,
-    potentials.offset,
-    biomeColors.offset
+    potentials.offset
   );
 
-  return {potentials, biomeColors, dims, shifts/*, allocator*/};
+  return {potentials, dims, shifts/*, allocator*/};
 };
 const _makePlanetPotentials = (seedData, shiftsData) => {
   const allocator = new Allocator();
@@ -141,7 +134,7 @@ const _makePlanetPotentials = (seedData, shiftsData) => {
 
   return {potentials, dims, shifts/*, allocator*/};
 };
-const _getChunkSpec = (potentials, biomeColors, shiftsData, meshId) => {
+const _getChunkSpec = (potentials, shiftsData, meshId) => {
   const allocator = new Allocator();
 
   const dims = allocator.alloc(Int32Array, 3);
@@ -149,15 +142,12 @@ const _getChunkSpec = (potentials, biomeColors, shiftsData, meshId) => {
   const shifts = allocator.alloc(Float32Array, 3);
   shifts.set(Float32Array.from(shiftsData));
   const positions = allocator.alloc(Float32Array, 4 * 1024 * 1024);
-  const colors = allocator.alloc(Uint32Array, 4 * 1024 * 1024);
   const barycentrics = allocator.alloc(Float32Array, 4 * 1024 * 1024);
 
   const numPositions = allocator.alloc(Uint32Array, 1);
   numPositions[0] = positions.length;
   const numBarycentrics = allocator.alloc(Uint32Array, 1);
   numBarycentrics[0] = barycentrics.length;
-  const numColors = allocator.alloc(Uint32Array, 1);
-  numColors[0] = colors.length;
 
   const scale = allocator.alloc(Float32Array, 3);
   scale.set(Float32Array.from([1, 1, 1]));
@@ -165,20 +155,16 @@ const _getChunkSpec = (potentials, biomeColors, shiftsData, meshId) => {
   self.Module._doMarchingCubes2(
     dims.offset,
     potentials.offset,
-    biomeColors.offset,
     shifts.offset,
     scale.offset,
     positions.offset,
-    colors.offset,
     barycentrics.offset,
     numPositions.offset,
-    numColors.offset,
     numBarycentrics.offset
   );
 
   const arrayBuffer2 = new ArrayBuffer(
     numPositions[0] * Float32Array.BYTES_PER_ELEMENT +
-    numColors[0] * Uint32Array.BYTES_PER_ELEMENT +
     numBarycentrics[0] * Float32Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT
@@ -194,10 +180,6 @@ const _getChunkSpec = (potentials, biomeColors, shiftsData, meshId) => {
   outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
   index += Float32Array.BYTES_PER_ELEMENT * numPositions[0];
 
-  const outC = new Uint32Array(arrayBuffer2, index, numColors[0]);
-  outC.set(new Uint32Array(colors.buffer, colors.byteOffset, numColors[0]));
-  index += Uint32Array.BYTES_PER_ELEMENT * numColors[0];
-
   const outB = new Float32Array(arrayBuffer2, index, numBarycentrics[0]);
   outB.set(new Float32Array(barycentrics.buffer, barycentrics.byteOffset, numBarycentrics[0]));
   index += Float32Array.BYTES_PER_ELEMENT * numBarycentrics[0];
@@ -207,12 +189,6 @@ const _getChunkSpec = (potentials, biomeColors, shiftsData, meshId) => {
   index += Uint32Array.BYTES_PER_ELEMENT * numIndices[0]; */
 
   allocator.freeAll();
-
-  /* const colors = new Float32Array(outP.length);
-  const c = new THREE.Color(0xaed581).toArray(new Float32Array(3));
-  for (let i = 0; i < colors.length; i += 3) {
-    colors.set(c, i);
-  } */
 
   const ids = new Float32Array(arrayBuffer2, index, numPositions[0]/3);
   index += numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT;
@@ -231,29 +207,16 @@ const _getChunkSpec = (potentials, biomeColors, shiftsData, meshId) => {
     // result: {
     // potentials: outPotentials,
     positions: outP,
-    colors: outC,
     barycentrics: outB,
     ids,
     indices,
     arrayBuffer: arrayBuffer2,
-    // colors,
     // indices: outI,
-    /* },
-    cleanup: () => {
-      allocator.freeAll();
-
-      this.running = false;
-      if (this.queue.length > 0) {
-        const fn = this.queue.shift();
-        fn();
-      }
-    }, */
   };
 };
 const _meshChunkSlab = (chunk, slab) => {
   const allocator = new Allocator();
   const fullPotentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1);
-  const fullBiomeColors = allocator.alloc(Uint32Array, SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1);
   for (let dx = 0; dx < SUBPARCEL_SIZE_P1; dx++) {
     const lix = slab.x + Math.floor(dx/SUBPARCEL_SIZE);
     for (let dy = 0; dy < SUBPARCEL_SIZE_P1; dy++) {
@@ -261,20 +224,16 @@ const _meshChunkSlab = (chunk, slab) => {
       for (let dz = 0; dz < SUBPARCEL_SIZE_P1; dz++) {
         const liz = slab.z + Math.floor(dz/SUBPARCEL_SIZE);
         const fullIndex = _getPotentialFullIndex(dx, dy, dz);
-        const fullFlatIndex = _getPotentialFullFlatIndex(dx, dz);
         const localSlab = chunk.getSlab(lix, liy, liz);
         if (localSlab) {
-          const {potentials, biomeColors} = localSlab;
+          const {potentials} = localSlab;
           const lx = mod(dx, SUBPARCEL_SIZE);
           const ly = mod(dy, SUBPARCEL_SIZE)
           const lz = mod(dz, SUBPARCEL_SIZE)
           const index = _getPotentialIndex(lx, ly, lz);
           fullPotentials[fullIndex] = potentials[index];
-          const flatIndex = _getPotentialFlatIndex(lx, lz);
-          fullBiomeColors[fullFlatIndex] = biomeColors[flatIndex];
         } else {
           fullPotentials[fullIndex] = potentialDefault;
-          // fullBiomeColors[fullFlatIndex] = 0;
         }
       }
     }
@@ -284,12 +243,11 @@ const _meshChunkSlab = (chunk, slab) => {
     slab.y*SUBPARCEL_SIZE,
     slab.z*SUBPARCEL_SIZE,
   ];
-  const {positions, colors, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(fullPotentials, fullBiomeColors, shiftsData, chunk.meshId);
+  const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(fullPotentials, shiftsData, chunk.meshId);
   allocator.freeAll();
   return [
     {
       positions,
-      colors,
       barycentrics,
       ids,
       indices,
@@ -320,8 +278,8 @@ const _handleMessage = data => {
             const slab = chunk.getSlab(ix, iy, iz);
             if (!slab) {
               const shiftsData = [ix*SUBPARCEL_SIZE, iy*SUBPARCEL_SIZE, iz*SUBPARCEL_SIZE];
-              const {potentials, biomeColors} = _makeLandPotentials(seedData, baseHeight, freqs, octaves, scales, uvs, amps, shiftsData);
-              chunk.setSlab(ix, iy, iz, potentials, biomeColors);
+              const {potentials} = _makeLandPotentials(seedData, baseHeight, freqs, octaves, scales, uvs, amps, shiftsData);
+              chunk.setSlab(ix, iy, iz, potentials);
             }
           }
         }
