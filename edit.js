@@ -14,11 +14,8 @@ import './gif.js';
 // import {makeTextMesh, makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
 import {makeTextMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
-import perlin from './perlin.js';
-import alea from './alea.js';
-import easing from './easing.js';
-import './constants.js';
-const {
+// import storage from './storage.js';
+import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
   NUM_PARCELS,
@@ -29,7 +26,10 @@ const {
   slabSliceTris,
   slabSliceVertices,
   BUILD_SNAP,
-} = globalThis.constants;
+} from './constants.js';
+import perlin from './perlin.js';
+import alea from './alea.js';
+import easing from './easing.js';
 const rng = alea('lol');
 perlin.seed(rng());
 
