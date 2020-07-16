@@ -17,6 +17,19 @@ import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import perlin from './perlin.js';
 import alea from './alea.js';
 import easing from './easing.js';
+import './constants.js';
+const {
+  PARCEL_SIZE,
+  SUBPARCEL_SIZE,
+  NUM_PARCELS,
+  slabTotalSize,
+  slabNumAttributes,
+  slabAttributeSize,
+  numSlices,
+  slabSliceTris,
+  slabSliceVertices,
+  BUILD_SNAP,
+} = globalThis.constants;
 const rng = alea('lol');
 perlin.seed(rng());
 
@@ -24,18 +37,6 @@ const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
 const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
-const parcelSize = 11;
-const PARCEL_SIZE = 30;
-const PARCEL_SIZE_D2 = PARCEL_SIZE/2;
-const SUBPARCEL_SIZE = 10;
-const NUM_PARCELS = PARCEL_SIZE/SUBPARCEL_SIZE;
-const slabTotalSize = 8 * 1024 * 1024;
-const slabNumAttributes = 4;
-const slabAttributeSize = slabTotalSize/slabNumAttributes;
-const numSlices = 40;
-const slabSliceTris = Math.floor(slabAttributeSize/numSlices/9/Float32Array.BYTES_PER_ELEMENT);
-const slabSliceVertices = slabSliceTris * 3;
-const BUILD_SNAP = 2;
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const downQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0));
