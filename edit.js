@@ -29,8 +29,8 @@ const PARCEL_SIZE = 30;
 const PARCEL_SIZE_D2 = PARCEL_SIZE/2;
 const SUBPARCEL_SIZE = 10;
 const NUM_PARCELS = PARCEL_SIZE/SUBPARCEL_SIZE;
-const slabTotalSize = 10 * 1024 * 1024;
-const slabNumAttributes = 5;
+const slabTotalSize = 8 * 1024 * 1024;
+const slabNumAttributes = 4;
 const slabAttributeSize = slabTotalSize/slabNumAttributes;
 const numSlices = 40;
 const slabSliceTris = Math.floor(slabAttributeSize/numSlices/9/Float32Array.BYTES_PER_ELEMENT);
@@ -692,10 +692,9 @@ const _makeLandChunkMesh = async () => {
   const slabArrayBuffer = new ArrayBuffer(slabTotalSize);
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 0*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
-  geometry.setAttribute('color', new THREE.BufferAttribute(new Uint8Array(slabArrayBuffer, 1*slabAttributeSize, slabSliceVertices*numSlices*4), 4, true));
-  geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
-  geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 3*slabAttributeSize, slabSliceVertices*numSlices), 1));
-  geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 4*slabAttributeSize, slabSliceVertices*numSlices), 1));
+  geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 1*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
+  geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices), 1));
+  geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 3*slabAttributeSize, slabSliceVertices*numSlices), 1));
 
   const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
   mesh.meshId = meshId;
@@ -722,7 +721,6 @@ const _makeLandChunkMesh = async () => {
           z,
           slabIndex: index,
           position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
-          color: new Uint32Array(geometry.attributes.color.array.buffer, geometry.attributes.color.array.byteOffset + index*slabSliceVertices*Uint32Array.BYTES_PER_ELEMENT, slabSliceVertices),
           barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
           id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
           index: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
@@ -796,7 +794,6 @@ const _makeLandChunkMesh = async () => {
               const {x, y, z} = spec;
               const slab = mesh.getSlab(x, y, z);
               slab.position.set(spec.positions);
-              slab.color.set(spec.colors);
               slab.barycentric.set(spec.barycentrics);
               slab.id.set(spec.ids);
               const indexOffset = slab.slabIndex * slabSliceTris;
@@ -806,7 +803,6 @@ const _makeLandChunkMesh = async () => {
               slab.index.set(spec.indices);
 
               geometry.attributes.position.needsUpdate = true;
-              geometry.attributes.color.needsUpdate = true;
               geometry.attributes.barycentric.needsUpdate = true;
               geometry.attributes.id.needsUpdate = true;
               geometry.attributes.index.needsUpdate = true;
@@ -917,7 +913,6 @@ const _makePlanetChunkMesh = async () => {
     const {x, y, z} = spec;
     const slab = mesh.getSlab(x, y, z);
     slab.position.set(spec.positions);
-    slab.color.set(spec.colors);
     slab.barycentric.set(spec.barycentrics);
     slab.id.set(spec.ids);
     const indexOffset = slab.slabIndex * slabSliceTris;
@@ -2909,7 +2904,6 @@ function animate(timestamp, frame) {
 
               const {geometry} = currentChunkMesh;
               geometry.attributes.position.needsUpdate = true;
-              geometry.attributes.color.needsUpdate = true;
               geometry.attributes.barycentric.needsUpdate = true;
               geometry.attributes.id.needsUpdate = true;
               geometry.attributes.index.needsUpdate = true;
