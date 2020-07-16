@@ -224,7 +224,7 @@ const npcMeshes = [];
 const _decorateMeshForRaycast = mesh => {
   mesh.traverse(o => {
     if (o.isMesh) {
-      const meshId = ++nextId;
+      const meshId = ++nextMeshId;
 
       const {geometry} = o;
       const numPositions = geometry.attributes.position.array.length;
@@ -257,7 +257,8 @@ const _decorateMeshForRaycast = mesh => {
   });
 };
 
-let nextId = 0;
+let nextMeshId = 0;
+let nextBuildId = 0;
 /* function meshIdToArray(meshId) {
   return [
     ((meshId >> 16) & 0xFF),
@@ -646,7 +647,7 @@ capsuleMesh = (() => {
 physics.bindCapsuleMeshPhysics(capsuleMesh); */
 
 const _makeLandChunkMesh = async (parcelSize, subparcelSize) => {
-  const meshId = ++nextId;
+  const meshId = ++nextMeshId;
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
     uniforms: (() => {
@@ -705,9 +706,23 @@ const _makeLandChunkMesh = async (parcelSize, subparcelSize) => {
   mesh.frustumCulled = false;
   mesh.meshId = meshId;
   mesh.isChunkMesh = true;
-  mesh.buildMeshes = [];
   mesh.parcelSize = parcelSize;
   mesh.subparcelSize = subparcelSize;
+  mesh.buildMeshes = [];
+  mesh.subparcels = [];
+  mesh.getSubparcel = (x, y, z) => {
+    let subparcel = mesh.subparcels.find(sp => sp.x === x && sp.y === y && sp.z === z);
+    if (!subparcel) {
+      subparcel = {
+        x,
+        y,
+        z,
+        builds: [],
+      };
+      mesh.subparcels.push(subparcel);
+    }
+    return subparcel;
+  };
   const slabs = [];
   const freeSlabs = [];
   let index = 0;
@@ -751,8 +766,11 @@ const _makeLandChunkMesh = async (parcelSize, subparcelSize) => {
     slabs.splice(slabs.indexOf(slab), 1);
     freeSlabs.push(slab);
   };
-  const lastCoord = new THREE.Vector3(0, 0, 0);
+  const lastCoord = new THREE.Vector3(NaN, NaN, NaN);
   let running = false;
+  mesh.setNeedsUpdate = () => {
+    lastCoord.set(NaN, NaN, NaN);
+  };
   mesh.update = async position => {
     if (!running) {
       running = true;
@@ -764,6 +782,7 @@ const _makeLandChunkMesh = async (parcelSize, subparcelSize) => {
         Math.floor(localVector3.y/subparcelSize),
         Math.floor(localVector3.z/subparcelSize)
       );
+
       if (!coord.equals(lastCoord)) {
         const neededCoords = [];
         for (let dx = -1; dx <= 1; dx++) {
@@ -773,6 +792,15 @@ const _makeLandChunkMesh = async (parcelSize, subparcelSize) => {
             }
           }
         }
+
+        for (const subparcel of mesh.subparcels) {
+          const isSubparcelNeeded = neededCoords.some(nc => nc.x === subparcel.x && nc.y === subparcel.y && nc.z === subparcel.z);
+          for (const build of subparcel.builds) {
+            const buildMesh = mesh.buildMeshes.find(bm => bm.buildId === build.id);
+            buildMesh.visible = isSubparcelNeeded;
+          }
+        }
+
         for (let i = 0; i < neededCoords.length; i++) {
           const {x: ax, y: ay, z: az} = neededCoords[i];
           if (!slabs.some(slab => slab.x === ax && slab.y === ay && slab.z === az)) {
@@ -843,7 +871,7 @@ const _makeLandChunkMesh = async (parcelSize, subparcelSize) => {
   return mesh;
 };
 /* const _makePlanetChunkMesh = async () => {
-  const meshId = ++nextId;
+  const meshId = ++nextMeshId;
   const specs = await worker.requestMarchPlanet(Math.floor(rng() * 0xFFFFFF), meshId);
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
@@ -2667,6 +2695,12 @@ function animate(timestamp, frame) {
   } */
 
   const now = Date.now();
+  for (const remoteChunkMesh of remoteChunkMeshes) {
+    remoteChunkMesh.material[0].uniforms.uTime.value = (now % timeFactor) / timeFactor;
+    for (const buildMesh of remoteChunkMesh.buildMeshes) {
+      buildMesh.update();
+    }
+  }
   explosionMeshes = explosionMeshes.filter(explosionMesh => {
     explosionMesh.material.uniforms.uAnimation.value += timeDiff;
     if (explosionMesh.material.uniforms.uAnimation.value < 1) {
@@ -2676,13 +2710,6 @@ function animate(timestamp, frame) {
       return false;
     }
   });
-  for (let i = 0; i < remoteChunkMeshes.length; i++) {
-    const chunkMesh = remoteChunkMeshes[i];
-    chunkMesh.material[0].uniforms.uTime.value = (now % timeFactor) / timeFactor;
-    for (let j = 0; j < chunkMesh.buildMeshes.length; j++) {
-      chunkMesh.buildMeshes[j].update();
-    }
-  }
   cometFireMesh.material.uniforms.uAnimation.value = (Date.now() % 2000) / 2000;
   hpMesh.update();
   for (let i = 0; i < npcMeshes.length; i++) {
@@ -3041,6 +3068,7 @@ function animate(timestamp, frame) {
                 o.material = o.material.clone();
               }
             });
+            buildMeshClone.buildId = ++nextBuildId;
             buildMeshClone.buildMeshType = buildMesh.buildMeshType;
             buildMeshClone.hullMesh = buildMesh.hullMesh.clone();
             buildMeshClone.hullMesh.geometry = buildMesh.hullMesh.geometry.clone();
@@ -3259,6 +3287,19 @@ function animate(timestamp, frame) {
 
                   return object;
                 })();
+
+                const buildSubparcelPosition = new THREE.Vector3(
+                  Math.floor(buildMeshClone.position.x/buildMeshClone.parent.subparcelSize),
+                  Math.floor(buildMeshClone.position.y/buildMeshClone.parent.subparcelSize),
+                  Math.floor(buildMeshClone.position.z/buildMeshClone.parent.subparcelSize)
+                );
+                const subparcel = buildMeshClone.parent.getSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z);
+                const buildIndex = subparcel.builds.findIndex(build => build.id === buildMeshClone.buildId);
+                if (buildIndex === -1) {
+                  debugger;
+                }
+                subparcel.builds.splice(buildIndex, 1);
+
                 itemMesh.position.copy(buildMeshClone.position);
                 itemMesh.quaternion.copy(buildMeshClone.quaternion);
                 // itemMesh.scale.copy(buildMeshClone.scale);
@@ -3273,13 +3314,29 @@ function animate(timestamp, frame) {
             buildMeshClone.update = () => {
               animation && animation.update();
             };
+            buildMeshClone.visible = false;
             currentChunkMesh.add(buildMeshClone);
             currentChunkMesh.buildMeshes.push(buildMeshClone);
 
             buildMeshClone.hullMesh.position.copy(buildMeshClone.position);
             buildMeshClone.hullMesh.quaternion.copy(buildMeshClone.quaternion);
             buildMeshClone.hullMesh.scale.copy(buildMeshClone.scale);
+            buildMeshClone.hullMesh.visible = false;
             currentChunkMesh.add(buildMeshClone.hullMesh);
+
+            const buildSubparcelPosition = new THREE.Vector3(
+              Math.floor(buildMeshClone.position.x/buildMeshClone.parent.subparcelSize),
+              Math.floor(buildMeshClone.position.y/buildMeshClone.parent.subparcelSize),
+              Math.floor(buildMeshClone.position.z/buildMeshClone.parent.subparcelSize)
+            );
+            const subparcel = buildMeshClone.parent.getSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z);
+            subparcel.builds.push({
+              id: buildMeshClone.buildId,
+              type: buildMeshClone.buildMeshType,
+              position: buildMeshClone.position.toArray(),
+              quaternion: buildMeshClone.quaternion.toArray(),
+            });
+            buildMeshClone.parent.setNeedsUpdate();
           }
         }
       }
