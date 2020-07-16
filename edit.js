@@ -95,7 +95,7 @@ const HEIGHTFIELD_SHADER = {
     precision highp float;
     precision highp int;
     uniform float fogDensity;
-    attribute vec4 color;
+    // attribute vec4 color;
     attribute vec3 barycentric;
     // attribute float index;
     // attribute float skyLightmap;
@@ -105,7 +105,7 @@ const HEIGHTFIELD_SHADER = {
     varying vec3 vWorldPosition;
     varying vec3 vBarycentric;
     // varying vec3 vViewPosition;
-    varying vec4 vColor;
+    // varying vec4 vColor;
     // varying float vIndex;
     // varying vec3 vNormal;
     // varying float vSkyLightmap;
@@ -113,7 +113,7 @@ const HEIGHTFIELD_SHADER = {
     // varying float vFog;
 
     void main() {
-      vColor = color;
+      // vColor = color;
       // vNormal = normal;
 
       vec4 mvPosition = modelViewMatrix * vec4(position.xyz, 1.0);
@@ -141,7 +141,7 @@ const HEIGHTFIELD_SHADER = {
     varying vec3 vBarycentric;
     // varying float vIndex;
     // varying vec3 vViewPosition;
-    varying vec4 vColor;
+    // varying vec4 vColor;
     // varying vec3 vNormal;
     // varying float vSkyLightmap;
     // varying float vTorchLightmap;
@@ -166,7 +166,7 @@ const HEIGHTFIELD_SHADER = {
           min((vSkyLightmap * sunIntensity) + vTorchLightmap, 1.0)
         ) * 4.0 + 0.5
       ) / 4.0; */
-      vec3 ambientLightColor = vec3(0.5, 0.5, 0.5);
+      /* vec3 ambientLightColor = vec3(0.5, 0.5, 0.5);
       vec3 xTangent = dFdx( vPosition );
       vec3 yTangent = dFdy( vPosition );
       vec3 faceNormal = normalize( cross( xTangent, yTangent ) );
@@ -175,7 +175,7 @@ const HEIGHTFIELD_SHADER = {
       vec2 uv = vec2(
         mod((vPosition.x) / 4.0, 1.0),
         mod((vPosition.z) / 4.0, 1.0)
-      );
+      ); */
 
       // float d = length(vPosition - vec3(${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}));
       // float dMax = length(vec3(${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}, ${PARCEL_SIZE_D2}));
