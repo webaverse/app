@@ -99,6 +99,10 @@ const _makeLandPotentials = (seedData, baseHeight, freqsData, octavesData, scale
   const shifts = allocator.alloc(Float32Array, 3);
   shifts.set(Float32Array.from(shiftsData));
 
+  const wormRate = 2;
+  const wormRadiusBase = 2;
+  const wormRadiusRate = 2;
+
   Module._doNoise3(
     seedData,
     baseHeight,
@@ -110,7 +114,9 @@ const _makeLandPotentials = (seedData, baseHeight, freqsData, octavesData, scale
     dims.offset,
     shifts.offset,
     limits.offset,
-    2,
+    wormRate,
+    wormRadiusBase,
+    wormRadiusRate,
     potentialDefault,
     potentials.offset
   );
