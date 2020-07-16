@@ -94,6 +94,8 @@ const _makeLandPotentials = (seedData, baseHeight, freqsData, octavesData, scale
   amps.set(Float32Array.from(ampsData));
   const dims = allocator.alloc(Int32Array, 3);
   dims.set(Int32Array.from([SUBPARCEL_SIZE, SUBPARCEL_SIZE, SUBPARCEL_SIZE]));
+  const limits = allocator.alloc(Int32Array, 3);
+  limits.set(Int32Array.from([PARCEL_SIZE, PARCEL_SIZE, PARCEL_SIZE]));
   const shifts = allocator.alloc(Float32Array, 3);
   shifts.set(Float32Array.from(shiftsData));
 
@@ -107,6 +109,8 @@ const _makeLandPotentials = (seedData, baseHeight, freqsData, octavesData, scale
     amps.offset,
     dims.offset,
     shifts.offset,
+    limits.offset,
+    2,
     potentialDefault,
     potentials.offset
   );
@@ -266,13 +270,13 @@ const _handleMessage = data => {
   const {method} = data;
   switch (method) {
     case 'marchLand': {
-      const {seed: seedData, meshId, x, z, baseHeight, freqs, octaves, scales, uvs, amps} = data;
+      const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps} = data;
 
       const chunk = _getChunk(meshId);
       for (let dx = 0; dx <= 1; dx++) {
         const ix = x + dx;
-        for (let dy = 0; dy < 2; dy++) {
-          const iy = dy;
+        for (let dy = 0; dy <= 1; dy++) {
+          const iy = y + dy;
           for (let dz = 0; dz <= 1; dz++) {
             const iz = z + dz;
             const slab = chunk.getSlab(ix, iy, iz);
@@ -287,19 +291,10 @@ const _handleMessage = data => {
 
       const results = [];
       const transfers = [];
-      for (let dx = 0; dx < 1; dx++) {
-        const ix = x + dx;
-        for (let dy = 0; dy < 2; dy++) {
-          const iy = dy;
-          for (let dz = 0; dz < 1; dz++) {
-            const iz = z + dz;
-            const slab = chunk.getSlab(ix, iy, iz);
-            const [result, transfer] = _meshChunkSlab(chunk, slab);
-            results.push(result);
-            transfers.push(transfer);
-          }
-        }
-      }
+      const slab = chunk.getSlab(x, y, z);
+      const [result, transfer] = _meshChunkSlab(chunk, slab);
+      results.push(result);
+      transfers.push(transfer);
 
       self.postMessage({
         result: results,
