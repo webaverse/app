@@ -102,7 +102,7 @@ const HEIGHTFIELD_SHADER = {
     // attribute float skyLightmap;
     // attribute float torchLightmap;
 
-    varying vec3 vPosition;
+    // varying vec3 vPosition;
     varying vec3 vWorldPosition;
     varying vec3 vBarycentric;
     // varying vec3 vViewPosition;
@@ -120,7 +120,7 @@ const HEIGHTFIELD_SHADER = {
       vec4 mvPosition = modelViewMatrix * vec4(position.xyz, 1.0);
       gl_Position = projectionMatrix * mvPosition;
 
-      vPosition = position.xyz;
+      // vPosition = position.xyz;
       vWorldPosition = mvPosition.xyz;
       vBarycentric = barycentric;
       // vIndex = index;
@@ -137,7 +137,7 @@ const HEIGHTFIELD_SHADER = {
     uniform sampler2D heightColorTex;
     // uniform float selectedIndex;
 
-    varying vec3 vPosition;
+    // varying vec3 vPosition;
     varying vec3 vWorldPosition;
     varying vec3 vBarycentric;
     // varying float vIndex;
