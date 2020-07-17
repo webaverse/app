@@ -1175,6 +1175,13 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
   };
   return mesh;
 };
+const _resetCamera = () => {
+  pe.camera.position.set(0, 0, 2);
+  pe.camera.quaternion.set(0, 0, 0, 1);
+  pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
+  pe.camera.updateMatrixWorld();
+  pe.setCamera(camera);
+};
 window.gen = async seedString => {
   const oldChunkMesh = _getCurrentChunkMesh();
   if (oldChunkMesh) {
@@ -1191,11 +1198,7 @@ window.gen = async seedString => {
   chunkMeshes.push(chunkMesh);
   _setCurrentChunkMesh(chunkMesh);
 
-  pe.camera.position.set(0, 0, 2);
-  pe.camera.quaternion.set(0, 0, 0, 1);
-  pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
-  pe.camera.updateMatrixWorld();
-  pe.setCamera(camera);
+  _resetCamera();
 };
 window.save = async () => {
   await storage.set('planet', {
@@ -1233,6 +1236,8 @@ window.load = async () => {
   chunkMeshContainer.add(chunkMesh);
   chunkMeshes.push(chunkMesh);
   _setCurrentChunkMesh(chunkMesh);
+
+  _resetCamera();
 };
 window.gen('lol');
 
