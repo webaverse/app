@@ -711,10 +711,7 @@ const _makeLandChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
   mesh.frustumCulled = false;
   mesh.meshId = meshId;
-  mesh.isChunkMesh = true;
-  mesh.parcelSize = parcelSize;
-  mesh.subparcelSize = subparcelSize;
-  mesh.buildMeshes = [];
+  mesh.seedString = seedString;
   mesh.subparcels = [];
   mesh.getSubparcel = (x, y, z) => {
     let subparcel = mesh.subparcels.find(sp => sp.x === x && sp.y === y && sp.z === z);
@@ -730,6 +727,10 @@ const _makeLandChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     }
     return subparcel;
   };
+  mesh.parcelSize = parcelSize;
+  mesh.subparcelSize = subparcelSize;
+  mesh.isChunkMesh = true;
+  mesh.buildMeshes = [];
   const slabs = [];
   const freeSlabs = [];
   let index = 0;
@@ -5783,19 +5784,23 @@ window.addEventListener('popstate', e => {
 _handleUrl(window.location.href);
 
 window.save = async () => {
-  await storage.set('planet', currentChunkMesh.subparcels.map(subparcel => {
-    return {
-      x: subparcel.x,
-      y: subparcel.y,
-      z: subparcel.z,
-      potentials: subparcel.potentials && base64.encode(subparcel.potentials.buffer),
-      builds: subparcel.builds,
-    };
-  }));
+  await storage.set('planet', {
+    seed: currentChunkMesh.seedString,
+    subparcels: currentChunkMesh.subparcels.map(subparcel => {
+      return {
+        x: subparcel.x,
+        y: subparcel.y,
+        z: subparcel.z,
+        potentials: subparcel.potentials && base64.encode(subparcel.potentials.buffer),
+        builds: subparcel.builds,
+      };
+    }),
+  });
 };
 window.load = async () => {
-  const subparcels = await storage.get('planet');
-  for (const subparcel of subparcels) {
+  const chunkSpec = await storage.get('planet');
+  for (const subparcel of chunkSpec.subparcels) {
     subparcel.potentials = new Float32Array(base64.decode(subparcel.potentials));
   }
+  return chunkSpec;
 };
