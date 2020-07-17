@@ -1808,7 +1808,7 @@ const _findMeshWithMeshId = (container, meshId) => {
   return result;
 };
 
-const idMaterial = new THREE.ShaderMaterial({
+/* const idMaterial = new THREE.ShaderMaterial({
   vertexShader: `
     attribute float id;
     attribute float index;
@@ -1914,7 +1914,7 @@ class PointRaycaster {
     this.renderer.clear();
     return point ? {mesh, index, point, normal} : null;
   }
-}
+} */
 
 const depthMaterial = new THREE.ShaderMaterial({
   /* uniforms: {
@@ -2208,7 +2208,7 @@ const raycastRenderer = new THREE.WebGLRenderer({
 });
 raycastRenderer.setClearColor(new THREE.Color(0x000000), 0);
 raycastRenderer.autoClear = false;
-const pointRaycaster = new PointRaycaster(raycastRenderer);
+// const pointRaycaster = new PointRaycaster(raycastRenderer);
 const collisionRaycaster = new CollisionRaycaster(raycastRenderer);
 const physicsRaycaster = new PhysicsRaycaster(raycastRenderer);
 
