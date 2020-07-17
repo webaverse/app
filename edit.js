@@ -5927,7 +5927,7 @@ const _renderObjects = () => {
   }
 };
 _renderObjects();
-const _handleUrl = async u => {
+/* const _handleUrl = async u => {
   const {search} = new URL(u);
   const q = parseQuery(search);
 
@@ -5969,4 +5969,4 @@ const _handleUrl = async u => {
 window.addEventListener('popstate', e => {
   _handleUrl(window.location.href);
 });
-_handleUrl(window.location.href);
+_handleUrl(window.location.href); */
