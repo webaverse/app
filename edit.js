@@ -3248,7 +3248,6 @@ function animate(timestamp, frame) {
           }
 
           currentChunkMesh.add(buildMesh);
-          buildMesh.visible = true;
         }
       }
       if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
