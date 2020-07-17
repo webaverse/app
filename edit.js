@@ -1226,8 +1226,6 @@ window.load = async () => {
     _setCurrentChunkMesh(null);
   }
 
-  console.log('load spec', chunkSpec);
-
   const chunkMesh = _makeChunkMesh(chunkSpec.seedString, chunkSpec.subparcels, PARCEL_SIZE, SUBPARCEL_SIZE);
   chunkMesh.position.y = -PARCEL_SIZE - 5;
   chunkMesh.position.x = -PARCEL_SIZE/2;
