@@ -302,7 +302,7 @@ const [
   // ammo,
 ] = await Promise.all([
   (async () => {
-    let cbs = [];
+    const cbs = [];
     const w = new Worker('worker.js');
     w.onmessage = e => {
       const {data} = e;
@@ -354,13 +354,13 @@ const [
         subparcelSize
       });
     };
-    w.requestMarchPlanet = (seed, meshId) => {
+    /* w.requestMarchPlanet = (seed, meshId) => {
       return w.request({
         method: 'marchPlanet',
         seed,
         meshId,
       });
-    };
+    }; */
     w.requestMine = (meshId, mineSpecs, subparcelSize) => {
       return w.request({
         method: 'mine',
