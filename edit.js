@@ -906,10 +906,19 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
                 }
                 slab.index.set(spec.indices);
 
+                geometry.attributes.position.updateRange.offset = slab.slabIndex*slabSliceVertices*3;
+                geometry.attributes.position.updateRange.count = spec.positions.length;
                 geometry.attributes.position.needsUpdate = true;
+                geometry.attributes.barycentric.updateRange.offset = slab.slabIndex*slabSliceVertices*3;
+                geometry.attributes.barycentric.updateRange.count = spec.barycentrics.length;
                 geometry.attributes.barycentric.needsUpdate = true;
+                geometry.attributes.id.updateRange.offset = slab.slabIndex*slabSliceVertices;
+                geometry.attributes.id.updateRange.count = spec.ids.length;
                 geometry.attributes.id.needsUpdate = true;
+                geometry.attributes.index.updateRange.offset = slab.slabIndex*slabSliceVertices;
+                geometry.attributes.index.updateRange.count = spec.indices.length;
                 geometry.attributes.index.needsUpdate = true;
+                renderer.geometries.update(geometry);
 
                 const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
                 group.count = spec.positions.length/3;
@@ -3418,10 +3427,19 @@ function animate(timestamp, frame) {
               slab.index.set(spec.indices);
 
               const {geometry} = currentChunkMesh;
+              geometry.attributes.position.updateRange.offset = slab.slabIndex*slabSliceVertices*3;
+              geometry.attributes.position.updateRange.count = spec.positions.length;
               geometry.attributes.position.needsUpdate = true;
+              geometry.attributes.barycentric.updateRange.offset = slab.slabIndex*slabSliceVertices*3;
+              geometry.attributes.barycentric.updateRange.count = spec.barycentrics.length;
               geometry.attributes.barycentric.needsUpdate = true;
+              geometry.attributes.id.updateRange.offset = slab.slabIndex*slabSliceVertices;
+              geometry.attributes.id.updateRange.count = spec.ids.length;
               geometry.attributes.id.needsUpdate = true;
+              geometry.attributes.index.updateRange.offset = slab.slabIndex*slabSliceVertices;
+              geometry.attributes.index.updateRange.count = spec.indices.length;
               geometry.attributes.index.needsUpdate = true;
+              renderer.geometries.update(geometry);
 
               const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
               group.count = spec.positions.length/3;
