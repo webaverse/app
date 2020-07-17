@@ -321,7 +321,7 @@ const [
         }
       });
     });
-    w.requestMarchLand = (seed, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize) => {
+    w.requestMarchLand = (seed, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, parcelSize, subparcelSize) => {
       return w.request({
         method: 'marchLand',
         seed,
@@ -335,6 +335,7 @@ const [
         scales,
         uvs,
         amps,
+        potentials,
         parcelSize,
         subparcelSize
       });
@@ -649,7 +650,7 @@ capsuleMesh = (() => {
 })();
 physics.bindCapsuleMeshPhysics(capsuleMesh); */
 
-const _makeLandChunkMesh = async (seedString, parcelSize, subparcelSize) => {
+const _makeChunkMesh = async (seedString, subparcels, parcelSize, subparcelSize) => {
   const rng = alea(seedString);
   const seedNum = Math.floor(rng() * 0xFFFFFF);
 
@@ -712,7 +713,7 @@ const _makeLandChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   mesh.frustumCulled = false;
   mesh.meshId = meshId;
   mesh.seedString = seedString;
-  mesh.subparcels = [];
+  mesh.subparcels = subparcels;
   mesh.getSubparcel = (x, y, z) => {
     let subparcel = mesh.subparcels.find(sp => sp.x === x && sp.y === y && sp.z === z);
     if (!subparcel) {
@@ -814,6 +815,8 @@ const _makeLandChunkMesh = async (seedString, parcelSize, subparcelSize) => {
         for (let i = 0; i < neededCoords.length; i++) {
           const {x: ax, y: ay, z: az} = neededCoords[i];
           if (!slabs.some(slab => slab.x === ax && slab.y === ay && slab.z === az)) {
+            const subparcel = mesh.getSubparcel(ax, ay, az);
+            const {potentials} = subparcel;
             const specs = await worker.requestMarchLand(
               seedNum,
               meshId,
@@ -840,6 +843,7 @@ const _makeLandChunkMesh = async (seedString, parcelSize, subparcelSize) => {
                 1.5,
                 4,
               ],
+              potentials,
               parcelSize,
               subparcelSize
             );
@@ -992,7 +996,7 @@ const _makeLandChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   return mesh;
 }; */
 
-chunkMesh = await _makeLandChunkMesh('lol', PARCEL_SIZE, SUBPARCEL_SIZE);
+chunkMesh = await _makeChunkMesh('lol', [], PARCEL_SIZE, SUBPARCEL_SIZE);
 chunkMesh.position.y = -PARCEL_SIZE - 5;
 chunkMesh.position.x = -PARCEL_SIZE/2;
 chunkMesh.position.z = -PARCEL_SIZE/2;
@@ -1004,7 +1008,7 @@ _setCurrentChunkMesh(chunkMesh);
 
 const numRemoteChunkMeshes = 1;
 for (let i = 0; i < numRemoteChunkMeshes; i++) {
-  // const remoteChunkMesh = await _makeLandChunkMesh('lol2', PARCEL_SIZE, SUBPARCEL_SIZE);
+  // const remoteChunkMesh = await _makeChunkMesh('lol2', [], PARCEL_SIZE, SUBPARCEL_SIZE);
   /* const remoteChunkMesh = await _makePlanetChunkMesh();
   remoteChunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(100);
   chunkMeshContainer.add(remoteChunkMesh);

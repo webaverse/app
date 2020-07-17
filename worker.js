@@ -278,7 +278,7 @@ const _handleMessage = data => {
   const {method} = data;
   switch (method) {
     case 'marchLand': {
-      const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize} = data;
+      const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, parcelSize, subparcelSize} = data;
 
       const chunk = _getChunk(meshId, subparcelSize);
       for (let dx = 0; dx <= 1; dx++) {
@@ -290,8 +290,13 @@ const _handleMessage = data => {
             const slab = chunk.getSlab(ix, iy, iz);
             if (!slab) {
               const shiftsData = [ix*subparcelSize, iy*subparcelSize, iz*subparcelSize];
-              const {potentials} = _makeLandPotentials(seedData, baseHeight, freqs, octaves, scales, uvs, amps, shiftsData, parcelSize, subparcelSize);
-              chunk.setSlab(ix, iy, iz, potentials);
+              const genSpec = _makeLandPotentials(seedData, baseHeight, freqs, octaves, scales, uvs, amps, shiftsData, parcelSize, subparcelSize);
+              if (potentials) {
+                for (let i = 0; i < potentials.length; i++) {
+                  genSpec.potentials[i] += potentials[i];
+                }
+              }
+              chunk.setSlab(ix, iy, iz, genSpec.potentials);
             }
           }
         }
@@ -390,6 +395,10 @@ const _handleMessage = data => {
 
       for (const mineSpec of mineSpecs) {
         const slab = chunk.getSlab(mineSpec.x, mineSpec.y, mineSpec.z);
+        if (!slab) {
+          console.warn('mining unknown subparcel!', mineSpec.x, mineSpec.y, mineSpec.z);
+          debugger;
+        }
         for (const mine of mineSpec.mines) {
           const [potentialIndex, value] = mine;
           slab.potentials[potentialIndex] += value;
