@@ -26,6 +26,7 @@ import {
   numSlices,
   slabSliceTris,
   slabSliceVertices,
+  chunkDistance,
   BUILD_SNAP,
 } from './constants.js';
 // import perlin from './perlin.js';
@@ -820,9 +821,9 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
     let neededCoords;
     if (chunksNeedUpdate || buildMeshesNeedUpdate || packagesNeedUpdate) {
       neededCoords = [];
-      for (let dx = -1; dx <= 1; dx++) {
-        for (let dy = -1; dy <= 1; dy++) {
-          for (let dz = -1; dz <= 1; dz++) {
+      for (let dx = -chunkDistance; dx <= chunkDistance; dx++) {
+        for (let dy = -chunkDistance; dy <= chunkDistance; dy++) {
+          for (let dz = -chunkDistance; dz <= chunkDistance; dz++) {
             neededCoords.push(new THREE.Vector3(dx + coord.x, dy + coord.y, dz + coord.z));
           }
         }
