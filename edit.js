@@ -273,6 +273,7 @@ let nextMeshId = 0;
 } */
 
 let worker = null;
+let physicsWorker = null;
 let chunkMeshes = [];
 let chunkMesh = null;
 const worldContainer = new THREE.Object3D();
@@ -298,6 +299,7 @@ const _setCurrentChunkMesh = chunkMesh => {
 
 const [
   w,
+  pw,
   colors,
   // ammo,
 ] = await Promise.all([
@@ -372,6 +374,63 @@ const [
     return w;
   })(),
   (async () => {
+    const cbs = [];
+    const w = new Worker('physics-worker.js');
+    w.onmessage = e => {
+      const {data} = e;
+      const {error, result} = data;
+      cbs.shift()(error, result);
+    };
+    w.onerror = err => {
+      console.warn(err);
+    };
+    w.request = (req, transfers) => new Promise((accept, reject) => {
+      w.postMessage(req, transfers);
+
+      cbs.push((err, result) => {
+        if (!err) {
+          accept(result);
+        } else {
+          reject(err);
+        }
+      });
+    });
+    w.requestLoadSlab = (meshId, x, y, z, specs, parcelSize, subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices) => {
+      return w.request({
+        method: 'loadSlab',
+        meshId,
+        x,
+        y,
+        z,
+        specs,
+        parcelSize,
+        subparcelSize,
+        slabTotalSize,
+        slabAttributeSize,
+        slabSliceVertices,
+        numSlices
+      }, [specs[0].positions.buffer]);
+    };
+    w.requestUnloadSlab = (meshId, x, y, z) => {
+      return w.request({
+        method: 'unloadSlab',
+        meshId,
+        x,
+        y,
+        z
+      });
+    };
+    w.requestPointRaycast = (containerMatrix, position, quaternion) => {
+      return w.request({
+        method: 'pointRaycast',
+        containerMatrix,
+        position,
+        quaternion,
+      });
+    };
+    return w;
+  })(),
+  (async () => {
     const res = await fetch('./colors.json');
     return await res.json();
   })(),
@@ -383,8 +442,8 @@ const [
       .catch(reject);
   }), */
 ]);
-
 worker = w;
+physicsWorker = pw;
 /* physics = (() => {
   const ammoVector3 = new Ammo.btVector3();
   const ammoQuaternion = new Ammo.btQuaternion();
@@ -748,7 +807,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
   mesh.isChunkMesh = true;
   mesh.buildMeshes = [];
   mesh.objects = [];
-  const slabs = [];
+  let slabs = [];
   const freeSlabs = [];
   let index = 0;
   mesh.getSlab = (x, y, z) => {
@@ -778,18 +837,6 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
       }
     }
     return slab;
-  };
-  mesh.removeSlab = slab => {
-    const groupIndex = geometry.groups.findIndex(group => group.start === slab.slabIndex * slabSliceVertices);
-    if (groupIndex === -1) {
-      debugger;
-    }
-    geometry.groups.splice(groupIndex, 1);
-    if (slabs.indexOf(slab) === -1) {
-      debugger;
-    }
-    slabs.splice(slabs.indexOf(slab), 1);
-    freeSlabs.push(slab);
   };
   mesh.updateGeometry = (slab, spec) => {
     geometry.attributes.position.updateRange.offset = slab.slabIndex*slabSliceVertices*3;
@@ -853,6 +900,17 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
           marchesRunning = true;
           chunksNeedUpdate = false;
 
+          slabs = slabs.filter(slab => {
+            if (neededCoords.some(nc => nc.x === slab.x && nc.y === slab.y && nc.z === slab.z)) {
+              return true;
+            } else {
+              const groupIndex = geometry.groups.findIndex(group => group.start === slab.slabIndex * slabSliceVertices);
+              geometry.groups.splice(groupIndex, 1);
+              freeSlabs.push(slab);
+              physicsWorker && physicsWorker.requestUnloadSlab(meshId, slab.x, slab.y, slab.z);
+              return false;
+            }
+          });
           for (let i = 0; i < neededCoords.length; i++) {
             const {x: ax, y: ay, z: az} = neededCoords[i];
 
@@ -929,13 +987,10 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
                 const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
                 group.count = spec.positions.length/3;
               }
+
+              physicsWorker.requestLoadSlab(meshId, mesh.position.x, mesh.position.y, mesh.position.z, specs, parcelSize, subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
             }
           }
-          slabs.slice().forEach(slab => {
-            if (!neededCoords.some(nc => nc.x === slab.x && nc.y === slab.y && nc.z === slab.z)) {
-              mesh.removeSlab(slab);
-            }
-          });
 
           lastCoord.copy(coord);
 
@@ -3097,7 +3152,8 @@ let currentTeleport = false;
 let lastTeleport = false;
 const timeFactor = 1000;
 let lastTimestamp = performance.now();
-let lastParcel  = new THREE.Vector3(0, 0, 0);
+// let lastParcel  = new THREE.Vector3(0, 0, 0);
+let raycastChunkSpec = null;
 function animate(timestamp, frame) {
   const timeDiff = 30/1000;// Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
@@ -3147,8 +3203,18 @@ function animate(timestamp, frame) {
         physicalMesh.body.activate(true);
       } */
 
-      pointRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
-      const raycastChunkSpec = pointRaycaster.readRaycast(chunkMeshContainer, localVector, localQuaternion);
+      // pointRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
+      // const raycastChunkSpec = pointRaycaster.readRaycast(chunkMeshContainer, localVector, localQuaternion);
+
+      physicsWorker && physicsWorker.requestPointRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector.toArray(), localQuaternion.toArray())
+        .then(result => {
+          raycastChunkSpec = result;
+          if (raycastChunkSpec) {
+            raycastChunkSpec.mesh = _findMeshWithMeshId(chunkMeshContainer, raycastChunkSpec.meshId);
+            raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
+            raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
+          }
+        });
 
       [assaultRifleMesh, grenadeMesh, crosshairMesh, plansMesh, pencilMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
         if (weaponMesh) {
@@ -3432,7 +3498,8 @@ function animate(timestamp, frame) {
               const group = currentChunkMesh.geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
               group.count = spec.positions.length/3;
             }
-            if (specs.length > 0 && delta < 0) {
+            physicsWorker.requestLoadSlab(currentChunkMesh.meshId, currentChunkMesh.position.x, currentChunkMesh.position.y, currentChunkMesh.position.z, specs, currentChunkMesh.parcelSize, currentChunkMesh.subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
+            /* if (specs.length > 0 && delta < 0) {
               for (let i = 0; i < 3; i++) {
                 const pxMesh = new THREE.Mesh(tetrehedronGeometry, currentChunkMesh.material[0]);
                 currentChunkMesh.getWorldQuaternion(localQuaternion2).inverse();
@@ -3449,7 +3516,7 @@ function animate(timestamp, frame) {
                 currentChunkMesh.add(pxMesh);
                 pxMeshes.push(pxMesh);
               }
-            }
+            } */
           };
           const _hit = () => {
             if (raycastChunkSpec) {
