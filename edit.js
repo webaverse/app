@@ -39,6 +39,7 @@ const packagesEndpoint = 'https://packages.exokit.org';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const downQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0));
+const loadedSymbol = Symbol('loaded');
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -272,7 +273,7 @@ let nextBuildId = 0;
 } */
 
 let worker = null;
-let remoteChunkMeshes = [];
+let chunkMeshes = [];
 let chunkMesh = null;
 const worldContainer = new THREE.Object3D();
 scene.add(worldContainer);
@@ -282,6 +283,7 @@ let currentChunkMesh = null;
 // let physics = null;
 // let physicalMesh = null;
 // let capsuleMesh = null;
+const _getCurrentChunkMesh = () => currentChunkMesh;
 const _setCurrentChunkMesh = chunkMesh => {
   if (currentChunkMesh) {
     currentChunkMesh.material[0].uniforms.isCurrent.value = 0;
@@ -321,9 +323,9 @@ const [
         }
       });
     });
-    w.requestMarchLand = (seed, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, parcelSize, subparcelSize) => {
+    w.requestLoadPotentials = (seed, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, parcelSize, subparcelSize) => {
       return w.request({
-        method: 'marchLand',
+        method: 'loadPotentials',
         seed,
         meshId,
         x,
@@ -336,6 +338,18 @@ const [
         uvs,
         amps,
         potentials,
+        parcelSize,
+        subparcelSize
+      });
+    };
+    w.requestMarchLand = (seed, meshId, x, y, z, parcelSize, subparcelSize) => {
+      return w.request({
+        method: 'marchLand',
+        seed,
+        meshId,
+        x,
+        y,
+        z,
         parcelSize,
         subparcelSize
       });
@@ -650,7 +664,7 @@ capsuleMesh = (() => {
 })();
 physics.bindCapsuleMeshPhysics(capsuleMesh); */
 
-const _makeChunkMesh = async (seedString, subparcels, parcelSize, subparcelSize) => {
+const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
   const rng = alea(seedString);
   const seedNum = Math.floor(rng() * 0xFFFFFF);
 
@@ -814,6 +828,52 @@ const _makeChunkMesh = async (seedString, subparcels, parcelSize, subparcelSize)
 
         for (let i = 0; i < neededCoords.length; i++) {
           const {x: ax, y: ay, z: az} = neededCoords[i];
+
+          for (let dx = 0; dx <= 1; dx++) {
+            const adx = ax + dx;
+            for (let dy = 0; dy <= 1; dy++) {
+              const ady = ay + dy;
+              for (let dz = 0; dz <= 1; dz++) {
+                const adz = az + dz;
+                const subparcel = mesh.getSubparcel(adx, ady, adz);
+                if (!subparcel[loadedSymbol]) {
+                  const {potentials} = subparcel;
+                  worker.requestLoadPotentials(
+                    seedNum,
+                    meshId,
+                    adx, ady, adz,
+                    parcelSize/2-10,
+                    [
+                      1,
+                      1,
+                      1,
+                    ], [
+                      3,
+                      3,
+                      3,
+                    ], [
+                      0.08,
+                      0.012,
+                      0.016,
+                    ], [
+                      0,
+                      0,
+                      0,
+                    ], [
+                      1,
+                      1.5,
+                      4,
+                    ],
+                    potentials,
+                    parcelSize,
+                    subparcelSize
+                  );
+                  subparcel[loadedSymbol] = true;
+                }
+              }
+            }
+          }
+
           if (!slabs.some(slab => slab.x === ax && slab.y === ay && slab.z === az)) {
             const subparcel = mesh.getSubparcel(ax, ay, az);
             const {potentials} = subparcel;
@@ -821,29 +881,6 @@ const _makeChunkMesh = async (seedString, subparcels, parcelSize, subparcelSize)
               seedNum,
               meshId,
               ax, ay, az,
-              parcelSize/2-10,
-              [
-                1,
-                1,
-                1,
-              ], [
-                3,
-                3,
-                3,
-              ], [
-                0.08,
-                0.012,
-                0.016,
-              ], [
-                0,
-                0,
-                0,
-              ], [
-                1,
-                1.5,
-                4,
-              ],
-              potentials,
               parcelSize,
               subparcelSize
             );
@@ -895,6 +932,69 @@ const _makeChunkMesh = async (seedString, subparcels, parcelSize, subparcelSize)
   };
   return mesh;
 };
+window.gen = async seedString => {
+  const oldChunkMesh = _getCurrentChunkMesh();
+  if (oldChunkMesh) {
+    chunkMeshContainer.remove(oldChunkMesh);
+    chunkMeshes.splice(chunkMeshes.indexOf(oldChunkMesh), 1);
+    _setCurrentChunkMesh(null);
+  }
+
+  const chunkMesh = _makeChunkMesh(seedString, [], PARCEL_SIZE, SUBPARCEL_SIZE);
+  chunkMesh.position.y = -PARCEL_SIZE - 5;
+  chunkMesh.position.x = -PARCEL_SIZE/2;
+  chunkMesh.position.z = -PARCEL_SIZE/2;
+  chunkMeshContainer.add(chunkMesh);
+  chunkMeshes.push(chunkMesh);
+  _setCurrentChunkMesh(chunkMesh);
+
+  pe.camera.position.set(0, 0, 2);
+  pe.camera.quaternion.set(0, 0, 0, 1);
+  pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
+  pe.camera.updateMatrixWorld();
+  pe.setCamera(camera);
+};
+window.save = async () => {
+  await storage.set('planet', {
+    seedString: currentChunkMesh.seedString,
+    subparcels: currentChunkMesh.subparcels.map(subparcel => {
+      return {
+        x: subparcel.x,
+        y: subparcel.y,
+        z: subparcel.z,
+        potentials: subparcel.potentials && base64.encode(subparcel.potentials.buffer),
+        builds: subparcel.builds,
+      };
+    }),
+  });
+};
+window.load = async () => {
+  const chunkSpec = await storage.get('planet');
+  for (const subparcel of chunkSpec.subparcels) {
+    if (subparcel.potentials) {
+      subparcel.potentials = new Float32Array(base64.decode(subparcel.potentials));
+    }
+  }
+
+  const oldChunkMesh = _getCurrentChunkMesh();
+  if (oldChunkMesh) {
+    chunkMeshContainer.remove(oldChunkMesh);
+    chunkMeshes.splice(chunkMeshes.indexOf(oldChunkMesh), 1);
+    _setCurrentChunkMesh(null);
+  }
+
+  console.log('load spec', chunkSpec);
+
+  const chunkMesh = _makeChunkMesh(chunkSpec.seedString, chunkSpec.subparcels, PARCEL_SIZE, SUBPARCEL_SIZE);
+  chunkMesh.position.y = -PARCEL_SIZE - 5;
+  chunkMesh.position.x = -PARCEL_SIZE/2;
+  chunkMesh.position.z = -PARCEL_SIZE/2;
+  chunkMeshContainer.add(chunkMesh);
+  chunkMeshes.push(chunkMesh);
+  _setCurrentChunkMesh(chunkMesh);
+};
+window.gen('lol');
+
 /* const _makePlanetChunkMesh = async () => {
   const meshId = ++nextMeshId;
   const specs = await worker.requestMarchPlanet(Math.floor(rng() * 0xFFFFFF), meshId);
@@ -995,25 +1095,6 @@ const _makeChunkMesh = async (seedString, subparcels, parcelSize, subparcelSize)
   }
   return mesh;
 }; */
-
-chunkMesh = await _makeChunkMesh('lol', [], PARCEL_SIZE, SUBPARCEL_SIZE);
-chunkMesh.position.y = -PARCEL_SIZE - 5;
-chunkMesh.position.x = -PARCEL_SIZE/2;
-chunkMesh.position.z = -PARCEL_SIZE/2;
-// chunkMesh.updateMatrixWorld();
-// await chunkMesh.update(new THREE.Vector3(0, 0, 0));
-chunkMeshContainer.add(chunkMesh);
-remoteChunkMeshes.push(chunkMesh);
-_setCurrentChunkMesh(chunkMesh);
-
-const numRemoteChunkMeshes = 1;
-for (let i = 0; i < numRemoteChunkMeshes; i++) {
-  // const remoteChunkMesh = await _makeChunkMesh('lol2', [], PARCEL_SIZE, SUBPARCEL_SIZE);
-  /* const remoteChunkMesh = await _makePlanetChunkMesh();
-  remoteChunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(100);
-  chunkMeshContainer.add(remoteChunkMesh);
-  remoteChunkMeshes.push(remoteChunkMesh); */
-}
 
 /* const generateModels = await _loadGltf('./generate.glb');
 for (let i = 0; i < 30; i++) {
@@ -1116,9 +1197,9 @@ for (let i = 0; i < 30; i++) {
 }
 
 // physics.bindStaticMeshPhysics(chunkMesh);
-/* for (let i = 0; i < remoteChunkMeshes.length; i++) {
+/* for (let i = 0; i < chunkMeshes.length; i++) {
   console.time('lol');
-  physics.bindStaticMeshPhysics(remoteChunkMeshes[i]);
+  physics.bindStaticMeshPhysics(chunkMeshes[i]);
   console.timeEnd('lol');
 } */
 
@@ -2698,7 +2779,7 @@ const _collideItems = matrix => {
 };
 const _collideChunk = matrix => {
   matrix.decompose(localVector3, localQuaternion2, localVector4);
-  chunkMesh && chunkMesh.update(localVector3);
+  currentChunkMesh && currentChunkMesh.update(localVector3);
 };
 
 const velocity = new THREE.Vector3();
@@ -2720,9 +2801,9 @@ function animate(timestamp, frame) {
   } */
 
   const now = Date.now();
-  for (const remoteChunkMesh of remoteChunkMeshes) {
-    remoteChunkMesh.material[0].uniforms.uTime.value = (now % timeFactor) / timeFactor;
-    for (const buildMesh of remoteChunkMesh.buildMeshes) {
+  for (const chunkMesh of chunkMeshes) {
+    chunkMesh.material[0].uniforms.uTime.value = (now % timeFactor) / timeFactor;
+    for (const buildMesh of chunkMesh.buildMeshes) {
       buildMesh.update();
     }
   }
@@ -5786,25 +5867,3 @@ window.addEventListener('popstate', e => {
   _handleUrl(window.location.href);
 });
 _handleUrl(window.location.href);
-
-window.save = async () => {
-  await storage.set('planet', {
-    seed: currentChunkMesh.seedString,
-    subparcels: currentChunkMesh.subparcels.map(subparcel => {
-      return {
-        x: subparcel.x,
-        y: subparcel.y,
-        z: subparcel.z,
-        potentials: subparcel.potentials && base64.encode(subparcel.potentials.buffer),
-        builds: subparcel.builds,
-      };
-    }),
-  });
-};
-window.load = async () => {
-  const chunkSpec = await storage.get('planet');
-  for (const subparcel of chunkSpec.subparcels) {
-    subparcel.potentials = new Float32Array(base64.decode(subparcel.potentials));
-  }
-  return chunkSpec;
-};
