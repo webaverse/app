@@ -263,7 +263,6 @@ const _decorateMeshForRaycast = mesh => {
 };
 
 let nextMeshId = 0;
-let nextBuildId = 0;
 /* function meshIdToArray(meshId) {
   return [
     ((meshId >> 16) & 0xFF),
@@ -921,13 +920,257 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
     if (buildMeshesNeedUpdate) {
       buildMeshesNeedUpdate = false;
 
-      for (const subparcel of mesh.subparcels) {
+      const _addBuild = build => {
+        const buildMesh = (() => {
+          switch (build.type) {
+            case 'wall': return wallMesh;
+            case 'floor': return platformMesh;
+            case 'stair': return stairsMesh;
+            case 'trap': return spikesMesh;
+            default: return null;
+          }
+        })();
+        buildMesh.traverse(o => {
+          if (o.isMesh && o.originalMaterial) {
+            o.material = o.originalMaterial;
+            o.originalMaterial = null;
+          }
+        });
+        const buildMeshClone = buildMesh.clone();
+        buildMeshClone.position.fromArray(build.position);
+        buildMeshClone.quaternion.fromArray(build.quaternion);
+        buildMeshClone.traverse(o => {
+          if (o.isMesh) {
+            o.isBuildMesh = true;
+            o.material = o.material.clone();
+          }
+        });
+        buildMeshClone.build = build;
+        buildMeshClone.buildMeshType = buildMesh.buildMeshType;
+        buildMeshClone.hullMesh = buildMesh.hullMesh.clone();
+        buildMeshClone.hullMesh.geometry = buildMesh.hullMesh.geometry.clone();
+        _decorateMeshForRaycast(buildMeshClone.hullMesh);
+        buildMeshClone.hullMesh.isBuildHullMesh = true;
+        buildMeshClone.hullMesh.buildMesh = buildMeshClone;
+        let animation = null;
+        let hp = 100;
+        buildMeshClone.hit = dmg => {
+          if (animation) {
+            animation.end();
+            animation = null;
+          }
+
+          hp = Math.max(hp - dmg, 0);
+          if (hp > 0) {
+            const startTime = Date.now();
+            const endTime = startTime + 500;
+            const originalPosition = buildMeshClone.position.clone();
+            animation = {
+              update() {
+                const now = Date.now();
+                const factor = (now - startTime) / (endTime - startTime);
+                if (factor < 1) {
+                  buildMeshClone.position.copy(originalPosition)
+                    .add(localVector2.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2));
+                } else {
+                  animation.end();
+                  animation = null;
+                }
+              },
+              end() {
+                buildMeshClone.position.copy(originalPosition);
+                buildMeshClone.traverse(o => {
+                  if (o.isMesh) {
+                    o.material.color.setHex(0xFFFFFF);
+                  }
+                });
+              },
+            };
+            buildMeshClone.traverse(o => {
+              if (o.isMesh) {
+                o.material.color.setHex(0xef5350).multiplyScalar(2);
+              }
+            });
+          } else {
+            const radius = 0.5;
+            const segments = 12;
+            const color = 0x66bb6a;
+            const opacity = 0.5;
+
+            const itemMesh = (() => {
+              const object = new THREE.Object3D();
+
+              const matMeshes = [woodMesh, stoneMesh, metalMesh];
+              const matIndex = Math.floor(Math.random()*matMeshes.length);
+              const matMesh = matMeshes[matIndex];
+              const matMeshClone = matMesh.clone();
+              matMeshClone.position.y = 0.5;
+              matMeshClone.visible = true;
+              matMeshClone.isBuildMesh = true;
+              object.add(matMeshClone);
+
+              const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
+                .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius/2, 0));
+              const ys = new Float32Array(skirtGeometry.attributes.position.array.length/3);
+              for (let i = 0; i < skirtGeometry.attributes.position.array.length/3; i++) {
+                ys[i] = 1-skirtGeometry.attributes.position.array[i*3+1]/radius;
+              }
+              skirtGeometry.setAttribute('y', new THREE.BufferAttribute(ys, 1));
+              // skirtGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.5, 0));
+              const skirtMaterial = new THREE.ShaderMaterial({
+                uniforms: {
+                  uAnimation: {
+                    type: 'f',
+                    value: 0,
+                  },
+                },
+                vertexShader: `\
+                  #define PI 3.1415926535897932384626433832795
+
+                  uniform float uAnimation;
+                  attribute float y;
+                  attribute vec3 barycentric;
+                  varying float vY;
+                  varying float vUv;
+                  varying float vOpacity;
+                  void main() {
+                    vY = y * ${opacity.toFixed(8)};
+                    vUv = uv.x + uAnimation;
+                    vOpacity = 0.5 + 0.5 * (sin(uAnimation*20.0*PI*2.0)+1.0)/2.0;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                  }
+                `,
+                fragmentShader: `\
+                  #define PI 3.1415926535897932384626433832795
+
+                  uniform sampler2D uCameraTex;
+                  varying float vY;
+                  varying float vUv;
+                  varying float vOpacity;
+
+                  vec3 c = vec3(${new THREE.Color(color).toArray().join(', ')});
+
+                  void main() {
+                    float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
+                    gl_FragColor = vec4(c, a);
+                  }
+                `,
+                side: THREE.DoubleSide,
+                transparent: true,
+                depthWrite: false,
+              });
+              const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
+              skirtMesh.frustumCulled = false;
+              skirtMesh.isBuildMesh = true;
+              object.add(skirtMesh);
+
+              let animation = null;
+              object.pickUp = () => {
+                if (!animation) {
+                  skirtMesh.visible = false;
+
+                  const now = Date.now();
+                  const startTime = now;
+                  const endTime = startTime + 1000;
+                  const startPosition = object.position.clone();
+                  animation = {
+                    update(posePosition) {
+                      const now = Date.now();
+                      const factor = Math.min((now - startTime) / (endTime - startTime), 1);
+
+                      if (factor < 0.5) {
+                        const localFactor = factor/0.5;
+                        object.position.copy(startPosition)
+                          .lerp(posePosition, cubicBezier(localFactor));
+                      } else if (factor < 1) {
+                        const localFactor = (factor-0.5)/0.5;
+                        object.position.copy(posePosition);
+                      } else {
+                        object.parent.remove(object);
+                        itemMeshes.splice(itemMeshes.indexOf(object), 1);
+                        animation = null;
+                      }
+                    },
+                  };
+                }
+              };
+              object.update = posePosition => {
+                if (!animation) {
+                  const now = Date.now();
+                  skirtMaterial.uniforms.uAnimation.value = (now%60000)/60000;
+                  matMeshClone.rotation.y = (now%5000)/5000*Math.PI*2;
+                } else {
+                  animation.update(posePosition);
+                }
+              };
+
+              return object;
+            })();
+            itemMesh.position.copy(buildMeshClone.position);
+            itemMesh.quaternion.copy(buildMeshClone.quaternion);
+            // itemMesh.scale.copy(buildMeshClone.scale);
+            mesh.add(itemMesh);
+            itemMeshes.push(itemMesh);
+
+            const buildSubparcelPosition = new THREE.Vector3(
+              Math.floor(buildMeshClone.position.x/subparcelSize),
+              Math.floor(buildMeshClone.position.y/subparcelSize),
+              Math.floor(buildMeshClone.position.z/subparcelSize)
+            );
+            const subparcel = mesh.getSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z);
+            const buildIndex = subparcel.builds.indexOf(buildMeshClone.build);
+            if (buildIndex === -1) {
+              debugger;
+            }
+            subparcel.builds.splice(buildIndex, 1);
+            mesh.updateBuildMeshes();
+          }
+        };
+        buildMeshClone.update = () => {
+          animation && animation.update();
+        };
+        mesh.add(buildMeshClone);
+        mesh.buildMeshes.push(buildMeshClone);
+
+        buildMeshClone.hullMesh.position.copy(buildMeshClone.position);
+        buildMeshClone.hullMesh.quaternion.copy(buildMeshClone.quaternion);
+        buildMeshClone.hullMesh.scale.copy(buildMeshClone.scale);
+        mesh.add(buildMeshClone.hullMesh);
+      };
+      const _removeBuildMesh = buildMeshClone => {
+        mesh.remove(buildMeshClone);
+        mesh.remove(buildMeshClone.hullMesh);
+        mesh.buildMeshes.splice(mesh.buildMeshes.indexOf(buildMeshClone), 1);
+      };
+      for (const neededCoord of neededCoords) {
+        const subparcel = mesh.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
+        for (const build of subparcel.builds) {
+          if (!mesh.buildMeshes.some(buildMesh => buildMesh.build === build)) {
+            _addBuild(build);
+          }
+        }
+      }
+      mesh.buildMeshes.slice().forEach(buildMesh => {
+        const sx = Math.floor(buildMesh.build.position[0]/subparcelSize);
+        const sy = Math.floor(buildMesh.build.position[1]/subparcelSize);
+        const sz = Math.floor(buildMesh.build.position[2]/subparcelSize);
+        if (!neededCoords.some(nc => nc.x === sx && nc.y === sy && nc.z === sz)) {
+          _removeBuildMesh(buildMesh);
+        } else {
+          const subparcel = mesh.getSubparcel(sx, sy, sz);
+          if (!subparcel.builds.includes(buildMesh.build)) {
+            _removeBuildMesh(buildMesh);
+          }
+        }
+      });
+
+      /* for (const subparcel of mesh.subparcels) {
         const isSubparcelNeeded = neededCoords.some(nc => nc.x === subparcel.x && nc.y === subparcel.y && nc.z === subparcel.z);
         for (const build of subparcel.builds) {
           const buildMesh = mesh.buildMeshes.find(bm => bm.buildId === build.id);
           buildMesh.visible = isSubparcelNeeded;
         }
-      }
+      } */
     }
   };
   return mesh;
@@ -3245,224 +3488,18 @@ function animate(timestamp, frame) {
             }
           })();
           if (!currentChunkMesh.buildMeshes.some(bm => _buildMeshEquals(bm, buildMesh))) {
-            const buildMeshClone = buildMesh.clone();
-            buildMeshClone.traverse(o => {
-              if (o.isMesh) {
-                o.isBuildMesh = true;
-                o.material = o.material.clone();
-              }
-            });
-            buildMeshClone.buildId = ++nextBuildId;
-            buildMeshClone.buildMeshType = buildMesh.buildMeshType;
-            buildMeshClone.hullMesh = buildMesh.hullMesh.clone();
-            buildMeshClone.hullMesh.geometry = buildMesh.hullMesh.geometry.clone();
-            _decorateMeshForRaycast(buildMeshClone.hullMesh);
-            buildMeshClone.hullMesh.isBuildHullMesh = true;
-            buildMeshClone.hullMesh.buildMesh = buildMeshClone;
-            let animation = null;
-            let hp = 100;
-            buildMeshClone.hit = dmg => {
-              if (animation) {
-                animation.end();
-                animation = null;
-              }
-
-              hp = Math.max(hp - dmg, 0);
-              if (hp > 0) {
-                const startTime = Date.now();
-                const endTime = startTime + 500;
-                const originalPosition = buildMeshClone.position.clone();
-                animation = {
-                  update() {
-                    const now = Date.now();
-                    const factor = (now - startTime) / (endTime - startTime);
-                    if (factor < 1) {
-                      buildMeshClone.position.copy(originalPosition)
-                        .add(localVector2.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2));
-                    } else {
-                      animation.end();
-                      animation = null;
-                    }
-                  },
-                  end() {
-                    buildMeshClone.position.copy(originalPosition);
-                    buildMeshClone.traverse(o => {
-                      if (o.isMesh) {
-                        o.material.color.setHex(0xFFFFFF);
-                      }
-                    });
-                  },
-                };
-                buildMeshClone.traverse(o => {
-                  if (o.isMesh) {
-                    o.material.color.setHex(0xef5350).multiplyScalar(2);
-                  }
-                });
-              } else {
-                const radius = 0.5;
-                const segments = 12;
-                const color = 0x66bb6a;
-                const opacity = 0.5;
-
-                const itemMesh = (() => {
-                  const object = new THREE.Object3D();
-
-                  const matMeshes = [woodMesh, stoneMesh, metalMesh];
-                  const matIndex = Math.floor(Math.random()*matMeshes.length);
-                  const matMesh = matMeshes[matIndex];
-                  const matMeshClone = matMesh.clone();
-                  matMeshClone.position.y = 0.5;
-                  matMeshClone.visible = true;
-                  matMeshClone.isBuildMesh = true;
-                  object.add(matMeshClone);
-
-                  const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
-                    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius/2, 0));
-                  const ys = new Float32Array(skirtGeometry.attributes.position.array.length/3);
-                  for (let i = 0; i < skirtGeometry.attributes.position.array.length/3; i++) {
-                    ys[i] = 1-skirtGeometry.attributes.position.array[i*3+1]/radius;
-                  }
-                  skirtGeometry.setAttribute('y', new THREE.BufferAttribute(ys, 1));
-                  // skirtGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.5, 0));
-                  const skirtMaterial = new THREE.ShaderMaterial({
-                    uniforms: {
-                      uAnimation: {
-                        type: 'f',
-                        value: 0,
-                      },
-                    },
-                    vertexShader: `\
-                      #define PI 3.1415926535897932384626433832795
-
-                      uniform float uAnimation;
-                      attribute float y;
-                      attribute vec3 barycentric;
-                      varying float vY;
-                      varying float vUv;
-                      varying float vOpacity;
-                      void main() {
-                        vY = y * ${opacity.toFixed(8)};
-                        vUv = uv.x + uAnimation;
-                        vOpacity = 0.5 + 0.5 * (sin(uAnimation*20.0*PI*2.0)+1.0)/2.0;
-                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                      }
-                    `,
-                    fragmentShader: `\
-                      #define PI 3.1415926535897932384626433832795
-
-                      uniform sampler2D uCameraTex;
-                      varying float vY;
-                      varying float vUv;
-                      varying float vOpacity;
-
-                      vec3 c = vec3(${new THREE.Color(color).toArray().join(', ')});
-
-                      void main() {
-                        float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
-                        gl_FragColor = vec4(c, a);
-                      }
-                    `,
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    depthWrite: false,
-                  });
-                  const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
-                  skirtMesh.frustumCulled = false;
-                  skirtMesh.isBuildMesh = true;
-                  object.add(skirtMesh);
-
-                  let animation = null;
-                  object.pickUp = () => {
-                    if (!animation) {
-                      skirtMesh.visible = false;
-
-                      const now = Date.now();
-                      const startTime = now;
-                      const endTime = startTime + 1000;
-                      const startPosition = object.position.clone();
-                      animation = {
-                        update(posePosition) {
-                          const now = Date.now();
-                          const factor = Math.min((now - startTime) / (endTime - startTime), 1);
-
-                          if (factor < 0.5) {
-                            const localFactor = factor/0.5;
-                            object.position.copy(startPosition)
-                              .lerp(posePosition, cubicBezier(localFactor));
-                          } else if (factor < 1) {
-                            const localFactor = (factor-0.5)/0.5;
-                            object.position.copy(posePosition);
-                          } else {
-                            object.parent.remove(object);
-                            itemMeshes.splice(itemMeshes.indexOf(object), 1);
-                            animation = null;
-                          }
-                        },
-                      };
-                    }
-                  };
-                  object.update = posePosition => {
-                    if (!animation) {
-                      const now = Date.now();
-                      skirtMaterial.uniforms.uAnimation.value = (now%60000)/60000;
-                      matMeshClone.rotation.y = (now%5000)/5000*Math.PI*2;
-                    } else {
-                      animation.update(posePosition);
-                    }
-                  };
-
-                  return object;
-                })();
-
-                const buildSubparcelPosition = new THREE.Vector3(
-                  Math.floor(buildMeshClone.position.x/buildMeshClone.parent.subparcelSize),
-                  Math.floor(buildMeshClone.position.y/buildMeshClone.parent.subparcelSize),
-                  Math.floor(buildMeshClone.position.z/buildMeshClone.parent.subparcelSize)
-                );
-                const subparcel = buildMeshClone.parent.getSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z);
-                const buildIndex = subparcel.builds.findIndex(build => build.id === buildMeshClone.buildId);
-                if (buildIndex === -1) {
-                  debugger;
-                }
-                subparcel.builds.splice(buildIndex, 1);
-
-                itemMesh.position.copy(buildMeshClone.position);
-                itemMesh.quaternion.copy(buildMeshClone.quaternion);
-                // itemMesh.scale.copy(buildMeshClone.scale);
-                buildMeshClone.parent.add(itemMesh);
-                itemMeshes.push(itemMesh);
-
-                buildMeshClone.parent.buildMeshes.splice(buildMeshClone.parent.buildMeshes.indexOf(buildMeshClone), 1);
-                buildMeshClone.parent.remove(buildMeshClone);
-                buildMeshClone.hullMesh.parent.remove(buildMeshClone.hullMesh);
-              }
-            };
-            buildMeshClone.update = () => {
-              animation && animation.update();
-            };
-            buildMeshClone.visible = false;
-            currentChunkMesh.add(buildMeshClone);
-            currentChunkMesh.buildMeshes.push(buildMeshClone);
-
-            buildMeshClone.hullMesh.position.copy(buildMeshClone.position);
-            buildMeshClone.hullMesh.quaternion.copy(buildMeshClone.quaternion);
-            buildMeshClone.hullMesh.scale.copy(buildMeshClone.scale);
-            buildMeshClone.hullMesh.visible = false;
-            currentChunkMesh.add(buildMeshClone.hullMesh);
-
             const buildSubparcelPosition = new THREE.Vector3(
-              Math.floor(buildMeshClone.position.x/buildMeshClone.parent.subparcelSize),
-              Math.floor(buildMeshClone.position.y/buildMeshClone.parent.subparcelSize),
-              Math.floor(buildMeshClone.position.z/buildMeshClone.parent.subparcelSize)
+              Math.floor(buildMesh.position.x/currentChunkMesh.subparcelSize),
+              Math.floor(buildMesh.position.y/currentChunkMesh.subparcelSize),
+              Math.floor(buildMesh.position.z/currentChunkMesh.subparcelSize)
             );
-            const subparcel = buildMeshClone.parent.getSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z);
+            const subparcel = currentChunkMesh.getSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z);
             subparcel.builds.push({
-              id: buildMeshClone.buildId,
-              type: buildMeshClone.buildMeshType,
-              position: buildMeshClone.position.toArray(),
-              quaternion: buildMeshClone.quaternion.toArray(),
+              type: buildMesh.buildMeshType,
+              position: buildMesh.position.toArray(),
+              quaternion: buildMesh.quaternion.toArray(),
             });
-            buildMeshClone.parent.updateBuildMeshes();
+            currentChunkMesh.updateBuildMeshes();
           }
         }
       }
