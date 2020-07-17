@@ -3499,7 +3499,7 @@ function animate(timestamp, frame) {
               group.count = spec.positions.length/3;
             }
             physicsWorker.requestLoadSlab(currentChunkMesh.meshId, currentChunkMesh.position.x, currentChunkMesh.position.y, currentChunkMesh.position.z, specs, currentChunkMesh.parcelSize, currentChunkMesh.subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
-            /* if (specs.length > 0 && delta < 0) {
+            if (specs.length > 0 && delta < 0) {
               for (let i = 0; i < 3; i++) {
                 const pxMesh = new THREE.Mesh(tetrehedronGeometry, currentChunkMesh.material[0]);
                 currentChunkMesh.getWorldQuaternion(localQuaternion2).inverse();
@@ -3516,7 +3516,7 @@ function animate(timestamp, frame) {
                 currentChunkMesh.add(pxMesh);
                 pxMeshes.push(pxMesh);
               }
-            } */
+            }
           };
           const _hit = () => {
             if (raycastChunkSpec) {
