@@ -389,7 +389,7 @@ const _handleMessage = data => {
       const chunk = _getChunk(meshId, subparcelSize);
 
       for (const mineSpec of mineSpecs) {
-        const slab = chunk.getOrCreateSlab(mineSpec.x, mineSpec.y, mineSpec.z);
+        const slab = chunk.getSlab(mineSpec.x, mineSpec.y, mineSpec.z);
         for (const mine of mineSpec.mines) {
           const [potentialIndex, value] = mine;
           slab.potentials[potentialIndex] += value;
@@ -399,7 +399,7 @@ const _handleMessage = data => {
       const results = [];
       const transfers = [];
       for (const mineSpec of mineSpecs) {
-        const slab = chunk.getOrCreateSlab(mineSpec.x, mineSpec.y, mineSpec.z);
+        const slab = chunk.getSlab(mineSpec.x, mineSpec.y, mineSpec.z);
         const [result, transfer] = _meshChunkSlab(chunk, slab, subparcelSize);
         results.push(result);
         transfers.push(transfer);
