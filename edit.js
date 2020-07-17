@@ -11,10 +11,11 @@ import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxy
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
+import * as b64 from './b64.js';
 // import {makeTextMesh, makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
 import {makeTextMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
-// import storage from './storage.js';
+import storage from './storage.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
@@ -5779,3 +5780,21 @@ window.addEventListener('popstate', e => {
   _handleUrl(window.location.href);
 });
 _handleUrl(window.location.href);
+
+window.save = async () => {
+  await storage.set('planet', currentChunkMesh.subparcels.map(subparcel => {
+    return {
+      x: subparcel.x,
+      y: subparcel.y,
+      z: subparcel.z,
+      potentials: subparcel.potentials && b64.encode(subparcel.potentials.buffer),
+      builds: subparcel.builds,
+    };
+  }));
+};
+window.load = async () => {
+  const subparcels = await storage.get('planet');
+  for (const subparcel of subparcels) {
+    subparcel.potentials = new Float32Array(b64.decode(subparcel.potentials));
+  }
+};
