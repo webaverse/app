@@ -277,33 +277,33 @@ let loaded = false;
 const _handleMessage = data => {
   const {method} = data;
   switch (method) {
-    case 'marchLand': {
+    case 'loadPotentials': {
       const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, parcelSize, subparcelSize} = data;
 
       const chunk = _getChunk(meshId, subparcelSize);
-      for (let dx = 0; dx <= 1; dx++) {
-        const ix = x + dx;
-        for (let dy = 0; dy <= 1; dy++) {
-          const iy = y + dy;
-          for (let dz = 0; dz <= 1; dz++) {
-            const iz = z + dz;
-            const slab = chunk.getSlab(ix, iy, iz);
-            if (!slab) {
-              const shiftsData = [ix*subparcelSize, iy*subparcelSize, iz*subparcelSize];
-              const genSpec = _makeLandPotentials(seedData, baseHeight, freqs, octaves, scales, uvs, amps, shiftsData, parcelSize, subparcelSize);
-              if (potentials) {
-                for (let i = 0; i < potentials.length; i++) {
-                  genSpec.potentials[i] += potentials[i];
-                }
-              }
-              chunk.setSlab(ix, iy, iz, genSpec.potentials);
-            }
+      const slab = chunk.getSlab(x, y, z);
+      if (!slab) {
+        const shiftsData = [x*subparcelSize, y*subparcelSize, z*subparcelSize];
+        const genSpec = _makeLandPotentials(seedData, baseHeight, freqs, octaves, scales, uvs, amps, shiftsData, parcelSize, subparcelSize);
+        if (potentials) {
+          for (let i = 0; i < potentials.length; i++) {
+            genSpec.potentials[i] += potentials[i];
           }
         }
+        chunk.setSlab(x, y, z, genSpec.potentials);
       }
+
+      self.postMessage({
+        result: {},
+      });
+      break;
+    }
+    case 'marchLand': {
+      const {seed: seedData, meshId, x, y, z, parcelSize, subparcelSize} = data;
 
       const results = [];
       const transfers = [];
+      const chunk = _getChunk(meshId, subparcelSize);
       const slab = chunk.getSlab(x, y, z);
       const [result, transfer] = _meshChunkSlab(chunk, slab, subparcelSize);
       results.push(result);
