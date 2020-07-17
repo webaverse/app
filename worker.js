@@ -6,8 +6,6 @@ importScripts('./bin/objectize2.js');
   SUBPARCEL_SIZE_P1,
   NUM_PARCELS,
 } = globalThis.constants; */
-const maxDistScale = 1;
-const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
 const potentialDefault = -0.5;
 
 class Chunk {
@@ -75,7 +73,7 @@ class Allocator {
 
 function mod(a, b) {
   return ((a%b)+b)%b;
-};
+}
 const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
 const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSizeP1*subparcelSizeP1 + z*subparcelSizeP1;
 const _makeLandPotentials = (seedData, baseHeight, freqsData, octavesData, scalesData, uvsData, ampsData, shiftsData, parcelSize, subparcelSize) => {
@@ -386,68 +384,26 @@ const _handleMessage = data => {
       break;
     } */
     case 'mine': {
-      const {delta, meshId, position, subparcelSize} = data;
+      const {meshId, mineSpecs, subparcelSize} = data;
 
       const chunk = _getChunk(meshId, subparcelSize);
 
-      const requiredSlices = [];
-      const [x, y, z] = position;
-      for (let dy = -1; dy <= 1; dy++) {
-        const ay = y + dy;
-        for (let dz = -1; dz <= 1; dz++) {
-          const az = z + dz;
-          for (let dx = -1; dx <= 1; dx++) {
-            const ax = x + dx;
-
-            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-            const dv = maxDist - dist;
-            if (dv > 0) {
-              const sx = Math.floor(ax/subparcelSize);
-              const sy = Math.floor(ay/subparcelSize);
-              const sz = Math.floor(az/subparcelSize);
-              const slab = chunk.getOrCreateSlab(sx, sy, sz);
-              const {potentials} = slab;
-
-              const lx = mod(ax, subparcelSize);
-              const ly = mod(ay, subparcelSize);
-              const lz = mod(az, subparcelSize);
-              const potentialIndex = _getPotentialIndex(lx, ly, lz, subparcelSize);
-              potentials[potentialIndex] = Math.min(Math.max(potentials[potentialIndex] + dv * delta, -2), 2);
-
-              for (let ddy = -1; ddy <= 1; ddy++) {
-                const ady = ay + ddy;
-                for (let ddz = -1; ddz <= 1; ddz++) {
-                  const adz = az + ddz;
-                  for (let ddx = -1; ddx <= 1; ddx++) {
-                    const adx = ax + ddx;
-
-                    const sdx = Math.floor(adx/subparcelSize);
-                    const sdy = Math.floor(ady/subparcelSize);
-                    const sdz = Math.floor(adz/subparcelSize);
-                    if (!requiredSlices.some(slice => slice.x === sdx && slice.y === sdy && slice.z === sdz)) {
-                      requiredSlices.push({
-                        x: sdx,
-                        y: sdy,
-                        z: sdz,
-                      });
-                    }
-                  }
-                }
-              }
-            }
-          }
+      for (const mineSpec of mineSpecs) {
+        const slab = chunk.getOrCreateSlab(mineSpec.x, mineSpec.y, mineSpec.z);
+        for (const mine of mineSpec.mines) {
+          const [potentialIndex, value] = mine;
+          slab.potentials[potentialIndex] += value;
         }
       }
 
       const results = [];
       const transfers = [];
-      requiredSlices.forEach(slice => {
-        const {x, y, z} = slice;
-        const slab = chunk.getOrCreateSlab(x, y, z);
+      for (const mineSpec of mineSpecs) {
+        const slab = chunk.getOrCreateSlab(mineSpec.x, mineSpec.y, mineSpec.z);
         const [result, transfer] = _meshChunkSlab(chunk, slab, subparcelSize);
         results.push(result);
         transfers.push(transfer);
-      });
+      }
 
       self.postMessage({
         result: results,

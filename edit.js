@@ -219,6 +219,11 @@ const _buildMeshEquals = (a, b) => {
     return false;
   }
 };
+function mod(a, b) {
+  return ((a%b)+b)%b;
+}
+const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
+
 const itemMeshes = [];
 const npcMeshes = [];
 const _decorateMeshForRaycast = mesh => {
@@ -342,12 +347,11 @@ const [
         meshId,
       });
     };
-    w.requestMine = (delta, meshId, position, subparcelSize) => {
+    w.requestMine = (meshId, mineSpecs, subparcelSize) => {
       return w.request({
         method: 'mine',
-        delta,
         meshId,
-        position,
+        mineSpecs,
         subparcelSize,
       });
     };
@@ -717,6 +721,7 @@ const _makeLandChunkMesh = async (parcelSize, subparcelSize) => {
         x,
         y,
         z,
+        potentials: null,
         builds: [],
       };
       mesh.subparcels.push(subparcel);
@@ -2926,14 +2931,92 @@ function animate(timestamp, frame) {
             localVector2.y = Math.floor(localVector2.y);
             localVector2.z = Math.floor(localVector2.z);
 
-            const sx = Math.floor(localVector2.x/currentChunkMesh.subparcelSize);
+            /* const sx = Math.floor(localVector2.x/currentChunkMesh.subparcelSize);
             const sy = Math.floor(localVector2.y/currentChunkMesh.subparcelSize);
-            const sz = Math.floor(localVector2.z/currentChunkMesh.subparcelSize);
+            const sz = Math.floor(localVector2.z/currentChunkMesh.subparcelSize); */
+
+            const minesMap = {};
+            const _getMinesKey = (x, y, z) => [x, y, z].join(':');
+            const _getMines = (x, y, z) => {
+              const minesKey = _getMinesKey(x, y, z);
+              let mines = minesMap[minesKey];
+              if (!mines) {
+                mines = [];
+                minesMap[minesKey] = mines;
+              }
+              return mines;
+            };
+
+            const mineSpecs = [];
+            const {x, y, z} = localVector2;
+            for (let dy = -1; dy <= 1; dy++) {
+              const ay = y + dy;
+              for (let dz = -1; dz <= 1; dz++) {
+                const az = z + dz;
+                for (let dx = -1; dx <= 1; dx++) {
+                  const ax = x + dx;
+
+                  const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                  const maxDistScale = 1;
+                  const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
+                  const distanceDiff = maxDist - dist;
+                  if (distanceDiff > 0) {
+                    const sx = Math.floor(ax/currentChunkMesh.subparcelSize);
+                    const sy = Math.floor(ay/currentChunkMesh.subparcelSize);
+                    const sz = Math.floor(az/currentChunkMesh.subparcelSize);
+
+                    const subparcel = currentChunkMesh.getSubparcel(sx, sy, sz);
+                    if (!subparcel.potentials) {
+                      subparcel.potentials = new Float32Array(currentChunkMesh.subparcelSize * currentChunkMesh.subparcelSize * currentChunkMesh.subparcelSize);
+                    }
+                    // const slab = chunk.getOrCreateSlab(sx, sy, sz);
+                    // const {potentials} = slab;
+
+                    const lx = mod(ax, currentChunkMesh.subparcelSize);
+                    const ly = mod(ay, currentChunkMesh.subparcelSize);
+                    const lz = mod(az, currentChunkMesh.subparcelSize);
+                    const potentialIndex = _getPotentialIndex(lx, ly, lz, currentChunkMesh.subparcelSize);
+                    const value = distanceDiff * delta;
+                    subparcel.potentials[potentialIndex] = subparcel.potentials[potentialIndex] + value;
+
+                    const mines = _getMines(sx, sy, sz);
+                    mines.push([potentialIndex, value]);
+
+                    for (let ddy = -1; ddy <= 1; ddy++) {
+                      const ady = ay + ddy;
+                      for (let ddz = -1; ddz <= 1; ddz++) {
+                        const adz = az + ddz;
+                        for (let ddx = -1; ddx <= 1; ddx++) {
+                          const adx = ax + ddx;
+
+                          const sdx = Math.floor(adx/currentChunkMesh.subparcelSize);
+                          const sdy = Math.floor(ady/currentChunkMesh.subparcelSize);
+                          const sdz = Math.floor(adz/currentChunkMesh.subparcelSize);
+                          let mineSpec = mineSpecs.find(ms => ms.x === sdx && ms.y === sdy && ms.z === sdz);
+                          if (!mineSpec) {
+                            mineSpec = {
+                              x: sdx,
+                              y: sdy,
+                              z: sdz,
+                              // potentials: subparcel.potentials,
+                              mines: _getMines(sdx, sdy, sdz), // subparcel.mines,
+                            };
+                            mineSpecs.push(mineSpec);
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
 
             const specs = await worker.requestMine(
-              delta,
+              /* delta,
               currentChunkMesh.meshId,
-              localVector2.toArray(),
+              localVector2.toArray(), */
+              currentChunkMesh.meshId,
+              mineSpecs,
               currentChunkMesh.subparcelSize
             );
             for (let i = 0; i < specs.length; i++) {
