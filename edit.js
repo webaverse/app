@@ -1586,7 +1586,7 @@ let metalMesh = null;
   wallMesh.hullMesh.parent.remove(wallMesh.hullMesh);
 
   spikesMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSpikes_01');
-  spikesMesh.buildMeshType = 'floor';
+  spikesMesh.buildMeshType = 'trap';
   spikesMesh.traverse(o => {
     if (o.isMesh) {
       o.isBuildMesh = true;
