@@ -1493,7 +1493,6 @@ let metalMesh = null;
 
   stairsMesh = buildModels.children.find(c => c.name === 'SM_Bld_Snow_Platform_Stairs_01001');
   stairsMesh.buildMeshType = 'stair';
-  stairsMesh.visible = false;
   stairsMesh.traverse(o => {
     if (o.isMesh) {
       o.isBuildMesh = true;
@@ -1507,7 +1506,6 @@ let metalMesh = null;
 
   platformMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01');
   platformMesh.buildMeshType = 'floor';
-  platformMesh.visible = false;
   platformMesh.traverse(o => {
     if (o.isMesh) {
       o.isBuildMesh = true;
@@ -1521,7 +1519,6 @@ let metalMesh = null;
 
   wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06');
   wallMesh.buildMeshType = 'wall';
-  wallMesh.visible = false;
   wallMesh.traverse(o => {
     if (o.isMesh) {
       o.isBuildMesh = true;
@@ -1535,7 +1532,6 @@ let metalMesh = null;
 
   spikesMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSpikes_01');
   spikesMesh.buildMeshType = 'floor';
-  spikesMesh.visible = false;
   spikesMesh.traverse(o => {
     if (o.isMesh) {
       o.isBuildMesh = true;
