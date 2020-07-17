@@ -28,11 +28,9 @@ import {
   slabSliceVertices,
   BUILD_SNAP,
 } from './constants.js';
-import perlin from './perlin.js';
+// import perlin from './perlin.js';
 import alea from './alea.js';
 import easing from './easing.js';
-const rng = alea('lol');
-perlin.seed(rng());
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const presenceEndpoint = 'wss://presence.exokit.org';
@@ -651,7 +649,10 @@ capsuleMesh = (() => {
 })();
 physics.bindCapsuleMeshPhysics(capsuleMesh); */
 
-const _makeLandChunkMesh = async (parcelSize, subparcelSize) => {
+const _makeLandChunkMesh = async (seedString, parcelSize, subparcelSize) => {
+  const rng = alea(seedString);
+  const seedNum = Math.floor(rng() * 0xFFFFFF);
+
   const meshId = ++nextMeshId;
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
@@ -813,7 +814,7 @@ const _makeLandChunkMesh = async (parcelSize, subparcelSize) => {
           const {x: ax, y: ay, z: az} = neededCoords[i];
           if (!slabs.some(slab => slab.x === ax && slab.y === ay && slab.z === az)) {
             const specs = await worker.requestMarchLand(
-              Math.floor(rng() * 0xFFFFFF),
+              seedNum,
               meshId,
               ax, ay, az,
               parcelSize/2-10,
@@ -990,7 +991,7 @@ const _makeLandChunkMesh = async (parcelSize, subparcelSize) => {
   return mesh;
 }; */
 
-chunkMesh = await _makeLandChunkMesh(PARCEL_SIZE, SUBPARCEL_SIZE);
+chunkMesh = await _makeLandChunkMesh('lol', PARCEL_SIZE, SUBPARCEL_SIZE);
 chunkMesh.position.y = -PARCEL_SIZE - 5;
 chunkMesh.position.x = -PARCEL_SIZE/2;
 chunkMesh.position.z = -PARCEL_SIZE/2;
@@ -1002,7 +1003,7 @@ _setCurrentChunkMesh(chunkMesh);
 
 const numRemoteChunkMeshes = 1;
 for (let i = 0; i < numRemoteChunkMeshes; i++) {
-  // const remoteChunkMesh = await _makeLandChunkMesh(PARCEL_SIZE, SUBPARCEL_SIZE);
+  // const remoteChunkMesh = await _makeLandChunkMesh('lol2', PARCEL_SIZE, SUBPARCEL_SIZE);
   /* const remoteChunkMesh = await _makePlanetChunkMesh();
   remoteChunkMesh.position.set(-1 + rng()*2, -1 + rng()*2, -1 + rng()*2).multiplyScalar(100);
   chunkMeshContainer.add(remoteChunkMesh);
