@@ -736,6 +736,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
         z,
         potentials: null,
         builds: [],
+        packages: [],
       };
       mesh.subparcels.push(subparcel);
     }
@@ -745,6 +746,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
   mesh.subparcelSize = subparcelSize;
   mesh.isChunkMesh = true;
   mesh.buildMeshes = [];
+  mesh.objects = [];
   const slabs = [];
   const freeSlabs = [];
   let index = 0;
@@ -789,13 +791,18 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
     freeSlabs.push(slab);
   };
   const lastCoord = new THREE.Vector3(NaN, NaN, NaN);
-  let running = false;
+  let marchesRunning = false;
+  let packagesRunning = false;
   let chunksNeedUpdate = false;
   let buildMeshesNeedUpdate = false;
+  let packagesNeedUpdate = false;
   mesh.updateBuildMeshes = () => {
     buildMeshesNeedUpdate = true;
   };
-  mesh.update = async position => {
+  mesh.updatePackages = () => {
+    packagesNeedUpdate = true;
+  };
+  mesh.update = position => {
     localVector3.copy(position)
       .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
     const coord = new THREE.Vector3(
@@ -807,10 +814,11 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
     if (!coord.equals(lastCoord)) {
       chunksNeedUpdate = true;
       buildMeshesNeedUpdate = true;
+      packagesNeedUpdate = true;
     }
 
     let neededCoords;
-    if (chunksNeedUpdate || buildMeshesNeedUpdate) {
+    if (chunksNeedUpdate || buildMeshesNeedUpdate || packagesNeedUpdate) {
       neededCoords = [];
       for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
@@ -821,100 +829,102 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
       }
     }
     if (chunksNeedUpdate) {
-      if (!running) {
-        running = true;
-        chunksNeedUpdate = false;
+      if (!marchesRunning) {
+        (async () => {
+          marchesRunning = true;
+          chunksNeedUpdate = false;
 
-        for (let i = 0; i < neededCoords.length; i++) {
-          const {x: ax, y: ay, z: az} = neededCoords[i];
+          for (let i = 0; i < neededCoords.length; i++) {
+            const {x: ax, y: ay, z: az} = neededCoords[i];
 
-          for (let dx = 0; dx <= 1; dx++) {
-            const adx = ax + dx;
-            for (let dy = 0; dy <= 1; dy++) {
-              const ady = ay + dy;
-              for (let dz = 0; dz <= 1; dz++) {
-                const adz = az + dz;
-                const subparcel = mesh.getSubparcel(adx, ady, adz);
-                if (!subparcel[loadedSymbol]) {
-                  const {potentials} = subparcel;
-                  worker.requestLoadPotentials(
-                    seedNum,
-                    meshId,
-                    adx, ady, adz,
-                    parcelSize/2-10,
-                    [
-                      1,
-                      1,
-                      1,
-                    ], [
-                      3,
-                      3,
-                      3,
-                    ], [
-                      0.08,
-                      0.012,
-                      0.016,
-                    ], [
-                      0,
-                      0,
-                      0,
-                    ], [
-                      1,
-                      1.5,
-                      4,
-                    ],
-                    potentials,
-                    parcelSize,
-                    subparcelSize
-                  );
-                  subparcel[loadedSymbol] = true;
+            for (let dx = 0; dx <= 1; dx++) {
+              const adx = ax + dx;
+              for (let dy = 0; dy <= 1; dy++) {
+                const ady = ay + dy;
+                for (let dz = 0; dz <= 1; dz++) {
+                  const adz = az + dz;
+                  const subparcel = mesh.getSubparcel(adx, ady, adz);
+                  if (!subparcel[loadedSymbol]) {
+                    const {potentials} = subparcel;
+                    worker.requestLoadPotentials(
+                      seedNum,
+                      meshId,
+                      adx, ady, adz,
+                      parcelSize/2-10,
+                      [
+                        1,
+                        1,
+                        1,
+                      ], [
+                        3,
+                        3,
+                        3,
+                      ], [
+                        0.08,
+                        0.012,
+                        0.016,
+                      ], [
+                        0,
+                        0,
+                        0,
+                      ], [
+                        1,
+                        1.5,
+                        4,
+                      ],
+                      potentials,
+                      parcelSize,
+                      subparcelSize
+                    );
+                    subparcel[loadedSymbol] = true;
+                  }
                 }
               }
             }
-          }
 
-          if (!slabs.some(slab => slab.x === ax && slab.y === ay && slab.z === az)) {
-            const subparcel = mesh.getSubparcel(ax, ay, az);
-            const {potentials} = subparcel;
-            const specs = await worker.requestMarchLand(
-              seedNum,
-              meshId,
-              ax, ay, az,
-              parcelSize,
-              subparcelSize
-            );
-            for (let i = 0; i < specs.length; i++) {
-              const spec = specs[i];
-              const {x, y, z} = spec;
-              const slab = mesh.getSlab(x, y, z);
-              slab.position.set(spec.positions);
-              slab.barycentric.set(spec.barycentrics);
-              slab.id.set(spec.ids);
-              const indexOffset = slab.slabIndex * slabSliceTris;
-              for (let i = 0; i < spec.indices.length; i++) {
-                spec.indices[i] += indexOffset;
+            if (!slabs.some(slab => slab.x === ax && slab.y === ay && slab.z === az)) {
+              const subparcel = mesh.getSubparcel(ax, ay, az);
+              const {potentials} = subparcel;
+              const specs = await worker.requestMarchLand(
+                seedNum,
+                meshId,
+                ax, ay, az,
+                parcelSize,
+                subparcelSize
+              );
+              for (let i = 0; i < specs.length; i++) {
+                const spec = specs[i];
+                const {x, y, z} = spec;
+                const slab = mesh.getSlab(x, y, z);
+                slab.position.set(spec.positions);
+                slab.barycentric.set(spec.barycentrics);
+                slab.id.set(spec.ids);
+                const indexOffset = slab.slabIndex * slabSliceTris;
+                for (let i = 0; i < spec.indices.length; i++) {
+                  spec.indices[i] += indexOffset;
+                }
+                slab.index.set(spec.indices);
+
+                geometry.attributes.position.needsUpdate = true;
+                geometry.attributes.barycentric.needsUpdate = true;
+                geometry.attributes.id.needsUpdate = true;
+                geometry.attributes.index.needsUpdate = true;
+
+                const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
+                group.count = spec.positions.length/3;
               }
-              slab.index.set(spec.indices);
-
-              geometry.attributes.position.needsUpdate = true;
-              geometry.attributes.barycentric.needsUpdate = true;
-              geometry.attributes.id.needsUpdate = true;
-              geometry.attributes.index.needsUpdate = true;
-
-              const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
-              group.count = spec.positions.length/3;
             }
           }
-        }
-        slabs.slice().forEach(slab => {
-          if (!neededCoords.some(nc => nc.x === slab.x && nc.y === slab.y && nc.z === slab.z)) {
-            mesh.removeSlab(slab);
-          }
-        });
+          slabs.slice().forEach(slab => {
+            if (!neededCoords.some(nc => nc.x === slab.x && nc.y === slab.y && nc.z === slab.z)) {
+              mesh.removeSlab(slab);
+            }
+          });
 
-        lastCoord.copy(coord);
+          lastCoord.copy(coord);
 
-        running = false;
+          marchesRunning = false;
+        })();
       }
     }
     if (buildMeshesNeedUpdate) {
@@ -1172,6 +1182,50 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
         }
       } */
     }
+    if (packagesNeedUpdate) {
+      if (!packagesRunning) {
+        (async () => {
+          packagesRunning = true;
+          packagesNeedUpdate = false;
+
+          for (const neededCoord of neededCoords) {
+            const subparcel = mesh.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
+            for (const pkg of subparcel.packages) {
+              if (!mesh.objects.some(object => object.package === pkg)) {
+                const p = await XRPackage.download(pkg.dataHash);
+                p.setMatrix(
+                  new THREE.Matrix4().compose(
+                    new THREE.Vector3().fromArray(pkg.position),
+                    new THREE.Quaternion().fromArray(pkg.quaternion),
+                    new THREE.Vector3(1, 1, 1)
+                  ).premultiply(mesh.matrixWorld)
+                );
+                await pe.add(p);
+                p.package = pkg;
+                mesh.objects.push(p);
+              }
+            }
+          }
+          mesh.objects.slice().forEach(p => {
+            const sx = Math.floor(p.package.position[0]/subparcelSize);
+            const sy = Math.floor(p.package.position[1]/subparcelSize);
+            const sz = Math.floor(p.package.position[2]/subparcelSize);
+            if (!neededCoords.some(nc => nc.x === sx && nc.y === sy && nc.z === sz)) {
+              pe.remove(p);
+              mesh.objects.splice(mesh.objects.indexOf(p), 1);
+            } else {
+              const subparcel = mesh.getSubparcel(sx, sy, sz);
+              if (!subparcel.packages.includes(p.package)) {
+                pe.remove(p);
+                mesh.objects.splice(mesh.objects.indexOf(p), 1);
+              }
+            }
+          });
+
+          packagesRunning = false;
+        })();
+      }
+    }
   };
   return mesh;
 };
@@ -1210,6 +1264,7 @@ window.save = async () => {
         z: subparcel.z,
         potentials: subparcel.potentials && base64.encode(subparcel.potentials.buffer),
         builds: subparcel.builds,
+        packages: subparcel.packages,
       };
     }),
   });
@@ -5361,14 +5416,27 @@ pe.domElement.addEventListener('drop', async e => {
     if (dataHash) {
       _updateRaycasterFromMouseEvent(raycaster, e);
       localMatrix.compose(
-        raycaster.ray.origin.clone()
-          .add(raycaster.ray.direction.clone().multiplyScalar(2)),
-        new THREE.Quaternion(),
-        new THREE.Vector3(1, 1, 1)
+        localVector.copy(raycaster.ray.origin)
+          .add(localVector2.copy(raycaster.ray.direction).multiplyScalar(2)),
+        localQuaternion.set(0, 0, 0, 1),
+        localVector2.set(1, 1, 1)
       )
+        .premultiply(localMatrix2.getInverse(currentChunkMesh.matrixWorld))
+        .decompose(localVector, localQuaternion, localVector2);
 
-      const p = await XRPackage.download(dataHash);
-      await _addPackage(p, localMatrix);
+      const sx = Math.floor(localVector.x/currentChunkMesh.subparcelSize);
+      const sy = Math.floor(localVector.y/currentChunkMesh.subparcelSize);
+      const sz = Math.floor(localVector.z/currentChunkMesh.subparcelSize);
+      const subparcel = currentChunkMesh.getSubparcel(sx, sy, sz);
+      subparcel.packages.push({
+        dataHash,
+        position: localVector.toArray(),
+        quaternion: localQuaternion.toArray(),
+      });
+      currentChunkMesh.updatePackages();
+
+      // const p = await XRPackage.download(dataHash);
+      // await _addPackage(p, localMatrix);
     }
   }
 });
