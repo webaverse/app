@@ -5334,9 +5334,7 @@ const _makePackageHtml = p => `
   </div>
 `;
 async function _addPackage(p, matrix) {
-  if (matrix) {
-    p.setMatrix(matrix);
-  }
+  p.setMatrix(matrix);
   await pe.add(p);
 }
 const _startPackageDrag = (e, j) => {
@@ -5358,7 +5356,14 @@ const _bindPackage = (pE, pJ) => {
   const addButton = pE.querySelector('.add-button');
   addButton.addEventListener('click', async () => {
     const p = await XRPackage.download(dataHash);
-    await _addPackage(p);
+    localMatrix.compose(
+      pe.camera.position.clone().add(
+        new THREE.Vector3(0, 0, -2).applyQuaternion(pe.camera.quaternion)
+      ),
+      pe.camera.quaternion,
+      new THREE.Vector3(1, 1, 1)
+    );
+    await _addPackage(p, localMatrix);
   });
   const wearButton = pE.querySelector('.wear-button');
   wearButton.addEventListener('click', () => {
