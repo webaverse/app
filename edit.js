@@ -1769,19 +1769,13 @@ const idMaterial = new THREE.ShaderMaterial({
   // side: THREE.DoubleSide,
 });
 class PointRaycaster {
-  constructor() {
-    this.renderer = new THREE.WebGLRenderer({
-      alpha: true,
-    });
-    this.renderer.setSize(1, 1);
-    this.renderer.setPixelRatio(1);
-    this.renderer.setClearColor(new THREE.Color(0x000000), 0);
+  constructor(renderer) {
+    this.renderer = renderer;
     const renderTarget = new THREE.WebGLRenderTarget(1, 1, {
       type: THREE.FloatType,
       format: THREE.RGBAFormat,
     });
     this.renderer.setRenderTarget(renderTarget);
-    this.renderer.autoClear = false;
     this.renderer.clear();
     this.renderTarget = renderTarget;
     this.scene = new THREE.Scene();
@@ -1809,6 +1803,8 @@ class PointRaycaster {
     this.camera.quaternion.copy(quaternion);
     this.camera.updateMatrixWorld();
 
+    this.renderer.setViewport(0, 0, 1, 1);
+    this.renderer.setRenderTarget(this.renderTarget);
     this.renderer.render(this.scene, this.camera);
 
     container.traverse(o => {
@@ -1853,11 +1849,11 @@ class PointRaycaster {
       point = null;
       normal = null;
     }
+    this.renderer.setRenderTarget(this.renderTarget);
     this.renderer.clear();
     return point ? {mesh, index, point, normal} : null;
   }
 }
-const pointRaycaster = new PointRaycaster();
 
 const depthMaterial = new THREE.ShaderMaterial({
   /* uniforms: {
@@ -1917,19 +1913,13 @@ const depthMaterial = new THREE.ShaderMaterial({
   // side: THREE.DoubleSide,
 });
 class CollisionRaycaster {
-  constructor() {
-    this.renderer = new THREE.WebGLRenderer({
-      alpha: true,
-    });
-    this.renderer.setSize(10, 10);
-    this.renderer.setPixelRatio(1);
-    this.renderer.setClearColor(new THREE.Color(0x000000), 0);
+  constructor(renderer) {
+    this.renderer = renderer;
     const renderTarget = new THREE.WebGLRenderTarget(10, 10, {
       type: THREE.FloatType,
       format: THREE.RGBAFormat,
     });
     this.renderer.setRenderTarget(renderTarget);
-    this.renderer.autoClear = false;
     this.renderer.clear();
     this.renderTarget = renderTarget;
     this.scene = new THREE.Scene();
@@ -1976,6 +1966,8 @@ class CollisionRaycaster {
     // this.scene.overrideMaterial.uniforms.uNear.value = this.camera.near;
     // this.scene.overrideMaterial.uniforms.uFar.value = this.camera.far;
 
+    this.renderer.setViewport(0, 0, 10, 10);
+    this.renderer.setRenderTarget(this.renderTarget);
     this.renderer.render(this.scene, this.camera);
 
     container.traverse(o => {
@@ -2014,10 +2006,10 @@ class CollisionRaycaster {
       }
       j += 4;
     }
+    this.renderer.setRenderTarget(this.renderTarget);
     this.renderer.clear();
   }
 }
-const collisionRaycaster = new CollisionRaycaster();
 
 const physicsMaterial = new THREE.ShaderMaterial({
   /* uniforms: {
@@ -2063,25 +2055,18 @@ const physicsMaterial = new THREE.ShaderMaterial({
   // side: THREE.DoubleSide,
 });
 class PhysicsRaycaster {
-  constructor(index) {
-    this.renderer = new THREE.WebGLRenderer({
-      alpha: true,
-    });
-    this.renderer.setSize(64, 1);
-    this.renderer.setPixelRatio(1);
-    this.renderer.setClearColor(new THREE.Color(0x000000), 0);
+  constructor(renderer) {
+    this.renderer = renderer;
     const renderTarget = new THREE.WebGLRenderTarget(64, 1, {
       type: THREE.FloatType,
       format: THREE.RGBAFormat,
     });
     this.renderer.setRenderTarget(renderTarget);
-    this.renderer.autoClear = false;
     this.renderer.clear();
     this.renderTarget = renderTarget;
     this.scene = new THREE.Scene();
     this.scene.overrideMaterial = physicsMaterial;
     this.camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
-    this.index = index;
     this.pixels = new Float32Array(64*4);
     this.depths = new Float32Array(64);
   }
@@ -2118,6 +2103,7 @@ class PhysicsRaycaster {
 
     const collisionIndex = this.index++;
     this.renderer.setViewport(collisionIndex, 0, 1, 1);
+    this.renderer.setRenderTarget(this.renderTarget);
     this.renderer.render(this.scene, this.camera);
 
     container.traverse(o => {
@@ -2151,10 +2137,19 @@ class PhysicsRaycaster {
     /* this.renderer.setViewport(0, 0, 64, 1);
     this.renderer.clear(); */
     this.index = 0;
+
+    this.renderer.setRenderTarget(this.renderTarget);
     this.renderer.clear();
   }
 }
-const physicsRaycaster = new PhysicsRaycaster();
+const raycastRenderer = new THREE.WebGLRenderer({
+  alpha: true,
+});
+raycastRenderer.setClearColor(new THREE.Color(0x000000), 0);
+raycastRenderer.autoClear = false;
+const pointRaycaster = new PointRaycaster(raycastRenderer);
+const collisionRaycaster = new CollisionRaycaster(raycastRenderer);
+const physicsRaycaster = new PhysicsRaycaster(raycastRenderer);
 
 const collisionCubeGeometry = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
 const sideCollisionCubeMaterial = new THREE.MeshBasicMaterial({
