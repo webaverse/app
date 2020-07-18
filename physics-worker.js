@@ -12,6 +12,25 @@ const fakeMaterial = new THREE.MeshBasicMaterial({
   color: 0xFFFFFF,
 });
 
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
+const localFrustum = new THREE.Frustum();
+
+const _filterGroups = (chunkMesh, camera) => {
+  if (chunkMesh) {
+    localFrustum.setFromProjectionMatrix(
+      localMatrix.multiplyMatrices(camera.projectionMatrix, localMatrix2.multiplyMatrices(camera.matrixWorldInverse, chunkMesh.matrixWorld))
+    );
+    chunkMesh.geometry.originalGroups = chunkMesh.geometry.groups.slice();
+    chunkMesh.geometry.groups = chunkMesh.geometry.groups.filter(group => localFrustum.intersectsSphere(group.boundingSphere));
+  }
+};
+const _unfilterGroups = (chunkMesh) => {
+  if (chunkMesh) {
+    chunkMesh.geometry.groups = chunkMesh.geometry.originalGroups;
+  }
+};
+
 const _getChunkMesh = meshId => {
   for (const child of container.children) {
     if (child.isChunkMesh && child.meshId === meshId) {
@@ -43,6 +62,7 @@ const _makeChunkMesh = (meshId, x, y, z, parcelSize, subparcelSize, slabTotalSiz
   mesh.parcelSize = parcelSize;
   mesh.subparcelSize = subparcelSize;
   mesh.isChunkMesh = true;
+  const slabRadius = Math.sqrt((subparcelSize/2)*(subparcelSize/2)*3);
   const slabs = [];
   const freeSlabs = [];
   let index = 0;
@@ -56,6 +76,11 @@ const _makeChunkMesh = (meshId, x, y, z, parcelSize, subparcelSize, slabTotalSiz
         slab.z = z;
         slabs.push(slab);
         geometry.addGroup(slab.slabIndex * slabSliceVertices, slab.position.length/3, 0);
+        geometry.groups[geometry.groups.length-1].boundingSphere =
+          new THREE.Sphere(
+            new THREE.Vector3(x*subparcelSize + subparcelSize/2, y*subparcelSize + subparcelSize/2, z*subparcelSize + subparcelSize/2),
+            slabRadius
+          );
       } else {
         slab = {
           x,
@@ -72,6 +97,11 @@ const _makeChunkMesh = (meshId, x, y, z, parcelSize, subparcelSize, slabTotalSiz
           debugger;
         }
         geometry.addGroup(index * slabSliceVertices, slab.position.length/3, 0);
+        geometry.groups[geometry.groups.length-1].boundingSphere =
+          new THREE.Sphere(
+            new THREE.Vector3(x*subparcelSize + subparcelSize/2, y*subparcelSize + subparcelSize/2, z*subparcelSize + subparcelSize/2),
+            slabRadius
+          );
         index++;
       }
     }
@@ -158,9 +188,21 @@ class PointRaycaster {
     this.camera.quaternion.copy(quaternion);
     this.camera.updateMatrixWorld();
 
+    container.traverse(o => {
+      if (o.isMesh) {
+        _filterGroups(o, this.camera);
+      }
+    });
+
     this.renderer.setViewport(0, 0, 1, 1);
     this.renderer.setRenderTarget(this.renderTarget);
     this.renderer.render(this.scene, this.camera);
+
+    container.traverse(o => {
+      if (o.isMesh) {
+        _unfilterGroups(o);
+      }
+    });
 
     this.scene.remove(container);
   }
@@ -265,6 +307,12 @@ class CollisionRaycaster {
     // this.scene.overrideMaterial.uniforms.uNear.value = this.camera.near;
     // this.scene.overrideMaterial.uniforms.uFar.value = this.camera.far;
 
+    container.traverse(o => {
+      if (o.isMesh) {
+        _filterGroups(o, this.camera);
+      }
+    });
+
     this.renderer.setViewport(0, 0, 10, 10);
     if (!this.renderTargets[index]) {
       this.renderTargets[index] = new THREE.WebGLRenderTarget(10, 10, {
@@ -286,6 +334,12 @@ class CollisionRaycaster {
     this.renderTargets[index].quaternion.copy(quaternion);
     this.renderTargets[index].near = this.camera.near;
     this.renderTargets[index].far = this.camera.far;
+
+    container.traverse(o => {
+      if (o.isMesh) {
+        _unfilterGroups(o);
+      }
+    });
 
     this.scene.remove(container);
   }
@@ -370,19 +424,7 @@ class PhysicsRaycaster {
   }
 
   raycastMeshes(container, position, quaternion, uSize, vSize, dSize) {
-    const oldParent = container.parent;
     this.scene.add(container);
-    if (oldParent) {
-      this.scene.position.copy(oldParent.position);
-      this.scene.quaternion.copy(oldParent.quaternion);
-      this.scene.scale.copy(oldParent.scale);
-    }
-    container.traverse(o => {
-      if (o.isMesh) {
-        o.oldVisible = o.visible;
-        o.visible = !o.isBuildMesh;
-      }
-    });
 
     this.camera.position.copy(position);
     this.camera.quaternion.copy(quaternion);
@@ -399,6 +441,12 @@ class PhysicsRaycaster {
     // this.scene.overrideMaterial.uniforms.uNear.value = this.camera.near;
     // this.scene.overrideMaterial.uniforms.uFar.value = this.camera.far;
 
+    container.traverse(o => {
+      if (o.isMesh) {
+        _filterGroups(o, this.camera);
+      }
+    });
+
     const collisionIndex = this.index++;
     this.renderer.setViewport(collisionIndex, 0, 1, 1);
     this.renderer.setRenderTarget(this.renderTarget);
@@ -406,14 +454,12 @@ class PhysicsRaycaster {
 
     container.traverse(o => {
       if (o.isMesh) {
-        o.visible = o.oldVisible;
+        _unfilterGroups(o);
       }
     });
-    if (oldParent) {
-      oldParent.add(container);
-    } else {
-      container.parent.remove(container);
-    }
+
+    this.scene.remove(container);
+
     return collisionIndex;
   }
   readRaycast() {
