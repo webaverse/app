@@ -54,6 +54,7 @@ const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localFrustum = new THREE.Frustum();
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -829,6 +830,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
   mesh.isChunkMesh = true;
   mesh.buildMeshes = [];
   mesh.objects = [];
+  const slabRadius = Math.sqrt((subparcelSize/2)*(subparcelSize/2)*3);
   let slabs = [];
   const freeSlabs = [];
   let index = 0;
@@ -842,6 +844,11 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
         slab.z = z;
         slabs.push(slab);
         geometry.addGroup(slab.slabIndex * slabSliceVertices, slab.position.length/3, 0);
+        geometry.groups[geometry.groups.length-1].boundingSphere =
+          new THREE.Sphere(
+            new THREE.Vector3(x*subparcelSize + subparcelSize/2, y*subparcelSize + subparcelSize/2, z*subparcelSize + subparcelSize/2),
+            slabRadius
+          );
       } else {
         slab = {
           x,
@@ -855,6 +862,11 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
         };
         slabs.push(slab);
         geometry.addGroup(index * slabSliceVertices, slab.position.length/3, 0);
+        geometry.groups[geometry.groups.length-1].boundingSphere =
+          new THREE.Sphere(
+            new THREE.Vector3(x*subparcelSize + subparcelSize/2, y*subparcelSize + subparcelSize/2, z*subparcelSize + subparcelSize/2),
+            slabRadius
+          );
         index++;
       }
     }
@@ -4103,8 +4115,20 @@ function animate(timestamp, frame) {
   lastTeleport = currentTeleport;
   lastWeaponDown = currentWeaponDown;
 
+  if (currentChunkMesh) {
+    localFrustum.setFromProjectionMatrix(
+      localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, currentChunkMesh.matrixWorld))
+    );
+    currentChunkMesh.geometry.originalGroups = currentChunkMesh.geometry.groups.slice();
+    currentChunkMesh.geometry.groups = currentChunkMesh.geometry.groups.filter(group => localFrustum.intersectsSphere(group.boundingSphere));
+  }
+
   renderer.render(scene, camera);
   // renderer.render(highlightScene, camera);
+
+  if (currentChunkMesh) {
+    currentChunkMesh.geometry.groups = currentChunkMesh.geometry.originalGroups;
+  }
 }
 renderer.setAnimationLoop(animate);
 renderer.xr.setSession(proxySession);
