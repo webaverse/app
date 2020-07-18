@@ -1,4 +1,4 @@
-importScripts('https://static.xrpackage.org/xrpackage/three.js');
+importScripts('https://static.xrpackage.org/xrpackage/three.js', './base64.js');
 
 const renderer = new THREE.WebGLRenderer({
   canvas: new OffscreenCanvas(1, 1),

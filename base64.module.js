@@ -1,5 +1,3 @@
-(() => {
-
 var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 // Use a lookup table to find the index.
@@ -8,7 +6,7 @@ for (var i = 0; i < chars.length; i++) {
   lookup[chars.charCodeAt(i)] = i;
 }
 
-function encode(arraybuffer) {
+export function encode(arraybuffer) {
   var bytes = new Uint8Array(arraybuffer),
   i, len = bytes.length, base64 = "";
 
@@ -28,7 +26,7 @@ function encode(arraybuffer) {
   return base64;
 };
 
-function decode(base64) {
+export function decode(base64) {
   var bufferLength = base64.length * 0.75,
   len = base64.length, i, p = 0,
   encoded1, encoded2, encoded3, encoded4;
@@ -56,10 +54,3 @@ function decode(base64) {
 
   return arraybuffer;
 };
-
-globalThis.base64 = {
-  encode,
-  decode,
-};
-
-})();
