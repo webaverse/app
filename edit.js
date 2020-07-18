@@ -2,7 +2,7 @@
 /* eslint no-unused-vars: 0 */
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
-import {GLTFLoader} from './GLTFLoader.js';
+import {GLTFLoader} from './GLTFLoader.module.js';
 import {TransformControls} from './TransformControls.js';
 import CapsuleGeometry from './CapsuleGeometry.js';
 // import address from 'https://contracts.webaverse.com/address.js';
