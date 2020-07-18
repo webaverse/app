@@ -47,6 +47,7 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
+const localVector6 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -426,6 +427,27 @@ const [
         containerMatrix,
         position,
         quaternion,
+      });
+    };
+    w.requestCollisionRaycast = (containerMatrix, position, quaternion, width, height, depth) => {
+      return w.request({
+        method: 'collisionRaycast',
+        containerMatrix,
+        position,
+        quaternion,
+        width,
+        height,
+        depth,
+      });
+    };
+    w.requestPhysicsRaycast = (containerMatrix, collisions, width, height, depth) => {
+      return w.request({
+        method: 'physicsRaycast',
+        containerMatrix,
+        collisions,
+        width,
+        height,
+        depth,
       });
     };
     return w;
@@ -848,13 +870,11 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
     geometry.attributes.index.updateRange.offset = slab.slabIndex*slabSliceVertices;
     geometry.attributes.index.needsUpdate = true;
 
-    [renderer, raycastRenderer].forEach(renderer => {
-      geometry.attributes.position.updateRange.count = spec.positions.length;
-      geometry.attributes.barycentric.updateRange.count = spec.barycentrics.length;
-      geometry.attributes.id.updateRange.count = spec.ids.length;
-      geometry.attributes.index.updateRange.count = spec.indices.length;
-      renderer.geometries.update(geometry);
-    });
+    geometry.attributes.position.updateRange.count = spec.positions.length;
+    geometry.attributes.barycentric.updateRange.count = spec.barycentrics.length;
+    geometry.attributes.id.updateRange.count = spec.ids.length;
+    geometry.attributes.index.updateRange.count = spec.indices.length;
+    renderer.geometries.update(geometry);
   };
   const lastCoord = new THREE.Vector3(NaN, NaN, NaN);
   let marchesRunning = false;
@@ -1914,19 +1934,9 @@ class PointRaycaster {
     this.renderer.clear();
     return point ? {mesh, index, point, normal} : null;
   }
-} */
+}
 
 const depthMaterial = new THREE.ShaderMaterial({
-  /* uniforms: {
-    uNear: {
-      type: 'f',
-      value: 0,
-    },
-    uFar: {
-      type: 'f',
-      value: 1,
-    },
-  }, */
   vertexShader: `\
     attribute float id;
     attribute float index;
@@ -1946,16 +1956,6 @@ const depthMaterial = new THREE.ShaderMaterial({
 
     // uniform float uNear;
     // uniform float uFar;
-    /* vec4 encodePixelDepth(float v) {
-      float x = fract(v);
-      v -= x;
-      v /= 255.0;
-      float y = fract(v);
-      v -= y;
-      v /= 255.0;
-      float z = fract(v);
-      return vec4(x, y, z, 0.0);
-    } */
     vec2 encodePixelDepth(float v) {
       float x = fract(v);
       v -= x;
@@ -1964,10 +1964,6 @@ const depthMaterial = new THREE.ShaderMaterial({
       return vec2(x, y);
     }
     void main() {
-      /* float z_b = texture2D(colorMap, vTexCoords).r;
-      float z_n = 2.0 * z_b - 1.0;
-      float z_e = 2.0 * uNear * uFar / (uFar + uNear - z_n * (uFar - uNear)); */
-
       gl_FragColor = vec4(encodePixelDepth(gl_FragCoord.z/gl_FragCoord.w), vId/64000.0, vIndex/64000.0);
     }
   `,
@@ -2073,16 +2069,6 @@ class CollisionRaycaster {
 }
 
 const physicsMaterial = new THREE.ShaderMaterial({
-  /* uniforms: {
-    uNear: {
-      type: 'f',
-      value: 0,
-    },
-    uFar: {
-      type: 'f',
-      value: 1,
-    },
-  }, */
   vertexShader: `\
     // attribute float id;
     // attribute float index;
@@ -2195,8 +2181,6 @@ class PhysicsRaycaster {
       j += 4;
     }
 
-    /* this.renderer.setViewport(0, 0, 64, 1);
-    this.renderer.clear(); */
     this.index = 0;
 
     this.renderer.setRenderTarget(this.renderTarget);
@@ -2209,8 +2193,8 @@ const raycastRenderer = new THREE.WebGLRenderer({
 raycastRenderer.setClearColor(new THREE.Color(0x000000), 0);
 raycastRenderer.autoClear = false;
 // const pointRaycaster = new PointRaycaster(raycastRenderer);
-const collisionRaycaster = new CollisionRaycaster(raycastRenderer);
-const physicsRaycaster = new PhysicsRaycaster(raycastRenderer);
+// const collisionRaycaster = new CollisionRaycaster(raycastRenderer);
+// const physicsRaycaster = new PhysicsRaycaster(raycastRenderer); */
 
 const collisionCubeGeometry = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
 const sideCollisionCubeMaterial = new THREE.MeshBasicMaterial({
@@ -2831,6 +2815,12 @@ scene.add(hpMesh);
 const numSmokes = 10;
 const numZs = 10;
 const explosionCubeGeometry = new THREE.BoxBufferGeometry(0.04, 0.04, 0.04);
+let wallCollisionRunning = false;
+let floorCollisionRunning = false;
+let ceilingCollisionRunning = false;
+let wallCollisionResult = null;
+let floorCollisionResult = null;
+let ceilingCollisionResult = null;
 const _makeExplosionMesh = () => {
   const numPositions = explosionCubeGeometry.attributes.position.array.length * numSmokes * numZs;
   const numIndices = explosionCubeGeometry.index.array.length * numSmokes * numZs;
@@ -2971,6 +2961,7 @@ const _makeExplosionMesh = () => {
 let explosionMeshes = [];
 
 let pxMeshes = [];
+let pxRaycastRunning = false;
 
 const _applyVelocity = (position, velocity, timeDiff) => {
   position.add(localVector4.copy(velocity).multiplyScalar(timeDiff));
@@ -3010,20 +3001,32 @@ const _collideWall = matrix => {
     localQuaternion2.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(velocity.x, 0, velocity.z).normalize());
     localVector3.copy(localVector)
       .add(localVector4.set(0, heightOffset, bodyWidth).applyQuaternion(localQuaternion2));
-    collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector3, localQuaternion2, width, height, depth);
-    collisionRaycaster.readRaycast(chunkMeshContainer);
+    if (!wallCollisionRunning) {
+      wallCollisionRunning = true;
+      physicsWorker && physicsWorker.requestCollisionRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector3.toArray(), localQuaternion2.toArray(), width, height, depth)
+        .then(result => {
+          wallCollisionResult = result;
+          if (wallCollisionResult) {
+            wallCollisionResult.position = new THREE.Vector3().fromArray(wallCollisionResult.position);
+            wallCollisionResult.quaternion = new THREE.Quaternion().fromArray(wallCollisionResult.quaternion);
+            wallCollisionResult.depths = new Float32Array(base64.decode(wallCollisionResult.depths));
+            wallCollisionResult.normals = new Float32Array(base64.decode(wallCollisionResult.normals));
+          }
+          wallCollisionRunning = false;
+        });
+    }
+    // collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector3, localQuaternion2, width, height, depth);
+    // collisionRaycaster.readRaycast(chunkMeshContainer);
 
     let i = 0;
     for (let y = 0; y < 10; y++) {
       for (let x = 0; x < 10; x++) {
         const cubeMesh = sideCollisionCubes[i];
-        const d = collisionRaycaster.depths[i];
+        const d = wallCollisionResult ? (wallCollisionResult.depths[i] - localVector3.distanceTo(wallCollisionResult.position)) : Infinity;
         if (isFinite(d)) {
-          const normal = collisionRaycaster.normals[i];
-
           cubeMesh.position.copy(localVector3)
             .add(localVector4.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
-          cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
+          cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), localVector6.fromArray(wallCollisionResult.normals, i*3));
           cubeMesh.visible = true;
 
           if (d < bodyWidth*2) {
@@ -3053,8 +3056,22 @@ const _collideFloor = matrix => {
   const height = 0.5;
   const depth = 100;
 
-  collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
-  collisionRaycaster.readRaycast(chunkMeshContainer);
+  if (!floorCollisionRunning) {
+    floorCollisionRunning = true;
+    physicsWorker && physicsWorker.requestCollisionRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector.toArray(), localQuaternion2.toArray(), width, height, depth)
+      .then(result => {
+        floorCollisionResult = result;
+        if (floorCollisionResult) {
+          floorCollisionResult.position = new THREE.Vector3().fromArray(floorCollisionResult.position);
+          floorCollisionResult.quaternion = new THREE.Quaternion().fromArray(floorCollisionResult.quaternion);
+          floorCollisionResult.depths = new Float32Array(base64.decode(floorCollisionResult.depths));
+          floorCollisionResult.normals = new Float32Array(base64.decode(floorCollisionResult.normals));
+        }
+        floorCollisionRunning = false;
+      });
+  }
+  // collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
+  // collisionRaycaster.readRaycast(chunkMeshContainer);
 
   let groundedDistance = Infinity;
 
@@ -3062,14 +3079,12 @@ const _collideFloor = matrix => {
   for (let y = 0; y < 10; y++) {
     for (let x = 0; x < 10; x++) {
       const cubeMesh = floorCollisionCubes[i];
-      const d = collisionRaycaster.depths[i];
 
+      const d = floorCollisionResult ? (floorCollisionResult.depths[i] + localVector.y - floorCollisionResult.position.y) : Infinity;
       if (isFinite(d)) {
-        const normal = collisionRaycaster.normals[i];
-
         cubeMesh.position.copy(localVector)
           .add(localVector3.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
-        cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
+        cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), localVector6.fromArray(floorCollisionResult.normals, i*3));
         cubeMesh.visible = true;
 
         if (d < groundedDistance) {
@@ -3094,8 +3109,22 @@ const _collideCeiling = matrix => {
   const height = 0.5;
   const depth = 100;
 
-  collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
-  collisionRaycaster.readRaycast(chunkMeshContainer);
+  if (!ceilingCollisionRunning) {
+    ceilingCollisionRunning = true;
+    physicsWorker && physicsWorker.requestCollisionRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector.toArray(), localQuaternion2.toArray(), width, height, depth)
+      .then(result => {
+        ceilingCollisionResult = result;
+        if (ceilingCollisionResult) {
+          ceilingCollisionResult.position = new THREE.Vector3().fromArray(ceilingCollisionResult.position);
+          ceilingCollisionResult.quaternion = new THREE.Quaternion().fromArray(ceilingCollisionResult.quaternion);
+          ceilingCollisionResult.depths = new Float32Array(base64.decode(ceilingCollisionResult.depths));
+          ceilingCollisionResult.normals = new Float32Array(base64.decode(ceilingCollisionResult.normals));
+        }
+        ceilingCollisionRunning = false;
+      });
+  }
+  // collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
+  // collisionRaycaster.readRaycast(chunkMeshContainer);
 
   let ceilingDistance = Infinity;
 
@@ -3103,14 +3132,12 @@ const _collideCeiling = matrix => {
   for (let y = 0; y < 10; y++) {
     for (let x = 0; x < 10; x++) {
       const cubeMesh = ceilingCollisionCubes[i];
-      const d = collisionRaycaster.depths[i];
 
+      const d = ceilingCollisionResult ? (ceilingCollisionResult.depths[i] - localVector.y + ceilingCollisionResult.position.y) : Infinity;
       if (isFinite(d)) {
-        const normal = collisionRaycaster.normals[i];
-
         cubeMesh.position.copy(localVector)
           .add(localVector3.set(-width/2 + 0.5/10*width + x/10*width, -height/2 + 0.5/10*height + y/10*height, -d).applyQuaternion(localQuaternion2));
-        cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), normal);
+        cubeMesh.quaternion.setFromUnitVectors(localVector5.set(0, 1, 0), localVector6.fromArray(ceilingCollisionResult.normals, i*3));
         cubeMesh.visible = true;
 
         if (d < ceilingDistance) {
@@ -4016,41 +4043,61 @@ function animate(timestamp, frame) {
     wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
   } */
 
-  pxMeshes = pxMeshes.filter(pxMesh => {
-    if (pxMesh.update()) {
-      if (!pxMesh.velocity.equals(zeroVector)) {
-        localVector.copy(pxMesh.position)
-          .applyMatrix4(pxMesh.parent.matrixWorld);
-        pxMesh.collisionIndex = physicsRaycaster.raycastMeshes(chunkMeshContainer, localVector, downQuaternion, 1, 1, 100);
+  if (!pxRaycastRunning && physicsWorker) {
+    pxRaycastRunning = true;
+
+    const collisions = [];
+    let collisionIndex = 0;
+    pxMeshes = pxMeshes.filter(pxMesh => {
+      if (pxMesh.update()) {
+        if (!pxMesh.velocity.equals(zeroVector)) {
+          localVector.copy(pxMesh.position)
+            .applyMatrix4(pxMesh.parent.matrixWorld);
+          collisions.push([
+            localVector.toArray(),
+            downQuaternion.toArray(),
+          ]);
+
+          pxMesh.collisionIndex = collisionIndex++;
+        } else {
+          pxMesh.collisionIndex = -1;
+        }
+        return true;
       } else {
-        pxMesh.collisionIndex = -1;
+        pxMesh.parent.remove(pxMesh);
+        return false;
       }
-      return true;
-    } else {
-      pxMesh.parent.remove(pxMesh);
-      return false;
-    }
-  });
-  physicsRaycaster.readRaycast();
-  for (let i = 0; i < pxMeshes.length; i++) {
-    const pxMesh = pxMeshes[i];
-    if (pxMesh.collisionIndex !== -1) {
-      if ((physicsRaycaster.depths[pxMesh.collisionIndex] - 0.2 - pxMesh.velocity.length()*timeDiff) < 0) {
-        pxMesh.position.add(
-          pxMesh.velocity
-            .normalize()
-            // .applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion))
-            .multiplyScalar(physicsRaycaster.depths[pxMesh.collisionIndex] - 0.2)
-          );
-        pxMesh.velocity.copy(zeroVector);
-      } else {
-        _applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
-        pxMesh.velocity.add(localVector.set(0, -9.8*timeDiff, 0).applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse()));
-        pxMesh.rotation.x += pxMesh.angularVelocity.x;
-        pxMesh.rotation.y += pxMesh.angularVelocity.y;
-        pxMesh.rotation.z += pxMesh.angularVelocity.z;
-      }
-    }
+    });
+    physicsWorker.requestPhysicsRaycast(chunkMeshContainer.matrixWorld.toArray(), collisions, 1, 1, 100)
+      .then(result => {
+        if (result) {
+          // result.position = new THREE.Vector3().fromArray(result.position);
+          // result.quaternion = new THREE.Quaternion().fromArray(result.quaternion);
+          result.depths = new Float32Array(base64.decode(result.depths));
+
+          for (let i = 0; i < pxMeshes.length; i++) {
+            const pxMesh = pxMeshes[i];
+            if (pxMesh.collisionIndex !== -1) {
+              if ((result.depths[pxMesh.collisionIndex] - 0.2 - pxMesh.velocity.length()*timeDiff) < 0) {
+                pxMesh.position.add(
+                  pxMesh.velocity
+                    .normalize()
+                    .multiplyScalar(result.depths[pxMesh.collisionIndex] - 0.2)
+                  );
+                pxMesh.velocity.copy(zeroVector);
+              } else {
+                _applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
+                pxMesh.velocity.add(localVector.set(0, -9.8*timeDiff, 0).applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse()));
+                pxMesh.rotation.x += pxMesh.angularVelocity.x;
+                pxMesh.rotation.y += pxMesh.angularVelocity.y;
+                pxMesh.rotation.z += pxMesh.angularVelocity.z;
+              }
+            }
+          }
+        }
+
+        pxRaycastRunning = false;
+      });
   }
 
   lastTeleport = currentTeleport;
