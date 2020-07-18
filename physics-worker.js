@@ -164,8 +164,10 @@ class PointRaycaster {
 
     this.scene.remove(container);
   }
-  readRaycast(container, position, quaternion) {
+  readRaycast() {
     this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 1, 1, this.pixels);
+    this.renderer.setRenderTarget(this.renderTarget);
+    this.renderer.clear();
 
     let meshId;
     // let mesh;
@@ -186,8 +188,8 @@ class PointRaycaster {
       const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, triangle.a);
 
       const raycaster = new THREE.Raycaster();
-      raycaster.ray.origin.copy(position);
-      raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
+      raycaster.ray.origin.copy(this.camera.position);
+      raycaster.ray.direction.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
 
       point = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
     } else {
@@ -197,8 +199,6 @@ class PointRaycaster {
       point = null;
       normal = null;
     }
-    this.renderer.setRenderTarget(this.renderTarget);
-    this.renderer.clear();
     return point ? {meshId, index, point: point.toArray(), normal: normal.toArray()} : null;
   }
 }
@@ -238,13 +238,7 @@ const depthMaterial = new THREE.ShaderMaterial({
 class CollisionRaycaster {
   constructor(renderer) {
     this.renderer = renderer;
-    const renderTarget = new THREE.WebGLRenderTarget(10, 10, {
-      type: THREE.FloatType,
-      format: THREE.RGBAFormat,
-    });
-    this.renderer.setRenderTarget(renderTarget);
-    this.renderer.clear();
-    this.renderTarget = renderTarget;
+    this.renderTargets = [];
     this.scene = new THREE.Scene();
     this.scene.overrideMaterial = depthMaterial;
     this.camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
@@ -253,7 +247,7 @@ class CollisionRaycaster {
     this.normals = new Float32Array(10*10*3);
   }
 
-  raycastMeshes(container, position, quaternion, uSize, vSize, dSize) {
+  raycastMeshes(container, position, quaternion, uSize, vSize, dSize, index) {
     this.scene.add(container);
 
     this.camera.position.copy(position);
@@ -272,13 +266,34 @@ class CollisionRaycaster {
     // this.scene.overrideMaterial.uniforms.uFar.value = this.camera.far;
 
     this.renderer.setViewport(0, 0, 10, 10);
-    this.renderer.setRenderTarget(this.renderTarget);
+    if (!this.renderTargets[index]) {
+      this.renderTargets[index] = new THREE.WebGLRenderTarget(10, 10, {
+        type: THREE.FloatType,
+        format: THREE.RGBAFormat,
+      });
+      this.renderTargets[index].position = new THREE.Vector3();
+      this.renderTargets[index].quaternion = new THREE.Quaternion();
+      this.renderTargets[index].near = 0;
+      this.renderTargets[index].far = 0;
+      this.renderer.setRenderTarget(this.renderTargets[index]);
+      this.renderer.clear();
+    } else {
+      this.renderer.setRenderTarget(this.renderTargets[index]);
+    }
     this.renderer.render(this.scene, this.camera);
+
+    this.renderTargets[index].position.copy(position);
+    this.renderTargets[index].quaternion.copy(quaternion);
+    this.renderTargets[index].near = this.camera.near;
+    this.renderTargets[index].far = this.camera.far;
 
     this.scene.remove(container);
   }
-  readRaycast(container) {
-    this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 10, 10, this.pixels);
+  readRaycast(index) {
+    const renderTarget = this.renderTargets[index];
+    this.renderer.readRenderTargetPixels(renderTarget, 0, 0, 10, 10, this.pixels);
+    this.renderer.setRenderTarget(renderTarget);
+    this.renderer.clear();
 
     let j = 0;
     for (let i = 0; i < this.depths.length; i++) {
@@ -286,7 +301,7 @@ class CollisionRaycaster {
         let v =
           this.pixels[j] +
           this.pixels[j+1] * 255.0;
-        this.depths[i] = this.camera.near + v * (this.camera.far - this.camera.near);
+        this.depths[i] = renderTarget.near + v * (renderTarget.far - renderTarget.near);
         const meshId = Math.round(this.pixels[j+2]*64000);
         const index = Math.round(this.pixels[j+3]*64000);
 
@@ -302,8 +317,6 @@ class CollisionRaycaster {
       }
       j += 4;
     }
-    this.renderer.setRenderTarget(this.renderTarget);
-    this.renderer.clear();
   }
 }
 const physicsMaterial = new THREE.ShaderMaterial({
@@ -405,6 +418,8 @@ class PhysicsRaycaster {
   }
   readRaycast() {
     this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, this.index, 1, this.pixels);
+    this.renderer.setRenderTarget(this.renderTarget);
+    this.renderer.clear();
 
     let j = 0;
     for (let i = 0; i < this.index; i++) {
@@ -420,9 +435,6 @@ class PhysicsRaycaster {
     }
 
     this.index = 0;
-
-    this.renderer.setRenderTarget(this.renderTarget);
-    this.renderer.clear();
   }
 }
 const pointRaycaster = new PointRaycaster(renderer);
@@ -481,31 +493,23 @@ const _handleMessage = data => {
       const position = new THREE.Vector3().fromArray(positionData);
       const quaternion = new THREE.Quaternion().fromArray(quaternionData);
       pointRaycaster.raycastMeshes(container, position, quaternion);
-      const result = pointRaycaster.readRaycast(container, position, quaternion);
 
       self.postMessage({
-        result,
+        result: {},
       });
       break;
     }
     case 'collisionRaycast': {
-      const {containerMatrix, position: positionData, quaternion: quaternionData, width, height, depth} = data;
+      const {containerMatrix, position: positionData, quaternion: quaternionData, width, height, depth, index} = data;
 
       container.matrix.fromArray(containerMatrix)
         .decompose(container.position, container.quaternion, container.scale);
       const position = new THREE.Vector3().fromArray(positionData);
       const quaternion = new THREE.Quaternion().fromArray(quaternionData);
-      collisionRaycaster.raycastMeshes(container, position, quaternion, width, height, depth);
-      collisionRaycaster.readRaycast(container);
-      const result = {
-        position: positionData,
-        quaternion: quaternionData,
-        depths: base64.encode(collisionRaycaster.depths.buffer),
-        normals: base64.encode(collisionRaycaster.normals.buffer),
-      };
+      collisionRaycaster.raycastMeshes(container, position, quaternion, width, height, depth, index);
 
       self.postMessage({
-        result,
+        result: {},
       });
       break;
     }
@@ -520,13 +524,37 @@ const _handleMessage = data => {
         const quaternion = new THREE.Quaternion().fromArray(quaternionData);
         physicsRaycaster.raycastMeshes(container, position, quaternion, width, height, depth);
       }
+
+      self.postMessage({
+        result: {},
+      });
+      break;
+    }
+    case 'raycastResult': {
+      // const {containerMatrix, collisions, width, height, depth} = data;
+      const raycastResultData = pointRaycaster.readRaycast();
+
+      const collisionResults = collisionRaycaster.renderTargets.map((renderTarget, index) => {
+        collisionRaycaster.readRaycast(index);
+        return {
+          position: renderTarget.position.toArray(),
+          quaternion: renderTarget.quaternion.toArray(),
+          depths: base64.encode(collisionRaycaster.depths.buffer),
+          normals: base64.encode(collisionRaycaster.normals.buffer),
+        };
+      });
+
       physicsRaycaster.readRaycast();
-      const result = {
+      const physicsResultData = {
         depths: base64.encode(physicsRaycaster.depths.buffer),
       };
 
       self.postMessage({
-        result,
+        result: [
+          raycastResultData,
+          collisionResults,
+          physicsResultData,
+        ],
       });
       break;
     }
