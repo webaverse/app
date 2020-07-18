@@ -457,6 +457,21 @@ const [
         method: 'raycastResult',
       });
     };
+    w.requestLoadBuildMesh = (meshId, type, position, quaternion) => {
+      return w.request({
+        method: 'loadBuildMesh',
+        meshId,
+        type,
+        position,
+        quaternion,
+      });
+    };
+    w.requestUnloadBuildMesh = (meshId) => {
+      return w.request({
+        method: 'unloadBuildMesh',
+        meshId,
+      });
+    };
     return w;
   })(),
   (async () => {
@@ -1065,12 +1080,13 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
           }
         });
         buildMeshClone.build = build;
+        buildMeshClone.meshId = ++nextMeshId;
         buildMeshClone.buildMeshType = buildMesh.buildMeshType;
-        buildMeshClone.hullMesh = buildMesh.hullMesh.clone();
+        /* buildMeshClone.hullMesh = buildMesh.hullMesh.clone();
         buildMeshClone.hullMesh.geometry = buildMesh.hullMesh.geometry.clone();
         _decorateMeshForRaycast(buildMeshClone.hullMesh);
         buildMeshClone.hullMesh.isBuildHullMesh = true;
-        buildMeshClone.hullMesh.buildMesh = buildMeshClone;
+        buildMeshClone.hullMesh.buildMesh = buildMeshClone; */
         let animation = null;
         let hp = 100;
         buildMeshClone.hit = dmg => {
@@ -1251,15 +1267,19 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
         mesh.add(buildMeshClone);
         mesh.buildMeshes.push(buildMeshClone);
 
-        buildMeshClone.hullMesh.position.copy(buildMeshClone.position);
+        physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, buildMeshClone.getWorldPosition(new THREE.Vector3()).toArray(), buildMeshClone.getWorldQuaternion(new THREE.Quaternion()).toArray());
+
+        /* buildMeshClone.hullMesh.position.copy(buildMeshClone.position);
         buildMeshClone.hullMesh.quaternion.copy(buildMeshClone.quaternion);
         buildMeshClone.hullMesh.scale.copy(buildMeshClone.scale);
-        mesh.add(buildMeshClone.hullMesh);
+        mesh.add(buildMeshClone.hullMesh); */
       };
       const _removeBuildMesh = buildMeshClone => {
         mesh.remove(buildMeshClone);
-        mesh.remove(buildMeshClone.hullMesh);
+        // mesh.remove(buildMeshClone.hullMesh);
         mesh.buildMeshes.splice(mesh.buildMeshes.indexOf(buildMeshClone), 1);
+
+        physicsWorker.requestUnloadBuildMesh(buildMeshClone.meshId);
       };
       for (const neededCoord of neededCoords) {
         const subparcel = mesh.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
@@ -1663,10 +1683,6 @@ let metalMesh = null;
     }
   });
   worldContainer.add(stairsMesh);
-  stairsMesh.hullMesh = buildModels.children.find(c => c.name === 'SM_Bld_Snow_Platform_Stairs_01001hull');
-  stairsMesh.hullMesh.geometry = stairsMesh.hullMesh.geometry.toNonIndexed();
-  stairsMesh.hullMesh.visible = false;
-  stairsMesh.hullMesh.parent.remove(stairsMesh.hullMesh);
 
   platformMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01');
   platformMesh.buildMeshType = 'floor';
@@ -1676,10 +1692,6 @@ let metalMesh = null;
     }
   });
   worldContainer.add(platformMesh);
-  platformMesh.hullMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01hull');
-  platformMesh.hullMesh.geometry = platformMesh.hullMesh.geometry.toNonIndexed();
-  platformMesh.hullMesh.visible = false;
-  platformMesh.hullMesh.parent.remove(platformMesh.hullMesh);
 
   wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06');
   wallMesh.buildMeshType = 'wall';
@@ -1689,10 +1701,6 @@ let metalMesh = null;
     }
   });
   worldContainer.add(wallMesh);
-  wallMesh.hullMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06hull');
-  wallMesh.hullMesh.geometry = wallMesh.hullMesh.geometry.toNonIndexed();
-  wallMesh.hullMesh.visible = false;
-  wallMesh.hullMesh.parent.remove(wallMesh.hullMesh);
 
   spikesMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSpikes_01');
   spikesMesh.buildMeshType = 'trap';
@@ -1702,10 +1710,6 @@ let metalMesh = null;
     }
   });
   worldContainer.add(spikesMesh);
-  spikesMesh.hullMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSpikes_01hull');
-  spikesMesh.hullMesh.geometry = spikesMesh.hullMesh.geometry.toNonIndexed();
-  spikesMesh.hullMesh.visible = false;
-  spikesMesh.hullMesh.parent.remove(spikesMesh.hullMesh);
 
   woodMesh = buildModels.children.find(c => c.name === 'SM_Item_Log_01');
   woodMesh.visible = false;
@@ -3525,9 +3529,7 @@ function animate(timestamp, frame) {
             if (raycastChunkSpec) {
               if (raycastChunkSpec.mesh.isChunkMesh) {
                 _applyPotentialDelta(raycastChunkSpec.point, -0.2);
-              } else if (raycastChunkSpec.mesh.isBuildHullMesh) {
-                const {buildMesh} = raycastChunkSpec.mesh;
-
+              } else if (raycastChunkSpec.mesh.buildMeshType) {
                 localVector2.copy(localVector)
                   .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
                   .add(localVector3.set(0, -BUILD_SNAP/2, 0));
@@ -3537,7 +3539,7 @@ function animate(timestamp, frame) {
                   .premultiply(localMatrix2.getInverse(worldContainer.matrix))
                   .decompose(localVector2, localQuaternion2, localVector3);
 
-                buildMesh.hit(30);
+                raycastChunkSpec.mesh.hit(30);
               } else if (raycastChunkSpec.mesh.isNpcHullMesh) {
                 const {npcMesh} = raycastChunkSpec.mesh;
 
