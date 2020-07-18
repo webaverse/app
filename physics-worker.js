@@ -1,4 +1,4 @@
-importScripts('https://static.xrpackage.org/xrpackage/three.js', './base64.js');
+importScripts('https://static.xrpackage.org/xrpackage/three.js', './GLTFLoader.js', './base64.js');
 
 const renderer = new THREE.WebGLRenderer({
   canvas: new OffscreenCanvas(1, 1),
@@ -219,21 +219,29 @@ class PointRaycaster {
     if (this.pixels[0] !== 0) {
       meshId = Math.round(this.pixels[0]*64000);
       const mesh = _findMeshWithMeshId(container, meshId);
-      index = Math.round(this.pixels[1]*64000);
+      if (mesh) {
+        index = Math.round(this.pixels[1]*64000);
 
-      const triangle = new THREE.Triangle(
-        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9).applyMatrix4(mesh.matrixWorld),
-        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+3).applyMatrix4(mesh.matrixWorld),
-        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+6).applyMatrix4(mesh.matrixWorld)
-      );
-      normal = triangle.getNormal(new THREE.Vector3());
-      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, triangle.a);
+        const triangle = new THREE.Triangle(
+          new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9).applyMatrix4(mesh.matrixWorld),
+          new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+3).applyMatrix4(mesh.matrixWorld),
+          new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+6).applyMatrix4(mesh.matrixWorld)
+        );
+        normal = triangle.getNormal(new THREE.Vector3());
+        const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, triangle.a);
 
-      const raycaster = new THREE.Raycaster();
-      raycaster.ray.origin.copy(this.camera.position);
-      raycaster.ray.direction.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
+        const raycaster = new THREE.Raycaster();
+        raycaster.ray.origin.copy(this.camera.position);
+        raycaster.ray.direction.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
 
-      point = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
+        point = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
+      } else {
+        meshId = -1;
+        // mesh = null;
+        index = -1;
+        point = null;
+        normal = null;
+      }
     } else {
       meshId = -1;
       // mesh = null;
@@ -360,12 +368,16 @@ class CollisionRaycaster {
         const index = Math.round(this.pixels[j+3]*64000);
 
         const mesh = _findMeshWithMeshId(container, meshId);
-        const triangle = new THREE.Triangle(
-          new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9).applyMatrix4(mesh.matrixWorld),
-          new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+3).applyMatrix4(mesh.matrixWorld),
-          new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+6).applyMatrix4(mesh.matrixWorld)
-        );
-        triangle.getNormal(new THREE.Vector3()).toArray(this.normals, i*3);
+        if (mesh) {
+          const triangle = new THREE.Triangle(
+            new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9).applyMatrix4(mesh.matrixWorld),
+            new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+3).applyMatrix4(mesh.matrixWorld),
+            new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+6).applyMatrix4(mesh.matrixWorld)
+          );
+          triangle.getNormal(new THREE.Vector3()).toArray(this.normals, i*3);
+        } else {
+          new THREE.Vector3(0, 1, 0).toArray(this.normals, i*3);
+        }
       } else {
         this.depths[i] = Infinity;
       }
@@ -487,6 +499,8 @@ const pointRaycaster = new PointRaycaster(renderer);
 const collisionRaycaster = new CollisionRaycaster(renderer);
 const physicsRaycaster = new PhysicsRaycaster(renderer);
 
+const queue = [];
+let loaded = false;
 const _handleMessage = data => {
   const {method} = data;
   switch (method) {
@@ -604,12 +618,137 @@ const _handleMessage = data => {
       });
       break;
     }
+    case 'loadBuildMesh': {
+      const {meshId, type, position, quaternion} = data;
+
+      const hullMesh = (() => {
+        switch (type) {
+          case 'wall': return wallMesh;
+          case 'floor': return platformMesh;
+          case 'stair': return stairsMesh;
+          case 'trap': return spikesMesh;
+          default: return null;
+        }
+      })();
+
+      const hullMeshClone = hullMesh.clone();
+      hullMeshClone.position.fromArray(position);
+      hullMeshClone.quaternion.fromArray(quaternion);
+      hullMeshClone.geometry = hullMeshClone.geometry.clone();
+      _decorateMeshForRaycast(hullMeshClone, meshId);
+      // hullMeshClone.isBuildHullMesh = true;
+      container.add(hullMeshClone);
+
+      self.postMessage({
+        result: {},
+      });
+      break;
+    }
+    case 'unloadBuildMesh': {
+      const {meshId} = data;
+      const mesh = _findMeshWithMeshId(container, meshId);
+      container.remove(mesh);
+
+      self.postMessage({
+        result: {},
+      });
+      break;
+    }
     default: {
       console.warn('unknown method', data.method);
       break;
     }
   }
 };
+
+const _loadGltf = u => new Promise((accept, reject) => {
+  new THREE.GLTFLoader().load(u, o => {
+    o = o.scene;
+    accept(o);
+  }, xhr => {}, reject);
+});
+const _decorateMeshForRaycast = (mesh, meshId) => {
+  mesh.traverse(o => {
+    if (o.isMesh) {
+      // const meshId = ++nextMeshId;
+
+      const {geometry} = o;
+      const numPositions = geometry.attributes.position.array.length;
+      const arrayBuffer2 = new ArrayBuffer(
+        numPositions/3 * Float32Array.BYTES_PER_ELEMENT +
+        numPositions/3 * Float32Array.BYTES_PER_ELEMENT
+      );
+      let index = 0;
+      const indexOffset = 0;
+
+      const ids = new Float32Array(arrayBuffer2, index, numPositions/3);
+      index += numPositions/3 * Float32Array.BYTES_PER_ELEMENT;
+      const indices = new Float32Array(arrayBuffer2, index, numPositions/3);
+      index += numPositions/3 * Float32Array.BYTES_PER_ELEMENT;
+      for (let i = 0; i < numPositions/3/3; i++) {
+        ids[i*3] = meshId;
+        ids[i*3+1] = meshId;
+        ids[i*3+2] = meshId;
+        const i2 = i + indexOffset;
+        indices[i*3] = i2;
+        indices[i*3+1] = i2;
+        indices[i*3+2] = i2;
+      }
+
+      geometry.setAttribute('id', new THREE.BufferAttribute(ids, 1));
+      geometry.setAttribute('index', new THREE.BufferAttribute(indices, 1));
+
+      mesh.meshId = meshId;
+    }
+  });
+};
+
+let stairsMesh = null;
+let platformMesh = null;
+let wallMesh = null;
+let spikesMesh = null;
+let woodMesh = null;
+let stoneMesh = null;
+let metalMesh = null;
+(async () => {
+  const buildModels = await _loadGltf('./buildhull.glb');
+
+  stairsMesh = buildModels.children.find(c => c.name === 'SM_Bld_Snow_Platform_Stairs_01001hull');
+  stairsMesh.geometry = stairsMesh.geometry.toNonIndexed();
+  // _decorateMeshForRaycast(stairsMesh);
+  // container.add(stairsMesh);
+
+  platformMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01hull');
+  platformMesh.geometry = platformMesh.geometry.toNonIndexed();
+  // _decorateMeshForRaycast(platformMesh);
+  // container.add(platformMesh);
+
+  wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06hull');
+  wallMesh.geometry = wallMesh.geometry.toNonIndexed();
+  // _decorateMeshForRaycast(wallMesh);
+  // container.add(wallMesh);
+
+  spikesMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSpikes_01hull');
+  spikesMesh.geometry = spikesMesh.geometry.toNonIndexed();
+  // _decorateMeshForRaycast(spikesMesh);
+  // container.add(spikesMesh);
+})().then(() => {
+  loaded = true;
+  _flushMessages();
+}).catch(err => {
+  console.warn(err.stack);
+});
+
+const _flushMessages = () => {
+  for (let i = 0; i < queue.length; i++) {
+    _handleMessage(queue[i]);
+  }
+};
 self.onmessage = e => {
-  _handleMessage(e.data);
+  const {data} = e;
+  if (!loaded) {
+    queue.push(data);
+  } else {
+    _handleMessage(data);
+  }
 };
