@@ -1297,12 +1297,13 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
               Math.floor(buildMeshClone.position.y/subparcelSize),
               Math.floor(buildMeshClone.position.z/subparcelSize)
             );
-            const subparcel = world.getSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z);
-            const buildIndex = subparcel.builds.indexOf(buildMeshClone.build);
-            if (buildIndex === -1) {
-              debugger;
-            }
-            subparcel.builds.splice(buildIndex, 1);
+            world.editSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z, subparcel => {
+              const buildIndex = subparcel.builds.indexOf(buildMeshClone.build);
+              if (buildIndex === -1) {
+                debugger;
+              }
+              subparcel.builds.splice(buildIndex, 1);
+            });
             mesh.updateBuildMeshes();
           }
         };
@@ -1432,7 +1433,9 @@ world.addEventListener('load', e => {
 
   _resetCamera();
 });
-world.connect('lol', false);
+world.connect('lol', {
+  online: false,
+});
 
 /* const _makePlanetChunkMesh = async () => {
   const meshId = ++nextMeshId;
@@ -3564,11 +3567,12 @@ function animate(timestamp, frame) {
               Math.floor(buildMesh.position.y/currentChunkMesh.subparcelSize),
               Math.floor(buildMesh.position.z/currentChunkMesh.subparcelSize)
             );
-            const subparcel = world.getSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z);
-            subparcel.builds.push({
-              type: buildMesh.buildMeshType,
-              position: buildMesh.position.toArray(),
-              quaternion: buildMesh.quaternion.toArray(),
+            world.editSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z, subparcel => {
+              subparcel.builds.push({
+                type: buildMesh.buildMeshType,
+                position: buildMesh.position.toArray(),
+                quaternion: buildMesh.quaternion.toArray(),
+              });
             });
             currentChunkMesh.updateBuildMeshes();
           }

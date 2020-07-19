@@ -3,6 +3,7 @@ import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
 } from './constants.js';
+import * as base64 from './base64.module.js';
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 
 const presenceHost = 'wss://rtc.exokit.org:4443';
@@ -13,27 +14,46 @@ const world = new EventTarget();
 export default world;
 
 let state = {};
-window.state = state;
+// window.state = state;
 
+const _addSubparcel = (x, y, z) => {
+  const subparcel = {
+    x,
+    y,
+    z,
+    potentials: null,
+    builds: [],
+    packages: [],
+  };
+  state.subparcels.push(subparcel);
+  return subparcel;
+};
 world.getSubparcel = (x, y, z) => {
   let subparcel = state.subparcels.find(sp => sp.x === x && sp.y === y && sp.z === z);
   if (!subparcel) {
-    subparcel = {
-      x,
-      y,
-      z,
-      potentials: null,
-      builds: [],
-      packages: [],
-    };
-    state.subparcels.push(subparcel);
+    subparcel = _addSubparcel(x, y, z);
   }
   return subparcel;
 };
+world.editSubparcel = async (x, y, z, fn) => {
+  let index = state.subparcels.findIndex(sp => sp.x === x && sp.y === y && sp.z === z);
+  if (index === -1) {
+    _addSubparcel(x, y, z);
+    index = state.subparcels.length-1;
+  }
+  const subparcel = state.subparcels[index];
+  await fn(subparcel);
 
-const _loadState = seedString => {
+  if (channelConnection) {
+    throw new Error('unknown');
+  } else {
+    await world.save(state.seedString);
+  }
+};
+
+const _ensureState = roomName => {
   if (!state.seedString) {
-    state.seedString = seedString;
+    state.seedString = roomName;
   }
   if (!state.subparcels) {
     state.subparcels = [];
@@ -44,17 +64,18 @@ const _loadState = seedString => {
   if (!state.subparcelSize) {
     state.subparcelSize = SUBPARCEL_SIZE;
   }
-
+};
+const _loadLiveState = seedString => {
   world.dispatchEvent(new MessageEvent('unload'));
   world.dispatchEvent(new MessageEvent('load', {
     data: state,
   }));
 };
 
-world.save = async () => {
-  await storage.set('planet', {
-    seedString: currentChunkMesh.seedString,
-    subparcels: currentChunkMesh.subparcels.map(subparcel => {
+world.save = async roomName => {
+  await storage.set(roomName, {
+    seedString: state.seedString,
+    subparcels: state.subparcels.map(subparcel => {
       return {
         x: subparcel.x,
         y: subparcel.y,
@@ -64,24 +85,25 @@ world.save = async () => {
         packages: subparcel.packages,
       };
     }),
+    parcelSize: state.parcelSize,
+    subparcelSize: state.subparcelSize,
   });
 };
-world.load = async () => {
-  const chunkSpec = await storage.get('planet');
-  for (const subparcel of chunkSpec.subparcels) {
-    if (subparcel.potentials) {
-      subparcel.potentials = new Float32Array(base64.decode(subparcel.potentials));
+world.load = async roomName => {
+  const s = await storage.get(roomName);
+  if (s) {
+    state = s;
+    for (const subparcel of state.subparcels) {
+      if (subparcel.potentials) {
+        subparcel.potentials = new Float32Array(base64.decode(subparcel.potentials));
+      }
     }
   }
-
-  world.dispatchEvent(new MessageEvent('unload'));
-  world.dispatchEvent(new MessageEvent('load', {
-    data: chunkSpec,
-  }));
 };
 
 // multiplayer
 
+let roomName = null;
 let channelConnection = null;
 let channelConnectionOpen = false;
 const peerConnections = [];
@@ -325,7 +347,8 @@ const _connectRoom = async roomName => {
     const {data} = e;
     console.log('got init state', data);
 
-    _loadState(roomName);
+    _ensureState(roomName);
+    _loadLiveState(roomName);
   });
   channelConnection.addEventListener('updateState', async e => {
     const {data} = e;
@@ -355,10 +378,14 @@ const _connectRoom = async roomName => {
     } */
   });
 };
-world.connect = async (roomName, {online = false} = {}) => {
+world.connect = async (rn, {online = true} = {}) => {
+  roomName = rn;
+
   if (online) {
     await _connectRoom(roomName);
   } else {
-    await _loadState(roomName);
+    await world.load(roomName);
+    _ensureState(roomName);
+    await _loadLiveState(roomName);
   }
 };
