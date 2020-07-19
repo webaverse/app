@@ -602,3 +602,8 @@ planet.connect = async (rn, {online = true} = {}) => {
     await _loadLiveState(roomName);
   }
 };
+planet.reload = () => {
+  const b = _serializeState(state);
+  const s = _deserializeState(b.buffer);
+  return s;
+};
