@@ -30,7 +30,7 @@ import {
 } from './constants.js';
 import alea from './alea.js';
 import easing from './easing.js';
-import world from './world.js';
+import planet from './planet.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const worldsEndpoint = 'https://worlds.exokit.org';
@@ -703,7 +703,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
                 const ady = ay + dy;
                 for (let dz = 0; dz <= 1; dz++) {
                   const adz = az + dz;
-                  const subparcel = world.getSubparcel(adx, ady, adz);
+                  const subparcel = planet.getSubparcel(adx, ady, adz);
                   if (!subparcel[loadedSymbol]) {
                     const {potentials} = subparcel;
                     worker.requestLoadPotentials(
@@ -975,7 +975,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
               Math.floor(buildMeshClone.position.y/subparcelSize),
               Math.floor(buildMeshClone.position.z/subparcelSize)
             );
-            world.editSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z, subparcel => {
+            planet.editSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z, subparcel => {
               const buildIndex = subparcel.builds.indexOf(buildMeshClone.build);
               if (buildIndex === -1) {
                 debugger;
@@ -1000,7 +1000,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
         physicsWorker.requestUnloadBuildMesh(buildMeshClone.meshId);
       };
       for (const neededCoord of neededCoords) {
-        const subparcel = world.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
+        const subparcel = planet.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
         for (const build of subparcel.builds) {
           if (!mesh.buildMeshes.some(buildMesh => buildMesh.build === build)) {
             _addBuild(build);
@@ -1014,7 +1014,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
         if (!neededCoords.some(nc => nc.x === sx && nc.y === sy && nc.z === sz)) {
           _removeBuildMesh(buildMesh);
         } else {
-          const subparcel = world.getSubparcel(sx, sy, sz);
+          const subparcel = planet.getSubparcel(sx, sy, sz);
           if (!subparcel.builds.includes(buildMesh.build)) {
             _removeBuildMesh(buildMesh);
           }
@@ -1036,7 +1036,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
           packagesNeedUpdate = false;
 
           for (const neededCoord of neededCoords) {
-            const subparcel = world.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
+            const subparcel = planet.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
             for (const pkg of subparcel.packages) {
               if (!mesh.objects.some(object => object.package === pkg)) {
                 const p = await XRPackage.download(pkg.dataHash);
@@ -1061,7 +1061,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
               pe.remove(p);
               mesh.objects.splice(mesh.objects.indexOf(p), 1);
             } else {
-              const subparcel = world.getSubparcel(sx, sy, sz);
+              const subparcel = planet.getSubparcel(sx, sy, sz);
               if (!subparcel.packages.includes(p.package)) {
                 pe.remove(p);
                 mesh.objects.splice(mesh.objects.indexOf(p), 1);
@@ -1084,7 +1084,7 @@ const _resetCamera = () => {
   pe.camera.updateMatrixWorld();
   pe.setCamera(camera);
 };
-world.addEventListener('unload', () => {
+planet.addEventListener('unload', () => {
   const oldChunkMesh = _getCurrentChunkMesh();
   if (oldChunkMesh) {
     chunkMeshContainer.remove(oldChunkMesh);
@@ -1092,7 +1092,7 @@ world.addEventListener('unload', () => {
     _setCurrentChunkMesh(null);
   }
 });
-world.addEventListener('load', e => {
+planet.addEventListener('load', e => {
   const {data: chunkSpec} = e;
 
   const chunkMesh = _makeChunkMesh(chunkSpec.seedString, chunkSpec.subparcels, chunkSpec.parcelSize, chunkSpec.subparcelSize);
@@ -1105,7 +1105,7 @@ world.addEventListener('load', e => {
 
   _resetCamera();
 });
-world.connect('lol', {
+planet.connect('lol', {
   online: false,
 });
 
@@ -2357,7 +2357,7 @@ function animate(timestamp, frame) {
                     const sy = Math.floor(ay/currentChunkMesh.subparcelSize);
                     const sz = Math.floor(az/currentChunkMesh.subparcelSize);
 
-                    world.editSubparcel(sx, sy, sz, subparcel => {
+                    planet.editSubparcel(sx, sy, sz, subparcel => {
                       if (!subparcel.potentials) {
                         subparcel.potentials = new Float32Array(currentChunkMesh.subparcelSize * currentChunkMesh.subparcelSize * currentChunkMesh.subparcelSize);
                       }
@@ -2548,7 +2548,7 @@ function animate(timestamp, frame) {
               Math.floor(buildMesh.position.y/currentChunkMesh.subparcelSize),
               Math.floor(buildMesh.position.z/currentChunkMesh.subparcelSize)
             );
-            world.editSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z, subparcel => {
+            planet.editSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z, subparcel => {
               subparcel.builds.push({
                 type: buildMesh.buildMeshType,
                 position: buildMesh.position.toArray(),
@@ -4479,7 +4479,7 @@ pe.domElement.addEventListener('drop', async e => {
       const sx = Math.floor(localVector.x/currentChunkMesh.subparcelSize);
       const sy = Math.floor(localVector.y/currentChunkMesh.subparcelSize);
       const sz = Math.floor(localVector.z/currentChunkMesh.subparcelSize);
-      world.editSubparcel(sx, sy, sz, subparcel => {
+      planet.editSubparcel(sx, sy, sz, subparcel => {
         subparcel.packages.push({
           dataHash,
           position: localVector.toArray(),
