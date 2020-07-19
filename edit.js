@@ -1385,8 +1385,7 @@ world.addEventListener('load', e => {
 
   _resetCamera();
 });
-world.gen('lol');
-// world.connect('planet');
+world.connect('lol', false);
 
 /* const _makePlanetChunkMesh = async () => {
   const meshId = ++nextMeshId;

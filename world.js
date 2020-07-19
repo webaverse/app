@@ -61,7 +61,7 @@ let channelConnection = null;
 let channelConnectionOpen = false;
 const peerConnections = [];
 let microphoneMediaStream = null;
-world.connect = async roomName => {
+const _connectRoom = async () => {
   channelConnection = new XRChannelConnection(`${presenceHost}/`, {
     roomName,
     // displayName: 'user',
@@ -329,4 +329,11 @@ world.connect = async roomName => {
       addMatrixUpdateListener(p);
     } */
   });
+};
+world.connect = async (roomName, {online = false} = {}) => {
+  if (online) {
+    await _connectRoom(roomName);
+  } else {
+    await world.gen(roomName);
+  }
 };
