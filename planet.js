@@ -8,7 +8,6 @@ import {
   PLANET_BUILD_SIZE,
   PLANET_PACKAGE_SIZE,
 } from './constants.js';
-import * as base64 from './base64.module.js';
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 
 const presenceHost = 'wss://rtc.exokit.org:4443';
@@ -21,10 +20,26 @@ export default planet;
 let state = {};
 // window.state = state;
 
+const _serializeState = state => {
+
+};
+const _deserializeState = state => {
+
+};
+
 class SubparcelObject {
-  constructor(data, offset) {
+  constructor(data, offset, index) {
     this.data = data;
     this.offset = offset;
+    this.index = index;
+  }
+  get valid() {
+    return new Uint8Array(this.data, this.offset)[0] !== 0;
+  }
+  set valid(valid) {
+    if (valid === false) {
+      new Uint8Array(this.data, this.offset)[0] = 0;
+    }
   }
   get name() {
     return new TextDecoder().decode(new Uint8Array(this.data, this.offset));
@@ -32,7 +47,9 @@ class SubparcelObject {
   set name(name) {
     const b = new TextEncoder.encode(name);
     if (b.byteLength < MAX_NAME_LENGTH) {
-      new Uint8Array(this.data, this.offset).set(b);
+      const dst = new Uint8Array(this.data, this.offset);
+      dst.set(b);
+      dst[b.byteLength] = 0;
     } else {
       throw new Error('name length overflow: ' + JSON.stringify(name));
     }
@@ -53,6 +70,14 @@ class SubparcelObject {
       .set(quaternion);
   }
 }
+class SubparcelBuild extends SubparcelObject {
+  get type() { return this.name; }
+  set type(type) { this.name = type; }
+}
+class SubparcelPackage extends SubparcelObject {
+  get dataHash() { return this.name; }
+  set dataHash(dataHash) { this.name = dataHash; }
+}
 
 class Subparcel {
   constructor(x, y, z) {
@@ -70,16 +95,52 @@ class Subparcel {
   get z() { return new Int32Array(this.data, 2*Int32Array.BYTES_PER_ELEMENT, 1)[0]; }
   set z(z) { new Int32Array(this.data, 2*Int32Array.BYTES_PER_ELEMENT, 1)[0] = z; }
   *builds() {
-    const buildsLength = new Uint32Array(this.data, this.offsets.buildsLength)[0];
-    for (let i = 0; i < buildsLength; i++) {
-      yield new SubparcelObject(this.data, this.offsets.builds + i*PLANET_BUILD_SIZE, this.offsets);
+    for (let i = 0; i < PLANET_BUILD_SLOTS; i++) {
+      const build = new SubparcelObject(this.data, this.offsets.builds + i*PLANET_BUILD_SIZE, this.offsets, i);
+      if (build.valid) {
+        yield build;
+      }
     }
   }
-  *packages() {
-    const packagesLength = new Uint32Array(this.data, this.offsets.packagesLength)[0];
-    for (let i = 0; i < packagesLength; i++) {
-      yield new SubparcelObject(this.data, this.offsets.packages + i*PLANET_PACKAGE_SIZE, this.offsets);
+  addBuild(type, position, quaternion) {
+    for (let i = 0; i < PLANET_BUILD_SLOTS; i++) {
+      const build = new SubparcelBuild(this.data, this.offsets.builds + i*PLANET_BUILD_SIZE, this.offsets, i);
+      if (!build.valid) {
+        build.type = type;
+        build.position = position.toArray(new Float32Array(3));
+        build.quaternion = quaternion.toArray(new Float32Array(4));
+        return build;
+      }
     }
+    throw new Error('no more slots for build');
+  }
+  removeBuild(index) {
+    const build = new SubparcelObject(this.data, this.offsets.builds + index*PLANET_BUILD_SIZE, this.offsets, index);
+    build.valid = false;
+  }
+  *packages() {
+    for (let i = 0; i < PLANET_PACKAGE_SLOTS; i++) {
+      const pkg = new SubparcelObject(this.data, this.offsets.packages + i*PLANET_PACKAGE_SIZE, this.offsets, i);
+      if (pkg.valid) {
+        yield pkg;
+      }
+    }
+  }
+  addPackage(dataHash, position, quaternion) {
+    for (let i = 0; i < PLANET_BUILD_SLOTS; i++) {
+      const pkg = new SubparcelPackage(this.data, this.offsets.packages + i*PLANET_PACKAGE_SIZE, this.offsets, i);
+      if (!pkg.valid) {
+        pkg.dataHash = dataHash;
+        pkg.position = position.toArray(new Float32Array(3));
+        pkg.quaternion = quaternion.toArray(new Float32Array(4));
+        return pkg;
+      }
+    }
+    throw new Error('no more slots for package');
+  }
+  removePackage(index) {
+    const pkg = new SubparcelObject(this.data, this.offsets.packages + index*PLANET_PACKAGE_SIZE, this.offsets, index);
+    pkg.valid = false;
   }
 }
 Subparcel.getOffsets = subparcelSize => {
@@ -89,12 +150,12 @@ Subparcel.getOffsets = subparcelSize => {
   index += Int32Array.BYTES_PER_ELEMENT * 3;
   const potentials = index;
   index += subparcelSize * subparcelSize * subparcelSize * Float32Array.BYTES_PER_ELEMENT;
-  const buildsLength = index;
-  index += Uint32Array.BYTES_PER_ELEMENT;
+  // const buildsLength = index;
+  // index += Uint32Array.BYTES_PER_ELEMENT;
   const builds = index;
   index += PLANET_BUILD_SIZE * PLANET_BUILD_SLOTS;
-  const packagesLength = index;
-  index += Uint32Array.BYTES_PER_ELEMENT;
+  // const packagesLength = index;
+  // index += Uint32Array.BYTES_PER_ELEMENT;
   const packages = index;
   index += PLANET_PACKAGE_SIZE * PLANET_PACKAGE_SLOTS;
   const length = index;
@@ -102,23 +163,16 @@ Subparcel.getOffsets = subparcelSize => {
   return {
     xyz,
     potentials,
-    buildsLength,
+    // buildsLength,
     builds,
-    packagesLength,
+    // packagesLength,
     packages,
     length,
   };
 };
 
 const _addSubparcel = (x, y, z) => {
-  const subparcel = {
-    x,
-    y,
-    z,
-    potentials: new Float32Array(state.subparcelSize * state.subparcelSize * state.subparcelSize),
-    builds: [],
-    packages: [],
-  };
+  const subparcel = new Subparcel(x, y, z);
   state.subparcels.push(subparcel);
   return subparcel;
 };
@@ -145,20 +199,6 @@ planet.editSubparcel = async (x, y, z, fn) => {
   }
 };
 
-const _ensureState = roomName => {
-  if (!state.seedString) {
-    state.seedString = roomName;
-  }
-  if (!state.subparcels) {
-    state.subparcels = [];
-  }
-  if (!state.parcelSize) {
-    state.parcelSize = PARCEL_SIZE;
-  }
-  if (!state.subparcelSize) {
-    state.subparcelSize = SUBPARCEL_SIZE;
-  }
-};
 const _loadLiveState = seedString => {
   planet.dispatchEvent(new MessageEvent('unload'));
   planet.dispatchEvent(new MessageEvent('load', {
@@ -167,29 +207,20 @@ const _loadLiveState = seedString => {
 };
 
 const _saveStorage = async roomName => {
-  await storage.set(roomName, {
-    seedString: state.seedString,
-    subparcels: state.subparcels.map(subparcel => {
-      return {
-        x: subparcel.x,
-        y: subparcel.y,
-        z: subparcel.z,
-        potentials: base64.encode(subparcel.potentials.buffer),
-        builds: subparcel.builds,
-        packages: subparcel.packages,
-      };
-    }),
-    parcelSize: state.parcelSize,
-    subparcelSize: state.subparcelSize,
-  });
+  const b = _serializeState(state);
+  await storage.setRaw(roomName, b);
 };
 const _loadStorage = async roomName => {
-  const s = await storage.get(roomName);
-  if (s) {
-    state = s;
-    for (const subparcel of state.subparcels) {
-      subparcel.potentials = new Float32Array(base64.decode(subparcel.potentials));
-    }
+  const b = await storage.getRaw(roomName);
+  if (b) {
+    state = _deserializeState(b);
+  } else {
+    state = {
+      seedString: roomName,
+      subparcels: [],
+      parcelSize: PARCEL_SIZE,
+      subparcelSize: SUBPARCEL_SIZE,
+    };
   }
 };
 
@@ -439,7 +470,6 @@ const _connectRoom = async roomName => {
     const {data} = e;
     console.log('got init state', data);
 
-    _ensureState(roomName);
     _loadLiveState(roomName);
   });
   channelConnection.addEventListener('updateState', async e => {
@@ -477,7 +507,6 @@ planet.connect = async (rn, {online = true} = {}) => {
     await _connectRoom(roomName);
   } else {
     await _loadStorage(roomName);
-    _ensureState(roomName);
     await _loadLiveState(roomName);
   }
 };
