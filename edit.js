@@ -1127,11 +1127,6 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
         buildMeshClone.build = build;
         buildMeshClone.meshId = ++nextMeshId;
         buildMeshClone.buildMeshType = buildMesh.buildMeshType;
-        /* buildMeshClone.hullMesh = buildMesh.hullMesh.clone();
-        buildMeshClone.hullMesh.geometry = buildMesh.hullMesh.geometry.clone();
-        _decorateMeshForRaycast(buildMeshClone.hullMesh);
-        buildMeshClone.hullMesh.isBuildHullMesh = true;
-        buildMeshClone.hullMesh.buildMesh = buildMeshClone; */
         let animation = null;
         let hp = 100;
         buildMeshClone.hit = dmg => {
@@ -1314,15 +1309,9 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
         mesh.buildMeshes.push(buildMeshClone);
 
         physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, buildMeshClone.getWorldPosition(new THREE.Vector3()).toArray(), buildMeshClone.getWorldQuaternion(new THREE.Quaternion()).toArray());
-
-        /* buildMeshClone.hullMesh.position.copy(buildMeshClone.position);
-        buildMeshClone.hullMesh.quaternion.copy(buildMeshClone.quaternion);
-        buildMeshClone.hullMesh.scale.copy(buildMeshClone.scale);
-        mesh.add(buildMeshClone.hullMesh); */
       };
       const _removeBuildMesh = buildMeshClone => {
         mesh.remove(buildMeshClone);
-        // mesh.remove(buildMeshClone.hullMesh);
         mesh.buildMeshes.splice(mesh.buildMeshes.indexOf(buildMeshClone), 1);
 
         physicsWorker.requestUnloadBuildMesh(buildMeshClone.meshId);
