@@ -32,115 +32,129 @@ class SubparcelObject {
     this.data = data;
     this.offset = offset;
     this.index = index;
+
+    this.name = new Uint8Array(this.data, this.offset);
+    this.position = new Float32Array(this.data, this.offset + MAX_NAME_LENGTH, 3);
+    this.quaternion = new Float32Array(this.data, this.offset + MAX_NAME_LENGTH + Float32Array.BYTES_PER_ELEMENT*3, 4);
   }
-  get valid() {
-    return new Uint8Array(this.data, this.offset)[0] !== 0;
+  isValid() {
+    return this.name[0] !== 0;
   }
-  set valid(valid) {
-    if (valid === false) {
-      new Uint8Array(this.data, this.offset)[0] = 0;
+  invalidate() {
+    this.name[0] = 0;
+  }
+  getNameLength() {
+    let i;
+    for (i = 0; i < this.name.length; i++) {
+      if (this.name[i] === 0) {
+        break;
+      }
     }
-  }
-  get name() {
-    return new TextDecoder().decode(new Uint8Array(this.data, this.offset));
-  }
-  set name(name) {
-    const b = new TextEncoder.encode(name);
-    if (b.byteLength < MAX_NAME_LENGTH) {
-      const dst = new Uint8Array(this.data, this.offset);
-      dst.set(b);
-      dst[b.byteLength] = 0;
-    } else {
-      throw new Error('name length overflow: ' + JSON.stringify(name));
-    }
-  }
-  get position() {
-    return new Float32Array(this.data, this.offset + MAX_NAME_LENGTH, 3);
-  }
-  set position(position) {
-    new Float32Array(this.data, this.offset + MAX_NAME_LENGTH, 3)
-      .set(position);
-  }
-  get quaternion() {
-    return new Float32Array(this.data, this.offset + MAX_NAME_LENGTH + 3 * Float32Array.BYTES_PER_ELEMENT, 4);
-  }
-  set quaternion(quaternion) {
-    const offsets = Subparcel.getOffsets(state.subparcelSize);
-    new Float32Array(this.data, this.offset + MAX_NAME_LENGTH + Float32Array.BYTES_PER_ELEMENT*3, 4)
-      .set(quaternion);
+    return i;
   }
 }
 class SubparcelBuild extends SubparcelObject {
-  get type() { return this.name; }
-  set type(type) { this.name = type; }
+  constructor(data, offset, index) {
+    super(data, offset, index);
+    this.type = '';
+  }
+  writeMetadata() {
+    const b = new TextEncoder().encode(this.type);
+    this.name.set(b);
+    this.name[b.byteLength] = 0;
+  }
+  readMetadata() {
+    const nameLength = this.getNameLength();
+    this.type = new TextDecoder().decode(new Uint8Array(this.name.buffer, this.name.byteOffset, this.name.nameLength));
+  }
 }
 class SubparcelPackage extends SubparcelObject {
-  get dataHash() { return this.name; }
-  set dataHash(dataHash) { this.name = dataHash; }
+  constructor(data, offset, index) {
+    super(data, offset, index);
+    this.dataHash = '';
+  }
+  writeMetadata() {
+    const b = new TextEncoder().encode(this.dataHash);
+    this.name.set(b);
+    this.name[b.byteLength] = 0;
+  }
+  readMetadata() {
+    const nameLength = this.getNameLength();
+    this.dataHash = new TextDecoder().decode(new Uint8Array(this.name.buffer, this.name.byteOffset, this.name.nameLength));
+  }
 }
 
 class Subparcel {
-  constructor(x, y, z) {
+  constructor() {
+    this.x = 0;
+    this.y = 0;
+    this.z = 0;
     this.offsets = Subparcel.getOffsets(state.subparcelSize);
     this.data = new ArrayBuffer(this.offsets.length);
-    this.x = x;
-    this.y = y;
-    this.z = z;
     this.potentials = new Float32Array(this.data, Int32Array.BYTES_PER_ELEMENT * 3, state.subparcelSize * state.subparcelSize * state.subparcelSize);
-  }
-  get x() { return new Int32Array(this.data, 0*Int32Array.BYTES_PER_ELEMENT, 1)[0]; }
-  set x(x) { new Int32Array(this.data, 0*Int32Array.BYTES_PER_ELEMENT, 1)[0] = x; }
-  get y() { return new Int32Array(this.data, 1*Int32Array.BYTES_PER_ELEMENT, 1)[0]; }
-  set y(y) { new Int32Array(this.data, 1*Int32Array.BYTES_PER_ELEMENT, 1)[0] = y; }
-  get z() { return new Int32Array(this.data, 2*Int32Array.BYTES_PER_ELEMENT, 1)[0]; }
-  set z(z) { new Int32Array(this.data, 2*Int32Array.BYTES_PER_ELEMENT, 1)[0] = z; }
-  *builds() {
+
+    this._builds = Array(PLANET_BUILD_SLOTS);
     for (let i = 0; i < PLANET_BUILD_SLOTS; i++) {
-      const build = new SubparcelObject(this.data, this.offsets.builds + i*PLANET_BUILD_SIZE, this.offsets, i);
-      if (build.valid) {
+      this._builds[i] = new SubparcelBuild(this.data, this.offsets.builds + i*PLANET_BUILD_SIZE, this.offsets, i);
+    }
+    this._packages = Array(PLANET_PACKAGE_SLOTS);
+    for (let i = 0; i < PLANET_PACKAGE_SLOTS; i++) {
+      this._packages[i] = new SubparcelPackage(this.data, this.offsets.packages + i*PLANET_PACKAGE_SIZE, this.offsets, i);
+    }
+  }
+  writeMetadata() {
+    const dst = new Int32Array(this.data, 0, 3);
+    dst[0] = this.x;
+    dst[1] = this.y;
+    dst[2] = this.z;
+  }
+  readMetadata() {
+    const src = new Int32Array(this.data, 0, 3);
+    this.x = dst[0];
+    this.y = dst[1];
+    this.z = dst[2];
+  }
+  *builds() {
+    for (const build of this._builds) {
+      if (build.isValid())
         yield build;
-      }
     }
   }
   addBuild(type, position, quaternion) {
-    for (let i = 0; i < PLANET_BUILD_SLOTS; i++) {
-      const build = new SubparcelBuild(this.data, this.offsets.builds + i*PLANET_BUILD_SIZE, this.offsets, i);
-      if (!build.valid) {
+    for (const build of this._builds) {
+      if (!build.isValid()) {
         build.type = type;
-        build.position = position.toArray(new Float32Array(3));
-        build.quaternion = quaternion.toArray(new Float32Array(4));
+        position.toArray(build.position);
+        quaternion.toArray(build.quaternion);
+        build.writeMetadata();
         return build;
       }
     }
     throw new Error('no more slots for build');
   }
   removeBuild(index) {
-    const build = new SubparcelObject(this.data, this.offsets.builds + index*PLANET_BUILD_SIZE, this.offsets, index);
-    build.valid = false;
+    this._builds[index].invalidate();
   }
   *packages() {
-    for (let i = 0; i < PLANET_PACKAGE_SLOTS; i++) {
-      const pkg = new SubparcelObject(this.data, this.offsets.packages + i*PLANET_PACKAGE_SIZE, this.offsets, i);
-      if (pkg.valid) {
+    for (const pkg of this._packages) {
+      if (pkg.isValid())
         yield pkg;
-      }
     }
   }
   addPackage(dataHash, position, quaternion) {
-    for (let i = 0; i < PLANET_BUILD_SLOTS; i++) {
-      const pkg = new SubparcelPackage(this.data, this.offsets.packages + i*PLANET_PACKAGE_SIZE, this.offsets, i);
-      if (!pkg.valid) {
-        pkg.dataHash = dataHash;
-        pkg.position = position.toArray(new Float32Array(3));
-        pkg.quaternion = quaternion.toArray(new Float32Array(4));
+    for (const pkg of this._packages) {
+      if (!pkg.isValid()) {
+        pkg.type = type;
+        position.toArray(pkg.position);
+        quaternion.toArray(pkg.quaternion);
+        pkg.writeMetadata();
         return pkg;
       }
     }
     throw new Error('no more slots for package');
   }
   removePackage(index) {
-    const pkg = new SubparcelObject(this.data, this.offsets.packages + index*PLANET_PACKAGE_SIZE, this.offsets, index);
-    pkg.valid = false;
+    this._packages[index].invalidate();
   }
 }
 Subparcel.getOffsets = subparcelSize => {
@@ -172,7 +186,11 @@ Subparcel.getOffsets = subparcelSize => {
 };
 
 const _addSubparcel = (x, y, z) => {
-  const subparcel = new Subparcel(x, y, z);
+  const subparcel = new Subparcel();
+  subparcel.x = x;
+  subparcel.y = y;
+  subparcel.z = z;
+  subparcel.writeMetadata();
   state.subparcels.push(subparcel);
   return subparcel;
 };
