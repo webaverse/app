@@ -47,7 +47,7 @@ planet.editSubparcel = async (x, y, z, fn) => {
   if (channelConnection) {
     throw new Error('unknown');
   } else {
-    await planet.save(state.seedString);
+    await _saveStorage(state.seedString);
   }
 };
 
@@ -72,7 +72,7 @@ const _loadLiveState = seedString => {
   }));
 };
 
-planet.save = async roomName => {
+const _saveStorage = async roomName => {
   await storage.set(roomName, {
     seedString: state.seedString,
     subparcels: state.subparcels.map(subparcel => {
@@ -89,7 +89,7 @@ planet.save = async roomName => {
     subparcelSize: state.subparcelSize,
   });
 };
-planet.load = async roomName => {
+const _loadStorage = async roomName => {
   const s = await storage.get(roomName);
   if (s) {
     state = s;
@@ -384,7 +384,7 @@ planet.connect = async (rn, {online = true} = {}) => {
   if (online) {
     await _connectRoom(roomName);
   } else {
-    await planet.load(roomName);
+    await _loadStorage(roomName);
     _ensureState(roomName);
     await _loadLiveState(roomName);
   }
