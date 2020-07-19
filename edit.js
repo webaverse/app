@@ -1230,13 +1230,6 @@ for (let i = 0; i < 30; i++) {
   currentChunkMesh.add(capsuleMesh);
 }
 
-// physics.bindStaticMeshPhysics(chunkMesh);
-/* for (let i = 0; i < chunkMeshes.length; i++) {
-  console.time('lol');
-  physics.bindStaticMeshPhysics(chunkMeshes[i]);
-  console.timeEnd('lol');
-} */
-
 })();
 
 // let wrenchMesh = null;
