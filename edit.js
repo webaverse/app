@@ -1128,7 +1128,7 @@ for (let i = 0; i < 30; i++) {
   }
 } */
 
-{
+/* {
   const npcMesh = await _loadGltf('./npc.vrm');
   npcMesh.position.y = -3;
   npcMesh.position.z = -3;
@@ -1147,8 +1147,6 @@ for (let i = 0; i < 30; i++) {
     const endTime = startTime + 300;
     const originalPosition = npcMesh.position.clone();
     animation = {
-      /* startTime,
-      endTime, */
       update() {
         const now = Date.now();
         const factor = (now - startTime) / (endTime - startTime);
@@ -1202,7 +1200,7 @@ for (let i = 0; i < 30; i++) {
   capsuleMesh.scale.copy(npcMesh.scale);
   capsuleMesh.visible = false;
   currentChunkMesh.add(capsuleMesh);
-}
+} */
 
 })();
 
