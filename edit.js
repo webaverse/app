@@ -15,7 +15,6 @@ import * as base64 from './base64.module.js';
 // import {makeTextMesh, makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
 import {makeTextMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
-import storage from './storage.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
@@ -29,12 +28,11 @@ import {
   chunkDistance,
   BUILD_SNAP,
 } from './constants.js';
-// import perlin from './perlin.js';
 import alea from './alea.js';
 import easing from './easing.js';
+import world from './world.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
-const presenceEndpoint = 'wss://presence.exokit.org';
 const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
 
@@ -1358,6 +1356,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
   };
   return mesh;
 };
+
 const _resetCamera = () => {
   pe.camera.position.set(0, 0, 2);
   pe.camera.quaternion.set(0, 0, 0, 1);
@@ -1365,65 +1364,29 @@ const _resetCamera = () => {
   pe.camera.updateMatrixWorld();
   pe.setCamera(camera);
 };
-window.gen = async seedString => {
+world.addEventListener('unload', () => {
   const oldChunkMesh = _getCurrentChunkMesh();
   if (oldChunkMesh) {
     chunkMeshContainer.remove(oldChunkMesh);
     chunkMeshes.splice(chunkMeshes.indexOf(oldChunkMesh), 1);
     _setCurrentChunkMesh(null);
   }
+});
+world.addEventListener('load', e => {
+  const {data: chunkSpec} = e;
 
-  const chunkMesh = _makeChunkMesh(seedString, [], PARCEL_SIZE, SUBPARCEL_SIZE);
-  chunkMesh.position.y = -PARCEL_SIZE - 5;
-  chunkMesh.position.x = -PARCEL_SIZE/2;
-  chunkMesh.position.z = -PARCEL_SIZE/2;
+  const chunkMesh = _makeChunkMesh(chunkSpec.seedString, chunkSpec.subparcels, chunkSpec.parcelSize, chunkSpec.subparcelSize);
+  chunkMesh.position.y = -chunkSpec.parcelSize - 5;
+  chunkMesh.position.x = -chunkSpec.parcelSize/2;
+  chunkMesh.position.z = -chunkSpec.parcelSize/2;
   chunkMeshContainer.add(chunkMesh);
   chunkMeshes.push(chunkMesh);
   _setCurrentChunkMesh(chunkMesh);
 
   _resetCamera();
-};
-window.save = async () => {
-  await storage.set('planet', {
-    seedString: currentChunkMesh.seedString,
-    subparcels: currentChunkMesh.subparcels.map(subparcel => {
-      return {
-        x: subparcel.x,
-        y: subparcel.y,
-        z: subparcel.z,
-        potentials: subparcel.potentials && base64.encode(subparcel.potentials.buffer),
-        builds: subparcel.builds,
-        packages: subparcel.packages,
-      };
-    }),
-  });
-};
-window.load = async () => {
-  const chunkSpec = await storage.get('planet');
-  for (const subparcel of chunkSpec.subparcels) {
-    if (subparcel.potentials) {
-      subparcel.potentials = new Float32Array(base64.decode(subparcel.potentials));
-    }
-  }
-
-  const oldChunkMesh = _getCurrentChunkMesh();
-  if (oldChunkMesh) {
-    chunkMeshContainer.remove(oldChunkMesh);
-    chunkMeshes.splice(chunkMeshes.indexOf(oldChunkMesh), 1);
-    _setCurrentChunkMesh(null);
-  }
-
-  const chunkMesh = _makeChunkMesh(chunkSpec.seedString, chunkSpec.subparcels, PARCEL_SIZE, SUBPARCEL_SIZE);
-  chunkMesh.position.y = -PARCEL_SIZE - 5;
-  chunkMesh.position.x = -PARCEL_SIZE/2;
-  chunkMesh.position.z = -PARCEL_SIZE/2;
-  chunkMeshContainer.add(chunkMesh);
-  chunkMeshes.push(chunkMesh);
-  _setCurrentChunkMesh(chunkMesh);
-
-  _resetCamera();
-};
-window.gen('lol');
+});
+world.gen('lol');
+// world.connect('planet');
 
 /* const _makePlanetChunkMesh = async () => {
   const meshId = ++nextMeshId;
