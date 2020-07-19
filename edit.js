@@ -828,22 +828,6 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
   mesh.frustumCulled = false;
   mesh.meshId = meshId;
   mesh.seedString = seedString;
-  mesh.subparcels = subparcels;
-  mesh.getSubparcel = (x, y, z) => {
-    let subparcel = mesh.subparcels.find(sp => sp.x === x && sp.y === y && sp.z === z);
-    if (!subparcel) {
-      subparcel = {
-        x,
-        y,
-        z,
-        potentials: null,
-        builds: [],
-        packages: [],
-      };
-      mesh.subparcels.push(subparcel);
-    }
-    return subparcel;
-  };
   mesh.parcelSize = parcelSize;
   mesh.subparcelSize = subparcelSize;
   mesh.isChunkMesh = true;
@@ -971,7 +955,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
                 const ady = ay + dy;
                 for (let dz = 0; dz <= 1; dz++) {
                   const adz = az + dz;
-                  const subparcel = mesh.getSubparcel(adx, ady, adz);
+                  const subparcel = world.getSubparcel(adx, ady, adz);
                   if (!subparcel[loadedSymbol]) {
                     const {potentials} = subparcel;
                     worker.requestLoadPotentials(
@@ -1011,8 +995,6 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
             }
 
             if (!slabs.some(slab => slab.x === ax && slab.y === ay && slab.z === az)) {
-              const subparcel = mesh.getSubparcel(ax, ay, az);
-              const {potentials} = subparcel;
               const specs = await worker.requestMarchLand(
                 seedNum,
                 meshId,
@@ -1250,7 +1232,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
               Math.floor(buildMeshClone.position.y/subparcelSize),
               Math.floor(buildMeshClone.position.z/subparcelSize)
             );
-            const subparcel = mesh.getSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z);
+            const subparcel = world.getSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z);
             const buildIndex = subparcel.builds.indexOf(buildMeshClone.build);
             if (buildIndex === -1) {
               debugger;
@@ -1280,7 +1262,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
         physicsWorker.requestUnloadBuildMesh(buildMeshClone.meshId);
       };
       for (const neededCoord of neededCoords) {
-        const subparcel = mesh.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
+        const subparcel = world.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
         for (const build of subparcel.builds) {
           if (!mesh.buildMeshes.some(buildMesh => buildMesh.build === build)) {
             _addBuild(build);
@@ -1294,7 +1276,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
         if (!neededCoords.some(nc => nc.x === sx && nc.y === sy && nc.z === sz)) {
           _removeBuildMesh(buildMesh);
         } else {
-          const subparcel = mesh.getSubparcel(sx, sy, sz);
+          const subparcel = world.getSubparcel(sx, sy, sz);
           if (!subparcel.builds.includes(buildMesh.build)) {
             _removeBuildMesh(buildMesh);
           }
@@ -1316,7 +1298,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
           packagesNeedUpdate = false;
 
           for (const neededCoord of neededCoords) {
-            const subparcel = mesh.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
+            const subparcel = world.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
             for (const pkg of subparcel.packages) {
               if (!mesh.objects.some(object => object.package === pkg)) {
                 const p = await XRPackage.download(pkg.dataHash);
@@ -1341,7 +1323,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
               pe.remove(p);
               mesh.objects.splice(mesh.objects.indexOf(p), 1);
             } else {
-              const subparcel = mesh.getSubparcel(sx, sy, sz);
+              const subparcel = world.getSubparcel(sx, sy, sz);
               if (!subparcel.packages.includes(p.package)) {
                 pe.remove(p);
                 mesh.objects.splice(mesh.objects.indexOf(p), 1);
@@ -3361,10 +3343,6 @@ function animate(timestamp, frame) {
             localVector2.y = Math.floor(localVector2.y);
             localVector2.z = Math.floor(localVector2.z);
 
-            /* const sx = Math.floor(localVector2.x/currentChunkMesh.subparcelSize);
-            const sy = Math.floor(localVector2.y/currentChunkMesh.subparcelSize);
-            const sz = Math.floor(localVector2.z/currentChunkMesh.subparcelSize); */
-
             const minesMap = {};
             const _getMinesKey = (x, y, z) => [x, y, z].join(':');
             const _getMines = (x, y, z) => {
@@ -3395,12 +3373,10 @@ function animate(timestamp, frame) {
                     const sy = Math.floor(ay/currentChunkMesh.subparcelSize);
                     const sz = Math.floor(az/currentChunkMesh.subparcelSize);
 
-                    const subparcel = currentChunkMesh.getSubparcel(sx, sy, sz);
+                    const subparcel = world.getSubparcel(sx, sy, sz);
                     if (!subparcel.potentials) {
                       subparcel.potentials = new Float32Array(currentChunkMesh.subparcelSize * currentChunkMesh.subparcelSize * currentChunkMesh.subparcelSize);
                     }
-                    // const slab = chunk.getOrCreateSlab(sx, sy, sz);
-                    // const {potentials} = slab;
 
                     const lx = mod(ax, currentChunkMesh.subparcelSize);
                     const ly = mod(ay, currentChunkMesh.subparcelSize);
@@ -3587,7 +3563,7 @@ function animate(timestamp, frame) {
               Math.floor(buildMesh.position.y/currentChunkMesh.subparcelSize),
               Math.floor(buildMesh.position.z/currentChunkMesh.subparcelSize)
             );
-            const subparcel = currentChunkMesh.getSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z);
+            const subparcel = world.getSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z);
             subparcel.builds.push({
               type: buildMesh.buildMeshType,
               position: buildMesh.position.toArray(),
@@ -5540,7 +5516,7 @@ pe.domElement.addEventListener('drop', async e => {
       const sx = Math.floor(localVector.x/currentChunkMesh.subparcelSize);
       const sy = Math.floor(localVector.y/currentChunkMesh.subparcelSize);
       const sz = Math.floor(localVector.z/currentChunkMesh.subparcelSize);
-      const subparcel = currentChunkMesh.getSubparcel(sx, sy, sz);
+      const subparcel = world.getSubparcel(sx, sy, sz);
       subparcel.packages.push({
         dataHash,
         position: localVector.toArray(),

@@ -12,20 +12,45 @@ const presenceHost = 'wss://rtc.exokit.org:4443';
 const world = new EventTarget();
 export default world;
 
-world.gen = async seedString => {
+let state = {};
+window.state = state;
+
+world.getSubparcel = (x, y, z) => {
+  let subparcel = state.subparcels.find(sp => sp.x === x && sp.y === y && sp.z === z);
+  if (!subparcel) {
+    subparcel = {
+      x,
+      y,
+      z,
+      potentials: null,
+      builds: [],
+      packages: [],
+    };
+    state.subparcels.push(subparcel);
+  }
+  return subparcel;
+};
+
+const _loadState = seedString => {
+  if (!state.seedString) {
+    state.seedString = seedString;
+  }
+  if (!state.subparcels) {
+    state.subparcels = [];
+  }
+  if (!state.parcelSize) {
+    state.parcelSize = PARCEL_SIZE;
+  }
+  if (!state.subparcelSize) {
+    state.subparcelSize = SUBPARCEL_SIZE;
+  }
+
   world.dispatchEvent(new MessageEvent('unload'));
-
-  const chunkSpec = {
-    seedString,
-    subparcels: [],
-    parcelSize: PARCEL_SIZE,
-    subparcelSize: SUBPARCEL_SIZE,
-  };
-
   world.dispatchEvent(new MessageEvent('load', {
-    data: chunkSpec,
+    data: state,
   }));
 };
+
 world.save = async () => {
   await storage.set('planet', {
     seedString: currentChunkMesh.seedString,
@@ -61,7 +86,7 @@ let channelConnection = null;
 let channelConnectionOpen = false;
 const peerConnections = [];
 let microphoneMediaStream = null;
-const _connectRoom = async () => {
+const _connectRoom = async roomName => {
   channelConnection = new XRChannelConnection(`${presenceHost}/`, {
     roomName,
     // displayName: 'user',
@@ -296,11 +321,11 @@ const _connectRoom = async () => {
     }, 1000);
   }); */
 
-  let state = {};
-  window.state = state;
   channelConnection.addEventListener('initState', async e => {
     const {data} = e;
     console.log('got init state', data);
+
+    _loadState(roomName);
   });
   channelConnection.addEventListener('updateState', async e => {
     const {data} = e;
@@ -334,6 +359,6 @@ world.connect = async (roomName, {online = false} = {}) => {
   if (online) {
     await _connectRoom(roomName);
   } else {
-    await world.gen(roomName);
+    await _loadState(roomName);
   }
 };
