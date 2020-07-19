@@ -3366,20 +3366,21 @@ function animate(timestamp, frame) {
                     const sy = Math.floor(ay/currentChunkMesh.subparcelSize);
                     const sz = Math.floor(az/currentChunkMesh.subparcelSize);
 
-                    const subparcel = world.getSubparcel(sx, sy, sz);
-                    if (!subparcel.potentials) {
-                      subparcel.potentials = new Float32Array(currentChunkMesh.subparcelSize * currentChunkMesh.subparcelSize * currentChunkMesh.subparcelSize);
-                    }
+                    world.editSubparcel(sx, sy, sz, subparcel => {
+                      if (!subparcel.potentials) {
+                        subparcel.potentials = new Float32Array(currentChunkMesh.subparcelSize * currentChunkMesh.subparcelSize * currentChunkMesh.subparcelSize);
+                      }
 
-                    const lx = mod(ax, currentChunkMesh.subparcelSize);
-                    const ly = mod(ay, currentChunkMesh.subparcelSize);
-                    const lz = mod(az, currentChunkMesh.subparcelSize);
-                    const potentialIndex = _getPotentialIndex(lx, ly, lz, currentChunkMesh.subparcelSize);
-                    const value = distanceDiff * delta;
-                    subparcel.potentials[potentialIndex] = subparcel.potentials[potentialIndex] + value;
+                      const lx = mod(ax, currentChunkMesh.subparcelSize);
+                      const ly = mod(ay, currentChunkMesh.subparcelSize);
+                      const lz = mod(az, currentChunkMesh.subparcelSize);
+                      const potentialIndex = _getPotentialIndex(lx, ly, lz, currentChunkMesh.subparcelSize);
+                      const value = distanceDiff * delta;
+                      subparcel.potentials[potentialIndex] = subparcel.potentials[potentialIndex] + value;
 
-                    const mines = _getMines(sx, sy, sz);
-                    mines.push([potentialIndex, value]);
+                      const mines = _getMines(sx, sy, sz);
+                      mines.push([potentialIndex, value]);
+                    });
 
                     for (let ddy = -1; ddy <= 1; ddy++) {
                       const ady = ay + ddy;
