@@ -8,10 +8,10 @@ import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 
 const presenceHost = 'wss://rtc.exokit.org:4443';
 
-// world
+// planet
 
-const world = new EventTarget();
-export default world;
+const planet = new EventTarget();
+export default planet;
 
 let state = {};
 // window.state = state;
@@ -28,14 +28,14 @@ const _addSubparcel = (x, y, z) => {
   state.subparcels.push(subparcel);
   return subparcel;
 };
-world.getSubparcel = (x, y, z) => {
+planet.getSubparcel = (x, y, z) => {
   let subparcel = state.subparcels.find(sp => sp.x === x && sp.y === y && sp.z === z);
   if (!subparcel) {
     subparcel = _addSubparcel(x, y, z);
   }
   return subparcel;
 };
-world.editSubparcel = async (x, y, z, fn) => {
+planet.editSubparcel = async (x, y, z, fn) => {
   let index = state.subparcels.findIndex(sp => sp.x === x && sp.y === y && sp.z === z);
   if (index === -1) {
     _addSubparcel(x, y, z);
@@ -47,7 +47,7 @@ world.editSubparcel = async (x, y, z, fn) => {
   if (channelConnection) {
     throw new Error('unknown');
   } else {
-    await world.save(state.seedString);
+    await planet.save(state.seedString);
   }
 };
 
@@ -66,13 +66,13 @@ const _ensureState = roomName => {
   }
 };
 const _loadLiveState = seedString => {
-  world.dispatchEvent(new MessageEvent('unload'));
-  world.dispatchEvent(new MessageEvent('load', {
+  planet.dispatchEvent(new MessageEvent('unload'));
+  planet.dispatchEvent(new MessageEvent('load', {
     data: state,
   }));
 };
 
-world.save = async roomName => {
+planet.save = async roomName => {
   await storage.set(roomName, {
     seedString: state.seedString,
     subparcels: state.subparcels.map(subparcel => {
@@ -89,7 +89,7 @@ world.save = async roomName => {
     subparcelSize: state.subparcelSize,
   });
 };
-world.load = async roomName => {
+planet.load = async roomName => {
   const s = await storage.get(roomName);
   if (s) {
     state = s;
@@ -378,13 +378,13 @@ const _connectRoom = async roomName => {
     } */
   });
 };
-world.connect = async (rn, {online = true} = {}) => {
+planet.connect = async (rn, {online = true} = {}) => {
   roomName = rn;
 
   if (online) {
     await _connectRoom(roomName);
   } else {
-    await world.load(roomName);
+    await planet.load(roomName);
     _ensureState(roomName);
     await _loadLiveState(roomName);
   }
