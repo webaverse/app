@@ -5511,11 +5511,12 @@ pe.domElement.addEventListener('drop', async e => {
       const sx = Math.floor(localVector.x/currentChunkMesh.subparcelSize);
       const sy = Math.floor(localVector.y/currentChunkMesh.subparcelSize);
       const sz = Math.floor(localVector.z/currentChunkMesh.subparcelSize);
-      const subparcel = world.getSubparcel(sx, sy, sz);
-      subparcel.packages.push({
-        dataHash,
-        position: localVector.toArray(),
-        quaternion: localQuaternion.toArray(),
+      world.editSubparcel(sx, sy, sz, subparcel => {
+        subparcel.packages.push({
+          dataHash,
+          position: localVector.toArray(),
+          quaternion: localQuaternion.toArray(),
+        });
       });
       currentChunkMesh.updatePackages();
 
