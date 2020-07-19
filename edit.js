@@ -64,22 +64,6 @@ const _loadGltf = u => new Promise((accept, reject) => {
 });
 const HEIGHTFIELD_SHADER = {
   uniforms: {
-    /* fogColor: {
-      type: '3f',
-      value: new THREE.Color(),
-    },
-    fogDensity: {
-      type: 'f',
-      value: 0,
-    },
-    sunIntensity: {
-      type: 'f',
-      value: 0,
-    },
-    selectedIndex: {
-      type: 'f',
-      value: 0,
-    }, */
     isCurrent: {
       type: 'f',
       value: 0,
@@ -141,7 +125,6 @@ const HEIGHTFIELD_SHADER = {
     // uniform vec3 cameraPosition;
     // uniform sampler2D tex;
     uniform sampler2D heightColorTex;
-    // uniform float selectedIndex;
 
     // varying vec3 vPosition;
     varying vec3 vWorldPosition;
@@ -198,10 +181,6 @@ const HEIGHTFIELD_SHADER = {
       }
 
       gl_FragColor = vec4(diffuseColor, 1.0);
-
-      /* if (vIndex == selectedIndex) {
-        gl_FragColor.b = 1.0;
-      } */
     }
   `
 };
@@ -1641,13 +1620,6 @@ const cometFireMesh = (() => {
   const opacity = 0.5;
   const _makeSphereGeometry = (radius, color, position, scale) => {
     const geometry = new THREE.SphereBufferGeometry(radius, 8, 5);
-      // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius/2, 0));
-    /* for (let i = 0; i < cometFireGeometry.attributes.position.array.length; i += 3) {
-      if (cometFireGeometry.attributes.position.array[i+1] > 0) {
-        cometFireGeometry.attributes.position.array[i] *= (1 + cometFireGeometry.attributes.position.array[i+1]);
-        cometFireGeometry.attributes.position.array[i+2] *= (1 + cometFireGeometry.attributes.position.array[i+1]);
-      }
-    } */
     for (let i = 0; i < geometry.attributes.position.array.length; i += 3) {
       if (geometry.attributes.position.array[i+1] > 0) {
         geometry.attributes.position.array[i] = Math.sign(geometry.attributes.position.array[i]);
@@ -1673,11 +1645,6 @@ const cometFireMesh = (() => {
     _makeSphereGeometry(radius, 0xef5350, new THREE.Vector3(0, 0.7, 0), new THREE.Vector3(2, 5, 2)),
     _makeSphereGeometry(radius, 0xffa726, new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 1, 1)),
   ]);
-  /* const ys = new Float32Array(cometFireGeometry.attributes.position.array.length/3);
-  for (let i = 0; i < cometFireGeometry.attributes.position.array.length/3; i++) {
-    ys[i] = 1-(-radius/2 - cometFireGeometry.attributes.position.array[i*3+1]/radius);
-  }
-  cometFireGeometry.setAttribute('y', new THREE.BufferAttribute(ys, 1)); */
   const cometFireMaterial = new THREE.ShaderMaterial({
     uniforms: {
       uAnimation: {
@@ -2623,8 +2590,6 @@ function animate(timestamp, frame) {
 
       const currentTeleportChunkMesh = raycastChunkSpec && raycastChunkSpec.mesh;
       if (currentTeleport && currentTeleportChunkMesh) {
-        // currentTeleportChunkMesh.material[0].uniforms.selectedIndex.value = raycastChunkSpec.index;
-
         if (raycastChunkSpec.point) {
           teleportMeshes[1].position.copy(raycastChunkSpec.point);
           teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), raycastChunkSpec.normal);
