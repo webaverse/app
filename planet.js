@@ -2,6 +2,11 @@ import storage from './storage.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
+  MAX_NAME_LENGTH,
+  PLANET_BUILD_SLOTS,
+  PLANET_PACKAGE_SLOTS,
+  PLANET_BUILD_SIZE,
+  PLANET_PACKAGE_SIZE,
 } from './constants.js';
 import * as base64 from './base64.module.js';
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
@@ -15,6 +20,95 @@ export default planet;
 
 let state = {};
 // window.state = state;
+
+class SubparcelObject {
+  constructor(data, offset) {
+    this.data = data;
+    this.offset = offset;
+  }
+  get name() {
+    return new TextDecoder().decode(new Uint8Array(this.data, this.offset));
+  }
+  set name(name) {
+    const b = new TextEncoder.encode(name);
+    if (b.byteLength < MAX_NAME_LENGTH) {
+      new Uint8Array(this.data, this.offset).set(b);
+    } else {
+      throw new Error('name length overflow: ' + JSON.stringify(name));
+    }
+  }
+  get position() {
+    return new Float32Array(this.data, this.offset + MAX_NAME_LENGTH, 3);
+  }
+  set position(position) {
+    new Float32Array(this.data, this.offset + MAX_NAME_LENGTH, 3)
+      .set(position);
+  }
+  get quaternion() {
+    return new Float32Array(this.data, this.offset + MAX_NAME_LENGTH + 3 * Float32Array.BYTES_PER_ELEMENT, 4);
+  }
+  set quaternion(quaternion) {
+    const offsets = Subparcel.getOffsets(state.subparcelSize);
+    new Float32Array(this.data, this.offset + MAX_NAME_LENGTH + Float32Array.BYTES_PER_ELEMENT*3, 4)
+      .set(quaternion);
+  }
+}
+
+class Subparcel {
+  constructor(x, y, z) {
+    this.offsets = Subparcel.getOffsets(state.subparcelSize);
+    this.data = new ArrayBuffer(this.offsets.length);
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    this.potentials = new Float32Array(this.data, Int32Array.BYTES_PER_ELEMENT * 3, state.subparcelSize * state.subparcelSize * state.subparcelSize);
+  }
+  get x() { return new Int32Array(this.data, 0*Int32Array.BYTES_PER_ELEMENT, 1)[0]; }
+  set x(x) { new Int32Array(this.data, 0*Int32Array.BYTES_PER_ELEMENT, 1)[0] = x; }
+  get y() { return new Int32Array(this.data, 1*Int32Array.BYTES_PER_ELEMENT, 1)[0]; }
+  set y(y) { new Int32Array(this.data, 1*Int32Array.BYTES_PER_ELEMENT, 1)[0] = y; }
+  get z() { return new Int32Array(this.data, 2*Int32Array.BYTES_PER_ELEMENT, 1)[0]; }
+  set z(z) { new Int32Array(this.data, 2*Int32Array.BYTES_PER_ELEMENT, 1)[0] = z; }
+  *builds() {
+    const buildsLength = new Uint32Array(this.data, this.offsets.buildsLength)[0];
+    for (let i = 0; i < buildsLength; i++) {
+      yield new SubparcelObject(this.data, this.offsets.builds + i*PLANET_BUILD_SIZE, this.offsets);
+    }
+  }
+  *packages() {
+    const packagesLength = new Uint32Array(this.data, this.offsets.packagesLength)[0];
+    for (let i = 0; i < packagesLength; i++) {
+      yield new SubparcelObject(this.data, this.offsets.packages + i*PLANET_PACKAGE_SIZE, this.offsets);
+    }
+  }
+}
+Subparcel.getOffsets = subparcelSize => {
+  let index = 0;
+
+  const xyz = index;
+  index += Int32Array.BYTES_PER_ELEMENT * 3;
+  const potentials = index;
+  index += subparcelSize * subparcelSize * subparcelSize * Float32Array.BYTES_PER_ELEMENT;
+  const buildsLength = index;
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const builds = index;
+  index += PLANET_BUILD_SIZE * PLANET_BUILD_SLOTS;
+  const packagesLength = index;
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const packages = index;
+  index += PLANET_PACKAGE_SIZE * PLANET_PACKAGE_SLOTS;
+  const length = index;
+
+  return {
+    xyz,
+    potentials,
+    buildsLength,
+    builds,
+    packagesLength,
+    packages,
+    length,
+  };
+};
 
 const _addSubparcel = (x, y, z) => {
   const subparcel = {
