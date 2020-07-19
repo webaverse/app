@@ -56,6 +56,12 @@ const localFrustum = new THREE.Frustum();
 
 const cubicBezier = easing(0, 1, 0, 1);
 
+const _loadGltf = u => new Promise((accept, reject) => {
+  new GLTFLoader().load(u, o => {
+    o = o.scene;
+    accept(o);
+  }, xhr => {}, reject);
+});
 const HEIGHTFIELD_SHADER = {
   uniforms: {
     /* fogColor: {
@@ -295,12 +301,20 @@ const _setCurrentChunkMesh = chunkMesh => {
     currentChunkMesh.material[0].uniforms.isCurrent.value = 1;
   }
 };
+let stairsMesh = null;
+let platformMesh = null;
+let wallMesh = null;
+let spikesMesh = null;
+let woodMesh = null;
+let stoneMesh = null;
+let metalMesh = null;
 (async () => {
 
 const [
   w,
   pw,
   colors,
+  _buildMeshes,
   // ammo,
 ] = await Promise.all([
   (async () => {
@@ -475,6 +489,57 @@ const [
   (async () => {
     const res = await fetch('./colors.json');
     return await res.json();
+  })(),
+  (async () => {
+    const buildModels = await _loadGltf('./build.glb');
+
+    stairsMesh = buildModels.children.find(c => c.name === 'SM_Bld_Snow_Platform_Stairs_01001');
+    stairsMesh.buildMeshType = 'stair';
+    stairsMesh.traverse(o => {
+      if (o.isMesh) {
+        o.isBuildMesh = true;
+      }
+    });
+    // worldContainer.add(stairsMesh);
+
+    platformMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01');
+    platformMesh.buildMeshType = 'floor';
+    platformMesh.traverse(o => {
+      if (o.isMesh) {
+        o.isBuildMesh = true;
+      }
+    });
+    // worldContainer.add(platformMesh);
+
+    wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06');
+    wallMesh.buildMeshType = 'wall';
+    wallMesh.traverse(o => {
+      if (o.isMesh) {
+        o.isBuildMesh = true;
+      }
+    });
+    // worldContainer.add(wallMesh);
+
+    spikesMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSpikes_01');
+    spikesMesh.buildMeshType = 'trap';
+    spikesMesh.traverse(o => {
+      if (o.isMesh) {
+        o.isBuildMesh = true;
+      }
+    });
+    // worldContainer.add(spikesMesh);
+
+    woodMesh = buildModels.children.find(c => c.name === 'SM_Item_Log_01');
+    // woodMesh.visible = false;
+    // worldContainer.add(woodMesh);
+
+    stoneMesh = buildModels.children.find(c => c.name === 'SM_Env_Rock_01');
+    // stoneMesh.visible = false;
+    // worldContainer.add(stoneMesh);
+
+    metalMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSheet_01');
+    // metalMesh.visible = false;
+    // worldContainer.add(metalMesh);
   })(),
   /* await new Promise((accept, reject) => {
     Ammo()
@@ -1584,12 +1649,6 @@ let plansMesh = null;
 let pencilMesh = null;
 let pickaxeMesh = null;
 let paintBrushMesh = null;
-const _loadGltf = u => new Promise((accept, reject) => {
-  new GLTFLoader().load(u, o => {
-    o = o.scene;
-    accept(o);
-  }, xhr => {}, reject);
-});
 (async () => {
   const toolsModels = await _loadGltf('./tools.glb');
   /* wrenchMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Pipe_Wrench_01');
@@ -1609,64 +1668,6 @@ const _loadGltf = u => new Promise((accept, reject) => {
   scene.add(paintBrushMesh);
 })();
 let buildMode = null;
-let stairsMesh = null;
-let platformMesh = null;
-let wallMesh = null;
-let spikesMesh = null;
-let woodMesh = null;
-let stoneMesh = null;
-let metalMesh = null;
-(async () => {
-  const buildModels = await _loadGltf('./build.glb');
-
-  stairsMesh = buildModels.children.find(c => c.name === 'SM_Bld_Snow_Platform_Stairs_01001');
-  stairsMesh.buildMeshType = 'stair';
-  stairsMesh.traverse(o => {
-    if (o.isMesh) {
-      o.isBuildMesh = true;
-    }
-  });
-  worldContainer.add(stairsMesh);
-
-  platformMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01');
-  platformMesh.buildMeshType = 'floor';
-  platformMesh.traverse(o => {
-    if (o.isMesh) {
-      o.isBuildMesh = true;
-    }
-  });
-  worldContainer.add(platformMesh);
-
-  wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06');
-  wallMesh.buildMeshType = 'wall';
-  wallMesh.traverse(o => {
-    if (o.isMesh) {
-      o.isBuildMesh = true;
-    }
-  });
-  worldContainer.add(wallMesh);
-
-  spikesMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSpikes_01');
-  spikesMesh.buildMeshType = 'trap';
-  spikesMesh.traverse(o => {
-    if (o.isMesh) {
-      o.isBuildMesh = true;
-    }
-  });
-  worldContainer.add(spikesMesh);
-
-  woodMesh = buildModels.children.find(c => c.name === 'SM_Item_Log_01');
-  woodMesh.visible = false;
-  worldContainer.add(woodMesh);
-
-  stoneMesh = buildModels.children.find(c => c.name === 'SM_Env_Rock_01');
-  stoneMesh.visible = false;
-  worldContainer.add(stoneMesh);
-
-  metalMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSheet_01');
-  metalMesh.visible = false;
-  worldContainer.add(metalMesh);
-})();
 let assaultRifleMesh = null;
 let smgMesh = null;
 let grenadeMesh = null;
