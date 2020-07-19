@@ -3,14 +3,18 @@ import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
   MAX_NAME_LENGTH,
-  PLANET_BUILD_SLOTS,
-  PLANET_PACKAGE_SLOTS,
-  PLANET_BUILD_SIZE,
-  PLANET_PACKAGE_SIZE,
+  PLANET_OBJECT_SLOTS,
+  PLANET_OBJECT_SIZE,
 } from './constants.js';
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 
+window.storage = storage;
+
 const presenceHost = 'wss://rtc.exokit.org:4443';
+export const OBJECT_TYPES = {
+  BUILD: 1,
+  PACKAGE: 2,
+};
 
 // planet
 
@@ -20,11 +24,77 @@ export default planet;
 let state = {};
 // window.state = state;
 
-const _serializeState = state => {
-
+const _getStringLength = s => {
+  let i;
+  for (i = 0; i < s.length; i++) {
+    if (s[i] === 0) {
+      break;
+    }
+  }
+  return i;
 };
-const _deserializeState = state => {
+const _serializeState = state => {
+  const offsets = Subparcel.getOffsets(state.subparcelSize);
+  const ab = new ArrayBuffer(
+    MAX_NAME_LENGTH + // seedString
+    Uint32Array.BYTES_PER_ELEMENT + // parcelSize
+    Uint32Array.BYTES_PER_ELEMENT + // subparcelSize
+    Uint32Array.BYTES_PER_ELEMENT + // subparcels.length
+    offsets.length * state.subparcels.length // subparcels
+  );
 
+  let index = 0;
+  const seedStringDst = new Uint8Array(ab);
+  const seedStringSrc = new TextEncoder().encode(state.seedString);
+  seedStringDst.set(seedStringSrc);
+  seedStringDst[seedStringSrc.byteLength] = 0;
+  index += MAX_NAME_LENGTH;
+
+  new Uint32Array(ab, index)[0] = state.parcelSize;
+  index += Uint32Array.BYTES_PER_ELEMENT;
+
+  new Uint32Array(ab, index)[0] = state.subparcelSize;
+  index += Uint32Array.BYTES_PER_ELEMENT;
+
+  new Uint32Array(ab, index)[0] = state.subparcels.length;
+  index += Uint32Array.BYTES_PER_ELEMENT;
+
+  for (let i = 0; i < state.subparcels.length; i++) {
+    new Uint8Array(ab, index, offsets.length).set(state.subparcels[i].data);
+  }
+
+  const b = new Uint8Array(ab);
+  return b;
+};
+const _deserializeState = ab => {
+  const offsets = Subparcel.getOffsets(state.subparcelSize);
+
+  let index = 0;
+  const seedStringLength = _getStringLength(new Uint8Array(ab));
+  const seedString = new TextDecoder().decode(new Uint8Array(ab, 0, seedStringLength));
+  index += MAX_NAME_LENGTH;
+
+  const parcelSize = new Uint32Array(ab, index, 1)[0];
+  index += Uint32Array.BYTES_PER_ELEMENT;
+
+  const subparcelSize = new Uint32Array(ab, index, 1)[0];
+  index += Uint32Array.BYTES_PER_ELEMENT;
+
+  const numSubparcels = new Uint32Array(ab, index, 1)[0];
+  index += Uint32Array.BYTES_PER_ELEMENT;
+
+  const subparcels = Array(numSubparcels);
+  for (let i = 0; i < numSubparcels; i++) {
+    subparcels[i] = new Subparcel(ab, index);
+    index += offsets.length;
+  }
+
+  return {
+    seedString,
+    parcelSize,
+    subparcelSize,
+    subparcels,
+  };
 };
 
 class SubparcelObject {
@@ -33,89 +103,81 @@ class SubparcelObject {
     this.offset = offset;
     this.index = index;
 
-    this.name = new Uint8Array(this.data, this.offset);
-    this.position = new Float32Array(this.data, this.offset + MAX_NAME_LENGTH, 3);
-    this.quaternion = new Float32Array(this.data, this.offset + MAX_NAME_LENGTH + Float32Array.BYTES_PER_ELEMENT * 3, 4);
+    this.id = 0;
+    this.type = 0;
+    this.name = '';
+
+    {
+      let index = 0;
+      this._id = new Uint8Array(this.data, this.offset + index, 1);
+      index += Uint32Array.BYTES_PER_ELEMENT;
+      this._type = new Uint8Array(this.data, this.offset + index, 1);
+      index += Uint32Array.BYTES_PER_ELEMENT;
+      this._name = new Uint8Array(this.data, this.offset + index, MAX_NAME_LENGTH);
+      index += MAX_NAME_LENGTH;
+      this.position = new Float32Array(this.data, this.offset + index, 3);
+      index += Uint32Array.BYTES_PER_ELEMENT*3;
+      this.quaternion = new Float32Array(this.data, this.offset + index, 4);
+      index += Uint32Array.BYTES_PER_ELEMENT*4;
+    }
   }
   isValid() {
-    return this.name[0] !== 0;
+    return this._id[0] !== 0;
   }
   invalidate() {
-    this.name[0] = 0;
+    this._id[0] = 0;
   }
   getNameLength() {
-    let i;
-    for (i = 0; i < this.name.length; i++) {
-      if (this.name[i] === 0) {
-        break;
-      }
-    }
-    return i;
-  }
-}
-class SubparcelBuild extends SubparcelObject {
-  constructor(data, offset, index) {
-    super(data, offset, index);
-    this.type = '';
+    return _getStringLength(this._name);
   }
   writeMetadata() {
-    const b = new TextEncoder().encode(this.type);
-    this.name.set(b);
-    this.name[b.byteLength] = 0;
+    const b = new TextEncoder().encode(this.name);
+    this._name.set(b);
+    this._name[b.byteLength] = 0;
+    this._type[0] = this.type;
   }
   readMetadata() {
     const nameLength = this.getNameLength();
-    this.type = new TextDecoder().decode(new Uint8Array(this.name.buffer, this.name.byteOffset, this.name.nameLength));
-  }
-}
-class SubparcelPackage extends SubparcelObject {
-  constructor(data, offset, index) {
-    super(data, offset, index);
-    this.dataHash = '';
-  }
-  writeMetadata() {
-    const b = new TextEncoder().encode(this.dataHash);
-    this.name.set(b);
-    this.name[b.byteLength] = 0;
-  }
-  readMetadata() {
-    const nameLength = this.getNameLength();
-    this.dataHash = new TextDecoder().decode(new Uint8Array(this.name.buffer, this.name.byteOffset, this.name.nameLength));
+    this.name = new TextDecoder().decode(new Uint8Array(this._name.buffer, this._name.byteOffset, nameLength));
+    this.type = this._type[0];
   }
 }
 
 class Subparcel {
-  constructor() {
+  constructor(data, offset) {
     this.x = 0;
     this.y = 0;
     this.z = 0;
     this.offsets = Subparcel.getOffsets(state.subparcelSize);
-    this.data = new ArrayBuffer(this.offsets.length);
-    this.potentials = new Float32Array(this.data, Int32Array.BYTES_PER_ELEMENT * 3, state.subparcelSize * state.subparcelSize * state.subparcelSize);
-    this.buildsFreeList = new Uint8Array(PLANET_BUILD_SLOTS);
-    this.packagesFreeList = new Uint8Array(PLANET_PACKAGE_SLOTS);
+    this.data = data !== undefined ? data : new ArrayBuffer(this.offsets.length);
+    this.offset = offset !== undefined ? offset : 0;
+    this.potentials = new Float32Array(this.data, this.offset + this.offsets.potentials, state.subparcelSize * state.subparcelSize * state.subparcelSize);
+    this.objectId = new Uint32Array(this.data, this.offset + this.offsets.objectId, 1);
+    this.freeList = new Uint8Array(this.data, this.offset + this.offsets.freeList, PLANET_OBJECT_SLOTS);
     this.builds = [];
     this.packages = [];
   }
   writeMetadata() {
-    const dst = new Int32Array(this.data, 0, 3);
+    const dst = new Int32Array(this.data, this.offset + this.offsets.xyz, 3);
     dst[0] = this.x;
     dst[1] = this.y;
     dst[2] = this.z;
   }
   readMetadata() {
-    const src = new Int32Array(this.data, 0, 3);
+    const src = new Int32Array(this.data, this.offset + this.offsets.xyz, 3);
     this.x = dst[0];
     this.y = dst[1];
     this.z = dst[2];
   }
   addBuild(type, position, quaternion) {
-    for (let i = 0; i < this.buildsFreeList.length; i++) {
-      if (!this.buildsFreeList[i]) {
-        this.buildsFreeList[i] = 1;
+    for (let i = 0; i < this.freeList.length; i++) {
+      if (!this.freeList[i]) {
+        this.freeList[i] = 1;
 
-        const build = new SubparcelBuild(this.data, this.offsets.builds + i*PLANET_BUILD_SIZE, this.offsets, i);
-        build.type = type;
+        const build = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i);
+        build.id = ++this.objectId[0];
+        build.type = OBJECT_TYPES.BUILD;
+        build.name = type;
         position.toArray(build.position);
         quaternion.toArray(build.quaternion);
         build.writeMetadata();
@@ -125,18 +187,19 @@ class Subparcel {
     }
     throw new Error('no more slots for build');
   }
-  removeBuild(index) {
-    this.buildsFreeList[index] = 0;
-    const index2 = this.builds.findIndex(b => b.index === index);
-    this.builds.splice(index2, 1);
+  removeBuild(build) {
+    this.freeList[build.index] = 0;
+    this.builds.splice(this.builds.indexOf(build), 1);
   }
   addPackage(dataHash, position, quaternion) {
-    for (let i = 0; i < this.packagesFreeList.length; i++) {
-      if (!this.packagesFreeList[i]) {
-        this.packagesFreeList[i] = 1;
+    for (let i = 0; i < this.freeList.length; i++) {
+      if (!this.freeList[i]) {
+        this.freeList[i] = 1;
 
-        const pkg = new SubparcelPackage(this.data, this.offsets.builds + i*PLANET_BUILD_SIZE, this.offsets, i);
-        pkg.type = type;
+        const pkg = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i);
+        pkg.id = ++this.objectId[0];
+        pkg.type = OBJECT_TYPES.PACKAGE;
+        pkg.name = type;
         position.toArray(pkg.position);
         quaternion.toArray(pkg.quaternion);
         pkg.writeMetadata();
@@ -146,10 +209,9 @@ class Subparcel {
     }
     throw new Error('no more slots for package');
   }
-  removePackage(index) {
-    this.packagesFreeList[index] = 0;
-    const index2 = this.packages.findIndex(p => p.index === index);
-    this.packages.splice(index2, 1);
+  removePackage(pkg) {
+    this.freeList[pkg.index] = 0;
+    this.packages.splice(this.packages.indexOf(pkg), 1);
   }
 }
 Subparcel.getOffsets = subparcelSize => {
@@ -159,23 +221,19 @@ Subparcel.getOffsets = subparcelSize => {
   index += Int32Array.BYTES_PER_ELEMENT * 3;
   const potentials = index;
   index += subparcelSize * subparcelSize * subparcelSize * Float32Array.BYTES_PER_ELEMENT;
-  const buildsFreeList = index;
-  index += Uint8Array.BYTES_PER_ELEMENT * PLANET_BUILD_SLOTS;
-  const builds = index;
-  index += PLANET_BUILD_SIZE * PLANET_BUILD_SLOTS;
-  const packagesFreeList = index;
-  index += Uint8Array.BYTES_PER_ELEMENT * PLANET_PACKAGE_SLOTS;
-  const packages = index;
-  index += PLANET_PACKAGE_SIZE * PLANET_PACKAGE_SLOTS;
+  const objectId = index;
+  index += Uint32Array.BYTES_PER_ELEMENT;
+  const freeList = index;
+  index += Uint8Array.BYTES_PER_ELEMENT * PLANET_OBJECT_SLOTS;
+  const objects = index;
+  index += PLANET_OBJECT_SIZE * PLANET_OBJECT_SLOTS;
   const length = index;
 
   return {
     xyz,
     potentials,
-    buildsFreeList,
-    builds,
-    packagesFreeList,
-    packages,
+    freeList,
+    objects,
     length,
   };
 };
@@ -230,9 +288,9 @@ const _loadStorage = async roomName => {
   } else {
     state = {
       seedString: roomName,
-      subparcels: [],
       parcelSize: PARCEL_SIZE,
       subparcelSize: SUBPARCEL_SIZE,
+      subparcels: [],
     };
   }
 };

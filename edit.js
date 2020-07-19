@@ -783,7 +783,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
       const _addBuild = build => {
         const buildMesh = (() => {
-          switch (build.type) {
+          switch (build.name) {
             case 'wall': return wallMesh;
             case 'floor': return platformMesh;
             case 'stair': return stairsMesh;
@@ -806,7 +806,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             o.material = o.material.clone();
           }
         });
-        buildMeshClone.buildIndex = build.index;
+        buildMeshClone.build = build;
         buildMeshClone.meshId = ++nextMeshId;
         buildMeshClone.buildMeshType = buildMesh.buildMeshType;
         let animation = null;
@@ -975,7 +975,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               Math.floor(buildMeshClone.position.z/subparcelSize)
             );
             planet.editSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z, subparcel => {
-              subparcel.removeBuild(buildMeshClone.build.buildIndex);
+              subparcel.removeBuild(buildMeshClone.build);
             });
             mesh.updateBuildMeshes();
           }
