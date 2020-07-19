@@ -68,8 +68,7 @@ const _serializeState = state => {
     index += offsets.length;
   }
 
-  const b = new Uint8Array(ab);
-  return b;
+  return ab;
 };
 const _deserializeState = ab => {
   const offsets = Subparcel.getOffsets(state.subparcelSize);
@@ -138,15 +137,17 @@ class SubparcelObject {
     return _getStringLength(this._name);
   }
   writeMetadata() {
+    this._id[0] = this.id;
+    this._type[0] = this.type;
     const b = new TextEncoder().encode(this.name);
     this._name.set(b);
     this._name[b.byteLength] = 0;
-    this._type[0] = this.type;
   }
   readMetadata() {
+    this.id = this._id[0];
+    this.type = this._type[0];
     const nameLength = this.getNameLength();
     this.name = new TextDecoder().decode(new Uint8Array(this._name.buffer, this._name.byteOffset, nameLength));
-    this.type = this._type[0];
   }
 }
 
@@ -236,6 +237,7 @@ class Subparcel {
   }
 }
 Subparcel.getOffsets = subparcelSize => {
+  subparcelSize = SUBPARCEL_SIZE;
   let index = 0;
 
   const xyz = index;
@@ -245,7 +247,7 @@ Subparcel.getOffsets = subparcelSize => {
   const objectId = index;
   index += Uint32Array.BYTES_PER_ELEMENT;
   const freeList = index;
-  index += Uint8Array.BYTES_PER_ELEMENT * PLANET_OBJECT_SLOTS;
+  index += PLANET_OBJECT_SLOTS;
   const objects = index;
   index += PLANET_OBJECT_SIZE * PLANET_OBJECT_SLOTS;
   const length = index;
@@ -253,6 +255,7 @@ Subparcel.getOffsets = subparcelSize => {
   return {
     xyz,
     potentials,
+    objectId,
     freeList,
     objects,
     length,
@@ -604,6 +607,6 @@ planet.connect = async (rn, {online = true} = {}) => {
 };
 planet.reload = () => {
   const b = _serializeState(state);
-  const s = _deserializeState(b.buffer);
+  const s = _deserializeState(b);
   return s;
 };
