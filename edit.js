@@ -996,7 +996,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       };
       for (const neededCoord of neededCoords) {
         const subparcel = planet.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
-        for (const build of subparcel.builds()) {
+        for (const build of subparcel.builds) {
           if (!mesh.buildMeshes.some(buildMesh => buildMesh.build === build)) {
             _addBuild(build);
           }
@@ -1032,7 +1032,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
           for (const neededCoord of neededCoords) {
             const subparcel = planet.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
-            for (const pkg of subparcel.packages()) {
+            for (const pkg of subparcel.packages) {
               if (!mesh.objects.some(object => object.package === pkg)) {
                 const p = await XRPackage.download(pkg.dataHash);
                 p.setMatrix(

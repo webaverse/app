@@ -35,7 +35,7 @@ class SubparcelObject {
 
     this.name = new Uint8Array(this.data, this.offset);
     this.position = new Float32Array(this.data, this.offset + MAX_NAME_LENGTH, 3);
-    this.quaternion = new Float32Array(this.data, this.offset + MAX_NAME_LENGTH + Float32Array.BYTES_PER_ELEMENT*3, 4);
+    this.quaternion = new Float32Array(this.data, this.offset + MAX_NAME_LENGTH + Float32Array.BYTES_PER_ELEMENT * 3, 4);
   }
   isValid() {
     return this.name[0] !== 0;
@@ -92,15 +92,10 @@ class Subparcel {
     this.offsets = Subparcel.getOffsets(state.subparcelSize);
     this.data = new ArrayBuffer(this.offsets.length);
     this.potentials = new Float32Array(this.data, Int32Array.BYTES_PER_ELEMENT * 3, state.subparcelSize * state.subparcelSize * state.subparcelSize);
-
-    this._builds = Array(PLANET_BUILD_SLOTS);
-    for (let i = 0; i < PLANET_BUILD_SLOTS; i++) {
-      this._builds[i] = new SubparcelBuild(this.data, this.offsets.builds + i*PLANET_BUILD_SIZE, this.offsets, i);
-    }
-    this._packages = Array(PLANET_PACKAGE_SLOTS);
-    for (let i = 0; i < PLANET_PACKAGE_SLOTS; i++) {
-      this._packages[i] = new SubparcelPackage(this.data, this.offsets.packages + i*PLANET_PACKAGE_SIZE, this.offsets, i);
-    }
+    this.buildsFreeList = new Uint8Array(PLANET_BUILD_SLOTS);
+    this.packagesFreeList = new Uint8Array(PLANET_PACKAGE_SLOTS);
+    this.builds = [];
+    this.packages = [];
   }
   writeMetadata() {
     const dst = new Int32Array(this.data, 0, 3);
@@ -114,47 +109,47 @@ class Subparcel {
     this.y = dst[1];
     this.z = dst[2];
   }
-  *builds() {
-    for (const build of this._builds) {
-      if (build.isValid())
-        yield build;
-    }
-  }
   addBuild(type, position, quaternion) {
-    for (const build of this._builds) {
-      if (!build.isValid()) {
+    for (let i = 0; i < this.buildsFreeList.length; i++) {
+      if (!this.buildsFreeList[i]) {
+        this.buildsFreeList[i] = 1;
+
+        const build = new SubparcelBuild(this.data, this.offsets.builds + i*PLANET_BUILD_SIZE, this.offsets, i);
         build.type = type;
         position.toArray(build.position);
         quaternion.toArray(build.quaternion);
         build.writeMetadata();
+        this.builds.push(build);
         return build;
       }
     }
     throw new Error('no more slots for build');
   }
   removeBuild(index) {
-    this._builds[index].invalidate();
-  }
-  *packages() {
-    for (const pkg of this._packages) {
-      if (pkg.isValid())
-        yield pkg;
-    }
+    this.buildsFreeList[index] = 0;
+    const index2 = this.builds.findIndex(b => b.index === index);
+    this.builds.splice(index2, 1);
   }
   addPackage(dataHash, position, quaternion) {
-    for (const pkg of this._packages) {
-      if (!pkg.isValid()) {
+    for (let i = 0; i < this.packagesFreeList.length; i++) {
+      if (!this.packagesFreeList[i]) {
+        this.packagesFreeList[i] = 1;
+
+        const pkg = new SubparcelPackage(this.data, this.offsets.builds + i*PLANET_BUILD_SIZE, this.offsets, i);
         pkg.type = type;
         position.toArray(pkg.position);
         quaternion.toArray(pkg.quaternion);
         pkg.writeMetadata();
+        this.packages.push(pkg);
         return pkg;
       }
     }
     throw new Error('no more slots for package');
   }
   removePackage(index) {
-    this._packages[index].invalidate();
+    this.packagesFreeList[index] = 0;
+    const index2 = this.packages.findIndex(p => p.index === index);
+    this.packages.splice(index2, 1);
   }
 }
 Subparcel.getOffsets = subparcelSize => {
@@ -164,12 +159,12 @@ Subparcel.getOffsets = subparcelSize => {
   index += Int32Array.BYTES_PER_ELEMENT * 3;
   const potentials = index;
   index += subparcelSize * subparcelSize * subparcelSize * Float32Array.BYTES_PER_ELEMENT;
-  // const buildsLength = index;
-  // index += Uint32Array.BYTES_PER_ELEMENT;
+  const buildsFreeList = index;
+  index += Uint8Array.BYTES_PER_ELEMENT * PLANET_BUILD_SLOTS;
   const builds = index;
   index += PLANET_BUILD_SIZE * PLANET_BUILD_SLOTS;
-  // const packagesLength = index;
-  // index += Uint32Array.BYTES_PER_ELEMENT;
+  const packagesFreeList = index;
+  index += Uint8Array.BYTES_PER_ELEMENT * PLANET_PACKAGE_SLOTS;
   const packages = index;
   index += PLANET_PACKAGE_SIZE * PLANET_PACKAGE_SLOTS;
   const length = index;
@@ -177,9 +172,9 @@ Subparcel.getOffsets = subparcelSize => {
   return {
     xyz,
     potentials,
-    // buildsLength,
+    buildsFreeList,
     builds,
-    // packagesLength,
+    packagesFreeList,
     packages,
     length,
   };
