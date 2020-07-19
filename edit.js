@@ -257,7 +257,7 @@ let nextMeshId = 0;
   ];
 } */
 
-let worker = null;
+let chunkWorker = null;
 let physicsWorker = null;
 let chunkMeshes = [];
 let chunkMesh = null;
@@ -287,14 +287,14 @@ let metalMesh = null;
 (async () => {
 
 const [
-  w,
+  cw,
   pw,
   colors,
   _buildMeshes,
 ] = await Promise.all([
   (async () => {
     const cbs = [];
-    const w = new Worker('worker.js');
+    const w = new Worker('chunk-worker.js');
     w.onmessage = e => {
       const {data} = e;
       const {error, result} = data;
@@ -510,7 +510,7 @@ const [
     // worldContainer.add(metalMesh);
   })(),
 ]);
-worker = w;
+chunkWorker = cw;
 physicsWorker = pw;
 
 const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
@@ -706,7 +706,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
                   const subparcel = planet.getSubparcel(adx, ady, adz);
                   if (!subparcel[loadedSymbol]) {
                     const {potentials} = subparcel;
-                    worker.requestLoadPotentials(
+                    chunkWorker.requestLoadPotentials(
                       seedNum,
                       meshId,
                       adx, ady, adz,
@@ -743,7 +743,7 @@ const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
             }
 
             if (!slabs.some(slab => slab.x === ax && slab.y === ay && slab.z === az)) {
-              const specs = await worker.requestMarchLand(
+              const specs = await chunkWorker.requestMarchLand(
                 seedNum,
                 meshId,
                 ax, ay, az,
@@ -2402,7 +2402,7 @@ function animate(timestamp, frame) {
               }
             }
 
-            const specs = await worker.requestMine(
+            const specs = await chunkWorker.requestMine(
               /* delta,
               currentChunkMesh.meshId,
               localVector2.toArray(), */
