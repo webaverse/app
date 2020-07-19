@@ -513,7 +513,7 @@ const [
 chunkWorker = cw;
 physicsWorker = pw;
 
-const _makeChunkMesh = (seedString, subparcels, parcelSize, subparcelSize) => {
+const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   const rng = alea(seedString);
   const seedNum = Math.floor(rng() * 0xFFFFFF);
 
@@ -1095,7 +1095,7 @@ planet.addEventListener('unload', () => {
 planet.addEventListener('load', e => {
   const {data: chunkSpec} = e;
 
-  const chunkMesh = _makeChunkMesh(chunkSpec.seedString, chunkSpec.subparcels, chunkSpec.parcelSize, chunkSpec.subparcelSize);
+  const chunkMesh = _makeChunkMesh(chunkSpec.seedString, chunkSpec.parcelSize, chunkSpec.subparcelSize);
   chunkMesh.position.y = -chunkSpec.parcelSize - 5;
   chunkMesh.position.x = -chunkSpec.parcelSize/2;
   chunkMesh.position.z = -chunkSpec.parcelSize/2;
