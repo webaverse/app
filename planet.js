@@ -60,7 +60,12 @@ const _serializeState = state => {
   index += Uint32Array.BYTES_PER_ELEMENT;
 
   for (let i = 0; i < state.subparcels.length; i++) {
-    new Uint8Array(ab, index, offsets.length).set(state.subparcels[i].data);
+    const subparcel = state.subparcels[i];
+    new Uint8Array(ab, index, offsets.length)
+      .set(
+        new Uint8Array(subparcel.data, subparcel.offset, offsets.length)
+      );
+    index += offsets.length;
   }
 
   const b = new Uint8Array(ab);
@@ -85,7 +90,9 @@ const _deserializeState = ab => {
 
   const subparcels = Array(numSubparcels);
   for (let i = 0; i < numSubparcels; i++) {
-    subparcels[i] = new Subparcel(ab, index);
+    const subparcel = new Subparcel(ab, index);
+    subparcel.readMetadata();
+    subparcels[i] = subparcel;
     index += offsets.length;
   }
 
@@ -152,10 +159,24 @@ class Subparcel {
     this.data = data !== undefined ? data : new ArrayBuffer(this.offsets.length);
     this.offset = offset !== undefined ? offset : 0;
     this.potentials = new Float32Array(this.data, this.offset + this.offsets.potentials, state.subparcelSize * state.subparcelSize * state.subparcelSize);
-    this.objectId = new Uint32Array(this.data, this.offset + this.offsets.objectId, 1);
-    this.freeList = new Uint8Array(this.data, this.offset + this.offsets.freeList, PLANET_OBJECT_SLOTS);
+    this._objectId = new Uint32Array(this.data, this.offset + this.offsets.objectId, 1);
+    this._freeList = new Uint8Array(this.data, this.offset + this.offsets.freeList, PLANET_OBJECT_SLOTS);
     this.builds = [];
     this.packages = [];
+
+    if (data) {
+      for (let i = 0; i < this._freeList.length; i++) {
+        if (this._freeList[i]) {
+          const o = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i);
+          o.readMetadata();
+          if (o.type === OBJECT_TYPES.BUILD) {
+            this.builds.push(o);
+          } else if (o.type === OBJECT_TYPES.PACKAGE) {
+            this.packages.push(o);
+          }
+        }
+      }
+    }
   }
   writeMetadata() {
     const dst = new Int32Array(this.data, this.offset + this.offsets.xyz, 3);
@@ -165,17 +186,17 @@ class Subparcel {
   }
   readMetadata() {
     const src = new Int32Array(this.data, this.offset + this.offsets.xyz, 3);
-    this.x = dst[0];
-    this.y = dst[1];
-    this.z = dst[2];
+    this.x = src[0];
+    this.y = src[1];
+    this.z = src[2];
   }
   addBuild(type, position, quaternion) {
-    for (let i = 0; i < this.freeList.length; i++) {
-      if (!this.freeList[i]) {
-        this.freeList[i] = 1;
+    for (let i = 0; i < this._freeList.length; i++) {
+      if (!this._freeList[i]) {
+        this._freeList[i] = 1;
 
         const build = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i);
-        build.id = ++this.objectId[0];
+        build.id = ++this._objectId[0];
         build.type = OBJECT_TYPES.BUILD;
         build.name = type;
         position.toArray(build.position);
@@ -188,16 +209,16 @@ class Subparcel {
     throw new Error('no more slots for build');
   }
   removeBuild(build) {
-    this.freeList[build.index] = 0;
+    this._freeList[build.index] = 0;
     this.builds.splice(this.builds.indexOf(build), 1);
   }
   addPackage(dataHash, position, quaternion) {
-    for (let i = 0; i < this.freeList.length; i++) {
-      if (!this.freeList[i]) {
-        this.freeList[i] = 1;
+    for (let i = 0; i < this._freeList.length; i++) {
+      if (!this._freeList[i]) {
+        this._freeList[i] = 1;
 
         const pkg = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i);
-        pkg.id = ++this.objectId[0];
+        pkg.id = ++this._objectId[0];
         pkg.type = OBJECT_TYPES.PACKAGE;
         pkg.name = type;
         position.toArray(pkg.position);
@@ -210,7 +231,7 @@ class Subparcel {
     throw new Error('no more slots for package');
   }
   removePackage(pkg) {
-    this.freeList[pkg.index] = 0;
+    this._freeList[pkg.index] = 0;
     this.packages.splice(this.packages.indexOf(pkg), 1);
   }
 }
