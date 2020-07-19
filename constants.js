@@ -11,15 +11,11 @@ export const slabSliceVertices = slabSliceTris * 3;
 export const chunkDistance = 2;
 export const BUILD_SNAP = 2;
 export const MAX_NAME_LENGTH = 32;
-export const PLANET_BUILD_SLOTS = 64;
-export const PLANET_PACKAGE_SLOTS = 16;
-export const PLANET_BUILD_SIZE = (
-  // Uint32Array.BYTES_PER_ELEMENT + // build.name.length
+export const PLANET_OBJECT_SLOTS = 64;
+export const PLANET_OBJECT_SIZE = (
+  Uint32Array.BYTES_PER_ELEMENT + // id
+  Uint32Array.BYTES_PER_ELEMENT + // type
   MAX_NAME_LENGTH * Uint8Array.BYTES_PER_ELEMENT + // build.name
-  Float32Array.BYTES_PER_ELEMENT * (3+4) // build.{position,quaternion}
-);
-export const PLANET_PACKAGE_SIZE = (
-  // Uint32Array.BYTES_PER_ELEMENT + // package.name.length
-  MAX_NAME_LENGTH * Uint8Array.BYTES_PER_ELEMENT + // package.name
-  Float32Array.BYTES_PER_ELEMENT * (3+4) // package.{position,quaternion}
+  Float32Array.BYTES_PER_ELEMENT * 3 + // build.position
+  Float32Array.BYTES_PER_ELEMENT * 4 // build.quaternion
 );
