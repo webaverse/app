@@ -293,8 +293,6 @@ class CollisionRaycaster {
     this.scene.overrideMaterial = depthMaterial;
     this.camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
     this.pixels = new Float32Array(10*10*4);
-    this.depths = new Float32Array(10*10);
-    this.normals = new Float32Array(10*10*3);
   }
 
   raycastMeshes(container, position, quaternion, uSize, vSize, dSize, index) {
@@ -331,6 +329,8 @@ class CollisionRaycaster {
       this.renderTargets[index].quaternion = new THREE.Quaternion();
       this.renderTargets[index].near = 0;
       this.renderTargets[index].far = 0;
+      this.renderTargets[index].depths = new Float32Array(10*10);
+      this.renderTargets[index].normals = new Float32Array(10*10*3);
       this.renderer.setRenderTarget(this.renderTargets[index]);
       this.renderer.clear();
     } else {
@@ -358,12 +358,12 @@ class CollisionRaycaster {
     this.renderer.clear();
 
     let j = 0;
-    for (let i = 0; i < this.depths.length; i++) {
+    for (let i = 0; i < renderTarget.depths.length; i++) {
       if (this.pixels[j] !== 0) {
         let v =
           this.pixels[j] +
           this.pixels[j+1] * 255.0;
-        this.depths[i] = renderTarget.near + v * (renderTarget.far - renderTarget.near);
+        renderTarget.depths[i] = renderTarget.near + v * (renderTarget.far - renderTarget.near);
         const meshId = Math.round(this.pixels[j+2]*64000);
         const index = Math.round(this.pixels[j+3]*64000);
 
@@ -374,12 +374,12 @@ class CollisionRaycaster {
             new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+3).applyMatrix4(mesh.matrixWorld),
             new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+6).applyMatrix4(mesh.matrixWorld)
           );
-          triangle.getNormal(new THREE.Vector3()).toArray(this.normals, i*3);
+          triangle.getNormal(new THREE.Vector3()).toArray(renderTarget.normals, i*3);
         } else {
-          new THREE.Vector3(0, 1, 0).toArray(this.normals, i*3);
+          new THREE.Vector3(0, 1, 0).toArray(renderTarget.normals, i*3);
         }
       } else {
-        this.depths[i] = Infinity;
+        renderTarget.depths[i] = Infinity;
       }
       j += 4;
     }
@@ -599,14 +599,14 @@ const _handleMessage = data => {
         return {
           position: renderTarget.position.toArray(),
           quaternion: renderTarget.quaternion.toArray(),
-          depths: base64.encode(collisionRaycaster.depths.buffer),
-          normals: base64.encode(collisionRaycaster.normals.buffer),
+          depths: renderTarget.depths,
+          normals: renderTarget.normals,
         };
       });
 
       physicsRaycaster.readRaycast();
       const physicsResultData = {
-        depths: base64.encode(physicsRaycaster.depths.buffer),
+        depths: physicsRaycaster.depths,
       };
 
       self.postMessage({

@@ -11,7 +11,6 @@ import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxy
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
-import * as base64 from './base64.module.js';
 // import {makeTextMesh, makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
 import {makeTextMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
@@ -2987,29 +2986,21 @@ function animate(timestamp, frame) {
         if (wallCollisionResult) {
           wallCollisionResult.position = new THREE.Vector3().fromArray(wallCollisionResult.position);
           wallCollisionResult.quaternion = new THREE.Quaternion().fromArray(wallCollisionResult.quaternion);
-          wallCollisionResult.depths = new Float32Array(base64.decode(wallCollisionResult.depths));
-          wallCollisionResult.normals = new Float32Array(base64.decode(wallCollisionResult.normals));
         }
 
         floorCollisionResult = collisionResults[1];
         if (floorCollisionResult) {
           floorCollisionResult.position = new THREE.Vector3().fromArray(floorCollisionResult.position);
           floorCollisionResult.quaternion = new THREE.Quaternion().fromArray(floorCollisionResult.quaternion);
-          floorCollisionResult.depths = new Float32Array(base64.decode(floorCollisionResult.depths));
-          floorCollisionResult.normals = new Float32Array(base64.decode(floorCollisionResult.normals));
         }
 
         ceilingCollisionResult = collisionResults[2];
         if (ceilingCollisionResult) {
           ceilingCollisionResult.position = new THREE.Vector3().fromArray(ceilingCollisionResult.position);
           ceilingCollisionResult.quaternion = new THREE.Quaternion().fromArray(ceilingCollisionResult.quaternion);
-          ceilingCollisionResult.depths = new Float32Array(base64.decode(ceilingCollisionResult.depths));
-          ceilingCollisionResult.normals = new Float32Array(base64.decode(ceilingCollisionResult.normals));
         }
 
         if (physicsResultData) {
-          physicsResultData.depths = new Float32Array(base64.decode(physicsResultData.depths));
-
           for (let i = 0; i < pxMeshes.length; i++) {
             const pxMesh = pxMeshes[i];
             if (pxMesh.collisionIndex !== -1) {
