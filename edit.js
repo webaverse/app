@@ -3029,6 +3029,8 @@ function animate(timestamp, frame) {
   if (currentChunkMesh) {
     currentChunkMesh.geometry.groups = currentChunkMesh.geometry.originalGroups;
   }
+
+  planet.flush();
 }
 renderer.setAnimationLoop(animate);
 renderer.xr.setSession(proxySession);

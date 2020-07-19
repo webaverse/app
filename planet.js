@@ -21,7 +21,7 @@ export const OBJECT_TYPES = {
 const planet = new EventTarget();
 export default planet;
 
-let state = {};
+let state = null;
 // window.state = state;
 
 const _getStringLength = s => {
@@ -34,7 +34,7 @@ const _getStringLength = s => {
   return i;
 };
 const _serializeState = state => {
-  const offsets = Subparcel.getOffsets(state.subparcelSize);
+  const offsets = Subparcel.getOffsets();
   const ab = new ArrayBuffer(
     MAX_NAME_LENGTH + // seedString
     Uint32Array.BYTES_PER_ELEMENT + // parcelSize
@@ -71,7 +71,7 @@ const _serializeState = state => {
   return ab;
 };
 const _deserializeState = ab => {
-  const offsets = Subparcel.getOffsets(state.subparcelSize);
+  const offsets = Subparcel.getOffsets();
 
   let index = 0;
   const seedStringLength = _getStringLength(new Uint8Array(ab));
@@ -156,14 +156,15 @@ class Subparcel {
     this.x = 0;
     this.y = 0;
     this.z = 0;
-    this.offsets = Subparcel.getOffsets(state.subparcelSize);
+    this.offsets = Subparcel.getOffsets();
     this.data = data !== undefined ? data : new ArrayBuffer(this.offsets.length);
     this.offset = offset !== undefined ? offset : 0;
-    this.potentials = new Float32Array(this.data, this.offset + this.offsets.potentials, state.subparcelSize * state.subparcelSize * state.subparcelSize);
+    this.potentials = new Float32Array(this.data, this.offset + this.offsets.potentials, SUBPARCEL_SIZE*SUBPARCEL_SIZE*SUBPARCEL_SIZE);
     this._objectId = new Uint32Array(this.data, this.offset + this.offsets.objectId, 1);
     this._freeList = new Uint8Array(this.data, this.offset + this.offsets.freeList, PLANET_OBJECT_SLOTS);
     this.builds = [];
     this.packages = [];
+    this.dirty = false;
 
     if (data) {
       for (let i = 0; i < this._freeList.length; i++) {
@@ -236,8 +237,8 @@ class Subparcel {
     this.packages.splice(this.packages.indexOf(pkg), 1);
   }
 }
-Subparcel.getOffsets = subparcelSize => {
-  subparcelSize = SUBPARCEL_SIZE;
+Subparcel.getOffsets = () => {
+  const subparcelSize = SUBPARCEL_SIZE;
   let index = 0;
 
   const xyz = index;
@@ -278,20 +279,15 @@ planet.getSubparcel = (x, y, z) => {
   }
   return subparcel;
 };
-planet.editSubparcel = async (x, y, z, fn) => {
+planet.editSubparcel = (x, y, z, fn) => {
   let index = state.subparcels.findIndex(sp => sp.x === x && sp.y === y && sp.z === z);
   if (index === -1) {
     _addSubparcel(x, y, z);
     index = state.subparcels.length-1;
   }
   const subparcel = state.subparcels[index];
-  await fn(subparcel);
-
-  if (channelConnection) {
-    throw new Error('unknown');
-  } else {
-    await _saveStorage(state.seedString);
-  }
+  fn(subparcel);
+  subparcel.dirty = true;
 };
 
 const _loadLiveState = seedString => {
@@ -316,6 +312,25 @@ const _loadStorage = async roomName => {
       subparcelSize: SUBPARCEL_SIZE,
       subparcels: [],
     };
+  }
+};
+
+planet.flush = () => {
+  if (state) {
+    let dirty = false;
+    for (const subparcel of state.subparcels) {
+      if (subparcel.dirty) {
+        dirty = true;
+        subparcel.dirty = false;
+      }
+    }
+    if (dirty) {
+      if (channelConnection) {
+        throw new Error('unknown');
+      } else {
+        _saveStorage(state.seedString);
+      }
+    }
   }
 };
 
