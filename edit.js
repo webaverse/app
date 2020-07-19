@@ -1383,374 +1383,6 @@ const _findMeshWithMeshId = (container, meshId) => {
   return result;
 };
 
-/* const idMaterial = new THREE.ShaderMaterial({
-  vertexShader: `
-    attribute float id;
-    attribute float index;
-    varying float vId;
-    varying float vIndex;
-    void main() {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-      vId = id;
-      vIndex = index;
-    }
-  `,
-  fragmentShader: `
-    varying float vId;
-    varying float vIndex;
-    void main() {
-      gl_FragColor = vec4(vId/64000.0, vIndex/64000.0, 0.0, 0.0);
-    }
-  `,
-  // side: THREE.DoubleSide,
-});
-class PointRaycaster {
-  constructor(renderer) {
-    this.renderer = renderer;
-    const renderTarget = new THREE.WebGLRenderTarget(1, 1, {
-      type: THREE.FloatType,
-      format: THREE.RGBAFormat,
-    });
-    this.renderer.setRenderTarget(renderTarget);
-    this.renderer.clear();
-    this.renderTarget = renderTarget;
-    this.scene = new THREE.Scene();
-    this.scene.overrideMaterial = idMaterial;
-    this.camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
-    this.pixels = new Float32Array(4);
-  }
-
-  raycastMeshes(container, position, quaternion) {
-    const oldParent = container.parent;
-    this.scene.add(container);
-    if (oldParent) {
-      this.scene.position.copy(oldParent.position);
-      this.scene.quaternion.copy(oldParent.quaternion);
-      this.scene.scale.copy(oldParent.scale);
-    }
-    container.traverse(o => {
-      if (o.isMesh) {
-        o.oldVisible = o.visible;
-        o.visible = !o.isBuildMesh;
-      }
-    });
-
-    this.camera.position.copy(position);
-    this.camera.quaternion.copy(quaternion);
-    this.camera.updateMatrixWorld();
-
-    this.renderer.setViewport(0, 0, 1, 1);
-    this.renderer.setRenderTarget(this.renderTarget);
-    this.renderer.render(this.scene, this.camera);
-
-    container.traverse(o => {
-      if (o.isMesh) {
-        o.visible = o.oldVisible;
-      }
-    });
-    if (oldParent) {
-      oldParent.add(container);
-    } else {
-      container.parent.remove(container);
-    }
-  }
-  readRaycast(container, position, quaternion) {
-    this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 1, 1, this.pixels);
-
-    let mesh;
-    let index;
-    let point;
-    let normal;
-    if (this.pixels[0] !== 0) {
-      const meshId = Math.round(this.pixels[0]*64000);
-      mesh = _findMeshWithMeshId(container, meshId);
-      index = Math.round(this.pixels[1]*64000);
-
-      const triangle = new THREE.Triangle(
-        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9).applyMatrix4(mesh.matrixWorld),
-        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+3).applyMatrix4(mesh.matrixWorld),
-        new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+6).applyMatrix4(mesh.matrixWorld)
-      );
-      normal = triangle.getNormal(new THREE.Vector3());
-      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, triangle.a);
-
-      const raycaster = new THREE.Raycaster();
-      raycaster.ray.origin.copy(position);
-      raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
-
-      point = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
-    } else {
-      mesh = null;
-      index = -1;
-      point = null;
-      normal = null;
-    }
-    this.renderer.setRenderTarget(this.renderTarget);
-    this.renderer.clear();
-    return point ? {mesh, index, point, normal} : null;
-  }
-}
-
-const depthMaterial = new THREE.ShaderMaterial({
-  vertexShader: `\
-    attribute float id;
-    attribute float index;
-    varying float vId;
-    varying float vIndex;
-    void main() {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-      vId = id;
-      vIndex = index;
-    }
-  `,
-  fragmentShader: `\
-    // varying vec2 vTexCoords;
-
-    varying float vId;
-    varying float vIndex;
-
-    // uniform float uNear;
-    // uniform float uFar;
-    vec2 encodePixelDepth(float v) {
-      float x = fract(v);
-      v -= x;
-      v /= 255.0;
-      float y = fract(v);
-      return vec2(x, y);
-    }
-    void main() {
-      gl_FragColor = vec4(encodePixelDepth(gl_FragCoord.z/gl_FragCoord.w), vId/64000.0, vIndex/64000.0);
-    }
-  `,
-  // side: THREE.DoubleSide,
-});
-class CollisionRaycaster {
-  constructor(renderer) {
-    this.renderer = renderer;
-    const renderTarget = new THREE.WebGLRenderTarget(10, 10, {
-      type: THREE.FloatType,
-      format: THREE.RGBAFormat,
-    });
-    this.renderer.setRenderTarget(renderTarget);
-    this.renderer.clear();
-    this.renderTarget = renderTarget;
-    this.scene = new THREE.Scene();
-    this.scene.overrideMaterial = depthMaterial;
-    this.camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
-    this.pixels = new Float32Array(10*10*4);
-    this.depths = new Float32Array(10*10);
-    this.normals = (() => {
-      const result = Array(10*10);
-      for (let i = 0; i < 10*10; i++) {
-        result[i] = new THREE.Vector3();
-      }
-      return result;
-    })();
-  }
-
-  raycastMeshes(container, position, quaternion, uSize, vSize, dSize) {
-    const oldParent = container.parent;
-    this.scene.add(container);
-    if (oldParent) {
-      this.scene.position.copy(oldParent.position);
-      this.scene.quaternion.copy(oldParent.quaternion);
-      this.scene.scale.copy(oldParent.scale);
-    }
-    container.traverse(o => {
-      if (o.isMesh) {
-        o.oldVisible = o.visible;
-        o.visible = !o.isBuildMesh;
-      }
-    });
-
-    this.camera.position.copy(position);
-    this.camera.quaternion.copy(quaternion);
-    this.camera.updateMatrixWorld();
-
-    this.camera.left = uSize / -2;
-    this.camera.right = uSize / 2;
-    this.camera.top = vSize / 2;
-    this.camera.bottom = vSize / -2;
-    this.camera.near = 0.001;
-    this.camera.far = dSize;
-    this.camera.updateProjectionMatrix();
-
-    // this.scene.overrideMaterial.uniforms.uNear.value = this.camera.near;
-    // this.scene.overrideMaterial.uniforms.uFar.value = this.camera.far;
-
-    this.renderer.setViewport(0, 0, 10, 10);
-    this.renderer.setRenderTarget(this.renderTarget);
-    this.renderer.render(this.scene, this.camera);
-
-    container.traverse(o => {
-      if (o.isMesh) {
-        o.visible = o.oldVisible;
-      }
-    });
-    if (oldParent) {
-      oldParent.add(container);
-    } else {
-      container.parent.remove(container);
-    }
-  }
-  readRaycast(container) {
-    this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, 10, 10, this.pixels);
-
-    let j = 0;
-    for (let i = 0; i < this.depths.length; i++) {
-      if (this.pixels[j] !== 0) {
-        let v =
-          this.pixels[j] +
-          this.pixels[j+1] * 255.0;
-        this.depths[i] = this.camera.near + v * (this.camera.far - this.camera.near);
-        const meshId = Math.round(this.pixels[j+2]*64000);
-        const index = Math.round(this.pixels[j+3]*64000);
-
-        const mesh = _findMeshWithMeshId(container, meshId);
-        const triangle = new THREE.Triangle(
-          new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9).applyMatrix4(mesh.matrixWorld),
-          new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+3).applyMatrix4(mesh.matrixWorld),
-          new THREE.Vector3().fromArray(mesh.geometry.attributes.position.array, index*9+6).applyMatrix4(mesh.matrixWorld)
-        );
-        triangle.getNormal(this.normals[i]);
-      } else {
-        this.depths[i] = Infinity;
-      }
-      j += 4;
-    }
-    this.renderer.setRenderTarget(this.renderTarget);
-    this.renderer.clear();
-  }
-}
-
-const physicsMaterial = new THREE.ShaderMaterial({
-  vertexShader: `\
-    // attribute float id;
-    // attribute float index;
-    // varying float vId;
-    // varying float vIndex;
-    void main() {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-      // vId = id;
-      // vIndex = index;
-    }
-  `,
-  fragmentShader: `\
-    // varying vec2 vTexCoords;
-
-    // varying float vId;
-    // varying float vIndex;
-
-    // uniform float uNear;
-    // uniform float uFar;
-    vec2 encodePixelDepth(float v) {
-      float x = fract(v);
-      v -= x;
-      v /= 255.0;
-      float y = fract(v);
-      return vec2(x, y);
-    }
-    void main() {
-      gl_FragColor = vec4(encodePixelDepth(gl_FragCoord.z/gl_FragCoord.w), 1.0, 1.0);
-    }
-  `,
-  // side: THREE.DoubleSide,
-});
-class PhysicsRaycaster {
-  constructor(renderer) {
-    this.renderer = renderer;
-    const renderTarget = new THREE.WebGLRenderTarget(64, 1, {
-      type: THREE.FloatType,
-      format: THREE.RGBAFormat,
-    });
-    this.renderer.setRenderTarget(renderTarget);
-    this.renderer.clear();
-    this.renderTarget = renderTarget;
-    this.scene = new THREE.Scene();
-    this.scene.overrideMaterial = physicsMaterial;
-    this.camera = new THREE.OrthographicCamera(Math.PI, Math.PI, Math.PI, Math.PI, 0.001, 1000);
-    this.pixels = new Float32Array(64*4);
-    this.depths = new Float32Array(64);
-  }
-
-  raycastMeshes(container, position, quaternion, uSize, vSize, dSize) {
-    const oldParent = container.parent;
-    this.scene.add(container);
-    if (oldParent) {
-      this.scene.position.copy(oldParent.position);
-      this.scene.quaternion.copy(oldParent.quaternion);
-      this.scene.scale.copy(oldParent.scale);
-    }
-    container.traverse(o => {
-      if (o.isMesh) {
-        o.oldVisible = o.visible;
-        o.visible = !o.isBuildMesh;
-      }
-    });
-
-    this.camera.position.copy(position);
-    this.camera.quaternion.copy(quaternion);
-    this.camera.updateMatrixWorld();
-
-    this.camera.left = uSize / -2;
-    this.camera.right = uSize / 2;
-    this.camera.top = vSize / 2;
-    this.camera.bottom = vSize / -2;
-    this.camera.near = 0.001;
-    this.camera.far = dSize;
-    this.camera.updateProjectionMatrix();
-
-    // this.scene.overrideMaterial.uniforms.uNear.value = this.camera.near;
-    // this.scene.overrideMaterial.uniforms.uFar.value = this.camera.far;
-
-    const collisionIndex = this.index++;
-    this.renderer.setViewport(collisionIndex, 0, 1, 1);
-    this.renderer.setRenderTarget(this.renderTarget);
-    this.renderer.render(this.scene, this.camera);
-
-    container.traverse(o => {
-      if (o.isMesh) {
-        o.visible = o.oldVisible;
-      }
-    });
-    if (oldParent) {
-      oldParent.add(container);
-    } else {
-      container.parent.remove(container);
-    }
-    return collisionIndex;
-  }
-  readRaycast() {
-    this.renderer.readRenderTargetPixels(this.renderTarget, 0, 0, this.index, 1, this.pixels);
-
-    let j = 0;
-    for (let i = 0; i < this.index; i++) {
-      if (this.pixels[j+2] !== 0) {
-        let v =
-          this.pixels[j] +
-          this.pixels[j+1] * 255.0;
-        this.depths[i] = this.camera.near + v * (this.camera.far - this.camera.near);
-      } else {
-        this.depths[i] = Infinity;
-      }
-      j += 4;
-    }
-
-    this.index = 0;
-
-    this.renderer.setRenderTarget(this.renderTarget);
-    this.renderer.clear();
-  }
-}
-const raycastRenderer = new THREE.WebGLRenderer({
-  alpha: true,
-});
-raycastRenderer.setClearColor(new THREE.Color(0x000000), 0);
-raycastRenderer.autoClear = false;
-// const pointRaycaster = new PointRaycaster(raycastRenderer);
-// const collisionRaycaster = new CollisionRaycaster(raycastRenderer);
-// const physicsRaycaster = new PhysicsRaycaster(raycastRenderer); */
-
 const collisionCubeGeometry = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
 const sideCollisionCubeMaterial = new THREE.MeshBasicMaterial({
   color: 0xFF0000,
@@ -2368,8 +2000,6 @@ const _collideWall = matrix => {
     if (!raycastRunning && physicsWorker) {
       physicsWorker.requestCollisionRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector3.toArray(), localQuaternion2.toArray(), width, height, depth, 0);
     }
-    // collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector3, localQuaternion2, width, height, depth);
-    // collisionRaycaster.readRaycast(chunkMeshContainer);
 
     let i = 0;
     for (let y = 0; y < 10; y++) {
@@ -2412,8 +2042,6 @@ const _collideFloor = matrix => {
   if (!raycastRunning && physicsWorker) {
     physicsWorker.requestCollisionRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector.toArray(), localQuaternion2.toArray(), width, height, depth, 1);
   }
-  // collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
-  // collisionRaycaster.readRaycast(chunkMeshContainer);
 
   let groundedDistance = Infinity;
 
@@ -2454,8 +2082,6 @@ const _collideCeiling = matrix => {
   if (!raycastRunning && physicsWorker) {
     physicsWorker.requestCollisionRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector.toArray(), localQuaternion2.toArray(), width, height, depth, 2);
   }
-  // collisionRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion2, width, height, depth);
-  // collisionRaycaster.readRaycast(chunkMeshContainer);
 
   let ceilingDistance = Infinity;
 
@@ -2553,16 +2179,6 @@ function animate(timestamp, frame) {
     if (pose = frame.getPose(inputSource.targetRaySpace, referenceSpace)) {
       localMatrix.fromArray(pose.transform.matrix)
         .decompose(localVector, localQuaternion, localVector2);
-
-      /* if (capsuleMesh) {
-        capsuleMesh.position.copy(localVector);
-        capsuleMesh.quaternion.copy(localQuaternion);
-        physics.pushObjectMesh(capsuleMesh);
-        physicalMesh.body.activate(true);
-      } */
-
-      // pointRaycaster.raycastMeshes(chunkMeshContainer, localVector, localQuaternion);
-      // const raycastChunkSpec = pointRaycaster.readRaycast(chunkMeshContainer, localVector, localQuaternion);
 
       if (!raycastRunning && physicsWorker) {
         physicsWorker.requestPointRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector.toArray(), localQuaternion.toArray());
@@ -4132,14 +3748,6 @@ const _updateRaycasterFromMouseEvent = (raycaster, e) => {
     .map(p => p.volumeMesh)
     .filter(o => !!o);
   // hoverTarget = volumeRaycaster.raycastMeshes(candidateMeshes, raycaster.ray.origin, raycaster.ray.direction);
-  /* const intersects = raycaster.intersectObject(planetMesh);
-  if (intersects.length > 0) {
-    const [intersect] = intersects;
-    const {faceIndex} = intersect;
-    const a = planetMesh.geometry.index.array[faceIndex * 3];
-    const id = planetMesh.geometry.attributes.id.array[a];
-    planetMesh.material.uniforms.selectedId.value = id;
-  } */
 };
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
@@ -4150,8 +3758,6 @@ const _updateMouseMovement = e => {
   } else if (selectedTool === 'birdseye') {
     pe.camera.rotation.x = -Math.PI / 2;
     pe.camera.quaternion.setFromEuler(pe.camera.rotation);
-    // pe.camera.updateMatrixWorld();
-    // pe.setCamera(camera);
   }
 
   pe.camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
@@ -4181,18 +3787,7 @@ renderer.domElement.addEventListener('mousedown', e => {
   if (!transformControlsHovered) {
     _setSelectTarget(hoverTarget);
   }
-  /* if (document.pointerLockElement) {
-    highlightMesh.onmousedown && highlightMesh.onmousedown();
-  } */
 });
-/* renderer.domElement.addEventListener('mouseup', e => {
-  if (document.pointerLockElement) {
-    highlightMesh.onmouseup && highlightMesh.onmouseup();
-  }
-}); */
-
-// const runMode = document.getElementById('run-mode');
-// const editMode = document.getElementById('edit-mode');
 
 const worldsButton = document.getElementById('worlds-button');
 const worldSaveButton = document.getElementById('world-save-button');
