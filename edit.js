@@ -2357,10 +2357,6 @@ function animate(timestamp, frame) {
                     const sz = Math.floor(az/currentChunkMesh.subparcelSize);
 
                     planet.editSubparcel(sx, sy, sz, subparcel => {
-                      if (!subparcel.potentials) {
-                        subparcel.potentials = new Float32Array(currentChunkMesh.subparcelSize * currentChunkMesh.subparcelSize * currentChunkMesh.subparcelSize);
-                      }
-
                       const lx = mod(ax, currentChunkMesh.subparcelSize);
                       const ly = mod(ay, currentChunkMesh.subparcelSize);
                       const lz = mod(az, currentChunkMesh.subparcelSize);

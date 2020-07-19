@@ -21,7 +21,7 @@ const _addSubparcel = (x, y, z) => {
     x,
     y,
     z,
-    potentials: null,
+    potentials: new Float32Array(state.subparcelSize * state.subparcelSize * state.subparcelSize),
     builds: [],
     packages: [],
   };
@@ -80,7 +80,7 @@ const _saveStorage = async roomName => {
         x: subparcel.x,
         y: subparcel.y,
         z: subparcel.z,
-        potentials: subparcel.potentials && base64.encode(subparcel.potentials.buffer),
+        potentials: base64.encode(subparcel.potentials.buffer),
         builds: subparcel.builds,
         packages: subparcel.packages,
       };
@@ -94,9 +94,7 @@ const _loadStorage = async roomName => {
   if (s) {
     state = s;
     for (const subparcel of state.subparcels) {
-      if (subparcel.potentials) {
-        subparcel.potentials = new Float32Array(base64.decode(subparcel.potentials));
-      }
+      subparcel.potentials = new Float32Array(base64.decode(subparcel.potentials));
     }
   }
 };
