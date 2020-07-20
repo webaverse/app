@@ -166,20 +166,15 @@ paginations.forEach(pagination => {
         const div = document.createElement('div');
         div.classList.add('token');
         const href = `inspect.html?p=${name}`;
-        const size = 300;
+        const size = '100%';
         div.innerHTML = `\
           <a href="${href}" class=preview>
-            ${gifIconSrc ? `<img src="${gifIconSrc}" width=${size} height=${size}>` : '<img width=${size} height=${size}>'}
+            ${gifIconSrc ? `<img src="${gifIconSrc}" width=${size} height=${size}>` : `<img width=${size} height=${size} src="/assets/question.png">`}
           </a>
+          <div class=type>${type}</div>
           <div class=text>
-            <a href="${href}" class=name>${name} <div class=type>${type}</div></a>
+            <a href="${href}" class=name>${name}</a>
             <div class=description>${description}</div>
-            <!-- <input type=text value="xrpk install ${dataHash}" readonly class="cardCode"> -->
-            <div class=actions>
-              <a href="edit.html?p=${name}" class=action><span>Try</span><i class="fa fa-chevron-right"></i></a>
-              <a href="https://ipfs.exokit.org/ipfs/${dataHash}.wbn" class=action><span><i class="fa fa-download"></i> Package</span></a>
-              ${glbIconSrc ? `<a href="${glbIconSrc}" class=action><span><i class="fa fa-download"></i> Model</span></a>` : ''}
-            </div>
           </div>
         `;
         /* const input = div.querySelector('input');
@@ -188,8 +183,6 @@ paginations.forEach(pagination => {
         }); */
         grid.appendChild(div);
       };
-
-      progress.setNumeratorDenominator(0, 1);
 
       const res = await fetch(packagesEndpoint);
       const children = await res.json();
