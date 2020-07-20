@@ -6,7 +6,7 @@ selector.addEventListener('click', e => {
 });
 
 document.addEventListener('click', e => {
-  if (e.target && !['header-label', 'selector', 'selections'].includes(e.target.id) && selector.classList.contains('open')) {
+  if (e.target && !selector.contains(e.target) && selector.classList.contains('open')) {
     selector.classList.toggle('open');
     selections.classList.toggle('open');
   }
