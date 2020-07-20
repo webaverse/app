@@ -598,7 +598,7 @@ const [
       }
     });
     stairsMesh.instancedMesh = _makeInstancedMesh(stairsMesh);
-    chunkMeshContainer.add(stairsMesh.instancedMesh);
+    // chunkMeshContainer.add(stairsMesh.instancedMesh);
 
     platformMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01');
     platformMesh.buildMeshType = 'floor';
@@ -608,7 +608,7 @@ const [
       }
     });
     platformMesh.instancedMesh = _makeInstancedMesh(platformMesh);
-    chunkMeshContainer.add(platformMesh.instancedMesh);
+    // chunkMeshContainer.add(platformMesh.instancedMesh);
 
     wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06');
     wallMesh.buildMeshType = 'wall';
@@ -618,7 +618,7 @@ const [
       }
     });
     wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);
-    chunkMeshContainer.add(wallMesh.instancedMesh);
+    // chunkMeshContainer.add(wallMesh.instancedMesh);
 
     spikesMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSpikes_01');
     spikesMesh.buildMeshType = 'trap';
@@ -628,7 +628,7 @@ const [
       }
     });
     spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh);
-    chunkMeshContainer.add(spikesMesh.instancedMesh);
+    // chunkMeshContainer.add(spikesMesh.instancedMesh);
 
     woodMesh = buildModels.children.find(c => c.name === 'SM_Item_Log_01');
     // woodMesh.visible = false;
@@ -935,10 +935,10 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         localMatrix2.compose(
           localVector2.fromArray(build.position),
           localQuaternion2.fromArray(build.quaternion),
-          buildMesh.scale
+          localVector3.copy(buildMesh.scale)
         )
-          .premultiply(mesh.matrix)
-          .decompose(localVector2, localQuaternion2, localVector3);
+          // .premultiply(mesh.matrix)
+          // .decompose(localVector2, localQuaternion2, localVector3);
         const buildMeshClone = buildMesh.instancedMesh.addInstance(meshId, localVector2, localQuaternion2, localVector3);
         /* buildMeshClone.traverse(o => {
           if (o.isMesh) {
@@ -1129,10 +1129,14 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         buildMeshClone.update = () => {
           animation && animation.update();
         };
+        currentChunkMesh.add(buildMesh.instancedMesh);
         // mesh.add(buildMeshClone);
         mesh.buildMeshes.push(buildMeshClone);
 
-        physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, buildMeshClone.position.toArray(), buildMeshClone.quaternion.toArray());
+        localMatrix2
+          .premultiply(currentChunkMesh.matrixWorld)
+          .decompose(localVector2, localQuaternion2, localVector3);
+        physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, localVector2.toArray(), localQuaternion2.toArray());
       };
       const _removeBuildMesh = buildMeshClone => {
         buildMeshClone.remove();
