@@ -975,28 +975,32 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 } */
 
 .tokens {
-  display: flex;
-  /* margin-top: 50px; */
-  flex-wrap: wrap;
+  display: grid;
+  column-gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 }
 
 .tokens > .token {
-  display: flex;
   position: relative;
   margin-right: 15px;
   margin-bottom: 15px;
-  background-image: linear-gradient(to right, rgba(0, 0, 0, 0.08) 0%, rgba(255, 255, 255, 1) 100%);
   border-radius: 7px;
   color: #434a60;
   overflow: hidden;
   transition: box-shadow 0.1s ease-out;
+  border: 1px solid grey;
+}
+.token .button {
+  margin: auto;
+  margin-bottom: 5px;
 }
 
 .tokens > .token .preview {
+  margin: auto;
   position: relative;
   display: flex;
-  width: 256px;
-  height: 256px;
+  min-width: 250px;
+  min-height: 250px;
   overflow: hidden;
 }
 .tokens > .token:hover {
@@ -1018,8 +1022,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .tokens > .token .text {
   display: flex;
-  width: 400px;
-  padding: 15px;
+  padding: 10px;
   flex-direction: column;
 }
 
@@ -1418,11 +1421,10 @@ header.unlocking + .main .blocker .button
 
 .token .name {
   display: flex;
-  margin-bottom: 12px;
+  margin-bottom: 5px;
   color: #2a2b56;
   font-size: 28px;
   letter-spacing: -.03em;
-  align-items: center;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1433,15 +1435,16 @@ header.unlocking + .main .blocker .button
 .token .description {
   margin-bottom: 12px;
   font-size: 16px;
-  line-height: 24px;
+  /* line-height: 24px; */
   text-overflow: ellipsis;
 }
 
 .token .type {
   display: inline-flex;
-  /* position: absolute;
+  position: absolute;
   top: 0;
-  right: 0; */
+  right: 0;
+  margin: 5px;
   margin-left: auto;
   padding: 5px;
   background-color: #7986cb;
