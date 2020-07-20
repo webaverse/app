@@ -822,40 +822,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           marchesRunning = true;
           chunksNeedUpdate = false;
 
-          const _loadSubparcel = (x, y, z, potentials) => {
-            chunkWorker.requestLoadPotentials(
-              seedNum,
-              meshId,
-              x,
-              y,
-              z,
-              parcelSize/2-10,
-              [
-                1,
-                1,
-                1,
-              ], [
-                3,
-                3,
-                3,
-              ], [
-                0.08,
-                0.012,
-                0.016,
-              ], [
-                0,
-                0,
-                0,
-              ], [
-                1,
-                1.5,
-                4,
-              ],
-              potentials,
-              parcelSize,
-              subparcelSize
-            );
-          };
           slabs = slabs.filter(slab => {
             if (neededCoords.some(nc => nc.x === slab.x && nc.y === slab.y && nc.z === slab.z)) {
               return true;
@@ -878,7 +844,38 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
                   const adz = az + dz;
                   const subparcel = planet.getSubparcel(adx, ady, adz);
                   if (!subparcel[loadedSymbol] || subparcelsNeedUpdate.some(([x, y, z]) => x === adx && y === ady && z === adz)) {
-                    _loadSubparcel(adx, ady, adz, subparcel.potentials);
+                    chunkWorker.requestLoadPotentials(
+                      seedNum,
+                      meshId,
+                      adx,
+                      ady,
+                      adz,
+                      parcelSize/2-10,
+                      [
+                        1,
+                        1,
+                        1,
+                      ], [
+                        3,
+                        3,
+                        3,
+                      ], [
+                        0.08,
+                        0.012,
+                        0.016,
+                      ], [
+                        0,
+                        0,
+                        0,
+                      ], [
+                        1,
+                        1.5,
+                        4,
+                      ],
+                      subparcel.potentials,
+                      parcelSize,
+                      subparcelSize
+                    );
                     subparcel[loadedSymbol] = true;
                   }
                 }
