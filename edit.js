@@ -552,15 +552,21 @@ const [
               const positionOffset = new Float32Array(geometry.attributes.positionOffset.array.buffer, geometry.attributes.positionOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
               geometry.attributes.positionOffset.array.set(positionOffset, o.index*3);
               geometry.attributes.positionOffset.needsUpdate = true;
+
               const quaternionOffset = new Float32Array(geometry.attributes.quaternionOffset.array.buffer, geometry.attributes.quaternionOffset.array.byteOffset + geometry.instanceCount*4*Float32Array.BYTES_PER_ELEMENT, 4);
               geometry.attributes.quaternionOffset.array.set(quaternionOffset, o.index*4);
               geometry.attributes.quaternionOffset.needsUpdate = true;
+
               const scaleOffset = new Float32Array(geometry.attributes.scaleOffset.array.buffer, geometry.attributes.scaleOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
               geometry.attributes.scaleOffset.array.set(scaleOffset, o.index*3);
               geometry.attributes.scaleOffset.needsUpdate = true;
+
               const color = new Float32Array(geometry.attributes.color.array.buffer, geometry.attributes.color.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
               geometry.attributes.color.array.set(color, o.index*3);
               geometry.attributes.color.needsUpdate = true;
+
+              const movingInstance = instancedMesh.instances.find(instance => instance.index === geometry.instanceCount);
+              movingInstance.index = o.index;
             }
             instancedMesh.instances.splice(instancedMesh.instances.indexOf(o), 1);
           },
