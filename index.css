@@ -51,6 +51,7 @@ img:not([src]) {
 
 .spinner {
   animation: spin 1s linear infinite;
+  margin: auto;
 }
 
 .header
