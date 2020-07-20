@@ -26,6 +26,7 @@ import {
   slabSliceVertices,
   chunkDistance,
   BUILD_SNAP,
+  PLANET_OBJECT_SLOTS,
 } from './constants.js';
 import alea from './alea.js';
 import easing from './easing.js';
@@ -464,6 +465,39 @@ const [
   (async () => {
     const buildModels = await _loadGltf('./build.glb');
 
+    const _makeInstancedMesh = mesh => {
+      const instancedMesh = new THREE.InstancedMesh(mesh.geometry, mesh.material.clone(), PLANET_OBJECT_SLOTS);
+      instancedMesh.count = 0;
+      instancedMesh.addInstance = (meshId, position, quaternion, scale) => {
+        const o = {
+          meshId,
+          index: instancedMesh.count,
+          position: position.clone(),
+          quaternion: quaternion.clone(),
+          scale: scale.clone(),
+          matrix: new THREE.Matrix4().compose(position, quaternion, scale),
+          remove() {
+            instancedMesh.count--;
+            if (instancedMesh.count > 0) {
+              const matrix = new THREE.Matrix4();
+              instancedMesh.getMatrixAt(instancedMesh.count, matrix);
+              instancedMesh.setMatrixAt(o.index, matrix);
+              instancedMesh.instanceMatrix.needsUpdate = true;
+            }
+            instancedMesh.instances.splice(instancedMesh.instances.indexOf(o), 1);
+          },
+        };
+        instancedMesh.setMatrixAt(o.index, o.matrix);
+        instancedMesh.instanceMatrix.needsUpdate = true;
+        instancedMesh.count++;
+        instancedMesh.instances.push(o);
+        return o;
+      };
+      instancedMesh.mesh = mesh;
+      instancedMesh.instances = [];
+      return instancedMesh;
+    };
+
     stairsMesh = buildModels.children.find(c => c.name === 'SM_Bld_Snow_Platform_Stairs_01001');
     stairsMesh.buildMeshType = 'stair';
     stairsMesh.traverse(o => {
@@ -471,7 +505,8 @@ const [
         o.isBuildMesh = true;
       }
     });
-    // worldContainer.add(stairsMesh);
+    stairsMesh.instancedMesh = _makeInstancedMesh(stairsMesh);
+    chunkMeshContainer.add(stairsMesh.instancedMesh);
 
     platformMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01');
     platformMesh.buildMeshType = 'floor';
@@ -480,7 +515,8 @@ const [
         o.isBuildMesh = true;
       }
     });
-    // worldContainer.add(platformMesh);
+    platformMesh.instancedMesh = _makeInstancedMesh(platformMesh);
+    chunkMeshContainer.add(platformMesh.instancedMesh);
 
     wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06');
     wallMesh.buildMeshType = 'wall';
@@ -489,7 +525,8 @@ const [
         o.isBuildMesh = true;
       }
     });
-    // worldContainer.add(wallMesh);
+    wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);
+    chunkMeshContainer.add(wallMesh.instancedMesh);
 
     spikesMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSpikes_01');
     spikesMesh.buildMeshType = 'trap';
@@ -498,7 +535,8 @@ const [
         o.isBuildMesh = true;
       }
     });
-    // worldContainer.add(spikesMesh);
+    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh);
+    chunkMeshContainer.add(spikesMesh.instancedMesh);
 
     woodMesh = buildModels.children.find(c => c.name === 'SM_Item_Log_01');
     // woodMesh.visible = false;
@@ -795,23 +833,29 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             default: return null;
           }
         })();
-        buildMesh.traverse(o => {
+        /* buildMesh.traverse(o => {
           if (o.isMesh && o.originalMaterial) {
             o.material = o.originalMaterial;
             o.originalMaterial = null;
           }
-        });
-        const buildMeshClone = buildMesh.clone();
-        buildMeshClone.position.fromArray(build.position);
-        buildMeshClone.quaternion.fromArray(build.quaternion);
-        buildMeshClone.traverse(o => {
+        }); */
+        const meshId = ++nextMeshId;
+        localMatrix2.compose(
+          localVector2.fromArray(build.position),
+          localQuaternion2.fromArray(build.quaternion),
+          buildMesh.scale
+        )
+          .premultiply(mesh.matrix)
+          .decompose(localVector2, localQuaternion2, localVector3);
+        const buildMeshClone = buildMesh.instancedMesh.addInstance(meshId, localVector2, localQuaternion2, localVector3);
+        /* buildMeshClone.traverse(o => {
           if (o.isMesh) {
             o.isBuildMesh = true;
             o.material = o.material.clone();
           }
-        });
+        }); */
         buildMeshClone.build = build;
-        buildMeshClone.meshId = ++nextMeshId;
+        buildMeshClone.meshId = meshId;
         buildMeshClone.buildMeshType = buildMesh.buildMeshType;
         let animation = null;
         let hp = 100;
@@ -987,13 +1031,13 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         buildMeshClone.update = () => {
           animation && animation.update();
         };
-        mesh.add(buildMeshClone);
+        // mesh.add(buildMeshClone);
         mesh.buildMeshes.push(buildMeshClone);
 
-        physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, buildMeshClone.getWorldPosition(new THREE.Vector3()).toArray(), buildMeshClone.getWorldQuaternion(new THREE.Quaternion()).toArray());
+        physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, buildMeshClone.position.toArray(), buildMeshClone.quaternion.toArray());
       };
       const _removeBuildMesh = buildMeshClone => {
-        mesh.remove(buildMeshClone);
+        buildMeshClone.remove();
         mesh.buildMeshes.splice(mesh.buildMeshes.indexOf(buildMeshClone), 1);
 
         physicsWorker.requestUnloadBuildMesh(buildMeshClone.meshId);
@@ -1352,8 +1396,16 @@ scene.add(removeMesh);
 const _findMeshWithMeshId = (container, meshId) => {
   let result = null;
   container.traverse(o => {
-    if (result === null && o.meshId === meshId) {
-      result = o;
+    if (result === null) {
+      if (o.meshId === meshId) {
+        result = 0;
+      } else if (o.instances) {
+        for (const instance of o.instances) {
+          if (instance.meshId === meshId) {
+            result = instance;
+          }
+        }
+      }
     }
   });
   return result;
@@ -2396,9 +2448,6 @@ function animate(timestamp, frame) {
             }
 
             const specs = await chunkWorker.requestMine(
-              /* delta,
-              currentChunkMesh.meshId,
-              localVector2.toArray(), */
               currentChunkMesh.meshId,
               mineSpecs,
               currentChunkMesh.subparcelSize
