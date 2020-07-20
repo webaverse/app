@@ -952,13 +952,13 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         }); */
         const meshId = ++nextMeshId;
         localMatrix2.compose(
-          localVector2.fromArray(build.position),
-          localQuaternion2.fromArray(build.quaternion),
-          localVector3.copy(buildMesh.scale)
+          localVector3.fromArray(build.position),
+          localQuaternion3.fromArray(build.quaternion),
+          localVector4.copy(buildMesh.scale)
         )
           // .premultiply(mesh.matrix)
           // .decompose(localVector2, localQuaternion2, localVector3);
-        const buildMeshClone = buildMesh.instancedMesh.addInstance(meshId, localVector2, localQuaternion2, localVector3);
+        const buildMeshClone = buildMesh.instancedMesh.addInstance(meshId, localVector3, localQuaternion3, localVector4);
         /* buildMeshClone.traverse(o => {
           if (o.isMesh) {
             o.isBuildMesh = true;
@@ -1154,8 +1154,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
         localMatrix2
           .premultiply(currentChunkMesh.matrix)
-          .decompose(localVector2, localQuaternion2, localVector3);
-        physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, localVector2.toArray(), localQuaternion2.toArray());
+          .decompose(localVector3, localQuaternion3, localVector4);
+        physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, localVector3.toArray(), localQuaternion3.toArray());
       };
       const _removeBuildMesh = buildMeshClone => {
         buildMeshClone.remove();
