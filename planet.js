@@ -128,11 +128,11 @@ export class SubparcelObject {
       index += Uint32Array.BYTES_PER_ELEMENT*4;
     }
   }
-  isValid() {
-    return this._id[0] !== 0;
-  }
-  invalidate() {
-    this._id[0] = 0;
+  equals(bm) {
+    return this.id === bm.id &&
+      this.subparcel.x === bm.subparcel.x &&
+      this.subparcel.y === bm.subparcel.y &&
+      this.subparcel.z === bm.subparcel.z;
   }
   getNameLength() {
     return _getStringLength(this._name);
