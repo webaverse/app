@@ -1398,7 +1398,7 @@ const _findMeshWithMeshId = (container, meshId) => {
   container.traverse(o => {
     if (result === null) {
       if (o.meshId === meshId) {
-        result = 0;
+        result = o;
       } else if (o.instances) {
         for (const instance of o.instances) {
           if (instance.meshId === meshId) {
