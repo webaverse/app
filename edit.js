@@ -779,6 +779,9 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   let chunksNeedUpdate = false;
   let buildMeshesNeedUpdate = false;
   let packagesNeedUpdate = false;
+  mesh.updateChunks = () => {
+    chunksNeedUpdate = true;
+  };
   mesh.updateBuildMeshes = () => {
     buildMeshesNeedUpdate = true;
   };
