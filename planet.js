@@ -8,8 +8,6 @@ import {
 } from './constants.js';
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 
-window.storage = storage;
-
 const presenceHost = 'wss://rtc.exokit.org:4443';
 export const OBJECT_TYPES = {
   BUILD: 1,
@@ -18,8 +16,7 @@ export const OBJECT_TYPES = {
 
 // planet
 
-const planet = new EventTarget();
-export default planet;
+export const planet = new EventTarget();
 
 let state = null;
 let subparcels = [];
