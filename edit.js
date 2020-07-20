@@ -466,30 +466,116 @@ const [
     const buildModels = await _loadGltf('./build.glb');
 
     const _makeInstancedMesh = mesh => {
-      const instancedMesh = new THREE.InstancedMesh(mesh.geometry, mesh.material.clone(), PLANET_OBJECT_SLOTS);
-      instancedMesh.count = 0;
+      const geometry = new THREE.InstancedBufferGeometry();
+      for (const k in mesh.geometry.attributes) {
+        geometry.setAttribute(k, mesh.geometry.attributes[k]);
+      }
+      geometry.setIndex(mesh.geometry.index);
+      const positionOffsets = new Float32Array(3*PLANET_OBJECT_SLOTS);
+      geometry.setAttribute('positionOffset', new THREE.InstancedBufferAttribute(positionOffsets, 3));
+      const quaternionOffsets = new Float32Array(4*PLANET_OBJECT_SLOTS);
+      geometry.setAttribute('quaternionOffset', new THREE.InstancedBufferAttribute(quaternionOffsets, 4));
+      const scaleOffsets = new Float32Array(3*PLANET_OBJECT_SLOTS);
+      geometry.setAttribute('scaleOffset', new THREE.InstancedBufferAttribute(scaleOffsets, 3));
+      const colors = new Float32Array(3*PLANET_OBJECT_SLOTS);
+      geometry.setAttribute('color', new THREE.InstancedBufferAttribute(colors, 3));
+      geometry.instanceCount = 0;
+
+      // console.log('got map', mesh.material.map);
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          map: {
+            type: 't',
+            value: mesh.material.map,
+          },
+        },
+        vertexShader: `\
+          precision highp float;
+          precision highp int;
+
+          attribute vec3 color;
+          attribute vec3 positionOffset;
+          attribute vec4 quaternionOffset;
+          attribute vec3 scaleOffset;
+          varying vec2 vUv;
+          varying vec3 vColor;
+
+          vec3 applyQuaternion(vec3 v, vec4 q) {
+            return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+          }
+
+          void main() {
+            vUv = uv;
+            vColor = color;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(applyQuaternion(position.xyz * scaleOffset, quaternionOffset) + positionOffset, 1.0);
+          }
+        `,
+        fragmentShader: `\
+          precision highp float;
+          precision highp int;
+
+          uniform sampler2D map;
+          varying vec2 vUv;
+          varying vec3 vColor;
+
+          void main() {
+            gl_FragColor = vec4(texture2D(map, vUv).rgb * vColor, 1.0);
+          }
+        `,
+        // lights: true,
+        extensions: {
+          derivatives: true,
+        },
+      });
+
+      const instancedMesh = new THREE.Mesh(geometry, material);
       instancedMesh.addInstance = (meshId, position, quaternion, scale) => {
         const o = {
           meshId,
-          index: instancedMesh.count,
+          index: geometry.instanceCount,
           position: position.clone(),
           quaternion: quaternion.clone(),
           scale: scale.clone(),
           matrix: new THREE.Matrix4().compose(position, quaternion, scale),
+          color: new THREE.Color(0xFFFFFF),
+          updatePosition() {
+            o.position.toArray(geometry.attributes.positionOffset.array, o.index*3);
+            geometry.attributes.positionOffset.needsUpdate = true;
+          },
+          updateColor() {
+            o.color.toArray(geometry.attributes.color.array, o.index*3);
+            geometry.attributes.color.needsUpdate = true;
+          },
           remove() {
-            instancedMesh.count--;
-            if (instancedMesh.count > 0) {
-              const matrix = new THREE.Matrix4();
-              instancedMesh.getMatrixAt(instancedMesh.count, matrix);
-              instancedMesh.setMatrixAt(o.index, matrix);
-              instancedMesh.instanceMatrix.needsUpdate = true;
+            geometry.instanceCount--;
+            if (geometry.instanceCount > 0) {
+              const positionOffset = new Float32Array(geometry.attributes.positionOffset.array.buffer, geometry.attributes.positionOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
+              geometry.attributes.positionOffset.array.set(positionOffset, o.index*3);
+              geometry.attributes.positionOffset.needsUpdate = true;
+              const quaternionOffset = new Float32Array(geometry.attributes.quaternionOffset.array.buffer, geometry.attributes.quaternionOffset.array.byteOffset + geometry.instanceCount*4*Float32Array.BYTES_PER_ELEMENT, 4);
+              geometry.attributes.quaternionOffset.array.set(quaternionOffset, o.index*4);
+              geometry.attributes.quaternionOffset.needsUpdate = true;
+              const scaleOffset = new Float32Array(geometry.attributes.scaleOffset.array.buffer, geometry.attributes.scaleOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
+              geometry.attributes.scaleOffset.array.set(scaleOffset, o.index*3);
+              geometry.attributes.scaleOffset.needsUpdate = true;
+              const color = new Float32Array(geometry.attributes.color.array.buffer, geometry.attributes.color.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
+              geometry.attributes.color.array.set(color, o.index*3);
+              geometry.attributes.color.needsUpdate = true;
             }
             instancedMesh.instances.splice(instancedMesh.instances.indexOf(o), 1);
           },
         };
-        instancedMesh.setMatrixAt(o.index, o.matrix);
-        instancedMesh.instanceMatrix.needsUpdate = true;
-        instancedMesh.count++;
+        o.position.toArray(geometry.attributes.positionOffset.array, o.index*3);
+        geometry.attributes.positionOffset.needsUpdate = true;
+        o.quaternion.toArray(geometry.attributes.quaternionOffset.array, o.index*4);
+        geometry.attributes.quaternionOffset.needsUpdate = true;
+        o.scale.toArray(geometry.attributes.scaleOffset.array, o.index*3);
+        geometry.attributes.scaleOffset.needsUpdate = true;
+        o.color.toArray(geometry.attributes.color.array, o.index*3);
+        geometry.attributes.color.needsUpdate = true;
+
+        instancedMesh.frustumCulled = false;
+        geometry.instanceCount++;
         instancedMesh.instances.push(o);
         return o;
       };
@@ -877,25 +963,32 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
                 if (factor < 1) {
                   buildMeshClone.position.copy(originalPosition)
                     .add(localVector2.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2));
+                  buildMeshClone.updatePosition();
                 } else {
                   animation.end();
                   animation = null;
                 }
               },
               end() {
-                buildMeshClone.position.copy(originalPosition);
+                /* buildMeshClone.position.copy(originalPosition);
                 buildMeshClone.traverse(o => {
                   if (o.isMesh) {
                     o.material.color.setHex(0xFFFFFF);
                   }
-                });
+                }); */
+                buildMeshClone.position.copy(originalPosition);
+                buildMeshClone.updatePosition();
+                buildMeshClone.color.setHex(0xFFFFFF);
+                buildMeshClone.updateColor();
               },
             };
-            buildMeshClone.traverse(o => {
+            /* buildMeshClone.traverse(o => {
               if (o.isMesh) {
                 o.material.color.setHex(0xef5350).multiplyScalar(2);
               }
-            });
+            }); */
+            buildMeshClone.color.setHex(0xef5350).multiplyScalar(2);
+            buildMeshClone.updateColor();
           } else {
             const radius = 0.5;
             const segments = 12;
@@ -1011,16 +1104,15 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
               return object;
             })();
-            itemMesh.position.copy(buildMeshClone.position);
-            itemMesh.quaternion.copy(buildMeshClone.quaternion);
-            // itemMesh.scale.copy(buildMeshClone.scale);
+            itemMesh.position.fromArray(buildMeshClone.build.position);
+            itemMesh.quaternion.fromArray(buildMeshClone.build.quaternion);
             mesh.add(itemMesh);
             itemMeshes.push(itemMesh);
 
             const buildSubparcelPosition = new THREE.Vector3(
-              Math.floor(buildMeshClone.position.x/subparcelSize),
-              Math.floor(buildMeshClone.position.y/subparcelSize),
-              Math.floor(buildMeshClone.position.z/subparcelSize)
+              Math.floor(buildMeshClone.build.position[0]/subparcelSize),
+              Math.floor(buildMeshClone.build.position[1]/subparcelSize),
+              Math.floor(buildMeshClone.build.position[2]/subparcelSize)
             );
             planet.editSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z, subparcel => {
               subparcel.removeBuild(buildMeshClone.build);
@@ -1352,19 +1444,6 @@ const redBuildMeshMaterial = new THREE.ShaderMaterial({
   `,
   // side: THREE.DoubleSide,
   transparent: true,
-});
-const hitMaterial = new THREE.ShaderMaterial({
-  vertexShader: `
-    void main() {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-    }
-  `,
-  fragmentShader: `
-    void main() {
-      gl_FragColor = vec4(${new THREE.Color(0xef5350).toArray().join(', ')}, 1.0);
-    }
-  `,
-  // transparent: true,
 });
 
 const addMesh = (() => {
