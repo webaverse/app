@@ -1677,11 +1677,24 @@ header.unlocking + .main .blocker .button
 {
   display: none;
 }
+.login-form input,
+.login-form .login-notice,
+.login-form .login-error {
+  margin-right: 5px;
+}
+.login-form input[type="text"],
+.login-form input[type="email"] {
+  border-radius: 5px;
+  border: 1px solid gray;
+  padding: 3px;
+  width: 100%;
+}
 
 .phase-content {
   display: flex;
   height: 100%;
   align-items: center;
+  text-align: center;
 }
 .user-button {
   position: relative;
