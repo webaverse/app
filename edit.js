@@ -38,6 +38,7 @@ const packagesEndpoint = 'https://packages.exokit.org';
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const downQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0));
 const loadedSymbol = Symbol('loaded');
+const pid4 = Math.PI/4;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -193,7 +194,10 @@ const _buildMeshEquals = (a, b) => {
   if (a.position.equals(b.position)) {
     if (a.buildMeshType === b.buildMeshType) {
       if (a.buildMeshType === 'wall') {
-        return a.quaternion.equals(b.quaternion);
+        return Math.floor(a.quaternion.x/pid4) === Math.floor(b.quaternion.x/pid4) &&
+          Math.floor(a.quaternion.y/pid4) === Math.floor(b.quaternion.y/pid4) &&
+          Math.floor(a.quaternion.z/pid4) === Math.floor(b.quaternion.z/pid4) &&
+          Math.floor(a.quaternion.w/pid4) === Math.floor(b.quaternion.w/pid4);
       } else {
         return true;
       }
