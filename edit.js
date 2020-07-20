@@ -319,7 +319,7 @@ const [
         }
       });
     });
-    w.requestLoadPotentials = (seed, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, parcelSize, subparcelSize) => {
+    w.requestLoadPotentials = (seed, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, force, parcelSize, subparcelSize) => {
       return w.request({
         method: 'loadPotentials',
         seed,
@@ -334,6 +334,7 @@ const [
         uvs,
         amps,
         potentials,
+        force,
         parcelSize,
         subparcelSize
       });
@@ -779,7 +780,9 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   let chunksNeedUpdate = false;
   let buildMeshesNeedUpdate = false;
   let packagesNeedUpdate = false;
-  mesh.updateChunks = () => {
+  let subparcelsNeedUpdate = [];
+  mesh.updateSlab = (x, y, z) => {
+    subparcelsNeedUpdate.push([x, y, z]);
     chunksNeedUpdate = true;
   };
   mesh.updateBuildMeshes = () => {
@@ -820,6 +823,41 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           marchesRunning = true;
           chunksNeedUpdate = false;
 
+          const _loadSubparcel = (x, y, z, potentials, force) => {
+            chunkWorker.requestLoadPotentials(
+              seedNum,
+              meshId,
+              x,
+              y,
+              z,
+              parcelSize/2-10,
+              [
+                1,
+                1,
+                1,
+              ], [
+                3,
+                3,
+                3,
+              ], [
+                0.08,
+                0.012,
+                0.016,
+              ], [
+                0,
+                0,
+                0,
+              ], [
+                1,
+                1.5,
+                4,
+              ],
+              potentials,
+              force,
+              parcelSize,
+              subparcelSize
+            );
+          };
           slabs = slabs.filter(slab => {
             if (neededCoords.some(nc => nc.x === slab.x && nc.y === slab.y && nc.z === slab.z)) {
               return true;
@@ -842,44 +880,19 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
                   const adz = az + dz;
                   const subparcel = planet.getSubparcel(adx, ady, adz);
                   if (!subparcel[loadedSymbol]) {
-                    const {potentials} = subparcel;
-                    chunkWorker.requestLoadPotentials(
-                      seedNum,
-                      meshId,
-                      adx, ady, adz,
-                      parcelSize/2-10,
-                      [
-                        1,
-                        1,
-                        1,
-                      ], [
-                        3,
-                        3,
-                        3,
-                      ], [
-                        0.08,
-                        0.012,
-                        0.016,
-                      ], [
-                        0,
-                        0,
-                        0,
-                      ], [
-                        1,
-                        1.5,
-                        4,
-                      ],
-                      potentials,
-                      parcelSize,
-                      subparcelSize
-                    );
+                    _loadSubparcel(adx, ady, adz, subparcel.potentials, false);
                     subparcel[loadedSymbol] = true;
+                  } else if (subparcelsNeedUpdate.some(([x, y, z]) => x === adx && y === ady && z === adz)) {
+                    _loadSubparcel(adx, ady, adz, subparcel.potentials, true);
                   }
                 }
               }
             }
 
-            if (!slabs.some(slab => slab.x === ax && slab.y === ay && slab.z === az)) {
+            if (
+              !slabs.some(slab => slab.x === ax && slab.y === ay && slab.z === az) ||
+              subparcelsNeedUpdate.some(([x, y, z]) => x === ax && y === ay && z === az)
+            ) {
               const specs = await chunkWorker.requestMarchLand(
                 seedNum,
                 meshId,
@@ -909,6 +922,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               physicsWorker.requestLoadSlab(meshId, mesh.position.x, mesh.position.y, mesh.position.z, specs, parcelSize, subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
             }
           }
+
+          subparcelsNeedUpdate.length = 0;
 
           lastCoord.copy(coord);
 
@@ -1256,7 +1271,7 @@ planet.addEventListener('unload', () => {
 });
 planet.addEventListener('subparcelupdate', e => {
   const {data: subparcel} = e;
-  currentChunkMesh.updateChunks();
+  currentChunkMesh.updateSlab(subparcel.x, subparcel.y, subparcel.z);
   currentChunkMesh.updateBuildMeshes();
   currentChunkMesh.updatePackages();
 });
