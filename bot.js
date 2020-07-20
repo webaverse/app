@@ -1,5 +1,6 @@
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {
+  planet,
   Subparcel,
   SubparcelObject,
 } from './planet.js';
