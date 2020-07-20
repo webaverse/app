@@ -104,8 +104,8 @@ const _deserializeState = ab => {
   };
 };
 
-class SubparcelObject {
-  constructor(data, offset, index) {
+export class SubparcelObject {
+  constructor(data, offset, index, subparcel) {
     this.data = data;
     this.offset = offset;
     this.index = index;
@@ -152,7 +152,7 @@ class SubparcelObject {
   }
 }
 
-class Subparcel {
+export class Subparcel {
   constructor(data, offset) {
     this.x = 0;
     this.y = 0;
