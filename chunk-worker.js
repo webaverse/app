@@ -278,11 +278,11 @@ const _handleMessage = data => {
   const {method} = data;
   switch (method) {
     case 'loadPotentials': {
-      const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, parcelSize, subparcelSize} = data;
+      const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, force, parcelSize, subparcelSize} = data;
 
       const chunk = _getChunk(meshId, subparcelSize);
       const slab = chunk.getSlab(x, y, z);
-      if (!slab) {
+      if (!slab || force) {
         const shiftsData = [x*subparcelSize, y*subparcelSize, z*subparcelSize];
         const genSpec = _makeLandPotentials(seedData, baseHeight, freqs, octaves, scales, uvs, amps, shiftsData, parcelSize, subparcelSize);
         if (potentials) {
@@ -290,7 +290,11 @@ const _handleMessage = data => {
             genSpec.potentials[i] += potentials[i];
           }
         }
-        chunk.setSlab(x, y, z, genSpec.potentials);
+        if (slab) {
+          slab.potentials.set(genSpec.potentials);
+        } else {
+          chunk.setSlab(x, y, z, genSpec.potentials);
+        }
       }
 
       self.postMessage({
