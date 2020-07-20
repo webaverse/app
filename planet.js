@@ -219,8 +219,13 @@ export class Subparcel {
     throw new Error('no more slots for build');
   }
   removeBuild(build) {
-    this._freeList[build.index] = 0;
-    this.builds.splice(this.builds.indexOf(build), 1);
+    const index = this.builds.indexOf(build);
+    if (index !== -1) {
+      this._freeList[build.index] = 0;
+      this.builds.splice(index, 1);
+    } else {
+      console.warn('removing nonexistent build', build);
+    }
   }
   addPackage(dataHash, position, quaternion) {
     for (let i = 0; i < this._freeList.length; i++) {
@@ -241,8 +246,13 @@ export class Subparcel {
     throw new Error('no more slots for package');
   }
   removePackage(pkg) {
-    this._freeList[pkg.index] = 0;
-    this.packages.splice(this.packages.indexOf(pkg), 1);
+    const index = this.packages.indexOf(pkg);
+    if (index !== -1) {
+      this._freeList[pkg.index] = 0;
+      this.packages.splice(index, 1);
+    } else {
+      console.warn('removing nonexistent package', pkg);
+    }
   }
   clone() {
     const subparcel = new Subparcel(this.data.slice(this.offset), 0);
