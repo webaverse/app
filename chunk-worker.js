@@ -25,21 +25,29 @@ class Chunk {
       const allocator = new Allocator();
       const potentials = allocator.alloc(Float32Array, this.subparcelSize * this.subparcelSize * this.subparcelSize);
       potentials.fill(potentialDefault);
-      slab = this.setSlab(x, y, z, potentials);
+      slab = this.setSlab(x, y, z, potentials, allocator);
     }
     return slab;
   }
-  setSlab(x, y, z, potentials) {
+  setSlab(x, y, z, potentials, allocator) {
     const slab = {
-      potentials,
       x,
       y,
       z,
       slabIndex: this.index,
+      potentials,
+      allocator,
     };
     this.slabs.push(slab);
     this.index++;
     return slab;
+  }
+  removeSlab(x, y, z) {
+    const slab = this.getSlab(x, y, z);
+    if (slab) {
+      slab.allocator.freeAll();
+      this.slabs.splice(this.slabs.indexOf(slab), 1);
+    }
   }
 }
 const chunks = [];
@@ -119,7 +127,7 @@ const _makeLandPotentials = (seedData, baseHeight, freqsData, octavesData, scale
     potentials.offset
   );
 
-  return {potentials, dims, shifts};
+  return {potentials, dims, shifts, allocator};
 };
 /* const _makePlanetPotentials = (seedData, shiftsData) => {
   const allocator = new Allocator();
@@ -278,24 +286,19 @@ const _handleMessage = data => {
   const {method} = data;
   switch (method) {
     case 'loadPotentials': {
-      const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, force, parcelSize, subparcelSize} = data;
+      const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, parcelSize, subparcelSize} = data;
 
       const chunk = _getChunk(meshId, subparcelSize);
-      const slab = chunk.getSlab(x, y, z);
-      if (!slab || force) {
-        const shiftsData = [x*subparcelSize, y*subparcelSize, z*subparcelSize];
-        const genSpec = _makeLandPotentials(seedData, baseHeight, freqs, octaves, scales, uvs, amps, shiftsData, parcelSize, subparcelSize);
-        if (potentials) {
-          for (let i = 0; i < potentials.length; i++) {
-            genSpec.potentials[i] += potentials[i];
-          }
-        }
-        if (slab) {
-          slab.potentials.set(genSpec.potentials);
-        } else {
-          chunk.setSlab(x, y, z, genSpec.potentials);
+      chunk.removeSlab(x, y, z);
+
+      const shiftsData = [x*subparcelSize, y*subparcelSize, z*subparcelSize];
+      const genSpec = _makeLandPotentials(seedData, baseHeight, freqs, octaves, scales, uvs, amps, shiftsData, parcelSize, subparcelSize);
+      if (potentials) {
+        for (let i = 0; i < potentials.length; i++) {
+          genSpec.potentials[i] += potentials[i];
         }
       }
+      chunk.setSlab(x, y, z, genSpec.potentials, genSpec.allocator);
 
       self.postMessage({
         result: {},
