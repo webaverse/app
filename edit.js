@@ -1147,7 +1147,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       for (const neededCoord of neededCoords) {
         const subparcel = planet.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
         for (const build of subparcel.builds) {
-          if (!mesh.buildMeshes.some(buildMesh => buildMesh.build === build)) {
+          if (!mesh.buildMeshes.some(buildMesh => buildMesh.build.equals(build))) {
             _addBuild(build);
           }
         }
@@ -1160,7 +1160,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           _removeBuildMesh(buildMesh);
         } else {
           const subparcel = planet.getSubparcel(sx, sy, sz);
-          if (!subparcel.builds.includes(buildMesh.build)) {
+          if (!subparcel.builds.some(build => build.equals(buildMesh.build))) {
             _removeBuildMesh(buildMesh);
           }
         }
