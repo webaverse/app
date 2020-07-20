@@ -109,6 +109,7 @@ export class SubparcelObject {
     this.data = data;
     this.offset = offset;
     this.index = index;
+    this.subparcel = subparcel;
 
     this.id = 0;
     this.type = 0;
@@ -167,19 +168,28 @@ export class Subparcel {
     this.packages = [];
     this.dirty = false;
 
-    if (data) {
-      for (let i = 0; i < this._freeList.length; i++) {
-        if (this._freeList[i]) {
-          const o = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i);
-          o.readMetadata();
-          if (o.type === OBJECT_TYPES.BUILD) {
-            this.builds.push(o);
-          } else if (o.type === OBJECT_TYPES.PACKAGE) {
-            this.packages.push(o);
-          }
+    data && this.reload();
+  }
+  reload() {
+    this.readMetadata();
+    this.builds.length = 0;
+    this.packages.length = 0;
+    for (let i = 0; i < this._freeList.length; i++) {
+      if (this._freeList[i]) {
+        const o = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
+        o.readMetadata();
+        if (o.type === OBJECT_TYPES.BUILD) {
+          this.builds.push(o);
+        } else if (o.type === OBJECT_TYPES.PACKAGE) {
+          this.packages.push(o);
         }
       }
     }
+  }
+  update() {
+    planet.dispatchEvent(new MessageEvent('subparcelupdate', {
+      data: this,
+    }));
   }
   writeMetadata() {
     const dst = new Int32Array(this.data, this.offset + this.offsets.xyz, 3);
@@ -198,7 +208,7 @@ export class Subparcel {
       if (!this._freeList[i]) {
         this._freeList[i] = 1;
 
-        const build = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i);
+        const build = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
         build.id = ++this._objectId[0];
         build.type = OBJECT_TYPES.BUILD;
         build.name = type;
@@ -220,7 +230,7 @@ export class Subparcel {
       if (!this._freeList[i]) {
         this._freeList[i] = 1;
 
-        const pkg = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i);
+        const pkg = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
         pkg.id = ++this._objectId[0];
         pkg.type = OBJECT_TYPES.PACKAGE;
         pkg.name = type;
@@ -236,6 +246,11 @@ export class Subparcel {
   removePackage(pkg) {
     this._freeList[pkg.index] = 0;
     this.packages.splice(this.packages.indexOf(pkg), 1);
+  }
+  clone() {
+    const subparcel = new Subparcel(this.data.slice(this.offset), 0);
+    subparcel.reload();
+    return subparcel;
   }
 }
 Subparcel.getOffsets = () => {
@@ -352,7 +367,6 @@ const _loadStorage = async roomName => {
     }
   }
   subparcels = await Promise.all(promises);
-  // console.log('got keys', keys);
 };
 
 planet.flush = () => {
