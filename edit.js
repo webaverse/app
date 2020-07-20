@@ -1233,14 +1233,6 @@ const _resetCamera = () => {
   pe.camera.updateMatrixWorld();
   pe.setCamera(camera);
 };
-planet.addEventListener('unload', () => {
-  const oldChunkMesh = _getCurrentChunkMesh();
-  if (oldChunkMesh) {
-    chunkMeshContainer.remove(oldChunkMesh);
-    chunkMeshes.splice(chunkMeshes.indexOf(oldChunkMesh), 1);
-    _setCurrentChunkMesh(null);
-  }
-});
 planet.addEventListener('load', e => {
   const {data: chunkSpec} = e;
 
@@ -1253,6 +1245,20 @@ planet.addEventListener('load', e => {
   _setCurrentChunkMesh(chunkMesh);
 
   _resetCamera();
+});
+planet.addEventListener('unload', () => {
+  const oldChunkMesh = _getCurrentChunkMesh();
+  if (oldChunkMesh) {
+    chunkMeshContainer.remove(oldChunkMesh);
+    chunkMeshes.splice(chunkMeshes.indexOf(oldChunkMesh), 1);
+    _setCurrentChunkMesh(null);
+  }
+});
+planet.addEventListener('subparcelupdate', e => {
+  const {data: subparcel} = e;
+  currentChunkMesh.updateChunks();
+  currentChunkMesh.updateBuildMeshes();
+  currentChunkMesh.updatePackages();
 });
 planet.connect('lol', {
   online: false,
