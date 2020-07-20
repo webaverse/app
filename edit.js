@@ -319,7 +319,7 @@ const [
         }
       });
     });
-    w.requestLoadPotentials = (seed, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, force, parcelSize, subparcelSize) => {
+    w.requestLoadPotentials = (seed, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, parcelSize, subparcelSize) => {
       return w.request({
         method: 'loadPotentials',
         seed,
@@ -334,7 +334,6 @@ const [
         uvs,
         amps,
         potentials,
-        force,
         parcelSize,
         subparcelSize
       });
@@ -823,7 +822,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           marchesRunning = true;
           chunksNeedUpdate = false;
 
-          const _loadSubparcel = (x, y, z, potentials, force) => {
+          const _loadSubparcel = (x, y, z, potentials) => {
             chunkWorker.requestLoadPotentials(
               seedNum,
               meshId,
@@ -853,7 +852,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
                 4,
               ],
               potentials,
-              force,
               parcelSize,
               subparcelSize
             );
@@ -879,11 +877,9 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
                 for (let dz = 0; dz <= 1; dz++) {
                   const adz = az + dz;
                   const subparcel = planet.getSubparcel(adx, ady, adz);
-                  if (!subparcel[loadedSymbol]) {
-                    _loadSubparcel(adx, ady, adz, subparcel.potentials, false);
+                  if (!subparcel[loadedSymbol] || subparcelsNeedUpdate.some(([x, y, z]) => x === adx && y === ady && z === adz)) {
+                    _loadSubparcel(adx, ady, adz, subparcel.potentials);
                     subparcel[loadedSymbol] = true;
-                  } else if (subparcelsNeedUpdate.some(([x, y, z]) => x === adx && y === ady && z === adz)) {
-                    _loadSubparcel(adx, ady, adz, subparcel.potentials, true);
                   }
                 }
               }
