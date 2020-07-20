@@ -31,6 +31,7 @@ import {
 import alea from './alea.js';
 import easing from './easing.js';
 import planet from './planet.js';
+import {Bot} from './bot.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const worldsEndpoint = 'https://worlds.exokit.org';
@@ -1252,6 +1253,8 @@ planet.addEventListener('load', e => {
 });
 planet.connect('lol', {
   online: false,
+}).then(() => {
+  new Bot();
 });
 
 /* const generateModels = await _loadGltf('./generate.glb');
