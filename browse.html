@@ -184,8 +184,6 @@ paginations.forEach(pagination => {
         grid.appendChild(div);
       };
 
-      progress.setNumeratorDenominator(0, 1);
-
       const res = await fetch(packagesEndpoint);
       const children = await res.json();
       progress.setNumeratorDenominator(0, children.length);
