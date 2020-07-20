@@ -13,6 +13,8 @@ export const OBJECT_TYPES = {
   BUILD: 1,
   PACKAGE: 2,
 };
+const _getPotentialIndex = (x, y, z) => x + y*SUBPARCEL_SIZE*SUBPARCEL_SIZE + z*SUBPARCEL_SIZE;
+const potentialDefault = -0.5;
 
 // planet
 
