@@ -1134,7 +1134,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         mesh.buildMeshes.push(buildMeshClone);
 
         localMatrix2
-          .premultiply(currentChunkMesh.matrixWorld)
+          .premultiply(currentChunkMesh.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
         physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, localVector2.toArray(), localQuaternion2.toArray());
       };
