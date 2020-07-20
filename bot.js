@@ -19,11 +19,19 @@ function* gen() {
       subparcel2.z*SUBPARCEL_SIZE,
     );
     const quaternion = new THREE.Quaternion();
+    const center = new THREE.Vector3(SUBPARCEL_SIZE/2, SUBPARCEL_SIZE/2, SUBPARCEL_SIZE/2);
+    const radius = 3;
+    const maxDistance = Math.sqrt(radius*radius*3);
+    subparcel2.setCube(center.x, center.y, center.z, radius, (x, y, z) => {
+      const p = new THREE.Vector3(x, y, z);
+      return maxDistance - center.distanceTo(p);
+    });
     const build = subparcel2.addBuild('floor', position, quaternion);
     new Uint8Array(subparcel.data).set(new Uint8Array(subparcel2.data));
     subparcel.reload();
     subparcel.update();
     yield;
+    subparcel2.clearCube(center.x, center.y, center.z, radius);
     subparcel2.removeBuild(build);
     new Uint8Array(subparcel.data).set(new Uint8Array(subparcel2.data));
     subparcel.reload();

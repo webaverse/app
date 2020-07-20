@@ -200,6 +200,32 @@ export class Subparcel {
     this.y = src[1];
     this.z = src[2];
   }
+  setCube(x, y, z, r, fn) {
+    for (let dx = -r; dx <= r; dx++) {
+      const ax = x + dx;
+      for (let dy = -r; dy <= r; dy++) {
+        const ay = y + dy;
+        for (let dz = -r; dz <= r; dz++) {
+          const az = z + dz;
+          const index = _getPotentialIndex(ax, ay, az);
+          this.potentials[index] = fn(ax, ay, az);
+        }
+      }
+    }
+  }
+  clearCube(x, y, z, r) {
+    for (let dx = -r; dx <= r; dx++) {
+      const ax = x + dx;
+      for (let dy = -r; dy <= r; dy++) {
+        const ay = y + dy;
+        for (let dz = -r; dz <= r; dz++) {
+          const az = z + dz;
+          const index = _getPotentialIndex(ax, ay, az);
+          this.potentials[index] = potentialDefault;
+        }
+      }
+    }
+  }
   addBuild(type, position, quaternion) {
     for (let i = 0; i < this._freeList.length; i++) {
       if (!this._freeList[i]) {
