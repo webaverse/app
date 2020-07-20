@@ -22,6 +22,7 @@ const planet = new EventTarget();
 export default planet;
 
 let state = null;
+let subparcels = [];
 // window.state = state;
 
 const _getStringLength = s => {
@@ -40,7 +41,7 @@ const _serializeState = state => {
     Uint32Array.BYTES_PER_ELEMENT + // parcelSize
     Uint32Array.BYTES_PER_ELEMENT + // subparcelSize
     Uint32Array.BYTES_PER_ELEMENT + // subparcels.length
-    offsets.length * state.subparcels.length // subparcels
+    offsets.length * subparcels.length // subparcels
   );
 
   let index = 0;
@@ -56,11 +57,11 @@ const _serializeState = state => {
   new Uint32Array(ab, index)[0] = state.subparcelSize;
   index += Uint32Array.BYTES_PER_ELEMENT;
 
-  new Uint32Array(ab, index)[0] = state.subparcels.length;
+  new Uint32Array(ab, index)[0] = subparcels.length;
   index += Uint32Array.BYTES_PER_ELEMENT;
 
-  for (let i = 0; i < state.subparcels.length; i++) {
-    const subparcel = state.subparcels[i];
+  for (let i = 0; i < subparcels.length; i++) {
+    const subparcel = subparcels[i];
     new Uint8Array(ab, index, offsets.length)
       .set(
         new Uint8Array(subparcel.data, subparcel.offset, offsets.length)
@@ -269,23 +270,23 @@ const _addSubparcel = (x, y, z) => {
   subparcel.y = y;
   subparcel.z = z;
   subparcel.writeMetadata();
-  state.subparcels.push(subparcel);
+  subparcels.push(subparcel);
   return subparcel;
 };
 planet.getSubparcel = (x, y, z) => {
-  let subparcel = state.subparcels.find(sp => sp.x === x && sp.y === y && sp.z === z);
+  let subparcel = subparcels.find(sp => sp.x === x && sp.y === y && sp.z === z);
   if (!subparcel) {
     subparcel = _addSubparcel(x, y, z);
   }
   return subparcel;
 };
 planet.editSubparcel = (x, y, z, fn) => {
-  let index = state.subparcels.findIndex(sp => sp.x === x && sp.y === y && sp.z === z);
+  let index = subparcels.findIndex(sp => sp.x === x && sp.y === y && sp.z === z);
   if (index === -1) {
     _addSubparcel(x, y, z);
-    index = state.subparcels.length-1;
+    index = subparcels.length-1;
   }
-  const subparcel = state.subparcels[index];
+  const subparcel = subparcels[index];
   fn(subparcel);
   subparcel.dirty = true;
 };
@@ -298,38 +299,68 @@ const _loadLiveState = seedString => {
 };
 
 const _saveStorage = async roomName => {
-  const b = _serializeState(state);
-  await storage.setRaw(roomName, b);
+  for (const subparcel of subparcels) {
+    if (subparcel.dirty) {
+      subparcel.dirty = false;
+      await storage.setRaw(`planet/${roomName}/subparcels/${subparcel.x}/${subparcel.y}/${subparcel.z}`, subparcel.data);
+    }
+  }
+  // const b = _serializeState(state);
+  // await storage.setRaw(roomName, b);
 };
 const _loadStorage = async roomName => {
-  const b = await storage.getRaw(roomName);
-  if (b) {
-    state = _deserializeState(b);
+  const [
+    seedString,
+    parcelSize,
+    subparcelSize,
+  ] = await Promise.all(['seedString', 'parcelSize', 'subparcelSize'].map(k => storage.get(`planet/${roomName}/${k}`)));
+  if ([
+    seedString,
+    parcelSize,
+    subparcelSize,
+  ].every(v => v)) {
+    state = {
+      seedString,
+      parcelSize,
+      subparcelSize,
+    };
   } else {
     state = {
       seedString: roomName,
       parcelSize: PARCEL_SIZE,
       subparcelSize: SUBPARCEL_SIZE,
-      subparcels: [],
     };
+    await Promise.all(Object.keys(state).map(async k => {
+      const v = state[k];
+      await storage.set(`planet/${roomName}/${k}`, v);
+    }));
   }
+
+  const keys = await storage.keys();
+  const prefix = `planet/${roomName}/subparcels/`;
+  const promises = [];
+  for (const k of keys) {
+    if (k.startsWith(prefix)) {
+      const match = k.slice(prefix.length).match(/^([-0-9]+)\/([-0-9]+)\/([-0-9]+)/);
+      const p = storage.getRaw(k)
+        .then(ab => {
+          const subparcel = new Subparcel(ab);
+          subparcel.readMetadata();
+          return subparcel;
+        });
+      promises.push(p);
+    }
+  }
+  subparcels = await Promise.all(promises);
+  // console.log('got keys', keys);
 };
 
 planet.flush = () => {
   if (state) {
-    let dirty = false;
-    for (const subparcel of state.subparcels) {
-      if (subparcel.dirty) {
-        dirty = true;
-        subparcel.dirty = false;
-      }
-    }
-    if (dirty) {
-      if (channelConnection) {
-        throw new Error('unknown');
-      } else {
-        _saveStorage(state.seedString);
-      }
+    if (channelConnection) {
+      throw new Error('unknown');
+    } else {
+      _saveStorage(state.seedString);
     }
   }
 };
