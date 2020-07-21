@@ -552,19 +552,20 @@ const [
       const box = new THREE.Box3().setFromObject(mesh);
       const center = box.getCenter(new THREE.Vector3());
       geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
+      // geometry.computeVertexNormals();
       return mesh;
     };
 
     const result = {};
     structureModels.children.forEach((c, index) => {
       const c2 = _mergeGroup(c);
-      c2.position.x = -6 + index*2;
-      scene.add(c2);
+      // c2.position.x = -6 + index*2;
+      // scene.add(c2);
       result[c2.name] = c2;
     });
     atlas.context.fillStyle = '#FFF';
     atlas.context.fillRect(canvas.width-1, canvas.height-1, 1, 1);
-    console.log('got result', result);
+    // console.log('got result', result);
 
     const _makeInstancedMesh = mesh => {
       const geometry = new THREE.InstancedBufferGeometry();
@@ -600,6 +601,7 @@ const [
           attribute vec4 quaternionOffset;
           attribute vec3 scaleOffset;
           varying vec2 vUv;
+          varying vec3 vNormal;
           varying vec3 vColor;
           varying vec3 vColorOffset;
 
@@ -609,6 +611,7 @@ const [
 
           void main() {
             vUv = uv;
+            vNormal = normal;
             vColor = color;
             vColorOffset = colorOffset;
             gl_Position = projectionMatrix * modelViewMatrix * vec4(applyQuaternion(position.xyz * scaleOffset, quaternionOffset) + positionOffset, 1.0);
@@ -620,18 +623,23 @@ const [
 
           uniform sampler2D map;
           varying vec2 vUv;
+          varying vec3 vNormal;
           varying vec3 vColor;
           varying vec3 vColorOffset;
 
+          vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
+
           void main() {
-            vec4 t = texture2D(map, vUv);
-            gl_FragColor = vec4((vColor * t.rgb) * vColorOffset, 1.0);
+            vec3 c = texture2D(map, vUv).rgb;
+            float dotNL = dot(vNormal, l);
+            gl_FragColor = vec4(c * vColor * vColorOffset * (0.5 + 0.5*abs(dotNL)), 1.0);
           }
         `,
         // lights: true,
-        extensions: {
+        /* extensions: {
           derivatives: true,
-        },
+        }, */
+        // side: THREE.DoubleSide,
       });
 
       const instancedMesh = new THREE.Mesh(geometry, material);
@@ -696,7 +704,7 @@ const [
       return instancedMesh;
     };
 
-    /* stairsMesh = result['wood_floor'].clone();
+    stairsMesh = result['wood_floor'].clone();
     stairsMesh.geometry = stairsMesh.geometry.clone()
       .applyMatrix4(new THREE.Matrix4().makeScale(1.05, 1, Math.sqrt(2)))
       .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4 + 0.01)))
@@ -742,9 +750,9 @@ const [
         o.isBuildMesh = true;
       }
     });
-    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh); */
+    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh);
 
-    stairsMesh = result['brick_floor'].clone();
+    /* stairsMesh = result['brick_floor'].clone();
     stairsMesh.geometry = stairsMesh.geometry.clone()
       .applyMatrix4(new THREE.Matrix4().makeScale(1.04, 1, 0.925 * Math.sqrt(2)))
       .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4 + 0.005)))
@@ -790,7 +798,55 @@ const [
         o.isBuildMesh = true;
       }
     });
-    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh);
+    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh); */
+
+    /* stairsMesh = result['metal_floor'].clone();
+    stairsMesh.geometry = stairsMesh.geometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(1.05, 1, 0.925 * Math.sqrt(2)))
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4 + 0.005)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, 0));
+    stairsMesh.buildMeshType = 'stair';
+    stairsMesh.traverse(o => {
+      if (o.isMesh) {
+        o.isBuildMesh = true;
+      }
+    });
+    stairsMesh.instancedMesh = _makeInstancedMesh(stairsMesh);
+
+    platformMesh = result['metal_floor'].clone();
+    platformMesh.geometry = platformMesh.geometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(1.03, 1, 0.93))
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.005)))
+    platformMesh.buildMeshType = 'floor';
+    platformMesh.traverse(o => {
+      if (o.isMesh) {
+        o.isBuildMesh = true;
+      }
+    });
+    platformMesh.instancedMesh = _makeInstancedMesh(platformMesh);
+
+    wallMesh = result['metal_wall'].clone();
+    wallMesh.geometry = wallMesh.geometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(1.03, 1.2, 1))
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.005)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, -2/2));
+    wallMesh.buildMeshType = 'wall';
+    wallMesh.traverse(o => {
+      if (o.isMesh) {
+        o.isBuildMesh = true;
+      }
+    });
+    wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);
+
+    spikesMesh = result['metal_roof'].clone();
+    spikesMesh.geometry = spikesMesh.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+    spikesMesh.buildMeshType = 'trap';
+    spikesMesh.traverse(o => {
+      if (o.isMesh) {
+        o.isBuildMesh = true;
+      }
+    });
+    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh); */
   })(),
 ]);
 chunkWorker = cw;
