@@ -746,7 +746,7 @@ const [
 
     stairsMesh = result['brick_floor'].clone();
     stairsMesh.geometry = stairsMesh.geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeScale(1.04, 1, 0.93 * Math.sqrt(2)))
+      .applyMatrix4(new THREE.Matrix4().makeScale(1.04, 1, 0.925 * Math.sqrt(2)))
       .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4 + 0.005)))
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, 0));
     stairsMesh.buildMeshType = 'stair';
