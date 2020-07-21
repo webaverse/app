@@ -546,7 +546,6 @@ const [
       });
       const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
       const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(0, 0, 0);
       mesh.name = g.name;
       geometry.applyMatrix4(new THREE.Matrix4().makeScale(scale, scale, scale));
       const box = new THREE.Box3().setFromObject(mesh);
@@ -703,7 +702,6 @@ const [
       }
     });
     stairsMesh.instancedMesh = _makeInstancedMesh(stairsMesh);
-    // chunkMeshContainer.add(stairsMesh.instancedMesh);
 
     platformMesh = result['wood_floor'].clone();
     platformMesh.geometry = platformMesh.geometry.clone()
@@ -716,7 +714,6 @@ const [
       }
     });
     platformMesh.instancedMesh = _makeInstancedMesh(platformMesh);
-    // chunkMeshContainer.add(platformMesh.instancedMesh);
 
     wallMesh = result['wood_wall'].clone();
     wallMesh.geometry = wallMesh.geometry.clone()
@@ -729,7 +726,6 @@ const [
       }
     });
     wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);
-    // chunkMeshContainer.add(wallMesh.instancedMesh);
 
     spikesMesh = result['wood_roof'].clone();
     spikesMesh.geometry = spikesMesh.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
@@ -740,7 +736,6 @@ const [
       }
     });
     spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh);
-    // chunkMeshContainer.add(spikesMesh.instancedMesh);
   })(),
 ]);
 chunkWorker = cw;
