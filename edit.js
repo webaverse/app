@@ -578,8 +578,8 @@ const [
       geometry.setAttribute('quaternionOffset', new THREE.InstancedBufferAttribute(quaternionOffsets, 4));
       const scaleOffsets = new Float32Array(3*PLANET_OBJECT_SLOTS);
       geometry.setAttribute('scaleOffset', new THREE.InstancedBufferAttribute(scaleOffsets, 3));
-      const colors = new Float32Array(3*PLANET_OBJECT_SLOTS);
-      geometry.setAttribute('color', new THREE.InstancedBufferAttribute(colors, 3));
+      const colorOffsets = new Float32Array(3*PLANET_OBJECT_SLOTS);
+      geometry.setAttribute('colorOffset', new THREE.InstancedBufferAttribute(colorOffsets, 3));
       geometry.instanceCount = 0;
 
       // console.log('got map', mesh.material.map);
@@ -595,11 +595,13 @@ const [
           precision highp int;
 
           attribute vec3 color;
+          attribute vec3 colorOffset;
           attribute vec3 positionOffset;
           attribute vec4 quaternionOffset;
           attribute vec3 scaleOffset;
           varying vec2 vUv;
           varying vec3 vColor;
+          varying vec3 vColorOffset;
 
           vec3 applyQuaternion(vec3 v, vec4 q) {
             return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
@@ -608,6 +610,7 @@ const [
           void main() {
             vUv = uv;
             vColor = color;
+            vColorOffset = colorOffset;
             gl_Position = projectionMatrix * modelViewMatrix * vec4(applyQuaternion(position.xyz * scaleOffset, quaternionOffset) + positionOffset, 1.0);
           }
         `,
@@ -618,9 +621,11 @@ const [
           uniform sampler2D map;
           varying vec2 vUv;
           varying vec3 vColor;
+          varying vec3 vColorOffset;
 
           void main() {
-            gl_FragColor = vec4(texture2D(map, vUv).rgb * vColor, 1.0);
+            vec4 t = texture2D(map, vUv);
+            gl_FragColor = vec4((vColor * t.rgb) * vColorOffset, 1.0);
           }
         `,
         // lights: true,
@@ -644,8 +649,8 @@ const [
             geometry.attributes.positionOffset.needsUpdate = true;
           },
           updateColor() {
-            o.color.toArray(geometry.attributes.color.array, o.index*3);
-            geometry.attributes.color.needsUpdate = true;
+            o.color.toArray(geometry.attributes.colorOffset.array, o.index*3);
+            geometry.attributes.colorOffset.needsUpdate = true;
           },
           remove() {
             geometry.instanceCount--;
@@ -662,9 +667,9 @@ const [
               geometry.attributes.scaleOffset.array.set(scaleOffset, o.index*3);
               geometry.attributes.scaleOffset.needsUpdate = true;
 
-              const color = new Float32Array(geometry.attributes.color.array.buffer, geometry.attributes.color.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
-              geometry.attributes.color.array.set(color, o.index*3);
-              geometry.attributes.color.needsUpdate = true;
+              const colorOffset = new Float32Array(geometry.attributes.colorOffset.array.buffer, geometry.attributes.colorOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
+              geometry.attributes.colorOffset.array.set(colorOffset, o.index*3);
+              geometry.attributes.colorOffset.needsUpdate = true;
 
               const movingInstance = instancedMesh.instances.find(instance => instance.index === geometry.instanceCount);
               movingInstance.index = o.index;
@@ -678,8 +683,8 @@ const [
         geometry.attributes.quaternionOffset.needsUpdate = true;
         o.scale.toArray(geometry.attributes.scaleOffset.array, o.index*3);
         geometry.attributes.scaleOffset.needsUpdate = true;
-        o.color.toArray(geometry.attributes.color.array, o.index*3);
-        geometry.attributes.color.needsUpdate = true;
+        o.color.toArray(geometry.attributes.colorOffset.array, o.index*3);
+        geometry.attributes.colorOffset.needsUpdate = true;
 
         instancedMesh.frustumCulled = false;
         geometry.instanceCount++;
@@ -691,7 +696,7 @@ const [
       return instancedMesh;
     };
 
-    stairsMesh = result['wood_floor'].clone();
+    /* stairsMesh = result['wood_floor'].clone();
     stairsMesh.geometry = stairsMesh.geometry.clone()
       .applyMatrix4(new THREE.Matrix4().makeScale(1.05, 1, Math.sqrt(2)))
       .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4 + 0.01)))
@@ -719,6 +724,7 @@ const [
     wallMesh = result['wood_wall'].clone();
     wallMesh.geometry = wallMesh.geometry.clone()
       .applyMatrix4(new THREE.Matrix4().makeScale(1, 1.2, 1))
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.005)))
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, -2/2));
     wallMesh.buildMeshType = 'wall';
     wallMesh.traverse(o => {
@@ -729,6 +735,54 @@ const [
     wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);
 
     spikesMesh = result['wood_roof'].clone();
+    spikesMesh.geometry = spikesMesh.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+    spikesMesh.buildMeshType = 'trap';
+    spikesMesh.traverse(o => {
+      if (o.isMesh) {
+        o.isBuildMesh = true;
+      }
+    });
+    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh); */
+
+    stairsMesh = result['brick_floor'].clone();
+    stairsMesh.geometry = stairsMesh.geometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(1.04, 1, 0.93 * Math.sqrt(2)))
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4 + 0.005)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, 0));
+    stairsMesh.buildMeshType = 'stair';
+    stairsMesh.traverse(o => {
+      if (o.isMesh) {
+        o.isBuildMesh = true;
+      }
+    });
+    stairsMesh.instancedMesh = _makeInstancedMesh(stairsMesh);
+
+    platformMesh = result['brick_floor'].clone();
+    platformMesh.geometry = platformMesh.geometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(1.03, 1, 0.93))
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.005)))
+    platformMesh.buildMeshType = 'floor';
+    platformMesh.traverse(o => {
+      if (o.isMesh) {
+        o.isBuildMesh = true;
+      }
+    });
+    platformMesh.instancedMesh = _makeInstancedMesh(platformMesh);
+
+    wallMesh = result['brick_wall'].clone();
+    wallMesh.geometry = wallMesh.geometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(1.03, 1.2, 1))
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.005)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, -2/2));
+    wallMesh.buildMeshType = 'wall';
+    wallMesh.traverse(o => {
+      if (o.isMesh) {
+        o.isBuildMesh = true;
+      }
+    });
+    wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);
+
+    spikesMesh = result['brick_floor001'].clone();
     spikesMesh.geometry = spikesMesh.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
     spikesMesh.buildMeshType = 'trap';
     spikesMesh.traverse(o => {
