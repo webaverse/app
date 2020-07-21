@@ -32,6 +32,7 @@ import alea from './alea.js';
 import easing from './easing.js';
 import {planet} from './planet.js';
 import {Bot} from './bot.js';
+import './atlaspack.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const worldsEndpoint = 'https://worlds.exokit.org';
@@ -466,6 +467,101 @@ const [
   (async () => {
     const buildModels = await _loadGltf('./build.glb');
 
+    woodMesh = buildModels.children.find(c => c.name === 'SM_Item_Log_01');
+    // woodMesh.visible = false;
+    // worldContainer.add(woodMesh);
+
+    stoneMesh = buildModels.children.find(c => c.name === 'SM_Env_Rock_01');
+    // stoneMesh.visible = false;
+    // worldContainer.add(stoneMesh);
+
+    metalMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSheet_01');
+    // metalMesh.visible = false;
+    // worldContainer.add(metalMesh);
+  })(),
+  (async () => {
+    const structureModels = await _loadGltf('./structure.glb');
+
+    const scale = 0.0325;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 8192;
+    canvas.height = 8192;
+    const texture = new THREE.Texture(canvas);
+    texture.flipY = false;
+    texture.needsUpdate = true;
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      vertexColors: true,
+      // transparent: true,
+    });
+    const atlas = atlaspack(canvas);
+    const rects = new Map();
+    const _mapUvAttribute = (uvs, rect) => {
+      const [[tx, ty], [rx, ry], [bx, by], [lx, ly]] = rect;
+      const x = tx;
+      const y = ty;
+      const w = rx - lx;
+      const h = by - ty;
+      for (let i = 0; i < uvs.length; i += 2) {
+        uvs[i] = x + mod(uvs[i], 1)*w;
+        uvs[i+1] = y + mod(uvs[i+1], 1)*h;
+      }
+    };
+    const _mergeGroup = g => {
+      const geometries = [];
+      g.traverse(o => {
+        if (o.isMesh) {
+          const {geometry, material} = o;
+          const {map, color} = material;
+          const hsl = color.getHSL({});
+          if (hsl.s > 0 && hsl.l < 0.2) {
+            color.multiplyScalar(3);
+          }
+          if (map) {
+            let rect = rects.get(map.image.id);
+            if (!rect) {
+              map.image.id = 'img-' + rects.size;
+              atlas.pack(map.image);
+              rect = atlas.uv()[map.image.id];
+              rects.set(map.image.id, rect);
+            }
+            _mapUvAttribute(geometry.attributes.uv.array, rect);
+          } else {
+            const uvs = new Float32Array(geometry.attributes.position.array.length/3*2);
+            for (let i = 0; i < uvs.length; i += 2) {
+              uvs[i] = 1;
+              uvs[i+1] = 1;
+            }
+            geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+          }
+
+          const colors = new Float32Array(geometry.attributes.position.array.length);
+          for (let i = 0; i < colors.length; i += 3) {
+            color.toArray(colors, i);
+          }
+          geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+          geometries.push(geometry);
+        }
+      });
+      const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.name = g.name;
+      mesh.scale.set(scale, scale, scale);
+      return mesh;
+    };
+
+    const result = {};
+    structureModels.children.forEach((c, index) => {
+      const c2 = _mergeGroup(c);
+      c2.position.x = -6 + index*2;
+      scene.add(c2);
+      result[c2.name] = c2;
+    });
+    atlas.context.fillStyle = '#FFF';
+    atlas.context.fillRect(canvas.width-1, canvas.height-1, 1, 1);
+    console.log('got result', result);
+
     const _makeInstancedMesh = mesh => {
       const geometry = new THREE.InstancedBufferGeometry();
       for (const k in mesh.geometry.attributes) {
@@ -591,7 +687,7 @@ const [
       return instancedMesh;
     };
 
-    stairsMesh = buildModels.children.find(c => c.name === 'SM_Bld_Snow_Platform_Stairs_01001');
+    stairsMesh = result['wood_roof'];
     stairsMesh.buildMeshType = 'stair';
     stairsMesh.traverse(o => {
       if (o.isMesh) {
@@ -601,7 +697,7 @@ const [
     stairsMesh.instancedMesh = _makeInstancedMesh(stairsMesh);
     // chunkMeshContainer.add(stairsMesh.instancedMesh);
 
-    platformMesh = buildModels.children.find(c => c.name === 'SM_Env_Wood_Platform_01');
+    platformMesh = result['wood_floor'];
     platformMesh.buildMeshType = 'floor';
     platformMesh.traverse(o => {
       if (o.isMesh) {
@@ -611,7 +707,7 @@ const [
     platformMesh.instancedMesh = _makeInstancedMesh(platformMesh);
     // chunkMeshContainer.add(platformMesh.instancedMesh);
 
-    wallMesh = buildModels.children.find(c => c.name === 'SM_Prop_Wall_Junk_06');
+    wallMesh = result['wood_wall'];
     wallMesh.buildMeshType = 'wall';
     wallMesh.traverse(o => {
       if (o.isMesh) {
@@ -621,7 +717,7 @@ const [
     wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);
     // chunkMeshContainer.add(wallMesh.instancedMesh);
 
-    spikesMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSpikes_01');
+    spikesMesh = result['wood_doorframe'];
     spikesMesh.buildMeshType = 'trap';
     spikesMesh.traverse(o => {
       if (o.isMesh) {
@@ -630,18 +726,6 @@ const [
     });
     spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh);
     // chunkMeshContainer.add(spikesMesh.instancedMesh);
-
-    woodMesh = buildModels.children.find(c => c.name === 'SM_Item_Log_01');
-    // woodMesh.visible = false;
-    // worldContainer.add(woodMesh);
-
-    stoneMesh = buildModels.children.find(c => c.name === 'SM_Env_Rock_01');
-    // stoneMesh.visible = false;
-    // worldContainer.add(stoneMesh);
-
-    metalMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSheet_01');
-    // metalMesh.visible = false;
-    // worldContainer.add(metalMesh);
   })(),
 ]);
 chunkWorker = cw;
