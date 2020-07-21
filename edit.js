@@ -546,8 +546,12 @@ const [
       });
       const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
       const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(0, 0, 0);
       mesh.name = g.name;
-      mesh.scale.set(scale, scale, scale);
+      geometry.applyMatrix4(new THREE.Matrix4().makeScale(scale, scale, scale));
+      const box = new THREE.Box3().setFromObject(mesh);
+      const center = box.getCenter(new THREE.Vector3());
+      geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
       return mesh;
     };
 
@@ -687,7 +691,11 @@ const [
       return instancedMesh;
     };
 
-    stairsMesh = result['wood_roof'];
+    stairsMesh = result['wood_floor'].clone();
+    stairsMesh.geometry = stairsMesh.geometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(1.05, 1, Math.sqrt(2)))
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4 + 0.01)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, 0));
     stairsMesh.buildMeshType = 'stair';
     stairsMesh.traverse(o => {
       if (o.isMesh) {
@@ -697,7 +705,10 @@ const [
     stairsMesh.instancedMesh = _makeInstancedMesh(stairsMesh);
     // chunkMeshContainer.add(stairsMesh.instancedMesh);
 
-    platformMesh = result['wood_floor'];
+    platformMesh = result['wood_floor'].clone();
+    platformMesh.geometry = platformMesh.geometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(1.05, 1, 1))
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.01)))
     platformMesh.buildMeshType = 'floor';
     platformMesh.traverse(o => {
       if (o.isMesh) {
@@ -707,7 +718,10 @@ const [
     platformMesh.instancedMesh = _makeInstancedMesh(platformMesh);
     // chunkMeshContainer.add(platformMesh.instancedMesh);
 
-    wallMesh = result['wood_wall'];
+    wallMesh = result['wood_wall'].clone();
+    wallMesh.geometry = wallMesh.geometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(1, 1.2, 1))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, -2/2));
     wallMesh.buildMeshType = 'wall';
     wallMesh.traverse(o => {
       if (o.isMesh) {
@@ -717,7 +731,8 @@ const [
     wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);
     // chunkMeshContainer.add(wallMesh.instancedMesh);
 
-    spikesMesh = result['wood_doorframe'];
+    spikesMesh = result['wood_roof'].clone();
+    spikesMesh.geometry = spikesMesh.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
     spikesMesh.buildMeshType = 'trap';
     spikesMesh.traverse(o => {
       if (o.isMesh) {
