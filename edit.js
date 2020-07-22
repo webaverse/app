@@ -869,6 +869,274 @@ const [
     });
     spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh); */
   })(),
+  (async () => {
+    const vegetationModels = await _loadGltf('./vegetation.glb');
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 8192;
+    canvas.height = 8192;
+    const texture = new THREE.Texture(canvas);
+    texture.anisotropy = 16;
+    texture.flipY = false;
+    texture.needsUpdate = true;
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      vertexColors: true,
+      // transparent: true,
+    });
+
+    document.body.appendChild(canvas);
+
+    const atlas = atlaspack(canvas);
+    const rects = new Map();
+    const _mapUvAttribute = (uvs, rect) => {
+      const [[tx, ty], [rx, ry], [bx, by], [lx, ly]] = rect;
+      const x = tx;
+      const y = ty;
+      const w = rx - lx;
+      const h = by - ty;
+      for (let i = 0; i < uvs.length; i += 2) {
+        /* if (uvs[i] < 0) {
+          uvs[i] = 0.001;
+        } else if (uvs[i] > 1) {
+          uvs[i] = 1-0.001;
+        }
+        if (uvs[i+1] < 0) {
+          uvs[i+1] = 0.001;
+        } else if (uvs[i+1] > 1) {
+          uvs[i+1] = 1-0.001;
+        } */
+        uvs[i] = x + uvs[i]*w;
+        uvs[i+1] = y + uvs[i+1]*h;
+      }
+    };
+    const _mergeGroup = g => {
+      const geometries = [];
+      g.traverse(o => {
+        if (o.isMesh) {
+          const {geometry, material} = o;
+          const {map/*, alphaMap*/} = material;
+          /* const alphaUvs = new Float32Array(geometry.attributes.position.array.length/3*2);
+          if (alphaMap) {
+            let rect = rects.get(map.image.id);
+            if (!rect) {
+              map.image.id = 'img-' + rects.size;
+              atlas.pack(map.image);
+              rect = atlas.uv()[map.image.id];
+              rects.set(map.image.id, rect);
+            }
+            _mapUvAttribute2(geometry.attributes.uv.array, alphaUvs, rect);
+          }
+          geometry.setAttribute('alphaUv', new THREE.BufferAttribute(alphaUvs, 2)); */
+
+          if (map) {
+            let rect = rects.get(map.image.id);
+            if (!rect) {
+              map.image.id = 'img-' + rects.size;
+              atlas.pack(map.image);
+              rect = atlas.uv()[map.image.id];
+              rects.set(map.image.id, rect);
+            }
+            _mapUvAttribute(geometry.attributes.uv.array, rect);
+          } else {
+            const uvs = new Float32Array(geometry.attributes.position.array.length/3*2);
+            for (let i = 0; i < uvs.length; i += 2) {
+              uvs[i] = 1;
+              uvs[i+1] = 1;
+            }
+            geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+          }
+
+          geometry.applyMatrix4(new THREE.Matrix4().makeScale(o.scale.x, o.scale.y, o.scale.z));
+          geometries.push(geometry);
+        }
+      });
+      const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.name = g.name;
+      /* const box = new THREE.Box3().setFromObject(mesh);
+      const center = box.getCenter(new THREE.Vector3());
+      geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z)); */
+      return mesh;
+    };
+
+    const result = {};
+    // console.log('get model', vegetationModels, vegetationModels.getObjectByName('Grass1'));
+    ['Grass1', 'Generic_Tree_#3', 'Boab_Leaves_#3'].map(n => vegetationModels.getObjectByName(n)).forEach((c, index) => {
+      const c2 = _mergeGroup(c);
+      // c2.position.x = -6 + index*2;
+      // scene.add(c2);
+      result[c2.name] = c2;
+    });
+    // atlas.context.fillStyle = '#FFF';
+    // atlas.context.fillRect(canvas.width-1, canvas.height-1, 1, 1);
+
+    const _makeInstancedMesh = (mesh, maxInstances, transparent) => {
+      const geometry = new THREE.InstancedBufferGeometry();
+      for (const k in mesh.geometry.attributes) {
+        geometry.setAttribute(k, mesh.geometry.attributes[k]);
+      }
+      geometry.setIndex(mesh.geometry.index);
+      const positionOffsets = new Float32Array(3*maxInstances);
+      geometry.setAttribute('positionOffset', new THREE.InstancedBufferAttribute(positionOffsets, 3));
+      const quaternionOffsets = new Float32Array(4*maxInstances);
+      geometry.setAttribute('quaternionOffset', new THREE.InstancedBufferAttribute(quaternionOffsets, 4));
+      const scaleOffsets = new Float32Array(3*maxInstances);
+      geometry.setAttribute('scaleOffset', new THREE.InstancedBufferAttribute(scaleOffsets, 3));
+      const colorOffsets = new Float32Array(3*maxInstances);
+      geometry.setAttribute('colorOffset', new THREE.InstancedBufferAttribute(colorOffsets, 3));
+      geometry.instanceCount = 0;
+
+      // console.log('got map', mesh.material.map);
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          map: {
+            type: 't',
+            value: mesh.material.map,
+          },
+        },
+        vertexShader: `\
+          precision highp float;
+          precision highp int;
+
+          // attribute vec2 alphaUv;
+          attribute vec3 color;
+          attribute vec3 colorOffset;
+          attribute vec3 positionOffset;
+          attribute vec4 quaternionOffset;
+          attribute vec3 scaleOffset;
+          varying vec2 vUv;
+          // svarying vec2 vAlphaUv;
+          varying vec3 vNormal;
+          varying vec3 vColorOffset;
+
+          vec3 applyQuaternion(vec3 v, vec4 q) {
+            return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+          }
+
+          void main() {
+            vUv = uv;
+            // vAlphaUv = alphaUv;
+            vNormal = normal;
+            vColorOffset = colorOffset;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(applyQuaternion(position.xyz * scaleOffset, quaternionOffset) + positionOffset, 1.0);
+          }
+        `,
+        fragmentShader: `\
+          precision highp float;
+          precision highp int;
+
+          uniform sampler2D map;
+          varying vec2 vUv;
+          // varying vec2 vAlphaUv;
+          varying vec3 vNormal;
+          varying vec3 vColorOffset;
+
+          vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
+
+          void main() {
+            // float dotNL = dot(vNormal, l);
+            // gl_FragColor = vec4(c * vColorOffset * (0.5 + 0.5*abs(dotNL)), 1.0);
+            gl_FragColor = ${transparent ? `texture2D(map, vUv)` : `vec4(texture2D(map, vUv).rgb, 1.0)`};
+          }
+        `,
+        // lights: true,
+        /* extensions: {
+          derivatives: true,
+        }, */
+      });
+      if (transparent) {
+        material.depthWrite = false;
+        material.side = THREE.DoubleSide;
+        material.transparent = true;
+      }
+
+      const instancedMesh = new THREE.Mesh(geometry, material);
+      instancedMesh.addInstance = (position, quaternion, scale) => {
+        const o = {
+          index: geometry.instanceCount,
+          position: position.clone(),
+          quaternion: quaternion.clone(),
+          scale: scale.clone(),
+          matrix: new THREE.Matrix4().compose(position, quaternion, scale),
+          color: new THREE.Color(0xFFFFFF),
+          updatePosition() {
+            o.position.toArray(geometry.attributes.positionOffset.array, o.index*3);
+            geometry.attributes.positionOffset.needsUpdate = true;
+          },
+          updateColor() {
+            o.color.toArray(geometry.attributes.colorOffset.array, o.index*3);
+            geometry.attributes.colorOffset.needsUpdate = true;
+          },
+          remove() {
+            geometry.instanceCount--;
+            if (geometry.instanceCount > 0) {
+              const positionOffset = new Float32Array(geometry.attributes.positionOffset.array.buffer, geometry.attributes.positionOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
+              geometry.attributes.positionOffset.array.set(positionOffset, o.index*3);
+              geometry.attributes.positionOffset.needsUpdate = true;
+
+              const quaternionOffset = new Float32Array(geometry.attributes.quaternionOffset.array.buffer, geometry.attributes.quaternionOffset.array.byteOffset + geometry.instanceCount*4*Float32Array.BYTES_PER_ELEMENT, 4);
+              geometry.attributes.quaternionOffset.array.set(quaternionOffset, o.index*4);
+              geometry.attributes.quaternionOffset.needsUpdate = true;
+
+              const scaleOffset = new Float32Array(geometry.attributes.scaleOffset.array.buffer, geometry.attributes.scaleOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
+              geometry.attributes.scaleOffset.array.set(scaleOffset, o.index*3);
+              geometry.attributes.scaleOffset.needsUpdate = true;
+
+              const colorOffset = new Float32Array(geometry.attributes.colorOffset.array.buffer, geometry.attributes.colorOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
+              geometry.attributes.colorOffset.array.set(colorOffset, o.index*3);
+              geometry.attributes.colorOffset.needsUpdate = true;
+
+              const movingInstance = instancedMesh.instances.find(instance => instance.index === geometry.instanceCount);
+              movingInstance.index = o.index;
+            }
+            instancedMesh.instances.splice(instancedMesh.instances.indexOf(o), 1);
+          },
+        };
+        o.position.toArray(geometry.attributes.positionOffset.array, o.index*3);
+        geometry.attributes.positionOffset.needsUpdate = true;
+        o.quaternion.toArray(geometry.attributes.quaternionOffset.array, o.index*4);
+        geometry.attributes.quaternionOffset.needsUpdate = true;
+        o.scale.toArray(geometry.attributes.scaleOffset.array, o.index*3);
+        geometry.attributes.scaleOffset.needsUpdate = true;
+        o.color.toArray(geometry.attributes.colorOffset.array, o.index*3);
+        geometry.attributes.colorOffset.needsUpdate = true;
+
+        instancedMesh.frustumCulled = false;
+        geometry.instanceCount++;
+        instancedMesh.instances.push(o);
+        return o;
+      };
+      instancedMesh.mesh = mesh;
+      instancedMesh.instances = [];
+      return instancedMesh;
+    };
+
+    const grassInstanceMesh = _makeInstancedMesh(result['Grass1'], 2048, true);
+    const p = new THREE.Vector3();
+    const q = new THREE.Quaternion();
+    const s = new THREE.Vector3(1, 1, 1);
+    const axis = new THREE.Vector3(0, 1, 0);
+    for (let i = 0; i < 1000; i++) {
+      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
+      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
+      grassInstanceMesh.addInstance(p, q, s);
+    }
+    worldContainer.add(grassInstanceMesh);
+
+    const treeInstanceMesh = _makeInstancedMesh(result['Generic_Tree_#3'], 256, false);
+    worldContainer.add(treeInstanceMesh);
+
+    const leavesInstanceMesh = _makeInstancedMesh(result['Boab_Leaves_#3'], 256, true);
+    worldContainer.add(leavesInstanceMesh);
+
+    for (let i = 0; i < 100; i++) {
+      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
+      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
+      treeInstanceMesh.addInstance(p, q, s);
+      leavesInstanceMesh.addInstance(p, q, s);
+    }
+  })(),
 ]);
 chunkWorker = cw;
 physicsWorker = pw;
