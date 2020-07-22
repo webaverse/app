@@ -714,7 +714,7 @@ const [
       return instancedMesh;
     };
 
-    /* stairsMesh = result['StairsWood2'].clone();
+    stairsMesh = result['StairsWood2'].clone();
     stairsMesh.geometry = stairsMesh.geometry.clone()
       .applyMatrix4(new THREE.Matrix4().makeScale(1, Math.sqrt(2)*0.9, Math.sqrt(2)*0.8))
       .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.005)))
@@ -763,9 +763,9 @@ const [
         o.isBuildMesh = true;
       }
     });
-    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh); */
+    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh);
 
-    stairsMesh = result['StairsBrickFinal'].clone();
+    /* stairsMesh = result['StairsBrickFinal'].clone();
     stairsMesh.geometry = stairsMesh.geometry.clone()
       .applyMatrix4(new THREE.Matrix4().makeScale(1, Math.sqrt(2)*0.9, Math.sqrt(2)*0.8))
       // .applyMatrix4(new THREE.Matrix4().makeScale(1.04, 1, 0.925 * Math.sqrt(2)))
@@ -815,7 +815,7 @@ const [
         o.isBuildMesh = true;
       }
     });
-    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh);
+    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh); */
 
     /* stairsMesh = result['WallMetal3'].clone();
     stairsMesh.geometry = stairsMesh.geometry.clone()
