@@ -4781,7 +4781,7 @@ const _bindWorld = w => {
     }
   });
 };
-(async () => {
+/* (async () => {
   const res = await fetch(worldsEndpoint);
   const children = await res.json();
   const ws = await Promise.all(children.map(child =>
@@ -4790,7 +4790,7 @@ const _bindWorld = w => {
   ));
   worlds.innerHTML = ws.map(w => _makeWorldHtml(w)).join('\n');
   Array.from(worlds.querySelectorAll('.world')).forEach((w, i) => _bindWorld(w, ws[i]));
-})();
+})(); */
 /* let worldType = 'singleplayer';
 const singleplayerButton = document.getElementById('singleplayer-button');
 singleplayerButton.addEventListener('click', e => {
@@ -5059,7 +5059,7 @@ const _bindPackage = (pE, pJ) => {
   }); */
 };
 const packages = document.getElementById('packages');
-(async () => {
+/* (async () => {
 let s;
   const res = await fetch(packagesEndpoint);
   s = await res.text();
@@ -5072,7 +5072,7 @@ let s;
   Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i]));
 
   // wristMenu.packageSide.setPackages(ps);
-})();
+})(); */
 const tokens = document.getElementById('tokens');
 async function getTokenByIndex(index) {
   const metadataHash = await contract.methods.getMetadata(index, 'hash').call();
