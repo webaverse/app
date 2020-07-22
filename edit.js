@@ -962,7 +962,7 @@ const [
 
     const result = {};
     // console.log('get model', vegetationModels, vegetationModels.getObjectByName('Grass1'));
-    ['Grass1', 'Generic_Tree_#3', 'Boab_Leaves_#3'].map(n => vegetationModels.getObjectByName(n)).forEach((c, index) => {
+    ['Grass1', 'Generic_Tree_#3', 'Boab_Leaves_#3', 'Pine_-_Wood_#3', 'Pine_Leaves_#3'].map(n => vegetationModels.getObjectByName(n)).forEach((c, index) => {
       const c2 = _mergeGroup(c);
       // c2.position.x = -6 + index*2;
       // scene.add(c2);
@@ -1038,15 +1038,16 @@ const [
             // float dotNL = dot(vNormal, l);
             // gl_FragColor = vec4(c * vColorOffset * (0.5 + 0.5*abs(dotNL)), 1.0);
             gl_FragColor = ${transparent ? `texture2D(map, vUv)` : `vec4(texture2D(map, vUv).rgb, 1.0)`};
+            // ${transparent ? `if (gl_FragColor.a < 0.5) discard;` : ''}
           }
         `,
         // lights: true,
         /* extensions: {
           derivatives: true,
         }, */
+        // blending: THREE.CustomBlending,
       });
       if (transparent) {
-        material.depthWrite = false;
         material.side = THREE.DoubleSide;
         material.transparent = true;
       }
@@ -1112,30 +1113,40 @@ const [
       return instancedMesh;
     };
 
-    const grassInstanceMesh = _makeInstancedMesh(result['Grass1'], 2048, true);
     const p = new THREE.Vector3();
     const q = new THREE.Quaternion();
     const s = new THREE.Vector3(1, 1, 1);
     const axis = new THREE.Vector3(0, 1, 0);
-    for (let i = 0; i < 1000; i++) {
-      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
-      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
-      grassInstanceMesh.addInstance(p, q, s);
-    }
-    worldContainer.add(grassInstanceMesh);
 
     const treeInstanceMesh = _makeInstancedMesh(result['Generic_Tree_#3'], 256, false);
     worldContainer.add(treeInstanceMesh);
-
     const leavesInstanceMesh = _makeInstancedMesh(result['Boab_Leaves_#3'], 256, true);
     worldContainer.add(leavesInstanceMesh);
-
     for (let i = 0; i < 100; i++) {
       p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
       q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
       treeInstanceMesh.addInstance(p, q, s);
       leavesInstanceMesh.addInstance(p, q, s);
     }
+
+    const pineTreeInstanceMesh = _makeInstancedMesh(result['Pine_-_Wood_#3'], 256, false);
+    worldContainer.add(pineTreeInstanceMesh);
+    const pineLeavesInstanceMesh = _makeInstancedMesh(result['Pine_Leaves_#3'], 256, true);
+    worldContainer.add(pineLeavesInstanceMesh);
+    for (let i = 0; i < 100; i++) {
+      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
+      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
+      pineTreeInstanceMesh.addInstance(p, q, s);
+      pineLeavesInstanceMesh.addInstance(p, q, s);
+    }
+
+    const grassInstanceMesh = _makeInstancedMesh(result['Grass1'], 2048, true);
+    for (let i = 0; i < 1000; i++) {
+      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
+      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
+      grassInstanceMesh.addInstance(p, q, s);
+    }
+    worldContainer.add(grassInstanceMesh);
   })(),
 ]);
 chunkWorker = cw;
