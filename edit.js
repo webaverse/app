@@ -505,8 +505,6 @@ const [
       const w = rx - lx;
       const h = by - ty;
       for (let i = 0; i < uvs.length; i += 2) {
-        // uvs[i] = x + mod(uvs[i], 1)*w;
-        // uvs[i+1] = y + mod(uvs[i+1], 1)*h;
         if (uvs[i] < 0) {
           uvs[i] = 0.001;
         } else if (uvs[i] > 1) {
