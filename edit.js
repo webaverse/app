@@ -577,6 +577,64 @@ const [
     atlas.context.fillRect(canvas.width-1, canvas.height-1, 1, 1);
     // console.log('got result', result);
 
+
+    const instanceMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        map: {
+          type: 't',
+          value: texture,
+        },
+      },
+      vertexShader: `\
+        precision highp float;
+        precision highp int;
+
+        attribute vec3 color;
+        attribute vec3 colorOffset;
+        attribute vec3 positionOffset;
+        attribute vec4 quaternionOffset;
+        attribute vec3 scaleOffset;
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        varying vec3 vColor;
+        varying vec3 vColorOffset;
+
+        vec3 applyQuaternion(vec3 v, vec4 q) {
+          return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+        }
+
+        void main() {
+          vUv = uv;
+          vNormal = normal;
+          vColor = color;
+          vColorOffset = colorOffset;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(applyQuaternion(position.xyz * scaleOffset, quaternionOffset) + positionOffset, 1.0);
+        }
+      `,
+      fragmentShader: `\
+        precision highp float;
+        precision highp int;
+
+        uniform sampler2D map;
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        varying vec3 vColor;
+        varying vec3 vColorOffset;
+
+        vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
+
+        void main() {
+          vec3 c = texture2D(map, vUv).rgb;
+          float dotNL = dot(vNormal, l);
+          gl_FragColor = vec4(c * vColor * vColorOffset * (0.5 + 0.5*abs(dotNL)), 1.0);
+        }
+      `,
+      // lights: true,
+      /* extensions: {
+        derivatives: true,
+      }, */
+      // side: THREE.DoubleSide,
+    });
     const _makeInstancedMesh = mesh => {
       const geometry = new THREE.InstancedBufferGeometry();
       for (const k in mesh.geometry.attributes) {
@@ -593,66 +651,7 @@ const [
       geometry.setAttribute('colorOffset', new THREE.InstancedBufferAttribute(colorOffsets, 3));
       geometry.instanceCount = 0;
 
-      // console.log('got map', mesh.material.map);
-      const material = new THREE.ShaderMaterial({
-        uniforms: {
-          map: {
-            type: 't',
-            value: mesh.material.map,
-          },
-        },
-        vertexShader: `\
-          precision highp float;
-          precision highp int;
-
-          attribute vec3 color;
-          attribute vec3 colorOffset;
-          attribute vec3 positionOffset;
-          attribute vec4 quaternionOffset;
-          attribute vec3 scaleOffset;
-          varying vec2 vUv;
-          varying vec3 vNormal;
-          varying vec3 vColor;
-          varying vec3 vColorOffset;
-
-          vec3 applyQuaternion(vec3 v, vec4 q) {
-            return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
-          }
-
-          void main() {
-            vUv = uv;
-            vNormal = normal;
-            vColor = color;
-            vColorOffset = colorOffset;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(applyQuaternion(position.xyz * scaleOffset, quaternionOffset) + positionOffset, 1.0);
-          }
-        `,
-        fragmentShader: `\
-          precision highp float;
-          precision highp int;
-
-          uniform sampler2D map;
-          varying vec2 vUv;
-          varying vec3 vNormal;
-          varying vec3 vColor;
-          varying vec3 vColorOffset;
-
-          vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
-
-          void main() {
-            vec3 c = texture2D(map, vUv).rgb;
-            float dotNL = dot(vNormal, l);
-            gl_FragColor = vec4(c * vColor * vColorOffset * (0.5 + 0.5*abs(dotNL)), 1.0);
-          }
-        `,
-        // lights: true,
-        /* extensions: {
-          derivatives: true,
-        }, */
-        // side: THREE.DoubleSide,
-      });
-
-      const instancedMesh = new THREE.Mesh(geometry, material);
+      const instancedMesh = new THREE.Mesh(geometry, instanceMaterial);
       instancedMesh.addInstance = (meshId, position, quaternion, scale) => {
         const o = {
           meshId,
@@ -948,6 +947,8 @@ const [
           }
 
           geometry.applyMatrix4(new THREE.Matrix4().makeScale(o.scale.x, o.scale.y, o.scale.z));
+          geometry.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(o.quaternion));
+          geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(o.position.x, o.position.y, o.position.z));
           geometries.push(geometry);
         }
       });
@@ -962,7 +963,7 @@ const [
 
     const result = {};
     // console.log('get model', vegetationModels, vegetationModels.getObjectByName('Grass1'));
-    ['Grass1', 'Generic_Tree_#3', 'Boab_Leaves_#3', 'Pine_-_Wood_#3', 'Pine_Leaves_#3'].map(n => vegetationModels.getObjectByName(n)).forEach((c, index) => {
+    ['Grass1', 'Grass2', 'Grass3', 'Generic_Tree_#1', 'Fanta_Leaves_#1', 'Generic_Tree_#3', 'Boab_Leaves_#3', 'Pine_-_Wood_#3', 'Pine_Leaves_#3'].map(n => vegetationModels.getObjectByName(n)).forEach((c, index) => {
       const c2 = _mergeGroup(c);
       // c2.position.x = -6 + index*2;
       // scene.add(c2);
@@ -971,28 +972,12 @@ const [
     // atlas.context.fillStyle = '#FFF';
     // atlas.context.fillRect(canvas.width-1, canvas.height-1, 1, 1);
 
-    const _makeInstancedMesh = (mesh, maxInstances, transparent) => {
-      const geometry = new THREE.InstancedBufferGeometry();
-      for (const k in mesh.geometry.attributes) {
-        geometry.setAttribute(k, mesh.geometry.attributes[k]);
-      }
-      geometry.setIndex(mesh.geometry.index);
-      const positionOffsets = new Float32Array(3*maxInstances);
-      geometry.setAttribute('positionOffset', new THREE.InstancedBufferAttribute(positionOffsets, 3));
-      const quaternionOffsets = new Float32Array(4*maxInstances);
-      geometry.setAttribute('quaternionOffset', new THREE.InstancedBufferAttribute(quaternionOffsets, 4));
-      const scaleOffsets = new Float32Array(3*maxInstances);
-      geometry.setAttribute('scaleOffset', new THREE.InstancedBufferAttribute(scaleOffsets, 3));
-      const colorOffsets = new Float32Array(3*maxInstances);
-      geometry.setAttribute('colorOffset', new THREE.InstancedBufferAttribute(colorOffsets, 3));
-      geometry.instanceCount = 0;
-
-      // console.log('got map', mesh.material.map);
+    const _makeInstanceMeshMaterial = transparent => {
       const material = new THREE.ShaderMaterial({
         uniforms: {
           map: {
             type: 't',
-            value: mesh.material.map,
+            value: texture,
           },
         },
         vertexShader: `\
@@ -1038,7 +1023,7 @@ const [
             // float dotNL = dot(vNormal, l);
             // gl_FragColor = vec4(c * vColorOffset * (0.5 + 0.5*abs(dotNL)), 1.0);
             gl_FragColor = ${transparent ? `texture2D(map, vUv)` : `vec4(texture2D(map, vUv).rgb, 1.0)`};
-            // ${transparent ? `if (gl_FragColor.a < 0.5) discard;` : ''}
+            ${transparent ? `if (gl_FragColor.a < 0.8) discard;` : ''}
           }
         `,
         // lights: true,
@@ -1051,7 +1036,27 @@ const [
         material.side = THREE.DoubleSide;
         material.transparent = true;
       }
+      return material;
+    };
+    const instanceMeshOpaque = _makeInstanceMeshMaterial(false);
+    const instanceMeshTransparent = _makeInstanceMeshMaterial(true);
+    const _makeInstancedMesh = (mesh, maxInstances, transparent) => {
+      const geometry = new THREE.InstancedBufferGeometry();
+      for (const k in mesh.geometry.attributes) {
+        geometry.setAttribute(k, mesh.geometry.attributes[k]);
+      }
+      geometry.setIndex(mesh.geometry.index);
+      const positionOffsets = new Float32Array(3*maxInstances);
+      geometry.setAttribute('positionOffset', new THREE.InstancedBufferAttribute(positionOffsets, 3));
+      const quaternionOffsets = new Float32Array(4*maxInstances);
+      geometry.setAttribute('quaternionOffset', new THREE.InstancedBufferAttribute(quaternionOffsets, 4));
+      const scaleOffsets = new Float32Array(3*maxInstances);
+      geometry.setAttribute('scaleOffset', new THREE.InstancedBufferAttribute(scaleOffsets, 3));
+      const colorOffsets = new Float32Array(3*maxInstances);
+      geometry.setAttribute('colorOffset', new THREE.InstancedBufferAttribute(colorOffsets, 3));
+      geometry.instanceCount = 0;
 
+      const material = transparent ? instanceMeshTransparent : instanceMeshOpaque;
       const instancedMesh = new THREE.Mesh(geometry, material);
       instancedMesh.addInstance = (position, quaternion, scale) => {
         const o = {
@@ -1118,15 +1123,26 @@ const [
     const s = new THREE.Vector3(1, 1, 1);
     const axis = new THREE.Vector3(0, 1, 0);
 
-    const treeInstanceMesh = _makeInstancedMesh(result['Generic_Tree_#3'], 256, false);
-    worldContainer.add(treeInstanceMesh);
-    const leavesInstanceMesh = _makeInstancedMesh(result['Boab_Leaves_#3'], 256, true);
-    worldContainer.add(leavesInstanceMesh);
+    const tree1InstanceMesh = _makeInstancedMesh(result['Generic_Tree_#1'], 256, false);
+    worldContainer.add(tree1InstanceMesh);
+    const leaves1InstanceMesh = _makeInstancedMesh(result['Fanta_Leaves_#1'], 256, true);
+    worldContainer.add(leaves1InstanceMesh);
     for (let i = 0; i < 100; i++) {
       p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
       q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
-      treeInstanceMesh.addInstance(p, q, s);
-      leavesInstanceMesh.addInstance(p, q, s);
+      tree1InstanceMesh.addInstance(p, q, s);
+      leaves1InstanceMesh.addInstance(p, q, s);
+    }
+
+    const tree3InstanceMesh = _makeInstancedMesh(result['Generic_Tree_#3'], 256, false);
+    worldContainer.add(tree3InstanceMesh);
+    const leaves3InstanceMesh = _makeInstancedMesh(result['Boab_Leaves_#3'], 256, true);
+    worldContainer.add(leaves3InstanceMesh);
+    for (let i = 0; i < 100; i++) {
+      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
+      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
+      tree3InstanceMesh.addInstance(p, q, s);
+      leaves3InstanceMesh.addInstance(p, q, s);
     }
 
     const pineTreeInstanceMesh = _makeInstancedMesh(result['Pine_-_Wood_#3'], 256, false);
@@ -1140,13 +1156,29 @@ const [
       pineLeavesInstanceMesh.addInstance(p, q, s);
     }
 
-    const grassInstanceMesh = _makeInstancedMesh(result['Grass1'], 2048, true);
+    const grass1InstanceMesh = _makeInstancedMesh(result['Grass1'], 2048, true);
     for (let i = 0; i < 1000; i++) {
       p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
       q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
-      grassInstanceMesh.addInstance(p, q, s);
+      grass1InstanceMesh.addInstance(p, q, s);
     }
-    worldContainer.add(grassInstanceMesh);
+    worldContainer.add(grass1InstanceMesh);
+
+    const grass2InstanceMesh = _makeInstancedMesh(result['Grass2'], 2048, true);
+    for (let i = 0; i < 1000; i++) {
+      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
+      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
+      grass2InstanceMesh.addInstance(p, q, s);
+    }
+    worldContainer.add(grass2InstanceMesh);
+
+    const grass3InstanceMesh = _makeInstancedMesh(result['Grass3'], 2048, true);
+    for (let i = 0; i < 1000; i++) {
+      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
+      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
+      grass3InstanceMesh.addInstance(p, q, s);
+    }
+    worldContainer.add(grass3InstanceMesh);
   })(),
 ]);
 chunkWorker = cw;
