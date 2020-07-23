@@ -294,6 +294,7 @@ let spikesMesh = null;
 let woodMesh = null;
 let stoneMesh = null;
 let metalMesh = null;
+let treeMesh = null;
 (async () => {
 
 const [
@@ -707,11 +708,11 @@ const [
         o.color.toArray(geometry.attributes.colorOffset.array, o.index*3);
         geometry.attributes.colorOffset.needsUpdate = true;
 
-        instancedMesh.frustumCulled = false;
         geometry.instanceCount++;
         instancedMesh.instances.push(o);
         return o;
       };
+      instancedMesh.frustumCulled = false;
       instancedMesh.mesh = mesh;
       instancedMesh.instances = [];
       return instancedMesh;
@@ -899,16 +900,6 @@ const [
       const w = rx - lx;
       const h = by - ty;
       for (let i = 0; i < uvs.length; i += 2) {
-        /* if (uvs[i] < 0) {
-          uvs[i] = 0.001;
-        } else if (uvs[i] > 1) {
-          uvs[i] = 1-0.001;
-        }
-        if (uvs[i+1] < 0) {
-          uvs[i+1] = 0.001;
-        } else if (uvs[i+1] > 1) {
-          uvs[i+1] = 1-0.001;
-        } */
         uvs[i] = x + uvs[i]*w;
         uvs[i+1] = y + uvs[i+1]*h;
       }
@@ -918,20 +909,7 @@ const [
       g.traverse(o => {
         if (o.isMesh) {
           const {geometry, material} = o;
-          const {map/*, alphaMap*/} = material;
-          /* const alphaUvs = new Float32Array(geometry.attributes.position.array.length/3*2);
-          if (alphaMap) {
-            let rect = rects.get(map.image.id);
-            if (!rect) {
-              map.image.id = 'img-' + rects.size;
-              atlas.pack(map.image);
-              rect = atlas.uv()[map.image.id];
-              rects.set(map.image.id, rect);
-            }
-            _mapUvAttribute2(geometry.attributes.uv.array, alphaUvs, rect);
-          }
-          geometry.setAttribute('alphaUv', new THREE.BufferAttribute(alphaUvs, 2)); */
-
+          const {map} = material;
           if (map) {
             let rect = rects.get(map.image.id);
             if (!rect) {
@@ -959,9 +937,6 @@ const [
       const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
       const mesh = new THREE.Mesh(geometry, material);
       mesh.name = g.name;
-      /* const box = new THREE.Box3().setFromObject(mesh);
-      const center = box.getCenter(new THREE.Vector3());
-      geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z)); */
       return mesh;
     };
 
@@ -1030,10 +1005,6 @@ const [
             ${transparent ? `if (gl_FragColor.a < 0.8) discard;` : ''}
           }
         `,
-        // lights: true,
-        /* extensions: {
-          derivatives: true,
-        }, */
         // blending: THREE.CustomBlending,
       });
       if (transparent) {
@@ -1062,7 +1033,7 @@ const [
 
       const material = transparent ? instanceMeshTransparent : instanceMeshOpaque;
       const instancedMesh = new THREE.Mesh(geometry, material);
-      instancedMesh.addInstance = (position, quaternion, scale) => {
+      instancedMesh.addInstance = (meshId, position, quaternion, scale) => {
         const o = {
           index: geometry.instanceCount,
           position: position.clone(),
@@ -1112,33 +1083,29 @@ const [
         o.color.toArray(geometry.attributes.colorOffset.array, o.index*3);
         geometry.attributes.colorOffset.needsUpdate = true;
 
-        instancedMesh.frustumCulled = false;
         geometry.instanceCount++;
         instancedMesh.instances.push(o);
         return o;
       };
+      instancedMesh.frustumCulled = false;
       instancedMesh.mesh = mesh;
       instancedMesh.instances = [];
       return instancedMesh;
     };
 
-    const p = new THREE.Vector3();
-    const q = new THREE.Quaternion();
-    const s = new THREE.Vector3(1, 1, 1);
-    const axis = new THREE.Vector3(0, 1, 0);
-
-    const tree1InstanceMesh = _makeInstancedMesh(result['Generic_Tree_#1'], 256, false);
-    worldContainer.add(tree1InstanceMesh);
-    const leaves1InstanceMesh = _makeInstancedMesh(result['Fanta_Leaves_#1'], 256, true);
-    worldContainer.add(leaves1InstanceMesh);
+    treeMesh = _makeInstancedMesh(result['Generic_Tree_#1'], 256, false);
+    window.treeMesh = treeMesh;
+    // worldContainer.add(tree1InstanceMesh);
+    /* // const leaves1InstanceMesh = _makeInstancedMesh(result['Fanta_Leaves_#1'], 256, true);
+    // worldContainer.add(leaves1InstanceMesh);
     for (let i = 0; i < 100; i++) {
       p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
       q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
       tree1InstanceMesh.addInstance(p, q, s);
-      leaves1InstanceMesh.addInstance(p, q, s);
-    }
+      // leaves1InstanceMesh.addInstance(p, q, s);
+    } */
 
-    const tree3InstanceMesh = _makeInstancedMesh(result['Generic_Tree_#3'], 256, false);
+    /* const tree3InstanceMesh = _makeInstancedMesh(result['Generic_Tree_#3'], 256, false);
     worldContainer.add(tree3InstanceMesh);
     const leaves3InstanceMesh = _makeInstancedMesh(result['Boab_Leaves_#3'], 256, true);
     worldContainer.add(leaves3InstanceMesh);
@@ -1168,14 +1135,6 @@ const [
     }
     worldContainer.add(chestInstanceMesh);
 
-    /* const chestOpenInstanceMesh = _makeInstancedMesh(result['SM_Prop_Chest_01open'], 32, true);
-    for (let i = 0; i < 10; i++) {
-      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
-      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
-      chestOpenInstanceMesh.addInstance(p, q, s);
-    }
-    worldContainer.add(chestOpenInstanceMesh); */
-
     const grass1InstanceMesh = _makeInstancedMesh(result['Grass1'], 2048, true);
     for (let i = 0; i < 1000; i++) {
       p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
@@ -1198,7 +1157,7 @@ const [
       q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
       grass3InstanceMesh.addInstance(p, q, s);
     }
-    worldContainer.add(grass3InstanceMesh);
+    worldContainer.add(grass3InstanceMesh); */
   })(),
 ]);
 chunkWorker = cw;
@@ -1370,6 +1329,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   mesh.subparcelSize = subparcelSize;
   mesh.isChunkMesh = true;
   mesh.buildMeshes = [];
+  mesh.vegetationMeshes = [];
   mesh.objects = [];
   const slabRadius = Math.sqrt((subparcelSize/2)*(subparcelSize/2)*3);
   let slabs = [];
@@ -1593,12 +1553,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             default: return null;
           }
         })();
-        /* buildMesh.traverse(o => {
-          if (o.isMesh && o.originalMaterial) {
-            o.material = o.originalMaterial;
-            o.originalMaterial = null;
-          }
-        }); */
         const meshId = ++nextMeshId;
         localMatrix2.compose(
           localVector3.fromArray(build.position),
@@ -1608,12 +1562,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           // .premultiply(mesh.matrix)
           // .decompose(localVector2, localQuaternion2, localVector3);
         const buildMeshClone = buildMesh.instancedMesh.addInstance(meshId, localVector3, localQuaternion3, localVector4);
-        /* buildMeshClone.traverse(o => {
-          if (o.isMesh) {
-            o.isBuildMesh = true;
-            o.material = o.material.clone();
-          }
-        }); */
         buildMeshClone.build = build;
         buildMeshClone.meshId = meshId;
         buildMeshClone.buildMeshType = buildMesh.buildMeshType;
@@ -1644,23 +1592,12 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
                 }
               },
               end() {
-                /* buildMeshClone.position.copy(originalPosition);
-                buildMeshClone.traverse(o => {
-                  if (o.isMesh) {
-                    o.material.color.setHex(0xFFFFFF);
-                  }
-                }); */
                 buildMeshClone.position.copy(originalPosition);
                 buildMeshClone.updatePosition();
                 buildMeshClone.color.setHex(0xFFFFFF);
                 buildMeshClone.updateColor();
               },
             };
-            /* buildMeshClone.traverse(o => {
-              if (o.isMesh) {
-                o.material.color.setHex(0xef5350).multiplyScalar(2);
-              }
-            }); */
             buildMeshClone.color.setHex(0xef5350).multiplyScalar(2);
             buildMeshClone.updateColor();
           } else {
@@ -1798,7 +1735,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           animation && animation.update();
         };
         currentChunkMesh.add(buildMesh.instancedMesh);
-        // mesh.add(buildMeshClone);
         mesh.buildMeshes.push(buildMeshClone);
 
         localMatrix2
@@ -1834,13 +1770,86 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         }
       });
 
-      /* for (const subparcel of mesh.subparcels) {
-        const isSubparcelNeeded = neededCoords.some(nc => nc.x === subparcel.x && nc.y === subparcel.y && nc.z === subparcel.z);
-        for (const build of subparcel.builds) {
-          const buildMesh = mesh.buildMeshes.find(bm => bm.buildId === build.id);
-          buildMesh.visible = isSubparcelNeeded;
+      const _addVegetation = vegetation => {
+        const vegetationMesh = (() => {
+          switch (vegetation.name) {
+            case 'tree': return treeMesh;
+            default: return null;
+          }
+        })();
+
+        const meshId = ++nextMeshId;
+        localMatrix2.compose(
+          localVector3.fromArray(vegetation.position),
+          localQuaternion3.fromArray(vegetation.quaternion),
+          localVector4.copy(vegetation.scale)
+        )
+          // .premultiply(mesh.matrix)
+          // .decompose(localVector2, localQuaternion2, localVector3);
+        const vegetationMeshClone = vegetationMesh.addInstance(meshId, localVector3, localQuaternion3, localVector4);
+        vegetationMeshClone.vegetation = vegetation;
+        vegetationMeshClone.meshId = meshId;
+        currentChunkMesh.add(vegetationMesh);
+        mesh.vegetationMeshes.push(vegetationMeshClone);
+
+        /* localMatrix2
+          .premultiply(currentChunkMesh.matrix)
+          .decompose(localVector3, localQuaternion3, localVector4);
+        physicsWorker.requestLoadBuildMesh(vegetationMeshClone.meshId, vegetationMeshClone.buildMeshType, localVector3.toArray(), localQuaternion3.toArray()); */
+      };
+      const _removeVegetationMesh = vegetationMeshClone => {
+        // console.log('remove veg');
+        vegetationMeshClone.remove();
+        mesh.vegetationMeshes.splice(mesh.vegetationMeshes.indexOf(vegetationMeshClone), 1);
+
+        // physicsWorker.requestUnloadBuildMesh(vegetationMeshClone.meshId);
+      };
+      for (const neededCoord of neededCoords) {
+        const subparcel = planet.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
+        if (!subparcel.vegetations) {
+          subparcel.vegetations = Array(1);
+          const p = new THREE.Vector3();
+          const q = new THREE.Quaternion();
+          const s = new THREE.Vector3(1, 1, 1);
+          const axis = new THREE.Vector3(0, 1, 0);
+          for (let i = 0; i < subparcel.vegetations.length; i++) {
+            p.set(
+              subparcel.x*SUBPARCEL_SIZE + Math.random()*SUBPARCEL_SIZE,
+              subparcel.y*SUBPARCEL_SIZE + SUBPARCEL_SIZE*0.4 - 0.5,
+              subparcel.z*SUBPARCEL_SIZE + Math.random()*SUBPARCEL_SIZE
+            );
+            q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
+            subparcel.vegetations[i] = {
+              name: 'tree',
+              id: Math.floor(Math.random() * 0xFFFFFF),
+              position: p.toArray(new Float32Array(3)),
+              quaternion: q.toArray(new Float32Array(4)),
+              scale: new THREE.Vector3(1, 1, 1),
+              equals(v) {
+                return this.id === v.id;
+              },
+            };
+          }
         }
-      } */
+        for (const vegetation of subparcel.vegetations) {
+          if (!mesh.vegetationMeshes.some(vegetationMesh => vegetationMesh.vegetation.equals(vegetation))) {
+            _addVegetation(vegetation);
+          }
+        }
+      }
+      mesh.vegetationMeshes.slice().forEach(vegetationMesh => {
+        const sx = Math.floor(vegetationMesh.vegetation.position[0]/subparcelSize);
+        const sy = Math.floor(vegetationMesh.vegetation.position[1]/subparcelSize);
+        const sz = Math.floor(vegetationMesh.vegetation.position[2]/subparcelSize);
+        if (!neededCoords.some(nc => nc.x === sx && nc.y === sy && nc.z === sz)) {
+          _removeVegetationMesh(vegetationMesh);
+        } else {
+          const subparcel = planet.getSubparcel(sx, sy, sz);
+          if (!subparcel.vegetations.some(vegetation => vegetation.equals(vegetationMesh.vegetation))) {
+            _removeVegetationMesh(vegetationMesh);
+          }
+        }
+      });
     }
     if (packagesNeedUpdate) {
       if (!packagesRunning) {
