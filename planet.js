@@ -13,6 +13,7 @@ export const OBJECT_TYPES = {
   BUILD: 1,
   PACKAGE: 2,
 };
+const _getSubparcelIndex = (x, y, z) => x + y*1024 + z*1024*1024;
 const _getPotentialIndex = (x, y, z) => x + y*SUBPARCEL_SIZE*SUBPARCEL_SIZE + z*SUBPARCEL_SIZE;
 const potentialDefault = -0.5;
 
@@ -21,8 +22,7 @@ const potentialDefault = -0.5;
 export const planet = new EventTarget();
 
 let state = null;
-let subparcels = [];
-// window.state = state;
+let subparcels = {};
 
 const _getStringLength = s => {
   let i;
@@ -35,12 +35,13 @@ const _getStringLength = s => {
 };
 const _serializeState = state => {
   const offsets = Subparcel.getOffsets();
+  const numSubparcels = Object.keys(subparcels).length;
   const ab = new ArrayBuffer(
     MAX_NAME_LENGTH + // seedString
     Uint32Array.BYTES_PER_ELEMENT + // parcelSize
     Uint32Array.BYTES_PER_ELEMENT + // subparcelSize
     Uint32Array.BYTES_PER_ELEMENT + // subparcels.length
-    offsets.length * subparcels.length // subparcels
+    offsets.length * numSubparcels // subparcels
   );
 
   let index = 0;
@@ -56,11 +57,11 @@ const _serializeState = state => {
   new Uint32Array(ab, index)[0] = state.subparcelSize;
   index += Uint32Array.BYTES_PER_ELEMENT;
 
-  new Uint32Array(ab, index)[0] = subparcels.length;
+  new Uint32Array(ab, index)[0] = numSubparcels;
   index += Uint32Array.BYTES_PER_ELEMENT;
 
-  for (let i = 0; i < subparcels.length; i++) {
-    const subparcel = subparcels[i];
+  for (const index in subparcels) {
+    const subparcel = subparcels[index];
     new Uint8Array(ab, index, offsets.length)
       .set(
         new Uint8Array(subparcel.data, subparcel.offset, offsets.length)
@@ -87,11 +88,12 @@ const _deserializeState = ab => {
   const numSubparcels = new Uint32Array(ab, index, 1)[0];
   index += Uint32Array.BYTES_PER_ELEMENT;
 
-  const subparcels = Array(numSubparcels);
+  const subparcels = {};
   for (let i = 0; i < numSubparcels; i++) {
     const subparcel = new Subparcel(ab, index);
     subparcel.readMetadata();
-    subparcels[i] = subparcel;
+    const index = _getSubparcelIndex(subparcel.x, subparcel.y, subparcel.z);
+    subparcels[index] = subparcel;
     index += offsets.length;
   }
 
@@ -314,27 +316,27 @@ Subparcel.getOffsets = () => {
   };
 };
 
-const _addSubparcel = (x, y, z) => {
+const _addSubparcel = (x, y, z, index) => {
   const subparcel = new Subparcel();
   subparcel.x = x;
   subparcel.y = y;
   subparcel.z = z;
   subparcel.writeMetadata();
-  subparcels.push(subparcel);
+  subparcels[index] = subparcel;
   return subparcel;
 };
 planet.getSubparcel = (x, y, z) => {
-  let subparcel = subparcels.find(sp => sp.x === x && sp.y === y && sp.z === z);
+  const index = _getSubparcelIndex(x, y, z);
+  let subparcel = subparcels[index];
   if (!subparcel) {
-    subparcel = _addSubparcel(x, y, z);
+    subparcel = _addSubparcel(x, y, z, index);
   }
   return subparcel;
 };
 planet.editSubparcel = (x, y, z, fn) => {
-  let index = subparcels.findIndex(sp => sp.x === x && sp.y === y && sp.z === z);
-  if (index === -1) {
-    _addSubparcel(x, y, z);
-    index = subparcels.length-1;
+  let index = _getSubparcelIndex(x, y, z);
+  if (!subparcels[index]) {
+    _addSubparcel(x, y, z, index);
   }
   const subparcel = subparcels[index];
   fn(subparcel);
@@ -349,7 +351,8 @@ const _loadLiveState = seedString => {
 };
 
 const _saveStorage = async roomName => {
-  for (const subparcel of subparcels) {
+  for (const index in subparcels) {
+    const subparcel = subparcels[index];
     if (subparcel.dirty) {
       subparcel.dirty = false;
       await storage.setRaw(`planet/${roomName}/subparcels/${subparcel.x}/${subparcel.y}/${subparcel.z}`, subparcel.data);
