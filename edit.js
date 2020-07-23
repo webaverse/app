@@ -1790,17 +1790,18 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         vegetationMeshClone.vegetation = vegetation;
         vegetationMeshClone.meshId = meshId;
         currentChunkMesh.add(vegetationMesh);
-        mesh.vegetationMeshes.push(vegetationMeshClone);
+        // mesh.vegetationMeshes.push(vegetationMeshClone);
 
         /* localMatrix2
           .premultiply(currentChunkMesh.matrix)
           .decompose(localVector3, localQuaternion3, localVector4);
         physicsWorker.requestLoadBuildMesh(vegetationMeshClone.meshId, vegetationMeshClone.buildMeshType, localVector3.toArray(), localQuaternion3.toArray()); */
+
+        return vegetationMeshClone;
       };
       const _removeVegetationMesh = vegetationMeshClone => {
-        // console.log('remove veg');
         vegetationMeshClone.remove();
-        mesh.vegetationMeshes.splice(mesh.vegetationMeshes.indexOf(vegetationMeshClone), 1);
+        // mesh.vegetationMeshes.splice(mesh.vegetationMeshes.indexOf(vegetationMeshClone), 1);
 
         // physicsWorker.requestUnloadBuildMesh(vegetationMeshClone.meshId);
       };
@@ -1831,25 +1832,42 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             };
           }
         }
+        let subparcelVegetationMeshesSpec = mesh.vegetationMeshes.find(vegetationMesh => vegetationMesh.x === subparcel.x && vegetationMesh.y === subparcel.y && vegetationMesh.z === subparcel.z);
+        if (!subparcelVegetationMeshesSpec) {
+          subparcelVegetationMeshesSpec = {
+            x: subparcel.x,
+            y: subparcel.y,
+            z: subparcel.z,
+            meshes: [],
+          };
+          mesh.vegetationMeshes.push(subparcelVegetationMeshesSpec);
+          // console.log('add 1', mesh.vegetationMeshes, subparcel);
+        }
         for (const vegetation of subparcel.vegetations) {
-          if (!mesh.vegetationMeshes.some(vegetationMesh => vegetationMesh.vegetation.equals(vegetation))) {
-            _addVegetation(vegetation);
+          if (!subparcelVegetationMeshesSpec.meshes.some(vegetationMesh => vegetationMesh.vegetation.equals(vegetation))) {
+            // console.log('add 2');
+            const vegetationMesh = _addVegetation(vegetation);
+            subparcelVegetationMeshesSpec.meshes.push(vegetationMesh);
           }
         }
       }
-      mesh.vegetationMeshes.slice().forEach(vegetationMesh => {
-        const sx = Math.floor(vegetationMesh.vegetation.position[0]/subparcelSize);
-        const sy = Math.floor(vegetationMesh.vegetation.position[1]/subparcelSize);
-        const sz = Math.floor(vegetationMesh.vegetation.position[2]/subparcelSize);
-        if (!neededCoords.some(nc => nc.x === sx && nc.y === sy && nc.z === sz)) {
-          _removeVegetationMesh(vegetationMesh);
-        } else {
-          const subparcel = planet.getSubparcel(sx, sy, sz);
-          if (!subparcel.vegetations.some(vegetation => vegetation.equals(vegetationMesh.vegetation))) {
+      for (const subparcelVegetationMeshesSpec of mesh.vegetationMeshes) {
+        subparcelVegetationMeshesSpec.meshes = subparcelVegetationMeshesSpec.meshes.filter(vegetationMesh => {
+          if (!neededCoords.some(nc => nc.x === subparcelVegetationMeshesSpec.x && nc.y === subparcelVegetationMeshesSpec.y && nc.z === subparcelVegetationMeshesSpec.z)) {
             _removeVegetationMesh(vegetationMesh);
+            return false;
+          } else {
+            const subparcel = planet.getSubparcel(subparcelVegetationMeshesSpec.x, subparcelVegetationMeshesSpec.y, subparcelVegetationMeshesSpec.z);
+            if (!subparcel.vegetations.some(vegetation => vegetation.equals(vegetationMesh.vegetation))) {
+              _removeVegetationMesh(vegetationMesh);
+              return false;
+            } else {
+              return true;
+            }
           }
-        }
-      });
+        });
+      }
+      mesh.vegetationMeshes.slice()
     }
     if (packagesNeedUpdate) {
       if (!packagesRunning) {
