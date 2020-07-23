@@ -33,6 +33,7 @@ import easing from './easing.js';
 import {planet} from './planet.js';
 import {Bot} from './bot.js';
 import './atlaspack.js';
+import {Sky} from './Sky.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const worldsEndpoint = 'https://worlds.exokit.org';
@@ -1204,107 +1205,37 @@ chunkWorker = cw;
 physicsWorker = pw;
 
 (async () => {
-  const sphere = new THREE.SphereBufferGeometry(500);
-  const material = new THREE.ShaderMaterial({
-    uniforms: {
-      iTime: {value: 0}
-    },
-    vertexShader: `\
-      uniform float iTime;
-      varying vec2 uvs;
-      varying vec3 vWorldPosition;
-      void main() {
-        uvs = uv;
-        vec3 pos = position;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 );
-        vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-        vWorldPosition = worldPosition.xyz;
-      }
-    `,
-    fragmentShader: `\
-      #define PI 3.1415926535897932384626433832795
+  const effectController = {
+    turbidity: 2,
+    rayleigh: 3,
+    mieCoefficient: 0.2,
+    mieDirectionalG: 0.9999,
+    inclination: 0, // elevation / inclination
+    azimuth: 0, // Facing front,
+    // exposure: renderer.toneMappingExposure
+  };
+  const sun = new THREE.Vector3();
+  function update() {
+    var uniforms = skybox2.material.uniforms;
+    uniforms[ "turbidity" ].value = effectController.turbidity;
+    uniforms[ "rayleigh" ].value = effectController.rayleigh;
+    uniforms[ "mieCoefficient" ].value = effectController.mieCoefficient;
+    uniforms[ "mieDirectionalG" ].value = effectController.mieDirectionalG;
 
-      uniform float iTime;
-      varying vec2 uvs;
-      varying vec3 vWorldPosition;
+    effectController.azimuth = (0.05 + ((Date.now() / 1000) * 0.1)) % 1;
+    var theta = Math.PI * ( effectController.inclination - 0.5 );
+    var phi = 2 * Math.PI * ( effectController.azimuth - 0.5 );
 
-      const vec2 iResolution = vec2(1.0, 1.0);
-      const vec3 cameraPos = vec3(0., 0., 0.);
+    sun.x = Math.cos( phi );
+    sun.y = Math.sin( phi ) * Math.sin( theta );
+    sun.z = Math.sin( phi ) * Math.cos( theta );
 
-      vec2 getUvs() {
-        vec3 direction = normalize(vWorldPosition - cameraPos);
-        float theta = acos(direction.y); // elevation --> y-axis, [-pi/2, pi/2]
-        float phi = atan(direction.z, direction.x); // azimuth --> x-axis [-pi/2, pi/2]
-        vec2 uv = vec2(phi, theta) / vec2(2.0*PI, PI) + vec2(0.5, 0.0);
-        return uv;
-      }
-
-      const float intensity = 16.;
-
-      float time;
-      float burn;
-
-      mat2 rot(float a)
-      {
-          float s=sin(a), c=cos(a);
-          return mat2(s, c, -c, s);
-      }
-
-      float map(vec3 p)
-      {
-          float d = max(max(abs(p.x), abs(p.y)), abs(p.z)) - .5;
-          burn = d;
-          
-          mat2 rm = rot(-time/3. + length(p));
-          p.xy *= rm, p.zy *= rm;
-          
-          vec3 q = abs(p) - time;
-          q = abs(q - floor(q + 0.5));
-          
-          rm = rot(time);
-          q.xy *= rm, q.xz *= rm;
-          
-          d = min(d, min(min(length(q.xy), length(q.yz)), length(q.xz)) + .01);
-          
-          burn = pow(d - burn, 2.);
-          
-          return d;
-      }
-
-      vec3 getColor(vec2 uv)
-      {
-          vec3 rd = normalize(vec3(2.*uv-iResolution.xy, iResolution.y)), 
-               ro = vec2(0, -2).xxy;
-          
-          mat2 r1 = rot(time/4.), r2 = rot(time/2.);
-          rd.xz *= r1, ro.xz *= r1, rd.yz *= r2, ro.yz *= r2;
-          
-          float t = .0, i = intensity * (1. - exp(-.2*time-.1));
-          for(;i-->0.;)t += map(ro+rd*t) / 2.;
-          
-          return vec3(1.-burn, exp(-t), exp(-t/2.));
-      }
-
-      void main() {
-        time = 100.0 + iTime;
-
-        vec2 uv = getUvs();
-        /* float dx = abs(0.5 - uv.x);
-        vec2 uv1 = vec2(0.5 + uv.y, dx);
-        vec2 uv2 = vec2(0.5 + uv.y, 1. - dx);
-
-        vec3 c1 = getColor(uv1);
-        vec3 c2 = getColor(uv2);
-        gl_FragColor = vec4(mix(c1, c2, uv.x), 1); */
-        vec2 uv3 = (sin(uv * PI*2.) + 1.)/2.;
-        gl_FragColor = vec4(getColor(uv3), 1);
-      }
-    `,
-    side: THREE.BackSide,
-    // transparent: true,
-    depthWrite: false,
-  });
-  skybox2 = new THREE.Mesh(sphere, material);
+    uniforms[ "sunPosition" ].value.copy( sun );
+  }
+  skybox2 = new Sky();
+  skybox2.scale.setScalar(300);
+  skybox2.update = update;
+  skybox2.update();
   scene.add(skybox2);
 })();
 (async () => {
@@ -3003,7 +2934,8 @@ function animate(timestamp, frame) {
     skybox.material.uniforms.iTime.value = ((Date.now() - startTime)%3000)/3000;
   }
   if (skybox2) {
-    skybox2.material.uniforms.iTime.value = (Date.now() - startTime) * 0.00005;
+    // skybox2.material.uniforms.iTime.value = (Date.now() - startTime) * 0.00005;
+    skybox2.update();
   }
 
   const now = Date.now();
