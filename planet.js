@@ -159,6 +159,7 @@ export class Subparcel {
     this.x = 0;
     this.y = 0;
     this.z = 0;
+    this.index = 0;
     this.offsets = Subparcel.getOffsets();
     this.data = data !== undefined ? data : new ArrayBuffer(this.offsets.length);
     this.offset = offset !== undefined ? offset : 0;
@@ -203,6 +204,7 @@ export class Subparcel {
     this.x = src[0];
     this.y = src[1];
     this.z = src[2];
+    this.index = _getSubparcelIndex(this.x, this.y, this.z);
   }
   setCube(x, y, z, r, fn) {
     for (let dx = -r; dx <= r; dx++) {
@@ -321,6 +323,7 @@ const _addSubparcel = (x, y, z, index) => {
   subparcel.x = x;
   subparcel.y = y;
   subparcel.z = z;
+  subparcel.index = index;
   subparcel.writeMetadata();
   subparcels[index] = subparcel;
   return subparcel;
