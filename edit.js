@@ -889,7 +889,7 @@ const [
       // transparent: true,
     });
 
-    document.body.appendChild(canvas);
+    // document.body.appendChild(canvas);
 
     const atlas = atlaspack(canvas);
     const rects = new Map();
