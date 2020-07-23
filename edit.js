@@ -59,6 +59,9 @@ const localFrustum = new THREE.Frustum();
 
 const cubicBezier = easing(0, 1, 0, 1);
 
+let skybox = null;
+let skybox2 = null;
+
 const _loadGltf = u => new Promise((accept, reject) => {
   new GLTFLoader().load(u, o => {
     o = o.scene;
@@ -1199,6 +1202,170 @@ const [
 ]);
 chunkWorker = cw;
 physicsWorker = pw;
+
+(async () => {
+  const sphere = new THREE.SphereBufferGeometry(500);
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      // colorPrimary: {value: new THREE.Color(0x5c6bc0)},
+      // colorSecondary: {value: new THREE.Color(0xef5350)},
+      iTime: {value: 0}
+    },
+    vertexShader: `\
+      uniform float iTime;
+      varying vec2 uvs;
+      varying vec3 vWorldPosition;
+      void main() {
+        uvs = uv;
+        vec3 pos = position;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 );
+        vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+        vWorldPosition = worldPosition.xyz;
+      }
+    `,
+    fragmentShader: `\
+      #define PI 3.1415926535897932384626433832795
+
+      uniform float iTime;
+      varying vec2 uvs;
+      varying vec3 vWorldPosition;
+
+      const vec2 iResolution = vec2(1.0, 1.0);
+      const vec3 cameraPos = vec3(0., 0., 0.);
+
+      vec2 getUvs() {
+        vec3 direction = normalize(vWorldPosition - cameraPos);
+        float theta = acos(direction.y); // elevation --> y-axis, [-pi/2, pi/2]
+        float phi = atan(direction.z, direction.x); // azimuth --> x-axis [-pi/2, pi/2]
+        vec2 uv = vec2(phi, theta) / vec2(2.0*PI, PI) + vec2(0.5, 0.0);
+        return uv;
+      }
+
+      float burn;
+
+      mat2 rot(float a)
+      {
+          float s=sin(a), c=cos(a);
+          return mat2(s, c, -c, s);
+      }
+
+      float map(vec3 p)
+      {
+          float d = max(max(abs(p.x), abs(p.y)), abs(p.z)) - .5;
+          burn = d;
+          
+          mat2 rm = rot(-iTime/3. + length(p));
+          p.xy *= rm, p.zy *= rm;
+          
+          vec3 q = abs(p) - iTime;
+          q = abs(q - floor(q + 0.5));
+          
+          rm = rot(iTime);
+          q.xy *= rm, q.xz *= rm;
+          
+          d = min(d, min(min(length(q.xy), length(q.yz)), length(q.xz)) + .01);
+          
+          burn = pow(d - burn, 2.);
+          
+          return d;
+      }
+
+      void main() {
+        vec2 uv = getUvs();
+
+        // vec2 fragCoord = uv;
+        vec2 fragCoord = vec2(0.5 + uv.y, uv.x);
+
+        vec3 rd = normalize(vec3(2.*fragCoord - iResolution.xy, iResolution.y)), 
+             ro = vec2(0, -4).xxy;
+        
+        mat2 r1 = rot(iTime/4.), r2 = rot(iTime/2.);
+        rd.xz *= r1, ro.xz *= r1, rd.yz *= r2, ro.yz *= r2;
+        
+        float t = .0, i = 24. * (1. - exp(-.2*iTime-.1));
+        for(;i-->0.;)t += map(ro+rd*t) / 2.;
+        
+        gl_FragColor = vec4(1.-burn, exp(-t), exp(-t/2.), 1);
+      }
+    `,
+    side: THREE.BackSide,
+    transparent: true,
+  });
+  skybox2 = new THREE.Mesh(sphere, material);
+  scene.add(skybox2);
+})();
+(async () => {
+  const sphere = new THREE.SphereBufferGeometry(10, 32, 32);
+
+  const img = new Image();
+  img.src = './hexagon.jpg';
+  const texture = new THREE.Texture(img);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  img.onload = () => {
+    texture.needsUpdate = true;
+  };
+  img.onerror = err => {
+    console.warn(err.stack);
+  };
+
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      // colorPrimary: {value: new THREE.Color(0x5c6bc0)},
+      // colorSecondary: {value: new THREE.Color(0xef5350)},
+      tex: {type: 't', value: texture},
+      iTime: {value: 0}
+    },
+    vertexShader: `\
+      uniform float iTime;
+      varying vec2 uvs;
+      varying vec3 vNormal;
+      varying vec3 vWorldPosition;
+      void main() {
+        uvs = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        vNormal = normal;
+        vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+        vWorldPosition = worldPosition.xyz;
+      }
+    `,
+    fragmentShader: `\
+      #define PI 3.1415926535897932384626433832795
+
+      uniform float iTime;
+      uniform sampler2D tex;
+      varying vec2 uvs;
+      varying vec3 vNormal;
+      varying vec3 vWorldPosition;
+
+      const vec3 c = vec3(${new THREE.Color(0x1565c0).toArray().join(', ')});
+
+      void main() {
+        vec2 uv = uvs;
+        uv.x *= 1.7320508075688772;
+        uv *= 8.0;
+
+        vec3 direction = vWorldPosition - cameraPosition;
+        float d = dot(vNormal, normalize(direction));
+        if (d < 0.0) {
+          float rim = 1. + d * 2.;
+          float glow = max(rim, 0.);
+
+          // float a = dot(vNormal, vec3(0., 0., -1.0));
+          float animationFactor = (1.0 + sin((uvs.y*2. + iTime) * PI*2.))/2.;
+          float a = glow + (1.0 - texture2D(tex, uv).r) * (0.01 + pow(animationFactor, 10.0) * 0.5);
+          gl_FragColor = vec4(c, a);
+        } else {
+          discard;
+        }
+      }
+    `,
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+  skybox = new THREE.Mesh(sphere, material);
+  scene.add(skybox);
+})();
 
 const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   const rng = alea(seedString);
@@ -2816,6 +2983,7 @@ const timeFactor = 1000;
 let lastTimestamp = performance.now();
 // let lastParcel  = new THREE.Vector3(0, 0, 0);
 let raycastChunkSpec = null;
+const startTime = Date.now();
 function animate(timestamp, frame) {
   const timeDiff = 30/1000;// Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
@@ -2825,6 +2993,13 @@ function animate(timestamp, frame) {
     physics.pullObjectMesh(physicalMesh);
     // physics.checkCollisions();
   } */
+
+  if (skybox) {
+    skybox.material.uniforms.iTime.value = ((Date.now() - startTime)%3000)/3000;
+  }
+  if (skybox2) {
+    skybox2.material.uniforms.iTime.value = 1000.0 + (Date.now() - startTime) * 0.0001;
+  }
 
   const now = Date.now();
   for (const chunkMesh of chunkMeshes) {
