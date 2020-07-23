@@ -157,6 +157,7 @@ const _makeFloorMesh = () => {
   return mesh;
 };
 const floorMesh = _makeFloorMesh();
+floorMesh.visible = false;
 pe.scene.add(floorMesh);
 
 function animate(timestamp, frame) {
