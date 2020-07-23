@@ -1329,7 +1329,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   mesh.subparcelSize = subparcelSize;
   mesh.isChunkMesh = true;
   mesh.buildMeshes = [];
-  mesh.vegetationMeshes = [];
+  mesh.vegetationMeshes = {};
   mesh.objects = [];
   const slabRadius = Math.sqrt((subparcelSize/2)*(subparcelSize/2)*3);
   let slabs = [];
@@ -1832,7 +1832,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             };
           }
         }
-        let subparcelVegetationMeshesSpec = mesh.vegetationMeshes.find(vegetationMesh => vegetationMesh.x === subparcel.x && vegetationMesh.y === subparcel.y && vegetationMesh.z === subparcel.z);
+        const {index} = subparcel;
+        let subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
         if (!subparcelVegetationMeshesSpec) {
           subparcelVegetationMeshesSpec = {
             x: subparcel.x,
@@ -1840,18 +1841,17 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             z: subparcel.z,
             meshes: [],
           };
-          mesh.vegetationMeshes.push(subparcelVegetationMeshesSpec);
-          // console.log('add 1', mesh.vegetationMeshes, subparcel);
+          mesh.vegetationMeshes[index] = subparcelVegetationMeshesSpec;
         }
         for (const vegetation of subparcel.vegetations) {
           if (!subparcelVegetationMeshesSpec.meshes.some(vegetationMesh => vegetationMesh.vegetation.equals(vegetation))) {
-            // console.log('add 2');
             const vegetationMesh = _addVegetation(vegetation);
             subparcelVegetationMeshesSpec.meshes.push(vegetationMesh);
           }
         }
       }
-      for (const subparcelVegetationMeshesSpec of mesh.vegetationMeshes) {
+      for (const index in mesh.vegetationMeshes) {
+        const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
         subparcelVegetationMeshesSpec.meshes = subparcelVegetationMeshesSpec.meshes.filter(vegetationMesh => {
           if (!neededCoords.some(nc => nc.x === subparcelVegetationMeshesSpec.x && nc.y === subparcelVegetationMeshesSpec.y && nc.z === subparcelVegetationMeshesSpec.z)) {
             _removeVegetationMesh(vegetationMesh);
@@ -1867,7 +1867,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           }
         });
       }
-      mesh.vegetationMeshes.slice()
     }
     if (packagesNeedUpdate) {
       if (!packagesRunning) {
