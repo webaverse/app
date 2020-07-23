@@ -963,7 +963,7 @@ const [
 
     const result = {};
     // console.log('get model', vegetationModels, vegetationModels.getObjectByName('Grass1'));
-    ['Grass1', 'Grass2', 'Grass3', 'Generic_Tree_#1', 'Fanta_Leaves_#1', 'Generic_Tree_#3', 'Boab_Leaves_#3', 'Pine_-_Wood_#3', 'Pine_Leaves_#3'].map(n => vegetationModels.getObjectByName(n)).forEach((c, index) => {
+    ['Grass1', 'Grass2', 'Grass3', 'Generic_Tree_#1', 'Fanta_Leaves_#1', 'Generic_Tree_#3', 'Boab_Leaves_#3', 'Pine_-_Wood_#3', 'Pine_Leaves_#3', 'Chest_top'].map(n => vegetationModels.getObjectByName(n)).forEach((c, index) => {
       const c2 = _mergeGroup(c);
       // c2.position.x = -6 + index*2;
       // scene.add(c2);
@@ -1155,6 +1155,22 @@ const [
       pineTreeInstanceMesh.addInstance(p, q, s);
       pineLeavesInstanceMesh.addInstance(p, q, s);
     }
+
+    const chestInstanceMesh = _makeInstancedMesh(result['Chest_top'], 32, true);
+    for (let i = 0; i < 10; i++) {
+      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
+      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
+      chestInstanceMesh.addInstance(p, q, s);
+    }
+    worldContainer.add(chestInstanceMesh);
+
+    /* const chestOpenInstanceMesh = _makeInstancedMesh(result['SM_Prop_Chest_01open'], 32, true);
+    for (let i = 0; i < 10; i++) {
+      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
+      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
+      chestOpenInstanceMesh.addInstance(p, q, s);
+    }
+    worldContainer.add(chestOpenInstanceMesh); */
 
     const grass1InstanceMesh = _makeInstancedMesh(result['Grass1'], 2048, true);
     for (let i = 0; i < 1000; i++) {
