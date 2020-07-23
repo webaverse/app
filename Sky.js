@@ -21,7 +21,7 @@ import {
 	ShaderMaterial,
 	UniformsUtils,
 	Vector3
-} from "../../../build/three.module.js";
+} from 'https://static.xrpackage.org/xrpackage/three.module.js';
 
 var Sky = function () {
 
