@@ -1207,8 +1207,6 @@ physicsWorker = pw;
   const sphere = new THREE.SphereBufferGeometry(500);
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      // colorPrimary: {value: new THREE.Color(0x5c6bc0)},
-      // colorSecondary: {value: new THREE.Color(0xef5350)},
       iTime: {value: 0}
     },
     vertexShader: `\
@@ -1241,6 +1239,9 @@ physicsWorker = pw;
         return uv;
       }
 
+      const float intensity = 16.;
+
+      float time;
       float burn;
 
       mat2 rot(float a)
@@ -1254,13 +1255,13 @@ physicsWorker = pw;
           float d = max(max(abs(p.x), abs(p.y)), abs(p.z)) - .5;
           burn = d;
           
-          mat2 rm = rot(-iTime/3. + length(p));
+          mat2 rm = rot(-time/3. + length(p));
           p.xy *= rm, p.zy *= rm;
           
-          vec3 q = abs(p) - iTime;
+          vec3 q = abs(p) - time;
           q = abs(q - floor(q + 0.5));
           
-          rm = rot(iTime);
+          rm = rot(time);
           q.xy *= rm, q.xz *= rm;
           
           d = min(d, min(min(length(q.xy), length(q.yz)), length(q.xz)) + .01);
@@ -1270,26 +1271,38 @@ physicsWorker = pw;
           return d;
       }
 
+      vec3 getColor(vec2 uv)
+      {
+          vec3 rd = normalize(vec3(2.*uv-iResolution.xy, iResolution.y)), 
+               ro = vec2(0, -2).xxy;
+          
+          mat2 r1 = rot(time/4.), r2 = rot(time/2.);
+          rd.xz *= r1, ro.xz *= r1, rd.yz *= r2, ro.yz *= r2;
+          
+          float t = .0, i = intensity * (1. - exp(-.2*time-.1));
+          for(;i-->0.;)t += map(ro+rd*t) / 2.;
+          
+          return vec3(1.-burn, exp(-t), exp(-t/2.));
+      }
+
       void main() {
+        time = 100.0 + iTime;
+
         vec2 uv = getUvs();
+        /* float dx = abs(0.5 - uv.x);
+        vec2 uv1 = vec2(0.5 + uv.y, dx);
+        vec2 uv2 = vec2(0.5 + uv.y, 1. - dx);
 
-        // vec2 fragCoord = uv;
-        vec2 fragCoord = vec2(0.5 + uv.y, uv.x);
-
-        vec3 rd = normalize(vec3(2.*fragCoord - iResolution.xy, iResolution.y)), 
-             ro = vec2(0, -4).xxy;
-        
-        mat2 r1 = rot(iTime/4.), r2 = rot(iTime/2.);
-        rd.xz *= r1, ro.xz *= r1, rd.yz *= r2, ro.yz *= r2;
-        
-        float t = .0, i = 24. * (1. - exp(-.2*iTime-.1));
-        for(;i-->0.;)t += map(ro+rd*t) / 2.;
-        
-        gl_FragColor = vec4(1.-burn, exp(-t), exp(-t/2.), 1);
+        vec3 c1 = getColor(uv1);
+        vec3 c2 = getColor(uv2);
+        gl_FragColor = vec4(mix(c1, c2, uv.x), 1); */
+        vec2 uv3 = (sin(uv * PI*2.) + 1.)/2.;
+        gl_FragColor = vec4(getColor(uv3), 1);
       }
     `,
     side: THREE.BackSide,
-    transparent: true,
+    // transparent: true,
+    depthWrite: false,
   });
   skybox2 = new THREE.Mesh(sphere, material);
   scene.add(skybox2);
@@ -1311,8 +1324,6 @@ physicsWorker = pw;
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      // colorPrimary: {value: new THREE.Color(0x5c6bc0)},
-      // colorSecondary: {value: new THREE.Color(0xef5350)},
       tex: {type: 't', value: texture},
       iTime: {value: 0}
     },
@@ -1347,17 +1358,11 @@ physicsWorker = pw;
 
         vec3 direction = vWorldPosition - cameraPosition;
         float d = dot(vNormal, normalize(direction));
-        if (d < 0.0) {
-          float rim = 1. + d * 2.;
-          float glow = max(rim, 0.);
+        float glow = d < 0.0 ? max(1. + d * 2., 0.) : 0.;
 
-          // float a = dot(vNormal, vec3(0., 0., -1.0));
-          float animationFactor = (1.0 + sin((uvs.y*2. + iTime) * PI*2.))/2.;
-          float a = glow + (1.0 - texture2D(tex, uv).r) * (0.01 + pow(animationFactor, 10.0) * 0.5);
-          gl_FragColor = vec4(c, a);
-        } else {
-          discard;
-        }
+        float animationFactor = (1.0 + sin((uvs.y*2. + iTime) * PI*2.))/2.;
+        float a = glow + (1.0 - texture2D(tex, uv).r) * (0.01 + pow(animationFactor, 10.0) * 0.5);
+        gl_FragColor = vec4(c, a);
       }
     `,
     side: THREE.DoubleSide,
@@ -2998,7 +3003,7 @@ function animate(timestamp, frame) {
     skybox.material.uniforms.iTime.value = ((Date.now() - startTime)%3000)/3000;
   }
   if (skybox2) {
-    skybox2.material.uniforms.iTime.value = 1000.0 + (Date.now() - startTime) * 0.0001;
+    skybox2.material.uniforms.iTime.value = (Date.now() - startTime) * 0.00005;
   }
 
   const now = Date.now();
