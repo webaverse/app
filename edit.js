@@ -1439,17 +1439,21 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   };
   const _updateNeededCoords = () => {
     if (chunksNeedUpdate || buildMeshesNeedUpdate || packagesNeedUpdate) {
-      neededCoordIndices = {};
-      let index = 0;
+      let i = 0;
       for (let dx = -chunkDistance; dx <= chunkDistance; dx++) {
+        const ax = dx + currentCoord.x;
         for (let dy = -chunkDistance; dy <= chunkDistance; dy++) {
+          const ay = dy + currentCoord.y;
           for (let dz = -chunkDistance; dz <= chunkDistance; dz++) {
-            const neededCoord = neededCoords[index++];
-            neededCoord.x = dx + currentCoord.x;
-            neededCoord.y = dy + currentCoord.y;
-            neededCoord.z = dz + currentCoord.z;
-            neededCoord.index = planet.getSubparcelIndex(neededCoord.x, neededCoord.y, neededCoord.z);
-            neededCoordIndices[neededCoord.index] = true;
+            const az = dz + currentCoord.z;
+
+            const neededCoord = neededCoords[i++];
+            neededCoord.x = ax;
+            neededCoord.y = ay;
+            neededCoord.z = az;
+            const index = planet.getSubparcelIndex(ax, ay, az);
+            neededCoord.index = index;
+            neededCoordIndices[index] = true;
           }
         }
       }
