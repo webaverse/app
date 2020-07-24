@@ -1422,7 +1422,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     neededCoords[i] = new THREE.Vector3();
     neededCoords[i].index = 0;
   }
-  mesh.update = position => {
+  const _updateCurrentCoord = position => {
     localVector3.copy(position)
       .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
     const ncx = Math.floor(localVector3.x/subparcelSize);
@@ -1435,13 +1435,14 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       buildMeshesNeedUpdate = true;
       packagesNeedUpdate = true;
     }
-
-    let numNeededCoords = 0;
+  };
+  const _updateNeededCoords = () => {
+    let index = 0;
     if (chunksNeedUpdate || buildMeshesNeedUpdate || packagesNeedUpdate) {
       for (let dx = -chunkDistance; dx <= chunkDistance; dx++) {
         for (let dy = -chunkDistance; dy <= chunkDistance; dy++) {
           for (let dz = -chunkDistance; dz <= chunkDistance; dz++) {
-            const neededCoord = neededCoords[numNeededCoords++];
+            const neededCoord = neededCoords[index++];
             neededCoord.x = dx + currentCoord.x;
             neededCoord.y = dy + currentCoord.y;
             neededCoord.z = dz + currentCoord.z;
@@ -1450,6 +1451,11 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         }
       }
     }
+  };
+  mesh.update = position => {
+    _updateCurrentCoord(position);
+    _updateNeededCoords();
+
     if (chunksNeedUpdate) {
       if (!marchesRunning) {
         (async () => {
@@ -1469,7 +1475,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               }
             }
           }
-          for (let i = 0; i < numNeededCoords; i++) {
+          for (let i = 0; i < neededCoords.length; i++) {
             const {x: ax, y: ay, z: az, index} = neededCoords[i];
 
             for (let dx = 0; dx <= 1; dx++) {
@@ -1766,7 +1772,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
         physicsWorker.requestUnloadBuildMesh(buildMeshClone.meshId);
       };
-      for (let i = 0; i < numNeededCoords; i++) {
+      for (let i = 0; i < neededCoords.length; i++) {
         const neededCoord = neededCoords[i];
         const {index} = neededCoord;
         const subparcel = planet.getSubparcelByIndex(index);
@@ -1829,7 +1835,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
         // physicsWorker.requestUnloadBuildMesh(vegetationMeshClone.meshId);
       };
-      for (let i = 0; i < numNeededCoords; i++) {
+      for (let i = 0; i < neededCoords.length; i++) {
         const neededCoord = neededCoords[i];
         const {x, y, z, index} = neededCoord;
         const subparcel = planet.getSubparcelByIndex(index);
@@ -1903,7 +1909,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           packagesRunning = true;
           packagesNeedUpdate = false;
 
-          for (let i = 0; i < numNeededCoords; i++) {
+          for (let i = 0; i < neededCoords.length; i++) {
             const neededCoord = neededCoords[i];
             const {index} = neededCoord;
             const subparcel = planet.getSubparcelByIndex(index);
