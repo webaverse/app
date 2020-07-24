@@ -13,7 +13,15 @@ export const OBJECT_TYPES = {
   BUILD: 1,
   PACKAGE: 2,
 };
-const _getSubparcelIndex = (x, y, z) => x + y*1024 + z*1024*1024;
+const _getSubparcelIndex = (x, y, z) => (x<<0)|(y<<10)|(z<<20);
+const _getSubparcelXYZ = index => {
+  const x = index&0x3FF;
+  index >>>= 10;
+  const y = index&0x3FF;
+  index >>>= 10;
+  const z = index&0x3FF;
+  return [x, y, z];
+};
 const _getPotentialIndex = (x, y, z) => x + y*SUBPARCEL_SIZE*SUBPARCEL_SIZE + z*SUBPARCEL_SIZE;
 const potentialDefault = -0.5;
 
@@ -23,6 +31,8 @@ export const planet = new EventTarget();
 
 let state = null;
 let subparcels = {};
+
+planet.getSubparcelIndex = _getSubparcelIndex;
 
 const _getStringLength = s => {
   let i;
@@ -326,6 +336,14 @@ const _addSubparcel = (x, y, z, index) => {
   subparcel.index = index;
   subparcel.writeMetadata();
   subparcels[index] = subparcel;
+  return subparcel;
+};
+planet.getSubparcelByIndex = index => {
+  let subparcel = subparcels[index];
+  if (!subparcel) {
+    const [x, y, z] = _getSubparcelXYZ(index);
+    subparcel = _addSubparcel(x, y, z, index);
+  }
   return subparcel;
 };
 planet.getSubparcel = (x, y, z) => {
