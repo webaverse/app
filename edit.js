@@ -24,6 +24,7 @@ import {
   numSlices,
   slabSliceTris,
   slabSliceVertices,
+  slabRadius,
   chunkDistance,
   BUILD_SNAP,
   PLANET_OBJECT_SLOTS,
@@ -1331,7 +1332,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   mesh.buildMeshes = {};
   mesh.vegetationMeshes = {};
   mesh.objects = [];
-  const slabRadius = Math.sqrt((subparcelSize/2)*(subparcelSize/2)*3);
   let slabs = [];
   const freeSlabs = [];
   let index = 0;
