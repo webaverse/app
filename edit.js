@@ -1418,6 +1418,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     packagesNeedUpdate = true;
   };
   const neededCoords = Array((chunkDistance*2+1)**3);
+  let neededCoordIndices = {};
   for (let i = 0; i < neededCoords.length; i++) {
     neededCoords[i] = new THREE.Vector3();
     neededCoords[i].index = 0;
@@ -1437,8 +1438,9 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     }
   };
   const _updateNeededCoords = () => {
-    let index = 0;
     if (chunksNeedUpdate || buildMeshesNeedUpdate || packagesNeedUpdate) {
+      neededCoordIndices = {};
+      let index = 0;
       for (let dx = -chunkDistance; dx <= chunkDistance; dx++) {
         for (let dy = -chunkDistance; dy <= chunkDistance; dy++) {
           for (let dz = -chunkDistance; dz <= chunkDistance; dz++) {
@@ -1447,6 +1449,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             neededCoord.y = dy + currentCoord.y;
             neededCoord.z = dz + currentCoord.z;
             neededCoord.index = planet.getSubparcelIndex(neededCoord.x, neededCoord.y, neededCoord.z);
+            neededCoordIndices[neededCoord.index] = true;
           }
         }
       }
@@ -1470,7 +1473,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       const slab = slabs[indexString];
       if (slab) {
         const {index} = slab;
-        if (!neededCoords.some(nc => nc.index === index)) {
+        if (!neededCoordIndices[index]) {
           const groupIndex = geometry.groups.findIndex(group => group.start === slab.slabIndex * slabSliceVertices);
           geometry.groups.splice(groupIndex, 1);
           slabs[indexString] = null;
@@ -1796,7 +1799,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         const subparcelBuildMeshesSpec = mesh.buildMeshes[indexString];
         const {index} = subparcelBuildMeshesSpec;
         subparcelBuildMeshesSpec.meshes = subparcelBuildMeshesSpec.meshes.filter(buildMesh => {
-          if (!neededCoords.some(nc => nc.index === index)) {
+          if (!neededCoordIndices[index]) {
             _removeBuildMesh(buildMesh);
             return false;
           } else {
@@ -1889,7 +1892,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     for (const indexString in mesh.vegetationMeshes) {
       const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[indexString];
       const {index} = subparcelVegetationMeshesSpec;
-      if (!neededCoords.some(nc => nc.index === subparcelVegetationMeshesSpec.index)) {
+      if (!neededCoordIndices[index]) {
         for (const type in subparcelVegetationMeshesSpec.instanceMeshes) {
           subparcelVegetationMeshesSpec.instanceMeshes[type].clearInstances();
         }
@@ -1938,7 +1941,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             const sy = Math.floor(p.package.position[1]/subparcelSize);
             const sz = Math.floor(p.package.position[2]/subparcelSize);
             const index = planet.getSubparcelIndex(sx, sy, sz);
-            if (!neededCoords.some(nc => nc.index === index)) {
+            if (!neededCoordIndices[index]) {
               pe.remove(p);
               mesh.objects.splice(mesh.objects.indexOf(p), 1);
             } else {
