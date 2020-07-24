@@ -1400,7 +1400,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     geometry.attributes.index.updateRange.count = spec.indices.length;
     renderer.geometries.update(geometry);
   };
-  const lastCoord = new THREE.Vector3(NaN, NaN, NaN);
+  const currentCoord = new THREE.Vector3(NaN, NaN, NaN);
   let marchesRunning = false;
   let packagesRunning = false;
   let chunksNeedUpdate = false;
@@ -1417,30 +1417,35 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   mesh.updatePackages = () => {
     packagesNeedUpdate = true;
   };
+  const neededCoords = Array((chunkDistance*2+1)**3);
+  for (let i = 0; i < neededCoords.length; i++) {
+    neededCoords[i] = new THREE.Vector3();
+    neededCoords[i].index = 0;
+  }
   mesh.update = position => {
     localVector3.copy(position)
       .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
-    const coord = new THREE.Vector3(
-      Math.floor(localVector3.x/subparcelSize),
-      Math.floor(localVector3.y/subparcelSize),
-      Math.floor(localVector3.z/subparcelSize)
-    );
+    const ncx = Math.floor(localVector3.x/subparcelSize);
+    const ncy = Math.floor(localVector3.y/subparcelSize);
+    const ncz = Math.floor(localVector3.z/subparcelSize);
 
-    if (!coord.equals(lastCoord)) {
+    if (currentCoord.x !== ncx || currentCoord.y !== ncy || currentCoord.z !== ncz) {
+      currentCoord.set(ncx, ncy, ncz);
       chunksNeedUpdate = true;
       buildMeshesNeedUpdate = true;
       packagesNeedUpdate = true;
     }
 
-    let neededCoords;
+    let numNeededCoords = 0;
     if (chunksNeedUpdate || buildMeshesNeedUpdate || packagesNeedUpdate) {
-      neededCoords = [];
       for (let dx = -chunkDistance; dx <= chunkDistance; dx++) {
         for (let dy = -chunkDistance; dy <= chunkDistance; dy++) {
           for (let dz = -chunkDistance; dz <= chunkDistance; dz++) {
-            const v = new THREE.Vector3(dx + coord.x, dy + coord.y, dz + coord.z);
-            v.index = planet.getSubparcelIndex(v.x, v.y, v.z);
-            neededCoords.push(v);
+            const neededCoord = neededCoords[numNeededCoords++];
+            neededCoord.x = dx + currentCoord.x;
+            neededCoord.y = dy + currentCoord.y;
+            neededCoord.z = dz + currentCoord.z;
+            neededCoord.index = planet.getSubparcelIndex(neededCoord.x, neededCoord.y, neededCoord.z);
           }
         }
       }
@@ -1464,7 +1469,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               }
             }
           }
-          for (let i = 0; i < neededCoords.length; i++) {
+          for (let i = 0; i < numNeededCoords; i++) {
             const {x: ax, y: ay, z: az, index} = neededCoords[i];
 
             for (let dx = 0; dx <= 1; dx++) {
@@ -1548,8 +1553,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           }
 
           subparcelsNeedUpdate.length = 0;
-
-          lastCoord.copy(coord);
 
           marchesRunning = false;
         })();
@@ -1763,7 +1766,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
         physicsWorker.requestUnloadBuildMesh(buildMeshClone.meshId);
       };
-      for (const neededCoord of neededCoords) {
+      for (let i = 0; i < numNeededCoords; i++) {
+        const neededCoord = neededCoords[i];
         const {index} = neededCoord;
         const subparcel = planet.getSubparcelByIndex(index);
         let subparcelBuildMeshesSpec = mesh.buildMeshes[index];
@@ -1825,7 +1829,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
         // physicsWorker.requestUnloadBuildMesh(vegetationMeshClone.meshId);
       };
-      for (const neededCoord of neededCoords) {
+      for (let i = 0; i < numNeededCoords; i++) {
+        const neededCoord = neededCoords[i];
         const {x, y, z, index} = neededCoord;
         const subparcel = planet.getSubparcelByIndex(index);
         if (!subparcel.vegetations) {
@@ -1898,8 +1903,10 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           packagesRunning = true;
           packagesNeedUpdate = false;
 
-          for (const neededCoord of neededCoords) {
-            const subparcel = planet.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
+          for (let i = 0; i < numNeededCoords; i++) {
+            const neededCoord = neededCoords[i];
+            const {index} = neededCoord;
+            const subparcel = planet.getSubparcelByIndex(index);
             for (const pkg of subparcel.packages) {
               if (!mesh.objects.some(object => object.package === pkg)) {
                 const p = await XRPackage.download(pkg.dataHash);
@@ -1920,7 +1927,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             const sx = Math.floor(p.package.position[0]/subparcelSize);
             const sy = Math.floor(p.package.position[1]/subparcelSize);
             const sz = Math.floor(p.package.position[2]/subparcelSize);
-            if (!neededCoords.some(nc => nc.x === sx && nc.y === sy && nc.z === sz)) {
+            const index = planet.getSubparcelIndex(sx, sy, sz);
+            if (!neededCoords.some(nc => nc.index === index)) {
               pe.remove(p);
               mesh.objects.splice(mesh.objects.indexOf(p), 1);
             } else {
