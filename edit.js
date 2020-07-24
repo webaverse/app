@@ -258,6 +258,7 @@ const _decorateMeshForRaycast = mesh => {
     }
   });
 };
+let vegetationObject = null;
 let makeVegetationInstancedMesh = null;
 
 let nextMeshId = 0;
@@ -924,10 +925,23 @@ const [
     };
 
     const vegetationGeometries = {};
-    // console.log('get model', vegetationModels, vegetationModels.getObjectByName('Grass1'));
-    ['Grass1', 'Grass2', 'Grass3', 'Generic_Tree_#1', 'Fanta_Leaves_#1', 'Generic_Tree_#3', 'Boab_Leaves_#3', 'Pine_-_Wood_#3', 'Pine_Leaves_#3', 'Chest_top'].map(n => {
-      const c = vegetationModelsSrc.getObjectByName(n);
-      vegetationGeometries[n] = _mergeGroup(c);
+    [
+      ['grass1', 'Grass1', true],
+      ['grass2', 'Grass2', true],
+      ['grass3', 'Grass3', true],
+      ['tree', 'Generic_Tree_#1', false],
+      ['leaves', 'Fanta_Leaves_#1', true],
+      ['tree2', 'Generic_Tree_#3', false],
+      ['leaves2', 'Boab_Leaves_#3', true],
+      ['pinetree', 'Pine_-_Wood_#3', false],
+      ['pineleaves', 'Pine_Leaves_#3', false],
+      ['chest', 'Chest_top', false],
+    ].map(([type, modelName, transparent]) => {
+      const c = vegetationModelsSrc.getObjectByName(modelName);
+      vegetationGeometries[type] = {
+        geometry: _mergeGroup(c),
+        transparent,
+      };
     });
 
     const _makeInstanceMeshMaterial = transparent => {
@@ -996,8 +1010,9 @@ const [
     const instanceMeshTransparent = _makeInstanceMeshMaterial(true);
     const maxInstances = 32;
 
-    makeVegetationInstancedMesh = (x, y, z, modelName, transparent) => {
-      const geometrySrc = vegetationGeometries[modelName];
+    vegetationObject = new THREE.Object3D();
+    makeVegetationInstancedMesh = (x, y, z, type) => {
+      const {geometry: geometrySrc, transparent} = vegetationGeometries[type];
 
       const geometry = new THREE.InstancedBufferGeometry();
       for (const k in geometrySrc.attributes) {
@@ -1070,12 +1085,18 @@ const [
         instancedMesh.instances.push(o);
         return o;
       };
+      instancedMesh.clearInstances = () => {
+        geometry.instanceCount = 0;
+        instancedMesh.instances.length = 0;
+      };
       instancedMesh.frustumCulled = false;
+      instancedMesh.matrixAutoUpdate = false;
       instancedMesh.boundingSphere = new THREE.Sphere(
         new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2),
         slabRadius
       );
       instancedMesh.instances = [];
+      vegetationObject.add(instancedMesh);
       return instancedMesh;
     };
 
@@ -1831,34 +1852,39 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         if (!subparcelVegetationMeshesSpec) {
           subparcelVegetationMeshesSpec = {
             index,
-            instanceMesh: makeVegetationInstancedMesh(x, y, z, 'Generic_Tree_#1', false),
+            instanceMeshes: {},
           };
-          currentChunkMesh.add(subparcelVegetationMeshesSpec.instanceMesh);
+          currentChunkMesh.add(vegetationObject);
           mesh.vegetationMeshes[index] = subparcelVegetationMeshesSpec;
         }
         for (const vegetation of subparcel.vegetations) {
-          if (!subparcelVegetationMeshesSpec.instanceMesh.instances.some(vegetationMesh => vegetationMesh.vegetation.equals(vegetation))) {
-            _addVegetation(subparcelVegetationMeshesSpec.instanceMesh, vegetation);
+          if (!subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name]) {
+            subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name] = makeVegetationInstancedMesh(x, y, z, vegetation.name);
+            subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name].updateMatrixWorld();
+          }
+          if (!subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name].instances.some(vegetationMesh => vegetationMesh.vegetation.equals(vegetation))) {
+            _addVegetation(subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name], vegetation);
           }
         }
       }
       for (const indexString in mesh.vegetationMeshes) {
         const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[indexString];
         const {index} = subparcelVegetationMeshesSpec;
-        subparcelVegetationMeshesSpec.instanceMesh.instances.slice().forEach(vegetationMesh => {
-          if (!neededCoords.some(nc => nc.index === subparcelVegetationMeshesSpec.index)) {
-            _removeVegetationMesh(vegetationMesh);
-            return false;
-          } else {
-            const subparcel = planet.getSubparcelByIndex(index);
-            if (!subparcel.vegetations.some(vegetation => vegetation.equals(vegetationMesh.vegetation))) {
-              _removeVegetationMesh(vegetationMesh);
-              return false;
-            } else {
-              return true;
-            }
+        if (!neededCoords.some(nc => nc.index === subparcelVegetationMeshesSpec.index)) {
+          for (const type in subparcelVegetationMeshesSpec.instanceMeshes) {
+            subparcelVegetationMeshesSpec.instanceMeshes[type].clearInstances();
           }
-        });
+        } else {
+          const subparcel = planet.getSubparcelByIndex(index);
+          for (const type in subparcelVegetationMeshesSpec.instanceMeshes) {
+            const instanceMesh = subparcelVegetationMeshesSpec.instanceMeshes[type];
+            instanceMesh.instances.slice().forEach(vegetationMesh => {
+              if (!subparcel.vegetations.some(vegetation => vegetation.equals(vegetationMesh.vegetation))) {
+                _removeVegetationMesh(vegetationMesh);
+              }
+            });
+          }
+        }
       }
     }
     if (packagesNeedUpdate) {
@@ -3891,7 +3917,10 @@ function animate(timestamp, frame) {
 
     for (const indexString in currentChunkMesh.vegetationMeshes) {
       const subparcelVegetationMeshesSpec = currentChunkMesh.vegetationMeshes[indexString];
-      subparcelVegetationMeshesSpec.instanceMesh.visible = localFrustum.intersectsSphere(subparcelVegetationMeshesSpec.instanceMesh.boundingSphere);
+      for (const type in subparcelVegetationMeshesSpec.instanceMeshes) {
+        const instanceMesh = subparcelVegetationMeshesSpec.instanceMeshes[type];
+        instanceMesh.visible = localFrustum.intersectsSphere(instanceMesh.boundingSphere);
+      }
     }
   }
 
