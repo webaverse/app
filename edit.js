@@ -1427,7 +1427,9 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       for (let dx = -chunkDistance; dx <= chunkDistance; dx++) {
         for (let dy = -chunkDistance; dy <= chunkDistance; dy++) {
           for (let dz = -chunkDistance; dz <= chunkDistance; dz++) {
-            neededCoords.push(new THREE.Vector3(dx + coord.x, dy + coord.y, dz + coord.z));
+            const v = new THREE.Vector3(dx + coord.x, dy + coord.y, dz + coord.z);
+            v.index = planet.getSubparcelIndex(v.x, v.y, v.z);
+            neededCoords.push(v);
           }
         }
       }
@@ -1749,14 +1751,12 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         physicsWorker.requestUnloadBuildMesh(buildMeshClone.meshId);
       };
       for (const neededCoord of neededCoords) {
-        const subparcel = planet.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
-        const {index} = subparcel;
+        const {index} = neededCoord;
+        const subparcel = planet.getSubparcelByIndex(index);
         let subparcelBuildMeshesSpec = mesh.buildMeshes[index];
         if (!subparcelBuildMeshesSpec) {
           subparcelBuildMeshesSpec = {
-            x: subparcel.x,
-            y: subparcel.y,
-            z: subparcel.z,
+            index,
             meshes: [],
           };
           mesh.buildMeshes[index] = subparcelBuildMeshesSpec;
@@ -1768,14 +1768,15 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           }
         }
       }
-      for (const index in mesh.buildMeshes) {
-        const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
+      for (const indexString in mesh.buildMeshes) {
+        const subparcelBuildMeshesSpec = mesh.buildMeshes[indexString];
+        const {index} = subparcelBuildMeshesSpec;
         subparcelBuildMeshesSpec.meshes = subparcelBuildMeshesSpec.meshes.filter(buildMesh => {
-          if (!neededCoords.some(nc => nc.x === subparcelBuildMeshesSpec.x && nc.y === subparcelBuildMeshesSpec.y && nc.z === subparcelBuildMeshesSpec.z)) {
+          if (!neededCoords.some(nc => nc.index === index)) {
             _removeBuildMesh(buildMesh);
             return false;
           } else {
-            const subparcel = planet.getSubparcel(subparcelBuildMeshesSpec.x, subparcelBuildMeshesSpec.y, subparcelBuildMeshesSpec.z);
+            const subparcel = planet.getSubparcelByIndex(index);
             if (!subparcel.builds.some(build => build.equals(buildMesh.build))) {
               _removeBuildMesh(buildMesh);
               return false;
@@ -1822,7 +1823,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         // physicsWorker.requestUnloadBuildMesh(vegetationMeshClone.meshId);
       };
       for (const neededCoord of neededCoords) {
-        const subparcel = planet.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
+        const {index} = neededCoord;
+        const subparcel = planet.getSubparcelByIndex(index);
         if (!subparcel.vegetations) {
           subparcel.vegetations = Array(1);
           const p = new THREE.Vector3();
@@ -1848,13 +1850,10 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             };
           }
         }
-        const {index} = subparcel;
         let subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
         if (!subparcelVegetationMeshesSpec) {
           subparcelVegetationMeshesSpec = {
-            x: subparcel.x,
-            y: subparcel.y,
-            z: subparcel.z,
+            index,
             meshes: [],
           };
           mesh.vegetationMeshes[index] = subparcelVegetationMeshesSpec;
@@ -1866,14 +1865,15 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           }
         }
       }
-      for (const index in mesh.vegetationMeshes) {
-        const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
+      for (const indexString in mesh.vegetationMeshes) {
+        const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[indexString];
+        const {index} = subparcelVegetationMeshesSpec;
         subparcelVegetationMeshesSpec.meshes = subparcelVegetationMeshesSpec.meshes.filter(vegetationMesh => {
-          if (!neededCoords.some(nc => nc.x === subparcelVegetationMeshesSpec.x && nc.y === subparcelVegetationMeshesSpec.y && nc.z === subparcelVegetationMeshesSpec.z)) {
+          if (!neededCoords.some(nc => nc.index === subparcelVegetationMeshesSpec.index)) {
             _removeVegetationMesh(vegetationMesh);
             return false;
           } else {
-            const subparcel = planet.getSubparcel(subparcelVegetationMeshesSpec.x, subparcelVegetationMeshesSpec.y, subparcelVegetationMeshesSpec.z);
+            const subparcel = planet.getSubparcelByIndex(index);
             if (!subparcel.vegetations.some(vegetation => vegetation.equals(vegetationMesh.vegetation))) {
               _removeVegetationMesh(vegetationMesh);
               return false;
