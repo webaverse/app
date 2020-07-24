@@ -1340,18 +1340,20 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   mesh.buildMeshes = {};
   mesh.vegetationMeshes = {};
   mesh.objects = [];
-  let slabs = [];
+  let slabs = {};
   const freeSlabs = [];
-  let index = 0;
+  let slabIndex = 0;
   mesh.getSlab = (x, y, z) => {
-    let slab = slabs.find(slab => slab.x === x && slab.y === y && slab.z === z);
+    const index = planet.getSubparcelIndex(x, y, z);
+    let slab = slabs[index];
     if (!slab) {
       slab = freeSlabs.pop();
       if (slab) {
         slab.x = x;
         slab.y = y;
         slab.z = z;
-        slabs.push(slab);
+        slab.index = index;
+        slabs[index] = slab;
         geometry.addGroup(slab.slabIndex * slabSliceVertices, slab.position.length/3, 0);
         geometry.groups[geometry.groups.length-1].boundingSphere =
           new THREE.Sphere(
@@ -1363,20 +1365,21 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           x,
           y,
           z,
-          slabIndex: index,
-          position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
-          barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + index*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
-          id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
-          index: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + index*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+          index,
+          slabIndex,
+          position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + slabIndex*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+          barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + slabIndex*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+          id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+          indices: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
         };
-        slabs.push(slab);
-        geometry.addGroup(index * slabSliceVertices, slab.position.length/3, 0);
+        slabs[index] = slab;
+        geometry.addGroup(slabIndex * slabSliceVertices, slab.position.length/3, 0);
         geometry.groups[geometry.groups.length-1].boundingSphere =
           new THREE.Sphere(
             new THREE.Vector3(x*subparcelSize + subparcelSize/2, y*subparcelSize + subparcelSize/2, z*subparcelSize + subparcelSize/2),
             slabRadius
           );
-        index++;
+        slabIndex++;
       }
     }
     return slab;
@@ -1448,19 +1451,21 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           marchesRunning = true;
           chunksNeedUpdate = false;
 
-          slabs = slabs.filter(slab => {
-            if (neededCoords.some(nc => nc.x === slab.x && nc.y === slab.y && nc.z === slab.z)) {
-              return true;
-            } else {
-              const groupIndex = geometry.groups.findIndex(group => group.start === slab.slabIndex * slabSliceVertices);
-              geometry.groups.splice(groupIndex, 1);
-              freeSlabs.push(slab);
-              physicsWorker && physicsWorker.requestUnloadSlab(meshId, slab.x, slab.y, slab.z);
-              return false;
+          for (const indexString in slabs) {
+            const slab = slabs[indexString];
+            if (slab) {
+              const {index} = slab;
+              if (!neededCoords.some(nc => nc.index === index)) {
+                const groupIndex = geometry.groups.findIndex(group => group.start === slab.slabIndex * slabSliceVertices);
+                geometry.groups.splice(groupIndex, 1);
+                slabs[indexString] = null;
+                freeSlabs.push(slab);
+                physicsWorker && physicsWorker.requestUnloadSlab(meshId, slab.x, slab.y, slab.z);
+              }
             }
-          });
+          }
           for (let i = 0; i < neededCoords.length; i++) {
-            const {x: ax, y: ay, z: az} = neededCoords[i];
+            const {x: ax, y: ay, z: az, index} = neededCoords[i];
 
             for (let dx = 0; dx <= 1; dx++) {
               const adx = ax + dx;
@@ -1509,7 +1514,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             }
 
             if (
-              !slabs.some(slab => slab.x === ax && slab.y === ay && slab.z === az) ||
+              !slabs[index] ||
               subparcelsNeedUpdate.some(([x, y, z]) => x === ax && y === ay && z === az)
             ) {
               const specs = await chunkWorker.requestMarchLand(
@@ -1530,7 +1535,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
                 for (let i = 0; i < spec.indices.length; i++) {
                   spec.indices[i] += indexOffset;
                 }
-                slab.index.set(spec.indices);
+                slab.indices.set(spec.indices);
 
                 mesh.updateGeometry(slab, spec);
 
@@ -3294,7 +3299,7 @@ function animate(timestamp, frame) {
               for (let i = 0; i < spec.indices.length; i++) {
                 spec.indices[i] += indexOffset;
               }
-              slab.index.set(spec.indices);
+              slab.indices.set(spec.indices);
 
               currentChunkMesh.updateGeometry(slab, spec);
 
