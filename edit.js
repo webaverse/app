@@ -41,6 +41,7 @@ const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
+const upVector = new THREE.Vector3(0, 1, 0);
 const downQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0));
 const loadedSymbol = Symbol('loaded');
 const pid4 = Math.PI/4;
@@ -1417,12 +1418,19 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   mesh.updatePackages = () => {
     packagesNeedUpdate = true;
   };
-  const neededCoords = Array((chunkDistance*2+1)**3);
+  let neededCoords = Array((chunkDistance*2+1)**3);
+  let lastNeededCoords = Array((chunkDistance*2+1)**3);
   let neededCoordIndices = {};
-  for (let i = 0; i < neededCoords.length; i++) {
-    neededCoords[i] = new THREE.Vector3();
-    neededCoords[i].index = 0;
-  }
+  let lastNeededCoordIndices = {};
+  const addedCoords = [];
+  const removedCoords = [];
+  [neededCoords, lastNeededCoords].forEach(neededCoords => {
+    for (let i = 0; i < neededCoords.length; i++) {
+      const v = new THREE.Vector3();
+      v.index = 0;
+      neededCoords[i] = v;
+    }
+  });
   const _updateCurrentCoord = position => {
     localVector3.copy(position)
       .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
@@ -1454,24 +1462,43 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             const index = planet.getSubparcelIndex(ax, ay, az);
             neededCoord.index = index;
             neededCoordIndices[index] = true;
+
+            if (!lastNeededCoordIndices[index]) {
+              addedCoords.push(neededCoord);
+            }
           }
+        }
+      }
+      for (const lastNeededCoord of lastNeededCoords) {
+        if (!neededCoordIndices[lastNeededCoord.index]) {
+          removedCoords.push(lastNeededCoord);
         }
       }
     }
   };
-  const _updateChunks = () => {
-    if (chunksNeedUpdate) {
-      if (!marchesRunning) {
-        chunksNeedUpdate = false;
-        marchesRunning = true;
-        _runMarches()
-          .finally(() => {
-            marchesRunning = false;
-          });
-      }
+  const _updateLastNeededCoords = () => {
+    if (addedCoords.length > 0) {
+      const tempNeededCoords = lastNeededCoords;
+      lastNeededCoords = neededCoords;
+      lastNeededCoordIndices = neededCoordIndices;
+      neededCoords = tempNeededCoords;
+      neededCoordIndices = {};
+      addedCoords.length = 0;
+      removedCoords.length = 0;
     }
   };
-  const _runMarches = async () => {
+  const _updateChunks = () => {
+    if (chunksNeedUpdate && !marchesRunning) {
+      chunksNeedUpdate = false;
+      marchesRunning = true;
+      const neededCoordsClone = neededCoords.map(nc => ([nc.x, nc.y, nc.z, nc.index]));
+      _runMarches(neededCoordsClone)
+        .finally(() => {
+          marchesRunning = false;
+        });
+    }
+  };
+  const _runMarches = async neededCoordsClone => {
     for (const indexString in slabs) {
       const slab = slabs[indexString];
       if (slab) {
@@ -1485,8 +1512,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         }
       }
     }
-    for (let i = 0; i < neededCoords.length; i++) {
-      const {x: ax, y: ay, z: az, index} = neededCoords[i];
+    for (let i = 0; i < neededCoordsClone.length; i++) {
+      const [ax, ay, az, index] = neededCoordsClone[i];
 
       for (let dx = 0; dx <= 1; dx++) {
         const adx = ax + dx;
@@ -1844,32 +1871,25 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     // physicsWorker.requestUnloadBuildMesh(vegetationMeshClone.meshId);
   };
   const _updateVegetations = () => {
-    for (let i = 0; i < neededCoords.length; i++) {
-      const neededCoord = neededCoords[i];
+    for (let i = 0; i < addedCoords.length; i++) {
+      const neededCoord = addedCoords[i];
       const {x, y, z, index} = neededCoord;
       const subparcel = planet.getSubparcelByIndex(index);
       if (!subparcel.vegetations) {
         subparcel.vegetations = Array(1);
-        const p = new THREE.Vector3();
-        const q = new THREE.Quaternion();
-        const s = new THREE.Vector3(1, 1, 1);
-        const axis = new THREE.Vector3(0, 1, 0);
         for (let i = 0; i < subparcel.vegetations.length; i++) {
-          p.set(
+          localVector3.set(
             x*SUBPARCEL_SIZE + Math.random()*SUBPARCEL_SIZE,
             y*SUBPARCEL_SIZE + SUBPARCEL_SIZE*0.4 - 0.5,
             z*SUBPARCEL_SIZE + Math.random()*SUBPARCEL_SIZE
           );
-          q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
+          localQuaternion2.setFromAxisAngle(upVector, Math.random()*Math.PI*2);
           subparcel.vegetations[i] = {
             name: 'tree',
             id: Math.floor(Math.random() * 0xFFFFFF),
-            position: p.toArray(new Float32Array(3)),
-            quaternion: q.toArray(new Float32Array(4)),
+            position: localVector3.toArray(new Float32Array(3)),
+            quaternion: localQuaternion2.toArray(new Float32Array(4)),
             scale: new THREE.Vector3(1, 1, 1),
-            equals(v) {
-              return this.id === v.id;
-            },
           };
         }
       }
@@ -1887,27 +1907,16 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name] = makeVegetationInstancedMesh(x, y, z, vegetation.name);
           subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name].updateMatrixWorld();
         }
-        if (!subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name].instances.some(vegetationMesh => vegetationMesh.vegetation.equals(vegetation))) {
-          _addVegetation(subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name], vegetation);
-        }
+        _addVegetation(subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name], vegetation);
       }
     }
-    for (const indexString in mesh.vegetationMeshes) {
-      const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[indexString];
-      const {index} = subparcelVegetationMeshesSpec;
-      if (!neededCoordIndices[index]) {
+    for (let i = 0; i < removedCoords.length; i++) {
+      const neededCoord = removedCoords[i];
+      const {index} = neededCoord;
+      const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
+      if (subparcelVegetationMeshesSpec) {
         for (const type in subparcelVegetationMeshesSpec.instanceMeshes) {
           subparcelVegetationMeshesSpec.instanceMeshes[type].clearInstances();
-        }
-      } else {
-        const subparcel = planet.getSubparcelByIndex(index);
-        for (const type in subparcelVegetationMeshesSpec.instanceMeshes) {
-          const instanceMesh = subparcelVegetationMeshesSpec.instanceMeshes[type];
-          instanceMesh.instances.slice().forEach(vegetationMesh => {
-            if (!subparcel.vegetations.some(vegetation => vegetation.equals(vegetationMesh.vegetation))) {
-              _removeVegetationMesh(vegetationMesh);
-            }
-          });
         }
       }
     }
@@ -1968,6 +1977,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     _updateBuilds();
     _updateVegetations();
     _updatePackages();
+    _updateLastNeededCoords();
   };
   return mesh;
 };
