@@ -1458,6 +1458,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   const _updateChunks = () => {
     if (chunksNeedUpdate) {
       if (!marchesRunning) {
+        chunksNeedUpdate = false;
         marchesRunning = true;
         _runMarches()
           .finally(() => {
@@ -1467,8 +1468,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     }
   };
   const _runMarches = async () => {
-    chunksNeedUpdate = false;
-
     for (const indexString in slabs) {
       const slab = slabs[indexString];
       if (slab) {
