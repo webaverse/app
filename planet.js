@@ -407,7 +407,11 @@ const _loadStorage = async roomName => {
       promises.push(p);
     }
   }
-  subparcels = await Promise.all(promises);
+  const subparcelsArray = await Promise.all(promises);
+  subparcels = {};
+  for (const subparcel of subparcelsArray) {
+    subparcels[subparcel.index] = subparcel;
+  }
 };
 
 planet.flush = () => {
