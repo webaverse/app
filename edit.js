@@ -260,14 +260,6 @@ const _decorateMeshForRaycast = mesh => {
 };
 
 let nextMeshId = 0;
-/* function meshIdToArray(meshId) {
-  return [
-    ((meshId >> 16) & 0xFF),
-    ((meshId >> 8) & 0xFF),
-    (meshId & 0xFF),
-  ];
-} */
-
 let chunkWorker = null;
 let physicsWorker = null;
 let chunkMeshes = [];
