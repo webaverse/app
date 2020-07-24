@@ -1328,7 +1328,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   mesh.parcelSize = parcelSize;
   mesh.subparcelSize = subparcelSize;
   mesh.isChunkMesh = true;
-  mesh.buildMeshes = [];
+  mesh.buildMeshes = {};
   mesh.vegetationMeshes = {};
   mesh.objects = [];
   const slabRadius = Math.sqrt((subparcelSize/2)*(subparcelSize/2)*3);
@@ -1735,40 +1735,56 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           animation && animation.update();
         };
         currentChunkMesh.add(buildMesh.instancedMesh);
-        mesh.buildMeshes.push(buildMeshClone);
 
         localMatrix2
           .premultiply(currentChunkMesh.matrix)
           .decompose(localVector3, localQuaternion3, localVector4);
         physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, localVector3.toArray(), localQuaternion3.toArray());
+
+        return buildMeshClone;
       };
       const _removeBuildMesh = buildMeshClone => {
         buildMeshClone.remove();
-        mesh.buildMeshes.splice(mesh.buildMeshes.indexOf(buildMeshClone), 1);
 
         physicsWorker.requestUnloadBuildMesh(buildMeshClone.meshId);
       };
       for (const neededCoord of neededCoords) {
         const subparcel = planet.getSubparcel(neededCoord.x, neededCoord.y, neededCoord.z);
+        const {index} = subparcel;
+        let subparcelBuildMeshesSpec = mesh.buildMeshes[index];
+        if (!subparcelBuildMeshesSpec) {
+          subparcelBuildMeshesSpec = {
+            x: subparcel.x,
+            y: subparcel.y,
+            z: subparcel.z,
+            meshes: [],
+          };
+          mesh.buildMeshes[index] = subparcelBuildMeshesSpec;
+        }
         for (const build of subparcel.builds) {
-          if (!mesh.buildMeshes.some(buildMesh => buildMesh.build.equals(build))) {
-            _addBuild(build);
+          if (!subparcelBuildMeshesSpec.meshes.some(buildMesh => buildMesh.build.equals(build))) {
+            const buildMesh = _addBuild(build);
+            subparcelBuildMeshesSpec.meshes.push(buildMesh);
           }
         }
       }
-      mesh.buildMeshes.slice().forEach(buildMesh => {
-        const sx = Math.floor(buildMesh.build.position[0]/subparcelSize);
-        const sy = Math.floor(buildMesh.build.position[1]/subparcelSize);
-        const sz = Math.floor(buildMesh.build.position[2]/subparcelSize);
-        if (!neededCoords.some(nc => nc.x === sx && nc.y === sy && nc.z === sz)) {
-          _removeBuildMesh(buildMesh);
-        } else {
-          const subparcel = planet.getSubparcel(sx, sy, sz);
-          if (!subparcel.builds.some(build => build.equals(buildMesh.build))) {
+      for (const index in mesh.buildMeshes) {
+        const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
+        subparcelBuildMeshesSpec.meshes = subparcelBuildMeshesSpec.meshes.filter(buildMesh => {
+          if (!neededCoords.some(nc => nc.x === subparcelBuildMeshesSpec.x && nc.y === subparcelBuildMeshesSpec.y && nc.z === subparcelBuildMeshesSpec.z)) {
             _removeBuildMesh(buildMesh);
+            return false;
+          } else {
+            const subparcel = planet.getSubparcel(subparcelBuildMeshesSpec.x, subparcelBuildMeshesSpec.y, subparcelBuildMeshesSpec.z);
+            if (!subparcel.builds.some(build => build.equals(buildMesh.build))) {
+              _removeBuildMesh(buildMesh);
+              return false;
+            } else {
+              return true;
+            }
           }
-        }
-      });
+        });
+      }
 
       const _addVegetation = vegetation => {
         const vegetationMesh = (() => {
@@ -2967,8 +2983,11 @@ function animate(timestamp, frame) {
   const now = Date.now();
   for (const chunkMesh of chunkMeshes) {
     chunkMesh.material[0].uniforms.uTime.value = (now % timeFactor) / timeFactor;
-    for (const buildMesh of chunkMesh.buildMeshes) {
-      buildMesh.update();
+    for (const index in chunkMesh.buildMeshes) {
+      const subparcelBuildMeshesSpec = chunkMesh.buildMeshes[index];
+      for (const buildMesh of subparcelBuildMeshesSpec.meshes) {
+        buildMesh.update();
+      }
     }
   }
   explosionMeshes = explosionMeshes.filter(explosionMesh => {
@@ -3147,7 +3166,16 @@ function animate(timestamp, frame) {
             localVector3
           ));
 
-          if (!currentChunkMesh.buildMeshes.some(bm => _buildMeshEquals(bm, buildMesh))) {
+          const hasBuildMesh = (() => {
+            for (const index in currentChunkMesh.buildMeshes) {
+              const subparcelBuildMeshesSpec = currentChunkMesh.buildMeshes[index];
+              if (subparcelBuildMeshesSpec.meshes.some(bm => _buildMeshEquals(bm, buildMesh))) {
+                return true;
+              }
+            }
+            return false;
+          })();
+          if (hasBuildMesh) {
             buildMesh.traverse(o => {
               if (o.isMesh && o.originalMaterial) {
                 o.material = o.originalMaterial;
@@ -3384,7 +3412,16 @@ function animate(timestamp, frame) {
               default: return null;
             }
           })();
-          if (!currentChunkMesh.buildMeshes.some(bm => _buildMeshEquals(bm, buildMesh))) {
+          const hasBuildMesh = (() => {
+            for (const index in currentChunkMesh.buildMeshes) {
+              const subparcelBuildMeshesSpec = currentChunkMesh.buildMeshes[index];
+              if (subparcelBuildMeshesSpec.meshes.some(bm => _buildMeshEquals(bm, buildMesh))) {
+                return true;
+              }
+            }
+            return false;
+          })();
+          if (!hasBuildMesh) {
             const buildSubparcelPosition = new THREE.Vector3(
               Math.floor(buildMesh.position.x/currentChunkMesh.subparcelSize),
               Math.floor(buildMesh.position.y/currentChunkMesh.subparcelSize),
