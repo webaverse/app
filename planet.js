@@ -13,13 +13,28 @@ export const OBJECT_TYPES = {
   BUILD: 1,
   PACKAGE: 2,
 };
-const _getSubparcelIndex = (x, y, z) => (x<<0)|(y<<10)|(z<<20);
+function abs(n) {
+  return (n ^ (n >> 31)) - (n >> 31);
+}
+function sign(n) {
+  return -(n >> 31);
+}
+const _getSubparcelIndex = (x, y, z) => abs(x)|(abs(y)<<9)|(abs(z)<<18)|(sign(x)<<27)|(sign(y)<<28)|(sign(z)<<29);
 const _getSubparcelXYZ = index => {
-  const x = index&0x3FF;
+  let x = index&0x1FF; // (1<<9)-1
   index >>>= 10;
-  const y = index&0x3FF;
+  let y = index&0x1FF;
   index >>>= 10;
-  const z = index&0x3FF;
+  let z = index&0x1FF;
+  index >>>= 1;
+  const sx = index&0x1;
+  if (sx) { x *= -1; }
+  index >>>= 1;
+  const sy = index&0x1;
+  if (sy) { y *= -1; }
+  index >>>= 1;
+  const sz = index&0x1;
+  if (sz) { z *= -1; }
   return [x, y, z];
 };
 const _getPotentialIndex = (x, y, z) => x + y*SUBPARCEL_SIZE*SUBPARCEL_SIZE + z*SUBPARCEL_SIZE;
