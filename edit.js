@@ -912,10 +912,11 @@ const [
           indices,
         });
       };
-      w.requestMarchObjects = (objects) => {
+      w.requestMarchObjects = (objects, indexOffset) => {
         return w.request({
           method: 'marchObjects',
           objects,
+          indexOffset,
         });
       };
       return w;
@@ -1973,17 +1974,14 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         }
         let live = true;
         (async () => {
-          const specs = await geometryWorker.requestMarchObjects(subparcel.vegetations);
+          const slab = currentVegetationMesh.getSlab(x, y, z);
+          const indexOffset = slab.slabIndex * vegetationSlabSliceTris;
+          const specs = await geometryWorker.requestMarchObjects(subparcel.vegetations, indexOffset);
           if (live) {
             const [spec] = specs;
 
-            const slab = currentVegetationMesh.getSlab(x, y, z);
             slab.position.set(spec.positions);
             slab.uv.set(spec.uvs);
-            const indexOffset = slab.slabIndex * vegetationSlabSliceTris;
-            for (let i = 0; i < spec.indices.length; i++) {
-              spec.indices[i] += indexOffset;
-            }
             slab.indices.set(spec.indices);
 
             currentVegetationMesh.updateGeometry(slab, spec);

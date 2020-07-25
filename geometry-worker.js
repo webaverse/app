@@ -244,7 +244,7 @@ const _meshChunkSlab = (chunk, slab, subparcelSize) => {
 
 const geometryRegistry = {};
 
-const _marchObjects = objects => {
+const _marchObjects = (objects, indexOffset) => {
   const geometries = objects.map(o => geometryRegistry[o.type]);
 
   let numPositions = 0;
@@ -277,9 +277,9 @@ const _marchObjects = objects => {
     const object = objects[i];
     const matrix = localMatrix.fromArray(object.matrix);
 
-    const indexOffset = positionsIndex/3;
+    const indexOffset2 = indexOffset + positionsIndex/3;
     for (let j = 0; j < geometry.indices.length; j++) {
-      indices[indicesIndex + j] = geometry.indices[j] + indexOffset;
+      indices[indicesIndex + j] = geometry.indices[j] + indexOffset2;
     }
     indicesIndex += geometry.indices.length;
 
@@ -325,11 +325,11 @@ const _handleMessage = data => {
       break;
     }
     case 'marchObjects': {
-      const {objects} = data;
+      const {objects, indexOffset} = data;
 
       const results = [];
       const transfers = [];
-      const [result, transfer] = _marchObjects(objects);
+      const [result, transfer] = _marchObjects(objects, indexOffset);
       results.push(result);
       transfers.push(transfer);
 
