@@ -70,6 +70,7 @@ const localMatrix2 = new THREE.Matrix4();
 const localFrustum = new THREE.Frustum();
 
 const cubicBezier = easing(0, 1, 0, 1);
+const chunkOffset = new THREE.Vector3(-PARCEL_SIZE/2, -PARCEL_SIZE - 5, -PARCEL_SIZE/2);
 
 let skybox = null;
 let skybox2 = null;
@@ -282,6 +283,7 @@ scene.add(worldContainer);
 const chunkMeshContainer = new THREE.Object3D();
 worldContainer.add(chunkMeshContainer);
 let currentChunkMesh = null;
+let currentVegetationMesh = null;
 const _getCurrentChunkMesh = () => currentChunkMesh;
 const _setCurrentChunkMesh = chunkMesh => {
   if (currentChunkMesh) {
@@ -300,8 +302,6 @@ let spikesMesh = null;
 let woodMesh = null;
 let stoneMesh = null;
 let metalMesh = null;
-let vegetationMeshOpaque = null;
-let vegetationMeshTransparent = null;
 (async () => {
 
 const [
@@ -1049,164 +1049,87 @@ const [
       }
       return material;
     };
-    vegetationMeshOpaque = _makeVegetationMaterial(false);
-    vegetationMeshTransparent = _makeVegetationMaterial(true);
+    const vegetationMaterialOpaque = _makeVegetationMaterial(false);
+    const vegetationMaterailTransparent = _makeVegetationMaterial(true);
 
-    const _makeInstanceMeshMaterial = transparent => {
-      const material = new THREE.ShaderMaterial({
-        uniforms: {
-          map: {
-            type: 't',
-            value: texture,
-          },
-        },
-        vertexShader: `\
-          precision highp float;
-          precision highp int;
+    const slabArrayBuffer = new ArrayBuffer(vegetationSlabTotalSize);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 0*vegetationSlabAttributeSize, vegetationSlabSliceVertices*numSlices*3), 3));
+    geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 1*vegetationSlabAttributeSize, vegetationSlabSliceVertices*numSlices*2), 2));
+    // geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices), 1));
+    geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*vegetationSlabAttributeSize, vegetationSlabSliceVertices*numSlices), 1));
+    const mesh = new THREE.Mesh(geometry, vegetationMaterialOpaque);
+    mesh.frustumCulled = false;
 
-          // attribute vec2 alphaUv;
-          attribute vec3 color;
-          attribute vec3 colorOffset;
-          attribute vec3 positionOffset;
-          attribute vec4 quaternionOffset;
-          attribute vec3 scaleOffset;
-          varying vec2 vUv;
-          // svarying vec2 vAlphaUv;
-          varying vec3 vNormal;
-          varying vec3 vColorOffset;
-
-          vec3 applyQuaternion(vec3 v, vec4 q) {
-            return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
-          }
-
-          void main() {
-            vUv = uv;
-            // vAlphaUv = alphaUv;
-            vNormal = normal;
-            vColorOffset = colorOffset;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(applyQuaternion(position.xyz * scaleOffset, quaternionOffset) + positionOffset, 1.0);
-          }
-        `,
-        fragmentShader: `\
-          precision highp float;
-          precision highp int;
-
-          uniform sampler2D map;
-          varying vec2 vUv;
-          // varying vec2 vAlphaUv;
-          varying vec3 vNormal;
-          varying vec3 vColorOffset;
-
-          vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
-
-          void main() {
-            // float dotNL = dot(vNormal, l);
-            // gl_FragColor = vec4(c * vColorOffset * (0.5 + 0.5*abs(dotNL)), 1.0);
-            gl_FragColor = ${transparent ? `texture2D(map, vUv)` : `vec4(texture2D(map, vUv).rgb, 1.0)`};
-            ${transparent ? `if (gl_FragColor.a < 0.8) discard;` : ''}
-          }
-        `,
-        // blending: THREE.CustomBlending,
-      });
-      if (transparent) {
-        material.side = THREE.DoubleSide;
-        material.transparent = true;
+    const slabs = {};
+    const freeSlabs = [];
+    let slabIndex = 0;
+    mesh.getSlab = (x, y, z) => {
+      const index = planet.getSubparcelIndex(x, y, z);
+      let slab = slabs[index];
+      if (!slab) {
+        slab = freeSlabs.pop();
+        if (slab) {
+          slab.x = x;
+          slab.y = y;
+          slab.z = z;
+          slab.index = index;
+          slabs[index] = slab;
+          geometry.addGroup(slab.slabIndex * vegetationSlabSliceVertices, slab.position.length/3, 0);
+          geometry.groups[geometry.groups.length-1].boundingSphere =
+            new THREE.Sphere(
+              new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2),
+              slabRadius
+            );
+        } else {
+          slab = {
+            x,
+            y,
+            z,
+            index,
+            slabIndex,
+            position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + slabIndex*vegetationSlabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, vegetationSlabSliceVertices*3),
+            uv: new Float32Array(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset + slabIndex*vegetationSlabSliceVertices*2*Float32Array.BYTES_PER_ELEMENT, vegetationSlabSliceVertices*2),
+            // id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+            indices: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + slabIndex*vegetationSlabSliceVertices*Uint32Array.BYTES_PER_ELEMENT, vegetationSlabSliceVertices),
+          };
+          slabs[index] = slab;
+          geometry.addGroup(slabIndex * vegetationSlabSliceVertices, slab.position.length/3, 0);
+          geometry.groups[geometry.groups.length-1].boundingSphere =
+            new THREE.Sphere(
+              new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2),
+              slabRadius
+            );
+          slabIndex++;
+        }
       }
-      return material;
+      return slab;
     };
-    const instanceMeshOpaque = _makeInstanceMeshMaterial(false);
-    const instanceMeshTransparent = _makeInstanceMeshMaterial(true);
-    const maxInstances = 32;
+    mesh.updateGeometry = (slab, spec) => {
+      geometry.attributes.position.updateRange.offset = slab.slabIndex*vegetationSlabSliceVertices*3;
+      geometry.attributes.position.needsUpdate = true;
+      geometry.attributes.uv.updateRange.offset = slab.slabIndex*vegetationSlabSliceVertices*2;
+      geometry.attributes.uv.needsUpdate = true;
+      geometry.attributes.index.updateRange.offset = slab.slabIndex*vegetationSlabSliceVertices;
+      geometry.attributes.index.needsUpdate = true;
 
-    vegetationObject = new THREE.Object3D();
-    makeVegetationInstancedMesh = (x, y, z, type) => {
-      const {geometry: geometrySrc, transparent} = vegetationGeometries[type];
-
-      const geometry = new THREE.InstancedBufferGeometry();
-      for (const k in geometrySrc.attributes) {
-        geometry.setAttribute(k, geometrySrc.attributes[k]);
+      geometry.attributes.position.updateRange.count = spec.positions.length;
+      geometry.attributes.uv.updateRange.count = spec.uvs.length;
+      geometry.attributes.index.updateRange.count = spec.indices.length;
+      renderer.geometries.update(geometry);
+    };
+    mesh.freeSlabIndex = index => {
+      const slab = slabs[index];
+      if (slab) {
+        const groupIndex = geometry.groups.findIndex(group => group.start === slab.slabIndex * vegetationSlabSliceVertices);
+        geometry.groups.splice(groupIndex, 1);
+        slabs[index] = null;
+        freeSlabs.push(slab);
       }
-      geometry.setIndex(geometrySrc.index);
-      const positionOffsets = new Float32Array(3*maxInstances);
-      geometry.setAttribute('positionOffset', new THREE.InstancedBufferAttribute(positionOffsets, 3));
-      const quaternionOffsets = new Float32Array(4*maxInstances);
-      geometry.setAttribute('quaternionOffset', new THREE.InstancedBufferAttribute(quaternionOffsets, 4));
-      const scaleOffsets = new Float32Array(3*maxInstances);
-      geometry.setAttribute('scaleOffset', new THREE.InstancedBufferAttribute(scaleOffsets, 3));
-      const colorOffsets = new Float32Array(3*maxInstances);
-      geometry.setAttribute('colorOffset', new THREE.InstancedBufferAttribute(colorOffsets, 3));
-      geometry.instanceCount = 0;
-
-      const material = transparent ? instanceMeshTransparent : instanceMeshOpaque;
-      const instancedMesh = new THREE.Mesh(geometry, material);
-      instancedMesh.addInstance = (meshId, position, quaternion, scale) => {
-        const o = {
-          index: geometry.instanceCount,
-          position: position.clone(),
-          quaternion: quaternion.clone(),
-          scale: scale.clone(),
-          matrix: new THREE.Matrix4().compose(position, quaternion, scale),
-          color: new THREE.Color(0xFFFFFF),
-          updatePosition() {
-            o.position.toArray(geometry.attributes.positionOffset.array, o.index*3);
-            geometry.attributes.positionOffset.needsUpdate = true;
-          },
-          updateColor() {
-            o.color.toArray(geometry.attributes.colorOffset.array, o.index*3);
-            geometry.attributes.colorOffset.needsUpdate = true;
-          },
-          remove() {
-            geometry.instanceCount--;
-            if (geometry.instanceCount > 0) {
-              const positionOffset = new Float32Array(geometry.attributes.positionOffset.array.buffer, geometry.attributes.positionOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
-              geometry.attributes.positionOffset.array.set(positionOffset, o.index*3);
-              geometry.attributes.positionOffset.needsUpdate = true;
-
-              const quaternionOffset = new Float32Array(geometry.attributes.quaternionOffset.array.buffer, geometry.attributes.quaternionOffset.array.byteOffset + geometry.instanceCount*4*Float32Array.BYTES_PER_ELEMENT, 4);
-              geometry.attributes.quaternionOffset.array.set(quaternionOffset, o.index*4);
-              geometry.attributes.quaternionOffset.needsUpdate = true;
-
-              const scaleOffset = new Float32Array(geometry.attributes.scaleOffset.array.buffer, geometry.attributes.scaleOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
-              geometry.attributes.scaleOffset.array.set(scaleOffset, o.index*3);
-              geometry.attributes.scaleOffset.needsUpdate = true;
-
-              const colorOffset = new Float32Array(geometry.attributes.colorOffset.array.buffer, geometry.attributes.colorOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
-              geometry.attributes.colorOffset.array.set(colorOffset, o.index*3);
-              geometry.attributes.colorOffset.needsUpdate = true;
-
-              const movingInstance = instancedMesh.instances.find(instance => instance.index === geometry.instanceCount);
-              movingInstance.index = o.index;
-            }
-            instancedMesh.instances.splice(instancedMesh.instances.indexOf(o), 1);
-          },
-        };
-        o.position.toArray(geometry.attributes.positionOffset.array, o.index*3);
-        geometry.attributes.positionOffset.needsUpdate = true;
-        o.quaternion.toArray(geometry.attributes.quaternionOffset.array, o.index*4);
-        geometry.attributes.quaternionOffset.needsUpdate = true;
-        o.scale.toArray(geometry.attributes.scaleOffset.array, o.index*3);
-        geometry.attributes.scaleOffset.needsUpdate = true;
-        o.color.toArray(geometry.attributes.colorOffset.array, o.index*3);
-        geometry.attributes.colorOffset.needsUpdate = true;
-
-        geometry.instanceCount++;
-        instancedMesh.instances.push(o);
-        return o;
-      };
-      instancedMesh.clearInstances = () => {
-        geometry.instanceCount = 0;
-        instancedMesh.instances.length = 0;
-      };
-      instancedMesh.frustumCulled = false;
-      instancedMesh.matrixAutoUpdate = false;
-      instancedMesh.boundingSphere = new THREE.Sphere(
-        new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2),
-        slabRadius
-      );
-      instancedMesh.instances = [];
-      vegetationObject.add(instancedMesh);
-      return instancedMesh;
     };
+    currentVegetationMesh = mesh;
+    currentVegetationMesh.position.copy(chunkOffset);
+    chunkMeshContainer.add(currentVegetationMesh);
 
     // atlas.context.fillStyle = '#FFF';
     // atlas.context.fillRect(canvas.width-1, canvas.height-1, 1, 1);
@@ -1448,7 +1371,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   mesh.buildMeshes = {};
   mesh.vegetationMeshes = {};
   mesh.objects = [];
-  let slabs = {};
+
+  const slabs = {};
   const freeSlabs = [];
   let slabIndex = 0;
   mesh.getSlab = (x, y, z) => {
@@ -1478,7 +1402,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + slabIndex*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
           barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + slabIndex*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
           id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
-          indices: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+          indices: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + slabIndex*slabSliceVertices*Uint32Array.BYTES_PER_ELEMENT, slabSliceVertices),
         };
         slabs[index] = slab;
         geometry.addGroup(slabIndex * slabSliceVertices, slab.position.length/3, 0);
@@ -1995,14 +1919,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   };
   const _updateVegetations = () => {
     for (let i = 0; i < removedCoords.length; i++) {
-      const neededCoord = removedCoords[i];
-      const {index} = neededCoord;
-      const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
-      if (subparcelVegetationMeshesSpec) {
-        for (const type in subparcelVegetationMeshesSpec.instanceMeshes) {
-          subparcelVegetationMeshesSpec.instanceMeshes[type].clearInstances();
-        }
-      }
+      const {index} = removedCoords[i];
+      currentVegetationMesh.freeSlabIndex(index);
 
       const subparcelTasks = vegetationsTasks[index];
       if (subparcelTasks) {
@@ -2043,22 +1961,23 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       }
       let live = true;
       (async () => {
-        const vegetationSlab = await geometryWorker.requestMarchObjects(subparcel.vegetations);
+        const specs = await geometryWorker.requestMarchObjects(subparcel.vegetations);
         if (live) {
-          const [{
-            positions,
-            uvs,
-            indices,
-          }] = vegetationSlab;
-          const geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-          geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-          geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-          const material = vegetationMeshOpaque;
-          const mesh = new THREE.Mesh(geometry, material);
-          console.log('got mesh', mesh);
-          mesh.frustumCulled = false;
-          currentChunkMesh.add(mesh);
+          const [spec] = specs;
+
+          const slab = currentVegetationMesh.getSlab(x, y, z);
+          slab.position.set(spec.positions);
+          slab.uv.set(spec.uvs);
+          const indexOffset = slab.slabIndex * vegetationSlabSliceTris;
+          for (let i = 0; i < spec.indices.length; i++) {
+            spec.indices[i] += indexOffset;
+          }
+          slab.indices.set(spec.indices);
+
+          currentVegetationMesh.updateGeometry(slab, spec);
+
+          const group = currentVegetationMesh.geometry.groups.find(group => group.start === slab.slabIndex * vegetationSlabSliceVertices);
+          group.count = spec.positions.length/3;
         }
       })()
         .finally(() => {
@@ -2162,9 +2081,7 @@ planet.addEventListener('load', e => {
   const {data: chunkSpec} = e;
 
   const chunkMesh = _makeChunkMesh(chunkSpec.seedString, chunkSpec.parcelSize, chunkSpec.subparcelSize);
-  chunkMesh.position.y = -chunkSpec.parcelSize - 5;
-  chunkMesh.position.x = -chunkSpec.parcelSize/2;
-  chunkMesh.position.z = -chunkSpec.parcelSize/2;
+  chunkMesh.position.copy(chunkOffset);
   chunkMeshContainer.add(chunkMesh);
   chunkMeshes.push(chunkMesh);
   _setCurrentChunkMesh(chunkMesh);
@@ -4130,14 +4047,13 @@ function animate(timestamp, frame) {
     );
     currentChunkMesh.geometry.originalGroups = currentChunkMesh.geometry.groups.slice();
     currentChunkMesh.geometry.groups = currentChunkMesh.geometry.groups.filter(group => localFrustum.intersectsSphere(group.boundingSphere));
-
-    for (const indexString in currentChunkMesh.vegetationMeshes) {
-      const subparcelVegetationMeshesSpec = currentChunkMesh.vegetationMeshes[indexString];
-      for (const type in subparcelVegetationMeshesSpec.instanceMeshes) {
-        const instanceMesh = subparcelVegetationMeshesSpec.instanceMeshes[type];
-        instanceMesh.visible = localFrustum.intersectsSphere(instanceMesh.boundingSphere);
-      }
-    }
+  }
+  if (currentVegetationMesh) {
+    localFrustum.setFromProjectionMatrix(
+      localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, currentVegetationMesh.matrixWorld))
+    );
+    currentVegetationMesh.geometry.originalGroups = currentVegetationMesh.geometry.groups.slice();
+    currentVegetationMesh.geometry.groups = currentVegetationMesh.geometry.groups.filter(group => localFrustum.intersectsSphere(group.boundingSphere));
   }
 
   renderer.render(scene, camera);
@@ -4145,6 +4061,9 @@ function animate(timestamp, frame) {
 
   if (currentChunkMesh) {
     currentChunkMesh.geometry.groups = currentChunkMesh.geometry.originalGroups;
+  }
+  if (currentVegetationMesh) {
+    currentVegetationMesh.geometry.groups = currentVegetationMesh.geometry.originalGroups;
   }
 
   planet.flush();
