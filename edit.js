@@ -1933,80 +1933,77 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     for (let i = 0; i < addedCoords.length; i++) {
       const neededCoord = addedCoords[i];
       const {x, y, z, index} = neededCoord;
-      const subparcel = planet.getSubparcelByIndex(index);
-      if (!subparcel.vegetations) {
-        subparcel.vegetations = Array(2);
-        for (let i = 0; i < subparcel.vegetations.length; i++) {
-          localVector3.set(
-            x*SUBPARCEL_SIZE + Math.random()*SUBPARCEL_SIZE,
-            y*SUBPARCEL_SIZE + SUBPARCEL_SIZE*0.4 - 0.5,
-            z*SUBPARCEL_SIZE + Math.random()*SUBPARCEL_SIZE
-          );
-          localQuaternion2.setFromAxisAngle(upVector, Math.random()*Math.PI*2);
-          subparcel.vegetations[i] = {
-            type: 'tree',
-            id: Math.floor(Math.random() * 0xFFFFFF),
-            position: localVector3.toArray(new Float32Array(3)),
-            quaternion: localQuaternion2.toArray(new Float32Array(4)),
-            scale: localVector4.set(1, 1, 1).toArray(new Float32Array(3)),
-            matrix: localMatrix2.compose(localVector3, localQuaternion2, localVector4).toArray(new Float32Array(16)),
-          };
-        }
-      }
-
-      let subparcelTasks = vegetationsTasks[index];
-      if (!subparcelTasks) {
-        subparcelTasks = [];
-        vegetationsTasks[index] = subparcelTasks;
-      }
-      let live = true;
-      (async () => {
-        const specs = await geometryWorker.requestMarchObjects(subparcel.vegetations);
-        if (live) {
-          const [spec] = specs;
-
-          const slab = currentVegetationMesh.getSlab(x, y, z);
-          slab.position.set(spec.positions);
-          slab.uv.set(spec.uvs);
-          const indexOffset = slab.slabIndex * vegetationSlabSliceTris;
-          for (let i = 0; i < spec.indices.length; i++) {
-            spec.indices[i] += indexOffset;
+      if (y === NUM_PARCELS-1) {
+        const subparcel = planet.getSubparcelByIndex(index);
+        if (!subparcel.vegetations) {
+          const numVegetations = 2;
+          subparcel.vegetations = [];
+          for (let i = 0; i < numVegetations; i++) {
+            localVector3.set(
+              x*SUBPARCEL_SIZE + Math.random()*SUBPARCEL_SIZE,
+              y*SUBPARCEL_SIZE + SUBPARCEL_SIZE*0.4 - 0.5,
+              z*SUBPARCEL_SIZE + Math.random()*SUBPARCEL_SIZE
+            );
+            localQuaternion2.setFromAxisAngle(upVector, Math.random()*Math.PI*2);
+            localVector4.set(1, 1, 1);
+            localMatrix2.compose(localVector3, localQuaternion2, localVector4);
+            subparcel.vegetations.push({
+              type: 'tree',
+              id: Math.floor(Math.random() * 0xFFFFFF),
+              position: localVector3.toArray(new Float32Array(3)),
+              quaternion: localQuaternion2.toArray(new Float32Array(4)),
+              scale: localVector4.toArray(new Float32Array(3)),
+              matrix: localMatrix2.toArray(new Float32Array(16)),
+            });
+            subparcel.vegetations.push({
+              type: 'leaves',
+              id: Math.floor(Math.random() * 0xFFFFFF),
+              position: localVector3.toArray(new Float32Array(3)),
+              quaternion: localQuaternion2.toArray(new Float32Array(4)),
+              scale: localVector4.toArray(new Float32Array(3)),
+              matrix: localMatrix2.toArray(new Float32Array(16)),
+            });
           }
-          slab.indices.set(spec.indices);
-
-          currentVegetationMesh.updateGeometry(slab, spec);
-
-          const group = currentVegetationMesh.geometry.groups.find(group => group.start === slab.slabIndex * vegetationSlabSliceVertices);
-          group.count = spec.positions.length/3;
         }
-      })()
-        .finally(() => {
-            if (live) {
-              subparcelTasks.splice(subparcelTasks.indexOf(task), 1);
+
+        let subparcelTasks = vegetationsTasks[index];
+        if (!subparcelTasks) {
+          subparcelTasks = [];
+          vegetationsTasks[index] = subparcelTasks;
+        }
+        let live = true;
+        (async () => {
+          const specs = await geometryWorker.requestMarchObjects(subparcel.vegetations);
+          if (live) {
+            const [spec] = specs;
+
+            const slab = currentVegetationMesh.getSlab(x, y, z);
+            slab.position.set(spec.positions);
+            slab.uv.set(spec.uvs);
+            const indexOffset = slab.slabIndex * vegetationSlabSliceTris;
+            for (let i = 0; i < spec.indices.length; i++) {
+              spec.indices[i] += indexOffset;
             }
-        });
-      const task = {
-        cancel() {
-          live = false;
-        },
-      };
-      subparcelTasks.push(task);
-      /* let subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
-      if (!subparcelVegetationMeshesSpec) {
-        subparcelVegetationMeshesSpec = {
-          index,
-          instanceMeshes: {},
+            slab.indices.set(spec.indices);
+
+            currentVegetationMesh.updateGeometry(slab, spec);
+
+            const group = currentVegetationMesh.geometry.groups.find(group => group.start === slab.slabIndex * vegetationSlabSliceVertices);
+            group.count = spec.positions.length/3;
+          }
+        })()
+          .finally(() => {
+              if (live) {
+                subparcelTasks.splice(subparcelTasks.indexOf(task), 1);
+              }
+          });
+        const task = {
+          cancel() {
+            live = false;
+          },
         };
-        currentChunkMesh.add(vegetationObject);
-        mesh.vegetationMeshes[index] = subparcelVegetationMeshesSpec;
+        subparcelTasks.push(task);
       }
-      for (const vegetation of subparcel.vegetations) {
-        if (!subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name]) {
-          subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name] = makeVegetationInstancedMesh(x, y, z, vegetation.name);
-          subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name].updateMatrixWorld();
-        }
-        _addVegetation(subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name], vegetation);
-      } */
     }
   };
   const _updatePackages = () => {
