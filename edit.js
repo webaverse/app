@@ -265,6 +265,7 @@ let makeVegetationInstancedMesh = null;
 let nextMeshId = 0;
 let chunkWorker = null;
 let physicsWorker = null;
+let geometryWorker = null;
 let chunkMeshes = [];
 let chunkMesh = null;
 const worldContainer = new THREE.Object3D();
@@ -290,6 +291,8 @@ let spikesMesh = null;
 let woodMesh = null;
 let stoneMesh = null;
 let metalMesh = null;
+let vegetationMeshOpaque = null;
+let vegetationMeshTransparent = null;
 (async () => {
 
 const [
@@ -869,6 +872,46 @@ const [
     spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh); */
   })(),
   (async () => {
+    geometryWorker = await (async () => {
+      const cbs = [];
+      const w = new Worker('geometry-worker.js');
+      w.onmessage = e => {
+        const {data} = e;
+        const {error, result} = data;
+        cbs.shift()(error, result);
+      };
+      w.onerror = err => {
+        console.warn(err);
+      };
+      w.request = (req, transfers) => new Promise((accept, reject) => {
+        w.postMessage(req, transfers);
+
+        cbs.push((err, result) => {
+          if (!err) {
+            accept(result);
+          } else {
+            reject(err);
+          }
+        });
+      });
+      w.requestRegisterGeometry = (type, positions, uvs, indices) => {
+        return w.request({
+          method: 'registerGeometry',
+          type,
+          positions,
+          uvs,
+          indices,
+        });
+      };
+      w.requestMarchObjects = (objects) => {
+        return w.request({
+          method: 'marchObjects',
+          objects,
+        });
+      };
+      return w;
+    })();
+
     const vegetationModelsSrc = await _loadGltf('./vegetation.glb');
 
     const canvas = document.createElement('canvas');
@@ -926,7 +969,7 @@ const [
     };
 
     const vegetationGeometries = {};
-    [
+    const vegetationSpecs = [
       ['grass1', 'Grass1', true],
       ['grass2', 'Grass2', true],
       ['grass3', 'Grass3', true],
@@ -937,13 +980,68 @@ const [
       ['pinetree', 'Pine_-_Wood_#3', false],
       ['pineleaves', 'Pine_Leaves_#3', false],
       ['chest', 'Chest_top', false],
-    ].map(([type, modelName, transparent]) => {
+    ];
+    for (const vegetationSpec of vegetationSpecs) {
+      const [type, modelName, transparent] = vegetationSpec;
       const c = vegetationModelsSrc.getObjectByName(modelName);
+      const geometry = _mergeGroup(c);
+      const positions = geometry.attributes.position.array;
+      const uvs = geometry.attributes.uv.array;
+      const indices = geometry.index.array;
+      geometryWorker.requestRegisterGeometry(type, positions, uvs, indices);
       vegetationGeometries[type] = {
-        geometry: _mergeGroup(c),
+        geometry,
         transparent,
       };
-    });
+    }
+
+    const _makeVegetationMaterial = transparent => {
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          map: {
+            type: 't',
+            value: texture,
+          },
+        },
+        vertexShader: `\
+          precision highp float;
+          precision highp int;
+
+          // attribute vec2 alphaUv;
+          varying vec2 vUv;
+          // svarying vec2 vAlphaUv;
+          varying vec3 vNormal;
+
+          void main() {
+            vUv = uv;
+            vNormal = normal;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `\
+          precision highp float;
+          precision highp int;
+
+          uniform sampler2D map;
+          varying vec2 vUv;
+          varying vec3 vNormal;
+
+          vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
+
+          void main() {
+            gl_FragColor = ${transparent ? `texture2D(map, vUv)` : `vec4(texture2D(map, vUv).rgb, 1.0)`};
+            ${transparent ? `if (gl_FragColor.a < 0.8) discard;` : ''}
+          }
+        `,
+      });
+      if (transparent) {
+        material.side = THREE.DoubleSide;
+        material.transparent = true;
+      }
+      return material;
+    };
+    vegetationMeshOpaque = _makeVegetationMaterial(false);
+    vegetationMeshTransparent = _makeVegetationMaterial(true);
 
     const _makeInstanceMeshMaterial = transparent => {
       const material = new THREE.ShaderMaterial({
@@ -1402,7 +1500,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     renderer.geometries.update(geometry);
   };
   const currentCoord = new THREE.Vector3(NaN, NaN, NaN);
-  let marchesRunning = false;
+  const vegetationsTasks = [];
   let packagesRunning = false;
   let chunksNeedUpdate = false;
   let buildMeshesNeedUpdate = false;
@@ -1561,10 +1659,12 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         }
       }
 
-      if (
+      /* if (
         !slabs[index] ||
         subparcelsNeedUpdate.some(([x, y, z]) => x === ax && y === ay && z === az)
-      ) {
+      ) { */
+      let live = true;
+      (async () => {
         const specs = await chunkWorker.requestMarchLand(
           seedNum,
           meshId,
@@ -1572,27 +1672,41 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           parcelSize,
           subparcelSize
         );
-        for (let i = 0; i < specs.length; i++) {
-          const spec = specs[i];
-          const {x, y, z} = spec;
-          const slab = mesh.getSlab(x, y, z);
-          slab.position.set(spec.positions);
-          slab.barycentric.set(spec.barycentrics);
-          slab.id.set(spec.ids);
-          const indexOffset = slab.slabIndex * slabSliceTris;
-          for (let i = 0; i < spec.indices.length; i++) {
-            spec.indices[i] += indexOffset;
+        if (live) {
+          for (let i = 0; i < specs.length; i++) {
+            const spec = specs[i];
+            const {x, y, z} = spec;
+            const slab = mesh.getSlab(x, y, z);
+            slab.position.set(spec.positions);
+            slab.barycentric.set(spec.barycentrics);
+            slab.id.set(spec.ids);
+            const indexOffset = slab.slabIndex * slabSliceTris;
+            for (let i = 0; i < spec.indices.length; i++) {
+              spec.indices[i] += indexOffset;
+            }
+            slab.indices.set(spec.indices);
+
+            mesh.updateGeometry(slab, spec);
+
+            const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
+            group.count = spec.positions.length/3;
           }
-          slab.indices.set(spec.indices);
 
-          mesh.updateGeometry(slab, spec);
-
-          const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
-          group.count = spec.positions.length/3;
+          physicsWorker.requestLoadSlab(meshId, mesh.position.x, mesh.position.y, mesh.position.z, specs, parcelSize, subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
         }
-
-        physicsWorker.requestLoadSlab(meshId, mesh.position.x, mesh.position.y, mesh.position.z, specs, parcelSize, subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
-      }
+      })()
+        .finally(() => {
+            if (live) {
+              subparcelTasks.splice(subparcelTasks.indexOf(task), 1);
+            }
+        });
+      const task = {
+        cancel() {
+          live = false;
+        },
+      };
+      subparcelTasks.push(task);
+      // }
     }
 
     subparcelsNeedUpdate.length = 0;
@@ -1871,12 +1985,30 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     // physicsWorker.requestUnloadBuildMesh(vegetationMeshClone.meshId);
   };
   const _updateVegetations = () => {
+    for (let i = 0; i < removedCoords.length; i++) {
+      const neededCoord = removedCoords[i];
+      const {index} = neededCoord;
+      const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
+      if (subparcelVegetationMeshesSpec) {
+        for (const type in subparcelVegetationMeshesSpec.instanceMeshes) {
+          subparcelVegetationMeshesSpec.instanceMeshes[type].clearInstances();
+        }
+      }
+
+      const subparcelTasks = vegetationsTasks[index];
+      if (subparcelTasks) {
+        for (const task of subparcelTasks) {
+          task.cancel();
+        }
+        subparcelTasks.length = 0;
+      }
+    }
     for (let i = 0; i < addedCoords.length; i++) {
       const neededCoord = addedCoords[i];
       const {x, y, z, index} = neededCoord;
       const subparcel = planet.getSubparcelByIndex(index);
       if (!subparcel.vegetations) {
-        subparcel.vegetations = Array(1);
+        subparcel.vegetations = Array(2);
         for (let i = 0; i < subparcel.vegetations.length; i++) {
           localVector3.set(
             x*SUBPARCEL_SIZE + Math.random()*SUBPARCEL_SIZE,
@@ -1885,15 +2017,53 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           );
           localQuaternion2.setFromAxisAngle(upVector, Math.random()*Math.PI*2);
           subparcel.vegetations[i] = {
-            name: 'tree',
+            type: 'tree',
             id: Math.floor(Math.random() * 0xFFFFFF),
             position: localVector3.toArray(new Float32Array(3)),
             quaternion: localQuaternion2.toArray(new Float32Array(4)),
-            scale: new THREE.Vector3(1, 1, 1),
+            scale: localVector4.set(1, 1, 1).toArray(new Float32Array(3)),
+            matrix: localMatrix2.compose(localVector3, localQuaternion2, localVector4).toArray(new Float32Array(16)),
           };
         }
       }
-      let subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
+
+      let subparcelTasks = vegetationsTasks[index];
+      if (!subparcelTasks) {
+        subparcelTasks = [];
+        vegetationsTasks[index] = subparcelTasks;
+      }
+      let live = true;
+      (async () => {
+        const vegetationSlab = await geometryWorker.requestMarchObjects(subparcel.vegetations);
+        if (live) {
+          const [{
+            positions,
+            uvs,
+            indices,
+          }] = vegetationSlab;
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+          geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+          geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+          const material = vegetationMeshOpaque;
+          const mesh = new THREE.Mesh(geometry, material);
+          console.log('got mesh', mesh);
+          mesh.frustumCulled = false;
+          currentChunkMesh.add(mesh);
+        }
+      })()
+        .finally(() => {
+            if (live) {
+              subparcelTasks.splice(subparcelTasks.indexOf(task), 1);
+            }
+        });
+      const task = {
+        cancel() {
+          live = false;
+        },
+      };
+      subparcelTasks.push(task);
+      /* let subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
       if (!subparcelVegetationMeshesSpec) {
         subparcelVegetationMeshesSpec = {
           index,
@@ -1908,17 +2078,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name].updateMatrixWorld();
         }
         _addVegetation(subparcelVegetationMeshesSpec.instanceMeshes[vegetation.name], vegetation);
-      }
-    }
-    for (let i = 0; i < removedCoords.length; i++) {
-      const neededCoord = removedCoords[i];
-      const {index} = neededCoord;
-      const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
-      if (subparcelVegetationMeshesSpec) {
-        for (const type in subparcelVegetationMeshesSpec.instanceMeshes) {
-          subparcelVegetationMeshesSpec.instanceMeshes[type].clearInstances();
-        }
-      }
+      } */
     }
   };
   const _updatePackages = () => {
