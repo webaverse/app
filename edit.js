@@ -1017,14 +1017,12 @@ const [
           precision highp float;
           precision highp int;
 
-          // attribute vec2 alphaUv;
           varying vec2 vUv;
-          // svarying vec2 vAlphaUv;
-          varying vec3 vNormal;
+          // varying vec3 vNormal;
 
           void main() {
             vUv = uv;
-            vNormal = normal;
+            // vNormal = normal;
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
         `,
@@ -1034,9 +1032,9 @@ const [
 
           uniform sampler2D map;
           varying vec2 vUv;
-          varying vec3 vNormal;
+          // varying vec3 vNormal;
 
-          vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
+          // vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
 
           void main() {
             gl_FragColor = ${transparent ? `texture2D(map, vUv)` : `vec4(texture2D(map, vUv).rgb, 1.0)`};
