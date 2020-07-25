@@ -244,62 +244,86 @@ const _meshChunkSlab = (chunk, slab, subparcelSize) => {
 
 const geometryRegistry = {};
 
-const _marchObjects = (objects, indexOffset) => {
+const _marchObjects = (objects, opaqueIndexOffset, transparentIndexOffset) => {
   const geometries = objects.map(o => geometryRegistry[o.type]);
 
-  let numPositions = 0;
-  let numUvs = 0;
-  let numIndices = 0;
+  let numOpaquePositions = 0;
+  let numOpaqueUvs = 0;
+  let numOpaqueIndices = 0;
+  let numTransparentPositions = 0;
+  let numTransparentUvs = 0;
+  let numTransparentIndices = 0;
   for (const geometry of geometries) {
-    numPositions += geometry.positions.length;
-    numUvs += geometry.uvs.length;
-    numIndices += geometry.indices.length;
+    if (!geometry.transparent) {
+      numOpaquePositions += geometry.positions.length;
+      numOpaqueUvs += geometry.uvs.length;
+      numOpaqueIndices += geometry.indices.length;
+    } else {
+      numTransparentPositions += geometry.positions.length;
+      numTransparentUvs += geometry.uvs.length;
+      numTransparentIndices += geometry.indices.length;
+    }
   }
 
   const arraybuffer = new ArrayBuffer(
-    numPositions * Float32Array.BYTES_PER_ELEMENT +
-    numUvs * Float32Array.BYTES_PER_ELEMENT +
-    numIndices * Uint32Array.BYTES_PER_ELEMENT
+    numOpaquePositions * Float32Array.BYTES_PER_ELEMENT +
+    numOpaqueUvs * Float32Array.BYTES_PER_ELEMENT +
+    numOpaqueIndices * Uint32Array.BYTES_PER_ELEMENT +
+    numTransparentPositions * Float32Array.BYTES_PER_ELEMENT +
+    numTransparentUvs * Float32Array.BYTES_PER_ELEMENT +
+    numTransparentIndices * Uint32Array.BYTES_PER_ELEMENT
   );
   let index = 0;
-  const positions = new Float32Array(arraybuffer, index, numPositions);
-  index += numPositions * Float32Array.BYTES_PER_ELEMENT;
-  const uvs = new Float32Array(arraybuffer, index, numUvs);
-  index += numUvs * Float32Array.BYTES_PER_ELEMENT;
-  const indices = new Uint32Array(arraybuffer, index, numIndices);
-  index += numIndices * Uint32Array.BYTES_PER_ELEMENT;
+  const opaque = {};
+  opaque.positions = new Float32Array(arraybuffer, index, numOpaquePositions);
+  index += numOpaquePositions * Float32Array.BYTES_PER_ELEMENT;
+  opaque.uvs = new Float32Array(arraybuffer, index, numOpaqueUvs);
+  index += numOpaqueUvs * Float32Array.BYTES_PER_ELEMENT;
+  opaque.indices = new Uint32Array(arraybuffer, index, numOpaqueIndices);
+  index += numOpaqueIndices * Uint32Array.BYTES_PER_ELEMENT;
+  opaque.positionsIndex = 0;
+  opaque.uvsIndex = 0;
+  opaque.indicesIndex = 0;
 
-  let positionsIndex = 0;
-  let uvsIndex = 0;
-  let indicesIndex = 0;
+  const transparent = {};
+  transparent.positions = new Float32Array(arraybuffer, index, numTransparentPositions);
+  index += numTransparentPositions * Float32Array.BYTES_PER_ELEMENT;
+  transparent.uvs = new Float32Array(arraybuffer, index, numTransparentUvs);
+  index += numTransparentUvs * Float32Array.BYTES_PER_ELEMENT;
+  transparent.indices = new Uint32Array(arraybuffer, index, numTransparentIndices);
+  index += numTransparentIndices * Uint32Array.BYTES_PER_ELEMENT;
+  transparent.positionsIndex = 0;
+  transparent.uvsIndex = 0;
+  transparent.indicesIndex = 0;
+
   for (let i = 0; i < geometries.length; i++) {
     const geometry = geometries[i];
     const object = objects[i];
     const matrix = localMatrix.fromArray(object.matrix);
+    const spec = geometry.transparent ? transparent : opaque;
 
-    const indexOffset2 = indexOffset + positionsIndex/3;
+    const indexOffset2 = (geometry.transparent ? transparentIndexOffset : opaqueIndexOffset) + spec.positionsIndex/3;
     for (let j = 0; j < geometry.indices.length; j++) {
-      indices[indicesIndex + j] = geometry.indices[j] + indexOffset2;
+      spec.indices[spec.indicesIndex + j] = geometry.indices[j] + indexOffset2;
     }
-    indicesIndex += geometry.indices.length;
+    spec.indicesIndex += geometry.indices.length;
 
     for (let j = 0; j < geometry.positions.length; j += 3) {
       localVector
         .fromArray(geometry.positions, j)
         .applyMatrix4(matrix)
-        .toArray(positions, positionsIndex + j);
+        .toArray(spec.positions, spec.positionsIndex + j);
     }
-    positionsIndex += geometry.positions.length;
+    spec.positionsIndex += geometry.positions.length;
 
-    uvs.set(geometry.uvs, uvsIndex);
-    uvsIndex += geometry.uvs.length;
+    spec.uvs.set(geometry.uvs, spec.uvsIndex);
+    spec.uvsIndex += geometry.uvs.length;
   }
 
   return [
     {
-      positions,
-      uvs,
-      indices,
+      opaque,
+      transparent,
     },
     arraybuffer,
   ];
@@ -311,12 +335,13 @@ const _handleMessage = data => {
   const {method} = data;
   switch (method) {
     case 'registerGeometry': {
-      const {type, positions, uvs, indices} = data;
+      const {type, transparent, positions, uvs, indices} = data;
 
       geometryRegistry[type] = {
         positions,
         uvs,
         indices,
+        transparent,
       };
 
       self.postMessage({
@@ -325,11 +350,11 @@ const _handleMessage = data => {
       break;
     }
     case 'marchObjects': {
-      const {objects, indexOffset} = data;
+      const {objects, opaqueIndexOffset, transparentIndexOffset} = data;
 
       const results = [];
       const transfers = [];
-      const [result, transfer] = _marchObjects(objects, indexOffset);
+      const [result, transfer] = _marchObjects(objects, opaqueIndexOffset, transparentIndexOffset);
       results.push(result);
       transfers.push(transfer);
 

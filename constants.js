@@ -12,7 +12,7 @@ export const slabAttributeSize = slabTotalSize/slabNumAttributes;
 export const slabSliceTris = Math.floor(slabAttributeSize/numSlices/9/Float32Array.BYTES_PER_ELEMENT);
 export const slabSliceVertices = slabSliceTris * 3;
 
-export const vegetationSlabTotalSize = 90 * 1024 * 1024;
+export const vegetationSlabTotalSize = 60 * 1024 * 1024;
 export const vegetationSlabNumAttributes = 3;
 export const vegetationSlabAttributeSize = vegetationSlabTotalSize/vegetationSlabNumAttributes;
 export const vegetationSlabSliceTris = Math.floor(vegetationSlabAttributeSize/numSlices/9/Float32Array.BYTES_PER_ELEMENT);
