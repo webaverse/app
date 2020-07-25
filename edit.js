@@ -500,7 +500,7 @@ const [
     canvas.width = 8192;
     canvas.height = 8192;
     const texture = new THREE.Texture(canvas);
-    texture.anisotropy = 16;
+    // texture.anisotropy = 16;
     texture.flipY = false;
     texture.needsUpdate = true;
     const material = new THREE.MeshBasicMaterial({
@@ -928,7 +928,7 @@ const [
     canvas.width = 8192;
     canvas.height = 8192;
     const texture = new THREE.Texture(canvas);
-    texture.anisotropy = 16;
+    // texture.anisotropy = 16;
     texture.flipY = false;
     texture.needsUpdate = true;
 
