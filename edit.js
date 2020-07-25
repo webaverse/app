@@ -18,13 +18,22 @@ import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
   NUM_PARCELS,
+
+  numSlices,
+  slabRadius,
+
   slabTotalSize,
   slabNumAttributes,
   slabAttributeSize,
-  numSlices,
   slabSliceTris,
   slabSliceVertices,
-  slabRadius,
+
+  vegetationSlabTotalSize,
+  vegetationSlabNumAttributes,
+  vegetationSlabAttributeSize,
+  vegetationSlabSliceTris,
+  vegetationSlabSliceVertices,
+
   chunkDistance,
   BUILD_SNAP,
   PLANET_OBJECT_SLOTS,
