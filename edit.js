@@ -67,6 +67,7 @@ const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
+const localMatrix3 = new THREE.Matrix4();
 const localFrustum = new THREE.Frustum();
 
 const cubicBezier = easing(0, 1, 0, 1);
@@ -272,7 +273,8 @@ const _decorateMeshForRaycast = mesh => {
 
 let nextMeshId = 0;
 let chunkWorker = null;
-let physicsWorker = null;
+let physxWorker = null;
+// let physicsWorker = null;
 let geometryWorker = null;
 let chunkMeshes = [];
 let chunkMesh = null;
@@ -305,7 +307,8 @@ let metalMesh = null;
 
 const [
   cw,
-  pw,
+  px,
+  // pw,
   colors,
   _buildMeshes,
 ] = await Promise.all([
@@ -373,6 +376,146 @@ const [
     return w;
   })(),
   (async () => {
+    await import('./bin/physx2.js');
+    await wasmModulePromise;
+    Module._initPhysx();
+
+    class Allocator {
+      constructor() {
+        this.offsets = [];
+      }
+      alloc(constructor, size) {
+        const offset = self.Module._doMalloc(size * constructor.BYTES_PER_ELEMENT);
+        const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
+        b.offset = offset;
+        this.offsets.push(offset);
+        return b;
+      }
+      freeAll() {
+        for (let i = 0; i < this.offsets.length; i++) {
+          self.Module._doFree(this.offsets[i]);
+        }
+        this.offsets.length = 0;
+      }
+    }
+
+    return {
+      registerGeometry(meshId, positionsData, indicesData) {
+        /* currentChunkMesh.matrixWorld
+          .decompose(localVector3, localQuaternion3, localVector4); */
+
+        const allocator = new Allocator();
+
+        const positions = allocator.alloc(Float32Array, positionsData.length);
+        positions.set(positionsData);
+        const indices = indicesData ? allocator.alloc(Uint32Array, indicesData.length) : null;
+        if (indicesData) {
+          indices.set(indicesData);
+        }
+        const meshPosition = allocator.alloc(Float32Array, 3);
+        localVector3.set(0, 0, 0).toArray(meshPosition);
+        const meshQuaternion = allocator.alloc(Float32Array, 4);
+        localQuaternion3.set(0, 0, 0, 1).toArray(meshQuaternion);
+        const result = allocator.alloc(Uint32Array, 1);
+
+        Module._registerGeometry(
+          meshId,
+          positions.offset,
+          indices ? indices.offset : 0,
+          positions.length,
+          indices ? indices.length : 0,
+          meshPosition.offset,
+          meshQuaternion.offset,
+          result.offset
+        );
+        const ptr = result[0];
+        allocator.freeAll();
+        return ptr;
+      },
+      unregisterGeometry(ptr) {
+        Module._unregisterGeometry(ptr);
+      },
+      raycast(p, q, s) {
+        /* localMatrix2
+          .compose(p, q, s)
+          .premultiply(localMatrix3.getInverse(currentChunkMesh.matrixWorld))
+          .decompose(localVector3, localQuaternion2, localVector4); */
+        currentChunkMesh.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
+
+        const allocator = new Allocator();
+
+        const origin = allocator.alloc(Float32Array, 3);
+        p.toArray(origin);
+        const direction = allocator.alloc(Float32Array, 3);
+        localVector4.set(0, 0, -1)
+          .applyQuaternion(q)
+          .toArray(direction);
+        const meshPosition = allocator.alloc(Float32Array, 3);
+        localVector3.toArray(meshPosition);
+        const meshQuaternion = allocator.alloc(Float32Array, 4);
+        localQuaternion2.toArray(meshQuaternion);
+        // console.log('got direction', localVector3.toArray());
+        const hit = allocator.alloc(Uint32Array, 1);
+        const point = allocator.alloc(Float32Array, 3);
+        const normal = allocator.alloc(Float32Array, 3);
+        const distance = allocator.alloc(Float32Array, 1);
+        const meshId = allocator.alloc(Uint32Array, 1);
+        const faceIndex = allocator.alloc(Uint32Array, 1);
+
+        Module._raycast(
+          origin.offset,
+          direction.offset,
+          meshPosition.offset,
+          meshQuaternion.offset,
+          hit.offset,
+          point.offset,
+          normal.offset,
+          distance.offset,
+          meshId.offset,
+          faceIndex.offset
+        );
+        const result = hit[0] ? {
+          point: point.slice(),
+          normal: normal.slice(),
+          distance: distance[0],
+          meshId: meshId[0],
+          faceIndex: faceIndex[0],
+        } : null;
+        allocator.freeAll();
+        return result;
+      },
+      collide(radius, halfHeight, p, q, maxIter) {
+        const allocator = new Allocator();
+
+        const position = allocator.alloc(Float32Array, 3);
+        p.toArray(v);
+        const quaternion = allocator.alloc(Float32Array, 4);
+        q.toArray(quaternion);
+        const hit = allocator.alloc(Uint32Array, 1);
+        const direction = allocator.alloc(Float32Array, 3);
+        const depth = allocator.alloc(Float32Array, 1);
+
+        Module._collide(
+          radius,
+          halfHeight,
+          position.offset,
+          quaternion.offset,
+          maxIter,
+          hit.offset,
+          direction.offset,
+          depth.offset,
+        );
+        const result = hit[0] ? {
+          direction: direction.slice(),
+          depth: depth[0],
+        } : null;
+        allocator.freeAll();
+        return result;
+      },
+    };
+  })(),
+  /* (async () => {
+    return null;
     const cbs = [];
     const w = new Worker('physics-worker.js');
     w.onmessage = e => {
@@ -470,7 +613,7 @@ const [
       });
     };
     return w;
-  })(),
+  })(), */
   (async () => {
     const res = await fetch('./colors.json');
     return await res.json();
@@ -1210,7 +1353,8 @@ const [
   })(),
 ]);
 chunkWorker = cw;
-physicsWorker = pw;
+physxWorker = px;
+// physicsWorker = pw;
 
 (async () => {
   const effectController = {
@@ -1645,9 +1789,10 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
             const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
             group.count = spec.positions.length/3;
-          }
 
-          physicsWorker.requestLoadSlab(meshId, mesh.position.x, mesh.position.y, mesh.position.z, specs, parcelSize, subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
+            slab.physxGeometry = spec.positions.length > 0 ? physxWorker.registerGeometry(meshId, spec.positions, null) : 0;
+          }
+          // physicsWorker.requestLoadSlab(meshId, mesh.position.x, mesh.position.y, mesh.position.z, specs, parcelSize, subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
         }
       })()
         .finally(() => {
@@ -1862,14 +2007,14 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     localMatrix2
       .premultiply(currentChunkMesh.matrix)
       .decompose(localVector3, localQuaternion3, localVector4);
-    physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, localVector3.toArray(), localQuaternion3.toArray());
+    // physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, localVector3.toArray(), localQuaternion3.toArray());
 
     return buildMeshClone;
   };
   const _removeBuildMesh = buildMeshClone => {
     buildMeshClone.remove();
 
-    physicsWorker.requestUnloadBuildMesh(buildMeshClone.meshId);
+    // physicsWorker.requestUnloadBuildMesh(buildMeshClone.meshId);
   };
   const _updateBuilds = () => {
     if (buildMeshesNeedUpdate) {
@@ -2981,9 +3126,9 @@ const _collideWall = matrix => {
     localQuaternion2.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(velocity.x, 0, velocity.z).normalize());
     localVector3.copy(localVector)
       .add(localVector4.set(0, heightOffset, bodyWidth).applyQuaternion(localQuaternion2));
-    if (!raycastRunning && physicsWorker) {
+    /* if (!raycastRunning && physicsWorker) {
       physicsWorker.requestCollisionRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector3.toArray(), localQuaternion2.toArray(), width, height, depth, 0);
-    }
+    } */
 
     let i = 0;
     for (let y = 0; y < 10; y++) {
@@ -3023,9 +3168,9 @@ const _collideFloor = matrix => {
   const height = 0.5;
   const depth = 100;
 
-  if (!raycastRunning && physicsWorker) {
+  /* if (!raycastRunning && physicsWorker) {
     physicsWorker.requestCollisionRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector.toArray(), localQuaternion2.toArray(), width, height, depth, 1);
-  }
+  } */
 
   let groundedDistance = Infinity;
 
@@ -3063,9 +3208,9 @@ const _collideCeiling = matrix => {
   const height = 0.5;
   const depth = 100;
 
-  if (!raycastRunning && physicsWorker) {
+  /* if (!raycastRunning && physicsWorker) {
     physicsWorker.requestCollisionRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector.toArray(), localQuaternion2.toArray(), width, height, depth, 2);
-  }
+  } */
 
   let ceilingDistance = Infinity;
 
@@ -3176,8 +3321,17 @@ function animate(timestamp, frame) {
       localMatrix.fromArray(pose.transform.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
-      if (!raycastRunning && physicsWorker) {
+      /* if (!raycastRunning && physicsWorker) {
         physicsWorker.requestPointRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector.toArray(), localQuaternion.toArray());
+      } */
+      if (currentChunkMesh && physxWorker) {
+        const result = physxWorker.raycast(localVector, localQuaternion, localVector2);
+        raycastChunkSpec = result;
+        if (raycastChunkSpec) {
+          raycastChunkSpec.mesh = _findMeshWithMeshId(chunkMeshContainer, raycastChunkSpec.meshId);
+          raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
+          raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
+        }
       }
 
       [assaultRifleMesh, grenadeMesh, crosshairMesh, plansMesh, pencilMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
@@ -3459,7 +3613,7 @@ function animate(timestamp, frame) {
               const group = currentChunkMesh.geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
               group.count = spec.positions.length/3;
             }
-            physicsWorker.requestLoadSlab(currentChunkMesh.meshId, currentChunkMesh.position.x, currentChunkMesh.position.y, currentChunkMesh.position.z, specs, currentChunkMesh.parcelSize, currentChunkMesh.subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
+            // physicsWorker.requestLoadSlab(currentChunkMesh.meshId, currentChunkMesh.position.x, currentChunkMesh.position.y, currentChunkMesh.position.z, specs, currentChunkMesh.parcelSize, currentChunkMesh.subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
             if (specs.length > 0 && delta < 0) {
               for (let i = 0; i < 3; i++) {
                 const pxMesh = new THREE.Mesh(tetrehedronGeometry, currentChunkMesh.material[0]);
@@ -3979,7 +4133,7 @@ function animate(timestamp, frame) {
     wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
   } */
 
-  if (!raycastRunning && physicsWorker) {
+  /* if (!raycastRunning && physicsWorker) {
     const collisions = [];
     let collisionIndex = 0;
     pxMeshes = pxMeshes.filter(pxMesh => {
@@ -4003,12 +4157,12 @@ function animate(timestamp, frame) {
       }
     });
     physicsWorker.requestPhysicsRaycast(chunkMeshContainer.matrixWorld.toArray(), collisions, 1, 1, 100);
-  }
+  } */
 
-  if (!raycastRunning && physicsWorker) {
+  /* if (!raycastRunning && physicsWorker) {
     raycastRunning = true;
 
-    physicsWorker.requestRaycastResult()
+    physicsWorker.registerGeometry()
       .then(specs => {
         const [raycastResultData, collisionResults, physicsResultData] = specs;
 
@@ -4061,7 +4215,7 @@ function animate(timestamp, frame) {
 
         raycastRunning = false;
       });
-  }
+  } */
 
   lastTeleport = currentTeleport;
   lastWeaponDown = currentWeaponDown;
