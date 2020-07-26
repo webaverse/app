@@ -500,7 +500,6 @@ const [
         localQuaternion2.toArray(meshQuaternion);
         const hit = allocator.alloc(Uint32Array, 1);
         const direction = allocator.alloc(Float32Array, 3);
-        const depth = allocator.alloc(Float32Array, 1);
 
         Module._collide(
           radius,
@@ -511,12 +510,10 @@ const [
           meshQuaternion.offset,
           maxIter,
           hit.offset,
-          direction.offset,
-          depth.offset,
+          direction.offset
         );
         const result = hit[0] ? {
           direction: direction.slice(),
-          depth: depth[0],
         } : null;
         allocator.freeAll();
         return result;
@@ -3292,8 +3289,7 @@ function animate(timestamp, frame) {
     capsuleMesh.position.set(-8, -11+Math.sin((Date.now()%10000)/10000*Math.PI*2)*2, 8);
     const collision = physxWorker.collide(0.5, 0.5, capsuleMesh.position, capsuleMesh.quaternion, 4);
     if (collision) {
-      // console.log('got collision', collision);
-      capsuleMesh.position.add(localVector.fromArray(collision.direction).multiplyScalar(collision.depth));
+      capsuleMesh.position.add(localVector.fromArray(collision.direction));
     }
   }
 
