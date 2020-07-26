@@ -2073,31 +2073,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       }
     }
   };
-  const _addVegetation = (instanceMesh, vegetation) => {
-    const meshId = ++nextMeshId;
-    localMatrix2.compose(
-      localVector3.fromArray(vegetation.position),
-      localQuaternion3.fromArray(vegetation.quaternion),
-      localVector4.copy(vegetation.scale)
-    )
-      // .premultiply(mesh.matrix)
-      // .decompose(localVector2, localQuaternion2, localVector3);
-    const vegetationMeshClone = instanceMesh.addInstance(meshId, localVector3, localQuaternion3, localVector4);
-    vegetationMeshClone.vegetation = vegetation;
-    vegetationMeshClone.meshId = meshId;
-    // mesh.vegetationMeshes.push(vegetationMeshClone);
-
-    /* localMatrix2
-      .premultiply(currentChunkMesh.matrix)
-      .decompose(localVector3, localQuaternion3, localVector4);
-    physicsWorker.requestLoadBuildMesh(vegetationMeshClone.meshId, vegetationMeshClone.buildMeshType, localVector3.toArray(), localQuaternion3.toArray()); */
-  };
-  const _removeVegetationMesh = vegetationMeshClone => {
-    vegetationMeshClone.remove();
-    // mesh.vegetationMeshes.splice(mesh.vegetationMeshes.indexOf(vegetationMeshClone), 1);
-
-    // physicsWorker.requestUnloadBuildMesh(vegetationMeshClone.meshId);
-  };
   const _updateVegetations = () => {
     for (let i = 0; i < removedCoords.length; i++) {
       const {index} = removedCoords[i];
