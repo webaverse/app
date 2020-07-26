@@ -3903,7 +3903,7 @@ function animate(timestamp, frame) {
     if (localVector.length() > 0) {
       localVector.normalize().multiplyScalar(speed);
     }
-    localVector.y -= 9.8;
+    // localVector.y -= 9.8;
     localVector.multiplyScalar(timeDiff);
     velocity.add(localVector);
 
