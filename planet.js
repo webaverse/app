@@ -22,11 +22,11 @@ function sign(n) {
 const _getSubparcelIndex = (x, y, z) => abs(x)|(abs(y)<<9)|(abs(z)<<18)|(sign(x)<<27)|(sign(y)<<28)|(sign(z)<<29);
 const _getSubparcelXYZ = index => {
   let x = index&0x1FF; // (1<<9)-1
-  index >>>= 10;
+  index >>>= 9;
   let y = index&0x1FF;
-  index >>>= 10;
+  index >>>= 9;
   let z = index&0x1FF;
-  index >>>= 1;
+  index >>>= 9;
   const sx = index&0x1;
   if (sx) { x *= -1; }
   index >>>= 1;
