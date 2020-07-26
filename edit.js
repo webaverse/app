@@ -400,67 +400,70 @@ const [
       }
     }
 
+    const allocator = new Allocator();
+    const geometryArgs = {
+      positions: allocator.alloc(Float32Array, 1024 * 1024 / Float32Array.BYTES_PER_ELEMENT),
+      indices: allocator.alloc(Uint32Array, 1024 * 1024 / Uint32Array.BYTES_PER_ELEMENT),
+      meshPosition: allocator.alloc(Float32Array, 3),
+      meshQuaternion: allocator.alloc(Float32Array, 4),
+      result: allocator.alloc(Uint32Array, 1),
+    };
+    const raycastArgs = {
+      origin: allocator.alloc(Float32Array, 3),
+      direction: allocator.alloc(Float32Array, 3),
+      meshPosition: allocator.alloc(Float32Array, 3),
+      meshQuaternion: allocator.alloc(Float32Array, 4),
+      hit: allocator.alloc(Uint32Array, 1),
+      point: allocator.alloc(Float32Array, 3),
+      normal: allocator.alloc(Float32Array, 3),
+      distance: allocator.alloc(Float32Array, 1),
+      meshId: allocator.alloc(Uint32Array, 1),
+      faceIndex: allocator.alloc(Uint32Array, 1),
+    };
+    const collideArgs = {
+      position: allocator.alloc(Float32Array, 3),
+      quaternion: allocator.alloc(Float32Array, 4),
+      meshPosition: allocator.alloc(Float32Array, 3),
+      meshQuaternion: allocator.alloc(Float32Array, 4),
+      hit: allocator.alloc(Uint32Array, 1),
+      direction: allocator.alloc(Float32Array, 3),
+    };
+
     return {
       registerGeometry(meshId, positionsData, indicesData, x, y, z) {
-        /* currentChunkMesh.matrixWorld
-          .decompose(localVector3, localQuaternion3, localVector4); */
+        const {positions, indices, meshPosition, meshQuaternion, result} = geometryArgs;
 
-        const allocator = new Allocator();
-
-        const positions = allocator.alloc(Float32Array, positionsData.length);
         positions.set(positionsData);
-        const indices = indicesData ? allocator.alloc(Uint32Array, indicesData.length) : null;
-        if (indicesData) {
-          indices.set(indicesData);
-        }
-        const meshPosition = allocator.alloc(Float32Array, 3);
+        indicesData && indices.set(indicesData);
         localVector3.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2).toArray(meshPosition);
-        const meshQuaternion = allocator.alloc(Float32Array, 4);
         localQuaternion2.set(0, 0, 0, 1).toArray(meshQuaternion);
-        const result = allocator.alloc(Uint32Array, 1);
 
         Module._registerGeometry(
           meshId,
           positions.offset,
-          indices ? indices.offset : 0,
-          positions.length,
-          indices ? indices.length : 0,
+          indicesData ? indices.offset : 0,
+          positionsData.length,
+          indicesData ? indicesData.length : 0,
           meshPosition.offset,
           meshQuaternion.offset,
           result.offset
         );
         const ptr = result[0];
-        allocator.freeAll();
         return ptr;
       },
       unregisterGeometry(ptr) {
         Module._unregisterGeometry(ptr);
       },
       raycast(p, q, s) {
-        /* localMatrix2
-          .compose(p, q, s)
-          // .premultiply(localMatrix3.getInverse(currentChunkMesh.matrixWorld))
-          .decompose(localVector3, localQuaternion2, localVector4); */
-        currentChunkMesh.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
+        const {origin, direction, meshPosition, meshQuaternion, hit, point, normal, distance, meshId, faceIndex} = raycastArgs;
 
-        const allocator = new Allocator();
-
-        const origin = allocator.alloc(Float32Array, 3);
         p.toArray(origin);
-        const direction = allocator.alloc(Float32Array, 3);
         localVector4.set(0, 0, -1)
           .applyQuaternion(q)
           .toArray(direction);
-        const meshPosition = allocator.alloc(Float32Array, 3);
+        currentChunkMesh.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
         localVector3.toArray(meshPosition);
-        const meshQuaternion = allocator.alloc(Float32Array, 4);
         localQuaternion2.toArray(meshQuaternion);
-        const hit = allocator.alloc(Uint32Array, 1);
-        const point = allocator.alloc(Float32Array, 3);
-        const normal = allocator.alloc(Float32Array, 3);
-        const distance = allocator.alloc(Float32Array, 1);
-        const meshId = allocator.alloc(Uint32Array, 1);
-        const faceIndex = allocator.alloc(Uint32Array, 1);
 
         Module._raycast(
           origin.offset,
@@ -481,25 +484,18 @@ const [
           meshId: meshId[0],
           faceIndex: faceIndex[0],
         } : null;
-        allocator.freeAll();
         return result;
       },
       collide(radius, halfHeight, p, q, maxIter) {
-        localQuaternion2.copy(q).premultiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), Math.PI/2));
+        const {position, quaternion, meshPosition, meshQuaternion, hit, direction} = collideArgs;
 
-        const allocator = new Allocator();
-
-        const position = allocator.alloc(Float32Array, 3);
         p.toArray(position);
-        const quaternion = allocator.alloc(Float32Array, 4);
-        localQuaternion2.toArray(quaternion);
+        localQuaternion2.copy(q)
+          .premultiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), Math.PI/2))
+          .toArray(quaternion);
         currentChunkMesh.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
-        const meshPosition = allocator.alloc(Float32Array, 3);
         localVector3.toArray(meshPosition);
-        const meshQuaternion = allocator.alloc(Float32Array, 4);
         localQuaternion2.toArray(meshQuaternion);
-        const hit = allocator.alloc(Uint32Array, 1);
-        const direction = allocator.alloc(Float32Array, 3);
 
         Module._collide(
           radius,
@@ -515,7 +511,6 @@ const [
         const result = hit[0] ? {
           direction: direction.slice(),
         } : null;
-        allocator.freeAll();
         return result;
       },
     };
