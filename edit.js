@@ -1443,6 +1443,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     renderer.geometries.update(geometry);
   };
   const currentCoord = new THREE.Vector3(NaN, NaN, NaN);
+  const marchesTasks = [];
   const vegetationsTasks = [];
   let packagesRunning = false;
   let chunksNeedUpdate = false;
@@ -1529,32 +1530,43 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     }
   };
   const _updateChunks = () => {
-    if (chunksNeedUpdate && !marchesRunning) {
+    if (chunksNeedUpdate) {
       chunksNeedUpdate = false;
-      marchesRunning = true;
-      const neededCoordsClone = neededCoords.map(nc => ([nc.x, nc.y, nc.z, nc.index]));
-      _runMarches(neededCoordsClone)
-        .finally(() => {
-          marchesRunning = false;
-        });
+      _runMarches();
     }
   };
-  const _runMarches = async neededCoordsClone => {
-    for (const indexString in slabs) {
-      const slab = slabs[indexString];
+  const _runMarches = () => {
+    for (const removedCoord of removedCoords) {
+      const {index} = removedCoord;
+      const slab = slabs[index];
       if (slab) {
-        const {index} = slab;
-        if (!neededCoordIndices[index]) {
-          const groupIndex = geometry.groups.findIndex(group => group.start === slab.slabIndex * slabSliceVertices);
-          geometry.groups.splice(groupIndex, 1);
-          slabs[indexString] = null;
-          freeSlabs.push(slab);
-          physicsWorker && physicsWorker.requestUnloadSlab(meshId, slab.x, slab.y, slab.z);
+        const groupIndex = geometry.groups.findIndex(group => group.start === slab.slabIndex * slabSliceVertices);
+        geometry.groups.splice(groupIndex, 1);
+        slabs[index] = null;
+        freeSlabs.push(slab);
+        if (slab.physxGeometry) {
+          physxWorker.unregisterGeometry(slab.physxGeometry);
+          slab.physxGeometry = 0;
         }
+        // physicsWorker && physicsWorker.requestUnloadSlab(meshId, slab.x, slab.y, slab.z);
+      }
+
+      const subparcelTasks = marchesTasks[index];
+      if (subparcelTasks) {
+        for (const task of subparcelTasks) {
+          task.cancel();
+        }
+        subparcelTasks.length = 0;
       }
     }
-    for (let i = 0; i < neededCoordsClone.length; i++) {
-      const [ax, ay, az, index] = neededCoordsClone[i];
+    for (const addedCoord of addedCoords) {
+      const {x: ax, y: ay, z: az, index} = addedCoord;
+
+      let subparcelTasks = marchesTasks[index];
+      if (!subparcelTasks) {
+        subparcelTasks = [];
+        marchesTasks[index] = subparcelTasks;
+      }
 
       for (let dx = 0; dx <= 1; dx++) {
         const adx = ax + dx;
