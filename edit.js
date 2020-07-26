@@ -283,6 +283,7 @@ scene.add(worldContainer);
 const chunkMeshContainer = new THREE.Object3D();
 worldContainer.add(chunkMeshContainer);
 let currentChunkMesh = null;
+let capsuleMesh = null;
 let currentVegetationMesh = null;
 let currentVegetationTransparentMesh = null;
 const _getCurrentChunkMesh = () => currentChunkMesh;
@@ -400,7 +401,7 @@ const [
     }
 
     return {
-      registerGeometry(meshId, positionsData, indicesData) {
+      registerGeometry(meshId, positionsData, indicesData, x, y, z) {
         /* currentChunkMesh.matrixWorld
           .decompose(localVector3, localQuaternion3, localVector4); */
 
@@ -413,9 +414,9 @@ const [
           indices.set(indicesData);
         }
         const meshPosition = allocator.alloc(Float32Array, 3);
-        localVector3.set(0, 0, 0).toArray(meshPosition);
+        localVector3.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2).toArray(meshPosition);
         const meshQuaternion = allocator.alloc(Float32Array, 4);
-        localQuaternion3.set(0, 0, 0, 1).toArray(meshQuaternion);
+        localQuaternion2.set(0, 0, 0, 1).toArray(meshQuaternion);
         const result = allocator.alloc(Uint32Array, 1);
 
         Module._registerGeometry(
@@ -438,7 +439,7 @@ const [
       raycast(p, q, s) {
         /* localMatrix2
           .compose(p, q, s)
-          .premultiply(localMatrix3.getInverse(currentChunkMesh.matrixWorld))
+          // .premultiply(localMatrix3.getInverse(currentChunkMesh.matrixWorld))
           .decompose(localVector3, localQuaternion2, localVector4); */
         currentChunkMesh.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
 
@@ -454,7 +455,6 @@ const [
         localVector3.toArray(meshPosition);
         const meshQuaternion = allocator.alloc(Float32Array, 4);
         localQuaternion2.toArray(meshQuaternion);
-        // console.log('got direction', localVector3.toArray());
         const hit = allocator.alloc(Uint32Array, 1);
         const point = allocator.alloc(Float32Array, 3);
         const normal = allocator.alloc(Float32Array, 3);
@@ -485,12 +485,19 @@ const [
         return result;
       },
       collide(radius, halfHeight, p, q, maxIter) {
+        localQuaternion2.copy(q).premultiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), Math.PI/2));
+
         const allocator = new Allocator();
 
         const position = allocator.alloc(Float32Array, 3);
-        p.toArray(v);
+        p.toArray(position);
         const quaternion = allocator.alloc(Float32Array, 4);
-        q.toArray(quaternion);
+        localQuaternion2.toArray(quaternion);
+        currentChunkMesh.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
+        const meshPosition = allocator.alloc(Float32Array, 3);
+        localVector3.toArray(meshPosition);
+        const meshQuaternion = allocator.alloc(Float32Array, 4);
+        localQuaternion2.toArray(meshQuaternion);
         const hit = allocator.alloc(Uint32Array, 1);
         const direction = allocator.alloc(Float32Array, 3);
         const depth = allocator.alloc(Float32Array, 1);
@@ -500,6 +507,8 @@ const [
           halfHeight,
           position.offset,
           quaternion.offset,
+          meshPosition.offset,
+          meshQuaternion.offset,
           maxIter,
           hit.offset,
           direction.offset,
@@ -1719,6 +1728,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           for (let dz = 0; dz <= 1; dz++) {
             const adz = az + dz;
             const subparcel = planet.getSubparcel(adx, ady, adz);
+
             if (!subparcel[loadedSymbol] || subparcelsNeedUpdate.some(([x, y, z]) => x === adx && y === ady && z === adz)) {
               chunkWorker.requestLoadPotentials(
                 seedNum,
@@ -1790,7 +1800,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
             group.count = spec.positions.length/3;
 
-            slab.physxGeometry = spec.positions.length > 0 ? physxWorker.registerGeometry(meshId, spec.positions, null) : 0;
+            slab.physxGeometry = spec.positions.length > 0 ? physxWorker.registerGeometry(meshId, spec.positions, null, x, y, z) : 0;
           }
           // physicsWorker.requestLoadSlab(meshId, mesh.position.x, mesh.position.y, mesh.position.z, specs, parcelSize, subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
         }
@@ -2255,6 +2265,19 @@ planet.addEventListener('load', e => {
   chunkMeshContainer.add(chunkMesh);
   chunkMeshes.push(chunkMesh);
   _setCurrentChunkMesh(chunkMesh);
+
+  {
+    let geometry = new CapsuleGeometry(0.5, 1, 16)
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2)))
+      // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5/2+0.5, 0))
+      // .toNonIndexed();
+    geometry = new THREE.BufferGeometry().fromGeometry(geometry);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x008000,
+    });
+    capsuleMesh = new THREE.Mesh(geometry, material);
+    scene.add(capsuleMesh);
+  }
 
   _resetCamera();
 });
@@ -3284,6 +3307,15 @@ function animate(timestamp, frame) {
   if (skybox2) {
     // skybox2.material.uniforms.iTime.value = (Date.now() - startTime) * 0.00005;
     skybox2.update();
+  }
+
+  if (physxWorker && capsuleMesh) {
+    capsuleMesh.position.set(-8, -11+Math.sin((Date.now()%10000)/10000*Math.PI*2)*2, 8);
+    const collision = physxWorker.collide(0.5, 0.5, capsuleMesh.position, capsuleMesh.quaternion, 4);
+    if (collision) {
+      // console.log('got collision', collision);
+      capsuleMesh.position.add(localVector.fromArray(collision.direction).multiplyScalar(collision.depth));
+    }
   }
 
   const now = Date.now();
