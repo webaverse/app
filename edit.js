@@ -1602,6 +1602,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   let chunksNeedUpdate = false;
   let buildMeshesNeedUpdate = false;
   let packagesNeedUpdate = false;
+  let hadCoords = false;
   let subparcelsNeedUpdate = [];
   mesh.updateSlab = (x, y, z) => {
     subparcelsNeedUpdate.push([x, y, z]);
@@ -1669,10 +1670,11 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           removedCoords.push(lastNeededCoord);
         }
       }
+      hadCoords = true;
     }
   };
   const _updateLastNeededCoords = () => {
-    if (addedCoords.length > 0) {
+    if (hadCoords) {
       const tempNeededCoords = lastNeededCoords;
       lastNeededCoords = neededCoords;
       lastNeededCoordIndices = neededCoordIndices;
@@ -1680,6 +1682,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       neededCoordIndices = {};
       addedCoords.length = 0;
       removedCoords.length = 0;
+
+      hadCoords = false;
     }
   };
   const _updateChunks = () => {
