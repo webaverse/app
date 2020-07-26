@@ -1810,9 +1810,9 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         }
       })()
         .finally(() => {
-            if (live) {
-              subparcelTasks.splice(subparcelTasks.indexOf(task), 1);
-            }
+          if (live) {
+            subparcelTasks.splice(subparcelTasks.indexOf(task), 1);
+          }
         });
       const task = {
         cancel() {
