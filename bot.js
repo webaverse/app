@@ -42,6 +42,7 @@ function* gen() {
 
 export class Bot {
   constructor() {
+    return;
     const f = gen();
     this.interval = setInterval(() => {
       f.next();
