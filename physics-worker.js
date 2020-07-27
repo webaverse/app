@@ -19,7 +19,7 @@ class Allocator {
   }
 }
 
-const _bakeGeometry = (positionsData, indicesData) => {
+/* const _bakeGeometry = (positionsData, indicesData) => {
   const allocator = new Allocator();
 
   const positions = allocator.alloc(Float32Array, positionsData.length);
@@ -57,7 +57,7 @@ const _bakeGeometry = (positionsData, indicesData) => {
     },
     arrayBuffer,
   ];
-};
+}; */
 const _bakeGeometries = specs => {
   const pointers = specs.map(spec => {
     const {positions: positionsData, indices: indicesData} = spec;
@@ -122,14 +122,14 @@ let loaded = false;
 const _handleMessage = data => {
   const {method} = data;
   switch (method) {
-    case 'bakeGeometry': {
+    /* case 'bakeGeometry': {
       const {positions, indices} = data;
       const [result, transfer] = _bakeGeometry(positions, indices);
       self.postMessage({
         result,
       }, [transfer]);
       break;
-    }
+    } */
     case 'bakeGeometries': {
       const {specs} = data;
       const [result, transfer] = _bakeGeometries(specs);
