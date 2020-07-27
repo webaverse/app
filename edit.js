@@ -2058,15 +2058,12 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       .premultiply(localMatrix2)
       .decompose(localVector3, localQuaternion3, localVector4);
     buildMeshClone.physxGeometry = physxWorker.registerBoxGeometry(meshId, localVector3, localQuaternion3, physicsOffset.scale.x, physicsOffset.scale.y, physicsOffset.scale.z);
-    // physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, localVector3.toArray(), localQuaternion3.toArray());
 
     return buildMeshClone;
   };
   const _removeBuildMesh = buildMeshClone => {
     buildMeshClone.remove();
     buildMeshClone.physxGeometry && physxWorker.unregisterGeometry(buildMeshClone.physxGeometry);
-
-    // physicsWorker.requestUnloadBuildMesh(buildMeshClone.meshId);
   };
   const _updateBuilds = () => {
     if (buildMeshesNeedUpdate) {
