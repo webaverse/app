@@ -4046,15 +4046,14 @@ function animate(timestamp, frame) {
         if (!pxMesh.velocity.equals(zeroVector)) {
           localMatrix.copy(pxMesh.matrixWorld)
             .decompose(localVector, localQuaternion, localVector2);
-          const collision = physxWorker.raycast(localVector, localQuaternion);
+          const collision = physxWorker.collide(0.2, 0, localVector, localQuaternion2.set(0, 0, 0, 1), 1);
 
-          if (collision && collision.distance < 0.5) {
-            pxMesh.position.add(
-              pxMesh.velocity
-                .normalize()
-                .multiplyScalar(collision.distance - 0.3)
-              );
+          if (collision) {
+            localVector3.fromArray(collision.direction)
+              .applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse());
+            pxMesh.position.add(localVector3);
             pxMesh.velocity.copy(zeroVector);
+            // pxMesh.angularVelocity.copy(zeroVector);
           } else {
             _applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
             pxMesh.velocity.add(localVector.set(0, -9.8*timeDiff, 0).applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse()));
