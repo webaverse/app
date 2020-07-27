@@ -58,6 +58,64 @@ const _bakeGeometry = (positionsData, indicesData) => {
     arrayBuffer,
   ];
 };
+const _bakeGeometries = specs => {
+  const pointers = specs.map(spec => {
+    const {positions: positionsData, indices: indicesData} = spec;
+
+    const allocator = new Allocator();
+
+    const positions = allocator.alloc(Float32Array, positionsData.length);
+    positions.set(positionsData);
+    const indices = indicesData ? allocator.alloc(Uint32Array, indicesData.length) : null;
+    indicesData && indices.set(indicesData);
+
+    const ptr = allocator.alloc(Uint32Array, 1);
+    const data = allocator.alloc(Uint32Array, 1);
+    const size = allocator.alloc(Uint32Array, 1);
+
+    self.Module._bakeGeometry(
+      positions.offset,
+      indices ? indices.offset : 0,
+      positions.length,
+      indices ? indices.length : 0,
+      ptr.offset,
+      data.offset,
+      size.offset
+    );
+
+    const pointer = [ptr[0], data[0], size[0]];
+    allocator.freeAll();
+    return pointer;
+  });
+  let totalSize = 0;
+  for (const pointer of pointers) {
+    const [ptr, data, size] = pointer;
+    totalSize += size;
+  }
+  const arrayBuffer = new ArrayBuffer(totalSize);
+  let index = 0;
+  const physicsGeometryBuffers = pointers.map(pointer => {
+    const [ptr, data, size] = pointer;
+
+    const physicsGeometryBuffer = new Uint8Array(arrayBuffer, index, size);
+    const physicsGeometryBufferSrc = new Uint8Array(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + data, size);
+    physicsGeometryBuffer.set(physicsGeometryBufferSrc);
+    index += size;
+
+    self.Module._releaseBakedGeometry(
+      ptr
+    );
+
+    return physicsGeometryBuffer;
+  });
+
+  return [
+    {
+      physicsGeometryBuffers,
+    },
+    arrayBuffer,
+  ];
+};
 
 const queue = [];
 let loaded = false;
@@ -67,6 +125,14 @@ const _handleMessage = data => {
     case 'bakeGeometry': {
       const {positions, indices} = data;
       const [result, transfer] = _bakeGeometry(positions, indices);
+      self.postMessage({
+        result,
+      }, [transfer]);
+      break;
+    }
+    case 'bakeGeometries': {
+      const {specs} = data;
+      const [result, transfer] = _bakeGeometries(specs);
       self.postMessage({
         result,
       }, [transfer]);
