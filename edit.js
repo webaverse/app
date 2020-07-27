@@ -283,7 +283,7 @@ scene.add(worldContainer);
 const chunkMeshContainer = new THREE.Object3D();
 worldContainer.add(chunkMeshContainer);
 let currentChunkMesh = null;
-let capsuleMesh = null;
+// let capsuleMesh = null;
 let currentVegetationMesh = null;
 let currentVegetationTransparentMesh = null;
 const _getCurrentChunkMesh = () => currentChunkMesh;
@@ -2237,7 +2237,7 @@ planet.addEventListener('load', e => {
   chunkMeshes.push(chunkMesh);
   _setCurrentChunkMesh(chunkMesh);
 
-  {
+  /* {
     let geometry = new CapsuleGeometry(0.5, 1, 16)
       .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2)))
       // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5/2+0.5, 0))
@@ -2248,7 +2248,7 @@ planet.addEventListener('load', e => {
     });
     capsuleMesh = new THREE.Mesh(geometry, material);
     scene.add(capsuleMesh);
-  }
+  } */
 
   _resetCamera();
 });
@@ -3280,13 +3280,13 @@ function animate(timestamp, frame) {
     skybox2.update();
   }
 
-  if (physxWorker && capsuleMesh) {
+  /* if (physxWorker && capsuleMesh) {
     capsuleMesh.position.set(-8, -11+Math.sin((Date.now()%10000)/10000*Math.PI*2)*2, 8);
     const collision = physxWorker.collide(0.5, 0.5, capsuleMesh.position, capsuleMesh.quaternion, 4);
     if (collision) {
       capsuleMesh.position.add(localVector.fromArray(collision.direction));
     }
-  }
+  } */
 
   const now = Date.now();
   for (const chunkMesh of chunkMeshes) {
