@@ -561,12 +561,18 @@ const [
         }
       });
     });
-    w.requestBakeGeometry = (positions, indices) => {
+    /* w.requestBakeGeometry = (positions, indices) => {
       return w.request({
         method: 'bakeGeometry',
         positions,
         indices,
       }, [positions.buffer]);
+    }; */
+    w.requestBakeGeometries = (specs) => {
+      return w.request({
+        method: 'bakeGeometries',
+        specs,
+      }, [specs[0].positions.buffer]);
     };
     return w;
   })(),
@@ -1749,12 +1755,32 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
             const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
             group.count = spec.positions.length/3;
-
-            if (spec.positions.length > 0) {
-              const result = await physicsWorker.requestBakeGeometry(spec.positions, null);
-              if (live) {
-                slab.physxGeometry = physxWorker.registerBakedGeometry(meshId, result.physicsGeometryBuffer, x, y, z);
+          }
+          const bakeSpecs = specs.filter(spec => spec.positions.length > 0).map(spec => {
+            const {positions, x, y, z} = spec;
+            return positions.length > 0 ? {
+              positions,
+              x,
+              y,
+              z,
+            } : null;
+          });
+          if (bakeSpecs.length > 0) {
+            const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => {
+              const {positions} = spec;
+              return {
+                positions,
+              };
+            }));
+            for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
+              const physxGeometry = result.physicsGeometryBuffers[i];
+              const {x, y, z} = bakeSpecs[i];
+              const slab = currentChunkMesh.getSlab(x, y, z);
+              if (slab.physxGeometry) {
+                physxWorker.unregisterGeometry(slab.physxGeometry);
+                slab.physxGeometry = 0;
               }
+              slab.physxGeometry = physxWorker.registerBakedGeometry(currentChunkMesh.meshId, physxGeometry, x, y, z);
             }
           }
         }
@@ -3579,7 +3605,33 @@ function animate(timestamp, frame) {
               const group = currentChunkMesh.geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
               group.count = spec.positions.length/3;
             }
-            // physicsWorker.requestLoadSlab(currentChunkMesh.meshId, currentChunkMesh.position.x, currentChunkMesh.position.y, currentChunkMesh.position.z, specs, currentChunkMesh.parcelSize, currentChunkMesh.subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
+            const bakeSpecs = specs.filter(spec => spec.positions.length > 0).map(spec => {
+              const {positions, x, y, z} = spec;
+              return positions.length > 0 ? {
+                positions,
+                x,
+                y,
+                z,
+              } : null;
+            });
+            if (bakeSpecs.length > 0) {
+              const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => {
+                const {positions} = spec;
+                return {
+                  positions,
+                };
+              }));
+              for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
+                const physxGeometry = result.physicsGeometryBuffers[i];
+                const {x, y, z} = bakeSpecs[i];
+                const slab = currentChunkMesh.getSlab(x, y, z);
+                if (slab.physxGeometry) {
+                  physxWorker.unregisterGeometry(slab.physxGeometry);
+                  slab.physxGeometry = 0;
+                }
+                slab.physxGeometry = physxWorker.registerBakedGeometry(currentChunkMesh.meshId, physxGeometry, x, y, z);
+              }
+            }
             if (specs.length > 0 && delta < 0) {
               for (let i = 0; i < 3; i++) {
                 const pxMesh = new THREE.Mesh(tetrehedronGeometry, currentChunkMesh.material[0]);
