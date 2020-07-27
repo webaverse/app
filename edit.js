@@ -512,7 +512,7 @@ const [
       unregisterGeometry(ptr) {
         Module._unregisterGeometry(ptr);
       },
-      raycast(p, q, s) {
+      raycast(p, q) {
         const {origin, direction, meshPosition, meshQuaternion, hit, point, normal, distance, meshId, faceIndex} = raycastArgs;
 
         p.toArray(origin);
@@ -3229,7 +3229,7 @@ function animate(timestamp, frame) {
         physicsWorker.requestPointRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector.toArray(), localQuaternion.toArray());
       } */
       if (currentChunkMesh && physxWorker) {
-        const result = physxWorker.raycast(localVector, localQuaternion, localVector2);
+        const result = physxWorker.raycast(localVector, localQuaternion);
         raycastChunkSpec = result;
         if (raycastChunkSpec) {
           raycastChunkSpec.mesh = _findMeshWithMeshId(chunkMeshContainer, raycastChunkSpec.meshId);
@@ -3553,7 +3553,6 @@ function animate(timestamp, frame) {
                 pxMesh.velocity = new THREE.Vector3((-1+Math.random()*2)*0.5, Math.random()*3, (-1+Math.random()*2)*0.5)
                   .applyQuaternion(localQuaternion2);
                 pxMesh.angularVelocity = new THREE.Vector3((-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01);
-                pxMesh.collisionIndex = -1;
                 pxMesh.isBuildMesh = true;
                 const startTime = Date.now();
                 const endTime = startTime + 3000;
@@ -3616,7 +3615,6 @@ function animate(timestamp, frame) {
                 pxMesh.velocity = new THREE.Vector3(0, 0, -10)
                   .applyQuaternion(localQuaternion2);
                 pxMesh.angularVelocity = new THREE.Vector3((-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01);
-                pxMesh.collisionIndex = -1;
                 pxMesh.isBuildMesh = true;
                 const startTime = Date.now();
                 const endTime = startTime + 3000;
@@ -4042,6 +4040,36 @@ function animate(timestamp, frame) {
     wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
   } */
 
+  if (physxWorker) {
+    pxMeshes = pxMeshes.filter(pxMesh => {
+      if (pxMesh.update()) {
+        if (!pxMesh.velocity.equals(zeroVector)) {
+          localMatrix.copy(pxMesh.matrixWorld)
+            .decompose(localVector, localQuaternion, localVector2);
+          const collision = physxWorker.raycast(localVector, localQuaternion);
+
+          if (collision && collision.distance < 0.5) {
+            pxMesh.position.add(
+              pxMesh.velocity
+                .normalize()
+                .multiplyScalar(collision.distance - 0.3)
+              );
+            pxMesh.velocity.copy(zeroVector);
+          } else {
+            _applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
+            pxMesh.velocity.add(localVector.set(0, -9.8*timeDiff, 0).applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse()));
+            pxMesh.rotation.x += pxMesh.angularVelocity.x;
+            pxMesh.rotation.y += pxMesh.angularVelocity.y;
+            pxMesh.rotation.z += pxMesh.angularVelocity.z;
+          }
+        }
+        return true;
+      } else {
+        pxMesh.parent.remove(pxMesh);
+        return false;
+      }
+    });
+  }
   /* if (!raycastRunning && physicsWorker) {
     const collisions = [];
     let collisionIndex = 0;
