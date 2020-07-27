@@ -3889,10 +3889,6 @@ function animate(timestamp, frame) {
           localVector3.y = Math.max(localVector3.y, 0);
           jumpState = false;
         } else {
-          if (window.lol) {
-            console.log('collision', collision);
-            debugger;
-          }
           jumpState = true;
         }
         pe.camera.position.add(localVector3);
