@@ -876,6 +876,11 @@ const [
       }
     });
     stairsMesh.instancedMesh = _makeInstancedMesh(stairsMesh);
+    stairsMesh.physicsOffset = {
+      position: new THREE.Vector3(0, 1, 0),
+      quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/4),
+      scale: new THREE.Vector3(2, 2*Math.sqrt(2), 0.1),
+    };
 
     platformMesh = result['FloorWood2'].clone();
     platformMesh.geometry = platformMesh.geometry.clone()
@@ -888,6 +893,11 @@ const [
       }
     });
     platformMesh.instancedMesh = _makeInstancedMesh(platformMesh);
+    platformMesh.physicsOffset = {
+      position: new THREE.Vector3(0, 0, 0),
+      quaternion: new THREE.Quaternion(),
+      scale: new THREE.Vector3(2, 0.1, 2),
+    };
 
     wallMesh = result['WallWood2'].clone();
     wallMesh.geometry = wallMesh.geometry.clone()
@@ -902,6 +912,11 @@ const [
       }
     });
     wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);
+    wallMesh.physicsOffset = {
+      position: new THREE.Vector3(0, 1, -1),
+      quaternion: new THREE.Quaternion(),
+      scale: new THREE.Vector3(2, 2, 0.1),
+    };
 
     spikesMesh = result['StairsWood2'].clone();
     spikesMesh.geometry = spikesMesh.geometry.clone()
@@ -914,6 +929,11 @@ const [
       }
     });
     spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh);
+    spikesMesh.physicsOffset = {
+      position: new THREE.Vector3(0, 0, 0),
+      quaternion: new THREE.Quaternion(),
+      scale: new THREE.Vector3(2, 0.1, 2),
+    };
 
     /* stairsMesh = result['StairsBrickFinal'].clone();
     stairsMesh.geometry = stairsMesh.geometry.clone()
@@ -2032,11 +2052,12 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     };
     currentChunkMesh.add(buildMesh.instancedMesh);
 
-    localMatrix2
-      // .premultiply(currentChunkMesh.matrix)
+    const {physicsOffset} = buildMesh;
+    localMatrix3
+      .compose(physicsOffset.position, physicsOffset.quaternion, localVector4.set(1, 1, 1))
+      .premultiply(localMatrix2)
       .decompose(localVector3, localQuaternion3, localVector4);
-    localVector3.add(localVector4.set(0, 1, -1).applyQuaternion(localQuaternion3));
-    buildMeshClone.physxGeometry = physxWorker.registerBoxGeometry(meshId, localVector3, localQuaternion3, 2, 2, 0.1);
+    buildMeshClone.physxGeometry = physxWorker.registerBoxGeometry(meshId, localVector3, localQuaternion3, physicsOffset.scale.x, physicsOffset.scale.y, physicsOffset.scale.z);
     // physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, localVector3.toArray(), localQuaternion3.toArray());
 
     return buildMeshClone;
