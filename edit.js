@@ -274,7 +274,7 @@ const _decorateMeshForRaycast = mesh => {
 let nextMeshId = 0;
 let chunkWorker = null;
 let physxWorker = null;
-// let physicsWorker = null;
+let physicsWorker = null;
 let geometryWorker = null;
 let chunkMeshes = [];
 let chunkMesh = null;
@@ -309,7 +309,7 @@ let metalMesh = null;
 const [
   cw,
   px,
-  // pw,
+  pw,
   colors,
   _buildMeshes,
 ] = await Promise.all([
@@ -401,9 +401,15 @@ const [
     }
 
     const allocator = new Allocator();
-    const geometryArgs = {
+    const registerGeometryArgs = {
       positions: allocator.alloc(Float32Array, 1024 * 1024 / Float32Array.BYTES_PER_ELEMENT),
       indices: allocator.alloc(Uint32Array, 1024 * 1024 / Uint32Array.BYTES_PER_ELEMENT),
+      meshPosition: allocator.alloc(Float32Array, 3),
+      meshQuaternion: allocator.alloc(Float32Array, 4),
+      result: allocator.alloc(Uint32Array, 1),
+    };
+    const registerBakedGeometryArgs = {
+      data: allocator.alloc(Uint8Array, 1024 * 1024),
       meshPosition: allocator.alloc(Float32Array, 3),
       meshQuaternion: allocator.alloc(Float32Array, 4),
       result: allocator.alloc(Uint32Array, 1),
@@ -444,6 +450,24 @@ const [
           indicesData ? indices.offset : 0,
           positionsData.length,
           indicesData ? indicesData.length : 0,
+          meshPosition.offset,
+          meshQuaternion.offset,
+          result.offset
+        );
+        const ptr = result[0];
+        return ptr;
+      },
+      registerBakedGeometry(meshId, dataData, x, y, z) {
+        const {data, meshPosition, meshQuaternion, result} = registerBakedGeometryArgs;
+
+        data.set(dataData);
+        localVector3.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2).toArray(meshPosition);
+        localQuaternion2.set(0, 0, 0, 1).toArray(meshQuaternion);
+
+        Module._registerBakedGeometry(
+          meshId,
+          data.offset,
+          dataData.length,
           meshPosition.offset,
           meshQuaternion.offset,
           result.offset
@@ -515,10 +539,9 @@ const [
       },
     };
   })(),
-  /* (async () => {
-    return null;
+  (async () => {
     const cbs = [];
-    const w = new Worker('physics-worker.js');
+    const w = new Worker('./physics-worker.js');
     w.onmessage = e => {
       const {data} = e;
       const {error, result} = data;
@@ -538,83 +561,15 @@ const [
         }
       });
     });
-    w.requestLoadSlab = (meshId, x, y, z, specs, parcelSize, subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices) => {
+    w.requestBakeGeometry = (positions, indices) => {
       return w.request({
-        method: 'loadSlab',
-        meshId,
-        x,
-        y,
-        z,
-        specs,
-        parcelSize,
-        subparcelSize,
-        slabTotalSize,
-        slabAttributeSize,
-        slabSliceVertices,
-        numSlices
-      }, [specs[0].positions.buffer]);
-    };
-    w.requestUnloadSlab = (meshId, x, y, z) => {
-      return w.request({
-        method: 'unloadSlab',
-        meshId,
-        x,
-        y,
-        z
-      });
-    };
-    w.requestPointRaycast = (containerMatrix, position, quaternion) => {
-      return w.request({
-        method: 'pointRaycast',
-        containerMatrix,
-        position,
-        quaternion,
-      });
-    };
-    w.requestCollisionRaycast = (containerMatrix, position, quaternion, width, height, depth, index) => {
-      return w.request({
-        method: 'collisionRaycast',
-        containerMatrix,
-        position,
-        quaternion,
-        width,
-        height,
-        depth,
-        index,
-      });
-    };
-    w.requestPhysicsRaycast = (containerMatrix, collisions, width, height, depth) => {
-      return w.request({
-        method: 'physicsRaycast',
-        containerMatrix,
-        collisions,
-        width,
-        height,
-        depth,
-      });
-    };
-    w.requestRaycastResult = () => {
-      return w.request({
-        method: 'raycastResult',
-      });
-    };
-    w.requestLoadBuildMesh = (meshId, type, position, quaternion) => {
-      return w.request({
-        method: 'loadBuildMesh',
-        meshId,
-        type,
-        position,
-        quaternion,
-      });
-    };
-    w.requestUnloadBuildMesh = (meshId) => {
-      return w.request({
-        method: 'unloadBuildMesh',
-        meshId,
-      });
+        method: 'bakeGeometry',
+        positions,
+        indices,
+      }, [positions.buffer]);
     };
     return w;
-  })(), */
+  })(),
   (async () => {
     const res = await fetch('./colors.json');
     return await res.json();
@@ -1355,7 +1310,7 @@ const [
 ]);
 chunkWorker = cw;
 physxWorker = px;
-// physicsWorker = pw;
+physicsWorker = pw;
 
 (async () => {
   const effectController = {
@@ -1796,7 +1751,13 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
             group.count = spec.positions.length/3;
 
-            slab.physxGeometry = spec.positions.length > 0 ? physxWorker.registerGeometry(meshId, spec.positions, null, x, y, z) : 0;
+            if (spec.positions.length > 0) {
+              const result = await physicsWorker.requestBakeGeometry(spec.positions, null);
+              if (live) {
+                slab.physxGeometry = physxWorker.registerBakedGeometry(meshId, result.physicsGeometryBuffer, x, y, z);
+              }
+            }
+            // slab.physxGeometry = spec.positions.length > 0 ? physxWorker.registerGeometry(meshId, spec.positions, null, x, y, z) : 0;
           }
           // physicsWorker.requestLoadSlab(meshId, mesh.position.x, mesh.position.y, mesh.position.z, specs, parcelSize, subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
         }
