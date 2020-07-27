@@ -3128,8 +3128,7 @@ let pxMeshes = [];
 const _collideCapsule = matrix => {
   matrix.decompose(localVector, localQuaternion, localVector2);
   localVector.y -= 0.3;
-  const collision = physxWorker.collide(0.5, 0.5, localVector, localQuaternion.set(0, 0, 0, 1), 1);
-  return collision;
+  return physxWorker.collide(0.5, 0.5, localVector, localQuaternion.set(0, 0, 0, 1), 1);
 };
 const _applyVelocity = (position, velocity, timeDiff) => {
   position.add(localVector4.copy(velocity).multiplyScalar(timeDiff));
