@@ -431,6 +431,7 @@ const [
       meshQuaternion: allocator.alloc(Float32Array, 4),
       hit: allocator.alloc(Uint32Array, 1),
       direction: allocator.alloc(Float32Array, 3),
+      grounded: allocator.alloc(Uint32Array, 1),
     };
 
     return {
@@ -544,7 +545,7 @@ const [
         return result;
       },
       collide(radius, halfHeight, p, q, maxIter) {
-        const {position, quaternion, meshPosition, meshQuaternion, hit, direction} = collideArgs;
+        const {position, quaternion, meshPosition, meshQuaternion, hit, direction, grounded} = collideArgs;
 
         p.toArray(position);
         localQuaternion2.copy(q)
@@ -563,10 +564,12 @@ const [
           meshQuaternion.offset,
           maxIter,
           hit.offset,
-          direction.offset
+          direction.offset,
+          grounded.offset
         );
         const result = hit[0] ? {
           direction: direction.slice(),
+          grounded: !!grounded[0],
         } : null;
         return result;
       },
@@ -3107,7 +3110,7 @@ let pxMeshes = [];
 const _collideCapsule = matrix => {
   matrix.decompose(localVector, localQuaternion, localVector2);
   localVector.y -= 0.3;
-  const collision = physxWorker.collide(0.5, 0.5, localVector, localQuaternion.set(0, 0, 0, 1), 4);
+  const collision = physxWorker.collide(0.5, 0.5, localVector, localQuaternion.set(0, 0, 0, 1), 1);
   return collision;
 };
 const _applyVelocity = (position, velocity, timeDiff) => {
@@ -3817,20 +3820,16 @@ function animate(timestamp, frame) {
     velocity.add(localVector);
 
     if (selectedTool === 'firstperson') {
-      // _collideWall(pe.camera.matrix);
       _applyVelocity(pe.camera.position, velocity, timeDiff);
       pe.camera.updateMatrixWorld();
       const collision = _collideCapsule(pe.camera.matrix);
-      /* const offset = _getFloorOffset(groundedDistance);
-      const ceilingDistance = _collideCeiling(pe.camera.matrix);
-      const ceilingOffset = _getCeilingOffset(ceilingDistance); */
       _collideItems(pe.camera.matrix);
       _collideChunk(pe.camera.matrix);
       if (collision) {
         localVector3.fromArray(collision.direction);
         pe.camera.position.add(localVector3);
         localVector.add(localVector3);
-        if (localVector3.y > 0) {
+        if (collision.grounded) {
           velocity.y = 0;
           jumpState = false;
         } else {
@@ -3857,7 +3856,6 @@ function animate(timestamp, frame) {
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
       localMatrix.compose(localVector, localQuaternion, localVector2);
-      // _collideWall(localMatrix);
       const collision = _collideCapsule(localMatrix);
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
@@ -3866,37 +3864,26 @@ function animate(timestamp, frame) {
       }
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
-      /* const groundedDistance = _collideFloor(localMatrix);
-      const offset = _getFloorOffset(groundedDistance);
-      const ceilingDistance = _collideCeiling(localMatrix);
-      const ceilingOffset = _getCeilingOffset(ceilingDistance); */
       _collideItems(localMatrix);
       _collideChunk(localMatrix);
       if (collision) {
         localVector3.fromArray(collision.direction);
-        pe.camera.position.add(localVector3);
-        localVector.add(localVector3);
-        if (localVector3.y > 0) {
+        if (collision.grounded) {
           velocity.y = 0;
+          localVector3.y = Math.max(localVector3.y, 0);
           jumpState = false;
         } else {
+          if (window.lol) {
+            console.log('collision', collision);
+            debugger;
+          }
           jumpState = true;
         }
+        pe.camera.position.add(localVector3);
+        localVector.add(localVector3);
       } else {
         jumpState = true;
       }
-      /* if (offset !== null) {
-        pe.camera.position.y += offset;
-        pe.camera.updateMatrixWorld();
-        localVector.y += offset;
-        velocity.y = 0;
-      } else if (ceilingOffset !== null) {
-        pe.camera.position.y += ceilingOffset;
-        pe.camera.updateMatrixWorld();
-        localVector.y += ceilingOffset;
-        velocity.y = 0;
-      }
-      jumpState = offset === null; */
 
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
 
@@ -3907,17 +3894,6 @@ function animate(timestamp, frame) {
           pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
         }
       }
-      /* if (pe.rig) {
-        if (!jumpState) {
-          pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
-        } else {
-          if (isFinite(groundedDistance)) {
-            pe.rig.setFloorHeight(localVector.y - groundedDistance);
-          } else {
-            pe.rig.setFloorHeight(-0xFFFFFF);
-          }
-        }
-      } */
     } else if (selectedTool === 'isometric') {
       const oldVelocity = velocity.clone();
 
@@ -3926,7 +3902,6 @@ function animate(timestamp, frame) {
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
       localMatrix.compose(localVector, localQuaternion, localVector2);
-      //_collideWall(localMatrix);
       const collision = _collideCapsule(localMatrix);
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
@@ -3935,17 +3910,13 @@ function animate(timestamp, frame) {
       }
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
-      /* const groundedDistance = _collideFloor(localMatrix);
-      const offset = _getFloorOffset(groundedDistance);
-      const ceilingDistance = _collideCeiling(localMatrix);
-      const ceilingOffset = _getCeilingOffset(ceilingDistance); */
       _collideItems(localMatrix);
       _collideChunk(localMatrix);
       if (collision) {
         localVector3.fromArray(collision.direction);
         pe.camera.position.add(localVector3);
         localVector.add(localVector3);
-        if (localVector3.y > 0) {
+        if (collision.grounded) {
           velocity.y = 0;
           jumpState = false;
         } else {
@@ -3954,18 +3925,6 @@ function animate(timestamp, frame) {
       } else {
         jumpState = true;
       }
-      /* if (offset !== null) {
-        pe.camera.position.y += offset;
-        pe.camera.updateMatrixWorld();
-        localVector.y += offset;
-        velocity.y = 0;
-      } else if (ceilingOffset !== null) {
-        pe.camera.position.y += ceilingOffset;
-        pe.camera.updateMatrixWorld();
-        localVector.y += ceilingOffset;
-        velocity.y = 0;
-      }
-      jumpState = offset === null; */
 
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
 
@@ -3976,17 +3935,6 @@ function animate(timestamp, frame) {
           pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
         }
       }
-      /* if (pe.rig) {
-        if (!jumpState) {
-          pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
-        } else {
-          if (isFinite(groundedDistance)) {
-            pe.rig.setFloorHeight(localVector.y - groundedDistance);
-          } else {
-            pe.rig.setFloorHeight(-0xFFFFFF);
-          }
-        }
-      } */
     } else if (selectedTool === 'birdseye') {
       const oldVelocity = velocity.clone();
       const yOffset = -birdsEyeHeight + _getAvatarHeight();
@@ -3996,7 +3944,6 @@ function animate(timestamp, frame) {
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
       localMatrix.compose(localVector, localQuaternion, localVector2);
-      // _collideWall(localMatrix);
       const collision = _collideCapsule(localMatrix);
       pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
@@ -4005,17 +3952,13 @@ function animate(timestamp, frame) {
       }
       localMatrix.compose(localVector, localQuaternion, localVector2);
 
-      /* const groundedDistance = _collideFloor(localMatrix);
-      const offset = _getFloorOffset(groundedDistance);
-      const ceilingDistance = _collideCeiling(localMatrix);
-      const ceilingOffset = _getCeilingOffset(ceilingDistance); */
       _collideItems(localMatrix);
       _collideChunk(localMatrix);
       if (collision) {
         localVector3.fromArray(collision.direction);
         pe.camera.position.add(localVector3);
         localVector.add(localVector3);
-        if (localVector3.y > 0) {
+        if (collision.grounded) {
           velocity.y = 0;
           jumpState = false;
         } else {
@@ -4024,18 +3967,6 @@ function animate(timestamp, frame) {
       } else {
         jumpState = true;
       }
-      /* if (offset !== null) {
-        pe.camera.position.y += offset;
-        pe.camera.updateMatrixWorld();
-        localVector.y += offset;
-        velocity.y = 0;
-      } else if (ceilingOffset !== null) {
-        pe.camera.position.y += ceilingOffset;
-        pe.camera.updateMatrixWorld();
-        localVector.y += ceilingOffset;
-        velocity.y = 0;
-      }
-      jumpState = offset === null; */
 
       pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
 
@@ -4046,17 +3977,6 @@ function animate(timestamp, frame) {
           pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
         }
       }
-      /* if (pe.rig) {
-        if (!jumpState) {
-          pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
-        } else {
-          if (isFinite(groundedDistance)) {
-            pe.rig.setFloorHeight(localVector.y - groundedDistance);
-          } else {
-            pe.rig.setFloorHeight(-0xFFFFFF);
-          }
-        }
-      } */
     } else {
       _collideItems(pe.camera.matrix);
       _collideChunk(pe.camera.matrix);
