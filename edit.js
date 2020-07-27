@@ -693,7 +693,6 @@ const [
     atlas.context.fillRect(canvas.width-1, canvas.height-1, 1, 1);
     // console.log('got result', result);
 
-
     const instanceMaterial = new THREE.ShaderMaterial({
       uniforms: {
         map: {
@@ -5032,9 +5031,9 @@ renderer.domElement.addEventListener('mousedown', e => {
   }
 });
 
-const worldsButton = document.getElementById('worlds-button');
+/* const worldsButton = document.getElementById('worlds-button');
 const worldSaveButton = document.getElementById('world-save-button');
-const worldRevertButton = document.getElementById('world-revert-button');
+const worldRevertButton = document.getElementById('world-revert-button'); */
 const packagesButton = document.getElementById('packages-button');
 const inventoryButton = document.getElementById('inventory-button');
 const avatarButton = document.getElementById('avatar-button');
@@ -5048,15 +5047,15 @@ const avatarSubpage = document.getElementById('avatar-subpage');
 const avatarSubpageContent = avatarSubpage.querySelector('.subtab-content');
 const tabs = Array.from(dropdown.querySelectorAll('.tab'));
 const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
-const worldsSubtabs = Array.from(worldsSubpage.querySelectorAll('.subtab'));
+/* const worldsSubtabs = Array.from(worldsSubpage.querySelectorAll('.subtab'));
 const worldsCloseButton = worldsSubpage.querySelector('.close-button');
-const worldsSubtabContents = Array.from(worldsSubpage.querySelectorAll('.subtab-content'));
+const worldsSubtabContents = Array.from(worldsSubpage.querySelectorAll('.subtab-content')); */
 const packagesCloseButton = packagesSubpage.querySelector('.close-button');
 const inventorySubtabs = Array.from(inventorySubpage.querySelectorAll('.subtab'));
 const inventoryCloseButton = inventorySubpage.querySelector('.close-button');
 const inventorySubtabContent = inventorySubpage.querySelector('.subtab-content');
 const avatarCloseButton = avatarSubpage.querySelector('.close-button');
-worldsButton.addEventListener('click', e => {
+/* worldsButton.addEventListener('click', e => {
   worldsButton.classList.toggle('open');
   worldsSubpage.classList.toggle('open');
 
@@ -5068,7 +5067,7 @@ worldsButton.addEventListener('click', e => {
   inventorySubpage.classList.remove('open');
   avatarButton.classList.remove('open');
   avatarSubpage.classList.remove('open');
-});
+}); */
 packagesButton.addEventListener('click', e => {
   packagesButton.classList.add('open');
   packagesSubpage.classList.add('open');
@@ -5077,8 +5076,8 @@ packagesButton.addEventListener('click', e => {
   dropdown.classList.remove('open');
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
-  worldsButton.classList.remove('open');
-  worldsSubpage.classList.remove('open');
+  /* worldsButton.classList.remove('open');
+  worldsSubpage.classList.remove('open'); */
   avatarButton.classList.remove('open');
   avatarSubpage.classList.remove('open');
 });
@@ -5090,8 +5089,8 @@ inventoryButton.addEventListener('click', e => {
   dropdown.classList.remove('open');
   packagesButton.classList.remove('open');
   packagesSubpage.classList.remove('open');
-  worldsButton.classList.remove('open');
-  worldsSubpage.classList.remove('open');
+  /* worldsButton.classList.remove('open');
+  worldsSubpage.classList.remove('open'); */
   avatarButton.classList.remove('open');
   avatarSubpage.classList.remove('open');
 });
@@ -5103,8 +5102,8 @@ avatarButton.addEventListener('click', e => {
   dropdown.classList.remove('open');
   packagesButton.classList.remove('open');
   packagesSubpage.classList.remove('open');
-  worldsButton.classList.remove('open');
-  worldsSubpage.classList.remove('open');
+  /* worldsButton.classList.remove('open');
+  worldsSubpage.classList.remove('open'); */
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
 });
@@ -5117,7 +5116,7 @@ dropdownButton.addEventListener('click', e => {
   packagesSubpage.classList.remove('open');
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
-  worldsSubpage.classList.remove('open');
+  // worldsSubpage.classList.remove('open');
   avatarButton.classList.remove('open');
   avatarSubpage.classList.remove('open');
 });
@@ -5179,21 +5178,21 @@ for (let i = 0; i < inventorySubtabs.length; i++) {
     subtabContent.classList.add('open');
   });
 } */
-[worldsCloseButton, packagesCloseButton, inventoryCloseButton, avatarCloseButton].forEach(closeButton => {
+[/* worldsCloseButton, */packagesCloseButton, inventoryCloseButton, avatarCloseButton].forEach(closeButton => {
   closeButton.addEventListener('click', e => {
     dropdownButton.classList.remove('open');
     dropdown.classList.remove('open');
     packagesButton.classList.remove('open');
     packagesSubpage.classList.remove('open');
-    worldsButton.classList.remove('open');
-    worldsSubpage.classList.remove('open');
+    /* worldsButton.classList.remove('open');
+    worldsSubpage.classList.remove('open'); */
     inventoryButton.classList.remove('open');
     inventorySubpage.classList.remove('open');
     avatarButton.classList.remove('open');
     avatarSubpage.classList.remove('open');
   });
 });
-async function screenshotEngine() {
+/* async function screenshotEngine() {
   const center = new THREE.Vector3(0, 0, 0);
   const size = new THREE.Vector3(3, 3, 3);
 
@@ -5332,7 +5331,7 @@ worldSaveButton.addEventListener('click', async e => {
 });
 worldRevertButton.addEventListener('click', async e => {
   _enterWorld(currentWorldId);
-});
+}); */
 
 const worlds = document.getElementById('worlds');
 const _makeWorldHtml = w => `
@@ -5867,7 +5866,7 @@ publishWorldButton.addEventListener('click', async e => {
     console.warn('invalid status code: ' + res.status);
   }
 }); */
-const sandboxButton = document.getElementById('sandbox-button');
+/* const sandboxButton = document.getElementById('sandbox-button');
 sandboxButton.addEventListener('click', e => {
   _pushWorld(null);
 });
@@ -5914,7 +5913,7 @@ newWorldButton.addEventListener('click', async e => {
   } else {
     console.warn('invalid status code: ' + res.status);
   }
-});
+}); */
 
 const objectsEl = document.getElementById('objects');
 const _getObjectDetailEls = () => {

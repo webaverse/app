@@ -237,7 +237,7 @@ img:not([src]) {
 .footer .nav:hover {
   opacity: 1;
 }
-.footer .nav:nth-child(3) {
+.footer .nav:nth-child(2) {
   margin-right: auto;
 }
 .footer .nav.enabled {
