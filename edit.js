@@ -1652,7 +1652,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           physxWorker.unregisterGeometry(slab.physxGeometry);
           slab.physxGeometry = 0;
         }
-        // physicsWorker && physicsWorker.requestUnloadSlab(meshId, slab.x, slab.y, slab.z);
       }
 
       const subparcelTasks = marchesTasks[index];
@@ -1757,9 +1756,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
                 slab.physxGeometry = physxWorker.registerBakedGeometry(meshId, result.physicsGeometryBuffer, x, y, z);
               }
             }
-            // slab.physxGeometry = spec.positions.length > 0 ? physxWorker.registerGeometry(meshId, spec.positions, null, x, y, z) : 0;
           }
-          // physicsWorker.requestLoadSlab(meshId, mesh.position.x, mesh.position.y, mesh.position.z, specs, parcelSize, subparcelSize, slabTotalSize, slabAttributeSize, slabSliceVertices, numSlices);
         }
       })()
         .finally(() => {
