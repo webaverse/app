@@ -407,6 +407,11 @@ const [
       meshQuaternion: allocator.alloc(Float32Array, 4),
       result: allocator.alloc(Uint32Array, 1),
     };
+    const registerStaticGeometryArgs = {
+      position: allocator.alloc(Float32Array, 3),
+      quaternion: allocator.alloc(Float32Array, 4),
+      result: allocator.alloc(Uint32Array, 1),
+    };
     const raycastArgs = {
       origin: allocator.alloc(Float32Array, 3),
       direction: allocator.alloc(Float32Array, 3),
@@ -463,6 +468,41 @@ const [
           dataData.length,
           meshPosition.offset,
           meshQuaternion.offset,
+          result.offset
+        );
+        const ptr = result[0];
+        return ptr;
+      },
+      registerBoxGeometry(meshId, positionData, quaternionData, w, h, d) {
+        const {position, quaternion, result} = registerStaticGeometryArgs;
+
+        positionData.toArray(position);
+        quaternionData.toArray(quaternion);
+
+        Module._registerBoxGeometry(
+          meshId,
+          position.offset,
+          quaternion.offset,
+          w,
+          h,
+          d,
+          result.offset
+        );
+        const ptr = result[0];
+        return ptr;
+      },
+      registerCapsuleGeometry(meshId, positionData, quaternionData, radius, halfHeight) {
+        const {position, quaternion, result} = registerStaticGeometryArgs;
+
+        positionData.toArray(position);
+        quaternionData.toArray(quaternion);
+
+        Module._registerCapsuleGeometry(
+          meshId,
+          position.offset,
+          quaternion.offset,
+          radius,
+          halfHeight,
           result.offset
         );
         const ptr = result[0];
