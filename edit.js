@@ -2030,14 +2030,17 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     currentChunkMesh.add(buildMesh.instancedMesh);
 
     localMatrix2
-      .premultiply(currentChunkMesh.matrix)
+      // .premultiply(currentChunkMesh.matrix)
       .decompose(localVector3, localQuaternion3, localVector4);
+    localVector3.add(localVector4.set(0, 1, -1).applyQuaternion(localQuaternion3));
+    buildMeshClone.physxGeometry = physxWorker.registerBoxGeometry(meshId, localVector3, localQuaternion3, 2, 2, 0.1);
     // physicsWorker.requestLoadBuildMesh(buildMeshClone.meshId, buildMeshClone.buildMeshType, localVector3.toArray(), localQuaternion3.toArray());
 
     return buildMeshClone;
   };
   const _removeBuildMesh = buildMeshClone => {
     buildMeshClone.remove();
+    buildMeshClone.physxGeometry && physxWorker.unregisterGeometry(buildMeshClone.physxGeometry);
 
     // physicsWorker.requestUnloadBuildMesh(buildMeshClone.meshId);
   };
