@@ -401,13 +401,6 @@ const [
     }
 
     const allocator = new Allocator();
-    const registerGeometryArgs = {
-      positions: allocator.alloc(Float32Array, 1024 * 1024 / Float32Array.BYTES_PER_ELEMENT),
-      indices: allocator.alloc(Uint32Array, 1024 * 1024 / Uint32Array.BYTES_PER_ELEMENT),
-      meshPosition: allocator.alloc(Float32Array, 3),
-      meshQuaternion: allocator.alloc(Float32Array, 4),
-      result: allocator.alloc(Uint32Array, 1),
-    };
     const registerBakedGeometryArgs = {
       data: allocator.alloc(Uint8Array, 1024 * 1024),
       meshPosition: allocator.alloc(Float32Array, 3),
