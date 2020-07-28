@@ -2119,7 +2119,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       } */
       const subparcel = planet.getSubparcelByIndex(index);
       subparcelBuildMeshesSpec.meshes = subparcelBuildMeshesSpec.meshes.filter(bm => {
-        if (subparcel.builds.some(b => b.id === bm.build.id)) {
+        if (!subparcel.builds.some(b => b.id === bm.build.id)) {
           _removeBuildMesh(bm);
           return true;
         } else {
