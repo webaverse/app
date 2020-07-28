@@ -1987,7 +1987,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     mesh.add(itemMesh);
     itemMeshes.push(itemMesh);
   };
-  const _makeHitTracker = (position, quaternion, hp, onPositionUpdate, onColorUpdate) => {
+  const _makeHitTracker = (position, quaternion, hp, onPositionUpdate, onColorUpdate, onRemove) => {
     const originalPosition = position.clone();
     const originalQuaternion = quaternion.clone();
     let animation = null;
@@ -2024,15 +2024,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         } else {
           _addItem(originalPosition, originalQuaternion);
 
-          const subparcelPosition = new THREE.Vector3(
-            Math.floor(originalPosition.x/subparcelSize),
-            Math.floor(originalPosition.y/subparcelSize),
-            Math.floor(originalPosition.z/subparcelSize)
-          );
-          planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-            subparcel.removeBuild(buildMeshClone.build);
-          });
-          mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
+          onRemove();
         }
       },
       update() {
@@ -2068,6 +2060,16 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     }, color => {
       buildMeshClone.color.setHex(color);
       buildMeshClone.updateColor();
+    }, () => {
+      const subparcelPosition = new THREE.Vector3(
+        Math.floor(buildMeshClone.position.x/subparcelSize),
+        Math.floor(buildMeshClone.position.y/subparcelSize),
+        Math.floor(buildMeshClone.position.z/subparcelSize)
+      );
+      planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
+        subparcel.removeBuild(buildMeshClone.build);
+      });
+      mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
     });
     buildMeshClone.hit = hitTracker.hit;
     buildMeshClone.update = hitTracker.update;
