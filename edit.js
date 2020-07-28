@@ -50,7 +50,6 @@ const worldsEndpoint = 'https://worlds.exokit.org';
 const packagesEndpoint = 'https://packages.exokit.org';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
-const upVector = new THREE.Vector3(0, 1, 0);
 const downQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0));
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2);
 const loadedSymbol = Symbol('loaded');
@@ -2156,139 +2155,160 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     _updateBuildsUpdate();
     _updateBuildsNeeded();
   };
+  const _removeVegetationPhysics = index => {
+    const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
+    if (subparcelVegetationMeshesSpec) {
+      for (const mesh of subparcelVegetationMeshesSpec.meshes) {
+        if (mesh.physxGeometry) {
+          physxWorker.unregisterGeometry(mesh.physxGeometry);
+          mesh.physxGeometry = 0;
+        }
+      }
+    }
+  };
+  const _killVegetationsTasks = index => {
+    const subparcelTasks = vegetationsTasks[index];
+    if (subparcelTasks) {
+      for (const task of subparcelTasks) {
+        task.cancel();
+      }
+      subparcelTasks.length = 0;
+    }
+  };
   const _updateVegetationsRemove = () => {
     for (const removedCoord of removedCoords) {
       const {index} = removedCoord;
       currentVegetationMesh.freeSlabIndex(index);
       currentVegetationTransparentMesh.freeSlabIndex(index);
 
-      const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
-      if (subparcelVegetationMeshesSpec) {
-        for (const mesh of subparcelVegetationMeshesSpec.meshes) {
-          if (mesh.physxGeometry) {
-            physxWorker.unregisterGeometry(mesh.physxGeometry);
-            mesh.physxGeometry = 0;
-          }
-        }
-      }
-
-      const subparcelTasks = vegetationsTasks[index];
-      if (subparcelTasks) {
-        for (const task of subparcelTasks) {
-          task.cancel();
-        }
-        subparcelTasks.length = 0;
-      }
+      _removeVegetationPhysics(index);
+      _killVegetationsTasks(index);
     }
+  };
+  const _refreshVegetationMesh = (x, y, z, index, refresh) => {
+    const subparcel = planet.getSubparcelByIndex(index);
+
+    let subparcelTasks = vegetationsTasks[index];
+    if (!subparcelTasks) {
+      subparcelTasks = [];
+      vegetationsTasks[index] = subparcelTasks;
+    }
+
+    if (refresh) {
+      _killVegetationsTasks(index);
+    }
+
+    let live = true;
+    (async () => {
+      const slab = currentVegetationMesh.getSlab(x, y, z);
+      const opaqueIndexOffset = slab.slabIndex * vegetationSlabSliceVertices;
+      const transparentSlab = currentVegetationTransparentMesh.getSlab(x, y, z);
+      const transparentIndexOffset = transparentSlab.slabIndex * vegetationSlabSliceVertices;
+      const specs = await geometryWorker.requestMarchObjects(subparcel.vegetations, opaqueIndexOffset, transparentIndexOffset);
+      if (live) {
+        const [spec] = specs;
+        const {opaque, transparent} = spec;
+
+        slab.position.set(opaque.positions);
+        slab.uv.set(opaque.uvs);
+        slab.indices.set(opaque.indices);
+        currentVegetationMesh.updateGeometry(slab, opaque);
+        const group = currentVegetationMesh.geometry.groups.find(group => group.start === slab.slabIndex * vegetationSlabSliceTris);
+        group.count = opaque.indices.length;
+
+        transparentSlab.position.set(transparent.positions);
+        transparentSlab.uv.set(transparent.uvs);
+        transparentSlab.indices.set(transparent.indices);
+        currentVegetationTransparentMesh.updateGeometry(transparentSlab, transparent);
+        const group2 = currentVegetationTransparentMesh.geometry.groups.find(group => group.start === transparentSlab.slabIndex * vegetationSlabSliceTris);
+        group2.count = transparent.indices.length;
+
+        let subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
+        if (!subparcelVegetationMeshesSpec) {
+          subparcelVegetationMeshesSpec = {
+            index,
+            meshes: [],
+          };
+          mesh.vegetationMeshes[index] = subparcelVegetationMeshesSpec;
+        }
+
+        if (refresh) {
+          _removeVegetationPhysics(index);
+        }
+
+        for (const vegetation of subparcel.vegetations) {
+          localVector3.fromArray(vegetation.position)
+            .add(localVector4.set(0, (2+0.5)/2, 0));
+          localQuaternion2.fromArray(vegetation.quaternion);
+          localQuaternion3.copy(localQuaternion2)
+            .multiply(capsuleUpQuaternion);
+          const physxGeometry = physxWorker.registerCapsuleGeometry(vegetation.id, localVector3, localQuaternion3, 0.5, 2);
+          const hitTracker = _makeHitTracker(localVector3, localQuaternion2, 100, position => {
+            console.log('update position', position);
+          }, color => {
+            console.log('color update', color);
+          }, () => {
+            const subparcelPosition = new THREE.Vector3(
+              Math.floor(vegetation.position[0]/subparcelSize),
+              Math.floor(vegetation.position[1]/subparcelSize),
+              Math.floor(vegetation.position[2]/subparcelSize)
+            );
+            planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
+              const index = subparcel.vegetations.findIndex(v => v.id === vegetation.id);
+              subparcel.vegetations.splice(index, 1);
+            });
+            mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
+          });
+          subparcelVegetationMeshesSpec.meshes.push({
+            meshId: vegetation.id,
+            vegetationType: vegetation.type,
+            physxGeometry,
+            hit: hitTracker.hit,
+            update: hitTracker.update,
+          });
+        }
+      }
+    })()
+      .finally(() => {
+        if (live) {
+          subparcelTasks.splice(subparcelTasks.indexOf(task), 1);
+        }
+      });
+    const task = {
+      cancel() {
+        live = false;
+      },
+    };
+    subparcelTasks.push(task);
   };
   const _updateVegetationsAdd = () => {
     for (const addedCoord of addedCoords) {
       const {x, y, z, index} = addedCoord;
-      if (y === NUM_PARCELS-1) {
-        const subparcel = planet.getSubparcelByIndex(index);
-        if (!subparcel.vegetations) {
-          const numVegetations = 2;
-          subparcel.vegetations = [];
-          for (let i = 0; i < numVegetations; i++) {
-            localVector3.set(
-              x*SUBPARCEL_SIZE + Math.random()*SUBPARCEL_SIZE,
-              y*SUBPARCEL_SIZE + SUBPARCEL_SIZE*0.4 - 0.5,
-              z*SUBPARCEL_SIZE + Math.random()*SUBPARCEL_SIZE
-            );
-            localQuaternion2.setFromAxisAngle(upVector, Math.random()*Math.PI*2);
-            localVector4.set(1, 1, 1);
-            localMatrix2.compose(localVector3, localQuaternion2, localVector4);
-            subparcel.vegetations.push({
-              type: 'tree',
-              id: Math.floor(Math.random() * 0xFFFFFF),
-              position: localVector3.toArray(new Float32Array(3)),
-              quaternion: localQuaternion2.toArray(new Float32Array(4)),
-              scale: localVector4.toArray(new Float32Array(3)),
-              matrix: localMatrix2.toArray(new Float32Array(16)),
-            });
-            subparcel.vegetations.push({
-              type: 'leaves',
-              id: Math.floor(Math.random() * 0xFFFFFF),
-              position: localVector3.toArray(new Float32Array(3)),
-              quaternion: localQuaternion2.toArray(new Float32Array(4)),
-              scale: localVector4.toArray(new Float32Array(3)),
-              matrix: localMatrix2.toArray(new Float32Array(16)),
-            });
-          }
+      _refreshVegetationMesh(x, y, z, index, false);
+    }
+  };
+  const _updateVegetationsUpdate = () => {
+    for (let i = 0; i < numUpdatedCoords; i++) {
+      const {x, y, z, index} = updatedCoords[i];
+      _refreshVegetationMesh(x, y, z, index, true);
+    }
+  };
+  const _updateVegetationsNeeded = () => {
+    for (const neededCoord of neededCoords) {
+      const {index} = neededCoord;
+      const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
+      if (subparcelVegetationMeshesSpec) {
+        for (const mesh of subparcelVegetationMeshesSpec.meshes) {
+          mesh.update();
         }
-
-        let subparcelTasks = vegetationsTasks[index];
-        if (!subparcelTasks) {
-          subparcelTasks = [];
-          vegetationsTasks[index] = subparcelTasks;
-        }
-        let live = true;
-        (async () => {
-          const slab = currentVegetationMesh.getSlab(x, y, z);
-          const opaqueIndexOffset = slab.slabIndex * vegetationSlabSliceVertices;
-          const transparentSlab = currentVegetationTransparentMesh.getSlab(x, y, z);
-          const transparentIndexOffset = transparentSlab.slabIndex * vegetationSlabSliceVertices;
-          const specs = await geometryWorker.requestMarchObjects(subparcel.vegetations, opaqueIndexOffset, transparentIndexOffset);
-          if (live) {
-            const [spec] = specs;
-            const {opaque, transparent} = spec;
-
-            slab.position.set(opaque.positions);
-            slab.uv.set(opaque.uvs);
-            slab.indices.set(opaque.indices);
-            currentVegetationMesh.updateGeometry(slab, opaque);
-            const group = currentVegetationMesh.geometry.groups.find(group => group.start === slab.slabIndex * vegetationSlabSliceTris);
-            group.count = opaque.indices.length;
-
-            transparentSlab.position.set(transparent.positions);
-            transparentSlab.uv.set(transparent.uvs);
-            transparentSlab.indices.set(transparent.indices);
-            currentVegetationTransparentMesh.updateGeometry(transparentSlab, transparent);
-            const group2 = currentVegetationTransparentMesh.geometry.groups.find(group => group.start === transparentSlab.slabIndex * vegetationSlabSliceTris);
-            group2.count = transparent.indices.length;
-
-            let subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
-            if (!subparcelVegetationMeshesSpec) {
-              subparcelVegetationMeshesSpec = {
-                index,
-                meshes: [],
-              };
-              mesh.vegetationMeshes[index] = subparcelVegetationMeshesSpec;
-            }
-            for (const vegetation of subparcel.vegetations) {
-              localVector3.fromArray(vegetation.position)
-                .add(localVector4.set(0, (2+0.5)/2, 0));
-              localQuaternion2.fromArray(vegetation.quaternion)
-                .multiply(capsuleUpQuaternion);
-              const physxGeometry = physxWorker.registerCapsuleGeometry(vegetation.id, localVector3, localQuaternion2, 0.5, 2);
-              subparcelVegetationMeshesSpec.meshes.push({
-                meshId: vegetation.id,
-                vegetationType: vegetation.type,
-                physxGeometry,
-                hit(damage) {
-                  console.log('hit for damage', damage);
-                },
-              });
-            }
-          }
-        })()
-          .finally(() => {
-              if (live) {
-                subparcelTasks.splice(subparcelTasks.indexOf(task), 1);
-              }
-          });
-        const task = {
-          cancel() {
-            live = false;
-          },
-        };
-        subparcelTasks.push(task);
       }
     }
   };
   const _updateVegetations = () => {
     _updateVegetationsRemove();
     _updateVegetationsAdd();
+    _updateVegetationsUpdate();
+    _updateVegetationsNeeded();
   };
   const _updatePackages = () => {
     const packagesNeedUpdate = false;

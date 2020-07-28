@@ -1,7 +1,9 @@
+import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import storage from './storage.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
+  NUM_PARCELS,
   MAX_NAME_LENGTH,
   PLANET_OBJECT_SLOTS,
   PLANET_OBJECT_SIZE,
@@ -13,6 +15,9 @@ export const OBJECT_TYPES = {
   BUILD: 1,
   PACKAGE: 2,
 };
+
+const upVector = new THREE.Vector3(0, 1, 0);
+
 function abs(n) {
   return (n ^ (n >> 31)) - (n >> 31);
 }
@@ -192,6 +197,7 @@ export class Subparcel {
     this._objectId = new Uint32Array(this.data, this.offset + this.offsets.objectId, 1);
     this._freeList = new Uint8Array(this.data, this.offset + this.offsets.freeList, PLANET_OBJECT_SLOTS);
     this.builds = [];
+    this.vegetations = [];
     this.packages = [];
     this.dirty = false;
 
@@ -386,6 +392,45 @@ const _loadLiveState = seedString => {
   }));
 };
 
+const _makeVegetations = (() => {
+  const numVegetations = 2;
+  const localVector = new THREE.Vector3();
+  const localVector2 = new THREE.Vector3();
+  const localQuaternion = new THREE.Quaternion();
+  const localMatrix = new THREE.Matrix4();
+  return (x, y, z) => {
+    const vegetations = [];
+    if (y === NUM_PARCELS-1) {
+      for (let i = 0; i < numVegetations; i++) {
+        localVector.set(
+          x*SUBPARCEL_SIZE + Math.random()*SUBPARCEL_SIZE,
+          y*SUBPARCEL_SIZE + SUBPARCEL_SIZE*0.4 - 0.5,
+          z*SUBPARCEL_SIZE + Math.random()*SUBPARCEL_SIZE
+        );
+        localQuaternion.setFromAxisAngle(upVector, Math.random()*Math.PI*2);
+        localVector2.set(1, 1, 1);
+        localMatrix.compose(localVector, localQuaternion, localVector2);
+        vegetations.push({
+          type: 'tree',
+          id: Math.floor(Math.random() * 0xFFFFFF),
+          position: localVector.toArray(new Float32Array(3)),
+          quaternion: localQuaternion.toArray(new Float32Array(4)),
+          scale: localVector2.toArray(new Float32Array(3)),
+          matrix: localMatrix.toArray(new Float32Array(16)),
+        });
+        vegetations.push({
+          type: 'leaves',
+          id: Math.floor(Math.random() * 0xFFFFFF),
+          position: localVector.toArray(new Float32Array(3)),
+          quaternion: localQuaternion.toArray(new Float32Array(4)),
+          scale: localVector2.toArray(new Float32Array(3)),
+          matrix: localMatrix.toArray(new Float32Array(16)),
+        });
+      }
+    }
+    return vegetations;
+  };
+})();
 const _saveStorage = async roomName => {
   for (const index in subparcels) {
     const subparcel = subparcels[index];
@@ -435,6 +480,7 @@ const _loadStorage = async roomName => {
         .then(ab => {
           const subparcel = new Subparcel(ab);
           subparcel.readMetadata();
+          subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
           return subparcel;
         });
       promises.push(p);
