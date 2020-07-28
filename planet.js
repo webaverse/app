@@ -122,6 +122,7 @@ const _deserializeState = ab => {
   for (let i = 0; i < numSubparcels; i++) {
     const subparcel = new Subparcel(ab, index);
     subparcel.readMetadata();
+    subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
     const index = _getSubparcelIndex(subparcel.x, subparcel.y, subparcel.z);
     subparcels[index] = subparcel;
     index += offsets.length;
@@ -356,6 +357,7 @@ const _addSubparcel = (x, y, z, index) => {
   subparcel.z = z;
   subparcel.index = index;
   subparcel.writeMetadata();
+  subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
   subparcels[index] = subparcel;
   return subparcel;
 };
