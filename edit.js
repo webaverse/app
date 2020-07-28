@@ -2261,7 +2261,11 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               const physxGeometry = physxWorker.registerCapsuleGeometry(vegetation.id, localVector3, localQuaternion2, 0.5, 2);
               subparcelVegetationMeshesSpec.meshes.push({
                 meshId: vegetation.id,
+                vegetationType: vegetation.type,
                 physxGeometry,
+                hit(damage) {
+                  console.log('hit for damage', damage);
+                },
               });
             }
           }
@@ -3685,14 +3689,25 @@ function animate(timestamp, frame) {
               if (raycastChunkSpec.mesh.isChunkMesh) {
                 _applyPotentialDelta(raycastChunkSpec.point, -0.2);
               } else if (raycastChunkSpec.mesh.buildMeshType) {
-                localVector2.copy(localVector)
+                /* localVector2.copy(localVector)
                   .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
                   .add(localVector3.set(0, -BUILD_SNAP/2, 0));
                 _snapBuildPosition(localVector2);
 
                 localMatrix.compose(localVector2, localQuaternion, localVector3.set(1, 1, 1))
                   .premultiply(localMatrix2.getInverse(worldContainer.matrix))
-                  .decompose(localVector2, localQuaternion2, localVector3);
+                  .decompose(localVector2, localQuaternion2, localVector3); */
+
+                raycastChunkSpec.mesh.hit(30);
+              } else if (raycastChunkSpec.mesh.vegetationType) {
+                /* localVector2.copy(localVector)
+                  .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
+                  .add(localVector3.set(0, -BUILD_SNAP/2, 0));
+                _snapBuildPosition(localVector2);
+
+                localMatrix.compose(localVector2, localQuaternion, localVector3.set(1, 1, 1))
+                  .premultiply(localMatrix2.getInverse(worldContainer.matrix))
+                  .decompose(localVector2, localQuaternion2, localVector3); */
 
                 raycastChunkSpec.mesh.hit(30);
               } else if (raycastChunkSpec.mesh.isNpcHullMesh) {
