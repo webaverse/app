@@ -1627,19 +1627,13 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   mesh.updatePackages = () => {
     packagesNeedUpdate = true;
   };
-  let neededCoords = Array((chunkDistance*2+1)**3);
-  let lastNeededCoords = Array((chunkDistance*2+1)**3);
+  let neededCoords = [];
+  let lastNeededCoords = [];
   let neededCoordIndices = {};
   let lastNeededCoordIndices = {};
   const addedCoords = [];
   const removedCoords = [];
-  [neededCoords, lastNeededCoords].forEach(neededCoords => {
-    for (let i = 0; i < neededCoords.length; i++) {
-      const v = new THREE.Vector3();
-      v.index = 0;
-      neededCoords[i] = v;
-    }
-  });
+  let neededCoordsInitialized = false;
   const _updateCurrentCoord = position => {
     localVector3.copy(position)
       .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
@@ -1664,7 +1658,12 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           for (let dz = -chunkDistance; dz <= chunkDistance; dz++) {
             const az = dz + currentCoord.z;
 
-            const neededCoord = neededCoords[i++];
+            const j = i++;
+            let neededCoord = neededCoords[j];
+            if (!neededCoord) {
+              neededCoord = new THREE.Vector3();
+              neededCoords[j] = neededCoord;
+            }
             neededCoord.x = ax;
             neededCoord.y = ay;
             neededCoord.z = az;
@@ -1683,6 +1682,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           removedCoords.push(lastNeededCoord);
         }
       }
+      neededCoordsInitialized = true;
       hadCoords = true;
     }
   };
