@@ -5543,7 +5543,6 @@ pe.domElement.addEventListener('drop', async e => {
           quaternion: localQuaternion.toArray(),
         });
       });
-      currentChunkMesh.updatePackages();
 
       // const p = await XRPackage.download(dataHash);
       // await _addPackage(p, localMatrix);
