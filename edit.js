@@ -1648,6 +1648,11 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   };
   const _updateNeededCoords = () => {
     if (coordUpdated) {
+      lastNeededCoords = neededCoords;
+      lastNeededCoordIndices = neededCoordIndices;
+      neededCoords = [];
+      neededCoordIndices = {};
+
       let i = 0;
       for (let dx = -chunkDistance; dx <= chunkDistance; dx++) {
         const ax = dx + currentCoord.x;
@@ -1685,10 +1690,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   };
   const _updateLastNeededCoords = () => {
     if (coordUpdated) {
-      lastNeededCoords = neededCoords;
-      lastNeededCoordIndices = neededCoordIndices;
-      neededCoords = [];
-      neededCoordIndices = {};
       addedCoords.length = 0;
       removedCoords.length = 0;
       coordUpdated = false;
