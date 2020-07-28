@@ -2117,8 +2117,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       }
     }
     for (let i = 0; i < addedCoords.length; i++) {
-      const neededCoord = addedCoords[i];
-      const {x, y, z, index} = neededCoord;
+      const addedCoord = addedCoords[i];
+      const {x, y, z, index} = addedCoord;
       if (y === NUM_PARCELS-1) {
         const subparcel = planet.getSubparcelByIndex(index);
         if (!subparcel.vegetations) {
