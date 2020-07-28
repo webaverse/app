@@ -1617,11 +1617,13 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     let coord = updatedCoords[j];
     if (!coord) {
       coord = new THREE.Vector3();
+      coord.index = 0;
       updatedCoords[j] = coord;
     }
     coord.x = x;
     coord.y = y;
     coord.z = z;
+    coord.index = planet.getSubparcelIndex(x, y, z);
   };
   let neededCoords = [];
   let lastNeededCoords = [];
