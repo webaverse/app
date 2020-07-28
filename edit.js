@@ -236,7 +236,7 @@ const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subpa
 
 const itemMeshes = [];
 const npcMeshes = [];
-const _decorateMeshForRaycast = mesh => {
+/* const _decorateMeshForRaycast = mesh => {
   mesh.traverse(o => {
     if (o.isMesh) {
       const meshId = ++nextMeshId;
@@ -270,7 +270,7 @@ const _decorateMeshForRaycast = mesh => {
       mesh.meshId = meshId;
     }
   });
-};
+}; */
 
 let nextMeshId = 0;
 let chunkWorker = null;
