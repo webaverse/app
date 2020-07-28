@@ -1987,6 +1987,59 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     mesh.add(itemMesh);
     itemMeshes.push(itemMesh);
   };
+  const _makeHitTracker = (position, quaternion, hp, onPositionUpdate, onColorUpdate) => {
+    const originalPosition = position.clone();
+    const originalQuaternion = quaternion.clone();
+    let animation = null;
+    return {
+      hit(dmg) {
+        if (animation) {
+          animation.end();
+          animation = null;
+        }
+
+        hp = Math.max(hp - dmg, 0);
+        if (hp > 0) {
+          const startTime = Date.now();
+          const endTime = startTime + 500;
+          animation = {
+            update() {
+              const now = Date.now();
+              const factor = (now - startTime) / (endTime - startTime);
+              if (factor < 1) {
+                localVector2.copy(originalPosition)
+                  .add(localVector3.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2));
+                onPositionUpdate(localVector2);
+              } else {
+                animation.end();
+                animation = null;
+              }
+            },
+            end() {
+              onPositionUpdate(originalPosition);
+              onColorUpdate(0xFFFFFF);
+            },
+          };
+          onColorUpdate(new THREE.Color(0xef5350).multiplyScalar(2).getHex());
+        } else {
+          _addItem(originalPosition, originalQuaternion);
+
+          const subparcelPosition = new THREE.Vector3(
+            Math.floor(originalPosition.x/subparcelSize),
+            Math.floor(originalPosition.y/subparcelSize),
+            Math.floor(originalPosition.z/subparcelSize)
+          );
+          planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
+            subparcel.removeBuild(buildMeshClone.build);
+          });
+          mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
+        }
+      },
+      update() {
+        animation && animation.update();
+      },
+    };
+  };
   const _addBuild = build => {
     const buildMesh = (() => {
       switch (build.name) {
@@ -2009,59 +2062,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     buildMeshClone.build = build;
     buildMeshClone.meshId = meshId;
     buildMeshClone.buildMeshType = buildMesh.buildMeshType;
-    const _makeHitTracker = (position, quaternion, hp, onPositionUpdate, onColorUpdate) => {
-      const originalPosition = position.clone();
-      const originalQuaternion = quaternion.clone();
-      let animation = null;
-      return {
-        hit(dmg) {
-          if (animation) {
-            animation.end();
-            animation = null;
-          }
-
-          hp = Math.max(hp - dmg, 0);
-          if (hp > 0) {
-            const startTime = Date.now();
-            const endTime = startTime + 500;
-            animation = {
-              update() {
-                const now = Date.now();
-                const factor = (now - startTime) / (endTime - startTime);
-                if (factor < 1) {
-                  localVector2.copy(originalPosition)
-                    .add(localVector3.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2));
-                  onPositionUpdate(localVector2);
-                } else {
-                  animation.end();
-                  animation = null;
-                }
-              },
-              end() {
-                onPositionUpdate(originalPosition);
-                onColorUpdate(0xFFFFFF);
-              },
-            };
-            onColorUpdate(new THREE.Color(0xef5350).multiplyScalar(2).getHex());
-          } else {
-            _addItem(originalPosition, originalQuaternion);
-
-            const subparcelPosition = new THREE.Vector3(
-              Math.floor(originalPosition.x/subparcelSize),
-              Math.floor(originalPosition.y/subparcelSize),
-              Math.floor(originalPosition.z/subparcelSize)
-            );
-            planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-              subparcel.removeBuild(buildMeshClone.build);
-            });
-            mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
-          }
-        },
-        update() {
-          animation && animation.update();
-        },
-      };
-    };
     const hitTracker = _makeHitTracker(buildMeshClone.position, buildMeshClone.quaternion, 100, (position) => {
       buildMeshClone.position.copy(position);
       buildMeshClone.updatePosition();
