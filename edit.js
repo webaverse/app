@@ -2052,15 +2052,15 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       } else {
         _addItem(buildMeshClone.build.position, buildMeshClone.build.quaternion);
 
-        const buildSubparcelPosition = new THREE.Vector3(
+        const subparcelPosition = new THREE.Vector3(
           Math.floor(buildMeshClone.build.position[0]/subparcelSize),
           Math.floor(buildMeshClone.build.position[1]/subparcelSize),
           Math.floor(buildMeshClone.build.position[2]/subparcelSize)
         );
-        planet.editSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z, subparcel => {
+        planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
           subparcel.removeBuild(buildMeshClone.build);
         });
-        mesh.updateBuildMeshes();
+        mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
       }
     };
     buildMeshClone.update = () => {
