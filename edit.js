@@ -1865,8 +1865,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       _loadCoord(addedCoord);
     }
     for (let i = 0; i < numUpdatedCoords; i++) {
-      const updatedCoord = updatedCoords[i];
-      _loadCoord(updatedCoord);
+      _loadCoord(updatedCoords[i]);
     }
   };
   const _updateChunks = () => {
