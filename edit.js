@@ -1982,8 +1982,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
       return object;
     })();
-    itemMesh.position.fromArray(position);
-    itemMesh.quaternion.fromArray(quaternion);
+    itemMesh.position.copy(position);
+    itemMesh.quaternion.copy(quaternion);
     mesh.add(itemMesh);
     itemMeshes.push(itemMesh);
   };
@@ -2009,58 +2009,68 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     buildMeshClone.build = build;
     buildMeshClone.meshId = meshId;
     buildMeshClone.buildMeshType = buildMesh.buildMeshType;
-    let animation = null;
-    let hp = 100;
-    buildMeshClone.hit = dmg => {
-      if (animation) {
-        animation.end();
-        animation = null;
-      }
+    const _makeHitTracker = (position, quaternion, hp, onPositionUpdate, onColorUpdate) => {
+      const originalPosition = position.clone();
+      const originalQuaternion = quaternion.clone();
+      let animation = null;
+      return {
+        hit(dmg) {
+          if (animation) {
+            animation.end();
+            animation = null;
+          }
 
-      hp = Math.max(hp - dmg, 0);
-      if (hp > 0) {
-        const startTime = Date.now();
-        const endTime = startTime + 500;
-        const originalPosition = buildMeshClone.position.clone();
-        animation = {
-          update() {
-            const now = Date.now();
-            const factor = (now - startTime) / (endTime - startTime);
-            if (factor < 1) {
-              buildMeshClone.position.copy(originalPosition)
-                .add(localVector2.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2));
-              buildMeshClone.updatePosition();
-            } else {
-              animation.end();
-              animation = null;
-            }
-          },
-          end() {
-            buildMeshClone.position.copy(originalPosition);
-            buildMeshClone.updatePosition();
-            buildMeshClone.color.setHex(0xFFFFFF);
-            buildMeshClone.updateColor();
-          },
-        };
-        buildMeshClone.color.setHex(0xef5350).multiplyScalar(2);
-        buildMeshClone.updateColor();
-      } else {
-        _addItem(buildMeshClone.build.position, buildMeshClone.build.quaternion);
+          hp = Math.max(hp - dmg, 0);
+          if (hp > 0) {
+            const startTime = Date.now();
+            const endTime = startTime + 500;
+            animation = {
+              update() {
+                const now = Date.now();
+                const factor = (now - startTime) / (endTime - startTime);
+                if (factor < 1) {
+                  localVector2.copy(originalPosition)
+                    .add(localVector3.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2));
+                  onPositionUpdate(localVector2);
+                } else {
+                  animation.end();
+                  animation = null;
+                }
+              },
+              end() {
+                onPositionUpdate(originalPosition);
+                onColorUpdate(0xFFFFFF);
+              },
+            };
+            onColorUpdate(new THREE.Color(0xef5350).multiplyScalar(2).getHex());
+          } else {
+            _addItem(originalPosition, originalQuaternion);
 
-        const subparcelPosition = new THREE.Vector3(
-          Math.floor(buildMeshClone.build.position[0]/subparcelSize),
-          Math.floor(buildMeshClone.build.position[1]/subparcelSize),
-          Math.floor(buildMeshClone.build.position[2]/subparcelSize)
-        );
-        planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-          subparcel.removeBuild(buildMeshClone.build);
-        });
-        mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
-      }
+            const subparcelPosition = new THREE.Vector3(
+              Math.floor(originalPosition.x/subparcelSize),
+              Math.floor(originalPosition.y/subparcelSize),
+              Math.floor(originalPosition.z/subparcelSize)
+            );
+            planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
+              subparcel.removeBuild(buildMeshClone.build);
+            });
+            mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
+          }
+        },
+        update() {
+          animation && animation.update();
+        },
+      };
     };
-    buildMeshClone.update = () => {
-      animation && animation.update();
-    };
+    const hitTracker = _makeHitTracker(buildMeshClone.position, buildMeshClone.quaternion, 100, (position) => {
+      buildMeshClone.position.copy(position);
+      buildMeshClone.updatePosition();
+    }, color => {
+      buildMeshClone.color.setHex(color);
+      buildMeshClone.updateColor();
+    });
+    buildMeshClone.hit = hitTracker.hit;
+    buildMeshClone.update = hitTracker.update;
     currentChunkMesh.add(buildMesh.instancedMesh);
 
     const {physicsOffset} = buildMesh;
