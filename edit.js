@@ -2071,45 +2071,34 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     buildMeshClone.physxGeometry && physxWorker.unregisterGeometry(buildMeshClone.physxGeometry);
   };
   const _updateBuilds = () => {
-    if (buildMeshesNeedUpdate) {
-      buildMeshesNeedUpdate = false;
-
-      for (let i = 0; i < neededCoords.length; i++) {
-        const neededCoord = neededCoords[i];
-        const {index} = neededCoord;
-        const subparcel = planet.getSubparcelByIndex(index);
-        let subparcelBuildMeshesSpec = mesh.buildMeshes[index];
-        if (!subparcelBuildMeshesSpec) {
-          subparcelBuildMeshesSpec = {
-            index,
-            meshes: [],
-          };
-          mesh.buildMeshes[index] = subparcelBuildMeshesSpec;
+    if (neededCoordsInitialized) {
+      for (const removedCoord of removedCoords) {
+        const {index} = removedCoord;
+        const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
+        for (const mesh of subparcelBuildMeshesSpec.meshes) {
+          _removeBuildMesh(mesh);
         }
+        mesh.buildMeshes[index] = null;
+      }
+      for (const addedCoord of addedCoords) {
+        const {index} = addedCoord;
+        const subparcelBuildMeshesSpec = {
+          index,
+          meshes: [],
+        };
+        mesh.buildMeshes[index] = subparcelBuildMeshesSpec;
+        const subparcel = planet.getSubparcelByIndex(index);
         for (const build of subparcel.builds) {
-          if (!subparcelBuildMeshesSpec.meshes.some(buildMesh => buildMesh.build.equals(build))) {
-            const buildMesh = _addBuild(build);
-            subparcelBuildMeshesSpec.meshes.push(buildMesh);
-          }
+          const buildMesh = _addBuild(build);
+          subparcelBuildMeshesSpec.meshes.push(buildMesh);
         }
       }
-      for (const indexString in mesh.buildMeshes) {
-        const subparcelBuildMeshesSpec = mesh.buildMeshes[indexString];
-        const {index} = subparcelBuildMeshesSpec;
-        subparcelBuildMeshesSpec.meshes = subparcelBuildMeshesSpec.meshes.filter(buildMesh => {
-          if (!neededCoordIndices[index]) {
-            _removeBuildMesh(buildMesh);
-            return false;
-          } else {
-            const subparcel = planet.getSubparcelByIndex(index);
-            if (!subparcel.builds.some(build => build.equals(buildMesh.build))) {
-              _removeBuildMesh(buildMesh);
-              return false;
-            } else {
-              return true;
-            }
-          }
-        });
+      for (const neededCoord of neededCoords) {
+        const {index} = neededCoord;
+        const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
+        for (const mesh of subparcelBuildMeshesSpec.meshes) {
+          mesh.update();
+        }
       }
     }
   };
@@ -3249,14 +3238,8 @@ function animate(timestamp, frame) {
   } */
 
   const now = Date.now();
-  for (const chunkMesh of chunkMeshes) {
-    chunkMesh.material[0].uniforms.uTime.value = (now % timeFactor) / timeFactor;
-    for (const index in chunkMesh.buildMeshes) {
-      const subparcelBuildMeshesSpec = chunkMesh.buildMeshes[index];
-      for (const buildMesh of subparcelBuildMeshesSpec.meshes) {
-        buildMesh.update();
-      }
-    }
+  if (currentChunkMesh) {
+    currentChunkMesh.material[0].uniforms.uTime.value = (now % timeFactor) / timeFactor;
   }
   explosionMeshes = explosionMeshes.filter(explosionMesh => {
     explosionMesh.material.uniforms.uAnimation.value += timeDiff;
