@@ -52,6 +52,7 @@ const packagesEndpoint = 'https://packages.exokit.org';
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const upVector = new THREE.Vector3(0, 1, 0);
 const downQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0));
+const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2);
 const loadedSymbol = Symbol('loaded');
 const pid4 = Math.PI/4;
 
@@ -554,7 +555,7 @@ const [
 
         p.toArray(position);
         localQuaternion.copy(q)
-          .premultiply(localQuaternion2.setFromAxisAngle(localVector.set(0, 0, 1), Math.PI/2))
+          .premultiply(capsuleUpQuaternion)
           .toArray(quaternion);
         currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
         localVector.toArray(meshPosition);
