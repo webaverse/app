@@ -2156,6 +2156,16 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       currentVegetationMesh.freeSlabIndex(index);
       currentVegetationTransparentMesh.freeSlabIndex(index);
 
+      const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
+      if (subparcelVegetationMeshesSpec) {
+        for (const mesh of subparcelVegetationMeshesSpec.meshes) {
+          if (mesh.physxGeometry) {
+            physxWorker.unregisterGeometry(mesh.physxGeometry);
+            mesh.physxGeometry = 0;
+          }
+        }
+      }
+
       const subparcelTasks = vegetationsTasks[index];
       if (subparcelTasks) {
         for (const task of subparcelTasks) {
@@ -2230,6 +2240,25 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             currentVegetationTransparentMesh.updateGeometry(transparentSlab, transparent);
             const group2 = currentVegetationTransparentMesh.geometry.groups.find(group => group.start === transparentSlab.slabIndex * vegetationSlabSliceTris);
             group2.count = transparent.indices.length;
+
+            let subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
+            if (!subparcelVegetationMeshesSpec) {
+              subparcelVegetationMeshesSpec = {
+                index,
+                meshes: [],
+              };
+              mesh.vegetationMeshes[index] = subparcelVegetationMeshesSpec;
+            }
+            for (const vegetation of subparcel.vegetations) {
+              localVector3.fromArray(vegetation.position)
+                .add(localVector4.set(0, (2+0.5)/2, 0));
+              localQuaternion2.fromArray(vegetation.quaternion)
+                .multiply(capsuleUpQuaternion);
+              const physxGeometry = physxWorker.registerCapsuleGeometry(vegetation.id, localVector3, localQuaternion2, 0.5, 2);
+              subparcelVegetationMeshesSpec.meshes.push({
+                physxGeometry,
+              });
+            }
           }
         })()
           .finally(() => {
