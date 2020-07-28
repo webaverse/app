@@ -434,14 +434,19 @@ const [
       grounded: allocator.alloc(Uint32Array, 1),
     };
 
+    const localVector = new THREE.Vector3();
+    const localVector2 = new THREE.Vector3();
+    const localQuaternion = new THREE.Quaternion();
+    const localQuaternion2 = new THREE.Quaternion();
+
     return {
       registerGeometry(meshId, positionsData, indicesData, x, y, z) {
         const {positions, indices, meshPosition, meshQuaternion, result} = geometryArgs;
 
         positions.set(positionsData);
         indicesData && indices.set(indicesData);
-        localVector3.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2).toArray(meshPosition);
-        localQuaternion2.set(0, 0, 0, 1).toArray(meshQuaternion);
+        localVector.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2).toArray(meshPosition);
+        localQuaternion.set(0, 0, 0, 1).toArray(meshQuaternion);
 
         Module._registerGeometry(
           meshId,
@@ -460,8 +465,8 @@ const [
         const {data, meshPosition, meshQuaternion, result} = registerBakedGeometryArgs;
 
         data.set(dataData);
-        localVector3.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2).toArray(meshPosition);
-        localQuaternion2.set(0, 0, 0, 1).toArray(meshQuaternion);
+        localVector.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2).toArray(meshPosition);
+        localQuaternion.set(0, 0, 0, 1).toArray(meshQuaternion);
 
         Module._registerBakedGeometry(
           meshId,
@@ -516,12 +521,12 @@ const [
         const {origin, direction, meshPosition, meshQuaternion, hit, point, normal, distance, meshId, faceIndex} = raycastArgs;
 
         p.toArray(origin);
-        localVector4.set(0, 0, -1)
+        localVector.set(0, 0, -1)
           .applyQuaternion(q)
           .toArray(direction);
-        currentChunkMesh.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
-        localVector3.toArray(meshPosition);
-        localQuaternion2.toArray(meshQuaternion);
+        currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        localVector.toArray(meshPosition);
+        localQuaternion.toArray(meshQuaternion);
 
         Module._raycast(
           origin.offset,
@@ -548,12 +553,12 @@ const [
         const {position, quaternion, meshPosition, meshQuaternion, hit, direction, grounded} = collideArgs;
 
         p.toArray(position);
-        localQuaternion2.copy(q)
-          .premultiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), Math.PI/2))
+        localQuaternion.copy(q)
+          .premultiply(localQuaternion2.setFromAxisAngle(localVector.set(0, 0, 1), Math.PI/2))
           .toArray(quaternion);
-        currentChunkMesh.matrixWorld.decompose(localVector3, localQuaternion2, localVector4);
-        localVector3.toArray(meshPosition);
-        localQuaternion2.toArray(meshQuaternion);
+        currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        localVector.toArray(meshPosition);
+        localQuaternion.toArray(meshQuaternion);
 
         Module._collide(
           radius,
