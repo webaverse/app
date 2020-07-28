@@ -844,11 +844,7 @@ const [
               const colorOffset = new Float32Array(geometry.attributes.colorOffset.array.buffer, geometry.attributes.colorOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
               geometry.attributes.colorOffset.array.set(colorOffset, o.index*3);
               geometry.attributes.colorOffset.needsUpdate = true;
-
-              const movingInstance = instancedMesh.instances.find(instance => instance.index === geometry.instanceCount);
-              movingInstance.index = o.index;
             }
-            instancedMesh.instances.splice(instancedMesh.instances.indexOf(o), 1);
           },
         };
         o.position.toArray(geometry.attributes.positionOffset.array, o.index*3);
@@ -861,12 +857,10 @@ const [
         geometry.attributes.colorOffset.needsUpdate = true;
 
         geometry.instanceCount++;
-        instancedMesh.instances.push(o);
         return o;
       };
       instancedMesh.frustumCulled = false;
       instancedMesh.mesh = mesh;
-      instancedMesh.instances = [];
       return instancedMesh;
     };
 
@@ -2256,6 +2250,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
                 .multiply(capsuleUpQuaternion);
               const physxGeometry = physxWorker.registerCapsuleGeometry(vegetation.id, localVector3, localQuaternion2, 0.5, 2);
               subparcelVegetationMeshesSpec.meshes.push({
+                meshId: vegetation.id,
                 physxGeometry,
               });
             }
@@ -2618,22 +2613,32 @@ const removeMesh = (() => {
 removeMesh.visible = false;
 scene.add(removeMesh);
 
-const _findMeshWithMeshId = (container, meshId) => {
-  let result = null;
-  container.traverse(o => {
-    if (result === null) {
-      if (o.meshId === meshId) {
-        result = o;
-      } else if (o.instances) {
-        for (const instance of o.instances) {
-          if (instance.meshId === meshId) {
-            result = instance;
+const _findMeshWithMeshId = meshId => {
+  if (meshId === currentChunkMesh.meshId) {
+    return currentChunkMesh;
+  } else {
+    for (const index in currentChunkMesh.buildMeshes) {
+      const subparcelBuildMeshesSpec = currentChunkMesh.buildMeshes[index];
+      if (subparcelBuildMeshesSpec) {
+        for (const buildMesh of subparcelBuildMeshesSpec.meshes) {
+          if (buildMesh.meshId === meshId) {
+            return buildMesh;
           }
         }
       }
     }
-  });
-  return result;
+    for (const index in currentChunkMesh.vegetationMeshes) {
+      const subparcelVegetationMeshesSpec = currentChunkMesh.vegetationMeshes[index];
+      if (subparcelVegetationMeshesSpec) {
+        for (const vegetationMesh of subparcelVegetationMeshesSpec.meshes) {
+          if (vegetationMesh.meshId === meshId) {
+            return vegetationMesh;
+          }
+        }
+      }
+    }
+    return null;
+  }
 };
 
 const collisionCubeGeometry = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
@@ -3335,7 +3340,7 @@ function animate(timestamp, frame) {
         const result = physxWorker.raycast(localVector, localQuaternion);
         raycastChunkSpec = result;
         if (raycastChunkSpec) {
-          raycastChunkSpec.mesh = _findMeshWithMeshId(chunkMeshContainer, raycastChunkSpec.meshId);
+          raycastChunkSpec.mesh = _findMeshWithMeshId(raycastChunkSpec.meshId);
           raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
           raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
         }
