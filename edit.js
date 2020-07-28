@@ -3130,14 +3130,68 @@ let explosionMeshes = [];
 
 let pxMeshes = [];
 
-const _collideCapsule = matrix => {
-  matrix.decompose(localVector, localQuaternion, localVector2);
-  localVector.y -= 0.3;
-  return physxWorker.collide(0.5, 0.5, localVector, localQuaternion.set(0, 0, 0, 1), 1);
+const _applyAvatarPhysics = (avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
+  const oldVelocity = localVector3.copy(velocity);
+
+  _applyVelocity(pe.camera.position, velocity, timeDiff);
+  pe.camera.updateMatrixWorld();
+  pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+  if (avatarOffset) {
+    localVector4.copy(avatarOffset);
+  } else {
+    localVector4.set(0, 0, 0);
+  }
+  if (cameraBasedOffset) {
+    localVector4.applyQuaternion(localQuaternion)
+  }
+  localVector.add(localVector4);
+  const collision = _collideCapsule(localVector, localQuaternion.set(0, 0, 0, 1));
+  if (velocityAvatarDirection && oldVelocity.lengthSq() > 0) {
+    localQuaternion.setFromUnitVectors(localVector4.set(0, 0, -1), localVector5.set(oldVelocity.x, 0, oldVelocity.z).normalize());
+  }
+
+  if (collision) {
+    localVector4.fromArray(collision.direction);
+    pe.camera.position.add(localVector4);
+    localVector.add(localVector4);
+    if (collision.grounded) {
+      velocity.y = 0;
+      jumpState = false;
+    } else {
+      jumpState = true;
+    }
+  } else {
+    jumpState = true;
+  }
+  localMatrix.compose(localVector, localQuaternion, localVector2);
+
+  pe.setRigMatrix(updateRig ? localMatrix : null);
+
+  if (pe.rig) {
+    if (jumpState) {
+      pe.rig.setFloorHeight(-0xFFFFFF);
+    } else {
+      pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
+    }
+  }
+
+  _collideItems(localMatrix);
+  _collideChunk(localMatrix);
 };
-const _applyVelocity = (position, velocity, timeDiff) => {
-  position.add(localVector4.copy(velocity).multiplyScalar(timeDiff));
-};
+const _collideCapsule = (() => {
+  const localVector = new THREE.Vector3();
+  return (p, q) => {
+    localVector.copy(p);
+    localVector.y -= 0.3;
+    return physxWorker.collide(0.5, 0.5, localVector, q, 1);
+  };
+})();
+const _applyVelocity = (() => {
+  const localVector = new THREE.Vector3();
+  return (position, velocity, timeDiff) => {
+    position.add(localVector.copy(velocity).multiplyScalar(timeDiff));
+  };
+})();
 const _collideItems = matrix => {
   matrix.decompose(localVector3, localQuaternion2, localVector4);
 
@@ -3840,159 +3894,13 @@ function animate(timestamp, frame) {
     velocity.add(localVector);
 
     if (selectedTool === 'firstperson') {
-      _applyVelocity(pe.camera.position, velocity, timeDiff);
-      pe.camera.updateMatrixWorld();
-      const collision = _collideCapsule(pe.camera.matrix);
-      _collideItems(pe.camera.matrix);
-      _collideChunk(pe.camera.matrix);
-      if (collision) {
-        localVector3.fromArray(collision.direction);
-        pe.camera.position.add(localVector3);
-        localVector.add(localVector3);
-        if (collision.grounded) {
-          velocity.y = 0;
-          jumpState = false;
-        } else {
-          jumpState = true;
-        }
-      } else {
-        jumpState = true;
-      }
-
-      pe.setRigMatrix(null);
-
-      if (pe.rig) {
-        if (jumpState) {
-          pe.rig.setFloorHeight(-0xFFFFFF);
-        } else {
-          pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
-        }
-      }
+      _applyAvatarPhysics(null, false, false, false, timeDiff);
     } else if (selectedTool === 'thirdperson') {
-      const oldVelocity = velocity.clone();
-
-      _applyVelocity(pe.camera.position, velocity, timeDiff);
-      pe.camera.updateMatrixWorld();
-      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
-      localMatrix.compose(localVector, localQuaternion, localVector2);
-      const collision = _collideCapsule(localMatrix);
-      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      localVector.add(localVector3.copy(avatarCameraOffset).applyQuaternion(localQuaternion));
-      if (oldVelocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
-      }
-      localMatrix.compose(localVector, localQuaternion, localVector2);
-
-      _collideItems(localMatrix);
-      _collideChunk(localMatrix);
-      if (collision) {
-        localVector3.fromArray(collision.direction);
-        if (collision.grounded) {
-          velocity.y = 0;
-          localVector3.y = Math.max(localVector3.y, 0);
-          jumpState = false;
-        } else {
-          jumpState = true;
-        }
-        pe.camera.position.add(localVector3);
-        localVector.add(localVector3);
-      } else {
-        jumpState = true;
-      }
-
-      pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
-
-      if (pe.rig) {
-        if (jumpState) {
-          pe.rig.setFloorHeight(-0xFFFFFF);
-        } else {
-          pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
-        }
-      }
+      _applyAvatarPhysics(avatarCameraOffset, true, true, true, timeDiff);
     } else if (selectedTool === 'isometric') {
-      const oldVelocity = velocity.clone();
-
-      _applyVelocity(pe.camera.position, velocity, timeDiff);
-      pe.camera.updateMatrixWorld();
-      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
-      localMatrix.compose(localVector, localQuaternion, localVector2);
-      const collision = _collideCapsule(localMatrix);
-      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      localVector.add(localVector3.copy(isometricCameraOffset).applyQuaternion(localQuaternion));
-      if (oldVelocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
-      }
-      localMatrix.compose(localVector, localQuaternion, localVector2);
-
-      _collideItems(localMatrix);
-      _collideChunk(localMatrix);
-      if (collision) {
-        localVector3.fromArray(collision.direction);
-        pe.camera.position.add(localVector3);
-        localVector.add(localVector3);
-        if (collision.grounded) {
-          velocity.y = 0;
-          jumpState = false;
-        } else {
-          jumpState = true;
-        }
-      } else {
-        jumpState = true;
-      }
-
-      pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
-
-      if (pe.rig) {
-        if (jumpState) {
-          pe.rig.setFloorHeight(-0xFFFFFF);
-        } else {
-          pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
-        }
-      }
+      _applyAvatarPhysics(isometricCameraOffset, true, true, true, timeDiff);
     } else if (selectedTool === 'birdseye') {
-      const oldVelocity = velocity.clone();
-      const yOffset = -birdsEyeHeight + _getAvatarHeight();
-
-      _applyVelocity(pe.camera.position, velocity, timeDiff);
-      pe.camera.updateMatrixWorld();
-      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
-      localMatrix.compose(localVector, localQuaternion, localVector2);
-      const collision = _collideCapsule(localMatrix);
-      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      localVector.add(localVector3.set(0, -birdsEyeHeight + _getAvatarHeight(), 0));
-      if (oldVelocity.lengthSq() > 0) {
-        localQuaternion.setFromUnitVectors(localVector3.set(0, 0, -1), localVector4.set(oldVelocity.x, 0, oldVelocity.z).normalize());
-      }
-      localMatrix.compose(localVector, localQuaternion, localVector2);
-
-      _collideItems(localMatrix);
-      _collideChunk(localMatrix);
-      if (collision) {
-        localVector3.fromArray(collision.direction);
-        pe.camera.position.add(localVector3);
-        localVector.add(localVector3);
-        if (collision.grounded) {
-          velocity.y = 0;
-          jumpState = false;
-        } else {
-          jumpState = true;
-        }
-      } else {
-        jumpState = true;
-      }
-
-      pe.setRigMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
-
-      if (pe.rig) {
-        if (jumpState) {
-          pe.rig.setFloorHeight(-0xFFFFFF);
-        } else {
-          pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
-        }
-      }
+      _applyAvatarPhysics(new THREE.Vector3(0, -birdsEyeHeight + _getAvatarHeight(), 0), false, true, true, timeDiff);
     } else {
       _collideItems(pe.camera.matrix);
       _collideChunk(pe.camera.matrix);
