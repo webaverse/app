@@ -1633,7 +1633,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   let lastNeededCoordIndices = {};
   const addedCoords = [];
   const removedCoords = [];
-  let neededCoordsInitialized = false;
   const _updateCurrentCoord = position => {
     localVector3.copy(position)
       .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
@@ -1682,7 +1681,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           removedCoords.push(lastNeededCoord);
         }
       }
-      neededCoordsInitialized = true;
       hadCoords = true;
     }
   };
@@ -2071,40 +2069,38 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     buildMeshClone.physxGeometry && physxWorker.unregisterGeometry(buildMeshClone.physxGeometry);
   };
   const _updateBuilds = () => {
-    if (neededCoordsInitialized) {
-      for (const removedCoord of removedCoords) {
-        const {index} = removedCoord;
-        const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
-        for (const mesh of subparcelBuildMeshesSpec.meshes) {
-          _removeBuildMesh(mesh);
-        }
-        mesh.buildMeshes[index] = null;
+    for (const removedCoord of removedCoords) {
+      const {index} = removedCoord;
+      const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
+      for (const mesh of subparcelBuildMeshesSpec.meshes) {
+        _removeBuildMesh(mesh);
       }
-      for (const addedCoord of addedCoords) {
-        const {index} = addedCoord;
-        const subparcelBuildMeshesSpec = {
-          index,
-          meshes: [],
-        };
-        mesh.buildMeshes[index] = subparcelBuildMeshesSpec;
-        const subparcel = planet.getSubparcelByIndex(index);
-        for (const build of subparcel.builds) {
-          const buildMesh = _addBuild(build);
-          subparcelBuildMeshesSpec.meshes.push(buildMesh);
-        }
+      mesh.buildMeshes[index] = null;
+    }
+    for (const addedCoord of addedCoords) {
+      const {index} = addedCoord;
+      const subparcelBuildMeshesSpec = {
+        index,
+        meshes: [],
+      };
+      mesh.buildMeshes[index] = subparcelBuildMeshesSpec;
+      const subparcel = planet.getSubparcelByIndex(index);
+      for (const build of subparcel.builds) {
+        const buildMesh = _addBuild(build);
+        subparcelBuildMeshesSpec.meshes.push(buildMesh);
       }
-      for (const neededCoord of neededCoords) {
-        const {index} = neededCoord;
-        const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
-        for (const mesh of subparcelBuildMeshesSpec.meshes) {
-          mesh.update();
-        }
+    }
+    for (const neededCoord of neededCoords) {
+      const {index} = neededCoord;
+      const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
+      for (const mesh of subparcelBuildMeshesSpec.meshes) {
+        mesh.update();
       }
     }
   };
   const _updateVegetations = () => {
-    for (let i = 0; i < removedCoords.length; i++) {
-      const {index} = removedCoords[i];
+    for (const removedCoord of removedCoords) {
+      const {index} = removedCoords;
       currentVegetationMesh.freeSlabIndex(index);
       currentVegetationTransparentMesh.freeSlabIndex(index);
 
@@ -2116,8 +2112,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         subparcelTasks.length = 0;
       }
     }
-    for (let i = 0; i < addedCoords.length; i++) {
-      const addedCoord = addedCoords[i];
+    for (const addedCoord of addedCoords) {
       const {x, y, z, index} = addedCoord;
       if (y === NUM_PARCELS-1) {
         const subparcel = planet.getSubparcelByIndex(index);
@@ -3429,7 +3424,7 @@ function animate(timestamp, frame) {
           const hasBuildMesh = (() => {
             for (const index in currentChunkMesh.buildMeshes) {
               const subparcelBuildMeshesSpec = currentChunkMesh.buildMeshes[index];
-              if (subparcelBuildMeshesSpec.meshes.some(bm => _buildMeshEquals(bm, buildMesh))) {
+              if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(bm => _buildMeshEquals(bm, buildMesh))) {
                 return true;
               }
             }
@@ -3699,7 +3694,7 @@ function animate(timestamp, frame) {
           const hasBuildMesh = (() => {
             for (const index in currentChunkMesh.buildMeshes) {
               const subparcelBuildMeshesSpec = currentChunkMesh.buildMeshes[index];
-              if (subparcelBuildMeshesSpec.meshes.some(bm => _buildMeshEquals(bm, buildMesh))) {
+              if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(bm => _buildMeshEquals(bm, buildMesh))) {
                 return true;
               }
             }
