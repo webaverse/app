@@ -3210,28 +3210,6 @@ function animate(timestamp, frame) {
   const timeDiff = 30/1000;// Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
 
-  /* if (physics) {
-    physics.simulate();
-    physics.pullObjectMesh(physicalMesh);
-    // physics.checkCollisions();
-  } */
-
-  if (skybox) {
-    skybox.material.uniforms.iTime.value = ((Date.now() - startTime)%3000)/3000;
-  }
-  if (skybox2) {
-    // skybox2.material.uniforms.iTime.value = (Date.now() - startTime) * 0.00005;
-    skybox2.update();
-  }
-
-  /* if (physxWorker && capsuleMesh) {
-    capsuleMesh.position.set(-8, -11+Math.sin((Date.now()%10000)/10000*Math.PI*2)*2, 8);
-    const collision = physxWorker.collide(0.5, 0.5, capsuleMesh.position, capsuleMesh.quaternion, 4);
-    if (collision) {
-      capsuleMesh.position.add(localVector.fromArray(collision.direction));
-    }
-  } */
-
   const now = Date.now();
   if (currentChunkMesh) {
     currentChunkMesh.material[0].uniforms.uTime.value = (now % timeFactor) / timeFactor;
@@ -3247,8 +3225,14 @@ function animate(timestamp, frame) {
   });
   cometFireMesh.material.uniforms.uAnimation.value = (Date.now() % 2000) / 2000;
   hpMesh.update();
-  for (let i = 0; i < npcMeshes.length; i++) {
+  /* for (let i = 0; i < npcMeshes.length; i++) {
     npcMeshes[i].update();
+  } */
+  if (skybox) {
+    skybox.material.uniforms.iTime.value = ((Date.now() - startTime)%3000)/3000;
+  }
+  if (skybox2) {
+    skybox2.update();
   }
   crosshairMesh && crosshairMesh.update();
 
@@ -3261,9 +3245,6 @@ function animate(timestamp, frame) {
       localMatrix.fromArray(pose.transform.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
-      /* if (!raycastRunning && physicsWorker) {
-        physicsWorker.requestPointRaycast(chunkMeshContainer.matrixWorld.toArray(), localVector.toArray(), localQuaternion.toArray());
-      } */
       if (currentChunkMesh && physxWorker) {
         const result = physxWorker.raycast(localVector, localQuaternion);
         raycastChunkSpec = result;
