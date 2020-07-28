@@ -1612,20 +1612,16 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   const marchesTasks = [];
   const vegetationsTasks = [];
   let packagesRunning = false;
-  let chunksNeedUpdate = false;
-  let buildMeshesNeedUpdate = false;
-  let packagesNeedUpdate = false;
-  let hadCoords = false;
-  let subparcelsNeedUpdate = [];
   mesh.updateSlab = (x, y, z) => {
-    subparcelsNeedUpdate.push([x, y, z]);
-    chunksNeedUpdate = true;
-  };
-  mesh.updateBuildMeshes = () => {
-    buildMeshesNeedUpdate = true;
-  };
-  mesh.updatePackages = () => {
-    packagesNeedUpdate = true;
+    const j = numUpdatedCoords++;
+    let coord = updatedCoords[j];
+    if (!coord) {
+      coord = new THREE.Vector3();
+      updatedCoords[j] = coord;
+    }
+    coord.x = x;
+    coord.y = y;
+    coord.z = z;
   };
   let neededCoords = [];
   let lastNeededCoords = [];
@@ -1633,6 +1629,9 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   let lastNeededCoordIndices = {};
   const addedCoords = [];
   const removedCoords = [];
+  const updatedCoords = [];
+  let numUpdatedCoords = 0;
+  let coordUpdated = false;
   const _updateCurrentCoord = position => {
     localVector3.copy(position)
       .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
@@ -1642,13 +1641,11 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
     if (currentCoord.x !== ncx || currentCoord.y !== ncy || currentCoord.z !== ncz) {
       currentCoord.set(ncx, ncy, ncz);
-      chunksNeedUpdate = true;
-      buildMeshesNeedUpdate = true;
-      packagesNeedUpdate = true;
+      coordUpdated = true;
     }
   };
   const _updateNeededCoords = () => {
-    if (chunksNeedUpdate || buildMeshesNeedUpdate || packagesNeedUpdate) {
+    if (coordUpdated) {
       let i = 0;
       for (let dx = -chunkDistance; dx <= chunkDistance; dx++) {
         const ax = dx + currentCoord.x;
@@ -1661,6 +1658,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             let neededCoord = neededCoords[j];
             if (!neededCoord) {
               neededCoord = new THREE.Vector3();
+              neededCoord.index = 0;
               neededCoords[j] = neededCoord;
             }
             neededCoord.x = ax;
@@ -1681,29 +1679,21 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           removedCoords.push(lastNeededCoord);
         }
       }
-      hadCoords = true;
     }
   };
   const _updateLastNeededCoords = () => {
-    if (hadCoords) {
-      const tempNeededCoords = lastNeededCoords;
+    if (coordUpdated) {
       lastNeededCoords = neededCoords;
       lastNeededCoordIndices = neededCoordIndices;
-      neededCoords = tempNeededCoords;
+      neededCoords = [];
       neededCoordIndices = {};
       addedCoords.length = 0;
       removedCoords.length = 0;
-
-      hadCoords = false;
+      coordUpdated = false;
     }
+    numUpdatedCoords = 0;
   };
-  const _updateChunks = () => {
-    if (chunksNeedUpdate) {
-      chunksNeedUpdate = false;
-      _runMarches();
-    }
-  };
-  const _runMarches = () => {
+  const _updateChunksRemove = () => {
     for (const removedCoord of removedCoords) {
       const {index} = removedCoord;
       const slab = slabs[index];
@@ -1726,138 +1716,159 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         subparcelTasks.length = 0;
       }
     }
-    for (const addedCoord of addedCoords) {
-      const {x: ax, y: ay, z: az, index} = addedCoord;
+  };
+  const _ensureCoord = coord => {
+    const {x: ax, y: ay, z: az, index} = coord;
 
-      let subparcelTasks = marchesTasks[index];
-      if (!subparcelTasks) {
-        subparcelTasks = [];
-        marchesTasks[index] = subparcelTasks;
-      }
+    for (let dx = 0; dx <= 1; dx++) {
+      const adx = ax + dx;
+      for (let dy = 0; dy <= 1; dy++) {
+        const ady = ay + dy;
+        for (let dz = 0; dz <= 1; dz++) {
+          const adz = az + dz;
+          const subparcel = planet.getSubparcel(adx, ady, adz);
 
-      for (let dx = 0; dx <= 1; dx++) {
-        const adx = ax + dx;
-        for (let dy = 0; dy <= 1; dy++) {
-          const ady = ay + dy;
-          for (let dz = 0; dz <= 1; dz++) {
-            const adz = az + dz;
-            const subparcel = planet.getSubparcel(adx, ady, adz);
-
-            if (!subparcel[loadedSymbol] || subparcelsNeedUpdate.some(([x, y, z]) => x === adx && y === ady && z === adz)) {
-              chunkWorker.requestLoadPotentials(
-                seedNum,
-                meshId,
-                adx,
-                ady,
-                adz,
-                parcelSize/2-10,
-                [
-                  1,
-                  1,
-                  1,
-                ], [
-                  3,
-                  3,
-                  3,
-                ], [
-                  0.08,
-                  0.012,
-                  0.016,
-                ], [
-                  0,
-                  0,
-                  0,
-                ], [
-                  1,
-                  1.5,
-                  4,
-                ],
-                subparcel.potentials,
-                parcelSize,
-                subparcelSize
-              );
-              subparcel[loadedSymbol] = true;
+          const needsLoad = !subparcel[loadedSymbol] || (() => {
+            for (let i = 0; i < numUpdatedCoords; i++) {
+              const updatedCoord = updatedCoords[i];
+              return updatedCoord.x === adx && updatedCoord.y === ady && updatedCoord.z === adz;
             }
+          })();
+          if (needsLoad) {
+            chunkWorker.requestLoadPotentials(
+              seedNum,
+              meshId,
+              adx,
+              ady,
+              adz,
+              parcelSize/2-10,
+              [
+                1,
+                1,
+                1,
+              ], [
+                3,
+                3,
+                3,
+              ], [
+                0.08,
+                0.012,
+                0.016,
+              ], [
+                0,
+                0,
+                0,
+              ], [
+                1,
+                1.5,
+                4,
+              ],
+              subparcel.potentials,
+              parcelSize,
+              subparcelSize
+            );
+            subparcel[loadedSymbol] = true;
           }
         }
       }
-
-      /* if (
-        !slabs[index] ||
-        subparcelsNeedUpdate.some(([x, y, z]) => x === ax && y === ay && z === az)
-      ) { */
-      let live = true;
-      (async () => {
-        const specs = await chunkWorker.requestMarchLand(
-          seedNum,
-          meshId,
-          ax, ay, az,
-          parcelSize,
-          subparcelSize
-        );
-        if (live) {
-          for (let i = 0; i < specs.length; i++) {
-            const spec = specs[i];
-            const {x, y, z} = spec;
-            const slab = mesh.getSlab(x, y, z);
-            slab.position.set(spec.positions);
-            slab.barycentric.set(spec.barycentrics);
-            slab.id.set(spec.ids);
-            const indexOffset = slab.slabIndex * slabSliceTris;
-            for (let i = 0; i < spec.indices.length; i++) {
-              spec.indices[i] += indexOffset;
-            }
-            slab.indices.set(spec.indices);
-
-            mesh.updateGeometry(slab, spec);
-
-            const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
-            group.count = spec.positions.length/3;
-          }
-          const bakeSpecs = specs.filter(spec => spec.positions.length > 0).map(spec => {
-            const {positions, x, y, z} = spec;
-            return positions.length > 0 ? {
-              positions,
-              x,
-              y,
-              z,
-            } : null;
-          });
-          if (bakeSpecs.length > 0) {
-            const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => {
-              const {positions} = spec;
-              return {
-                positions,
-              };
-            }));
-            for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
-              const physxGeometry = result.physicsGeometryBuffers[i];
-              const {x, y, z} = bakeSpecs[i];
-              const slab = currentChunkMesh.getSlab(x, y, z);
-              if (slab.physxGeometry) {
-                physxWorker.unregisterGeometry(slab.physxGeometry);
-                slab.physxGeometry = 0;
-              }
-              slab.physxGeometry = physxWorker.registerBakedGeometry(currentChunkMesh.meshId, physxGeometry, x, y, z);
-            }
-          }
-        }
-      })()
-        .finally(() => {
-          if (live) {
-            subparcelTasks.splice(subparcelTasks.indexOf(task), 1);
-          }
-        });
-      const task = {
-        cancel() {
-          live = false;
-        },
-      };
-      subparcelTasks.push(task);
-      // }
     }
+  };
+  const _loadCoord = coord => {
+    const {x: ax, y: ay, z: az, index} = coord;
+    /* if (
+      !slabs[index] ||
+      subparcelsNeedUpdate.some(([x, y, z]) => x === ax && y === ay && z === az)
+    ) { */
+    let live = true;
+    (async () => {
+      const specs = await chunkWorker.requestMarchLand(
+        seedNum,
+        meshId,
+        ax, ay, az,
+        parcelSize,
+        subparcelSize
+      );
+      if (live) {
+        for (let i = 0; i < specs.length; i++) {
+          const spec = specs[i];
+          const {x, y, z} = spec;
+          const slab = mesh.getSlab(x, y, z);
+          slab.position.set(spec.positions);
+          slab.barycentric.set(spec.barycentrics);
+          slab.id.set(spec.ids);
+          const indexOffset = slab.slabIndex * slabSliceTris;
+          for (let i = 0; i < spec.indices.length; i++) {
+            spec.indices[i] += indexOffset;
+          }
+          slab.indices.set(spec.indices);
 
-    subparcelsNeedUpdate.length = 0;
+          mesh.updateGeometry(slab, spec);
+
+          const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
+          group.count = spec.positions.length/3;
+        }
+        const bakeSpecs = specs.filter(spec => spec.positions.length > 0).map(spec => {
+          const {positions, x, y, z} = spec;
+          return positions.length > 0 ? {
+            positions,
+            x,
+            y,
+            z,
+          } : null;
+        });
+        if (bakeSpecs.length > 0) {
+          const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => {
+            const {positions} = spec;
+            return {
+              positions,
+            };
+          }));
+          for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
+            const physxGeometry = result.physicsGeometryBuffers[i];
+            const {x, y, z} = bakeSpecs[i];
+            const slab = currentChunkMesh.getSlab(x, y, z);
+            if (slab.physxGeometry) {
+              physxWorker.unregisterGeometry(slab.physxGeometry);
+              slab.physxGeometry = 0;
+            }
+            slab.physxGeometry = physxWorker.registerBakedGeometry(currentChunkMesh.meshId, physxGeometry, x, y, z);
+          }
+        }
+      }
+    })()
+      .finally(() => {
+        if (live) {
+          subparcelTasks.splice(subparcelTasks.indexOf(task), 1);
+        }
+      });
+    const task = {
+      cancel() {
+        live = false;
+      },
+    };
+    let subparcelTasks = marchesTasks[index];
+    if (!subparcelTasks) {
+      subparcelTasks = [];
+      marchesTasks[index] = subparcelTasks;
+    }
+    subparcelTasks.push(task);
+    // }
+  };
+  const _updateChunksAdd = () => {
+    for (const addedCoord of addedCoords) {
+      _ensureCoord(addedCoord);
+    }
+    for (const addedCoord of addedCoords) {
+      _loadCoord(addedCoord);
+    }
+    for (let i = 0; i < numUpdatedCoords; i++) {
+      const updatedCoord = updatedCoords[i];
+      _loadCoord(updatedCoord);
+    }
+  };
+  const _updateChunks = () => {
+    _updateChunksRemove();
+    _updateChunksAdd();
   };
   const _addItem = (position, quaternion) => {
     const itemMesh = (() => {
@@ -2068,7 +2079,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     buildMeshClone.remove();
     buildMeshClone.physxGeometry && physxWorker.unregisterGeometry(buildMeshClone.physxGeometry);
   };
-  const _updateBuilds = () => {
+  const _updateBuildsRemove = () => {
     for (const removedCoord of removedCoords) {
       const {index} = removedCoord;
       const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
@@ -2077,6 +2088,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       }
       mesh.buildMeshes[index] = null;
     }
+  };
+  const _updateBuildsAdd = () => {
     for (const addedCoord of addedCoords) {
       const {index} = addedCoord;
       const subparcelBuildMeshesSpec = {
@@ -2090,6 +2103,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         subparcelBuildMeshesSpec.meshes.push(buildMesh);
       }
     }
+  };
+  const _updateBuildsNeeded = () => {
     for (const neededCoord of neededCoords) {
       const {index} = neededCoord;
       const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
@@ -2098,9 +2113,14 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       }
     }
   };
-  const _updateVegetations = () => {
+  const _updateBuilds = () => {
+    _updateBuildsRemove();
+    _updateBuildsAdd();
+    _updateBuildsNeeded();
+  };
+  const _updateVegetationsRemove = () => {
     for (const removedCoord of removedCoords) {
-      const {index} = removedCoords;
+      const {index} = removedCoord;
       currentVegetationMesh.freeSlabIndex(index);
       currentVegetationTransparentMesh.freeSlabIndex(index);
 
@@ -2112,6 +2132,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         subparcelTasks.length = 0;
       }
     }
+  };
+  const _updateVegetationsAdd = () => {
     for (const addedCoord of addedCoords) {
       const {x, y, z, index} = addedCoord;
       if (y === NUM_PARCELS-1) {
@@ -2192,7 +2214,12 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       }
     }
   };
+  const _updateVegetations = () => {
+    _updateVegetationsRemove();
+    _updateVegetationsAdd();
+  };
   const _updatePackages = () => {
+    const packagesNeedUpdate = false;
     if (packagesNeedUpdate) {
       if (!packagesRunning) {
         (async () => {
@@ -2295,8 +2322,6 @@ planet.addEventListener('unload', () => {
 planet.addEventListener('subparcelupdate', e => {
   const {data: subparcel} = e;
   currentChunkMesh.updateSlab(subparcel.x, subparcel.y, subparcel.z);
-  currentChunkMesh.updateBuildMeshes();
-  currentChunkMesh.updatePackages();
 });
 planet.connect('lol', {
   online: false,
