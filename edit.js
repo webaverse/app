@@ -3709,15 +3709,15 @@ function animate(timestamp, frame) {
             return false;
           })();
           if (!hasBuildMesh) {
-            const buildSubparcelPosition = new THREE.Vector3(
+            const subparcelPosition = new THREE.Vector3(
               Math.floor(buildMesh.position.x/currentChunkMesh.subparcelSize),
               Math.floor(buildMesh.position.y/currentChunkMesh.subparcelSize),
               Math.floor(buildMesh.position.z/currentChunkMesh.subparcelSize)
             );
-            planet.editSubparcel(buildSubparcelPosition.x, buildSubparcelPosition.y, buildSubparcelPosition.z, subparcel => {
+            planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
               subparcel.addBuild(buildMesh.buildMeshType, buildMesh.position, buildMesh.quaternion);
             });
-            currentChunkMesh.updateBuildMeshes();
+            currentChunkMesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
           }
         }
       }
