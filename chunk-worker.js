@@ -1,17 +1,35 @@
 importScripts('./bin/objectize2.js');
 
-/* const {
-  PARCEL_SIZE,
-  SUBPARCEL_SIZE,
-  SUBPARCEL_SIZE_P1,
-  NUM_PARCELS,
-} = globalThis.constants; */
 const potentialDefault = -0.5;
+const maxNumObjects = 10;
+
+class Allocator {
+  constructor() {
+    this.offsets = [];
+  }
+  alloc(constructor, size) {
+    const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
+    const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
+    b.offset = offset;
+    this.offsets.push(offset);
+    return b;
+  }
+  freeAll() {
+    for (let i = 0; i < this.offsets.length; i++) {
+      self.Module._doFree(this.offsets[i]);
+    }
+    this.offsets.length = 0;
+  }
+}
 
 const _makeSlabData = (x, y, z, freqsData, octavesData, scalesData, uvsData, ampsData, parcelSize, subparcelSize) => {
   const allocator = new Allocator();
 
   const potentials = allocator.alloc(Float32Array, subparcelSize * subparcelSize * subparcelSize);
+  const objectPositions = allocator.alloc(Float32Array, maxNumObjects*3);
+  const objectQuaternions = allocator.alloc(Float32Array, maxNumObjects*3);
+  const objectTypes = allocator.alloc(Uint32Array, maxNumObjects);
+  const numObjects = allocator.alloc(Uint32Array, 1);
   const freqs = allocator.alloc(Float32Array, freqsData.length);
   freqs.set(Float32Array.from(freqsData));
   const octaves = allocator.alloc(Int32Array, octavesData.length);
@@ -31,6 +49,10 @@ const _makeSlabData = (x, y, z, freqsData, octavesData, scalesData, uvsData, amp
 
   return {
     potentials,
+    objectPositions,
+    objectQuaternions,
+    objectTypes,
+    numObjects,
     freqs,
     octaves,
     scales,
@@ -91,25 +113,6 @@ const _getChunk = (meshId, freqs, octaves, scales, uvs, amps, parcelSize, subpar
   return chunk;
 }
 
-class Allocator {
-  constructor() {
-    this.offsets = [];
-  }
-  alloc(constructor, size) {
-    const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
-    const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
-    b.offset = offset;
-    this.offsets.push(offset);
-    return b;
-  }
-  freeAll() {
-    for (let i = 0; i < this.offsets.length; i++) {
-      self.Module._doFree(this.offsets[i]);
-    }
-    this.offsets.length = 0;
-  }
-}
-
 function mod(a, b) {
   return ((a%b)+b)%b;
 }
@@ -118,6 +121,10 @@ const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSize
 const _loadNoise = (seedData, baseHeight, data) => {
   const {
     potentials,
+    objectPositions,
+    objectQuaternions,
+    objectTypes,
+    numObjects,
     freqs,
     octaves,
     scales,
@@ -131,6 +138,7 @@ const _loadNoise = (seedData, baseHeight, data) => {
   const wormRate = 2;
   const wormRadiusBase = 2;
   const wormRadiusRate = 2;
+  const objectsRate = 3;
 
   Module._doNoise3(
     seedData,
@@ -146,8 +154,13 @@ const _loadNoise = (seedData, baseHeight, data) => {
     wormRate,
     wormRadiusBase,
     wormRadiusRate,
+    objectsRate,
     potentialDefault,
-    potentials.offset
+    potentials.offset,
+    objectPositions.offset,
+    objectQuaternions.offset,
+    objectTypes.offset,
+    numObjects.offset
   );
 };
 /* const _makePlanetPotentials = (seedData, shiftsData) => {
@@ -321,6 +334,20 @@ const _handleMessage = data => {
       self.postMessage({
         result: {},
       });
+      /* const {
+        objectPositions,
+        objectQuaternions,
+        objectTypes,
+        numObjects,
+      } = slab.data;
+      self.postMessage({
+        result: {
+          objectPositions,
+          objectQuaternions,
+          objectTypes,
+          numObjects,
+        },
+      }); */
       break;
     }
     case 'marchLand': {
