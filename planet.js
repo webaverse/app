@@ -3,12 +3,14 @@ import storage from './storage.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
+  SUBPARCEL_SIZE_P1,
   NUM_PARCELS,
   MAX_NAME_LENGTH,
   PLANET_OBJECT_SLOTS,
   PLANET_OBJECT_SIZE,
 
   getNextMeshId,
+  loadedSymbol,
 } from './constants.js';
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 
@@ -44,7 +46,7 @@ const _getSubparcelXYZ = index => {
   if (sz) { z *= -1; }
   return [x, y, z];
 };
-const _getPotentialIndex = (x, y, z) => x + y*SUBPARCEL_SIZE*SUBPARCEL_SIZE + z*SUBPARCEL_SIZE;
+const _getPotentialIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + z*SUBPARCEL_SIZE_P1;
 const potentialDefault = -0.5;
 
 // planet
@@ -65,7 +67,7 @@ const _getStringLength = s => {
   }
   return i;
 };
-const _serializeState = state => {
+/* const _serializeState = state => {
   const offsets = Subparcel.getOffsets();
   const numSubparcels = Object.keys(subparcels).length;
   const ab = new ArrayBuffer(
@@ -136,7 +138,7 @@ const _deserializeState = ab => {
     subparcelSize,
     subparcels,
   };
-};
+}; */
 
 export class SubparcelObject {
   constructor(data, offset, index, subparcel) {
@@ -196,7 +198,7 @@ export class Subparcel {
     this.offsets = Subparcel.getOffsets();
     this.data = data !== undefined ? data : new ArrayBuffer(this.offsets.length);
     this.offset = offset !== undefined ? offset : 0;
-    this.potentials = new Float32Array(this.data, this.offset + this.offsets.potentials, SUBPARCEL_SIZE*SUBPARCEL_SIZE*SUBPARCEL_SIZE);
+    this.potentials = new Float32Array(this.data, this.offset + this.offsets.potentials, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
     this._objectId = new Uint32Array(this.data, this.offset + this.offsets.objectId, 1);
     this._freeList = new Uint8Array(this.data, this.offset + this.offsets.freeList, PLANET_OBJECT_SLOTS);
     this.builds = [];
@@ -327,13 +329,12 @@ export class Subparcel {
   }
 }
 Subparcel.getOffsets = () => {
-  const subparcelSize = SUBPARCEL_SIZE;
   let index = 0;
 
   const xyz = index;
   index += Int32Array.BYTES_PER_ELEMENT * 3;
   const potentials = index;
-  index += subparcelSize * subparcelSize * subparcelSize * Float32Array.BYTES_PER_ELEMENT;
+  index += SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * Float32Array.BYTES_PER_ELEMENT;
   const objectId = index;
   index += Uint32Array.BYTES_PER_ELEMENT;
   const freeList = index;
@@ -496,6 +497,7 @@ const _loadStorage = async roomName => {
         .then(ab => {
           const subparcel = new Subparcel(ab);
           subparcel.readMetadata();
+          subparcel[loadedSymbol] = Promise.resolve();
           subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
           return subparcel;
         });
@@ -805,8 +807,8 @@ planet.connect = async (rn, {online = true} = {}) => {
     await _loadLiveState(roomName);
   }
 };
-planet.reload = () => {
+/* planet.reload = () => {
   const b = _serializeState(state);
   const s = _deserializeState(b);
   return s;
-};
+}; */

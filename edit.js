@@ -33,6 +33,7 @@ import {
   PLANET_OBJECT_SLOTS,
 
   getNextMeshId,
+  loadedSymbol,
 } from './constants.js';
 import alea from './alea.js';
 import easing from './easing.js';
@@ -49,7 +50,6 @@ const packagesEndpoint = 'https://packages.exokit.org';
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const downQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0));
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2);
-const loadedSymbol = Symbol('loaded');
 const pid4 = Math.PI/4;
 const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
@@ -339,7 +339,7 @@ const [
         }
       });
     });
-    w.requestLoadPotentials = (seed, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, parcelSize, subparcelSize) => {
+    w.requestLoadPotentials = (seed, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize) => {
       return w.request({
         method: 'loadPotentials',
         seed,
@@ -353,12 +353,11 @@ const [
         scales,
         uvs,
         amps,
-        potentials,
         parcelSize,
         subparcelSize
       });
     };
-    w.requestMarchLand = (seed, meshId, x, y, z, parcelSize, subparcelSize) => {
+    w.requestMarchLand = (seed, meshId, x, y, z, potentials, parcelSize, subparcelSize) => {
       return w.request({
         method: 'marchLand',
         seed,
@@ -366,6 +365,7 @@ const [
         x,
         y,
         z,
+        potentials,
         parcelSize,
         subparcelSize
       });
@@ -1929,14 +1929,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           const adz = az + dz;
           const subparcel = planet.getSubparcel(adx, ady, adz);
 
-          const needsLoad = !subparcel[loadedSymbol] || (() => {
-            for (let i = 0; i < numUpdatedCoords; i++) {
-              const updatedCoord = updatedCoords[i];
-              return updatedCoord.x === adx && updatedCoord.y === ady && updatedCoord.z === adz;
-            }
-          })();
-          if (needsLoad) {
-            chunkWorker.requestLoadPotentials(
+          if (!subparcel[loadedSymbol]) {
+            subparcel[loadedSymbol] = chunkWorker.requestLoadPotentials(
               seedNum,
               meshId,
               adx,
@@ -1964,11 +1958,11 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
                 1.5,
                 4,
               ],
-              subparcel.potentials,
               parcelSize,
               subparcelSize
-            );
-            subparcel[loadedSymbol] = true;
+            ).then(parcelSpec => {
+               subparcel.potentials.set(parcelSpec.potentials);
+            });
           }
         }
       }
@@ -1982,58 +1976,63 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     ) { */
     let live = true;
     (async () => {
+      const subparcel = planet.getSubparcelByIndex(index);
+      await subparcel[loadedSymbol];
+      if (!live) return;
+
       const specs = await chunkWorker.requestMarchLand(
         seedNum,
         meshId,
         ax, ay, az,
+        subparcel.potentials,
         parcelSize,
         subparcelSize
       );
-      if (live) {
-        for (let i = 0; i < specs.length; i++) {
-          const spec = specs[i];
-          const {x, y, z} = spec;
-          const slab = mesh.getSlab(x, y, z);
-          slab.position.set(spec.positions);
-          slab.barycentric.set(spec.barycentrics);
-          slab.id.set(spec.ids);
-          const indexOffset = slab.slabIndex * slabSliceTris;
-          for (let i = 0; i < spec.indices.length; i++) {
-            spec.indices[i] += indexOffset;
-          }
-          slab.indices.set(spec.indices);
+      if (!live) return;
 
-          mesh.updateGeometry(slab, spec);
-
-          const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
-          group.count = spec.positions.length/3;
+      for (let i = 0; i < specs.length; i++) {
+        const spec = specs[i];
+        const {x, y, z} = spec;
+        const slab = mesh.getSlab(x, y, z);
+        slab.position.set(spec.positions);
+        slab.barycentric.set(spec.barycentrics);
+        slab.id.set(spec.ids);
+        const indexOffset = slab.slabIndex * slabSliceTris;
+        for (let i = 0; i < spec.indices.length; i++) {
+          spec.indices[i] += indexOffset;
         }
-        const bakeSpecs = specs.filter(spec => spec.positions.length > 0).map(spec => {
-          const {positions, x, y, z} = spec;
-          return positions.length > 0 ? {
+        slab.indices.set(spec.indices);
+
+        mesh.updateGeometry(slab, spec);
+
+        const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
+        group.count = spec.positions.length/3;
+      }
+      const bakeSpecs = specs.filter(spec => spec.positions.length > 0).map(spec => {
+        const {positions, x, y, z} = spec;
+        return positions.length > 0 ? {
+          positions,
+          x,
+          y,
+          z,
+        } : null;
+      });
+      if (bakeSpecs.length > 0) {
+        const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => {
+          const {positions} = spec;
+          return {
             positions,
-            x,
-            y,
-            z,
-          } : null;
-        });
-        if (bakeSpecs.length > 0) {
-          const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => {
-            const {positions} = spec;
-            return {
-              positions,
-            };
-          }));
-          for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
-            const physxGeometry = result.physicsGeometryBuffers[i];
-            const {x, y, z} = bakeSpecs[i];
-            const slab = currentChunkMesh.getSlab(x, y, z);
-            if (slab.physxGeometry) {
-              physxWorker.unregisterGeometry(slab.physxGeometry);
-              slab.physxGeometry = 0;
-            }
-            slab.physxGeometry = physxWorker.registerBakedGeometry(currentChunkMesh.meshId, physxGeometry, x, y, z);
+          };
+        }));
+        for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
+          const physxGeometry = result.physicsGeometryBuffers[i];
+          const {x, y, z} = bakeSpecs[i];
+          const slab = currentChunkMesh.getSlab(x, y, z);
+          if (slab.physxGeometry) {
+            physxWorker.unregisterGeometry(slab.physxGeometry);
+            slab.physxGeometry = 0;
           }
+          slab.physxGeometry = physxWorker.registerBakedGeometry(currentChunkMesh.meshId, physxGeometry, x, y, z);
         }
       }
     })()
@@ -3796,77 +3795,82 @@ function animate(timestamp, frame) {
             localVector2.y = Math.floor(localVector2.y);
             localVector2.z = Math.floor(localVector2.z);
 
-            const minesMap = {};
-            const _getMinesKey = (x, y, z) => [x, y, z].join(':');
-            const _getMines = (x, y, z) => {
-              const minesKey = _getMinesKey(x, y, z);
-              let mines = minesMap[minesKey];
-              if (!mines) {
-                mines = [];
-                minesMap[minesKey] = mines;
-              }
-              return mines;
-            };
+            const _applyPotentials = () => {
+              const mineSpecs = [];
+              const _applyPotentialsRound = (ax, ay, az, value) => {
+                const mineSpecsRound = [];
+                for (let ddy = -1; ddy <= 0; ddy++) {
+                  const ady = ay + ddy;
+                  for (let ddz = -1; ddz <= 0; ddz++) {
+                    const adz = az + ddz;
+                    for (let ddx = -1; ddx <= 0; ddx++) {
+                      const adx = ax + ddx;
 
-            const mineSpecs = [];
-            const {x, y, z} = localVector2;
-            for (let dy = -1; dy <= 1; dy++) {
-              const ay = y + dy;
-              for (let dz = -1; dz <= 1; dz++) {
-                const az = z + dz;
-                for (let dx = -1; dx <= 1; dx++) {
-                  const ax = x + dx;
+                      const sdx = Math.floor(adx/currentChunkMesh.subparcelSize);
+                      const sdy = Math.floor(ady/currentChunkMesh.subparcelSize);
+                      const sdz = Math.floor(adz/currentChunkMesh.subparcelSize);
+                      const index = planet.getSubparcelIndex(sdx, sdy, sdz);
 
-                  const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-                  const maxDistScale = 1;
-                  const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
-                  const distanceDiff = maxDist - dist;
-                  if (distanceDiff > 0) {
-                    const sx = Math.floor(ax/currentChunkMesh.subparcelSize);
-                    const sy = Math.floor(ay/currentChunkMesh.subparcelSize);
-                    const sz = Math.floor(az/currentChunkMesh.subparcelSize);
+                      if (!mineSpecsRound.some(mineSpec => mineSpec.index === index)) {
+                        const lx = ax - sdx*currentChunkMesh.subparcelSize;
+                        const ly = ay - sdy*currentChunkMesh.subparcelSize;
+                        const lz = az - sdz*currentChunkMesh.subparcelSize;
 
-                    planet.editSubparcel(sx, sy, sz, subparcel => {
-                      const lx = mod(ax, currentChunkMesh.subparcelSize);
-                      const ly = mod(ay, currentChunkMesh.subparcelSize);
-                      const lz = mod(az, currentChunkMesh.subparcelSize);
-                      const potentialIndex = _getPotentialIndex(lx, ly, lz, currentChunkMesh.subparcelSize);
-                      const value = distanceDiff * delta;
-                      subparcel.potentials[potentialIndex] = subparcel.potentials[potentialIndex] + value;
+                        planet.editSubparcel(sdx, sdy, sdz, subparcel => {
+                          const potentialIndex = _getPotentialIndex(lx, ly, lz, currentChunkMesh.subparcelSize+1);
+                          if (potentialIndex < 0 || potentialIndex >= subparcel.potentials.length) {
+                            debugger;
+                          }
+                          subparcel.potentials[potentialIndex] += value;
 
-                      const mines = _getMines(sx, sy, sz);
-                      mines.push([potentialIndex, value]);
-                    });
-
-                    for (let ddy = -1; ddy <= 1; ddy++) {
-                      const ady = ay + ddy;
-                      for (let ddz = -1; ddz <= 1; ddz++) {
-                        const adz = az + ddz;
-                        for (let ddx = -1; ddx <= 1; ddx++) {
-                          const adx = ax + ddx;
-
-                          const sdx = Math.floor(adx/currentChunkMesh.subparcelSize);
-                          const sdy = Math.floor(ady/currentChunkMesh.subparcelSize);
-                          const sdz = Math.floor(adz/currentChunkMesh.subparcelSize);
-                          let mineSpec = mineSpecs.find(ms => ms.x === sdx && ms.y === sdy && ms.z === sdz);
-                          if (!mineSpec) {
-                            mineSpec = {
-                              x: sdx,
-                              y: sdy,
-                              z: sdz,
-                              // potentials: subparcel.potentials,
-                              mines: _getMines(sdx, sdy, sdz), // subparcel.mines,
-                            };
+                          const mineSpec = {
+                            x: sdx,
+                            y: sdy,
+                            z: sdz,
+                            index,
+                            potentials: subparcel.potentials,
+                          };
+                          mineSpecsRound.push(mineSpec);
+                          if (!mineSpecs.some(mineSpec => mineSpec.index === index)) {
                             mineSpecs.push(mineSpec);
                           }
-                        }
+                        });
                       }
                     }
                   }
                 }
-              }
-            }
+              };
 
+              const {x, y, z} = localVector2;
+              for (let dy = -1; dy <= 1; dy++) {
+                const ay = y + dy;
+                for (let dz = -1; dz <= 1; dz++) {
+                  const az = z + dz;
+                  for (let dx = -1; dx <= 1; dx++) {
+                    const ax = x + dx;
+
+                    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    const maxDistScale = 1;
+                    const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
+                    const distanceDiff = maxDist - dist;
+                    if (distanceDiff > 0) {
+                      /* const sx = Math.floor(ax/currentChunkMesh.subparcelSize);
+                      const sy = Math.floor(ay/currentChunkMesh.subparcelSize);
+                      const sz = Math.floor(az/currentChunkMesh.subparcelSize);
+                      const lx = ax - sx*currentChunkMesh.subparcelSize;
+                      const ly = ay - sy*currentChunkMesh.subparcelSize;
+                      const lz = az - sz*currentChunkMesh.subparcelSize;
+                      const value = distanceDiff * delta;
+                      _potentialEdit(sx, sy, sz, lx, ly, lz, value); */
+                      const value = distanceDiff * delta;
+                      _applyPotentialsRound(ax, ay, az, value);
+                    }
+                  }
+                }
+              }
+              return mineSpecs;
+            };
+            const mineSpecs = _applyPotentials();
             const specs = await chunkWorker.requestMine(
               currentChunkMesh.meshId,
               mineSpecs,

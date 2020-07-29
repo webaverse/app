@@ -27,3 +27,5 @@ export const PLANET_OBJECT_SIZE = (
 
 let nextMeshId = 0;
 export const getNextMeshId = () => ++nextMeshId;
+
+export const loadedSymbol = Symbol('loaded');
