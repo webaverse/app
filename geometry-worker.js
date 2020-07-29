@@ -116,7 +116,7 @@ const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSize
 
 const geometryRegistry = {};
 
-const _marchObjects = (objects, opaqueIndexOffset, transparentIndexOffset) => {
+const _marchObjects = objects => {
   const geometries = objects.map(o => geometryRegistry[o.type]);
 
   let numOpaquePositions = 0;
@@ -190,7 +190,7 @@ const _marchObjects = (objects, opaqueIndexOffset, transparentIndexOffset) => {
     for (const geometry of geometrySpecs) {
       const spec = geometry.transparent ? transparent : opaque;
 
-      const indexOffset2 = (geometry.transparent ? transparentIndexOffset : opaqueIndexOffset) + spec.positionsIndex/3;
+      const indexOffset2 = spec.positionsIndex/3;
       for (let j = 0; j < geometry.indices.length; j++) {
         spec.indices[spec.indicesIndex + j] = geometry.indices[j] + indexOffset2;
       }
@@ -237,11 +237,11 @@ const _handleMessage = data => {
       break;
     }
     case 'marchObjects': {
-      const {objects, opaqueIndexOffset, transparentIndexOffset} = data;
+      const {objects} = data;
 
       const results = [];
       const transfers = [];
-      const [result, transfer] = _marchObjects(objects, opaqueIndexOffset, transparentIndexOffset);
+      const [result, transfer] = _marchObjects(objects);
       results.push(result);
       transfers.push(transfer);
 
