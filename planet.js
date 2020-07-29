@@ -295,6 +295,43 @@ export class Subparcel {
       console.warn('removing nonexistent build', build);
     }
   }
+  addVegetation(type, position, quaternion) {
+    const scale = new THREE.Vector3(1, 1, 1);
+    const vegetation = {
+      type: type,
+      id: getNextMeshId(),
+      position: position.toArray(new Float32Array(3)),
+      quaternion: quaternion.toArray(new Float32Array(4)),
+      scale: scale.toArray(new Float32Array(3)),
+      matrix: new THREE.Matrix4().compose(position, quaternion, scale).toArray(new Float32Array(16)),
+    };
+    this.vegetations.push(vegetation);
+    /* for (let i = 0; i < this._freeList.length; i++) {
+      if (!this._freeList[i]) {
+        this._freeList[i] = 1;
+
+        const build = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
+        build.id = ++this._objectId[0];
+        build.type = OBJECT_TYPES.BUILD;
+        build.name = type;
+        position.toArray(build.position);
+        quaternion.toArray(build.quaternion);
+        build.writeMetadata();
+        this.builds.push(build);
+        return build;
+      }
+    } */
+    // throw new Error('no more slots for build');
+  }
+  removeVegetation(vegetation) {
+    const index = this.vegetations.indexOf(vegetation);
+    if (index !== -1) {
+      // this._freeList[vegetation.index] = 0;
+      this.vegetations.splice(index, 1);
+    } else {
+      console.warn('removing nonexistent vegetation', vegetation);
+    }
+  }
   addPackage(dataHash, position, quaternion) {
     for (let i = 0; i < this._freeList.length; i++) {
       if (!this._freeList[i]) {

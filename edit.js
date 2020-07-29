@@ -212,10 +212,10 @@ const _snapBuildPosition = p => {
   p.z = Math.floor(p.z/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
   return p;
 };
-const _buildMeshEquals = (a, b) => {
+const _meshEquals = (a, b) => {
   if (a.position.equals(b.position)) {
-    if (a.buildMeshType === b.buildMeshType) {
-      if (a.buildMeshType === 'wall') {
+    if (a.type === b.buildMeshType) {
+      if (a.type === 'wall') {
         return Math.floor(a.quaternion.x/pid4) === Math.floor(b.quaternion.x/pid4) &&
           Math.floor(a.quaternion.y/pid4) === Math.floor(b.quaternion.y/pid4) &&
           Math.floor(a.quaternion.z/pid4) === Math.floor(b.quaternion.z/pid4) &&
@@ -2269,7 +2269,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         Math.floor(buildMeshClone.position.z/subparcelSize)
       );
       planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-        subparcel.removeBuild(buildMeshClone.build);
+        subparcel.removeVegetation(buildMeshClone.build);
       });
       mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
     });
@@ -2480,8 +2480,11 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
           });
           subparcelVegetationMeshesSpec.meshes.push({
+            isVegetationMesh: true,
             meshId: vegetation.id,
-            vegetationType: vegetation.type,
+            type: vegetation.type,
+            position: new THREE.Vector3().fromArray(vegetation.position),
+            quaternion: new THREE.Quaternion().fromArray(vegetation.quaternion),
             physxGeometry,
             hit: hitTracker.hit,
             update: hitTracker.update,
@@ -2584,7 +2587,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     _updateCurrentCoord(position);
     _updateNeededCoords();
     _updateChunks();
-    _updateBuilds();
+    // _updateBuilds();
     _updateVegetations();
     _updatePackages();
     _updateLastNeededCoords();
@@ -3751,9 +3754,9 @@ function animate(timestamp, frame) {
           ));
 
           const hasBuildMesh = (() => {
-            for (const index in currentChunkMesh.buildMeshes) {
-              const subparcelBuildMeshesSpec = currentChunkMesh.buildMeshes[index];
-              if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(bm => _buildMeshEquals(bm, buildMesh))) {
+            for (const index in currentChunkMesh.vegetationMeshes) {
+              const subparcelBuildMeshesSpec = currentChunkMesh.vegetationMeshes[index];
+              if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
                 return true;
               }
             }
@@ -3936,27 +3939,7 @@ function animate(timestamp, frame) {
             if (raycastChunkSpec) {
               if (raycastChunkSpec.mesh.isChunkMesh) {
                 _applyPotentialDelta(raycastChunkSpec.point, -0.2);
-              } else if (raycastChunkSpec.mesh.buildMeshType) {
-                /* localVector2.copy(localVector)
-                  .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
-                  .add(localVector3.set(0, -BUILD_SNAP/2, 0));
-                _snapBuildPosition(localVector2);
-
-                localMatrix.compose(localVector2, localQuaternion, localVector3.set(1, 1, 1))
-                  .premultiply(localMatrix2.getInverse(worldContainer.matrix))
-                  .decompose(localVector2, localQuaternion2, localVector3); */
-
-                raycastChunkSpec.mesh.hit(30);
-              } else if (raycastChunkSpec.mesh.vegetationType) {
-                /* localVector2.copy(localVector)
-                  .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
-                  .add(localVector3.set(0, -BUILD_SNAP/2, 0));
-                _snapBuildPosition(localVector2);
-
-                localMatrix.compose(localVector2, localQuaternion, localVector3.set(1, 1, 1))
-                  .premultiply(localMatrix2.getInverse(worldContainer.matrix))
-                  .decompose(localVector2, localQuaternion2, localVector3); */
-
+              } else if (raycastChunkSpec.mesh.isVegetationMesh) {
                 raycastChunkSpec.mesh.hit(30);
               } else if (raycastChunkSpec.mesh.isNpcHullMesh) {
                 const {npcMesh} = raycastChunkSpec.mesh;
@@ -4037,9 +4020,9 @@ function animate(timestamp, frame) {
             }
           })();
           const hasBuildMesh = (() => {
-            for (const index in currentChunkMesh.buildMeshes) {
-              const subparcelBuildMeshesSpec = currentChunkMesh.buildMeshes[index];
-              if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(bm => _buildMeshEquals(bm, buildMesh))) {
+            for (const index in currentChunkMesh.vegetationMeshes) {
+              const subparcelBuildMeshesSpec = currentChunkMesh.vegetationMeshes[index];
+              if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
                 return true;
               }
             }
@@ -4052,7 +4035,7 @@ function animate(timestamp, frame) {
               Math.floor(buildMesh.position.z/currentChunkMesh.subparcelSize)
             );
             planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-              subparcel.addBuild(buildMesh.buildMeshType, buildMesh.position, buildMesh.quaternion);
+              subparcel.addVegetation(buildMesh.buildMeshType, buildMesh.position, buildMesh.quaternion);
             });
             currentChunkMesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
           }
