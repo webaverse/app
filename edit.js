@@ -87,18 +87,22 @@ const HEIGHTFIELD_SHADER = {
     isCurrent: {
       type: 'f',
       value: 0,
+      needsUpdate: true,
     },
     uTime: {
       type: 'f',
       value: 0,
+      needsUpdate: true,
     },
     tex: {
       type: 't',
       value: new THREE.Texture(),
+      needsUpdate: true,
     },
     heightColorTex: {
       type: 't',
       value: null,
+      needsUpdate: true,
     },
   },
   vertexShader: `\
@@ -290,11 +294,13 @@ const _getCurrentChunkMesh = () => currentChunkMesh;
 const _setCurrentChunkMesh = chunkMesh => {
   if (currentChunkMesh) {
     currentChunkMesh.material[0].uniforms.isCurrent.value = 0;
+    currentChunkMesh.material[0].uniforms.isCurrent.needsUpdate = true;
     currentChunkMesh = null;
   }
   currentChunkMesh = chunkMesh;
   if (currentChunkMesh) {
     currentChunkMesh.material[0].uniforms.isCurrent.value = 1;
+    currentChunkMesh.material[0].uniforms.isCurrent.needsUpdate = true;
   }
 };
 let stairsMesh = null;
@@ -1171,6 +1177,7 @@ const [
           map: {
             type: 't',
             value: texture,
+            needsUpdate: true,
           },
         },
         vertexShader: `\
@@ -1219,7 +1226,7 @@ const [
       // geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices), 1));
       geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(slabArrayBuffer, 2*vegetationSlabAttributeSize, vegetationSlabSliceVertices*numSlices), 1));
       const material = transparent ? vegetationMaterailTransparent : vegetationMaterialOpaque;
-      const mesh = new THREE.Mesh(geometry, material);
+      const mesh = new THREE.Mesh(geometry, [material]);
       mesh.frustumCulled = false;
 
       const slabs = {};
@@ -1237,7 +1244,7 @@ const [
             slab.index = index;
             slabs[index] = slab;
             const {slabIndex} = slab;
-            geometry.addGroup(slabIndex * vegetationSlabSliceTris, slab.indices.length, 0);
+            geometry.addGroup(slabIndex * vegetationSlabSliceVertices, slab.indices.length, 0);
             geometry.groups[geometry.groups.length-1].boundingSphere =
               new THREE.Sphere(
                 new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2),
@@ -1256,7 +1263,7 @@ const [
               indices: new Uint32Array(geometry.index.array.buffer, geometry.index.array.byteOffset + slabIndex*vegetationSlabSliceVertices*Uint32Array.BYTES_PER_ELEMENT, vegetationSlabSliceVertices),
             };
             slabs[index] = slab;
-            geometry.addGroup(slabIndex * vegetationSlabSliceTris, slab.indices.length, 0);
+            geometry.addGroup(slabIndex * vegetationSlabSliceVertices, slab.indices.length, 0);
             geometry.groups[geometry.groups.length-1].boundingSphere =
               new THREE.Sphere(
                 new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2),
@@ -1283,7 +1290,10 @@ const [
       mesh.freeSlabIndex = index => {
         const slab = slabs[index];
         if (slab) {
-          const groupIndex = geometry.groups.findIndex(group => group.start === slab.slabIndex * vegetationSlabSliceTris);
+          const groupIndex = geometry.groups.findIndex(group => group.start === slab.slabIndex * vegetationSlabSliceVertices);
+          if (groupIndex === -1) {
+            debugger;
+          }
           geometry.groups.splice(groupIndex, 1);
           slabs[index] = null;
           freeSlabs.push(slab);
@@ -1507,6 +1517,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   }
   stops.sort((a, b) => a[0] - b[0]);
   heightfieldMaterial.uniforms.heightColorTex.value = new THREE.DataTexture(new Uint8Array(256*3), 256, 1, THREE.RGBFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter, 1);
+  heightfieldMaterial.uniforms.heightColorTex.needsUpdate = true;
   stops.forEach((stop, i) => {
     const [startIndex, colorValue] = stop;
     const nextStop = stops[i+1] || null;
@@ -2213,14 +2224,14 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         slab.uv.set(opaque.uvs);
         slab.indices.set(opaque.indices);
         currentVegetationMesh.updateGeometry(slab, opaque);
-        const group = currentVegetationMesh.geometry.groups.find(group => group.start === slab.slabIndex * vegetationSlabSliceTris);
+        const group = currentVegetationMesh.geometry.groups.find(group => group.start === slab.slabIndex * vegetationSlabSliceVertices);
         group.count = opaque.indices.length;
 
         transparentSlab.position.set(transparent.positions);
         transparentSlab.uv.set(transparent.uvs);
         transparentSlab.indices.set(transparent.indices);
         currentVegetationTransparentMesh.updateGeometry(transparentSlab, transparent);
-        const group2 = currentVegetationTransparentMesh.geometry.groups.find(group => group.start === transparentSlab.slabIndex * vegetationSlabSliceTris);
+        const group2 = currentVegetationTransparentMesh.geometry.groups.find(group => group.start === transparentSlab.slabIndex * vegetationSlabSliceVertices);
         group2.count = transparent.indices.length;
 
         let subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
@@ -3340,6 +3351,7 @@ function animate(timestamp, frame) {
   const now = Date.now();
   if (currentChunkMesh) {
     currentChunkMesh.material[0].uniforms.uTime.value = (now % timeFactor) / timeFactor;
+    currentChunkMesh.material[0].uniforms.uTime.needsUpdate = true;
   }
   explosionMeshes = explosionMeshes.filter(explosionMesh => {
     explosionMesh.material.uniforms.uAnimation.value += timeDiff;
