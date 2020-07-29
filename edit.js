@@ -1069,14 +1069,11 @@ const [
           }
         });
       });
-      w.requestRegisterGeometry = (type, transparent, positions, uvs, indices) => {
+      w.requestRegisterGeometry = (type, geometrySpecs) => {
         return w.request({
           method: 'registerGeometry',
           type,
-          transparent,
-          positions,
-          uvs,
-          indices,
+          geometrySpecs,
         });
       };
       w.requestMarchObjects = (objects, opaqueIndexOffset, transparentIndexOffset) => {
@@ -1146,31 +1143,27 @@ const [
       return BufferGeometryUtils.mergeBufferGeometries(geometries);
     };
 
-    const vegetationGeometries = {};
     const vegetationSpecs = [
-      ['grass1', 'Grass1', true],
-      ['grass2', 'Grass2', true],
-      ['grass3', 'Grass3', true],
-      ['tree', 'Generic_Tree_#1', false],
-      ['leaves', 'Fanta_Leaves_#1', true],
-      ['tree2', 'Generic_Tree_#3', false],
-      ['leaves2', 'Boab_Leaves_#3', true],
-      ['pinetree', 'Pine_-_Wood_#3', false],
-      ['pineleaves', 'Pine_Leaves_#3', false],
-      ['chest', 'Chest_top', false],
+      ['grass1', [['Grass1', true]]],
+      ['grass2', [['Grass2', true]]],
+      ['grass3', [['Grass3', true]]],
+      ['tree', [['Generic_Tree_#1', false], ['Fanta_Leaves_#1', true]]],
+      ['tree2', [['Generic_Tree_#3', false], ['Boab_Leaves_#3', true]]],
+      ['pinetree', [['Pine_-_Wood_#3', false], ['Pine_Leaves_#3', true]]],
+      ['chest', [['Chest_top', false]]],
     ];
     for (const vegetationSpec of vegetationSpecs) {
-      const [type, modelName, transparent] = vegetationSpec;
-      const c = vegetationModelsSrc.getObjectByName(modelName);
-      const geometry = _mergeGroup(c);
-      const positions = geometry.attributes.position.array;
-      const uvs = geometry.attributes.uv.array;
-      const indices = geometry.index.array;
-      geometryWorker.requestRegisterGeometry(type, transparent, positions, uvs, indices);
-      vegetationGeometries[type] = {
-        geometry,
-        transparent,
-      };
+      const [type, objectSpecs] = vegetationSpec;
+      const cs = objectSpecs.map(objectSpec => {
+        const [modelName, transparent] = objectSpec;
+        const c = vegetationModelsSrc.getObjectByName(modelName);
+        const geometry = _mergeGroup(c);
+        const positions = geometry.attributes.position.array;
+        const uvs = geometry.attributes.uv.array;
+        const indices = geometry.index.array;
+        return {transparent, positions, uvs, indices};
+      });
+      geometryWorker.requestRegisterGeometry(type, cs);
     }
 
     const _makeVegetationMaterial = transparent => {
