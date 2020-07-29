@@ -422,14 +422,6 @@ const _makeVegetations = (() => {
           scale: localVector2.toArray(new Float32Array(3)),
           matrix: localMatrix.toArray(new Float32Array(16)),
         });
-        vegetations.push({
-          type: 'leaves',
-          id: getNextMeshId(),
-          position: localVector.toArray(new Float32Array(3)),
-          quaternion: localQuaternion.toArray(new Float32Array(4)),
-          scale: localVector2.toArray(new Float32Array(3)),
-          matrix: localMatrix.toArray(new Float32Array(16)),
-        });
       }
     }
     return vegetations;

@@ -127,17 +127,19 @@ const _marchObjects = (objects, opaqueIndexOffset, transparentIndexOffset) => {
   let numTransparentUvs = 0;
   let numTransparentIds = 0;
   let numTransparentIndices = 0;
-  for (const geometry of geometries) {
-    if (!geometry.transparent) {
-      numOpaquePositions += geometry.positions.length;
-      numOpaqueUvs += geometry.uvs.length;
-      numOpaqueIds += geometry.positions.length/3;
-      numOpaqueIndices += geometry.indices.length;
-    } else {
-      numTransparentPositions += geometry.positions.length;
-      numTransparentUvs += geometry.uvs.length;
-      numTransparentIds += geometry.positions.length/3;
-      numTransparentIndices += geometry.indices.length;
+  for (const geometrySpecs of geometries) {
+    for (const geometry of geometrySpecs) {
+      if (!geometry.transparent) {
+        numOpaquePositions += geometry.positions.length;
+        numOpaqueUvs += geometry.uvs.length;
+        numOpaqueIds += geometry.positions.length/3;
+        numOpaqueIndices += geometry.indices.length;
+      } else {
+        numTransparentPositions += geometry.positions.length;
+        numTransparentUvs += geometry.uvs.length;
+        numTransparentIds += geometry.positions.length/3;
+        numTransparentIndices += geometry.indices.length;
+      }
     }
   }
 
@@ -181,30 +183,33 @@ const _marchObjects = (objects, opaqueIndexOffset, transparentIndexOffset) => {
   transparent.indicesIndex = 0;
 
   for (let i = 0; i < geometries.length; i++) {
-    const geometry = geometries[i];
+    const geometrySpecs = geometries[i];
     const object = objects[i];
     const matrix = localMatrix.fromArray(object.matrix);
-    const spec = geometry.transparent ? transparent : opaque;
 
-    const indexOffset2 = (geometry.transparent ? transparentIndexOffset : opaqueIndexOffset) + spec.positionsIndex/3;
-    for (let j = 0; j < geometry.indices.length; j++) {
-      spec.indices[spec.indicesIndex + j] = geometry.indices[j] + indexOffset2;
+    for (const geometry of geometrySpecs) {
+      const spec = geometry.transparent ? transparent : opaque;
+
+      const indexOffset2 = (geometry.transparent ? transparentIndexOffset : opaqueIndexOffset) + spec.positionsIndex/3;
+      for (let j = 0; j < geometry.indices.length; j++) {
+        spec.indices[spec.indicesIndex + j] = geometry.indices[j] + indexOffset2;
+      }
+      spec.indicesIndex += geometry.indices.length;
+
+      for (let j = 0; j < geometry.positions.length; j += 3) {
+        localVector
+          .fromArray(geometry.positions, j)
+          .applyMatrix4(matrix)
+          .toArray(spec.positions, spec.positionsIndex + j);
+      }
+      spec.positionsIndex += geometry.positions.length;
+
+      spec.uvs.set(geometry.uvs, spec.uvsIndex);
+      spec.uvsIndex += geometry.uvs.length;
+
+      spec.ids.fill(object.id, spec.idsIndex, spec.idsIndex + geometry.positions.length/3);
+      spec.idsIndex += geometry.positions.length/3;
     }
-    spec.indicesIndex += geometry.indices.length;
-
-    for (let j = 0; j < geometry.positions.length; j += 3) {
-      localVector
-        .fromArray(geometry.positions, j)
-        .applyMatrix4(matrix)
-        .toArray(spec.positions, spec.positionsIndex + j);
-    }
-    spec.positionsIndex += geometry.positions.length;
-
-    spec.uvs.set(geometry.uvs, spec.uvsIndex);
-    spec.uvsIndex += geometry.uvs.length;
-
-    spec.ids.fill(object.id, spec.idsIndex, spec.idsIndex + geometry.positions.length/3);
-    spec.idsIndex += geometry.positions.length/3;
   }
 
   return [
@@ -222,14 +227,9 @@ const _handleMessage = data => {
   const {method} = data;
   switch (method) {
     case 'registerGeometry': {
-      const {type, transparent, positions, uvs, indices} = data;
+      const {type, geometrySpecs} = data;
 
-      geometryRegistry[type] = {
-        positions,
-        uvs,
-        indices,
-        transparent,
-      };
+      geometryRegistry[type] = geometrySpecs;
 
       self.postMessage({
         result: {},
