@@ -298,7 +298,7 @@ export class Subparcel {
   addVegetation(type, position, quaternion) {
     const scale = new THREE.Vector3(1, 1, 1);
     const vegetation = {
-      type: type,
+      type,
       id: getNextMeshId(),
       position: position.toArray(new Float32Array(3)),
       quaternion: quaternion.toArray(new Float32Array(4)),
