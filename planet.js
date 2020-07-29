@@ -423,6 +423,26 @@ const _makeVegetations = (() => {
           matrix: localMatrix.toArray(new Float32Array(16)),
         });
       }
+
+      localVector.set(
+        x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2,
+        y*SUBPARCEL_SIZE + SUBPARCEL_SIZE*0.4 - 0.5,
+        z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2
+      );
+      localQuaternion.set(0, 0, 0, 1);
+      // localQuaternion.setFromAxisAngle(upVector, Math.random()*Math.PI*2);
+      localVector2.set(1, 1, 1);
+      localMatrix.compose(localVector, localQuaternion, localVector2);
+      const types = ['wall', 'floor', 'stairs'];
+      const type = types[Math.floor(Math.random()*types.length)];
+      vegetations.push({
+        type,
+        id: getNextMeshId(),
+        position: localVector.toArray(new Float32Array(3)),
+        quaternion: localQuaternion.toArray(new Float32Array(4)),
+        scale: localVector2.toArray(new Float32Array(3)),
+        matrix: localMatrix.toArray(new Float32Array(16)),
+      });
     }
     return vegetations;
   };
