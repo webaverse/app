@@ -22,7 +22,7 @@ class Allocator {
   }
 }
 
-const _makeSlabData = (x, y, z, freqsData, octavesData, scalesData, uvsData, ampsData, parcelSize, subparcelSize) => {
+const _makeSlabData = (x, y, z, parcelSize, subparcelSize) => {
   const allocator = new Allocator();
 
   const potentials = allocator.alloc(Float32Array, subparcelSize * subparcelSize * subparcelSize);
@@ -30,22 +30,6 @@ const _makeSlabData = (x, y, z, freqsData, octavesData, scalesData, uvsData, amp
   const objectQuaternions = allocator.alloc(Float32Array, maxNumObjects*3);
   const objectTypes = allocator.alloc(Uint32Array, maxNumObjects);
   const numObjects = allocator.alloc(Uint32Array, 1);
-  const freqs = allocator.alloc(Float32Array, freqsData.length);
-  freqs.set(Float32Array.from(freqsData));
-  const octaves = allocator.alloc(Int32Array, octavesData.length);
-  octaves.set(Int32Array.from(octavesData));
-  const scales = allocator.alloc(Float32Array, scalesData.length);
-  scales.set(Float32Array.from(scalesData));
-  const uvs = allocator.alloc(Float32Array, uvsData.length);
-  uvs.set(Float32Array.from(uvsData));
-  const amps = allocator.alloc(Float32Array, ampsData.length);
-  amps.set(Float32Array.from(ampsData));
-  const dims = allocator.alloc(Int32Array, 3);
-  dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
-  const limits = allocator.alloc(Int32Array, 3);
-  limits.set(Int32Array.from([parcelSize, parcelSize, parcelSize]));
-  const shifts = allocator.alloc(Float32Array, 3);
-  shifts.set(Float32Array.from([x*subparcelSize, y*subparcelSize, z*subparcelSize]));
 
   return {
     potentials,
@@ -53,26 +37,13 @@ const _makeSlabData = (x, y, z, freqsData, octavesData, scalesData, uvsData, amp
     objectQuaternions,
     objectTypes,
     numObjects,
-    freqs,
-    octaves,
-    scales,
-    uvs,
-    amps,
-    dims,
-    limits,
-    shifts,
     allocator,
   }
 };
 
 class Chunk {
-  constructor(meshId, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize) {
+  constructor(meshId, parcelSize, subparcelSize) {
     this.meshId = meshId;
-    this.freqs = freqs;
-    this.octaves = octaves;
-    this.scales = scales;
-    this.uvs = uvs;
-    this.amps = amps;
     this.parcelSize = parcelSize;
     this.subparcelSize = subparcelSize;
 
@@ -85,7 +56,7 @@ class Chunk {
   getOrCreateSlab(x, y, z) {
     let slab = this.getSlab(x, y, z);
     if (!slab) {
-      const data = _makeSlabData(x, y, z, this.freqs, this.octaves, this.scales, this.uvs, this.amps, this.parcelSize, this.subparcelSize);
+      const data = _makeSlabData(x, y, z, this.parcelSize, this.subparcelSize);
       slab = this.setSlab(x, y, z, data);
     }
     return slab;
@@ -104,10 +75,10 @@ class Chunk {
   }
 }
 const chunks = [];
-const _getChunk = (meshId, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize) => {
+const _getChunk = (meshId, parcelSize, subparcelSize) => {
   let chunk = chunks.find(chunk => chunk.meshId === meshId);
   if (!chunk) {
-    chunk = new Chunk(meshId, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize);
+    chunk = new Chunk(meshId, parcelSize, subparcelSize);
     chunks.push(chunk);
   }
   return chunk;
@@ -118,22 +89,23 @@ function mod(a, b) {
 }
 const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
 const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSizeP1*subparcelSizeP1 + z*subparcelSizeP1;
-const _loadNoise = (seedData, baseHeight, data) => {
+const _loadNoise = (seedData, x, y, z, baseHeight, freqsData, octavesData, scalesData, uvsData, ampsData, parcelSize, subparcelSize, data) => {
   const {
     potentials,
     objectPositions,
     objectQuaternions,
     objectTypes,
     numObjects,
-    freqs,
-    octaves,
-    scales,
-    uvs,
-    amps,
-    dims,
-    limits,
-    shifts,
   } = data;
+
+  freqs.set(Float32Array.from(freqsData));
+  octaves.set(Int32Array.from(octavesData));
+  scales.set(Float32Array.from(scalesData));
+  uvs.set(Float32Array.from(uvsData));
+  amps.set(Float32Array.from(ampsData));
+  dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
+  limits.set(Int32Array.from([parcelSize, parcelSize, parcelSize]));
+  shifts.set(Float32Array.from([x*subparcelSize, y*subparcelSize, z*subparcelSize]));
 
   const wormRate = 2;
   const wormRadiusBase = 2;
@@ -321,10 +293,10 @@ const _handleMessage = data => {
     case 'loadPotentials': {
       const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, parcelSize, subparcelSize} = data;
 
-      const chunk = _getChunk(meshId, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize);
+      const chunk = _getChunk(meshId, parcelSize, subparcelSize);
       const slab = chunk.getOrCreateSlab(x, y, z);
 
-      _loadNoise(seedData, baseHeight, slab.data);
+      _loadNoise(seedData, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize, slab.data);
       if (potentials) {
         for (let i = 0; i < potentials.length; i++) {
           slab.data.potentials[i] += potentials[i];
@@ -355,7 +327,7 @@ const _handleMessage = data => {
 
       const results = [];
       const transfers = [];
-      const chunk = _getChunk(meshId, subparcelSize);
+      const chunk = _getChunk(meshId);
       const slab = chunk.getSlab(x, y, z);
       const [result, transfer] = _meshChunkSlab(chunk, slab, subparcelSize);
       results.push(result);
@@ -369,7 +341,7 @@ const _handleMessage = data => {
     case 'mine': {
       const {meshId, mineSpecs, subparcelSize} = data;
 
-      const chunk = _getChunk(meshId, subparcelSize);
+      const chunk = _getChunk(meshId);
 
       for (const mineSpec of mineSpecs) {
         const slab = chunk.getSlab(mineSpec.x, mineSpec.y, mineSpec.z);
@@ -417,8 +389,20 @@ self.onmessage = e => {
   }
 };
 
+let freqs, octaves, scales, uvs, amps, dims, limits, shifts;
 wasmModulePromise.then(() => {
   loaded = true;
+
+  const allocator = new Allocator();
+  freqs = allocator.alloc(Float32Array, 3);
+  octaves = allocator.alloc(Int32Array, 3);
+  scales = allocator.alloc(Float32Array, 3);
+  uvs = allocator.alloc(Float32Array, 3);
+  amps = allocator.alloc(Float32Array, 3);
+  dims = allocator.alloc(Int32Array, 3);
+  limits = allocator.alloc(Int32Array, 3);
+  shifts = allocator.alloc(Float32Array, 3);
+
   _flushMessages();
 }).catch(err => {
   console.warn(err.stack);
