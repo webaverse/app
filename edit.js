@@ -1241,7 +1241,7 @@ const [
           .applyMatrix4(new THREE.Matrix4().makeScale(1, Math.sqrt(2)*0.9, Math.sqrt(2)*0.8))
           .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.005)))
           .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2 - 0.02, 0));
-        geometryWorker.requestRegisterGeometry('stairs', [{
+        geometryWorker.requestRegisterGeometry('stair', [{
           transparent: false,
           positions: geometry.attributes.position.array,
           uvs: geometry.attributes.uv.array,
@@ -1278,7 +1278,7 @@ const [
       }
 
       physicsShapes = {
-        stairs: {
+        stair: {
           position: new THREE.Vector3(0, 1, 0),
           quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/4),
           scale: new THREE.Vector3(2, 2*Math.sqrt(2), 0.1),

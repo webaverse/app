@@ -434,7 +434,7 @@ const _makeVegetations = (() => {
       // localQuaternion.setFromAxisAngle(upVector, Math.random()*Math.PI*2);
       localVector2.set(1, 1, 1);
       localMatrix.compose(localVector, localQuaternion, localVector2);
-      const types = ['wall', 'floor', 'stairs'];
+      const types = ['wall', 'floor', 'stair'];
       const type = types[Math.floor(Math.random()*types.length)];
       vegetations.push({
         type,
