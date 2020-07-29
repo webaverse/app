@@ -2319,13 +2319,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     for (let i = 0; i < numUpdatedCoords; i++) {
       const {index} = updatedCoords[i];
       const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
-      /* if (!subparcelBuildMeshesSpec) {
-        subparcelBuildMeshesSpec = {
-          index,
-          meshes: [],
-        };
-        mesh.buildMeshes[index] = subparcelBuildMeshesSpec;
-      } */
       const subparcel = planet.getSubparcelByIndex(index);
       subparcelBuildMeshesSpec.meshes = subparcelBuildMeshesSpec.meshes.filter(bm => {
         if (!subparcel.builds.some(b => b.id === bm.build.id)) {
