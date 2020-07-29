@@ -37,6 +37,8 @@ import {
   chunkDistance,
   BUILD_SNAP,
   PLANET_OBJECT_SLOTS,
+
+  getNextMeshId,
 } from './constants.js';
 import alea from './alea.js';
 import easing from './easing.js';
@@ -54,6 +56,7 @@ const downQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vecto
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2);
 const loadedSymbol = Symbol('loaded');
 const pid4 = Math.PI/4;
+const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -242,7 +245,7 @@ const npcMeshes = [];
 /* const _decorateMeshForRaycast = mesh => {
   mesh.traverse(o => {
     if (o.isMesh) {
-      const meshId = ++nextMeshId;
+      const meshId = getNextMeshId();
 
       const {geometry} = o;
       const numPositions = geometry.attributes.position.array.length;
@@ -275,7 +278,6 @@ const npcMeshes = [];
   });
 }; */
 
-let nextMeshId = 0;
 let chunkWorker = null;
 let physxWorker = null;
 let physicsWorker = null;
@@ -1179,16 +1181,25 @@ const [
             value: texture,
             needsUpdate: true,
           },
+          uSelectId: {
+            type: 'f',
+            value: 0,
+            needsUpdate: true,
+          },
         },
         vertexShader: `\
           precision highp float;
           precision highp int;
 
+          uniform float uSelectId;
+          attribute float id;
           varying vec2 vUv;
+          varying vec3 vSelectColor;
           // varying vec3 vNormal;
 
           void main() {
             vUv = uv;
+            vSelectColor = uSelectId == id ? vec3(${new THREE.Color(0xef5350).toArray().join(', ')}) : vec3(0.);
             // vNormal = normal;
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
@@ -1199,12 +1210,14 @@ const [
 
           uniform sampler2D map;
           varying vec2 vUv;
+          varying vec3 vSelectColor;
           // varying vec3 vNormal;
 
           // vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
 
           void main() {
             gl_FragColor = ${transparent ? `texture2D(map, vUv)` : `vec4(texture2D(map, vUv).rgb, 1.0)`};
+            gl_FragColor.rgb += vSelectColor;
             ${transparent ? `if (gl_FragColor.a < 0.8) discard;` : ''}
           }
         `,
@@ -1223,8 +1236,8 @@ const [
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 0*vegetationSlabAttributeSize, vegetationSlabSliceVertices*numSlices*3), 3));
       geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 1*vegetationSlabAttributeSize, vegetationSlabSliceVertices*numSlices*2), 2));
-      // geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices), 1));
-      geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(slabArrayBuffer, 2*vegetationSlabAttributeSize, vegetationSlabSliceVertices*numSlices), 1));
+      geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*vegetationSlabAttributeSize, vegetationSlabSliceVertices*numSlices), 1));
+      geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(slabArrayBuffer, 3*vegetationSlabAttributeSize, vegetationSlabSliceVertices*numSlices), 1));
       const material = transparent ? vegetationMaterailTransparent : vegetationMaterialOpaque;
       const mesh = new THREE.Mesh(geometry, [material]);
       mesh.frustumCulled = false;
@@ -1259,7 +1272,7 @@ const [
               slabIndex,
               position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + slabIndex*vegetationSlabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, vegetationSlabSliceVertices*3),
               uv: new Float32Array(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset + slabIndex*vegetationSlabSliceVertices*2*Float32Array.BYTES_PER_ELEMENT, vegetationSlabSliceVertices*2),
-              // id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+              id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + slabIndex*vegetationSlabSliceVertices*Float32Array.BYTES_PER_ELEMENT, vegetationSlabSliceVertices),
               indices: new Uint32Array(geometry.index.array.buffer, geometry.index.array.byteOffset + slabIndex*vegetationSlabSliceVertices*Uint32Array.BYTES_PER_ELEMENT, vegetationSlabSliceVertices),
             };
             slabs[index] = slab;
@@ -1279,11 +1292,14 @@ const [
         geometry.attributes.position.needsUpdate = true;
         geometry.attributes.uv.updateRange.offset = slab.slabIndex*vegetationSlabSliceVertices*2;
         geometry.attributes.uv.needsUpdate = true;
+        geometry.attributes.id.updateRange.offset = slab.slabIndex*vegetationSlabSliceVertices;
+        geometry.attributes.id.needsUpdate = true;
         geometry.index.updateRange.offset = slab.slabIndex*vegetationSlabSliceVertices;
         geometry.index.needsUpdate = true;
 
         geometry.attributes.position.updateRange.count = spec.positions.length;
         geometry.attributes.uv.updateRange.count = spec.uvs.length;
+        geometry.attributes.id.updateRange.count = spec.ids.length;
         geometry.index.updateRange.count = spec.indices.length;
         renderer.geometries.update(geometry);
       };
@@ -1485,7 +1501,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   const rng = alea(seedString);
   const seedNum = Math.floor(rng() * 0xFFFFFF);
 
-  const meshId = ++nextMeshId;
+  const meshId = getNextMeshId();
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
     uniforms: (() => {
@@ -2027,10 +2043,10 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             },
             end() {
               onPositionUpdate(originalPosition);
-              onColorUpdate(0xFFFFFF);
+              onColorUpdate(false);
             },
           };
-          onColorUpdate(new THREE.Color(0xef5350).multiplyScalar(2).getHex());
+          onColorUpdate(true);
         } else {
           _addItem(originalPosition, originalQuaternion);
 
@@ -2052,7 +2068,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         default: return null;
       }
     })();
-    const meshId = ++nextMeshId;
+    const meshId = getNextMeshId();
     localMatrix2.compose(
       localVector3.fromArray(build.position),
       localQuaternion3.fromArray(build.quaternion),
@@ -2068,7 +2084,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       buildMeshClone.position.copy(position);
       buildMeshClone.updatePosition();
     }, color => {
-      buildMeshClone.color.setHex(color);
+      buildMeshClone.color.setHex(color ? redColorHex : 0xFFFFFF);
       buildMeshClone.updateColor();
     }, () => {
       const subparcelPosition = new THREE.Vector3(
@@ -2222,6 +2238,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
         slab.position.set(opaque.positions);
         slab.uv.set(opaque.uvs);
+        slab.id.set(opaque.ids);
         slab.indices.set(opaque.indices);
         currentVegetationMesh.updateGeometry(slab, opaque);
         const group = currentVegetationMesh.geometry.groups.find(group => group.start === slab.slabIndex * vegetationSlabSliceVertices);
@@ -2229,6 +2246,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
         transparentSlab.position.set(transparent.positions);
         transparentSlab.uv.set(transparent.uvs);
+        transparentSlab.id.set(transparent.ids);
         transparentSlab.indices.set(transparent.indices);
         currentVegetationTransparentMesh.updateGeometry(transparentSlab, transparent);
         const group2 = currentVegetationTransparentMesh.geometry.groups.find(group => group.start === transparentSlab.slabIndex * vegetationSlabSliceVertices);
@@ -2257,7 +2275,12 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           const hitTracker = _makeHitTracker(localVector3, localQuaternion2, 100, position => {
             console.log('update position', position);
           }, color => {
-            console.log('color update', color);
+            // console.log('color update', color);
+            const id = color ? vegetation.id : -1;
+            [currentVegetationMesh, currentVegetationTransparentMesh].forEach(m => {
+              m.material[0].uniforms.uSelectId.value = id;
+              m.material[0].uniforms.uSelectId.needsUpdate = true;
+            });
           }, () => {
             const subparcelPosition = new THREE.Vector3(
               Math.floor(vegetation.position[0]/subparcelSize),

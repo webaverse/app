@@ -121,18 +121,22 @@ const _marchObjects = (objects, opaqueIndexOffset, transparentIndexOffset) => {
 
   let numOpaquePositions = 0;
   let numOpaqueUvs = 0;
+  let numOpaqueIds = 0;
   let numOpaqueIndices = 0;
   let numTransparentPositions = 0;
   let numTransparentUvs = 0;
+  let numTransparentIds = 0;
   let numTransparentIndices = 0;
   for (const geometry of geometries) {
     if (!geometry.transparent) {
       numOpaquePositions += geometry.positions.length;
       numOpaqueUvs += geometry.uvs.length;
+      numOpaqueIds += geometry.positions.length/3;
       numOpaqueIndices += geometry.indices.length;
     } else {
       numTransparentPositions += geometry.positions.length;
       numTransparentUvs += geometry.uvs.length;
+      numTransparentIds += geometry.positions.length/3;
       numTransparentIndices += geometry.indices.length;
     }
   }
@@ -140,9 +144,11 @@ const _marchObjects = (objects, opaqueIndexOffset, transparentIndexOffset) => {
   const arraybuffer = new ArrayBuffer(
     numOpaquePositions * Float32Array.BYTES_PER_ELEMENT +
     numOpaqueUvs * Float32Array.BYTES_PER_ELEMENT +
+    numOpaqueIds * Float32Array.BYTES_PER_ELEMENT +
     numOpaqueIndices * Uint32Array.BYTES_PER_ELEMENT +
     numTransparentPositions * Float32Array.BYTES_PER_ELEMENT +
     numTransparentUvs * Float32Array.BYTES_PER_ELEMENT +
+    numTransparentIds * Float32Array.BYTES_PER_ELEMENT +
     numTransparentIndices * Uint32Array.BYTES_PER_ELEMENT
   );
   let index = 0;
@@ -151,10 +157,13 @@ const _marchObjects = (objects, opaqueIndexOffset, transparentIndexOffset) => {
   index += numOpaquePositions * Float32Array.BYTES_PER_ELEMENT;
   opaque.uvs = new Float32Array(arraybuffer, index, numOpaqueUvs);
   index += numOpaqueUvs * Float32Array.BYTES_PER_ELEMENT;
+  opaque.ids = new Float32Array(arraybuffer, index, numOpaqueIds);
+  index += numOpaqueIds * Float32Array.BYTES_PER_ELEMENT;
   opaque.indices = new Uint32Array(arraybuffer, index, numOpaqueIndices);
   index += numOpaqueIndices * Uint32Array.BYTES_PER_ELEMENT;
   opaque.positionsIndex = 0;
   opaque.uvsIndex = 0;
+  opaque.idsIndex = 0;
   opaque.indicesIndex = 0;
 
   const transparent = {};
@@ -162,10 +171,13 @@ const _marchObjects = (objects, opaqueIndexOffset, transparentIndexOffset) => {
   index += numTransparentPositions * Float32Array.BYTES_PER_ELEMENT;
   transparent.uvs = new Float32Array(arraybuffer, index, numTransparentUvs);
   index += numTransparentUvs * Float32Array.BYTES_PER_ELEMENT;
+  transparent.ids = new Float32Array(arraybuffer, index, numTransparentIds);
+  index += numTransparentIds * Float32Array.BYTES_PER_ELEMENT;
   transparent.indices = new Uint32Array(arraybuffer, index, numTransparentIndices);
   index += numTransparentIndices * Uint32Array.BYTES_PER_ELEMENT;
   transparent.positionsIndex = 0;
   transparent.uvsIndex = 0;
+  transparent.idsIndex = 0;
   transparent.indicesIndex = 0;
 
   for (let i = 0; i < geometries.length; i++) {
@@ -190,6 +202,9 @@ const _marchObjects = (objects, opaqueIndexOffset, transparentIndexOffset) => {
 
     spec.uvs.set(geometry.uvs, spec.uvsIndex);
     spec.uvsIndex += geometry.uvs.length;
+
+    spec.ids.fill(object.id, spec.idsIndex, spec.idsIndex + geometry.positions.length/3);
+    spec.idsIndex += geometry.positions.length/3;
   }
 
   return [

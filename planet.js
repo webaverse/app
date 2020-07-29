@@ -7,6 +7,8 @@ import {
   MAX_NAME_LENGTH,
   PLANET_OBJECT_SLOTS,
   PLANET_OBJECT_SIZE,
+
+  getNextMeshId,
 } from './constants.js';
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 
@@ -414,7 +416,7 @@ const _makeVegetations = (() => {
         localMatrix.compose(localVector, localQuaternion, localVector2);
         vegetations.push({
           type: 'tree',
-          id: Math.floor(Math.random() * 0xFFFFFF),
+          id: getNextMeshId(),
           position: localVector.toArray(new Float32Array(3)),
           quaternion: localQuaternion.toArray(new Float32Array(4)),
           scale: localVector2.toArray(new Float32Array(3)),
@@ -422,7 +424,7 @@ const _makeVegetations = (() => {
         });
         vegetations.push({
           type: 'leaves',
-          id: Math.floor(Math.random() * 0xFFFFFF),
+          id: getNextMeshId(),
           position: localVector.toArray(new Float32Array(3)),
           quaternion: localQuaternion.toArray(new Float32Array(4)),
           scale: localVector2.toArray(new Float32Array(3)),
