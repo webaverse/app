@@ -1389,10 +1389,6 @@ const [
         const pulledSlabs = [];
         let slab;
         while (slab = freeSlabs.pop()) {
-          /* console.log('check slab', slab);
-          if (!slab || !slab.position) {
-            debugger;
-          } */
           if (_slabFits(slab, numPositions, numUvs, numIds, numIndices)) {
             break;
           } else {
