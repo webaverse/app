@@ -307,6 +307,7 @@ let spikesMesh = null;
 let woodMesh = null;
 let stoneMesh = null;
 let metalMesh = null;
+let physicsShapes = null;
 (async () => {
 
 const [
@@ -1275,6 +1276,24 @@ const [
           indices: geometry.index.array,
         }]);
       }
+
+      physicsShapes = {
+        stairs: {
+          position: new THREE.Vector3(0, 1, 0),
+          quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/4),
+          scale: new THREE.Vector3(2, 2*Math.sqrt(2), 0.1),
+        },
+        floor: {
+          position: new THREE.Vector3(0, 0, 0),
+          quaternion: new THREE.Quaternion(),
+          scale: new THREE.Vector3(2, 0.1, 2),
+        },
+        wall: {
+          position: new THREE.Vector3(0, 1, -1),
+          quaternion: new THREE.Quaternion(),
+          scale: new THREE.Vector3(2, 2, 0.1),
+        },
+      };
     }
 
     const _makeVegetationMaterial = transparent => {
@@ -2433,12 +2452,22 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         }
 
         for (const vegetation of subparcel.vegetations) {
-          localVector3.fromArray(vegetation.position)
-            .add(localVector4.set(0, (2+0.5)/2, 0));
+          localVector3.fromArray(vegetation.position);
           localQuaternion2.fromArray(vegetation.quaternion);
-          localQuaternion3.copy(localQuaternion2)
-            .multiply(capsuleUpQuaternion);
-          const physxGeometry = physxWorker.registerCapsuleGeometry(vegetation.id, localVector3, localQuaternion3, 0.5, 2);
+          const physicsOffset = physicsShapes[vegetation.type];
+          const physxGeometry = physicsOffset ? (() => {
+            localMatrix2
+              .compose(physicsOffset.position, physicsOffset.quaternion, localVector4.set(1, 1, 1))
+              .premultiply(localMatrix3.compose(localVector3, localQuaternion2, localVector4.set(1, 1, 1)))
+              .decompose(localVector4, localQuaternion3, localVector5);
+            return physxWorker.registerBoxGeometry(meshId, localVector4, localQuaternion3, physicsOffset.scale.x, physicsOffset.scale.y, physicsOffset.scale.z);
+          })() : (() => {
+            localVector4.copy(localVector3)
+              .add(localVector5.set(0, (2+0.5)/2, 0));
+            localQuaternion3.copy(localQuaternion2)
+              .multiply(capsuleUpQuaternion);
+            return physxWorker.registerCapsuleGeometry(vegetation.id, localVector4, localQuaternion3, 0.5, 2);
+          })();
           const hitTracker = _makeHitTracker(localVector3, localQuaternion2, 100, (originalPosition, positionOffset) => {
             [currentVegetationMesh, currentVegetationTransparentMesh].forEach(m => {
               m.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
