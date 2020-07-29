@@ -1293,7 +1293,12 @@ const [
           },
           uSelectId: {
             type: 'f',
-            value: 0,
+            value: -1,
+            needsUpdate: true,
+          },
+          uSelectPosition: {
+            type: 'v3',
+            value: new THREE.Vector3(),
             needsUpdate: true,
           },
         },
@@ -1302,6 +1307,7 @@ const [
           precision highp int;
 
           uniform float uSelectId;
+          uniform vec3 uSelectPosition;
           attribute float id;
           varying vec2 vUv;
           varying vec3 vSelectColor;
@@ -1309,9 +1315,15 @@ const [
 
           void main() {
             vUv = uv;
-            vSelectColor = uSelectId == id ? vec3(${new THREE.Color(0xef5350).toArray().join(', ')}) : vec3(0.);
+            vec3 p = position;
+            if (uSelectId == id) {
+              vSelectColor = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
+              p += uSelectPosition;
+            } else {
+              vSelectColor = vec3(0.);
+            }
             // vNormal = normal;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
           }
         `,
         fragmentShader: `\
@@ -2189,16 +2201,15 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               const now = Date.now();
               const factor = (now - startTime) / (endTime - startTime);
               if (factor < 1) {
-                localVector2.copy(originalPosition)
-                  .add(localVector3.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2));
-                onPositionUpdate(localVector2);
+                localVector2.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2)
+                onPositionUpdate(originalPosition, localVector2);
               } else {
                 animation.end();
                 animation = null;
               }
             },
             end() {
-              onPositionUpdate(originalPosition);
+              onPositionUpdate(originalPosition, localVector2.set(0, 0, 0));
               onColorUpdate(false);
             },
           };
@@ -2236,8 +2247,9 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     buildMeshClone.build = build;
     buildMeshClone.meshId = meshId;
     buildMeshClone.buildMeshType = buildMesh.buildMeshType;
-    const hitTracker = _makeHitTracker(buildMeshClone.position, buildMeshClone.quaternion, 100, (position) => {
-      buildMeshClone.position.copy(position);
+    const hitTracker = _makeHitTracker(buildMeshClone.position, buildMeshClone.quaternion, 100, (originalPosition, positionOffset) => {
+      localVector3.copy(originalPosition).add(positionOffset);
+      buildMeshClone.position.copy(localVector3);
       buildMeshClone.updatePosition();
     }, color => {
       buildMeshClone.color.setHex(color ? redColorHex : 0xFFFFFF);
@@ -2433,10 +2445,12 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           localQuaternion3.copy(localQuaternion2)
             .multiply(capsuleUpQuaternion);
           const physxGeometry = physxWorker.registerCapsuleGeometry(vegetation.id, localVector3, localQuaternion3, 0.5, 2);
-          const hitTracker = _makeHitTracker(localVector3, localQuaternion2, 100, position => {
-            console.log('update position', position);
+          const hitTracker = _makeHitTracker(localVector3, localQuaternion2, 100, (originalPosition, positionOffset) => {
+            [currentVegetationMesh, currentVegetationTransparentMesh].forEach(m => {
+              m.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
+              m.material[0].uniforms.uSelectPosition.needsUpdate = true;
+            });
           }, color => {
-            // console.log('color update', color);
             const id = color ? vegetation.id : -1;
             [currentVegetationMesh, currentVegetationTransparentMesh].forEach(m => {
               m.material[0].uniforms.uSelectId.value = id;
