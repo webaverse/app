@@ -15,7 +15,7 @@ export const slabSliceTris = Math.floor(slabAttributeSize/numSlices/9/Float32Arr
 export const slabSliceVertices = slabSliceTris * 3;
 
 export const vegetationSlabTotalSize = 60 * 1024 * 1024;
-export const vegetationSlabNumAttributes = 3;
+export const vegetationSlabNumAttributes = 4;
 export const vegetationSlabAttributeSize = vegetationSlabTotalSize/vegetationSlabNumAttributes;
 export const vegetationSlabSliceTris = Math.floor(vegetationSlabAttributeSize/numSlices/9/Float32Array.BYTES_PER_ELEMENT);
 export const vegetationSlabSliceVertices = vegetationSlabSliceTris * 3;
@@ -30,3 +30,6 @@ export const PLANET_OBJECT_SIZE = (
   Float32Array.BYTES_PER_ELEMENT * 3 + // build.position
   Float32Array.BYTES_PER_ELEMENT * 4 // build.quaternion
 );
+
+let nextMeshId = 0;
+export const getNextMeshId = () => ++nextMeshId;
