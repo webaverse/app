@@ -10,7 +10,6 @@ import {
   PLANET_OBJECT_SIZE,
 
   getNextMeshId,
-  loadedSymbol,
 } from './constants.js';
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 
@@ -204,6 +203,7 @@ export class Subparcel {
     this.builds = [];
     this.vegetations = [];
     this.packages = [];
+    this.load = null;
     this.dirty = false;
 
     data && this.reload();
@@ -534,7 +534,7 @@ const _loadStorage = async roomName => {
         .then(ab => {
           const subparcel = new Subparcel(ab);
           subparcel.readMetadata();
-          subparcel[loadedSymbol] = Promise.resolve();
+          subparcel.load = Promise.resolve();
           subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
           return subparcel;
         });

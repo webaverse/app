@@ -33,7 +33,6 @@ import {
   PLANET_OBJECT_SLOTS,
 
   getNextMeshId,
-  loadedSymbol,
 } from './constants.js';
 import alea from './alea.js';
 import easing from './easing.js';
@@ -1929,8 +1928,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           const adz = az + dz;
           const subparcel = planet.getSubparcel(adx, ady, adz);
 
-          if (!subparcel[loadedSymbol]) {
-            subparcel[loadedSymbol] = chunkWorker.requestLoadPotentials(
+          if (!subparcel.load) {
+            subparcel.load = chunkWorker.requestLoadPotentials(
               seedNum,
               meshId,
               adx,
@@ -1977,7 +1976,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     let live = true;
     (async () => {
       const subparcel = planet.getSubparcelByIndex(index);
-      await subparcel[loadedSymbol];
+      await subparcel.load;
       if (!live) return;
 
       const specs = await chunkWorker.requestMarchLand(
