@@ -1,7 +1,9 @@
 importScripts('./bin/objectize2.js');
 
+const subparcelSize = 10;
+const subparcelSizeP1 = subparcelSize+1;
 const potentialDefault = -0.5;
-const maxNumObjects = 10;
+const maxNumObjects = 16;
 
 class Allocator {
   constructor() {
@@ -22,82 +24,12 @@ class Allocator {
   }
 }
 
-const _makeSlabData = (x, y, z, parcelSize, subparcelSize) => {
-  const allocator = new Allocator();
-
-  const potentials = allocator.alloc(Float32Array, subparcelSize * subparcelSize * subparcelSize);
-  const objectPositions = allocator.alloc(Float32Array, maxNumObjects*3);
-  const objectQuaternions = allocator.alloc(Float32Array, maxNumObjects*3);
-  const objectTypes = allocator.alloc(Uint32Array, maxNumObjects);
-  const numObjects = allocator.alloc(Uint32Array, 1);
-
-  return {
-    potentials,
-    objectPositions,
-    objectQuaternions,
-    objectTypes,
-    numObjects,
-    allocator,
-  }
-};
-
-class Chunk {
-  constructor(meshId, parcelSize, subparcelSize) {
-    this.meshId = meshId;
-    this.parcelSize = parcelSize;
-    this.subparcelSize = subparcelSize;
-
-    this.index = 0;
-    this.slabs = [];
-  }
-  getSlab(x, y, z) {
-    return this.slabs.find(slab => slab.x === x && slab.y === y && slab.z === z);
-  }
-  getOrCreateSlab(x, y, z) {
-    let slab = this.getSlab(x, y, z);
-    if (!slab) {
-      const data = _makeSlabData(x, y, z, this.parcelSize, this.subparcelSize);
-      slab = this.setSlab(x, y, z, data);
-    }
-    return slab;
-  }
-  setSlab(x, y, z, data) {
-    const slab = {
-      x,
-      y,
-      z,
-      slabIndex: this.index,
-      data,
-    };
-    this.slabs.push(slab);
-    this.index++;
-    return slab;
-  }
-}
-const chunks = [];
-const _getChunk = (meshId, parcelSize, subparcelSize) => {
-  let chunk = chunks.find(chunk => chunk.meshId === meshId);
-  if (!chunk) {
-    chunk = new Chunk(meshId, parcelSize, subparcelSize);
-    chunks.push(chunk);
-  }
-  return chunk;
-}
-
 function mod(a, b) {
   return ((a%b)+b)%b;
 }
 const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
 const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSizeP1*subparcelSizeP1 + z*subparcelSizeP1;
-const _loadNoise = (seedData, x, y, z, baseHeight, freqsData, octavesData, scalesData, uvsData, ampsData, parcelSize, subparcelSize, data) => {
-  const {
-    potentials,
-    objectPositions,
-    objectQuaternions,
-    objectTypes,
-    numObjects,
-  } = data;
-
+const _loadNoise = (seedData, x, y, z, baseHeight, freqsData, octavesData, scalesData, uvsData, ampsData, parcelSize, subparcelSize, potentials, objectPositions, objectQuaternions, objectTypes, numObjects) => {
   freqs.set(Float32Array.from(freqsData));
   octaves.set(Int32Array.from(octavesData));
   scales.set(Float32Array.from(scalesData));
@@ -135,46 +67,14 @@ const _loadNoise = (seedData, x, y, z, baseHeight, freqsData, octavesData, scale
     numObjects.offset
   );
 };
-/* const _makePlanetPotentials = (seedData, shiftsData) => {
-  const allocator = new Allocator();
-
-  const potentials = allocator.alloc(Float32Array, SUBPARCEL_SIZE * SUBPARCEL_SIZE * SUBPARCEL_SIZE);
-  const dims = allocator.alloc(Int32Array, 3);
-  dims.set(Int32Array.from([SUBPARCEL_SIZE, SUBPARCEL_SIZE, SUBPARCEL_SIZE]));
-  const shifts = allocator.alloc(Float32Array, 3);
-  shifts.set(Float32Array.from(shiftsData));
-
-  Module._doNoise2(
-    seedData,
-    0.02,
-    4,
-    dims.offset,
-    shifts.offset,
-    potentialDefault,
-    potentials.offset
-  );
-
-  return {potentials, dims, shifts};
-}; */
 const _getChunkSpec = (potentials, shiftsData, meshId, subparcelSize) => {
   const subparcelSizeP1 = subparcelSize+1;
 
-  const allocator = new Allocator();
-
-  const dims = allocator.alloc(Int32Array, 3);
   dims.set(Int32Array.from([subparcelSizeP1, subparcelSizeP1, subparcelSizeP1]));
-  const shifts = allocator.alloc(Float32Array, 3);
   shifts.set(Float32Array.from(shiftsData));
-  const positions = allocator.alloc(Float32Array, 4 * 1024 * 1024);
-  const barycentrics = allocator.alloc(Float32Array, 4 * 1024 * 1024);
-
-  const numPositions = allocator.alloc(Uint32Array, 1);
-  numPositions[0] = positions.length;
-  const numBarycentrics = allocator.alloc(Uint32Array, 1);
-  numBarycentrics[0] = barycentrics.length;
-
-  const scale = allocator.alloc(Float32Array, 3);
   scale.set(Float32Array.from([1, 1, 1]));
+  numPositions[0] = positions.length;
+  numBarycentrics[0] = barycentrics.length;
 
   self.Module._doMarchingCubes2(
     dims.offset,
@@ -212,8 +112,6 @@ const _getChunkSpec = (potentials, shiftsData, meshId, subparcelSize) => {
   outI.set(new Uint32Array(indices.buffer, indices.byteOffset, numIndices[0]));
   index += Uint32Array.BYTES_PER_ELEMENT * numIndices[0]; */
 
-  allocator.freeAll();
-
   const ids = new Float32Array(arrayBuffer2, index, numPositions[0]/3);
   index += numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT;
   const indices = new Float32Array(arrayBuffer2, index, numPositions[0]/3);
@@ -238,48 +136,23 @@ const _getChunkSpec = (potentials, shiftsData, meshId, subparcelSize) => {
     // indices: outI,
   };
 };
-const _meshChunkSlab = (chunk, slab, subparcelSize) => {
-  const subparcelSizeP1 = subparcelSize+1;
-
-  const allocator = new Allocator();
-  const fullPotentials = allocator.alloc(Float32Array, subparcelSizeP1 * subparcelSizeP1 * subparcelSizeP1);
-  for (let dx = 0; dx < subparcelSizeP1; dx++) {
-    const lix = slab.x + Math.floor(dx/subparcelSize);
-    for (let dy = 0; dy < subparcelSizeP1; dy++) {
-      const liy = slab.y + Math.floor(dy/subparcelSize);
-      for (let dz = 0; dz < subparcelSizeP1; dz++) {
-        const liz = slab.z + Math.floor(dz/subparcelSize);
-        const fullIndex = _getPotentialFullIndex(dx, dy, dz, subparcelSizeP1);
-        const localSlab = chunk.getSlab(lix, liy, liz);
-        if (localSlab) {
-          const lx = mod(dx, subparcelSize);
-          const ly = mod(dy, subparcelSize)
-          const lz = mod(dz, subparcelSize)
-          const index = _getPotentialIndex(lx, ly, lz, subparcelSize);
-          fullPotentials[fullIndex] = localSlab.data.potentials[index];
-        } else {
-          fullPotentials[fullIndex] = potentialDefault;
-        }
-      }
-    }
-  }
+const _meshChunkSlab = (meshId, x, y, z, potentialsData, subparcelSize) => {
+  potentials.set(potentialsData);
   const shiftsData = [
-    slab.x*subparcelSize,
-    slab.y*subparcelSize,
-    slab.z*subparcelSize,
+    x*subparcelSize,
+    y*subparcelSize,
+    z*subparcelSize,
   ];
-  const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(fullPotentials, shiftsData, chunk.meshId, subparcelSize);
-  allocator.freeAll();
+  const {positions, barycentrics, ids, indices, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, shiftsData, meshId, subparcelSize);
   return [
     {
       positions,
       barycentrics,
       ids,
       indices,
-      x: slab.x,
-      y: slab.y,
-      z: slab.z,
-      // arrayBuffer2,
+      x,
+      y,
+      z,
     },
     arrayBuffer2
   ];
@@ -291,45 +164,40 @@ const _handleMessage = data => {
   const {method} = data;
   switch (method) {
     case 'loadPotentials': {
-      const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, potentials, parcelSize, subparcelSize} = data;
+      const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize} = data;
 
-      const chunk = _getChunk(meshId, parcelSize, subparcelSize);
-      const slab = chunk.getOrCreateSlab(x, y, z);
-
-      _loadNoise(seedData, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize, slab.data);
-      if (potentials) {
+      _loadNoise(seedData, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize, potentials, objectPositions, objectQuaternions, objectTypes, numObjects);
+      /* if (potentials) {
         for (let i = 0; i < potentials.length; i++) {
           slab.data.potentials[i] += potentials[i];
         }
-      }
+      } */
 
-      self.postMessage({
-        result: {},
-      });
       /* const {
+        potentials,
         objectPositions,
         objectQuaternions,
         objectTypes,
         numObjects,
-      } = slab.data;
+      } = slab.data; */
+      const potentials2 = potentials.slice();
       self.postMessage({
         result: {
-          objectPositions,
+          potentials: potentials2,
+          /* objectPositions,
           objectQuaternions,
           objectTypes,
-          numObjects,
+          numObjects, */
         },
-      }); */
+      }, [potentials2.buffer]);
       break;
     }
     case 'marchLand': {
-      const {seed: seedData, meshId, x, y, z, parcelSize, subparcelSize} = data;
+      const {seed: seedData, meshId, x, y, z, potentials, parcelSize, subparcelSize} = data;
 
       const results = [];
       const transfers = [];
-      const chunk = _getChunk(meshId);
-      const slab = chunk.getSlab(x, y, z);
-      const [result, transfer] = _meshChunkSlab(chunk, slab, subparcelSize);
+      const [result, transfer] = _meshChunkSlab(meshId, x, y, z, potentials, subparcelSize);
       results.push(result);
       transfers.push(transfer);
 
@@ -341,25 +209,10 @@ const _handleMessage = data => {
     case 'mine': {
       const {meshId, mineSpecs, subparcelSize} = data;
 
-      const chunk = _getChunk(meshId);
-
-      for (const mineSpec of mineSpecs) {
-        const slab = chunk.getSlab(mineSpec.x, mineSpec.y, mineSpec.z);
-        if (!slab) {
-          console.warn('mining unknown subparcel!', mineSpec.x, mineSpec.y, mineSpec.z);
-          debugger;
-        }
-        for (const mine of mineSpec.mines) {
-          const [potentialIndex, value] = mine;
-          slab.data.potentials[potentialIndex] += value;
-        }
-      }
-
       const results = [];
       const transfers = [];
       for (const mineSpec of mineSpecs) {
-        const slab = chunk.getSlab(mineSpec.x, mineSpec.y, mineSpec.z);
-        const [result, transfer] = _meshChunkSlab(chunk, slab, subparcelSize);
+        const [result, transfer] = _meshChunkSlab(meshId, mineSpec.x, mineSpec.y, mineSpec.z, mineSpec.potentials, subparcelSize);
         results.push(result);
         transfers.push(transfer);
       }
@@ -389,11 +242,16 @@ self.onmessage = e => {
   }
 };
 
-let freqs, octaves, scales, uvs, amps, dims, limits, shifts;
+let potentials, objectPositions, objectQuaternions, objectTypes, numObjects, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, barycentrics, numPositions, numBarycentrics;
 wasmModulePromise.then(() => {
   loaded = true;
 
   const allocator = new Allocator();
+  potentials = allocator.alloc(Float32Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
+  objectPositions = allocator.alloc(Float32Array, maxNumObjects*3);
+  objectQuaternions = allocator.alloc(Float32Array, maxNumObjects*3);
+  objectTypes = allocator.alloc(Uint32Array, maxNumObjects);
+  numObjects = allocator.alloc(Uint32Array, 1);
   freqs = allocator.alloc(Float32Array, 3);
   octaves = allocator.alloc(Int32Array, 3);
   scales = allocator.alloc(Float32Array, 3);
@@ -402,6 +260,11 @@ wasmModulePromise.then(() => {
   dims = allocator.alloc(Int32Array, 3);
   limits = allocator.alloc(Int32Array, 3);
   shifts = allocator.alloc(Float32Array, 3);
+  scale = allocator.alloc(Float32Array, 3);
+  positions = allocator.alloc(Float32Array, 4 * 1024 * 1024);
+  barycentrics = allocator.alloc(Float32Array, 4 * 1024 * 1024);
+  numPositions = allocator.alloc(Uint32Array, 1);
+  numBarycentrics = allocator.alloc(Uint32Array, 1);
 
   _flushMessages();
 }).catch(err => {
