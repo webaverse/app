@@ -2460,7 +2460,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               .compose(physicsOffset.position, physicsOffset.quaternion, localVector4.set(1, 1, 1))
               .premultiply(localMatrix3.compose(localVector3, localQuaternion2, localVector4.set(1, 1, 1)))
               .decompose(localVector4, localQuaternion3, localVector5);
-            return physxWorker.registerBoxGeometry(meshId, localVector4, localQuaternion3, physicsOffset.scale.x, physicsOffset.scale.y, physicsOffset.scale.z);
+            return physxWorker.registerBoxGeometry(vegetation.id, localVector4, localQuaternion3, physicsOffset.scale.x, physicsOffset.scale.y, physicsOffset.scale.z);
           })() : (() => {
             localVector4.copy(localVector3)
               .add(localVector5.set(0, (2+0.5)/2, 0));
