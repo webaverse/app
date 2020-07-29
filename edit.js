@@ -1367,7 +1367,7 @@ const [
     const vegetationMaterailTransparent = _makeVegetationMaterial(true);
 
     const _makeVegetationMesh = transparent => {
-      const numPositions = 8 * 1024 * 1024;
+      const numPositions = 10 * 1024 * 1024;
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(numPositions), 3));
       geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(numPositions/3*2), 2));
