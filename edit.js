@@ -28,12 +28,6 @@ import {
   slabSliceTris,
   slabSliceVertices,
 
-  vegetationSlabTotalSize,
-  vegetationSlabNumAttributes,
-  vegetationSlabAttributeSize,
-  vegetationSlabSliceTris,
-  vegetationSlabSliceVertices,
-
   chunkDistance,
   BUILD_SNAP,
   PLANET_OBJECT_SLOTS,
