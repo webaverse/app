@@ -15,8 +15,9 @@ export const slabSliceTris = Math.floor(slabAttributeSize/numSlices/9/Float32Arr
 export const slabSliceVertices = slabSliceTris * 3;
 
 export const BUILD_SNAP = 2;
+
 export const MAX_NAME_LENGTH = 32;
-export const PLANET_OBJECT_SLOTS = 64;
+export const PLANET_OBJECT_SLOTS = 4;
 export const PLANET_OBJECT_SIZE = (
   Uint32Array.BYTES_PER_ELEMENT + // id
   Uint32Array.BYTES_PER_ELEMENT + // type
