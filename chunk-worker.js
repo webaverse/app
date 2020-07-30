@@ -181,13 +181,18 @@ const _handleMessage = data => {
         numObjects,
       } = slab.data; */
       const potentials2 = potentials.slice();
+      const objects = Array(numObjects[0]);
+      for (let i = 0; i < objects.length; i++) {
+        objects[i] = {
+          position: objectPositions.slice(i*3, (i+1)*3),
+          quaternion: objectQuaternions.slice(i*4, (i+1)*4),
+          type: objectTypes[i],
+        };
+      }
       self.postMessage({
         result: {
           potentials: potentials2,
-          /* objectPositions,
-          objectQuaternions,
-          objectTypes,
-          numObjects, */
+          objects,
         },
       }, [potentials2.buffer]);
       break;
@@ -249,7 +254,7 @@ wasmModulePromise.then(() => {
   const allocator = new Allocator();
   potentials = allocator.alloc(Float32Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
   objectPositions = allocator.alloc(Float32Array, maxNumObjects*3);
-  objectQuaternions = allocator.alloc(Float32Array, maxNumObjects*3);
+  objectQuaternions = allocator.alloc(Float32Array, maxNumObjects*4);
   objectTypes = allocator.alloc(Uint32Array, maxNumObjects);
   numObjects = allocator.alloc(Uint32Array, 1);
   freqs = allocator.alloc(Float32Array, 3);
