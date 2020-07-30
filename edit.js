@@ -1961,6 +1961,9 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               subparcelSize
             ).then(parcelSpec => {
                subparcel.potentials.set(parcelSpec.potentials);
+               for (const object of parcelSpec.objects) {
+                 subparcel.addVegetation('tree', localVector.fromArray(object.position), localQuaternion.fromArray(object.quaternion));
+               }
             });
           }
         }
@@ -2381,8 +2384,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     }
   };
   const _refreshVegetationMesh = (x, y, z, index, refresh) => {
-    const subparcel = planet.getSubparcelByIndex(index);
-
     let subparcelTasks = vegetationsTasks[index];
     if (!subparcelTasks) {
       subparcelTasks = [];
@@ -2395,6 +2396,10 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
     let live = true;
     (async () => {
+      const subparcel = planet.getSubparcelByIndex(index);
+      await subparcel.load;
+      if (!live) return;
+
       const specs = await geometryWorker.requestMarchObjects(subparcel.vegetations.map(vegetation => {
         return {
           id: vegetation.id,
@@ -2407,7 +2412,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         const {opaque, transparent} = spec;
 
         const slab = currentVegetationMesh.getSlab(x, y, z, opaque.positions.length, opaque.uvs.length, opaque.ids.length, opaque.indices.length);
-        const transparentSlab = currentVegetationTransparentMesh.getSlab(x, y, z, transparent.positions.length, transparent.uvs.length, transparent.ids.length, opaque.indices.length);
+        const transparentSlab = currentVegetationTransparentMesh.getSlab(x, y, z, transparent.positions.length, transparent.uvs.length, transparent.ids.length, transparent.indices.length);
 
         slab.position.set(opaque.positions);
         slab.uv.set(opaque.uvs);
