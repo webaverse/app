@@ -3601,7 +3601,7 @@ function animate(timestamp, frame) {
     const inputSource = session.inputSources[1];
     let pose;
     const referenceSpace = renderer.xr.getReferenceSpace();
-    if (pose = frame.getPose(inputSource.targetRaySpace, referenceSpace)) {
+    if (inputSource && (pose = frame.getPose(inputSource.targetRaySpace, referenceSpace))) {
       localMatrix.fromArray(pose.transform.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
