@@ -4099,6 +4099,19 @@ function animate(timestamp, frame) {
         });
       }
     }
+
+    for (const inputSource of session.inputSources) {
+      if (inputSource && inputSource.hand) {
+        for (let i = 0; i < inputSource.hand.length; i++) {
+          const joint = inputSource.hand[i];
+
+          const jointPose = joint && frame.getJointPose(joint, referenceSpace);
+          if (jointPose) {
+            console.log('got joint pose', jointPose);
+          }
+        }
+      }
+    }
   }
 
   /* if (planetAnimation) {
