@@ -201,7 +201,6 @@ export class Subparcel {
     this.y = 0;
     this.z = 0;
     this.index = 0;
-    this.offsets = Subparcel.getOffsets();
     this.data = null;
     this.potentials = null;
     this._numObjects = null;
@@ -210,13 +209,13 @@ export class Subparcel {
     this.load = null;
     this.dirty = false;
 
-    this.latchData(data || new ArrayBuffer(this.offsets.initialLength));
+    this.latchData(data || new ArrayBuffer(Subparcel.offsets.initialLength));
     data && this.reload();
   }
   latchData(data) {
     this.data = data;
-    this.potentials = new Float32Array(this.data, this.offsets.potentials, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
-    this._numObjects = new Uint32Array(this.data, this.offsets.numObjects, 1);
+    this.potentials = new Float32Array(this.data, Subparcel.offsets.potentials, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
+    this._numObjects = new Uint32Array(this.data, Subparcel.offsets.numObjects, 1);
   }
   reload() {
     this.readMetadata();
@@ -224,7 +223,7 @@ export class Subparcel {
     this.packages.length = 0;
     const numObjects = this._numObjects[0];
     for (let i = 0; i < numObjects; i++) {
-      const o = new SubparcelObject(this.data, this.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
+      const o = new SubparcelObject(this.data, Subparcel.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
       o.readMetadata();
       if (o.type === OBJECT_TYPES.VEGETATION) {
         this.vegetations.push(o);
@@ -239,13 +238,13 @@ export class Subparcel {
     }));
   }
   writeMetadata() {
-    const dst = new Int32Array(this.data, this.offsets.xyz, 3);
+    const dst = new Int32Array(this.data, Subparcel.offsets.xyz, 3);
     dst[0] = this.x;
     dst[1] = this.y;
     dst[2] = this.z;
   }
   readMetadata() {
-    const src = new Int32Array(this.data, this.offsets.xyz, 3);
+    const src = new Int32Array(this.data, Subparcel.offsets.xyz, 3);
     this.x = src[0];
     this.y = src[1];
     this.z = src[2];
@@ -279,14 +278,14 @@ export class Subparcel {
   }
   addVegetation(type, position, quaternion) {
     const nextIndex = this._numObjects[0]++;
-    if (this.offsets.objects + nextIndex*PLANET_OBJECT_SIZE >= this.data.byteLength) {
+    if (Subparcel.offsets.objects + nextIndex*PLANET_OBJECT_SIZE >= this.data.byteLength) {
       const newData = new ArrayBuffer(this.data.byteLength + PLANET_OBJECT_SLOTS*PLANET_OBJECT_SIZE);
       new Uint8Array(newData).set(new Uint8Array(this.data));
       this.latchData(newData);
       this.reload();
     }
 
-    const vegetation = new SubparcelObject(this.data, this.offsets.objects + nextIndex*PLANET_OBJECT_SIZE, nextIndex, this);
+    const vegetation = new SubparcelObject(this.data, Subparcel.offsets.objects + nextIndex*PLANET_OBJECT_SIZE, nextIndex, this);
     vegetation.id = Math.floor(Math.random()*0xFFFFFF);
     vegetation.type = OBJECT_TYPES.VEGETATION;
     vegetation.name = type;
@@ -343,7 +342,7 @@ export class Subparcel {
     return subparcel;
   }
 }
-Subparcel.getOffsets = () => {
+Subparcel.offsets = (() => {
   let index = 0;
 
   const xyz = index;
@@ -363,7 +362,7 @@ Subparcel.getOffsets = () => {
     objects,
     initialLength,
   };
-};
+})();
 
 const _addSubparcel = (x, y, z, index) => {
   const subparcel = new Subparcel();
