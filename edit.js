@@ -2395,7 +2395,13 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
     let live = true;
     (async () => {
-      const specs = await geometryWorker.requestMarchObjects(subparcel.vegetations);
+      const specs = await geometryWorker.requestMarchObjects(subparcel.vegetations.map(vegetation => {
+        return {
+          id: vegetation.id,
+          type: vegetation.name,
+          matrix: localMatrix.compose(localVector.fromArray(vegetation.position), localQuaternion.fromArray(vegetation.quaternion), localVector2.set(1, 1, 1)).toArray(),
+        };
+      }));
       if (live) {
         const [spec] = specs;
         const {opaque, transparent} = spec;
@@ -2441,7 +2447,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         for (const vegetation of subparcel.vegetations) {
           localVector3.fromArray(vegetation.position);
           localQuaternion2.fromArray(vegetation.quaternion);
-          const physicsOffset = physicsShapes[vegetation.type];
+          const physicsOffset = physicsShapes[vegetation.name];
           const physxGeometry = physicsOffset ? (() => {
             localMatrix2
               .compose(physicsOffset.position, physicsOffset.quaternion, localVector4.set(1, 1, 1))
@@ -2473,15 +2479,14 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               Math.floor(vegetation.position[2]/subparcelSize)
             );
             planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-              const index = subparcel.vegetations.findIndex(v => v.id === vegetation.id);
-              subparcel.vegetations.splice(index, 1);
+              subparcel.removeVegetation(vegetation);
             });
             mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
           });
           subparcelVegetationMeshesSpec.meshes.push({
             isVegetationMesh: true,
             meshId: vegetation.id,
-            type: vegetation.type,
+            type: vegetation.name,
             position: new THREE.Vector3().fromArray(vegetation.position),
             quaternion: new THREE.Quaternion().fromArray(vegetation.quaternion),
             physxGeometry,
