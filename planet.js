@@ -173,6 +173,13 @@ export class SubparcelObject {
   getNameLength() {
     return _getStringLength(this._name);
   }
+  copy(o) {
+    new Uint8Array(this.data, this.offset, PLANET_OBJECT_SIZE)
+      .set(
+        new Uint8Array(o.data, o.offset, PLANET_OBJECT_SIZE)
+      );
+    this.readMetadata();
+  }
   writeMetadata() {
     this._id[0] = this.id;
     this._type[0] = this.type;
@@ -189,22 +196,27 @@ export class SubparcelObject {
 }
 
 export class Subparcel {
-  constructor(data, offset) {
+  constructor(data) {
     this.x = 0;
     this.y = 0;
     this.z = 0;
     this.index = 0;
     this.offsets = Subparcel.getOffsets();
-    this.data = data !== undefined ? data : new ArrayBuffer(this.offsets.length);
-    this.offset = offset !== undefined ? offset : 0;
-    this.potentials = new Float32Array(this.data, this.offset + this.offsets.potentials, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
-    this._numObjects = new Uint32Array(this.data, this.offset + this.offsets.numObjects, 1);
+    this.data = null;
+    this.potentials = null;
+    this._numObjects = null;
     this.vegetations = [];
     this.packages = [];
     this.load = null;
     this.dirty = false;
 
+    this.latchData(data || new ArrayBuffer(this.offsets.initialLength));
     data && this.reload();
+  }
+  latchData(data) {
+    this.data = data;
+    this.potentials = new Float32Array(this.data, this.offsets.potentials, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
+    this._numObjects = new Uint32Array(this.data, this.offsets.numObjects, 1);
   }
   reload() {
     this.readMetadata();
@@ -212,7 +224,7 @@ export class Subparcel {
     this.packages.length = 0;
     const numObjects = this._numObjects[0];
     for (let i = 0; i < numObjects; i++) {
-      const o = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
+      const o = new SubparcelObject(this.data, this.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
       o.readMetadata();
       if (o.type === OBJECT_TYPES.VEGETATION) {
         this.vegetations.push(o);
@@ -227,13 +239,13 @@ export class Subparcel {
     }));
   }
   writeMetadata() {
-    const dst = new Int32Array(this.data, this.offset + this.offsets.xyz, 3);
+    const dst = new Int32Array(this.data, this.offsets.xyz, 3);
     dst[0] = this.x;
     dst[1] = this.y;
     dst[2] = this.z;
   }
   readMetadata() {
-    const src = new Int32Array(this.data, this.offset + this.offsets.xyz, 3);
+    const src = new Int32Array(this.data, this.offsets.xyz, 3);
     this.x = src[0];
     this.y = src[1];
     this.z = src[2];
@@ -267,7 +279,14 @@ export class Subparcel {
   }
   addVegetation(type, position, quaternion) {
     const nextIndex = this._numObjects[0]++;
-    const vegetation = new SubparcelObject(this.data, this.offset + this.offsets.objects + nextIndex*PLANET_OBJECT_SIZE, nextIndex, this);
+    if (this.offsets.objects + nextIndex*PLANET_OBJECT_SIZE >= this.data.byteLength) {
+      const newData = new ArrayBuffer(this.data.byteLength + PLANET_OBJECT_SLOTS*PLANET_OBJECT_SIZE);
+      new Uint8Array(newData).set(new Uint8Array(this.data));
+      this.latchData(newData);
+      this.reload();
+    }
+
+    const vegetation = new SubparcelObject(this.data, this.offsets.objects + nextIndex*PLANET_OBJECT_SIZE, nextIndex, this);
     vegetation.id = Math.floor(Math.random()*0xFFFFFF);
     vegetation.type = OBJECT_TYPES.VEGETATION;
     vegetation.name = type;
@@ -277,16 +296,16 @@ export class Subparcel {
     this.vegetations.push(vegetation);
     return vegetation;
   }
-  removeVegetation(vegetation) {
-    const index = this.vegetations.indexOf(vegetation);
+  removeVegetation(vegetationId) {
+    const index = this.vegetations.findIndex(v => v.id === vegetationId);
     if (index !== -1) {
-      this.vegetations.splice(index, 1);
-      this._numObjects[0]--;
-      for (let i = index; i < this.vegetations.length; i++) {
+      for (let i = index; i < this.vegetations.length-1; i++) {
         const vegetation = this.vegetations[i];
-        vegetation.index = i;
-        vegetation.writeMetadata();
+        vegetation.copy(this.vegetations[i+1]);
+        vegetation.readMetadata();
       }
+      this.vegetations.length--;
+      this._numObjects[0]--;
     } else {
       console.warn('removing nonexistent vegetation', vegetation);
     }
@@ -319,7 +338,7 @@ export class Subparcel {
     }
   } */
   clone() {
-    const subparcel = new Subparcel(this.data.slice(this.offset), 0);
+    const subparcel = new Subparcel(this.data.slice());
     subparcel.reload();
     return subparcel;
   }
@@ -335,14 +354,14 @@ Subparcel.getOffsets = () => {
   index += Uint32Array.BYTES_PER_ELEMENT;
   const objects = index;
   index += PLANET_OBJECT_SIZE * PLANET_OBJECT_SLOTS;
-  const length = index;
+  const initialLength = index;
 
   return {
     xyz,
     potentials,
     numObjects,
     objects,
-    length,
+    initialLength,
   };
 };
 

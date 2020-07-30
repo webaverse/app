@@ -2268,7 +2268,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         Math.floor(buildMeshClone.position.z/subparcelSize)
       );
       planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-        subparcel.removeVegetation(buildMeshClone.build);
+        subparcel.removeVegetation(buildMeshClone.build.id);
       });
       mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
     });
@@ -2479,7 +2479,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               Math.floor(vegetation.position[2]/subparcelSize)
             );
             planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-              subparcel.removeVegetation(vegetation);
+              subparcel.removeVegetation(vegetation.id);
             });
             mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
           });
