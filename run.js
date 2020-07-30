@@ -236,6 +236,7 @@ document.getElementById('enter-xr-button').addEventListener('click', e => {
       optionalFeatures: [
         'local-floor',
         'bounded-floor',
+        'hand-tracking',
       ],
     }).then(onSessionStarted);
   } else {
