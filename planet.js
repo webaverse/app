@@ -15,7 +15,7 @@ import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 
 const presenceHost = 'wss://rtc.exokit.org:4443';
 export const OBJECT_TYPES = {
-  BUILD: 1,
+  VEGETATION: 1,
   PACKAGE: 2,
 };
 
@@ -198,9 +198,7 @@ export class Subparcel {
     this.data = data !== undefined ? data : new ArrayBuffer(this.offsets.length);
     this.offset = offset !== undefined ? offset : 0;
     this.potentials = new Float32Array(this.data, this.offset + this.offsets.potentials, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
-    this._objectId = new Uint32Array(this.data, this.offset + this.offsets.objectId, 1);
-    this._freeList = new Uint8Array(this.data, this.offset + this.offsets.freeList, PLANET_OBJECT_SLOTS);
-    this.builds = [];
+    this._numObjects = new Uint32Array(this.data, this.offset + this.offsets.numObjects, 1);
     this.vegetations = [];
     this.packages = [];
     this.load = null;
@@ -210,17 +208,16 @@ export class Subparcel {
   }
   reload() {
     this.readMetadata();
-    this.builds.length = 0;
+    this.vegetations.length = 0;
     this.packages.length = 0;
-    for (let i = 0; i < this._freeList.length; i++) {
-      if (this._freeList[i]) {
-        const o = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
-        o.readMetadata();
-        if (o.type === OBJECT_TYPES.BUILD) {
-          this.builds.push(o);
-        } else if (o.type === OBJECT_TYPES.PACKAGE) {
-          this.packages.push(o);
-        }
+    const numObjects = this._numObjects[0];
+    for (let i = 0; i < numObjects; i++) {
+      const o = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
+      o.readMetadata();
+      if (o.type === OBJECT_TYPES.VEGETATION) {
+        this.vegetations.push(o);
+      } else if (o.type === OBJECT_TYPES.PACKAGE) {
+        this.packages.push(o);
       }
     }
   }
@@ -268,71 +265,33 @@ export class Subparcel {
       }
     }
   }
-  addBuild(type, position, quaternion) {
-    for (let i = 0; i < this._freeList.length; i++) {
-      if (!this._freeList[i]) {
-        this._freeList[i] = 1;
-
-        const build = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
-        build.id = ++this._objectId[0];
-        build.type = OBJECT_TYPES.BUILD;
-        build.name = type;
-        position.toArray(build.position);
-        quaternion.toArray(build.quaternion);
-        build.writeMetadata();
-        this.builds.push(build);
-        return build;
-      }
-    }
-    throw new Error('no more slots for build');
-  }
-  removeBuild(build) {
-    const index = this.builds.indexOf(build);
-    if (index !== -1) {
-      this._freeList[build.index] = 0;
-      this.builds.splice(index, 1);
-    } else {
-      console.warn('removing nonexistent build', build);
-    }
-  }
   addVegetation(type, position, quaternion) {
-    const scale = new THREE.Vector3(1, 1, 1);
-    const vegetation = {
-      type,
-      id: getNextMeshId(),
-      position: position.toArray(new Float32Array(3)),
-      quaternion: quaternion.toArray(new Float32Array(4)),
-      scale: scale.toArray(new Float32Array(3)),
-      matrix: new THREE.Matrix4().compose(position, quaternion, scale).toArray(new Float32Array(16)),
-    };
+    const nextIndex = this._numObjects[0]++;
+    const vegetation = new SubparcelObject(this.data, this.offset + this.offsets.objects + nextIndex*PLANET_OBJECT_SIZE, nextIndex, this);
+    vegetation.id = Math.floor(Math.random()*0xFFFFFF);
+    vegetation.type = OBJECT_TYPES.VEGETATION;
+    vegetation.name = type;
+    position.toArray(vegetation.position);
+    quaternion.toArray(vegetation.quaternion);
+    vegetation.writeMetadata();
     this.vegetations.push(vegetation);
-    /* for (let i = 0; i < this._freeList.length; i++) {
-      if (!this._freeList[i]) {
-        this._freeList[i] = 1;
-
-        const build = new SubparcelObject(this.data, this.offset + this.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
-        build.id = ++this._objectId[0];
-        build.type = OBJECT_TYPES.BUILD;
-        build.name = type;
-        position.toArray(build.position);
-        quaternion.toArray(build.quaternion);
-        build.writeMetadata();
-        this.builds.push(build);
-        return build;
-      }
-    } */
-    // throw new Error('no more slots for build');
+    return vegetation;
   }
   removeVegetation(vegetation) {
     const index = this.vegetations.indexOf(vegetation);
     if (index !== -1) {
-      // this._freeList[vegetation.index] = 0;
       this.vegetations.splice(index, 1);
+      this._numObjects[0]--;
+      for (let i = index; i < this.vegetations.length; i++) {
+        const vegetation = this.vegetations[i];
+        vegetation.index = i;
+        vegetation.writeMetadata();
+      }
     } else {
       console.warn('removing nonexistent vegetation', vegetation);
     }
   }
-  addPackage(dataHash, position, quaternion) {
+  /* addPackage(dataHash, position, quaternion) {
     for (let i = 0; i < this._freeList.length; i++) {
       if (!this._freeList[i]) {
         this._freeList[i] = 1;
@@ -358,7 +317,7 @@ export class Subparcel {
     } else {
       console.warn('removing nonexistent package', pkg);
     }
-  }
+  } */
   clone() {
     const subparcel = new Subparcel(this.data.slice(this.offset), 0);
     subparcel.reload();
@@ -372,10 +331,8 @@ Subparcel.getOffsets = () => {
   index += Int32Array.BYTES_PER_ELEMENT * 3;
   const potentials = index;
   index += SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * Float32Array.BYTES_PER_ELEMENT;
-  const objectId = index;
+  const numObjects = index;
   index += Uint32Array.BYTES_PER_ELEMENT;
-  const freeList = index;
-  index += PLANET_OBJECT_SLOTS;
   const objects = index;
   index += PLANET_OBJECT_SIZE * PLANET_OBJECT_SLOTS;
   const length = index;
@@ -383,8 +340,7 @@ Subparcel.getOffsets = () => {
   return {
     xyz,
     potentials,
-    objectId,
-    freeList,
+    numObjects,
     objects,
     length,
   };
@@ -397,7 +353,7 @@ const _addSubparcel = (x, y, z, index) => {
   subparcel.z = z;
   subparcel.index = index;
   subparcel.writeMetadata();
-  subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
+  // subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
   subparcels[index] = subparcel;
   return subparcel;
 };
@@ -535,7 +491,7 @@ const _loadStorage = async roomName => {
           const subparcel = new Subparcel(ab);
           subparcel.readMetadata();
           subparcel.load = Promise.resolve();
-          subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
+          // subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
           return subparcel;
         });
       promises.push(p);
