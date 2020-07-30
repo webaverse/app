@@ -2909,8 +2909,33 @@ const _findMeshWithMeshId = meshId => {
   }
 };
 
-const collisionCubeGeometry = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
-const sideCollisionCubeMaterial = new THREE.MeshBasicMaterial({
+const jointGeometry new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
+const jointPositions = jointGeometry.attributes.position.array.slice();
+const jointNumPositions = jointPositions.length;
+const jointMaterial = new THREE.MeshBasicMaterial({
+  color: 0xFF0000,
+});
+const handGeometry = (() => {
+  const geometries = Array(25);
+  for (let i = 0; i < geometries.length; i++) {
+    geometries[i] = jointGeometry;
+  }
+  return BufferGeometryUtils.mergeBufferGeometries(geometries);
+})();
+const handMeshes = (() => {
+  const result = Array(2);
+  for (let i = 0; i < 2; i++) {
+    const mesh = new THREE.Mesh(handGeometry, jointMaterial);
+    mesh.visible = false;
+    mesh.frustumCulled = false;
+    result[i] = mesh;
+  }
+  return result;
+})();
+for (const handMesh of handMeshes) {
+  scene.add(handMesh);
+}
+/* const sideCollisionCubeMaterial = new THREE.MeshBasicMaterial({
   color: 0xFF0000,
 });
 const floorCollisionCubeMaterial = new THREE.MeshBasicMaterial({
@@ -2957,7 +2982,7 @@ const ceilingCollisionCubes = (() => {
 })();
 for (let i = 0; i < ceilingCollisionCubes.length; i++) {
   scene.add(ceilingCollisionCubes[i]);
-}
+} */
 
 function parseQuery(queryString) {
   var query = {};
@@ -4100,16 +4125,29 @@ function animate(timestamp, frame) {
       }
     }
 
+    for (const handMesh of handMeshes) {
+      handMesh.visible = false;
+    }
     for (const inputSource of session.inputSources) {
       if (inputSource && inputSource.hand) {
+        const handMesh = handMeshes[inputSource.handedness === 'right' ? 1 : 0];
+
         for (let i = 0; i < inputSource.hand.length; i++) {
           const joint = inputSource.hand[i];
+          const dstPositions = new Float32Array(handMesh.geometry.attributes.position, i*jointNumPositions, jointNumPositions);
 
           const jointPose = joint && frame.getJointPose(joint, referenceSpace);
           if (jointPose) {
-            console.log('got joint pose', jointPose);
+            jointGeometry.attributes.position.array.set(jointPositions);
+            jointGeometry.applyMatrix4(
+              localMatrix.fromArray(jointPose.transform.matrix)
+            );
+            dstPositions.set(jointGeometry.attributes.position.array);
+          } else {
+            dstPositions.fill(0);
           }
         }
+        handMesh.visible = true;
       }
     }
   }
