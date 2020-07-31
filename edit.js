@@ -37,6 +37,7 @@ import {
 import alea from './alea.js';
 import easing from './easing.js';
 import {planet} from './planet.js';
+import {player} from './player.js';
 import {Bot} from './bot.js';
 import './atlaspack.js';
 import {Sky} from './Sky.js';
@@ -2700,6 +2701,19 @@ planet.connect('lol', {
   online: false,
 }).then(() => {
   new Bot();
+});
+
+const RESOURCES = ['wood', 'stone', 'metal'];
+RESOURCES.forEach(resource => {
+  const resourceEl = document.getElementById(resource);
+  const countEl = resourceEl.querySelector('.count');
+  countEl.innerText = player.getCount(resource);
+});
+player.addEventListener('inventorychange', async e => {
+  const {data: {type, count}} = e;
+  const resourceEl = document.getElementById(resource);
+  const countEl = resourceEl.querySelector('.count');
+  countEl.innerText = count;
 });
 
 /* const generateModels = await _loadGltf('./generate.glb');
