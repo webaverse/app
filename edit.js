@@ -3907,9 +3907,6 @@ function animate(timestamp, frame) {
 
                         planet.editSubparcel(sdx, sdy, sdz, subparcel => {
                           const potentialIndex = _getPotentialIndex(lx, ly, lz, currentChunkMesh.subparcelSize+1);
-                          if (potentialIndex < 0 || potentialIndex >= subparcel.potentials.length) {
-                            debugger;
-                          }
                           subparcel.potentials[potentialIndex] += value;
 
                           const mineSpec = {
