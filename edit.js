@@ -2647,7 +2647,7 @@ const _resetCamera = position => {
   pe.camera.updateMatrixWorld();
   pe.setCamera(camera);
 };
-planet.addEventListener('load', e => {
+planet.addEventListener('load', async e => {
   const {data: chunkSpec} = e;
 
   const chunkMesh = _makeChunkMesh(chunkSpec.seedString, chunkSpec.parcelSize, chunkSpec.subparcelSize);
