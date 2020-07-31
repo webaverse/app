@@ -377,6 +377,22 @@ const [
         subparcelSize,
       });
     };
+    w.requestGetHeight = (seed, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, parcelSize) => {
+      return w.request({
+        method: 'getHeight',
+        seed,
+        x,
+        y,
+        z,
+        baseHeight,
+        freqs,
+        octaves,
+        scales,
+        uvs,
+        amps,
+        parcelSize,
+      });
+    };
     return w;
   })(),
   (async () => {
