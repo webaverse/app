@@ -2658,10 +2658,6 @@ planet.addEventListener('load', e => {
 
   chunkMesh.updateMatrixWorld();
 
-  /* x*subparcelSize,
-  y*subparcelSize,
-  z*subparcelSize, */
-
   const p = new THREE.Vector3().applyMatrix4(new THREE.Matrix4().getInverse(chunkMesh.matrixWorld));
   const ncx = Math.floor(p.x/SUBPARCEL_SIZE);
   const ncy = Math.floor(p.y/SUBPARCEL_SIZE);
