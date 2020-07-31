@@ -53,6 +53,33 @@ const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Ve
 const pid4 = Math.PI/4;
 const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
+const baseHeight = PARCEL_SIZE/2-10;
+const freqs = [
+  1,
+  1,
+  1,
+];
+const octaves = [
+  3,
+  3,
+  3,
+];
+const scales = [
+  0.08,
+  0.012,
+  0.016,
+];
+const uvs = [
+  0,
+  0,
+  0,
+];
+const amps = [
+  1,
+  1.5,
+  4,
+];
+
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -69,7 +96,7 @@ const localMatrix3 = new THREE.Matrix4();
 const localFrustum = new THREE.Frustum();
 
 const cubicBezier = easing(0, 1, 0, 1);
-const chunkOffset = new THREE.Vector3(-PARCEL_SIZE/2, -PARCEL_SIZE - 5, -PARCEL_SIZE/2);
+const chunkOffset = new THREE.Vector3(-PARCEL_SIZE/2, -PARCEL_SIZE, -PARCEL_SIZE/2);
 
 let skybox = null;
 let skybox2 = null;
@@ -1758,6 +1785,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
   const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
   mesh.frustumCulled = false;
+  mesh.seedNum = seedNum;
   mesh.meshId = meshId;
   mesh.seedString = seedString;
   mesh.parcelSize = parcelSize;
@@ -1958,28 +1986,12 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               adx,
               ady,
               adz,
-              parcelSize/2-10,
-              [
-                1,
-                1,
-                1,
-              ], [
-                3,
-                3,
-                3,
-              ], [
-                0.08,
-                0.012,
-                0.016,
-              ], [
-                0,
-                0,
-                0,
-              ], [
-                1,
-                1.5,
-                4,
-              ],
+              baseHeight,
+              freqs,
+              octaves,
+              scales,
+              uvs,
+              amps,
               parcelSize,
               subparcelSize
             ).then(parcelSpec => {
@@ -2627,8 +2639,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   return mesh;
 };
 
-const _resetCamera = () => {
-  pe.camera.position.set(0, 0, 2);
+const _resetCamera = position => {
+  pe.camera.position.copy(position);
   pe.camera.quaternion.set(0, 0, 0, 1);
   pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
   pe.camera.updateMatrixWorld();
@@ -2643,6 +2655,22 @@ planet.addEventListener('load', e => {
   chunkMeshes.push(chunkMesh);
   _setCurrentChunkMesh(chunkMesh);
 
+  chunkMesh.updateMatrixWorld();
+
+  /* x*subparcelSize,
+  y*subparcelSize,
+  z*subparcelSize, */
+
+  const p = new THREE.Vector3().applyMatrix4(new THREE.Matrix4().getInverse(chunkMesh.matrixWorld));
+  const ncx = Math.floor(p.x/SUBPARCEL_SIZE);
+  const ncy = Math.floor(p.y/SUBPARCEL_SIZE);
+  const ncz = Math.floor(p.z/SUBPARCEL_SIZE);
+
+  const height = await chunkWorker.requestGetHeight(chunkMesh.seedNum, ncx, ncy + SUBPARCEL_SIZE, ncz, baseHeight, freqs, octaves, scales, uvs, amps, PARCEL_SIZE);
+  p.y = PARCEL_SIZE/2 + height + _getAvatarHeight();
+  p.applyMatrix4(chunkMesh.matrixWorld);
+  _resetCamera(p);
+
   /* {
     let geometry = new CapsuleGeometry(0.5, 1, 16)
       .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2)))
@@ -2655,8 +2683,6 @@ planet.addEventListener('load', e => {
     capsuleMesh = new THREE.Mesh(geometry, material);
     scene.add(capsuleMesh);
   } */
-
-  _resetCamera();
 });
 planet.addEventListener('unload', () => {
   const oldChunkMesh = _getCurrentChunkMesh();
