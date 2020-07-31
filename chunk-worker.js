@@ -227,6 +227,35 @@ const _handleMessage = data => {
       }, transfers);
       break;
     }
+    case 'getHeight': {
+      const {seed, x, y, z, baseHeight, freqs: freqsData, octaves: octavesData, scales: scalesData, uvs: uvsData, amps: ampsData, parcelSize} = data;
+
+      freqs.set(Float32Array.from(freqsData));
+      octaves.set(Int32Array.from(octavesData));
+      scales.set(Float32Array.from(scalesData));
+      uvs.set(Float32Array.from(uvsData));
+      amps.set(Float32Array.from(ampsData));
+      limits.set(Int32Array.from([parcelSize, parcelSize, parcelSize]));
+
+      const height = Module._doGetHeight(
+        seed,
+        x,
+        y,
+        z,
+        baseHeight,
+        freqs.offset,
+        octaves.offset,
+        scales.offset,
+        uvs.offset,
+        amps.offset,
+        limits.offset
+      );
+
+      self.postMessage({
+        result: height,
+      });
+      break;
+    }
     default: {
       console.warn('unknown method', data.method);
       break;
