@@ -40,6 +40,7 @@ import {planet} from './planet.js';
 import {Bot} from './bot.js';
 import './atlaspack.js';
 import {Sky} from './Sky.js';
+import {GuardianMesh} from './land.js';
 import TinyQueue from './tinyqueue.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
@@ -1687,6 +1688,12 @@ physicsWorker = pw;
   });
   skybox = new THREE.Mesh(sphere, material);
   scene.add(skybox);
+})();
+(() => {
+  const guardianMesh = GuardianMesh([[
+    0, 0, SUBPARCEL_SIZE, SUBPARCEL_SIZE,
+  ]], 0x42a5f5);
+  scene.add(guardianMesh);
 })();
 
 const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
