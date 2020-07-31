@@ -2983,8 +2983,8 @@ const handGeometry = (() => {
 })();
 const handMeshes = (() => {
   const result = Array(2);
-  for (let i = 0; i < 2; i++) {
-    const mesh = new THREE.Mesh(handGeometry, jointMaterial);
+  for (let i = 0; i < result.length; i++) {
+    const mesh = new THREE.Mesh(handGeometry.clone(), jointMaterial);
     mesh.visible = false;
     mesh.frustumCulled = false;
     result[i] = mesh;
@@ -4187,10 +4187,11 @@ function animate(timestamp, frame) {
     for (const inputSource of session.inputSources) {
       if (inputSource && inputSource.hand) {
         const handMesh = handMeshes[inputSource.handedness === 'right' ? 1 : 0];
+        const positionAttribute = handMesh.geometry.attributes.position;
 
         for (let i = 0; i < inputSource.hand.length; i++) {
           const joint = inputSource.hand[i];
-          const dstPositions = new Float32Array(handMesh.geometry.attributes.position, i*jointNumPositions, jointNumPositions);
+          const dstPositions = new Float32Array(positionAttribute.array.buffer, positionAttribute.array.byteOffset + i*jointNumPositions*Float32Array.BYTES_PER_ELEMENT, jointNumPositions);
 
           const jointPose = joint && frame.getJointPose(joint, referenceSpace);
           if (jointPose) {
@@ -4203,6 +4204,7 @@ function animate(timestamp, frame) {
             dstPositions.fill(0);
           }
         }
+        positionAttribute.needsUpdate = true;
         handMesh.visible = true;
       }
     }
