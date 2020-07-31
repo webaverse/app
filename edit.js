@@ -1590,7 +1590,7 @@ chunkWorker = cw;
 physxWorker = px;
 physicsWorker = pw;
 
-(async () => {
+(() => {
   const effectController = {
     turbidity: 2,
     rayleigh: 3,
@@ -1624,7 +1624,7 @@ physicsWorker = pw;
   skybox2.update();
   scene.add(skybox2);
 })();
-(async () => {
+(() => {
   const sphere = new THREE.SphereBufferGeometry(10, 32, 32);
 
   const img = new Image();
