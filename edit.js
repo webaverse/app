@@ -2968,7 +2968,7 @@ const _findMeshWithMeshId = meshId => {
   }
 };
 
-const jointGeometry = new THREE.BoxBufferGeometry(0.05, 0.05, 0.05);
+const jointGeometry = new THREE.BoxBufferGeometry(0.01, 0.01, 0.01);
 const jointPositions = jointGeometry.attributes.position.array.slice();
 const jointNumPositions = jointPositions.length;
 const jointMaterial = new THREE.MeshBasicMaterial({
