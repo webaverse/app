@@ -11,7 +11,7 @@ import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxy
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
-import {makeUiMesh} from './vr-ui.js';
+import {makeUiMesh, makeTextMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import {
   PARCEL_SIZE,

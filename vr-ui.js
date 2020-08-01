@@ -1,14 +1,6 @@
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-/* import {XRPackage} from './run.js';
+// import {XRPackage} from './run.js';
 import {TextMesh} from './textmesh-standalone.esm.js'
-
-const apiHost = 'https://ipfs.exokit.org/ipfs';
-
-let dragMesh = null;
-
-const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
-const localRaycater = new THREE.Raycaster();
 
 const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anchorX = 'left', anchorY = 'middle') => {
   const textMesh = new TextMesh();
@@ -22,6 +14,14 @@ const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anch
   textMesh.sync();
   return textMesh;
 };
+
+/* const apiHost = 'https://ipfs.exokit.org/ipfs';
+
+let dragMesh = null;
+
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
+const localRaycater = new THREE.Raycaster();
 
 const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
   const object = new THREE.Object3D();
@@ -450,7 +450,10 @@ const makeRayMesh = () => {
   );
   ray.frustumCulled = false;
   return ray;
-};
+}; */
+
+const uiSize = 2048;
+const uiWorldSize = 0.2;
 
 const uiRenderer = (() => {
   const loadPromise = Promise.all([
@@ -471,14 +474,14 @@ const uiRenderer = (() => {
       iframe.style.left = '-4096px';
       document.body.appendChild(iframe);
     }),
-    fetch('interface-world.html')
-      .then(res => res.text()),
+    /* fetch('interface-world.html')
+      .then(res => res.text()), */
   ]);
 
   let renderIds = 0;
   return {
-    async render(searchResults, inventory, channels, selectedTab, rtcConnected, landConnected) {
-      const [iframe, interfaceHtml] = await loadPromise;
+    async render() {
+      const [iframe/*, interfaceHtml*/] = await loadPromise;
 
       if (renderIds > 0) {
         iframe.contentWindow.postMessage({
@@ -489,16 +492,13 @@ const uiRenderer = (() => {
 
       const start = Date.now();
       const mc = new MessageChannel();
-      const templateData = {
-        width: uiSize,
-        height: uiSize,
-        zoom: 5,
-      };
       iframe.contentWindow.postMessage({
         method: 'render',
         id: ++renderIds,
-        htmlString: interfaceHtml,
-        templateData,
+        htmlString: `\
+<div>lol</div>
+`,
+        templateData: null,
         width: uiSize,
         height: uiSize,
         port: mc.port2,
@@ -520,10 +520,7 @@ const uiRenderer = (() => {
       return result;
     },
   };
-})(); */
-
-const uiSize = 2048;
-const uiWorldSize = 0.2;
+})();
 
 const makeUiMesh = () => {
   const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2)
@@ -634,8 +631,8 @@ const makeUiMesh = () => {
 
 export {
   makeUiMesh,
-  /* makeTextMesh,
-  makeWristMenu,
+  makeTextMesh,
+  /* makeWristMenu,
   makeHighlightMesh,
   makeRayMesh, */
 };
