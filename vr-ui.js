@@ -546,7 +546,33 @@ const uiRenderer = (() => {
   left: ${uiSize/12}px;
   padding: ${uiSize/20}px;
   background-color: #FFF;
-  font-size: 200px;
+  font-size: 50px;
+}
+h1, h2, h3 {
+  margin: 0;
+  margin-bottom: ${uiSize/50}px;
+}
+.tiles {
+  display: flex;
+}
+.tiles .tile {
+  display: flex;
+  flex-direction: column;
+  background-color: #7e57c2;
+  margin-right: ${uiSize/100}px;
+  margin-bottom: ${uiSize/100}px;
+  padding-bottom: 0;
+}
+.tiles .tile .img {
+  width: ${uiSize/10}px;
+  height: ${uiSize/10*1.2}px;
+  margin: ${uiSize/100}px;
+  background-color: #FFF;
+}
+.tiles .tile .text {
+  padding: ${uiSize/100}px;
+  padding-top: 0;
+  color: #FFF;
 }
 </style>
 <div class=body>
@@ -554,7 +580,19 @@ const uiRenderer = (() => {
   <div class="border top-right"></div>
   <div class="border bottom-left"></div>
   <div class="border bottom-right"></div>
-  <div class=wrap>lol</div>
+  <div class=wrap>
+    <h3>Inventory</h3>
+    <div class=tiles>
+      <a class=tile id=inventory-1>
+        <div class=img></div>
+        <div class=text>Rifle</div>
+      </a>
+      <a class=tile id=inventory-2>
+        <div class=img></div>
+        <div class=text>Pickaxe</div>
+      </a>
+    </div>
+  </div>
 </div>
 `,
         templateData: null,
