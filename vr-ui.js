@@ -133,15 +133,6 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
       object.add(backgroundMesh);
       object.backgroundMesh = backgroundMesh;
 
-      /* (async () => {
-        const u = await p.getScreenshotImageUrl();
-        const res = await fetch(u);
-        const ab = await res.arrayBuffer();
-        const uint8Array = new Uint8Array(ab);
-        const gif = parseGIF(uint8Array);
-        const frames = decompressFrames(gif, true);
-      })(); */
-
       const img = new Image();
       const texture = new THREE.Texture(img);
       (async () => {
@@ -287,15 +278,6 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
       object.add(backgroundMesh);
       object.backgroundMesh = backgroundMesh;
 
-      /* (async () => {
-        const u = await p.getScreenshotImageUrl();
-        const res = await fetch(u);
-        const ab = await res.arrayBuffer();
-        const uint8Array = new Uint8Array(ab);
-        const gif = parseGIF(uint8Array);
-        const frames = decompressFrames(gif, true);
-      })(); */
-
       const img = new Image();
       const texture = new THREE.Texture(img);
       (async () => {
@@ -389,13 +371,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
               console.log('click object', object);
             };
             highlightMesh.onmouseup = () => {
-              /* (async () => {
-                const {dataHash, matrix} = dragMesh;
-                const p = await XRPackage.download(dataHash);
-                await _addPackage(p, matrix);
-              })();
-              scene.remove(dragMesh);
-              dragMesh = null; */
+              // nothing
             };
 
             return true;
