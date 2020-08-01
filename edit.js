@@ -3574,7 +3574,7 @@ const _applyAvatarPhysics = (avatarOffset, cameraBasedOffset, velocityAvatarDire
     localVector4.applyQuaternion(localQuaternion)
   }
   localVector.add(localVector4);
-  const collision = _collideCapsule(localVector, localQuaternion.set(0, 0, 0, 1));
+  const collision = _collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
   if (velocityAvatarDirection && oldVelocity.lengthSq() > 0) {
     localQuaternion.setFromUnitVectors(localVector4.set(0, 0, -1), localVector5.set(oldVelocity.x, 0, oldVelocity.z).normalize());
   }
