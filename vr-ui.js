@@ -496,11 +496,71 @@ const uiRenderer = (() => {
         method: 'render',
         id: ++renderIds,
         htmlString: `\
-<div>lol</div>
+<style>
+* {
+  box-sizing: border-box;
+}
+.body {
+  background-color: transparent;
+  font-family: 'Bangers';
+}
+.border {
+  position: absolute;
+  width: ${uiSize/8}px;
+  height: ${uiSize/8}px;
+  border: 30px solid #111;
+}
+.border.top-left {
+  top: 0;
+  left: 0;
+  border-top-left-radius: ${uiSize}px;
+  border-bottom: 0;
+  border-right: 0;
+}
+.border.top-right {
+  top: 0;
+  right: 0;
+  border-top-right-radius: ${uiSize}px;
+  border-bottom: 0;
+  border-left: 0;
+}
+.border.bottom-left {
+  bottom: 0;
+  left: 0;
+  border-bottom-left-radius: ${uiSize}px;
+  border-top: 0;
+  border-right: 0;
+}
+.border.bottom-right {
+  bottom: 0;
+  right: 0;
+  border-bottom-right-radius: ${uiSize}px;
+  border-top: 0;
+  border-left: 0;
+}
+.wrap {
+  position: absolute;
+  height: ${uiSize - uiSize/12*2}px;
+  width: ${uiSize - uiSize/12*2}px;
+  top: ${uiSize/12}px;
+  left: ${uiSize/12}px;
+  padding: ${uiSize/20}px;
+  background-color: #FFF;
+  font-size: 200px;
+}
+</style>
+<div class=body>
+  <div class="border top-left"></div>
+  <div class="border top-right"></div>
+  <div class="border bottom-left"></div>
+  <div class="border bottom-right"></div>
+  <div class=wrap>lol</div>
+</div>
 `,
         templateData: null,
         width: uiSize,
         height: uiSize,
+        transparent: true,
         port: mc.port2,
       }, '*', [mc.port2]);
       const result = await new Promise((accept, reject) => {
@@ -545,6 +605,8 @@ const makeUiMesh = () => {
   const material = new THREE.MeshBasicMaterial({
     map: texture,
     side: THREE.DoubleSide,
+    transparent: true,
+    alphaTest: 0.7,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.visible = false;
