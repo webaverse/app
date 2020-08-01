@@ -3610,7 +3610,7 @@ const _collideCapsule = (() => {
   return (p, q) => {
     localVector.copy(p);
     localVector.y -= 0.3;
-    return physxWorker ? physxWorker.collide(0.5, 0.5, localVector, q, 1) : Promise.resolve(null);
+    return physxWorker ? physxWorker.collide(0.5, 0.5, localVector, q, 1) : null;
   };
 })();
 const _applyVelocity = (() => {
