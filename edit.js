@@ -1723,9 +1723,6 @@ physicsWorker = pw;
   scene.add(guardianMesh);
 })();
 
-const uiMesh = makeUiMesh();
-scene.add(uiMesh);
-
 const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   const rng = alea(seedString);
   const seedNum = Math.floor(rng() * 0xFFFFFF);
@@ -3410,6 +3407,9 @@ const hpMesh = (() => {
   return mesh;
 })();
 scene.add(hpMesh);
+
+const uiMesh = makeUiMesh();
+scene.add(uiMesh);
 
 const numSmokes = 10;
 const numZs = 10;
