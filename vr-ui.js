@@ -728,9 +728,39 @@ const makeUiMesh = () => {
 
   return mesh;
 };
+const makeUiFullMesh = () => {
+  const meshSpecs = [
+    [
+      new THREE.Vector3(0, 0, 0.1),
+      new THREE.Quaternion(),
+    ],
+    [
+      new THREE.Vector3(-0.1, 0, 0),
+      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2),
+    ],
+    [
+      new THREE.Vector3(0, 0, -0.1),
+      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI),
+    ],
+    [
+      new THREE.Vector3(0.1, 0, 0),
+      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*3/2),
+    ],
+  ];
+  const object = new THREE.Object3D();
+  for (const meshSpec of meshSpecs) {
+    const [position, quaternion] = meshSpec;
+    const mesh = makeUiMesh();
+    mesh.position.copy(position);
+    mesh.quaternion.copy(quaternion);
+    object.add(mesh);
+  }
+  return object;
+};
 
 export {
   makeUiMesh,
+  makeUiFullMesh,
   makeTextMesh,
   /* makeWristMenu,
   makeHighlightMesh,
