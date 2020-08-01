@@ -521,6 +521,10 @@ const uiRenderer = (() => {
     },
   };
 })(); */
+
+const uiSize = 2048;
+const uiWorldSize = 0.2;
+
 const makeUiMesh = () => {
   const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize/2, 0));
@@ -605,7 +609,8 @@ const makeUiMesh = () => {
     }
   };
   mesh.click = () => {
-    if (hoveredAnchor) {
+    console.log('got click', hoveredAnchor);
+    /* if (hoveredAnchor) {
       const {id} = hoveredAnchor;
       if (/^(?:tool-|color-)/.test(id)) {
         interfaceDocument.getElementById(id).click();
@@ -620,7 +625,7 @@ const makeUiMesh = () => {
       return true;
     } else {
       return false;
-    }
+    } */
   };
   mesh.update();
 
