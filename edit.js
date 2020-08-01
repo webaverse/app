@@ -3627,7 +3627,7 @@ const _collideItems = matrix => {
   hpMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
   hpMesh.quaternion.slerp(localQuaternion2, 0.1);
 
-  uiMesh.position.copy(localVector3).add(localVector5.set(-0.1, -0.1, -0.5).applyQuaternion(localQuaternion2));
+  uiMesh.position.copy(localVector3).add(localVector5.set(-0.1, -0.1, -0.2).applyQuaternion(localQuaternion2));
   uiMesh.quaternion.copy(localQuaternion2);
 
   localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
