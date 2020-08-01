@@ -2700,15 +2700,15 @@ planet.connect('lol', {
 
 const RESOURCES = ['wood', 'stone', 'metal'];
 RESOURCES.forEach(resource => {
-  const resourceEl = document.getElementById(resource);
+  /* const resourceEl = document.getElementById(resource);
   const countEl = resourceEl.querySelector('.count');
-  countEl.innerText = player.getCount(resource);
+  countEl.innerText = player.getCount(resource); */
 });
 player.addEventListener('inventorychange', async e => {
   const {data: {type, count}} = e;
-  const resourceEl = document.getElementById(resource);
+  /* const resourceEl = document.getElementById(resource);
   const countEl = resourceEl.querySelector('.count');
-  countEl.innerText = count;
+  countEl.innerText = count; */
 });
 
 /* const generateModels = await _loadGltf('./generate.glb');
