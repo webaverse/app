@@ -11,7 +11,7 @@ import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxy
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
-import {makeUiMesh, makeTextMesh} from './vr-ui.js';
+import {makeUiFullMesh, makeTextMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import {
   PARCEL_SIZE,
@@ -3408,7 +3408,7 @@ const hpMesh = (() => {
 })();
 scene.add(hpMesh);
 
-const uiMesh = makeUiMesh();
+const uiMesh = makeUiFullMesh();
 scene.add(uiMesh);
 
 const numSmokes = 10;
@@ -3627,7 +3627,7 @@ const _collideItems = matrix => {
   hpMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
   hpMesh.quaternion.slerp(localQuaternion2, 0.1);
 
-  uiMesh.position.copy(localVector3).add(localVector5.set(-0.1, -0.1, -0.2).applyQuaternion(localQuaternion2));
+  uiMesh.position.copy(localVector3).add(localVector5.set(-0.05, -0.1, -0.5).applyQuaternion(localQuaternion2));
   uiMesh.quaternion.copy(localQuaternion2);
 
   localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
