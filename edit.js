@@ -5890,7 +5890,7 @@ const _bindPackage = (pE, pJ) => {
   }); */
 };
 const packages = document.getElementById('packages');
-/* (async () => {
+(async () => {
 let s;
   const res = await fetch(packagesEndpoint);
   s = await res.text();
@@ -5903,7 +5903,7 @@ let s;
   Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i]));
 
   // wristMenu.packageSide.setPackages(ps);
-})(); */
+})();
 const tokens = document.getElementById('tokens');
 async function getTokenByIndex(index) {
   const metadataHash = await contract.methods.getMetadata(index, 'hash').call();
