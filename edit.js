@@ -11,8 +11,7 @@ import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxy
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 import './gif.js';
-// import {makeTextMesh, makeWristMenu, makeHighlightMesh, makeRayMesh} from './vr-ui.js';
-import {makeTextMesh} from './vr-ui.js';
+import {makeUiMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import {
   PARCEL_SIZE,
@@ -1723,6 +1722,9 @@ physicsWorker = pw;
   ]], 0x42a5f5);
   scene.add(guardianMesh);
 })();
+
+const uiMesh = makeUiMesh();
+scene.add(uiMesh);
 
 const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   const rng = alea(seedString);
