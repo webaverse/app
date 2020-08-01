@@ -1,5 +1,5 @@
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-import {XRPackage} from './run.js';
+/* import {XRPackage} from './run.js';
 import {TextMesh} from './textmesh-standalone.esm.js'
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
@@ -452,9 +452,185 @@ const makeRayMesh = () => {
   return ray;
 };
 
+const uiRenderer = (() => {
+  const loadPromise = Promise.all([
+    new Promise((accept, reject) => {
+      const iframe = document.createElement('iframe');
+      iframe.src = 'https://render.exokit.xyz/';
+      iframe.onload = () => {
+        accept(iframe);
+      };
+      iframe.onerror = err => {
+        reject(err);
+      };
+      iframe.setAttribute('frameborder', 0);
+      iframe.style.position = 'absolute';
+      iframe.style.width = `${uiSize}px`;
+      iframe.style.height = `${uiSize}px`;
+      iframe.style.top = '-4096px';
+      iframe.style.left = '-4096px';
+      document.body.appendChild(iframe);
+    }),
+    fetch('interface-world.html')
+      .then(res => res.text()),
+  ]);
+
+  let renderIds = 0;
+  return {
+    async render(searchResults, inventory, channels, selectedTab, rtcConnected, landConnected) {
+      const [iframe, interfaceHtml] = await loadPromise;
+
+      if (renderIds > 0) {
+        iframe.contentWindow.postMessage({
+          method: 'cancel',
+          id: renderIds,
+        });
+      }
+
+      const start = Date.now();
+      const mc = new MessageChannel();
+      const templateData = {
+        width: uiSize,
+        height: uiSize,
+        zoom: 5,
+      };
+      iframe.contentWindow.postMessage({
+        method: 'render',
+        id: ++renderIds,
+        htmlString: interfaceHtml,
+        templateData,
+        width: uiSize,
+        height: uiSize,
+        port: mc.port2,
+      }, '*', [mc.port2]);
+      const result = await new Promise((accept, reject) => {
+        mc.port1.onmessage = e => {
+          const {data} = e;
+          const {error, result} = data;
+
+          if (result) {
+            console.log('time taken', Date.now() - start);
+
+            accept(result);
+          } else {
+            reject(error);
+          }
+        };
+      });
+      return result;
+    },
+  };
+})(); */
+const makeUiMesh = () => {
+  const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2)
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize/2, 0));
+  const canvas = document.createElement('canvas');
+  canvas.width = uiSize;
+  canvas.height = uiSize;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.createImageData(uiSize, uiSize);
+  const texture = new THREE.Texture(
+    canvas,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.LinearFilter,
+    THREE.LinearMipMapLinearFilter,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16,
+    THREE.LinearEncoding
+  );
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.visible = false;
+  mesh.frustumCulled = false;
+  
+  const highlightMesh = (() => {
+    const geometry = new THREE.BoxBufferGeometry(1, 1, 0.01);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x42a5f5,
+      transparent: true,
+      opacity: 0.5,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    return mesh;
+  })();
+  /* highlightMesh.position.x = -uiWorldSize/2 + (10 + 150/2)/uiSize*uiWorldSize;
+  highlightMesh.position.y = uiWorldSize - (60 + 150/2)/uiSize*uiWorldSize;
+  highlightMesh.scale.x = highlightMesh.scale.y = 150/uiSize*uiWorldSize; */
+  mesh.add(highlightMesh);
+
+  let anchors = [];
+  mesh.update = () => {
+    uiRenderer.render()
+      .then(result => {
+        imageData.data.set(result.data);
+        ctx.putImageData(imageData, 0, 0);
+        texture.needsUpdate = true;
+        mesh.visible = true;
+        
+        anchors = result.anchors;
+        // console.log(anchors);
+      });
+  };
+  let hoveredAnchor = null;
+  mesh.intersect = uv => {
+    hoveredAnchor = null;
+    highlightMesh.visible = false;
+
+    if (uv) {
+      uv.y = 1 - uv.y;
+      uv.multiplyScalar(uiSize);
+
+      for (let i = 0; i < anchors.length; i++) {
+        const anchor = anchors[i];
+        const {top, bottom, left, right, width, height} = anchor;
+        if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
+          hoveredAnchor = anchor;
+          
+          highlightMesh.position.x = -uiWorldSize/2 + (left + width/2)/uiSize*uiWorldSize;
+          highlightMesh.position.y = uiWorldSize - (top + height/2)/uiSize*uiWorldSize;
+          highlightMesh.scale.x = width/uiSize*uiWorldSize;
+          highlightMesh.scale.y = height/uiSize*uiWorldSize;
+          highlightMesh.visible = true;
+          break;
+        }
+      }
+    }
+  };
+  mesh.click = () => {
+    if (hoveredAnchor) {
+      const {id} = hoveredAnchor;
+      if (/^(?:tool-|color-)/.test(id)) {
+        interfaceDocument.getElementById(id).click();
+      } else {
+        switch (id) {
+          default: {
+            console.warn('unknown anchor click', id);
+            break;
+          }
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  };
+  mesh.update();
+
+  return mesh;
+};
+
 export {
-  makeTextMesh,
+  makeUiMesh,
+  /* makeTextMesh,
   makeWristMenu,
   makeHighlightMesh,
-  makeRayMesh,
-}
+  makeRayMesh, */
+};
