@@ -808,20 +808,30 @@ const makeUiFullMesh = () => {
   scene.add(cubeMesh);
   const intersects = [];
   wrap.intersect = raycaster => {
-    cubeMesh.visible = false;
+    const localIntersections = [];
     for (const child of object.children) {
       child.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       // localPlane.setFromNormalAndCoplanarPoint(localVector2.set(0, 0, 1).applyQuaternion(localQuaternion), localVector);
       raycaster.intersectObject(child, false, intersects);
       if (intersects.length > 0) {
-        const [{point, uv}] = intersects;
+        const [{distance, point, uv}] = intersects;
         intersects.length = 0;
         if (uv.x >= 1/12 && uv.x <= (1-1/12) && uv.y >= 1/12 && uv.y <= (1-1/12)) {
-          cubeMesh.position.copy(point);
-          cubeMesh.visible = true;
-          break;
+          localIntersections.push({
+            distance,
+            point,
+            uv,
+          });
         }
       }
+    }
+    if (localIntersections.length > 0) {
+      localIntersections.sort((a, b) => a.distance - b.distance);
+      const [{point}] = localIntersections;
+      cubeMesh.position.copy(point);
+      cubeMesh.visible = true;
+    } else {
+      cubeMesh.visible = false;
     }
   };
   return wrap;
