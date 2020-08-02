@@ -129,19 +129,24 @@ const HEIGHTFIELD_SHADER = {
       value: null,
       needsUpdate: true,
     },
+    sunIntensity: {
+      type: 'f',
+      value: 1,
+      needsUpdate: true,
+    },
   },
   vertexShader: `\
     #define LOG2 1.442695
     precision highp float;
     precision highp int;
-    uniform float fogDensity;
+    // uniform float fogDensity;
     // attribute vec4 color;
     attribute vec3 barycentric;
     // attribute float index;
     // attribute float skyLightmap;
     // attribute float torchLightmap;
 
-    // varying vec3 vPosition;
+    varying vec3 vPosition;
     varying vec3 vWorldPosition;
     varying vec3 vBarycentric;
     // varying vec3 vViewPosition;
@@ -159,7 +164,7 @@ const HEIGHTFIELD_SHADER = {
       vec4 mvPosition = modelViewMatrix * vec4(position.xyz, 1.0);
       gl_Position = projectionMatrix * mvPosition;
 
-      // vPosition = position.xyz;
+      vPosition = position.xyz;
       vWorldPosition = mvPosition.xyz;
       vBarycentric = barycentric;
       // vIndex = index;
@@ -170,12 +175,13 @@ const HEIGHTFIELD_SHADER = {
     precision highp int;
     // uniform vec3 ambientLightColor;
     uniform float sunIntensity;
-    uniform vec3 fogColor;
+    // float sunIntensity = 1.;
+    // uniform vec3 fogColor;
     // uniform vec3 cameraPosition;
-    // uniform sampler2D tex;
+    uniform sampler2D tex;
     uniform sampler2D heightColorTex;
 
-    // varying vec3 vPosition;
+    varying vec3 vPosition;
     varying vec3 vWorldPosition;
     varying vec3 vBarycentric;
     // varying float vIndex;
@@ -193,6 +199,9 @@ const HEIGHTFIELD_SHADER = {
 
     vec3 lightDirection = normalize(vec3(-1.0, -1.0, -1.0));
 
+    float avg(vec3 v) {
+      return (v.x + v.y + v.z)/3.0;
+    }
     float edgeFactor() {
       vec3 d = fwidth(vBarycentric);
       vec3 a3 = smoothstep(vec3(0.0), d, vBarycentric);
@@ -209,19 +218,19 @@ const HEIGHTFIELD_SHADER = {
       vec3 xTangent = dFdx( vPosition );
       vec3 yTangent = dFdy( vPosition );
       vec3 faceNormal = normalize( cross( xTangent, yTangent ) );
-      float lightColor = 0.5; // dot(faceNormal, lightDirection);
-
-      vec2 uv = vec2(
-        mod((vPosition.x) / 4.0, 1.0),
-        mod((vPosition.z) / 4.0, 1.0)
-      ); */
+      float lightColor = 0.5; // dot(faceNormal, lightDirection); */
 
       // float d = length(vPosition - vec3(${PARCEL_SIZE/2}, ${PARCEL_SIZE/2}, ${PARCEL_SIZE/2}));
       // float dMax = length(vec3(${PARCEL_SIZE/2}, ${PARCEL_SIZE/2}, ${PARCEL_SIZE/2}));
       // vec2 uv2 = vec2(d / dMax, 0.5);
-      vec2 uv2 = vec2(0.1 + gl_FragCoord.z/gl_FragCoord.w/10.0 + vWorldPosition.y/30.0, 0.5);
+      vec2 uv = vec2(
+        mod((vPosition.x) / 2.0, 1.0),
+        mod((vPosition.z) / 2.0, 1.0)
+      );
+      vec2 uv2 = vec2(0.1 + vWorldPosition.y/30.0, 0.5);
       vec3 c = texture2D(heightColorTex, uv2).rgb;
-      vec3 diffuseColor = c * uv2.x;
+      vec3 diffuseColor = mix(texture2D(tex, uv).rgb, vec3(0.), gl_FragCoord.z/gl_FragCoord.w/30.0);
+      // diffuseColor *= avg(texture2D(tex, uv).rgb)*2.0;
       if (edgeFactor() <= 0.99) {
         // if (isCurrent != 0.0) {
           diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vWorldPosition) - uTime*5.0, 3.0)), 0.0)*0.5);
@@ -229,6 +238,7 @@ const HEIGHTFIELD_SHADER = {
         // diffuseColor *= 0.95;
         diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
       }
+      diffuseColor *= max(max(sunIntensity, floor(8.0 - length(vWorldPosition))/8.), 0.1);
 
       gl_FragColor = vec4(diffuseColor, 1.0);
     }
@@ -1358,6 +1368,11 @@ const [
             value: new THREE.Vector3(),
             needsUpdate: true,
           },
+          sunIntensity: {
+            type: 'f',
+            value: 1,
+            needsUpdate: true,
+          },
         },
         vertexShader: `\
           precision highp float;
@@ -1368,6 +1383,7 @@ const [
           attribute float id;
           varying vec2 vUv;
           varying vec3 vSelectColor;
+          varying vec3 vWorldPosition;
           // varying vec3 vNormal;
 
           void main() {
@@ -1381,6 +1397,8 @@ const [
             }
             // vNormal = normal;
             gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+            vec4 worldPosition = modelViewMatrix * vec4( position, 1.0 );
+            vWorldPosition = worldPosition.xyz;
           }
         `,
         fragmentShader: `\
@@ -1388,8 +1406,10 @@ const [
           precision highp int;
 
           uniform sampler2D map;
+          uniform float sunIntensity;
           varying vec2 vUv;
           varying vec3 vSelectColor;
+          varying vec3 vWorldPosition;
           // varying vec3 vNormal;
 
           // vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
@@ -1397,6 +1417,7 @@ const [
           void main() {
             gl_FragColor = ${transparent ? `texture2D(map, vUv)` : `vec4(texture2D(map, vUv).rgb, 1.0)`};
             gl_FragColor.rgb += vSelectColor;
+            gl_FragColor.rgb *= max(max(sunIntensity, floor(8.0 - length(vWorldPosition))/8.), 0.1);
             ${transparent ? `if (gl_FragColor.a < 0.8) discard;` : ''}
           }
         `,
@@ -1761,6 +1782,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   stops.sort((a, b) => a[0] - b[0]);
   heightfieldMaterial.uniforms.heightColorTex.value = new THREE.DataTexture(new Uint8Array(256*3), 256, 1, THREE.RGBFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter, 1);
   heightfieldMaterial.uniforms.heightColorTex.needsUpdate = true;
+
   stops.forEach((stop, i) => {
     const [startIndex, colorValue] = stop;
     const nextStop = stops[i+1] || null;
@@ -1776,6 +1798,16 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     }
   });
   heightfieldMaterial.uniforms.heightColorTex.value.needsUpdate = true;
+
+  const img = new Image();
+  img.onload = () => {
+    heightfieldMaterial.uniforms.tex.value.needsUpdate = true;
+  };
+  img.onerror = err => {
+    console.warn(err);
+  };
+  img.src = './Grass_3.png';
+  heightfieldMaterial.uniforms.tex.value.image = img;
 
   const slabArrayBuffer = new ArrayBuffer(slabTotalSize);
   const geometry = new THREE.BufferGeometry();
@@ -3652,8 +3684,27 @@ function animate(timestamp, frame) {
 
   const now = Date.now();
   if (currentChunkMesh) {
-    currentChunkMesh.material[0].uniforms.uTime.value = (now % timeFactor) / timeFactor;
-    currentChunkMesh.material[0].uniforms.uTime.needsUpdate = true;
+    for (const material of currentChunkMesh.material) {
+      const {uniforms} = material;
+      uniforms.uTime.value = (now % timeFactor) / timeFactor;
+      uniforms.uTime.needsUpdate = true;
+      uniforms.sunIntensity.value = Math.max(skybox2.material.uniforms.sunPosition.value.y, 0);
+      uniforms.sunIntensity.needsUpdate = true;
+    }
+  }
+  if (currentVegetationMesh) {
+    for (const material of currentVegetationMesh.material) {
+      const {uniforms} = material;
+      uniforms.sunIntensity.value = Math.max(skybox2.material.uniforms.sunPosition.value.y, 0);
+      uniforms.sunIntensity.needsUpdate = true;
+    }
+  }
+  if (currentVegetationTransparentMesh) {
+    for (const material of currentVegetationTransparentMesh.material) {
+      const {uniforms} = material;
+      uniforms.sunIntensity.value = Math.max(skybox2.material.uniforms.sunPosition.value.y, 0);
+      uniforms.sunIntensity.needsUpdate = true;
+    }
   }
   explosionMeshes = explosionMeshes.filter(explosionMesh => {
     explosionMesh.material.uniforms.uAnimation.value += timeDiff;
