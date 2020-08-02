@@ -1669,7 +1669,7 @@ physicsWorker = pw;
     uniforms[ "sunPosition" ].value.copy( sun );
   }
   skybox2 = new Sky();
-  skybox2.scale.setScalar(300);
+  skybox2.scale.setScalar(1000);
   skybox2.update = update;
   skybox2.update();
   scene.add(skybox2);
