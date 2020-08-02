@@ -793,6 +793,8 @@ const makeUiFullMesh = () => {
           });
         }
       }
+
+      mesh.highlightMesh.visible = false;
     }
     if (localIntersections.length > 0) {
       localIntersections.sort((a, b) => a.distance - b.distance);
