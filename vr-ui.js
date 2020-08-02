@@ -1,7 +1,12 @@
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-// import {XRPackage} from './run.js';
+import {scene} from './run.js';
 import {TextMesh} from './textmesh-standalone.esm.js'
 import easing from './easing.js';
+
+const localVector = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localVector2 = new THREE.Vector3();
+// const localPlane = new THREE.Plane();
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -796,7 +801,29 @@ const makeUiFullMesh = () => {
   wrap.update = () => {
     animation && animation.update();
   };
-  window.wrap = wrap;
+  const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
+    color: 0x0000FF,
+  }));
+  cubeMesh.visible = false;
+  scene.add(cubeMesh);
+  const intersects = [];
+  wrap.intersect = raycaster => {
+    cubeMesh.visible = false;
+    for (const child of object.children) {
+      child.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      // localPlane.setFromNormalAndCoplanarPoint(localVector2.set(0, 0, 1).applyQuaternion(localQuaternion), localVector);
+      raycaster.intersectObject(child, false, intersects);
+      if (intersects.length > 0) {
+        const [{point, uv}] = intersects;
+        intersects.length = 0;
+        if (uv.x >= 1/12 && uv.x <= (1-1/12) && uv.y >= 1/12 && uv.y <= (1-1/12)) {
+          cubeMesh.position.copy(point);
+          cubeMesh.visible = true;
+          break;
+        }
+      }
+    }
+  };
   return wrap;
 };
 

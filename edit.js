@@ -5170,10 +5170,10 @@ const raycaster = new THREE.Raycaster();
 const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(mouse, pe.camera);
-  const candidateMeshes = pe.children
+  /* const candidateMeshes = pe.children
     .map(p => p.volumeMesh)
-    .filter(o => !!o);
-  // hoverTarget = volumeRaycaster.raycastMeshes(candidateMeshes, raycaster.ray.origin, raycaster.ray.direction);
+    .filter(o => !!o); */
+  uiMesh.intersect(raycaster);
 };
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
@@ -5204,9 +5204,11 @@ const _updateMouseMovement = e => {
 renderer.domElement.addEventListener('mousemove', e => {
   if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
     _updateMouseMovement(e);
-  } else if (selectedTool === 'select' && !getRealSession()) {
+  } else if (selectedTool === 'camera') {
     _updateRaycasterFromMouseEvent(raycaster, e);
-  }
+  } /* else if (selectedTool === 'select' && !getRealSession()) {
+    _updateRaycasterFromMouseEvent(raycaster, e);
+  } */
 });
 
 renderer.domElement.addEventListener('mousedown', e => {
