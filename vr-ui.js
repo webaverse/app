@@ -487,7 +487,7 @@ const uiRenderer = (() => {
 
   let renderIds = 0;
   return {
-    async render() {
+    async render(htmlString) {
       const [iframe/*, interfaceHtml*/] = await loadPromise;
 
       if (renderIds > 0) {
@@ -502,7 +502,33 @@ const uiRenderer = (() => {
       iframe.contentWindow.postMessage({
         method: 'render',
         id: ++renderIds,
-        htmlString: `\
+        htmlString,
+        templateData: null,
+        width: uiSize,
+        height: uiSize,
+        transparent: true,
+        port: mc.port2,
+      }, '*', [mc.port2]);
+      const result = await new Promise((accept, reject) => {
+        mc.port1.onmessage = e => {
+          const {data} = e;
+          const {error, result} = data;
+
+          if (result) {
+            console.log('time taken', Date.now() - start);
+
+            accept(result);
+          } else {
+            reject(error);
+          }
+        };
+      });
+      return result;
+    },
+  };
+})();
+
+const _makeHtmlString = label => `\
 <style>
 * {
   box-sizing: border-box;
@@ -588,7 +614,7 @@ h1, h2, h3 {
   <div class="border bottom-left"></div>
   <div class="border bottom-right"></div>
   <div class=wrap>
-    <h3>Inventory</h3>
+    <h3>${label}</h3>
     <div class=tiles>
       <a class=tile id=inventory-1>
         <div class=img></div>
@@ -601,33 +627,8 @@ h1, h2, h3 {
     </div>
   </div>
 </div>
-`,
-        templateData: null,
-        width: uiSize,
-        height: uiSize,
-        transparent: true,
-        port: mc.port2,
-      }, '*', [mc.port2]);
-      const result = await new Promise((accept, reject) => {
-        mc.port1.onmessage = e => {
-          const {data} = e;
-          const {error, result} = data;
-
-          if (result) {
-            console.log('time taken', Date.now() - start);
-
-            accept(result);
-          } else {
-            reject(error);
-          }
-        };
-      });
-      return result;
-    },
-  };
-})();
-
-const makeUiMesh = () => {
+`;
+const makeUiMesh = getHtmlString => {
   const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize/2, 0));
   const canvas = document.createElement('canvas');
@@ -676,7 +677,8 @@ const makeUiMesh = () => {
 
   let anchors = [];
   mesh.update = () => {
-    uiRenderer.render()
+    const htmlString = getHtmlString();
+    uiRenderer.render(htmlString)
       .then(result => {
         imageData.data.set(result.data);
         ctx.putImageData(imageData, 0, 0);
@@ -738,26 +740,30 @@ const makeUiMesh = () => {
 const makeUiFullMesh = () => {
   const meshSpecs = [
     [
+      'inventory',
       new THREE.Vector3(0, 0, 0.1),
       new THREE.Quaternion(),
     ],
     [
+      'map',
       new THREE.Vector3(-0.1, 0, 0),
       new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2),
     ],
     [
+      'settings',
       new THREE.Vector3(0, 0, -0.1),
       new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI),
     ],
     [
+      'build',
       new THREE.Vector3(0.1, 0, 0),
       new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*3/2),
     ],
   ];
   const object = new THREE.Object3D();
   for (const meshSpec of meshSpecs) {
-    const [position, quaternion] = meshSpec;
-    const mesh = makeUiMesh();
+    const [label, position, quaternion] = meshSpec;
+    const mesh = makeUiMesh(() => _makeHtmlString(label));
     mesh.position.copy(position);
     mesh.quaternion.copy(quaternion);
     object.add(mesh);
