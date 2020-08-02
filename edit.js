@@ -227,6 +227,11 @@ const HEIGHTFIELD_SHADER = {
         mod((vPosition.x) / 2.0, 1.0),
         mod((vPosition.z) / 2.0, 1.0)
       );
+      uv.x *= 1.0/8.0;
+      uv.y *= 512.0/4096.0;
+      if (vPosition.y < 290.0) {
+        uv.x += 3.0/8.0;
+      }
       vec2 uv2 = vec2(0.1 + vWorldPosition.y/30.0, 0.5);
       vec3 c = texture2D(heightColorTex, uv2).rgb;
       vec3 diffuseColor = mix(texture2D(tex, uv).rgb, vec3(0.), gl_FragCoord.z/gl_FragCoord.w/30.0);
@@ -1799,15 +1804,44 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   });
   heightfieldMaterial.uniforms.heightColorTex.value.needsUpdate = true;
 
-  const img = new Image();
-  img.onload = () => {
+  (async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 4096;
+    canvas.height = 4096;
+    heightfieldMaterial.uniforms.tex.value.image = canvas;
+    heightfieldMaterial.uniforms.tex.value.minFilter = THREE.LinearFilter;
+    heightfieldMaterial.uniforms.tex.value.flipY = false;
+
+    const atlas = atlaspack(canvas);
+    const rects = new Map();
+
+    for (const u of [
+      'Grass_1.png',
+      'Grass_2.png',
+      'Grass_3.png',
+      'Ground_1.png',
+      'Ground_2.png',
+      'Ground_3.png',
+      'Ground_4.png',
+      'Ground_5.png',
+    ]) {
+      await new Promise((accept, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          img.id = 'img-' + rects.size;
+          atlas.pack(img);
+          const rect = atlas.uv()[img.id];
+          rects.set(img.id, rect);
+
+          accept();
+        };
+        img.onerror = reject;
+        img.src = `./textures/${u}`;
+      });
+    }
+
     heightfieldMaterial.uniforms.tex.value.needsUpdate = true;
-  };
-  img.onerror = err => {
-    console.warn(err);
-  };
-  img.src = './Grass_3.png';
-  heightfieldMaterial.uniforms.tex.value.image = img;
+  })();
 
   const slabArrayBuffer = new ArrayBuffer(slabTotalSize);
   const geometry = new THREE.BufferGeometry();
