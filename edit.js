@@ -109,11 +109,11 @@ const _loadGltf = u => new Promise((accept, reject) => {
 });
 const HEIGHTFIELD_SHADER = {
   uniforms: {
-    isCurrent: {
+    /* isCurrent: {
       type: 'f',
       value: 0,
       needsUpdate: true,
-    },
+    }, */
     uTime: {
       type: 'f',
       value: 0,
@@ -186,7 +186,7 @@ const HEIGHTFIELD_SHADER = {
     // varying float vTorchLightmap;
     // varying float vFog;
 
-    uniform float isCurrent;
+    // uniform float isCurrent;
     uniform float uTime;
 
     #define saturate(a) clamp( a, 0.0, 1.0 )
@@ -223,9 +223,10 @@ const HEIGHTFIELD_SHADER = {
       vec3 c = texture2D(heightColorTex, uv2).rgb;
       vec3 diffuseColor = c * uv2.x;
       if (edgeFactor() <= 0.99) {
-        if (isCurrent != 0.0) {
+        // if (isCurrent != 0.0) {
           diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vWorldPosition) - uTime*5.0, 3.0)), 0.0)*0.5);
-        }
+        // }
+        // diffuseColor *= 0.95;
         diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
       }
 
@@ -316,16 +317,16 @@ let currentVegetationMesh = null;
 let currentVegetationTransparentMesh = null;
 const _getCurrentChunkMesh = () => currentChunkMesh;
 const _setCurrentChunkMesh = chunkMesh => {
-  if (currentChunkMesh) {
+  /* if (currentChunkMesh) {
     currentChunkMesh.material[0].uniforms.isCurrent.value = 0;
     currentChunkMesh.material[0].uniforms.isCurrent.needsUpdate = true;
     currentChunkMesh = null;
-  }
+  } */
   currentChunkMesh = chunkMesh;
-  if (currentChunkMesh) {
+  /* if (currentChunkMesh) {
     currentChunkMesh.material[0].uniforms.isCurrent.value = 1;
     currentChunkMesh.material[0].uniforms.isCurrent.needsUpdate = true;
-  }
+  } */
 };
 let stairsMesh = null;
 let platformMesh = null;
