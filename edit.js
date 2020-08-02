@@ -3680,10 +3680,9 @@ function animate(timestamp, frame) {
   if (skybox) {
     skybox.material.uniforms.iTime.value = ((Date.now() - startTime)%3000)/3000;
   }
-  if (skybox2) {
-    skybox2.update();
-  }
+  skybox2 && skybox2.update();
   crosshairMesh && crosshairMesh.update();
+  uiMesh && uiMesh.update();
 
   const session = renderer.xr.getSession();
   if (session) {
@@ -4735,7 +4734,7 @@ window.addEventListener('keydown', e => {
     }
     case 65: { // A
       if (!document.pointerLockElement) {
-        // nothing
+        uiMesh && uiMesh.rotate(-1);
       } else {
         keys.left = true;
       }
@@ -4751,7 +4750,7 @@ window.addEventListener('keydown', e => {
     }
     case 68: { // D
       if (!document.pointerLockElement) {
-        // nothing
+        uiMesh && uiMesh.rotate(1);
       } else {
         keys.right = true;
       }

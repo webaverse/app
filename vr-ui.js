@@ -1,6 +1,13 @@
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 // import {XRPackage} from './run.js';
 import {TextMesh} from './textmesh-standalone.esm.js'
+import easing from './easing.js';
+
+const cubicBezier = easing(0, 1, 0, 1);
+
+function mod(a, b) {
+  return ((a%b)+b)%b;
+}
 
 const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anchorX = 'left', anchorY = 'middle') => {
   const textMesh = new TextMesh();
@@ -755,7 +762,36 @@ const makeUiFullMesh = () => {
     mesh.quaternion.copy(quaternion);
     object.add(mesh);
   }
-  return object;
+
+  const wrap = new THREE.Object3D();
+  wrap.add(object);
+  let animation = null;
+  let currentDeltaX = 0;
+  wrap.rotate = deltaX => {
+    currentDeltaX -= deltaX*Math.PI/2;
+    currentDeltaX = mod(currentDeltaX, Math.PI*2);
+    const startQuaternion = object.quaternion.clone();
+    const endQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), currentDeltaX);
+    const startTime = Date.now();
+    const endTime = startTime + 1000;
+    animation = {
+      update() {
+        const now = Date.now();
+        const factor = Math.min((now - startTime) / (endTime - startTime), 1);
+        if (factor < 1) {
+          object.quaternion.copy(startQuaternion).slerp(endQuaternion, cubicBezier(factor));
+        } else {
+          object.quaternion.copy(endQuaternion);
+          animation = null;
+        }
+      },
+    };
+  };
+  wrap.update = () => {
+    animation && animation.update();
+  };
+  window.wrap = wrap;
+  return wrap;
 };
 
 export {
