@@ -19,6 +19,8 @@ let currentSession = null;
 const pe = new XRPackageEngine({
   orbitControls: true,
 });
+pe.camera.quaternion.set(0, 0, 0, 1);
+pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
 pe.setEnv('username', loginManager.getUsername());
 loginManager.addEventListener('usernamechange', e => {
   const username = e.data;
@@ -77,7 +79,7 @@ document.body.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 0.5, 1);
+// camera.position.set(0, 0.5, 1);
 
 const container = new THREE.Object3D();
 scene.add(container);
