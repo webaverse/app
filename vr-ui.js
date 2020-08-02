@@ -662,9 +662,9 @@ const makeUiMesh = getHtmlString => {
   const mesh = new THREE.Mesh(geometry, material);
   mesh.visible = false;
   mesh.frustumCulled = false;
-  
+
   const highlightMesh = (() => {
-    const geometry = new THREE.BoxBufferGeometry(1, 1, 0.01);
+    const geometry = new THREE.BoxBufferGeometry(1, 1, 0.001);
     const material = new THREE.MeshBasicMaterial({
       color: 0x42a5f5,
       transparent: true,
@@ -679,6 +679,7 @@ const makeUiMesh = getHtmlString => {
   highlightMesh.position.y = uiWorldSize - (60 + 150/2)/uiSize*uiWorldSize;
   highlightMesh.scale.x = highlightMesh.scale.y = 150/uiSize*uiWorldSize; */
   mesh.add(highlightMesh);
+  mesh.highlightMesh = highlightMesh;
 
   let anchors = [];
   mesh.update = () => {
@@ -694,50 +695,7 @@ const makeUiMesh = getHtmlString => {
         // console.log(anchors);
       });
   };
-  let hoveredAnchor = null;
-  mesh.intersect = uv => {
-    hoveredAnchor = null;
-    highlightMesh.visible = false;
-
-    if (uv) {
-      uv.y = 1 - uv.y;
-      uv.multiplyScalar(uiSize);
-
-      for (let i = 0; i < anchors.length; i++) {
-        const anchor = anchors[i];
-        const {top, bottom, left, right, width, height} = anchor;
-        if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
-          hoveredAnchor = anchor;
-          
-          highlightMesh.position.x = -uiWorldSize/2 + (left + width/2)/uiSize*uiWorldSize;
-          highlightMesh.position.y = uiWorldSize - (top + height/2)/uiSize*uiWorldSize;
-          highlightMesh.scale.x = width/uiSize*uiWorldSize;
-          highlightMesh.scale.y = height/uiSize*uiWorldSize;
-          highlightMesh.visible = true;
-          break;
-        }
-      }
-    }
-  };
-  mesh.click = () => {
-    console.log('got click', hoveredAnchor);
-    /* if (hoveredAnchor) {
-      const {id} = hoveredAnchor;
-      if (/^(?:tool-|color-)/.test(id)) {
-        interfaceDocument.getElementById(id).click();
-      } else {
-        switch (id) {
-          default: {
-            console.warn('unknown anchor click', id);
-            break;
-          }
-        }
-      }
-      return true;
-    } else {
-      return false;
-    } */
-  };
+  mesh.getAnchors = () => anchors;
   mesh.update();
 
   return mesh;
@@ -801,18 +759,20 @@ const makeUiFullMesh = () => {
   wrap.update = () => {
     animation && animation.update();
   };
+
   const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
     color: 0x0000FF,
   }));
   cubeMesh.visible = false;
   scene.add(cubeMesh);
+
   const intersects = [];
   wrap.intersect = raycaster => {
     const localIntersections = [];
-    for (const child of object.children) {
-      child.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    for (const mesh of object.children) {
+      mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       // localPlane.setFromNormalAndCoplanarPoint(localVector2.set(0, 0, 1).applyQuaternion(localQuaternion), localVector);
-      raycaster.intersectObject(child, false, intersects);
+      raycaster.intersectObject(mesh, false, intersects);
       if (intersects.length > 0) {
         const [{distance, point, uv}] = intersects;
         intersects.length = 0;
@@ -821,15 +781,35 @@ const makeUiFullMesh = () => {
             distance,
             point,
             uv,
+            mesh,
           });
         }
       }
     }
     if (localIntersections.length > 0) {
       localIntersections.sort((a, b) => a.distance - b.distance);
-      const [{point}] = localIntersections;
+      const [{point, uv, mesh}] = localIntersections;
       cubeMesh.position.copy(point);
       cubeMesh.visible = true;
+
+      if (uv) {
+        uv.y = 1 - uv.y;
+        uv.multiplyScalar(uiSize);
+
+        const anchors = mesh.getAnchors();
+        for (let i = 0; i < anchors.length; i++) {
+          const anchor = anchors[i];
+          const {top, bottom, left, right, width, height} = anchor;
+          if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
+            mesh.highlightMesh.position.x = -uiWorldSize/2 + (left + width/2)/uiSize*uiWorldSize;
+            mesh.highlightMesh.position.y = uiWorldSize - (top + height/2)/uiSize*uiWorldSize;
+            mesh.highlightMesh.scale.x = width/uiSize*uiWorldSize;
+            mesh.highlightMesh.scale.y = height/uiSize*uiWorldSize;
+            mesh.highlightMesh.visible = true;
+            break;
+          }
+        }
+      }
     } else {
       cubeMesh.visible = false;
     }
