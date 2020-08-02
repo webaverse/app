@@ -2639,13 +2639,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   return mesh;
 };
 
-const _resetCamera = position => {
-  pe.camera.position.copy(position);
-  pe.camera.quaternion.set(0, 0, 0, 1);
-  pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
-  pe.camera.updateMatrixWorld();
-  pe.setCamera(camera);
-};
 planet.addEventListener('load', async e => {
   const {data: chunkSpec} = e;
 
@@ -2663,9 +2656,7 @@ planet.addEventListener('load', async e => {
   const ncz = Math.floor(p.z/SUBPARCEL_SIZE);
 
   const height = await chunkWorker.requestGetHeight(chunkMesh.seedNum, ncx, ncy + SUBPARCEL_SIZE, ncz, baseHeight, freqs, octaves, scales, uvs, amps, PARCEL_SIZE);
-  p.y = PARCEL_SIZE/2 + height + _getAvatarHeight();
-  p.applyMatrix4(chunkMesh.matrixWorld);
-  _resetCamera(p);
+  worldContainer.position.y = PARCEL_SIZE/2 - height;
 
   /* {
     let geometry = new CapsuleGeometry(0.5, 1, 16)
