@@ -622,10 +622,10 @@ h1, h2, h3 {
   <div class="border bottom-right"></div>
   <div class=wrap>
     <h3>${label}</h3>
-    ${tiles.map(items => `\
+    ${tiles.map((items, i) => `\
       <div class=tiles>
-        ${items.map(item => `\
-          <a class=tile id=inventory-${++index}>
+        ${items.map((item, j) => `\
+          <a class=tile id=tile-${i}-${j}>
             <div class=img></div>
             <div class=text>${item}</div>
           </a>
@@ -637,7 +637,7 @@ h1, h2, h3 {
 </div>
 `;
 };
-const makeUiMesh = getHtmlString => {
+const makeUiMesh = (label, tiles, onclick) => {
   const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize/2, 0));
   const canvas = document.createElement('canvas');
@@ -687,7 +687,7 @@ const makeUiMesh = getHtmlString => {
 
   let anchors = [];
   mesh.update = () => {
-    const htmlString = getHtmlString();
+    const htmlString = _makeHtmlString(label, tiles);
     uiRenderer.render(htmlString)
       .then(result => {
         imageData.data.set(result.data);
@@ -700,6 +700,12 @@ const makeUiMesh = getHtmlString => {
       });
   };
   mesh.getAnchors = () => anchors;
+  mesh.click = anchor => {
+    const match = anchor.id.match(/^tile-([0-9]+)-([0-9]+)$/);
+    const i = parseInt(match[1], 10);
+    const j = parseInt(match[2], 10);
+    onclick(tiles[i][j]);
+  };
   mesh.update();
 
   return mesh;
@@ -711,30 +717,42 @@ const makeUiFullMesh = () => {
       [['Rifle', 'Pickaxe', 'Paintbrush'], ['Wood', 'Stone', 'Metal']],
       new THREE.Vector3(0, 0, 0.1),
       new THREE.Quaternion(),
+      item => {
+        console.log('click item', item);
+      },
     ],
     [
       'map',
       [['Location']],
       new THREE.Vector3(-0.1, 0, 0),
       new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2),
+      item => {
+        console.log('click item', item);
+      },
     ],
     [
       'settings',
       [['Avatar']],
       new THREE.Vector3(0, 0, -0.1),
       new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI),
+      item => {
+        console.log('click item', item);
+      },
     ],
     [
       'build',
       [['Wood wall', 'Wood floor', 'Wood ramp'], ['Stone wall', 'Stone floor', 'Stone ramp'], ['Metal wall', 'Metal floor', 'Metal ramp']],
       new THREE.Vector3(0.1, 0, 0),
       new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*3/2),
+      item => {
+        console.log('click item', item);
+      },
     ],
   ];
   const object = new THREE.Object3D();
   for (const meshSpec of meshSpecs) {
-    const [label, items, position, quaternion] = meshSpec;
-    const mesh = makeUiMesh(() => _makeHtmlString(label, items));
+    const [label, items, position, quaternion, onclick] = meshSpec;
+    const mesh = makeUiMesh(label, items, onclick);
     mesh.position.copy(position);
     mesh.quaternion.copy(quaternion);
     object.add(mesh);
@@ -774,6 +792,8 @@ const makeUiFullMesh = () => {
   cubeMesh.visible = false;
   scene.add(cubeMesh);
 
+  let currentMesh = null;
+  let currentAnchor = null;
   const intersects = [];
   const localIntersections = [];
   wrap.intersect = raycaster => {
@@ -796,6 +816,8 @@ const makeUiFullMesh = () => {
 
       mesh.highlightMesh.visible = false;
     }
+    currentMesh = null;
+    currentAnchor = null;
     if (localIntersections.length > 0) {
       localIntersections.sort((a, b) => a.distance - b.distance);
       const [{point, uv, mesh}] = localIntersections;
@@ -812,6 +834,9 @@ const makeUiFullMesh = () => {
           const anchor = anchors[i];
           const {top, bottom, left, right, width, height} = anchor;
           if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
+            currentMesh = mesh;
+            currentAnchor = anchor;
+
             mesh.highlightMesh.position.x = -uiWorldSize/2 + (left + width/2)/uiSize*uiWorldSize;
             mesh.highlightMesh.position.y = uiWorldSize - (top + height/2)/uiSize*uiWorldSize;
             mesh.highlightMesh.scale.x = width/uiSize*uiWorldSize;
@@ -824,6 +849,9 @@ const makeUiFullMesh = () => {
     } else {
       cubeMesh.visible = false;
     }
+  };
+  wrap.click = () => {
+    currentMesh && currentMesh.click(currentAnchor);
   };
   return wrap;
 };

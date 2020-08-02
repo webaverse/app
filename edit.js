@@ -5212,9 +5212,10 @@ renderer.domElement.addEventListener('mousemove', e => {
 });
 
 renderer.domElement.addEventListener('mousedown', e => {
-  if (!transformControlsHovered) {
+  /* if (!transformControlsHovered) {
     _setSelectTarget(hoverTarget);
-  }
+  } */
+  uiMesh.click();
 });
 
 /* const worldsButton = document.getElementById('worlds-button');
