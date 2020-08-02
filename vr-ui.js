@@ -533,7 +533,9 @@ const uiRenderer = (() => {
   };
 })();
 
-const _makeHtmlString = label => `\
+const _makeHtmlString = (label, tiles) => {
+  let index = 0;
+  return `\
 <style>
 * {
   box-sizing: border-box;
@@ -620,19 +622,21 @@ h1, h2, h3 {
   <div class="border bottom-right"></div>
   <div class=wrap>
     <h3>${label}</h3>
-    <div class=tiles>
-      <a class=tile id=inventory-1>
-        <div class=img></div>
-        <div class=text>Rifle</div>
-      </a>
-      <a class=tile id=inventory-2>
-        <div class=img></div>
-        <div class=text>Pickaxe</div>
-      </a>
+    ${tiles.map(items => `\
+      <div class=tiles>
+        ${items.map(item => `\
+          <a class=tile id=inventory-${++index}>
+            <div class=img></div>
+            <div class=text>${item}</div>
+          </a>
+        `).join('\n')}
+      </div>
+    `).join('\n')}
     </div>
   </div>
 </div>
 `;
+};
 const makeUiMesh = getHtmlString => {
   const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize/2, 0));
@@ -704,29 +708,33 @@ const makeUiFullMesh = () => {
   const meshSpecs = [
     [
       'inventory',
+      [['Rifle', 'Pickaxe', 'Paintbrush'], ['Wood', 'Stone', 'Metal']],
       new THREE.Vector3(0, 0, 0.1),
       new THREE.Quaternion(),
     ],
     [
       'map',
+      [['Location']],
       new THREE.Vector3(-0.1, 0, 0),
       new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2),
     ],
     [
       'settings',
+      [['Avatar']],
       new THREE.Vector3(0, 0, -0.1),
       new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI),
     ],
     [
       'build',
+      [['Wood wall', 'Wood floor', 'Wood ramp'], ['Stone wall', 'Stone floor', 'Stone ramp'], ['Metal wall', 'Metal floor', 'Metal ramp']],
       new THREE.Vector3(0.1, 0, 0),
       new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*3/2),
     ],
   ];
   const object = new THREE.Object3D();
   for (const meshSpec of meshSpecs) {
-    const [label, position, quaternion] = meshSpec;
-    const mesh = makeUiMesh(() => _makeHtmlString(label));
+    const [label, items, position, quaternion] = meshSpec;
+    const mesh = makeUiMesh(() => _makeHtmlString(label, items));
     mesh.position.copy(position);
     mesh.quaternion.copy(quaternion);
     object.add(mesh);
@@ -767,8 +775,8 @@ const makeUiFullMesh = () => {
   scene.add(cubeMesh);
 
   const intersects = [];
+  const localIntersections = [];
   wrap.intersect = raycaster => {
-    const localIntersections = [];
     for (const mesh of object.children) {
       mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       // localPlane.setFromNormalAndCoplanarPoint(localVector2.set(0, 0, 1).applyQuaternion(localQuaternion), localVector);
@@ -789,6 +797,7 @@ const makeUiFullMesh = () => {
     if (localIntersections.length > 0) {
       localIntersections.sort((a, b) => a.distance - b.distance);
       const [{point, uv, mesh}] = localIntersections;
+      localIntersections.length = 0;
       cubeMesh.position.copy(point);
       cubeMesh.visible = true;
 
