@@ -4231,6 +4231,13 @@ function animate(timestamp, frame) {
             if (raycastChunkSpec) {
               if (raycastChunkSpec.mesh.isChunkMesh || raycastChunkSpec.mesh.isVegetationMesh) {
                 _applyLightfieldDelta(raycastChunkSpec.point, 4);
+
+                localVector2.copy(raycastChunkSpec.point)
+                  .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+                localVector2.x = Math.floor(localVector2.x / SUBPARCEL_SIZE);
+                localVector2.y = Math.floor(localVector2.y / SUBPARCEL_SIZE);
+                localVector2.z = Math.floor(localVector2.z / SUBPARCEL_SIZE);
+                currentChunkMesh.updateSlab(localVector2.x, localVector2.y, localVector2.z);
               }
             }
           };
