@@ -1461,6 +1461,8 @@ const [
       geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(numPositions), 3));
       geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(numPositions/3*2), 2));
       geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(numPositions/3), 1));
+      geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
+      geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
       geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(numPositions/3), 1));
       const material = transparent ? vegetationMaterailTransparent : vegetationMaterialOpaque;
       const mesh = new THREE.Mesh(geometry, [material]);
@@ -1468,17 +1470,19 @@ const [
 
       const slabs = {};
       const freeSlabs = new TinyQueue([], (a, b) => a.size - b.size);
-      const _slabFits = (slab, numPositions, numUvs, numIds, numIndices) => {
+      const _slabFits = (slab, numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices) => {
         return slab.position.length >= numPositions &&
           slab.uv.length >= numUvs &&
           slab.id.length >= numIds &&
+          slab.skyLight.length >= numSkyLights &&
+          slab.torchLight.length >= numTorchLights &&
           slab.indices.length >= numIndices;
       };
-      const _findFreeSlab = (numPositions, numUvs, numIds, numIndices) => {
+      const _findFreeSlab = (numPositions, numUvs, numIds, numIndices, numSkyLights, numTorchLights) => {
         const pulledSlabs = [];
         let slab;
         while (slab = freeSlabs.pop()) {
-          if (_slabFits(slab, numPositions, numUvs, numIds, numIndices)) {
+          if (_slabFits(slab, numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices)) {
             break;
           } else {
             pulledSlabs.push(slab);
@@ -1492,13 +1496,17 @@ const [
       const _getSlabPositionOffset = slab => (slab.position.byteOffset - geometry.attributes.position.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
       const _getSlabUvOffset = slab => (slab.uv.byteOffset - geometry.attributes.uv.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
       const _getSlabIdOffset = slab => (slab.id.byteOffset - geometry.attributes.id.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
+      const _getSlabSkyLightOffset = slab => (slab.skyLight.byteOffset - geometry.attributes.skyLight.array.byteOffset)/Uint8Array.BYTES_PER_ELEMENT;
+      const _getSlabTorchLightOffset = slab => (slab.torchLight.byteOffset - geometry.attributes.torchLight.array.byteOffset)/Uint8Array.BYTES_PER_ELEMENT;
       const _getSlabIndexOffset = slab => (slab.indices.byteOffset - geometry.index.array.byteOffset)/Uint32Array.BYTES_PER_ELEMENT;
       let positionIndex = 0;
       let uvIndex = 0;
       let idIndex = 0;
+      let skyLightIndex = 0;
+      let torchLightIndex = 0;
       let indexIndex = 0;
 
-      mesh.getSlab = (x, y, z, numPositions, numUvs, numIds, numIndices) => {
+      mesh.getSlab = (x, y, z, numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices) => {
         const index = planet.getSubparcelIndex(x, y, z);
         let slab = slabs[index];
         if (slab && !_slabFits(slab, numPositions, numUvs, numIds, numIndices)) {
@@ -1506,7 +1514,7 @@ const [
           slab = null;
         }
         if (!slab) {
-          slab = _findFreeSlab(numPositions, numUvs, numIds, numIndices);
+          slab = _findFreeSlab(numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices);
           if (slab) {
             slab.x = x;
             slab.y = y;
@@ -1530,6 +1538,8 @@ const [
               position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + positionIndex*Float32Array.BYTES_PER_ELEMENT, numPositions),
               uv: new Float32Array(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset + uvIndex*Float32Array.BYTES_PER_ELEMENT, numUvs),
               id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + idIndex*Float32Array.BYTES_PER_ELEMENT, numIds),
+              skyLight: new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + skyLightIndex*Uint8Array.BYTES_PER_ELEMENT, numSkyLights),
+              torchLight: new Uint8Array(geometry.attributes.torchLight.array.buffer, geometry.attributes.torchLight.array.byteOffset + torchLightIndex*Uint8Array.BYTES_PER_ELEMENT, numTorchLights),
               indices: new Uint32Array(geometry.index.array.buffer, geometry.index.array.byteOffset + indexIndex*Uint32Array.BYTES_PER_ELEMENT, numIndices),
               size: numPositions + numUvs + numIds + numIndices,
               group: null,
@@ -1547,6 +1557,8 @@ const [
             positionIndex += numPositions;
             uvIndex += numUvs;
             idIndex += numIds;
+            skyLightIndex += numSkyLights;
+            torchLightIndex += numTorchLights;
             indexIndex += numIndices;
           }
         }
@@ -1559,12 +1571,18 @@ const [
         geometry.attributes.uv.needsUpdate = true;
         geometry.attributes.id.updateRange.offset = _getSlabIdOffset(slab);
         geometry.attributes.id.needsUpdate = true;
+        geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(slab);
+        geometry.attributes.skyLight.needsUpdate = true;
+        geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(slab);
+        geometry.attributes.torchLight.needsUpdate = true;
         geometry.index.updateRange.offset = _getSlabIndexOffset(slab);
         geometry.index.needsUpdate = true;
 
         geometry.attributes.position.updateRange.count = spec.positions.length;
         geometry.attributes.uv.updateRange.count = spec.uvs.length;
         geometry.attributes.id.updateRange.count = spec.ids.length;
+        geometry.attributes.skyLight.updateRange.count = spec.skyLights.length;
+        geometry.attributes.torchLight.updateRange.count = spec.torchLights.length;
         geometry.index.updateRange.count = spec.indices.length;
         renderer.geometries.update(geometry);
       };
@@ -2589,12 +2607,14 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         const [spec] = specs;
         const {opaque, transparent} = spec;
 
-        const slab = currentVegetationMesh.getSlab(x, y, z, opaque.positions.length, opaque.uvs.length, opaque.ids.length, opaque.indices.length);
-        const transparentSlab = currentVegetationTransparentMesh.getSlab(x, y, z, transparent.positions.length, transparent.uvs.length, transparent.ids.length, transparent.indices.length);
+        const slab = currentVegetationMesh.getSlab(x, y, z, opaque.positions.length, opaque.uvs.length, opaque.ids.length, opaque.skyLights.length, opaque.torchLights.length, opaque.indices.length);
+        const transparentSlab = currentVegetationTransparentMesh.getSlab(x, y, z, transparent.positions.length, transparent.uvs.length, transparent.ids.length, transparent.skyLights.length, transparent.torchLights.length, transparent.indices.length);
 
         slab.position.set(opaque.positions);
         slab.uv.set(opaque.uvs);
         slab.id.set(opaque.ids);
+        slab.skyLight.set(opaque.skyLights);
+        slab.torchLight.set(opaque.torchLights);
         const opaqueIndexOffset = currentVegetationMesh.getSlabPositionOffset(slab)/3;
         for (let i = 0; i < opaque.indices.length; i++) {
           opaque.indices[i] += opaqueIndexOffset;
@@ -2606,6 +2626,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         transparentSlab.position.set(transparent.positions);
         transparentSlab.uv.set(transparent.uvs);
         transparentSlab.id.set(transparent.ids);
+        transparentSlab.skyLight.set(transparent.skyLights);
+        transparentSlab.torchLight.set(transparent.torchLights);
         const transparentIndexOffset = currentVegetationTransparentMesh.getSlabPositionOffset(transparentSlab)/3;
         for (let i = 0; i < transparent.indices.length; i++) {
           transparent.indices[i] += transparentIndexOffset;
