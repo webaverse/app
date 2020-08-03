@@ -116,7 +116,7 @@ const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSize
 
 const geometryRegistry = {};
 
-const _marchObjects = objects => {
+const _marchObjects = (objects, heightfields, lightfields) => {
   const geometries = objects.map(o => geometryRegistry[o.type]);
 
   let numOpaquePositions = 0;
@@ -237,11 +237,11 @@ const _handleMessage = data => {
       break;
     }
     case 'marchObjects': {
-      const {objects} = data;
+      const {objects, heightfields, lightfields} = data;
 
       const results = [];
       const transfers = [];
-      const [result, transfer] = _marchObjects(objects);
+      const [result, transfer] = _marchObjects(objects, heightfields, lightfields);
       results.push(result);
       transfers.push(transfer);
 
