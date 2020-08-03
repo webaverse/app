@@ -68,7 +68,7 @@ const _loadNoise = (seedData, x, y, z, baseHeight, freqsData, octavesData, scale
     numObjects.offset
   );
 };
-const _getChunkSpec = (potentials, heightfield, shiftsData, meshId, subparcelSize) => {
+const _getChunkSpec = (potentials, heightfield, lightfield, shiftsData, meshId, subparcelSize) => {
   const subparcelSizeP1 = subparcelSize+1;
 
   dims.set(Int32Array.from([subparcelSizeP1, subparcelSizeP1, subparcelSizeP1]));
@@ -77,18 +77,19 @@ const _getChunkSpec = (potentials, heightfield, shiftsData, meshId, subparcelSiz
   numPositions[0] = positions.length;
   numBarycentrics[0] = barycentrics.length;
 
-  const hf = heightfield.slice();
   self.Module._doMarchingCubes2(
     dims.offset,
     potentials.offset,
     heightfield.offset,
+    lightfield.offset,
     shifts.offset,
     scale.offset,
     positions.offset,
     barycentrics.offset,
     numPositions.offset,
     numBarycentrics.offset,
-    skyLights.offset
+    skyLights.offset,
+    torchLights.offset
   );
 
   const arrayBuffer2 = new ArrayBuffer(
@@ -96,6 +97,7 @@ const _getChunkSpec = (potentials, heightfield, shiftsData, meshId, subparcelSiz
     numBarycentrics[0] * Float32Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
+    numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT
   );
 
@@ -134,6 +136,10 @@ const _getChunkSpec = (potentials, heightfield, shiftsData, meshId, subparcelSiz
   outSl.set(new Uint8Array(skyLights.buffer, skyLights.byteOffset, numPositions[0]/3));
   index += numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT;
 
+  const outTl = new Uint8Array(arrayBuffer2, index, numPositions[0]/3);
+  outTl.set(new Uint8Array(torchLights.buffer, torchLights.byteOffset, numPositions[0]/3));
+  index += numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT;
+
   return {
     // result: {
     // potentials: outPotentials,
@@ -142,6 +148,7 @@ const _getChunkSpec = (potentials, heightfield, shiftsData, meshId, subparcelSiz
     ids,
     indices,
     skyLights: outSl,
+    torchLights: outTl,
     arrayBuffer: arrayBuffer2,
     // indices: outI,
   };
@@ -155,7 +162,7 @@ const _meshChunkSlab = (meshId, x, y, z, potentialsData, heightfieldData, lightf
     y*subparcelSize,
     z*subparcelSize,
   ];
-  const {positions, barycentrics, ids, indices, skyLights, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, heightfield, shiftsData, meshId, subparcelSize);
+  const {positions, barycentrics, ids, indices, skyLights, torchLights, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, heightfield, lightfield, shiftsData, meshId, subparcelSize);
   return [
     {
       positions,
@@ -163,6 +170,7 @@ const _meshChunkSlab = (meshId, x, y, z, potentialsData, heightfieldData, lightf
       ids,
       indices,
       skyLights,
+      torchLights,
       x,
       y,
       z,
@@ -279,7 +287,7 @@ self.onmessage = e => {
   }
 };
 
-let potentials, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, barycentrics, numPositions, numBarycentrics, skyLights;
+let potentials, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, barycentrics, numPositions, numBarycentrics, skyLights, torchLights;
 wasmModulePromise.then(() => {
   loaded = true;
 
@@ -305,6 +313,7 @@ wasmModulePromise.then(() => {
   numPositions = allocator.alloc(Uint32Array, 1);
   numBarycentrics = allocator.alloc(Uint32Array, 1);
   skyLights = allocator.alloc(Uint8Array, 4 * 1024 * 1024);
+  torchLights = allocator.alloc(Uint8Array, 4 * 1024 * 1024);
 
   _flushMessages();
 }).catch(err => {
