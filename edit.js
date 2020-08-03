@@ -1438,8 +1438,7 @@ const [
             gl_FragColor = ${transparent ? `texture2D(map, vUv)` : `vec4(texture2D(map, vUv).rgb, 1.0)`};
             gl_FragColor.rgb += vSelectColor;
             gl_FragColor.rgb *= max(max(sunIntensity, floor(8.0 - length(vWorldPosition))/8.), 0.1);
-            // float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
-            float worldFactor = floor(sunIntensity * 4.0 + 1.9) / 4.0;
+            float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
             float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
             gl_FragColor.rgb *= max(max(worldFactor, cameraFactor), 0.1);
             ${transparent ? `if (gl_FragColor.a < 0.8) discard;` : ''}
@@ -1541,7 +1540,7 @@ const [
               skyLight: new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + skyLightIndex*Uint8Array.BYTES_PER_ELEMENT, numSkyLights),
               torchLight: new Uint8Array(geometry.attributes.torchLight.array.buffer, geometry.attributes.torchLight.array.byteOffset + torchLightIndex*Uint8Array.BYTES_PER_ELEMENT, numTorchLights),
               indices: new Uint32Array(geometry.index.array.buffer, geometry.index.array.byteOffset + indexIndex*Uint32Array.BYTES_PER_ELEMENT, numIndices),
-              size: numPositions + numUvs + numIds + numIndices,
+              size: numPositions + numUvs + numIds + numSkyLights + numTorchLights + numIndices,
               group: null,
             };
             slabs[index] = slab;
@@ -1598,6 +1597,8 @@ const [
       mesh.getSlabPositionOffset = _getSlabPositionOffset;
       mesh.getSlabUvOffset = _getSlabUvOffset;
       mesh.getSlabIdOffset = _getSlabIdOffset;
+      mesh.getSlabSkyLightOffset = _getSlabSkyLightOffset;
+      mesh.getSlabTorchLightOffset = _getSlabTorchLightOffset;
       mesh.getSlabIndexOffset = _getSlabIndexOffset;
       return mesh;
     };
