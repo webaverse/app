@@ -1131,12 +1131,16 @@ const [
           geometrySpecs,
         });
       };
-      w.requestMarchObjects = (objects, heightfields, lightfields) => {
+      w.requestMarchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSize) => {
         return w.request({
           method: 'marchObjects',
+          x,
+          y,
+          z,
           objects,
           heightfields,
           lightfields,
+          subparcelSize,
         }, [heightfields.buffer]);
       };
       return w;
@@ -2580,7 +2584,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       }
       arrayBufferIndex += subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3);
 
-      const specs = await geometryWorker.requestMarchObjects(objects, heightfields, lightfields);
+      const specs = await geometryWorker.requestMarchObjects(x, y, z, objects, heightfields, lightfields, subparcelSize);
       if (live) {
         const [spec] = specs;
         const {opaque, transparent} = spec;
