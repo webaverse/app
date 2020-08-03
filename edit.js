@@ -3970,89 +3970,7 @@ function animate(timestamp, frame) {
       }
       if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
         if (!buildMode) {
-          const _applyPotentialDelta = async (position, delta) => {
-            localVector2.copy(position)
-              .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
-            const applyPosition = localVector2.clone();
-            localVector2.x = Math.floor(localVector2.x);
-            localVector2.y = Math.floor(localVector2.y);
-            localVector2.z = Math.floor(localVector2.z);
-
-            const _applyPotentials = () => {
-              const mineSpecs = [];
-              const _applyPotentialsRound = (ax, ay, az, value) => {
-                const mineSpecsRound = [];
-                for (let ddy = -1; ddy <= 0; ddy++) {
-                  const ady = ay + ddy;
-                  for (let ddz = -1; ddz <= 0; ddz++) {
-                    const adz = az + ddz;
-                    for (let ddx = -1; ddx <= 0; ddx++) {
-                      const adx = ax + ddx;
-
-                      const sdx = Math.floor(adx/currentChunkMesh.subparcelSize);
-                      const sdy = Math.floor(ady/currentChunkMesh.subparcelSize);
-                      const sdz = Math.floor(adz/currentChunkMesh.subparcelSize);
-                      const index = planet.getSubparcelIndex(sdx, sdy, sdz);
-
-                      if (!mineSpecsRound.some(mineSpec => mineSpec.index === index)) {
-                        const lx = ax - sdx*currentChunkMesh.subparcelSize;
-                        const ly = ay - sdy*currentChunkMesh.subparcelSize;
-                        const lz = az - sdz*currentChunkMesh.subparcelSize;
-
-                        planet.editSubparcel(sdx, sdy, sdz, subparcel => {
-                          const potentialIndex = _getPotentialIndex(lx, ly, lz, currentChunkMesh.subparcelSize+1);
-                          subparcel.potentials[potentialIndex] += value;
-
-                          const mineSpec = {
-                            x: sdx,
-                            y: sdy,
-                            z: sdz,
-                            index,
-                            potentials: subparcel.potentials,
-                            heightfield: subparcel.heightfield,
-                            lightfield: subparcel.lightfield,
-                          };
-                          mineSpecsRound.push(mineSpec);
-                          if (!mineSpecs.some(mineSpec => mineSpec.index === index)) {
-                            mineSpecs.push(mineSpec);
-                          }
-                        });
-                      }
-                    }
-                  }
-                }
-              };
-
-              const {x, y, z} = localVector2;
-              for (let dy = -1; dy <= 1; dy++) {
-                const ay = y + dy;
-                for (let dz = -1; dz <= 1; dz++) {
-                  const az = z + dz;
-                  for (let dx = -1; dx <= 1; dx++) {
-                    const ax = x + dx;
-
-                    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-                    const maxDistScale = 1;
-                    const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
-                    const distanceDiff = maxDist - dist;
-                    if (distanceDiff > 0) {
-                      /* const sx = Math.floor(ax/currentChunkMesh.subparcelSize);
-                      const sy = Math.floor(ay/currentChunkMesh.subparcelSize);
-                      const sz = Math.floor(az/currentChunkMesh.subparcelSize);
-                      const lx = ax - sx*currentChunkMesh.subparcelSize;
-                      const ly = ay - sy*currentChunkMesh.subparcelSize;
-                      const lz = az - sz*currentChunkMesh.subparcelSize;
-                      const value = distanceDiff * delta;
-                      _potentialEdit(sx, sy, sz, lx, ly, lz, value); */
-                      const value = distanceDiff * delta;
-                      _applyPotentialsRound(ax, ay, az, value);
-                    }
-                  }
-                }
-              }
-              return mineSpecs;
-            };
-            const mineSpecs = _applyPotentials();
+          const _mine = async (mineSpecs, explodePosition) => {
             const specs = await chunkWorker.requestMine(
               currentChunkMesh.meshId,
               mineSpecs,
@@ -4104,11 +4022,11 @@ function animate(timestamp, frame) {
                 slab.physxGeometry = physxWorker.registerBakedGeometry(currentChunkMesh.meshId, physxGeometry, x, y, z);
               }
             }
-            if (specs.length > 0 && delta < 0) {
+            if (specs.length > 0 && explodePosition) {
               for (let i = 0; i < 3; i++) {
                 const pxMesh = new THREE.Mesh(tetrehedronGeometry, currentChunkMesh.material[0]);
                 currentChunkMesh.getWorldQuaternion(localQuaternion2).inverse();
-                pxMesh.position.copy(applyPosition)
+                pxMesh.position.copy(explodePosition)
                   .add(localVector2.set((-1+Math.random()*2)*0.2, 0.2, (-1+Math.random()*2)*0.2).applyQuaternion(localQuaternion2));
                 pxMesh.velocity = new THREE.Vector3((-1+Math.random()*2)*0.5, Math.random()*3, (-1+Math.random()*2)*0.5)
                   .applyQuaternion(localQuaternion2);
@@ -4122,16 +4040,111 @@ function animate(timestamp, frame) {
               }
             }
           };
+          const _applyMineSpec = (p, radius, key, delta) => {
+            const mineSpecs = [];
+            const _applyRound = (ax, ay, az, value) => {
+              const mineSpecsRound = [];
+              for (let ddy = -1; ddy <= 0; ddy++) {
+                const ady = ay + ddy;
+                for (let ddz = -1; ddz <= 0; ddz++) {
+                  const adz = az + ddz;
+                  for (let ddx = -1; ddx <= 0; ddx++) {
+                    const adx = ax + ddx;
+
+                    const sdx = Math.floor(adx/currentChunkMesh.subparcelSize);
+                    const sdy = Math.floor(ady/currentChunkMesh.subparcelSize);
+                    const sdz = Math.floor(adz/currentChunkMesh.subparcelSize);
+                    const index = planet.getSubparcelIndex(sdx, sdy, sdz);
+
+                    if (!mineSpecsRound.some(mineSpec => mineSpec.index === index)) {
+                      const lx = ax - sdx*currentChunkMesh.subparcelSize;
+                      const ly = ay - sdy*currentChunkMesh.subparcelSize;
+                      const lz = az - sdz*currentChunkMesh.subparcelSize;
+
+                      planet.editSubparcel(sdx, sdy, sdz, subparcel => {
+                        const potentialIndex = _getPotentialIndex(lx, ly, lz, currentChunkMesh.subparcelSize+1);
+                        subparcel[key][potentialIndex] += value;
+
+                        const mineSpec = {
+                          x: sdx,
+                          y: sdy,
+                          z: sdz,
+                          index,
+                          potentials: subparcel.potentials,
+                          heightfield: subparcel.heightfield,
+                          lightfield: subparcel.lightfield,
+                        };
+                        mineSpecsRound.push(mineSpec);
+                        if (!mineSpecs.some(mineSpec => mineSpec.index === index)) {
+                          mineSpecs.push(mineSpec);
+                        }
+                      });
+                    }
+                  }
+                }
+              }
+            };
+
+            const {x, y, z} = p;
+            for (let dy = -radius; dy <= radius; dy++) {
+              const ay = y + dy;
+              for (let dz = -radius; dz <= radius; dz++) {
+                const az = z + dz;
+                for (let dx = -radius; dx <= radius; dx++) {
+                  const ax = x + dx;
+
+                  const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                  const maxDistScale = radius;
+                  const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
+                  const distanceDiff = maxDist - dist;
+                  if (distanceDiff > 0) {
+                    const value = (1-dist/maxDist)*delta;
+                    _applyRound(ax, ay, az, value);
+                  }
+                }
+              }
+            }
+            return mineSpecs;
+          };
+          const _applyPotentialDelta = async (position, delta) => {
+            localVector2.copy(position)
+              .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+            const applyPosition = localVector2.clone();
+            localVector2.x = Math.floor(localVector2.x);
+            localVector2.y = Math.floor(localVector2.y);
+            localVector2.z = Math.floor(localVector2.z);
+
+            const mineSpecs = _applyMineSpec(localVector2, 1, 'potentials', delta);
+            await _mine(mineSpecs, delta < 0 ? applyPosition : null);
+          };
+          const _applyLightfieldDelta = async (position, delta) => {
+            localVector2.copy(position)
+              .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+            localVector2.x = Math.floor(localVector2.x);
+            localVector2.y = Math.floor(localVector2.y);
+            localVector2.z = Math.floor(localVector2.z);
+
+            const mineSpecs = _applyMineSpec(localVector2, delta, 'lightfield', delta);
+            console.log('got mine specs', mineSpecs);
+            await _mine(mineSpecs, null);
+          };
           const _hit = () => {
             if (raycastChunkSpec) {
               if (raycastChunkSpec.mesh.isChunkMesh) {
-                _applyPotentialDelta(raycastChunkSpec.point, -0.2);
+                _applyPotentialDelta(raycastChunkSpec.point, -0.3);
               } else if (raycastChunkSpec.mesh.isVegetationMesh) {
                 raycastChunkSpec.mesh.hit(30);
               } else if (raycastChunkSpec.mesh.isNpcHullMesh) {
                 const {npcMesh} = raycastChunkSpec.mesh;
 
                 npcMesh.hit(30);
+              }
+            }
+          };
+          const _paint = () => {
+            if (raycastChunkSpec) {
+              if (raycastChunkSpec.mesh.isChunkMesh || raycastChunkSpec.mesh.isVegetationMesh) {
+                _applyLightfieldDelta(raycastChunkSpec.point, 4);
               }
             }
           };
@@ -4187,13 +4200,16 @@ function animate(timestamp, frame) {
             }
             case 'build': {
               if (addMesh.visible) {
-                _applyPotentialDelta(addMesh.position, 0.2);
+                _applyPotentialDelta(addMesh.position, 0.3);
               }
               break;
             }
             case 'pickaxe': {
               _hit();
               break;
+            }
+            case 'paintbrush': {
+              _paint();
             }
           }
         } else {
