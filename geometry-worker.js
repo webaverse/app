@@ -2,92 +2,8 @@ importScripts('https://static.xrpackage.org/xrpackage/three.js');
 const wasmModulePromise = Promise.resolve();
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
-
-const _makeSlabData = (x, y, z, freqsData, octavesData, scalesData, uvsData, ampsData, parcelSize, subparcelSize) => {
-  const allocator = new Allocator();
-
-  const potentials = allocator.alloc(Float32Array, subparcelSize * subparcelSize * subparcelSize);
-  const freqs = allocator.alloc(Float32Array, freqsData.length);
-  freqs.set(Float32Array.from(freqsData));
-  const octaves = allocator.alloc(Int32Array, octavesData.length);
-  octaves.set(Int32Array.from(octavesData));
-  const scales = allocator.alloc(Float32Array, scalesData.length);
-  scales.set(Float32Array.from(scalesData));
-  const uvs = allocator.alloc(Float32Array, uvsData.length);
-  uvs.set(Float32Array.from(uvsData));
-  const amps = allocator.alloc(Float32Array, ampsData.length);
-  amps.set(Float32Array.from(ampsData));
-  const dims = allocator.alloc(Int32Array, 3);
-  dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
-  const limits = allocator.alloc(Int32Array, 3);
-  limits.set(Int32Array.from([parcelSize, parcelSize, parcelSize]));
-  const shifts = allocator.alloc(Float32Array, 3);
-  shifts.set(Float32Array.from([x*subparcelSize, y*subparcelSize, z*subparcelSize]));
-
-  return {
-    potentials,
-    freqs,
-    octaves,
-    scales,
-    uvs,
-    amps,
-    dims,
-    limits,
-    shifts,
-    allocator,
-  }
-};
-
-const createds = [];
-class Chunk {
-  constructor(meshId, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize) {
-    this.meshId = meshId;
-    this.freqs = freqs;
-    this.octaves = octaves;
-    this.scales = scales;
-    this.uvs = uvs;
-    this.amps = amps;
-    this.parcelSize = parcelSize;
-    this.subparcelSize = subparcelSize;
-
-    this.index = 0;
-    this.slabs = [];
-  }
-  getSlab(x, y, z) {
-    return this.slabs.find(slab => slab.x === x && slab.y === y && slab.z === z);
-  }
-  getOrCreateSlab(x, y, z) {
-    let slab = this.getSlab(x, y, z);
-    if (!slab) {
-      createds.push([x, y, z]);
-      const data = _makeSlabData(x, y, z, this.freqs, this.octaves, this.scales, this.uvs, this.amps, this.parcelSize, this.subparcelSize);
-      slab = this.setSlab(x, y, z, data);
-    }
-    return slab;
-  }
-  setSlab(x, y, z, data) {
-    const slab = {
-      x,
-      y,
-      z,
-      slabIndex: this.index,
-      data,
-    };
-    this.slabs.push(slab);
-    this.index++;
-    return slab;
-  }
-}
-const chunks = [];
-const _getChunk = (meshId, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize) => {
-  let chunk = chunks.find(chunk => chunk.meshId === meshId);
-  if (!chunk) {
-    chunk = new Chunk(meshId, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize);
-    chunks.push(chunk);
-  }
-  return chunk;
-}
 
 class Allocator {
   constructor() {
@@ -108,24 +24,29 @@ class Allocator {
   }
 }
 
-function mod(a, b) {
-  return ((a%b)+b)%b;
-}
 const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
 const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSizeP1*subparcelSizeP1 + z*subparcelSizeP1;
+const _align4 = n => {
+  const d = n%4;
+  return d ? (n+4-d) : n;
+};
 
 const geometryRegistry = {};
 
-const _marchObjects = (objects, heightfields, lightfields) => {
+const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSize) => {
   const geometries = objects.map(o => geometryRegistry[o.type]);
 
   let numOpaquePositions = 0;
   let numOpaqueUvs = 0;
   let numOpaqueIds = 0;
+  let numOpaqueSkyLights = 0;
+  let numOpaqueTorchLights = 0;
   let numOpaqueIndices = 0;
   let numTransparentPositions = 0;
   let numTransparentUvs = 0;
   let numTransparentIds = 0;
+  let numTransparentSkyLights = 0;
+  let numTransparentTorchLights = 0;
   let numTransparentIndices = 0;
   for (const geometrySpecs of geometries) {
     for (const geometry of geometrySpecs) {
@@ -133,26 +54,39 @@ const _marchObjects = (objects, heightfields, lightfields) => {
         numOpaquePositions += geometry.positions.length;
         numOpaqueUvs += geometry.uvs.length;
         numOpaqueIds += geometry.positions.length/3;
+        numOpaqueSkyLights += geometry.positions.length/3;
+        numOpaqueTorchLights += geometry.positions.length/3;
         numOpaqueIndices += geometry.indices.length;
       } else {
         numTransparentPositions += geometry.positions.length;
         numTransparentUvs += geometry.uvs.length;
         numTransparentIds += geometry.positions.length/3;
+        numTransparentSkyLights += geometry.positions.length/3;
+        numTransparentTorchLights += geometry.positions.length/3;
         numTransparentIndices += geometry.indices.length;
       }
     }
   }
 
-  const arraybuffer = new ArrayBuffer(
-    numOpaquePositions * Float32Array.BYTES_PER_ELEMENT +
-    numOpaqueUvs * Float32Array.BYTES_PER_ELEMENT +
-    numOpaqueIds * Float32Array.BYTES_PER_ELEMENT +
-    numOpaqueIndices * Uint32Array.BYTES_PER_ELEMENT +
-    numTransparentPositions * Float32Array.BYTES_PER_ELEMENT +
-    numTransparentUvs * Float32Array.BYTES_PER_ELEMENT +
-    numTransparentIds * Float32Array.BYTES_PER_ELEMENT +
-    numTransparentIndices * Uint32Array.BYTES_PER_ELEMENT
-  );
+  const totalSize = (() => {
+    let index = 0;
+    index += numOpaquePositions * Float32Array.BYTES_PER_ELEMENT;
+    index += numOpaqueUvs * Float32Array.BYTES_PER_ELEMENT;
+    index += numOpaqueIds * Float32Array.BYTES_PER_ELEMENT;
+    index += numOpaqueSkyLights * Uint8Array.BYTES_PER_ELEMENT;
+    index += numOpaqueTorchLights * Uint8Array.BYTES_PER_ELEMENT;
+    index = _align4(index);
+    index += numOpaqueIndices * Uint32Array.BYTES_PER_ELEMENT;
+    index += numTransparentPositions * Float32Array.BYTES_PER_ELEMENT;
+    index += numTransparentUvs * Float32Array.BYTES_PER_ELEMENT;
+    index += numTransparentIds * Float32Array.BYTES_PER_ELEMENT;
+    index += numTransparentSkyLights * Uint8Array.BYTES_PER_ELEMENT;
+    index += numTransparentTorchLights * Uint8Array.BYTES_PER_ELEMENT;
+    index = _align4(index);
+    index += numTransparentIndices * Uint32Array.BYTES_PER_ELEMENT;
+    return index;
+  })();
+  const arraybuffer = new ArrayBuffer(totalSize);
   let index = 0;
   const opaque = {};
   opaque.positions = new Float32Array(arraybuffer, index, numOpaquePositions);
@@ -161,11 +95,18 @@ const _marchObjects = (objects, heightfields, lightfields) => {
   index += numOpaqueUvs * Float32Array.BYTES_PER_ELEMENT;
   opaque.ids = new Float32Array(arraybuffer, index, numOpaqueIds);
   index += numOpaqueIds * Float32Array.BYTES_PER_ELEMENT;
+  opaque.skyLights = new Uint8Array(arraybuffer, index, numOpaqueSkyLights);
+  index += numOpaqueSkyLights * Uint8Array.BYTES_PER_ELEMENT;
+  opaque.torchLights = new Uint8Array(arraybuffer, index, numOpaqueTorchLights);
+  index += numOpaqueTorchLights * Uint8Array.BYTES_PER_ELEMENT;
+  index = _align4(index);
   opaque.indices = new Uint32Array(arraybuffer, index, numOpaqueIndices);
   index += numOpaqueIndices * Uint32Array.BYTES_PER_ELEMENT;
   opaque.positionsIndex = 0;
   opaque.uvsIndex = 0;
   opaque.idsIndex = 0;
+  opaque.skyLightsIndex = 0;
+  opaque.torchLightsIndex = 0;
   opaque.indicesIndex = 0;
 
   const transparent = {};
@@ -175,12 +116,36 @@ const _marchObjects = (objects, heightfields, lightfields) => {
   index += numTransparentUvs * Float32Array.BYTES_PER_ELEMENT;
   transparent.ids = new Float32Array(arraybuffer, index, numTransparentIds);
   index += numTransparentIds * Float32Array.BYTES_PER_ELEMENT;
+  transparent.skyLights = new Uint8Array(arraybuffer, index, numTransparentSkyLights);
+  index += numTransparentSkyLights * Uint8Array.BYTES_PER_ELEMENT;
+  transparent.torchLights = new Uint8Array(arraybuffer, index, numTransparentTorchLights);
+  index += numTransparentTorchLights * Uint8Array.BYTES_PER_ELEMENT;
+  index = _align4(index);
   transparent.indices = new Uint32Array(arraybuffer, index, numTransparentIndices);
   index += numTransparentIndices * Uint32Array.BYTES_PER_ELEMENT;
   transparent.positionsIndex = 0;
   transparent.uvsIndex = 0;
   transparent.idsIndex = 0;
+  transparent.skyLightsIndex = 0;
+  transparent.torchLightsIndex = 0;
   transparent.indicesIndex = 0;
+
+  const subparcelSizeP1 = subparcelSize+1;
+  const subparcelOffset = localVector2.set((x-1)*subparcelSize, (y-1)*subparcelSize, (z-1)*subparcelSize);
+  const _getFieldIndex = p => {
+    const ax = Math.floor(localVector.x - subparcelOffset.x);
+    const ay = Math.floor(localVector.y - subparcelOffset.y);
+    const az = Math.floor(localVector.z - subparcelOffset.z);
+    const sx = Math.floor(ax/subparcelSize);
+    const sy = Math.floor(ay/subparcelSize);
+    const sz = Math.floor(az/subparcelSize);
+    const fieldsOffset = (sx + sy*3 + sz*3*3) * subparcelSizeP1*subparcelSizeP1*subparcelSizeP1;
+    const lx = ax - subparcelSize*sx;
+    const ly = ay - subparcelSize*sy;
+    const lz = az - subparcelSize*sz;
+    const fieldIndex = lx + ly*subparcelSizeP1 + lz*subparcelSizeP1*subparcelSizeP1;
+    return fieldsOffset + fieldIndex;
+  };
 
   for (let i = 0; i < geometries.length; i++) {
     const geometrySpecs = geometries[i];
@@ -196,13 +161,19 @@ const _marchObjects = (objects, heightfields, lightfields) => {
       }
       spec.indicesIndex += geometry.indices.length;
 
-      for (let j = 0; j < geometry.positions.length; j += 3) {
+      let jOffset = 0;
+      for (let j = 0; j < geometry.positions.length; j += 3, jOffset++) {
         localVector
           .fromArray(geometry.positions, j)
           .applyMatrix4(matrix)
           .toArray(spec.positions, spec.positionsIndex + j);
+        const fieldIndex = _getFieldIndex(localVector);
+        spec.skyLights[spec.skyLightsIndex + jOffset] = heightfields[fieldIndex];
+        spec.torchLights[spec.torchLightsIndex + jOffset] = lightfields[fieldIndex];
       }
       spec.positionsIndex += geometry.positions.length;
+      spec.skyLightsIndex += geometry.positions.length/3;
+      spec.torchLightsIndex += geometry.positions.length/3;
 
       spec.uvs.set(geometry.uvs, spec.uvsIndex);
       spec.uvsIndex += geometry.uvs.length;
@@ -237,11 +208,11 @@ const _handleMessage = data => {
       break;
     }
     case 'marchObjects': {
-      const {objects, heightfields, lightfields} = data;
+      const {x, y, z, objects, heightfields, lightfields, subparcelSize} = data;
 
       const results = [];
       const transfers = [];
-      const [result, transfer] = _marchObjects(objects, heightfields, lightfields);
+      const [result, transfer] = _marchObjects(x, y, z, objects, heightfields, lightfields, subparcelSize);
       results.push(result);
       transfers.push(transfer);
 
