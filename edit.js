@@ -1131,11 +1131,13 @@ const [
           geometrySpecs,
         });
       };
-      w.requestMarchObjects = (objects) => {
+      w.requestMarchObjects = (objects, heightfields, lightfields) => {
         return w.request({
           method: 'marchObjects',
           objects,
-        });
+          heightfields,
+          lightfields,
+        }, [heightfields.buffer]);
       };
       return w;
     })();
@@ -2530,13 +2532,55 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       await subparcel.load;
       if (!live) return;
 
-      const specs = await geometryWorker.requestMarchObjects(subparcel.vegetations.map(vegetation => {
-        return {
-          id: vegetation.id,
-          type: vegetation.name,
-          matrix: localMatrix.compose(localVector.fromArray(vegetation.position), localQuaternion.fromArray(vegetation.quaternion), localVector2.set(1, 1, 1)).toArray(),
-        };
+      const objects = subparcel.vegetations.map(vegetation => ({
+        id: vegetation.id,
+        type: vegetation.name,
+        matrix: localMatrix.compose(localVector.fromArray(vegetation.position), localQuaternion.fromArray(vegetation.quaternion), localVector2.set(1, 1, 1)).toArray(),
       }));
+
+      const subparcelSizeP1 = subparcelSize+1;
+      const arraybuffer = new ArrayBuffer(subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3)*2);
+      let arrayBufferIndex = 0;
+      const heightfields = new Uint8Array(arraybuffer, arrayBufferIndex, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3));
+      {
+        let heightfieldIndex = 0;
+        for (let dz = -1; dz <= 1; dz++) {
+          const az = z + dz;
+          for (let dy = -1; dy <= 1; dy++) {
+            const ay = y + dy;
+            for (let dx = -1; dx <= 1; dx++) {
+              const ax = x + dx;
+              const subparcel = planet.peekSubparcel(ax, ay, az);
+              if (subparcel) {
+                heightfields.set(subparcel.heightfield, heightfieldIndex*subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
+              }
+              heightfieldIndex++;
+            }
+          }
+        }
+      }
+      arrayBufferIndex += subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3);
+      const lightfields = new Uint8Array(arraybuffer, arrayBufferIndex, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3));
+      {
+        let ligthfieldIndex = 0;
+        for (let dz = -1; dz <= 1; dz++) {
+          const az = z + dz;
+          for (let dy = -1; dy <= 1; dy++) {
+            const ay = y + dy;
+            for (let dx = -1; dx <= 1; dx++) {
+              const ax = x + dx;
+              const subparcel = planet.peekSubparcel(ax, ay, az);
+              if (subparcel) {
+                lightfields.set(subparcel.lightfield, ligthfieldIndex*subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
+              }
+              ligthfieldIndex++;
+            }
+          }
+        }
+      }
+      arrayBufferIndex += subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3);
+
+      const specs = await geometryWorker.requestMarchObjects(objects, heightfields, lightfields);
       if (live) {
         const [spec] = specs;
         const {opaque, transparent} = spec;
