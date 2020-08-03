@@ -1437,7 +1437,6 @@ const [
           void main() {
             gl_FragColor = ${transparent ? `texture2D(map, vUv)` : `vec4(texture2D(map, vUv).rgb, 1.0)`};
             gl_FragColor.rgb += vSelectColor;
-            gl_FragColor.rgb *= max(max(sunIntensity, floor(8.0 - length(vWorldPosition))/8.), 0.1);
             float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
             float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
             gl_FragColor.rgb *= max(max(worldFactor, cameraFactor), 0.1);
