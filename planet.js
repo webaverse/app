@@ -399,6 +399,7 @@ planet.getSubparcelByIndex = index => {
   }
   return subparcel;
 };
+planet.peekSubparcelByIndex = index => subparcels[index] || null;
 planet.getSubparcel = (x, y, z) => {
   const index = _getSubparcelIndex(x, y, z);
   let subparcel = subparcels[index];
@@ -407,6 +408,7 @@ planet.getSubparcel = (x, y, z) => {
   }
   return subparcel;
 };
+planet.peekSubparcel = (x, y, z) => subparcels[_getSubparcelIndex(x, y, z)] || null;
 planet.editSubparcel = (x, y, z, fn) => {
   let index = _getSubparcelIndex(x, y, z);
   if (!subparcels[index]) {
