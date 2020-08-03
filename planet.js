@@ -203,6 +203,7 @@ export class Subparcel {
     this.index = 0;
     this.data = null;
     this.potentials = null;
+    this.heightfield = null;
     this._numObjects = null;
     this.vegetations = [];
     this.packages = [];
@@ -215,6 +216,7 @@ export class Subparcel {
   latchData(data) {
     this.data = data;
     this.potentials = new Float32Array(this.data, Subparcel.offsets.potentials, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
+    this.heightfield = new Uint8Array(this.data, Subparcel.offsets.heightfield, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
     this._numObjects = new Uint32Array(this.data, Subparcel.offsets.numObjects, 1);
   }
   reload() {
@@ -342,6 +344,10 @@ export class Subparcel {
     return subparcel;
   }
 }
+const _align4 = n => {
+  const d = n % 4;
+  return d ? (n + (4 - d)) : n;
+};
 Subparcel.offsets = (() => {
   let index = 0;
 
@@ -349,6 +355,9 @@ Subparcel.offsets = (() => {
   index += Int32Array.BYTES_PER_ELEMENT * 3;
   const potentials = index;
   index += SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * Float32Array.BYTES_PER_ELEMENT;
+  const heightfield = index;
+  index += SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * Uint8Array.BYTES_PER_ELEMENT;
+  index = _align4(index);
   const numObjects = index;
   index += Uint32Array.BYTES_PER_ELEMENT;
   const objects = index;
@@ -358,6 +367,7 @@ Subparcel.offsets = (() => {
   return {
     xyz,
     potentials,
+    heightfield,
     numObjects,
     objects,
     initialLength,
