@@ -204,6 +204,7 @@ export class Subparcel {
     this.data = null;
     this.potentials = null;
     this.heightfield = null;
+    this.lightfield = null
     this._numObjects = null;
     this.vegetations = [];
     this.packages = [];
@@ -217,6 +218,7 @@ export class Subparcel {
     this.data = data;
     this.potentials = new Float32Array(this.data, Subparcel.offsets.potentials, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
     this.heightfield = new Uint8Array(this.data, Subparcel.offsets.heightfield, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
+    this.lightfield = new Uint8Array(this.data, Subparcel.offsets.lightfield, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
     this._numObjects = new Uint32Array(this.data, Subparcel.offsets.numObjects, 1);
   }
   reload() {
@@ -358,6 +360,9 @@ Subparcel.offsets = (() => {
   const heightfield = index;
   index += SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * Uint8Array.BYTES_PER_ELEMENT;
   index = _align4(index);
+  const lightfield = index;
+  index += SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * Uint8Array.BYTES_PER_ELEMENT;
+  index = _align4(index);
   const numObjects = index;
   index += Uint32Array.BYTES_PER_ELEMENT;
   const objects = index;
@@ -368,6 +373,7 @@ Subparcel.offsets = (() => {
     xyz,
     potentials,
     heightfield,
+    lightfield,
     numObjects,
     objects,
     initialLength,

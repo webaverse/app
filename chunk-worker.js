@@ -146,9 +146,10 @@ const _getChunkSpec = (potentials, heightfield, shiftsData, meshId, subparcelSiz
     // indices: outI,
   };
 };
-const _meshChunkSlab = (meshId, x, y, z, potentialsData, heightfieldData, subparcelSize) => {
+const _meshChunkSlab = (meshId, x, y, z, potentialsData, heightfieldData, lightfieldData, subparcelSize) => {
   potentials.set(potentialsData);
   heightfield.set(heightfieldData);
+  lightfield.set(lightfieldData);
   const shiftsData = [
     x*subparcelSize,
     y*subparcelSize,
@@ -200,11 +201,11 @@ const _handleMessage = data => {
       break;
     }
     case 'marchLand': {
-      const {seed: seedData, meshId, x, y, z, potentials, heightfield, parcelSize, subparcelSize} = data;
+      const {seed: seedData, meshId, x, y, z, potentials, heightfield, lightfield, parcelSize, subparcelSize} = data;
 
       const results = [];
       const transfers = [];
-      const [result, transfer] = _meshChunkSlab(meshId, x, y, z, potentials, heightfield, subparcelSize);
+      const [result, transfer] = _meshChunkSlab(meshId, x, y, z, potentials, heightfield, lightfield, subparcelSize);
       results.push(result);
       transfers.push(transfer);
 
@@ -219,7 +220,7 @@ const _handleMessage = data => {
       const results = [];
       const transfers = [];
       for (const mineSpec of mineSpecs) {
-        const [result, transfer] = _meshChunkSlab(meshId, mineSpec.x, mineSpec.y, mineSpec.z, mineSpec.potentials, mineSpec.heightfield, subparcelSize);
+        const [result, transfer] = _meshChunkSlab(meshId, mineSpec.x, mineSpec.y, mineSpec.z, mineSpec.potentials, mineSpec.heightfield, mineSpec.lightfield, subparcelSize);
         results.push(result);
         transfers.push(transfer);
       }
@@ -278,7 +279,7 @@ self.onmessage = e => {
   }
 };
 
-let potentials, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, barycentrics, numPositions, numBarycentrics, skyLights;
+let potentials, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, barycentrics, numPositions, numBarycentrics, skyLights;
 wasmModulePromise.then(() => {
   loaded = true;
 
@@ -289,6 +290,7 @@ wasmModulePromise.then(() => {
   objectTypes = allocator.alloc(Uint32Array, maxNumObjects);
   numObjects = allocator.alloc(Uint32Array, 1);
   heightfield = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
+  lightfield = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
   freqs = allocator.alloc(Float32Array, 3);
   octaves = allocator.alloc(Int32Array, 3);
   scales = allocator.alloc(Float32Array, 3);
