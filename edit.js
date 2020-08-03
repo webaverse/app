@@ -402,7 +402,7 @@ const [
         subparcelSize
       });
     };
-    w.requestMarchLand = (seed, meshId, x, y, z, potentials, heightfield, parcelSize, subparcelSize) => {
+    w.requestMarchLand = (seed, meshId, x, y, z, potentials, heightfield, lightfield, parcelSize, subparcelSize) => {
       return w.request({
         method: 'marchLand',
         seed,
@@ -412,6 +412,7 @@ const [
         z,
         potentials,
         heightfield,
+        lightfield,
         parcelSize,
         subparcelSize
       });
@@ -2099,6 +2100,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         ax, ay, az,
         subparcel.potentials,
         subparcel.heightfield,
+        subparcel.lightfield,
         parcelSize,
         subparcelSize
       );
@@ -4008,6 +4010,7 @@ function animate(timestamp, frame) {
                             index,
                             potentials: subparcel.potentials,
                             heightfield: subparcel.heightfield,
+                            lightfield: subparcel.lightfield,
                           };
                           mineSpecsRound.push(mineSpec);
                           if (!mineSpecs.some(mineSpec => mineSpec.index === index)) {
