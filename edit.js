@@ -143,7 +143,7 @@ const HEIGHTFIELD_SHADER = {
     // attribute vec4 color;
     attribute vec3 barycentric;
     // attribute float index;
-    // attribute float skyLightmap;
+    attribute float skyLight;
     // attribute float torchLightmap;
 
     varying vec3 vPosition;
@@ -153,7 +153,7 @@ const HEIGHTFIELD_SHADER = {
     // varying vec4 vColor;
     // varying float vIndex;
     // varying vec3 vNormal;
-    // varying float vSkyLightmap;
+    varying float vSkyLight;
     // varying float vTorchLightmap;
     // varying float vFog;
 
@@ -168,6 +168,7 @@ const HEIGHTFIELD_SHADER = {
       vWorldPosition = mvPosition.xyz;
       vBarycentric = barycentric;
       // vIndex = index;
+      vSkyLight = skyLight/8.0;
     }
   `,
   fragmentShader: `\
@@ -188,7 +189,7 @@ const HEIGHTFIELD_SHADER = {
     // varying vec3 vViewPosition;
     // varying vec4 vColor;
     // varying vec3 vNormal;
-    // varying float vSkyLightmap;
+    varying float vSkyLight;
     // varying float vTorchLightmap;
     // varying float vFog;
 
@@ -237,13 +238,14 @@ const HEIGHTFIELD_SHADER = {
       vec3 diffuseColor = mix(texture2D(tex, uv).rgb, vec3(0.), gl_FragCoord.z/gl_FragCoord.w/30.0);
       // diffuseColor *= avg(texture2D(tex, uv).rgb)*2.0;
       if (edgeFactor() <= 0.99) {
-        // if (isCurrent != 0.0) {
-          diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vWorldPosition) - uTime*5.0, 3.0)), 0.0)*0.5);
-        // }
+        diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vWorldPosition) - uTime*5.0, 3.0)), 0.0)*0.5);
         // diffuseColor *= 0.95;
         diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
       }
-      diffuseColor *= max(max(sunIntensity, floor(8.0 - length(vWorldPosition))/8.), 0.1);
+      float skyFactor = floor(sunIntensity * vSkyLight * 4.0 + 1.9) / 4.0;
+      float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
+      diffuseColor *= max(max(skyFactor, cameraFactor), 0.1);
+      // diffuseColor += vSkyLight;
 
       gl_FragColor = vec4(diffuseColor, 1.0);
     }
@@ -400,7 +402,7 @@ const [
         subparcelSize
       });
     };
-    w.requestMarchLand = (seed, meshId, x, y, z, potentials, parcelSize, subparcelSize) => {
+    w.requestMarchLand = (seed, meshId, x, y, z, potentials, heightfield, parcelSize, subparcelSize) => {
       return w.request({
         method: 'marchLand',
         seed,
@@ -409,6 +411,7 @@ const [
         y,
         z,
         potentials,
+        heightfield,
         parcelSize,
         subparcelSize
       });
@@ -1849,6 +1852,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 1*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
   geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices), 1));
   geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 3*slabAttributeSize, slabSliceVertices*numSlices), 1));
+  geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(slabArrayBuffer, 4*slabAttributeSize, slabSliceVertices*numSlices), 1));
 
   const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
   mesh.frustumCulled = false;
@@ -1894,6 +1898,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + slabIndex*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
           id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
           indices: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
+          skyLights: new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + slabIndex*slabSliceVertices*Uint8Array.BYTES_PER_ELEMENT, slabSliceVertices),
         };
         slabs[index] = slab;
         geometry.addGroup(slabIndex * slabSliceVertices, slab.position.length/3, 0);
@@ -1916,11 +1921,14 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     geometry.attributes.id.needsUpdate = true;
     geometry.attributes.index.updateRange.offset = slab.slabIndex*slabSliceVertices;
     geometry.attributes.index.needsUpdate = true;
+    geometry.attributes.skyLight.updateRange.offset = slab.slabIndex*slabSliceVertices;
+    geometry.attributes.skyLight.needsUpdate = true;
 
     geometry.attributes.position.updateRange.count = spec.positions.length;
     geometry.attributes.barycentric.updateRange.count = spec.barycentrics.length;
     geometry.attributes.id.updateRange.count = spec.ids.length;
     geometry.attributes.index.updateRange.count = spec.indices.length;
+    geometry.attributes.skyLight.updateRange.count = spec.skyLights.length;
     renderer.geometries.update(geometry);
   };
   const currentCoord = new THREE.Vector3(NaN, NaN, NaN);
@@ -2063,6 +2071,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               subparcelSize
             ).then(parcelSpec => {
                subparcel.potentials.set(parcelSpec.potentials);
+               subparcel.heightfield.set(parcelSpec.heightfield);
                for (const object of parcelSpec.objects) {
                  subparcel.addVegetation('tree', localVector.fromArray(object.position), localQuaternion.fromArray(object.quaternion));
                }
@@ -2089,6 +2098,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         meshId,
         ax, ay, az,
         subparcel.potentials,
+        subparcel.heightfield,
         parcelSize,
         subparcelSize
       );
@@ -2101,6 +2111,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         slab.position.set(spec.positions);
         slab.barycentric.set(spec.barycentrics);
         slab.id.set(spec.ids);
+        slab.skyLights.set(spec.skyLights);
         const indexOffset = slab.slabIndex * slabSliceTris;
         for (let i = 0; i < spec.indices.length; i++) {
           spec.indices[i] += indexOffset;
@@ -3996,6 +4007,7 @@ function animate(timestamp, frame) {
                             z: sdz,
                             index,
                             potentials: subparcel.potentials,
+                            heightfield: subparcel.heightfield,
                           };
                           mineSpecsRound.push(mineSpec);
                           if (!mineSpecs.some(mineSpec => mineSpec.index === index)) {
@@ -4050,6 +4062,7 @@ function animate(timestamp, frame) {
               slab.position.set(spec.positions);
               slab.barycentric.set(spec.barycentrics);
               slab.id.set(spec.ids);
+              slab.skyLights.set(spec.skyLights);
               const indexOffset = slab.slabIndex * slabSliceTris;
               for (let i = 0; i < spec.indices.length; i++) {
                 spec.indices[i] += indexOffset;
