@@ -1386,9 +1386,14 @@ const [
           uniform float uSelectId;
           uniform vec3 uSelectPosition;
           attribute float id;
+          attribute float skyLight;
+          attribute float torchLight;
+
           varying vec2 vUv;
           varying vec3 vSelectColor;
           varying vec3 vWorldPosition;
+          varying float vSkyLight;
+          varying float vTorchLight;
           // varying vec3 vNormal;
 
           void main() {
@@ -1404,6 +1409,8 @@ const [
             gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
             vec4 worldPosition = modelViewMatrix * vec4( position, 1.0 );
             vWorldPosition = worldPosition.xyz;
+            vSkyLight = skyLight/8.0;
+            vTorchLight = torchLight/8.0;
           }
         `,
         fragmentShader: `\
@@ -1415,6 +1422,8 @@ const [
           varying vec2 vUv;
           varying vec3 vSelectColor;
           varying vec3 vWorldPosition;
+          varying float vSkyLight;
+          varying float vTorchLight;
           // varying vec3 vNormal;
 
           // vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
@@ -1423,6 +1432,10 @@ const [
             gl_FragColor = ${transparent ? `texture2D(map, vUv)` : `vec4(texture2D(map, vUv).rgb, 1.0)`};
             gl_FragColor.rgb += vSelectColor;
             gl_FragColor.rgb *= max(max(sunIntensity, floor(8.0 - length(vWorldPosition))/8.), 0.1);
+            // float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
+            float worldFactor = floor(sunIntensity * 4.0 + 1.9) / 4.0;
+            float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
+            gl_FragColor.rgb *= max(max(worldFactor, cameraFactor), 0.1);
             ${transparent ? `if (gl_FragColor.a < 0.8) discard;` : ''}
           }
         `,
