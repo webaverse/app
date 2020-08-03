@@ -144,6 +144,7 @@ const HEIGHTFIELD_SHADER = {
     attribute vec3 barycentric;
     // attribute float index;
     attribute float skyLight;
+    attribute float torchLight;
     // attribute float torchLightmap;
 
     varying vec3 vPosition;
@@ -154,7 +155,7 @@ const HEIGHTFIELD_SHADER = {
     // varying float vIndex;
     // varying vec3 vNormal;
     varying float vSkyLight;
-    // varying float vTorchLightmap;
+    varying float vTorchLight;
     // varying float vFog;
 
     void main() {
@@ -169,6 +170,7 @@ const HEIGHTFIELD_SHADER = {
       vBarycentric = barycentric;
       // vIndex = index;
       vSkyLight = skyLight/8.0;
+      vTorchLight = torchLight/8.0;
     }
   `,
   fragmentShader: `\
@@ -190,7 +192,7 @@ const HEIGHTFIELD_SHADER = {
     // varying vec4 vColor;
     // varying vec3 vNormal;
     varying float vSkyLight;
-    // varying float vTorchLightmap;
+    varying float vTorchLight;
     // varying float vFog;
 
     // uniform float isCurrent;
@@ -242,9 +244,9 @@ const HEIGHTFIELD_SHADER = {
         // diffuseColor *= 0.95;
         diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
       }
-      float skyFactor = floor(sunIntensity * vSkyLight * 4.0 + 1.9) / 4.0;
+      float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
       float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
-      diffuseColor *= max(max(skyFactor, cameraFactor), 0.1);
+      diffuseColor *= max(max(worldFactor, cameraFactor), 0.1);
       // diffuseColor += vSkyLight;
 
       gl_FragColor = vec4(diffuseColor, 1.0);
@@ -1854,6 +1856,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices), 1));
   geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 3*slabAttributeSize, slabSliceVertices*numSlices), 1));
   geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(slabArrayBuffer, 4*slabAttributeSize, slabSliceVertices*numSlices), 1));
+  geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(slabArrayBuffer, 5*slabAttributeSize, slabSliceVertices*numSlices), 1));
 
   const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
   mesh.frustumCulled = false;
@@ -1900,6 +1903,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
           indices: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
           skyLights: new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + slabIndex*slabSliceVertices*Uint8Array.BYTES_PER_ELEMENT, slabSliceVertices),
+          torchLights: new Uint8Array(geometry.attributes.torchLight.array.buffer, geometry.attributes.torchLight.array.byteOffset + slabIndex*slabSliceVertices*Uint8Array.BYTES_PER_ELEMENT, slabSliceVertices),
         };
         slabs[index] = slab;
         geometry.addGroup(slabIndex * slabSliceVertices, slab.position.length/3, 0);
@@ -1924,12 +1928,15 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     geometry.attributes.index.needsUpdate = true;
     geometry.attributes.skyLight.updateRange.offset = slab.slabIndex*slabSliceVertices;
     geometry.attributes.skyLight.needsUpdate = true;
+    geometry.attributes.torchLight.updateRange.offset = slab.slabIndex*slabSliceVertices;
+    geometry.attributes.torchLight.needsUpdate = true;
 
     geometry.attributes.position.updateRange.count = spec.positions.length;
     geometry.attributes.barycentric.updateRange.count = spec.barycentrics.length;
     geometry.attributes.id.updateRange.count = spec.ids.length;
     geometry.attributes.index.updateRange.count = spec.indices.length;
     geometry.attributes.skyLight.updateRange.count = spec.skyLights.length;
+    geometry.attributes.torchLight.updateRange.count = spec.skyLights.length;
     renderer.geometries.update(geometry);
   };
   const currentCoord = new THREE.Vector3(NaN, NaN, NaN);
@@ -2114,6 +2121,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         slab.barycentric.set(spec.barycentrics);
         slab.id.set(spec.ids);
         slab.skyLights.set(spec.skyLights);
+        slab.torchLights.set(spec.torchLights);
         const indexOffset = slab.slabIndex * slabSliceTris;
         for (let i = 0; i < spec.indices.length; i++) {
           spec.indices[i] += indexOffset;
@@ -3984,6 +3992,7 @@ function animate(timestamp, frame) {
               slab.barycentric.set(spec.barycentrics);
               slab.id.set(spec.ids);
               slab.skyLights.set(spec.skyLights);
+              slab.torchLights.set(spec.torchLights);
               const indexOffset = slab.slabIndex * slabSliceTris;
               for (let i = 0; i < spec.indices.length; i++) {
                 spec.indices[i] += indexOffset;
@@ -4125,7 +4134,6 @@ function animate(timestamp, frame) {
             localVector2.z = Math.floor(localVector2.z);
 
             const mineSpecs = _applyMineSpec(localVector2, delta, 'lightfield', delta);
-            console.log('got mine specs', mineSpecs);
             await _mine(mineSpecs, null);
           };
           const _hit = () => {
