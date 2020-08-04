@@ -2642,10 +2642,10 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           };
           mesh.vegetationMeshes[index] = subparcelVegetationMeshesSpec;
         }
-
         if (refresh) {
           _removeVegetationPhysics(index);
         }
+        subparcelVegetationMeshesSpec.meshes.length = 0;
 
         for (const vegetation of subparcel.vegetations) {
           localVector3.fromArray(vegetation.position);
