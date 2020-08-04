@@ -1476,20 +1476,18 @@ const [
           slab.torchLight.length >= numTorchLights &&
           slab.indices.length >= numIndices;
       };
-      const _findFreeSlab = (numPositions, numUvs, numIds, numIndices, numSkyLights, numTorchLights) => {
+      const _findFreeSlab = (numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices) => {
         const pulledSlabs = [];
-        let slab;
-        while (slab = freeSlabs.pop()) {
-          if (_slabFits(slab, numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices)) {
+        let slab = null;
+        for (let s = freeSlabs.pop(); !!s; s = freeSlabs.pop()) {
+          if (_slabFits(s, numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices)) {
+            slab = s;
             break;
           } else {
-            pulledSlabs.push(slab);
+            pulledSlabs.push(s);
           }
         }
-        for (const slab of pulledSlabs) {
-          freeSlabs.push(slab);
-        }
-        return slab || null;
+        return slab;
       };
       const _getSlabPositionOffset = slab => (slab.position.byteOffset - geometry.attributes.position.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
       const _getSlabUvOffset = slab => (slab.uv.byteOffset - geometry.attributes.uv.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
@@ -1507,7 +1505,7 @@ const [
       mesh.getSlab = (x, y, z, numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices) => {
         const index = planet.getSubparcelIndex(x, y, z);
         let slab = slabs[index];
-        if (slab && !_slabFits(slab, numPositions, numUvs, numIds, numIndices)) {
+        if (slab && !_slabFits(slab, numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices)) {
           mesh.freeSlabIndex(slab.index);
           slab = null;
         }
