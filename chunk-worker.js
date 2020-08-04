@@ -65,7 +65,8 @@ const _loadNoise = (seedData, x, y, z, baseHeight, freqsData, octavesData, scale
     objectPositions.offset,
     objectQuaternions.offset,
     objectTypes.offset,
-    numObjects.offset
+    numObjects.offset,
+    maxNumObjects
   );
 };
 const _getChunkSpec = (potentials, heightfield, lightfield, shiftsData, meshId, subparcelSize) => {
