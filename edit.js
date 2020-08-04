@@ -3097,16 +3097,6 @@ const _findMeshWithMeshId = meshId => {
   if (meshId === currentChunkMesh.meshId) {
     return currentChunkMesh;
   } else {
-    for (const index in currentChunkMesh.buildMeshes) {
-      const subparcelBuildMeshesSpec = currentChunkMesh.buildMeshes[index];
-      if (subparcelBuildMeshesSpec) {
-        for (const buildMesh of subparcelBuildMeshesSpec.meshes) {
-          if (buildMesh.meshId === meshId) {
-            return buildMesh;
-          }
-        }
-      }
-    }
     for (const index in currentChunkMesh.vegetationMeshes) {
       const subparcelVegetationMeshesSpec = currentChunkMesh.vegetationMeshes[index];
       if (subparcelVegetationMeshesSpec) {
