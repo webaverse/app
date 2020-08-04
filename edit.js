@@ -2648,50 +2648,52 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         subparcelVegetationMeshesSpec.meshes.length = 0;
 
         for (const vegetation of subparcel.vegetations) {
-          localVector3.fromArray(vegetation.position);
-          localQuaternion2.fromArray(vegetation.quaternion);
-          const physicsOffset = physicsShapes[vegetation.name];
+          const {id: vegetationId, name: vegetationName} = vegetation;
+          const vegetationPosition = new THREE.Vector3().fromArray(vegetation.position);
+          const vegetationQuaternion = new THREE.Quaternion().fromArray(vegetation.quaternion);
+
+          const physicsOffset = physicsShapes[vegetationName];
           const physxGeometry = physicsOffset ? (() => {
             localMatrix2
               .compose(physicsOffset.position, physicsOffset.quaternion, localVector4.set(1, 1, 1))
-              .premultiply(localMatrix3.compose(localVector3, localQuaternion2, localVector4.set(1, 1, 1)))
+              .premultiply(localMatrix3.compose(vegetationPosition, vegetationQuaternion, localVector4.set(1, 1, 1)))
               .decompose(localVector4, localQuaternion3, localVector5);
-            return physxWorker.registerBoxGeometry(vegetation.id, localVector4, localQuaternion3, physicsOffset.scale.x, physicsOffset.scale.y, physicsOffset.scale.z);
+            return physxWorker.registerBoxGeometry(vegetationId, localVector4, localQuaternion3, physicsOffset.scale.x, physicsOffset.scale.y, physicsOffset.scale.z);
           })() : (() => {
-            localVector4.copy(localVector3)
+            localVector4.copy(vegetationPosition)
               .add(localVector5.set(0, (2+0.5)/2, 0));
-            localQuaternion3.copy(localQuaternion2)
+            localQuaternion3.copy(vegetationQuaternion)
               .multiply(capsuleUpQuaternion);
-            return physxWorker.registerCapsuleGeometry(vegetation.id, localVector4, localQuaternion3, 0.5, 2);
+            return physxWorker.registerCapsuleGeometry(vegetationId, localVector4, localQuaternion3, 0.5, 2);
           })();
-          const hitTracker = _makeHitTracker(localVector3, localQuaternion2, 100, (originalPosition, positionOffset) => {
+          const hitTracker = _makeHitTracker(vegetationPosition, vegetationQuaternion, 100, (originalPosition, positionOffset) => {
             [currentVegetationMesh, currentVegetationTransparentMesh].forEach(m => {
               m.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
               m.material[0].uniforms.uSelectPosition.needsUpdate = true;
             });
           }, color => {
-            const id = color ? vegetation.id : -1;
+            const id = color ? vegetationId : -1;
             [currentVegetationMesh, currentVegetationTransparentMesh].forEach(m => {
               m.material[0].uniforms.uSelectId.value = id;
               m.material[0].uniforms.uSelectId.needsUpdate = true;
             });
           }, () => {
             const subparcelPosition = new THREE.Vector3(
-              Math.floor(vegetation.position[0]/subparcelSize),
-              Math.floor(vegetation.position[1]/subparcelSize),
-              Math.floor(vegetation.position[2]/subparcelSize)
+              Math.floor(vegetationPosition.x/subparcelSize),
+              Math.floor(vegetationPosition.y/subparcelSize),
+              Math.floor(vegetationPosition.z/subparcelSize)
             );
             planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-              subparcel.removeVegetation(vegetation.id);
+              subparcel.removeVegetation(vegetationId);
             });
             mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
           });
           subparcelVegetationMeshesSpec.meshes.push({
             isVegetationMesh: true,
-            meshId: vegetation.id,
-            type: vegetation.name,
-            position: new THREE.Vector3().fromArray(vegetation.position),
-            quaternion: new THREE.Quaternion().fromArray(vegetation.quaternion),
+            meshId: vegetationId,
+            type: vegetationName,
+            position: vegetationPosition,
+            quaternion: vegetationQuaternion,
             physxGeometry,
             hit: hitTracker.hit,
             update: hitTracker.update,
