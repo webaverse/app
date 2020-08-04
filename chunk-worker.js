@@ -3,7 +3,7 @@ importScripts('./bin/objectize2.js');
 const subparcelSize = 10;
 const subparcelSizeP1 = subparcelSize+1;
 const potentialDefault = -0.5;
-const maxNumObjects = 16;
+const PLANET_OBJECT_SLOTS = 16;
 
 class Allocator {
   constructor() {
@@ -66,7 +66,7 @@ const _loadNoise = (seedData, x, y, z, baseHeight, freqsData, octavesData, scale
     objectQuaternions.offset,
     objectTypes.offset,
     numObjects.offset,
-    maxNumObjects
+    PLANET_OBJECT_SLOTS
   );
 };
 const _getChunkSpec = (potentials, heightfield, lightfield, shiftsData, meshId, subparcelSize) => {
@@ -294,9 +294,9 @@ wasmModulePromise.then(() => {
 
   const allocator = new Allocator();
   potentials = allocator.alloc(Float32Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
-  objectPositions = allocator.alloc(Float32Array, maxNumObjects*3);
-  objectQuaternions = allocator.alloc(Float32Array, maxNumObjects*4);
-  objectTypes = allocator.alloc(Uint32Array, maxNumObjects);
+  objectPositions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*3);
+  objectQuaternions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*4);
+  objectTypes = allocator.alloc(Uint32Array, PLANET_OBJECT_SLOTS);
   numObjects = allocator.alloc(Uint32Array, 1);
   heightfield = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
   lightfield = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
