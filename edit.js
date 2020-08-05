@@ -6016,7 +6016,6 @@ const _changeInventory = inventory => {
     });
     const removeButton = itemEl.querySelector('.remove-button');
     removeButton.addEventListener('click', async () => {
-      console.log('remove', item);
       const newInventory = inventory.filter(i => i.dataHash !== item.dataHash);
       await loginManager.setInventory(newInventory);
     });
