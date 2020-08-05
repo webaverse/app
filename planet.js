@@ -311,7 +311,7 @@ export class Subparcel {
       this.vegetations.length--;
       this._numObjects[0]--;
     } else {
-      console.warn('removing nonexistent vegetation', vegetation);
+      console.warn('removing nonexistent vegetation', this.vegetations.slice(), vegetationId);
     }
   }
   /* addPackage(dataHash, position, quaternion) {
