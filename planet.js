@@ -152,9 +152,9 @@ export class SubparcelObject {
 
     {
       let index = 0;
-      this._id = new Uint8Array(this.data, this.offset + index, 1);
+      this._id = new Uint32Array(this.data, this.offset + index, 1);
       index += Uint32Array.BYTES_PER_ELEMENT;
-      this._type = new Uint8Array(this.data, this.offset + index, 1);
+      this._type = new Uint32Array(this.data, this.offset + index, 1);
       index += Uint32Array.BYTES_PER_ELEMENT;
       this._name = new Uint8Array(this.data, this.offset + index, MAX_NAME_LENGTH);
       index += MAX_NAME_LENGTH;
@@ -281,13 +281,14 @@ export class Subparcel {
     }
   }
   addVegetation(type, position, quaternion) {
-    const nextIndex = this._numObjects[0]++;
+    const nextIndex = this._numObjects[0];
     if (Subparcel.offsets.objects + nextIndex*PLANET_OBJECT_SIZE >= this.data.byteLength) {
       const newData = new ArrayBuffer(this.data.byteLength + PLANET_OBJECT_SLOTS*PLANET_OBJECT_SIZE);
       new Uint8Array(newData).set(new Uint8Array(this.data));
       this.latchData(newData);
       this.reload();
     }
+    this._numObjects[0]++
 
     const vegetation = new SubparcelObject(this.data, Subparcel.offsets.objects + nextIndex*PLANET_OBJECT_SIZE, nextIndex, this);
     vegetation.id = Math.floor(Math.random()*0xFFFFFF);
