@@ -2345,123 +2345,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       },
     };
   };
-  const _addBuild = build => {
-    const buildMesh = (() => {
-      switch (build.name) {
-        case 'wall': return wallMesh;
-        case 'floor': return platformMesh;
-        case 'stair': return stairsMesh;
-        default: return null;
-      }
-    })();
-    const meshId = getNextMeshId();
-    localMatrix2.compose(
-      localVector3.fromArray(build.position),
-      localQuaternion3.fromArray(build.quaternion),
-      localVector4.copy(buildMesh.scale)
-    )
-      // .premultiply(mesh.matrix)
-      // .decompose(localVector2, localQuaternion2, localVector3);
-    const buildMeshClone = buildMesh.instancedMesh.addInstance(meshId, localVector3, localQuaternion3, localVector4);
-    buildMeshClone.build = build;
-    buildMeshClone.meshId = meshId;
-    buildMeshClone.buildMeshType = buildMesh.buildMeshType;
-    const hitTracker = _makeHitTracker(buildMeshClone.position, buildMeshClone.quaternion, 100, (originalPosition, positionOffset) => {
-      localVector3.copy(originalPosition).add(positionOffset);
-      buildMeshClone.position.copy(localVector3);
-      buildMeshClone.updatePosition();
-    }, color => {
-      buildMeshClone.color.setHex(color ? redColorHex : 0xFFFFFF);
-      buildMeshClone.updateColor();
-    }, () => {
-      const subparcelPosition = new THREE.Vector3(
-        Math.floor(buildMeshClone.position.x/subparcelSize),
-        Math.floor(buildMeshClone.position.y/subparcelSize),
-        Math.floor(buildMeshClone.position.z/subparcelSize)
-      );
-      planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-        subparcel.removeVegetation(buildMeshClone.build.id);
-      });
-      mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
-    });
-    buildMeshClone.hit = hitTracker.hit;
-    buildMeshClone.update = hitTracker.update;
-    currentChunkMesh.add(buildMesh.instancedMesh);
-
-    const {physicsOffset} = buildMesh;
-    localMatrix3
-      .compose(physicsOffset.position, physicsOffset.quaternion, localVector4.set(1, 1, 1))
-      .premultiply(localMatrix2)
-      .decompose(localVector3, localQuaternion3, localVector4);
-    buildMeshClone.physxGeometry = physxWorker.registerBoxGeometry(meshId, localVector3, localQuaternion3, physicsOffset.scale.x, physicsOffset.scale.y, physicsOffset.scale.z);
-
-    return buildMeshClone;
-  };
-  const _removeBuildMesh = buildMeshClone => {
-    buildMeshClone.remove();
-    buildMeshClone.physxGeometry && physxWorker.unregisterGeometry(buildMeshClone.physxGeometry);
-  };
-  const _updateBuildsRemove = () => {
-    for (const removedCoord of removedCoords) {
-      const {index} = removedCoord;
-      const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
-      for (const mesh of subparcelBuildMeshesSpec.meshes) {
-        _removeBuildMesh(mesh);
-      }
-      mesh.buildMeshes[index] = null;
-    }
-  };
-  const _updateBuildsAdd = () => {
-    for (const addedCoord of addedCoords) {
-      const {index} = addedCoord;
-      const subparcelBuildMeshesSpec = {
-        index,
-        meshes: [],
-      };
-      mesh.buildMeshes[index] = subparcelBuildMeshesSpec;
-      const subparcel = planet.getSubparcelByIndex(index);
-      for (const build of subparcel.builds) {
-        const buildMesh = _addBuild(build);
-        subparcelBuildMeshesSpec.meshes.push(buildMesh);
-      }
-    }
-  };
-  const _updateBuildsUpdate = () => {
-    for (let i = 0; i < numUpdatedCoords; i++) {
-      const {index} = updatedCoords[i];
-      const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
-      const subparcel = planet.getSubparcelByIndex(index);
-      subparcelBuildMeshesSpec.meshes = subparcelBuildMeshesSpec.meshes.filter(bm => {
-        if (!subparcel.builds.some(b => b.id === bm.build.id)) {
-          _removeBuildMesh(bm);
-          return true;
-        } else {
-          return false;
-        }
-      });
-      for (const build of subparcel.builds) {
-        if (!subparcelBuildMeshesSpec.meshes.some(bm => bm.build.id === build.id)) {
-          const buildMesh = _addBuild(build);
-          subparcelBuildMeshesSpec.meshes.push(buildMesh);
-        }
-      }
-    }
-  };
-  const _updateBuildsNeeded = () => {
-    for (const neededCoord of neededCoords) {
-      const {index} = neededCoord;
-      const subparcelBuildMeshesSpec = mesh.buildMeshes[index];
-      for (const mesh of subparcelBuildMeshesSpec.meshes) {
-        mesh.update();
-      }
-    }
-  };
-  const _updateBuilds = () => {
-    _updateBuildsRemove();
-    _updateBuildsAdd();
-    _updateBuildsUpdate();
-    _updateBuildsNeeded();
-  };
   const _removeVegetationPhysics = index => {
     const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
     if (subparcelVegetationMeshesSpec) {
@@ -2931,9 +2814,7 @@ let pickaxeMesh = null;
 let paintBrushMesh = null;
 (async () => {
   const toolsModels = await _loadGltf('./tools.glb');
-  /* wrenchMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Pipe_Wrench_01');
-  wrenchMesh.visible = false;
-  scene.add(wrenchMesh); */
+
   plansMesh = toolsModels.children.find(c => c.name === 'SM_Prop_Plans_01');
   plansMesh.visible = false;
   scene.add(plansMesh);
@@ -3096,54 +2977,6 @@ const handMeshes = (() => {
 for (const handMesh of handMeshes) {
   scene.add(handMesh);
 }
-/* const sideCollisionCubeMaterial = new THREE.MeshBasicMaterial({
-  color: 0xFF0000,
-});
-const floorCollisionCubeMaterial = new THREE.MeshBasicMaterial({
-  color: 0x00FF00,
-});
-const ceilingCollisionCubeMaterial = new THREE.MeshBasicMaterial({
-  color: 0x0000FF,
-});
-const sideCollisionCubes = (() => {
-  const result = Array(10*10);
-  for (let i = 0; i < 10*10; i++) {
-    const mesh = new THREE.Mesh(collisionCubeGeometry, sideCollisionCubeMaterial);
-    mesh.frustumCulled = false;
-    mesh.visible = false;
-    result[i] = mesh;
-  }
-  return result;
-})();
-for (let i = 0; i < sideCollisionCubes.length; i++) {
-  scene.add(sideCollisionCubes[i]);
-}
-const floorCollisionCubes = (() => {
-  const result = Array(10*10);
-  for (let i = 0; i < 10*10; i++) {
-    const mesh = new THREE.Mesh(collisionCubeGeometry, floorCollisionCubeMaterial);
-    mesh.frustumCulled = false;
-    mesh.visible = false;
-    result[i] = mesh;
-  }
-  return result;
-})();
-for (let i = 0; i < floorCollisionCubes.length; i++) {
-  scene.add(floorCollisionCubes[i]);
-}
-const ceilingCollisionCubes = (() => {
-  const result = Array(10*10);
-  for (let i = 0; i < 10*10; i++) {
-    const mesh = new THREE.Mesh(collisionCubeGeometry, ceilingCollisionCubeMaterial);
-    mesh.frustumCulled = false;
-    mesh.visible = false;
-    result[i] = mesh;
-  }
-  return result;
-})();
-for (let i = 0; i < ceilingCollisionCubes.length; i++) {
-  scene.add(ceilingCollisionCubes[i]);
-} */
 
 function parseQuery(queryString) {
   var query = {};
@@ -3517,10 +3350,6 @@ scene.add(uiMesh);
 const numSmokes = 10;
 const numZs = 10;
 const explosionCubeGeometry = new THREE.BoxBufferGeometry(0.04, 0.04, 0.04);
-let raycastRunning = false;
-let wallCollisionResult = null;
-let floorCollisionResult = null;
-let ceilingCollisionResult = null;
 const _makeExplosionMesh = () => {
   const numPositions = explosionCubeGeometry.attributes.position.array.length * numSmokes * numZs;
   const numIndices = explosionCubeGeometry.index.array.length * numSmokes * numZs;
@@ -4551,89 +4380,6 @@ function animate(timestamp, frame) {
       }
     });
   }
-  /* if (!raycastRunning && physicsWorker) {
-    const collisions = [];
-    let collisionIndex = 0;
-    pxMeshes = pxMeshes.filter(pxMesh => {
-      if (pxMesh.update()) {
-        if (!pxMesh.velocity.equals(zeroVector)) {
-          localVector.copy(pxMesh.position)
-            .applyMatrix4(pxMesh.parent.matrixWorld);
-          collisions.push([
-            localVector.toArray(),
-            downQuaternion.toArray(),
-          ]);
-
-          pxMesh.collisionIndex = collisionIndex++;
-        } else {
-          pxMesh.collisionIndex = -1;
-        }
-        return true;
-      } else {
-        pxMesh.parent.remove(pxMesh);
-        return false;
-      }
-    });
-    physicsWorker.requestPhysicsRaycast(chunkMeshContainer.matrixWorld.toArray(), collisions, 1, 1, 100);
-  } */
-
-  /* if (!raycastRunning && physicsWorker) {
-    raycastRunning = true;
-
-    physicsWorker.registerGeometry()
-      .then(specs => {
-        const [raycastResultData, collisionResults, physicsResultData] = specs;
-
-        raycastChunkSpec = raycastResultData;
-        if (raycastChunkSpec) {
-          raycastChunkSpec.mesh = _findMeshWithMeshId(chunkMeshContainer, raycastChunkSpec.meshId);
-          raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
-          raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
-        }
-
-        wallCollisionResult = collisionResults[0];
-        if (wallCollisionResult) {
-          wallCollisionResult.position = new THREE.Vector3().fromArray(wallCollisionResult.position);
-          wallCollisionResult.quaternion = new THREE.Quaternion().fromArray(wallCollisionResult.quaternion);
-        }
-
-        floorCollisionResult = collisionResults[1];
-        if (floorCollisionResult) {
-          floorCollisionResult.position = new THREE.Vector3().fromArray(floorCollisionResult.position);
-          floorCollisionResult.quaternion = new THREE.Quaternion().fromArray(floorCollisionResult.quaternion);
-        }
-
-        ceilingCollisionResult = collisionResults[2];
-        if (ceilingCollisionResult) {
-          ceilingCollisionResult.position = new THREE.Vector3().fromArray(ceilingCollisionResult.position);
-          ceilingCollisionResult.quaternion = new THREE.Quaternion().fromArray(ceilingCollisionResult.quaternion);
-        }
-
-        if (physicsResultData) {
-          for (let i = 0; i < pxMeshes.length; i++) {
-            const pxMesh = pxMeshes[i];
-            if (pxMesh.collisionIndex !== -1) {
-              if ((physicsResultData.depths[pxMesh.collisionIndex] - 0.2 - pxMesh.velocity.length()*timeDiff) < 0) {
-                pxMesh.position.add(
-                  pxMesh.velocity
-                    .normalize()
-                    .multiplyScalar(physicsResultData.depths[pxMesh.collisionIndex] - 0.2)
-                  );
-                pxMesh.velocity.copy(zeroVector);
-              } else {
-                _applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
-                pxMesh.velocity.add(localVector.set(0, -9.8*timeDiff, 0).applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse()));
-                pxMesh.rotation.x += pxMesh.angularVelocity.x;
-                pxMesh.rotation.y += pxMesh.angularVelocity.y;
-                pxMesh.rotation.z += pxMesh.angularVelocity.z;
-              }
-            }
-          }
-        }
-
-        raycastRunning = false;
-      });
-  } */
 
   lastTeleport = currentTeleport;
   lastWeaponDown = currentWeaponDown;
