@@ -814,8 +814,6 @@ const [
       }
     }
     {
-      const scale = 0.325;
-
       const _mapUvAttribute = (uvs, rect) => {
         const [[tx, ty], [rx, ry], [bx, by], [lx, ly]] = rect;
         const x = tx;
@@ -876,22 +874,18 @@ const [
         const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
         const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: 0xFFFFFF }));
         mesh.name = g.name;
-        geometry.applyMatrix4(new THREE.Matrix4().makeScale(scale, scale, scale));
-        const box = new THREE.Box3().setFromObject(mesh);
-        const center = box.getCenter(new THREE.Vector3());
-        geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
         // geometry.computeVertexNormals();
         return mesh;
       };
 
       const buildModels = await _loadGltf('./build.glb');
       {
-        const stairsMesh = _mergeGroup(buildModels.getObjectByName('wood_ramp'));
+        stairsMesh = _mergeGroup(buildModels.getObjectByName('wood_ramp'));
         let {geometry} = stairsMesh;
         geometry = geometry.clone()
-          .applyMatrix4(new THREE.Matrix4().makeScale(1, Math.sqrt(2)*0.9, Math.sqrt(2)*0.8))
+          /* .applyMatrix4(new THREE.Matrix4().makeScale(1, Math.sqrt(2)*0.9, Math.sqrt(2)*0.8))
           .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.005)))
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2 - 0.02, 0));
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2 - 0.02, 0)); */
         geometryWorker.requestRegisterGeometry('stair', [{
           transparent: false,
           positions: geometry.attributes.position.array,
@@ -900,11 +894,11 @@ const [
         }]);
       }
       {
-        const platformMesh = _mergeGroup(buildModels.getObjectByName('wood_floor'));
+        platformMesh = _mergeGroup(buildModels.getObjectByName('wood_floor'));
         let {geometry} = platformMesh;
         geometry = geometry.clone()
-          .applyMatrix4(new THREE.Matrix4().makeScale(1.05, 1, 1))
-          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.005)));
+          /* .applyMatrix4(new THREE.Matrix4().makeScale(1.05, 1, 1))
+          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.005))); */
         geometryWorker.requestRegisterGeometry('floor', [{
           transparent: false,
           positions: geometry.attributes.position.array,
@@ -913,13 +907,13 @@ const [
         }]);
       }
       {
-        const wallMesh = _mergeGroup(buildModels.getObjectByName('wood_wall'));
+        wallMesh = _mergeGroup(buildModels.getObjectByName('wood_wall'));
         let {geometry} = wallMesh;
         geometry = geometry.clone()
-          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2)))
+          /* .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2)))
           .applyMatrix4(new THREE.Matrix4().makeScale(1.2, 1.03, 1))
           .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.005)))
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, -2/2));
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, -2/2)); */
         geometryWorker.requestRegisterGeometry('wall', [{
           transparent: false,
           positions: geometry.attributes.position.array,
