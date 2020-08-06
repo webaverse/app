@@ -355,7 +355,7 @@ const [
   px,
   pw,
   colors,
-  _buildMeshes,
+  _itemMeshes,
 ] = await Promise.all([
   (async () => {
     const cbs = [];
@@ -684,380 +684,10 @@ const [
     return await res.json();
   })(),
   (async () => {
-    const buildModels = await _loadGltf('./build.glb');
-
-    woodMesh = buildModels.children.find(c => c.name === 'SM_Item_Log_01');
-    // woodMesh.visible = false;
-    // worldContainer.add(woodMesh);
-
-    stoneMesh = buildModels.children.find(c => c.name === 'SM_Env_Rock_01');
-    // stoneMesh.visible = false;
-    // worldContainer.add(stoneMesh);
-
-    metalMesh = buildModels.children.find(c => c.name === 'SM_Prop_MetalSheet_01');
-    // metalMesh.visible = false;
-    // worldContainer.add(metalMesh);
-  })(),
-  (async () => {
-    const structureModels = await _loadGltf('./structure.glb');
-
-    const scale = 0.325;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = 8192;
-    canvas.height = 8192;
-    const texture = new THREE.Texture(canvas);
-    // texture.anisotropy = 16;
-    texture.flipY = false;
-    texture.needsUpdate = true;
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      vertexColors: true,
-      // transparent: true,
-    });
-    const atlas = atlaspack(canvas);
-    const rects = new Map();
-    const _mapUvAttribute = (uvs, rect) => {
-      const [[tx, ty], [rx, ry], [bx, by], [lx, ly]] = rect;
-      const x = tx;
-      const y = ty;
-      const w = rx - lx;
-      const h = by - ty;
-      for (let i = 0; i < uvs.length; i += 2) {
-        if (uvs[i] < 0) {
-          uvs[i] = 0.001;
-        } else if (uvs[i] > 1) {
-          uvs[i] = 1-0.001;
-        }
-        if (uvs[i+1] < 0) {
-          uvs[i+1] = 0.001;
-        } else if (uvs[i+1] > 1) {
-          uvs[i+1] = 1-0.001;
-        }
-        uvs[i] = x + uvs[i]*w;
-        uvs[i+1] = y + uvs[i+1]*h;
-      }
-    };
-    const _mergeGroup = g => {
-      const geometries = [];
-      g.traverse(o => {
-        if (o.isMesh) {
-          const {geometry, material} = o;
-          const {map, color} = material;
-          const hsl = color.getHSL({});
-          if (hsl.s > 0 && hsl.l < 0.2) {
-            color.multiplyScalar(3);
-          }
-          if (map) {
-            let rect = rects.get(map.image.id);
-            if (!rect) {
-              map.image.id = 'img-' + rects.size;
-              atlas.pack(map.image);
-              rect = atlas.uv()[map.image.id];
-              rects.set(map.image.id, rect);
-            }
-            _mapUvAttribute(geometry.attributes.uv.array, rect);
-          } else {
-            const uvs = new Float32Array(geometry.attributes.position.array.length/3*2);
-            for (let i = 0; i < uvs.length; i += 2) {
-              uvs[i] = 1;
-              uvs[i+1] = 1;
-            }
-            geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-          }
-
-          const colors = new Float32Array(geometry.attributes.position.array.length);
-          for (let i = 0; i < colors.length; i += 3) {
-            color.toArray(colors, i);
-          }
-          geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-          geometries.push(geometry);
-        }
-      });
-      const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.name = g.name;
-      geometry.applyMatrix4(new THREE.Matrix4().makeScale(scale, scale, scale));
-      const box = new THREE.Box3().setFromObject(mesh);
-      const center = box.getCenter(new THREE.Vector3());
-      geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
-      // geometry.computeVertexNormals();
-      return mesh;
-    };
-
-    const result = {};
-    structureModels.children.forEach((c, index) => {
-      const c2 = _mergeGroup(c);
-      // c2.position.x = -6 + index*2;
-      // scene.add(c2);
-      result[c2.name] = c2;
-    });
-    atlas.context.fillStyle = '#FFF';
-    atlas.context.fillRect(canvas.width-1, canvas.height-1, 1, 1);
-    // console.log('got result', result);
-
-    const instanceMaterial = new THREE.ShaderMaterial({
-      uniforms: {
-        map: {
-          type: 't',
-          value: texture,
-        },
-      },
-      vertexShader: `\
-        precision highp float;
-        precision highp int;
-
-        attribute vec3 color;
-        attribute vec3 colorOffset;
-        attribute vec3 positionOffset;
-        attribute vec4 quaternionOffset;
-        attribute vec3 scaleOffset;
-        varying vec2 vUv;
-        varying vec3 vNormal;
-        varying vec3 vColor;
-        varying vec3 vColorOffset;
-
-        vec3 applyQuaternion(vec3 v, vec4 q) {
-          return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
-        }
-
-        void main() {
-          vUv = uv;
-          vNormal = normal;
-          vColor = color;
-          vColorOffset = colorOffset;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(applyQuaternion(position.xyz * scaleOffset, quaternionOffset) + positionOffset, 1.0);
-        }
-      `,
-      fragmentShader: `\
-        precision highp float;
-        precision highp int;
-
-        uniform sampler2D map;
-        varying vec2 vUv;
-        varying vec3 vNormal;
-        varying vec3 vColor;
-        varying vec3 vColorOffset;
-
-        vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
-
-        void main() {
-          vec3 c = texture2D(map, vUv).rgb;
-          float dotNL = dot(vNormal, l);
-          gl_FragColor = vec4(c * vColor * vColorOffset * (0.5 + 0.5*abs(dotNL)), 1.0);
-        }
-      `,
-      // lights: true,
-      /* extensions: {
-        derivatives: true,
-      }, */
-      // side: THREE.DoubleSide,
-    });
-    const _makeInstancedMesh = mesh => {
-      const geometry = new THREE.InstancedBufferGeometry();
-      for (const k in mesh.geometry.attributes) {
-        geometry.setAttribute(k, mesh.geometry.attributes[k]);
-      }
-      geometry.setIndex(mesh.geometry.index);
-      const positionOffsets = new Float32Array(3*PLANET_OBJECT_SLOTS);
-      geometry.setAttribute('positionOffset', new THREE.InstancedBufferAttribute(positionOffsets, 3));
-      const quaternionOffsets = new Float32Array(4*PLANET_OBJECT_SLOTS);
-      geometry.setAttribute('quaternionOffset', new THREE.InstancedBufferAttribute(quaternionOffsets, 4));
-      const scaleOffsets = new Float32Array(3*PLANET_OBJECT_SLOTS);
-      geometry.setAttribute('scaleOffset', new THREE.InstancedBufferAttribute(scaleOffsets, 3));
-      const colorOffsets = new Float32Array(3*PLANET_OBJECT_SLOTS);
-      geometry.setAttribute('colorOffset', new THREE.InstancedBufferAttribute(colorOffsets, 3));
-      geometry.instanceCount = 0;
-
-      const instancedMesh = new THREE.Mesh(geometry, instanceMaterial);
-      instancedMesh.addInstance = (meshId, position, quaternion, scale) => {
-        const o = {
-          meshId,
-          index: geometry.instanceCount,
-          position: position.clone(),
-          quaternion: quaternion.clone(),
-          scale: scale.clone(),
-          matrix: new THREE.Matrix4().compose(position, quaternion, scale),
-          color: new THREE.Color(0xFFFFFF),
-          updatePosition() {
-            o.position.toArray(geometry.attributes.positionOffset.array, o.index*3);
-            geometry.attributes.positionOffset.needsUpdate = true;
-          },
-          updateColor() {
-            o.color.toArray(geometry.attributes.colorOffset.array, o.index*3);
-            geometry.attributes.colorOffset.needsUpdate = true;
-          },
-          remove() {
-            geometry.instanceCount--;
-            if (geometry.instanceCount > 0) {
-              const positionOffset = new Float32Array(geometry.attributes.positionOffset.array.buffer, geometry.attributes.positionOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
-              geometry.attributes.positionOffset.array.set(positionOffset, o.index*3);
-              geometry.attributes.positionOffset.needsUpdate = true;
-
-              const quaternionOffset = new Float32Array(geometry.attributes.quaternionOffset.array.buffer, geometry.attributes.quaternionOffset.array.byteOffset + geometry.instanceCount*4*Float32Array.BYTES_PER_ELEMENT, 4);
-              geometry.attributes.quaternionOffset.array.set(quaternionOffset, o.index*4);
-              geometry.attributes.quaternionOffset.needsUpdate = true;
-
-              const scaleOffset = new Float32Array(geometry.attributes.scaleOffset.array.buffer, geometry.attributes.scaleOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
-              geometry.attributes.scaleOffset.array.set(scaleOffset, o.index*3);
-              geometry.attributes.scaleOffset.needsUpdate = true;
-
-              const colorOffset = new Float32Array(geometry.attributes.colorOffset.array.buffer, geometry.attributes.colorOffset.array.byteOffset + geometry.instanceCount*3*Float32Array.BYTES_PER_ELEMENT, 3);
-              geometry.attributes.colorOffset.array.set(colorOffset, o.index*3);
-              geometry.attributes.colorOffset.needsUpdate = true;
-            }
-          },
-        };
-        o.position.toArray(geometry.attributes.positionOffset.array, o.index*3);
-        geometry.attributes.positionOffset.needsUpdate = true;
-        o.quaternion.toArray(geometry.attributes.quaternionOffset.array, o.index*4);
-        geometry.attributes.quaternionOffset.needsUpdate = true;
-        o.scale.toArray(geometry.attributes.scaleOffset.array, o.index*3);
-        geometry.attributes.scaleOffset.needsUpdate = true;
-        o.color.toArray(geometry.attributes.colorOffset.array, o.index*3);
-        geometry.attributes.colorOffset.needsUpdate = true;
-
-        geometry.instanceCount++;
-        return o;
-      };
-      instancedMesh.frustumCulled = false;
-      instancedMesh.mesh = mesh;
-      return instancedMesh;
-    };
-
-    stairsMesh = result['StairsWood2'].clone();
-    stairsMesh.geometry = stairsMesh.geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeScale(1, Math.sqrt(2)*0.9, Math.sqrt(2)*0.8))
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.005)))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2 - 0.02, 0));
-    stairsMesh.buildMeshType = 'stair';
-    stairsMesh.traverse(o => {
-      if (o.isMesh) {
-        o.isBuildMesh = true;
-      }
-    });
-    stairsMesh.instancedMesh = _makeInstancedMesh(stairsMesh);
-    stairsMesh.physicsOffset = {
-      position: new THREE.Vector3(0, 1, 0),
-      quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/4),
-      scale: new THREE.Vector3(2, 2*Math.sqrt(2), 0.1),
-    };
-
-    platformMesh = result['FloorWood2'].clone();
-    platformMesh.geometry = platformMesh.geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeScale(1.05, 1, 1))
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.005)))
-    platformMesh.buildMeshType = 'floor';
-    platformMesh.traverse(o => {
-      if (o.isMesh) {
-        o.isBuildMesh = true;
-      }
-    });
-    platformMesh.instancedMesh = _makeInstancedMesh(platformMesh);
-    platformMesh.physicsOffset = {
-      position: new THREE.Vector3(0, 0, 0),
-      quaternion: new THREE.Quaternion(),
-      scale: new THREE.Vector3(2, 0.1, 2),
-    };
-
-    wallMesh = result['WallWood2'].clone();
-    wallMesh.geometry = wallMesh.geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2)))
-      .applyMatrix4(new THREE.Matrix4().makeScale(1.2, 1.03, 1))
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.005)))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, -2/2));
-    wallMesh.buildMeshType = 'wall';
-    wallMesh.traverse(o => {
-      if (o.isMesh) {
-        o.isBuildMesh = true;
-      }
-    });
-    wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);
-    wallMesh.physicsOffset = {
-      position: new THREE.Vector3(0, 1, -1),
-      quaternion: new THREE.Quaternion(),
-      scale: new THREE.Vector3(2, 2, 0.1),
-    };
-
-    /* stairsMesh = result['StairsBrickFinal'].clone();
-    stairsMesh.geometry = stairsMesh.geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeScale(1, Math.sqrt(2)*0.9, Math.sqrt(2)*0.8))
-      // .applyMatrix4(new THREE.Matrix4().makeScale(1.04, 1, 0.925 * Math.sqrt(2)))
-      // .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4 + 0.005)))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, 0));
-    stairsMesh.buildMeshType = 'stair';
-    stairsMesh.traverse(o => {
-      if (o.isMesh) {
-        o.isBuildMesh = true;
-      }
-    });
-    stairsMesh.instancedMesh = _makeInstancedMesh(stairsMesh);
-
-    platformMesh = result['FloorBrickFInal'].clone();
-    platformMesh.geometry = platformMesh.geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeScale(1.03, 1, 1.03))
-      // .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.005)))
-    platformMesh.buildMeshType = 'floor';
-    platformMesh.traverse(o => {
-      if (o.isMesh) {
-        o.isBuildMesh = true;
-      }
-    });
-    platformMesh.instancedMesh = _makeInstancedMesh(platformMesh);
-
-    wallMesh = result['WallStone'].clone();
-    // wallMesh = result['WallBrick'].clone();
-    wallMesh.geometry = wallMesh.geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeScale(1.03, 1.3, 1))
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.005)))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, -2/2));
-    wallMesh.buildMeshType = 'wall';
-    wallMesh.traverse(o => {
-      if (o.isMesh) {
-        o.isBuildMesh = true;
-      }
-    });
-    wallMesh.instancedMesh = _makeInstancedMesh(wallMesh); */
-
-    /* stairsMesh = result['WallMetal3'].clone();
-    stairsMesh.geometry = stairsMesh.geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/2)))
-      .applyMatrix4(new THREE.Matrix4().makeScale(2.5, 1, 1))
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/4 + 0.005)))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, 0));
-    stairsMesh.buildMeshType = 'stair';
-    stairsMesh.traverse(o => {
-      if (o.isMesh) {
-        o.isBuildMesh = true;
-      }
-    });
-    stairsMesh.instancedMesh = _makeInstancedMesh(stairsMesh);
-
-    platformMesh = result['WallMetal2'].clone();
-    platformMesh.geometry = platformMesh.geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2)))
-      .applyMatrix4(new THREE.Matrix4().makeScale(0.7, 1, 1.25))
-      // .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.005)))
-    platformMesh.buildMeshType = 'floor';
-    platformMesh.traverse(o => {
-      if (o.isMesh) {
-        o.isBuildMesh = true;
-      }
-    });
-    platformMesh.instancedMesh = _makeInstancedMesh(platformMesh);
-
-    wallMesh = result['WallMetal1'].clone();
-    wallMesh.geometry = wallMesh.geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeScale(0.99, 1.3, 1))
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.005)))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, -2/2));
-    wallMesh.buildMeshType = 'wall';
-    wallMesh.traverse(o => {
-      if (o.isMesh) {
-        o.isBuildMesh = true;
-      }
-    });
-    wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);  */
+    const survivalModels = await _loadGltf('./survival.glb');
+    woodMesh = survivalModels.children.find(c => c.name === 'wood1');
+    stoneMesh = survivalModels.children.find(c => c.name === 'stone2');
+    metalMesh = survivalModels.children.find(c => c.name === 'metal1');
   })(),
   (async () => {
     geometryWorker = await (async () => {
@@ -1159,16 +789,15 @@ const [
         return BufferGeometryUtils.mergeBufferGeometries(geometries);
       };
 
-      const vegetationModelsSrc = await _loadGltf('./vegetation.glb');
-
+      // const vegetationModelsSrc = await _loadGltf('./vegetation.glb');
       const vegetationSpecs = [
-        ['grass1', [['Grass1', true]]],
+        /* ['grass1', [['Grass1', true]]],
         ['grass2', [['Grass2', true]]],
         ['grass3', [['Grass3', true]]],
         ['tree', [['Generic_Tree_#1', false], ['Fanta_Leaves_#1', true]]],
         ['tree2', [['Generic_Tree_#3', false], ['Boab_Leaves_#3', true]]],
         ['pinetree', [['Pine_-_Wood_#3', false], ['Pine_Leaves_#3', true]]],
-        ['chest', [['Chest_top', false]]],
+        ['chest', [['Chest_top', false]]], */
       ];
       for (const vegetationSpec of vegetationSpecs) {
         const [type, objectSpecs] = vegetationSpec;
@@ -1255,10 +884,9 @@ const [
         return mesh;
       };
 
-      const structureModels = await _loadGltf('./structure.glb');
-
+      const buildModels = await _loadGltf('./build.glb');
       {
-        const stairsMesh = _mergeGroup(structureModels.getObjectByName('StairsWood2'));
+        const stairsMesh = _mergeGroup(buildModels.getObjectByName('wood_ramp'));
         let {geometry} = stairsMesh;
         geometry = geometry.clone()
           .applyMatrix4(new THREE.Matrix4().makeScale(1, Math.sqrt(2)*0.9, Math.sqrt(2)*0.8))
@@ -1272,7 +900,7 @@ const [
         }]);
       }
       {
-        const platformMesh = _mergeGroup(structureModels.getObjectByName('FloorWood2'));
+        const platformMesh = _mergeGroup(buildModels.getObjectByName('wood_floor'));
         let {geometry} = platformMesh;
         geometry = geometry.clone()
           .applyMatrix4(new THREE.Matrix4().makeScale(1.05, 1, 1))
@@ -1285,7 +913,7 @@ const [
         }]);
       }
       {
-        const wallMesh = _mergeGroup(structureModels.getObjectByName('WallWood2'));
+        const wallMesh = _mergeGroup(buildModels.getObjectByName('wood_wall'));
         let {geometry} = wallMesh;
         geometry = geometry.clone()
           .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2)))
@@ -2068,7 +1696,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
                subparcel.potentials.set(parcelSpec.potentials);
                subparcel.heightfield.set(parcelSpec.heightfield);
                for (const object of parcelSpec.objects) {
-                 subparcel.addVegetation('tree', localVector.fromArray(object.position), localQuaternion.fromArray(object.quaternion));
+                 subparcel.addVegetation('tree1', localVector.fromArray(object.position), localQuaternion.fromArray(object.quaternion));
                }
             });
           }
