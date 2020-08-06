@@ -2808,10 +2808,15 @@ for (let i = 0; i < 30; i++) {
 })();
 
 // let wrenchMesh = null;
+let buildMode = null;
 let plansMesh = null;
 let pencilMesh = null;
 let pickaxeMesh = null;
 let paintBrushMesh = null;
+let assaultRifleMesh = null;
+let smgMesh = null;
+let grenadeMesh = null;
+let crosshairMesh = null;
 (async () => {
   const toolsModels = await _loadGltf('./tools.glb');
 
@@ -2827,28 +2832,20 @@ let paintBrushMesh = null;
   paintBrushMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Paint_Brush_02');
   paintBrushMesh.visible = false;
   scene.add(paintBrushMesh);
-})();
-let buildMode = null;
-let assaultRifleMesh = null;
-let smgMesh = null;
-let grenadeMesh = null;
-let crosshairMesh = null;
-(async () => {
-  const weaponsModels = await _loadGltf('./weapons.glb');
 
-  assaultRifleMesh = weaponsModels.children.find(c => c.name === 'SM_Wep_Rifle_Assault_01');
+  assaultRifleMesh = toolsModels.children.find(c => c.name === 'SM_Wep_Rifle_Assault_01');
   assaultRifleMesh.visible = false;
   scene.add(assaultRifleMesh);
 
-  smgMesh = weaponsModels.children.find(c => c.name === 'SM_Wep_SubMGun_Lite_01');
+  smgMesh = toolsModels.children.find(c => c.name === 'SM_Wep_SubMGun_Lite_01');
   smgMesh.visible = false;
   scene.add(smgMesh);
 
-  grenadeMesh = weaponsModels.children.find(c => c.name === 'SM_Wep_Grenade_01');
+  grenadeMesh = toolsModels.children.find(c => c.name === 'SM_Wep_Grenade_01');
   grenadeMesh.visible = false;
   scene.add(grenadeMesh);
 
-  crosshairMesh = weaponsModels.children.find(c => c.name === 'SM_Wep_Crosshair_04');
+  crosshairMesh = toolsModels.children.find(c => c.name === 'SM_Wep_Crosshair_04');
   crosshairMesh.scale.set(50, 50, 50);
   crosshairMesh.traverse(o => {
     if (o.isMesh) {
