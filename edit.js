@@ -344,7 +344,6 @@ const _setCurrentChunkMesh = chunkMesh => {
 let stairsMesh = null;
 let platformMesh = null;
 let wallMesh = null;
-let spikesMesh = null;
 let woodMesh = null;
 let stoneMesh = null;
 let metalMesh = null;
@@ -980,23 +979,6 @@ const [
       scale: new THREE.Vector3(2, 2, 0.1),
     };
 
-    spikesMesh = result['StairsWood2'].clone();
-    spikesMesh.geometry = spikesMesh.geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeScale(0.01, 0.01, 0.01))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
-    spikesMesh.buildMeshType = 'trap';
-    spikesMesh.traverse(o => {
-      if (o.isMesh) {
-        o.isBuildMesh = true;
-      }
-    });
-    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh);
-    spikesMesh.physicsOffset = {
-      position: new THREE.Vector3(0, 0, 0),
-      quaternion: new THREE.Quaternion(),
-      scale: new THREE.Vector3(2, 0.1, 2),
-    };
-
     /* stairsMesh = result['StairsBrickFinal'].clone();
     stairsMesh.geometry = stairsMesh.geometry.clone()
       .applyMatrix4(new THREE.Matrix4().makeScale(1, Math.sqrt(2)*0.9, Math.sqrt(2)*0.8))
@@ -1035,19 +1017,7 @@ const [
         o.isBuildMesh = true;
       }
     });
-    wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);
-
-    spikesMesh = result['FloorBrickFInal'].clone();
-    spikesMesh.geometry = spikesMesh.geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeScale(0.01, 0.01, 0.01))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
-    spikesMesh.buildMeshType = 'trap';
-    spikesMesh.traverse(o => {
-      if (o.isMesh) {
-        o.isBuildMesh = true;
-      }
-    });
-    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh); */
+    wallMesh.instancedMesh = _makeInstancedMesh(wallMesh); */
 
     /* stairsMesh = result['WallMetal3'].clone();
     stairsMesh.geometry = stairsMesh.geometry.clone()
@@ -1087,19 +1057,7 @@ const [
         o.isBuildMesh = true;
       }
     });
-    wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);
-
-    spikesMesh = result['WallMetal3'].clone();
-    spikesMesh.geometry = spikesMesh.geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeScale(0.01, 0.01, 0.01))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
-    spikesMesh.buildMeshType = 'trap';
-    spikesMesh.traverse(o => {
-      if (o.isMesh) {
-        o.isBuildMesh = true;
-      }
-    });
-    spikesMesh.instancedMesh = _makeInstancedMesh(spikesMesh); */
+    wallMesh.instancedMesh = _makeInstancedMesh(wallMesh);  */
   })(),
   (async () => {
     geometryWorker = await (async () => {
@@ -2393,7 +2351,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         case 'wall': return wallMesh;
         case 'floor': return platformMesh;
         case 'stair': return stairsMesh;
-        case 'trap': return spikesMesh;
         default: return null;
       }
     })();
@@ -3969,7 +3926,7 @@ function animate(timestamp, frame) {
         }
       }
       if (wallMesh && currentChunkMesh) {
-        [wallMesh, platformMesh, stairsMesh, spikesMesh].forEach(buildMesh => {
+        [wallMesh, platformMesh, stairsMesh].forEach(buildMesh => {
           buildMesh.parent && buildMesh.parent.remove(buildMesh);
         });
         if (buildMode) {
@@ -3978,7 +3935,6 @@ function animate(timestamp, frame) {
               case 'wall': return wallMesh;
               case 'floor': return platformMesh;
               case 'stair': return stairsMesh;
-              case 'trap': return spikesMesh;
               default: return null;
             }
           })();
@@ -4300,7 +4256,6 @@ function animate(timestamp, frame) {
               case 'wall': return wallMesh;
               case 'floor': return platformMesh;
               case 'stair': return stairsMesh;
-              case 'trap': return spikesMesh;
               default: return null;
             }
           })();
@@ -5007,11 +4962,6 @@ window.addEventListener('keydown', e => {
     case 67: { // C
       document.querySelector('.weapon[weapon="build"]').click();
       buildMode = 'stair';
-      break;
-    }
-    case 86: { // V
-      document.querySelector('.weapon[weapon="build"]').click();
-      buildMode = 'trap';
       break;
     }
     /* case 80: { // P
