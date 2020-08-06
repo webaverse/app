@@ -11,6 +11,12 @@ const _loadGltf = u => new Promise((accept, reject) => {
     accept(o);
   }, xhr => {}, reject);
 });
+const _resizeImage = (img, scale) => {
+  const canvas = new OffscreenCanvas(img.width * scale, img.height * scale);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas;
+};
 const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
 const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSizeP1*subparcelSizeP1 + z*subparcelSizeP1;
 const _align4 = n => {
@@ -39,8 +45,16 @@ const _mergeObject = o => {
   const {map} = material;
   let rect = rects.get(map.image.data.id);
   if (!rect) {
+    const resizeFactor = Math.min(4096/map.image.data.width, 4096/map.image.data.height);
+    if (resizeFactor < 1) {
+      map.image.data = _resizeImage(map.image.data, resizeFactor);
+    }
     map.image.data.id = 'img-' + rects.size;
-    atlas.pack(map.image.data);
+    const r = atlas.pack(map.image.data);
+    if (!r) {
+      console.log('fail r', o, map, r, atlas.uv());
+      debugger;
+    }
     rect = atlas.uv()[map.image.data.id];
     rects.set(map.image.data.id, rect);
   }
