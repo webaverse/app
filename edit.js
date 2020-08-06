@@ -3,6 +3,7 @@
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
 import {GLTFLoader} from './GLTFLoader.module.js';
+import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
 import CapsuleGeometry from './CapsuleGeometry.js';
 // import address from 'https://contracts.webaverse.com/address.js';
@@ -750,17 +751,38 @@ const [
     }
 
     const texture = await (async () => {
-      const result = await geometryWorker.requestGetTexture();
-      const canvas = document.createElement('canvas');
-      canvas.width = result.width;
-      canvas.height = result.height;
-      const ctx = canvas.getContext('2d');
-      const imageData = ctx.createImageData(result.width, result.height);
-      imageData.data.set(result.data);
-      ctx.putImageData(imageData, 0, 0);
-      const texture = new THREE.Texture(canvas);
-      texture.flipY = false;
-      texture.needsUpdate = true;
+      /* const arrayBuffer = await geometryWorker.requestGetTexture();
+      console.log('got blob', arrayBuffer);
+      const a = document.createElement('a');
+      a.download = 'texture.png';
+      const blob = new Blob([arrayBuffer], {
+        type: 'image/png',
+      });
+      const url = URL.createObjectURL(blob);
+      a.href = url;
+      a.click();
+      URL.revokeObjectURL(url); */
+
+      const basisLoader = new BasisTextureLoader();
+      // basisLoader.setTranscoderPath( 'examples/js/libs/basis/' );
+      basisLoader.detectSupport(renderer);
+      console.time('lol');
+      const texture = await new Promise((accept, reject) => {
+        basisLoader.load('texture.basis', texture => {
+
+          console.timeEnd('lol');
+          accept(texture);
+
+        }, function () {
+
+          // console.log( 'onProgress' );
+
+        }, err => {
+
+          reject(err);
+
+        } );
+      });
       return texture;
     })();
 
