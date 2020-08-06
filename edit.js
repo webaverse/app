@@ -746,7 +746,7 @@ const [
       return w;
     })();
 
-    for (const u of ['./build.glb', './survival.glb']) {
+    for (const u of ['./tools.glb', './build.glb', './survival.glb']) {
       await geometryWorker.requestRegisterFile(u);
     }
 
