@@ -1,4 +1,4 @@
-importScripts('./three.js', './GLTFLoader.js', './atlaspack.js');
+importScripts('./three.js', './GLTFLoader.js', './atlaspack.js', './draco_encoder.js', './draco_decoder.js');
 const wasmModulePromise = Promise.resolve();
 
 const localVector = new THREE.Vector3();
@@ -223,6 +223,147 @@ const _handleMessage = async data => {
           uvs: geometry.attributes.uv.array,
           indices: geometry.index.array,
         }];
+      }
+
+      const tree1 = gltf.children.find(c => c.name === 'tree1');
+      if (tree1) {
+        {
+          const {geometry} = tree1;
+
+          const mesh = {
+            indices: geometry.index.array,
+            positions: geometry.attributes.position.array,
+            uvs: geometry.attributes.uv.array,
+          };
+
+          const encoderModule = new DracoEncoderModule({
+            onModuleLoaded() {
+              const encoder = new encoderModule.Encoder();
+              const meshBuilder = new encoderModule.MeshBuilder();
+              const dracoMesh = new encoderModule.Mesh();
+
+              const numFaces = mesh.indices.length / 3;
+              const numPoints = mesh.positions.length;
+              meshBuilder.AddFacesToMesh(dracoMesh, numFaces, mesh.indices);
+
+              meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.POSITION,
+                numPoints, 3, mesh.positions);
+              /* if (mesh.hasOwnProperty('normals')) {
+                meshBuilder.AddFloatAttributeToMesh(
+                  dracoMesh, encoderModule.NORMAL, numPoints, 3, mesh.normals);
+              }
+              if (mesh.hasOwnProperty('colors')) {
+                meshBuilder.AddFloatAttributeToMesh(
+                  dracoMesh, encoderModule.COLOR, numPoints, 3, mesh.colors);
+              } */
+              // if (mesh.hasOwnProperty('texcoords')) {
+                meshBuilder.AddFloatAttributeToMesh(
+                  dracoMesh, encoderModule.TEX_COORD, numPoints, 2, mesh.uvs);
+              // }
+
+              // if (method === "edgebreaker") {
+                encoder.SetEncodingMethod(encoderModule.MESH_EDGEBREAKER_ENCODING);
+              /* } else if (method === "sequential") {
+                encoder.SetEncodingMethod(encoderModule.MESH_SEQUENTIAL_ENCODING);
+              } */
+
+              const encodedData = new encoderModule.DracoInt8Array();
+              // Use default encoding setting.
+              const encodedLen = encoder.EncodeMeshToDracoBuffer(dracoMesh,
+                                                                 encodedData);
+              const byteArray = new Uint8Array(encodedLen);
+              for (let i = 0; i < encodedLen; i++) {
+                byteArray[i] = encodedData.GetValue(i);
+              }
+              encoderModule.destroy(dracoMesh);
+              encoderModule.destroy(encoder);
+              encoderModule.destroy(meshBuilder);
+              encoderModule.destroy(encodedData);
+
+              // Create the Draco decoder.
+              const decoderModule = DracoDecoderModule({
+                onModuleLoaded() {
+                  const buffer = new decoderModule.DecoderBuffer();
+                  buffer.Init(byteArray, byteArray.length);
+
+                  // Create a buffer to hold the encoded data.
+                  const decoder = new decoderModule.Decoder();
+                  const geometryType = decoder.GetEncodedGeometryType(buffer);
+
+                  // Decode the encoded geometry.
+                  let outputGeometry;
+                  let status;
+                  if (geometryType == decoderModule.TRIANGULAR_MESH) {
+                    outputGeometry = new decoderModule.Mesh();
+                    status = decoder.DecodeBufferToMesh(buffer, outputGeometry);
+                  } else {
+                    outputGeometry = new decoderModule.PointCloud();
+                    status = decoder.DecodeBufferToPointCloud(buffer, outputGeometry);
+                  }
+
+                  // console.log('go output', tree1, outputGeometry, decoderModule.POSITION, decoder.GetAttributeId(outputGeometry, decoderModule.POSITION), decoder.GetAttributeId(outputGeometry, decoderModule.TEX_COORD));
+
+                  let positions;
+                  {
+                    const id = decoder.GetAttributeId(outputGeometry, decoderModule.POSITION);
+                    const attribute = decoder.GetAttribute(outputGeometry, id);
+                    const numComponents = attribute.num_components();
+                    const numPoints = outputGeometry.num_points();
+                    const numValues = numPoints * numComponents;
+                    const dracoArray = new decoderModule.DracoFloat32Array();
+                    decoder.GetAttributeFloatForAllPoints( outputGeometry, attribute, dracoArray );
+                    positions = new Float32Array( numValues );
+                    for ( var i = 0; i < numValues; i ++ ) {
+                      positions[ i ] = dracoArray.GetValue( i );
+                    }
+                    decoderModule.destroy( dracoArray );
+                  }
+                  let uvs;
+                  {
+                    const id = decoder.GetAttributeId(outputGeometry, decoderModule.TEX_COORD);
+                    const attribute = decoder.GetAttribute(outputGeometry, id);
+                    const numComponents = attribute.num_components();
+                    const numPoints = outputGeometry.num_points();
+                    const numValues = numPoints * numComponents;
+                    const dracoArray = new decoderModule.DracoFloat32Array();
+                    decoder.GetAttributeFloatForAllPoints( outputGeometry, attribute, dracoArray );
+                    uvs = new Float32Array( numValues );
+                    for ( var i = 0; i < numValues; i ++ ) {
+                      uvs[ i ] = dracoArray.GetValue( i );
+                    }
+                    decoderModule.destroy( dracoArray );
+                  }
+                  let index;
+                  {
+                    const numFaces = outputGeometry.num_faces();
+                    const numIndices = numFaces * 3;
+                    index = new Uint16Array( numIndices );
+                    const indexArray = new decoderModule.DracoInt32Array();
+
+                    for ( var i = 0; i < numFaces; ++ i ) {
+
+                      decoder.GetFaceFromMesh( outputGeometry, i, indexArray );
+
+                      for ( var j = 0; j < 3; ++ j ) {
+
+                        index[ i * 3 + j ] = indexArray.GetValue( j );
+
+                      }
+
+                    }
+                  }
+                  console.log('got result', tree1, positions, uvs, index);
+
+                  // You must explicitly delete objects created from the DracoDecoderModule
+                  // or Decoder.
+                  decoderModule.destroy(outputGeometry);
+                  decoderModule.destroy(decoder);
+                  decoderModule.destroy(buffer);
+                },
+              });
+            },
+          });
+        }
       }
 
       self.postMessage({
