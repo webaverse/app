@@ -3591,7 +3591,7 @@ function animate(timestamp, frame) {
   lastTimestamp = timestamp;
 
   const now = Date.now();
-  if (currentChunkMesh) {
+  if (currentChunkMesh && skybox2) {
     for (const material of currentChunkMesh.material) {
       const {uniforms} = material;
       uniforms.uTime.value = (now % timeFactor) / timeFactor;
@@ -3600,14 +3600,14 @@ function animate(timestamp, frame) {
       uniforms.sunIntensity.needsUpdate = true;
     }
   }
-  if (currentVegetationMesh) {
+  if (currentVegetationMesh && skybox2) {
     for (const material of currentVegetationMesh.material) {
       const {uniforms} = material;
       uniforms.sunIntensity.value = Math.max(skybox2.material.uniforms.sunPosition.value.y, 0);
       uniforms.sunIntensity.needsUpdate = true;
     }
   }
-  if (currentVegetationTransparentMesh) {
+  if (currentVegetationTransparentMesh && skybox2) {
     for (const material of currentVegetationTransparentMesh.material) {
       const {uniforms} = material;
       uniforms.sunIntensity.value = Math.max(skybox2.material.uniforms.sunPosition.value.y, 0);
