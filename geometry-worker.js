@@ -1,29 +1,16 @@
-importScripts('https://static.xrpackage.org/xrpackage/three.js');
+importScripts('./three.js', './GLTFLoader.js', './atlaspack.js');
 const wasmModulePromise = Promise.resolve();
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
 
-class Allocator {
-  constructor() {
-    this.offsets = [];
-  }
-  alloc(constructor, size) {
-    const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
-    const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
-    b.offset = offset;
-    this.offsets.push(offset);
-    return b;
-  }
-  freeAll() {
-    for (let i = 0; i < this.offsets.length; i++) {
-      self.Module._doFree(this.offsets[i]);
-    }
-    this.offsets.length = 0;
-  }
-}
-
+const _loadGltf = u => new Promise((accept, reject) => {
+  new THREE.GLTFLoader().load(u, o => {
+    o = o.scene;
+    accept(o);
+  }, xhr => {}, reject);
+});
 const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
 const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSizeP1*subparcelSizeP1 + z*subparcelSizeP1;
 const _align4 = n => {
@@ -32,7 +19,33 @@ const _align4 = n => {
 };
 
 const geometryRegistry = {};
-
+const size = 16384;
+const canvas = new OffscreenCanvas(size, size);
+const atlas = atlaspack(canvas);
+const rects = new Map();
+const _mapUvAttribute = (uvs, rect) => {
+  const [[tx, ty], [rx, ry], [bx, by], [lx, ly]] = rect;
+  const x = tx;
+  const y = ty;
+  const w = rx - lx;
+  const h = by - ty;
+  for (let i = 0; i < uvs.length; i += 2) {
+    uvs[i] = x + uvs[i]*w;
+    uvs[i+1] = y + uvs[i+1]*h;
+  }
+};
+const _mergeObject = o => {
+  const {geometry, material} = o;
+  const {map} = material;
+  let rect = rects.get(map.image.data.id);
+  if (!rect) {
+    map.image.data.id = 'img-' + rects.size;
+    atlas.pack(map.image.data);
+    rect = atlas.uv()[map.image.data.id];
+    rects.set(map.image.data.id, rect);
+  }
+  _mapUvAttribute(geometry.attributes.uv.array, rect);
+};
 const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSize) => {
   const geometries = objects.map(o => geometryRegistry[o.type]);
 
@@ -194,17 +207,41 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
 
 const queue = [];
 let loaded = false;
-const _handleMessage = data => {
+const _handleMessage = async data => {
   const {method} = data;
   switch (method) {
-    case 'registerGeometry': {
-      const {type, geometrySpecs} = data;
+    case 'registerFile': {
+      const {url} = data;
+      const gltf = await _loadGltf(url);
 
-      geometryRegistry[type] = geometrySpecs;
+      for (const child of gltf.children) {
+        _mergeObject(child)
+        const {name, geometry} = child;
+        geometryRegistry[name] = [{
+          transparent: false,
+          positions: geometry.attributes.position.array,
+          uvs: geometry.attributes.uv.array,
+          indices: geometry.index.array,
+        }];
+      }
 
       self.postMessage({
         result: {},
       });
+      break;
+    }
+    case 'getTexture': {
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const {width, height, data} = imageData;
+
+      self.postMessage({
+        result: {
+          width,
+          height,
+          data,
+        },
+      }, [data.buffer]);
       break;
     }
     case 'marchObjects': {

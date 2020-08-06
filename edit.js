@@ -690,7 +690,7 @@ const [
     metalMesh = survivalModels.children.find(c => c.name === 'metal1');
   })(),
   (async () => {
-    geometryWorker = await (async () => {
+    geometryWorker = (() => {
       const cbs = [];
       const w = new Worker('geometry-worker.js');
       w.onmessage = e => {
@@ -712,13 +712,24 @@ const [
           }
         });
       });
-      w.requestRegisterGeometry = (type, geometrySpecs) => {
+      w.requestRegisterFile = url => {
+        return w.request({
+          method: 'registerFile',
+          url,
+        });
+      };
+      w.requestGetTexture = () => {
+        return w.request({
+          method: 'getTexture',
+        });
+      };
+      /* w.requestRegisterGeometry = (type, geometrySpecs) => {
         return w.request({
           method: 'registerGeometry',
           type,
           geometrySpecs,
         });
-      };
+      }; */
       w.requestMarchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSize) => {
         return w.request({
           method: 'marchObjects',
@@ -734,212 +745,42 @@ const [
       return w;
     })();
 
-    const canvas = document.createElement('canvas');
-    canvas.width = 8192;
-    canvas.height = 8192;
-    const texture = new THREE.Texture(canvas);
-    // texture.anisotropy = 16;
-    texture.flipY = false;
-    texture.needsUpdate = true;
-
-    const atlas = atlaspack(canvas);
-    const rects = new Map();
-    {
-      const _mapUvAttribute = (uvs, rect) => {
-        const [[tx, ty], [rx, ry], [bx, by], [lx, ly]] = rect;
-        const x = tx;
-        const y = ty;
-        const w = rx - lx;
-        const h = by - ty;
-        for (let i = 0; i < uvs.length; i += 2) {
-          uvs[i] = x + uvs[i]*w;
-          uvs[i+1] = y + uvs[i+1]*h;
-        }
-      };
-      const _mergeGroup = g => {
-        const geometries = [];
-        g.traverse(o => {
-          if (o.isMesh) {
-            const {geometry, material} = o;
-            const {map} = material;
-            if (map) {
-              let rect = rects.get(map.image.id);
-              if (!rect) {
-                map.image.id = 'img-' + rects.size;
-                atlas.pack(map.image);
-                rect = atlas.uv()[map.image.id];
-                rects.set(map.image.id, rect);
-              }
-              _mapUvAttribute(geometry.attributes.uv.array, rect);
-            } else {
-              const uvs = new Float32Array(geometry.attributes.position.array.length/3*2);
-              for (let i = 0; i < uvs.length; i += 2) {
-                uvs[i] = 1;
-                uvs[i+1] = 1;
-              }
-              geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-            }
-
-            geometry.applyMatrix4(new THREE.Matrix4().makeScale(o.scale.x, o.scale.y, o.scale.z));
-            geometry.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(o.quaternion));
-            geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(o.position.x, o.position.y, o.position.z));
-            geometries.push(geometry);
-          }
-        });
-        return BufferGeometryUtils.mergeBufferGeometries(geometries);
-      };
-
-      // const vegetationModelsSrc = await _loadGltf('./vegetation.glb');
-      const vegetationSpecs = [
-        /* ['grass1', [['Grass1', true]]],
-        ['grass2', [['Grass2', true]]],
-        ['grass3', [['Grass3', true]]],
-        ['tree', [['Generic_Tree_#1', false], ['Fanta_Leaves_#1', true]]],
-        ['tree2', [['Generic_Tree_#3', false], ['Boab_Leaves_#3', true]]],
-        ['pinetree', [['Pine_-_Wood_#3', false], ['Pine_Leaves_#3', true]]],
-        ['chest', [['Chest_top', false]]], */
-      ];
-      for (const vegetationSpec of vegetationSpecs) {
-        const [type, objectSpecs] = vegetationSpec;
-        const cs = objectSpecs.map(objectSpec => {
-          const [modelName, transparent] = objectSpec;
-          const c = vegetationModelsSrc.getObjectByName(modelName);
-          const geometry = _mergeGroup(c);
-          const positions = geometry.attributes.position.array;
-          const uvs = geometry.attributes.uv.array;
-          const indices = geometry.index.array;
-          return {transparent, positions, uvs, indices};
-        });
-        geometryWorker.requestRegisterGeometry(type, cs);
-      }
+    for (const u of ['./build.glb', './survival.glb']) {
+      await geometryWorker.requestRegisterFile(u);
     }
-    {
-      const _mapUvAttribute = (uvs, rect) => {
-        const [[tx, ty], [rx, ry], [bx, by], [lx, ly]] = rect;
-        const x = tx;
-        const y = ty;
-        const w = rx - lx;
-        const h = by - ty;
-        for (let i = 0; i < uvs.length; i += 2) {
-          if (uvs[i] < 0) {
-            uvs[i] = 0.001;
-          } else if (uvs[i] > 1) {
-            uvs[i] = 1-0.001;
-          }
-          if (uvs[i+1] < 0) {
-            uvs[i+1] = 0.001;
-          } else if (uvs[i+1] > 1) {
-            uvs[i+1] = 1-0.001;
-          }
-          uvs[i] = x + uvs[i]*w;
-          uvs[i+1] = y + uvs[i+1]*h;
-        }
-      };
-      const _mergeGroup = g => {
-        const geometries = [];
-        g.traverse(o => {
-          if (o.isMesh) {
-            const {geometry, material} = o;
-            const {map, color} = material;
-            const hsl = color.getHSL({});
-            if (hsl.s > 0 && hsl.l < 0.2) {
-              color.multiplyScalar(3);
-            }
-            if (map) {
-              let rect = rects.get(map.image.id);
-              if (!rect) {
-                map.image.id = 'img-' + rects.size;
-                atlas.pack(map.image);
-                rect = atlas.uv()[map.image.id];
-                rects.set(map.image.id, rect);
-              }
-              _mapUvAttribute(geometry.attributes.uv.array, rect);
-            } else {
-              const uvs = new Float32Array(geometry.attributes.position.array.length/3*2);
-              for (let i = 0; i < uvs.length; i += 2) {
-                uvs[i] = 1;
-                uvs[i+1] = 1;
-              }
-              geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-            }
 
-            /* const colors = new Float32Array(geometry.attributes.position.array.length);
-            for (let i = 0; i < colors.length; i += 3) {
-              color.toArray(colors, i);
-            }
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3)); */
-            geometries.push(geometry);
-          }
-        });
-        const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
-        const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: 0xFFFFFF }));
-        mesh.name = g.name;
-        // geometry.computeVertexNormals();
-        return mesh;
-      };
+    const texture = await (async () => {
+      const result = await geometryWorker.requestGetTexture();
+      const canvas = document.createElement('canvas');
+      canvas.width = result.width;
+      canvas.height = result.height;
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx.createImageData(result.width, result.height);
+      imageData.data.set(result.data);
+      ctx.putImageData(imageData, 0, 0);
+      const texture = new THREE.Texture(canvas);
+      texture.flipY = false;
+      texture.needsUpdate = true;
+      return texture;
+    })();
 
-      const buildModels = await _loadGltf('./build.glb');
-      {
-        stairsMesh = _mergeGroup(buildModels.getObjectByName('wood_ramp'));
-        let {geometry} = stairsMesh;
-        geometry = geometry.clone()
-          /* .applyMatrix4(new THREE.Matrix4().makeScale(1, Math.sqrt(2)*0.9, Math.sqrt(2)*0.8))
-          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.005)))
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2 - 0.02, 0)); */
-        geometryWorker.requestRegisterGeometry('stair', [{
-          transparent: false,
-          positions: geometry.attributes.position.array,
-          uvs: geometry.attributes.uv.array,
-          indices: geometry.index.array,
-        }]);
-      }
-      {
-        platformMesh = _mergeGroup(buildModels.getObjectByName('wood_floor'));
-        let {geometry} = platformMesh;
-        geometry = geometry.clone()
-          /* .applyMatrix4(new THREE.Matrix4().makeScale(1.05, 1, 1))
-          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.005))); */
-        geometryWorker.requestRegisterGeometry('floor', [{
-          transparent: false,
-          positions: geometry.attributes.position.array,
-          uvs: geometry.attributes.uv.array,
-          indices: geometry.index.array,
-        }]);
-      }
-      {
-        wallMesh = _mergeGroup(buildModels.getObjectByName('wood_wall'));
-        let {geometry} = wallMesh;
-        geometry = geometry.clone()
-          /* .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2)))
-          .applyMatrix4(new THREE.Matrix4().makeScale(1.2, 1.03, 1))
-          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.005)))
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2/2, -2/2)); */
-        geometryWorker.requestRegisterGeometry('wall', [{
-          transparent: false,
-          positions: geometry.attributes.position.array,
-          uvs: geometry.attributes.uv.array,
-          indices: geometry.index.array,
-        }]);
-      }
-
-      physicsShapes = {
-        stair: {
-          position: new THREE.Vector3(0, 1, 0),
-          quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/4),
-          scale: new THREE.Vector3(2, 2*Math.sqrt(2), 0.1),
-        },
-        floor: {
-          position: new THREE.Vector3(0, 0, 0),
-          quaternion: new THREE.Quaternion(),
-          scale: new THREE.Vector3(2, 0.1, 2),
-        },
-        wall: {
-          position: new THREE.Vector3(0, 1, -1),
-          quaternion: new THREE.Quaternion(),
-          scale: new THREE.Vector3(2, 2, 0.1),
-        },
-      };
-    }
+    physicsShapes = {
+      stair: {
+        position: new THREE.Vector3(0, 1, 0),
+        quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/4),
+        scale: new THREE.Vector3(2, 2*Math.sqrt(2), 0.1),
+      },
+      floor: {
+        position: new THREE.Vector3(0, 0, 0),
+        quaternion: new THREE.Quaternion(),
+        scale: new THREE.Vector3(2, 0.1, 2),
+      },
+      wall: {
+        position: new THREE.Vector3(0, 1, -1),
+        quaternion: new THREE.Quaternion(),
+        scale: new THREE.Vector3(2, 2, 0.1),
+      },
+    };
 
     const _makeVegetationMaterial = transparent => {
       const material = new THREE.ShaderMaterial({
@@ -1687,11 +1528,11 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               parcelSize,
               subparcelSize
             ).then(parcelSpec => {
-               subparcel.potentials.set(parcelSpec.potentials);
-               subparcel.heightfield.set(parcelSpec.heightfield);
-               for (const object of parcelSpec.objects) {
-                 subparcel.addVegetation('tree1', localVector.fromArray(object.position), localQuaternion.fromArray(object.quaternion));
-               }
+              subparcel.potentials.set(parcelSpec.potentials);
+              subparcel.heightfield.set(parcelSpec.heightfield);
+              for (const object of parcelSpec.objects) {
+                subparcel.addVegetation('tree1', localVector.fromArray(object.position), localQuaternion.fromArray(object.quaternion));
+              }
             });
           }
         }
