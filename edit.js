@@ -256,7 +256,7 @@ const _snapBuildPosition = p => {
 };
 const _meshEquals = (a, b) => {
   if (a.position.equals(b.position)) {
-    if (a.type === b.buildMeshType) {
+    if (a.type === b.buildType) {
       if (a.type === 'wall') {
         return Math.floor(a.quaternion.x/pid4) === Math.floor(b.quaternion.x/pid4) &&
           Math.floor(a.quaternion.y/pid4) === Math.floor(b.quaternion.y/pid4) &&
@@ -348,7 +348,23 @@ let wallMesh = null;
 let woodMesh = null;
 let stoneMesh = null;
 let metalMesh = null;
-let physicsShapes = null;
+const physicsShapes = {
+  'wood_ramp': {
+    position: new THREE.Vector3(0, 1, 0),
+    quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/4),
+    scale: new THREE.Vector3(2, 2*Math.sqrt(2), 0.1),
+  },
+  'wood_floor': {
+    position: new THREE.Vector3(0, 0, 0),
+    quaternion: new THREE.Quaternion(),
+    scale: new THREE.Vector3(2, 0.1, 2),
+  },
+  'wood_wall': {
+    position: new THREE.Vector3(0, 1, -1),
+    quaternion: new THREE.Quaternion(),
+    scale: new THREE.Vector3(2, 2, 0.1),
+  },
+};
 (async () => {
 
 const [
@@ -844,6 +860,9 @@ const [
         await geometryWorker.requestLoadBake('./meshes.bin');
 
         const geometries = await Promise.all([
+          'wood_wall',
+          'wood_floor',
+          'wood_ramp',
           'wood1',
           'stone2',
           'metal1',
@@ -856,17 +875,26 @@ const [
           'SM_Wep_Grenade_01',
           'SM_Wep_Crosshair_04',
         ].map(n => geometryWorker.requestGeometry(n)))
-        woodMesh = _makeBakedMesh(geometries[0]);
-        stoneMesh = _makeBakedMesh(geometries[1]);
-        metalMesh = _makeBakedMesh(geometries[2]);
-        plansMesh = _makeBakedMesh(geometries[3]);
-        pencilMesh = _makeBakedMesh(geometries[4]);
-        pickaxeMesh = _makeBakedMesh(geometries[5]);
-        paintBrushMesh = _makeBakedMesh(geometries[6]);
-        assaultRifleMesh = _makeBakedMesh(geometries[7]);
-        smgMesh = _makeBakedMesh(geometries[8]);
-        grenadeMesh = _makeBakedMesh(geometries[9]);
-        crosshairMesh = _makeBakedMesh(geometries[10]);
+        wallMesh = _makeBakedMesh(geometries[0]);
+        wallMesh.buildType = 'wall';
+        wallMesh.vegetationType = 'wood_wall';
+        platformMesh = _makeBakedMesh(geometries[1]);
+        platformMesh.buildType = 'floor';
+        platformMesh.vegetationType = 'wood_floor';
+        stairsMesh = _makeBakedMesh(geometries[2]);
+        stairsMesh.buildType = 'stair';
+        stairsMesh.vegetationType = 'wood_ramp';
+        woodMesh = _makeBakedMesh(geometries[3]);
+        stoneMesh = _makeBakedMesh(geometries[4]);
+        metalMesh = _makeBakedMesh(geometries[5]);
+        plansMesh = _makeBakedMesh(geometries[6]);
+        pencilMesh = _makeBakedMesh(geometries[7]);
+        pickaxeMesh = _makeBakedMesh(geometries[8]);
+        paintBrushMesh = _makeBakedMesh(geometries[9]);
+        assaultRifleMesh = _makeBakedMesh(geometries[10]);
+        smgMesh = _makeBakedMesh(geometries[11]);
+        grenadeMesh = _makeBakedMesh(geometries[12]);
+        crosshairMesh = _makeBakedMesh(geometries[13]);
 
         plansMesh.visible = false;
         scene.add(plansMesh);
@@ -1111,25 +1139,7 @@ const [
 
     currentVegetationTransparentMesh = _makeVegetationMesh(true);
     currentVegetationTransparentMesh.position.copy(chunkOffset);
-    chunkMeshContainer.add(currentVegetationTransparentMesh);
-
-    physicsShapes = {
-      stair: {
-        position: new THREE.Vector3(0, 1, 0),
-        quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/4),
-        scale: new THREE.Vector3(2, 2*Math.sqrt(2), 0.1),
-      },
-      floor: {
-        position: new THREE.Vector3(0, 0, 0),
-        quaternion: new THREE.Quaternion(),
-        scale: new THREE.Vector3(2, 0.1, 2),
-      },
-      wall: {
-        position: new THREE.Vector3(0, 1, -1),
-        quaternion: new THREE.Quaternion(),
-        scale: new THREE.Vector3(2, 2, 0.1),
-      },
-    };
+    chunkMeshContainer.add(currentVegetationTransparentMesh);;
   })(),
 ]);
 chunkWorker = cw;
@@ -3527,7 +3537,7 @@ function animate(timestamp, frame) {
               Math.floor(buildMesh.position.z/currentChunkMesh.subparcelSize)
             );
             planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-              subparcel.addVegetation(buildMesh.buildMeshType, buildMesh.position, buildMesh.quaternion);
+              subparcel.addVegetation(buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
             });
             currentChunkMesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
           }
