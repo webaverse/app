@@ -557,6 +557,18 @@ const _handleMessage = async data => {
       }, [meshesBuffer, textureBuffer]);
       break;
     }
+    case 'loadBake': {
+      const {url} = data;
+
+      const res = await fetch(url);
+      const arrayBuffer = await res.arrayBuffer();
+      const meshes = _flatDecode(arrayBuffer);
+      for (const mesh of meshes) {
+        geometryRegistry[name] = [mesh];
+      }
+
+      break;
+    }
     case 'marchObjects': {
       const {x, y, z, objects, heightfields, lightfields, subparcelSize} = data;
 
