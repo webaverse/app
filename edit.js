@@ -356,7 +356,6 @@ const [
   px,
   pw,
   colors,
-  _itemMeshes,
 ] = await Promise.all([
   (async () => {
     const cbs = [];
@@ -685,12 +684,6 @@ const [
     return await res.json();
   })(),
   (async () => {
-    const survivalModels = await _loadGltf('./survival.glb');
-    woodMesh = survivalModels.children.find(c => c.name === 'wood1');
-    stoneMesh = survivalModels.children.find(c => c.name === 'stone2');
-    metalMesh = survivalModels.children.find(c => c.name === 'metal1');
-  })(),
-  (async () => {
     geometryWorker = (() => {
       const cbs = [];
       const w = new Worker('geometry-worker.js');
@@ -719,6 +712,18 @@ const [
           url,
         });
       };
+      w.requestGeometry = name => {
+        return w.request({
+          method: 'requestGeometry',
+          name,
+        }).then(spec => {
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
+          geometry.setAttribute('uv', new THREE.BufferAttribute(spec.uvs, 2));
+          geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
+          return geometry;
+        });
+      };
       w.requestMarchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSize) => {
         return w.request({
           method: 'marchObjects',
@@ -734,63 +739,12 @@ const [
       return w;
     })();
 
-    console.log('request load bake 1');
-    await geometryWorker.requestLoadBake('./meshes.bin');
-    console.log('request load bake 2');
-
-    const texture = await (async () => {
-      /* const image = new Image();
-      await new Promise((accept, reject) => {
-        image.onload = () => {
-          accept();
-        };
-        image.onerror = reject;
-        image.src = './texture.png';
-      });
-      const texture = new THREE.Texture(image);
-      texture.flipY = false;
-      texture.needsUpdate = true; */
-
-      const basisLoader = new BasisTextureLoader();
-      basisLoader.detectSupport(renderer);
-      console.time('textureLoad');
-      const texture = await new Promise((accept, reject) => {
-        basisLoader.load('texture.basis', texture => {
-          console.timeEnd('textureLoad');
-          accept(texture);
-        }, () => {
-          // console.log('onProgress');
-        }, err => {
-          reject(err);
-        });
-      });
-      return texture;
-    })();
-
-    physicsShapes = {
-      stair: {
-        position: new THREE.Vector3(0, 1, 0),
-        quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/4),
-        scale: new THREE.Vector3(2, 2*Math.sqrt(2), 0.1),
-      },
-      floor: {
-        position: new THREE.Vector3(0, 0, 0),
-        quaternion: new THREE.Quaternion(),
-        scale: new THREE.Vector3(2, 0.1, 2),
-      },
-      wall: {
-        position: new THREE.Vector3(0, 1, -1),
-        quaternion: new THREE.Quaternion(),
-        scale: new THREE.Vector3(2, 2, 0.1),
-      },
-    };
-
     const _makeVegetationMaterial = transparent => {
       const material = new THREE.ShaderMaterial({
         uniforms: {
           map: {
             type: 't',
-            value: texture,
+            value: null,
             needsUpdate: true,
           },
           uSelectId: {
@@ -876,6 +830,61 @@ const [
     };
     const vegetationMaterialOpaque = _makeVegetationMaterial(false);
     const vegetationMaterailTransparent = _makeVegetationMaterial(true);
+    const _makeBakedMesh = g => {
+      const mesh = new THREE.Mesh(g, vegetationMaterialOpaque);
+      mesh.frustumCulled = false;
+      return mesh;
+    };
+
+    const [
+      _meshes,
+      texture,
+    ] = await Promise.all([
+      (async () => {
+        await geometryWorker.requestLoadBake('./meshes.bin');
+
+        const geometries = await Promise.all([
+          'wood1',
+          'stone2',
+          'metal1',
+        ].map(n => geometryWorker.requestGeometry(n)))
+        woodMesh = _makeBakedMesh(geometries[0]);
+        stoneMesh = _makeBakedMesh(geometries[1]);
+        metalMesh = _makeBakedMesh(geometries[2]);
+      })(),
+      (async () => {
+        /* const image = new Image();
+        await new Promise((accept, reject) => {
+          image.onload = () => {
+            accept();
+          };
+          image.onerror = reject;
+          image.src = './texture.png';
+        });
+        const texture = new THREE.Texture(image);
+        texture.flipY = false;
+        texture.needsUpdate = true; */
+
+        const basisLoader = new BasisTextureLoader();
+        basisLoader.detectSupport(renderer);
+        console.time('basis texture load');
+        const texture = await new Promise((accept, reject) => {
+          basisLoader.load('texture.basis', texture => {
+            console.timeEnd('basis texture load');
+            accept(texture);
+          }, () => {
+            // console.log('onProgress');
+          }, err => {
+            reject(err);
+          });
+        });
+        return texture;
+      })(),
+    ]);
+    vegetationMaterialOpaque.uniforms.map.value = texture;
+    vegetationMaterialOpaque.uniforms.map.needsUpdate = true;
+    vegetationMaterailTransparent.uniforms.map.value = texture;
+    vegetationMaterailTransparent.uniforms.map.needsUpdate = true;
 
     const _makeVegetationMesh = transparent => {
       const numPositions = 10 * 1024 * 1024;
@@ -1031,73 +1040,23 @@ const [
     currentVegetationTransparentMesh.position.copy(chunkOffset);
     chunkMeshContainer.add(currentVegetationTransparentMesh);
 
-    // atlas.context.fillStyle = '#FFF';
-    // atlas.context.fillRect(canvas.width-1, canvas.height-1, 1, 1);
-
-    // treeMesh = _makeInstancedMesh(result['Generic_Tree_#1'], 256, false);
-    // worldContainer.add(tree1InstanceMesh);
-    /* // const leaves1InstanceMesh = _makeInstancedMesh(result['Fanta_Leaves_#1'], 256, true);
-    // worldContainer.add(leaves1InstanceMesh);
-    for (let i = 0; i < 100; i++) {
-      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
-      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
-      tree1InstanceMesh.addInstance(p, q, s);
-      // leaves1InstanceMesh.addInstance(p, q, s);
-    } */
-
-    /* const tree3InstanceMesh = _makeInstancedMesh(result['Generic_Tree_#3'], 256, false);
-    worldContainer.add(tree3InstanceMesh);
-    const leaves3InstanceMesh = _makeInstancedMesh(result['Boab_Leaves_#3'], 256, true);
-    worldContainer.add(leaves3InstanceMesh);
-    for (let i = 0; i < 100; i++) {
-      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
-      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
-      tree3InstanceMesh.addInstance(p, q, s);
-      leaves3InstanceMesh.addInstance(p, q, s);
-    }
-
-    const pineTreeInstanceMesh = _makeInstancedMesh(result['Pine_-_Wood_#3'], 256, false);
-    worldContainer.add(pineTreeInstanceMesh);
-    const pineLeavesInstanceMesh = _makeInstancedMesh(result['Pine_Leaves_#3'], 256, true);
-    worldContainer.add(pineLeavesInstanceMesh);
-    for (let i = 0; i < 100; i++) {
-      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
-      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
-      pineTreeInstanceMesh.addInstance(p, q, s);
-      pineLeavesInstanceMesh.addInstance(p, q, s);
-    }
-
-    const chestInstanceMesh = _makeInstancedMesh(result['Chest_top'], 32, true);
-    for (let i = 0; i < 10; i++) {
-      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
-      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
-      chestInstanceMesh.addInstance(p, q, s);
-    }
-    worldContainer.add(chestInstanceMesh);
-
-    const grass1InstanceMesh = _makeInstancedMesh(result['Grass1'], 2048, true);
-    for (let i = 0; i < 1000; i++) {
-      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
-      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
-      grass1InstanceMesh.addInstance(p, q, s);
-    }
-    worldContainer.add(grass1InstanceMesh);
-
-    const grass2InstanceMesh = _makeInstancedMesh(result['Grass2'], 2048, true);
-    for (let i = 0; i < 1000; i++) {
-      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
-      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
-      grass2InstanceMesh.addInstance(p, q, s);
-    }
-    worldContainer.add(grass2InstanceMesh);
-
-    const grass3InstanceMesh = _makeInstancedMesh(result['Grass3'], 2048, true);
-    for (let i = 0; i < 1000; i++) {
-      p.set(-1+Math.random()*2 * 30, -12, -1+Math.random()*2 * 30);
-      q.setFromAxisAngle(axis, Math.random()*Math.PI*2);
-      grass3InstanceMesh.addInstance(p, q, s);
-    }
-    worldContainer.add(grass3InstanceMesh); */
+    physicsShapes = {
+      stair: {
+        position: new THREE.Vector3(0, 1, 0),
+        quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/4),
+        scale: new THREE.Vector3(2, 2*Math.sqrt(2), 0.1),
+      },
+      floor: {
+        position: new THREE.Vector3(0, 0, 0),
+        quaternion: new THREE.Quaternion(),
+        scale: new THREE.Vector3(2, 0.1, 2),
+      },
+      wall: {
+        position: new THREE.Vector3(0, 1, -1),
+        quaternion: new THREE.Quaternion(),
+        scale: new THREE.Vector3(2, 2, 0.1),
+      },
+    };
   })(),
 ]);
 chunkWorker = cw;
