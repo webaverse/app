@@ -541,7 +541,10 @@ const _handleMessage = async data => {
         meshes.push(m);
       }
       const meshesBuffer = _flatEncode(meshes);
+      // console.time('lol');
       // const meshes2 = _flatDecode(meshesBuffer);
+      // console.log('meshes', meshes, meshes2);
+      // console.timeEnd('lol');
 
       const blob = await canvas.convertToBlob();
       const textureBuffer = await blob.arrayBuffer();
