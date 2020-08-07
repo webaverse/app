@@ -412,6 +412,7 @@ const _flatEncode = meshes => {
   let totalSize = 0;
   for (const mesh of meshes) {
     totalSize += MAX_NAME_LENGTH;
+    totalSize += Uint32Array.BYTES_PER_ELEMENT;
     totalSize += Uint32Array.BYTES_PER_ELEMENT * 3;
     totalSize += mesh.positions.byteLength;
     totalSize += mesh.uvs.byteLength;
@@ -428,6 +429,9 @@ const _flatEncode = meshes => {
     }
     new Uint8Array(arrayBuffer, index, nameBuffer.length).set(nameBuffer);
     index += MAX_NAME_LENGTH;
+
+    new Uint32Array(arrayBuffer, index, 1)[0] = +mesh.transparent;
+    index += Uint32Array.BYTES_PER_ELEMENT;
 
     const pui = new Uint32Array(arrayBuffer, index, 3);
     pui[0] = mesh.positions.length;
@@ -468,6 +472,9 @@ const _flatDecode = arrayBuffer => {
     const name = new TextDecoder().decode(new Uint8Array(arrayBuffer, index, nameLength));
     index += nameLength;
 
+    const transparent = !!new Uint32Array(arrayBuffer, index, 1)[0];
+    index += Uint32Array.BYTES_PER_ELEMENT;
+
     const [numPositions, numUvs, numIndices] = new Uint32Array(arrayBuffer, index, 3);
     index += Uint32Array.BYTES_PER_ELEMENT * 3;
 
@@ -484,6 +491,7 @@ const _flatDecode = arrayBuffer => {
 
     const m = {
       name,
+      transparent,
       positions,
       uvs,
       indices,
@@ -508,10 +516,11 @@ const _handleMessage = async data => {
       }
       
       for (const child of gltf.children) {
-        const {name, geometry} = child;
+        const {name, geometry, material} = child;
+        const transparent = /fence/i.test(material.name);
         geometryRegistry[name] = [{
           name,
-          transparent: false,
+          transparent,
           positions: geometry.attributes.position.array,
           uvs: geometry.attributes.uv.array,
           indices: geometry.index.array,
