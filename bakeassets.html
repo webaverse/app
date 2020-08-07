@@ -63,10 +63,11 @@ const _mergeObject = o => {
       map.image = _resizeImage(map.image, 1);
     }
     map.image.id = 'img-' + numRects++;
-    map.image.geometry = geometry;
+    map.image.geometries = [];
     packer.add(map.image);
     rects[map.image.id] = true;
   }
+  map.image.geometries.push(geometry);
 };
 const _mergeFinish = () => {
   packer.repack(false);
@@ -77,7 +78,9 @@ const _mergeFinish = () => {
     for (const rect of bin.rects) {
       const {x, y} = rect;
       ctx.drawImage(rect, x, y);
-      _mapUvAttribute(rect.geometry.attributes.uv.array, rect);
+      for (const geometry of rect.geometries) {
+        _mapUvAttribute(geometry.attributes.uv.array, rect);
+      }
     }
   }
 };
