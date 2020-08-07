@@ -713,24 +713,12 @@ const [
           }
         });
       });
-      w.requestRegisterFile = url => {
+      w.requestLoadBake = url => {
         return w.request({
-          method: 'registerFile',
+          method: 'loadBake',
           url,
         });
       };
-      w.requestGetBake = () => {
-        return w.request({
-          method: 'getBake',
-        });
-      };
-      /* w.requestRegisterGeometry = (type, geometrySpecs) => {
-        return w.request({
-          method: 'registerGeometry',
-          type,
-          geometrySpecs,
-        });
-      }; */
       w.requestMarchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSize) => {
         return w.request({
           method: 'marchObjects',
@@ -746,57 +734,24 @@ const [
       return w;
     })();
 
-    for (const u of ['./tools.glb', './build.glb', './survival.glb']) {
-      await geometryWorker.requestRegisterFile(u);
-    }
+    console.log('request load bake 1');
+    await geometryWorker.requestLoadBake('./meshes.bin');
+    console.log('request load bake 2');
 
     const texture = await (async () => {
-      {
-        const {meshes, texture} = await geometryWorker.requestGetBake();
-        // console.log('got blob', arrayBuffer);
-        {
-          const a = document.createElement('a');
-          a.download = 'meshes.bin';
-          const blob = new Blob([meshes], {
-            type: 'application/octet-stream',
-          });
-          const url = URL.createObjectURL(blob);
-          a.href = url;
-          a.click();
-          URL.revokeObjectURL(url);
-        }
-        {
-          const a = document.createElement('a');
-          a.download = 'texture.png';
-          const blob = new Blob([texture], {
-            type: 'image/png',
-          });
-          const url = URL.createObjectURL(blob);
-          a.href = url;
-          a.click();
-          URL.revokeObjectURL(url);
-        }
-      }
-
-      /* const basisLoader = new BasisTextureLoader();
+      const basisLoader = new BasisTextureLoader();
       basisLoader.detectSupport(renderer);
-      console.time('lol');
+      console.time('textureLoad');
       const texture = await new Promise((accept, reject) => {
         basisLoader.load('texture.basis', texture => {
-
-          console.timeEnd('lol');
+          console.timeEnd('textureLoad');
           accept(texture);
-
-        }, function () {
-
-          // console.log( 'onProgress' );
-
+        }, () => {
+          // console.log('onProgress');
         }, err => {
-
           reject(err);
-
-        } );
-      }); */
+        });
+      });
       return texture;
     })();
 
