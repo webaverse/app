@@ -719,9 +719,9 @@ const [
           url,
         });
       };
-      w.requestGetTexture = () => {
+      w.requestGetBake = () => {
         return w.request({
-          method: 'getTexture',
+          method: 'getBake',
         });
       };
       /* w.requestRegisterGeometry = (type, geometrySpecs) => {
@@ -751,17 +751,32 @@ const [
     }
 
     const texture = await (async () => {
-      const arrayBuffer = await geometryWorker.requestGetTexture();
-      // console.log('got blob', arrayBuffer);
-      const a = document.createElement('a');
-      a.download = 'texture.png';
-      const blob = new Blob([arrayBuffer], {
-        type: 'image/png',
-      });
-      const url = URL.createObjectURL(blob);
-      a.href = url;
-      a.click();
-      URL.revokeObjectURL(url);
+      {
+        const {meshes, texture} = await geometryWorker.requestGetBake();
+        // console.log('got blob', arrayBuffer);
+        {
+          const a = document.createElement('a');
+          a.download = 'meshes.bin';
+          const blob = new Blob([meshes], {
+            type: 'application/octet-stream',
+          });
+          const url = URL.createObjectURL(blob);
+          a.href = url;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+        {
+          const a = document.createElement('a');
+          a.download = 'texture.png';
+          const blob = new Blob([texture], {
+            type: 'image/png',
+          });
+          const url = URL.createObjectURL(blob);
+          a.href = url;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      }
 
       /* const basisLoader = new BasisTextureLoader();
       basisLoader.detectSupport(renderer);
