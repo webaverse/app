@@ -235,6 +235,16 @@ const _handleMessage = async data => {
       });
       break;
     }
+    case 'requestGeometry': {
+      const {name} = data;
+
+      const [geometry] = geometryRegistry[name];
+
+      self.postMessage({
+        result: geometry,
+      });
+      break;
+    }
     case 'marchObjects': {
       const {x, y, z, objects, heightfields, lightfields, subparcelSize} = data;
 
