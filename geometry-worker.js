@@ -257,7 +257,6 @@ const _dracoEncode = meshes => {
       metadataBuilder.AddStringEntry(metadata, 'name', mesh.name);
       meshBuilder.AddMetadata(dracoMesh, metadata);
 
-      // console.log('got mesh', mesh);
       const numFaces = mesh.indices.length / 3;
       const numPoints = mesh.positions.length;
       meshBuilder.AddFacesToMesh(dracoMesh, numFaces, mesh.indices);
