@@ -45,11 +45,12 @@ const rects = {};
 const packer = new maxRects.MaxRectsPacker(size, size);
 let numRects = 0;
 const maxTexSize = 4096;
+const _clampUv = (uv, w) => Math.min(Math.max(uv, 0.5/w), (w-0.5)/w);
 const _mapUvAttribute = (uvs, rect) => {
   const {x, y, width: w, height: h} = rect;
   for (let i = 0; i < uvs.length; i += 2) {
-    uvs[i] = (x + uvs[i]*w)/size;
-    uvs[i+1] = (y + uvs[i+1]*h)/size;
+    uvs[i] = (x + _clampUv(uvs[i], w)*w)/size;
+    uvs[i+1] = (y + _clampUv(uvs[i+1], h)*h)/size;
   }
 };
 const _mergeObject = o => {
