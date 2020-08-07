@@ -911,7 +911,7 @@ const [
         grenadeMesh.visible = false;
         scene.add(grenadeMesh);
 
-        crosshairMesh.scale.set(50, 50, 50);
+        crosshairMesh.scale.setScalar(5000);
         crosshairMesh.traverse(o => {
           if (o.isMesh) {
             o.material = new THREE.MeshBasicMaterial({
