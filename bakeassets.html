@@ -455,21 +455,21 @@ const _flatEncode = meshes => {
 
   return arrayBuffer;
 };
-const _flatDecode = arrayBuffer => {
+/* const _flatDecode = arrayBuffer => {
   const result = [];
 
   for (let index = 0; index < arrayBuffer.byteLength;) {
     const nameLength = (() => {
       const uint8Array = new Uint8Array(arrayBuffer, index);
       for (let i = 0; i < MAX_NAME_LENGTH; i++) {
-        if (uint8Array[0] == 0) {
+        if (uint8Array[i] === 0) {
           return i;
         }
       }
       return MAX_NAME_LENGTH;
     })();
     const name = new TextDecoder().decode(new Uint8Array(arrayBuffer, index, nameLength));
-    index += nameLength;
+    index += MAX_NAME_LENGTH;
 
     const transparent = !!new Uint32Array(arrayBuffer, index, 1)[0];
     index += Uint32Array.BYTES_PER_ELEMENT;
@@ -499,7 +499,7 @@ const _flatDecode = arrayBuffer => {
   }
 
   return result;
-};
+}; */
 
 const _registerFile = async url => {
   const gltf = await _loadGltf(url);
