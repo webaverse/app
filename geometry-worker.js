@@ -242,7 +242,7 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
   ];
 };
 const _dracoEncode = meshes => {
-  const result = [];
+  const buffers = [];
 
   const encoder = new encoderModule.Encoder();
   const meshBuilder = new encoderModule.MeshBuilder();
@@ -274,7 +274,7 @@ const _dracoEncode = meshes => {
       for (let i = 0; i < encodedLen; i++) {
         byteArray[i] = encodedData.GetValue(i);
       }
-      result.push(byteArray);
+      buffers.push(byteArray);
 
       encoderModule.destroy(dracoMesh);
       encoderModule.destroy(metadata);
@@ -286,15 +286,39 @@ const _dracoEncode = meshes => {
   encoderModule.destroy(meshBuilder);
   encoderModule.destroy(metadataBuilder);
 
-  return result;
+  let totalSize = 0;
+  for (const buffer of buffers) {
+    totalSize += Uint32Array.BYTES_PER_ELEMENT;
+    totalSize += buffer.byteLength;
+    totalSize = _align4(totalSize);
+  }
+  const arrayBuffer = new ArrayBuffer(totalSize);
+  const uint8Array = new Uint8Array(arrayBuffer);
+
+  let index = 0;
+  for (const buffer of buffers) {
+    new Uint32Array(arrayBuffer, index, 1)[0] = buffer.byteLength;
+    index += Uint32Array.BYTES_PER_ELEMENT;
+    new Uint8Array(arrayBuffer, index, buffer.byteLength).set(buffer);
+    index += buffer.byteLength;
+    index = _align4(index);
+  }
+
+  return arrayBuffer;
 };
-const _dracoDecode = buffers => {
+const _dracoDecode = arrayBuffer => {
   const result = [];
 
   const decoder = new decoderModule.Decoder();
   const metadataQuerier = new decoderModule.MetadataQuerier();
 
-  for (const byteArray of buffers) {
+  for(let index = 0; index < arrayBuffer.byteLength;) {
+    const byteLength = new Uint32Array(arrayBuffer, index, 1)[0];
+    index += Uint32Array.BYTES_PER_ELEMENT;
+    const byteArray = new Uint8Array(arrayBuffer, index, byteLength);
+    index += byteLength;
+    index = _align4(index);
+
     // Create the Draco decoder.
     const buffer = new decoderModule.DecoderBuffer();
     buffer.Init(byteArray, byteArray.length);
@@ -410,7 +434,7 @@ const _handleMessage = async data => {
       });
       break;
     }
-    case 'getTexture': {
+    case 'getBake': {
       _mergeFinish();
 
       const meshes = [];
@@ -418,15 +442,20 @@ const _handleMessage = async data => {
         const [m] = geometryRegistry[k];
         meshes.push(m);
       }
-      const buffers = _dracoEncode(meshes);
-      const meshes2 = _dracoDecode(buffers);
+      const meshesBuffer = _dracoEncode(meshes);
+      console.time('decode');
+      const meshes2 = _dracoDecode(meshesBuffer);
+      console.timeEnd('decode');
 
       const blob = await canvas.convertToBlob();
-      const arraybuffer = await blob.arrayBuffer();
+      const textureBuffer = await blob.arrayBuffer();
 
       self.postMessage({
-        result: arraybuffer,
-      }, [arraybuffer]);
+        result: {
+          meshes: meshesBuffer,
+          texture: textureBuffer,
+        },
+      }, [meshesBuffer, textureBuffer]);
       break;
     }
     case 'marchObjects': {
