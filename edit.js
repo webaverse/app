@@ -847,10 +847,83 @@ const [
           'wood1',
           'stone2',
           'metal1',
+          'SM_Prop_Plans_01',
+          'SM_Item_Pencil_02',
+          'SM_Wep_Pickaxe_01',
+          'SM_Tool_Paint_Brush_02',
+          'SM_Wep_Rifle_Assault_01',
+          'SM_Wep_SubMGun_Lite_01',
+          'SM_Wep_Grenade_01',
+          'SM_Wep_Crosshair_04',
         ].map(n => geometryWorker.requestGeometry(n)))
         woodMesh = _makeBakedMesh(geometries[0]);
         stoneMesh = _makeBakedMesh(geometries[1]);
         metalMesh = _makeBakedMesh(geometries[2]);
+        plansMesh = _makeBakedMesh(geometries[3]);
+        pencilMesh = _makeBakedMesh(geometries[4]);
+        pickaxeMesh = _makeBakedMesh(geometries[5]);
+        paintBrushMesh = _makeBakedMesh(geometries[6]);
+        assaultRifleMesh = _makeBakedMesh(geometries[7]);
+        smgMesh = _makeBakedMesh(geometries[8]);
+        grenadeMesh = _makeBakedMesh(geometries[9]);
+        crosshairMesh = _makeBakedMesh(geometries[10]);
+
+        plansMesh.visible = false;
+        scene.add(plansMesh);
+        pencilMesh.visible = false;
+        scene.add(pencilMesh);
+        pickaxeMesh.visible = false;
+        scene.add(pickaxeMesh);
+        paintBrushMesh.visible = false;
+        scene.add(paintBrushMesh);
+        assaultRifleMesh.visible = false;
+        scene.add(assaultRifleMesh);
+        smgMesh.visible = false;
+        scene.add(smgMesh);
+        grenadeMesh.visible = false;
+        scene.add(grenadeMesh);
+
+        crosshairMesh.scale.set(50, 50, 50);
+        crosshairMesh.traverse(o => {
+          if (o.isMesh) {
+            o.material = new THREE.MeshBasicMaterial({
+              color: 0x111111,
+              depthTest: false,
+              transparent: true,
+            });
+          }
+        });
+        crosshairMesh.visible = false;
+        let animation = null;
+        crosshairMesh.trigger = () => {
+          if (animation) {
+            animation.end();
+            animation = null;
+          }
+          const startTime = Date.now();
+          const endTime = startTime + 300;
+          const originalScale = crosshairMesh.scale.clone();
+          animation = {
+            update() {
+              const now = Date.now();
+              const factor = (now - startTime) / (endTime - startTime);
+              if (factor < 1) {
+                crosshairMesh.scale.copy(originalScale)
+                  .multiplyScalar(1 + (1-factor));
+              } else {
+                animation.end();
+                animation = null;
+              }
+            },
+            end() {
+              crosshairMesh.scale.copy(originalScale);
+            },
+          };
+        };
+        crosshairMesh.update = () => {
+          animation && animation.update();
+        };
+        scene.add(crosshairMesh);
       })(),
       (async () => {
         /* const image = new Image();
@@ -2232,7 +2305,6 @@ for (let i = 0; i < 30; i++) {
 
 })();
 
-// let wrenchMesh = null;
 let buildMode = null;
 let plansMesh = null;
 let pencilMesh = null;
@@ -2242,77 +2314,6 @@ let assaultRifleMesh = null;
 let smgMesh = null;
 let grenadeMesh = null;
 let crosshairMesh = null;
-(async () => {
-  const toolsModels = await _loadGltf('./tools.glb');
-
-  plansMesh = toolsModels.children.find(c => c.name === 'SM_Prop_Plans_01');
-  plansMesh.visible = false;
-  scene.add(plansMesh);
-  pencilMesh = toolsModels.children.find(c => c.name === 'SM_Item_Pencil_02');
-  pencilMesh.visible = false;
-  scene.add(pencilMesh);
-  pickaxeMesh = toolsModels.children.find(c => c.name === 'SM_Wep_Pickaxe_01');
-  pickaxeMesh.visible = false;
-  scene.add(pickaxeMesh);
-  paintBrushMesh = toolsModels.children.find(c => c.name === 'SM_Tool_Paint_Brush_02');
-  paintBrushMesh.visible = false;
-  scene.add(paintBrushMesh);
-
-  assaultRifleMesh = toolsModels.children.find(c => c.name === 'SM_Wep_Rifle_Assault_01');
-  assaultRifleMesh.visible = false;
-  scene.add(assaultRifleMesh);
-
-  smgMesh = toolsModels.children.find(c => c.name === 'SM_Wep_SubMGun_Lite_01');
-  smgMesh.visible = false;
-  scene.add(smgMesh);
-
-  grenadeMesh = toolsModels.children.find(c => c.name === 'SM_Wep_Grenade_01');
-  grenadeMesh.visible = false;
-  scene.add(grenadeMesh);
-
-  crosshairMesh = toolsModels.children.find(c => c.name === 'SM_Wep_Crosshair_04');
-  crosshairMesh.scale.set(50, 50, 50);
-  crosshairMesh.traverse(o => {
-    if (o.isMesh) {
-      o.material = new THREE.MeshBasicMaterial({
-        color: 0x111111,
-        depthTest: false,
-        transparent: true,
-      });
-    }
-  });
-  crosshairMesh.visible = false;
-  let animation = null;
-  crosshairMesh.trigger = () => {
-    if (animation) {
-      animation.end();
-      animation = null;
-    }
-    const startTime = Date.now();
-    const endTime = startTime + 300;
-    const originalScale = crosshairMesh.scale.clone();
-    animation = {
-      update() {
-        const now = Date.now();
-        const factor = (now - startTime) / (endTime - startTime);
-        if (factor < 1) {
-          crosshairMesh.scale.copy(originalScale)
-            .multiplyScalar(1 + (1-factor));
-        } else {
-          animation.end();
-          animation = null;
-        }
-      },
-      end() {
-        crosshairMesh.scale.copy(originalScale);
-      },
-    };
-  };
-  crosshairMesh.update = () => {
-    animation && animation.update();
-  };
-  scene.add(crosshairMesh);
-})();
 
 const redBuildMeshMaterial = new THREE.ShaderMaterial({
   vertexShader: `
