@@ -42,7 +42,6 @@ import {Bot} from './bot.js';
 import './atlaspack.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
-import TinyQueue from './tinyqueue.js';
 
 const apiHost = 'https://ipfs.exokit.org/ipfs';
 const worldsEndpoint = 'https://worlds.exokit.org';
