@@ -751,8 +751,8 @@ const [
     }
 
     const texture = await (async () => {
-      /* const arrayBuffer = await geometryWorker.requestGetTexture();
-      console.log('got blob', arrayBuffer);
+      const arrayBuffer = await geometryWorker.requestGetTexture();
+      // console.log('got blob', arrayBuffer);
       const a = document.createElement('a');
       a.download = 'texture.png';
       const blob = new Blob([arrayBuffer], {
@@ -761,10 +761,9 @@ const [
       const url = URL.createObjectURL(blob);
       a.href = url;
       a.click();
-      URL.revokeObjectURL(url); */
+      URL.revokeObjectURL(url);
 
-      const basisLoader = new BasisTextureLoader();
-      // basisLoader.setTranscoderPath( 'examples/js/libs/basis/' );
+      /* const basisLoader = new BasisTextureLoader();
       basisLoader.detectSupport(renderer);
       console.time('lol');
       const texture = await new Promise((accept, reject) => {
@@ -782,7 +781,7 @@ const [
           reject(err);
 
         } );
-      });
+      }); */
       return texture;
     })();
 

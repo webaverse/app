@@ -1,5 +1,4 @@
-importScripts('./three.js', './GLTFLoader.js', './atlaspack.js', './draco_encoder.js', './draco_decoder.js');
-const wasmModulePromise = Promise.resolve();
+importScripts('./three.js', './GLTFLoader.js', './atlaspack.js', './maxrects-packer.js', './draco_encoder.js', './draco_decoder.js');
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -25,16 +24,17 @@ const _align4 = n => {
 };
 
 const geometryRegistry = {};
-const size = 16384;
+const size = 8192;
 const canvas = new OffscreenCanvas(size, size);
-const atlas = atlaspack(canvas);
-const rects = new Map();
+const ctx = canvas.getContext('2d');
+// const atlas = atlaspack(canvas);
+// const rects = new Map();
+const rects = {};
+const packer = new maxRects.MaxRectsPacker(size, size);
+let numRects = 0;
+const maxTexSize = 4096;
 const _mapUvAttribute = (uvs, rect) => {
-  const [[tx, ty], [rx, ry], [bx, by], [lx, ly]] = rect;
-  const x = tx;
-  const y = ty;
-  const w = rx - lx;
-  const h = by - ty;
+  const {x, y, width: w, height: h} = rect;
   for (let i = 0; i < uvs.length; i += 2) {
     uvs[i] = x + uvs[i]*w;
     uvs[i+1] = y + uvs[i+1]*h;
@@ -43,6 +43,22 @@ const _mapUvAttribute = (uvs, rect) => {
 const _mergeObject = o => {
   const {geometry, material} = o;
   const {map} = material;
+  if (!rects[map.image.data.id]) {
+    // console.log('got tex', o.name, map.image.data.width, map.image.data.height);
+    const resizeFactor = /wood|stone|metal/.test(o.name) ? 1/2 : Math.min(maxTexSize/map.image.data.width, maxTexSize/map.image.data.height);
+    if (resizeFactor < 1) {
+      map.image.data = _resizeImage(map.image.data, resizeFactor);
+    }
+    map.image.data.id = 'img-' + numRects++;
+    map.image.data.geometry = geometry;
+    packer.add(map.image.data);
+    rects[map.image.data.id] = true;
+    /* atlas.pack(map.image.data);
+    rect = atlas.uv()[map.image.data.id];
+    rects.set(map.image.data.id, rect); */
+  }
+  /* const {geometry, material} = o;
+  const {map} = material;
   let rect = rects.get(map.image.data.id);
   if (!rect) {
     const resizeFactor = Math.min(4096/map.image.data.width, 4096/map.image.data.height);
@@ -50,15 +66,22 @@ const _mergeObject = o => {
       map.image.data = _resizeImage(map.image.data, resizeFactor);
     }
     map.image.data.id = 'img-' + rects.size;
-    const r = atlas.pack(map.image.data);
-    if (!r) {
-      console.log('fail r', o, map, r, atlas.uv());
-      debugger;
-    }
+    atlas.pack(map.image.data);
     rect = atlas.uv()[map.image.data.id];
     rects.set(map.image.data.id, rect);
   }
-  _mapUvAttribute(geometry.attributes.uv.array, rect);
+  _mapUvAttribute(geometry.attributes.uv.array, rect); */
+};
+const _mergeFinish = () => {
+  packer.repack(false);
+  console.log('got bins', packer.bins);
+  for (const bin of packer.bins) {
+    for (const rect of bin.rects) {
+      const {x, y} = rect;
+      ctx.drawImage(rect, x, y);
+      _mapUvAttribute(rect.geometry.attributes.uv.array, rect);
+    }
+  }
 };
 const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSize) => {
   const geometries = objects.map(o => geometryRegistry[o.type]);
@@ -229,7 +252,10 @@ const _handleMessage = async data => {
       const gltf = await _loadGltf(url);
 
       for (const child of gltf.children) {
-        _mergeObject(child)
+        _mergeObject(child);
+      }
+      
+      for (const child of gltf.children) {
         const {name, geometry} = child;
         geometryRegistry[name] = [{
           transparent: false,
@@ -239,164 +265,132 @@ const _handleMessage = async data => {
         }];
       }
 
-      const tree1 = gltf.children.find(c => c.name === 'tree1');
-      if (tree1) {
-        {
-          const {geometry} = tree1;
-
-          const mesh = {
-            indices: geometry.index.array,
-            positions: geometry.attributes.position.array,
-            uvs: geometry.attributes.uv.array,
-          };
-
-          const encoderModule = new DracoEncoderModule({
-            onModuleLoaded() {
-              const encoder = new encoderModule.Encoder();
-              const meshBuilder = new encoderModule.MeshBuilder();
-              const dracoMesh = new encoderModule.Mesh();
-
-              const numFaces = mesh.indices.length / 3;
-              const numPoints = mesh.positions.length;
-              meshBuilder.AddFacesToMesh(dracoMesh, numFaces, mesh.indices);
-
-              meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.POSITION,
-                numPoints, 3, mesh.positions);
-              /* if (mesh.hasOwnProperty('normals')) {
-                meshBuilder.AddFloatAttributeToMesh(
-                  dracoMesh, encoderModule.NORMAL, numPoints, 3, mesh.normals);
-              }
-              if (mesh.hasOwnProperty('colors')) {
-                meshBuilder.AddFloatAttributeToMesh(
-                  dracoMesh, encoderModule.COLOR, numPoints, 3, mesh.colors);
-              } */
-              // if (mesh.hasOwnProperty('texcoords')) {
-                meshBuilder.AddFloatAttributeToMesh(
-                  dracoMesh, encoderModule.TEX_COORD, numPoints, 2, mesh.uvs);
-              // }
-
-              // if (method === "edgebreaker") {
-                encoder.SetEncodingMethod(encoderModule.MESH_EDGEBREAKER_ENCODING);
-              /* } else if (method === "sequential") {
-                encoder.SetEncodingMethod(encoderModule.MESH_SEQUENTIAL_ENCODING);
-              } */
-
-              const encodedData = new encoderModule.DracoInt8Array();
-              // Use default encoding setting.
-              const encodedLen = encoder.EncodeMeshToDracoBuffer(dracoMesh,
-                                                                 encodedData);
-              const byteArray = new Uint8Array(encodedLen);
-              for (let i = 0; i < encodedLen; i++) {
-                byteArray[i] = encodedData.GetValue(i);
-              }
-              encoderModule.destroy(dracoMesh);
-              encoderModule.destroy(encoder);
-              encoderModule.destroy(meshBuilder);
-              encoderModule.destroy(encodedData);
-
-              // Create the Draco decoder.
-              const decoderModule = DracoDecoderModule({
-                onModuleLoaded() {
-                  const buffer = new decoderModule.DecoderBuffer();
-                  buffer.Init(byteArray, byteArray.length);
-
-                  // Create a buffer to hold the encoded data.
-                  const decoder = new decoderModule.Decoder();
-                  const geometryType = decoder.GetEncodedGeometryType(buffer);
-
-                  // Decode the encoded geometry.
-                  let outputGeometry;
-                  let status;
-                  if (geometryType == decoderModule.TRIANGULAR_MESH) {
-                    outputGeometry = new decoderModule.Mesh();
-                    status = decoder.DecodeBufferToMesh(buffer, outputGeometry);
-                  } else {
-                    outputGeometry = new decoderModule.PointCloud();
-                    status = decoder.DecodeBufferToPointCloud(buffer, outputGeometry);
-                  }
-
-                  // console.log('go output', tree1, outputGeometry, decoderModule.POSITION, decoder.GetAttributeId(outputGeometry, decoderModule.POSITION), decoder.GetAttributeId(outputGeometry, decoderModule.TEX_COORD));
-
-                  let positions;
-                  {
-                    const id = decoder.GetAttributeId(outputGeometry, decoderModule.POSITION);
-                    const attribute = decoder.GetAttribute(outputGeometry, id);
-                    const numComponents = attribute.num_components();
-                    const numPoints = outputGeometry.num_points();
-                    const numValues = numPoints * numComponents;
-                    const dracoArray = new decoderModule.DracoFloat32Array();
-                    decoder.GetAttributeFloatForAllPoints( outputGeometry, attribute, dracoArray );
-                    positions = new Float32Array( numValues );
-                    for ( var i = 0; i < numValues; i ++ ) {
-                      positions[ i ] = dracoArray.GetValue( i );
-                    }
-                    decoderModule.destroy( dracoArray );
-                  }
-                  let uvs;
-                  {
-                    const id = decoder.GetAttributeId(outputGeometry, decoderModule.TEX_COORD);
-                    const attribute = decoder.GetAttribute(outputGeometry, id);
-                    const numComponents = attribute.num_components();
-                    const numPoints = outputGeometry.num_points();
-                    const numValues = numPoints * numComponents;
-                    const dracoArray = new decoderModule.DracoFloat32Array();
-                    decoder.GetAttributeFloatForAllPoints( outputGeometry, attribute, dracoArray );
-                    uvs = new Float32Array( numValues );
-                    for ( var i = 0; i < numValues; i ++ ) {
-                      uvs[ i ] = dracoArray.GetValue( i );
-                    }
-                    decoderModule.destroy( dracoArray );
-                  }
-                  let index;
-                  {
-                    const numFaces = outputGeometry.num_faces();
-                    const numIndices = numFaces * 3;
-                    index = new Uint16Array( numIndices );
-                    const indexArray = new decoderModule.DracoInt32Array();
-
-                    for ( var i = 0; i < numFaces; ++ i ) {
-
-                      decoder.GetFaceFromMesh( outputGeometry, i, indexArray );
-
-                      for ( var j = 0; j < 3; ++ j ) {
-
-                        index[ i * 3 + j ] = indexArray.GetValue( j );
-
-                      }
-
-                    }
-                  }
-                  console.log('got result', tree1, positions, uvs, index);
-
-                  // You must explicitly delete objects created from the DracoDecoderModule
-                  // or Decoder.
-                  decoderModule.destroy(outputGeometry);
-                  decoderModule.destroy(decoder);
-                  decoderModule.destroy(buffer);
-                },
-              });
-            },
-          });
-        }
-      }
-
       self.postMessage({
         result: {},
       });
       break;
     }
     case 'getTexture': {
-      const ctx = canvas.getContext('2d');
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const {width, height, data} = imageData;
+      _mergeFinish();
+
+      const mesh = geometryRegistry['tree1'][0];
+      if (mesh) {
+        let byteArray;
+        {
+          const encoder = new encoderModule.Encoder();
+          const meshBuilder = new encoderModule.MeshBuilder();
+          const dracoMesh = new encoderModule.Mesh();
+
+          console.log('got mesh', mesh);
+          const numFaces = mesh.indices.length / 3;
+          const numPoints = mesh.positions.length;
+          meshBuilder.AddFacesToMesh(dracoMesh, numFaces, mesh.indices);
+
+          meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.POSITION, numPoints, 3, mesh.positions);
+          meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.TEX_COORD, numPoints, 2, mesh.uvs);
+          encoder.SetEncodingMethod(encoderModule.MESH_EDGEBREAKER_ENCODING);
+          encoder.SetEncodingMethod(encoderModule.MESH_SEQUENTIAL_ENCODING);
+
+          const encodedData = new encoderModule.DracoInt8Array();
+          // Use default encoding setting.
+          const encodedLen = encoder.EncodeMeshToDracoBuffer(dracoMesh,
+                                                             encodedData);
+          byteArray = new Uint8Array(encodedLen);
+          for (let i = 0; i < encodedLen; i++) {
+            byteArray[i] = encodedData.GetValue(i);
+          }
+          encoderModule.destroy(dracoMesh);
+          encoderModule.destroy(encoder);
+          encoderModule.destroy(meshBuilder);
+          encoderModule.destroy(encodedData);
+        }
+        {
+          // Create the Draco decoder.
+          const buffer = new decoderModule.DecoderBuffer();
+          buffer.Init(byteArray, byteArray.length);
+
+          // Create a buffer to hold the encoded data.
+          const decoder = new decoderModule.Decoder();
+          const geometryType = decoder.GetEncodedGeometryType(buffer);
+
+          // Decode the encoded geometry.
+          let outputGeometry;
+          let status;
+          if (geometryType == decoderModule.TRIANGULAR_MESH) {
+            outputGeometry = new decoderModule.Mesh();
+            status = decoder.DecodeBufferToMesh(buffer, outputGeometry);
+          } else {
+            outputGeometry = new decoderModule.PointCloud();
+            status = decoder.DecodeBufferToPointCloud(buffer, outputGeometry);
+          }
+
+          // console.log('go output', tree1, outputGeometry, decoderModule.POSITION, decoder.GetAttributeId(outputGeometry, decoderModule.POSITION), decoder.GetAttributeId(outputGeometry, decoderModule.TEX_COORD));
+
+          let positions;
+          {
+            const id = decoder.GetAttributeId(outputGeometry, decoderModule.POSITION);
+            const attribute = decoder.GetAttribute(outputGeometry, id);
+            const numComponents = attribute.num_components();
+            const numPoints = outputGeometry.num_points();
+            const numValues = numPoints * numComponents;
+            const dracoArray = new decoderModule.DracoFloat32Array();
+            decoder.GetAttributeFloatForAllPoints( outputGeometry, attribute, dracoArray );
+            positions = new Float32Array( numValues );
+            for ( var i = 0; i < numValues; i ++ ) {
+              positions[ i ] = dracoArray.GetValue( i );
+            }
+            decoderModule.destroy( dracoArray );
+          }
+          let uvs;
+          {
+            const id = decoder.GetAttributeId(outputGeometry, decoderModule.TEX_COORD);
+            const attribute = decoder.GetAttribute(outputGeometry, id);
+            const numComponents = attribute.num_components();
+            const numPoints = outputGeometry.num_points();
+            const numValues = numPoints * numComponents;
+            const dracoArray = new decoderModule.DracoFloat32Array();
+            decoder.GetAttributeFloatForAllPoints( outputGeometry, attribute, dracoArray );
+            uvs = new Float32Array( numValues );
+            for ( var i = 0; i < numValues; i ++ ) {
+              uvs[ i ] = dracoArray.GetValue( i );
+            }
+            decoderModule.destroy( dracoArray );
+          }
+          let index;
+          {
+            const numFaces = outputGeometry.num_faces();
+            const numIndices = numFaces * 3;
+            index = new Uint16Array( numIndices );
+            const indexArray = new decoderModule.DracoInt32Array();
+
+            for ( var i = 0; i < numFaces; ++ i ) {
+
+              decoder.GetFaceFromMesh( outputGeometry, i, indexArray );
+
+              for ( var j = 0; j < 3; ++ j ) {
+
+                index[ i * 3 + j ] = indexArray.GetValue( j );
+
+              }
+
+            }
+          }
+          // console.log('got result', mesh, positions, uvs, index);
+
+          // You must explicitly delete objects created from the DracoDecoderModule
+          // or Decoder.
+          decoderModule.destroy(outputGeometry);
+          decoderModule.destroy(decoder);
+          decoderModule.destroy(buffer);
+        }
+      }
+
+      const blob = await canvas.convertToBlob();
+      const arraybuffer = await blob.arrayBuffer();
 
       self.postMessage({
-        result: {
-          width,
-          height,
-          data,
-        },
-      }, [data.buffer]);
+        result: arraybuffer,
+      }, [arraybuffer]);
       break;
     }
     case 'marchObjects': {
@@ -433,9 +427,14 @@ self.onmessage = e => {
   }
 };
 
-wasmModulePromise.then(() => {
-  loaded = true;
-  _flushMessages();
-}).catch(err => {
-  console.warn(err.stack);
+let encoderModule, decoderModule;
+encoderModule = new DracoEncoderModule({
+  onModuleLoaded() {
+    decoderModule = new DracoDecoderModule({
+      onModuleLoaded() {
+        loaded = true;
+        _flushMessages();
+      },
+    });
+  },
 });
