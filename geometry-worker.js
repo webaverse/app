@@ -74,7 +74,9 @@ const _mergeObject = o => {
 };
 const _mergeFinish = () => {
   packer.repack(false);
-  console.log('got bins', packer.bins);
+  if (packer.bins.length > 1) {
+    throw new Error('texture overflow');
+  }
   for (const bin of packer.bins) {
     for (const rect of bin.rects) {
       const {x, y} = rect;
