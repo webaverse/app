@@ -739,6 +739,18 @@ const [
     console.log('request load bake 2');
 
     const texture = await (async () => {
+      /* const image = new Image();
+      await new Promise((accept, reject) => {
+        image.onload = () => {
+          accept();
+        };
+        image.onerror = reject;
+        image.src = './texture.png';
+      });
+      const texture = new THREE.Texture(image);
+      texture.flipY = false;
+      texture.needsUpdate = true; */
+
       const basisLoader = new BasisTextureLoader();
       basisLoader.detectSupport(renderer);
       console.time('textureLoad');
