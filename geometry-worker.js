@@ -44,7 +44,6 @@ const _mergeObject = o => {
   const {geometry, material} = o;
   const {map} = material;
   if (!rects[map.image.data.id]) {
-    // console.log('got tex', o.name, map.image.data.width, map.image.data.height);
     const resizeFactor = /wood|stone|metal/.test(o.name) ? 1/2 : Math.min(maxTexSize/map.image.data.width, maxTexSize/map.image.data.height);
     if (resizeFactor < 1) {
       map.image.data = _resizeImage(map.image.data, resizeFactor);
@@ -243,7 +242,7 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
     arraybuffer,
   ];
 };
-const _dracoEncode = meshes => {
+/* const _dracoEncode = meshes => {
   const buffers = [];
 
   const encoder = new encoderModule.Encoder();
@@ -405,6 +404,94 @@ const _dracoDecode = arrayBuffer => {
   decoderModule.destroy(metadataQuerier);
 
   return result;
+}; */
+const MAX_NAME_LENGTH = 128;
+const _flatEncode = meshes => {
+  const buffers = [];
+
+  let totalSize = 0;
+  for (const mesh of meshes) {
+    totalSize += MAX_NAME_LENGTH;
+    totalSize += Uint32Array.BYTES_PER_ELEMENT * 3;
+    totalSize += mesh.positions.byteLength;
+    totalSize += mesh.uvs.byteLength;
+    totalSize += mesh.indices.byteLength;
+    totalSize = _align4(totalSize);
+  }
+
+  const arrayBuffer = new ArrayBuffer(totalSize);
+  let index = 0;
+  for (const mesh of meshes) {
+    const nameBuffer = new TextEncoder().encode(mesh.name);
+    if (nameBuffer.length >= MAX_NAME_LENGTH) {
+      throw new Error('name overflow');
+    }
+    new Uint8Array(arrayBuffer, index, nameBuffer.length).set(nameBuffer);
+    index += MAX_NAME_LENGTH;
+
+    const pui = new Uint32Array(arrayBuffer, index, 3);
+    pui[0] = mesh.positions.length;
+    pui[1] = mesh.uvs.length;
+    pui[2] = mesh.indices.length;
+    index += Uint32Array.BYTES_PER_ELEMENT * 3;
+
+    const positions = new Float32Array(arrayBuffer, index, mesh.positions.length);
+    positions.set(mesh.positions);
+    index += mesh.positions.length * Float32Array.BYTES_PER_ELEMENT;
+
+    const uvs = new Float32Array(arrayBuffer, index, mesh.uvs.length);
+    uvs.set(mesh.uvs);
+    index += mesh.uvs.length * Float32Array.BYTES_PER_ELEMENT;
+
+    const indices = new Uint16Array(arrayBuffer, index, mesh.indices.length);
+    indices.set(mesh.indices);
+    index += mesh.indices.length * Uint16Array.BYTES_PER_ELEMENT;
+
+    index = _align4(index);
+  }
+
+  return arrayBuffer;
+};
+const _flatDecode = arrayBuffer => {
+  const result = [];
+
+  for (let index = 0; index < arrayBuffer.byteLength;) {
+    const nameLength = (() => {
+      const uint8Array = new Uint8Array(arrayBuffer, index);
+      for (let i = 0; i < MAX_NAME_LENGTH; i++) {
+        if (uint8Array[0] == 0) {
+          return i;
+        }
+      }
+      return MAX_NAME_LENGTH;
+    })();
+    const name = new TextDecoder().decode(new Uint8Array(arrayBuffer, index, nameLength));
+    index += nameLength;
+
+    const [numPositions, numUvs, numIndices] = new Uint32Array(arrayBuffer, index, 3);
+    index += Uint32Array.BYTES_PER_ELEMENT * 3;
+
+    const positions = new Float32Array(arrayBuffer, index, numPositions);
+    index += numPositions * Float32Array.BYTES_PER_ELEMENT;
+
+    const uvs = new Float32Array(arrayBuffer, index, numUvs);
+    index += numUvs * Float32Array.BYTES_PER_ELEMENT;
+
+    const indices = new Uint16Array(arrayBuffer, index, numIndices);
+    index += numIndices * Uint16Array.BYTES_PER_ELEMENT;
+
+    index = _align4(index);
+
+    const m = {
+      name,
+      positions,
+      uvs,
+      indices,
+    };
+    result.push(m);
+  }
+
+  return result;
 };
 
 const queue = [];
@@ -444,10 +531,8 @@ const _handleMessage = async data => {
         const [m] = geometryRegistry[k];
         meshes.push(m);
       }
-      const meshesBuffer = _dracoEncode(meshes);
-      console.time('decode');
-      const meshes2 = _dracoDecode(meshesBuffer);
-      console.timeEnd('decode');
+      const meshesBuffer = _flatEncode(meshes);
+      // const meshes2 = _flatDecode(meshesBuffer);
 
       const blob = await canvas.convertToBlob();
       const textureBuffer = await blob.arrayBuffer();
