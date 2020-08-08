@@ -288,7 +288,7 @@ let animals = [];
   const center = aabb.getCenter(new THREE.Vector3());
   const size = aabb.getSize(new THREE.Vector3());
   const headPivot = center.clone()
-    .add(size.clone().multiply(new THREE.Vector3(0, 1/2 * 0.5, 1/2 * 0.5)));
+    .add(size.clone().multiply(new THREE.Vector3(0, 1/2 * 0.5, -1/2 * 0.5)));
   const legsPivot = center.clone()
     .add(size.clone().multiply(new THREE.Vector3(0, -1/2 + 1/3, 0)));
   const legsSepFactor = 0.5;
@@ -306,7 +306,7 @@ let animals = [];
   const legs = new Float32Array(positions.length/3*4);
   for (let i = 0, j = 0; i < positions.length; i += 3, j += 4) {
     localVector.fromArray(positions, i);
-    if (localVector.z > headPivot.z) {
+    if (localVector.z < headPivot.z) {
       localVector.sub(headPivot);
     } else {
       localVector.setScalar(0);
@@ -343,7 +343,7 @@ let animals = [];
   animal.geometry.setAttribute('head', new THREE.BufferAttribute(heads, 3));
   animal.geometry.setAttribute('leg', new THREE.BufferAttribute(legs, 4));
 
-  const material = new THREE.ShaderMaterial({
+  const animalMaterial = new THREE.ShaderMaterial({
     uniforms: {
       headRotation: {
         type: 'v4',
@@ -352,7 +352,7 @@ let animals = [];
       },
       walkFactor: {
         type: 'f',
-        value: 0,
+        value: 1,
         needsUpdate: true,
       },
       walkCycle: {
@@ -422,7 +422,45 @@ let animals = [];
       }
     `,
   });
-  animal.material = material;
+  animal.material = animalMaterial;
+
+  let animation = null;
+  animal.lookAt = p => {
+    const startTime = Date.now();
+    const endTime = startTime + 300;
+    const startQuaternion = animal.material.uniforms.headRotation.value.clone();
+    const endQuaternion = new THREE.Quaternion().setFromRotationMatrix(
+      new THREE.Matrix4().lookAt(
+        headPivot,
+        p,
+        new THREE.Vector3(0, 1, 0)
+      )
+    );
+    animation = {
+      update() {
+        const now = Date.now();
+        const factor = (now - startTime) / (endTime - startTime);
+        if (factor < 1) {
+          animal.material.uniforms.headRotation.value.copy(startQuaternion).slerp(endQuaternion, factor);
+        } else {
+          animal.material.uniforms.headRotation.value.copy(endQuaternion);
+          animation = null;
+        }
+        animal.material.uniforms.headRotation.needsUpdate = true;
+      },
+    };
+  };
+  animal.update = () => {
+    animation && animation.update();
+
+    // animal.material.uniforms.headRotation.value.setFromEuler(localEuler.set(-0.2, 0.2, 0, 'YXZ'));
+    // animal.material.uniforms.headRotation.needsUpdate = true;
+    // animal.material.uniforms.walkFactor.value = 1;
+    // animal.material.uniforms.walkFactor.needsUpdate = true;
+    animal.material.uniforms.walkCycle.value = (Date.now()%2000)/2000;
+    animal.material.uniforms.walkCycle.needsUpdate = true;
+  };
+  animal.isAnimating = () => !!animation;
 
   scene.add(animal);
   animals.push(animal);
@@ -3185,6 +3223,12 @@ const _collideItems = matrix => {
     }
     itemMesh.update(localVector5.copy(localVector3).applyMatrix4(localMatrix2.getInverse(currentChunkMesh.matrixWorld)));
   }
+
+  for (const animal of animals) {
+    if (!animal.isAnimating()) {
+      animal.lookAt(localVector3);
+    }
+  }
 };
 const _collideChunk = matrix => {
   matrix.decompose(localVector3, localQuaternion2, localVector4);
@@ -3239,12 +3283,7 @@ function animate(timestamp, frame) {
     }
   });
   for (const animal of animals) {
-    animal.material.uniforms.headRotation.value.setFromEuler(localEuler.set(-0.2, 0.2, 0, 'YXZ'));
-    animal.material.uniforms.headRotation.needsUpdate = true;
-    animal.material.uniforms.walkFactor.value = 1;
-    animal.material.uniforms.walkFactor.needsUpdate = true;
-    animal.material.uniforms.walkCycle.value = (Date.now()%2000)/2000;
-    animal.material.uniforms.walkCycle.needsUpdate = true;
+    animal.update();
   }
   cometFireMesh.material.uniforms.uAnimation.value = (Date.now() % 2000) / 2000;
   hpMesh.update();
