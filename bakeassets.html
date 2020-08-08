@@ -273,7 +273,7 @@ const _dracoEncode = meshes => {
 
       meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.POSITION, numPoints, 3, mesh.positions);
       mesh.uvs && meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.TEX_COORD, numPoints, 2, mesh.uvs);
-      mesh.colors && meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.COLOR, numPoints, 4, mesh.colors);
+      mesh.colors && meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.COLOR, numPoints, 3, mesh.colors);
       encoder.SetEncodingMethod(encoderModule.MESH_EDGEBREAKER_ENCODING);
       // encoder.SetEncodingMethod(encoderModule.MESH_SEQUENTIAL_ENCODING);
 
@@ -554,9 +554,11 @@ const _registerFile = async url => {
         positions: geometry.attributes.position.array,
         uvs: !geometry.attributes.color ? geometry.attributes.uv.array : null,
         colors: geometry.attributes.color ? (() => {
-          const colors = new Uint8Array(geometry.attributes.color.array.length);
-          for (let i = 0; i < geometry.attributes.color.array.length; i++) {
-            colors[i] = geometry.attributes.color.array[i]*255;
+          const colors = new Uint8Array(geometry.attributes.color.array.length/4*3);
+          for (let i = 0, j = 0; i < geometry.attributes.color.array.length; i += 4, j += 3) {
+            colors[j] = geometry.attributes.color.array[i]*255;
+            colors[j+1] = geometry.attributes.color.array[i+1]*255;
+            colors[j+2] = geometry.attributes.color.array[i+2]*255;
           }
           return colors;
         })() : null,
