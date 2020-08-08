@@ -2,13 +2,19 @@
 <html>
 <body>
 <script type=module>
-// importScripts('./three.js', './GLTFLoader.js', './atlaspack.js', './maxrects-packer.js', './draco_encoder.js', './draco_decoder.js');
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {GLTFLoader} from './GLTFLoader.module.js';
 import './atlaspack.js';
 import './maxrects-packer.js';
+import './draco_encoder.js';
+import './draco_decoder.js';
 
-const assets = ['./tools.glb', './build.glb', './survival.glb'];
+const decoderModule = new DracoDecoderModule({
+  onModuleLoaded() {
+    const encoderModule = new DracoEncoderModule({
+      onModuleLoaded() {
+
+const assets = ['./tools.glb', './build.glb', './survival.glb', './animals.glb'];
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -56,19 +62,21 @@ const _mapUvAttribute = (uvs, rect) => {
 const _mergeObject = o => {
   const {geometry, material} = o;
   const {map} = material;
-  if (!rects[map.image.id]) {
-    const resizeFactor = /wood|stone|metal/.test(o.name) ? 1/2 : Math.min(maxTexSize/map.image.width, maxTexSize/map.image.height);
-    if (resizeFactor < 1) {
-      map.image = _resizeImage(map.image, resizeFactor);
-    } else {
-      map.image = _resizeImage(map.image, 1);
+  if (map) {
+    if (!rects[map.image.id]) {
+      const resizeFactor = /wood|stone|metal/.test(o.name) ? 1/2 : Math.min(maxTexSize/map.image.width, maxTexSize/map.image.height);
+      if (resizeFactor < 1) {
+        map.image = _resizeImage(map.image, resizeFactor);
+      } else {
+        map.image = _resizeImage(map.image, 1);
+      }
+      map.image.id = 'img-' + numRects++;
+      map.image.geometries = [];
+      packer.add(map.image);
+      rects[map.image.id] = true;
     }
-    map.image.id = 'img-' + numRects++;
-    map.image.geometries = [];
-    packer.add(map.image);
-    rects[map.image.id] = true;
+    map.image.geometries.push(geometry);
   }
-  map.image.geometries.push(geometry);
 };
 const _mergeFinish = () => {
   packer.repack(false);
@@ -243,7 +251,7 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
     arraybuffer,
   ];
 };
-/* const _dracoEncode = meshes => {
+const _dracoEncode = meshes => {
   const buffers = [];
 
   const encoder = new encoderModule.Encoder();
@@ -264,7 +272,8 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
       meshBuilder.AddFacesToMesh(dracoMesh, numFaces, mesh.indices);
 
       meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.POSITION, numPoints, 3, mesh.positions);
-      meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.TEX_COORD, numPoints, 2, mesh.uvs);
+      mesh.uvs && meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.TEX_COORD, numPoints, 2, mesh.uvs);
+      mesh.colors && meshBuilder.AddFloatAttributeToMesh(dracoMesh, encoderModule.COLOR, numPoints, 4, mesh.colors);
       encoder.SetEncodingMethod(encoderModule.MESH_EDGEBREAKER_ENCODING);
       // encoder.SetEncodingMethod(encoderModule.MESH_SEQUENTIAL_ENCODING);
 
@@ -360,17 +369,40 @@ const _dracoDecode = arrayBuffer => {
     let uvs;
     {
       const id = decoder.GetAttributeId(outputGeometry, decoderModule.TEX_COORD);
-      const attribute = decoder.GetAttribute(outputGeometry, id);
-      const numComponents = attribute.num_components();
-      const numPoints = outputGeometry.num_points();
-      const numValues = numPoints * numComponents;
-      const dracoArray = new decoderModule.DracoFloat32Array();
-      decoder.GetAttributeFloatForAllPoints( outputGeometry, attribute, dracoArray );
-      uvs = new Float32Array( numValues );
-      for ( var i = 0; i < numValues; i ++ ) {
-        uvs[ i ] = dracoArray.GetValue( i );
+      if (id !== -1) {
+        const attribute = decoder.GetAttribute(outputGeometry, id);
+        const numComponents = attribute.num_components();
+        const numPoints = outputGeometry.num_points();
+        const numValues = numPoints * numComponents;
+        const dracoArray = new decoderModule.DracoFloat32Array();
+        decoder.GetAttributeFloatForAllPoints( outputGeometry, attribute, dracoArray );
+        uvs = new Float32Array( numValues );
+        for ( var i = 0; i < numValues; i ++ ) {
+          uvs[ i ] = dracoArray.GetValue( i );
+        }
+        decoderModule.destroy( dracoArray );
+      } else {
+        uvs = null;
       }
-      decoderModule.destroy( dracoArray );
+    }
+    let colors;
+    {
+      const id = decoder.GetAttributeId(outputGeometry, decoderModule.COLOR);
+      if (id !== -1) {
+        const attribute = decoder.GetAttribute(outputGeometry, id);
+        const numComponents = attribute.num_components();
+        const numPoints = outputGeometry.num_points();
+        const numValues = numPoints * numComponents;
+        const dracoArray = new decoderModule.DracoUInt8Array();
+        decoder.GetAttributeUInt8ForAllPoints( outputGeometry, attribute, dracoArray );
+        colors = new Uint8Array( numValues );
+        for ( var i = 0; i < numValues; i ++ ) {
+          colors[ i ] = dracoArray.GetValue( i );
+        }
+        decoderModule.destroy( dracoArray );
+      } else {
+        colors = null;
+      }
     }
     let indices;
     {
@@ -391,6 +423,7 @@ const _dracoDecode = arrayBuffer => {
       name,
       positions,
       uvs,
+      colors,
       indices,
     };
     result.push(m);
@@ -405,8 +438,8 @@ const _dracoDecode = arrayBuffer => {
   decoderModule.destroy(metadataQuerier);
 
   return result;
-}; */
-const MAX_NAME_LENGTH = 128;
+};
+/* const MAX_NAME_LENGTH = 128;
 const _flatEncode = meshes => {
   const buffers = [];
 
@@ -457,7 +490,7 @@ const _flatEncode = meshes => {
 
   return arrayBuffer;
 };
-/* const _flatDecode = arrayBuffer => {
+const _flatDecode = arrayBuffer => {
   const result = [];
 
   for (let index = 0; index < arrayBuffer.byteLength;) {
@@ -506,21 +539,31 @@ const _flatEncode = meshes => {
 const _registerFile = async url => {
   const gltf = await _loadGltf(url);
 
-  for (const child of gltf.children) {
-    _mergeObject(child);
-  }
-
-  for (const child of gltf.children) {
-    const {name, geometry, material} = child;
-    const transparent = /fence/i.test(material.name);
-    geometryRegistry[name] = [{
-      name,
-      transparent,
-      positions: geometry.attributes.position.array,
-      uvs: geometry.attributes.uv.array,
-      indices: geometry.index.array,
-    }];
-  }
+  gltf.traverse(o => {
+    if (o.isMesh) {
+      _mergeObject(o);
+    }
+  });
+  gltf.traverse(o => {
+    if (o.isMesh) {
+      const {name, geometry, material} = o;
+      const transparent = /fence/i.test(material.name);
+      geometryRegistry[name] = [{
+        name,
+        transparent,
+        positions: geometry.attributes.position.array,
+        uvs: !geometry.attributes.color ? geometry.attributes.uv.array : null,
+        colors: geometry.attributes.color ? (() => {
+          const colors = new Uint8Array(geometry.attributes.color.array.length);
+          for (let i = 0; i < geometry.attributes.color.array.length; i++) {
+            colors[i] = geometry.attributes.color.array[i]*255;
+          }
+          return colors;
+        })() : null,
+        indices: geometry.index.array,
+      }];
+    }
+  });
 };
 
 (async () => {
@@ -533,7 +576,9 @@ const _registerFile = async url => {
     const [m] = geometryRegistry[k];
     meshes.push(m);
   }
-  const meshesBuffer = _flatEncode(meshes);
+  const meshesBuffer = _dracoEncode(meshes);
+  /* const meshes2 = _dracoDecode(meshesBuffer);
+  console.log(meshes, meshes2); */
 
   const textureBlob = await new Promise((accept, reject) => {
     canvas.toBlob(accept);
@@ -560,6 +605,11 @@ const _registerFile = async url => {
     URL.revokeObjectURL(url);
   }
 })();
+
+      },
+    });
+  },
+});
 
 </script>
 </body>

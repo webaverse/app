@@ -924,7 +924,8 @@ const [
         }).then(spec => {
           const geometry = new THREE.BufferGeometry();
           geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-          geometry.setAttribute('uv', new THREE.BufferAttribute(spec.uvs, 2));
+          spec.uvs && geometry.setAttribute('uv', new THREE.BufferAttribute(spec.uvs, 2));
+          spec.colors && geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 4));
           geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
           return geometry;
         });

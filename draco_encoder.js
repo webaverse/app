@@ -49,4 +49,4 @@ if (typeof exports === 'object' && typeof module === 'object')
       define([], function() { return DracoEncoderModule; });
     else if (typeof exports === 'object')
       exports["DracoEncoderModule"] = DracoEncoderModule;
-    
+globalThis.DracoEncoderModule = DracoEncoderModule;

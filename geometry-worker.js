@@ -1,4 +1,11 @@
-importScripts('./three.js', './GLTFLoader.js');
+importScripts('./three.js', './draco_decoder.js');
+
+const decoderModule = new DracoDecoderModule({
+  onModuleLoaded() {
+    loaded = true;
+    _flushMessages();
+  },
+});
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -15,12 +22,14 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
 
   let numOpaquePositions = 0;
   let numOpaqueUvs = 0;
+  let numOpaqueColors = 0;
   let numOpaqueIds = 0;
   let numOpaqueSkyLights = 0;
   let numOpaqueTorchLights = 0;
   let numOpaqueIndices = 0;
   let numTransparentPositions = 0;
   let numTransparentUvs = 0;
+  let numTransparentColors = 0;
   let numTransparentIds = 0;
   let numTransparentSkyLights = 0;
   let numTransparentTorchLights = 0;
@@ -29,14 +38,16 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
     for (const geometry of geometrySpecs) {
       if (!geometry.transparent) {
         numOpaquePositions += geometry.positions.length;
-        numOpaqueUvs += geometry.uvs.length;
+        numOpaqueUvs += geometry.uvs ? geometry.uvs.length : 0;
+        numOpaqueColors += geometry.colors ? geometry.colors.length : 0;
         numOpaqueIds += geometry.positions.length/3;
         numOpaqueSkyLights += geometry.positions.length/3;
         numOpaqueTorchLights += geometry.positions.length/3;
         numOpaqueIndices += geometry.indices.length;
       } else {
         numTransparentPositions += geometry.positions.length;
-        numTransparentUvs += geometry.uvs.length;
+        numTransparentUvs += geometry.uvs ? geometry.uvs.length : 0;
+        numTransparentColors += geometry.colors ? geometry.colors.length : 0;
         numTransparentIds += geometry.positions.length/3;
         numTransparentSkyLights += geometry.positions.length/3;
         numTransparentTorchLights += geometry.positions.length/3;
@@ -49,6 +60,7 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
     let index = 0;
     index += numOpaquePositions * Float32Array.BYTES_PER_ELEMENT;
     index += numOpaqueUvs * Float32Array.BYTES_PER_ELEMENT;
+    index += numOpaqueColors * Float32Array.BYTES_PER_ELEMENT;
     index += numOpaqueIds * Float32Array.BYTES_PER_ELEMENT;
     index += numOpaqueSkyLights * Uint8Array.BYTES_PER_ELEMENT;
     index += numOpaqueTorchLights * Uint8Array.BYTES_PER_ELEMENT;
@@ -56,6 +68,7 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
     index += numOpaqueIndices * Uint32Array.BYTES_PER_ELEMENT;
     index += numTransparentPositions * Float32Array.BYTES_PER_ELEMENT;
     index += numTransparentUvs * Float32Array.BYTES_PER_ELEMENT;
+    index += numTransparentColors * Float32Array.BYTES_PER_ELEMENT;
     index += numTransparentIds * Float32Array.BYTES_PER_ELEMENT;
     index += numTransparentSkyLights * Uint8Array.BYTES_PER_ELEMENT;
     index += numTransparentTorchLights * Uint8Array.BYTES_PER_ELEMENT;
@@ -70,6 +83,8 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
   index += numOpaquePositions * Float32Array.BYTES_PER_ELEMENT;
   opaque.uvs = new Float32Array(arraybuffer, index, numOpaqueUvs);
   index += numOpaqueUvs * Float32Array.BYTES_PER_ELEMENT;
+  opaque.colors = new Float32Array(arraybuffer, index, numOpaqueColors);
+  index += numOpaqueColors * Float32Array.BYTES_PER_ELEMENT;
   opaque.ids = new Float32Array(arraybuffer, index, numOpaqueIds);
   index += numOpaqueIds * Float32Array.BYTES_PER_ELEMENT;
   opaque.skyLights = new Uint8Array(arraybuffer, index, numOpaqueSkyLights);
@@ -81,6 +96,7 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
   index += numOpaqueIndices * Uint32Array.BYTES_PER_ELEMENT;
   opaque.positionsIndex = 0;
   opaque.uvsIndex = 0;
+  opaque.colorsIndex = 0;
   opaque.idsIndex = 0;
   opaque.skyLightsIndex = 0;
   opaque.torchLightsIndex = 0;
@@ -91,6 +107,8 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
   index += numTransparentPositions * Float32Array.BYTES_PER_ELEMENT;
   transparent.uvs = new Float32Array(arraybuffer, index, numTransparentUvs);
   index += numTransparentUvs * Float32Array.BYTES_PER_ELEMENT;
+  transparent.colors = new Float32Array(arraybuffer, index, numTransparentColors);
+  index += numTransparentColors * Float32Array.BYTES_PER_ELEMENT;
   transparent.ids = new Float32Array(arraybuffer, index, numTransparentIds);
   index += numTransparentIds * Float32Array.BYTES_PER_ELEMENT;
   transparent.skyLights = new Uint8Array(arraybuffer, index, numTransparentSkyLights);
@@ -102,6 +120,7 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
   index += numTransparentIndices * Uint32Array.BYTES_PER_ELEMENT;
   transparent.positionsIndex = 0;
   transparent.uvsIndex = 0;
+  transparent.colorsIndex = 0;
   transparent.idsIndex = 0;
   transparent.skyLightsIndex = 0;
   transparent.torchLightsIndex = 0;
@@ -152,8 +171,14 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
       spec.skyLightsIndex += geometry.positions.length/3;
       spec.torchLightsIndex += geometry.positions.length/3;
 
-      spec.uvs.set(geometry.uvs, spec.uvsIndex);
-      spec.uvsIndex += geometry.uvs.length;
+      if (geometry.uvs) {
+        spec.uvs.set(geometry.uvs, spec.uvsIndex);
+        spec.uvsIndex += geometry.uvs.length;
+      }
+      if (geometry.colors) {
+        spec.colors.set(geometry.colors, spec.colorsIndex);
+        spec.colorsIndex += geometry.colors.length;
+      }
 
       spec.ids.fill(object.id, spec.idsIndex, spec.idsIndex + geometry.positions.length/3);
       spec.idsIndex += geometry.positions.length/3;
@@ -168,7 +193,129 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
     arraybuffer,
   ];
 };
-const MAX_NAME_LENGTH = 128;
+const _dracoDecode = arrayBuffer => {
+  const result = [];
+
+  const decoder = new decoderModule.Decoder();
+  const metadataQuerier = new decoderModule.MetadataQuerier();
+
+  for(let index = 0; index < arrayBuffer.byteLength;) {
+    const byteLength = new Uint32Array(arrayBuffer, index, 1)[0];
+    index += Uint32Array.BYTES_PER_ELEMENT;
+    const byteArray = new Uint8Array(arrayBuffer, index, byteLength);
+    index += byteLength;
+    index = _align4(index);
+
+    // Create the Draco decoder.
+    const buffer = new decoderModule.DecoderBuffer();
+    buffer.Init(byteArray, byteArray.length);
+
+    // Create a buffer to hold the encoded data.
+    const geometryType = decoder.GetEncodedGeometryType(buffer);
+
+    // Decode the encoded geometry.
+    let outputGeometry;
+    let status;
+    if (geometryType == decoderModule.TRIANGULAR_MESH) {
+      outputGeometry = new decoderModule.Mesh();
+      status = decoder.DecodeBufferToMesh(buffer, outputGeometry);
+    } else {
+      outputGeometry = new decoderModule.PointCloud();
+      status = decoder.DecodeBufferToPointCloud(buffer, outputGeometry);
+    }
+
+    const metadata = decoder.GetMetadata(outputGeometry);
+    const name = metadataQuerier.GetStringEntry(metadata, 'name');
+
+    let positions;
+    {
+      const id = decoder.GetAttributeId(outputGeometry, decoderModule.POSITION);
+      const attribute = decoder.GetAttribute(outputGeometry, id);
+      const numComponents = attribute.num_components();
+      const numPoints = outputGeometry.num_points();
+      const numValues = numPoints * numComponents;
+      const dracoArray = new decoderModule.DracoFloat32Array();
+      decoder.GetAttributeFloatForAllPoints( outputGeometry, attribute, dracoArray );
+      positions = new Float32Array( numValues );
+      for ( var i = 0; i < numValues; i ++ ) {
+        positions[ i ] = dracoArray.GetValue( i );
+      }
+      decoderModule.destroy( dracoArray );
+    }
+    let uvs;
+    {
+      const id = decoder.GetAttributeId(outputGeometry, decoderModule.TEX_COORD);
+      if (id !== -1) {
+        const attribute = decoder.GetAttribute(outputGeometry, id);
+        const numComponents = attribute.num_components();
+        const numPoints = outputGeometry.num_points();
+        const numValues = numPoints * numComponents;
+        const dracoArray = new decoderModule.DracoFloat32Array();
+        decoder.GetAttributeFloatForAllPoints( outputGeometry, attribute, dracoArray );
+        uvs = new Float32Array( numValues );
+        for ( var i = 0; i < numValues; i ++ ) {
+          uvs[ i ] = dracoArray.GetValue( i );
+        }
+        decoderModule.destroy( dracoArray );
+      } else {
+        uvs = null;
+      }
+    }
+    let colors;
+    {
+      const id = decoder.GetAttributeId(outputGeometry, decoderModule.COLOR);
+      if (id !== -1) {
+        const attribute = decoder.GetAttribute(outputGeometry, id);
+        const numComponents = attribute.num_components();
+        const numPoints = outputGeometry.num_points();
+        const numValues = numPoints * numComponents;
+        const dracoArray = new decoderModule.DracoUInt8Array();
+        decoder.GetAttributeUInt8ForAllPoints( outputGeometry, attribute, dracoArray );
+        colors = new Uint8Array( numValues );
+        for ( var i = 0; i < numValues; i ++ ) {
+          colors[ i ] = dracoArray.GetValue( i );
+        }
+        decoderModule.destroy( dracoArray );
+      } else {
+        colors = null;
+      }
+    }
+    let indices;
+    {
+      const numFaces = outputGeometry.num_faces();
+      const numIndices = numFaces * 3;
+      indices = new Uint16Array( numIndices );
+      const indexArray = new decoderModule.DracoInt32Array();
+
+      for ( var i = 0; i < numFaces; ++ i ) {
+        decoder.GetFaceFromMesh( outputGeometry, i, indexArray );
+        for ( var j = 0; j < 3; ++ j ) {
+          indices[ i * 3 + j ] = indexArray.GetValue( j );
+        }
+      }
+    }
+
+    const m = {
+      name,
+      positions,
+      uvs,
+      colors,
+      indices,
+    };
+    result.push(m);
+
+    // You must explicitly delete objects created from the DracoDecoderModule
+    // or Decoder.
+    decoderModule.destroy(outputGeometry);
+    decoderModule.destroy(buffer);
+  }
+
+  decoderModule.destroy(decoder);
+  decoderModule.destroy(metadataQuerier);
+
+  return result;
+};
+/* const MAX_NAME_LENGTH = 128;
 const _flatDecode = arrayBuffer => {
   const result = [];
 
@@ -213,7 +360,7 @@ const _flatDecode = arrayBuffer => {
   }
 
   return result;
-};
+}; */
 
 const queue = [];
 let loaded = false;
@@ -225,7 +372,7 @@ const _handleMessage = async data => {
 
       const res = await fetch(url);
       const arrayBuffer = await res.arrayBuffer();
-      const meshes = _flatDecode(arrayBuffer);
+      const meshes = _dracoDecode(arrayBuffer);
       for (const mesh of meshes) {
         geometryRegistry[mesh.name] = [mesh];
       }
@@ -265,6 +412,17 @@ const _handleMessage = async data => {
     }
   }
 };
+const _flushMessages = () => {
+  for (let i = 0; i < queue.length; i++) {
+    _handleMessage(queue[i]);
+  }
+  queue.length = 0;
+};
 self.onmessage = e => {
-  _handleMessage(e.data);
+  const {data} = e;
+  if (!loaded) {
+    queue.push(data);
+  } else {
+    _handleMessage(data);
+  }
 };
