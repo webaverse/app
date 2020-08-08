@@ -226,6 +226,7 @@ const _dracoDecode = arrayBuffer => {
 
     const metadata = decoder.GetMetadata(outputGeometry);
     const name = metadataQuerier.GetStringEntry(metadata, 'name');
+    const transparent = !!metadataQuerier.GetIntEntry(metadata, 'transparent');
 
     let positions;
     {
@@ -297,6 +298,7 @@ const _dracoDecode = arrayBuffer => {
 
     const m = {
       name,
+      transparent,
       positions,
       uvs,
       colors,
