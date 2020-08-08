@@ -279,14 +279,16 @@ const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subpa
 let animals = [];
 (async () => {
   const animalsMeshes = await _loadGltf('./animals.glb');
-  console.log('got animals', animalsMeshes);
-  // const deers = animalsMeshes.getObjectByName('Deer');
-  // const animal = deers.getObjectByName('alt584');
-  const animal = animalsMeshes.getObjectByName('GreenFrog');
+  // console.log('got animals', animalsMeshes);
+  const deers = animalsMeshes.getObjectByName('Deer');
+  const animal = deers.getObjectByName('alt584');
+  // const animal = animalsMeshes.getObjectByName('GreenFrog');
 
   const aabb = new THREE.Box3().setFromObject(animal);
   const center = aabb.getCenter(new THREE.Vector3());
   const size = aabb.getSize(new THREE.Vector3());
+  const headPivot = center.clone()
+    .add(size.clone().multiply(new THREE.Vector3(0, 1/2 * 0.5, 1/2 * 0.5)));
   const legsPivot = center.clone()
     .add(size.clone().multiply(new THREE.Vector3(0, -1/2 + 1/3, 0)));
   const legsSepFactor = 0.5;
@@ -300,8 +302,17 @@ let animals = [];
     .add(size.clone().multiply(new THREE.Vector3(1/2 * legsSepFactor, 0, 1/2 * legsSepFactor)));
 
   const positions = animal.geometry.attributes.position.array;
+  const heads = new Float32Array(positions.length);
   const legs = new Float32Array(positions.length/3*4);
   for (let i = 0, j = 0; i < positions.length; i += 3, j += 4) {
+    localVector.fromArray(positions, i);
+    if (localVector.z > headPivot.z) {
+      localVector.sub(headPivot);
+    } else {
+      localVector.setScalar(0);
+    }
+    localVector.toArray(heads, i);
+
     localVector.fromArray(positions, i);
     let xAxis;
     if (localVector.y < legsPivot.y) {
@@ -323,16 +334,22 @@ let animals = [];
         }
       }
     } else {
-      localVector.set(0, 0, 0);
+      localVector.setScalar(0);
       xAxis = 0;
     }
     localVector.toArray(legs, j);
     legs[j+3] = xAxis;
   }
+  animal.geometry.setAttribute('head', new THREE.BufferAttribute(heads, 3));
   animal.geometry.setAttribute('leg', new THREE.BufferAttribute(legs, 4));
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
+      headRotation: {
+        type: 'v4',
+        value: new THREE.Quaternion(),
+        needsUpdate: true,
+      },
       walkFactor: {
         type: 'f',
         value: 0,
@@ -351,8 +368,10 @@ let animals = [];
       #define PI 3.1415926535897932384626433832795
 
       attribute vec3 color;
+      attribute vec3 head;
       attribute vec4 leg;
 
+      uniform vec4 headRotation;
       uniform float walkFactor;
       uniform float walkCycle;
       varying vec3 vColor;
@@ -368,16 +387,23 @@ let animals = [];
         qr.w = cos(half_angle);
         return qr;
       }
+      vec3 multiply_vq(vec3 v, vec4 q) {
+        return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+      }
       vec3 rotate_vertex_position(vec3 position, vec3 axis, float angle)
       {
         vec4 q = quat_from_axis_angle(axis, angle);
-        vec3 v = position.xyz;
-        return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+        return multiply_vq(position, q);
       }
 
       void main() {
         vec3 p = position;
-        if (leg.y != 0.0) {
+        if (head.y != 0.) {
+          // p = vec3(0.);
+          p -= head.xyz;
+          p += multiply_vq(head, headRotation);
+        }
+        if (leg.y != 0.) {
           p -= leg.xyz;
           p += rotate_vertex_position(leg.xyz, vec3(leg.w, 0., 0.), sin(walkCycle*PI*2.)*PI/2.*walkFactor);
         }
@@ -3213,6 +3239,8 @@ function animate(timestamp, frame) {
     }
   });
   for (const animal of animals) {
+    animal.material.uniforms.headRotation.value.setFromEuler(localEuler.set(-0.2, 0.2, 0, 'YXZ'));
+    animal.material.uniforms.headRotation.needsUpdate = true;
     animal.material.uniforms.walkFactor.value = 1;
     animal.material.uniforms.walkFactor.needsUpdate = true;
     animal.material.uniforms.walkCycle.value = (Date.now()%2000)/2000;
