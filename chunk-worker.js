@@ -278,6 +278,7 @@ const _flushMessages = () => {
   for (let i = 0; i < queue.length; i++) {
     _handleMessage(queue[i]);
   }
+  queue.length = 0;
 };
 self.onmessage = e => {
   const {data} = e;
