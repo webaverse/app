@@ -276,6 +276,131 @@ function mod(a, b) {
 }
 const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
 
+let animals = [];
+(async () => {
+  const animalsMeshes = await _loadGltf('./animals.glb');
+  const deers = animalsMeshes.getObjectByName('Deer');
+  const deer = deers.getObjectByName('alt584');
+  // console.log('got animals', animals, deer);
+
+  const aabb = new THREE.Box3().setFromObject(deer);
+  const center = aabb.getCenter(new THREE.Vector3());
+  const size = aabb.getSize(new THREE.Vector3());
+  const legsPivot = center.clone()
+    .add(size.clone().multiply(new THREE.Vector3(0, -1/2 + 1/3, 0)));
+  const legsSepFactor = 0.5;
+  const legsPivotTopLeft = legsPivot.clone()
+    .add(size.clone().multiply(new THREE.Vector3(-1/2 * legsSepFactor, 0, -1/2 * legsSepFactor)));
+  const legsPivotTopRight = legsPivot.clone()
+    .add(size.clone().multiply(new THREE.Vector3(1/2 * legsSepFactor, 0, -1/2 * legsSepFactor)));
+  const legsPivotBottomLeft = legsPivot.clone()
+    .add(size.clone().multiply(new THREE.Vector3(-1/2 * legsSepFactor, 0, 1/2 * legsSepFactor)));
+  const legsPivotBottomRight = legsPivot.clone()
+    .add(size.clone().multiply(new THREE.Vector3(1/2 * legsSepFactor, 0, 1/2 * legsSepFactor)));
+
+  const positions = deer.geometry.attributes.position.array;
+  const legs = new Float32Array(positions.length/3*4);
+  for (let i = 0, j = 0; i < positions.length; i += 3, j += 4) {
+    localVector.fromArray(positions, i);
+    let xAxis;
+    if (localVector.y < legsPivot.y) {
+      if (localVector.x >= legsPivot.x) {
+        if (localVector.z >= legsPivot.z) {
+          localVector.sub(legsPivotBottomRight);
+          xAxis = 1;
+        } else {
+          localVector.sub(legsPivotTopRight);
+          xAxis = -1;
+        }
+      } else {
+        if (localVector.z >= legsPivot.z) {
+          localVector.sub(legsPivotBottomLeft);
+          xAxis = -1;
+        } else {
+          localVector.sub(legsPivotTopLeft);
+          xAxis = 1;
+        }
+      }
+    } else {
+      localVector.set(0, 0, 0);
+      xAxis = 0;
+    }
+    localVector.toArray(legs, j);
+    legs[j+3] = xAxis;
+  }
+  deer.geometry.setAttribute('leg', new THREE.BufferAttribute(legs, 4));
+
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      walkFactor: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
+      },
+      walkCycle: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
+      },
+    },
+    vertexShader: `\
+      precision highp float;
+      precision highp int;
+
+      #define PI 3.1415926535897932384626433832795
+
+      attribute vec3 color;
+      attribute vec4 leg;
+
+      uniform float walkFactor;
+      uniform float walkCycle;
+      varying vec3 vColor;
+
+      vec4 quat_from_axis_angle(vec3 axis, float angle)
+      {
+        vec4 qr;
+        float half_angle = angle * 0.5;
+        float s = sin(half_angle);
+        qr.x = axis.x * s;
+        qr.y = axis.y * s;
+        qr.z = axis.z * s;
+        qr.w = cos(half_angle);
+        return qr;
+      }
+      vec3 rotate_vertex_position(vec3 position, vec3 axis, float angle)
+      {
+        vec4 q = quat_from_axis_angle(axis, angle);
+        vec3 v = position.xyz;
+        return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+      }
+
+      void main() {
+        vec3 p = position;
+        if (leg.y != 0.0) {
+          p -= leg.xyz;
+          p += rotate_vertex_position(leg.xyz, vec3(leg.w, 0., 0.), sin(walkCycle*PI*2.)*PI/2.*walkFactor);
+        }
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+        vColor = color;
+      }
+    `,
+    fragmentShader: `\
+      precision highp float;
+      precision highp int;
+
+      varying vec3 vColor;
+
+      void main() {
+        gl_FragColor = vec4(vColor, 1.0);
+      }
+    `,
+  });
+  deer.material = material;
+
+  scene.add(deer);
+  animals.push(deer);
+})();
+
 const itemMeshes = [];
 const npcMeshes = [];
 /* const _decorateMeshForRaycast = mesh => {
@@ -3086,6 +3211,12 @@ function animate(timestamp, frame) {
       return false;
     }
   });
+  for (const animal of animals) {
+    animal.material.uniforms.walkFactor.value = 1;
+    animal.material.uniforms.walkFactor.needsUpdate = true;
+    animal.material.uniforms.walkCycle.value = (Date.now()%2000)/2000;
+    animal.material.uniforms.walkCycle.needsUpdate = true;
+  }
   cometFireMesh.material.uniforms.uAnimation.value = (Date.now() % 2000) / 2000;
   hpMesh.update();
   /* for (let i = 0; i < npcMeshes.length; i++) {
