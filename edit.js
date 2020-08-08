@@ -279,11 +279,12 @@ const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subpa
 let animals = [];
 (async () => {
   const animalsMeshes = await _loadGltf('./animals.glb');
-  const deers = animalsMeshes.getObjectByName('Deer');
-  const deer = deers.getObjectByName('alt584');
-  // console.log('got animals', animals, deer);
+  console.log('got animals', animalsMeshes);
+  // const deers = animalsMeshes.getObjectByName('Deer');
+  // const animal = deers.getObjectByName('alt584');
+  const animal = animalsMeshes.getObjectByName('GreenFrog');
 
-  const aabb = new THREE.Box3().setFromObject(deer);
+  const aabb = new THREE.Box3().setFromObject(animal);
   const center = aabb.getCenter(new THREE.Vector3());
   const size = aabb.getSize(new THREE.Vector3());
   const legsPivot = center.clone()
@@ -298,7 +299,7 @@ let animals = [];
   const legsPivotBottomRight = legsPivot.clone()
     .add(size.clone().multiply(new THREE.Vector3(1/2 * legsSepFactor, 0, 1/2 * legsSepFactor)));
 
-  const positions = deer.geometry.attributes.position.array;
+  const positions = animal.geometry.attributes.position.array;
   const legs = new Float32Array(positions.length/3*4);
   for (let i = 0, j = 0; i < positions.length; i += 3, j += 4) {
     localVector.fromArray(positions, i);
@@ -328,7 +329,7 @@ let animals = [];
     localVector.toArray(legs, j);
     legs[j+3] = xAxis;
   }
-  deer.geometry.setAttribute('leg', new THREE.BufferAttribute(legs, 4));
+  animal.geometry.setAttribute('leg', new THREE.BufferAttribute(legs, 4));
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
@@ -395,10 +396,10 @@ let animals = [];
       }
     `,
   });
-  deer.material = material;
+  animal.material = material;
 
-  scene.add(deer);
-  animals.push(deer);
+  scene.add(animal);
+  animals.push(animal);
 })();
 
 const itemMeshes = [];
