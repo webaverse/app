@@ -6,7 +6,6 @@ import easing from './easing.js';
 const localVector = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localVector2 = new THREE.Vector3();
-// const localPlane = new THREE.Plane();
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -486,8 +485,6 @@ const uiRenderer = (() => {
       iframe.style.left = '-4096px';
       document.body.appendChild(iframe);
     }),
-    /* fetch('interface-world.html')
-      .then(res => res.text()), */
   ]);
 
   let renderIds = 0;
@@ -679,9 +676,6 @@ const makeUiMesh = (label, tiles, onclick) => {
     mesh.visible = false;
     return mesh;
   })();
-  /* highlightMesh.position.x = -uiWorldSize/2 + (10 + 150/2)/uiSize*uiWorldSize;
-  highlightMesh.position.y = uiWorldSize - (60 + 150/2)/uiSize*uiWorldSize;
-  highlightMesh.scale.x = highlightMesh.scale.y = 150/uiSize*uiWorldSize; */
   mesh.add(highlightMesh);
   mesh.highlightMesh = highlightMesh;
 
@@ -799,7 +793,6 @@ const makeUiFullMesh = () => {
   wrap.intersect = raycaster => {
     for (const mesh of object.children) {
       mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      // localPlane.setFromNormalAndCoplanarPoint(localVector2.set(0, 0, 1).applyQuaternion(localQuaternion), localVector);
       raycaster.intersectObject(mesh, false, intersects);
       if (intersects.length > 0) {
         const [{distance, point, uv}] = intersects;
