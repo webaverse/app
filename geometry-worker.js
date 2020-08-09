@@ -20,111 +20,84 @@ const geometryRegistry = {};
 const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSize) => {
   const geometries = objects.map(o => geometryRegistry[o.type]);
 
-  let numOpaquePositions = 0;
-  let numOpaqueUvs = 0;
-  let numOpaqueColors = 0;
-  let numOpaqueIds = 0;
-  let numOpaqueSkyLights = 0;
-  let numOpaqueTorchLights = 0;
-  let numOpaqueIndices = 0;
-  let numTransparentPositions = 0;
-  let numTransparentUvs = 0;
-  let numTransparentColors = 0;
-  let numTransparentIds = 0;
-  let numTransparentSkyLights = 0;
-  let numTransparentTorchLights = 0;
-  let numTransparentIndices = 0;
+  const _makeStats = () => {
+    return {
+      numPositions: 0,
+      numUvs: 0,
+      numColors: 0,
+      numIds: 0,
+      numSkyLights: 0,
+      numTorchLights: 0,
+      numIndices: 0,
+    };
+  };
+  const opaqueStats = _makeStats();
+  const transparentStats = _makeStats();
+  const vegetationStats = _makeStats();
+
   for (const geometrySpecs of geometries) {
     for (const geometry of geometrySpecs) {
+      let stats;
       if (!geometry.transparent) {
-        numOpaquePositions += geometry.positions.length;
-        numOpaqueUvs += geometry.uvs ? geometry.uvs.length : 0;
-        numOpaqueColors += geometry.colors ? geometry.colors.length : 0;
-        numOpaqueIds += geometry.positions.length/3;
-        numOpaqueSkyLights += geometry.positions.length/3;
-        numOpaqueTorchLights += geometry.positions.length/3;
-        numOpaqueIndices += geometry.indices.length;
+        stats = opaqueStats;
       } else {
-        numTransparentPositions += geometry.positions.length;
-        numTransparentUvs += geometry.uvs ? geometry.uvs.length : 0;
-        numTransparentColors += geometry.colors ? geometry.colors.length : 0;
-        numTransparentIds += geometry.positions.length/3;
-        numTransparentSkyLights += geometry.positions.length/3;
-        numTransparentTorchLights += geometry.positions.length/3;
-        numTransparentIndices += geometry.indices.length;
+        if (geometry.vegetation) {
+          stats = vegetationStats;
+        } else {
+          stats = transparentStats;
+        }
       }
+      stats.numPositions += geometry.positions.length;
+      stats.numUvs += geometry.uvs ? geometry.uvs.length : 0;
+      stats.numColors += geometry.colors ? geometry.colors.length : 0;
+      stats.numIds += geometry.positions.length/3;
+      stats.numSkyLights += geometry.positions.length/3;
+      stats.numTorchLights += geometry.positions.length/3;
+      stats.numIndices += geometry.indices.length;
     }
   }
 
-  const totalSize = (() => {
-    let index = 0;
-    index += numOpaquePositions * Float32Array.BYTES_PER_ELEMENT;
-    index += numOpaqueUvs * Float32Array.BYTES_PER_ELEMENT;
-    index += numOpaqueColors * Float32Array.BYTES_PER_ELEMENT;
-    index += numOpaqueIds * Float32Array.BYTES_PER_ELEMENT;
-    index += numOpaqueSkyLights * Uint8Array.BYTES_PER_ELEMENT;
-    index += numOpaqueTorchLights * Uint8Array.BYTES_PER_ELEMENT;
-    index = _align4(index);
-    index += numOpaqueIndices * Uint32Array.BYTES_PER_ELEMENT;
-    index += numTransparentPositions * Float32Array.BYTES_PER_ELEMENT;
-    index += numTransparentUvs * Float32Array.BYTES_PER_ELEMENT;
-    index += numTransparentColors * Float32Array.BYTES_PER_ELEMENT;
-    index += numTransparentIds * Float32Array.BYTES_PER_ELEMENT;
-    index += numTransparentSkyLights * Uint8Array.BYTES_PER_ELEMENT;
-    index += numTransparentTorchLights * Uint8Array.BYTES_PER_ELEMENT;
-    index = _align4(index);
-    index += numTransparentIndices * Uint32Array.BYTES_PER_ELEMENT;
-    return index;
-  })();
+  let totalSize = 0;
+  for (const stat of [opaqueStats, transparentStats, vegetationStats]) {
+    totalSize += stat.numPositions * Float32Array.BYTES_PER_ELEMENT;
+    totalSize += stat.numUvs * Float32Array.BYTES_PER_ELEMENT;
+    totalSize += stat.numColors * Float32Array.BYTES_PER_ELEMENT;
+    totalSize += stat.numIds * Float32Array.BYTES_PER_ELEMENT;
+    totalSize += stat.numSkyLights * Uint8Array.BYTES_PER_ELEMENT;
+    totalSize += stat.numTorchLights * Uint8Array.BYTES_PER_ELEMENT;
+    totalSize = _align4(totalSize);
+    totalSize += stat.numIndices * Uint32Array.BYTES_PER_ELEMENT;
+  }
   const arraybuffer = new ArrayBuffer(totalSize);
-  let index = 0;
-  const opaque = {};
-  opaque.positions = new Float32Array(arraybuffer, index, numOpaquePositions);
-  index += numOpaquePositions * Float32Array.BYTES_PER_ELEMENT;
-  opaque.uvs = new Float32Array(arraybuffer, index, numOpaqueUvs);
-  index += numOpaqueUvs * Float32Array.BYTES_PER_ELEMENT;
-  opaque.colors = new Float32Array(arraybuffer, index, numOpaqueColors);
-  index += numOpaqueColors * Float32Array.BYTES_PER_ELEMENT;
-  opaque.ids = new Float32Array(arraybuffer, index, numOpaqueIds);
-  index += numOpaqueIds * Float32Array.BYTES_PER_ELEMENT;
-  opaque.skyLights = new Uint8Array(arraybuffer, index, numOpaqueSkyLights);
-  index += numOpaqueSkyLights * Uint8Array.BYTES_PER_ELEMENT;
-  opaque.torchLights = new Uint8Array(arraybuffer, index, numOpaqueTorchLights);
-  index += numOpaqueTorchLights * Uint8Array.BYTES_PER_ELEMENT;
-  index = _align4(index);
-  opaque.indices = new Uint32Array(arraybuffer, index, numOpaqueIndices);
-  index += numOpaqueIndices * Uint32Array.BYTES_PER_ELEMENT;
-  opaque.positionsIndex = 0;
-  opaque.uvsIndex = 0;
-  opaque.colorsIndex = 0;
-  opaque.idsIndex = 0;
-  opaque.skyLightsIndex = 0;
-  opaque.torchLightsIndex = 0;
-  opaque.indicesIndex = 0;
 
-  const transparent = {};
-  transparent.positions = new Float32Array(arraybuffer, index, numTransparentPositions);
-  index += numTransparentPositions * Float32Array.BYTES_PER_ELEMENT;
-  transparent.uvs = new Float32Array(arraybuffer, index, numTransparentUvs);
-  index += numTransparentUvs * Float32Array.BYTES_PER_ELEMENT;
-  transparent.colors = new Float32Array(arraybuffer, index, numTransparentColors);
-  index += numTransparentColors * Float32Array.BYTES_PER_ELEMENT;
-  transparent.ids = new Float32Array(arraybuffer, index, numTransparentIds);
-  index += numTransparentIds * Float32Array.BYTES_PER_ELEMENT;
-  transparent.skyLights = new Uint8Array(arraybuffer, index, numTransparentSkyLights);
-  index += numTransparentSkyLights * Uint8Array.BYTES_PER_ELEMENT;
-  transparent.torchLights = new Uint8Array(arraybuffer, index, numTransparentTorchLights);
-  index += numTransparentTorchLights * Uint8Array.BYTES_PER_ELEMENT;
-  index = _align4(index);
-  transparent.indices = new Uint32Array(arraybuffer, index, numTransparentIndices);
-  index += numTransparentIndices * Uint32Array.BYTES_PER_ELEMENT;
-  transparent.positionsIndex = 0;
-  transparent.uvsIndex = 0;
-  transparent.colorsIndex = 0;
-  transparent.idsIndex = 0;
-  transparent.skyLightsIndex = 0;
-  transparent.torchLightsIndex = 0;
-  transparent.indicesIndex = 0;
+  let index = 0;
+  const _makeSpec = stat => {
+    const spec = {};
+    spec.positions = new Float32Array(arraybuffer, index, stat.numPositions);
+    index += stat.numPositions * Float32Array.BYTES_PER_ELEMENT;
+    spec.uvs = new Float32Array(arraybuffer, index, stat.numUvs);
+    index += stat.numUvs * Float32Array.BYTES_PER_ELEMENT;
+    spec.colors = new Float32Array(arraybuffer, index, stat.numColors);
+    index += stat.numColors * Float32Array.BYTES_PER_ELEMENT;
+    spec.ids = new Float32Array(arraybuffer, index, stat.numIds);
+    index += stat.numIds * Float32Array.BYTES_PER_ELEMENT;
+    spec.skyLights = new Uint8Array(arraybuffer, index, stat.numSkyLights);
+    index += stat.numSkyLights * Uint8Array.BYTES_PER_ELEMENT;
+    spec.torchLights = new Uint8Array(arraybuffer, index, stat.numTorchLights);
+    index += stat.numTorchLights * Uint8Array.BYTES_PER_ELEMENT;
+    index = _align4(index);
+    spec.indices = new Uint32Array(arraybuffer, index, stat.numIndices);
+    index += stat.numIndices * Uint32Array.BYTES_PER_ELEMENT;
+    spec.positionsIndex = 0;
+    spec.uvsIndex = 0;
+    spec.colorsIndex = 0;
+    spec.idsIndex = 0;
+    spec.skyLightsIndex = 0;
+    spec.torchLightsIndex = 0;
+    spec.indicesIndex = 0;
+    return spec;
+  };
+  const [opaque, transparent, vegetation] = [opaqueStats, transparentStats, vegetationStats].map(stat => _makeSpec(stat));
 
   const subparcelSizeP1 = subparcelSize+1;
   const subparcelOffset = localVector2.set((x-1)*subparcelSize, (y-1)*subparcelSize, (z-1)*subparcelSize);
@@ -149,7 +122,7 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
     const matrix = localMatrix.fromArray(object.matrix);
 
     for (const geometry of geometrySpecs) {
-      const spec = geometry.transparent ? transparent : opaque;
+      const spec = geometry.transparent ? (geometry.vegetation ? vegetation : transparent) : opaque;
 
       const indexOffset2 = spec.positionsIndex/3;
       for (let j = 0; j < geometry.indices.length; j++) {
@@ -189,6 +162,7 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
     {
       opaque,
       transparent,
+      vegetation,
     },
     arraybuffer,
   ];
@@ -227,6 +201,7 @@ const _dracoDecode = arrayBuffer => {
     const metadata = decoder.GetMetadata(outputGeometry);
     const name = metadataQuerier.GetStringEntry(metadata, 'name');
     const transparent = !!metadataQuerier.GetIntEntry(metadata, 'transparent');
+    const vegetation = !!metadataQuerier.GetIntEntry(metadata, 'vegetation');
 
     let positions;
     {
@@ -299,6 +274,7 @@ const _dracoDecode = arrayBuffer => {
     const m = {
       name,
       transparent,
+      vegetation,
       positions,
       uvs,
       colors,
@@ -354,6 +330,7 @@ const _flatDecode = arrayBuffer => {
     const m = {
       name,
       transparent,
+      vegetation,
       positions,
       uvs,
       indices,

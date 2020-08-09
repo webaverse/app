@@ -266,6 +266,7 @@ const _dracoEncode = meshes => {
       
       metadataBuilder.AddStringEntry(metadata, 'name', mesh.name);
       metadataBuilder.AddIntEntry(metadata, 'transparent', +mesh.transparent);
+      metadataBuilder.AddIntEntry(metadata, 'vegetation', +mesh.vegetation);
       meshBuilder.AddMetadata(dracoMesh, metadata);
 
       const numFaces = mesh.indices.length / 3;
@@ -352,6 +353,7 @@ const _dracoDecode = arrayBuffer => {
     const metadata = decoder.GetMetadata(outputGeometry);
     const name = metadataQuerier.GetStringEntry(metadata, 'name');
     const transparent = !!metadataQuerier.GetIntEntry(metadata, 'transparent');
+    const vegetation = !!metadataQuerier.GetIntEntry(metadata, 'vegetation');
 
     let positions;
     {
@@ -424,6 +426,7 @@ const _dracoDecode = arrayBuffer => {
     const m = {
       name,
       transparent,
+      vegetation,
       positions,
       uvs,
       colors,
@@ -551,9 +554,12 @@ const _registerFile = async url => {
     if (o.isMesh) {
       const {name, geometry, material} = o;
       const transparent = /fence/i.test(material.name);
+      const vegetation = /tree|bush|grass|flower|lily/i.test(o.name);
+      console.log('got names', o.name, {transparent, vegetation});
       geometryRegistry[name] = [{
         name,
         transparent,
+        vegetation,
         positions: geometry.attributes.position.array,
         uvs: !geometry.attributes.color ? geometry.attributes.uv.array : null,
         colors: geometry.attributes.color ? (() => {
