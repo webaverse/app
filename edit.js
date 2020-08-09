@@ -255,8 +255,8 @@ const _snapBuildPosition = p => {
 };
 const _meshEquals = (a, b) => {
   if (a.position.equals(b.position)) {
-    if (a.type === b.buildType) {
-      if (a.type === 'wall') {
+    if (a.type === b.vegetationType) {
+      if (a.type === 'wood_wall') {
         return Math.floor(a.quaternion.x/pid4) === Math.floor(b.quaternion.x/pid4) &&
           Math.floor(a.quaternion.y/pid4) === Math.floor(b.quaternion.y/pid4) &&
           Math.floor(a.quaternion.z/pid4) === Math.floor(b.quaternion.z/pid4) &&
@@ -3384,7 +3384,7 @@ function animate(timestamp, frame) {
             }
             return false;
           })();
-          if (hasBuildMesh) {
+          if (!hasBuildMesh) {
             buildMesh.traverse(o => {
               if (o.isMesh && o.originalMaterial) {
                 o.material = o.originalMaterial;
