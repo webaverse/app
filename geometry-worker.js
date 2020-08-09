@@ -17,6 +17,7 @@ const _align4 = n => {
 };
 
 const geometryRegistry = {};
+const animalGeometries = [];
 const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSize) => {
   const geometries = objects.map(o => geometryRegistry[o.type]);
 
@@ -105,7 +106,6 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
     const matrix = localMatrix.fromArray(object.matrix);
 
     for (const geometry of geometrySpecs) {
-      // const spec = geometry.transparent ? (geometry.vegetation ? vegetation : transparent) : opaque;
       const spec = opaque;
 
       const indexOffset2 = spec.positionsIndex/3;
@@ -184,6 +184,7 @@ const _dracoDecode = arrayBuffer => {
     const name = metadataQuerier.GetStringEntry(metadata, 'name');
     const transparent = !!metadataQuerier.GetIntEntry(metadata, 'transparent');
     const vegetation = !!metadataQuerier.GetIntEntry(metadata, 'vegetation');
+    const animal = !!metadataQuerier.GetIntEntry(metadata, 'animal');
 
     let positions;
     {
@@ -257,6 +258,7 @@ const _dracoDecode = arrayBuffer => {
       name,
       transparent,
       vegetation,
+      animal,
       positions,
       uvs,
       colors,
@@ -336,6 +338,9 @@ const _handleMessage = async data => {
       const meshes = _dracoDecode(arrayBuffer);
       for (const mesh of meshes) {
         geometryRegistry[mesh.name] = [mesh];
+        if (mesh.animal) {
+          animalGeometries.push(mesh);
+        }
       }
 
       self.postMessage({
@@ -348,6 +353,14 @@ const _handleMessage = async data => {
 
       const [geometry] = geometryRegistry[name];
 
+      self.postMessage({
+        result: geometry,
+      });
+      break;
+    }
+    case 'requestAnimalGeometry': {
+      const {hash} = data;
+      const geometry = animalGeometries[Math.floor(hash/0xFFFFFF*animalGeometries.length)];
       self.postMessage({
         result: geometry,
       });
