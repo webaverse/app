@@ -1039,66 +1039,11 @@ const [
           geometry.setAttribute('position', new THREE.BufferAttribute(animalSpec.positions, 3));
           geometry.setAttribute('color', new THREE.BufferAttribute(animalSpec.colors, 3, true));
           geometry.setIndex(new THREE.BufferAttribute(animalSpec.indices, 1));
+          geometry.setAttribute('head', new THREE.BufferAttribute(animalSpec.heads, 3));
+          geometry.setAttribute('leg', new THREE.BufferAttribute(animalSpec.legs, 4));
           const animal = new THREE.Mesh(geometry, animalMaterial);
-
-          const aabb = new THREE.Box3().setFromObject(animal);
-          const center = aabb.getCenter(new THREE.Vector3());
-          const size = aabb.getSize(new THREE.Vector3());
-          const headPivot = center.clone()
-            .add(size.clone().multiply(new THREE.Vector3(0, 1/2 * 0.5, -1/2 * 0.5)));
-          const legsPivot = center.clone()
-            .add(size.clone().multiply(new THREE.Vector3(0, -1/2 + 1/3, 0)));
-          const legsSepFactor = 0.5;
-          const legsPivotTopLeft = legsPivot.clone()
-            .add(size.clone().multiply(new THREE.Vector3(-1/2 * legsSepFactor, 0, -1/2 * legsSepFactor)));
-          const legsPivotTopRight = legsPivot.clone()
-            .add(size.clone().multiply(new THREE.Vector3(1/2 * legsSepFactor, 0, -1/2 * legsSepFactor)));
-          const legsPivotBottomLeft = legsPivot.clone()
-            .add(size.clone().multiply(new THREE.Vector3(-1/2 * legsSepFactor, 0, 1/2 * legsSepFactor)));
-          const legsPivotBottomRight = legsPivot.clone()
-            .add(size.clone().multiply(new THREE.Vector3(1/2 * legsSepFactor, 0, 1/2 * legsSepFactor)));
-
-          const positions = animal.geometry.attributes.position.array;
-          const heads = new Float32Array(positions.length);
-          const legs = new Float32Array(positions.length/3*4);
-          for (let i = 0, j = 0; i < positions.length; i += 3, j += 4) {
-            localVector.fromArray(positions, i);
-            if (localVector.z < headPivot.z) {
-              localVector.sub(headPivot);
-            } else {
-              localVector.setScalar(0);
-            }
-            localVector.toArray(heads, i);
-
-            localVector.fromArray(positions, i);
-            let xAxis;
-            if (localVector.y < legsPivot.y) {
-              if (localVector.x >= legsPivot.x) {
-                if (localVector.z >= legsPivot.z) {
-                  localVector.sub(legsPivotBottomRight);
-                  xAxis = 1;
-                } else {
-                  localVector.sub(legsPivotTopRight);
-                  xAxis = -1;
-                }
-              } else {
-                if (localVector.z >= legsPivot.z) {
-                  localVector.sub(legsPivotBottomLeft);
-                  xAxis = -1;
-                } else {
-                  localVector.sub(legsPivotTopLeft);
-                  xAxis = 1;
-                }
-              }
-            } else {
-              localVector.setScalar(0);
-              xAxis = 0;
-            }
-            localVector.toArray(legs, j);
-            legs[j+3] = xAxis;
-          }
-          animal.geometry.setAttribute('head', new THREE.BufferAttribute(heads, 3));
-          animal.geometry.setAttribute('leg', new THREE.BufferAttribute(legs, 4));
+          const headPivot = new THREE.Vector3().fromArray(animalSpec.headPivot);
+          const aabb = new THREE.Box3().setFromCenterAndSize(new THREE.Vector3().fromArray(animalSpec.aabb.center), new THREE.Vector3().fromArray(animalSpec.aabb.size));
 
           let animation = null;
           animal.lookAt = p => {

@@ -10,6 +10,11 @@ const decoderModule = new DracoDecoderModule({
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localMatrix = new THREE.Matrix4();
+const localBox = new THREE.Box3();
+
+const fakeMaterial = new THREE.MeshBasicMaterial({
+  color: 0xFFFFFF,
+});
 
 const _align4 = n => {
   const d = n%4;
@@ -360,9 +365,82 @@ const _handleMessage = async data => {
     }
     case 'requestAnimalGeometry': {
       const {hash} = data;
-      const geometry = animalGeometries[Math.floor(hash/0xFFFFFF*animalGeometries.length)];
+
+      const {positions, colors, indices} = animalGeometries[Math.floor(hash/0xFFFFFF*animalGeometries.length)];
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      const animal = new THREE.Mesh(geometry, fakeMaterial);
+
+      const aabb = localBox.setFromObject(animal);
+      const center = aabb.getCenter(new THREE.Vector3());
+      const size = aabb.getSize(new THREE.Vector3());
+      const headPivot = center.clone()
+        .add(size.clone().multiply(new THREE.Vector3(0, 1/2 * 0.5, -1/2 * 0.5)));
+      const legsPivot = center.clone()
+        .add(size.clone().multiply(new THREE.Vector3(0, -1/2 + 1/3, 0)));
+      const legsSepFactor = 0.5;
+      const legsPivotTopLeft = legsPivot.clone()
+        .add(size.clone().multiply(new THREE.Vector3(-1/2 * legsSepFactor, 0, -1/2 * legsSepFactor)));
+      const legsPivotTopRight = legsPivot.clone()
+        .add(size.clone().multiply(new THREE.Vector3(1/2 * legsSepFactor, 0, -1/2 * legsSepFactor)));
+      const legsPivotBottomLeft = legsPivot.clone()
+        .add(size.clone().multiply(new THREE.Vector3(-1/2 * legsSepFactor, 0, 1/2 * legsSepFactor)));
+      const legsPivotBottomRight = legsPivot.clone()
+        .add(size.clone().multiply(new THREE.Vector3(1/2 * legsSepFactor, 0, 1/2 * legsSepFactor)));
+
+      const heads = new Float32Array(positions.length);
+      const legs = new Float32Array(positions.length/3*4);
+      for (let i = 0, j = 0; i < positions.length; i += 3, j += 4) {
+        localVector.fromArray(positions, i);
+        if (localVector.z < headPivot.z) {
+          localVector.sub(headPivot);
+        } else {
+          localVector.setScalar(0);
+        }
+        localVector.toArray(heads, i);
+
+        localVector.fromArray(positions, i);
+        let xAxis;
+        if (localVector.y < legsPivot.y) {
+          if (localVector.x >= legsPivot.x) {
+            if (localVector.z >= legsPivot.z) {
+              localVector.sub(legsPivotBottomRight);
+              xAxis = 1;
+            } else {
+              localVector.sub(legsPivotTopRight);
+              xAxis = -1;
+            }
+          } else {
+            if (localVector.z >= legsPivot.z) {
+              localVector.sub(legsPivotBottomLeft);
+              xAxis = -1;
+            } else {
+              localVector.sub(legsPivotTopLeft);
+              xAxis = 1;
+            }
+          }
+        } else {
+          localVector.setScalar(0);
+          xAxis = 0;
+        }
+        localVector.toArray(legs, j);
+        legs[j+3] = xAxis;
+      }
+
       self.postMessage({
-        result: geometry,
+        result: {
+          positions,
+          colors,
+          indices,
+          heads,
+          legs,
+          headPivot: headPivot.toArray(new Float32Array(3)),
+          aabb: {
+            center: center.toArray(new Float32Array(3)),
+            size: size.toArray(new Float32Array(3))
+          },
+        },
       });
       break;
     }
