@@ -1288,18 +1288,10 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   const meshId = getNextMeshId();
 
   const heightfieldMaterial = new THREE.ShaderMaterial({
-    uniforms: (() => {
-      const uniforms = Object.assign(
-        THREE.UniformsUtils.clone(THREE.UniformsLib.lights),
-        THREE.UniformsUtils.clone(HEIGHTFIELD_SHADER.uniforms)
-      );
-      // uniforms.fogColor.value = scene.fog.color;
-      // uniforms.fogDensity.value = scene.fog.density;
-      return uniforms;
-    })(),
+    uniforms: THREE.UniformsUtils.clone(HEIGHTFIELD_SHADER.uniforms),
     vertexShader: HEIGHTFIELD_SHADER.vertexShader,
     fragmentShader: HEIGHTFIELD_SHADER.fragmentShader,
-    lights: true,
+    // lights: true,
     extensions: {
       derivatives: true,
     },
