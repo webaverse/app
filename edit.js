@@ -517,8 +517,6 @@ worldContainer.add(chunkMeshContainer);
 let currentChunkMesh = null;
 // let capsuleMesh = null;
 let currentVegetationMesh = null;
-let currentVegetationVegetationMesh = null;
-let currentVegetationTransparentMesh = null;
 const _getCurrentChunkMesh = () => currentChunkMesh;
 const _setCurrentChunkMesh = chunkMesh => {
   /* if (currentChunkMesh) {
@@ -946,7 +944,7 @@ const [
       return w;
     })();
 
-    const _makeVegetationMaterial = transparent => {
+    const _makeVegetationMaterial = () => {
       const material = new THREE.ShaderMaterial({
         uniforms: {
           map: {
@@ -1020,23 +1018,21 @@ const [
           // vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
 
           void main() {
-            gl_FragColor = ${transparent ? `texture2D(map, vUv)` : `vec4(texture2D(map, vUv).rgb, 1.0)`};
+            gl_FragColor = texture2D(map, vUv);
             gl_FragColor.rgb += vSelectColor;
             float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
             float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
             gl_FragColor.rgb *= max(max(worldFactor, cameraFactor), 0.1);
-            ${transparent ? `if (gl_FragColor.a < 0.8) discard;` : ''}
           }
         `,
       });
-      if (transparent) {
+      // if (transparent) {
         material.side = THREE.DoubleSide;
         material.transparent = true;
-      }
+      // }
       return material;
     };
-    const vegetationMaterialOpaque = _makeVegetationMaterial(false);
-    const vegetationMaterialTransparent = _makeVegetationMaterial(true);
+    const vegetationMaterialOpaque = _makeVegetationMaterial();
     const _makeBakedMesh = g => {
       const mesh = new THREE.Mesh(g, vegetationMaterialOpaque);
       mesh.frustumCulled = false;
@@ -1175,10 +1171,8 @@ const [
     ]);
     vegetationMaterialOpaque.uniforms.map.value = texture;
     vegetationMaterialOpaque.uniforms.map.needsUpdate = true;
-    vegetationMaterialTransparent.uniforms.map.value = texture;
-    vegetationMaterialTransparent.uniforms.map.needsUpdate = true;
 
-    const _makeVegetationMesh = (transparent, vegetation) => {
+    const _makeVegetationMesh = () => {
       const numPositions = 10 * 1024 * 1024;
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(numPositions), 3));
@@ -1187,7 +1181,7 @@ const [
       geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
       geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
       geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(numPositions/3), 1));
-      const material = transparent ? vegetationMaterialTransparent : vegetationMaterialOpaque;
+      const material = vegetationMaterialOpaque;
       const mesh = new THREE.Mesh(geometry, [material]);
       mesh.frustumCulled = false;
 
@@ -1355,17 +1349,16 @@ const [
       mesh.getSlabIndexOffset = _getSlabIndexOffset;
       return mesh;
     };
-    currentVegetationMesh = _makeVegetationMesh(false, false);
+    const context = renderer.getContext();
+    currentVegetationMesh = _makeVegetationMesh();
     currentVegetationMesh.position.copy(chunkOffset);
     chunkMeshContainer.add(currentVegetationMesh);
-
-    currentVegetationVegetationMesh = _makeVegetationMesh(true, false);
-    currentVegetationVegetationMesh.position.copy(chunkOffset);
-    chunkMeshContainer.add(currentVegetationVegetationMesh);
-
-    currentVegetationTransparentMesh = _makeVegetationMesh(true, false);
-    currentVegetationTransparentMesh.position.copy(chunkOffset);
-    chunkMeshContainer.add(currentVegetationTransparentMesh);
+    currentVegetationMesh.onBeforeRender = () => {
+      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+    };
+    currentVegetationMesh.onAfterRender = () => {
+      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
+    };
   })(),
 ]);
 chunkWorker = cw;
@@ -2103,8 +2096,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     for (const removedCoord of removedCoords) {
       const {index} = removedCoord;
       currentVegetationMesh.freeSlabIndex(index);
-      currentVegetationVegetationMesh.freeSlabIndex(index);
-      currentVegetationTransparentMesh.freeSlabIndex(index);
 
       _removeVegetationPhysics(index);
       _killVegetationsTasks(index);
@@ -2177,29 +2168,22 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
       const specs = await geometryWorker.requestMarchObjects(x, y, z, objects, heightfields, lightfields, subparcelSize);
       if (live) {
-        const [spec] = specs;
-        const {opaque, vegetation, transparent} = spec;
+        const [{opaque: spec}] = specs;
+        const vegetationMesh = currentVegetationMesh;
+        const slab = vegetationMesh.getSlab(x, y, z, spec.positions.length, spec.uvs.length, spec.ids.length, spec.skyLights.length, spec.torchLights.length, spec.indices.length);
 
-        for (const [spec, vegetationMesh] of [
-          [opaque, currentVegetationMesh],
-          [vegetation, currentVegetationVegetationMesh],
-          [transparent, currentVegetationTransparentMesh],
-        ]) {
-          const slab = vegetationMesh.getSlab(x, y, z, spec.positions.length, spec.uvs.length, spec.ids.length, spec.skyLights.length, spec.torchLights.length, spec.indices.length);
-
-          slab.position.set(spec.positions);
-          slab.uv.set(spec.uvs);
-          slab.id.set(spec.ids);
-          slab.skyLight.set(spec.skyLights);
-          slab.torchLight.set(spec.torchLights);
-          const indexOffset = vegetationMesh.getSlabPositionOffset(slab)/3;
-          for (let i = 0; i < spec.indices.length; i++) {
-            spec.indices[i] += indexOffset;
-          }
-          slab.indices.set(spec.indices);
-          vegetationMesh.updateGeometry(slab, spec);
-          slab.group.count = spec.indices.length;
+        slab.position.set(spec.positions);
+        slab.uv.set(spec.uvs);
+        slab.id.set(spec.ids);
+        slab.skyLight.set(spec.skyLights);
+        slab.torchLight.set(spec.torchLights);
+        const indexOffset = vegetationMesh.getSlabPositionOffset(slab)/3;
+        for (let i = 0; i < spec.indices.length; i++) {
+          spec.indices[i] += indexOffset;
         }
+        slab.indices.set(spec.indices);
+        vegetationMesh.updateGeometry(slab, spec);
+        slab.group.count = spec.indices.length;
 
         let subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
         if (!subparcelVegetationMeshesSpec) {
@@ -2234,16 +2218,12 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             return physxWorker.registerCapsuleGeometry(vegetationId, localVector4, localQuaternion3, 0.5, 2);
           })();
           const hitTracker = _makeHitTracker(vegetationPosition, vegetationQuaternion, 100, (originalPosition, positionOffset) => {
-            [currentVegetationMesh, currentVegetationVegetationMesh, currentVegetationTransparentMesh].forEach(m => {
-              m.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
-              m.material[0].uniforms.uSelectPosition.needsUpdate = true;
-            });
+            currentVegetationMesh.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
+            currentVegetationMesh.material[0].uniforms.uSelectPosition.needsUpdate = true;
           }, color => {
             const id = color ? vegetationId : -1;
-            [currentVegetationMesh, currentVegetationVegetationMesh, currentVegetationTransparentMesh].forEach(m => {
-              m.material[0].uniforms.uSelectId.value = id;
-              m.material[0].uniforms.uSelectId.needsUpdate = true;
-            });
+            currentVegetationMesh.material[0].uniforms.uSelectId.value = id;
+            currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
           }, () => {
             const subparcelPosition = new THREE.Vector3(
               Math.floor(vegetationPosition.x/subparcelSize),
@@ -3265,20 +3245,6 @@ function animate(timestamp, frame) {
       uniforms.sunIntensity.needsUpdate = true;
     }
   }
-  if (currentVegetationVegetationMesh && skybox2) {
-    for (const material of currentVegetationVegetationMesh.material) {
-      const {uniforms} = material;
-      uniforms.sunIntensity.value = Math.max(skybox2.material.uniforms.sunPosition.value.y, 0);
-      uniforms.sunIntensity.needsUpdate = true;
-    }
-  }
-  if (currentVegetationTransparentMesh && skybox2) {
-    for (const material of currentVegetationTransparentMesh.material) {
-      const {uniforms} = material;
-      uniforms.sunIntensity.value = Math.max(skybox2.material.uniforms.sunPosition.value.y, 0);
-      uniforms.sunIntensity.needsUpdate = true;
-    }
-  }
   explosionMeshes = explosionMeshes.filter(explosionMesh => {
     explosionMesh.material.uniforms.uAnimation.value += timeDiff;
     if (explosionMesh.material.uniforms.uAnimation.value < 1) {
@@ -4065,12 +4031,6 @@ function animate(timestamp, frame) {
     );
     currentVegetationMesh.geometry.originalGroups = currentVegetationMesh.geometry.groups.slice();
     currentVegetationMesh.geometry.groups = currentVegetationMesh.geometry.groups.filter(group => localFrustum.intersectsSphere(group.boundingSphere));
-
-    currentVegetationVegetationMesh.geometry.originalGroups = currentVegetationVegetationMesh.geometry.groups.slice();
-    currentVegetationVegetationMesh.geometry.groups = currentVegetationVegetationMesh.geometry.groups.filter(group => localFrustum.intersectsSphere(group.boundingSphere));
-
-    currentVegetationTransparentMesh.geometry.originalGroups = currentVegetationTransparentMesh.geometry.groups.slice();
-    currentVegetationTransparentMesh.geometry.groups = currentVegetationTransparentMesh.geometry.groups.filter(group => localFrustum.intersectsSphere(group.boundingSphere));
   }
 
   renderer.render(scene, camera);
@@ -4081,8 +4041,6 @@ function animate(timestamp, frame) {
   }
   if (currentVegetationMesh) {
     currentVegetationMesh.geometry.groups = currentVegetationMesh.geometry.originalGroups;
-    currentVegetationVegetationMesh.geometry.groups = currentVegetationVegetationMesh.geometry.originalGroups;
-    currentVegetationTransparentMesh.geometry.groups = currentVegetationTransparentMesh.geometry.originalGroups;
   }
 
   planet.flush();

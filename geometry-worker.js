@@ -20,33 +20,18 @@ const geometryRegistry = {};
 const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSize) => {
   const geometries = objects.map(o => geometryRegistry[o.type]);
 
-  const _makeStats = () => {
-    return {
-      numPositions: 0,
-      numUvs: 0,
-      numColors: 0,
-      numIds: 0,
-      numSkyLights: 0,
-      numTorchLights: 0,
-      numIndices: 0,
-    };
-  };
-  const opaqueStats = _makeStats();
-  const transparentStats = _makeStats();
-  const vegetationStats = _makeStats();
-
+  const _makeStats = () => ({
+    numPositions: 0,
+    numUvs: 0,
+    numColors: 0,
+    numIds: 0,
+    numSkyLights: 0,
+    numTorchLights: 0,
+    numIndices: 0,
+  });
+  const stats = _makeStats();
   for (const geometrySpecs of geometries) {
     for (const geometry of geometrySpecs) {
-      let stats;
-      if (!geometry.transparent) {
-        stats = opaqueStats;
-      } else {
-        if (geometry.vegetation) {
-          stats = vegetationStats;
-        } else {
-          stats = transparentStats;
-        }
-      }
       stats.numPositions += geometry.positions.length;
       stats.numUvs += geometry.uvs ? geometry.uvs.length : 0;
       stats.numColors += geometry.colors ? geometry.colors.length : 0;
@@ -58,36 +43,34 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
   }
 
   let totalSize = 0;
-  for (const stat of [opaqueStats, transparentStats, vegetationStats]) {
-    totalSize += stat.numPositions * Float32Array.BYTES_PER_ELEMENT;
-    totalSize += stat.numUvs * Float32Array.BYTES_PER_ELEMENT;
-    totalSize += stat.numColors * Float32Array.BYTES_PER_ELEMENT;
-    totalSize += stat.numIds * Float32Array.BYTES_PER_ELEMENT;
-    totalSize += stat.numSkyLights * Uint8Array.BYTES_PER_ELEMENT;
-    totalSize += stat.numTorchLights * Uint8Array.BYTES_PER_ELEMENT;
-    totalSize = _align4(totalSize);
-    totalSize += stat.numIndices * Uint32Array.BYTES_PER_ELEMENT;
-  }
+  totalSize += stats.numPositions * Float32Array.BYTES_PER_ELEMENT;
+  totalSize += stats.numUvs * Float32Array.BYTES_PER_ELEMENT;
+  totalSize += stats.numColors * Float32Array.BYTES_PER_ELEMENT;
+  totalSize += stats.numIds * Float32Array.BYTES_PER_ELEMENT;
+  totalSize += stats.numSkyLights * Uint8Array.BYTES_PER_ELEMENT;
+  totalSize += stats.numTorchLights * Uint8Array.BYTES_PER_ELEMENT;
+  totalSize = _align4(totalSize);
+  totalSize += stats.numIndices * Uint32Array.BYTES_PER_ELEMENT;
   const arraybuffer = new ArrayBuffer(totalSize);
 
   let index = 0;
-  const _makeSpec = stat => {
+  const _makeSpec = () => {
     const spec = {};
-    spec.positions = new Float32Array(arraybuffer, index, stat.numPositions);
-    index += stat.numPositions * Float32Array.BYTES_PER_ELEMENT;
-    spec.uvs = new Float32Array(arraybuffer, index, stat.numUvs);
-    index += stat.numUvs * Float32Array.BYTES_PER_ELEMENT;
-    spec.colors = new Float32Array(arraybuffer, index, stat.numColors);
-    index += stat.numColors * Float32Array.BYTES_PER_ELEMENT;
-    spec.ids = new Float32Array(arraybuffer, index, stat.numIds);
-    index += stat.numIds * Float32Array.BYTES_PER_ELEMENT;
-    spec.skyLights = new Uint8Array(arraybuffer, index, stat.numSkyLights);
-    index += stat.numSkyLights * Uint8Array.BYTES_PER_ELEMENT;
-    spec.torchLights = new Uint8Array(arraybuffer, index, stat.numTorchLights);
-    index += stat.numTorchLights * Uint8Array.BYTES_PER_ELEMENT;
+    spec.positions = new Float32Array(arraybuffer, index, stats.numPositions);
+    index += stats.numPositions * Float32Array.BYTES_PER_ELEMENT;
+    spec.uvs = new Float32Array(arraybuffer, index, stats.numUvs);
+    index += stats.numUvs * Float32Array.BYTES_PER_ELEMENT;
+    spec.colors = new Float32Array(arraybuffer, index, stats.numColors);
+    index += stats.numColors * Float32Array.BYTES_PER_ELEMENT;
+    spec.ids = new Float32Array(arraybuffer, index, stats.numIds);
+    index += stats.numIds * Float32Array.BYTES_PER_ELEMENT;
+    spec.skyLights = new Uint8Array(arraybuffer, index, stats.numSkyLights);
+    index += stats.numSkyLights * Uint8Array.BYTES_PER_ELEMENT;
+    spec.torchLights = new Uint8Array(arraybuffer, index, stats.numTorchLights);
+    index += stats.numTorchLights * Uint8Array.BYTES_PER_ELEMENT;
     index = _align4(index);
-    spec.indices = new Uint32Array(arraybuffer, index, stat.numIndices);
-    index += stat.numIndices * Uint32Array.BYTES_PER_ELEMENT;
+    spec.indices = new Uint32Array(arraybuffer, index, stats.numIndices);
+    index += stats.numIndices * Uint32Array.BYTES_PER_ELEMENT;
     spec.positionsIndex = 0;
     spec.uvsIndex = 0;
     spec.colorsIndex = 0;
@@ -97,7 +80,7 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
     spec.indicesIndex = 0;
     return spec;
   };
-  const [opaque, transparent, vegetation] = [opaqueStats, transparentStats, vegetationStats].map(stat => _makeSpec(stat));
+  const opaque = _makeSpec();
 
   const subparcelSizeP1 = subparcelSize+1;
   const subparcelOffset = localVector2.set((x-1)*subparcelSize, (y-1)*subparcelSize, (z-1)*subparcelSize);
@@ -122,7 +105,8 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
     const matrix = localMatrix.fromArray(object.matrix);
 
     for (const geometry of geometrySpecs) {
-      const spec = geometry.transparent ? (geometry.vegetation ? vegetation : transparent) : opaque;
+      // const spec = geometry.transparent ? (geometry.vegetation ? vegetation : transparent) : opaque;
+      const spec = opaque;
 
       const indexOffset2 = spec.positionsIndex/3;
       for (let j = 0; j < geometry.indices.length; j++) {
@@ -161,8 +145,6 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
   return [
     {
       opaque,
-      transparent,
-      vegetation,
     },
     arraybuffer,
   ];
