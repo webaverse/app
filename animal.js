@@ -18,6 +18,7 @@ const animalShader = {
     uniform vec4 headRotation;
     uniform float walkFactor;
     uniform float walkCycle;
+    uniform float hitFactor;
     varying vec3 vColor;
 
     vec4 quat_from_axis_angle(vec3 axis, float angle)
@@ -42,6 +43,7 @@ const animalShader = {
 
     void main() {
       vec3 p = position;
+      p.y += sin(hitFactor*PI);
       if (head.y != 0.) {
         // p = vec3(0.);
         p -= head.xyz;
@@ -59,12 +61,12 @@ const animalShader = {
     precision highp float;
     precision highp int;
 
-    uniform float isHit;
+    uniform float hitFactor;
     varying vec3 vColor;
 
     void main() {
       gl_FragColor = vec4(vColor, 1.0);
-      if (isHit > 0.) {
+      if (hitFactor > 0.) {
         gl_FragColor.rgb += vec3(${new THREE.Color(0xef5350).toArray().map(n => n.toFixed(8)).join(', ')});
       }
     }
@@ -89,7 +91,7 @@ export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, has
         value: 0,
         needsUpdate: true,
       },
-      isHit: {
+      hitFactor: {
         type: 'f',
         value: 0,
         needsUpdate: true,
@@ -163,14 +165,11 @@ export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, has
         hitAnimation = {
           update() {
             const now = Date.now();
-            const factor = (now - startTime) / (endTime - startTime);
-            if (factor < 1) {
-              material.uniforms.isHit.value = 1;
-            } else {
-              material.uniforms.isHit.value = 0;
+            material.uniforms.hitFactor.value = (now - startTime) / (endTime - startTime);
+            if (material.uniforms.hitFactor.value >= 1) {
               hitAnimation = null;
             }
-            material.uniforms.isHit.needsUpdate = true;
+            material.uniforms.hitFactor.needsUpdate = true;
           },
         };
       } else {
