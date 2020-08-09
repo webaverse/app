@@ -279,42 +279,6 @@ const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subpa
 
 let animals = [];
 const itemMeshes = [];
-const npcMeshes = [];
-/* const _decorateMeshForRaycast = mesh => {
-  mesh.traverse(o => {
-    if (o.isMesh) {
-      const meshId = getNextMeshId();
-
-      const {geometry} = o;
-      const numPositions = geometry.attributes.position.array.length;
-      const arrayBuffer2 = new ArrayBuffer(
-        numPositions/3 * Float32Array.BYTES_PER_ELEMENT +
-        numPositions/3 * Float32Array.BYTES_PER_ELEMENT
-      );
-      let index = 0;
-      const indexOffset = 0;
-
-      const ids = new Float32Array(arrayBuffer2, index, numPositions/3);
-      index += numPositions/3 * Float32Array.BYTES_PER_ELEMENT;
-      const indices = new Float32Array(arrayBuffer2, index, numPositions/3);
-      index += numPositions/3 * Float32Array.BYTES_PER_ELEMENT;
-      for (let i = 0; i < numPositions/3/3; i++) {
-        ids[i*3] = meshId;
-        ids[i*3+1] = meshId;
-        ids[i*3+2] = meshId;
-        const i2 = i + indexOffset;
-        indices[i*3] = i2;
-        indices[i*3+1] = i2;
-        indices[i*3+2] = i2;
-      }
-
-      geometry.setAttribute('id', new THREE.BufferAttribute(ids, 1));
-      geometry.setAttribute('index', new THREE.BufferAttribute(indices, 1));
-
-      mesh.meshId = meshId;
-    }
-  });
-}; */
 
 let chunkWorker = null;
 let physxWorker = null;
@@ -2268,80 +2232,6 @@ for (let i = 0; i < 30; i++) {
   }
 } */
 
-/* {
-  const npcMesh = await _loadGltf('./npc.vrm');
-  npcMesh.position.y = -3;
-  npcMesh.position.z = -3;
-  npcMesh.traverse(o => {
-    if (o.isMesh) {
-      o.isBuildMesh = true;
-    }
-  });
-  let animation = null;
-  npcMesh.hit = () => {
-    if (animation) {
-      animation.end();
-      animation = null;
-    }
-    const startTime = Date.now();
-    const endTime = startTime + 300;
-    const originalPosition = npcMesh.position.clone();
-    animation = {
-      update() {
-        const now = Date.now();
-        const factor = (now - startTime) / (endTime - startTime);
-        if (factor < 1) {
-          npcMesh.position.copy(originalPosition)
-            .add(localVector2.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2));
-        } else {
-          animation.end();
-          animation = null;
-        }
-      },
-      end() {
-        npcMesh.position.copy(originalPosition);
-        npcMesh.traverse(o => {
-          if (o.isMesh) {
-            o.material.color.setHex(0xFFFFFF);
-          }
-        });
-      },
-    };
-    npcMesh.traverse(o => {
-      if (o.isMesh) {
-        o.material.color.setHex(0xef5350);
-      }
-    });
-  };
-  npcMesh.update = () => {
-    animation && animation.update();
-  };
-  npcMesh.updateMatrixWorld();
-  npcMesh.matrix.premultiply(localMatrix2.getInverse(currentChunkMesh.matrixWorld))
-    .decompose(npcMesh.position, npcMesh.quaternion, npcMesh.scale);
-  currentChunkMesh.add(npcMesh);
-  npcMeshes.push(npcMesh);
-
-  let geometry = new CapsuleGeometry(0.5, 0.5, 16)
-    .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2)))
-    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5/2+0.5, 0))
-    // .toNonIndexed();
-  geometry = new THREE.BufferGeometry().fromGeometry(geometry);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x008000,
-  });
-  const capsuleMesh = new THREE.Mesh(geometry, material);
-  capsuleMesh.position.copy(npcMesh.position);
-  _decorateMeshForRaycast(capsuleMesh);
-  capsuleMesh.isNpcHullMesh = true;
-  capsuleMesh.npcMesh = npcMesh;
-  capsuleMesh.position.copy(npcMesh.position);
-  capsuleMesh.quaternion.copy(npcMesh.quaternion);
-  capsuleMesh.scale.copy(npcMesh.scale);
-  capsuleMesh.visible = false;
-  currentChunkMesh.add(capsuleMesh);
-} */
-
 })();
 
 let buildMode = null;
@@ -3089,9 +2979,6 @@ function animate(timestamp, frame) {
   }
   cometFireMesh.material.uniforms.uAnimation.value = (Date.now() % 2000) / 2000;
   hpMesh.update();
-  /* for (let i = 0; i < npcMeshes.length; i++) {
-    npcMeshes[i].update();
-  } */
   if (skybox) {
     skybox.material.uniforms.iTime.value = ((Date.now() - startTime)%3000)/3000;
   }
@@ -3458,10 +3345,6 @@ function animate(timestamp, frame) {
                 _applyPotentialDelta(raycastChunkSpec.point, -0.3);
               } else if (raycastChunkSpec.mesh.isVegetationMesh) {
                 raycastChunkSpec.mesh.hit(30);
-              } else if (raycastChunkSpec.mesh.isNpcHullMesh) {
-                const {npcMesh} = raycastChunkSpec.mesh;
-
-                npcMesh.hit(30);
               }
             }
           };
