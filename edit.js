@@ -944,95 +944,89 @@ const [
       return w;
     })();
 
-    const _makeVegetationMaterial = () => {
-      const material = new THREE.ShaderMaterial({
-        uniforms: {
-          map: {
-            type: 't',
-            value: null,
-            needsUpdate: true,
-          },
-          uSelectId: {
-            type: 'f',
-            value: -1,
-            needsUpdate: true,
-          },
-          uSelectPosition: {
-            type: 'v3',
-            value: new THREE.Vector3(),
-            needsUpdate: true,
-          },
-          sunIntensity: {
-            type: 'f',
-            value: 1,
-            needsUpdate: true,
-          },
+    const vegetationMaterialOpaque = new THREE.ShaderMaterial({
+      uniforms: {
+        map: {
+          type: 't',
+          value: null,
+          needsUpdate: true,
         },
-        vertexShader: `\
-          precision highp float;
-          precision highp int;
+        uSelectId: {
+          type: 'f',
+          value: -1,
+          needsUpdate: true,
+        },
+        uSelectPosition: {
+          type: 'v3',
+          value: new THREE.Vector3(),
+          needsUpdate: true,
+        },
+        sunIntensity: {
+          type: 'f',
+          value: 1,
+          needsUpdate: true,
+        },
+      },
+      vertexShader: `\
+        precision highp float;
+        precision highp int;
 
-          uniform float uSelectId;
-          uniform vec3 uSelectPosition;
-          attribute float id;
-          attribute float skyLight;
-          attribute float torchLight;
+        uniform float uSelectId;
+        uniform vec3 uSelectPosition;
+        attribute float id;
+        attribute float skyLight;
+        attribute float torchLight;
 
-          varying vec2 vUv;
-          varying vec3 vSelectColor;
-          varying vec3 vWorldPosition;
-          varying float vSkyLight;
-          varying float vTorchLight;
-          // varying vec3 vNormal;
+        varying vec2 vUv;
+        varying vec3 vSelectColor;
+        varying vec3 vWorldPosition;
+        varying float vSkyLight;
+        varying float vTorchLight;
+        // varying vec3 vNormal;
 
-          void main() {
-            vUv = uv;
-            vec3 p = position;
-            if (uSelectId == id) {
-              vSelectColor = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
-              p += uSelectPosition;
-            } else {
-              vSelectColor = vec3(0.);
-            }
-            // vNormal = normal;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-            vec4 worldPosition = modelViewMatrix * vec4( position, 1.0 );
-            vWorldPosition = worldPosition.xyz;
-            vSkyLight = skyLight/8.0;
-            vTorchLight = torchLight/8.0;
+        void main() {
+          vUv = uv;
+          vec3 p = position;
+          if (uSelectId == id) {
+            vSelectColor = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
+            p += uSelectPosition;
+          } else {
+            vSelectColor = vec3(0.);
           }
-        `,
-        fragmentShader: `\
-          precision highp float;
-          precision highp int;
+          // vNormal = normal;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+          vec4 worldPosition = modelViewMatrix * vec4( position, 1.0 );
+          vWorldPosition = worldPosition.xyz;
+          vSkyLight = skyLight/8.0;
+          vTorchLight = torchLight/8.0;
+        }
+      `,
+      fragmentShader: `\
+        precision highp float;
+        precision highp int;
 
-          uniform sampler2D map;
-          uniform float sunIntensity;
-          varying vec2 vUv;
-          varying vec3 vSelectColor;
-          varying vec3 vWorldPosition;
-          varying float vSkyLight;
-          varying float vTorchLight;
-          // varying vec3 vNormal;
+        uniform sampler2D map;
+        uniform float sunIntensity;
+        varying vec2 vUv;
+        varying vec3 vSelectColor;
+        varying vec3 vWorldPosition;
+        varying float vSkyLight;
+        varying float vTorchLight;
+        // varying vec3 vNormal;
 
-          // vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
+        // vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
 
-          void main() {
-            gl_FragColor = texture2D(map, vUv);
-            gl_FragColor.rgb += vSelectColor;
-            float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
-            float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
-            gl_FragColor.rgb *= max(max(worldFactor, cameraFactor), 0.1);
-          }
-        `,
-      });
-      // if (transparent) {
-        material.side = THREE.DoubleSide;
-        material.transparent = true;
-      // }
-      return material;
-    };
-    const vegetationMaterialOpaque = _makeVegetationMaterial();
+        void main() {
+          gl_FragColor = texture2D(map, vUv);
+          gl_FragColor.rgb += vSelectColor;
+          float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
+          float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
+          gl_FragColor.rgb *= max(max(worldFactor, cameraFactor), 0.1);
+        }
+      `,
+      side: THREE.DoubleSide,
+      transparent: true
+    });
     const _makeBakedMesh = g => {
       const mesh = new THREE.Mesh(g, vegetationMaterialOpaque);
       mesh.frustumCulled = false;
