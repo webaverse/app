@@ -1,5 +1,9 @@
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
+import {
+  getNextMeshId,
+} from './constants.js';
 
+const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2);
 const animalShader = {
   vertexShader: `\
     precision highp float;
@@ -62,7 +66,7 @@ const animalShader = {
     }
   `,
 };
-export const makeAnimalFactory = geometryWorker => hash => {
+export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, hash) => {
   const geometry = new THREE.BufferGeometry();
   const material = new THREE.ShaderMaterial({
     uniforms: {
@@ -86,11 +90,23 @@ export const makeAnimalFactory = geometryWorker => hash => {
     fragmentShader: animalShader.fragmentShader,
   });
   const animal = new THREE.Mesh(geometry, material);
+  animal.position.copy(position);
   animal.visible = false;
   animal.frustumCulled = false;
+
+  const meshId = getNextMeshId();
+  const physxGeometry = physxWorker.registerCapsuleGeometry(meshId, position, capsuleUpQuaternion, 0.5, 1);
+  animal.isAnimalMesh = true;
+  animal.meshId = meshId;
   animal.lookAt = () => {};
   animal.update = () => {};
   animal.isAnimating = () => false;
+  animal.hit = (dmg) => {
+    console.log('hit animal', animal, dmg);
+  };
+  animal.destroy = () => {
+    physxWorker.unregisterGeometry(physxGeometry);
+  };
 
   (async () => {
     const animalSpec = await geometryWorker.requestAnimalGeometry(hash);
