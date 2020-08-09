@@ -2173,7 +2173,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     _updateCurrentCoord(position);
     _updateNeededCoords();
     _updateChunks();
-    // _updateBuilds();
     _updateVegetations();
     _updatePackages();
     _updateAnimals();
