@@ -59,14 +59,18 @@ const animalShader = {
     precision highp float;
     precision highp int;
 
+    uniform float isHit;
     varying vec3 vColor;
 
     void main() {
       gl_FragColor = vec4(vColor, 1.0);
+      if (isHit > 0.) {
+        gl_FragColor.rgb += vec3(${new THREE.Color(0xef5350).toArray().map(n => n.toFixed(8)).join(', ')});
+      }
     }
   `,
 };
-export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, hash) => {
+export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, hash, onRemove) => {
   const geometry = new THREE.BufferGeometry();
   const material = new THREE.ShaderMaterial({
     uniforms: {
@@ -81,6 +85,11 @@ export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, has
         needsUpdate: true,
       },
       walkCycle: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
+      },
+      isHit: {
         type: 'f',
         value: 0,
         needsUpdate: true,
@@ -100,10 +109,8 @@ export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, has
   animal.meshId = meshId;
   animal.lookAt = () => {};
   animal.update = () => {};
-  animal.isAnimating = () => false;
-  animal.hit = (dmg) => {
-    console.log('hit animal', animal, dmg);
-  };
+  animal.isHeadAnimating = () => false;
+  animal.hit = () => {};
   animal.destroy = () => {
     physxWorker.unregisterGeometry(physxGeometry);
   };
@@ -119,7 +126,7 @@ export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, has
     const headPivot = new THREE.Vector3().fromArray(animalSpec.headPivot);
     const aabb = new THREE.Box3().setFromCenterAndSize(new THREE.Vector3().fromArray(animalSpec.aabb.center), new THREE.Vector3().fromArray(animalSpec.aabb.size));
 
-    let animation = null;
+    let headAnimation = null;
     animal.lookAt = p => {
       const startTime = Date.now();
       const endTime = startTime + 300;
@@ -131,16 +138,7 @@ export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, has
           new THREE.Vector3(0, 1, 0)
         )
       );
-      animal.spec = {
-        startTime,
-        endTime,
-        startQuaternion,
-        endQuaternion,
-        headPivot: headPivot.clone(),
-        eye: headPivot.clone().applyMatrix4(animal.matrixWorld),
-        center: p.clone(),
-      };
-      animation = {
+      headAnimation = {
         update() {
           const now = Date.now();
           const factor = (now - startTime) / (endTime - startTime);
@@ -148,14 +146,40 @@ export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, has
             material.uniforms.headRotation.value.copy(startQuaternion).slerp(endQuaternion, factor);
           } else {
             material.uniforms.headRotation.value.copy(endQuaternion);
-            animation = null;
+            headAnimation = null;
           }
           material.uniforms.headRotation.needsUpdate = true;
         },
       };
     };
+    let hp = 100;
+    let hitAnimation = null;
+    animal.hit = dmg => {
+      hp = Math.max(hp - dmg, 0);
+
+      if (hp > 0) {
+        const startTime = Date.now();
+        const endTime = startTime + 300;
+        hitAnimation = {
+          update() {
+            const now = Date.now();
+            const factor = (now - startTime) / (endTime - startTime);
+            if (factor < 1) {
+              material.uniforms.isHit.value = 1;
+            } else {
+              material.uniforms.isHit.value = 0;
+              hitAnimation = null;
+            }
+            material.uniforms.isHit.needsUpdate = true;
+          },
+        };
+      } else {
+        onRemove();
+      }
+    };
     animal.update = () => {
-      animation && animation.update();
+      headAnimation && headAnimation.update();
+      hitAnimation && hitAnimation.update();
 
       // animal.material.uniforms.headRotation.value.setFromEuler(localEuler.set(-0.2, 0.2, 0, 'YXZ'));
       // animal.material.uniforms.headRotation.needsUpdate = true;
@@ -164,7 +188,7 @@ export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, has
       material.uniforms.walkCycle.value = (Date.now()%2000)/2000;
       material.uniforms.walkCycle.needsUpdate = true;
     };
-    animal.isAnimating = () => !!animation;
+    animal.isHeadAnimating = () => !!headAnimation;
     animal.visible = true;
   })();
 
