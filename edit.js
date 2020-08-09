@@ -5,7 +5,7 @@ import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUt
 import {GLTFLoader} from './GLTFLoader.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
-import CapsuleGeometry from './CapsuleGeometry.js';
+// import CapsuleGeometry from './CapsuleGeometry.js';
 // import address from 'https://contracts.webaverse.com/address.js';
 // import abi from 'https://contracts.webaverse.com/abi.js';
 import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
