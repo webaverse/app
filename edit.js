@@ -124,11 +124,11 @@ const HEIGHTFIELD_SHADER = {
       value: new THREE.Texture(),
       needsUpdate: true,
     },
-    heightColorTex: {
+    /* heightColorTex: {
       type: 't',
       value: null,
       needsUpdate: true,
-    },
+    }, */
     sunIntensity: {
       type: 'f',
       value: 1,
@@ -182,7 +182,7 @@ const HEIGHTFIELD_SHADER = {
     // uniform vec3 fogColor;
     // uniform vec3 cameraPosition;
     uniform sampler2D tex;
-    uniform sampler2D heightColorTex;
+    // uniform sampler2D heightColorTex;
 
     varying vec3 vPosition;
     varying vec3 vWorldPosition;
@@ -233,7 +233,7 @@ const HEIGHTFIELD_SHADER = {
         uv.x += 3.0/8.0;
       }
       vec2 uv2 = vec2(0.1 + vWorldPosition.y/30.0, 0.5);
-      vec3 c = texture2D(heightColorTex, uv2).rgb;
+      // vec3 c = texture2D(heightColorTex, uv2).rgb;
       vec3 diffuseColor = mix(texture2D(tex, uv).rgb, vec3(0.), gl_FragCoord.z/gl_FragCoord.w/30.0);
       if (edgeFactor() <= 0.99) {
         diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vWorldPosition) - uTime*5.0, 3.0)), 0.0)*0.5);
@@ -370,7 +370,6 @@ const [
   cw,
   px,
   pw,
-  colors,
 ] = await Promise.all([
   (async () => {
     const cbs = [];
@@ -693,10 +692,6 @@ const [
       }, [specs[0].positions.buffer]);
     };
     return w;
-  })(),
-  (async () => {
-    const res = await fetch('./colors.json');
-    return await res.json();
   })(),
   (async () => {
     geometryWorker = (() => {
@@ -1440,7 +1435,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     },
   });
 
-  const numStops = 1;
+  /* const numStops = 1;
   const stops = Array(numStops);
   const colorKeys = Object.keys(colors);
   for (let i = 0; i < numStops; i++) {
@@ -1468,7 +1463,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       heightfieldMaterial.uniforms.heightColorTex.value.image.data.set(colorArray, j*3);
     }
   });
-  heightfieldMaterial.uniforms.heightColorTex.value.needsUpdate = true;
+  heightfieldMaterial.uniforms.heightColorTex.value.needsUpdate = true; */
 
   (async () => {
     const canvas = document.createElement('canvas');
