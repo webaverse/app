@@ -2126,7 +2126,12 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         }
 
         const p = new THREE.Vector3(addedCoord.x + 0.5, addedCoord.y - 0.7, addedCoord.z + 0.5).multiplyScalar(SUBPARCEL_SIZE);
-        const animal = makeAnimal(p, Math.floor(Math.random()*0xFFFFFF));
+        const animal = makeAnimal(p, Math.floor(Math.random()*0xFFFFFF), () => {
+          animal.parent.remove(animal);
+          animal.destroy();
+          animals.splice(animals.indexOf(animal), 1);
+          _addItem(animal.position, animal.quaternion);
+        });
         animal.index = addedCoord.index;
         currentChunkMesh.add(animal);
         animals.push(animal);
@@ -2933,7 +2938,7 @@ const _collideItems = matrix => {
   }
 
   for (const animal of animals) {
-    if (!animal.isAnimating()) {
+    if (!animal.isHeadAnimating()) {
       animal.lookAt(localVector3);
     }
   }
