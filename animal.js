@@ -161,7 +161,7 @@ export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, has
 
       if (hp > 0) {
         const startTime = Date.now();
-        const endTime = startTime + 500;
+        const endTime = startTime + 300;
         hitAnimation = {
           update() {
             const now = Date.now();
