@@ -721,7 +721,6 @@ const [
       };
       return w;
     })();
-    makeAnimal = makeAnimalFactory(geometryWorker);
 
     const vegetationMaterialOpaque = new THREE.ShaderMaterial({
       uniforms: {
@@ -2111,6 +2110,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       animals = animals.filter(animal => {
         if (removedCoords.some(removedCoord => removedCoord.index === animal.index)) {
           animal.parent.remove(animal);
+          animal.destroy();
           return false;
         } else {
           return true;
@@ -2121,8 +2121,12 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   const _updateAnimalsAdd = () => {
     for (const addedCoord of addedCoords) {
       if (addedCoord.y === 30 && Math.random() < 0.1) {
-        const animal = makeAnimal(Math.floor(Math.random()*0xFFFFFF));
-        animal.position.set(addedCoord.x + 0.5, addedCoord.y - 0.7, addedCoord.z + 0.5).multiplyScalar(SUBPARCEL_SIZE);
+        if (!makeAnimal) {
+          makeAnimal = makeAnimalFactory(geometryWorker, physxWorker);
+        }
+
+        const p = new THREE.Vector3(addedCoord.x + 0.5, addedCoord.y - 0.7, addedCoord.z + 0.5).multiplyScalar(SUBPARCEL_SIZE);
+        const animal = makeAnimal(p, Math.floor(Math.random()*0xFFFFFF));
         animal.index = addedCoord.index;
         currentChunkMesh.add(animal);
         animals.push(animal);
@@ -2297,6 +2301,11 @@ const _findMeshWithMeshId = meshId => {
             return vegetationMesh;
           }
         }
+      }
+    }
+    for (const animal of animals) {
+      if (animal.meshId === meshId) {
+        return animal;
       }
     }
     return null;
@@ -3343,7 +3352,7 @@ function animate(timestamp, frame) {
             if (raycastChunkSpec) {
               if (raycastChunkSpec.mesh.isChunkMesh) {
                 _applyPotentialDelta(raycastChunkSpec.point, -0.3);
-              } else if (raycastChunkSpec.mesh.isVegetationMesh) {
+              } else if (raycastChunkSpec.mesh.isVegetationMesh || raycastChunkSpec.mesh.isAnimalMesh) {
                 raycastChunkSpec.mesh.hit(30);
               }
             }
