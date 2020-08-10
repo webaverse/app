@@ -8,8 +8,8 @@ export const chunkDistance = 2;
 export const numSlices = (1+chunkDistance*2+1)**3;
 export const slabRadius = Math.sqrt((SUBPARCEL_SIZE/2)*(SUBPARCEL_SIZE/2)*3);
 
-export const slabTotalSize = 45 * 1024 * 1024;
-export const slabNumAttributes = 6;
+export const slabTotalSize = 56 * 1024 * 1024;
+export const slabNumAttributes = 7;
 export const slabAttributeSize = slabTotalSize/slabNumAttributes;
 export const slabSliceTris = Math.floor(slabAttributeSize/numSlices/9/Float32Array.BYTES_PER_ELEMENT);
 export const slabSliceVertices = slabSliceTris * 3;

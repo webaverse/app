@@ -117,27 +117,7 @@ const HEIGHTFIELD_SHADER = {
     },
     tex: {
       type: 't',
-      value: new THREE.Texture(),
-      needsUpdate: true,
-    },
-    tex2: {
-      type: 't',
-      value: new THREE.Texture(),
-      needsUpdate: true,
-    },
-    bumpMap: {
-      type: 't',
-      value: new THREE.Texture(),
-      needsUpdate: true,
-    },
-    normalMap: {
-      type: 't',
-      value: new THREE.Texture(),
-      needsUpdate: true,
-    },
-    roughnessMap: {
-      type: 't',
-      value: new THREE.Texture(),
+      value: null,
       needsUpdate: true,
     },
     sunIntensity: {
@@ -164,6 +144,7 @@ const HEIGHTFIELD_SHADER = {
 
     varying vec3 vPosition;
     varying vec3 vWorldPosition;
+    varying vec2 vUv;
     varying vec3 vBarycentric;
     varying float vSkyLight;
     varying float vTorchLight;
@@ -174,6 +155,7 @@ const HEIGHTFIELD_SHADER = {
 
       vPosition = position.xyz;
       vWorldPosition = mvPosition.xyz;
+      vUv = uv;
       vBarycentric = barycentric;
       vSkyLight = skyLight/8.0;
       vTorchLight = torchLight/8.0;
@@ -184,16 +166,13 @@ const HEIGHTFIELD_SHADER = {
     precision highp int;
     uniform float sunIntensity;
     uniform sampler2D tex;
-    uniform sampler2D tex2;
-    uniform sampler2D bumpMap;
-    uniform sampler2D normalMap;
-    uniform sampler2D roughnessMap;
     uniform float parallaxScale;
     uniform float parallaxMinLayers;
     uniform float parallaxMaxLayers;
 
     varying vec3 vPosition;
     varying vec3 vWorldPosition;
+    varying vec2 vUv;
     varying vec3 vBarycentric;
     varying float vSkyLight;
     varying float vTorchLight;
@@ -206,7 +185,7 @@ const HEIGHTFIELD_SHADER = {
       return min(min(a3.x, a3.y), a3.z);
     }
 
-    vec2 parallaxMap( vec2 vUv, vec3 V ) {
+    /* vec2 parallaxMap( vec2 vUv, vec3 V ) {
         float numLayers = mix( parallaxMaxLayers, parallaxMinLayers, abs( dot( vec3( 0.0, 0.0, 1.0 ), V ) ) );
         float layerHeight = 1.0 / numLayers;
         float currentLayerHeight = 0.0;
@@ -240,31 +219,25 @@ const HEIGHTFIELD_SHADER = {
       vProjVtex.xy = texDx * vProjVscr.x + texDy * vProjVscr.y;
       vProjVtex.z = dot( surfNormal, viewPosition );
       return parallaxMap( vUv, vProjVtex );
-    }
+    } */
 
     void main() {
-      vec2 uv = vec2(
+      vec2 worldUv = vec2(
         mod((vPosition.x) / 4.0, 1.0),
         mod((vPosition.z) / 4.0, 1.0)
       );
-      /* uv.x *= 1.0/8.0;
-      uv.y *= 512.0/4096.0;
-      if (vPosition.y < 290.0) {
-        uv.x += 3.0/8.0;
-      } */
-      // vec2 uv2 = vec2(0.1 + vWorldPosition.y/30.0, 0.5);
-      vec3 c;
-
+      vec2 uv = vUv + worldUv * vec2(1024./8192.);
       /* vec3 vNormal = normalize(cross(dFdx(vWorldPosition), dFdy(vWorldPosition)));
       vec3 vViewPosition = -vWorldPosition;
       vec2 mapUv = perturbUv( uv, -vViewPosition, normalize( vNormal ), normalize( vViewPosition ) ); */
       vec2 mapUv = uv;
 
-      if (vPosition.y >= 290.0) {
+      vec3 c;
+      // if (vPosition.y >= 290.0) {
         c = texture2D(tex, mapUv).rgb;
-      } else {
+      /* } else {
         c = texture2D(tex2, mapUv).rgb;
-      }
+      } */
       vec3 diffuseColor = mix(c, vec3(0.), gl_FragCoord.z/gl_FragCoord.w/30.0);
       if (edgeFactor() <= 0.99) {
         diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vWorldPosition) - uTime*5.0, 3.0)), 0.0)*0.5);
@@ -274,7 +247,109 @@ const HEIGHTFIELD_SHADER = {
       float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
       diffuseColor *= max(max(worldFactor, cameraFactor), 0.1);
 
+      // diffuseColor *= abs(dot(normalize(texture2D(normalMap, mapUv).rgb), sunDirection));
+      /* if (dot(texture2D(normalMap, mapUv).rgb*2.-1., sunDirection) > 0.) {
+        diffuseColor *= 1. + sunIntensity*0.5;
+      } */
+
       gl_FragColor = vec4(diffuseColor, 1.0);
+    }
+  `
+};
+const HEIGHTFIELD_SHADER2 = {
+  uniforms: {
+    map: {
+      type: 't',
+      value: new THREE.Texture(),
+      needsUpdate: true,
+    },
+    normalMap: {
+      type: 't',
+      value: new THREE.Texture(),
+      needsUpdate: true,
+    },
+    bumpMap: {
+      type: 't',
+      value: new THREE.Texture(),
+      needsUpdate: true,
+    },
+    "parallaxScale": { value: 0.5 },
+    "parallaxMinLayers": { value: 20 },
+    "parallaxMaxLayers": { value: 25 },
+  },
+  vertexShader: `\
+    #define LOG2 1.442695
+    precision highp float;
+    precision highp int;
+
+    uniform sampler2D normalMap;
+    varying vec2 vUv;
+    varying vec3 vViewPosition;
+    // varying vec3 vNormal;
+    varying vec3 eyeVec;
+    void main() {
+      vUv = uv;
+      vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+      vViewPosition = -mvPosition.xyz;
+      //vNormal = normalize( normalMatrix * normal );
+      // vNormal = normalize( normalMatrix * texture2D( normalMap, vUv ).rgb );
+      gl_Position = projectionMatrix * mvPosition;
+      eyeVec = vViewPosition.xyz;
+    }
+  `,
+  fragmentShader: `\
+    precision highp float;
+    precision highp int;
+
+    uniform sampler2D bumpMap;
+    uniform sampler2D map;
+    uniform float parallaxScale;
+    uniform float parallaxMinLayers;
+    uniform float parallaxMaxLayers;
+    varying vec2 vUv;
+    varying vec3 vViewPosition;
+    // varying vec3 vNormal;
+    varying vec3 eyeVec;
+
+      vec2 parallaxMap( in vec3 V ) {
+        float numLayers = mix( parallaxMaxLayers, parallaxMinLayers, abs( dot( vec3( 0.0, 0.0, 1.0 ), V ) ) );
+        float layerHeight = 1.0 / numLayers;
+        float currentLayerHeight = 0.0;
+        vec2 dtex = parallaxScale * V.xy / V.z / numLayers;
+        vec2 currentTextureCoords = vUv;
+        float heightFromTexture = texture2D( bumpMap, currentTextureCoords ).r;
+        for ( int i = 0; i < 30; i += 1 ) {
+          if ( heightFromTexture <= currentLayerHeight ) {
+            break;
+          }
+          currentLayerHeight += layerHeight;
+          currentTextureCoords -= dtex;
+          heightFromTexture = texture2D( bumpMap, currentTextureCoords ).r;
+        }
+          vec2 prevTCoords = currentTextureCoords + dtex;
+          float nextH = heightFromTexture - currentLayerHeight;
+          float prevH = texture2D( bumpMap, prevTCoords ).r - currentLayerHeight + layerHeight;
+          float weight = nextH / ( nextH - prevH );
+          return prevTCoords * weight + currentTextureCoords * ( 1.0 - weight );
+      }
+    vec2 perturbUv( vec3 surfPosition, vec3 surfNormal, vec3 viewPosition ) {
+      vec2 texDx = dFdx( vUv );
+      vec2 texDy = dFdy( vUv );
+      vec3 vSigmaX = dFdx( surfPosition );
+      vec3 vSigmaY = dFdy( surfPosition );
+      vec3 vR1 = cross( vSigmaY, surfNormal );
+      vec3 vR2 = cross( surfNormal, vSigmaX );
+      float fDet = dot( vSigmaX, vR1 );
+      vec2 vProjVscr = ( 1.0 / fDet ) * vec2( dot( vR1, viewPosition ), dot( vR2, viewPosition ) );
+      vec3 vProjVtex;
+      vProjVtex.xy = texDx * vProjVscr.x + texDy * vProjVscr.y;
+      vProjVtex.z = dot( surfNormal, viewPosition );
+      return parallaxMap( vProjVtex );
+    }
+    void main() {
+      vec3 vNormal = normalize(cross(dFdx(eyeVec.xyz), dFdy(eyeVec.xyz)));
+      vec2 mapUv = perturbUv( -vViewPosition, normalize( vNormal ), normalize( vViewPosition ) );
+      gl_FragColor = texture2D( map, mapUv );
     }
   `
 };
@@ -961,10 +1036,10 @@ const [
         texture.flipY = false;
         texture.needsUpdate = true; */
 
-        console.time('basis texture load');
+        // console.time('basis texture load');
         const texture = await new Promise((accept, reject) => {
           basisLoader.load('meshes-texture.basis', texture => {
-            console.timeEnd('basis texture load');
+            // console.timeEnd('basis texture load');
             accept(texture);
           }, () => {
             // console.log('onProgress');
@@ -1290,82 +1365,30 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       derivatives: true,
     }
   });
-
   (async () => {
-    heightfieldMaterial.uniforms.tex.value.image = await new Promise((accept, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        accept(img);
-      };
-      img.onerror = reject;
-      img.src = `./land-textures/Vol_8_2_Base_Color.png`;
+    const texture = await new Promise((accept, reject) => {
+      basisLoader.load('ground-texture.basis', texture => {
+        // console.timeEnd('basis texture load');
+        accept(texture);
+      }, () => {
+        // console.log('onProgress');
+      }, err => {
+        reject(err);
+      });
     });
-    heightfieldMaterial.uniforms.tex.value.wrapS = THREE.RepeatWrapping;
-    heightfieldMaterial.uniforms.tex.value.wrapT = THREE.RepeatWrapping;
-    // heightfieldMaterial.uniforms.tex.value.anisotropy = 16;
-    heightfieldMaterial.uniforms.tex.value.needsUpdate = true;
-
-    heightfieldMaterial.uniforms.tex2.value.image = await new Promise((accept, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        accept(img);
-      };
-      img.onerror = reject;
-      img.src = `./land-textures/Vol_8_2_Base_Color.png`;
-    });
-    heightfieldMaterial.uniforms.tex2.value.wrapS = THREE.RepeatWrapping;
-    heightfieldMaterial.uniforms.tex2.value.wrapT = THREE.RepeatWrapping;
-    // heightfieldMaterial.uniforms.tex2.value.anisotropy = 16;
-    heightfieldMaterial.uniforms.tex2.value.needsUpdate = true;
-
-    heightfieldMaterial.uniforms.bumpMap.value.image = await new Promise((accept, reject) => {
-    const img = new Image();
-      img.onload = () => {
-        accept(img);
-      };
-      img.onerror = reject;
-      img.src = `./land-textures/Vol_8_2_Height.png`;
-    });
-    heightfieldMaterial.uniforms.bumpMap.value.wrapS = THREE.RepeatWrapping;
-    heightfieldMaterial.uniforms.bumpMap.value.wrapT = THREE.RepeatWrapping;
-    // heightfieldMaterial.uniforms.bumpMap.value.anisotropy = 16;
-    heightfieldMaterial.uniforms.bumpMap.value.needsUpdate = true;
-
-    heightfieldMaterial.uniforms.normalMap.value.image = await new Promise((accept, reject) => {
-    const img = new Image();
-      img.onload = () => {
-        accept(img);
-      };
-      img.onerror = reject;
-      img.src = `./land-textures/Vol_8_2_Normal.png`;
-    });
-    heightfieldMaterial.uniforms.normalMap.value.wrapS = THREE.RepeatWrapping;
-    heightfieldMaterial.uniforms.normalMap.value.wrapT = THREE.RepeatWrapping;
-    // heightfieldMaterial.uniforms.normalMap.value.anisotropy = 16;
-    heightfieldMaterial.uniforms.normalMap.value.needsUpdate = true;
-
-    heightfieldMaterial.uniforms.roughnessMap.value.image = await new Promise((accept, reject) => {
-    const img = new Image();
-      img.onload = () => {
-        accept(img);
-      };
-      img.onerror = reject;
-      img.src = `./land-textures/Vol_8_2_Roughness.png`;
-    });
-    heightfieldMaterial.uniforms.roughnessMap.value.wrapS = THREE.RepeatWrapping;
-    heightfieldMaterial.uniforms.roughnessMap.value.wrapT = THREE.RepeatWrapping;
-    // heightfieldMaterial.uniforms.roughnessMap.value.anisotropy = 16;
-    heightfieldMaterial.uniforms.roughnessMap.value.needsUpdate = true;
+    heightfieldMaterial.uniforms.tex.value = texture;
+    heightfieldMaterial.uniforms.tex.needsUpdate = true;
   })();
 
   const slabArrayBuffer = new ArrayBuffer(slabTotalSize);
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 0*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
-  geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 1*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
-  geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices), 1));
-  geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 3*slabAttributeSize, slabSliceVertices*numSlices), 1));
-  geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(slabArrayBuffer, 4*slabAttributeSize, slabSliceVertices*numSlices), 1));
-  geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(slabArrayBuffer, 5*slabAttributeSize, slabSliceVertices*numSlices), 1));
+  geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 1*slabAttributeSize, slabSliceVertices*numSlices*2), 2));
+  geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
+  geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 3*slabAttributeSize, slabSliceVertices*numSlices), 1));
+  geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 4*slabAttributeSize, slabSliceVertices*numSlices), 1));
+  geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(slabArrayBuffer, 5*slabAttributeSize, slabSliceVertices*numSlices), 1));
+  geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(slabArrayBuffer, 6*slabAttributeSize, slabSliceVertices*numSlices), 1));
 
   const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
   mesh.frustumCulled = false;
@@ -1408,6 +1431,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           index,
           slabIndex,
           position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + slabIndex*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
+          uv: new Float32Array(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset + slabIndex*slabSliceVertices*2*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*2),
           barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + slabIndex*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
           id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
           indices: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
@@ -1429,6 +1453,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   mesh.updateGeometry = (slab, spec) => {
     geometry.attributes.position.updateRange.offset = slab.slabIndex*slabSliceVertices*3;
     geometry.attributes.position.needsUpdate = true;
+    geometry.attributes.uv.updateRange.offset = slab.slabIndex*slabSliceVertices*2;
+    geometry.attributes.uv.needsUpdate = true;
     geometry.attributes.barycentric.updateRange.offset = slab.slabIndex*slabSliceVertices*3;
     geometry.attributes.barycentric.needsUpdate = true;
     geometry.attributes.id.updateRange.offset = slab.slabIndex*slabSliceVertices;
@@ -1441,6 +1467,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     geometry.attributes.torchLight.needsUpdate = true;
 
     geometry.attributes.position.updateRange.count = spec.positions.length;
+    geometry.attributes.uv.updateRange.count = spec.uvs.length;
     geometry.attributes.barycentric.updateRange.count = spec.barycentrics.length;
     geometry.attributes.id.updateRange.count = spec.ids.length;
     geometry.attributes.index.updateRange.count = spec.indices.length;
@@ -1629,6 +1656,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         const {x, y, z} = spec;
         const slab = mesh.getSlab(x, y, z);
         slab.position.set(spec.positions);
+        slab.uv.set(spec.uvs);
         slab.barycentric.set(spec.barycentrics);
         slab.id.set(spec.ids);
         slab.skyLights.set(spec.skyLights);
@@ -3240,6 +3268,7 @@ function animate(timestamp, frame) {
               const {x, y, z} = spec;
               const slab = currentChunkMesh.getSlab(x, y, z);
               slab.position.set(spec.positions);
+              slab.uv.set(spec.uvs);
               slab.barycentric.set(spec.barycentrics);
               slab.id.set(spec.ids);
               slab.skyLights.set(spec.skyLights);
