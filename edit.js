@@ -40,7 +40,7 @@ import easing from './easing.js';
 import {planet} from './planet.js';
 import {player} from './player.js';
 import {Bot} from './bot.js';
-import './atlaspack.js';
+// import './atlaspack.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 
@@ -182,31 +182,23 @@ const HEIGHTFIELD_SHADER = {
   fragmentShader: `\
     precision highp float;
     precision highp int;
-    // uniform vec3 ambientLightColor;
     uniform float sunIntensity;
-    // float sunIntensity = 1.;
-    // uniform vec3 fogColor;
-    // uniform vec3 cameraPosition;
     uniform sampler2D tex;
-    // uniform sampler2D heightColorTex;
+    uniform sampler2D tex2;
+    uniform sampler2D bumpMap;
+    uniform sampler2D normalMap;
+    uniform sampler2D roughnessMap;
+    uniform float parallaxScale;
+    uniform float parallaxMinLayers;
+    uniform float parallaxMaxLayers;
 
     varying vec3 vPosition;
     varying vec3 vWorldPosition;
     varying vec3 vBarycentric;
-    // varying float vIndex;
-    // varying vec3 vViewPosition;
-    // varying vec4 vColor;
-    // varying vec3 vNormal;
     varying float vSkyLight;
     varying float vTorchLight;
-    // varying float vFog;
-
-    // uniform float isCurrent;
     uniform float uTime;
-
-    #define saturate(a) clamp( a, 0.0, 1.0 )
-
-    vec3 lightDirection = normalize(vec3(-1.0, -1.0, -1.0));
+    uniform vec3 sunDirection;
 
     float edgeFactor() {
       vec3 d = fwidth(vBarycentric);
@@ -214,33 +206,66 @@ const HEIGHTFIELD_SHADER = {
       return min(min(a3.x, a3.y), a3.z);
     }
 
-    void main() {
-      /* float lightColor = floor(
-        (
-          min((vSkyLightmap * sunIntensity) + vTorchLightmap, 1.0)
-        ) * 4.0 + 0.5
-      ) / 4.0; */
-      /* vec3 ambientLightColor = vec3(0.5, 0.5, 0.5);
-      vec3 xTangent = dFdx( vPosition );
-      vec3 yTangent = dFdy( vPosition );
-      vec3 faceNormal = normalize( cross( xTangent, yTangent ) );
-      float lightColor = 0.5; // dot(faceNormal, lightDirection); */
+    vec2 parallaxMap( vec2 vUv, vec3 V ) {
+        float numLayers = mix( parallaxMaxLayers, parallaxMinLayers, abs( dot( vec3( 0.0, 0.0, 1.0 ), V ) ) );
+        float layerHeight = 1.0 / numLayers;
+        float currentLayerHeight = 0.0;
+        vec2 dtex = parallaxScale * V.xy / V.z / numLayers;
+        vec2 currentTextureCoords = vUv;
+        float heightFromTexture = texture2D( bumpMap, currentTextureCoords ).r;
+        for ( int i = 0; i < 30; i += 1 ) {
+          if ( heightFromTexture <= currentLayerHeight ) {
+            break;
+          }
+          currentLayerHeight += layerHeight;
+          currentTextureCoords -= dtex;
+          heightFromTexture = texture2D( bumpMap, currentTextureCoords ).r;
+        }
+          vec2 prevTCoords = currentTextureCoords + dtex;
+          float nextH = heightFromTexture - currentLayerHeight;
+          float prevH = texture2D( bumpMap, prevTCoords ).r - currentLayerHeight + layerHeight;
+          float weight = nextH / ( nextH - prevH );
+          return prevTCoords * weight + currentTextureCoords * ( 1.0 - weight );
+      }
+    vec2 perturbUv( vec2 vUv, vec3 surfPosition, vec3 surfNormal, vec3 viewPosition ) {
+      vec2 texDx = dFdx( vUv );
+      vec2 texDy = dFdy( vUv );
+      vec3 vSigmaX = dFdx( surfPosition );
+      vec3 vSigmaY = dFdy( surfPosition );
+      vec3 vR1 = cross( vSigmaY, surfNormal );
+      vec3 vR2 = cross( surfNormal, vSigmaX );
+      float fDet = dot( vSigmaX, vR1 );
+      vec2 vProjVscr = ( 1.0 / fDet ) * vec2( dot( vR1, viewPosition ), dot( vR2, viewPosition ) );
+      vec3 vProjVtex;
+      vProjVtex.xy = texDx * vProjVscr.x + texDy * vProjVscr.y;
+      vProjVtex.z = dot( surfNormal, viewPosition );
+      return parallaxMap( vUv, vProjVtex );
+    }
 
-      // float d = length(vPosition - vec3(${PARCEL_SIZE/2}, ${PARCEL_SIZE/2}, ${PARCEL_SIZE/2}));
-      // float dMax = length(vec3(${PARCEL_SIZE/2}, ${PARCEL_SIZE/2}, ${PARCEL_SIZE/2}));
-      // vec2 uv2 = vec2(d / dMax, 0.5);
+    void main() {
       vec2 uv = vec2(
-        mod((vPosition.x) / 2.0, 1.0),
-        mod((vPosition.z) / 2.0, 1.0)
+        mod((vPosition.x) / 4.0, 1.0),
+        mod((vPosition.z) / 4.0, 1.0)
       );
-      uv.x *= 1.0/8.0;
+      /* uv.x *= 1.0/8.0;
       uv.y *= 512.0/4096.0;
       if (vPosition.y < 290.0) {
         uv.x += 3.0/8.0;
+      } */
+      // vec2 uv2 = vec2(0.1 + vWorldPosition.y/30.0, 0.5);
+      vec3 c;
+
+      /* vec3 vNormal = normalize(cross(dFdx(vWorldPosition), dFdy(vWorldPosition)));
+      vec3 vViewPosition = -vWorldPosition;
+      vec2 mapUv = perturbUv( uv, -vViewPosition, normalize( vNormal ), normalize( vViewPosition ) ); */
+      vec2 mapUv = uv;
+
+      if (vPosition.y >= 290.0) {
+        c = texture2D(tex, mapUv).rgb;
+      } else {
+        c = texture2D(tex2, mapUv).rgb;
       }
-      vec2 uv2 = vec2(0.1 + vWorldPosition.y/30.0, 0.5);
-      // vec3 c = texture2D(heightColorTex, uv2).rgb;
-      vec3 diffuseColor = mix(texture2D(tex, uv).rgb, vec3(0.), gl_FragCoord.z/gl_FragCoord.w/30.0);
+      vec3 diffuseColor = mix(c, vec3(0.), gl_FragCoord.z/gl_FragCoord.w/30.0);
       if (edgeFactor() <= 0.99) {
         diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vWorldPosition) - uTime*5.0, 3.0)), 0.0)*0.5);
         diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
@@ -1261,79 +1286,76 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     uniforms: THREE.UniformsUtils.clone(HEIGHTFIELD_SHADER.uniforms),
     vertexShader: HEIGHTFIELD_SHADER.vertexShader,
     fragmentShader: HEIGHTFIELD_SHADER.fragmentShader,
-    // lights: true,
     extensions: {
       derivatives: true,
-    },
-  });
-
-  /* const numStops = 1;
-  const stops = Array(numStops);
-  const colorKeys = Object.keys(colors);
-  for (let i = 0; i < numStops; i++) {
-    const pos = i === 0 ? 0 : Math.floor(rng() *255);
-    const colorIndex = colorKeys[Math.floor(rng() * colorKeys.length)];
-    const color = colors[colorIndex];
-    const col = parseInt('0x' + color[400].slice(1));
-    stops[i] = [pos, col];
-  }
-  stops.sort((a, b) => a[0] - b[0]);
-  heightfieldMaterial.uniforms.heightColorTex.value = new THREE.DataTexture(new Uint8Array(256*3), 256, 1, THREE.RGBFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter, 1);
-  heightfieldMaterial.uniforms.heightColorTex.needsUpdate = true;
-
-  stops.forEach((stop, i) => {
-    const [startIndex, colorValue] = stop;
-    const nextStop = stops[i+1] || null;
-    const endIndex = nextStop ? nextStop[0] : 256;
-    const color = new THREE.Color(colorValue);
-    const colorArray = Uint8Array.from([
-      color.r*255,
-      color.g*255,
-      color.b*255,
-    ]);
-    for (let j = startIndex; j < endIndex; j++) {
-      heightfieldMaterial.uniforms.heightColorTex.value.image.data.set(colorArray, j*3);
     }
   });
-  heightfieldMaterial.uniforms.heightColorTex.value.needsUpdate = true; */
 
   (async () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 4096;
-    canvas.height = 4096;
-    heightfieldMaterial.uniforms.tex.value.image = canvas;
-    heightfieldMaterial.uniforms.tex.value.minFilter = THREE.LinearFilter;
-    heightfieldMaterial.uniforms.tex.value.flipY = false;
-
-    const atlas = atlaspack(canvas);
-    const rects = new Map();
-
-    for (const u of [
-      'Grass_1.png',
-      'Grass_2.png',
-      'Grass_3.png',
-      'Ground_1.png',
-      'Ground_2.png',
-      'Ground_3.png',
-      'Ground_4.png',
-      'Ground_5.png',
-    ]) {
-      await new Promise((accept, reject) => {
-        const img = new Image();
-        img.onload = () => {
-          img.id = 'img-' + rects.size;
-          atlas.pack(img);
-          const rect = atlas.uv()[img.id];
-          rects.set(img.id, rect);
-
-          accept();
-        };
-        img.onerror = reject;
-        img.src = `./textures/${u}`;
-      });
-    }
-
+    heightfieldMaterial.uniforms.tex.value.image = await new Promise((accept, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        accept(img);
+      };
+      img.onerror = reject;
+      img.src = `./land-textures/Vol_8_2_Base_Color.png`;
+    });
+    heightfieldMaterial.uniforms.tex.value.wrapS = THREE.RepeatWrapping;
+    heightfieldMaterial.uniforms.tex.value.wrapT = THREE.RepeatWrapping;
+    // heightfieldMaterial.uniforms.tex.value.anisotropy = 16;
     heightfieldMaterial.uniforms.tex.value.needsUpdate = true;
+
+    heightfieldMaterial.uniforms.tex2.value.image = await new Promise((accept, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        accept(img);
+      };
+      img.onerror = reject;
+      img.src = `./land-textures/Vol_8_2_Base_Color.png`;
+    });
+    heightfieldMaterial.uniforms.tex2.value.wrapS = THREE.RepeatWrapping;
+    heightfieldMaterial.uniforms.tex2.value.wrapT = THREE.RepeatWrapping;
+    // heightfieldMaterial.uniforms.tex2.value.anisotropy = 16;
+    heightfieldMaterial.uniforms.tex2.value.needsUpdate = true;
+
+    heightfieldMaterial.uniforms.bumpMap.value.image = await new Promise((accept, reject) => {
+    const img = new Image();
+      img.onload = () => {
+        accept(img);
+      };
+      img.onerror = reject;
+      img.src = `./land-textures/Vol_8_2_Height.png`;
+    });
+    heightfieldMaterial.uniforms.bumpMap.value.wrapS = THREE.RepeatWrapping;
+    heightfieldMaterial.uniforms.bumpMap.value.wrapT = THREE.RepeatWrapping;
+    // heightfieldMaterial.uniforms.bumpMap.value.anisotropy = 16;
+    heightfieldMaterial.uniforms.bumpMap.value.needsUpdate = true;
+
+    heightfieldMaterial.uniforms.normalMap.value.image = await new Promise((accept, reject) => {
+    const img = new Image();
+      img.onload = () => {
+        accept(img);
+      };
+      img.onerror = reject;
+      img.src = `./land-textures/Vol_8_2_Normal.png`;
+    });
+    heightfieldMaterial.uniforms.normalMap.value.wrapS = THREE.RepeatWrapping;
+    heightfieldMaterial.uniforms.normalMap.value.wrapT = THREE.RepeatWrapping;
+    // heightfieldMaterial.uniforms.normalMap.value.anisotropy = 16;
+    heightfieldMaterial.uniforms.normalMap.value.needsUpdate = true;
+
+    heightfieldMaterial.uniforms.roughnessMap.value.image = await new Promise((accept, reject) => {
+    const img = new Image();
+      img.onload = () => {
+        accept(img);
+      };
+      img.onerror = reject;
+      img.src = `./land-textures/Vol_8_2_Roughness.png`;
+    });
+    heightfieldMaterial.uniforms.roughnessMap.value.wrapS = THREE.RepeatWrapping;
+    heightfieldMaterial.uniforms.roughnessMap.value.wrapT = THREE.RepeatWrapping;
+    // heightfieldMaterial.uniforms.roughnessMap.value.anisotropy = 16;
+    heightfieldMaterial.uniforms.roughnessMap.value.needsUpdate = true;
   })();
 
   const slabArrayBuffer = new ArrayBuffer(slabTotalSize);
@@ -2979,6 +3001,9 @@ function animate(timestamp, frame) {
       uniforms.uTime.needsUpdate = true;
       uniforms.sunIntensity.value = Math.max(skybox2.material.uniforms.sunPosition.value.y, 0);
       uniforms.sunIntensity.needsUpdate = true;
+      uniforms.sunDirection.value.copy(skybox2.material.uniforms.sunPosition.value).normalize();
+      window.sunDirection = uniforms.sunDirection.value;
+      uniforms.sunDirection.needsUpdate = true;
     }
   }
   if (currentVegetationMesh && skybox2) {
