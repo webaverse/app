@@ -15,7 +15,10 @@ const decoderModule = new DracoDecoderModule({
       onModuleLoaded() {
 
 const assets = ['./tools.glb', './build.glb', './survival.glb', './animals.glb'];
-const groundTextures = (() => {
+const {
+  neededBiomeRects,
+  biomeIndexToTex,
+} = (() => {
   const s = `enum class BIOME : unsigned char {
     biOcean = 0, // Vol_36_2_Base_Color
     biPlains = 1, // Vol_21_3_Base_Color
@@ -79,31 +82,36 @@ const groundTextures = (() => {
     biMesaPlateauFM = 59, // Vol_29_6_Base_Color
     biMesaPlateauM = 60, // Vol_29_6_Base_Color
 
-    dirt = -1, // Vol_48_2_Base_Color
-    gravel = -2, // Vol_8_4_Base_Color
-    grindstone = -3, // Vol_29_4_Base_Color
-    lightstone = -4, // Vol_41_2_Base_Color
-    darkstone = -5, // Vol_14_4_Base_Color
-    stone = -6, // Vol_15_3_Base_Color
-    oil = -7, // Vol_13_3_Base_Color
-    bedrock = -8, // Vol_26_2_Base_Color
-    lava = -9, // Vol_28_2_Base_Color
+    dirt = 61, // Vol_48_2_Base_Color
+    gravel = 62, // Vol_8_4_Base_Color
+    grindstone = 63, // Vol_29_4_Base_Color
+    lightstone = 64, // Vol_41_2_Base_Color
+    darkstone = 65, // Vol_14_4_Base_Color
+    stone = 66, // Vol_15_3_Base_Color
+    oil = 67, // Vol_13_3_Base_Color
+    bedrock = 68, // Vol_26_2_Base_Color
+    lava = 69, // Vol_28_2_Base_Color
   };`;
-  const o = {};
+  const neededBiomeRects = {};
+  const biomeIndexToTex = [];
   const ms = s.split(/\n/)
     .map(n => {
-      const m = n.match(/([0-9]+), \/\/ (\S+)/i);
+      const m = n.match(/(-?[0-9]+), \/\/ (\S+)/i);
       return m && [parseInt(m[1], 10), m[2]];
     })
     .filter(m => !!m);
   for (const m of ms) {
-    o[m[1]] = (o[m[1]] || 0) + 1;
+    neededBiomeRects[m[1]] = true;
+    biomeIndexToTex.push(m[1]);
   }
-  const nk = Object.keys(o).length;
+  /* const nk = Object.keys(o).length;
   if (nk > 32) {
     throw new Error('throw keys');
-  }
-  return Object.keys(o);
+  } */
+  return {
+    neededBiomeRects,
+    biomeIndexToTex,
+  };
 })();
 
 const localVector = new THREE.Vector3();
@@ -710,63 +718,85 @@ const _registerFile = async url => {
 
   // ground
   {
-    console.log(groundTextures);
-    const size = 16384;
+    console.log({neededBiomeRects, biomeIndexToTex});
+    const size = 8192; // 16384;
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext('2d');
+    const maxColorTexSize = 1024;
+    const maxNormalTexSize = 512;
     const packer = new maxRects.MaxRectsPacker(size, size);
-    for (const groundTexture of groundTextures) {
+    for (const name in neededBiomeRects) {
       {
-        console.log(groundTexture);
+        console.log(name);
         const img = new Image();
         await new Promise((accept, reject) => {
           img.onload = accept;
           img.onerror = reject;
-          img.src = './land-textures/' + groundTexture + '.png';
+          img.src = './land-textures/' + name + '.png';
         });
-        const imageBitmap = await createImageBitmap(img);
-        imageBitmap.id = groundTexture;
+        let imageBitmap;
+        const resizeFactor = Math.min(maxColorTexSize/img.width, maxColorTexSize/img.height);
+        if (resizeFactor < 1) {
+          imageBitmap = _resizeImage(img, resizeFactor);
+        } else {
+          imageBitmap = _resizeImage(img, 1);
+        }
+        // groundColors.push(imageBitmap);
+        imageBitmap.id = name;
         packer.add(imageBitmap);
       }
       {
-        const groundTexture2 = groundTexture.replace(/Base_Color/, 'Normal');
-        console.log(groundTexture2);
+        const name2 = name.replace(/Base_Color/, 'Normal');
+        console.log(name2);
         const img = new Image();
         await new Promise((accept, reject) => {
           img.onload = accept;
           img.onerror = reject;
-          img.src = './land-textures/' + groundTexture2 + '.png';
+          img.src = './land-textures/' + name2 + '.png';
         });
-        const imageBitmap = await createImageBitmap(img);
-        imageBitmap.id = groundTexture2;
+        let imageBitmap;
+        const resizeFactor = Math.min(maxNormalTexSize/img.width, maxNormalTexSize/img.height);
+        if (resizeFactor < 1) {
+          imageBitmap = _resizeImage(img, resizeFactor);
+        } else {
+          imageBitmap = _resizeImage(img, 1);
+        }
+        // groundNormals.push(imageBitmap);
+        imageBitmap.id = name2;
         packer.add(imageBitmap);
       }
     }
-    const rects = {};
+    packer.repack(false);
+    // const rects = {};
     for (const bin of packer.bins) {
       for (const rect of bin.rects) {
-        const {x, y, width, height} = rect;
+        const {x, y/*, width, height*/} = rect;
+        console.log('rect', rect);
         ctx.drawImage(rect, x, y);
-        rects[rect.id] = [x, y, width, height];
+        // rects[rect.id] = [x, y, width, height];
       }
     }
-    console.log('ground rects', rects);
+    // console.log('ground rects', rects);
 
-    {
-      const jsonBlob = new Blob([
-        JSON.stringify(rects, null, 2),
-      ], {
-        type: 'application/json',
-      });
-      const a = document.createElement('a');
-      a.download = 'ground-uvs.json';
-      const url = URL.createObjectURL(jsonBlob);
-      a.href = url;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+    const s = `std::tuple<float, float> groundColors[] = {
+${biomeIndexToTex.map(name => {
+  const rect = packer.bins[0].rects.find(rect => rect.id === name);
+  const {x, y} = rect;
+  return `{${x/size}, ${y/size}}`;
+}).join(',\n')}
+};
+std::tuple<float, float> groundNormals[]  = {
+${biomeIndexToTex.map(name => {
+  const name2 = name.replace(/Base_Color/, 'Normal');
+  const rect = packer.bins[0].rects.find(rect => rect.id === name2);
+  const {x, y} = rect;
+  return `{${x/size}, ${y/size}}`;
+}).join(',\n')}
+};`;
+    console.log(s);
+
     {
       const textureBlob = await new Promise((accept, reject) => {
         canvas.toBlob(accept);
