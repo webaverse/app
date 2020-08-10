@@ -142,8 +142,6 @@ const _getChunkSpec = (potentials, heightfield, lightfield, shiftsData, meshId, 
   index += numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT;
 
   return {
-    // result: {
-    // potentials: outPotentials,
     positions: outP,
     barycentrics: outB,
     ids,
