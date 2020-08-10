@@ -337,6 +337,9 @@ const physicsShapes = {
 };
 (async () => {
 
+const basisLoader = new BasisTextureLoader();
+basisLoader.detectSupport(renderer);
+
 const [
   cw,
   px,
@@ -933,8 +936,6 @@ const [
         texture.flipY = false;
         texture.needsUpdate = true; */
 
-        const basisLoader = new BasisTextureLoader();
-        basisLoader.detectSupport(renderer);
         console.time('basis texture load');
         const texture = await new Promise((accept, reject) => {
           basisLoader.load('meshes-texture.basis', texture => {
