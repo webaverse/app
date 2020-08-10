@@ -29,12 +29,12 @@ function mod(a, b) {
 }
 const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
 const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSizeP1*subparcelSizeP1 + z*subparcelSizeP1;
-const _loadNoise = (seedData, x, y, z, baseHeight, freqsData, octavesData, scalesData, uvsData, ampsData, parcelSize, subparcelSize, potentials, heightfield, objectPositions, objectQuaternions, objectTypes, numObjects) => {
-  freqs.set(Float32Array.from(freqsData));
+const _loadNoise = (seedData, x, y, z, baseHeight, /*freqsData, octavesData, scalesData, uvsData, ampsData,*/ parcelSize, subparcelSize, potentials, biomes, heightfield, objectPositions, objectQuaternions, objectTypes, numObjects) => {
+  /* freqs.set(Float32Array.from(freqsData));
   octaves.set(Int32Array.from(octavesData));
   scales.set(Float32Array.from(scalesData));
   uvs.set(Float32Array.from(uvsData));
-  amps.set(Float32Array.from(ampsData));
+  amps.set(Float32Array.from(ampsData)); */
   dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
   limits.set(Int32Array.from([parcelSize, parcelSize, parcelSize]));
   shifts.set(Float32Array.from([x*subparcelSize, y*subparcelSize, z*subparcelSize]));
@@ -47,11 +47,11 @@ const _loadNoise = (seedData, x, y, z, baseHeight, freqsData, octavesData, scale
   Module._doNoise3(
     seedData,
     baseHeight,
-    freqs.offset,
+    /* freqs.offset,
     octaves.offset,
     scales.offset,
     uvs.offset,
-    amps.offset,
+    amps.offset, */
     dims.offset,
     shifts.offset,
     limits.offset,
@@ -61,6 +61,7 @@ const _loadNoise = (seedData, x, y, z, baseHeight, freqsData, octavesData, scale
     objectsRate,
     potentialDefault,
     potentials.offset,
+    biomes.offset,
     heightfield.offset,
     objectPositions.offset,
     objectQuaternions.offset,
@@ -69,25 +70,29 @@ const _loadNoise = (seedData, x, y, z, baseHeight, freqsData, octavesData, scale
     PLANET_OBJECT_SLOTS
   );
 };
-const _getChunkSpec = (potentials, heightfield, lightfield, shiftsData, meshId, subparcelSize) => {
+const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, meshId, subparcelSize) => {
   const subparcelSizeP1 = subparcelSize+1;
 
   dims.set(Int32Array.from([subparcelSizeP1, subparcelSizeP1, subparcelSizeP1]));
   shifts.set(Float32Array.from(shiftsData));
   scale.set(Float32Array.from([1, 1, 1]));
   numPositions[0] = positions.length;
+  numUvs[0] = uvs.length;
   numBarycentrics[0] = barycentrics.length;
 
   self.Module._doMarchingCubes2(
     dims.offset,
     potentials.offset,
+    biomes.offset,
     heightfield.offset,
     lightfield.offset,
     shifts.offset,
     scale.offset,
     positions.offset,
+    uvs.offset,
     barycentrics.offset,
     numPositions.offset,
+    numUvs.offset,
     numBarycentrics.offset,
     skyLights.offset,
     torchLights.offset
@@ -95,6 +100,7 @@ const _getChunkSpec = (potentials, heightfield, lightfield, shiftsData, meshId, 
 
   const arrayBuffer2 = new ArrayBuffer(
     numPositions[0] * Float32Array.BYTES_PER_ELEMENT +
+    numUvs[0] * Float32Array.BYTES_PER_ELEMENT +
     numBarycentrics[0] * Float32Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
@@ -111,6 +117,10 @@ const _getChunkSpec = (potentials, heightfield, lightfield, shiftsData, meshId, 
   const outP = new Float32Array(arrayBuffer2, index, numPositions[0]);
   outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
   index += Float32Array.BYTES_PER_ELEMENT * numPositions[0];
+
+  const outU = new Float32Array(arrayBuffer2, index, numUvs[0]);
+  outU.set(new Float32Array(uvs.buffer, uvs.byteOffset, numUvs[0]));
+  index += Float32Array.BYTES_PER_ELEMENT * numUvs[0];
 
   const outB = new Float32Array(arrayBuffer2, index, numBarycentrics[0]);
   outB.set(new Float32Array(barycentrics.buffer, barycentrics.byteOffset, numBarycentrics[0]));
@@ -143,6 +153,7 @@ const _getChunkSpec = (potentials, heightfield, lightfield, shiftsData, meshId, 
 
   return {
     positions: outP,
+    uvs: outU,
     barycentrics: outB,
     ids,
     indices,
@@ -152,8 +163,9 @@ const _getChunkSpec = (potentials, heightfield, lightfield, shiftsData, meshId, 
     // indices: outI,
   };
 };
-const _meshChunkSlab = (meshId, x, y, z, potentialsData, heightfieldData, lightfieldData, subparcelSize) => {
+const _meshChunkSlab = (meshId, x, y, z, potentialsData, biomesData, heightfieldData, lightfieldData, subparcelSize) => {
   potentials.set(potentialsData);
+  biomes.set(biomesData);
   heightfield.set(heightfieldData);
   lightfield.set(lightfieldData);
   const shiftsData = [
@@ -161,10 +173,11 @@ const _meshChunkSlab = (meshId, x, y, z, potentialsData, heightfieldData, lightf
     y*subparcelSize,
     z*subparcelSize,
   ];
-  const {positions, barycentrics, ids, indices, skyLights, torchLights, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, heightfield, lightfield, shiftsData, meshId, subparcelSize);
+  const {positions, uvs, barycentrics, ids, indices, skyLights, torchLights, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, biomes, heightfield, lightfield, shiftsData, meshId, subparcelSize);
   return [
     {
       positions,
+      uvs,
       barycentrics,
       ids,
       indices,
@@ -184,11 +197,12 @@ const _handleMessage = data => {
   const {method} = data;
   switch (method) {
     case 'loadPotentials': {
-      const {seed: seedData, meshId, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize} = data;
+      const {seed: seedData, meshId, x, y, z, baseHeight, /*freqs, octaves, scales, uvs, amps, */ parcelSize, subparcelSize} = data;
 
-      _loadNoise(seedData, x, y, z, baseHeight, freqs, octaves, scales, uvs, amps, parcelSize, subparcelSize, potentials, heightfield, objectPositions, objectQuaternions, objectTypes, numObjects);
+      _loadNoise(seedData, x, y, z, baseHeight, /*freqs, octaves, scales, uvs, amps, */ parcelSize, subparcelSize, potentials, biomes, heightfield, objectPositions, objectQuaternions, objectTypes, numObjects);
 
       const potentials2 = potentials.slice();
+      const biomes2 = biomes.slice();
       const heightfield2 = heightfield.slice();
       const objects = Array(numObjects[0]);
       for (let i = 0; i < objects.length; i++) {
@@ -201,6 +215,7 @@ const _handleMessage = data => {
       self.postMessage({
         result: {
           potentials: potentials2,
+          biomes: biomes2,
           heightfield: heightfield2,
           objects,
         },
@@ -208,11 +223,11 @@ const _handleMessage = data => {
       break;
     }
     case 'marchLand': {
-      const {seed: seedData, meshId, x, y, z, potentials, heightfield, lightfield, parcelSize, subparcelSize} = data;
+      const {seed: seedData, meshId, x, y, z, potentials, biomes, heightfield, lightfield, parcelSize, subparcelSize} = data;
 
       const results = [];
       const transfers = [];
-      const [result, transfer] = _meshChunkSlab(meshId, x, y, z, potentials, heightfield, lightfield, subparcelSize);
+      const [result, transfer] = _meshChunkSlab(meshId, x, y, z, potentials, biomes, heightfield, lightfield, subparcelSize);
       results.push(result);
       transfers.push(transfer);
 
@@ -227,7 +242,7 @@ const _handleMessage = data => {
       const results = [];
       const transfers = [];
       for (const mineSpec of mineSpecs) {
-        const [result, transfer] = _meshChunkSlab(meshId, mineSpec.x, mineSpec.y, mineSpec.z, mineSpec.potentials, mineSpec.heightfield, mineSpec.lightfield, subparcelSize);
+        const [result, transfer] = _meshChunkSlab(meshId, mineSpec.x, mineSpec.y, mineSpec.z, mineSpec.potentials, mineSpec.biomes, mineSpec.heightfield, mineSpec.lightfield, subparcelSize);
         results.push(result);
         transfers.push(transfer);
       }
@@ -240,11 +255,11 @@ const _handleMessage = data => {
     case 'getHeight': {
       const {seed, x, y, z, baseHeight, freqs: freqsData, octaves: octavesData, scales: scalesData, uvs: uvsData, amps: ampsData, parcelSize} = data;
 
-      freqs.set(Float32Array.from(freqsData));
+      /* freqs.set(Float32Array.from(freqsData));
       octaves.set(Int32Array.from(octavesData));
       scales.set(Float32Array.from(scalesData));
       uvs.set(Float32Array.from(uvsData));
-      amps.set(Float32Array.from(ampsData));
+      amps.set(Float32Array.from(ampsData)); */
       limits.set(Int32Array.from([parcelSize, parcelSize, parcelSize]));
 
       const height = Module._doGetHeight(
@@ -253,11 +268,11 @@ const _handleMessage = data => {
         y,
         z,
         baseHeight,
-        freqs.offset,
+        /* freqs.offset,
         octaves.offset,
         scales.offset,
         uvs.offset,
-        amps.offset,
+        amps.offset, */
         limits.offset
       );
 
@@ -287,30 +302,33 @@ self.onmessage = e => {
   }
 };
 
-let potentials, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, barycentrics, numPositions, numBarycentrics, skyLights, torchLights;
+let potentials, biomes, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, barycentrics, numPositions, numBarycentrics, skyLights, torchLights;
 wasmModulePromise.then(() => {
   loaded = true;
 
   const allocator = new Allocator();
   potentials = allocator.alloc(Float32Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
+  biomes = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
   objectPositions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*3);
   objectQuaternions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*4);
   objectTypes = allocator.alloc(Uint32Array, PLANET_OBJECT_SLOTS);
   numObjects = allocator.alloc(Uint32Array, 1);
   heightfield = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
   lightfield = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
-  freqs = allocator.alloc(Float32Array, 3);
+  /* freqs = allocator.alloc(Float32Array, 3);
   octaves = allocator.alloc(Int32Array, 3);
   scales = allocator.alloc(Float32Array, 3);
   uvs = allocator.alloc(Float32Array, 3);
-  amps = allocator.alloc(Float32Array, 3);
+  amps = allocator.alloc(Float32Array, 3); */
   dims = allocator.alloc(Int32Array, 3);
   limits = allocator.alloc(Int32Array, 3);
   shifts = allocator.alloc(Float32Array, 3);
   scale = allocator.alloc(Float32Array, 3);
   positions = allocator.alloc(Float32Array, 4 * 1024 * 1024);
+  uvs = allocator.alloc(Float32Array, 4 * 1024 * 1024);
   barycentrics = allocator.alloc(Float32Array, 4 * 1024 * 1024);
   numPositions = allocator.alloc(Uint32Array, 1);
+  numUvs = allocator.alloc(Uint32Array, 1);
   numBarycentrics = allocator.alloc(Uint32Array, 1);
   skyLights = allocator.alloc(Uint8Array, 4 * 1024 * 1024);
   torchLights = allocator.alloc(Uint8Array, 4 * 1024 * 1024);
