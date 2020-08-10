@@ -2170,13 +2170,13 @@ planet.addEventListener('load', async e => {
 
   chunkMesh.updateMatrixWorld();
 
-  const p = new THREE.Vector3().applyMatrix4(new THREE.Matrix4().getInverse(chunkMesh.matrixWorld));
-  const ncx = Math.floor(p.x/SUBPARCEL_SIZE);
-  const ncy = Math.floor(p.y/SUBPARCEL_SIZE);
-  const ncz = Math.floor(p.z/SUBPARCEL_SIZE);
+  const p = new THREE.Vector3(0, 0, 0).applyMatrix4(new THREE.Matrix4().getInverse(chunkMesh.matrixWorld));
+  const ncx = Math.floor(p.x/SUBPARCEL_SIZE)*SUBPARCEL_SIZE;
+  const ncy = Math.floor(p.y/SUBPARCEL_SIZE)*SUBPARCEL_SIZE;
+  const ncz = Math.floor(p.z/SUBPARCEL_SIZE)*SUBPARCEL_SIZE;
 
   const height = await chunkWorker.requestGetHeight(chunkMesh.seedNum, ncx, ncy + SUBPARCEL_SIZE, ncz, baseHeight, freqs, octaves, scales, uvs, amps, PARCEL_SIZE);
-  worldContainer.position.y = PARCEL_SIZE/2 - height;
+  worldContainer.position.y = PARCEL_SIZE/2 - height - _getAvatarHeight();
 
   /* {
     let geometry = new CapsuleGeometry(0.5, 1, 16)
