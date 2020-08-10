@@ -15,6 +15,86 @@ const decoderModule = new DracoDecoderModule({
       onModuleLoaded() {
 
 const assets = ['./tools.glb', './build.glb', './survival.glb', './animals.glb'];
+const groundTextures = (() => {
+  const s = `enum class BIOME : unsigned char {
+    biOcean = 0, // Vol_36_2_Base_Color
+    biPlains = 1, // Vol_21_3_Base_Color
+    biDesert = 2, // Vol_16_5_Base_Color
+    biExtremeHills = 3, // Vol_8_2_Base_Color
+    biForest = 4, // Vol_11_4_Base_Color
+    biTaiga = 5, // Vol_11_3_Base_Color
+    biSwampland = 6, // Vol_47_ground_7_Base_Color
+    biRiver = 7, // Vol_36_3_Base_Color
+    biNether = 8, // Vol_15_2_Base_Color
+    biEnd = 9, // Vol_15_2_Base_Color
+    biFrozenOcean = 10, // Vol_26_3_Base_Color
+    biFrozenRiver = 11, // Vol_24_1_Base_Color
+    biTundra = 12, // Vol_16_2_Base_Color
+    biIceMountains = 13, // Vol_20_4_Base_Color
+    biMushroomIsland = 14, // Vol_15_2_Base_Color
+    biMushroomShore = 15, // Vol_15_2_Base_Color
+    biBeach = 16, // Vol_16_4_Base_Color
+    biDesertHills = 17, // Vol_16_1_Base_Color
+    biForestHills = 18, // Vol_21_5_Base_Color
+    biTaigaHills = 19, // Vol_19_5_Base_Color
+    biExtremeHillsEdge = 20, // Vol_19_3_Base_Color
+    biJungle = 21, // Vol_21_4_Base_Color
+    biJungleHills = 22, // Vol_26_6_Base_Color
+    biJungleEdge = 23, // Vol_26_6_Base_Color
+    biDeepOcean = 24, // Vol_36_2_Base_Color
+    biStoneBeach = 25, // Vol_12_4_Base_Color
+    biColdBeach = 26, // Vol_24_4_Base_Color
+    biBirchForest = 27, // Vol_21_2_Base_Color
+    biBirchForestHills = 28, // Vol_39_7_Base_Color
+    biRoofedForest = 29, // Vol_11_4_Base_Color
+    biColdTaiga = 30, // Vol_24_5_Base_Color
+    biColdTaigaHills = 31, // Vol_25_1_Base_Color
+    biMegaTaiga = 32, // Vol_11_3_Base_Color
+    biMegaTaigaHills = 33, // Vol_44_2_Base_Color
+    biExtremeHillsPlus = 34, // Vol_8_2_Base_Color
+    biSavanna = 35, // Vol_23_7_Base_Color
+    biSavannaPlateau = 36, // Vol_23_6_Base_Color
+    biMesa = 37, // Vol_29_5_Base_Color
+    biMesaPlateauF = 38, // Vol_29_6_Base_Color
+    biMesaPlateau = 39, // Vol_29_6_Base_Color
+    biSunflowerPlains = 40, // Vol_39_5_Base_Color
+    biDesertM = 41, // Vol_16_5_Base_Color
+    biExtremeHillsM = 42, // Vol_8_2_Base_Color
+    biFlowerForest = 43, // Vol_11_4_Base_Color
+    biTaigaM = 44, // Vol_11_3_Base_Color
+    biSwamplandM = 45, // Vol_47_ground_7_Base_Color
+    biIcePlainsSpikes = 46, // Vol_20_4_Base_Color
+    biJungleM = 47, // Vol_21_4_Base_Color
+    biJungleEdgeM = 48, // Vol_26_6_Base_Color
+    biBirchForestM = 49, // Vol_21_2_Base_Color
+    biBirchForestHillsM = 50, // Vol_39_7_Base_Color
+    biRoofedForestM = 51, // Vol_11_4_Base_Color
+    biColdTaigaM = 52, // Vol_24_5_Base_Color
+    biMegaSpruceTaiga = 53, // Vol_11_3_Base_Color
+    biMegaSpruceTaigaHills = 54, // Vol_19_5_Base_Color
+    biExtremeHillsPlusM = 55, // Vol_8_2_Base_Color
+    biSavannaM = 56, // Vol_23_7_Base_Color
+    biSavannaPlateauM = 57, // Vol_23_6_Base_Color
+    biMesaBryce = 58, // Vol_29_6_Base_Color
+    biMesaPlateauFM = 59, // Vol_29_6_Base_Color
+    biMesaPlateauM = 60, // Vol_29_6_Base_Color
+  };`
+  const o = {};
+  const ms = s.split(/\n/)
+    .map(n => {
+      const m = n.match(/([0-9]+), \/\/ (\S+)/i);
+      return m && [parseInt(m[1], 10), m[2]];
+    })
+    .filter(m => !!m);
+  for (const m of ms) {
+    o[m[1]] = (o[m[1]] || 0) + 1;
+  }
+  const nk = Object.keys(o).length;
+  if (nk > 32) {
+    throw new Error('throw keys');
+  }
+  return Object.keys(o);
+})();
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -582,6 +662,7 @@ const _registerFile = async url => {
 };
 
 (async () => {
+  // meshes
   for (const url of assets) {
     await _registerFile(url);
   }
@@ -592,12 +673,6 @@ const _registerFile = async url => {
     meshes.push(m);
   }
   const meshesBuffer = _dracoEncode(meshes);
-  /* const meshes2 = _dracoDecode(meshesBuffer);
-  console.log(meshes, meshes2); */
-
-  const textureBlob = await new Promise((accept, reject) => {
-    canvas.toBlob(accept);
-  });
 
   {
     const a = document.createElement('a');
@@ -611,13 +686,88 @@ const _registerFile = async url => {
     URL.revokeObjectURL(url);
   }
   {
+    const textureBlob = await new Promise((accept, reject) => {
+      canvas.toBlob(accept);
+    });
     const a = document.createElement('a');
-    a.download = 'texture.png';
+    a.download = 'meshes-texture.png';
     const blob = textureBlob;
     const url = URL.createObjectURL(blob);
     a.href = url;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  // ground
+  {
+    console.log(groundTextures);
+    const size = 16384;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const packer = new maxRects.MaxRectsPacker(size, size);
+    for (const groundTexture of groundTextures) {
+      {
+        console.log(groundTexture);
+        const img = new Image();
+        await new Promise((accept, reject) => {
+          img.onload = accept;
+          img.onerror = reject;
+          img.src = './land-textures/' + groundTexture + '.png';
+        });
+        const imageBitmap = await createImageBitmap(img);
+        imageBitmap.id = groundTexture;
+        packer.add(imageBitmap);
+      }
+      {
+        const groundTexture2 = groundTexture.replace(/Base_Color/, 'Normal');
+        console.log(groundTexture2);
+        const img = new Image();
+        await new Promise((accept, reject) => {
+          img.onload = accept;
+          img.onerror = reject;
+          img.src = './land-textures/' + groundTexture2 + '.png';
+        });
+        const imageBitmap = await createImageBitmap(img);
+        imageBitmap.id = groundTexture2;
+        packer.add(imageBitmap);
+      }
+    }
+    const rects = {};
+    for (const bin of packer.bins) {
+      for (const rect of bin.rects) {
+        const {x, y, width, height} = rect;
+        ctx.drawImage(rect, x, y);
+        rects[rect.id] = [x, y, width, height];
+      }
+    }
+    console.log('ground rects', rects);
+
+    {
+      const jsonBlob = new Blob([
+        JSON.stringify(rects, null, 2),
+      ], {
+        type: 'application/json',
+      });
+      const a = document.createElement('a');
+      a.download = 'ground-uvs.json';
+      const url = URL.createObjectURL(jsonBlob);
+      a.href = url;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    {
+      const textureBlob = await new Promise((accept, reject) => {
+        canvas.toBlob(accept);
+      });
+      const a = document.createElement('a');
+      a.download = 'ground-texture.png';
+      const url = URL.createObjectURL(textureBlob);
+      a.href = url;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   }
 })();
 
