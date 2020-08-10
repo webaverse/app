@@ -931,7 +931,7 @@ const [
         basisLoader.detectSupport(renderer);
         console.time('basis texture load');
         const texture = await new Promise((accept, reject) => {
-          basisLoader.load('texture.basis', texture => {
+          basisLoader.load('meshes-texture.basis', texture => {
             console.timeEnd('basis texture load');
             accept(texture);
           }, () => {
