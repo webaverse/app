@@ -110,11 +110,6 @@ const _loadGltf = u => new Promise((accept, reject) => {
 });
 const HEIGHTFIELD_SHADER = {
   uniforms: {
-    /* isCurrent: {
-      type: 'f',
-      value: 0,
-      needsUpdate: true,
-    }, */
     uTime: {
       type: 'f',
       value: 0,
@@ -125,51 +120,61 @@ const HEIGHTFIELD_SHADER = {
       value: new THREE.Texture(),
       needsUpdate: true,
     },
-    /* heightColorTex: {
+    tex2: {
       type: 't',
-      value: null,
+      value: new THREE.Texture(),
       needsUpdate: true,
-    }, */
+    },
+    bumpMap: {
+      type: 't',
+      value: new THREE.Texture(),
+      needsUpdate: true,
+    },
+    normalMap: {
+      type: 't',
+      value: new THREE.Texture(),
+      needsUpdate: true,
+    },
+    roughnessMap: {
+      type: 't',
+      value: new THREE.Texture(),
+      needsUpdate: true,
+    },
     sunIntensity: {
       type: 'f',
       value: 1,
       needsUpdate: true,
     },
+    sunDirection: {
+      type: 'v3',
+      value: new THREE.Vector3(),
+      needsUpdate: true,
+    },
+    "parallaxScale": { value: 0.1 },
+    "parallaxMinLayers": { value: 25 },
+    "parallaxMaxLayers": { value: 30 },
   },
   vertexShader: `\
     #define LOG2 1.442695
     precision highp float;
     precision highp int;
-    // uniform float fogDensity;
-    // attribute vec4 color;
     attribute vec3 barycentric;
-    // attribute float index;
     attribute float skyLight;
     attribute float torchLight;
-    // attribute float torchLightmap;
 
     varying vec3 vPosition;
     varying vec3 vWorldPosition;
     varying vec3 vBarycentric;
-    // varying vec3 vViewPosition;
-    // varying vec4 vColor;
-    // varying float vIndex;
-    // varying vec3 vNormal;
     varying float vSkyLight;
     varying float vTorchLight;
-    // varying float vFog;
 
     void main() {
-      // vColor = color;
-      // vNormal = normal;
-
       vec4 mvPosition = modelViewMatrix * vec4(position.xyz, 1.0);
       gl_Position = projectionMatrix * mvPosition;
 
       vPosition = position.xyz;
       vWorldPosition = mvPosition.xyz;
       vBarycentric = barycentric;
-      // vIndex = index;
       vSkyLight = skyLight/8.0;
       vTorchLight = torchLight/8.0;
     }
