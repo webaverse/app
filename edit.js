@@ -382,7 +382,7 @@ const [
         subparcelSize
       });
     };
-    w.requestMarchLand = (seed, meshId, x, y, z, potentials, heightfield, lightfield, parcelSize, subparcelSize) => {
+    w.requestMarchLand = (seed, meshId, x, y, z, potentials, biomes, heightfield, lightfield, parcelSize, subparcelSize) => {
       return w.request({
         method: 'marchLand',
         seed,
@@ -391,6 +391,7 @@ const [
         y,
         z,
         potentials,
+        biomes,
         heightfield,
         lightfield,
         parcelSize,
@@ -1564,6 +1565,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               subparcelSize
             ).then(parcelSpec => {
               subparcel.potentials.set(parcelSpec.potentials);
+              subparcel.biomes.set(parcelSpec.biomes);
               subparcel.heightfield.set(parcelSpec.heightfield);
               for (const object of parcelSpec.objects) {
                 subparcel.addVegetation('tree1', localVector.fromArray(object.position), localQuaternion.fromArray(object.quaternion));
@@ -1591,6 +1593,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         meshId,
         ax, ay, az,
         subparcel.potentials,
+        subparcel.biomes,
         subparcel.heightfield,
         subparcel.lightfield,
         parcelSize,
@@ -3302,6 +3305,7 @@ function animate(timestamp, frame) {
                           z: sdz,
                           index,
                           potentials: subparcel.potentials,
+                          biomes: subparcel.biomes,
                           heightfield: subparcel.heightfield,
                           lightfield: subparcel.lightfield,
                         };
