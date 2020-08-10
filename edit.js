@@ -144,6 +144,7 @@ const HEIGHTFIELD_SHADER = {
 
     varying vec3 vPosition;
     varying vec3 vWorldPosition;
+    varying vec3 vViewPosition;
     varying vec2 vUv;
     varying vec3 vBarycentric;
     varying float vSkyLight;
@@ -154,7 +155,8 @@ const HEIGHTFIELD_SHADER = {
       gl_Position = projectionMatrix * mvPosition;
 
       vPosition = position.xyz;
-      vWorldPosition = mvPosition.xyz;
+      vWorldPosition = (modelMatrix * vec4(position.xyz, 1.0)).xyz;
+      vViewPosition = -mvPosition.xyz;
       vUv = uv;
       vBarycentric = barycentric;
       vSkyLight = skyLight/8.0;
@@ -172,6 +174,7 @@ const HEIGHTFIELD_SHADER = {
 
     varying vec3 vPosition;
     varying vec3 vWorldPosition;
+    varying vec3 vViewPosition;
     varying vec2 vUv;
     varying vec3 vBarycentric;
     varying float vSkyLight;
@@ -227,8 +230,8 @@ const HEIGHTFIELD_SHADER = {
         mod((vPosition.z) / 4.0, 1.0)
       );
       vec2 uv = vUv + 0.5/8192. + worldUv * (1023./8192.);
-      /* vec3 vNormal = normalize(cross(dFdx(vWorldPosition), dFdy(vWorldPosition)));
-      vec3 vViewPosition = -vWorldPosition;
+      vec3 vNormal = normalize(cross(dFdx(vWorldPosition), dFdy(vWorldPosition)));
+      /* vec3 vViewPosition = -vWorldPosition;
       vec2 mapUv = perturbUv( uv, -vViewPosition, normalize( vNormal ), normalize( vViewPosition ) ); */
       vec2 mapUv = uv;
 
@@ -240,11 +243,11 @@ const HEIGHTFIELD_SHADER = {
       } */
       vec3 diffuseColor = mix(c, vec3(0.), gl_FragCoord.z/gl_FragCoord.w/30.0);
       if (edgeFactor() <= 0.99) {
-        diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vWorldPosition) - uTime*5.0, 3.0)), 0.0)*0.5);
+        diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vViewPosition) - uTime*5.0, 3.0)), 0.0)*0.5);
         diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
       }
       float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
-      float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
+      float cameraFactor = floor(8.0 - length(vViewPosition))/8.;
       diffuseColor *= max(max(worldFactor, cameraFactor), 0.1);
 
       // diffuseColor *= abs(dot(normalize(texture2D(normalMap, mapUv).rgb), sunDirection));
