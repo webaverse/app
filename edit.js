@@ -1273,6 +1273,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     const texture = await new Promise((accept, reject) => {
       basisLoader.load('ground-texture.basis', texture => {
         // console.timeEnd('basis texture load');
+        texture.minFilter = THREE.LinearFilter;
         accept(texture);
       }, () => {
         // console.log('onProgress');
