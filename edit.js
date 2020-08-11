@@ -1380,7 +1380,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           if (nextEntry) {
             if (entry.start + entry.count === nextEntry.start) {
               entry.count += nextEntry.count;
-              entry.countIndex += nextEntry.countIndex;
               freeList[j] = null;
               merged = true;
             }
