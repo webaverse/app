@@ -296,7 +296,7 @@ wasmModulePromise.then(() => {
 
   const allocator = new Allocator();
   potentials = allocator.alloc(Float32Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
-  biomes = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
+  biomes = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1);
   objectPositions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*3);
   objectQuaternions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*4);
   objectTypes = allocator.alloc(Uint32Array, PLANET_OBJECT_SLOTS);
