@@ -137,6 +137,17 @@ const _resizeImage = (img, scale) => {
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   return canvas;
 };
+const _quad = img => {
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width * 2;
+  canvas.height = img.height * 2;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  ctx.drawImage(img, img.width, 0);
+  ctx.drawImage(img, img.width, img.height);
+  ctx.drawImage(img, 0, img.height);
+  return canvas;
+};
 const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
 const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSizeP1*subparcelSizeP1 + z*subparcelSizeP1;
 const _align4 = n => {
@@ -685,7 +696,7 @@ const _registerFile = async url => {
 };
 
 (async () => {
-  // meshes
+  /* // meshes
   for (const url of assets) {
     await _registerFile(url);
   }
@@ -719,27 +730,31 @@ const _registerFile = async url => {
     a.href = url;
     a.click();
     URL.revokeObjectURL(url);
-  }
+  } */
 
   // ground
   {
     console.log({neededBiomeRects, biomeIndexToTex});
-    const size = 8192; // 16384;
+    const size = 2048; // 16384;
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext('2d');
-    const maxColorTexSize = 1024;
-    const maxNormalTexSize = 512;
+    ctx.imageSmoothingEnabled = false;
+    const maxColorTexSize = 16;
+    // const maxNormalTexSize = 16;
     const packer = new maxRects.MaxRectsPacker(size, size);
-    for (const name in neededBiomeRects) {
-      {
-        console.log(name);
+    {
+      const res = await fetch('./land-textures/lol.txt');
+      const s = await res.text();
+      const files = s.split(/\n/).filter(l => !!l);
+      for (const file of files) {
+        console.log(file);
         const img = new Image();
         await new Promise((accept, reject) => {
           img.onload = accept;
           img.onerror = reject;
-          img.src = './land-textures/' + name + '.png';
+          img.src = './land-textures/' + file;
         });
         let imageBitmap;
         const resizeFactor = Math.min(maxColorTexSize/img.width, maxColorTexSize/img.height);
@@ -748,45 +763,27 @@ const _registerFile = async url => {
         } else {
           imageBitmap = _resizeImage(img, 1);
         }
+        imageBitmap = _quad(imageBitmap);
         // groundColors.push(imageBitmap);
-        imageBitmap.id = name;
+        imageBitmap.id = file;
         packer.add(imageBitmap);
       }
-      {
-        const name2 = name.replace(/Base_Color/, 'Normal');
-        console.log(name2);
-        const img = new Image();
-        await new Promise((accept, reject) => {
-          img.onload = accept;
-          img.onerror = reject;
-          img.src = './land-textures/' + name2 + '.png';
-        });
-        let imageBitmap;
-        const resizeFactor = Math.min(maxNormalTexSize/img.width, maxNormalTexSize/img.height);
-        if (resizeFactor < 1) {
-          imageBitmap = _resizeImage(img, resizeFactor);
-        } else {
-          imageBitmap = _resizeImage(img, 1);
+      packer.repack(false);
+      // const rects = {};
+      for (const bin of packer.bins) {
+        for (const rect of bin.rects) {
+          const {x, y/*, width, height*/} = rect;
+          console.log('rect', rect);
+          ctx.drawImage(rect, x, y);
+          // rects[rect.id] = [x, y, width, height];
         }
-        // groundNormals.push(imageBitmap);
-        imageBitmap.id = name2;
-        packer.add(imageBitmap);
       }
     }
-    packer.repack(false);
-    // const rects = {};
-    for (const bin of packer.bins) {
-      for (const rect of bin.rects) {
-        const {x, y/*, width, height*/} = rect;
-        console.log('rect', rect);
-        ctx.drawImage(rect, x, y);
-        // rects[rect.id] = [x, y, width, height];
-      }
-    }
-    // console.log('ground rects', rects);
+    console.log('ground rects', packer.bins);
 
     const s = `std::tuple<float, float> groundColors[] = {
 ${biomeIndexToTex.map(name => {
+  name = name + '.png';
   const rect = packer.bins[0].rects.find(rect => rect.id === name);
   const {x, y} = rect;
   return `{${x/size}, ${y/size}}`;
@@ -794,10 +791,30 @@ ${biomeIndexToTex.map(name => {
 };
 std::tuple<float, float> groundNormals[]  = {
 ${biomeIndexToTex.map(name => {
-  const name2 = name.replace(/Base_Color/, 'Normal');
-  const rect = packer.bins[0].rects.find(rect => rect.id === name2);
+  name = (name + '.png').replace(/Base_Color/, 'Normal');
+  const rect = packer.bins[0].rects.find(rect => rect.id === name);
   const {x, y} = rect;
   return `{${x/size}, ${y/size}}`;
+}).join(',\n')}
+};
+std::tuple<float, float> groundHeights[]  = {
+${biomeIndexToTex.map(name => {
+  name = (name + '.png').replace(/Base_Color/, 'Height');
+  const rect = packer.bins[0].rects.find(rect => rect.id === name);
+  const {x, y} = rect;
+  return `{${x/size}, ${y/size}}`;
+}).join(',\n')}
+};
+std::tuple<float, float> groundEmissive[]  = {
+${biomeIndexToTex.map(name => {
+  name = (name + '.png').replace(/Base_Color/, 'Emissive');
+  const rect = packer.bins[0].rects.find(rect => rect.id === name);
+  if (rect) {
+    const {x, y} = rect;
+    return `{${x/size}, ${y/size}}`;
+  } else {
+    return `{${-1}, ${-1}}`;
+  }
 }).join(',\n')}
 };`;
     console.log(s);
