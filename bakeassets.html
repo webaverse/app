@@ -748,25 +748,51 @@ const _registerFile = async url => {
       const res = await fetch('./land-textures/lol.txt');
       const s = await res.text();
       const files = s.split(/\n/).filter(l => !!l);
+      const filesObject = {};
       for (const file of files) {
-        console.log(file);
-        const img = new Image();
-        await new Promise((accept, reject) => {
-          img.onload = accept;
-          img.onerror = reject;
-          img.src = './land-textures/' + file;
-        });
-        let imageBitmap;
-        const resizeFactor = Math.min(maxColorTexSize/img.width, maxColorTexSize/img.height);
-        if (resizeFactor < 1) {
-          imageBitmap = _resizeImage(img, resizeFactor);
-        } else {
-          imageBitmap = _resizeImage(img, 1);
+        const match = file.match(/^(.+)(?:Base_Color|Normal|Height|Emissive)\.png$/);
+        const name = match[1];
+        if (!filesObject[name]) {
+          filesObject[name] = [];
         }
-        imageBitmap = _quad(imageBitmap);
-        // groundColors.push(imageBitmap);
-        imageBitmap.id = file;
-        packer.add(imageBitmap);
+        filesObject[name].push(file);
+      }
+      for (const name in filesObject) {
+        const files = filesObject[name];
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 16*2*4;
+        canvas.height = 16*4;
+
+        for (const suffix of ['Base_Color', 'Normal', 'Height', 'Emissive']) {
+          const fullName = name + suffix + '.png';
+          if (files.includes(fullName)) {
+
+          } else {
+
+          }
+        }
+
+        for (const file of files) {
+          console.log(file);
+          const img = new Image();
+          await new Promise((accept, reject) => {
+            img.onload = accept;
+            img.onerror = reject;
+            img.src = './land-textures/' + file;
+          });
+          let imageBitmap;
+          const resizeFactor = Math.min(maxColorTexSize/img.width, maxColorTexSize/img.height);
+          if (resizeFactor < 1) {
+            imageBitmap = _resizeImage(img, resizeFactor);
+          } else {
+            imageBitmap = _resizeImage(img, 1);
+          }
+          imageBitmap = _quad(imageBitmap);
+          // groundColors.push(imageBitmap);
+          imageBitmap.id = file;
+          packer.add(imageBitmap);
+        }
       }
       packer.repack(false);
       // const rects = {};
