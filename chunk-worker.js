@@ -5,28 +5,6 @@ const subparcelSizeP1 = subparcelSize+1;
 const potentialDefault = -0.5;
 const PLANET_OBJECT_SLOTS = 16;
 
-class Allocator {
-  constructor() {
-    this.offsets = [];
-  }
-  alloc(constructor, size) {
-    const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
-    const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
-    b.offset = offset;
-    this.offsets.push(offset);
-    return b;
-  }
-  freeAll() {
-    for (let i = 0; i < this.offsets.length; i++) {
-      self.Module._doFree(this.offsets[i]);
-    }
-    this.offsets.length = 0;
-  }
-}
-
-function mod(a, b) {
-  return ((a%b)+b)%b;
-}
 const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
 const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSizeP1*subparcelSizeP1 + z*subparcelSizeP1;
 const _loadNoise = (seedData, x, y, z, baseHeight, /*freqsData, octavesData, scalesData, uvsData, ampsData,*/ parcelSize, subparcelSize, potentials, biomes, heightfield, objectPositions, objectQuaternions, objectTypes, numObjects) => {
@@ -305,6 +283,25 @@ self.onmessage = e => {
 let potentials, biomes, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, barycentrics, numPositions, numBarycentrics, skyLights, torchLights;
 wasmModulePromise.then(() => {
   loaded = true;
+
+  class Allocator {
+    constructor() {
+      this.offsets = [];
+    }
+    alloc(constructor, size) {
+      const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
+      const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
+      b.offset = offset;
+      this.offsets.push(offset);
+      return b;
+    }
+    freeAll() {
+      for (let i = 0; i < this.offsets.length; i++) {
+        self.Module._doFree(this.offsets[i]);
+      }
+      this.offsets.length = 0;
+    }
+  }
 
   const allocator = new Allocator();
   potentials = allocator.alloc(Float32Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
