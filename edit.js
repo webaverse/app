@@ -226,16 +226,18 @@ const HEIGHTFIELD_SHADER = {
     void main() {
       vec2 worldUv;
       vec3 vNormal = normalize(cross(dFdx(vWorldPosition), dFdy(vWorldPosition)));
-      if (abs(vNormal.x) > 0.95) {
-        worldUv = vec2(
-          mod((vPosition.y) / 4.0, 1.0),
-          mod((vPosition.z) / 4.0, 1.0)
-        );
-      } else if (abs(vNormal.z) > 0.95) {
-        worldUv = vec2(
-          mod((vPosition.x) / 4.0, 1.0),
-          mod((vPosition.y) / 4.0, 1.0)
-        );
+      if (abs(vNormal.y) < 0.05) {
+        if (abs(vNormal.x) > 0.95) {
+          worldUv = vec2(
+            mod((vPosition.y) / 4.0, 1.0),
+            mod((vPosition.z) / 4.0, 1.0)
+          );
+        } else {
+          worldUv = vec2(
+            mod((vPosition.x) / 4.0, 1.0),
+            mod((vPosition.y) / 4.0, 1.0)
+          );
+        }
       } else {
         worldUv = vec2(
           mod((vPosition.x) / 4.0, 1.0),
