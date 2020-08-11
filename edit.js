@@ -97,7 +97,6 @@ const localMatrix3 = new THREE.Matrix4();
 const localFrustum = new THREE.Frustum();
 
 const cubicBezier = easing(0, 1, 0, 1);
-const chunkOffset = new THREE.Vector3(0, 0, 0);
 
 let skybox = null;
 let skybox2 = null;
@@ -1235,7 +1234,6 @@ const [
     };
     const context = renderer.getContext();
     currentVegetationMesh = _makeVegetationMesh();
-    currentVegetationMesh.position.copy(chunkOffset);
     chunkMeshContainer.add(currentVegetationMesh);
     currentVegetationMesh.onBeforeRender = () => {
       context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
@@ -2220,7 +2218,6 @@ planet.addEventListener('load', async e => {
   const {data: chunkSpec} = e;
 
   const chunkMesh = _makeChunkMesh(chunkSpec.seedString, chunkSpec.parcelSize, chunkSpec.subparcelSize);
-  chunkMesh.position.copy(chunkOffset);
   chunkMeshContainer.add(chunkMesh);
   chunkMeshes.push(chunkMesh);
   _setCurrentChunkMesh(chunkMesh);
