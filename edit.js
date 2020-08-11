@@ -1355,6 +1355,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           skyLight: new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numSkyLights),
           torchLight: new Uint8Array(geometry.attributes.torchLight.array.buffer, geometry.attributes.torchLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numTorchLights),
           group: null,
+          physxGeometry: null,
         };
       }
     }
@@ -1393,7 +1394,9 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   mesh.getSlab = (x, y, z, numPositions, numUvs, numBarycenterics, numIds, numSkyLights, numTorchLights) => {
     const index = planet.getSubparcelIndex(x, y, z);
     let slab = slabs[index];
+    let physxGeometry = null;
     if (slab && !_slabFits(slab, numPositions, numUvs, numBarycenterics, numIds, numSkyLights, numTorchLights)) {
+      physxGeometry = slab.physxGeometry;
       mesh.freeSlabIndex(slab.index);
       slab = null;
     }
@@ -1403,6 +1406,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       slab.y = y;
       slab.z = z;
       slab.index = index;
+      slab.physxGeometry = physxGeometry;
       slabs[index] = slab;
       geometry.addGroup(_getSlabPositionOffset(slab)/3, slab.position.length, 0);
       const group = geometry.groups[geometry.groups.length-1];
