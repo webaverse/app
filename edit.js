@@ -1225,11 +1225,11 @@ const [
         }
       };
       mesh.getSlabPositionOffset = _getSlabPositionOffset;
-      mesh.getSlabUvOffset = _getSlabUvOffset;
-      mesh.getSlabIdOffset = _getSlabIdOffset;
-      mesh.getSlabSkyLightOffset = _getSlabSkyLightOffset;
-      mesh.getSlabTorchLightOffset = _getSlabTorchLightOffset;
-      mesh.getSlabIndexOffset = _getSlabIndexOffset;
+      // mesh.getSlabUvOffset = _getSlabUvOffset;
+      // mesh.getSlabIdOffset = _getSlabIdOffset;
+      // mesh.getSlabSkyLightOffset = _getSlabSkyLightOffset;
+      // mesh.getSlabTorchLightOffset = _getSlabTorchLightOffset;
+      // mesh.getSlabIndexOffset = _getSlabIndexOffset;
       return mesh;
     };
     const context = renderer.getContext();
@@ -1381,16 +1381,14 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     heightfieldMaterial.uniforms.tex.needsUpdate = true;
   })();
 
-  const slabArrayBuffer = new ArrayBuffer(slabTotalSize);
+  const numPositions = 10 * 1024 * 1024;
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 0*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
-  geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 1*slabAttributeSize, slabSliceVertices*numSlices*2), 2));
-  geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 2*slabAttributeSize, slabSliceVertices*numSlices*3), 3));
-  geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 3*slabAttributeSize, slabSliceVertices*numSlices), 1));
-  geometry.setAttribute('index', new THREE.BufferAttribute(new Float32Array(slabArrayBuffer, 4*slabAttributeSize, slabSliceVertices*numSlices), 1));
-  geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(slabArrayBuffer, 5*slabAttributeSize, slabSliceVertices*numSlices), 1));
-  geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(slabArrayBuffer, 6*slabAttributeSize, slabSliceVertices*numSlices), 1));
-
+  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(numPositions), 3));
+  geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(numPositions/3*2), 2));
+  geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(numPositions), 3));
+  geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(numPositions/3), 1));
+  geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
+  geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
   const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
   mesh.frustumCulled = false;
   mesh.seedNum = seedNum;
@@ -1404,77 +1402,152 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   mesh.objects = [];
 
   const slabs = {};
-  const freeSlabs = [];
-  let slabIndex = 0;
-  mesh.getSlab = (x, y, z) => {
+  let freeList = [{
+    start: 0,
+    count: numPositions,
+  }];
+  const _slabFits = (slab, numPositions, numUvs, numBarycenterics, numIds, numSkyLights, numTorchLights) => {
+    return slab.position.length >= numPositions &&
+      slab.uv.length >= numUvs &&
+      slab.barycentric.length >= numBarycenterics &&
+      slab.id.length >= numIds &&
+      slab.skyLight.length >= numSkyLights &&
+      slab.torchLight.length >= numTorchLights;
+  };
+  const _entryFits = (entry, numPositions, numUvs, numBarycenterics, numIds, numSkyLights, numTorchLights) => {
+    return entry.count >= numPositions &&
+      entry.count/3*2 >= numUvs &&
+      entry.count >= numBarycenterics &&
+      entry.count/3 >= numIds &&
+      entry.count/3 >= numSkyLights &&
+      entry.count/3 >= numTorchLights;
+  };
+  const _findFreeSlab = (numPositions, numUvs, numBarycenterics, numIds, numSkyLights, numTorchLights) => {
+    for (let i = 0; i < freeList.length; i++) {
+      const entry = freeList[i];
+
+      if (_entryFits(entry, numPositions, numUvs, numBarycenterics, numIds, numSkyLights, numTorchLights)) {
+        if (numPositions > 0) {
+          if (entry.count > numPositions) {
+            freeList.splice(i, 1, {
+              start: entry.start + numPositions,
+              count: entry.count - numPositions,
+            });
+          } else {
+            freeList.splice(i, 1);
+          }
+        }
+
+        return {
+          x: 0,
+          y: 0,
+          z: 0,
+          start: entry.start,
+          count: numPositions,
+          index: 0,
+          position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + entry.start*Float32Array.BYTES_PER_ELEMENT, numPositions),
+          uv: new Float32Array(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset + entry.start/3*2*Float32Array.BYTES_PER_ELEMENT, numUvs),
+          barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + entry.start*Float32Array.BYTES_PER_ELEMENT, numBarycenterics),
+          id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + entry.start/3*Float32Array.BYTES_PER_ELEMENT, numIds),
+          skyLight: new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numSkyLights),
+          torchLight: new Uint8Array(geometry.attributes.torchLight.array.buffer, geometry.attributes.torchLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numTorchLights),
+          group: null,
+        };
+      }
+    }
+    throw new Error('could not allocate slab');
+  };
+  const _updateFreeList = () => {
+    freeList.sort((a, b) => a.start - b.start);
+    let merged = false;
+    for (let i = 0; i < freeList.length-1; i++) {
+      const entry = freeList[i];
+      if (entry) {
+        for (let j = i+1; j < freeList.length; j++) {
+          const nextEntry = freeList[j];
+          if (nextEntry) {
+            if (entry.start + entry.count === nextEntry.start) {
+              entry.count += nextEntry.count;
+              entry.countIndex += nextEntry.countIndex;
+              freeList[j] = null;
+              merged = true;
+            }
+          }
+        }
+      }
+    }
+    if (merged) {
+      freeList = freeList.filter(entry => !!entry);
+    }
+  };
+  const _getSlabPositionOffset = slab => (slab.position.byteOffset - geometry.attributes.position.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
+  const _getSlabUvOffset = slab => (slab.uv.byteOffset - geometry.attributes.uv.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
+  const _getSlabBarycentricOffset = slab => (slab.barycentric.byteOffset - geometry.attributes.barycentric.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
+  const _getSlabIdOffset = slab => (slab.id.byteOffset - geometry.attributes.id.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
+  const _getSlabSkyLightOffset = slab => (slab.skyLight.byteOffset - geometry.attributes.skyLight.array.byteOffset)/Uint8Array.BYTES_PER_ELEMENT;
+  const _getSlabTorchLightOffset = slab => (slab.torchLight.byteOffset - geometry.attributes.torchLight.array.byteOffset)/Uint8Array.BYTES_PER_ELEMENT;
+
+  mesh.getSlab = (x, y, z, numPositions, numUvs, numBarycenterics, numIds, numSkyLights, numTorchLights) => {
     const index = planet.getSubparcelIndex(x, y, z);
     let slab = slabs[index];
+    if (slab && !_slabFits(slab, numPositions, numUvs, numBarycenterics, numIds, numSkyLights, numTorchLights)) {
+      mesh.freeSlabIndex(slab.index);
+      slab = null;
+    }
     if (!slab) {
-      slab = freeSlabs.pop();
-      if (slab) {
-        slab.x = x;
-        slab.y = y;
-        slab.z = z;
-        slab.index = index;
-        slabs[index] = slab;
-        const {slabIndex} = slab;
-        geometry.addGroup(slabIndex * slabSliceVertices, slab.position.length/3, 0);
-        geometry.groups[geometry.groups.length-1].boundingSphere =
-          new THREE.Sphere(
-            new THREE.Vector3(x*subparcelSize + subparcelSize/2, y*subparcelSize + subparcelSize/2, z*subparcelSize + subparcelSize/2),
-            slabRadius
-          );
-      } else {
-        slab = {
-          x,
-          y,
-          z,
-          index,
-          slabIndex,
-          position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + slabIndex*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
-          uv: new Float32Array(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset + slabIndex*slabSliceVertices*2*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*2),
-          barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + slabIndex*slabSliceVertices*3*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices*3),
-          id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
-          indices: new Float32Array(geometry.attributes.index.array.buffer, geometry.attributes.index.array.byteOffset + slabIndex*slabSliceVertices*Float32Array.BYTES_PER_ELEMENT, slabSliceVertices),
-          skyLights: new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + slabIndex*slabSliceVertices*Uint8Array.BYTES_PER_ELEMENT, slabSliceVertices),
-          torchLights: new Uint8Array(geometry.attributes.torchLight.array.buffer, geometry.attributes.torchLight.array.byteOffset + slabIndex*slabSliceVertices*Uint8Array.BYTES_PER_ELEMENT, slabSliceVertices),
-        };
-        slabs[index] = slab;
-        geometry.addGroup(slabIndex * slabSliceVertices, slab.position.length/3, 0);
-        geometry.groups[geometry.groups.length-1].boundingSphere =
-          new THREE.Sphere(
-            new THREE.Vector3(x*subparcelSize + subparcelSize/2, y*subparcelSize + subparcelSize/2, z*subparcelSize + subparcelSize/2),
-            slabRadius
-          );
-        slabIndex++;
-      }
+      slab = _findFreeSlab(numPositions, numUvs, numBarycenterics, numIds, numSkyLights, numTorchLights);
+      slab.x = x;
+      slab.y = y;
+      slab.z = z;
+      slab.index = index;
+      slabs[index] = slab;
+      geometry.addGroup(_getSlabPositionOffset(slab)/3, slab.position.length, 0);
+      const group = geometry.groups[geometry.groups.length-1];
+      group.boundingSphere =
+        new THREE.Sphere(
+          new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2),
+          slabRadius
+        );
+      slab.group = group;
     }
     return slab;
   };
   mesh.updateGeometry = (slab, spec) => {
-    geometry.attributes.position.updateRange.offset = slab.slabIndex*slabSliceVertices*3;
+    geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(slab);
     geometry.attributes.position.needsUpdate = true;
-    geometry.attributes.uv.updateRange.offset = slab.slabIndex*slabSliceVertices*2;
+    geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(slab);
     geometry.attributes.uv.needsUpdate = true;
-    geometry.attributes.barycentric.updateRange.offset = slab.slabIndex*slabSliceVertices*3;
+    geometry.attributes.barycentric.updateRange.offset =_getSlabBarycentricOffset(slab);
     geometry.attributes.barycentric.needsUpdate = true;
-    geometry.attributes.id.updateRange.offset = slab.slabIndex*slabSliceVertices;
+    geometry.attributes.id.updateRange.offset = _getSlabIdOffset(slab);
     geometry.attributes.id.needsUpdate = true;
-    geometry.attributes.index.updateRange.offset = slab.slabIndex*slabSliceVertices;
-    geometry.attributes.index.needsUpdate = true;
-    geometry.attributes.skyLight.updateRange.offset = slab.slabIndex*slabSliceVertices;
+    geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(slab);
     geometry.attributes.skyLight.needsUpdate = true;
-    geometry.attributes.torchLight.updateRange.offset = slab.slabIndex*slabSliceVertices;
+    geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(slab);
     geometry.attributes.torchLight.needsUpdate = true;
 
     geometry.attributes.position.updateRange.count = spec.positions.length;
     geometry.attributes.uv.updateRange.count = spec.uvs.length;
     geometry.attributes.barycentric.updateRange.count = spec.barycentrics.length;
     geometry.attributes.id.updateRange.count = spec.ids.length;
-    geometry.attributes.index.updateRange.count = spec.indices.length;
     geometry.attributes.skyLight.updateRange.count = spec.skyLights.length;
-    geometry.attributes.torchLight.updateRange.count = spec.skyLights.length;
+    geometry.attributes.torchLight.updateRange.count = spec.torchLights.length;
     renderer.geometries.update(geometry);
+  };
+  mesh.freeSlabIndex = index => {
+    const slab = slabs[index];
+    if (slab) {
+      geometry.groups.splice(geometry.groups.indexOf(slab.group), 1);
+      slab.group = null;
+      slabs[index] = null;
+      if (slab.count > 0) {
+        freeList.push({
+          start: slab.start,
+          count: slab.count,
+        });
+        _updateFreeList(freeList);
+      }
+    }
   };
   const currentCoord = new THREE.Vector3(NaN, NaN, NaN);
   const marchesTasks = [];
@@ -1569,10 +1642,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       const {index} = removedCoord;
       const slab = slabs[index];
       if (slab) {
-        const groupIndex = geometry.groups.findIndex(group => group.start === slab.slabIndex * slabSliceVertices);
-        geometry.groups.splice(groupIndex, 1);
-        slabs[index] = null;
-        freeSlabs.push(slab);
+        mesh.freeSlabIndex(index);
+
         if (slab.physxGeometry) {
           physxWorker.unregisterGeometry(slab.physxGeometry);
           slab.physxGeometry = 0;
@@ -1655,25 +1726,24 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       for (let i = 0; i < specs.length; i++) {
         const spec = specs[i];
         const {x, y, z} = spec;
-        const slab = mesh.getSlab(x, y, z);
+        const slab = mesh.getSlab(x, y, z, spec.positions.length, spec.uvs.length, spec.barycentrics.length, spec.ids.length, spec.skyLights.length, spec.torchLights.length);
         slab.position.set(spec.positions);
         slab.uv.set(spec.uvs);
         slab.barycentric.set(spec.barycentrics);
         slab.id.set(spec.ids);
-        slab.skyLights.set(spec.skyLights);
-        slab.torchLights.set(spec.torchLights);
-        const indexOffset = slab.slabIndex * slabSliceTris;
+        slab.skyLight.set(spec.skyLights);
+        slab.torchLight.set(spec.torchLights);
+        /* const indexOffset = slab.slabIndex * slabSliceTris;
         for (let i = 0; i < spec.indices.length; i++) {
           spec.indices[i] += indexOffset;
         }
-        slab.indices.set(spec.indices);
+        slab.indices.set(spec.indices); */
 
         mesh.updateGeometry(slab, spec);
-
-        const group = geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
-        group.count = spec.positions.length/3;
+        slab.group.count = spec.positions.length/3;
       }
-      const bakeSpecs = specs.filter(spec => spec.positions.length > 0).map(spec => {
+      const neededSpecs = specs.filter(spec => spec.positions.length > 0);
+      const bakeSpecs = neededSpecs.map(spec => {
         const {positions, x, y, z} = spec;
         return positions.length > 0 ? {
           positions,
@@ -1692,7 +1762,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
           const physxGeometry = result.physicsGeometryBuffers[i];
           const {x, y, z} = bakeSpecs[i];
-          const slab = currentChunkMesh.getSlab(x, y, z);
+          const spec = neededSpecs[i];
+          const slab = currentChunkMesh.getSlab(x, y, z, spec.positions.length, spec.uvs.length, spec.barycentrics.length, spec.ids.length, spec.skyLights.length, spec.torchLights.length);
           if (slab.physxGeometry) {
             physxWorker.unregisterGeometry(slab.physxGeometry);
             slab.physxGeometry = 0;
@@ -3266,25 +3337,24 @@ function animate(timestamp, frame) {
             for (let i = 0; i < specs.length; i++) {
               const spec = specs[i];
               const {x, y, z} = spec;
-              const slab = currentChunkMesh.getSlab(x, y, z);
+              const slab = currentChunkMesh.getSlab(x, y, z, spec.positions.length, spec.uvs.length, spec.barycentrics.length, spec.ids.length, spec.skyLights.length, spec.torchLights.length);
               slab.position.set(spec.positions);
               slab.uv.set(spec.uvs);
               slab.barycentric.set(spec.barycentrics);
               slab.id.set(spec.ids);
-              slab.skyLights.set(spec.skyLights);
-              slab.torchLights.set(spec.torchLights);
-              const indexOffset = slab.slabIndex * slabSliceTris;
+              slab.skyLight.set(spec.skyLights);
+              slab.torchLight.set(spec.torchLights);
+              /* const indexOffset = slab.slabIndex * slabSliceTris;
               for (let i = 0; i < spec.indices.length; i++) {
                 spec.indices[i] += indexOffset;
               }
-              slab.indices.set(spec.indices);
+              slab.indices.set(spec.indices); */
 
               currentChunkMesh.updateGeometry(slab, spec);
-
-              const group = currentChunkMesh.geometry.groups.find(group => group.start === slab.slabIndex * slabSliceVertices);
-              group.count = spec.positions.length/3;
+              slab.group.count = spec.positions.length/3;
             }
-            const bakeSpecs = specs.filter(spec => spec.positions.length > 0).map(spec => {
+            const neededSpecs = specs.filter(spec => spec.positions.length > 0);
+            const bakeSpecs = neededSpecs.map(spec => {
               const {positions, x, y, z} = spec;
               return positions.length > 0 ? {
                 positions,
@@ -3303,7 +3373,8 @@ function animate(timestamp, frame) {
               for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
                 const physxGeometry = result.physicsGeometryBuffers[i];
                 const {x, y, z} = bakeSpecs[i];
-                const slab = currentChunkMesh.getSlab(x, y, z);
+                const spec = neededSpecs[i];
+                const slab = currentChunkMesh.getSlab(x, y, z, spec.positions.length, spec.uvs.length, spec.barycentrics.length, spec.ids.length, spec.skyLights.length, spec.torchLights.length);
                 if (slab.physxGeometry) {
                   physxWorker.unregisterGeometry(slab.physxGeometry);
                   slab.physxGeometry = 0;

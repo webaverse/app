@@ -81,16 +81,12 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
     numUvs[0] * Float32Array.BYTES_PER_ELEMENT +
     numBarycentrics[0] * Float32Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
-    numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
+    // numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT
   );
 
   let index = 0;
-
-  // const outPotentials = new Float32Array(arrayBuffer2, index, potentials.length);
-  // outPotentials.set(potentials);
-  // index += Float32Array.BYTES_PER_ELEMENT * potentials.length;
 
   const outP = new Float32Array(arrayBuffer2, index, numPositions[0]);
   outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
@@ -104,21 +100,17 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
   outB.set(new Float32Array(barycentrics.buffer, barycentrics.byteOffset, numBarycentrics[0]));
   index += Float32Array.BYTES_PER_ELEMENT * numBarycentrics[0];
 
-  /* const outI = new Uint32Array(arrayBuffer2, index, numIndices[0]);
-  outI.set(new Uint32Array(indices.buffer, indices.byteOffset, numIndices[0]));
-  index += Uint32Array.BYTES_PER_ELEMENT * numIndices[0]; */
-
   const ids = new Float32Array(arrayBuffer2, index, numPositions[0]/3);
   index += numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT;
-  const indices = new Float32Array(arrayBuffer2, index, numPositions[0]/3);
-  index += numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT;
+  /* const indices = new Float32Array(arrayBuffer2, index, numPositions[0]/3);
+  index += numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT; */
   for (let i = 0; i < numPositions[0]/3/3; i++) {
     ids[i*3] = meshId;
     ids[i*3+1] = meshId;
     ids[i*3+2] = meshId;
-    indices[i*3] = i;
+    /* indices[i*3] = i;
     indices[i*3+1] = i;
-    indices[i*3+2] = i;
+    indices[i*3+2] = i; */
   }
 
   const outSl = new Uint8Array(arrayBuffer2, index, numPositions[0]/3);
@@ -134,11 +126,10 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
     uvs: outU,
     barycentrics: outB,
     ids,
-    indices,
+    // indices,
     skyLights: outSl,
     torchLights: outTl,
     arrayBuffer: arrayBuffer2,
-    // indices: outI,
   };
 };
 const _meshChunkSlab = (meshId, x, y, z, potentialsData, biomesData, heightfieldData, lightfieldData, subparcelSize) => {
