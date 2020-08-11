@@ -3,7 +3,7 @@ export const SUBPARCEL_SIZE = 10;
 export const SUBPARCEL_SIZE_P1 = SUBPARCEL_SIZE + 1;
 export const NUM_PARCELS = PARCEL_SIZE/SUBPARCEL_SIZE;
 
-export const chunkDistance = 2;
+export const chunkDistance = 3;
 
 export const numSlices = (1+chunkDistance*2+1)**3;
 export const slabRadius = Math.sqrt((SUBPARCEL_SIZE/2)*(SUBPARCEL_SIZE/2)*3);
