@@ -1681,6 +1681,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             positions,
           };
         }));
+        if (!live) return;
         for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
           const physxGeometry = result.physicsGeometryBuffers[i];
           const {x, y, z} = bakeSpecs[i];
