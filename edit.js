@@ -3880,17 +3880,14 @@ function animate(timestamp, frame) {
   lastTeleport = currentTeleport;
   lastWeaponDown = currentWeaponDown;
 
+  localFrustum.setFromProjectionMatrix(
+    localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, currentVegetationMesh.matrixWorld))
+  );
   if (currentChunkMesh) {
-    localFrustum.setFromProjectionMatrix(
-      localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, currentChunkMesh.matrixWorld))
-    );
     currentChunkMesh.geometry.originalGroups = currentChunkMesh.geometry.groups.slice();
     currentChunkMesh.geometry.groups = currentChunkMesh.geometry.groups.filter(group => localFrustum.intersectsSphere(group.boundingSphere));
   }
   if (currentVegetationMesh) {
-    localFrustum.setFromProjectionMatrix(
-      localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, currentVegetationMesh.matrixWorld))
-    );
     currentVegetationMesh.geometry.originalGroups = currentVegetationMesh.geometry.groups.slice();
     currentVegetationMesh.geometry.groups = currentVegetationMesh.geometry.groups.filter(group => localFrustum.intersectsSphere(group.boundingSphere));
   }
