@@ -1650,16 +1650,24 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         slab.group.count = spec.positions.length/3;
       }
       const neededSpecs = specs.filter(spec => spec.positions.length > 0);
-      const bakeSpecs = neededSpecs.map(spec => {
-        const {positions, x, y, z} = spec;
-        return positions.length > 0 ? {
-          positions,
-          x,
-          y,
-          z,
-        } : null;
-      });
-      if (bakeSpecs.length > 0) {
+      if (neededSpecs.length > 0) {
+        const bakeSpecs = neededSpecs.map(spec => {
+          const {positions, x, y, z} = spec;
+          return positions.length > 0 ? {
+            positions,
+            x,
+            y,
+            z,
+          } : null;
+        });
+        const bakeStats = neededSpecs.map(spec => ({
+          numPositions: spec.positions.length,
+          numUvs: spec.uvs.length,
+          numBarycenterics: spec.barycentrics.length,
+          numIds: spec.ids.length,
+          numSkyLights: spec.skyLights.length,
+          numTorchLights: spec.torchLights.length,
+        }));
         const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => {
           const {positions} = spec;
           return {
@@ -1669,9 +1677,9 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
           const physxGeometry = result.physicsGeometryBuffers[i];
           const {x, y, z} = bakeSpecs[i];
-          const spec = neededSpecs[i];
-          const slab = currentChunkMesh.getSlab(x, y, z, spec.positions.length, spec.uvs.length, spec.barycentrics.length, spec.ids.length, spec.skyLights.length, spec.torchLights.length);
-          if (slab.physxGeometry) {
+          const stat = bakeStats[i];
+          const slab = currentChunkMesh.getSlab(x, y, z, stat.numPositions, stat.numUvs, stat.numBarycenterics, stat.numIds, stat.numSkyLights, stat.numTorchLights);
+          if (slab && slab.physxGeometry) {
             physxWorker.unregisterGeometry(slab.physxGeometry);
             slab.physxGeometry = 0;
           }
@@ -3261,16 +3269,24 @@ function animate(timestamp, frame) {
               slab.group.count = spec.positions.length/3;
             }
             const neededSpecs = specs.filter(spec => spec.positions.length > 0);
-            const bakeSpecs = neededSpecs.map(spec => {
-              const {positions, x, y, z} = spec;
-              return positions.length > 0 ? {
-                positions,
-                x,
-                y,
-                z,
-              } : null;
-            });
-            if (bakeSpecs.length > 0) {
+            if (neededSpecs.length > 0) {
+              const bakeSpecs = neededSpecs.map(spec => {
+                const {positions, x, y, z} = spec;
+                return positions.length > 0 ? {
+                  positions,
+                  x,
+                  y,
+                  z,
+                } : null;
+              });
+              const bakeStats = neededSpecs.map(spec => ({
+                numPositions: spec.positions.length,
+                numUvs: spec.uvs.length,
+                numBarycenterics: spec.barycentrics.length,
+                numIds: spec.ids.length,
+                numSkyLights: spec.skyLights.length,
+                numTorchLights: spec.torchLights.length,
+              }));
               const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => {
                 const {positions} = spec;
                 return {
@@ -3280,8 +3296,8 @@ function animate(timestamp, frame) {
               for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
                 const physxGeometry = result.physicsGeometryBuffers[i];
                 const {x, y, z} = bakeSpecs[i];
-                const spec = neededSpecs[i];
-                const slab = currentChunkMesh.getSlab(x, y, z, spec.positions.length, spec.uvs.length, spec.barycentrics.length, spec.ids.length, spec.skyLights.length, spec.torchLights.length);
+                const stat = bakeStats[i];
+                const slab = currentChunkMesh.getSlab(x, y, z, stat.numPositions, stat.numUvs, stat.numBarycenterics, stat.numIds, stat.numSkyLights, stat.numTorchLights);
                 if (slab.physxGeometry) {
                   physxWorker.unregisterGeometry(slab.physxGeometry);
                   slab.physxGeometry = 0;
