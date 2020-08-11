@@ -97,7 +97,7 @@ const localMatrix3 = new THREE.Matrix4();
 const localFrustum = new THREE.Frustum();
 
 const cubicBezier = easing(0, 1, 0, 1);
-const chunkOffset = new THREE.Vector3(-PARCEL_SIZE/2, -PARCEL_SIZE, -PARCEL_SIZE/2);
+const chunkOffset = new THREE.Vector3(0, 0, 0);
 
 let skybox = null;
 let skybox2 = null;
@@ -2233,7 +2233,7 @@ planet.addEventListener('load', async e => {
   const ncz = Math.floor(p.z/SUBPARCEL_SIZE)*SUBPARCEL_SIZE;
 
   const height = await chunkWorker.requestGetHeight(chunkMesh.seedNum, ncx, ncy + SUBPARCEL_SIZE, ncz, baseHeight, freqs, octaves, scales, uvs, amps, PARCEL_SIZE);
-  worldContainer.position.y = PARCEL_SIZE/2 - height - _getAvatarHeight();
+  worldContainer.position.y = - height - _getAvatarHeight();
 
   /* {
     let geometry = new CapsuleGeometry(0.5, 1, 16)
