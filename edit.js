@@ -3784,7 +3784,7 @@ function animate(timestamp, frame) {
   lastWeaponDown = currentWeaponDown;
 
   localFrustum.setFromProjectionMatrix(
-    localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, currentVegetationMesh.matrixWorld))
+    localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, worldContainer.matrixWorld))
   );
   if (currentChunkMesh) {
     currentChunkMesh.geometry.originalGroups = currentChunkMesh.geometry.groups.slice();
