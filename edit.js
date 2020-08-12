@@ -237,8 +237,8 @@ const HEIGHTFIELD_SHADER = {
     uniform float sunIntensity;
     uniform sampler2D tex;
     float parallaxScale = 0.3;
-    float parallaxMinLayers = 30.;
-    float parallaxMaxLayers = 30.;
+    float parallaxMinLayers = 50.;
+    float parallaxMaxLayers = 50.;
 
     varying vec3 vPosition;
     varying vec3 vWorldPosition;
@@ -389,7 +389,7 @@ const HEIGHTFIELD_SHADER = {
     heightFromTexture *= 0.3 + (1.0+sin((length(pos) - mod(uTime*30., 1.)) * PI*2.))/2.*0.5;
     // heightFromTexture += 0.2;
 
-    for ( int i = 0; i < 30; i += 1 ) {
+    for ( int i = 0; i < 50; i += 1 ) {
       if ( heightFromTexture <= currentLayerHeight ) {
         break;
       }
