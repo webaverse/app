@@ -802,21 +802,21 @@ ${biomeIndexToTex.map(name => {
   const rect = packer.bins[0].rects.find(rect => rect.name === name);
   console.log('get rect', name, rect, packer.bins[0].rects);
   const {x, y} = rect;
-  return `{${(x + texSize*2*0)/size}, ${y/size}}`;
+  return `  {${(x + texSize*2*0)/size}, ${y/size}} /* ${name} */`;
 }).join(',\n')}
 };
 std::tuple<float, float> groundNormals[]  = {
 ${biomeIndexToTex.map(name => {
   const rect = packer.bins[0].rects.find(rect => rect.name === name);
   const {x, y} = rect;
-  return `{${(x + texSize*2*1)/size}, ${y/size}}`;
+  return `  {${(x + texSize*2*1)/size}, ${y/size}} /* ${name} */`;
 }).join(',\n')}
 };
 std::tuple<float, float> groundHeights[]  = {
 ${biomeIndexToTex.map(name => {
   const rect = packer.bins[0].rects.find(rect => rect.name === name);
   const {x, y} = rect;
-  return `{${(x + texSize*2*2)/size}, ${y/size}}`;
+  return `  {${(x + texSize*2*2)/size}, ${y/size}} /* ${name} */`;
 }).join(',\n')}
 };
 std::tuple<float, float> groundEmissives[]  = {
