@@ -1499,7 +1499,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       img.onload = () => {
         const texture = new THREE.Texture(img);
         texture.magFilter = THREE.NearestFilter;
-        texture.minFilter = THREE.NearestMipmapNearestFilter;
+        texture.minFilter = THREE.NearestFilter;
+        // texture.minFilter = THREE.NearestMipmapNearestFilter;
         texture.flipY = false;
         texture.needsUpdate = true;
         accept(texture);
