@@ -157,6 +157,8 @@ const HEIGHTFIELD_SHADER = {
     varying vec3 ts_frag_pos;  //
     varying vec2 vWorldUv;
     // varying vec3 view_dir;
+    varying vec3 vTang;
+    varying vec3 vBitang;
 
     float transpose(float m) {
       return m;
@@ -222,14 +224,19 @@ const HEIGHTFIELD_SHADER = {
       ts_view_pos = tbn * vec3(0.);
       ts_frag_pos = tbn * ts_frag_pos;
       // view_dir = normalize(ts_view_pos - ts_frag_pos);
+      vTang = vert_tang;
+      vBitang = vert_bitang;
     }
   `,
   fragmentShader: `\
     precision highp float;
     precision highp int;
+
+    #define PI 3.1415926535897932384626433832795
+
     uniform float sunIntensity;
     uniform sampler2D tex;
-    float parallaxScale = 0.5;
+    float parallaxScale = 0.3;
     float parallaxMinLayers = 30.;
     float parallaxMaxLayers = 30.;
 
@@ -250,6 +257,8 @@ const HEIGHTFIELD_SHADER = {
     varying vec3 ts_frag_pos;  //
     varying vec2 vWorldUv;
     // varying vec3 view_dir;
+    varying vec3 vTang;
+    varying vec3 vBitang;
 
     float edgeFactor() {
       vec3 d = fwidth(vBarycentric);
@@ -375,6 +384,11 @@ const HEIGHTFIELD_SHADER = {
     vec2 dtex = parallaxScale * V.xy / V.z / numLayers;
     vec2 currentTextureCoords = vUv;
     float heightFromTexture = sampleHeight( tileOffset, currentTextureCoords );
+
+    vec3 pos = floor((vTang * currentTextureCoords.x + vBitang * currentTextureCoords.y) * 16.)/16.;
+    heightFromTexture *= 0.3 + (1.0+sin((length(pos) - mod(uTime*30., 1.)) * PI*2.))/2.*0.5;
+    // heightFromTexture += 0.2;
+
     for ( int i = 0; i < 30; i += 1 ) {
       if ( heightFromTexture <= currentLayerHeight ) {
         break;
@@ -382,6 +396,10 @@ const HEIGHTFIELD_SHADER = {
       currentLayerHeight += layerHeight;
       currentTextureCoords -= dtex;
       heightFromTexture = sampleHeight( tileOffset, currentTextureCoords );
+
+      vec3 pos = floor((vTang * currentTextureCoords.x + vBitang * currentTextureCoords.y) * 16.)/16.;
+      heightFromTexture *= 0.3 + (1.0+sin((length(pos) - mod(uTime*30., 1.)) * PI*2.))/2.*0.5;
+      // heightFromTexture += 0.2;
     }
     #ifdef USE_STEEP_PARALLAX
       return currentTextureCoords;
@@ -447,7 +465,7 @@ const HEIGHTFIELD_SHADER = {
       } */
       vec3 diffuseColor = mix(c, vec3(0.), gl_FragCoord.z/gl_FragCoord.w/30.0);
       if (edgeFactor() <= 0.99) {
-        diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vViewPosition) - uTime*5.0, 3.0)), 0.0)*0.5);
+        diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vViewPosition) - mod(uTime*60., 1.)*5.0, 3.0)), 0.0)*0.5);
         diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
       }
       float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
@@ -1373,7 +1391,8 @@ physicsWorker = pw;
     uniforms[ "mieCoefficient" ].value = effectController.mieCoefficient;
     uniforms[ "mieDirectionalG" ].value = effectController.mieDirectionalG;
 
-    effectController.azimuth = (0.05 + ((Date.now() / 1000) * 0.1)) % 1;
+    // effectController.azimuth = (0.05 + ((Date.now() / 1000) * 0.1)) % 1;
+    effectController.azimuth = 0.25;
     var theta = Math.PI * ( effectController.inclination - 0.5 );
     var phi = 2 * Math.PI * ( effectController.azimuth - 0.5 );
 
