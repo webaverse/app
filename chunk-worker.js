@@ -73,7 +73,9 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
     numUvs.offset,
     numBarycentrics.offset,
     skyLights.offset,
-    torchLights.offset
+    torchLights.offset,
+    numOpaquePositions.offset,
+    numTransparentPositions.offset
   );
 
   const arrayBuffer2 = new ArrayBuffer(
@@ -271,7 +273,7 @@ self.onmessage = e => {
   }
 };
 
-let potentials, biomes, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, barycentrics, numPositions, numBarycentrics, skyLights, torchLights;
+let potentials, biomes, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, barycentrics, numPositions, numBarycentrics, skyLights, torchLights, numOpaquePositions, numTransparentPositions;
 wasmModulePromise.then(() => {
   loaded = true;
 
@@ -320,6 +322,8 @@ wasmModulePromise.then(() => {
   numBarycentrics = allocator.alloc(Uint32Array, 1);
   skyLights = allocator.alloc(Uint8Array, 4 * 1024 * 1024);
   torchLights = allocator.alloc(Uint8Array, 4 * 1024 * 1024);
+  numOpaquePositions = allocator.alloc(Uint32Array, 1);
+  numTransparentPositions = allocator.alloc(Uint32Array, 1);
 
   _flushMessages();
 }).catch(err => {
