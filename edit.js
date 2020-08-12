@@ -415,7 +415,7 @@ const HEIGHTFIELD_SHADER = {
     #endif
   }
 #endif
-    vec2 perturbUv( vec2 tileOffset, vec2 vUv, vec3 surfPosition, vec3 surfNormal, vec3 viewPosition ) {
+    /* vec2 perturbUv( vec2 tileOffset, vec2 vUv, vec3 surfPosition, vec3 surfNormal, vec3 viewPosition ) {
       vec2 texDx = dFdx( vUv );
       vec2 texDy = dFdy( vUv );
       vec3 vSigmaX = dFdx( surfPosition );
@@ -428,7 +428,7 @@ const HEIGHTFIELD_SHADER = {
       vProjVtex.xy = texDx * vProjVscr.x + texDy * vProjVscr.y;
       vProjVtex.z = dot( surfNormal, viewPosition );
       return parallaxMap( tileOffset, vUv, vProjVtex );
-    }
+    } */
 
     void main() {
       vec3 view_dir = normalize(ts_view_pos - ts_frag_pos);
