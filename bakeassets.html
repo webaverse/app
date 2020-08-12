@@ -821,7 +821,6 @@ ${biomeIndexToTex.map(name => {
 };
 std::tuple<float, float> groundEmissive[]  = {
 ${biomeIndexToTex.map(name => {
-  name = (name + '.png').replace(/Base_Color/, 'Emissive');
   const rect = packer.bins[0].rects.find(rect => rect.name === name);
   if (rect) {
     const {x, y} = rect;
