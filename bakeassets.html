@@ -129,10 +129,11 @@ const _loadGltf = u => new Promise((accept, reject) => {
     accept(o);
   }, xhr => {}, reject);
 });
-const _resizeImage = (img, scale) => {
+const _resizeImage = (img, scale) => _resizeImageTo(img, img.width * scale, img.height * scale);
+const _resizeImageTo = (img, width, height) => {
   const canvas = document.createElement('canvas');
-  canvas.width = img.width * scale;
-  canvas.height = img.height * scale;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d');
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   return canvas;
@@ -762,37 +763,27 @@ const _registerFile = async url => {
 
         const canvas = document.createElement('canvas');
         canvas.width = 16*2*4;
-        canvas.height = 16*4;
+        canvas.height = 16*2;
+        canvas.id = name;
+        const ctx = canvas.getContext('2d');
 
-        for (const suffix of ['Base_Color', 'Normal', 'Height', 'Emissive']) {
-          const fullName = name + suffix + '.png';
+        const suffixes = ['Base_Color', 'Normal', 'Height', 'Emissive'];
+        for (let i = 0; i < suffixes.length; i++) {
+          const suffix = suffixes[i];
+          const fullName = name + suffix;
           if (files.includes(fullName)) {
-
-          } else {
-
+            const img = new Image();
+            await new Promise((accept, reject) => {
+              img.onload = accept;
+              img.onerror = reject;
+              img.src = './land-textures/' + fullName + '.png';
+            });
+            let imageBitmap = _resizeImageTo(img, 16, 16);
+            imageBitmap = _quad(imageBitmap);
+            imageBitmap.id = fullName;
           }
         }
-
-        for (const file of files) {
-          console.log(file);
-          const img = new Image();
-          await new Promise((accept, reject) => {
-            img.onload = accept;
-            img.onerror = reject;
-            img.src = './land-textures/' + file;
-          });
-          let imageBitmap;
-          const resizeFactor = Math.min(maxColorTexSize/img.width, maxColorTexSize/img.height);
-          if (resizeFactor < 1) {
-            imageBitmap = _resizeImage(img, resizeFactor);
-          } else {
-            imageBitmap = _resizeImage(img, 1);
-          }
-          imageBitmap = _quad(imageBitmap);
-          // groundColors.push(imageBitmap);
-          imageBitmap.id = file;
-          packer.add(imageBitmap);
-        }
+        packer.add(canvas);
       }
       packer.repack(false);
       // const rects = {};
