@@ -147,14 +147,38 @@ const HEIGHTFIELD_SHADER = {
     varying vec3 vViewPosition;
     // varying vec3 vViewPosition2;
     varying vec3 vNormal;
-    varying vec3 vViewNormal;
+    // varying vec3 vViewNormal;
     varying vec2 vUv;
     varying vec3 vBarycentric;
     varying float vSkyLight;
     varying float vTorchLight;
 
+    varying vec3 ts_view_pos;  //
+    varying vec3 ts_frag_pos;  //
+    varying vec2 vWorldUv;
+    // varying vec3 view_dir;
+
+    float transpose(float m) {
+      return m;
+    }
+    mat2 transpose(mat2 m) {
+      return mat2(m[0][0], m[1][0],
+                  m[0][1], m[1][1]);
+    }
+    mat3 transpose(mat3 m) {
+      return mat3(m[0][0], m[1][0], m[2][0],
+                  m[0][1], m[1][1], m[2][1],
+                  m[0][2], m[1][2], m[2][2]);
+    }
+    mat4 transpose(mat4 m) {
+      return mat4(m[0][0], m[1][0], m[2][0], m[3][0],
+                  m[0][1], m[1][1], m[2][1], m[3][1],
+                  m[0][2], m[1][2], m[2][2], m[3][2],
+                  m[0][3], m[1][3], m[2][3], m[3][3]);
+    }
+
     void main() {
-      vec4 mvPosition = modelViewMatrix * vec4(position.xyz, 1.0);
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
       gl_Position = projectionMatrix * mvPosition;
 
       vPosition = position.xyz;
@@ -162,11 +186,42 @@ const HEIGHTFIELD_SHADER = {
       vViewPosition = -mvPosition.xyz;
       // vViewPosition2 = -(modelViewMatrix * vec4(position + normal, 1.0)).xyz;
       vNormal = normal;
-      vViewNormal = normalize( normalMatrix * normal );
+      // vViewNormal = normalize( normalMatrix * normal );
       vUv = uv;
       vBarycentric = barycentric;
       vSkyLight = skyLight/8.0;
       vTorchLight = torchLight/8.0;
+
+      ts_frag_pos = vec3(modelViewMatrix * vec4(position, 1.0));
+      vec3 vert_tang;
+      vec3 vert_bitang;
+      if (abs(normal.y) < 0.05) {
+        if (abs(normal.x) > 0.95) {
+          vert_bitang = vec3(0., 1., 0.);
+          vert_tang = normalize(cross(vert_bitang, normal));
+          vWorldUv = vec2(dot(vPosition, vert_tang), dot(vPosition, vert_bitang));
+        } else {
+          vert_bitang = vec3(0., 1., 0.);
+          vert_tang = normalize(cross(vert_bitang, normal));
+          vWorldUv = vec2(dot(vPosition, vert_tang), dot(vPosition, vert_bitang));
+        }
+      } else {
+        vert_tang = vec3(1., 0., 0.);
+        vert_bitang = normalize(cross(vert_tang, normal));
+        vWorldUv = vec2(dot(vPosition, vert_tang), dot(vPosition, vert_bitang));
+      }
+      vWorldUv /= 4.0;
+      vec3 vert_norm = normal;
+
+      vec3 t = normalize(normalMatrix * vert_tang);
+      vec3 b = normalize(normalMatrix * vert_bitang);
+      vec3 n = normalize(normalMatrix * vert_norm);
+      mat3 tbn = transpose(mat3(t, b, n));
+
+      // Our camera is always at the origin
+      ts_view_pos = tbn * vec3(0.);
+      ts_frag_pos = tbn * ts_frag_pos;
+      // view_dir = normalize(ts_view_pos - ts_frag_pos);
     }
   `,
   fragmentShader: `\
@@ -175,7 +230,7 @@ const HEIGHTFIELD_SHADER = {
     uniform float sunIntensity;
     uniform sampler2D tex;
     float parallaxScale = 0.5;
-    float parallaxMinLayers = 25.;
+    float parallaxMinLayers = 30.;
     float parallaxMaxLayers = 30.;
 
     varying vec3 vPosition;
@@ -183,13 +238,18 @@ const HEIGHTFIELD_SHADER = {
     varying vec3 vViewPosition;
     // varying vec3 vViewPosition2;
     varying vec3 vNormal;
-    varying vec3 vViewNormal;
+    // varying vec3 vViewNormal;
     varying vec2 vUv;
     varying vec3 vBarycentric;
     varying float vSkyLight;
     varying float vTorchLight;
     uniform float uTime;
     uniform vec3 sunDirection;
+
+    varying vec3 ts_view_pos;  //
+    varying vec3 ts_frag_pos;  //
+    varying vec2 vWorldUv;
+    // varying vec3 view_dir;
 
     float edgeFactor() {
       vec3 d = fwidth(vBarycentric);
@@ -321,16 +381,6 @@ const HEIGHTFIELD_SHADER = {
       }
       currentLayerHeight += layerHeight;
       currentTextureCoords -= dtex;
-      /* if (currentTextureCoords.x < 0.5) {
-        currentTextureCoords.x += 1.0;
-      } else if (currentTextureCoords.x > 1.5) {
-        currentTextureCoords.x -= 1.0;
-      }
-      if (currentTextureCoords.y < 0.5) {
-        currentTextureCoords.y += 1.0;
-      } else if (currentTextureCoords.y > 1.5) {
-        currentTextureCoords.y -= 1.0;
-      } */
       heightFromTexture = sampleHeight( tileOffset, currentTextureCoords );
     }
     #ifdef USE_STEEP_PARALLAX
@@ -381,20 +431,11 @@ const HEIGHTFIELD_SHADER = {
     }
 
     void main() {
-      vec2 worldUv;
-      // vec3 normal = normalize(cross(dFdx(vWorldPosition), dFdy(vWorldPosition)));
-      vec3 normal = vNormal;
-      if (abs(normal.y) < 0.05) {
-        if (abs(normal.x) > 0.95) {
-          worldUv = vPosition.yz;
-        } else {
-          worldUv = vPosition.xy;
-        }
-      } else {
-        worldUv = vPosition.xz;
-      }
-      worldUv /= 4.0;
-      worldUv = perturbUv( vUv, worldUv, -vViewPosition, vViewNormal, normalize( vViewPosition ) );
+      vec3 view_dir = normalize(ts_view_pos - ts_frag_pos);
+
+      vec2 worldUv = vWorldUv;
+      // worldUv = perturbUv( vUv, worldUv, -vViewPosition, vViewNormal, normalize( vViewPosition ) );
+      worldUv = parallaxMap(vUv, worldUv, view_dir);
       worldUv = mod(worldUv, 1.0);
 
       vec3 c;
