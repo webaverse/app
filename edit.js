@@ -174,7 +174,7 @@ const HEIGHTFIELD_SHADER = {
     precision highp int;
     uniform float sunIntensity;
     uniform sampler2D tex;
-    float parallaxScale = 0.1;
+    float parallaxScale = 0.5;
     float parallaxMinLayers = 25.;
     float parallaxMaxLayers = 30.;
 
@@ -288,7 +288,15 @@ const HEIGHTFIELD_SHADER = {
       // return fourTapSample1(tileOffset, uv, tex);
       // vec2 texcoord = tileOffset + uv * tileSize;
       // return texture2DGradEXT(tex, texcoord, dFdx(texcoord), dFdy(texcoord)).r;
-      return texture2D(tex, tileOffset + uv * tileSize).r;
+      uv = mod(uv, 1.0);
+      // uv = floor(uv*16.)/16.;
+      /* if (uv.x < 0.5) {
+        uv.x += 1.;
+      }
+      if (uv.y < 0.5) {
+        uv.y += 1.;
+      } */
+      return texture2DLod(tex, tileOffset + uv * tileSize, 0.).r;
     }
 
 #define USE_STEEP_PARALLAX 1
@@ -313,6 +321,16 @@ const HEIGHTFIELD_SHADER = {
       }
       currentLayerHeight += layerHeight;
       currentTextureCoords -= dtex;
+      /* if (currentTextureCoords.x < 0.5) {
+        currentTextureCoords.x += 1.0;
+      } else if (currentTextureCoords.x > 1.5) {
+        currentTextureCoords.x -= 1.0;
+      }
+      if (currentTextureCoords.y < 0.5) {
+        currentTextureCoords.y += 1.0;
+      } else if (currentTextureCoords.y > 1.5) {
+        currentTextureCoords.y -= 1.0;
+      } */
       heightFromTexture = sampleHeight( tileOffset, currentTextureCoords );
     }
     #ifdef USE_STEEP_PARALLAX
@@ -375,16 +393,14 @@ const HEIGHTFIELD_SHADER = {
       } else {
         worldUv = vPosition.xz;
       }
-      worldUv = mod(worldUv/4.0, 1.0);
-      // vec2 uv = vUv + 0.5/2048. + worldUv * (16.*2. - 1.)/2048.;
-      /* vec3 vViewPosition = -vWorldPosition;
-      vec2 mapUv = perturbUv( uv, -vViewPosition, normalize( vNormal ), normalize( vViewPosition ) ); */
-      // vec2 mapUv = uv;
+      worldUv /= 4.0;
+      worldUv = perturbUv( vUv, worldUv, -vViewPosition, vViewNormal, normalize( vViewPosition ) );
+      worldUv = mod(worldUv, 1.0);
 
       vec3 c;
       // if (vPosition.y >= 290.0) {
         // c = texture2D(tex, mapUv).rgb;
-        c = fourTapSample(vUv, worldUv, vec2(16./2048.), tex).rgb;
+        c = fourTapSample3(vUv, worldUv, tex);
       /* } else {
         c = texture2D(tex2, mapUv).rgb;
       } */
