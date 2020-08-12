@@ -824,7 +824,7 @@ ${biomeIndexToTex.map(name => {
   const rect = packer.bins[0].rects.find(rect => rect.name === name);
   if (rect) {
     const {x, y} = rect;
-    return `{${(x + texSize*2*3)/size}, ${y/size}}`;
+    return `{${(x + texSize*2*3)/size}, ${y/size}} /* ${name} */`;
   } else {
     return `{${-1}, ${-1}}`;
   }
