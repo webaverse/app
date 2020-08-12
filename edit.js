@@ -187,6 +187,36 @@ const HEIGHTFIELD_SHADER = {
       return min(min(a3.x, a3.y), a3.z);
     }
 
+    vec4 fourTapSample(
+      vec2 tileOffset,
+      vec2 tileUV,
+      vec2 tileSize,
+      sampler2D atlas
+    ) {
+      //Initialize accumulators
+      vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
+      float totalWeight = 0.0;
+
+      for(int dx=0; dx<2; ++dx)
+      for(int dy=0; dy<2; ++dy) {
+        //Compute coordinate in 2x2 tile patch
+        vec2 tileCoord = 2.0 * fract(0.5 * (tileUV + vec2(dx,dy)));
+
+        //Weight sample based on distance to center
+        float w = pow(1.0 - max(abs(tileCoord.x-1.0), abs(tileCoord.y-1.0)), 16.0);
+
+        //Compute atlas coord
+        vec2 atlasUV = tileOffset + tileSize * tileCoord;
+
+        //Sample and accumulate
+        color += w * texture2D(atlas, atlasUV);
+        totalWeight += w;
+      }
+
+      //Return weighted color
+      return color / totalWeight;
+    }
+
     /* vec2 parallaxMap( vec2 vUv, vec3 V ) {
         float numLayers = mix( parallaxMaxLayers, parallaxMinLayers, abs( dot( vec3( 0.0, 0.0, 1.0 ), V ) ) );
         float layerHeight = 1.0 / numLayers;
@@ -236,14 +266,15 @@ const HEIGHTFIELD_SHADER = {
         worldUv = vPosition.xz;
       }
       worldUv = mod(worldUv/4.0, 1.0);
-      vec2 uv = vUv + 0.5/2048. + worldUv * (16.*2. - 1.)/2048.;
+      // vec2 uv = vUv + 0.5/2048. + worldUv * (16.*2. - 1.)/2048.;
       /* vec3 vViewPosition = -vWorldPosition;
       vec2 mapUv = perturbUv( uv, -vViewPosition, normalize( vNormal ), normalize( vViewPosition ) ); */
-      vec2 mapUv = uv;
+      // vec2 mapUv = uv;
 
       vec3 c;
       // if (vPosition.y >= 290.0) {
-        c = texture2D(tex, mapUv).rgb;
+        // c = texture2D(tex, mapUv).rgb;
+        c = fourTapSample(vUv, worldUv, vec2(16./2048.), tex).rgb;
       /* } else {
         c = texture2D(tex2, mapUv).rgb;
       } */
