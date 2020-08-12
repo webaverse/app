@@ -67,9 +67,11 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
     shifts.offset,
     scale.offset,
     positions.offset,
+    normals.offset,
     uvs.offset,
     barycentrics.offset,
     numPositions.offset,
+    numNormals.offset,
     numUvs.offset,
     numBarycentrics.offset,
     skyLights.offset,
@@ -80,6 +82,7 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
 
   const arrayBuffer2 = new ArrayBuffer(
     numPositions[0] * Float32Array.BYTES_PER_ELEMENT +
+    numNormals[0] * Float32Array.BYTES_PER_ELEMENT +
     numUvs[0] * Float32Array.BYTES_PER_ELEMENT +
     numBarycentrics[0] * Float32Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
@@ -93,6 +96,10 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
   const outP = new Float32Array(arrayBuffer2, index, numPositions[0]);
   outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
   index += Float32Array.BYTES_PER_ELEMENT * numPositions[0];
+
+  const outN = new Float32Array(arrayBuffer2, index, numNormals[0]);
+  outN.set(new Float32Array(normals.buffer, normals.byteOffset, numNormals[0]));
+  index += Float32Array.BYTES_PER_ELEMENT * numNormals[0];
 
   const outU = new Float32Array(arrayBuffer2, index, numUvs[0]);
   outU.set(new Float32Array(uvs.buffer, uvs.byteOffset, numUvs[0]));
@@ -125,6 +132,7 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
 
   return {
     positions: outP,
+    normals: outN,
     uvs: outU,
     barycentrics: outB,
     ids,
@@ -144,10 +152,11 @@ const _meshChunkSlab = (meshId, x, y, z, potentialsData, biomesData, heightfield
     y*subparcelSize,
     z*subparcelSize,
   ];
-  const {positions, uvs, barycentrics, ids, indices, skyLights, torchLights, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, biomes, heightfield, lightfield, shiftsData, meshId, subparcelSize);
+  const {positions, normals, uvs, barycentrics, ids, indices, skyLights, torchLights, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, biomes, heightfield, lightfield, shiftsData, meshId, subparcelSize);
   return [
     {
       positions,
+      normals,
       uvs,
       barycentrics,
       ids,
@@ -273,7 +282,7 @@ self.onmessage = e => {
   }
 };
 
-let potentials, biomes, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, barycentrics, numPositions, numBarycentrics, skyLights, torchLights, numOpaquePositions, numTransparentPositions;
+let potentials, biomes, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, normals, barycentrics, numPositions, numBarycentrics, skyLights, torchLights, numOpaquePositions, numTransparentPositions;
 wasmModulePromise.then(() => {
   loaded = true;
 
@@ -314,14 +323,16 @@ wasmModulePromise.then(() => {
   limits = allocator.alloc(Int32Array, 3);
   shifts = allocator.alloc(Float32Array, 3);
   scale = allocator.alloc(Float32Array, 3);
-  positions = allocator.alloc(Float32Array, 4 * 1024 * 1024);
-  uvs = allocator.alloc(Float32Array, 4 * 1024 * 1024);
-  barycentrics = allocator.alloc(Float32Array, 4 * 1024 * 1024);
+  positions = allocator.alloc(Float32Array, 3 * 1024 * 1024);
+  normals = allocator.alloc(Float32Array, 3 * 1024 * 1024);
+  uvs = allocator.alloc(Float32Array, 3 * 1024 * 1024/3*2);
+  barycentrics = allocator.alloc(Float32Array, 3 * 1024 * 1024);
   numPositions = allocator.alloc(Uint32Array, 1);
+  numNormals = allocator.alloc(Uint32Array, 1);
   numUvs = allocator.alloc(Uint32Array, 1);
   numBarycentrics = allocator.alloc(Uint32Array, 1);
-  skyLights = allocator.alloc(Uint8Array, 4 * 1024 * 1024);
-  torchLights = allocator.alloc(Uint8Array, 4 * 1024 * 1024);
+  skyLights = allocator.alloc(Uint8Array, 3 * 1024 * 1024/3);
+  torchLights = allocator.alloc(Uint8Array, 3 * 1024 * 1024/3);
   numOpaquePositions = allocator.alloc(Uint32Array, 1);
   numTransparentPositions = allocator.alloc(Uint32Array, 1);
 
