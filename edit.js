@@ -236,7 +236,7 @@ const HEIGHTFIELD_SHADER = {
         worldUv = vPosition.xz;
       }
       worldUv = mod(worldUv/4.0, 1.0);
-      vec2 uv = vUv + 0.5/8192. + worldUv * (1024./8192. - 1./8192.);
+      vec2 uv = vUv + 0.5/2048. + worldUv * (16.*2. - 1.)/2048.;
       /* vec3 vViewPosition = -vWorldPosition;
       vec2 mapUv = perturbUv( uv, -vViewPosition, normalize( vNormal ), normalize( vViewPosition ) ); */
       vec2 mapUv = uv;
@@ -1278,7 +1278,19 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   });
   (async () => {
     const texture = await new Promise((accept, reject) => {
-      basisLoader.load('ground-texture.basis', texture => {
+      const img = new Image();
+      img.onload = () => {
+        const texture = new THREE.Texture(img);
+        texture.magFilter = THREE.NearestFilter;
+        texture.minFilter = THREE.NearestMipmapNearestFilter;
+        texture.flipY = false;
+        texture.needsUpdate = true;
+        accept(texture);
+      };
+      img.onerror = reject;
+      img.src = './ground-texture.png';
+
+      /* basisLoader.load('ground-texture.basis', texture => {
         // console.timeEnd('basis texture load');
         texture.minFilter = THREE.LinearFilter;
         accept(texture);
@@ -1286,7 +1298,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         // console.log('onProgress');
       }, err => {
         reject(err);
-      });
+      }); */
     });
     heightfieldMaterial.uniforms.tex.value = texture;
     heightfieldMaterial.uniforms.tex.needsUpdate = true;
