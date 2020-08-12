@@ -129,14 +129,15 @@ const HEIGHTFIELD_SHADER = {
       value: new THREE.Vector3(),
       needsUpdate: true,
     },
-    "parallaxScale": { value: 0.1 },
-    "parallaxMinLayers": { value: 25 },
-    "parallaxMaxLayers": { value: 30 },
+    // "parallaxScale": { value: 0.5 },
+    // "parallaxMinLayers": { value: 25 },
+    // "parallaxMaxLayers": { value: 30 },
   },
   vertexShader: `\
     #define LOG2 1.442695
     precision highp float;
     precision highp int;
+
     attribute vec3 barycentric;
     attribute float skyLight;
     attribute float torchLight;
@@ -144,6 +145,9 @@ const HEIGHTFIELD_SHADER = {
     varying vec3 vPosition;
     varying vec3 vWorldPosition;
     varying vec3 vViewPosition;
+    // varying vec3 vViewPosition2;
+    varying vec3 vNormal;
+    varying vec3 vViewNormal;
     varying vec2 vUv;
     varying vec3 vBarycentric;
     varying float vSkyLight;
@@ -156,6 +160,9 @@ const HEIGHTFIELD_SHADER = {
       vPosition = position.xyz;
       vWorldPosition = (modelMatrix * vec4(position.xyz, 1.0)).xyz;
       vViewPosition = -mvPosition.xyz;
+      // vViewPosition2 = -(modelViewMatrix * vec4(position + normal, 1.0)).xyz;
+      vNormal = normal;
+      vViewNormal = normalize( normalMatrix * normal );
       vUv = uv;
       vBarycentric = barycentric;
       vSkyLight = skyLight/8.0;
@@ -167,13 +174,16 @@ const HEIGHTFIELD_SHADER = {
     precision highp int;
     uniform float sunIntensity;
     uniform sampler2D tex;
-    uniform float parallaxScale;
-    uniform float parallaxMinLayers;
-    uniform float parallaxMaxLayers;
+    float parallaxScale = 0.1;
+    float parallaxMinLayers = 25.;
+    float parallaxMaxLayers = 30.;
 
     varying vec3 vPosition;
     varying vec3 vWorldPosition;
     varying vec3 vViewPosition;
+    // varying vec3 vViewPosition2;
+    varying vec3 vNormal;
+    varying vec3 vViewNormal;
     varying vec2 vUv;
     varying vec3 vBarycentric;
     varying float vSkyLight;
@@ -187,10 +197,10 @@ const HEIGHTFIELD_SHADER = {
       return min(min(a3.x, a3.y), a3.z);
     }
 
+    vec2 tileSize = vec2(16./2048.);
     vec4 fourTapSample(
       vec2 tileOffset,
       vec2 tileUV,
-      vec2 tileSize,
       sampler2D atlas
     ) {
       //Initialize accumulators
@@ -216,29 +226,128 @@ const HEIGHTFIELD_SHADER = {
       //Return weighted color
       return color / totalWeight;
     }
+    float fourTapSample1(
+      vec2 tileOffset,
+      vec2 tileUV,
+      sampler2D atlas
+    ) {
+      //Initialize accumulators
+      float color = 0.0;
+      float totalWeight = 0.0;
 
-    /* vec2 parallaxMap( vec2 vUv, vec3 V ) {
-        float numLayers = mix( parallaxMaxLayers, parallaxMinLayers, abs( dot( vec3( 0.0, 0.0, 1.0 ), V ) ) );
-        float layerHeight = 1.0 / numLayers;
-        float currentLayerHeight = 0.0;
-        vec2 dtex = parallaxScale * V.xy / V.z / numLayers;
-        vec2 currentTextureCoords = vUv;
-        float heightFromTexture = texture2D( bumpMap, currentTextureCoords ).r;
-        for ( int i = 0; i < 30; i += 1 ) {
-          if ( heightFromTexture <= currentLayerHeight ) {
-            break;
-          }
-          currentLayerHeight += layerHeight;
-          currentTextureCoords -= dtex;
-          heightFromTexture = texture2D( bumpMap, currentTextureCoords ).r;
-        }
-          vec2 prevTCoords = currentTextureCoords + dtex;
-          float nextH = heightFromTexture - currentLayerHeight;
-          float prevH = texture2D( bumpMap, prevTCoords ).r - currentLayerHeight + layerHeight;
-          float weight = nextH / ( nextH - prevH );
-          return prevTCoords * weight + currentTextureCoords * ( 1.0 - weight );
+      for(int dx=0; dx<2; ++dx)
+      for(int dy=0; dy<2; ++dy) {
+        //Compute coordinate in 2x2 tile patch
+        vec2 tileCoord = 2.0 * fract(0.5 * (tileUV + vec2(dx,dy)));
+
+        //Weight sample based on distance to center
+        float w = pow(1.0 - max(abs(tileCoord.x-1.0), abs(tileCoord.y-1.0)), 16.0);
+
+        //Compute atlas coord
+        vec2 atlasUV = tileOffset + tileSize * tileCoord;
+
+        //Sample and accumulate
+        color += w * texture2D(atlas, atlasUV).r;
+        totalWeight += w;
       }
-    vec2 perturbUv( vec2 vUv, vec3 surfPosition, vec3 surfNormal, vec3 viewPosition ) {
+
+      //Return weighted color
+      return color / totalWeight;
+    }
+    vec3 fourTapSample3(
+      vec2 tileOffset,
+      vec2 tileUV,
+      sampler2D atlas
+    ) {
+      //Initialize accumulators
+      vec3 color = vec3(0.0, 0.0, 0.0);
+      float totalWeight = 0.0;
+
+      for(int dx=0; dx<2; ++dx)
+      for(int dy=0; dy<2; ++dy) {
+        //Compute coordinate in 2x2 tile patch
+        vec2 tileCoord = 2.0 * fract(0.5 * (tileUV + vec2(dx,dy)));
+
+        //Weight sample based on distance to center
+        float w = pow(1.0 - max(abs(tileCoord.x-1.0), abs(tileCoord.y-1.0)), 16.0);
+
+        //Compute atlas coord
+        vec2 atlasUV = tileOffset + tileSize * tileCoord;
+
+        //Sample and accumulate
+        color += w * texture2D(atlas, atlasUV).rgb;
+        totalWeight += w;
+      }
+
+      //Return weighted color
+      return color / totalWeight;
+    }
+
+    float sampleHeight(vec2 tileOffset, vec2 uv) {
+      tileOffset.x += 16.*2.*2./2048.;
+      // return fourTapSample1(tileOffset, uv, tex);
+      // vec2 texcoord = tileOffset + uv * tileSize;
+      // return texture2DGradEXT(tex, texcoord, dFdx(texcoord), dFdy(texcoord)).r;
+      return texture2D(tex, tileOffset + uv * tileSize).r;
+    }
+
+#define USE_STEEP_PARALLAX 1
+
+#ifdef USE_BASIC_PARALLAX
+  vec2 parallaxMap( vec2 tileOffset, vec2 vUv, vec3 V ) {
+    float initialHeight = sampleHeight( tileOffset, vUv );
+    vec2 texCoordOffset = parallaxScale * V.xy * initialHeight;
+    return vUv - texCoordOffset;
+  }
+#else
+  vec2 parallaxMap( vec2 tileOffset, vec2 vUv, vec3 V ) {
+    float numLayers = mix( parallaxMaxLayers, parallaxMinLayers, abs( dot( vec3( 0.0, 0.0, 1.0 ), V ) ) );
+    float layerHeight = 1.0 / numLayers;
+    float currentLayerHeight = 0.0;
+    vec2 dtex = parallaxScale * V.xy / V.z / numLayers;
+    vec2 currentTextureCoords = vUv;
+    float heightFromTexture = sampleHeight( tileOffset, currentTextureCoords );
+    for ( int i = 0; i < 30; i += 1 ) {
+      if ( heightFromTexture <= currentLayerHeight ) {
+        break;
+      }
+      currentLayerHeight += layerHeight;
+      currentTextureCoords -= dtex;
+      heightFromTexture = sampleHeight( tileOffset, currentTextureCoords );
+    }
+    #ifdef USE_STEEP_PARALLAX
+      return currentTextureCoords;
+    #elif defined( USE_RELIEF_PARALLAX )
+      vec2 deltaTexCoord = dtex / 2.0;
+      float deltaHeight = layerHeight / 2.0;
+      currentTextureCoords += deltaTexCoord;
+      currentLayerHeight -= deltaHeight;
+      const int numSearches = 5;
+      for ( int i = 0; i < numSearches; i += 1 ) {
+        deltaTexCoord /= 2.0;
+        deltaHeight /= 2.0;
+        heightFromTexture = sampleHeight( tileOffset, currentTextureCoords );
+        if( heightFromTexture > currentLayerHeight ) {
+          currentTextureCoords -= deltaTexCoord;
+          currentLayerHeight += deltaHeight;
+        } else {
+          currentTextureCoords += deltaTexCoord;
+          currentLayerHeight -= deltaHeight;
+        }
+      }
+      return currentTextureCoords;
+    #elif defined( USE_OCLUSION_PARALLAX )
+      vec2 prevTCoords = currentTextureCoords + dtex;
+      float nextH = heightFromTexture - currentLayerHeight;
+      float prevH = sampleHeight( tileOffset, prevTCoords ) - currentLayerHeight + layerHeight;
+      float weight = nextH / ( nextH - prevH );
+      return prevTCoords * weight + currentTextureCoords * ( 1.0 - weight );
+    #else
+      return vUv;
+    #endif
+  }
+#endif
+    vec2 perturbUv( vec2 tileOffset, vec2 vUv, vec3 surfPosition, vec3 surfNormal, vec3 viewPosition ) {
       vec2 texDx = dFdx( vUv );
       vec2 texDy = dFdy( vUv );
       vec3 vSigmaX = dFdx( surfPosition );
@@ -250,14 +359,15 @@ const HEIGHTFIELD_SHADER = {
       vec3 vProjVtex;
       vProjVtex.xy = texDx * vProjVscr.x + texDy * vProjVscr.y;
       vProjVtex.z = dot( surfNormal, viewPosition );
-      return parallaxMap( vUv, vProjVtex );
-    } */
+      return parallaxMap( tileOffset, vUv, vProjVtex );
+    }
 
     void main() {
       vec2 worldUv;
-      vec3 vNormal = normalize(cross(dFdx(vWorldPosition), dFdy(vWorldPosition)));
-      if (abs(vNormal.y) < 0.05) {
-        if (abs(vNormal.x) > 0.95) {
+      // vec3 normal = normalize(cross(dFdx(vWorldPosition), dFdy(vWorldPosition)));
+      vec3 normal = vNormal;
+      if (abs(normal.y) < 0.05) {
+        if (abs(normal.x) > 0.95) {
           worldUv = vPosition.yz;
         } else {
           worldUv = vPosition.xy;
