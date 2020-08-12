@@ -819,7 +819,7 @@ ${biomeIndexToTex.map(name => {
   return `{${(x + texSize*2*2)/size}, ${y/size}}`;
 }).join(',\n')}
 };
-std::tuple<float, float> groundEmissive[]  = {
+std::tuple<float, float> groundEmissives[]  = {
 ${biomeIndexToTex.map(name => {
   const rect = packer.bins[0].rects.find(rect => rect.name === name);
   if (rect) {
