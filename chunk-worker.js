@@ -2,6 +2,7 @@ importScripts('./bin/objectize2.js');
 
 const subparcelSize = 10;
 const subparcelSizeP1 = subparcelSize+1;
+const subparcelSizeP3 = subparcelSize+3;
 const potentialDefault = -0.5;
 const PLANET_OBJECT_SLOTS = 16;
 
@@ -49,9 +50,9 @@ const _loadNoise = (seedData, x, y, z, baseHeight, /*freqsData, octavesData, sca
   );
 };
 const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, meshId, subparcelSize) => {
-  const subparcelSizeP1 = subparcelSize+1;
+  // const subparcelSizeP1 = subparcelSize+1;
 
-  dims.set(Int32Array.from([subparcelSizeP1, subparcelSizeP1, subparcelSizeP1]));
+  dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
   shifts.set(Float32Array.from(shiftsData));
   scale.set(Float32Array.from([1, 1, 1]));
   numPositions[0] = positions.length;
@@ -306,7 +307,7 @@ wasmModulePromise.then(() => {
   }
 
   const allocator = new Allocator();
-  potentials = allocator.alloc(Float32Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
+  potentials = allocator.alloc(Float32Array, subparcelSizeP3*subparcelSizeP3*subparcelSizeP3);
   biomes = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1);
   objectPositions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*3);
   objectQuaternions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*4);
