@@ -143,7 +143,7 @@ const HEIGHTFIELD_SHADER = {
     attribute float skyLight;
     attribute float torchLight;
 
-    varying vec3 vPosition;
+    // varying vec3 vPosition;
     varying vec3 vWorldPosition;
     varying vec3 vViewPosition;
     // varying vec3 vViewPosition2;
@@ -184,7 +184,7 @@ const HEIGHTFIELD_SHADER = {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
       gl_Position = projectionMatrix * mvPosition;
 
-      vPosition = position.xyz;
+      // vPosition = position.xyz;
       vWorldPosition = (modelMatrix * vec4(position.xyz, 1.0)).xyz;
       vViewPosition = -mvPosition.xyz;
       // vViewPosition2 = -(modelViewMatrix * vec4(position + normal, 1.0)).xyz;
@@ -202,16 +202,16 @@ const HEIGHTFIELD_SHADER = {
         if (abs(normal.x) > 0.95) {
           vert_bitang = vec3(0., 1., 0.);
           vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(vPosition, vert_tang), dot(vPosition, vert_bitang));
+          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
         } else {
           vert_bitang = vec3(0., 1., 0.);
           vert_tang = normalize(cross(vert_bitang, normal));
-          vWorldUv = vec2(dot(vPosition, vert_tang), dot(vPosition, vert_bitang));
+          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
         }
       } else {
         vert_tang = vec3(1., 0., 0.);
         vert_bitang = normalize(cross(vert_tang, normal));
-        vWorldUv = vec2(dot(vPosition, vert_tang), dot(vPosition, vert_bitang));
+        vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
       }
       vWorldUv /= 4.0;
       vec3 vert_norm = normal;
@@ -241,7 +241,7 @@ const HEIGHTFIELD_SHADER = {
     float parallaxMinLayers = 50.;
     float parallaxMaxLayers = 50.;
 
-    varying vec3 vPosition;
+    // varying vec3 vPosition;
     varying vec3 vWorldPosition;
     varying vec3 vViewPosition;
     // varying vec3 vViewPosition2;
