@@ -18,6 +18,7 @@ import {makeAnimalFactory} from './animal.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
+  SUBPARCEL_SIZE_P3,
   NUM_PARCELS,
 
   numSlices,
@@ -508,7 +509,6 @@ const _meshEquals = (a, b) => {
 function mod(a, b) {
   return ((a%b)+b)%b;
 }
-const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
 
 let animals = [];
 const itemMeshes = [];
@@ -3577,42 +3577,47 @@ function animate(timestamp, frame) {
             const mineSpecs = [];
             const _applyRound = (ax, ay, az, value) => {
               const mineSpecsRound = [];
-              for (let ddy = -1; ddy <= 0; ddy++) {
+              for (let ddy = -1; ddy <= 1; ddy++) {
                 const ady = ay + ddy;
-                for (let ddz = -1; ddz <= 0; ddz++) {
+                for (let ddz = -1; ddz <= 1; ddz++) {
                   const adz = az + ddz;
-                  for (let ddx = -1; ddx <= 0; ddx++) {
+                  for (let ddx = -1; ddx <= 1; ddx++) {
                     const adx = ax + ddx;
 
                     const sdx = Math.floor(adx/currentChunkMesh.subparcelSize);
                     const sdy = Math.floor(ady/currentChunkMesh.subparcelSize);
                     const sdz = Math.floor(adz/currentChunkMesh.subparcelSize);
-                    const index = planet.getSubparcelIndex(sdx, sdy, sdz);
+                    const lx = ax - sdx*currentChunkMesh.subparcelSize;
+                    const ly = ay - sdy*currentChunkMesh.subparcelSize;
+                    const lz = az - sdz*currentChunkMesh.subparcelSize;
 
-                    if (!mineSpecsRound.some(mineSpec => mineSpec.index === index)) {
-                      const lx = ax - sdx*currentChunkMesh.subparcelSize;
-                      const ly = ay - sdy*currentChunkMesh.subparcelSize;
-                      const lz = az - sdz*currentChunkMesh.subparcelSize;
+                    if (
+                      lx >= 0 && lx < SUBPARCEL_SIZE_P3 &&
+                      ly >= 0 && ly < SUBPARCEL_SIZE_P3 &&
+                      lz >= 0 && lz < SUBPARCEL_SIZE_P3
+                    ) {
+                      const index = planet.getSubparcelIndex(sdx, sdy, sdz);
+                      if (!mineSpecsRound.some(mineSpec => mineSpec.index === index)) {
+                        planet.editSubparcel(sdx, sdy, sdz, subparcel => {
+                          const potentialIndex = planet.getPotentialIndex(lx, ly, lz);
+                          subparcel[key][potentialIndex] += value;
 
-                      planet.editSubparcel(sdx, sdy, sdz, subparcel => {
-                        const potentialIndex = _getPotentialIndex(lx, ly, lz, currentChunkMesh.subparcelSize+1);
-                        subparcel[key][potentialIndex] += value;
-
-                        const mineSpec = {
-                          x: sdx,
-                          y: sdy,
-                          z: sdz,
-                          index,
-                          potentials: subparcel.potentials,
-                          biomes: subparcel.biomes,
-                          heightfield: subparcel.heightfield,
-                          lightfield: subparcel.lightfield,
-                        };
-                        mineSpecsRound.push(mineSpec);
-                        if (!mineSpecs.some(mineSpec => mineSpec.index === index)) {
-                          mineSpecs.push(mineSpec);
-                        }
-                      });
+                          const mineSpec = {
+                            x: sdx,
+                            y: sdy,
+                            z: sdz,
+                            index,
+                            potentials: subparcel.potentials,
+                            biomes: subparcel.biomes,
+                            heightfield: subparcel.heightfield,
+                            lightfield: subparcel.lightfield,
+                          };
+                          mineSpecsRound.push(mineSpec);
+                          if (!mineSpecs.some(mineSpec => mineSpec.index === index)) {
+                            mineSpecs.push(mineSpec);
+                          }
+                        });
+                      }
                     }
                   }
                 }

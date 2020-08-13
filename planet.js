@@ -4,6 +4,7 @@ import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
   SUBPARCEL_SIZE_P1,
+  SUBPARCEL_SIZE_P3,
   NUM_PARCELS,
   MAX_NAME_LENGTH,
   PLANET_OBJECT_SLOTS,
@@ -45,7 +46,7 @@ const _getSubparcelXYZ = index => {
   if (sz) { z *= -1; }
   return [x, y, z];
 };
-const _getPotentialIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + z*SUBPARCEL_SIZE_P1;
+const _getPotentialIndex = (x, y, z) => (x+1) + (y+1)*SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3 + (z+1)*SUBPARCEL_SIZE_P3;
 const potentialDefault = -0.5;
 
 // planet
@@ -56,6 +57,7 @@ let state = null;
 let subparcels = {};
 
 planet.getSubparcelIndex = _getSubparcelIndex;
+planet.getPotentialIndex = _getPotentialIndex;
 
 const _getStringLength = s => {
   let i;
@@ -217,7 +219,7 @@ export class Subparcel {
   }
   latchData(data) {
     this.data = data;
-    this.potentials = new Float32Array(this.data, Subparcel.offsets.potentials, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
+    this.potentials = new Float32Array(this.data, Subparcel.offsets.potentials, SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3);
     this.biomes = new Uint8Array(this.data, Subparcel.offsets.biomes, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
     this.heightfield = new Uint8Array(this.data, Subparcel.offsets.heightfield, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
     this.lightfield = new Uint8Array(this.data, Subparcel.offsets.lightfield, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
@@ -359,7 +361,7 @@ Subparcel.offsets = (() => {
   const xyz = index;
   index += Int32Array.BYTES_PER_ELEMENT * 3;
   const potentials = index;
-  index += SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * Float32Array.BYTES_PER_ELEMENT;
+  index += SUBPARCEL_SIZE_P3 * SUBPARCEL_SIZE_P3 * SUBPARCEL_SIZE_P3 * Float32Array.BYTES_PER_ELEMENT;
   const biomes = index;
   index += SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * Uint8Array.BYTES_PER_ELEMENT;
   const heightfield = index;
