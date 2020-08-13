@@ -135,7 +135,6 @@ const HEIGHTFIELD_SHADER = {
     // "parallaxMaxLayers": { value: 30 },
   },
   vertexShader: `\
-    #define LOG2 1.442695
     precision highp float;
     precision highp int;
 
@@ -144,10 +143,10 @@ const HEIGHTFIELD_SHADER = {
     attribute float torchLight;
 
     // varying vec3 vPosition;
-    varying vec3 vWorldPosition;
+    // varying vec3 vWorldPosition;
     varying vec3 vViewPosition;
     // varying vec3 vViewPosition2;
-    varying vec3 vNormal;
+    // varying vec3 vNormal;
     // varying vec3 vViewNormal;
     varying vec2 vUv;
     varying vec3 vBarycentric;
@@ -185,10 +184,10 @@ const HEIGHTFIELD_SHADER = {
       gl_Position = projectionMatrix * mvPosition;
 
       // vPosition = position.xyz;
-      vWorldPosition = (modelMatrix * vec4(position.xyz, 1.0)).xyz;
+      // vWorldPosition = (modelMatrix * vec4(position.xyz, 1.0)).xyz;
       vViewPosition = -mvPosition.xyz;
       // vViewPosition2 = -(modelViewMatrix * vec4(position + normal, 1.0)).xyz;
-      vNormal = normal;
+      // vNormal = normal;
       // vViewNormal = normalize( normalMatrix * normal );
       vUv = uv;
       vBarycentric = barycentric;
@@ -242,10 +241,10 @@ const HEIGHTFIELD_SHADER = {
     float parallaxMaxLayers = 50.;
 
     // varying vec3 vPosition;
-    varying vec3 vWorldPosition;
+    // varying vec3 vWorldPosition;
     varying vec3 vViewPosition;
     // varying vec3 vViewPosition2;
-    varying vec3 vNormal;
+    // varying vec3 vNormal;
     // varying vec3 vViewNormal;
     varying vec2 vUv;
     varying vec3 vBarycentric;
