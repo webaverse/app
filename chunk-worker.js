@@ -6,8 +6,10 @@ const subparcelSizeP3 = subparcelSize+3;
 const potentialDefault = -0.5;
 const PLANET_OBJECT_SLOTS = 16;
 
-const _getPotentialIndex = (x, y, z, subparcelSize) => x + y*subparcelSize*subparcelSize + z*subparcelSize;
-const _getPotentialFullIndex = (x, y, z, subparcelSizeP1) => x + y*subparcelSizeP1*subparcelSizeP1 + z*subparcelSizeP1;
+const _align4 = n => {
+  const d = n%4;
+  return d ? (n+4-d) : n;
+};
 const _loadNoise = (seedData, x, y, z, baseHeight, /*freqsData, octavesData, scalesData, uvsData, ampsData,*/ parcelSize, subparcelSize, potentials, biomes, heightfield, objectPositions, objectQuaternions, objectTypes, numObjects) => {
   /* freqs.set(Float32Array.from(freqsData));
   octaves.set(Int32Array.from(octavesData));
@@ -58,6 +60,7 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
   numPositions[0] = positions.length;
   numUvs[0] = uvs.length;
   numBarycentrics[0] = barycentrics.length;
+  numAos[0] = aos.length;
 
   self.Module._doMarchingCubes2(
     dims.offset,
@@ -71,26 +74,31 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
     normals.offset,
     uvs.offset,
     barycentrics.offset,
+    aos.offset,
     numPositions.offset,
     numNormals.offset,
     numUvs.offset,
     numBarycentrics.offset,
+    numAos.offset,
     skyLights.offset,
     torchLights.offset,
     numOpaquePositions.offset,
     numTransparentPositions.offset
   );
 
-  const arrayBuffer2 = new ArrayBuffer(
+  let totalSize =
     numPositions[0] * Float32Array.BYTES_PER_ELEMENT +
     numNormals[0] * Float32Array.BYTES_PER_ELEMENT +
     numUvs[0] * Float32Array.BYTES_PER_ELEMENT +
     numBarycentrics[0] * Float32Array.BYTES_PER_ELEMENT +
+    numAos[0] * Uint8Array.BYTES_PER_ELEMENT;
+  totalSize = _align4(totalSize);
+  totalSize +=
     numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
     // numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT
-  );
+  const arrayBuffer2 = new ArrayBuffer(totalSize);
 
   let index = 0;
 
@@ -109,6 +117,11 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
   const outB = new Float32Array(arrayBuffer2, index, numBarycentrics[0]);
   outB.set(new Float32Array(barycentrics.buffer, barycentrics.byteOffset, numBarycentrics[0]));
   index += Float32Array.BYTES_PER_ELEMENT * numBarycentrics[0];
+
+  const outA = new Uint8Array(arrayBuffer2, index, numAos[0]);
+  outA.set(new Uint8Array(aos.buffer, aos.byteOffset, numAos[0]));
+  index += Uint8Array.BYTES_PER_ELEMENT * numAos[0];
+  index = _align4(index);
 
   const ids = new Float32Array(arrayBuffer2, index, numPositions[0]/3);
   index += numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT;
@@ -136,6 +149,7 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
     normals: outN,
     uvs: outU,
     barycentrics: outB,
+    aos: outA,
     ids,
     // indices,
     skyLights: outSl,
@@ -153,13 +167,14 @@ const _meshChunkSlab = (meshId, x, y, z, potentialsData, biomesData, heightfield
     y*subparcelSize,
     z*subparcelSize,
   ];
-  const {positions, normals, uvs, barycentrics, ids, indices, skyLights, torchLights, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, biomes, heightfield, lightfield, shiftsData, meshId, subparcelSize);
+  const {positions, normals, uvs, barycentrics, aos, ids, indices, skyLights, torchLights, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, biomes, heightfield, lightfield, shiftsData, meshId, subparcelSize);
   return [
     {
       positions,
       normals,
       uvs,
       barycentrics,
+      aos,
       ids,
       indices,
       skyLights,
@@ -283,7 +298,7 @@ self.onmessage = e => {
   }
 };
 
-let potentials, biomes, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, normals, barycentrics, numPositions, numBarycentrics, skyLights, torchLights, numOpaquePositions, numTransparentPositions;
+let potentials, biomes, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, normals, barycentrics, aos, numPositions, numBarycentrics, numAos, skyLights, torchLights, numOpaquePositions, numTransparentPositions;
 wasmModulePromise.then(() => {
   loaded = true;
 
@@ -328,10 +343,12 @@ wasmModulePromise.then(() => {
   normals = allocator.alloc(Float32Array, 3 * 1024 * 1024);
   uvs = allocator.alloc(Float32Array, 3 * 1024 * 1024/3*2);
   barycentrics = allocator.alloc(Float32Array, 3 * 1024 * 1024);
+  aos = allocator.alloc(Uint8Array, 1024 * 1024);
   numPositions = allocator.alloc(Uint32Array, 1);
   numNormals = allocator.alloc(Uint32Array, 1);
   numUvs = allocator.alloc(Uint32Array, 1);
   numBarycentrics = allocator.alloc(Uint32Array, 1);
+  numAos = allocator.alloc(Uint32Array, 1);
   skyLights = allocator.alloc(Uint8Array, 3 * 1024 * 1024/3);
   torchLights = allocator.alloc(Uint8Array, 3 * 1024 * 1024/3);
   numOpaquePositions = allocator.alloc(Uint32Array, 1);
