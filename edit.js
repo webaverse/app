@@ -139,6 +139,7 @@ const HEIGHTFIELD_SHADER = {
     precision highp int;
 
     attribute vec3 barycentric;
+    attribute float ao;
     attribute float skyLight;
     attribute float torchLight;
 
@@ -150,6 +151,7 @@ const HEIGHTFIELD_SHADER = {
     // varying vec3 vViewNormal;
     varying vec2 vUv;
     varying vec3 vBarycentric;
+    varying float vAo;
     varying float vSkyLight;
     varying float vTorchLight;
 
@@ -191,6 +193,7 @@ const HEIGHTFIELD_SHADER = {
       // vViewNormal = normalize( normalMatrix * normal );
       vUv = uv;
       vBarycentric = barycentric;
+      vAo = ao/27.0;
       vSkyLight = skyLight/8.0;
       vTorchLight = torchLight/8.0;
 
@@ -248,6 +251,7 @@ const HEIGHTFIELD_SHADER = {
     // varying vec3 vViewNormal;
     varying vec2 vUv;
     varying vec3 vBarycentric;
+    varying float vAo;
     varying float vSkyLight;
     varying float vTorchLight;
     uniform float uTime;
@@ -471,6 +475,8 @@ const HEIGHTFIELD_SHADER = {
       float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
       float cameraFactor = floor(8.0 - length(vViewPosition))/8.;
       diffuseColor *= max(max(worldFactor, cameraFactor), 0.1);
+
+      diffuseColor.r += vAo;
 
       // diffuseColor *= abs(dot(normalize(texture2D(normalMap, mapUv).rgb), sunDirection));
       /* if (dot(texture2D(normalMap, mapUv).rgb*2.-1., sunDirection) > 0.) {
