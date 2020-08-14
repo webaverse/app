@@ -56,6 +56,7 @@ const pid4 = Math.PI/4;
 const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
 const baseHeight = PARCEL_SIZE/2-10;
+const SPAWNER_RATE = 0.08;
 /* const freqs = [
   1,
   1,
@@ -1720,6 +1721,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   const currentCoord = new THREE.Vector3(NaN, NaN, NaN);
   const marchesTasks = [];
   const vegetationsTasks = [];
+  const animalsTasks = [];
   let packagesRunning = false;
   mesh.updateSlab = (x, y, z) => {
     const j = numUpdatedCoords++;
@@ -1858,7 +1860,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               subparcel.biomes.set(parcelSpec.biomes);
               subparcel.heightfield.set(parcelSpec.heightfield);
               for (const object of parcelSpec.objects) {
-                subparcel.addVegetation('tree1', localVector.fromArray(object.position), localQuaternion.fromArray(object.quaternion));
+                subparcel.addVegetation(object.type < SPAWNER_RATE*0xFFFFFF ? 'spawner' : 'tree1', localVector.fromArray(object.position), localQuaternion.fromArray(object.quaternion));
               }
             });
           }
@@ -2192,11 +2194,14 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       await subparcel.load;
       if (!live) return;
 
-      const objects = subparcel.vegetations.map(vegetation => ({
-        id: vegetation.id,
-        type: vegetation.name,
-        matrix: localMatrix.compose(localVector.fromArray(vegetation.position), localQuaternion.fromArray(vegetation.quaternion), localVector2.set(1, 1, 1)).toArray(),
-      }));
+      const localVegetations = subparcel.vegetations
+        .filter(vegetation => vegetation.name !== 'spawner');
+      const objects = localVegetations
+        .map(vegetation => ({
+          id: vegetation.id,
+          type: vegetation.name,
+          matrix: localMatrix.compose(localVector.fromArray(vegetation.position), localQuaternion.fromArray(vegetation.quaternion), localVector2.set(1, 1, 1)).toArray(),
+        }));
 
       const subparcelSizeP1 = subparcelSize+1;
       const arraybuffer = new ArrayBuffer(subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3)*2);
@@ -2272,7 +2277,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         }
         subparcelVegetationMeshesSpec.meshes.length = 0;
 
-        for (const vegetation of subparcel.vegetations) {
+        for (const vegetation of localVegetations) {
           const {id: vegetationId, name: vegetationName} = vegetation;
           const vegetationPosition = new THREE.Vector3().fromArray(vegetation.position);
           const vegetationQuaternion = new THREE.Quaternion().fromArray(vegetation.quaternion);
@@ -2413,6 +2418,15 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       }
     }
   };
+  const _killAnimalsTasks = index => {
+    const subparcelTasks = animalsTasks[index];
+    if (subparcelTasks) {
+      for (const task of subparcelTasks) {
+        task.cancel();
+      }
+      subparcelTasks.length = 0;
+    }
+  };
   const _updateAnimalsRemove = () => {
     if (removedCoords.length > 0) {
       animals = animals.filter(animal => {
@@ -2423,27 +2437,61 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         } else {
           return true;
         }
-      })
+      });
+      for (const removedCoord of removedCoords) {
+        _killAnimalsTasks(removedCoord.index);
+      }
     }
   };
   const _updateAnimalsAdd = () => {
     for (const addedCoord of addedCoords) {
-      if (addedCoord.y === 30 && Math.random() < 0.1) {
-        if (!makeAnimal) {
-          makeAnimal = makeAnimalFactory(geometryWorker, physxWorker);
-        }
-
-        const p = new THREE.Vector3(addedCoord.x + 0.5, addedCoord.y - 0.7, addedCoord.z + 0.5).multiplyScalar(SUBPARCEL_SIZE);
-        const animal = makeAnimal(p, Math.floor(Math.random()*0xFFFFFF), () => {
-          animal.parent.remove(animal);
-          animal.destroy();
-          animals.splice(animals.indexOf(animal), 1);
-          _addItem(animal.position, animal.quaternion);
-        });
-        animal.index = addedCoord.index;
-        currentChunkMesh.add(animal);
-        animals.push(animal);
+      const {index} = addedCoord;
+      let subparcelTasks = animalsTasks[index];
+      if (!subparcelTasks) {
+        subparcelTasks = [];
+        animalsTasks[index] = subparcelTasks;
       }
+
+      let live = true;
+      (async () => {
+        const subparcel = planet.getSubparcelByIndex(index);
+        await subparcel.load;
+        if (!live) return;
+
+        const spawners = subparcel.vegetations
+          .filter(vegetation => vegetation.name === 'spawner')
+          .map(vegetation => ({
+            position: vegetation.position,
+          }));
+
+        for (const spawner of spawners) {
+          if (!makeAnimal) {
+            makeAnimal = makeAnimalFactory(geometryWorker, physxWorker);
+          }
+
+          localVector.fromArray(spawner.position);
+          const animal = makeAnimal(localVector, Math.floor(Math.random()*0xFFFFFF), () => {
+            animal.parent.remove(animal);
+            animal.destroy();
+            animals.splice(animals.indexOf(animal), 1);
+            _addItem(animal.position, animal.quaternion);
+          });
+          animal.index = subparcel.index;
+          mesh.add(animal);
+          animals.push(animal);
+        }
+      })()
+        .finally(() => {
+          if (live) {
+            subparcelTasks.splice(subparcelTasks.indexOf(task), 1);
+          }
+        });
+      const task = {
+        cancel() {
+          live = false;
+        },
+      };
+      subparcelTasks.push(task);
     }
   };
   const _updateAnimals = () => {
