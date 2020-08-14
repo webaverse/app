@@ -4144,12 +4144,6 @@ function animate(timestamp, frame) {
         while (queueIndex < queue.length) {
           _cullFaces(queue[queueIndex++]);
         }
-        window.frustumGroupIndex = frustumGroupIndex;
-        window.seenQueue = seenQueue;
-        window.queue = queue;
-        window.queueIndex = queueIndex;
-        window.groups = groups;
-        window.originalGroups = currentChunkMesh.geometry.originalGroups;
       };
       _cullLoop();
       currentChunkMesh.geometry.groups = groups;
