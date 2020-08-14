@@ -3270,17 +3270,17 @@ const PEEK_DIRECTIONS = [
   [new THREE.Vector3(0, 1, 0), PEEK_FACES.TOP],
   [new THREE.Vector3(0, -1, 0), PEEK_FACES.BOTTOM],
 ];
-const PEEK_FACE_INDICES = Int32Array.from([255, 0, 1, 2, 3, 4, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 5, 6, 7, 8, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 1, 5, 255, 9, 10, 11, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 2, 6, 9, 255, 12, 13, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 3, 7, 10, 12, 255, 14, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 4, 8, 11, 13, 14]);
-/* (() => {
-  const PEEK_FACE_INDICES = Array(5<<4|5);
+const PEEK_FACE_INDICES = Int32Array.from([255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,1,2,3,4,255,255,255,255,255,255,255,255,255,255,0,255,5,6,7,8,255,255,255,255,255,255,255,255,255,255,1,5,255,9,10,11,255,255,255,255,255,255,255,255,255,255,2,6,9,255,12,13,255,255,255,255,255,255,255,255,255,255,3,7,10,12,255,14,255,255,255,255,255,255,255,255,255,255,4,8,11,13,14,255]);
+/* x = (() => {
+  const PEEK_FACE_INDICES = Array((6<<4|6)+1);
 
-  for (let i = 0; i < (5<<4|5); i++) {
+  for (let i = 0; i < (6<<4|6)+1; i++) {
     PEEK_FACE_INDICES[i] = 0xFF;
   }
 
   let peekIndex = 0;
-  for (let i = 0; i < 6; i++) {
-    for (let j = 0; j < 6; j++) {
+  for (let i = 1; i <= 6; i++) {
+    for (let j = 1; j <= 6; j++) {
       if (i != j) {
         const otherEntry = PEEK_FACE_INDICES[j << 4 | i];
         PEEK_FACE_INDICES[i << 4 | j] = otherEntry != 0xFF ? otherEntry : peekIndex++;
@@ -4126,7 +4126,11 @@ function animate(timestamp, frame) {
       const _cullLoop = () => {
         const queue = frustumGroups.filter(group => group.boundingSphere.center.distanceTo(localVector) < slabRadius*2);
         let queueIndex = 0;
-        const seenGroups = {};
+        const seenQueue = {};
+        for (const group of queue) {
+          groups.push(group);
+          seenQueue[group.slab.index] = true;
+        }
 
         const _cullFaces = group => {
           const direction = localVector2.copy(group.boundingSphere.center)
@@ -4138,8 +4142,10 @@ function animate(timestamp, frame) {
                 if (group.slab.peeks[PEEK_FACE_INDICES[enterFace << 4 | exitFace]]) {
                   const nextIndex = planet.getSubparcelIndex(group.slab.x + exitNormal.x, group.slab.y + exitNormal.y, group.slab.z + exitNormal.z);
                   const nextGroup = frustumGroupIndex[nextIndex];
-                  if (nextGroup && !seenGroups[nextGroup.slab.index]) {
+                  if (nextGroup && !seenQueue[nextGroup.slab.index]) {
+                    groups.push(nextGroup);
                     queue.push(nextGroup);
+                    seenQueue[nextGroup.slab.index] = true;
                   }
                 }
               }
@@ -4148,14 +4154,10 @@ function animate(timestamp, frame) {
         };
 
         while (queueIndex < queue.length) {
-          const group = queue[queueIndex++];
-          seenGroups[group.slab.index] = true;
-          groups.push(group);
-
-          _cullFaces(group);
+          _cullFaces(queue[queueIndex++]);
         }
         window.frustumGroupIndex = frustumGroupIndex;
-        window.seenGroups = seenGroups;
+        window.seenQueue = seenQueue;
         window.queue = queue;
         window.queueIndex = queueIndex;
         window.groups = groups;
