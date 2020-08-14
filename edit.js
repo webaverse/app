@@ -4128,7 +4128,10 @@ function animate(timestamp, frame) {
     const _cull = () => {
       currentChunkMesh.geometry.originalGroups = currentChunkMesh.geometry.groups.slice();
 
-      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      localMatrix2.getInverse(worldContainer.matrixWorld);
+      localMatrix.copy(pe.camera.matrixWorld)
+        .premultiply(localMatrix2)
+        .decompose(localVector, localQuaternion, localVector2);
       const frustumGroups = currentChunkMesh.geometry.groups
         .filter(group => localFrustum.intersectsSphere(group.boundingSphere))
         .sort((a, b) => a.boundingSphere.center.distanceTo(localVector) - b.boundingSphere.center.distanceTo(localVector));
@@ -4148,13 +4151,16 @@ function animate(timestamp, frame) {
         }
 
         const _cullFaces = group => {
-          const direction = localVector2.copy(group.boundingSphere.center)
-            .sub(localVector);
-
           for (const [enterNormal, enterFace] of PEEK_DIRECTIONS) {
-            if (direction.dot(enterNormal) < 0) {
+            const direction = localVector2.copy(group.boundingSphere.center)
+              .add(localVector3.copy(enterNormal).multiplyScalar(SUBPARCEL_SIZE/2))
+              .sub(localVector);
+            if (direction.dot(enterNormal) <= 0) {
               for (const [exitNormal, exitFace] of PEEK_DIRECTIONS) {
-                if (group.slab.peeks[PEEK_FACE_INDICES[enterFace << 4 | exitFace]]) {
+                const direction = localVector2.copy(group.boundingSphere.center)
+                  .add(localVector3.copy(exitNormal).multiplyScalar(SUBPARCEL_SIZE/2))
+                  .sub(localVector);
+                if (direction.dot(exitNormal) >= 0 && group.slab.peeks[PEEK_FACE_INDICES[enterFace << 4 | exitFace]]) {
                   const nextIndex = planet.getSubparcelIndex(group.slab.x + exitNormal.x, group.slab.y + exitNormal.y, group.slab.z + exitNormal.z);
                   const nextGroup = frustumGroupIndex[nextIndex];
                   if (nextGroup && !seenQueue[nextGroup.slab.index]) {
