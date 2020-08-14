@@ -2222,7 +2222,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       arrayBufferIndex += subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3);
       const lightfields = new Uint8Array(arraybuffer, arrayBufferIndex, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3));
       {
-        let ligthfieldIndex = 0;
+        let lightfieldIndex = 0;
         for (let dz = -1; dz <= 1; dz++) {
           const az = z + dz;
           for (let dy = -1; dy <= 1; dy++) {
@@ -2231,9 +2231,9 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               const ax = x + dx;
               const subparcel = planet.peekSubparcel(ax, ay, az);
               if (subparcel) {
-                lightfields.set(subparcel.lightfield, ligthfieldIndex*subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
+                lightfields.set(subparcel.lightfield, lightfieldIndex*subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
               }
-              ligthfieldIndex++;
+              lightfieldIndex++;
             }
           }
         }
