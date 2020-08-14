@@ -1605,6 +1605,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + entry.start/3*Float32Array.BYTES_PER_ELEMENT, numIds),
           skyLight: new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numSkyLights),
           torchLight: new Uint8Array(geometry.attributes.torchLight.array.buffer, geometry.attributes.torchLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numTorchLights),
+          peeks: new Uint8Array(6*5),
           group: null,
           physxGeometry: null,
         };
@@ -1667,6 +1668,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2),
           slabRadius
         );
+      group.slab = slab;
       slab.group = group;
     }
     return slab;
@@ -1900,11 +1902,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         slab.id.set(spec.ids);
         slab.skyLight.set(spec.skyLights);
         slab.torchLight.set(spec.torchLights);
-        /* const indexOffset = slab.slabIndex * slabSliceTris;
-        for (let i = 0; i < spec.indices.length; i++) {
-          spec.indices[i] += indexOffset;
-        }
-        slab.indices.set(spec.indices); */
+        slab.peeks.set(spec.peeks);
 
         mesh.updateGeometry(slab, spec);
         slab.group.count = spec.positions.length/3;
@@ -3256,6 +3254,43 @@ const _collideChunk = matrix => {
   currentChunkMesh && currentChunkMesh.update(localVector3);
 };
 
+const PEEK_FACES = {
+  FRONT: 1,
+  BACK: 2,
+  LEFT: 3,
+  RIGHT: 4,
+  TOP: 5,
+  BOTTOM: 6,
+};
+const PEEK_DIRECTIONS = [
+  [new THREE.Vector3(0, 0, 1), PEEK_FACES.FRONT],
+  [new THREE.Vector3(0, 0, -1), PEEK_FACES.BACK],
+  [new THREE.Vector3(-1, 0, 0), PEEK_FACES.LEFT],
+  [new THREE.Vector3(1, 0, 0), PEEK_FACES.RIGHT],
+  [new THREE.Vector3(0, 1, 0), PEEK_FACES.TOP],
+  [new THREE.Vector3(0, -1, 0), PEEK_FACES.BOTTOM],
+];
+const PEEK_FACE_INDICES = Int32Array.from([255, 0, 1, 2, 3, 4, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 5, 6, 7, 8, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 1, 5, 255, 9, 10, 11, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 2, 6, 9, 255, 12, 13, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 3, 7, 10, 12, 255, 14, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 4, 8, 11, 13, 14]);
+/* (() => {
+  const PEEK_FACE_INDICES = Array(5<<4|5);
+
+  for (let i = 0; i < (5<<4|5); i++) {
+    PEEK_FACE_INDICES[i] = 0xFF;
+  }
+
+  let peekIndex = 0;
+  for (let i = 0; i < 6; i++) {
+    for (let j = 0; j < 6; j++) {
+      if (i != j) {
+        const otherEntry = PEEK_FACE_INDICES[j << 4 | i];
+        PEEK_FACE_INDICES[i << 4 | j] = otherEntry != 0xFF ? otherEntry : peekIndex++;
+      }
+    }
+  }
+
+  return PEEK_FACE_INDICES;
+})(); */
+
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
@@ -3524,11 +3559,7 @@ function animate(timestamp, frame) {
               slab.id.set(spec.ids);
               slab.skyLight.set(spec.skyLights);
               slab.torchLight.set(spec.torchLights);
-              /* const indexOffset = slab.slabIndex * slabSliceTris;
-              for (let i = 0; i < spec.indices.length; i++) {
-                spec.indices[i] += indexOffset;
-              }
-              slab.indices.set(spec.indices); */
+              slab.peeks.set(spec.peeks);
 
               currentChunkMesh.updateGeometry(slab, spec);
               slab.group.count = spec.positions.length/3;
@@ -4079,8 +4110,61 @@ function animate(timestamp, frame) {
     localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, worldContainer.matrixWorld))
   );
   if (currentChunkMesh) {
-    currentChunkMesh.geometry.originalGroups = currentChunkMesh.geometry.groups.slice();
-    currentChunkMesh.geometry.groups = currentChunkMesh.geometry.groups.filter(group => localFrustum.intersectsSphere(group.boundingSphere));
+    const _cull = () => {
+      currentChunkMesh.geometry.originalGroups = currentChunkMesh.geometry.groups.slice();
+
+      pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      const frustumGroups = currentChunkMesh.geometry.groups
+        .filter(group => localFrustum.intersectsSphere(group.boundingSphere))
+        .sort((a, b) => a.boundingSphere.center.distanceTo(localVector) - b.boundingSphere.center.distanceTo(localVector));
+      const frustumGroupIndex = {};
+      for (const group of frustumGroups) {
+        frustumGroupIndex[group.slab.index] = group;
+      }
+
+      const groups = [];
+      const _cullLoop = () => {
+        const queue = frustumGroups.filter(group => group.boundingSphere.center.distanceTo(localVector) < slabRadius*2);
+        let queueIndex = 0;
+        const seenGroups = {};
+
+        const _cullFaces = group => {
+          const direction = localVector2.copy(group.boundingSphere.center)
+            .sub(localVector);
+
+          for (const [enterNormal, enterFace] of PEEK_DIRECTIONS) {
+            if (direction.dot(enterNormal) < 0) {
+              for (const [exitNormal, exitFace] of PEEK_DIRECTIONS) {
+                if (group.slab.peeks[PEEK_FACE_INDICES[enterFace << 4 | exitFace]]) {
+                  const nextIndex = planet.getSubparcelIndex(group.slab.x + exitNormal.x, group.slab.y + exitNormal.y, group.slab.z + exitNormal.z);
+                  const nextGroup = frustumGroupIndex[nextIndex];
+                  if (nextGroup && !seenGroups[nextGroup.slab.index]) {
+                    queue.push(nextGroup);
+                  }
+                }
+              }
+            }
+          }
+        };
+
+        while (queueIndex < queue.length) {
+          const group = queue[queueIndex++];
+          seenGroups[group.slab.index] = true;
+          groups.push(group);
+
+          _cullFaces(group);
+        }
+        window.frustumGroupIndex = frustumGroupIndex;
+        window.seenGroups = seenGroups;
+        window.queue = queue;
+        window.queueIndex = queueIndex;
+        window.groups = groups;
+        window.originalGroups = currentChunkMesh.geometry.originalGroups;
+      };
+      _cullLoop();
+      currentChunkMesh.geometry.groups = groups;
+    };
+    _cull();
   }
   if (currentVegetationMesh) {
     currentVegetationMesh.geometry.originalGroups = currentVegetationMesh.geometry.groups.slice();
