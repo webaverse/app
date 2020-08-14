@@ -1527,7 +1527,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     heightfieldMaterial.uniforms.tex.needsUpdate = true;
   })();
 
-  const numPositions = 8 * 1024 * 1024;
+  const numPositions = 5 * 1024 * 1024;
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(numPositions), 3));
   geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(numPositions), 3));
