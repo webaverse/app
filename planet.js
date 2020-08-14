@@ -434,7 +434,7 @@ const _loadLiveState = seedString => {
   }));
 };
 
-const _makeVegetations = (() => {
+/* const _makeVegetations = (() => {
   const numVegetations = 2;
   const localVector = new THREE.Vector3();
   const localVector2 = new THREE.Vector3();
@@ -484,7 +484,7 @@ const _makeVegetations = (() => {
     }
     return vegetations;
   };
-})();
+})(); */
 const _saveStorage = async roomName => {
   for (const index in subparcels) {
     const subparcel = subparcels[index];
