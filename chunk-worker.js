@@ -52,8 +52,6 @@ const _loadNoise = (seedData, x, y, z, baseHeight, /*freqsData, octavesData, sca
   );
 };
 const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, meshId, subparcelSize) => {
-  // const subparcelSizeP1 = subparcelSize+1;
-
   dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
   shifts.set(Float32Array.from(shiftsData));
   scale.set(Float32Array.from([1, 1, 1]));
