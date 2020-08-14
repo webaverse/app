@@ -4,14 +4,13 @@
 <head>
   <title>xrpackage | help</title>
   <link href="index.css" rel=stylesheet>
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Muli:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
-  <script src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script>
 </head>
 
-<body class="header-gap">
+<body class="header-gap overflow">
   <header class=header id=header>
-    <a href="/" class="nav icon">メマアムく匕ムウヨ</a>
+    <a href="/" class="nav icon">山</a>
     <nav class="selector nav bar" id=selector>
       <i class="fa fa-book head"></i>
       <div class=header-label id=header-label>Documentation</div>
@@ -50,27 +49,43 @@
   </header>
 
   <div class=main>
-    <h1>Coming soon...</h1>
-
     <div class=big-buttons>
-      <div class=big-button>
-        <h1>Upload file...</h1>
-        <p>Create package from these file types:</p>
-        <ul>
-          <li>.wbn (XRPackage)</li>
-          <li>.gltf/glb</li>
-          <li>.vox</li>
-          <li>.html (WebXR)</li>
-        </ul>
-      </div>
-      <div class=big-button>
-        <h1>Designer</h1>
-        <p>Design package visually using the <code>Cryptopolys</code> web tool.</p>
-      </div>
-      <div class=big-button>
-        <h1>CLI</h1>
-        <p>Create package using the <code>xrpk</code> command-line tool.</p>
-      </div>
+      <a class=big-button href="/inspect.html" target="_blank" rel="noopener noreferrer">
+        <div>
+          <h1>Upload file</h1>
+          <p>Create XRPackages from these file types:</p>
+          <ul>
+            <li>.wbn (XRPackage)</li>
+            <li>.gltf/glb</li>
+            <li>.vox</li>
+            <li>.html (WebXR)</li>
+          </ul>
+        </div>
+      </a>
+      <a class=big-button href="/edit.html" target="_blank" rel="noopener noreferrer">
+        <div>
+          <h1>Worlds</h1>
+          <p>Play around and create your own worlds with the XRPackage web interface.</p>
+        </div>
+      </a>
+      <a class=big-button href="https://cryptopolys.com/create.html" target="_blank" rel="noopener noreferrer">
+        <div>
+          <h1>Designer</h1>
+          <p>Design package visually using the <code>Cryptopolys</code> web tool.</p>
+        </div>
+      </a>
+      <a class=big-button href="https://github.com/webaverse/xrpackage-cli" target="_blank" rel="noopener noreferrer">
+        <div>
+          <h1>CLI</h1>
+          <p>Create package using the <code>xrpk</code> command-line tool.</p>
+        </div>
+      </a>
+      <a class=big-button href="https://docs.webaverse.com" target="_blank" rel="noopener noreferrer">
+        <div>
+          <h1>Documentation</h1>
+          <p>Read more about XRPackage at the documentation site.</p>
+        </div>
+      </a>
     </div>
   </div>
 
