@@ -1467,6 +1467,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     vertexShader: WATER_SHADER.vertexShader,
     fragmentShader: WATER_SHADER.fragmentShader,
     transparent: true,
+    side: THREE.DoubleSide,
     extensions: {
       derivatives: true,
     }
