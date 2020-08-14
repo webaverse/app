@@ -64,7 +64,17 @@ const animalShader = {
     uniform float hitFactor;
     varying vec3 vColor;
 
+    /* float pixelDepth = 16.;
+    vec3 pixelize(vec3 c) {
+      return vec3(
+        floor(c.r*pixelDepth)/pixelDepth,
+        floor(c.g*pixelDepth)/pixelDepth,
+        floor(c.b*pixelDepth)/pixelDepth
+      );
+    } */
+
     void main() {
+      // gl_FragColor = vec4(pixelize(vColor), 1.0);
       gl_FragColor = vec4(vColor, 1.0);
       if (hitFactor > 0.) {
         gl_FragColor.rgb += vec3(${new THREE.Color(0xef5350).toArray().map(n => n.toFixed(8)).join(', ')});
