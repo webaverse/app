@@ -467,16 +467,15 @@ const HEIGHTFIELD_SHADER = {
       /* } else {
         c = texture2D(tex2, mapUv).rgb;
       } */
-      vec3 diffuseColor = mix(c, vec3(0.), gl_FragCoord.z/gl_FragCoord.w/30.0);
+      vec3 diffuseColor = c;
       if (edgeFactor() <= 0.99) {
         diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vViewPosition) - mod(uTime*60., 1.)*5.0, 3.0)), 0.0)*0.5);
         diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
       }
-      float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
+      float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0 * vAo;
       float cameraFactor = floor(8.0 - length(vViewPosition))/8.;
       diffuseColor *= max(max(worldFactor, cameraFactor), 0.1);
-
-      diffuseColor.r += vAo;
+      diffuseColor = mix(diffuseColor, vec3(0.2 + sunIntensity*0.8), gl_FragCoord.z/gl_FragCoord.w/100.0);
 
       // diffuseColor *= abs(dot(normalize(texture2D(normalMap, mapUv).rgb), sunDirection));
       /* if (dot(texture2D(normalMap, mapUv).rgb*2.-1., sunDirection) > 0.) {
@@ -1042,6 +1041,7 @@ const [
           float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
           float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
           gl_FragColor.rgb *= max(max(worldFactor, cameraFactor), 0.1);
+          gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.2 + sunIntensity*0.8), gl_FragCoord.z/gl_FragCoord.w/100.0);
         }
       `,
       side: THREE.DoubleSide,
