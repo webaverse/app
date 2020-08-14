@@ -46,6 +46,7 @@ async function doLogin(email, code) {
   const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
     method: 'POST',
   });
+
   if (res.status >= 200 && res.status < 300) {
     const newLoginToken = await res.json();
 
@@ -64,6 +65,10 @@ async function doLogin(email, code) {
 
     return true;
   } else {
+    const loginError = document.getElementById('login-error');
+    const loginForm = document.getElementById('login-form');
+    loginError.innerText = 'Invalid code!';
+    loginForm.classList.add('phase-2');
     return false;
   }
 }
@@ -158,6 +163,8 @@ async function tryLogin() {
 
         return res.blob();
       } else {
+        loginError.innerText = 'Invalid email!';
+        loginForm.classList.add('phase-1');
         throw new Error(`invalid status code: ${res.status}`);
       }
     } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
