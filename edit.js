@@ -1605,7 +1605,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + entry.start/3*Float32Array.BYTES_PER_ELEMENT, numIds),
           skyLight: new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numSkyLights),
           torchLight: new Uint8Array(geometry.attributes.torchLight.array.buffer, geometry.attributes.torchLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numTorchLights),
-          peeks: new Uint8Array(6*5),
+          peeks: new Uint8Array(15),
           group: null,
           physxGeometry: null,
         };

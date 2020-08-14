@@ -99,7 +99,7 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
     // numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT +
     numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT +
-    6*5 * Uint8Array.BYTES_PER_ELEMENT;
+    15 * Uint8Array.BYTES_PER_ELEMENT;
   const arrayBuffer2 = new ArrayBuffer(totalSize);
 
   let index = 0;
@@ -146,9 +146,9 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
   outTl.set(new Uint8Array(torchLights.buffer, torchLights.byteOffset, numPositions[0]/3));
   index += numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT;
 
-  const outPeeks = new Uint8Array(arrayBuffer2, index, 6*5);
-  outPeeks.set(new Uint8Array(peeks.buffer, peeks.byteOffset, 6*5));
-  index += 6*5 * Uint8Array.BYTES_PER_ELEMENT;
+  const outPeeks = new Uint8Array(arrayBuffer2, index, 15);
+  outPeeks.set(new Uint8Array(peeks.buffer, peeks.byteOffset, 15));
+  index += 15 * Uint8Array.BYTES_PER_ELEMENT;
 
   return {
     positions: outP,
@@ -361,7 +361,7 @@ wasmModulePromise.then(() => {
   torchLights = allocator.alloc(Uint8Array, 3 * 1024 * 1024/3);
   numOpaquePositions = allocator.alloc(Uint32Array, 1);
   numTransparentPositions = allocator.alloc(Uint32Array, 1);
-  peeks = allocator.alloc(Uint8Array, 6*5);
+  peeks = allocator.alloc(Uint8Array, 15);
 
   _flushMessages();
 }).catch(err => {
