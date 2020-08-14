@@ -150,11 +150,13 @@ const _makeHeightfieldShader = land => ({
     varying float vSkyLight;
     varying float vTorchLight;
 
+    ${land ? '' : `\
     varying vec3 ts_view_pos;
     varying vec3 ts_frag_pos;
-    varying vec2 vWorldUv;
     varying vec3 vTang;
     varying vec3 vBitang;
+    `}
+    varying vec2 vWorldUv;
 
     float transpose(float m) {
       return m;
@@ -186,7 +188,6 @@ const _makeHeightfieldShader = land => ({
       vSkyLight = skyLight/8.0;
       vTorchLight = torchLight/8.0;
 
-      ts_frag_pos = vec3(modelViewMatrix * vec4(position, 1.0));
       vec3 vert_tang;
       vec3 vert_bitang;
       if (abs(normal.y) < 0.05) {
@@ -212,10 +213,12 @@ const _makeHeightfieldShader = land => ({
       vec3 n = normalize(normalMatrix * vert_norm);
       mat3 tbn = transpose(mat3(t, b, n));
 
+      ${land ? '' : `\
       ts_view_pos = tbn * vec3(0.);
-      ts_frag_pos = tbn * ts_frag_pos;
+      ts_frag_pos = tbn * vec3(modelViewMatrix * vec4(position, 1.0));
       vTang = vert_tang;
       vBitang = vert_bitang;
+      `}
     }
   `,
   fragmentShader: `\
@@ -239,11 +242,13 @@ const _makeHeightfieldShader = land => ({
     uniform float uTime;
     uniform vec3 sunDirection;
 
+    ${land ? '' : `\
     varying vec3 ts_view_pos;
     varying vec3 ts_frag_pos;
-    varying vec2 vWorldUv;
     varying vec3 vTang;
     varying vec3 vBitang;
+    `}
+    varying vec2 vWorldUv;
 
     float edgeFactor() {
       vec3 d = fwidth(vBarycentric);
@@ -353,6 +358,7 @@ const _makeHeightfieldShader = land => ({
       return texture2DLod(tex, tileOffset + uv * tileSize, 0.).r;
     }
 
+${land ? '' : `\
 #define USE_STEEP_PARALLAX 1
 
 #ifdef USE_BASIC_PARALLAX
@@ -416,12 +422,14 @@ const _makeHeightfieldShader = land => ({
     #endif
   }
 #endif
+`}
 
     void main() {
-      vec3 view_dir = normalize(ts_view_pos - ts_frag_pos);
-
       vec2 worldUv = vWorldUv;
-      ${land ? '' : `worldUv = parallaxMap(vUv, worldUv, view_dir);`}
+      ${land ? '' : `\
+      vec3 view_dir = normalize(ts_view_pos - ts_frag_pos);
+      worldUv = parallaxMap(vUv, worldUv, view_dir);
+      `}
       worldUv = mod(worldUv, 1.0);
 
       vec3 c = fourTapSample3(vUv, worldUv, tex);
