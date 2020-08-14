@@ -4131,8 +4131,8 @@ function animate(timestamp, frame) {
         frustumGroupSetIndex[groupSet.slab.index] = groupSet;
       }
 
-      const groupSets = [];
       const _cullLoop = () => {
+        const groupSets = [];
         const queue = frustumGroupSets.filter(groupSet => groupSet.boundingSphere.center.distanceTo(localVector) < slabRadius*2);
         let queueIndex = 0;
         const seenQueue = {};
@@ -4164,13 +4164,15 @@ function animate(timestamp, frame) {
             }
           }
         };
-
         while (queueIndex < queue.length) {
           _cullFaces(queue[queueIndex++]);
         }
+        return groupSets;
       };
-      _cullLoop();
-      currentChunkMesh.geometry.groups = currentChunkMesh.groupSets.map(groupSet => groupSet.groups).flat();
+      currentChunkMesh.geometry.groups = _cullLoop()
+        .map(groupSet => groupSet.groups)
+        .flat()
+        .sort((a, b) => a.materialIndex - b.materialIndex);
     };
     _cull();
   }
