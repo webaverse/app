@@ -1895,12 +1895,13 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
         mesh.updateGeometry(slab, spec);
       }
-      const neededSpecs = specs.filter(spec => spec.positions.length > 0);
+      const neededSpecs = specs.filter(spec => spec.numOpaquePositions > 0);
       if (neededSpecs.length > 0) {
         const bakeSpecs = neededSpecs.map(spec => {
-          const {positions, x, y, z} = spec;
-          return positions.length > 0 ? {
+          const {positions, numOpaquePositions, x, y, z} = spec;
+          return numOpaquePositions > 0 ? {
             positions,
+            numOpaquePositions,
             x,
             y,
             z,
@@ -1916,12 +1917,10 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           numSkyLights: spec.skyLights.length,
           numTorchLights: spec.torchLights.length,
         }));
-        const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => {
-          const {positions} = spec;
-          return {
-            positions,
-          };
-        }));
+        const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => ({
+          positions: spec.positions,
+          count: spec.numOpaquePositions,
+        })));
         if (!live) return;
         for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
           const physxGeometry = result.physicsGeometryBuffers[i];
@@ -3578,12 +3577,13 @@ function animate(timestamp, frame) {
 
               currentChunkMesh.updateGeometry(slab, spec);
             }
-            const neededSpecs = specs.filter(spec => spec.positions.length > 0);
+            const neededSpecs = specs.filter(spec => spec.numOpaquePositions > 0);
             if (neededSpecs.length > 0) {
               const bakeSpecs = neededSpecs.map(spec => {
-                const {positions, x, y, z} = spec;
-                return positions.length > 0 ? {
+                const {positions, numOpaquePositions, x, y, z} = spec;
+                return numOpaquePositions > 0 ? {
                   positions,
+                  numOpaquePositions,
                   x,
                   y,
                   z,
@@ -3599,12 +3599,10 @@ function animate(timestamp, frame) {
                 numSkyLights: spec.skyLights.length,
                 numTorchLights: spec.torchLights.length,
               }));
-              const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => {
-                const {positions} = spec;
-                return {
-                  positions,
-                };
-              }));
+              const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => ({
+                positions: spec.positions,
+                count: spec.numOpaquePositions,
+              })));
               for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
                 const physxGeometry = result.physicsGeometryBuffers[i];
                 const {x, y, z} = bakeSpecs[i];
