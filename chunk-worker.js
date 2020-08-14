@@ -158,6 +158,8 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
     // indices,
     skyLights: outSl,
     torchLights: outTl,
+    numOpaquePositions: numOpaquePositions[0],
+    numTransparentPositions: numTransparentPositions[0],
     peeks: outPeeks,
     arrayBuffer: arrayBuffer2,
   };
@@ -172,7 +174,7 @@ const _meshChunkSlab = (meshId, x, y, z, potentialsData, biomesData, heightfield
     y*subparcelSize,
     z*subparcelSize,
   ];
-  const {positions, normals, uvs, barycentrics, aos, ids, indices, skyLights, torchLights, peeks, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, biomes, heightfield, lightfield, shiftsData, meshId, subparcelSize);
+  const {positions, normals, uvs, barycentrics, aos, ids, indices, skyLights, torchLights, numOpaquePositions, numTransparentPositions, peeks, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, biomes, heightfield, lightfield, shiftsData, meshId, subparcelSize);
   return [
     {
       positions,
@@ -184,6 +186,8 @@ const _meshChunkSlab = (meshId, x, y, z, potentialsData, biomesData, heightfield
       indices,
       skyLights,
       torchLights,
+      numOpaquePositions,
+      numTransparentPositions,
       peeks,
       x,
       y,

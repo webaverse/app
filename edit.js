@@ -108,7 +108,7 @@ const _loadGltf = u => new Promise((accept, reject) => {
     accept(o);
   }, xhr => {}, reject);
 });
-const HEIGHTFIELD_SHADER = {
+const _makeHeightfieldShader = land => ({
   uniforms: {
     uTime: {
       type: 'f',
@@ -143,22 +143,16 @@ const HEIGHTFIELD_SHADER = {
     attribute float skyLight;
     attribute float torchLight;
 
-    // varying vec3 vPosition;
-    // varying vec3 vWorldPosition;
     varying vec3 vViewPosition;
-    // varying vec3 vViewPosition2;
-    // varying vec3 vNormal;
-    // varying vec3 vViewNormal;
     varying vec2 vUv;
     varying vec3 vBarycentric;
     varying float vAo;
     varying float vSkyLight;
     varying float vTorchLight;
 
-    varying vec3 ts_view_pos;  //
-    varying vec3 ts_frag_pos;  //
+    varying vec3 ts_view_pos;
+    varying vec3 ts_frag_pos;
     varying vec2 vWorldUv;
-    // varying vec3 view_dir;
     varying vec3 vTang;
     varying vec3 vBitang;
 
@@ -185,12 +179,7 @@ const HEIGHTFIELD_SHADER = {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
       gl_Position = projectionMatrix * mvPosition;
 
-      // vPosition = position.xyz;
-      // vWorldPosition = (modelMatrix * vec4(position.xyz, 1.0)).xyz;
       vViewPosition = -mvPosition.xyz;
-      // vViewPosition2 = -(modelViewMatrix * vec4(position + normal, 1.0)).xyz;
-      // vNormal = normal;
-      // vViewNormal = normalize( normalMatrix * normal );
       vUv = uv;
       vBarycentric = barycentric;
       vAo = ao/27.0;
@@ -223,10 +212,8 @@ const HEIGHTFIELD_SHADER = {
       vec3 n = normalize(normalMatrix * vert_norm);
       mat3 tbn = transpose(mat3(t, b, n));
 
-      // Our camera is always at the origin
       ts_view_pos = tbn * vec3(0.);
       ts_frag_pos = tbn * ts_frag_pos;
-      // view_dir = normalize(ts_view_pos - ts_frag_pos);
       vTang = vert_tang;
       vBitang = vert_bitang;
     }
@@ -243,12 +230,7 @@ const HEIGHTFIELD_SHADER = {
     float parallaxMinLayers = 50.;
     float parallaxMaxLayers = 50.;
 
-    // varying vec3 vPosition;
-    // varying vec3 vWorldPosition;
     varying vec3 vViewPosition;
-    // varying vec3 vViewPosition2;
-    // varying vec3 vNormal;
-    // varying vec3 vViewNormal;
     varying vec2 vUv;
     varying vec3 vBarycentric;
     varying float vAo;
@@ -257,10 +239,9 @@ const HEIGHTFIELD_SHADER = {
     uniform float uTime;
     uniform vec3 sunDirection;
 
-    varying vec3 ts_view_pos;  //
-    varying vec3 ts_frag_pos;  //
+    varying vec3 ts_view_pos;
+    varying vec3 ts_frag_pos;
     varying vec2 vWorldUv;
-    // varying vec3 view_dir;
     varying vec3 vTang;
     varying vec3 vBitang;
 
@@ -391,7 +372,6 @@ const HEIGHTFIELD_SHADER = {
 
     vec3 pos = floor((vTang * currentTextureCoords.x + vBitang * currentTextureCoords.y) * 16.)/16.;
     heightFromTexture *= 0.3 + (1.0+sin((length(pos) - mod(uTime*30., 1.)) * PI*2.))/2.*0.5;
-    // heightFromTexture += 0.2;
 
     for ( int i = 0; i < 50; i += 1 ) {
       if ( heightFromTexture <= currentLayerHeight ) {
@@ -403,7 +383,6 @@ const HEIGHTFIELD_SHADER = {
 
       vec3 pos = floor((vTang * currentTextureCoords.x + vBitang * currentTextureCoords.y) * 16.)/16.;
       heightFromTexture *= 0.3 + (1.0+sin((length(pos) - mod(uTime*30., 1.)) * PI*2.))/2.*0.5;
-      // heightFromTexture += 0.2;
     }
     #ifdef USE_STEEP_PARALLAX
       return currentTextureCoords;
@@ -437,36 +416,15 @@ const HEIGHTFIELD_SHADER = {
     #endif
   }
 #endif
-    /* vec2 perturbUv( vec2 tileOffset, vec2 vUv, vec3 surfPosition, vec3 surfNormal, vec3 viewPosition ) {
-      vec2 texDx = dFdx( vUv );
-      vec2 texDy = dFdy( vUv );
-      vec3 vSigmaX = dFdx( surfPosition );
-      vec3 vSigmaY = dFdy( surfPosition );
-      vec3 vR1 = cross( vSigmaY, surfNormal );
-      vec3 vR2 = cross( surfNormal, vSigmaX );
-      float fDet = dot( vSigmaX, vR1 );
-      vec2 vProjVscr = ( 1.0 / fDet ) * vec2( dot( vR1, viewPosition ), dot( vR2, viewPosition ) );
-      vec3 vProjVtex;
-      vProjVtex.xy = texDx * vProjVscr.x + texDy * vProjVscr.y;
-      vProjVtex.z = dot( surfNormal, viewPosition );
-      return parallaxMap( tileOffset, vUv, vProjVtex );
-    } */
 
     void main() {
       vec3 view_dir = normalize(ts_view_pos - ts_frag_pos);
 
       vec2 worldUv = vWorldUv;
-      // worldUv = perturbUv( vUv, worldUv, -vViewPosition, vViewNormal, normalize( vViewPosition ) );
-      worldUv = parallaxMap(vUv, worldUv, view_dir);
+      ${land ? '' : `worldUv = parallaxMap(vUv, worldUv, view_dir);`}
       worldUv = mod(worldUv, 1.0);
 
-      vec3 c;
-      // if (vPosition.y >= 290.0) {
-        // c = texture2D(tex, mapUv).rgb;
-        c = fourTapSample3(vUv, worldUv, tex);
-      /* } else {
-        c = texture2D(tex2, mapUv).rgb;
-      } */
+      vec3 c = fourTapSample3(vUv, worldUv, tex);
       vec3 diffuseColor = c;
       if (edgeFactor() <= 0.99) {
         diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vViewPosition) - mod(uTime*60., 1.)*5.0, 3.0)), 0.0)*0.5);
@@ -477,15 +435,13 @@ const HEIGHTFIELD_SHADER = {
       diffuseColor *= max(max(worldFactor, cameraFactor), 0.1);
       diffuseColor = mix(diffuseColor, vec3(0.2 + sunIntensity*0.8), gl_FragCoord.z/gl_FragCoord.w/100.0);
 
-      // diffuseColor *= abs(dot(normalize(texture2D(normalMap, mapUv).rgb), sunDirection));
-      /* if (dot(texture2D(normalMap, mapUv).rgb*2.-1., sunDirection) > 0.) {
-        diffuseColor *= 1. + sunIntensity*0.5;
-      } */
-
-      gl_FragColor = vec4(diffuseColor, 1.0);
+      float a = ${land ? '1.0' : '0.9'};
+      gl_FragColor = vec4(diffuseColor, a);
     }
   `
-};
+});
+const LAND_SHADER = _makeHeightfieldShader(true);
+const WATER_SHADER = _makeHeightfieldShader(false);
 const _snapBuildPosition = p => {
   p.x = Math.floor(p.x/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
   p.y = Math.floor(p.y/BUILD_SNAP)*BUILD_SNAP+BUILD_SNAP/2;
@@ -1490,10 +1446,19 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 
   const meshId = getNextMeshId();
 
-  const heightfieldMaterial = new THREE.ShaderMaterial({
-    uniforms: THREE.UniformsUtils.clone(HEIGHTFIELD_SHADER.uniforms),
-    vertexShader: HEIGHTFIELD_SHADER.vertexShader,
-    fragmentShader: HEIGHTFIELD_SHADER.fragmentShader,
+  const landMaterial = new THREE.ShaderMaterial({
+    uniforms: LAND_SHADER.uniforms,
+    vertexShader: LAND_SHADER.vertexShader,
+    fragmentShader: LAND_SHADER.fragmentShader,
+    extensions: {
+      derivatives: true,
+    }
+  });
+  const waterMaterial = new THREE.ShaderMaterial({
+    uniforms: WATER_SHADER.uniforms,
+    vertexShader: WATER_SHADER.vertexShader,
+    fragmentShader: WATER_SHADER.fragmentShader,
+    transparent: true,
     extensions: {
       derivatives: true,
     }
@@ -1523,8 +1488,10 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         reject(err);
       }); */
     });
-    heightfieldMaterial.uniforms.tex.value = texture;
-    heightfieldMaterial.uniforms.tex.needsUpdate = true;
+    landMaterial.uniforms.tex.value = texture;
+    landMaterial.uniforms.tex.needsUpdate = true;
+    waterMaterial.uniforms.tex.value = texture;
+    waterMaterial.uniforms.tex.needsUpdate = true;
   })();
 
   const numPositions = 5 * 1024 * 1024;
@@ -1538,7 +1505,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
   geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
   const peeks = new Uint8Array(numPositions/3);
-  const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
+  const mesh = new THREE.Mesh(geometry, [landMaterial, waterMaterial]);
   mesh.frustumCulled = false;
   mesh.seedNum = seedNum;
   mesh.meshId = meshId;
@@ -1546,6 +1513,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   mesh.parcelSize = parcelSize;
   mesh.subparcelSize = subparcelSize;
   mesh.isChunkMesh = true;
+  mesh.groupSets = [];
   mesh.buildMeshes = {};
   mesh.vegetationMeshes = {};
   mesh.objects = [];
@@ -1575,6 +1543,43 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       entry.count/3 >= numSkyLights &&
       entry.count/3 >= numTorchLights;
   };
+  const _makeGroup = materialIndex => ({
+    start: 0,
+    count: 0,
+    materialIndex,
+  });
+  class Slab {
+    constructor(start, numPositions, numNormals, numUvs, numBarycenterics, numAos, numIds, numSkyLights, numTorchLights) {
+      this.x = 0;
+      this.y = 0;
+      this.z = 0;
+      this.index = 0;
+      this.start = start;
+      this.count = numPositions;
+      this.position = new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + start*Float32Array.BYTES_PER_ELEMENT, numPositions);
+      this.normal = new Float32Array(geometry.attributes.normal.array.buffer, geometry.attributes.normal.array.byteOffset + start*Float32Array.BYTES_PER_ELEMENT, numNormals);
+      this.uv = new Float32Array(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset + start/3*2*Float32Array.BYTES_PER_ELEMENT, numUvs);
+      this.barycentric = new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + start*Float32Array.BYTES_PER_ELEMENT, numBarycenterics);
+      this.ao = new Uint8Array(geometry.attributes.ao.array.buffer, geometry.attributes.ao.array.byteOffset + start/3*Uint8Array.BYTES_PER_ELEMENT, numAos);
+      this.id = new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + start/3*Float32Array.BYTES_PER_ELEMENT, numIds);
+      this.skyLight = new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + start/3*Uint8Array.BYTES_PER_ELEMENT, numSkyLights);
+      this.torchLight = new Uint8Array(geometry.attributes.torchLight.array.buffer, geometry.attributes.torchLight.array.byteOffset + start/3*Uint8Array.BYTES_PER_ELEMENT, numTorchLights);
+      this.peeks = new Uint8Array(peeks.buffer, peeks.byteOffset + start*Uint8Array.BYTES_PER_ELEMENT, 15);
+      this.groupSet = {
+        groups: [_makeGroup(0), _makeGroup(1)],
+        boundingSphere: new THREE.Sphere(new THREE.Vector3(0, 0, 0), slabRadius),
+        slab: this,
+      };
+      this.physxGeometry = null;
+    }
+    setPosition(x, y, z, index) {
+      this.x = x;
+      this.y = y;
+      this.z = z;
+      this.index = index;
+      this.groupSet.boundingSphere.center.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2);
+    }
+  }
   const _findFreeSlab = (numPositions, numNormals, numUvs, numBarycenterics, numAos, numIds, numSkyLights, numTorchLights) => {
     for (let i = 0; i < freeList.length; i++) {
       const entry = freeList[i];
@@ -1590,26 +1595,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
             freeList.splice(i, 1);
           }
         }
-
-        return {
-          x: 0,
-          y: 0,
-          z: 0,
-          start: entry.start,
-          count: numPositions,
-          index: 0,
-          position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + entry.start*Float32Array.BYTES_PER_ELEMENT, numPositions),
-          normal: new Float32Array(geometry.attributes.normal.array.buffer, geometry.attributes.normal.array.byteOffset + entry.start*Float32Array.BYTES_PER_ELEMENT, numNormals),
-          uv: new Float32Array(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset + entry.start/3*2*Float32Array.BYTES_PER_ELEMENT, numUvs),
-          barycentric: new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + entry.start*Float32Array.BYTES_PER_ELEMENT, numBarycenterics),
-          ao: new Uint8Array(geometry.attributes.ao.array.buffer, geometry.attributes.ao.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numAos),
-          id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + entry.start/3*Float32Array.BYTES_PER_ELEMENT, numIds),
-          skyLight: new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numSkyLights),
-          torchLight: new Uint8Array(geometry.attributes.torchLight.array.buffer, geometry.attributes.torchLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numTorchLights),
-          peeks: new Uint8Array(peeks.buffer, peeks.byteOffset + entry.start*Uint8Array.BYTES_PER_ELEMENT, 15),
-          group: null,
-          physxGeometry: null,
-        };
+        return new Slab(entry.start, numPositions, numNormals, numUvs, numBarycenterics, numAos, numIds, numSkyLights, numTorchLights);
       }
     }
     throw new Error('could not allocate slab');
@@ -1656,21 +1642,10 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     }
     if (!slab) {
       slab = _findFreeSlab(numPositions, numNormals, numUvs, numBarycenterics, numAos, numIds, numSkyLights, numTorchLights);
-      slab.x = x;
-      slab.y = y;
-      slab.z = z;
-      slab.index = index;
+      slab.setPosition(x, y, z, index);
       slab.physxGeometry = physxGeometry;
       slabs[index] = slab;
-      geometry.addGroup(_getSlabPositionOffset(slab)/3, slab.position.length, 0);
-      const group = geometry.groups[geometry.groups.length-1];
-      group.boundingSphere =
-        new THREE.Sphere(
-          new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2),
-          slabRadius
-        );
-      group.slab = slab;
-      slab.group = group;
+      mesh.groupSets.push(slab.groupSet);
     }
     return slab;
   };
@@ -1701,12 +1676,16 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     geometry.attributes.skyLight.updateRange.count = spec.skyLights.length;
     geometry.attributes.torchLight.updateRange.count = spec.torchLights.length;
     renderer.geometries.update(geometry);
+
+    slab.groupSet.groups[0].start = _getSlabPositionOffset(slab)/3;
+    slab.groupSet.groups[0].count = spec.numOpaquePositions/3;
+    slab.groupSet.groups[1].start = slab.groupSet.groups[0].start + slab.groupSet.groups[0].count;
+    slab.groupSet.groups[1].count = spec.numTransparentPositions/3;
   };
   mesh.freeSlabIndex = index => {
     const slab = slabs[index];
     if (slab) {
-      geometry.groups.splice(geometry.groups.indexOf(slab.group), 1);
-      slab.group = null;
+      mesh.groupSets.splice(mesh.groupSets.indexOf(slab.groupSet), 1);
       slabs[index] = null;
       if (slab.count > 0) {
         freeList.push({
@@ -1907,7 +1886,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         slab.peeks.set(spec.peeks);
 
         mesh.updateGeometry(slab, spec);
-        slab.group.count = spec.positions.length/3;
       }
       const neededSpecs = specs.filter(spec => spec.positions.length > 0);
       if (neededSpecs.length > 0) {
@@ -3591,7 +3569,6 @@ function animate(timestamp, frame) {
               slab.peeks.set(spec.peeks);
 
               currentChunkMesh.updateGeometry(slab, spec);
-              slab.group.count = spec.positions.length/3;
             }
             const neededSpecs = specs.filter(spec => spec.positions.length > 0);
             if (neededSpecs.length > 0) {
@@ -4140,47 +4117,47 @@ function animate(timestamp, frame) {
   );
   if (currentChunkMesh) {
     const _cull = () => {
-      currentChunkMesh.geometry.originalGroups = currentChunkMesh.geometry.groups.slice();
+      // currentChunkMesh.geometry.originalGroups = currentChunkMesh.geometry.groups.slice();
 
       localMatrix2.getInverse(worldContainer.matrixWorld);
       localMatrix.copy(pe.camera.matrixWorld)
         .premultiply(localMatrix2)
         .decompose(localVector, localQuaternion, localVector2);
-      const frustumGroups = currentChunkMesh.geometry.groups
-        .filter(group => localFrustum.intersectsSphere(group.boundingSphere))
+      const frustumGroupSets = currentChunkMesh.groupSets
+        .filter(groupSet => localFrustum.intersectsSphere(groupSet.boundingSphere))
         .sort((a, b) => a.boundingSphere.center.distanceTo(localVector) - b.boundingSphere.center.distanceTo(localVector));
-      const frustumGroupIndex = {};
-      for (const group of frustumGroups) {
-        frustumGroupIndex[group.slab.index] = group;
+      const frustumGroupSetIndex = {};
+      for (const groupSet of frustumGroupSets) {
+        frustumGroupSetIndex[groupSet.slab.index] = groupSet;
       }
 
-      const groups = [];
+      const groupSets = [];
       const _cullLoop = () => {
-        const queue = frustumGroups.filter(group => group.boundingSphere.center.distanceTo(localVector) < slabRadius*2);
+        const queue = frustumGroupSets.filter(groupSet => groupSet.boundingSphere.center.distanceTo(localVector) < slabRadius*2);
         let queueIndex = 0;
         const seenQueue = {};
-        for (const group of queue) {
-          groups.push(group);
-          seenQueue[group.slab.index] = true;
+        for (const groupSet of queue) {
+          groupSets.push(groupSet);
+          seenQueue[groupSet.slab.index] = true;
         }
 
-        const _cullFaces = group => {
+        const _cullFaces = groupSet => {
           for (const [enterNormal, enterFace] of PEEK_DIRECTIONS) {
-            const direction = localVector2.copy(group.boundingSphere.center)
+            const direction = localVector2.copy(groupSet.boundingSphere.center)
               .add(localVector3.copy(enterNormal).multiplyScalar(SUBPARCEL_SIZE/2))
               .sub(localVector);
             if (direction.dot(enterNormal) <= 0) {
               for (const [exitNormal, exitFace] of PEEK_DIRECTIONS) {
-                const direction = localVector2.copy(group.boundingSphere.center)
+                const direction = localVector2.copy(groupSet.boundingSphere.center)
                   .add(localVector3.copy(exitNormal).multiplyScalar(SUBPARCEL_SIZE/2))
                   .sub(localVector);
-                if (direction.dot(exitNormal) >= 0 && group.slab.peeks[PEEK_FACE_INDICES[enterFace << 4 | exitFace]]) {
-                  const nextIndex = planet.getSubparcelIndex(group.slab.x + exitNormal.x, group.slab.y + exitNormal.y, group.slab.z + exitNormal.z);
-                  const nextGroup = frustumGroupIndex[nextIndex];
-                  if (nextGroup && !seenQueue[nextGroup.slab.index]) {
-                    groups.push(nextGroup);
-                    queue.push(nextGroup);
-                    seenQueue[nextGroup.slab.index] = true;
+                if (direction.dot(exitNormal) >= 0 && groupSet.slab.peeks[PEEK_FACE_INDICES[enterFace << 4 | exitFace]]) {
+                  const nextIndex = planet.getSubparcelIndex(groupSet.slab.x + exitNormal.x, groupSet.slab.y + exitNormal.y, groupSet.slab.z + exitNormal.z);
+                  const nextGroupSet = frustumGroupSetIndex[nextIndex];
+                  if (nextGroupSet && !seenQueue[nextGroupSet.slab.index]) {
+                    groupSets.push(nextGroupSet);
+                    queue.push(nextGroupSet);
+                    seenQueue[nextGroupSet.slab.index] = true;
                   }
                 }
               }
@@ -4193,7 +4170,7 @@ function animate(timestamp, frame) {
         }
       };
       _cullLoop();
-      currentChunkMesh.geometry.groups = groups;
+      currentChunkMesh.geometry.groups = currentChunkMesh.groupSets.map(groupSet => groupSet.groups).flat();
     };
     _cull();
   }
@@ -4205,9 +4182,9 @@ function animate(timestamp, frame) {
   renderer.render(scene, camera);
   // renderer.render(highlightScene, camera);
 
-  if (currentChunkMesh) {
+  /* if (currentChunkMesh) {
     currentChunkMesh.geometry.groups = currentChunkMesh.geometry.originalGroups;
-  }
+  } */
   if (currentVegetationMesh) {
     currentVegetationMesh.geometry.groups = currentVegetationMesh.geometry.originalGroups;
   }
