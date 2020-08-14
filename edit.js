@@ -1537,6 +1537,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(numPositions/3), 1));
   geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
   geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
+  const peeks = new Uint8Array(numPositions/3);
   const mesh = new THREE.Mesh(geometry, [heightfieldMaterial]);
   mesh.frustumCulled = false;
   mesh.seedNum = seedNum;
@@ -1605,7 +1606,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + entry.start/3*Float32Array.BYTES_PER_ELEMENT, numIds),
           skyLight: new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numSkyLights),
           torchLight: new Uint8Array(geometry.attributes.torchLight.array.buffer, geometry.attributes.torchLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numTorchLights),
-          peeks: new Uint8Array(15),
+          peeks: new Uint8Array(peeks.buffer, peeks.byteOffset + entry.start*Uint8Array.BYTES_PER_ELEMENT, 15),
           group: null,
           physxGeometry: null,
         };
