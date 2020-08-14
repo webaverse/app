@@ -3271,7 +3271,17 @@ const PEEK_DIRECTIONS = [
   [new THREE.Vector3(0, -1, 0), PEEK_FACES.BOTTOM],
 ];
 const PEEK_FACE_INDICES = Int32Array.from([255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,1,2,3,4,255,255,255,255,255,255,255,255,255,255,0,255,5,6,7,8,255,255,255,255,255,255,255,255,255,255,1,5,255,9,10,11,255,255,255,255,255,255,255,255,255,255,2,6,9,255,12,13,255,255,255,255,255,255,255,255,255,255,3,7,10,12,255,14,255,255,255,255,255,255,255,255,255,255,4,8,11,13,14,255]);
-/* x = (() => {
+/* (() => {
+  const directionsLookup = {
+    1: 'FRONT',
+    2: 'BACK',
+    3: 'LEFT',
+    4: 'RIGHT',
+    5: 'TOP',
+    6: 'BOTTOM',
+  };
+  const indexDirections = [];
+
   const PEEK_FACE_INDICES = Array((6<<4|6)+1);
 
   for (let i = 0; i < (6<<4|6)+1; i++) {
@@ -3283,12 +3293,17 @@ const PEEK_FACE_INDICES = Int32Array.from([255,255,255,255,255,255,255,255,255,2
     for (let j = 1; j <= 6; j++) {
       if (i != j) {
         const otherEntry = PEEK_FACE_INDICES[j << 4 | i];
-        PEEK_FACE_INDICES[i << 4 | j] = otherEntry != 0xFF ? otherEntry : peekIndex++;
+        PEEK_FACE_INDICES[i << 4 | j] = otherEntry != 0xFF ? otherEntry : (() => {
+          const newIndex = peekIndex++;
+          indexDirections[newIndex] = directionsLookup[i] + ' -> ' + directionsLookup[j];
+          return newIndex;
+        })();
       }
     }
   }
 
-  return PEEK_FACE_INDICES;
+  x = PEEK_FACE_INDICES;
+  y = indexDirections;
 })(); */
 
 const velocity = new THREE.Vector3();
