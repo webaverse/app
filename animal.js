@@ -177,6 +177,7 @@ export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, has
             const now = Date.now();
             material.uniforms.hitFactor.value = (now - startTime) / (endTime - startTime);
             if (material.uniforms.hitFactor.value >= 1) {
+              material.uniforms.hitFactor.value = 0;
               hitAnimation = null;
             }
             material.uniforms.hitFactor.needsUpdate = true;
