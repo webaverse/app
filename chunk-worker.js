@@ -65,14 +65,14 @@ const _loadNoise = (seedData, x, y, z, baseHeight, parcelSize, subparcelSize, po
     PLANET_OBJECT_SLOTS
   );
 };
-const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, meshId, subparcelSize) => {
+const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, meshId, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks) => {
   dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
   shifts.set(Float32Array.from(shiftsData));
   scale.set(Float32Array.from([1, 1, 1]));
-  numPositions[0] = positions.length;
-  numUvs[0] = uvs.length;
-  numBarycentrics[0] = barycentrics.length;
-  numAos[0] = aos.length;
+  numPositions[0] = 0;
+  numUvs[0] = 0;
+  numBarycentrics[0] = 0;
+  numAos[0] = 0;
 
   self.Module._doMarchingCubes2(
     dims.offset,
@@ -82,103 +82,61 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
     lightfield.offset,
     shifts.offset,
     scale.offset,
-    positions.offset,
-    normals.offset,
-    uvs.offset,
-    barycentrics.offset,
-    aos.offset,
+    position.byteOffset,
+    normal.byteOffset,
+    uv.byteOffset,
+    barycentric.byteOffset,
+    ao.byteOffset,
     numPositions.offset,
     numNormals.offset,
     numUvs.offset,
     numBarycentrics.offset,
     numAos.offset,
-    skyLights.offset,
-    torchLights.offset,
+    skyLight.byteOffset,
+    torchLight.byteOffset,
     numOpaquePositions.offset,
     numTransparentPositions.offset,
-    peeks.offset
+    peeks.byteOffset
   );
 
-  let totalSize =
-    numPositions[0] * Float32Array.BYTES_PER_ELEMENT +
-    numNormals[0] * Float32Array.BYTES_PER_ELEMENT +
-    numUvs[0] * Float32Array.BYTES_PER_ELEMENT +
-    numBarycentrics[0] * Float32Array.BYTES_PER_ELEMENT +
-    numAos[0] * Uint8Array.BYTES_PER_ELEMENT;
-  totalSize = _align4(totalSize);
-  totalSize +=
-    numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
-    // numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT +
-    numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT +
-    numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT +
-    15 * Uint8Array.BYTES_PER_ELEMENT;
-  const arrayBuffer2 = new ArrayBuffer(totalSize);
-
-  let index = 0;
-
-  const outP = new Float32Array(arrayBuffer2, index, numPositions[0]);
-  outP.set(new Float32Array(positions.buffer, positions.byteOffset, numPositions[0]));
-  index += Float32Array.BYTES_PER_ELEMENT * numPositions[0];
-
-  const outN = new Float32Array(arrayBuffer2, index, numNormals[0]);
-  outN.set(new Float32Array(normals.buffer, normals.byteOffset, numNormals[0]));
-  index += Float32Array.BYTES_PER_ELEMENT * numNormals[0];
-
-  const outU = new Float32Array(arrayBuffer2, index, numUvs[0]);
-  outU.set(new Float32Array(uvs.buffer, uvs.byteOffset, numUvs[0]));
-  index += Float32Array.BYTES_PER_ELEMENT * numUvs[0];
-
-  const outB = new Float32Array(arrayBuffer2, index, numBarycentrics[0]);
-  outB.set(new Float32Array(barycentrics.buffer, barycentrics.byteOffset, numBarycentrics[0]));
-  index += Float32Array.BYTES_PER_ELEMENT * numBarycentrics[0];
-
-  const outA = new Uint8Array(arrayBuffer2, index, numAos[0]);
-  outA.set(new Uint8Array(aos.buffer, aos.byteOffset, numAos[0]));
-  index += Uint8Array.BYTES_PER_ELEMENT * numAos[0];
-  index = _align4(index);
-
-  const ids = new Float32Array(arrayBuffer2, index, numPositions[0]/3);
-  index += numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT;
-  /* const indices = new Float32Array(arrayBuffer2, index, numPositions[0]/3);
-  index += numPositions[0]/3 * Float32Array.BYTES_PER_ELEMENT; */
+  const ids = id.subarray(0, numPositions[0]/3);
   for (let i = 0; i < numPositions[0]/3/3; i++) {
     ids[i*3] = meshId;
     ids[i*3+1] = meshId;
     ids[i*3+2] = meshId;
-    /* indices[i*3] = i;
-    indices[i*3+1] = i;
-    indices[i*3+2] = i; */
   }
 
-  const outSl = new Uint8Array(arrayBuffer2, index, numPositions[0]/3);
-  outSl.set(new Uint8Array(skyLights.buffer, skyLights.byteOffset, numPositions[0]/3));
-  index += numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT;
-
-  const outTl = new Uint8Array(arrayBuffer2, index, numPositions[0]/3);
-  outTl.set(new Uint8Array(torchLights.buffer, torchLights.byteOffset, numPositions[0]/3));
-  index += numPositions[0]/3 * Uint8Array.BYTES_PER_ELEMENT;
-
-  const outPeeks = new Uint8Array(arrayBuffer2, index, 15);
-  outPeeks.set(new Uint8Array(peeks.buffer, peeks.byteOffset, 15));
-  index += 15 * Uint8Array.BYTES_PER_ELEMENT;
+  if (numPositions[0] > position.length) {
+    debugger;
+  }
+  if (numNormals[0] > normal.length) {
+    debugger;
+  }
+  if (numUvs[0] > uv.length) {
+    debugger;
+  }
+  if (numBarycentrics[0] > barycentric.length) {
+    debugger;
+  }
+  if (numAos[0] > ao.length) {
+    debugger;
+  }
 
   return {
-    positions: outP,
-    normals: outN,
-    uvs: outU,
-    barycentrics: outB,
-    aos: outA,
+    positions: position.subarray(0, numPositions[0]),
+    normals: normal.subarray(0, numNormals[0]),
+    uvs: uv.subarray(0, numUvs[0]),
+    barycentrics: barycentric.subarray(0, numBarycentrics[0]),
+    aos: ao.subarray(0, numAos[0]),
     ids,
-    // indices,
-    skyLights: outSl,
-    torchLights: outTl,
+    skyLights: skyLight.subarray(0, numPositions[0]/3),
+    torchLights: torchLight.subarray(0, numPositions[0]/3),
+    peeks,
     numOpaquePositions: numOpaquePositions[0],
     numTransparentPositions: numTransparentPositions[0],
-    peeks: outPeeks,
-    arrayBuffer: arrayBuffer2,
   };
 };
-const _meshChunkSlab = (meshId, x, y, z, potentialsData, biomesData, heightfieldData, lightfieldData, subparcelSize) => {
+const _meshChunkSlab = (meshId, x, y, z, potentialsData, biomesData, heightfieldData, lightfieldData, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks) => {
   potentials.set(potentialsData);
   biomes.set(biomesData);
   heightfield.set(heightfieldData);
@@ -188,27 +146,13 @@ const _meshChunkSlab = (meshId, x, y, z, potentialsData, biomesData, heightfield
     y*subparcelSize,
     z*subparcelSize,
   ];
-  const {positions, normals, uvs, barycentrics, aos, ids, indices, skyLights, torchLights, numOpaquePositions, numTransparentPositions, peeks, arrayBuffer: arrayBuffer2} = _getChunkSpec(potentials, biomes, heightfield, lightfield, shiftsData, meshId, subparcelSize);
-  return [
-    {
-      positions,
-      normals,
-      uvs,
-      barycentrics,
-      aos,
-      ids,
-      indices,
-      skyLights,
-      torchLights,
-      numOpaquePositions,
-      numTransparentPositions,
-      peeks,
-      x,
-      y,
-      z,
-    },
-    arrayBuffer2
-  ];
+  const spec = _getChunkSpec(potentials, biomes, heightfield, lightfield, shiftsData, meshId, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks);
+  return {
+    ...spec,
+    x,
+    y,
+    z,
+  };
 };
 
 const queue = [];
@@ -259,27 +203,25 @@ const _handleMessage = data => {
       break;
     }
     case 'marchLand': {
-      const {seed: seedData, meshId, x, y, z, potentials, biomes, heightfield, lightfield, parcelSize, subparcelSize} = data;
-      const [result, transfer] = _meshChunkSlab(meshId, x, y, z, potentials, biomes, heightfield, lightfield, subparcelSize);
+      const {seed: seedData, meshId, x, y, z, potentials, biomes, heightfield, lightfield, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks} = data;
+      const result = _meshChunkSlab(meshId, x, y, z, potentials, biomes, heightfield, lightfield, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks);
       self.postMessage({
         result,
-      }, [transfer]);
+      });
       break;
     }
     case 'mine': {
       const {meshId, mineSpecs, subparcelSize} = data;
 
       const results = [];
-      const transfers = [];
       for (const mineSpec of mineSpecs) {
-        const [result, transfer] = _meshChunkSlab(meshId, mineSpec.x, mineSpec.y, mineSpec.z, mineSpec.potentials, mineSpec.biomes, mineSpec.heightfield, mineSpec.lightfield, subparcelSize);
+        const result = _meshChunkSlab(meshId, mineSpec.x, mineSpec.y, mineSpec.z, mineSpec.potentials, mineSpec.biomes, mineSpec.heightfield, mineSpec.lightfield, subparcelSize);
         results.push(result);
-        transfers.push(transfer);
       }
 
       self.postMessage({
         result: results,
-      }, transfers);
+      });
       break;
     }
     case 'getHeight': {
