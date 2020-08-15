@@ -1442,7 +1442,7 @@ physicsWorker = pw;
   ]], 0x42a5f5);
   scene.add(guardianMesh);
 })();
-(async () => {
+/* (async () => {
   const HEIGHTFIELD_SHADER2 = {
     uniforms: {
       map: {
@@ -1574,7 +1574,7 @@ physicsWorker = pw;
   const mesh = new THREE.Mesh(geometry, heightfieldMaterial2);
   mesh.position.x = -5;
   scene.add(mesh);
-})();
+})(); */
 
 const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   const rng = alea(seedString);
