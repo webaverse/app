@@ -25,11 +25,11 @@ import {
   numSlices,
   slabRadius,
 
-  slabTotalSize,
+  /* slabTotalSize,
   slabNumAttributes,
   slabAttributeSize,
   slabSliceTris,
-  slabSliceVertices,
+  slabSliceVertices, */
 
   chunkDistance,
   BUILD_SNAP,
