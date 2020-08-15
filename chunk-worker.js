@@ -216,6 +216,22 @@ let loaded = false;
 const _handleMessage = data => {
   const {method} = data;
   switch (method) {
+    case 'alloc': {
+      const {size} = data;
+      const uint8Array = allocator.alloc(Uint8Array, size);
+      self.postMessage({
+        result: uint8Array,
+      });
+      break;
+    }
+    case 'free': {
+      const {offset} = data;
+      allocator.free(offset);
+      self.postMessage({
+        result: null,
+      });
+      break;
+    }
     case 'loadPotentials': {
       const {seed: seedData, meshId, x, y, z, baseHeight, parcelSize, subparcelSize} = data;
 
