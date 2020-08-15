@@ -57,31 +57,6 @@ const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
 const baseHeight = PARCEL_SIZE/2-10;
 const SPAWNER_RATE = 0.08;
-/* const freqs = [
-  1,
-  1,
-  1,
-];
-const octaves = [
-  3,
-  3,
-  3,
-];
-const scales = [
-  0.08,
-  0.012,
-  0.016,
-];
-const uvs = [
-  0,
-  0,
-  0,
-];
-const amps = [
-  1,
-  1.5,
-  4,
-]; */
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -564,7 +539,7 @@ const [
         }
       });
     });
-    w.requestLoadPotentials = (seed, meshId, x, y, z, baseHeight, /*freqs, octaves, scales, uvs, amps, */parcelSize, subparcelSize) => {
+    w.requestLoadPotentials = (seed, meshId, x, y, z, baseHeight, parcelSize, subparcelSize) => {
       return w.request({
         method: 'loadPotentials',
         seed,
@@ -573,11 +548,6 @@ const [
         y,
         z,
         baseHeight,
-        /* freqs,
-        octaves,
-        scales,
-        uvs,
-        amps, */
         parcelSize,
         subparcelSize
       });
@@ -606,7 +576,7 @@ const [
         subparcelSize,
       });
     };
-    w.requestGetHeight = (seed, x, y, z, baseHeight, /*freqs, octaves, scales, uvs, amps,*/ parcelSize) => {
+    w.requestGetHeight = (seed, x, y, z, baseHeight, parcelSize) => {
       return w.request({
         method: 'getHeight',
         seed,
@@ -614,11 +584,6 @@ const [
         y,
         z,
         baseHeight,
-        /* freqs,
-        octaves,
-        scales,
-        uvs,
-        amps, */
         parcelSize,
       });
     };
@@ -2007,11 +1972,6 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               ady,
               adz,
               baseHeight,
-              /* freqs,
-              octaves,
-              scales,
-              uvs,
-              amps, */
               parcelSize,
               subparcelSize
             ).then(parcelSpec => {
@@ -2681,7 +2641,7 @@ planet.addEventListener('load', async e => {
   const ncy = Math.floor(p.y/SUBPARCEL_SIZE)*SUBPARCEL_SIZE;
   const ncz = Math.floor(p.z/SUBPARCEL_SIZE)*SUBPARCEL_SIZE;
 
-  const height = await chunkWorker.requestGetHeight(chunkMesh.seedNum, ncx, ncy + SUBPARCEL_SIZE, ncz, baseHeight, /*freqs, octaves, scales, uvs, amps,*/ PARCEL_SIZE);
+  const height = await chunkWorker.requestGetHeight(chunkMesh.seedNum, ncx, ncy + SUBPARCEL_SIZE, ncz, baseHeight, PARCEL_SIZE);
   worldContainer.position.y = - height - _getAvatarHeight();
 
   /* {
