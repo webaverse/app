@@ -2022,7 +2022,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               subparcel.biomes.set(parcelSpec.biomes);
               subparcel.heightfield.set(parcelSpec.heightfield);
               for (const object of parcelSpec.objects) {
-                subparcel.addVegetation(object.type < SPAWNER_RATE*0xFFFFFF ? 'spawner' : 'tree1', localVector.fromArray(object.position), localQuaternion.fromArray(object.quaternion));
+                subparcel.addVegetation(object.type < SPAWNER_RATE*0xFFFFFF ? 'spawner' : 'tree1', localVector.fromArray(object.position).add(localVector2.set(0, -0.5, 0)), localQuaternion.fromArray(object.quaternion));
               }
             });
           }
