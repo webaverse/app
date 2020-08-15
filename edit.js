@@ -539,6 +539,18 @@ const [
         }
       });
     });
+    w.requestAlloc = size => {
+      return w.request({
+        method: 'alloc',
+        size,
+      });
+    };
+    w.requestFree = offset => {
+      return w.request({
+        method: 'free',
+        offset,
+      });
+    };
     w.requestLoadPotentials = (seed, meshId, x, y, z, baseHeight, parcelSize, subparcelSize) => {
       return w.request({
         method: 'loadPotentials',
