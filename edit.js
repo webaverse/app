@@ -3661,25 +3661,11 @@ function animate(timestamp, frame) {
       if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
         if (!buildMode) {
           const _mine = async (mineSpecs, explodePosition) => {
-            const specs = await chunkWorker.requestMine(
-              currentChunkMesh.meshId,
-              mineSpecs,
-              currentChunkMesh.subparcelSize
-            );
-            for (let i = 0; i < specs.length; i++) {
+            const slabs = mineSpecs.map(spec => currentChunkMesh.getSlab(spec.x, spec.y, spec.z));
+            const specs = await chunkWorker.requestMine(currentChunkMesh.meshId, mineSpecs);
+            for (let i = 0; i < slabs.length; i++) {
+              const slab = slabs[i];
               const spec = specs[i];
-              const {x, y, z} = spec;
-              const slab = currentChunkMesh.getSlab(x, y, z, spec.positions.length, spec.normals.length, spec.uvs.length, spec.barycentrics.length, spec.aos.length, spec.ids.length, spec.skyLights.length, spec.torchLights.length, spec.peeks.length);
-              slab.position.set(spec.positions);
-              slab.normal.set(spec.normals);
-              slab.uv.set(spec.uvs);
-              slab.barycentric.set(spec.barycentrics);
-              slab.ao.set(spec.aos);
-              slab.id.set(spec.ids);
-              slab.skyLight.set(spec.skyLights);
-              slab.torchLight.set(spec.torchLights);
-              slab.peeks.set(spec.peeks);
-
               currentChunkMesh.updateGeometry(slab, spec);
             }
             const neededSpecs = specs.filter(spec => spec.numOpaquePositions > 0);
@@ -3768,6 +3754,8 @@ function animate(timestamp, frame) {
                           const potentialIndex = planet.getPotentialIndex(lx, ly, lz);
                           subparcel[key][potentialIndex] += value;
 
+                          const slab = currentChunkMesh.getSlab(sdx, sdy, sdz);
+
                           const mineSpec = {
                             x: sdx,
                             y: sdy,
@@ -3777,6 +3765,15 @@ function animate(timestamp, frame) {
                             biomes: subparcel.biomes,
                             heightfield: subparcel.heightfield,
                             lightfield: subparcel.lightfield,
+                            position: slab.position,
+                            normal: slab.normal,
+                            uv: slab.uv,
+                            barycentric: slab.barycentric,
+                            ao: slab.ao,
+                            id: slab.id,
+                            skyLight: slab.skyLight,
+                            torchLight: slab.torchLight,
+                            peeks: slab.peeks,
                           };
                           mineSpecsRound.push(mineSpec);
                           if (!mineSpecs.some(mineSpec => mineSpec.index === index)) {
