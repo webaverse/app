@@ -922,7 +922,7 @@ const [
           heightfields,
           lightfields,
           subparcelSize,
-        }, [heightfields.buffer]);
+        }/*, [heightfields.buffer]*/);
       };
       return w;
     })();
@@ -2290,6 +2290,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       _killVegetationsTasks(index);
     }
   };
+  const subparcelSizeP1 = subparcelSize+1;
+  const hlArraybuffer = new ArrayBuffer(subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3)*2);
   const _refreshVegetationMesh = (x, y, z, index, refresh) => {
     let subparcelTasks = vegetationsTasks[index];
     if (!subparcelTasks) {
@@ -2315,11 +2317,8 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           type: vegetation.name,
           matrix: localMatrix.compose(localVector.fromArray(vegetation.position), localQuaternion.fromArray(vegetation.quaternion), localVector2.set(1, 1, 1)).toArray(),
         }));
-
-      const subparcelSizeP1 = subparcelSize+1;
-      const arraybuffer = new ArrayBuffer(subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3)*2);
       let arrayBufferIndex = 0;
-      const heightfields = new Int8Array(arraybuffer, arrayBufferIndex, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3));
+      const heightfields = new Int8Array(hlArraybuffer, arrayBufferIndex, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3));
       {
         let heightfieldIndex = 0;
         for (let dz = -1; dz <= 1; dz++) {
@@ -2338,7 +2337,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
         }
       }
       arrayBufferIndex += subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3);
-      const lightfields = new Uint8Array(arraybuffer, arrayBufferIndex, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3));
+      const lightfields = new Uint8Array(hlArraybuffer, arrayBufferIndex, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3));
       {
         let lightfieldIndex = 0;
         for (let dz = -1; dz <= 1; dz++) {
