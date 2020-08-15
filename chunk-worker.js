@@ -323,9 +323,12 @@ wasmModulePromise.then(() => {
       this.offsets.push(offset);
       return b;
     }
+    free(offset) {
+      self.Module._doFree(offset);
+    }
     freeAll() {
       for (let i = 0; i < this.offsets.length; i++) {
-        self.Module._doFree(this.offsets[i]);
+        this.free(this.offsets[i]);
       }
       this.offsets.length = 0;
     }
