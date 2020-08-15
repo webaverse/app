@@ -2319,7 +2319,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       const subparcelSizeP1 = subparcelSize+1;
       const arraybuffer = new ArrayBuffer(subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3)*2);
       let arrayBufferIndex = 0;
-      const heightfields = new Uint8Array(arraybuffer, arrayBufferIndex, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3));
+      const heightfields = new Int8Array(arraybuffer, arrayBufferIndex, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3));
       {
         let heightfieldIndex = 0;
         for (let dz = -1; dz <= 1; dz++) {

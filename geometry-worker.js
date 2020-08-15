@@ -126,7 +126,7 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
           .applyMatrix4(matrix)
           .toArray(spec.positions, spec.positionsIndex + j);
         const fieldIndex = _getFieldIndex(localVector);
-        spec.skyLights[spec.skyLightsIndex + jOffset] = heightfields[fieldIndex];
+        spec.skyLights[spec.skyLightsIndex + jOffset] = heightfields[fieldIndex] < 0 ? 0 : heightfields[fieldIndex];
         spec.torchLights[spec.torchLightsIndex + jOffset] = lightfields[fieldIndex];
       }
       spec.positionsIndex += geometry.positions.length;
