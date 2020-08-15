@@ -3725,7 +3725,7 @@ function animate(timestamp, frame) {
               }
             }
           };
-          const _applyMineSpec = (p, radius, key, delta) => {
+          const _applyMineSpec = (p, radius, key, dim, getIndex, delta) => {
             const mineSpecs = [];
             const _applyRound = (ax, ay, az, value) => {
               const mineSpecsRound = [];
@@ -3744,14 +3744,14 @@ function animate(timestamp, frame) {
                     const lz = az - sdz*currentChunkMesh.subparcelSize;
 
                     if (
-                      lx >= 0 && lx < SUBPARCEL_SIZE_P3 &&
-                      ly >= 0 && ly < SUBPARCEL_SIZE_P3 &&
-                      lz >= 0 && lz < SUBPARCEL_SIZE_P3
+                      lx >= 0 && lx < dim &&
+                      ly >= 0 && ly < dim &&
+                      lz >= 0 && lz < dim
                     ) {
                       const index = planet.getSubparcelIndex(sdx, sdy, sdz);
                       if (!mineSpecsRound.some(mineSpec => mineSpec.index === index)) {
                         planet.editSubparcel(sdx, sdy, sdz, subparcel => {
-                          const potentialIndex = planet.getPotentialIndex(lx, ly, lz);
+                          const potentialIndex = getIndex(lx, ly, lz);
                           subparcel[key][potentialIndex] += value;
 
                           const slab = currentChunkMesh.getSlab(sdx, sdy, sdz);
@@ -3816,7 +3816,7 @@ function animate(timestamp, frame) {
             localVector2.y = Math.floor(localVector2.y);
             localVector2.z = Math.floor(localVector2.z);
 
-            const mineSpecs = _applyMineSpec(localVector2, 1, 'potentials', delta);
+            const mineSpecs = _applyMineSpec(localVector2, 1, 'potentials', SUBPARCEL_SIZE_P3, planet.getPotentialIndex, delta);
             await _mine(mineSpecs, delta < 0 ? applyPosition : null);
           };
           const _applyLightfieldDelta = async (position, delta) => {
@@ -3826,7 +3826,7 @@ function animate(timestamp, frame) {
             localVector2.y = Math.floor(localVector2.y);
             localVector2.z = Math.floor(localVector2.z);
 
-            const mineSpecs = _applyMineSpec(localVector2, delta, 'lightfield', delta);
+            const mineSpecs = _applyMineSpec(localVector2, delta, 'lightfield', SUBPARCEL_SIZE_P1, planet.getFieldIndex, delta);
             await _mine(mineSpecs, null);
           };
           const _hit = () => {
