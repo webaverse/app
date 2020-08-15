@@ -1636,7 +1636,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   })();
 
   const numPositions = 5 * 1024 * 1024 - 2;
-  const numPeeks = 256*15;
+  const numPeeks = 512*15;
   const geometry = new THREE.BufferGeometry();
   let peeks;
   {
