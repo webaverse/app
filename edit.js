@@ -18,6 +18,7 @@ import {makeAnimalFactory} from './animal.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
+  SUBPARCEL_SIZE_P1,
   SUBPARCEL_SIZE_P3,
   NUM_PARCELS,
 
@@ -2334,8 +2335,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       _killVegetationsTasks(index);
     }
   };
-  const subparcelSizeP1 = subparcelSize+1;
-  const hlArraybuffer = new ArrayBuffer(subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3)*2);
+  const hlArraybuffer = new ArrayBuffer(SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*(3**3)*2);
   const _refreshVegetationMesh = (x, y, z, index, refresh) => {
     let subparcelTasks = vegetationsTasks[index];
     if (!subparcelTasks) {
@@ -2362,7 +2362,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
           matrix: localMatrix.compose(localVector.fromArray(vegetation.position), localQuaternion.fromArray(vegetation.quaternion), localVector2.set(1, 1, 1)).toArray(),
         }));
       let arrayBufferIndex = 0;
-      const heightfields = new Int8Array(hlArraybuffer, arrayBufferIndex, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3));
+      const heightfields = new Int8Array(hlArraybuffer, arrayBufferIndex, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*(3**3));
       {
         let heightfieldIndex = 0;
         for (let dz = -1; dz <= 1; dz++) {
@@ -2373,15 +2373,15 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               const ax = x + dx;
               const subparcel = planet.peekSubparcel(ax, ay, az);
               if (subparcel) {
-                heightfields.set(subparcel.heightfield, heightfieldIndex*subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
+                heightfields.set(subparcel.heightfield, heightfieldIndex*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
               }
               heightfieldIndex++;
             }
           }
         }
       }
-      arrayBufferIndex += subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3);
-      const lightfields = new Uint8Array(hlArraybuffer, arrayBufferIndex, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3));
+      arrayBufferIndex += SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*(3**3);
+      const lightfields = new Uint8Array(hlArraybuffer, arrayBufferIndex, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*(3**3));
       {
         let lightfieldIndex = 0;
         for (let dz = -1; dz <= 1; dz++) {
@@ -2392,14 +2392,14 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
               const ax = x + dx;
               const subparcel = planet.peekSubparcel(ax, ay, az);
               if (subparcel) {
-                lightfields.set(subparcel.lightfield, lightfieldIndex*subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
+                lightfields.set(subparcel.lightfield, lightfieldIndex*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
               }
               lightfieldIndex++;
             }
           }
         }
       }
-      arrayBufferIndex += subparcelSizeP1*subparcelSizeP1*subparcelSizeP1*(3**3);
+      arrayBufferIndex += SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*(3**3);
 
       const specs = await geometryWorker.requestMarchObjects(x, y, z, objects, heightfields, lightfields, subparcelSize);
       if (live) {
