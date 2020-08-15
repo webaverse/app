@@ -6,6 +6,30 @@ const subparcelSizeP3 = subparcelSize+3;
 const potentialDefault = -0.5;
 const PLANET_OBJECT_SLOTS = 16;
 
+class Allocator {
+  constructor() {
+    this.offsets = [];
+  }
+  alloc(constructor, size) {
+    const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
+    const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
+    b.offset = offset;
+    this.offsets.push(offset);
+    return b;
+  }
+  free(offset) {
+    self.Module._doFree(offset);
+    this.offsets.splice(this.offsets.indexOf(offset), 1);
+  }
+  freeAll() {
+    for (let i = 0; i < this.offsets.length; i++) {
+      self.Module._doFree(this.offsets[i]);
+    }
+    this.offsets.length = 0;
+  }
+}
+const allocator = new Allocator();
+
 const _align4 = n => {
   const d = n%4;
   return d ? (n+4-d) : n;
@@ -292,29 +316,6 @@ let potentials, biomes, objectPositions, objectQuaternions, objectTypes, numObje
 wasmModulePromise.then(() => {
   loaded = true;
 
-  class Allocator {
-    constructor() {
-      this.offsets = [];
-    }
-    alloc(constructor, size) {
-      const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
-      const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
-      b.offset = offset;
-      this.offsets.push(offset);
-      return b;
-    }
-    free(offset) {
-      self.Module._doFree(offset);
-    }
-    freeAll() {
-      for (let i = 0; i < this.offsets.length; i++) {
-        this.free(this.offsets[i]);
-      }
-      this.offsets.length = 0;
-    }
-  }
-
-  const allocator = new Allocator();
   potentials = allocator.alloc(Float32Array, subparcelSizeP3*subparcelSizeP3*subparcelSizeP3);
   biomes = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1);
   objectPositions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*3);
