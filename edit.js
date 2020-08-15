@@ -2011,7 +2011,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       await subparcel.load;
       if (!live) return;
 
-      const specs = await chunkWorker.requestMarchLand(
+      const spec = await chunkWorker.requestMarchLand(
         seedNum,
         meshId,
         ax, ay, az,
@@ -2024,8 +2024,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       );
       if (!live) return;
 
-      for (let i = 0; i < specs.length; i++) {
-        const spec = specs[i];
+      {
         const {x, y, z} = spec;
         const slab = mesh.getSlab(x, y, z, spec.positions.length, spec.normals.length, spec.uvs.length, spec.barycentrics.length, spec.aos.length, spec.ids.length, spec.skyLights.length, spec.torchLights.length, spec.peeks.length);
         slab.position.set(spec.positions);
@@ -2040,19 +2039,15 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
 
         mesh.updateGeometry(slab, spec);
       }
-      const neededSpecs = specs.filter(spec => spec.numOpaquePositions > 0);
-      if (neededSpecs.length > 0) {
-        const bakeSpecs = neededSpecs.map(spec => {
-          const {positions, numOpaquePositions, x, y, z} = spec;
-          return numOpaquePositions > 0 ? {
-            positions,
-            numOpaquePositions,
-            x,
-            y,
-            z,
-          } : null;
-        });
-        const bakeStats = neededSpecs.map(spec => ({
+      if (spec.numOpaquePositions > 0) {
+        const bakeSpecs = [{
+          positions: spec.positions,
+          numOpaquePositions: spec.numOpaquePositions,
+          x: spec.x,
+          y: spec.y,
+          z: spec.z,
+        }];
+        const bakeStats = [{
           numPositions: spec.positions.length,
           numNormals: spec.normals.length,
           numUvs: spec.uvs.length,
@@ -2062,7 +2057,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
           numSkyLights: spec.skyLights.length,
           numTorchLights: spec.torchLights.length,
           numPeeks: spec.peeks.length,
-        }));
+        }];
         const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => ({
           positions: spec.positions,
           count: spec.numOpaquePositions,

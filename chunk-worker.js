@@ -260,16 +260,10 @@ const _handleMessage = data => {
     }
     case 'marchLand': {
       const {seed: seedData, meshId, x, y, z, potentials, biomes, heightfield, lightfield, parcelSize, subparcelSize} = data;
-
-      const results = [];
-      const transfers = [];
       const [result, transfer] = _meshChunkSlab(meshId, x, y, z, potentials, biomes, heightfield, lightfield, subparcelSize);
-      results.push(result);
-      transfers.push(transfer);
-
       self.postMessage({
-        result: results,
-      }, transfers);
+        result,
+      }, [transfer]);
       break;
     }
     case 'mine': {
