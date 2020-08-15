@@ -1564,15 +1564,6 @@ physicsWorker = pw;
   heightfieldMaterial2.uniforms.map.value.wrapS = THREE.RepeatWrapping;
   heightfieldMaterial2.uniforms.map.value.wrapT = THREE.RepeatWrapping;
   heightfieldMaterial2.uniforms.map.value.needsUpdate = true;
-  /* heightfieldMaterial2.uniforms.normalMap.value.image = await new Promise((accept, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      accept(img);
-    };
-    img.onerror = reject;
-    img.src = `./land-textures/Vol_21_4_Normal.png`;
-  });
-  heightfieldMaterial2.uniforms.normalMap.value.needsUpdate = true; */
   heightfieldMaterial2.uniforms.bumpMap.value.image = await new Promise((accept, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -1584,39 +1575,6 @@ physicsWorker = pw;
   heightfieldMaterial2.uniforms.bumpMap.value.wrapS = THREE.RepeatWrapping;
   heightfieldMaterial2.uniforms.bumpMap.value.wrapT = THREE.RepeatWrapping;
   heightfieldMaterial2.uniforms.bumpMap.value.needsUpdate = true;
-
-  /* const heightfieldMaterial2 = new THREE.MeshStandardMaterial({
-    map: new THREE.Texture(),
-    normalMap: new THREE.Texture(),
-    bumpMap: new THREE.Texture(),
-  });
-  heightfieldMaterial2.map.image = await new Promise((accept, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      accept(img);
-    };
-    img.onerror = reject;
-    img.src = `./land-textures/Vol_21_4_Base_Color.png`;
-  });
-  heightfieldMaterial2.map.needsUpdate = true;
-  heightfieldMaterial2.normalMap.image = await new Promise((accept, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      accept(img);
-    };
-    img.onerror = reject;
-    img.src = `./land-textures/Vol_21_4_Normal.png`;
-  });
-  heightfieldMaterial2.normalMap.needsUpdate = true;
-  heightfieldMaterial2.bumpMap.image = await new Promise((accept, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      accept(img);
-    };
-    img.onerror = reject;
-    img.src = `./land-textures/Vol_21_4_Height.png`;
-  });
-  heightfieldMaterial2.bumpMap.needsUpdate = true; */
 
   const mesh = new THREE.Mesh(geometry, heightfieldMaterial2);
   mesh.position.x = -5;
