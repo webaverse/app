@@ -1320,11 +1320,6 @@ const [
         }
       };
       mesh.getSlabPositionOffset = _getSlabPositionOffset;
-      // mesh.getSlabUvOffset = _getSlabUvOffset;
-      // mesh.getSlabIdOffset = _getSlabIdOffset;
-      // mesh.getSlabSkyLightOffset = _getSlabSkyLightOffset;
-      // mesh.getSlabTorchLightOffset = _getSlabTorchLightOffset;
-      // mesh.getSlabIndexOffset = _getSlabIndexOffset;
       return mesh;
     };
     const context = renderer.getContext();
