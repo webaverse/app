@@ -1620,7 +1620,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     waterMaterial.uniforms.tex.needsUpdate = true;
   })();
 
-  const numPositions = Math.floor(8 * 1024 * 1024 / 3) * 3;
+  const numPositions = Math.floor(9 * 1024 * 1024 / 3) * 3;
   const numPeeks = numSlices*15;
   const numLocalPositions = Math.floor(numPositions/numSlices);
   const numLocalNormals = Math.floor(numPositions/numSlices);
