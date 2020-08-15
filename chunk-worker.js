@@ -211,11 +211,11 @@ const _handleMessage = data => {
       break;
     }
     case 'mine': {
-      const {meshId, mineSpecs, subparcelSize} = data;
+      const {meshId, mineSpecs} = data;
 
       const results = [];
       for (const mineSpec of mineSpecs) {
-        const result = _meshChunkSlab(meshId, mineSpec.x, mineSpec.y, mineSpec.z, mineSpec.potentials, mineSpec.biomes, mineSpec.heightfield, mineSpec.lightfield, subparcelSize);
+        const result = _meshChunkSlab(meshId, mineSpec.x, mineSpec.y, mineSpec.z, mineSpec.potentials, mineSpec.biomes, mineSpec.heightfield, mineSpec.lightfield, mineSpec.position, mineSpec.normal, mineSpec.uv, mineSpec.barycentric, mineSpec.ao, mineSpec.id, mineSpec.skyLight, mineSpec.torchLight, mineSpec.peeks);
         results.push(result);
       }
 
