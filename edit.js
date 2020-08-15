@@ -4296,8 +4296,6 @@ function animate(timestamp, frame) {
   );
   if (currentChunkMesh) {
     const _cull = () => {
-      // currentChunkMesh.geometry.originalGroups = currentChunkMesh.geometry.groups.slice();
-
       localMatrix2.getInverse(worldContainer.matrixWorld);
       localMatrix.copy(pe.camera.matrixWorld)
         .premultiply(localMatrix2)
@@ -4363,9 +4361,6 @@ function animate(timestamp, frame) {
   renderer.render(scene, camera);
   // renderer.render(highlightScene, camera);
 
-  /* if (currentChunkMesh) {
-    currentChunkMesh.geometry.groups = currentChunkMesh.geometry.originalGroups;
-  } */
   if (currentVegetationMesh) {
     currentVegetationMesh.geometry.groups = currentVegetationMesh.geometry.originalGroups;
   }
