@@ -55,6 +55,7 @@ export const planet = new EventTarget();
 
 let state = null;
 let subparcels = {};
+const dirtySubparcels = [];
 
 planet.getSubparcelIndex = _getSubparcelIndex;
 planet.getPotentialIndex = _getPotentialIndex;
@@ -212,7 +213,6 @@ export class Subparcel {
     this.vegetations = [];
     this.packages = [];
     this.load = null;
-    this.dirty = false;
 
     this.latchData(data || new ArrayBuffer(Subparcel.offsets.initialLength));
     data && this.reload();
@@ -424,7 +424,9 @@ planet.editSubparcel = (x, y, z, fn) => {
   }
   const subparcel = subparcels[index];
   fn(subparcel);
-  subparcel.dirty = true;
+  if (!dirtySubparcels.includes(subparcel)) {
+    dirtySubparcels.push(subparcel);
+  }
 };
 
 const _loadLiveState = seedString => {
@@ -486,12 +488,11 @@ const _loadLiveState = seedString => {
   };
 })(); */
 const _saveStorage = async roomName => {
-  for (const index in subparcels) {
-    const subparcel = subparcels[index];
-    if (subparcel.dirty) {
-      subparcel.dirty = false;
+  if (dirtySubparcels.length > 0) {
+    for (const subparcel of dirtySubparcels) {
       await storage.setRaw(`planet/${roomName}/subparcels/${subparcel.x}/${subparcel.y}/${subparcel.z}`, subparcel.data);
     }
+    dirtySubparcels.length = 0;
   }
   // const b = _serializeState(state);
   // await storage.setRaw(roomName, b);
