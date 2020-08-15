@@ -1576,6 +1576,10 @@ physicsWorker = pw;
   scene.add(mesh);
 })(); */
 
+const _align4 = n => {
+  const d = n%4;
+  return d ? (n+4-d) : n;
+};
 const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
   const rng = alea(seedString);
   const seedNum = Math.floor(rng() * 0xFFFFFF);
@@ -1631,16 +1635,40 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
     waterMaterial.uniforms.tex.needsUpdate = true;
   })();
 
-  const numPositions = 5 * 1024 * 1024;
+  const numPositions = 5 * 1024 * 1024 - 2;
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(numPositions), 3));
-  geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(numPositions), 3));
-  geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(numPositions/3*2), 2));
-  geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(numPositions), 3));
-  geometry.setAttribute('ao', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
-  geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(numPositions/3), 1));
-  geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
-  geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
+  {
+    let totalSize =
+      numPositions * Float32Array.BYTES_PER_ELEMENT +
+      numPositions * Float32Array.BYTES_PER_ELEMENT +
+      numPositions/3*2 * Float32Array.BYTES_PER_ELEMENT +
+      numPositions * Float32Array.BYTES_PER_ELEMENT +
+      numPositions/3 * Uint8Array.BYTES_PER_ELEMENT;
+    totalSize = _align4(totalSize);
+    totalSize +=
+      numPositions/3 * Float32Array.BYTES_PER_ELEMENT +
+      numPositions/3 * Uint8Array.BYTES_PER_ELEMENT +
+      numPositions/3 * Uint8Array.BYTES_PER_ELEMENT;
+    const arrayBuffer = new ArrayBuffer(totalSize);
+    let index = 0;
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(arrayBuffer, index, numPositions), 3));
+    index += numPositions * Float32Array.BYTES_PER_ELEMENT;
+    geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(arrayBuffer, index, numPositions), 3));
+    index += numPositions * Float32Array.BYTES_PER_ELEMENT;
+    geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(arrayBuffer, index, numPositions/3*2), 2));
+    index += numPositions/3*2 * Float32Array.BYTES_PER_ELEMENT;
+    geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(arrayBuffer, index, numPositions), 3));
+    index += numPositions * Float32Array.BYTES_PER_ELEMENT;
+    geometry.setAttribute('ao', new THREE.BufferAttribute(new Uint8Array(arrayBuffer, index, numPositions/3), 1));
+    index += numPositions/3 * Uint8Array.BYTES_PER_ELEMENT;
+    index = _align4(index);
+    geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(arrayBuffer, index, numPositions/3), 1));
+    index += numPositions/3 * Float32Array.BYTES_PER_ELEMENT;
+    geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(arrayBuffer, index, numPositions/3), 1));
+    index += numPositions/3 * Uint8Array.BYTES_PER_ELEMENT;
+    geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(arrayBuffer, index, numPositions/3), 1));
+    index += numPositions/3 * Uint8Array.BYTES_PER_ELEMENT;
+  }
   const peeks = new Uint8Array(numPositions/3);
   const mesh = new THREE.Mesh(geometry, [landMaterial, waterMaterial]);
   mesh.frustumCulled = false;
