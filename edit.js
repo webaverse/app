@@ -1558,7 +1558,7 @@ const _align4 = n => {
   const d = n%4;
   return d ? (n+4-d) : n;
 };
-const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
+const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const rng = alea(seedString);
   const seedNum = Math.floor(rng() * 0xFFFFFF);
 
@@ -1630,26 +1630,26 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
       numPositions/3 * Uint8Array.BYTES_PER_ELEMENT +
       numPositions/3 * Uint8Array.BYTES_PER_ELEMENT +
       numPeeks * Uint8Array.BYTES_PER_ELEMENT;
-    const arrayBuffer = new ArrayBuffer(totalSize);
-    let index = 0;
-    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(arrayBuffer, index, numPositions), 3));
+    const uint8Array = await chunkWorker.requestAlloc(totalSize);
+    let index = uint8Array.byteOffset;
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(uint8Array.buffer, index, numPositions), 3));
     index += numPositions * Float32Array.BYTES_PER_ELEMENT;
-    geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(arrayBuffer, index, numPositions), 3));
+    geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(uint8Array.buffer, index, numPositions), 3));
     index += numPositions * Float32Array.BYTES_PER_ELEMENT;
-    geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(arrayBuffer, index, numPositions/3*2), 2));
+    geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uint8Array.buffer, index, numPositions/3*2), 2));
     index += numPositions/3*2 * Float32Array.BYTES_PER_ELEMENT;
-    geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(arrayBuffer, index, numPositions), 3));
+    geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(uint8Array.buffer, index, numPositions), 3));
     index += numPositions * Float32Array.BYTES_PER_ELEMENT;
-    geometry.setAttribute('ao', new THREE.BufferAttribute(new Uint8Array(arrayBuffer, index, numPositions/3), 1));
+    geometry.setAttribute('ao', new THREE.BufferAttribute(new Uint8Array(uint8Array.buffer, index, numPositions/3), 1));
     index += numPositions/3 * Uint8Array.BYTES_PER_ELEMENT;
     index = _align4(index);
-    geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(arrayBuffer, index, numPositions/3), 1));
+    geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(uint8Array.buffer, index, numPositions/3), 1));
     index += numPositions/3 * Float32Array.BYTES_PER_ELEMENT;
-    geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(arrayBuffer, index, numPositions/3), 1));
+    geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(uint8Array.buffer, index, numPositions/3), 1));
     index += numPositions/3 * Uint8Array.BYTES_PER_ELEMENT;
-    geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(arrayBuffer, index, numPositions/3), 1));
+    geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(uint8Array.buffer, index, numPositions/3), 1));
     index += numPositions/3 * Uint8Array.BYTES_PER_ELEMENT;
-    peeks = new Uint8Array(arrayBuffer, index, numPeeks);
+    peeks = new Uint8Array(uint8Array.buffer, index, numPeeks);
     index += numPeeks * Uint8Array.BYTES_PER_ELEMENT;
   }
   const mesh = new THREE.Mesh(geometry, [landMaterial, waterMaterial]);
@@ -2641,7 +2641,7 @@ const _makeChunkMesh = (seedString, parcelSize, subparcelSize) => {
 planet.addEventListener('load', async e => {
   const {data: chunkSpec} = e;
 
-  const chunkMesh = _makeChunkMesh(chunkSpec.seedString, chunkSpec.parcelSize, chunkSpec.subparcelSize);
+  const chunkMesh = await _makeChunkMesh(chunkSpec.seedString, chunkSpec.parcelSize, chunkSpec.subparcelSize);
   chunkMeshContainer.add(chunkMesh);
   chunkMeshes.push(chunkMesh);
   _setCurrentChunkMesh(chunkMesh);
