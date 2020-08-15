@@ -10,12 +10,7 @@ const _align4 = n => {
   const d = n%4;
   return d ? (n+4-d) : n;
 };
-const _loadNoise = (seedData, x, y, z, baseHeight, /*freqsData, octavesData, scalesData, uvsData, ampsData,*/ parcelSize, subparcelSize, potentials, biomes, heightfield, objectPositions, objectQuaternions, objectTypes, numObjects) => {
-  /* freqs.set(Float32Array.from(freqsData));
-  octaves.set(Int32Array.from(octavesData));
-  scales.set(Float32Array.from(scalesData));
-  uvs.set(Float32Array.from(uvsData));
-  amps.set(Float32Array.from(ampsData)); */
+const _loadNoise = (seedData, x, y, z, baseHeight, parcelSize, subparcelSize, potentials, biomes, heightfield, objectPositions, objectQuaternions, objectTypes, numObjects) => {
   dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
   limits.set(Int32Array.from([parcelSize, parcelSize, parcelSize]));
   shifts.set(Float32Array.from([x*subparcelSize, y*subparcelSize, z*subparcelSize]));
@@ -28,11 +23,6 @@ const _loadNoise = (seedData, x, y, z, baseHeight, /*freqsData, octavesData, sca
   Module._doNoise3(
     seedData,
     baseHeight,
-    /* freqs.offset,
-    octaves.offset,
-    scales.offset,
-    uvs.offset,
-    amps.offset, */
     dims.offset,
     shifts.offset,
     limits.offset,
@@ -203,9 +193,9 @@ const _handleMessage = data => {
   const {method} = data;
   switch (method) {
     case 'loadPotentials': {
-      const {seed: seedData, meshId, x, y, z, baseHeight, /*freqs, octaves, scales, uvs, amps, */ parcelSize, subparcelSize} = data;
+      const {seed: seedData, meshId, x, y, z, baseHeight, parcelSize, subparcelSize} = data;
 
-      _loadNoise(seedData, x, y, z, baseHeight, /*freqs, octaves, scales, uvs, amps, */ parcelSize, subparcelSize, potentials, biomes, heightfield, objectPositions, objectQuaternions, objectTypes, numObjects);
+      _loadNoise(seedData, x, y, z, baseHeight, parcelSize, subparcelSize, potentials, biomes, heightfield, objectPositions, objectQuaternions, objectTypes, numObjects);
 
       const potentials2 = potentials.slice();
       const biomes2 = biomes.slice();
@@ -261,11 +251,6 @@ const _handleMessage = data => {
     case 'getHeight': {
       const {seed, x, y, z, baseHeight, freqs: freqsData, octaves: octavesData, scales: scalesData, uvs: uvsData, amps: ampsData, parcelSize} = data;
 
-      /* freqs.set(Float32Array.from(freqsData));
-      octaves.set(Int32Array.from(octavesData));
-      scales.set(Float32Array.from(scalesData));
-      uvs.set(Float32Array.from(uvsData));
-      amps.set(Float32Array.from(ampsData)); */
       limits.set(Int32Array.from([parcelSize, parcelSize, parcelSize]));
 
       const height = Module._doGetHeight(
@@ -274,11 +259,6 @@ const _handleMessage = data => {
         y,
         z,
         baseHeight,
-        /* freqs.offset,
-        octaves.offset,
-        scales.offset,
-        uvs.offset,
-        amps.offset, */
         limits.offset
       );
 
@@ -308,7 +288,7 @@ self.onmessage = e => {
   }
 };
 
-let potentials, biomes, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, freqs, octaves, scales, uvs, amps, dims, limits, shifts, scale, positions, normals, barycentrics, aos, numPositions, numBarycentrics, numAos, skyLights, torchLights, numOpaquePositions, numTransparentPositions, peeks;
+let potentials, biomes, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, dims, limits, shifts, scale, positions, normals, barycentrics, aos, numPositions, numBarycentrics, numAos, skyLights, torchLights, numOpaquePositions, numTransparentPositions, peeks;
 wasmModulePromise.then(() => {
   loaded = true;
 
@@ -343,11 +323,6 @@ wasmModulePromise.then(() => {
   numObjects = allocator.alloc(Uint32Array, 1);
   heightfield = allocator.alloc(Int8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
   lightfield = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
-  /* freqs = allocator.alloc(Float32Array, 3);
-  octaves = allocator.alloc(Int32Array, 3);
-  scales = allocator.alloc(Float32Array, 3);
-  uvs = allocator.alloc(Float32Array, 3);
-  amps = allocator.alloc(Float32Array, 3); */
   dims = allocator.alloc(Int32Array, 3);
   limits = allocator.alloc(Int32Array, 3);
   shifts = allocator.alloc(Float32Array, 3);
