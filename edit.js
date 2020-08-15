@@ -3699,7 +3699,7 @@ function animate(timestamp, frame) {
                 const physxGeometry = result.physicsGeometryBuffers[i];
                 const {x, y, z} = bakeSpecs[i];
                 const stat = bakeStats[i];
-                const slab = currentChunkMesh.getSlab(x, y, z, stat.numPositions, stat.numNormals, stat.numUvs, stat.numBarycenterics, stat.numAos, stat.numIds, stat.numSkyLights, stat.numTorchLights, stat.numPeeks);
+                const slab = currentChunkMesh.getSlab(x, y, z);
                 if (slab.physxGeometry) {
                   physxWorker.unregisterGeometry(slab.physxGeometry);
                   slab.physxGeometry = 0;
