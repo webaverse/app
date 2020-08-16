@@ -287,24 +287,21 @@ export class Subparcel {
     }
   }
   addVegetation(type, position, quaternion) {
-    const nextIndex = this._numObjects[0];
-    if (Subparcel.offsets.objects + nextIndex*PLANET_OBJECT_SIZE >= this.data.byteLength) {
-      const newData = new ArrayBuffer(this.data.byteLength + PLANET_OBJECT_SLOTS*PLANET_OBJECT_SIZE);
-      new Uint8Array(newData).set(new Uint8Array(this.data));
-      this.latchData(newData);
-      this.reload();
-    }
-    this._numObjects[0]++
+    if ((this._numObjects[0] + 1) < PLANET_OBJECT_SLOTS) {
+      const nextIndex = this._numObjects[0]++;
 
-    const vegetation = new SubparcelObject(this.data, Subparcel.offsets.objects + nextIndex*PLANET_OBJECT_SIZE, nextIndex, this);
-    vegetation.id = Math.floor(Math.random()*0xFFFFFF);
-    vegetation.type = OBJECT_TYPES.VEGETATION;
-    vegetation.name = type;
-    position.toArray(vegetation.position);
-    quaternion.toArray(vegetation.quaternion);
-    vegetation.writeMetadata();
-    this.vegetations.push(vegetation);
-    return vegetation;
+      const vegetation = new SubparcelObject(this.data, Subparcel.offsets.objects + nextIndex*PLANET_OBJECT_SIZE, nextIndex, this);
+      vegetation.id = Math.floor(Math.random()*0xFFFFFF);
+      vegetation.type = OBJECT_TYPES.VEGETATION;
+      vegetation.name = type;
+      position.toArray(vegetation.position);
+      quaternion.toArray(vegetation.quaternion);
+      vegetation.writeMetadata();
+      this.vegetations.push(vegetation);
+      return vegetation;
+    } else {
+      throw new Error('cannot allocate vegetation slot');
+    }
   }
   removeVegetation(vegetationId) {
     const index = this.vegetations.findIndex(v => v.id === vegetationId);
