@@ -2451,7 +2451,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     _updateVegetationsUpdate();
     _updateVegetationsNeeded();
   };
-  const _updatePackages = () => {
+  /* const _updatePackages = () => {
     const packagesNeedUpdate = false;
     if (packagesNeedUpdate) {
       if (!packagesRunning) {
@@ -2500,7 +2500,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
         })();
       }
     }
-  };
+  }; */
   const _killAnimalsTasks = index => {
     const subparcelTasks = animalsTasks[index];
     if (subparcelTasks) {
@@ -2586,7 +2586,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     _updateNeededCoords();
     _updateChunks();
     _updateVegetations();
-    _updatePackages();
+    // _updatePackages();
     _updateAnimals();
     _updateLastNeededCoords();
   };
