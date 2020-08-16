@@ -896,17 +896,15 @@ const [
           hash,
         });
       };
-      w.requestMarchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSize) => {
+      w.requestMarchObjects = (x, y, z, objects, subparcelSpecs) => {
         return w.request({
           method: 'marchObjects',
           x,
           y,
           z,
           objects,
-          heightfields,
-          lightfields,
-          subparcelSize,
-        }/*, [heightfields.buffer]*/);
+          subparcelSpecs,
+        });
       };
       return w;
     })();
@@ -2250,7 +2248,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       _killVegetationsTasks(index);
     }
   };
-  const hlArraybuffer = new ArrayBuffer(SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*(3**3)*2);
   const _refreshVegetationMesh = (x, y, z, index, refresh) => {
     let subparcelTasks = vegetationsTasks[index];
     if (!subparcelTasks) {
@@ -2264,7 +2261,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
 
     let live = true;
     (async () => {
-      const localSubparcels = [];
+      let localSubparcels = [];
       for (let dz = -1; dz <= 1; dz++) {
         const az = z + dz;
         for (let dy = -1; dy <= 1; dy++) {
@@ -2276,8 +2273,16 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
           }
         }
       }
-      await Promise.all(localSubparcels.map(subparcel => subparcel && subparcel.load));
+      localSubparcels = await Promise.all(localSubparcels.map(subparcel =>
+        subparcel && subparcel.load
+          .then(() => ({
+            index: subparcel.index,
+            heightfield: subparcel.heightfield,
+            lightfield: subparcel.lightfield,
+          }))
+      ));
       if (!live) return;
+      localSubparcels = localSubparcels.filter(subparcel => !!subparcel);
 
       const subparcel = planet.peekSubparcelByIndex(index);
       const localVegetations = subparcel.vegetations
@@ -2288,41 +2293,8 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
           type: vegetation.name,
           matrix: localMatrix.compose(localVector.fromArray(vegetation.position), localQuaternion.fromArray(vegetation.quaternion), localVector2.set(1, 1, 1)).toArray(),
         }));
-      let arrayBufferIndex = 0;
-      const heightfields = new Int8Array(hlArraybuffer, arrayBufferIndex, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*(3**3));
-      {
-        let heightfieldIndex = 0;
-        for (let dz = -1; dz <= 1; dz++) {
-          for (let dy = -1; dy <= 1; dy++) {
-            for (let dx = -1; dx <= 1; dx++) {
-              const subparcel = localSubparcels[heightfieldIndex];
-              if (subparcel) {
-                heightfields.set(subparcel.heightfield, heightfieldIndex*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
-              }
-              heightfieldIndex++;
-            }
-          }
-        }
-      }
-      arrayBufferIndex += SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*(3**3);
-      const lightfields = new Uint8Array(hlArraybuffer, arrayBufferIndex, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*(3**3));
-      {
-        let lightfieldIndex = 0;
-        for (let dz = -1; dz <= 1; dz++) {
-          for (let dy = -1; dy <= 1; dy++) {
-            for (let dx = -1; dx <= 1; dx++) {
-              const subparcel = localSubparcels[lightfieldIndex];
-              if (subparcel) {
-                lightfields.set(subparcel.lightfield, lightfieldIndex*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
-              }
-              lightfieldIndex++;
-            }
-          }
-        }
-      }
-      arrayBufferIndex += SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*(3**3);
 
-      const specs = await geometryWorker.requestMarchObjects(x, y, z, objects, heightfields, lightfields, subparcelSize);
+      const specs = await geometryWorker.requestMarchObjects(x, y, z, objects, localSubparcels);
       if (live) {
         const [{opaque: spec}] = specs;
         const vegetationMesh = currentVegetationMesh;
