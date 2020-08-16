@@ -62,6 +62,11 @@ planet.getSubparcelIndex = _getSubparcelIndex;
 planet.getPotentialIndex = _getPotentialIndex;
 planet.getFieldIndex = _getFieldIndex;
 
+let chunkWorker = null;
+planet.setChunkWorker = cw => {
+  chunkWorker = cw;
+};
+
 const _getStringLength = s => {
   let i;
   for (i = 0; i < s.length; i++) {
@@ -196,17 +201,18 @@ export class SubparcelObject {
     this.id = this._id[0];
     this.type = this._type[0];
     const nameLength = this.getNameLength();
-    this.name = new TextDecoder().decode(new Uint8Array(this._name.buffer, this._name.byteOffset, nameLength));
+    this.name = new TextDecoder().decode(new Uint8Array(this._name.buffer, this._name.byteOffset, nameLength).slice());
   }
 }
 
 export class Subparcel {
-  constructor(data) {
+  constructor(data, offset) {
     this.x = 0;
     this.y = 0;
     this.z = 0;
     this.index = 0;
     this.data = null;
+    this.offset = 0;
     this.potentials = null;
     this.biomes = null;
     this.heightfield = null;
@@ -216,16 +222,19 @@ export class Subparcel {
     this.packages = [];
     this.load = null;
 
-    this.latchData(data || new ArrayBuffer(Subparcel.offsets.initialLength));
-    data && this.reload();
+    if (data) {
+      this.latchData(data, offset);
+      this.reload();
+    }
   }
-  latchData(data) {
+  latchData(data, offset) {
     this.data = data;
-    this.potentials = new Float32Array(this.data, Subparcel.offsets.potentials, SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3);
-    this.biomes = new Uint8Array(this.data, Subparcel.offsets.biomes, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
-    this.heightfield = new Int8Array(this.data, Subparcel.offsets.heightfield, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
-    this.lightfield = new Uint8Array(this.data, Subparcel.offsets.lightfield, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
-    this._numObjects = new Uint32Array(this.data, Subparcel.offsets.numObjects, 1);
+    this.offset = offset;
+    this.potentials = new Float32Array(this.data, this.offset + Subparcel.offsets.potentials, SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3);
+    this.biomes = new Uint8Array(this.data, this.offset + Subparcel.offsets.biomes, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
+    this.heightfield = new Int8Array(this.data, this.offset + Subparcel.offsets.heightfield, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
+    this.lightfield = new Uint8Array(this.data, this.offset + Subparcel.offsets.lightfield, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
+    this._numObjects = new Uint32Array(this.data, this.offset + Subparcel.offsets.numObjects, 1);
   }
   reload() {
     this.readMetadata();
@@ -233,7 +242,7 @@ export class Subparcel {
     this.packages.length = 0;
     const numObjects = this._numObjects[0];
     for (let i = 0; i < numObjects; i++) {
-      const o = new SubparcelObject(this.data, Subparcel.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
+      const o = new SubparcelObject(this.data, this.offset + Subparcel.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
       o.readMetadata();
       if (o.type === OBJECT_TYPES.VEGETATION) {
         this.vegetations.push(o);
@@ -248,13 +257,13 @@ export class Subparcel {
     }));
   }
   writeMetadata() {
-    const dst = new Int32Array(this.data, Subparcel.offsets.xyz, 3);
+    const dst = new Int32Array(this.data, this.offset + Subparcel.offsets.xyz, 3);
     dst[0] = this.x;
     dst[1] = this.y;
     dst[2] = this.z;
   }
   readMetadata() {
-    const src = new Int32Array(this.data, Subparcel.offsets.xyz, 3);
+    const src = new Int32Array(this.data, this.offset + Subparcel.offsets.xyz, 3);
     this.x = src[0];
     this.y = src[1];
     this.z = src[2];
@@ -290,7 +299,7 @@ export class Subparcel {
     if (this._numObjects[0] < PLANET_OBJECT_SLOTS) {
       const nextIndex = this._numObjects[0]++;
 
-      const vegetation = new SubparcelObject(this.data, Subparcel.offsets.objects + nextIndex*PLANET_OBJECT_SIZE, nextIndex, this);
+      const vegetation = new SubparcelObject(this.data, this.offset + Subparcel.offsets.objects + nextIndex*PLANET_OBJECT_SIZE, nextIndex, this);
       vegetation.id = Math.floor(Math.random()*0xFFFFFF);
       vegetation.type = OBJECT_TYPES.VEGETATION;
       vegetation.name = type;
@@ -345,7 +354,7 @@ export class Subparcel {
     }
   } */
   clone() {
-    const subparcel = new Subparcel(this.data.slice());
+    const subparcel = new Subparcel(this.data.slice(), 0);
     subparcel.reload();
     return subparcel;
   }
@@ -354,6 +363,7 @@ const _align4 = n => {
   const d = n % 4;
   return d ? (n + (4 - d)) : n;
 };
+
 Subparcel.offsets = (() => {
   let index = 0;
 
@@ -363,12 +373,13 @@ Subparcel.offsets = (() => {
   index += SUBPARCEL_SIZE_P3 * SUBPARCEL_SIZE_P3 * SUBPARCEL_SIZE_P3 * Float32Array.BYTES_PER_ELEMENT;
   const biomes = index;
   index += SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * Uint8Array.BYTES_PER_ELEMENT;
+  index += 3; // align
   const heightfield = index;
   index += SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * Int8Array.BYTES_PER_ELEMENT;
-  index = _align4(index);
+  index += 1; // align
   const lightfield = index;
   index += SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * Uint8Array.BYTES_PER_ELEMENT;
-  index = _align4(index);
+  index += 1; // align
   const numObjects = index;
   index += Uint32Array.BYTES_PER_ELEMENT;
   const objects = index;
@@ -387,7 +398,7 @@ Subparcel.offsets = (() => {
   };
 })();
 
-const _addSubparcel = (x, y, z, index) => {
+/* const _addSubparcel = (x, y, z, index) => {
   const subparcel = new Subparcel();
   subparcel.x = x;
   subparcel.y = y;
@@ -397,31 +408,64 @@ const _addSubparcel = (x, y, z, index) => {
   // subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
   subparcels[index] = subparcel;
   return subparcel;
-};
-planet.getSubparcelByIndex = index => {
+}; */
+/* planet.getSubparcelByIndex = index => {
   let subparcel = subparcels[index];
   if (!subparcel) {
     const [x, y, z] = _getSubparcelXYZ(index);
     subparcel = _addSubparcel(x, y, z, index);
   }
   return subparcel;
-};
+}; */
 planet.peekSubparcelByIndex = index => subparcels[index] || null;
-planet.getSubparcel = (x, y, z) => {
+/* planet.getSubparcel = (x, y, z) => {
   const index = _getSubparcelIndex(x, y, z);
   let subparcel = subparcels[index];
   if (!subparcel) {
     subparcel = _addSubparcel(x, y, z, index);
   }
   return subparcel;
-};
+}; */
 planet.peekSubparcel = (x, y, z) => subparcels[_getSubparcelIndex(x, y, z)] || null;
+planet.allocSubparcel = async (x, y, z, seedNum, meshId, baseHeight) => {
+  const subparcel = new Subparcel();
+  subparcel.x = x;
+  subparcel.y = y;
+  subparcel.z = z;
+  const index = _getSubparcelIndex(x, y, z);
+  subparcel.index = index;
+  subparcel.load = (async () => {
+    const uint8Array = await chunkWorker.requestAlloc(Subparcel.offsets.initialLength);
+    subparcel.latchData(uint8Array.buffer, uint8Array.byteOffset);
+    // console.log('subparcel size', Subparcel.offsets.initialLength, uint8Array.byteOffset);
+    // subparcel.writeMetadata();
+    await chunkWorker.requestLoadPotentials(
+      seedNum,
+      meshId,
+      x,
+      y,
+      z,
+      baseHeight,
+      subparcel.offset
+    );/*.then(parcelSpec => {
+      subparcel.potentials.set(parcelSpec.potentials);
+      subparcel.biomes.set(parcelSpec.biomes);
+      subparcel.heightfield.set(parcelSpec.heightfield);
+      for (const object of parcelSpec.objects) {
+        subparcel.addVegetation(object.type < SPAWNER_RATE*0xFFFFFF ? 'spawner' : 'tree1', localVector.fromArray(object.position).add(localVector2.set(0, -0.5, 0)), localQuaternion.fromArray(object.quaternion));
+      }
+    }); */
+    subparcel.reload();
+  })();
+  subparcels[index] = subparcel;
+};
 planet.editSubparcel = (x, y, z, fn) => {
-  let index = _getSubparcelIndex(x, y, z);
+  /* let index = _getSubparcelIndex(x, y, z);
   if (!subparcels[index]) {
     _addSubparcel(x, y, z, index);
   }
-  const subparcel = subparcels[index];
+  const subparcel = subparcels[index]; */
+  const subparcel = this.peekSubparcel(x, y, z);
   fn(subparcel);
   if (!dirtySubparcels.includes(subparcel)) {
     dirtySubparcels.push(subparcel);
@@ -530,14 +574,16 @@ const _loadStorage = async roomName => {
   for (const k of keys) {
     if (k.startsWith(prefix)) {
       const match = k.slice(prefix.length).match(/^([-0-9]+)\/([-0-9]+)\/([-0-9]+)/);
-      const p = storage.getRaw(k)
-        .then(ab => {
-          const subparcel = new Subparcel(ab);
-          subparcel.readMetadata();
-          subparcel.load = Promise.resolve();
-          // subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
-          return subparcel;
-        });
+      const p = (async () => {
+        const ab = await storage.getRaw(k);
+        const uint8Array = await chunkWorker.requestAlloc(ab.byteLength);
+        uint8Array.set(new Uint8Array(ab));
+        const subparcel = new Subparcel(uint8Array);
+        subparcel.readMetadata();
+        subparcel.load = Promise.resolve();
+        // subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
+        return subparcel;
+      })();
       promises.push(p);
     }
   }

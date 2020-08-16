@@ -56,7 +56,7 @@ const pid4 = Math.PI/4;
 const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
 const baseHeight = PARCEL_SIZE/2-10;
-const SPAWNER_RATE = 0.08;
+// const SPAWNER_RATE = 0.08;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -551,7 +551,7 @@ const [
         offset,
       });
     };
-    w.requestLoadPotentials = (seed, meshId, x, y, z, baseHeight, parcelSize, subparcelSize) => {
+    w.requestLoadPotentials = (seed, meshId, x, y, z, baseHeight, subparcelByteOffset) => {
       return w.request({
         method: 'loadPotentials',
         seed,
@@ -560,8 +560,7 @@ const [
         y,
         z,
         baseHeight,
-        parcelSize,
-        subparcelSize
+        subparcelByteOffset
       });
     };
     w.requestMarchLand = (seed, meshId, x, y, z, potentials, biomes, heightfield, lightfield, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks) => {
@@ -1319,6 +1318,7 @@ const [
   })(),
 ]);
 chunkWorker = cw;
+planet.setChunkWorker(chunkWorker);
 physxWorker = px;
 physicsWorker = pw;
 
@@ -1945,26 +1945,8 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
         const ady = ay + dy;
         for (let dz = 0; dz <= 1; dz++) {
           const adz = az + dz;
-          const subparcel = planet.getSubparcel(adx, ady, adz);
-
-          if (!subparcel.load) {
-            subparcel.load = chunkWorker.requestLoadPotentials(
-              seedNum,
-              meshId,
-              adx,
-              ady,
-              adz,
-              baseHeight,
-              parcelSize,
-              subparcelSize
-            ).then(parcelSpec => {
-              subparcel.potentials.set(parcelSpec.potentials);
-              subparcel.biomes.set(parcelSpec.biomes);
-              subparcel.heightfield.set(parcelSpec.heightfield);
-              for (const object of parcelSpec.objects) {
-                subparcel.addVegetation(object.type < SPAWNER_RATE*0xFFFFFF ? 'spawner' : 'tree1', localVector.fromArray(object.position).add(localVector2.set(0, -0.5, 0)), localQuaternion.fromArray(object.quaternion));
-              }
-            });
+          if (!planet.peekSubparcel(adx, ady, adz)) {
+            planet.allocSubparcel(adx, ady, adz, seedNum, meshId, baseHeight);
           }
         }
       }
@@ -1978,7 +1960,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     ) { */
     let live = true;
     (async () => {
-      const subparcel = planet.getSubparcelByIndex(index);
+      const subparcel = planet.peekSubparcelByIndex(index);
       await subparcel.load;
       if (!live) return;
 
@@ -2282,10 +2264,22 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
 
     let live = true;
     (async () => {
-      const subparcel = planet.getSubparcelByIndex(index);
-      await subparcel.load;
+      const localSubparcels = [];
+      for (let dz = -1; dz <= 1; dz++) {
+        const az = z + dz;
+        for (let dy = -1; dy <= 1; dy++) {
+          const ay = y + dy;
+          for (let dx = -1; dx <= 1; dx++) {
+            const ax = x + dx;
+            const subparcel = planet.peekSubparcel(ax, ay, az);
+            localSubparcels.push(subparcel);
+          }
+        }
+      }
+      await Promise.all(localSubparcels.map(subparcel => subparcel && subparcel.load));
       if (!live) return;
 
+      const subparcel = planet.peekSubparcelByIndex(index);
       const localVegetations = subparcel.vegetations
         .filter(vegetation => vegetation.name !== 'spawner');
       const objects = localVegetations
@@ -2299,12 +2293,12 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       {
         let heightfieldIndex = 0;
         for (let dz = -1; dz <= 1; dz++) {
-          const az = z + dz;
+          // const az = z + dz;
           for (let dy = -1; dy <= 1; dy++) {
-            const ay = y + dy;
+            // const ay = y + dy;
             for (let dx = -1; dx <= 1; dx++) {
-              const ax = x + dx;
-              const subparcel = planet.peekSubparcel(ax, ay, az);
+              // const ax = x + dx;
+              const subparcel = localSubparcels[heightfieldIndex];
               if (subparcel) {
                 heightfields.set(subparcel.heightfield, heightfieldIndex*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
               }
@@ -2318,12 +2312,12 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       {
         let lightfieldIndex = 0;
         for (let dz = -1; dz <= 1; dz++) {
-          const az = z + dz;
+          // const az = z + dz;
           for (let dy = -1; dy <= 1; dy++) {
-            const ay = y + dy;
+            // const ay = y + dy;
             for (let dx = -1; dx <= 1; dx++) {
-              const ax = x + dx;
-              const subparcel = planet.peekSubparcel(ax, ay, az);
+              // const ax = x + dx;
+              const subparcel = localSubparcels[lightfieldIndex];
               if (subparcel) {
                 lightfields.set(subparcel.lightfield, lightfieldIndex*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
               }
@@ -2468,7 +2462,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
           for (let i = 0; i < neededCoords.length; i++) {
             const neededCoord = neededCoords[i];
             const {index} = neededCoord;
-            const subparcel = planet.getSubparcelByIndex(index);
+            const subparcel = planet.peekSubparcelByIndex(index);
             for (const pkg of subparcel.packages) {
               if (!mesh.objects.some(object => object.package === pkg)) {
                 const p = await XRPackage.download(pkg.dataHash);
@@ -2494,7 +2488,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
               pe.remove(p);
               mesh.objects.splice(mesh.objects.indexOf(p), 1);
             } else {
-              const subparcel = planet.getSubparcel(sx, sy, sz);
+              const subparcel = planet.peekSubparcelByIndex(index);
               if (!subparcel.packages.includes(p.package)) {
                 pe.remove(p);
                 mesh.objects.splice(mesh.objects.indexOf(p), 1);
@@ -2543,7 +2537,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
 
       let live = true;
       (async () => {
-        const subparcel = planet.getSubparcelByIndex(index);
+        const subparcel = planet.peekSubparcelByIndex(index);
         await subparcel.load;
         if (!live) return;
 

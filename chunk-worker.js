@@ -4,7 +4,6 @@ const subparcelSize = 10;
 const subparcelSizeP1 = subparcelSize+1;
 const subparcelSizeP3 = subparcelSize+3;
 const potentialDefault = -0.5;
-const PLANET_OBJECT_SLOTS = 16;
 
 class Allocator {
   constructor() {
@@ -34,36 +33,34 @@ const _align4 = n => {
   const d = n%4;
   return d ? (n+4-d) : n;
 };
-const _loadNoise = (seedData, x, y, z, baseHeight, parcelSize, subparcelSize, potentials, biomes, heightfield, objectPositions, objectQuaternions, objectTypes, numObjects) => {
-  dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
-  limits.set(Int32Array.from([parcelSize, parcelSize, parcelSize]));
-  shifts.set(Float32Array.from([x*subparcelSize, y*subparcelSize, z*subparcelSize]));
+const _loadNoise = (seedData, x, y, z, baseHeight, subparcelByteOffset) => {
+  // dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
+  // shifts.set(Float32Array.from([x*subparcelSize, y*subparcelSize, z*subparcelSize]));
 
   const wormRate = 2;
   const wormRadiusBase = 2;
   const wormRadiusRate = 2;
   const objectsRate = 3;
 
+// console.log('load noise', subparcelByteOffset);
+try {
   Module._doNoise3(
     seedData,
+    x, y, z,
     baseHeight,
-    dims.offset,
-    shifts.offset,
-    limits.offset,
+    // dims.offset,
+    // shifts.offset,
     wormRate,
     wormRadiusBase,
     wormRadiusRate,
     objectsRate,
     potentialDefault,
-    potentials.offset,
-    biomes.offset,
-    heightfield.offset,
-    objectPositions.offset,
-    objectQuaternions.offset,
-    objectTypes.offset,
-    numObjects.offset,
-    PLANET_OBJECT_SLOTS
+    subparcelByteOffset
   );
+} catch(err) {
+  console.warn('noise error', err.stack);
+  debugger;
+}
 };
 const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, meshId, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks) => {
   dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
@@ -177,11 +174,12 @@ const _handleMessage = data => {
       break;
     }
     case 'loadPotentials': {
-      const {seed: seedData, meshId, x, y, z, baseHeight, parcelSize, subparcelSize} = data;
+      const {seed: seedData, meshId, x, y, z, baseHeight, subparcelByteOffset} = data;
 
-      _loadNoise(seedData, x, y, z, baseHeight, parcelSize, subparcelSize, potentials, biomes, heightfield, objectPositions, objectQuaternions, objectTypes, numObjects);
+      // _loadNoise(seedData, x, y, z, baseHeight, potentials, biomes, heightfield, objectPositions, objectQuaternions, objectTypes, numObjects);
+      _loadNoise(seedData, x, y, z, baseHeight, subparcelByteOffset);
 
-      const potentials2 = potentials.slice();
+      /* const potentials2 = potentials.slice();
       const biomes2 = biomes.slice();
       const heightfield2 = heightfield.slice();
       const objects = Array(numObjects[0]);
@@ -199,7 +197,10 @@ const _handleMessage = data => {
           heightfield: heightfield2,
           objects,
         },
-      }, [potentials2.buffer, heightfield2.buffer]);
+      }, [potentials2.buffer, heightfield2.buffer]); */
+      self.postMessage({
+        result: null,
+      });
       break;
     }
     case 'marchLand': {
@@ -225,17 +226,14 @@ const _handleMessage = data => {
       break;
     }
     case 'getHeight': {
-      const {seed, x, y, z, baseHeight, freqs: freqsData, octaves: octavesData, scales: scalesData, uvs: uvsData, amps: ampsData, parcelSize} = data;
-
-      limits.set(Int32Array.from([parcelSize, parcelSize, parcelSize]));
+      const {seed, x, y, z, baseHeight, freqs: freqsData, octaves: octavesData, scales: scalesData, uvs: uvsData, amps: ampsData} = data;
 
       const height = Module._doGetHeight(
         seed,
         x,
         y,
         z,
-        baseHeight,
-        limits.offset
+        baseHeight
       );
 
       self.postMessage({
@@ -264,20 +262,19 @@ self.onmessage = e => {
   }
 };
 
-let potentials, biomes, objectPositions, objectQuaternions, objectTypes, numObjects, heightfield, lightfield, dims, limits, shifts, scale, positions, normals, barycentrics, aos, numPositions, numBarycentrics, numAos, skyLights, torchLights, numOpaquePositions, numTransparentPositions, peeks;
+let potentials, biomes, /*objectPositions, objectQuaternions, objectTypes, numObjects,*/ heightfield, lightfield, dims, shifts, scale, positions, normals, barycentrics, aos, numPositions, numBarycentrics, numAos, skyLights, torchLights, numOpaquePositions, numTransparentPositions, peeks;
 wasmModulePromise.then(() => {
   loaded = true;
 
   potentials = allocator.alloc(Float32Array, subparcelSizeP3*subparcelSizeP3*subparcelSizeP3);
   biomes = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1);
-  objectPositions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*3);
+  /* objectPositions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*3);
   objectQuaternions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*4);
   objectTypes = allocator.alloc(Uint32Array, PLANET_OBJECT_SLOTS);
-  numObjects = allocator.alloc(Uint32Array, 1);
+  numObjects = allocator.alloc(Uint32Array, 1); */
   heightfield = allocator.alloc(Int8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
   lightfield = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
   dims = allocator.alloc(Int32Array, 3);
-  limits = allocator.alloc(Int32Array, 3);
   shifts = allocator.alloc(Float32Array, 3);
   scale = allocator.alloc(Float32Array, 3);
   positions = allocator.alloc(Float32Array, 3 * 1024 * 1024);
