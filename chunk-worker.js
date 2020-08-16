@@ -42,8 +42,6 @@ const _loadNoise = (seedData, x, y, z, baseHeight, subparcelByteOffset) => {
   const wormRadiusRate = 2;
   const objectsRate = 3;
 
-// console.log('load noise', subparcelByteOffset);
-try {
   Module._doNoise3(
     seedData,
     x, y, z,
@@ -57,10 +55,6 @@ try {
     potentialDefault,
     subparcelByteOffset
   );
-} catch(err) {
-  console.warn('noise error', err.stack);
-  debugger;
-}
 };
 const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, meshId, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks) => {
   dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
