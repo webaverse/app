@@ -16,6 +16,18 @@ const fakeMaterial = new THREE.MeshBasicMaterial({
   color: 0xFFFFFF,
 });
 
+const SUBPARCEL_SIZE = 10;
+const SUBPARCEL_SIZE_P1 = SUBPARCEL_SIZE + 1;
+// const SUBPARCEL_SIZE_P3 = SUBPARCEL_SIZE + 3;
+// const _getPotentialIndex = (x, y, z) => (x+1) + (y+1)*SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3 + (z+1)*SUBPARCEL_SIZE_P3;
+function abs(n) {
+  return (n ^ (n >> 31)) - (n >> 31);
+}
+function sign(n) {
+  return -(n >> 31);
+}
+const _getSubparcelIndex = (x, y, z) => abs(x)|(abs(y)<<9)|(abs(z)<<18)|(sign(x)<<27)|(sign(y)<<28)|(sign(z)<<29);
+const _getFieldIndex = (x, y, z) => x + (z * SUBPARCEL_SIZE_P1) + (y * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1);
 const _align4 = n => {
   const d = n%4;
   return d ? (n+4-d) : n;
@@ -23,7 +35,7 @@ const _align4 = n => {
 
 const geometryRegistry = {};
 const animalGeometries = [];
-const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSize) => {
+const _marchObjects = (x, y, z, objects, subparcelSpecs) => {
   const geometries = objects.map(o => geometryRegistry[o.type]);
 
   const _makeStats = () => ({
@@ -88,23 +100,12 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
   };
   const opaque = _makeSpec();
 
-  const subparcelSizeP1 = subparcelSize+1;
-  const subparcelOffset = localVector2.set((x-1)*subparcelSize, (y-1)*subparcelSize, (z-1)*subparcelSize);
-  const _getFieldIndex = p => {
-    const ax = Math.floor(localVector.x - subparcelOffset.x);
-    const ay = Math.floor(localVector.y - subparcelOffset.y);
-    const az = Math.floor(localVector.z - subparcelOffset.z);
-    const sx = Math.floor(ax/subparcelSize);
-    const sy = Math.floor(ay/subparcelSize);
-    const sz = Math.floor(az/subparcelSize);
-    const fieldsOffset = (sx + sy*3 + sz*3*3) * subparcelSizeP1*subparcelSizeP1*subparcelSizeP1;
-    const lx = ax - subparcelSize*sx;
-    const ly = ay - subparcelSize*sy;
-    const lz = az - subparcelSize*sz;
-    const fieldIndex = lx + ly*subparcelSizeP1 + lz*subparcelSizeP1*subparcelSizeP1;
-    return fieldsOffset + fieldIndex;
-  };
+  const subparcelSpecsMap = {};
+  for (const subparcel of subparcelSpecs) {
+    subparcelSpecsMap[subparcel.index] = subparcel;
+  }
 
+  const subparcelOffset = localVector2.set(x*SUBPARCEL_SIZE, y*SUBPARCEL_SIZE, z*SUBPARCEL_SIZE);
   for (let i = 0; i < geometries.length; i++) {
     const geometrySpecs = geometries[i];
     const object = objects[i];
@@ -125,9 +126,26 @@ const _marchObjects = (x, y, z, objects, heightfields, lightfields, subparcelSiz
           .fromArray(geometry.positions, j)
           .applyMatrix4(matrix)
           .toArray(spec.positions, spec.positionsIndex + j);
-        const fieldIndex = _getFieldIndex(localVector);
-        spec.skyLights[spec.skyLightsIndex + jOffset] = heightfields[fieldIndex] < 0 ? 0 : heightfields[fieldIndex];
-        spec.torchLights[spec.torchLightsIndex + jOffset] = lightfields[fieldIndex];
+
+        const ax = Math.floor(localVector.x);
+        const ay = Math.floor(localVector.y);
+        const az = Math.floor(localVector.z);
+        const sx = Math.floor(ax/SUBPARCEL_SIZE);
+        const sy = Math.floor(ay/SUBPARCEL_SIZE);
+        const sz = Math.floor(az/SUBPARCEL_SIZE);
+        const subparcelIndex = _getSubparcelIndex(sx, sy, sz);
+        const subparcel = subparcelSpecsMap[subparcelIndex];
+        if (subparcel) {
+          const lx = ax - SUBPARCEL_SIZE*sx;
+          const ly = ay - SUBPARCEL_SIZE*sy;
+          const lz = az - SUBPARCEL_SIZE*sz;
+          const fieldIndex = _getFieldIndex(lx, ly, lz);
+          spec.skyLights[spec.skyLightsIndex + jOffset] = subparcel.heightfield[fieldIndex] < 0 ? 0 : subparcel.heightfield[fieldIndex];
+          spec.torchLights[spec.torchLightsIndex + jOffset] = subparcel.lightfield[fieldIndex];
+        } else {
+          spec.skyLights[spec.skyLightsIndex + jOffset] = 0;
+          spec.torchLights[spec.torchLightsIndex + jOffset] = 0;
+        }
       }
       spec.positionsIndex += geometry.positions.length;
       spec.skyLightsIndex += geometry.positions.length/3;
@@ -445,11 +463,11 @@ const _handleMessage = async data => {
       break;
     }
     case 'marchObjects': {
-      const {x, y, z, objects, heightfields, lightfields, subparcelSize} = data;
+      const {x, y, z, objects, subparcelSpecs} = data;
 
       const results = [];
       const transfers = [];
-      const [result, transfer] = _marchObjects(x, y, z, objects, heightfields, lightfields, subparcelSize);
+      const [result, transfer] = _marchObjects(x, y, z, objects, subparcelSpecs);
       results.push(result);
       transfers.push(transfer);
 
