@@ -47,6 +47,7 @@ const _getSubparcelXYZ = index => {
   return [x, y, z];
 };
 const _getPotentialIndex = (x, y, z) => (x+1) + (y+1)*SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3 + (z+1)*SUBPARCEL_SIZE_P3;
+const _getFieldIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + z*SUBPARCEL_SIZE_P1;
 const potentialDefault = -0.5;
 
 // planet
@@ -59,6 +60,7 @@ const dirtySubparcels = [];
 
 planet.getSubparcelIndex = _getSubparcelIndex;
 planet.getPotentialIndex = _getPotentialIndex;
+planet.getFieldIndex = _getFieldIndex;
 
 const _getStringLength = s => {
   let i;
