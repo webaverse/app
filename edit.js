@@ -664,11 +664,21 @@ const [
       direction: allocator.alloc(Float32Array, 3),
       grounded: allocator.alloc(Uint32Array, 1),
     };
+    const registerGroupSetArgs = {
+      peeks: allocator.alloc(Uint8Array, 15),
+      groups: allocator.alloc(Uint32Array, 3*16),
+      position: allocator.alloc(Float32Array, 3),
+      matrix: allocator.alloc(Float32Array, 16),
+      cullResults: allocator.alloc(Uint32Array, 3*512),
+      numCullResults: allocator.alloc(Uint32Array, 1),
+    };
 
     const localVector = new THREE.Vector3();
     const localVector2 = new THREE.Vector3();
     const localQuaternion = new THREE.Quaternion();
     const localQuaternion2 = new THREE.Quaternion();
+
+    const culler = Module._makeCuller();
 
     return {
       registerGeometry(meshId, positionsData, indicesData, x, y, z) {
@@ -808,6 +818,51 @@ const [
           grounded: !!grounded[0],
         } : null;
         return result;
+      },
+      registerGroupSet(x, y, z, r, peeksData, groupsData) {
+        registerGroupSetArgs.peeks.set(peeksData);
+        for (let i = 0; i < groupsData.length; i++) {
+          const groupData = groupsData[i];
+          registerGroupSetArgs.groups[i*3] = groupData.start;
+          registerGroupSetArgs.groups[i*3+1] = groupData.count;
+          registerGroupSetArgs.groups[i*3+2] = groupData.materialIndex;
+        }
+
+        return Module._registerGroupSet(
+          culler,
+          x,
+          y,
+          z,
+          r,
+          registerGroupSetArgs.peeks.offset,
+          registerGroupSetArgs.groups.offset,
+          groupsData.length
+        );
+      },
+      unregisterGroupSet(groupSet) {
+        Module._unregisterGroupSet(culler, groupSet);
+      },
+      cull(position, matrix, slabRadius) {
+        position.toArray(registerGroupSetArgs.position);
+        matrix.toArray(registerGroupSetArgs.matrix);
+
+        Module._cull(
+          culler,
+          registerGroupSetArgs.position.offset,
+          registerGroupSetArgs.matrix.offset,
+          slabRadius,
+          registerGroupSetArgs.cullResults.offset,
+          registerGroupSetArgs.numCullResults.offset
+        );
+        const cullResults = Array(registerGroupSetArgs.numCullResults[0]);
+        for (let i = 0; i < cullResults.length; i++) {
+          cullResults[i] = {
+            start: registerGroupSetArgs.cullResults[i*3],
+            count: registerGroupSetArgs.cullResults[i*3+1],
+            materialIndex: registerGroupSetArgs.cullResults[i*3+2],
+          };
+        }
+        return cullResults;
       },
     };
   })(),
@@ -1710,7 +1765,8 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
         boundingSphere: new THREE.Sphere(new THREE.Vector3(0, 0, 0), slabRadius),
         slab: this,
       };
-      this.physxGeometry = null;
+      this.physxGeometry = 0;
+      this.physxGroupSet = 0;
     }
     setPosition(x, y, z, index) {
       this.x = x;
@@ -1923,6 +1979,10 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
           physxWorker.unregisterGeometry(slab.physxGeometry);
           slab.physxGeometry = 0;
         }
+        if (slab.physxGroupSet) {
+          physxWorker.unregisterGroupSet(slab.physxGroupSet);
+          slab.physxGroupSet = 0;
+        }
       }
 
       const subparcelTasks = marchesTasks[index];
@@ -1985,6 +2045,12 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
 
       mesh.updateGeometry(slab, spec);
 
+      if (slab.physxGroupSet) {
+        physxWorker.unregisterGroupSet(slab.physxGroupSet);
+        slab.physxGroupSet = 0;
+      }
+      slab.physxGroupSet = physxWorker.registerGroupSet(slab.x, slab.y, slab.z, slabRadius, slab.peeks, slab.groupSet.groups);
+
       if (spec.numOpaquePositions > 0) {
         const bakeSpecs = [{
           positions: spec.positions,
@@ -2009,6 +2075,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
           count: spec.numOpaquePositions,
         })));
         if (!live) return;
+
         for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
           const physxGeometry = result.physicsGeometryBuffers[i];
           const {x, y, z} = bakeSpecs[i];
@@ -3628,6 +3695,13 @@ function animate(timestamp, frame) {
               const spec = specs[i];
               currentChunkMesh.updateGeometry(slab, spec);
             }
+            for (let i = 0; i < slabs.length; i++) {
+              if (slab.physxGroupSet) {
+                physxWorker.unregisterGroupSet(slab.physxGroupSet);
+                slab.physxGroupSet = 0;
+              }
+              slab.physxGroupSet = physxWorker.registerGroupSet(slab.x, slab.y, slab.z, slabRadius, slab.peeks, slab.groupSet.groups);
+            }
             const neededSpecs = specs.filter(spec => spec.numOpaquePositions > 0);
             if (neededSpecs.length > 0) {
               const bakeSpecs = neededSpecs.map(spec => {
@@ -4185,10 +4259,14 @@ function animate(timestamp, frame) {
     localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, worldContainer.matrixWorld))
   );
   if (currentChunkMesh) {
-    const _cull = () => {
-      localMatrix2.getInverse(worldContainer.matrixWorld);
-      localMatrix.copy(pe.camera.matrixWorld)
-        .premultiply(localMatrix2)
+    localMatrix3.copy(pe.camera.matrixWorld)
+      .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
+      .decompose(localVector, localQuaternion, localVector2);
+    currentChunkMesh.geometry.groups = physxWorker.cull(localVector, localMatrix, slabRadius);
+
+    /* const _cull = () => {
+      localMatrix3.copy(pe.camera.matrixWorld)
+        .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
         .decompose(localVector, localQuaternion, localVector2);
       const frustumGroupSets = currentChunkMesh.groupSets
         .filter(groupSet => localFrustum.intersectsSphere(groupSet.boundingSphere))
@@ -4241,7 +4319,7 @@ function animate(timestamp, frame) {
         .flat()
         .sort((a, b) => a.materialIndex - b.materialIndex);
     };
-    _cull();
+    _cull(); */
   }
   if (currentVegetationMesh) {
     currentVegetationMesh.geometry.originalGroups = currentVegetationMesh.geometry.groups.slice();
