@@ -67,10 +67,10 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
 
   self.Module._doMarchingCubes2(
     dims.offset,
-    potentials.offset,
-    biomes.offset,
-    heightfield.offset,
-    lightfield.offset,
+    potentials.byteOffset,
+    biomes.byteOffset,
+    heightfield.byteOffset,
+    lightfield.byteOffset,
     shifts.offset,
     scale.offset,
     position.byteOffset,
@@ -127,11 +127,11 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
     numTransparentPositions: numTransparentPositions[0],
   };
 };
-const _meshChunkSlab = (meshId, x, y, z, potentialsData, biomesData, heightfieldData, lightfieldData, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks) => {
-  potentials.set(potentialsData);
+const _meshChunkSlab = (meshId, x, y, z, potentials, biomes, heightfield, lightfield, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks) => {
+  /* potentials.set(potentialsData);
   biomes.set(biomesData);
   heightfield.set(heightfieldData);
-  lightfield.set(lightfieldData);
+  lightfield.set(lightfieldData); */
   const shiftsData = [
     x*subparcelSize,
     y*subparcelSize,
@@ -256,36 +256,36 @@ self.onmessage = e => {
   }
 };
 
-let potentials, biomes, /*objectPositions, objectQuaternions, objectTypes, numObjects,*/ heightfield, lightfield, dims, shifts, scale, positions, normals, barycentrics, aos, numPositions, numBarycentrics, numAos, skyLights, torchLights, numOpaquePositions, numTransparentPositions, peeks;
+let dims, shifts, scale, numPositions, numBarycentrics, numAos, numOpaquePositions, numTransparentPositions;
 wasmModulePromise.then(() => {
   loaded = true;
 
-  potentials = allocator.alloc(Float32Array, subparcelSizeP3*subparcelSizeP3*subparcelSizeP3);
+  /* potentials = allocator.alloc(Float32Array, subparcelSizeP3*subparcelSizeP3*subparcelSizeP3);
   biomes = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1);
-  /* objectPositions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*3);
+  objectPositions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*3);
   objectQuaternions = allocator.alloc(Float32Array, PLANET_OBJECT_SLOTS*4);
   objectTypes = allocator.alloc(Uint32Array, PLANET_OBJECT_SLOTS);
-  numObjects = allocator.alloc(Uint32Array, 1); */
+  numObjects = allocator.alloc(Uint32Array, 1);
   heightfield = allocator.alloc(Int8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
-  lightfield = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1);
+  lightfield = allocator.alloc(Uint8Array, subparcelSizeP1*subparcelSizeP1*subparcelSizeP1); */
   dims = allocator.alloc(Int32Array, 3);
   shifts = allocator.alloc(Float32Array, 3);
   scale = allocator.alloc(Float32Array, 3);
-  positions = allocator.alloc(Float32Array, 3 * 1024 * 1024);
+  /* positions = allocator.alloc(Float32Array, 3 * 1024 * 1024);
   normals = allocator.alloc(Float32Array, 3 * 1024 * 1024);
   uvs = allocator.alloc(Float32Array, 3 * 1024 * 1024/3*2);
   barycentrics = allocator.alloc(Float32Array, 3 * 1024 * 1024);
-  aos = allocator.alloc(Uint8Array, 1024 * 1024);
+  aos = allocator.alloc(Uint8Array, 1024 * 1024); */
   numPositions = allocator.alloc(Uint32Array, 1);
   numNormals = allocator.alloc(Uint32Array, 1);
   numUvs = allocator.alloc(Uint32Array, 1);
   numBarycentrics = allocator.alloc(Uint32Array, 1);
   numAos = allocator.alloc(Uint32Array, 1);
-  skyLights = allocator.alloc(Uint8Array, 3 * 1024 * 1024/3);
-  torchLights = allocator.alloc(Uint8Array, 3 * 1024 * 1024/3);
+  /* skyLights = allocator.alloc(Uint8Array, 3 * 1024 * 1024/3);
+  torchLights = allocator.alloc(Uint8Array, 3 * 1024 * 1024/3); */
   numOpaquePositions = allocator.alloc(Uint32Array, 1);
   numTransparentPositions = allocator.alloc(Uint32Array, 1);
-  peeks = allocator.alloc(Uint8Array, 15);
+  // peeks = allocator.alloc(Uint8Array, 15);
 
   _flushMessages();
 }).catch(err => {
