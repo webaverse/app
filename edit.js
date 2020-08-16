@@ -2293,11 +2293,8 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       {
         let heightfieldIndex = 0;
         for (let dz = -1; dz <= 1; dz++) {
-          // const az = z + dz;
           for (let dy = -1; dy <= 1; dy++) {
-            // const ay = y + dy;
             for (let dx = -1; dx <= 1; dx++) {
-              // const ax = x + dx;
               const subparcel = localSubparcels[heightfieldIndex];
               if (subparcel) {
                 heightfields.set(subparcel.heightfield, heightfieldIndex*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
@@ -2312,11 +2309,8 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       {
         let lightfieldIndex = 0;
         for (let dz = -1; dz <= 1; dz++) {
-          // const az = z + dz;
           for (let dy = -1; dy <= 1; dy++) {
-            // const ay = y + dy;
             for (let dx = -1; dx <= 1; dx++) {
-              // const ax = x + dx;
               const subparcel = localSubparcels[lightfieldIndex];
               if (subparcel) {
                 lightfields.set(subparcel.lightfield, lightfieldIndex*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
