@@ -287,7 +287,7 @@ export class Subparcel {
     }
   }
   addVegetation(type, position, quaternion) {
-    if ((this._numObjects[0] + 1) < PLANET_OBJECT_SLOTS) {
+    if (this._numObjects[0] < PLANET_OBJECT_SLOTS) {
       const nextIndex = this._numObjects[0]++;
 
       const vegetation = new SubparcelObject(this.data, Subparcel.offsets.objects + nextIndex*PLANET_OBJECT_SIZE, nextIndex, this);
