@@ -105,7 +105,6 @@ const _marchObjects = (x, y, z, objects, subparcelSpecs) => {
     subparcelSpecsMap[subparcel.index] = subparcel;
   }
 
-  const subparcelOffset = localVector2.set(x*SUBPARCEL_SIZE, y*SUBPARCEL_SIZE, z*SUBPARCEL_SIZE);
   for (let i = 0; i < geometries.length; i++) {
     const geometrySpecs = geometries[i];
     const object = objects[i];
