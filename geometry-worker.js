@@ -524,15 +524,122 @@ const _handleMessage = async data => {
     case 'marchObjects': {
       const {x, y, z, objects, subparcelSpecs} = data;
 
-      const results = [];
+      const allocator = new Allocator();
+
+      const marchObjectSize = Uint32Array.BYTES_PER_ELEMENT +
+        MAX_NAME_LENGTH * Uint8Array.BYTES_PER_ELEMENT +
+        Float32Array.BYTES_PER_ELEMENT * 3 +
+        Float32Array.BYTES_PER_ELEMENT * 4;
+      const numMarchObjects = objects.length;
+      const marchObjects = allocator.alloc(Uint8Array, marchObjectSize * numMarchObjects);
+      {
+        let index = 0;
+        for (const object of objects) {
+          new Uint32Array(marchObjects.buffer, marchObjects.offset + index, 1)[0] = object.id;
+          index += Uint32Array.BYTES_PER_ELEMENT;
+          const nameUint8Array = new TextEncoder().encode(object.name);
+          new Uint8Array(marchObjects.buffer, marchObjects.offset + index, MAX_NAME_LENGTH).set(nameUint8Array);
+          index += MAX_NAME_LENGTH;
+          new Float32Array(marchObjects.buffer, marchObjects.offset + index, 3).set(object.position);
+          index += Float32Array.BYTES_PER_ELEMENT * 3;
+          new Float32Array(marchObjects.buffer, marchObjects.offset + index, 4).set(object.quaternion);
+          index += Float32Array.BYTES_PER_ELEMENT * 4;
+        }
+      }
+      const subparcelObjectSize = Int32Array.BYTES_PER_ELEMENT +
+        SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + 1 +
+        SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + 1;
+      const numSubparcelObjects = subparcelSpecs.length;
+      const subparcelObjects = allocator.alloc(Uint8Array, subparcelObjectSize * numSubparcelObjects);
+      {
+        let index = 0;
+        for (const subparcelSpec of subparcelSpecs) {
+          new Int32Array(subparcelObjects.buffer, subparcelObjects.offset + index, 1)[0] = subparcelSpec.index;
+          index += Int32Array.BYTES_PER_ELEMENT;
+          new Int8Array(subparcelObjects.buffer, subparcelObjects.offset + index, subparcelSpec.heightfield.length).set(subparcelSpec.heightfield);
+          index += subparcelSpec.heightfield.length * Int8Array.BYTES_PER_ELEMENT;
+          new Uint8Array(subparcelObjects.buffer, subparcelObjects.offset + index, subparcelSpec.lightfield.length).set(subparcelSpec.lightfield);
+          index += subparcelSpec.lightfield.length * Uint8Array.BYTES_PER_ELEMENT;
+        }
+      }
+
+      const geometries = objects.map(o => geometryRegistry[o.type]);
+      const stats = {
+        numPositions: 0,
+        numUvs: 0,
+        numColors: 0,
+        numIds: 0,
+        numSkyLights: 0,
+        numTorchLights: 0,
+        numIndices: 0,
+      };
+      for (const geometrySpecs of geometries) {
+        for (const geometry of geometrySpecs) {
+          stats.numPositions += geometry.positions.length;
+          stats.numUvs += geometry.uvs ? geometry.uvs.length : 0;
+          stats.numColors += geometry.colors ? geometry.colors.length : 0;
+          stats.numIds += geometry.positions.length/3;
+          stats.numSkyLights += geometry.positions.length/3;
+          stats.numTorchLights += geometry.positions.length/3;
+          stats.numIndices += geometry.indices.length;
+        }
+      }
+
+      const positions = allocator.alloc(Float32Array, stats.numPositions);
+      const uvs = allocator.alloc(Float32Array, stats.numUvs);
+      const ids = allocator.alloc(Float32Array, stats.numIds);
+      const indices = allocator.alloc(Uint32Array, stats.numIndices);
+      const skyLights = allocator.alloc(Uint8Array, stats.numSkyLights);
+      const torchLights = allocator.alloc(Uint8Array, stats.numTorchLights);
+      const numPositions = allocator.alloc(Uint32Array, 1);
+      const numUvs = allocator.alloc(Uint32Array, 1);
+      const numIds = allocator.alloc(Uint32Array, 1);
+      const numIndices = allocator.alloc(Uint32Array, 1);
+
+      Module._marchObjects(
+        geometrySet,
+        x,
+        y,
+        z,
+        marchObjects.offset,
+        numMarchObjects,
+        subparcelObjects.offset,
+        numSubparcelObjects,
+        positions.offset,
+        uvs.offset,
+        ids.offset,
+        indices.offset,
+        skyLights.offset,
+        torchLights.offset,
+        numPositions.offset,
+        numUvs.offet,
+        numIds.offset,
+        numIndices.offset
+      );
+
+      const positions2 = positions.slice(0, numPositions[0]);
+      const uvs2 = uvs.slice(0, numUvs[0]);
+      const ids2 = ids.slice(0, numIds[0]);
+      const indices2 = indices.slice(0, numIndices[0]);
+      const skyLights2 = skyLights.slice(0, numSkyLights[0]);
+      const torchLights2 = torchLights.slice(0, numTorchLights[0]);
+
+      /* const results = [];
       const transfers = [];
       const [result, transfer] = _marchObjects(x, y, z, objects, subparcelSpecs);
       results.push(result);
-      transfers.push(transfer);
+      transfers.push(transfer); */
 
       self.postMessage({
-        result: results,
-      }, transfers);
+        result: {
+          positions: position2,
+          uvs: uvs2,
+          ids: ids2,
+          indices: indices2,
+          skyLights: skyLights2,
+          torchLights: torchLights2,
+        },
+      }, [position2.buffer, us.buffer, ids.buffer, indices.buffer, skyLights.buffer, torchLights.buffer]);
       break;
     }
     default: {
