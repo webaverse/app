@@ -1,11 +1,4 @@
-importScripts('./three.js', './draco_decoder.js');
-
-const decoderModule = new DracoDecoderModule({
-  onModuleLoaded() {
-    loaded = true;
-    _flushMessages();
-  },
-});
+importScripts('./three.js', './bin/geometry2.js');
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -32,6 +25,29 @@ const _align4 = n => {
   const d = n%4;
   return d ? (n+4-d) : n;
 };
+
+class Allocator {
+  constructor() {
+    this.offsets = [];
+  }
+  alloc(constructor, size) {
+    const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
+    const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
+    b.offset = offset;
+    this.offsets.push(offset);
+    return b;
+  }
+  free(offset) {
+    self.Module._doFree(offset);
+    this.offsets.splice(this.offsets.indexOf(offset), 1);
+  }
+  freeAll() {
+    for (let i = 0; i < this.offsets.length; i++) {
+      self.Module._doFree(this.offsets[i]);
+    }
+    this.offsets.length = 0;
+  }
+}
 
 const geometryRegistry = {};
 const animalGeometries = [];
@@ -171,7 +187,7 @@ const _marchObjects = (x, y, z, objects, subparcelSpecs) => {
     arraybuffer,
   ];
 };
-const _dracoDecode = arrayBuffer => {
+/* const _dracoDecode = arrayBuffer => {
   const result = [];
 
   const decoder = new decoderModule.Decoder();
@@ -298,7 +314,7 @@ const _dracoDecode = arrayBuffer => {
   decoderModule.destroy(metadataQuerier);
 
   return result;
-};
+}; */
 /* const MAX_NAME_LENGTH = 128;
 const _flatDecode = arrayBuffer => {
   const result = [];
@@ -347,23 +363,31 @@ const _flatDecode = arrayBuffer => {
   return result;
 }; */
 
+let geometrySet = null;
 const queue = [];
 let loaded = false;
 const _handleMessage = async data => {
   const {method} = data;
   switch (method) {
     case 'loadBake': {
+      if (!geometrySet) {
+        geometrySet = Module._makeGeometrySet();
+      }
+
       const {url} = data;
 
-      const res = await fetch(url);
-      const arrayBuffer = await res.arrayBuffer();
-      const meshes = _dracoDecode(arrayBuffer);
-      for (const mesh of meshes) {
-        geometryRegistry[mesh.name] = [mesh];
-        if (mesh.animal) {
-          animalGeometries.push(mesh);
-        }
+      const allocator = new Allocator();
+      let uint8Array;
+      {
+        const res = await fetch(url);
+        const arrayBuffer = await res.arrayBuffer();
+        uint8Array = allocator.alloc(Uint8Array, arrayBuffer.byteLength);
+        uint8Array.set(new Uint8Array(arrayBuffer));
       }
+
+      Module._loadBake(geometrySet, uint8Array.offset, uint8Array.byteLength);
+
+      allocator.freeAll();
 
       self.postMessage({
         result: null,
@@ -373,11 +397,47 @@ const _handleMessage = async data => {
     case 'requestGeometry': {
       const {name} = data;
 
-      const [geometry] = geometryRegistry[name];
+      const allocator = new Allocator();
+
+      // const [geometry] = geometryRegistry[name];
+
+      const srcNameUint8Array = new TextEncoder().encode(name);
+      const dstNameUint8Array = allocator.alloc(Uint8Array, srcNameUint8Array.byteLength);
+      dstNameUint8Array.set(srcNameUint8Array);
+
+      const positions = allocator.alloc(Uint32Array, 1);
+      const uvs = allocator.alloc(Uint32Array, 1);
+      const indices = allocator.alloc(Uint32Array, 1);
+      const numPositions = allocator.alloc(Uint32Array, 1);
+      const numUvs = allocator.alloc(Uint32Array, 1);
+      const numIndices = allocator.alloc(Uint32Array, 1);
+
+      Module._getGeometry(
+        geometrySet,
+        dstNameUint8Array.offset,
+        dstNameUint8Array.byteLength,
+        positions.offset,
+        uvs.offset,
+        indices.offset,
+        numPositions.offset,
+        numUvs.offset,
+        numIndices.offset
+      );
+
+      // console.log('got num positions', Module.HEAP8.byteOffset, numPositions[0], numUvs[0], numIndices[0]);
+      const positions2 = new Float32Array(Module.HEAP8.buffer, positions[0], numPositions[0]).slice();
+      const uvs2 = new Float32Array(Module.HEAP8.buffer, uvs[0], numUvs[0]).slice();
+      const indices2 = new Uint32Array(Module.HEAP8.buffer, indices[0], numIndices[0]).slice();
+
+      allocator.freeAll();
 
       self.postMessage({
-        result: geometry,
-      });
+        result: {
+          positions: positions2,
+          uvs: uvs2,
+          indices: indices2,
+        },
+      }, [positions2.buffer, uvs2.buffer, indices2.buffer]);
       break;
     }
     case 'requestAnimalGeometry': {
@@ -495,3 +555,10 @@ self.onmessage = e => {
     _handleMessage(data);
   }
 };
+
+wasmModulePromise.then(() => {
+  loaded = true;
+  _flushMessages();
+}).catch(err => {
+  console.warn(err.stack);
+});
