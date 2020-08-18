@@ -399,8 +399,6 @@ const _handleMessage = async data => {
 
       const allocator = new Allocator();
 
-      // const [geometry] = geometryRegistry[name];
-
       const srcNameUint8Array = new TextEncoder().encode(name);
       const dstNameUint8Array = allocator.alloc(Uint8Array, srcNameUint8Array.byteLength);
       dstNameUint8Array.set(srcNameUint8Array);
@@ -424,7 +422,6 @@ const _handleMessage = async data => {
         numIndices.offset
       );
 
-      // console.log('got num positions', Module.HEAP8.byteOffset, numPositions[0], numUvs[0], numIndices[0]);
       const positions2 = new Float32Array(Module.HEAP8.buffer, positions[0], numPositions[0]).slice();
       const uvs2 = new Float32Array(Module.HEAP8.buffer, uvs[0], numUvs[0]).slice();
       const indices2 = new Uint32Array(Module.HEAP8.buffer, indices[0], numIndices[0]).slice();
@@ -443,82 +440,59 @@ const _handleMessage = async data => {
     case 'requestAnimalGeometry': {
       const {hash} = data;
 
-      const {positions, colors, indices} = animalGeometries[Math.floor(hash/0xFFFFFF*animalGeometries.length)];
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-      const animal = new THREE.Mesh(geometry, fakeMaterial);
+      const allocator = new Allocator();
 
-      const aabb = localBox.setFromObject(animal);
-      const center = aabb.getCenter(new THREE.Vector3());
-      const size = aabb.getSize(new THREE.Vector3());
-      const headPivot = center.clone()
-        .add(size.clone().multiply(new THREE.Vector3(0, 1/2 * 0.5, -1/2 * 0.5)));
-      const legsPivot = center.clone()
-        .add(size.clone().multiply(new THREE.Vector3(0, -1/2 + 1/3, 0)));
-      const legsSepFactor = 0.5;
-      const legsPivotTopLeft = legsPivot.clone()
-        .add(size.clone().multiply(new THREE.Vector3(-1/2 * legsSepFactor, 0, -1/2 * legsSepFactor)));
-      const legsPivotTopRight = legsPivot.clone()
-        .add(size.clone().multiply(new THREE.Vector3(1/2 * legsSepFactor, 0, -1/2 * legsSepFactor)));
-      const legsPivotBottomLeft = legsPivot.clone()
-        .add(size.clone().multiply(new THREE.Vector3(-1/2 * legsSepFactor, 0, 1/2 * legsSepFactor)));
-      const legsPivotBottomRight = legsPivot.clone()
-        .add(size.clone().multiply(new THREE.Vector3(1/2 * legsSepFactor, 0, 1/2 * legsSepFactor)));
+      const positions = allocator.alloc(Uint32Array, 1);
+      const colors = allocator.alloc(Uint32Array, 1);
+      const indices = allocator.alloc(Uint32Array, 1);
+      const heads = allocator.alloc(Uint32Array, 1);
+      const legs = allocator.alloc(Uint32Array, 1);
+      const numPositions = allocator.alloc(Uint32Array, 1);
+      const numColors = allocator.alloc(Uint32Array, 1);
+      const numIndices = allocator.alloc(Uint32Array, 1);
+      const numHeads = allocator.alloc(Uint32Array, 1);
+      const numLegs = allocator.alloc(Uint32Array, 1);
+      const headPivot = allocator.alloc(Float32Array, 3);
+      const aabb = allocator.alloc(Float32Array, 6);
 
-      const heads = new Float32Array(positions.length);
-      const legs = new Float32Array(positions.length/3*4);
-      for (let i = 0, j = 0; i < positions.length; i += 3, j += 4) {
-        localVector.fromArray(positions, i);
-        if (localVector.z < headPivot.z) {
-          localVector.sub(headPivot);
-        } else {
-          localVector.setScalar(0);
-        }
-        localVector.toArray(heads, i);
+      Module._getAnimalGeometry(
+        geometrySet,
+        hash,
+        positions.offset,
+        colors.offset,
+        indices.offset,
+        heads.offset,
+        legs.offset,
+        numPositions.offset,
+        numColors.offset,
+        numIndices.offset,
+        numHeads.offset,
+        numLegs.offset,
+        headPivot.offset,
+        aabb.offset
+      );
 
-        localVector.fromArray(positions, i);
-        let xAxis;
-        if (localVector.y < legsPivot.y) {
-          if (localVector.x >= legsPivot.x) {
-            if (localVector.z >= legsPivot.z) {
-              localVector.sub(legsPivotBottomRight);
-              xAxis = 1;
-            } else {
-              localVector.sub(legsPivotTopRight);
-              xAxis = -1;
-            }
-          } else {
-            if (localVector.z >= legsPivot.z) {
-              localVector.sub(legsPivotBottomLeft);
-              xAxis = -1;
-            } else {
-              localVector.sub(legsPivotTopLeft);
-              xAxis = 1;
-            }
-          }
-        } else {
-          localVector.setScalar(0);
-          xAxis = 0;
-        }
-        localVector.toArray(legs, j);
-        legs[j+3] = xAxis;
-      }
+      const positions2 = new Float32Array(Module.HEAP8.buffer, positions[0], numPositions[0]).slice();
+      const colors2 = new Uint8Array(Module.HEAP8.buffer, colors[0], numColors[0]).slice();
+      const indices2 = new Uint32Array(Module.HEAP8.buffer, indices[0], numIndices[0]).slice();
+      const heads2 = new Float32Array(Module.HEAP8.buffer, heads[0], numHeads[0]).slice();
+      const legs2 = new Float32Array(Module.HEAP8.buffer, legs[0], numLegs[0]).slice();
+      const headPivot2 = headPivot.slice();
+      const aabb2 = aabb.slice();
+
+      allocator.freeAll();
 
       self.postMessage({
         result: {
-          positions,
-          colors,
-          indices,
-          heads,
-          legs,
-          headPivot: headPivot.toArray(new Float32Array(3)),
-          aabb: {
-            center: center.toArray(new Float32Array(3)),
-            size: size.toArray(new Float32Array(3))
-          },
+          positions: positions2,
+          colors: colors2,
+          indices: indices2,
+          heads: heads2,
+          legs: legs2,
+          headPivot: headPivot2,
+          aabb: aabb2,
         },
-      });
+      }, [positions2.buffer, colors2.buffer, indices2.buffer, heads2.buffer, legs2.buffer, headPivot2.buffer, aabb2.buffer]);
       break;
     }
     case 'marchObjects': {
@@ -607,12 +581,6 @@ const _handleMessage = async data => {
       const indices2 = indices.slice(0, numIndices[0]);
       const skyLights2 = skyLights.slice(0, numSkyLights[0]);
       const torchLights2 = torchLights.slice(0, numTorchLights[0]);
-
-      /* const results = [];
-      const transfers = [];
-      const [result, transfer] = _marchObjects(x, y, z, objects, subparcelSpecs);
-      results.push(result);
-      transfers.push(transfer); */
 
       allocator.freeAll();
 
