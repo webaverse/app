@@ -2357,13 +2357,13 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       const objects = localVegetations
         .map(vegetation => ({
           id: vegetation.id,
-          type: vegetation.name,
-          matrix: localMatrix.compose(localVector.fromArray(vegetation.position), localQuaternion.fromArray(vegetation.quaternion), localVector2.set(1, 1, 1)).toArray(),
+          name: vegetation.name,
+          position: vegetation.position,
+          quaternion: vegetation.quaternion,
         }));
 
-      const specs = await geometryWorker.requestMarchObjects(x, y, z, objects, localSubparcels);
+      const spec = await geometryWorker.requestMarchObjects(x, y, z, objects, localSubparcels);
       if (live) {
-        const [{opaque: spec}] = specs;
         const vegetationMesh = currentVegetationMesh;
         const slab = vegetationMesh.getSlab(x, y, z, spec.positions.length, spec.uvs.length, spec.ids.length, spec.skyLights.length, spec.torchLights.length, spec.indices.length);
 
