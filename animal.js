@@ -136,7 +136,7 @@ export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, has
     geometry.setAttribute('leg', new THREE.BufferAttribute(animalSpec.legs, 4));
 
     const headPivot = new THREE.Vector3().fromArray(animalSpec.headPivot);
-    const aabb = new THREE.Box3().setFromCenterAndSize(new THREE.Vector3().fromArray(animalSpec.aabb.center), new THREE.Vector3().fromArray(animalSpec.aabb.size));
+    const aabb = new THREE.Box3().setFromCenterAndSize(new THREE.Vector3().fromArray(animalSpec.aabb, 0), new THREE.Vector3().fromArray(animalSpec.aabb, 3));
 
     let headAnimation = null;
     animal.lookAt = p => {
