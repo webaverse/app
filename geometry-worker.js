@@ -11,8 +11,8 @@ const fakeMaterial = new THREE.MeshBasicMaterial({
 
 const SUBPARCEL_SIZE = 10;
 const SUBPARCEL_SIZE_P1 = SUBPARCEL_SIZE + 1;
-// const SUBPARCEL_SIZE_P3 = SUBPARCEL_SIZE + 3;
-// const _getPotentialIndex = (x, y, z) => (x+1) + (y+1)*SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3 + (z+1)*SUBPARCEL_SIZE_P3;
+const MAX_NAME_LENGTH = 32;
+
 function abs(n) {
   return (n ^ (n >> 31)) - (n >> 31);
 }
@@ -558,39 +558,19 @@ const _handleMessage = async data => {
           index += Int32Array.BYTES_PER_ELEMENT;
           new Int8Array(subparcelObjects.buffer, subparcelObjects.offset + index, subparcelSpec.heightfield.length).set(subparcelSpec.heightfield);
           index += subparcelSpec.heightfield.length * Int8Array.BYTES_PER_ELEMENT;
+          index += 1; // align
           new Uint8Array(subparcelObjects.buffer, subparcelObjects.offset + index, subparcelSpec.lightfield.length).set(subparcelSpec.lightfield);
           index += subparcelSpec.lightfield.length * Uint8Array.BYTES_PER_ELEMENT;
+          index += 1; // align
         }
       }
 
-      const geometries = objects.map(o => geometryRegistry[o.type]);
-      const stats = {
-        numPositions: 0,
-        numUvs: 0,
-        numColors: 0,
-        numIds: 0,
-        numSkyLights: 0,
-        numTorchLights: 0,
-        numIndices: 0,
-      };
-      for (const geometrySpecs of geometries) {
-        for (const geometry of geometrySpecs) {
-          stats.numPositions += geometry.positions.length;
-          stats.numUvs += geometry.uvs ? geometry.uvs.length : 0;
-          stats.numColors += geometry.colors ? geometry.colors.length : 0;
-          stats.numIds += geometry.positions.length/3;
-          stats.numSkyLights += geometry.positions.length/3;
-          stats.numTorchLights += geometry.positions.length/3;
-          stats.numIndices += geometry.indices.length;
-        }
-      }
-
-      const positions = allocator.alloc(Float32Array, stats.numPositions);
-      const uvs = allocator.alloc(Float32Array, stats.numUvs);
-      const ids = allocator.alloc(Float32Array, stats.numIds);
-      const indices = allocator.alloc(Uint32Array, stats.numIndices);
-      const skyLights = allocator.alloc(Uint8Array, stats.numSkyLights);
-      const torchLights = allocator.alloc(Uint8Array, stats.numTorchLights);
+      const positions = allocator.alloc(Float32Array, 1024 * 1024);
+      const uvs = allocator.alloc(Float32Array, 1024 * 1024);
+      const ids = allocator.alloc(Float32Array, 1024 * 1024);
+      const indices = allocator.alloc(Uint32Array, 1024 * 1024);
+      const skyLights = allocator.alloc(Uint8Array, 1024 * 1024);
+      const torchLights = allocator.alloc(Uint8Array, 1024 * 1024);
       const numPositions = allocator.alloc(Uint32Array, 1);
       const numUvs = allocator.alloc(Uint32Array, 1);
       const numIds = allocator.alloc(Uint32Array, 1);
@@ -621,8 +601,8 @@ const _handleMessage = async data => {
       const uvs2 = uvs.slice(0, numUvs[0]);
       const ids2 = ids.slice(0, numIds[0]);
       const indices2 = indices.slice(0, numIndices[0]);
-      const skyLights2 = skyLights.slice(0, numSkyLights[0]);
-      const torchLights2 = torchLights.slice(0, numTorchLights[0]);
+      const skyLights2 = skyLights.slice();
+      const torchLights2 = torchLights.slice();
 
       /* const results = [];
       const transfers = [];
@@ -630,16 +610,18 @@ const _handleMessage = async data => {
       results.push(result);
       transfers.push(transfer); */
 
+      allocator.freeAll();
+
       self.postMessage({
         result: {
-          positions: position2,
+          positions: positions2,
           uvs: uvs2,
           ids: ids2,
           indices: indices2,
           skyLights: skyLights2,
           torchLights: torchLights2,
         },
-      }, [position2.buffer, us.buffer, ids.buffer, indices.buffer, skyLights.buffer, torchLights.buffer]);
+      }, [positions2.buffer, uvs2.buffer, ids2.buffer, indices2.buffer, skyLights2.buffer, torchLights2.buffer]);
       break;
     }
     default: {
