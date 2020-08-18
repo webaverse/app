@@ -575,6 +575,8 @@ const _handleMessage = async data => {
       const numUvs = allocator.alloc(Uint32Array, 1);
       const numIds = allocator.alloc(Uint32Array, 1);
       const numIndices = allocator.alloc(Uint32Array, 1);
+      const numSkyLights = allocator.alloc(Uint32Array, 1);
+      const numTorchLights = allocator.alloc(Uint32Array, 1);
 
       Module._marchObjects(
         geometrySet,
@@ -592,17 +594,19 @@ const _handleMessage = async data => {
         skyLights.offset,
         torchLights.offset,
         numPositions.offset,
-        numUvs.offet,
+        numUvs.offset,
         numIds.offset,
-        numIndices.offset
+        numIndices.offset,
+        numSkyLights.offset,
+        numTorchLights.offset
       );
 
       const positions2 = positions.slice(0, numPositions[0]);
       const uvs2 = uvs.slice(0, numUvs[0]);
       const ids2 = ids.slice(0, numIds[0]);
       const indices2 = indices.slice(0, numIndices[0]);
-      const skyLights2 = skyLights.slice();
-      const torchLights2 = torchLights.slice();
+      const skyLights2 = skyLights.slice(0, numSkyLights[0]);
+      const torchLights2 = torchLights.slice(0, numTorchLights[0]);
 
       /* const results = [];
       const transfers = [];
