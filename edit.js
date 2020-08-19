@@ -973,21 +973,28 @@ const [
       w.waitForLoad = () => modulePromise;
       w.makeArenaAllocator = size => {
         const ptr = moduleInstance._makeArenaAllocator(size);
-        const byteOffset = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT];
+        const offset = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT];
         return {
-          byteOffset,
+          // offset,
           alloc(constructor, count) {
             const size = count * constructor.BYTES_PER_ELEMENT;
             const freeEntryPtr = moduleInstance._arenaAlloc(ptr, size);
-            const start = moduleInstance.HEAP32[freeEntryPtr/Uint32Array.BYTES_PER_ELEMENT];
-            // const count = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT + 1];
-            const freeEntry = new constructor(moduleInstance.HEAP8.buffer, start, count);
-            freeEntry.ptr = freeEntryPtr;
-            freeEntry.offset = start;
-            return freeEntry;
+            if (freeEntryPtr) {
+              const start = moduleInstance.HEAP32[freeEntryPtr/Uint32Array.BYTES_PER_ELEMENT];
+              // const count = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT + 1];
+              const freeEntry = new constructor(moduleInstance.HEAP8.buffer, start, count);
+              freeEntry.ptr = freeEntryPtr;
+              freeEntry.offset = start;
+              return freeEntry;
+            } else {
+              throw new Error('arena out of memory');
+            }
           },
           free(freeEntry) {
             moduleInstance._arenaFree(ptr, freeEntry.ptr);
+          },
+          getAs(constructor) {
+            return new constructor(moduleInstance.HEAP8.buffer, offset, size/constructor.BYTES_PER_ELEMENT);
           },
         };
       };
@@ -1447,12 +1454,12 @@ const [
           scene.add(crosshairMesh);
         }
 
-        const arenaAllocator = geometryWorker.makeArenaAllocator(10 * 1024 * 1024);
+        /* const arenaAllocator = geometryWorker.makeArenaAllocator(10 * 1024 * 1024);
         const freeEntry = arenaAllocator.alloc(Uint8Array, 1024);
         console.log('got free entry 1', freeEntry);
         arenaAllocator.free(freeEntry);
         const freeEntry2 = arenaAllocator.alloc(Uint8Array, 256);
-        console.log('got free entry 2', freeEntry2);
+        console.log('got free entry 2', freeEntry2); */
       })(),
       (async () => {
         /* const image = new Image();
@@ -1485,14 +1492,23 @@ const [
     vegetationMaterialOpaque.uniforms.map.needsUpdate = true;
 
     const _makeVegetationMesh = () => {
-      const numPositions = 10 * 1024 * 1024;
+      const numPositions = 3 * 1024 * 1024;
+      const allocators = {
+        positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
+        uvs: geometryWorker.makeArenaAllocator(numPositions * 2*Float32Array.BYTES_PER_ELEMENT),
+        ids: geometryWorker.makeArenaAllocator(numPositions * Float32Array.BYTES_PER_ELEMENT),
+        skyLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
+        torchLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
+        indices: geometryWorker.makeArenaAllocator(numPositions * Uint32Array.BYTES_PER_ELEMENT),
+      };
+
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(numPositions), 3));
-      geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(numPositions/3*2), 2));
-      geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(numPositions/3), 1));
-      geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
-      geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(numPositions/3), 1));
-      geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(numPositions/3), 1));
+      geometry.setAttribute('position', new THREE.BufferAttribute(allocators.positions.getAs(Float32Array), 3));
+      geometry.setAttribute('uv', new THREE.BufferAttribute(allocators.uvs.getAs(Float32Array), 2));
+      geometry.setAttribute('id', new THREE.BufferAttribute(allocators.ids.getAs(Float32Array), 1));
+      geometry.setAttribute('skyLight', new THREE.BufferAttribute(allocators.skyLights.getAs(Uint8Array), 1));
+      geometry.setAttribute('torchLight', new THREE.BufferAttribute(allocators.torchLights.getAs(Uint8Array), 1));
+      geometry.setIndex(new THREE.BufferAttribute(allocators.indices.getAs(Uint32Array), 1));
       const material = vegetationMaterialOpaque;
       const mesh = new THREE.Mesh(geometry, [material]);
       mesh.frustumCulled = false;
