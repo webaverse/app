@@ -979,12 +979,14 @@ const [
         });
       });
       w.requestAnimalGeometry = hash => {
+        return new Promise(() => {});
         return w.request({
           method: 'requestAnimalGeometry',
           hash,
         });
       };
       w.requestMarchObjects = (x, y, z, objects, subparcelSpecs) => {
+        return new Promise(() => {});
         return w.request({
           method: 'marchObjects',
           x,
