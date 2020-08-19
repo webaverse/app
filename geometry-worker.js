@@ -1,13 +1,4 @@
-importScripts('./three.js', './bin/geometry2.js');
-
-const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-const localMatrix = new THREE.Matrix4();
-const localBox = new THREE.Box3();
-
-const fakeMaterial = new THREE.MeshBasicMaterial({
-  color: 0xFFFFFF,
-});
+importScripts('./bin/geometry.js');
 
 const SUBPARCEL_SIZE = 10;
 const SUBPARCEL_SIZE_P1 = SUBPARCEL_SIZE + 1;
