@@ -957,53 +957,41 @@ const [
         }
       }
 
-      const cbs = [];
-      const w = new Worker('geometry-worker.js');
-      w.onmessage = e => {
-        const {data} = e;
-        const {error, result} = data;
-        cbs.shift()(error, result);
-      };
-      w.onerror = err => {
-        console.warn(err);
-      };
-      w.request = (req, transfers) => new Promise((accept, reject) => {
-        w.postMessage(req, transfers);
-
-        cbs.push((err, result) => {
-          if (!err) {
-            accept(result);
-          } else {
-            reject(err);
-          }
-        });
-      });
-      w.requestAnimalGeometry = hash => {
-        return new Promise(() => {});
-        return w.request({
-          method: 'requestAnimalGeometry',
-          hash,
-        });
-      };
-      w.requestMarchObjects = (x, y, z, objects, subparcelSpecs) => {
-        return new Promise(() => {});
-        return w.request({
-          method: 'marchObjects',
-          x,
-          y,
-          z,
-          objects,
-          subparcelSpecs,
-        });
-      };
-
       let methodIndex = 0;
       const METHODS = {
+        makeArenaAllocator: methodIndex++,
+        arenaAlloc: methodIndex++,
+        arenaFree: methodIndex++,
         makeGeometrySet: methodIndex++,
         loadBake: methodIndex++,
         getGeometry: methodIndex++,
+        getAnimalGeometry: methodIndex++,
+        marchObjects: methodIndex++,
       };
       const cbIndex = new Map();
+      const w = {};
+      w.makeArenaAllocator = async size => {
+        await modulePromise;
+        const ptr = moduleInstance._makeArenaAllocator(size);
+        const byteOffset = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT];
+        return {
+          ptr,
+          byteOffset,
+        };
+      };
+      w.arenaAlloc = (arenaAllocator, size) => {
+        const ptr = moduleInstance._arenaAlloc(arenaAllocator.ptr, size);
+        const start = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT];
+        const count = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT + 1];
+        return {
+          ptr,
+          start,
+          count,
+        };
+      };
+      w.arenaFree = (arenaAllocator, freeEntry) => {
+        moduleInstance._arenaFree(arenaAllocator.ptr, freeEntry.ptr);
+      };
       w.requestRaw = async messageData => {
         const id = moduleInstance._pushRequest(threadPool, messageData.offset);
         const p = makePromise();
@@ -1073,6 +1061,181 @@ const [
         allocator.freeAll();
 
         return geometry;
+      };
+      w.requestAnimalGeometry = hash => {
+        return new Promise(() => {});
+
+        // const {hash} = data;
+
+        const allocator = new Allocator();
+
+        const positions = allocator.alloc(Uint32Array, 1);
+        const colors = allocator.alloc(Uint32Array, 1);
+        const indices = allocator.alloc(Uint32Array, 1);
+        const heads = allocator.alloc(Uint32Array, 1);
+        const legs = allocator.alloc(Uint32Array, 1);
+        const numPositions = allocator.alloc(Uint32Array, 1);
+        const numColors = allocator.alloc(Uint32Array, 1);
+        const numIndices = allocator.alloc(Uint32Array, 1);
+        const numHeads = allocator.alloc(Uint32Array, 1);
+        const numLegs = allocator.alloc(Uint32Array, 1);
+        const headPivot = allocator.alloc(Float32Array, 3);
+        const aabb = allocator.alloc(Float32Array, 6);
+
+        ModuleInstance._getAnimalGeometry(
+          geometrySet,
+          hash,
+          positions.offset,
+          colors.offset,
+          indices.offset,
+          heads.offset,
+          legs.offset,
+          numPositions.offset,
+          numColors.offset,
+          numIndices.offset,
+          numHeads.offset,
+          numLegs.offset,
+          headPivot.offset,
+          aabb.offset
+        );
+
+        const positions2 = new Float32Array(ModuleInstance.HEAP8.buffer, positions[0], numPositions[0]).slice();
+        const colors2 = new Uint8Array(ModuleInstance.HEAP8.buffer, colors[0], numColors[0]).slice();
+        const indices2 = new Uint32Array(ModuleInstance.HEAP8.buffer, indices[0], numIndices[0]).slice();
+        const heads2 = new Float32Array(ModuleInstance.HEAP8.buffer, heads[0], numHeads[0]).slice();
+        const legs2 = new Float32Array(ModuleInstance.HEAP8.buffer, legs[0], numLegs[0]).slice();
+        const headPivot2 = headPivot.slice();
+        const aabb2 = aabb.slice();
+
+        allocator.freeAll();
+
+        self.postMessage({
+          result: {
+            positions: positions2,
+            colors: colors2,
+            indices: indices2,
+            heads: heads2,
+            legs: legs2,
+            headPivot: headPivot2,
+            aabb: aabb2,
+          },
+        }, [positions2.buffer, colors2.buffer, indices2.buffer, heads2.buffer, legs2.buffer, headPivot2.buffer, aabb2.buffer]);
+
+        return w.request({
+          method: 'requestAnimalGeometry',
+          hash,
+        });
+      };
+      w.requestMarchObjects = (x, y, z, objects, subparcelSpecs) => {
+        return new Promise(() => {});
+        // const {x, y, z, objects, subparcelSpecs} = data;
+
+        const allocator = new Allocator();
+
+        const marchObjectSize = Uint32Array.BYTES_PER_ELEMENT +
+          MAX_NAME_LENGTH * Uint8Array.BYTES_PER_ELEMENT +
+          Float32Array.BYTES_PER_ELEMENT * 3 +
+          Float32Array.BYTES_PER_ELEMENT * 4;
+        const numMarchObjects = objects.length;
+        const marchObjects = allocator.alloc(Uint8Array, marchObjectSize * numMarchObjects);
+        {
+          let index = 0;
+          for (const object of objects) {
+            new Uint32Array(marchObjects.buffer, marchObjects.offset + index, 1)[0] = object.id;
+            index += Uint32Array.BYTES_PER_ELEMENT;
+            const nameUint8Array = new TextEncoder().encode(object.name);
+            new Uint8Array(marchObjects.buffer, marchObjects.offset + index, MAX_NAME_LENGTH).set(nameUint8Array);
+            index += MAX_NAME_LENGTH;
+            new Float32Array(marchObjects.buffer, marchObjects.offset + index, 3).set(object.position);
+            index += Float32Array.BYTES_PER_ELEMENT * 3;
+            new Float32Array(marchObjects.buffer, marchObjects.offset + index, 4).set(object.quaternion);
+            index += Float32Array.BYTES_PER_ELEMENT * 4;
+          }
+        }
+        const subparcelObjectSize = Int32Array.BYTES_PER_ELEMENT +
+          SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + 1 +
+          SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + 1;
+        const numSubparcelObjects = subparcelSpecs.length;
+        const subparcelObjects = allocator.alloc(Uint8Array, subparcelObjectSize * numSubparcelObjects);
+        {
+          let index = 0;
+          for (const subparcelSpec of subparcelSpecs) {
+            new Int32Array(subparcelObjects.buffer, subparcelObjects.offset + index, 1)[0] = subparcelSpec.index;
+            index += Int32Array.BYTES_PER_ELEMENT;
+            new Int8Array(subparcelObjects.buffer, subparcelObjects.offset + index, subparcelSpec.heightfield.length).set(subparcelSpec.heightfield);
+            index += subparcelSpec.heightfield.length * Int8Array.BYTES_PER_ELEMENT;
+            index += 1; // align
+            new Uint8Array(subparcelObjects.buffer, subparcelObjects.offset + index, subparcelSpec.lightfield.length).set(subparcelSpec.lightfield);
+            index += subparcelSpec.lightfield.length * Uint8Array.BYTES_PER_ELEMENT;
+            index += 1; // align
+          }
+        }
+
+        const positions = allocator.alloc(Float32Array, 1024 * 1024);
+        const uvs = allocator.alloc(Float32Array, 1024 * 1024);
+        const ids = allocator.alloc(Float32Array, 1024 * 1024);
+        const indices = allocator.alloc(Uint32Array, 1024 * 1024);
+        const skyLights = allocator.alloc(Uint8Array, 1024 * 1024);
+        const torchLights = allocator.alloc(Uint8Array, 1024 * 1024);
+        const numPositions = allocator.alloc(Uint32Array, 1);
+        const numUvs = allocator.alloc(Uint32Array, 1);
+        const numIds = allocator.alloc(Uint32Array, 1);
+        const numIndices = allocator.alloc(Uint32Array, 1);
+        const numSkyLights = allocator.alloc(Uint32Array, 1);
+        const numTorchLights = allocator.alloc(Uint32Array, 1);
+
+        ModuleInstance._marchObjects(
+          geometrySet,
+          x,
+          y,
+          z,
+          marchObjects.offset,
+          numMarchObjects,
+          subparcelObjects.offset,
+          numSubparcelObjects,
+          positions.offset,
+          uvs.offset,
+          ids.offset,
+          indices.offset,
+          skyLights.offset,
+          torchLights.offset,
+          numPositions.offset,
+          numUvs.offset,
+          numIds.offset,
+          numIndices.offset,
+          numSkyLights.offset,
+          numTorchLights.offset
+        );
+
+        const positions2 = positions.slice(0, numPositions[0]);
+        const uvs2 = uvs.slice(0, numUvs[0]);
+        const ids2 = ids.slice(0, numIds[0]);
+        const indices2 = indices.slice(0, numIndices[0]);
+        const skyLights2 = skyLights.slice(0, numSkyLights[0]);
+        const torchLights2 = torchLights.slice(0, numTorchLights[0]);
+
+        allocator.freeAll();
+
+        self.postMessage({
+          result: {
+            positions: positions2,
+            uvs: uvs2,
+            ids: ids2,
+            indices: indices2,
+            skyLights: skyLights2,
+            torchLights: torchLights2,
+          },
+        }, [positions2.buffer, uvs2.buffer, ids2.buffer, indices2.buffer, skyLights2.buffer, torchLights2.buffer]);
+
+
+        return w.request({
+          method: 'marchObjects',
+          x,
+          y,
+          z,
+          objects,
+          subparcelSpecs,
+        });
       };
       w.update = () => {
         if (moduleInstance) {
@@ -1289,6 +1452,10 @@ const [
           };
           scene.add(crosshairMesh);
         }
+
+        const arenaAllocator = await geometryWorker.makeArenaAllocator(10 * 1024 * 1024);
+        const freeEntry = geometryWorker.arenaAlloc(arenaAllocator, 1024);
+        console.log('got free entry', freeEntry);
       })(),
       (async () => {
         /* const image = new Image();
