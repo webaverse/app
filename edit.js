@@ -978,19 +978,6 @@ const [
           }
         });
       });
-      w.requestGeometry = name => {
-        return w.request({
-          method: 'requestGeometry',
-          name,
-        }).then(spec => {
-          const geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(spec.positions, 3));
-          spec.uvs && geometry.setAttribute('uv', new THREE.BufferAttribute(spec.uvs, 2));
-          spec.colors && geometry.setAttribute('color', new THREE.BufferAttribute(spec.colors, 3));
-          geometry.setIndex(new THREE.BufferAttribute(spec.indices, 1));
-          return geometry;
-        });
-      };
       w.requestAnimalGeometry = hash => {
         return w.request({
           method: 'requestAnimalGeometry',
@@ -1012,6 +999,7 @@ const [
       const METHODS = {
         makeGeometrySet: methodIndex++,
         loadBake: methodIndex++,
+        getGeometry: methodIndex++,
       };
       const cbIndex = new Map();
       w.requestRaw = async messageData => {
@@ -1046,6 +1034,43 @@ const [
         messageData[4] = data.length;
         await w.requestRaw(messageData);
         allocator.freeAll();
+      };
+      w.requestGeometry = async (geometrySet, name) => {
+         await modulePromise;
+
+        const allocator = new Allocator();
+        const messageData = allocator.alloc(Uint32Array, 11);
+        messageData[1] = METHODS.getGeometry;
+
+        messageData[2] = geometrySet;
+
+        const srcNameUint8Array = new TextEncoder().encode(name);
+        const dstNameUint8Array = allocator.alloc(Uint8Array, srcNameUint8Array.byteLength);
+        dstNameUint8Array.set(srcNameUint8Array);
+        messageData[3] = dstNameUint8Array.offset;
+        messageData[4] = dstNameUint8Array.length;
+
+        await w.requestRaw(messageData);
+
+        const positionsOffset = new Uint32Array(messageData.buffer, messageData.offset + 5*Uint32Array.BYTES_PER_ELEMENT);
+        const uvsOffet = new Uint32Array(messageData.buffer, messageData.offset + 6*Uint32Array.BYTES_PER_ELEMENT);
+        const indicesOffet = new Uint32Array(messageData.buffer, messageData.offset + 7*Uint32Array.BYTES_PER_ELEMENT);
+        const numPositions = new Uint32Array(messageData.buffer, messageData.offset + 8*Uint32Array.BYTES_PER_ELEMENT);
+        const numUvs = new Uint32Array(messageData.buffer, messageData.offset + 9*Uint32Array.BYTES_PER_ELEMENT);
+        const numIndices = new Uint32Array(messageData.buffer, messageData.offset + 10*Uint32Array.BYTES_PER_ELEMENT);
+
+        const positions = new Float32Array(messageData.buffer, positionsOffset[0], numPositions[0]);
+        const uvs = new Float32Array(messageData.buffer, uvsOffet[0], numUvs[0]);
+        const indices = new Uint32Array(messageData.buffer, indicesOffet[0], numIndices[0]);
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+        geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+
+        allocator.freeAll();
+
+        return geometry;
       };
       w.update = () => {
         if (moduleInstance) {
@@ -1172,10 +1197,7 @@ const [
     ] = await Promise.all([
       (async () => {
         const geometrySet = await geometryWorker.requestMakeGeometrySet();
-        console.log('geometry set', geometrySet);
         await geometryWorker.requestLoadBake(geometrySet, './meshes.bin');
-        console.log('loaded bake');
-        return;
 
         const geometries = await Promise.all([
           'wood_wall',
@@ -1192,7 +1214,7 @@ const [
           'SM_Wep_SubMGun_Lite_01',
           'SM_Wep_Grenade_01',
           'SM_Wep_Crosshair_04',
-        ].map(n => geometryWorker.requestGeometry(n)))
+        ].map(n => geometryWorker.requestGeometry(geometrySet, n)))
         wallMesh = _makeBakedMesh(geometries[0]);
         wallMesh.buildType = 'wall';
         wallMesh.vegetationType = 'wood_wall';
