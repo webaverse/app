@@ -932,12 +932,30 @@ const [
         noInitialRun: true,
         noExitRuntime: true,
         onRuntimeInitialized() {
-          console.log('geometry module', this);
           threadPool = this._makeThreadPool(2);
           moduleInstance = this;
-          modulePromise.accept(this);
+          modulePromise.accept();
         },
       });
+
+      class Allocator {
+        constructor() {
+          this.offsets = [];
+        }
+        alloc(constructor, size) {
+          const offset = moduleInstance._malloc(size * constructor.BYTES_PER_ELEMENT);
+          const b = new constructor(moduleInstance.HEAP8.buffer, moduleInstance.HEAP8.byteOffset + offset, size);
+          b.offset = offset;
+          this.offsets.push(offset);
+          return b;
+        }
+        freeAll() {
+          for (let i = 0; i < this.offsets.length; i++) {
+            moduleInstance._doFree(this.offsets[i]);
+          }
+          this.offsets.length = 0;
+        }
+      }
 
       const cbs = [];
       const w = new Worker('geometry-worker.js');
@@ -960,12 +978,6 @@ const [
           }
         });
       });
-      w.requestLoadBake = url => {
-        return w.request({
-          method: 'loadBake',
-          url,
-        });
-      };
       w.requestGeometry = name => {
         return w.request({
           method: 'requestGeometry',
@@ -996,35 +1008,54 @@ const [
         });
       };
 
+      let methodIndex = 0;
+      const METHODS = {
+        makeGeometrySet: methodIndex++,
+        loadBake: methodIndex++,
+      };
       const cbIndex = new Map();
-      w.requestRaw = async method => {
-        const moduleInstance = await modulePromise;
-        // console.log('malloc', this._malloc(8));
-
-        const id = moduleInstance._pushRequest(threadPool, method);
-        console.log('push request', threadPool, method, id);
+      w.requestRaw = async messageData => {
+        const id = moduleInstance._pushRequest(threadPool, messageData.offset);
         const p = makePromise();
         cbIndex.set(id, p.accept);
         return await p;
+      };
+      w.requestMakeGeometrySet = async () => {
+        await modulePromise;
+        const allocator = new Allocator();
+        const messageData = allocator.alloc(Uint32Array, 3);
+        messageData[1] = METHODS.makeGeometrySet;
+        await w.requestRaw(messageData);
+        const geometrySet = messageData[2];
+        allocator.freeAll();
+        return geometrySet;
+      };
+      w.requestLoadBake = async (geometrySet, url) => {
+        await modulePromise;
 
-        /* w.postMessage({
-          method: 'init',
-          wasmMemory,
-        }); */
+        const res = await fetch(url);
+        const arrayBuffer = await res.arrayBuffer();
+
+        const allocator = new Allocator();
+        const messageData = allocator.alloc(Uint32Array, 5);
+        const data = allocator.alloc(Uint8Array, arrayBuffer.byteLength);
+        data.set(new Uint8Array(arrayBuffer));
+        messageData[1] = METHODS.loadBake;
+        messageData[2] = geometrySet;
+        messageData[3] = data.offset;
+        messageData[4] = data.length;
+        await w.requestRaw(messageData);
+        allocator.freeAll();
       };
       w.update = () => {
         if (moduleInstance) {
           for (;;) {
-            const responseMessageOffset = moduleInstance._popResponse(threadPool);
-            if (responseMessageOffset) {
-              console.log('pop result', responseMessageOffset);
-              const id = moduleInstance.HEAPU32[responseMessageOffset/Uint32Array.BYTES_PER_ELEMENT];
+            const id = moduleInstance._popResponse(threadPool);
+            if (id) {
               console.log('pop id', id);
               const cb = cbIndex.get(id);
               if (cb) {
-                const resultOffset = moduleInstance.HEAPU32[responseMessageOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
-                cb(resultOffset);
-                moduleInstance._doFree(responseMessageOffset);
+                cb();
                 cbIndex.delete(id);
               } else {
                 throw new Error('invalid callback id: ' + id);
@@ -1036,11 +1067,11 @@ const [
         }
       };
 
-      w.requestRaw(1)
+      /* w.requestRaw(1)
         .then(res => {
           console.log('got geo result', res);
           moduleInstance._doFree(res);
-        });
+        }); */
 
       return w;
     })();
@@ -1140,7 +1171,11 @@ const [
       texture,
     ] = await Promise.all([
       (async () => {
-        await geometryWorker.requestLoadBake('./meshes.bin');
+        const geometrySet = await geometryWorker.requestMakeGeometrySet();
+        console.log('geometry set', geometrySet);
+        await geometryWorker.requestLoadBake(geometrySet, './meshes.bin');
+        console.log('loaded bake');
+        return;
 
         const geometries = await Promise.all([
           'wood_wall',
