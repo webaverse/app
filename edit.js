@@ -1079,7 +1079,6 @@ const [
           for (;;) {
             const id = moduleInstance._popResponse(threadPool);
             if (id) {
-              console.log('pop id', id);
               const cb = cbIndex.get(id);
               if (cb) {
                 cb();
@@ -1093,12 +1092,6 @@ const [
           }
         }
       };
-
-      /* w.requestRaw(1)
-        .then(res => {
-          console.log('got geo result', res);
-          moduleInstance._doFree(res);
-        }); */
 
       return w;
     })();
