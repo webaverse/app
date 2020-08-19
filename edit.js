@@ -970,8 +970,8 @@ const [
       };
       const cbIndex = new Map();
       const w = {};
-      w.makeArenaAllocator = async size => {
-        await modulePromise;
+      w.waitForLoad = () => modulePromise;
+      w.makeArenaAllocator = size => {
         const ptr = moduleInstance._makeArenaAllocator(size);
         const byteOffset = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT];
         return {
@@ -998,7 +998,6 @@ const [
         return await p;
       };
       w.requestMakeGeometrySet = async () => {
-        await modulePromise;
         const allocator = new Allocator();
         const messageData = allocator.alloc(Uint32Array, 3);
         messageData[1] = METHODS.makeGeometrySet;
@@ -1008,8 +1007,6 @@ const [
         return geometrySet;
       };
       w.requestLoadBake = async (geometrySet, url) => {
-        await modulePromise;
-
         const res = await fetch(url);
         const arrayBuffer = await res.arrayBuffer();
 
@@ -1025,8 +1022,6 @@ const [
         allocator.freeAll();
       };
       w.requestGeometry = async (geometrySet, name) => {
-         await modulePromise;
-
         const allocator = new Allocator();
         const messageData = allocator.alloc(Uint32Array, 11);
         messageData[1] = METHODS.getGeometry;
@@ -1254,9 +1249,9 @@ const [
           }
         }
       };
-
       return w;
     })();
+    await geometryWorker.waitForLoad();
 
     const vegetationMaterialOpaque = new THREE.ShaderMaterial({
       uniforms: {
@@ -1452,7 +1447,7 @@ const [
           scene.add(crosshairMesh);
         }
 
-        const arenaAllocator = await geometryWorker.makeArenaAllocator(10 * 1024 * 1024);
+        const arenaAllocator = geometryWorker.makeArenaAllocator(10 * 1024 * 1024);
         const freeEntry = arenaAllocator.alloc(Uint8Array, 1024);
         console.log('got free entry 1', freeEntry);
         arenaAllocator.free(freeEntry);
