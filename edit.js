@@ -975,22 +975,21 @@ const [
         const ptr = moduleInstance._makeArenaAllocator(size);
         const byteOffset = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT];
         return {
-          ptr,
           byteOffset,
+          alloc(constructor, count) {
+            const size = count * constructor.BYTES_PER_ELEMENT;
+            const freeEntryPtr = moduleInstance._arenaAlloc(ptr, size);
+            const start = moduleInstance.HEAP32[freeEntryPtr/Uint32Array.BYTES_PER_ELEMENT];
+            // const count = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const freeEntry = new constructor(moduleInstance.HEAP8.buffer, start, count);
+            freeEntry.ptr = freeEntryPtr;
+            freeEntry.offset = start;
+            return freeEntry;
+          },
+          free(freeEntry) {
+            moduleInstance._arenaFree(ptr, freeEntry.ptr);
+          },
         };
-      };
-      w.arenaAlloc = (arenaAllocator, size) => {
-        const ptr = moduleInstance._arenaAlloc(arenaAllocator.ptr, size);
-        const start = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT];
-        const count = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT + 1];
-        return {
-          ptr,
-          start,
-          count,
-        };
-      };
-      w.arenaFree = (arenaAllocator, freeEntry) => {
-        moduleInstance._arenaFree(arenaAllocator.ptr, freeEntry.ptr);
       };
       w.requestRaw = async messageData => {
         const id = moduleInstance._pushRequest(threadPool, messageData.offset);
@@ -1454,8 +1453,11 @@ const [
         }
 
         const arenaAllocator = await geometryWorker.makeArenaAllocator(10 * 1024 * 1024);
-        const freeEntry = geometryWorker.arenaAlloc(arenaAllocator, 1024);
-        console.log('got free entry', freeEntry);
+        const freeEntry = arenaAllocator.alloc(Uint8Array, 1024);
+        console.log('got free entry 1', freeEntry);
+        arenaAllocator.free(freeEntry);
+        const freeEntry2 = arenaAllocator.alloc(Uint8Array, 256);
+        console.log('got free entry 2', freeEntry2);
       })(),
       (async () => {
         /* const image = new Image();
