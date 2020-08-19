@@ -78,6 +78,16 @@ const cubicBezier = easing(0, 1, 0, 1);
 let skybox = null;
 let skybox2 = null;
 
+function makePromise() {
+  let accept, reject;
+  const p = new Promise((a, r) => {
+    accept = a;
+    reject = r;
+  });
+  p.accept = accept;
+  p.reject = reject;
+  return p;
+}
 const _loadGltf = u => new Promise((accept, reject) => {
   new GLTFLoader().load(u, o => {
     o = o.scene;
@@ -905,6 +915,30 @@ const [
   })(),
   (async () => {
     geometryWorker = (() => {
+      const modulePromise = makePromise();
+      /* const INITIAL_INITIAL_MEMORY = 52428800;
+      const WASM_PAGE_SIZE = 65536;
+      const wasmMemory = new WebAssembly.Memory({
+        "initial": INITIAL_INITIAL_MEMORY / WASM_PAGE_SIZE,
+        "maximum": INITIAL_INITIAL_MEMORY / WASM_PAGE_SIZE,
+        "shared": true,
+      }); */
+      let moduleInstance = null;
+      let threadPool;
+      GeometryModule({
+        // ENVIRONMENT_IS_PTHREAD: true,
+        // wasmMemory,
+        // buffer: wasmMemory.buffer,
+        noInitialRun: true,
+        noExitRuntime: true,
+        onRuntimeInitialized() {
+          console.log('geometry module', this);
+          threadPool = this._makeThreadPool(2);
+          moduleInstance = this;
+          modulePromise.accept(this);
+        },
+      });
+
       const cbs = [];
       const w = new Worker('geometry-worker.js');
       w.onmessage = e => {
@@ -961,6 +995,53 @@ const [
           subparcelSpecs,
         });
       };
+
+      const cbIndex = new Map();
+      w.requestRaw = async method => {
+        const moduleInstance = await modulePromise;
+        // console.log('malloc', this._malloc(8));
+
+        const id = moduleInstance._pushRequest(threadPool, method);
+        console.log('push request', threadPool, method, id);
+        const p = makePromise();
+        cbIndex.set(id, p.accept);
+        return await p;
+
+        /* w.postMessage({
+          method: 'init',
+          wasmMemory,
+        }); */
+      };
+      w.update = () => {
+        if (moduleInstance) {
+          for (;;) {
+            const responseMessageOffset = moduleInstance._popResponse(threadPool);
+            if (responseMessageOffset) {
+              console.log('pop result', responseMessageOffset);
+              const id = moduleInstance.HEAPU32[responseMessageOffset/Uint32Array.BYTES_PER_ELEMENT];
+              console.log('pop id', id);
+              const cb = cbIndex.get(id);
+              if (cb) {
+                const resultOffset = moduleInstance.HEAPU32[responseMessageOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
+                cb(resultOffset);
+                moduleInstance._doFree(responseMessageOffset);
+                cbIndex.delete(id);
+              } else {
+                throw new Error('invalid callback id: ' + id);
+              }
+            } else {
+              break;
+            }
+          }
+        }
+      };
+
+      w.requestRaw(1)
+        .then(res => {
+          console.log('got geo result', res);
+          moduleInstance._doFree(res);
+        });
+
       return w;
     })();
 
@@ -3491,6 +3572,8 @@ function animate(timestamp, frame) {
   skybox2 && skybox2.update();
   crosshairMesh && crosshairMesh.update();
   uiMesh && uiMesh.update();
+
+  geometryWorker && geometryWorker.update();
 
   const session = renderer.xr.getSession();
   if (session) {
