@@ -1038,8 +1038,8 @@ function alignfault() {
 var wasmMemory;
 
 var wasmTable = new WebAssembly.Table({
- "initial": 622,
- "maximum": 622 + 0,
+ "initial": 643,
+ "maximum": 643 + 0,
  "element": "anyfunc"
 });
 
@@ -1225,7 +1225,7 @@ function updateGlobalBufferAndViews(buf) {
  Module["HEAPF64"] = HEAPF64 = new Float64Array(buf);
 }
 
-var STACK_BASE = 5282704, STACKTOP = STACK_BASE, STACK_MAX = 39824, DYNAMIC_BASE = 5282704, DYNAMICTOP_PTR = 38896;
+var STACK_BASE = 5283232, STACKTOP = STACK_BASE, STACK_MAX = 40352, DYNAMIC_BASE = 5283232, DYNAMICTOP_PTR = 39424;
 
 assert(STACK_BASE % 16 === 0, "stack must start aligned");
 
@@ -1682,10 +1682,10 @@ var tempDouble;
 var tempI64;
 
 var ASM_CONSTS = {
- 30896: function() {
+ 31360: function() {
   throw "Canceled!";
  },
- 31137: function($0, $1) {
+ 31601: function($0, $1) {
   setTimeout(function() {
    _do_emscripten_dispatch_to_thread($0, $1);
   }, 0);
@@ -1861,7 +1861,7 @@ var ERRNO_CODES = {
  ESTRPIPE: 135
 };
 
-var __main_thread_futex_wait_address = 39808;
+var __main_thread_futex_wait_address = 40336;
 
 function _emscripten_futex_wake(addr, count) {
  if (addr <= 0 || addr > HEAP8.length || addr & 3 != 0 || count < 0) return -28;
@@ -1929,12 +1929,12 @@ var PThread = {
  },
  initMainThreadBlock: function() {
   assert(!ENVIRONMENT_IS_PTHREAD);
-  PThread.mainThreadBlock = 39056;
+  PThread.mainThreadBlock = 39584;
   for (var i = 0; i < 232 / 4; ++i) HEAPU32[PThread.mainThreadBlock / 4 + i] = 0;
   SAFE_HEAP_STORE(PThread.mainThreadBlock + 12 | 0, PThread.mainThreadBlock | 0, 4);
   var headPtr = PThread.mainThreadBlock + 156;
   SAFE_HEAP_STORE(headPtr | 0, headPtr | 0, 4);
-  var tlsMemory = 39296;
+  var tlsMemory = 39824;
   for (var i = 0; i < 128; ++i) HEAPU32[tlsMemory / 4 + i] = 0;
   Atomics.store(HEAPU32, PThread.mainThreadBlock + 104 >> 2, tlsMemory);
   Atomics.store(HEAPU32, PThread.mainThreadBlock + 40 >> 2, PThread.mainThreadBlock);
@@ -2441,7 +2441,7 @@ function _emscripten_futex_wait(addr, val, timeout) {
 }
 
 function _emscripten_get_sbrk_ptr() {
- return 38896;
+ return 39424;
 }
 
 function _emscripten_is_main_browser_thread() {
@@ -3596,8 +3596,6 @@ var _doFree = Module["_doFree"] = createExportWrapper("doFree");
 
 var _free = Module["_free"] = createExportWrapper("free");
 
-var _malloc = Module["_malloc"] = createExportWrapper("malloc");
-
 var ___em_js__initPthreadsJS = Module["___em_js__initPthreadsJS"] = createExportWrapper("__em_js__initPthreadsJS");
 
 var ___emscripten_pthread_data_constructor = Module["___emscripten_pthread_data_constructor"] = createExportWrapper("__emscripten_pthread_data_constructor");
@@ -3613,6 +3611,8 @@ var stackSave = Module["stackSave"] = createExportWrapper("stackSave");
 var stackRestore = Module["stackRestore"] = createExportWrapper("stackRestore");
 
 var stackAlloc = Module["stackAlloc"] = createExportWrapper("stackAlloc");
+
+var _malloc = Module["_malloc"] = createExportWrapper("malloc");
 
 var _memalign = Module["_memalign"] = createExportWrapper("memalign");
 
@@ -3664,11 +3664,11 @@ var dynCall_ii = Module["dynCall_ii"] = createExportWrapper("dynCall_ii");
 
 var dynCall_vi = Module["dynCall_vi"] = createExportWrapper("dynCall_vi");
 
-var dynCall_viii = Module["dynCall_viii"] = createExportWrapper("dynCall_viii");
-
 var dynCall_vii = Module["dynCall_vii"] = createExportWrapper("dynCall_vii");
 
 var dynCall_iii = Module["dynCall_iii"] = createExportWrapper("dynCall_iii");
+
+var dynCall_viii = Module["dynCall_viii"] = createExportWrapper("dynCall_viii");
 
 var dynCall_v = Module["dynCall_v"] = createExportWrapper("dynCall_v");
 
