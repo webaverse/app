@@ -1329,6 +1329,7 @@ const [
         const idsStart = new Uint32Array(messageData.buffer, idsFreeEntry, 1)[0];
         const skyLightsStart = new Uint32Array(messageData.buffer, skyLightsFreeEntry, 1)[0];
         const torchLightsStart = new Uint32Array(messageData.buffer, torchLightsFreeEntry, 1)[0];
+        const peeksStart = new Uint32Array(messageData.buffer, peeksFreeEntry, 1)[0];
 
         const positionsCount = new Uint32Array(messageData.buffer, positionsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
         const normalsCount = new Uint32Array(messageData.buffer, normalsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
@@ -1338,6 +1339,7 @@ const [
         const idsCount = new Uint32Array(messageData.buffer, idsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
         const skyLightsCount = new Uint32Array(messageData.buffer, skyLightsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
         const torchLightsCount = new Uint32Array(messageData.buffer, torchLightsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const peeksCount = new Uint32Array(messageData.buffer, peeksFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
 
         allocator.freeAll();
 
@@ -1423,6 +1425,7 @@ const [
           idsStart,
           skyLightsStart,
           torchLightsStart,
+          peeksStart,
 
           positionsCount,
           normalsCount,
@@ -1432,6 +1435,7 @@ const [
           idsCount,
           skyLightsCount,
           torchLightsCount,
+          peeksCount
 
           numOpaquePositions,
           numTransparentPositions,
