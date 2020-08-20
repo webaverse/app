@@ -969,6 +969,7 @@ const [
         getGeometry: methodIndex++,
         getAnimalGeometry: methodIndex++,
         marchObjects: methodIndex++,
+        getHeight: methodIndex++,
       };
       const cbIndex = new Map();
       const w = {};
@@ -1231,72 +1232,25 @@ const [
           skyLightsCount,
           torchLightsCount,
         };
+      };
+      w.requestGetHeight = async (hash, x, y, z, baseHeight) => {
+        const allocator = new Allocator();
+        const messageData = allocator.alloc(Uint32Array, 8);
+        messageData[1] = METHODS.getHeight;
 
-        /* const positions = allocator.alloc(Float32Array, 1024 * 1024);
-        const uvs = allocator.alloc(Float32Array, 1024 * 1024);
-        const ids = allocator.alloc(Float32Array, 1024 * 1024);
-        const indices = allocator.alloc(Uint32Array, 1024 * 1024);
-        const skyLights = allocator.alloc(Uint8Array, 1024 * 1024);
-        const torchLights = allocator.alloc(Uint8Array, 1024 * 1024);
-        const numPositions = allocator.alloc(Uint32Array, 1);
-        const numUvs = allocator.alloc(Uint32Array, 1);
-        const numIds = allocator.alloc(Uint32Array, 1);
-        const numIndices = allocator.alloc(Uint32Array, 1);
-        const numSkyLights = allocator.alloc(Uint32Array, 1);
-        const numTorchLights = allocator.alloc(Uint32Array, 1);
+        new Int32Array(messageData.buffer, 2*Uint32Array.BYTES_PER_ELEMENT, 1)[0] = hash;
+        new Float32Array(messageData.buffer, 3*Uint32Array.BYTES_PER_ELEMENT, 1)[0] = x;
+        new Float32Array(messageData.buffer, 4*Uint32Array.BYTES_PER_ELEMENT, 1)[0] = y;
+        new Float32Array(messageData.buffer, 5*Uint32Array.BYTES_PER_ELEMENT, 1)[0] = z;
+        new Float32Array(messageData.buffer, 6*Uint32Array.BYTES_PER_ELEMENT, 1)[0] = baseHeight;
 
-        ModuleInstance._marchObjects(
-          geometrySet,
-          x,
-          y,
-          z,
-          marchObjects.offset,
-          numMarchObjects,
-          subparcelObjects.offset,
-          numSubparcelObjects,
-          positions.offset,
-          uvs.offset,
-          ids.offset,
-          indices.offset,
-          skyLights.offset,
-          torchLights.offset,
-          numPositions.offset,
-          numUvs.offset,
-          numIds.offset,
-          numIndices.offset,
-          numSkyLights.offset,
-          numTorchLights.offset
-        );
+        await w.requestRaw(messageData);
 
-        const positions2 = positions.slice(0, numPositions[0]);
-        const uvs2 = uvs.slice(0, numUvs[0]);
-        const ids2 = ids.slice(0, numIds[0]);
-        const indices2 = indices.slice(0, numIndices[0]);
-        const skyLights2 = skyLights.slice(0, numSkyLights[0]);
-        const torchLights2 = torchLights.slice(0, numTorchLights[0]);
+        const height = new Float32Array(messageData.buffer, messageData.offset + 7*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
 
         allocator.freeAll();
 
-        self.postMessage({
-          result: {
-            positions: positions2,
-            uvs: uvs2,
-            ids: ids2,
-            indices: indices2,
-            skyLights: skyLights2,
-            torchLights: torchLights2,
-          },
-        }, [positions2.buffer, uvs2.buffer, ids2.buffer, indices2.buffer, skyLights2.buffer, torchLights2.buffer]);
-
-
-        return w.request({
-          method: 'marchObjects',
-          x,
-          y,
-          z,
-          objects,
-          subparcelSpecs,
-        }); */
+        return height;
       };
       w.update = () => {
         if (moduleInstance) {
@@ -3028,7 +2982,7 @@ planet.addEventListener('load', async e => {
   const ncy = Math.floor(p.y/SUBPARCEL_SIZE)*SUBPARCEL_SIZE;
   const ncz = Math.floor(p.z/SUBPARCEL_SIZE)*SUBPARCEL_SIZE;
 
-  const height = await chunkWorker.requestGetHeight(chunkMesh.seedNum, ncx, ncy + SUBPARCEL_SIZE, ncz, baseHeight, PARCEL_SIZE);
+  const height = await geometryWorker.requestGetHeight(chunkMesh.seedNum, ncx, ncy + SUBPARCEL_SIZE, ncz, baseHeight, PARCEL_SIZE);
   worldContainer.position.y = - height - _getAvatarHeight();
 
   /* {
