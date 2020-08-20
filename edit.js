@@ -1297,7 +1297,7 @@ const [
         new Float32Array(messageData.buffer, messageData.byteOffset + 2*Uint32Array.BYTES_PER_ELEMENT, 1)[0] = meshId;
 
         // dims
-        new Int32Array(messageData.buffer, messageData.byteOffset + 3*Uint32Array.BYTES_PER_ELEMENT, 3).set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
+        new Int32Array(messageData.buffer, messageData.byteOffset + 3*Uint32Array.BYTES_PER_ELEMENT, 3).set(Int32Array.from([SUBPARCEL_SIZE, SUBPARCEL_SIZE, SUBPARCEL_SIZE]));
 
         messageData[6] = potentials.byteOffset;
         messageData[7] = biomes.byteOffset;
@@ -1305,7 +1305,7 @@ const [
         messageData[9] = lightfield.byteOffset;
 
         // shift
-        new Float32Array(messageData.buffer, messageData.byteOffset + 10*Uint32Array.BYTES_PER_ELEMENT, 3).set(Float32Array.from([x*subparcelSize, y*subparcelSize, z*subparcelSize]));
+        new Float32Array(messageData.buffer, messageData.byteOffset + 10*Uint32Array.BYTES_PER_ELEMENT, 3).set(Float32Array.from([x*SUBPARCEL_SIZE, y*SUBPARCEL_SIZE, z*SUBPARCEL_SIZE]));
 
         // scale
         new Float32Array(messageData.buffer, messageData.byteOffset + 13*Uint32Array.BYTES_PER_ELEMENT, 3).set(Float32Array.from([1, 1, 1]));
