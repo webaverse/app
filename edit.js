@@ -2135,10 +2135,9 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   geometry.setAttribute('id', new THREE.BufferAttribute(allocators.ids.getAs(Float32Array), 1));
   geometry.setAttribute('skyLight', new THREE.BufferAttribute(allocators.skyLights.getAs(Uint8Array), 1));
   geometry.setAttribute('torchLight', new THREE.BufferAttribute(allocators.torchLights.getAs(Uint8Array), 1));
-  geometry.setIndex(new THREE.BufferAttribute(allocators.indices.getAs(Uint32Array), 1));
   geometry.allocators = allocators;
   const peeks = allocators.peeks.getAs(Uint8Array);
-  geomerty.peeks = peeks;
+  geometry.peeks = peeks;
 
   const mesh = new THREE.Mesh(geometry, [landMaterial, waterMaterial]);
   mesh.frustumCulled = false;
