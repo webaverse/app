@@ -1265,9 +1265,7 @@ const [
         messageData[1] = METHODS.noise;
 
         messageData[2] = hash;
-        messageData[3] = x;
-        messageData[4] = y;
-        messageData[5] = z;
+        new Float32Array(messageData.buffer, 3*Uint32Array.BYTES_PER_ELEMENT, 3).set(Float32Array.from([x, y, z]));
         messageData[6] = baseHeight;
         messageData[7] = subparcelOffset;
 
