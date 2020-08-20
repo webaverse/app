@@ -468,7 +468,7 @@ function mod(a, b) {
 let animals = [];
 const itemMeshes = [];
 
-let chunkWorker = null;
+// let chunkWorker = null;
 let physxWorker = null;
 let physicsWorker = null;
 let geometryWorker = null;
@@ -525,11 +525,11 @@ const basisLoader = new BasisTextureLoader();
 basisLoader.detectSupport(renderer);
 
 const [
-  cw,
+  // cw,
   px,
   pw,
 ] = await Promise.all([
-  (async () => {
+  /* (async () => {
     const cbs = [];
     const w = new Worker('chunk-worker.js');
     w.onmessage = e => {
@@ -618,7 +618,7 @@ const [
       });
     };
     return w;
-  })(),
+  })(), */
   (async () => {
     await import('./bin/physx2.js');
     await wasmModulePromise;
@@ -970,10 +970,17 @@ const [
         getAnimalGeometry: methodIndex++,
         marchObjects: methodIndex++,
         getHeight: methodIndex++,
+        noise: methodIndex++,
+        marchingCubes: methodIndex++,
       };
       const cbIndex = new Map();
       const w = {};
       w.waitForLoad = () => modulePromise;
+      w.alloc = (constructor, count) => {
+        const size = constructor.BYTES_PER_ELEMENT * count;
+        const ptr = moduleInstance._malloc(size);
+        return new constructor(moduleInstance.HEAP8.buffer, ptr, count);
+      };
       w.makeArenaAllocator = size => {
         const ptr = moduleInstance._makeArenaAllocator(size);
         const offset = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT];
@@ -1252,6 +1259,156 @@ const [
 
         return height;
       };
+      w.requestNoise = async (hash, x, y, z, baseHeight, subparcelOffset) => {
+        const allocator = new Allocator();
+        const messageData = allocator.alloc(Uint32Array, 8);
+        messageData[1] = METHODS.noise;
+
+        messageData[2] = hash;
+        messageData[3] = x;
+        messageData[4] = y;
+        messageData[5] = z;
+        messageData[6] = baseHeight;
+        messageData[7] = subparcelOffset;
+
+        await w.requestRaw(messageData);
+
+        allocator.freeAll();
+      };
+      w.requestMarchingCubes = async (seed, meshId, x, y, z, potentials, biomes, heightfield, lightfield, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks) => {
+        const allocator = new Allocator();
+        const messageData = allocator.alloc(Uint32Array, 33);
+        messageData[1] = METHODS.marchingCubes;
+
+        new Float32Array(messageData.buffer, 2*Uint32Array.BYTES_PER_ELEMENT, 1)[0] = meshId;
+
+        // dims
+        new Int32Array(messageData.buffer, 3*Uint32Array.BYTES_PER_ELEMENT, 3).set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
+
+        messageData[6] = potentials.byteOffset;
+        messageData[7] = biomes.byteOffset;
+        messageData[8] = heightfield.byteOffset;
+        messageData[9] = lightfield.byteOffset;
+
+        // shift
+        new Float32Array(messageData.buffer, 10*Uint32Array.BYTES_PER_ELEMENT, 3).set(Float32Array.from([x*subparcelSize, y*subparcelSize, z*subparcelSize]));
+
+        // scale
+        new Float32Array(messageData.buffer, 13*Uint32Array.BYTES_PER_ELEMENT, 3).set(Float32Array.from([1, 1, 1]));
+
+        messageData[16] = position.byteOffset;
+        messageData[17] = normal.byteOffset;
+        messageData[18] = uv.byteOffset;
+        messageData[19] = barycentric.byteOffset;
+        messageData[20] = ao.byteOffset;
+        messageData[21] = id.byteOffset;
+
+        messageData[22] = 0; // numPositions.offset,
+        messageData[23] = 0; // numNormals.offset,
+        messageData[24] = 0; // numUvs.offset,
+        messageData[25] = 0; // numBarycentrics.offset,
+        messageData[26] = 0; // numAos.offset,
+        messageData[27] = 0; // numIds.offset,
+
+        messageData[28] = skyLight.byteOffset;
+        messageData[29] = torchLight.byteOffset;
+        messageData[30] = 0; // numOpaquePositions.offset,
+        messageData[31] = 0; // numTransparentPositions.offset,
+        messageData[32] = peeks.byteOffset;
+
+        await w.requestRaw(messageData);
+
+        const numPositions = new Uint32Array(messageData.buffer, 22*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const numNormals = new Uint32Array(messageData.buffer, 23*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const numUvs = new Uint32Array(messageData.buffer, 24*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const numBarycentrics = new Uint32Array(messageData.buffer, 25*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const numAos = new Uint32Array(messageData.buffer, 26*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const numIds = new Uint32Array(messageData.buffer, 27*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const numOpaquePositions = new Uint32Array(messageData.buffer, 30*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const numTransparentPositions = new Uint32Array(messageData.buffer, 31*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+
+        allocator.freeAll();
+
+        /* const shiftsData = [
+          x*subparcelSize,
+          y*subparcelSize,
+          z*subparcelSize,
+        ];
+        // const spec = _getChunkSpec(potentials, biomes, heightfield, lightfield, shiftsData, meshId, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks);
+
+        dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
+        shifts.set(Float32Array.from(shiftsData));
+        scale.set(Float32Array.from([1, 1, 1]));
+        numPositions[0] = 0;
+        numUvs[0] = 0;
+        numBarycentrics[0] = 0;
+        numAos[0] = 0;
+
+        self.Module._doMarchingCubes2(
+          dims.offset,
+          potentials.byteOffset,
+          biomes.byteOffset,
+          heightfield.byteOffset,
+          lightfield.byteOffset,
+          shifts.offset,
+          scale.offset,
+          position.byteOffset,
+          normal.byteOffset,
+          uv.byteOffset,
+          barycentric.byteOffset,
+          ao.byteOffset,
+          numPositions.offset,
+          numNormals.offset,
+          numUvs.offset,
+          numBarycentrics.offset,
+          numAos.offset,
+          skyLight.byteOffset,
+          torchLight.byteOffset,
+          numOpaquePositions.offset,
+          numTransparentPositions.offset,
+          peeks.byteOffset
+        );
+
+        const ids = id.subarray(0, numPositions[0]/3);
+        for (let i = 0; i < numPositions[0]/3/3; i++) {
+          ids[i*3] = meshId;
+          ids[i*3+1] = meshId;
+          ids[i*3+2] = meshId;
+        } */
+
+        /* if (numPositions[0] > position.length) {
+          debugger;
+        }
+        if (numNormals[0] > normal.length) {
+          debugger;
+        }
+        if (numUvs[0] > uv.length) {
+          debugger;
+        }
+        if (numBarycentrics[0] > barycentric.length) {
+          debugger;
+        }
+        if (numAos[0] > ao.length) {
+          debugger;
+        } */
+
+        return {
+          positions: position.subarray(0, numPositions),
+          normals: normal.subarray(0, numNormals),
+          uvs: uv.subarray(0, numUvs),
+          barycentrics: barycentric.subarray(0, numBarycentrics),
+          aos: ao.subarray(0, numAos),
+          ids: id.subarray(0, numIds),
+          skyLights: skyLight.subarray(0, numPositions/3),
+          torchLights: torchLight.subarray(0, numPositions/3),
+          peeks,
+          numOpaquePositions,
+          numTransparentPositions,
+          x,
+          y,
+          z,
+        };
+      };
       w.update = () => {
         if (moduleInstance) {
           for (;;) {
@@ -1272,6 +1429,7 @@ const [
       };
       return w;
     })();
+    planet.setGeometryWorker(geometryWorker);
     await geometryWorker.waitForLoad();
 
     const vegetationMaterialOpaque = new THREE.ShaderMaterial({
@@ -1599,6 +1757,7 @@ const [
       mesh.freeSlabIndex = index => {
         const slab = slabs[index];
         if (slab) {
+          slab.free();
           geometry.groups.splice(geometry.groups.indexOf(slab.group), 1);
           slabs[index] = null;
         }
@@ -1616,8 +1775,7 @@ const [
     };
   })(),
 ]);
-chunkWorker = cw;
-planet.setChunkWorker(chunkWorker);
+// chunkWorker = cw;
 physxWorker = px;
 physicsWorker = pw;
 
@@ -1919,54 +2077,32 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     waterMaterial.uniforms.tex.needsUpdate = true;
   })();
 
-  const numPositions = Math.floor(9.5 * 1024 * 1024 / 3) * 3;
-  const numPeeks = numSlices*15;
-  const numLocalPositions = Math.floor(numPositions/numSlices);
-  const numLocalNormals = Math.floor(numPositions/numSlices);
-  const numLocalUvs = Math.floor(numPositions/3*2/numSlices);
-  const numLocalBarycentrics = Math.floor(numPositions/numSlices);
-  const numLocalAos = Math.floor(numPositions/3/numSlices);
-  const numLocalIds = Math.floor(numPositions/3/numSlices);
-  const numLocalSkylights = Math.floor(numPositions/3/numSlices);
-  const numLocalTorchlights = Math.floor(numPositions/3/numSlices);
-  const numLocalPeeks = 15;
+  const numPositions = 4 * 1024 * 1024;
+  const allocators = {
+    positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
+    normals: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
+    uvs: geometryWorker.makeArenaAllocator(numPositions * 2*Float32Array.BYTES_PER_ELEMENT),
+    barycentrics: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
+    aos: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
+    ids: geometryWorker.makeArenaAllocator(numPositions * Float32Array.BYTES_PER_ELEMENT),
+    skyLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
+    torchLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
+    peeks: geometryWorker.makeArenaAllocator(numSlices * 15 * Uint8Array.BYTES_PER_ELEMENT),
+  };
+
   const geometry = new THREE.BufferGeometry();
-  let peeks;
-  {
-    let totalSize =
-      numPositions * Float32Array.BYTES_PER_ELEMENT +
-      numPositions * Float32Array.BYTES_PER_ELEMENT +
-      numPositions/3*2 * Float32Array.BYTES_PER_ELEMENT +
-      numPositions * Float32Array.BYTES_PER_ELEMENT +
-      numPositions/3 * Uint8Array.BYTES_PER_ELEMENT;
-    totalSize = _align4(totalSize);
-    totalSize +=
-      numPositions/3 * Float32Array.BYTES_PER_ELEMENT +
-      numPositions/3 * Uint8Array.BYTES_PER_ELEMENT +
-      numPositions/3 * Uint8Array.BYTES_PER_ELEMENT +
-      numPeeks * Uint8Array.BYTES_PER_ELEMENT;
-    const uint8Array = await chunkWorker.requestAlloc(totalSize);
-    let index = uint8Array.byteOffset;
-    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(uint8Array.buffer, index, numPositions), 3));
-    index += numPositions * Float32Array.BYTES_PER_ELEMENT;
-    geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(uint8Array.buffer, index, numPositions), 3));
-    index += numPositions * Float32Array.BYTES_PER_ELEMENT;
-    geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uint8Array.buffer, index, numPositions/3*2), 2));
-    index += numPositions/3*2 * Float32Array.BYTES_PER_ELEMENT;
-    geometry.setAttribute('barycentric', new THREE.BufferAttribute(new Float32Array(uint8Array.buffer, index, numPositions), 3));
-    index += numPositions * Float32Array.BYTES_PER_ELEMENT;
-    geometry.setAttribute('ao', new THREE.BufferAttribute(new Uint8Array(uint8Array.buffer, index, numPositions/3), 1));
-    index += numPositions/3 * Uint8Array.BYTES_PER_ELEMENT;
-    index = _align4(index);
-    geometry.setAttribute('id', new THREE.BufferAttribute(new Float32Array(uint8Array.buffer, index, numPositions/3), 1));
-    index += numPositions/3 * Float32Array.BYTES_PER_ELEMENT;
-    geometry.setAttribute('skyLight', new THREE.BufferAttribute(new Uint8Array(uint8Array.buffer, index, numPositions/3), 1));
-    index += numPositions/3 * Uint8Array.BYTES_PER_ELEMENT;
-    geometry.setAttribute('torchLight', new THREE.BufferAttribute(new Uint8Array(uint8Array.buffer, index, numPositions/3), 1));
-    index += numPositions/3 * Uint8Array.BYTES_PER_ELEMENT;
-    peeks = new Uint8Array(uint8Array.buffer, index, numPeeks);
-    index += numPeeks * Uint8Array.BYTES_PER_ELEMENT;
-  }
+  geometry.setAttribute('position', new THREE.BufferAttribute(allocators.positions.getAs(Float32Array), 3));
+  geometry.setAttribute('normal', new THREE.BufferAttribute(allocators.normals.getAs(Float32Array), 3));
+  geometry.setAttribute('uv', new THREE.BufferAttribute(allocators.uvs.getAs(Float32Array), 2));
+  geometry.setAttribute('barycentric', new THREE.BufferAttribute(allocators.barycentrics.getAs(Float32Array), 1));
+  geometry.setAttribute('ao', new THREE.BufferAttribute(allocators.aos.getAs(Uint8Array), 1));
+  geometry.setAttribute('id', new THREE.BufferAttribute(allocators.ids.getAs(Float32Array), 1));
+  geometry.setAttribute('skyLight', new THREE.BufferAttribute(allocators.skyLights.getAs(Uint8Array), 1));
+  geometry.setAttribute('torchLight', new THREE.BufferAttribute(allocators.torchLights.getAs(Uint8Array), 1));
+  geometry.setIndex(new THREE.BufferAttribute(allocators.indices.getAs(Uint32Array), 1));
+  geometry.allocators = allocators;
+  const peeks = allocators.peeks.getAs(Uint8Array);
+
   const mesh = new THREE.Mesh(geometry, [landMaterial, waterMaterial]);
   mesh.frustumCulled = false;
   mesh.seedNum = seedNum;
@@ -1981,16 +2117,16 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   mesh.objects = [];
 
   const slabs = {};
-  let freeList = [{
+  /* let freeList = [{
     start: 0,
     count: numSlices,
-  }];
+  }]; */
   const _makeGroup = materialIndex => ({
     start: 0,
     count: 0,
     materialIndex,
   });
-  class Slab {
+  /* class Slab {
     constructor(start) {
       this.x = 0;
       this.y = 0;
@@ -2021,8 +2157,8 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       this.index = index;
       this.groupSet.boundingSphere.center.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2);
     }
-  }
-  const _findFreeSlab = () => {
+  } */
+  /* const _findFreeSlab = () => {
     if (freeList.length > 0) {
       const entry = freeList[0];
       if (entry.count > 1) {
@@ -2059,18 +2195,55 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     if (merged) {
       freeList = freeList.filter(entry => !!entry);
     }
-  };
-  const _getSlabPositionOffset = slab => (slab.position.byteOffset - geometry.attributes.position.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
-  const _getSlabNormalOffset = slab => (slab.normal.byteOffset - geometry.attributes.normal.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
-  const _getSlabUvOffset = slab => (slab.uv.byteOffset - geometry.attributes.uv.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
-  const _getSlabBarycentricOffset = slab => (slab.barycentric.byteOffset - geometry.attributes.barycentric.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
-  const _getSlabAoOffset = slab => (slab.ao.byteOffset - geometry.attributes.ao.array.byteOffset)/Uint8Array.BYTES_PER_ELEMENT;
-  const _getSlabIdOffset = slab => (slab.id.byteOffset - geometry.attributes.id.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
-  const _getSlabSkyLightOffset = slab => (slab.skyLight.byteOffset - geometry.attributes.skyLight.array.byteOffset)/Uint8Array.BYTES_PER_ELEMENT;
-  const _getSlabTorchLightOffset = slab => (slab.torchLight.byteOffset - geometry.attributes.torchLight.array.byteOffset)/Uint8Array.BYTES_PER_ELEMENT;
+  }; */
+  const _getSlabPositionOffset = spec => spec.positionsStart/Float32Array.BYTES_PER_ELEMENT;
+  const _getSlabNormalOffset = spec => spec.normalsStart/Float32Array.BYTES_PER_ELEMENT;
+  const _getSlabUvOffset = spec => spec.uvsStart/Float32Array.BYTES_PER_ELEMENT;
+  const _getSlabBarycentricOffset = spec => spec.barycentricsStart/Float32Array.BYTES_PER_ELEMENT;
+  const _getSlabAoOffset = spec => spec.aosStart/Uint8Array.BYTES_PER_ELEMENT;
+  const _getSlabIdOffset = spec => spec.idsStart/Float32Array.BYTES_PER_ELEMENT;
+  const _getSlabSkyLightOffset = spec => spec.skyLightsStart/Uint8Array.BYTES_PER_ELEMENT;
+  const _getSlabTorchLightOffset = spec => spec.torchLightsStart/Uint8Array.BYTES_PER_ELEMENT;
 
-  mesh.getSlab = (x, y, z) => {
+  mesh.addSlab = (x, y, z, spec) => {
     const index = planet.getSubparcelIndex(x, y, z);
+    let slab = slabs[index];
+    if (slab) {
+      slab.free();
+      slab.spec = spec;
+      // slab.group.start = _getSlabIndexOffset(spec);
+      // slab.group.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
+    } else {
+      slab = slabs[index] = {
+        x,
+        y,
+        z,
+        index,
+        spec,
+        groupSet: {
+          groups: [_makeGroup(0), _makeGroup(1)],
+          boundingSphere: new THREE.Sphere(new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2), slabRadius),
+          slab: this,
+        },
+        physxGeometry: 0,
+        physxGroupSet: 0,
+        free() {
+          allocators.positions.free(this.spec.positionsFreeEntry);
+          allocators.normals.free(this.spec.normalsFreeEntry);
+          allocators.uvs.free(this.spec.uvsFreeEntry);
+          allocators.barycentrics.free(this.spec.barycentricsFreeEntry);
+          allocators.aos.free(this.spec.aosFreeEntry);
+          allocators.ids.free(this.spec.idsFreeEntry);
+          allocators.skyLights.free(this.spec.skyLightsFreeEntry);
+          allocators.torchLights.free(this.spec.torchLightsFreeEntry);
+          allocators.peeks.free(this.spec.peeksFreeEntry);
+          this.spec = null;
+        },
+      };
+    }
+    return slab;
+
+    /* const index = planet.getSubparcelIndex(x, y, z);
     let slab = slabs[index];
     if (!slab) {
       slab = _findFreeSlab();
@@ -2078,7 +2251,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       slabs[index] = slab;
       mesh.groupSets.push(slab.groupSet);
     }
-    return slab;
+    return slab; */
   };
   mesh.updateGeometry = (slab, spec) => {
     geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(slab);
@@ -2098,14 +2271,14 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(slab);
     geometry.attributes.torchLight.needsUpdate = true;
 
-    geometry.attributes.position.updateRange.count = spec.positions.length;
-    geometry.attributes.normal.updateRange.count = spec.normals.length;
-    geometry.attributes.uv.updateRange.count = spec.uvs.length;
-    geometry.attributes.barycentric.updateRange.count = spec.barycentrics.length;
-    geometry.attributes.ao.updateRange.count = spec.aos.length;
-    geometry.attributes.id.updateRange.count = spec.ids.length;
-    geometry.attributes.skyLight.updateRange.count = spec.skyLights.length;
-    geometry.attributes.torchLight.updateRange.count = spec.torchLights.length;
+    geometry.attributes.position.updateRange.count = spec.positionsCount/Float32Array.BYTES_PER_ELEMENT;
+    geometry.attributes.normal.updateRange.count = spec.normalsCount/Float32Array.BYTES_PER_ELEMENT;
+    geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
+    geometry.attributes.barycentric.updateRange.count = spec.barycentricsCount/Float32Array.BYTES_PER_ELEMENT;
+    geometry.attributes.ao.updateRange.count = spec.aosCount/Uint8Array.BYTES_PER_ELEMENT;
+    geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
+    geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Float32Array.BYTES_PER_ELEMENT;
+    geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Float32Array.BYTES_PER_ELEMENT;
     renderer.geometries.update(geometry);
 
     slab.groupSet.groups[0].start = _getSlabPositionOffset(slab)/3;
@@ -2116,13 +2289,14 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   mesh.freeSlabIndex = index => {
     const slab = slabs[index];
     if (slab) {
+      slab.free();
       mesh.groupSets.splice(mesh.groupSets.indexOf(slab.groupSet), 1);
       slabs[index] = null;
-      freeList.push({
+      /* freeList.push({
         start: slab.start,
         count: 1,
       });
-      _updateFreeList(freeList);
+      _updateFreeList(freeList); */
     }
   };
   const currentCoord = new THREE.Vector3(NaN, NaN, NaN);
@@ -2269,7 +2443,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       if (!live) return;
 
       const slab = mesh.getSlab(ax, ay, az);
-      const spec = await chunkWorker.requestMarchLand(
+      const spec = await geometryWorker.requestMarchingCubes(
         seedNum,
         meshId,
         ax, ay, az,
