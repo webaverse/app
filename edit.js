@@ -2515,14 +2515,15 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       slab.physxGroupSet = physxWorker.registerGroupSet(slab.x, slab.y, slab.z, slabRadius, peeks, slab.groupSet.groups);
 
       if (spec.numOpaquePositions > 0) {
+        const positions = new Float32Array(currentChunkMesh.geometry.attributes.position.array.buffer, currentChunkMesh.geometry.attributes.position.array.byteOffset + slab.spec.positionsStart, slab.spec.positionsCount);
         const bakeSpecs = [{
-          positions: spec.positions,
+          positions,
           numOpaquePositions: spec.numOpaquePositions,
           x: spec.x,
           y: spec.y,
           z: spec.z,
         }];
-        const bakeStats = [{
+        /* const bakeStats = [{
           numPositions: spec.positions.length,
           numNormals: spec.normals.length,
           numUvs: spec.uvs.length,
@@ -2532,7 +2533,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
           numSkyLights: spec.skyLights.length,
           numTorchLights: spec.torchLights.length,
           numPeeks: spec.peeks.length,
-        }];
+        }]; */
         const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => ({
           positions: spec.positions,
           count: spec.numOpaquePositions,
@@ -2542,9 +2543,9 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
         for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
           const physxGeometry = result.physicsGeometryBuffers[i];
           const {x, y, z} = bakeSpecs[i];
-          const stat = bakeStats[i];
-          const slab = currentChunkMesh.getSlab(x, y, z);
-          if (slab && slab.physxGeometry) {
+          // const stat = bakeStats[i];
+          // const slab = currentChunkMesh.getSlab(x, y, z);
+          if (slab.physxGeometry) {
             physxWorker.unregisterGeometry(slab.physxGeometry);
             slab.physxGeometry = 0;
           }
