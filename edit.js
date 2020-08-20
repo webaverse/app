@@ -1435,7 +1435,7 @@ const [
           idsCount,
           skyLightsCount,
           torchLightsCount,
-          peeksCount
+          peeksCount,
 
           numOpaquePositions,
           numTransparentPositions,
