@@ -441,12 +441,11 @@ planet.allocSubparcel = async (x, y, z, seedNum, meshId, baseHeight) => {
     // subparcel.writeMetadata();
     await geometryWorker.requestNoise(
       seedNum,
-      meshId,
       x,
       y,
       z,
       baseHeight,
-      subparcel.byteOffset
+      subparcel.offset
     );/*.then(parcelSpec => {
       subparcel.potentials.set(parcelSpec.potentials);
       subparcel.biomes.set(parcelSpec.biomes);
