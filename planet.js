@@ -62,9 +62,9 @@ planet.getSubparcelIndex = _getSubparcelIndex;
 planet.getPotentialIndex = _getPotentialIndex;
 planet.getFieldIndex = _getFieldIndex;
 
-let chunkWorker = null;
-planet.setChunkWorker = cw => {
-  chunkWorker = cw;
+let geometryWorker = null;
+planet.setGeometryWorker = gw => {
+  geometryWorker = gw;
 };
 
 const _getStringLength = s => {
@@ -435,11 +435,11 @@ planet.allocSubparcel = async (x, y, z, seedNum, meshId, baseHeight) => {
   const index = _getSubparcelIndex(x, y, z);
   subparcel.index = index;
   subparcel.load = (async () => {
-    const uint8Array = await chunkWorker.requestAlloc(Subparcel.offsets.initialLength);
+    const uint8Array = geometryWorker.alloc(Uint8Array, Subparcel.offsets.initialLength);
     subparcel.latchData(uint8Array.buffer, uint8Array.byteOffset);
     // console.log('subparcel size', Subparcel.offsets.initialLength, uint8Array.byteOffset);
     // subparcel.writeMetadata();
-    await chunkWorker.requestLoadPotentials(
+    await geometryWorker.requestNoise(
       seedNum,
       meshId,
       x,
@@ -576,7 +576,7 @@ const _loadStorage = async roomName => {
       const match = k.slice(prefix.length).match(/^([-0-9]+)\/([-0-9]+)\/([-0-9]+)/);
       const p = (async () => {
         const ab = await storage.getRaw(k);
-        const uint8Array = await chunkWorker.requestAlloc(ab.byteLength);
+        const uint8Array = geometryWorker.alloc(Uint8Array, ab.byteLength);
         uint8Array.set(new Uint8Array(ab));
         const subparcel = new Subparcel(uint8Array);
         subparcel.readMetadata();
