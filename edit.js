@@ -1528,90 +1528,6 @@ const [
       mesh.frustumCulled = false;
 
       const slabs = {};
-      /* let freeList = [{
-        start: 0,
-        count: numPositions,
-        startIndex: 0,
-        countIndex: numPositions/3,
-      }];
-      const _slabFits = (slab, numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices) => {
-        return slab.position.length >= numPositions &&
-          slab.uv.length >= numUvs &&
-          slab.id.length >= numIds &&
-          slab.skyLight.length >= numSkyLights &&
-          slab.torchLight.length >= numTorchLights &&
-          slab.indices.length >= numIndices;
-      };
-      const _entryFits = (entry, numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices) => {
-        return entry.count >= numPositions &&
-          entry.count/3*2 >= numUvs &&
-          entry.count/3 >= numIds &&
-          entry.count/3 >= numSkyLights &&
-          entry.count/3 >= numTorchLights &&
-          entry.countIndex >= numIndices;
-      };
-      const _findFreeSlab = (numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices) => {
-        for (let i = 0; i < freeList.length; i++) {
-          const entry = freeList[i];
-
-          if (_entryFits(entry, numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices)) {
-            if (numPositions > 0) {
-              if (entry.count > numPositions) {
-                freeList.splice(i, 1, {
-                  start: entry.start + numPositions,
-                  count: entry.count - numPositions,
-                  startIndex: entry.startIndex + numIndices,
-                  countIndex: entry.countIndex - numIndices,
-                });
-              } else {
-                freeList.splice(i, 1);
-              }
-            }
-
-            return {
-              x: 0,
-              y: 0,
-              z: 0,
-              start: entry.start,
-              count: numPositions,
-              startIndex: entry.startIndex,
-              countIndex: numIndices,
-              index: 0,
-              position: new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + entry.start*Float32Array.BYTES_PER_ELEMENT, numPositions),
-              uv: new Float32Array(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset + entry.start/3*2*Float32Array.BYTES_PER_ELEMENT, numUvs),
-              id: new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + entry.start/3*Float32Array.BYTES_PER_ELEMENT, numIds),
-              skyLight: new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numSkyLights),
-              torchLight: new Uint8Array(geometry.attributes.torchLight.array.buffer, geometry.attributes.torchLight.array.byteOffset + entry.start/3*Uint8Array.BYTES_PER_ELEMENT, numTorchLights),
-              indices: new Uint32Array(geometry.index.array.buffer, geometry.index.array.byteOffset + entry.startIndex*Uint32Array.BYTES_PER_ELEMENT, numIndices),
-              group: null,
-            };
-          }
-        }
-        throw new Error('could not allocate slab');
-      };
-      const _updateFreeList = () => {
-        freeList.sort((a, b) => a.start - b.start);
-        let merged = false;
-        for (let i = 0; i < freeList.length-1; i++) {
-          const entry = freeList[i];
-          if (entry) {
-            for (let j = i+1; j < freeList.length; j++) {
-              const nextEntry = freeList[j];
-              if (nextEntry) {
-                if (entry.start + entry.count === nextEntry.start) {
-                  entry.count += nextEntry.count;
-                  entry.countIndex += nextEntry.countIndex;
-                  freeList[j] = null;
-                  merged = true;
-                }
-              }
-            }
-          }
-        }
-        if (merged) {
-          freeList = freeList.filter(entry => !!entry);
-        }
-      }; */
       const _getSlabPositionOffset = spec => spec.positionsStart/Float32Array.BYTES_PER_ELEMENT;
       const _getSlabUvOffset = spec => spec.uvsStart/Float32Array.BYTES_PER_ELEMENT;
       const _getSlabIdOffset = spec => spec.idsStart/Float32Array.BYTES_PER_ELEMENT;
@@ -1684,20 +1600,9 @@ const [
         const slab = slabs[index];
         if (slab) {
           geometry.groups.splice(geometry.groups.indexOf(slab.group), 1);
-          // slab.group = null;
           slabs[index] = null;
-          /* if (slab.count > 0) {
-            freeList.push({
-              start: slab.start,
-              count: slab.count,
-              startIndex: slab.startIndex,
-              countIndex: slab.countIndex,
-            });
-            _updateFreeList(freeList);
-          } */
         }
       };
-      // mesh.getSlabPositionOffset = _getSlabPositionOffset;
       return mesh;
     };
     const context = renderer.getContext();
