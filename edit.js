@@ -2492,7 +2492,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       await subparcel.load;
       if (!live) return;
 
-      const slab = mesh.getSlab(ax, ay, az);
       const spec = await geometryWorker.requestMarchingCubes(
         seedNum,
         meshId,
@@ -2505,6 +2504,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       );
       if (!live) return;
 
+      const slab = mesh.addSlab(ax, ay, az, spec);
       mesh.updateGeometry(slab, spec);
 
       if (slab.physxGroupSet) {
