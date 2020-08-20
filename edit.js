@@ -1275,9 +1275,9 @@ const [
 
         allocator.freeAll();
       };
-      w.requestMarchingCubes = async (seed, meshId, x, y, z, potentials, biomes, heightfield, lightfield, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks) => {
+      w.requestMarchingCubes = async (seed, meshId, x, y, z, potentials, biomes, heightfield, lightfield, allocators) => {
         const allocator = new Allocator();
-        const messageData = allocator.alloc(Uint32Array, 33);
+        const messageData = allocator.alloc(Uint32Array, 36);
         messageData[1] = METHODS.marchingCubes;
 
         new Float32Array(messageData.buffer, 2*Uint32Array.BYTES_PER_ELEMENT, 1)[0] = meshId;
@@ -1296,36 +1296,48 @@ const [
         // scale
         new Float32Array(messageData.buffer, 13*Uint32Array.BYTES_PER_ELEMENT, 3).set(Float32Array.from([1, 1, 1]));
 
-        messageData[16] = position.byteOffset;
-        messageData[17] = normal.byteOffset;
-        messageData[18] = uv.byteOffset;
-        messageData[19] = barycentric.byteOffset;
-        messageData[20] = ao.byteOffset;
-        messageData[21] = id.byteOffset;
-
-        messageData[22] = 0; // numPositions.offset,
-        messageData[23] = 0; // numNormals.offset,
-        messageData[24] = 0; // numUvs.offset,
-        messageData[25] = 0; // numBarycentrics.offset,
-        messageData[26] = 0; // numAos.offset,
-        messageData[27] = 0; // numIds.offset,
-
-        messageData[28] = skyLight.byteOffset;
-        messageData[29] = torchLight.byteOffset;
-        messageData[30] = 0; // numOpaquePositions.offset,
-        messageData[31] = 0; // numTransparentPositions.offset,
-        messageData[32] = peeks.byteOffset;
+        messageData[16] = allocators.positions.ptr;
+        messageData[17] = allocators.normals.ptr;
+        messageData[18] = allocators.uvs.ptr;
+        messageData[19] = allocators.barycentrics.ptr;
+        messageData[20] = allocators.aos.ptr;
+        messageData[21] = allocators.ids.ptr;
+        messageData[22] = allocators.skyLights.ptr;
+        messageData[23] = allocators.torchLights.ptr;
+        messageData[24] = allocators.peeks.ptr;
 
         await w.requestRaw(messageData);
 
-        const numPositions = new Uint32Array(messageData.buffer, 22*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const numNormals = new Uint32Array(messageData.buffer, 23*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const numUvs = new Uint32Array(messageData.buffer, 24*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const numBarycentrics = new Uint32Array(messageData.buffer, 25*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const numAos = new Uint32Array(messageData.buffer, 26*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const numIds = new Uint32Array(messageData.buffer, 27*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const numOpaquePositions = new Uint32Array(messageData.buffer, 30*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const numTransparentPositions = new Uint32Array(messageData.buffer, 31*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const positionsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 25*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const normalsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 26*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const uvsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 27*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const barycentricsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 28*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const aosFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 29*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const idsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 30*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const skyLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 31*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const torchLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 32*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const peeksFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 33*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+
+        const numOpaquePositions = new Uint32Array(messageData.buffer, messageData.offset + 34*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const numTransparentPositions = new Uint32Array(messageData.buffer, messageData.offset + 35*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+
+        const positionsStart = new Uint32Array(messageData.buffer, positionsFreeEntry, 1)[0];
+        const normalsStart = new Uint32Array(messageData.buffer, normalsFreeEntry, 1)[0];
+        const uvsStart = new Uint32Array(messageData.buffer, uvsFreeEntry, 1)[0];
+        const barycentricsStart = new Uint32Array(messageData.buffer, barycentricsFreeEntry, 1)[0];
+        const aosStart = new Uint32Array(messageData.buffer, aosFreeEntry, 1)[0];
+        const idsStart = new Uint32Array(messageData.buffer, idsFreeEntry, 1)[0];
+        const skyLightsStart = new Uint32Array(messageData.buffer, skyLightsFreeEntry, 1)[0];
+        const torchLightsStart = new Uint32Array(messageData.buffer, torchLightsFreeEntry, 1)[0];
+
+        const positionsCount = new Uint32Array(messageData.buffer, positionsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const normalsCount = new Uint32Array(messageData.buffer, normalsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const uvsCount = new Uint32Array(messageData.buffer, uvsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const barycentricsCount = new Uint32Array(messageData.buffer, barycentricsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const aosCount = new Uint32Array(messageData.buffer, aosFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const idsCount = new Uint32Array(messageData.buffer, idsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const skyLightsCount = new Uint32Array(messageData.buffer, skyLightsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const torchLightsCount = new Uint32Array(messageData.buffer, torchLightsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
 
         allocator.freeAll();
 
@@ -1393,17 +1405,37 @@ const [
         } */
 
         return {
-          positions: position.subarray(0, numPositions),
-          normals: normal.subarray(0, numNormals),
-          uvs: uv.subarray(0, numUvs),
-          barycentrics: barycentric.subarray(0, numBarycentrics),
-          aos: ao.subarray(0, numAos),
-          ids: id.subarray(0, numIds),
-          skyLights: skyLight.subarray(0, numPositions/3),
-          torchLights: torchLight.subarray(0, numPositions/3),
-          peeks,
+          positionsFreeEntry,
+          normalsFreeEntry,
+          uvsFreeEntry,
+          barycentricsFreeEntry,
+          aosFreeEntry,
+          idsFreeEntry,
+          skyLightsFreeEntry,
+          torchLightsFreeEntry,
+          peeksFreeEntry,
+
+          positionsStart,
+          normalsStart,
+          uvsStart,
+          barycentricsStart,
+          aosStart,
+          idsStart,
+          skyLightsStart,
+          torchLightsStart,
+
+          positionsCount,
+          normalsCount,
+          uvsCount,
+          barycentricsCount,
+          aosCount,
+          idsCount,
+          skyLightsCount,
+          torchLightsCount,
+
           numOpaquePositions,
           numTransparentPositions,
+
           x,
           y,
           z,
@@ -2451,15 +2483,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
         subparcel.biomes,
         subparcel.heightfield,
         subparcel.lightfield,
-        slab.position,
-        slab.normal,
-        slab.uv,
-        slab.barycentric,
-        slab.ao,
-        slab.id,
-        slab.skyLight,
-        slab.torchLight,
-        slab.peeks
+        geometry.allocators
       );
       if (!live) return;
 
