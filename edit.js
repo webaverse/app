@@ -1046,16 +1046,16 @@ const [
 
         await w.requestRaw(messageData);
 
-        const positionsOffset = new Uint32Array(messageData.buffer, messageData.offset + 5*Uint32Array.BYTES_PER_ELEMENT);
-        const uvsOffet = new Uint32Array(messageData.buffer, messageData.offset + 6*Uint32Array.BYTES_PER_ELEMENT);
-        const indicesOffet = new Uint32Array(messageData.buffer, messageData.offset + 7*Uint32Array.BYTES_PER_ELEMENT);
-        const numPositions = new Uint32Array(messageData.buffer, messageData.offset + 8*Uint32Array.BYTES_PER_ELEMENT);
-        const numUvs = new Uint32Array(messageData.buffer, messageData.offset + 9*Uint32Array.BYTES_PER_ELEMENT);
-        const numIndices = new Uint32Array(messageData.buffer, messageData.offset + 10*Uint32Array.BYTES_PER_ELEMENT);
+        const positionsOffset = new Uint32Array(messageData.buffer, messageData.offset + 5*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const uvsOffset = new Uint32Array(messageData.buffer, messageData.offset + 6*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const indicesOffset = new Uint32Array(messageData.buffer, messageData.offset + 7*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const numPositions = new Uint32Array(messageData.buffer, messageData.offset + 8*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const numUvs = new Uint32Array(messageData.buffer, messageData.offset + 9*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const numIndices = new Uint32Array(messageData.buffer, messageData.offset + 10*Uint32Array.BYTES_PER_ELEMENT, 1);
 
         const positions = new Float32Array(messageData.buffer, positionsOffset[0], numPositions[0]);
-        const uvs = new Float32Array(messageData.buffer, uvsOffet[0], numUvs[0]);
-        const indices = new Uint32Array(messageData.buffer, indicesOffet[0], numIndices[0]);
+        const uvs = new Float32Array(messageData.buffer, uvsOffset[0], numUvs[0]);
+        const indices = new Uint32Array(messageData.buffer, indicesOffset[0], numIndices[0]);
 
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -1066,69 +1066,46 @@ const [
 
         return geometry;
       };
-      w.requestAnimalGeometry = hash => {
-        return new Promise(() => {});
-
-        // const {hash} = data;
-
+      w.requestAnimalGeometry = async hash => {
         const allocator = new Allocator();
+        const messageData = allocator.alloc(Uint32Array, 14 + 3 + 6);
+        messageData[1] = METHODS.getAnimalGeometry;
 
-        const positions = allocator.alloc(Uint32Array, 1);
-        const colors = allocator.alloc(Uint32Array, 1);
-        const indices = allocator.alloc(Uint32Array, 1);
-        const heads = allocator.alloc(Uint32Array, 1);
-        const legs = allocator.alloc(Uint32Array, 1);
-        const numPositions = allocator.alloc(Uint32Array, 1);
-        const numColors = allocator.alloc(Uint32Array, 1);
-        const numIndices = allocator.alloc(Uint32Array, 1);
-        const numHeads = allocator.alloc(Uint32Array, 1);
-        const numLegs = allocator.alloc(Uint32Array, 1);
-        const headPivot = allocator.alloc(Float32Array, 3);
-        const aabb = allocator.alloc(Float32Array, 6);
+        messageData[2] = geometrySet;
+        messageData[3] = hash;
 
-        ModuleInstance._getAnimalGeometry(
-          geometrySet,
-          hash,
-          positions.offset,
-          colors.offset,
-          indices.offset,
-          heads.offset,
-          legs.offset,
-          numPositions.offset,
-          numColors.offset,
-          numIndices.offset,
-          numHeads.offset,
-          numLegs.offset,
-          headPivot.offset,
-          aabb.offset
-        );
+        await w.requestRaw(messageData);
 
-        const positions2 = new Float32Array(ModuleInstance.HEAP8.buffer, positions[0], numPositions[0]).slice();
-        const colors2 = new Uint8Array(ModuleInstance.HEAP8.buffer, colors[0], numColors[0]).slice();
-        const indices2 = new Uint32Array(ModuleInstance.HEAP8.buffer, indices[0], numIndices[0]).slice();
-        const heads2 = new Float32Array(ModuleInstance.HEAP8.buffer, heads[0], numHeads[0]).slice();
-        const legs2 = new Float32Array(ModuleInstance.HEAP8.buffer, legs[0], numLegs[0]).slice();
-        const headPivot2 = headPivot.slice();
-        const aabb2 = aabb.slice();
+        const positionsOffset = new Uint32Array(messageData.buffer, messageData.offset + 4*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const colorsOffset = new Uint32Array(messageData.buffer, messageData.offset + 5*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const indicesOffset = new Uint32Array(messageData.buffer, messageData.offset + 6*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const headsOffset = new Uint32Array(messageData.buffer, messageData.offset + 7*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const legsOffset = new Uint32Array(messageData.buffer, messageData.offset + 8*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const numPositions = new Uint32Array(messageData.buffer, messageData.offset + 9*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const numColors = new Uint32Array(messageData.buffer, messageData.offset + 10*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const numIndices = new Uint32Array(messageData.buffer, messageData.offset + 11*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const numHeads = new Uint32Array(messageData.buffer, messageData.offset + 12*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const numLegs = new Uint32Array(messageData.buffer, messageData.offset + 13*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const headPivot = new Float32Array(messageData.buffer, messageData.offset + 14*Uint32Array.BYTES_PER_ELEMENT, 3).slice();
+        const aabb = new Float32Array(messageData.buffer, messageData.offset + 14*Uint32Array.BYTES_PER_ELEMENT + 3*Float32Array.BYTES_PER_ELEMENT, 6).slice();
+
+        const positions = new Float32Array(messageData.buffer, positionsOffset[0], numPositions[0]);
+        const colors = new Uint8Array(messageData.buffer, colorsOffset[0], numColors[0]);
+        const indices = new Uint32Array(messageData.buffer, indicesOffset[0], numIndices[0]);
+        const heads = new Float32Array(messageData.buffer, headsOffset[0], numHeads[0]);
+        const legs = new Float32Array(messageData.buffer, legsOffset[0], numLegs[0]);
 
         allocator.freeAll();
 
-        self.postMessage({
-          result: {
-            positions: positions2,
-            colors: colors2,
-            indices: indices2,
-            heads: heads2,
-            legs: legs2,
-            headPivot: headPivot2,
-            aabb: aabb2,
-          },
-        }, [positions2.buffer, colors2.buffer, indices2.buffer, heads2.buffer, legs2.buffer, headPivot2.buffer, aabb2.buffer]);
-
-        return w.request({
-          method: 'requestAnimalGeometry',
-          hash,
-        });
+        return {
+          positions,
+          colors,
+          indices,
+          heads,
+          legs,
+          headPivot,
+          aabb,
+        };
       };
       w.requestMarchObjects = async (x, y, z, geometrySet, objects, subparcelSpecs, allocators) => {
         const allocator = new Allocator();
