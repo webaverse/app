@@ -446,7 +446,7 @@ planet.allocSubparcel = async (x, y, z, seedNum, meshId, baseHeight) => {
       y,
       z,
       baseHeight,
-      subparcel.offset
+      subparcel.byteOffset
     );/*.then(parcelSpec => {
       subparcel.potentials.set(parcelSpec.potentials);
       subparcel.biomes.set(parcelSpec.biomes);
