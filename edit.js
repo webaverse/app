@@ -1285,12 +1285,6 @@ const [
           ]));
         messageData[12] = subparcelOffset;
 
-        console.log('request hash', hash, x, y, z, baseHeight, wormRate,
-            wormRadiusBase,
-            wormRadiusRate,
-            objectsRate,
-            potentialDefault, messageData[12], subparcelOffset);
-
         await w.requestRaw(messageData);
 
         allocator.freeAll();
