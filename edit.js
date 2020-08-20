@@ -1130,10 +1130,7 @@ const [
           hash,
         });
       };
-      let i2 = 0;
       w.requestMarchObjects = async (x, y, z, geometrySet, objects, subparcelSpecs, allocators) => {
-        // return new Promise(() => {});
-
         const allocator = new Allocator();
 
         const marchObjectSize = Uint32Array.BYTES_PER_ELEMENT +
