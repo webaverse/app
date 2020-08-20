@@ -1204,7 +1204,7 @@ const [
 
         allocator.freeAll();
 
-        const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
+        /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
           const positionsBase = new Uint32Array(messageData.buffer, allocator.ptr, 1)[0];
           const positionsOffset = new Uint32Array(messageData.buffer, freeEntry, 1)[0];
           const positionsLength = new Uint32Array(messageData.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
@@ -1217,7 +1217,15 @@ const [
         const indices = _decodeArenaEntry(allocators.indices, indicesFreeEntry, Uint32Array);
         const skyLights = _decodeArenaEntry(allocators.skyLights, skyLightsFreeEntry, Uint8Array);
         const torchLights = _decodeArenaEntry(allocators.torchLights, torchLightsFreeEntry, Uint8Array);
-        console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights});
+        console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
+        return {
+          positionsFreeEntry,
+          uvsFreeEntry,
+          idsFreeEntry,
+          indicesFreeEntry,
+          skyLightsFreeEntry,
+          torchLightsFreeEntry,
+        };
 
         /* const positions = allocator.alloc(Float32Array, 1024 * 1024);
         const uvs = allocator.alloc(Float32Array, 1024 * 1024);
@@ -1652,55 +1660,57 @@ const [
       const _getSlabTorchLightOffset = slab => (slab.torchLight.byteOffset - geometry.attributes.torchLight.array.byteOffset)/Uint8Array.BYTES_PER_ELEMENT;
       const _getSlabIndexOffset = slab => (slab.indices.byteOffset - geometry.index.array.byteOffset)/Uint32Array.BYTES_PER_ELEMENT; */
 
-      mesh.addSlab = (x, y, z, positions, uvs, ids, skyLights, torchLights, indices) => {
+      mesh.addSlab = (x, y, z, spec) => {
         const index = planet.getSubparcelIndex(x, y, z);
         let slab = slabs[index];
         if (slab) {
-          // clear old arena allocations
+          slab.free();
+          slab.spec = spec;
+          slab.group.start = _getSlabIndexOffset(slab); // XXX
+          slab.group.count = slab.indices.length; // XXX
         } else {
+          const group = {
+            start: _getSlabIndexOffset(slab), // XXX
+            count: slab.indices.length, // XXX
+            materialIndex: 0,
+            boundingSphere: new THREE.Sphere(
+              new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2),
+              slabRadius
+            ),
+          };
+          geometry.groups.push(group);
           slab = slabs[index] = {
             x,
             y,
             z,
             index,
-            positions,
-            uvs,
-            ids,
-            skyLights,
-            torchLights,
-            indices,
+            spec,
+            group,
+            free() {
+              allocators.positions.free(this.spec.positionsFreeEntry);
+              allocators.uvs.free(this.spec.uvsFreeEntry);
+              allocators.ids.free(this.spec.idsFreeEntry);
+              allocators.skyLights.free(this.spec.skyLightsFreeEntry);
+              allocators.torchLights.free(this.spec.torchLightsFreeEntry);
+              allocators.indices.free(this.spec.indicesFreeEntry);
+              this.spec = null;
+            },
           };
-        }
-        if (!slab) {
-          slab = _findFreeSlab(numPositions, numUvs, numIds, numSkyLights, numTorchLights, numIndices);
-          slab.x = x;
-          slab.y = y;
-          slab.z = z;
-          slab.index = index;
-          slabs[index] = slab;
-          geometry.addGroup(_getSlabIndexOffset(slab), slab.indices.length, 0);
-          const group = geometry.groups[geometry.groups.length-1];
-          group.boundingSphere =
-            new THREE.Sphere(
-              new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2),
-              slabRadius
-            );
-          slab.group = group;
         }
         return slab;
       };
       mesh.updateGeometry = (slab, spec) => {
-        geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(slab);
+        geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(slab); // XXX
         geometry.attributes.position.needsUpdate = true;
-        geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(slab);
+        geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(slab); // XXX
         geometry.attributes.uv.needsUpdate = true;
-        geometry.attributes.id.updateRange.offset = _getSlabIdOffset(slab);
+        geometry.attributes.id.updateRange.offset = _getSlabIdOffset(slab); // XXX
         geometry.attributes.id.needsUpdate = true;
-        geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(slab);
+        geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(slab); // XXX
         geometry.attributes.skyLight.needsUpdate = true;
-        geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(slab);
+        geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(slab); // XXX
         geometry.attributes.torchLight.needsUpdate = true;
-        geometry.index.updateRange.offset = _getSlabIndexOffset(slab);
+        geometry.index.updateRange.offset = _getSlabIndexOffset(slab); // XXX
         geometry.index.needsUpdate = true;
 
         geometry.attributes.position.updateRange.count = spec.positions.length;
@@ -1711,13 +1721,13 @@ const [
         geometry.index.updateRange.count = spec.indices.length;
         renderer.geometries.update(geometry);
       };
-      /* mesh.freeSlabIndex = index => {
+      mesh.freeSlabIndex = index => {
         const slab = slabs[index];
         if (slab) {
           geometry.groups.splice(geometry.groups.indexOf(slab.group), 1);
-          slab.group = null;
+          // slab.group = null;
           slabs[index] = null;
-          if (slab.count > 0) {
+          /* if (slab.count > 0) {
             freeList.push({
               start: slab.start,
               count: slab.count,
@@ -1725,10 +1735,10 @@ const [
               countIndex: slab.countIndex,
             });
             _updateFreeList(freeList);
-          }
+          } */
         }
       };
-      mesh.getSlabPositionOffset = _getSlabPositionOffset; */
+      // mesh.getSlabPositionOffset = _getSlabPositionOffset;
       return mesh;
     };
     const context = renderer.getContext();
@@ -2737,7 +2747,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       const spec = await geometryWorker.requestMarchObjects(x, y, z, geometrySet, objects, localSubparcels, currentVegetationMesh.geometry.allocators);
       if (live) {
         const vegetationMesh = currentVegetationMesh;
-        const slab = vegetationMesh.addSlab(x, y, z, spec.positions, spec.uvs, spec.ids, spec.skyLights, spec.torchLights, spec.indices);
+        const slab = vegetationMesh.addSlab(x, y, z, spec);
 
         /* slab.position.set(spec.positions);
         slab.uv.set(spec.uvs);
