@@ -1195,12 +1195,26 @@ const [
 
         await w.requestRaw(messageData);
 
-        const positionsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 16*Uint32Array.BYTES_PER_ELEMENT)[0];
-        const uvsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 17*Uint32Array.BYTES_PER_ELEMENT)[0];
-        const idsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 18*Uint32Array.BYTES_PER_ELEMENT)[0];
-        const indicesFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 19*Uint32Array.BYTES_PER_ELEMENT)[0];
-        const skyLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 20*Uint32Array.BYTES_PER_ELEMENT)[0];
-        const torchLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 21*Uint32Array.BYTES_PER_ELEMENT)[0];
+        const positionsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 16*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const uvsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 17*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const idsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 18*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const indicesFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 19*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const skyLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 20*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const torchLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.offset + 21*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+
+        const positionsStart = new Uint32Array(messageData.buffer, positionsFreeEntry, 1)[0];
+        const uvsStart = new Uint32Array(messageData.buffer, uvsFreeEntry, 1)[0];
+        const idsStart = new Uint32Array(messageData.buffer, idsFreeEntry, 1)[0];
+        const indicesStart = new Uint32Array(messageData.buffer, indicesFreeEntry, 1)[0];
+        const skyLightsStart = new Uint32Array(messageData.buffer, skyLightsFreeEntry, 1)[0];
+        const torchLightsStart = new Uint32Array(messageData.buffer, torchLightsFreeEntry, 1)[0];
+
+        const positionsCount = new Uint32Array(messageData.buffer, positionsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const uvsCount = new Uint32Array(messageData.buffer, uvsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const idsCount = new Uint32Array(messageData.buffer, idsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const indicesCount = new Uint32Array(messageData.buffer, indicesFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const skyLightsCount = new Uint32Array(messageData.buffer, skyLightsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const torchLightsCount = new Uint32Array(messageData.buffer, torchLightsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
 
         allocator.freeAll();
 
@@ -1225,6 +1239,20 @@ const [
           indicesFreeEntry,
           skyLightsFreeEntry,
           torchLightsFreeEntry,
+
+          positionsStart,
+          uvsStart,
+          idsStart,
+          indicesStart,
+          skyLightsStart,
+          torchLightsStart,
+
+          positionsCount,
+          uvsCount,
+          idsCount,
+          indicesCount,
+          skyLightsCount,
+          torchLightsCount,
         };
 
         /* const positions = allocator.alloc(Float32Array, 1024 * 1024);
@@ -1652,13 +1680,13 @@ const [
         if (merged) {
           freeList = freeList.filter(entry => !!entry);
         }
-      };
-      const _getSlabPositionOffset = slab => (slab.position.byteOffset - geometry.attributes.position.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
-      const _getSlabUvOffset = slab => (slab.uv.byteOffset - geometry.attributes.uv.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
-      const _getSlabIdOffset = slab => (slab.id.byteOffset - geometry.attributes.id.array.byteOffset)/Float32Array.BYTES_PER_ELEMENT;
-      const _getSlabSkyLightOffset = slab => (slab.skyLight.byteOffset - geometry.attributes.skyLight.array.byteOffset)/Uint8Array.BYTES_PER_ELEMENT;
-      const _getSlabTorchLightOffset = slab => (slab.torchLight.byteOffset - geometry.attributes.torchLight.array.byteOffset)/Uint8Array.BYTES_PER_ELEMENT;
-      const _getSlabIndexOffset = slab => (slab.indices.byteOffset - geometry.index.array.byteOffset)/Uint32Array.BYTES_PER_ELEMENT; */
+      }; */
+      const _getSlabPositionOffset = spec => spec.positionsStart/Float32Array.BYTES_PER_ELEMENT;
+      const _getSlabUvOffset = spec => spec.uvsStart/Float32Array.BYTES_PER_ELEMENT;
+      const _getSlabIdOffset = spec => spec.idsStart/Float32Array.BYTES_PER_ELEMENT;
+      const _getSlabSkyLightOffset = spec => spec.skyLightsStart/Uint8Array.BYTES_PER_ELEMENT;
+      const _getSlabTorchLightOffset = spec => spec.torchLightsStart/Uint8Array.BYTES_PER_ELEMENT;
+      const _getSlabIndexOffset = spec => spec.indicesStart/Uint32Array.BYTES_PER_ELEMENT;
 
       mesh.addSlab = (x, y, z, spec) => {
         const index = planet.getSubparcelIndex(x, y, z);
@@ -1666,12 +1694,12 @@ const [
         if (slab) {
           slab.free();
           slab.spec = spec;
-          slab.group.start = _getSlabIndexOffset(slab); // XXX
-          slab.group.count = slab.indices.length; // XXX
+          slab.group.start = _getSlabIndexOffset(spec);
+          slab.group.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
         } else {
           const group = {
-            start: _getSlabIndexOffset(slab), // XXX
-            count: slab.indices.length, // XXX
+            start: _getSlabIndexOffset(spec),
+            count: spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT,
             materialIndex: 0,
             boundingSphere: new THREE.Sphere(
               new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2),
@@ -1700,25 +1728,25 @@ const [
         return slab;
       };
       mesh.updateGeometry = (slab, spec) => {
-        geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(slab); // XXX
+        geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
         geometry.attributes.position.needsUpdate = true;
-        geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(slab); // XXX
+        geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(spec);
         geometry.attributes.uv.needsUpdate = true;
-        geometry.attributes.id.updateRange.offset = _getSlabIdOffset(slab); // XXX
+        geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec);
         geometry.attributes.id.needsUpdate = true;
-        geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(slab); // XXX
+        geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(spec);
         geometry.attributes.skyLight.needsUpdate = true;
-        geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(slab); // XXX
+        geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(spec);
         geometry.attributes.torchLight.needsUpdate = true;
-        geometry.index.updateRange.offset = _getSlabIndexOffset(slab); // XXX
+        geometry.index.updateRange.offset = _getSlabIndexOffset(spec);
         geometry.index.needsUpdate = true;
 
-        geometry.attributes.position.updateRange.count = spec.positions.length;
-        geometry.attributes.uv.updateRange.count = spec.uvs.length;
-        geometry.attributes.id.updateRange.count = spec.ids.length;
-        geometry.attributes.skyLight.updateRange.count = spec.skyLights.length;
-        geometry.attributes.torchLight.updateRange.count = spec.torchLights.length;
-        geometry.index.updateRange.count = spec.indices.length;
+        geometry.attributes.position.updateRange.count = spec.positionsCount/Float32Array.BYTES_PER_ELEMENT;
+        geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
+        geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
+        geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
+        geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
+        geometry.index.updateRange.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
         renderer.geometries.update(geometry);
       };
       mesh.freeSlabIndex = index => {
@@ -2760,7 +2788,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
         }
         slab.indices.set(spec.indices); */
         vegetationMesh.updateGeometry(slab, spec);
-        slab.group.count = spec.indices.length;
+        slab.group.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
 
         let subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
         if (!subparcelVegetationMeshesSpec) {
