@@ -2138,6 +2138,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   geometry.setIndex(new THREE.BufferAttribute(allocators.indices.getAs(Uint32Array), 1));
   geometry.allocators = allocators;
   const peeks = allocators.peeks.getAs(Uint8Array);
+  geomerty.peeks = peeks;
 
   const mesh = new THREE.Mesh(geometry, [landMaterial, waterMaterial]);
   mesh.frustumCulled = false;
@@ -2497,7 +2498,8 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
         physxWorker.unregisterGroupSet(slab.physxGroupSet);
         slab.physxGroupSet = 0;
       }
-      slab.physxGroupSet = physxWorker.registerGroupSet(slab.x, slab.y, slab.z, slabRadius, slab.peeks, slab.groupSet.groups);
+      const peeks = new Uint8Array(currentChunkMesh.geometry.peeks.buffer, currentChunkMesh.geometry.peeks.byteOffset + slab.spec.peeksStart, slab.spec.peeksCount);
+      slab.physxGroupSet = physxWorker.registerGroupSet(slab.x, slab.y, slab.z, slabRadius, peeks, slab.groupSet.groups);
 
       if (spec.numOpaquePositions > 0) {
         const bakeSpecs = [{
@@ -4150,7 +4152,8 @@ function animate(timestamp, frame) {
                 physxWorker.unregisterGroupSet(slab.physxGroupSet);
                 slab.physxGroupSet = 0;
               }
-              slab.physxGroupSet = physxWorker.registerGroupSet(slab.x, slab.y, slab.z, slabRadius, slab.peeks, slab.groupSet.groups);
+              const peeks = new Uint8Array(currentChunkMesh.geometry.peeks.buffer, currentChunkMesh.geometry.peeks.byteOffset + slab.spec.peeksStart, slab.spec.peeksCount);
+              slab.physxGroupSet = physxWorker.registerGroupSet(slab.x, slab.y, slab.z, slabRadius, peeks, slab.groupSet.groups);
             }
             const neededSpecs = specs.filter(spec => spec.numOpaquePositions > 0);
             if (neededSpecs.length > 0) {
