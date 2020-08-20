@@ -945,7 +945,7 @@ const [
           this.offsets = [];
         }
         alloc(constructor, size) {
-          const offset = moduleInstance._malloc(size * constructor.BYTES_PER_ELEMENT);
+          const offset = moduleInstance._doMalloc(size * constructor.BYTES_PER_ELEMENT);
           const b = new constructor(moduleInstance.HEAP8.buffer, moduleInstance.HEAP8.byteOffset + offset, size);
           b.offset = offset;
           this.offsets.push(offset);
@@ -978,8 +978,11 @@ const [
       w.waitForLoad = () => modulePromise;
       w.alloc = (constructor, count) => {
         const size = constructor.BYTES_PER_ELEMENT * count;
-        const ptr = moduleInstance._malloc(size);
+        const ptr = moduleInstance._doMalloc(size);
         return new constructor(moduleInstance.HEAP8.buffer, ptr, count);
+      };
+      w.free = ptr => {
+        moduleInstance._doFree(ptr);
       };
       w.makeArenaAllocator = size => {
         const ptr = moduleInstance._makeArenaAllocator(size);
