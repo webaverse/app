@@ -1060,16 +1060,16 @@ const [
 
         await w.requestRaw(messageData);
 
-        const positionsOffset = new Uint32Array(messageData.buffer, messageData.offset + 5*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const uvsOffset = new Uint32Array(messageData.buffer, messageData.offset + 6*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const indicesOffset = new Uint32Array(messageData.buffer, messageData.offset + 7*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const numPositions = new Uint32Array(messageData.buffer, messageData.offset + 8*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const numUvs = new Uint32Array(messageData.buffer, messageData.offset + 9*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const numIndices = new Uint32Array(messageData.buffer, messageData.offset + 10*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const positionsOffset = messageData[5];
+        const uvsOffset = messageData[6];
+        const indicesOffset = messageData[7];
+        const numPositions = messageData[8];
+        const numUvs = messageData[9];
+        const numIndices = messageData[10];
 
-        const positions = new Float32Array(messageData.buffer, positionsOffset[0], numPositions[0]);
-        const uvs = new Float32Array(messageData.buffer, uvsOffset[0], numUvs[0]);
-        const indices = new Uint32Array(messageData.buffer, indicesOffset[0], numIndices[0]);
+        const positions = new Float32Array(messageData.buffer, positionsOffset, numPositions);
+        const uvs = new Float32Array(messageData.buffer, uvsOffset, numUvs);
+        const indices = new Uint32Array(messageData.buffer, indicesOffset, numIndices);
 
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -1090,24 +1090,24 @@ const [
 
         await w.requestRaw(messageData);
 
-        const positionsOffset = new Uint32Array(messageData.buffer, messageData.offset + 4*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const colorsOffset = new Uint32Array(messageData.buffer, messageData.offset + 5*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const indicesOffset = new Uint32Array(messageData.buffer, messageData.offset + 6*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const headsOffset = new Uint32Array(messageData.buffer, messageData.offset + 7*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const legsOffset = new Uint32Array(messageData.buffer, messageData.offset + 8*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const numPositions = new Uint32Array(messageData.buffer, messageData.offset + 9*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const numColors = new Uint32Array(messageData.buffer, messageData.offset + 10*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const numIndices = new Uint32Array(messageData.buffer, messageData.offset + 11*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const numHeads = new Uint32Array(messageData.buffer, messageData.offset + 12*Uint32Array.BYTES_PER_ELEMENT, 1);
-        const numLegs = new Uint32Array(messageData.buffer, messageData.offset + 13*Uint32Array.BYTES_PER_ELEMENT, 1);
+        const positionsOffset = messageData[4];
+        const colorsOffset = messageData[5];
+        const indicesOffset = messageData[6];
+        const headsOffset = messageData[7];
+        const legsOffset = messageData[8];
+        const numPositions = messageData[9];
+        const numColors = messageData[10];
+        const numIndices = messageData[11];
+        const numHeads = messageData[12];
+        const numLegs = messageData[13];
         const headPivot = new Float32Array(messageData.buffer, messageData.offset + 14*Uint32Array.BYTES_PER_ELEMENT, 3).slice();
-        const aabb = new Float32Array(messageData.buffer, messageData.offset + 14*Uint32Array.BYTES_PER_ELEMENT + 3*Float32Array.BYTES_PER_ELEMENT, 6).slice();
+        const aabb = new Float32Array(messageData.buffer, messageData.offset + 17*Uint32Array.BYTES_PER_ELEMENT, 6).slice();
 
-        const positions = new Float32Array(messageData.buffer, positionsOffset[0], numPositions[0]);
-        const colors = new Uint8Array(messageData.buffer, colorsOffset[0], numColors[0]);
-        const indices = new Uint32Array(messageData.buffer, indicesOffset[0], numIndices[0]);
-        const heads = new Float32Array(messageData.buffer, headsOffset[0], numHeads[0]);
-        const legs = new Float32Array(messageData.buffer, legsOffset[0], numLegs[0]);
+        const positions = new Float32Array(messageData.buffer, positionsOffset, numPositions);
+        const colors = new Uint8Array(messageData.buffer, colorsOffset, numColors);
+        const indices = new Uint32Array(messageData.buffer, indicesOffset, numIndices);
+        const heads = new Float32Array(messageData.buffer, headsOffset, numHeads);
+        const legs = new Float32Array(messageData.buffer, legsOffset, numLegs);
 
         allocator.freeAll();
 
@@ -1285,38 +1285,38 @@ const [
 
         await w.requestRaw(messageData);
 
-        const positionsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 25*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const normalsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 26*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const uvsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 27*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const barycentricsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 28*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const aosFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 29*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const idsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 30*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const skyLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 31*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const torchLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 32*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const peeksFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 33*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const positionsFreeEntry = messageData[25];
+        const normalsFreeEntry = messageData[26];
+        const uvsFreeEntry = messageData[27];
+        const barycentricsFreeEntry = messageData[28];
+        const aosFreeEntry = messageData[29];
+        const idsFreeEntry = messageData[30];
+        const skyLightsFreeEntry = messageData[31];
+        const torchLightsFreeEntry = messageData[32];
+        const peeksFreeEntry = messageData[33];
 
-        const numOpaquePositions = new Uint32Array(messageData.buffer, messageData.byteOffset + 34*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const numTransparentPositions = new Uint32Array(messageData.buffer, messageData.byteOffset + 35*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const numOpaquePositions = messageData[34];
+        const numTransparentPositions = messageData[35];
 
-        const positionsStart = new Uint32Array(messageData.buffer, positionsFreeEntry, 1)[0];
-        const normalsStart = new Uint32Array(messageData.buffer, normalsFreeEntry, 1)[0];
-        const uvsStart = new Uint32Array(messageData.buffer, uvsFreeEntry, 1)[0];
-        const barycentricsStart = new Uint32Array(messageData.buffer, barycentricsFreeEntry, 1)[0];
-        const aosStart = new Uint32Array(messageData.buffer, aosFreeEntry, 1)[0];
-        const idsStart = new Uint32Array(messageData.buffer, idsFreeEntry, 1)[0];
-        const skyLightsStart = new Uint32Array(messageData.buffer, skyLightsFreeEntry, 1)[0];
-        const torchLightsStart = new Uint32Array(messageData.buffer, torchLightsFreeEntry, 1)[0];
-        const peeksStart = new Uint32Array(messageData.buffer, peeksFreeEntry, 1)[0];
+        const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const barycentricsStart = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const aosStart = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const peeksStart = moduleInstance.HEAPU32[peeksFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
 
-        const positionsCount = new Uint32Array(messageData.buffer, positionsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const normalsCount = new Uint32Array(messageData.buffer, normalsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const uvsCount = new Uint32Array(messageData.buffer, uvsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const barycentricsCount = new Uint32Array(messageData.buffer, barycentricsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const aosCount = new Uint32Array(messageData.buffer, aosFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const idsCount = new Uint32Array(messageData.buffer, idsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const skyLightsCount = new Uint32Array(messageData.buffer, skyLightsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const torchLightsCount = new Uint32Array(messageData.buffer, torchLightsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const peeksCount = new Uint32Array(messageData.buffer, peeksFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const normalsCount = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const barycentricsCount = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const aosCount = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const peeksCount = moduleInstance.HEAPU32[peeksFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
 
         allocator.freeAll();
 
