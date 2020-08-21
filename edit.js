@@ -1846,7 +1846,7 @@ const [
     vegetationMaterialOpaque.uniforms.map.needsUpdate = true;
 
     const _makeVegetationMesh = () => {
-      const numPositions = 3 * 1024 * 1024;
+      const numPositions = 2 * 1024 * 1024;
       const allocators = {
         positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
         uvs: geometryWorker.makeArenaAllocator(numPositions * 2*Float32Array.BYTES_PER_ELEMENT),
@@ -2259,7 +2259,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     waterMaterial.uniforms.tex.needsUpdate = true;
   })();
 
-  const numPositions = 3 * 1024 * 1024;
+  const numPositions = 2 * 1024 * 1024;
   const allocators = {
     positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
     normals: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
