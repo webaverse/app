@@ -1126,12 +1126,8 @@ const [
 
         const numSubparcelObjects = subparcelSpecs.length;
         const subparcelObjects = allocator.alloc(Uint8Array, numSubparcelObjects*Uint32Array.BYTES_PER_ELEMENT);
-        {
-          let index = 0;
-          for (const subparcelSpec of subparcelSpecs) {
-            new Uint32Array(subparcelObjects.buffer, subparcelObjects.offset + index, 1)[0] = subparcelSpec.offset;
-            index += Uint32Array.BYTES_PER_ELEMENT;
-          }
+        for (let i = 0; i < subparcelSpecs.length; i++) {
+          subparcelObjects[i] = subparcelSpecs[i].offset;
         }
 
         const messageData = allocator.alloc(Uint32Array, 22);
@@ -1151,26 +1147,26 @@ const [
 
         await w.requestRaw(messageData);
 
-        const positionsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 15*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const uvsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 16*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const idsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 17*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const indicesFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 18*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const skyLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 19*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const torchLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 20*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const positionsFreeEntry = messageData[15];
+        const uvsFreeEntry = messageData[16];
+        const idsFreeEntry = messageData[17];
+        const indicesFreeEntry = messageData[18];
+        const skyLightsFreeEntry = messageData[19];
+        const torchLightsFreeEntry = messageData[20];
 
-        const positionsStart = new Uint32Array(messageData.buffer, positionsFreeEntry, 1)[0];
-        const uvsStart = new Uint32Array(messageData.buffer, uvsFreeEntry, 1)[0];
-        const idsStart = new Uint32Array(messageData.buffer, idsFreeEntry, 1)[0];
-        const indicesStart = new Uint32Array(messageData.buffer, indicesFreeEntry, 1)[0];
-        const skyLightsStart = new Uint32Array(messageData.buffer, skyLightsFreeEntry, 1)[0];
-        const torchLightsStart = new Uint32Array(messageData.buffer, torchLightsFreeEntry, 1)[0];
+        const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
 
-        const positionsCount = new Uint32Array(messageData.buffer, positionsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const uvsCount = new Uint32Array(messageData.buffer, uvsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const idsCount = new Uint32Array(messageData.buffer, idsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const indicesCount = new Uint32Array(messageData.buffer, indicesFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const skyLightsCount = new Uint32Array(messageData.buffer, skyLightsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const torchLightsCount = new Uint32Array(messageData.buffer, torchLightsFreeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
 
         allocator.freeAll();
 
@@ -1217,8 +1213,7 @@ const [
         messageData[1] = METHODS.getHeight;
 
         new Int32Array(messageData.buffer, messageData.byteOffset + 2*Uint32Array.BYTES_PER_ELEMENT, 1)[0] = hash;
-        new Float32Array(messageData.buffer, messageData.byteOffset + 3*Uint32Array.BYTES_PER_ELEMENT, 3).set(Float32Array.from([x, y, z]));
-        new Float32Array(messageData.buffer, messageData.byteOffset + 6*Uint32Array.BYTES_PER_ELEMENT, 1)[0] = baseHeight;
+        new Float32Array(messageData.buffer, messageData.byteOffset + 3*Uint32Array.BYTES_PER_ELEMENT, 4).set(Float32Array.from([x, y, z, baseHeight]));
 
         await w.requestRaw(messageData);
 
