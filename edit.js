@@ -945,11 +945,15 @@ const [
           this.offsets = [];
         }
         alloc(constructor, size) {
-          const offset = moduleInstance._doMalloc(size * constructor.BYTES_PER_ELEMENT);
-          const b = new constructor(moduleInstance.HEAP8.buffer, moduleInstance.HEAP8.byteOffset + offset, size);
-          b.offset = offset;
-          this.offsets.push(offset);
-          return b;
+          if (size > 0) {
+            const offset = moduleInstance._doMalloc(size * constructor.BYTES_PER_ELEMENT);
+            const b = new constructor(moduleInstance.HEAP8.buffer, moduleInstance.HEAP8.byteOffset + offset, size);
+            b.offset = offset;
+            this.offsets.push(offset);
+            return b;
+          } else {
+            return new constructor(moduleInstance.HEAP8.buffer, 0, 0);
+          }
         }
         freeAll() {
           for (let i = 0; i < this.offsets.length; i++) {
@@ -977,9 +981,13 @@ const [
       const w = {};
       w.waitForLoad = () => modulePromise;
       w.alloc = (constructor, count) => {
-        const size = constructor.BYTES_PER_ELEMENT * count;
-        const ptr = moduleInstance._doMalloc(size);
-        return new constructor(moduleInstance.HEAP8.buffer, ptr, count);
+        if (count > 0) {
+          const size = constructor.BYTES_PER_ELEMENT * count;
+          const ptr = moduleInstance._doMalloc(size);
+          return new constructor(moduleInstance.HEAP8.buffer, ptr, count);
+        } else {
+          return new constructor(moduleInstance.HEAP8.buffer, 0, 0);
+        }
       };
       w.free = ptr => {
         moduleInstance._doFree(ptr);
@@ -991,17 +999,20 @@ const [
           ptr,
           // offset,
           alloc(constructor, count) {
-            const size = count * constructor.BYTES_PER_ELEMENT;
-            const freeEntryPtr = moduleInstance._arenaAlloc(ptr, size);
-            if (freeEntryPtr) {
-              const start = moduleInstance.HEAP32[freeEntryPtr/Uint32Array.BYTES_PER_ELEMENT];
-              // const count = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT + 1];
-              const freeEntry = new constructor(moduleInstance.HEAP8.buffer, start, count);
-              freeEntry.ptr = freeEntryPtr;
-              freeEntry.offset = start;
-              return freeEntry;
+            if (count > 0) {
+              const size = count * constructor.BYTES_PER_ELEMENT;
+              const freeEntryPtr = moduleInstance._arenaAlloc(ptr, size);
+              if (freeEntryPtr) {
+                const start = moduleInstance.HEAP32[freeEntryPtr/Uint32Array.BYTES_PER_ELEMENT];
+                const freeEntry = new constructor(moduleInstance.HEAP8.buffer, start, count);
+                freeEntry.ptr = freeEntryPtr;
+                freeEntry.offset = start;
+                return freeEntry;
+              } else {
+                throw new Error('arena out of memory');
+              }
             } else {
-              throw new Error('arena out of memory');
+              return new constructor(moduleInstance.HEAP8.buffer, 0, 0);
             }
           },
           free(freeEntryPtr) {
