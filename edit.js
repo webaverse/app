@@ -4202,17 +4202,17 @@ function animate(timestamp, frame) {
                   z,
                 } : null;
               });
-              const bakeStats = neededSpecs.map(spec => ({
+              /* const bakeStats = neededSpecs.map(spec => ({
                 numPositions: spec.positions.length,
                 numNormals: spec.normals.length,
                 numUvs: spec.uvs.length,
-                numBarycenterics: spec.barycentrics.length,
+                numBarycentrics: spec.barycentrics.length,
                 numAos: spec.aos.length,
                 numIds: spec.ids.length,
                 numSkyLights: spec.skyLights.length,
                 numTorchLights: spec.torchLights.length,
                 numPeeks: spec.peeks.length,
-              }));
+              })); */
               const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => ({
                 positions: spec.positions,
                 count: spec.numOpaquePositions,
@@ -4220,7 +4220,7 @@ function animate(timestamp, frame) {
               for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
                 const physxGeometry = result.physicsGeometryBuffers[i];
                 const {x, y, z} = bakeSpecs[i];
-                const stat = bakeStats[i];
+                // const stat = bakeStats[i];
                 const slab = currentChunkMesh.getSlab(x, y, z);
                 if (slab.physxGeometry) {
                   physxWorker.unregisterGeometry(slab.physxGeometry);
