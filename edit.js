@@ -1146,7 +1146,7 @@ const [
             aabb,
           });
         });
-      };
+      });
       w.requestMarchObjects = (x, y, z, geometrySet, subparcel, subparcelSpecs, allocators) => new Promise((accept, reject) => {
         let subparcelObjects;
         callStack.allocRequest(METHODS.marchObjects, 19, offset => {
@@ -1243,7 +1243,7 @@ const [
           const height = callStack.of32[offset + 5];
           accept(height);
         });
-      };
+      });
       const wormRate = 2;
       const wormRadiusBase = 2;
       const wormRadiusRate = 2;
