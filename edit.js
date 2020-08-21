@@ -1004,8 +1004,8 @@ const [
               throw new Error('arena out of memory');
             }
           },
-          free(freeEntry) {
-            moduleInstance._arenaFree(ptr, freeEntry.ptr);
+          free(freeEntryPtr) {
+            moduleInstance._arenaFree(ptr, freeEntryPtr);
           },
           getAs(constructor) {
             return new constructor(moduleInstance.HEAP8.buffer, offset, size/constructor.BYTES_PER_ELEMENT);
