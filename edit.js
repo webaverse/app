@@ -907,11 +907,11 @@ const [
         noInitialRun: true,
         noExitRuntime: true,
         onRuntimeInitialized() {
-          threadPool = this._makeThreadPool(1);
+          moduleInstance = this;
+          threadPool = moduleInstance._makeThreadPool(1);
+          moduleInstance._initPhysx();
           callStack = new CallStack();
           scratchStack = new ScratchStack();
-          this._initPhysx();
-          moduleInstance = this;
           modulePromise.accept();
         },
       });
