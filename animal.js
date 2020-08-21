@@ -82,7 +82,7 @@ const animalShader = {
     }
   `,
 };
-export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, hash, onRemove) => {
+export const makeAnimalFactory = geometryWorker => (position, hash, onRemove) => {
   const geometry = new THREE.BufferGeometry();
   const material = new THREE.ShaderMaterial({
     uniforms: {
@@ -116,7 +116,7 @@ export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, has
   animal.frustumCulled = false;
 
   const meshId = getNextMeshId();
-  const physxGeometry = physxWorker.registerCapsuleGeometry(meshId, position, capsuleUpQuaternion, 0.5, 1);
+  const physxGeometry = geometryWorker.registerCapsuleGeometry(meshId, position, capsuleUpQuaternion, 0.5, 1);
   animal.isAnimalMesh = true;
   animal.meshId = meshId;
   animal.lookAt = () => {};
@@ -124,7 +124,7 @@ export const makeAnimalFactory = (geometryWorker, physxWorker) => (position, has
   animal.isHeadAnimating = () => false;
   animal.hit = () => {};
   animal.destroy = () => {
-    physxWorker.unregisterGeometry(physxGeometry);
+    geometryWorker.unregisterGeometry(physxGeometry);
   };
 
   (async () => {
