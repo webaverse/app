@@ -1555,7 +1555,7 @@ const [
           grounded: !!scratchStack.u32[groundedOffset/Uint32Array.BYTES_PER_ELEMENT],
         } : null;
       };
-      w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => { // XXX rewrite this data model
+      w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => {
         scratchStack.u8.set(peeksData, 0);
         for (let i = 0; i < groupsData.length; i++) {
           const groupData = groupsData[i];
@@ -1582,33 +1582,31 @@ const [
         moduleInstance._unregisterGroupSet(culler, groupSet);
       };
       w.cull = (culler, position, matrix, slabRadius) => {
-        const allocator = new Allocator();
-        const registerGroupSetArgs = {
-          position: allocator.alloc(Float32Array, 3),
-          matrix: allocator.alloc(Float32Array, 16),
-          cullResults: allocator.alloc(Uint32Array, 3*512),
-          numCullResults: allocator.alloc(Uint32Array, 1),
-        };
-        position.toArray(registerGroupSetArgs.position);
-        matrix.toArray(registerGroupSetArgs.matrix);
+        position.toArray(scratchStack.f32, 0);
+        matrix.toArray(scratchStack.f32, 3);
+
+        const positionOffset = scratchStack.f32.byteOffset;
+        const matrixOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
+        const cullResultsOffset = scratchStack.f32.byteOffset + (3 + 16)*Float32Array.BYTES_PER_ELEMENT;
+        const numCullResultsOffset = scratchStack.f32.byteOffset + (3 + 16 + 256)*Float32Array.BYTES_PER_ELEMENT;
 
         moduleInstance._cull(
           culler,
-          registerGroupSetArgs.position.offset,
-          registerGroupSetArgs.matrix.offset,
+          positionOffset,
+          matrixOffset,
           slabRadius,
-          registerGroupSetArgs.cullResults.offset,
-          registerGroupSetArgs.numCullResults.offset
+          cullResultsOffset,
+          numCullResultsOffset
         );
-        const cullResults = Array(registerGroupSetArgs.numCullResults[0]);
+
+        const cullResults = Array(scratchStack.u32[numCullResultsOffset/Uint32Array.BYTES_PER_ELEMENT]);
         for (let i = 0; i < cullResults.length; i++) {
           cullResults[i] = {
-            start: registerGroupSetArgs.cullResults[i*3],
-            count: registerGroupSetArgs.cullResults[i*3+1],
-            materialIndex: registerGroupSetArgs.cullResults[i*3+2],
+            start: scratchStack.u32[cullResultsOffset + i*3],
+            count: scratchStack.u32[cullResultsOffset + i*3+1],
+            materialIndex: scratchStack.u32[cullResultsOffset + i*3+2],
           };
         }
-        allocator.freeAll();
         return cullResults;
       };
       w.update = () => {
@@ -1627,6 +1625,8 @@ const [
               break;
             }
           }
+
+          callStack.reset();
         }
       };
       return w;
