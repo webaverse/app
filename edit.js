@@ -2155,7 +2155,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   geometry.setAttribute('position', new THREE.BufferAttribute(allocators.positions.getAs(Float32Array), 3));
   geometry.setAttribute('normal', new THREE.BufferAttribute(allocators.normals.getAs(Float32Array), 3));
   geometry.setAttribute('uv', new THREE.BufferAttribute(allocators.uvs.getAs(Float32Array), 2));
-  geometry.setAttribute('barycentric', new THREE.BufferAttribute(allocators.barycentrics.getAs(Float32Array), 1));
+  geometry.setAttribute('barycentric', new THREE.BufferAttribute(allocators.barycentrics.getAs(Float32Array), 3));
   geometry.setAttribute('ao', new THREE.BufferAttribute(allocators.aos.getAs(Uint8Array), 1));
   geometry.setAttribute('id', new THREE.BufferAttribute(allocators.ids.getAs(Float32Array), 1));
   geometry.setAttribute('skyLight', new THREE.BufferAttribute(allocators.skyLights.getAs(Uint8Array), 1));
