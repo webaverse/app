@@ -942,7 +942,7 @@ const [
       const maxSize = 128*1024;
       class CallStack {
         constructor() {
-          this.ptr = moduleInstance._malloc(maxSize);
+          this.ptr = moduleInstance._malloc(maxSize*4);
           this.countOffset = 0;
           this.entriesPtr = moduleInstance._malloc(maxSize);
           this.numEntries = 0;
@@ -954,28 +954,31 @@ const [
 
           this.entriesU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.entriesPtr, maxSize/Uint32Array.BYTES_PER_ELEMENT);
 
-          this.outPtr = moduleInstance._malloc(maxSize);
+          this.outPtr = this.ptr + maxSize;
           this.ou8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize/Uint8Array.BYTES_PER_ELEMENT);
           this.ou32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize/Uint32Array.BYTES_PER_ELEMENT);
           this.oi32 = new Int32Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize/Int32Array.BYTES_PER_ELEMENT);
           this.of32 = new Float32Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize/Float32Array.BYTES_PER_ELEMENT);
 
-          this.outEntriesPtr = moduleInstance._malloc(maxSize);
+          this.outEntriesPtr = this.ptr + maxSize*2;
           this.outEntriesU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outEntriesPtr);
-          this.outNumEntriesPtr = moduleInstance._malloc(Uint32Array.BYTES_PER_ELEMENT);
+
+          this.outNumEntriesPtr = this.ptr + maxSize*3;
           this.outNumEntriesU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outNumEntriesPtr, 1);
 
           this.nextCbId = 0;
         }
-        allocRequest(count, startCb, endCb) {
+        allocRequest(method, count, startCb, endCb) {
+          const {countOffset} = this;
           startCb(this.countOffset);
-
-          this.entriesU32[this.numEntries++] = this.countOffset;
-          this.countOffset += count;
 
           const id = ++this.nextCbId;
           this.u32[countOffset] = id;
+          this.u32[countOffset + 1] = method;
           cbIndex.set(id, endCb);
+
+          this.entriesU32[this.numEntries++] = count;
+          this.countOffset += 3 + count;
         }
         reset() {
           this.countOffset = 0;
@@ -1630,6 +1633,7 @@ const [
       w.update = () => {
         if (moduleInstance) {
           moduleInstance._tick(
+            threadPool,
             callStack.ptr,
             callStack.entriesPtr,
             callStack.numEntries,
