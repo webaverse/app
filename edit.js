@@ -899,6 +899,7 @@ const [
       let moduleInstance = null;
       let threadPool;
       let callStack = null;
+      let scratchStack = null;
       GeometryModule({
         // ENVIRONMENT_IS_PTHREAD: true,
         // wasmMemory,
@@ -908,6 +909,7 @@ const [
         onRuntimeInitialized() {
           threadPool = this._makeThreadPool(1);
           callStack = new CallStack();
+          scratchStack = new ScratchStack();
           this._initPhysx();
           moduleInstance = this;
           modulePromise.accept();
@@ -939,7 +941,7 @@ const [
 
       class CallStack {
         constructor() {
-          const maxSize = 1024 * Uint32Array;
+          const maxSize = 128*1024*Uint32Array;
           this.ptr = moduleInstance._malloc(maxSize);
           this.countOffset = 0;
           this.entriesPtr = moduleInstance._malloc(maxSize);
@@ -961,6 +963,17 @@ const [
         reset() {
           this.countOffset = 0;
           this.numEntries = 0;
+        }
+      }
+      class ScratchStack {
+        constructor() {
+          const maxSize = 128*1024*Uint32Array;
+          this.ptr = moduleInstance._malloc(maxSize);
+
+          this.dataU8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Uint8Array.BYTES_PER_ELEMENT);
+          this.dataU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Uint32Array.BYTES_PER_ELEMENT);
+          this.dataI32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Int32Array.BYTES_PER_ELEMENT);
+          this.dataF32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Float32Array.BYTES_PER_ELEMENT);
         }
       }
 
@@ -1499,20 +1512,20 @@ const [
       };
       w.collide = (radius, halfHeight, p, q, maxIter) => {
         p.toArray(scratchStack.f32, 0);
-        localVector.set(0, 0, -1)
-          .applyQuaternion(q)
+        localQuaternion.copy(q)
+          .premultiply(capsuleUpQuaternion)
           .toArray(scratchStack.f32, 3);
         currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        localVector.toArray(scratchStack.f32, 6);
-        localQuaternion.toArray(scratchStack.f32, 9);
+        localVector.toArray(scratchStack.f32, 7);
+        localQuaternion.toArray(scratchStack.f32, 10);
 
-        const originOffset = scratchStack.f32.byteOffset;
-        const directionOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
-        const meshPositionOffset = scratchStack.f32.byteOffset + 6*Float32Array.BYTES_PER_ELEMENT;
-        const meshQuaternionOffset = scratchStack.f32.byteOffset + 9*Float32Array.BYTES_PER_ELEMENT;
-        const hitOffset = scratchStack.f32.byteOffset + 13*Float32Array.BYTES_PER_ELEMENT;
-        const directionOffset = scratchStack.f32.byteOffset + 14*Float32Array.BYTES_PER_ELEMENT;
-        const groundedOffset = scratchStack.f32.byteOffset + 17*Float32Array.BYTES_PER_ELEMENT;
+        const positionOffset = scratchStack.f32.byteOffset;
+        const quaternionOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
+        const meshPositionOffset = scratchStack.f32.byteOffset + 7*Float32Array.BYTES_PER_ELEMENT;
+        const meshQuaternionOffset = scratchStack.f32.byteOffset + 10*Float32Array.BYTES_PER_ELEMENT;
+        const hitOffset = scratchStack.f32.byteOffset + 14*Float32Array.BYTES_PER_ELEMENT;
+        const directionOffset = scratchStack.f32.byteOffset + 15*Float32Array.BYTES_PER_ELEMENT;
+        const groundedOffset = scratchStack.f32.byteOffset + 18*Float32Array.BYTES_PER_ELEMENT;
 
         /* const collideArgs = {
           position: allocator.alloc(Float32Array, 3),
@@ -1523,10 +1536,6 @@ const [
           direction: allocator.alloc(Float32Array, 3),
           grounded: allocator.alloc(Uint32Array, 1),
         }; */
-
-        currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        localVector.toArray(meshPosition);
-        localQuaternion.toArray(meshQuaternion);
 
         moduleInstance._collide(
           radius,
