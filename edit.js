@@ -1029,13 +1029,8 @@ const [
         cbIndex.set(id, p.accept);
         return await p;
       };
-      w.requestMakeGeometrySet = async () => {
-        const allocator = new Allocator();
-        const messageData = allocator.alloc(Uint32Array, 3);
-        messageData[1] = METHODS.makeGeometrySet;
-        await w.requestRaw(messageData);
-        const geometrySet = messageData[2];
-        allocator.freeAll();
+      w.makeGeometrySet = async () => {
+        const geometrySet = moduleInstance.makeGeometrySet();
         return geometrySet;
       };
       w.requestLoadBake = async (geometrySet, url) => {
@@ -1599,7 +1594,7 @@ const [
       texture,
     ] = await Promise.all([
       (async () => {
-        geometrySet = await geometryWorker.requestMakeGeometrySet();
+        geometrySet = geometryWorker.makeGeometrySet();
         await geometryWorker.requestLoadBake(geometrySet, './meshes.bin');
 
         const geometries = await Promise.all([
