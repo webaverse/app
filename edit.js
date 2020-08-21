@@ -1162,6 +1162,7 @@ const [
         const skyLights = _decodeArenaEntry(allocators.skyLights, skyLightsFreeEntry, Uint8Array);
         const torchLights = _decodeArenaEntry(allocators.torchLights, torchLightsFreeEntry, Uint8Array);
         console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
+
         return {
           positionsFreeEntry,
           uvsFreeEntry,
@@ -1308,69 +1309,6 @@ const [
         const positions = _decodeArenaEntry(allocators.positions, positionsFreeEntry, Float32Array);
         const peeks = _decodeArenaEntry(allocators.peeks, peeksFreeEntry, Uint8Array);
         console.log('loaded positions', positions, peeks); */
-
-        /* const shiftsData = [
-          x*subparcelSize,
-          y*subparcelSize,
-          z*subparcelSize,
-        ];
-        // const spec = _getChunkSpec(potentials, biomes, heightfield, lightfield, shiftsData, meshId, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks);
-
-        dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
-        shifts.set(Float32Array.from(shiftsData));
-        scale.set(Float32Array.from([1, 1, 1]));
-        numPositions[0] = 0;
-        numUvs[0] = 0;
-        numBarycentrics[0] = 0;
-        numAos[0] = 0;
-
-        self.Module._doMarchingCubes2(
-          dims.offset,
-          potentials.byteOffset,
-          biomes.byteOffset,
-          heightfield.byteOffset,
-          lightfield.byteOffset,
-          shifts.offset,
-          scale.offset,
-          position.byteOffset,
-          normal.byteOffset,
-          uv.byteOffset,
-          barycentric.byteOffset,
-          ao.byteOffset,
-          numPositions.offset,
-          numNormals.offset,
-          numUvs.offset,
-          numBarycentrics.offset,
-          numAos.offset,
-          skyLight.byteOffset,
-          torchLight.byteOffset,
-          numOpaquePositions.offset,
-          numTransparentPositions.offset,
-          peeks.byteOffset
-        );
-
-        const ids = id.subarray(0, numPositions[0]/3);
-        for (let i = 0; i < numPositions[0]/3/3; i++) {
-          ids[i*3] = meshId;
-          ids[i*3+1] = meshId;
-          ids[i*3+2] = meshId;
-        } */
-
-        /* if (numPositions[0] > position.length) {
-          debugger;
-        }
-        if (numNormals[0] > normal.length) {
-          debugger;
-        }
-        if (numUvs[0] > uv.length) {
-          debugger;
-        }
-        if (numBarycentrics[0] > barycentric.length) {
-          debugger;
-        }
-        if (numAos[0] > ao.length) {
-          debugger;
-        } */
 
         return {
           positionsFreeEntry,
