@@ -1593,9 +1593,6 @@ const [
         return result;
       };
       w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => {
-        if (!culler) {
-          debugger;
-        }
         const allocator = new Allocator();
         const registerGroupSetArgs = {
           peeks: allocator.alloc(Uint8Array, 15),
@@ -1623,15 +1620,9 @@ const [
         return physxGroupSet;
       };
       w.unregisterGroupSet = (culler, groupSet) => {
-        if (!culler) {
-          debugger;
-        }
         moduleInstance._unregisterGroupSet(culler, groupSet);
       };
       w.cull = (culler, position, matrix, slabRadius) => {
-        if (!culler) {
-          debugger;
-        }
         const allocator = new Allocator();
         const registerGroupSetArgs = {
           position: allocator.alloc(Float32Array, 3),
