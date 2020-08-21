@@ -629,7 +629,7 @@ const [
         this.offsets = [];
       }
       alloc(constructor, size) {
-        const offset = self.Module._doMalloc(size * constructor.BYTES_PER_ELEMENT);
+        const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
         const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
         b.offset = offset;
         this.offsets.push(offset);
@@ -946,7 +946,7 @@ const [
         }
         alloc(constructor, size) {
           if (size > 0) {
-            const offset = moduleInstance._doMalloc(size * constructor.BYTES_PER_ELEMENT);
+            const offset = moduleInstance._malloc(size * constructor.BYTES_PER_ELEMENT);
             const b = new constructor(moduleInstance.HEAP8.buffer, moduleInstance.HEAP8.byteOffset + offset, size);
             b.offset = offset;
             this.offsets.push(offset);
