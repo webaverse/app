@@ -985,6 +985,7 @@ const [
         bakeGeometry: methodIndex++,
       };
       const cbIndex = new Map();
+      const textEncoder = new TextEncoder();
       const w = {};
       w.waitForLoad = () => modulePromise;
       w.alloc = (constructor, count) => {
@@ -1005,7 +1006,7 @@ const [
         return {
           ptr,
           // offset,
-          alloc(constructor, count) {
+          /* alloc(constructor, count) {
             if (count > 0) {
               const size = count * constructor.BYTES_PER_ELEMENT;
               const freeEntryPtr = moduleInstance._arenaAlloc(ptr, size);
@@ -1024,7 +1025,7 @@ const [
           },
           free(freeEntryPtr) {
             moduleInstance._arenaFree(ptr, freeEntryPtr);
-          },
+          }, */
           getAs(constructor) {
             return new constructor(moduleInstance.HEAP8.buffer, offset, size/constructor.BYTES_PER_ELEMENT);
           },
