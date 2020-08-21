@@ -2315,21 +2315,21 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     return slab; */
   };
   mesh.updateGeometry = (slab, spec) => {
-    geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(slab);
+    geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
     geometry.attributes.position.needsUpdate = true;
-    geometry.attributes.normal.updateRange.offset = _getSlabNormalOffset(slab);
+    geometry.attributes.normal.updateRange.offset = _getSlabNormalOffset(spec);
     geometry.attributes.normal.needsUpdate = true;
-    geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(slab);
+    geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(spec);
     geometry.attributes.uv.needsUpdate = true;
-    geometry.attributes.barycentric.updateRange.offset =_getSlabBarycentricOffset(slab);
+    geometry.attributes.barycentric.updateRange.offset =_getSlabBarycentricOffset(spec);
     geometry.attributes.barycentric.needsUpdate = true;
     geometry.attributes.ao.needsUpdate = true;
-    geometry.attributes.ao.updateRange.offset =_getSlabAoOffset(slab);
-    geometry.attributes.id.updateRange.offset = _getSlabIdOffset(slab);
+    geometry.attributes.ao.updateRange.offset =_getSlabAoOffset(spec);
+    geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec);
     geometry.attributes.id.needsUpdate = true;
-    geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(slab);
+    geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(spec);
     geometry.attributes.skyLight.needsUpdate = true;
-    geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(slab);
+    geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(spec);
     geometry.attributes.torchLight.needsUpdate = true;
 
     geometry.attributes.position.updateRange.count = spec.positionsCount/Float32Array.BYTES_PER_ELEMENT;
