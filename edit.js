@@ -1444,8 +1444,26 @@ const [
         moduleInstance._unregisterGeometry(ptr);
       };
       w.raycast = (p, q) => {
-        const allocator = new Allocator();
-        const raycastArgs = {
+        p.toArray(scratchStack.f32, 0);
+        localVector.set(0, 0, -1)
+          .applyQuaternion(q)
+          .toArray(scratchStack.f32, 3);
+        currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        localVector.toArray(scratchStack.f32, 6);
+        localQuaternion.toArray(scratchStack.f32, 9);
+
+        const originOffset = scratchStack.f32.byteOffset;
+        const directionOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
+        const meshPositionOffset = scratchStack.f32.byteOffset + 6*Float32Array.BYTES_PER_ELEMENT;
+        const meshQuaternionOffset = scratchStack.f32.byteOffset + 9*Float32Array.BYTES_PER_ELEMENT;
+        const hitOffset = scratchStack.f32.byteOffset + 13*Float32Array.BYTES_PER_ELEMENT;
+        const pointOffset = scratchStack.f32.byteOffset + 14*Float32Array.BYTES_PER_ELEMENT;
+        const normalOffset = scratchStack.f32.byteOffset + 17*Float32Array.BYTES_PER_ELEMENT;
+        const distanceOffset = scratchStack.f32.byteOffset + 20*Float32Array.BYTES_PER_ELEMENT;
+        const meshIdOffset = scratchStack.f32.byteOffset + 21*Float32Array.BYTES_PER_ELEMENT;
+        const faceIndexOffset = scratchStack.f32.byteOffset + 22*Float32Array.BYTES_PER_ELEMENT;
+
+        /* const raycastArgs = {
           origin: allocator.alloc(Float32Array, 3),
           direction: allocator.alloc(Float32Array, 3),
           meshPosition: allocator.alloc(Float32Array, 3),
@@ -1456,42 +1474,47 @@ const [
           distance: allocator.alloc(Float32Array, 1),
           meshId: allocator.alloc(Uint32Array, 1),
           faceIndex: allocator.alloc(Uint32Array, 1),
-        };
-        const {origin, direction, meshPosition, meshQuaternion, hit, point, normal, distance, meshId, faceIndex} = raycastArgs;
-
-        p.toArray(origin);
-        localVector.set(0, 0, -1)
-          .applyQuaternion(q)
-          .toArray(direction);
-        currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-        localVector.toArray(meshPosition);
-        localQuaternion.toArray(meshQuaternion);
+        }; */
 
         moduleInstance._raycast(
-          origin.offset,
-          direction.offset,
-          meshPosition.offset,
-          meshQuaternion.offset,
-          hit.offset,
-          point.offset,
-          normal.offset,
-          distance.offset,
-          meshId.offset,
-          faceIndex.offset
+          originOffset,
+          directionOffset,
+          meshPositionOffset,
+          meshQuaternionOffset,
+          hitOffset,
+          pointOffset,
+          normalOffset,
+          distanceOffset,
+          meshIdOffset,
+          faceIndexOffset
         );
-        const result = hit[0] ? {
-          point: point.slice(),
-          normal: normal.slice(),
-          distance: distance[0],
-          meshId: meshId[0],
-          faceIndex: faceIndex[0],
+
+        return scratchStack.u32[hitOffset/Uint32Array.BYTES_PER_ELEMENT] ? {
+          point: scratchStack.f32.slice(pointOffset/Float32Array.BYTES_PER_ELEMENT, pointOffset/Float32Array.BYTES_PER_ELEMENT + 3),
+          normal: scratchStack.f32.slice(normalOffset/Float32Array.BYTES_PER_ELEMENT, normalOffset/Float32Array.BYTES_PER_ELEMENT + 3),
+          distance: scratchStack.f32[distanceOffset/Float32Array.BYTES_PER_ELEMENT],
+          meshId: scratchStack.u32[meshIdOffset/Uint32Array.BYTES_PER_ELEMENT],
+          faceIndex: scratchStack.u32[faceIndexOffset/Uint32Array.BYTES_PER_ELEMENT],
         } : null;
-        allocator.freeAll();
-        return result;
       };
       w.collide = (radius, halfHeight, p, q, maxIter) => {
-        const allocator = new Allocator();
-        const collideArgs = {
+        p.toArray(scratchStack.f32, 0);
+        localVector.set(0, 0, -1)
+          .applyQuaternion(q)
+          .toArray(scratchStack.f32, 3);
+        currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        localVector.toArray(scratchStack.f32, 6);
+        localQuaternion.toArray(scratchStack.f32, 9);
+
+        const originOffset = scratchStack.f32.byteOffset;
+        const directionOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
+        const meshPositionOffset = scratchStack.f32.byteOffset + 6*Float32Array.BYTES_PER_ELEMENT;
+        const meshQuaternionOffset = scratchStack.f32.byteOffset + 9*Float32Array.BYTES_PER_ELEMENT;
+        const hitOffset = scratchStack.f32.byteOffset + 13*Float32Array.BYTES_PER_ELEMENT;
+        const directionOffset = scratchStack.f32.byteOffset + 14*Float32Array.BYTES_PER_ELEMENT;
+        const groundedOffset = scratchStack.f32.byteOffset + 17*Float32Array.BYTES_PER_ELEMENT;
+
+        /* const collideArgs = {
           position: allocator.alloc(Float32Array, 3),
           quaternion: allocator.alloc(Float32Array, 4),
           meshPosition: allocator.alloc(Float32Array, 3),
@@ -1499,13 +1522,8 @@ const [
           hit: allocator.alloc(Uint32Array, 1),
           direction: allocator.alloc(Float32Array, 3),
           grounded: allocator.alloc(Uint32Array, 1),
-        };
-        const {position, quaternion, meshPosition, meshQuaternion, hit, direction, grounded} = collideArgs;
+        }; */
 
-        p.toArray(position);
-        localQuaternion.copy(q)
-          .premultiply(capsuleUpQuaternion)
-          .toArray(quaternion);
         currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
         localVector.toArray(meshPosition);
         localQuaternion.toArray(meshQuaternion);
@@ -1513,21 +1531,20 @@ const [
         moduleInstance._collide(
           radius,
           halfHeight,
-          position.offset,
-          quaternion.offset,
-          meshPosition.offset,
-          meshQuaternion.offset,
+          positionOffset,
+          quaternionOffset,
+          meshPositionOffset,
+          meshQuaternionOffset,
           maxIter,
-          hit.offset,
-          direction.offset,
-          grounded.offset
+          hitOffset,
+          directionOffset,
+          groundedOffset
         );
-        const result = hit[0] ? {
-          direction: direction.slice(),
-          grounded: !!grounded[0],
+
+        return scratchStack.u32[hitOffset/Uint32Array.BYTES_PER_ELEMENT] ? {
+          direction: scratchStack.f32.slice(directionOffset/Uint32Array.BYTES_PER_ELEMENT, directionOffset/Uint32Array.BYTES_PER_ELEMENT + 3),
+          grounded: !!scratchStack.u32[groundedOffset/Uint32Array.BYTES_PER_ELEMENT],
         } : null;
-        allocator.freeAll();
-        return result;
       };
       w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => {
         const allocator = new Allocator();
