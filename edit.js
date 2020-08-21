@@ -1121,37 +1121,11 @@ const [
           aabb,
         };
       };
-      w.requestMarchObjects = async (x, y, z, geometrySet, objects, subparcelSpecs, allocators) => {
+      w.requestMarchObjects = async (x, y, z, geometrySet, subparcel, subparcelSpecs, allocators) => {
         const allocator = new Allocator();
 
-        const marchObjectSize = Uint32Array.BYTES_PER_ELEMENT +
-          MAX_NAME_LENGTH * Uint8Array.BYTES_PER_ELEMENT +
-          Uint32Array.BYTES_PER_ELEMENT +
-          Float32Array.BYTES_PER_ELEMENT * 3 +
-          Float32Array.BYTES_PER_ELEMENT * 4;
-        const numMarchObjects = objects.length;
-        const marchObjects = allocator.alloc(Uint8Array, marchObjectSize * numMarchObjects);
-        {
-          let index = 0;
-          for (const object of objects) {
-            new Uint32Array(marchObjects.buffer, marchObjects.offset + index, 1)[0] = object.id;
-            index += Uint32Array.BYTES_PER_ELEMENT;
-            const nameUint8Array = new TextEncoder().encode(object.name);
-            new Uint8Array(marchObjects.buffer, marchObjects.offset + index, MAX_NAME_LENGTH).set(nameUint8Array);
-            index += MAX_NAME_LENGTH;
-            new Uint32Array(marchObjects.buffer, marchObjects.offset + index, 1)[0] = nameUint8Array.length;
-            index += Uint32Array.BYTES_PER_ELEMENT;
-            new Float32Array(marchObjects.buffer, marchObjects.offset + index, 3).set(object.position);
-            index += Float32Array.BYTES_PER_ELEMENT * 3;
-            new Float32Array(marchObjects.buffer, marchObjects.offset + index, 4).set(object.quaternion);
-            index += Float32Array.BYTES_PER_ELEMENT * 4;
-          }
-        }
-        const subparcelObjectSize = Int32Array.BYTES_PER_ELEMENT +
-          SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + 1 +
-          SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + 1;
         const numSubparcelObjects = subparcelSpecs.length;
-        const subparcelObjects = allocator.alloc(Uint8Array, subparcelObjectSize * numSubparcelObjects);
+        const subparcelObjects = allocator.alloc(Uint8Array, numSubparcelObjects*Uint32Array.BYTES_PER_ELEMENT);
         {
           let index = 0;
           for (const subparcelSpec of subparcelSpecs) {
@@ -1164,28 +1138,25 @@ const [
         messageData[1] = METHODS.marchObjects;
 
         messageData[2] = geometrySet;
-        new Int32Array(messageData.buffer, messageData.byteOffset, messageData.length)[3] = x;
-        new Int32Array(messageData.buffer, messageData.byteOffset, messageData.length)[4] = y;
-        new Int32Array(messageData.buffer, messageData.byteOffset, messageData.length)[5] = z;
-        messageData[6] = marchObjects.offset;
-        messageData[7] = numMarchObjects;
-        messageData[8] = subparcelObjects.offset;
-        messageData[9] = numSubparcelObjects;
-        messageData[10] = allocators.positions.ptr;
-        messageData[11] = allocators.uvs.ptr;
-        messageData[12] = allocators.ids.ptr;
-        messageData[13] = allocators.indices.ptr;
-        messageData[14] = allocators.skyLights.ptr;
-        messageData[15] = allocators.torchLights.ptr;
+        new Int32Array(messageData.buffer, messageData.byteOffset + 3*Uint32Array.BYTES_PER_ELEMENT, 3).set(Int32Array.from([x, y, z]));
+        messageData[6] = subparcel.offset;
+        messageData[7] = subparcelObjects.offset;
+        messageData[8] = numSubparcelObjects;
+        messageData[9] = allocators.positions.ptr;
+        messageData[10] = allocators.uvs.ptr;
+        messageData[11] = allocators.ids.ptr;
+        messageData[12] = allocators.indices.ptr;
+        messageData[13] = allocators.skyLights.ptr;
+        messageData[14] = allocators.torchLights.ptr;
 
         await w.requestRaw(messageData);
 
-        const positionsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 16*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const uvsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 17*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const idsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 18*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const indicesFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 19*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const skyLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 20*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-        const torchLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 21*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const positionsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 15*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const uvsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 16*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const idsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 17*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const indicesFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 18*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const skyLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 19*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+        const torchLightsFreeEntry = new Uint32Array(messageData.buffer, messageData.byteOffset + 20*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
 
         const positionsStart = new Uint32Array(messageData.buffer, positionsFreeEntry, 1)[0];
         const uvsStart = new Uint32Array(messageData.buffer, uvsFreeEntry, 1)[0];
@@ -2820,17 +2791,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       localSubparcels = localSubparcels.filter(subparcel => !!subparcel);
 
       const subparcel = planet.peekSubparcelByIndex(index);
-      const localVegetations = subparcel.vegetations
-        .filter(vegetation => vegetation.name !== 'spawner');
-      const objects = localVegetations
-        .map(vegetation => ({
-          id: vegetation.id,
-          name: vegetation.name,
-          position: vegetation.position,
-          quaternion: vegetation.quaternion,
-        }));
-
-      const spec = await geometryWorker.requestMarchObjects(x, y, z, geometrySet, objects, localSubparcels, currentVegetationMesh.geometry.allocators);
+      const spec = await geometryWorker.requestMarchObjects(x, y, z, geometrySet, subparcel, localSubparcels, currentVegetationMesh.geometry.allocators);
       if (live) {
         const vegetationMesh = currentVegetationMesh;
         const slab = vegetationMesh.addSlab(x, y, z, spec);
@@ -2861,53 +2822,56 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
         }
         subparcelVegetationMeshesSpec.meshes.length = 0;
 
-        for (const vegetation of localVegetations) {
-          const {id: vegetationId, name: vegetationName} = vegetation;
-          const vegetationPosition = new THREE.Vector3().fromArray(vegetation.position);
-          const vegetationQuaternion = new THREE.Quaternion().fromArray(vegetation.quaternion);
+        for (const vegetation of subparcel.vegetations) {
+          const {name: vegetationName} = vegetation;
+          if (vegetationName !== 'spawner') {
+            const {id: vegetationId} = vegetation;
+            const vegetationPosition = new THREE.Vector3().fromArray(vegetation.position);
+            const vegetationQuaternion = new THREE.Quaternion().fromArray(vegetation.quaternion);
 
-          const physicsOffset = physicsShapes[vegetationName];
-          const physxGeometry = physicsOffset ? (() => {
-            localMatrix2
-              .compose(physicsOffset.position, physicsOffset.quaternion, localVector4.set(1, 1, 1))
-              .premultiply(localMatrix3.compose(vegetationPosition, vegetationQuaternion, localVector4.set(1, 1, 1)))
-              .decompose(localVector4, localQuaternion3, localVector5);
-            return physxWorker.registerBoxGeometry(vegetationId, localVector4, localQuaternion3, physicsOffset.scale.x, physicsOffset.scale.y, physicsOffset.scale.z);
-          })() : (() => {
-            localVector4.copy(vegetationPosition)
-              .add(localVector5.set(0, (2+0.5)/2, 0));
-            localQuaternion3.copy(vegetationQuaternion)
-              .multiply(capsuleUpQuaternion);
-            return physxWorker.registerCapsuleGeometry(vegetationId, localVector4, localQuaternion3, 0.5, 2);
-          })();
-          const hitTracker = _makeHitTracker(vegetationPosition, vegetationQuaternion, 100, (originalPosition, positionOffset) => {
-            currentVegetationMesh.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
-            currentVegetationMesh.material[0].uniforms.uSelectPosition.needsUpdate = true;
-          }, color => {
-            const id = color ? vegetationId : -1;
-            currentVegetationMesh.material[0].uniforms.uSelectId.value = id;
-            currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-          }, () => {
-            const subparcelPosition = new THREE.Vector3(
-              Math.floor(vegetationPosition.x/subparcelSize),
-              Math.floor(vegetationPosition.y/subparcelSize),
-              Math.floor(vegetationPosition.z/subparcelSize)
-            );
-            planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-              subparcel.removeVegetation(vegetationId);
+            const physicsOffset = physicsShapes[vegetationName];
+            const physxGeometry = physicsOffset ? (() => {
+              localMatrix2
+                .compose(physicsOffset.position, physicsOffset.quaternion, localVector4.set(1, 1, 1))
+                .premultiply(localMatrix3.compose(vegetationPosition, vegetationQuaternion, localVector4.set(1, 1, 1)))
+                .decompose(localVector4, localQuaternion3, localVector5);
+              return physxWorker.registerBoxGeometry(vegetationId, localVector4, localQuaternion3, physicsOffset.scale.x, physicsOffset.scale.y, physicsOffset.scale.z);
+            })() : (() => {
+              localVector4.copy(vegetationPosition)
+                .add(localVector5.set(0, (2+0.5)/2, 0));
+              localQuaternion3.copy(vegetationQuaternion)
+                .multiply(capsuleUpQuaternion);
+              return physxWorker.registerCapsuleGeometry(vegetationId, localVector4, localQuaternion3, 0.5, 2);
+            })();
+            const hitTracker = _makeHitTracker(vegetationPosition, vegetationQuaternion, 100, (originalPosition, positionOffset) => {
+              currentVegetationMesh.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
+              currentVegetationMesh.material[0].uniforms.uSelectPosition.needsUpdate = true;
+            }, color => {
+              const id = color ? vegetationId : -1;
+              currentVegetationMesh.material[0].uniforms.uSelectId.value = id;
+              currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+            }, () => {
+              const subparcelPosition = new THREE.Vector3(
+                Math.floor(vegetationPosition.x/subparcelSize),
+                Math.floor(vegetationPosition.y/subparcelSize),
+                Math.floor(vegetationPosition.z/subparcelSize)
+              );
+              planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
+                subparcel.removeVegetation(vegetationId);
+              });
+              mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
             });
-            mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
-          });
-          subparcelVegetationMeshesSpec.meshes.push({
-            isVegetationMesh: true,
-            meshId: vegetationId,
-            type: vegetationName,
-            position: vegetationPosition,
-            quaternion: vegetationQuaternion,
-            physxGeometry,
-            hit: hitTracker.hit,
-            update: hitTracker.update,
-          });
+            subparcelVegetationMeshesSpec.meshes.push({
+              isVegetationMesh: true,
+              meshId: vegetationId,
+              type: vegetationName,
+              position: vegetationPosition,
+              quaternion: vegetationQuaternion,
+              physxGeometry,
+              hit: hitTracker.hit,
+              update: hitTracker.update,
+            });
+          }
         }
       }
     })()
