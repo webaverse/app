@@ -2342,7 +2342,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Float32Array.BYTES_PER_ELEMENT;
     renderer.geometries.update(geometry);
 
-    slab.groupSet.groups[0].start = _getSlabPositionOffset(slab)/3;
+    slab.groupSet.groups[0].start = _getSlabPositionOffset(spec)/3;
     slab.groupSet.groups[0].count = spec.numOpaquePositions/3;
     slab.groupSet.groups[1].start = slab.groupSet.groups[0].start + slab.groupSet.groups[0].count;
     slab.groupSet.groups[1].count = spec.numTransparentPositions/3;
