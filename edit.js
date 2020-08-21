@@ -2538,7 +2538,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
           numPositions: spec.positions.length,
           numNormals: spec.normals.length,
           numUvs: spec.uvs.length,
-          numBarycenterics: spec.barycentrics.length,
+          numBarycentrics: spec.barycentrics.length,
           numAos: spec.aos.length,
           numIds: spec.ids.length,
           numSkyLights: spec.skyLights.length,
@@ -3405,7 +3405,6 @@ const tetrehedronGeometry = (() => {
   const barycentrics = new Float32Array(geometry.attributes.position.array.length);
   let barycentricIndex = 0;
   for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
-    geometry.attributes.position.array
     barycentrics[barycentricIndex++] = 1;
     barycentrics[barycentricIndex++] = 0;
     barycentrics[barycentricIndex++] = 0;
