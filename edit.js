@@ -469,10 +469,11 @@ let animals = [];
 const itemMeshes = [];
 
 // let chunkWorker = null;
-let physxWorker = null;
-let physicsWorker = null;
+// let physxWorker = null;
+// let physicsWorker = null;
 let geometryWorker = null;
 let geometrySet = null;
+let culler = null;
 let makeAnimal = null;
 let chunkMeshes = [];
 let chunkMesh = null;
@@ -526,8 +527,8 @@ basisLoader.detectSupport(renderer);
 
 const [
   // cw,
-  px,
-  pw,
+  // px,
+  // pw,
 ] = await Promise.all([
   /* (async () => {
     const cbs = [];
@@ -619,7 +620,7 @@ const [
     };
     return w;
   })(), */
-  (async () => {
+  /* (async () => {
     await import('./bin/physx2.js');
     await wasmModulePromise;
     Module._initPhysx();
@@ -645,7 +646,7 @@ const [
 
     const allocator = new Allocator();
     const registerBakedGeometryArgs = {
-      data: allocator.alloc(Uint8Array, 1024 * 1024),
+      // data: allocator.alloc(Uint8Array, 1024 * 1024),
       meshPosition: allocator.alloc(Float32Array, 3),
       meshQuaternion: allocator.alloc(Float32Array, 4),
       result: allocator.alloc(Uint32Array, 1),
@@ -690,41 +691,18 @@ const [
     const localQuaternion = new THREE.Quaternion();
     const localQuaternion2 = new THREE.Quaternion();
 
-    const culler = Module._makeCuller();
+    const culler = moduleInstance._makeCuller();
 
     return {
-      registerGeometry(meshId, positionsData, indicesData, x, y, z) {
-        const {positions, indices, meshPosition, meshQuaternion, result} = geometryArgs;
-
-        positions.set(positionsData);
-        indicesData && indices.set(indicesData);
-        localVector.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2).toArray(meshPosition);
-        localQuaternion.set(0, 0, 0, 1).toArray(meshQuaternion);
-
-        Module._registerGeometry(
-          meshId,
-          positions.offset,
-          indicesData ? indices.offset : 0,
-          positionsData.length,
-          indicesData ? indicesData.length : 0,
-          meshPosition.offset,
-          meshQuaternion.offset,
-          result.offset
-        );
-        const ptr = result[0];
-        return ptr;
-      },
-      registerBakedGeometry(meshId, dataData, x, y, z) {
+      registerBakedGeometry(meshId, writeStream, x, y, z) {
         const {data, meshPosition, meshQuaternion, result} = registerBakedGeometryArgs;
 
-        data.set(dataData);
         localVector.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2).toArray(meshPosition);
         localQuaternion.set(0, 0, 0, 1).toArray(meshQuaternion);
 
-        Module._registerBakedGeometry(
+        moduleInstance._registerBakedGeometry(
           meshId,
-          data.offset,
-          dataData.length,
+          writeStream,
           meshPosition.offset,
           meshQuaternion.offset,
           result.offset
@@ -738,7 +716,7 @@ const [
         positionData.toArray(position);
         quaternionData.toArray(quaternion);
 
-        Module._registerBoxGeometry(
+        moduleInstance._registerBoxGeometry(
           meshId,
           position.offset,
           quaternion.offset,
@@ -756,7 +734,7 @@ const [
         positionData.toArray(position);
         quaternionData.toArray(quaternion);
 
-        Module._registerCapsuleGeometry(
+        moduleInstance._registerCapsuleGeometry(
           meshId,
           position.offset,
           quaternion.offset,
@@ -768,7 +746,7 @@ const [
         return ptr;
       },
       unregisterGeometry(ptr) {
-        Module._unregisterGeometry(ptr);
+        moduleInstance._unregisterGeometry(ptr);
       },
       raycast(p, q) {
         const {origin, direction, meshPosition, meshQuaternion, hit, point, normal, distance, meshId, faceIndex} = raycastArgs;
@@ -781,7 +759,7 @@ const [
         localVector.toArray(meshPosition);
         localQuaternion.toArray(meshQuaternion);
 
-        Module._raycast(
+        moduleInstance._raycast(
           origin.offset,
           direction.offset,
           meshPosition.offset,
@@ -813,7 +791,7 @@ const [
         localVector.toArray(meshPosition);
         localQuaternion.toArray(meshQuaternion);
 
-        Module._collide(
+        moduleInstance._collide(
           radius,
           halfHeight,
           position.offset,
@@ -840,7 +818,7 @@ const [
           registerGroupSetArgs.groups[i*3+2] = groupData.materialIndex;
         }
 
-        return Module._registerGroupSet(
+        return moduleInstance._registerGroupSet(
           culler,
           x,
           y,
@@ -852,13 +830,13 @@ const [
         );
       },
       unregisterGroupSet(groupSet) {
-        Module._unregisterGroupSet(culler, groupSet);
+        moduleInstance._unregisterGroupSet(culler, groupSet);
       },
       cull(position, matrix, slabRadius) {
         position.toArray(registerGroupSetArgs.position);
         matrix.toArray(registerGroupSetArgs.matrix);
 
-        Module._cull(
+        moduleInstance._cull(
           culler,
           registerGroupSetArgs.position.offset,
           registerGroupSetArgs.matrix.offset,
@@ -877,8 +855,8 @@ const [
         return cullResults;
       },
     };
-  })(),
-  (async () => {
+  })(), */
+  /* (async () => {
     const cbs = [];
     const w = new Worker('./physics-worker.js');
     w.onmessage = e => {
@@ -900,21 +878,14 @@ const [
         }
       });
     });
-    /* w.requestBakeGeometry = (positions, indices) => {
-      return w.request({
-        method: 'bakeGeometry',
-        positions,
-        indices,
-      }, [positions.buffer]);
-    }; */
     w.requestBakeGeometries = (specs) => {
       return w.request({
         method: 'bakeGeometries',
         specs,
-      }/*, [specs[0].positions.buffer]*/);
+      });
     };
     return w;
-  })(),
+  })(), */
   (async () => {
     geometryWorker = (() => {
       const modulePromise = makePromise();
@@ -935,6 +906,7 @@ const [
         noExitRuntime: true,
         onRuntimeInitialized() {
           threadPool = this._makeThreadPool(1);
+          this._initPhysx();
           moduleInstance = this;
           modulePromise.accept();
         },
@@ -963,6 +935,11 @@ const [
         }
       }
 
+      const localVector = new THREE.Vector3();
+      const localVector2 = new THREE.Vector3();
+      const localQuaternion = new THREE.Quaternion();
+      const localQuaternion2 = new THREE.Quaternion();
+
       let methodIndex = 0;
       const METHODS = {
         makeArenaAllocator: methodIndex++,
@@ -976,6 +953,7 @@ const [
         getHeight: methodIndex++,
         noise: methodIndex++,
         marchingCubes: methodIndex++,
+        bakeGeometry: methodIndex++,
       };
       const cbIndex = new Map();
       const w = {};
@@ -1433,6 +1411,256 @@ const [
           z,
         };
       };
+      w.makeCuller = () => moduleInstance._makeCuller();
+      w.requestBakeGeometry = async (positions, indices) => {
+        const allocator = new Allocator();
+        const messageData = allocator.alloc(Uint32Array, 7);
+        messageData[1] = METHODS.bakeGeometry;
+
+        messageData[2] = positions.byteOffset;
+        messageData[3] = indices ? indices.byteOffset : 0;
+        messageData[4] = positions.length;
+        messageData[5] = indices ? indices.length : 0;
+
+        await w.requestRaw(messageData);
+
+        const writeStream = messageData[6];
+        allocator.freeAll();
+        return writeStream;
+      };
+      w.releaseBakedGeometry = writeStream => {
+        moduleInstance._releaseBakedGeometry(writeStream);
+      };
+      w.registerBakedGeometry = (meshId, writeStream, x, y, z) => {
+        const allocator = new Allocator();
+        const registerBakedGeometryArgs = {
+          meshPosition: allocator.alloc(Float32Array, 3),
+          meshQuaternion: allocator.alloc(Float32Array, 4),
+          result: allocator.alloc(Uint32Array, 1),
+        };
+        const {data, meshPosition, meshQuaternion, result} = registerBakedGeometryArgs;
+
+        localVector.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2).toArray(meshPosition);
+        localQuaternion.set(0, 0, 0, 1).toArray(meshQuaternion);
+
+        moduleInstance._registerBakedGeometry(
+          meshId,
+          writeStream,
+          meshPosition.offset,
+          meshQuaternion.offset,
+          result.offset
+        );
+        const ptr = result[0];
+        allocator.freeAll();
+        return ptr;
+      };
+      w.registerBoxGeometry = (meshId, positionData, quaternionData, w, h, d) => {
+        const allocator = new Allocator();
+        const registerStaticGeometryArgs = {
+          position: allocator.alloc(Float32Array, 3),
+          quaternion: allocator.alloc(Float32Array, 4),
+          result: allocator.alloc(Uint32Array, 1),
+        };
+        const {position, quaternion, result} = registerStaticGeometryArgs;
+
+        positionData.toArray(position);
+        quaternionData.toArray(quaternion);
+
+        moduleInstance._registerBoxGeometry(
+          meshId,
+          position.offset,
+          quaternion.offset,
+          w,
+          h,
+          d,
+          result.offset
+        );
+        const ptr = result[0];
+        allocator.freeAll();
+        return ptr;
+      };
+      w.registerCapsuleGeometry = (meshId, positionData, quaternionData, radius, halfHeight) => {
+        const allocator = new Allocator();
+        const registerStaticGeometryArgs = {
+          position: allocator.alloc(Float32Array, 3),
+          quaternion: allocator.alloc(Float32Array, 4),
+          result: allocator.alloc(Uint32Array, 1),
+        };
+        const {position, quaternion, result} = registerStaticGeometryArgs;
+
+        positionData.toArray(position);
+        quaternionData.toArray(quaternion);
+
+        moduleInstance._registerCapsuleGeometry(
+          meshId,
+          position.offset,
+          quaternion.offset,
+          radius,
+          halfHeight,
+          result.offset
+        );
+        const ptr = result[0];
+        allocator.freeAll();
+        return ptr;
+      };
+      w.unregisterGeometry = ptr => {
+        moduleInstance._unregisterGeometry(ptr);
+      };
+      w.raycast = (p, q) => {
+        const allocator = new Allocator();
+        const raycastArgs = {
+          origin: allocator.alloc(Float32Array, 3),
+          direction: allocator.alloc(Float32Array, 3),
+          meshPosition: allocator.alloc(Float32Array, 3),
+          meshQuaternion: allocator.alloc(Float32Array, 4),
+          hit: allocator.alloc(Uint32Array, 1),
+          point: allocator.alloc(Float32Array, 3),
+          normal: allocator.alloc(Float32Array, 3),
+          distance: allocator.alloc(Float32Array, 1),
+          meshId: allocator.alloc(Uint32Array, 1),
+          faceIndex: allocator.alloc(Uint32Array, 1),
+        };
+        const {origin, direction, meshPosition, meshQuaternion, hit, point, normal, distance, meshId, faceIndex} = raycastArgs;
+
+        p.toArray(origin);
+        localVector.set(0, 0, -1)
+          .applyQuaternion(q)
+          .toArray(direction);
+        currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        localVector.toArray(meshPosition);
+        localQuaternion.toArray(meshQuaternion);
+
+        moduleInstance._raycast(
+          origin.offset,
+          direction.offset,
+          meshPosition.offset,
+          meshQuaternion.offset,
+          hit.offset,
+          point.offset,
+          normal.offset,
+          distance.offset,
+          meshId.offset,
+          faceIndex.offset
+        );
+        const result = hit[0] ? {
+          point: point.slice(),
+          normal: normal.slice(),
+          distance: distance[0],
+          meshId: meshId[0],
+          faceIndex: faceIndex[0],
+        } : null;
+        allocator.freeAll();
+        return result;
+      };
+      w.collide = (radius, halfHeight, p, q, maxIter) => {
+        const allocator = new Allocator();
+        const collideArgs = {
+          position: allocator.alloc(Float32Array, 3),
+          quaternion: allocator.alloc(Float32Array, 4),
+          meshPosition: allocator.alloc(Float32Array, 3),
+          meshQuaternion: allocator.alloc(Float32Array, 4),
+          hit: allocator.alloc(Uint32Array, 1),
+          direction: allocator.alloc(Float32Array, 3),
+          grounded: allocator.alloc(Uint32Array, 1),
+        };
+        const {position, quaternion, meshPosition, meshQuaternion, hit, direction, grounded} = collideArgs;
+
+        p.toArray(position);
+        localQuaternion.copy(q)
+          .premultiply(capsuleUpQuaternion)
+          .toArray(quaternion);
+        currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+        localVector.toArray(meshPosition);
+        localQuaternion.toArray(meshQuaternion);
+
+        moduleInstance._collide(
+          radius,
+          halfHeight,
+          position.offset,
+          quaternion.offset,
+          meshPosition.offset,
+          meshQuaternion.offset,
+          maxIter,
+          hit.offset,
+          direction.offset,
+          grounded.offset
+        );
+        const result = hit[0] ? {
+          direction: direction.slice(),
+          grounded: !!grounded[0],
+        } : null;
+        allocator.freeAll();
+        return result;
+      };
+      w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => {
+        if (!culler) {
+          debugger;
+        }
+        const allocator = new Allocator();
+        const registerGroupSetArgs = {
+          peeks: allocator.alloc(Uint8Array, 15),
+          groups: allocator.alloc(Uint32Array, 3*16),
+        };
+        registerGroupSetArgs.peeks.set(peeksData);
+        for (let i = 0; i < groupsData.length; i++) {
+          const groupData = groupsData[i];
+          registerGroupSetArgs.groups[i*3] = groupData.start;
+          registerGroupSetArgs.groups[i*3+1] = groupData.count;
+          registerGroupSetArgs.groups[i*3+2] = groupData.materialIndex;
+        }
+
+        const physxGroupSet = moduleInstance._registerGroupSet(
+          culler,
+          x,
+          y,
+          z,
+          r,
+          registerGroupSetArgs.peeks.offset,
+          registerGroupSetArgs.groups.offset,
+          groupsData.length
+        );
+        allocator.freeAll();
+        return physxGroupSet;
+      };
+      w.unregisterGroupSet = (culler, groupSet) => {
+        if (!culler) {
+          debugger;
+        }
+        moduleInstance._unregisterGroupSet(culler, groupSet);
+      };
+      w.cull = (culler, position, matrix, slabRadius) => {
+        if (!culler) {
+          debugger;
+        }
+        const allocator = new Allocator();
+        const registerGroupSetArgs = {
+          position: allocator.alloc(Float32Array, 3),
+          matrix: allocator.alloc(Float32Array, 16),
+          cullResults: allocator.alloc(Uint32Array, 3*512),
+          numCullResults: allocator.alloc(Uint32Array, 1),
+        };
+        position.toArray(registerGroupSetArgs.position);
+        matrix.toArray(registerGroupSetArgs.matrix);
+
+        moduleInstance._cull(
+          culler,
+          registerGroupSetArgs.position.offset,
+          registerGroupSetArgs.matrix.offset,
+          slabRadius,
+          registerGroupSetArgs.cullResults.offset,
+          registerGroupSetArgs.numCullResults.offset
+        );
+        const cullResults = Array(registerGroupSetArgs.numCullResults[0]);
+        for (let i = 0; i < cullResults.length; i++) {
+          cullResults[i] = {
+            start: registerGroupSetArgs.cullResults[i*3],
+            count: registerGroupSetArgs.cullResults[i*3+1],
+            materialIndex: registerGroupSetArgs.cullResults[i*3+2],
+          };
+        }
+        allocator.freeAll();
+        return cullResults;
+      };
       w.update = () => {
         if (moduleInstance) {
           for (;;) {
@@ -1455,6 +1683,7 @@ const [
     })();
     planet.setGeometryWorker(geometryWorker);
     await geometryWorker.waitForLoad();
+    culler = geometryWorker.makeCuller();
 
     const vegetationMaterialOpaque = new THREE.ShaderMaterial({
       uniforms: {
@@ -1800,8 +2029,8 @@ const [
   })(),
 ]);
 // chunkWorker = cw;
-physxWorker = px;
-physicsWorker = pw;
+// physxWorker = px;
+// physicsWorker = pw;
 
 (() => {
   const effectController = {
@@ -2420,11 +2649,11 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
         mesh.freeSlabIndex(index);
 
         if (slab.physxGeometry) {
-          physxWorker.unregisterGeometry(slab.physxGeometry);
+          geometryWorker.unregisterGeometry(slab.physxGeometry);
           slab.physxGeometry = 0;
         }
         if (slab.physxGroupSet) {
-          physxWorker.unregisterGroupSet(slab.physxGroupSet);
+          geometryWorker.unregisterGroupSet(culler, slab.physxGroupSet);
           slab.physxGroupSet = 0;
         }
       }
@@ -2482,49 +2711,26 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       mesh.updateGeometry(slab, spec);
 
       if (slab.physxGroupSet) {
-        physxWorker.unregisterGroupSet(slab.physxGroupSet);
+        geometryWorker.unregisterGroupSet(culler, slab.physxGroupSet);
         slab.physxGroupSet = 0;
       }
       const peeks = new Uint8Array(currentChunkMesh.geometry.peeks.buffer, currentChunkMesh.geometry.peeks.byteOffset + slab.spec.peeksStart, slab.spec.peeksCount);
-      slab.physxGroupSet = physxWorker.registerGroupSet(slab.x, slab.y, slab.z, slabRadius, peeks, slab.groupSet.groups);
+      // console.log('register peeks', peeks.slice());
+      slab.physxGroupSet = geometryWorker.registerGroupSet(culler, slab.x, slab.y, slab.z, slabRadius, peeks, slab.groupSet.groups);
 
       if (spec.numOpaquePositions > 0) {
-        const positions = new Float32Array(currentChunkMesh.geometry.attributes.position.array.buffer, currentChunkMesh.geometry.attributes.position.array.byteOffset + slab.spec.positionsStart, slab.spec.positionsCount);
-        const bakeSpecs = [{
-          positions,
-          numOpaquePositions: spec.numOpaquePositions,
-          x: spec.x,
-          y: spec.y,
-          z: spec.z,
-        }];
-        /* const bakeStats = [{
-          numPositions: spec.positions.length,
-          numNormals: spec.normals.length,
-          numUvs: spec.uvs.length,
-          numBarycentrics: spec.barycentrics.length,
-          numAos: spec.aos.length,
-          numIds: spec.ids.length,
-          numSkyLights: spec.skyLights.length,
-          numTorchLights: spec.torchLights.length,
-          numPeeks: spec.peeks.length,
-        }]; */
-        const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => ({
-          positions: spec.positions,
-          count: spec.numOpaquePositions,
-        })));
-        if (!live) return;
-
-        for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
-          const physxGeometry = result.physicsGeometryBuffers[i];
-          const {x, y, z} = bakeSpecs[i];
-          // const stat = bakeStats[i];
-          // const slab = currentChunkMesh.getSlab(x, y, z);
-          if (slab.physxGeometry) {
-            physxWorker.unregisterGeometry(slab.physxGeometry);
-            slab.physxGeometry = 0;
-          }
-          slab.physxGeometry = physxWorker.registerBakedGeometry(currentChunkMesh.meshId, physxGeometry, x, y, z);
+        const opaquePositions = new Float32Array(currentChunkMesh.geometry.attributes.position.array.buffer, currentChunkMesh.geometry.attributes.position.array.byteOffset + slab.spec.positionsStart, spec.numOpaquePositions);
+        const physicsGeometryBuffer = await geometryWorker.requestBakeGeometry(opaquePositions, null);
+        if (!live) {
+          geometryWorker.releaseBakedGeometry(physicsGeometryBuffer);
+          return;
         }
+
+        if (slab.physxGeometry) {
+          geometryWorker.unregisterGeometry(slab.physxGeometry);
+          slab.physxGeometry = 0;
+        }
+        slab.physxGeometry = geometryWorker.registerBakedGeometry(currentChunkMesh.meshId, physicsGeometryBuffer, spec.x, spec.y, spec.z);
       }
     })()
       .finally(() => {
@@ -2729,7 +2935,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     if (subparcelVegetationMeshesSpec) {
       for (const mesh of subparcelVegetationMeshesSpec.meshes) {
         if (mesh.physxGeometry) {
-          physxWorker.unregisterGeometry(mesh.physxGeometry);
+          geometryWorker.unregisterGeometry(mesh.physxGeometry);
           mesh.physxGeometry = 0;
         }
       }
@@ -2830,13 +3036,13 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
                 .compose(physicsOffset.position, physicsOffset.quaternion, localVector4.set(1, 1, 1))
                 .premultiply(localMatrix3.compose(vegetationPosition, vegetationQuaternion, localVector4.set(1, 1, 1)))
                 .decompose(localVector4, localQuaternion3, localVector5);
-              return physxWorker.registerBoxGeometry(vegetationId, localVector4, localQuaternion3, physicsOffset.scale.x, physicsOffset.scale.y, physicsOffset.scale.z);
+              return geometryWorker.registerBoxGeometry(vegetationId, localVector4, localQuaternion3, physicsOffset.scale.x, physicsOffset.scale.y, physicsOffset.scale.z);
             })() : (() => {
               localVector4.copy(vegetationPosition)
                 .add(localVector5.set(0, (2+0.5)/2, 0));
               localQuaternion3.copy(vegetationQuaternion)
                 .multiply(capsuleUpQuaternion);
-              return physxWorker.registerCapsuleGeometry(vegetationId, localVector4, localQuaternion3, 0.5, 2);
+              return geometryWorker.registerCapsuleGeometry(vegetationId, localVector4, localQuaternion3, 0.5, 2);
             })();
             const hitTracker = _makeHitTracker(vegetationPosition, vegetationQuaternion, 100, (originalPosition, positionOffset) => {
               currentVegetationMesh.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
@@ -3009,7 +3215,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
 
         for (const spawner of spawners) {
           if (!makeAnimal) {
-            makeAnimal = makeAnimalFactory(geometryWorker, physxWorker);
+            makeAnimal = makeAnimalFactory(geometryWorker);
           }
 
           localVector.fromArray(spawner.position);
@@ -3807,7 +4013,7 @@ const _collideCapsule = (() => {
   return (p, q) => {
     localVector.copy(p);
     localVector.y -= 0.3;
-    return physxWorker ? physxWorker.collide(0.5, 0.5, localVector, q, 1) : null;
+    return geometryWorker ? geometryWorker.collide(0.5, 0.5, localVector, q, 1) : null;
   };
 })();
 const _applyVelocity = (() => {
@@ -3929,8 +4135,8 @@ function animate(timestamp, frame) {
       localMatrix.fromArray(pose.transform.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
-      if (currentChunkMesh && physxWorker) {
-        const result = physxWorker.raycast(localVector, localQuaternion);
+      if (currentChunkMesh && geometryWorker) {
+        const result = geometryWorker.raycast(localVector, localQuaternion);
         raycastChunkSpec = result;
         if (raycastChunkSpec) {
           raycastChunkSpec.mesh = _findMeshWithMeshId(raycastChunkSpec.meshId);
@@ -4125,11 +4331,11 @@ function animate(timestamp, frame) {
             }
             for (let i = 0; i < slabs.length; i++) {
               if (slab.physxGroupSet) {
-                physxWorker.unregisterGroupSet(slab.physxGroupSet);
+                geometryWorker.unregisterGroupSet(culler, slab.physxGroupSet);
                 slab.physxGroupSet = 0;
               }
               const peeks = new Uint8Array(currentChunkMesh.geometry.peeks.buffer, currentChunkMesh.geometry.peeks.byteOffset + slab.spec.peeksStart, slab.spec.peeksCount);
-              slab.physxGroupSet = physxWorker.registerGroupSet(slab.x, slab.y, slab.z, slabRadius, peeks, slab.groupSet.groups);
+              slab.physxGroupSet = geometryWorker.registerGroupSet(culler, slab.x, slab.y, slab.z, slabRadius, peeks, slab.groupSet.groups);
             }
             const neededSpecs = specs.filter(spec => spec.numOpaquePositions > 0);
             if (neededSpecs.length > 0) {
@@ -4154,7 +4360,7 @@ function animate(timestamp, frame) {
                 numTorchLights: spec.torchLights.length,
                 numPeeks: spec.peeks.length,
               })); */
-              const result = await physicsWorker.requestBakeGeometries(bakeSpecs.map(spec => ({
+              const result = await geometryWorker.requestBakeGeometries(bakeSpecs.map(spec => ({
                 positions: spec.positions,
                 count: spec.numOpaquePositions,
               })));
@@ -4164,10 +4370,10 @@ function animate(timestamp, frame) {
                 // const stat = bakeStats[i];
                 const slab = currentChunkMesh.getSlab(x, y, z);
                 if (slab.physxGeometry) {
-                  physxWorker.unregisterGeometry(slab.physxGeometry);
+                  geometryWorker.unregisterGeometry(slab.physxGeometry);
                   slab.physxGeometry = 0;
                 }
-                slab.physxGeometry = physxWorker.registerBakedGeometry(currentChunkMesh.meshId, physxGeometry, x, y, z);
+                slab.physxGeometry = geometryWorker.registerBakedGeometry(currentChunkMesh.meshId, physxGeometry, x, y, z);
               }
             }
             if (specs.length > 0 && explodePosition) {
@@ -4651,13 +4857,13 @@ function animate(timestamp, frame) {
     wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
   } */
 
-  if (physxWorker) {
+  if (geometryWorker) {
     pxMeshes = pxMeshes.filter(pxMesh => {
       if (pxMesh.update()) {
         if (!pxMesh.velocity.equals(zeroVector)) {
           localMatrix.copy(pxMesh.matrixWorld)
             .decompose(localVector, localQuaternion, localVector2);
-          const collision = physxWorker.collide(0.2, 0, localVector, localQuaternion2.set(0, 0, 0, 1), 1);
+          const collision = geometryWorker.collide(0.2, 0, localVector, localQuaternion2.set(0, 0, 0, 1), 1);
 
           if (collision) {
             localVector3.fromArray(collision.direction)
@@ -4691,7 +4897,7 @@ function animate(timestamp, frame) {
     localMatrix3.copy(pe.camera.matrixWorld)
       .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
       .decompose(localVector, localQuaternion, localVector2);
-    currentChunkMesh.geometry.groups = physxWorker.cull(localVector, localMatrix, slabRadius);
+    currentChunkMesh.geometry.groups = geometryWorker.cull(culler, localVector, localMatrix, slabRadius);
 
     /* const _cull = () => {
       localMatrix3.copy(pe.camera.matrixWorld)
