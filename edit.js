@@ -1376,96 +1376,69 @@ const [
         });
       });
       w.makeCuller = () => moduleInstance._makeCuller();
-      w.requestBakeGeometry = async (positions, indices) => {
-        const allocator = new Allocator();
-        const messageData = allocator.alloc(Uint32Array, 7);
-        messageData[1] = METHODS.bakeGeometry;
+      w.requestBakeGeometry = (positions, indices) => new Promise((accept, reject) => {
+        callStack.allocRequest(7, offset => {
+          callStack.u32[offset + 1] = METHODS.bakeGeometry;
 
-        messageData[2] = positions.byteOffset;
-        messageData[3] = indices ? indices.byteOffset : 0;
-        messageData[4] = positions.length;
-        messageData[5] = indices ? indices.length : 0;
-
-        await w.requestRaw(messageData);
-
-        const writeStream = messageData[6];
-        allocator.freeAll();
-        return writeStream;
-      };
+          callStack.u32[offset + 2] = positions.byteOffset;
+          callStack.u32[offset + 3] = indices ? indices.byteOffset : 0;
+          callStack.u32[offset + 4] = indices.byteOffset;
+          callStack.u32[offset + 5] = indices ? indices.length : 0;
+        }, offset => {
+          const writeStream = callStack.u32[offset + 6];
+          accept(writeStream);
+        });
+      });
       w.releaseBakedGeometry = writeStream => {
         moduleInstance._releaseBakedGeometry(writeStream);
       };
       w.registerBakedGeometry = (meshId, writeStream, x, y, z) => {
-        const allocator = new Allocator();
-        const registerBakedGeometryArgs = {
-          meshPosition: allocator.alloc(Float32Array, 3),
-          meshQuaternion: allocator.alloc(Float32Array, 4),
-          result: allocator.alloc(Uint32Array, 1),
-        };
-        const {data, meshPosition, meshQuaternion, result} = registerBakedGeometryArgs;
+        scratchStack.f32[0] = x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2;
+        scratchStack.f32[1] = y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2;
+        scratchStack.f32[2] = z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2;
 
-        localVector.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2).toArray(meshPosition);
-        localQuaternion.set(0, 0, 0, 1).toArray(meshQuaternion);
+        scratchStack.f32[3] = 0;
+        scratchStack.f32[4] = 0;
+        scratchStack.f32[5] = 0;
+        scratchStack.f32[6] = 1;
 
         moduleInstance._registerBakedGeometry(
           meshId,
           writeStream,
-          meshPosition.offset,
-          meshQuaternion.offset,
-          result.offset
+          scratchStack.f32.byteOffset,
+          scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT,
+          scratchStack.u32.byteOffset + 7*Uint32Array.BYTES_PER_ELEMENT
         );
-        const ptr = result[0];
-        allocator.freeAll();
-        return ptr;
+        return scratchStack.u32[7];
       };
       w.registerBoxGeometry = (meshId, positionData, quaternionData, w, h, d) => {
-        const allocator = new Allocator();
-        const registerStaticGeometryArgs = {
-          position: allocator.alloc(Float32Array, 3),
-          quaternion: allocator.alloc(Float32Array, 4),
-          result: allocator.alloc(Uint32Array, 1),
-        };
-        const {position, quaternion, result} = registerStaticGeometryArgs;
-
-        positionData.toArray(position);
-        quaternionData.toArray(quaternion);
+        positionData.toArray(scratchStack.f32, 0);
+        quaternionData.toArray(scratchStack.f32, 3);
 
         moduleInstance._registerBoxGeometry(
           meshId,
-          position.offset,
-          quaternion.offset,
+          scratchStack.f32.byteOffset,
+          scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT,
           w,
           h,
           d,
-          result.offset
+          scratchStack.u32.byteOffset + 7*Uint32Array.BYTES_PER_ELEMENT
         );
-        const ptr = result[0];
-        allocator.freeAll();
-        return ptr;
+        return scratchStack.u32[7];
       };
       w.registerCapsuleGeometry = (meshId, positionData, quaternionData, radius, halfHeight) => {
-        const allocator = new Allocator();
-        const registerStaticGeometryArgs = {
-          position: allocator.alloc(Float32Array, 3),
-          quaternion: allocator.alloc(Float32Array, 4),
-          result: allocator.alloc(Uint32Array, 1),
-        };
-        const {position, quaternion, result} = registerStaticGeometryArgs;
-
-        positionData.toArray(position);
-        quaternionData.toArray(quaternion);
+        positionData.toArray(scratchStack.f32, 0);
+        quaternionData.toArray(scratchStack.f32, 3);
 
         moduleInstance._registerCapsuleGeometry(
           meshId,
-          position.offset,
-          quaternion.offset,
+          scratchStack.f32.byteOffset,
+          scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT,
           radius,
           halfHeight,
-          result.offset
+          scratchStack.u32.byteOffset + 7*Uint32Array.BYTES_PER_ELEMENT
         );
-        const ptr = result[0];
-        allocator.freeAll();
-        return ptr;
+        return scratchStack.u32[7];
       };
       w.unregisterGeometry = ptr => {
         moduleInstance._unregisterGeometry(ptr);
