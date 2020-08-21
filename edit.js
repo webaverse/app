@@ -1546,32 +1546,28 @@ const [
           grounded: !!scratchStack.u32[groundedOffset/Uint32Array.BYTES_PER_ELEMENT],
         } : null;
       };
-      w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => {
-        const allocator = new Allocator();
-        const registerGroupSetArgs = {
-          peeks: allocator.alloc(Uint8Array, 15),
-          groups: allocator.alloc(Uint32Array, 3*16),
-        };
-        registerGroupSetArgs.peeks.set(peeksData);
+      w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => { // XXX rewrite this data model
+        scratchStack.u8.set(peeksData, 0);
         for (let i = 0; i < groupsData.length; i++) {
           const groupData = groupsData[i];
-          registerGroupSetArgs.groups[i*3] = groupData.start;
-          registerGroupSetArgs.groups[i*3+1] = groupData.count;
-          registerGroupSetArgs.groups[i*3+2] = groupData.materialIndex;
+          scratchStack.u32[16/Uint32Array.BYTES_PER_ELEMENT + i*3] = groupData.start;
+          scratchStack.u32[16/Uint32Array.BYTES_PER_ELEMENT + i*3+1] = groupData.count;
+          scratchStack.u32[16/Uint32Array.BYTES_PER_ELEMENT + i*3+2] = groupData.materialIndex;
         }
 
-        const physxGroupSet = moduleInstance._registerGroupSet(
+        const peeksOffset = scratchStack.u8.byteOffset;
+        const groupsOffset = scratchStack.u8.byteOffset + 16;
+
+        return moduleInstance._registerGroupSet(
           culler,
           x,
           y,
           z,
           r,
-          registerGroupSetArgs.peeks.offset,
-          registerGroupSetArgs.groups.offset,
+          peeksOffset,
+          groupsOffset,
           groupsData.length
         );
-        allocator.freeAll();
-        return physxGroupSet;
       };
       w.unregisterGroupSet = (culler, groupSet) => {
         moduleInstance._unregisterGroupSet(culler, groupSet);
