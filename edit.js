@@ -898,8 +898,8 @@ const [
       }); */
       let moduleInstance = null;
       let threadPool;
-      let callStack = null;
-      let scratchStack = null;
+      let callStack;
+      let scratchStack;
       GeometryModule({
         // ENVIRONMENT_IS_PTHREAD: true,
         // wasmMemory,
@@ -939,9 +939,9 @@ const [
         }
       }
 
+      const maxSize = 128*1024;
       class CallStack {
         constructor() {
-          const maxSize = 128*1024*Uint32Array;
           this.ptr = moduleInstance._malloc(maxSize);
           this.countOffset = 0;
           this.entriesPtr = moduleInstance._malloc(maxSize);
@@ -954,6 +954,9 @@ const [
 
           this.entriesU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.entriesPtr, maxSize/Uint32Array.BYTES_PER_ELEMENT);
 
+          this.outIdsPtr = moduleInstance._malloc(maxSize);
+          this.outIdsU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outIdsPtr, maxSize/Uint32Array.BYTES_PER_ELEMENT);
+
           this.outPtr = moduleInstance._malloc(maxSize);
           this.ou8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize/Uint8Array.BYTES_PER_ELEMENT);
           this.ou32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize/Uint32Array.BYTES_PER_ELEMENT);
@@ -963,13 +966,9 @@ const [
           this.outEntriesPtr = moduleInstance._malloc(maxSize);
           this.outEntriesU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outEntriesPtr);
           this.outNumEntriesPtr = moduleInstance._malloc(Uint32Array.BYTES_PER_ELEMENT);
-          this.outNumEntries = new Uint32Array(moduleInstance.HEAP8.buffer, this.outNumEntriesPtr, 1);
+          this.outNumEntriesU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outNumEntriesPtr, 1);
 
-          /* this.outMessageEntries = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Uint8Array.BYTES_PER_ELEMENT);
-          callStack.outMessageEntries.byteOffset,
-          callStack.outNumMessages.byteOffset */
-
-          this.queue = [];
+          this.cbs = [];
         }
         allocRequest(count, startCb, endCb) {
           const {countOffset} = this;
@@ -977,22 +976,22 @@ const [
           this.entriesU32[this.numEntries++] = count;
 
           startCb(countOffset);
-          this.cbs.push(endb);
+          this.cbs.push(endCb);
         }
         reset() {
           this.countOffset = 0;
           this.numEntries = 0;
+          this.cbs.length = 0;
         }
       }
       class ScratchStack {
         constructor() {
-          const maxSize = 128*1024*Uint32Array;
           this.ptr = moduleInstance._malloc(maxSize);
 
-          this.dataU8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Uint8Array.BYTES_PER_ELEMENT);
-          this.dataU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Uint32Array.BYTES_PER_ELEMENT);
-          this.dataI32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Int32Array.BYTES_PER_ELEMENT);
-          this.dataF32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Float32Array.BYTES_PER_ELEMENT);
+          this.u8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Uint8Array.BYTES_PER_ELEMENT);
+          this.u32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Uint32Array.BYTES_PER_ELEMENT);
+          this.i32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Int32Array.BYTES_PER_ELEMENT);
+          this.f32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Float32Array.BYTES_PER_ELEMENT);
         }
       }
 
@@ -1063,12 +1062,12 @@ const [
           },
         };
       };
-      w.requestRaw = async messageData => {
+      /* w.requestRaw = async messageData => {
         const id = moduleInstance._pushRequest(threadPool, messageData.offset);
         const p = makePromise();
         cbIndex.set(id, p.accept);
         return await p;
-      };
+      }; */
       w.makeGeometrySet = () => moduleInstance._makeGeometrySet();
       w.requestLoadBake = async (geometrySet, url) => {
         const res = await fetch(url);
@@ -1077,13 +1076,14 @@ const [
         await new Promise((accept, reject) => {
           let data;
           callStack.allocRequest(5, offset => {
+            callStack.u32[offset + 1] = METHODS.loadBake;
+
+            callStack.u32[offset + 2] = geometrySet;
+
             data = w.alloc(Uint8Array, arrayBuffer.byteLength);
             data.set(new Uint8Array(arrayBuffer));
-
-            callStack.datau32[offset + 1] = METHODS.loadBake;
-            callStack.datau32[offset + 2] = geometrySet;
-            callStack.datau32[offset + 3] = data.offset;
-            callStack.datau32[offset + 4] = data.length;
+            callStack.u32[offset + 3] = data.offset;
+            callStack.u32[offset + 4] = data.length;
           }, offset => {
             w.free(data.byteOffset);
             accept();
@@ -1635,12 +1635,19 @@ const [
             callStack.ptr,
             callStack.entriesPtr,
             callStack.numEntries,
+            callStack.outIdsPtr,
             callStack.ou8.byteOffset,
             callStack.outEntriesPtr,
             callStack.outNumEntriesPtr
           );
 
-          const numMessages = callStack.outNumEntries[0];
+          for (let i = 0; i < callStack.numEntries; i++) {
+            const id = callStack.outIdsU32[i];
+            const cb = callStack.cbs[i];
+            cbIndex.set(id, cb);
+          }
+
+          const numMessages = callStack.outNumEntriesU32[0];
           for (let i = 0; i < numMessages; i++) {
             const entryOffset = callStack.outEntriesU32[i];
             const entryOffsetCount = entryOffset/Uint32Array.BYTES_PER_ELEMENT;
