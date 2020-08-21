@@ -29,7 +29,7 @@ function sign(n) {
   return -(n >> 31);
 }
 const _getSubparcelIndex = (x, y, z) => abs(x)|(abs(y)<<9)|(abs(z)<<18)|(sign(x)<<27)|(sign(y)<<28)|(sign(z)<<29);
-const _getSubparcelXYZ = index => {
+/* const _getSubparcelXYZ = index => {
   let x = index&0x1FF; // (1<<9)-1
   index >>>= 9;
   let y = index&0x1FF;
@@ -45,7 +45,7 @@ const _getSubparcelXYZ = index => {
   const sz = index&0x1;
   if (sz) { z *= -1; }
   return [x, y, z];
-};
+}; */
 const _getPotentialIndex = (x, y, z) => (x+1) + (y+1)*SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3 + (z+1)*SUBPARCEL_SIZE_P3;
 const _getFieldIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + z*SUBPARCEL_SIZE_P1;
 const potentialDefault = -0.5;
@@ -257,17 +257,18 @@ export class Subparcel {
     }));
   }
   writeMetadata() {
-    const dst = new Int32Array(this.data, this.offset + Subparcel.offsets.xyz, 3);
+    const dst = new Int32Array(this.data, this.offset + Subparcel.offsets.xyzi, 4);
     dst[0] = this.x;
     dst[1] = this.y;
     dst[2] = this.z;
+    dst[3] = this.index;
   }
   readMetadata() {
-    const src = new Int32Array(this.data, this.offset + Subparcel.offsets.xyz, 3);
+    const src = new Int32Array(this.data, this.offset + Subparcel.offsets.xyzi, 4);
     this.x = src[0];
     this.y = src[1];
     this.z = src[2];
-    this.index = _getSubparcelIndex(this.x, this.y, this.z);
+    this.index = src[3];
   }
   setCube(x, y, z, r, fn) {
     for (let dx = -r; dx <= r; dx++) {
@@ -367,8 +368,8 @@ const _align4 = n => {
 Subparcel.offsets = (() => {
   let index = 0;
 
-  const xyz = index;
-  index += Int32Array.BYTES_PER_ELEMENT * 3;
+  const xyzi = index;
+  index += Int32Array.BYTES_PER_ELEMENT * 4;
   const potentials = index;
   index += SUBPARCEL_SIZE_P3 * SUBPARCEL_SIZE_P3 * SUBPARCEL_SIZE_P3 * Float32Array.BYTES_PER_ELEMENT;
   const biomes = index;
@@ -387,7 +388,7 @@ Subparcel.offsets = (() => {
   const initialLength = index;
 
   return {
-    xyz,
+    xyzi,
     potentials,
     biomes,
     heightfield,
