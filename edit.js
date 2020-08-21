@@ -898,6 +898,7 @@ const [
       }); */
       let moduleInstance = null;
       let threadPool;
+      let callStack = null;
       GeometryModule({
         // ENVIRONMENT_IS_PTHREAD: true,
         // wasmMemory,
@@ -906,6 +907,7 @@ const [
         noExitRuntime: true,
         onRuntimeInitialized() {
           threadPool = this._makeThreadPool(1);
+          callStack = new CallStack();
           this._initPhysx();
           moduleInstance = this;
           modulePromise.accept();
@@ -932,6 +934,33 @@ const [
             moduleInstance._doFree(this.offsets[i]);
           }
           this.offsets.length = 0;
+        }
+      }
+
+      class CallStack {
+        constructor() {
+          const maxSize = 1024 * Uint32Array;
+          this.ptr = moduleInstance._malloc(maxSize);
+          this.countOffset = 0;
+          this.entriesPtr = moduleInstance._malloc(maxSize);
+          this.numEntries = 0;
+
+          this.dataU8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Uint8Array.BYTES_PER_ELEMENT);
+          this.dataU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Uint32Array.BYTES_PER_ELEMENT);
+          this.dataI32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Int32Array.BYTES_PER_ELEMENT);
+          this.dataF32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize/Float32Array.BYTES_PER_ELEMENT);
+
+          this.entriesU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.entriesPtr, maxSize/Uint32Array.BYTES_PER_ELEMENT);
+        }
+        allocRequest(count) {
+          const {countOffset} = this;
+          this.countOffset += count;
+          this.entriesU32[this.numEntries++] = count;
+          return countOffset;
+        }
+        reset() {
+          this.countOffset = 0;
+          this.numEntries = 0;
         }
       }
 
@@ -1012,195 +1041,192 @@ const [
         const res = await fetch(url);
         const arrayBuffer = await res.arrayBuffer();
 
-        const allocator = new Allocator();
-        const messageData = allocator.alloc(Uint32Array, 5);
-        const data = allocator.alloc(Uint8Array, arrayBuffer.byteLength);
-        data.set(new Uint8Array(arrayBuffer));
-        messageData[1] = METHODS.loadBake;
-        messageData[2] = geometrySet;
-        messageData[3] = data.offset;
-        messageData[4] = data.length;
-        await w.requestRaw(messageData);
-        allocator.freeAll();
+        await new Promise((accept, reject) => {
+          let data;
+          callStack.allocRequest(5, offset => {
+            data = w.alloc(Uint8Array, arrayBuffer.byteLength);
+            data.set(new Uint8Array(arrayBuffer));
+
+            callStack.datau32[offset + 1] = METHODS.loadBake;
+            callStack.datau32[offset + 2] = geometrySet;
+            callStack.datau32[offset + 3] = data.offset;
+            callStack.datau32[offset + 4] = data.length;
+          }, offset => {
+            w.free(data.byteOffset);
+            accept();
+          });
+        });
       };
-      w.requestGeometry = async (geometrySet, name) => {
-        const allocator = new Allocator();
-        const messageData = allocator.alloc(Uint32Array, 11);
-        messageData[1] = METHODS.getGeometry;
+      w.requestGeometry = (geometrySet, name) => new Promise((accept, reject) => {
+        callStack.allocRequest(11, offset => {
+          callStack.u32[offset + 1] = METHODS.getGeometry;
 
-        messageData[2] = geometrySet;
+          callStack.u32[offset + 2] = geometrySet;
 
-        const srcNameUint8Array = new TextEncoder().encode(name);
-        const dstNameUint8Array = allocator.alloc(Uint8Array, srcNameUint8Array.byteLength);
-        dstNameUint8Array.set(srcNameUint8Array);
-        messageData[3] = dstNameUint8Array.offset;
-        messageData[4] = dstNameUint8Array.length;
+          const srcNameUint8Array = textEncoder.encode(name);
+          const dstNameUint8Array = allocator.alloc(Uint8Array, srcNameUint8Array.byteLength);
+          dstNameUint8Array.set(srcNameUint8Array);
+          callStack.u32[offset + 3] = dstNameUint8Array.offset;
+          callStack.u32[offset + 4] = dstNameUint8Array.length;
+        }, offset => {
+          const positionsOffset = callStack.u32[5];
+          const uvsOffset = callStack.u32[6];
+          const indicesOffset = callStack.u32[7];
+          const numPositions = callStack.u32[8];
+          const numUvs = callStack.u32[9];
+          const numIndices = callStack.u32[10];
 
-        await w.requestRaw(messageData);
+          const positions = new Float32Array(moduleInstance.HEAP8.buffer, positionsOffset, numPositions);
+          const uvs = new Float32Array(moduleInstance.HEAP8.buffer, uvsOffset, numUvs);
+          const indices = new Uint32Array(moduleInstance.HEAP8.buffer, indicesOffset, numIndices);
 
-        const positionsOffset = messageData[5];
-        const uvsOffset = messageData[6];
-        const indicesOffset = messageData[7];
-        const numPositions = messageData[8];
-        const numUvs = messageData[9];
-        const numIndices = messageData[10];
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+          geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+          geometry.setIndex(new THREE.BufferAttribute(indices, 1));
 
-        const positions = new Float32Array(messageData.buffer, positionsOffset, numPositions);
-        const uvs = new Float32Array(messageData.buffer, uvsOffset, numUvs);
-        const indices = new Uint32Array(messageData.buffer, indicesOffset, numIndices);
+          accept(geometry);
+        });
+      });
+      w.requestAnimalGeometry = hash => new Promise((accept, reject) => {
+        callStack.allocRequest(23, offset => {
+          callStack.u32[offset + 1] = METHODS.getAnimalGeometry;
 
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-        geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+          callStack.u32[offset + 2] = geometrySet;
+          callStack.u32[offset + 3] = hash;
+        }, offset => {
+          const positionsOffset = callStack.u32[offset + 4];
+          const colorsOffset = callStack.u32[offset + 5];
+          const indicesOffset = callStack.u32[offset + 6];
+          const headsOffset = callStack.u32[offset + 7];
+          const legsOffset = callStack.u32[offset + 8];
+          const numPositions = callStack.u32[offset + 9];
+          const numColors = callStack.u32[offset + 10];
+          const numIndices = callStack.u32[offset + 11];
+          const numHeads = callStack.u32[offset + 12];
+          const numLegs = callStack.u32[offset + 13];
+          const headPivot = callStack.f32.slice(offset + 14, offset + 17);
+          const aabb = callStack.f32.slice(offset + 17, offset + 23);
 
-        allocator.freeAll();
+          const positions = new Float32Array(moduleInstance.HEAP8.buffer, positionsOffset, numPositions);
+          const colors = new Uint8Array(moduleInstance.HEAP8.buffer, colorsOffset, numColors);
+          const indices = new Uint32Array(moduleInstance.HEAP8.buffer, indicesOffset, numIndices);
+          const heads = new Float32Array(moduleInstance.HEAP8.buffer, headsOffset, numHeads);
+          const legs = new Float32Array(moduleInstance.HEAP8.buffer, legsOffset, numLegs);
 
-        return geometry;
+          accept({
+            positions,
+            colors,
+            indices,
+            heads,
+            legs,
+            headPivot,
+            aabb,
+          });
+        });
       };
-      w.requestAnimalGeometry = async hash => {
-        const allocator = new Allocator();
-        const messageData = allocator.alloc(Uint32Array, 14 + 3 + 6);
-        messageData[1] = METHODS.getAnimalGeometry;
+      w.requestMarchObjects = (x, y, z, geometrySet, subparcel, subparcelSpecs, allocators) => new Promise((accept, reject) => {
+        let subparcelObjects;
+        callStack.allocRequest(21, offset => {
+          const allocator = new Allocator();
 
-        messageData[2] = geometrySet;
-        messageData[3] = hash;
+          const numSubparcelObjects = subparcelSpecs.length;
+          subparcelObjects = w.alloc(Uint32Array, numSubparcelObjects);
+          for (let i = 0; i < subparcelSpecs.length; i++) {
+            subparcelObjects[i] = subparcelSpecs[i].offset;
+          }
 
-        await w.requestRaw(messageData);
+          callStack.u32[offset + 1] = METHODS.marchObjects;
 
-        const positionsOffset = messageData[4];
-        const colorsOffset = messageData[5];
-        const indicesOffset = messageData[6];
-        const headsOffset = messageData[7];
-        const legsOffset = messageData[8];
-        const numPositions = messageData[9];
-        const numColors = messageData[10];
-        const numIndices = messageData[11];
-        const numHeads = messageData[12];
-        const numLegs = messageData[13];
-        const headPivot = new Float32Array(messageData.buffer, messageData.offset + 14*Uint32Array.BYTES_PER_ELEMENT, 3).slice();
-        const aabb = new Float32Array(messageData.buffer, messageData.offset + 17*Uint32Array.BYTES_PER_ELEMENT, 6).slice();
+          callStack.u32[offset + 2] = geometrySet;
+          callStack.i32[offset + 3] = x;
+          callStack.i32[offset + 4] = y;
+          callStack.i32[offset + 5] = z;
+          callStack.u32[offset + 6] = subparcel.offset;
+          callStack.u32[offset + 7] = subparcelObjects.offset;
+          callStack.u32[offset + 8] = numSubparcelObjects;
+          callStack.u32[offset + 9] = allocators.positions.ptr;
+          callStack.u32[offset + 10] = allocators.uvs.ptr;
+          callStack.u32[offset + 11] = allocators.ids.ptr;
+          callStack.u32[offset + 12] = allocators.indices.ptr;
+          callStack.u32[offset + 13] = allocators.skyLights.ptr;
+          callStack.u32[offset + 14] = allocators.torchLights.ptr;
+        }, offset => {
+          const positionsFreeEntry = callStack.u32[offset + 15];
+          const uvsFreeEntry = callStack.u32[offset + 16];
+          const idsFreeEntry = callStack.u32[offset + 17];
+          const indicesFreeEntry = callStack.u32[offset + 18];
+          const skyLightsFreeEntry = callStack.u32[offset + 19];
+          const torchLightsFreeEntry = callStack.u32[offset + 20];
 
-        const positions = new Float32Array(messageData.buffer, positionsOffset, numPositions);
-        const colors = new Uint8Array(messageData.buffer, colorsOffset, numColors);
-        const indices = new Uint32Array(messageData.buffer, indicesOffset, numIndices);
-        const heads = new Float32Array(messageData.buffer, headsOffset, numHeads);
-        const legs = new Float32Array(messageData.buffer, legsOffset, numLegs);
+          const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
 
-        allocator.freeAll();
+          const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
 
-        return {
-          positions,
-          colors,
-          indices,
-          heads,
-          legs,
-          headPivot,
-          aabb,
-        };
-      };
-      w.requestMarchObjects = async (x, y, z, geometrySet, subparcel, subparcelSpecs, allocators) => {
-        const allocator = new Allocator();
+          w.free(data.byteOffset);
 
-        const numSubparcelObjects = subparcelSpecs.length;
-        const subparcelObjects = allocator.alloc(Uint8Array, numSubparcelObjects*Uint32Array.BYTES_PER_ELEMENT);
-        for (let i = 0; i < subparcelSpecs.length; i++) {
-          subparcelObjects[i] = subparcelSpecs[i].offset;
-        }
+          /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
+            const positionsBase = new Uint32Array(messageData.buffer, allocator.ptr, 1)[0];
+            const positionsOffset = new Uint32Array(messageData.buffer, freeEntry, 1)[0];
+            const positionsLength = new Uint32Array(messageData.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+            const positions = new constructor(messageData.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
+            return positions;
+          };
+          const positions = _decodeArenaEntry(allocators.positions, positionsFreeEntry, Float32Array);
+          const uvs = _decodeArenaEntry(allocators.uvs, uvsFreeEntry, Float32Array);
+          const ids = _decodeArenaEntry(allocators.ids, idsFreeEntry, Float32Array);
+          const indices = _decodeArenaEntry(allocators.indices, indicesFreeEntry, Uint32Array);
+          const skyLights = _decodeArenaEntry(allocators.skyLights, skyLightsFreeEntry, Uint8Array);
+          const torchLights = _decodeArenaEntry(allocators.torchLights, torchLightsFreeEntry, Uint8Array);
+          console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
 
-        const messageData = allocator.alloc(Uint32Array, 22);
-        messageData[1] = METHODS.marchObjects;
+          return {
+            positionsFreeEntry,
+            uvsFreeEntry,
+            idsFreeEntry,
+            indicesFreeEntry,
+            skyLightsFreeEntry,
+            torchLightsFreeEntry,
 
-        messageData[2] = geometrySet;
-        new Int32Array(messageData.buffer, messageData.byteOffset + 3*Uint32Array.BYTES_PER_ELEMENT, 3).set(Int32Array.from([x, y, z]));
-        messageData[6] = subparcel.offset;
-        messageData[7] = subparcelObjects.offset;
-        messageData[8] = numSubparcelObjects;
-        messageData[9] = allocators.positions.ptr;
-        messageData[10] = allocators.uvs.ptr;
-        messageData[11] = allocators.ids.ptr;
-        messageData[12] = allocators.indices.ptr;
-        messageData[13] = allocators.skyLights.ptr;
-        messageData[14] = allocators.torchLights.ptr;
+            positionsStart,
+            uvsStart,
+            idsStart,
+            indicesStart,
+            skyLightsStart,
+            torchLightsStart,
 
-        await w.requestRaw(messageData);
+            positionsCount,
+            uvsCount,
+            idsCount,
+            indicesCount,
+            skyLightsCount,
+            torchLightsCount,
+          };
+        });
+      });
+      w.requestGetHeight = (hash, x, y, z, baseHeight) => new Promise((accept, reject) => {
+        callStack.allocRequest(8, offset => {
+          callStack.u32[offset + 1] = METHODS.getHeight;
 
-        const positionsFreeEntry = messageData[15];
-        const uvsFreeEntry = messageData[16];
-        const idsFreeEntry = messageData[17];
-        const indicesFreeEntry = messageData[18];
-        const skyLightsFreeEntry = messageData[19];
-        const torchLightsFreeEntry = messageData[20];
-
-        const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-
-        const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-
-        allocator.freeAll();
-
-        /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
-          const positionsBase = new Uint32Array(messageData.buffer, allocator.ptr, 1)[0];
-          const positionsOffset = new Uint32Array(messageData.buffer, freeEntry, 1)[0];
-          const positionsLength = new Uint32Array(messageData.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-          const positions = new constructor(messageData.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
-          return positions;
-        };
-        const positions = _decodeArenaEntry(allocators.positions, positionsFreeEntry, Float32Array);
-        const uvs = _decodeArenaEntry(allocators.uvs, uvsFreeEntry, Float32Array);
-        const ids = _decodeArenaEntry(allocators.ids, idsFreeEntry, Float32Array);
-        const indices = _decodeArenaEntry(allocators.indices, indicesFreeEntry, Uint32Array);
-        const skyLights = _decodeArenaEntry(allocators.skyLights, skyLightsFreeEntry, Uint8Array);
-        const torchLights = _decodeArenaEntry(allocators.torchLights, torchLightsFreeEntry, Uint8Array);
-        console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
-
-        return {
-          positionsFreeEntry,
-          uvsFreeEntry,
-          idsFreeEntry,
-          indicesFreeEntry,
-          skyLightsFreeEntry,
-          torchLightsFreeEntry,
-
-          positionsStart,
-          uvsStart,
-          idsStart,
-          indicesStart,
-          skyLightsStart,
-          torchLightsStart,
-
-          positionsCount,
-          uvsCount,
-          idsCount,
-          indicesCount,
-          skyLightsCount,
-          torchLightsCount,
-        };
-      };
-      w.requestGetHeight = async (hash, x, y, z, baseHeight) => {
-        const allocator = new Allocator();
-        const messageData = allocator.alloc(Uint32Array, 8);
-        messageData[1] = METHODS.getHeight;
-
-        new Int32Array(messageData.buffer, messageData.byteOffset + 2*Uint32Array.BYTES_PER_ELEMENT, 1)[0] = hash;
-        new Float32Array(messageData.buffer, messageData.byteOffset + 3*Uint32Array.BYTES_PER_ELEMENT, 4).set(Float32Array.from([x, y, z, baseHeight]));
-
-        await w.requestRaw(messageData);
-
-        const height = new Float32Array(messageData.buffer, messageData.offset + 7*Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-
-        allocator.freeAll();
-
-        return height;
+          callStack.i32[offset + 2] = hash;
+          callStack.f32[offset + 3] = x;
+          callStack.f32[offset + 4] = y;
+          callStack.f32[offset + 5] = z;
+          callStack.f32[offset + 6] = baseHeight;
+        }, offset => {
+          const height = callStack.f32[offset + 6];
+          accept(height);
+        });
       };
       const wormRate = 2;
       const wormRadiusBase = 2;
