@@ -1155,14 +1155,8 @@ const [
         {
           let index = 0;
           for (const subparcelSpec of subparcelSpecs) {
-            new Int32Array(subparcelObjects.buffer, subparcelObjects.offset + index, 1)[0] = subparcelSpec.index;
-            index += Int32Array.BYTES_PER_ELEMENT;
-            new Int8Array(subparcelObjects.buffer, subparcelObjects.offset + index, subparcelSpec.heightfield.length).set(subparcelSpec.heightfield);
-            index += subparcelSpec.heightfield.length * Int8Array.BYTES_PER_ELEMENT;
-            index += 1; // align
-            new Uint8Array(subparcelObjects.buffer, subparcelObjects.offset + index, subparcelSpec.lightfield.length).set(subparcelSpec.lightfield);
-            index += subparcelSpec.lightfield.length * Uint8Array.BYTES_PER_ELEMENT;
-            index += 1; // align
+            new Uint32Array(subparcelObjects.buffer, subparcelObjects.offset + index, 1)[0] = subparcelSpec.offset;
+            index += Uint32Array.BYTES_PER_ELEMENT;
           }
         }
 
@@ -2820,11 +2814,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       }
       localSubparcels = await Promise.all(localSubparcels.map(subparcel =>
         subparcel && subparcel.load
-          .then(() => ({
-            index: subparcel.index,
-            heightfield: subparcel.heightfield,
-            lightfield: subparcel.lightfield,
-          }))
+          .then(() => subparcel.offset)
       ));
       if (!live) return;
       localSubparcels = localSubparcels.filter(subparcel => !!subparcel);
