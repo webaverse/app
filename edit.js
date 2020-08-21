@@ -954,9 +954,6 @@ const [
 
           this.entriesU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.entriesPtr, maxSize/Uint32Array.BYTES_PER_ELEMENT);
 
-          this.outIdsPtr = moduleInstance._malloc(maxSize);
-          this.outIdsU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outIdsPtr, maxSize/Uint32Array.BYTES_PER_ELEMENT);
-
           this.outPtr = moduleInstance._malloc(maxSize);
           this.ou8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize/Uint8Array.BYTES_PER_ELEMENT);
           this.ou32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize/Uint32Array.BYTES_PER_ELEMENT);
@@ -968,20 +965,21 @@ const [
           this.outNumEntriesPtr = moduleInstance._malloc(Uint32Array.BYTES_PER_ELEMENT);
           this.outNumEntriesU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outNumEntriesPtr, 1);
 
-          this.cbs = [];
+          this.nextCbId = 0;
         }
         allocRequest(count, startCb, endCb) {
-          const {countOffset} = this;
-          this.countOffset += count;
-          this.entriesU32[this.numEntries++] = count;
+          startCb(this.countOffset);
 
-          startCb(countOffset);
-          this.cbs.push(endCb);
+          this.entriesU32[this.numEntries++] = this.countOffset;
+          this.countOffset += count;
+
+          const id = ++this.nextCbId;
+          this.u32[countOffset] = id;
+          cbIndex.set(id, endCb);
         }
         reset() {
           this.countOffset = 0;
           this.numEntries = 0;
-          this.cbs.length = 0;
         }
       }
       class ScratchStack {
@@ -1635,26 +1633,18 @@ const [
             callStack.ptr,
             callStack.entriesPtr,
             callStack.numEntries,
-            callStack.outIdsPtr,
             callStack.ou8.byteOffset,
             callStack.outEntriesPtr,
             callStack.outNumEntriesPtr
           );
 
-          for (let i = 0; i < callStack.numEntries; i++) {
-            const id = callStack.outIdsU32[i];
-            const cb = callStack.cbs[i];
-            cbIndex.set(id, cb);
-          }
-
           const numMessages = callStack.outNumEntriesU32[0];
           for (let i = 0; i < numMessages; i++) {
-            const entryOffset = callStack.outEntriesU32[i];
-            const entryOffsetCount = entryOffset/Uint32Array.BYTES_PER_ELEMENT;
-            const id = callStack.ou32[entryOffsetCount];
+            const entryCountOffset = callStack.outEntriesU32[i];
+            const id = callStack.ou32[entryCountOffset];
             const cb = cbIndex.get(id);
             if (cb) {
-              cb(entryOffsetCount);
+              cb(entryCountOffset);
               cbIndex.delete(id);
             } else {
               throw new Error('invalid callback id: ' + id);
