@@ -1029,10 +1029,7 @@ const [
         cbIndex.set(id, p.accept);
         return await p;
       };
-      w.makeGeometrySet = async () => {
-        const geometrySet = moduleInstance.makeGeometrySet();
-        return geometrySet;
-      };
+      w.makeGeometrySet = () => moduleInstance._makeGeometrySet();
       w.requestLoadBake = async (geometrySet, url) => {
         const res = await fetch(url);
         const arrayBuffer = await res.arrayBuffer();
