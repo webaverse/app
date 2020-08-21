@@ -1234,148 +1234,147 @@ const [
       const wormRadiusRate = 2;
       const objectsRate = 3;
       const potentialDefault = -0.5;
-      w.requestNoise = async (hash, x, y, z, baseHeight, subparcelOffset) => {
-        const allocator = new Allocator();
-        const messageData = allocator.alloc(Uint32Array, 13);
-        messageData[1] = METHODS.noise;
+      w.requestNoise = (hash, x, y, z, baseHeight, subparcelOffset) => new Promise((accept, reject) => {
+        callStack.allocRequest(13, offset => {
+          callStack.u32[offset + 1] = METHODS.noise;
 
-        messageData[2] = hash;
-        new Float32Array(messageData.buffer, messageData.byteOffset + 3*Uint32Array.BYTES_PER_ELEMENT, 9)
-          .set(Float32Array.from([
+          callStack.u32[offset + 2] = hash;
+
+          callStack.f32[offset + 3] = x;
+          callStack.f32[offset + 4] = y;
+          callStack.f32[offset + 5] = z;
+          callStack.f32[offset + 6] = baseHeight;
+          callStack.f32[offset + 7] = wormRate;
+          callStack.f32[offset + 8] = wormRadiusBase;
+          callStack.f32[offset + 9] = wormRadiusRate;
+          callStack.f32[offset + 10] = objectsRate;
+          callStack.f32[offset + 11] = potentialDefault;
+
+          callStack.u32[offset + 12] = subparcelOffset;
+        }, offset => {
+          accept();
+        });
+      });
+      w.requestMarchingCubes = (seed, meshId, x, y, z, potentials, biomes, heightfield, lightfield, allocators) => new Promise((accept, reject) => {
+        callStack.allocRequest(36, offset => {
+          callStack.u32[offset + 1] = METHODS.marchingCubes;
+
+          callStack.f32[offset + 2] = meshId;
+
+          // dims
+          callStack.i32[offset + 3] = SUBPARCEL_SIZE;
+          callStack.i32[offset + 4] = SUBPARCEL_SIZE;
+          callStack.i32[offset + 5] = SUBPARCEL_SIZE;
+
+          callStack.u32[offset + 6] = potentials.byteOffset;
+          callStack.u32[offset + 7] = biomes.byteOffset;
+          callStack.u32[offset + 8] = heightfield.byteOffset;
+          callStack.u32[offset + 9] = lightfield.byteOffset;
+
+          // shift
+          callStack.f32[offset + 10] = x*SUBPARCEL_SIZE;
+          callStack.f32[offset + 11] = y*SUBPARCEL_SIZE;
+          callStack.f32[offset + 12] = z*SUBPARCEL_SIZE;
+
+          // scale
+          callStack.f32[offset + 13] = 1;
+          callStack.f32[offset + 14] = 1;
+          callStack.f32[offset + 15] = 1;
+
+          callStack.u32[offset + 16] = allocators.positions.ptr;
+          callStack.u32[offset + 17] = allocators.normals.ptr;
+          callStack.u32[offset + 18] = allocators.uvs.ptr;
+          callStack.u32[offset + 19] = allocators.barycentrics.ptr;
+          callStack.u32[offset + 20] = allocators.aos.ptr;
+          callStack.u32[offset + 21] = allocators.ids.ptr;
+          callStack.u32[offset + 22] = allocators.skyLights.ptr;
+          callStack.u32[offset + 23] = allocators.torchLights.ptr;
+          callStack.u32[offset + 24] = allocators.peeks.ptr;
+        }, offset => {
+          const positionsFreeEntry = callStack.u32[offset + 25];
+          const normalsFreeEntry = callStack.u32[offset + 26];
+          const uvsFreeEntry = callStack.u32[offset + 27];
+          const barycentricsFreeEntry = callStack.u32[offset + 28];
+          const aosFreeEntry = callStack.u32[offset + 29];
+          const idsFreeEntry = callStack.u32[offset + 30];
+          const skyLightsFreeEntry = callStack.u32[offset + 31];
+          const torchLightsFreeEntry = callStack.u32[offset + 32];
+          const peeksFreeEntry = callStack.u32[offset + 33];
+
+          const numOpaquePositions = callStack.u32[offset + 34];
+          const numTransparentPositions = callStack.u32[offset + 35];
+
+          const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          const barycentricsStart = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          const aosStart = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          const peeksStart = moduleInstance.HEAPU32[peeksFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+
+          const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const normalsCount = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const barycentricsCount = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const aosCount = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const peeksCount = moduleInstance.HEAPU32[peeksFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+
+          /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
+            const positionsBase = new Uint32Array(messageData.buffer, allocator.ptr, 1)[0];
+            const positionsOffset = new Uint32Array(messageData.buffer, freeEntry, 1)[0];
+            const positionsLength = new Uint32Array(messageData.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+            const positions = new constructor(messageData.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
+            return positions;
+          };
+          const positions = _decodeArenaEntry(allocators.positions, positionsFreeEntry, Float32Array);
+          const peeks = _decodeArenaEntry(allocators.peeks, peeksFreeEntry, Uint8Array);
+          console.log('loaded positions', positions, peeks); */
+
+          accept({
+            positionsFreeEntry,
+            normalsFreeEntry,
+            uvsFreeEntry,
+            barycentricsFreeEntry,
+            aosFreeEntry,
+            idsFreeEntry,
+            skyLightsFreeEntry,
+            torchLightsFreeEntry,
+            peeksFreeEntry,
+
+            positionsStart,
+            normalsStart,
+            uvsStart,
+            barycentricsStart,
+            aosStart,
+            idsStart,
+            skyLightsStart,
+            torchLightsStart,
+            peeksStart,
+
+            positionsCount,
+            normalsCount,
+            uvsCount,
+            barycentricsCount,
+            aosCount,
+            idsCount,
+            skyLightsCount,
+            torchLightsCount,
+            peeksCount,
+
+            numOpaquePositions,
+            numTransparentPositions,
+
             x,
             y,
             z,
-            baseHeight,
-            wormRate,
-            wormRadiusBase,
-            wormRadiusRate,
-            objectsRate,
-            potentialDefault,
-          ]));
-        messageData[12] = subparcelOffset;
-
-        await w.requestRaw(messageData);
-
-        allocator.freeAll();
-      };
-      w.requestMarchingCubes = async (seed, meshId, x, y, z, potentials, biomes, heightfield, lightfield, allocators) => {
-        const allocator = new Allocator();
-        const messageData = allocator.alloc(Uint32Array, 36);
-        messageData[1] = METHODS.marchingCubes;
-
-        new Float32Array(messageData.buffer, messageData.byteOffset + 2*Uint32Array.BYTES_PER_ELEMENT, 1)[0] = meshId;
-
-        // dims
-        new Int32Array(messageData.buffer, messageData.byteOffset + 3*Uint32Array.BYTES_PER_ELEMENT, 3).set(Int32Array.from([SUBPARCEL_SIZE, SUBPARCEL_SIZE, SUBPARCEL_SIZE]));
-
-        messageData[6] = potentials.byteOffset;
-        messageData[7] = biomes.byteOffset;
-        messageData[8] = heightfield.byteOffset;
-        messageData[9] = lightfield.byteOffset;
-
-        // shift
-        new Float32Array(messageData.buffer, messageData.byteOffset + 10*Uint32Array.BYTES_PER_ELEMENT, 3).set(Float32Array.from([x*SUBPARCEL_SIZE, y*SUBPARCEL_SIZE, z*SUBPARCEL_SIZE]));
-
-        // scale
-        new Float32Array(messageData.buffer, messageData.byteOffset + 13*Uint32Array.BYTES_PER_ELEMENT, 3).set(Float32Array.from([1, 1, 1]));
-
-        messageData[16] = allocators.positions.ptr;
-        messageData[17] = allocators.normals.ptr;
-        messageData[18] = allocators.uvs.ptr;
-        messageData[19] = allocators.barycentrics.ptr;
-        messageData[20] = allocators.aos.ptr;
-        messageData[21] = allocators.ids.ptr;
-        messageData[22] = allocators.skyLights.ptr;
-        messageData[23] = allocators.torchLights.ptr;
-        messageData[24] = allocators.peeks.ptr;
-
-        await w.requestRaw(messageData);
-
-        const positionsFreeEntry = messageData[25];
-        const normalsFreeEntry = messageData[26];
-        const uvsFreeEntry = messageData[27];
-        const barycentricsFreeEntry = messageData[28];
-        const aosFreeEntry = messageData[29];
-        const idsFreeEntry = messageData[30];
-        const skyLightsFreeEntry = messageData[31];
-        const torchLightsFreeEntry = messageData[32];
-        const peeksFreeEntry = messageData[33];
-
-        const numOpaquePositions = messageData[34];
-        const numTransparentPositions = messageData[35];
-
-        const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const barycentricsStart = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const aosStart = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const peeksStart = moduleInstance.HEAPU32[peeksFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-
-        const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const normalsCount = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const barycentricsCount = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const aosCount = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const peeksCount = moduleInstance.HEAPU32[peeksFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-
-        allocator.freeAll();
-
-        /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
-          const positionsBase = new Uint32Array(messageData.buffer, allocator.ptr, 1)[0];
-          const positionsOffset = new Uint32Array(messageData.buffer, freeEntry, 1)[0];
-          const positionsLength = new Uint32Array(messageData.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-          const positions = new constructor(messageData.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
-          return positions;
-        };
-        const positions = _decodeArenaEntry(allocators.positions, positionsFreeEntry, Float32Array);
-        const peeks = _decodeArenaEntry(allocators.peeks, peeksFreeEntry, Uint8Array);
-        console.log('loaded positions', positions, peeks); */
-
-        return {
-          positionsFreeEntry,
-          normalsFreeEntry,
-          uvsFreeEntry,
-          barycentricsFreeEntry,
-          aosFreeEntry,
-          idsFreeEntry,
-          skyLightsFreeEntry,
-          torchLightsFreeEntry,
-          peeksFreeEntry,
-
-          positionsStart,
-          normalsStart,
-          uvsStart,
-          barycentricsStart,
-          aosStart,
-          idsStart,
-          skyLightsStart,
-          torchLightsStart,
-          peeksStart,
-
-          positionsCount,
-          normalsCount,
-          uvsCount,
-          barycentricsCount,
-          aosCount,
-          idsCount,
-          skyLightsCount,
-          torchLightsCount,
-          peeksCount,
-
-          numOpaquePositions,
-          numTransparentPositions,
-
-          x,
-          y,
-          z,
-        };
-      };
+          });
+        });
+      });
       w.makeCuller = () => moduleInstance._makeCuller();
       w.requestBakeGeometry = async (positions, indices) => {
         const allocator = new Allocator();
