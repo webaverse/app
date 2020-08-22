@@ -1468,6 +1468,7 @@ const [
         const directionOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
         const meshPositionOffset = scratchStack.f32.byteOffset + 6*Float32Array.BYTES_PER_ELEMENT;
         const meshQuaternionOffset = scratchStack.f32.byteOffset + 9*Float32Array.BYTES_PER_ELEMENT;
+
         const hitOffset = scratchStack.f32.byteOffset + 13*Float32Array.BYTES_PER_ELEMENT;
         const pointOffset = scratchStack.f32.byteOffset + 14*Float32Array.BYTES_PER_ELEMENT;
         const normalOffset = scratchStack.f32.byteOffset + 17*Float32Array.BYTES_PER_ELEMENT;
@@ -1501,12 +1502,12 @@ const [
           faceIndexOffset
         );
 
-        return scratchStack.u32[hitOffset/Uint32Array.BYTES_PER_ELEMENT] ? {
-          point: scratchStack.f32.slice(pointOffset/Float32Array.BYTES_PER_ELEMENT, pointOffset/Float32Array.BYTES_PER_ELEMENT + 3),
-          normal: scratchStack.f32.slice(normalOffset/Float32Array.BYTES_PER_ELEMENT, normalOffset/Float32Array.BYTES_PER_ELEMENT + 3),
-          distance: scratchStack.f32[distanceOffset/Float32Array.BYTES_PER_ELEMENT],
-          meshId: scratchStack.u32[meshIdOffset/Uint32Array.BYTES_PER_ELEMENT],
-          faceIndex: scratchStack.u32[faceIndexOffset/Uint32Array.BYTES_PER_ELEMENT],
+        return scratchStack.u32[13] ? {
+          point: scratchStack.f32.slice(14, 17),
+          normal: scratchStack.f32.slice(17, 20),
+          distance: scratchStack.f32[20],
+          meshId: scratchStack.u32[21],
+          faceIndex: scratchStack.u32[22],
         } : null;
       };
       w.collide = (radius, halfHeight, p, q, maxIter) => {
@@ -1522,6 +1523,7 @@ const [
         const quaternionOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
         const meshPositionOffset = scratchStack.f32.byteOffset + 7*Float32Array.BYTES_PER_ELEMENT;
         const meshQuaternionOffset = scratchStack.f32.byteOffset + 10*Float32Array.BYTES_PER_ELEMENT;
+
         const hitOffset = scratchStack.f32.byteOffset + 14*Float32Array.BYTES_PER_ELEMENT;
         const directionOffset = scratchStack.f32.byteOffset + 15*Float32Array.BYTES_PER_ELEMENT;
         const groundedOffset = scratchStack.f32.byteOffset + 18*Float32Array.BYTES_PER_ELEMENT;
@@ -1549,9 +1551,9 @@ const [
           groundedOffset
         );
 
-        return scratchStack.u32[hitOffset/Uint32Array.BYTES_PER_ELEMENT] ? {
-          direction: scratchStack.f32.slice(directionOffset/Uint32Array.BYTES_PER_ELEMENT, directionOffset/Uint32Array.BYTES_PER_ELEMENT + 3),
-          grounded: !!scratchStack.u32[groundedOffset/Uint32Array.BYTES_PER_ELEMENT],
+        return scratchStack.u32[14] ? {
+          direction: scratchStack.f32.slice(15, 18),
+          grounded: !!scratchStack.u32[18],
         } : null;
       };
       w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => {
