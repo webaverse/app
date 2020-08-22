@@ -1598,13 +1598,13 @@ const [
           numCullResultsOffset
         );
 
-        const numCullResults = scratchStack.u32[numCullResultsOffset/Uint32Array.BYTES_PER_ELEMENT];
+        const numCullResults = scratchStack.u32[3+16+256];
         const cullResults = Array(numCullResults);
         for (let i = 0; i < cullResults.length; i++) {
           cullResults[i] = {
-            start: scratchStack.u32[cullResultsOffset + i*3],
-            count: scratchStack.u32[cullResultsOffset + i*3+1],
-            materialIndex: scratchStack.u32[cullResultsOffset + i*3+2],
+            start: scratchStack.u32[3+16 + i*3],
+            count: scratchStack.u32[3+16 + i*3 + 1],
+            materialIndex: scratchStack.u32[3+16 + i*3 + 2],
           };
         }
         return cullResults;
