@@ -1563,7 +1563,7 @@ const [
           scratchStack.u32[16/Uint32Array.BYTES_PER_ELEMENT + i*3+2] = groupData.materialIndex;
         }
 
-        const peeksOffset = scratchStack.u8.byteOffset;
+        const peeksOffset = scratchStack.u32.byteOffset;
         const groupsOffset = scratchStack.u32.byteOffset + 16;
 
         return moduleInstance._registerGroupSet(
