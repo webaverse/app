@@ -1048,10 +1048,10 @@ const [
             } else {
               return new constructor(moduleInstance.HEAP8.buffer, 0, 0);
             }
-          },
+          }, */
           free(freeEntryPtr) {
             moduleInstance._arenaFree(ptr, freeEntryPtr);
-          }, */
+          },
           getAs(constructor) {
             return new constructor(moduleInstance.HEAP8.buffer, offset, size/constructor.BYTES_PER_ELEMENT);
           },
@@ -1075,7 +1075,7 @@ const [
 
             data = w.alloc(Uint8Array, arrayBuffer.byteLength);
             data.set(new Uint8Array(arrayBuffer));
-            callStack.u32[offset + 1] = data.offset;
+            callStack.u32[offset + 1] = data.byteOffset;
             callStack.u32[offset + 2] = data.length;
           }, offset => {
             w.free(data.byteOffset);
@@ -1084,13 +1084,14 @@ const [
         });
       };
       w.requestGeometry = (geometrySet, name) => new Promise((accept, reject) => {
+        let dstNameUint8Array;
         callStack.allocRequest(METHODS.getGeometry, 9, offset => {
           callStack.u32[offset] = geometrySet;
 
           const srcNameUint8Array = textEncoder.encode(name);
-          const dstNameUint8Array = allocator.alloc(Uint8Array, srcNameUint8Array.byteLength);
+          dstNameUint8Array = w.alloc(Uint8Array, srcNameUint8Array.byteLength);
           dstNameUint8Array.set(srcNameUint8Array);
-          callStack.u32[offset + 1] = dstNameUint8Array.offset;
+          callStack.u32[offset + 1] = dstNameUint8Array.byteOffset;
           callStack.u32[offset + 2] = dstNameUint8Array.length;
         }, offset => {
           const positionsOffset = callStack.ou32[offset + 3];
@@ -1108,6 +1109,8 @@ const [
           geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
           geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
           geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+
+          w.free(dstNameUint8Array.byteOffset);
 
           accept(geometry);
         });
@@ -1161,7 +1164,7 @@ const [
           callStack.i32[offset + 2] = y;
           callStack.i32[offset + 3] = z;
           callStack.u32[offset + 4] = subparcel.offset;
-          callStack.u32[offset + 5] = subparcelObjects.offset;
+          callStack.u32[offset + 5] = subparcelObjects.byteOffset;
           callStack.u32[offset + 6] = numSubparcelObjects;
           callStack.u32[offset + 7] = allocators.positions.ptr;
           callStack.u32[offset + 8] = allocators.uvs.ptr;
@@ -1191,7 +1194,7 @@ const [
           const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
           const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
 
-          w.free(data.byteOffset);
+          w.free(subparcelObjects.byteOffset);
 
           /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
             const positionsBase = new Uint32Array(messageData.buffer, allocator.ptr, 1)[0];
@@ -1391,7 +1394,7 @@ const [
         callStack.allocRequest(METHODS.bakeGeometry, 5, offset => {
           callStack.u32[offset] = positions.byteOffset;
           callStack.u32[offset + 1] = indices ? indices.byteOffset : 0;
-          callStack.u32[offset + 2] = indices.byteOffset;
+          callStack.u32[offset + 2] = positions.length;
           callStack.u32[offset + 3] = indices ? indices.length : 0;
         }, offset => {
           const writeStream = callStack.ou32[offset + 4];
