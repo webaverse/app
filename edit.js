@@ -1197,10 +1197,10 @@ const [
           w.free(subparcelObjects.byteOffset);
 
           /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
-            const positionsBase = new Uint32Array(messageData.buffer, allocator.ptr, 1)[0];
-            const positionsOffset = new Uint32Array(messageData.buffer, freeEntry, 1)[0];
-            const positionsLength = new Uint32Array(messageData.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-            const positions = new constructor(messageData.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
+            const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
+            const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
+            const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+            const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
             return positions;
           };
           const positions = _decodeArenaEntry(allocators.positions, positionsFreeEntry, Float32Array);
