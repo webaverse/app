@@ -2675,7 +2675,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
         slab.physxGroupSet = 0;
       }
       const peeks = new Uint8Array(currentChunkMesh.geometry.peeks.buffer, currentChunkMesh.geometry.peeks.byteOffset + slab.spec.peeksStart, slab.spec.peeksCount);
-      // console.log('register peeks', peeks.slice());
       slab.physxGroupSet = geometryWorker.registerGroupSet(culler, slab.x, slab.y, slab.z, slabRadius, peeks, slab.groupSet.groups);
 
       if (spec.numOpaquePositions > 0) {
