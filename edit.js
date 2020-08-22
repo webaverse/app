@@ -1338,16 +1338,16 @@ const [
           const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
           const peeksCount = moduleInstance.HEAPU32[peeksFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
 
-          /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
-            const positionsBase = new Uint32Array(messageData.buffer, allocator.ptr, 1)[0];
-            const positionsOffset = new Uint32Array(messageData.buffer, freeEntry, 1)[0];
-            const positionsLength = new Uint32Array(messageData.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-            const positions = new constructor(messageData.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
+          const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
+            const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
+            const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
+            const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+            const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
             return positions;
           };
           const positions = _decodeArenaEntry(allocators.positions, positionsFreeEntry, Float32Array);
           const peeks = _decodeArenaEntry(allocators.peeks, peeksFreeEntry, Uint8Array);
-          console.log('loaded positions', positions, peeks); */
+          // console.log('loaded positions', positions, peeks);
 
           accept({
             positionsFreeEntry,
