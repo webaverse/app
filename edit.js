@@ -1211,7 +1211,7 @@ const [
           const torchLights = _decodeArenaEntry(allocators.torchLights, torchLightsFreeEntry, Uint8Array);
           console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
 
-          return {
+          accept({
             positionsFreeEntry,
             uvsFreeEntry,
             idsFreeEntry,
@@ -1232,7 +1232,7 @@ const [
             indicesCount,
             skyLightsCount,
             torchLightsCount,
-          };
+          });
         });
       });
       w.requestGetHeight = (hash, x, y, z, baseHeight) => new Promise((accept, reject) => {
