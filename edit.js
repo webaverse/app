@@ -1587,7 +1587,7 @@ const [
         const positionOffset = scratchStack.f32.byteOffset;
         const matrixOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
         const cullResultsOffset = scratchStack.f32.byteOffset + (3 + 16)*Float32Array.BYTES_PER_ELEMENT;
-        const numCullResultsOffset = scratchStack.f32.byteOffset + (3 + 16 + 256)*Float32Array.BYTES_PER_ELEMENT;
+        const numCullResultsOffset = scratchStack.f32.byteOffset + (3 + 16 + 4096)*Float32Array.BYTES_PER_ELEMENT;
 
         moduleInstance._cull(
           culler,
@@ -1598,7 +1598,7 @@ const [
           numCullResultsOffset
         );
 
-        const numCullResults = scratchStack.u32[3+16+256];
+        const numCullResults = scratchStack.u32[3+16+4096];
         const cullResults = Array(numCullResults);
         for (let i = 0; i < cullResults.length; i++) {
           cullResults[i] = {
