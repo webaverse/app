@@ -1391,8 +1391,8 @@ const [
           });
         });
       });
-      w.makeTracker = (seed, chunkDistance, positionsAllocator, normalsAllocator, uvsAllocator, barycentricsAllocator, aosAllocator, idsAllocator, skyLightsAllocator, torchLightsAllocator, peeksAllocator) => {
-        return moduleInstance._makeTracker(
+      w.makeTracker = (seed, chunkDistance, positionsAllocator, normalsAllocator, uvsAllocator, barycentricsAllocator, aosAllocator, idsAllocator, skyLightsAllocator, torchLightsAllocator, indicesAllocator, peeksAllocator) =>
+        moduleInstance._makeTracker(
           seed,
           chunkDistance,
           positionsAllocator,
@@ -1403,9 +1403,9 @@ const [
           idsAllocator,
           skyLightsAllocator,
           torchLightsAllocator,
+          indicesAllocator,
           peeksAllocator
         );
-      };
       w.makeCuller = () => moduleInstance._makeCuller();
       w.requestBakeGeometry = (positions, indices) => new Promise((accept, reject) => {
         callStack.allocRequest(METHODS.bakeGeometry, 5, offset => {
@@ -1634,6 +1634,7 @@ const [
             moduleInstance._tickTracker(
               tracker,
               threadPool,
+              geometrySet,
               currentChunkMesh.currentCoord.x,
               currentChunkMesh.currentCoord.y,
               currentChunkMesh.currentCoord.z
@@ -1673,7 +1674,8 @@ const [
     await geometryWorker.waitForLoad();
     {
       const seed = Math.floor(alea('lol')() * 0xFFFFFF);
-      const numPositions = 2 * 1024 * 1024;
+      const numPositions = 4 * 1024 * 1024;
+
       const allocators = {
         positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
         normals: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
@@ -1683,9 +1685,10 @@ const [
         ids: geometryWorker.makeArenaAllocator(numPositions * Float32Array.BYTES_PER_ELEMENT),
         skyLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
         torchLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
-        peeks: geometryWorker.makeArenaAllocator(numSlices * 15 * Uint8Array.BYTES_PER_ELEMENT),
+        indices: geometryWorker.makeArenaAllocator(numPositions * Uint32Array.BYTES_PER_ELEMENT),
+        peeks: geometryWorker.makeArenaAllocator(1024 * 15 * Uint8Array.BYTES_PER_ELEMENT),
       };
-      tracker = geometryWorker.makeTracker(seed, chunkDistance, allocators.positions.ptr, allocators.normals.ptr, allocators.uvs.ptr, allocators.barycentrics.ptr, allocators.aos.ptr, allocators.ids.ptr, allocators.skyLights.ptr, allocators.torchLights.ptr, allocators.peeks.ptr);
+      tracker = geometryWorker.makeTracker(seed, chunkDistance, allocators.positions.ptr, allocators.normals.ptr, allocators.uvs.ptr, allocators.barycentrics.ptr, allocators.aos.ptr, allocators.ids.ptr, allocators.skyLights.ptr, allocators.torchLights.ptr, allocators.indices.ptr, allocators.peeks.ptr);
     }
     culler = geometryWorker.makeCuller();
 
