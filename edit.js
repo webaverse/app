@@ -473,6 +473,7 @@ const itemMeshes = [];
 // let physicsWorker = null;
 let geometryWorker = null;
 let geometrySet = null;
+let tracker = null;
 let culler = null;
 let makeAnimal = null;
 let chunkMeshes = [];
@@ -1389,6 +1390,9 @@ const [
           });
         });
       });
+      w.makeTracker = (seed, chunkDistance) => {
+        return moduleInstance._makeTracker(seed, chunkDistance);
+      };
       w.makeCuller = () => moduleInstance._makeCuller();
       w.requestBakeGeometry = (positions, indices) => new Promise((accept, reject) => {
         callStack.allocRequest(METHODS.bakeGeometry, 5, offset => {
@@ -1613,6 +1617,14 @@ const [
       };
       w.update = () => {
         if (moduleInstance) {
+          if (currentChunkMesh) {
+            moduleInstance._tickTracker(
+              tracker,
+              currentChunkMesh.currentCoord.x,
+              currentChunkMesh.currentCoord.y,
+              currentChunkMesh.currentCoord.z
+            );
+          }
           moduleInstance._tick(
             threadPool,
             callStack.ptr,
@@ -1645,6 +1657,10 @@ const [
     })();
     planet.setGeometryWorker(geometryWorker);
     await geometryWorker.waitForLoad();
+    {
+      const seed = Math.floor(alea('lol')() * 0xFFFFFF);
+      tracker = geometryWorker.makeTracker(seed, chunkDistance);
+    }
     culler = geometryWorker.makeCuller();
 
     const vegetationMaterialOpaque = new THREE.ShaderMaterial({
@@ -2515,6 +2531,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     }
   };
   const currentCoord = new THREE.Vector3(NaN, NaN, NaN);
+  mesh.currentCoord = currentCoord;
   const marchesTasks = [];
   const vegetationsTasks = [];
   const animalsTasks = [];
@@ -4085,8 +4102,6 @@ function animate(timestamp, frame) {
   crosshairMesh && crosshairMesh.update();
   uiMesh && uiMesh.update();
 
-  geometryWorker && geometryWorker.update();
-
   const session = renderer.xr.getSession();
   if (session) {
     const inputSource = session.inputSources[1];
@@ -4850,6 +4865,8 @@ function animate(timestamp, frame) {
 
   lastTeleport = currentTeleport;
   lastWeaponDown = currentWeaponDown;
+
+  geometryWorker && geometryWorker.update();
 
   localFrustum.setFromProjectionMatrix(
     localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, worldContainer.matrixWorld))
