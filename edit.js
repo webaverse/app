@@ -1391,8 +1391,20 @@ const [
           });
         });
       });
-      w.makeTracker = (seed, chunkDistance) => {
-        return moduleInstance._makeTracker(seed, chunkDistance);
+      w.makeTracker = (seed, chunkDistance, positionsAllocator, normalsAllocator, uvsAllocator, barycentricsAllocator, aosAllocator, idsAllocator, skyLightsAllocator, torchLightsAllocator, peeksAllocator) => {
+        return moduleInstance._makeTracker(
+          seed,
+          chunkDistance,
+          positionsAllocator,
+          normalsAllocator,
+          uvsAllocator,
+          barycentricsAllocator,
+          aosAllocator,
+          idsAllocator,
+          skyLightsAllocator,
+          torchLightsAllocator,
+          peeksAllocator
+        );
       };
       w.makeCuller = () => moduleInstance._makeCuller();
       w.requestBakeGeometry = (positions, indices) => new Promise((accept, reject) => {
@@ -1661,7 +1673,19 @@ const [
     await geometryWorker.waitForLoad();
     {
       const seed = Math.floor(alea('lol')() * 0xFFFFFF);
-      tracker = geometryWorker.makeTracker(seed, chunkDistance);
+      const numPositions = 2 * 1024 * 1024;
+      const allocators = {
+        positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
+        normals: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
+        uvs: geometryWorker.makeArenaAllocator(numPositions * 2*Float32Array.BYTES_PER_ELEMENT),
+        barycentrics: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
+        aos: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
+        ids: geometryWorker.makeArenaAllocator(numPositions * Float32Array.BYTES_PER_ELEMENT),
+        skyLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
+        torchLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
+        peeks: geometryWorker.makeArenaAllocator(numSlices * 15 * Uint8Array.BYTES_PER_ELEMENT),
+      };
+      tracker = geometryWorker.makeTracker(seed, chunkDistance, allocators.positions.ptr, allocators.normals.ptr, allocators.uvs.ptr, allocators.barycentrics.ptr, allocators.aos.ptr, allocators.ids.ptr, allocators.skyLights.ptr, allocators.torchLights.ptr, allocators.peeks.ptr);
     }
     culler = geometryWorker.makeCuller();
 
