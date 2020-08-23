@@ -1010,6 +1010,7 @@ const [
         noise: methodIndex++,
         marchingCubes: methodIndex++,
         bakeGeometry: methodIndex++,
+        chunk: methodIndex++,
       };
       const cbIndex = new Map();
       const textEncoder = new TextEncoder();
@@ -1620,6 +1621,7 @@ const [
           if (currentChunkMesh) {
             moduleInstance._tickTracker(
               tracker,
+              threadPool,
               currentChunkMesh.currentCoord.x,
               currentChunkMesh.currentCoord.y,
               currentChunkMesh.currentCoord.z
