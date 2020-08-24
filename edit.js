@@ -969,8 +969,8 @@ const [
           startCb(this.countOffset + 3);
 
           const id = ++this.nextCbId;
-          this.u32[this.countOffset] = id;
-          this.u32[this.countOffset + 1] = method;
+          this.i32[this.countOffset] = id;
+          this.i32[this.countOffset + 1] = method;
           this.u32[this.countOffset + 2] = count;
           cbIndex.set(id, endCb);
 
@@ -1013,6 +1013,70 @@ const [
         marchingCubes: methodIndex++,
         bakeGeometry: methodIndex++,
         chunk: methodIndex++,
+      };
+      let messageIndex = 0;
+      const MESSAGES = {
+        [--messageIndex]: function updateGeometry(offset) {
+           console.log('got geometry update', offset);
+
+          {
+            const positionsFreeEntry = callStack.ou32[offset++];
+            const normalsFreeEntry = callStack.ou32[offset++];
+            const uvsFreeEntry = callStack.ou32[offset++];
+            const barycentricsFreeEntry = callStack.ou32[offset++];
+            const aosFreeEntry = callStack.ou32[offset++];
+            const idsFreeEntry = callStack.ou32[offset++];
+            const skyLightsFreeEntry = callStack.ou32[offset++];
+            const torchLightsFreeEntry = callStack.ou32[offset++];
+            const peeksFreeEntry = callStack.ou32[offset++];
+
+            const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const barycentricsStart = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const aosStart = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const peeksStart = moduleInstance.HEAPU32[peeksFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+
+            const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const normalsCount = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const barycentricsCount = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const aosCount = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const peeksCount = moduleInstance.HEAPU32[peeksFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+
+            console.log('got land count', positionsCount, peeksCount);
+          }
+          {
+            const positionsFreeEntry = callStack.ou32[offset++];
+            const uvsFreeEntry = callStack.ou32[offset++];
+            const idsFreeEntry = callStack.ou32[offset++];
+            const indicesFreeEntry = callStack.ou32[offset++];
+            const skyLightsFreeEntry = callStack.ou32[offset++];
+            const torchLightsFreeEntry = callStack.ou32[offset++];
+
+            const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+
+            const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+
+            console.log('got vegetation count', positionsCount, torchLightsCount);
+          }
+        },
       };
       const cbIndex = new Map();
       const textEncoder = new TextEncoder();
@@ -1650,24 +1714,34 @@ const [
             callStack.outPtr,
             callStack.outNumEntriesPtr
           );
-
           const numMessages = callStack.outNumEntriesU32[0];
           let index = 0;
           for (let i = 0; i < numMessages; i++) {
-            const id = callStack.ou32[index];
+            const id = callStack.oi32[index];
+            const method = callStack.oi32[index + 1];
             const count = callStack.ou32[index + 2];
 
-            const cb = cbIndex.get(id);
-            if (cb) {
-              cb(index + 3);
-              cbIndex.delete(id);
+            if (id > 0) {
+              const cb = cbIndex.get(id);
+              if (cb) {
+                cb(index + 3);
+                cbIndex.delete(id);
+              } else {
+                throw new Error('invalid callback id: ' + id);
+              }
+            } else if (id === -1) {
+              const cb = MESSAGES[method];
+              if (cb) {
+                cb(index + 3);
+              } else {
+                throw new Error('invalid message method: ' + method);
+              }
             } else {
-              throw new Error('invalid callback id: ' + id);
+              throw new Error('invalid id: ' + id);
             }
 
             index += 3 + count;
           }
-
           callStack.reset();
         }
       };
