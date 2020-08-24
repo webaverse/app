@@ -474,8 +474,10 @@ const itemMeshes = [];
 let geometryWorker = null;
 let geometrySet = null;
 let tracker = null;
-let allocators = null;
-let bufferAttributes = null;
+let landAllocators = null;
+let landBufferAttributes = null;
+let vegetationAllocators = null;
+let vegetationBufferAttributes = null;
 let culler = null;
 let makeAnimal = null;
 let chunkMeshes = [];
@@ -1028,7 +1030,6 @@ const [
             const idsFreeEntry = callStack.ou32[offset++];
             const skyLightsFreeEntry = callStack.ou32[offset++];
             const torchLightsFreeEntry = callStack.ou32[offset++];
-            const peeksFreeEntry = callStack.ou32[offset++];
 
             const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
             const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
@@ -1038,7 +1039,6 @@ const [
             const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
             const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
             const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-            const peeksStart = moduleInstance.HEAPU32[peeksFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
 
             const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const normalsCount = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -1048,7 +1048,6 @@ const [
             const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-            const peeksCount = moduleInstance.HEAPU32[peeksFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
 
             /* console.log('got land update', {
               positionsStart,
@@ -1059,7 +1058,6 @@ const [
               idsStart,
               skyLightsStart,
               torchLightsStart,
-              peeksStart,
 
               positionsCount,
               normalsCount,
@@ -1069,8 +1067,19 @@ const [
               idsCount,
               skyLightsCount,
               torchLightsCount,
-              peeksCount,
             }); */
+
+            /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
+              const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
+              const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
+              const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+              const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
+              return positions;
+            };
+            const positions = _decodeArenaEntry(allocators.positions, positionsFreeEntry, Float32Array);
+            const normals = _decodeArenaEntry(allocators.normals, normalsFreeEntry, Float32Array);
+            const uvs = _decodeArenaEntry(allocators.uvs, uvsFreeEntry, Float32Array);
+            console.log('got positions', {positions, normals, uvs}); */
 
             currentChunkMesh.updateGeometry({
               /* positionsFreeEntry,
@@ -1080,8 +1089,7 @@ const [
               aosFreeEntry,
               idsFreeEntry,
               skyLightsFreeEntry,
-              torchLightsFreeEntry,
-              peeksFreeEntry, */
+              torchLightsFreeEntry, */
 
               positionsStart,
               normalsStart,
@@ -1091,7 +1099,6 @@ const [
               idsStart,
               skyLightsStart,
               torchLightsStart,
-              peeksStart,
 
               positionsCount,
               normalsCount,
@@ -1101,7 +1108,6 @@ const [
               idsCount,
               skyLightsCount,
               torchLightsCount,
-              peeksCount,
             });
           }
           {
@@ -1546,21 +1552,9 @@ const [
           });
         });
       });
-      w.makeTracker = (seed, chunkDistance, positionsAllocator, normalsAllocator, uvsAllocator, barycentricsAllocator, aosAllocator, idsAllocator, skyLightsAllocator, torchLightsAllocator, indicesAllocator, peeksAllocator) =>
-        moduleInstance._makeTracker(
-          seed,
-          chunkDistance,
-          positionsAllocator,
-          normalsAllocator,
-          uvsAllocator,
-          barycentricsAllocator,
-          aosAllocator,
-          idsAllocator,
-          skyLightsAllocator,
-          torchLightsAllocator,
-          indicesAllocator,
-          peeksAllocator
-        );
+      w.makeTracker = function() {
+        return moduleInstance._makeTracker.apply(moduleInstance, arguments);
+      };
       w.makeCuller = () => moduleInstance._makeCuller();
       w.requestBakeGeometry = (positions, indices) => new Promise((accept, reject) => {
         callStack.allocRequest(METHODS.bakeGeometry, 5, offset => {
@@ -1881,8 +1875,9 @@ const [
     await geometryWorker.waitForLoad();
     {
       const seed = Math.floor(alea('lol')() * 0xFFFFFF);
-      const numPositions = 4 * 1024 * 1024;
-      allocators = {
+      const numPositions = 2 * 1024 * 1024;
+
+      landAllocators = {
         positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
         normals: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
         uvs: geometryWorker.makeArenaAllocator(numPositions * 2*Float32Array.BYTES_PER_ELEMENT),
@@ -1891,21 +1886,54 @@ const [
         ids: geometryWorker.makeArenaAllocator(numPositions * Float32Array.BYTES_PER_ELEMENT),
         skyLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
         torchLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
-        indices: geometryWorker.makeArenaAllocator(numPositions * Uint32Array.BYTES_PER_ELEMENT),
-        peeks: geometryWorker.makeArenaAllocator(1024 * 15 * Uint8Array.BYTES_PER_ELEMENT),
       };
-      tracker = geometryWorker.makeTracker(seed, chunkDistance, allocators.positions.ptr, allocators.normals.ptr, allocators.uvs.ptr, allocators.barycentrics.ptr, allocators.aos.ptr, allocators.ids.ptr, allocators.skyLights.ptr, allocators.torchLights.ptr, allocators.indices.ptr, allocators.peeks.ptr);
-      bufferAttributes = {
-        position: new THREE.BufferAttribute(allocators.positions.getAs(Float32Array), 3),
-        normal: new THREE.BufferAttribute(allocators.normals.getAs(Float32Array), 3),
-        uv: new THREE.BufferAttribute(allocators.uvs.getAs(Float32Array), 2),
-        barycentric: new THREE.BufferAttribute(allocators.barycentrics.getAs(Float32Array), 3),
-        ao: new THREE.BufferAttribute(allocators.aos.getAs(Uint8Array), 1),
-        id: new THREE.BufferAttribute(allocators.ids.getAs(Float32Array), 1),
-        skyLight: new THREE.BufferAttribute(allocators.skyLights.getAs(Uint8Array), 1),
-        torchLight: new THREE.BufferAttribute(allocators.torchLights.getAs(Uint8Array), 1),
-        index: new THREE.BufferAttribute(allocators.indices.getAs(Uint32Array), 1),
-        peeks: allocators.peeks.getAs(Uint8Array),
+      vegetationAllocators = {
+        positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
+        uvs: geometryWorker.makeArenaAllocator(numPositions * 2*Float32Array.BYTES_PER_ELEMENT),
+        ids: geometryWorker.makeArenaAllocator(numPositions * Float32Array.BYTES_PER_ELEMENT),
+        indices: geometryWorker.makeArenaAllocator(numPositions * Uint32Array.BYTES_PER_ELEMENT),
+        skyLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
+        torchLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
+      };
+
+      tracker = geometryWorker.makeTracker(
+        seed,
+        chunkDistance,
+
+        landAllocators.positions.ptr,
+        landAllocators.normals.ptr,
+        landAllocators.uvs.ptr,
+        landAllocators.barycentrics.ptr,
+        landAllocators.aos.ptr,
+        landAllocators.ids.ptr,
+        landAllocators.skyLights.ptr,
+        landAllocators.torchLights.ptr,
+
+        vegetationAllocators.positions.ptr,
+        vegetationAllocators.uvs.ptr,
+        vegetationAllocators.ids.ptr,
+        vegetationAllocators.indices.ptr,
+        vegetationAllocators.skyLights.ptr,
+        vegetationAllocators.torchLights.ptr
+      );
+
+      landBufferAttributes = {
+        position: new THREE.BufferAttribute(landAllocators.positions.getAs(Float32Array), 3),
+        normal: new THREE.BufferAttribute(landAllocators.normals.getAs(Float32Array), 3),
+        uv: new THREE.BufferAttribute(landAllocators.uvs.getAs(Float32Array), 2),
+        barycentric: new THREE.BufferAttribute(landAllocators.barycentrics.getAs(Float32Array), 3),
+        ao: new THREE.BufferAttribute(landAllocators.aos.getAs(Uint8Array), 1),
+        id: new THREE.BufferAttribute(landAllocators.ids.getAs(Float32Array), 1),
+        skyLight: new THREE.BufferAttribute(landAllocators.skyLights.getAs(Uint8Array), 1),
+        torchLight: new THREE.BufferAttribute(landAllocators.torchLights.getAs(Uint8Array), 1),
+      };
+      vegetationBufferAttributes = {
+        position: new THREE.BufferAttribute(vegetationAllocators.positions.getAs(Float32Array), 3),
+        uv: new THREE.BufferAttribute(vegetationAllocators.uvs.getAs(Float32Array), 2),
+        id: new THREE.BufferAttribute(vegetationAllocators.ids.getAs(Float32Array), 1),
+        index: new THREE.BufferAttribute(vegetationAllocators.indices.getAs(Uint32Array), 1),
+        skyLight: new THREE.BufferAttribute(vegetationAllocators.skyLights.getAs(Uint8Array), 1),
+        torchLight: new THREE.BufferAttribute(vegetationAllocators.torchLights.getAs(Uint8Array), 1),
       };
     }
     culler = geometryWorker.makeCuller();
@@ -2143,13 +2171,13 @@ const [
 
     const _makeVegetationMesh = () => {
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', bufferAttributes.position);
-      geometry.setAttribute('uv', bufferAttributes.uv);
-      geometry.setAttribute('id', bufferAttributes.id);
-      geometry.setAttribute('skyLight', bufferAttributes.skyLight);
-      geometry.setAttribute('torchLight', bufferAttributes.torchLight);
-      geometry.setIndex(bufferAttributes.index);
-      geometry.allocators = allocators;
+      geometry.setAttribute('position', vegetationBufferAttributes.position);
+      geometry.setAttribute('uv', vegetationBufferAttributes.uv);
+      geometry.setAttribute('id', vegetationBufferAttributes.id);
+      geometry.setAttribute('skyLight', vegetationBufferAttributes.skyLight);
+      geometry.setAttribute('torchLight', vegetationBufferAttributes.torchLight);
+      geometry.setIndex(vegetationBufferAttributes.index);
+      // geometry.allocators = allocators;
       const material = vegetationMaterialOpaque;
       const mesh = new THREE.Mesh(geometry, [material]);
       mesh.frustumCulled = false;
@@ -2547,17 +2575,17 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   })();
 
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', bufferAttributes.position);
-  geometry.setAttribute('normal', bufferAttributes.normal);
-  geometry.setAttribute('uv', bufferAttributes.uv);
-  geometry.setAttribute('barycentric', bufferAttributes.barycentric);
-  geometry.setAttribute('ao', bufferAttributes.ao);
-  geometry.setAttribute('id', bufferAttributes.id);
-  geometry.setAttribute('skyLight', bufferAttributes.skyLight);
-  geometry.setAttribute('torchLight', bufferAttributes.torchLight);
-  geometry.allocators = allocators;
-  const {peeks} = bufferAttributes;
-  geometry.peeks = peeks;
+  geometry.setAttribute('position', landBufferAttributes.position);
+  geometry.setAttribute('normal', landBufferAttributes.normal);
+  geometry.setAttribute('uv', landBufferAttributes.uv);
+  geometry.setAttribute('barycentric', landBufferAttributes.barycentric);
+  geometry.setAttribute('ao', landBufferAttributes.ao);
+  geometry.setAttribute('id', landBufferAttributes.id);
+  geometry.setAttribute('skyLight', landBufferAttributes.skyLight);
+  geometry.setAttribute('torchLight', landBufferAttributes.torchLight);
+  // geometry.allocators = allocators;
+  // const {peeks} = bufferAttributes;
+  // geometry.peeks = peeks;
 
   const mesh = new THREE.Mesh(geometry, [landMaterial, waterMaterial]);
   mesh.frustumCulled = false;
