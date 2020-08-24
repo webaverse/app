@@ -474,6 +474,8 @@ const itemMeshes = [];
 let geometryWorker = null;
 let geometrySet = null;
 let tracker = null;
+let allocators = null;
+let bufferAttributes = null;
 let culler = null;
 let makeAnimal = null;
 let chunkMeshes = [];
@@ -1640,6 +1642,7 @@ const [
               currentChunkMesh.currentCoord.z
             );
           }
+
           moduleInstance._tick(
             threadPool,
             callStack.ptr,
@@ -1675,8 +1678,7 @@ const [
     {
       const seed = Math.floor(alea('lol')() * 0xFFFFFF);
       const numPositions = 4 * 1024 * 1024;
-
-      const allocators = {
+      allocators = {
         positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
         normals: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
         uvs: geometryWorker.makeArenaAllocator(numPositions * 2*Float32Array.BYTES_PER_ELEMENT),
@@ -1689,6 +1691,18 @@ const [
         peeks: geometryWorker.makeArenaAllocator(1024 * 15 * Uint8Array.BYTES_PER_ELEMENT),
       };
       tracker = geometryWorker.makeTracker(seed, chunkDistance, allocators.positions.ptr, allocators.normals.ptr, allocators.uvs.ptr, allocators.barycentrics.ptr, allocators.aos.ptr, allocators.ids.ptr, allocators.skyLights.ptr, allocators.torchLights.ptr, allocators.indices.ptr, allocators.peeks.ptr);
+      bufferAttributes = {
+        position: new THREE.BufferAttribute(allocators.positions.getAs(Float32Array), 3),
+        normal: new THREE.BufferAttribute(allocators.normals.getAs(Float32Array), 3),
+        uv: new THREE.BufferAttribute(allocators.uvs.getAs(Float32Array), 2),
+        barycentric: new THREE.BufferAttribute(allocators.barycentrics.getAs(Float32Array), 3),
+        ao: new THREE.BufferAttribute(allocators.aos.getAs(Uint8Array), 1),
+        id: new THREE.BufferAttribute(allocators.ids.getAs(Float32Array), 1),
+        skyLight: new THREE.BufferAttribute(allocators.skyLights.getAs(Uint8Array), 1),
+        torchLight: new THREE.BufferAttribute(allocators.torchLights.getAs(Uint8Array), 1),
+        index: new THREE.BufferAttribute(allocators.indices.getAs(Uint32Array), 1),
+        peeks: allocators.peeks.getAs(Uint8Array),
+      };
     }
     culler = geometryWorker.makeCuller();
 
@@ -1924,22 +1938,13 @@ const [
     vegetationMaterialOpaque.uniforms.map.needsUpdate = true;
 
     const _makeVegetationMesh = () => {
-      const numPositions = 2 * 1024 * 1024;
-      const allocators = {
-        positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
-        uvs: geometryWorker.makeArenaAllocator(numPositions * 2*Float32Array.BYTES_PER_ELEMENT),
-        ids: geometryWorker.makeArenaAllocator(numPositions * Float32Array.BYTES_PER_ELEMENT),
-        indices: geometryWorker.makeArenaAllocator(numPositions * Uint32Array.BYTES_PER_ELEMENT),
-        skyLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
-        torchLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
-      };
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(allocators.positions.getAs(Float32Array), 3));
-      geometry.setAttribute('uv', new THREE.BufferAttribute(allocators.uvs.getAs(Float32Array), 2));
-      geometry.setAttribute('id', new THREE.BufferAttribute(allocators.ids.getAs(Float32Array), 1));
-      geometry.setAttribute('skyLight', new THREE.BufferAttribute(allocators.skyLights.getAs(Uint8Array), 1));
-      geometry.setAttribute('torchLight', new THREE.BufferAttribute(allocators.torchLights.getAs(Uint8Array), 1));
-      geometry.setIndex(new THREE.BufferAttribute(allocators.indices.getAs(Uint32Array), 1));
+      geometry.setAttribute('position', bufferAttributes.position);
+      geometry.setAttribute('uv', bufferAttributes.uv);
+      geometry.setAttribute('id', bufferAttributes.id);
+      geometry.setAttribute('skyLight', bufferAttributes.skyLight);
+      geometry.setAttribute('torchLight', bufferAttributes.torchLight);
+      geometry.setIndex(bufferAttributes.index);
       geometry.allocators = allocators;
       const material = vegetationMaterialOpaque;
       const mesh = new THREE.Mesh(geometry, [material]);
@@ -2337,30 +2342,17 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     waterMaterial.uniforms.tex.needsUpdate = true;
   })();
 
-  const numPositions = 2 * 1024 * 1024;
-  const allocators = {
-    positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
-    normals: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
-    uvs: geometryWorker.makeArenaAllocator(numPositions * 2*Float32Array.BYTES_PER_ELEMENT),
-    barycentrics: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
-    aos: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
-    ids: geometryWorker.makeArenaAllocator(numPositions * Float32Array.BYTES_PER_ELEMENT),
-    skyLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
-    torchLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
-    peeks: geometryWorker.makeArenaAllocator(numSlices * 15 * Uint8Array.BYTES_PER_ELEMENT),
-  };
-
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(allocators.positions.getAs(Float32Array), 3));
-  geometry.setAttribute('normal', new THREE.BufferAttribute(allocators.normals.getAs(Float32Array), 3));
-  geometry.setAttribute('uv', new THREE.BufferAttribute(allocators.uvs.getAs(Float32Array), 2));
-  geometry.setAttribute('barycentric', new THREE.BufferAttribute(allocators.barycentrics.getAs(Float32Array), 3));
-  geometry.setAttribute('ao', new THREE.BufferAttribute(allocators.aos.getAs(Uint8Array), 1));
-  geometry.setAttribute('id', new THREE.BufferAttribute(allocators.ids.getAs(Float32Array), 1));
-  geometry.setAttribute('skyLight', new THREE.BufferAttribute(allocators.skyLights.getAs(Uint8Array), 1));
-  geometry.setAttribute('torchLight', new THREE.BufferAttribute(allocators.torchLights.getAs(Uint8Array), 1));
+  geometry.setAttribute('position', bufferAttributes.position);
+  geometry.setAttribute('normal', bufferAttributes.normal);
+  geometry.setAttribute('uv', bufferAttributes.uv);
+  geometry.setAttribute('barycentric', bufferAttributes.barycentric);
+  geometry.setAttribute('ao', bufferAttributes.ao);
+  geometry.setAttribute('id', bufferAttributes.id);
+  geometry.setAttribute('skyLight', bufferAttributes.skyLight);
+  geometry.setAttribute('torchLight', bufferAttributes.torchLight);
   geometry.allocators = allocators;
-  const peeks = allocators.peeks.getAs(Uint8Array);
+  const {peeks} = bufferAttributes;
   geometry.peeks = peeks;
 
   const mesh = new THREE.Mesh(geometry, [landMaterial, waterMaterial]);
