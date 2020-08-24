@@ -478,7 +478,7 @@ let landAllocators = null;
 let landBufferAttributes = null;
 let vegetationAllocators = null;
 let vegetationBufferAttributes = null;
-let culler = null;
+// let culler = null;
 let makeAnimal = null;
 let chunkMeshes = [];
 let chunkMesh = null;
@@ -914,7 +914,7 @@ const [
         onRuntimeInitialized() {
           moduleInstance = this;
           threadPool = moduleInstance._makeThreadPool(1);
-          moduleInstance._initPhysx();
+          // moduleInstance._initPhysx();
           callStack = new CallStack();
           scratchStack = new ScratchStack();
           modulePromise.accept();
@@ -1555,7 +1555,7 @@ const [
       w.makeTracker = function() {
         return moduleInstance._makeTracker.apply(moduleInstance, arguments);
       };
-      w.makeCuller = () => moduleInstance._makeCuller();
+      // w.makeCuller = () => moduleInstance._makeCuller();
       w.requestBakeGeometry = (positions, indices) => new Promise((accept, reject) => {
         callStack.allocRequest(METHODS.bakeGeometry, 5, offset => {
           callStack.u32[offset] = positions.byteOffset;
@@ -1621,7 +1621,7 @@ const [
       w.unregisterGeometry = ptr => {
         moduleInstance._unregisterGeometry(ptr);
       };
-      w.raycast = (p, q) => {
+      w.raycast = (tracker, p, q) => {
         p.toArray(scratchStack.f32, 0);
         localVector.set(0, 0, -1)
           .applyQuaternion(q)
@@ -1656,6 +1656,7 @@ const [
         }; */
 
         moduleInstance._raycast(
+          tracker,
           originOffset,
           directionOffset,
           meshPositionOffset,
@@ -1676,7 +1677,7 @@ const [
           faceIndex: scratchStack.u32[22],
         } : null;
       };
-      w.collide = (radius, halfHeight, p, q, maxIter) => {
+      w.collide = (tracker, radius, halfHeight, p, q, maxIter) => {
         p.toArray(scratchStack.f32, 0);
         localQuaternion.copy(q)
           .premultiply(capsuleUpQuaternion)
@@ -1705,6 +1706,7 @@ const [
         }; */
 
         moduleInstance._collide(
+          tracker,
           radius,
           halfHeight,
           positionOffset,
@@ -1936,7 +1938,7 @@ const [
         torchLight: new THREE.BufferAttribute(vegetationAllocators.torchLights.getAs(Uint8Array), 1),
       };
     }
-    culler = geometryWorker.makeCuller();
+    // culler = geometryWorker.makeCuller();
 
     const vegetationMaterialOpaque = new THREE.ShaderMaterial({
       uniforms: {
@@ -4248,7 +4250,7 @@ const _collideCapsule = (() => {
   return (p, q) => {
     localVector.copy(p);
     localVector.y -= 0.3;
-    return geometryWorker ? geometryWorker.collide(0.5, 0.5, localVector, q, 1) : null;
+    return geometryWorker ? geometryWorker.collide(tracker, 0.5, 0.5, localVector, q, 1) : null;
   };
 })();
 const _applyVelocity = (() => {
@@ -4369,7 +4371,7 @@ function animate(timestamp, frame) {
         .decompose(localVector, localQuaternion, localVector2);
 
       if (currentChunkMesh && geometryWorker) {
-        const result = geometryWorker.raycast(localVector, localQuaternion);
+        const result = geometryWorker.raycast(tracker, localVector, localQuaternion);
         raycastChunkSpec = result;
         if (raycastChunkSpec) {
           raycastChunkSpec.mesh = _findMeshWithMeshId(raycastChunkSpec.meshId);
@@ -5096,7 +5098,7 @@ function animate(timestamp, frame) {
         if (!pxMesh.velocity.equals(zeroVector)) {
           localMatrix.copy(pxMesh.matrixWorld)
             .decompose(localVector, localQuaternion, localVector2);
-          const collision = geometryWorker.collide(0.2, 0, localVector, localQuaternion2.set(0, 0, 0, 1), 1);
+          const collision = geometryWorker.collide(tracker, 0.2, 0, localVector, localQuaternion2.set(0, 0, 0, 1), 1);
 
           if (collision) {
             localVector3.fromArray(collision.direction)
