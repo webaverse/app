@@ -1017,7 +1017,7 @@ const [
       let messageIndex = 0;
       const MESSAGES = {
         [--messageIndex]: function updateGeometry(offset) {
-           console.log('got geometry update', offset);
+          // console.log('got geometry update', offset);
 
           {
             const positionsFreeEntry = callStack.ou32[offset++];
@@ -1050,7 +1050,59 @@ const [
             const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const peeksCount = moduleInstance.HEAPU32[peeksFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
 
-            console.log('got land count', positionsCount, peeksCount);
+            console.log('got land update', {
+              positionsStart,
+              normalsStart,
+              uvsStart,
+              barycentricsStart,
+              aosStart,
+              idsStart,
+              skyLightsStart,
+              torchLightsStart,
+              peeksStart,
+
+              positionsCount,
+              normalsCount,
+              uvsCount,
+              barycentricsCount,
+              aosCount,
+              idsCount,
+              skyLightsCount,
+              torchLightsCount,
+              peeksCount,
+            });
+
+            currentChunkMesh.updateGeometry({
+              /* positionsFreeEntry,
+              normalsFreeEntry,
+              uvsFreeEntry,
+              barycentricsFreeEntry,
+              aosFreeEntry,
+              idsFreeEntry,
+              skyLightsFreeEntry,
+              torchLightsFreeEntry,
+              peeksFreeEntry, */
+
+              positionsStart,
+              normalsStart,
+              uvsStart,
+              barycentricsStart,
+              aosStart,
+              idsStart,
+              skyLightsStart,
+              torchLightsStart,
+              peeksStart,
+
+              positionsCount,
+              normalsCount,
+              uvsCount,
+              barycentricsCount,
+              aosCount,
+              idsCount,
+              skyLightsCount,
+              torchLightsCount,
+              peeksCount,
+            });
           }
           {
             const positionsFreeEntry = callStack.ou32[offset++];
@@ -1074,7 +1126,44 @@ const [
             const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
 
-            console.log('got vegetation count', positionsCount, torchLightsCount);
+            console.log('got vegetation update', {
+              positionsStart,
+              uvsStart,
+              idsStart,
+              indicesStart,
+              skyLightsStart,
+              torchLightsStart,
+
+              positionsCount,
+              uvsCount,
+              idsCount,
+              indicesCount,
+              skyLightsCount,
+              torchLightsCount,
+            });
+
+            currentVegetationMesh.updateGeometry({
+              /* positionsFreeEntry,
+              uvsFreeEntry,
+              idsFreeEntry,
+              indicesFreeEntry,
+              skyLightsFreeEntry,
+              torchLightsFreeEntry, */
+
+              positionsStart,
+              uvsStart,
+              idsStart,
+              indicesStart,
+              skyLightsStart,
+              torchLightsStart,
+
+              positionsCount,
+              uvsCount,
+              idsCount,
+              indicesCount,
+              skyLightsCount,
+              torchLightsCount,
+            })
           }
         },
       };
@@ -2112,7 +2201,7 @@ const [
         }
         return slab;
       };
-      mesh.updateGeometry = (slab, spec) => {
+      mesh.updateGeometry = (/*slab,*/ spec) => {
         geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
         geometry.attributes.position.needsUpdate = true;
         geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(spec);
@@ -2620,7 +2709,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     }
     return slab; */
   };
-  mesh.updateGeometry = (slab, spec) => {
+  mesh.updateGeometry = (/*slab,*/ spec) => {
     geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
     geometry.attributes.position.needsUpdate = true;
     geometry.attributes.normal.updateRange.offset = _getSlabNormalOffset(spec);
@@ -2648,10 +2737,10 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Float32Array.BYTES_PER_ELEMENT;
     renderer.geometries.update(geometry);
 
-    slab.groupSet.groups[0].start = _getSlabPositionOffset(spec)/3;
+    /* slab.groupSet.groups[0].start = _getSlabPositionOffset(spec)/3;
     slab.groupSet.groups[0].count = spec.numOpaquePositions/3;
     slab.groupSet.groups[1].start = slab.groupSet.groups[0].start + slab.groupSet.groups[0].count;
-    slab.groupSet.groups[1].count = spec.numTransparentPositions/3;
+    slab.groupSet.groups[1].count = spec.numTransparentPositions/3; */
   };
   mesh.freeSlabIndex = index => {
     const slab = slabs[index];
@@ -5007,15 +5096,17 @@ function animate(timestamp, frame) {
   localFrustum.setFromProjectionMatrix(
     localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, worldContainer.matrixWorld))
   );
-  if (currentChunkMesh) {
+  if (currentChunkMesh && currentVegetationMesh) {
     localMatrix3.copy(pe.camera.matrixWorld)
       .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
       .decompose(localVector, localQuaternion, localVector2);
-    currentChunkMesh.geometry.groups = geometryWorker.cull(culler, localVector, localMatrix, slabRadius);
+    // currentChunkMesh.geometry.groups = geometryWorker.cull(culler, localVector, localMatrix, slabRadius);
 
     const [landGroups, vegetationGroups] = geometryWorker.tickCull(tracker, localVector, localMatrix);
-    window.landGroups = landGroups;
-    window.vegetationGroups = vegetationGroups;
+    currentChunkMesh.geometry.groups = landGroups;
+    currentVegetationMesh.geometry.groups = vegetationGroups;
+    // window.landGroups = landGroups;
+    // window.vegetationGroups = vegetationGroups;
 
     /* const _cull = () => {
       localMatrix3.copy(pe.camera.matrixWorld)
@@ -5074,17 +5165,17 @@ function animate(timestamp, frame) {
     };
     _cull(); */
   }
-  if (currentVegetationMesh) {
+  /* if (currentVegetationMesh) {
     currentVegetationMesh.geometry.originalGroups = currentVegetationMesh.geometry.groups.slice();
     currentVegetationMesh.geometry.groups = currentVegetationMesh.geometry.groups.filter(group => localFrustum.intersectsSphere(group.boundingSphere));
-  }
+  } */
 
   renderer.render(scene, camera);
   // renderer.render(highlightScene, camera);
 
-  if (currentVegetationMesh) {
+  /* if (currentVegetationMesh) {
     currentVegetationMesh.geometry.groups = currentVegetationMesh.geometry.originalGroups;
-  }
+  } */
 
   planet.flush();
 }
