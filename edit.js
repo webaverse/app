@@ -1050,7 +1050,7 @@ const [
             const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const peeksCount = moduleInstance.HEAPU32[peeksFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
 
-            console.log('got land update', {
+            /* console.log('got land update', {
               positionsStart,
               normalsStart,
               uvsStart,
@@ -1070,7 +1070,7 @@ const [
               skyLightsCount,
               torchLightsCount,
               peeksCount,
-            });
+            }); */
 
             currentChunkMesh.updateGeometry({
               /* positionsFreeEntry,
@@ -1126,7 +1126,7 @@ const [
             const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
 
-            console.log('got vegetation update', {
+            /* console.log('got vegetation update', {
               positionsStart,
               uvsStart,
               idsStart,
@@ -1140,7 +1140,7 @@ const [
               indicesCount,
               skyLightsCount,
               torchLightsCount,
-            });
+            }); */
 
             currentVegetationMesh.updateGeometry({
               /* positionsFreeEntry,
