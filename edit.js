@@ -1015,6 +1015,7 @@ const [
         marchingCubes: methodIndex++,
         bakeGeometry: methodIndex++,
         chunk: methodIndex++,
+        releaseUpdate: methodIndex++,
       };
       let messageIndex = 0;
       const MESSAGES = {
@@ -1169,7 +1170,11 @@ const [
               indicesCount,
               skyLightsCount,
               torchLightsCount,
-            })
+            });
+          }
+          {
+            const subparcelSharedPtr = callStack.ou32[offset++];
+            w.requestReleaseUpdate(subparcelSharedPtr);
           }
         },
       };
@@ -1820,6 +1825,13 @@ const [
         }
         return [landCullResults, vegetationCullResults];
       };
+      w.requestReleaseUpdate = subparcelSharedPtr => new Promise((accept, reject) => {
+        callStack.allocRequest(METHODS.releaseUpdate, 1, offset => {
+          callStack.u32[offset] = subparcelSharedPtr;
+        }, offset => {
+          accept();
+        });
+      });
       w.update = () => {
         if (moduleInstance) {
           if (currentChunkMesh) {
