@@ -1831,9 +1831,9 @@ const [
               tracker,
               threadPool,
               geometrySet,
-              currentChunkMesh.currentCoord.x,
-              currentChunkMesh.currentCoord.y,
-              currentChunkMesh.currentCoord.z
+              currentChunkMesh.currentPosition.x,
+              currentChunkMesh.currentPosition.y,
+              currentChunkMesh.currentPosition.z
             );
           }
 
@@ -2755,8 +2755,8 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       _updateFreeList(freeList); */
     }
   };
-  const currentCoord = new THREE.Vector3(NaN, NaN, NaN);
-  mesh.currentCoord = currentCoord;
+  const currentPosition = new THREE.Vector3(NaN, NaN, NaN);
+  mesh.currentPosition = currentPosition;
   const marchesTasks = [];
   const vegetationsTasks = [];
   const animalsTasks = [];
@@ -2783,19 +2783,20 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const updatedCoords = [];
   let numUpdatedCoords = 0;
   let coordUpdated = false;
-  const _updateCurrentCoord = position => {
-    localVector3.copy(position)
+  const _updateCurrentPosition = position => {
+    currentPosition.copy(position)
       .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
-    const ncx = Math.floor(localVector3.x/subparcelSize);
+    /* const ncx = Math.floor(localVector3.x/subparcelSize);
     const ncy = Math.floor(localVector3.y/subparcelSize);
     const ncz = Math.floor(localVector3.z/subparcelSize);
 
     if (currentCoord.x !== ncx || currentCoord.y !== ncy || currentCoord.z !== ncz) {
       currentCoord.set(ncx, ncy, ncz);
       coordUpdated = true;
-    }
+    } */
   };
   const _updateNeededCoords = () => {
+    return;
     if (coordUpdated) {
       lastNeededCoords = neededCoords;
       lastNeededCoordIndices = neededCoordIndices;
@@ -3447,11 +3448,12 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     }
   };
   const _updateAnimals = () => {
+    return;
     _updateAnimalsRemove();
     _updateAnimalsAdd();
   };
   mesh.update = position => {
-    _updateCurrentCoord(position);
+    _updateCurrentPosition(position);
     _updateNeededCoords();
     _updateChunks();
     _updateVegetations();
