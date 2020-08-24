@@ -2967,6 +2967,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     }
   };
   const _updateChunks = () => {
+    return;
     _updateChunksRemove();
     _updateChunksAdd();
   };
@@ -3316,6 +3317,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     }
   };
   const _updateVegetations = () => {
+    return;
     _updateVegetationsRemove();
     _updateVegetationsAdd();
     _updateVegetationsUpdate();
