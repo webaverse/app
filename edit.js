@@ -1694,6 +1694,47 @@ const [
         }
         return cullResults;
       };
+      w.tickCull = (tracker, position, matrix) => {
+        position.toArray(scratchStack.f32, 0);
+        matrix.toArray(scratchStack.f32, 3);
+
+        const positionOffset = scratchStack.f32.byteOffset;
+        const matrixOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
+        const numLandCullResultsOffset = scratchStack.f32.byteOffset + (3 + 16)*Float32Array.BYTES_PER_ELEMENT;
+        const numVegetationCullResultsOffset = scratchStack.f32.byteOffset + (3 + 16 + 1)*Float32Array.BYTES_PER_ELEMENT;
+        const landCullResultsOffset = scratchStack.f32.byteOffset + (3 + 16 + 2)*Float32Array.BYTES_PER_ELEMENT;
+        const vegetationCullResultsOffset = scratchStack.f32.byteOffset + (3 + 16 + 2 + 4096)*Float32Array.BYTES_PER_ELEMENT;
+
+        moduleInstance._tickCull(
+          tracker,
+          positionOffset,
+          matrixOffset,
+          landCullResultsOffset,
+          numLandCullResultsOffset,
+          vegetationCullResultsOffset,
+          numVegetationCullResultsOffset
+        );
+
+        const numLandCullResults = scratchStack.u32[3+16];
+        const landCullResults = Array(numLandCullResults);
+        for (let i = 0; i < landCullResults.length; i++) {
+          landCullResults[i] = {
+            start: scratchStack.u32[3 + 16 + 2 + i*3],
+            count: scratchStack.u32[3 + 16 + 2 + i*3 + 1],
+            materialIndex: scratchStack.u32[3 + 16 + 2 + i*3 + 2],
+          };
+        }
+        const numVegetationCullResults = scratchStack.u32[3+16+1];
+        const vegetationCullResults = Array(numVegetationCullResults);
+        for (let i = 0; i < vegetationCullResults.length; i++) {
+          vegetationCullResults[i] = {
+            start: scratchStack.u32[3 + 16 + 2 + 4096 + i*3],
+            count: scratchStack.u32[3 + 16 + 2 + 4096 + i*3 + 1],
+            materialIndex: scratchStack.u32[3 + 16 + 2 + 4096 + i*3 + 2],
+          };
+        }
+        return [landCullResults, vegetationCullResults];
+      };
       w.update = () => {
         if (moduleInstance) {
           if (currentChunkMesh) {
@@ -4971,6 +5012,10 @@ function animate(timestamp, frame) {
       .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
       .decompose(localVector, localQuaternion, localVector2);
     currentChunkMesh.geometry.groups = geometryWorker.cull(culler, localVector, localMatrix, slabRadius);
+
+    const [landGroups, vegetationGroups] = geometryWorker.tickCull(tracker, localVector, localMatrix);
+    window.landGroups = landGroups;
+    window.vegetationGroups = vegetationGroups;
 
     /* const _cull = () => {
       localMatrix3.copy(pe.camera.matrixWorld)
