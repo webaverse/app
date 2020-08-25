@@ -125,7 +125,7 @@ const _makeHeightfieldShader = land => ({
     precision highp float;
     precision highp int;
 
-    attribute vec3 barycentric;
+    // attribute vec3 barycentric;
     attribute float ao;
     attribute float skyLight;
     attribute float torchLight;
@@ -170,7 +170,15 @@ const _makeHeightfieldShader = land => ({
 
       vViewPosition = -mvPosition.xyz;
       vUv = uv;
-      vBarycentric = barycentric;
+      // vBarycentric = barycentric;
+      float vid = float(gl_VertexID);
+      if (mod(vid, 3.) < 0.5) {
+        vBarycentric = vec3(1., 0., 0.);
+      } else if (mod(vid, 3.) < 1.5) {
+        vBarycentric = vec3(0., 1., 0.);
+      } else {
+        vBarycentric = vec3(0., 0., 1.);
+      }
       vAo = ao/27.0;
       vSkyLight = skyLight/8.0;
       vTorchLight = torchLight/8.0;
