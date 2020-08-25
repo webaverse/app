@@ -1078,10 +1078,12 @@ const [
               const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
               return positions;
             };
-            const positions = _decodeArenaEntry(allocators.positions, positionsFreeEntry, Float32Array);
-            const normals = _decodeArenaEntry(allocators.normals, normalsFreeEntry, Float32Array);
-            const uvs = _decodeArenaEntry(allocators.uvs, uvsFreeEntry, Float32Array);
-            console.log('got positions', {positions, normals, uvs}); */
+            const positions = _decodeArenaEntry(landAllocators.positions, positionsFreeEntry, Float32Array);
+            const normals = _decodeArenaEntry(landAllocators.normals, normalsFreeEntry, Float32Array);
+            const uvs = _decodeArenaEntry(landAllocators.uvs, uvsFreeEntry, Float32Array);
+            const skyLights = _decodeArenaEntry(landAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
+            const torchLights = _decodeArenaEntry(landAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
+            console.log('got positions', {positions, normals, uvs, skyLights, torchLights}); */
 
             currentChunkMesh.updateGeometry({
               /* positionsFreeEntry,
