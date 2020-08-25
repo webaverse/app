@@ -2779,8 +2779,8 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     geometry.attributes.barycentric.updateRange.count = spec.barycentricsCount/Float32Array.BYTES_PER_ELEMENT;
     geometry.attributes.ao.updateRange.count = spec.aosCount/Uint8Array.BYTES_PER_ELEMENT;
     geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
-    geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Float32Array.BYTES_PER_ELEMENT;
-    geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Float32Array.BYTES_PER_ELEMENT;
+    geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
+    geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
     renderer.geometries.update(geometry);
 
     /* slab.groupSet.groups[0].start = _getSlabPositionOffset(spec)/3;
