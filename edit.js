@@ -2933,6 +2933,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     }
   };
   const _loadCoord = coord => {
+    debugger;
     const {x: ax, y: ay, z: az, index} = coord;
     /* if (
       !slabs[index] ||
@@ -3209,6 +3210,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     }
   };
   const _refreshVegetationMesh = (x, y, z, index, refresh) => {
+    debugger;
     let subparcelTasks = vegetationsTasks[index];
     if (!subparcelTasks) {
       subparcelTasks = [];
