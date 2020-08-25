@@ -1035,7 +1035,7 @@ const [
             const positionsFreeEntry = callStack.ou32[offset++];
             const normalsFreeEntry = callStack.ou32[offset++];
             const uvsFreeEntry = callStack.ou32[offset++];
-            const barycentricsFreeEntry = callStack.ou32[offset++];
+            // const barycentricsFreeEntry = callStack.ou32[offset++];
             const aosFreeEntry = callStack.ou32[offset++];
             const idsFreeEntry = callStack.ou32[offset++];
             const skyLightsFreeEntry = callStack.ou32[offset++];
@@ -1044,7 +1044,7 @@ const [
             const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
             const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
             const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-            const barycentricsStart = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            // const barycentricsStart = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
             const aosStart = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
             const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
             const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
@@ -1053,7 +1053,7 @@ const [
             const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const normalsCount = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-            const barycentricsCount = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            // const barycentricsCount = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const aosCount = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -1106,7 +1106,7 @@ const [
               positionsStart,
               normalsStart,
               uvsStart,
-              barycentricsStart,
+              // barycentricsStart,
               aosStart,
               idsStart,
               skyLightsStart,
@@ -1115,7 +1115,7 @@ const [
               positionsCount,
               normalsCount,
               uvsCount,
-              barycentricsCount,
+              // barycentricsCount,
               aosCount,
               idsCount,
               skyLightsCount,
@@ -1477,30 +1477,30 @@ const [
           callStack.u32[offset + 14] = allocators.positions.ptr;
           callStack.u32[offset + 15] = allocators.normals.ptr;
           callStack.u32[offset + 16] = allocators.uvs.ptr;
-          callStack.u32[offset + 17] = allocators.barycentrics.ptr;
-          callStack.u32[offset + 18] = allocators.aos.ptr;
-          callStack.u32[offset + 19] = allocators.ids.ptr;
-          callStack.u32[offset + 20] = allocators.skyLights.ptr;
-          callStack.u32[offset + 21] = allocators.torchLights.ptr;
-          callStack.u32[offset + 22] = allocators.peeks.ptr;
+          // callStack.u32[offset + 17] = allocators.barycentrics.ptr;
+          callStack.u32[offset + 17] = allocators.aos.ptr;
+          callStack.u32[offset + 18] = allocators.ids.ptr;
+          callStack.u32[offset + 19] = allocators.skyLights.ptr;
+          callStack.u32[offset + 20] = allocators.torchLights.ptr;
+          callStack.u32[offset + 21] = allocators.peeks.ptr;
         }, offset => {
-          const positionsFreeEntry = callStack.ou32[offset + 23];
-          const normalsFreeEntry = callStack.ou32[offset + 24];
-          const uvsFreeEntry = callStack.ou32[offset + 25];
-          const barycentricsFreeEntry = callStack.ou32[offset + 26];
-          const aosFreeEntry = callStack.ou32[offset + 27];
-          const idsFreeEntry = callStack.ou32[offset + 28];
-          const skyLightsFreeEntry = callStack.ou32[offset + 29];
-          const torchLightsFreeEntry = callStack.ou32[offset + 30];
-          const peeksFreeEntry = callStack.ou32[offset + 31];
+          const positionsFreeEntry = callStack.ou32[offset + 22];
+          const normalsFreeEntry = callStack.ou32[offset + 23];
+          const uvsFreeEntry = callStack.ou32[offset + 24];
+          const barycentricsFreeEntry = callStack.ou32[offset + 25];
+          const aosFreeEntry = callStack.ou32[offset + 26];
+          const idsFreeEntry = callStack.ou32[offset + 27];
+          const skyLightsFreeEntry = callStack.ou32[offset + 28];
+          const torchLightsFreeEntry = callStack.ou32[offset + 29];
+          const peeksFreeEntry = callStack.ou32[offset + 30];
 
-          const numOpaquePositions = callStack.ou32[offset + 32];
-          const numTransparentPositions = callStack.ou32[offset + 33];
+          const numOpaquePositions = callStack.ou32[offset + 31];
+          const numTransparentPositions = callStack.ou32[offset + 32];
 
           const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
           const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
           const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-          const barycentricsStart = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+          // const barycentricsStart = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
           const aosStart = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
           const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
           const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
@@ -1510,7 +1510,7 @@ const [
           const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
           const normalsCount = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
           const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-          const barycentricsCount = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+          // const barycentricsCount = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
           const aosCount = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
           const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
           const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -1532,7 +1532,7 @@ const [
             positionsFreeEntry,
             normalsFreeEntry,
             uvsFreeEntry,
-            barycentricsFreeEntry,
+            // barycentricsFreeEntry,
             aosFreeEntry,
             idsFreeEntry,
             skyLightsFreeEntry,
@@ -1542,7 +1542,7 @@ const [
             positionsStart,
             normalsStart,
             uvsStart,
-            barycentricsStart,
+            // barycentricsStart,
             aosStart,
             idsStart,
             skyLightsStart,
@@ -1552,7 +1552,7 @@ const [
             positionsCount,
             normalsCount,
             uvsCount,
-            barycentricsCount,
+            // barycentricsCount,
             aosCount,
             idsCount,
             skyLightsCount,
@@ -1907,7 +1907,7 @@ const [
         positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
         normals: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
         uvs: geometryWorker.makeArenaAllocator(numPositions * 2*Float32Array.BYTES_PER_ELEMENT),
-        barycentrics: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
+        // barycentrics: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
         aos: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
         ids: geometryWorker.makeArenaAllocator(numPositions * Float32Array.BYTES_PER_ELEMENT),
         skyLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
@@ -1929,7 +1929,7 @@ const [
         landAllocators.positions.ptr,
         landAllocators.normals.ptr,
         landAllocators.uvs.ptr,
-        landAllocators.barycentrics.ptr,
+        // landAllocators.barycentrics.ptr,
         landAllocators.aos.ptr,
         landAllocators.ids.ptr,
         landAllocators.skyLights.ptr,
@@ -1947,7 +1947,7 @@ const [
         position: new THREE.BufferAttribute(landAllocators.positions.getAs(Float32Array), 3),
         normal: new THREE.BufferAttribute(landAllocators.normals.getAs(Float32Array), 3),
         uv: new THREE.BufferAttribute(landAllocators.uvs.getAs(Float32Array), 2),
-        barycentric: new THREE.BufferAttribute(landAllocators.barycentrics.getAs(Float32Array), 3),
+        // barycentric: new THREE.BufferAttribute(landAllocators.barycentrics.getAs(Float32Array), 3),
         ao: new THREE.BufferAttribute(landAllocators.aos.getAs(Uint8Array), 1),
         id: new THREE.BufferAttribute(landAllocators.ids.getAs(Float32Array), 1),
         skyLight: new THREE.BufferAttribute(landAllocators.skyLights.getAs(Uint8Array), 1),
@@ -2604,7 +2604,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   geometry.setAttribute('position', landBufferAttributes.position);
   geometry.setAttribute('normal', landBufferAttributes.normal);
   geometry.setAttribute('uv', landBufferAttributes.uv);
-  geometry.setAttribute('barycentric', landBufferAttributes.barycentric);
+  // geometry.setAttribute('barycentric', landBufferAttributes.barycentric);
   geometry.setAttribute('ao', landBufferAttributes.ao);
   geometry.setAttribute('id', landBufferAttributes.id);
   geometry.setAttribute('skyLight', landBufferAttributes.skyLight);
@@ -2709,7 +2709,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const _getSlabPositionOffset = spec => spec.positionsStart/Float32Array.BYTES_PER_ELEMENT;
   const _getSlabNormalOffset = spec => spec.normalsStart/Float32Array.BYTES_PER_ELEMENT;
   const _getSlabUvOffset = spec => spec.uvsStart/Float32Array.BYTES_PER_ELEMENT;
-  const _getSlabBarycentricOffset = spec => spec.barycentricsStart/Float32Array.BYTES_PER_ELEMENT;
+  // const _getSlabBarycentricOffset = spec => spec.barycentricsStart/Float32Array.BYTES_PER_ELEMENT;
   const _getSlabAoOffset = spec => spec.aosStart/Uint8Array.BYTES_PER_ELEMENT;
   const _getSlabIdOffset = spec => spec.idsStart/Float32Array.BYTES_PER_ELEMENT;
   const _getSlabSkyLightOffset = spec => spec.skyLightsStart/Uint8Array.BYTES_PER_ELEMENT;
@@ -2741,7 +2741,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
           allocators.positions.free(this.spec.positionsFreeEntry);
           allocators.normals.free(this.spec.normalsFreeEntry);
           allocators.uvs.free(this.spec.uvsFreeEntry);
-          allocators.barycentrics.free(this.spec.barycentricsFreeEntry);
+          // allocators.barycentrics.free(this.spec.barycentricsFreeEntry);
           allocators.aos.free(this.spec.aosFreeEntry);
           allocators.ids.free(this.spec.idsFreeEntry);
           allocators.skyLights.free(this.spec.skyLightsFreeEntry);
@@ -2770,8 +2770,8 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     geometry.attributes.normal.needsUpdate = true;
     geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(spec);
     geometry.attributes.uv.needsUpdate = true;
-    geometry.attributes.barycentric.updateRange.offset =_getSlabBarycentricOffset(spec);
-    geometry.attributes.barycentric.needsUpdate = true;
+    /* geometry.attributes.barycentric.updateRange.offset =_getSlabBarycentricOffset(spec);
+    geometry.attributes.barycentric.needsUpdate = true; */
     geometry.attributes.ao.needsUpdate = true;
     geometry.attributes.ao.updateRange.offset =_getSlabAoOffset(spec);
     geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec);
@@ -2784,7 +2784,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     geometry.attributes.position.updateRange.count = spec.positionsCount/Float32Array.BYTES_PER_ELEMENT;
     geometry.attributes.normal.updateRange.count = spec.normalsCount/Float32Array.BYTES_PER_ELEMENT;
     geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
-    geometry.attributes.barycentric.updateRange.count = spec.barycentricsCount/Float32Array.BYTES_PER_ELEMENT;
+    // geometry.attributes.barycentric.updateRange.count = spec.barycentricsCount/Float32Array.BYTES_PER_ELEMENT;
     geometry.attributes.ao.updateRange.count = spec.aosCount/Uint8Array.BYTES_PER_ELEMENT;
     geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
     geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
