@@ -967,16 +967,17 @@ const [
 
           this.nextCbId = 0;
         }
-        allocRequest(method, count, startCb, endCb) {
-          startCb(this.countOffset + 3);
+        allocRequest(method, count, prio, startCb, endCb) {
+          startCb(this.countOffset + 4);
 
           const id = ++this.nextCbId;
           this.i32[this.countOffset] = id;
           this.i32[this.countOffset + 1] = method;
-          this.u32[this.countOffset + 2] = count;
+          this.i32[this.countOffset + 2] = +prio;
+          this.u32[this.countOffset + 3] = count;
           cbIndex.set(id, endCb);
 
-          this.countOffset += 3 + count;
+          this.countOffset += 4 + count;
           this.numEntries++;
         }
         reset() {
@@ -1238,7 +1239,7 @@ const [
 
         await new Promise((accept, reject) => {
           let data;
-          callStack.allocRequest(METHODS.loadBake, 3, offset => {
+          callStack.allocRequest(METHODS.loadBake, 3, false, offset => {
             callStack.u32[offset] = geometrySet;
 
             data = w.alloc(Uint8Array, arrayBuffer.byteLength);
@@ -1253,7 +1254,7 @@ const [
       };
       w.requestGeometry = (geometrySet, name) => new Promise((accept, reject) => {
         let dstNameUint8Array;
-        callStack.allocRequest(METHODS.getGeometry, 9, offset => {
+        callStack.allocRequest(METHODS.getGeometry, 9, false, offset => {
           callStack.u32[offset] = geometrySet;
 
           const srcNameUint8Array = textEncoder.encode(name);
@@ -1284,7 +1285,7 @@ const [
         });
       });
       w.requestAnimalGeometry = hash => new Promise((accept, reject) => {
-        callStack.allocRequest(METHODS.getAnimalGeometry, 21, offset => {
+        callStack.allocRequest(METHODS.getAnimalGeometry, 21, false, offset => {
           callStack.u32[offset] = geometrySet;
           callStack.u32[offset + 1] = hash;
         }, offset => {
@@ -1320,7 +1321,7 @@ const [
       });
       w.requestMarchObjects = (x, y, z, geometrySet, subparcel, subparcelSpecs, allocators) => new Promise((accept, reject) => {
         let subparcelObjects;
-        callStack.allocRequest(METHODS.marchObjects, 19, offset => {
+        callStack.allocRequest(METHODS.marchObjects, 19, false, offset => {
           const numSubparcelObjects = subparcelSpecs.length;
           subparcelObjects = w.alloc(Uint32Array, numSubparcelObjects);
           for (let i = 0; i < subparcelSpecs.length; i++) {
@@ -1404,7 +1405,7 @@ const [
         });
       });
       w.requestGetHeight = (hash, x, y, z, baseHeight) => new Promise((accept, reject) => {
-        callStack.allocRequest(METHODS.getHeight, 6, offset => {
+        callStack.allocRequest(METHODS.getHeight, 6, false, offset => {
           callStack.i32[offset] = hash;
           callStack.f32[offset + 1] = x;
           callStack.f32[offset + 2] = y;
@@ -1421,7 +1422,7 @@ const [
       const objectsRate = 3;
       const potentialDefault = -0.5;
       w.requestNoise = (hash, x, y, z, baseHeight, subparcelOffset) => new Promise((accept, reject) => {
-        callStack.allocRequest(METHODS.noise, 11, offset => {
+        callStack.allocRequest(METHODS.noise, 11, false, offset => {
           callStack.u32[offset] = hash;
 
           callStack.f32[offset + 1] = x;
@@ -1440,7 +1441,7 @@ const [
         });
       });
       w.requestMarchingCubes = (seed, meshId, x, y, z, potentials, biomes, heightfield, lightfield, allocators) => new Promise((accept, reject) => {
-        callStack.allocRequest(METHODS.marchingCubes, 34, offset => {
+        callStack.allocRequest(METHODS.marchingCubes, 34, false, offset => {
           callStack.f32[offset] = meshId;
 
           // dims
@@ -1562,7 +1563,7 @@ const [
       };
       // w.makeCuller = () => moduleInstance._makeCuller();
       w.requestBakeGeometry = (positions, indices) => new Promise((accept, reject) => {
-        callStack.allocRequest(METHODS.bakeGeometry, 5, offset => {
+        callStack.allocRequest(METHODS.bakeGeometry, 5, false, offset => {
           callStack.u32[offset] = positions.byteOffset;
           callStack.u32[offset + 1] = indices ? indices.byteOffset : 0;
           callStack.u32[offset + 2] = positions.length;
@@ -1826,7 +1827,7 @@ const [
         return [landCullResults, vegetationCullResults];
       };
       w.requestReleaseUpdate = subparcelSharedPtr => new Promise((accept, reject) => {
-        callStack.allocRequest(METHODS.releaseUpdate, 1, offset => {
+        callStack.allocRequest(METHODS.releaseUpdate, 1, true, offset => {
           callStack.u32[offset] = subparcelSharedPtr;
         }, offset => {
           accept();
@@ -1852,17 +1853,19 @@ const [
             callStack.outPtr,
             callStack.outNumEntriesPtr
           );
+          callStack.reset();
           const numMessages = callStack.outNumEntriesU32[0];
           let index = 0;
           for (let i = 0; i < numMessages; i++) {
             const id = callStack.oi32[index];
             const method = callStack.oi32[index + 1];
-            const count = callStack.ou32[index + 2];
+            // const priority = callStack.ou32[index + 2];
+            const count = callStack.ou32[index + 3];
 
             if (id > 0) {
               const cb = cbIndex.get(id);
               if (cb) {
-                cb(index + 3);
+                cb(index + 4);
                 cbIndex.delete(id);
               } else {
                 throw new Error('invalid callback id: ' + id);
@@ -1870,7 +1873,7 @@ const [
             } else if (id === -1) {
               const cb = MESSAGES[method];
               if (cb) {
-                cb(index + 3);
+                cb(index + 4);
               } else {
                 throw new Error('invalid message method: ' + method);
               }
@@ -1878,9 +1881,8 @@ const [
               throw new Error('invalid id: ' + id);
             }
 
-            index += 3 + count;
+            index += 4 + count;
           }
-          callStack.reset();
         }
       };
       return w;
