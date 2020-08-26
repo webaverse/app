@@ -1025,6 +1025,11 @@ const [
         bakeGeometry: methodIndex++,
         chunk: methodIndex++,
         releaseUpdate: methodIndex++,
+        mine: methodIndex++,
+        light: methodIndex++,
+        addObject: methodIndex++,
+        removeObject: methodIndex++,
+        releaseAddRemoveObject: methodIndex++,
       };
       let messageIndex = 0;
       const MESSAGES = {
@@ -1035,7 +1040,6 @@ const [
             const positionsFreeEntry = callStack.ou32[offset++];
             const normalsFreeEntry = callStack.ou32[offset++];
             const uvsFreeEntry = callStack.ou32[offset++];
-            // const barycentricsFreeEntry = callStack.ou32[offset++];
             const aosFreeEntry = callStack.ou32[offset++];
             const idsFreeEntry = callStack.ou32[offset++];
             const skyLightsFreeEntry = callStack.ou32[offset++];
@@ -1044,7 +1048,6 @@ const [
             const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
             const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
             const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-            // const barycentricsStart = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
             const aosStart = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
             const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
             const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
@@ -1053,31 +1056,10 @@ const [
             const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const normalsCount = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-            // const barycentricsCount = moduleInstance.HEAPU32[barycentricsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const aosCount = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-
-            /* console.log('got land update', {
-              positionsStart,
-              normalsStart,
-              uvsStart,
-              barycentricsStart,
-              aosStart,
-              idsStart,
-              skyLightsStart,
-              torchLightsStart,
-
-              positionsCount,
-              normalsCount,
-              uvsCount,
-              barycentricsCount,
-              aosCount,
-              idsCount,
-              skyLightsCount,
-              torchLightsCount,
-            }); */
 
             /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
               const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
@@ -1094,19 +1076,9 @@ const [
             console.log('got positions', {positions, normals, uvs, skyLights, torchLights}); */
 
             currentChunkMesh.updateGeometry({
-              /* positionsFreeEntry,
-              normalsFreeEntry,
-              uvsFreeEntry,
-              barycentricsFreeEntry,
-              aosFreeEntry,
-              idsFreeEntry,
-              skyLightsFreeEntry,
-              torchLightsFreeEntry, */
-
               positionsStart,
               normalsStart,
               uvsStart,
-              // barycentricsStart,
               aosStart,
               idsStart,
               skyLightsStart,
@@ -1115,7 +1087,6 @@ const [
               positionsCount,
               normalsCount,
               uvsCount,
-              // barycentricsCount,
               aosCount,
               idsCount,
               skyLightsCount,
@@ -1161,13 +1132,6 @@ const [
             }); */
 
             currentVegetationMesh.updateGeometry({
-              /* positionsFreeEntry,
-              uvsFreeEntry,
-              idsFreeEntry,
-              indicesFreeEntry,
-              skyLightsFreeEntry,
-              torchLightsFreeEntry, */
-
               positionsStart,
               uvsStart,
               idsStart,
@@ -1228,9 +1192,9 @@ const [
               return new constructor(moduleInstance.HEAP8.buffer, 0, 0);
             }
           }, */
-          free(freeEntryPtr) {
+          /* free(freeEntryPtr) {
             moduleInstance._arenaFree(ptr, freeEntryPtr);
-          },
+          }, */
           getAs(constructor) {
             return new constructor(moduleInstance.HEAP8.buffer, offset, size/constructor.BYTES_PER_ELEMENT);
           },
@@ -1843,6 +1807,13 @@ const [
           accept();
         });
       });
+      w.requestReleaseMine = subparcelSharedPtr => new Promise((accept, reject) => { // XXX
+        /* callStack.allocRequest(METHODS.releaseUpdate, 1, true, offset => {
+          callStack.u32[offset] = subparcelSharedPtr;
+        }, offset => {
+          accept();
+        }); */
+      });
       w.update = () => {
         if (moduleInstance) {
           if (currentChunkMesh) {
@@ -1895,6 +1866,86 @@ const [
           }
         }
       };
+      w.mine = (tracker, p, delta) => new Promise((accept, reject) => {
+        callStack.allocRequest(METHODS.mine, 5, true, offset => {
+          callStack.u32[offset] = tracker;
+          p.toArray(callStack.f32, offset + 1);
+          callStack.f32[offset + 4] = delta;
+        }, offset => {
+          console.log('update mine', offset);
+          
+          const numSubparcels = callStack.ou32[offset++];
+          for (let i = 0; i < numSubparcels; i++) {
+            const positionsFreeEntry = callStack.ou32[offset++];
+            const normalsFreeEntry = callStack.ou32[offset++];
+            const uvsFreeEntry = callStack.ou32[offset++];
+            const aosFreeEntry = callStack.ou32[offset++];
+            const idsFreeEntry = callStack.ou32[offset++];
+            const skyLightsFreeEntry = callStack.ou32[offset++];
+            const torchLightsFreeEntry = callStack.ou32[offset++];
+
+            const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const aosStart = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+
+            const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const normalsCount = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const aosCount = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+
+            /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
+              const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
+              const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
+              const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+              const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
+              return positions;
+            };
+            const positions = _decodeArenaEntry(landAllocators.positions, positionsFreeEntry, Float32Array);
+            const normals = _decodeArenaEntry(landAllocators.normals, normalsFreeEntry, Float32Array);
+            const uvs = _decodeArenaEntry(landAllocators.uvs, uvsFreeEntry, Float32Array);
+            const skyLights = _decodeArenaEntry(landAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
+            const torchLights = _decodeArenaEntry(landAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
+            console.log('got positions', {positions, normals, uvs, skyLights, torchLights}); */
+
+            currentChunkMesh.updateGeometry({
+              positionsStart,
+              normalsStart,
+              uvsStart,
+              aosStart,
+              idsStart,
+              skyLightsStart,
+              torchLightsStart,
+
+              positionsCount,
+              normalsCount,
+              uvsCount,
+              aosCount,
+              idsCount,
+              skyLightsCount,
+              torchLightsCount,
+            });
+          }
+          callStack.allocRequest(METHODS.releaseMine, 32, true, offset2 => {
+            callStack.u32[offset2++] = tracker;
+            
+            callStack.u32[offset2++] = numSubparcels;
+
+            for (let i = 0; i < numSubparcels; i++) {
+              const subparcelSharedPtr = callStack.ou32[offset++];
+              callStack.u32[offset2++] = subparcelSharedPtr;
+            }
+          }, offset => {
+            accept();
+          });
+        });
+      });
       return w;
     })();
     planet.setGeometryWorker(geometryWorker);
@@ -2774,7 +2825,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     geometry.attributes.barycentric.needsUpdate = true; */
     geometry.attributes.ao.needsUpdate = true;
     geometry.attributes.ao.updateRange.offset =_getSlabAoOffset(spec);
-    geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec);
+    geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec); // XXX can be removed and moved to uniforms for vegetation via vertexId
     geometry.attributes.id.needsUpdate = true;
     geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(spec);
     geometry.attributes.skyLight.needsUpdate = true;
@@ -4582,173 +4633,6 @@ function animate(timestamp, frame) {
       }
       if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
         if (!buildMode) {
-          const _mine = async (mineSpecs, explodePosition) => {
-            const slabs = mineSpecs.map(spec => currentChunkMesh.getSlab(spec.x, spec.y, spec.z));
-            const specs = await chunkWorker.requestMine(currentChunkMesh.meshId, mineSpecs);
-            for (let i = 0; i < slabs.length; i++) {
-              const slab = slabs[i];
-              const spec = specs[i];
-              currentChunkMesh.updateGeometry(slab, spec);
-            }
-            for (let i = 0; i < slabs.length; i++) {
-              if (slab.physxGroupSet) {
-                geometryWorker.unregisterGroupSet(culler, slab.physxGroupSet);
-                slab.physxGroupSet = 0;
-              }
-              const peeks = new Uint8Array(currentChunkMesh.geometry.peeks.buffer, currentChunkMesh.geometry.peeks.byteOffset + slab.spec.peeksStart, slab.spec.peeksCount);
-              slab.physxGroupSet = geometryWorker.registerGroupSet(culler, slab.x, slab.y, slab.z, slabRadius, peeks, slab.groupSet.groups);
-            }
-            const neededSpecs = specs.filter(spec => spec.numOpaquePositions > 0);
-            if (neededSpecs.length > 0) {
-              const bakeSpecs = neededSpecs.map(spec => {
-                const {positions, numOpaquePositions, x, y, z} = spec;
-                return numOpaquePositions > 0 ? {
-                  positions,
-                  numOpaquePositions,
-                  x,
-                  y,
-                  z,
-                } : null;
-              });
-              /* const bakeStats = neededSpecs.map(spec => ({
-                numPositions: spec.positions.length,
-                numNormals: spec.normals.length,
-                numUvs: spec.uvs.length,
-                numBarycentrics: spec.barycentrics.length,
-                numAos: spec.aos.length,
-                numIds: spec.ids.length,
-                numSkyLights: spec.skyLights.length,
-                numTorchLights: spec.torchLights.length,
-                numPeeks: spec.peeks.length,
-              })); */
-              const result = await geometryWorker.requestBakeGeometries(bakeSpecs.map(spec => ({
-                positions: spec.positions,
-                count: spec.numOpaquePositions,
-              })));
-              for (let i = 0; i < result.physicsGeometryBuffers.length; i++) {
-                const physxGeometry = result.physicsGeometryBuffers[i];
-                const {x, y, z} = bakeSpecs[i];
-                // const stat = bakeStats[i];
-                const slab = currentChunkMesh.getSlab(x, y, z);
-                if (slab.physxGeometry) {
-                  geometryWorker.unregisterGeometry(slab.physxGeometry);
-                  slab.physxGeometry = 0;
-                }
-                slab.physxGeometry = geometryWorker.registerBakedGeometry(currentChunkMesh.meshId, physxGeometry, x, y, z);
-              }
-            }
-            if (specs.length > 0 && explodePosition) {
-              for (let i = 0; i < 3; i++) {
-                const pxMesh = new THREE.Mesh(tetrehedronGeometry, currentChunkMesh.material[0]);
-                currentChunkMesh.getWorldQuaternion(localQuaternion2).inverse();
-                pxMesh.position.copy(explodePosition)
-                  .add(localVector2.set((-1+Math.random()*2)*0.2, 0.2, (-1+Math.random()*2)*0.2).applyQuaternion(localQuaternion2));
-                pxMesh.velocity = new THREE.Vector3((-1+Math.random()*2)*0.5, Math.random()*3, (-1+Math.random()*2)*0.5)
-                  .applyQuaternion(localQuaternion2);
-                pxMesh.angularVelocity = new THREE.Vector3((-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01);
-                pxMesh.isBuildMesh = true;
-                const startTime = Date.now();
-                const endTime = startTime + 3000;
-                pxMesh.update = () => Date.now() < endTime;
-                currentChunkMesh.add(pxMesh);
-                pxMeshes.push(pxMesh);
-              }
-            }
-          };
-          const _applyMineSpec = (p, radius, key, dim, getIndex, delta) => {
-            const mineSpecs = [];
-            const _applyRound = (ax, ay, az, value) => {
-              const mineSpecsRound = [];
-              for (let ddy = -1; ddy <= 1; ddy++) {
-                const ady = ay + ddy;
-                for (let ddz = -1; ddz <= 1; ddz++) {
-                  const adz = az + ddz;
-                  for (let ddx = -1; ddx <= 1; ddx++) {
-                    const adx = ax + ddx;
-
-                    const sdx = Math.floor(adx/currentChunkMesh.subparcelSize);
-                    const sdy = Math.floor(ady/currentChunkMesh.subparcelSize);
-                    const sdz = Math.floor(adz/currentChunkMesh.subparcelSize);
-                    const lx = ax - sdx*currentChunkMesh.subparcelSize;
-                    const ly = ay - sdy*currentChunkMesh.subparcelSize;
-                    const lz = az - sdz*currentChunkMesh.subparcelSize;
-
-                    if (
-                      lx >= 0 && lx < dim &&
-                      ly >= 0 && ly < dim &&
-                      lz >= 0 && lz < dim
-                    ) {
-                      const index = planet.getSubparcelIndex(sdx, sdy, sdz);
-                      if (!mineSpecsRound.some(mineSpec => mineSpec.index === index)) {
-                        planet.editSubparcel(sdx, sdy, sdz, subparcel => {
-                          const potentialIndex = getIndex(lx, ly, lz);
-                          subparcel[key][potentialIndex] += value;
-
-                          const slab = currentChunkMesh.getSlab(sdx, sdy, sdz);
-
-                          const mineSpec = {
-                            x: sdx,
-                            y: sdy,
-                            z: sdz,
-                            index,
-                            potentials: subparcel.potentials,
-                            biomes: subparcel.biomes,
-                            heightfield: subparcel.heightfield,
-                            lightfield: subparcel.lightfield,
-                            position: slab.position,
-                            normal: slab.normal,
-                            uv: slab.uv,
-                            barycentric: slab.barycentric,
-                            ao: slab.ao,
-                            id: slab.id,
-                            skyLight: slab.skyLight,
-                            torchLight: slab.torchLight,
-                            peeks: slab.peeks,
-                          };
-                          mineSpecsRound.push(mineSpec);
-                          if (!mineSpecs.some(mineSpec => mineSpec.index === index)) {
-                            mineSpecs.push(mineSpec);
-                          }
-                        });
-                      }
-                    }
-                  }
-                }
-              }
-            };
-
-            const {x, y, z} = p;
-            for (let dy = -radius; dy <= radius; dy++) {
-              const ay = y + dy;
-              for (let dz = -radius; dz <= radius; dz++) {
-                const az = z + dz;
-                for (let dx = -radius; dx <= radius; dx++) {
-                  const ax = x + dx;
-
-                  const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-                  const maxDistScale = radius;
-                  const maxDist = Math.sqrt(maxDistScale*maxDistScale + maxDistScale*maxDistScale + maxDistScale*maxDistScale);
-                  const distanceDiff = maxDist - dist;
-                  if (distanceDiff > 0) {
-                    const value = (1-dist/maxDist)*delta;
-                    _applyRound(ax, ay, az, value);
-                  }
-                }
-              }
-            }
-            return mineSpecs;
-          };
-          const _applyPotentialDelta = async (position, delta) => {
-            localVector2.copy(position)
-              .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
-            const applyPosition = localVector2.clone();
-            localVector2.x = Math.floor(localVector2.x);
-            localVector2.y = Math.floor(localVector2.y);
-            localVector2.z = Math.floor(localVector2.z);
-
-            const mineSpecs = _applyMineSpec(localVector2, 1, 'potentials', SUBPARCEL_SIZE_P3, planet.getPotentialIndex, delta);
-            await _mine(mineSpecs, delta < 0 ? applyPosition : null);
-          };
           const _applyLightfieldDelta = async (position, delta) => {
             localVector2.copy(position)
               .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
@@ -4762,7 +4646,7 @@ function animate(timestamp, frame) {
           const _hit = () => {
             if (raycastChunkSpec) {
               if (raycastChunkSpec.mesh.isChunkMesh) {
-                _applyPotentialDelta(raycastChunkSpec.point, -0.3);
+                geometryWorker.mine(tracker, raycastChunkSpec.point, -0.3);
               } else if (raycastChunkSpec.mesh.isVegetationMesh || raycastChunkSpec.mesh.isAnimalMesh) {
                 raycastChunkSpec.mesh.hit(30);
               }
