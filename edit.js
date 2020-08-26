@@ -1808,13 +1808,6 @@ const [
           accept();
         });
       });
-      w.requestReleaseMine = subparcelSharedPtr => new Promise((accept, reject) => { // XXX
-        /* callStack.allocRequest(METHODS.releaseUpdate, 1, true, offset => {
-          callStack.u32[offset] = subparcelSharedPtr;
-        }, offset => {
-          accept();
-        }); */
-      });
       w.update = () => {
         if (moduleInstance) {
           if (currentChunkMesh) {
