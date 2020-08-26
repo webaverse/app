@@ -1883,7 +1883,7 @@ const [
           }
         }
       };
-      w.mine = (tracker, p, delta) => new Promise((accept, reject) => {
+      w.requestMine = (tracker, p, delta) => new Promise((accept, reject) => {
         callStack.allocRequest(METHODS.mine, 256, true, offset => {
           callStack.u32[offset] = tracker;
           p.toArray(callStack.f32, offset + 1);
@@ -4664,7 +4664,7 @@ function animate(timestamp, frame) {
                 localVector2.copy(raycastChunkSpec.point)
                   .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
 
-                geometryWorker.mine(tracker, localVector2, -0.3);
+                geometryWorker.requestMine(tracker, localVector2, -0.3);
               } else if (raycastChunkSpec.mesh.isVegetationMesh || raycastChunkSpec.mesh.isAnimalMesh) {
                 raycastChunkSpec.mesh.hit(30);
               }
