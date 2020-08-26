@@ -1866,9 +1866,8 @@ const [
           p.toArray(callStack.f32, offset + 1);
           callStack.f32[offset + 4] = delta;
         }, offset => {
-          console.log('update mine', offset);
-          
           const numSubparcels = callStack.ou32[offset++];
+          console.log('update mine', numSubparcels);
           for (let i = 0; i < numSubparcels; i++) {
             const positionsFreeEntry = callStack.ou32[offset++];
             const normalsFreeEntry = callStack.ou32[offset++];
