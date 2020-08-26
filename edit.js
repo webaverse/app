@@ -1831,6 +1831,102 @@ const [
           accept();
         });
       });
+      w.requestAddObject = (tracker, geometrySet, name, position, quaternion) => new Promise((accept, reject) => {
+        callStack.allocRequest(METHODS.addObject, 128, true, offset => {
+          callStack.u32[offset] = tracker;
+          callStack.u32[offset + 1] = geometrySet;
+          
+          const srcNameUint8Array = textEncoder.encode(name);
+          callStack.u8.set(srcNameUint8Array, (offset + 2)*Uint32Array.BYTES_PER_ELEMENT);
+          
+          position.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH)/Float32Array.BYTES_PER_ELEMENT);
+          quaternion.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 3*Float32Array.BYTES_PER_ELEMENT)/Float32Array.BYTES_PER_ELEMENT);
+        }, offset => {
+          const numSubparcels = callStack.ou32[offset++];
+          console.log('num subparcels add', numSubparcels);
+          for (let i = 0; i < numSubparcels; i++) {
+            const positionsFreeEntry = callStack.ou32[offset++];
+            const uvsFreeEntry = callStack.ou32[offset++];
+            const idsFreeEntry = callStack.ou32[offset++];
+            const indicesFreeEntry = callStack.ou32[offset++];
+            const skyLightsFreeEntry = callStack.ou32[offset++];
+            const torchLightsFreeEntry = callStack.ou32[offset++];
+
+            const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+
+            const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+
+            /* console.log('got vegetation update', {
+              positionsStart,
+              uvsStart,
+              idsStart,
+              indicesStart,
+              skyLightsStart,
+              torchLightsStart,
+
+              positionsCount,
+              uvsCount,
+              idsCount,
+              indicesCount,
+              skyLightsCount,
+              torchLightsCount,
+            }); */
+            const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
+              const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
+              const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
+              const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+              const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
+              return positions;
+            };
+            const positions = _decodeArenaEntry(vegetationAllocators.positions, positionsFreeEntry, Float32Array);
+            const uvs = _decodeArenaEntry(vegetationAllocators.uvs, uvsFreeEntry, Float32Array);
+            const ids = _decodeArenaEntry(vegetationAllocators.ids, idsFreeEntry, Float32Array);
+            const indices = _decodeArenaEntry(vegetationAllocators.indices, indicesFreeEntry, Uint32Array);
+            const skyLights = _decodeArenaEntry(vegetationAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
+            const torchLights = _decodeArenaEntry(vegetationAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
+            console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights});
+
+            currentVegetationMesh.updateGeometry({
+              positionsStart,
+              uvsStart,
+              idsStart,
+              indicesStart,
+              skyLightsStart,
+              torchLightsStart,
+
+              positionsCount,
+              uvsCount,
+              idsCount,
+              indicesCount,
+              skyLightsCount,
+              torchLightsCount,
+            });
+          }
+          callStack.allocRequest(METHODS.releaseAddRemoveObject, 32, true, offset2 => {
+            callStack.u32[offset2++] = tracker;
+            
+            callStack.u32[offset2++] = numSubparcels;
+
+            for (let i = 0; i < numSubparcels; i++) {
+              const subparcelSharedPtr = callStack.ou32[offset++];
+              callStack.u32[offset2++] = subparcelSharedPtr;
+            }
+          }, offset => {
+            console.log('done release', numSubparcels);
+            accept();
+          });
+        });
+      });
       w.update = () => {
         if (moduleInstance) {
           if (currentChunkMesh) {
@@ -4772,10 +4868,12 @@ function animate(timestamp, frame) {
               Math.floor(buildMesh.position.y/currentChunkMesh.subparcelSize),
               Math.floor(buildMesh.position.z/currentChunkMesh.subparcelSize)
             );
-            planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
+            
+            geometryWorker.requestAddObject(tracker, geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
+            /* planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
               subparcel.addVegetation(buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
             });
-            currentChunkMesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
+            currentChunkMesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z); */
           }
         }
       }
