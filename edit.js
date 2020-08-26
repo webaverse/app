@@ -1380,7 +1380,7 @@ const [
         });
       });
       w.requestGetHeight = (hash, x, y, z, baseHeight) => new Promise((accept, reject) => {
-        callStack.allocRequest(METHODS.getHeight, 6, false, offset => {
+        callStack.allocRequest(METHODS.getHeight, 6, true, offset => {
           callStack.i32[offset] = hash;
           callStack.f32[offset + 1] = x;
           callStack.f32[offset + 2] = y;
