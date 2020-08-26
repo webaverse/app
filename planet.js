@@ -364,7 +364,6 @@ const _align4 = n => {
   const d = n % 4;
   return d ? (n + (4 - d)) : n;
 };
-
 Subparcel.offsets = (() => {
   let index = 0;
 
@@ -398,6 +397,7 @@ Subparcel.offsets = (() => {
     initialLength,
   };
 })();
+planet.Subparcel = Subparcel;
 
 /* const _addSubparcel = (x, y, z, index) => {
   const subparcel = new Subparcel();
