@@ -1024,8 +1024,9 @@ const [
         noise: methodIndex++,
         marchingCubes: methodIndex++,
         bakeGeometry: methodIndex++,
+        getSubparcel: methodIndex++,
+        releaseSubparcel: methodIndex++,
         chunk: methodIndex++,
-        releaseUpdate: methodIndex++,
         mine: methodIndex++,
         releaseMine: methodIndex++,
         light: methodIndex++,
@@ -1151,7 +1152,7 @@ const [
           }
           {
             const subparcelSharedPtr = callStack.ou32[offset++];
-            w.requestReleaseUpdate(subparcelSharedPtr);
+            w.requestReleaseSubparcel(subparcelSharedPtr);
           }
         },
       };
@@ -1802,8 +1803,29 @@ const [
         }
         return [landCullResults, vegetationCullResults];
       };
-      w.requestReleaseUpdate = subparcelSharedPtr => new Promise((accept, reject) => {
-        callStack.allocRequest(METHODS.releaseUpdate, 1, true, offset => {
+      w.getSubparcel = (tracker, x, y, z) => new Promise((accept, reject) => {
+        callStack.allocRequest(METHODS.getSubparcel, 4, true, offset => {
+          callStack.u32[offset] = tracker;
+          callStack.u32[offset + 1] = x;
+          callStack.u32[offset + 2] = y;
+          callStack.u32[offset + 3] = z;
+        }, offset => {
+          const subparcelSharedPtr = callStack.ou32[offset++];
+          const subparcelPtr = callStack.ou32[offset++];
+          if (subparcelSharedPtr) {
+            const numObjects = moduleInstance.HEAPU32[(subparcelPtr + planet.Subparcel.offsets.numObjects)/Uint32Array.BYTES_PER_ELEMENT];
+            console.log('got num objects', numObjects);
+            
+            w.requestReleaseSubparcel()
+              .then(accept, reject);
+          } else {
+            console.log('no subparcel');
+          }
+        });
+      });
+      window.getSubparcel = (x, y, z) => w.getSubparcel(tracker, x, y, z);
+      w.requestReleaseSubparcel = subparcelSharedPtr => new Promise((accept, reject) => {
+        callStack.allocRequest(METHODS.releaseSubparcel, 1, true, offset => {
           callStack.u32[offset] = subparcelSharedPtr;
         }, offset => {
           accept();
