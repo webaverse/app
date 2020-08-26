@@ -4863,11 +4863,11 @@ function animate(timestamp, frame) {
             return false;
           })();
           if (!hasBuildMesh) {
-            const subparcelPosition = new THREE.Vector3(
+            /* const subparcelPosition = new THREE.Vector3(
               Math.floor(buildMesh.position.x/currentChunkMesh.subparcelSize),
               Math.floor(buildMesh.position.y/currentChunkMesh.subparcelSize),
               Math.floor(buildMesh.position.z/currentChunkMesh.subparcelSize)
-            );
+            ); */
             
             geometryWorker.requestAddObject(tracker, geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
             /* planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
