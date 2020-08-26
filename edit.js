@@ -1027,6 +1027,7 @@ const [
         chunk: methodIndex++,
         releaseUpdate: methodIndex++,
         mine: methodIndex++,
+        releaseMine: methodIndex++,
         light: methodIndex++,
         addObject: methodIndex++,
         removeObject: methodIndex++,
@@ -1861,7 +1862,7 @@ const [
         }
       };
       w.mine = (tracker, p, delta) => new Promise((accept, reject) => {
-        callStack.allocRequest(METHODS.mine, 5, true, offset => {
+        callStack.allocRequest(METHODS.mine, 256, true, offset => {
           callStack.u32[offset] = tracker;
           p.toArray(callStack.f32, offset + 1);
           callStack.f32[offset + 4] = delta;
@@ -1893,7 +1894,7 @@ const [
             const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
 
-            /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
+            const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
               const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
               const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
               const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
@@ -1905,7 +1906,7 @@ const [
             const uvs = _decodeArenaEntry(landAllocators.uvs, uvsFreeEntry, Float32Array);
             const skyLights = _decodeArenaEntry(landAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
             const torchLights = _decodeArenaEntry(landAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-            console.log('got positions', {positions, normals, uvs, skyLights, torchLights}); */
+            console.log('got positions', {positions, normals, uvs, skyLights, torchLights});
 
             currentChunkMesh.updateGeometry({
               positionsStart,
@@ -1935,6 +1936,7 @@ const [
               callStack.u32[offset2++] = subparcelSharedPtr;
             }
           }, offset => {
+            console.log('done release', numSubparcels);
             accept();
           });
         });
@@ -4638,7 +4640,10 @@ function animate(timestamp, frame) {
           const _hit = () => {
             if (raycastChunkSpec) {
               if (raycastChunkSpec.mesh.isChunkMesh) {
-                geometryWorker.mine(tracker, raycastChunkSpec.point, -0.3);
+                localVector2.copy(raycastChunkSpec.point)
+                  .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+
+                geometryWorker.mine(tracker, localVector2, -0.3);
               } else if (raycastChunkSpec.mesh.isVegetationMesh || raycastChunkSpec.mesh.isAnimalMesh) {
                 raycastChunkSpec.mesh.hit(30);
               }
