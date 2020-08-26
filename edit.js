@@ -1868,7 +1868,6 @@ const [
           callStack.f32[offset + 4] = delta;
         }, offset => {
           const numSubparcels = callStack.ou32[offset++];
-          console.log('update mine', numSubparcels);
           for (let i = 0; i < numSubparcels; i++) {
             const positionsFreeEntry = callStack.ou32[offset++];
             const normalsFreeEntry = callStack.ou32[offset++];
@@ -1894,7 +1893,7 @@ const [
             const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
             const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
 
-            const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
+            /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
               const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
               const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
               const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
@@ -1906,7 +1905,7 @@ const [
             const uvs = _decodeArenaEntry(landAllocators.uvs, uvsFreeEntry, Float32Array);
             const skyLights = _decodeArenaEntry(landAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
             const torchLights = _decodeArenaEntry(landAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-            console.log('got positions', {positions, normals, uvs, skyLights, torchLights});
+            console.log('got positions', {positions, normals, uvs, skyLights, torchLights}); */
 
             currentChunkMesh.updateGeometry({
               positionsStart,
