@@ -495,6 +495,7 @@ scene.add(worldContainer);
 const chunkMeshContainer = new THREE.Object3D();
 worldContainer.add(chunkMeshContainer);
 let currentChunkMesh = null;
+const currentChunkMeshId = getNextMeshId();
 // let capsuleMesh = null;
 let currentVegetationMesh = null;
 const _getCurrentChunkMesh = () => currentChunkMesh;
@@ -1975,6 +1976,7 @@ const [
 
       tracker = geometryWorker.makeTracker(
         seed,
+        currentChunkMeshId,
         chunkDistance,
 
         landAllocators.positions.ptr,
@@ -2600,8 +2602,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const rng = alea(seedString);
   const seedNum = Math.floor(rng() * 0xFFFFFF);
 
-  const meshId = getNextMeshId();
-
   const landMaterial = new THREE.ShaderMaterial({
     uniforms: LAND_SHADER.uniforms,
     vertexShader: LAND_SHADER.vertexShader,
@@ -2667,7 +2667,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const mesh = new THREE.Mesh(geometry, [landMaterial, waterMaterial]);
   mesh.frustumCulled = false;
   mesh.seedNum = seedNum;
-  mesh.meshId = meshId;
+  mesh.meshId = currentChunkMeshId;
   mesh.seedString = seedString;
   mesh.parcelSize = parcelSize;
   mesh.subparcelSize = subparcelSize;
