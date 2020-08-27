@@ -143,6 +143,126 @@ const _makeHitTracker = (onDmg, onPositionUpdate, onColorUpdate, onRemove) => {
     },
   };
 };
+const _addItem = (position, quaternion) => {
+  const itemMesh = (() => {
+    const radius = 0.5;
+    const segments = 12;
+    const color = 0x66bb6a;
+    const opacity = 0.5;
+
+    const object = new THREE.Object3D();
+
+    const matMeshes = [woodMesh, stoneMesh, metalMesh];
+    const matIndex = Math.floor(Math.random()*matMeshes.length);
+    const matMesh = matMeshes[matIndex];
+    const matMeshClone = matMesh.clone();
+    matMeshClone.position.y = 0.5;
+    matMeshClone.visible = true;
+    matMeshClone.isBuildMesh = true;
+    object.add(matMeshClone);
+
+    const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius/2, 0));
+    const ys = new Float32Array(skirtGeometry.attributes.position.array.length/3);
+    for (let i = 0; i < skirtGeometry.attributes.position.array.length/3; i++) {
+      ys[i] = 1-skirtGeometry.attributes.position.array[i*3+1]/radius;
+    }
+    skirtGeometry.setAttribute('y', new THREE.BufferAttribute(ys, 1));
+    // skirtGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.5, 0));
+    const skirtMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uAnimation: {
+          type: 'f',
+          value: 0,
+        },
+      },
+      vertexShader: `\
+        #define PI 3.1415926535897932384626433832795
+
+        uniform float uAnimation;
+        attribute float y;
+        attribute vec3 barycentric;
+        varying float vY;
+        varying float vUv;
+        varying float vOpacity;
+        void main() {
+          vY = y * ${opacity.toFixed(8)};
+          vUv = uv.x + uAnimation;
+          vOpacity = 0.5 + 0.5 * (sin(uAnimation*20.0*PI*2.0)+1.0)/2.0;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `\
+        #define PI 3.1415926535897932384626433832795
+
+        uniform sampler2D uCameraTex;
+        varying float vY;
+        varying float vUv;
+        varying float vOpacity;
+
+        vec3 c = vec3(${new THREE.Color(color).toArray().join(', ')});
+
+        void main() {
+          float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
+          gl_FragColor = vec4(c, a);
+        }
+      `,
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthWrite: false,
+    });
+    const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
+    skirtMesh.frustumCulled = false;
+    skirtMesh.isBuildMesh = true;
+    object.add(skirtMesh);
+
+    let animation = null;
+    object.pickUp = () => {
+      if (!animation) {
+        skirtMesh.visible = false;
+
+        const now = Date.now();
+        const startTime = now;
+        const endTime = startTime + 1000;
+        const startPosition = object.position.clone();
+        animation = {
+          update(posePosition) {
+            const now = Date.now();
+            const factor = Math.min((now - startTime) / (endTime - startTime), 1);
+
+            if (factor < 0.5) {
+              const localFactor = factor/0.5;
+              object.position.copy(startPosition)
+                .lerp(posePosition, cubicBezier(localFactor));
+            } else if (factor < 1) {
+              const localFactor = (factor-0.5)/0.5;
+              object.position.copy(posePosition);
+            } else {
+              object.parent.remove(object);
+              itemMeshes.splice(itemMeshes.indexOf(object), 1);
+              animation = null;
+            }
+          },
+        };
+      }
+    };
+    object.update = posePosition => {
+      if (!animation) {
+        const now = Date.now();
+        skirtMaterial.uniforms.uAnimation.value = (now%60000)/60000;
+        matMeshClone.rotation.y = (now%5000)/5000*Math.PI*2;
+      } else {
+        animation.update(posePosition);
+      }
+    };
+
+    return object;
+  })();
+  itemMesh.position.copy(position);
+  itemMesh.quaternion.copy(quaternion);
+  currentVegetationMesh.add(itemMesh);
+  itemMeshes.push(itemMesh);
+};
 const _makeHeightfieldShader = land => ({
   uniforms: {
     uTime: {
@@ -2514,7 +2634,7 @@ const [
         if (!(id in hps)) {
           hps[id] = 100;
         }
-        hps[id] = Math.max(dmg, 0);
+        hps[id] = Math.max(hps[id] - dmg, 0);
         return hps[id] > 0;
       }, (positionOffset) => {
         currentVegetationMesh.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
@@ -3274,126 +3394,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     return;
     _updateChunksRemove();
     _updateChunksAdd();
-  };
-  const _addItem = (position, quaternion) => {
-    const itemMesh = (() => {
-      const radius = 0.5;
-      const segments = 12;
-      const color = 0x66bb6a;
-      const opacity = 0.5;
-
-      const object = new THREE.Object3D();
-
-      const matMeshes = [woodMesh, stoneMesh, metalMesh];
-      const matIndex = Math.floor(Math.random()*matMeshes.length);
-      const matMesh = matMeshes[matIndex];
-      const matMeshClone = matMesh.clone();
-      matMeshClone.position.y = 0.5;
-      matMeshClone.visible = true;
-      matMeshClone.isBuildMesh = true;
-      object.add(matMeshClone);
-
-      const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
-        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius/2, 0));
-      const ys = new Float32Array(skirtGeometry.attributes.position.array.length/3);
-      for (let i = 0; i < skirtGeometry.attributes.position.array.length/3; i++) {
-        ys[i] = 1-skirtGeometry.attributes.position.array[i*3+1]/radius;
-      }
-      skirtGeometry.setAttribute('y', new THREE.BufferAttribute(ys, 1));
-      // skirtGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.5, 0));
-      const skirtMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-          uAnimation: {
-            type: 'f',
-            value: 0,
-          },
-        },
-        vertexShader: `\
-          #define PI 3.1415926535897932384626433832795
-
-          uniform float uAnimation;
-          attribute float y;
-          attribute vec3 barycentric;
-          varying float vY;
-          varying float vUv;
-          varying float vOpacity;
-          void main() {
-            vY = y * ${opacity.toFixed(8)};
-            vUv = uv.x + uAnimation;
-            vOpacity = 0.5 + 0.5 * (sin(uAnimation*20.0*PI*2.0)+1.0)/2.0;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `,
-        fragmentShader: `\
-          #define PI 3.1415926535897932384626433832795
-
-          uniform sampler2D uCameraTex;
-          varying float vY;
-          varying float vUv;
-          varying float vOpacity;
-
-          vec3 c = vec3(${new THREE.Color(color).toArray().join(', ')});
-
-          void main() {
-            float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
-            gl_FragColor = vec4(c, a);
-          }
-        `,
-        side: THREE.DoubleSide,
-        transparent: true,
-        depthWrite: false,
-      });
-      const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
-      skirtMesh.frustumCulled = false;
-      skirtMesh.isBuildMesh = true;
-      object.add(skirtMesh);
-
-      let animation = null;
-      object.pickUp = () => {
-        if (!animation) {
-          skirtMesh.visible = false;
-
-          const now = Date.now();
-          const startTime = now;
-          const endTime = startTime + 1000;
-          const startPosition = object.position.clone();
-          animation = {
-            update(posePosition) {
-              const now = Date.now();
-              const factor = Math.min((now - startTime) / (endTime - startTime), 1);
-
-              if (factor < 0.5) {
-                const localFactor = factor/0.5;
-                object.position.copy(startPosition)
-                  .lerp(posePosition, cubicBezier(localFactor));
-              } else if (factor < 1) {
-                const localFactor = (factor-0.5)/0.5;
-                object.position.copy(posePosition);
-              } else {
-                object.parent.remove(object);
-                itemMeshes.splice(itemMeshes.indexOf(object), 1);
-                animation = null;
-              }
-            },
-          };
-        }
-      };
-      object.update = posePosition => {
-        if (!animation) {
-          const now = Date.now();
-          skirtMaterial.uniforms.uAnimation.value = (now%60000)/60000;
-          matMeshClone.rotation.y = (now%5000)/5000*Math.PI*2;
-        } else {
-          animation.update(posePosition);
-        }
-      };
-
-      return object;
-    })();
-    itemMesh.position.copy(position);
-    itemMesh.quaternion.copy(quaternion);
-    mesh.add(itemMesh);
-    itemMeshes.push(itemMesh);
   };
   const _removeVegetationPhysics = index => {
     const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
