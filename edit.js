@@ -1844,7 +1844,7 @@ const [
           quaternion.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 3*Float32Array.BYTES_PER_ELEMENT)/Float32Array.BYTES_PER_ELEMENT);
         }, offset => {
           const numSubparcels = callStack.ou32[offset++];
-          console.log('num subparcels add', numSubparcels);
+          // console.log('num subparcels add', numSubparcels);
           for (let i = 0; i < numSubparcels; i++) {
             const positionsFreeEntry = callStack.ou32[offset++];
             const uvsFreeEntry = callStack.ou32[offset++];
@@ -1882,7 +1882,7 @@ const [
               skyLightsCount,
               torchLightsCount,
             }); */
-            const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
+            /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
               const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
               const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
               const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
@@ -1895,7 +1895,7 @@ const [
             const indices = _decodeArenaEntry(vegetationAllocators.indices, indicesFreeEntry, Uint32Array);
             const skyLights = _decodeArenaEntry(vegetationAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
             const torchLights = _decodeArenaEntry(vegetationAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-            console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights});
+            console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
 
             currentVegetationMesh.updateGeometry({
               positionsStart,
