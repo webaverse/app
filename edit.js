@@ -4793,7 +4793,7 @@ function animate(timestamp, frame) {
           };
           switch (selectedWeapon) {
             case 'rifle': {
-              _hit()
+              _hit();
               localVector2.copy(assaultRifleMesh.position)
                 .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(assaultRifleMesh.quaternion));
               _explode(localVector2, assaultRifleMesh.quaternion);
