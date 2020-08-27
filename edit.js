@@ -1790,7 +1790,10 @@ const [
         const pointOffset = scratchStack.f32.byteOffset + 14*Float32Array.BYTES_PER_ELEMENT;
         const normalOffset = scratchStack.f32.byteOffset + 17*Float32Array.BYTES_PER_ELEMENT;
         const distanceOffset = scratchStack.f32.byteOffset + 20*Float32Array.BYTES_PER_ELEMENT;
-        const objectOffset = scratchStack.f32.byteOffset + 21*Float32Array.BYTES_PER_ELEMENT;
+        const objectIdOffset = scratchStack.u32.byteOffset + 21*Float32Array.BYTES_PER_ELEMENT;
+        const positionOffset = scratchStack.u32.byteOffset + 22*Float32Array.BYTES_PER_ELEMENT;
+        const quaternionOffset = scratchStack.u32.byteOffset + 25*Float32Array.BYTES_PER_ELEMENT;
+        // const objectOffset = scratchStack.f32.byteOffset + 21*Float32Array.BYTES_PER_ELEMENT;
         // const faceIndexOffset = scratchStack.f32.byteOffset + 22*Float32Array.BYTES_PER_ELEMENT;
 
         /* const raycastArgs = {
@@ -1816,15 +1819,14 @@ const [
           pointOffset,
           normalOffset,
           distanceOffset,
-          objectOffset,
+          objectIdOffset,
+          positionOffset,
+          quaternionOffset,
           // faceIndexOffset
         );
         const objectId = scratchStack.u32[21];
-        const objectType = scratchStack.i32[22];
-        const objectNameLength = _getStringLength(scratchStack.u8, 23 * Uint32Array.BYTES_PER_ELEMENT);
-        const objectName = new TextDecoder().decode(new Uint8Array(moduleInstance.buffer, 23 * Uint32Array.BYTES_PER_ELEMENT, objectNameLength));
-        const objectPosition = scratchStack.f32.slice(23 + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT, 23 + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 3);
-        const objectQuaternion = scratchStack.f32.slice(23 + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 3, 23 + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 3 + 4);
+        const objectPosition = scratchStack.f32.slice(22, 25);
+        const objectQuaternion = scratchStack.f32.slice(25, 29);
 
         return scratchStack.u32[13] ? {
           point: scratchStack.f32.slice(14, 17),
@@ -1833,8 +1835,6 @@ const [
           meshId: scratchStack.u32[21],
           // faceIndex: scratchStack.u32[22],
           objectId,
-          objectType,
-          objectName,
           objectPosition,
           objectQuaternion,
         } : null;
