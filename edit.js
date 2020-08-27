@@ -104,6 +104,45 @@ const _getStringLength = (uint8Array, offset) => {
   }
   return i;
 };
+const _makeHitTracker = (onDmg, onPositionUpdate, onColorUpdate, onRemove) => {
+  let animation = null;
+  return {
+    hit(id, position, quaternion, dmg) {
+      if (animation) {
+        animation.end();
+        animation = null;
+      }
+
+      if (onDmg(id, dmg)) {
+        const startTime = Date.now();
+        const endTime = startTime + 500;
+        animation = {
+          update() {
+            const now = Date.now();
+            const factor = (now - startTime) / (endTime - startTime);
+            if (factor < 1) {
+              localVector2.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2)
+              onPositionUpdate(localVector2);
+            } else {
+              animation.end();
+              animation = null;
+            }
+          },
+          end() {
+            onPositionUpdate(localVector2.set(0, 0, 0));
+            onColorUpdate(false);
+          },
+        };
+        onColorUpdate(true);
+      } else {
+        onRemove(position, quaternion);
+      }
+    },
+    update() {
+      animation && animation.update();
+    },
+  };
+};
 const _makeHeightfieldShader = land => ({
   uniforms: {
     uTime: {
@@ -2471,15 +2510,24 @@ const [
           slabs[index] = null;
         }
       };
-      mesh.hitVegetation = _makeHitTracker(vegetationPosition, vegetationQuaternion, 100, (originalPosition, positionOffset) => {
+      let hps = {};
+      mesh.hitVegetation = _makeHitTracker((id, dmg) => {
+        if (!(id in hps)) {
+          hps[id] = 100;
+        }
+        hps[id] = Math.max(dmg, 0);
+        return hps[id] > 0;
+      }, (positionOffset) => {
         currentVegetationMesh.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
         currentVegetationMesh.material[0].uniforms.uSelectPosition.needsUpdate = true;
       }, color => {
         const id = color ? vegetationId : -1;
         currentVegetationMesh.material[0].uniforms.uSelectId.value = id;
         currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-      }, () => {
-        const subparcelPosition = new THREE.Vector3(
+      }, (position, quaternion) => {
+        _addItem(position, quaternion);
+
+        /* const subparcelPosition = new THREE.Vector3(
           Math.floor(vegetationPosition.x/subparcelSize),
           Math.floor(vegetationPosition.y/subparcelSize),
           Math.floor(vegetationPosition.z/subparcelSize)
@@ -2487,17 +2535,25 @@ const [
         planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
           subparcel.removeVegetation(vegetationId);
         });
-        mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
+        mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z); */
       });
-      mesh.hitAnimal = _makeHitTracker(vegetationPosition, vegetationQuaternion, 100, (originalPosition, positionOffset) => {
+      mesh.hitAnimal = _makeHitTracker((id, dmg) => {
+        if (!(id in hps)) {
+          hps[id] = 100;
+        }
+        hps[id] = Math.max(dmg, 0);
+        return hps[id] > 0;
+      }, (positionOffset) => {
         currentVegetationMesh.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
         currentVegetationMesh.material[0].uniforms.uSelectPosition.needsUpdate = true;
       }, color => {
         const id = color ? vegetationId : -1;
         currentVegetationMesh.material[0].uniforms.uSelectId.value = id;
         currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-      }, () => {
-        const subparcelPosition = new THREE.Vector3(
+      }, (position, quaternion) => {
+        _addItem(position, quaternion);
+
+        /* const subparcelPosition = new THREE.Vector3(
           Math.floor(vegetationPosition.x/subparcelSize),
           Math.floor(vegetationPosition.y/subparcelSize),
           Math.floor(vegetationPosition.z/subparcelSize)
@@ -2505,7 +2561,7 @@ const [
         planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
           subparcel.removeVegetation(vegetationId);
         });
-        mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
+        mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z); */
       });
       
       return mesh;
@@ -3366,50 +3422,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     itemMesh.quaternion.copy(quaternion);
     mesh.add(itemMesh);
     itemMeshes.push(itemMesh);
-  };
-  const _makeHitTracker = (position, quaternion, hp, onPositionUpdate, onColorUpdate, onRemove) => {
-    const originalPosition = position.clone();
-    const originalQuaternion = quaternion.clone();
-    let animation = null;
-    return {
-      hit(dmg) {
-        if (animation) {
-          animation.end();
-          animation = null;
-        }
-
-        hp = Math.max(hp - dmg, 0);
-        if (hp > 0) {
-          const startTime = Date.now();
-          const endTime = startTime + 500;
-          animation = {
-            update() {
-              const now = Date.now();
-              const factor = (now - startTime) / (endTime - startTime);
-              if (factor < 1) {
-                localVector2.set(-1+Math.random()*2, -1+Math.random()*2, -1+Math.random()*2).multiplyScalar((1-factor)*0.2/2)
-                onPositionUpdate(originalPosition, localVector2);
-              } else {
-                animation.end();
-                animation = null;
-              }
-            },
-            end() {
-              onPositionUpdate(originalPosition, localVector2.set(0, 0, 0));
-              onColorUpdate(false);
-            },
-          };
-          onColorUpdate(true);
-        } else {
-          _addItem(originalPosition, originalQuaternion);
-
-          onRemove();
-        }
-      },
-      update() {
-        animation && animation.update();
-      },
-    };
   };
   const _removeVegetationPhysics = index => {
     const subparcelVegetationMeshesSpec = mesh.vegetationMeshes[index];
@@ -4823,9 +4835,9 @@ function animate(timestamp, frame) {
 
                 geometryWorker.requestMine(tracker, localVector2, -0.3);
               } else if (raycastChunkSpec.objectName !== 'spawner') {
-                currentVegetationMesh.hitVegetation(30);
+                currentVegetationMesh.hitVegetation(raycastChunkSpec.objectId, raycastChunkSpec.objectPosition, raycastChunkSpec.objectQuaternion, 30);
               } else {
-                currentVegetationMesh.hitAnimal(30);
+                currentVegetationMesh.hitAnimal(raycastChunkSpec.objectId, raycastChunkSpec.objectPosition, raycastChunkSpec.objectQuaternion, 30);
               }
             }
           };
