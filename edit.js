@@ -95,6 +95,15 @@ const _loadGltf = u => new Promise((accept, reject) => {
     accept(o);
   }, xhr => {}, reject);
 });
+const _getStringLength = (uint8Array, offset) => {
+  let i;
+  for (i = 0; i < uint8Array.length; i++, offset++) {
+    if (uint8Array[offset] === 0) {
+      break;
+    }
+  }
+  return i;
+};
 const _makeHeightfieldShader = land => ({
   uniforms: {
     uTime: {
@@ -1622,8 +1631,8 @@ const [
         const pointOffset = scratchStack.f32.byteOffset + 14*Float32Array.BYTES_PER_ELEMENT;
         const normalOffset = scratchStack.f32.byteOffset + 17*Float32Array.BYTES_PER_ELEMENT;
         const distanceOffset = scratchStack.f32.byteOffset + 20*Float32Array.BYTES_PER_ELEMENT;
-        const meshIdOffset = scratchStack.f32.byteOffset + 21*Float32Array.BYTES_PER_ELEMENT;
-        const faceIndexOffset = scratchStack.f32.byteOffset + 22*Float32Array.BYTES_PER_ELEMENT;
+        const objectOffset = scratchStack.f32.byteOffset + 21*Float32Array.BYTES_PER_ELEMENT;
+        // const faceIndexOffset = scratchStack.f32.byteOffset + 22*Float32Array.BYTES_PER_ELEMENT;
 
         /* const raycastArgs = {
           origin: allocator.alloc(Float32Array, 3),
@@ -1648,16 +1657,28 @@ const [
           pointOffset,
           normalOffset,
           distanceOffset,
-          meshIdOffset,
-          faceIndexOffset
+          objectOffset,
+          // faceIndexOffset
         );
+        
+        const objectId = scratchStack.u32[21];
+        const objectType = scratchStack.i32[22];
+        const objectNameLength = _getStringLength(scratchStack.u8, 23 * Uint32Array.BYTES_PER_ELEMENT);
+        const objectName = new TextDecoder().decode(new Uint8Array(moduleInstance.buffer, 23 * Uint32Array.BYTES_PER_ELEMENT, objectNameLength));
+        const objectPosition = p.fromArray(scratchStack.f32, 23 + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT);
+        const objectQuaternion = q.fromArray(scratchStack.f32, 23 + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 3);
 
         return scratchStack.u32[13] ? {
           point: scratchStack.f32.slice(14, 17),
           normal: scratchStack.f32.slice(17, 20),
           distance: scratchStack.f32[20],
           meshId: scratchStack.u32[21],
-          faceIndex: scratchStack.u32[22],
+          // faceIndex: scratchStack.u32[22],
+          objectId,
+          objectType,
+          objectName,
+          objectPosition,
+          objectQuaternion,
         } : null;
       };
       w.collide = (tracker, radius, halfHeight, p, q, maxIter) => {
@@ -2450,6 +2471,43 @@ const [
           slabs[index] = null;
         }
       };
+      mesh.hitVegetation = _makeHitTracker(vegetationPosition, vegetationQuaternion, 100, (originalPosition, positionOffset) => {
+        currentVegetationMesh.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
+        currentVegetationMesh.material[0].uniforms.uSelectPosition.needsUpdate = true;
+      }, color => {
+        const id = color ? vegetationId : -1;
+        currentVegetationMesh.material[0].uniforms.uSelectId.value = id;
+        currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+      }, () => {
+        const subparcelPosition = new THREE.Vector3(
+          Math.floor(vegetationPosition.x/subparcelSize),
+          Math.floor(vegetationPosition.y/subparcelSize),
+          Math.floor(vegetationPosition.z/subparcelSize)
+        );
+        planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
+          subparcel.removeVegetation(vegetationId);
+        });
+        mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
+      });
+      mesh.hitAnimal = _makeHitTracker(vegetationPosition, vegetationQuaternion, 100, (originalPosition, positionOffset) => {
+        currentVegetationMesh.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
+        currentVegetationMesh.material[0].uniforms.uSelectPosition.needsUpdate = true;
+      }, color => {
+        const id = color ? vegetationId : -1;
+        currentVegetationMesh.material[0].uniforms.uSelectId.value = id;
+        currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+      }, () => {
+        const subparcelPosition = new THREE.Vector3(
+          Math.floor(vegetationPosition.x/subparcelSize),
+          Math.floor(vegetationPosition.y/subparcelSize),
+          Math.floor(vegetationPosition.z/subparcelSize)
+        );
+        planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
+          subparcel.removeVegetation(vegetationId);
+        });
+        mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z);
+      });
+      
       return mesh;
     };
     const context = renderer.getContext();
@@ -4563,9 +4621,11 @@ function animate(timestamp, frame) {
         const result = geometryWorker.raycast(tracker, localVector, localQuaternion);
         raycastChunkSpec = result;
         if (raycastChunkSpec) {
-          raycastChunkSpec.mesh = _findMeshWithMeshId(raycastChunkSpec.meshId);
+          // raycastChunkSpec.mesh = _findMeshWithMeshId(raycastChunkSpec.meshId);
           raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
           raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
+          raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
+          raycastChunkSpec.objectQuaternion = new THREE.Quaternion().fromArray(raycastChunkSpec.objectQuaternion);
         }
       }
 
@@ -4757,13 +4817,15 @@ function animate(timestamp, frame) {
           };
           const _hit = () => {
             if (raycastChunkSpec) {
-              if (raycastChunkSpec.mesh.isChunkMesh) {
+              if (raycastChunkSpec.objectId === 0) {
                 localVector2.copy(raycastChunkSpec.point)
                   .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
 
                 geometryWorker.requestMine(tracker, localVector2, -0.3);
-              } else if (raycastChunkSpec.mesh.isVegetationMesh || raycastChunkSpec.mesh.isAnimalMesh) {
-                raycastChunkSpec.mesh.hit(30);
+              } else if (raycastChunkSpec.objectName !== 'spawner') {
+                currentVegetationMesh.hitVegetation(30);
+              } else {
+                currentVegetationMesh.hitAnimal(30);
               }
             }
           };
