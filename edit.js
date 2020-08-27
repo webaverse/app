@@ -1699,13 +1699,12 @@ const [
           objectOffset,
           // faceIndexOffset
         );
-        
         const objectId = scratchStack.u32[21];
         const objectType = scratchStack.i32[22];
         const objectNameLength = _getStringLength(scratchStack.u8, 23 * Uint32Array.BYTES_PER_ELEMENT);
         const objectName = new TextDecoder().decode(new Uint8Array(moduleInstance.buffer, 23 * Uint32Array.BYTES_PER_ELEMENT, objectNameLength));
-        const objectPosition = p.fromArray(scratchStack.f32, 23 + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT);
-        const objectQuaternion = q.fromArray(scratchStack.f32, 23 + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 3);
+        const objectPosition = scratchStack.f32.slice(23 + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT, 23 + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 3);
+        const objectQuaternion = scratchStack.f32.slice(23 + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 3, 23 + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 3 + 4);
 
         return scratchStack.u32[13] ? {
           point: scratchStack.f32.slice(14, 17),
