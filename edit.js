@@ -130,10 +130,10 @@ const _makeHitTracker = (onDmg, onPositionUpdate, onColorUpdate, onRemove) => {
           },
           end() {
             onPositionUpdate(localVector2.set(0, 0, 0));
-            onColorUpdate(false);
+            onColorUpdate(-1);
           },
         };
-        onColorUpdate(true);
+        onColorUpdate(id);
       } else {
         onRemove(position, quaternion);
       }
@@ -2510,7 +2510,7 @@ const [
         }
       };
       let hps = {};
-      mesh.hitVegetation = _makeHitTracker((id, dmg) => {
+      mesh.hitTracker = _makeHitTracker((id, dmg) => {
         if (!(id in hps)) {
           hps[id] = 100;
         }
@@ -2519,34 +2519,7 @@ const [
       }, (positionOffset) => {
         currentVegetationMesh.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
         currentVegetationMesh.material[0].uniforms.uSelectPosition.needsUpdate = true;
-      }, color => {
-        const id = color ? vegetationId : -1;
-        currentVegetationMesh.material[0].uniforms.uSelectId.value = id;
-        currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-      }, (position, quaternion) => {
-        _addItem(position, quaternion);
-
-        /* const subparcelPosition = new THREE.Vector3(
-          Math.floor(vegetationPosition.x/subparcelSize),
-          Math.floor(vegetationPosition.y/subparcelSize),
-          Math.floor(vegetationPosition.z/subparcelSize)
-        );
-        planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-          subparcel.removeVegetation(vegetationId);
-        });
-        mesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z); */
-      });
-      mesh.hitAnimal = _makeHitTracker((id, dmg) => {
-        if (!(id in hps)) {
-          hps[id] = 100;
-        }
-        hps[id] = Math.max(dmg, 0);
-        return hps[id] > 0;
-      }, (positionOffset) => {
-        currentVegetationMesh.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
-        currentVegetationMesh.material[0].uniforms.uSelectPosition.needsUpdate = true;
-      }, color => {
-        const id = color ? vegetationId : -1;
+      }, id => {
         currentVegetationMesh.material[0].uniforms.uSelectId.value = id;
         currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
       }, (position, quaternion) => {
@@ -4598,6 +4571,9 @@ function animate(timestamp, frame) {
       uniforms.sunIntensity.needsUpdate = true;
     }
   }
+  if (currentVegetationMesh) {
+    currentVegetationMesh.hitTracker.update();
+  }
   explosionMeshes = explosionMeshes.filter(explosionMesh => {
     explosionMesh.material.uniforms.uAnimation.value += timeDiff;
     if (explosionMesh.material.uniforms.uAnimation.value < 1) {
@@ -4833,10 +4809,8 @@ function animate(timestamp, frame) {
                   .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
 
                 geometryWorker.requestMine(tracker, localVector2, -0.3);
-              } else if (raycastChunkSpec.objectName !== 'spawner') {
-                currentVegetationMesh.hitVegetation(raycastChunkSpec.objectId, raycastChunkSpec.objectPosition, raycastChunkSpec.objectQuaternion, 30);
               } else {
-                currentVegetationMesh.hitAnimal(raycastChunkSpec.objectId, raycastChunkSpec.objectPosition, raycastChunkSpec.objectQuaternion, 30);
+                currentVegetationMesh.hitTracker.hit(raycastChunkSpec.objectId, raycastChunkSpec.objectPosition, raycastChunkSpec.objectQuaternion, 30);
               }
             }
           };
