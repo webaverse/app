@@ -5307,9 +5307,9 @@ function animate(timestamp, frame) {
 
   geometryWorker && geometryWorker.update();
 
-  localFrustum.setFromProjectionMatrix(
+  // localFrustum.setFromProjectionMatrix(
     localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, worldContainer.matrixWorld))
-  );
+  // );
   if (currentChunkMesh && currentVegetationMesh) {
     localMatrix3.copy(pe.camera.matrixWorld)
       .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
