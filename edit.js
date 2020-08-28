@@ -2296,9 +2296,10 @@ const [
             const positions = _decodeArenaEntry(landAllocators.positions, positionsFreeEntry, Float32Array);
             const normals = _decodeArenaEntry(landAllocators.normals, normalsFreeEntry, Float32Array);
             const uvs = _decodeArenaEntry(landAllocators.uvs, uvsFreeEntry, Float32Array);
+            const aos = _decodeArenaEntry(landAllocators.aos, aosFreeEntry, Uint8Array);
             const skyLights = _decodeArenaEntry(landAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
             const torchLights = _decodeArenaEntry(landAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-            console.log('got positions', {positions, normals, uvs, skyLights, torchLights}); */
+            console.log('got positions', {positions, normals, uvs, aos, skyLights, torchLights}); */
 
             currentChunkMesh.updateGeometry({
               positionsStart,
