@@ -589,10 +589,10 @@ ${land ? '' : `\
 
     void main() {
       vec2 worldUv = vWorldUv;
-      ${land ? '' : `\
+      /* ${land ? '' : `\
       vec3 view_dir = normalize(ts_view_pos - ts_frag_pos);
       worldUv = parallaxMap(vUv, worldUv, view_dir);
-      `}
+      `} */
       worldUv = mod(worldUv, 1.0);
 
       vec3 c = fourTapSample3(vUv, worldUv, tex);
