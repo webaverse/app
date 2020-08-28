@@ -3278,6 +3278,14 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   };
   const currentPosition = new THREE.Vector3(NaN, NaN, NaN);
   mesh.currentPosition = currentPosition;
+  /* window.getCurrentSubparcel = () => {
+    localVector.set(
+      Math.floor(currentPosition.x/SUBPARCEL_SIZE),
+      Math.floor(currentPosition.y/SUBPARCEL_SIZE),
+      Math.floor(currentPosition.z/SUBPARCEL_SIZE)
+    );
+    return window.getSubparcel(localVector.x, localVector.y, localVector.z);
+  }; */
   const marchesTasks = [];
   const vegetationsTasks = [];
   const animalsTasks = [];
