@@ -1320,7 +1320,7 @@ const [
           }
           {
             const subparcelSharedPtr = callStack.ou32[offset++];
-            w.requestReleaseSubparcel(subparcelSharedPtr);
+            w.requestReleaseSubparcel(tracker, subparcelSharedPtr);
           }
         },
       };
@@ -2003,9 +2003,10 @@ const [
         });
       });
       window.getSubparcel = (x, y, z) => w.getSubparcel(tracker, x, y, z);
-      w.requestReleaseSubparcel = subparcelSharedPtr => new Promise((accept, reject) => {
-        callStack.allocRequest(METHODS.releaseSubparcel, 1, true, offset => {
-          callStack.u32[offset] = subparcelSharedPtr;
+      w.requestReleaseSubparcel = (tracker, subparcelSharedPtr) => new Promise((accept, reject) => {
+        callStack.allocRequest(METHODS.releaseSubparcel, 2, true, offset => {
+          callStack.u32[offset] = tracker;
+          callStack.u32[offset + 1] = subparcelSharedPtr;
         }, offset => {
           accept();
         });
