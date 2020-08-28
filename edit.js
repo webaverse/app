@@ -2125,58 +2125,6 @@ const [
           });
         });
       });
-      w.update = () => {
-        if (moduleInstance) {
-          if (currentChunkMesh) {
-            moduleInstance._tickTracker(
-              tracker,
-              threadPool,
-              geometrySet,
-              currentChunkMesh.currentPosition.x,
-              currentChunkMesh.currentPosition.y,
-              currentChunkMesh.currentPosition.z
-            );
-          }
-
-          moduleInstance._tick(
-            threadPool,
-            callStack.ptr,
-            callStack.numEntries,
-            callStack.outPtr,
-            callStack.outNumEntriesPtr
-          );
-          callStack.reset();
-          const numMessages = callStack.outNumEntriesU32[0];
-          let index = 0;
-          for (let i = 0; i < numMessages; i++) {
-            const id = callStack.oi32[index];
-            const method = callStack.oi32[index + 1];
-            // const priority = callStack.ou32[index + 2];
-            const count = callStack.ou32[index + 3];
-
-            if (id > 0) {
-              const cb = cbIndex.get(id);
-              if (cb) {
-                cb(index + 4);
-                cbIndex.delete(id);
-              } else {
-                throw new Error('invalid callback id: ' + id);
-              }
-            } else if (id === -1) {
-              const cb = MESSAGES[method];
-              if (cb) {
-                cb(index + 4);
-              } else {
-                throw new Error('invalid message method: ' + method);
-              }
-            } else {
-              throw new Error('invalid id: ' + id);
-            }
-
-            index += 4 + count;
-          }
-        }
-      };
       w.requestMine = (tracker, p, delta) => new Promise((accept, reject) => {
         callStack.allocRequest(METHODS.mine, 256, true, offset => {
           callStack.u32[offset] = tracker;
@@ -2257,6 +2205,163 @@ const [
           });
         });
       });
+      w.requestLight = (tracker, p, delta) => new Promise((accept, reject) => {
+        callStack.allocRequest(METHODS.light, 256, true, offset => {
+          callStack.u32[offset] = tracker;
+          p.toArray(callStack.f32, offset + 1);
+          callStack.f32[offset + 4] = delta;
+        }, offset => {
+          const numSubparcels = callStack.ou32[offset++];
+          for (let i = 0; i < numSubparcels; i++) {
+            {
+              const positionsFreeEntry = callStack.ou32[offset++];
+              const normalsFreeEntry = callStack.ou32[offset++];
+              const uvsFreeEntry = callStack.ou32[offset++];
+              const aosFreeEntry = callStack.ou32[offset++];
+              const idsFreeEntry = callStack.ou32[offset++];
+              const skyLightsFreeEntry = callStack.ou32[offset++];
+              const torchLightsFreeEntry = callStack.ou32[offset++];
+
+              const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+              const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+              const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+              const aosStart = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+              const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+              const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+              const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+
+              const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+              const normalsCount = moduleInstance.HEAPU32[normalsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+              const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+              const aosCount = moduleInstance.HEAPU32[aosFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+              const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+              const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+              const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+
+              currentChunkMesh.updateGeometry({
+                positionsStart,
+                normalsStart,
+                uvsStart,
+                aosStart,
+                idsStart,
+                skyLightsStart,
+                torchLightsStart,
+
+                positionsCount,
+                normalsCount,
+                uvsCount,
+                aosCount,
+                idsCount,
+                skyLightsCount,
+                torchLightsCount,
+              });
+            }
+            {
+              const positionsFreeEntry = callStack.ou32[offset++];
+              const uvsFreeEntry = callStack.ou32[offset++];
+              const idsFreeEntry = callStack.ou32[offset++];
+              const indicesFreeEntry = callStack.ou32[offset++];
+              const skyLightsFreeEntry = callStack.ou32[offset++];
+              const torchLightsFreeEntry = callStack.ou32[offset++];
+
+              const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+              const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+              const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+              const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+              const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+              const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+
+              const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+              const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+              const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+              const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+              const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+              const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+
+              currentVegetationMesh.updateGeometry({
+                positionsStart,
+                uvsStart,
+                idsStart,
+                indicesStart,
+                skyLightsStart,
+                torchLightsStart,
+
+                positionsCount,
+                uvsCount,
+                idsCount,
+                indicesCount,
+                skyLightsCount,
+                torchLightsCount,
+              });
+            }
+          }
+          callStack.allocRequest(METHODS.releaseLight, 32, true, offset2 => {
+            callStack.u32[offset2++] = tracker;
+            
+            callStack.u32[offset2++] = numSubparcels;
+
+            for (let i = 0; i < numSubparcels; i++) {
+              const subparcelSharedPtr = callStack.ou32[offset++];
+              callStack.u32[offset2++] = subparcelSharedPtr;
+            }
+          }, offset => {
+            // console.log('done release', numSubparcels);
+            accept();
+          });
+        });
+      });
+      w.update = () => {
+        if (moduleInstance) {
+          if (currentChunkMesh) {
+            moduleInstance._tickTracker(
+              tracker,
+              threadPool,
+              geometrySet,
+              currentChunkMesh.currentPosition.x,
+              currentChunkMesh.currentPosition.y,
+              currentChunkMesh.currentPosition.z
+            );
+          }
+
+          moduleInstance._tick(
+            threadPool,
+            callStack.ptr,
+            callStack.numEntries,
+            callStack.outPtr,
+            callStack.outNumEntriesPtr
+          );
+          callStack.reset();
+          const numMessages = callStack.outNumEntriesU32[0];
+          let index = 0;
+          for (let i = 0; i < numMessages; i++) {
+            const id = callStack.oi32[index];
+            const method = callStack.oi32[index + 1];
+            // const priority = callStack.ou32[index + 2];
+            const count = callStack.ou32[index + 3];
+
+            if (id > 0) {
+              const cb = cbIndex.get(id);
+              if (cb) {
+                cb(index + 4);
+                cbIndex.delete(id);
+              } else {
+                throw new Error('invalid callback id: ' + id);
+              }
+            } else if (id === -1) {
+              const cb = MESSAGES[method];
+              if (cb) {
+                cb(index + 4);
+              } else {
+                throw new Error('invalid message method: ' + method);
+              }
+            } else {
+              throw new Error('invalid id: ' + id);
+            }
+
+            index += 4 + count;
+          }
+        }
+      };
       return w;
     })();
     planet.setGeometryWorker(geometryWorker);
@@ -4845,7 +4950,12 @@ function animate(timestamp, frame) {
           };
           const _paint = () => {
             if (raycastChunkSpec) {
-              if (raycastChunkSpec.mesh.isChunkMesh || raycastChunkSpec.mesh.isVegetationMesh) {
+              localVector2.copy(raycastChunkSpec.point)
+                .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+
+              geometryWorker.requestLight(tracker, localVector2, 4);
+
+              /* if (raycastChunkSpec.mesh.isChunkMesh || raycastChunkSpec.mesh.isVegetationMesh) {
                 _applyLightfieldDelta(raycastChunkSpec.point, 4);
 
                 localVector2.copy(raycastChunkSpec.point)
@@ -4854,7 +4964,7 @@ function animate(timestamp, frame) {
                 localVector2.y = Math.floor(localVector2.y / SUBPARCEL_SIZE);
                 localVector2.z = Math.floor(localVector2.z / SUBPARCEL_SIZE);
                 currentChunkMesh.updateSlab(localVector2.x, localVector2.y, localVector2.z);
-              }
+              } */
             }
           };
           const _explode = (position, quaternion) => {
