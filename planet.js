@@ -15,12 +15,8 @@ import {
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 
 const presenceHost = 'wss://rtc.exokit.org:4443';
-export const OBJECT_TYPES = {
-  VEGETATION: 1,
-  PACKAGE: 2,
-};
 
-const upVector = new THREE.Vector3(0, 1, 0);
+// const upVector = new THREE.Vector3(0, 1, 0);
 
 function abs(n) {
   return (n ^ (n >> 31)) - (n >> 31);
@@ -48,24 +44,16 @@ const _getSubparcelIndex = (x, y, z) => abs(x)|(abs(y)<<9)|(abs(z)<<18)|(sign(x)
 }; */
 const _getPotentialIndex = (x, y, z) => (x+1) + (y+1)*SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3 + (z+1)*SUBPARCEL_SIZE_P3;
 const _getFieldIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + z*SUBPARCEL_SIZE_P1;
-const potentialDefault = -0.5;
 
 // planet
 
 export const planet = new EventTarget();
 
 let state = null;
-let subparcels = {};
-const dirtySubparcels = [];
 
 planet.getSubparcelIndex = _getSubparcelIndex;
 planet.getPotentialIndex = _getPotentialIndex;
 planet.getFieldIndex = _getFieldIndex;
-
-let geometryWorker = null;
-planet.setGeometryWorker = gw => {
-  geometryWorker = gw;
-};
 
 const _getStringLength = s => {
   let i;
@@ -76,79 +64,11 @@ const _getStringLength = s => {
   }
   return i;
 };
-/* const _serializeState = state => {
-  const offsets = Subparcel.getOffsets();
-  const numSubparcels = Object.keys(subparcels).length;
-  const ab = new ArrayBuffer(
-    MAX_NAME_LENGTH + // seedString
-    Uint32Array.BYTES_PER_ELEMENT + // parcelSize
-    Uint32Array.BYTES_PER_ELEMENT + // subparcelSize
-    Uint32Array.BYTES_PER_ELEMENT + // subparcels.length
-    offsets.length * numSubparcels // subparcels
-  );
 
-  let index = 0;
-  const seedStringDst = new Uint8Array(ab);
-  const seedStringSrc = new TextEncoder().encode(state.seedString);
-  seedStringDst.set(seedStringSrc);
-  seedStringDst[seedStringSrc.byteLength] = 0;
-  index += MAX_NAME_LENGTH;
-
-  new Uint32Array(ab, index)[0] = state.parcelSize;
-  index += Uint32Array.BYTES_PER_ELEMENT;
-
-  new Uint32Array(ab, index)[0] = state.subparcelSize;
-  index += Uint32Array.BYTES_PER_ELEMENT;
-
-  new Uint32Array(ab, index)[0] = numSubparcels;
-  index += Uint32Array.BYTES_PER_ELEMENT;
-
-  for (const index in subparcels) {
-    const subparcel = subparcels[index];
-    new Uint8Array(ab, index, offsets.length)
-      .set(
-        new Uint8Array(subparcel.data, subparcel.offset, offsets.length)
-      );
-    index += offsets.length;
-  }
-
-  return ab;
+export const OBJECT_TYPES = {
+  VEGETATION: 1,
+  PACKAGE: 2,
 };
-const _deserializeState = ab => {
-  const offsets = Subparcel.getOffsets();
-
-  let index = 0;
-  const seedStringLength = _getStringLength(new Uint8Array(ab));
-  const seedString = new TextDecoder().decode(new Uint8Array(ab, 0, seedStringLength));
-  index += MAX_NAME_LENGTH;
-
-  const parcelSize = new Uint32Array(ab, index, 1)[0];
-  index += Uint32Array.BYTES_PER_ELEMENT;
-
-  const subparcelSize = new Uint32Array(ab, index, 1)[0];
-  index += Uint32Array.BYTES_PER_ELEMENT;
-
-  const numSubparcels = new Uint32Array(ab, index, 1)[0];
-  index += Uint32Array.BYTES_PER_ELEMENT;
-
-  const subparcels = {};
-  for (let i = 0; i < numSubparcels; i++) {
-    const subparcel = new Subparcel(ab, index);
-    subparcel.readMetadata();
-    subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
-    const index = _getSubparcelIndex(subparcel.x, subparcel.y, subparcel.z);
-    subparcels[index] = subparcel;
-    index += offsets.length;
-  }
-
-  return {
-    seedString,
-    parcelSize,
-    subparcelSize,
-    subparcels,
-  };
-}; */
-
 export class SubparcelObject {
   constructor(data, offset, index, subparcel) {
     this.data = data;
@@ -398,79 +318,6 @@ Subparcel.offsets = (() => {
   };
 })();
 planet.Subparcel = Subparcel;
-
-/* const _addSubparcel = (x, y, z, index) => {
-  const subparcel = new Subparcel();
-  subparcel.x = x;
-  subparcel.y = y;
-  subparcel.z = z;
-  subparcel.index = index;
-  subparcel.writeMetadata();
-  // subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
-  subparcels[index] = subparcel;
-  return subparcel;
-}; */
-/* planet.getSubparcelByIndex = index => {
-  let subparcel = subparcels[index];
-  if (!subparcel) {
-    const [x, y, z] = _getSubparcelXYZ(index);
-    subparcel = _addSubparcel(x, y, z, index);
-  }
-  return subparcel;
-}; */
-planet.peekSubparcelByIndex = index => subparcels[index] || null;
-/* planet.getSubparcel = (x, y, z) => {
-  const index = _getSubparcelIndex(x, y, z);
-  let subparcel = subparcels[index];
-  if (!subparcel) {
-    subparcel = _addSubparcel(x, y, z, index);
-  }
-  return subparcel;
-}; */
-planet.peekSubparcel = (x, y, z) => subparcels[_getSubparcelIndex(x, y, z)] || null;
-planet.allocSubparcel = async (x, y, z, seedNum, meshId, baseHeight) => {
-  const subparcel = new Subparcel();
-  subparcel.x = x;
-  subparcel.y = y;
-  subparcel.z = z;
-  const index = _getSubparcelIndex(x, y, z);
-  subparcel.index = index;
-  subparcel.load = (async () => {
-    const uint8Array = geometryWorker.alloc(Uint8Array, Subparcel.offsets.initialLength);
-    subparcel.latchData(uint8Array.buffer, uint8Array.byteOffset);
-    // console.log('subparcel size', Subparcel.offsets.initialLength, uint8Array.byteOffset);
-    // subparcel.writeMetadata();
-    await geometryWorker.requestNoise(
-      seedNum,
-      x,
-      y,
-      z,
-      baseHeight,
-      subparcel.offset
-    );/*.then(parcelSpec => {
-      subparcel.potentials.set(parcelSpec.potentials);
-      subparcel.biomes.set(parcelSpec.biomes);
-      subparcel.heightfield.set(parcelSpec.heightfield);
-      for (const object of parcelSpec.objects) {
-        subparcel.addVegetation(object.type < SPAWNER_RATE*0xFFFFFF ? 'spawner' : 'tree1', localVector.fromArray(object.position).add(localVector2.set(0, -0.5, 0)), localQuaternion.fromArray(object.quaternion));
-      }
-    }); */
-    subparcel.reload();
-  })();
-  subparcels[index] = subparcel;
-};
-planet.editSubparcel = (x, y, z, fn) => {
-  /* let index = _getSubparcelIndex(x, y, z);
-  if (!subparcels[index]) {
-    _addSubparcel(x, y, z, index);
-  }
-  const subparcel = subparcels[index]; */
-  const subparcel = this.peekSubparcel(x, y, z);
-  fn(subparcel);
-  if (!dirtySubparcels.includes(subparcel)) {
-    dirtySubparcels.push(subparcel);
-  }
-};
 
 const _loadLiveState = seedString => {
   planet.dispatchEvent(new MessageEvent('unload'));
