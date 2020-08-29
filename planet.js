@@ -280,14 +280,46 @@ export class Subparcel {
     return subparcel;
   }
 }
-planet.requestRemoteSubparcels = async keys => {
-  // XXX return array of subparcel data or null if did not exist
-  return [null, new ArrayBuffer(8), null];
-};
-planet.writeSubparcels = async edits => {
+let locks = {};
+const _lockAll = async keys => {
+  keys.sort();
   const promises = edits.map(async ([key, arrayBuffer]) => {
+    if (!locks[key]) {
+      locks[key] = {locked: false, cbs: []};
+    }
+    if (!locks[key].locked) {
+      locks[key].locked = true;
+    } else {
+      const p = makePromise();
+      locks[key].cbs.push(p.accept);
+      await p;
+    }
   });
   await Promise.all(promises);
+};
+const _unlockAll = keys => {
+  for (const key of keys) {
+    const lock = locks[key];
+    if (lock.cbs.length) {
+      lock.cbs.pop()();
+    } else {
+      lock.locked = false;
+    }
+  }
+};
+planet.requestRemoteSubparcels = async keys => {
+  await _lockAll(keys);
+  const promises = keys.map(key => storage.getRaw(`chunks/${key}`));
+  const result = await Promise.all(promises);
+  _unlockAll(keys);
+  return result;
+};
+planet.writeSubparcels = async edits => {
+  const keys = edits.map(([key]) => key);
+  await _lockAll(keys);
+  const promises = edits.map(async ([key, arrayBuffer]) => storage.setRaw(`chunks/${key}`, arrayBuffer));
+  await Promise.all(promises);
+  _unlockAll(keys);
 };
 planet.onRemoteSubparcelsEdit = edits => {
   // XXX called from the connection when a peer runs an edit
