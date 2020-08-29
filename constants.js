@@ -38,4 +38,4 @@ export function makePromise() {
   p.accept = accept;
   p.reject = reject;
   return p;
-}
+};
