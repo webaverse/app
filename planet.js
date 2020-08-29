@@ -284,8 +284,10 @@ planet.requestRemoteSubparcels = async keys => {
   // XXX return array of subparcel data or null if did not exist
   return [null, new ArrayBuffer(8), null];
 };
-planet.writeSubparcels = async arrayBuffers => {
-  // XXX write out subparcel data to the connection
+planet.writeSubparcels = async edits => {
+  const promises = edits.map(async ([key, arrayBuffer]) => {
+  });
+  await Promise.all(promises);
 };
 planet.onRemoteSubparcelsEdit = edits => {
   // XXX called from the connection when a peer runs an edit
