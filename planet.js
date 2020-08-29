@@ -48,6 +48,7 @@ const _getFieldIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + 
 // planet
 
 export const planet = new EventTarget();
+window.planet = planet;
 
 let state = null;
 
@@ -124,9 +125,8 @@ export class SubparcelObject {
     this.name = new TextDecoder().decode(new Uint8Array(this._name.buffer, this._name.byteOffset, nameLength).slice());
   }
 }
-
 export class Subparcel {
-  constructor(data, offset) {
+  constructor(data = null, offset = 0) {
     this.x = 0;
     this.y = 0;
     this.z = 0;
@@ -280,6 +280,18 @@ export class Subparcel {
     return subparcel;
   }
 }
+planet.makeSubparcel = (x = 0, y = 0, z = 0) => {
+  const subparcel = new Subparcel();
+  subparcel.x = x;
+  subparcel.y = y;
+  subparcel.z = z;
+  subparcel.index = _getSubparcelIndex(x, y, z);
+  const data = new ArrayBuffer(Subparcel.offsets.initialLength);
+  subparcel.latchData(data);
+  subparcel.writeMetadata();
+  return subparcel;
+};
+
 const _align4 = n => {
   const d = n % 4;
   return d ? (n + (4 - d)) : n;
@@ -378,12 +390,12 @@ const _loadLiveState = seedString => {
   };
 })(); */
 const _saveStorage = async roomName => {
-  if (dirtySubparcels.length > 0) {
+  /* if (dirtySubparcels.length > 0) {
     for (const subparcel of dirtySubparcels) {
       await storage.setRaw(`planet/${roomName}/subparcels/${subparcel.x}/${subparcel.y}/${subparcel.z}`, subparcel.data);
     }
     dirtySubparcels.length = 0;
-  }
+  } */
   // const b = _serializeState(state);
   // await storage.setRaw(roomName, b);
 };
@@ -415,7 +427,7 @@ const _loadStorage = async roomName => {
     }));
   }
 
-  const keys = await storage.keys();
+  /* const keys = await storage.keys();
   const prefix = `planet/${roomName}/subparcels/`;
   const promises = [];
   for (const k of keys) {
@@ -438,7 +450,7 @@ const _loadStorage = async roomName => {
   subparcels = {};
   for (const subparcel of subparcelsArray) {
     subparcels[subparcel.index] = subparcel;
-  }
+  } */
 };
 
 planet.flush = () => {
