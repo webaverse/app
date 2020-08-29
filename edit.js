@@ -2364,7 +2364,6 @@ const [
       };
       return w;
     })();
-    planet.setGeometryWorker(geometryWorker);
     await geometryWorker.waitForLoad();
     {
       const seed = Math.floor(alea('lol')() * 0xFFFFFF);
