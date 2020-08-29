@@ -280,6 +280,19 @@ export class Subparcel {
     return subparcel;
   }
 }
+planet.requestRemoteSubparcels = async keys => {
+  // XXX return array of subparcel data or null if did not exist
+  return [null, new ArrayBuffer(8), null];
+};
+planet.writeSubparcels = async arrayBuffers => {
+  // XXX write out subparcel data to the connection
+};
+planet.onRemoteSubparcelsEdit = async edits => {
+  // XXX called from the connection when a peer runs an edit
+  for (const [key, arrayBuffer] of edits) {
+    console.log('got edit', key, arrayBuffer);
+  }
+};
 planet.makeSubparcel = (x = 0, y = 0, z = 0) => {
   const subparcel = new Subparcel();
   subparcel.x = x;
