@@ -287,7 +287,7 @@ planet.requestRemoteSubparcels = async keys => {
 planet.writeSubparcels = async arrayBuffers => {
   // XXX write out subparcel data to the connection
 };
-planet.onRemoteSubparcelsEdit = async edits => {
+planet.onRemoteSubparcelsEdit = edits => {
   // XXX called from the connection when a peer runs an edit
   for (const [key, arrayBuffer] of edits) {
     console.log('got edit', key, arrayBuffer);
