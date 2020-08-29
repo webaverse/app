@@ -37,6 +37,7 @@ import {
   PLANET_OBJECT_SLOTS,
 
   getNextMeshId,
+  makePromise,
 } from './constants.js';
 import alea from './alea.js';
 import easing from './easing.js';
@@ -79,16 +80,6 @@ const cubicBezier = easing(0, 1, 0, 1);
 let skybox = null;
 let skybox2 = null;
 
-function makePromise() {
-  let accept, reject;
-  const p = new Promise((a, r) => {
-    accept = a;
-    reject = r;
-  });
-  p.accept = accept;
-  p.reject = reject;
-  return p;
-}
 const _loadGltf = u => new Promise((accept, reject) => {
   new GLTFLoader().load(u, o => {
     o = o.scene;
