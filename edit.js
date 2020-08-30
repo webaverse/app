@@ -1312,9 +1312,20 @@ const [
         const points = w.alloc(Float32Array, pointsData.length);
         points.set(pointsData);
 
+        const zData = Float32Array.from([
+          0, 30, 10, 0,
+          -10, -30, -20, -10,
+          0,
+        ]);
+        for (let i = 0; i < zData.length; i++) {
+          zData[i] /= 30;
+        }
+        const zs = w.alloc(Float32Array, zData.length);
+        zs.set(zData);
+
         // console.log('earcut 1');
 
-        const earcutResult = moduleInstance._earcut(positions.byteOffset, indices.byteOffset, indicesData.length, points.byteOffset, points.length, 0.5);
+        const earcutResult = moduleInstance._earcut(positions.byteOffset, indices.byteOffset, indicesData.length, points.byteOffset, points.length, 0.5, zs.byteOffset);
 
         // console.log('earcut 2');
 
