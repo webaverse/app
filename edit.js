@@ -1286,6 +1286,107 @@ const [
       const cbIndex = new Map();
       const textEncoder = new TextEncoder();
       const w = {};
+      window.earcut = () => {
+        const positionsData = Float32Array.from([
+          0, 0, 0, 100, 100, 100, 100, 0,
+          75, 25, 75, 75, 25, 75, 25, 25,
+        ]);
+        for (let i = 0; i < positionsData.length; i++) {
+          positionsData[i] /= 30;
+        }
+        const positions = w.alloc(Float32Array, positionsData.length);
+        positions.set(positionsData);
+        const indicesData = Uint32Array.from([
+          4,
+          4,
+        ]);
+        const indices = w.alloc(Uint32Array, indicesData.length);
+        indices.set(indicesData);
+
+        const pointsData = Float32Array.from([
+          10, 10,
+        ]);
+        for (let i = 0; i < pointsData.length; i++) {
+          pointsData[i] /= 30;
+        }
+        const points = w.alloc(Float32Array, pointsData.length);
+        points.set(pointsData);
+
+        // console.log('earcut 1');
+
+        const earcutResult = moduleInstance._earcut(positions.byteOffset, indices.byteOffset, indicesData.length, points.byteOffset, points.length, 0.5);
+
+        // console.log('earcut 2');
+
+        const outPositionsOffset = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT];
+        const outNumPositions = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const outIndicesOffset = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 2];
+        const outNumIndices = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 3];
+
+        const outPositions = moduleInstance.HEAPF32.slice(outPositionsOffset/Float32Array.BYTES_PER_ELEMENT, outPositionsOffset/Float32Array.BYTES_PER_ELEMENT + outNumPositions);
+        const outIndices = moduleInstance.HEAPU32.slice(outIndicesOffset/Uint32Array.BYTES_PER_ELEMENT, outIndicesOffset/Uint32Array.BYTES_PER_ELEMENT + outNumIndices);
+        // EarcutResult *earcut(float *positions, unsigned int *counts, unsigned int numCounts) {
+        
+        let geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(outPositions, 3));
+        geometry.setIndex(new THREE.BufferAttribute(outIndices, 1));
+        geometry = geometry.toNonIndexed();
+        const material = new THREE.ShaderMaterial({
+          uniforms: {
+          },
+          vertexShader: `\
+            precision highp float;
+            precision highp int;
+
+            varying vec3 vBarycentric;
+
+            void main() {
+              vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+              gl_Position = projectionMatrix * mvPosition;
+
+              float vid = float(gl_VertexID);
+              if (mod(vid, 3.) < 0.5) {
+                vBarycentric = vec3(1., 0., 0.);
+              } else if (mod(vid, 3.) < 1.5) {
+                vBarycentric = vec3(0., 1., 0.);
+              } else {
+                vBarycentric = vec3(0., 0., 1.);
+              }
+            }
+          `,
+          fragmentShader: `\
+            precision highp float;
+            precision highp int;
+
+            #define PI 3.1415926535897932384626433832795
+
+            varying vec3 vBarycentric;
+
+            float edgeFactor() {
+              vec3 d = fwidth(vBarycentric);
+              vec3 a3 = smoothstep(vec3(0.0), d, vBarycentric);
+              return min(min(a3.x, a3.y), a3.z);
+            }
+
+            void main() {
+              vec3 c = vec3(0.);
+              if (edgeFactor() <= 0.99) {
+                c += 0.5;
+              }
+              gl_FragColor = vec4(c, 1.);
+            }
+          `,
+          // side: THREE.DoubleSide,
+        })
+        const mesh = new THREE.Mesh(geometry, material);
+        // mesh.scale.setScalar(1/30)
+        pe.scene.add(mesh);
+
+        return {
+          positions: outPositions,
+          indices: outIndices,
+        };
+      };
       w.waitForLoad = () => modulePromise;
       w.alloc = (constructor, count) => {
         if (count > 0) {
