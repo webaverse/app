@@ -1343,7 +1343,7 @@ const [
         
         let geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(outPositions, 3));
-        geometry.setAttribute('uv', new THREE.BufferAttribute(outUvs, 2));
+        geometry.setAttribute('uv3', new THREE.BufferAttribute(outUvs, 3));
         geometry.setIndex(new THREE.BufferAttribute(outIndices, 1));
         geometry = geometry.toNonIndexed();
         const material = new THREE.ShaderMaterial({
@@ -1351,14 +1351,15 @@ const [
             precision highp float;
             precision highp int;
 
-            varying vec2 vUv;
+            attribute vec3 uv3;
+            varying vec3 vUv;
             varying vec3 vBarycentric;
 
             void main() {
               vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
               gl_Position = projectionMatrix * mvPosition;
 
-              vUv = uv;
+              vUv = uv3;
 
               float vid = float(gl_VertexID);
               if (mod(vid, 3.) < 0.5) {
@@ -1376,7 +1377,7 @@ const [
 
             #define PI 3.1415926535897932384626433832795
 
-            varying vec2 vUv;
+            varying vec3 vUv;
             varying vec3 vBarycentric;
 
             float edgeFactor() {
