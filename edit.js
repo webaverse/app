@@ -1346,7 +1346,30 @@ const [
         geometry.setAttribute('uv3', new THREE.BufferAttribute(outUvs, 3));
         geometry.setIndex(new THREE.BufferAttribute(outIndices, 1));
         geometry = geometry.toNonIndexed();
+        const canvas = document.createElement('canvas');
+        canvas.width = 4096;
+        canvas.height = 4096;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#FFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#CCC';
+        for (let x = 0; x < canvas.width; x += 64) {
+          for (let y = 0; y < canvas.height; y += 64) {
+            if ((x/64)%2 === ((y/64)%2)) {
+              ctx.fillRect(x, y, 64, 64);
+            }
+          }
+        }
+        const texture = new THREE.Texture(canvas);
+        texture.needsUpdate = true;
         const material = new THREE.ShaderMaterial({
+          uniforms: {
+            tex: {
+              type: 't',
+              value: texture,
+              needsUpdate: true,
+            },
+          },
           vertexShader: `\
             precision highp float;
             precision highp int;
@@ -1377,6 +1400,8 @@ const [
 
             #define PI 3.1415926535897932384626433832795
 
+            uniform sampler2D tex;
+
             varying vec3 vUv;
             varying vec3 vBarycentric;
 
@@ -1387,7 +1412,8 @@ const [
             }
 
             void main() {
-              vec3 c = vec3(vUv.x, 0., vUv.y);
+              vec3 c = texture2D(tex, vUv.xy).rgb;
+              c *= vec3(vUv.x, 0., vUv.y);
               if (edgeFactor() <= 0.99) {
                 c += 0.5;
               }
