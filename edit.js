@@ -1331,29 +1331,34 @@ const [
 
         const outPositionsOffset = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT];
         const outNumPositions = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const outIndicesOffset = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 2];
-        const outNumIndices = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 3];
+        const outUvsOffset = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 2];
+        const outNumUvs = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 3];
+        const outIndicesOffset = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 4];
+        const outNumIndices = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 5];
 
         const outPositions = moduleInstance.HEAPF32.slice(outPositionsOffset/Float32Array.BYTES_PER_ELEMENT, outPositionsOffset/Float32Array.BYTES_PER_ELEMENT + outNumPositions);
+        const outUvs = moduleInstance.HEAPF32.slice(outUvsOffset/Float32Array.BYTES_PER_ELEMENT, outUvsOffset/Float32Array.BYTES_PER_ELEMENT + outNumUvs);
         const outIndices = moduleInstance.HEAPU32.slice(outIndicesOffset/Uint32Array.BYTES_PER_ELEMENT, outIndicesOffset/Uint32Array.BYTES_PER_ELEMENT + outNumIndices);
         // EarcutResult *earcut(float *positions, unsigned int *counts, unsigned int numCounts) {
         
         let geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(outPositions, 3));
+        geometry.setAttribute('uv', new THREE.BufferAttribute(outUvs, 2));
         geometry.setIndex(new THREE.BufferAttribute(outIndices, 1));
         geometry = geometry.toNonIndexed();
         const material = new THREE.ShaderMaterial({
-          uniforms: {
-          },
           vertexShader: `\
             precision highp float;
             precision highp int;
 
+            varying vec2 vUv;
             varying vec3 vBarycentric;
 
             void main() {
               vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
               gl_Position = projectionMatrix * mvPosition;
+
+              vUv = uv;
 
               float vid = float(gl_VertexID);
               if (mod(vid, 3.) < 0.5) {
@@ -1371,6 +1376,7 @@ const [
 
             #define PI 3.1415926535897932384626433832795
 
+            varying vec2 vUv;
             varying vec3 vBarycentric;
 
             float edgeFactor() {
@@ -1380,7 +1386,7 @@ const [
             }
 
             void main() {
-              vec3 c = vec3(0.);
+              vec3 c = vec3(vUv.x, 0., vUv.y);
               if (edgeFactor() <= 0.99) {
                 c += 0.5;
               }
@@ -1395,6 +1401,7 @@ const [
 
         return {
           positions: outPositions,
+          uvs: outUvs,
           indices: outIndices,
         };
       };
