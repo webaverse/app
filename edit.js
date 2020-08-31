@@ -1348,9 +1348,10 @@ const [
         geometry.setAttribute('uv3', new THREE.BufferAttribute(outUvs, 3));
         geometry.setIndex(new THREE.BufferAttribute(outIndices, 1));
         geometry = geometry.toNonIndexed();
+        const size = 512;
         const canvas = document.createElement('canvas');
-        canvas.width = 4096;
-        canvas.height = 4096;
+        canvas.width = size;
+        canvas.height = size;
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#FFF';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1434,34 +1435,15 @@ const [
           indices: outIndices.slice(),
         };
 
-        function getJpegBytes(canvas) {
-          return new Promise((accept, reject) => {
-            const fileReader = new FileReader()
-            fileReader.addEventListener('loadend', function() {
-              if (!this.error) {
-                accept(this.result);
-              } else {
-                reject(this.error);
-              }
-            });
-            canvas.toBlob(fileReader.readAsArrayBuffer.bind(fileReader), 'image/jpeg');
-          });
-        }
-
         const name = 'thing';
-        getJpegBytes(canvas)
-          .then(arrayBuffer => {
-            const srcTexture = new Uint8Array(arrayBuffer);
-            const dstTexture = geometryWorker.alloc(Uint8Array, srcTexture.length);
-            dstTexture.set(srcTexture);
-            return geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, outPositionsOffset, outUvsOffset, outIndicesOffset, outNumPositions, outNumUvs, outNumIndices, dstTexture.byteOffset, dstTexture.length);
-          })
-          .then(() => new Promise((accept, reject) => {
-            setTimeout(() => {
-              geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(5, -5, 5), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1))
-                .then(accept, reject);
-            }, 1000);
-          }))
+        // console.time('lol');
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        // console.timeEnd('lol');
+        const srcTexture = imageData.data;
+        const dstTexture = geometryWorker.alloc(Uint8Array, srcTexture.length);
+        dstTexture.set(srcTexture);
+        geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, outPositionsOffset, outUvsOffset, outIndicesOffset, outNumPositions, outNumUvs, outNumIndices, dstTexture.byteOffset, dstTexture.length)
+          .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(5, -5, 5), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)))
           .then(() => {
             console.log('thing added');
           }, console.warn);
