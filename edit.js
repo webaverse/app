@@ -1192,6 +1192,8 @@ const [
         addObject: methodIndex++,
         removeObject: methodIndex++,
         releaseAddRemoveObject: methodIndex++,
+        addThingGeometry: methodIndex++,
+        addThing: methodIndex++,
       };
       let messageIndex = 0;
       const MESSAGES = {
@@ -1325,7 +1327,7 @@ const [
 
         // console.log('earcut 1');
 
-        const earcutResult = moduleInstance._earcut(tracker, positions.byteOffset, indices.byteOffset, indicesData.length, points.byteOffset, points.length, 0.5, zs.byteOffset);
+        const earcutResult = moduleInstance._earcut(positions.byteOffset, indices.byteOffset, indicesData.length, points.byteOffset, points.length, 0.5, zs.byteOffset);
 
         // console.log('earcut 2');
 
@@ -1424,13 +1426,47 @@ const [
         })
         const mesh = new THREE.Mesh(geometry, material);
         // mesh.scale.setScalar(1/30)
-        pe.scene.add(mesh);
+        // pe.scene.add(mesh);
 
-        return {
-          positions: outPositions,
-          uvs: outUvs,
-          indices: outIndices,
+        const result = {
+          positions: outPositions.slice(),
+          uvs: outUvs.slice(),
+          indices: outIndices.slice(),
         };
+
+        function getJpegBytes(canvas) {
+          return new Promise((accept, reject) => {
+            const fileReader = new FileReader()
+            fileReader.addEventListener('loadend', function() {
+              if (!this.error) {
+                accept(this.result);
+              } else {
+                reject(this.error);
+              }
+            });
+            canvas.toBlob(fileReader.readAsArrayBuffer.bind(fileReader), 'image/jpeg');
+          });
+        }
+
+        const name = 'thing';
+        getJpegBytes(canvas)
+          .then(arrayBuffer => {
+            const srcTexture = new Uint8Array(arrayBuffer);
+            const dstTexture = geometryWorker.alloc(Uint8Array, srcTexture.length);
+            dstTexture.set(srcTexture);
+            return geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, outPositionsOffset, outUvsOffset, outIndicesOffset, outNumPositions, outNumUvs, outNumIndices, dstTexture.byteOffset, dstTexture.length);
+          })
+          .then(() => new Promise((accept, reject) => {
+            setTimeout(() => {
+              geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(5, -5, 5), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1))
+                .then(accept, reject);
+            }, 1000);
+          }))
+          .then(() => {
+            console.log('thing added');
+          }, console.warn);
+
+        return result;
       };
       w.waitForLoad = () => modulePromise;
       w.alloc = (constructor, count) => {
@@ -2433,6 +2469,110 @@ const [
             }
           }
           callStack.allocRequest(METHODS.releaseLight, 32, true, offset2 => {
+            callStack.u32[offset2++] = tracker;
+            
+            callStack.u32[offset2++] = numSubparcels;
+
+            for (let i = 0; i < numSubparcels; i++) {
+              const subparcelSharedPtr = callStack.ou32[offset++];
+              callStack.u32[offset2++] = subparcelSharedPtr;
+            }
+          }, offset => {
+            // console.log('done release', numSubparcels);
+            accept();
+          });
+        });
+      });
+      w.requestAddThingGeometry = (tracker, geometrySet, name, positions, uvs, indices, numPositions, numUvs, numIndices, texture, textureSize) => new Promise((accept, reject) => {
+        callStack.allocRequest(METHODS.addThingGeometry, 128, true, offset => {
+          callStack.u32[offset] = tracker;
+          callStack.u32[offset + 1] = geometrySet;
+
+          const srcNameUint8Array = textEncoder.encode(name);
+          callStack.u8.set(srcNameUint8Array, (offset + 2)*Uint32Array.BYTES_PER_ELEMENT);
+          callStack.u8[(offset + 2)*Uint32Array.BYTES_PER_ELEMENT + srcNameUint8Array.byteLength] = 0;
+
+          callStack.u32[offset + 2 + MAX_NAME_LENGTH/Uint32Array.BYTES_PER_ELEMENT] = positions;
+          callStack.u32[offset + 2 + MAX_NAME_LENGTH/Uint32Array.BYTES_PER_ELEMENT + 1] = uvs;
+          callStack.u32[offset + 2 + MAX_NAME_LENGTH/Uint32Array.BYTES_PER_ELEMENT + 2] = indices;
+
+          callStack.u32[offset + 2 + MAX_NAME_LENGTH/Uint32Array.BYTES_PER_ELEMENT + 3] = numPositions;
+          callStack.u32[offset + 2 + MAX_NAME_LENGTH/Uint32Array.BYTES_PER_ELEMENT + 4] = numUvs;
+          callStack.u32[offset + 2 + MAX_NAME_LENGTH/Uint32Array.BYTES_PER_ELEMENT + 5] = numIndices;
+        }, offset => {
+          accept();
+        });
+      });
+      w.requestAddThing = (tracker, geometrySet, name, position, quaternion, scale) => new Promise((accept, reject) => {
+        callStack.allocRequest(METHODS.addThing, 128, true, offset => {
+          callStack.u32[offset] = tracker;
+          callStack.u32[offset + 1] = geometrySet;
+          
+          const srcNameUint8Array = textEncoder.encode(name);
+          callStack.u8.set(srcNameUint8Array, (offset + 2)*Uint32Array.BYTES_PER_ELEMENT);
+          callStack.u8[(offset + 2)*Uint32Array.BYTES_PER_ELEMENT + srcNameUint8Array.byteLength] = 0;
+          
+          position.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH)/Float32Array.BYTES_PER_ELEMENT);
+          quaternion.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 3*Float32Array.BYTES_PER_ELEMENT)/Float32Array.BYTES_PER_ELEMENT);
+          scale.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 7*Float32Array.BYTES_PER_ELEMENT)/Float32Array.BYTES_PER_ELEMENT);
+        }, offset => {
+          const numSubparcels = callStack.ou32[offset++];
+          // console.log('got callback', offset, numSubparcels);
+          // console.log('num subparcels add', numSubparcels);
+          for (let i = 0; i < numSubparcels; i++) {
+            const positionsFreeEntry = callStack.ou32[offset++];
+            const uvsFreeEntry = callStack.ou32[offset++];
+            const idsFreeEntry = callStack.ou32[offset++];
+            const indicesFreeEntry = callStack.ou32[offset++];
+            const skyLightsFreeEntry = callStack.ou32[offset++];
+            const torchLightsFreeEntry = callStack.ou32[offset++];
+
+            const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+            const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+
+            const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+            const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+
+            const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
+              const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
+              const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
+              const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
+              const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
+              return positions;
+            };
+            const positions = _decodeArenaEntry(vegetationAllocators.positions, positionsFreeEntry, Float32Array);
+            const uvs = _decodeArenaEntry(vegetationAllocators.uvs, uvsFreeEntry, Float32Array);
+            const ids = _decodeArenaEntry(vegetationAllocators.ids, idsFreeEntry, Float32Array);
+            const indices = _decodeArenaEntry(vegetationAllocators.indices, indicesFreeEntry, Uint32Array);
+            const skyLights = _decodeArenaEntry(vegetationAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
+            const torchLights = _decodeArenaEntry(vegetationAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
+            console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights});
+
+            currentVegetationMesh.updateGeometry({
+              positionsStart,
+              uvsStart,
+              idsStart,
+              indicesStart,
+              skyLightsStart,
+              torchLightsStart,
+
+              positionsCount,
+              uvsCount,
+              idsCount,
+              indicesCount,
+              skyLightsCount,
+              torchLightsCount,
+            });
+          }
+          callStack.allocRequest(METHODS.releaseAddRemoveObject, 32, true, offset2 => {
             callStack.u32[offset2++] = tracker;
             
             callStack.u32[offset2++] = numSubparcels;
