@@ -1325,7 +1325,7 @@ const [
 
         // console.log('earcut 1');
 
-        const earcutResult = moduleInstance._earcut(positions.byteOffset, indices.byteOffset, indicesData.length, points.byteOffset, points.length, 0.5, zs.byteOffset);
+        const earcutResult = moduleInstance._earcut(tracker, positions.byteOffset, indices.byteOffset, indicesData.length, points.byteOffset, points.length, 0.5, zs.byteOffset);
 
         // console.log('earcut 2');
 
