@@ -1013,11 +1013,8 @@ const geometryWorker = (() => {
     const zs = w.alloc(Float32Array, zData.length);
     zs.set(zData);
 
-    // console.log('earcut 1');
-
+    // XXX GC this
     const earcutResult = moduleInstance._earcut(positions.byteOffset, indices.byteOffset, indicesData.length, points.byteOffset, points.length, 0.5, zs.byteOffset);
-
-    // console.log('earcut 2');
 
     const outPositionsOffset = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT];
     const outNumPositions = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -1029,7 +1026,6 @@ const geometryWorker = (() => {
     const outPositions = moduleInstance.HEAPF32.slice(outPositionsOffset/Float32Array.BYTES_PER_ELEMENT, outPositionsOffset/Float32Array.BYTES_PER_ELEMENT + outNumPositions);
     const outUvs = moduleInstance.HEAPF32.slice(outUvsOffset/Float32Array.BYTES_PER_ELEMENT, outUvsOffset/Float32Array.BYTES_PER_ELEMENT + outNumUvs);
     const outIndices = moduleInstance.HEAPU32.slice(outIndicesOffset/Uint32Array.BYTES_PER_ELEMENT, outIndicesOffset/Uint32Array.BYTES_PER_ELEMENT + outNumIndices);
-    // EarcutResult *earcut(float *positions, unsigned int *counts, unsigned int numCounts) {
     
     let geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(outPositions, 3));
@@ -1123,6 +1119,12 @@ const geometryWorker = (() => {
       indices: outIndices.slice(),
     };
 
+    const outUvs2 = w.alloc(Float32Array, outUvs.length/3*2);
+    for (let i = 0, j = 0; i < outUvs.length; i += 3, j += 2) {
+      outUvs2[j] = outUvs[i];
+      outUvs2[j+1] = outUvs[i+1];
+    }
+
     const name = 'thing';
     // console.time('lol');
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -1130,7 +1132,7 @@ const geometryWorker = (() => {
     const srcTexture = imageData.data;
     const dstTexture = geometryWorker.alloc(Uint8Array, srcTexture.length);
     dstTexture.set(srcTexture);
-    geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, outPositionsOffset, outUvsOffset, outIndicesOffset, outNumPositions, outNumUvs, outNumIndices, dstTexture.byteOffset)
+    geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, outPositionsOffset, outUvs2.byteOffset, outIndicesOffset, outNumPositions, outUvs2.length, outNumIndices, dstTexture.byteOffset)
       .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(5, -5, 5), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)))
       .then(() => {
         console.log('thing added');
@@ -2236,13 +2238,14 @@ const geometryWorker = (() => {
           const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
           return positions;
         };
-        const positions = _decodeArenaEntry(vegetationAllocators.positions, positionsFreeEntry, Float32Array);
-        const uvs = _decodeArenaEntry(vegetationAllocators.uvs, uvsFreeEntry, Float32Array);
-        const ids = _decodeArenaEntry(vegetationAllocators.ids, idsFreeEntry, Float32Array);
-        const indices = _decodeArenaEntry(vegetationAllocators.indices, indicesFreeEntry, Uint32Array);
-        const skyLights = _decodeArenaEntry(vegetationAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
-        const torchLights = _decodeArenaEntry(vegetationAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-        console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
+        const positions = _decodeArenaEntry(thingAllocators.positions, positionsFreeEntry, Float32Array);
+        const uvs = _decodeArenaEntry(thingAllocators.uvs, uvsFreeEntry, Float32Array);
+        const atlasUvs = _decodeArenaEntry(thingAllocators.atlasUvs, atlasUvsFreeEntry, Float32Array);
+        const ids = _decodeArenaEntry(thingAllocators.ids, idsFreeEntry, Float32Array);
+        const indices = _decodeArenaEntry(thingAllocators.indices, indicesFreeEntry, Uint32Array);
+        const skyLights = _decodeArenaEntry(thingAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
+        const torchLights = _decodeArenaEntry(thingAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
+        console.log('got positions', {positions, uvs, atlasUvs, ids, indices, skyLights, torchLights}); */
 
         currentThingMesh.updateGeometry({
           positionsStart,
@@ -2824,7 +2827,7 @@ const geometryWorker = (() => {
         precision highp float;
         precision highp int;
 
-        attribute float atlasUv;
+        attribute vec2 atlasUv;
         // attribute float skyLight;
         // attribute float torchLight;
 
