@@ -2584,14 +2584,14 @@ const [
             thingTexture.image = new Uint8Array(moduleInstance.HEAP8.buffer, textureOffset, thingTextureSize*thingTextureSize*4);
             thingTexture.needsUpdate = true;
 
-            const canvas = document.createElement('canvas'); // XXX
+            /* const canvas = document.createElement('canvas'); // XXX
             canvas.width = thingTextureSize;
             canvas.height = thingTextureSize;
             const ctx = canvas.getContext('2d');
             const imageData = ctx.createImageData(thingTextureSize, thingTextureSize);
             imageData.data.set(thingTexture.image);
             ctx.putImageData(imageData, 0, 0);
-            document.body.appendChild(canvas);
+            document.body.appendChild(canvas); */
           }
 
           callStack.allocRequest(METHODS.releaseAddRemoveObject, 32, true, offset2 => {
