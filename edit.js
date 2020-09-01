@@ -59,6 +59,7 @@ const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
 const baseHeight = PARCEL_SIZE/2-10;
 const thingTextureSize = 4096;
+const objectTextureSize = 512;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -2807,12 +2808,53 @@ const geometryWorker = (() => {
 
     const thingTexture = new THREE.DataTexture(
       null,
-      thingTextureSize, thingTextureSize,
-      THREE.RGBAFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter
+      thingTextureSize, thingTextureSize/* ,
+      THREE.RGBAFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter */
     );
 
-    const material = new THREE.MeshBasicMaterial({
-      color: 0xFFFFFF,
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        map: {
+          type: 't',
+          value: thingTexture,
+          needsUpdate: true,
+        },
+      },
+      vertexShader: `\
+        precision highp float;
+        precision highp int;
+
+        attribute float atlasUv;
+        // attribute float skyLight;
+        // attribute float torchLight;
+
+        varying vec2 vUv;
+        // varying float vSkyLight;
+        // varying float vTorchLight;
+
+        void main() {
+          vUv = (atlasUv + uv) * ${(objectTextureSize/thingTextureSize).toFixed(8)};
+          vec3 p = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+          // vSkyLight = skyLight/8.0;
+          // vTorchLight = torchLight/8.0;
+        }
+      `,
+      fragmentShader: `\
+        precision highp float;
+        precision highp int;
+
+        uniform sampler2D map;
+        varying vec2 vUv;
+        // varying float vSkyLight;
+        // varying float vTorchLight;
+
+        void main() {
+          gl_FragColor = texture2D(map, vUv);
+        }
+      `,
+      side: THREE.DoubleSide,
+      transparent: true
     });
     const mesh = new THREE.Mesh(geometry, [material]);
     mesh.frustumCulled = false;
@@ -2842,7 +2884,7 @@ const geometryWorker = (() => {
       renderer.geometries.update(geometry);
     };
     mesh.updateTexture = data => {
-      thingTexture.image = data;
+      thingTexture.image.data = data;
       thingTexture.needsUpdate = true;
 
       /* const canvas = document.createElement('canvas'); // XXX
