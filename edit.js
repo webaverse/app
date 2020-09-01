@@ -58,7 +58,7 @@ const pid4 = Math.PI/4;
 const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
 const baseHeight = PARCEL_SIZE/2-10;
-// const SPAWNER_RATE = 0.08;
+const thingTextureSize = 4096;
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -659,12 +659,6 @@ const currentChunkMeshId = getNextMeshId();
 // let capsuleMesh = null;
 let currentVegetationMesh = null;
 let currentThingMesh = null;
-const thingTextureSize = 4096;
-const thingTexture = new THREE.DataTexture(
-  null,
-  thingTextureSize, thingTextureSize,
-  THREE.RGBAFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter
-);
 const _getCurrentChunkMesh = () => currentChunkMesh;
 const _setCurrentChunkMesh = chunkMesh => {
   /* if (currentChunkMesh) {
@@ -921,6 +915,56 @@ const geometryWorker = (() => {
           skyLightsCount,
           torchLightsCount,
         });
+      }
+      {
+        const positionsFreeEntry = callStack.ou32[offset++];
+        const uvsFreeEntry = callStack.ou32[offset++];
+        const atlasUvsFreeEntry = callStack.ou32[offset++];
+        const idsFreeEntry = callStack.ou32[offset++];
+        const indicesFreeEntry = callStack.ou32[offset++];
+        const skyLightsFreeEntry = callStack.ou32[offset++];
+        const torchLightsFreeEntry = callStack.ou32[offset++];
+
+        const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const atlasUvsStart = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+
+        const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const atlasUvsCount = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+
+        currentThingMesh.updateGeometry({
+          positionsStart,
+          uvsStart,
+          atlasUvsStart,
+          idsStart,
+          indicesStart,
+          skyLightsStart,
+          torchLightsStart,
+
+          positionsCount,
+          uvsCount,
+          atlasUvsCount,
+          idsCount,
+          indicesCount,
+          skyLightsCount,
+          torchLightsCount,
+        });
+      }
+      {
+        const textureOffset = callStack.ou32[offset++];
+        if (textureOffset) {
+          const textureData = new Uint8Array(moduleInstance.HEAP8.buffer, textureOffset, thingTextureSize*thingTextureSize*4);
+          currentThingMesh.updateTexture(textureData);
+        }
       }
       {
         const subparcelSharedPtr = callStack.ou32[offset++];
@@ -2149,6 +2193,7 @@ const geometryWorker = (() => {
       for (let i = 0; i < numSubparcels; i++) {
         const positionsFreeEntry = callStack.ou32[offset++];
         const uvsFreeEntry = callStack.ou32[offset++];
+        const atlasUvsFreeEntry = callStack.ou32[offset++];
         const idsFreeEntry = callStack.ou32[offset++];
         const indicesFreeEntry = callStack.ou32[offset++];
         const skyLightsFreeEntry = callStack.ou32[offset++];
@@ -2156,6 +2201,7 @@ const geometryWorker = (() => {
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const atlasUvsStart = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
@@ -2163,6 +2209,7 @@ const geometryWorker = (() => {
 
         const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const atlasUvsCount = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -2183,9 +2230,10 @@ const geometryWorker = (() => {
         const torchLights = _decodeArenaEntry(vegetationAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
         console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
 
-        currentVegetationMesh.updateGeometry({
+        currentThingMesh.updateGeometry({
           positionsStart,
           uvsStart,
+          atlasUvsStart,
           idsStart,
           indicesStart,
           skyLightsStart,
@@ -2193,6 +2241,7 @@ const geometryWorker = (() => {
 
           positionsCount,
           uvsCount,
+          atlasUvsCount,
           idsCount,
           indicesCount,
           skyLightsCount,
@@ -2202,17 +2251,8 @@ const geometryWorker = (() => {
 
       const textureOffset = callStack.ou32[offset++];
       if (textureOffset) {
-        thingTexture.image = new Uint8Array(moduleInstance.HEAP8.buffer, textureOffset, thingTextureSize*thingTextureSize*4);
-        thingTexture.needsUpdate = true;
-
-        /* const canvas = document.createElement('canvas'); // XXX
-        canvas.width = thingTextureSize;
-        canvas.height = thingTextureSize;
-        const ctx = canvas.getContext('2d');
-        const imageData = ctx.createImageData(thingTextureSize, thingTextureSize);
-        imageData.data.set(thingTexture.image);
-        ctx.putImageData(imageData, 0, 0);
-        document.body.appendChild(canvas); */
+        const textureData = new Uint8Array(moduleInstance.HEAP8.buffer, textureOffset, thingTextureSize*thingTextureSize*4);
+        currentThingMesh.updateTexture(textureData);
       }
 
       callStack.allocRequest(METHODS.releaseAddRemoveObject, 32, true, offset2 => {
@@ -2743,11 +2783,64 @@ const geometryWorker = (() => {
     geometry.setAttribute('torchLight', thingBufferAttributes.torchLight);
     geometry.setIndex(thingBufferAttributes.index);
     // geometry.allocators = allocators;
+
+    const _getSlabPositionOffset = spec => spec.positionsStart/Float32Array.BYTES_PER_ELEMENT;
+    const _getSlabUvOffset = spec => spec.uvsStart/Float32Array.BYTES_PER_ELEMENT;
+    const _getSlabAtlasUvOffset = spec => spec.atlasUvsStart/Float32Array.BYTES_PER_ELEMENT;
+    const _getSlabIdOffset = spec => spec.idsStart/Float32Array.BYTES_PER_ELEMENT;
+    const _getSlabSkyLightOffset = spec => spec.skyLightsStart/Uint8Array.BYTES_PER_ELEMENT;
+    const _getSlabTorchLightOffset = spec => spec.torchLightsStart/Uint8Array.BYTES_PER_ELEMENT;
+    const _getSlabIndexOffset = spec => spec.indicesStart/Uint32Array.BYTES_PER_ELEMENT;
+
+    const thingTexture = new THREE.DataTexture(
+      null,
+      thingTextureSize, thingTextureSize,
+      THREE.RGBAFormat, THREE.UnsignedByteType, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.NearestFilter
+    );
+
     const material = new THREE.MeshBasicMaterial({
       color: 0xFFFFFF,
     });
     const mesh = new THREE.Mesh(geometry, [material]);
     mesh.frustumCulled = false;
+    mesh.updateGeometry = (/*slab,*/ spec) => {
+      geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
+      geometry.attributes.position.needsUpdate = true;
+      geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(spec);
+      geometry.attributes.uv.needsUpdate = true;
+      geometry.attributes.atlasUv.updateRange.offset =_getSlabAtlasUvOffset(spec);
+      geometry.attributes.atlasUv.needsUpdate = true;
+      geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec);
+      geometry.attributes.id.needsUpdate = true;
+      geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(spec);
+      geometry.attributes.skyLight.needsUpdate = true;
+      geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(spec);
+      geometry.attributes.torchLight.needsUpdate = true;
+      geometry.index.updateRange.offset = _getSlabIndexOffset(spec);
+      geometry.index.needsUpdate = true;
+
+      geometry.attributes.position.updateRange.count = spec.positionsCount/Float32Array.BYTES_PER_ELEMENT;
+      geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
+      geometry.attributes.atlasUv.updateRange.count = spec.atlasUvsCount/Float32Array.BYTES_PER_ELEMENT;
+      geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
+      geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
+      geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
+      geometry.index.updateRange.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
+      renderer.geometries.update(geometry);
+    };
+    mesh.updateTexture = data => {
+      thingTexture.image = data;
+      thingTexture.needsUpdate = true;
+
+      /* const canvas = document.createElement('canvas'); // XXX
+      canvas.width = thingTextureSize;
+      canvas.height = thingTextureSize;
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx.createImageData(thingTextureSize, thingTextureSize);
+      imageData.data.set(thingTexture.image);
+      ctx.putImageData(imageData, 0, 0);
+      document.body.appendChild(canvas); */
+    };
     return mesh;
   };
   currentThingMesh = _makeThingMesh();
