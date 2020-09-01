@@ -2926,13 +2926,6 @@ const [
           };
           scene.add(crosshairMesh);
         }
-
-        /* const arenaAllocator = geometryWorker.makeArenaAllocator(10 * 1024 * 1024);
-        const freeEntry = arenaAllocator.alloc(Uint8Array, 1024);
-        console.log('got free entry 1', freeEntry);
-        arenaAllocator.free(freeEntry);
-        const freeEntry2 = arenaAllocator.alloc(Uint8Array, 256);
-        console.log('got free entry 2', freeEntry2); */
       })(),
       (async () => {
         /* const image = new Image();
