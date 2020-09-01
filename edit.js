@@ -1865,6 +1865,7 @@ const geometryWorker = (() => {
       for (let i = 0; i < numSubparcels; i++) {
         const positionsFreeEntry = callStack.ou32[offset++];
         const uvsFreeEntry = callStack.ou32[offset++];
+        const atlasUvsFreeEntry = callStack.ou32[offset++];
         const idsFreeEntry = callStack.ou32[offset++];
         const indicesFreeEntry = callStack.ou32[offset++];
         const skyLightsFreeEntry = callStack.ou32[offset++];
@@ -1872,6 +1873,7 @@ const geometryWorker = (() => {
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
+        const atlasUvsStart = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
@@ -1879,6 +1881,7 @@ const geometryWorker = (() => {
 
         const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
+        const atlasUvsCount = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -1902,6 +1905,7 @@ const geometryWorker = (() => {
         currentVegetationMesh.updateGeometry({
           positionsStart,
           uvsStart,
+          atlasUvsStart,
           idsStart,
           indicesStart,
           skyLightsStart,
@@ -1909,6 +1913,7 @@ const geometryWorker = (() => {
 
           positionsCount,
           uvsCount,
+          atlasUvsCount,
           idsCount,
           indicesCount,
           skyLightsCount,
