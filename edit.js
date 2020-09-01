@@ -644,6 +644,8 @@ let landAllocators = null;
 let landBufferAttributes = null;
 let vegetationAllocators = null;
 let vegetationBufferAttributes = null;
+let thingAllocators = null;
+let thingBufferAttributes = null;
 // let culler = null;
 let makeAnimal = null;
 let chunkMeshes = [];
@@ -656,6 +658,7 @@ let currentChunkMesh = null;
 const currentChunkMeshId = getNextMeshId();
 // let capsuleMesh = null;
 let currentVegetationMesh = null;
+let currentThingMesh = null;
 const thingTextureSize = 4096;
 const thingTexture = new THREE.DataTexture(
   null,
@@ -884,7 +887,6 @@ const geometryWorker = (() => {
       {
         const positionsFreeEntry = callStack.ou32[offset++];
         const uvsFreeEntry = callStack.ou32[offset++];
-        const atlasUvsFreeEntry = callStack.ou32[offset++];
         const idsFreeEntry = callStack.ou32[offset++];
         const indicesFreeEntry = callStack.ou32[offset++];
         const skyLightsFreeEntry = callStack.ou32[offset++];
@@ -892,7 +894,6 @@ const geometryWorker = (() => {
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const atlasUvsStart = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
@@ -900,7 +901,6 @@ const geometryWorker = (() => {
 
         const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const atlasUvsCount = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -909,7 +909,6 @@ const geometryWorker = (() => {
         currentVegetationMesh.updateGeometry({
           positionsStart,
           uvsStart,
-          atlasUvsStart,
           idsStart,
           indicesStart,
           skyLightsStart,
@@ -917,7 +916,6 @@ const geometryWorker = (() => {
 
           positionsCount,
           uvsCount,
-          atlasUvsCount,
           idsCount,
           indicesCount,
           skyLightsCount,
@@ -1781,7 +1779,6 @@ const geometryWorker = (() => {
       for (let i = 0; i < numSubparcels; i++) {
         const positionsFreeEntry = callStack.ou32[offset++];
         const uvsFreeEntry = callStack.ou32[offset++];
-        const atlasUvsFreeEntry = callStack.ou32[offset++];
         const idsFreeEntry = callStack.ou32[offset++];
         const indicesFreeEntry = callStack.ou32[offset++];
         const skyLightsFreeEntry = callStack.ou32[offset++];
@@ -1789,7 +1786,6 @@ const geometryWorker = (() => {
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const atlasUvsStart = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
@@ -1797,7 +1793,6 @@ const geometryWorker = (() => {
 
         const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const atlasUvsCount = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -1821,7 +1816,6 @@ const geometryWorker = (() => {
         currentVegetationMesh.updateGeometry({
           positionsStart,
           uvsStart,
-          atlasUvsStart,
           idsStart,
           indicesStart,
           skyLightsStart,
@@ -1829,7 +1823,6 @@ const geometryWorker = (() => {
 
           positionsCount,
           uvsCount,
-          atlasUvsCount,
           idsCount,
           indicesCount,
           skyLightsCount,
@@ -1865,7 +1858,6 @@ const geometryWorker = (() => {
       for (let i = 0; i < numSubparcels; i++) {
         const positionsFreeEntry = callStack.ou32[offset++];
         const uvsFreeEntry = callStack.ou32[offset++];
-        const atlasUvsFreeEntry = callStack.ou32[offset++];
         const idsFreeEntry = callStack.ou32[offset++];
         const indicesFreeEntry = callStack.ou32[offset++];
         const skyLightsFreeEntry = callStack.ou32[offset++];
@@ -1873,7 +1865,6 @@ const geometryWorker = (() => {
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const atlasUvsStart = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
@@ -1881,7 +1872,6 @@ const geometryWorker = (() => {
 
         const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const atlasUvsCount = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -1905,7 +1895,6 @@ const geometryWorker = (() => {
         currentVegetationMesh.updateGeometry({
           positionsStart,
           uvsStart,
-          atlasUvsStart,
           idsStart,
           indicesStart,
           skyLightsStart,
@@ -1913,7 +1902,6 @@ const geometryWorker = (() => {
 
           positionsCount,
           uvsCount,
-          atlasUvsCount,
           idsCount,
           indicesCount,
           skyLightsCount,
@@ -2161,7 +2149,6 @@ const geometryWorker = (() => {
       for (let i = 0; i < numSubparcels; i++) {
         const positionsFreeEntry = callStack.ou32[offset++];
         const uvsFreeEntry = callStack.ou32[offset++];
-        const atlasUvsFreeEntry = callStack.ou32[offset++];
         const idsFreeEntry = callStack.ou32[offset++];
         const indicesFreeEntry = callStack.ou32[offset++];
         const skyLightsFreeEntry = callStack.ou32[offset++];
@@ -2169,7 +2156,6 @@ const geometryWorker = (() => {
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
-        const atlasUvsStart = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const idsStart = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
         const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT];
@@ -2177,7 +2163,6 @@ const geometryWorker = (() => {
 
         const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
-        const atlasUvsCount = moduleInstance.HEAPU32[atlasUvsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const idsCount = moduleInstance.HEAPU32[idsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -2192,17 +2177,15 @@ const geometryWorker = (() => {
         };
         const positions = _decodeArenaEntry(vegetationAllocators.positions, positionsFreeEntry, Float32Array);
         const uvs = _decodeArenaEntry(vegetationAllocators.uvs, uvsFreeEntry, Float32Array);
-        const atlasUvs = _decodeArenaEntry(vegetationAllocators.atlasUvs, atlasUvsFreeEntry, Float32Array);
         const ids = _decodeArenaEntry(vegetationAllocators.ids, idsFreeEntry, Float32Array);
         const indices = _decodeArenaEntry(vegetationAllocators.indices, indicesFreeEntry, Uint32Array);
         const skyLights = _decodeArenaEntry(vegetationAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
         const torchLights = _decodeArenaEntry(vegetationAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-        console.log('got positions', {positions, uvs, atlasUvs, ids, indices, skyLights, torchLights}); */
+        console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
 
         currentVegetationMesh.updateGeometry({
           positionsStart,
           uvsStart,
-          atlasUvsStart,
           idsStart,
           indicesStart,
           skyLightsStart,
@@ -2210,7 +2193,6 @@ const geometryWorker = (() => {
 
           positionsCount,
           uvsCount,
-          atlasUvsCount,
           idsCount,
           indicesCount,
           skyLightsCount,
@@ -2321,6 +2303,14 @@ const geometryWorker = (() => {
     vegetationAllocators = {
       positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
       uvs: geometryWorker.makeArenaAllocator(numPositions * 2*Float32Array.BYTES_PER_ELEMENT),
+      ids: geometryWorker.makeArenaAllocator(numPositions * Float32Array.BYTES_PER_ELEMENT),
+      indices: geometryWorker.makeArenaAllocator(numPositions * Uint32Array.BYTES_PER_ELEMENT),
+      skyLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
+      torchLights: geometryWorker.makeArenaAllocator(numPositions * Uint8Array.BYTES_PER_ELEMENT),
+    };
+    thingAllocators = {
+      positions: geometryWorker.makeArenaAllocator(numPositions * 3*Float32Array.BYTES_PER_ELEMENT),
+      uvs: geometryWorker.makeArenaAllocator(numPositions * 2*Float32Array.BYTES_PER_ELEMENT),
       atlasUvs: geometryWorker.makeArenaAllocator(numPositions * 2*Float32Array.BYTES_PER_ELEMENT),
       ids: geometryWorker.makeArenaAllocator(numPositions * Float32Array.BYTES_PER_ELEMENT),
       indices: geometryWorker.makeArenaAllocator(numPositions * Uint32Array.BYTES_PER_ELEMENT),
@@ -2344,11 +2334,18 @@ const geometryWorker = (() => {
 
       vegetationAllocators.positions.ptr,
       vegetationAllocators.uvs.ptr,
-      vegetationAllocators.atlasUvs.ptr,
       vegetationAllocators.ids.ptr,
       vegetationAllocators.indices.ptr,
       vegetationAllocators.skyLights.ptr,
-      vegetationAllocators.torchLights.ptr
+      vegetationAllocators.torchLights.ptr,
+
+      thingAllocators.positions.ptr,
+      thingAllocators.uvs.ptr,
+      thingAllocators.atlasUvs.ptr,
+      thingAllocators.ids.ptr,
+      thingAllocators.indices.ptr,
+      thingAllocators.skyLights.ptr,
+      thingAllocators.torchLights.ptr
     );
 
     landBufferAttributes = {
@@ -2364,11 +2361,19 @@ const geometryWorker = (() => {
     vegetationBufferAttributes = {
       position: new THREE.BufferAttribute(vegetationAllocators.positions.getAs(Float32Array), 3),
       uv: new THREE.BufferAttribute(vegetationAllocators.uvs.getAs(Float32Array), 2),
-      atlasUv: new THREE.BufferAttribute(vegetationAllocators.atlasUvs.getAs(Float32Array), 2),
       id: new THREE.BufferAttribute(vegetationAllocators.ids.getAs(Float32Array), 1),
       index: new THREE.BufferAttribute(vegetationAllocators.indices.getAs(Uint32Array), 1),
       skyLight: new THREE.BufferAttribute(vegetationAllocators.skyLights.getAs(Uint8Array), 1),
       torchLight: new THREE.BufferAttribute(vegetationAllocators.torchLights.getAs(Uint8Array), 1),
+    };
+    thingBufferAttributes = {
+      position: new THREE.BufferAttribute(thingAllocators.positions.getAs(Float32Array), 3),
+      uv: new THREE.BufferAttribute(thingAllocators.uvs.getAs(Float32Array), 2),
+      atlasUv: new THREE.BufferAttribute(thingAllocators.atlasUvs.getAs(Float32Array), 2),
+      id: new THREE.BufferAttribute(thingAllocators.ids.getAs(Float32Array), 1),
+      index: new THREE.BufferAttribute(thingAllocators.indices.getAs(Uint32Array), 1),
+      skyLight: new THREE.BufferAttribute(thingAllocators.skyLights.getAs(Uint8Array), 1),
+      torchLight: new THREE.BufferAttribute(thingAllocators.torchLights.getAs(Uint8Array), 1),
     };
   }
   // culler = geometryWorker.makeCuller();
@@ -2601,7 +2606,6 @@ const geometryWorker = (() => {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', vegetationBufferAttributes.position);
     geometry.setAttribute('uv', vegetationBufferAttributes.uv);
-    geometry.setAttribute('atlasUv', vegetationBufferAttributes.atlasUv);
     geometry.setAttribute('id', vegetationBufferAttributes.id);
     geometry.setAttribute('skyLight', vegetationBufferAttributes.skyLight);
     geometry.setAttribute('torchLight', vegetationBufferAttributes.torchLight);
@@ -2614,7 +2618,6 @@ const geometryWorker = (() => {
     const slabs = {};
     const _getSlabPositionOffset = spec => spec.positionsStart/Float32Array.BYTES_PER_ELEMENT;
     const _getSlabUvOffset = spec => spec.uvsStart/Float32Array.BYTES_PER_ELEMENT;
-    const _getSlabAtlasUvOffset = spec => spec.atlasUvsStart/Float32Array.BYTES_PER_ELEMENT;
     const _getSlabIdOffset = spec => spec.idsStart/Float32Array.BYTES_PER_ELEMENT;
     const _getSlabSkyLightOffset = spec => spec.skyLightsStart/Uint8Array.BYTES_PER_ELEMENT;
     const _getSlabTorchLightOffset = spec => spec.torchLightsStart/Uint8Array.BYTES_PER_ELEMENT;
@@ -2664,8 +2667,6 @@ const geometryWorker = (() => {
       geometry.attributes.position.needsUpdate = true;
       geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(spec);
       geometry.attributes.uv.needsUpdate = true;
-      geometry.attributes.atlasUv.updateRange.offset =_getSlabAtlasUvOffset(spec);
-      geometry.attributes.atlasUv.needsUpdate = true;
       geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec);
       geometry.attributes.id.needsUpdate = true;
       geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(spec);
@@ -2677,7 +2678,6 @@ const geometryWorker = (() => {
 
       geometry.attributes.position.updateRange.count = spec.positionsCount/Float32Array.BYTES_PER_ELEMENT;
       geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
-      geometry.attributes.atlasUv.updateRange.count = spec.atlasUvsCount/Float32Array.BYTES_PER_ELEMENT;
       geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
       geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
       geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
@@ -2723,15 +2723,35 @@ const geometryWorker = (() => {
     
     return mesh;
   };
-  const context = renderer.getContext();
   currentVegetationMesh = _makeVegetationMesh();
   chunkMeshContainer.add(currentVegetationMesh);
+  const context = renderer.getContext();
   currentVegetationMesh.onBeforeRender = () => {
     context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
   };
   currentVegetationMesh.onAfterRender = () => {
     context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
   };
+
+  const _makeThingMesh = () => {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', thingBufferAttributes.position);
+    geometry.setAttribute('uv', thingBufferAttributes.uv);
+    geometry.setAttribute('atlasUv', thingBufferAttributes.atlasUv);
+    geometry.setAttribute('id', thingBufferAttributes.id);
+    geometry.setAttribute('skyLight', thingBufferAttributes.skyLight);
+    geometry.setAttribute('torchLight', thingBufferAttributes.torchLight);
+    geometry.setIndex(thingBufferAttributes.index);
+    // geometry.allocators = allocators;
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xFFFFFF,
+    });
+    const mesh = new THREE.Mesh(geometry, [material]);
+    mesh.frustumCulled = false;
+    return mesh;
+  };
+  currentThingMesh = _makeThingMesh();
+  // chunkMeshContainer.add(currentThingMesh); // XXX
 
   planet.connect('lol', {
     online: false,
