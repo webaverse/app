@@ -2910,9 +2910,78 @@ const geometryWorker = (() => {
     new Bot();
   });
 })();
-// chunkWorker = cw;
-// physxWorker = px;
-// physicsWorker = pw;
+
+const meshCubeGeometry = new THREE.BoxBufferGeometry(1, 1, 1).toNonIndexed();
+const MeshDrawer = (() => {
+  const localVector = new THREE.Vector3();
+  const localVector2 = new THREE.Vector3();
+  const localQuaternion = new THREE.Quaternion();
+  const localMatrix = new THREE.Matrix4();
+
+  return class MeshDrawer {
+    constructor() {
+      const positions = new Float32Array(512*1024);
+      this.positions = positions;
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+      this.geometry = geometry;
+      const material = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.visible = false;
+      mesh.frustumCulled = false;
+      this.mesh = mesh;
+
+      this.lastPosition = new THREE.Vector3();
+      this.numPositions = 0;
+    }
+    start(p) {
+      this.lastPosition.copy(p);
+      this.numPositions = 0;
+      this.geometry.setDrawRange(0, 0);
+      this.mesh.visible = false;
+    }
+    end(p) {
+      
+    }
+    update(p) {
+      const startPoint = this.lastPosition;
+      const endPoint = p;
+
+      const quaterion = localQuaternion.setFromUnitVectors(
+        localVector.set(0, 0, -1),
+        localVector2.copy(endPoint).sub(startPoint).normalize()
+      );
+      const midpoint = localVector.copy(startPoint).add(endPoint).divideScalar(2);
+      const scale = localVector2.set(0.01, 0.01, startPoint.distanceTo(endPoint));
+      const matrix = localMatrix.compose(midpoint, quaterion, scale);
+
+      const oldNumPositions = this.numPositions;
+
+      for (let i = 0; i < meshCubeGeometry.attributes.position.array.length; i += 3) {
+        localVector.fromArray(meshCubeGeometry.attributes.position.array, i)
+          .applyMatrix4(matrix)
+          .toArray(this.positions, this.numPositions);
+          this.numPositions += 3;
+      }
+
+      this.geometry.attributes.position.updateRange.offset = oldNumPositions;
+      this.geometry.attributes.position.updateRange.count = this.numPositions;
+      this.geometry.attributes.position.needsUpdate = true;
+      renderer.geometries.update(this.geometry);
+      this.geometry.setDrawRange(0, this.numPositions/3);
+      this.mesh.visible = true;
+
+      this.lastPosition.copy(p);
+
+      // console.log('update mesh drawer', p.toArray().join(','));
+    }
+  };
+})();
+const meshDrawer = new MeshDrawer();
+scene.add(meshDrawer.mesh);
 
 (() => {
   const effectController = {
@@ -4837,6 +4906,8 @@ function animate(timestamp, frame) {
   crosshairMesh && crosshairMesh.update();
   uiMesh && uiMesh.update();
 
+  pe.orbitControls.enabled = selectedTool === 'camera' && selectedWeapon !== 'pencil';
+
   const session = renderer.xr.getSession();
   if (session) {
     const inputSource = session.inputSources[1];
@@ -4885,6 +4956,9 @@ function animate(timestamp, frame) {
           }
           case 'paintbrush': {
             return paintBrushMesh;
+          }
+          case 'pencil': {
+            return pencilMesh;
           }
           default: {
             return null;
@@ -5169,6 +5243,47 @@ function animate(timestamp, frame) {
               subparcel.addVegetation(buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
             });
             currentChunkMesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z); */
+          }
+        }
+      }
+      // mesh drawer
+      if (currentWeaponDown && currentChunkMesh) {
+        if (!buildMode) {
+          switch (selectedWeapon) {
+            case 'pencil': {
+              if (document.pointerLockElement) {
+                localVector2.copy(pencilMesh.position)
+                  .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
+              } else {
+                localVector2.copy(raycaster.ray.origin)
+                  .add(localVector3.copy(raycaster.ray.direction).multiplyScalar(0.5));
+              }
+
+              if (!lastWeaponDown) {
+                meshDrawer.start(localVector2);
+              }
+              meshDrawer.update(localVector2);
+              // console.log('drawing pencil');
+              break;
+            }
+          }
+        }
+      }
+      if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
+        if (!buildMode) {
+          switch (selectedWeapon) {
+            case 'pencil': {
+              if (document.pointerLockElement) {
+                localVector2.copy(pencilMesh.position)
+                  .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
+              } else {
+                localVector2.copy(raycaster.ray.origin)
+                  .add(localVector3.copy(raycaster.ray.direction).multiplyScalar(0.5));
+              }
+
+              meshDrawer.end(localVector2);
+              break;
+            }
           }
         }
       }
@@ -5601,7 +5716,6 @@ for (let i = 0; i < tools.length; i++) {
       switch (selectedTool) {
         case 'camera': {
           document.exitPointerLock();
-          pe.orbitControls.enabled = true;
           pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
           _resetKeys();
           velocity.set(0, 0, 0);
@@ -5613,7 +5727,6 @@ for (let i = 0; i < tools.length; i++) {
           pe.setCamera(camera); */
 
           document.dispatchEvent(new MouseEvent('mouseup'));
-          pe.orbitControls.enabled = false;
           pe.domElement.requestPointerLock();
           break;
         }
@@ -5628,7 +5741,6 @@ for (let i = 0; i < tools.length; i++) {
           pe.setCamera(camera);
 
           document.dispatchEvent(new MouseEvent('mouseup'));
-          pe.orbitControls.enabled = false;
           pe.domElement.requestPointerLock();
           decapitate = false;
           break;
@@ -5648,7 +5760,6 @@ for (let i = 0; i < tools.length; i++) {
           pe.setCamera(camera);
 
           document.dispatchEvent(new MouseEvent('mouseup'));
-          pe.orbitControls.enabled = false;
           pe.domElement.requestPointerLock();
           decapitate = false;
           break;
@@ -5667,13 +5778,11 @@ for (let i = 0; i < tools.length; i++) {
           pe.setCamera(camera);
 
           document.dispatchEvent(new MouseEvent('mouseup'));
-          pe.orbitControls.enabled = false;
           pe.domElement.requestPointerLock();
           decapitate = false;
           break;
         }
         case 'select': {
-          pe.orbitControls.enabled = false;
           _resetKeys();
           velocity.set(0, 0, 0);
           break;
@@ -5893,7 +6002,7 @@ window.addEventListener('keyup', e => {
   }
 });
 window.addEventListener('mousedown', e => {
-  if (document.pointerLockElement) {
+  if (document.pointerLockElement || selectedWeapon === 'pencil') {
     if (e.button === 0) {
       pe.grabtriggerdown('right');
       pe.grabuse('right');
@@ -5904,7 +6013,7 @@ window.addEventListener('mousedown', e => {
   }
 });
 window.addEventListener('mouseup', e => {
-  if (document.pointerLockElement) {
+  if (document.pointerLockElement || selectedWeapon === 'pencil') {
     pe.grabtriggerup('right');
   }
   currentWeaponDown = false;
