@@ -2854,6 +2854,8 @@ const MeshDrawer = (() => {
   const localQuaternion = new THREE.Quaternion();
   const localMatrix = new THREE.Matrix4();
 
+  let numThings = 0;
+
   return class MeshDrawer {
     constructor() {
       const points = new Float32Array(512*1024);
@@ -2901,8 +2903,7 @@ const MeshDrawer = (() => {
             index += 3;
           }
         }
-
-        console.log('got positions', positions);
+        // console.log('got positions', positions);
 
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -3072,20 +3073,21 @@ const MeshDrawer = (() => {
         indices: indices.slice(),
       };
 
-      /* const outUvs2 = geometryWorker.alloc(Float32Array, uvs.length/3*2);
+      // convert uvs from 3D (2D + island index) to 2D
+      const outUvs2 = geometryWorker.alloc(Float32Array, uvs.length/3*2);
       for (let i = 0, j = 0; i < uvs.length; i += 3, j += 2) {
         outUvs2[j] = uvs[i];
         outUvs2[j+1] = uvs[i+1];
-      } */
+      }
 
-      const name = 'thing';
+      const name = 'thing' + (++numThings);
       // console.time('lol');
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       // console.timeEnd('lol');
       const srcTexture = imageData.data;
       const dstTexture = geometryWorker.alloc(Uint8Array, srcTexture.length);
       dstTexture.set(srcTexture);
-      geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, dstTexture.byteOffset)
+      geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, outUvs2.byteOffset, indices.byteOffset, positions.length, outUvs2.length, indices.length, dstTexture.byteOffset)
         .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(3, -7, 3), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)))
         .then(() => {
           console.log('thing added');
