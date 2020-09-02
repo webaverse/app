@@ -3005,7 +3005,19 @@ const MeshDrawer = (() => {
         const mesh = new THREE.Mesh(geometry, material);
         mesh.frustumCulled = false;
         scene.add(mesh);
-      })()
+      })();
+
+      (() => {
+        const geometry = new THREE.PlaneBufferGeometry(1, 1);
+        const material = new THREE.MeshBasicMaterial({
+          color: 0x0000FF,
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.copy(convexHull.center);
+        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), convexHull.planeNormal);
+        mesh.frustumCulled = false;
+        scene.add(mesh);
+      })();
     }
     update(p) {
       const startPoint = this.lastPosition;
