@@ -979,19 +979,27 @@ const geometryWorker = (() => {
   window.earcut = () => {
     const positionsData = Float32Array.from([
       0, 0, 0, 100, 100, 100, 100, 0,
-      75, 25, 75, 75, 25, 75, 25, 25,
     ]);
     for (let i = 0; i < positionsData.length; i++) {
       positionsData[i] /= 30;
     }
     const positions = w.alloc(Float32Array, positionsData.length);
     positions.set(positionsData);
-    const indicesData = Uint32Array.from([
-      4,
+
+    const holesData = Float32Array.from([
+      75, 25, 75, 75, 25, 75, 25, 25,
+    ]);
+    for (let i = 0; i < holesData.length; i++) {
+      holesData[i] /= 30;
+    }
+    const holes = w.alloc(Float32Array, holesData.length);
+    holes.set(holesData);
+
+    const holeCountsData = Uint32Array.from([
       4,
     ]);
-    const indices = w.alloc(Uint32Array, indicesData.length);
-    indices.set(indicesData);
+    const holeCounts = w.alloc(Uint32Array, holeCountsData.length);
+    holeCounts.set(holeCountsData);
 
     const pointsData = Float32Array.from([
       10, 10,
@@ -1014,7 +1022,7 @@ const geometryWorker = (() => {
     zs.set(zData);
 
     // XXX GC this
-    const earcutResult = moduleInstance._earcut(positions.byteOffset, indices.byteOffset, indicesData.length, points.byteOffset, points.length, 0.5, zs.byteOffset);
+    const earcutResult = moduleInstance._earcut(positions.byteOffset, positions.length/2, holes.byteOffset, holeCounts.byteOffset, holeCounts.length, points.byteOffset, points.length, 0.5, zs.byteOffset);
 
     const outPositionsOffset = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT];
     const outNumPositions = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 1];
