@@ -2295,6 +2295,25 @@ const geometryWorker = (() => {
       });
     });
   });
+  w.convexHull = (positionsData, numPositions, cameraPosition) => {
+    const positions = w.alloc(Float32Array, numPositions);
+    positions.set(positionsData.subarray(0, numPositions));
+    cameraPosition.toArray(scratchStack.f32, 0);
+    const convexHullResult = moduleInstance._convexHull(positions.byteOffset, positions.length, scratchStack.f32.byteOffset);
+    w.free(positions.byteOffset);
+
+    const pointsOffset = moduleInstance.HEAPU32[convexHullResult/Uint32Array.BYTES_PER_ELEMENT];
+    const numPoints = moduleInstance.HEAPU32[convexHullResult/Uint32Array.BYTES_PER_ELEMENT + 1];
+    const points = moduleInstance.HEAPF32.slice(pointsOffset/Float32Array.BYTES_PER_ELEMENT, pointsOffset/Float32Array.BYTES_PER_ELEMENT + numPoints);
+    const planeNormal = new THREE.Vector3().fromArray(moduleInstance.HEAPF32, convexHullResult/Float32Array.BYTES_PER_ELEMENT + 2);
+    const planeConstant = moduleInstance.HEAPF32[convexHullResult/Uint32Array.BYTES_PER_ELEMENT + 5];
+
+    return {
+      points,
+      planeNormal,
+      planeConstant,
+    };
+  };
   w.update = () => {
     if (moduleInstance) {
       if (currentChunkMesh) {
@@ -2952,7 +2971,8 @@ const MeshDrawer = (() => {
       this.mesh.visible = false;
     }
     end(p) {
-      
+      const convexHull = geometryWorker.convexHull(this.positions, this.numPositions, pe.camera.position);
+      console.log('got convex hull', convexHull);
     }
     update(p) {
       const startPoint = this.lastPosition;
@@ -2983,8 +3003,6 @@ const MeshDrawer = (() => {
       this.mesh.visible = true;
 
       this.lastPosition.copy(p);
-
-      // console.log('update mesh drawer', p.toArray().join(','));
     }
   };
 })();
