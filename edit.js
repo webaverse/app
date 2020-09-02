@@ -2307,11 +2307,17 @@ const geometryWorker = (() => {
     const points = moduleInstance.HEAPF32.slice(pointsOffset/Float32Array.BYTES_PER_ELEMENT, pointsOffset/Float32Array.BYTES_PER_ELEMENT + numPoints);
     const planeNormal = new THREE.Vector3().fromArray(moduleInstance.HEAPF32, convexHullResult/Float32Array.BYTES_PER_ELEMENT + 2);
     const planeConstant = moduleInstance.HEAPF32[convexHullResult/Uint32Array.BYTES_PER_ELEMENT + 5];
+    const center = new THREE.Vector3().fromArray(moduleInstance.HEAPF32, convexHullResult/Float32Array.BYTES_PER_ELEMENT + 6);
+    const tang = new THREE.Vector3().fromArray(moduleInstance.HEAPF32, convexHullResult/Float32Array.BYTES_PER_ELEMENT + 9);
+    const bitang = new THREE.Vector3().fromArray(moduleInstance.HEAPF32, convexHullResult/Float32Array.BYTES_PER_ELEMENT + 12);
 
     return {
       points,
       planeNormal,
       planeConstant,
+      center,
+      tang,
+      bitang,
     };
   };
   w.update = () => {
@@ -2951,7 +2957,7 @@ const MeshDrawer = (() => {
       this.positions = positions;
 
       const geometry = new THREE.BufferGeometry();
-      geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       this.geometry = geometry;
       const material = new THREE.MeshBasicMaterial({
         color: 0x000000,
@@ -2973,6 +2979,36 @@ const MeshDrawer = (() => {
     end(p) {
       const convexHull = geometryWorker.convexHull(this.positions, this.numPositions, pe.camera.position);
       console.log('got convex hull', convexHull);
+
+      (() => {
+        let index = 0;
+        const positions = new Float32Array(convexHull.points.length/2*3 * meshCubeGeometry.attributes.position.array.length);
+        for (let i = 0; i < convexHull.points.length/2; i++) {
+          for (let j = 0; j < meshCubeGeometry.attributes.position.array.length; j += 3) {
+            localVector.fromArray(meshCubeGeometry.attributes.position.array, j)
+              .multiplyScalar(0.01)
+              .add(convexHull.center)
+              .add(localVector2.copy(convexHull.tang).multiplyScalar(convexHull.points[i*2]))
+              .add(localVector2.copy(convexHull.bitang).multiplyScalar(convexHull.points[i*2+1]))
+              .toArray(positions, index);
+            if (index > positions.length) {
+              debugger;
+            }
+            index += 3;
+          }
+        }
+
+        console.log('got positions', positions);
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const material = new THREE.MeshBasicMaterial({
+          color: 0xFF0000,
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.frustumCulled = false;
+        scene.add(mesh);
+      })()
     }
     update(p) {
       const startPoint = this.lastPosition;
