@@ -2991,9 +2991,6 @@ const MeshDrawer = (() => {
               .add(localVector2.copy(convexHull.tang).multiplyScalar(convexHull.points[i*2]))
               .add(localVector2.copy(convexHull.bitang).multiplyScalar(convexHull.points[i*2+1]))
               .toArray(positions, index);
-            if (index > positions.length) {
-              debugger;
-            }
             index += 3;
           }
         }
