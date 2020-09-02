@@ -2856,11 +2856,12 @@ const MeshDrawer = (() => {
 
   return class MeshDrawer {
     constructor() {
-      const positions = new Float32Array(512*1024);
-      this.positions = positions;
+      const points = new Float32Array(512*1024);
+      this.points = points;
+      this.numPoints = 0;
 
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(512*1024), 3));
       this.geometry = geometry;
       const material = new THREE.MeshBasicMaterial({
         color: 0x000000,
@@ -2875,12 +2876,15 @@ const MeshDrawer = (() => {
     }
     start(p) {
       this.lastPosition.copy(p);
+      this.numPoints = 0;
       this.numPositions = 0;
       this.geometry.setDrawRange(0, 0);
       this.mesh.visible = false;
     }
     end(p) {
-      const convexHull = geometryWorker.convexHull(this.positions, this.numPositions, pe.camera.position);
+      const points = geometryWorker.alloc(Float32Array, this.numPoints);
+      points.set(this.points.subarray(0, this.numPoints))
+      const convexHull = geometryWorker.convexHull(points, points.length, pe.camera.position);
       console.log('got convex hull', convexHull);
 
       (() => {
@@ -2922,27 +2926,29 @@ const MeshDrawer = (() => {
         scene.add(mesh);
       })();
 
-      const holes = {
+      const fakeHoles = {
         byteOffset: 0,
         length: 0,
       };
-      const holeCounts = {
+      const fakeHoleCounts = {
         byteOffset: 0,
         length: 0,
       };
-      const points = {
+      const fakePoints = {
         byteOffset: 0,
         length: 0,
       };
       const zs = geometryWorker.alloc(Float32Array, convexHull.points/2);
       zs.fill(0);
 
-      this.drawPolygonize(convexHull.points, holes, holeCounts, points, 0.01, zs);
+      this.drawPolygonize(convexHull.points, fakeHoles, fakeHoleCounts, fakePoints, 0.01, zs);
     }
     update(p) {
+      p.toArray(this.points, this.numPoints);
+      this.numPoints += 3;
+
       const startPoint = this.lastPosition;
       const endPoint = p;
-
       const quaterion = localQuaternion.setFromUnitVectors(
         localVector.set(0, 0, -1),
         localVector2.copy(endPoint).sub(startPoint).normalize()
@@ -2956,7 +2962,7 @@ const MeshDrawer = (() => {
       for (let i = 0; i < meshCubeGeometry.attributes.position.array.length; i += 3) {
         localVector.fromArray(meshCubeGeometry.attributes.position.array, i)
           .applyMatrix4(matrix)
-          .toArray(this.positions, this.numPositions);
+          .toArray(this.geometry.attributes.position.array, this.numPositions);
           this.numPositions += 3;
       }
 
