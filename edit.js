@@ -5277,7 +5277,7 @@ function animate(timestamp, frame) {
           }
         }
       }
-      if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
+      if (lastWeaponDown && !currentWeaponDown && currentChunkMesh) {
         if (!buildMode) {
           switch (selectedWeapon) {
             case 'pencil': {
