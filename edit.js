@@ -1021,132 +1021,7 @@ const geometryWorker = (() => {
     const zs = w.alloc(Float32Array, zData.length);
     zs.set(zData);
 
-    // XXX GC this
-    const earcutResult = moduleInstance._earcut(positions.byteOffset, positions.length/2, holes.byteOffset, holeCounts.byteOffset, holeCounts.length, points.byteOffset, points.length, 0.5, zs.byteOffset);
-
-    const outPositionsOffset = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT];
-    const outNumPositions = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 1];
-    const outUvsOffset = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 2];
-    const outNumUvs = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 3];
-    const outIndicesOffset = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 4];
-    const outNumIndices = moduleInstance.HEAPU32[earcutResult/Uint32Array.BYTES_PER_ELEMENT + 5];
-
-    const outPositions = moduleInstance.HEAPF32.slice(outPositionsOffset/Float32Array.BYTES_PER_ELEMENT, outPositionsOffset/Float32Array.BYTES_PER_ELEMENT + outNumPositions);
-    const outUvs = moduleInstance.HEAPF32.slice(outUvsOffset/Float32Array.BYTES_PER_ELEMENT, outUvsOffset/Float32Array.BYTES_PER_ELEMENT + outNumUvs);
-    const outIndices = moduleInstance.HEAPU32.slice(outIndicesOffset/Uint32Array.BYTES_PER_ELEMENT, outIndicesOffset/Uint32Array.BYTES_PER_ELEMENT + outNumIndices);
-    
-    let geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(outPositions, 3));
-    geometry.setAttribute('uv3', new THREE.BufferAttribute(outUvs, 3));
-    geometry.setIndex(new THREE.BufferAttribute(outIndices, 1));
-    geometry = geometry.toNonIndexed();
-    const size = 512;
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#FFF';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#CCC';
-    for (let x = 0; x < canvas.width; x += 64) {
-      for (let y = 0; y < canvas.height; y += 64) {
-        if ((x/64)%2 === ((y/64)%2)) {
-          ctx.fillRect(x, y, 64, 64);
-        }
-      }
-    }
-    const texture = new THREE.Texture(canvas);
-    texture.needsUpdate = true;
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        tex: {
-          type: 't',
-          value: texture,
-          needsUpdate: true,
-        },
-      },
-      vertexShader: `\
-        precision highp float;
-        precision highp int;
-
-        attribute vec3 uv3;
-        varying vec3 vUv;
-        varying vec3 vBarycentric;
-
-        void main() {
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          gl_Position = projectionMatrix * mvPosition;
-
-          vUv = uv3;
-
-          float vid = float(gl_VertexID);
-          if (mod(vid, 3.) < 0.5) {
-            vBarycentric = vec3(1., 0., 0.);
-          } else if (mod(vid, 3.) < 1.5) {
-            vBarycentric = vec3(0., 1., 0.);
-          } else {
-            vBarycentric = vec3(0., 0., 1.);
-          }
-        }
-      `,
-      fragmentShader: `\
-        precision highp float;
-        precision highp int;
-
-        #define PI 3.1415926535897932384626433832795
-
-        uniform sampler2D tex;
-        uniform sampler2D indexTex;
-
-        varying vec3 vUv;
-        varying vec3 vBarycentric;
-
-        float edgeFactor() {
-          vec3 d = fwidth(vBarycentric);
-          vec3 a3 = smoothstep(vec3(0.0), d, vBarycentric);
-          return min(min(a3.x, a3.y), a3.z);
-        }
-
-        void main() {
-          vec3 c = texture2D(tex, vUv.xy).rgb;
-          c *= vec3(vUv.x, 0., vUv.y);
-          if (edgeFactor() <= 0.99) {
-            c += 0.5;
-          }
-          gl_FragColor = vec4(c, 1.);
-        }
-      `,
-      // side: THREE.DoubleSide,
-    })
-    const mesh = new THREE.Mesh(geometry, material);
-    pe.scene.add(mesh);
-
-    const result = {
-      positions: outPositions.slice(),
-      uvs: outUvs.slice(),
-      indices: outIndices.slice(),
-    };
-
-    const outUvs2 = w.alloc(Float32Array, outUvs.length/3*2);
-    for (let i = 0, j = 0; i < outUvs.length; i += 3, j += 2) {
-      outUvs2[j] = outUvs[i];
-      outUvs2[j+1] = outUvs[i+1];
-    }
-
-    const name = 'thing';
-    // console.time('lol');
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    // console.timeEnd('lol');
-    const srcTexture = imageData.data;
-    const dstTexture = geometryWorker.alloc(Uint8Array, srcTexture.length);
-    dstTexture.set(srcTexture);
-    geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, outPositionsOffset, outUvs2.byteOffset, outIndicesOffset, outNumPositions, outUvs2.length, outNumIndices, dstTexture.byteOffset)
-      .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(5, -5, 5), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)))
-      .then(() => {
-        console.log('thing added');
-      }, console.warn);
-
-    return result;
+    meshDrawer.drawPolygonize(positions, holes, holeCounts, points, 0.5, zs);
   };
   w.waitForLoad = () => modulePromise;
   w.alloc = (constructor, count) => {
@@ -2304,7 +2179,7 @@ const geometryWorker = (() => {
 
     const pointsOffset = moduleInstance.HEAPU32[convexHullResult/Uint32Array.BYTES_PER_ELEMENT];
     const numPoints = moduleInstance.HEAPU32[convexHullResult/Uint32Array.BYTES_PER_ELEMENT + 1];
-    const points = moduleInstance.HEAPF32.slice(pointsOffset/Float32Array.BYTES_PER_ELEMENT, pointsOffset/Float32Array.BYTES_PER_ELEMENT + numPoints);
+    const points = moduleInstance.HEAPF32.subarray(pointsOffset/Float32Array.BYTES_PER_ELEMENT, pointsOffset/Float32Array.BYTES_PER_ELEMENT + numPoints);
     const planeNormal = new THREE.Vector3().fromArray(moduleInstance.HEAPF32, convexHullResult/Float32Array.BYTES_PER_ELEMENT + 2);
     const planeConstant = moduleInstance.HEAPF32[convexHullResult/Uint32Array.BYTES_PER_ELEMENT + 5];
     const center = new THREE.Vector3().fromArray(moduleInstance.HEAPF32, convexHullResult/Float32Array.BYTES_PER_ELEMENT + 6);
@@ -2318,6 +2193,34 @@ const geometryWorker = (() => {
       center,
       tang,
       bitang,
+    };
+  };
+  w.earcut = function() {
+    // XXX GC this
+    const result = moduleInstance._earcut.apply(moduleInstance, arguments);
+
+    const outPositionsOffset = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT];
+    const outNumPositions = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 1];
+    const outUvsOffset = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 2];
+    const outNumUvs = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 3];
+    const outIndicesOffset = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 4];
+    const outNumIndices = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 5];
+
+    const positions = moduleInstance.HEAPF32.subarray(outPositionsOffset/Float32Array.BYTES_PER_ELEMENT, outPositionsOffset/Float32Array.BYTES_PER_ELEMENT + outNumPositions);
+    const uvs = moduleInstance.HEAPF32.subarray(outUvsOffset/Float32Array.BYTES_PER_ELEMENT, outUvsOffset/Float32Array.BYTES_PER_ELEMENT + outNumUvs);
+    const indices = moduleInstance.HEAPU32.subarray(outIndicesOffset/Uint32Array.BYTES_PER_ELEMENT, outIndicesOffset/Uint32Array.BYTES_PER_ELEMENT + outNumIndices);
+
+    return {
+      positions,
+      uvs,
+      indices,
+
+      /* outPositionsOffset,
+      outNumPositions,
+      outUvsOffset,
+      outNumUvs,
+      outIndicesOffset,
+      outNumIndices, */
     };
   };
   w.update = () => {
@@ -3018,6 +2921,23 @@ const MeshDrawer = (() => {
         mesh.frustumCulled = false;
         scene.add(mesh);
       })();
+
+      const holes = {
+        byteOffset: 0,
+        length: 0,
+      };
+      const holeCounts = {
+        byteOffset: 0,
+        length: 0,
+      };
+      const points = {
+        byteOffset: 0,
+        length: 0,
+      };
+      const zs = geometryWorker.alloc(Float32Array, convexHull.points/2);
+      zs.fill(0);
+
+      this.drawPolygonize(convexHull.points, holes, holeCounts, points, 0.01, zs);
     }
     update(p) {
       const startPoint = this.lastPosition;
@@ -3048,6 +2968,124 @@ const MeshDrawer = (() => {
       this.mesh.visible = true;
 
       this.lastPosition.copy(p);
+    }
+    drawPolygonize(ps, holes, holeCounts, points, z, zs) {
+      const {positions, uvs, indices, /* outPositionsOffset, outIndicesOffset, outNumPositions, outNumIndices*/} = geometryWorker.earcut(ps.byteOffset, ps.length/2, holes.byteOffset, holeCounts.byteOffset, holeCounts.length, points.byteOffset, points.length, z, zs.byteOffset);
+  
+      // console.log('got earcut', positions, uvs, indices);
+
+      let geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('uv3', new THREE.BufferAttribute(uvs, 3));
+      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      geometry = geometry.toNonIndexed();
+      const size = 512;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#FFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#CCC';
+      for (let x = 0; x < canvas.width; x += 64) {
+        for (let y = 0; y < canvas.height; y += 64) {
+          if ((x/64)%2 === ((y/64)%2)) {
+            ctx.fillRect(x, y, 64, 64);
+          }
+        }
+      }
+      const texture = new THREE.Texture(canvas);
+      texture.needsUpdate = true;
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          tex: {
+            type: 't',
+            value: texture,
+            needsUpdate: true,
+          },
+        },
+        vertexShader: `\
+          precision highp float;
+          precision highp int;
+
+          attribute vec3 uv3;
+          varying vec3 vUv;
+          varying vec3 vBarycentric;
+
+          void main() {
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_Position = projectionMatrix * mvPosition;
+
+            vUv = uv3;
+
+            float vid = float(gl_VertexID);
+            if (mod(vid, 3.) < 0.5) {
+              vBarycentric = vec3(1., 0., 0.);
+            } else if (mod(vid, 3.) < 1.5) {
+              vBarycentric = vec3(0., 1., 0.);
+            } else {
+              vBarycentric = vec3(0., 0., 1.);
+            }
+          }
+        `,
+        fragmentShader: `\
+          precision highp float;
+          precision highp int;
+
+          #define PI 3.1415926535897932384626433832795
+
+          uniform sampler2D tex;
+          uniform sampler2D indexTex;
+
+          varying vec3 vUv;
+          varying vec3 vBarycentric;
+
+          float edgeFactor() {
+            vec3 d = fwidth(vBarycentric);
+            vec3 a3 = smoothstep(vec3(0.0), d, vBarycentric);
+            return min(min(a3.x, a3.y), a3.z);
+          }
+
+          void main() {
+            vec3 c = texture2D(tex, vUv.xy).rgb;
+            c *= vec3(vUv.x, 0., vUv.y);
+            if (edgeFactor() <= 0.99) {
+              c += 0.5;
+            }
+            gl_FragColor = vec4(c, 1.);
+          }
+        `,
+        // side: THREE.DoubleSide,
+      })
+      const mesh = new THREE.Mesh(geometry, material);
+      pe.scene.add(mesh);
+
+      const result = {
+        positions: positions.slice(),
+        uvs: uvs.slice(),
+        indices: indices.slice(),
+      };
+
+      /* const outUvs2 = geometryWorker.alloc(Float32Array, uvs.length/3*2);
+      for (let i = 0, j = 0; i < uvs.length; i += 3, j += 2) {
+        outUvs2[j] = uvs[i];
+        outUvs2[j+1] = uvs[i+1];
+      } */
+
+      const name = 'thing';
+      // console.time('lol');
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      // console.timeEnd('lol');
+      const srcTexture = imageData.data;
+      const dstTexture = geometryWorker.alloc(Uint8Array, srcTexture.length);
+      dstTexture.set(srcTexture);
+      geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, dstTexture.byteOffset)
+        .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(3, -7, 3), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)))
+        .then(() => {
+          console.log('thing added');
+        }, console.warn);
+
+      return result;
     }
   };
 })();
