@@ -1506,8 +1506,8 @@ const geometryWorker = (() => {
     );
     const objectId = scratchStack.u32[21];
     const faceIndex = scratchStack.u32[22];
-    const objectPosition = scratchStack.f32.slice(23, 25);
-    const objectQuaternion = scratchStack.f32.slice(26, 29);
+    const objectPosition = scratchStack.f32.slice(23, 26);
+    const objectQuaternion = scratchStack.f32.slice(26, 30);
 
     return scratchStack.u32[13] ? {
       point: scratchStack.f32.slice(14, 17),
@@ -5390,6 +5390,10 @@ function animate(timestamp, frame) {
             }
             case 'paintbrush': {
               console.log('click paintbrush 1');
+
+              if (raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
+                console.log('painting', raycastChunkSpec.objectId, raycastChunkSpec.faceIndex);
+              }
               break;
             }
             case 'physics': {
