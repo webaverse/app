@@ -5023,7 +5023,7 @@ function animate(timestamp, frame) {
   crosshairMesh && crosshairMesh.update();
   uiMesh && uiMesh.update();
 
-  pe.orbitControls.enabled = selectedTool === 'camera' && selectedWeapon !== 'pencil';
+  pe.orbitControls.enabled = selectedTool === 'camera' && !['pencil', 'paintbrush', 'physics'].includes(selectedWeapon);
 
   const session = renderer.xr.getSession();
   if (session) {
@@ -5071,10 +5071,16 @@ function animate(timestamp, frame) {
           case 'pickaxe': {
             return pickaxeMesh;
           }
-          case 'paintbrush': {
+          case 'light': {
             return paintBrushMesh;
           }
           case 'pencil': {
+            return pencilMesh;
+          }
+          case 'paintbrush': {
+            return paintBrushMesh;
+          }
+          case 'physics': {
             return pencilMesh;
           }
           default: {
@@ -5247,7 +5253,7 @@ function animate(timestamp, frame) {
               }
             }
           };
-          const _paint = () => {
+          const _light = () => {
             if (raycastChunkSpec) {
               localVector2.copy(raycastChunkSpec.point)
                 .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
@@ -5326,8 +5332,8 @@ function animate(timestamp, frame) {
               _hit();
               break;
             }
-            case 'paintbrush': {
-              _paint();
+            case 'light': {
+              _light();
             }
           }
         } else {
@@ -5383,6 +5389,14 @@ function animate(timestamp, frame) {
               // console.log('drawing pencil');
               break;
             }
+            case 'paintbrush': {
+              console.log('click paintbrush 1');
+              break;
+            }
+            case 'physics': {
+              console.log('click physics 1');
+              break;
+            }
           }
         }
       }
@@ -5399,6 +5413,14 @@ function animate(timestamp, frame) {
               }
 
               meshDrawer.end(localVector2);
+              break;
+            }
+            case 'paintbrush': {
+              console.log('click paintbrush 2');
+              break;
+            }
+            case 'physics': {
+              console.log('click physics 2');
               break;
             }
           }
@@ -5621,8 +5643,8 @@ function animate(timestamp, frame) {
 
   // packages
   const isVisible = shieldLevel === 2;
-  const isTarget = shieldLevel === 0 && selectedTool !== 'select';
-  const isVolume = shieldLevel === 1 || selectedTool === 'select';
+  const isTarget = shieldLevel === 0 /*&& selectedTool !== 'select'*/;
+  const isVolume = shieldLevel === 1 /*|| selectedTool === 'select'*/;
   for (const p of pe.children) {
     p.visible = isVisible;
     if (p.placeholderBox) {
@@ -5899,11 +5921,11 @@ for (let i = 0; i < tools.length; i++) {
           decapitate = false;
           break;
         }
-        case 'select': {
+        /* case 'select': {
           _resetKeys();
           velocity.set(0, 0, 0);
           break;
-        }
+        } */
       }
       if (pe.rig) {
         if (decapitate) {
@@ -6119,7 +6141,7 @@ window.addEventListener('keyup', e => {
   }
 });
 window.addEventListener('mousedown', e => {
-  if (document.pointerLockElement || selectedWeapon === 'pencil') {
+  if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
     if (e.button === 0) {
       pe.grabtriggerdown('right');
       pe.grabuse('right');
@@ -6130,7 +6152,7 @@ window.addEventListener('mousedown', e => {
   }
 });
 window.addEventListener('mouseup', e => {
-  if (document.pointerLockElement || selectedWeapon === 'pencil') {
+  if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
     pe.grabtriggerup('right');
   }
   currentWeaponDown = false;
