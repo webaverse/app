@@ -2201,7 +2201,7 @@ const geometryWorker = (() => {
       bitang,
     };
   };
-  w.earcut = (tracker, ps, holes, holeCounts, points, z, zs, position, quaternion) => {
+  w.earcut = (tracker, ps, holes, holeCounts, points, z, zs, id, position, quaternion) => {
     const inPs = w.alloc(Float32Array, ps.length);
     inPs.set(ps);
     const inHoles = w.alloc(Float32Array, holes.length);
@@ -2216,7 +2216,7 @@ const geometryWorker = (() => {
     const positionOffset = scratchStack.f32.byteOffset;
     quaternion.toArray(scratchStack.f32, 3);
     const quaternionOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
-    const resultOffset = moduleInstance._earcut(tracker, inPs.byteOffset, inPs.length/2, inHoles.byteOffset, inHoleCounts.byteOffset, inHoleCounts.length, inPoints.byteOffset, inPoints.length, z, inZs.byteOffset, positionOffset, quaternionOffset);
+    const resultOffset = moduleInstance._earcut(tracker, inPs.byteOffset, inPs.length/2, inHoles.byteOffset, inHoleCounts.byteOffset, inHoleCounts.length, inPoints.byteOffset, inPoints.length, z, inZs.byteOffset, id, positionOffset, quaternionOffset);
 
     const outPositionsOffset = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT];
     const outNumPositions = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -3035,6 +3035,8 @@ const MeshDrawer = (() => {
 
       this.geometryData = null;
       this.canvas = _makeThingCanvas();
+
+      this.id = Math.floor(Math.random() * 0xFFFFFF);
     }
     updateGeometryData() {
       if (this.geometryData) {
@@ -3043,7 +3045,7 @@ const MeshDrawer = (() => {
       }
       const position = this.center;
       const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), this.planeNormal);
-      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry, destroy} = geometryWorker.earcut(tracker, this.ps, this.holes, this.holeCounts, this.points, this.z, this.zs, position, quaternion);
+      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry, destroy} = geometryWorker.earcut(tracker, this.ps, this.holes, this.holeCounts, this.points, this.z, this.zs, this.id, position, quaternion);
       this.geometryData = {
         positions,
         uvs,
@@ -3078,6 +3080,8 @@ const MeshDrawer = (() => {
 
       this.lastPosition = new THREE.Vector3();
       this.numPositions = 0;
+
+      this.thingMeshes = [];
     }
     start(p) {
       this.lastPosition.copy(p);
@@ -3094,6 +3098,7 @@ const MeshDrawer = (() => {
       thingMesh.setGeometryData(thingSource);
       thingMesh.setTexture(thingSource);
       chunkMeshContainer.add(thingMesh);
+      this.thingMeshes.push(thingMesh);
 
       /* (() => {
         let index = 0;
@@ -5582,7 +5587,7 @@ function animate(timestamp, frame) {
               console.log('click paintbrush 1');
 
               if (raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
-                console.log('painting', raycastChunkSpec.objectId, raycastChunkSpec.faceIndex);
+                console.log('painting', raycastChunkSpec);
               }
               break;
             }
