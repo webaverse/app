@@ -1472,8 +1472,9 @@ const geometryWorker = (() => {
     const normalOffset = scratchStack.f32.byteOffset + 17*Float32Array.BYTES_PER_ELEMENT;
     const distanceOffset = scratchStack.f32.byteOffset + 20*Float32Array.BYTES_PER_ELEMENT;
     const objectIdOffset = scratchStack.u32.byteOffset + 21*Float32Array.BYTES_PER_ELEMENT;
-    const positionOffset = scratchStack.u32.byteOffset + 22*Float32Array.BYTES_PER_ELEMENT;
-    const quaternionOffset = scratchStack.u32.byteOffset + 25*Float32Array.BYTES_PER_ELEMENT;
+    const faceIndexOffset = scratchStack.u32.byteOffset + 22*Float32Array.BYTES_PER_ELEMENT;
+    const positionOffset = scratchStack.u32.byteOffset + 23*Float32Array.BYTES_PER_ELEMENT;
+    const quaternionOffset = scratchStack.u32.byteOffset + 26*Float32Array.BYTES_PER_ELEMENT;
     // const objectOffset = scratchStack.f32.byteOffset + 21*Float32Array.BYTES_PER_ELEMENT;
     // const faceIndexOffset = scratchStack.f32.byteOffset + 22*Float32Array.BYTES_PER_ELEMENT;
 
@@ -1501,21 +1502,22 @@ const geometryWorker = (() => {
       normalOffset,
       distanceOffset,
       objectIdOffset,
+      faceIndexOffset,
       positionOffset,
       quaternionOffset,
-      // faceIndexOffset
     );
     const objectId = scratchStack.u32[21];
-    const objectPosition = scratchStack.f32.slice(22, 25);
-    const objectQuaternion = scratchStack.f32.slice(25, 29);
+    const faceIndex = scratchStack.u32[22];
+    const objectPosition = scratchStack.f32.slice(23, 25);
+    const objectQuaternion = scratchStack.f32.slice(26, 29);
 
     return scratchStack.u32[13] ? {
       point: scratchStack.f32.slice(14, 17),
       normal: scratchStack.f32.slice(17, 20),
       distance: scratchStack.f32[20],
       meshId: scratchStack.u32[21],
-      // faceIndex: scratchStack.u32[22],
       objectId,
+      faceIndex,
       objectPosition,
       objectQuaternion,
     } : null;
