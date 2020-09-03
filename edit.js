@@ -2201,7 +2201,7 @@ const geometryWorker = (() => {
       bitang,
     };
   };
-  w.earcut = (tracker, ps, holes, holeCounts, points, z, zs, id, position, quaternion) => {
+  w.earcut = (tracker, ps, holes, holeCounts, points, z, zs, objectId, position, quaternion) => {
     const inPs = w.alloc(Float32Array, ps.length);
     inPs.set(ps);
     const inHoles = w.alloc(Float32Array, holes.length);
@@ -2216,7 +2216,7 @@ const geometryWorker = (() => {
     const positionOffset = scratchStack.f32.byteOffset;
     quaternion.toArray(scratchStack.f32, 3);
     const quaternionOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
-    const resultOffset = moduleInstance._earcut(tracker, inPs.byteOffset, inPs.length/2, inHoles.byteOffset, inHoleCounts.byteOffset, inHoleCounts.length, inPoints.byteOffset, inPoints.length, z, inZs.byteOffset, id, positionOffset, quaternionOffset);
+    const resultOffset = moduleInstance._earcut(tracker, inPs.byteOffset, inPs.length/2, inHoles.byteOffset, inHoleCounts.byteOffset, inHoleCounts.length, inPoints.byteOffset, inPoints.length, z, inZs.byteOffset, objectId, positionOffset, quaternionOffset);
 
     const outPositionsOffset = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT];
     const outNumPositions = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -3036,16 +3036,19 @@ const MeshDrawer = (() => {
       this.geometryData = null;
       this.canvas = _makeThingCanvas();
 
-      this.id = Math.floor(Math.random() * 0xFFFFFF);
+      this.objectId = Math.floor(Math.random() * 0xFFFFFF);
+      this.position = this.center.clone();
+      this.quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), this.planeNormal);
+      this.scale = new THREE.Vector3(1, 1, 1);
+      this.matrix = new THREE.Matrix4().compose(this.position, this.quaternion, this.scale);
+      this.matrixWorld = this.matrix.clone().premultiply(currentChunkMesh.matrixWorld);
     }
     updateGeometryData() {
       if (this.geometryData) {
         this.geometryData.destroy();
         this.geometryData = null;
       }
-      const position = this.center;
-      const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), this.planeNormal);
-      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry, destroy} = geometryWorker.earcut(tracker, this.ps, this.holes, this.holeCounts, this.points, this.z, this.zs, this.id, position, quaternion);
+      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry, destroy} = geometryWorker.earcut(tracker, this.ps, this.holes, this.holeCounts, this.points, this.z, this.zs, this.objectId, this.position, this.quaternion);
       this.geometryData = {
         positions,
         uvs,
@@ -3081,7 +3084,7 @@ const MeshDrawer = (() => {
       this.lastPosition = new THREE.Vector3();
       this.numPositions = 0;
 
-      this.thingMeshes = [];
+      this.thingSources = [];
     }
     start(p) {
       this.lastPosition.copy(p);
@@ -3093,12 +3096,14 @@ const MeshDrawer = (() => {
     end(p) {
       const thingSource = ThingSource.fromPoints(this.points.subarray(0, this.numPoints));
       thingSource.updateGeometryData();
+      this.thingSources.push(thingSource);
 
       const thingMesh = _makeThingMesh();
       thingMesh.setGeometryData(thingSource);
       thingMesh.setTexture(thingSource);
       chunkMeshContainer.add(thingMesh);
-      this.thingMeshes.push(thingMesh);
+      // chunkMeshContainer.updateMatrixWorld();
+      // thingSource.matrixWorld = thingMesh.matrixWorld.clone();
 
       /* (() => {
         let index = 0;
@@ -5140,6 +5145,16 @@ const _collideChunk = matrix => {
   currentChunkMesh && currentChunkMesh.update(localVector3);
 };
 
+const cubeMesh = (() => {
+  const geometry = new THREE.BoxBufferGeometry(0.02, 0.02, 0.02);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x00FF00,
+  });
+  return new THREE.Mesh(geometry, material);
+})();
+cubeMesh.frustumCulled = false;
+scene.add(cubeMesh);
+
 const PEEK_FACES = {
   FRONT: 1,
   BACK: 2,
@@ -5236,6 +5251,7 @@ function animate(timestamp, frame) {
           raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
           raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
           raycastChunkSpec.objectQuaternion = new THREE.Quaternion().fromArray(raycastChunkSpec.objectQuaternion);
+          cubeMesh.position.copy(raycastChunkSpec.point);
         }
       }
 
@@ -5587,7 +5603,28 @@ function animate(timestamp, frame) {
               console.log('click paintbrush 1');
 
               if (raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
-                console.log('painting', raycastChunkSpec);
+                const thingSource = meshDrawer.thingSources.find(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
+                if (thingSource) {
+                  const {point, faceIndex} = raycastChunkSpec;
+                  const {geometryData: {positions, uvs, indices}} = thingSource;
+                  const ai = indices[faceIndex*3];
+                  const bi = indices[faceIndex*3+1];
+                  const ci = indices[faceIndex*3+2];
+                  const tri = new THREE.Triangle(
+                    new THREE.Vector3().fromArray(positions, ai*3).applyMatrix4(thingSource.matrixWorld),
+                    new THREE.Vector3().fromArray(positions, bi*3).applyMatrix4(thingSource.matrixWorld),
+                    new THREE.Vector3().fromArray(positions, ci*3).applyMatrix4(thingSource.matrixWorld)
+                  );
+                  const uva = new THREE.Vector2().fromArray(uvs, ai*3);
+                  const uvb = new THREE.Vector2().fromArray(uvs, bi*3);
+                  const uvc = new THREE.Vector2().fromArray(uvs, ci*3);
+                  // const localPoint = point.clone().applyMatrix4(localMatrix2.getInverse(currentChunkMesh.matrixWorld));
+                  const uv = THREE.Triangle.getUV(point, tri.a, tri.b, tri.c, uva, uvb, uvc, new THREE.Vector2());
+                  // const midpoint = tri.getMidpoint(new THREE.Vector3()).applyMatrix4(localMatrix2.getInverse(currentChunkMesh.matrixWorld));
+                  // const normal = tri.getNormal(new THREE.Vector3());
+                  // const baryCoord = tri.getBarycoord(localPoint, new THREE.Vector3());
+                  console.log('painting', currentChunkMesh, raycastChunkSpec, thingSource, tri, point.toArray(), uv.toArray());
+                }
               }
               break;
             }
