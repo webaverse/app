@@ -2911,6 +2911,7 @@ const MeshDrawer = (() => {
     canvas.height = checkerboardCanvas.height;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(checkerboardCanvas, 0, 0);
+    canvas.ctx = ctx;
     return canvas;
   };
 
@@ -3085,6 +3086,7 @@ const MeshDrawer = (() => {
       this.numPositions = 0;
 
       this.thingSources = [];
+      this.thingMeshes = [];
     }
     start(p) {
       this.lastPosition.copy(p);
@@ -3102,6 +3104,7 @@ const MeshDrawer = (() => {
       thingMesh.setGeometryData(thingSource);
       thingMesh.setTexture(thingSource);
       chunkMeshContainer.add(thingMesh);
+      this.thingMeshes.push(thingMesh);
       // chunkMeshContainer.updateMatrixWorld();
       // thingSource.matrixWorld = thingMesh.matrixWorld.clone();
 
@@ -5603,8 +5606,11 @@ function animate(timestamp, frame) {
               console.log('click paintbrush 1');
 
               if (raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
-                const thingSource = meshDrawer.thingSources.find(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
-                if (thingSource) {
+                const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
+                if (index !== -1) {
+                  const thingSource = meshDrawer.thingSources[index];
+                  const thingMesh = meshDrawer.thingMeshes[index];
+
                   const {point, faceIndex} = raycastChunkSpec;
                   const {geometryData: {positions, uvs, indices}} = thingSource;
                   const ai = indices[faceIndex*3];
@@ -5618,12 +5624,13 @@ function animate(timestamp, frame) {
                   const uva = new THREE.Vector2().fromArray(uvs, ai*3);
                   const uvb = new THREE.Vector2().fromArray(uvs, bi*3);
                   const uvc = new THREE.Vector2().fromArray(uvs, ci*3);
-                  // const localPoint = point.clone().applyMatrix4(localMatrix2.getInverse(currentChunkMesh.matrixWorld));
                   const uv = THREE.Triangle.getUV(point, tri.a, tri.b, tri.c, uva, uvb, uvc, new THREE.Vector2());
-                  // const midpoint = tri.getMidpoint(new THREE.Vector3()).applyMatrix4(localMatrix2.getInverse(currentChunkMesh.matrixWorld));
-                  // const normal = tri.getNormal(new THREE.Vector3());
-                  // const baryCoord = tri.getBarycoord(localPoint, new THREE.Vector3());
-                  console.log('painting', currentChunkMesh, raycastChunkSpec, thingSource, tri, point.toArray(), uv.toArray());
+                  // console.log('painting', currentChunkMesh, raycastChunkSpec, thingSource, tri, point.toArray(), uv.toArray());
+                  const f = 10;
+                  const canvas = thingMesh.material.uniforms.tex.value.image;
+                  canvas.ctx.fillStyle = '#000';
+                  canvas.ctx.fillRect(uv.x * canvas.width - f/2, (1-uv.y) * canvas.height - f/2, f, f);
+                  thingMesh.material.uniforms.tex.value.needsUpdate = true;
                 }
               }
               break;
