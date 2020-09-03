@@ -1475,8 +1475,6 @@ const geometryWorker = (() => {
     const faceIndexOffset = scratchStack.u32.byteOffset + 22*Float32Array.BYTES_PER_ELEMENT;
     const positionOffset = scratchStack.u32.byteOffset + 23*Float32Array.BYTES_PER_ELEMENT;
     const quaternionOffset = scratchStack.u32.byteOffset + 26*Float32Array.BYTES_PER_ELEMENT;
-    // const objectOffset = scratchStack.f32.byteOffset + 21*Float32Array.BYTES_PER_ELEMENT;
-    // const faceIndexOffset = scratchStack.f32.byteOffset + 22*Float32Array.BYTES_PER_ELEMENT;
 
     /* const raycastArgs = {
       origin: allocator.alloc(Float32Array, 3),
