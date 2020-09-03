@@ -2051,7 +2051,7 @@ const geometryWorker = (() => {
       });
     });
   });
-  w.requestAddThingGeometry = (tracker, geometrySet, name, positions, uvs, indices, numPositions, numUvs, numIndices, texture) => new Promise((accept, reject) => {
+  w.requestAddThingGeometry = (tracker, geometrySet, name, positions, uvs, indices, numPositions, numUvs, numIndices, texture, trianglePhysicsGeometry) => new Promise((accept, reject) => {
     callStack.allocRequest(METHODS.addThingGeometry, 128, true, offset => {
       callStack.u32[offset] = tracker;
       callStack.u32[offset + 1] = geometrySet;
@@ -2069,6 +2069,8 @@ const geometryWorker = (() => {
       callStack.u32[offset + 2 + MAX_NAME_LENGTH/Uint32Array.BYTES_PER_ELEMENT + 5] = numIndices;
 
       callStack.u32[offset + 2 + MAX_NAME_LENGTH/Uint32Array.BYTES_PER_ELEMENT + 6] = texture;
+
+      callStack.u32[offset + 2 + MAX_NAME_LENGTH/Uint32Array.BYTES_PER_ELEMENT + 7] = trianglePhysicsGeometry;
     }, offset => {
       accept();
     });
@@ -2205,6 +2207,8 @@ const geometryWorker = (() => {
     const outNumUvs = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 3];
     const outIndicesOffset = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 4];
     const outNumIndices = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 5];
+    const trianglePhysicsGeometry = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 6];
+    const convexPhysicsGeometry = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 7];
 
     const positions = moduleInstance.HEAPF32.subarray(outPositionsOffset/Float32Array.BYTES_PER_ELEMENT, outPositionsOffset/Float32Array.BYTES_PER_ELEMENT + outNumPositions);
     const uvs = moduleInstance.HEAPF32.subarray(outUvsOffset/Float32Array.BYTES_PER_ELEMENT, outUvsOffset/Float32Array.BYTES_PER_ELEMENT + outNumUvs);
@@ -2214,13 +2218,8 @@ const geometryWorker = (() => {
       positions,
       uvs,
       indices,
-
-      /* outPositionsOffset,
-      outNumPositions,
-      outUvsOffset,
-      outNumUvs,
-      outIndicesOffset,
-      outNumIndices, */
+      trianglePhysicsGeometry,
+      convexPhysicsGeometry,
     };
   };
   w.update = () => {
@@ -2887,7 +2886,7 @@ const MeshDrawer = (() => {
       const points = geometryWorker.alloc(Float32Array, this.numPoints);
       points.set(this.points.subarray(0, this.numPoints))
       const convexHull = geometryWorker.convexHull(points, points.length, pe.camera.position);
-      console.log('got convex hull', convexHull);
+      // console.log('got convex hull', convexHull);
 
       (() => {
         let index = 0;
@@ -2977,8 +2976,8 @@ const MeshDrawer = (() => {
       this.lastPosition.copy(p);
     }
     drawPolygonize(ps, holes, holeCounts, points, z, zs) {
-      const {positions, uvs, indices, /* outPositionsOffset, outIndicesOffset, outNumPositions, outNumIndices*/} = geometryWorker.earcut(ps.byteOffset, ps.length/2, holes.byteOffset, holeCounts.byteOffset, holeCounts.length, points.byteOffset, points.length, z, zs.byteOffset);
-  
+      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry} = geometryWorker.earcut(tracker, ps.byteOffset, ps.length/2, holes.byteOffset, holeCounts.byteOffset, holeCounts.length, points.byteOffset, points.length, z, zs.byteOffset);
+
       // console.log('got earcut', positions, uvs, indices);
 
       let geometry = new THREE.BufferGeometry();
@@ -3087,7 +3086,7 @@ const MeshDrawer = (() => {
       const srcTexture = imageData.data;
       const dstTexture = geometryWorker.alloc(Uint8Array, srcTexture.length);
       dstTexture.set(srcTexture);
-      geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, outUvs2.byteOffset, indices.byteOffset, positions.length, outUvs2.length, indices.length, dstTexture.byteOffset)
+      geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, outUvs2.byteOffset, indices.byteOffset, positions.length, outUvs2.length, indices.length, dstTexture.byteOffset, trianglePhysicsGeometry)
         .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(3, -7, 3), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)))
         .then(() => {
           console.log('thing added');
