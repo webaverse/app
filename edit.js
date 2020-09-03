@@ -660,6 +660,7 @@ const currentChunkMeshId = getNextMeshId();
 // let capsuleMesh = null;
 let currentVegetationMesh = null;
 let currentThingMesh = null;
+let meshDrawer = null;
 const _getCurrentChunkMesh = () => currentChunkMesh;
 const _setCurrentChunkMesh = chunkMesh => {
   /* if (currentChunkMesh) {
@@ -2200,7 +2201,7 @@ const geometryWorker = (() => {
       bitang,
     };
   };
-  w.earcut = (tracker, ps, holes, holeCounts, points, z, zs) => {
+  w.earcut = (tracker, ps, holes, holeCounts, points, z, zs, position, quaternion) => {
     const inPs = w.alloc(Float32Array, ps.length);
     inPs.set(ps);
     const inHoles = w.alloc(Float32Array, holes.length);
@@ -2211,7 +2212,11 @@ const geometryWorker = (() => {
     inPoints.set(points);
     const inZs = w.alloc(Float32Array, zs.length);
     inZs.set(zs);
-    const resultOffset = moduleInstance._earcut(tracker, inPs.byteOffset, inPs.length/2, inHoles.byteOffset, inHoleCounts.byteOffset, inHoleCounts.length, inPoints.byteOffset, inPoints.length, z, inZs.byteOffset);
+    position.toArray(scratchStack.f32, 0);
+    const positionOffset = scratchStack.f32.byteOffset;
+    quaternion.toArray(scratchStack.f32, 3);
+    const quaternionOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
+    const resultOffset = moduleInstance._earcut(tracker, inPs.byteOffset, inPs.length/2, inHoles.byteOffset, inHoleCounts.byteOffset, inHoleCounts.length, inPoints.byteOffset, inPoints.length, z, inZs.byteOffset, positionOffset, quaternionOffset);
 
     const outPositionsOffset = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT];
     const outNumPositions = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -2242,7 +2247,7 @@ const geometryWorker = (() => {
       convexPhysicsGeometry,
 
       destory() {
-        moduleInstance._deleteEarcutResult(resultOffset);
+        moduleInstance._deleteEarcutResult(tracker, resultOffset);
       },
     };
   };
@@ -2863,6 +2868,9 @@ const geometryWorker = (() => {
   currentThingMesh = _makeThingMesh();
   chunkMeshContainer.add(currentThingMesh);
 
+  meshDrawer = new MeshDrawer();
+  chunkMeshContainer.add(meshDrawer.mesh);
+
   planet.connect('lol', {
     online: false,
   }).then(() => {
@@ -3033,7 +3041,9 @@ const MeshDrawer = (() => {
         this.geometryData.destroy();
         this.geometryData = null;
       }
-      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry, destroy} = geometryWorker.earcut(tracker, this.ps, this.holes, this.holeCounts, this.points, this.z, this.zs);
+      const position = this.center;
+      const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), this.planeNormal);
+      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry, destroy} = geometryWorker.earcut(tracker, this.ps, this.holes, this.holeCounts, this.points, this.z, this.zs, position, quaternion);
       this.geometryData = {
         positions,
         uvs,
@@ -3081,10 +3091,9 @@ const MeshDrawer = (() => {
       thingSource.updateGeometryData();
 
       const thingMesh = _makeThingMesh();
-      console.log('thing source mesh', thingSource, thingMesh);
       thingMesh.setGeometryData(thingSource);
       thingMesh.setTexture(thingSource);
-      scene.add(thingMesh);
+      chunkMeshContainer.add(thingMesh);
 
       /* (() => {
         let index = 0;
@@ -3279,9 +3288,6 @@ const MeshDrawer = (() => {
     }
   };
 })();
-const meshDrawer = new MeshDrawer();
-scene.add(meshDrawer.mesh);
-
 (() => {
   const effectController = {
     turbidity: 2,
@@ -5563,6 +5569,7 @@ function animate(timestamp, frame) {
                 localVector2.copy(raycaster.ray.origin)
                   .add(localVector3.copy(raycaster.ray.direction).multiplyScalar(0.5));
               }
+              localVector2.applyMatrix4(localMatrix2.getInverse(meshDrawer.mesh.parent.matrixWorld));
 
               if (!lastWeaponDown) {
                 meshDrawer.start(localVector2);
@@ -5597,6 +5604,7 @@ function animate(timestamp, frame) {
                 localVector2.copy(raycaster.ray.origin)
                   .add(localVector3.copy(raycaster.ray.direction).multiplyScalar(0.5));
               }
+              localVector2.applyMatrix4(localMatrix2.getInverse(meshDrawer.mesh.parent.matrixWorld));
 
               meshDrawer.end(localVector2);
               break;
