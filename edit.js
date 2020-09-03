@@ -5145,6 +5145,16 @@ const _collideChunk = matrix => {
   currentChunkMesh && currentChunkMesh.update(localVector3);
 };
 
+const cubeMesh = (() => {
+  const geometry = new THREE.BoxBufferGeometry(0.02, 0.02, 0.02);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x00FF00,
+  });
+  return new THREE.Mesh(geometry, material);
+})();
+cubeMesh.frustumCulled = false;
+scene.add(cubeMesh);
+
 const PEEK_FACES = {
   FRONT: 1,
   BACK: 2,
@@ -5241,6 +5251,7 @@ function animate(timestamp, frame) {
           raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
           raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
           raycastChunkSpec.objectQuaternion = new THREE.Quaternion().fromArray(raycastChunkSpec.objectQuaternion);
+          cubeMesh.position.copy(raycastChunkSpec.point);
         }
       }
 
