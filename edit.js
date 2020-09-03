@@ -976,7 +976,7 @@ const geometryWorker = (() => {
   const cbIndex = new Map();
   const textEncoder = new TextEncoder();
   const w = {};
-  window.earcut = () => {
+  /* window.earcut = () => {
     const positionsData = Float32Array.from([
       0, 0, 0, 100, 100, 100, 100, 0,
     ]);
@@ -1022,7 +1022,7 @@ const geometryWorker = (() => {
     zs.set(zData);
 
     meshDrawer.drawPolygonize(positions, holes, holeCounts, points, 0.5, zs);
-  };
+  }; */
   w.waitForLoad = () => modulePromise;
   w.alloc = (constructor, count) => {
     if (count > 0) {
@@ -2172,21 +2172,24 @@ const geometryWorker = (() => {
       });
     });
   });
-  w.convexHull = (positionsData, numPositions, cameraPosition) => {
-    const positions = w.alloc(Float32Array, numPositions);
-    positions.set(positionsData.subarray(0, numPositions));
+  w.convexHull = (positionsData, cameraPosition) => {
+    const positions = geometryWorker.alloc(Float32Array, positionsData.length);
+    positions.set(positionsData);
+
     cameraPosition.toArray(scratchStack.f32, 0);
     const convexHullResult = moduleInstance._convexHull(positions.byteOffset, positions.length, scratchStack.f32.byteOffset);
-    w.free(positions.byteOffset);
 
     const pointsOffset = moduleInstance.HEAPU32[convexHullResult/Uint32Array.BYTES_PER_ELEMENT];
     const numPoints = moduleInstance.HEAPU32[convexHullResult/Uint32Array.BYTES_PER_ELEMENT + 1];
-    const points = moduleInstance.HEAPF32.subarray(pointsOffset/Float32Array.BYTES_PER_ELEMENT, pointsOffset/Float32Array.BYTES_PER_ELEMENT + numPoints);
+    const points = moduleInstance.HEAPF32.slice(pointsOffset/Float32Array.BYTES_PER_ELEMENT, pointsOffset/Float32Array.BYTES_PER_ELEMENT + numPoints);
     const planeNormal = new THREE.Vector3().fromArray(moduleInstance.HEAPF32, convexHullResult/Float32Array.BYTES_PER_ELEMENT + 2);
     const planeConstant = moduleInstance.HEAPF32[convexHullResult/Uint32Array.BYTES_PER_ELEMENT + 5];
     const center = new THREE.Vector3().fromArray(moduleInstance.HEAPF32, convexHullResult/Float32Array.BYTES_PER_ELEMENT + 6);
     const tang = new THREE.Vector3().fromArray(moduleInstance.HEAPF32, convexHullResult/Float32Array.BYTES_PER_ELEMENT + 9);
     const bitang = new THREE.Vector3().fromArray(moduleInstance.HEAPF32, convexHullResult/Float32Array.BYTES_PER_ELEMENT + 12);
+
+    w.free(positions.byteOffset);
+    moduleInstance._deleteConvexHullResult(convexHullResult);
 
     return {
       points,
@@ -2197,29 +2200,50 @@ const geometryWorker = (() => {
       bitang,
     };
   };
-  w.earcut = function() {
-    // XXX GC this
-    const result = moduleInstance._earcut.apply(moduleInstance, arguments);
+  w.earcut = (tracker, ps, holes, holeCounts, points, z, zs) => {
+    const inPs = w.alloc(Float32Array, ps.length);
+    inPs.set(ps);
+    const inHoles = w.alloc(Float32Array, holes.length);
+    inHoles.set(holes);
+    const inHoleCounts = w.alloc(Uint32Array, holeCounts.length);
+    inHoleCounts.set(holeCounts);
+    const inPoints = w.alloc(Float32Array, points.length);
+    inPoints.set(points);
+    const inZs = w.alloc(Float32Array, zs.length);
+    inZs.set(zs);
+    const resultOffset = moduleInstance._earcut(tracker, inPs.byteOffset, inPs.length/2, inHoles.byteOffset, inHoleCounts.byteOffset, inHoleCounts.length, inPoints.byteOffset, inPoints.length, z, inZs.byteOffset);
 
-    const outPositionsOffset = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT];
-    const outNumPositions = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 1];
-    const outUvsOffset = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 2];
-    const outNumUvs = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 3];
-    const outIndicesOffset = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 4];
-    const outNumIndices = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 5];
-    const trianglePhysicsGeometry = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 6];
-    const convexPhysicsGeometry = moduleInstance.HEAPU32[result/Uint32Array.BYTES_PER_ELEMENT + 7];
+    const outPositionsOffset = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT];
+    const outNumPositions = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
+    const outUvsOffset = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT + 2];
+    const outNumUvs = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT + 3];
+    const outIndicesOffset = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT + 4];
+    const outNumIndices = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT + 5];
+    const trianglePhysicsGeometry = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT + 6];
+    const convexPhysicsGeometry = moduleInstance.HEAPU32[resultOffset/Uint32Array.BYTES_PER_ELEMENT + 7];
 
     const positions = moduleInstance.HEAPF32.subarray(outPositionsOffset/Float32Array.BYTES_PER_ELEMENT, outPositionsOffset/Float32Array.BYTES_PER_ELEMENT + outNumPositions);
     const uvs = moduleInstance.HEAPF32.subarray(outUvsOffset/Float32Array.BYTES_PER_ELEMENT, outUvsOffset/Float32Array.BYTES_PER_ELEMENT + outNumUvs);
     const indices = moduleInstance.HEAPU32.subarray(outIndicesOffset/Uint32Array.BYTES_PER_ELEMENT, outIndicesOffset/Uint32Array.BYTES_PER_ELEMENT + outNumIndices);
 
+    w.free(inPs.byteOffset);
+    w.free(inHoles.byteOffset);
+    w.free(inHoleCounts.byteOffset);
+    w.free(inPoints.byteOffset);
+    w.free(inZs.byteOffset);
+
     return {
+      resultOffset,
+
       positions,
       uvs,
       indices,
       trianglePhysicsGeometry,
       convexPhysicsGeometry,
+
+      destory() {
+        moduleInstance._deleteEarcutResult(resultOffset);
+      },
     };
   };
   w.update = () => {
@@ -2855,6 +2879,176 @@ const MeshDrawer = (() => {
 
   let numThings = 0;
 
+  const checkerboardCanvas = (() => {
+    const size = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#CCC';
+    for (let x = 0; x < canvas.width; x += 64) {
+      for (let y = 0; y < canvas.height; y += 64) {
+        if ((x/64)%2 === ((y/64)%2)) {
+          ctx.fillRect(x, y, 64, 64);
+        }
+      }
+    }
+    return canvas;
+  })();
+  const _makeThingCanvas = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = checkerboardCanvas.width;
+    canvas.height = checkerboardCanvas.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(checkerboardCanvas, 0, 0);
+    return canvas;
+  };
+
+  const _makeThingMesh = () => {
+    const geometry = new THREE.BufferGeometry();
+    // geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    // geometry.setAttribute('uv3', new THREE.BufferAttribute(uvs, 3));
+    // geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+    // geometry = geometry.toNonIndexed();
+
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        tex: {
+          type: 't',
+          value: new THREE.Texture(),
+          needsUpdate: false,
+        },
+      },
+      vertexShader: `\
+        precision highp float;
+        precision highp int;
+
+        attribute vec3 uv3;
+        varying vec3 vUv;
+        varying vec3 vBarycentric;
+
+        void main() {
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_Position = projectionMatrix * mvPosition;
+
+          vUv = uv3;
+
+          float vid = float(gl_VertexID);
+          if (mod(vid, 3.) < 0.5) {
+            vBarycentric = vec3(1., 0., 0.);
+          } else if (mod(vid, 3.) < 1.5) {
+            vBarycentric = vec3(0., 1., 0.);
+          } else {
+            vBarycentric = vec3(0., 0., 1.);
+          }
+        }
+      `,
+      fragmentShader: `\
+        precision highp float;
+        precision highp int;
+
+        #define PI 3.1415926535897932384626433832795
+
+        uniform sampler2D tex;
+        uniform sampler2D indexTex;
+
+        varying vec3 vUv;
+        varying vec3 vBarycentric;
+
+        float edgeFactor() {
+          vec3 d = fwidth(vBarycentric);
+          vec3 a3 = smoothstep(vec3(0.0), d, vBarycentric);
+          return min(min(a3.x, a3.y), a3.z);
+        }
+
+        void main() {
+          vec3 c = texture2D(tex, vUv.xy).rgb;
+          c *= vec3(vUv.x, 0., vUv.y);
+          if (edgeFactor() <= 0.99) {
+            c += 0.5;
+          }
+          gl_FragColor = vec4(c, 1.);
+        }
+      `,
+      // side: THREE.DoubleSide,
+    })
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.visible = false;
+    mesh.frustumCulled = false;
+    mesh.setGeometryData = thingSource => {
+      const {center, planeNormal, geometryData} = thingSource;
+      let geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(geometryData.positions, 3));
+      geometry.setAttribute('uv3', new THREE.BufferAttribute(geometryData.uvs, 3));
+      geometry.setIndex(new THREE.BufferAttribute(geometryData.indices, 1));
+      geometry = geometry.toNonIndexed();
+      mesh.geometry = geometry;
+
+      mesh.position.copy(center);
+      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), planeNormal);
+      mesh.visible = true;
+    };
+    mesh.setTexture = thingSource => {
+      const {canvas} = thingSource;
+      material.uniforms.tex.value.image = canvas;
+      material.uniforms.tex.value.needsUpdate = true;
+      material.uniforms.tex.needsUpdate = true;
+    };
+    return mesh;
+  };
+
+  class ThingSource {
+    constructor(
+      ps = new Float32Array(),
+      holes = new Float32Array(),
+      holeCounts = new Uint32Array(),
+      points = new Float32Array(),
+      z = 0,
+      zs = new Float32Array(),
+      planeNormal = new THREE.Vector3(),
+      planeConstant = 0,
+      center = new THREE.Vector3(),
+      tang = new THREE.Vector3(1, 0, 0),
+      bitang = new THREE.Vector3(0, 1, 0)
+    ) {
+      this.ps = ps;
+      this.holes = holes;
+      this.holeCounts = holeCounts;
+      this.points = points;
+      this.z = z;
+      this.zs = zs;
+      this.planeNormal = planeNormal;
+      this.planeConstant = planeConstant;
+      this.center = center;
+      this.tang = tang;
+      this.bitang = bitang;
+
+      this.geometryData = null;
+      this.canvas = _makeThingCanvas();
+    }
+    updateGeometryData() {
+      if (this.geometryData) {
+        this.geometryData.destroy();
+        this.geometryData = null;
+      }
+      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry, destroy} = geometryWorker.earcut(tracker, this.ps, this.holes, this.holeCounts, this.points, this.z, this.zs);
+      this.geometryData = {
+        positions,
+        uvs,
+        indices,
+        trianglePhysicsGeometry,
+        convexPhysicsGeometry,
+        destroy,
+      };
+    }
+    static fromPoints(pointsData) {
+      const {points, planeNormal, planeConstant, center, tang, bitang} = geometryWorker.convexHull(pointsData, pe.camera.position);
+      const zs = new Float32Array(points.length/2);
+      return new ThingSource(points, undefined, undefined, undefined, undefined, zs, planeNormal, planeConstant, center, tang, bitang);
+    }
+  }
   return class MeshDrawer {
     constructor() {
       const points = new Float32Array(512*1024);
@@ -2883,12 +3077,16 @@ const MeshDrawer = (() => {
       this.mesh.visible = false;
     }
     end(p) {
-      const points = geometryWorker.alloc(Float32Array, this.numPoints);
-      points.set(this.points.subarray(0, this.numPoints))
-      const convexHull = geometryWorker.convexHull(points, points.length, pe.camera.position);
-      // console.log('got convex hull', convexHull);
+      const thingSource = ThingSource.fromPoints(this.points.subarray(0, this.numPoints));
+      thingSource.updateGeometryData();
 
-      (() => {
+      const thingMesh = _makeThingMesh();
+      console.log('thing source mesh', thingSource, thingMesh);
+      thingMesh.setGeometryData(thingSource);
+      thingMesh.setTexture(thingSource);
+      scene.add(thingMesh);
+
+      /* (() => {
         let index = 0;
         const positions = new Float32Array(convexHull.points.length/2*3 * meshCubeGeometry.attributes.position.array.length);
         for (let i = 0; i < convexHull.points.length/2; i++) {
@@ -2924,9 +3122,9 @@ const MeshDrawer = (() => {
         mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), convexHull.planeNormal);
         mesh.frustumCulled = false;
         scene.add(mesh);
-      })();
+      })(); */
 
-      const fakeHoles = {
+      /* const fakeHoles = {
         byteOffset: 0,
         length: 0,
       };
@@ -2941,7 +3139,7 @@ const MeshDrawer = (() => {
       const zs = geometryWorker.alloc(Float32Array, convexHull.points/2);
       zs.fill(0);
 
-      this.drawPolygonize(convexHull.points, fakeHoles, fakeHoleCounts, fakePoints, 0.01, zs);
+      this.drawPolygonize(convexHull.points, fakeHoles, fakeHoleCounts, fakePoints, 0.01, zs); */
     }
     update(p) {
       p.toArray(this.points, this.numPoints);
@@ -2985,22 +3183,7 @@ const MeshDrawer = (() => {
       geometry.setAttribute('uv3', new THREE.BufferAttribute(uvs, 3));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       geometry = geometry.toNonIndexed();
-      const size = 512;
-      const canvas = document.createElement('canvas');
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#FFF';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#CCC';
-      for (let x = 0; x < canvas.width; x += 64) {
-        for (let y = 0; y < canvas.height; y += 64) {
-          if ((x/64)%2 === ((y/64)%2)) {
-            ctx.fillRect(x, y, 64, 64);
-          }
-        }
-      }
-      const texture = new THREE.Texture(canvas);
+      const texture = new THREE.Texture(checkerboardCanvas);
       texture.needsUpdate = true;
       const material = new THREE.ShaderMaterial({
         uniforms: {
@@ -3079,7 +3262,7 @@ const MeshDrawer = (() => {
         outUvs2[j+1] = uvs[i+1];
       }
 
-      const name = 'thing' + (++numThings);
+      /* const name = 'thing' + (++numThings);
       // console.time('lol');
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       // console.timeEnd('lol');
@@ -3090,7 +3273,7 @@ const MeshDrawer = (() => {
         .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(3, -7, 3), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)))
         .then(() => {
           console.log('thing added');
-        }, console.warn);
+        }, console.warn); */
 
       return result;
     }
