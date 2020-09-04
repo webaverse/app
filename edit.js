@@ -5544,10 +5544,154 @@ function animate(timestamp, frame) {
 renderer.setAnimationLoop(animate);
 // renderer.xr.setSession(proxySession);
 
-/* bindUploadFileButton(document.getElementById('import-scene-input'), async file => {
-  const uint8Array = await readFile(file);
-  await pe.importScene(uint8Array);
-}); */
+bindUploadFileButton(document.getElementById('load-package-input'), async file => {
+  const {default: atlaspack} = await import('./atlaspack.js');
+  // console.log('load file', file);
+  const u = URL.createObjectURL(file);
+  let o;
+  try {
+    o = await new Promise((accept, reject) => {
+      new GLTFLoader().load(u, accept, xhr => {}, reject);
+      // const uint8Array = await readFile(file);
+      // await pe.importScene(uint8Array);
+    });
+  } finally {
+    URL.revokeObjectURL(u);
+  }
+  o = o.scene;
+  const geometries = [];
+  // const geometryMap = new Map();
+  const textures = [];
+  // const textureMap = new Map();
+  o.traverse(o => {
+    if (o.isMesh) {
+      // if (!geometryMap.has(o.geometry)) {
+        geometries.push(o.geometry);
+        // geometryMap.set(o.geometry, true);
+      // }
+      if (o.material.map) {
+        textures.push(o.material.map);
+        // textureMap.set(o.material.map, true);
+      } else {
+        textures.push(null);
+      }
+    }
+  });
+  // geometries = Array.from(geometries.keys());
+  // textures = Array.from(textures.keys());
+  const rects = [];
+
+  const size = 4096;
+  let atlasCanvas;
+  let atlas;
+  {
+    let scale = 1;
+    for (;;) {
+      atlasCanvas = document.createElement('canvas');
+      atlasCanvas.width = size;
+      atlasCanvas.height = size;
+      atlas = atlaspack(atlasCanvas);
+      rects.length = 0;
+
+      for (let i = 0; i < textures.length ; i++) {
+        const texture = textures[i];
+        const {image} = texture;
+
+        const w = image.width*scale;
+        const h = image.height*scale;
+        const resizeCanvas = document.createElement('canvas');
+        resizeCanvas.width = w;
+        resizeCanvas.height = h;
+        const resizeCtx = resizeCanvas.getContext('2d');
+        resizeCtx.drawImage(image, 0, 0, w, h);
+
+        const rect = atlas.pack(resizeCanvas);
+        if (rect) {
+          rects.push(rect.rect);
+        } else {
+          scale /= 2;
+          continue;
+        }
+      }
+      break;
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  {
+    let numPositions = 0;
+    let numIndices = 0;
+    for (const geometry of geometries) {
+      numPositions += geometry.attributes.position.array.length;
+      numIndices += geometry.index.array.length;
+    }
+
+    const positions = new Float32Array(numPositions);
+    const uvs = new Float32Array(numPositions/3*2);
+    const colors = new Float32Array(numPositions);
+    const indices = new Uint32Array(numIndices);
+    let positionIndex = 0;
+    let uvIndex = 0;
+    let colorIndex = 0;
+    let indicesIndex = 0;
+    for (let i = 0; i < geometries.length; i++) {
+      const geometry = geometries[i];
+      const rect = rects[i];
+
+      const indexOffset = positionIndex/3;
+      if (geometry.index) {
+        for (let i = 0; i < geometry.index.array.length; i++) {
+          indices[indicesIndex++] = geometry.index.array[i] + indexOffset;
+        }
+      } else {
+        for (let i = 0; i < geometry.attributes.position.array.length/3; i++) {
+          indices[indicesIndex++] = i + indexOffset;
+        }
+      }
+
+      positions.set(geometry.attributes.position.array, positionIndex);
+      positionIndex += geometry.attributes.position.array.length;
+      if (geometry.attributes.uv) {
+        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+          if (rect) {
+            uvs[uvIndex + i] = rect.x/size +  geometry.attributes.uv.array[i]*rect.w/size;
+            uvs[uvIndex + i+1] = 1 - (rect.y/size + geometry.attributes.uv.array[i+1]*rect.h/size);
+          } else {
+            uvs[uvIndex + i] = geometry.attributes.uv.array[i]*rect.w;
+            uvs[uvIndex + i+1] = 1 - geometry.attributes.uv.array[i+1]*rect.h;
+          }
+        }
+      } else {
+        uvs.fill(0, uvIndex, geometry.attributes.position.array.length/3*2);
+      }
+      uvIndex += geometry.attributes.position.array.length/3*2;
+      if (geometry.attributes.color) {
+        colors.set(geometry.attributes.color.array, colorIndex);
+      } else {
+        colors.fill(1, colorIndex, geometry.attributes.position.array.length);
+      }
+      colorIndex += geometry.attributes.position.array.length;
+    }
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+  }
+
+  const texture = new THREE.Texture(atlasCanvas);
+  texture.needsUpdate = true;
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+  });
+  // document.body.appendChild(atlasCanvas);
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.copy(camera.position).add(new THREE.Vector3(0, 0, -1));
+  mesh.quaternion.copy(camera.quaternion);
+  mesh.frustumCulled = false;
+  scene.add(mesh);
+
+  console.log('got o', o, geometry, textures, atlas, rects);
+});
 
 let selectedTool = 'camera';
 const _getFullAvatarHeight = () => rig ? rig.height : 1;
