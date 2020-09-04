@@ -1145,9 +1145,12 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .big-buttons .big-button:hover {
   color: var(--color);
-};
+}
 
 canvas {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
   outline: none;
 }
 
