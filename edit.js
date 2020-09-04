@@ -35,7 +35,6 @@ import easing from './easing.js';
 import {planet} from './planet.js';
 import {player} from './player.js';
 import {Bot} from './bot.js';
-// import './atlaspack.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 
