@@ -5659,8 +5659,8 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
             uvs[uvIndex + i] = rect.x/size +  geometry.attributes.uv.array[i]*rect.w/size;
             uvs[uvIndex + i+1] = 1 - (rect.y/size + geometry.attributes.uv.array[i+1]*rect.h/size);
           } else {
-            uvs[uvIndex + i] = geometry.attributes.uv.array[i]*rect.w;
-            uvs[uvIndex + i+1] = 1 - geometry.attributes.uv.array[i+1]*rect.h;
+            uvs[uvIndex + i] = geometry.attributes.uv.array[i];
+            uvs[uvIndex + i+1] = 1 - geometry.attributes.uv.array[i+1];
           }
         }
       } else {
