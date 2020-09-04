@@ -1,12 +1,14 @@
 /* global Web3 */
 /* eslint no-unused-vars: 0 */
-import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
+import * as THREE from './three.module.js';
+import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+import {OrbitControls} from './OrbitControls.js';
 import {GLTFLoader} from './GLTFLoader.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
-import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
-import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
+// import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
+import Avatar from './avatars/avatars.js';
+import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {makeUiFullMesh, makeTextMesh} from './vr-ui.js';
@@ -38,9 +40,9 @@ import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 
-const apiHost = 'https://ipfs.exokit.org/ipfs';
-const worldsEndpoint = 'https://worlds.exokit.org';
-const packagesEndpoint = 'https://packages.exokit.org';
+// const apiHost = 'https://ipfs.exokit.org/ipfs';
+// const worldsEndpoint = 'https://worlds.exokit.org';
+// const packagesEndpoint = 'https://packages.exokit.org';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2);
@@ -65,6 +67,147 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localFrustum = new THREE.Frustum();
+
+/* (async () => {
+  await tryLogin();
+})(); */
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 1, 2);
+camera.rotation.order = 'YXZ';
+// camera.quaternion.set(0, 0, 0, 1);
+
+/* loginManager.addEventListener('usernamechange', e => {
+  const username = e.data;
+  pe.setEnv('username', username);
+});
+loginManager.addEventListener('avatarchange', e => {
+  const avatar = e.data;
+  pe.setEnv('avatar', avatar);
+});
+
+const _changeAvatar = async avatarHash => {
+  let p;
+  if (avatarHash) {
+    p = await XRPackage.download(avatarHash);
+    p.hash = avatarHash;
+    await pe.wearAvatar(p);
+  } else {
+    pe.defaultAvatar();
+    p = null;
+  }
+
+  window.dispatchEvent(new MessageEvent('avatarchange', {
+    data: p,
+  }));
+}; 8/
+//  _changeAvatar(pe.getEnv('avatar'));
+/* pe.addEventListener('envchange', e => {
+  const {key, value} = e.data;
+  if (key === 'avatar') {
+    _changeAvatar(value);
+  }
+}); */
+
+/* const canvas = document.createElement('canvas');
+const context = canvas.getContext('webgl', {
+  antialias: true,
+  alpha: true,
+  preserveDrawingBuffer: false,
+}); */
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  alpha: true,
+  // preserveDrawingBuffer: true,
+});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.autoClear = false;
+renderer.sortObjects = false;
+renderer.physicallyCorrectLights = true;
+renderer.xr.enabled = true;
+
+const ambientLight = new THREE.AmbientLight(0xFFFFFF);
+scene.add(ambientLight);
+const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
+scene.add(directionalLight);
+const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
+scene.add(directionalLight2);
+
+const orbitControls = new OrbitControls(camera, canvas, document);
+orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
+
+document.addEventListener('dragover', e => {
+  e.preventDefault();
+});
+document.addEventListener('drop', e => {
+  e.preventDefault();
+
+  if (e.dataTransfer.files.length > 0) {
+    const [file] = e.dataTransfer.files;
+    window.dispatchEvent(new MessageEvent('upload', {
+      data: file,
+    }));
+  }
+});
+window.addEventListener('upload', async e => {
+  const file = e.data;
+
+  const d = await XRPackage.compileFromFile(file);
+  const p = new XRPackage(d);
+  if (p.type === 'webxr-site@0.0.1') {
+    // nothing
+  } else {
+    const xrCamera = pe.renderer.xr.getCamera(pe.camera);
+    localMatrix
+      .copy(xrCamera.matrix)
+      .premultiply(pe.matrix)
+      .decompose(localVector, localQuaternion, localVector2);
+    localVector.add(localVector2.set(0, 0, -1.5).applyQuaternion(localQuaternion));
+    p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2.set(1, 1, 1)));
+  }
+  await pe.add(p);
+
+  /* if (/\.vrm$/.test(file.name)) {
+    p.wearAvatar();
+  } */
+});
+
+let currentSession = null;
+function onSessionStarted(session) {
+  session.addEventListener('end', onSessionEnded);
+
+  currentSession = session;
+
+  pe.setSession(session);
+}
+function onSessionEnded() {
+  currentSession.removeEventListener('end', onSessionEnded);
+
+  currentSession = null;
+
+  pe.setSession(null);
+}
+document.getElementById('enter-xr-button').addEventListener('click', e => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (currentSession === null) {
+    navigator.xr.requestSession('immersive-vr', {
+      optionalFeatures: [
+        'local-floor',
+        'bounded-floor',
+        'hand-tracking',
+      ],
+    }).then(onSessionStarted);
+  } else {
+    currentSession.end();
+  }
+});
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -4222,7 +4365,7 @@ const hpMesh = (() => {
 })();
 scene.add(hpMesh);
 
-const uiMesh = makeUiFullMesh();
+const uiMesh = makeUiFullMesh(scene);
 scene.add(uiMesh);
 
 const numSmokes = 10;
@@ -4528,7 +4671,7 @@ function animate(timestamp, frame) {
   crosshairMesh && crosshairMesh.update();
   uiMesh && uiMesh.update();
 
-  pe.orbitControls.enabled = selectedTool === 'camera' && !['pencil', 'paintbrush', 'physics'].includes(selectedWeapon);
+  orbitControls.enabled = selectedTool === 'camera' && !['pencil', 'paintbrush', 'physics'].includes(selectedWeapon);
 
   const session = renderer.xr.getSession();
   if (session) {
@@ -5059,7 +5202,6 @@ function animate(timestamp, frame) {
     _tickPlanetAnimation(factor);
   } */
 
-  const currentSession = getRealSession();
   if (currentSession) {
     const {inputSources} = currentSession;
     for (let i = 0; i < inputSources.length; i++) {
@@ -5178,8 +5320,8 @@ function animate(timestamp, frame) {
       pe.setRigMatrix(null);
     }
   } else {
-    _collideItems(pe.camera.matrix);
-    _collideChunk(pe.camera.matrix);
+    _collideItems(camera.matrix);
+    _collideChunk(camera.matrix);
     pe.setRigMatrix(null);
   }
 
@@ -5256,7 +5398,7 @@ function animate(timestamp, frame) {
   planet.flush();
 }
 renderer.setAnimationLoop(animate);
-renderer.xr.setSession(proxySession);
+// renderer.xr.setSession(proxySession);
 
 bindUploadFileButton(document.getElementById('import-scene-input'), async file => {
   const uint8Array = await readFile(file);
@@ -5321,7 +5463,7 @@ for (let i = 0; i < tools.length; i++) {
       switch (selectedTool) {
         case 'camera': {
           document.exitPointerLock();
-          pe.orbitControls.target.copy(pe.camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(pe.camera.quaternion));
+          orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
           _resetKeys();
           velocity.set(0, 0, 0);
           break;
@@ -5625,7 +5767,7 @@ window.addEventListener('mouseup', e => {
   currentTeleport = false;
 });
 
-document.getElementById('reset-scene-button').addEventListener('click', e => {
+/* document.getElementById('reset-scene-button').addEventListener('click', e => {
   pe.reset();
 });
 document.getElementById('export-scene-button').addEventListener('click', async e => {
@@ -5634,7 +5776,7 @@ document.getElementById('export-scene-button').addEventListener('click', async e
     type: 'application/webbundle',
   });
   downloadFile(b, 'scene.wbn');
-});
+}); */
 const loadVsh = `
   #define M_PI 3.1415926535897932384626433832795
   uniform float uTime;
@@ -5700,171 +5842,6 @@ const _ensureLoadMesh = p => {
         p.loadMesh.visible = false;
       });
   }
-};
-const _ensurePlaceholdMesh = p => {
-  if (!p.placeholderBox) {
-    p.placeholderBox = _makeTargetMesh();
-    p.placeholderBox.package = p;
-    p.placeholderBox.matrix.copy(p.matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
-    p.placeholderBox.visible = false;
-    scene.add(p.placeholderBox);
-  }
-};
-const shieldSlider = document.getElementById('shield-slider');
-let shieldLevel = parseInt(shieldSlider.value, 10);
-shieldSlider.addEventListener('change', async e => {
-  const newShieldLevel = parseInt(e.target.value, 10);
-  const {packages} = pe;
-  switch (newShieldLevel) {
-    case 0: {
-      shieldLevel = newShieldLevel;
-      hoverTarget = null;
-      _setSelectTarget(null);
-      break;
-    }
-    case 1: {
-      shieldLevel = newShieldLevel;
-      hoverTarget = null;
-      _setSelectTarget(null);
-      break;
-    }
-    case 2: {
-      shieldLevel = newShieldLevel;
-      hoverTarget = null;
-      _setSelectTarget(null);
-      break;
-    }
-  }
-});
-const scaleSlider = document.getElementById('scale-slider');
-scaleSlider.addEventListener('change', async e => {
-  const newScale = parseFloat(e.target.value);
-  pe.setScale(newScale);
-});
-document.getElementById('toggle-stage-button').addEventListener('click', e => {
-  floorMesh.visible = !floorMesh.visible;
-});
-
-let hoverTarget = null;
-let selectTarget = null;
-const _setSelectTarget = newSelectTarget => {
-  if (selectTarget && selectTarget.control) {
-    _unbindTransformControls(selectTarget);
-  }
-  if (newSelectTarget !== selectTarget) {
-    selectTarget = newSelectTarget;
-    if (selectTarget) {
-      if (!dropdownButton.classList.contains('open')) {
-        dropdownButton.click();
-      }
-
-      _bindTransformControls(selectTarget);
-    }
-    _renderObjects();
-  }
-};
-
-const _packageadd = async e => {
-  const {
-    package: p,
-    reason,
-  } = e.data;
-
-  _ensureLoadMesh(p);
-  _ensurePlaceholdMesh(p);
-  // await _ensureVolumeMesh(p);
-  _renderObjects();
-
-  _bindObject(p);
-
-  if (!reason) {
-    currentWorldChanged = true;
-    _updateWorldSaveButton();
-  }
-};
-const _packageremove = e => {
-  const {
-    package: p,
-    reason,
-  } = e.data;
-
-  if (p.loadMesh) {
-    scene.remove(p.loadMesh);
-  }
-
-  if (p.placeholderBox) {
-    scene.remove(p.placeholderBox);
-  }
-
-  if (selectTarget === p) {
-    _setSelectTarget(null);
-  } else {
-    _renderObjects();
-  }
-
-  _unbindObject(p);
-
-  if (!reason) {
-    currentWorldChanged = true;
-    _updateWorldSaveButton();
-  }
-};
-let currentWorldChanged = false;
-const _updateWorldSaveButton = () => {
-  if (currentWorldChanged && currentWorldId) {
-    worldSaveButton.classList.remove('hidden');
-    worldRevertButton.classList.remove('hidden');
-  } else {
-    worldSaveButton.classList.add('hidden');
-    worldRevertButton.classList.add('hidden');
-  }
-};
-function _matrixUpdate(e) {
-  const p = this;
-  const matrix = e.data;
-  p.placeholderBox && p.placeholderBox.matrix.copy(matrix).decompose(p.placeholderBox.position, p.placeholderBox.quaternion, p.placeholderBox.scale);
-  p.volumeMesh && p.volumeMesh.matrix.copy(matrix).decompose(p.volumeMesh.position, p.volumeMesh.quaternion, p.volumeMesh.scale);
-  _updateObjectDetailsTransform(matrix);
-}
-const _bindObject = p => {
-  p.addEventListener('matrixupdate', _matrixUpdate);
-  p.addEventListener('packageadd', _packageadd);
-  p.addEventListener('packageremove', _packageremove);
-};
-const _unbindObject = p => {
-  p.removeEventListener('matrixupdate', _matrixUpdate);
-  p.removeEventListener('packageadd', _packageadd);
-  p.removeEventListener('packageremove', _packageremove);
-};
-pe.children.forEach(p => {
-  _bindObject(p);
-});
-pe.addEventListener('packageadd', _packageadd);
-pe.addEventListener('packageremove', _packageremove);
-
-let transformControlsHovered = false;
-const _bindTransformControls = o => {
-  const control = new TransformControls(pe.camera, renderer.domElement);
-  control.size = 3;
-  control.addEventListener('mouseEnter', () => {
-    transformControlsHovered = true;
-  });
-  control.addEventListener('mouseLeave', () => {
-    transformControlsHovered = false;
-  });
-  control.addEventListener('objectChange', e => {
-    o.updateMatrixWorld();
-    o.package.setMatrix(o.matrix);
-  });
-  control.attach(o);
-  pe.scene.add(control);
-  o.control = control;
-};
-const _unbindTransformControls = o => {
-  o.control.parent.remove(o.control);
-  o.control.dispose();
-  o.control = null;
-  transformControlsHovered = false;
 };
 
 const raycaster = new THREE.Raycaster();
@@ -6025,234 +6002,8 @@ for (let i = 0; i < tabs.length; i++) {
     avatarSubpage.classList.remove('open');
   });
 });
-/* async function screenshotEngine() {
-  const center = new THREE.Vector3(0, 0, 0);
-  const size = new THREE.Vector3(3, 3, 3);
 
-  const width = 512;
-  const height = width;
-  const gif = new GIF({
-    workers: 2,
-    quality: 10,
-  });
-  const gl = pe.proxyContext;
-  const framebuffer = (() => {
-    const fbo = gl.createFramebuffer();
-
-    const oldFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-    const oldTex = gl.getParameter(gl.TEXTURE_BINDING_2D);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-
-    const colorTex = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, colorTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTex, 0);
-
-    const depthTex = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, depthTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH24_STENCIL8, width, height, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, null);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, depthTex, 0);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, oldFbo);
-    gl.bindTexture(gl.TEXTURE_2D, oldTex);
-
-    return fbo;
-  })();
-  const camera = new THREE.PerspectiveCamera(90, width / height, 0.1, 100);
-  for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.05) {
-    // render
-    camera.position.copy(center)
-      .add(new THREE.Vector3(0, size.y / 2, 0))
-      .add(new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
-    camera.lookAt(center);
-    camera.updateMatrixWorld();
-    pe.render(
-      null,
-      width,
-      height,
-      camera.matrixWorld.toArray(new Float32Array(16)),
-      camera.projectionMatrix.toArray(new Float32Array(16)),
-      framebuffer
-    );
-    // read
-    const writeCanvas = document.createElement('canvas');
-    writeCanvas.width = width;
-    writeCanvas.height = height;
-    const writeCtx = writeCanvas.getContext('2d');
-    const imageData = writeCtx.createImageData(width, height);
-    {
-      const oldFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-      gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, imageData.data);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, oldFbo);
-    }
-    // draw
-    writeCtx.putImageData(imageData, 0, 0);
-    // flip
-    writeCtx.globalCompositeOperation = 'copy';
-    writeCtx.scale(1, -1);
-    writeCtx.translate(0, -writeCanvas.height);
-    writeCtx.drawImage(writeCanvas, 0, 0);
-    // submit
-    gif.addFrame(writeCanvas, {delay: 50});
-  }
-  gif.render();
-
-  const blob = await new Promise((resolve, reject) => {
-    gif.on('finished', resolve);
-  });
-  return blob;
-}
-worldSaveButton.addEventListener('click', async e => {
-  const {name} = pe;
-  const hash = await pe.uploadScene();
-
-  const screenshotBlob = await screenshotEngine();
-  const {hash: previewIconHash} = await fetch(`${apiHost}/`, {
-    method: 'PUT',
-    body: screenshotBlob,
-  })
-    .then(res => res.json());
-
-  const objects = await Promise.all(pe.children.map(async p => {
-    const {name, hash} = p;
-    const previewIconHash = await (async () => {
-      const screenshotImgUrl = await p.getScreenshotImageUrl();
-      if (screenshotImgUrl) {
-        const screenshotBlob = await fetch(screenshotImgUrl)
-          .then(res => res.blob());
-        const {hash: previewIconHash} = await fetch(`${apiHost}/`, {
-          method: 'PUT',
-          body: screenshotBlob,
-        })
-          .then(res => res.json());
-        return previewIconHash;
-      } else {
-        return null;
-      }
-    })();
-    return {
-      name,
-      previewIconHash,
-    };
-  }));
-  const w = {
-    id: currentWorldId,
-    name,
-    description: 'This is a world description',
-    hash,
-    previewIconHash,
-    objects,
-  };
-  const res = await fetch(worldsEndpoint + '/' + currentWorldId, {
-    method: 'PUT',
-    body: JSON.stringify(w),
-  });
-  if (res.ok) {
-    // nothing
-  } else {
-    console.warn('invalid status code: ' + res.status);
-  }
-
-  currentWorldChanged = false;
-  _updateWorldSaveButton();
-});
-worldRevertButton.addEventListener('click', async e => {
-  _enterWorld(currentWorldId);
-}); */
-
-const worlds = document.getElementById('worlds');
-const _makeWorldHtml = w => `
-  <div class="world ${currentWorldId === w.id ? 'open' : ''}" worldId="${w.id}">
-    <img src=${w.previewIconHash ? `${apiHost}/${w.previewIconHash}.gif` : 'assets/question.png'}>
-    <div class="text">
-      <input type=text class=name-input value="${w.name}" disabled>
-    </div>
-    <div class=background>
-      <nav class="button rename-button">Rename</nav>
-    </div>
-  </div>
-`;
-let currentWorldId = '';
-const _enterWorld = async worldId => {
-  currentWorldId = worldId;
-
-  const worlds = Array.from(document.querySelectorAll('.world'));
-  worlds.forEach(world => {
-    world.classList.remove('open');
-  });
-  let world;
-  if (worldId) {
-    world = worlds.find(w => w.getAttribute('worldId') === worldId);
-  } else {
-    world = worlds[0];
-  }
-  world && world.classList.add('open');
-
-  if (worldId) {
-    const res = await fetch(worldsEndpoint + '/' + worldId);
-    if (res.ok) {
-      const j = await res.json();
-      const {hash} = j;
-      await pe.downloadScene(hash);
-    } else {
-      console.warn('invalid world status code: ' + worldId + ' ' + res.status);
-    }
-  } else {
-    pe.reset();
-  }
-
-  currentWorldChanged = false;
-  _updateWorldSaveButton();
-};
-const _pushWorld = name => {
-  history.pushState({}, '', window.location.protocol + '//' + window.location.host + window.location.pathname + (name ? ('?w=' + name) : ''));
-  _handleUrl(window.location.href);
-};
-const _bindWorld = w => {
-  w.addEventListener('click', async e => {
-    const worldId = w.getAttribute('worldId');
-    if (worldId !== currentWorldId) {
-      _pushWorld(worldId);
-    }
-  });
-  const nameInput = w.querySelector('.name-input');
-  const renameButton = w.querySelector('.rename-button');
-  let oldValue = '';
-  renameButton.addEventListener('click', e => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    w.classList.add('renaming');
-    oldValue = nameInput.value;
-    nameInput.removeAttribute('disabled');
-    nameInput.select();
-  });
-  nameInput.addEventListener('blur', e => {
-    nameInput.value = oldValue;
-    nameInput.setAttribute('disabled', '');
-    oldValue = '';
-  });
-  nameInput.addEventListener('keydown', e => {
-    if (e.which === 13) { // enter
-      pe.name = nameInput.value;
-      currentWorldChanged = true;
-      _updateWorldSaveButton();
-
-      oldValue = nameInput.value;
-      nameInput.blur();
-    } else if (e.which === 27) { // esc
-      nameInput.blur();
-    }
-  });
-};
-
-const dropZones = Array.from(document.querySelectorAll('.drop-zone'));
+/* const dropZones = Array.from(document.querySelectorAll('.drop-zone'));
 dropZones.forEach(dropZone => {
   dropZone.addEventListener('dragenter', e => {
     dropZone.classList.add('hover');
@@ -6308,147 +6059,8 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
 
     await loginManager.setAvatar(dataHash);
   }
-});
-document.getElementById('packages-search').addEventListener('input', e => {
-  const searchTerm = e.target.value.toLowerCase();
-  const packages = [...document.querySelectorAll('#packages .package')];
+}); */
 
-  if (searchTerm) {
-    packages.forEach(p => {
-      if (p.getAttribute('data-name').includes(searchTerm)) {
-        p.style.display = 'block';
-      } else {
-        p.style.display = 'none';
-      }
-    });
-  } else {
-    packages.forEach(p => (p.style.display = 'block'));
-  }
-});
-
-window.addEventListener('avatarchange', e => {
-  const p = e.data;
-
-  avatarSubpageContent.innerHTML = `\
-    <div class=avatar draggable=true>
-      <img class=screenshot style="display: none;">
-      <div class=wrap>
-        ${p ? `\
-          <div class=name>${p.name}</div>
-          <div class=hash>${p.hash}</div>
-          <nav class="button unwear-button">Unwear</nab>
-        ` : `\
-          <div class=name>No avatar</div>
-        `}
-      </div>
-    </div>
-  `;
-  if (p) {
-    avatarSubpageContent.addEventListener('dragstart', e => {
-      _startPackageDrag(e, {
-        name: p.name,
-        dataHash: p.hash,
-        iconHash: null,
-      });
-    });
-    (async () => {
-      const img = avatarSubpageContent.querySelector('.screenshot');
-      const u = await p.getScreenshotImageUrl();
-      if (u) {
-        img.src = u;
-        img.onload = () => {
-          img.style.display = null;
-          URL.revokeObjectURL(u);
-        };
-        img.onerror = err => {
-          console.warn(err);
-          URL.revokeObjectURL(u);
-        };
-      } /* else {
-        img.src = 'assets/question.png';
-      } */
-    })();
-    const unwearButton = avatarSubpageContent.querySelector('.unwear-button');
-    unwearButton && unwearButton.addEventListener('click', e => {
-      loginManager.setAvatar(null);
-    });
-  }
-});
-
-const _changeInventory = inventory => {
-  inventorySubtabContent.innerHTML = inventory.map(item => `\
-    <div class=item draggable=true>
-      <img class=screenshot width=256 height=256>
-      <div class=name>${item.name}</div>
-      <div class=background>
-        <a class="button inspect-button" target="_blank" href="inspect.html?h=${item.dataHash}">Inspect</a>
-        <nav class="button wear-button">Wear</nav>
-        <nav class="button remove-button">Remove</nav>
-      </div>
-    </div>
-  `).join('\n');
-  const is = inventorySubtabContent.querySelectorAll('.item');
-  is.forEach((itemEl, i) => {
-    const item = inventory[i];
-    const {name, dataHash, iconHash} = item;
-
-    itemEl.addEventListener('dragstart', e => {
-      _startPackageDrag(e, {
-        name,
-        dataHash,
-        iconHash,
-      });
-    });
-
-    (async () => {
-      const img = itemEl.querySelector('.screenshot');
-      /* if (p) {
-        const u = await p.getScreenshotImageUrl();
-        img.src = u;
-        img.onload = () => {
-          URL.revokeObjectURL(u);
-        };
-        img.onerror = err => {
-          console.warn(err);
-          URL.revokeObjectURL(u);
-        };
-      } else { */
-        img.src = `${apiHost}/${iconHash}.gif`;
-      // }
-    })();
-    const wearButton = itemEl.querySelector('.wear-button');
-    wearButton.addEventListener('click', () => {
-      loginManager.setAvatar(dataHash);
-    });
-    const removeButton = itemEl.querySelector('.remove-button');
-    removeButton.addEventListener('click', async () => {
-      const newInventory = inventory.filter(i => i.dataHash !== item.dataHash);
-      await loginManager.setInventory(newInventory);
-    });
-  });
-
-  // wristMenu.inventorySide.setPackages(inventory);
-};
-_changeInventory(loginManager.getInventory());
-loginManager.addEventListener('inventorychange', async e => {
-  const inventory = e.data;
-  _changeInventory(inventory);
-});
-
-const _makePackageHtml = p => `
-  <div class=package draggable=true data-name=${p.name}>
-    <!-- <img src="assets/question.png"> -->
-    <img src="${apiHost}/${p.icons[0].hash}.gif" width=256 height=256>
-    <div class=text>
-      <div class=name>${p.name}</div>
-    </div>
-    <div class=background>
-      <nav class="button add-button">Add</nav>
-      <nav class="button wear-button">Wear</nav>
-      <a class="button inspect-button" target="_blank" href="inspect.html?p=${p.name}">Inspect</a>
-    </div>
-  </div>
-`;
 async function _addPackage(p, matrix) {
   p.setMatrix(matrix);
   await pe.add(p);
@@ -6463,454 +6075,3 @@ const _startPackageDrag = (e, j) => {
     document.body.classList.add('dragging-package');
   });
 };
-const _bindPackage = (pE, pJ) => {
-  const {name, dataHash} = pJ;
-  const iconHash = pJ.icons.find(i => i.type === 'image/gif').hash;
-  pE.addEventListener('dragstart', e => {
-    _startPackageDrag(e, {name, dataHash, iconHash});
-  });
-  const addButton = pE.querySelector('.add-button');
-  addButton.addEventListener('click', async () => {
-    const p = await XRPackage.download(dataHash);
-    localMatrix.compose(
-      pe.camera.position.clone().add(
-        new THREE.Vector3(0, 0, -2).applyQuaternion(pe.camera.quaternion)
-      ),
-      pe.camera.quaternion,
-      new THREE.Vector3(1, 1, 1)
-    );
-    await _addPackage(p, localMatrix);
-  });
-  const wearButton = pE.querySelector('.wear-button');
-  wearButton.addEventListener('click', () => {
-    loginManager.setAvatar(dataHash);
-  });
-};
-const packages = document.getElementById('packages');
-(async () => {
-let s;
-  const res = await fetch(packagesEndpoint);
-  s = await res.text();
-  const children = JSON.parse(s);
-  const ps = await Promise.all(children.map(child =>
-    fetch(packagesEndpoint + '/' + child)
-      .then(res => res.json())
-  ));
-  packages.innerHTML = ps.map(p => _makePackageHtml(p)).join('\n');
-  Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i]));
-})();
-const tokens = document.getElementById('tokens');
-async function getTokenByIndex(index) {
-  const metadataHash = await contract.methods.getMetadata(index, 'hash').call();
-  const metadata = await fetch(`${apiHost}/${metadataHash}`).then(res => res.json());
-  const {dataHash, screenshotHash, modelHash} = metadata;
-  return {
-    index: index,
-    name: metadata.objectName,
-    img: `${apiHost}/${screenshotHash}`,
-    metadataHash: metadataHash,
-    dataHash: dataHash,
-    modelHash: modelHash,
-  };
-}
-pe.domElement.addEventListener('dragover', e => {
-  e.preventDefault();
-});
-pe.domElement.addEventListener('drop', async e => {
-  e.preventDefault();
-
-  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json+package');
-  if (jsonItem) {
-    const s = await new Promise((resolve, reject) => {
-      jsonItem.getAsString(resolve);
-    });
-    const j = JSON.parse(s);
-    const {type, dataHash} = j;
-    if (dataHash) {
-      _updateRaycasterFromMouseEvent(raycaster, e);
-      localMatrix.compose(
-        localVector.copy(raycaster.ray.origin)
-          .add(localVector2.copy(raycaster.ray.direction).multiplyScalar(2)),
-        localQuaternion.set(0, 0, 0, 1),
-        localVector2.set(1, 1, 1)
-      )
-        .premultiply(localMatrix2.getInverse(currentChunkMesh.matrixWorld))
-        .decompose(localVector, localQuaternion, localVector2);
-
-      const sx = Math.floor(localVector.x/currentChunkMesh.subparcelSize);
-      const sy = Math.floor(localVector.y/currentChunkMesh.subparcelSize);
-      const sz = Math.floor(localVector.z/currentChunkMesh.subparcelSize);
-      planet.editSubparcel(sx, sy, sz, subparcel => {
-        subparcel.packages.push({
-          dataHash,
-          position: localVector.toArray(),
-          quaternion: localQuaternion.toArray(),
-        });
-      });
-
-      // const p = await XRPackage.download(dataHash);
-      // await _addPackage(p, localMatrix);
-    }
-  }
-});
-/* const _getTokenHtml = cardData => {
-  const {index, name, img, metadataHash, dataHash, modelHash} = cardData;
-  return `\
-    <div class="token card">
-      <a href="/run.html?i=${index}">
-        <img src="${img}" width=256 height=256>
-      </a>
-      <div class=text>
-        <div class="name cardTitle">${name}</div>
-        <input type=text value="xrpk install ${index}" readonly class="cardCode">
-        <nav class="cardAction add-action"><span>Add</span><i class="fa fa-chevron-right"></i></nav>
-        <a href="/run.html?i=${index}" target="_blank" class="cardAction"><span>Test</span><i class="fa fa-chevron-right"></i></a>
-        <a href="https://cryptopolys.com/create.html?o=${encodeURIComponent(metadataHash)}" class="cardAction"><span>Edit</span><i class="fa fa-chevron-right"></i></a>
-        <a href="https://ipfs.exokit.org/ipfs/${dataHash}.wbn" class="cardAction"><span>Download package</span><i class="fa fa-chevron-right"></i></a>
-        <a href="https://ipfs.exokit.org/ipfs/${modelHash}.glb" class="cardAction"><span>Download model</span><i class="fa fa-chevron-right"></i></a>
-        <a href="https://${network}.opensea.io/assets/${address}/${index}" class="cardAction"><span>Opensea</span><i class="fa fa-chevron-right"></i></a>
-      </div>
-    </div>
-  `;
-}; */
-
-const objectsEl = document.getElementById('objects');
-const _getObjectDetailEls = () => {
-  const objectDetail = objectsEl.querySelector('.object-detail');
-  if (objectDetail) {
-    const positionX = objectDetail.querySelector('.position-x');
-    const positionY = objectDetail.querySelector('.position-y');
-    const positionZ = objectDetail.querySelector('.position-z');
-    const quaternionX = objectDetail.querySelector('.quaternion-x');
-    const quaternionY = objectDetail.querySelector('.quaternion-y');
-    const quaternionZ = objectDetail.querySelector('.quaternion-z');
-    const quaternionW = objectDetail.querySelector('.quaternion-w');
-    const scaleX = objectDetail.querySelector('.scale-x');
-    const scaleY = objectDetail.querySelector('.scale-y');
-    const scaleZ = objectDetail.querySelector('.scale-z');
-    return {
-      positionX,
-      positionY,
-      positionZ,
-      quaternionX,
-      quaternionY,
-      quaternionZ,
-      quaternionW,
-      scaleX,
-      scaleY,
-      scaleZ,
-    };
-  } else {
-    return null;
-  }
-};
-const _updateObjectDetailsTransform = matrix => {
-  matrix.decompose(localVector, localQuaternion, localVector2);
-  const details = _getObjectDetailEls();
-  if (details) {
-    const {
-      positionX,
-      positionY,
-      positionZ,
-      quaternionX,
-      quaternionY,
-      quaternionZ,
-      quaternionW,
-      scaleX,
-      scaleY,
-      scaleZ,
-    } = details;
-
-    positionX.value = localVector.x;
-    positionY.value = localVector.y;
-    positionZ.value = localVector.z;
-    quaternionX.value = localQuaternion.x;
-    quaternionY.value = localQuaternion.y;
-    quaternionZ.value = localQuaternion.z;
-    quaternionW.value = localQuaternion.w;
-    scaleX.value = localVector2.x;
-    scaleY.value = localVector2.y;
-    scaleZ.value = localVector2.z;
-  }
-};
-const _bindObjectDetails = p => {
-  const {
-    positionX,
-    positionY,
-    positionZ,
-    quaternionX,
-    quaternionY,
-    quaternionZ,
-    quaternionW,
-    scaleX,
-    scaleY,
-    scaleZ,
-  } = _getObjectDetailEls();
-  
-  const _setPosition = (e, key) => {
-    p.matrix.decompose(localVector, localQuaternion, localVector2);
-    localVector[key] = parseFloat(e.target.value);
-    p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
-  };
-  const _setQuaternion = (e, key) => {
-    p.matrix.decompose(localVector, localQuaternion, localVector2);
-    localQuaternion[key] = e.target.value;
-    localQuaternion.normalize();
-    ['x', 'y', 'z', 'w'].forEach(k => {
-      objectsEl.querySelector('.quaternion-' + k).value = parseFloat(localQuaternion[k]);
-    });
-    p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
-  };
-  const _setScale = (e, key) => {
-    p.matrix.decompose(localVector, localQuaternion, localVector2);
-    localVector2[key] = parseFloat(e.target.value);
-    p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2));
-  };
-  positionX.addEventListener('change', e => {
-    _setPosition(e, 'x');
-  });
-  positionY.addEventListener('change', e => {
-    _setPosition(e, 'y');
-  });
-  positionZ.addEventListener('change', e => {
-    _setPosition(e, 'z');
-  });
-  quaternionX.addEventListener('change', e => {
-    _setQuaternion(e, 'x');
-  });
-  quaternionY.addEventListener('change', e => {
-    _setQuaternion(e, 'y');
-  });
-  quaternionZ.addEventListener('change', e => {
-    _setQuaternion(e, 'z');
-  });
-  quaternionW.addEventListener('change', e => {
-    _setQuaternion(e, 'w');
-  });
-  scaleX.addEventListener('change', e => {
-    _setScale(e, 'x');
-  });
-  scaleY.addEventListener('change', e => {
-    _setScale(e, 'y');
-  });
-  scaleZ.addEventListener('change', e => {
-    _setScale(e, 'z');
-  });
-};
-const _renderObjects = () => {
-  if (selectTarget) {
-    const {package: p} = selectTarget;
-    const schemas = Object.keys(p.schema);
-    objectsEl.innerHTML = `
-      <div class=object-detail>
-        <h1><nav class=back-button><i class="fa fa-arrow-left"></i></nav>${p.name}</h1>
-        <img class=screenshot draggable=true style="display: none;">
-        ${p.hash ? `\
-          <nav class="button inspect-button">Inspect</nav>
-          <nav class="button wear-button">Wear</nav>
-        ` : `\
-          <nav class="button upload-button">Upload</nav>
-        `}
-        <nav class="button remove-button">Remove</nav>
-        <b>Position</b>
-        <div class=row>
-          <label>
-            <span>X</span>
-            <input type=number class=position-x value=0 step=0.1>
-          </label>
-          <label>
-            <span>Y</span>
-            <input type=number class=position-y value=0 step=0.1>
-          </label>
-          <label>
-            <span>Z</span>
-            <input type=number class=position-z value=0 step=0.1>
-          </label>
-        </div>
-        <b>Quaternion</b>
-        <div class=row>
-          <label>
-            <span>X</span>
-            <input type=number class=quaternion-x value=0 step=0.1>
-          </label>
-          <label>
-            <span>Y</span>
-            <input type=number class=quaternion-y value=0 step=0.1>
-          </label>
-          <label>
-            <span>Z</span>
-            <input type=number class=quaternion-z value=0 step=0.1>
-          </label>
-          <label>
-            <span>W</span>
-            <input type=number class=quaternion-w value=1 step=0.1>
-          </label>
-        </div>
-        <b>Scale</b>
-        <div class=row>
-          <label>
-            <span>X</span>
-            <input type=number class=scale-x value=1 step=0.1>
-          </label>
-          <label>
-            <span>Y</span>
-            <input type=number class=scale-y value=1 step=0.1>
-          </label>
-          <label>
-            <span>Z</span>
-            <input type=number class=scale-z value=1 step=0.1>
-          </label>
-        </div>
-        ${schemas.length > 0 ? `
-          <b>Schema</b>
-          <div class=row>
-            ${schemas.map(name => `
-              <label class=schema>
-                <span class=name>${name}</span>
-                <input class="schema-input" name="${escape(name)}" type=text value="${escape(p.schema[name])}">
-              </label>
-            `).join('\n')}
-          </div>
-        ` : ''}
-      </div>
-    `;
-    const backButton = objectsEl.querySelector('.back-button');
-    backButton.addEventListener('click', e => {
-      _setSelectTarget(null);
-    });
-    (async () => {
-      const img = objectsEl.querySelector('.screenshot');
-      const u = await p.getScreenshotImageUrl();
-      img.src = u;
-      img.onload = () => {
-        URL.revokeObjectURL(u);
-        img.style.display = null;
-      };
-      img.onerror = err => {
-        console.warn(err);
-        URL.revokeObjectURL(u);
-      };
-      img.addEventListener('dragstart', e => {
-        _startPackageDrag(e, {
-          name: p.name,
-          id: p.id,
-        });
-      });
-    })();
-    if (p.hash) {
-      const inspectButton = objectsEl.querySelector('.inspect-button');
-      inspectButton.addEventListener('click', async e => {
-        const b = new Blob([p.data], {
-          type: 'application/webbundle',
-        });
-        const u = URL.createObjectURL(b);
-        window.open(`inspect.html?u=${u}`, '_blank');
-      });
-      const wearButton = objectsEl.querySelector('.wear-button');
-      wearButton.addEventListener('click', async e => {
-        const dataHash = await p.getHash();
-        loginManager.setAvatar(dataHash);
-      });
-    } else {
-      const uploadButton = objectsEl.querySelector('.upload-button');
-      uploadButton.addEventListener('click', async e => {
-        const {hash} = await fetch(`${apiHost}/`, {
-          method: 'PUT',
-          body: p.data,
-        })
-          .then(res => res.json());
-        p.hash = hash;
-        _renderObjects();
-      });
-    }
-    const removeButton = objectsEl.querySelector('.remove-button');
-    removeButton.addEventListener('click', e => {
-      pe.remove(p);
-    });
- 
-    _updateObjectDetailsTransform(p.matrix);
-    _bindObjectDetails(p);
-
-    Array.from(objectsEl.querySelectorAll('.schema-input')).forEach(schemaInput => {
-      const name = schemaInput.getAttribute('name');
-      const value = p.schema[name] || '';
-      schemaInput.value = value;
-      schemaInput.addEventListener('change', e => {
-        const value = e.target.value;
-        p.setSchema(name, value);
-      });
-    });
-  } else {
-    if (pe.children.length > 0) {
-      const _renderChildren = (objectsEl, children, depth) => {
-        objectsEl.innerHTML = children.map((p, i) => `
-          <div class="object depth-${depth}" draggable=true packageid="${p.id}" index="${i}">
-            <span class=name>${p.name}</span>
-            <nav class=close-button><i class="fa fa-times"></i></nav>
-          </div>
-          <div class=children></div>
-        `).join('\n');
-        const packageEls = Array.from(objectsEl.querySelectorAll('.object'));
-        const childrenEls = Array.from(objectsEl.querySelectorAll('.children'));
-        packageEls.forEach((packageEl, i) => {
-          const index = parseInt(packageEl.getAttribute('index'), 10);
-          const p = children[i];
-          const childrenEl = childrenEls[i];
-
-          packageEl.addEventListener('dragstart', e => {
-            e.dataTransfer.setData('application/json+object', JSON.stringify({
-              index,
-            }));
-          });
-          packageEl.addEventListener('dragover', e => {
-            e.preventDefault();
-          });
-          packageEl.addEventListener('dragenter', e => {
-            packageEl.classList.add('hover');
-          });
-          packageEl.addEventListener('dragleave', e => {
-            packageEl.classList.remove('hover');
-          });
-          packageEl.addEventListener('drop', async e => {
-            e.preventDefault();
-
-            const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json+object');
-            if (jsonItem) {
-              const s = await new Promise((resolve, reject) => {
-                jsonItem.getAsString(resolve);
-              });
-              const j = JSON.parse(s);
-              const {index} = j;
-              const cp = pe.children[index];
-
-              localMatrix.copy(cp.matrixWorld)
-                .premultiply(localMatrix2.getInverse(p.matrixWorld));
-              cp.setMatrix(localMatrix);
-              p.add(cp);
-            }
-          });
-          packageEl.addEventListener('click', e => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            document.querySelector('.tool[tool="select"]').click();
-            _setSelectTarget(p.volumeMesh);
-          });
-          const closeButton = packageEl.querySelector('.close-button');
-          closeButton.addEventListener('click', e => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            p.parent.remove(p);
-          });
-
-          _renderChildren(childrenEl, p.children, depth + 1);
-        });
-      };
-      _renderChildren(objectsEl, pe.children, 0);
-    } else {
-      objectsEl.innerHTML = `<h1 class=placeholder>No objects in scene</h1>`;
-    }
-  }
-};
-_renderObjects();
