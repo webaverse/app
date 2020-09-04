@@ -4077,15 +4077,6 @@ const _makeTargetMesh = p => {
   mesh.frustumCulled = false;
   return mesh;
 };
-const _makeVolumeMesh = async p => {
-  const volumeMesh = await p.getVolumeMesh();
-  if (volumeMesh) {
-    volumeMesh.frustumCulled = false;
-    return volumeMesh;
-  } else {
-    return new THREE.Object3D();
-  }
-};
 
 const lineMeshes = [
   makeLineMesh(),
