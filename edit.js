@@ -2490,14 +2490,19 @@ const geometryWorker = (() => {
         value: null,
         needsUpdate: true,
       },
-      uSelectId: {
+      uHitId: {
         type: 'f',
         value: -1,
         needsUpdate: true,
       },
-      uSelectPosition: {
+      uHitPosition: {
         type: 'v3',
         value: new THREE.Vector3(),
+        needsUpdate: true,
+      },
+      uSelectId: {
+        type: 'f',
+        value: -1,
         needsUpdate: true,
       },
       sunIntensity: {
@@ -2510,8 +2515,9 @@ const geometryWorker = (() => {
       precision highp float;
       precision highp int;
 
+      uniform float uHitId;
+      uniform vec3 uHitPosition;
       uniform float uSelectId;
-      uniform vec3 uSelectPosition;
       attribute float id;
       attribute float skyLight;
       attribute float torchLight;
@@ -2526,11 +2532,13 @@ const geometryWorker = (() => {
       void main() {
         vUv = uv;
         vec3 p = position;
-        if (uSelectId == id) {
+        vSelectColor = vec3(0.);
+        if (uHitId == id) {
           vSelectColor = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
-          p += uSelectPosition;
-        } else {
-          vSelectColor = vec3(0.);
+          p += uHitPosition;
+        }
+        if (uSelectId == id) {
+          vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
         }
         // vNormal = normal;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
@@ -2778,11 +2786,11 @@ const geometryWorker = (() => {
       hps[id] = Math.max(hps[id] - dmg, 0);
       return hps[id] > 0;
     }, (positionOffset) => {
-      currentVegetationMesh.material[0].uniforms.uSelectPosition.value.copy(positionOffset);
-      currentVegetationMesh.material[0].uniforms.uSelectPosition.needsUpdate = true;
+      currentVegetationMesh.material[0].uniforms.uHitPosition.value.copy(positionOffset);
+      currentVegetationMesh.material[0].uniforms.uHitPosition.needsUpdate = true;
     }, id => {
-      currentVegetationMesh.material[0].uniforms.uSelectId.value = id;
-      currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+      currentVegetationMesh.material[0].uniforms.uHitId.value = id;
+      currentVegetationMesh.material[0].uniforms.uHitId.needsUpdate = true;
     }, (id, position, quaternion) => {
       _addItem(position, quaternion);
 
@@ -5321,9 +5329,15 @@ function animate(timestamp, frame) {
         case 'select': {
           for (const thingMesh of meshDrawer.thingMeshes) {
             thingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
-            thingMesh.material.uniforms.needsUpdate = true;
+            thingMesh.material.uniforms.uSelectColor.needsUpdate = true;
           }
+          currentVegetationMesh.material[0].uniforms.uSelectId.value = -1;
+          currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+
           if (raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
+            currentVegetationMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
+            currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+
             const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
             if (index !== -1) {
               const thingMesh = meshDrawer.thingMeshes[index];
