@@ -133,14 +133,17 @@ renderer.sortObjects = false;
 renderer.physicallyCorrectLights = true;
 renderer.xr.enabled = true;
 
-const ambientLight = new THREE.AmbientLight(0xFFFFFF);
-scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
+// const ambientLight = new THREE.AmbientLight(0xFFFFFF);
+// scene.add(ambientLight);
+const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+directionalLight.position.set(1, 2, 3);
 scene.add(directionalLight);
-const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
-scene.add(directionalLight2);
+/* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
+scene.add(directionalLight2); */
 
 const orbitControls = new OrbitControls(camera, canvas, document);
+orbitControls.screenSpacePanning = true;
+orbitControls.enableMiddleZoom = false;
 orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
 
 document.addEventListener('dragover', e => {
