@@ -124,7 +124,7 @@ const renderer = new THREE.WebGLRenderer({
   context,
   antialias: true,
   alpha: true,
-  // preserveDrawingBuffer: true,
+  // preserveDrawingBuffer: false,
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
