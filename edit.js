@@ -162,7 +162,7 @@ window.addEventListener('upload', async e => {
   if (p.type === 'webxr-site@0.0.1') {
     // nothing
   } else {
-    const xrCamera = pe.renderer.xr.getCamera(pe.camera);
+    const xrCamera = pe.renderer.xr.getCamera(camera);
     localMatrix
       .copy(xrCamera.matrix)
       .premultiply(pe.matrix)
@@ -3135,7 +3135,7 @@ const MeshDrawer = (() => {
       };
     }
     static fromPoints(pointsData) {
-      const {points, planeNormal, planeConstant, center, tang, bitang} = geometryWorker.convexHull(pointsData, pe.camera.position);
+      const {points, planeNormal, planeConstant, center, tang, bitang} = geometryWorker.convexHull(pointsData, camera.position);
       const zs = new Float32Array(points.length/2);
       return new ThingSource(points, undefined, undefined, undefined, undefined, zs, planeNormal, planeConstant, center, tang, bitang);
     }
@@ -5242,9 +5242,9 @@ function animate(timestamp, frame) {
         const grab = buttons[1].pressed;
         const lastGrab = lastGrabs[index];
         if (!lastGrab && grab) { // grip
-          pe.grabdown(handedness);
+          // pe.grabdown(handedness);
         } else if (lastGrab && !grab) {
-          pe.grabup(handedness);
+          // pe.grabup(handedness);
         }
         lastGrabs[index] = grab;
 
@@ -5260,7 +5260,7 @@ function animate(timestamp, frame) {
           localVector.set(-(axes[0] + axes[2]), 0, -(axes[1] + axes[3]))
             .multiplyScalar(0.01);
           pe.matrix.decompose(localVector2, localQuaternion, localVector3);
-          const xrCamera = renderer.xr.getCamera(pe.camera);
+          const xrCamera = renderer.xr.getCamera(camera);
           localQuaternion2.copy(xrCamera.quaternion).premultiply(localQuaternion);
           localEuler.setFromQuaternion(localQuaternion2, 'YXZ');
           localEuler.x = 0;
@@ -5270,7 +5270,7 @@ function animate(timestamp, frame) {
           pe.setMatrix(localMatrix.compose(localVector2, localQuaternion, localVector3));
         } else if (handedness === 'right') {
           const _applyRotation = r => {
-            const xrCamera = renderer.xr.getCamera(pe.camera);
+            const xrCamera = renderer.xr.getCamera(camera);
             localMatrix
               .copy(xrCamera.matrix)
               .premultiply(pe.matrix)
@@ -5304,7 +5304,7 @@ function animate(timestamp, frame) {
     _setRigMatrix(null);
   } else if (document.pointerLockElement) {
     const speed = 30 * (keys.shift ? 3 : 1);
-    const cameraEuler = pe.camera.rotation.clone();
+    const cameraEuler = camera.rotation.clone();
     cameraEuler.x = 0;
     cameraEuler.z = 0;
     localVector.set(0, 0, 0);
@@ -5342,8 +5342,8 @@ function animate(timestamp, frame) {
     } else if (selectedTool === 'birdseye') {
       _applyAvatarPhysics(new THREE.Vector3(0, -birdsEyeHeight + _getAvatarHeight(), 0), false, true, true, timeDiff);
     } else {
-      _collideItems(pe.camera.matrix);
-      _collideChunk(pe.camera.matrix);
+      _collideItems(camera.matrix);
+      _collideChunk(camera.matrix);
       _setRigMatrix(null);
     }
   } else {
@@ -5452,21 +5452,21 @@ for (let i = 0; i < tools.length; i++) {
 
       switch (oldSelectedTool) {
         case 'thirdperson': {
-          pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
-          pe.camera.updateMatrixWorld();
-          pe.setCamera(camera);
+          camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+          camera.updateMatrixWorld();
+          // setCamera(camera);
           break;
         }
         case 'isometric': {
-          pe.camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
-          pe.camera.updateMatrixWorld();
-          pe.setCamera(camera);
+          camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
+          camera.updateMatrixWorld();
+          // setCamera(camera);
           break;
         }
         case 'birdseye': {
-          pe.camera.position.y += -birdsEyeHeight + _getAvatarHeight();
-          pe.camera.updateMatrixWorld();
-          pe.setCamera(camera);
+          camera.position.y += -birdsEyeHeight + _getAvatarHeight();
+          camera.updateMatrixWorld();
+          // setCamera(camera);
           break;
         }
       }
@@ -5481,71 +5481,41 @@ for (let i = 0; i < tools.length; i++) {
           break;
         }
         case 'firstperson': {
-          /* pe.camera.position.y = _getAvatarHeight();
-          pe.camera.updateMatrixWorld();
-          pe.setCamera(camera); */
-
           document.dispatchEvent(new MouseEvent('mouseup'));
-          domElement.requestPointerLock();
+          renderer.domElement.requestPointerLock();
           break;
         }
         case 'thirdperson': {
-          /* pe.camera.position.y = _getAvatarHeight();
-          pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
-          pe.camera.updateMatrixWorld();
-          pe.setCamera(camera); */
-
           camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
           camera.updateMatrixWorld();
-          setCamera(camera);
 
           document.dispatchEvent(new MouseEvent('mouseup'));
-          domElement.requestPointerLock();
+          renderer.domElement.requestPointerLock();
           decapitate = false;
           break;
         }
         case 'isometric': {
-          /* pe.camera.rotation.x = -Math.PI / 4;
-          pe.camera.quaternion.setFromEuler(pe.camera.rotation);
-          pe.camera.position.y = _getAvatarHeight();
-          pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
-          pe.camera.updateMatrixWorld();
-          pe.setCamera(camera); */
-
           camera.rotation.x = -Math.PI / 6;
-          camera.quaternion.setFromEuler(pe.camera.rotation);
+          camera.quaternion.setFromEuler(camera.rotation);
           camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
           camera.updateMatrixWorld();
-          setCamera(camera);
 
           document.dispatchEvent(new MouseEvent('mouseup'));
-          domElement.requestPointerLock();
+          renderer.domElement.requestPointerLock();
           decapitate = false;
           break;
         }
         case 'birdseye': {
-          /* pe.camera.position.y = birdsEyeHeight;
-          pe.camera.rotation.x = -Math.PI / 2;
-          pe.camera.quaternion.setFromEuler(pe.camera.rotation);
-          pe.camera.updateMatrixWorld();
-          pe.setCamera(camera); */
-
           camera.rotation.x = -Math.PI / 2;
           camera.quaternion.setFromEuler(camera.rotation);
           camera.position.y -= -birdsEyeHeight + _getAvatarHeight();
           camera.updateMatrixWorld();
-          setCamera(camera);
 
           document.dispatchEvent(new MouseEvent('mouseup'));
-          pe.domElement.requestPointerLock();
+          renderer.domElement.requestPointerLock();
           decapitate = false;
           break;
         }
-        /* case 'select': {
-          _resetKeys();
-          velocity.set(0, 0, 0);
-          break;
-        } */
       }
       if (rig) {
         if (decapitate) {
@@ -5657,7 +5627,7 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 70: { // F
-      pe.grabdown('right');
+      // pe.grabdown('right');
       break;
     }
     case 16: { // shift
@@ -5749,7 +5719,7 @@ window.addEventListener('keyup', e => {
       break;
     }
     case 70: { // F
-      pe.grabup('right');
+      // pe.grabup('right');
       break;
     }
     case 16: { // shift
@@ -5763,8 +5733,8 @@ window.addEventListener('keyup', e => {
 window.addEventListener('mousedown', e => {
   if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
     if (e.button === 0) {
-      pe.grabtriggerdown('right');
-      pe.grabuse('right');
+      // pe.grabtriggerdown('right');
+      // pe.grabuse('right');
       currentWeaponDown = true;
     } else if (e.button === 2) {
       currentTeleport = true;
@@ -5773,7 +5743,7 @@ window.addEventListener('mousedown', e => {
 });
 window.addEventListener('mouseup', e => {
   if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
-    pe.grabtriggerup('right');
+    // pe.grabtriggerup('right');
   }
   currentWeaponDown = false;
   currentTeleport = false;
@@ -5868,28 +5838,28 @@ const _updateRaycasterFromMouseEvent = (raycaster, e) => {
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
   if (selectedTool === 'thirdperson') {
-    pe.camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
+    camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'isometric') {
-    pe.camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
+    camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'birdseye') {
-    pe.camera.rotation.x = -Math.PI / 2;
-    pe.camera.quaternion.setFromEuler(pe.camera.rotation);
+    camera.rotation.x = -Math.PI / 2;
+    camera.quaternion.setFromEuler(camera.rotation);
   }
 
-  pe.camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
+  camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
   if (selectedTool !== 'isometric' && selectedTool !== 'birdseye') {
-    pe.camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
-    pe.camera.rotation.x = Math.min(Math.max(pe.camera.rotation.x, -Math.PI / 2), Math.PI / 2);
-    pe.camera.quaternion.setFromEuler(pe.camera.rotation);
+    camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
+    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
+    camera.quaternion.setFromEuler(camera.rotation);
   }
 
   if (selectedTool === 'thirdperson') {
-    pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
+    camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'isometric') {
-    pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
+    camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
   }
-  pe.camera.updateMatrixWorld();
-  pe.setCamera(camera);
+  camera.updateMatrixWorld();
+  // setCamera(camera);
 };
 renderer.domElement.addEventListener('mousemove', e => {
   if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
@@ -6094,14 +6064,14 @@ function onSessionStarted(session) {
 
   currentSession = session;
 
-  pe.setSession(session);
+  // pe.setSession(session);
 }
 function onSessionEnded() {
   currentSession.removeEventListener('end', onSessionEnded);
 
   currentSession = null;
 
-  pe.setSession(null);
+  // pe.setSession(null);
 }
 document.getElementById('enter-xr-button').addEventListener('click', e => {
   e.preventDefault();
