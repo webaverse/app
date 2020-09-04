@@ -6132,6 +6132,15 @@ const _startPackageDrag = (e, j) => {
   });
 }; */
 
+window.addEventListener('resize', e => {
+  if (!currentSession) {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+  }
+});
+
 let currentSession = null;
 function onSessionStarted(session) {
   session.addEventListener('end', onSessionEnded);
