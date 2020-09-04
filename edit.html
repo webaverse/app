@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Muli:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
   <!-- <script src="https://rawcdn.githack.com/ethereum/web3.js/a6ddec59e65116853435f203b25cb9c55824d084/dist/web3.min.js"></script> -->
+  <script src="./bin/geometry.js"></script>
 </head>
 
 <body>
@@ -73,9 +74,49 @@
             <i class="fal fa-feather-alt"></i>
             <div class=label>Birds eye view</div>
           </a>
-          <a id=tool-6 class="tool" tool="select">
+        </div>
+      </div>
+      <div class=weapons style="transform-origin: 0 0;">
+        <div class=row>
+          <a id=weapon-1 class="weapon selected" weapon="unarmed">
+            <i class="fal fa-hand-paper"></i>
+            <div class=label>Empty hand</div>
+          </a>
+          <a id=weapon-2 class="weapon" weapon="rifle">
+            <i class="fal fa-scythe"></i>
+            <div class=label>Rifle</div>
+          </a>
+          <a id=weapon-3 class="weapon" weapon="grenade">
+            <i class="fal fa-bomb"></i>
+            <div class=label>Grenade</div>
+          </a>
+          <a id=weapon-4 class="weapon" weapon="build">
+            <i class="fal fa-map"></i>
+            <div class=label>Build</div>
+          </a>
+          <a id=weapon-5 class="weapon" weapon="pickaxe">
+            <i class="fal fa-axe"></i>
+            <div class=label>Pickaxe</div>
+          </a>
+          <a id=weapon-6 class="weapon" weapon="light">
+            <i class="fal fa-bolt"></i>
+            <div class=label>Light</div>
+          </a>
+          <a id=weapon-7 class="weapon" weapon="pencil">
+            <i class="fal fa-pencil"></i>
+            <div class=label>Pencil</div>
+          </a>
+          <a id=weapon-8 class="weapon" weapon="paintbrush">
+            <i class="fal fa-brush"></i>
+            <div class=label>Paintbrush</div>
+          </a>
+          <a id=weapon-9 class="weapon" weapon="select">
             <i class="fal fa-mouse-pointer"></i>
-            <div class=label>Select tool</div>
+            <div class=label>Select</div>
+          </a>
+          <a id=weapon-10 class="weapon" weapon="physics">
+            <i class="fal fa-raygun"></i>
+            <div class=label>Physics</div>
           </a>
         </div>
       </div>
@@ -90,11 +131,11 @@
     </nav>
   </header>
   <footer class=footer>
-    <nav class="nav full square" id=worlds-button>
+    <!-- <nav class="nav full square" id=worlds-button>
       <i class="fa fa-planet-ringed"></i>
       <div class=name>World</div>
       <div class=label>Choose a world</div>
-    </nav>
+    </nav> -->
     <nav class="nav hidden" id=world-save-button>
       <i class="fa fa-save"></i>
       <div class=name>Save</div>

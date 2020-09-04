@@ -1,19 +1,22 @@
 import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-import {XRPackage} from './run.js';
+import {scene} from './run.js';
 import {TextMesh} from './textmesh-standalone.esm.js'
+import easing from './easing.js';
 
-const apiHost = 'https://ipfs.exokit.org/ipfs';
+const localVector = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localVector2 = new THREE.Vector3();
 
-let dragMesh = null;
+const cubicBezier = easing(0, 1, 0, 1);
 
-const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
-const localRaycater = new THREE.Raycaster();
+function mod(a, b) {
+  return ((a%b)+b)%b;
+}
 
-const makeTextMesh = (text = '', fontSize = 1, anchorX = 'left', anchorY = 'middle') => {
+const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anchorX = 'left', anchorY = 'middle') => {
   const textMesh = new TextMesh();
   textMesh.text = text;
-  textMesh.font = './GeosansLight.ttf';
+  textMesh.font = font;
   textMesh.fontSize = fontSize;
   textMesh.color = 0x000000;
   textMesh.anchorX = anchorX;
@@ -22,6 +25,14 @@ const makeTextMesh = (text = '', fontSize = 1, anchorX = 'left', anchorY = 'midd
   textMesh.sync();
   return textMesh;
 };
+
+/* const apiHost = 'https://ipfs.exokit.org/ipfs';
+
+let dragMesh = null;
+
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
+const localRaycater = new THREE.Raycaster();
 
 const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
   const object = new THREE.Object3D();
@@ -44,7 +55,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
     );
     object.add(background);
 
-    const textMesh = makeTextMesh(name, size*0.1);
+    const textMesh = makeTextMesh(name, undefined, size*0.1);
     textMesh.position.x = -size/2;
     textMesh.position.y = size/2;
     textMesh.position.z = 0.001;
@@ -133,15 +144,6 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
       object.add(backgroundMesh);
       object.backgroundMesh = backgroundMesh;
 
-      /* (async () => {
-        const u = await p.getScreenshotImageUrl();
-        const res = await fetch(u);
-        const ab = await res.arrayBuffer();
-        const uint8Array = new Uint8Array(ab);
-        const gif = parseGIF(uint8Array);
-        const frames = decompressFrames(gif, true);
-      })(); */
-
       const img = new Image();
       const texture = new THREE.Texture(img);
       (async () => {
@@ -166,7 +168,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
       imgMesh.position.z = 0.001;
       object.add(imgMesh);
 
-      const textMesh = makeTextMesh(name, size*0.05);
+      const textMesh = makeTextMesh(name, undefined, size*0.05);
       textMesh.position.x = -packageWidth/2 + packageHeight;
       textMesh.position.y = packageHeight/2;
       textMesh.position.z = 0.001;
@@ -287,15 +289,6 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
       object.add(backgroundMesh);
       object.backgroundMesh = backgroundMesh;
 
-      /* (async () => {
-        const u = await p.getScreenshotImageUrl();
-        const res = await fetch(u);
-        const ab = await res.arrayBuffer();
-        const uint8Array = new Uint8Array(ab);
-        const gif = parseGIF(uint8Array);
-        const frames = decompressFrames(gif, true);
-      })(); */
-
       const img = new Image();
       const texture = new THREE.Texture(img);
       (async () => {
@@ -321,7 +314,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
       imgMesh.position.z = 0.001;
       object.add(imgMesh);
 
-      const textMesh = makeTextMesh(name, size*0.05);
+      const textMesh = makeTextMesh(name, undefined, size*0.05);
       textMesh.position.x = -packageWidth/2 + packageHeight;
       textMesh.position.y = packageHeight/2;
       textMesh.position.z = 0.001;
@@ -389,13 +382,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
               console.log('click object', object);
             };
             highlightMesh.onmouseup = () => {
-              /* (async () => {
-                const {dataHash, matrix} = dragMesh;
-                const p = await XRPackage.download(dataHash);
-                await _addPackage(p, matrix);
-              })();
-              scene.remove(dragMesh);
-              dragMesh = null; */
+              // nothing
             };
 
             return true;
@@ -474,11 +461,399 @@ const makeRayMesh = () => {
   );
   ray.frustumCulled = false;
   return ray;
+}; */
+
+const uiSize = 2048;
+const uiWorldSize = 0.2;
+
+const uiRenderer = (() => {
+  const loadPromise = Promise.all([
+    new Promise((accept, reject) => {
+      const iframe = document.createElement('iframe');
+      iframe.src = 'https://render.exokit.xyz/';
+      iframe.onload = () => {
+        accept(iframe);
+      };
+      iframe.onerror = err => {
+        reject(err);
+      };
+      iframe.setAttribute('frameborder', 0);
+      iframe.style.position = 'absolute';
+      iframe.style.width = `${uiSize}px`;
+      iframe.style.height = `${uiSize}px`;
+      iframe.style.top = '-4096px';
+      iframe.style.left = '-4096px';
+      document.body.appendChild(iframe);
+    }),
+  ]);
+
+  let renderIds = 0;
+  return {
+    async render(htmlString) {
+      const [iframe/*, interfaceHtml*/] = await loadPromise;
+
+      if (renderIds > 0) {
+        iframe.contentWindow.postMessage({
+          method: 'cancel',
+          id: renderIds,
+        });
+      }
+
+      const start = Date.now();
+      const mc = new MessageChannel();
+      iframe.contentWindow.postMessage({
+        method: 'render',
+        id: ++renderIds,
+        htmlString,
+        templateData: null,
+        width: uiSize,
+        height: uiSize,
+        transparent: true,
+        port: mc.port2,
+      }, '*', [mc.port2]);
+      const result = await new Promise((accept, reject) => {
+        mc.port1.onmessage = e => {
+          const {data} = e;
+          const {error, result} = data;
+
+          if (result) {
+            console.log('time taken', Date.now() - start);
+
+            accept(result);
+          } else {
+            reject(error);
+          }
+        };
+      });
+      return result;
+    },
+  };
+})();
+
+const _makeHtmlString = (label, tiles) => {
+  let index = 0;
+  return `\
+<style>
+* {
+  box-sizing: border-box;
+}
+.body {
+  background-color: transparent;
+  font-family: 'Bangers';
+}
+.border {
+  position: absolute;
+  width: ${uiSize/8}px;
+  height: ${uiSize/8}px;
+  border: 30px solid #111;
+}
+.border.top-left {
+  top: 0;
+  left: 0;
+  border-top-left-radius: ${uiSize}px;
+  border-bottom: 0;
+  border-right: 0;
+}
+.border.top-right {
+  top: 0;
+  right: 0;
+  border-top-right-radius: ${uiSize}px;
+  border-bottom: 0;
+  border-left: 0;
+}
+.border.bottom-left {
+  bottom: 0;
+  left: 0;
+  border-bottom-left-radius: ${uiSize}px;
+  border-top: 0;
+  border-right: 0;
+}
+.border.bottom-right {
+  bottom: 0;
+  right: 0;
+  border-bottom-right-radius: ${uiSize}px;
+  border-top: 0;
+  border-left: 0;
+}
+.wrap {
+  position: absolute;
+  height: ${uiSize - uiSize/12*2}px;
+  width: ${uiSize - uiSize/12*2}px;
+  top: ${uiSize/12}px;
+  left: ${uiSize/12}px;
+  padding: ${uiSize/20}px;
+  background-color: #FFF;
+  font-size: 50px;
+}
+h1, h2, h3 {
+  margin: 0;
+  margin-bottom: ${uiSize/50}px;
+}
+.tiles {
+  display: flex;
+}
+.tiles .tile {
+  display: flex;
+  flex-direction: column;
+  background-color: #7e57c2;
+  margin-right: ${uiSize/100}px;
+  margin-bottom: ${uiSize/100}px;
+  padding-bottom: 0;
+}
+.tiles .tile .img {
+  width: ${uiSize/10}px;
+  height: ${uiSize/10*1.2}px;
+  margin: ${uiSize/100}px;
+  background-color: #FFF;
+}
+.tiles .tile .text {
+  padding: ${uiSize/100}px;
+  padding-top: 0;
+  color: #FFF;
+}
+</style>
+<div class=body>
+  <div class="border top-left"></div>
+  <div class="border top-right"></div>
+  <div class="border bottom-left"></div>
+  <div class="border bottom-right"></div>
+  <div class=wrap>
+    <h3>${label}</h3>
+    ${tiles.map((items, i) => `\
+      <div class=tiles>
+        ${items.map((item, j) => `\
+          <a class=tile id=tile-${i}-${j}>
+            <div class=img></div>
+            <div class=text>${item}</div>
+          </a>
+        `).join('\n')}
+      </div>
+    `).join('\n')}
+    </div>
+  </div>
+</div>
+`;
+};
+const makeUiMesh = (label, tiles, onclick) => {
+  const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2)
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize/2, 0));
+  const canvas = document.createElement('canvas');
+  canvas.width = uiSize;
+  canvas.height = uiSize;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.createImageData(uiSize, uiSize);
+  const texture = new THREE.Texture(
+    canvas,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.LinearFilter,
+    THREE.LinearMipMapLinearFilter,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16,
+    THREE.LinearEncoding
+  );
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    transparent: true,
+    alphaTest: 0.7,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.visible = false;
+  mesh.frustumCulled = false;
+
+  const highlightMesh = (() => {
+    const geometry = new THREE.BoxBufferGeometry(1, 1, 0.001);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x42a5f5,
+      transparent: true,
+      opacity: 0.5,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    return mesh;
+  })();
+  mesh.add(highlightMesh);
+  mesh.highlightMesh = highlightMesh;
+
+  let anchors = [];
+  mesh.update = () => {
+    const htmlString = _makeHtmlString(label, tiles);
+    uiRenderer.render(htmlString)
+      .then(result => {
+        imageData.data.set(result.data);
+        ctx.putImageData(imageData, 0, 0);
+        texture.needsUpdate = true;
+        mesh.visible = true;
+        
+        anchors = result.anchors;
+        // console.log(anchors);
+      });
+  };
+  mesh.getAnchors = () => anchors;
+  mesh.click = anchor => {
+    const match = anchor.id.match(/^tile-([0-9]+)-([0-9]+)$/);
+    const i = parseInt(match[1], 10);
+    const j = parseInt(match[2], 10);
+    onclick(tiles[i][j]);
+  };
+  mesh.update();
+
+  return mesh;
+};
+const makeUiFullMesh = () => {
+  const meshSpecs = [
+    [
+      'inventory',
+      [['Rifle', 'Pickaxe', 'Paintbrush'], ['Wood', 'Stone', 'Metal']],
+      new THREE.Vector3(0, 0, 0.1),
+      new THREE.Quaternion(),
+      item => {
+        console.log('click item', item);
+      },
+    ],
+    [
+      'map',
+      [['Location']],
+      new THREE.Vector3(-0.1, 0, 0),
+      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2),
+      item => {
+        console.log('click item', item);
+      },
+    ],
+    [
+      'settings',
+      [['Avatar']],
+      new THREE.Vector3(0, 0, -0.1),
+      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI),
+      item => {
+        console.log('click item', item);
+      },
+    ],
+    [
+      'build',
+      [['Wood wall', 'Wood floor', 'Wood ramp'], ['Stone wall', 'Stone floor', 'Stone ramp'], ['Metal wall', 'Metal floor', 'Metal ramp']],
+      new THREE.Vector3(0.1, 0, 0),
+      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*3/2),
+      item => {
+        console.log('click item', item);
+      },
+    ],
+  ];
+  const object = new THREE.Object3D();
+  for (const meshSpec of meshSpecs) {
+    const [label, items, position, quaternion, onclick] = meshSpec;
+    const mesh = makeUiMesh(label, items, onclick);
+    mesh.position.copy(position);
+    mesh.quaternion.copy(quaternion);
+    object.add(mesh);
+  }
+
+  const wrap = new THREE.Object3D();
+  wrap.add(object);
+  let animation = null;
+  let currentDeltaX = 0;
+  wrap.rotate = deltaX => {
+    currentDeltaX -= deltaX*Math.PI/2;
+    currentDeltaX = mod(currentDeltaX, Math.PI*2);
+    const startQuaternion = object.quaternion.clone();
+    const endQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), currentDeltaX);
+    const startTime = Date.now();
+    const endTime = startTime + 1000;
+    animation = {
+      update() {
+        const now = Date.now();
+        const factor = Math.min((now - startTime) / (endTime - startTime), 1);
+        if (factor < 1) {
+          object.quaternion.copy(startQuaternion).slerp(endQuaternion, cubicBezier(factor));
+        } else {
+          object.quaternion.copy(endQuaternion);
+          animation = null;
+        }
+      },
+    };
+  };
+  wrap.update = () => {
+    animation && animation.update();
+  };
+
+  const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
+    color: 0x0000FF,
+  }));
+  cubeMesh.visible = false;
+  scene.add(cubeMesh);
+
+  let currentMesh = null;
+  let currentAnchor = null;
+  const intersects = [];
+  const localIntersections = [];
+  wrap.intersect = raycaster => {
+    for (const mesh of object.children) {
+      mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      raycaster.intersectObject(mesh, false, intersects);
+      if (intersects.length > 0) {
+        const [{distance, point, uv}] = intersects;
+        intersects.length = 0;
+        if (uv.x >= 1/12 && uv.x <= (1-1/12) && uv.y >= 1/12 && uv.y <= (1-1/12)) {
+          localIntersections.push({
+            distance,
+            point,
+            uv,
+            mesh,
+          });
+        }
+      }
+
+      mesh.highlightMesh.visible = false;
+    }
+    currentMesh = null;
+    currentAnchor = null;
+    if (localIntersections.length > 0) {
+      localIntersections.sort((a, b) => a.distance - b.distance);
+      const [{point, uv, mesh}] = localIntersections;
+      localIntersections.length = 0;
+      cubeMesh.position.copy(point);
+      cubeMesh.visible = true;
+
+      if (uv) {
+        uv.y = 1 - uv.y;
+        uv.multiplyScalar(uiSize);
+
+        const anchors = mesh.getAnchors();
+        for (let i = 0; i < anchors.length; i++) {
+          const anchor = anchors[i];
+          const {top, bottom, left, right, width, height} = anchor;
+          if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
+            currentMesh = mesh;
+            currentAnchor = anchor;
+
+            mesh.highlightMesh.position.x = -uiWorldSize/2 + (left + width/2)/uiSize*uiWorldSize;
+            mesh.highlightMesh.position.y = uiWorldSize - (top + height/2)/uiSize*uiWorldSize;
+            mesh.highlightMesh.scale.x = width/uiSize*uiWorldSize;
+            mesh.highlightMesh.scale.y = height/uiSize*uiWorldSize;
+            mesh.highlightMesh.visible = true;
+            break;
+          }
+        }
+      }
+    } else {
+      cubeMesh.visible = false;
+    }
+  };
+  wrap.click = () => {
+    currentMesh && currentMesh.click(currentAnchor);
+  };
+  return wrap;
 };
 
 export {
+  makeUiMesh,
+  makeUiFullMesh,
   makeTextMesh,
-  makeWristMenu,
+  /* makeWristMenu,
   makeHighlightMesh,
-  makeRayMesh,
-}
+  makeRayMesh, */
+};

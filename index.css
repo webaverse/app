@@ -237,7 +237,7 @@ img:not([src]) {
 .footer .nav:hover {
   opacity: 1;
 }
-.footer .nav:nth-child(3) {
+.footer .nav:nth-child(2) {
   margin-right: auto;
 }
 .footer .nav.enabled {
@@ -442,6 +442,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 }
 
 .tools > .row > .tool,
+.weapons > .row > .weapon,
 .ops > .op,
 .colors > .row > .color,
 .enters > .enter
@@ -454,41 +455,54 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   cursor: pointer;
 }
 .tools > .row > .tool,
+.weapons > .row > .weapon,
 .ops > .op,
 .colors > .row > .color {
   width: 30px;
   height: 30px;
 }
 .tools,
+.weapons,
 .colors {
   flex-direction: column;
 }
-.tools {
-  margin-right: 5px;
-}
-.colors {
+.tools,
+.weapons,
+.colors
+{
   margin-right: 5px;
 }
 .row {
   display: flex;
 }
-.tools > .row > .tool {
+.tools > .row > .tool,
+.weapons > .row > .weapon
+{
   background-color: #FFF;
 }
-.tools > .row > .tool:hover {
+.tools > .row > .tool:hover,
+.weapons > .row > .weapon:hover
+{
   background-color: #42a5f5;
   color: #FFF;
 }
 .tools > .row > .tool:active,
 .tools > .row > .tool.selected,
-.tools > .row > .tool.open {
+.tools > .row > .tool.open,
+.weapons > .row > .weapon:active,
+.weapons > .row > .weapon.selected,
+.weapons > .row > .weapon.open
+{
   background-color: #1e88e5;
   color: #FFF;
 }
-.tools > .row > .tool.hidden {
+.tools > .row > .tool.hidden,
+.weapons > .row > .weapon.hidden
+{
   display: none;
 }
 .tools > .row > .tool > .label,
+.weapons > .row > .weapon > .label,
 .ops > .op > .label
 {
   display: flex;
@@ -504,14 +518,18 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   pointer-events: none;
 }
 .tools > .row > .tool:not(:hover) > .label,
+.weapons > .row > .weapon:not(:hover) > .label,
 .ops > .op:not(:hover) > .label
 {
   display: none;
 }
-.tools > .row > .tool > .label {
+.tools > .row > .tool > .label,
+.weapons > .row > .weapon > .label
+{
   left: 0;
 }
 .tools > .row > .tool > .fill,
+.weapons > .row > .weapon > .fill,
 .ops > .op > .fill
 {
   position: absolute;
