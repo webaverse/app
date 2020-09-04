@@ -1357,7 +1357,7 @@ const geometryWorker = (() => {
   w.makeTracker = function() {
     return moduleInstance._makeTracker.apply(moduleInstance, arguments);
   };
-  w.requestBakeGeometry = (positions, indices) => new Promise((accept, reject) => {
+  /* w.requestBakeGeometry = (positions, indices) => new Promise((accept, reject) => {
     callStack.allocRequest(METHODS.bakeGeometry, 5, false, offset => {
       callStack.u32[offset] = positions.byteOffset;
       callStack.u32[offset + 1] = indices ? indices.byteOffset : 0;
@@ -1421,7 +1421,7 @@ const geometryWorker = (() => {
   };
   w.unregisterGeometry = ptr => {
     moduleInstance._unregisterGeometry(ptr);
-  };
+  }; */
   w.raycast = (tracker, p, q) => {
     p.toArray(scratchStack.f32, 0);
     localVector.set(0, 0, -1)
