@@ -218,6 +218,7 @@ img:not([src]) {
   right: 0;
   width: 100vw;
   padding: 15px;
+  z-index: 1;
   pointer-events: none;
 }
 
