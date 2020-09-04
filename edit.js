@@ -177,37 +177,16 @@ window.addEventListener('upload', async e => {
   } */
 });
 
-let currentSession = null;
-function onSessionStarted(session) {
-  session.addEventListener('end', onSessionEnded);
-
-  currentSession = session;
-
-  pe.setSession(session);
-}
-function onSessionEnded() {
-  currentSession.removeEventListener('end', onSessionEnded);
-
-  currentSession = null;
-
-  pe.setSession(null);
-}
-document.getElementById('enter-xr-button').addEventListener('click', e => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  if (currentSession === null) {
-    navigator.xr.requestSession('immersive-vr', {
-      optionalFeatures: [
-        'local-floor',
-        'bounded-floor',
-        'hand-tracking',
-      ],
-    }).then(onSessionStarted);
+const rigMatrix = new THREE.Matrix4();
+let rigMatrixEnabled = false;
+const _setRigMatrix = rm =>  {
+  if (rm) {
+    rigMatrix.copy(rm);
+    rigMatrixEnabled = true;
   } else {
-    currentSession.end();
+    rigMatrixEnabled = false;
   }
-});
+}
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -6061,7 +6040,7 @@ document.getElementById('avatar-drop-zone').addEventListener('drop', async e => 
   }
 }); */
 
-async function _addPackage(p, matrix) {
+/* async function _addPackage(p, matrix) {
   p.setMatrix(matrix);
   await pe.add(p);
 }
@@ -6074,4 +6053,36 @@ const _startPackageDrag = (e, j) => {
     avatarSubpage.classList.remove('open');
     document.body.classList.add('dragging-package');
   });
-};
+}; */
+
+let currentSession = null;
+function onSessionStarted(session) {
+  session.addEventListener('end', onSessionEnded);
+
+  currentSession = session;
+
+  pe.setSession(session);
+}
+function onSessionEnded() {
+  currentSession.removeEventListener('end', onSessionEnded);
+
+  currentSession = null;
+
+  pe.setSession(null);
+}
+document.getElementById('enter-xr-button').addEventListener('click', e => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (currentSession === null) {
+    navigator.xr.requestSession('immersive-vr', {
+      optionalFeatures: [
+        'local-floor',
+        'bounded-floor',
+        'hand-tracking',
+      ],
+    }).then(onSessionStarted);
+  } else {
+    currentSession.end();
+  }
+});
