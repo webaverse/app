@@ -2,16 +2,26 @@ const storage = {
   async get(k) {
     const res = await fetch(`/xrpackage/storage/${k}`);
     if (res.status >= 200 && res.status < 300) {
-      const s = await res.text();
-      return JSON.parse(s);
+      return await res.json();
     } else {
       return undefined;
     }
   },
-  async set(k, v) {
+  async getRaw(k) {
+    const res = await fetch(`/xrpackage/storage/${k}`);
+    if (res.status >= 200 && res.status < 300) {
+      return await res.arrayBuffer();
+    } else {
+      return undefined;
+    }
+  },
+  set(k, v) {
+    return this.setRaw(k, JSON.stringify(v));
+  },
+  async setRaw(k, v) {
     const res = await fetch(`/xrpackage/storage/${k}`, {
       method: 'PUT',
-      body: JSON.stringify(v),
+      body: v,
     });
     if (res.status >= 200 && res.status < 300) {
       // nothing
@@ -27,6 +37,14 @@ const storage = {
       // nothing
     } else {
       throw new Error(`invalid status code: ${res.status}`);
+    }
+  },
+  async keys() {
+    const res = await fetch(`/xrpackage/storage/`);
+    if (res.status >= 200 && res.status < 300) {
+      return await res.json();
+    } else {
+      return undefined;
     }
   },
 };
