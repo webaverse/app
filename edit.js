@@ -4489,24 +4489,6 @@ const cubeMesh = (() => {
 cubeMesh.frustumCulled = false;
 scene.add(cubeMesh);
 
-const PEEK_FACES = {
-  FRONT: 1,
-  BACK: 2,
-  LEFT: 3,
-  RIGHT: 4,
-  TOP: 5,
-  BOTTOM: 6,
-};
-const PEEK_DIRECTIONS = [
-  [new THREE.Vector3(0, 0, 1), PEEK_FACES.FRONT],
-  [new THREE.Vector3(0, 0, -1), PEEK_FACES.BACK],
-  [new THREE.Vector3(-1, 0, 0), PEEK_FACES.LEFT],
-  [new THREE.Vector3(1, 0, 0), PEEK_FACES.RIGHT],
-  [new THREE.Vector3(0, 1, 0), PEEK_FACES.TOP],
-  [new THREE.Vector3(0, -1, 0), PEEK_FACES.BOTTOM],
-];
-const PEEK_FACE_INDICES = Int32Array.from([255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,0,1,2,3,4,255,255,255,255,255,255,255,255,255,255,0,255,5,6,7,8,255,255,255,255,255,255,255,255,255,255,1,5,255,9,10,11,255,255,255,255,255,255,255,255,255,255,2,6,9,255,12,13,255,255,255,255,255,255,255,255,255,255,3,7,10,12,255,14,255,255,255,255,255,255,255,255,255,255,4,8,11,13,14,255]);
-
 const velocity = new THREE.Vector3();
 const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
