@@ -4701,537 +4701,6 @@ function animate(timestamp, frame) {
   crosshairMesh && crosshairMesh.update();
   uiMesh && uiMesh.update();
 
-  orbitControls.enabled = selectedTool === 'camera' && !['pencil', 'paintbrush', 'physics'].includes(selectedWeapon);
-
-  const session = renderer.xr.getSession();
-  if (session) {
-    const inputSource = session.inputSources[1];
-    let pose;
-    const referenceSpace = renderer.xr.getReferenceSpace();
-    if (inputSource && (pose = frame.getPose(inputSource.targetRaySpace, referenceSpace))) {
-      localMatrix.fromArray(pose.transform.matrix)
-        .decompose(localVector, localQuaternion, localVector2);
-
-      if (currentChunkMesh && geometryWorker) {
-        const result = geometryWorker.raycast(tracker, localVector, localQuaternion);
-        raycastChunkSpec = result;
-        if (raycastChunkSpec) {
-          raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
-          raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
-          raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
-          raycastChunkSpec.objectQuaternion = new THREE.Quaternion().fromArray(raycastChunkSpec.objectQuaternion);
-          cubeMesh.position.copy(raycastChunkSpec.point);
-        }
-      }
-
-      [assaultRifleMesh, grenadeMesh, crosshairMesh, plansMesh, pencilMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
-        if (weaponMesh) {
-          weaponMesh.visible = false;
-        }
-      });
-      const selectedWeaponModel = (() => {
-        switch (selectedWeapon) {
-          case 'rifle': {
-            return {
-              weapon: assaultRifleMesh,
-              crosshair: crosshairMesh,
-            };
-          }
-          case 'grenade': {
-            return {
-              weapon: grenadeMesh,
-              crosshair: crosshairMesh,
-            };
-          }
-          case 'build': {
-            return [plansMesh, pencilMesh];
-          }
-          case 'pickaxe': {
-            return pickaxeMesh;
-          }
-          case 'light': {
-            return paintBrushMesh;
-          }
-          case 'pencil': {
-            return pencilMesh;
-          }
-          case 'paintbrush': {
-            return paintBrushMesh;
-          }
-          case 'select': {
-            return pencilMesh;
-          }
-          case 'physics': {
-            return pencilMesh;
-          }
-          default: {
-            return null;
-          }
-        }
-      })();
-      if (selectedWeaponModel) {
-        if (!selectedWeaponModel.isMesh) {
-          if (Array.isArray(selectedWeaponModel)) {
-            const pose2 = frame.getPose(session.inputSources[0].targetRaySpace, referenceSpace);
-            localMatrix.fromArray(pose.transform.matrix)
-              .decompose(localVector3, localQuaternion2, localVector4);
-
-            selectedWeaponModel.forEach((weaponMesh, i) => {
-              if (weaponMesh) {
-                if (i === 0) {
-                  weaponMesh.position.copy(localVector3);
-                  weaponMesh.quaternion.copy(localQuaternion2);
-                  weaponMesh.visible = true;
-                } else if (i === 1) {
-                  weaponMesh.position.copy(localVector);
-                  weaponMesh.quaternion.copy(localQuaternion);
-                  weaponMesh.visible = true;
-                }
-              }
-            });
-          } else {
-            const {weapon, crosshair} = selectedWeaponModel;
-            if (weapon) {
-              weapon.position.copy(localVector);
-              weapon.quaternion.copy(localQuaternion);
-              weapon.visible = true;
-            }
-            if (crosshair) {
-              crosshair.visible = true;
-            }
-          }
-        } else {
-          selectedWeaponModel.position.copy(localVector);
-          selectedWeaponModel.quaternion.copy(localQuaternion);
-          selectedWeaponModel.visible = true;
-        }
-      }
-      addMesh.visible = false;
-      removeMesh.visible = false;
-      switch (selectedWeapon) {
-        case 'rifle':
-        case 'grenade':
-        {
-          if (crosshairMesh) {
-            crosshairMesh.position.copy(localVector)
-              .add(localVector2.set(0, 0, -500).applyQuaternion(localQuaternion));
-            crosshairMesh.quaternion.copy(localQuaternion);
-            crosshairMesh.visible = true;
-          }
-          break;
-        }
-        case 'build': {
-          addMesh.position.copy(localVector)
-            .add(localVector2.set(0, 0, -2).applyQuaternion(localQuaternion));
-          addMesh.quaternion.copy(localQuaternion);
-          addMesh.visible = true;
-          break;
-        }
-        case 'pickaxe': {
-          if (raycastChunkSpec) {
-            removeMesh.position.copy(raycastChunkSpec.point);
-            removeMesh.quaternion.setFromUnitVectors(localVector2.set(0, 1, 0), raycastChunkSpec.normal);
-            removeMesh.visible = true;
-          }
-          break;
-        }
-      }
-      if (wallMesh && currentChunkMesh) {
-        [wallMesh, platformMesh, stairsMesh].forEach(buildMesh => {
-          buildMesh.parent && buildMesh.parent.remove(buildMesh);
-        });
-        if (buildMode) {
-          const buildMesh = (() => {
-            switch (buildMode) {
-              case 'wall': return wallMesh;
-              case 'floor': return platformMesh;
-              case 'stair': return stairsMesh;
-              default: return null;
-            }
-          })();
-
-          buildMesh.position.copy(localVector)
-            .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(localQuaternion))
-            .add(localVector3.set(0, -BUILD_SNAP/2, 0));
-          buildMesh.quaternion.copy(localQuaternion);
-
-          buildMesh.matrix.compose(buildMesh.position, buildMesh.quaternion, buildMesh.scale)
-            .premultiply(localMatrix2.getInverse(currentChunkMesh.matrixWorld))
-            .decompose(buildMesh.position, buildMesh.quaternion, buildMesh.scale);
-          _snapBuildPosition(buildMesh.position);
-
-          localVector3.set(0, 1, 0).applyQuaternion(buildMesh.quaternion);
-          if (Math.abs(localVector3.x) > Math.abs(localVector3.y) && Math.abs(localVector3.x) > Math.abs(localVector3.z)) {
-            localVector3.set(Math.sign(localVector3.x), 0, 0);
-          } else if (Math.abs(localVector3.y) > Math.abs(localVector3.x) && Math.abs(localVector3.y) > Math.abs(localVector3.z)) {
-            localVector3.set(0, Math.sign(localVector3.y), 0);
-          } else {
-            localVector3.set(0, 0, Math.sign(localVector3.z));
-          }
-          localVector4.set(0, 0, -1).applyQuaternion(buildMesh.quaternion);
-          if (Math.abs(localVector4.x) > Math.abs(localVector4.y) && Math.abs(localVector4.x) > Math.abs(localVector4.z)) {
-            localVector4.set(Math.sign(localVector4.x), 0, 0);
-          } else if (Math.abs(localVector4.y) > Math.abs(localVector4.x) && Math.abs(localVector4.y) > Math.abs(localVector4.z)) {
-            localVector4.set(0, Math.sign(localVector4.y), 0);
-          } else {
-            localVector4.set(0, 0, Math.sign(localVector4.z));
-          }
-          buildMesh.quaternion.setFromRotationMatrix(localMatrix2.lookAt(
-            localVector2.set(0, 0, 0),
-            localVector4,
-            localVector3
-          ));
-
-          const hasBuildMesh = (() => {
-            for (const index in currentChunkMesh.vegetationMeshes) {
-              const subparcelBuildMeshesSpec = currentChunkMesh.vegetationMeshes[index];
-              if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
-                return true;
-              }
-            }
-            return false;
-          })();
-          if (!hasBuildMesh) {
-            buildMesh.traverse(o => {
-              if (o.isMesh && o.originalMaterial) {
-                o.material = o.originalMaterial;
-                o.originalMaterial = null;
-              }
-            });
-          } else {
-            buildMesh.traverse(o => {
-              if (o.isMesh && !o.originalMaterial) {
-                o.originalMaterial = o.material;
-                o.material = redBuildMeshMaterial;
-              }
-            });
-          }
-
-          currentChunkMesh.add(buildMesh);
-        }
-      }
-      if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
-        if (!buildMode) {
-          const _applyLightfieldDelta = async (position, delta) => {
-            localVector2.copy(position)
-              .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
-            localVector2.x = Math.floor(localVector2.x);
-            localVector2.y = Math.floor(localVector2.y);
-            localVector2.z = Math.floor(localVector2.z);
-
-            const mineSpecs = _applyMineSpec(localVector2, delta, 'lightfield', SUBPARCEL_SIZE_P1, planet.getFieldIndex, delta);
-            await _mine(mineSpecs, null);
-          };
-          const _hit = () => {
-            if (raycastChunkSpec) {
-              if (raycastChunkSpec.objectId === 0) {
-                localVector2.copy(raycastChunkSpec.point)
-                  .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
-
-                geometryWorker.requestMine(tracker, localVector2, -0.3);
-              } else {
-                currentVegetationMesh.hitTracker.hit(raycastChunkSpec.objectId, raycastChunkSpec.objectPosition, raycastChunkSpec.objectQuaternion, 30);
-              }
-            }
-          };
-          const _light = () => {
-            if (raycastChunkSpec) {
-              localVector2.copy(raycastChunkSpec.point)
-                .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
-
-              geometryWorker.requestLight(tracker, localVector2, 4);
-
-              /* if (raycastChunkSpec.mesh.isChunkMesh || raycastChunkSpec.mesh.isVegetationMesh) {
-                _applyLightfieldDelta(raycastChunkSpec.point, 4);
-
-                localVector2.copy(raycastChunkSpec.point)
-                  .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
-                localVector2.x = Math.floor(localVector2.x / SUBPARCEL_SIZE);
-                localVector2.y = Math.floor(localVector2.y / SUBPARCEL_SIZE);
-                localVector2.z = Math.floor(localVector2.z / SUBPARCEL_SIZE);
-                currentChunkMesh.updateSlab(localVector2.x, localVector2.y, localVector2.z);
-              } */
-            }
-          };
-          const _explode = (position, quaternion) => {
-            const explosionMesh = _makeExplosionMesh();
-            explosionMesh.position.copy(position);
-            explosionMesh.quaternion.copy(quaternion);
-            scene.add(explosionMesh);
-            explosionMeshes.push(explosionMesh);
-          };
-          const _damage = dmg => {
-            hpMesh.damage(dmg);
-          };
-          switch (selectedWeapon) {
-            case 'rifle': {
-              _hit();
-              localVector2.copy(assaultRifleMesh.position)
-                .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(assaultRifleMesh.quaternion));
-              _explode(localVector2, assaultRifleMesh.quaternion);
-              crosshairMesh.trigger();
-              break;
-            }
-            case 'grenade': {
-              if (currentChunkMesh) {
-                const pxMesh = grenadeMesh.clone();
-
-                localVector2.copy(grenadeMesh.position)
-                  .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
-                localQuaternion2.copy(grenadeMesh.quaternion)
-                  .premultiply(currentChunkMesh.getWorldQuaternion(localQuaternion3).inverse());
-                pxMesh.position.copy(localVector2)
-                pxMesh.velocity = new THREE.Vector3(0, 0, -10)
-                  .applyQuaternion(localQuaternion2);
-                pxMesh.angularVelocity = new THREE.Vector3((-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01);
-                pxMesh.isBuildMesh = true;
-                const startTime = Date.now();
-                const endTime = startTime + 3000;
-                pxMesh.update = () => {
-                  if (Date.now() < endTime) {
-                    return true;
-                  } else {
-                    pxMesh.getWorldPosition(localVector2);
-                    pxMesh.getWorldQuaternion(localQuaternion2);
-                    _explode(localVector2, localQuaternion2);
-                    _damage(15);
-                    return false;
-                  }
-                };
-                currentChunkMesh.add(pxMesh);
-                pxMeshes.push(pxMesh);
-              }
-              break;
-            }
-            case 'build': {
-              if (addMesh.visible) {
-                _applyPotentialDelta(addMesh.position, 0.3);
-              }
-              break;
-            }
-            case 'pickaxe': {
-              _hit();
-              break;
-            }
-            case 'light': {
-              _light();
-            }
-          }
-        } else {
-          const buildMesh = (() => {
-            switch (buildMode) {
-              case 'wall': return wallMesh;
-              case 'floor': return platformMesh;
-              case 'stair': return stairsMesh;
-              default: return null;
-            }
-          })();
-          const hasBuildMesh = (() => {
-            for (const index in currentChunkMesh.vegetationMeshes) {
-              const subparcelBuildMeshesSpec = currentChunkMesh.vegetationMeshes[index];
-              if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
-                return true;
-              }
-            }
-            return false;
-          })();
-          if (!hasBuildMesh) {
-            geometryWorker.requestAddObject(tracker, geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
-          }
-        }
-      }
-      // mesh drawer
-      if (currentWeaponDown && currentChunkMesh) {
-        if (!buildMode) {
-          switch (selectedWeapon) {
-            case 'pencil': {
-              if (document.pointerLockElement) {
-                localVector2.copy(pencilMesh.position)
-                  .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
-              } else {
-                localVector2.copy(raycaster.ray.origin)
-                  .add(localVector3.copy(raycaster.ray.direction).multiplyScalar(0.5));
-              }
-              localVector2.applyMatrix4(localMatrix2.getInverse(meshDrawer.mesh.parent.matrixWorld));
-
-              if (!lastWeaponDown) {
-                meshDrawer.start(localVector2);
-              }
-              meshDrawer.update(localVector2);
-              break;
-            }
-            case 'paintbrush': {
-              console.log('click paintbrush 1');
-
-              if (raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
-                const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
-                if (index !== -1) {
-                  const thingSource = meshDrawer.thingSources[index];
-                  const thingMesh = meshDrawer.thingMeshes[index];
-
-                  const {point, faceIndex} = raycastChunkSpec;
-                  const {geometryData: {positions, uvs, indices}} = thingSource;
-                  const ai = indices[faceIndex*3];
-                  const bi = indices[faceIndex*3+1];
-                  const ci = indices[faceIndex*3+2];
-                  const tri = new THREE.Triangle(
-                    new THREE.Vector3().fromArray(positions, ai*3).applyMatrix4(thingSource.matrixWorld),
-                    new THREE.Vector3().fromArray(positions, bi*3).applyMatrix4(thingSource.matrixWorld),
-                    new THREE.Vector3().fromArray(positions, ci*3).applyMatrix4(thingSource.matrixWorld)
-                  );
-                  const uva = new THREE.Vector2().fromArray(uvs, ai*3);
-                  const uvb = new THREE.Vector2().fromArray(uvs, bi*3);
-                  const uvc = new THREE.Vector2().fromArray(uvs, ci*3);
-                  const uv = THREE.Triangle.getUV(point, tri.a, tri.b, tri.c, uva, uvb, uvc, new THREE.Vector2());
-                  // console.log('painting', currentChunkMesh, raycastChunkSpec, thingSource, tri, point.toArray(), uv.toArray());
-                  const f = 10;
-                  const canvas = thingMesh.material.uniforms.tex.value.image;
-                  canvas.ctx.fillStyle = '#000';
-                  canvas.ctx.fillRect(uv.x * canvas.width - f/2, (1-uv.y) * canvas.height - f/2, f, f);
-                  thingMesh.material.uniforms.tex.value.needsUpdate = true;
-                }
-              }
-              break;
-            }
-            case 'physics': {
-              console.log('click physics 1');
-              break;
-            }
-          }
-        }
-      }
-      if (lastWeaponDown && !currentWeaponDown && currentChunkMesh) {
-        if (!buildMode) {
-          switch (selectedWeapon) {
-            case 'pencil': {
-              if (document.pointerLockElement) {
-                localVector2.copy(pencilMesh.position)
-                  .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
-              } else {
-                localVector2.copy(raycaster.ray.origin)
-                  .add(localVector3.copy(raycaster.ray.direction).multiplyScalar(0.5));
-              }
-              localVector2.applyMatrix4(localMatrix2.getInverse(meshDrawer.mesh.parent.matrixWorld));
-
-              meshDrawer.end(localVector2);
-              break;
-            }
-            case 'paintbrush': {
-              console.log('click paintbrush 2');
-              break;
-            }
-            case 'physics': {
-              console.log('click physics 2');
-              break;
-            }
-          }
-        }
-      }
-      if (!buildMode) {
-        switch (selectedWeapon) {
-          case 'select': {
-            for (const thingMesh of meshDrawer.thingMeshes) {
-              thingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
-              thingMesh.material.uniforms.needsUpdate = true;
-            }
-            if (raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
-              const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
-              if (index !== -1) {
-                const thingMesh = meshDrawer.thingMeshes[index];
-                thingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
-                thingMesh.material.uniforms.uSelectColor.needsUpdate = true;
-              }
-            }
-            break;
-          }
-        }
-      }
-
-      /* const currentParcel = _getCurrentParcel(localVector);
-      if (!currentParcel.equals(lastParcel)) {
-        if (currentParcel.x !== lastParcel.x) {
-          currentParcel.z = lastParcel.z;
-        } else if (currentParcel.z !== lastParcel.z) {
-          currentParcel.x = lastParcel.x;
-        }
-        planetAnimation && _tickPlanetAnimation(1);
-        const sub = lastParcel.clone().sub(currentParcel);
-        const pivot = currentParcel.clone().add(lastParcel).multiplyScalar(10/2);
-        _animatePlanet(planetContainer.matrix.clone(), pivot, new THREE.Quaternion(), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), sub));
-        lastParcel = currentParcel;
-      } */
-
-      const _teleportTo = (position, quaternion) => {
-        localMatrix.fromArray(pose.transform.matrix)
-          .decompose(localVector2, localQuaternion2, localVector3);
-
-        worldContainer.matrix
-          .premultiply(localMatrix.makeTranslation(-position.x, -position.y, -position.z))
-          .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-          .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-          .premultiply(localMatrix.makeTranslation(0, -_getMinHeight(), 0))
-          .decompose(worldContainer.position, worldContainer.quaternion, worldContainer.scale);
-
-        velocity.set(0, 0, 0);
-      };
-
-      const currentTeleportChunkMesh = raycastChunkSpec && raycastChunkSpec.mesh;
-      if (currentTeleport && currentTeleportChunkMesh) {
-        if (raycastChunkSpec.point) {
-          teleportMeshes[1].position.copy(raycastChunkSpec.point);
-          teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), raycastChunkSpec.normal);
-          teleportMeshes[1].visible = true;
-          teleportMeshes[1].lineMesh.visible = false;
-        }
-      } else if (lastTeleport && !currentTeleport && currentTeleportChunkMesh) {
-        teleportMeshes[1].visible = false;
-        _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
-        if (currentTeleportChunkMesh.isChunkMesh) {
-          currentChunkMesh = currentTeleportChunkMesh;
-        }
-      } else {
-        teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, (position, quaternion) => {
-          _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
-        });
-      }
-    }
-
-    for (const handMesh of handMeshes) {
-      handMesh.visible = false;
-    }
-    for (const inputSource of session.inputSources) {
-      if (inputSource && inputSource.hand) {
-        const handMesh = handMeshes[inputSource.handedness === 'right' ? 1 : 0];
-        const positionAttribute = handMesh.geometry.attributes.position;
-
-        for (let i = 0; i < inputSource.hand.length; i++) {
-          const joint = inputSource.hand[i];
-          const dstPositions = new Float32Array(positionAttribute.array.buffer, positionAttribute.array.byteOffset + i*jointNumPositions*Float32Array.BYTES_PER_ELEMENT, jointNumPositions);
-
-          const jointPose = joint && frame.getJointPose(joint, referenceSpace);
-          if (jointPose) {
-            jointGeometry.attributes.position.array.set(jointPositions);
-            jointGeometry.applyMatrix4(
-              localMatrix.fromArray(jointPose.transform.matrix)
-            );
-            dstPositions.set(jointGeometry.attributes.position.array);
-          } else {
-            dstPositions.fill(0);
-          }
-        }
-        positionAttribute.needsUpdate = true;
-        handMesh.visible = true;
-      }
-    }
-  }
-
-  /* if (planetAnimation) {
-    const {startTime, endTime} = planetAnimation;
-    const now = Date.now();
-    const factor = Math.min((now - startTime) / (endTime - startTime), 1);
-    _tickPlanetAnimation(factor);
-  } */
-
   if (currentSession) {
     const {inputSources} = currentSession;
     for (let i = 0; i < inputSources.length; i++) {
@@ -5355,42 +4824,6 @@ function animate(timestamp, frame) {
     _setRigMatrix(null);
   }
 
-  /* if (session) {
-    wristMenu.update(frame, session, renderer.xr.getReferenceSpace());
-  } */
-
-  if (geometryWorker) {
-    pxMeshes = pxMeshes.filter(pxMesh => {
-      if (pxMesh.update()) {
-        if (!pxMesh.velocity.equals(zeroVector)) {
-          localMatrix.copy(pxMesh.matrixWorld)
-            .decompose(localVector, localQuaternion, localVector2);
-          const collision = geometryWorker.collide(tracker, 0.2, 0, localVector, localQuaternion2.set(0, 0, 0, 1), 1);
-
-          if (collision) {
-            localVector3.fromArray(collision.direction)
-              .applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse());
-            pxMesh.position.add(localVector3);
-            pxMesh.velocity.copy(zeroVector);
-            // pxMesh.angularVelocity.copy(zeroVector);
-          } else {
-            _applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
-            pxMesh.velocity.add(localVector.set(0, -9.8*timeDiff, 0).applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse()));
-            pxMesh.rotation.x += pxMesh.angularVelocity.x;
-            pxMesh.rotation.y += pxMesh.angularVelocity.y;
-            pxMesh.rotation.z += pxMesh.angularVelocity.z;
-          }
-        }
-        return true;
-      } else {
-        pxMesh.parent.remove(pxMesh);
-        return false;
-      }
-    });
-  }
-  lastTeleport = currentTeleport;
-  lastWeaponDown = currentWeaponDown;
-
   const _updateRig = () => {
     if (rigMatrixEnabled) {
       localMatrix.copy(rigMatrix)
@@ -5410,11 +4843,11 @@ function animate(timestamp, frame) {
     rig.inputs.hmd.quaternion.copy(localQuaternion);
     if (currentSession) {
       localMatrix2.getInverse(this.matrix);
-      localMatrix
+      localMatrix3
         .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
         .premultiply(localMatrix2)
         .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
-      localMatrix
+      localMatrix3
         .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
         .premultiply(localMatrix2)
         .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
@@ -5463,6 +4896,577 @@ function animate(timestamp, frame) {
     rig.update();
   };
   _updateRig();
+
+  const _updateTools = () => {
+    orbitControls.enabled = selectedTool === 'camera' && !['pencil', 'paintbrush', 'physics'].includes(selectedWeapon);
+
+    if (currentChunkMesh && geometryWorker) {
+      const result = geometryWorker.raycast(tracker, localVector, localQuaternion);
+      raycastChunkSpec = result;
+      if (raycastChunkSpec) {
+        raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
+        raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
+        raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
+        raycastChunkSpec.objectQuaternion = new THREE.Quaternion().fromArray(raycastChunkSpec.objectQuaternion);
+        cubeMesh.position.copy(raycastChunkSpec.point);
+      }
+    }
+
+    [assaultRifleMesh, grenadeMesh, crosshairMesh, plansMesh, pencilMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
+      if (weaponMesh) {
+        weaponMesh.visible = false;
+      }
+    });
+    const selectedWeaponModel = (() => {
+      switch (selectedWeapon) {
+        case 'rifle': {
+          return {
+            weapon: assaultRifleMesh,
+            crosshair: crosshairMesh,
+          };
+        }
+        case 'grenade': {
+          return {
+            weapon: grenadeMesh,
+            crosshair: crosshairMesh,
+          };
+        }
+        case 'build': {
+          return [plansMesh, pencilMesh];
+        }
+        case 'pickaxe': {
+          return pickaxeMesh;
+        }
+        case 'light': {
+          return paintBrushMesh;
+        }
+        case 'pencil': {
+          return pencilMesh;
+        }
+        case 'paintbrush': {
+          return paintBrushMesh;
+        }
+        case 'select': {
+          return pencilMesh;
+        }
+        case 'physics': {
+          return pencilMesh;
+        }
+        default: {
+          return null;
+        }
+      }
+    })();
+    const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rig.inputs;
+    if (selectedWeaponModel) {
+      if (!selectedWeaponModel.isMesh) {
+        if (Array.isArray(selectedWeaponModel)) {
+          // const pose2 = frame.getPose(session.inputSources[0].targetRaySpace, referenceSpace);
+          // localMatrix.fromArray(pose.transform.matrix)
+            // .decompose(localVector3, localQuaternion2, localVector4);
+
+          selectedWeaponModel.forEach((weaponMesh, i) => {
+            if (weaponMesh) {
+              if (i === 0) {
+                weaponMesh.position.copy(rightGamepad.position);
+                weaponMesh.quaternion.copy(rightGamepad.quaternion);
+                weaponMesh.visible = true;
+              } else if (i === 1) {
+                weaponMesh.position.copy(leftGamepad.position);
+                weaponMesh.quaternion.copy(leftGamepad.quaternion);
+                weaponMesh.visible = true;
+              }
+            }
+          });
+        } else {
+          const {weapon, crosshair} = selectedWeaponModel;
+          if (weapon) {
+            weapon.position.copy(rightGamepad.position);
+            weapon.quaternion.copy(rightGamepad.quaternion);
+            weapon.visible = true;
+          }
+          if (crosshair) {
+            crosshair.visible = true;
+          }
+        }
+      } else {
+        selectedWeaponModel.position.copy(rightGamepad.position);
+        selectedWeaponModel.quaternion.copy(rightGamepad.quaternion);
+        selectedWeaponModel.visible = true;
+      }
+    }
+    addMesh.visible = false;
+    removeMesh.visible = false;
+    switch (selectedWeapon) {
+      case 'rifle':
+      case 'grenade':
+      {
+        if (crosshairMesh) {
+          crosshairMesh.position.copy(rightGamepad.position)
+            .add(localVector2.set(0, 0, -500).applyQuaternion(rightGamepad.quaternion));
+          crosshairMesh.quaternion.copy(rightGamepad.quaternion);
+          crosshairMesh.visible = true;
+        }
+        break;
+      }
+      case 'build': {
+        addMesh.position.copy(rightGamepad.position)
+          .add(localVector2.set(0, 0, -2).applyQuaternion(rightGamepad.quaternion));
+        addMesh.quaternion.copy(rightGamepad.quaternion);
+        addMesh.visible = true;
+        break;
+      }
+      case 'pickaxe': {
+        if (raycastChunkSpec) {
+          removeMesh.position.copy(raycastChunkSpec.point);
+          removeMesh.quaternion.setFromUnitVectors(localVector2.set(0, 1, 0), raycastChunkSpec.normal);
+          removeMesh.visible = true;
+        }
+        break;
+      }
+    }
+    if (wallMesh && currentChunkMesh) {
+      [wallMesh, platformMesh, stairsMesh].forEach(buildMesh => {
+        buildMesh.parent && buildMesh.parent.remove(buildMesh);
+      });
+      if (buildMode) {
+        const buildMesh = (() => {
+          switch (buildMode) {
+            case 'wall': return wallMesh;
+            case 'floor': return platformMesh;
+            case 'stair': return stairsMesh;
+            default: return null;
+          }
+        })();
+
+        buildMesh.position.copy(rightGamepad.position)
+          .add(localVector3.set(0, 0, -BUILD_SNAP).applyQuaternion(rightGamepad.quaternion))
+          .add(localVector3.set(0, -BUILD_SNAP/2, 0));
+        buildMesh.quaternion.copy(rightGamepad.quaternion);
+
+        buildMesh.matrix.compose(buildMesh.position, buildMesh.quaternion, buildMesh.scale)
+          .premultiply(localMatrix2.getInverse(currentChunkMesh.matrixWorld))
+          .decompose(buildMesh.position, buildMesh.quaternion, buildMesh.scale);
+        _snapBuildPosition(buildMesh.position);
+
+        localVector3.set(0, 1, 0).applyQuaternion(buildMesh.quaternion);
+        if (Math.abs(localVector3.x) > Math.abs(localVector3.y) && Math.abs(localVector3.x) > Math.abs(localVector3.z)) {
+          localVector3.set(Math.sign(localVector3.x), 0, 0);
+        } else if (Math.abs(localVector3.y) > Math.abs(localVector3.x) && Math.abs(localVector3.y) > Math.abs(localVector3.z)) {
+          localVector3.set(0, Math.sign(localVector3.y), 0);
+        } else {
+          localVector3.set(0, 0, Math.sign(localVector3.z));
+        }
+        localVector4.set(0, 0, -1).applyQuaternion(buildMesh.quaternion);
+        if (Math.abs(localVector4.x) > Math.abs(localVector4.y) && Math.abs(localVector4.x) > Math.abs(localVector4.z)) {
+          localVector4.set(Math.sign(localVector4.x), 0, 0);
+        } else if (Math.abs(localVector4.y) > Math.abs(localVector4.x) && Math.abs(localVector4.y) > Math.abs(localVector4.z)) {
+          localVector4.set(0, Math.sign(localVector4.y), 0);
+        } else {
+          localVector4.set(0, 0, Math.sign(localVector4.z));
+        }
+        buildMesh.quaternion.setFromRotationMatrix(localMatrix2.lookAt(
+          localVector2.set(0, 0, 0),
+          localVector4,
+          localVector3
+        ));
+
+        const hasBuildMesh = (() => {
+          for (const index in currentChunkMesh.vegetationMeshes) {
+            const subparcelBuildMeshesSpec = currentChunkMesh.vegetationMeshes[index];
+            if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
+              return true;
+            }
+          }
+          return false;
+        })();
+        if (!hasBuildMesh) {
+          buildMesh.traverse(o => {
+            if (o.isMesh && o.originalMaterial) {
+              o.material = o.originalMaterial;
+              o.originalMaterial = null;
+            }
+          });
+        } else {
+          buildMesh.traverse(o => {
+            if (o.isMesh && !o.originalMaterial) {
+              o.originalMaterial = o.material;
+              o.material = redBuildMeshMaterial;
+            }
+          });
+        }
+
+        currentChunkMesh.add(buildMesh);
+      }
+    }
+    if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
+      if (!buildMode) {
+        const _applyLightfieldDelta = async (position, delta) => {
+          localVector2.copy(position)
+            .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+          localVector2.x = Math.floor(localVector2.x);
+          localVector2.y = Math.floor(localVector2.y);
+          localVector2.z = Math.floor(localVector2.z);
+
+          const mineSpecs = _applyMineSpec(localVector2, delta, 'lightfield', SUBPARCEL_SIZE_P1, planet.getFieldIndex, delta);
+          await _mine(mineSpecs, null);
+        };
+        const _hit = () => {
+          if (raycastChunkSpec) {
+            if (raycastChunkSpec.objectId === 0) {
+              localVector2.copy(raycastChunkSpec.point)
+                .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+
+              geometryWorker.requestMine(tracker, localVector2, -0.3);
+            } else {
+              currentVegetationMesh.hitTracker.hit(raycastChunkSpec.objectId, raycastChunkSpec.objectPosition, raycastChunkSpec.objectQuaternion, 30);
+            }
+          }
+        };
+        const _light = () => {
+          if (raycastChunkSpec) {
+            localVector2.copy(raycastChunkSpec.point)
+              .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+
+            geometryWorker.requestLight(tracker, localVector2, 4);
+
+            /* if (raycastChunkSpec.mesh.isChunkMesh || raycastChunkSpec.mesh.isVegetationMesh) {
+              _applyLightfieldDelta(raycastChunkSpec.point, 4);
+
+              localVector2.copy(raycastChunkSpec.point)
+                .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+              localVector2.x = Math.floor(localVector2.x / SUBPARCEL_SIZE);
+              localVector2.y = Math.floor(localVector2.y / SUBPARCEL_SIZE);
+              localVector2.z = Math.floor(localVector2.z / SUBPARCEL_SIZE);
+              currentChunkMesh.updateSlab(localVector2.x, localVector2.y, localVector2.z);
+            } */
+          }
+        };
+        const _explode = (position, quaternion) => {
+          const explosionMesh = _makeExplosionMesh();
+          explosionMesh.position.copy(position);
+          explosionMesh.quaternion.copy(quaternion);
+          scene.add(explosionMesh);
+          explosionMeshes.push(explosionMesh);
+        };
+        const _damage = dmg => {
+          hpMesh.damage(dmg);
+        };
+        switch (selectedWeapon) {
+          case 'rifle': {
+            _hit();
+            localVector2.copy(assaultRifleMesh.position)
+              .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(assaultRifleMesh.quaternion));
+            _explode(localVector2, assaultRifleMesh.quaternion);
+            crosshairMesh.trigger();
+            break;
+          }
+          case 'grenade': {
+            if (currentChunkMesh) {
+              const pxMesh = grenadeMesh.clone();
+
+              localVector2.copy(grenadeMesh.position)
+                .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
+              localQuaternion2.copy(grenadeMesh.quaternion)
+                .premultiply(currentChunkMesh.getWorldQuaternion(localQuaternion3).inverse());
+              pxMesh.position.copy(localVector2)
+              pxMesh.velocity = new THREE.Vector3(0, 0, -10)
+                .applyQuaternion(localQuaternion2);
+              pxMesh.angularVelocity = new THREE.Vector3((-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01, (-1+Math.random()*2)*Math.PI*2*0.01);
+              pxMesh.isBuildMesh = true;
+              const startTime = Date.now();
+              const endTime = startTime + 3000;
+              pxMesh.update = () => {
+                if (Date.now() < endTime) {
+                  return true;
+                } else {
+                  pxMesh.getWorldPosition(localVector2);
+                  pxMesh.getWorldQuaternion(localQuaternion2);
+                  _explode(localVector2, localQuaternion2);
+                  _damage(15);
+                  return false;
+                }
+              };
+              currentChunkMesh.add(pxMesh);
+              pxMeshes.push(pxMesh);
+            }
+            break;
+          }
+          case 'build': {
+            if (addMesh.visible) {
+              _applyPotentialDelta(addMesh.position, 0.3);
+            }
+            break;
+          }
+          case 'pickaxe': {
+            _hit();
+            break;
+          }
+          case 'light': {
+            _light();
+          }
+        }
+      } else {
+        const buildMesh = (() => {
+          switch (buildMode) {
+            case 'wall': return wallMesh;
+            case 'floor': return platformMesh;
+            case 'stair': return stairsMesh;
+            default: return null;
+          }
+        })();
+        const hasBuildMesh = (() => {
+          for (const index in currentChunkMesh.vegetationMeshes) {
+            const subparcelBuildMeshesSpec = currentChunkMesh.vegetationMeshes[index];
+            if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
+              return true;
+            }
+          }
+          return false;
+        })();
+        if (!hasBuildMesh) {
+          geometryWorker.requestAddObject(tracker, geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
+        }
+      }
+    }
+    // mesh drawer
+    if (currentWeaponDown && currentChunkMesh) {
+      if (!buildMode) {
+        switch (selectedWeapon) {
+          case 'pencil': {
+            if (document.pointerLockElement) {
+              localVector2.copy(pencilMesh.position)
+                .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
+            } else {
+              localVector2.copy(raycaster.ray.origin)
+                .add(localVector3.copy(raycaster.ray.direction).multiplyScalar(0.5));
+            }
+            localVector2.applyMatrix4(localMatrix2.getInverse(meshDrawer.mesh.parent.matrixWorld));
+
+            if (!lastWeaponDown) {
+              meshDrawer.start(localVector2);
+            }
+            meshDrawer.update(localVector2);
+            break;
+          }
+          case 'paintbrush': {
+            console.log('click paintbrush 1');
+
+            if (raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
+              const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
+              if (index !== -1) {
+                const thingSource = meshDrawer.thingSources[index];
+                const thingMesh = meshDrawer.thingMeshes[index];
+
+                const {point, faceIndex} = raycastChunkSpec;
+                const {geometryData: {positions, uvs, indices}} = thingSource;
+                const ai = indices[faceIndex*3];
+                const bi = indices[faceIndex*3+1];
+                const ci = indices[faceIndex*3+2];
+                const tri = new THREE.Triangle(
+                  new THREE.Vector3().fromArray(positions, ai*3).applyMatrix4(thingSource.matrixWorld),
+                  new THREE.Vector3().fromArray(positions, bi*3).applyMatrix4(thingSource.matrixWorld),
+                  new THREE.Vector3().fromArray(positions, ci*3).applyMatrix4(thingSource.matrixWorld)
+                );
+                const uva = new THREE.Vector2().fromArray(uvs, ai*3);
+                const uvb = new THREE.Vector2().fromArray(uvs, bi*3);
+                const uvc = new THREE.Vector2().fromArray(uvs, ci*3);
+                const uv = THREE.Triangle.getUV(point, tri.a, tri.b, tri.c, uva, uvb, uvc, new THREE.Vector2());
+                // console.log('painting', currentChunkMesh, raycastChunkSpec, thingSource, tri, point.toArray(), uv.toArray());
+                const f = 10;
+                const canvas = thingMesh.material.uniforms.tex.value.image;
+                canvas.ctx.fillStyle = '#000';
+                canvas.ctx.fillRect(uv.x * canvas.width - f/2, (1-uv.y) * canvas.height - f/2, f, f);
+                thingMesh.material.uniforms.tex.value.needsUpdate = true;
+              }
+            }
+            break;
+          }
+          case 'physics': {
+            console.log('click physics 1');
+            break;
+          }
+        }
+      }
+    }
+    if (lastWeaponDown && !currentWeaponDown && currentChunkMesh) {
+      if (!buildMode) {
+        switch (selectedWeapon) {
+          case 'pencil': {
+            if (document.pointerLockElement) {
+              localVector2.copy(pencilMesh.position)
+                .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
+            } else {
+              localVector2.copy(raycaster.ray.origin)
+                .add(localVector3.copy(raycaster.ray.direction).multiplyScalar(0.5));
+            }
+            localVector2.applyMatrix4(localMatrix2.getInverse(meshDrawer.mesh.parent.matrixWorld));
+
+            meshDrawer.end(localVector2);
+            break;
+          }
+          case 'paintbrush': {
+            console.log('click paintbrush 2');
+            break;
+          }
+          case 'physics': {
+            console.log('click physics 2');
+            break;
+          }
+        }
+      }
+    }
+    if (!buildMode) {
+      switch (selectedWeapon) {
+        case 'select': {
+          for (const thingMesh of meshDrawer.thingMeshes) {
+            thingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
+            thingMesh.material.uniforms.needsUpdate = true;
+          }
+          if (raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
+            const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
+            if (index !== -1) {
+              const thingMesh = meshDrawer.thingMeshes[index];
+              thingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
+              thingMesh.material.uniforms.uSelectColor.needsUpdate = true;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    /* const currentParcel = _getCurrentParcel(localVector);
+    if (!currentParcel.equals(lastParcel)) {
+      if (currentParcel.x !== lastParcel.x) {
+        currentParcel.z = lastParcel.z;
+      } else if (currentParcel.z !== lastParcel.z) {
+        currentParcel.x = lastParcel.x;
+      }
+      planetAnimation && _tickPlanetAnimation(1);
+      const sub = lastParcel.clone().sub(currentParcel);
+      const pivot = currentParcel.clone().add(lastParcel).multiplyScalar(10/2);
+      _animatePlanet(planetContainer.matrix.clone(), pivot, new THREE.Quaternion(), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), sub));
+      lastParcel = currentParcel;
+    } */
+
+    const _teleportTo = (position, quaternion) => {
+      localMatrix.fromArray(pose.transform.matrix)
+        .decompose(localVector2, localQuaternion2, localVector3);
+
+      worldContainer.matrix
+        .premultiply(localMatrix.makeTranslation(-position.x, -position.y, -position.z))
+        .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+        .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+        .premultiply(localMatrix.makeTranslation(0, -_getMinHeight(), 0))
+        .decompose(worldContainer.position, worldContainer.quaternion, worldContainer.scale);
+
+      velocity.set(0, 0, 0);
+    };
+
+    const currentTeleportChunkMesh = raycastChunkSpec && raycastChunkSpec.mesh;
+    if (currentTeleport && currentTeleportChunkMesh) {
+      if (raycastChunkSpec.point) {
+        teleportMeshes[1].position.copy(raycastChunkSpec.point);
+        teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), raycastChunkSpec.normal);
+        teleportMeshes[1].visible = true;
+        teleportMeshes[1].lineMesh.visible = false;
+      }
+    } else if (lastTeleport && !currentTeleport && currentTeleportChunkMesh) {
+      teleportMeshes[1].visible = false;
+      _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
+      if (currentTeleportChunkMesh.isChunkMesh) {
+        currentChunkMesh = currentTeleportChunkMesh;
+      }
+    } else {
+      teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, (position, quaternion) => {
+        _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
+      });
+    }
+  };
+  _updateTools();
+
+  const _updateHands = () => {
+    const session = renderer.xr.getSession();
+    if (session) {
+      const inputSource = session.inputSources[1];
+      let pose;
+      const referenceSpace = renderer.xr.getReferenceSpace();
+      if (inputSource && (pose = frame.getPose(inputSource.targetRaySpace, referenceSpace))) {
+        for (const handMesh of handMeshes) {
+          handMesh.visible = false;
+        }
+        for (const inputSource of session.inputSources) {
+          if (inputSource && inputSource.hand) {
+            const handMesh = handMeshes[inputSource.handedness === 'right' ? 1 : 0];
+            const positionAttribute = handMesh.geometry.attributes.position;
+
+            for (let i = 0; i < inputSource.hand.length; i++) {
+              const joint = inputSource.hand[i];
+              const dstPositions = new Float32Array(positionAttribute.array.buffer, positionAttribute.array.byteOffset + i*jointNumPositions*Float32Array.BYTES_PER_ELEMENT, jointNumPositions);
+
+              const jointPose = joint && frame.getJointPose(joint, referenceSpace);
+              if (jointPose) {
+                jointGeometry.attributes.position.array.set(jointPositions);
+                jointGeometry.applyMatrix4(
+                  localMatrix.fromArray(jointPose.transform.matrix)
+                );
+                dstPositions.set(jointGeometry.attributes.position.array);
+              } else {
+                dstPositions.fill(0);
+              }
+            }
+            positionAttribute.needsUpdate = true;
+            handMesh.visible = true;
+          }
+        }
+      }
+    }
+  };
+  _updateHands();
+
+  /* if (planetAnimation) {
+    const {startTime, endTime} = planetAnimation;
+    const now = Date.now();
+    const factor = Math.min((now - startTime) / (endTime - startTime), 1);
+    _tickPlanetAnimation(factor);
+  } */
+
+  /* if (session) {
+    wristMenu.update(frame, session, renderer.xr.getReferenceSpace());
+  } */
+
+  if (geometryWorker) {
+    pxMeshes = pxMeshes.filter(pxMesh => {
+      if (pxMesh.update()) {
+        if (!pxMesh.velocity.equals(zeroVector)) {
+          localMatrix.copy(pxMesh.matrixWorld)
+            .decompose(localVector, localQuaternion, localVector2);
+          const collision = geometryWorker.collide(tracker, 0.2, 0, localVector, localQuaternion2.set(0, 0, 0, 1), 1);
+
+          if (collision) {
+            localVector3.fromArray(collision.direction)
+              .applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse());
+            pxMesh.position.add(localVector3);
+            pxMesh.velocity.copy(zeroVector);
+            // pxMesh.angularVelocity.copy(zeroVector);
+          } else {
+            _applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
+            pxMesh.velocity.add(localVector.set(0, -9.8*timeDiff, 0).applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse()));
+            pxMesh.rotation.x += pxMesh.angularVelocity.x;
+            pxMesh.rotation.y += pxMesh.angularVelocity.y;
+            pxMesh.rotation.z += pxMesh.angularVelocity.z;
+          }
+        }
+        return true;
+      } else {
+        pxMesh.parent.remove(pxMesh);
+        return false;
+      }
+    });
+  }
+  lastTeleport = currentTeleport;
+  lastWeaponDown = currentWeaponDown;
 
   geometryWorker && geometryWorker.update();
 
