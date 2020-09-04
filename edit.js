@@ -2929,6 +2929,11 @@ const MeshDrawer = (() => {
           value: new THREE.Texture(),
           needsUpdate: false,
         },
+        uSelectColor: {
+          type: 'c',
+          value: new THREE.Color(0xFFFFFF),
+          needsUpdate: true,
+        },
       },
       vertexShader: `\
         precision highp float;
@@ -2962,6 +2967,7 @@ const MeshDrawer = (() => {
 
         uniform sampler2D tex;
         uniform sampler2D indexTex;
+        uniform vec3 uSelectColor;
 
         varying vec3 vUv;
         varying vec3 vBarycentric;
@@ -2974,7 +2980,8 @@ const MeshDrawer = (() => {
 
         void main() {
           vec3 c = texture2D(tex, vUv.xy).rgb;
-          c *= vec3(vUv.x, 0., vUv.y);
+          // c *= vec3(vUv.x, 0., vUv.y);
+          c.rgb *= uSelectColor;
           if (edgeFactor() <= 0.99) {
             c += 0.5;
           }
@@ -5292,6 +5299,9 @@ function animate(timestamp, frame) {
           case 'paintbrush': {
             return paintBrushMesh;
           }
+          case 'select': {
+            return pencilMesh;
+          }
           case 'physics': {
             return pencilMesh;
           }
@@ -5666,6 +5676,25 @@ function animate(timestamp, frame) {
               console.log('click physics 2');
               break;
             }
+          }
+        }
+      }
+      if (!buildMode) {
+        switch (selectedWeapon) {
+          case 'select': {
+            for (const thingMesh of meshDrawer.thingMeshes) {
+              thingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
+              thingMesh.material.uniforms.needsUpdate = true;
+            }
+            if (raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
+              const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
+              if (index !== -1) {
+                const thingMesh = meshDrawer.thingMeshes[index];
+                thingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
+                thingMesh.material.uniforms.uSelectColor.needsUpdate = true;
+              }
+            }
+            break;
           }
         }
       }
