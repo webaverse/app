@@ -4588,6 +4588,7 @@ const _applyAvatarPhysics = (avatarOffset, cameraBasedOffset, velocityAvatarDire
 
   _collideItems(localMatrix);
   _collideChunk(localMatrix);
+  camera.updateMatrixWorld();
 };
 const _collideCapsule = (() => {
   const localVector = new THREE.Vector3();
