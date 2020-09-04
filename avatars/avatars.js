@@ -1,6 +1,6 @@
 import THREE from '../three.module.js';
 import './vrarmik/three-vrm.js';
-import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
+import {BufferGeometryUtils} from '../BufferGeometryUtils.js';
 import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
 import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';

@@ -1,5 +1,5 @@
-import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-import {scene} from './run.js';
+import * as THREE from './three.module.js';
+// import {scene} from './run.js';
 import {TextMesh} from './textmesh-standalone.esm.js'
 import easing from './easing.js';
 
@@ -704,7 +704,7 @@ const makeUiMesh = (label, tiles, onclick) => {
 
   return mesh;
 };
-const makeUiFullMesh = () => {
+const makeUiFullMesh = scene => {
   const meshSpecs = [
     [
       'inventory',
