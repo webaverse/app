@@ -1388,7 +1388,6 @@ const geometryWorker = (() => {
   w.makeTracker = function() {
     return moduleInstance._makeTracker.apply(moduleInstance, arguments);
   };
-  // w.makeCuller = () => moduleInstance._makeCuller();
   w.requestBakeGeometry = (positions, indices) => new Promise((accept, reject) => {
     callStack.allocRequest(METHODS.bakeGeometry, 5, false, offset => {
       callStack.u32[offset] = positions.byteOffset;
@@ -1568,7 +1567,7 @@ const geometryWorker = (() => {
       grounded: !!scratchStack.u32[18],
     } : null;
   };
-  w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => {
+  /* w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => {
     scratchStack.u8.set(peeksData, 0);
     for (let i = 0; i < groupsData.length; i++) {
       const groupData = groupsData[i];
@@ -1622,7 +1621,7 @@ const geometryWorker = (() => {
       };
     }
     return cullResults;
-  };
+  }; */
   w.tickCull = (tracker, position, matrix) => {
     position.toArray(scratchStack.f32, 0);
     matrix.toArray(scratchStack.f32, 3);
@@ -1798,7 +1797,6 @@ const geometryWorker = (() => {
       callStack.u32[offset + 5] = objectId;
     }, offset => {
       const numSubparcels = callStack.ou32[offset++];
-      // console.log('num subparcels add', numSubparcels);
       for (let i = 0; i < numSubparcels; i++) {
         const positionsFreeEntry = callStack.ou32[offset++];
         const uvsFreeEntry = callStack.ou32[offset++];
@@ -2090,8 +2088,6 @@ const geometryWorker = (() => {
       scale.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 7*Float32Array.BYTES_PER_ELEMENT)/Float32Array.BYTES_PER_ELEMENT);
     }, offset => {
       const numSubparcels = callStack.ou32[offset++];
-      // console.log('got callback', offset, numSubparcels);
-      // console.log('num subparcels add', numSubparcels);
       for (let i = 0; i < numSubparcels; i++) {
         const positionsFreeEntry = callStack.ou32[offset++];
         const uvsFreeEntry = callStack.ou32[offset++];
@@ -3112,8 +3108,6 @@ const MeshDrawer = (() => {
       thingMesh.setTexture(thingSource);
       chunkMeshContainer.add(thingMesh);
       this.thingMeshes.push(thingMesh);
-      // chunkMeshContainer.updateMatrixWorld();
-      // thingSource.matrixWorld = thingMesh.matrixWorld.clone();
 
       /* (() => {
         let index = 0;
