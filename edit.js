@@ -2609,45 +2609,6 @@ const geometryWorker = (() => {
     const _getSlabTorchLightOffset = spec => spec.torchLightsStart/Uint8Array.BYTES_PER_ELEMENT;
     const _getSlabIndexOffset = spec => spec.indicesStart/Uint32Array.BYTES_PER_ELEMENT;
 
-    mesh.addSlab = (x, y, z, spec) => {
-      const index = planet.getSubparcelIndex(x, y, z);
-      let slab = slabs[index];
-      if (slab) {
-        slab.free();
-        slab.spec = spec;
-        slab.group.start = _getSlabIndexOffset(spec);
-        slab.group.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
-      } else {
-        const group = {
-          start: _getSlabIndexOffset(spec),
-          count: spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT,
-          materialIndex: 0,
-          boundingSphere: new THREE.Sphere(
-            new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2),
-            slabRadius
-          ),
-        };
-        geometry.groups.push(group);
-        slab = slabs[index] = {
-          x,
-          y,
-          z,
-          index,
-          spec,
-          group,
-          free() {
-            allocators.positions.free(this.spec.positionsFreeEntry);
-            allocators.uvs.free(this.spec.uvsFreeEntry);
-            allocators.ids.free(this.spec.idsFreeEntry);
-            allocators.skyLights.free(this.spec.skyLightsFreeEntry);
-            allocators.torchLights.free(this.spec.torchLightsFreeEntry);
-            allocators.indices.free(this.spec.indicesFreeEntry);
-            this.spec = null;
-          },
-        };
-      }
-      return slab;
-    };
     mesh.updateGeometry = (/*slab,*/ spec) => {
       geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
       geometry.attributes.position.needsUpdate = true;
@@ -3592,12 +3553,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   mesh.vegetationMeshes = {};
   mesh.objects = [];
 
-  const slabs = {};
-  const _makeGroup = materialIndex => ({
-    start: 0,
-    count: 0,
-    materialIndex,
-  });
   const _getSlabPositionOffset = spec => spec.positionsStart/Float32Array.BYTES_PER_ELEMENT;
   const _getSlabNormalOffset = spec => spec.normalsStart/Float32Array.BYTES_PER_ELEMENT;
   const _getSlabUvOffset = spec => spec.uvsStart/Float32Array.BYTES_PER_ELEMENT;
@@ -3606,41 +3561,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const _getSlabSkyLightOffset = spec => spec.skyLightsStart/Uint8Array.BYTES_PER_ELEMENT;
   const _getSlabTorchLightOffset = spec => spec.torchLightsStart/Uint8Array.BYTES_PER_ELEMENT;
 
-  mesh.addSlab = (x, y, z, spec) => {
-    const index = planet.getSubparcelIndex(x, y, z);
-    let slab = slabs[index];
-    if (slab) {
-      slab.free();
-      slab.spec = spec;
-    } else {
-      slab = slabs[index] = {
-        x,
-        y,
-        z,
-        index,
-        spec,
-        groupSet: {
-          groups: [_makeGroup(0), _makeGroup(1)],
-          boundingSphere: new THREE.Sphere(new THREE.Vector3(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2), slabRadius),
-          slab: this,
-        },
-        physxGeometry: 0,
-        physxGroupSet: 0,
-        free() {
-          allocators.positions.free(this.spec.positionsFreeEntry);
-          allocators.normals.free(this.spec.normalsFreeEntry);
-          allocators.uvs.free(this.spec.uvsFreeEntry);
-          allocators.aos.free(this.spec.aosFreeEntry);
-          allocators.ids.free(this.spec.idsFreeEntry);
-          allocators.skyLights.free(this.spec.skyLightsFreeEntry);
-          allocators.torchLights.free(this.spec.torchLightsFreeEntry);
-          allocators.peeks.free(this.spec.peeksFreeEntry);
-          this.spec = null;
-        },
-      };
-    }
-    return slab;
-  };
   mesh.updateGeometry = spec => {
     geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
     geometry.attributes.position.needsUpdate = true;
