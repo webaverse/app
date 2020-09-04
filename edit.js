@@ -5,9 +5,6 @@ import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUt
 import {GLTFLoader} from './GLTFLoader.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
-// import CapsuleGeometry from './CapsuleGeometry.js';
-// import address from 'https://contracts.webaverse.com/address.js';
-// import abi from 'https://contracts.webaverse.com/abi.js';
 import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import {downloadFile, readFile, bindUploadFileButton} from 'https://static.xrpackage.org/xrpackage/util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
@@ -25,12 +22,6 @@ import {
 
   numSlices,
   slabRadius,
-
-  /* slabTotalSize,
-  slabNumAttributes,
-  slabAttributeSize,
-  slabSliceTris,
-  slabSliceVertices, */
 
   chunkDistance,
   BUILD_SNAP,
