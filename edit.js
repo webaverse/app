@@ -111,15 +111,15 @@ const _changeAvatar = async avatarHash => {
   }
 }); */
 
-/* const canvas = document.createElement('canvas');
-const context = canvas.getContext('webgl', {
+const canvas = document.getElementById('canvas');
+const context = canvas.getContext('webgl2', {
   antialias: true,
   alpha: true,
   preserveDrawingBuffer: false,
-}); */
-const canvas = document.getElementById('canvas');
+});
 const renderer = new THREE.WebGLRenderer({
   canvas,
+  context,
   antialias: true,
   alpha: true,
   // preserveDrawingBuffer: true,
@@ -176,6 +176,14 @@ window.addEventListener('upload', async e => {
     p.wearAvatar();
   } */
 });
+
+let rig = new Avatar(null, {
+  fingers: true,
+  hair: true,
+  visemes: true,
+  debug: true,
+});
+scene.add(rig.model);
 
 const rigMatrix = new THREE.Matrix4();
 let rigMatrixEnabled = false;
@@ -417,7 +425,7 @@ const _makeHeightfieldShader = land => ({
     `}
     varying vec2 vWorldUv;
 
-    float transpose(float m) {
+    /* float transpose(float m) {
       return m;
     }
     mat2 transpose(mat2 m) {
@@ -434,7 +442,7 @@ const _makeHeightfieldShader = land => ({
                   m[0][1], m[1][1], m[2][1], m[3][1],
                   m[0][2], m[1][2], m[2][2], m[3][2],
                   m[0][3], m[1][3], m[2][3], m[3][3]);
-    }
+    } */
 
     void main() {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
@@ -622,7 +630,7 @@ const _makeHeightfieldShader = land => ({
       if (uv.y < 0.5) {
         uv.y += 1.;
       } */
-      return texture2DLod(tex, tileOffset + uv * tileSize, 0.).r;
+      return texture2D(tex, tileOffset + uv * tileSize).r;
     }
 
 ${land ? '' : `\
@@ -4494,9 +4502,9 @@ let pxMeshes = [];
 const _applyAvatarPhysics = (avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
   const oldVelocity = localVector3.copy(velocity);
 
-  _applyVelocity(pe.camera.position, velocity, timeDiff);
-  pe.camera.updateMatrixWorld();
-  pe.camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+  _applyVelocity(camera.position, velocity, timeDiff);
+  camera.updateMatrixWorld();
+  camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
   if (avatarOffset) {
     localVector4.copy(avatarOffset);
   } else {
@@ -4513,7 +4521,7 @@ const _applyAvatarPhysics = (avatarOffset, cameraBasedOffset, velocityAvatarDire
 
   if (collision) {
     localVector4.fromArray(collision.direction);
-    pe.camera.position.add(localVector4);
+    camera.position.add(localVector4);
     localVector.add(localVector4);
     if (collision.grounded) {
       velocity.y = 0;
@@ -4526,13 +4534,13 @@ const _applyAvatarPhysics = (avatarOffset, cameraBasedOffset, velocityAvatarDire
   }
   localMatrix.compose(localVector, localQuaternion, localVector2);
 
-  pe.setRigMatrix(updateRig ? localMatrix : null);
+  _setRigMatrix(updateRig ? localMatrix : null);
 
-  if (pe.rig) {
+  if (rig) {
     if (jumpState) {
-      pe.rig.setFloorHeight(-0xFFFFFF);
+      rig.setFloorHeight(-0xFFFFFF);
     } else {
-      pe.rig.setFloorHeight(localVector.y - _getAvatarHeight());
+      rig.setFloorHeight(localVector.y - _getAvatarHeight());
     }
   }
 
@@ -5253,7 +5261,7 @@ function animate(timestamp, frame) {
       }
     }
 
-    pe.setRigMatrix(null);
+    _setRigMatrix(null);
   } else if (document.pointerLockElement) {
     const speed = 30 * (keys.shift ? 3 : 1);
     const cameraEuler = pe.camera.rotation.clone();
@@ -5296,31 +5304,17 @@ function animate(timestamp, frame) {
     } else {
       _collideItems(pe.camera.matrix);
       _collideChunk(pe.camera.matrix);
-      pe.setRigMatrix(null);
+      _setRigMatrix(null);
     }
   } else {
     _collideItems(camera.matrix);
     _collideChunk(camera.matrix);
-    pe.setRigMatrix(null);
+    _setRigMatrix(null);
   }
 
   /* if (session) {
     wristMenu.update(frame, session, renderer.xr.getReferenceSpace());
   } */
-
-  // packages
-  const isVisible = shieldLevel === 2;
-  const isTarget = shieldLevel === 0 /*&& selectedTool !== 'select'*/;
-  const isVolume = shieldLevel === 1 /*|| selectedTool === 'select'*/;
-  for (const p of pe.children) {
-    p.visible = isVisible;
-    if (p.placeholderBox) {
-      p.placeholderBox.visible = isTarget;
-    }
-    if (p.volumeMesh) {
-      p.volumeMesh.visible = isVolume;
-    }
-  }
 
   if (geometryWorker) {
     pxMeshes = pxMeshes.filter(pxMesh => {
@@ -5357,9 +5351,9 @@ function animate(timestamp, frame) {
 
   geometryWorker && geometryWorker.update();
 
-  localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, worldContainer.matrixWorld))
+  localMatrix.multiplyMatrices(camera.projectionMatrix, localMatrix2.multiplyMatrices(camera.matrixWorldInverse, worldContainer.matrixWorld))
   if (currentChunkMesh && currentVegetationMesh) {
-    localMatrix3.copy(pe.camera.matrixWorld)
+    localMatrix3.copy(camera.matrixWorld)
       .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
       .decompose(localVector, localQuaternion, localVector2);
 
@@ -5379,17 +5373,16 @@ function animate(timestamp, frame) {
 renderer.setAnimationLoop(animate);
 // renderer.xr.setSession(proxySession);
 
-bindUploadFileButton(document.getElementById('import-scene-input'), async file => {
+/* bindUploadFileButton(document.getElementById('import-scene-input'), async file => {
   const uint8Array = await readFile(file);
   await pe.importScene(uint8Array);
-});
+}); */
 
 let selectedTool = 'camera';
-const _getFullAvatarHeight = () => pe.rig ? pe.rig.height : 1;
+const _getFullAvatarHeight = () => rig ? rig.height : 1;
 const _getAvatarHeight = () => _getFullAvatarHeight() * 0.9;
 const _getMinHeight = () => {
-  const {rig, rigPackage} = pe;
-  if (rig || rigPackage) {
+  if (rig) {
     const avatarHeight = rig ? _getAvatarHeight() : 1;
     const floorHeight = 0;
     const minHeight = floorHeight + avatarHeight;
@@ -5414,8 +5407,8 @@ for (let i = 0; i < tools.length; i++) {
     selectedTool = tool.getAttribute('tool');
 
     if (selectedTool !== oldSelectedTool) {
-      hoverTarget = null;
-      _setSelectTarget(null);
+      // hoverTarget = null;
+      // _setSelectTarget(null);
 
       switch (oldSelectedTool) {
         case 'thirdperson': {
@@ -5826,7 +5819,7 @@ const _ensureLoadMesh = p => {
 const raycaster = new THREE.Raycaster();
 const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
-  raycaster.setFromCamera(mouse, pe.camera);
+  raycaster.setFromCamera(mouse, camera);
   /* const candidateMeshes = pe.children
     .map(p => p.volumeMesh)
     .filter(o => !!o); */
@@ -5952,7 +5945,7 @@ micButton.addEventListener('click', async e => {
     pe.setMicrophoneMediaStream(null);
   }
 });
-for (let i = 0; i < tabs.length; i++) {
+/* for (let i = 0; i < tabs.length; i++) {
   const tab = tabs[i];
   const tabContent = tabContents[i];
   tab.addEventListener('click', e => {
@@ -5968,7 +5961,7 @@ for (let i = 0; i < tabs.length; i++) {
 
     _setSelectTarget(null);
   });
-}
+} */
 [packagesCloseButton, inventoryCloseButton, avatarCloseButton].forEach(closeButton => {
   closeButton.addEventListener('click', e => {
     dropdownButton.classList.remove('open');
