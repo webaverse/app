@@ -2728,7 +2728,6 @@ const geometryWorker = (() => {
     geometry.setAttribute('skyLight', thingBufferAttributes.skyLight);
     geometry.setAttribute('torchLight', thingBufferAttributes.torchLight);
     geometry.setIndex(thingBufferAttributes.index);
-    // geometry.allocators = allocators;
 
     const _getSlabPositionOffset = spec => spec.positionsStart/Float32Array.BYTES_PER_ELEMENT;
     const _getSlabUvOffset = spec => spec.uvsStart/Float32Array.BYTES_PER_ELEMENT;
