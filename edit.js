@@ -5581,18 +5581,18 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
   // textures = Array.from(textures.keys());
   const rects = [];
 
-  const size = 4096;
+  const size = 512;
   let atlasCanvas;
   let atlas;
   {
-    let scale = 1;
-    for (;;) {
+    for (let scale = 1; scale > 0; scale *= 0.5) {
       atlasCanvas = document.createElement('canvas');
       atlasCanvas.width = size;
       atlasCanvas.height = size;
       atlas = atlaspack(atlasCanvas);
       rects.length = 0;
 
+      let fit = true;
       for (let i = 0; i < textures.length ; i++) {
         const texture = textures[i];
         const {image} = texture;
@@ -5609,11 +5609,13 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
         if (rect) {
           rects.push(rect.rect);
         } else {
-          scale /= 2;
-          continue;
+          fit = false;
+          break;
         }
       }
-      break;
+      if (fit) {
+        break;
+      }
     }
   }
 
