@@ -3625,89 +3625,14 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   mesh.objects = [];
 
   const slabs = {};
-  /* let freeList = [{
-    start: 0,
-    count: numSlices,
-  }]; */
   const _makeGroup = materialIndex => ({
     start: 0,
     count: 0,
     materialIndex,
   });
-  /* class Slab {
-    constructor(start) {
-      this.x = 0;
-      this.y = 0;
-      this.z = 0;
-      this.index = 0;
-      this.start = start;
-      this.position = new Float32Array(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset + start*numLocalPositions*Float32Array.BYTES_PER_ELEMENT, numLocalPositions);
-      this.normal = new Float32Array(geometry.attributes.normal.array.buffer, geometry.attributes.normal.array.byteOffset + start*numLocalNormals*Float32Array.BYTES_PER_ELEMENT, numLocalNormals);
-      this.uv = new Float32Array(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset + start*numLocalUvs*Float32Array.BYTES_PER_ELEMENT, numLocalUvs);
-      this.barycentric = new Float32Array(geometry.attributes.barycentric.array.buffer, geometry.attributes.barycentric.array.byteOffset + start*numLocalBarycentrics*Float32Array.BYTES_PER_ELEMENT, numLocalBarycentrics);
-      this.ao = new Uint8Array(geometry.attributes.ao.array.buffer, geometry.attributes.ao.array.byteOffset + start*numLocalAos*Uint8Array.BYTES_PER_ELEMENT, numLocalAos);
-      this.id = new Float32Array(geometry.attributes.id.array.buffer, geometry.attributes.id.array.byteOffset + start*numLocalIds*Float32Array.BYTES_PER_ELEMENT, numLocalIds);
-      this.skyLight = new Uint8Array(geometry.attributes.skyLight.array.buffer, geometry.attributes.skyLight.array.byteOffset + start*numLocalSkylights*Uint8Array.BYTES_PER_ELEMENT, numLocalSkylights);
-      this.torchLight = new Uint8Array(geometry.attributes.torchLight.array.buffer, geometry.attributes.torchLight.array.byteOffset + start*numLocalTorchlights*Uint8Array.BYTES_PER_ELEMENT, numLocalTorchlights);
-      this.peeks = new Uint8Array(peeks.buffer, peeks.byteOffset + start*numLocalPeeks*Uint8Array.BYTES_PER_ELEMENT, numLocalPeeks);
-      this.groupSet = {
-        groups: [_makeGroup(0), _makeGroup(1)],
-        boundingSphere: new THREE.Sphere(new THREE.Vector3(0, 0, 0), slabRadius),
-        slab: this,
-      };
-      this.physxGeometry = 0;
-      this.physxGroupSet = 0;
-    }
-    setPosition(x, y, z, index) {
-      this.x = x;
-      this.y = y;
-      this.z = z;
-      this.index = index;
-      this.groupSet.boundingSphere.center.set(x*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, y*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2, z*SUBPARCEL_SIZE + SUBPARCEL_SIZE/2);
-    }
-  } */
-  /* const _findFreeSlab = () => {
-    if (freeList.length > 0) {
-      const entry = freeList[0];
-      if (entry.count > 1) {
-        freeList.splice(0, 1, {
-          start: entry.start + 1,
-          count: entry.count - 1,
-        });
-      } else {
-        freeList.shift();
-      }
-      return new Slab(entry.start);
-    } else {
-      throw new Error('could not allocate slab');
-    }
-  };
-  const _updateFreeList = () => {
-    freeList.sort((a, b) => a.start - b.start);
-    let merged = false;
-    for (let i = 0; i < freeList.length-1; i++) {
-      const entry = freeList[i];
-      if (entry) {
-        for (let j = i+1; j < freeList.length; j++) {
-          const nextEntry = freeList[j];
-          if (nextEntry) {
-            if (entry.start + entry.count === nextEntry.start) {
-              entry.count += nextEntry.count;
-              freeList[j] = null;
-              merged = true;
-            }
-          }
-        }
-      }
-    }
-    if (merged) {
-      freeList = freeList.filter(entry => !!entry);
-    }
-  }; */
   const _getSlabPositionOffset = spec => spec.positionsStart/Float32Array.BYTES_PER_ELEMENT;
   const _getSlabNormalOffset = spec => spec.normalsStart/Float32Array.BYTES_PER_ELEMENT;
   const _getSlabUvOffset = spec => spec.uvsStart/Float32Array.BYTES_PER_ELEMENT;
-  // const _getSlabBarycentricOffset = spec => spec.barycentricsStart/Float32Array.BYTES_PER_ELEMENT;
   const _getSlabAoOffset = spec => spec.aosStart/Uint8Array.BYTES_PER_ELEMENT;
   const _getSlabIdOffset = spec => spec.idsStart/Float32Array.BYTES_PER_ELEMENT;
   const _getSlabSkyLightOffset = spec => spec.skyLightsStart/Uint8Array.BYTES_PER_ELEMENT;
@@ -3719,8 +3644,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     if (slab) {
       slab.free();
       slab.spec = spec;
-      // slab.group.start = _getSlabIndexOffset(spec);
-      // slab.group.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
     } else {
       slab = slabs[index] = {
         x,
@@ -3739,7 +3662,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
           allocators.positions.free(this.spec.positionsFreeEntry);
           allocators.normals.free(this.spec.normalsFreeEntry);
           allocators.uvs.free(this.spec.uvsFreeEntry);
-          // allocators.barycentrics.free(this.spec.barycentricsFreeEntry);
           allocators.aos.free(this.spec.aosFreeEntry);
           allocators.ids.free(this.spec.idsFreeEntry);
           allocators.skyLights.free(this.spec.skyLightsFreeEntry);
@@ -3750,26 +3672,14 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       };
     }
     return slab;
-
-    /* const index = planet.getSubparcelIndex(x, y, z);
-    let slab = slabs[index];
-    if (!slab) {
-      slab = _findFreeSlab();
-      slab.setPosition(x, y, z, index);
-      slabs[index] = slab;
-      mesh.groupSets.push(slab.groupSet);
-    }
-    return slab; */
   };
-  mesh.updateGeometry = (/*slab,*/ spec) => {
+  mesh.updateGeometry = spec => {
     geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
     geometry.attributes.position.needsUpdate = true;
     geometry.attributes.normal.updateRange.offset = _getSlabNormalOffset(spec);
     geometry.attributes.normal.needsUpdate = true;
     geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(spec);
     geometry.attributes.uv.needsUpdate = true;
-    /* geometry.attributes.barycentric.updateRange.offset =_getSlabBarycentricOffset(spec);
-    geometry.attributes.barycentric.needsUpdate = true; */
     geometry.attributes.ao.needsUpdate = true;
     geometry.attributes.ao.updateRange.offset =_getSlabAoOffset(spec);
     geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec); // XXX can be removed and moved to uniforms for vegetation via vertexId
@@ -3782,17 +3692,11 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     geometry.attributes.position.updateRange.count = spec.positionsCount/Float32Array.BYTES_PER_ELEMENT;
     geometry.attributes.normal.updateRange.count = spec.normalsCount/Float32Array.BYTES_PER_ELEMENT;
     geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
-    // geometry.attributes.barycentric.updateRange.count = spec.barycentricsCount/Float32Array.BYTES_PER_ELEMENT;
     geometry.attributes.ao.updateRange.count = spec.aosCount/Uint8Array.BYTES_PER_ELEMENT;
     geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
     geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
     geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
     renderer.geometries.update(geometry);
-
-    /* slab.groupSet.groups[0].start = _getSlabPositionOffset(spec)/3;
-    slab.groupSet.groups[0].count = spec.numOpaquePositions/3;
-    slab.groupSet.groups[1].start = slab.groupSet.groups[0].start + slab.groupSet.groups[0].count;
-    slab.groupSet.groups[1].count = spec.numTransparentPositions/3; */
   };
   mesh.freeSlabIndex = index => {
     const slab = slabs[index];
@@ -3800,11 +3704,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       slab.free();
       mesh.groupSets.splice(mesh.groupSets.indexOf(slab.groupSet), 1);
       slabs[index] = null;
-      /* freeList.push({
-        start: slab.start,
-        count: 1,
-      });
-      _updateFreeList(freeList); */
     }
   };
   const currentPosition = new THREE.Vector3(NaN, NaN, NaN);
@@ -3846,14 +3745,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const _updateCurrentPosition = position => {
     currentPosition.copy(position)
       .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
-    /* const ncx = Math.floor(localVector3.x/subparcelSize);
-    const ncy = Math.floor(localVector3.y/subparcelSize);
-    const ncz = Math.floor(localVector3.z/subparcelSize);
-
-    if (currentCoord.x !== ncx || currentCoord.y !== ncy || currentCoord.z !== ncz) {
-      currentCoord.set(ncx, ncy, ncz);
-      coordUpdated = true;
-    } */
   };
   const _updateNeededCoords = () => {
     return;
@@ -3951,10 +3842,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const _loadCoord = coord => {
     debugger;
     const {x: ax, y: ay, z: az, index} = coord;
-    /* if (
-      !slabs[index] ||
-      subparcelsNeedUpdate.some(([x, y, z]) => x === ax && y === ay && z === az)
-    ) { */
     let live = true;
     (async () => {
       const subparcel = planet.peekSubparcelByIndex(index);
@@ -4014,7 +3901,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
       marchesTasks[index] = subparcelTasks;
     }
     subparcelTasks.push(task);
-    // }
   };
   const _updateChunksAdd = () => {
     for (const addedCoord of addedCoords) {
@@ -4100,16 +3986,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
         const vegetationMesh = currentVegetationMesh;
         const slab = vegetationMesh.addSlab(x, y, z, spec);
 
-        /* slab.position.set(spec.positions);
-        slab.uv.set(spec.uvs);
-        slab.id.set(spec.ids);
-        slab.skyLight.set(spec.skyLights);
-        slab.torchLight.set(spec.torchLights);
-        const indexOffset = vegetationMesh.getSlabPositionOffset(slab)/3;
-        for (let i = 0; i < spec.indices.length; i++) {
-          spec.indices[i] += indexOffset;
-        }
-        slab.indices.set(spec.indices); */
         vegetationMesh.updateGeometry(slab, spec);
         slab.group.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
 
@@ -4381,19 +4257,6 @@ planet.addEventListener('load', async e => {
 
   const height = await geometryWorker.requestGetHeight(chunkMesh.seedNum, ncx, ncy + SUBPARCEL_SIZE, ncz, baseHeight, PARCEL_SIZE);
   worldContainer.position.y = - height - _getAvatarHeight();
-
-  /* {
-    let geometry = new CapsuleGeometry(0.5, 1, 16)
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2)))
-      // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5/2+0.5, 0))
-      // .toNonIndexed();
-    geometry = new THREE.BufferGeometry().fromGeometry(geometry);
-    const material = new THREE.MeshBasicMaterial({
-      color: 0x008000,
-    });
-    capsuleMesh = new THREE.Mesh(geometry, material);
-    scene.add(capsuleMesh);
-  } */
 });
 planet.addEventListener('unload', () => {
   const oldChunkMesh = _getCurrentChunkMesh();
@@ -5571,17 +5434,7 @@ function animate(timestamp, frame) {
             return false;
           })();
           if (!hasBuildMesh) {
-            /* const subparcelPosition = new THREE.Vector3(
-              Math.floor(buildMesh.position.x/currentChunkMesh.subparcelSize),
-              Math.floor(buildMesh.position.y/currentChunkMesh.subparcelSize),
-              Math.floor(buildMesh.position.z/currentChunkMesh.subparcelSize)
-            ); */
-            
             geometryWorker.requestAddObject(tracker, geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
-            /* planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
-              subparcel.addVegetation(buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
-            });
-            currentChunkMesh.updateSlab(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z); */
           }
         }
       }
@@ -5603,7 +5456,6 @@ function animate(timestamp, frame) {
                 meshDrawer.start(localVector2);
               }
               meshDrawer.update(localVector2);
-              // console.log('drawing pencil');
               break;
             }
             case 'paintbrush': {
@@ -5792,7 +5644,6 @@ function animate(timestamp, frame) {
         const grab = buttons[1].pressed;
         const lastGrab = lastGrabs[index];
         if (!lastGrab && grab) { // grip
-          // console.log('gripped', handedness);
           pe.grabdown(handedness);
         } else if (lastGrab && !grab) {
           pe.grabup(handedness);
@@ -5920,18 +5771,6 @@ function animate(timestamp, frame) {
       p.volumeMesh.visible = isVolume;
     }
   }
-  /* if (hoverTarget) {
-    wireframeMaterial.uniforms.uHoverId.value.fromArray(meshIdToArray(hoverTarget.meshId).map(n => n / 255));
-    wireframeMaterial.uniforms.uHoverColor.value.fromArray(new THREE.Color(0x5c6bc0).toArray());
-  } else {
-    wireframeMaterial.uniforms.uHoverId.value.set(0, 0, 0);
-  }
-  if (selectTarget) {
-    wireframeMaterial.uniforms.uSelectId.value.fromArray(meshIdToArray(selectTarget.meshId).map(n => n / 255));
-    wireframeMaterial.uniforms.uSelectColor.value.fromArray(new THREE.Color(0x66bb6a).toArray());
-  } else {
-    wireframeMaterial.uniforms.uSelectId.value.set(0, 0, 0);
-  } */
 
   if (geometryWorker) {
     pxMeshes = pxMeshes.filter(pxMesh => {
@@ -5968,14 +5807,11 @@ function animate(timestamp, frame) {
 
   geometryWorker && geometryWorker.update();
 
-  // localFrustum.setFromProjectionMatrix(
-    localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, worldContainer.matrixWorld))
-  // );
+  localMatrix.multiplyMatrices(pe.camera.projectionMatrix, localMatrix2.multiplyMatrices(pe.camera.matrixWorldInverse, worldContainer.matrixWorld))
   if (currentChunkMesh && currentVegetationMesh) {
     localMatrix3.copy(pe.camera.matrixWorld)
       .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
       .decompose(localVector, localQuaternion, localVector2);
-    // currentChunkMesh.geometry.groups = geometryWorker.cull(culler, localVector, localMatrix, slabRadius);
 
     const [landGroups, vegetationGroups, thingGroups] = geometryWorker.tickCull(tracker, localVector, localMatrix);
     currentChunkMesh.geometry.groups = landGroups;
@@ -5983,75 +5819,10 @@ function animate(timestamp, frame) {
     currentThingMesh.geometry.groups = thingGroups;
     // window.landGroups = landGroups;
     // window.vegetationGroups = vegetationGroups;
-
-    /* const _cull = () => {
-      localMatrix3.copy(pe.camera.matrixWorld)
-        .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
-        .decompose(localVector, localQuaternion, localVector2);
-      const frustumGroupSets = currentChunkMesh.groupSets
-        .filter(groupSet => localFrustum.intersectsSphere(groupSet.boundingSphere))
-        .sort((a, b) => a.boundingSphere.center.distanceTo(localVector) - b.boundingSphere.center.distanceTo(localVector));
-      const frustumGroupSetIndex = {};
-      for (const groupSet of frustumGroupSets) {
-        frustumGroupSetIndex[groupSet.slab.index] = groupSet;
-      }
-
-      const _cullLoop = () => {
-        const groupSets = [];
-        const queue = frustumGroupSets.filter(groupSet => groupSet.boundingSphere.center.distanceTo(localVector) < slabRadius*2);
-        let queueIndex = 0;
-        const seenQueue = {};
-        for (const groupSet of queue) {
-          groupSets.push(groupSet);
-          seenQueue[groupSet.slab.index] = true;
-        }
-
-        const _cullFaces = groupSet => {
-          for (const [enterNormal, enterFace] of PEEK_DIRECTIONS) {
-            const direction = localVector2.copy(groupSet.boundingSphere.center)
-              .add(localVector3.copy(enterNormal).multiplyScalar(SUBPARCEL_SIZE/2))
-              .sub(localVector);
-            if (direction.dot(enterNormal) <= 0) {
-              for (const [exitNormal, exitFace] of PEEK_DIRECTIONS) {
-                const direction = localVector2.copy(groupSet.boundingSphere.center)
-                  .add(localVector3.copy(exitNormal).multiplyScalar(SUBPARCEL_SIZE/2))
-                  .sub(localVector);
-                if (direction.dot(exitNormal) >= 0 && groupSet.slab.peeks[PEEK_FACE_INDICES[enterFace << 4 | exitFace]]) {
-                  const nextIndex = planet.getSubparcelIndex(groupSet.slab.x + exitNormal.x, groupSet.slab.y + exitNormal.y, groupSet.slab.z + exitNormal.z);
-                  const nextGroupSet = frustumGroupSetIndex[nextIndex];
-                  if (nextGroupSet && !seenQueue[nextGroupSet.slab.index]) {
-                    groupSets.push(nextGroupSet);
-                    queue.push(nextGroupSet);
-                    seenQueue[nextGroupSet.slab.index] = true;
-                  }
-                }
-              }
-            }
-          }
-        };
-        while (queueIndex < queue.length) {
-          _cullFaces(queue[queueIndex++]);
-        }
-        return groupSets;
-      };
-      currentChunkMesh.geometry.groups = _cullLoop()
-        .map(groupSet => groupSet.groups)
-        .flat()
-        .sort((a, b) => a.materialIndex - b.materialIndex);
-    };
-    _cull(); */
   }
-  /* if (currentVegetationMesh) {
-    currentVegetationMesh.geometry.originalGroups = currentVegetationMesh.geometry.groups.slice();
-    currentVegetationMesh.geometry.groups = currentVegetationMesh.geometry.groups.filter(group => localFrustum.intersectsSphere(group.boundingSphere));
-  } */
 
   renderer.render(scene, camera);
   // renderer.render(highlightScene, camera);
-
-  /* if (currentVegetationMesh) {
-    currentVegetationMesh.geometry.groups = currentVegetationMesh.geometry.originalGroups;
-  } */
 
   planet.flush();
 }
@@ -6425,27 +6196,9 @@ window.addEventListener('mouseup', e => {
   currentTeleport = false;
 });
 
-/* document.getElementById('world-name').addEventListener('change', e => {
-  pe.name = e.target.value;
-}); */
 document.getElementById('reset-scene-button').addEventListener('click', e => {
   pe.reset();
 });
-/* document.getElementById('publish-scene-button').addEventListener('click', async e => {
-  const hash = await pe.uploadScene();
-  const res = await fetch(scenesEndpoint + '/' + hash, {
-    method: 'PUT',
-    body: JSON.stringify({
-      name: pe.name,
-      hash,
-    }),
-  });
-  if (res.ok) {
-    // nothing
-  } else {
-    console.warn('invalid status code: ' + res.status);
-  }
-}); */
 document.getElementById('export-scene-button').addEventListener('click', async e => {
   const uint8Array = await pe.exportScene();
   const b = new Blob([uint8Array], {
@@ -6528,17 +6281,6 @@ const _ensurePlaceholdMesh = p => {
     scene.add(p.placeholderBox);
   }
 };
-/* const _ensureVolumeMesh = async p => {
-  if (!p.volumeMesh) {
-    p.volumeMesh = await _makeVolumeMesh(p);
-    p.volumeMesh = getWireframeMesh(p.volumeMesh);
-    decorateRaycastMesh(p.volumeMesh, p.id);
-    p.volumeMesh.package = p;
-    p.volumeMesh.matrix.copy(p.matrix).decompose(p.volumeMesh.position, p.volumeMesh.quaternion, p.volumeMesh.scale);
-    p.volumeMesh.visible = false;
-    scene.add(p.volumeMesh);
-  }
-}; */
 const shieldSlider = document.getElementById('shield-slider');
 let shieldLevel = parseInt(shieldSlider.value, 10);
 shieldSlider.addEventListener('change', async e => {
@@ -6764,27 +6506,11 @@ const avatarSubpage = document.getElementById('avatar-subpage');
 const avatarSubpageContent = avatarSubpage.querySelector('.subtab-content');
 const tabs = Array.from(dropdown.querySelectorAll('.tab'));
 const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
-/* const worldsSubtabs = Array.from(worldsSubpage.querySelectorAll('.subtab'));
-const worldsCloseButton = worldsSubpage.querySelector('.close-button');
-const worldsSubtabContents = Array.from(worldsSubpage.querySelectorAll('.subtab-content')); */
 const packagesCloseButton = packagesSubpage.querySelector('.close-button');
 const inventorySubtabs = Array.from(inventorySubpage.querySelectorAll('.subtab'));
 const inventoryCloseButton = inventorySubpage.querySelector('.close-button');
 const inventorySubtabContent = inventorySubpage.querySelector('.subtab-content');
 const avatarCloseButton = avatarSubpage.querySelector('.close-button');
-/* worldsButton.addEventListener('click', e => {
-  worldsButton.classList.toggle('open');
-  worldsSubpage.classList.toggle('open');
-
-  dropdownButton.classList.remove('open');
-  dropdown.classList.remove('open');
-  packagesButton.classList.remove('open');
-  packagesSubpage.classList.remove('open');
-  inventoryButton.classList.remove('open');
-  inventorySubpage.classList.remove('open');
-  avatarButton.classList.remove('open');
-  avatarSubpage.classList.remove('open');
-}); */
 packagesButton.addEventListener('click', e => {
   packagesButton.classList.add('open');
   packagesSubpage.classList.add('open');
@@ -6793,8 +6519,6 @@ packagesButton.addEventListener('click', e => {
   dropdown.classList.remove('open');
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
-  /* worldsButton.classList.remove('open');
-  worldsSubpage.classList.remove('open'); */
   avatarButton.classList.remove('open');
   avatarSubpage.classList.remove('open');
 });
@@ -6806,8 +6530,6 @@ inventoryButton.addEventListener('click', e => {
   dropdown.classList.remove('open');
   packagesButton.classList.remove('open');
   packagesSubpage.classList.remove('open');
-  /* worldsButton.classList.remove('open');
-  worldsSubpage.classList.remove('open'); */
   avatarButton.classList.remove('open');
   avatarSubpage.classList.remove('open');
 });
@@ -6819,8 +6541,6 @@ avatarButton.addEventListener('click', e => {
   dropdown.classList.remove('open');
   packagesButton.classList.remove('open');
   packagesSubpage.classList.remove('open');
-  /* worldsButton.classList.remove('open');
-  worldsSubpage.classList.remove('open'); */
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
 });
@@ -6833,7 +6553,6 @@ dropdownButton.addEventListener('click', e => {
   packagesSubpage.classList.remove('open');
   inventoryButton.classList.remove('open');
   inventorySubpage.classList.remove('open');
-  // worldsSubpage.classList.remove('open');
   avatarButton.classList.remove('open');
   avatarSubpage.classList.remove('open');
 });
@@ -6865,44 +6584,12 @@ for (let i = 0; i < tabs.length; i++) {
     _setSelectTarget(null);
   });
 }
-/* for (let i = 0; i < worldsSubtabs.length; i++) {
-  const subtab = worldsSubtabs[i];
-  const subtabContent = worldsSubtabContents[i];
-  subtab.addEventListener('click', e => {
-    for (let i = 0; i < worldsSubtabs.length; i++) {
-      const subtab = worldsSubtabs[i];
-      const subtabContent = worldsSubtabContents[i];
-      subtab.classList.remove('open');
-      subtabContent.classList.remove('open');
-    }
-
-    subtab.classList.add('open');
-    subtabContent.classList.add('open');
-  });
-}
-for (let i = 0; i < inventorySubtabs.length; i++) {
-  const subtab = inventorySubtabs[i];
-  const subtabContent = inventorySubtabContents[i];
-  subtab.addEventListener('click', e => {
-    for (let i = 0; i < inventorySubtabs.length; i++) {
-      const subtab = inventorySubtabs[i];
-      const subtabContent = inventorySubtabContents[i];
-      subtab.classList.remove('open');
-      subtabContent.classList.remove('open');
-    }
-
-    subtab.classList.add('open');
-    subtabContent.classList.add('open');
-  });
-} */
-[/* worldsCloseButton, */packagesCloseButton, inventoryCloseButton, avatarCloseButton].forEach(closeButton => {
+[packagesCloseButton, inventoryCloseButton, avatarCloseButton].forEach(closeButton => {
   closeButton.addEventListener('click', e => {
     dropdownButton.classList.remove('open');
     dropdown.classList.remove('open');
     packagesButton.classList.remove('open');
     packagesSubpage.classList.remove('open');
-    /* worldsButton.classList.remove('open');
-    worldsSubpage.classList.remove('open'); */
     inventoryButton.classList.remove('open');
     inventorySubpage.classList.remove('open');
     avatarButton.classList.remove('open');
@@ -7062,14 +6749,9 @@ const _makeWorldHtml = w => `
     </div>
   </div>
 `;
-// const headerLabel = document.getElementById('header-label');
 let currentWorldId = '';
 const _enterWorld = async worldId => {
   currentWorldId = worldId;
-
-  /* headerLabel.innerText = name || 'Sandbox';
-  runMode.setAttribute('href', 'run.html' + (worldId ? ('?w=' + worldId) : ''));
-  editMode.setAttribute('href', 'edit.html' + (worldId ? ('?w=' + worldId) : '')); */
 
   const worlds = Array.from(document.querySelectorAll('.world'));
   worlds.forEach(world => {
@@ -7140,41 +6822,6 @@ const _bindWorld = w => {
     }
   });
 };
-/* (async () => {
-  const res = await fetch(worldsEndpoint);
-  const children = await res.json();
-  const ws = await Promise.all(children.map(child =>
-    fetch(worldsEndpoint + '/' + child)
-      .then(res => res.json()),
-  ));
-  worlds.innerHTML = ws.map(w => _makeWorldHtml(w)).join('\n');
-  Array.from(worlds.querySelectorAll('.world')).forEach((w, i) => _bindWorld(w, ws[i]));
-})(); */
-/* let worldType = 'singleplayer';
-const singleplayerButton = document.getElementById('singleplayer-button');
-singleplayerButton.addEventListener('click', e => {
-  pe.reset();
-
-  singleplayerButton.classList.add('open');
-  multiplayerButton.classList.remove('open');
-  Array.from(worlds.querySelectorAll('.world')).forEach(w => {
-    w.classList.remove('open');
-  });
-  worldType = 'singleplayer';
-  worldTools.style.visibility = null;
-});
-const multiplayerButton = document.getElementById('multiplayer-button');
-multiplayerButton.addEventListener('click', async e => {
-  pe.reset();
-
-  singleplayerButton.classList.remove('open');
-  multiplayerButton.classList.add('open');
-  Array.from(worlds.querySelectorAll('.world')).forEach(w => {
-    w.classList.remove('open');
-  });
-  worldType = 'multiplayer';
-  worldTools.style.visibility = null;
-}); */
 
 const dropZones = Array.from(document.querySelectorAll('.drop-zone'));
 dropZones.forEach(dropZone => {
@@ -7409,12 +7056,6 @@ const _bindPackage = (pE, pJ) => {
   wearButton.addEventListener('click', () => {
     loginManager.setAvatar(dataHash);
   });
-  /* const inspectButton = pE.querySelector('.inspect-button');
-  inspectButton.addEventListener('click', e => {
-    e.preventDefault();
-    console.log('open', inspectButton.getAttribute('href'));
-    window.open(inspectButton.getAttribute('href'), '_blank');
-  }); */
 };
 const packages = document.getElementById('packages');
 (async () => {
@@ -7428,8 +7069,6 @@ let s;
   ));
   packages.innerHTML = ps.map(p => _makePackageHtml(p)).join('\n');
   Array.from(packages.querySelectorAll('.package')).forEach((pe, i) => _bindPackage(pe, ps[i]));
-
-  // wristMenu.packageSide.setPackages(ps);
 })();
 const tokens = document.getElementById('tokens');
 async function getTokenByIndex(index) {
@@ -7504,131 +7143,7 @@ pe.domElement.addEventListener('drop', async e => {
       </div>
     </div>
   `;
-};
-(async () => {
-  const totalObjects = await contract.methods.getNonce().call();
-  const ts = [];
-  for (let i = 1; i <= totalObjects; i++) {
-    const t = await getTokenByIndex(i);
-    ts.push(t);
-    const h = _getTokenHtml(t);
-    tokens.innerHTML += h;
-
-    Array.from(tokens.querySelectorAll('.token')).forEach((token, i) => {
-      const addAction = token.querySelector('.add-action');
-      addAction.addEventListener('click', async e => {
-        const t = ts[i];
-        const {dataHash} = t;
-        const p = await XRPackage.download(dataHash);
-        p.hash = dataHash;
-        pe.add(p);
-      });
-      const input = token.querySelector('input');
-      input.addEventListener('click', e => {
-        input.select();
-      });
-    });
-  }
-})(); */
-/* const scenes = document.getElementById('scenes');
-(async () => {
-  const res = await fetch(scenesEndpoint);
-  const children = await res.json();
-  const ss = await Promise.all(children.map(child =>
-    fetch(scenesEndpoint + '/' + child)
-      .then(res => res.json())
-  ));
-  scenes.innerHTML = ss.map(s => `
-    <div class=scene>${s.name}</div>
-  `).join('\n');
-  Array.from(scenes.querySelectorAll('.scene')).forEach((s, i) => {
-    s.addEventListener('click', async e => {
-      const s = ss[i];
-      const {hash} = s;
-      pe.downloadScene(hash);
-    });
-  });
-})();
-const worldTools = document.getElementById('world-tools');
-const publishWorldButton = document.getElementById('publish-world-button');
-publishWorldButton.addEventListener('click', async e => {
-  let hash;
-  if (worldType === 'singleplayer') {
-    hash = await pe.uploadScene();
-  } else if (worldType === 'multiplayer') {
-    const array = new Uint8Array(32);
-    crypto.getRandomValues(array);
-    hash = Array.prototype.map.call(array, x => ('00' + x.toString(16)).slice(-2)).join('');
-  }
-
-  const w = {
-    name: 'WebXR world',
-    description: 'This is a world description',
-    hash,
-    type: worldType,
-  };
-  const res = await fetch(worldsEndpoint + '/' + hash, {
-    method: 'PUT',
-    body: JSON.stringify(w),
-  });
-  if (res.ok) {
-    worlds.innerHTML += '\n' + _makeWorldHtml(w);
-    const ws = Array.from(worlds.querySelectorAll('.world'));
-    Array.from(worlds.querySelectorAll('.world')).forEach(w => _bindWorld(w));
-    const newW = ws[ws.length - 1];
-    newW.click();
-  } else {
-    console.warn('invalid status code: ' + res.status);
-  }
-}); */
-/* const sandboxButton = document.getElementById('sandbox-button');
-sandboxButton.addEventListener('click', e => {
-  _pushWorld(null);
-});
-function makeId(length) {
-  var result = '';
-  var characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  var charactersLength = characters.length;
-  for (var i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-}
-const newWorldButton = document.getElementById('new-world-button');
-newWorldButton.addEventListener('click', async e => {
-  pe.reset();
-  const hash = await pe.uploadScene();
-
-  const screenshotBlob = await screenshotEngine();
-  const {hash: previewIconHash} = await fetch(`${apiHost}/`, {
-    method: 'PUT',
-    body: screenshotBlob,
-  })
-    .then(res => res.json());
-
-  const worldId = makeId(8);
-  const w = {
-    id: worldId,
-    name: worldId,
-    description: 'This is a world description',
-    hash,
-    previewIconHash,
-    objects: [],
-  };
-  const res = await fetch(worldsEndpoint + '/' + w.name, {
-    method: 'PUT',
-    body: JSON.stringify(w),
-  });
-  if (res.ok) {
-    worlds.innerHTML += '\n' + _makeWorldHtml(w);
-    const ws = Array.from(worlds.querySelectorAll('.world'));
-    Array.from(worlds.querySelectorAll('.world')).forEach(w => _bindWorld(w));
-    const newW = ws[ws.length - 1];
-    newW.click();
-  } else {
-    console.warn('invalid status code: ' + res.status);
-  }
-}); */
+}; */
 
 const objectsEl = document.getElementById('objects');
 const _getObjectDetailEls = () => {
@@ -7964,8 +7479,6 @@ const _renderObjects = () => {
         });
       };
       _renderChildren(objectsEl, pe.children, 0);
-      
-      // wristMenu.objectsSide.setObjects(pe.children);
     } else {
       objectsEl.innerHTML = `<h1 class=placeholder>No objects in scene</h1>`;
     }
