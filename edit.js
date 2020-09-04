@@ -639,7 +639,7 @@ let thingAllocators = null;
 let thingBufferAttributes = null;
 // let culler = null;
 let makeAnimal = null;
-let chunkMeshes = [];
+// let chunkMeshes = [];
 let chunkMesh = null;
 const worldContainer = new THREE.Object3D();
 scene.add(worldContainer);
@@ -651,19 +651,6 @@ const currentChunkMeshId = getNextMeshId();
 let currentVegetationMesh = null;
 let currentThingMesh = null;
 let meshDrawer = null;
-const _getCurrentChunkMesh = () => currentChunkMesh;
-const _setCurrentChunkMesh = chunkMesh => {
-  /* if (currentChunkMesh) {
-    currentChunkMesh.material[0].uniforms.isCurrent.value = 0;
-    currentChunkMesh.material[0].uniforms.isCurrent.needsUpdate = true;
-    currentChunkMesh = null;
-  } */
-  currentChunkMesh = chunkMesh;
-  /* if (currentChunkMesh) {
-    currentChunkMesh.material[0].uniforms.isCurrent.value = 1;
-    currentChunkMesh.material[0].uniforms.isCurrent.needsUpdate = true;
-  } */
-};
 let stairsMesh = null;
 let platformMesh = null;
 let wallMesh = null;
@@ -3744,8 +3731,7 @@ planet.addEventListener('load', async e => {
 
   const chunkMesh = await _makeChunkMesh(chunkSpec.seedString, chunkSpec.parcelSize, chunkSpec.subparcelSize);
   chunkMeshContainer.add(chunkMesh);
-  chunkMeshes.push(chunkMesh);
-  _setCurrentChunkMesh(chunkMesh);
+  currentChunkMesh = chunkMesh;
 
   chunkMesh.updateMatrixWorld();
 
@@ -3758,11 +3744,10 @@ planet.addEventListener('load', async e => {
   worldContainer.position.y = - height - _getAvatarHeight();
 });
 planet.addEventListener('unload', () => {
-  const oldChunkMesh = _getCurrentChunkMesh();
+  const oldChunkMesh = currentChunkMesh;
   if (oldChunkMesh) {
     chunkMeshContainer.remove(oldChunkMesh);
-    chunkMeshes.splice(chunkMeshes.indexOf(oldChunkMesh), 1);
-    _setCurrentChunkMesh(null);
+    currentChunkMesh = null;
   }
 });
 planet.addEventListener('subparcelupdate', e => {
@@ -5033,7 +5018,7 @@ function animate(timestamp, frame) {
         teleportMeshes[1].visible = false;
         _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
         if (currentTeleportChunkMesh.isChunkMesh) {
-          _setCurrentChunkMesh(currentTeleportChunkMesh);
+          currentChunkMesh = currentTeleportChunkMesh;
         }
       } else {
         teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, (position, quaternion) => {
