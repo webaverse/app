@@ -47,6 +47,8 @@ import {GuardianMesh} from './land.js';
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2);
 const pid4 = Math.PI/4;
+const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.3);
+const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.3);
 const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
 const baseHeight = PARCEL_SIZE/2-10;
@@ -5385,9 +5387,81 @@ function animate(timestamp, frame) {
       }
     });
   }
-
   lastTeleport = currentTeleport;
   lastWeaponDown = currentWeaponDown;
+
+  const _updateRig = () => {
+    if (rigMatrixEnabled) {
+      localMatrix.copy(rigMatrix)
+        // .premultiply(localMatrix2.getInverse(this.matrix))
+        // .toArray(xrState.poseMatrix);
+    } else {
+      localMatrix.copy(camera.matrixWorld)
+        // .getInverse(localMatrix)
+        // .premultiply(localMatrix2.getInverse(this.matrix))
+        // .toArray(xrState.poseMatrix);
+    }
+
+    localMatrix // .fromArray(this.xrState.poseMatrix)
+      .decompose(localVector, localQuaternion, localVector2);
+
+    rig.inputs.hmd.position.copy(localVector);
+    rig.inputs.hmd.quaternion.copy(localQuaternion);
+    if (currentSession) {
+      localMatrix2.getInverse(this.matrix);
+      localMatrix
+        .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
+        .premultiply(localMatrix2)
+        .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
+      localMatrix
+        .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
+        .premultiply(localMatrix2)
+        .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
+
+      rig.inputs.leftGamepad.pointer = xrState.gamepads[1].buttons[0].value;
+      rig.inputs.leftGamepad.grip = xrState.gamepads[1].buttons[1].value;
+      if (xrState.hands[1].visible[0]) {
+        for (let i = 0; i < 25; i++) {
+          rig.inputs.leftGamepad.fingers[i].quaternion.fromArray(xrState.hands[1][i].orientation);
+        }
+      }
+      rig.inputs.rightGamepad.pointer = xrState.gamepads[0].buttons[0].value;
+      rig.inputs.rightGamepad.grip = xrState.gamepads[0].buttons[1].value;
+      if (xrState.hands[0].visible[0]) {
+        for (let i = 0; i < 25; i++) {
+          rig.inputs.rightGamepad.fingers[i].quaternion.fromArray(xrState.hands[0][i].orientation);
+        }
+      }
+    } else {
+      // localMatrix.fromArray(this.xrState.poseMatrix)
+        // .decompose(localVector, localQuaternion, localVector2);
+      const handOffsetScale = rig ? rig.height/1.5 : 1;
+      rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+        // .toArray(xrState.gamepads[1].position);
+      rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
+      rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+        // .toArray(xrState.gamepads[0].position);
+      rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
+
+      /* HANDS.forEach((handedness, i) => {
+        const grabuse = this.grabuses[handedness];
+        const gamepad = xrState.gamepads[i];
+        const button = gamepad.buttons[0];
+        if (grabuse) {
+          button.touched[0] = 1;
+          button.pressed[0] = 1;
+          button.value[0] = 1;
+        } else {
+          button.touched[0] = 0;
+          button.pressed[0] = 0;
+          button.value[0] = 0;
+        }
+      }); */
+    }
+
+    rig.update();
+  };
+  _updateRig();
 
   geometryWorker && geometryWorker.update();
 
