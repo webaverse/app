@@ -5486,7 +5486,7 @@ for (let i = 0; i < tools.length; i++) {
           pe.setCamera(camera); */
 
           document.dispatchEvent(new MouseEvent('mouseup'));
-          pe.domElement.requestPointerLock();
+          domElement.requestPointerLock();
           break;
         }
         case 'thirdperson': {
@@ -5495,12 +5495,12 @@ for (let i = 0; i < tools.length; i++) {
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera); */
 
-          pe.camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(pe.camera.quaternion));
-          pe.camera.updateMatrixWorld();
-          pe.setCamera(camera);
+          camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+          camera.updateMatrixWorld();
+          setCamera(camera);
 
           document.dispatchEvent(new MouseEvent('mouseup'));
-          pe.domElement.requestPointerLock();
+          domElement.requestPointerLock();
           decapitate = false;
           break;
         }
@@ -5512,14 +5512,14 @@ for (let i = 0; i < tools.length; i++) {
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera); */
 
-          pe.camera.rotation.x = -Math.PI / 6;
-          pe.camera.quaternion.setFromEuler(pe.camera.rotation);
-          pe.camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(pe.camera.quaternion));
-          pe.camera.updateMatrixWorld();
-          pe.setCamera(camera);
+          camera.rotation.x = -Math.PI / 6;
+          camera.quaternion.setFromEuler(pe.camera.rotation);
+          camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
+          camera.updateMatrixWorld();
+          setCamera(camera);
 
           document.dispatchEvent(new MouseEvent('mouseup'));
-          pe.domElement.requestPointerLock();
+          domElement.requestPointerLock();
           decapitate = false;
           break;
         }
@@ -5530,11 +5530,11 @@ for (let i = 0; i < tools.length; i++) {
           pe.camera.updateMatrixWorld();
           pe.setCamera(camera); */
 
-          pe.camera.rotation.x = -Math.PI / 2;
-          pe.camera.quaternion.setFromEuler(pe.camera.rotation);
-          pe.camera.position.y -= -birdsEyeHeight + _getAvatarHeight();
-          pe.camera.updateMatrixWorld();
-          pe.setCamera(camera);
+          camera.rotation.x = -Math.PI / 2;
+          camera.quaternion.setFromEuler(camera.rotation);
+          camera.position.y -= -birdsEyeHeight + _getAvatarHeight();
+          camera.updateMatrixWorld();
+          setCamera(camera);
 
           document.dispatchEvent(new MouseEvent('mouseup'));
           pe.domElement.requestPointerLock();
@@ -5547,11 +5547,11 @@ for (let i = 0; i < tools.length; i++) {
           break;
         } */
       }
-      if (pe.rig) {
+      if (rig) {
         if (decapitate) {
-          pe.rig.decapitate();
+          rig.decapitate();
         } else {
-          pe.rig.undecapitate();
+          rig.undecapitate();
         }
       }
     }
