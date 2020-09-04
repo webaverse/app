@@ -399,6 +399,11 @@ const _makeHeightfieldShader = land => ({
       value: new THREE.Vector3(),
       needsUpdate: true,
     },
+    uSelectRange: {
+      type: 'v4',
+      value: new THREE.Vector4().setScalar(NaN),
+      needsUpdate: true,
+    },
     // "parallaxScale": { value: 0.5 },
     // "parallaxMinLayers": { value: 25 },
     // "parallaxMaxLayers": { value: 30 },
@@ -406,6 +411,8 @@ const _makeHeightfieldShader = land => ({
   vertexShader: `\
     precision highp float;
     precision highp int;
+
+    uniform vec4 uSelectRange;
 
     // attribute vec3 barycentric;
     attribute float ao;
@@ -418,6 +425,7 @@ const _makeHeightfieldShader = land => ({
     varying float vAo;
     varying float vSkyLight;
     varying float vTorchLight;
+    varying vec3 vSelectColor;
 
     ${land ? '' : `\
     varying vec3 ts_view_pos;
@@ -465,6 +473,16 @@ const _makeHeightfieldShader = land => ({
       vSkyLight = skyLight/8.0;
       vTorchLight = torchLight/8.0;
 
+      vSelectColor = vec3(0.);
+      if (
+        position.x >= uSelectRange.x &&
+        position.z >= uSelectRange.y &&
+        position.x < uSelectRange.z &&
+        position.z < uSelectRange.w
+      ) {
+        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
+      }
+
       vec3 vert_tang;
       vec3 vert_bitang;
       if (abs(normal.y) < 0.05) {
@@ -506,6 +524,8 @@ const _makeHeightfieldShader = land => ({
 
     uniform float sunIntensity;
     uniform sampler2D tex;
+    uniform float uTime;
+    uniform vec3 sunDirection;
     float parallaxScale = 0.3;
     float parallaxMinLayers = 50.;
     float parallaxMaxLayers = 50.;
@@ -516,8 +536,7 @@ const _makeHeightfieldShader = land => ({
     varying float vAo;
     varying float vSkyLight;
     varying float vTorchLight;
-    uniform float uTime;
-    uniform vec3 sunDirection;
+    varying vec3 vSelectColor;
 
     ${land ? '' : `\
     varying vec3 ts_view_pos;
@@ -715,6 +734,7 @@ ${land ? '' : `\
         diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vViewPosition) - mod(uTime*60., 1.)*5.0, 3.0)), 0.0)*0.5);
         diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
       }
+      diffuseColor += vSelectColor;
       float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0 * vAo;
       float cameraFactor = floor(8.0 - length(vViewPosition))/8.;
       diffuseColor *= max(max(worldFactor, cameraFactor), 0.1);
@@ -5327,22 +5347,37 @@ function animate(timestamp, frame) {
     if (!buildMode) {
       switch (selectedWeapon) {
         case 'select': {
+          for (const material of currentChunkMesh.material) {
+            material.uniforms.uSelectRange.value.set(NaN, NaN, NaN, NaN);
+            material.uniforms.uSelectRange.needsUpdate = true;
+          }
+          currentVegetationMesh.material[0].uniforms.uSelectId.value = -1;
+          currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
           for (const thingMesh of meshDrawer.thingMeshes) {
             thingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
             thingMesh.material.uniforms.uSelectColor.needsUpdate = true;
           }
-          currentVegetationMesh.material[0].uniforms.uSelectId.value = -1;
-          currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
 
-          if (raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
-            currentVegetationMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
-            currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+          if (raycastChunkSpec) {
+            if (raycastChunkSpec.objectId === 0) {
+              for (const material of currentChunkMesh.material) {
+                const minX = Math.floor(raycastChunkSpec.point.x/SUBPARCEL_SIZE);
+                const minY = Math.floor(raycastChunkSpec.point.z/SUBPARCEL_SIZE);
+                const maxX = minX+1;
+                const maxY = minY+1;
+                material.uniforms.uSelectRange.value.set(minX, minY, maxX, maxY).multiplyScalar(SUBPARCEL_SIZE);
+                material.uniforms.uSelectRange.needsUpdate = true;
+              }
+            } else {
+              currentVegetationMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
+              currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
 
-            const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
-            if (index !== -1) {
-              const thingMesh = meshDrawer.thingMeshes[index];
-              thingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
-              thingMesh.material.uniforms.uSelectColor.needsUpdate = true;
+              const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
+              if (index !== -1) {
+                const thingMesh = meshDrawer.thingMeshes[index];
+                thingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
+                thingMesh.material.uniforms.uSelectColor.needsUpdate = true;
+              }
             }
           }
           break;
