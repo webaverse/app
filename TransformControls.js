@@ -23,7 +23,7 @@ import {
 	SphereBufferGeometry,
 	TorusBufferGeometry,
 	Vector3
-} from "https://static.xrpackage.org/xrpackage/three.module.js";
+} from "./three.module.js";
 
 var TransformControls = function ( camera, domElement, document ) {
 

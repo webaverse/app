@@ -1,5 +1,5 @@
-import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-import {BufferGeometryUtils} from 'https://static.xrpackage.org/BufferGeometryUtils.js';
+import * as THREE from './three.module.js';
+import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {
   SUBPARCEL_SIZE,
 } from './constants.js';

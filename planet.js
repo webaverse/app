@@ -1,4 +1,4 @@
-import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
+import * as THREE from './three.module.js';
 import storage from './storage.js';
 import {
   PARCEL_SIZE,

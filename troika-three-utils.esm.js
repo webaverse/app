@@ -1,4 +1,4 @@
-import { ShaderChunk, UniformsUtils, MeshDepthMaterial, RGBADepthPacking, MeshDistanceMaterial, ShaderLib, DataTexture, Vector3, MeshStandardMaterial, DoubleSide, Mesh, CylinderBufferGeometry, Vector2 } from 'https://static.xrpackage.org/xrpackage/three.module.js';
+import { ShaderChunk, UniformsUtils, MeshDepthMaterial, RGBADepthPacking, MeshDistanceMaterial, ShaderLib, DataTexture, Vector3, MeshStandardMaterial, DoubleSide, Mesh, CylinderBufferGeometry, Vector2 } from './three.module.js';
 
 /**
  * Regular expression for matching the `void main() {` opener line in GLSL.
