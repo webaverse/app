@@ -1,51 +1,24 @@
+import localforage from './localforage.js';
+
 const storage = {
   async get(k) {
-    const res = await fetch(`/xrpackage/storage/${k}`);
-    if (res.status >= 200 && res.status < 300) {
-      return await res.json();
-    } else {
-      return undefined;
-    }
+    const s = await localforage.getItem(k);
+    return typeof s === 'string' ? JSON.parse(s) : s;
   },
   async getRaw(k) {
-    const res = await fetch(`/xrpackage/storage/${k}`);
-    if (res.status >= 200 && res.status < 300) {
-      return await res.arrayBuffer();
-    } else {
-      return undefined;
-    }
+    return await localforage.getItem(k);
   },
-  set(k, v) {
-    return this.setRaw(k, JSON.stringify(v));
+  async set(k, v) {
+    await localforage.setItem(k, JSON.stringify(v));
   },
   async setRaw(k, v) {
-    const res = await fetch(`/xrpackage/storage/${k}`, {
-      method: 'PUT',
-      body: v,
-    });
-    if (res.status >= 200 && res.status < 300) {
-      // nothing
-    } else {
-      throw new Error(`invalid status code: ${res.status}`);
-    }
+    await localforage.setItem(k, v);
   },
   async remove(k) {
-    const res = await fetch(`/xrpackage/storage/${k}`, {
-      method: 'DELETE',
-    });
-    if (res.status >= 200 && res.status < 300) {
-      // nothing
-    } else {
-      throw new Error(`invalid status code: ${res.status}`);
-    }
+    await localforage.removeItem(k);
   },
   async keys() {
-    const res = await fetch(`/xrpackage/storage/`);
-    if (res.status >= 200 && res.status < 300) {
-      return await res.json();
-    } else {
-      return undefined;
-    }
+    return await localforage.keys();
   },
 };
 export default storage;
