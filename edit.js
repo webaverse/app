@@ -71,12 +71,12 @@ const cubicBezier = easing(0, 1, 0, 1);
 let skybox = null;
 let skybox2 = null;
 
-const _loadGltf = u => new Promise((accept, reject) => {
+/* const _loadGltf = u => new Promise((accept, reject) => {
   new GLTFLoader().load(u, o => {
     o = o.scene;
     accept(o);
   }, xhr => {}, reject);
-});
+}); */
 const _getStringLength = (uint8Array, offset) => {
   let i;
   for (i = 0; i < uint8Array.length; i++, offset++) {
