@@ -3858,29 +3858,6 @@ const removeMesh = (() => {
 removeMesh.visible = false;
 scene.add(removeMesh);
 
-const _findMeshWithMeshId = meshId => {
-  if (meshId === currentChunkMesh.meshId) {
-    return currentChunkMesh;
-  } else {
-    for (const index in currentChunkMesh.vegetationMeshes) {
-      const subparcelVegetationMeshesSpec = currentChunkMesh.vegetationMeshes[index];
-      if (subparcelVegetationMeshesSpec) {
-        for (const vegetationMesh of subparcelVegetationMeshesSpec.meshes) {
-          if (vegetationMesh.meshId === meshId) {
-            return vegetationMesh;
-          }
-        }
-      }
-    }
-    for (const animal of animals) {
-      if (animal.meshId === meshId) {
-        return animal;
-      }
-    }
-    return null;
-  }
-};
-
 const jointGeometry = new THREE.BoxBufferGeometry(0.01, 0.01, 0.01);
 const jointPositions = jointGeometry.attributes.position.array.slice();
 const jointNumPositions = jointPositions.length;
@@ -4603,7 +4580,6 @@ function animate(timestamp, frame) {
         const result = geometryWorker.raycast(tracker, localVector, localQuaternion);
         raycastChunkSpec = result;
         if (raycastChunkSpec) {
-          // raycastChunkSpec.mesh = _findMeshWithMeshId(raycastChunkSpec.meshId);
           raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
           raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
           raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
