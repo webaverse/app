@@ -133,8 +133,8 @@ renderer.sortObjects = false;
 renderer.physicallyCorrectLights = true;
 renderer.xr.enabled = true;
 
-// const ambientLight = new THREE.AmbientLight(0xFFFFFF);
-// scene.add(ambientLight);
+const ambientLight = new THREE.AmbientLight(0xFFFFFF);
+scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
 directionalLight.position.set(1, 2, 3);
 scene.add(directionalLight);
