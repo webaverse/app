@@ -1032,27 +1032,6 @@ const geometryWorker = (() => {
     const offset = moduleInstance.HEAP32[ptr/Uint32Array.BYTES_PER_ELEMENT];
     return {
       ptr,
-      // offset,
-      /* alloc(constructor, count) {
-        if (count > 0) {
-          const size = count * constructor.BYTES_PER_ELEMENT;
-          const freeEntryPtr = moduleInstance._arenaAlloc(ptr, size);
-          if (freeEntryPtr) {
-            const start = moduleInstance.HEAP32[freeEntryPtr/Uint32Array.BYTES_PER_ELEMENT];
-            const freeEntry = new constructor(moduleInstance.HEAP8.buffer, start, count);
-            freeEntry.ptr = freeEntryPtr;
-            freeEntry.offset = start;
-            return freeEntry;
-          } else {
-            throw new Error('arena out of memory');
-          }
-        } else {
-          return new constructor(moduleInstance.HEAP8.buffer, 0, 0);
-        }
-      }, */
-      /* free(freeEntryPtr) {
-        moduleInstance._arenaFree(ptr, freeEntryPtr);
-      }, */
       getAs(constructor) {
         return new constructor(moduleInstance.HEAP8.buffer, offset, size/constructor.BYTES_PER_ELEMENT);
       },
