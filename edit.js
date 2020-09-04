@@ -3535,10 +3535,6 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   mesh.parcelSize = parcelSize;
   mesh.subparcelSize = subparcelSize;
   mesh.isChunkMesh = true;
-  mesh.groupSets = [];
-  mesh.buildMeshes = {};
-  mesh.vegetationMeshes = {};
-  mesh.objects = [];
 
   const _getSlabPositionOffset = spec => spec.positionsStart/Float32Array.BYTES_PER_ELEMENT;
   const _getSlabNormalOffset = spec => spec.normalsStart/Float32Array.BYTES_PER_ELEMENT;
