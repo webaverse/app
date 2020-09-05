@@ -1,20 +1,20 @@
-import * as THREE from './three.module.js';
+import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import storage from './storage.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
   SUBPARCEL_SIZE_P1,
   SUBPARCEL_SIZE_P3,
-  NUM_PARCELS,
   MAX_NAME_LENGTH,
   PLANET_OBJECT_SLOTS,
   PLANET_OBJECT_SIZE,
-
-  getNextMeshId,
 } from './constants.js';
-import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
+import { XRChannelConnection } from 'https://2.metartc.com/xrrtc.js';
+import { makeTextMesh } from './vr-ui.js';
+import { loginManager } from './login.js'
+import { pe } from './run.js'
 
-const presenceHost = 'wss://rtc.exokit.org:4443';
+const presenceHost = 'wss://127.0.0.1:4443';
 
 // const upVector = new THREE.Vector3(0, 1, 0);
 
@@ -307,22 +307,44 @@ const _unlockAll = keys => {
     }
   }
 };
-planet.requestRemoteSubparcels = async keys => {
+planet.requestRemoteSubparcels = async (keys) => {
+  // XXX return array of subparcel data or null if did not exist
   await _lockAll(keys);
   const promises = keys.map(key => storage.getRaw(`chunks/${key}`));
   const result = await Promise.all(promises);
-  _unlockAll(keys);
-  return result;
+  let parcels = [];
+  channelConnection.dialogClient.addEventListener('getFile', e => {
+    console.log(e) // requested file
+    parcels.push(e.data)
+    if (parcels.length === keys.length) {
+      _unlockAll(keys);
+      channelConnection.dialogClient.removeEventListener('getFile');
+      return result;
+    }
+  });
+  keys.forEach(key => {
+    channelConnection.getFile(key);
+  })
 };
 planet.writeSubparcels = async edits => {
   const keys = edits.map(([key]) => key);
   await _lockAll(keys);
   const promises = edits.map(async ([key, arrayBuffer]) => storage.setRaw(`chunks/${key}`, arrayBuffer));
   await Promise.all(promises);
-  _unlockAll(keys);
+  let responses = [];
+  channelConnection.dialogClient.addEventListener('edit', e => {
+    responses.push(e.data)
+    if (responses.length === edits.length) {
+      _unlockAll(keys);
+      channelConnection.dialogClient.removeEventListener('edit');
+    }
+  });
+  edits.forEach(edit => {
+    channelConnection.runCode({ script: edit, numArgs: 0 });
+  })
 };
-planet.onRemoteSubparcelsEdit = edits => {
-  // XXX called from the connection when a peer runs an edit
+planet.onRemoteSubparcelsEdit = (edits) => {
+  // XXX called from the connection when a peer runs an edit g
   for (const [key, arrayBuffer] of edits) {
     console.log('got edit', key, arrayBuffer);
   }
@@ -503,7 +525,7 @@ const _loadStorage = async roomName => {
 planet.flush = () => {
   if (state) {
     if (channelConnection) {
-      throw new Error('unknown');
+      // throw new Error('unknown');
     } else {
       _saveStorage(state.seedString);
     }
@@ -511,17 +533,16 @@ planet.flush = () => {
 };
 
 // multiplayer
-
 let roomName = null;
 let channelConnection = null;
-let channelConnectionOpen = false;
 const peerConnections = [];
-let microphoneMediaStream = null;
+
 const _connectRoom = async roomName => {
   channelConnection = new XRChannelConnection(`${presenceHost}/`, {
     roomName,
     // displayName: 'user',
   });
+
   channelConnection.addEventListener('open', async e => {
     channelConnectionOpen = true;
 
@@ -572,6 +593,12 @@ const _connectRoom = async roomName => {
       await channelConnection.setMicrophoneMediaStream(mediaStream);
     };
     _latchMediaStream();
+
+    channelConnection.dialogClient.addEventListener('peerEdit', e => {
+      console.log(e)
+      planet.onRemoteSubparcelsEdit(e.data)
+    });
+
   }, {once: true});
   channelConnection.addEventListener('close', e => {
     if (interval) {
@@ -595,12 +622,14 @@ const _connectRoom = async roomName => {
       if (!loading) {
         loading = true;
 
+
+
         if (playerRig) {
-          await xrpackage.remove(playerRig);
+          await pe.remove(playerRig);
           scene.remove(playerRig.textMesh);
           playerRig = null;
         }
-
+        console.log(window)
         const p = await (async () => {
           if (hash) {
             const u = `https://ipfs.exokit.org/ipfs/${hash}.wbn`;
@@ -612,24 +641,25 @@ const _connectRoom = async roomName => {
             return new XRPackage();
           }
         })();
+        console.log('p', p)
         await p.waitForLoad();
         await p.loadAvatar();
         p.isAvatar = true;
-        await xrpackage.add(p);
+        await pe.add(p);
         const scaler = new THREE.Object3D();
         // scaler.scale.set(10, 10, 10);
         scaler.add(p.context.object);
-        xrpackage.engine.scene.add(scaler);
+        pe.scene.add(scaler);
         p.scaler = scaler;
         if (live) {
           playerRig = p;
-          playerRig.textMesh = _makeTextMesh('Loading...');
-          scene.add(playerRig.textMesh);
+          playerRig.textMesh = makeTextMesh('Loading...');
+          pe.scene.add(playerRig.textMesh);
           if (microphoneMediaStream) {
             p.context.rig.setMicrophoneMediaStream(microphoneMediaStream);
           }
         } else {
-          await xrpackage.remove(p);
+          await pe.remove(p);
         }
 
         loading = false;
@@ -645,9 +675,6 @@ const _connectRoom = async roomName => {
       }
     };
     _loadAvatar(null);
-    
-    /* const remoteRig = _makeRig();
-    _addRig(remoteRig); */
 
     peerConnection.getPlayerRig = () => playerRig;
     peerConnection.addEventListener('close', async () => {
@@ -663,6 +690,8 @@ const _connectRoom = async roomName => {
       _removeRig(remoteRig);
       live = false;
     });
+    const localEuler = new THREE.Euler();
+
     peerConnection.addEventListener('message', e => {
       const {data} = e;
       if (typeof data === 'string') {
@@ -673,22 +702,24 @@ const _connectRoom = async roomName => {
             const {pose} = j;
             const [head, leftGamepad, rightGamepad] = pose;
             
-            /* remoteRig.head.position.fromArray(head[0]);
-            remoteRig.head.quaternion.fromArray(head[1]);
-            remoteRig.leftHand.position.fromArray(leftGamepad[0]);
-            remoteRig.leftHand.quaternion.fromArray(leftGamepad[1]);
-            remoteRig.rightHand.position.fromArray(rightGamepad[0]);
-            remoteRig.rightHand.quaternion.fromArray(rightGamepad[1]); */
-
+            playerRig.context.rig.inputs.hmd.position.fromArray(head[0]);
+            playerRig.context.rig.inputs.hmd.quaternion.fromArray(head[1]);
+            playerRig.context.rig.inputs.leftGamepad.position.fromArray(leftGamepad[0]);
+            playerRig.context.rig.inputs.leftGamepad.quaternion.fromArray(leftGamepad[1]);
+            playerRig.context.rig.inputs.rightGamepad.position.fromArray(rightGamepad[0]);
+            playerRig.context.rig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
             playerRig.setPose(pose);
             playerRig.textMesh.position.fromArray(head[0]);
             playerRig.textMesh.position.y += 0.5;
             playerRig.textMesh.quaternion.fromArray(head[1]);
+    
             localEuler.setFromQuaternion(playerRig.textMesh.quaternion, 'YXZ');
             localEuler.x = 0;
             localEuler.y += Math.PI;
             localEuler.z = 0;
             playerRig.textMesh.quaternion.setFromEuler(localEuler);
+
+            console.log(playerRig)
           }
         } else if (method === 'name') {
           const {peerId, name} = j;
@@ -700,7 +731,6 @@ const _connectRoom = async roomName => {
           const {peerId, hash} = j;
           if (peerId === peerConnection.connectionId && hash !== modelHash) {
             modelHash = hash;
-            _loadAvatar(hash);
           }
         } else {
           console.warn('unknown method', method);
@@ -715,7 +745,7 @@ const _connectRoom = async roomName => {
       microphoneMediaStream = new MediaStream([track]);
       const audio = document.createElement('audio');
       audio.srcObject = microphoneMediaStream;
-      audio.play();
+      // audio.play();
       if (playerRig) {
         playerRig.context.rig.setMicrophoneMediaStream(microphoneMediaStream);
         track.addEventListener('ended', e => {
@@ -726,22 +756,56 @@ const _connectRoom = async roomName => {
     });
     peerConnections.push(peerConnection);
 
+    console.log(playerRig)
+
+    // update remote player rigs
+  for (const peerConnection of peerConnections) {
+    const pr = peerConnection.getPlayerRig();
+    if (pr) {
+      pr.rig && pr.rig.update();
+    }
+  }
+
     let interval;
     if (live) {
       interval = setInterval(() => {
+        console.log(playerRig)
         channelConnection.send(JSON.stringify({
           method: 'name',
           peerId: channelConnection.connectionId,
-          name: _getUsername(),
+          name: loginManager.getUsername(),
         }));
         channelConnection.send(JSON.stringify({
           method: 'avatar',
           peerId: channelConnection.connectionId,
-          hash: _getAvatar(),
+          hash: loginManager.getAvatar(),
+        }));
+        const pose = [
+          [
+            playerRig.context.rig.inputs.hmd.position.toArray(),
+            playerRig.context.rig.inputs.hmd.quaternion.toArray(),
+          ],
+          [
+            playerRig.context.rig.inputs.leftGamepad.position.toArray(),
+            playerRig.context.rig.inputs.leftGamepad.quaternion.toArray(),
+            playerRig.context.rig.inputs.leftGamepad.pointer,
+            playerRig.context.rig.inputs.leftGamepad.grip,
+          ],
+          [
+            playerRig.context.rig.inputs.rightGamepad.position.toArray(),
+            playerRig.context.rig.inputs.rightGamepad.quaternion.toArray(),
+            playerRig.context.rig.inputs.rightGamepad.pointer,
+            playerRig.context.rig.inputs.rightGamepad.grip,
+          ],
+        ];
+        channelConnection.send(JSON.stringify({
+          method: 'pose',
+          pose
         }));
       }, 1000);
     }
   });
+
   /* channelConnection.addEventListener('botconnection', async e => {
     console.log('got bot connection', e.data);
 
@@ -751,6 +815,10 @@ const _connectRoom = async roomName => {
       }));
     }, 1000);
   }); */
+
+  // setInterval(() => {
+  //   console.log(channelConnection);
+  // }, 5000);
 
   channelConnection.addEventListener('initState', async e => {
     const {data} = e;
@@ -786,9 +854,9 @@ const _connectRoom = async roomName => {
     } */
   });
 };
+
 planet.connect = async (rn, {online = true} = {}) => {
   roomName = rn;
-
   if (online) {
     await _connectRoom(roomName);
   } else {
@@ -801,3 +869,5 @@ planet.connect = async (rn, {online = true} = {}) => {
   const s = _deserializeState(b);
   return s;
 }; */
+
+planet.connect('lol')
