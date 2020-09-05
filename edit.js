@@ -5316,6 +5316,17 @@ function animate(timestamp, frame) {
             }
             break;
           }
+          case 'select': {
+            if (raycastChunkSpec) {
+              if (raycastChunkSpec.objectId !== 0) {
+                const thingFile = thingFiles[raycastChunkSpec.objectId];
+                if (thingFile) {
+                  console.log('got thing file', thingFile);
+                }
+              }
+            }
+            break;
+          }
           case 'physics': {
             console.log('click physics 1');
             break;
@@ -5551,14 +5562,20 @@ function animate(timestamp, frame) {
 renderer.setAnimationLoop(animate);
 // renderer.xr.setSession(proxySession);
 
+const thingFiles = {};
 bindUploadFileButton(document.getElementById('load-package-input'), async file => {
   const {default: atlaspack} = await import('./atlaspack.js');
   const u = URL.createObjectURL(file);
   let o;
+  let arrayBuffer;
   try {
+    let xhr;
     o = await new Promise((accept, reject) => {
-      new GLTFLoader().load(u, accept, xhr => {}, reject);
+      new GLTFLoader().load(u, accept, x => {
+        xhr = x;
+      }, reject);
     });
+    arrayBuffer = xhr.target.response;
   } finally {
     URL.revokeObjectURL(u);
   }
@@ -5717,7 +5734,11 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
     geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, texture.byteOffset, 0, 0)
       .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, localVector, localQuaternion, localVector2))
       .then(({objectId}) => {
-        console.log('added thing geometry', objectId);
+        const b = new Blob([arrayBuffer], {
+          type: 'applciation/octet-stream',
+        });
+        const u = URL.createObjectURL(b);
+        thingFiles[objectId] = u;
       }, console.warn);
 
     // console.log('got o', o, geometry, textures, atlas, rects, imageData, texture);
