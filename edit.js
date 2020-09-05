@@ -5321,7 +5321,19 @@ function animate(timestamp, frame) {
               if (raycastChunkSpec.objectId !== 0) {
                 const thingFile = thingFiles[raycastChunkSpec.objectId];
                 if (thingFile) {
-                  console.log('got thing file', thingFile);
+                  (async () => {
+                    const o = await new Promise((accept, reject) => {
+                      new GLTFLoader().load(thingFile, accept, xhr => {}, reject);
+                    });
+                    scene.remove(rig.model);
+                    rig = new Avatar(o, {
+                      fingers: true,
+                      hair: true,
+                      visemes: true,
+                      decapitate: selectedTool === 'firstperson',
+                    });
+                    scene.add(rig.model);
+                  })();
                 }
               }
             }
