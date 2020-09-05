@@ -2365,14 +2365,39 @@ const geometryWorker = (() => {
   w.update = () => {
     if (moduleInstance) {
       if (currentChunkMesh) {
-        moduleInstance._tickTracker(
+        const neededCoordsOffset = moduleInstance._updateNeededCoords(
           tracker,
-          threadPool,
-          geometrySet,
           currentChunkMesh.currentPosition.x,
           currentChunkMesh.currentPosition.y,
           currentChunkMesh.currentPosition.z
         );
+        if (neededCoordsOffset) {
+          const addedCoordsOffset = moduleInstance.HEAPU32[neededCoordsOffset/Uint32Array.BYTES_PER_ELEMENT];
+          const numAddedCoords = moduleInstance.HEAPU32[neededCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
+
+          console.log('num added coords', numAddedCoords);
+          for (let i = 0; i < numAddedCoords; i++) {
+            const x = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4];
+            const y = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 1];
+            const z = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 2];
+            const index = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 3];
+            console.log('got x y z', x, y, z, index);
+          }
+
+          moduleInstance._finishUpdate(
+            tracker,
+            threadPool,
+            geometrySet,
+            neededCoordsOffset
+          );
+
+          /* EMSCRIPTEN_KEEPALIVE NeededCoords *updateNeededCoords(Tracker *tracker, float x, float y, float z) {
+            NeededCoords *neededCoords = tracker->updateNeededCoords(x, y, z);
+            return neededCoords;
+          }
+          EMSCRIPTEN_KEEPALIVE void finishUpdate(Tracker *tracker, ThreadPool *threadPool, GeometrySet *geometrySet, NeededCoords *neededCoords) {
+            tracker->finishUpdate(threadPool, geometrySet, neededCoords); */
+        }
       }
 
       moduleInstance._tick(
