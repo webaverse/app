@@ -1828,6 +1828,7 @@ const geometryWorker = (() => {
       position.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH)/Float32Array.BYTES_PER_ELEMENT);
       quaternion.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 3*Float32Array.BYTES_PER_ELEMENT)/Float32Array.BYTES_PER_ELEMENT);
     }, offset => {
+      const objectId = callStack.ou32[offset++];
       const numSubparcels = callStack.ou32[offset++];
       // console.log('num subparcels add', numSubparcels);
       for (let i = 0; i < numSubparcels; i++) {
@@ -1894,7 +1895,9 @@ const geometryWorker = (() => {
         }
       }, offset => {
         // console.log('done release', numSubparcels);
-        accept();
+        accept({
+          objectId,
+        });
       });
     });
   });
@@ -2196,6 +2199,7 @@ const geometryWorker = (() => {
       quaternion.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 3*Float32Array.BYTES_PER_ELEMENT)/Float32Array.BYTES_PER_ELEMENT);
       scale.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 7*Float32Array.BYTES_PER_ELEMENT)/Float32Array.BYTES_PER_ELEMENT);
     }, offset => {
+      const objectId = callStack.ou32[offset++];
       const numSubparcels = callStack.ou32[offset++];
       for (let i = 0; i < numSubparcels; i++) {
         const positionsFreeEntry = callStack.ou32[offset++];
@@ -2274,7 +2278,9 @@ const geometryWorker = (() => {
         }
       }, offset => {
         // console.log('done release', numSubparcels);
-        accept();
+        accept({
+          objectId,
+        });
       });
     });
   });
@@ -5710,8 +5716,8 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
     const name = 'thing' + (++numThings);
     geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, texture.byteOffset, 0, 0)
       .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, localVector, localQuaternion, localVector2))
-      .then(() => {
-        console.log('added thing geometry');
+      .then(({objectId}) => {
+        console.log('added thing geometry', objectId);
       }, console.warn);
 
     // console.log('got o', o, geometry, textures, atlas, rects, imageData, texture);
