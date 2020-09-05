@@ -977,7 +977,8 @@ const geometryWorker = (() => {
       // const y = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
       // const z = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 2];
       const index = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 3];
-      storage.setRaw(`subparcel:${index}`, moduleInstance.HEAPU8.slice(subparcelOffset, subparcelOffset + subparcelSize))
+      const uint8Array = moduleInstance.HEAPU8.slice(subparcelOffset, subparcelOffset + subparcelSize);
+      storage.setRaw(`subparcel:${index}`, uint8Array);
         /* .then(() => {
           console.log('set raw ok', x, y, z, `subparcel:${index}`);
         }); */
@@ -2397,7 +2398,7 @@ const geometryWorker = (() => {
               // const y = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 1];
               // const z = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 2];
               const index = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 3];
-              const uint8Array = await storage.getRaw(`subparcel:${index}`)
+              const uint8Array = await storage.getRaw(`subparcel:${index}`);
               console.log('got subarray', `subparcel:${index}`, uint8Array);
             }
           })().then(() => {
