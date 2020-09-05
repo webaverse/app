@@ -2762,34 +2762,29 @@ const geometryWorker = (() => {
       if (geometry.attributes.position.updateRange.count > 0) {
         geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
         geometry.attributes.position.needsUpdate = true;
-      }
-      geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.uv.updateRange.count > 0) {
+
+        geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
         geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(spec);
         geometry.attributes.uv.needsUpdate = true;
-      }
-      geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.id.updateRange.count > 0) {
+
+        geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
         geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec);
         geometry.attributes.id.needsUpdate = true;
-      }
-      geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.skyLight.updateRange.count) {
+
+        geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
         geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(spec);
         geometry.attributes.skyLight.needsUpdate = true;
-      }
-      geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.torchLight.updateRange.count > 0) {
+
+        geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
         geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(spec);
         geometry.attributes.torchLight.needsUpdate = true;
-      }
-      geometry.index.updateRange.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
-      if (geometry.index.updateRange.count) {
+
+        geometry.index.updateRange.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
         geometry.index.updateRange.offset = _getSlabIndexOffset(spec);
         geometry.index.needsUpdate = true;
-      }
 
-      renderer.geometries.update(geometry);
+        renderer.geometries.update(geometry);
+      }
     };
     mesh.freeSlabIndex = index => {
       const slab = slabs[index];
@@ -2932,39 +2927,33 @@ const geometryWorker = (() => {
       if (geometry.attributes.position.updateRange.count > 0) {
         geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
         geometry.attributes.position.needsUpdate = true;
-      }
-      geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.uv.updateRange.count > 0) {
+
+        geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
         geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(spec);
         geometry.attributes.uv.needsUpdate = true;
-      }
-      geometry.attributes.atlasUv.updateRange.count = spec.atlasUvsCount/Float32Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.atlasUv.updateRange.count > 0) {
+
+        geometry.attributes.atlasUv.updateRange.count = spec.atlasUvsCount/Float32Array.BYTES_PER_ELEMENT;
         geometry.attributes.atlasUv.updateRange.offset =_getSlabAtlasUvOffset(spec);
         geometry.attributes.atlasUv.needsUpdate = true;
-      }
-      geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.id.updateRange.count > 0) {
+
+        geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
         geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec);
         geometry.attributes.id.needsUpdate = true;
-      }
-      geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.skyLight.updateRange.count > 0) {
+
+        geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
         geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(spec);
         geometry.attributes.skyLight.needsUpdate = true;
-      }
-      geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.torchLight.updateRange.count > 0) {
+
+        geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
         geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(spec);
         geometry.attributes.torchLight.needsUpdate = true;
-      }
-      geometry.index.updateRange.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
-      if (geometry.index.updateRange.count > 0) {
+
+        geometry.index.updateRange.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
         geometry.index.updateRange.offset = _getSlabIndexOffset(spec);
         geometry.index.needsUpdate = true;
-      }
 
-      renderer.geometries.update(geometry);
+        renderer.geometries.update(geometry);
+      }
     };
     mesh.updateTexture = data => {
       thingTexture.image.data = data;
@@ -3752,39 +3741,33 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     if (geometry.attributes.position.updateRange.count > 0) {
       geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
       geometry.attributes.position.needsUpdate = true;
-    }
-    geometry.attributes.normal.updateRange.count = spec.normalsCount/Float32Array.BYTES_PER_ELEMENT;
-    if (geometry.attributes.normal.updateRange.count > 0) {
+
+      geometry.attributes.normal.updateRange.count = spec.normalsCount/Float32Array.BYTES_PER_ELEMENT;
       geometry.attributes.normal.updateRange.offset = _getSlabNormalOffset(spec);
       geometry.attributes.normal.needsUpdate = true;
-    }
-    geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
-    if (geometry.attributes.uv.updateRange.count > 0) {
+
+      geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
       geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(spec);
       geometry.attributes.uv.needsUpdate = true;
-    }
-    geometry.attributes.ao.updateRange.count = spec.aosCount/Uint8Array.BYTES_PER_ELEMENT;
-    if (geometry.attributes.ao.updateRange.count > 0) {
+
+      geometry.attributes.ao.updateRange.count = spec.aosCount/Uint8Array.BYTES_PER_ELEMENT;
       geometry.attributes.ao.needsUpdate = true;
       geometry.attributes.ao.updateRange.offset =_getSlabAoOffset(spec);
-    }
-    geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
-    if (geometry.attributes.id.updateRange.count > 0) {
+
+      geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
       geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec); // XXX can be removed and moved to uniforms for vegetation via vertexId
       geometry.attributes.id.needsUpdate = true;
-    }
-    geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
-    if (geometry.attributes.skyLight.updateRange.count > 0) {
+
+      geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
       geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(spec);
       geometry.attributes.skyLight.needsUpdate = true;
-    }
-    geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
-    if (geometry.attributes.torchLight.updateRange.count > 0) {
+
+      geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
       geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(spec);
       geometry.attributes.torchLight.needsUpdate = true;
-    }
 
-    renderer.geometries.update(geometry);
+      renderer.geometries.update(geometry);
+    }
   };
 
   const currentPosition = new THREE.Vector3(NaN, NaN, NaN);
