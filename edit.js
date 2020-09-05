@@ -5699,14 +5699,14 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
     const texture = geometryWorker.alloc(Uint8Array, imageData.data.byteLength);
     texture.set(imageData.data);
 
-    console.log('got o', o, geometry, textures, atlas, rects, imageData, texture);
-
     const name = 'thing' + (++numThings);
     geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, texture.byteOffset, 0, 0)
       .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(3, -7, 3), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1) /*mesh.position, mesh.quaternion, mesh.scale*/))
       .then(() => {
         console.log('added thing geometry');
       }, console.warn);
+
+    // console.log('got o', o, geometry, textures, atlas, rects, imageData, texture);
   }
 });
 
