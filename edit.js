@@ -2369,7 +2369,7 @@ const geometryWorker = (() => {
       trianglePhysicsGeometry,
       convexPhysicsGeometry,
 
-      destory() {
+      destroy() {
         moduleInstance._deleteEarcutResult(tracker, resultOffset);
       },
     };
