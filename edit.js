@@ -5650,10 +5650,10 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
         for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
           if (rect) {
             uvs[uvIndex + i] = rect.x/size +  geometry.attributes.uv.array[i]*rect.w/size;
-            uvs[uvIndex + i+1] = 1 - (rect.y/size + geometry.attributes.uv.array[i+1]*rect.h/size);
+            uvs[uvIndex + i+1] = rect.y/size + geometry.attributes.uv.array[i+1]*rect.h/size;
           } else {
             uvs[uvIndex + i] = geometry.attributes.uv.array[i];
-            uvs[uvIndex + i+1] = 1 - geometry.attributes.uv.array[i+1];
+            uvs[uvIndex + i+1] = geometry.attributes.uv.array[i+1];
           }
         }
       } else {
@@ -5673,17 +5673,22 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
   }
 
-  const texture = new THREE.Texture(atlasCanvas);
+  const texture = new THREE.Texture(atlasCanvas)
+  texture.flipY = false;
   texture.needsUpdate = true;
   const material = new THREE.MeshBasicMaterial({
     map: texture,
   });
   // document.body.appendChild(atlasCanvas);
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.copy(camera.position).add(new THREE.Vector3(0, 0, -1));
+  const meshMatrix = localMatrix
+    .compose(localVector.copy(camera.position).add(localVector3.set(0, 0, -1).applyQuaternion(camera.quaternion)), camera.quaternion, localVector2.set(1, 1, 1))
+    .premultiply(localMatrix2.getInverse(chunkMeshContainer.matrixWorld))
+    .decompose(localVector, localQuaternion, localVector2);
+  /* const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.copy(camera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion));
   mesh.quaternion.copy(camera.quaternion);
   mesh.frustumCulled = false;
-  scene.add(mesh);
+  scene.add(mesh); */
 
   {
     const positions = geometryWorker.alloc(Float32Array, geometry.attributes.position.array.length);
@@ -5698,13 +5703,15 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
     const texture = geometryWorker.alloc(Uint8Array, imageData.data.byteLength);
     texture.set(imageData.data);
 
-    geometryWorker.requestAddThingGeometry(tracker, geometrySet, 'thing' + (++numThings), positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, texture.byteOffset, 0, 0)
+    const name = 'thing' + (++numThings);
+    geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, texture.byteOffset, 0, 0)
+      .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, localVector, localQuaternion, localVector2))
       .then(() => {
         console.log('added thing geometry');
       }, console.warn);
-  }
 
-  console.log('got o', o, geometry, textures, atlas, rects);
+    // console.log('got o', o, geometry, textures, atlas, rects, imageData, texture);
+  }
 });
 
 let selectedTool = 'camera';
