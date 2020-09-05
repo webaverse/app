@@ -535,6 +535,7 @@ planet.flush = () => {
 // multiplayer
 let roomName = null;
 let channelConnection = null;
+let channelConnectionOpen = null;
 const peerConnections = [];
 
 const _connectRoom = async roomName => {
