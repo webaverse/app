@@ -135,7 +135,7 @@ renderer.xr.enabled = true;
 
 const ambientLight = new THREE.AmbientLight(0xFFFFFF);
 scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
 directionalLight.position.set(1, 2, 3);
 scene.add(directionalLight);
 /* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
