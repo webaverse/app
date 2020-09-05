@@ -5680,11 +5680,15 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
     map: texture,
   });
   // document.body.appendChild(atlasCanvas);
-  const mesh = new THREE.Mesh(geometry, material);
+  const meshMatrix = localMatrix
+    .compose(localVector.copy(camera.position).add(localVector3.set(0, 0, -1)), camera.quaternion, localVector2.set(1, 1, 1))
+    .premultiply(localMatrix2.getInverse(chunkMeshContainer.matrixWorld))
+    .decompose(localVector, localQuaternion, localVector2);
+  /* const mesh = new THREE.Mesh(geometry, material);
   mesh.position.copy(camera.position).add(new THREE.Vector3(0, 0, -1));
   mesh.quaternion.copy(camera.quaternion);
   mesh.frustumCulled = false;
-  scene.add(mesh);
+  scene.add(mesh); */
 
   {
     const positions = geometryWorker.alloc(Float32Array, geometry.attributes.position.array.length);
@@ -5701,7 +5705,7 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
 
     const name = 'thing' + (++numThings);
     geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, texture.byteOffset, 0, 0)
-      .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(3, -7, 3), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1) /*mesh.position, mesh.quaternion, mesh.scale*/))
+      .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, localVector, localQuaternion, localVector2))
       .then(() => {
         console.log('added thing geometry');
       }, console.warn);
