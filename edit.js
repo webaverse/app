@@ -32,6 +32,7 @@ import {
   getNextMeshId,
   makePromise,
 } from './constants.js';
+import storage from './storage.js';
 import alea from './alea.js';
 import easing from './easing.js';
 import {planet} from './planet.js';
@@ -972,13 +973,14 @@ const geometryWorker = (() => {
       const subparcelOffset = callStack.ou32[offset++];
       const subparcelSize = callStack.ou32[offset++];
 
-      const x = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT];
-      const y = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
-      const z = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 2];
+      // const x = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT];
+      // const y = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
+      // const z = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 2];
       const index = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 3];
-
-      // XXX save subparcel here
-      // console.log('update subparcel', x, y, z, index, subparcelSize);
+      storage.setRaw(`subparcel:${index}`, moduleInstance.HEAPU8.slice(subparcelOffset, subparcelOffset + subparcelSize))
+        /* .then(() => {
+          console.log('set raw ok', x, y, z, `subparcel:${index}`);
+        }); */
     },
     [--messageIndex]: function updateGeometry(offset) {
       {
@@ -2389,23 +2391,25 @@ const geometryWorker = (() => {
           const numLoadedCoordsOffset = neededCoordsOffset + Uint32Array.BYTES_PER_ELEMENT*2;
           const numGenerateCoordsOffset = neededCoordsOffset + Uint32Array.BYTES_PER_ELEMENT*3;
 
-          for (let i = 0; i < numAddedCoords; i++) {
-            const x = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4];
-            const y = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 1];
-            const z = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 2];
-            const index = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 3];
-            // XXX load subparcel here
-            // console.log('got x y z', x, y, z, index);
-          }
+          (async () => {
+            for (let i = 0; i < numAddedCoords; i++) {
+              // const x = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4];
+              // const y = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 1];
+              // const z = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 2];
+              const index = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 3];
+              const uint8Array = await storage.getRaw(`subparcel:${index}`)
+              console.log('got subarray', `subparcel:${index}`, uint8Array);
+            }
+          })().then(() => {
+            moduleInstance.HEAPU32[numGenerateCoordsOffset/Uint32Array.BYTES_PER_ELEMENT] = numAddedCoords;
 
-          moduleInstance.HEAPU32[numGenerateCoordsOffset/Uint32Array.BYTES_PER_ELEMENT] = numAddedCoords;
-
-          moduleInstance._finishUpdate(
-            tracker,
-            threadPool,
-            geometrySet,
-            neededCoordsOffset
-          );
+            moduleInstance._finishUpdate(
+              tracker,
+              threadPool,
+              geometrySet,
+              neededCoordsOffset
+            );
+          });
         }
       }
 
