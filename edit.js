@@ -5650,10 +5650,10 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
         for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
           if (rect) {
             uvs[uvIndex + i] = rect.x/size +  geometry.attributes.uv.array[i]*rect.w/size;
-            uvs[uvIndex + i+1] = 1 - (rect.y/size + geometry.attributes.uv.array[i+1]*rect.h/size);
+            uvs[uvIndex + i+1] = rect.y/size + geometry.attributes.uv.array[i+1]*rect.h/size;
           } else {
             uvs[uvIndex + i] = geometry.attributes.uv.array[i];
-            uvs[uvIndex + i+1] = 1 - geometry.attributes.uv.array[i+1];
+            uvs[uvIndex + i+1] = geometry.attributes.uv.array[i+1];
           }
         }
       } else {
@@ -5673,7 +5673,8 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
   }
 
-  const texture = new THREE.Texture(atlasCanvas);
+  const texture = new THREE.Texture(atlasCanvas)
+  texture.flipY = false;
   texture.needsUpdate = true;
   const material = new THREE.MeshBasicMaterial({
     map: texture,
@@ -5698,13 +5699,15 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
     const texture = geometryWorker.alloc(Uint8Array, imageData.data.byteLength);
     texture.set(imageData.data);
 
-    geometryWorker.requestAddThingGeometry(tracker, geometrySet, 'thing' + (++numThings), positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, texture.byteOffset, 0, 0)
+    console.log('got o', o, geometry, textures, atlas, rects, imageData, texture);
+
+    const name = 'thing' + (++numThings);
+    geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, texture.byteOffset, 0, 0)
+      .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(3, -7, 3), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1) /*mesh.position, mesh.quaternion, mesh.scale*/))
       .then(() => {
         console.log('added thing geometry');
       }, console.warn);
   }
-
-  console.log('got o', o, geometry, textures, atlas, rects);
 });
 
 let selectedTool = 'camera';
