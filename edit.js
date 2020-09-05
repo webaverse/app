@@ -135,7 +135,7 @@ renderer.xr.enabled = true;
 
 const ambientLight = new THREE.AmbientLight(0xFFFFFF);
 scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
 directionalLight.position.set(1, 2, 3);
 scene.add(directionalLight);
 /* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
@@ -1828,6 +1828,7 @@ const geometryWorker = (() => {
       position.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH)/Float32Array.BYTES_PER_ELEMENT);
       quaternion.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 3*Float32Array.BYTES_PER_ELEMENT)/Float32Array.BYTES_PER_ELEMENT);
     }, offset => {
+      const objectId = callStack.ou32[offset++];
       const numSubparcels = callStack.ou32[offset++];
       // console.log('num subparcels add', numSubparcels);
       for (let i = 0; i < numSubparcels; i++) {
@@ -1894,7 +1895,9 @@ const geometryWorker = (() => {
         }
       }, offset => {
         // console.log('done release', numSubparcels);
-        accept();
+        accept({
+          objectId,
+        });
       });
     });
   });
@@ -2196,6 +2199,7 @@ const geometryWorker = (() => {
       quaternion.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 3*Float32Array.BYTES_PER_ELEMENT)/Float32Array.BYTES_PER_ELEMENT);
       scale.toArray(callStack.f32, offset + (2*Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 7*Float32Array.BYTES_PER_ELEMENT)/Float32Array.BYTES_PER_ELEMENT);
     }, offset => {
+      const objectId = callStack.ou32[offset++];
       const numSubparcels = callStack.ou32[offset++];
       for (let i = 0; i < numSubparcels; i++) {
         const positionsFreeEntry = callStack.ou32[offset++];
@@ -2274,7 +2278,9 @@ const geometryWorker = (() => {
         }
       }, offset => {
         // console.log('done release', numSubparcels);
-        accept();
+        accept({
+          objectId,
+        });
       });
     });
   });
@@ -2359,14 +2365,31 @@ const geometryWorker = (() => {
   w.update = () => {
     if (moduleInstance) {
       if (currentChunkMesh) {
-        moduleInstance._tickTracker(
+        const neededCoordsOffset = moduleInstance._updateNeededCoords(
           tracker,
-          threadPool,
-          geometrySet,
           currentChunkMesh.currentPosition.x,
           currentChunkMesh.currentPosition.y,
           currentChunkMesh.currentPosition.z
         );
+        if (neededCoordsOffset) {
+          const addedCoordsOffset = moduleInstance.HEAPU32[neededCoordsOffset/Uint32Array.BYTES_PER_ELEMENT];
+          const numAddedCoords = moduleInstance.HEAPU32[neededCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
+
+          for (let i = 0; i < numAddedCoords; i++) {
+            const x = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4];
+            const y = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 1];
+            const z = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 2];
+            const index = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 3];
+            // console.log('got x y z', x, y, z, index);
+          }
+
+          moduleInstance._finishUpdate(
+            tracker,
+            threadPool,
+            geometrySet,
+            neededCoordsOffset
+          );
+        }
       }
 
       moduleInstance._tick(
@@ -2762,34 +2785,29 @@ const geometryWorker = (() => {
       if (geometry.attributes.position.updateRange.count > 0) {
         geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
         geometry.attributes.position.needsUpdate = true;
-      }
-      geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.uv.updateRange.count > 0) {
+
+        geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
         geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(spec);
         geometry.attributes.uv.needsUpdate = true;
-      }
-      geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.id.updateRange.count > 0) {
+
+        geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
         geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec);
         geometry.attributes.id.needsUpdate = true;
-      }
-      geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.skyLight.updateRange.count) {
+
+        geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
         geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(spec);
         geometry.attributes.skyLight.needsUpdate = true;
-      }
-      geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.torchLight.updateRange.count > 0) {
+
+        geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
         geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(spec);
         geometry.attributes.torchLight.needsUpdate = true;
-      }
-      geometry.index.updateRange.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
-      if (geometry.index.updateRange.count) {
+
+        geometry.index.updateRange.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
         geometry.index.updateRange.offset = _getSlabIndexOffset(spec);
         geometry.index.needsUpdate = true;
-      }
 
-      renderer.geometries.update(geometry);
+        renderer.geometries.update(geometry);
+      }
     };
     mesh.freeSlabIndex = index => {
       const slab = slabs[index];
@@ -2871,14 +2889,22 @@ const geometryWorker = (() => {
           value: thingTexture,
           needsUpdate: true,
         },
+        uSelectId: {
+          type: 'f',
+          value: -1,
+          needsUpdate: true,
+        },
       },
       vertexShader: `\
         precision highp float;
         precision highp int;
 
+        uniform float uSelectId;
         attribute vec2 atlasUv;
+        attribute float id;
         // attribute float skyLight;
         // attribute float torchLight;
+        varying vec3 vSelectColor;
 
         varying vec2 vUv;
         // varying float vSkyLight;
@@ -2888,6 +2914,12 @@ const geometryWorker = (() => {
           vUv = (atlasUv + uv) * ${(objectTextureSize/thingTextureSize).toFixed(8)};
           vec3 p = position;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+
+          vSelectColor = vec3(0.);
+          if (uSelectId == id) {
+            vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
+          }
+
           // vSkyLight = skyLight/8.0;
           // vTorchLight = torchLight/8.0;
         }
@@ -2900,9 +2932,12 @@ const geometryWorker = (() => {
         varying vec2 vUv;
         // varying float vSkyLight;
         // varying float vTorchLight;
+        varying vec3 vSelectColor;
 
         void main() {
-          gl_FragColor = texture2D(map, vUv);
+          vec4 diffuseColor = texture2D(map, vUv);
+          diffuseColor.rgb += vSelectColor;
+          gl_FragColor = diffuseColor;
         }
       `,
       side: THREE.DoubleSide,
@@ -2915,39 +2950,33 @@ const geometryWorker = (() => {
       if (geometry.attributes.position.updateRange.count > 0) {
         geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
         geometry.attributes.position.needsUpdate = true;
-      }
-      geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.uv.updateRange.count > 0) {
+
+        geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
         geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(spec);
         geometry.attributes.uv.needsUpdate = true;
-      }
-      geometry.attributes.atlasUv.updateRange.count = spec.atlasUvsCount/Float32Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.atlasUv.updateRange.count > 0) {
+
+        geometry.attributes.atlasUv.updateRange.count = spec.atlasUvsCount/Float32Array.BYTES_PER_ELEMENT;
         geometry.attributes.atlasUv.updateRange.offset =_getSlabAtlasUvOffset(spec);
         geometry.attributes.atlasUv.needsUpdate = true;
-      }
-      geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.id.updateRange.count > 0) {
+
+        geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
         geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec);
         geometry.attributes.id.needsUpdate = true;
-      }
-      geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.skyLight.updateRange.count > 0) {
+
+        geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
         geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(spec);
         geometry.attributes.skyLight.needsUpdate = true;
-      }
-      geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
-      if (geometry.attributes.torchLight.updateRange.count > 0) {
+
+        geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
         geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(spec);
         geometry.attributes.torchLight.needsUpdate = true;
-      }
-      geometry.index.updateRange.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
-      if (geometry.index.updateRange.count > 0) {
+
+        geometry.index.updateRange.count = spec.indicesCount/Uint32Array.BYTES_PER_ELEMENT;
         geometry.index.updateRange.offset = _getSlabIndexOffset(spec);
         geometry.index.needsUpdate = true;
-      }
 
-      renderer.geometries.update(geometry);
+        renderer.geometries.update(geometry);
+      }
     };
     mesh.updateTexture = data => {
       thingTexture.image.data = data;
@@ -3003,7 +3032,7 @@ const MeshDrawer = (() => {
     }
     return canvas;
   })();
-  const _makeThingCanvas = () => {
+  const _makeDrawThingCanvas = () => {
     const canvas = document.createElement('canvas');
     canvas.width = checkerboardCanvas.width;
     canvas.height = checkerboardCanvas.height;
@@ -3013,7 +3042,7 @@ const MeshDrawer = (() => {
     return canvas;
   };
 
-  const _makeThingMesh = () => {
+  const _makeDrawThingMesh = () => {
     const geometry = new THREE.BufferGeometry();
     // geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     // geometry.setAttribute('uv3', new THREE.BufferAttribute(uvs, 3));
@@ -3140,7 +3169,7 @@ const MeshDrawer = (() => {
       this.bitang = bitang;
 
       this.geometryData = null;
-      this.canvas = _makeThingCanvas();
+      this.canvas = _makeDrawThingCanvas();
 
       this.objectId = Math.floor(Math.random() * 0xFFFFFF);
       this.position = this.center.clone();
@@ -3205,7 +3234,7 @@ const MeshDrawer = (() => {
       thingSource.updateGeometryData();
       this.thingSources.push(thingSource);
 
-      const thingMesh = _makeThingMesh();
+      const thingMesh = _makeDrawThingMesh();
       thingMesh.setGeometryData(thingSource);
       thingMesh.setTexture(thingSource);
       chunkMeshContainer.add(thingMesh);
@@ -3735,39 +3764,33 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
     if (geometry.attributes.position.updateRange.count > 0) {
       geometry.attributes.position.updateRange.offset = _getSlabPositionOffset(spec);
       geometry.attributes.position.needsUpdate = true;
-    }
-    geometry.attributes.normal.updateRange.count = spec.normalsCount/Float32Array.BYTES_PER_ELEMENT;
-    if (geometry.attributes.normal.updateRange.count > 0) {
+
+      geometry.attributes.normal.updateRange.count = spec.normalsCount/Float32Array.BYTES_PER_ELEMENT;
       geometry.attributes.normal.updateRange.offset = _getSlabNormalOffset(spec);
       geometry.attributes.normal.needsUpdate = true;
-    }
-    geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
-    if (geometry.attributes.uv.updateRange.count > 0) {
+
+      geometry.attributes.uv.updateRange.count = spec.uvsCount/Float32Array.BYTES_PER_ELEMENT;
       geometry.attributes.uv.updateRange.offset =_getSlabUvOffset(spec);
       geometry.attributes.uv.needsUpdate = true;
-    }
-    geometry.attributes.ao.updateRange.count = spec.aosCount/Uint8Array.BYTES_PER_ELEMENT;
-    if (geometry.attributes.ao.updateRange.count > 0) {
+
+      geometry.attributes.ao.updateRange.count = spec.aosCount/Uint8Array.BYTES_PER_ELEMENT;
       geometry.attributes.ao.needsUpdate = true;
       geometry.attributes.ao.updateRange.offset =_getSlabAoOffset(spec);
-    }
-    geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
-    if (geometry.attributes.id.updateRange.count > 0) {
+
+      geometry.attributes.id.updateRange.count = spec.idsCount/Float32Array.BYTES_PER_ELEMENT;
       geometry.attributes.id.updateRange.offset = _getSlabIdOffset(spec); // XXX can be removed and moved to uniforms for vegetation via vertexId
       geometry.attributes.id.needsUpdate = true;
-    }
-    geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
-    if (geometry.attributes.skyLight.updateRange.count > 0) {
+
+      geometry.attributes.skyLight.updateRange.count = spec.skyLightsCount/Uint8Array.BYTES_PER_ELEMENT;
       geometry.attributes.skyLight.updateRange.offset = _getSlabSkyLightOffset(spec);
       geometry.attributes.skyLight.needsUpdate = true;
-    }
-    geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
-    if (geometry.attributes.torchLight.updateRange.count > 0) {
+
+      geometry.attributes.torchLight.updateRange.count = spec.torchLightsCount/Uint8Array.BYTES_PER_ELEMENT;
       geometry.attributes.torchLight.updateRange.offset = _getSlabTorchLightOffset(spec);
       geometry.attributes.torchLight.needsUpdate = true;
-    }
 
-    renderer.geometries.update(geometry);
+      renderer.geometries.update(geometry);
+    }
   };
 
   const currentPosition = new THREE.Vector3(NaN, NaN, NaN);
@@ -5310,6 +5333,29 @@ function animate(timestamp, frame) {
             }
             break;
           }
+          case 'select': {
+            if (raycastChunkSpec) {
+              if (raycastChunkSpec.objectId !== 0) {
+                const thingFile = thingFiles[raycastChunkSpec.objectId];
+                if (thingFile) {
+                  (async () => {
+                    const o = await new Promise((accept, reject) => {
+                      new GLTFLoader().load(thingFile, accept, xhr => {}, reject);
+                    });
+                    scene.remove(rig.model);
+                    rig = new Avatar(o, {
+                      fingers: true,
+                      hair: true,
+                      visemes: true,
+                      decapitate: selectedTool === 'firstperson',
+                    });
+                    scene.add(rig.model);
+                  })();
+                }
+              }
+            }
+            break;
+          }
           case 'physics': {
             console.log('click physics 1');
             break;
@@ -5353,9 +5399,11 @@ function animate(timestamp, frame) {
           }
           currentVegetationMesh.material[0].uniforms.uSelectId.value = -1;
           currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-          for (const thingMesh of meshDrawer.thingMeshes) {
-            thingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
-            thingMesh.material.uniforms.uSelectColor.needsUpdate = true;
+          currentThingMesh.material[0].uniforms.uSelectId.value = -1;
+          currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+          for (const drawThingMesh of meshDrawer.thingMeshes) {
+            drawThingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
+            drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
           }
 
           if (raycastChunkSpec) {
@@ -5371,12 +5419,14 @@ function animate(timestamp, frame) {
             } else {
               currentVegetationMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
               currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+              currentThingMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
+              currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
 
               const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
               if (index !== -1) {
-                const thingMesh = meshDrawer.thingMeshes[index];
-                thingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
-                thingMesh.material.uniforms.uSelectColor.needsUpdate = true;
+                const drawThingMesh = meshDrawer.thingMeshes[index];
+                drawThingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
+                drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
               }
             }
           }
@@ -5541,14 +5591,20 @@ function animate(timestamp, frame) {
 renderer.setAnimationLoop(animate);
 // renderer.xr.setSession(proxySession);
 
+const thingFiles = {};
 bindUploadFileButton(document.getElementById('load-package-input'), async file => {
   const {default: atlaspack} = await import('./atlaspack.js');
   const u = URL.createObjectURL(file);
   let o;
+  let arrayBuffer;
   try {
+    let xhr;
     o = await new Promise((accept, reject) => {
-      new GLTFLoader().load(u, accept, xhr => {}, reject);
+      new GLTFLoader().load(u, accept, x => {
+        xhr = x;
+      }, reject);
     });
+    arrayBuffer = xhr.target.response;
   } finally {
     URL.revokeObjectURL(u);
   }
@@ -5706,8 +5762,12 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
     const name = 'thing' + (++numThings);
     geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, texture.byteOffset, 0, 0)
       .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, localVector, localQuaternion, localVector2))
-      .then(() => {
-        console.log('added thing geometry');
+      .then(({objectId}) => {
+        const b = new Blob([arrayBuffer], {
+          type: 'applciation/octet-stream',
+        });
+        const u = URL.createObjectURL(b);
+        thingFiles[objectId] = u;
       }, console.warn);
 
     // console.log('got o', o, geometry, textures, atlas, rects, imageData, texture);
@@ -6174,72 +6234,7 @@ renderer.domElement.addEventListener('mousedown', e => {
   uiMesh.click();
 });
 
-/* const worldsButton = document.getElementById('worlds-button');
-const worldSaveButton = document.getElementById('world-save-button');
-const worldRevertButton = document.getElementById('world-revert-button'); */
-const packagesButton = document.getElementById('packages-button');
-const inventoryButton = document.getElementById('inventory-button');
-const avatarButton = document.getElementById('avatar-button');
 const micButton = document.getElementById('mic-button');
-const dropdownButton = document.getElementById('dropdown-button');
-const dropdown = document.getElementById('dropdown');
-const worldsSubpage = document.getElementById('worlds-subpage');
-const packagesSubpage = document.getElementById('packages-subpage');
-const inventorySubpage = document.getElementById('inventory-subpage');
-const avatarSubpage = document.getElementById('avatar-subpage');
-const avatarSubpageContent = avatarSubpage.querySelector('.subtab-content');
-const tabs = Array.from(dropdown.querySelectorAll('.tab'));
-const tabContents = Array.from(dropdown.querySelectorAll('.tab-content'));
-const packagesCloseButton = packagesSubpage.querySelector('.close-button');
-const inventorySubtabs = Array.from(inventorySubpage.querySelectorAll('.subtab'));
-const inventoryCloseButton = inventorySubpage.querySelector('.close-button');
-const inventorySubtabContent = inventorySubpage.querySelector('.subtab-content');
-const avatarCloseButton = avatarSubpage.querySelector('.close-button');
-packagesButton.addEventListener('click', e => {
-  packagesButton.classList.add('open');
-  packagesSubpage.classList.add('open');
-
-  dropdownButton.classList.remove('open');
-  dropdown.classList.remove('open');
-  inventoryButton.classList.remove('open');
-  inventorySubpage.classList.remove('open');
-  avatarButton.classList.remove('open');
-  avatarSubpage.classList.remove('open');
-});
-inventoryButton.addEventListener('click', e => {
-  inventoryButton.classList.toggle('open');
-  inventorySubpage.classList.toggle('open');
-
-  dropdownButton.classList.remove('open');
-  dropdown.classList.remove('open');
-  packagesButton.classList.remove('open');
-  packagesSubpage.classList.remove('open');
-  avatarButton.classList.remove('open');
-  avatarSubpage.classList.remove('open');
-});
-avatarButton.addEventListener('click', e => {
-  avatarButton.classList.toggle('open');
-  avatarSubpage.classList.toggle('open');
-
-  dropdownButton.classList.remove('open');
-  dropdown.classList.remove('open');
-  packagesButton.classList.remove('open');
-  packagesSubpage.classList.remove('open');
-  inventoryButton.classList.remove('open');
-  inventorySubpage.classList.remove('open');
-});
-dropdownButton.addEventListener('click', e => {
-  dropdownButton.classList.toggle('open');
-  dropdown.classList.toggle('open');
-
-  worldsButton.classList.remove('open');
-  packagesButton.classList.remove('open');
-  packagesSubpage.classList.remove('open');
-  inventoryButton.classList.remove('open');
-  inventorySubpage.classList.remove('open');
-  avatarButton.classList.remove('open');
-  avatarSubpage.classList.remove('open');
-});
 micButton.addEventListener('click', async e => {
   micButton.classList.toggle('enabled');
   if (micButton.classList.contains('enabled')) {
@@ -6251,108 +6246,6 @@ micButton.addEventListener('click', async e => {
     pe.setMicrophoneMediaStream(null);
   }
 });
-/* for (let i = 0; i < tabs.length; i++) {
-  const tab = tabs[i];
-  const tabContent = tabContents[i];
-  tab.addEventListener('click', e => {
-    for (let i = 0; i < tabs.length; i++) {
-      const tab = tabs[i];
-      const tabContent = tabContents[i];
-      tab.classList.remove('open');
-      tabContent.classList.remove('open');
-    }
-
-    tab.classList.add('open');
-    tabContent.classList.add('open');
-
-    _setSelectTarget(null);
-  });
-} */
-[packagesCloseButton, inventoryCloseButton, avatarCloseButton].forEach(closeButton => {
-  closeButton.addEventListener('click', e => {
-    dropdownButton.classList.remove('open');
-    dropdown.classList.remove('open');
-    packagesButton.classList.remove('open');
-    packagesSubpage.classList.remove('open');
-    inventoryButton.classList.remove('open');
-    inventorySubpage.classList.remove('open');
-    avatarButton.classList.remove('open');
-    avatarSubpage.classList.remove('open');
-  });
-});
-
-/* const dropZones = Array.from(document.querySelectorAll('.drop-zone'));
-dropZones.forEach(dropZone => {
-  dropZone.addEventListener('dragenter', e => {
-    dropZone.classList.add('hover');
-  });
-  dropZone.addEventListener('dragleave', e => {
-    dropZone.classList.remove('hover');
-  });
-});
-window.addEventListener('dragend', e => {
-  document.body.classList.remove('dragging-package');
-  dropZones.forEach(dropZone => {
-    dropZone.classList.remove('hover');
-  });
-});
-document.getElementById('inventory-drop-zone').addEventListener('drop', async e => {
-  e.preventDefault();
-
-  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json+package');
-  if (jsonItem) {
-    const s = await new Promise((resolve, reject) => {
-      jsonItem.getAsString(resolve);
-    });
-    const j = JSON.parse(s);
-    let {name, dataHash, id, iconHash} = j;
-    if (!dataHash) {
-      const p = pe.children.find(p => p.id === id);
-      dataHash = await p.getHash();
-    }
-
-    const inventory = loginManager.getInventory();
-    inventory.push({
-      name,
-      dataHash,
-      iconHash,
-    });
-    await loginManager.setInventory(inventory);
-  }
-});
-document.getElementById('avatar-drop-zone').addEventListener('drop', async e => {
-  e.preventDefault();
-
-  const jsonItem = Array.from(e.dataTransfer.items).find(i => i.type === 'application/json+package');
-  if (jsonItem) {
-    const s = await new Promise((resolve, reject) => {
-      jsonItem.getAsString(resolve);
-    });
-    const j = JSON.parse(s);
-    let {dataHash, id} = j;
-    if (!dataHash) {
-      const p = pe.children.find(p => p.id === id);
-      dataHash = await p.getHash();
-    }
-
-    await loginManager.setAvatar(dataHash);
-  }
-}); */
-
-/* async function _addPackage(p, matrix) {
-  p.setMatrix(matrix);
-  await pe.add(p);
-}
-const _startPackageDrag = (e, j) => {
-  e.dataTransfer.setData('application/json+package', JSON.stringify(j));
-  setTimeout(() => {
-    dropdown.classList.remove('open');
-    packagesSubpage.classList.remove('open');
-    inventorySubpage.classList.remove('open');
-    avatarSubpage.classList.remove('open');
-    document.body.classList.add('dragging-package');
-  });
-}; */
 
 window.addEventListener('resize', e => {
   if (!currentSession) {
