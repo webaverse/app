@@ -968,6 +968,17 @@ const geometryWorker = (() => {
   };
   let messageIndex = 0;
   const MESSAGES = {
+    [--messageIndex]: function updateSubparcel(offset) {
+      const subparcelOffset = callStack.ou32[offset++];
+      const subparcelSize = callStack.ou32[offset++];
+
+      const x = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT];
+      const y = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
+      const z = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 2];
+      const index = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 3];
+
+      // console.log('update subparcel', x, y, z, index, subparcelSize);
+    },
     [--messageIndex]: function updateGeometry(offset) {
       {
         const positionsFreeEntry = callStack.ou32[offset++];
