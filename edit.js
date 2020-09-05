@@ -6000,7 +6000,7 @@ window.addEventListener('keydown', e => {
     }
     case 82: { // R
       if (document.pointerLockElement) {
-        pe.equip('back');
+        // pe.equip('back');
       } else {
         if (selectTarget && selectTarget.control) {
           selectTarget.control.setMode('scale');
