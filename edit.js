@@ -5681,11 +5681,11 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
   });
   // document.body.appendChild(atlasCanvas);
   const meshMatrix = localMatrix
-    .compose(localVector.copy(camera.position).add(localVector3.set(0, 0, -1)), camera.quaternion, localVector2.set(1, 1, 1))
+    .compose(localVector.copy(camera.position).add(localVector3.set(0, 0, -1).applyQuaternion(camera.quaternion)), camera.quaternion, localVector2.set(1, 1, 1))
     .premultiply(localMatrix2.getInverse(chunkMeshContainer.matrixWorld))
     .decompose(localVector, localQuaternion, localVector2);
   /* const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.copy(camera.position).add(new THREE.Vector3(0, 0, -1));
+  mesh.position.copy(camera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion));
   mesh.quaternion.copy(camera.quaternion);
   mesh.frustumCulled = false;
   scene.add(mesh); */
