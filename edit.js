@@ -977,6 +977,7 @@ const geometryWorker = (() => {
       const z = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 2];
       const index = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 3];
 
+      // XXX save subparcel here
       // console.log('update subparcel', x, y, z, index, subparcelSize);
     },
     [--messageIndex]: function updateGeometry(offset) {
@@ -2385,14 +2386,19 @@ const geometryWorker = (() => {
         if (neededCoordsOffset) {
           const addedCoordsOffset = moduleInstance.HEAPU32[neededCoordsOffset/Uint32Array.BYTES_PER_ELEMENT];
           const numAddedCoords = moduleInstance.HEAPU32[neededCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
+          const numLoadedCoordsOffset = neededCoordsOffset + Uint32Array.BYTES_PER_ELEMENT*2;
+          const numGenerateCoordsOffset = neededCoordsOffset + Uint32Array.BYTES_PER_ELEMENT*3;
 
           for (let i = 0; i < numAddedCoords; i++) {
             const x = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4];
             const y = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 1];
             const z = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 2];
             const index = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 3];
+            // XXX load subparcel here
             // console.log('got x y z', x, y, z, index);
           }
+
+          moduleInstance.HEAPU32[numGenerateCoordsOffset/Uint32Array.BYTES_PER_ELEMENT] = numAddedCoords;
 
           moduleInstance._finishUpdate(
             tracker,
