@@ -544,8 +544,11 @@ const _connectRoom = async roomName => {
     // displayName: 'user',
   });
 
-  channelConnection.addEventListener('open', async e => {
+  console.log(channelConnection)
+
+  channelConnection.dialogClient.addEventListener('open', async e => {
     channelConnectionOpen = true;
+    console.log('Channel Open!')
 
     const queue = [];
     let index = 0;
@@ -610,6 +613,8 @@ const _connectRoom = async roomName => {
   channelConnection.addEventListener('peerconnection', async e => {
     const peerConnection = e.data;
 
+    console.log('New Peer', e)
+
     let modelHash = null;
     let playerRig = null;
     let microphoneMediaStream = null;
@@ -622,8 +627,6 @@ const _connectRoom = async roomName => {
     const _loadAvatar = async hash => {
       if (!loading) {
         loading = true;
-
-
 
         if (playerRig) {
           await pe.remove(playerRig);
@@ -693,8 +696,13 @@ const _connectRoom = async roomName => {
     });
     const localEuler = new THREE.Euler();
 
+    peerConnection.addEventListener('peerPose', (e) => {
+      console.log('peerPose:', e)
+    })
+
     peerConnection.addEventListener('message', e => {
       const {data} = e;
+      console.log(e)
       if (typeof data === 'string') {
         const j = JSON.parse(data);
         const {method} = j;
@@ -761,6 +769,7 @@ const _connectRoom = async roomName => {
 
     // update remote player rigs
   for (const peerConnection of peerConnections) {
+    console.group(peerConnection)
     const pr = peerConnection.getPlayerRig();
     if (pr) {
       pr.rig && pr.rig.update();
