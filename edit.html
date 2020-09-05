@@ -76,6 +76,7 @@
           </a>
         </div>
       </div>
+      <div class=bar></div>
       <div class=weapons style="transform-origin: 0 0;">
         <div class=row>
           <a id=weapon-1 class="weapon selected" weapon="unarmed">
@@ -120,6 +121,34 @@
           </a>
         </div>
       </div>
+      <div class=bar></div>
+      <div class=functions style="transform-origin: 0 0;">
+        <div class=row>
+          <a class="function">
+            <i class="fal fa-file-plus">
+              <input type=file class=hidden id=load-package-input>
+            </i>
+            <div class=label>Add file</div>
+          </a>
+          <a class="function">
+            <i class="fal fa-text"></i>
+            <div class=label>Add text</div>
+          </a>
+        </div>
+      </div>
+      <div class=bar></div>
+      <div class=functions style="transform-origin: 0 0;">
+        <div class=row>
+          <a class="function" id=mic-button>
+            <i class="fal fa-microphone"></i>
+            <div class=label>Microphone</div>
+          </a>
+          <a class="function" id=enter-xr-button>
+            <i class="fal fa-vr-cardboard"></i>
+            <div class=label>Enter XR</div>
+          </a>
+        </div>
+      </div>
     </div>
 
     <div class=spacer></div>
@@ -130,200 +159,7 @@
       <div class=label>Open the main menu</div>
     </nav>
   </header>
-  <footer class=footer>
-    <!-- <nav class="nav full square" id=worlds-button>
-      <i class="fa fa-planet-ringed"></i>
-      <div class=name>World</div>
-      <div class=label>Choose a world</div>
-    </nav> -->
-    <nav class="nav hidden" id=world-save-button>
-      <i class="fa fa-save"></i>
-      <div class=name>Save</div>
-      <div class=label>Save the current world</div>
-    </nav>
-    <nav class="nav hidden" id=world-revert-button>
-      <i class="fa fa-undo"></i>
-      <div class=name>Revert</div>
-      <div class=label>Revert the world to saved state</div>
-    </nav>
-    <nav class="nav full square">
-      <i class="fa fa-plus"></i>
-      <div class=name>Add package</div>
-      <div class=label>Add a new package to the scene</div>
-      <input type=file class=hidden id=load-package-input>
-    </nav>
-    <nav class="nav full square" id=packages-button>
-      <i class="fa fa-box-open"></i>
-      <div class=name>Packages</div>
-      <div class=label>Show package list</div>
-    </nav>
-    <nav class="nav full square" id=inventory-button>
-      <i class="fa fa-backpack"></i>
-      <div class=name>Inventory</div>
-      <div class=label>Manage your packages</div>
-    </nav>
-    <nav class="nav full square" id=avatar-button>
-      <i class="fa fa-user-astronaut"></i>
-      <div class=name>Avatar</div>
-      <div class=label>Change your avatar</div>
-    </nav>
-    <nav class="nav" id=mic-button>
-      <i class="fa fa-microphone enable-icon"></i>
-      <i class="fa fa-microphone-slash disable-icon"></i>
-      <div class=name>Mic</div>
-      <div class=label>Enable or disable microphone</div>
-    </nav>
-    <nav class="nav full" id=enter-xr-button>
-      <i class="fa fa-vr-cardboard"></i>
-      <div class=name>Enter</div>
-    </nav>
-  </footer>
-  <aside class="subpage worlds-subpage" id=worlds-subpage>
-    <div class=subtabs>
-      <nav class=subtab id=subtab-1>Worlds</nav>
-      <nav class=close-button>
-        <i class="fa fa-close"></i>
-      </nav>
-    </div>
-    <div class=subpage-wrap>
-      <div class="subtab-content open" id=subtab-content-2>
-        <div class=worlds-wrap>
-          <div class=worlds>
-            <div class=world id=sandbox-button>
-              <!-- <img src="assets/question.png"> -->
-              <i class="fa fa-brush"></i>
-              <div class=text>
-                <div class="name cardTitle">Sandbox</div>
-              </div>
-            </div>
-            <div class=world id=new-world-button>
-              <!-- <img src="assets/question.png"> -->
-              <i class="fa fa-plus"></i>
-              <div class=text>
-                <div class="name cardTitle">New world</div>
-              </div>
-            </div>
-          </div>
-          <div class="worlds worlds-list" id=worlds>
 
-          </div>
-        </div>
-      </div>
-    </div>
-  </aside>
-  <aside class=subpage id=packages-subpage>
-    <div class=subtabs>
-      <div class=title>
-        <nav class="subtab open" id=subtab-1>XRPKs</nav>
-        <div class="search">
-          <input id="packages-search" placeholder="Search" class=search-input />
-        </div>
-      </div>
-      <nav class=close-button>
-        <i class="fa fa-close"></i>
-      </nav>
-    </div>
-    <div class=subpage-wrap>
-      <div class="subtab-content open" id=subtab-content-2>
-        <div class=packages id=packages>
-
-        </div>
-      </div>
-    </div>
-  </aside>
-  <aside class=subpage id=inventory-subpage>
-    <div class=subtabs>
-      <nav class="subtab open">Inventory</nav>
-      <nav class=close-button>
-        <i class="fa fa-close"></i>
-      </nav>
-    </div>
-    <div class=subpage-wrap>
-      <div class="subtab-content open inventory">
-      </div>
-    </div>
-  </aside>
-  <aside class=subpage id=avatar-subpage>
-    <div class=subtabs>
-      <nav class="subtab open">Avatar</nav>
-      <nav class=close-button>
-        <i class="fa fa-close"></i>
-      </nav>
-    </div>
-    <div class=subpage-wrap>
-      <div class="subtab-content open">
-
-      </div>
-    </div>
-  </aside>
-  <aside class="dropdown" id=dropdown>
-    <div class=tabs>
-      <nav class="tab open" id=tab-1>Objects</nav>
-      <nav class=tab id=tab-2>Scene</nav>
-      <!-- <nav class=tab id=tab-3>Social</nav> -->
-      <nav class=tab id=tab-3>Settings</nav>
-    </div>
-    <section class="tab-content open" id=tab-1-content>
-      <div class=objects id=objects></div>
-    </section>
-    <section class=tab-content id=tab-2-content>
-      <div class=row>
-        <nav class=button id=reset-scene-button>
-          <i class="fa fa-sparkles"></i> Reset scene
-        </nav>
-      </div>
-      <div class=row>
-        <nav class=button>
-          <i class="fa fa-upload"></i> Import scene
-          <input type=file class=hidden id=import-scene-input>
-        </nav>
-      </div>
-      <div class=row>
-        <nav class=button id=export-scene-button>
-          <i class="fa fa-download"></i> Export scene
-        </nav>
-      </div>
-    </section>
-    <!-- <section class=tab-content id=tab-3-content>
-      <div class=avatars>
-        <div class="avatar me" id=avatar-me>
-          <img src="assets/question.png" class=preview>
-          <div class=name>No avatar</div>
-          <nav class="button unwear-button" style="display: none;">Unwear</nav>
-          <div class=tag>You</div>
-        </div>
-        <div class=avatars id=avatars></div>
-      </div>
-    </section> -->
-    <section class=tab-content id=tab-3-content>
-      <div class=row>
-        <label>
-          <span>Shield</span>
-          <input type=range min=0 max=2 value=2 id=shield-slider>
-        </label>
-      </div>
-      <div class=row>
-        <label>
-          <span>Scale</span>
-          <input type=range min=0.1 max=10 value=1 step=0.1 id=scale-slider>
-        </label>
-      </div>
-      <div class=row>
-        <nav class=button id=toggle-stage-button>Toggle stage</nav>
-      </div>
-    </section>
-  </aside>
-
-  <aside class=drop-zones id=drop-zones>
-    <div class=drop-zone id=inventory-drop-zone>
-      <div class=label><i class="fa fa fa-backpack"></i>Inventory</div>
-      <div class=description>Add package to inventory</div>
-    </div>
-    <div class=drop-zone id=avatar-drop-zone>
-      <div class=label><i class="fa fa-user-astronaut"></i>Avatar</div>
-      <div class=description>Set package as avatar</div>
-    </div>
-  </aside>
   <canvas id=canvas></canvas>
   <script type=module src=edit.js></script>
 </body>

@@ -181,6 +181,12 @@ img:not([src]) {
   display: none;
 }
 
+.header .bar {
+  margin: 0 3px;
+  padding: 10px 0;
+  border-left: 1px solid #000;
+}
+
 .header .selector,
 .header .spacer
 {
@@ -444,6 +450,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 
 .tools > .row > .tool,
 .weapons > .row > .weapon,
+.functions > .row > .function,
 .ops > .op,
 .colors > .row > .color,
 .enters > .enter
@@ -457,6 +464,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 }
 .tools > .row > .tool,
 .weapons > .row > .weapon,
+.functions > .row > .function,
 .ops > .op,
 .colors > .row > .color {
   width: 30px;
@@ -464,11 +472,13 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 }
 .tools,
 .weapons,
+.functions,
 .colors {
   flex-direction: column;
 }
 .tools,
 .weapons,
+.functions,
 .colors
 {
   margin-right: 5px;
@@ -477,12 +487,14 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   display: flex;
 }
 .tools > .row > .tool,
-.weapons > .row > .weapon
+.weapons > .row > .weapon,
+.functions > .row > .function
 {
   background-color: #FFF;
 }
 .tools > .row > .tool:hover,
-.weapons > .row > .weapon:hover
+.weapons > .row > .weapon:hover,
+.functions > .row > .function:hover
 {
   background-color: #42a5f5;
   color: #FFF;
@@ -492,18 +504,23 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .tools > .row > .tool.open,
 .weapons > .row > .weapon:active,
 .weapons > .row > .weapon.selected,
-.weapons > .row > .weapon.open
+.weapons > .row > .weapon.open,
+.functions > .row > .function:active,
+.functions > .row > .function.selected,
+.functions > .row > .function.open
 {
   background-color: #1e88e5;
   color: #FFF;
 }
 .tools > .row > .tool.hidden,
-.weapons > .row > .weapon.hidden
+.weapons > .row > .weapon.hidden,
+.functions > .row > .function.hidden
 {
   display: none;
 }
 .tools > .row > .tool > .label,
 .weapons > .row > .weapon > .label,
+.functions > .row > .function > .label,
 .ops > .op > .label
 {
   display: flex;
@@ -520,17 +537,20 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 }
 .tools > .row > .tool:not(:hover) > .label,
 .weapons > .row > .weapon:not(:hover) > .label,
+.functions > .row > .function:not(:hover) > .label,
 .ops > .op:not(:hover) > .label
 {
   display: none;
 }
 .tools > .row > .tool > .label,
-.weapons > .row > .weapon > .label
+.weapons > .row > .weapon > .label,
+.functions > .row > .function > .label
 {
   left: 0;
 }
 .tools > .row > .tool > .fill,
 .weapons > .row > .weapon > .fill,
+.functions > .row > .function > .fill,
 .ops > .op > .fill
 {
   position: absolute;
@@ -538,6 +558,17 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   bottom: 0;
   left: 0;
   right: 0;
+  overflow: hidden;
+}
+.functions > .row > .function > i {
+  display: flex;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
 }
 
