@@ -5553,10 +5553,14 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
     URL.revokeObjectURL(u);
   }
   o = o.scene;
+  o.updateMatrixWorld();
+
+  const meshes = [];
   const geometries = [];
   const textures = [];
   o.traverse(o => {
     if (o.isMesh) {
+      meshes.push(o);
       geometries.push(o.geometry);
       if (o.material.map) {
         textures.push(o.material.map);
@@ -5622,9 +5626,12 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
     let uvIndex = 0;
     let colorIndex = 0;
     let indicesIndex = 0;
-    for (let i = 0; i < geometries.length; i++) {
+    for (let i = 0; i < meshes.length; i++) {
+      const mesh = meshes[i];
       const geometry = geometries[i];
       const rect = rects[i];
+
+      geometry.applyMatrix4(mesh.matrixWorld);
 
       const indexOffset = positionIndex/3;
       if (geometry.index) {
@@ -5677,6 +5684,25 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
   mesh.quaternion.copy(camera.quaternion);
   mesh.frustumCulled = false;
   scene.add(mesh);
+
+  {
+    const positions = geometryWorker.alloc(Float32Array, geometry.attributes.position.array.length);
+    positions.set(geometry.attributes.position.array);
+    const uvs = geometryWorker.alloc(Float32Array, geometry.attributes.uv.array.length);
+    uvs.set(geometry.attributes.uv.array);
+    const indices = geometryWorker.alloc(Uint32Array, geometry.index.array.length);
+    indices.set(geometry.index.array);
+
+    const atlasCanvasCtx = atlasCanvas.getContext('2d');
+    const imageData = atlasCanvasCtx.getImageData(0, 0, atlasCanvas.width, atlasCanvas.height);
+    const texture = geometryWorker.alloc(Uint8Array, imageData.data.byteLength);
+    texture.set(imageData.data);
+
+    geometryWorker.requestAddThingGeometry(tracker, geometrySet, 'thing' + (++numThings), positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, texture.byteOffset, 0, 0)
+      .then(() => {
+        console.log('added thing geometry');
+      }, console.warn);
+  }
 
   console.log('got o', o, geometry, textures, atlas, rects);
 });
