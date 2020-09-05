@@ -2871,14 +2871,22 @@ const geometryWorker = (() => {
           value: thingTexture,
           needsUpdate: true,
         },
+        uSelectId: {
+          type: 'f',
+          value: -1,
+          needsUpdate: true,
+        },
       },
       vertexShader: `\
         precision highp float;
         precision highp int;
 
+        uniform float uSelectId;
         attribute vec2 atlasUv;
+        attribute float id;
         // attribute float skyLight;
         // attribute float torchLight;
+        varying vec3 vSelectColor;
 
         varying vec2 vUv;
         // varying float vSkyLight;
@@ -2888,6 +2896,12 @@ const geometryWorker = (() => {
           vUv = (atlasUv + uv) * ${(objectTextureSize/thingTextureSize).toFixed(8)};
           vec3 p = position;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+
+          vSelectColor = vec3(0.);
+          if (uSelectId == id) {
+            vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
+          }
+
           // vSkyLight = skyLight/8.0;
           // vTorchLight = torchLight/8.0;
         }
@@ -2900,9 +2914,12 @@ const geometryWorker = (() => {
         varying vec2 vUv;
         // varying float vSkyLight;
         // varying float vTorchLight;
+        varying vec3 vSelectColor;
 
         void main() {
-          gl_FragColor = texture2D(map, vUv);
+          vec4 diffuseColor = texture2D(map, vUv);
+          diffuseColor.rgb += vSelectColor;
+          gl_FragColor = diffuseColor;
         }
       `,
       side: THREE.DoubleSide,
@@ -3003,7 +3020,7 @@ const MeshDrawer = (() => {
     }
     return canvas;
   })();
-  const _makeThingCanvas = () => {
+  const _makeDrawThingCanvas = () => {
     const canvas = document.createElement('canvas');
     canvas.width = checkerboardCanvas.width;
     canvas.height = checkerboardCanvas.height;
@@ -3013,7 +3030,7 @@ const MeshDrawer = (() => {
     return canvas;
   };
 
-  const _makeThingMesh = () => {
+  const _makeDrawThingMesh = () => {
     const geometry = new THREE.BufferGeometry();
     // geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     // geometry.setAttribute('uv3', new THREE.BufferAttribute(uvs, 3));
@@ -3140,7 +3157,7 @@ const MeshDrawer = (() => {
       this.bitang = bitang;
 
       this.geometryData = null;
-      this.canvas = _makeThingCanvas();
+      this.canvas = _makeDrawThingCanvas();
 
       this.objectId = Math.floor(Math.random() * 0xFFFFFF);
       this.position = this.center.clone();
@@ -3205,7 +3222,7 @@ const MeshDrawer = (() => {
       thingSource.updateGeometryData();
       this.thingSources.push(thingSource);
 
-      const thingMesh = _makeThingMesh();
+      const thingMesh = _makeDrawThingMesh();
       thingMesh.setGeometryData(thingSource);
       thingMesh.setTexture(thingSource);
       chunkMeshContainer.add(thingMesh);
@@ -5353,9 +5370,11 @@ function animate(timestamp, frame) {
           }
           currentVegetationMesh.material[0].uniforms.uSelectId.value = -1;
           currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-          for (const thingMesh of meshDrawer.thingMeshes) {
-            thingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
-            thingMesh.material.uniforms.uSelectColor.needsUpdate = true;
+          currentThingMesh.material[0].uniforms.uSelectId.value = -1;
+          currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+          for (const drawThingMesh of meshDrawer.thingMeshes) {
+            drawThingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
+            drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
           }
 
           if (raycastChunkSpec) {
@@ -5371,12 +5390,14 @@ function animate(timestamp, frame) {
             } else {
               currentVegetationMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
               currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+              currentThingMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
+              currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
 
               const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
               if (index !== -1) {
-                const thingMesh = meshDrawer.thingMeshes[index];
-                thingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
-                thingMesh.material.uniforms.uSelectColor.needsUpdate = true;
+                const drawThingMesh = meshDrawer.thingMeshes[index];
+                drawThingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
+                drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
               }
             }
           }
