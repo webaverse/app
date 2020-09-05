@@ -2979,14 +2979,13 @@ const geometryWorker = (() => {
   });
 })();
 
+let numThings = 0;
 const meshCubeGeometry = new THREE.BoxBufferGeometry(1, 1, 1).toNonIndexed();
 const MeshDrawer = (() => {
   const localVector = new THREE.Vector3();
   const localVector2 = new THREE.Vector3();
   const localQuaternion = new THREE.Quaternion();
   const localMatrix = new THREE.Matrix4();
-
-  let numThings = 0;
 
   const checkerboardCanvas = (() => {
     const size = 512;
