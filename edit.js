@@ -2161,7 +2161,7 @@ const geometryWorker = (() => {
       });
     });
   });
-  w.requestAddThingGeometry = (tracker, geometrySet, name, positions, uvs, indices, numPositions, numUvs, numIndices, texture, trianglePhysicsGeometry) => new Promise((accept, reject) => {
+  w.requestAddThingGeometry = (tracker, geometrySet, name, positions, uvs, indices, numPositions, numUvs, numIndices, texture) => new Promise((accept, reject) => {
     callStack.allocRequest(METHODS.addThingGeometry, 128, true, offset => {
       callStack.u32[offset] = tracker;
       callStack.u32[offset + 1] = geometrySet;
@@ -2179,8 +2179,6 @@ const geometryWorker = (() => {
       callStack.u32[offset + 2 + MAX_NAME_LENGTH/Uint32Array.BYTES_PER_ELEMENT + 5] = numIndices;
 
       callStack.u32[offset + 2 + MAX_NAME_LENGTH/Uint32Array.BYTES_PER_ELEMENT + 6] = texture;
-
-      callStack.u32[offset + 2 + MAX_NAME_LENGTH/Uint32Array.BYTES_PER_ELEMENT + 7] = trianglePhysicsGeometry;
     }, offset => {
       accept();
     });
@@ -5545,39 +5543,28 @@ renderer.setAnimationLoop(animate);
 
 bindUploadFileButton(document.getElementById('load-package-input'), async file => {
   const {default: atlaspack} = await import('./atlaspack.js');
-  // console.log('load file', file);
   const u = URL.createObjectURL(file);
   let o;
   try {
     o = await new Promise((accept, reject) => {
       new GLTFLoader().load(u, accept, xhr => {}, reject);
-      // const uint8Array = await readFile(file);
-      // await pe.importScene(uint8Array);
     });
   } finally {
     URL.revokeObjectURL(u);
   }
   o = o.scene;
   const geometries = [];
-  // const geometryMap = new Map();
   const textures = [];
-  // const textureMap = new Map();
   o.traverse(o => {
     if (o.isMesh) {
-      // if (!geometryMap.has(o.geometry)) {
-        geometries.push(o.geometry);
-        // geometryMap.set(o.geometry, true);
-      // }
+      geometries.push(o.geometry);
       if (o.material.map) {
         textures.push(o.material.map);
-        // textureMap.set(o.material.map, true);
       } else {
         textures.push(null);
       }
     }
   });
-  // geometries = Array.from(geometries.keys());
-  // textures = Array.from(textures.keys());
   const rects = [];
 
   const size = 512;
