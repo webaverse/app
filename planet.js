@@ -344,8 +344,8 @@ planet.writeSubparcels = async edits => {
 };
 planet.onRemoteSubparcelsEdit = (edits) => {
   // XXX called from the connection when a peer runs an edit g
-  for (const [key, arrayBuffer] of edits) {
-    console.log('got edit', key, arrayBuffer);
+  for (const key of edits) {
+    console.log('got edit', key);
   }
 };
 planet.makeSubparcel = (x = 0, y = 0, z = 0) => {
@@ -621,8 +621,8 @@ const _connectRoom = async roomName => {
     _latchMediaStream(); */
 
     channelConnection.dialogClient.addEventListener('peerEdit', e => {
-      console.log(e)
-      planet.onRemoteSubparcelsEdit(e.data)
+      console.log(e);
+      planet.onRemoteSubparcelsEdit(e.data.keys);
     });
 
   }, {once: true});
