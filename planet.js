@@ -762,6 +762,7 @@ const _connectRoom = async roomName => {
           const {peerId, hash} = j;
           if (peerId === peerConnection.connectionId && hash !== modelHash) {
             modelHash = hash;
+            _loadAvatar(hash);
           }
         } else {
           console.warn('unknown method', method);
@@ -776,7 +777,7 @@ const _connectRoom = async roomName => {
       microphoneMediaStream = new MediaStream([track]);
       const audio = document.createElement('audio');
       audio.srcObject = microphoneMediaStream;
-      // audio.play();
+      audio.play();
       if (playerRig) {
         playerRig.context.rig.setMicrophoneMediaStream(microphoneMediaStream);
         track.addEventListener('ended', e => {
