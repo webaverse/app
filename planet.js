@@ -12,7 +12,6 @@ import {
 import { XRChannelConnection } from 'https://2.metartc.com/xrrtc.js';
 import { makeTextMesh } from './vr-ui.js';
 import { loginManager } from './login.js'
-import { pe } from './run.js'
 
 const presenceHost = 'wss://127.0.0.1:4443';
 
@@ -538,15 +537,28 @@ let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
 
+const getFile = async () => {
+  const response = await fetch('https://127.0.0.1:4443/key/meme.bin', {
+    method: 'GET'
+  })
+  console.log(response)
+  const binary = await response.arrayBuffer();
+  console.log(binary)
+}
+
 const _connectRoom = async roomName => {
   channelConnection = new XRChannelConnection(`${presenceHost}/`, {
     roomName,
     // displayName: 'user',
   });
 
-  console.log(channelConnection)
+  getFile()
 
-  channelConnection.dialogClient.addEventListener('open', async e => {
+  setInterval(() => {
+    console.log(channelConnection)
+  }, 5000)
+
+  channelConnection.addEventListener('open', async e => {
     channelConnectionOpen = true;
     console.log('Channel Open!')
 
@@ -610,7 +622,7 @@ const _connectRoom = async roomName => {
     }
     channelConnectionOpen = false;
   }, {once: true});
-  channelConnection.addEventListener('peerconnection', async e => {
+  channelConnection.dialogClient.addEventListener('peerconnection', async e => {
     const peerConnection = e.data;
 
     console.log('New Peer', e)
