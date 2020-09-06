@@ -5368,6 +5368,11 @@ function animate(timestamp, frame) {
                     const o = await new Promise((accept, reject) => {
                       new GLTFLoader().load(thingFile, accept, xhr => {}, reject);
                     });
+                    o.scene.traverse(o => {
+                      if (o.isMesh) {
+                        o.frustumCulled = false;
+                      }
+                    });
                     scene.remove(rig.model);
                     rig = new Avatar(o, {
                       fingers: true,
