@@ -1,5 +1,5 @@
 {
-  "name": "xrpackage-site",
+  "name": "webaverse-app",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/webaverse/xrpackage-site.git"
+    "url": "git+https://github.com/webaverse/app.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/webaverse/xrpackage-site/issues"
+    "url": "https://github.com/webaverse/app/issues"
   },
-  "homepage": "https://github.com/webaverse/xrpackage-site",
+  "homepage": "https://github.com/webaverse/app",
   "dependencies": {
     "express": "^4.17.1"
   },
@@ -26,10 +26,10 @@
     "last 1 chrome version"
   ],
   "devDependencies": {
-    "eslint": "^7.2.0",
-    "eslint-config-semistandard": "^15.0.0",
+    "eslint": "^7.8.1",
+    "eslint-config-semistandard": "^15.0.1",
     "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.21.2",
+    "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1"
