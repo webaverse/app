@@ -1,4 +1,4 @@
-import * as THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
+import * as THREE from './three.module.js';
 import storage from './storage.js';
 import {
   PARCEL_SIZE,
@@ -651,7 +651,7 @@ const _connectRoom = async roomName => {
         loading = true;
 
         if (playerRig) {
-          await pe.remove(playerRig);
+          await xrpackage.remove(playerRig);
           scene.remove(playerRig.textMesh);
           playerRig = null;
         }
@@ -671,21 +671,21 @@ const _connectRoom = async roomName => {
         await p.waitForLoad();
         await p.loadAvatar();
         p.isAvatar = true;
-        await pe.add(p);
+        await xrpackage.add(p);
         const scaler = new THREE.Object3D();
         // scaler.scale.set(10, 10, 10);
         scaler.add(p.context.object);
-        pe.scene.add(scaler);
+        xrpackage.scene.add(scaler);
         p.scaler = scaler;
         if (live) {
           playerRig = p;
           playerRig.textMesh = makeTextMesh('Loading...');
-          pe.scene.add(playerRig.textMesh);
+          xrpackage.scene.add(playerRig.textMesh);
           if (microphoneMediaStream) {
             p.context.rig.setMicrophoneMediaStream(microphoneMediaStream);
           }
         } else {
-          await pe.remove(p);
+          await xrpackage.remove(p);
         }
 
         loading = false;
