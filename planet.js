@@ -11,7 +11,7 @@ import {
 } from './constants.js';
 import { XRChannelConnection } from 'https://2.metartc.com/xrrtc.js';
 import { makeTextMesh } from './vr-ui.js';
-import { loginManager } from './login.js'
+import { loginManager } from './login.js';
 
 const presenceHost = 'wss://127.0.0.1:4443';
 
@@ -557,6 +557,16 @@ const _connectRoom = async roomName => {
   setInterval(() => {
     console.log(channelConnection)
   }, 5000)
+
+  setTimeout(() => {
+    channelConnection.runCode(`edit(['hello.bin', 'meme.bin', 'lol.bin'], (buffers, args) => {
+      let newBuffers = [];
+      for (let i = 0; i < buffers.length; i++) {
+          newBuffers.push(Buffer.alloc(10));
+      }
+      return newBuffers;
+  })`)
+  }, 10000)
 
   channelConnection.addEventListener('open', async e => {
     channelConnectionOpen = true;
