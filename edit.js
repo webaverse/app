@@ -2399,7 +2399,7 @@ const geometryWorker = (() => {
               // const z = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 2];
               const index = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 3];
               const uint8Array = await storage.getRaw(`subparcel:${index}`);
-              console.log('got subarray', `subparcel:${index}`, uint8Array);
+              // console.log('got subarray', `subparcel:${index}`, uint8Array);
             }
           })().then(() => {
             moduleInstance.HEAPU32[numGenerateCoordsOffset/Uint32Array.BYTES_PER_ELEMENT] = numAddedCoords;
