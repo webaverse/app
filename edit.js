@@ -1802,7 +1802,7 @@ const geometryWorker = (() => {
     }
     return [landCullResults, vegetationCullResults, thingCullResults];
   };
-  w.getSubparcel = (tracker, x, y, z) => new Promise((accept, reject) => {
+  /* w.getSubparcel = (tracker, x, y, z) => new Promise((accept, reject) => {
     callStack.allocRequest(METHODS.getSubparcel, 4, true, offset => {
       callStack.u32[offset] = tracker;
       callStack.u32[offset + 1] = x;
@@ -1821,7 +1821,7 @@ const geometryWorker = (() => {
         console.log('no subparcel');
       }
     });
-  });
+  }); */
   // window.getSubparcel = (x, y, z) => w.getSubparcel(tracker, x, y, z);
   w.requestReleaseSubparcel = (tracker, subparcelSharedPtr) => new Promise((accept, reject) => {
     callStack.allocRequest(METHODS.releaseSubparcel, 2, true, offset => {
