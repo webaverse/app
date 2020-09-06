@@ -47,7 +47,7 @@ const _getFieldIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + 
 // planet
 
 export const planet = new EventTarget();
-window.planet = planet;
+// window.planet = planet;
 
 let state = null;
 
