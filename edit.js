@@ -978,7 +978,7 @@ const geometryWorker = (() => {
       // const z = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 2];
       const index = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 3];
       const uint8Array = moduleInstance.HEAPU8.slice(subparcelOffset, subparcelOffset + subparcelSize);
-      storage.setRaw(`subparcel:${index}`, uint8Array);
+      storage.setRawTemp(`subparcel:${index}`, uint8Array);
         /* .then(() => {
           console.log('set raw ok', x, y, z, `subparcel:${index}`);
         }); */
@@ -2387,27 +2387,31 @@ const geometryWorker = (() => {
           currentChunkMesh.currentPosition.z
         );
         if (neededCoordsOffset) {
-          const addedCoordsOffset = moduleInstance.HEAPU32[neededCoordsOffset/Uint32Array.BYTES_PER_ELEMENT];
-          const numAddedCoords = moduleInstance.HEAPU32[neededCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
-          const numLoadedCoordsOffset = neededCoordsOffset + Uint32Array.BYTES_PER_ELEMENT*2;
-          const numGenerateCoordsOffset = neededCoordsOffset + Uint32Array.BYTES_PER_ELEMENT*3;
+          const addedSubparcelsOffset = moduleInstance.HEAPU32[neededCoordsOffset/Uint32Array.BYTES_PER_ELEMENT];
+          const numAddedSubparcels = moduleInstance.HEAPU32[neededCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
 
           (async () => {
-            for (let i = 0; i < numAddedCoords; i++) {
-              // const x = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4];
-              // const y = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 1];
-              // const z = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 2];
-              const index = moduleInstance.HEAP32[addedCoordsOffset/Uint32Array.BYTES_PER_ELEMENT + i*4 + 3];
-              const uint8Array = await storage.getRaw(`subparcel:${index}`);
+            for (let i = 0; i < numAddedSubparcels; i++) {
+              const subparcelOffset = moduleInstance.HEAP32[addedSubparcelsOffset/Uint32Array.BYTES_PER_ELEMENT + i];
+              // const x = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT];
+              // const y = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
+              // const z = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 2];
+              const index = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 3];
+              const uint8Array = await storage.getRawTemp(`subparcel:${index}`);
               // console.log('got subarray', `subparcel:${index}`, uint8Array);
+              // console.log('subparcel update', index, uint8Array);
+              moduleInstance._subparcelUpdate(
+                tracker,
+                threadPool,
+                geometrySet,
+                neededCoordsOffset,
+                subparcelOffset,
+                true
+              );
             }
           })().then(() => {
-            moduleInstance.HEAPU32[numGenerateCoordsOffset/Uint32Array.BYTES_PER_ELEMENT] = numAddedCoords;
-
             moduleInstance._finishUpdate(
               tracker,
-              threadPool,
-              geometrySet,
               neededCoordsOffset
             );
           });
@@ -5996,7 +6000,7 @@ window.addEventListener('keydown', e => {
     }
     case 82: { // R
       if (document.pointerLockElement) {
-        pe.equip('back');
+        // pe.equip('back');
       } else {
         if (selectTarget && selectTarget.control) {
           selectTarget.control.setMode('scale');
