@@ -6267,9 +6267,9 @@ micButton.addEventListener('click', async e => {
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
     });
-    pe.setMicrophoneMediaStream(mediaStream);
+    rig.setMicrophoneMediaStream(mediaStream);
   } else {
-    pe.setMicrophoneMediaStream(null);
+    rig.setMicrophoneMediaStream(null);
   }
 });
 
