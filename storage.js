@@ -1,5 +1,7 @@
 import localforage from './localforage.js';
 
+const tempStorage = {};
+
 const storage = {
   async get(k) {
     const s = await localforage.getItem(k);
@@ -19,6 +21,12 @@ const storage = {
   },
   async keys() {
     return await localforage.keys();
+  },
+  async getRawTemp(k) {
+    return tempStorage[k];
+  },
+  async setRawTemp(k, v) {
+    tempStorage[k] = v;
   },
 };
 export default storage;
