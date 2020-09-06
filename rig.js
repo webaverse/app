@@ -1,4 +1,5 @@
 import * as THREE from './three.module.js';
+import {GLTFLoader} from './GLTFLoader.module.js';
 import {
   makePromise,
 } from './constants.js';
@@ -40,10 +41,10 @@ class RigManager {
     scene.add(this.localRig.model);
     this.localRigMatrix = new THREE.Matrix4();
     this.localRigMatrixEnabled = false;
-
-    this.peerRigs = {};
     
     this.localRigQueue = new WaitQueue();
+    
+    this.peerRigs = {};
   }
   setLocalRigMatrix(rm) {
     if (rm) {
@@ -64,14 +65,14 @@ class RigManager {
         o.frustumCulled = false;
       }
     });
-    this.scene.remove(rig.model);
+    this.scene.remove(this.localRig.model);
     this.localRig = new Avatar(o, {
       fingers: true,
       hair: true,
       visemes: true,
-      decapitate: selectedTool === 'firstperson',
+      // decapitate: selectedTool === 'firstperson',
     });
-    this.scene.add(rig.model);
+    this.scene.add(this.localRig.model);
 
     await this.localRigQueue.unlock();
   }
