@@ -6002,9 +6002,9 @@ window.addEventListener('keydown', e => {
       if (document.pointerLockElement) {
         // pe.equip('back');
       } else {
-        if (selectTarget && selectTarget.control) {
+        /* if (selectTarget && selectTarget.control) {
           selectTarget.control.setMode('scale');
-        }
+        } */
       }
       break;
     }
