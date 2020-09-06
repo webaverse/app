@@ -537,14 +537,14 @@ let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
 
-const getFile = async () => {
+/* const getFile = async () => {
   const response = await fetch('https://127.0.0.1:4443/key/meme.bin', {
     method: 'GET'
   })
   console.log(response)
   const binary = await response.arrayBuffer();
   console.log(binary)
-}
+} */
 
 const _connectRoom = async roomName => {
   channelConnection = new XRChannelConnection(`${presenceHost}/`, {
@@ -552,7 +552,7 @@ const _connectRoom = async roomName => {
     // displayName: 'user',
   });
 
-  getFile()
+  // getFile()
 
   setInterval(() => {
     console.log(channelConnection)
