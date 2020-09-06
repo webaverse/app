@@ -76,6 +76,8 @@ const localFrustum = new THREE.Frustum();
 })(); */
 
 const scene = new THREE.Scene();
+const rigManager = new RigManager(scene);
+planet.setBindings(scene, rigManager);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 1, 2);
@@ -182,8 +184,6 @@ window.addEventListener('upload', async e => {
     p.wearAvatar();
   } */
 });
-
-const rigManager = new RigManager(scene);
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -5591,6 +5591,7 @@ function animate(timestamp, frame) {
   }
 
   geometryWorker && geometryWorker.update();
+  planet.update();
 
   localMatrix.multiplyMatrices(camera.projectionMatrix, localMatrix2.multiplyMatrices(camera.matrixWorldInverse, worldContainer.matrixWorld))
   if (currentChunkMesh && currentVegetationMesh) {
