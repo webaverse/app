@@ -1785,7 +1785,7 @@ const geometryWorker = (() => {
     }
     return [landCullResults, vegetationCullResults, thingCullResults];
   };
-  w.getSubparcel = (tracker, x, y, z) => new Promise((accept, reject) => {
+  /* w.getSubparcel = (tracker, x, y, z) => new Promise((accept, reject) => {
     callStack.allocRequest(METHODS.getSubparcel, 4, true, offset => {
       callStack.u32[offset] = tracker;
       callStack.u32[offset + 1] = x;
@@ -1804,7 +1804,7 @@ const geometryWorker = (() => {
         console.log('no subparcel');
       }
     });
-  });
+  }); */
   // window.getSubparcel = (x, y, z) => w.getSubparcel(tracker, x, y, z);
   w.requestReleaseSubparcel = (tracker, subparcelSharedPtr) => new Promise((accept, reject) => {
     callStack.allocRequest(METHODS.releaseSubparcel, 2, true, offset => {
@@ -4789,7 +4789,7 @@ function animate(timestamp, frame) {
           axesSrc[3] || 0,
         ];
         if (handedness === 'left') {
-          localVector.set(-(axes[0] + axes[2]), 0, -(axes[1] + axes[3]))
+          /* localVector.set(-(axes[0] + axes[2]), 0, -(axes[1] + axes[3]))
             .multiplyScalar(0.01);
           pe.matrix.decompose(localVector2, localQuaternion, localVector3);
           const xrCamera = renderer.xr.getCamera(camera);
@@ -4799,10 +4799,11 @@ function animate(timestamp, frame) {
           localEuler.z = 0;
           localVector.applyEuler(localEuler);
           localVector2.add(localVector);
-          pe.setMatrix(localMatrix.compose(localVector2, localQuaternion, localVector3));
+          pe.setMatrix(localMatrix.compose(localVector2, localQuaternion, localVector3)); */
         } else if (handedness === 'right') {
           const _applyRotation = r => {
-            const xrCamera = renderer.xr.getCamera(camera);
+            console.log('apply rotation', r);
+            /* const xrCamera = renderer.xr.getCamera(camera);
             localMatrix
               .copy(xrCamera.matrix)
               .premultiply(pe.matrix)
@@ -4811,7 +4812,7 @@ function animate(timestamp, frame) {
             localMatrix
               .compose(localVector, localQuaternion, localVector2)
               .multiply(localMatrix2.getInverse(xrCamera.matrix));
-            pe.setMatrix(localMatrix);
+            pe.setMatrix(localMatrix); */
           };
           if (
             (axes[0] < -0.5 && !(lastAxes[index][0] < -0.5)) ||
@@ -4905,7 +4906,76 @@ function animate(timestamp, frame) {
     hmdQuaternion = localQuaternion.toArray();
 
     if (currentSession) {
-      localMatrix2.getInverse(this.matrix);
+      const inputSources = Array.from(currentSession.inputSources);
+      const gamepads = ['left', 'right'].map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
+      // console.log('got gamepads', gamepads);
+
+      /* const _scaleMatrixPQ = (srcMatrixArray, p, q) => {
+        localMatrix.fromArray(srcMatrixArray)
+          .decompose(localVector, localQuaternion, localVector2);
+        localVector.divideScalar(this.scale);
+        localVector.toArray(p);
+        localQuaternion.toArray(q);
+      };
+      const _loadInputSource = i => {
+        const inputSource = inputSources[i];
+        if (inputSource) {
+          let gamepad, pose, hand;
+          if (
+            (gamepad = inputSource.gamepad || gamepads[i]) &&
+            (pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace))
+          ) {
+            const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
+            _scaleMatrixPQ(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
+            
+            for (let j = 0; j < gamepad.buttons.length; j++) {
+              const button = gamepad.buttons[j];
+              const xrButton = xrGamepad.buttons[j];
+              xrButton.pressed[0] = button.pressed;
+              xrButton.touched[0] = button.touched;
+              xrButton.value[0] = button.value;
+            }
+            
+            for (let j = 0; j < gamepad.axes.length; j++) {
+              xrGamepad.axes[j] = gamepad.axes[j];
+            }
+            
+            xrGamepad.connected[0] = 1;
+          } else if (
+            (hand = inputSource.hand)
+          ) {
+            const xrHand = xrState.hands[inputSource.handedness === 'right' ? 1 : 0];
+            for (let i = 0; i < inputSource.hand.length; i++) {
+              const joint = inputSource.hand[i];
+              const xrHandJoint = xrHand[i];
+
+              const jointPose = joint && frame.getJointPose(joint, this.referenceSpace);
+              if (jointPose) {
+                _scaleMatrixPQ(jointPose.transform.matrix, xrHandJoint.position, xrHandJoint.orientation);
+                xrHandJoint.radius[0] = jointPose.radius;
+                xrHandJoint.visible[0] = 1;
+              } else {
+                xrHandJoint.visible[0] = 0;
+              }
+            }
+            xrHand.visible[0] = 1;
+          }
+        }
+      };
+      for (let i = 0; i < xrState.gamepads.length; i++) {
+        xrState.gamepads[i].connected[0] = 0;
+      }
+      for (let i = 0; i < xrState.hands.length; i++) {
+        xrState.hands[i].visible[0] = 0;
+      }
+      for (let i = 0; i < inputSources.length; i++) {
+        _loadInputSource(i);
+      } */
+      
+      
+      
+      
+      /* localMatrix2.getInverse(this.matrix);
       localMatrix3
         .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
         .premultiply(localMatrix2)
@@ -5610,7 +5680,7 @@ function animate(timestamp, frame) {
   renderer.render(scene, camera);
   // renderer.render(highlightScene, camera);
 
-  planet.flush();
+  // planet.flush();
 }
 renderer.setAnimationLoop(animate);
 // renderer.xr.setSession(proxySession);
@@ -6000,9 +6070,9 @@ window.addEventListener('keydown', e => {
       if (document.pointerLockElement) {
         // pe.equip('back');
       } else {
-        if (selectTarget && selectTarget.control) {
+        /* if (selectTarget && selectTarget.control) {
           selectTarget.control.setMode('scale');
-        }
+        } */
       }
       break;
     }
@@ -6283,17 +6353,13 @@ window.addEventListener('resize', e => {
 let currentSession = null;
 function onSessionStarted(session) {
   session.addEventListener('end', onSessionEnded);
-
+  renderer.xr.setSession(session);
   currentSession = session;
-
-  // pe.setSession(session);
 }
 function onSessionEnded() {
   currentSession.removeEventListener('end', onSessionEnded);
-
+  renderer.xr.setSession(null);
   currentSession = null;
-
-  // pe.setSession(null);
 }
 document.getElementById('enter-xr-button').addEventListener('click', e => {
   e.preventDefault();
@@ -6304,7 +6370,7 @@ document.getElementById('enter-xr-button').addEventListener('click', e => {
       optionalFeatures: [
         'local-floor',
         'bounded-floor',
-        'hand-tracking',
+        // 'hand-tracking',
       ],
     }).then(onSessionStarted);
   } else {
