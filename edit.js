@@ -7,10 +7,10 @@ import {GLTFLoader} from './GLTFLoader.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
 // import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
-import Avatar from './avatars/avatars.js';
 import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
+import {RigManager} from './rig.js';
 import {makeUiFullMesh, makeTextMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import {makeAnimalFactory} from './animal.js';
@@ -76,6 +76,8 @@ const localFrustum = new THREE.Frustum();
 })(); */
 
 const scene = new THREE.Scene();
+const rigManager = new RigManager(scene);
+planet.setBindings(scene, rigManager);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 1, 2);
@@ -182,25 +184,6 @@ window.addEventListener('upload', async e => {
     p.wearAvatar();
   } */
 });
-
-let rig = new Avatar(null, {
-  fingers: true,
-  hair: true,
-  visemes: true,
-  debug: true,
-});
-scene.add(rig.model);
-
-const rigMatrix = new THREE.Matrix4();
-let rigMatrixEnabled = false;
-const _setRigMatrix = rm =>  {
-  if (rm) {
-    rigMatrix.copy(rm);
-    rigMatrixEnabled = true;
-  } else {
-    rigMatrixEnabled = false;
-  }
-}
 
 const cubicBezier = easing(0, 1, 0, 1);
 
@@ -4653,13 +4636,13 @@ const _applyAvatarPhysics = (avatarOffset, cameraBasedOffset, velocityAvatarDire
   }
   localMatrix.compose(localVector, localQuaternion, localVector2);
 
-  _setRigMatrix(updateRig ? localMatrix : null);
+  rigManager.setLocalRigMatrix(updateRig ? localMatrix : null);
 
-  if (rig) {
+  if (rigManager.localRig) {
     if (jumpState) {
-      rig.setFloorHeight(-0xFFFFFF);
+      rigManager.localRig.setFloorHeight(-0xFFFFFF);
     } else {
-      rig.setFloorHeight(localVector.y - _getAvatarHeight());
+      rigManager.localRig.setFloorHeight(localVector.y - _getAvatarHeight());
     }
   }
 
@@ -4851,7 +4834,7 @@ function animate(timestamp, frame) {
       }
     }
 
-    _setRigMatrix(null);
+    rigManager.setLocalRigMatrix(null);
   } else if (document.pointerLockElement) {
     const speed = 30 * (keys.shift ? 3 : 1);
     const cameraEuler = camera.rotation.clone();
@@ -4894,17 +4877,21 @@ function animate(timestamp, frame) {
     } else {
       _collideItems(camera.matrix);
       _collideChunk(camera.matrix);
-      _setRigMatrix(null);
+      rigManager.setLocalRigMatrix(null);
     }
   } else {
     _collideItems(camera.matrix);
     _collideChunk(camera.matrix);
-    _setRigMatrix(null);
+    rigManager.setLocalRigMatrix(null);
   }
 
   const _updateRig = () => {
-    if (rigMatrixEnabled) {
-      localMatrix.copy(rigMatrix)
+    let hmdPosition, hmdQuaternion;
+    let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip;
+    let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip;
+    
+    if (rigManager.localRigMatrixEnabled) {
+      localMatrix.copy(rigManager.localRigMatrix)
         // .premultiply(localMatrix2.getInverse(this.matrix))
         // .toArray(xrState.poseMatrix);
     } else {
@@ -4913,12 +4900,11 @@ function animate(timestamp, frame) {
         // .premultiply(localMatrix2.getInverse(this.matrix))
         // .toArray(xrState.poseMatrix);
     }
-
     localMatrix // .fromArray(this.xrState.poseMatrix)
       .decompose(localVector, localQuaternion, localVector2);
+    hmdPosition = localVector.toArray();
+    hmdQuaternion = localQuaternion.toArray();
 
-    rig.inputs.hmd.position.copy(localVector);
-    rig.inputs.hmd.quaternion.copy(localQuaternion);
     if (currentSession) {
       const inputSources = Array.from(currentSession.inputSources);
       const gamepads = ['left', 'right'].map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
@@ -4993,15 +4979,22 @@ function animate(timestamp, frame) {
       localMatrix3
         .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
         .premultiply(localMatrix2)
-        .decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localVector2);
+        .decompose(localVector2, localQuaternion2, localVector3);
+      leftGamepadPosition = localVector2.toArray();
+      leftGamepadQuaternion = localQuaternion2.toArray();
+      leftGamepadPointer = xrState.gamepads[1].buttons[0].value;
+      leftGamepadGrip = xrState.gamepads[1].buttons[1].value;
+
       localMatrix3
         .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
         .premultiply(localMatrix2)
-        .decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localVector2);
+        .decompose(localVector2, localQuaternion2, localVector3);
+      rightGamepadPosition = localVector2.toArray();
+      rightGamepadQuaternion = localQuaternion2.toArray();
+      rightGamepadPointer = xrState.gamepads[0].buttons[0].value;
+      rightGamepadGrip = xrState.gamepads[0].buttons[1].value;
 
-      rig.inputs.leftGamepad.pointer = xrState.gamepads[1].buttons[0].value;
-      rig.inputs.leftGamepad.grip = xrState.gamepads[1].buttons[1].value;
-      if (xrState.hands[1].visible[0]) {
+      /* if (xrState.hands[1].visible[0]) {
         for (let i = 0; i < 25; i++) {
           rig.inputs.leftGamepad.fingers[i].quaternion.fromArray(xrState.hands[1][i].orientation);
         }
@@ -5014,15 +5007,18 @@ function animate(timestamp, frame) {
         }
       } */
     } else {
-      // localMatrix.fromArray(this.xrState.poseMatrix)
-        // .decompose(localVector, localQuaternion, localVector2);
-      const handOffsetScale = rig ? rig.height/1.5 : 1;
-      rig.inputs.leftGamepad.position.copy(localVector).add(localVector2.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+      const handOffsetScale = rigManager.localRig ? rigManager.localRig.height/1.5 : 1;
+      leftGamepadPosition = localVector2.copy(localVector).add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion)).toArray();
         // .toArray(xrState.gamepads[1].position);
-      rig.inputs.leftGamepad.quaternion.copy(localQuaternion);
-      rig.inputs.rightGamepad.position.copy(localVector).add(localVector2.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+      leftGamepadQuaternion = localQuaternion.toArray();
+      leftGamepadPointer = 0;
+      leftGamepadGrip = 0;
+
+      rightGamepadPosition = localVector2.copy(localVector).add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion)).toArray();
         // .toArray(xrState.gamepads[0].position);
-      rig.inputs.rightGamepad.quaternion.copy(localQuaternion);
+      rightGamepadQuaternion = localQuaternion.toArray();
+      rightGamepadPointer = 0;
+      rightGamepadGrip = 0;
 
       /* HANDS.forEach((handedness, i) => {
         const grabuse = this.grabuses[handedness];
@@ -5040,7 +5036,12 @@ function animate(timestamp, frame) {
       }); */
     }
 
-    rig.update();
+    rigManager.setLocalAvatarPose([
+      [localVector.toArray(), localQuaternion.toArray()],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+    ]);
+    rigManager.update();
   };
   _updateRig();
 
@@ -5104,7 +5105,7 @@ function animate(timestamp, frame) {
         }
       }
     })();
-    const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rig.inputs;
+    const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
     if (selectedWeaponModel) {
       if (!selectedWeaponModel.isMesh) {
         if (Array.isArray(selectedWeaponModel)) {
@@ -5434,19 +5435,9 @@ function animate(timestamp, frame) {
               if (raycastChunkSpec.objectId !== 0) {
                 const thingFile = thingFiles[raycastChunkSpec.objectId];
                 if (thingFile) {
-                  (async () => {
-                    const o = await new Promise((accept, reject) => {
-                      new GLTFLoader().load(thingFile, accept, xhr => {}, reject);
-                    });
-                    scene.remove(rig.model);
-                    rig = new Avatar(o, {
-                      fingers: true,
-                      hair: true,
-                      visemes: true,
-                      decapitate: selectedTool === 'firstperson',
-                    });
-                    scene.add(rig.model);
-                  })();
+                  rigManager.setLocalAvatarUrl(thingFile, () => {
+                    console.log('local rig update');
+                  }, console.warn);
                 }
               }
             }
@@ -5663,7 +5654,14 @@ function animate(timestamp, frame) {
   lastTeleport = currentTeleport;
   lastWeaponDown = currentWeaponDown;
 
+  if (selectedTool === 'firstperson') {
+    rigManager.localRig.decapitate();
+  } else {
+    rigManager.localRig.undecapitate();
+  }
+
   geometryWorker && geometryWorker.update();
+  planet.update();
 
   localMatrix.multiplyMatrices(camera.projectionMatrix, localMatrix2.multiplyMatrices(camera.matrixWorldInverse, worldContainer.matrixWorld))
   if (currentChunkMesh && currentVegetationMesh) {
@@ -5871,7 +5869,7 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
 });
 
 let selectedTool = 'camera';
-const _getFullAvatarHeight = () => rig ? rig.height : 1;
+const _getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
 const _getAvatarHeight = () => _getFullAvatarHeight() * 0.9;
 const _getMinHeight = () => {
   if (rig) {
@@ -5969,11 +5967,11 @@ for (let i = 0; i < tools.length; i++) {
           break;
         }
       }
-      if (rig) {
+      if (rigManager.localRig) {
         if (decapitate) {
-          rig.decapitate();
+          rigManager.localRig.decapitate();
         } else {
-          rig.undecapitate();
+          rigManager.localRig.undecapitate();
         }
       }
     }
