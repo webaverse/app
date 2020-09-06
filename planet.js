@@ -842,13 +842,6 @@ const _connectRoom = async roomName => {
       }, 10);
     }
   });
-  
-  planet.update = () => {
-    // update remote player rigs
-    for (const peerConnection of peerConnections) {
-      peerConnection.getPlayerRig().update();
-    }
-  };
 
   /* channelConnection.addEventListener('botconnection', async e => {
     console.log('got bot connection', e.data);
@@ -897,6 +890,13 @@ const _connectRoom = async roomName => {
       addMatrixUpdateListener(p);
     } */
   });
+};
+
+planet.update = () => {
+  // update remote player rigs
+  for (const peerConnection of peerConnections) {
+    peerConnection.getPlayerRig().update();
+  }
 };
 
 planet.connect = async (rn, {online = true} = {}) => {
