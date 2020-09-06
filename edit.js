@@ -5584,6 +5584,12 @@ function animate(timestamp, frame) {
   lastTeleport = currentTeleport;
   lastWeaponDown = currentWeaponDown;
 
+  if (selectedTool === 'firstperson') {
+    rigManager.localRig.decapitate();
+  } else {
+    rigManager.localRig.undecapitate();
+  }
+
   geometryWorker && geometryWorker.update();
 
   localMatrix.multiplyMatrices(camera.projectionMatrix, localMatrix2.multiplyMatrices(camera.matrixWorldInverse, worldContainer.matrixWorld))
