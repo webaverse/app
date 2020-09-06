@@ -554,9 +554,9 @@ const _connectRoom = async roomName => {
 
   // getFile()
 
-  setInterval(() => {
+  /* setInterval(() => {
     console.log(channelConnection)
-  }, 5000)
+  }, 5000); */
 
   setTimeout(() => {
     channelConnection.runCode(`edit(['hello.bin', 'meme.bin', 'lol.bin'], (buffers, args) => {
