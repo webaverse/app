@@ -13,7 +13,7 @@ import { XRChannelConnection } from 'https://2.metartc.com/xrrtc.js';
 import { makeTextMesh } from './vr-ui.js';
 import { loginManager } from './login.js';
 
-const presenceHost = 'wss://127.0.0.1:4443';
+const presenceHost = `wss://${document.location.hostname}:4443`;
 
 // const upVector = new THREE.Vector3(0, 1, 0);
 
