@@ -607,7 +607,7 @@ const _connectRoom = async roomName => {
       }
     });
 
-    const _latchMediaStream = async () => {
+    /* const _latchMediaStream = async () => {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
       });
@@ -618,7 +618,7 @@ const _connectRoom = async roomName => {
       });
       await channelConnection.setMicrophoneMediaStream(mediaStream);
     };
-    _latchMediaStream();
+    _latchMediaStream(); */
 
     channelConnection.dialogClient.addEventListener('peerEdit', e => {
       console.log(e)
