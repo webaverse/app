@@ -10,7 +10,7 @@ class MicrophoneWorker extends EventTarget {
     this.audioContext = new AudioContext();
     const mediaStreamSource = this.audioContext.createMediaStreamSource(mediaStream);
 
-    this.audioContext.audioWorklet.addModule(options.microphoneWorkletUrl || 'microphone-worklet.js')
+    this.audioContext.audioWorklet.addModule(options.microphoneWorkletUrl || 'avatars/microphone-worklet.js')
       .then(() => {
         const audioWorkletNode = new AudioWorkletNode(this.audioContext, 'volume-processor');
         if (options.muted === false) {
