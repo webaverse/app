@@ -19,6 +19,7 @@ https.createServer({
   cert: CERT,
   key: PRIVKEY,
 }, app)
-  .listen(4443);
+  .listen(3001);
 
-console.log('http://127.0.0.1:3000');
+console.log('http://localhost:3000');
+console.log('https://localhost:3001');
