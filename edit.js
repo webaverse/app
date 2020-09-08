@@ -832,10 +832,11 @@ const geometryWorker = (() => {
     // ENVIRONMENT_IS_PTHREAD: true,
     // wasmMemory,
     // buffer: wasmMemory.buffer,
-    noInitialRun: true,
-    noExitRuntime: true,
+    // noInitialRun: true,
+    // noExitRuntime: true,
     onRuntimeInitialized() {
       moduleInstance = this;
+      moduleInstance._globalInit();
       threadPool = moduleInstance._makeThreadPool(1);
       // moduleInstance._initPhysx();
       callStack = new CallStack();
