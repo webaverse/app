@@ -2395,7 +2395,7 @@ const geometryWorker = (() => {
                 geometrySet,
                 neededCoordsOffset,
                 subparcelOffset,
-                true,
+                1
               );
             }
           })().then(() => {
