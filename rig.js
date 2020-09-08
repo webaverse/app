@@ -10,6 +10,7 @@ class WaitQueue {
     this.locked = false;
     this.waiterCbs = [];
   }
+
   async lock() {
     if (!this.locked) {
       this.locked = true;
@@ -19,6 +20,7 @@ class WaitQueue {
       await p;
     }
   }
+
   async unlock() {
     if (this.waiterCbs.length > 0) {
       this.waiterCbs.pop()();
@@ -41,11 +43,12 @@ class RigManager {
     scene.add(this.localRig.model);
     this.localRigMatrix = new THREE.Matrix4();
     this.localRigMatrixEnabled = false;
-    
+
     this.localRigQueue = new WaitQueue();
-    
+
     this.peerRigs = {};
   }
+
   setLocalRigMatrix(rm) {
     if (rm) {
       this.localRigMatrix.copy(rm);
@@ -54,9 +57,10 @@ class RigManager {
       this.localRigMatrixEnabled = false;
     }
   }
+
   async setLocalAvatarUrl(url) {
     await this.localRigQueue.lock();
-    
+
     const o = await new Promise((accept, reject) => {
       new GLTFLoader().load(url, accept, xhr => {}, reject);
     });
@@ -76,6 +80,7 @@ class RigManager {
 
     await this.localRigQueue.unlock();
   }
+
   getLocalAvatarPose() {
     const hmdPosition = this.localRig.inputs.hmd.position.toArray();
     const hmdQuaternion = this.localRig.inputs.hmd.quaternion.toArray();
@@ -96,9 +101,10 @@ class RigManager {
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
-      floorHeight
+      floorHeight,
     ];
   }
+
   setLocalAvatarPose(poseArray) {
     const [
       [hmdPosition, hmdQuaternion],
@@ -119,6 +125,7 @@ class RigManager {
     this.localRig.inputs.rightGamepad.pointer = rightGamepadPointer;
     this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
   }
+
   update() {
     this.localRig.update();
   }

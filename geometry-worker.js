@@ -10,17 +10,18 @@ function abs(n) {
 function sign(n) {
   return -(n >> 31);
 }
-const _getSubparcelIndex = (x, y, z) => abs(x)|(abs(y)<<9)|(abs(z)<<18)|(sign(x)<<27)|(sign(y)<<28)|(sign(z)<<29);
+const _getSubparcelIndex = (x, y, z) => abs(x) | (abs(y) << 9) | (abs(z) << 18) | (sign(x) << 27) | (sign(y) << 28) | (sign(z) << 29);
 const _getFieldIndex = (x, y, z) => x + (z * SUBPARCEL_SIZE_P1) + (y * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1);
 const _align4 = n => {
-  const d = n%4;
-  return d ? (n+4-d) : n;
+  const d = n % 4;
+  return d ? (n + 4 - d) : n;
 };
 
 class Allocator {
   constructor() {
     this.offsets = [];
   }
+
   alloc(constructor, size) {
     const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
     const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
@@ -28,10 +29,12 @@ class Allocator {
     this.offsets.push(offset);
     return b;
   }
+
   free(offset) {
     self.Module._doFree(offset);
     this.offsets.splice(this.offsets.indexOf(offset), 1);
   }
+
   freeAll() {
     for (let i = 0; i < this.offsets.length; i++) {
       self.Module._doFree(this.offsets[i]);
@@ -60,9 +63,9 @@ const _marchObjects = (x, y, z, objects, subparcelSpecs) => {
       stats.numPositions += geometry.positions.length;
       stats.numUvs += geometry.uvs ? geometry.uvs.length : 0;
       stats.numColors += geometry.colors ? geometry.colors.length : 0;
-      stats.numIds += geometry.positions.length/3;
-      stats.numSkyLights += geometry.positions.length/3;
-      stats.numTorchLights += geometry.positions.length/3;
+      stats.numIds += geometry.positions.length / 3;
+      stats.numSkyLights += geometry.positions.length / 3;
+      stats.numTorchLights += geometry.positions.length / 3;
       stats.numIndices += geometry.indices.length;
     }
   }
@@ -120,7 +123,7 @@ const _marchObjects = (x, y, z, objects, subparcelSpecs) => {
     for (const geometry of geometrySpecs) {
       const spec = opaque;
 
-      const indexOffset2 = spec.positionsIndex/3;
+      const indexOffset2 = spec.positionsIndex / 3;
       for (let j = 0; j < geometry.indices.length; j++) {
         spec.indices[spec.indicesIndex + j] = geometry.indices[j] + indexOffset2;
       }
@@ -136,15 +139,15 @@ const _marchObjects = (x, y, z, objects, subparcelSpecs) => {
         const ax = Math.floor(localVector.x);
         const ay = Math.floor(localVector.y);
         const az = Math.floor(localVector.z);
-        const sx = Math.floor(ax/SUBPARCEL_SIZE);
-        const sy = Math.floor(ay/SUBPARCEL_SIZE);
-        const sz = Math.floor(az/SUBPARCEL_SIZE);
+        const sx = Math.floor(ax / SUBPARCEL_SIZE);
+        const sy = Math.floor(ay / SUBPARCEL_SIZE);
+        const sz = Math.floor(az / SUBPARCEL_SIZE);
         const subparcelIndex = _getSubparcelIndex(sx, sy, sz);
         const subparcel = subparcelSpecsMap[subparcelIndex];
         if (subparcel) {
-          const lx = ax - SUBPARCEL_SIZE*sx;
-          const ly = ay - SUBPARCEL_SIZE*sy;
-          const lz = az - SUBPARCEL_SIZE*sz;
+          const lx = ax - SUBPARCEL_SIZE * sx;
+          const ly = ay - SUBPARCEL_SIZE * sy;
+          const lz = az - SUBPARCEL_SIZE * sz;
           const fieldIndex = _getFieldIndex(lx, ly, lz);
           spec.skyLights[spec.skyLightsIndex + jOffset] = subparcel.heightfield[fieldIndex] < 0 ? 0 : subparcel.heightfield[fieldIndex];
           spec.torchLights[spec.torchLightsIndex + jOffset] = subparcel.lightfield[fieldIndex];
@@ -154,8 +157,8 @@ const _marchObjects = (x, y, z, objects, subparcelSpecs) => {
         }
       }
       spec.positionsIndex += geometry.positions.length;
-      spec.skyLightsIndex += geometry.positions.length/3;
-      spec.torchLightsIndex += geometry.positions.length/3;
+      spec.skyLightsIndex += geometry.positions.length / 3;
+      spec.torchLightsIndex += geometry.positions.length / 3;
 
       if (geometry.uvs) {
         spec.uvs.set(geometry.uvs, spec.uvsIndex);
@@ -166,8 +169,8 @@ const _marchObjects = (x, y, z, objects, subparcelSpecs) => {
         spec.colorsIndex += geometry.colors.length;
       }
 
-      spec.ids.fill(object.id, spec.idsIndex, spec.idsIndex + geometry.positions.length/3);
-      spec.idsIndex += geometry.positions.length/3;
+      spec.ids.fill(object.id, spec.idsIndex, spec.idsIndex + geometry.positions.length / 3);
+      spec.idsIndex += geometry.positions.length / 3;
     }
   }
 
@@ -410,7 +413,7 @@ const _handleMessage = async data => {
         indices.offset,
         numPositions.offset,
         numUvs.offset,
-        numIndices.offset
+        numIndices.offset,
       );
 
       const positions2 = new Float32Array(Module.HEAP8.buffer, positions[0], numPositions[0]).slice();
@@ -460,7 +463,7 @@ const _handleMessage = async data => {
         numHeads.offset,
         numLegs.offset,
         headPivot.offset,
-        aabb.offset
+        aabb.offset,
       );
 
       const positions2 = new Float32Array(Module.HEAP8.buffer, positions[0], numPositions[0]).slice();
@@ -512,8 +515,8 @@ const _handleMessage = async data => {
         }
       }
       const subparcelObjectSize = Int32Array.BYTES_PER_ELEMENT +
-        SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + 1 +
-        SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + 1;
+        SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 + 1 +
+        SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 + 1;
       const numSubparcelObjects = subparcelSpecs.length;
       const subparcelObjects = allocator.alloc(Uint8Array, subparcelObjectSize * numSubparcelObjects);
       {
@@ -563,7 +566,7 @@ const _handleMessage = async data => {
         numIds.offset,
         numIndices.offset,
         numSkyLights.offset,
-        numTorchLights.offset
+        numTorchLights.offset,
       );
 
       const positions2 = positions.slice(0, numPositions[0]);

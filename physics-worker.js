@@ -4,6 +4,7 @@ class Allocator {
   constructor() {
     this.offsets = [];
   }
+
   alloc(constructor, size) {
     const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
     const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
@@ -11,6 +12,7 @@ class Allocator {
     this.offsets.push(offset);
     return b;
   }
+
   freeAll() {
     for (let i = 0; i < this.offsets.length; i++) {
       self.Module._doFree(this.offsets[i]);
@@ -60,7 +62,7 @@ class Allocator {
 }; */
 const _bakeGeometries = specs => {
   const pointers = specs.map(spec => {
-    const {positions: positionsData, count/*, indices: indicesData*/} = spec;
+    const {positions: positionsData, count/*, indices: indicesData */} = spec;
 
     const allocator = new Allocator();
 
@@ -80,7 +82,7 @@ const _bakeGeometries = specs => {
       0, // indices ? indices.length : 0,
       ptr.offset,
       data.offset,
-      size.offset
+      size.offset,
     );
 
     const pointer = [ptr[0], data[0], size[0]];
@@ -103,7 +105,7 @@ const _bakeGeometries = specs => {
     index += size;
 
     self.Module._releaseBakedGeometry(
-      ptr
+      ptr,
     );
 
     return physicsGeometryBuffer;
