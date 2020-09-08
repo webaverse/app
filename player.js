@@ -1,12 +1,10 @@
-import * as THREE from './three.module.js';
-import storage from './storage.js';
-
 class Player extends EventTarget {
   constructor() {
     super();
 
     this.items = {};
   }
+
   addInventory(type, count) {
     if (!this.items[type]) {
       this.items[type] = 0;
@@ -20,6 +18,7 @@ class Player extends EventTarget {
       },
     }));
   }
+
   removeInventory(type, count) {
     if (!this.items[type]) {
       this.items[type] = 0;
@@ -33,6 +32,7 @@ class Player extends EventTarget {
       },
     }));
   }
+
   getCount(type) {
     return this.items[type] || 0;
   }

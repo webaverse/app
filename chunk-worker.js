@@ -1,14 +1,15 @@
 importScripts('./bin/objectize2.js');
 
 const subparcelSize = 10;
-const subparcelSizeP1 = subparcelSize+1;
-const subparcelSizeP3 = subparcelSize+3;
+const subparcelSizeP1 = subparcelSize + 1;
+const subparcelSizeP3 = subparcelSize + 3;
 const potentialDefault = -0.5;
 
 class Allocator {
   constructor() {
     this.offsets = [];
   }
+
   alloc(constructor, size) {
     const offset = self.Module._malloc(size * constructor.BYTES_PER_ELEMENT);
     const b = new constructor(self.Module.HEAP8.buffer, self.Module.HEAP8.byteOffset + offset, size);
@@ -16,10 +17,12 @@ class Allocator {
     this.offsets.push(offset);
     return b;
   }
+
   free(offset) {
     self.Module._doFree(offset);
     this.offsets.splice(this.offsets.indexOf(offset), 1);
   }
+
   freeAll() {
     for (let i = 0; i < this.offsets.length; i++) {
       self.Module._doFree(this.offsets[i]);
@@ -30,8 +33,8 @@ class Allocator {
 const allocator = new Allocator();
 
 const _align4 = n => {
-  const d = n%4;
-  return d ? (n+4-d) : n;
+  const d = n % 4;
+  return d ? (n + 4 - d) : n;
 };
 const _loadNoise = (seedData, x, y, z, baseHeight, subparcelByteOffset) => {
   // dims.set(Int32Array.from([subparcelSize, subparcelSize, subparcelSize]));
@@ -53,7 +56,7 @@ const _loadNoise = (seedData, x, y, z, baseHeight, subparcelByteOffset) => {
     wormRadiusRate,
     objectsRate,
     potentialDefault,
-    subparcelByteOffset
+    subparcelByteOffset,
   );
 };
 const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, meshId, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks) => {
@@ -87,14 +90,14 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
     torchLight.byteOffset,
     numOpaquePositions.offset,
     numTransparentPositions.offset,
-    peeks.byteOffset
+    peeks.byteOffset,
   );
 
-  const ids = id.subarray(0, numPositions[0]/3);
-  for (let i = 0; i < numPositions[0]/3/3; i++) {
-    ids[i*3] = meshId;
-    ids[i*3+1] = meshId;
-    ids[i*3+2] = meshId;
+  const ids = id.subarray(0, numPositions[0] / 3);
+  for (let i = 0; i < numPositions[0] / 3 / 3; i++) {
+    ids[i * 3] = meshId;
+    ids[i * 3 + 1] = meshId;
+    ids[i * 3 + 2] = meshId;
   }
 
   if (numPositions[0] > position.length) {
@@ -120,8 +123,8 @@ const _getChunkSpec = (potentials, biomes, heightfield, lightfield, shiftsData, 
     barycentrics: barycentric.subarray(0, numBarycentrics[0]),
     aos: ao.subarray(0, numAos[0]),
     ids,
-    skyLights: skyLight.subarray(0, numPositions[0]/3),
-    torchLights: torchLight.subarray(0, numPositions[0]/3),
+    skyLights: skyLight.subarray(0, numPositions[0] / 3),
+    torchLights: torchLight.subarray(0, numPositions[0] / 3),
     peeks,
     numOpaquePositions: numOpaquePositions[0],
     numTransparentPositions: numTransparentPositions[0],
@@ -133,9 +136,9 @@ const _meshChunkSlab = (meshId, x, y, z, potentials, biomes, heightfield, lightf
   heightfield.set(heightfieldData);
   lightfield.set(lightfieldData); */
   const shiftsData = [
-    x*subparcelSize,
-    y*subparcelSize,
-    z*subparcelSize,
+    x * subparcelSize,
+    y * subparcelSize,
+    z * subparcelSize,
   ];
   const spec = _getChunkSpec(potentials, biomes, heightfield, lightfield, shiftsData, meshId, position, normal, uv, barycentric, ao, id, skyLight, torchLight, peeks);
   return {
@@ -227,7 +230,7 @@ const _handleMessage = data => {
         x,
         y,
         z,
-        baseHeight
+        baseHeight,
       );
 
       self.postMessage({
