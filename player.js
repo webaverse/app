@@ -1,6 +1,3 @@
-import * as THREE from './three.module.js';
-import storage from './storage.js';
-
 class Player extends EventTarget {
   constructor() {
     super();

@@ -1,4 +1,3 @@
-import * as THREE from './three.module.js';
 import storage from './storage.js';
 import {
   PARCEL_SIZE,
@@ -11,12 +10,10 @@ import {
 } from './constants.js';
 import { XRChannelConnection } from 'https://2.metartc.com/xrrtc.js';
 import Avatar from './avatars/avatars.js';
-import { makeTextMesh } from './vr-ui.js';
+// import { makeTextMesh } from './vr-ui.js';
 import { loginManager } from './login.js';
 
 const presenceHost = `wss://${document.location.hostname}:4443`;
-
-// const upVector = new THREE.Vector3(0, 1, 0);
 
 function abs(n) {
   return (n ^ (n >> 31)) - (n >> 31);
@@ -46,9 +43,7 @@ const _getPotentialIndex = (x, y, z) => (x+1) + (y+1)*SUBPARCEL_SIZE_P3*SUBPARCE
 const _getFieldIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + z*SUBPARCEL_SIZE_P1;
 
 // planet
-
 export const planet = new EventTarget();
-// window.planet = planet;
 
 let state = null;
 
@@ -545,36 +540,8 @@ let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
 
-/* const getFile = async () => {
-  const response = await fetch('https://127.0.0.1:4443/key/meme.bin', {
-    method: 'GET'
-  })
-  console.log(response)
-  const binary = await response.arrayBuffer();
-  console.log(binary)
-} */
-
 const _connectRoom = async roomName => {
-  channelConnection = new XRChannelConnection(`${presenceHost}/`, {
-    roomName,
-    // displayName: 'user',
-  });
-
-  // getFile()
-
-  /* setInterval(() => {
-    console.log(channelConnection)
-  }, 5000); */
-
-  /* setTimeout(() => {
-    channelConnection.runCode(`edit(['hello.bin', 'meme.bin', 'lol.bin'], (buffers, args) => {
-      let newBuffers = [];
-      for (let i = 0; i < buffers.length; i++) {
-          newBuffers.push(Buffer.alloc(10));
-      }
-      return newBuffers;
-    })`);
-  }, 10000); */
+  channelConnection = new XRChannelConnection(`${presenceHost}/`, { roomName });
 
   channelConnection.addEventListener('open', async e => {
     channelConnectionOpen = true;
@@ -584,20 +551,15 @@ const _connectRoom = async roomName => {
     let index = 0;
     let bufferedAmountLow = true;
     channelConnection.send = (_send => function send(a) {
-      // console.log('send', a, this);
       if (bufferedAmountLow) {
-        // try {
           bufferedAmountLow = false;
           return _send.apply(this, arguments);
-        /* } catch(err) {
-          console.log('got error', err);
-        } */
       } else {
         queue.push(a);
       }
     })(channelConnection.send);
+
     channelConnection.dataChannel.addEventListener('bufferedamountlow', e => {
-      // console.log('buffered amount low', e);
       bufferedAmountLow = true;
       if (index < queue.length) {
         /* if (channelConnection.dataChannel.bufferedAmount !== 0) {
@@ -725,7 +687,7 @@ const _connectRoom = async roomName => {
       scene.remove(peerRig.model);
       live = false;
     });
-    const localEuler = new THREE.Euler();
+    // const localEuler = new THREE.Euler();
 
     peerConnection.addEventListener('peerPose', (e) => {
       console.log('peerPose:', e);
@@ -733,7 +695,6 @@ const _connectRoom = async roomName => {
 
     peerConnection.addEventListener('message', e => {
       const {data} = e;
-      // console.log(e);
       if (typeof data === 'string') {
         const j = JSON.parse(data);
         const {method} = j;
@@ -747,8 +708,8 @@ const _connectRoom = async roomName => {
           peerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepad[1]);
           peerRig.inputs.rightGamepad.position.fromArray(rightGamepad[0]);
           peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
-          peerRig.setFloorHeight(floorHeight)
-          // peerRig.setPose(pose);
+          peerRig.setFloorHeight(floorHeight);
+
           /* peerRig.textMesh.position.fromArray(head[0]);
           peerRig.textMesh.position.y += 0.5;
           peerRig.textMesh.quaternion.fromArray(head[1]);
@@ -759,7 +720,6 @@ const _connectRoom = async roomName => {
           localEuler.z = 0;
           peerRig.textMesh.quaternion.setFromEuler(localEuler); */
 
-          // console.log(peerRig);
         } else if (method === 'name') {
           const {peerId, name} = j;
           /* if (peerId === peerConnection.connectionId && peerRig && name !== peerRig.textMesh.text) {
@@ -796,13 +756,9 @@ const _connectRoom = async roomName => {
     });
     peerConnections.push(peerConnection);
 
-    // console.log(peerRig);
-
     let interval;
     if (live) {
-      // console.log('send pose');
       interval = setInterval(() => {
-        // console.log(peerRig);
         channelConnection.send(JSON.stringify({
           method: 'name',
           peerId: channelConnection.connectionId,
@@ -814,24 +770,6 @@ const _connectRoom = async roomName => {
           hash: loginManager.getAvatar(),
         }));
         const pose = rigManager.getLocalAvatarPose();
-        /* const pose = [
-          [
-            peerRig.context.rig.inputs.hmd.position.toArray(),
-            peerRig.context.rig.inputs.hmd.quaternion.toArray(),
-          ],
-          [
-            peerRig.context.rig.inputs.leftGamepad.position.toArray(),
-            peerRig.context.rig.inputs.leftGamepad.quaternion.toArray(),
-            peerRig.context.rig.inputs.leftGamepad.pointer,
-            peerRig.context.rig.inputs.leftGamepad.grip,
-          ],
-          [
-            peerRig.context.rig.inputs.rightGamepad.position.toArray(),
-            peerRig.context.rig.inputs.rightGamepad.quaternion.toArray(),
-            peerRig.context.rig.inputs.rightGamepad.pointer,
-            peerRig.context.rig.inputs.rightGamepad.grip,
-          ],
-        ]; */
         channelConnection.send(JSON.stringify({
           method: 'pose',
           pose
@@ -839,20 +777,6 @@ const _connectRoom = async roomName => {
       }, 10);
     }
   });
-
-  /* channelConnection.addEventListener('botconnection', async e => {
-    console.log('got bot connection', e.data);
-
-    setInterval(() => {
-      channelConnection.send(JSON.stringify({
-        method: 'ping',
-      }));
-    }, 1000);
-  }); */
-
-  // setInterval(() => {
-  //   console.log(channelConnection);
-  // }, 5000);
 
   channelConnection.addEventListener('initState', async e => {
     const {data} = e;
@@ -871,21 +795,6 @@ const _connectRoom = async roomName => {
       delete state[key];
     }
 
-    /* const id = parseInt(key, 10);
-    let p = xrpackage.children.find(p => p.id === id);
-    if (isSet && !p) {
-      p = await XRPackage.download(value.hash);
-      p.id = id;
-      await xrpackage.add(p);
-    } else if (!isSet && p) {
-      await xrpackage.remove(p);
-      p = null;
-    }
-    if(p) {
-      removeMatrixUpdateListener(p);
-      p.setMatrix(new THREE.Matrix4().fromArray(value.matrix));
-      addMatrixUpdateListener(p);
-    } */
   });
 };
 
