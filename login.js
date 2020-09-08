@@ -33,7 +33,7 @@ async function pushUserObject() {
   }
 }
 function updateUserObject() {
- const loginEmailStatic = document.getElementById('login-email-static');
+  const loginEmailStatic = document.getElementById('login-email-static');
   const userName = document.getElementById('user-name');
   // const avatarName = document.getElementById('avatar-name');
   loginEmailStatic.innerText = userObject.name;
@@ -190,12 +190,15 @@ class LoginManager extends EventTarget {
   constructor() {
     super();
   }
+
   isLoggedIn() {
     return !!userObject;
   }
+
   getUsername() {
     return userObject && userObject.name;
   }
+
   async setUsername(name) {
     if (userObject) {
       userObject.name = name;
@@ -206,9 +209,11 @@ class LoginManager extends EventTarget {
       data: name,
     }));
   }
+
   getAvatar() {
     return userObject && userObject.avatarHash;
   }
+
   async setAvatar(avatarHash) {
     if (userObject) {
       userObject.avatarHash = avatarHash;
@@ -219,9 +224,11 @@ class LoginManager extends EventTarget {
       data: avatarHash,
     }));
   }
+
   getInventory() {
     return userObject ? _clone(userObject.inventory) : [];
   }
+
   async setInventory(inventory) {
     if (userObject) {
       userObject.inventory = inventory;
@@ -232,6 +239,7 @@ class LoginManager extends EventTarget {
       data: _clone(inventory),
     }));
   }
+
   pushUpdate() {
     this.dispatchEvent(new MessageEvent('usernamechange', {
       data: userObject && userObject.name,

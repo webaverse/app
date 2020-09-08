@@ -1,4 +1,3 @@
-import * as THREE from './three.module.js';
 import storage from './storage.js';
 import {
   PARCEL_SIZE,
@@ -9,14 +8,12 @@ import {
   PLANET_OBJECT_SLOTS,
   PLANET_OBJECT_SIZE,
 } from './constants.js';
-import { XRChannelConnection } from 'https://2.metartc.com/xrrtc.js';
+import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 import Avatar from './avatars/avatars.js';
-import { makeTextMesh } from './vr-ui.js';
-import { loginManager } from './login.js';
+// import { makeTextMesh } from './vr-ui.js';
+import {loginManager} from './login.js';
 
 const presenceHost = `wss://${document.location.hostname}:4443`;
-
-// const upVector = new THREE.Vector3(0, 1, 0);
 
 function abs(n) {
   return (n ^ (n >> 31)) - (n >> 31);
@@ -24,7 +21,7 @@ function abs(n) {
 function sign(n) {
   return -(n >> 31);
 }
-const _getSubparcelIndex = (x, y, z) => abs(x)|(abs(y)<<9)|(abs(z)<<18)|(sign(x)<<27)|(sign(y)<<28)|(sign(z)<<29);
+const _getSubparcelIndex = (x, y, z) => abs(x) | (abs(y) << 9) | (abs(z) << 18) | (sign(x) << 27) | (sign(y) << 28) | (sign(z) << 29);
 /* const _getSubparcelXYZ = index => {
   let x = index&0x1FF; // (1<<9)-1
   index >>>= 9;
@@ -42,13 +39,11 @@ const _getSubparcelIndex = (x, y, z) => abs(x)|(abs(y)<<9)|(abs(z)<<18)|(sign(x)
   if (sz) { z *= -1; }
   return [x, y, z];
 }; */
-const _getPotentialIndex = (x, y, z) => (x+1) + (y+1)*SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3 + (z+1)*SUBPARCEL_SIZE_P3;
-const _getFieldIndex = (x, y, z) => x + y*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1 + z*SUBPARCEL_SIZE_P1;
+const _getPotentialIndex = (x, y, z) => (x + 1) + (y + 1) * SUBPARCEL_SIZE_P3 * SUBPARCEL_SIZE_P3 + (z + 1) * SUBPARCEL_SIZE_P3;
+const _getFieldIndex = (x, y, z) => x + y * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 + z * SUBPARCEL_SIZE_P1;
 
 // planet
-
 export const planet = new EventTarget();
-// window.planet = planet;
 
 let state = null;
 
@@ -97,27 +92,31 @@ export class SubparcelObject {
       this._name = new Uint8Array(this.data, this.offset + index, MAX_NAME_LENGTH);
       index += MAX_NAME_LENGTH;
       this.position = new Float32Array(this.data, this.offset + index, 3);
-      index += Uint32Array.BYTES_PER_ELEMENT*3;
+      index += Uint32Array.BYTES_PER_ELEMENT * 3;
       this.quaternion = new Float32Array(this.data, this.offset + index, 4);
-      index += Uint32Array.BYTES_PER_ELEMENT*4;
+      index += Uint32Array.BYTES_PER_ELEMENT * 4;
     }
   }
+
   equals(bm) {
     return this.id === bm.id &&
       this.subparcel.x === bm.subparcel.x &&
       this.subparcel.y === bm.subparcel.y &&
       this.subparcel.z === bm.subparcel.z;
   }
+
   getNameLength() {
     return _getStringLength(this._name);
   }
+
   copy(o) {
     new Uint8Array(this.data, this.offset, PLANET_OBJECT_SIZE)
       .set(
-        new Uint8Array(o.data, o.offset, PLANET_OBJECT_SIZE)
+        new Uint8Array(o.data, o.offset, PLANET_OBJECT_SIZE),
       );
     this.readMetadata();
   }
+
   writeMetadata() {
     this._id[0] = this.id;
     this._type[0] = this.type;
@@ -125,6 +124,7 @@ export class SubparcelObject {
     this._name.set(b);
     this._name[b.byteLength] = 0;
   }
+
   readMetadata() {
     this.id = this._id[0];
     this.type = this._type[0];
@@ -143,7 +143,7 @@ export class Subparcel {
     this.potentials = null;
     this.biomes = null;
     this.heightfield = null;
-    this.lightfield = null
+    this.lightfield = null;
     this._numObjects = null;
     this.vegetations = [];
     this.packages = [];
@@ -154,22 +154,24 @@ export class Subparcel {
       this.reload();
     }
   }
+
   latchData(data, offset) {
     this.data = data;
     this.offset = offset;
-    this.potentials = new Float32Array(this.data, this.offset + Subparcel.offsets.potentials, SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3*SUBPARCEL_SIZE_P3);
-    this.biomes = new Uint8Array(this.data, this.offset + Subparcel.offsets.biomes, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
-    this.heightfield = new Int8Array(this.data, this.offset + Subparcel.offsets.heightfield, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
-    this.lightfield = new Uint8Array(this.data, this.offset + Subparcel.offsets.lightfield, SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1*SUBPARCEL_SIZE_P1);
+    this.potentials = new Float32Array(this.data, this.offset + Subparcel.offsets.potentials, SUBPARCEL_SIZE_P3 * SUBPARCEL_SIZE_P3 * SUBPARCEL_SIZE_P3);
+    this.biomes = new Uint8Array(this.data, this.offset + Subparcel.offsets.biomes, SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1);
+    this.heightfield = new Int8Array(this.data, this.offset + Subparcel.offsets.heightfield, SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1);
+    this.lightfield = new Uint8Array(this.data, this.offset + Subparcel.offsets.lightfield, SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1);
     this._numObjects = new Uint32Array(this.data, this.offset + Subparcel.offsets.numObjects, 1);
   }
+
   reload() {
     this.readMetadata();
     this.vegetations.length = 0;
     this.packages.length = 0;
     const numObjects = this._numObjects[0];
     for (let i = 0; i < numObjects; i++) {
-      const o = new SubparcelObject(this.data, this.offset + Subparcel.offsets.objects + i*PLANET_OBJECT_SIZE, i, this);
+      const o = new SubparcelObject(this.data, this.offset + Subparcel.offsets.objects + i * PLANET_OBJECT_SIZE, i, this);
       o.readMetadata();
       if (o.type === OBJECT_TYPES.VEGETATION) {
         this.vegetations.push(o);
@@ -178,11 +180,13 @@ export class Subparcel {
       }
     }
   }
+
   update() {
     planet.dispatchEvent(new MessageEvent('subparcelupdate', {
       data: this,
     }));
   }
+
   writeMetadata() {
     const dst = new Int32Array(this.data, this.offset + Subparcel.offsets.xyzi, 4);
     dst[0] = this.x;
@@ -190,6 +194,7 @@ export class Subparcel {
     dst[2] = this.z;
     dst[3] = this.index;
   }
+
   readMetadata() {
     const src = new Int32Array(this.data, this.offset + Subparcel.offsets.xyzi, 4);
     this.x = src[0];
@@ -197,6 +202,7 @@ export class Subparcel {
     this.z = src[2];
     this.index = src[3];
   }
+
   setCube(x, y, z, r, fn) {
     for (let dx = -r; dx <= r; dx++) {
       const ax = x + dx;
@@ -210,6 +216,7 @@ export class Subparcel {
       }
     }
   }
+
   clearCube(x, y, z, r) {
     for (let dx = -r; dx <= r; dx++) {
       const ax = x + dx;
@@ -223,12 +230,13 @@ export class Subparcel {
       }
     }
   }
+
   addVegetation(type, position, quaternion) {
     if (this._numObjects[0] < PLANET_OBJECT_SLOTS) {
       const nextIndex = this._numObjects[0]++;
 
-      const vegetation = new SubparcelObject(this.data, this.offset + Subparcel.offsets.objects + nextIndex*PLANET_OBJECT_SIZE, nextIndex, this);
-      vegetation.id = Math.floor(Math.random()*0xFFFFFF);
+      const vegetation = new SubparcelObject(this.data, this.offset + Subparcel.offsets.objects + nextIndex * PLANET_OBJECT_SIZE, nextIndex, this);
+      vegetation.id = Math.floor(Math.random() * 0xFFFFFF);
       vegetation.type = OBJECT_TYPES.VEGETATION;
       vegetation.name = type;
       position.toArray(vegetation.position);
@@ -240,12 +248,13 @@ export class Subparcel {
       throw new Error('cannot allocate vegetation slot');
     }
   }
+
   removeVegetation(vegetationId) {
     const index = this.vegetations.findIndex(v => v.id === vegetationId);
     if (index !== -1) {
-      for (let i = index; i < this.vegetations.length-1; i++) {
+      for (let i = index; i < this.vegetations.length - 1; i++) {
         const vegetation = this.vegetations[i];
-        vegetation.copy(this.vegetations[i+1]);
+        vegetation.copy(this.vegetations[i + 1]);
         vegetation.readMetadata();
       }
       this.vegetations.length--;
@@ -254,6 +263,7 @@ export class Subparcel {
       console.warn('removing nonexistent vegetation', this.vegetations.slice(), vegetationId);
     }
   }
+
   /* addPackage(dataHash, position, quaternion) {
     for (let i = 0; i < this._freeList.length; i++) {
       if (!this._freeList[i]) {
@@ -287,7 +297,7 @@ export class Subparcel {
     return subparcel;
   }
 }
-let locks = {};
+const locks = {};
 const _lockAll = async keys => {
   keys.sort();
   const promises = edits.map(async ([key, arrayBuffer]) => {
@@ -319,10 +329,10 @@ planet.requestRemoteSubparcels = async (keys) => {
   await _lockAll(keys);
   const promises = keys.map(key => storage.getRaw(`chunks/${key}`));
   const result = await Promise.all(promises);
-  let parcels = [];
+  const parcels = [];
   channelConnection.dialogClient.addEventListener('getFile', e => {
-    console.log(e) // requested file
-    parcels.push(e.data)
+    console.log(e); // requested file
+    parcels.push(e.data);
     if (parcels.length === keys.length) {
       _unlockAll(keys);
       channelConnection.dialogClient.removeEventListener('getFile');
@@ -331,24 +341,24 @@ planet.requestRemoteSubparcels = async (keys) => {
   });
   keys.forEach(key => {
     channelConnection.getFile(key);
-  })
+  });
 };
 planet.writeSubparcels = async edits => {
   const keys = edits.map(([key]) => key);
   await _lockAll(keys);
   const promises = edits.map(async ([key, arrayBuffer]) => storage.setRaw(`chunks/${key}`, arrayBuffer));
   await Promise.all(promises);
-  let responses = [];
+  const responses = [];
   channelConnection.dialogClient.addEventListener('edit', e => {
-    responses.push(e.data)
+    responses.push(e.data);
     if (responses.length === edits.length) {
       _unlockAll(keys);
       channelConnection.dialogClient.removeEventListener('edit');
     }
   });
   edits.forEach(edit => {
-    channelConnection.runCode({ script: edit, numArgs: 0 });
-  })
+    channelConnection.runCode({script: edit, numArgs: 0});
+  });
 };
 planet.onRemoteSubparcelsEdit = (edits) => {
   // XXX called from the connection when a peer runs an edit g
@@ -545,59 +555,26 @@ let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
 
-/* const getFile = async () => {
-  const response = await fetch('https://127.0.0.1:4443/key/meme.bin', {
-    method: 'GET'
-  })
-  console.log(response)
-  const binary = await response.arrayBuffer();
-  console.log(binary)
-} */
-
 const _connectRoom = async roomName => {
-  channelConnection = new XRChannelConnection(`${presenceHost}/`, {
-    roomName,
-    // displayName: 'user',
-  });
-
-  // getFile()
-
-  /* setInterval(() => {
-    console.log(channelConnection)
-  }, 5000); */
-
-  /* setTimeout(() => {
-    channelConnection.runCode(`edit(['hello.bin', 'meme.bin', 'lol.bin'], (buffers, args) => {
-      let newBuffers = [];
-      for (let i = 0; i < buffers.length; i++) {
-          newBuffers.push(Buffer.alloc(10));
-      }
-      return newBuffers;
-    })`);
-  }, 10000); */
+  channelConnection = new XRChannelConnection(`${presenceHost}/`, {roomName});
 
   channelConnection.addEventListener('open', async e => {
     channelConnectionOpen = true;
-    console.log('Channel Open!')
+    console.log('Channel Open!');
 
     const queue = [];
     let index = 0;
     let bufferedAmountLow = true;
     channelConnection.send = (_send => function send(a) {
-      // console.log('send', a, this);
       if (bufferedAmountLow) {
-        // try {
-          bufferedAmountLow = false;
-          return _send.apply(this, arguments);
-        /* } catch(err) {
-          console.log('got error', err);
-        } */
+        bufferedAmountLow = false;
+        return _send.apply(this, arguments);
       } else {
         queue.push(a);
       }
     })(channelConnection.send);
+
     channelConnection.dataChannel.addEventListener('bufferedamountlow', e => {
-      // console.log('buffered amount low', e);
       bufferedAmountLow = true;
       if (index < queue.length) {
         /* if (channelConnection.dataChannel.bufferedAmount !== 0) {
@@ -632,7 +609,6 @@ const _connectRoom = async roomName => {
       console.log(e);
       planet.onRemoteSubparcelsEdit(e.data.keys);
     });
-
   }, {once: true});
   channelConnection.addEventListener('close', e => {
     if (interval) {
@@ -647,29 +623,29 @@ const _connectRoom = async roomName => {
     console.log('New Peer', e);
 
     // let modelHash = null;
-    let playerRig = new Avatar(null, {
+    const peerRig = new Avatar(null, {
       fingers: true,
       hair: true,
       visemes: true,
       debug: true,
     });
-    scene.add(playerRig.model);
+    scene.add(peerRig.model);
 
     let microphoneMediaStream = null;
     let live = true;
-    let loading = false;
+    const loading = false;
     const loadQueue = [];
-    let sending = false;
-    let sendQueue = [];
-    let avatarQueued = null;
+    const sending = false;
+    const sendQueue = [];
+    const avatarQueued = null;
     /* const _loadAvatar = async hash => {
       if (!loading) {
         loading = true;
 
-        if (playerRig) {
-          await xrpackage.remove(playerRig);
-          scene.remove(playerRig.textMesh);
-          playerRig = null;
+        if (peerRig) {
+          await xrpackage.remove(peerRig);
+          scene.remove(peerRig.textMesh);
+          peerRig = null;
         }
         console.log(window)
         const p = await (async () => {
@@ -694,9 +670,9 @@ const _connectRoom = async roomName => {
         xrpackage.scene.add(scaler);
         p.scaler = scaler;
         if (live) {
-          playerRig = p;
-          playerRig.textMesh = makeTextMesh('Loading...');
-          xrpackage.scene.add(playerRig.textMesh);
+          peerRig = p;
+          peerRig.textMesh = makeTextMesh('Loading...');
+          xrpackage.scene.add(peerRig.textMesh);
           if (microphoneMediaStream) {
             p.context.rig.setMicrophoneMediaStream(microphoneMediaStream);
           }
@@ -718,56 +694,50 @@ const _connectRoom = async roomName => {
     };
     _loadAvatar(null); */
 
-    peerConnection.getPlayerRig = () => playerRig;
+    peerConnection.getPlayerRig = () => peerRig;
     peerConnection.addEventListener('close', async () => {
       peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
 
-      scene.remove(playerRig.model);
+      scene.remove(peerRig.model);
       live = false;
     });
-    const localEuler = new THREE.Euler();
+    // const localEuler = new THREE.Euler();
 
     peerConnection.addEventListener('peerPose', (e) => {
       console.log('peerPose:', e);
-    })
+    });
 
     peerConnection.addEventListener('message', e => {
       const {data} = e;
-      // console.log(e);
       if (typeof data === 'string') {
         const j = JSON.parse(data);
         const {method} = j;
         if (method === 'pose') {
           const {pose} = j;
-          const [head, leftGamepad, rightGamepad] = pose;
+          const [head, leftGamepad, rightGamepad, floorHeight] = pose;
 
-          console.log('got pose', head[0].join(','));
-          window.remotePose = pose;
-          window.remoteRig = playerRig;
-          
-          playerRig.inputs.hmd.position.fromArray(head[0]);
-          playerRig.inputs.hmd.quaternion.fromArray(head[1]);
-          playerRig.inputs.leftGamepad.position.fromArray(leftGamepad[0]);
-          playerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepad[1]);
-          playerRig.inputs.rightGamepad.position.fromArray(rightGamepad[0]);
-          playerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
-          // playerRig.setPose(pose);
-          /* playerRig.textMesh.position.fromArray(head[0]);
-          playerRig.textMesh.position.y += 0.5;
-          playerRig.textMesh.quaternion.fromArray(head[1]);
-  
-          localEuler.setFromQuaternion(playerRig.textMesh.quaternion, 'YXZ');
+          peerRig.inputs.hmd.position.fromArray(head[0]);
+          peerRig.inputs.hmd.quaternion.fromArray(head[1]);
+          peerRig.inputs.leftGamepad.position.fromArray(leftGamepad[0]);
+          peerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepad[1]);
+          peerRig.inputs.rightGamepad.position.fromArray(rightGamepad[0]);
+          peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
+          peerRig.setFloorHeight(floorHeight);
+
+          /* peerRig.textMesh.position.fromArray(head[0]);
+          peerRig.textMesh.position.y += 0.5;
+          peerRig.textMesh.quaternion.fromArray(head[1]);
+
+          localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.y += Math.PI;
           localEuler.z = 0;
-          playerRig.textMesh.quaternion.setFromEuler(localEuler); */
-
-          // console.log(playerRig);
+          peerRig.textMesh.quaternion.setFromEuler(localEuler); */
         } else if (method === 'name') {
           const {peerId, name} = j;
-          /* if (peerId === peerConnection.connectionId && playerRig && name !== playerRig.textMesh.text) {
-            playerRig.textMesh.text = name;
-            playerRig.textMesh.sync();
+          /* if (peerId === peerConnection.connectionId && peerRig && name !== peerRig.textMesh.text) {
+            peerRig.textMesh.text = name;
+            peerRig.textMesh.sync();
           } */
         } else if (method === 'avatar') {
           const {peerId, hash} = j;
@@ -789,23 +759,19 @@ const _connectRoom = async roomName => {
       const audio = document.createElement('audio');
       audio.srcObject = microphoneMediaStream;
       audio.play();
-      if (playerRig) {
-        playerRig.context.rig.setMicrophoneMediaStream(microphoneMediaStream);
+      if (peerRig) {
+        peerRig.context.rig.setMicrophoneMediaStream(microphoneMediaStream);
         track.addEventListener('ended', e => {
-          playerRig.context.rig.setMicrophoneMediaStream(null);
+          peerRig.context.rig.setMicrophoneMediaStream(null);
           audio.srcObject = null;
         });
       }
     });
     peerConnections.push(peerConnection);
 
-    // console.log(playerRig);
-
     let interval;
     if (live) {
-      // console.log('send pose');
       interval = setInterval(() => {
-        // console.log(playerRig);
         channelConnection.send(JSON.stringify({
           method: 'name',
           peerId: channelConnection.connectionId,
@@ -817,45 +783,13 @@ const _connectRoom = async roomName => {
           hash: loginManager.getAvatar(),
         }));
         const pose = rigManager.getLocalAvatarPose();
-        /* const pose = [
-          [
-            playerRig.context.rig.inputs.hmd.position.toArray(),
-            playerRig.context.rig.inputs.hmd.quaternion.toArray(),
-          ],
-          [
-            playerRig.context.rig.inputs.leftGamepad.position.toArray(),
-            playerRig.context.rig.inputs.leftGamepad.quaternion.toArray(),
-            playerRig.context.rig.inputs.leftGamepad.pointer,
-            playerRig.context.rig.inputs.leftGamepad.grip,
-          ],
-          [
-            playerRig.context.rig.inputs.rightGamepad.position.toArray(),
-            playerRig.context.rig.inputs.rightGamepad.quaternion.toArray(),
-            playerRig.context.rig.inputs.rightGamepad.pointer,
-            playerRig.context.rig.inputs.rightGamepad.grip,
-          ],
-        ]; */
         channelConnection.send(JSON.stringify({
           method: 'pose',
-          pose
+          pose,
         }));
       }, 10);
     }
   });
-
-  /* channelConnection.addEventListener('botconnection', async e => {
-    console.log('got bot connection', e.data);
-
-    setInterval(() => {
-      channelConnection.send(JSON.stringify({
-        method: 'ping',
-      }));
-    }, 1000);
-  }); */
-
-  // setInterval(() => {
-  //   console.log(channelConnection);
-  // }, 5000);
 
   channelConnection.addEventListener('initState', async e => {
     const {data} = e;
@@ -873,22 +807,6 @@ const _connectRoom = async roomName => {
     } else {
       delete state[key];
     }
-
-    /* const id = parseInt(key, 10);
-    let p = xrpackage.children.find(p => p.id === id);
-    if (isSet && !p) {
-      p = await XRPackage.download(value.hash);
-      p.id = id;
-      await xrpackage.add(p);
-    } else if (!isSet && p) {
-      await xrpackage.remove(p);
-      p = null;
-    }
-    if(p) {
-      removeMatrixUpdateListener(p);
-      p.setMatrix(new THREE.Matrix4().fromArray(value.matrix));
-      addMatrixUpdateListener(p);
-    } */
   });
 };
 
@@ -914,4 +832,4 @@ planet.connect = async (rn, {online = true} = {}) => {
   return s;
 }; */
 
-// planet.connect('lol')
+// planet.connect('lol');
