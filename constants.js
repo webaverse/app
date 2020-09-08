@@ -2,12 +2,12 @@ export const PARCEL_SIZE = 300;
 export const SUBPARCEL_SIZE = 10;
 export const SUBPARCEL_SIZE_P1 = SUBPARCEL_SIZE + 1;
 export const SUBPARCEL_SIZE_P3 = SUBPARCEL_SIZE + 3;
-export const NUM_PARCELS = PARCEL_SIZE/SUBPARCEL_SIZE;
+export const NUM_PARCELS = PARCEL_SIZE / SUBPARCEL_SIZE;
 
 export const chunkDistance = 3;
 
-export const numSlices = (1+chunkDistance*2+1)**3;
-export const slabRadius = Math.sqrt((SUBPARCEL_SIZE/2)*(SUBPARCEL_SIZE/2)*3);
+export const numSlices = (1 + chunkDistance * 2 + 1) ** 3;
+export const slabRadius = Math.sqrt((SUBPARCEL_SIZE / 2) * (SUBPARCEL_SIZE / 2) * 3);
 
 /* export const slabTotalSize = 56 * 1024 * 1024;
 export const slabNumAttributes = 7;
@@ -38,4 +38,4 @@ export function makePromise() {
   p.accept = accept;
   p.reject = reject;
   return p;
-};
+}

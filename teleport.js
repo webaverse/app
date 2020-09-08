@@ -87,11 +87,11 @@ const makeTeleportMesh = (lineMesh, index) => {
 
       let i;
       const maxSteps = 50;
-      for (i = 0; i < maxSteps; i++, localVector.add(localVector2), localEuler.x = Math.max(localEuler.x - Math.PI*0.01, -Math.PI/2)) {
+      for (i = 0; i < maxSteps; i++, localVector.add(localVector2), localEuler.x = Math.max(localEuler.x - Math.PI * 0.01, -Math.PI / 2)) {
         localQuaternion.setFromEuler(localEuler);
 
         const positionsArray = lineMesh.geometry.attributes.position.array;
-        const positions = new Float32Array(positionsArray.buffer, positionsArray.byteOffset + i*72 * Float32Array.BYTES_PER_ELEMENT, 72);
+        const positions = new Float32Array(positionsArray.buffer, positionsArray.byteOffset + i * 72 * Float32Array.BYTES_PER_ELEMENT, 72);
         const positionsSrcArray = lineMeshGeometry.attributes.position.array;
         localMatrix.compose(localVector, localQuaternion, localVector2.set(0.01, 0.01, 0.1));
         for (let i = 0; i < positions.length; i += 3) {
@@ -115,7 +115,7 @@ const makeTeleportMesh = (lineMesh, index) => {
         }
       }
       if (i < maxSteps) {
-        lineMesh.geometry.setDrawRange(0, i*36);
+        lineMesh.geometry.setDrawRange(0, i * 36);
         lineMesh.visible = true;
       }
 

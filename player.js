@@ -4,6 +4,7 @@ class Player extends EventTarget {
 
     this.items = {};
   }
+
   addInventory(type, count) {
     if (!this.items[type]) {
       this.items[type] = 0;
@@ -17,6 +18,7 @@ class Player extends EventTarget {
       },
     }));
   }
+
   removeInventory(type, count) {
     if (!this.items[type]) {
       this.items[type] = 0;
@@ -30,6 +32,7 @@ class Player extends EventTarget {
       },
     }));
   }
+
   getCount(type) {
     return this.items[type] || 0;
   }
