@@ -751,6 +751,7 @@ const _connectRoom = async roomName => {
           playerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepad[1]);
           playerRig.inputs.rightGamepad.position.fromArray(rightGamepad[0]);
           playerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
+          playerRig.setFloorHeight(-0xFFFFFF)
           // playerRig.setPose(pose);
           /* playerRig.textMesh.position.fromArray(head[0]);
           playerRig.textMesh.position.y += 0.5;
