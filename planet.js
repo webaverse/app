@@ -647,13 +647,13 @@ const _connectRoom = async roomName => {
     console.log('New Peer', e);
 
     // let modelHash = null;
-    let playerRig = new Avatar(null, {
+    let peerRig = new Avatar(null, {
       fingers: true,
       hair: true,
       visemes: true,
       debug: true,
     });
-    scene.add(playerRig.model);
+    scene.add(peerRig.model);
 
     let microphoneMediaStream = null;
     let live = true;
@@ -666,10 +666,10 @@ const _connectRoom = async roomName => {
       if (!loading) {
         loading = true;
 
-        if (playerRig) {
-          await xrpackage.remove(playerRig);
-          scene.remove(playerRig.textMesh);
-          playerRig = null;
+        if (peerRig) {
+          await xrpackage.remove(peerRig);
+          scene.remove(peerRig.textMesh);
+          peerRig = null;
         }
         console.log(window)
         const p = await (async () => {
@@ -694,9 +694,9 @@ const _connectRoom = async roomName => {
         xrpackage.scene.add(scaler);
         p.scaler = scaler;
         if (live) {
-          playerRig = p;
-          playerRig.textMesh = makeTextMesh('Loading...');
-          xrpackage.scene.add(playerRig.textMesh);
+          peerRig = p;
+          peerRig.textMesh = makeTextMesh('Loading...');
+          xrpackage.scene.add(peerRig.textMesh);
           if (microphoneMediaStream) {
             p.context.rig.setMicrophoneMediaStream(microphoneMediaStream);
           }
@@ -718,11 +718,11 @@ const _connectRoom = async roomName => {
     };
     _loadAvatar(null); */
 
-    peerConnection.getPlayerRig = () => playerRig;
+    peerConnection.getPlayerRig = () => peerRig;
     peerConnection.addEventListener('close', async () => {
       peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
 
-      scene.remove(playerRig.model);
+      scene.remove(peerRig.model);
       live = false;
     });
     const localEuler = new THREE.Euler();
@@ -739,35 +739,32 @@ const _connectRoom = async roomName => {
         const {method} = j;
         if (method === 'pose') {
           const {pose} = j;
-          const [head, leftGamepad, rightGamepad] = pose;
-
-          console.log('got pose', head[0].join(','));
-          window.remotePose = pose;
-          window.remoteRig = playerRig;
+          const [head, leftGamepad, rightGamepad, floorHeight] = pose;
           
-          playerRig.inputs.hmd.position.fromArray(head[0]);
-          playerRig.inputs.hmd.quaternion.fromArray(head[1]);
-          playerRig.inputs.leftGamepad.position.fromArray(leftGamepad[0]);
-          playerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepad[1]);
-          playerRig.inputs.rightGamepad.position.fromArray(rightGamepad[0]);
-          playerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
-          // playerRig.setPose(pose);
-          /* playerRig.textMesh.position.fromArray(head[0]);
-          playerRig.textMesh.position.y += 0.5;
-          playerRig.textMesh.quaternion.fromArray(head[1]);
+          peerRig.inputs.hmd.position.fromArray(head[0]);
+          peerRig.inputs.hmd.quaternion.fromArray(head[1]);
+          peerRig.inputs.leftGamepad.position.fromArray(leftGamepad[0]);
+          peerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepad[1]);
+          peerRig.inputs.rightGamepad.position.fromArray(rightGamepad[0]);
+          peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
+          peerRig.setFloorHeight(floorHeight)
+          // peerRig.setPose(pose);
+          /* peerRig.textMesh.position.fromArray(head[0]);
+          peerRig.textMesh.position.y += 0.5;
+          peerRig.textMesh.quaternion.fromArray(head[1]);
   
-          localEuler.setFromQuaternion(playerRig.textMesh.quaternion, 'YXZ');
+          localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.y += Math.PI;
           localEuler.z = 0;
-          playerRig.textMesh.quaternion.setFromEuler(localEuler); */
+          peerRig.textMesh.quaternion.setFromEuler(localEuler); */
 
-          // console.log(playerRig);
+          // console.log(peerRig);
         } else if (method === 'name') {
           const {peerId, name} = j;
-          /* if (peerId === peerConnection.connectionId && playerRig && name !== playerRig.textMesh.text) {
-            playerRig.textMesh.text = name;
-            playerRig.textMesh.sync();
+          /* if (peerId === peerConnection.connectionId && peerRig && name !== peerRig.textMesh.text) {
+            peerRig.textMesh.text = name;
+            peerRig.textMesh.sync();
           } */
         } else if (method === 'avatar') {
           const {peerId, hash} = j;
@@ -789,23 +786,23 @@ const _connectRoom = async roomName => {
       const audio = document.createElement('audio');
       audio.srcObject = microphoneMediaStream;
       audio.play();
-      if (playerRig) {
-        playerRig.context.rig.setMicrophoneMediaStream(microphoneMediaStream);
+      if (peerRig) {
+        peerRig.context.rig.setMicrophoneMediaStream(microphoneMediaStream);
         track.addEventListener('ended', e => {
-          playerRig.context.rig.setMicrophoneMediaStream(null);
+          peerRig.context.rig.setMicrophoneMediaStream(null);
           audio.srcObject = null;
         });
       }
     });
     peerConnections.push(peerConnection);
 
-    // console.log(playerRig);
+    // console.log(peerRig);
 
     let interval;
     if (live) {
       // console.log('send pose');
       interval = setInterval(() => {
-        // console.log(playerRig);
+        // console.log(peerRig);
         channelConnection.send(JSON.stringify({
           method: 'name',
           peerId: channelConnection.connectionId,
@@ -819,20 +816,20 @@ const _connectRoom = async roomName => {
         const pose = rigManager.getLocalAvatarPose();
         /* const pose = [
           [
-            playerRig.context.rig.inputs.hmd.position.toArray(),
-            playerRig.context.rig.inputs.hmd.quaternion.toArray(),
+            peerRig.context.rig.inputs.hmd.position.toArray(),
+            peerRig.context.rig.inputs.hmd.quaternion.toArray(),
           ],
           [
-            playerRig.context.rig.inputs.leftGamepad.position.toArray(),
-            playerRig.context.rig.inputs.leftGamepad.quaternion.toArray(),
-            playerRig.context.rig.inputs.leftGamepad.pointer,
-            playerRig.context.rig.inputs.leftGamepad.grip,
+            peerRig.context.rig.inputs.leftGamepad.position.toArray(),
+            peerRig.context.rig.inputs.leftGamepad.quaternion.toArray(),
+            peerRig.context.rig.inputs.leftGamepad.pointer,
+            peerRig.context.rig.inputs.leftGamepad.grip,
           ],
           [
-            playerRig.context.rig.inputs.rightGamepad.position.toArray(),
-            playerRig.context.rig.inputs.rightGamepad.quaternion.toArray(),
-            playerRig.context.rig.inputs.rightGamepad.pointer,
-            playerRig.context.rig.inputs.rightGamepad.grip,
+            peerRig.context.rig.inputs.rightGamepad.position.toArray(),
+            peerRig.context.rig.inputs.rightGamepad.quaternion.toArray(),
+            peerRig.context.rig.inputs.rightGamepad.pointer,
+            peerRig.context.rig.inputs.rightGamepad.grip,
           ],
         ]; */
         channelConnection.send(JSON.stringify({
@@ -914,4 +911,4 @@ planet.connect = async (rn, {online = true} = {}) => {
   return s;
 }; */
 
-// planet.connect('lol')
+planet.connect('lol')
