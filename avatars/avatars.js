@@ -1347,7 +1347,7 @@ class Avatar {
   }
 
   getFloorHeight() {
-    return(this.poseManager.vrTransforms.floorHeight);
+    return this.poseManager.vrTransforms.floorHeight;
   }
 
   destroy() {
