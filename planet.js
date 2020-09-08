@@ -740,10 +740,6 @@ const _connectRoom = async roomName => {
         if (method === 'pose') {
           const {pose} = j;
           const [head, leftGamepad, rightGamepad, floorHeight] = pose;
-
-          // console.log('got pose', head[0].join(','));
-          window.remotePose = pose;
-          window.remoteRig = peerRig;
           
           peerRig.inputs.hmd.position.fromArray(head[0]);
           peerRig.inputs.hmd.quaternion.fromArray(head[1]);
