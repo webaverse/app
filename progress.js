@@ -12,22 +12,27 @@ class Progress {
     this.denominator = 1;
     this.trickleTimer = null;
   }
+
   setNumerator(n) {
     this.numerator = n;
     this.update();
   }
+
   setDemoninator(d) {
     this.denominator = d;
     this.update();
   }
+
   setNumeratorDenominator(n, d) {
     this.numerator = n;
     this.denominator = d;
     this.update();
   }
+
   addNumerator() {
     this.setNumerator(this.numerator + 1);
   }
+
   update() {
     if (this.numerator < this.denominator) {
       nanobar.go((this.numerator + 1) / (this.denominator + 1) * 100);
@@ -35,6 +40,7 @@ class Progress {
       nanobar.go(100);
     }
   }
+
   trickle() {
     // Logic adapted from https://github.com/rstacruz/nprogress/blob/6de3a45c33fe1f142b73935206a6f1e74a230a3f/nprogress.js#L158-L188
     // As per https://github.com/jacoborus/nanobar/issues/36#issuecomment-207096298
@@ -60,6 +66,7 @@ class Progress {
       this.update();
     }, 500);
   }
+
   stopTrickle() {
     if (this.trickleTimer) {
       clearInterval(this.trickleTimer);

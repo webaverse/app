@@ -3,7 +3,7 @@ import {
   getNextMeshId,
 } from './constants.js';
 
-const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2);
+const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
 const animalShader = {
   vertexShader: `\
     precision highp float;
@@ -147,8 +147,8 @@ export const makeAnimalFactory = geometryWorker => (position, hash, onRemove) =>
         new THREE.Matrix4().lookAt(
           headPivot.clone().applyMatrix4(animal.matrixWorld),
           p,
-          new THREE.Vector3(0, 1, 0)
-        )
+          new THREE.Vector3(0, 1, 0),
+        ),
       );
       headAnimation = {
         update() {
@@ -195,7 +195,7 @@ export const makeAnimalFactory = geometryWorker => (position, hash, onRemove) =>
       // animal.material.uniforms.headRotation.needsUpdate = true;
       // animal.material.uniforms.walkFactor.value = 1;
       // animal.material.uniforms.walkFactor.needsUpdate = true;
-      material.uniforms.walkCycle.value = (Date.now()%2000)/2000;
+      material.uniforms.walkCycle.value = (Date.now() % 2000) / 2000;
       material.uniforms.walkCycle.needsUpdate = true;
     };
     animal.isHeadAnimating = () => !!headAnimation;
