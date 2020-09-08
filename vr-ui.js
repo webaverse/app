@@ -1,6 +1,6 @@
 import * as THREE from './three.module.js';
 // import {scene} from './run.js';
-import {TextMesh} from './textmesh-standalone.esm.js'
+import {TextMesh} from './textmesh-standalone.esm.js';
 import easing from './easing.js';
 
 const localVector = new THREE.Vector3();
@@ -10,7 +10,7 @@ const localVector2 = new THREE.Vector3();
 const cubicBezier = easing(0, 1, 0, 1);
 
 function mod(a, b) {
-  return ((a%b)+b)%b;
+  return ((a % b) + b) % b;
 }
 
 const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anchorX = 'left', anchorY = 'middle') => {
@@ -45,7 +45,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
 
   const _makeSide = name => {
     const object = new THREE.Object3D();
-    
+
     const background = new THREE.Mesh(
       new THREE.PlaneBufferGeometry(size, size),
       new THREE.MeshBasicMaterial({
@@ -119,12 +119,12 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
       object.add(chevronDown);
       object.chevronDown = chevronDown;
     }
-    
+
     return object;
   };
   const _makePackageSide = name => {
     const object = _makeSide(name);
-    
+
     const _makePackageMesh = pJ => {
       const {name, dataHash, icons} = pJ;
       const iconHash = icons && icons.find(i => i.type === 'image/gif').hash;
@@ -176,7 +176,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
 
       return object;
     };
-    
+
     const packages = new THREE.Object3D();
     packages.position.z = 0.001;
     object.add(packages);
@@ -265,11 +265,11 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
   };
   const _makeObjectsSide = name => {
     const object = _makeSide(name);
-    
+
     const objects = new THREE.Object3D();
     objects.position.z = 0.001;
     object.add(objects);
-    
+
     const _makeObjectMesh = oJ => {
       const {name, dataHash, icons} = oJ;
       const iconHash = icons && icons.find(i => i.type === 'image/gif').hash;
@@ -347,7 +347,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
     object.updateIntersect = () => {
       if (!highlightMesh.onmousedown) {
         highlightMesh.visible = false;
-        
+
         localRaycater.ray.origin.copy(ray.position);
         localRaycater.ray.direction.set(0, 0, -1).applyQuaternion(ray.quaternion);
         const intersects = localRaycater.intersectObjects(
@@ -391,10 +391,10 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
       }
       return false;
     };
-    
+
     return object;
   };
-  
+
   const packageSide = _makePackageSide('Packages');
   object.add(packageSide);
   object.packageSide = packageSide;
@@ -403,7 +403,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
   inventorySide.position.x = 1;
   object.add(inventorySide);
   object.inventorySide = inventorySide;
-  
+
   const objectsSide = _makeObjectsSide('Objects');
   objectsSide.position.x = 2;
   object.add(objectsSide);
@@ -435,7 +435,7 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
 
     packageSide.updateIntersect() || inventorySide.updateIntersect() || objectsSide.updateIntersect();
   };
-  
+
   return object;
 };
 const makeHighlightMesh = () => {
@@ -490,7 +490,7 @@ const uiRenderer = (() => {
   let renderIds = 0;
   return {
     async render(htmlString) {
-      const [iframe/*, interfaceHtml*/] = await loadPromise;
+      const [iframe/*, interfaceHtml */] = await loadPromise;
 
       if (renderIds > 0) {
         iframe.contentWindow.postMessage({
@@ -531,7 +531,7 @@ const uiRenderer = (() => {
 })();
 
 const _makeHtmlString = (label, tiles) => {
-  let index = 0;
+  const index = 0;
   return `\
 <style>
 * {
@@ -543,8 +543,8 @@ const _makeHtmlString = (label, tiles) => {
 }
 .border {
   position: absolute;
-  width: ${uiSize/8}px;
-  height: ${uiSize/8}px;
+  width: ${uiSize / 8}px;
+  height: ${uiSize / 8}px;
   border: 30px solid #111;
 }
 .border.top-left {
@@ -577,17 +577,17 @@ const _makeHtmlString = (label, tiles) => {
 }
 .wrap {
   position: absolute;
-  height: ${uiSize - uiSize/12*2}px;
-  width: ${uiSize - uiSize/12*2}px;
-  top: ${uiSize/12}px;
-  left: ${uiSize/12}px;
-  padding: ${uiSize/20}px;
+  height: ${uiSize - uiSize / 12 * 2}px;
+  width: ${uiSize - uiSize / 12 * 2}px;
+  top: ${uiSize / 12}px;
+  left: ${uiSize / 12}px;
+  padding: ${uiSize / 20}px;
   background-color: #FFF;
   font-size: 50px;
 }
 h1, h2, h3 {
   margin: 0;
-  margin-bottom: ${uiSize/50}px;
+  margin-bottom: ${uiSize / 50}px;
 }
 .tiles {
   display: flex;
@@ -596,18 +596,18 @@ h1, h2, h3 {
   display: flex;
   flex-direction: column;
   background-color: #7e57c2;
-  margin-right: ${uiSize/100}px;
-  margin-bottom: ${uiSize/100}px;
+  margin-right: ${uiSize / 100}px;
+  margin-bottom: ${uiSize / 100}px;
   padding-bottom: 0;
 }
 .tiles .tile .img {
-  width: ${uiSize/10}px;
-  height: ${uiSize/10*1.2}px;
-  margin: ${uiSize/100}px;
+  width: ${uiSize / 10}px;
+  height: ${uiSize / 10 * 1.2}px;
+  margin: ${uiSize / 100}px;
   background-color: #FFF;
 }
 .tiles .tile .text {
-  padding: ${uiSize/100}px;
+  padding: ${uiSize / 100}px;
   padding-top: 0;
   color: #FFF;
 }
@@ -636,7 +636,7 @@ h1, h2, h3 {
 };
 const makeUiMesh = (label, tiles, onclick) => {
   const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2)
-    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize/2, 0));
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
   const canvas = document.createElement('canvas');
   canvas.width = uiSize;
   canvas.height = uiSize;
@@ -652,7 +652,7 @@ const makeUiMesh = (label, tiles, onclick) => {
     THREE.RGBAFormat,
     THREE.UnsignedByteType,
     16,
-    THREE.LinearEncoding
+    THREE.LinearEncoding,
   );
   const material = new THREE.MeshBasicMaterial({
     map: texture,
@@ -688,7 +688,7 @@ const makeUiMesh = (label, tiles, onclick) => {
         ctx.putImageData(imageData, 0, 0);
         texture.needsUpdate = true;
         mesh.visible = true;
-        
+
         anchors = result.anchors;
         // console.log(anchors);
       });
@@ -719,7 +719,7 @@ const makeUiFullMesh = scene => {
       'map',
       [['Location']],
       new THREE.Vector3(-0.1, 0, 0),
-      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI/2),
+      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2),
       item => {
         console.log('click item', item);
       },
@@ -737,7 +737,7 @@ const makeUiFullMesh = scene => {
       'build',
       [['Wood wall', 'Wood floor', 'Wood ramp'], ['Stone wall', 'Stone floor', 'Stone ramp'], ['Metal wall', 'Metal floor', 'Metal ramp']],
       new THREE.Vector3(0.1, 0, 0),
-      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*3/2),
+      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI * 3 / 2),
       item => {
         console.log('click item', item);
       },
@@ -757,8 +757,8 @@ const makeUiFullMesh = scene => {
   let animation = null;
   let currentDeltaX = 0;
   wrap.rotate = deltaX => {
-    currentDeltaX -= deltaX*Math.PI/2;
-    currentDeltaX = mod(currentDeltaX, Math.PI*2);
+    currentDeltaX -= deltaX * Math.PI / 2;
+    currentDeltaX = mod(currentDeltaX, Math.PI * 2);
     const startQuaternion = object.quaternion.clone();
     const endQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), currentDeltaX);
     const startTime = Date.now();
@@ -797,7 +797,7 @@ const makeUiFullMesh = scene => {
       if (intersects.length > 0) {
         const [{distance, point, uv}] = intersects;
         intersects.length = 0;
-        if (uv.x >= 1/12 && uv.x <= (1-1/12) && uv.y >= 1/12 && uv.y <= (1-1/12)) {
+        if (uv.x >= 1 / 12 && uv.x <= (1 - 1 / 12) && uv.y >= 1 / 12 && uv.y <= (1 - 1 / 12)) {
           localIntersections.push({
             distance,
             point,
@@ -830,10 +830,10 @@ const makeUiFullMesh = scene => {
             currentMesh = mesh;
             currentAnchor = anchor;
 
-            mesh.highlightMesh.position.x = -uiWorldSize/2 + (left + width/2)/uiSize*uiWorldSize;
-            mesh.highlightMesh.position.y = uiWorldSize - (top + height/2)/uiSize*uiWorldSize;
-            mesh.highlightMesh.scale.x = width/uiSize*uiWorldSize;
-            mesh.highlightMesh.scale.y = height/uiSize*uiWorldSize;
+            mesh.highlightMesh.position.x = -uiWorldSize / 2 + (left + width / 2) / uiSize * uiWorldSize;
+            mesh.highlightMesh.position.y = uiWorldSize - (top + height / 2) / uiSize * uiWorldSize;
+            mesh.highlightMesh.scale.x = width / uiSize * uiWorldSize;
+            mesh.highlightMesh.scale.y = height / uiSize * uiWorldSize;
             mesh.highlightMesh.visible = true;
             break;
           }
