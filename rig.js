@@ -90,10 +90,13 @@ class RigManager {
     const rightGamepadPointer = this.localRig.inputs.rightGamepad.pointer;
     const rightGamepadGrip = this.localRig.inputs.rightGamepad.grip;
 
+    const floorHeight = this.localRig.getFloorHeight();
+
     return [
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      floorHeight
     ];
   }
   setLocalAvatarPose(poseArray) {
