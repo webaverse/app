@@ -816,36 +816,7 @@ const physicsShapes = {
 };
 const basisLoader = new BasisTextureLoader();
 basisLoader.detectSupport(renderer);
-const geometryWorker = (() => {
-  const modulePromise = makePromise();
-  /* const INITIAL_INITIAL_MEMORY = 52428800;
-  const WASM_PAGE_SIZE = 65536;
-  const wasmMemory = new WebAssembly.Memory({
-    "initial": INITIAL_INITIAL_MEMORY / WASM_PAGE_SIZE,
-    "maximum": INITIAL_INITIAL_MEMORY / WASM_PAGE_SIZE,
-    "shared": true,
-  }); */
-  let moduleInstance = null;
-  let threadPool;
-  let callStack;
-  let scratchStack;
-  GeometryModule({
-    // ENVIRONMENT_IS_PTHREAD: true,
-    // wasmMemory,
-    // buffer: wasmMemory.buffer,
-    // noInitialRun: true,
-    // noExitRuntime: true,
-    onRuntimeInitialized() {
-      moduleInstance = this;
-      moduleInstance._globalInit();
-      threadPool = moduleInstance._makeThreadPool(1);
-      // moduleInstance._initPhysx();
-      callStack = new CallStack();
-      scratchStack = new ScratchStack();
-      modulePromise.accept();
-    },
-  });
-
+const geometryWorker = await (async () => {
   class Allocator {
     constructor() {
       this.offsets = [];
@@ -924,6 +895,43 @@ const geometryWorker = (() => {
       this.f32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Float32Array.BYTES_PER_ELEMENT);
     }
   }
+  
+  const modulePromise = makePromise();
+  /* const INITIAL_INITIAL_MEMORY = 52428800;
+  const WASM_PAGE_SIZE = 65536;
+  const wasmMemory = new WebAssembly.Memory({
+    "initial": INITIAL_INITIAL_MEMORY / WASM_PAGE_SIZE,
+    "maximum": INITIAL_INITIAL_MEMORY / WASM_PAGE_SIZE,
+    "shared": true,
+  }); */
+  let localModuleInstance = null;
+  let moduleInstance = null;
+  let threadPool;
+  let callStack;
+  let scratchStack;
+  // GeometryModule({
+    // ENVIRONMENT_IS_PTHREAD: true,
+    // wasmMemory,
+    // buffer: wasmMemory.buffer,
+    // noInitialRun: true,
+    // noExitRuntime: true,
+    Module.onRuntimeInitialized = function() {
+      localModuleInstance = this;
+    };
+    Module.postRun = () => {
+      moduleInstance = localModuleInstance;
+      // moduleInstance._globalInit();
+      callStack = new CallStack();
+      scratchStack = new ScratchStack();
+      threadPool = moduleInstance._makeThreadPool(1);
+      // threadPool = moduleInstance._getThreadPool();
+      modulePromise.accept();
+    };
+    if (Module.calledRun) {
+      Module.onRuntimeInitialized();
+      Module.postRun();
+    }
+  // });
 
   const localVector = new THREE.Vector3();
   const localVector2 = new THREE.Vector3();
