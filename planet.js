@@ -11,9 +11,12 @@ import {
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 import Avatar from './avatars/avatars.js';
 // import { makeTextMesh } from './vr-ui.js';
-import {loginManager} from './login.js';
+import { loginManager } from './login.js';
+import { storageHost } from './constants.js'
 
 const presenceHost = `wss://${document.location.hostname}:4443`;
+
+const peerAvatarHashes = new Map();
 
 function abs(n) {
   return (n ^ (n >> 31)) - (n >> 31);
@@ -619,93 +622,20 @@ const _connectRoom = async roomName => {
   window.channelConnection = channelConnection;
   channelConnection.addEventListener('peerconnection', async e => {
     const peerConnection = e.data;
-
     console.log('New Peer', e);
-
-    // let modelHash = null;
-    const peerRig = new Avatar(null, {
-      fingers: true,
-      hair: true,
-      visemes: true,
-      debug: true,
-    });
-    scene.add(peerRig.model);
 
     let microphoneMediaStream = null;
     let live = true;
-    const loading = false;
-    const loadQueue = [];
-    const sending = false;
-    const sendQueue = [];
-    const avatarQueued = null;
-    /* const _loadAvatar = async hash => {
-      if (!loading) {
-        loading = true;
 
-        if (peerRig) {
-          await xrpackage.remove(peerRig);
-          scene.remove(peerRig.textMesh);
-          peerRig = null;
-        }
-        console.log(window)
-        const p = await (async () => {
-          if (hash) {
-            const u = `https://ipfs.exokit.org/ipfs/${hash}.wbn`;
-            const res = await fetch(u);
-            const ab = await res.arrayBuffer();
-            const uint8Array = new Uint8Array(ab);
-            return new XRPackage(uint8Array);
-          } else {
-            return new XRPackage();
-          }
-        })();
-        console.log('p', p)
-        await p.waitForLoad();
-        await p.loadAvatar();
-        p.isAvatar = true;
-        await xrpackage.add(p);
-        const scaler = new THREE.Object3D();
-        // scaler.scale.set(10, 10, 10);
-        scaler.add(p.context.object);
-        xrpackage.scene.add(scaler);
-        p.scaler = scaler;
-        if (live) {
-          peerRig = p;
-          peerRig.textMesh = makeTextMesh('Loading...');
-          xrpackage.scene.add(peerRig.textMesh);
-          if (microphoneMediaStream) {
-            p.context.rig.setMicrophoneMediaStream(microphoneMediaStream);
-          }
-        } else {
-          await xrpackage.remove(p);
-        }
+    rigManager.addPeerRig(peerConnection.connectionId);
+    const peerRig = rigManager.peerRigs.get(peerConnection.connectionId);
 
-        loading = false;
-
-        if (loadQueue.length > 0) {
-          const fn = loadQueue.shift();
-          fn();
-        }
-      } else {
-        loadQueue.push(() => {
-          _loadAvatar(hash);
-        });
-      }
-    };
-    _loadAvatar(null); */
-
-    peerConnection.getPlayerRig = () => peerRig;
     peerConnection.addEventListener('close', async () => {
       peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
-
       scene.remove(peerRig.model);
       live = false;
     });
     // const localEuler = new THREE.Euler();
-
-    peerConnection.addEventListener('peerPose', (e) => {
-      console.log('peerPose:', e);
-    });
 
     peerConnection.addEventListener('message', e => {
       const {data} = e;
@@ -713,16 +643,8 @@ const _connectRoom = async roomName => {
         const j = JSON.parse(data);
         const {method} = j;
         if (method === 'pose') {
-          const {pose} = j;
-          const [head, leftGamepad, rightGamepad, floorHeight] = pose;
-
-          peerRig.inputs.hmd.position.fromArray(head[0]);
-          peerRig.inputs.hmd.quaternion.fromArray(head[1]);
-          peerRig.inputs.leftGamepad.position.fromArray(leftGamepad[0]);
-          peerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepad[1]);
-          peerRig.inputs.rightGamepad.position.fromArray(rightGamepad[0]);
-          peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
-          peerRig.setFloorHeight(floorHeight);
+          const { pose } = j;
+          rigManager.setPeerAvatarPose(pose, peerConnection.connectionId)
 
           /* peerRig.textMesh.position.fromArray(head[0]);
           peerRig.textMesh.position.y += 0.5;
@@ -741,10 +663,11 @@ const _connectRoom = async roomName => {
           } */
         } else if (method === 'avatar') {
           const {peerId, hash} = j;
-          /* if (peerId === peerConnection.connectionId && hash !== modelHash) {
-            modelHash = hash;
-            _loadAvatar(hash);
-          } */
+          const currentPeerHash = peerAvatarHashes.get(peerId);
+          if (currentPeerHash !== hash && hash) {
+            rigManager.setPeerAvatarUrl(`${storageHost}/${hash}.vrm`, peerId);
+          }
+          peerAvatarHashes.set(peerId, hash);
         } else {
           console.warn('unknown method', method);
         }
@@ -812,9 +735,7 @@ const _connectRoom = async roomName => {
 
 planet.update = () => {
   // update remote player rigs
-  for (const peerConnection of peerConnections) {
-    peerConnection.getPlayerRig().update();
-  }
+  rigManager.update();
 };
 
 planet.connect = async (rn, {online = true} = {}) => {

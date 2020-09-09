@@ -7,7 +7,7 @@ import {GLTFLoader} from './GLTFLoader.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
 // import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
-import { tryLogin } from './login.js';
+import { tryLogin, loginManager } from './login.js';
 import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
@@ -41,6 +41,7 @@ import {player} from './player.js';
 import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
+import { storageHost } from './constants.js'
 
 // const apiHost = 'https://ipfs.exokit.org/ipfs';
 // const worldsEndpoint = 'https://worlds.exokit.org';
@@ -85,38 +86,6 @@ camera.position.set(0, 1.6, 2);
 camera.rotation.order = 'YXZ';
 // camera.quaternion.set(0, 0, 0, 1);
 
-/* loginManager.addEventListener('usernamechange', e => {
-  const username = e.data;
-  pe.setEnv('username', username);
-});
-loginManager.addEventListener('avatarchange', e => {
-  const avatar = e.data;
-  pe.setEnv('avatar', avatar);
-});
-
-const _changeAvatar = async avatarHash => {
-  let p;
-  if (avatarHash) {
-    p = await XRPackage.download(avatarHash);
-    p.hash = avatarHash;
-    await pe.wearAvatar(p);
-  } else {
-    pe.defaultAvatar();
-    p = null;
-  }
-
-  window.dispatchEvent(new MessageEvent('avatarchange', {
-    data: p,
-  }));
-}; 8/
-//  _changeAvatar(pe.getEnv('avatar'));
-/* pe.addEventListener('envchange', e => {
-  const {key, value} = e.data;
-  if (key === 'avatar') {
-    _changeAvatar(value);
-  }
-}); */
-
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('webgl2', {
   antialias: true,
@@ -150,6 +119,10 @@ orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
 orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, camera.position.y, -3).applyQuaternion(camera.quaternion));
 orbitControls.update();
+
+loginManager.addEventListener('avatarchange', async (e) => {
+  rigManager.setLocalAvatarUrl(`${storageHost}/${e.data}.vrm`);
+})
 
 document.addEventListener('dragover', e => {
   e.preventDefault();

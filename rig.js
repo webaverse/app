@@ -45,8 +45,9 @@ class RigManager {
     this.localRigMatrixEnabled = false;
 
     this.localRigQueue = new WaitQueue();
+    this.peerRigQueue = new WaitQueue();
 
-    this.peerRigs = {};
+    this.peerRigs = new Map();
   }
 
   setLocalRigMatrix(rm) {
@@ -81,6 +82,42 @@ class RigManager {
     await this.localRigQueue.unlock();
   }
 
+  async addPeerRig(peerId) {
+    const peerRig = new Avatar(null, {
+      fingers: true,
+      hair: true,
+      visemes: true,
+      // decapitate: selectedTool === 'firstperson',
+    });
+    this.scene.add(peerRig.model);
+    this.peerRigs.set(peerId, peerRig);
+  }
+
+  async setPeerAvatarUrl(url, peerId) {
+    await this.peerRigQueue.lock();
+
+    const o = await new Promise((accept, reject) => {
+      new GLTFLoader().load(url, accept, xhr => {}, reject);
+    });
+    o.scene.traverse(o => {
+      if (o.isMesh) {
+        o.frustumCulled = false;
+      }
+    });
+    let peerRig = this.peerRigs.get(peerId);
+    this.scene.remove(peerRig.model);
+    peerRig = new Avatar(o, {
+      fingers: true,
+      hair: true,
+      visemes: true,
+      // decapitate: selectedTool === 'firstperson',
+    });
+    this.scene.add(peerRig.model);
+    this.peerRigs.set(peerId, peerRig);
+
+    await this.peerRigQueue.unlock();
+  }
+
   getLocalAvatarPose() {
     const hmdPosition = this.localRig.inputs.hmd.position.toArray();
     const hmdQuaternion = this.localRig.inputs.hmd.quaternion.toArray();
@@ -96,6 +133,32 @@ class RigManager {
     const rightGamepadGrip = this.localRig.inputs.rightGamepad.grip;
 
     const floorHeight = this.localRig.getFloorHeight();
+
+    return [
+      [hmdPosition, hmdQuaternion],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      floorHeight,
+    ];
+  }
+
+  getPeerAvatarPose(peerId) {
+    const peerRig = this.peerRigs.get(peerId);
+
+    const hmdPosition = peerRig.inputs.hmd.position.toArray();
+    const hmdQuaternion = peerRig.inputs.hmd.quaternion.toArray();
+
+    const leftGamepadPosition = peerRig.inputs.leftGamepad.position.toArray();
+    const leftGamepadQuaternion = peerRig.inputs.leftGamepad.quaternion.toArray();
+    const leftGamepadPointer = peerRig.inputs.leftGamepad.pointer;
+    const leftGamepadGrip = peerRig.inputs.leftGamepad.grip;
+
+    const rightGamepadPosition = peerRig.inputs.rightGamepad.position.toArray();
+    const rightGamepadQuaternion = peerRig.inputs.rightGamepad.quaternion.toArray();
+    const rightGamepadPointer = peerRig.inputs.rightGamepad.pointer;
+    const rightGamepadGrip = peerRig.inputs.rightGamepad.grip;
+
+    const floorHeight = peerRig.getFloorHeight();
 
     return [
       [hmdPosition, hmdQuaternion],
@@ -126,8 +189,37 @@ class RigManager {
     this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
   }
 
+  setPeerAvatarPose(poseArray, peerId) {
+    const [
+      [hmdPosition, hmdQuaternion],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      floorHeight
+    ] = poseArray;
+
+    const peerRig = this.peerRigs.get(peerId);
+
+    peerRig.inputs.hmd.position.fromArray(hmdPosition);
+    peerRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
+
+    peerRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition);
+    peerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
+    peerRig.inputs.leftGamepad.pointer = leftGamepadPointer;
+    peerRig.inputs.leftGamepad.grip = leftGamepadGrip;
+
+    peerRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
+    peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
+    peerRig.inputs.rightGamepad.pointer = rightGamepadPointer;
+    peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
+
+    peerRig.setFloorHeight(floorHeight);
+  }
+
   update() {
     this.localRig.update();
+    this.peerRigs.forEach(rig => {
+        rig.update();
+    })
   }
 }
 export {RigManager};
