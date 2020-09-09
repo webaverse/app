@@ -39,5 +39,6 @@ export function makePromise() {
   p.reject = reject;
   return p;
 }
-const isLocal = false;
-export const storageHost = !isLocal ? 'https//storage.exokit.org' : 'https://127.0.0.1:443/storage';
+
+export const storageHost = 'https//storage.exokit.org';
+// export const storageHost = 'https://127.0.0.1:443/storage';
