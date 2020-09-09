@@ -154,8 +154,6 @@ var OrbitControls = function ( object, domElement, document ) {
 			var position = scope.object.position;
 
 			offset.copy( position ).sub( scope.target );
-      
-      console.log('offset', offset.toArray());
 
 			// rotate offset to "y-axis-is-up" space
 			offset.applyQuaternion( quat );
