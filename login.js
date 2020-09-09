@@ -138,17 +138,7 @@ async function tryLogin() {
       })
       if (response.ok) {
         const json = await response.json();
-        console.log(json);
-        const response2 = await fetch('https://127.0.0.1:443/storage/' + json.hash, {
-          method: 'GET'
-        })
-        if (response2.ok) {
-          console.log(await response2.text());
-          loginManager.setAvatar(json.hash)
-          console.log(loginManager.getAvatar())
-        } else {
-          console.error('Failed to get VRM from S3', response2);
-        }
+        loginManager.setAvatar(json.hash);
       } else {
         console.error('Failed to upload new Avatar.', response);
       }

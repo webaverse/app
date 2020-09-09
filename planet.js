@@ -11,7 +11,7 @@ import {
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 import Avatar from './avatars/avatars.js';
 // import { makeTextMesh } from './vr-ui.js';
-import {loginManager} from './login.js';
+import { loginManager } from './login.js';
 
 const presenceHost = `wss://${document.location.hostname}:4443`;
 
@@ -833,3 +833,15 @@ planet.connect = async (rn, {online = true} = {}) => {
 }; */
 
 // planet.connect('lol');
+
+loginManager.addEventListener('avatarchange', async (e) => {
+  const response = await fetch('https://127.0.0.1:443/storage/' + e.data, {
+    method: 'GET'
+  })
+  if (response.ok) {
+    const VRM = await response.text();
+    console.log(VRM);
+  } else {
+    console.error('Failed to get VRM from S3', response);
+  }
+})
