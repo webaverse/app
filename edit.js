@@ -151,18 +151,7 @@ orbitControls.enableMiddleZoom = false;
 orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
 
 loginManager.addEventListener('avatarchange', async (e) => {
-    const response = await fetch('https://127.0.0.1:443/storage/' + e.data, {
-      method: 'GET'
-    })
-    if (response.ok) {
-      const VRM = await response.arrayBuffer();
-      if (VRM) {
-        console.log(VRM)
-        rigManager.setLocalAvatarUrl(VRM);
-      }
-    } else {
-      console.error('Failed to get VRM from S3', response);
-    }
+  rigManager.setLocalAvatarUrl('https://127.0.0.1:443/storage/' + e.data + '.vrm');
 })
 
 document.addEventListener('dragover', e => {
