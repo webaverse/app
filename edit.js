@@ -6405,10 +6405,12 @@ document.getElementById('enter-xr-button').addEventListener('click', e => {
 
   if (currentSession === null) {
     navigator.xr.requestSession('immersive-vr', {
-      optionalFeatures: [
+      requiredFeatures: [
         'local-floor',
-        'bounded-floor',
-        // 'hand-tracking',
+        // 'bounded-floor',
+      ],
+      optionalFeatures: [
+        'hand-tracking',
       ],
     }).then(onSessionStarted);
   } else {
