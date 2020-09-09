@@ -5896,7 +5896,7 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
       .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, localVector, localQuaternion, localVector2))
       .then(({objectId}) => {
         const b = new Blob([arrayBuffer], {
-          type: 'applciation/octet-stream',
+          type: 'application/octet-stream',
         });
         const u = URL.createObjectURL(b);
         thingFiles[objectId] = u;
