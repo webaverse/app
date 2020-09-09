@@ -128,9 +128,24 @@ async function tryLogin() {
     </div>
   `;
 
-  document.getElementById('userAvatarInput').addEventListener('change', (e) => {
+  document.getElementById('userAvatarInput').addEventListener('change', async (e) => {
     console.log('User uploaded Avatar file:', e);
-    // upload this to storage API and then get the hash, save avatar hash to user profile, wear it.
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.addEventListener("load", async () => {
+      const response = await fetch('http://127.0.0.1/storage', {
+        method: "POST",
+        body: reader.result
+      })
+      if (response.ok) {
+        console.log(response)
+      } else {
+        console.error('failed to POST new avatar file')
+      }
+    });
+    if (file) {
+      reader.readAsBinaryString(file);
+    }
   })
 
   const userButton = document.getElementById('user-button');
