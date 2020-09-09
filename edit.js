@@ -152,7 +152,7 @@ orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, camera.posit
 orbitControls.update();
 
 loginManager.addEventListener('avatarchange', async (e) => {
-  rigManager.setLocalAvatarUrl('https://127.0.0.1:443/storage/' + e.data + '.vrm');
+  rigManager.setLocalAvatarUrl('https://storage.exokit.org/' + e.data + '.vrm');
 })
 
 document.addEventListener('dragover', e => {
