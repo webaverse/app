@@ -742,11 +742,7 @@ const _connectRoom = async roomName => {
 
 planet.update = () => {
   // update remote player rigs
-  rigManager.peerRigs.forEach((rig => {
-    if(rig) {
-      rig.update();
-    }
-  }))
+  rigManager.update();
 };
 
 planet.connect = async (rn, {online = true} = {}) => {
