@@ -4814,6 +4814,7 @@ function animate(timestamp, frame) {
           const xrCamera = renderer.xr.getCamera(camera);
           localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
           localEuler.x = 0;
+          localEuler.z = 0;
           localVector3.set(-(axes[0] + axes[2]), 0, -(axes[1] + axes[3]))
             .applyEuler(localEuler)
             .multiplyScalar(0.03);
