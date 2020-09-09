@@ -81,7 +81,7 @@ const rigManager = new RigManager(scene);
 planet.setBindings(scene, rigManager);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 1, 2);
+camera.position.set(0, 1.6, 2);
 camera.rotation.order = 'YXZ';
 // camera.quaternion.set(0, 0, 0, 1);
 
@@ -148,7 +148,8 @@ scene.add(directionalLight2); */
 const orbitControls = new OrbitControls(camera, canvas, document);
 orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
-orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
+orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, camera.position.y, -3).applyQuaternion(camera.quaternion));
+orbitControls.update();
 
 loginManager.addEventListener('avatarchange', async (e) => {
   rigManager.setLocalAvatarUrl('https://127.0.0.1:443/storage/' + e.data + '.vrm');
@@ -3993,7 +3994,7 @@ planet.addEventListener('load', async e => {
   const ncz = Math.floor(p.z / SUBPARCEL_SIZE) * SUBPARCEL_SIZE;
 
   const height = await geometryWorker.requestGetHeight(chunkMesh.seedNum, ncx, ncy + SUBPARCEL_SIZE, ncz, baseHeight, PARCEL_SIZE);
-  worldContainer.position.y = -height - _getAvatarHeight();
+  worldContainer.position.y = -height // - _getAvatarHeight();
 });
 planet.addEventListener('unload', () => {
   const oldChunkMesh = currentChunkMesh;
@@ -4728,7 +4729,7 @@ cubeMesh.frustumCulled = false;
 scene.add(cubeMesh);
 
 const velocity = new THREE.Vector3();
-const lastGrabs = [false, false];
+// const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
 let currentTeleport = false;
 let lastTeleport = false;
@@ -4773,6 +4774,7 @@ function animate(timestamp, frame) {
       return false;
     }
   });
+
   for (const animal of animals) {
     animal.update();
   }
@@ -4795,14 +4797,14 @@ function animate(timestamp, frame) {
 
         // buttons
         const {buttons} = gamepad;
-        const grab = buttons[1].pressed;
+        /* const grab = buttons[1].pressed;
         const lastGrab = lastGrabs[index];
         if (!lastGrab && grab) { // grip
           // pe.grabdown(handedness);
         } else if (lastGrab && !grab) {
           // pe.grabup(handedness);
         }
-        lastGrabs[index] = grab;
+        lastGrabs[index] = grab; */
 
         // axes
         const {axes: axesSrc} = gamepad;
@@ -4813,30 +4815,29 @@ function animate(timestamp, frame) {
           axesSrc[3] || 0,
         ];
         if (handedness === 'left') {
-          /* localVector.set(-(axes[0] + axes[2]), 0, -(axes[1] + axes[3]))
-            .multiplyScalar(0.01);
-          pe.matrix.decompose(localVector2, localQuaternion, localVector3);
           const xrCamera = renderer.xr.getCamera(camera);
-          localQuaternion2.copy(xrCamera.quaternion).premultiply(localQuaternion);
-          localEuler.setFromQuaternion(localQuaternion2, 'YXZ');
+          localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.z = 0;
-          localVector.applyEuler(localEuler);
-          localVector2.add(localVector);
-          pe.setMatrix(localMatrix.compose(localVector2, localQuaternion, localVector3)); */
+          localVector3.set(-(axes[0] + axes[2]), 0, -(axes[1] + axes[3]))
+            .applyEuler(localEuler)
+            .multiplyScalar(0.03);
+
+          localMatrix
+            .copy(chunkMeshContainer.matrix)
+            // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
+            .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
+            // .premultiply(localMatrix2.getInverse(localMatrix2))
+            .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
         } else if (handedness === 'right') {
           const _applyRotation = r => {
-            console.log('apply rotation', r);
-            /* const xrCamera = renderer.xr.getCamera(camera);
+            const xrCamera = renderer.xr.getCamera(camera);
             localMatrix
-              .copy(xrCamera.matrix)
-              .premultiply(pe.matrix)
-              .decompose(localVector, localQuaternion, localVector2);
-            localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r));
-            localMatrix
-              .compose(localVector, localQuaternion, localVector2)
-              .multiply(localMatrix2.getInverse(xrCamera.matrix));
-            pe.setMatrix(localMatrix); */
+              .copy(chunkMeshContainer.matrix)
+              .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
+              .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
+              .premultiply(localMatrix2.getInverse(localMatrix2))
+              .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
           };
           if (
             (axes[0] < -0.5 && !(lastAxes[index][0] < -0.5)) ||
@@ -4849,7 +4850,7 @@ function animate(timestamp, frame) {
           ) {
             _applyRotation(Math.PI * 0.2);
           }
-          currentTeleport = (axes[1] < -0.5 || axes[3] < -0.5);
+          lastTeleport = (axes[1] < -0.5 || axes[3] < -0.5);
         }
         lastAxes[index][0] = axes[0];
         lastAxes[index][1] = axes[1];
@@ -6396,6 +6397,7 @@ let currentSession = null;
 function onSessionStarted(session) {
   session.addEventListener('end', onSessionEnded);
   renderer.xr.setSession(session);
+  // renderer.xr.setReferenceSpaceType('local-floor');
   currentSession = session;
 }
 function onSessionEnded() {
