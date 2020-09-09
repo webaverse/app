@@ -14,7 +14,9 @@ import Avatar from './avatars/avatars.js';
 import { loginManager } from './login.js';
 
 const presenceHost = `wss://${document.location.hostname}:4443`;
-const backendHost = '127.0.0.1';
+let storageHost = null;
+storageHost = 'https//storage.exokit.org';
+
 const peerAvatarHashes = new Map();
 
 function abs(n) {
@@ -664,7 +666,7 @@ const _connectRoom = async roomName => {
           const {peerId, hash} = j;
           const currentPeerHash = peerAvatarHashes.get(peerId);
           if (currentPeerHash !== hash && hash) {
-            rigManager.setPeerAvatarUrl(`https://${backendHost}/storage/${hash}.vrm`, peerId);
+            rigManager.setPeerAvatarUrl(storageHost ? `${storageHost}/${hash}.vrm` : `https://127.0.0.1:443/storage/${hash}.vrm`, peerId);
           }
           peerAvatarHashes.set(peerId, hash);
         } else {

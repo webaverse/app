@@ -2,6 +2,8 @@ import storage from './storage.js';
 
 const loginEndpoint = 'https://login.exokit.org';
 const usersEndpoint = 'https://users.exokit.org';
+let storageHost = null;
+storageHost = 'https//storage.exokit.org';
 
 const _clone = o => JSON.parse(JSON.stringify(o));
 
@@ -9,7 +11,6 @@ let loginToken = null;
 let userObject = null;
 async function pullUserObject() {
 
-  console.log(loginToken)
   const res = await fetch(`${usersEndpoint}/${loginToken.name}`);
   if (res.ok) {
     userObject = await res.json();
@@ -19,7 +20,6 @@ async function pullUserObject() {
       avatarHash: null,
       inventory: [],
     };
-    console.log('UO', userObject)
   } else {
     throw new Error(`invalid status code: ${res.status}`);
   }
@@ -132,7 +132,7 @@ async function tryLogin() {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.addEventListener("load", async () => {      
-      const response = await fetch('https://127.0.0.1:443/storage', {
+      const response = await fetch(storageHost ? storageHost : 'https://127.0.0.1:443/storage', {
         method: "POST",
         body: reader.result
       })
