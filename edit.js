@@ -4811,17 +4811,19 @@ function animate(timestamp, frame) {
           axesSrc[3] || 0,
         ];
         if (handedness === 'left') {
-          localVector.set(-(axes[0] + axes[2]), 0, -(axes[1] + axes[3]))
-            .multiplyScalar(0.01);
-          chunkMeshContainer.matrix.decompose(localVector2, localQuaternion, localVector3);
           const xrCamera = renderer.xr.getCamera(camera);
-          localQuaternion2.copy(xrCamera.quaternion).premultiply(localQuaternion);
-          localEuler.setFromQuaternion(localQuaternion2, 'YXZ');
+          localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
           localEuler.x = 0;
-          localEuler.z = 0;
-          localVector.applyEuler(localEuler);
-          localVector2.add(localVector);
-          chunkMeshContainer.matrix.compose(localVector2, localQuaternion, localVector3);
+          localVector3.set(-(axes[0] + axes[2]), 0, -(axes[1] + axes[3]))
+            .applyEuler(localEuler)
+            .multiplyScalar(0.03);
+
+          localMatrix
+            .copy(chunkMeshContainer.matrix)
+            // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
+            .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
+            // .premultiply(localMatrix2.getInverse(localMatrix2))
+            .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
         } else if (handedness === 'right') {
           const _applyRotation = r => {
             const xrCamera = renderer.xr.getCamera(camera);
