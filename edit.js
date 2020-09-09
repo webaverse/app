@@ -816,7 +816,7 @@ const physicsShapes = {
 };
 const basisLoader = new BasisTextureLoader();
 basisLoader.detectSupport(renderer);
-const geometryWorker = await (async () => {
+const geometryWorker = (() => {
   class Allocator {
     constructor() {
       this.offsets = [];
