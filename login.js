@@ -1,9 +1,8 @@
 import storage from './storage.js';
+import { storageHost } from './constants.js'
 
 const loginEndpoint = 'https://login.exokit.org';
 const usersEndpoint = 'https://users.exokit.org';
-let storageHost = null;
-storageHost = 'https//storage.exokit.org';
 
 const _clone = o => JSON.parse(JSON.stringify(o));
 
@@ -132,7 +131,7 @@ async function tryLogin() {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.addEventListener("load", async () => {      
-      const response = await fetch(storageHost ? storageHost : 'https://127.0.0.1:443/storage', {
+      const response = await fetch(storageHost, {
         method: "POST",
         body: reader.result
       })
