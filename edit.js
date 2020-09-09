@@ -842,7 +842,7 @@ const geometryWorker = (() => {
     }
   }
 
-  const maxSize = 128 * 1024;
+  const maxSize = 1024 * 1024;
   class CallStack {
     constructor() {
       this.ptr = moduleInstance._malloc(maxSize * 2 + Uint32Array.BYTES_PER_ELEMENT);
