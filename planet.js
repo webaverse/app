@@ -627,7 +627,7 @@ const _connectRoom = async roomName => {
     let microphoneMediaStream = null;
     let live = true;
 
-    rigManager.addPeerRig(peerConnection.connectionId)
+    rigManager.addPeerRig(peerConnection.connectionId);
     const peerRig = rigManager.peerRigs.get(peerConnection.connectionId);
 
     peerConnection.addEventListener('close', async () => {
