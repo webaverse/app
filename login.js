@@ -1,4 +1,5 @@
 import storage from './storage.js';
+import { storageHost } from './constants.js'
 
 const loginEndpoint = 'https://login.exokit.org';
 const usersEndpoint = 'https://users.exokit.org';
@@ -8,6 +9,7 @@ const _clone = o => JSON.parse(JSON.stringify(o));
 let loginToken = null;
 let userObject = null;
 async function pullUserObject() {
+
   const res = await fetch(`${usersEndpoint}/${loginToken.name}`);
   if (res.ok) {
     userObject = await res.json();
@@ -112,9 +114,11 @@ async function tryLogin() {
         <div class=user-details id=user-details>
           <div class=label>Alias</div>
           <div class="user-name" id=user-name></div>
-          <!-- <div class=label>Avatar</div>
+          <div class=label>Avatar</div>
           <div class="avatar-name" id=avatar-name></div>
-          <nav class="button" style="display: none;" id=unwear-button>Unwear</nav> -->
+          <h3>Upload Avatar</h3>
+          <input type='file' id="userAvatarInput">
+          <nav class="button" style="display: none;" id=unwear-button>Unwear</nav>
         </div>
       </nav>
     </div>
@@ -122,6 +126,27 @@ async function tryLogin() {
       <div>Working...</div>
     </div>
   `;
+
+  document.getElementById('userAvatarInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.addEventListener("load", async () => {      
+      const response = await fetch(storageHost, {
+        method: "POST",
+        body: reader.result
+      })
+      if (response.ok) {
+        const json = await response.json();
+        loginManager.setAvatar(json.hash);
+      } else {
+        console.error('Failed to upload new Avatar.', response);
+      }
+
+    });
+    if (file) {
+      reader.readAsArrayBuffer(file);
+    }
+  })
 
   const userButton = document.getElementById('user-button');
   const userDetails = document.getElementById('user-details');
