@@ -4725,7 +4725,7 @@ cubeMesh.frustumCulled = false;
 scene.add(cubeMesh);
 
 const velocity = new THREE.Vector3();
-const lastGrabs = [false, false];
+// const lastGrabs = [false, false];
 const lastAxes = [[0, 0], [0, 0]];
 let currentTeleport = false;
 let lastTeleport = false;
@@ -4770,6 +4770,7 @@ function animate(timestamp, frame) {
       return false;
     }
   });
+
   for (const animal of animals) {
     animal.update();
   }
@@ -4792,14 +4793,14 @@ function animate(timestamp, frame) {
 
         // buttons
         const {buttons} = gamepad;
-        const grab = buttons[1].pressed;
+        /* const grab = buttons[1].pressed;
         const lastGrab = lastGrabs[index];
         if (!lastGrab && grab) { // grip
           // pe.grabdown(handedness);
         } else if (lastGrab && !grab) {
           // pe.grabup(handedness);
         }
-        lastGrabs[index] = grab;
+        lastGrabs[index] = grab; */
 
         // axes
         const {axes: axesSrc} = gamepad;
@@ -4810,9 +4811,9 @@ function animate(timestamp, frame) {
           axesSrc[3] || 0,
         ];
         if (handedness === 'left') {
-          /* localVector.set(-(axes[0] + axes[2]), 0, -(axes[1] + axes[3]))
+          localVector.set(-(axes[0] + axes[2]), 0, -(axes[1] + axes[3]))
             .multiplyScalar(0.01);
-          pe.matrix.decompose(localVector2, localQuaternion, localVector3);
+          chunkMeshContainer.matrix.decompose(localVector2, localQuaternion, localVector3);
           const xrCamera = renderer.xr.getCamera(camera);
           localQuaternion2.copy(xrCamera.quaternion).premultiply(localQuaternion);
           localEuler.setFromQuaternion(localQuaternion2, 'YXZ');
@@ -4820,20 +4821,16 @@ function animate(timestamp, frame) {
           localEuler.z = 0;
           localVector.applyEuler(localEuler);
           localVector2.add(localVector);
-          pe.setMatrix(localMatrix.compose(localVector2, localQuaternion, localVector3)); */
+          chunkMeshContainer.matrix.compose(localVector2, localQuaternion, localVector3);
         } else if (handedness === 'right') {
           const _applyRotation = r => {
-            console.log('apply rotation', r);
-            /* const xrCamera = renderer.xr.getCamera(camera);
+            const xrCamera = renderer.xr.getCamera(camera);
             localMatrix
-              .copy(xrCamera.matrix)
-              .premultiply(pe.matrix)
-              .decompose(localVector, localQuaternion, localVector2);
-            localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r));
-            localMatrix
-              .compose(localVector, localQuaternion, localVector2)
-              .multiply(localMatrix2.getInverse(xrCamera.matrix));
-            pe.setMatrix(localMatrix); */
+              .copy(chunkMeshContainer.matrix)
+              .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
+              .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
+              .premultiply(localMatrix2.getInverse(localMatrix2))
+              .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
           };
           if (
             (axes[0] < -0.5 && !(lastAxes[index][0] < -0.5)) ||
@@ -4846,7 +4843,7 @@ function animate(timestamp, frame) {
           ) {
             _applyRotation(Math.PI * 0.2);
           }
-          currentTeleport = (axes[1] < -0.5 || axes[3] < -0.5);
+          lastTeleport = (axes[1] < -0.5 || axes[3] < -0.5);
         }
         lastAxes[index][0] = axes[0];
         lastAxes[index][1] = axes[1];
