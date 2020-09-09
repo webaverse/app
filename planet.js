@@ -12,10 +12,9 @@ import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 import Avatar from './avatars/avatars.js';
 // import { makeTextMesh } from './vr-ui.js';
 import { loginManager } from './login.js';
+import { storageHost } from './constants.js'
 
 const presenceHost = `wss://${document.location.hostname}:4443`;
-let storageHost = null;
-storageHost = 'https//storage.exokit.org';
 
 const peerAvatarHashes = new Map();
 
@@ -666,7 +665,7 @@ const _connectRoom = async roomName => {
           const {peerId, hash} = j;
           const currentPeerHash = peerAvatarHashes.get(peerId);
           if (currentPeerHash !== hash && hash) {
-            rigManager.setPeerAvatarUrl(storageHost ? `${storageHost}/${hash}.vrm` : `https://127.0.0.1:443/storage/${hash}.vrm`, peerId);
+            rigManager.setPeerAvatarUrl(`${storageHost}/${hash}.vrm`, peerId);
           }
           peerAvatarHashes.set(peerId, hash);
         } else {
