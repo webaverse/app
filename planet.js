@@ -595,7 +595,7 @@ const _connectRoom = async roomName => {
       }
     });
 
-    /* const _latchMediaStream = async () => {
+     const _latchMediaStream = async () => {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
       });
@@ -606,7 +606,7 @@ const _connectRoom = async roomName => {
       });
       await channelConnection.setMicrophoneMediaStream(mediaStream);
     };
-    _latchMediaStream(); */
+    _latchMediaStream(); 
 
     channelConnection.dialogClient.addEventListener('peerEdit', e => {
       console.log(e);
@@ -683,9 +683,9 @@ const _connectRoom = async roomName => {
       audio.srcObject = microphoneMediaStream;
       audio.play();
       if (peerRig) {
-        peerRig.context.rig.setMicrophoneMediaStream(microphoneMediaStream);
+        peerRig.setMicrophoneMediaStream(microphoneMediaStream);
         track.addEventListener('ended', e => {
-          peerRig.context.rig.setMicrophoneMediaStream(null);
+          peerRig.setMicrophoneMediaStream(null);
           audio.srcObject = null;
         });
       }
@@ -753,4 +753,21 @@ planet.connect = async (rn, {online = true} = {}) => {
   return s;
 }; */
 
-// planet.connect('lol');
+const bindConnectButton = () => {
+  const button = document.getElementById('connectButton');
+  if (button) {
+    document.getElementById('connectButton').addEventListener('mouseup', (e) => {
+      e.preventDefault();
+      planet.connect('lol');
+    })
+  } else {
+    setTimeout(() => {
+      bindConnectButton()
+    }, 500)
+  }
+}
+
+window.addEventListener('load', () => {
+    bindConnectButton()
+})
+
