@@ -142,6 +142,32 @@ class RigManager {
     ];
   }
 
+  getPeerAvatarPose(peerId) {
+    const peerRig = this.peerRigs.get(peerId);
+
+    const hmdPosition = peerRig.inputs.hmd.position.toArray();
+    const hmdQuaternion = peerRig.inputs.hmd.quaternion.toArray();
+
+    const leftGamepadPosition = peerRig.inputs.leftGamepad.position.toArray();
+    const leftGamepadQuaternion = peerRig.inputs.leftGamepad.quaternion.toArray();
+    const leftGamepadPointer = peerRig.inputs.leftGamepad.pointer;
+    const leftGamepadGrip = peerRig.inputs.leftGamepad.grip;
+
+    const rightGamepadPosition = peerRig.inputs.rightGamepad.position.toArray();
+    const rightGamepadQuaternion = peerRig.inputs.rightGamepad.quaternion.toArray();
+    const rightGamepadPointer = peerRig.inputs.rightGamepad.pointer;
+    const rightGamepadGrip = peerRig.inputs.rightGamepad.grip;
+
+    const floorHeight = peerRig.getFloorHeight();
+
+    return [
+      [hmdPosition, hmdQuaternion],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      floorHeight,
+    ];
+  }
+
   setLocalAvatarPose(poseArray) {
     const [
       [hmdPosition, hmdQuaternion],
@@ -161,6 +187,32 @@ class RigManager {
     this.localRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
     this.localRig.inputs.rightGamepad.pointer = rightGamepadPointer;
     this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
+  }
+
+  setPeerAvatarPose(poseArray, peerId) {
+    const [
+      [hmdPosition, hmdQuaternion],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      floorHeight
+    ] = poseArray;
+
+    const peerRig = this.peerRigs.get(peerId);
+
+    peerRig.inputs.hmd.position.fromArray(hmdPosition);
+    peerRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
+
+    peerRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition);
+    peerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
+    peerRig.inputs.leftGamepad.pointer = leftGamepadPointer;
+    peerRig.inputs.leftGamepad.grip = leftGamepadGrip;
+
+    peerRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
+    peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
+    peerRig.inputs.rightGamepad.pointer = rightGamepadPointer;
+    peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
+
+    peerRig.setFloorHeight(floorHeight);
   }
 
   update() {
