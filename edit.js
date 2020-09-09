@@ -45,6 +45,8 @@ import {GuardianMesh} from './land.js';
 // const apiHost = 'https://ipfs.exokit.org/ipfs';
 // const worldsEndpoint = 'https://worlds.exokit.org';
 // const packagesEndpoint = 'https://packages.exokit.org';
+let storageHost = null;
+storageHost = 'https//storage.exokit.org';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
@@ -120,7 +122,7 @@ orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, camera.posit
 orbitControls.update();
 
 loginManager.addEventListener('avatarchange', async (e) => {
-  rigManager.setLocalAvatarUrl('https://127.0.0.1:443/storage/' + e.data + '.vrm');
+  rigManager.setLocalAvatarUrl(storageHost ? `${storageHost}/${e.data}.vrm` : `https://127.0.0.1:443/storage/${e.data}.vrm`);
 })
 
 document.addEventListener('dragover', e => {
