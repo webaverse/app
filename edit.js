@@ -47,7 +47,6 @@ import { storageHost } from './constants.js'
 // const worldsEndpoint = 'https://worlds.exokit.org';
 // const packagesEndpoint = 'https://packages.exokit.org';
 
-
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
 const pid4 = Math.PI / 4;
