@@ -132,7 +132,7 @@ async function tryLogin() {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.addEventListener("load", async () => {      
-      const response = await fetch('https://127.0.0.1:443/storage', {
+      const response = await fetch('https://storage.exokit.org', {
         method: "POST",
         body: reader.result
       })
