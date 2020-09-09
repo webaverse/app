@@ -81,7 +81,7 @@ const rigManager = new RigManager(scene);
 planet.setBindings(scene, rigManager);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 1, 2);
+camera.position.set(0, 1.6, 2);
 camera.rotation.order = 'YXZ';
 // camera.quaternion.set(0, 0, 0, 1);
 
@@ -148,7 +148,8 @@ scene.add(directionalLight2); */
 const orbitControls = new OrbitControls(camera, canvas, document);
 orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
-orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
+orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, camera.position.y, -3).applyQuaternion(camera.quaternion));
+orbitControls.update();
 
 document.addEventListener('dragover', e => {
   e.preventDefault();
@@ -3989,7 +3990,7 @@ planet.addEventListener('load', async e => {
   const ncz = Math.floor(p.z / SUBPARCEL_SIZE) * SUBPARCEL_SIZE;
 
   const height = await geometryWorker.requestGetHeight(chunkMesh.seedNum, ncx, ncy + SUBPARCEL_SIZE, ncz, baseHeight, PARCEL_SIZE);
-  worldContainer.position.y = -height - _getAvatarHeight();
+  worldContainer.position.y = -height // - _getAvatarHeight();
 });
 planet.addEventListener('unload', () => {
   const oldChunkMesh = currentChunkMesh;
@@ -6392,6 +6393,7 @@ let currentSession = null;
 function onSessionStarted(session) {
   session.addEventListener('end', onSessionEnded);
   renderer.xr.setSession(session);
+  // renderer.xr.setReferenceSpaceType('local-floor');
   currentSession = session;
 }
 function onSessionEnded() {
