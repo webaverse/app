@@ -144,6 +144,8 @@ async function tryLogin() {
         })
         if (response2.ok) {
           console.log(await response2.text());
+          loginManager.setAvatar(json.hash)
+          console.log(loginManager.getAvatar())
         } else {
           console.error('Failed to get VRM from S3', response2);
         }
