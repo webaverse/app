@@ -642,16 +642,8 @@ const _connectRoom = async roomName => {
         const j = JSON.parse(data);
         const {method} = j;
         if (method === 'pose') {
-          const {pose} = j;
-          const [head, leftGamepad, rightGamepad, floorHeight] = pose;
-
-          peerRig.inputs.hmd.position.fromArray(head[0]);
-          peerRig.inputs.hmd.quaternion.fromArray(head[1]);
-          peerRig.inputs.leftGamepad.position.fromArray(leftGamepad[0]);
-          peerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepad[1]);
-          peerRig.inputs.rightGamepad.position.fromArray(rightGamepad[0]);
-          peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepad[1]);
-          peerRig.setFloorHeight(floorHeight);
+          const { pose } = j;
+          rigManager.setPeerAvatarPose(pose, peerConnection.connectionId)
 
           /* peerRig.textMesh.position.fromArray(head[0]);
           peerRig.textMesh.position.y += 0.5;
