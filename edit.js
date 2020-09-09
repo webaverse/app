@@ -7,7 +7,7 @@ import {GLTFLoader} from './GLTFLoader.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
 // import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
-import { tryLogin } from './login.js';
+import { tryLogin, loginManager } from './login.js';
 import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
@@ -149,6 +149,21 @@ const orbitControls = new OrbitControls(camera, canvas, document);
 orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
 orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
+
+loginManager.addEventListener('avatarchange', async (e) => {
+    const response = await fetch('https://127.0.0.1:443/storage/' + e.data, {
+      method: 'GET'
+    })
+    if (response.ok) {
+      const VRM = await response.arrayBuffer();
+      if (VRM) {
+        console.log(VRM)
+        rigManager.setLocalAvatarUrl(VRM);
+      }
+    } else {
+      console.error('Failed to get VRM from S3', response);
+    }
+})
 
 document.addEventListener('dragover', e => {
   e.preventDefault();
