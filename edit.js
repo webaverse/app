@@ -4926,9 +4926,27 @@ function animate(timestamp, frame) {
     hmdQuaternion = localQuaternion.toArray();
 
     if (currentSession) {
-      const inputSources = Array.from(currentSession.inputSources);
-      const gamepads = ['left', 'right'].map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
+      let inputSources = Array.from(currentSession.inputSources);
+      inputSources = ['right', 'left']
+        .map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
       // console.log('got gamepads', gamepads);
+      let pose;
+      if (inputSources[0] && (pose = frame.getPose(inputSources[0].targetRaySpace, renderer.xr.getReferenceSpace()))) {
+        localMatrix.fromArray(pose.transform.matrix)
+          .decompose(localVector2, localQuaternion2, localVector3);
+        leftGamepadPosition = localVector2.toArray();
+        leftGamepadQuaternion = localQuaternion2.toArray();
+        leftGamepadPointer = 0;
+        leftGamepadGrip = 0;
+      }
+      if (inputSources[1] && (pose = frame.getPose(inputSources[1].targetRaySpace, renderer.xr.getReferenceSpace()))) {
+        localMatrix.fromArray(pose.transform.matrix)
+          .decompose(localVector2, localQuaternion2, localVector3);
+        rightGamepadPosition = localVector2.toArray();
+        rightGamepadQuaternion = localQuaternion2.toArray();
+        rightGamepadPointer = 0;
+        rightGamepadGrip = 0;
+      }
 
       /* const _scaleMatrixPQ = (srcMatrixArray, p, q) => {
         localMatrix.fromArray(srcMatrixArray)
@@ -5023,35 +5041,38 @@ function animate(timestamp, frame) {
           rig.inputs.rightGamepad.fingers[i].quaternion.fromArray(xrState.hands[0][i].orientation);
         }
       } */
-    } else {
-      const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
+    }
+
+    const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
+    if (!leftGamepadPosition) {
       leftGamepadPosition = localVector2.copy(localVector).add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion)).toArray();
       // .toArray(xrState.gamepads[1].position);
       leftGamepadQuaternion = localQuaternion.toArray();
       leftGamepadPointer = 0;
       leftGamepadGrip = 0;
-
+    }
+    if (!rightGamepadPosition) {
       rightGamepadPosition = localVector2.copy(localVector).add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion)).toArray();
       // .toArray(xrState.gamepads[0].position);
       rightGamepadQuaternion = localQuaternion.toArray();
       rightGamepadPointer = 0;
       rightGamepadGrip = 0;
-
-      /* HANDS.forEach((handedness, i) => {
-        const grabuse = this.grabuses[handedness];
-        const gamepad = xrState.gamepads[i];
-        const button = gamepad.buttons[0];
-        if (grabuse) {
-          button.touched[0] = 1;
-          button.pressed[0] = 1;
-          button.value[0] = 1;
-        } else {
-          button.touched[0] = 0;
-          button.pressed[0] = 0;
-          button.value[0] = 0;
-        }
-      }); */
     }
+
+    /* HANDS.forEach((handedness, i) => {
+      const grabuse = this.grabuses[handedness];
+      const gamepad = xrState.gamepads[i];
+      const button = gamepad.buttons[0];
+      if (grabuse) {
+        button.touched[0] = 1;
+        button.pressed[0] = 1;
+        button.value[0] = 1;
+      } else {
+        button.touched[0] = 0;
+        button.pressed[0] = 0;
+        button.value[0] = 0;
+      }
+    }); */
 
     rigManager.setLocalAvatarPose([
       [localVector.toArray(), localQuaternion.toArray()],
