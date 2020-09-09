@@ -832,34 +832,6 @@ const physicsShapes = {
 const basisLoader = new BasisTextureLoader();
 basisLoader.detectSupport(renderer);
 const geometryWorker = (() => {
-  const modulePromise = makePromise();
-  /* const INITIAL_INITIAL_MEMORY = 52428800;
-  const WASM_PAGE_SIZE = 65536;
-  const wasmMemory = new WebAssembly.Memory({
-    "initial": INITIAL_INITIAL_MEMORY / WASM_PAGE_SIZE,
-    "maximum": INITIAL_INITIAL_MEMORY / WASM_PAGE_SIZE,
-    "shared": true,
-  }); */
-  let moduleInstance = null;
-  let threadPool;
-  let callStack;
-  let scratchStack;
-  GeometryModule({
-    // ENVIRONMENT_IS_PTHREAD: true,
-    // wasmMemory,
-    // buffer: wasmMemory.buffer,
-    noInitialRun: true,
-    noExitRuntime: true,
-    onRuntimeInitialized() {
-      moduleInstance = this;
-      threadPool = moduleInstance._makeThreadPool(1);
-      // moduleInstance._initPhysx();
-      callStack = new CallStack();
-      scratchStack = new ScratchStack();
-      modulePromise.accept();
-    },
-  });
-
   class Allocator {
     constructor() {
       this.offsets = [];
@@ -885,7 +857,7 @@ const geometryWorker = (() => {
     }
   }
 
-  const maxSize = 128 * 1024;
+  const maxSize = 1024 * 1024;
   class CallStack {
     constructor() {
       this.ptr = moduleInstance._malloc(maxSize * 2 + Uint32Array.BYTES_PER_ELEMENT);
@@ -938,6 +910,43 @@ const geometryWorker = (() => {
       this.f32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Float32Array.BYTES_PER_ELEMENT);
     }
   }
+  
+  const modulePromise = makePromise();
+  /* const INITIAL_INITIAL_MEMORY = 52428800;
+  const WASM_PAGE_SIZE = 65536;
+  const wasmMemory = new WebAssembly.Memory({
+    "initial": INITIAL_INITIAL_MEMORY / WASM_PAGE_SIZE,
+    "maximum": INITIAL_INITIAL_MEMORY / WASM_PAGE_SIZE,
+    "shared": true,
+  }); */
+  let localModuleInstance = null;
+  let moduleInstance = null;
+  let threadPool;
+  let callStack;
+  let scratchStack;
+  // GeometryModule({
+    // ENVIRONMENT_IS_PTHREAD: true,
+    // wasmMemory,
+    // buffer: wasmMemory.buffer,
+    // noInitialRun: true,
+    // noExitRuntime: true,
+    Module.onRuntimeInitialized = function() {
+      localModuleInstance = this;
+    };
+    Module.postRun = () => {
+      moduleInstance = localModuleInstance;
+      // moduleInstance._globalInit();
+      callStack = new CallStack();
+      scratchStack = new ScratchStack();
+      threadPool = moduleInstance._makeThreadPool(1);
+      // threadPool = moduleInstance._getThreadPool();
+      modulePromise.accept();
+    };
+    if (Module.calledRun) {
+      Module.onRuntimeInitialized();
+      Module.postRun();
+    }
+  // });
 
   const localVector = new THREE.Vector3();
   const localVector2 = new THREE.Vector3();
@@ -2409,7 +2418,7 @@ const geometryWorker = (() => {
                 geometrySet,
                 neededCoordsOffset,
                 subparcelOffset,
-                true,
+                1
               );
             }
           })().then(() => {
@@ -4932,9 +4941,27 @@ function animate(timestamp, frame) {
     hmdQuaternion = localQuaternion.toArray();
 
     if (currentSession) {
-      const inputSources = Array.from(currentSession.inputSources);
-      const gamepads = ['left', 'right'].map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
+      let inputSources = Array.from(currentSession.inputSources);
+      inputSources = ['right', 'left']
+        .map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
       // console.log('got gamepads', gamepads);
+      let pose;
+      if (inputSources[0] && (pose = frame.getPose(inputSources[0].targetRaySpace, renderer.xr.getReferenceSpace()))) {
+        localMatrix.fromArray(pose.transform.matrix)
+          .decompose(localVector2, localQuaternion2, localVector3);
+        leftGamepadPosition = localVector2.toArray();
+        leftGamepadQuaternion = localQuaternion2.toArray();
+        leftGamepadPointer = 0;
+        leftGamepadGrip = 0;
+      }
+      if (inputSources[1] && (pose = frame.getPose(inputSources[1].targetRaySpace, renderer.xr.getReferenceSpace()))) {
+        localMatrix.fromArray(pose.transform.matrix)
+          .decompose(localVector2, localQuaternion2, localVector3);
+        rightGamepadPosition = localVector2.toArray();
+        rightGamepadQuaternion = localQuaternion2.toArray();
+        rightGamepadPointer = 0;
+        rightGamepadGrip = 0;
+      }
 
       /* const _scaleMatrixPQ = (srcMatrixArray, p, q) => {
         localMatrix.fromArray(srcMatrixArray)
@@ -5029,35 +5056,38 @@ function animate(timestamp, frame) {
           rig.inputs.rightGamepad.fingers[i].quaternion.fromArray(xrState.hands[0][i].orientation);
         }
       } */
-    } else {
-      const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
+    }
+
+    const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
+    if (!leftGamepadPosition) {
       leftGamepadPosition = localVector2.copy(localVector).add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion)).toArray();
       // .toArray(xrState.gamepads[1].position);
       leftGamepadQuaternion = localQuaternion.toArray();
       leftGamepadPointer = 0;
       leftGamepadGrip = 0;
-
+    }
+    if (!rightGamepadPosition) {
       rightGamepadPosition = localVector2.copy(localVector).add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion)).toArray();
       // .toArray(xrState.gamepads[0].position);
       rightGamepadQuaternion = localQuaternion.toArray();
       rightGamepadPointer = 0;
       rightGamepadGrip = 0;
-
-      /* HANDS.forEach((handedness, i) => {
-        const grabuse = this.grabuses[handedness];
-        const gamepad = xrState.gamepads[i];
-        const button = gamepad.buttons[0];
-        if (grabuse) {
-          button.touched[0] = 1;
-          button.pressed[0] = 1;
-          button.value[0] = 1;
-        } else {
-          button.touched[0] = 0;
-          button.pressed[0] = 0;
-          button.value[0] = 0;
-        }
-      }); */
     }
+
+    /* HANDS.forEach((handedness, i) => {
+      const grabuse = this.grabuses[handedness];
+      const gamepad = xrState.gamepads[i];
+      const button = gamepad.buttons[0];
+      if (grabuse) {
+        button.touched[0] = 1;
+        button.pressed[0] = 1;
+        button.value[0] = 1;
+      } else {
+        button.touched[0] = 0;
+        button.pressed[0] = 0;
+        button.value[0] = 0;
+      }
+    }); */
 
     rigManager.setLocalAvatarPose([
       [localVector.toArray(), localQuaternion.toArray()],
@@ -5881,7 +5911,7 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
       .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, localVector, localQuaternion, localVector2))
       .then(({objectId}) => {
         const b = new Blob([arrayBuffer], {
-          type: 'applciation/octet-stream',
+          type: 'application/octet-stream',
         });
         const u = URL.createObjectURL(b);
         thingFiles[objectId] = u;
@@ -6390,10 +6420,12 @@ document.getElementById('enter-xr-button').addEventListener('click', e => {
 
   if (currentSession === null) {
     navigator.xr.requestSession('immersive-vr', {
-      optionalFeatures: [
+      requiredFeatures: [
         'local-floor',
-        'bounded-floor',
-        // 'hand-tracking',
+        // 'bounded-floor',
+      ],
+      optionalFeatures: [
+        'hand-tracking',
       ],
     }).then(onSessionStarted);
   } else {
