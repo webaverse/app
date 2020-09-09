@@ -3999,23 +3999,6 @@ planet.addEventListener('unload', () => {
     currentChunkMesh = null;
   }
 });
-planet.addEventListener('subparcelupdate', e => {
-  const {data: subparcel} = e;
-  currentChunkMesh.updateSlab(subparcel.x, subparcel.y, subparcel.z);
-});
-
-const RESOURCES = ['wood', 'stone', 'metal'];
-RESOURCES.forEach(resource => {
-  /* const resourceEl = document.getElementById(resource);
-  const countEl = resourceEl.querySelector('.count');
-  countEl.innerText = player.getCount(resource); */
-});
-player.addEventListener('inventorychange', async e => {
-  const {data: {type, count}} = e;
-  /* const resourceEl = document.getElementById(resource);
-  const countEl = resourceEl.querySelector('.count');
-  countEl.innerText = count; */
-});
 
 /* const generateModels = await _loadGltf('./generate.glb');
 for (let i = 0; i < 30; i++) {
