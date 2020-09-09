@@ -129,19 +129,28 @@ async function tryLogin() {
   `;
 
   document.getElementById('userAvatarInput').addEventListener('change', async (e) => {
-    console.log('User uploaded Avatar file:', e);
     const file = e.target.files[0];
     const reader = new FileReader();
-    reader.addEventListener("load", async () => {
-      const response = await fetch('http://127.0.0.1/storage', {
+    reader.addEventListener("load", async () => {      
+      const response = await fetch('https://127.0.0.1:443/storage', {
         method: "POST",
         body: reader.result
       })
       if (response.ok) {
-        console.log(response)
+        const json = await response.json();
+        console.log(json);
+        const response2 = await fetch('https://127.0.0.1:443/storage/' + json.hash, {
+          method: 'GET'
+        })
+        if (response2.ok) {
+          console.log(await response2.text());
+        } else {
+          console.error('Failed to get VRM from S3', response2);
+        }
       } else {
-        console.error('failed to POST new avatar file')
+        console.error('Failed to upload new Avatar.', response);
       }
+
     });
     if (file) {
       reader.readAsBinaryString(file);
