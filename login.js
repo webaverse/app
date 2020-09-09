@@ -8,6 +8,8 @@ const _clone = o => JSON.parse(JSON.stringify(o));
 let loginToken = null;
 let userObject = null;
 async function pullUserObject() {
+
+  console.log(loginToken)
   const res = await fetch(`${usersEndpoint}/${loginToken.name}`);
   if (res.ok) {
     userObject = await res.json();
@@ -17,6 +19,7 @@ async function pullUserObject() {
       avatarHash: null,
       inventory: [],
     };
+    console.log('UO', userObject)
   } else {
     throw new Error(`invalid status code: ${res.status}`);
   }
@@ -112,9 +115,11 @@ async function tryLogin() {
         <div class=user-details id=user-details>
           <div class=label>Alias</div>
           <div class="user-name" id=user-name></div>
-          <!-- <div class=label>Avatar</div>
+          <div class=label>Avatar</div>
           <div class="avatar-name" id=avatar-name></div>
-          <nav class="button" style="display: none;" id=unwear-button>Unwear</nav> -->
+          <h3>Upload Avatar</h3>
+          <input type='file' id="userAvatarInput">
+          <nav class="button" style="display: none;" id=unwear-button>Unwear</nav>
         </div>
       </nav>
     </div>
@@ -122,6 +127,11 @@ async function tryLogin() {
       <div>Working...</div>
     </div>
   `;
+
+  document.getElementById('userAvatarInput').addEventListener('change', (e) => {
+    console.log('User uploaded Avatar file:', e);
+    // upload this to storage API and then get the hash, save avatar hash to user profile, wear it.
+  })
 
   const userButton = document.getElementById('user-button');
   const userDetails = document.getElementById('user-details');
