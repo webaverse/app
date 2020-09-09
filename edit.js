@@ -5711,7 +5711,13 @@ function animate(timestamp, frame) {
 
   localMatrix.multiplyMatrices(camera.projectionMatrix, localMatrix2.multiplyMatrices(camera.matrixWorldInverse, worldContainer.matrixWorld));
   if (currentChunkMesh && currentVegetationMesh) {
-    localMatrix3.copy(camera.matrixWorld)
+    if (!currentSession) {
+      localMatrix3.copy(camera.matrixWorld)
+    } else {
+      const xrCamera = renderer.xr.getCamera(camera);
+      localMatrix3.copy(xrCamera.matrix)
+    }
+    localMatrix3
       .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
       .decompose(localVector, localQuaternion, localVector2);
 
