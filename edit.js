@@ -4788,7 +4788,9 @@ function animate(timestamp, frame) {
   uiMesh && uiMesh.update();
 
   if (currentSession) {
-    const {inputSources} = currentSession;
+    const xrCamera = renderer.xr.getCamera(camera);
+    
+    const inputSources = Array.from(currentSession.inputSources);
     for (let i = 0; i < inputSources.length; i++) {
       const inputSource = inputSources[i];
       const {handedness, gamepad} = inputSource;
@@ -4815,7 +4817,6 @@ function animate(timestamp, frame) {
           axesSrc[3] || 0,
         ];
         if (handedness === 'left') {
-          const xrCamera = renderer.xr.getCamera(camera);
           localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.z = 0;
@@ -4831,7 +4832,6 @@ function animate(timestamp, frame) {
             .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
         } else if (handedness === 'right') {
           const _applyRotation = r => {
-            const xrCamera = renderer.xr.getCamera(camera);
             localMatrix
               .copy(chunkMeshContainer.matrix)
               .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
@@ -4857,6 +4857,13 @@ function animate(timestamp, frame) {
         lastAxes[index][2] = axes[2];
         lastAxes[index][3] = axes[3];
       }
+    }
+    
+    const leftInputSource = inputSources.find(inputSource => inputSource.handedness === 'left');
+    const pose = leftInputSource && frame.getPose(leftInputSource.targetRaySpace, renderer.xr.getReferenceSpace());
+    if (pose) {
+      localMatrix2.fromArray(pose.transform.matrix);
+      _collideItems(localMatrix2);
     }
 
     rigManager.setLocalRigMatrix(null);
@@ -5708,7 +5715,13 @@ function animate(timestamp, frame) {
 
   localMatrix.multiplyMatrices(camera.projectionMatrix, localMatrix2.multiplyMatrices(camera.matrixWorldInverse, worldContainer.matrixWorld));
   if (currentChunkMesh && currentVegetationMesh) {
-    localMatrix3.copy(camera.matrixWorld)
+    if (!currentSession) {
+      localMatrix3.copy(camera.matrixWorld)
+    } else {
+      const xrCamera = renderer.xr.getCamera(camera);
+      localMatrix3.copy(xrCamera.matrix)
+    }
+    localMatrix3
       .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
       .decompose(localVector, localQuaternion, localVector2);
 
