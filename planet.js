@@ -833,15 +833,3 @@ planet.connect = async (rn, {online = true} = {}) => {
 }; */
 
 // planet.connect('lol');
-
-loginManager.addEventListener('avatarchange', async (e) => {
-  const response = await fetch('https://127.0.0.1:443/storage/' + e.data, {
-    method: 'GET'
-  })
-  if (response.ok) {
-    const VRM = await response.text();
-    console.log(VRM);
-  } else {
-    console.error('Failed to get VRM from S3', response);
-  }
-})
