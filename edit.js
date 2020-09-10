@@ -847,6 +847,51 @@ const geometryWorker = (() => {
       this.dataView.setInt32(2*Uint32Array.BYTES_PER_ELEMENT, v, true);
     }
     pullU8Array(length) {
+      const {offset} = this;
+      this.offset += length;
+      return new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + offset, length);;
+    }
+    pullF32Array(length) {
+      const {offset} = this;
+      this.offset += length*Float32Array.BYTES_PER_ELEMENT;
+      return new Float32Array(this.dataView.buffer, this.dataView.byteOffset + offset, length);
+    }
+    pullI32() {
+      const {offset} = this;
+      this.offset += Int32Array.BYTES_PER_ELEMENT;
+      return this.dataView.getInt32(offset, true);;
+    }
+    pullU32() {
+      const {offset} = this;
+      this.offset += Uint32Array.BYTES_PER_ELEMENT;
+      return this.dataView.getUint32(offset, true);;
+    }
+    pullF32() {
+      const {offset} = this;
+      this.offset += Float32Array.BYTES_PER_ELEMENT;
+      return this.dataView.getFloat32(offset, true);
+    }
+    pushU8Array(uint8Array) {
+      new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + this.offset, uint8Array.length).set(uint8Array);
+      this.offset += uint8Array.byteLength;
+    }
+    pushF32Array(float32Array) {
+      new Float32Array(this.dataView.buffer, this.dataView.byteOffset + this.offset, float32Array.length).set(float32Array);
+      this.offset += float32Array.byteLength;
+    }
+    pushI32(v) {
+      this.dataView.setInt32(this.offset, v, true);
+      this.offset += Int32Array.BYTES_PER_ELEMENT;
+    }
+    pushU32(v) {
+      this.dataView.setUint32(this.offset, v, true);
+      this.offset += Uint32Array.BYTES_PER_ELEMENT;
+    }
+    pushF32(v) {
+      this.dataView.setFloat32(this.offset, v, true);
+      this.offset += Float32Array.BYTES_PER_ELEMENT;
+    }
+    /* pullU8Array(length) {
       if (this.offset + length <= messageSize) {
         const result = new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + this.offset, length);
         this.offset += length;
@@ -930,7 +975,7 @@ const geometryWorker = (() => {
       } else {
         throw new Error('message overflow');
       }
-    }
+    } */
   }
   class CallStack {
     constructor() {
