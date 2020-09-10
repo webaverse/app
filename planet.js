@@ -8,7 +8,7 @@ import {
   PLANET_OBJECT_SLOTS,
   PLANET_OBJECT_SIZE,
 } from './constants.js';
-import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
+import { XRChannelConnection } from 'https://2.metartc.com/xrrtc.js';
 import { loginManager } from './login.js';
 import { storageHost } from './constants.js';
 // import * as THREE from './three.module.js';
@@ -775,7 +775,13 @@ const bindConnectButton = () => {
     document.getElementById('connectButton').addEventListener('click', (e) => {
       e.stopPropagation();
       e.preventDefault();
-      planet.connect('lol');
+      if (channelConnectionOpen) {
+        button.innerText = 'Connect';
+        channelConnection.close();
+      } else {
+        planet.connect('lol');
+        button.innerText = 'Disconnect';
+      }
     })
   } else {
     setTimeout(() => {
