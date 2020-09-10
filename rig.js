@@ -124,6 +124,12 @@ class RigManager {
     await this.peerRigQueue.unlock();
   }
 
+  setPeerMicMediaStream(mediaStream, peerId) {
+    const peerRig = this.peerRigs.get(peerId);
+    peerRig.setMicrophoneMediaStream(mediaStream);
+    this.peerRigs.set(peerId, peerRig);
+  }
+
   getLocalAvatarPose() {
     const hmdPosition = this.localRig.inputs.hmd.position.toArray();
     const hmdQuaternion = this.localRig.inputs.hmd.quaternion.toArray();

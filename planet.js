@@ -609,14 +609,18 @@ const _connectRoom = async roomName => {
     const micButton = document.getElementById('mic-button');
     micButton.addEventListener('click', async e => {
       micButton.classList.toggle('enabled');
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
       if (micButton.classList.contains('enabled')) {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
         rigManager.localRig.setMicrophoneMediaStream(mediaStream);
         _latchMediaStream();
       } else {
         rigManager.localRig.setMicrophoneMediaStream(null);
+        const tracks = mediaStream.getAudioTracks();
+        tracks.forEach(t => {
+          mediaStream.removeTrack(t);
+        })
       }
     });
 
@@ -699,9 +703,9 @@ const _connectRoom = async roomName => {
       audio.srcObject = microphoneMediaStream;
       audio.play();
       if (peerRig) {
-        peerRig.setMicrophoneMediaStream(microphoneMediaStream);
+        rigManager.setPeerMicMediaStream(microphoneMediaStream, peerConnection.connectionId);
         track.addEventListener('ended', e => {
-          peerRig.setMicrophoneMediaStream(null);
+          rigManager.setPeerMicMediaStream(null, peerConnection.connectionId);
           audio.srcObject = null;
         });
       }
