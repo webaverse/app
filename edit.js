@@ -1283,12 +1283,6 @@ const geometryWorker = (() => {
       },
     };
   };
-  /* w.requestRaw = async messageData => {
-    const id = moduleInstance._pushRequest(threadPool, messageData.offset);
-    const p = makePromise();
-    cbIndex.set(id, p.accept);
-    return await p;
-  }; */
   w.makeGeometrySet = () => moduleInstance._makeGeometrySet();
   w.requestLoadBake = async (geometrySet, url) => {
     const res = await fetch(url);
