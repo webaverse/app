@@ -822,7 +822,7 @@ const geometryWorker = (() => {
     Int32Array.BYTES_PER_ELEMENT + // priority
     32*Uint32Array.BYTES_PER_ELEMENT; // args
   const maxNumMessages = 1024;
-  const maxSize = maxNumMessages * messageSize;
+  const callStackSize = maxNumMessages * messageSize;
   class CallStackMessage {
     constructor(ptr) {
       this.dataView = new DataView(moduleInstance.HEAP8.buffer, ptr, messageSize);
@@ -934,21 +934,13 @@ const geometryWorker = (() => {
   }
   class CallStack {
     constructor() {
-      this.ptr = moduleInstance._malloc(maxSize * 2 + Uint32Array.BYTES_PER_ELEMENT);
-      this.dataView = new DataView(moduleInstance.HEAP8.buffer, this.ptr, maxSize);
-      /* this.u8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Uint8Array.BYTES_PER_ELEMENT);
-      this.u32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Uint32Array.BYTES_PER_ELEMENT);
-      this.i32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Int32Array.BYTES_PER_ELEMENT);
-      this.f32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Float32Array.BYTES_PER_ELEMENT); */
+      this.ptr = moduleInstance._malloc(callStackSize * 2 + Uint32Array.BYTES_PER_ELEMENT);
+      this.dataView = new DataView(moduleInstance.HEAP8.buffer, this.ptr, callStackSize);
 
-      this.outPtr = this.ptr + maxSize;
-      this.outDataView = new DataView(moduleInstance.HEAP8.buffer, this.ptr + maxSize, maxSize);
-      /* this.ou8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize / Uint8Array.BYTES_PER_ELEMENT);
-      this.ou32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize / Uint32Array.BYTES_PER_ELEMENT);
-      this.oi32 = new Int32Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize / Int32Array.BYTES_PER_ELEMENT);
-      this.of32 = new Float32Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize / Float32Array.BYTES_PER_ELEMENT); */
+      this.outPtr = this.ptr + callStackSize;
+      this.outDataView = new DataView(moduleInstance.HEAP8.buffer, this.ptr + callStackSize, callStackSize);
 
-      this.outNumEntriesPtr = this.ptr + maxSize * 2;
+      this.outNumEntriesPtr = this.ptr + callStackSize * 2;
       this.outNumEntriesU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outNumEntriesPtr, 1);
 
       this.numEntries = 0;
@@ -977,12 +969,13 @@ const geometryWorker = (() => {
   }
   class ScratchStack {
     constructor() {
-      this.ptr = moduleInstance._malloc(maxSize);
+      const size = 1024;
+      this.ptr = moduleInstance._malloc(size);
 
-      this.u8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Uint8Array.BYTES_PER_ELEMENT);
-      this.u32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Uint32Array.BYTES_PER_ELEMENT);
-      this.i32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Int32Array.BYTES_PER_ELEMENT);
-      this.f32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Float32Array.BYTES_PER_ELEMENT);
+      this.u8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, size);
+      this.u32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, size/4);
+      this.i32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, size/4);
+      this.f32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, size/4);
     }
   }
   
