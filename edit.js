@@ -816,57 +816,209 @@ const geometryWorker = (() => {
     }
   }
 
-  const maxSize = 1024 * 1024;
+  const messageSize =
+    Int32Array.BYTES_PER_ELEMENT + // id
+    Int32Array.BYTES_PER_ELEMENT + // method
+    Int32Array.BYTES_PER_ELEMENT + // priority
+    32*Uint32Array.BYTES_PER_ELEMENT; // args
+  const maxNumMessages = 1024;
+  const callStackSize = maxNumMessages * messageSize;
+  class CallStackMessage {
+    constructor(ptr) {
+      this.dataView = new DataView(moduleInstance.HEAP8.buffer, ptr, messageSize);
+      this.offset = 3*Uint32Array.BYTES_PER_ELEMENT;
+    }
+    getId() {
+      return this.dataView.getInt32(0, true);
+    }
+    getMethod() {
+      return this.dataView.getInt32(Uint32Array.BYTES_PER_ELEMENT, true);
+    }
+    getPriority() {
+      return this.dataView.getInt32(2*Uint32Array.BYTES_PER_ELEMENT, true);
+    }
+    setId(v) {
+      this.dataView.setInt32(0, v, true);
+    }
+    setMethod(v) {
+      this.dataView.setInt32(Uint32Array.BYTES_PER_ELEMENT, v, true);
+    }
+    setPriority(v) {
+      this.dataView.setInt32(2*Uint32Array.BYTES_PER_ELEMENT, v, true);
+    }
+    pullU8Array(length) {
+      const {offset} = this;
+      this.offset += length;
+      return new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + offset, length);;
+    }
+    pullF32Array(length) {
+      const {offset} = this;
+      this.offset += length*Float32Array.BYTES_PER_ELEMENT;
+      return new Float32Array(this.dataView.buffer, this.dataView.byteOffset + offset, length);
+    }
+    pullI32() {
+      const {offset} = this;
+      this.offset += Int32Array.BYTES_PER_ELEMENT;
+      return this.dataView.getInt32(offset, true);;
+    }
+    pullU32() {
+      const {offset} = this;
+      this.offset += Uint32Array.BYTES_PER_ELEMENT;
+      return this.dataView.getUint32(offset, true);;
+    }
+    pullF32() {
+      const {offset} = this;
+      this.offset += Float32Array.BYTES_PER_ELEMENT;
+      return this.dataView.getFloat32(offset, true);
+    }
+    pushU8Array(uint8Array) {
+      new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + this.offset, uint8Array.length).set(uint8Array);
+      this.offset += uint8Array.byteLength;
+    }
+    pushF32Array(float32Array) {
+      new Float32Array(this.dataView.buffer, this.dataView.byteOffset + this.offset, float32Array.length).set(float32Array);
+      this.offset += float32Array.byteLength;
+    }
+    pushI32(v) {
+      this.dataView.setInt32(this.offset, v, true);
+      this.offset += Int32Array.BYTES_PER_ELEMENT;
+    }
+    pushU32(v) {
+      this.dataView.setUint32(this.offset, v, true);
+      this.offset += Uint32Array.BYTES_PER_ELEMENT;
+    }
+    pushF32(v) {
+      this.dataView.setFloat32(this.offset, v, true);
+      this.offset += Float32Array.BYTES_PER_ELEMENT;
+    }
+    /* pullU8Array(length) {
+      if (this.offset + length <= messageSize) {
+        const result = new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + this.offset, length);
+        this.offset += length;
+        return result;
+      } else {
+        throw new Error('message overflow');
+      }
+    }
+    pullF32Array(length) {
+      if (this.offset + length*Float32Array.BYTES_PER_ELEMENT <= messageSize) {
+        const result = new Float32Array(this.dataView.buffer, this.dataView.byteOffset + this.offset, length);
+        this.offset += length*Float32Array.BYTES_PER_ELEMENT;
+        return result;
+      } else {
+        throw new Error('message overflow');
+      }
+    }
+    pullI32() {
+      if (this.offset + Int32Array.BYTES_PER_ELEMENT <= messageSize) {
+        const result = this.dataView.getInt32(this.offset, true);
+        this.offset += Int32Array.BYTES_PER_ELEMENT;
+        return result;
+      } else {
+        throw new Error('message overflow');
+      }
+    }
+    pullU32() {
+      if (this.offset + Uint32Array.BYTES_PER_ELEMENT <= messageSize) {
+        const result = this.dataView.getUint32(this.offset, true);
+        this.offset += Uint32Array.BYTES_PER_ELEMENT;
+        return result;
+      } else {
+        throw new Error('message overflow');
+      }
+    }
+    pullF32() {
+      if (this.offset + Float32Array.BYTES_PER_ELEMENT <= messageSize) {
+        const result = this.dataView.getFloat32(this.offset, true);
+        this.offset += Float32Array.BYTES_PER_ELEMENT;
+        return result;
+      } else {
+        throw new Error('message overflow');
+      }
+    }
+    pushU8Array(uint8Array) {
+      if (this.offset + uint8Array.byteLength <= messageSize) {
+        new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + this.offset, uint8Array.length).set(uint8Array);
+        this.offset += uint8Array.byteLength;
+      } else {
+        throw new Error('message overflow');
+      }
+    }
+    pushF32Array(float32Array) {
+      if (this.offset + float32Array.byteLength <= messageSize) {
+        new Float32Array(this.dataView.buffer, this.dataView.byteOffset + this.offset, float32Array.length).set(float32Array);
+        this.offset += float32Array.byteLength;
+      } else {
+        throw new Error('message overflow');
+      }
+    }
+    pushI32(v) {
+      if (this.offset + Int32Array.BYTES_PER_ELEMENT <= messageSize) {
+        this.dataView.setInt32(this.offset, v, true);
+        this.offset += Int32Array.BYTES_PER_ELEMENT;
+      } else {
+        throw new Error('message overflow');
+      }
+    }
+    pushU32(v) {
+      if (this.offset + Uint32Array.BYTES_PER_ELEMENT <= messageSize) {
+        this.dataView.setUint32(this.offset, v, true);
+        this.offset += Uint32Array.BYTES_PER_ELEMENT;
+      } else {
+        throw new Error('message overflow');
+      }
+    }
+    pushF32(v) {
+      if (this.offset + Float32Array.BYTES_PER_ELEMENT <= messageSize) {
+        this.dataView.setFloat32(this.offset, v, true);
+        this.offset += Float32Array.BYTES_PER_ELEMENT;
+      } else {
+        throw new Error('message overflow');
+      }
+    } */
+  }
   class CallStack {
     constructor() {
-      this.ptr = moduleInstance._malloc(maxSize * 2 + Uint32Array.BYTES_PER_ELEMENT);
-      this.countOffset = 0;
-      this.numEntries = 0;
+      this.ptr = moduleInstance._malloc(callStackSize * 2 + Uint32Array.BYTES_PER_ELEMENT);
+      this.dataView = new DataView(moduleInstance.HEAP8.buffer, this.ptr, callStackSize);
 
-      this.u8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Uint8Array.BYTES_PER_ELEMENT);
-      this.u32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Uint32Array.BYTES_PER_ELEMENT);
-      this.i32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Int32Array.BYTES_PER_ELEMENT);
-      this.f32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Float32Array.BYTES_PER_ELEMENT);
+      this.outPtr = this.ptr + callStackSize;
+      this.outDataView = new DataView(moduleInstance.HEAP8.buffer, this.ptr + callStackSize, callStackSize);
 
-      this.outPtr = this.ptr + maxSize;
-      this.ou8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize / Uint8Array.BYTES_PER_ELEMENT);
-      this.ou32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize / Uint32Array.BYTES_PER_ELEMENT);
-      this.oi32 = new Int32Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize / Int32Array.BYTES_PER_ELEMENT);
-      this.of32 = new Float32Array(moduleInstance.HEAP8.buffer, this.outPtr, maxSize / Float32Array.BYTES_PER_ELEMENT);
-
-      this.outNumEntriesPtr = this.ptr + maxSize * 2;
+      this.outNumEntriesPtr = this.ptr + callStackSize * 2;
       this.outNumEntriesU32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.outNumEntriesPtr, 1);
 
+      this.numEntries = 0;
       this.nextCbId = 0;
     }
 
-    allocRequest(method, count, prio, startCb, endCb) {
-      startCb(this.countOffset + 4);
+    allocRequest(method, prio, startCb, endCb) {
+      const index = this.numEntries++;
+      const offset = index * messageSize;
+      const startMessage = new CallStackMessage(this.ptr + offset);
 
       const id = ++this.nextCbId;
-      this.i32[this.countOffset] = id;
-      this.i32[this.countOffset + 1] = method;
-      this.i32[this.countOffset + 2] = +prio;
-      this.u32[this.countOffset + 3] = count;
+      startMessage.setId(id);
+      startMessage.setMethod(method);
+      startMessage.setPriority(+prio);
+      
+      startCb(startMessage);
       cbIndex.set(id, endCb);
-
-      this.countOffset += 4 + count;
-      this.numEntries++;
     }
 
     reset() {
-      this.countOffset = 0;
       this.numEntries = 0;
     }
   }
   class ScratchStack {
     constructor() {
-      this.ptr = moduleInstance._malloc(maxSize);
+      const size = 1024*1024;
+      this.ptr = moduleInstance._malloc(size);
 
-      this.u8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Uint8Array.BYTES_PER_ELEMENT);
-      this.u32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Uint32Array.BYTES_PER_ELEMENT);
-      this.i32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Int32Array.BYTES_PER_ELEMENT);
-      this.f32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, maxSize / Float32Array.BYTES_PER_ELEMENT);
+      this.u8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, size);
+      this.u32 = new Uint32Array(moduleInstance.HEAP8.buffer, this.ptr, size/4);
+      this.i32 = new Int32Array(moduleInstance.HEAP8.buffer, this.ptr, size/4);
+      this.f32 = new Float32Array(moduleInstance.HEAP8.buffer, this.ptr, size/4);
     }
   }
   
@@ -914,6 +1066,7 @@ const geometryWorker = (() => {
 
   let methodIndex = 0;
   const METHODS = {
+    NULL: methodIndex++,
     makeArenaAllocator: methodIndex++,
     arenaAlloc: methodIndex++,
     arenaFree: methodIndex++,
@@ -940,9 +1093,9 @@ const geometryWorker = (() => {
   };
   let messageIndex = 0;
   const MESSAGES = {
-    [--messageIndex]: function updateSubparcel(offset) {
-      const subparcelOffset = callStack.ou32[offset++];
-      const subparcelSize = callStack.ou32[offset++];
+    [--messageIndex]: function updateSubparcel(m) {
+      const subparcelOffset = m.pullU32();
+      const subparcelSize = m.pullU32();
 
       // const x = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT];
       // const y = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
@@ -954,15 +1107,15 @@ const geometryWorker = (() => {
           console.log('set raw ok', x, y, z, `subparcel:${index}`);
         }); */
     },
-    [--messageIndex]: function updateGeometry(offset) {
+    [--messageIndex]: function updateGeometry(m) {
       {
-        const positionsFreeEntry = callStack.ou32[offset++];
-        const normalsFreeEntry = callStack.ou32[offset++];
-        const uvsFreeEntry = callStack.ou32[offset++];
-        const aosFreeEntry = callStack.ou32[offset++];
-        const idsFreeEntry = callStack.ou32[offset++];
-        const skyLightsFreeEntry = callStack.ou32[offset++];
-        const torchLightsFreeEntry = callStack.ou32[offset++];
+        const positionsFreeEntry = m.pullU32();
+        const normalsFreeEntry = m.pullU32();
+        const uvsFreeEntry = m.pullU32();
+        const aosFreeEntry = m.pullU32();
+        const idsFreeEntry = m.pullU32();
+        const skyLightsFreeEntry = m.pullU32();
+        const torchLightsFreeEntry = m.pullU32();
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -999,12 +1152,12 @@ const geometryWorker = (() => {
         });
       }
       {
-        const positionsFreeEntry = callStack.ou32[offset++];
-        const uvsFreeEntry = callStack.ou32[offset++];
-        const idsFreeEntry = callStack.ou32[offset++];
-        const indicesFreeEntry = callStack.ou32[offset++];
-        const skyLightsFreeEntry = callStack.ou32[offset++];
-        const torchLightsFreeEntry = callStack.ou32[offset++];
+        const positionsFreeEntry = m.pullU32();
+        const uvsFreeEntry = m.pullU32();
+        const idsFreeEntry = m.pullU32();
+        const indicesFreeEntry = m.pullU32();
+        const skyLightsFreeEntry = m.pullU32();
+        const torchLightsFreeEntry = m.pullU32();
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -1037,13 +1190,13 @@ const geometryWorker = (() => {
         });
       }
       {
-        const positionsFreeEntry = callStack.ou32[offset++];
-        const uvsFreeEntry = callStack.ou32[offset++];
-        const atlasUvsFreeEntry = callStack.ou32[offset++];
-        const idsFreeEntry = callStack.ou32[offset++];
-        const indicesFreeEntry = callStack.ou32[offset++];
-        const skyLightsFreeEntry = callStack.ou32[offset++];
-        const torchLightsFreeEntry = callStack.ou32[offset++];
+        const positionsFreeEntry = m.pullU32();
+        const uvsFreeEntry = m.pullU32();
+        const atlasUvsFreeEntry = m.pullU32();
+        const idsFreeEntry = m.pullU32();
+        const indicesFreeEntry = m.pullU32();
+        const skyLightsFreeEntry = m.pullU32();
+        const torchLightsFreeEntry = m.pullU32();
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -1080,14 +1233,15 @@ const geometryWorker = (() => {
         });
       }
       {
-        const textureOffset = callStack.ou32[offset++];
+        const textureOffset = m.pullU32();
         if (textureOffset) {
+          console.log('got texture update', textureOffset);
           const textureData = new Uint8Array(moduleInstance.HEAP8.buffer, textureOffset, thingTextureSize * thingTextureSize * 4);
           currentThingMesh.updateTexture(textureData);
         }
       }
       {
-        const subparcelSharedPtr = callStack.ou32[offset++];
+        const subparcelSharedPtr = m.pullU32();
         w.requestReleaseSubparcel(tracker, subparcelSharedPtr);
       }
     },
@@ -1165,12 +1319,6 @@ const geometryWorker = (() => {
       },
     };
   };
-  /* w.requestRaw = async messageData => {
-    const id = moduleInstance._pushRequest(threadPool, messageData.offset);
-    const p = makePromise();
-    cbIndex.set(id, p.accept);
-    return await p;
-  }; */
   w.makeGeometrySet = () => moduleInstance._makeGeometrySet();
   w.requestLoadBake = async (geometrySet, url) => {
     const res = await fetch(url);
@@ -1178,14 +1326,14 @@ const geometryWorker = (() => {
 
     await new Promise((accept, reject) => {
       let data;
-      callStack.allocRequest(METHODS.loadBake, 3, false, offset => {
-        callStack.u32[offset] = geometrySet;
+      callStack.allocRequest(METHODS.loadBake, false, m => {
+        m.pushU32(geometrySet);
 
         data = w.alloc(Uint8Array, arrayBuffer.byteLength);
         data.set(new Uint8Array(arrayBuffer));
-        callStack.u32[offset + 1] = data.byteOffset;
-        callStack.u32[offset + 2] = data.length;
-      }, offset => {
+        m.pushU32(data.byteOffset);
+        m.pushU32(data.byteLength);
+      }, m => {
         w.free(data.byteOffset);
         accept();
       });
@@ -1193,21 +1341,21 @@ const geometryWorker = (() => {
   };
   w.requestGeometry = (geometrySet, name) => new Promise((accept, reject) => {
     let dstNameUint8Array;
-    callStack.allocRequest(METHODS.getGeometry, 9, false, offset => {
-      callStack.u32[offset] = geometrySet;
+    callStack.allocRequest(METHODS.getGeometry, false, m => {
+      m.pushU32(geometrySet);
 
       const srcNameUint8Array = textEncoder.encode(name);
       dstNameUint8Array = w.alloc(Uint8Array, srcNameUint8Array.byteLength);
       dstNameUint8Array.set(srcNameUint8Array);
-      callStack.u32[offset + 1] = dstNameUint8Array.byteOffset;
-      callStack.u32[offset + 2] = dstNameUint8Array.length;
-    }, offset => {
-      const positionsOffset = callStack.ou32[offset + 3];
-      const uvsOffset = callStack.ou32[offset + 4];
-      const indicesOffset = callStack.ou32[offset + 5];
-      const numPositions = callStack.ou32[offset + 6];
-      const numUvs = callStack.ou32[offset + 7];
-      const numIndices = callStack.ou32[offset + 8];
+      m.pushU32(dstNameUint8Array.byteOffset);
+      m.pushU32(dstNameUint8Array.byteLength);
+    }, m => {
+      const positionsOffset = m.pullU32();
+      const uvsOffset = m.pullU32();
+      const indicesOffset = m.pullU32();
+      const numPositions = m.pullU32();
+      const numUvs = m.pullU32();
+      const numIndices = m.pullU32();
 
       const positions = new Float32Array(moduleInstance.HEAP8.buffer, positionsOffset, numPositions);
       const uvs = new Float32Array(moduleInstance.HEAP8.buffer, uvsOffset, numUvs);
@@ -1224,22 +1372,22 @@ const geometryWorker = (() => {
     });
   });
   w.requestAnimalGeometry = hash => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.getAnimalGeometry, 21, false, offset => {
-      callStack.u32[offset] = geometrySet;
-      callStack.u32[offset + 1] = hash;
-    }, offset => {
-      const positionsOffset = callStack.ou32[offset + 2];
-      const colorsOffset = callStack.ou32[offset + 3];
-      const indicesOffset = callStack.ou32[offset + 4];
-      const headsOffset = callStack.ou32[offset + 5];
-      const legsOffset = callStack.ou32[offset + 6];
-      const numPositions = callStack.ou32[offset + 7];
-      const numColors = callStack.ou32[offset + 8];
-      const numIndices = callStack.ou32[offset + 9];
-      const numHeads = callStack.ou32[offset + 10];
-      const numLegs = callStack.ou32[offset + 11];
-      const headPivot = callStack.of32.slice(offset + 12, offset + 15);
-      const aabb = callStack.of32.slice(offset + 15, offset + 21);
+    callStack.allocRequest(METHODS.getAnimalGeometry, false, m => {
+      m.pushU32(geometrySet);
+      m.pushU32(hash);
+    }, m => {
+      const positionsOffset = m.pullU32();
+      const colorsOffset = m.pullU32();
+      const indicesOffset = m.pullU32();
+      const headsOffset = m.pullU32();
+      const legsOffset = m.pullU32();
+      const numPositions = m.pullU32();
+      const numColors = m.pullU32();
+      const numIndices = m.pullU32();
+      const numHeads = m.pullU32();
+      const numLegs = m.pullU32();
+      const headPivot = m.pullF32Array(3);
+      const aabb = m.pullF32Array(6);
 
       const positions = new Float32Array(moduleInstance.HEAP8.buffer, positionsOffset, numPositions);
       const colors = new Uint8Array(moduleInstance.HEAP8.buffer, colorsOffset, numColors);
@@ -1260,7 +1408,7 @@ const geometryWorker = (() => {
   });
   /* w.requestMarchObjects = (x, y, z, geometrySet, subparcel, subparcelSpecs, allocators) => new Promise((accept, reject) => {
     let subparcelObjects;
-    callStack.allocRequest(METHODS.marchObjects, 19, false, offset => {
+    callStack.allocRequest(METHODS.marchObjects, false, offset => {
       const numSubparcelObjects = subparcelSpecs.length;
       subparcelObjects = w.alloc(Uint32Array, numSubparcelObjects);
       for (let i = 0; i < subparcelSpecs.length; i++) {
@@ -1329,14 +1477,14 @@ const geometryWorker = (() => {
     });
   }); */
   w.requestGetHeight = (hash, x, y, z, baseHeight) => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.getHeight, 6, true, offset => {
-      callStack.i32[offset] = hash;
-      callStack.f32[offset + 1] = x;
-      callStack.f32[offset + 2] = y;
-      callStack.f32[offset + 3] = z;
-      callStack.f32[offset + 4] = baseHeight;
-    }, offset => {
-      const height = callStack.of32[offset + 5];
+    callStack.allocRequest(METHODS.getHeight, true, m => {
+      m.pushI32(hash);
+      m.pushF32(x);
+      m.pushF32(y);
+      m.pushF32(z);
+      m.pushF32(baseHeight);
+    }, m => {
+      const height = m.pullF32();
       accept(height);
     });
   });
@@ -1346,7 +1494,7 @@ const geometryWorker = (() => {
   const objectsRate = 3;
   const potentialDefault = -0.5;
   w.requestNoise = (hash, x, y, z, baseHeight, subparcelOffset) => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.noise, 11, false, offset => {
+    callStack.allocRequest(METHODS.noise, false, offset => {
       callStack.u32[offset] = hash;
 
       callStack.f32[offset + 1] = x;
@@ -1365,7 +1513,7 @@ const geometryWorker = (() => {
     });
   });
   w.requestMarchingCubes = (seed, meshId, x, y, z, potentials, biomes, heightfield, lightfield, allocators) => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.marchingCubes, 34, false, offset => {
+    callStack.allocRequest(METHODS.marchingCubes, false, offset => {
       callStack.f32[offset] = meshId;
 
       // dims
@@ -1486,7 +1634,7 @@ const geometryWorker = (() => {
     return moduleInstance._makeTracker.apply(moduleInstance, arguments);
   };
   /* w.requestBakeGeometry = (positions, indices) => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.bakeGeometry, 5, false, offset => {
+    callStack.allocRequest(METHODS.bakeGeometry, false, offset => {
       callStack.u32[offset] = positions.byteOffset;
       callStack.u32[offset + 1] = indices ? indices.byteOffset : 0;
       callStack.u32[offset + 2] = positions.length;
@@ -1774,14 +1922,14 @@ const geometryWorker = (() => {
     return [landCullResults, vegetationCullResults, thingCullResults];
   };
   /* w.getSubparcel = (tracker, x, y, z) => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.getSubparcel, 4, true, offset => {
+    callStack.allocRequest(METHODS.getSubparcel, true, offset => {
       callStack.u32[offset] = tracker;
       callStack.u32[offset + 1] = x;
       callStack.u32[offset + 2] = y;
       callStack.u32[offset + 3] = z;
     }, offset => {
-      const subparcelSharedPtr = callStack.ou32[offset++];
       const subparcelPtr = callStack.ou32[offset++];
+      const subparcelSharedPtr = callStack.ou32[offset++];
       if (subparcelSharedPtr) {
         const numObjects = moduleInstance.HEAPU32[(subparcelPtr + planet.Subparcel.offsets.numObjects)/Uint32Array.BYTES_PER_ELEMENT];
         console.log('got num objects', numObjects);
@@ -1795,35 +1943,37 @@ const geometryWorker = (() => {
   }); */
   // window.getSubparcel = (x, y, z) => w.getSubparcel(tracker, x, y, z);
   w.requestReleaseSubparcel = (tracker, subparcelSharedPtr) => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.releaseSubparcel, 2, true, offset => {
-      callStack.u32[offset] = tracker;
-      callStack.u32[offset + 1] = subparcelSharedPtr;
-    }, offset => {
+    callStack.allocRequest(METHODS.releaseSubparcel, true, m => {
+      m.pushU32(tracker);
+      m.pushU32(subparcelSharedPtr);
+    }, m => {
       accept();
     });
   });
   w.requestAddObject = (tracker, geometrySet, name, position, quaternion) => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.addObject, 128, true, offset => {
-      callStack.u32[offset] = tracker;
-      callStack.u32[offset + 1] = geometrySet;
+    callStack.allocRequest(METHODS.addObject, true, m => {
+      m.pushU32(tracker);
+      m.pushU32(geometrySet);
 
       const srcNameUint8Array = textEncoder.encode(name);
-      callStack.u8.set(srcNameUint8Array, (offset + 2) * Uint32Array.BYTES_PER_ELEMENT);
-      callStack.u8[(offset + 2) * Uint32Array.BYTES_PER_ELEMENT + srcNameUint8Array.byteLength] = 0;
+      const srcNameUint8Array2 = new Uint8Array(MAX_NAME_LENGTH);
+      srcNameUint8Array2.set(srcNameUint8Array);
+      srcNameUint8Array2[srcNameUint8Array.byteLength] = 0;
+      m.pushU8Array(srcNameUint8Array2);
 
-      position.toArray(callStack.f32, offset + (2 * Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH) / Float32Array.BYTES_PER_ELEMENT);
-      quaternion.toArray(callStack.f32, offset + (2 * Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 3 * Float32Array.BYTES_PER_ELEMENT) / Float32Array.BYTES_PER_ELEMENT);
-    }, offset => {
-      const objectId = callStack.ou32[offset++];
-      const numSubparcels = callStack.ou32[offset++];
+      m.pushF32Array(position.toArray(new Float32Array(3)));
+      m.pushF32Array(quaternion.toArray(new Float32Array(4)));
+    }, m => {
+      const objectId = m.pullU32();
+      const numSubparcels = m.pullU32();
       // console.log('num subparcels add', numSubparcels);
       for (let i = 0; i < numSubparcels; i++) {
-        const positionsFreeEntry = callStack.ou32[offset++];
-        const uvsFreeEntry = callStack.ou32[offset++];
-        const idsFreeEntry = callStack.ou32[offset++];
-        const indicesFreeEntry = callStack.ou32[offset++];
-        const skyLightsFreeEntry = callStack.ou32[offset++];
-        const torchLightsFreeEntry = callStack.ou32[offset++];
+        const positionsFreeEntry = m.pullU32();
+        const uvsFreeEntry = m.pullU32();
+        const idsFreeEntry = m.pullU32();
+        const indicesFreeEntry = m.pullU32();
+        const skyLightsFreeEntry = m.pullU32();
+        const torchLightsFreeEntry = m.pullU32();
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -1870,16 +2020,13 @@ const geometryWorker = (() => {
           torchLightsCount,
         });
       }
-      callStack.allocRequest(METHODS.releaseAddRemoveObject, 32, true, offset2 => {
-        callStack.u32[offset2++] = tracker;
-
-        callStack.u32[offset2++] = numSubparcels;
-
+      callStack.allocRequest(METHODS.releaseAddRemoveObject, true, m2 => {
+        m2.pushU32(tracker);
+        m2.pushU32(numSubparcels);
         for (let i = 0; i < numSubparcels; i++) {
-          const subparcelSharedPtr = callStack.ou32[offset++];
-          callStack.u32[offset2++] = subparcelSharedPtr;
+          m2.pushU32(m.pullU32());
         }
-      }, offset => {
+      }, m => {
         // console.log('done release', numSubparcels);
         accept({
           objectId,
@@ -1888,22 +2035,22 @@ const geometryWorker = (() => {
     });
   });
   w.requestRemoveObject = (tracker, geometrySet, sx, sy, sz, objectId) => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.removeObject, 128, true, offset => {
-      callStack.u32[offset] = tracker;
-      callStack.u32[offset + 1] = geometrySet;
-      callStack.i32[offset + 2] = sx;
-      callStack.i32[offset + 3] = sy;
-      callStack.i32[offset + 4] = sz;
-      callStack.u32[offset + 5] = objectId;
-    }, offset => {
-      const numSubparcels = callStack.ou32[offset++];
+    callStack.allocRequest(METHODS.removeObject, true, m => {
+      m.pushU32(tracker);
+      m.pushU32(geometrySet);
+      m.pushI32(sx);
+      m.pushI32(sy);
+      m.pushI32(sz);
+      m.pushU32(objectId);
+    }, m => {
+      const numSubparcels = m.pullU32();
       for (let i = 0; i < numSubparcels; i++) {
-        const positionsFreeEntry = callStack.ou32[offset++];
-        const uvsFreeEntry = callStack.ou32[offset++];
-        const idsFreeEntry = callStack.ou32[offset++];
-        const indicesFreeEntry = callStack.ou32[offset++];
-        const skyLightsFreeEntry = callStack.ou32[offset++];
-        const torchLightsFreeEntry = callStack.ou32[offset++];
+        const positionsFreeEntry = m.pullU32();
+        const uvsFreeEntry = m.pullU32();
+        const idsFreeEntry = m.pullU32();
+        const indicesFreeEntry = m.pullU32();
+        const skyLightsFreeEntry = m.pullU32();
+        const torchLightsFreeEntry = m.pullU32();
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -1950,36 +2097,33 @@ const geometryWorker = (() => {
           torchLightsCount,
         });
       }
-      callStack.allocRequest(METHODS.releaseAddRemoveObject, 32, true, offset2 => {
-        callStack.u32[offset2++] = tracker;
-
-        callStack.u32[offset2++] = numSubparcels;
-
+      callStack.allocRequest(METHODS.releaseAddRemoveObject, true, m2 => {
+        m2.pushU32(tracker);
+        m2.pushU32(numSubparcels);
         for (let i = 0; i < numSubparcels; i++) {
-          const subparcelSharedPtr = callStack.ou32[offset++];
-          callStack.u32[offset2++] = subparcelSharedPtr;
+          m2.pushU32(m.pullU32());
         }
-      }, offset => {
+      }, m => {
         // console.log('done release', numSubparcels);
         accept();
       });
     });
   });
   w.requestMine = (tracker, p, delta) => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.mine, 256, true, offset => {
-      callStack.u32[offset] = tracker;
-      p.toArray(callStack.f32, offset + 1);
-      callStack.f32[offset + 4] = delta;
-    }, offset => {
-      const numSubparcels = callStack.ou32[offset++];
+    callStack.allocRequest(METHODS.mine, true, m => {
+      m.puhsU32(tracker);
+      m.pushF32Array(p.toArray(new Float32Array(3)));
+      m.pushF32(delta);
+    }, m => {
+      const numSubparcels = m.pullU32();
       for (let i = 0; i < numSubparcels; i++) {
-        const positionsFreeEntry = callStack.ou32[offset++];
-        const normalsFreeEntry = callStack.ou32[offset++];
-        const uvsFreeEntry = callStack.ou32[offset++];
-        const aosFreeEntry = callStack.ou32[offset++];
-        const idsFreeEntry = callStack.ou32[offset++];
-        const skyLightsFreeEntry = callStack.ou32[offset++];
-        const torchLightsFreeEntry = callStack.ou32[offset++];
+        const positionsFreeEntry = m.pullU32();
+        const normalsFreeEntry = m.pullU32();
+        const uvsFreeEntry = m.pullU32();
+        const aosFreeEntry = m.pullU32();
+        const idsFreeEntry = m.pullU32();
+        const skyLightsFreeEntry = m.pullU32();
+        const torchLightsFreeEntry = m.pullU32();
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -2030,37 +2174,34 @@ const geometryWorker = (() => {
           torchLightsCount,
         });
       }
-      callStack.allocRequest(METHODS.releaseMine, 32, true, offset2 => {
-        callStack.u32[offset2++] = tracker;
-
-        callStack.u32[offset2++] = numSubparcels;
-
+      callStack.allocRequest(METHODS.releaseAddRemoveObject, true, m2 => {
+        m2.pushU32(tracker);
+        m2.pushU32(numSubparcels);
         for (let i = 0; i < numSubparcels; i++) {
-          const subparcelSharedPtr = callStack.ou32[offset++];
-          callStack.u32[offset2++] = subparcelSharedPtr;
+          m2.pushU32(m.pullU32());
         }
-      }, offset => {
+      }, m => {
         // console.log('done release', numSubparcels);
         accept();
       });
     });
   });
   w.requestLight = (tracker, p, delta) => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.light, 256, true, offset => {
-      callStack.u32[offset] = tracker;
-      p.toArray(callStack.f32, offset + 1);
-      callStack.f32[offset + 4] = delta;
-    }, offset => {
-      const numSubparcels = callStack.ou32[offset++];
+    callStack.allocRequest(METHODS.light, true, m => {
+      m.pushU32(tracker);
+      m.pushF32Array(p.toArray(new Float32Array(3)));
+      m.pushF32(delta);
+    }, m => {
+      const numSubparcels = m.pullU32();
       for (let i = 0; i < numSubparcels; i++) {
         {
-          const positionsFreeEntry = callStack.ou32[offset++];
-          const normalsFreeEntry = callStack.ou32[offset++];
-          const uvsFreeEntry = callStack.ou32[offset++];
-          const aosFreeEntry = callStack.ou32[offset++];
-          const idsFreeEntry = callStack.ou32[offset++];
-          const skyLightsFreeEntry = callStack.ou32[offset++];
-          const torchLightsFreeEntry = callStack.ou32[offset++];
+          const positionsFreeEntry = m.pullU32();
+          const normalsFreeEntry = m.pullU32();
+          const uvsFreeEntry = m.pullU32();
+          const aosFreeEntry = m.pullU32();
+          const idsFreeEntry = m.pullU32();
+          const skyLightsFreeEntry = m.pullU32();
+          const torchLightsFreeEntry = m.pullU32();
 
           const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
           const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -2097,12 +2238,12 @@ const geometryWorker = (() => {
           });
         }
         {
-          const positionsFreeEntry = callStack.ou32[offset++];
-          const uvsFreeEntry = callStack.ou32[offset++];
-          const idsFreeEntry = callStack.ou32[offset++];
-          const indicesFreeEntry = callStack.ou32[offset++];
-          const skyLightsFreeEntry = callStack.ou32[offset++];
-          const torchLightsFreeEntry = callStack.ou32[offset++];
+          const positionsFreeEntry = m.pullU32();
+          const uvsFreeEntry = m.pullU32();
+          const idsFreeEntry = m.pullU32();
+          const indicesFreeEntry = m.pullU32();
+          const skyLightsFreeEntry = m.pullU32();
+          const torchLightsFreeEntry = m.pullU32();
 
           const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
           const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -2135,66 +2276,67 @@ const geometryWorker = (() => {
           });
         }
       }
-      callStack.allocRequest(METHODS.releaseLight, 32, true, offset2 => {
-        callStack.u32[offset2++] = tracker;
-
-        callStack.u32[offset2++] = numSubparcels;
-
+      callStack.allocRequest(METHODS.releaseAddRemoveObject, true, m2 => {
+        m2.pushU32(tracker);
+        m2.pushU32(numSubparcels);
         for (let i = 0; i < numSubparcels; i++) {
-          const subparcelSharedPtr = callStack.ou32[offset++];
-          callStack.u32[offset2++] = subparcelSharedPtr;
+          m2.pushU32(m.pullU32());
         }
-      }, offset => {
+      }, m => {
         // console.log('done release', numSubparcels);
         accept();
       });
     });
   });
   w.requestAddThingGeometry = (tracker, geometrySet, name, positions, uvs, indices, numPositions, numUvs, numIndices, texture) => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.addThingGeometry, 128, true, offset => {
-      callStack.u32[offset] = tracker;
-      callStack.u32[offset + 1] = geometrySet;
+    callStack.allocRequest(METHODS.addThingGeometry, true, m => {
+      m.pushU32(tracker);
+      m.pushU32(geometrySet);
 
       const srcNameUint8Array = textEncoder.encode(name);
-      callStack.u8.set(srcNameUint8Array, (offset + 2) * Uint32Array.BYTES_PER_ELEMENT);
-      callStack.u8[(offset + 2) * Uint32Array.BYTES_PER_ELEMENT + srcNameUint8Array.byteLength] = 0;
+      const srcNameUint8Array2 = new Uint8Array(MAX_NAME_LENGTH);
+      srcNameUint8Array2.set(srcNameUint8Array);
+      srcNameUint8Array2[srcNameUint8Array.byteLength] = 0;
+      m.pushU8Array(srcNameUint8Array2);
 
-      callStack.u32[offset + 2 + MAX_NAME_LENGTH / Uint32Array.BYTES_PER_ELEMENT] = positions;
-      callStack.u32[offset + 2 + MAX_NAME_LENGTH / Uint32Array.BYTES_PER_ELEMENT + 1] = uvs;
-      callStack.u32[offset + 2 + MAX_NAME_LENGTH / Uint32Array.BYTES_PER_ELEMENT + 2] = indices;
+      m.pushU32(positions);
+      m.pushU32(uvs);
+      m.pushU32(indices);
 
-      callStack.u32[offset + 2 + MAX_NAME_LENGTH / Uint32Array.BYTES_PER_ELEMENT + 3] = numPositions;
-      callStack.u32[offset + 2 + MAX_NAME_LENGTH / Uint32Array.BYTES_PER_ELEMENT + 4] = numUvs;
-      callStack.u32[offset + 2 + MAX_NAME_LENGTH / Uint32Array.BYTES_PER_ELEMENT + 5] = numIndices;
+      m.pushU32(numPositions);
+      m.pushU32(numUvs);
+      m.pushU32(numIndices);
 
-      callStack.u32[offset + 2 + MAX_NAME_LENGTH / Uint32Array.BYTES_PER_ELEMENT + 6] = texture;
-    }, offset => {
+      m.pushU32(texture);
+    }, m => {
       accept();
     });
   });
   w.requestAddThing = (tracker, geometrySet, name, position, quaternion, scale) => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.addThing, 128, true, offset => {
-      callStack.u32[offset] = tracker;
-      callStack.u32[offset + 1] = geometrySet;
+    callStack.allocRequest(METHODS.addThing, true, offset => {
+      m.pushU32(tracker);
+      m.pushU32(geometrySet);
 
       const srcNameUint8Array = textEncoder.encode(name);
-      callStack.u8.set(srcNameUint8Array, (offset + 2) * Uint32Array.BYTES_PER_ELEMENT);
-      callStack.u8[(offset + 2) * Uint32Array.BYTES_PER_ELEMENT + srcNameUint8Array.byteLength] = 0;
+      const srcNameUint8Array2 = new Uint8Array(MAX_NAME_LENGTH);
+      srcNameUint8Array2.set(srcNameUint8Array);
+      srcNameUint8Array2[srcNameUint8Array.byteLength] = 0;
+      m.pushU8Array(srcNameUint8Array2);
 
-      position.toArray(callStack.f32, offset + (2 * Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH) / Float32Array.BYTES_PER_ELEMENT);
-      quaternion.toArray(callStack.f32, offset + (2 * Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 3 * Float32Array.BYTES_PER_ELEMENT) / Float32Array.BYTES_PER_ELEMENT);
-      scale.toArray(callStack.f32, offset + (2 * Uint32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH + 7 * Float32Array.BYTES_PER_ELEMENT) / Float32Array.BYTES_PER_ELEMENT);
-    }, offset => {
-      const objectId = callStack.ou32[offset++];
-      const numSubparcels = callStack.ou32[offset++];
+      m.pushF32Array(position.toArray(new Float32Array(3)));
+      m.pushF32Array(quaternion.toArray(new Float32Array(4)));
+      m.pushF32Array(scale.toArray(new Float32Array(4)));
+    }, m => {
+      const objectId = m.pullU32();
+      const numSubparcels = m.pullU32();
       for (let i = 0; i < numSubparcels; i++) {
-        const positionsFreeEntry = callStack.ou32[offset++];
-        const uvsFreeEntry = callStack.ou32[offset++];
-        const atlasUvsFreeEntry = callStack.ou32[offset++];
-        const idsFreeEntry = callStack.ou32[offset++];
-        const indicesFreeEntry = callStack.ou32[offset++];
-        const skyLightsFreeEntry = callStack.ou32[offset++];
-        const torchLightsFreeEntry = callStack.ou32[offset++];
+        const positionsFreeEntry = m.pullU32();
+        const uvsFreeEntry = m.pullU32();
+        const atlasUvsFreeEntry = m.pullU32();
+        const idsFreeEntry = m.pullU32();
+        const indicesFreeEntry = m.pullU32();
+        const skyLightsFreeEntry = m.pullU32();
+        const torchLightsFreeEntry = m.pullU32();
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -2247,26 +2389,21 @@ const geometryWorker = (() => {
         });
       }
 
-      const textureOffset = callStack.ou32[offset++];
+      const textureOffset = m.pullU32();
       if (textureOffset) {
         const textureData = new Uint8Array(moduleInstance.HEAP8.buffer, textureOffset, thingTextureSize * thingTextureSize * 4);
         currentThingMesh.updateTexture(textureData);
       }
 
-      callStack.allocRequest(METHODS.releaseAddRemoveObject, 32, true, offset2 => {
-        callStack.u32[offset2++] = tracker;
-
-        callStack.u32[offset2++] = numSubparcels;
-
+      callStack.allocRequest(METHODS.releaseAddRemoveObject, true, m2 => {
+        m2.pushU32(tracker);
+        m2.pushU32(numSubparcels);
         for (let i = 0; i < numSubparcels; i++) {
-          const subparcelSharedPtr = callStack.ou32[offset++];
-          callStack.u32[offset2++] = subparcelSharedPtr;
+          m2.pushU32(m.pullU32());
         }
-      }, offset => {
+      }, m => {
         // console.log('done release', numSubparcels);
-        accept({
-          objectId,
-        });
+        accept();
       });
     });
   });
@@ -2389,6 +2526,7 @@ const geometryWorker = (() => {
         }
       }
 
+      callStack.outNumEntriesU32[0] = maxNumMessages;
       moduleInstance._tick(
         threadPool,
         callStack.ptr,
@@ -2398,17 +2536,16 @@ const geometryWorker = (() => {
       );
       callStack.reset();
       const numMessages = callStack.outNumEntriesU32[0];
-      let index = 0;
       for (let i = 0; i < numMessages; i++) {
-        const id = callStack.oi32[index];
-        const method = callStack.oi32[index + 1];
-        // const priority = callStack.ou32[index + 2];
-        const count = callStack.ou32[index + 3];
+        const offset = i*messageSize;
+        const endMessage = new CallStackMessage(callStack.outPtr + offset);
+        const id = endMessage.getId();
+        const method = endMessage.getMethod();
 
         if (id > 0) {
           const cb = cbIndex.get(id);
           if (cb) {
-            cb(index + 4);
+            cb(endMessage);
             cbIndex.delete(id);
           } else {
             throw new Error('invalid callback id: ' + id);
@@ -2416,15 +2553,13 @@ const geometryWorker = (() => {
         } else if (id === -1) {
           const cb = MESSAGES[method];
           if (cb) {
-            cb(index + 4);
+            cb(endMessage);
           } else {
             throw new Error('invalid message method: ' + method);
           }
         } else {
           throw new Error('invalid id: ' + id);
         }
-
-        index += 4 + count;
       }
     }
   };
