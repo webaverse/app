@@ -42,10 +42,26 @@ import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import { storageHost } from './constants.js'
-import flow from './sdk.module.js';
-import types from './types.module.js';
+import flow from './flow/sdk.module.js';
+import types from './flow/types.module.js';
+// import flowKeys from './flow-keys.js';
 window.flow = flow;
 window.types = types;
+// window.flowKeys = flowKeys;
+
+window.createAccount = () => {
+  const createAccountTemplate = `
+    transaction(publicKeys: [[UInt8]], code: [UInt8]) {
+      prepare(signer: AuthAccount) {
+      let acct = AuthAccount(payer: signer)
+      for key in publicKeys {
+        acct.addPublicKey(key)
+      }
+      acct.setCode(code)
+      }
+    }
+  `;
+};
 
 // const apiHost = 'https://ipfs.exokit.org/ipfs';
 // const worldsEndpoint = 'https://worlds.exokit.org';
