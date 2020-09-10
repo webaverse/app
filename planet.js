@@ -9,10 +9,10 @@ import {
   PLANET_OBJECT_SIZE,
 } from './constants.js';
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
-import Avatar from './avatars/avatars.js';
-// import { makeTextMesh } from './vr-ui.js';
 import { loginManager } from './login.js';
-import { storageHost } from './constants.js'
+import { storageHost } from './constants.js';
+// import * as THREE from './three.module.js';
+// import { makeTextMesh } from './vr-ui.js';
 
 const presenceHost = `wss://${document.location.hostname}:4443`;
 
@@ -647,7 +647,6 @@ const _connectRoom = async roomName => {
       rigManager.removePeerRig(peerConnection.connectionId);
       live = false;
     });
-    // const localEuler = new THREE.Euler();
 
     peerConnection.addEventListener('message', e => {
       const {data} = e;
@@ -656,23 +655,28 @@ const _connectRoom = async roomName => {
         const {method} = j;
         if (method === 'pose') {
           const { pose } = j;
-          rigManager.setPeerAvatarPose(pose, peerConnection.connectionId)
-
-          /* peerRig.textMesh.position.fromArray(head[0]);
+          const [head, leftGamepad, rightGamepad, floorHeight] = pose;
+          rigManager.setPeerAvatarPose(pose, peerConnection.connectionId);
+          /*
+          const localEuler = new THREE.Euler();
+          peerRig.textMesh = makeTextMesh();
+          peerRig.textMesh.position.fromArray(head[0]);
           peerRig.textMesh.position.y += 0.5;
           peerRig.textMesh.quaternion.fromArray(head[1]);
-
           localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.y += Math.PI;
           localEuler.z = 0;
-          peerRig.textMesh.quaternion.setFromEuler(localEuler); */
+          peerRig.textMesh.quaternion.setFromEuler(localEuler); 
+          */
         } else if (method === 'name') {
+          /*
           const {peerId, name} = j;
-          /* if (peerId === peerConnection.connectionId && peerRig && name !== peerRig.textMesh.text) {
+          if (peerRig.textMesh && peerId === peerConnection.connectionId && peerRig && name !== peerRig.textMesh.text) {
             peerRig.textMesh.text = name;
             peerRig.textMesh.sync();
-          } */
+          } 
+          */
         } else if (method === 'avatar') {
           const {peerId, hash} = j;
           const currentPeerHash = peerAvatarHashes.get(peerId);
