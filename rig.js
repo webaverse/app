@@ -93,6 +93,12 @@ class RigManager {
     this.peerRigs.set(peerId, peerRig);
   }
 
+  async removePeerRig(peerId) {
+    const peerRig = this.peerRigs.get(peerId);
+    this.scene.remove(peerRig.model);
+    this.peerRigs.delete(peerId);
+  }
+
   async setPeerAvatarUrl(url, peerId) {
     await this.peerRigQueue.lock();
 

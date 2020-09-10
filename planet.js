@@ -644,7 +644,7 @@ const _connectRoom = async roomName => {
 
     peerConnection.addEventListener('close', async () => {
       peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
-      scene.remove(peerRig.model);
+      rigManager.removePeerRig(peerConnection.connectionId);
       live = false;
     });
     // const localEuler = new THREE.Euler();
