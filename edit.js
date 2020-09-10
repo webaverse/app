@@ -967,7 +967,7 @@ const geometryWorker = (() => {
   }
   class ScratchStack {
     constructor() {
-      const size = 1024;
+      const size = 1024*1024;
       this.ptr = moduleInstance._malloc(size);
 
       this.u8 = new Uint8Array(moduleInstance.HEAP8.buffer, this.ptr, size);
