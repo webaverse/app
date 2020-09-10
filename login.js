@@ -119,7 +119,7 @@ async function tryLogin() {
           <h3>Upload Avatar</h3>
           <input type='file' id="userAvatarInput">
           <h3>Multiplayer</h3>
-          <button id="connectButton" onClick="return false;">Connect</button>
+          <button id="connectButton">Connect</button>
           <nav class="button" style="display: none;" id=unwear-button>Unwear</nav>
         </div>
       </nav>
