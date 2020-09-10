@@ -6337,19 +6337,6 @@ renderer.domElement.addEventListener('mousedown', e => {
   uiMesh.click();
 });
 
-const micButton = document.getElementById('mic-button');
-micButton.addEventListener('click', async e => {
-  micButton.classList.toggle('enabled');
-  if (micButton.classList.contains('enabled')) {
-    const mediaStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-    });
-    rig.setMicrophoneMediaStream(mediaStream);
-  } else {
-    rig.setMicrophoneMediaStream(null);
-  }
-});
-
 window.addEventListener('resize', e => {
   if (!currentSession) {
     renderer.setSize(window.innerWidth, window.innerHeight);

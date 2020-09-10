@@ -602,11 +602,23 @@ const _connectRoom = async roomName => {
       const track = mediaStream.getAudioTracks()[0];
       track.addEventListener('ended', async e => {
         await channelConnection.setMicrophoneMediaStream(null);
-        _latchMediaStream();
       });
       await channelConnection.setMicrophoneMediaStream(mediaStream);
     };
-    _latchMediaStream(); 
+
+    const micButton = document.getElementById('mic-button');
+    micButton.addEventListener('click', async e => {
+      micButton.classList.toggle('enabled');
+      if (micButton.classList.contains('enabled')) {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+        rigManager.localRig.setMicrophoneMediaStream(mediaStream);
+        _latchMediaStream();
+      } else {
+        rigManager.localRig.setMicrophoneMediaStream(null);
+      }
+    });
 
     channelConnection.dialogClient.addEventListener('peerEdit', e => {
       console.log(e);
@@ -756,7 +768,8 @@ planet.connect = async (rn, {online = true} = {}) => {
 const bindConnectButton = () => {
   const button = document.getElementById('connectButton');
   if (button) {
-    document.getElementById('connectButton').addEventListener('mouseup', (e) => {
+    document.getElementById('connectButton').addEventListener('click', (e) => {
+      e.stopPropagation();
       e.preventDefault();
       planet.connect('lol');
     })
@@ -767,7 +780,5 @@ const bindConnectButton = () => {
   }
 }
 
-window.addEventListener('load', () => {
-    bindConnectButton()
-})
+bindConnectButton()
 
