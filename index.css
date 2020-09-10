@@ -251,6 +251,11 @@ img:not([src]) {
   background-color: #5c6bc0;
   opacity: 1;
 }
+.enabled {
+  background-color:#1e88e5 !important;
+  color: white;
+  opacity: 1;
+}
 .footer .nav.enabled .enable-icon,
 .footer .nav:not(.enabled) .disable-icon
 {
