@@ -5539,7 +5539,8 @@ function animate(timestamp, frame) {
     } */
 
     const _teleportTo = (position, quaternion) => {
-      localMatrix.fromArray(pose.transform.matrix)
+      // console.log(position, quaternion, pose, avatar)
+      localMatrix.fromArray(rigManager.localRig.model.matrix)
         .decompose(localVector2, localQuaternion2, localVector3);
 
       worldContainer.matrix
@@ -5880,8 +5881,8 @@ let selectedTool = 'camera';
 const _getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
 const _getAvatarHeight = () => _getFullAvatarHeight() * 0.9;
 const _getMinHeight = () => {
-  if (rig) {
-    const avatarHeight = rig ? _getAvatarHeight() : 1;
+  if (rigManager.localRig) {
+    const avatarHeight = rigManager.localRig ? _getAvatarHeight() : 1;
     const floorHeight = 0;
     const minHeight = floorHeight + avatarHeight;
     return minHeight;
