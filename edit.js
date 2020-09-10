@@ -952,8 +952,6 @@ const geometryWorker = (() => {
       const offset = index * messageSize;
       const startMessage = new CallStackMessage(this.ptr + offset);
 
-      // console.log('alloc request', index, startMessage, this.ptr, this.ptr + offset);
-
       const id = ++this.nextCbId;
       startMessage.setId(id);
       startMessage.setMethod(method);
