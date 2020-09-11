@@ -7,7 +7,8 @@ import NonFungibleToken from 0xNFTADDRESS
 pub contract ExampleNFT: NonFungibleToken {
 
     pub var totalSupply: UInt64
-    pub var hashes: {String: Bool}
+    pub var hashToIdMap: {String: UInt64}
+    pub var idToHashMap: {UInt64: String}
 
     pub event ContractInitialized()
     pub event Withdraw(id: UInt64, from: Address?)
@@ -86,7 +87,7 @@ pub contract ExampleNFT: NonFungibleToken {
 		// mintNFT mints a new NFT with a new ID
 		// and deposit it in the recipients collection using their collection reference
 		pub fun mintNFT(hash: String, recipient: &{NonFungibleToken.CollectionPublic}) {
-            if (ExampleNFT.hashes[hash] == nil) {
+            if (ExampleNFT.hashToIdMap[hash] == nil) {
     			// create a new NFT
     			var newNFT <- create NFT(initID: ExampleNFT.totalSupply)
                 newNFT.metadata["hash"] = hash
@@ -94,18 +95,25 @@ pub contract ExampleNFT: NonFungibleToken {
     			// deposit it in the recipient's account using their reference
     			recipient.deposit(token: <-newNFT)
 
+                ExampleNFT.hashToIdMap[hash] = ExampleNFT.totalSupply
+                ExampleNFT.idToHashMap[ExampleNFT.totalSupply] = hash
                 ExampleNFT.totalSupply = ExampleNFT.totalSupply + UInt64(1)
-                ExampleNFT.hashes[hash] = true;
             } else {
                 panic("hash already exists")
             }
 		}
 	}
 
+    // public function that anyone can call to create a new empty collection
+    pub fun getHash(id: UInt64): String {
+        return ExampleNFT.idToHashMap[id]!
+    }
+
 	init() {
         // Initialize the total supply
         self.totalSupply = 0
-        self.hashes = {}
+        self.hashToIdMap = {}
+        self.idToHashMap = {}
 
         // Create a Collection resource and save it to storage
         let collection <- create Collection()

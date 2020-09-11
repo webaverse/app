@@ -520,6 +520,46 @@ window.createAccount = async () => {
     nft = parseInt(response2.transaction.events[0].payload.value.fields[0].value.value);
   }
   {
+    /* const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(nftContractKeys.address),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: flowConstants.host });
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+    const signingFunction = flowSigningFunction.signingFunction(nftContractKeys.privateKey); */
+
+    console.log('got args', sdk.args([
+      sdk.arg(nft, t.UInt64),
+    ]));
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      // sdk.authorizations([sdk.authorization(nftContractKeys.address, signingFunction, 0)]),
+      // sdk.payer(sdk.authorization(nftContractKeys.address, signingFunction, 0)),
+      // sdk.proposer(sdk.authorization(nftContractKeys.address, signingFunction, 0, seqNum)),
+      // sdk.limit(100),
+      sdk.script`
+        import ExampleNFT from 0x${nftContractKeys.address}
+
+        pub fun main() : String {
+          return ExampleNFT.getHash(id: ${nft})
+        }
+      `,
+      /* sdk.args([
+        sdk.arg(nft, t.UInt64),
+      ]), */
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+        sdk.resolveArguments,
+      ]),
+    ]), { node: flowConstants.host });
+    console.log('got response 15 A', response);
+    console.log('got response 16 A', response.encodedData.value);
+  }
+  {
     const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
       sdk.getAccount(nftContractKeys.address),
     ]), [
