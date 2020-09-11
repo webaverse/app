@@ -777,14 +777,21 @@ window.addEventListener('load', () => {
   const button = document.getElementById('connectButton');
   if (button) {
     document.getElementById('connectButton').addEventListener('click', (e) => {
-      e.stopPropagation();
       e.preventDefault();
+      e.stopPropagation();
       if (channelConnectionOpen) {
-        button.innerText = 'Connect';
+        button.innerHTML = `
+          <i class="fal fa-wifi"></i>
+          <div class=label>Connect</div>
+        `;
         channelConnection.close();
+        channelConnectionOpen = false;
       } else {
         planet.connect('lol');
-        button.innerText = 'Disconnect';
+        button.innerHTML = `
+          <i class="fal fa-wifi-slash"></i>
+          <div class=label>Disconnect</div>
+        `;
       }
     })
   }
