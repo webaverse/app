@@ -773,7 +773,7 @@ planet.connect = async (rn, {online = true} = {}) => {
   return s;
 }; */
 
-const bindConnectButton = () => {
+window.addEventListener('load', () => {
   const button = document.getElementById('connectButton');
   if (button) {
     document.getElementById('connectButton').addEventListener('click', (e) => {
@@ -787,12 +787,5 @@ const bindConnectButton = () => {
         button.innerText = 'Disconnect';
       }
     })
-  } else {
-    setTimeout(() => {
-      bindConnectButton()
-    }, 500)
   }
-}
-
-bindConnectButton()
-
+})
