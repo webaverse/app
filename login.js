@@ -78,7 +78,7 @@ async function tryLogin() {
   const localLoginToken = await storage.get('loginToken');
   if (localLoginToken) {
     const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(localLoginToken.email)}&token=${encodeURIComponent(localLoginToken.token)}`, {
-      method: 'POST',
+      method: 'POST'
     });
     if (res.status >= 200 && res.status < 300) {
       loginToken = await res.json();

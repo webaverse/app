@@ -60,26 +60,30 @@ class RigManager {
   }
 
   async setLocalAvatarUrl(url) {
-    await this.localRigQueue.lock();
+    try {
+      await this.localRigQueue.lock();
 
-    const o = await new Promise((accept, reject) => {
-      new GLTFLoader().load(url, accept, xhr => {}, reject);
-    });
-    o.scene.traverse(o => {
-      if (o.isMesh) {
-        o.frustumCulled = false;
-      }
-    });
-    this.scene.remove(this.localRig.model);
-    this.localRig = new Avatar(o, {
-      fingers: true,
-      hair: true,
-      visemes: true,
-      // decapitate: selectedTool === 'firstperson',
-    });
-    this.scene.add(this.localRig.model);
-
-    await this.localRigQueue.unlock();
+      const o = await new Promise((accept, reject) => {
+        new GLTFLoader().load(url, accept, xhr => {}, reject);
+      });
+      o.scene.traverse(o => {
+        if (o.isMesh) {
+          o.frustumCulled = false;
+        }
+      });
+      this.scene.remove(this.localRig.model);
+      this.localRig = new Avatar(o, {
+        fingers: true,
+        hair: true,
+        visemes: true,
+        // decapitate: selectedTool === 'firstperson',
+      });
+      this.scene.add(this.localRig.model);
+  
+      await this.localRigQueue.unlock();
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   async addPeerRig(peerId) {
@@ -100,28 +104,32 @@ class RigManager {
   }
 
   async setPeerAvatarUrl(url, peerId) {
-    await this.peerRigQueue.lock();
+    try {
+      await this.peerRigQueue.lock();
 
-    const o = await new Promise((accept, reject) => {
-      new GLTFLoader().load(url, accept, xhr => {}, reject);
-    });
-    o.scene.traverse(o => {
-      if (o.isMesh) {
-        o.frustumCulled = false;
-      }
-    });
-    let peerRig = this.peerRigs.get(peerId);
-    this.scene.remove(peerRig.model);
-    peerRig = new Avatar(o, {
-      fingers: true,
-      hair: true,
-      visemes: true,
-      // decapitate: selectedTool === 'firstperson',
-    });
-    this.scene.add(peerRig.model);
-    this.peerRigs.set(peerId, peerRig);
+      const o = await new Promise((accept, reject) => {
+        new GLTFLoader().load(url, accept, xhr => {}, reject);
+      });
+      o.scene.traverse(o => {
+        if (o.isMesh) {
+          o.frustumCulled = false;
+        }
+      });
+      let peerRig = this.peerRigs.get(peerId);
+      this.scene.remove(peerRig.model);
+      peerRig = new Avatar(o, {
+        fingers: true,
+        hair: true,
+        visemes: true,
+        // decapitate: selectedTool === 'firstperson',
+      });
+      this.scene.add(peerRig.model);
+      this.peerRigs.set(peerId, peerRig);
 
-    await this.peerRigQueue.unlock();
+      await this.peerRigQueue.unlock();
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   setPeerMicMediaStream(mediaStream, peerId) {

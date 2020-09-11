@@ -685,7 +685,7 @@ const _connectRoom = async roomName => {
           const {peerId, hash} = j;
           const currentPeerHash = peerAvatarHashes.get(peerId);
           if (currentPeerHash !== hash && hash) {
-            rigManager.setPeerAvatarUrl(`${storageHost}/${hash}.vrm`, peerId);
+            rigManager.setPeerAvatarUrl(`${storageHost}/${hash}`, peerId);
           }
           peerAvatarHashes.set(peerId, hash);
         } else {
