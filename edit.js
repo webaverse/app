@@ -42,21 +42,19 @@ import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import { storageHost } from './constants.js'
-import sdk from './flow/sdk.module.js';
+import flow from './flow/flow.js';
+/* import sdk from './flow/flow.sdk.module.js';
 import t from './flow/types.module.js';
 import flowCrypto from './flow/crypto.module.js';
-import flowSigningFunction from './flow/signing-function.module.js';
+import flowSigningFunction from './flow/signing-function.module.js'; */
 import flowConstants from './flow-constants.js';
-window.sdk = sdk;
+/* window.sdk = sdk;
 window.t = t;
 window.flowCrypto = flowCrypto;
-window.flowSigningFunction = flowSigningFunction;
+window.flowSigningFunction = flowSigningFunction; */
+window.flow = flow;
 window.flowConstants = flowConstants;
 
-/* const makeCredentials = (address, privateKey) => ({
-  address,
-  signingFunction: flowSigningFunction.signingFunction(privateKey),
-}); */
 // const hex2Uint8Array = hexString => new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
 function uint8Array2hex(uint8Array) { // buffer is an ArrayBuffer
   return Array.prototype.map.call(uint8Array, x => ('00' + x.toString(16)).slice(-2)).join('');
@@ -64,11 +62,11 @@ function uint8Array2hex(uint8Array) { // buffer is an ArrayBuffer
 const isSealed = tx => tx.status >= 4;
 const _waitForTx = async txid => {
   for (;;) {
-    const response2 = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getTransactionStatus(txid),
+    const response2 = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.getTransactionStatus(txid),
     ]), [
-      sdk.resolve([
-        sdk.resolveParams,
+      flow.sdk.resolve([
+        flow.sdk.resolveParams,
       ]),
     ]), { node: flowConstants.host });
     // console.log('got response 2', response2);
@@ -82,25 +80,25 @@ const _waitForTx = async txid => {
   }
 };
 const _createContract = async contractSource => {
-  const contractKeys = flowCrypto.genKeys();
+  const contractKeys = flow.crypto.genKeys();
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(flowConstants.address),
+    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.getAccount(flowConstants.address),
     ]), [
-      sdk.resolve([
-        sdk.resolveParams,
+      flow.sdk.resolve([
+        flow.sdk.resolveParams,
       ]),
     ]), { node: flowConstants.host });
     const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
-    const signingFunction = flowSigningFunction.signingFunction(flowConstants.privateKey);
+    const signingFunction = flow.signingFunction.signingFunction(flowConstants.privateKey);
 
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.authorizations([sdk.authorization(flowConstants.address, signingFunction, 0)]),
-      sdk.payer(sdk.authorization(flowConstants.address, signingFunction, 0)),
-      sdk.proposer(sdk.authorization(flowConstants.address, signingFunction, 0, seqNum)),
-      sdk.limit(100),
-      sdk.transaction`
+    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.authorizations([flow.sdk.authorization(flowConstants.address, signingFunction, 0)]),
+      flow.sdk.payer(flow.sdk.authorization(flowConstants.address, signingFunction, 0)),
+      flow.sdk.proposer(flow.sdk.authorization(flowConstants.address, signingFunction, 0, seqNum)),
+      flow.sdk.limit(100),
+      flow.sdk.transaction`
         transaction(publicKeys: [String], code: String) {
           prepare(signer: AuthAccount) {
             let acct = AuthAccount(payer: signer)
@@ -111,17 +109,17 @@ const _createContract = async contractSource => {
           }
         }
       `,
-      sdk.args([
-        sdk.arg([contractKeys.flowKey], t.Array(t.String)),
-        sdk.arg(uint8Array2hex(new TextEncoder().encode(contractSource)), t.String),
+      flow.sdk.args([
+        flow.sdk.arg([contractKeys.flowKey], flow.types.Array(flow.types.String)),
+        flow.sdk.arg(uint8Array2hex(new TextEncoder().encode(contractSource)), flow.types.String),
       ]),
     ]), [
-      sdk.resolve([
-        sdk.resolveArguments,
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveRefBlockId({ node: flowConstants.host }),
-        sdk.resolveSignatures,
+      flow.sdk.resolve([
+        flow.sdk.resolveArguments,
+        flow.sdk.resolveParams,
+        flow.sdk.resolveAccounts,
+        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
+        flow.sdk.resolveSignatures,
       ]),
     ]), { node: flowConstants.host });
     console.log('got response 1', response);
@@ -133,26 +131,26 @@ const _createContract = async contractSource => {
   return contractKeys;
 };
 const _createAccount = async (ftContractAddress, nftContractAddress) => {
-  const userKeys = flowCrypto.genKeys();
+  const userKeys = flow.crypto.genKeys();
   // create user account
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(flowConstants.address),
+    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.getAccount(flowConstants.address),
     ]), [
-      sdk.resolve([
-        sdk.resolveParams,
+      flow.sdk.resolve([
+        flow.sdk.resolveParams,
       ]),
     ]), { node: flowConstants.host });
     const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
-    const signingFunction = flowSigningFunction.signingFunction(flowConstants.privateKey);
+    const signingFunction = flow.signingFunction.signingFunction(flowConstants.privateKey);
 
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.authorizations([sdk.authorization(flowConstants.address, signingFunction, 0)]),
-      sdk.payer(sdk.authorization(flowConstants.address, signingFunction, 0)),
-      sdk.proposer(sdk.authorization(flowConstants.address, signingFunction, 0, seqNum)),
-      sdk.limit(100),
-      sdk.transaction`
+    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.authorizations([flow.sdk.authorization(flowConstants.address, signingFunction, 0)]),
+      flow.sdk.payer(flow.sdk.authorization(flowConstants.address, signingFunction, 0)),
+      flow.sdk.proposer(flow.sdk.authorization(flowConstants.address, signingFunction, 0, seqNum)),
+      flow.sdk.limit(100),
+      flow.sdk.transaction`
         transaction(publicKeys: [String]) {
           prepare(signer: AuthAccount) {
             let acct = AuthAccount(payer: signer)
@@ -162,17 +160,17 @@ const _createAccount = async (ftContractAddress, nftContractAddress) => {
           }
         }
       `,
-      sdk.args([
-        // sdk.arg(2, t.Uint8),
-        sdk.arg([userKeys.flowKey], t.Array(t.String)),
+      flow.sdk.args([
+        // flow.sdk.arg(2, t.Uint8),
+        flow.sdk.arg([userKeys.flowKey], flow.types.Array(flow.types.String)),
       ]),
     ]), [
-      sdk.resolve([
-        sdk.resolveArguments,
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveRefBlockId({ node: flowConstants.host }),
-        sdk.resolveSignatures,
+      flow.sdk.resolve([
+        flow.sdk.resolveArguments,
+        flow.sdk.resolveParams,
+        flow.sdk.resolveAccounts,
+        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
+        flow.sdk.resolveSignatures,
       ]),
     ]), { node: flowConstants.host });
     console.log('got response 4', response);
@@ -183,23 +181,23 @@ const _createAccount = async (ftContractAddress, nftContractAddress) => {
   }
   // set up ft
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(userKeys.address),
+    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.getAccount(userKeys.address),
     ]), [
-      sdk.resolve([
-        sdk.resolveParams,
+      flow.sdk.resolve([
+        flow.sdk.resolveParams,
       ]),
     ]), { node: flowConstants.host });
     const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
-    const signingFunction = flowSigningFunction.signingFunction(userKeys.privateKey);
+    const signingFunction = flow.signingFunction.signingFunction(userKeys.privateKey);
 
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.authorizations([sdk.authorization(userKeys.address, signingFunction, 0)]),
-      sdk.payer(sdk.authorization(userKeys.address, signingFunction, 0)),
-      sdk.proposer(sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
-      sdk.limit(100),
-      sdk.transaction`
+    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.authorizations([flow.sdk.authorization(userKeys.address, signingFunction, 0)]),
+      flow.sdk.payer(flow.sdk.authorization(userKeys.address, signingFunction, 0)),
+      flow.sdk.proposer(flow.sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
+      flow.sdk.limit(100),
+      flow.sdk.transaction`
         import FungibleToken from ${flowConstants.FungibleToken}
         import ExampleToken from 0x${ftContractAddress}
 
@@ -229,12 +227,12 @@ const _createAccount = async (ftContractAddress, nftContractAddress) => {
         }
       `,
     ]), [
-      sdk.resolve([
-        sdk.resolveArguments,
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveRefBlockId({ node: flowConstants.host }),
-        sdk.resolveSignatures,
+      flow.sdk.resolve([
+        flow.sdk.resolveArguments,
+        flow.sdk.resolveParams,
+        flow.sdk.resolveAccounts,
+        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
+        flow.sdk.resolveSignatures,
       ]),
     ]), { node: flowConstants.host });
     console.log('got response 7', response);
@@ -242,23 +240,23 @@ const _createAccount = async (ftContractAddress, nftContractAddress) => {
     console.log('got response 8', response2);
   }
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(userKeys.address),
+    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.getAccount(userKeys.address),
     ]), [
-      sdk.resolve([
-        sdk.resolveParams,
+      flow.sdk.resolve([
+        flow.sdk.resolveParams,
       ]),
     ]), { node: flowConstants.host });
     const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
-    const signingFunction = flowSigningFunction.signingFunction(userKeys.privateKey);
+    const signingFunction = flow.signingFunction.signingFunction(userKeys.privateKey);
 
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.authorizations([sdk.authorization(userKeys.address, signingFunction, 0)]),
-      sdk.payer(sdk.authorization(userKeys.address, signingFunction, 0)),
-      sdk.proposer(sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
-      sdk.limit(100),
-      sdk.transaction`
+    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.authorizations([flow.sdk.authorization(userKeys.address, signingFunction, 0)]),
+      flow.sdk.payer(flow.sdk.authorization(userKeys.address, signingFunction, 0)),
+      flow.sdk.proposer(flow.sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
+      flow.sdk.limit(100),
+      flow.sdk.transaction`
         import NonFungibleToken from ${flowConstants.NonFungibleToken}
         import ExampleNFT from 0x${nftContractAddress}
         // This transaction is what an account would run
@@ -283,12 +281,12 @@ const _createAccount = async (ftContractAddress, nftContractAddress) => {
         }
       `,
     ]), [
-      sdk.resolve([
-        sdk.resolveArguments,
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveRefBlockId({ node: flowConstants.host }),
-        sdk.resolveSignatures,
+      flow.sdk.resolve([
+        flow.sdk.resolveArguments,
+        flow.sdk.resolveParams,
+        flow.sdk.resolveAccounts,
+        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
+        flow.sdk.resolveSignatures,
       ]),
     ]), { node: flowConstants.host });
     console.log('got response 9', response);
@@ -316,23 +314,23 @@ window.createAccount = async () => {
   const userKeys2 = await _createAccount(ftContractKeys.address, nftContractKeys.address);
   // mint ft
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(ftContractKeys.address),
+    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.getAccount(ftContractKeys.address),
     ]), [
-      sdk.resolve([
-        sdk.resolveParams,
+      flow.sdk.resolve([
+        flow.sdk.resolveParams,
       ]),
     ]), { node: flowConstants.host });
     const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
-    const signingFunction = flowSigningFunction.signingFunction(ftContractKeys.privateKey);
+    const signingFunction = flow.signingFunction.signingFunction(ftContractKeys.privateKey);
 
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.authorizations([sdk.authorization(ftContractKeys.address, signingFunction, 0)]),
-      sdk.payer(sdk.authorization(ftContractKeys.address, signingFunction, 0)),
-      sdk.proposer(sdk.authorization(ftContractKeys.address, signingFunction, 0, seqNum)),
-      sdk.limit(100),
-      sdk.transaction`
+    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.authorizations([flow.sdk.authorization(ftContractKeys.address, signingFunction, 0)]),
+      flow.sdk.payer(flow.sdk.authorization(ftContractKeys.address, signingFunction, 0)),
+      flow.sdk.proposer(flow.sdk.authorization(ftContractKeys.address, signingFunction, 0, seqNum)),
+      flow.sdk.limit(100),
+      flow.sdk.transaction`
         import FungibleToken from ${flowConstants.FungibleToken}
         import ExampleToken from 0x${ftContractKeys.address}
 
@@ -361,17 +359,17 @@ window.createAccount = async () => {
           }
       }
       `,
-      sdk.args([
-        sdk.arg('0x' + userKeys.address, t.Address),
-        sdk.arg('10.0', t.UFix64),
+      flow.sdk.args([
+        flow.sdk.arg('0x' + userKeys.address, flow.types.Address),
+        flow.sdk.arg('10.0', flow.types.UFix64),
       ]),
     ]), [
-      sdk.resolve([
-        sdk.resolveArguments,
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveRefBlockId({ node: flowConstants.host }),
-        sdk.resolveSignatures,
+      flow.sdk.resolve([
+        flow.sdk.resolveArguments,
+        flow.sdk.resolveParams,
+        flow.sdk.resolveAccounts,
+        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
+        flow.sdk.resolveSignatures,
       ]),
     ]), { node: flowConstants.host });
     console.log('got response 11', response);
@@ -380,23 +378,23 @@ window.createAccount = async () => {
   }
   // transfer ft
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(userKeys.address),
+    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.getAccount(userKeys.address),
     ]), [
-      sdk.resolve([
-        sdk.resolveParams,
+      flow.sdk.resolve([
+        flow.sdk.resolveParams,
       ]),
     ]), { node: flowConstants.host });
     const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
-    const signingFunction = flowSigningFunction.signingFunction(userKeys.privateKey);
+    const signingFunction = flow.signingFunction.signingFunction(userKeys.privateKey);
 
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.authorizations([sdk.authorization(userKeys.address, signingFunction, 0)]),
-      sdk.payer(sdk.authorization(userKeys.address, signingFunction, 0)),
-      sdk.proposer(sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
-      sdk.limit(100),
-      sdk.transaction`
+    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.authorizations([flow.sdk.authorization(userKeys.address, signingFunction, 0)]),
+      flow.sdk.payer(flow.sdk.authorization(userKeys.address, signingFunction, 0)),
+      flow.sdk.proposer(flow.sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
+      flow.sdk.limit(100),
+      flow.sdk.transaction`
           import FungibleToken from ${flowConstants.FungibleToken}
           import ExampleToken from 0x${ftContractKeys.address}
 
@@ -429,17 +427,17 @@ window.createAccount = async () => {
               }
           }
       `,
-      sdk.args([
-        sdk.arg('5.0', t.UFix64),
-        sdk.arg('0x' + userKeys2.address, t.Address),
+      flow.sdk.args([
+        flow.sdk.arg('5.0', flow.types.UFix64),
+        flow.sdk.arg('0x' + userKeys2.address, flow.types.Address),
       ]),
     ]), [
-      sdk.resolve([
-        sdk.resolveArguments,
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveRefBlockId({ node: flowConstants.host }),
-        sdk.resolveSignatures,
+      flow.sdk.resolve([
+        flow.sdk.resolveArguments,
+        flow.sdk.resolveParams,
+        flow.sdk.resolveAccounts,
+        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
+        flow.sdk.resolveSignatures,
       ]),
     ]), { node: flowConstants.host });
     console.log('got response 13', response);
@@ -450,23 +448,23 @@ window.createAccount = async () => {
   // mint nft
   let nft;
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(nftContractKeys.address),
+    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.getAccount(nftContractKeys.address),
     ]), [
-      sdk.resolve([
-        sdk.resolveParams,
+      flow.sdk.resolve([
+        flow.sdk.resolveParams,
       ]),
     ]), { node: flowConstants.host });
     const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
-    const signingFunction = flowSigningFunction.signingFunction(nftContractKeys.privateKey);
+    const signingFunction = flow.signingFunction.signingFunction(nftContractKeys.privateKey);
 
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.authorizations([sdk.authorization(nftContractKeys.address, signingFunction, 0)]),
-      sdk.payer(sdk.authorization(nftContractKeys.address, signingFunction, 0)),
-      sdk.proposer(sdk.authorization(nftContractKeys.address, signingFunction, 0, seqNum)),
-      sdk.limit(100),
-      sdk.transaction`
+    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.authorizations([flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)]),
+      flow.sdk.payer(flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)),
+      flow.sdk.proposer(flow.sdk.authorization(nftContractKeys.address, signingFunction, 0, seqNum)),
+      flow.sdk.limit(100),
+      flow.sdk.transaction`
         import NonFungibleToken from ${flowConstants.NonFungibleToken}
         import ExampleNFT from 0x${nftContractKeys.address}
 
@@ -501,17 +499,17 @@ window.createAccount = async () => {
             }
         }
       `,
-      sdk.args([
-        sdk.arg('lol', t.String),
-        sdk.arg('0x' + userKeys.address, t.Address),
+      flow.sdk.args([
+        flow.sdk.arg('lol', flow.types.String),
+        flow.sdk.arg('0x' + userKeys.address, flow.types.Address),
       ]),
     ]), [
-      sdk.resolve([
-        sdk.resolveArguments,
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveRefBlockId({ node: flowConstants.host }),
-        sdk.resolveSignatures,
+      flow.sdk.resolve([
+        flow.sdk.resolveArguments,
+        flow.sdk.resolveParams,
+        flow.sdk.resolveAccounts,
+        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
+        flow.sdk.resolveSignatures,
       ]),
     ]), { node: flowConstants.host });
     console.log('got response 15', response);
@@ -520,63 +518,63 @@ window.createAccount = async () => {
     nft = parseInt(response2.transaction.events[0].payload.value.fields[0].value.value);
   }
   {
-    /* const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(nftContractKeys.address),
+    /* const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.getAccount(nftContractKeys.address),
     ]), [
-      sdk.resolve([
-        sdk.resolveParams,
+      flow.sdk.resolve([
+        flow.sdk.resolveParams,
       ]),
     ]), { node: flowConstants.host });
     const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
-    const signingFunction = flowSigningFunction.signingFunction(nftContractKeys.privateKey); */
+    const signingFunction = flow.signingFunction.signingFunction(nftContractKeys.privateKey); */
 
-    console.log('got args', sdk.args([
-      sdk.arg(nft, t.UInt64),
+    console.log('got args', flow.sdk.args([
+      flow.sdk.arg(nft, flow.types.UInt64),
     ]));
 
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      // sdk.authorizations([sdk.authorization(nftContractKeys.address, signingFunction, 0)]),
-      // sdk.payer(sdk.authorization(nftContractKeys.address, signingFunction, 0)),
-      // sdk.proposer(sdk.authorization(nftContractKeys.address, signingFunction, 0, seqNum)),
-      // sdk.limit(100),
-      sdk.script`
+    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      // flow.sdk.authorizations([flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)]),
+      // flow.sdk.payer(flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)),
+      // flow.sdk.proposer(flow.sdk.authorization(nftContractKeys.address, signingFunction, 0, seqNum)),
+      // flow.sdk.limit(100),
+      flow.sdk.script`
         import ExampleNFT from 0x${nftContractKeys.address}
 
         pub fun main() : String {
           return ExampleNFT.getHash(id: ${nft})
         }
       `,
-      /* sdk.args([
-        sdk.arg(nft, t.UInt64),
+      /* flow.sdk.args([
+        flow.sdk.arg(nft, t.UInt64),
       ]), */
     ]), [
-      sdk.resolve([
-        sdk.resolveParams,
-        sdk.resolveArguments,
+      flow.sdk.resolve([
+        flow.sdk.resolveParams,
+        flow.sdk.resolveArguments,
       ]),
     ]), { node: flowConstants.host });
     console.log('got response 15 A', response);
     console.log('got response 16 A', response.encodedData.value);
   }
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(nftContractKeys.address),
+    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.getAccount(nftContractKeys.address),
     ]), [
-      sdk.resolve([
-        sdk.resolveParams,
+      flow.sdk.resolve([
+        flow.sdk.resolveParams,
       ]),
     ]), { node: flowConstants.host });
     const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
-    const signingFunction = flowSigningFunction.signingFunction(nftContractKeys.privateKey);
+    const signingFunction = flow.signingFunction.signingFunction(nftContractKeys.privateKey);
 
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.authorizations([sdk.authorization(nftContractKeys.address, signingFunction, 0)]),
-      sdk.payer(sdk.authorization(nftContractKeys.address, signingFunction, 0)),
-      sdk.proposer(sdk.authorization(nftContractKeys.address, signingFunction, 0, seqNum)),
-      sdk.limit(100),
-      sdk.transaction`
+    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.authorizations([flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)]),
+      flow.sdk.payer(flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)),
+      flow.sdk.proposer(flow.sdk.authorization(nftContractKeys.address, signingFunction, 0, seqNum)),
+      flow.sdk.limit(100),
+      flow.sdk.transaction`
         import NonFungibleToken from ${flowConstants.NonFungibleToken}
         import ExampleNFT from 0x${nftContractKeys.address}
 
@@ -611,17 +609,17 @@ window.createAccount = async () => {
             }
         }
       `,
-      sdk.args([
-        sdk.arg('lol', t.String),
-        sdk.arg('0x' + userKeys.address, t.Address),
+      flow.sdk.args([
+        flow.sdk.arg('lol', flow.types.String),
+        flow.sdk.arg('0x' + userKeys.address, flow.types.Address),
       ]),
     ]), [
-      sdk.resolve([
-        sdk.resolveArguments,
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveRefBlockId({ node: flowConstants.host }),
-        sdk.resolveSignatures,
+      flow.sdk.resolve([
+        flow.sdk.resolveArguments,
+        flow.sdk.resolveParams,
+        flow.sdk.resolveAccounts,
+        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
+        flow.sdk.resolveSignatures,
       ]),
     ]), { node: flowConstants.host });
     console.log('got response 15 X', response);
@@ -630,23 +628,23 @@ window.createAccount = async () => {
   }
   // transfer nft
   {
-    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.getAccount(userKeys.address),
+    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.getAccount(userKeys.address),
     ]), [
-      sdk.resolve([
-        sdk.resolveParams,
+      flow.sdk.resolve([
+        flow.sdk.resolveParams,
       ]),
     ]), { node: flowConstants.host });
     const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
-    const signingFunction = flowSigningFunction.signingFunction(userKeys.privateKey);
+    const signingFunction = flow.signingFunction.signingFunction(userKeys.privateKey);
 
-    const response = await sdk.send(await sdk.pipe(await sdk.build([
-      sdk.authorizations([sdk.authorization(userKeys.address, signingFunction, 0)]),
-      sdk.payer(sdk.authorization(userKeys.address, signingFunction, 0)),
-      sdk.proposer(sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
-      sdk.limit(100),
-      sdk.transaction`
+    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+      flow.sdk.authorizations([flow.sdk.authorization(userKeys.address, signingFunction, 0)]),
+      flow.sdk.payer(flow.sdk.authorization(userKeys.address, signingFunction, 0)),
+      flow.sdk.proposer(flow.sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
+      flow.sdk.limit(100),
+      flow.sdk.transaction`
           import NonFungibleToken from ${flowConstants.NonFungibleToken}
           import ExampleNFT from 0x${nftContractKeys.address}
 
@@ -674,17 +672,17 @@ window.createAccount = async () => {
               }
           }
       `,
-      sdk.args([
-        sdk.arg('0x' + userKeys2.address, t.Address),
-        sdk.arg(nft, t.UInt64),
+      flow.sdk.args([
+        flow.sdk.arg('0x' + userKeys2.address, flow.types.Address),
+        flow.sdk.arg(nft, flow.types.UInt64),
       ]),
     ]), [
-      sdk.resolve([
-        sdk.resolveArguments,
-        sdk.resolveParams,
-        sdk.resolveAccounts,
-        sdk.resolveRefBlockId({ node: flowConstants.host }),
-        sdk.resolveSignatures,
+      flow.sdk.resolve([
+        flow.sdk.resolveArguments,
+        flow.sdk.resolveParams,
+        flow.sdk.resolveAccounts,
+        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
+        flow.sdk.resolveSignatures,
       ]),
     ]), { node: flowConstants.host });
     console.log('got response 17', response);
