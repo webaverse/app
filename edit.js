@@ -446,11 +446,142 @@ window.createAccount = async () => {
     const response2 = await _waitForTx(response.transactionId);
     console.log('got response 14', response2);
   }
-};
 
-// const apiHost = 'https://ipfs.exokit.org/ipfs';
-// const worldsEndpoint = 'https://worlds.exokit.org';
-// const packagesEndpoint = 'https://packages.exokit.org';
+  // mint nft
+  let nft;
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(nftContractKeys.address),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: flowConstants.host });
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+    const signingFunction = flowSigningFunction.signingFunction(nftContractKeys.privateKey);
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.authorizations([sdk.authorization(nftContractKeys.address, signingFunction, 0)]),
+      sdk.payer(sdk.authorization(nftContractKeys.address, signingFunction, 0)),
+      sdk.proposer(sdk.authorization(nftContractKeys.address, signingFunction, 0, seqNum)),
+      sdk.limit(100),
+      sdk.transaction`
+        import NonFungibleToken from ${flowConstants.NonFungibleToken}
+        import ExampleNFT from 0x${nftContractKeys.address}
+
+        // This script uses the NFTMinter resource to mint a new NFT
+        // It must be run with the account that has the minter resource
+        // stored in /storage/NFTMinter
+
+        transaction(recipient: Address) {
+            
+            // local variable for storing the minter reference
+            let minter: &ExampleNFT.NFTMinter
+
+            prepare(signer: AuthAccount) {
+
+                // borrow a reference to the NFTMinter resource in storage
+                self.minter = signer.borrow<&ExampleNFT.NFTMinter>(from: /storage/NFTMinter)
+                    ?? panic("Could not borrow a reference to the NFT minter")
+            }
+
+            execute {
+                // Get the public account object for the recipient
+                let recipient = getAccount(recipient)
+
+                // Borrow the recipient's public NFT collection reference
+                let receiver = recipient
+                    .getCapability(/public/NFTCollection)!
+                    .borrow<&{NonFungibleToken.CollectionPublic}>()
+                    ?? panic("Could not get receiver reference to the NFT Collection")
+
+                // Mint the NFT and deposit it to the recipient's collection
+                self.minter.mintNFT(recipient: receiver)
+            }
+        }
+      `,
+      sdk.args([
+        sdk.arg('0x' + userKeys.address, t.Address),
+      ]),
+    ]), [
+      sdk.resolve([
+        sdk.resolveArguments,
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveRefBlockId({ node: flowConstants.host }),
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: flowConstants.host });
+    console.log('got response 15', response);
+    const response2 = await _waitForTx(response.transactionId);
+    console.log('got response 16', response2);
+    nft = parseInt(response2.transaction.events[0].payload.value.fields[0].value.value);
+  }
+  // transfer nft
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(userKeys.address),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: flowConstants.host });
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+    const signingFunction = flowSigningFunction.signingFunction(userKeys.privateKey);
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.authorizations([sdk.authorization(userKeys.address, signingFunction, 0)]),
+      sdk.payer(sdk.authorization(userKeys.address, signingFunction, 0)),
+      sdk.proposer(sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
+      sdk.limit(100),
+      sdk.transaction`
+          import NonFungibleToken from ${flowConstants.NonFungibleToken}
+          import ExampleNFT from 0x${nftContractKeys.address}
+
+          // This transaction is for transferring and NFT from 
+          // one account to another
+
+          transaction(recipient: Address, withdrawID: UInt64) {
+              prepare(acct: AuthAccount) {
+                  
+                  // get the recipients public account object
+                  let recipient = getAccount(recipient)
+
+                  // borrow a reference to the signer's NFT collection
+                  let collectionRef = acct.borrow<&ExampleNFT.Collection>(from: /storage/NFTCollection)
+                      ?? panic("Could not borrow a reference to the owner's collection")
+
+                  // borrow a public reference to the receivers collection
+                  let depositRef = recipient.getCapability(/public/NFTCollection)!.borrow<&{NonFungibleToken.CollectionPublic}>()!
+
+                  // withdraw the NFT from the owner's collection
+                  let nft <- collectionRef.withdraw(withdrawID: withdrawID)
+
+                  // Deposit the NFT in the recipient's collection
+                  depositRef.deposit(token: <-nft)
+              }
+          }
+      `,
+      sdk.args([
+        sdk.arg('0x' + userKeys2.address, t.Address),
+        sdk.arg(nft, t.UInt64),
+      ]),
+    ]), [
+      sdk.resolve([
+        sdk.resolveArguments,
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveRefBlockId({ node: flowConstants.host }),
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: flowConstants.host });
+    console.log('got response 17', response);
+    const response2 = await _waitForTx(response.transactionId);
+    console.log('got response 18', response2);
+  }
+};
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
