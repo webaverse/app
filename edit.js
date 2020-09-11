@@ -42,7 +42,7 @@ import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import { storageHost } from './constants.js'
-// import sdk from './flow/sdk.module.js';
+import sdk from './flow/sdk.module.js';
 import t from './flow/types.module.js';
 import flowCrypto from './flow/crypto.module.js';
 import flowSigningFunction from './flow/signing-function.module.js';
