@@ -42,25 +42,344 @@ import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import { storageHost } from './constants.js'
-import flow from './flow/sdk.module.js';
-import types from './flow/types.module.js';
-// import flowKeys from './flow-keys.js';
-window.flow = flow;
-window.types = types;
-// window.flowKeys = flowKeys;
+// import sdk from './flow/sdk.module.js';
+import t from './flow/types.module.js';
+import flowCrypto from './flow/crypto.module.js';
+import flowSigningFunction from './flow/signing-function.module.js';
+import flowConstants from './flow-constants.js';
+window.sdk = sdk;
+window.t = t;
+window.flowCrypto = flowCrypto;
+window.flowSigningFunction = flowSigningFunction;
+window.flowConstants = flowConstants;
 
-window.createAccount = () => {
-  const createAccountTemplate = `
-    transaction(publicKeys: [[UInt8]], code: [UInt8]) {
-      prepare(signer: AuthAccount) {
-      let acct = AuthAccount(payer: signer)
-      for key in publicKeys {
-        acct.addPublicKey(key)
-      }
-      acct.setCode(code)
-      }
+/* const makeCredentials = (address, privateKey) => ({
+  address,
+  signingFunction: flowSigningFunction.signingFunction(privateKey),
+}); */
+// const hex2Uint8Array = hexString => new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+function uint8Array2hex(uint8Array) { // buffer is an ArrayBuffer
+  return Array.prototype.map.call(uint8Array, x => ('00' + x.toString(16)).slice(-2)).join('');
+}
+const isSealed = tx => tx.status >= 4;
+const _waitForTx = async txid => {
+  for (;;) {
+    const response2 = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getTransactionStatus(txid),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: flowConstants.host });
+    // console.log('got response 2', response2);
+    if (isSealed(response2.transaction)) {
+      return response2;
+    } else {
+      await new Promise((accept, reject) => {
+        setTimeout(accept, 500);
+      });
     }
-  `;
+  }
+};
+window.createAccount = async () => {
+  const exampleTokenSource = await (async () => {
+    const res = await fetch('./flow/ExampleToken.cdc');
+    const text = await res.text();
+    return text.replace('0xFUNGIBLETOKENADDRESS', flowConstants.FungibleToken);
+  })();
+
+  // console.log('got key', contractKeys.publicKey, window.x = sdk.arg([hex2Uint8Array(contractKeys.publicKey)], t.Array(t.Array(t.Uint8))));
+
+  const contractKeys = flowCrypto.genKeys();
+  // console.log('got keys', flowConstants, contractKeys);
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(flowConstants.address),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: flowConstants.host });
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+    // console.log('got seq num', seqNum);
+
+    const signingFunction = flowSigningFunction.signingFunction(flowConstants.privateKey);
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.authorizations([sdk.authorization(flowConstants.address, signingFunction, 0)]),
+      sdk.payer(sdk.authorization(flowConstants.address, signingFunction, 0)),
+      sdk.proposer(sdk.authorization(flowConstants.address, signingFunction, 0, seqNum)),
+      sdk.limit(100),
+      sdk.transaction`
+        transaction(publicKeys: [String], code: String) {
+          prepare(signer: AuthAccount) {
+            let acct = AuthAccount(payer: signer)
+            for key in publicKeys {
+              acct.addPublicKey(key.decodeHex())
+            }
+            acct.setCode(code.decodeHex())
+          }
+        }
+      `,
+      sdk.args([
+        // sdk.arg(2, t.Uint8),
+        sdk.arg([contractKeys.flowKey], t.Array(t.String)),
+        sdk.arg(uint8Array2hex(new TextEncoder().encode(exampleTokenSource)), t.String),
+      ]),
+    ]), [
+      sdk.resolve([
+        sdk.resolveArguments,
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveRefBlockId({ node: flowConstants.host }),
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: flowConstants.host });
+    console.log('got response 1', response);
+    const response2 = await _waitForTx(response.transactionId);
+    console.log('got response 2', response2);
+    contractKeys.address = response2.transaction.events[0].payload.value.fields[0].value.value.slice(2);
+    console.log('got response 3', contractKeys.address);
+  }
+
+  const userKeys = flowCrypto.genKeys();
+  // console.log('got keys', flowConstants, contractKeys);
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(flowConstants.address),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: flowConstants.host });
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+    const signingFunction = flowSigningFunction.signingFunction(flowConstants.privateKey);
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.authorizations([sdk.authorization(flowConstants.address, signingFunction, 0)]),
+      sdk.payer(sdk.authorization(flowConstants.address, signingFunction, 0)),
+      sdk.proposer(sdk.authorization(flowConstants.address, signingFunction, 0, seqNum)),
+      sdk.limit(100),
+      sdk.transaction`
+        transaction(publicKeys: [String]) {
+          prepare(signer: AuthAccount) {
+            let acct = AuthAccount(payer: signer)
+            for key in publicKeys {
+              acct.addPublicKey(key.decodeHex())
+            }
+          }
+        }
+      `,
+      sdk.args([
+        // sdk.arg(2, t.Uint8),
+        sdk.arg([userKeys.flowKey], t.Array(t.String)),
+      ]),
+    ]), [
+      sdk.resolve([
+        sdk.resolveArguments,
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveRefBlockId({ node: flowConstants.host }),
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: flowConstants.host });
+    console.log('got response 4', response);
+    const response2 = await _waitForTx(response.transactionId);
+    console.log('got response 5', response2);
+    userKeys.address = response2.transaction.events[0].payload.value.fields[0].value.value.slice(2);
+    console.log('got response 6', userKeys.address);
+  }
+  // set up user account
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(userKeys.address),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: flowConstants.host });
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+    const signingFunction = flowSigningFunction.signingFunction(userKeys.privateKey);
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.authorizations([sdk.authorization(userKeys.address, signingFunction, 0)]),
+      sdk.payer(sdk.authorization(userKeys.address, signingFunction, 0)),
+      sdk.proposer(sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
+      sdk.limit(100),
+      sdk.transaction`
+        import FungibleToken from ${flowConstants.FungibleToken}
+        import ExampleToken from 0x${contractKeys.address}
+
+        transaction {
+
+            prepare(signer: AuthAccount) {
+
+                if signer.borrow<&ExampleToken.Vault>(from: /storage/exampleTokenVault) == nil {
+                    // Create a new exampleToken Vault and put it in storage
+                    signer.save(<-ExampleToken.createEmptyVault(), to: /storage/exampleTokenVault)
+
+                    // Create a public capability to the Vault that only exposes
+                    // the deposit function through the Receiver interface
+                    signer.link<&ExampleToken.Vault{FungibleToken.Receiver}>(
+                        /public/exampleTokenReceiver,
+                        target: /storage/exampleTokenVault
+                    )
+
+                    // Create a public capability to the Vault that only exposes
+                    // the balance field through the Balance interface
+                    signer.link<&ExampleToken.Vault{FungibleToken.Balance}>(
+                        /public/exampleTokenBalance,
+                        target: /storage/exampleTokenVault
+                    )
+                }
+            }
+        }
+      `,
+      /* sdk.args([
+        sdk.arg([contractKeys.flowKey], t.Array(t.String)),
+        sdk.arg(uint8Array2hex(new TextEncoder().encode(exampleTokenSource)), t.String),
+      ]), */
+    ]), [
+      sdk.resolve([
+        sdk.resolveArguments,
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveRefBlockId({ node: flowConstants.host }),
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: flowConstants.host });
+    console.log('got response 7', response);
+    const response2 = await _waitForTx(response.transactionId);
+    console.log('got response 8', response2);
+  }
+  // mint tokens
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(contractKeys.address),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: flowConstants.host });
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+    const signingFunction = flowSigningFunction.signingFunction(contractKeys.privateKey);
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.authorizations([sdk.authorization(contractKeys.address, signingFunction, 0)]),
+      sdk.payer(sdk.authorization(contractKeys.address, signingFunction, 0)),
+      sdk.proposer(sdk.authorization(contractKeys.address, signingFunction, 0, seqNum)),
+      sdk.limit(100),
+      sdk.transaction`
+        import FungibleToken from ${flowConstants.FungibleToken}
+        import ExampleToken from 0x${contractKeys.address}
+
+        transaction(recipient: Address, amount: UFix64) {
+          let tokenAdmin: &ExampleToken.Administrator
+          let tokenReceiver: &{FungibleToken.Receiver}
+
+          prepare(signer: AuthAccount) {
+              self.tokenAdmin = signer
+              .borrow<&ExampleToken.Administrator>(from: /storage/exampleTokenAdmin) 
+              ?? panic("Signer is not the token admin")
+
+              self.tokenReceiver = getAccount(recipient)
+              .getCapability(/public/exampleTokenReceiver)!
+              .borrow<&{FungibleToken.Receiver}>()
+              ?? panic("Unable to borrow receiver reference")
+          }
+
+          execute {
+              let minter <- self.tokenAdmin.createNewMinter(allowedAmount: amount)
+              let mintedVault <- minter.mintTokens(amount: amount)
+
+              self.tokenReceiver.deposit(from: <-mintedVault)
+
+              destroy minter
+          }
+      }
+      `,
+      sdk.args([
+        sdk.arg('0x' + userKeys.address, t.Address),
+        sdk.arg('10.0', t.UFix64),
+      ]),
+    ]), [
+      sdk.resolve([
+        sdk.resolveArguments,
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveRefBlockId({ node: flowConstants.host }),
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: flowConstants.host });
+    console.log('got response 9', response);
+    const response2 = await _waitForTx(response.transactionId);
+    console.log('got response 10', response2);
+  }
+
+  /* {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(contractKeys.address),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: flowConstants.host });
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+    const signingFunction = flowSigningFunction.signingFunction(contractKeys.privateKey);
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.authorizations([sdk.authorization(contractKeys.address, signingFunction, 0)]),
+      sdk.payer(sdk.authorization(contractKeys.address, signingFunction, 0)),
+      sdk.proposer(sdk.authorization(contractKeys.address, signingFunction, 0, seqNum)),
+      // sdk.limit(100),
+      sdk.transaction`
+        import FungibleToken from ${flowConstants.FungibleToken}
+        import ExampleToken from 0x${contractKeys.address}
+
+        transaction(recipient: Address, amount: UFix64) {
+          let tokenAdmin: &ExampleToken.Administrator
+          let tokenReceiver: &{FungibleToken.Receiver}
+
+          prepare(signer: AuthAccount) {
+              self.tokenAdmin = signer
+              .borrow<&ExampleToken.Administrator>(from: /storage/exampleTokenAdmin) 
+              ?? panic("Signer is not the token admin")
+
+              self.tokenReceiver = getAccount(recipient)
+              .getCapability(/public/exampleTokenReceiver)!
+              .borrow<&{FungibleToken.Receiver}>()
+              ?? panic("Unable to borrow receiver reference")
+          }
+
+          execute {
+              let minter <- self.tokenAdmin.createNewMinter(allowedAmount: amount)
+              let mintedVault <- minter.mintTokens(amount: amount)
+
+              self.tokenReceiver.deposit(from: <-mintedVault)
+
+              destroy minter
+          }
+      }
+      `,
+      // self.account.save(<-admin, to: /storage/exampleTokenAdmin)
+    ]), [
+      sdk.resolve([
+        sdk.resolveArguments,
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveRefBlockId({ node: flowConstants.host }),
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: flowConstants.host });
+    console.log('got response 1', response);
+    const response2 = await _waitForTx(response.transactionId);
+    console.log('got response 2', response2);
+  } */
 };
 
 // const apiHost = 'https://ipfs.exokit.org/ipfs';
