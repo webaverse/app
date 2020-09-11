@@ -2111,7 +2111,7 @@ const geometryWorker = (() => {
   });
   w.requestMine = (tracker, p, delta) => new Promise((accept, reject) => {
     callStack.allocRequest(METHODS.mine, true, m => {
-      m.puhsU32(tracker);
+      m.pushU32(tracker);
       m.pushF32Array(p.toArray(new Float32Array(3)));
       m.pushF32(delta);
     }, m => {
