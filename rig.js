@@ -61,8 +61,9 @@ class RigManager {
 
   async setLocalAvatarUrl(url) {
     await this.localRigQueue.lock();
+    let o = null;
     try {
-      const o = await new Promise((accept, reject) => {
+      o = await new Promise((accept, reject) => {
         new GLTFLoader().load(url, accept, xhr => {}, reject);
       });
     } catch (e) {
@@ -104,8 +105,9 @@ class RigManager {
 
   async setPeerAvatarUrl(url, peerId) {
     await this.peerRigQueue.lock();
+    let o = null;
     try {
-      const o = await new Promise((accept, reject) => {
+      o = await new Promise((accept, reject) => {
         new GLTFLoader().load(url, accept, xhr => {}, reject);
       });
     } catch (e) {
