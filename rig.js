@@ -61,10 +61,14 @@ class RigManager {
 
   async setLocalAvatarUrl(url) {
     await this.localRigQueue.lock();
-
-    const o = await new Promise((accept, reject) => {
-      new GLTFLoader().load(url, accept, xhr => {}, reject);
-    });
+    let o = null;
+    try {
+      o = await new Promise((accept, reject) => {
+        new GLTFLoader().load(url, accept, xhr => {}, reject);
+      });
+    } catch (e) {
+      console.log(e)
+    }
     o.scene.traverse(o => {
       if (o.isMesh) {
         o.frustumCulled = false;
@@ -101,10 +105,14 @@ class RigManager {
 
   async setPeerAvatarUrl(url, peerId) {
     await this.peerRigQueue.lock();
-
-    const o = await new Promise((accept, reject) => {
-      new GLTFLoader().load(url, accept, xhr => {}, reject);
-    });
+    let o = null;
+    try {
+      o = await new Promise((accept, reject) => {
+        new GLTFLoader().load(url, accept, xhr => {}, reject);
+      });
+    } catch (e) {
+      console.log(e)
+    }
     o.scene.traverse(o => {
       if (o.isMesh) {
         o.frustumCulled = false;
