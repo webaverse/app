@@ -8,11 +8,11 @@ import {
   PLANET_OBJECT_SLOTS,
   PLANET_OBJECT_SIZE,
 } from './constants.js';
-import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
-import Avatar from './avatars/avatars.js';
-// import { makeTextMesh } from './vr-ui.js';
+import { XRChannelConnection } from 'https://2.metartc.com/xrrtc.js';
 import { loginManager } from './login.js';
-import { storageHost } from './constants.js'
+import { storageHost } from './constants.js';
+// import * as THREE from './three.module.js';
+// import { makeTextMesh } from './vr-ui.js';
 
 const presenceHost = `wss://${document.location.hostname}:4443`;
 
@@ -595,18 +595,34 @@ const _connectRoom = async roomName => {
       }
     });
 
-    /* const _latchMediaStream = async () => {
+     const _latchMediaStream = async () => {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
       });
       const track = mediaStream.getAudioTracks()[0];
       track.addEventListener('ended', async e => {
         await channelConnection.setMicrophoneMediaStream(null);
-        _latchMediaStream();
       });
       await channelConnection.setMicrophoneMediaStream(mediaStream);
     };
-    _latchMediaStream(); */
+
+    const micButton = document.getElementById('mic-button');
+    micButton.addEventListener('click', async e => {
+      micButton.classList.toggle('enabled');
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+      if (micButton.classList.contains('enabled')) {
+        rigManager.localRig.setMicrophoneMediaStream(mediaStream);
+        _latchMediaStream();
+      } else {
+        rigManager.localRig.setMicrophoneMediaStream(null);
+        const tracks = mediaStream.getAudioTracks();
+        tracks.forEach(t => {
+          mediaStream.removeTrack(t);
+        })
+      }
+    });
 
     channelConnection.dialogClient.addEventListener('peerEdit', e => {
       console.log(e);
@@ -632,10 +648,9 @@ const _connectRoom = async roomName => {
 
     peerConnection.addEventListener('close', async () => {
       peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
-      scene.remove(peerRig.model);
+      rigManager.removePeerRig(peerConnection.connectionId);
       live = false;
     });
-    // const localEuler = new THREE.Euler();
 
     peerConnection.addEventListener('message', e => {
       const {data} = e;
@@ -644,23 +659,28 @@ const _connectRoom = async roomName => {
         const {method} = j;
         if (method === 'pose') {
           const { pose } = j;
-          rigManager.setPeerAvatarPose(pose, peerConnection.connectionId)
-
-          /* peerRig.textMesh.position.fromArray(head[0]);
+          const [head, leftGamepad, rightGamepad, floorHeight] = pose;
+          rigManager.setPeerAvatarPose(pose, peerConnection.connectionId);
+          /*
+          const localEuler = new THREE.Euler();
+          peerRig.textMesh = makeTextMesh();
+          peerRig.textMesh.position.fromArray(head[0]);
           peerRig.textMesh.position.y += 0.5;
           peerRig.textMesh.quaternion.fromArray(head[1]);
-
           localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.y += Math.PI;
           localEuler.z = 0;
-          peerRig.textMesh.quaternion.setFromEuler(localEuler); */
+          peerRig.textMesh.quaternion.setFromEuler(localEuler); 
+          */
         } else if (method === 'name') {
+          /*
           const {peerId, name} = j;
-          /* if (peerId === peerConnection.connectionId && peerRig && name !== peerRig.textMesh.text) {
+          if (peerRig.textMesh && peerId === peerConnection.connectionId && peerRig && name !== peerRig.textMesh.text) {
             peerRig.textMesh.text = name;
             peerRig.textMesh.sync();
-          } */
+          } 
+          */
         } else if (method === 'avatar') {
           const {peerId, hash} = j;
           const currentPeerHash = peerAvatarHashes.get(peerId);
@@ -683,9 +703,9 @@ const _connectRoom = async roomName => {
       audio.srcObject = microphoneMediaStream;
       audio.play();
       if (peerRig) {
-        peerRig.context.rig.setMicrophoneMediaStream(microphoneMediaStream);
+        rigManager.setPeerMicMediaStream(microphoneMediaStream, peerConnection.connectionId);
         track.addEventListener('ended', e => {
-          peerRig.context.rig.setMicrophoneMediaStream(null);
+          rigManager.setPeerMicMediaStream(null, peerConnection.connectionId);
           audio.srcObject = null;
         });
       }
@@ -753,4 +773,26 @@ planet.connect = async (rn, {online = true} = {}) => {
   return s;
 }; */
 
-// planet.connect('lol');
+window.addEventListener('load', () => {
+  const button = document.getElementById('connectButton');
+  if (button) {
+    document.getElementById('connectButton').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (channelConnectionOpen) {
+        button.innerHTML = `
+          <i class="fal fa-wifi"></i>
+          <div class=label>Connect</div>
+        `;
+        channelConnection.close();
+        channelConnectionOpen = false;
+      } else {
+        planet.connect('lol');
+        button.innerHTML = `
+          <i class="fal fa-wifi-slash"></i>
+          <div class=label>Disconnect</div>
+        `;
+      }
+    })
+  }
+})

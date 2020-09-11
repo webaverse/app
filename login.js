@@ -150,8 +150,6 @@ async function tryLogin() {
 
   const userButton = document.getElementById('user-button');
   const userDetails = document.getElementById('user-details');
-  const unwearButton = document.getElementById('unwear-button');
-  const avatarName = document.getElementById('avatar-name');
   const loginEmail = document.getElementById('login-email');
   const loginVerificationCode = document.getElementById('login-verification-code');
   const loginNotice = document.getElementById('login-notice');
