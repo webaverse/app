@@ -43,20 +43,9 @@ import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import { storageHost } from './constants.js'
 import flow from './flow/flow.js';
-/* import sdk from './flow/flow.sdk.module.js';
-import t from './flow/types.module.js';
-import flowCrypto from './flow/crypto.module.js';
-import flowSigningFunction from './flow/signing-function.module.js'; */
 import flowConstants from './flow-constants.js';
-/* window.sdk = sdk;
-window.t = t;
-window.flowCrypto = flowCrypto;
-window.flowSigningFunction = flowSigningFunction; */
-window.flow = flow;
-window.flowConstants = flowConstants;
 
-// const hex2Uint8Array = hexString => new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-function uint8Array2hex(uint8Array) { // buffer is an ArrayBuffer
+function uint8Array2hex(uint8Array) {
   return Array.prototype.map.call(uint8Array, x => ('00' + x.toString(16)).slice(-2)).join('');
 }
 const isSealed = tx => tx.status >= 4;
