@@ -474,7 +474,7 @@ window.createAccount = async () => {
         // It must be run with the account that has the minter resource
         // stored in /storage/NFTMinter
 
-        transaction(recipient: Address) {
+        transaction(hash: String, recipient: Address) {
             
             // local variable for storing the minter reference
             let minter: &ExampleNFT.NFTMinter
@@ -497,11 +497,12 @@ window.createAccount = async () => {
                     ?? panic("Could not get receiver reference to the NFT Collection")
 
                 // Mint the NFT and deposit it to the recipient's collection
-                self.minter.mintNFT(recipient: receiver)
+                self.minter.mintNFT(hash: hash, recipient: receiver)
             }
         }
       `,
       sdk.args([
+        sdk.arg('lol', t.String),
         sdk.arg('0x' + userKeys.address, t.Address),
       ]),
     ]), [
@@ -517,6 +518,75 @@ window.createAccount = async () => {
     const response2 = await _waitForTx(response.transactionId);
     console.log('got response 16', response2);
     nft = parseInt(response2.transaction.events[0].payload.value.fields[0].value.value);
+  }
+  {
+    const acctResponse = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.getAccount(nftContractKeys.address),
+    ]), [
+      sdk.resolve([
+        sdk.resolveParams,
+      ]),
+    ]), { node: flowConstants.host });
+    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+
+    const signingFunction = flowSigningFunction.signingFunction(nftContractKeys.privateKey);
+
+    const response = await sdk.send(await sdk.pipe(await sdk.build([
+      sdk.authorizations([sdk.authorization(nftContractKeys.address, signingFunction, 0)]),
+      sdk.payer(sdk.authorization(nftContractKeys.address, signingFunction, 0)),
+      sdk.proposer(sdk.authorization(nftContractKeys.address, signingFunction, 0, seqNum)),
+      sdk.limit(100),
+      sdk.transaction`
+        import NonFungibleToken from ${flowConstants.NonFungibleToken}
+        import ExampleNFT from 0x${nftContractKeys.address}
+
+        // This script uses the NFTMinter resource to mint a new NFT
+        // It must be run with the account that has the minter resource
+        // stored in /storage/NFTMinter
+
+        transaction(hash: String, recipient: Address) {
+            
+            // local variable for storing the minter reference
+            let minter: &ExampleNFT.NFTMinter
+
+            prepare(signer: AuthAccount) {
+
+                // borrow a reference to the NFTMinter resource in storage
+                self.minter = signer.borrow<&ExampleNFT.NFTMinter>(from: /storage/NFTMinter)
+                    ?? panic("Could not borrow a reference to the NFT minter")
+            }
+
+            execute {
+                // Get the public account object for the recipient
+                let recipient = getAccount(recipient)
+
+                // Borrow the recipient's public NFT collection reference
+                let receiver = recipient
+                    .getCapability(/public/NFTCollection)!
+                    .borrow<&{NonFungibleToken.CollectionPublic}>()
+                    ?? panic("Could not get receiver reference to the NFT Collection")
+
+                // Mint the NFT and deposit it to the recipient's collection
+                self.minter.mintNFT(hash: hash, recipient: receiver)
+            }
+        }
+      `,
+      sdk.args([
+        sdk.arg('lol', t.String),
+        sdk.arg('0x' + userKeys.address, t.Address),
+      ]),
+    ]), [
+      sdk.resolve([
+        sdk.resolveArguments,
+        sdk.resolveParams,
+        sdk.resolveAccounts,
+        sdk.resolveRefBlockId({ node: flowConstants.host }),
+        sdk.resolveSignatures,
+      ]),
+    ]), { node: flowConstants.host });
+    console.log('got response 15 X', response);
+    const response2 = await _waitForTx(response.transactionId);
+    console.log('got response 16 X', response2);
   }
   // transfer nft
   {
