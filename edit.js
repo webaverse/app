@@ -2033,12 +2033,16 @@ const geometryWorker = (() => {
       const numSubparcels = m.pullU32();
       // console.log('num subparcels add', numSubparcels);
       for (let i = 0; i < numSubparcels; i++) {
-        const positionsFreeEntry = m.pullU32();
-        const uvsFreeEntry = m.pullU32();
-        const idsFreeEntry = m.pullU32();
-        const indicesFreeEntry = m.pullU32();
-        const skyLightsFreeEntry = m.pullU32();
-        const torchLightsFreeEntry = m.pullU32();
+        const subparcelOffset = m.pullU32();
+        const [landArenaSpec, vegetationArenaSpec, thingArenaSpec] = geometryWorker.getSubparcelArenaSpec(subparcelOffset);
+        const {
+          positionsFreeEntry,
+          uvsFreeEntry,
+          idsFreeEntry,
+          indicesFreeEntry,
+          skyLightsFreeEntry,
+          torchLightsFreeEntry,
+        } = vegetationArenaSpec;
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -2110,12 +2114,16 @@ const geometryWorker = (() => {
     }, m => {
       const numSubparcels = m.pullU32();
       for (let i = 0; i < numSubparcels; i++) {
-        const positionsFreeEntry = m.pullU32();
-        const uvsFreeEntry = m.pullU32();
-        const idsFreeEntry = m.pullU32();
-        const indicesFreeEntry = m.pullU32();
-        const skyLightsFreeEntry = m.pullU32();
-        const torchLightsFreeEntry = m.pullU32();
+        const subparcelOffset = m.pullU32();
+        const [landArenaSpec, vegetationArenaSpec, thingArenaSpec] = geometryWorker.getSubparcelArenaSpec(subparcelOffset);
+        const {
+          positionsFreeEntry,
+          uvsFreeEntry,
+          idsFreeEntry,
+          indicesFreeEntry,
+          skyLightsFreeEntry,
+          torchLightsFreeEntry,
+        } = vegetationArenaSpec;
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -2183,7 +2191,6 @@ const geometryWorker = (() => {
       const numSubparcels = m.pullU32();
       for (let i = 0; i < numSubparcels; i++) {
         const subparcelOffset = m.pullU32();
-
         const [landArenaSpec, vegetationArenaSpec, thingArenaSpec] = geometryWorker.getSubparcelArenaSpec(subparcelOffset);
         const {
           positionsFreeEntry,
