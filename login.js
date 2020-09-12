@@ -118,6 +118,8 @@ async function tryLogin() {
           <div class="avatar-name" id=avatar-name></div>
           <h3>Upload Avatar</h3>
           <input type='file' id="userAvatarInput">
+          <h3>Unload Avatar</h3>
+          <button id="unloadAvatar">Unload</button>
           <nav class="button" style="display: none;" id=unwear-button>Unwear</nav>
         </div>
       </nav>
@@ -146,6 +148,12 @@ async function tryLogin() {
     if (file) {
       reader.readAsArrayBuffer(file);
     }
+  })
+
+  document.getElementById('unloadAvatar').addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    loginManager.setAvatar(null);
   })
 
   const userButton = document.getElementById('user-button');
