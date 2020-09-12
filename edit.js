@@ -4960,7 +4960,8 @@ let lastTimestamp = performance.now();
 let raycastChunkSpec = null;
 const startTime = Date.now();
 function animate(timestamp, frame) {
-  const timeDiff = 30 / 1000;// Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+  timestamp = timestamp || performance.now();
+  const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
 
   const now = Date.now();
@@ -5157,7 +5158,7 @@ function animate(timestamp, frame) {
 
     rigManager.setLocalRigMatrix(null); */
   } else if (document.pointerLockElement) {
-    const speed = 30 * (keys.shift ? 3 : 1);
+    const speed = 100 * (keys.shift ? 3 : 1);
     const cameraEuler = camera.rotation.clone();
     cameraEuler.x = 0;
     cameraEuler.z = 0;
