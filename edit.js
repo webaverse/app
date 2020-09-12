@@ -6516,9 +6516,9 @@ window.addEventListener('mousedown', e => {
   }
 });
 window.addEventListener('mouseup', e => {
-  if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
+  /* if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
     // pe.grabtriggerup('right');
-  }
+  } */
   currentWeaponDown = false;
   currentTeleport = false;
 });
