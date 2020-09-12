@@ -5772,7 +5772,6 @@ function animate(timestamp, frame) {
           case 'select': {
             if (raycastChunkSpec) {
               if (raycastChunkSpec.objectId !== 0) {
-                console.log('click select', raycastChunkSpec, detailsMesh);
                 detailsMesh.position.copy(raycastChunkSpec.point);
                 localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
                   new THREE.Vector3(0, 0, -1),
