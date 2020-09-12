@@ -5100,8 +5100,10 @@ function animate(timestamp, frame) {
       );
     } else {
       velocity.y = 0;
-      _collideItems(xrCamera.matrix);
-      _collideChunk(xrCamera.matrix);
+      localMatrix.copy(xrCamera.matrix)
+        .premultiply(dolly.matrix);
+      _collideItems(localMatrix);
+      _collideChunk(localMatrix);
       rigManager.setLocalRigMatrix(null);
     }
     /* const leftInputSource = inputSources.find(inputSource => inputSource.handedness === 'left');
