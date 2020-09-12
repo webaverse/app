@@ -4904,10 +4904,6 @@ const _collideItems = matrix => {
     }
     itemMesh.update(localVector5.copy(localVector3).applyMatrix4(localMatrix2.getInverse(currentChunkMesh.matrixWorld)));
   }
-  
-  /* scene.children.sort((a, b) => {
-    return b.isItemMesh - a.isItemMesh;
-  }); */
 
   for (const animal of animals) {
     if (!animal.isHeadAnimating()) {
