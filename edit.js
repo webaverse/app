@@ -4649,21 +4649,35 @@ const hpMesh = (() => {
 })();
 scene.add(hpMesh);
 
-const uiMesh = makeUiFullMesh(scene);
-scene.add(uiMesh);
+/* const uiMesh = makeUiFullMesh(scene);
+scene.add(uiMesh); */
 
-const toolsMesh = makeToolsMesh([
-  'hand',
-  'rifle',
-  'grenade',
-  'build',
-  'pickaxe',
-  'light',
-  'pencil',
-  'paintbrush',
-  'select',
-  'physics',
-]);
+let selectedWeapon = 'hand';
+let currentWeaponDown = false;
+let lastWeaponDown = false;
+const weapons = Array.from(document.querySelectorAll('.weapon'));
+for (let i = 0; i < weapons.length; i++) {
+  const weapon = document.getElementById('weapon-' + (i + 1));
+  weapon.addEventListener('click', e => {
+    for (let i = 0; i < weapons.length; i++) {
+      weapons[i].classList.remove('selected');
+    }
+    weapon.classList.add('selected');
+
+    selectedWeapon = weapon.getAttribute('weapon');
+    buildMode = null;
+  });
+}
+document.addEventListener('pointerlockchange', e => {
+  if (!document.pointerLockElement) {
+    tools.find(tool => tool.matches('.tool[tool=camera]')).click();
+  }
+});
+
+const toolsMesh = makeToolsMesh(weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
+  selectedWeapon = newSelectedWeapon;
+  buildMode = null;
+});
 toolsMesh.visible = false;
 scene.add(toolsMesh);
 
@@ -4895,8 +4909,8 @@ const _collideItems = matrix => {
   hpMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
   hpMesh.quaternion.slerp(localQuaternion2, 0.1);
 
-  uiMesh.position.copy(localVector3).add(localVector5.set(-0.3, -0.1, -0.5).applyQuaternion(localQuaternion2));
-  uiMesh.quaternion.copy(localQuaternion2);
+  // uiMesh.position.copy(localVector3).add(localVector5.set(-0.3, -0.1, -0.5).applyQuaternion(localQuaternion2));
+  // uiMesh.quaternion.copy(localQuaternion2);
 
   // toolsMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, -0.25, -0.5).applyQuaternion(localQuaternion2)), 0.1);
   // toolsMesh.quaternion.slerp(localQuaternion2, 0.1);
@@ -4991,7 +5005,7 @@ function animate(timestamp, frame) {
   }
   skybox2 && skybox2.update();
   crosshairMesh && crosshairMesh.update();
-  uiMesh && uiMesh.update();
+  // uiMesh && uiMesh.update();
   
   const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
   if (currentSession) {
@@ -6296,27 +6310,6 @@ for (let i = 0; i < tools.length; i++) {
     }
   });
 }
-let selectedWeapon = 'hand';
-let currentWeaponDown = false;
-let lastWeaponDown = false;
-const weapons = Array.from(document.querySelectorAll('.weapon'));
-for (let i = 0; i < weapons.length; i++) {
-  const weapon = document.getElementById('weapon-' + (i + 1));
-  weapon.addEventListener('click', e => {
-    for (let i = 0; i < weapons.length; i++) {
-      weapons[i].classList.remove('selected');
-    }
-    weapon.classList.add('selected');
-
-    selectedWeapon = weapon.getAttribute('weapon');
-    buildMode = null;
-  });
-}
-document.addEventListener('pointerlockchange', e => {
-  if (!document.pointerLockElement) {
-    tools.find(tool => tool.matches('.tool[tool=camera]')).click();
-  }
-});
 
 const keys = {
   up: false,
@@ -6601,7 +6594,7 @@ const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   /* const candidateMeshes = pe.children
     .map(p => p.volumeMesh)
     .filter(o => !!o); */
-  uiMesh.intersect(raycaster);
+  // uiMesh.intersect(raycaster);
 };
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
@@ -6639,12 +6632,9 @@ renderer.domElement.addEventListener('mousemove', e => {
   } */
 });
 
-renderer.domElement.addEventListener('mousedown', e => {
-  /* if (!transformControlsHovered) {
-    _setSelectTarget(hoverTarget);
-  } */
+/* renderer.domElement.addEventListener('mousedown', e => {
   uiMesh.click();
-});
+}); */
 
 window.addEventListener('resize', e => {
   if (!currentSession) {

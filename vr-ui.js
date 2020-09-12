@@ -899,7 +899,7 @@ const makeUiFullMesh = scene => {
   };
   return wrap;
 };
-const makeToolsMesh = tools => {
+const makeToolsMesh = (tools, selectTool) => {
   const geometry = new THREE.PlaneBufferGeometry(1, 0.2)
     // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
   const canvas = document.createElement('canvas');
@@ -967,6 +967,8 @@ const makeToolsMesh = tools => {
       selectedWeapon = tools[0];
     }
     if (selectedWeapon !== lastSelectedWeapon) {
+      selectTool(selectedWeapon);
+      
       const htmlString = _makeToolsString(tools, selectedWeapon);
       uiRenderer.render(htmlString, canvas.width, canvas.height)
         .then(result => {
