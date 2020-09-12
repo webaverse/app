@@ -12,7 +12,7 @@ import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
-import {makeUiFullMesh, makeTextMesh, makeToolsMesh} from './vr-ui.js';
+import {/*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import {makeAnimalFactory} from './animal.js';
 import {
@@ -4678,6 +4678,10 @@ const toolsMesh = makeToolsMesh(weapons.map(weapon => weapon.getAttribute('weapo
 toolsMesh.visible = false;
 scene.add(toolsMesh);
 
+const detailsMesh = makeDetailsMesh();
+detailsMesh.visible = false;
+scene.add(detailsMesh);
+
 const numSmokes = 10;
 const numZs = 10;
 const explosionCubeGeometry = new THREE.BoxBufferGeometry(0.04, 0.04, 0.04);
@@ -5768,12 +5772,22 @@ function animate(timestamp, frame) {
           case 'select': {
             if (raycastChunkSpec) {
               if (raycastChunkSpec.objectId !== 0) {
-                const thingFile = thingFiles[raycastChunkSpec.objectId];
+                console.log('click select', raycastChunkSpec, detailsMesh);
+                detailsMesh.position.copy(raycastChunkSpec.point);
+                localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
+                  new THREE.Vector3(0, 0, -1),
+                  detailsMesh.position.clone().sub(xrCamera.position).normalize()
+                ), 'YXZ');
+                localEuler.x = 0;
+                localEuler.z = 0;
+                detailsMesh.quaternion.setFromEuler(localEuler);
+                detailsMesh.visible = true;
+                /* const thingFile = thingFiles[raycastChunkSpec.objectId];
                 if (thingFile) {
                   rigManager.setLocalAvatarUrl(thingFile, () => {
                     console.log('local rig update');
                   }, console.warn);
-                }
+                } */
               }
             }
             break;
@@ -5809,47 +5823,49 @@ function animate(timestamp, frame) {
           }
         }
       }
-      
-      switch (selectedWeapon) {
-        case 'select': {
-          for (const material of currentChunkMesh.material) {
-            material.uniforms.uSelectRange.value.set(NaN, NaN, NaN, NaN);
-            material.uniforms.uSelectRange.needsUpdate = true;
-          }
-          currentVegetationMesh.material[0].uniforms.uSelectId.value = -1;
-          currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-          currentThingMesh.material[0].uniforms.uSelectId.value = -1;
-          currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-          for (const drawThingMesh of meshDrawer.thingMeshes) {
-            drawThingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
-            drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
-          }
 
-          if (raycastChunkSpec) {
-            if (raycastChunkSpec.objectId === 0) {
-              for (const material of currentChunkMesh.material) {
-                const minX = Math.floor(raycastChunkSpec.point.x / SUBPARCEL_SIZE);
-                const minY = Math.floor(raycastChunkSpec.point.z / SUBPARCEL_SIZE);
-                const maxX = minX + 1;
-                const maxY = minY + 1;
-                material.uniforms.uSelectRange.value.set(minX, minY, maxX, maxY).multiplyScalar(SUBPARCEL_SIZE);
-                material.uniforms.uSelectRange.needsUpdate = true;
-              }
-            } else {
-              currentVegetationMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
-              currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-              currentThingMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
-              currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+      // select
+      if (currentChunkMesh) {
+        for (const material of currentChunkMesh.material) {
+          material.uniforms.uSelectRange.value.set(NaN, NaN, NaN, NaN);
+          material.uniforms.uSelectRange.needsUpdate = true;
+        }
+        currentVegetationMesh.material[0].uniforms.uSelectId.value = -1;
+        currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+        currentThingMesh.material[0].uniforms.uSelectId.value = -1;
+        currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+        for (const drawThingMesh of meshDrawer.thingMeshes) {
+          drawThingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
+          drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
+        }
+        switch (selectedWeapon) {
+          case 'select': {
+            if (raycastChunkSpec) {
+              if (raycastChunkSpec.objectId === 0) {
+                for (const material of currentChunkMesh.material) {
+                  const minX = Math.floor(raycastChunkSpec.point.x / SUBPARCEL_SIZE);
+                  const minY = Math.floor(raycastChunkSpec.point.z / SUBPARCEL_SIZE);
+                  const maxX = minX + 1;
+                  const maxY = minY + 1;
+                  material.uniforms.uSelectRange.value.set(minX, minY, maxX, maxY).multiplyScalar(SUBPARCEL_SIZE);
+                  material.uniforms.uSelectRange.needsUpdate = true;
+                }
+              } else {
+                currentVegetationMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
+                currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+                currentThingMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
+                currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
 
-              const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
-              if (index !== -1) {
-                const drawThingMesh = meshDrawer.thingMeshes[index];
-                drawThingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
-                drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
+                const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
+                if (index !== -1) {
+                  const drawThingMesh = meshDrawer.thingMeshes[index];
+                  drawThingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
+                  drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
+                }
               }
             }
+            break;
           }
-          break;
         }
       }
     }

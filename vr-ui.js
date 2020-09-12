@@ -685,6 +685,45 @@ const _makeToolsString = (tools, selectedWeapon) => {
 </div>
 `;
 };
+const _makeDetailsString = () => {
+  const w = uiSize;
+  const h = uiSize*0.5;
+
+  return `\
+<style>
+* {
+  box-sizing: border-box;
+}
+.body {
+  display: flex;
+  width: ${w}px;
+  height: ${h}px;
+  background-color: #FFF;
+  border-left: ${w/10}px solid #ff7043;
+  font-family: 'Bangers';
+}
+.wrap {
+  display: flex;
+  padding-left: ${w/30}px;
+  flex-direction: column;
+}
+h1 {
+  margin: 30px 0;
+  font-size: 200px;
+}
+p {
+  margin: 30px 0;
+  font-size: 100px;
+}
+</style>
+<div class=body>
+  <div class=wrap>
+    <h1>Details</h1>
+    <p>Lorem ipsum</p>
+  </div>
+</div>
+`;
+};
 const makeUiMesh = (label, tiles, onclick) => {
   const geometry = new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
@@ -926,10 +965,10 @@ const makeToolsMesh = (tools, selectTool) => {
     alphaTest: 0.7,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.visible = false;
+  // mesh.visible = false;
   mesh.frustumCulled = false;
 
-  const highlightMesh = (() => {
+  /* const highlightMesh = (() => {
     const geometry = new THREE.BoxBufferGeometry(1, 1, 0.001);
     const material = new THREE.MeshBasicMaterial({
       color: 0x42a5f5,
@@ -942,7 +981,7 @@ const makeToolsMesh = (tools, selectTool) => {
     return mesh;
   })();
   mesh.add(highlightMesh);
-  mesh.highlightMesh = highlightMesh;
+  mesh.highlightMesh = highlightMesh; */
 
   // let anchors = [];
   let selectedWeapon = null;
@@ -975,7 +1014,7 @@ const makeToolsMesh = (tools, selectTool) => {
           imageData.data.set(result.data);
           ctx.putImageData(imageData, 0, 0);
           texture.needsUpdate = true;
-          mesh.visible = true;
+          // mesh.visible = true;
 
           // anchors = result.anchors;
           // console.log(anchors);
@@ -991,12 +1030,80 @@ const makeToolsMesh = (tools, selectTool) => {
 
   return mesh;
 };
+const makeDetailsMesh = () => {
+  const geometry = new THREE.PlaneBufferGeometry(1, 0.5)
+    // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
+  const canvas = document.createElement('canvas');
+  canvas.width = uiSize;
+  canvas.height = uiSize*0.5;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  const texture = new THREE.Texture(
+    canvas,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.LinearFilter,
+    THREE.LinearMipMapLinearFilter,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16,
+    THREE.LinearEncoding,
+  );
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    transparent: true,
+    alphaTest: 0.7,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  // mesh.visible = false;
+  mesh.frustumCulled = false;
+
+  /* const highlightMesh = (() => {
+    const geometry = new THREE.BoxBufferGeometry(1, 1, 0.001);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x42a5f5,
+      transparent: true,
+      opacity: 0.5,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    return mesh;
+  })();
+  mesh.add(highlightMesh);
+  mesh.highlightMesh = highlightMesh; */
+
+  // let anchors = [];
+  mesh.update = () => {
+    const htmlString = _makeDetailsString();
+    uiRenderer.render(htmlString, canvas.width, canvas.height)
+      .then(result => {
+        imageData.data.set(result.data);
+        ctx.putImageData(imageData, 0, 0);
+        texture.needsUpdate = true;
+        // mesh.visible = true;
+
+        // anchors = result.anchors;
+        // console.log(anchors);
+      });
+  };
+  /* mesh.getAnchors = () => anchors;
+  mesh.click = anchor => {
+    console.log('got anchor', anchor);
+  }; */
+  mesh.update();
+
+  return mesh;
+};
 
 export {
   makeUiMesh,
   makeUiFullMesh,
   makeTextMesh,
   makeToolsMesh,
+  makeDetailsMesh,
   /* makeWristMenu,
   makeHighlightMesh,
   makeRayMesh, */
