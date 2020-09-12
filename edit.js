@@ -3520,13 +3520,13 @@ const MeshDrawer = (() => {
 
       const startPoint = this.lastPosition;
       const endPoint = p;
-      const quaterion = localQuaternion.setFromUnitVectors(
+      const quaternion = localQuaternion.setFromUnitVectors(
         localVector.set(0, 0, -1),
         localVector2.copy(endPoint).sub(startPoint).normalize(),
       );
       const midpoint = localVector.copy(startPoint).add(endPoint).divideScalar(2);
       const scale = localVector2.set(0.01, 0.01, startPoint.distanceTo(endPoint));
-      const matrix = localMatrix.compose(midpoint, quaterion, scale);
+      const matrix = localMatrix.compose(midpoint, quaternion, scale);
 
       const oldNumPositions = this.numPositions;
 
@@ -5384,7 +5384,7 @@ function animate(timestamp, frame) {
     orbitControls.enabled = selectedTool === 'camera' && !['pencil', 'paintbrush', 'physics'].includes(selectedWeapon);
 
     if (currentChunkMesh && geometryWorker) {
-      const result = geometryWorker.raycast(tracker, localVector, localQuaternion);
+      const result = geometryWorker.raycast(tracker, rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion);
       raycastChunkSpec = result;
       if (raycastChunkSpec) {
         raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
