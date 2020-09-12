@@ -4895,7 +4895,7 @@ const _collideItems = matrix => {
     if (itemMesh.getWorldPosition(localVector5).distanceTo(localVector4) < 1) {
       itemMesh.pickUp();
     }
-    itemMesh.update(localVector5.copy(localVector3).applyMatrix4(localMatrix2.getInverse(currentChunkMesh.matrixWorld)));
+    itemMesh.update(localVector3);
   }
 
   for (const animal of animals) {
