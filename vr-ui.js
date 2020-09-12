@@ -4,8 +4,8 @@ import {TextMesh} from './textmesh-standalone.esm.js';
 import easing from './easing.js';
 
 const localVector = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
 const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
 
 const cubicBezier = easing(0, 1, 0, 1);
 
