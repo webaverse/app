@@ -634,19 +634,7 @@ h1, h2, h3 {
 </div>
 `;
 };
-const _makeToolsString = () => {
-  const tools = [
-    'hand',
-    'rifle',
-    'grenade',
-    'build',
-    'pickaxe',
-    'light',
-    'pencil',
-    'paintbrush',
-    'select',
-    'physics',
-  ];
+const _makeToolsString = (tools, selectedWeapon) => {
   const w = uiSize/tools.length;
   const h = uiSize*uiWorldSize;
   const margin = w/10;
@@ -688,8 +676,8 @@ const _makeToolsString = () => {
 }
 </style>
 <div class=body>
-  ${tools.map((tool, i) => `\
-    <a class="tool ${i === 0 ? 'selected' : ''}" id=tool-${tool}>
+  ${tools.map(tool => `\
+    <a class="tool ${tool === selectedWeapon ? 'selected' : ''}" id=tool-${tool}>
       <div class=img></div>
       <div class=text>${tool}</div>
     </a>
@@ -911,7 +899,7 @@ const makeUiFullMesh = scene => {
   };
   return wrap;
 };
-const makeToolsMesh = () => {
+const makeToolsMesh = tools => {
   const geometry = new THREE.PlaneBufferGeometry(1, 0.2)
     // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
   const canvas = document.createElement('canvas');
@@ -956,29 +944,48 @@ const makeToolsMesh = () => {
   mesh.add(highlightMesh);
   mesh.highlightMesh = highlightMesh;
 
-  let anchors = [];
-  mesh.update = () => {
-    const htmlString = _makeToolsString();
-    uiRenderer.render(htmlString, canvas.width, canvas.height)
-      .then(result => {
-        imageData.data.set(result.data);
-        ctx.putImageData(imageData, 0, 0);
-        texture.needsUpdate = true;
-        mesh.visible = true;
+  // let anchors = [];
+  let selectedWeapon = null;
+  let lastSelectedWeapon = null;
+  mesh.update = position => {
+    if (position) {
+      const toolPositions = tools.map((tool, i) =>
+        mesh.position.clone()
+          .add(new THREE.Vector3(-1/2 + 1/tools.length/2 + i/tools.length, 0, 0).applyQuaternion(mesh.quaternion))
+      );
+      let closestToolIndex = 0;
+      let closestToolDistance = toolPositions[0].distanceTo(position);
+      for (let i = 1; i < tools.length; i++) {
+        const distance = toolPositions[i].distanceTo(position);
+        if (distance < closestToolDistance) {
+          closestToolIndex = i;
+          closestToolDistance = distance;
+        }
+      }
+      selectedWeapon = tools[closestToolIndex];
+    } else {
+      selectedWeapon = tools[0];
+    }
+    if (selectedWeapon !== lastSelectedWeapon) {
+      const htmlString = _makeToolsString(tools, selectedWeapon);
+      uiRenderer.render(htmlString, canvas.width, canvas.height)
+        .then(result => {
+          imageData.data.set(result.data);
+          ctx.putImageData(imageData, 0, 0);
+          texture.needsUpdate = true;
+          mesh.visible = true;
 
-        anchors = result.anchors;
-        // console.log(anchors);
-      });
+          // anchors = result.anchors;
+          // console.log(anchors);
+        });
+    }
+    lastSelectedWeapon = selectedWeapon;
   };
-  mesh.getAnchors = () => anchors;
+  /* mesh.getAnchors = () => anchors;
   mesh.click = anchor => {
     console.log('got anchor', anchor);
-    /* const match = anchor.id.match(/^tile-([0-9]+)-([0-9]+)$/);
-    const i = parseInt(match[1], 10);
-    const j = parseInt(match[2], 10);
-    onclick(tiles[i][j]); */
-  };
-  mesh.update();
+  }; */
+  mesh.update(null);
 
   return mesh;
 };
