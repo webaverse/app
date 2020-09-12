@@ -705,7 +705,37 @@ const _makeDetailsString = () => {
 .wrap {
   display: flex;
   padding-left: ${w/30}px;
+  flex: 1;
   flex-direction: column;
+}
+.buttons {
+  display: flex;
+  flex-direction: column;
+}
+.buttons .button {
+  display: flex;
+  width: 400px;
+  height: 400px;
+  margin: 50px;
+  border: 10px solid #000;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 100px;
+}
+.header {
+  display: flex;
+  flex-direction: column;
+}
+.close-button {
+  display: flex;
+  width: 200px;
+  height: 200px;
+  background-color: #000;
+  color: #FFF;
+  justify-content: center;
+  align-items: center;
+  font-size: 100px;
 }
 h1 {
   margin: 30px 0;
@@ -720,6 +750,13 @@ p {
   <div class=wrap>
     <h1>Details</h1>
     <p>Lorem ipsum</p>
+  </div>
+  <div class=buttons>
+    <div class=button>Run</div>
+    <div class=button>Add to inventory</div>
+  </div>
+  <div class=header>
+    <div class=close-button>X</div>
   </div>
 </div>
 `;
