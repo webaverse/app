@@ -295,13 +295,6 @@ const _addItem = (position, quaternion) => {
     skirtMesh.frustumCulled = false;
     skirtMesh.isBuildMesh = true;
     object.add(skirtMesh);
-    object.isItemMesh = true;
-    /* skirtMesh.onBeforeRender = () => {
-      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    };
-    skirtMesh.onAfterRender = () => {
-      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
-    }; */
 
     let animation = null;
     object.pickUp = () => {
