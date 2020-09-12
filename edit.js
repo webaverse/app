@@ -48,7 +48,7 @@ const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Ve
 const pid4 = Math.PI / 4;
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.3);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.3);
-const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
+// const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
 const baseHeight = PARCEL_SIZE / 2 - 10;
 const thingTextureSize = 4096;
