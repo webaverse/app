@@ -121,10 +121,10 @@ orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, camera.posit
 orbitControls.update();
 
 loginManager.addEventListener('avatarchange', async (e) => {
-  if(e.data) {
+  if (e.data) {
     rigManager.setLocalAvatarUrl(`${storageHost}/${e.data}`);
   } else {
-    rigManager.addLocalRig();
+    rigManager.addLocalRig(null);
   }
 })
 
