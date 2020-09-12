@@ -5594,18 +5594,20 @@ function animate(timestamp, frame) {
           const mineSpecs = _applyMineSpec(localVector2, delta, 'lightfield', SUBPARCEL_SIZE_P1, planet.getFieldIndex, delta);
           await _mine(mineSpecs, null);
         };
-        const _hit = () => {
+        const _applyHit = delta => {
           if (raycastChunkSpec) {
             if (raycastChunkSpec.objectId === 0) {
               localVector2.copy(raycastChunkSpec.point)
                 .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
 
-              geometryWorker.requestMine(tracker, localVector2, -0.3);
+              geometryWorker.requestMine(tracker, localVector2, delta);
             } else {
               currentVegetationMesh.hitTracker.hit(raycastChunkSpec.objectId, raycastChunkSpec.objectPosition, raycastChunkSpec.objectQuaternion, 30);
             }
           }
         };
+        const _hit = () => _applyHit(-0.3);
+        const _unhit = () => _applyHit(0.3);
         const _light = () => {
           if (raycastChunkSpec) {
             localVector2.copy(raycastChunkSpec.point)
@@ -5676,9 +5678,7 @@ function animate(timestamp, frame) {
             break;
           }
           case 'build': {
-            if (addMesh.visible) {
-              _applyPotentialDelta(addMesh.position, 0.3);
-            }
+            _unhit();
             break;
           }
           case 'pickaxe': {
