@@ -5062,7 +5062,7 @@ function animate(timestamp, frame) {
           ) {
             _applyRotation(-Math.PI * 0.2);
           }
-          lastTeleport = (axes[1] < -0.5 || axes[3] < -0.5);
+          lastTeleport = (axes[1] < -0.9 || axes[3] < -0.9);
           
           if (
             buttons[2] >= 0.5 && lastButtons[index][2] < 0.5 &&
