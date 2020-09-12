@@ -816,11 +816,12 @@ const geometryWorker = (() => {
     }
   }
 
+  const maxNumMessageArgs = 32;
   const messageSize =
     Int32Array.BYTES_PER_ELEMENT + // id
     Int32Array.BYTES_PER_ELEMENT + // method
     Int32Array.BYTES_PER_ELEMENT + // priority
-    32*Uint32Array.BYTES_PER_ELEMENT; // args
+    maxNumMessageArgs*Uint32Array.BYTES_PER_ELEMENT; // args
   const maxNumMessages = 1024;
   const callStackSize = maxNumMessages * messageSize;
   class CallStackMessage {
@@ -1235,7 +1236,7 @@ const geometryWorker = (() => {
       {
         const textureOffset = m.pullU32();
         if (textureOffset) {
-          console.log('got texture update', textureOffset);
+          // console.log('got texture update', textureOffset);
           const textureData = new Uint8Array(moduleInstance.HEAP8.buffer, textureOffset, thingTextureSize * thingTextureSize * 4);
           currentThingMesh.updateTexture(textureData);
         }
@@ -1812,6 +1813,70 @@ const geometryWorker = (() => {
       grounded: !!scratchStack.u32[18],
     } : null;
   };
+  w.getSubparcelArenaSpec = subparcelOffset => {
+    const subparcelArenaSpecOffset = scratchStack.u32.byteOffset;
+    moduleInstance._getSubparcelArenaSpec(subparcelOffset, subparcelArenaSpecOffset);
+    const subparcelArenaSpecOffset32 = subparcelArenaSpecOffset/Uint32Array.BYTES_PER_ELEMENT;
+
+    let index = 0;
+    let landArenaSpec, vegetationArenaSpec, thingArenaSpec;
+    {
+      const positionsFreeEntry = scratchStack.u32[index++];
+      const normalsFreeEntry = scratchStack.u32[index++];
+      const uvsFreeEntry = scratchStack.u32[index++];
+      const aosFreeEntry = scratchStack.u32[index++];
+      const idsFreeEntry = scratchStack.u32[index++];
+      const skyLightsFreeEntry = scratchStack.u32[index++];
+      const torchLightsFreeEntry = scratchStack.u32[index++];
+
+      landArenaSpec = {
+        positionsFreeEntry,
+        normalsFreeEntry,
+        uvsFreeEntry,
+        aosFreeEntry,
+        idsFreeEntry,
+        skyLightsFreeEntry,
+        torchLightsFreeEntry,
+      };
+    }
+    {
+      const positionsFreeEntry = scratchStack.u32[index++];
+      const uvsFreeEntry = scratchStack.u32[index++];
+      const idsFreeEntry = scratchStack.u32[index++];
+      const indicesFreeEntry = scratchStack.u32[index++];
+      const skyLightsFreeEntry = scratchStack.u32[index++];
+      const torchLightsFreeEntry = scratchStack.u32[index++];
+
+      vegetationArenaSpec = {
+        positionsFreeEntry,
+        uvsFreeEntry,
+        idsFreeEntry,
+        indicesFreeEntry,
+        skyLightsFreeEntry,
+        torchLightsFreeEntry,
+      };
+    }
+    {
+      const positionsFreeEntry = scratchStack.u32[index++];
+      const uvsFreeEntry = scratchStack.u32[index++];
+      const atlasUvsFreeEntry = scratchStack.u32[index++];
+      const idsFreeEntry = scratchStack.u32[index++];
+      const indicesFreeEntry = scratchStack.u32[index++];
+      const skyLightsFreeEntry = scratchStack.u32[index++];
+      const torchLightsFreeEntry = scratchStack.u32[index++];
+
+      thingArenaSpec = {
+        positionsFreeEntry,
+        uvsFreeEntry,
+        atlasUvsFreeEntry,
+        idsFreeEntry,
+        indicesFreeEntry,
+        skyLightsFreeEntry,
+        torchLightsFreeEntry,
+      };
+    }
+    return [landArenaSpec, vegetationArenaSpec, thingArenaSpec];
+  };
   /* w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => {
     scratchStack.u8.set(peeksData, 0);
     for (let i = 0; i < groupsData.length; i++) {
@@ -2117,13 +2182,18 @@ const geometryWorker = (() => {
     }, m => {
       const numSubparcels = m.pullU32();
       for (let i = 0; i < numSubparcels; i++) {
-        const positionsFreeEntry = m.pullU32();
-        const normalsFreeEntry = m.pullU32();
-        const uvsFreeEntry = m.pullU32();
-        const aosFreeEntry = m.pullU32();
-        const idsFreeEntry = m.pullU32();
-        const skyLightsFreeEntry = m.pullU32();
-        const torchLightsFreeEntry = m.pullU32();
+        const subparcelOffset = m.pullU32();
+
+        const [landArenaSpec, vegetationArenaSpec, thingArenaSpec] = geometryWorker.getSubparcelArenaSpec(subparcelOffset);
+        const {
+          positionsFreeEntry,
+          normalsFreeEntry,
+          uvsFreeEntry,
+          aosFreeEntry,
+          idsFreeEntry,
+          skyLightsFreeEntry,
+          torchLightsFreeEntry,
+        } = landArenaSpec;
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -2174,6 +2244,7 @@ const geometryWorker = (() => {
           torchLightsCount,
         });
       }
+
       callStack.allocRequest(METHODS.releaseAddRemoveObject, true, m2 => {
         m2.pushU32(tracker);
         m2.pushU32(numSubparcels);
