@@ -5112,7 +5112,10 @@ function animate(timestamp, frame) {
         .decompose(localVector, localQuaternion, localVector2);
       if (!lastSelector) {
         toolsMesh.position.copy(localVector);
-        toolsMesh.quaternion.copy(localQuaternion);
+        localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        toolsMesh.quaternion.setFromEuler(localEuler);
       }
       toolsMesh.update(localVector);
       toolsMesh.visible = true;
