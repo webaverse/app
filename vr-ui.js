@@ -761,6 +761,123 @@ p {
 </div>
 `;
 };
+const _makeInventoryString = () => {
+  const margin = uiSize/2/40;
+  const w = (uiSize/2 - margin)/3;
+  const innerW = w - margin;
+  const _makeIcon = () => `\
+<div class=icon>
+  <div class="border top-left"></div>
+  <div class="border top-right"></div>
+  <div class="border bottom-left"></div>
+  <div class="border bottom-right"></div>
+</div>
+`;
+  return `\
+}
+<style>
+* {
+  box-sizing: border-box;
+}
+.body {
+  display: flex;
+  width: ${uiSize}px;
+  height: ${uiSize/2}px;
+  font-family: 'Bangers';
+}
+.arrow {
+  display: flex;
+  width: ${uiSize/2/10}px;
+  height: ${uiSize/2}px;
+  justify-content: center;
+  align-items: center;
+  background-color: #000;
+  color: #FFF;
+  font-size: 100px;
+}
+.icons {
+  display: flex;
+  width: ${uiSize/2}px;
+  height: ${uiSize/2}px;
+  padding-top: ${margin}px;
+  padding-left: ${margin}px;
+  flex-wrap: wrap;
+}
+.icon {
+  display: flex;
+  position: relative;
+  width: ${innerW}px;
+  height: ${innerW}px;
+  margin-right: ${margin}px;
+  margin-bottom: ${margin}px;
+}
+.border {
+  position: absolute;
+  width: ${innerW/4}px;
+  height: ${innerW/4}px;
+  border: ${innerW/20}px solid #111;
+}
+.border.top-left {
+  top: 0;
+  left: 0;
+  border-bottom: 0;
+  border-right: 0;
+}
+.border.top-right {
+  top: 0;
+  right: 0;
+  border-bottom: 0;
+  border-left: 0;
+}
+.border.bottom-left {
+  bottom: 0;
+  left: 0;
+  border-top: 0;
+  border-right: 0;
+}
+.border.bottom-right {
+  bottom: 0;
+  right: 0;
+  border-top: 0;
+  border-left: 0;
+}
+.details {
+  display: flex;
+  padding: 50px;
+  background-color: #FFF;
+  flex: 1;
+  flex-direction: column;
+}
+h1 {
+  margin: 10px 0;
+  font-size: 100px;
+}
+p {
+  margin: 10px 0;
+  font-size: 60px;
+}
+</style>
+<div class=body>
+  <div class=arrow>&lt;</div>
+  <div class=icons>
+    ${_makeIcon()}
+    ${_makeIcon()}
+    ${_makeIcon()}
+    ${_makeIcon()}
+    ${_makeIcon()}
+    ${_makeIcon()}
+    ${_makeIcon()}
+    ${_makeIcon()}
+    ${_makeIcon()}
+  </div>
+  <div class=arrow>&gt;</div>
+  <div class=details>
+    <h1>Details</h1>
+    <p>Lorem ipsum</p>
+  </div>
+</div>
+`;
+};
 const makeUiMesh = (label, tiles, onclick) => {
   const geometry = new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
@@ -1134,6 +1251,73 @@ const makeDetailsMesh = () => {
 
   return mesh;
 };
+const makeInventoryMesh = () => {
+  const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2/2)
+    // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
+  const canvas = document.createElement('canvas');
+  canvas.width = uiSize;
+  canvas.height = uiSize/2;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  const texture = new THREE.Texture(
+    canvas,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.LinearFilter,
+    THREE.LinearMipMapLinearFilter,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16,
+    THREE.LinearEncoding,
+  );
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    transparent: true,
+    alphaTest: 0.7,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  // mesh.visible = false;
+  mesh.frustumCulled = false;
+
+  /* const highlightMesh = (() => {
+    const geometry = new THREE.BoxBufferGeometry(1, 1, 0.001);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x42a5f5,
+      transparent: true,
+      opacity: 0.5,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    return mesh;
+  })();
+  mesh.add(highlightMesh);
+  mesh.highlightMesh = highlightMesh; */
+
+  // let anchors = [];
+  mesh.update = () => {
+    const htmlString = _makeInventoryString();
+    uiRenderer.render(htmlString, canvas.width, canvas.height)
+      .then(result => {
+        imageData.data.set(result.data);
+        ctx.putImageData(imageData, 0, 0);
+        texture.needsUpdate = true;
+        // mesh.visible = true;
+
+        // anchors = result.anchors;
+        // console.log(anchors);
+      });
+  };
+  /* mesh.getAnchors = () => anchors;
+  mesh.click = anchor => {
+    console.log('got anchor', anchor);
+  }; */
+  mesh.update();
+
+  return mesh;
+};
 
 export {
   makeUiMesh,
@@ -1141,6 +1325,7 @@ export {
   makeTextMesh,
   makeToolsMesh,
   makeDetailsMesh,
+  makeInventoryMesh,
   /* makeWristMenu,
   makeHighlightMesh,
   makeRayMesh, */

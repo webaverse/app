@@ -12,7 +12,7 @@ import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
-import {/*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh} from './vr-ui.js';
+import {/*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import {makeAnimalFactory} from './animal.js';
 import {
@@ -4682,6 +4682,10 @@ const detailsMesh = makeDetailsMesh();
 detailsMesh.visible = false;
 scene.add(detailsMesh);
 
+const inventoryMesh = makeInventoryMesh();
+// inventoryMesh.visible = false;
+scene.add(inventoryMesh);
+
 const numSmokes = 10;
 const numZs = 10;
 const explosionCubeGeometry = new THREE.BoxBufferGeometry(0.04, 0.04, 0.04);
@@ -4915,6 +4919,9 @@ const _collideItems = matrix => {
 
   // toolsMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, -0.25, -0.5).applyQuaternion(localQuaternion2)), 0.1);
   // toolsMesh.quaternion.slerp(localQuaternion2, 0.1);
+
+  inventoryMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0, -0.2).applyQuaternion(localQuaternion2)), 0.1);
+  inventoryMesh.quaternion.slerp(localQuaternion2, 0.1);
 
   localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
   for (let i = 0; i < itemMeshes.length; i++) {
