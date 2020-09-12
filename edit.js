@@ -2594,13 +2594,8 @@ const geometryWorker = (() => {
           (async () => {
             for (let i = 0; i < numAddedSubparcels; i++) {
               const subparcelOffset = moduleInstance.HEAP32[addedSubparcelsOffset / Uint32Array.BYTES_PER_ELEMENT + i];
-              // const x = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT];
-              // const y = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
-              // const z = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 2];
               const index = moduleInstance.HEAP32[subparcelOffset / Uint32Array.BYTES_PER_ELEMENT + 3];
               const uint8Array = await storage.getRawTemp(`subparcel:${index}`);
-              // console.log('got subarray', `subparcel:${index}`, uint8Array);
-              // console.log('subparcel update', index, uint8Array);
               moduleInstance._subparcelUpdate(
                 tracker,
                 threadPool,
@@ -4037,7 +4032,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   // const animalsTasks = [];
   const _updateCurrentPosition = position => {
     currentPosition.copy(position)
-      .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
+      .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld).premultiply(dolly.matrix));
     // `.log('current position', currentPosition.x);
   };
   /* const _updatePackages = () => {
@@ -4978,10 +4973,9 @@ function animate(timestamp, frame) {
   skybox2 && skybox2.update();
   crosshairMesh && crosshairMesh.update();
   uiMesh && uiMesh.update();
-
+  
+  const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
   if (currentSession) {
-    const xrCamera = renderer.xr.getCamera(camera);
-    
     const inputSources = Array.from(currentSession.inputSources);
     for (let i = 0; i < inputSources.length; i++) {
       const inputSource = inputSources[i];
@@ -5909,17 +5903,10 @@ function animate(timestamp, frame) {
   geometryWorker && geometryWorker.update();
   planet.update();
 
-  localMatrix.multiplyMatrices(camera.projectionMatrix, localMatrix2.multiplyMatrices(camera.matrixWorldInverse, worldContainer.matrixWorld));
+  localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, worldContainer.matrixWorld));
   if (currentChunkMesh && currentVegetationMesh) {
-    if (!currentSession) {
-      localMatrix3.copy(camera.matrixWorld)
-    } else {
-      const xrCamera = renderer.xr.getCamera(camera);
-      // xrCamera.matrix.decompose(localVector, localQuaternion, localVector2);
-      // console.log('tick cull', localVector.toArray());
-      localMatrix3.copy(xrCamera.matrix)
-    }
-    localMatrix3
+    localMatrix3.copy(xrCamera.matrix)
+      .premultiply(dolly.matrix)
       .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
       .decompose(localVector, localQuaternion, localVector2);
     // localVector.x += Math.sin(Date.now()/1000)*15;
