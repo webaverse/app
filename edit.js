@@ -4652,6 +4652,7 @@ const uiMesh = makeUiFullMesh(scene);
 scene.add(uiMesh);
 
 const toolsMesh = makeToolsMesh(scene);
+toolsMesh.visible = false;
 scene.add(toolsMesh);
 
 const numSmokes = 10;
