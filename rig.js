@@ -59,31 +59,36 @@ class RigManager {
     }
   }
 
-  async setLocalAvatarUrl(url) {
+  async addLocalRig(model) {
     await this.localRigQueue.lock();
+    this.scene.remove(this.localRig.model);
+    this.localRig = new Avatar(model, {
+      fingers: true,
+      hair: true,
+      visemes: true,
+      debug: model ? false : true,
+    });
+    this.scene.add(this.localRig.model);
+    await this.localRigQueue.unlock();
+  }
+
+  async setLocalAvatarUrl(url) {
     let o = null;
     try {
       o = await new Promise((accept, reject) => {
         new GLTFLoader().load(url, accept, xhr => {}, reject);
       });
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
-    o.scene.traverse(o => {
-      if (o.isMesh) {
-        o.frustumCulled = false;
-      }
-    });
-    this.scene.remove(this.localRig.model);
-    this.localRig = new Avatar(o, {
-      fingers: true,
-      hair: true,
-      visemes: true,
-      // decapitate: selectedTool === 'firstperson',
-    });
-    this.scene.add(this.localRig.model);
-
-    await this.localRigQueue.unlock();
+    if (o) {
+      o.scene.traverse(o => {
+        if (o.isMesh) {
+          o.frustumCulled = false;
+        }
+      });
+    }
+    this.addLocalRig(o);
   }
 
   async addPeerRig(peerId) {
