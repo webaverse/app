@@ -12,7 +12,7 @@ import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
-import {makeUiFullMesh, makeTextMesh} from './vr-ui.js';
+import {makeUiFullMesh, makeTextMesh, makeToolsMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import {makeAnimalFactory} from './animal.js';
 import {
@@ -4651,6 +4651,9 @@ scene.add(hpMesh);
 const uiMesh = makeUiFullMesh(scene);
 scene.add(uiMesh);
 
+const toolsMesh = makeToolsMesh(scene);
+scene.add(toolsMesh);
+
 const numSmokes = 10;
 const numZs = 10;
 const explosionCubeGeometry = new THREE.BoxBufferGeometry(0.04, 0.04, 0.04);
@@ -4866,6 +4869,9 @@ const _collideItems = matrix => {
 
   uiMesh.position.copy(localVector3).add(localVector5.set(-0.3, -0.1, -0.5).applyQuaternion(localQuaternion2));
   uiMesh.quaternion.copy(localQuaternion2);
+
+  toolsMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, -0.25, -0.5).applyQuaternion(localQuaternion2)), 0.1);
+  toolsMesh.quaternion.slerp(localQuaternion2, 0.1);
 
   localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
   for (let i = 0; i < itemMeshes.length; i++) {

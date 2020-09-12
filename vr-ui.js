@@ -489,7 +489,7 @@ const uiRenderer = (() => {
 
   let renderIds = 0;
   return {
-    async render(htmlString) {
+    async render(htmlString, width, height) {
       const [iframe/*, interfaceHtml */] = await loadPromise;
 
       if (renderIds > 0) {
@@ -506,8 +506,8 @@ const uiRenderer = (() => {
         id: ++renderIds,
         htmlString,
         templateData: null,
-        width: uiSize,
-        height: uiSize,
+        width,
+        height,
         transparent: true,
         port: mc.port2,
       }, '*', [mc.port2]);
@@ -634,14 +634,77 @@ h1, h2, h3 {
 </div>
 `;
 };
+const _makeToolsString = () => {
+  const tools = [
+    'hand',
+    'rifle',
+    'grenade',
+    'build',
+    'pickaxe',
+    'light',
+    'pencil',
+    'paintbrush',
+    'select',
+    'physics',
+  ];
+  const w = uiSize/tools.length;
+  const h = uiSize*uiWorldSize;
+  const margin = w/10;
+  const wInner = w - margin;
+
+  return `\
+<style>
+* {
+  box-sizing: border-box;
+}
+.body {
+  display: flex;
+  background-color: transparent;
+  font-family: 'Bangers';
+}
+.tool {
+  display: flex;
+  flex-direction: column;
+  background-color: #7e57c2;
+  width: ${wInner}px;
+  margin-right: ${margin}px;
+  margin-bottom: ${margin}px;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+.tool.selected {
+  background-color: #ff7043;
+}
+.tool .img {
+  width: ${wInner - margin*2}px;
+  height: ${h - margin*2}px;
+  margin: ${margin}px;
+  background-color: #FFF;
+}
+.tool .text {
+  padding: ${margin}px;
+  padding-top: 0;
+  color: #FFF;
+}
+</style>
+<div class=body>
+  ${tools.map((tool, i) => `\
+    <a class="tool ${i === 0 ? 'selected' : ''}" id=tool-${tool}>
+      <div class=img></div>
+      <div class=text>${tool}</div>
+    </a>
+  `).join('\n')}
+</div>
+`;
+};
 const makeUiMesh = (label, tiles, onclick) => {
-  const geometry = new THREE.PlaneBufferGeometry(0.2, 0.2)
+  const geometry = new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
   const canvas = document.createElement('canvas');
   canvas.width = uiSize;
   canvas.height = uiSize;
   const ctx = canvas.getContext('2d');
-  const imageData = ctx.createImageData(uiSize, uiSize);
+  const imageData = ctx.createImageData(canvas.width, canvas.height);
   const texture = new THREE.Texture(
     canvas,
     THREE.UVMapping,
@@ -682,7 +745,7 @@ const makeUiMesh = (label, tiles, onclick) => {
   let anchors = [];
   mesh.update = () => {
     const htmlString = _makeHtmlString(label, tiles);
-    uiRenderer.render(htmlString)
+    uiRenderer.render(htmlString, canvas.width, canvas.height)
       .then(result => {
         imageData.data.set(result.data);
         ctx.putImageData(imageData, 0, 0);
@@ -848,11 +911,83 @@ const makeUiFullMesh = scene => {
   };
   return wrap;
 };
+const makeToolsMesh = () => {
+  const geometry = new THREE.PlaneBufferGeometry(1, 0.2)
+    // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
+  const canvas = document.createElement('canvas');
+  canvas.width = uiSize;
+  canvas.height = uiSize*uiWorldSize;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  const texture = new THREE.Texture(
+    canvas,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.LinearFilter,
+    THREE.LinearMipMapLinearFilter,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16,
+    THREE.LinearEncoding,
+  );
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    transparent: true,
+    alphaTest: 0.7,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.visible = false;
+  mesh.frustumCulled = false;
+
+  const highlightMesh = (() => {
+    const geometry = new THREE.BoxBufferGeometry(1, 1, 0.001);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x42a5f5,
+      transparent: true,
+      opacity: 0.5,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    return mesh;
+  })();
+  mesh.add(highlightMesh);
+  mesh.highlightMesh = highlightMesh;
+
+  let anchors = [];
+  mesh.update = () => {
+    const htmlString = _makeToolsString();
+    uiRenderer.render(htmlString, canvas.width, canvas.height)
+      .then(result => {
+        imageData.data.set(result.data);
+        ctx.putImageData(imageData, 0, 0);
+        texture.needsUpdate = true;
+        mesh.visible = true;
+
+        anchors = result.anchors;
+        // console.log(anchors);
+      });
+  };
+  mesh.getAnchors = () => anchors;
+  mesh.click = anchor => {
+    console.log('got anchor', anchor);
+    /* const match = anchor.id.match(/^tile-([0-9]+)-([0-9]+)$/);
+    const i = parseInt(match[1], 10);
+    const j = parseInt(match[2], 10);
+    onclick(tiles[i][j]); */
+  };
+  mesh.update();
+
+  return mesh;
+};
 
 export {
   makeUiMesh,
   makeUiFullMesh,
   makeTextMesh,
+  makeToolsMesh,
   /* makeWristMenu,
   makeHighlightMesh,
   makeRayMesh, */
