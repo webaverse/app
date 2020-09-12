@@ -6373,7 +6373,7 @@ window.addEventListener('keydown', e => {
     }
     case 65: { // A
       if (!document.pointerLockElement) {
-        uiMesh && uiMesh.rotate(-1);
+        // uiMesh && uiMesh.rotate(-1);
       } else {
         keys.left = true;
       }
@@ -6389,7 +6389,7 @@ window.addEventListener('keydown', e => {
     }
     case 68: { // D
       if (!document.pointerLockElement) {
-        uiMesh && uiMesh.rotate(1);
+        // uiMesh && uiMesh.rotate(1);
       } else {
         keys.right = true;
       }
