@@ -4032,7 +4032,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   // const animalsTasks = [];
   const _updateCurrentPosition = position => {
     currentPosition.copy(position)
-      .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld).premultiply(dolly.matrix));
+      .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
     // `.log('current position', currentPosition.x);
   };
   /* const _updatePackages = () => {
@@ -4806,7 +4806,18 @@ let explosionMeshes = [];
 
 let pxMeshes = [];
 
-const _applyAvatarPhysics = (avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
+const _applyGravity = timeDiff => {
+  localVector.set(0, -9.8, 0);
+  localVector.multiplyScalar(timeDiff);
+  velocity.add(localVector);
+
+  const terminalVelocity = 50;
+  const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
+  velocity.x = _clampToTerminalVelocity(velocity.x * 0.7);
+  velocity.z = _clampToTerminalVelocity(velocity.z * 0.7);
+  velocity.y = _clampToTerminalVelocity(velocity.y);
+};
+const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
   const oldVelocity = localVector3.copy(velocity);
 
   _applyVelocity(camera.position, velocity, timeDiff);
@@ -4917,7 +4928,8 @@ scene.add(cubeMesh);
 
 const velocity = new THREE.Vector3();
 // const lastGrabs = [false, false];
-const lastAxes = [[0, 0], [0, 0]];
+const lastAxes = [[0, 0, 0, 0], [0, 0, 0, 0]];
+const lastButtons = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
 let currentTeleport = false;
 let lastTeleport = false;
 const timeFactor = 60 * 1000;
@@ -4976,6 +4988,7 @@ function animate(timestamp, frame) {
   
   const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
   if (currentSession) {
+    let walked = false;
     const inputSources = Array.from(currentSession.inputSources);
     for (let i = 0; i < inputSources.length; i++) {
       const inputSource = inputSources[i];
@@ -4984,7 +4997,6 @@ function animate(timestamp, frame) {
         const index = handedness === 'right' ? 1 : 0;
 
         // buttons
-        const {buttons} = gamepad;
         /* const grab = buttons[1].pressed;
         const lastGrab = lastGrabs[index];
         if (!lastGrab && grab) { // grip
@@ -4995,31 +5007,41 @@ function animate(timestamp, frame) {
         lastGrabs[index] = grab; */
 
         // axes
-        const {axes: axesSrc} = gamepad;
+        const {axes: axesSrc, buttons: buttonsSrc} = gamepad;
         const axes = [
           axesSrc[0] || 0,
           axesSrc[1] || 0,
           axesSrc[2] || 0,
           axesSrc[3] || 0,
         ];
+        const buttons = [
+          buttonsSrc[0] ? buttonsSrc[0].value : 0,
+          buttonsSrc[1] ? buttonsSrc[1].value : 0,
+          buttonsSrc[2] ? buttonsSrc[2].value : 0,
+          buttonsSrc[3] ? buttonsSrc[3].value : 0,
+          buttonsSrc[4] ? buttonsSrc[4].value : 0,
+        ];
         if (handedness === 'left') {
-          localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.z = 0;
-          localVector3.set(axes[0] + axes[2], 0, axes[1] + axes[3])
-            .applyEuler(localEuler)
-            .multiplyScalar(0.03);
+          const dx = axes[0] + axes[2];
+          const dy = axes[1] + axes[3];
+          if (Math.abs(dx) >= 0.01 || Math.abs(dx) >= 0.01) {
+            localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
+            localEuler.x = 0;
+            localEuler.z = 0;
+            localVector3.set(dx, 0, dy)
+              .applyEuler(localEuler)
+              .multiplyScalar(0.05);
 
-          localMatrix
-            .copy(dolly.matrix)
-            // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
-            .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
-            // .premultiply(localMatrix2.getInverse(localMatrix2))
-            .decompose(dolly.position, dolly.quaternion, dolly.scale);
+            dolly.matrix
+              // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
+              .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
+              // .premultiply(localMatrix2.getInverse(localMatrix2))
+              .decompose(dolly.position, dolly.quaternion, dolly.scale);
+            walked = true;
+          }
         } else if (handedness === 'right') {
           const _applyRotation = r => {
-            localMatrix
-              .copy(dolly.matrix)
+            dolly.matrix
               .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
               .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
               .premultiply(localMatrix2.getInverse(localMatrix2))
@@ -5037,15 +5059,52 @@ function animate(timestamp, frame) {
             _applyRotation(-Math.PI * 0.2);
           }
           lastTeleport = (axes[1] < -0.5 || axes[3] < -0.5);
+          
+          if (
+            buttons[2] >= 0.5 && lastButtons[index][2] < 0.5 &&
+            !(Math.abs(axes[0]) > 0.5 || Math.abs(axes[1]) > 0.5 || Math.abs(axes[2]) > 0.5 || Math.abs(axes[3]) > 0.5) &&
+            !jumpState
+          ) {
+            console.log('jump');
+            jumpState = true;
+            velocity.y += 5;
+          }
         }
+
         lastAxes[index][0] = axes[0];
         lastAxes[index][1] = axes[1];
         lastAxes[index][2] = axes[2];
         lastAxes[index][3] = axes[3];
+        
+        lastButtons[index][0] = buttons[0];
+        lastButtons[index][1] = buttons[1];
+        lastButtons[index][2] = buttons[2];
+        lastButtons[index][3] = buttons[3];
+        lastButtons[index][4] = buttons[4];
       }
     }
     
-    const leftInputSource = inputSources.find(inputSource => inputSource.handedness === 'left');
+    _applyGravity(timeDiff);
+
+    if (walked || jumpState) {
+      const diffObject = new THREE.Object3D();
+      diffObject.matrix.copy(xrCamera.matrix)
+        .premultiply(dolly.matrix)
+        .decompose(diffObject.position, diffObject.quaternion, diffObject.scale);
+      const originalPosition = diffObject.position.clone();
+
+      _applyAvatarPhysics(diffObject, null, false, false, false, timeDiff);
+
+      dolly.position.add(
+        diffObject.position.clone().sub(originalPosition)
+      );
+    } else {
+      velocity.y = 0;
+      _collideItems(xrCamera.matrix);
+      _collideChunk(xrCamera.matrix);
+      rigManager.setLocalRigMatrix(null);
+    }
+    /* const leftInputSource = inputSources.find(inputSource => inputSource.handedness === 'left');
     const pose = leftInputSource && frame.getPose(leftInputSource.targetRaySpace, renderer.xr.getReferenceSpace());
     if (pose) {
       localMatrix2.fromArray(pose.transform.matrix);
@@ -5053,7 +5112,7 @@ function animate(timestamp, frame) {
     }
     _collideChunk(xrCamera.matrix);
 
-    rigManager.setLocalRigMatrix(null);
+    rigManager.setLocalRigMatrix(null); */
   } else if (document.pointerLockElement) {
     const speed = 30 * (keys.shift ? 3 : 1);
     const cameraEuler = camera.rotation.clone();
@@ -5075,24 +5134,19 @@ function animate(timestamp, frame) {
     if (localVector.length() > 0) {
       localVector.normalize().multiplyScalar(speed);
     }
-    localVector.y -= 9.8;
     localVector.multiplyScalar(timeDiff);
     velocity.add(localVector);
 
-    const terminalVelocity = 50;
-    const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
-    velocity.x = _clampToTerminalVelocity(velocity.x * 0.7);
-    velocity.z = _clampToTerminalVelocity(velocity.z * 0.7);
-    velocity.y = _clampToTerminalVelocity(velocity.y);
+    _applyGravity(timeDiff);
 
     if (selectedTool === 'firstperson') {
-      _applyAvatarPhysics(null, false, false, false, timeDiff);
+      _applyAvatarPhysics(camera, null, false, false, false, timeDiff);
     } else if (selectedTool === 'thirdperson') {
-      _applyAvatarPhysics(avatarCameraOffset, true, true, true, timeDiff);
+      _applyAvatarPhysics(camera, avatarCameraOffset, true, true, true, timeDiff);
     } else if (selectedTool === 'isometric') {
-      _applyAvatarPhysics(isometricCameraOffset, true, true, true, timeDiff);
+      _applyAvatarPhysics(camera, isometricCameraOffset, true, true, true, timeDiff);
     } else if (selectedTool === 'birdseye') {
-      _applyAvatarPhysics(new THREE.Vector3(0, -birdsEyeHeight + _getAvatarHeight(), 0), false, true, true, timeDiff);
+      _applyAvatarPhysics(camera, new THREE.Vector3(0, -birdsEyeHeight + _getAvatarHeight(), 0), false, true, true, timeDiff);
     } else {
       _collideItems(camera.matrix);
       _collideChunk(camera.matrix);
