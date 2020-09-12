@@ -5081,7 +5081,9 @@ function animate(timestamp, frame) {
           }
           currentTeleport = (axes[1] < -0.9 || axes[3] < -0.9);
           currentSelector = (axes[1] > 0.9 || axes[3] > 0.9);
-          
+
+          currentWeaponDown = buttons[0] > 0.5;
+
           if (
             buttons[2] >= 0.5 && lastButtons[index][2] < 0.5 &&
             !(Math.abs(axes[0]) > 0.5 || Math.abs(axes[1]) > 0.5 || Math.abs(axes[2]) > 0.5 || Math.abs(axes[3]) > 0.5) &&
