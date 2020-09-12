@@ -81,6 +81,9 @@ const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerH
 camera.position.set(0, 1.6, 2);
 camera.rotation.order = 'YXZ';
 // camera.quaternion.set(0, 0, 0, 1);
+const dolly = new THREE.Object3D();
+dolly.add(camera);
+scene.add(dolly);
 
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('webgl2', {
@@ -286,11 +289,19 @@ const _addItem = (position, quaternion) => {
       side: THREE.DoubleSide,
       transparent: true,
       depthWrite: false,
+      // blending: THREE.CustomBlending,
     });
     const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
     skirtMesh.frustumCulled = false;
     skirtMesh.isBuildMesh = true;
     object.add(skirtMesh);
+    object.isItemMesh = true;
+    /* skirtMesh.onBeforeRender = () => {
+      context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
+    };
+    skirtMesh.onAfterRender = () => {
+      context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
+    }; */
 
     let animation = null;
     object.pickUp = () => {
@@ -334,9 +345,9 @@ const _addItem = (position, quaternion) => {
 
     return object;
   })();
-  itemMesh.position.copy(position);
+  itemMesh.position.copy(position).applyMatrix4(currentVegetationMesh.matrixWorld);
   itemMesh.quaternion.copy(quaternion);
-  currentVegetationMesh.add(itemMesh);
+  scene.add(itemMesh);
   itemMeshes.push(itemMesh);
 };
 const _makeHeightfieldShader = land => ({
@@ -4027,6 +4038,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const _updateCurrentPosition = position => {
     currentPosition.copy(position)
       .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
+    // `.log('current position', currentPosition.x);
   };
   /* const _updatePackages = () => {
     const packagesNeedUpdate = false;
@@ -4882,6 +4894,10 @@ const _collideItems = matrix => {
     }
     itemMesh.update(localVector5.copy(localVector3).applyMatrix4(localMatrix2.getInverse(currentChunkMesh.matrixWorld)));
   }
+  
+  scene.children.sort((a, b) => {
+    return b.isItemMesh - a.isItemMesh;
+  });
 
   for (const animal of animals) {
     if (!animal.isHeadAnimating()) {
@@ -4996,35 +5012,35 @@ function animate(timestamp, frame) {
           localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.z = 0;
-          localVector3.set(-(axes[0] + axes[2]), 0, -(axes[1] + axes[3]))
+          localVector3.set(axes[0] + axes[2], 0, axes[1] + axes[3])
             .applyEuler(localEuler)
             .multiplyScalar(0.03);
 
           localMatrix
-            .copy(chunkMeshContainer.matrix)
+            .copy(dolly.matrix)
             // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
             .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
             // .premultiply(localMatrix2.getInverse(localMatrix2))
-            .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
+            .decompose(dolly.position, dolly.quaternion, dolly.scale);
         } else if (handedness === 'right') {
           const _applyRotation = r => {
             localMatrix
-              .copy(chunkMeshContainer.matrix)
+              .copy(dolly.matrix)
               .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
               .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
               .premultiply(localMatrix2.getInverse(localMatrix2))
-              .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
+              .decompose(dolly.position, dolly.quaternion, dolly.scale);
           };
           if (
             (axes[0] < -0.5 && !(lastAxes[index][0] < -0.5)) ||
             (axes[2] < -0.5 && !(lastAxes[index][2] < -0.5))
           ) {
-            _applyRotation(-Math.PI * 0.2);
+            _applyRotation(Math.PI * 0.2);
           } else if (
             (axes[0] > 0.5 && !(lastAxes[index][0] > 0.5)) ||
             (axes[2] > 0.5 && !(lastAxes[index][2] > 0.5))
           ) {
-            _applyRotation(Math.PI * 0.2);
+            _applyRotation(-Math.PI * 0.2);
           }
           lastTeleport = (axes[1] < -0.5 || axes[3] < -0.5);
         }
@@ -5041,6 +5057,7 @@ function animate(timestamp, frame) {
       localMatrix2.fromArray(pose.transform.matrix);
       _collideItems(localMatrix2);
     }
+    _collideChunk(xrCamera.matrix);
 
     rigManager.setLocalRigMatrix(null);
   } else if (document.pointerLockElement) {
@@ -5121,6 +5138,7 @@ function animate(timestamp, frame) {
       let pose;
       if (inputSources[0] && (pose = frame.getPose(inputSources[0].targetRaySpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
+          .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
         leftGamepadPosition = localVector2.toArray();
         leftGamepadQuaternion = localQuaternion2.toArray();
@@ -5129,6 +5147,7 @@ function animate(timestamp, frame) {
       }
       if (inputSources[1] && (pose = frame.getPose(inputSources[1].targetRaySpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
+          .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
         rightGamepadPosition = localVector2.toArray();
         rightGamepadQuaternion = localQuaternion2.toArray();
@@ -5896,11 +5915,15 @@ function animate(timestamp, frame) {
       localMatrix3.copy(camera.matrixWorld)
     } else {
       const xrCamera = renderer.xr.getCamera(camera);
+      // xrCamera.matrix.decompose(localVector, localQuaternion, localVector2);
+      // console.log('tick cull', localVector.toArray());
       localMatrix3.copy(xrCamera.matrix)
     }
     localMatrix3
       .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
       .decompose(localVector, localQuaternion, localVector2);
+    // localVector.x += Math.sin(Date.now()/1000)*15;
+    // console.log('cull x', Math.floor(localVector.x/10));
 
     const [landGroups, vegetationGroups, thingGroups] = geometryWorker.tickCull(tracker, localVector, localMatrix);
     currentChunkMesh.geometry.groups = landGroups;
