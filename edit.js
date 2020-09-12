@@ -5850,7 +5850,7 @@ function animate(timestamp, frame) {
       velocity.set(0, 0, 0);
     };
 
-    if (currentTeleport && raycastChunkSpec) {
+    /* if (currentTeleport && raycastChunkSpec) {
       if (raycastChunkSpec.point) {
         teleportMeshes[1].position.copy(raycastChunkSpec.point);
         teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), raycastChunkSpec.normal);
@@ -5860,11 +5860,11 @@ function animate(timestamp, frame) {
     } else if (lastTeleport && !currentTeleport && raycastChunkSpec) {
       teleportMeshes[1].visible = false;
       _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
-    } else {
-      teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, (position, quaternion) => {
+    } else { */
+      teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, (p, q) => geometryWorker.raycast(tracker, p, q), (position, quaternion) => {
         _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
       });
-    }
+    // }
   };
   _updateTools();
 
