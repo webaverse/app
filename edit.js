@@ -68,6 +68,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localFrustum = new THREE.Frustum();
+const localObject = new THREE.Object3D();
 
 (async () => {
   await tryLogin();
@@ -4651,7 +4652,18 @@ scene.add(hpMesh);
 const uiMesh = makeUiFullMesh(scene);
 scene.add(uiMesh);
 
-const toolsMesh = makeToolsMesh(scene);
+const toolsMesh = makeToolsMesh([
+  'hand',
+  'rifle',
+  'grenade',
+  'build',
+  'pickaxe',
+  'light',
+  'pencil',
+  'paintbrush',
+  'select',
+  'physics',
+]);
 toolsMesh.visible = false;
 scene.add(toolsMesh);
 
@@ -4886,8 +4898,8 @@ const _collideItems = matrix => {
   uiMesh.position.copy(localVector3).add(localVector5.set(-0.3, -0.1, -0.5).applyQuaternion(localQuaternion2));
   uiMesh.quaternion.copy(localQuaternion2);
 
-  toolsMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, -0.25, -0.5).applyQuaternion(localQuaternion2)), 0.1);
-  toolsMesh.quaternion.slerp(localQuaternion2, 0.1);
+  // toolsMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, -0.25, -0.5).applyQuaternion(localQuaternion2)), 0.1);
+  // toolsMesh.quaternion.slerp(localQuaternion2, 0.1);
 
   localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
   for (let i = 0; i < itemMeshes.length; i++) {
@@ -4925,6 +4937,8 @@ const lastAxes = [[0, 0, 0, 0], [0, 0, 0, 0]];
 const lastButtons = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
 let currentTeleport = false;
 let lastTeleport = false;
+let currentSelector = false;
+let lastSelector = false;
 const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 // let lastParcel  = new THREE.Vector3(0, 0, 0);
@@ -5051,7 +5065,8 @@ function animate(timestamp, frame) {
           ) {
             _applyRotation(-Math.PI * 0.2);
           }
-          lastTeleport = (axes[1] < -0.9 || axes[3] < -0.9);
+          currentTeleport = (axes[1] < -0.9 || axes[3] < -0.9);
+          currentSelector = (axes[1] > 0.9 || axes[3] > 0.9);
           
           if (
             buttons[2] >= 0.5 && lastButtons[index][2] < 0.5 &&
@@ -5075,19 +5090,34 @@ function animate(timestamp, frame) {
       }
     }
     
+    if (currentSelector) {
+      const rightInputSource = inputSources.find(inputSource => inputSource.handedness === 'right');
+      const pose = rightInputSource && frame.getPose(rightInputSource.targetRaySpace, renderer.xr.getReferenceSpace());
+      localMatrix2.fromArray(pose.transform.matrix)
+        .premultiply(dolly.matrix)
+        .decompose(localVector, localQuaternion, localVector2);
+      if (!lastSelector) {
+        toolsMesh.position.copy(localVector);
+        toolsMesh.quaternion.copy(localQuaternion);
+      }
+      toolsMesh.update(localVector);
+      toolsMesh.visible = true;
+    } else {
+      toolsMesh.visible = false;
+    }
+    
     _applyGravity(timeDiff);
 
     if (walked || jumpState) {
-      const diffObject = new THREE.Object3D();
-      diffObject.matrix.copy(xrCamera.matrix)
+      localObject.matrix.copy(xrCamera.matrix)
         .premultiply(dolly.matrix)
-        .decompose(diffObject.position, diffObject.quaternion, diffObject.scale);
-      const originalPosition = diffObject.position.clone();
+        .decompose(localObject.position, localObject.quaternion, localObject.scale);
+      const originalPosition = localObject.position.clone();
 
-      _applyAvatarPhysics(diffObject, null, false, false, false, timeDiff);
+      _applyAvatarPhysics(localObject, null, false, false, false, timeDiff);
 
       dolly.position.add(
-        diffObject.position.clone().sub(originalPosition)
+        localObject.position.clone().sub(originalPosition)
       );
     } else {
       velocity.y = 0;
@@ -5937,6 +5967,7 @@ function animate(timestamp, frame) {
     });
   }
   lastTeleport = currentTeleport;
+  lastSelector = currentSelector;
   lastWeaponDown = currentWeaponDown;
 
   if (selectedTool === 'firstperson') {
