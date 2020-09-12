@@ -4215,7 +4215,7 @@ for (let i = 0; i < 30; i++) {
   }
 } */
 
-let buildMode = null;
+let buildMode = 'wall';
 let plansMesh = null;
 let pencilMesh = null;
 let pickaxeMesh = null;
@@ -4665,7 +4665,6 @@ for (let i = 0; i < weapons.length; i++) {
     weapon.classList.add('selected');
 
     selectedWeapon = weapon.getAttribute('weapon');
-    buildMode = null;
   });
 }
 document.addEventListener('pointerlockchange', e => {
@@ -4676,7 +4675,6 @@ document.addEventListener('pointerlockchange', e => {
 
 const toolsMesh = makeToolsMesh(weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
   selectedWeapon = newSelectedWeapon;
-  buildMode = null;
 });
 toolsMesh.visible = false;
 scene.add(toolsMesh);
@@ -5414,11 +5412,14 @@ function animate(timestamp, frame) {
             crosshair: crosshairMesh,
           };
         }
-        case 'build': {
-          return [plansMesh, pencilMesh];
-        }
         case 'pickaxe': {
           return pickaxeMesh;
+        }
+        case 'shovel': {
+          return pickaxeMesh;
+        }
+        case 'build': {
+          return [plansMesh, pencilMesh];
         }
         case 'light': {
           return paintBrushMesh;
@@ -5492,14 +5493,8 @@ function animate(timestamp, frame) {
         }
         break;
       }
-      case 'build': {
-        addMesh.position.copy(rightGamepad.position)
-          .add(localVector2.set(0, 0, -2).applyQuaternion(rightGamepad.quaternion));
-        addMesh.quaternion.copy(rightGamepad.quaternion);
-        addMesh.visible = true;
-        break;
-      }
-      case 'pickaxe': {
+      case 'pickaxe':
+      case 'shovel': {
         if (raycastChunkSpec) {
           removeMesh.position.copy(raycastChunkSpec.point);
           removeMesh.quaternion.setFromUnitVectors(localVector2.set(0, 1, 0), raycastChunkSpec.normal);
@@ -5507,12 +5502,19 @@ function animate(timestamp, frame) {
         }
         break;
       }
+      case 'build': {
+        addMesh.position.copy(rightGamepad.position)
+          .add(localVector2.set(0, 0, -2).applyQuaternion(rightGamepad.quaternion));
+        addMesh.quaternion.copy(rightGamepad.quaternion);
+        addMesh.visible = true;
+        break;
+      }
     }
     if (wallMesh && currentChunkMesh) {
       [wallMesh, platformMesh, stairsMesh].forEach(buildMesh => {
         buildMesh.parent && buildMesh.parent.remove(buildMesh);
       });
-      if (buildMode) {
+      if (selectedWeapon === 'build') {
         const buildMesh = (() => {
           switch (buildMode) {
             case 'wall': return wallMesh;
@@ -5583,7 +5585,7 @@ function animate(timestamp, frame) {
       }
     }
     if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
-      if (!buildMode) {
+      if (selectedWeapon !== 'build') {
         const _applyLightfieldDelta = async (position, delta) => {
           localVector2.copy(position)
             .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
@@ -5677,12 +5679,12 @@ function animate(timestamp, frame) {
             }
             break;
           }
-          case 'build': {
-            _unhit();
-            break;
-          }
           case 'pickaxe': {
             _hit();
+            break;
+          }
+          case 'shovel': {
+            _unhit();
             break;
           }
           case 'light': {
@@ -5712,9 +5714,8 @@ function animate(timestamp, frame) {
         }
       }
     }
-    // mesh drawer
-    if (currentWeaponDown && currentChunkMesh) {
-      if (!buildMode) {
+    if (selectedWeapon !== 'build') {
+      if (currentWeaponDown && currentChunkMesh) {
         switch (selectedWeapon) {
           case 'pencil': {
             if (document.pointerLockElement) {
@@ -5784,9 +5785,7 @@ function animate(timestamp, frame) {
           }
         }
       }
-    }
-    if (lastWeaponDown && !currentWeaponDown && currentChunkMesh) {
-      if (!buildMode) {
+      if (lastWeaponDown && !currentWeaponDown && currentChunkMesh) {
         switch (selectedWeapon) {
           case 'pencil': {
             if (document.pointerLockElement) {
@@ -5811,8 +5810,7 @@ function animate(timestamp, frame) {
           }
         }
       }
-    }
-    if (!buildMode) {
+      
       switch (selectedWeapon) {
         case 'select': {
           for (const material of currentChunkMesh.material) {
@@ -6422,8 +6420,8 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 81: { // Q
-      if (selectedWeapon !== 'build') {
-        document.querySelector('.weapon[weapon="build"]').click();
+      if (selectedWeapon !== 'shovel') {
+        document.querySelector('.weapon[weapon="shovel"]').click();
       } else {
         document.querySelector('.weapon[weapon="pickaxe"]').click();
       }
