@@ -5838,30 +5838,28 @@ function animate(timestamp, frame) {
       localMatrix.fromArray(rigManager.localRig.model.matrix)
         .decompose(localVector2, localQuaternion2, localVector3);
 
-      worldContainer.matrix
-        .premultiply(localMatrix.makeTranslation(-position.x, -position.y, -position.z))
-        .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-        .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-        .premultiply(localMatrix.makeTranslation(0, -_getMinHeight(), 0))
-        .decompose(worldContainer.position, worldContainer.quaternion, worldContainer.scale);
+      if (!currentSession) {
+        camera.matrix
+          .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
+          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+          // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+          .premultiply(localMatrix.makeTranslation(0, _getFullAvatarHeight(), 0))
+          .decompose(camera.position, camera.quaternion, camera.scale);
+      }
 
       velocity.set(0, 0, 0);
     };
 
-    const currentTeleportChunkMesh = raycastChunkSpec && raycastChunkSpec.mesh;
-    if (currentTeleport && currentTeleportChunkMesh) {
+    if (currentTeleport && raycastChunkSpec) {
       if (raycastChunkSpec.point) {
         teleportMeshes[1].position.copy(raycastChunkSpec.point);
         teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), raycastChunkSpec.normal);
         teleportMeshes[1].visible = true;
         teleportMeshes[1].lineMesh.visible = false;
       }
-    } else if (lastTeleport && !currentTeleport && currentTeleportChunkMesh) {
+    } else if (lastTeleport && !currentTeleport && raycastChunkSpec) {
       teleportMeshes[1].visible = false;
       _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
-      if (currentTeleportChunkMesh.isChunkMesh) {
-        currentChunkMesh = currentTeleportChunkMesh;
-      }
     } else {
       teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, (position, quaternion) => {
         _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
@@ -6172,7 +6170,7 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
 let selectedTool = 'camera';
 const _getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
 const _getAvatarHeight = () => _getFullAvatarHeight() * 0.9;
-const _getMinHeight = () => {
+/* const _getMinHeight = () => {
   if (rigManager.localRig) {
     const avatarHeight = rigManager.localRig ? _getAvatarHeight() : 1;
     const floorHeight = 0;
@@ -6181,7 +6179,7 @@ const _getMinHeight = () => {
   } else {
     return 1;
   }
-};
+}; */
 const birdsEyeHeight = 10;
 const avatarCameraOffset = new THREE.Vector3(0, 0, -1);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -5);
