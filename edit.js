@@ -5871,10 +5871,20 @@ function animate(timestamp, frame) {
 
     const _teleportTo = (position, quaternion) => {
       // console.log(position, quaternion, pose, avatar)
-      localMatrix.fromArray(rigManager.localRig.model.matrix)
-        .decompose(localVector2, localQuaternion2, localVector3);
+      /* localMatrix.fromArray(rigManager.localRig.model.matrix)
+        .decompose(localVector2, localQuaternion2, localVector3); */
 
-      if (!currentSession) {
+      if (currentSession) {
+        localMatrix.copy(xrCamera.matrix)
+          .premultiply(dolly.matrix)
+          .decompose(localVector2, localQuaternion2, localVector3);
+        dolly.matrix
+          .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
+          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+          // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+          .premultiply(localMatrix.makeTranslation(0, _getFullAvatarHeight(), 0))
+          .decompose(dolly.position, dolly.quaternion, dolly.scale);
+      } else {
         camera.matrix
           .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
           // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
@@ -5897,7 +5907,7 @@ function animate(timestamp, frame) {
       teleportMeshes[1].visible = false;
       _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
     } else { */
-      teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, (p, q) => geometryWorker.raycast(tracker, p, q), (position, quaternion) => {
+      teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, currentTeleport, (p, q) => geometryWorker.raycast(tracker, p, q), (position, quaternion) => {
         _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
       });
     // }
