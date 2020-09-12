@@ -2406,15 +2406,25 @@ const geometryWorker = (() => {
       m.pushF32Array(scale.toArray(new Float32Array(4)));
     }, m => {
       const objectId = m.pullU32();
+      const textureOffset = m.pullU32();
+      if (textureOffset) {
+        const textureData = new Uint8Array(moduleInstance.HEAP8.buffer, textureOffset, thingTextureSize * thingTextureSize * 4);
+        currentThingMesh.updateTexture(textureData);
+      }
+
       const numSubparcels = m.pullU32();
       for (let i = 0; i < numSubparcels; i++) {
-        const positionsFreeEntry = m.pullU32();
-        const uvsFreeEntry = m.pullU32();
-        const atlasUvsFreeEntry = m.pullU32();
-        const idsFreeEntry = m.pullU32();
-        const indicesFreeEntry = m.pullU32();
-        const skyLightsFreeEntry = m.pullU32();
-        const torchLightsFreeEntry = m.pullU32();
+        const subparcelOffset = m.pullU32();
+        const [landArenaSpec, vegetationArenaSpec, thingArenaSpec] = geometryWorker.getSubparcelArenaSpec(subparcelOffset);
+        const {
+          positionsFreeEntry,
+          uvsFreeEntry,
+          atlasUvsFreeEntry,
+          idsFreeEntry,
+          indicesFreeEntry,
+          skyLightsFreeEntry,
+          torchLightsFreeEntry,
+        } = thingArenaSpec;
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -2465,12 +2475,6 @@ const geometryWorker = (() => {
           skyLightsCount,
           torchLightsCount,
         });
-      }
-
-      const textureOffset = m.pullU32();
-      if (textureOffset) {
-        const textureData = new Uint8Array(moduleInstance.HEAP8.buffer, textureOffset, thingTextureSize * thingTextureSize * 4);
-        currentThingMesh.updateTexture(textureData);
       }
 
       callStack.allocRequest(METHODS.releaseAddRemoveObject, true, m2 => {
