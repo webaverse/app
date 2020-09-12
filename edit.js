@@ -4817,6 +4817,10 @@ const _applyGravity = timeDiff => {
   velocity.z = _clampToTerminalVelocity(velocity.z * 0.7);
   velocity.y = _clampToTerminalVelocity(velocity.y);
 };
+const _jump = () => {
+  jumpState = true;
+  velocity.y += 5;
+};
 const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
   const oldVelocity = localVector3.copy(velocity);
 
@@ -5065,9 +5069,7 @@ function animate(timestamp, frame) {
             !(Math.abs(axes[0]) > 0.5 || Math.abs(axes[1]) > 0.5 || Math.abs(axes[2]) > 0.5 || Math.abs(axes[3]) > 0.5) &&
             !jumpState
           ) {
-            console.log('jump');
-            jumpState = true;
-            velocity.y += 5;
+            _jump();
           }
         }
 
@@ -6388,8 +6390,7 @@ window.addEventListener('keydown', e => {
     case 32: { // space
       if (document.pointerLockElement) {
         if (!jumpState) {
-          jumpState = true;
-          velocity.y += 5;
+          _jump();
         }
       }
       break;
