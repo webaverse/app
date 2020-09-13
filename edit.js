@@ -3792,6 +3792,30 @@ const MeshDrawer = (() => {
     }
   };
 })();
+class MeshComposer {
+  constructor() {
+    this.meshes = [];
+    this.placeMesh = null;
+  }
+  setPlaceMesh(mesh) {
+    scene.add(mesh);
+    this.placeMesh = mesh;
+  }
+  trigger() {
+    this.placeMesh = null;
+  }
+  grab() {
+    scene.remove(this.placeMesh);
+    this.placeMesh = null;
+  }
+  update() {
+    if (this.placeMesh) {
+      this.placeMesh.position.copy(rigManager.localRig.inputs.leftGamepad.position);
+      this.placeMesh.quaternion.copy(rigManager.localRig.inputs.leftGamepad.quaternion);
+    }
+  }
+}
+const meshComposer = new MeshComposer();
 (() => {
   const effectController = {
     turbidity: 2,
