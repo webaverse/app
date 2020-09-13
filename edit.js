@@ -1522,8 +1522,8 @@ const geometryWorker = (() => {
 
       w.free(positionsOffset);
       w.free(uvsOffset);
-      w.free(indicesOffset);
       // w.free(colorsOffset);
+      w.free(indicesOffset);
 
       accept(geometry);
     });
