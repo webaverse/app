@@ -5630,7 +5630,7 @@ function animate(timestamp, frame) {
           return [plansMesh, pencilMesh];
         }
         case 'shapes': {
-          return pencil;
+          return pencilMesh;
         }
         case 'light': {
           return paintBrushMesh;
