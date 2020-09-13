@@ -1450,18 +1450,22 @@ const geometryWorker = (() => {
     }, m => {
       const positionsOffset = m.pullU32();
       const uvsOffset = m.pullU32();
+      // const colorsOffset = m.pullU32();
       const indicesOffset = m.pullU32();
       const numPositions = m.pullU32();
       const numUvs = m.pullU32();
+      // const numColors = m.pullU32();
       const numIndices = m.pullU32();
 
       const positions = new Float32Array(moduleInstance.HEAP8.buffer, positionsOffset, numPositions);
       const uvs = new Float32Array(moduleInstance.HEAP8.buffer, uvsOffset, numUvs);
+      // const colors = new Float32Array(moduleInstance.HEAP8.buffer, colorsOffset, numColors);
       const indices = new Uint32Array(moduleInstance.HEAP8.buffer, indicesOffset, numIndices);
 
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      // geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3, true));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       renderer.geometries.update(geometry);
 
@@ -1497,24 +1501,29 @@ const geometryWorker = (() => {
     }, m => {
       const positionsOffset = m.pullU32();
       const uvsOffset = m.pullU32();
+      // const colorsOffset = m.pullU32();
       const indicesOffset = m.pullU32();
       const numPositions = m.pullU32();
       const numUvs = m.pullU32();
+      // const numColors = m.pullU32();
       const numIndices = m.pullU32();
 
       const positions = new Float32Array(moduleInstance.HEAP8.buffer, positionsOffset, numPositions);
       const uvs = new Float32Array(moduleInstance.HEAP8.buffer, uvsOffset, numUvs);
+      // const colors = new Float32Array(moduleInstance.HEAP8.buffer, colorsOffset, numColors);
       const indices = new Uint32Array(moduleInstance.HEAP8.buffer, indicesOffset, numIndices);
 
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      // geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3, true));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       renderer.geometries.update(geometry);
 
       w.free(positionsOffset);
       w.free(uvsOffset);
       w.free(indicesOffset);
+      // w.free(colorsOffset);
 
       accept(geometry);
     });
