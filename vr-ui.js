@@ -790,7 +790,7 @@ p {
 </div>
 `;
 };
-const _makeInventoryString = (scrollFactor, scrollbarHeight) => {
+const _makeInventoryString = (selectedIcon, scrollFactor, scrollbarHeight) => {
   const fullW = uiSize/2;
   const arrowW = fullW/10;
   const wrapInnerW = fullW - arrowW*2;
@@ -798,7 +798,7 @@ const _makeInventoryString = (scrollFactor, scrollbarHeight) => {
   const iconW = (wrapInnerW - margin)/3;
   const innerW = iconW - margin;
   const _makeIcon = i => `\
-<a class=icon id="icon-${i}">
+<a class="icon ${i === selectedIcon ? 'selected' : ''}" id="icon-${i}">
   <div class="border top-left"></div>
   <div class="border top-right"></div>
   <div class="border bottom-left"></div>
@@ -850,6 +850,9 @@ const _makeInventoryString = (scrollFactor, scrollbarHeight) => {
   height: ${innerW}px;
   margin-right: ${margin}px;
   margin-bottom: ${margin}px;
+}
+.icon.selected {
+  background-color: #42a5f5;
 }
 .border {
   position: absolute;
@@ -1384,11 +1387,12 @@ const makeInventoryMesh = cubeMesh => {
   // mesh.highlightMesh = highlightMesh;
 
   let anchors = [];
+  let selectedIcon = 1;
   let scrollFactor = 0.2;
   let scrollbarHeight = 0.15;
   mesh.update = () => {
     // console.log('update', scrollFactor, scrollbarHeight);
-    const htmlString = _makeInventoryString(scrollFactor, scrollbarHeight);
+    const htmlString = _makeInventoryString(selectedIcon, scrollFactor, scrollbarHeight);
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
         /* imageData.data.set(result.data);
@@ -1439,10 +1443,16 @@ const makeInventoryMesh = cubeMesh => {
   mesh.click = anchorSpec => {
     // console.log('click', anchor);
     const {anchor, uv} = anchorSpec;
-    if (anchor && anchor.id === 'scrollbar') {
-      // console.log('got uv', uv.y);
-      scrollFactor = uv.y;
-      mesh.update();
+    if (anchor) {
+      let match;
+      if (anchor.id === 'scrollbar') {
+        // console.log('got uv', uv.y);
+        scrollFactor = uv.y;
+        mesh.update();
+      } else if (match = anchor.id.match(/^icon-([0-9]+)$/)) {
+        selectedIcon = parseInt(match[1], 10);
+        mesh.update();
+      }
     }
     // currentMesh && currentMesh.click(currentAnchor);
   };
