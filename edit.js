@@ -2921,7 +2921,7 @@ const geometryWorker = (() => {
   }
   // culler = geometryWorker.makeCuller();
 
-  const vegetationMaterialOpaque = new THREE.ShaderMaterial({
+  const vegetationMaterial = new THREE.ShaderMaterial({
     uniforms: THREE.UniformsUtils.clone(VEGETATION_SHADER.uniforms),
     vertexShader: VEGETATION_SHADER.vertexShader,
     fragmentShader: VEGETATION_SHADER.fragmentShader,
@@ -2929,7 +2929,7 @@ const geometryWorker = (() => {
     transparent: true,
   });
   const _makeBakedMesh = g => {
-    const mesh = new THREE.Mesh(g, vegetationMaterialOpaque);
+    const mesh = new THREE.Mesh(g, vegetationMaterial);
     mesh.frustumCulled = false;
     return mesh;
   };
@@ -3065,8 +3065,8 @@ const geometryWorker = (() => {
       return texture;
     })(),
   ]);
-  vegetationMaterialOpaque.uniforms.map.value = texture;
-  vegetationMaterialOpaque.uniforms.map.needsUpdate = true;
+  vegetationMaterial.uniforms.map.value = texture;
+  vegetationMaterial.uniforms.map.needsUpdate = true;
 
   const _makeVegetationMesh = () => {
     const geometry = new THREE.BufferGeometry();
@@ -3077,8 +3077,7 @@ const geometryWorker = (() => {
     geometry.setAttribute('torchLight', vegetationBufferAttributes.torchLight);
     geometry.setIndex(vegetationBufferAttributes.index);
     // geometry.allocators = allocators;
-    const material = vegetationMaterialOpaque;
-    const mesh = new THREE.Mesh(geometry, [material]);
+    const mesh = new THREE.Mesh(geometry, [vegetationMaterial]);
     mesh.frustumCulled = false;
 
     const slabs = {};
