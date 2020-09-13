@@ -668,6 +668,7 @@ const _makeToolsString = (tools, selectedWeapon) => {
   const h = uiSize*uiWorldSize;
   const margin = w/10;
   const wInner = w - margin;
+  const textW = margin*3;
 
   return `\
 <style>
@@ -694,15 +695,17 @@ const _makeToolsString = (tools, selectedWeapon) => {
 }
 .tool .img {
   width: ${wInner - margin*2}px;
-  height: ${h - margin*2}px;
+  height: ${h - margin*2 - textW}px;
   margin: ${margin}px;
   background-color: #FFF;
 }
 .tool .text {
-  padding: ${margin}px;
-  padding-top: 0;
+  display: flex;
+  height: ${textW}px;
+  padding: 0 ${margin}px;
+  align-items: center;
   color: #FFF;
-  font-size: 80px;
+  font-size: ${textW}px;
 }
 </style>
 <div class=body>
