@@ -4802,14 +4802,6 @@ renderer.domElement.addEventListener('dblclick', e => {
     tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
   }
 });
-document.addEventListener('pointerlockchange', e => {
-  if (!document.pointerLockElement) {
-    tools.find(tool => tool.getAttribute('tool') === 'camera').click();
-  }
-});
-document.addEventListener('pointerlockerror', err => {
-  console.warn(err);
-});
 
 const toolsMesh = makeToolsMesh(weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
   selectedWeapon = newSelectedWeapon;
@@ -6392,16 +6384,48 @@ const birdsEyeHeight = 10;
 const avatarCameraOffset = new THREE.Vector3(0, 0, -1);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -5);
 const tools = Array.from(document.querySelectorAll('.tool'));
+const _requestPointerLock = () => new Promise((accept, reject) => {
+  if (!document.pointerLockElement) {
+    const _pointerlockchange = e => {
+      accept();
+      _cleanup();
+    };
+    document.addEventListener('pointerlockchange', _pointerlockchange);
+    const _pointerlockerror = err => {
+      reject(err);
+      _cleanup();
+    };
+    document.addEventListener('pointerlockerror', _pointerlockerror);
+    const _cleanup = () => {
+      document.removeEventListener('pointerlockchange', _pointerlockchange);
+      document.removeEventListener('pointerlockerror', _pointerlockerror);
+    };
+    renderer.domElement.requestPointerLock();
+  } else {
+    accept();
+  }
+});
+document.addEventListener('pointerlockchange', e => {
+  if (!document.pointerLockElement) {
+    tools.find(tool => tool.getAttribute('tool') === 'camera').click();
+  }
+});
 for (let i = 0; i < tools.length; i++) {
   const tool = document.getElementById('tool-' + (i + 1));
-  tool.addEventListener('click', e => {
+  tool.addEventListener('click', async e => {
+    const newSelectedTool = tool.getAttribute('tool');
+    console.log('new selected', newSelectedTool);
+    if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
+      await _requestPointerLock();
+    }
+
     for (let i = 0; i < tools.length; i++) {
       tools[i].classList.remove('selected');
     }
     tool.classList.add('selected');
 
     const oldSelectedTool = selectedTool;
-    selectedTool = tool.getAttribute('tool');
+    selectedTool = newSelectedTool;
 
     if (selectedTool !== oldSelectedTool) {
       // hoverTarget = null;
@@ -6437,17 +6461,10 @@ for (let i = 0; i < tools.length; i++) {
           velocity.set(0, 0, 0);
           break;
         }
-        case 'firstperson': {
-          // document.dispatchEvent(new MouseEvent('mouseup'));
-          renderer.domElement.requestPointerLock();
-          break;
-        }
         case 'thirdperson': {
           camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
           camera.updateMatrixWorld();
 
-          // document.dispatchEvent(new MouseEvent('mouseup'));
-          renderer.domElement.requestPointerLock();
           decapitate = false;
           break;
         }
@@ -6457,8 +6474,6 @@ for (let i = 0; i < tools.length; i++) {
           camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
           camera.updateMatrixWorld();
 
-          // document.dispatchEvent(new MouseEvent('mouseup'));
-          renderer.domElement.requestPointerLock();
           decapitate = false;
           break;
         }
@@ -6468,8 +6483,6 @@ for (let i = 0; i < tools.length; i++) {
           camera.position.y -= -birdsEyeHeight + _getAvatarHeight();
           camera.updateMatrixWorld();
 
-          // document.dispatchEvent(new MouseEvent('mouseup'));
-          renderer.domElement.requestPointerLock();
           decapitate = false;
           break;
         }
