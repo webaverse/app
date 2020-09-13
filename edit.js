@@ -4768,7 +4768,7 @@ detailsMesh.visible = false;
 scene.add(detailsMesh);
 
 const inventoryMesh = makeInventoryMesh();
-// inventoryMesh.visible = false;
+inventoryMesh.visible = false;
 scene.add(inventoryMesh);
 
 const numSmokes = 10;
