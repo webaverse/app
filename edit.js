@@ -3036,36 +3036,6 @@ const geometryWorker = (() => {
         };
         scene.add(crosshairMesh);
       }
-      {
-        const geometryKeys = await geometryWorker.requestGetGeometryKeys(geometrySet);
-        const geometryRequests = [];
-        let i = 0;
-        for (let dy = 0; dy < 3; dy++) {
-          for (let dx = 0; dx < 3; dx++) {
-            geometryRequests.push({
-              name: geometryKeys[i],
-              position: new THREE.Vector3(-3/2 + dx, 3/2 + -dy, 0),
-              quaternion: new THREE.Quaternion(),
-            });
-            i++;
-          }
-        }
-        const geometry = await geometryWorker.requestGetGeometries(geometrySet, geometryRequests);
-        /* const material = new THREE.ShaderMaterial({
-          uniforms: THREE.UniformsUtils.clone(VEGETATION_SHADER.uniforms),
-          vertexShader: VEGETATION_SHADER.vertexShader,
-          fragmentShader: VEGETATION_SHADER.fragmentShader,
-          side: THREE.DoubleSide,
-          transparent: true,
-        }); */
-        const material = new THREE.MeshBasicMaterial({
-          color: 0xFF0000,
-        });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.scale.setScalar(0.1);
-        mesh.frustumCulled = false;
-        inventoryMesh.add(mesh);
-      }
     })(),
     (async () => {
       /* const image = new Image();
@@ -3195,6 +3165,39 @@ const geometryWorker = (() => {
   currentVegetationMesh.onAfterRender = () => {
     context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
   };
+
+  {
+    const geometryKeys = await geometryWorker.requestGetGeometryKeys(geometrySet);
+    const geometryRequests = [];
+    let i = 0;
+    for (let dy = 0; dy < 3; dy++) {
+      for (let dx = 0; dx < 3; dx++) {
+        geometryRequests.push({
+          name: geometryKeys[i],
+          position: new THREE.Vector3(-3/2 + dx, 3/2 + -dy, 0),
+          quaternion: new THREE.Quaternion(),
+        });
+        i++;
+      }
+    }
+    const geometry = await geometryWorker.requestGetGeometries(geometrySet, geometryRequests);
+    /* const material = new THREE.ShaderMaterial({
+      uniforms: THREE.UniformsUtils.clone(VEGETATION_SHADER.uniforms),
+      vertexShader: VEGETATION_SHADER.vertexShader,
+      fragmentShader: VEGETATION_SHADER.fragmentShader,
+      side: THREE.DoubleSide,
+      transparent: true,
+    }); */
+    /* const material = new THREE.MeshBasicMaterial({
+      color: 0xFF0000,
+    }); */
+    const material = currentVegetationMesh.material[0];
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.scale.setScalar(0.1);
+    mesh.frustumCulled = false;
+    console.log('got inventory models', mesh);
+    inventoryMesh.add(mesh);
+  }
 
   const _makeThingMesh = () => {
     const geometry = new THREE.BufferGeometry();
