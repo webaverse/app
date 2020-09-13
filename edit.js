@@ -6435,10 +6435,10 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 81: { // Q
-      if (selectedWeapon !== 'shovel') {
-        document.querySelector('.weapon[weapon="shovel"]').click();
-      } else {
+      if (selectedWeapon !== 'pickaxe') {
         document.querySelector('.weapon[weapon="pickaxe"]').click();
+      } else {
+        document.querySelector('.weapon[weapon="shovel"]').click();
       }
       break;
     }
