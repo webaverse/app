@@ -5629,6 +5629,9 @@ function animate(timestamp, frame) {
         case 'build': {
           return [plansMesh, pencilMesh];
         }
+        case 'shapes': {
+          return pencil;
+        }
         case 'light': {
           return paintBrushMesh;
         }
