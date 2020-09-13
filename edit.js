@@ -1479,12 +1479,12 @@ const geometryWorker = (() => {
     callStack.allocRequest(METHODS.getGeometries, false, m => {
       m.pushU32(geometrySet);
       
-      const geometryRequestSize = MAX_NAME_LENGTH + 3*Float32Array.BYTES_PER_ELEMENT + 4*Float32Array.BYTES_PER_ELEMENT;
+      const geometryRequestSize = MAX_NAME_LENGTH + 10*Float32Array.BYTES_PER_ELEMENT;
       geometryRequestsOffset = moduleInstance._malloc(geometryRequestSize * geometryRequests.length);
       
       for (let i = 0; i < geometryRequests.length; i++) {
         const geometryRequest = geometryRequests[i];
-        const {name, position, quaternion} = geometryRequest;
+        const {name, position, quaternion, scale} = geometryRequest;
         const geometryRequestOffset = geometryRequestsOffset + i*geometryRequestSize;
 
         const srcNameUint8Array = textEncoder.encode(name);
@@ -1494,6 +1494,7 @@ const geometryWorker = (() => {
 
         position.toArray(moduleInstance.HEAPF32, geometryRequestOffset/Float32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT);
         quaternion.toArray(moduleInstance.HEAPF32, geometryRequestOffset/Float32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 3);
+        scale.toArray(moduleInstance.HEAPF32, geometryRequestOffset/Float32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 7);
       }
       
       m.pushU32(geometryRequestsOffset);
@@ -3170,12 +3171,19 @@ const geometryWorker = (() => {
     const geometryKeys = await geometryWorker.requestGetGeometryKeys(geometrySet);
     const geometryRequests = [];
     let i = 0;
+
+    const h = 0.1;
+    const arrowW = h/10;
+    const wrapInnerW = h - 2*arrowW;
+    const w = wrapInnerW/3;
+
     for (let dy = 0; dy < 3; dy++) {
       for (let dx = 0; dx < 3; dx++) {
         geometryRequests.push({
           name: geometryKeys[i+10],
-          position: new THREE.Vector3(-1 + 0.5 + dx, 1 + -dy, 1),
+          position: new THREE.Vector3(-h/2 + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/2),
           quaternion: new THREE.Quaternion(),
+          scale: new THREE.Vector3(w, w, w),
         });
         i++;
       }
@@ -3194,7 +3202,7 @@ const geometryWorker = (() => {
     const material = currentVegetationMesh.material[0];
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(-0.1/2, 0, 0);
-    mesh.scale.setScalar(0.2/2/3);
+    // mesh.scale.setScalar(0.2/2/3);
     mesh.frustumCulled = false;
     inventoryMesh.add(mesh);
   }
