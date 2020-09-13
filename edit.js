@@ -4800,6 +4800,8 @@ scene.add(uiMesh); */
 
 const inventoryMesh = makeInventoryMesh(cubeMesh);
 inventoryMesh.visible = false;
+inventoryMesh.geometryKeys = null;
+inventoryMesh.currentGeometryKeys = null;
 scene.add(inventoryMesh);
 
 const detailsMesh = makeDetailsMesh(cubeMesh);
