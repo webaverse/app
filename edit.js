@@ -5861,6 +5861,33 @@ function animate(timestamp, frame) {
           }
           case 'light': {
             _light();
+            break;
+          }
+          case 'select': {
+            if (anchorSpec) {
+              console.log('anchor spec', anchorSpec);
+              const {object, anchor} = anchorSpec;
+              object.click(anchor);
+            } else if (raycastChunkSpec) {
+              if (raycastChunkSpec.objectId !== 0) {
+                detailsMesh.position.copy(raycastChunkSpec.point);
+                localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
+                  new THREE.Vector3(0, 0, -1),
+                  detailsMesh.position.clone().sub(xrCamera.position).normalize()
+                ), 'YXZ');
+                localEuler.x = 0;
+                localEuler.z = 0;
+                detailsMesh.quaternion.setFromEuler(localEuler);
+                detailsMesh.visible = true;
+                /* const thingFile = thingFiles[raycastChunkSpec.objectId];
+                if (thingFile) {
+                  rigManager.setLocalAvatarUrl(thingFile, () => {
+                    console.log('local rig update');
+                  }, console.warn);
+                } */
+              }
+            }
+            break;
           }
         }
       } else {
@@ -5934,28 +5961,6 @@ function animate(timestamp, frame) {
                 canvas.ctx.fillStyle = '#000';
                 canvas.ctx.fillRect(uv.x * canvas.width - f / 2, (1 - uv.y) * canvas.height - f / 2, f, f);
                 thingMesh.material.uniforms.tex.value.needsUpdate = true;
-              }
-            }
-            break;
-          }
-          case 'select': {
-            if (raycastChunkSpec) {
-              if (raycastChunkSpec.objectId !== 0) {
-                detailsMesh.position.copy(raycastChunkSpec.point);
-                localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
-                  new THREE.Vector3(0, 0, -1),
-                  detailsMesh.position.clone().sub(xrCamera.position).normalize()
-                ), 'YXZ');
-                localEuler.x = 0;
-                localEuler.z = 0;
-                detailsMesh.quaternion.setFromEuler(localEuler);
-                detailsMesh.visible = true;
-                /* const thingFile = thingFiles[raycastChunkSpec.objectId];
-                if (thingFile) {
-                  rigManager.setLocalAvatarUrl(thingFile, () => {
-                    console.log('local rig update');
-                  }, console.warn);
-                } */
               }
             }
             break;
