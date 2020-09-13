@@ -2925,10 +2925,10 @@ const geometryWorker = (() => {
   ] = await Promise.all([
     (async () => {
       geometrySet = geometryWorker.makeGeometrySet();
-      window.requestGetGeometryKeys = () => geometryWorker.requestGetGeometryKeys(geometrySet); // XXX
+      /* window.requestGetGeometryKeys = () => geometryWorker.requestGetGeometryKeys(geometrySet); // XXX
       window.requestGetGeometries = geometryRequests => geometryWorker.requestGetGeometries(geometrySet, geometryRequests); // XXX
       window.THREE = THREE;
-      console.log('got three', THREE);
+      console.log('got three', THREE); */
       await geometryWorker.requestLoadBake(geometrySet, './meshes.bin');
 
       const geometries = await Promise.all([
