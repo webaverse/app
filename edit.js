@@ -1078,6 +1078,8 @@ const geometryWorker = (() => {
     makeGeometrySet: methodIndex++,
     loadBake: methodIndex++,
     getGeometry: methodIndex++,
+    getGeometries: methodIndex++,
+    getGeometryKeys: methodIndex++,
     getAnimalGeometry: methodIndex++,
     marchObjects: methodIndex++,
     getHeight: methodIndex++,
@@ -1253,6 +1255,7 @@ const geometryWorker = (() => {
   };
   const cbIndex = new Map();
   const textEncoder = new TextEncoder();
+  const textDecoder = new TextDecoder();
   const w = {};
   /* window.earcut = () => {
     const positionsData = Float32Array.from([
@@ -1344,7 +1347,7 @@ const geometryWorker = (() => {
       });
     });
   };
-  w.requestGeometry = (geometrySet, name) => new Promise((accept, reject) => {
+  w.requestGetGeometry = (geometrySet, name) => new Promise((accept, reject) => {
     let dstNameUint8Array;
     callStack.allocRequest(METHODS.getGeometry, false, m => {
       m.pushU32(geometrySet);
@@ -1370,10 +1373,88 @@ const geometryWorker = (() => {
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      renderer.geometries.update(geometry);
 
       w.free(dstNameUint8Array.byteOffset);
 
       accept(geometry);
+    });
+  });
+  w.requestGetGeometries = (geometrySet, geometryRequests) => new Promise((accept, reject) => {
+    let geometryRequestsOffset;
+    callStack.allocRequest(METHODS.getGeometries, false, m => {
+      m.pushU32(geometrySet);
+      
+      const geometryRequestSize = MAX_NAME_LENGTH + 3*Float32Array.BYTES_PER_ELEMENT + 4*Float32Array.BYTES_PER_ELEMENT;
+      geometryRequestsOffset = moduleInstance._malloc(geometryRequestSize * geometryRequests.length);
+      
+      for (let i = 0; i < geometryRequests.length; i++) {
+        const geometryRequest = geometryRequests[i];
+        const {name, position, quaternion} = geometryRequest;
+        const geometryRequestOffset = geometryRequestsOffset + i*geometryRequestSize;
+
+        const srcNameUint8Array = textEncoder.encode(name);
+        const dstNameUint8Array = moduleInstance.HEAPU8.subarray(geometryRequestOffset, geometryRequestOffset + MAX_NAME_LENGTH);
+        dstNameUint8Array.set(srcNameUint8Array);
+        dstNameUint8Array[srcNameUint8Array.length] = 0;
+
+        position.toArray(moduleInstance.HEAPF32, geometryRequestOffset/Float32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT);
+        quaternion.toArray(moduleInstance.HEAPF32, geometryRequestOffset/Float32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 3);
+      }
+      
+      m.pushU32(geometryRequestsOffset);
+      m.pushU32(geometryRequests.length);
+    }, m => {
+      const positionsOffset = m.pullU32();
+      const uvsOffset = m.pullU32();
+      const indicesOffset = m.pullU32();
+      const numPositions = m.pullU32();
+      const numUvs = m.pullU32();
+      const numIndices = m.pullU32();
+
+      const positions = new Float32Array(moduleInstance.HEAP8.buffer, positionsOffset, numPositions);
+      const uvs = new Float32Array(moduleInstance.HEAP8.buffer, uvsOffset, numUvs);
+      const indices = new Uint32Array(moduleInstance.HEAP8.buffer, indicesOffset, numIndices);
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      renderer.geometries.update(geometry);
+
+      w.free(positionsOffset);
+      w.free(uvsOffset);
+      w.free(indicesOffset);
+
+      accept(geometry);
+    });
+  });
+  w.requestGetGeometryKeys = geometrySet => new Promise((accept, reject) => {
+    callStack.allocRequest(METHODS.getGeometryKeys, false, m => {
+      m.pushU32(geometrySet);
+    }, m => {
+      const namesOffset = m.pullU32();
+      const numNames = m.pullU32();
+      
+      const result = [];
+      for (let i = 0; i < numNames; i++) {
+        const nameOffset = namesOffset + i*MAX_NAME_LENGTH;
+        const nameLength = (() => {
+          let j;
+          for (j = 0; j < MAX_NAME_LENGTH; j++) {
+            if (moduleInstance.HEAPU8[nameOffset+j] === 0) {
+              break;
+            }
+          }
+          return j;
+        })();
+        const name = textDecoder.decode(moduleInstance.HEAPU8.slice(nameOffset, nameOffset + nameLength));
+        result.push(name);
+      }
+
+      w.free(namesOffset);
+
+      accept(result);
     });
   });
   w.requestAnimalGeometry = hash => new Promise((accept, reject) => {
@@ -2844,6 +2925,10 @@ const geometryWorker = (() => {
   ] = await Promise.all([
     (async () => {
       geometrySet = geometryWorker.makeGeometrySet();
+      window.requestGetGeometryKeys = () => geometryWorker.requestGetGeometryKeys(geometrySet); // XXX
+      window.requestGetGeometries = geometryRequests => geometryWorker.requestGetGeometries(geometrySet, geometryRequests); // XXX
+      window.THREE = THREE;
+      console.log('got three', THREE);
       await geometryWorker.requestLoadBake(geometrySet, './meshes.bin');
 
       const geometries = await Promise.all([
@@ -2861,7 +2946,7 @@ const geometryWorker = (() => {
         'SM_Wep_SubMGun_Lite_01',
         'SM_Wep_Grenade_01',
         'SM_Wep_Crosshair_04',
-      ].map(n => geometryWorker.requestGeometry(geometrySet, n)));
+      ].map(n => geometryWorker.requestGetGeometry(geometrySet, n)));
       wallMesh = _makeBakedMesh(geometries[0]);
       wallMesh.buildType = 'wall';
       wallMesh.vegetationType = 'wood_wall';
