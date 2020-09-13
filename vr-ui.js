@@ -790,13 +790,14 @@ p {
 </div>
 `;
 };
-const _makeInventoryString = (scrollFactor, scrollbarHeight) => {
+const _makeInventoryString = () => {
   const fullW = uiSize/2;
   const arrowW = fullW/10;
   const wrapInnerW = fullW - arrowW*2;
   const margin = fullW/40;
   const iconW = (wrapInnerW - margin)/3;
   const innerW = iconW - margin;
+  const scrollbarW = fullW/40;
   const _makeIcon = i => `\
 <a class=icon id="icon-${i}">
   <div class="border top-left"></div>
@@ -820,7 +821,9 @@ const _makeInventoryString = (scrollFactor, scrollbarHeight) => {
 }
 .wrap {
   display: flex;
+  width: ${wrapInnerW}px;
   flex-direction: column;
+  overflow: hidden;
 }
 .arrow {
   display: flex;
@@ -886,18 +889,9 @@ const _makeInventoryString = (scrollFactor, scrollbarHeight) => {
 }
 .scrollbar {
   position: relative;
-  width: ${fullW/40}px;
+  width: ${scrollbarW}px;
   height: 100%;
   background-color: #EEE;
-}
-.scrollbar .bar {
-  position: absolute;
-  top: ${scrollFactor*(1 - scrollbarHeight)*100}%;
-  left: 0;
-  right: 0;
-  height: ${scrollbarHeight*100}%;
-  width: 100%;
-  background-color: #5c6bc0;
 }
 .details {
   display: flex;
@@ -931,9 +925,7 @@ p {
     </div>
     <a class=arrow id=next-button><div class=text>&gt;</div></a>
   </div>
-  <a class=scrollbar id=scrollbar>
-    <div class=bar></div>
-  </a>
+  <a class=scrollbar id=scrollbar></a>
   <div class=details>
     <h1>Details</h1>
     <p>Lorem ipsum</p>
@@ -1386,12 +1378,31 @@ const makeInventoryMesh = cubeMesh => {
   mesh.add(highlightMesh);
   // mesh.highlightMesh = highlightMesh;
 
+  const scrollbarMesh = (() => {
+    const fullW = worldWidth/2;
+    const arrowW = fullW/10;
+    const wrapInnerW = fullW - arrowW*2;
+    /* const margin = fullW/40;
+    const iconW = (wrapInnerW - margin)/3;
+    const innerW = iconW - margin; */
+    const scrollbarW = fullW/40;
+    const geometry = new THREE.PlaneBufferGeometry(scrollbarW, 1)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(-fullW + scrollbarW + wrapInnerW, -1/2, scrollbarW/2));
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xffa726,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    return mesh;
+  })();
+  mesh.add(scrollbarMesh)
+
   let anchors = [];
   let scrollFactor = 0.2;
   let scrollbarHeight = 0.15;
   mesh.update = () => {
     // console.log('update', scrollFactor, scrollbarHeight);
-    const htmlString = _makeInventoryString(scrollFactor, scrollbarHeight);
+    const htmlString = _makeInventoryString();
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
         /* imageData.data.set(result.data);
@@ -1404,6 +1415,10 @@ const makeInventoryMesh = cubeMesh => {
         anchors = result.anchors;
         // console.log(anchors);
       });
+  };
+  mesh.updateScroll = () => {
+    scrollbarMesh.position.y = worldHeight/2 - scrollFactor*(1-scrollbarHeight)*worldHeight;
+    scrollbarMesh.scale.y = scrollbarHeight*worldHeight;
   };
 
   // let currentMesh = null;
@@ -1447,12 +1462,13 @@ const makeInventoryMesh = cubeMesh => {
       if (anchor.id === 'scrollbar') {
         // console.log('got uv', uv.y);
         scrollFactor = uv.y;
-        mesh.update();
+        mesh.updateScroll();
       }
     }
     // currentMesh && currentMesh.click(currentAnchor);
   };
   mesh.update();
+  mesh.updateScroll();
 
   return mesh;
 };
