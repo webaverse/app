@@ -6751,13 +6751,11 @@ const _ensureLoadMesh = p => {
 };
 
 const raycaster = new THREE.Raycaster();
+let currentAnchor = null;
 const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(mouse, camera);
-  /* const candidateMeshes = pe.children
-    .map(p => p.volumeMesh)
-    .filter(o => !!o); */
-  // uiMesh.intersect(raycaster);
+  currentAnchor = inventoryMesh.intersect(raycaster);
 };
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
@@ -6788,7 +6786,7 @@ const _updateMouseMovement = e => {
 renderer.domElement.addEventListener('mousemove', e => {
   if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
     _updateMouseMovement(e);
-  } else if (selectedTool === 'camera') {
+  } else if (selectedTool === 'camera' && selectedWeapon === 'select') {
     _updateRaycasterFromMouseEvent(raycaster, e);
   } /* else if (selectedTool === 'select' && !getRealSession()) {
     _updateRaycasterFromMouseEvent(raycaster, e);
