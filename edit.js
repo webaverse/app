@@ -6245,7 +6245,7 @@ function animate(timestamp, frame) {
     rigManager.localRig.undecapitate();
   }
 
-  geometryWorker && geometryWorker.update();
+  geometryWorker.update();
   planet.update();
 
   localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, worldContainer.matrixWorld));
