@@ -6426,6 +6426,7 @@ const _requestPointerLock = () => new Promise((accept, reject) => {
 document.addEventListener('pointerlockchange', e => {
   if (!document.pointerLockElement) {
     tools.find(tool => tool.getAttribute('tool') === 'camera').click();
+    document.dispatchEvent(new MouseEvent('mouseup'));
   }
 });
 for (let i = 0; i < tools.length; i++) {
