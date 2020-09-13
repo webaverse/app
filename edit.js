@@ -5532,14 +5532,24 @@ function animate(timestamp, frame) {
     orbitControls.enabled = selectedTool === 'camera' && !['pencil', 'paintbrush', 'physics'].includes(selectedWeapon);
 
     if (currentChunkMesh && geometryWorker) {
-      const result = geometryWorker.raycast(tracker, rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion);
-      raycastChunkSpec = result;
-      if (raycastChunkSpec) {
-        raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
-        raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
-        raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
-        raycastChunkSpec.objectQuaternion = new THREE.Quaternion().fromArray(raycastChunkSpec.objectQuaternion);
-        cubeMesh.position.copy(raycastChunkSpec.point);
+      anchorSpec = null;
+      raycastChunkSpec = null;
+
+      if (selectedWeapon === 'select') {
+        raycaster.ray.origin.copy(rigManager.localRig.inputs.leftGamepad.position);
+        raycaster.ray.direction.set(0, 0, -1).applyQuaternion(rigManager.localRig.inputs.leftGamepad.quaternion);
+        anchorSpec = inventoryMesh.intersect(raycaster) || detailsMesh.intersect(raycaster);
+      }
+      if (!anchorSpec) {
+        const result = geometryWorker.raycast(tracker, rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion);
+        raycastChunkSpec = result;
+        if (raycastChunkSpec) {
+          raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
+          raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
+          raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
+          raycastChunkSpec.objectQuaternion = new THREE.Quaternion().fromArray(raycastChunkSpec.objectQuaternion);
+          cubeMesh.position.copy(raycastChunkSpec.point);
+        }
       }
     }
 
@@ -6580,6 +6590,8 @@ window.addEventListener('keydown', e => {
           .multiply(localMatrix2.makeTranslation(0, 0, -3))
           .decompose(inventoryMesh.position, inventoryMesh.quaternion, inventoryMesh.scale);
           inventoryMesh.scale.setScalar(20);
+
+        weapons.find(weapon => weapon.getAttribute('weapon') === 'select').click();
       }
       break;
     }
@@ -6827,12 +6839,12 @@ const _ensureLoadMesh = p => {
 };
 
 const raycaster = new THREE.Raycaster();
-let currentAnchor = null;
-const _updateRaycasterFromMouseEvent = (raycaster, e) => {
+let anchorSpec = null;
+/* const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(mouse, camera);
   currentAnchor = inventoryMesh.intersect(raycaster) || detailsMesh.intersect(raycaster);
-};
+}; */
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
   if (selectedTool === 'thirdperson') {
@@ -6862,9 +6874,7 @@ const _updateMouseMovement = e => {
 renderer.domElement.addEventListener('mousemove', e => {
   if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
     _updateMouseMovement(e);
-  } else if (selectedTool === 'camera' && selectedWeapon === 'select') {
-    _updateRaycasterFromMouseEvent(raycaster, e);
-  } /* else if (selectedTool === 'select' && !getRealSession()) {
+  } /* else if (selectedTool === 'camera' && selectedWeapon === 'select') {
     _updateRaycasterFromMouseEvent(raycaster, e);
   } */
 });
