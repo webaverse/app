@@ -6430,7 +6430,7 @@ for (let i = 0; i < tools.length; i++) {
           break;
         }
         case 'firstperson': {
-          document.dispatchEvent(new MouseEvent('mouseup'));
+          // document.dispatchEvent(new MouseEvent('mouseup'));
           renderer.domElement.requestPointerLock();
           break;
         }
@@ -6438,7 +6438,7 @@ for (let i = 0; i < tools.length; i++) {
           camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
           camera.updateMatrixWorld();
 
-          document.dispatchEvent(new MouseEvent('mouseup'));
+          // document.dispatchEvent(new MouseEvent('mouseup'));
           renderer.domElement.requestPointerLock();
           decapitate = false;
           break;
@@ -6449,7 +6449,7 @@ for (let i = 0; i < tools.length; i++) {
           camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
           camera.updateMatrixWorld();
 
-          document.dispatchEvent(new MouseEvent('mouseup'));
+          // document.dispatchEvent(new MouseEvent('mouseup'));
           renderer.domElement.requestPointerLock();
           decapitate = false;
           break;
@@ -6460,7 +6460,7 @@ for (let i = 0; i < tools.length; i++) {
           camera.position.y -= -birdsEyeHeight + _getAvatarHeight();
           camera.updateMatrixWorld();
 
-          document.dispatchEvent(new MouseEvent('mouseup'));
+          // document.dispatchEvent(new MouseEvent('mouseup'));
           renderer.domElement.requestPointerLock();
           decapitate = false;
           break;
