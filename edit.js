@@ -3173,8 +3173,8 @@ const geometryWorker = (() => {
     for (let dy = 0; dy < 3; dy++) {
       for (let dx = 0; dx < 3; dx++) {
         geometryRequests.push({
-          name: geometryKeys[i],
-          position: new THREE.Vector3(-3/2 + dx, 3/2 + -dy, 0),
+          name: geometryKeys[i+10],
+          position: new THREE.Vector3(-1 + 0.5 + dx, 1 + -dy, 1),
           quaternion: new THREE.Quaternion(),
         });
         i++;
@@ -3193,9 +3193,9 @@ const geometryWorker = (() => {
     }); */
     const material = currentVegetationMesh.material[0];
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.scale.setScalar(0.1);
+    mesh.position.set(-0.1/2, 0, 0);
+    mesh.scale.setScalar(0.2/2/3);
     mesh.frustumCulled = false;
-    console.log('got inventory models', mesh);
     inventoryMesh.add(mesh);
   }
 
