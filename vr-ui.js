@@ -1316,9 +1316,10 @@ const makeDetailsMesh = cubeMesh => {
     }
     return currentAnchor;
   };
-  /* mesh.click = () => {
-    currentMesh && currentMesh.click(currentAnchor);
-  }; */
+  mesh.click = anchor => {
+    console.log('click', anchor);
+    // currentMesh && currentMesh.click(currentAnchor);
+  };
   mesh.update();
 
   return mesh;
@@ -1409,9 +1410,10 @@ const makeInventoryMesh = cubeMesh => {
     }
     return currentAnchor;
   };
-  /* mesh.click = () => {
-    currentMesh && currentMesh.click(currentAnchor);
-  }; */
+  mesh.click = anchor => {
+    console.log('click', anchor);
+    // currentMesh && currentMesh.click(currentAnchor);
+  };
   mesh.update();
 
   return mesh;
@@ -1433,12 +1435,13 @@ const intersectUi = (raycaster, meshes) => {
         mesh,
       });
     // } */
-    const [{point}] = intersects;
+    const [{object, point}] = intersects;
     const anchor = intersects[0].object.intersect(intersects);
     intersects.length = 0;
     return {
-      anchor,
+      object,
       point,
+      anchor,
     };
   } else {
     return null;
