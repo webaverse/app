@@ -1424,7 +1424,7 @@ const geometryWorker = (() => {
 
     await new Promise((accept, reject) => {
       let data;
-      callStack.allocRequest(METHODS.loadBake, false, m => {
+      callStack.allocRequest(METHODS.loadBake, true, m => {
         m.pushU32(geometrySet);
 
         data = w.alloc(Uint8Array, arrayBuffer.byteLength);
@@ -1439,7 +1439,7 @@ const geometryWorker = (() => {
   };
   w.requestGetGeometry = (geometrySet, name) => new Promise((accept, reject) => {
     let dstNameUint8Array;
-    callStack.allocRequest(METHODS.getGeometry, false, m => {
+    callStack.allocRequest(METHODS.getGeometry, true, m => {
       m.pushU32(geometrySet);
 
       const srcNameUint8Array = textEncoder.encode(name);
@@ -1476,7 +1476,7 @@ const geometryWorker = (() => {
   });
   w.requestGetGeometries = (geometrySet, geometryRequests) => new Promise((accept, reject) => {
     let geometryRequestsOffset;
-    callStack.allocRequest(METHODS.getGeometries, false, m => {
+    callStack.allocRequest(METHODS.getGeometries, true, m => {
       m.pushU32(geometrySet);
       
       const geometryRequestSize = MAX_NAME_LENGTH + 10*Float32Array.BYTES_PER_ELEMENT;
@@ -1530,7 +1530,7 @@ const geometryWorker = (() => {
     });
   });
   w.requestGetGeometryKeys = geometrySet => new Promise((accept, reject) => {
-    callStack.allocRequest(METHODS.getGeometryKeys, false, m => {
+    callStack.allocRequest(METHODS.getGeometryKeys, true, m => {
       m.pushU32(geometrySet);
     }, m => {
       const namesOffset = m.pullU32();
