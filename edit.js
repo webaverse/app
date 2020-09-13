@@ -12,7 +12,7 @@ import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
-import {/*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh} from './vr-ui.js';
+import {makeCubeMesh, /*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import {makeAnimalFactory} from './animal.js';
 import {
@@ -4776,7 +4776,10 @@ const hpMesh = (() => {
 })();
 scene.add(hpMesh);
 
-/* const uiMesh = makeUiFullMesh(scene);
+const cubeMesh = makeCubeMesh();
+scene.add(cubeMesh);
+
+/* const uiMesh = makeUiFullMesh(cubeMesh);
 scene.add(uiMesh); */
 
 let selectedWeapon = 'hand';
@@ -4806,12 +4809,12 @@ const toolsMesh = makeToolsMesh(weapons.map(weapon => weapon.getAttribute('weapo
 toolsMesh.visible = false;
 scene.add(toolsMesh);
 
-const detailsMesh = makeDetailsMesh();
+const detailsMesh = makeDetailsMesh(cubeMesh);
 detailsMesh.visible = false;
 scene.add(detailsMesh);
 
-const inventoryMesh = makeInventoryMesh();
-inventoryMesh.visible = false;
+const inventoryMesh = makeInventoryMesh(cubeMesh);
+// inventoryMesh.visible = false;
 scene.add(inventoryMesh);
 
 const numSmokes = 10;
@@ -5071,7 +5074,7 @@ const _collideChunk = matrix => {
   currentChunkMesh && currentChunkMesh.update(localVector3);
 };
 
-const cubeMesh = (() => {
+/* const cubeMesh = (() => {
   const geometry = new THREE.BoxBufferGeometry(0.02, 0.02, 0.02);
   const material = new THREE.MeshBasicMaterial({
     color: 0x00FF00,
@@ -5079,7 +5082,7 @@ const cubeMesh = (() => {
   return new THREE.Mesh(geometry, material);
 })();
 cubeMesh.frustumCulled = false;
-scene.add(cubeMesh);
+scene.add(cubeMesh); */
 
 const velocity = new THREE.Vector3();
 // const lastGrabs = [false, false];
@@ -6755,7 +6758,7 @@ let currentAnchor = null;
 const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(mouse, camera);
-  currentAnchor = inventoryMesh.intersect(raycaster);
+  currentAnchor = inventoryMesh.intersect(raycaster) || detailsMesh.intersect(raycaster);
 };
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
