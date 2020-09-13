@@ -4814,7 +4814,7 @@ detailsMesh.visible = false;
 scene.add(detailsMesh);
 
 const inventoryMesh = makeInventoryMesh(cubeMesh);
-// inventoryMesh.visible = false;
+inventoryMesh.visible = false;
 scene.add(inventoryMesh);
 
 const numSmokes = 10;
@@ -5051,8 +5051,8 @@ const _collideItems = matrix => {
   // toolsMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, -0.25, -0.5).applyQuaternion(localQuaternion2)), 0.1);
   // toolsMesh.quaternion.slerp(localQuaternion2, 0.1);
 
-  inventoryMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0, -0.2).applyQuaternion(localQuaternion2)), 0.1);
-  inventoryMesh.quaternion.slerp(localQuaternion2, 0.1);
+  // inventoryMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0, -0.2).applyQuaternion(localQuaternion2)), 0.1);
+  // inventoryMesh.quaternion.slerp(localQuaternion2, 0.1);
 
   localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
   for (let i = 0; i < itemMeshes.length; i++) {
@@ -6526,9 +6526,9 @@ window.addEventListener('keydown', e => {
     {
       let {which} = e;
       if (which === 48) {
-        which++;
+        which += 10;
       }
-      weapons[e.which - 49].click();
+      weapons[which - 49].click();
       break;
     }
     case 87: { // W
@@ -6563,6 +6563,18 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
+    case 9: { // tab
+      e.preventDefault();
+      e.stopPropagation();
+      inventoryMesh.visible = !inventoryMesh.visible;
+      if (inventoryMesh.visible) {
+        localMatrix.copy(rigManager.localRigMatrixEnabled ? rigManager.localRigMatrix : camera.matrixWorld)
+          .multiply(localMatrix2.makeTranslation(0, 0, -3))
+          .decompose(inventoryMesh.position, inventoryMesh.quaternion, inventoryMesh.scale);
+          inventoryMesh.scale.setScalar(20);
+      }
+      break;
+    }
     case 69: { // E
       if (document.pointerLockElement) {
         // nothing
@@ -6588,18 +6600,26 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 86: { // V
+      e.preventDefault();
+      e.stopPropagation();
       tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
       break;
     }
     case 66: { // B
+      e.preventDefault();
+      e.stopPropagation();
       tools.find(tool => tool.getAttribute('tool') === 'thirdperson').click();
       break;
     }
     case 78: { // N
+      e.preventDefault();
+      e.stopPropagation();
       tools.find(tool => tool.getAttribute('tool') === 'isometric').click();
       break;
     }
     case 77: { // M
+      e.preventDefault();
+      e.stopPropagation();
       tools.find(tool => tool.getAttribute('tool') === 'birdseye').click();
       break;
     }
