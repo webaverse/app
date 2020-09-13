@@ -27,7 +27,7 @@ const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anch
 };
 
 const makeCubeMesh = () => {
-  const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
+  const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.05, 0.05, 0.05), new THREE.MeshBasicMaterial({
     color: 0x0000FF,
   }));
   cubeMesh.visible = false;
@@ -1287,7 +1287,7 @@ const makeDetailsMesh = cubeMesh => {
   const intersects = [];
   const localIntersections = [];
   mesh.intersect = raycaster => {
-    // for (const mesh of object.children) {
+    if (mesh.visible) {
       mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       raycaster.intersectObject(mesh, false, intersects);
       if (intersects.length > 0) {
@@ -1304,40 +1304,38 @@ const makeDetailsMesh = cubeMesh => {
       }
 
       highlightMesh.visible = false;
-    // }
-    // currentMesh = null;
-    currentAnchor = null;
-    if (localIntersections.length > 0) {
-      localIntersections.sort((a, b) => a.distance - b.distance);
-      const [{point, uv, mesh}] = localIntersections;
-      localIntersections.length = 0;
-      cubeMesh.position.copy(point);
-      cubeMesh.visible = true;
 
-      if (uv) {
-        uv.y = 1 - uv.y;
-        uv.x *= canvasWidth;
-        uv.y *= canvasHeight;
+      currentAnchor = null;
+      if (localIntersections.length > 0) {
+        localIntersections.sort((a, b) => a.distance - b.distance);
+        const [{point, uv, mesh}] = localIntersections;
+        localIntersections.length = 0;
+        cubeMesh.position.copy(point);
+        cubeMesh.visible = true;
 
-        // const anchors = mesh.getAnchors();
-        for (let i = 0; i < anchors.length; i++) {
-          const anchor = anchors[i];
-          const {top, bottom, left, right, width, height} = anchor;
-          if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
-            // currentMesh = mesh;
-            currentAnchor = anchor;
+        if (uv) {
+          uv.y = 1 - uv.y;
+          uv.x *= canvasWidth;
+          uv.y *= canvasHeight;
 
-            highlightMesh.position.x = -worldWidth/2 + (left + width/2) / canvasWidth * worldWidth;
-            highlightMesh.position.y = worldHeight/2 - (top + height/2) / canvasHeight * worldHeight;
-            highlightMesh.scale.x = width / canvasWidth * worldWidth;
-            highlightMesh.scale.y = height / canvasHeight * worldHeight;
-            highlightMesh.visible = true;
-            break;
+          for (let i = 0; i < anchors.length; i++) {
+            const anchor = anchors[i];
+            const {top, bottom, left, right, width, height} = anchor;
+            if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
+              currentAnchor = anchor;
+
+              highlightMesh.position.x = -worldWidth/2 + (left + width/2) / canvasWidth * worldWidth;
+              highlightMesh.position.y = worldHeight/2 - (top + height/2) / canvasHeight * worldHeight;
+              highlightMesh.scale.x = width / canvasWidth * worldWidth;
+              highlightMesh.scale.y = height / canvasHeight * worldHeight;
+              highlightMesh.visible = true;
+              break;
+            }
           }
         }
+      } else {
+        cubeMesh.visible = false;
       }
-    } else {
-      cubeMesh.visible = false;
     }
     return currentAnchor;
   };
@@ -1406,7 +1404,7 @@ const makeInventoryMesh = cubeMesh => {
   const intersects = [];
   const localIntersections = [];
   mesh.intersect = raycaster => {
-    // for (const mesh of object.children) {
+    if (mesh.visible) {
       mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
       raycaster.intersectObject(mesh, false, intersects);
       if (intersects.length > 0) {
@@ -1423,40 +1421,40 @@ const makeInventoryMesh = cubeMesh => {
       }
 
       highlightMesh.visible = false;
-    // }
-    // currentMesh = null;
-    currentAnchor = null;
-    if (localIntersections.length > 0) {
-      localIntersections.sort((a, b) => a.distance - b.distance);
-      const [{point, uv, mesh}] = localIntersections;
-      localIntersections.length = 0;
-      cubeMesh.position.copy(point);
-      cubeMesh.visible = true;
 
-      if (uv) {
-        uv.y = 1 - uv.y;
-        uv.x *= canvasWidth;
-        uv.y *= canvasHeight;
+      currentAnchor = null;
+      if (localIntersections.length > 0) {
+        localIntersections.sort((a, b) => a.distance - b.distance);
+        const [{point, uv, mesh}] = localIntersections;
+        localIntersections.length = 0;
+        cubeMesh.position.copy(point);
+        cubeMesh.visible = true;
 
-        // const anchors = mesh.getAnchors();
-        for (let i = 0; i < anchors.length; i++) {
-          const anchor = anchors[i];
-          const {top, bottom, left, right, width, height} = anchor;
-          if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
-            // currentMesh = mesh;
-            currentAnchor = anchor;
+        if (uv) {
+          uv.y = 1 - uv.y;
+          uv.x *= canvasWidth;
+          uv.y *= canvasHeight;
 
-            highlightMesh.position.x = -worldWidth/2 + (left + width/2) / canvasWidth * worldWidth;
-            highlightMesh.position.y = worldHeight/2 - (top + height/2) / canvasHeight * worldHeight;
-            highlightMesh.scale.x = width / canvasWidth * worldWidth;
-            highlightMesh.scale.y = height / canvasHeight * worldHeight;
-            highlightMesh.visible = true;
-            break;
+          // const anchors = mesh.getAnchors();
+          for (let i = 0; i < anchors.length; i++) {
+            const anchor = anchors[i];
+            const {top, bottom, left, right, width, height} = anchor;
+            if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
+              // currentMesh = mesh;
+              currentAnchor = anchor;
+
+              highlightMesh.position.x = -worldWidth/2 + (left + width/2) / canvasWidth * worldWidth;
+              highlightMesh.position.y = worldHeight/2 - (top + height/2) / canvasHeight * worldHeight;
+              highlightMesh.scale.x = width / canvasWidth * worldWidth;
+              highlightMesh.scale.y = height / canvasHeight * worldHeight;
+              highlightMesh.visible = true;
+              break;
+            }
           }
         }
+      } else {
+        cubeMesh.visible = false;
       }
-    } else {
-      cubeMesh.visible = false;
     }
     return currentAnchor;
   };
