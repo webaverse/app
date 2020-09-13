@@ -3169,21 +3169,24 @@ const geometryWorker = (() => {
   {
     const geometryKeys = await geometryWorker.requestGetGeometryKeys(geometrySet);
     const geometryRequests = [];
-    let i = 0;
 
     const h = 0.1;
     const arrowW = h/10;
     const wrapInnerW = h - 2*arrowW;
     const w = wrapInnerW/3;
 
+    let i = 0;
+    const currentGeometryKeys = [];
     for (let dy = 0; dy < 3; dy++) {
       for (let dx = 0; dx < 3; dx++) {
+        const name = geometryKeys[i];
         geometryRequests.push({
-          name: geometryKeys[i+10],
+          name,
           position: new THREE.Vector3(-h/2 + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/2),
           quaternion: new THREE.Quaternion(),
           scale: new THREE.Vector3(w, w, w),
         });
+        currentGeometryKeys.push(name);
         i++;
       }
     }
@@ -3204,6 +3207,8 @@ const geometryWorker = (() => {
     // mesh.scale.setScalar(0.2/2/3);
     mesh.frustumCulled = false;
     inventoryMesh.add(mesh);
+    inventoryMesh.geometryKeys = geometryKeys;
+    inventoryMesh.currentGeometryKeys = currentGeometryKeys;
   }
 
   const _makeThingMesh = () => {
