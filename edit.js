@@ -5865,7 +5865,7 @@ function animate(timestamp, frame) {
           }
           case 'select': {
             if (anchorSpec) {
-              console.log('anchor spec', anchorSpec, anchorSpec.object.click.toString());
+              // console.log('anchor spec', anchorSpec, anchorSpec.object.click.toString());
               // const {object, anchor} = anchorSpec;
               anchorSpec.object.click(anchorSpec);
             } else if (raycastChunkSpec) {

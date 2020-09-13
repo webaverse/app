@@ -13,6 +13,12 @@ const cubicBezier = easing(0, 1, 0, 1);
 function mod(a, b) {
   return ((a % b) + b) % b;
 }
+const _flipUvs = geometry => {
+  for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+    geometry.attributes.uv.array[i+1] = 1 - geometry.attributes.uv.array[i+1];
+  }
+  return geometry;
+};
 
 const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anchorX = 'left', anchorY = 'middle') => {
   const textMesh = new TextMesh();
@@ -531,6 +537,7 @@ const uiRenderer = (() => {
         width,
         height,
         transparent: true,
+        bitmap: true,
         port: mc.port2,
       }, '*', [mc.port2]);
       const result = await new Promise((accept, reject) => {
@@ -932,15 +939,17 @@ p {
 `;
 };
 const makeUiMesh = (label, tiles, onclick) => {
-  const geometry = new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize)
-    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
-  const canvas = document.createElement('canvas');
+  const geometry = _flipUvs(
+    new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0))
+  );
+  /* const canvas = document.createElement('canvas');
   canvas.width = uiSize;
   canvas.height = uiSize;
   const ctx = canvas.getContext('2d');
-  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  const imageData = ctx.createImageData(canvas.width, canvas.height); */
   const texture = new THREE.Texture(
-    canvas,
+    null,
     THREE.UVMapping,
     THREE.ClampToEdgeWrapping,
     THREE.ClampToEdgeWrapping,
@@ -979,10 +988,12 @@ const makeUiMesh = (label, tiles, onclick) => {
   let anchors = [];
   mesh.update = () => {
     const htmlString = _makeHtmlString(label, tiles);
-    uiRenderer.render(htmlString, canvas.width, canvas.height)
+    uiRenderer.render(htmlString, uiSize, uiSize)
       .then(result => {
-        imageData.data.set(result.data);
-        ctx.putImageData(imageData, 0, 0);
+        // imageData.data.set(result.data);
+        // ctx.putImageData(imageData, 0, 0);
+        // ctx.drawImage(result.data, 0, 0);
+        texture.image = result.data;
         texture.needsUpdate = true;
         mesh.visible = true;
 
@@ -1140,15 +1151,17 @@ const makeUiFullMesh = cubeMesh => {
   return wrap;
 };
 const makeToolsMesh = (tools, selectTool) => {
-  const geometry = new THREE.PlaneBufferGeometry(1, 0.2)
+  const canvasWidth = uiSize;
+  const canvasHeight = uiSize*uiWorldSize;
+  const geometry = _flipUvs(new THREE.PlaneBufferGeometry(1, 0.2));
     // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
-  const canvas = document.createElement('canvas');
+  /* const canvas = document.createElement('canvas');
   canvas.width = uiSize;
   canvas.height = uiSize*uiWorldSize;
   const ctx = canvas.getContext('2d');
-  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  const imageData = ctx.createImageData(canvas.width, canvas.height); */
   const texture = new THREE.Texture(
-    canvas,
+    null,
     THREE.UVMapping,
     THREE.ClampToEdgeWrapping,
     THREE.ClampToEdgeWrapping,
@@ -1210,10 +1223,12 @@ const makeToolsMesh = (tools, selectTool) => {
       selectTool(selectedWeapon);
       
       const htmlString = _makeToolsString(tools, selectedWeapon);
-      uiRenderer.render(htmlString, canvas.width, canvas.height)
+      uiRenderer.render(htmlString, canvasWidth, canvasHeight)
         .then(result => {
-          imageData.data.set(result.data);
-          ctx.putImageData(imageData, 0, 0);
+          /* imageData.data.set(result.data);
+          ctx.putImageData(imageData, 0, 0); */
+          // ctx.drawImage(result.data, 0, 0);
+          texture.image = result.data;
           texture.needsUpdate = true;
           // mesh.visible = true;
 
@@ -1236,15 +1251,15 @@ const makeDetailsMesh = cubeMesh => {
   const worldHeight = 0.5;
   const canvasWidth = uiSize;
   const canvasHeight = uiSize*0.5;
-  const geometry = new THREE.PlaneBufferGeometry(worldWidth, worldHeight)
+  const geometry = _flipUvs(new THREE.PlaneBufferGeometry(worldWidth, worldHeight))
     // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
-  const canvas = document.createElement('canvas');
+  /* const canvas = document.createElement('canvas');
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
   const ctx = canvas.getContext('2d');
-  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  const imageData = ctx.createImageData(canvas.width, canvas.height); */
   const texture = new THREE.Texture(
-    canvas,
+    null,
     THREE.UVMapping,
     THREE.ClampToEdgeWrapping,
     THREE.ClampToEdgeWrapping,
@@ -1272,10 +1287,12 @@ const makeDetailsMesh = cubeMesh => {
   let anchors = [];
   mesh.update = () => {
     const htmlString = _makeDetailsString();
-    uiRenderer.render(htmlString, canvas.width, canvas.height)
+    uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
-        imageData.data.set(result.data);
-        ctx.putImageData(imageData, 0, 0);
+        /* imageData.data.set(result.data);
+        ctx.putImageData(imageData, 0, 0); */
+        // ctx.drawImage(result.data, 0, 0);
+        texture.image = result.data;
         texture.needsUpdate = true;
         // mesh.visible = true;
 
@@ -1296,7 +1313,7 @@ const makeDetailsMesh = cubeMesh => {
     cubeMesh.visible = true;
 
     localVector2D.copy(uv);
-    localVector2D.y = 1 - localVector2D.y;
+    // localVector2D.y = 1 - localVector2D.y;
     localVector2D.x *= canvasWidth;
     localVector2D.y *= canvasHeight;
 
@@ -1333,15 +1350,15 @@ const makeInventoryMesh = cubeMesh => {
   const worldHeight = 0.2/2;
   const canvasWidth = uiSize;
   const canvasHeight = uiSize/2;
-  const geometry = new THREE.PlaneBufferGeometry(worldWidth, worldHeight)
+  const geometry = _flipUvs(new THREE.PlaneBufferGeometry(worldWidth, worldHeight));
     // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
-  const canvas = document.createElement('canvas');
+  /* const canvas = document.createElement('canvas');
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
   const ctx = canvas.getContext('2d');
-  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  const imageData = ctx.createImageData(canvas.width, canvas.height); */
   const texture = new THREE.Texture(
-    canvas,
+    null,
     THREE.UVMapping,
     THREE.ClampToEdgeWrapping,
     THREE.ClampToEdgeWrapping,
@@ -1370,12 +1387,14 @@ const makeInventoryMesh = cubeMesh => {
   let scrollFactor = 0.2;
   let scrollbarHeight = 0.15;
   mesh.update = () => {
-    console.log('update', scrollFactor, scrollbarHeight);
+    // console.log('update', scrollFactor, scrollbarHeight);
     const htmlString = _makeInventoryString(scrollFactor, scrollbarHeight);
-    uiRenderer.render(htmlString, canvas.width, canvas.height)
+    uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
-        imageData.data.set(result.data);
-        ctx.putImageData(imageData, 0, 0);
+        /* imageData.data.set(result.data);
+        ctx.putImageData(imageData, 0, 0); */
+        // ctx.drawImage(result.data, 0, 0);
+        texture.image = result.data;
         texture.needsUpdate = true;
         // mesh.visible = true;
 
@@ -1395,7 +1414,7 @@ const makeInventoryMesh = cubeMesh => {
     cubeMesh.visible = true;
 
     localVector2D.copy(uv);
-    localVector2D.y = 1 - localVector2D.y;
+    // localVector2D.y = 1 - localVector2D.y;
     localVector2D.x *= canvasWidth;
     localVector2D.y *= canvasHeight;
 
@@ -1422,7 +1441,7 @@ const makeInventoryMesh = cubeMesh => {
     const {anchor, uv} = anchorSpec;
     if (anchor && anchor.id === 'scrollbar') {
       // console.log('got uv', uv.y);
-      scrollFactor = 1 - uv.y;
+      scrollFactor = uv.y;
       mesh.update();
     }
     // currentMesh && currentMesh.click(currentAnchor);
