@@ -4794,9 +4794,27 @@ scene.add(rayMesh);
 /* const uiMesh = makeUiFullMesh(cubeMesh);
 scene.add(uiMesh); */
 
+const inventoryMesh = makeInventoryMesh(cubeMesh);
+inventoryMesh.visible = false;
+scene.add(inventoryMesh);
+
+const detailsMesh = makeDetailsMesh(cubeMesh);
+detailsMesh.visible = false;
+scene.add(detailsMesh);
+
+const uiMeshes = [inventoryMesh, detailsMesh];
+
 let selectedWeapon = 'hand';
 let currentWeaponDown = false;
 let lastWeaponDown = false;
+const _setSelectedWeapon = newSelectedWeapon => {
+  selectedWeapon = newSelectedWeapon;
+  if (selectedWeapon !== 'select') {
+    for (const uiMesh of uiMeshes) {
+      uiMesh.visible = false;
+    }
+  }
+};
 const weapons = Array.from(document.querySelectorAll('.weapon'));
 for (let i = 0; i < weapons.length; i++) {
   const weapon = document.getElementById('weapon-' + (i + 1));
@@ -4806,28 +4824,18 @@ for (let i = 0; i < weapons.length; i++) {
     }
     weapon.classList.add('selected');
 
-    selectedWeapon = weapon.getAttribute('weapon');
+    _setSelectedWeapon(weapon.getAttribute('weapon'));
   });
 }
+const toolsMesh = makeToolsMesh(weapons.map(weapon => weapon.getAttribute('weapon')), _setSelectedWeapon);
+toolsMesh.visible = false;
+scene.add(toolsMesh);
+
 renderer.domElement.addEventListener('dblclick', e => {
   if (!document.pointerLockElement) {
     tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
   }
 });
-
-const toolsMesh = makeToolsMesh(weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
-  selectedWeapon = newSelectedWeapon;
-});
-toolsMesh.visible = false;
-scene.add(toolsMesh);
-
-const detailsMesh = makeDetailsMesh(cubeMesh);
-detailsMesh.visible = false;
-scene.add(detailsMesh);
-
-const inventoryMesh = makeInventoryMesh(cubeMesh);
-inventoryMesh.visible = false;
-scene.add(inventoryMesh);
 
 const numSmokes = 10;
 const numZs = 10;
@@ -5543,7 +5551,7 @@ function animate(timestamp, frame) {
       if (selectedWeapon === 'select') {
         raycaster.ray.origin.copy(rigManager.localRig.inputs.leftGamepad.position);
         raycaster.ray.direction.set(0, 0, -1).applyQuaternion(rigManager.localRig.inputs.leftGamepad.quaternion);
-        anchorSpec = intersectUi(raycaster, [inventoryMesh, detailsMesh]);
+        anchorSpec = intersectUi(raycaster, uiMeshes);
 
         if (anchorSpec) {
           rayMesh.position.copy(rigManager.localRig.inputs.leftGamepad.position);
@@ -6601,16 +6609,20 @@ window.addEventListener('keydown', e => {
     case 9: { // tab
       e.preventDefault();
       e.stopPropagation();
-      inventoryMesh.visible = !inventoryMesh.visible;
-      if (inventoryMesh.visible) {
+      const newVisible = !inventoryMesh.visible;
+      if (newVisible) {
         localMatrix.copy(rigManager.localRigMatrixEnabled ? rigManager.localRigMatrix : camera.matrixWorld)
           .multiply(localMatrix2.makeTranslation(0, 0, -3))
           .decompose(inventoryMesh.position, inventoryMesh.quaternion, inventoryMesh.scale);
           inventoryMesh.scale.setScalar(20);
 
         weapons.find(weapon => weapon.getAttribute('weapon') === 'select').click();
+
+        inventoryMesh.visible = true;
       } else {
-        detailsMesh.visible = false;
+        for (const uiMesh of uiMeshes) {
+          uiMesh.visible = false;
+        }
       }
       break;
     }
