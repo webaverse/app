@@ -26,6 +26,27 @@ const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anch
   return textMesh;
 };
 
+const makeCubeMesh = () => {
+  const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
+    color: 0x0000FF,
+  }));
+  cubeMesh.visible = false;
+  return cubeMesh;
+};
+
+const _makeHighlightMesh = () => {
+  const geometry = new THREE.BoxBufferGeometry(1, 1, 0.001);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x42a5f5,
+    transparent: true,
+    opacity: 0.5,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  mesh.visible = false;
+  return mesh;
+};
+
 /* const apiHost = 'https://ipfs.exokit.org/ipfs';
 
 let dragMesh = null;
@@ -752,11 +773,11 @@ p {
     <p>Lorem ipsum</p>
   </div>
   <div class=buttons>
-    <div class=button>Run</div>
-    <div class=button>Add to inventory</div>
+    <a class=button id=run-button>Run</a>
+    <a class=button id=add-button>Add to inventory</a>
   </div>
   <div class=header>
-    <div class=close-button>X</div>
+    <a class=close-button id=close-button>X</a>
   </div>
 </div>
 `;
@@ -949,7 +970,7 @@ const makeUiMesh = (label, tiles, onclick) => {
 
   return mesh;
 };
-const makeUiFullMesh = scene => {
+const makeUiFullMesh = cubeMesh => {
   const meshSpecs = [
     [
       'inventory',
@@ -1024,12 +1045,6 @@ const makeUiFullMesh = scene => {
   wrap.update = () => {
     animation && animation.update();
   };
-
-  const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
-    color: 0x0000FF,
-  }));
-  cubeMesh.visible = false;
-  scene.add(cubeMesh);
 
   let currentMesh = null;
   let currentAnchor = null;
@@ -1185,12 +1200,16 @@ const makeToolsMesh = (tools, selectTool) => {
 
   return mesh;
 };
-const makeDetailsMesh = () => {
-  const geometry = new THREE.PlaneBufferGeometry(1, 0.5)
+const makeDetailsMesh = cubeMesh => {
+  const worldWidth = 1;
+  const worldHeight = 0.5;
+  const canvasWidth = uiSize;
+  const canvasHeight = uiSize*0.5;
+  const geometry = new THREE.PlaneBufferGeometry(worldWidth, worldHeight)
     // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
   const canvas = document.createElement('canvas');
-  canvas.width = uiSize;
-  canvas.height = uiSize*0.5;
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
   const ctx = canvas.getContext('2d');
   const imageData = ctx.createImageData(canvas.width, canvas.height);
   const texture = new THREE.Texture(
@@ -1215,22 +1234,11 @@ const makeDetailsMesh = () => {
   // mesh.visible = false;
   mesh.frustumCulled = false;
 
-  /* const highlightMesh = (() => {
-    const geometry = new THREE.BoxBufferGeometry(1, 1, 0.001);
-    const material = new THREE.MeshBasicMaterial({
-      color: 0x42a5f5,
-      transparent: true,
-      opacity: 0.5,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.frustumCulled = false;
-    mesh.visible = false;
-    return mesh;
-  })();
+  const highlightMesh = _makeHighlightMesh();
   mesh.add(highlightMesh);
-  mesh.highlightMesh = highlightMesh; */
+  // mesh.highlightMesh = highlightMesh;
 
-  // let anchors = [];
+  let anchors = [];
   mesh.update = () => {
     const htmlString = _makeDetailsString();
     uiRenderer.render(htmlString, canvas.width, canvas.height)
@@ -1240,19 +1248,77 @@ const makeDetailsMesh = () => {
         texture.needsUpdate = true;
         // mesh.visible = true;
 
-        // anchors = result.anchors;
+        anchors = result.anchors;
         // console.log(anchors);
       });
   };
-  /* mesh.getAnchors = () => anchors;
-  mesh.click = anchor => {
-    console.log('got anchor', anchor);
+  // let currentMesh = null;
+  let currentAnchor = null;
+  const intersects = [];
+  const localIntersections = [];
+  mesh.intersect = raycaster => {
+    // for (const mesh of object.children) {
+      mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+      raycaster.intersectObject(mesh, false, intersects);
+      if (intersects.length > 0) {
+        const [{distance, point, uv}] = intersects;
+        intersects.length = 0;
+        // if (uv.x >= 1 / 12 && uv.x <= (1 - 1 / 12) && uv.y >= 1 / 12 && uv.y <= (1 - 1 / 12)) {
+          localIntersections.push({
+            distance,
+            point,
+            uv,
+            mesh,
+          });
+        // }
+      }
+
+      highlightMesh.visible = false;
+    // }
+    // currentMesh = null;
+    currentAnchor = null;
+    if (localIntersections.length > 0) {
+      localIntersections.sort((a, b) => a.distance - b.distance);
+      const [{point, uv, mesh}] = localIntersections;
+      localIntersections.length = 0;
+      cubeMesh.position.copy(point);
+      cubeMesh.visible = true;
+
+      if (uv) {
+        uv.y = 1 - uv.y;
+        uv.x *= canvasWidth;
+        uv.y *= canvasHeight;
+
+        // const anchors = mesh.getAnchors();
+        for (let i = 0; i < anchors.length; i++) {
+          const anchor = anchors[i];
+          const {top, bottom, left, right, width, height} = anchor;
+          if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
+            // currentMesh = mesh;
+            currentAnchor = anchor;
+
+            highlightMesh.position.x = -worldWidth/2 + (left + width/2) / canvasWidth * worldWidth;
+            highlightMesh.position.y = worldHeight/2 - (top + height/2) / canvasHeight * worldHeight;
+            highlightMesh.scale.x = width / canvasWidth * worldWidth;
+            highlightMesh.scale.y = height / canvasHeight * worldHeight;
+            highlightMesh.visible = true;
+            break;
+          }
+        }
+      }
+    } else {
+      cubeMesh.visible = false;
+    }
+    return currentAnchor;
+  };
+  /* mesh.click = () => {
+    currentMesh && currentMesh.click(currentAnchor);
   }; */
   mesh.update();
 
   return mesh;
 };
-const makeInventoryMesh = scene => {
+const makeInventoryMesh = cubeMesh => {
   const worldWidth = 0.2;
   const worldHeight = 0.2/2;
   const canvasWidth = uiSize;
@@ -1286,18 +1352,7 @@ const makeInventoryMesh = scene => {
   // mesh.visible = false;
   mesh.frustumCulled = false;
 
-  const highlightMesh = (() => {
-    const geometry = new THREE.BoxBufferGeometry(1, 1, 0.001);
-    const material = new THREE.MeshBasicMaterial({
-      color: 0x42a5f5,
-      transparent: true,
-      opacity: 0.5,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.frustumCulled = false;
-    mesh.visible = false;
-    return mesh;
-  })();
+  const highlightMesh = _makeHighlightMesh();
   mesh.add(highlightMesh);
   // mesh.highlightMesh = highlightMesh;
 
@@ -1316,13 +1371,7 @@ const makeInventoryMesh = scene => {
       });
   };
 
-  const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({
-    color: 0x0000FF,
-  }));
-  cubeMesh.visible = false;
-  scene.add(cubeMesh);
-
-  let currentMesh = null;
+  // let currentMesh = null;
   let currentAnchor = null;
   const intersects = [];
   const localIntersections = [];
@@ -1345,7 +1394,7 @@ const makeInventoryMesh = scene => {
 
       highlightMesh.visible = false;
     // }
-    currentMesh = null;
+    // currentMesh = null;
     currentAnchor = null;
     if (localIntersections.length > 0) {
       localIntersections.sort((a, b) => a.distance - b.distance);
@@ -1364,7 +1413,7 @@ const makeInventoryMesh = scene => {
           const anchor = anchors[i];
           const {top, bottom, left, right, width, height} = anchor;
           if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
-            currentMesh = mesh;
+            // currentMesh = mesh;
             currentAnchor = anchor;
 
             highlightMesh.position.x = -worldWidth/2 + (left + width/2) / canvasWidth * worldWidth;
@@ -1390,6 +1439,7 @@ const makeInventoryMesh = scene => {
 };
 
 export {
+  makeCubeMesh,
   makeUiMesh,
   makeUiFullMesh,
   makeTextMesh,
