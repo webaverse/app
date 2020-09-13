@@ -12,7 +12,7 @@ import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
-import {makeCubeMesh, /*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh, intersectUi} from './vr-ui.js';
+import {makeCubeMesh, /*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh, intersectUi, makeRayMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import {makeAnimalFactory} from './animal.js';
 import {
@@ -4787,6 +4787,10 @@ scene.add(hpMesh);
 const cubeMesh = makeCubeMesh();
 scene.add(cubeMesh);
 
+const rayMesh = makeRayMesh();
+rayMesh.visible = false;
+scene.add(rayMesh);
+
 /* const uiMesh = makeUiFullMesh(cubeMesh);
 scene.add(uiMesh); */
 
@@ -5534,11 +5538,19 @@ function animate(timestamp, frame) {
     if (currentChunkMesh && geometryWorker) {
       anchorSpec = null;
       raycastChunkSpec = null;
+      rayMesh.visible = false;
 
       if (selectedWeapon === 'select') {
         raycaster.ray.origin.copy(rigManager.localRig.inputs.leftGamepad.position);
         raycaster.ray.direction.set(0, 0, -1).applyQuaternion(rigManager.localRig.inputs.leftGamepad.quaternion);
         anchorSpec = intersectUi(raycaster, [inventoryMesh, detailsMesh]);
+
+        if (anchorSpec) {
+          rayMesh.position.copy(rigManager.localRig.inputs.leftGamepad.position);
+          rayMesh.quaternion.copy(rigManager.localRig.inputs.leftGamepad.quaternion);
+          rayMesh.scale.set(1, 1, rigManager.localRig.inputs.leftGamepad.position.distanceTo(anchorSpec.point));
+          rayMesh.visible = true;
+        }
       }
       if (!anchorSpec) {
         const result = geometryWorker.raycast(tracker, rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion);
