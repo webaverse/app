@@ -713,6 +713,96 @@ ${land ? '' : `\
 });
 const LAND_SHADER = _makeHeightfieldShader(true);
 const WATER_SHADER = _makeHeightfieldShader(false);
+const VEGETATION_SHADER = {
+  uniforms: {
+    map: {
+      type: 't',
+      value: null,
+      needsUpdate: true,
+    },
+    uHitId: {
+      type: 'f',
+      value: -1,
+      needsUpdate: true,
+    },
+    uHitPosition: {
+      type: 'v3',
+      value: new THREE.Vector3(),
+      needsUpdate: true,
+    },
+    uSelectId: {
+      type: 'f',
+      value: -1,
+      needsUpdate: true,
+    },
+    sunIntensity: {
+      type: 'f',
+      value: 1,
+      needsUpdate: true,
+    },
+  },
+  vertexShader: `\
+    precision highp float;
+    precision highp int;
+
+    uniform float uHitId;
+    uniform vec3 uHitPosition;
+    uniform float uSelectId;
+    attribute float id;
+    attribute float skyLight;
+    attribute float torchLight;
+
+    varying vec2 vUv;
+    varying vec3 vSelectColor;
+    varying vec3 vWorldPosition;
+    varying float vSkyLight;
+    varying float vTorchLight;
+    // varying vec3 vNormal;
+
+    void main() {
+      vUv = uv;
+      vec3 p = position;
+      vSelectColor = vec3(0.);
+      if (uHitId == id) {
+        vSelectColor = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
+        p += uHitPosition;
+      }
+      if (uSelectId == id) {
+        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
+      }
+      // vNormal = normal;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+      vec4 worldPosition = modelViewMatrix * vec4( position, 1.0 );
+      vWorldPosition = worldPosition.xyz;
+      vSkyLight = skyLight/8.0;
+      vTorchLight = torchLight/8.0;
+    }
+  `,
+  fragmentShader: `\
+    precision highp float;
+    precision highp int;
+
+    uniform sampler2D map;
+    uniform float sunIntensity;
+    varying vec2 vUv;
+    varying vec3 vSelectColor;
+    varying vec3 vWorldPosition;
+    varying float vSkyLight;
+    varying float vTorchLight;
+    // varying vec3 vNormal;
+
+    // vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
+
+    void main() {
+      gl_FragColor = texture2D(map, vUv);
+      gl_FragColor.rgb += vSelectColor;
+      float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
+      float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
+      gl_FragColor.rgb *= max(max(worldFactor, cameraFactor), 0.1);
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.2 + sunIntensity*0.8), gl_FragCoord.z/gl_FragCoord.w/100.0);
+    }
+  `,
+};
 const _snapBuildPosition = p => {
   p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
   p.y = Math.floor(p.y / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
@@ -2822,94 +2912,9 @@ const geometryWorker = (() => {
   // culler = geometryWorker.makeCuller();
 
   const vegetationMaterialOpaque = new THREE.ShaderMaterial({
-    uniforms: {
-      map: {
-        type: 't',
-        value: null,
-        needsUpdate: true,
-      },
-      uHitId: {
-        type: 'f',
-        value: -1,
-        needsUpdate: true,
-      },
-      uHitPosition: {
-        type: 'v3',
-        value: new THREE.Vector3(),
-        needsUpdate: true,
-      },
-      uSelectId: {
-        type: 'f',
-        value: -1,
-        needsUpdate: true,
-      },
-      sunIntensity: {
-        type: 'f',
-        value: 1,
-        needsUpdate: true,
-      },
-    },
-    vertexShader: `\
-      precision highp float;
-      precision highp int;
-
-      uniform float uHitId;
-      uniform vec3 uHitPosition;
-      uniform float uSelectId;
-      attribute float id;
-      attribute float skyLight;
-      attribute float torchLight;
-
-      varying vec2 vUv;
-      varying vec3 vSelectColor;
-      varying vec3 vWorldPosition;
-      varying float vSkyLight;
-      varying float vTorchLight;
-      // varying vec3 vNormal;
-
-      void main() {
-        vUv = uv;
-        vec3 p = position;
-        vSelectColor = vec3(0.);
-        if (uHitId == id) {
-          vSelectColor = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
-          p += uHitPosition;
-        }
-        if (uSelectId == id) {
-          vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-        }
-        // vNormal = normal;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-        vec4 worldPosition = modelViewMatrix * vec4( position, 1.0 );
-        vWorldPosition = worldPosition.xyz;
-        vSkyLight = skyLight/8.0;
-        vTorchLight = torchLight/8.0;
-      }
-    `,
-    fragmentShader: `\
-      precision highp float;
-      precision highp int;
-
-      uniform sampler2D map;
-      uniform float sunIntensity;
-      varying vec2 vUv;
-      varying vec3 vSelectColor;
-      varying vec3 vWorldPosition;
-      varying float vSkyLight;
-      varying float vTorchLight;
-      // varying vec3 vNormal;
-
-      // vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
-
-      void main() {
-        gl_FragColor = texture2D(map, vUv);
-        gl_FragColor.rgb += vSelectColor;
-        float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
-        float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
-        gl_FragColor.rgb *= max(max(worldFactor, cameraFactor), 0.1);
-        gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.2 + sunIntensity*0.8), gl_FragCoord.z/gl_FragCoord.w/100.0);
-      }
-    `,
+    uniforms: THREE.UniformsUtils.clone(VEGETATION_SHADER.uniforms),
+    vertexShader: VEGETATION_SHADER.vertexShader,
+    fragmentShader: VEGETATION_SHADER.fragmentShader,
     side: THREE.DoubleSide,
     transparent: true,
   });
@@ -2925,10 +2930,6 @@ const geometryWorker = (() => {
   ] = await Promise.all([
     (async () => {
       geometrySet = geometryWorker.makeGeometrySet();
-      /* window.requestGetGeometryKeys = () => geometryWorker.requestGetGeometryKeys(geometrySet); // XXX
-      window.requestGetGeometries = geometryRequests => geometryWorker.requestGetGeometries(geometrySet, geometryRequests); // XXX
-      window.THREE = THREE;
-      console.log('got three', THREE); */
       await geometryWorker.requestLoadBake(geometrySet, './meshes.bin');
 
       const geometries = await Promise.all([
@@ -3025,6 +3026,36 @@ const geometryWorker = (() => {
           animation && animation.update();
         };
         scene.add(crosshairMesh);
+      }
+      {
+        const geometryKeys = await geometryWorker.requestGetGeometryKeys(geometrySet);
+        const geometryRequests = [];
+        let i = 0;
+        for (let dy = 0; dy < 3; dy++) {
+          for (let dx = 0; dx < 3; dx++) {
+            geometryRequests.push({
+              name: geometryKeys[i],
+              position: new THREE.Vector3(-3/2 + dx, 3/2 + -dy, 0),
+              quaternion: new THREE.Quaternion(),
+            });
+            i++;
+          }
+        }
+        const geometry = await geometryWorker.requestGetGeometries(geometrySet, geometryRequests);
+        /* const material = new THREE.ShaderMaterial({
+          uniforms: THREE.UniformsUtils.clone(VEGETATION_SHADER.uniforms),
+          vertexShader: VEGETATION_SHADER.vertexShader,
+          fragmentShader: VEGETATION_SHADER.fragmentShader,
+          side: THREE.DoubleSide,
+          transparent: true,
+        }); */
+        const material = new THREE.MeshBasicMaterial({
+          color: 0xFF0000,
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.scale.setScalar(0.1);
+        mesh.frustumCulled = false;
+        inventoryMesh.add(mesh);
       }
     })(),
     (async () => {
