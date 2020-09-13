@@ -783,7 +783,7 @@ p {
 </div>
 `;
 };
-const _makeInventoryString = () => {
+const _makeInventoryString = (scrollFactor, scrollbarHeight) => {
   const fullW = uiSize/2;
   const arrowW = fullW/10;
   const wrapInnerW = fullW - arrowW*2;
@@ -882,10 +882,10 @@ const _makeInventoryString = () => {
 }
 .scrollbar .bar {
   position: absolute;
-  top: 5%;
+  top: ${scrollFactor*(1 - scrollbarHeight)*100}%;
   left: 0;
   right: 0;
-  height: ${20}%;
+  height: ${scrollbarHeight*100}%;
   width: 100%;
   background-color: #5c6bc0;
 }
@@ -1316,8 +1316,12 @@ const makeDetailsMesh = cubeMesh => {
     }
     return currentAnchor;
   };
-  mesh.click = anchor => {
-    console.log('click', anchor);
+  mesh.click = anchorSpec => {
+    // console.log('click', anchor);
+    const {anchor} = anchorSpec;
+    /* if (anchor === 'scrollbar') {
+      console.log('got uv', uv.y);
+    } */
     // currentMesh && currentMesh.click(currentAnchor);
   };
   mesh.update();
@@ -1363,8 +1367,11 @@ const makeInventoryMesh = cubeMesh => {
   // mesh.highlightMesh = highlightMesh;
 
   let anchors = [];
+  let scrollFactor = 0.2;
+  let scrollbarHeight = 0.15;
   mesh.update = () => {
-    const htmlString = _makeInventoryString();
+    console.log('update', scrollFactor, scrollbarHeight);
+    const htmlString = _makeInventoryString(scrollFactor, scrollbarHeight);
     uiRenderer.render(htmlString, canvas.width, canvas.height)
       .then(result => {
         imageData.data.set(result.data);
@@ -1410,8 +1417,14 @@ const makeInventoryMesh = cubeMesh => {
     }
     return currentAnchor;
   };
-  mesh.click = anchor => {
-    console.log('click', anchor);
+  mesh.click = anchorSpec => {
+    // console.log('click', anchor);
+    const {anchor, uv} = anchorSpec;
+    if (anchor && anchor.id === 'scrollbar') {
+      // console.log('got uv', uv.y);
+      scrollFactor = 1 - uv.y;
+      mesh.update();
+    }
     // currentMesh && currentMesh.click(currentAnchor);
   };
   mesh.update();
@@ -1435,13 +1448,14 @@ const intersectUi = (raycaster, meshes) => {
         mesh,
       });
     // } */
-    const [{object, point}] = intersects;
+    const [{object, point, uv}] = intersects;
     const anchor = intersects[0].object.intersect(intersects);
     intersects.length = 0;
     return {
       object,
       point,
       anchor,
+      uv,
     };
   } else {
     return null;
