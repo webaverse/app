@@ -783,9 +783,12 @@ p {
 `;
 };
 const _makeInventoryString = () => {
-  const margin = uiSize/2/40;
-  const w = (uiSize/2 - margin)/3;
-  const innerW = w - margin;
+  const fullW = uiSize/2;
+  const arrowW = fullW/10;
+  const wrapInnerW = fullW - arrowW*2;
+  const margin = fullW/40;
+  const iconW = (wrapInnerW - margin)/3;
+  const innerW = iconW - margin;
   const _makeIcon = i => `\
 <a class=icon id="icon-${i}">
   <div class="border top-left"></div>
@@ -807,20 +810,27 @@ const _makeInventoryString = () => {
   height: ${uiSize/2}px;
   font-family: 'Bangers';
 }
+.wrap {
+  display: flex;
+  flex-direction: column;
+}
 .arrow {
   display: flex;
-  width: ${uiSize/2/10}px;
-  height: ${uiSize/2}px;
+  width: ${wrapInnerW}px;
+  height: ${arrowW}px;
   justify-content: center;
   align-items: center;
   background-color: #000;
   color: #FFF;
   font-size: 100px;
 }
+.arrow .text {
+  transform: rotate(90deg);
+}
 .icons {
   display: flex;
-  width: ${uiSize/2}px;
-  height: ${uiSize/2}px;
+  width: ${wrapInnerW}px;
+  height: ${wrapInnerW}px;
   padding-top: ${margin}px;
   padding-left: ${margin}px;
   flex-wrap: wrap;
@@ -863,6 +873,21 @@ const _makeInventoryString = () => {
   border-top: 0;
   border-left: 0;
 }
+.scrollbar {
+  position: relative;
+  width: ${fullW/40}px;
+  height: 100%;
+  background-color: #EEE;
+}
+.scrollbar .bar {
+  position: absolute;
+  top: 5%;
+  left: 0;
+  right: 0;
+  height: ${20}%;
+  width: 100%;
+  background-color: #5c6bc0;
+}
 .details {
   display: flex;
   padding: 50px;
@@ -880,19 +905,24 @@ p {
 }
 </style>
 <div class=body>
-  <a class=arrow id=back-button>&lt;</a>
-  <div class=icons>
-    ${_makeIcon(++iconIndex)}
-    ${_makeIcon(++iconIndex)}
-    ${_makeIcon(++iconIndex)}
-    ${_makeIcon(++iconIndex)}
-    ${_makeIcon(++iconIndex)}
-    ${_makeIcon(++iconIndex)}
-    ${_makeIcon(++iconIndex)}
-    ${_makeIcon(++iconIndex)}
-    ${_makeIcon(++iconIndex)}
+  <div class=wrap>
+    <a class=arrow id=back-button><div class=text>&lt;</div></a>
+    <div class=icons>
+      ${_makeIcon(++iconIndex)}
+      ${_makeIcon(++iconIndex)}
+      ${_makeIcon(++iconIndex)}
+      ${_makeIcon(++iconIndex)}
+      ${_makeIcon(++iconIndex)}
+      ${_makeIcon(++iconIndex)}
+      ${_makeIcon(++iconIndex)}
+      ${_makeIcon(++iconIndex)}
+      ${_makeIcon(++iconIndex)}
+    </div>
+    <a class=arrow id=next-button><div class=text>&gt;</div></a>
   </div>
-  <a class=arrow id=next-button>&gt;</a>
+  <a class=scrollbar>
+    <div class=bar></div>
+  </a>
   <div class=details>
     <h1>Details</h1>
     <p>Lorem ipsum</p>
