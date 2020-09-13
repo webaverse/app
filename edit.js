@@ -5865,9 +5865,9 @@ function animate(timestamp, frame) {
           }
           case 'select': {
             if (anchorSpec) {
-              console.log('anchor spec', anchorSpec);
-              const {object, anchor} = anchorSpec;
-              object.click(anchor);
+              console.log('anchor spec', anchorSpec, anchorSpec.object.click.toString());
+              // const {object, anchor} = anchorSpec;
+              anchorSpec.object.click(anchorSpec);
             } else if (raycastChunkSpec) {
               if (raycastChunkSpec.objectId !== 0) {
                 detailsMesh.position.copy(raycastChunkSpec.point);
