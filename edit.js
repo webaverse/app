@@ -4797,10 +4797,18 @@ for (let i = 0; i < weapons.length; i++) {
     selectedWeapon = weapon.getAttribute('weapon');
   });
 }
+renderer.domElement.addEventListener('dblclick', e => {
+  if (!document.pointerLockElement) {
+    tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+  }
+});
 document.addEventListener('pointerlockchange', e => {
   if (!document.pointerLockElement) {
-    tools.find(tool => tool.matches('.tool[tool=camera]')).click();
+    tools.find(tool => tool.getAttribute('tool') === 'camera').click();
   }
+});
+document.addEventListener('pointerlockerror', err => {
+  console.warn(err);
 });
 
 const toolsMesh = makeToolsMesh(weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
@@ -6492,14 +6500,22 @@ const _resetKeys = () => {
 let jumpState = false;
 window.addEventListener('keydown', e => {
   switch (e.which) {
-    case 49: // 1
+    case 48: // 0
+    case 49:
     case 50:
     case 51:
     case 52:
     case 53:
     case 54:
+    case 55:
+    case 56:
+    case 57: // 9
     {
-      tools[e.which - 49].click();
+      let {which} = e;
+      if (which === 48) {
+        which++;
+      }
+      weapons[e.which - 49].click();
       break;
     }
     case 87: { // W
@@ -6556,6 +6572,22 @@ window.addEventListener('keydown', e => {
     }
     case 70: { // F
       // pe.grabdown('right');
+      break;
+    }
+    case 86: { // V
+      tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+      break;
+    }
+    case 66: { // B
+      tools.find(tool => tool.getAttribute('tool') === 'thirdperson').click();
+      break;
+    }
+    case 78: { // N
+      tools.find(tool => tool.getAttribute('tool') === 'isometric').click();
+      break;
+    }
+    case 77: { // M
+      tools.find(tool => tool.getAttribute('tool') === 'birdseye').click();
       break;
     }
     case 16: { // shift
