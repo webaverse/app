@@ -702,6 +702,7 @@ const _makeToolsString = (tools, selectedWeapon) => {
   padding: ${margin}px;
   padding-top: 0;
   color: #FFF;
+  font-size: 80px;
 }
 </style>
 <div class=body>
