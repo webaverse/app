@@ -6592,6 +6592,8 @@ window.addEventListener('keydown', e => {
           inventoryMesh.scale.setScalar(20);
 
         weapons.find(weapon => weapon.getAttribute('weapon') === 'select').click();
+      } else {
+        detailsMesh.visible = false;
       }
       break;
     }
