@@ -5902,10 +5902,24 @@ function animate(timestamp, frame) {
             break;
           }
           case 'select': {
-            if (anchorSpec) {
+            if (meshComposer.placeMesh) {
+              meshComposer.trigger();
+            } else if (anchorSpec) {
               // console.log('anchor spec', anchorSpec, anchorSpec.object.click.toString());
               // const {object, anchor} = anchorSpec;
-              anchorSpec.object.click(anchorSpec);
+              // anchorSpec.object.click(anchorSpec);
+              let match;
+              if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) {
+                const index = parseInt(match[1], 10);
+                const geometryKey = inventoryMesh.currentGeometryKeys[index];
+                (async () => {
+                  const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
+                  const material = currentVegetationMesh.material[0];
+                  const mesh = new THREE.Mesh(geometry, material);
+                  mesh.frustumCulled = false;
+                  meshComposer.setPlaceMesh(mesh);
+                })();
+              }
             } else if (raycastChunkSpec) {
               if (raycastChunkSpec.objectId !== 0) {
                 detailsMesh.position.copy(raycastChunkSpec.point);
@@ -6222,6 +6236,8 @@ function animate(timestamp, frame) {
   lastTeleport = currentTeleport;
   lastSelector = currentSelector;
   lastWeaponDown = currentWeaponDown;
+
+  meshComposer.update();
 
   if (selectedTool === 'firstperson') {
     rigManager.localRig.decapitate();
@@ -6793,6 +6809,7 @@ window.addEventListener('keyup', e => {
     }
     case 70: { // F
       // pe.grabup('right');
+      meshComposer.grab();
       break;
     }
     case 16: { // shift
