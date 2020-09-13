@@ -12,7 +12,7 @@ import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
-import {makeCubeMesh, /*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh} from './vr-ui.js';
+import {makeCubeMesh, /*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh, intersectUi} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import {makeAnimalFactory} from './animal.js';
 import {
@@ -5538,7 +5538,7 @@ function animate(timestamp, frame) {
       if (selectedWeapon === 'select') {
         raycaster.ray.origin.copy(rigManager.localRig.inputs.leftGamepad.position);
         raycaster.ray.direction.set(0, 0, -1).applyQuaternion(rigManager.localRig.inputs.leftGamepad.quaternion);
-        anchorSpec = inventoryMesh.intersect(raycaster) || detailsMesh.intersect(raycaster);
+        anchorSpec = intersectUi(raycaster, [inventoryMesh, detailsMesh]);
       }
       if (!anchorSpec) {
         const result = geometryWorker.raycast(tracker, rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion);

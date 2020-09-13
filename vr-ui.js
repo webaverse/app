@@ -920,7 +920,7 @@ p {
     </div>
     <a class=arrow id=next-button><div class=text>&gt;</div></a>
   </div>
-  <a class=scrollbar>
+  <a class=scrollbar id=scrollbar>
     <div class=bar></div>
   </a>
   <div class=details>
@@ -1283,59 +1283,42 @@ const makeDetailsMesh = cubeMesh => {
       });
   };
   // let currentMesh = null;
-  let currentAnchor = null;
-  const intersects = [];
-  const localIntersections = [];
-  mesh.intersect = raycaster => {
-    if (mesh.visible) {
-      mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      raycaster.intersectObject(mesh, false, intersects);
-      if (intersects.length > 0) {
-        const [{distance, point, uv}] = intersects;
-        intersects.length = 0;
-        // if (uv.x >= 1 / 12 && uv.x <= (1 - 1 / 12) && uv.y >= 1 / 12 && uv.y <= (1 - 1 / 12)) {
-          localIntersections.push({
-            distance,
-            point,
-            uv,
-            mesh,
-          });
-        // }
-      }
+  // let currentAnchor = null;
+  // const intersects = [];
+  // const localIntersections = [];
+  mesh.intersect = localIntersections => {
+    highlightMesh.visible = false;
 
-      highlightMesh.visible = false;
+    let currentAnchor = null;
+    if (localIntersections.length > 0) {
+      localIntersections.sort((a, b) => a.distance - b.distance);
+      const [{point, uv, mesh}] = localIntersections;
+      localIntersections.length = 0;
+      cubeMesh.position.copy(point);
+      cubeMesh.visible = true;
 
-      currentAnchor = null;
-      if (localIntersections.length > 0) {
-        localIntersections.sort((a, b) => a.distance - b.distance);
-        const [{point, uv, mesh}] = localIntersections;
-        localIntersections.length = 0;
-        cubeMesh.position.copy(point);
-        cubeMesh.visible = true;
+      if (uv) {
+        uv.y = 1 - uv.y;
+        uv.x *= canvasWidth;
+        uv.y *= canvasHeight;
 
-        if (uv) {
-          uv.y = 1 - uv.y;
-          uv.x *= canvasWidth;
-          uv.y *= canvasHeight;
+        for (let i = 0; i < anchors.length; i++) {
+          const anchor = anchors[i];
+          const {top, bottom, left, right, width, height} = anchor;
+          if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
+            currentAnchor = anchor;
 
-          for (let i = 0; i < anchors.length; i++) {
-            const anchor = anchors[i];
-            const {top, bottom, left, right, width, height} = anchor;
-            if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
-              currentAnchor = anchor;
-
-              highlightMesh.position.x = -worldWidth/2 + (left + width/2) / canvasWidth * worldWidth;
-              highlightMesh.position.y = worldHeight/2 - (top + height/2) / canvasHeight * worldHeight;
-              highlightMesh.scale.x = width / canvasWidth * worldWidth;
-              highlightMesh.scale.y = height / canvasHeight * worldHeight;
-              highlightMesh.visible = true;
-              break;
-            }
+            highlightMesh.position.x = -worldWidth/2 + (left + width/2) / canvasWidth * worldWidth;
+            highlightMesh.position.y = worldHeight/2 - (top + height/2) / canvasHeight * worldHeight;
+            highlightMesh.scale.x = width / canvasWidth * worldWidth;
+            highlightMesh.scale.y = height / canvasHeight * worldHeight;
+            highlightMesh.visible = true;
+            break;
           }
         }
-      } else {
-        cubeMesh.visible = false;
       }
+    } else {
+      cubeMesh.visible = false;
     }
     return currentAnchor;
   };
@@ -1400,61 +1383,42 @@ const makeInventoryMesh = cubeMesh => {
   };
 
   // let currentMesh = null;
-  let currentAnchor = null;
-  const intersects = [];
-  const localIntersections = [];
-  mesh.intersect = raycaster => {
-    if (mesh.visible) {
-      mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-      raycaster.intersectObject(mesh, false, intersects);
-      if (intersects.length > 0) {
-        const [{distance, point, uv}] = intersects;
-        intersects.length = 0;
-        // if (uv.x >= 1 / 12 && uv.x <= (1 - 1 / 12) && uv.y >= 1 / 12 && uv.y <= (1 - 1 / 12)) {
-          localIntersections.push({
-            distance,
-            point,
-            uv,
-            mesh,
-          });
-        // }
-      }
+  // let currentAnchor = null;
+  mesh.intersect = localIntersections => {
+    highlightMesh.visible = false;
 
-      highlightMesh.visible = false;
+    let currentAnchor = null;
+    if (localIntersections.length > 0) {
+      localIntersections.sort((a, b) => a.distance - b.distance);
+      const [{point, uv, mesh}] = localIntersections;
+      localIntersections.length = 0;
+      cubeMesh.position.copy(point);
+      cubeMesh.visible = true;
 
-      currentAnchor = null;
-      if (localIntersections.length > 0) {
-        localIntersections.sort((a, b) => a.distance - b.distance);
-        const [{point, uv, mesh}] = localIntersections;
-        localIntersections.length = 0;
-        cubeMesh.position.copy(point);
-        cubeMesh.visible = true;
+      if (uv) {
+        uv.y = 1 - uv.y;
+        uv.x *= canvasWidth;
+        uv.y *= canvasHeight;
 
-        if (uv) {
-          uv.y = 1 - uv.y;
-          uv.x *= canvasWidth;
-          uv.y *= canvasHeight;
+        // const anchors = mesh.getAnchors();
+        for (let i = 0; i < anchors.length; i++) {
+          const anchor = anchors[i];
+          const {top, bottom, left, right, width, height} = anchor;
+          if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
+            // currentMesh = mesh;
+            currentAnchor = anchor;
 
-          // const anchors = mesh.getAnchors();
-          for (let i = 0; i < anchors.length; i++) {
-            const anchor = anchors[i];
-            const {top, bottom, left, right, width, height} = anchor;
-            if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
-              // currentMesh = mesh;
-              currentAnchor = anchor;
-
-              highlightMesh.position.x = -worldWidth/2 + (left + width/2) / canvasWidth * worldWidth;
-              highlightMesh.position.y = worldHeight/2 - (top + height/2) / canvasHeight * worldHeight;
-              highlightMesh.scale.x = width / canvasWidth * worldWidth;
-              highlightMesh.scale.y = height / canvasHeight * worldHeight;
-              highlightMesh.visible = true;
-              break;
-            }
+            highlightMesh.position.x = -worldWidth/2 + (left + width/2) / canvasWidth * worldWidth;
+            highlightMesh.position.y = worldHeight/2 - (top + height/2) / canvasHeight * worldHeight;
+            highlightMesh.scale.x = width / canvasWidth * worldWidth;
+            highlightMesh.scale.y = height / canvasHeight * worldHeight;
+            highlightMesh.visible = true;
+            break;
           }
         }
-      } else {
-        cubeMesh.visible = false;
       }
+    } else {
+      cubeMesh.visible = false;
     }
     return currentAnchor;
   };
@@ -1466,14 +1430,37 @@ const makeInventoryMesh = cubeMesh => {
   return mesh;
 };
 
+const intersects = [];
+const intersectUi = (raycaster, meshes) => {
+  meshes = meshes.filter(mesh => mesh.visible);
+  // mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+  raycaster.intersectObjects(meshes, false, intersects);
+  if (intersects.length > 0) {
+    /* const [{distance, point, uv}] = intersects;
+    intersects.length = 0;
+    // if (uv.x >= 1 / 12 && uv.x <= (1 - 1 / 12) && uv.y >= 1 / 12 && uv.y <= (1 - 1 / 12)) {
+      localIntersections.push({
+        distance,
+        point,
+        uv,
+        mesh,
+      });
+    // } */
+    return intersects[0].object.intersect(intersects);
+  } else {
+    return null;
+  }
+};
+
 export {
   makeCubeMesh,
-  makeUiMesh,
-  makeUiFullMesh,
+  /* makeUiMesh,
+  makeUiFullMesh, */
   makeTextMesh,
   makeToolsMesh,
   makeDetailsMesh,
   makeInventoryMesh,
+  intersectUi,
   /* makeWristMenu,
   makeHighlightMesh,
   makeRayMesh, */
