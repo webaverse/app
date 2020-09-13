@@ -6432,7 +6432,6 @@ for (let i = 0; i < tools.length; i++) {
   const tool = document.getElementById('tool-' + (i + 1));
   tool.addEventListener('click', async e => {
     const newSelectedTool = tool.getAttribute('tool');
-    console.log('new selected', newSelectedTool);
     if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
       await _requestPointerLock();
     }
