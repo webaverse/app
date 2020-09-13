@@ -5906,7 +5906,6 @@ function animate(timestamp, frame) {
             } else if (anchorSpec) {
               // console.log('anchor spec', anchorSpec, anchorSpec.object.click.toString());
               // const {object, anchor} = anchorSpec;
-              // anchorSpec.object.click(anchorSpec);
               let match;
               if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) {
                 const index = parseInt(match[1], 10);
@@ -5918,6 +5917,8 @@ function animate(timestamp, frame) {
                   mesh.frustumCulled = false;
                   meshComposer.setPlaceMesh(mesh);
                 })();
+              } else {
+                anchorSpec.object.click(anchorSpec);
               }
             } else if (raycastChunkSpec) {
               if (raycastChunkSpec.objectId !== 0) {
