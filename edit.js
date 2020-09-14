@@ -3902,7 +3902,7 @@ class MeshComposer {
     if (this.hoveredMesh) {
       this.targetMesh.position.copy(this.hoveredMesh.position);
       this.targetMesh.quaternion.copy(this.hoveredMesh.quaternion);
-      this.hoveredMesh.geometry.boundingBox.getCenter(this.targetMesh.scale);
+      this.hoveredMesh.geometry.boundingBox.getSize(this.targetMesh.scale);
       this.targetMesh.visible = true;
     }
   }
