@@ -1064,7 +1064,7 @@ const makeUiFullMesh = cubeMesh => {
   let animation = null;
   let currentDeltaX = 0;
   wrap.rotate = deltaX => {
-    currentDeltaX += deltaX * Math.PI / 2;
+    currentDeltaX -= deltaX * Math.PI / 2;
     currentDeltaX = mod(currentDeltaX, Math.PI * 2);
     const startQuaternion = object.quaternion.clone();
     const endQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), currentDeltaX);
@@ -1405,7 +1405,7 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
   let scrollFactor = 0.2;
   let scrollbarHeight = 0.15;
   mesh.scrollY = deltaY => {
-    scrollFactor -= deltaY/1000;
+    scrollFactor += deltaY/1000;
     scrollFactor = Math.min(Math.max(scrollFactor, 0), 1);
     mesh.updateScroll();
   };
