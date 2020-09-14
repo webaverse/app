@@ -70,6 +70,8 @@ const localObject = new THREE.Object3D();
   await tryLogin();
 })(); 
 
+const loadPromise = makePromise();
+
 const scene = new THREE.Scene();
 const rigManager = new RigManager(scene);
 planet.setBindings(scene, rigManager);
@@ -4776,7 +4778,6 @@ scene.add(rayMesh);
 /* const uiMesh = makeUiFullMesh(cubeMesh);
 scene.add(uiMesh); */
 
-const loadPromise = makePromise();
 const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   await loadPromise;
   await inventoryMesh.queue.lock();
