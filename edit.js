@@ -4861,15 +4861,18 @@ const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   const currentGeometryKeys = [];
   for (let dy = 0; dy < 3; dy++) {
     for (let dx = 0; dx < 3; dx++) {
-      const name = geometryKeys[startIndex + i];
-      geometryRequests.push({
-        name,
-        position: new THREE.Vector3(-h/2 + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/2),
-        quaternion: new THREE.Quaternion(),
-        scale: new THREE.Vector3(w, w, w),
-      });
-      currentGeometryKeys.push(name);
-      i++;
+      const srcIndex = startIndex + i;
+      if (srcIndex < geometryKeys.length) {
+        const name = geometryKeys[srcIndex];
+        geometryRequests.push({
+          name,
+          position: new THREE.Vector3(-h/2 + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/2),
+          quaternion: new THREE.Quaternion(),
+          scale: new THREE.Vector3(w, w, w),
+        });
+        currentGeometryKeys.push(name);
+        i++;
+      }
     }
   }
   const newGeometry = await geometryWorker.requestGetGeometries(geometrySet, geometryRequests);
