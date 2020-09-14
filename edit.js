@@ -1455,6 +1455,11 @@ const geometryWorker = (() => {
       const numUvs = m.pullU32();
       // const numColors = m.pullU32();
       const numIndices = m.pullU32();
+      const aabbOffset = m.pullU32();;
+      const boundingBox = new THREE.Box3(
+        new THREE.Vector3().fromArray(moduleInstance.HEAPF32.subarray(aabbOffset/Float32Array.BYTES_PER_ELEMENT, aabbOffset/Float32Array.BYTES_PER_ELEMENT + 3)),
+        new THREE.Vector3().fromArray(moduleInstance.HEAPF32.subarray(aabbOffset/Float32Array.BYTES_PER_ELEMENT + 3, aabbOffset/Float32Array.BYTES_PER_ELEMENT + 6)),
+      );
 
       const positions = new Float32Array(moduleInstance.HEAP8.buffer, positionsOffset, numPositions);
       const uvs = new Float32Array(moduleInstance.HEAP8.buffer, uvsOffset, numUvs);
@@ -1467,6 +1472,8 @@ const geometryWorker = (() => {
       // geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3, true));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       renderer.geometries.update(geometry);
+
+      geometry.boundingBox = boundingBox;
 
       w.free(dstNameUint8Array.byteOffset);
 
