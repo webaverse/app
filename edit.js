@@ -3845,6 +3845,7 @@ const _getRigTransforms = () => ([
     quaternion: rigManager.localRig.inputs.rightGamepad.quaternion,
   },
 ]);
+const _otherSideIndex = i => i === 1 ? 0 : 1;
 class MeshComposer {
   constructor() {
     this.meshes = [];
@@ -3872,13 +3873,18 @@ class MeshComposer {
   }
   grab(index) {
     const mesh = this.hoveredMeshes[index];
-    if (mesh && !this.isLatched(mesh)) {
+    if (mesh) {
       this.placeMeshes[index] = mesh;
       this.hoveredMeshes[index] = null;
     }
   }
   ungrab(index) {
+    const otherSideIndex = _otherSideIndex(index);
+    const otherSideGrab = this.placeMeshes[otherSideIndex] == this.placeMeshes[index];
     this.placeMeshes[index] = null;
+    if (otherSideGrab) {
+      this.placeMeshes[otherSideIndex] = null;
+    }
   }
   update() {
     const transforms = _getRigTransforms();
@@ -3889,9 +3895,6 @@ class MeshComposer {
       let closestMesh = null;
       let closestMeshDistance = Infinity;
       for (const mesh of this.meshes) {
-        if (this.placeMeshes.includes(mesh)) {
-          continue;
-        }
         localMatrix2.copy(localMatrix)
           .premultiply(localMatrix3.getInverse(mesh.matrixWorld))
           .decompose(localVector, localQuaternion, localVector2);
@@ -3906,21 +3909,25 @@ class MeshComposer {
       }
       return closestMesh;
     });
-    for (let i = 0; i < transforms.length; i++) {
-      const transform = transforms[i];
-      const {position, quaternion} = transform;
+    if (this.placeMeshes[0] !== null && this.placeMeshes[0] === this.placeMeshes[1]) { // pinch
+      console.log('pinch', this.placeMeshes[0]);
+    } else { // move
+      for (let i = 0; i < transforms.length; i++) {
+        const transform = transforms[i];
+        const {position, quaternion} = transform;
 
-      this.targetMeshes[i].visible = false;
+        this.targetMeshes[i].visible = false;
 
-      if (this.placeMeshes[i]) {
-        this.placeMeshes[i].position.copy(position);
-        this.placeMeshes[i].quaternion.copy(quaternion);
-      }
-      if (this.hoveredMeshes[i]) {
-        this.targetMeshes[i].position.copy(this.hoveredMeshes[i].position);
-        this.targetMeshes[i].quaternion.copy(this.hoveredMeshes[i].quaternion);
-        this.hoveredMeshes[i].geometry.boundingBox.getSize(this.targetMeshes[i].scale);
-        this.targetMeshes[i].visible = true;
+        if (this.placeMeshes[i]) {
+          this.placeMeshes[i].position.copy(position);
+          this.placeMeshes[i].quaternion.copy(quaternion);
+        }
+        if (this.hoveredMeshes[i] && !this.isLatched(this.hoveredMeshes[i])) {
+          this.targetMeshes[i].position.copy(this.hoveredMeshes[i].position);
+          this.targetMeshes[i].quaternion.copy(this.hoveredMeshes[i].quaternion);
+          this.hoveredMeshes[i].geometry.boundingBox.getSize(this.targetMeshes[i].scale);
+          this.targetMeshes[i].visible = true;
+        }
       }
     }
   }
