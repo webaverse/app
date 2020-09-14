@@ -76,4 +76,8 @@ export class WaitQueue {
       this.locked = false;
     }
   }
+
+  clearQueue() {
+    this.waiterCbs.length = 0;
+  }
 }
