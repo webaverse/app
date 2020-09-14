@@ -4780,6 +4780,7 @@ scene.add(uiMesh); */
 
 const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   await loadPromise;
+  inventoryMesh.queue.clearQueue();
   await inventoryMesh.queue.lock();
 
   if (!inventoryMesh.inventoryContentsMesh) {
