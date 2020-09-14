@@ -3835,49 +3835,61 @@ const _makeTargetMesh = (() => {
     return mesh;
   };
 })();
+const _getRigTransforms = () => ([
+  {
+    position: rigManager.localRig.inputs.leftGamepad.position,
+    quaternion: rigManager.localRig.inputs.leftGamepad.quaternion,
+  },
+  {
+    position: rigManager.localRig.inputs.rightGamepad.position,
+    quaternion: rigManager.localRig.inputs.rightGamepad.quaternion,
+  },
+]);
 class MeshComposer {
   constructor() {
     this.meshes = [];
-    this.placeMesh = null;
-
-    this.targetMesh = _makeTargetMesh();
-    this.targetMesh.visible = false;
-    scene.add(this.targetMesh);
-
-    this.hoveredMesh = null;
-  }
-  getPlaceMesh() {
-    return this.placeMesh;
-  }
-  setPlaceMesh(mesh) {
-    scene.add(mesh);
-    this.meshes.push(mesh);
-    this.placeMesh = mesh;
-  }
-  trigger() {
-    this.placeMesh = null;
-  }
-  grab() {
-    if (this.hoveredMesh) {
-      this.placeMesh = this.hoveredMesh;
-      this.hoveredMesh = null;
+    this.placeMeshes = [null, null];
+    this.hoveredMeshes = [null, null];
+    this.targetMeshes = [_makeTargetMesh(), _makeTargetMesh()];
+    for (const targetMesh of this.targetMeshes) {
+      targetMesh.visible = false;
+      scene.add(targetMesh);
     }
   }
-  ungrab() {
-    this.placeMesh = null;
+  getPlaceMesh(index) {
+    return this.placeMeshes[index];
+  }
+  setPlaceMesh(index, mesh) {
+    scene.add(mesh);
+    this.meshes.push(mesh);
+    this.placeMeshes[index] = mesh;
+  }
+  isLatched(mesh) {
+    return this.placeMeshes.includes(mesh); 
+  }
+  trigger(index) {
+    this.placeMeshes[index] = null;
+  }
+  grab(index) {
+    const mesh = this.hoveredMeshes[index];
+    if (mesh && !this.isLatched(mesh)) {
+      this.placeMeshes[index] = mesh;
+      this.hoveredMeshes[index] = null;
+    }
+  }
+  ungrab(index) {
+    this.placeMeshes[index] = null;
   }
   update() {
-    const {position, quaternion} = rigManager.localRig.inputs.leftGamepad;
-
-    this.targetMesh.visible = false;
-
-    this.hoveredMesh = (() => {
+    const transforms = _getRigTransforms();
+    this.hoveredMeshes = transforms.map((transform, index) => {
+      const {position, quaternion} = transform;
       localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1));
 
       let closestMesh = null;
       let closestMeshDistance = Infinity;
       for (const mesh of this.meshes) {
-        if (mesh === this.placeMesh) {
+        if (this.placeMeshes.includes(mesh)) {
           continue;
         }
         localMatrix2.copy(localMatrix)
@@ -3893,17 +3905,23 @@ class MeshComposer {
         }
       }
       return closestMesh;
-    })();
+    });
+    for (let i = 0; i < transforms.length; i++) {
+      const transform = transforms[i];
+      const {position, quaternion} = transform;
 
-    if (this.placeMesh) {
-      this.placeMesh.position.copy(position);
-      this.placeMesh.quaternion.copy(quaternion);
-    }
-    if (this.hoveredMesh) {
-      this.targetMesh.position.copy(this.hoveredMesh.position);
-      this.targetMesh.quaternion.copy(this.hoveredMesh.quaternion);
-      this.hoveredMesh.geometry.boundingBox.getSize(this.targetMesh.scale);
-      this.targetMesh.visible = true;
+      this.targetMeshes[i].visible = false;
+
+      if (this.placeMeshes[i]) {
+        this.placeMeshes[i].position.copy(position);
+        this.placeMeshes[i].quaternion.copy(quaternion);
+      }
+      if (this.hoveredMeshes[i]) {
+        this.targetMeshes[i].position.copy(this.hoveredMeshes[i].position);
+        this.targetMeshes[i].quaternion.copy(this.hoveredMeshes[i].quaternion);
+        this.hoveredMeshes[i].geometry.boundingBox.getSize(this.targetMeshes[i].scale);
+        this.targetMeshes[i].visible = true;
+      }
     }
   }
 }
@@ -4908,8 +4926,8 @@ const uiMeshes = [inventoryMesh, detailsMesh];
 let selectedWeapon = 'hand';
 let currentWeaponDown = false;
 let lastWeaponDown = false;
-let currentWeaponGrab = false;
-let lastWeaponGrab = false;
+let currentWeaponGrabs = [false, false];
+let lastWeaponGrabs = [false, false];
 const _setSelectedWeapon = newSelectedWeapon => {
   selectedWeapon = newSelectedWeapon;
   if (selectedWeapon !== 'select') {
@@ -5644,27 +5662,32 @@ function animate(timestamp, frame) {
   };
   _updateRig();
 
+  const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
+
   const _updateTools = () => {
     orbitControls.enabled = selectedTool === 'camera' && !['pencil', 'paintbrush'].includes(selectedWeapon);
 
-    anchorSpec = null;
+    for (let i = 0; i < 2; i++) {
+      anchorSpecs[i] = null;
+    }
     raycastChunkSpec = null;
     rayMesh.visible = false;
 
     const _raycastWeapon = () => {
       if (selectedWeapon === 'select') {
-        raycaster.ray.origin.copy(rigManager.localRig.inputs.leftGamepad.position);
-        raycaster.ray.direction.set(0, 0, -1).applyQuaternion(rigManager.localRig.inputs.leftGamepad.quaternion);
-        anchorSpec = intersectUi(raycaster, uiMeshes);
+        const [{position, quaternion}] = _getRigTransforms();
+        raycaster.ray.origin.copy(position);
+        raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
+        anchorSpecs[0] = intersectUi(raycaster, uiMeshes);
 
-        if (anchorSpec) {
-          rayMesh.position.copy(rigManager.localRig.inputs.leftGamepad.position);
-          rayMesh.quaternion.copy(rigManager.localRig.inputs.leftGamepad.quaternion);
-          rayMesh.scale.set(1, 1, rigManager.localRig.inputs.leftGamepad.position.distanceTo(anchorSpec.point));
+        if (anchorSpecs[0]) {
+          rayMesh.position.copy(position);
+          rayMesh.quaternion.copy(quaternion);
+          rayMesh.scale.set(1, 1, position.distanceTo(anchorSpecs[0].point));
           rayMesh.visible = true;
         }
       }
-      if (!anchorSpec) {
+      if (!anchorSpecs[0]) {
         const result = geometryWorker.raycast(tracker, rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion);
         raycastChunkSpec = result;
         if (raycastChunkSpec) {
@@ -5730,7 +5753,6 @@ function animate(timestamp, frame) {
           }
         }
       })();
-      const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
       if (selectedWeaponModel) {
         if (!selectedWeaponModel.isMesh) {
           if (Array.isArray(selectedWeaponModel)) {
@@ -5987,30 +6009,36 @@ function animate(timestamp, frame) {
               break;
             }
             case 'select': {
-              if (meshComposer.placeMesh) {
-                meshComposer.trigger();
-              } else if (anchorSpec) {
-                // console.log('anchor spec', anchorSpec, anchorSpec.object.click.toString());
-                // const {object, anchor} = anchorSpec;
-                let match;
-                if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) {
-                  if (!meshComposer.getPlaceMesh()) {
-                    const srcIndex = parseInt(match[1], 10);
-                    if (srcIndex < inventoryMesh.currentGeometryKeys.length) {
-                      const geometryKey = inventoryMesh.currentGeometryKeys[srcIndex];
-                      (async () => {
-                        const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
-                        const material = currentVegetationMesh.material[0];
-                        const mesh = new THREE.Mesh(geometry, material);
-                        mesh.frustumCulled = false;
-                        meshComposer.setPlaceMesh(mesh);
-                      })();
+              for (let i = 0; i < 2; i++) {
+                const anchorSpec = anchorSpecs[i];
+                const placeMesh = meshComposer.getPlaceMesh(i);
+
+                if (placeMesh) {
+                  meshComposer.trigger(i);
+                } else if (anchorSpec) {
+                  // console.log('anchor spec', anchorSpec, anchorSpec.object.click.toString());
+                  // const {object, anchor} = anchorSpec;
+                  let match;
+                  if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) {
+                    if (!placeMesh) {
+                      const srcIndex = parseInt(match[1], 10);
+                      if (srcIndex < inventoryMesh.currentGeometryKeys.length) {
+                        const geometryKey = inventoryMesh.currentGeometryKeys[srcIndex];
+                        (async () => {
+                          const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
+                          const material = currentVegetationMesh.material[0];
+                          const mesh = new THREE.Mesh(geometry, material);
+                          mesh.frustumCulled = false;
+                          meshComposer.setPlaceMesh(i, mesh);
+                        })();
+                      }
                     }
+                  } else {
+                    anchorSpec.object.click(anchorSpec);
                   }
-                } else {
-                  anchorSpec.object.click(anchorSpec);
                 }
-              } else if (raycastChunkSpec) {
+              }
+              if (!anchorSpecs[0] && raycastChunkSpec) {
                 if (raycastChunkSpec.objectId !== 0) {
                   detailsMesh.position.copy(raycastChunkSpec.point);
                   localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
@@ -6141,11 +6169,13 @@ function animate(timestamp, frame) {
     _handleDown();
 
     const _handleGrab = () => {
-      if (currentWeaponGrab && !lastWeaponGrab) {
-        meshComposer.grab();
-      }
-      if (!currentWeaponGrab && lastWeaponGrab) {
-        meshComposer.ungrab();
+      for (let i = 0; i < 2; i++) {
+        if (currentWeaponGrabs[i] && !lastWeaponGrabs[i]) {
+          meshComposer.grab(i);
+        }
+        if (!currentWeaponGrabs[i] && lastWeaponGrabs[i]) {
+          meshComposer.ungrab(i);
+        }
       }
     };
     _handleGrab();
@@ -6341,7 +6371,9 @@ function animate(timestamp, frame) {
   lastTeleport = currentTeleport;
   lastSelector = currentSelector;
   lastWeaponDown = currentWeaponDown;
-  lastWeaponGrab = currentWeaponGrab;
+  for (let i = 0; i < 2; i++) {
+    lastWeaponGrabs[i] = currentWeaponGrabs[i];
+  }
 
   meshComposer.update();
 
@@ -6801,7 +6833,7 @@ window.addEventListener('keydown', e => {
     case 70: { // F
       // pe.grabdown('right');
       if (document.pointerLockElement) {
-        currentWeaponGrab = true;
+        currentWeaponGrabs[0] = true;
       }
       break;
     }
@@ -6919,7 +6951,7 @@ window.addEventListener('keyup', e => {
     case 70: { // F
       // pe.grabup('right');
       if (document.pointerLockElement) {
-        currentWeaponGrab = false;
+        currentWeaponGrabs[0] = false;
       }
       break;
     }
@@ -7028,7 +7060,7 @@ const _ensureLoadMesh = p => {
 };
 
 const raycaster = new THREE.Raycaster();
-let anchorSpec = null;
+let anchorSpecs = [null, null];
 /* const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(mouse, camera);
@@ -7069,7 +7101,7 @@ renderer.domElement.addEventListener('mousemove', e => {
 });
 renderer.domElement.addEventListener('wheel', e => {
   if (document.pointerLockElement) {
-    if (anchorSpec && anchorSpec.object === inventoryMesh) {
+    if (anchorSpecs[0] && anchorSpecs[0].object === inventoryMesh) {
       inventoryMesh.scrollY(e.deltaY);
     }
     // console.log('got event', e.deltaX, e.deltaY, anchorSpec);
