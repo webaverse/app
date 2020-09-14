@@ -6328,6 +6328,7 @@ function animate(timestamp, frame) {
   lastTeleport = currentTeleport;
   lastSelector = currentSelector;
   lastWeaponDown = currentWeaponDown;
+  lastWeaponGrab = currentWeaponGrab;
 
   meshComposer.update();
 
