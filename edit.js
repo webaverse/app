@@ -3842,6 +3842,7 @@ class MeshComposer {
     this.placeMesh = mesh;
   }
   trigger() {
+    this.meshes.push(this.placeMesh);
     this.placeMesh = null;
   }
   grab() {
@@ -3849,12 +3850,14 @@ class MeshComposer {
     this.placeMesh = null;
   }
   update() {
+    const {position, quaternion} = rigManager.localRig.inputs.leftGamepad;
+
+    this.targetMesh.visible = false;
+
     if (this.placeMesh) {
-      const {position, quaternion} = rigManager.localRig.inputs.leftGamepad;
       this.placeMesh.position.copy(position);
       this.placeMesh.quaternion.copy(quaternion);
-
-      this.targetMesh.visible = false;
+    } else {
       const closestMesh = (() => {
         let closestMesh = null;
         let closestMeshDistance = Infinity;
