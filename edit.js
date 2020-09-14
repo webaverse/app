@@ -3794,7 +3794,7 @@ const _makeTargetMesh = (() => {
       targetGeometry.clone()
         .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
         .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0.5)),
-    ]);// .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+    ]).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
   })();
   const targetVsh = `
     #define M_PI 3.1415926535897932384626433832795
