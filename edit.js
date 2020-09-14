@@ -3163,51 +3163,6 @@ const geometryWorker = (() => {
     context.disable(context.SAMPLE_ALPHA_TO_COVERAGE);
   };
 
-  {
-    const geometryKeys = await geometryWorker.requestGetGeometryKeys(geometrySet);
-    const geometryRequests = [];
-
-    const h = 0.1;
-    const arrowW = h/10;
-    const wrapInnerW = h - 2*arrowW;
-    const w = wrapInnerW/3;
-
-    let i = 0;
-    const currentGeometryKeys = [];
-    for (let dy = 0; dy < 3; dy++) {
-      for (let dx = 0; dx < 3; dx++) {
-        const name = geometryKeys[i];
-        geometryRequests.push({
-          name,
-          position: new THREE.Vector3(-h/2 + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/2),
-          quaternion: new THREE.Quaternion(),
-          scale: new THREE.Vector3(w, w, w),
-        });
-        currentGeometryKeys.push(name);
-        i++;
-      }
-    }
-    const geometry = await geometryWorker.requestGetGeometries(geometrySet, geometryRequests);
-    /* const material = new THREE.ShaderMaterial({
-      uniforms: THREE.UniformsUtils.clone(VEGETATION_SHADER.uniforms),
-      vertexShader: VEGETATION_SHADER.vertexShader,
-      fragmentShader: VEGETATION_SHADER.fragmentShader,
-      side: THREE.DoubleSide,
-      transparent: true,
-    }); */
-    /* const material = new THREE.MeshBasicMaterial({
-      color: 0xFF0000,
-    }); */
-    const material = currentVegetationMesh.material[0];
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(-0.1/2, 0, 0);
-    // mesh.scale.setScalar(0.2/2/3);
-    mesh.frustumCulled = false;
-    inventoryMesh.add(mesh);
-    inventoryMesh.geometryKeys = geometryKeys;
-    inventoryMesh.currentGeometryKeys = currentGeometryKeys;
-  }
-
   const _makeThingMesh = () => {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', thingBufferAttributes.position);
@@ -3354,6 +3309,8 @@ const geometryWorker = (() => {
   }).then(() => {
     new Bot();
   });
+
+  loadPromise.accept();
 })();
 
 let numThings = 0;
@@ -4819,11 +4776,65 @@ scene.add(rayMesh);
 /* const uiMesh = makeUiFullMesh(cubeMesh);
 scene.add(uiMesh); */
 
-const inventoryMesh = makeInventoryMesh(cubeMesh);
+const loadPromise = makePromise();
+const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
+  await loadPromise;
+  await inventoryMesh.queue.lock();
+
+  if (!inventoryMesh.inventoryContentsMesh) {
+    inventoryMesh.inventoryContentsMesh = _makeInventoryContentsMesh();
+    inventoryMesh.inventoryContentsMesh.position.set(-0.1/2, 0, 0);
+    inventoryMesh.inventoryContentsMesh.frustumCulled = false;
+    inventoryMesh.add(inventoryMesh.inventoryContentsMesh);
+  }
+
+  const geometryKeys = await geometryWorker.requestGetGeometryKeys(geometrySet);
+  const geometryRequests = [];
+
+  const h = 0.1;
+  const arrowW = h/10;
+  const wrapInnerW = h - 2*arrowW;
+  const w = wrapInnerW/3;
+
+  const startIndex = Math.floor(scrollFactor*geometryKeys.length);
+  let i = 0;
+  const currentGeometryKeys = [];
+  for (let dy = 0; dy < 3; dy++) {
+    for (let dx = 0; dx < 3; dx++) {
+      const name = geometryKeys[startIndex + i];
+      geometryRequests.push({
+        name,
+        position: new THREE.Vector3(-h/2 + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/2),
+        quaternion: new THREE.Quaternion(),
+        scale: new THREE.Vector3(w, w, w),
+      });
+      currentGeometryKeys.push(name);
+      i++;
+    }
+  }
+  const newGeometry = await geometryWorker.requestGetGeometries(geometrySet, geometryRequests);
+  inventoryMesh.inventoryContentsMesh.geometry.setAttribute('position', newGeometry.attributes.position);
+  inventoryMesh.inventoryContentsMesh.geometry.setAttribute('uv', newGeometry.attributes.uv);
+  inventoryMesh.inventoryContentsMesh.geometry.setIndex(newGeometry.index);
+
+  inventoryMesh.geometryKeys = geometryKeys;
+  inventoryMesh.currentGeometryKeys = currentGeometryKeys;
+
+  inventoryMesh.queue.unlock();
+});
 inventoryMesh.visible = false;
 inventoryMesh.geometryKeys = null;
 inventoryMesh.currentGeometryKeys = null;
+inventoryMesh.inventoryContentsMesh = null;
+inventoryMesh.queue = new WaitQueue();
 scene.add(inventoryMesh);
+
+const _makeInventoryContentsMesh = () => {
+  const geometry = new THREE.BufferGeometry();
+  const material = currentVegetationMesh.material[0];
+  const mesh = new THREE.Mesh(geometry, material);
+  return mesh;
+};
 
 const detailsMesh = makeDetailsMesh(cubeMesh);
 detailsMesh.visible = false;

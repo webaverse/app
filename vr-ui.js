@@ -1344,7 +1344,7 @@ const makeDetailsMesh = cubeMesh => {
 
   return mesh;
 };
-const makeInventoryMesh = cubeMesh => {
+const makeInventoryMesh = (cubeMesh, onscroll) => {
   const worldWidth = 0.2;
   const worldHeight = 0.2/2;
   const canvasWidth = uiSize;
@@ -1438,6 +1438,7 @@ const makeInventoryMesh = cubeMesh => {
   mesh.updateScroll = () => {
     scrollbarMesh.position.y = worldHeight/2 - scrollFactor*(1-scrollbarHeight)*worldHeight;
     scrollbarMesh.scale.y = scrollbarHeight*worldHeight;
+    onscroll(scrollFactor);
   };
 
   // let currentMesh = null;
