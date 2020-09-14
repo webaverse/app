@@ -1064,7 +1064,7 @@ const makeUiFullMesh = cubeMesh => {
   let animation = null;
   let currentDeltaX = 0;
   wrap.rotate = deltaX => {
-    currentDeltaX -= deltaX * Math.PI / 2;
+    currentDeltaX += deltaX * Math.PI / 2;
     currentDeltaX = mod(currentDeltaX, Math.PI * 2);
     const startQuaternion = object.quaternion.clone();
     const endQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), currentDeltaX);
