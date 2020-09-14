@@ -6954,6 +6954,14 @@ renderer.domElement.addEventListener('mousemove', e => {
     _updateRaycasterFromMouseEvent(raycaster, e);
   } */
 });
+renderer.domElement.addEventListener('wheel', e => {
+  if (document.pointerLockElement) {
+    if (anchorSpec && anchorSpec.object === inventoryMesh) {
+      inventoryMesh.scrollY(e.deltaY);
+    }
+    // console.log('got event', e.deltaX, e.deltaY, anchorSpec);
+  }
+});
 
 /* renderer.domElement.addEventListener('mousedown', e => {
   uiMesh.click();

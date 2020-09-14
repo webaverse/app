@@ -915,7 +915,7 @@ p {
 </style>
 <div class=body>
   <div class=wrap>
-    <a class=arrow id=back-button><div class=text>&lt;</div></a>
+    <a class=arrow id=arrow-up><div class=text>&lt;</div></a>
     <div class=icons>
       ${_makeIcon(iconIndex++)}
       ${_makeIcon(iconIndex++)}
@@ -927,7 +927,7 @@ p {
       ${_makeIcon(iconIndex++)}
       ${_makeIcon(iconIndex++)}
     </div>
-    <a class=arrow id=next-button><div class=text>&gt;</div></a>
+    <a class=arrow id=arrow-down><div class=text>&gt;</div></a>
   </div>
   <a class=scrollbar id=scrollbar></a>
   <div class=details>
@@ -1404,6 +1404,21 @@ const makeInventoryMesh = cubeMesh => {
   let anchors = [];
   let scrollFactor = 0.2;
   let scrollbarHeight = 0.15;
+  mesh.scrollY = deltaY => {
+    scrollFactor -= deltaY/1000;
+    scrollFactor = Math.min(Math.max(scrollFactor, 0), 1);
+    mesh.updateScroll();
+  };
+  mesh.scrollUp = () => {
+    scrollFactor -= scrollbarHeight/(1 - scrollbarHeight);
+    scrollFactor = Math.min(Math.max(scrollFactor, 0), 1);
+    mesh.updateScroll();
+  };
+  mesh.scrollDown = () => {
+    scrollFactor += scrollbarHeight/(1 - scrollbarHeight);
+    scrollFactor = Math.min(Math.max(scrollFactor, 0), 1);
+    mesh.updateScroll();
+  };
   mesh.update = () => {
     // console.log('update', scrollFactor, scrollbarHeight);
     const htmlString = _makeInventoryString();
@@ -1462,11 +1477,14 @@ const makeInventoryMesh = cubeMesh => {
     // console.log('click', anchor);
     const {anchor, uv} = anchorSpec;
     if (anchor) {
-      let match;
       if (anchor.id === 'scrollbar') {
         // console.log('got uv', uv.y);
         scrollFactor = uv.y;
         mesh.updateScroll();
+      } else if (anchor.id === 'arrow-up') {
+        mesh.scrollUp();
+      } else if (anchor.id === 'arrow-down') {
+        mesh.scrollDown();
       }
     }
     // currentMesh && currentMesh.click(currentAnchor);
