@@ -1405,7 +1405,7 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
   let scrollFactor = 0.2;
   let scrollbarHeight = 0.15;
   mesh.scrollY = deltaY => {
-    scrollFactor += deltaY/1000;
+    scrollFactor += deltaY/10000;
     scrollFactor = Math.min(Math.max(scrollFactor, 0), 1);
     mesh.updateScroll();
   };
