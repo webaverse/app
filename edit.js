@@ -3843,17 +3843,27 @@ class MeshComposer {
     this.targetMesh = _makeTargetMesh();
     this.targetMesh.visible = false;
     scene.add(this.targetMesh);
+
+    this.hoveredMesh = null;
+  }
+  getPlaceMesh() {
+    return this.placeMesh;
   }
   setPlaceMesh(mesh) {
     scene.add(mesh);
+    this.meshes.push(mesh);
     this.placeMesh = mesh;
   }
   trigger() {
-    this.meshes.push(this.placeMesh);
     this.placeMesh = null;
   }
   grab() {
-    scene.remove(this.placeMesh);
+    if (this.hoveredMesh) {
+      this.placeMesh = this.hoveredMesh;
+      this.hoveredMesh = null;
+    }
+  }
+  ungrab() {
     this.placeMesh = null;
   }
   update() {
@@ -3861,28 +3871,31 @@ class MeshComposer {
 
     this.targetMesh.visible = false;
 
+    this.hoveredMesh = (() => {
+      let closestMesh = null;
+      let closestMeshDistance = Infinity;
+      for (const mesh of this.meshes) {
+        if (mesh === this.placeMesh) {
+          continue;
+        }
+        const distance = mesh.position.distanceTo(position);
+        if (distance < closestMeshDistance && distance < 0.3) {
+          closestMesh = mesh;
+          closestMeshDistance = distance;
+        }
+      }
+      return closestMesh;
+    })();
+
     if (this.placeMesh) {
       this.placeMesh.position.copy(position);
       this.placeMesh.quaternion.copy(quaternion);
-    } else {
-      const closestMesh = (() => {
-        let closestMesh = null;
-        let closestMeshDistance = Infinity;
-        for (const mesh of this.meshes) {
-          const distance = mesh.position.distanceTo(position);
-          if (distance < closestMeshDistance) {
-            closestMesh = mesh;
-            closestMeshDistance = distance;
-          }
-        }
-        return closestMesh;
-      })();
-      if (closestMesh && closestMesh.position.distanceTo(position) < 0.3) {
-        this.targetMesh.position.copy(closestMesh.position);
-        this.targetMesh.quaternion.copy(closestMesh.quaternion);
-        this.targetMesh.scale.copy(closestMesh.scale);
-        this.targetMesh.visible = true;
-      }
+    }
+    if (this.hoveredMesh) {
+      this.targetMesh.position.copy(this.hoveredMesh.position);
+      this.targetMesh.quaternion.copy(this.hoveredMesh.quaternion);
+      this.targetMesh.scale.copy(this.hoveredMesh.scale);
+      this.targetMesh.visible = true;
     }
   }
 }
@@ -5970,15 +5983,17 @@ function animate(timestamp, frame) {
                 // const {object, anchor} = anchorSpec;
                 let match;
                 if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) {
-                  const index = parseInt(match[1], 10);
-                  const geometryKey = inventoryMesh.currentGeometryKeys[index];
-                  (async () => {
-                    const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
-                    const material = currentVegetationMesh.material[0];
-                    const mesh = new THREE.Mesh(geometry, material);
-                    mesh.frustumCulled = false;
-                    meshComposer.setPlaceMesh(mesh);
-                  })();
+                  if (!meshComposer.getPlaceMesh()) {
+                    const index = parseInt(match[1], 10);
+                    const geometryKey = inventoryMesh.currentGeometryKeys[index];
+                    (async () => {
+                      const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
+                      const material = currentVegetationMesh.material[0];
+                      const mesh = new THREE.Mesh(geometry, material);
+                      mesh.frustumCulled = false;
+                      meshComposer.setPlaceMesh(mesh);
+                    })();
+                  }
                 } else {
                   anchorSpec.object.click(anchorSpec);
                 }
@@ -6114,7 +6129,10 @@ function animate(timestamp, frame) {
 
     const _handleGrab = () => {
       if (currentWeaponGrab && !lastWeaponGrab) {
-        // XXX
+        meshComposer.grab();
+      }
+      if (!currentWeaponGrab && lastWeaponGrab) {
+        meshComposer.ungrab();
       }
     };
     _handleGrab();
