@@ -4856,7 +4856,7 @@ const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   const w = wrapInnerW/3;
 
   // console.log('scroll', scrollFactor, geometryKeys.length, Math.floor(scrollFactor*geometryKeys.length), Math.floor(scrollFactor*geometryKeys.length/3)*3);
-  const startIndex = Math.floor(scrollFactor*geometryKeys.length/3)*3;
+  const startIndex = Math.floor(scrollFactor*(geometryKeys.length-9)/3)*3;
   let i = 0;
   const currentGeometryKeys = [];
   for (let dy = 0; dy < 3; dy++) {
