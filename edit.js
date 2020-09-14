@@ -3872,16 +3872,24 @@ class MeshComposer {
     this.targetMesh.visible = false;
 
     this.hoveredMesh = (() => {
+      localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1));
+
       let closestMesh = null;
       let closestMeshDistance = Infinity;
       for (const mesh of this.meshes) {
         if (mesh === this.placeMesh) {
           continue;
         }
-        const distance = mesh.position.distanceTo(position);
-        if (distance < closestMeshDistance && distance < 0.3) {
-          closestMesh = mesh;
-          closestMeshDistance = distance;
+        localMatrix2.copy(localMatrix)
+          .premultiply(localMatrix3.getInverse(mesh.matrixWorld))
+          .decompose(localVector, localQuaternion, localVector2);
+
+        if (mesh.geometry.boundingBox.containsPoint(localVector)) {
+          const distance = localVector.distanceTo(position);
+          if (distance < closestMeshDistance) {
+            closestMesh = mesh;
+            closestMeshDistance = distance;
+          }
         }
       }
       return closestMesh;
@@ -3894,7 +3902,7 @@ class MeshComposer {
     if (this.hoveredMesh) {
       this.targetMesh.position.copy(this.hoveredMesh.position);
       this.targetMesh.quaternion.copy(this.hoveredMesh.quaternion);
-      this.targetMesh.scale.copy(this.hoveredMesh.scale);
+      this.hoveredMesh.geometry.boundingBox.getCenter(this.targetMesh.scale);
       this.targetMesh.visible = true;
     }
   }
