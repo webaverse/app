@@ -5995,15 +5995,17 @@ function animate(timestamp, frame) {
                 let match;
                 if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) {
                   if (!meshComposer.getPlaceMesh()) {
-                    const index = parseInt(match[1], 10);
-                    const geometryKey = inventoryMesh.currentGeometryKeys[index];
-                    (async () => {
-                      const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
-                      const material = currentVegetationMesh.material[0];
-                      const mesh = new THREE.Mesh(geometry, material);
-                      mesh.frustumCulled = false;
-                      meshComposer.setPlaceMesh(mesh);
-                    })();
+                    const srcIndex = parseInt(match[1], 10);
+                    if (srcIndex < inventoryMesh.currentGeometryKeys.length) {
+                      const geometryKey = inventoryMesh.currentGeometryKeys[srcIndex];
+                      (async () => {
+                        const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
+                        const material = currentVegetationMesh.material[0];
+                        const mesh = new THREE.Mesh(geometry, material);
+                        mesh.frustumCulled = false;
+                        meshComposer.setPlaceMesh(mesh);
+                      })();
+                    }
                   }
                 } else {
                   anchorSpec.object.click(anchorSpec);
