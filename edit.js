@@ -5348,6 +5348,8 @@ function animate(timestamp, frame) {
               .decompose(dolly.position, dolly.quaternion, dolly.scale);
             walked = true;
           }
+          
+          currentWeaponGrabs[0] = buttons[1] > 0.5;
         } else if (handedness === 'right') {
           const _applyRotation = r => {
             dolly.matrix
@@ -5371,7 +5373,7 @@ function animate(timestamp, frame) {
           currentSelector = (axes[1] > 0.9 || axes[3] > 0.9);
 
           currentWeaponDown = buttons[0] > 0.5;
-          currentWeaponGrab = buttons[1] > 0.5;
+          currentWeaponGrabs[1] = buttons[1] > 0.5;
 
           if (
             buttons[2] >= 0.5 && lastButtons[index][2] < 0.5 &&
