@@ -3850,8 +3850,29 @@ class MeshComposer {
   }
   update() {
     if (this.placeMesh) {
-      this.placeMesh.position.copy(rigManager.localRig.inputs.leftGamepad.position);
-      this.placeMesh.quaternion.copy(rigManager.localRig.inputs.leftGamepad.quaternion);
+      const {position, quaternion} = rigManager.localRig.inputs.leftGamepad;
+      this.placeMesh.position.copy(position);
+      this.placeMesh.quaternion.copy(quaternion);
+
+      this.targetMesh.visible = false;
+      const closestMesh = (() => {
+        let closestMesh = null;
+        let closestMeshDistance = Infinity;
+        for (const mesh of this.meshes) {
+          const distance = mesh.position.distanceTo(position);
+          if (distance < closestMeshDistance) {
+            closestMesh = mesh;
+            closestMeshDistance = distance;
+          }
+        }
+        return closestMesh;
+      })();
+      if (closestMesh && closestMesh.position.distanceTo(position) < 0.3) {
+        this.targetMesh.position.copy(closestMesh.position);
+        this.targetMesh.quaternion.copy(closestMesh.quaternion);
+        this.targetMesh.scale.copy(closestMesh.scale);
+        this.targetMesh.visible = true;
+      }
     }
   }
 }
