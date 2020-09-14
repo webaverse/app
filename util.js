@@ -38,3 +38,42 @@ export function bindUploadFileButton(inputFileEl, handleUpload) {
     bindUploadFileButton(newInputFileEl, handleUpload);
   });
 }
+
+export function makePromise() {
+  let accept, reject;
+  const p = new Promise((a, r) => {
+    accept = a;
+    reject = r;
+  });
+  p.accept = accept;
+  p.reject = reject;
+  return p;
+}
+
+let nextMeshId = 0;
+export const getNextMeshId = () => ++nextMeshId;
+
+export class WaitQueue {
+  constructor() {
+    this.locked = false;
+    this.waiterCbs = [];
+  }
+
+  async lock() {
+    if (!this.locked) {
+      this.locked = true;
+    } else {
+      const p = makePromise();
+      this.waiterCbs.push(p.accept);
+      await p;
+    }
+  }
+
+  async unlock() {
+    if (this.waiterCbs.length > 0) {
+      this.waiterCbs.pop()();
+    } else {
+      this.locked = false;
+    }
+  }
+}

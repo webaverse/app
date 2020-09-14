@@ -27,18 +27,5 @@ export const PLANET_OBJECT_SIZE = (
   Float32Array.BYTES_PER_ELEMENT * 4 // build.quaternion
 );
 
-let nextMeshId = 0;
-export const getNextMeshId = () => ++nextMeshId;
-export function makePromise() {
-  let accept, reject;
-  const p = new Promise((a, r) => {
-    accept = a;
-    reject = r;
-  });
-  p.accept = accept;
-  p.reject = reject;
-  return p;
-}
-
 export const storageHost = 'https://storage.exokit.org';
 // export const storageHost = 'https://127.0.0.1:443/storage';

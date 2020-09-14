@@ -28,11 +28,8 @@ import {
 
   chunkDistance,
   BUILD_SNAP,
-  PLANET_OBJECT_SLOTS,
-
-  getNextMeshId,
-  makePromise,
 } from './constants.js';
+import {makePromise, getNextMeshId, WaitQueue} from './util.js';
 import storage from './storage.js';
 import alea from './alea.js';
 import easing from './easing.js';

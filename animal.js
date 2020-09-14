@@ -1,7 +1,5 @@
 import * as THREE from './three.module.js';
-import {
-  getNextMeshId,
-} from './constants.js';
+import {getNextMeshId} from './util.js';
 
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
 const animalShader = {
