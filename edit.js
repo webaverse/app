@@ -6291,6 +6291,7 @@ function animate(timestamp, frame) {
         });
       // }
     };
+    _handleTeleport();
   };
   if (currentChunkMesh && wallMesh) {
     _updateTools();
