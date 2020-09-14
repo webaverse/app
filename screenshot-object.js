@@ -3,18 +3,8 @@ import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import './gif.js';
 import screenshot from './screenshot.js';
+import {makePromise} from './util.js';
 
-function makePromise() {
-  let accept, reject;
-  // eslint-disable-next-line promise/param-names
-  const p = new Promise((a, r) => {
-    accept = a;
-    reject = r;
-  });
-  p.accept = accept;
-  p.reject = reject;
-  return p;
-}
 export async function screenshotObject(o) {
   console.log('add o', o);
 
