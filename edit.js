@@ -4871,11 +4871,6 @@ const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
     inventoryMesh.inventoryContentsMesh.frustumCulled = false;
     inventoryMesh.add(inventoryMesh.inventoryContentsMesh);
   }
-  if (!inventoryMesh.inventoryShapesMesh) {
-    inventoryMesh.inventoryShapesMesh = _makeInventoryShapesMesh();
-    inventoryMesh.inventoryShapesMesh.frustumCulled = false;
-    inventoryMesh.add(inventoryMesh.inventoryShapesMesh);
-  }
 
   const geometryKeys = await geometryWorker.requestGetGeometryKeys(geometrySet);
   const geometryRequests = [];
@@ -4922,6 +4917,18 @@ inventoryMesh.inventoryContentsMesh = null;
 inventoryMesh.queue = new WaitQueue();
 scene.add(inventoryMesh);
 
+const shapesMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
+  await loadPromise;
+
+  if (!shapesMesh.inventoryShapesMesh) {
+    shapesMesh.inventoryShapesMesh = _makeInventoryShapesMesh();
+    shapesMesh.inventoryShapesMesh.frustumCulled = false;
+    shapesMesh.add(shapesMesh.inventoryShapesMesh);
+  }
+});
+shapesMesh.visible = false;
+scene.add(shapesMesh);
+
 const _makeInventoryContentsMesh = () => {
   const geometry = new THREE.BufferGeometry();
   const material = currentVegetationMesh.material[0];
@@ -4963,7 +4970,7 @@ const _makeInventoryShapesMesh = () => {
       .applyMatrix4(new THREE.Matrix4().makeScale(w/2, w/2, w/2))
       .applyMatrix4(new THREE.Matrix4().makeTranslation(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/2));
     if (!g.index) {
-      const indices = new Uint16Array(g.attributes.position.length/3);
+      const indices = new Uint16Array(g.attributes.position.array.length/3);
       for (let i = 0; i < indices.length; i++) {
         indices[i] = i;
       }
@@ -4997,7 +5004,8 @@ const detailsMesh = makeDetailsMesh(cubeMesh);
 detailsMesh.visible = false;
 scene.add(detailsMesh);
 
-const uiMeshes = [inventoryMesh, detailsMesh];
+const menuMeshes = [inventoryMesh, shapesMesh];
+const uiMeshes = menuMeshes.concat([detailsMesh]);
 
 let selectedWeapon = 'hand';
 let currentWeaponDown = false;
@@ -5006,9 +5014,38 @@ let currentWeaponGrabs = [false, false];
 let lastWeaponGrabs = [false, false];
 const _setSelectedWeapon = newSelectedWeapon => {
   selectedWeapon = newSelectedWeapon;
-  if (selectedWeapon !== 'select') {
-    for (const uiMesh of uiMeshes) {
-      uiMesh.visible = false;
+
+  for (const uiMesh of uiMeshes) {
+    uiMesh.visible = false;
+  }
+
+  if (selectedWeapon === 'select') {
+    const newVisible = !inventoryMesh.visible;
+    if (newVisible) {
+      localMatrix.copy(rigManager.localRigMatrixEnabled ? rigManager.localRigMatrix : camera.matrixWorld)
+        .multiply(localMatrix2.makeTranslation(0, 0, -3))
+        .decompose(inventoryMesh.position, inventoryMesh.quaternion, inventoryMesh.scale);
+        inventoryMesh.scale.setScalar(20);
+
+      inventoryMesh.visible = true;
+    } else {
+      for (const uiMesh of uiMeshes) {
+        uiMesh.visible = false;
+      }
+    }
+  } else if (selectedWeapon === 'shapes') {
+    const newVisible = !shapesMesh.visible;
+    if (newVisible) {
+      localMatrix.copy(rigManager.localRigMatrixEnabled ? rigManager.localRigMatrix : camera.matrixWorld)
+        .multiply(localMatrix2.makeTranslation(0, 0, -3))
+        .decompose(shapesMesh.position, shapesMesh.quaternion, shapesMesh.scale);
+        shapesMesh.scale.setScalar(20);
+
+      shapesMesh.visible = true;
+    } else {
+      for (const uiMesh of uiMeshes) {
+        uiMesh.visible = false;
+      }
     }
   }
 };
@@ -5754,7 +5791,7 @@ function animate(timestamp, frame) {
     rayMesh.visible = false;
 
     const _raycastWeapon = () => {
-      if (selectedWeapon === 'select') {
+      if (['shapes', 'select'].includes(selectedWeapon)) {
         const [{position, quaternion}] = _getRigTransforms();
         raycaster.ray.origin.copy(position);
         raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
@@ -6308,10 +6345,17 @@ function animate(timestamp, frame) {
     
     const _handleMenu = () => {
       if (currentSession) {
-        inventoryMesh.position.copy(leftGamepad.position);
-        inventoryMesh.quaternion.copy(leftGamepad.quaternion);
-        inventoryMesh.scale.setScalar(1, 1, 1);
-        inventoryMesh.visible = true;
+        if (selectedWeapon === 'select') {
+          inventoryMesh.position.copy(leftGamepad.position);
+          inventoryMesh.quaternion.copy(leftGamepad.quaternion);
+          inventoryMesh.scale.setScalar(1, 1, 1);
+          inventoryMesh.visible = true;
+        } else if (selectedWeapon === 'shapes') {
+          shapesMesh.position.copy(leftGamepad.position);
+          shapesMesh.quaternion.copy(leftGamepad.quaternion);
+          shapesMesh.scale.setScalar(1, 1, 1);
+          shapesMesh.visible = true;
+        }
       }
     };
     _handleMenu();
@@ -6884,21 +6928,7 @@ window.addEventListener('keydown', e => {
     case 9: { // tab
       e.preventDefault();
       e.stopPropagation();
-      const newVisible = !inventoryMesh.visible;
-      if (newVisible) {
-        localMatrix.copy(rigManager.localRigMatrixEnabled ? rigManager.localRigMatrix : camera.matrixWorld)
-          .multiply(localMatrix2.makeTranslation(0, 0, -3))
-          .decompose(inventoryMesh.position, inventoryMesh.quaternion, inventoryMesh.scale);
-          inventoryMesh.scale.setScalar(20);
-
-        weapons.find(weapon => weapon.getAttribute('weapon') === 'select').click();
-
-        inventoryMesh.visible = true;
-      } else {
-        for (const uiMesh of uiMeshes) {
-          uiMesh.visible = false;
-        }
-      }
+      weapons.find(weapon => weapon.getAttribute('weapon') === 'select').click();
       break;
     }
     case 69: { // E
