@@ -5235,7 +5235,7 @@ scene.add(cubeMesh); */
 const velocity = new THREE.Vector3();
 // const lastGrabs = [false, false];
 const lastAxes = [[0, 0, 0, 0], [0, 0, 0, 0]];
-const lastButtons = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
+const lastButtons = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]];
 let currentTeleport = false;
 let lastTeleport = false;
 let currentSelector = false;
@@ -5329,6 +5329,7 @@ function animate(timestamp, frame) {
           buttonsSrc[2] ? buttonsSrc[2].value : 0,
           buttonsSrc[3] ? buttonsSrc[3].value : 0,
           buttonsSrc[4] ? buttonsSrc[4].value : 0,
+          buttonsSrc[5] ? buttonsSrc[4].value : 0,
         ];
         if (handedness === 'left') {
           const dx = axes[0] + axes[2];
