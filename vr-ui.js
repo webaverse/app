@@ -520,12 +520,12 @@ const uiRenderer = (() => {
     async render(htmlString, width, height) {
       const [iframe/*, interfaceHtml */] = await loadPromise;
 
-      if (renderIds > 0) {
+      /* if (renderIds > 0) {
         iframe.contentWindow.postMessage({
           method: 'cancel',
           id: renderIds,
         }, '*');
-      }
+      } */
 
       const start = Date.now();
       const mc = new MessageChannel();
