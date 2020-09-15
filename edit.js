@@ -6236,6 +6236,16 @@ function animate(timestamp, frame) {
       }
     };
     _handleSelect();
+    
+    const _handleMenu = () => {
+      if (currentSession) {
+        inventoryMesh.position.copy(leftGamepad.position);
+        inventoryMesh.quaternion.copy(leftGamepad.quaternion);
+        inventoryMesh.scale.setScalar(1, 1, 1);
+        inventoryMesh.visible = true;
+      }
+    };
+    _handleMenu();
 
     /* const currentParcel = _getCurrentParcel(localVector);
     if (!currentParcel.equals(lastParcel)) {
