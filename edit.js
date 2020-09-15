@@ -5804,7 +5804,7 @@ function animate(timestamp, frame) {
     rayMesh.visible = false;
 
     const _raycastWeapon = () => {
-      if (['things', 'shapes', 'inventory'].includes(selectedWeapon)) {
+      if (['things', 'shapes', 'inventory', 'select'].includes(selectedWeapon)) {
         const [{position, quaternion}] = _getRigTransforms();
         raycaster.ray.origin.copy(position);
         raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
@@ -6121,6 +6121,29 @@ function animate(timestamp, frame) {
         const _damage = dmg => {
           hpMesh.damage(dmg);
         };
+        const _triggerAnchor = () => {
+          for (let i = 0; i < 2; i++) {
+            const anchorSpec = anchorSpecs[i];
+            if (anchorSpec) {
+              let match;
+              if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) {
+                const srcIndex = parseInt(match[1], 10);
+                if (srcIndex < thingsMesh.currentGeometryKeys.length) {
+                  const geometryKey = thingsMesh.currentGeometryKeys[srcIndex];
+                  (async () => {
+                    const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
+                    const material = currentVegetationMesh.material[0];
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.frustumCulled = false;
+                    meshComposer.setPlaceMesh(i, mesh);
+                  })();
+                }
+              } else {
+                anchorSpec.object.click(anchorSpec);
+              }
+            }
+          }
+        };
         switch (selectedWeapon) {
           case 'rifle': {
             _hit();
@@ -6176,30 +6199,11 @@ function animate(timestamp, frame) {
           case 'things':
           case 'shapes':
           case 'inventory': {
-            for (let i = 0; i < 2; i++) {
-              const anchorSpec = anchorSpecs[i];
-              if (anchorSpec) {
-                let match;
-                if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) {
-                  const srcIndex = parseInt(match[1], 10);
-                  if (srcIndex < thingsMesh.currentGeometryKeys.length) {
-                    const geometryKey = thingsMesh.currentGeometryKeys[srcIndex];
-                    (async () => {
-                      const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
-                      const material = currentVegetationMesh.material[0];
-                      const mesh = new THREE.Mesh(geometry, material);
-                      mesh.frustumCulled = false;
-                      meshComposer.setPlaceMesh(i, mesh);
-                    })();
-                  }
-                } else {
-                  anchorSpec.object.click(anchorSpec);
-                }
-              }
-            }
+            _triggerAnchor();
             break;
           }
           case 'select': {
+            _triggerAnchor();
             if (!anchorSpecs[0] && raycastChunkSpec) {
               if (raycastChunkSpec.objectId !== 0) {
                 detailsMesh.position.copy(raycastChunkSpec.point);
