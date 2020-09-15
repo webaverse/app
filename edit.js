@@ -4871,6 +4871,11 @@ const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
     inventoryMesh.inventoryContentsMesh.frustumCulled = false;
     inventoryMesh.add(inventoryMesh.inventoryContentsMesh);
   }
+  if (!inventoryMesh.inventoryShapesMesh) {
+    inventoryMesh.inventoryShapesMesh = _makeInventoryShapesMesh();
+    inventoryMesh.inventoryShapesMesh.frustumCulled = false;
+    inventoryMesh.add(inventoryMesh.inventoryShapesMesh);
+  }
 
   const geometryKeys = await geometryWorker.requestGetGeometryKeys(geometrySet);
   const geometryRequests = [];
@@ -4920,6 +4925,70 @@ scene.add(inventoryMesh);
 const _makeInventoryContentsMesh = () => {
   const geometry = new THREE.BufferGeometry();
   const material = currentVegetationMesh.material[0];
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.visible = false;
+  return mesh;
+};
+const _makeInventoryShapesMesh = () => {
+  const boxMesh = new THREE.BoxBufferGeometry()
+  const coneMesh = new THREE.ConeBufferGeometry();
+  const cylinderMesh = new THREE.CylinderBufferGeometry();
+  const dodecahedronMesh = new THREE.DodecahedronBufferGeometry();
+  const icosahedronMesh = new THREE.IcosahedronBufferGeometry();
+  const octahedronMesh = new THREE.OctahedronBufferGeometry();
+  const sphereMesh = new THREE.SphereBufferGeometry();
+  const tetrahedronMesh = new THREE.TetrahedronBufferGeometry();
+  const torusMesh = new THREE.TorusBufferGeometry();
+  const geometries = [
+    boxMesh,
+    coneMesh,
+    cylinderMesh,
+    dodecahedronMesh,
+    icosahedronMesh,
+    octahedronMesh,
+    sphereMesh,
+    tetrahedronMesh,
+    torusMesh,
+  ];
+
+  const h = 0.1;
+  const arrowW = h/10;
+  const wrapInnerW = h - 2*arrowW;
+  const w = wrapInnerW/3;
+
+  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries.map((geometry, i) => {
+    const dx = i%3;
+    const dy = (i-dx)/3;
+    const g = geometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(w/2, w/2, w/2))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/2));
+    if (!g.index) {
+      const indices = new Uint16Array(g.attributes.position.length/3);
+      for (let i = 0; i < indices.length; i++) {
+        indices[i] = i;
+      }
+      g.setIndex(new THREE.BufferAttribute(indices, 1));
+    }
+    return g;
+  }));
+  const material = new THREE.ShaderMaterial({
+    vertexShader: `\
+      varying vec2 vUv;
+
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `\
+      varying vec2 vUv;
+
+      void main() {
+        vec3 c = mix(vec3(${new THREE.Color(0xff7043).toArray().join(', ')}), vec3(${new THREE.Color(0xef5350).toArray().join(', ')}), vUv.y);
+        gl_FragColor = vec4(c, 1.);
+      }
+    `,
+  });
   const mesh = new THREE.Mesh(geometry, material);
   return mesh;
 };
