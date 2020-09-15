@@ -524,7 +524,7 @@ const uiRenderer = (() => {
         iframe.contentWindow.postMessage({
           method: 'cancel',
           id: renderIds,
-        });
+        }, '*');
       }
 
       const start = Date.now();
