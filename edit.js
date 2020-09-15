@@ -5359,18 +5359,18 @@ function animate(timestamp, frame) {
               .decompose(dolly.position, dolly.quaternion, dolly.scale);
           };
           if (
-            (axes[0] < -0.9 && !(lastAxes[index][0] < -0.9)) ||
-            (axes[2] < -0.9 && !(lastAxes[index][2] < -0.9))
+            (axes[0] < -0.75 && !(lastAxes[index][0] < -0.75)) ||
+            (axes[2] < -0.75 && !(lastAxes[index][2] < -0.75))
           ) {
             _applyRotation(Math.PI * 0.2);
           } else if (
-            (axes[0] > 0.9 && !(lastAxes[index][0] > 0.9)) ||
-            (axes[2] > 0.9 && !(lastAxes[index][2] > 0.9))
+            (axes[0] > 0.75 && !(lastAxes[index][0] > 0.75)) ||
+            (axes[2] > 0.75 && !(lastAxes[index][2] > 0.75))
           ) {
             _applyRotation(-Math.PI * 0.2);
           }
-          currentTeleport = (axes[1] < -0.9 || axes[3] < -0.9);
-          currentSelector = (axes[1] > 0.9 || axes[3] > 0.9);
+          currentTeleport = (axes[1] < -0.75 || axes[3] < -0.75);
+          currentSelector = (axes[1] > 0.75 || axes[3] > 0.75);
 
           currentWeaponDown = buttons[0] > 0.5;
           currentWeaponGrabs[1] = buttons[1] > 0.5;
