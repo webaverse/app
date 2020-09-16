@@ -974,6 +974,21 @@ p {
   margin: 10px 0;
   font-size: 60px;
 }
+.buttons {
+  display: flex;
+  flex-direction: column;
+}
+.buttons .button {
+  display: flex;
+  width: 400px;
+  height: 400px;
+  margin: 50px;
+  border: 10px solid #000;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 100px;
+}
 </style>
 <div class=body>
   <div class=wrap>
@@ -983,6 +998,10 @@ p {
   <div class=details>
     <h1>Details</h1>
     <p>Lorem ipsum</p>
+  </div>
+  <div class=buttons>
+    <a class=button id=run-button>Run</a>
+    <a class=button id=add-button>Add to inventory</a>
   </div>
 </div>
 `;
@@ -1032,7 +1051,7 @@ const makeIconMesh = () => {
   let anchors = [];
   mesh.update = () => {
     const htmlString = _makeIconString();
-    uiRenderer.render(htmlString, uiSize, uiSize)
+    uiRenderer.render(htmlString, uiSize, uiSize/2)
       .then(result => {
         // imageData.data.set(result.data);
         // ctx.putImageData(imageData, 0, 0);
