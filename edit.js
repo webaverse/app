@@ -12,7 +12,7 @@ import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
-import {makeCubeMesh, /*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh, intersectUi, makeRayMesh} from './vr-ui.js';
+import {makeCubeMesh, /*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh, makeIconMesh, intersectUi, makeRayMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import {makeAnimalFactory} from './animal.js';
 import {
@@ -6831,16 +6831,27 @@ const _uploadImg = async file => {
   meshComposer.addMesh(mesh);
 };
 const _uploadScript = async file => {
-  const text = await (() => {
+  const text = await new Promise((accept, reject) => {
     const fr = new FileReader();
     fr.onload = function() {
       accept(this.result);
     };
     fr.onerror = reject;
     fr.readAsText(file);
-  })();
-  console.log('got text', text);
-  eval(text);
+  });
+  const mesh = makeIconMesh();
+  mesh.geometry.boundingBox = new THREE.Box3(
+    new THREE.Vector3(-1, -1/2, -0.1),
+    new THREE.Vector3(1, 1/2, 0.1),
+  );
+  const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
+  mesh.position.copy(xrCamera.position)
+    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
+  mesh.quaternion.copy(xrCamera.quaternion);
+  mesh.frustumCulled = false;
+  meshComposer.addMesh(mesh);
+  console.log('got text', mesh);
+  // eval(text);
 };
 const _handleFileUpload = async file => {
   const match = file.name.match(/\.(.+)$/);
