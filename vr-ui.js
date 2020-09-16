@@ -2,6 +2,7 @@ import * as THREE from './three.module.js';
 // import {scene} from './run.js';
 import {TextMesh} from './textmesh-standalone.esm.js';
 import easing from './easing.js';
+import * as icons from './icons.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -937,6 +938,124 @@ p {
 </div>
 `;
 };
+const _makeIconString = () => {
+  const w = uiSize;
+  const h = uiSize/2;
+  return `\
+}
+<style>
+* {
+  box-sizing: border-box;
+}
+.body {
+  display: flex;
+  width: ${w}px;
+  height: ${h}px;
+  background-color: #FFF;
+  border-left: ${w/10}px solid #ff7043;
+  font-family: 'Bangers';
+}
+.wrap {
+  display: flex;
+  overflow: hidden;
+}
+.details {
+  display: flex;
+  padding: 50px;
+  background-color: #FFF;
+  flex: 1;
+  flex-direction: column;
+}
+h1 {
+  margin: 10px 0;
+  font-size: 100px;
+}
+p {
+  margin: 10px 0;
+  font-size: 60px;
+}
+</style>
+<div class=body>
+  <div class=wrap>
+    <img src="${icons.code}" height=${h/2}>
+  </div>
+  <a class=scrollbar id=scrollbar></a>
+  <div class=details>
+    <h1>Details</h1>
+    <p>Lorem ipsum</p>
+  </div>
+</div>
+`;
+};
+const makeIconMesh = () => {
+  const geometry = _flipUvs(
+    new THREE.PlaneBufferGeometry(1, 1/2)
+      // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0))
+  );
+  const texture = new THREE.Texture(
+    null,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.LinearFilter,
+    THREE.LinearMipMapLinearFilter,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16,
+    THREE.LinearEncoding,
+  );
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    transparent: true,
+    alphaTest: 0.7,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.visible = false;
+  mesh.frustumCulled = false;
+
+  const highlightMesh = (() => {
+    const geometry = new THREE.BoxBufferGeometry(1, 1, 0.001);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x42a5f5,
+      transparent: true,
+      opacity: 0.5,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    return mesh;
+  })();
+  mesh.add(highlightMesh);
+  mesh.highlightMesh = highlightMesh;
+
+  let anchors = [];
+  mesh.update = () => {
+    const htmlString = _makeIconString();
+    uiRenderer.render(htmlString, uiSize, uiSize)
+      .then(result => {
+        // imageData.data.set(result.data);
+        // ctx.putImageData(imageData, 0, 0);
+        // ctx.drawImage(result.data, 0, 0);
+        texture.image = result.data;
+        texture.needsUpdate = true;
+        mesh.visible = true;
+
+        anchors = result.anchors;
+        // console.log(anchors);
+      });
+  };
+  mesh.getAnchors = () => anchors;
+  mesh.click = anchor => {
+    const match = anchor.id.match(/^tile-([0-9]+)-([0-9]+)$/);
+    const i = parseInt(match[1], 10);
+    const j = parseInt(match[2], 10);
+    onclick(tiles[i][j]);
+  };
+  mesh.update();
+
+  return mesh;
+};
 const makeUiMesh = (label, tiles, onclick) => {
   const geometry = _flipUvs(
     new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize)
@@ -1534,6 +1653,7 @@ export {
   makeToolsMesh,
   makeDetailsMesh,
   makeInventoryMesh,
+  makeIconMesh,
   intersectUi,
   /* makeWristMenu,
   makeHighlightMesh, */
