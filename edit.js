@@ -129,37 +129,13 @@ loginManager.addEventListener('avatarchange', async (e) => {
 document.addEventListener('dragover', e => {
   e.preventDefault();
 });
-document.addEventListener('drop', e => {
+document.addEventListener('drop', async e => {
   e.preventDefault();
 
   if (e.dataTransfer.files.length > 0) {
     const [file] = e.dataTransfer.files;
-    window.dispatchEvent(new MessageEvent('upload', {
-      data: file,
-    }));
+    await _handleFileUpload(file);
   }
-});
-window.addEventListener('upload', async e => {
-  const file = e.data;
-
-  const d = await XRPackage.compileFromFile(file);
-  const p = new XRPackage(d);
-  if (p.type === 'webxr-site@0.0.1') {
-    // nothing
-  } else {
-    const xrCamera = pe.renderer.xr.getCamera(camera);
-    localMatrix
-      .copy(xrCamera.matrix)
-      .premultiply(pe.matrix)
-      .decompose(localVector, localQuaternion, localVector2);
-    localVector.add(localVector2.set(0, 0, -1.5).applyQuaternion(localQuaternion));
-    p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2.set(1, 1, 1)));
-  }
-  await pe.add(p);
-
-  /* if (/\.vrm$/.test(file.name)) {
-    p.wearAvatar();
-  } */
 });
 
 const cubicBezier = easing(0, 1, 0, 1);
@@ -3870,6 +3846,7 @@ class MeshComposer {
   }
   addMesh(mesh) {
     this.meshes.push(mesh);
+    scene.add(mesh);
   }
   isLatched(mesh) {
     return this.placeMeshes.includes(mesh); 
@@ -6823,7 +6800,8 @@ const _uploadImg = async file => {
     const _cleanup = () => {
       URL.revokeObjectURL(u);
     };
-  })();
+    img.src = u;
+  });
   let {width, height} = img;
   if (width >= height) {
     height /= width;
@@ -6834,13 +6812,18 @@ const _uploadImg = async file => {
     height = 1;
   }
   const geometry = new THREE.PlaneBufferGeometry(width, height);
+  geometry.boundingBox = new THREE.Box3(
+    new THREE.Vector3(-width/2, -height/2, -0.1),
+    new THREE.Vector3(width/2, height/2, 0.1),
+  );
   const texture = new THREE.Texture(img);
   texture.needsUpdate = true;
   const material = new THREE.MeshBasicMaterial({
     map: texture,
+    side: THREE.DoubleSide,
   });
-  const mesh = new THREE.Mesh(geomtry, material);
-  const xrCamera = renderer.xr.getCamera(camera);
+  const mesh = new THREE.Mesh(geometry, material);
+  const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
   mesh.position.copy(xrCamera.position)
     .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
   mesh.quaternion.copy(xrCamera.quaternion);
@@ -6859,7 +6842,7 @@ const _uploadScript = async file => {
   console.log('got text', text);
   eval(text);
 };
-bindUploadFileButton(document.getElementById('load-package-input'), async file => {
+const _handleFileUpload = async file => {
   const match = file.name.match(/\.(.+)$/);
   const ext = match[1];
   switch (ext) {
@@ -6879,7 +6862,8 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
       break;
     }
   }
-});
+};
+bindUploadFileButton(document.getElementById('load-package-input'), _handleFileUpload);
 
 let selectedTool = 'camera';
 const _getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
