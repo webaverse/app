@@ -1460,6 +1460,9 @@ const geometryWorker = (() => {
         new THREE.Vector3().fromArray(moduleInstance.HEAPF32.subarray(aabbOffset/Float32Array.BYTES_PER_ELEMENT, aabbOffset/Float32Array.BYTES_PER_ELEMENT + 3)),
         new THREE.Vector3().fromArray(moduleInstance.HEAPF32.subarray(aabbOffset/Float32Array.BYTES_PER_ELEMENT + 3, aabbOffset/Float32Array.BYTES_PER_ELEMENT + 6)),
       );
+      /* const height = boundingBox.getSize(new THREE.Vector3()).y;
+      boundingBox.min.y += height/2;
+      boundingBox.max.y += height/2; */
 
       const positions = new Float32Array(moduleInstance.HEAP8.buffer, positionsOffset, numPositions);
       const uvs = new Float32Array(moduleInstance.HEAP8.buffer, uvsOffset, numUvs);
@@ -3794,7 +3797,7 @@ const _makeTargetMesh = (() => {
       targetGeometry.clone()
         .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
         .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0.5)),
-    ]).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+    ])// .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
   })();
   const targetVsh = `
     #define M_PI 3.1415926535897932384626433832795
@@ -3923,7 +3926,8 @@ class MeshComposer {
           this.placeMeshes[i].quaternion.copy(quaternion);
         }
         if (this.hoveredMeshes[i] && !this.isLatched(this.hoveredMeshes[i])) {
-          this.targetMeshes[i].position.copy(this.hoveredMeshes[i].position);
+          this.targetMeshes[i].position.copy(this.hoveredMeshes[i].position)
+            .add(this.hoveredMeshes[i].geometry.boundingBox.getCenter(new THREE.Vector3()).applyQuaternion(this.hoveredMeshes[i].quaternion));
           this.targetMeshes[i].quaternion.copy(this.hoveredMeshes[i].quaternion);
           this.hoveredMeshes[i].geometry.boundingBox.getSize(this.targetMeshes[i].scale);
           this.targetMeshes[i].visible = true;
@@ -4915,6 +4919,18 @@ thingsMesh.geometryKeys = null;
 thingsMesh.currentGeometryKeys = null;
 thingsMesh.inventoryContentsMesh = null;
 thingsMesh.queue = new WaitQueue();
+thingsMesh.handleIconClick = (i, srcIndex) => {
+  if (srcIndex < thingsMesh.currentGeometryKeys.length) {
+    const geometryKey = thingsMesh.currentGeometryKeys[srcIndex];
+    (async () => {
+      const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
+      const material = currentVegetationMesh.material[0];
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.frustumCulled = false;
+      meshComposer.setPlaceMesh(i, mesh);
+    })();
+  }
+};
 scene.add(thingsMesh);
 
 const shapesMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
@@ -4927,6 +4943,24 @@ const shapesMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   }
 });
 shapesMesh.visible = false;
+shapesMesh.handleIconClick = (i, srcIndex) => {
+  // console.log('handle shapes click', srcIndex);
+  if (srcIndex < shapesMesh.inventoryShapesMesh.geometries.length) {
+    const geometry = shapesMesh.inventoryShapesMesh.geometries[srcIndex];
+    const material = shapesMesh.inventoryShapesMesh.material;
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    meshComposer.setPlaceMesh(i, mesh);
+
+    /* (async () => {
+      const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
+      const material = currentVegetationMesh.material[0];
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.frustumCulled = false;
+      meshComposer.setPlaceMesh(i, mesh);
+    })(); */
+  }
+};
 scene.add(shapesMesh);
 
 const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
@@ -4939,6 +4973,19 @@ const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   } */
 });
 inventoryMesh.visible = false;
+inventoryMesh.handleIconClick = (i, srcIndex) => {
+  console.log('handle inventory click', srcIndex);
+  /* if (srcIndex < inventoryMesh.currentGeometryKeys.length) {
+    const geometryKey = inventoryMesh.currentGeometryKeys[srcIndex];
+    (async () => {
+      const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
+      const material = currentVegetationMesh.material[0];
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.frustumCulled = false;
+      meshComposer.setPlaceMesh(i, mesh);
+    })();
+  } */
+};
 scene.add(inventoryMesh);
 
 const _makeInventoryContentsMesh = () => {
@@ -4968,6 +5015,12 @@ const _makeInventoryShapesMesh = () => {
     tetrahedronMesh,
     torusMesh,
   ];
+  for (const geometry of geometries) {
+    geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
+    /* const height = boundingBox.getSize(new THREE.Vector3()).y;
+    boundingBox.min.y += height/2;
+    boundingBox.max.y += height/2; */
+  }
 
   const h = 0.1;
   const arrowW = h/10;
@@ -4978,7 +5031,7 @@ const _makeInventoryShapesMesh = () => {
     const dx = i%3;
     const dy = (i-dx)/3;
     const g = geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeScale(w/2, w/2, w/2))
+      .applyMatrix4(new THREE.Matrix4().makeScale(w/4, w/4, w/4))
       .applyMatrix4(new THREE.Matrix4().makeTranslation(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/2));
     if (!g.index) {
       const indices = new Uint16Array(g.attributes.position.array.length/3);
@@ -5008,6 +5061,7 @@ const _makeInventoryShapesMesh = () => {
     `,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.geometries = geometries;
   return mesh;
 };
 
@@ -6121,23 +6175,14 @@ function animate(timestamp, frame) {
         const _damage = dmg => {
           hpMesh.damage(dmg);
         };
-        const _triggerAnchor = () => {
+        const _triggerAnchor = mesh => {
           for (let i = 0; i < 2; i++) {
             const anchorSpec = anchorSpecs[i];
             if (anchorSpec) {
               let match;
               if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) {
                 const srcIndex = parseInt(match[1], 10);
-                if (srcIndex < thingsMesh.currentGeometryKeys.length) {
-                  const geometryKey = thingsMesh.currentGeometryKeys[srcIndex];
-                  (async () => {
-                    const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
-                    const material = currentVegetationMesh.material[0];
-                    const mesh = new THREE.Mesh(geometry, material);
-                    mesh.frustumCulled = false;
-                    meshComposer.setPlaceMesh(i, mesh);
-                  })();
-                }
+                mesh.handleIconClick(i, srcIndex);
               } else {
                 anchorSpec.object.click(anchorSpec);
               }
@@ -6196,10 +6241,16 @@ function animate(timestamp, frame) {
             _light();
             break;
           }
-          case 'things':
-          case 'shapes':
+          case 'things': {
+            _triggerAnchor(thingsMesh);
+            break;
+          }
+          case 'shapes': {
+            _triggerAnchor(shapesMesh);
+            break;
+          }
           case 'inventory': {
-            _triggerAnchor();
+            _triggerAnchor(inventoryMesh);
             break;
           }
           case 'select': {
