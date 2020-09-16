@@ -3868,6 +3868,9 @@ class MeshComposer {
     this.meshes.push(mesh);
     this.placeMeshes[index] = mesh;
   }
+  addMesh(mesh) {
+    this.meshes.push(mesh);
+  }
   isLatched(mesh) {
     return this.placeMeshes.includes(mesh); 
   }
@@ -6624,7 +6627,7 @@ renderer.setAnimationLoop(animate);
 // renderer.xr.setSession(proxySession);
 
 const thingFiles = {};
-bindUploadFileButton(document.getElementById('load-package-input'), async file => {
+const _uploadGltf = async file => {
   const {default: atlaspack} = await import('./atlaspack.js');
   const u = URL.createObjectURL(file);
   let o;
@@ -6803,6 +6806,78 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
       }, console.warn);
 
     // console.log('got o', o, geometry, textures, atlas, rects, imageData, texture);
+  }
+};
+const _uploadImg = async file => {
+  const img = new Image();
+  await new Promise((accept, reject) => {
+    const u = URL.createObjectURL(file);
+    img.onload = () => {
+      accept();
+      _cleanup();
+    };
+    img.onerror = err => {
+      reject(err);
+      _cleanup();
+    }
+    const _cleanup = () => {
+      URL.revokeObjectURL(u);
+    };
+  })();
+  let {width, height} = img;
+  if (width >= height) {
+    height /= width;
+    width = 1;
+  }
+  if (height >= width) {
+    width /= height;
+    height = 1;
+  }
+  const geometry = new THREE.PlaneBufferGeometry(width, height);
+  const texture = new THREE.Texture(img);
+  texture.needsUpdate = true;
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+  });
+  const mesh = new THREE.Mesh(geomtry, material);
+  const xrCamera = renderer.xr.getCamera(camera);
+  mesh.position.copy(xrCamera.position)
+    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
+  mesh.quaternion.copy(xrCamera.quaternion);
+  mesh.frustumCulled = false;
+  meshComposer.addMesh(mesh);
+};
+const _uploadScript = async file => {
+  const text = await (() => {
+    const fr = new FileReader();
+    fr.onload = function() {
+      accept(this.result);
+    };
+    fr.onerror = reject;
+    fr.readAsText(file);
+  })();
+  console.log('got text', text);
+  eval(text);
+};
+bindUploadFileButton(document.getElementById('load-package-input'), async file => {
+  const match = file.name.match(/\.(.+)$/);
+  const ext = match[1];
+  switch (ext) {
+    case 'gltf':
+    case 'glb': {
+      await _uploadGltf(file);
+      break;
+    }
+    case 'png':
+    case 'gif':
+    case 'jpg': {
+      await _uploadImg(file);
+      break;
+    }
+    case 'js': {
+      await _uploadScript(file);
+      break;
+    }
   }
 });
 
