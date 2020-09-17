@@ -3986,9 +3986,14 @@ class MeshComposer {
 
       if (this.hoveredMeshes[i]) {
         this.targetMeshes[i].position.copy(this.hoveredMeshes[i].position)
-          .add(this.hoveredMeshes[i].geometry.boundingBox.getCenter(new THREE.Vector3()).applyQuaternion(this.hoveredMeshes[i].quaternion));
+          .add(
+            this.hoveredMeshes[i].geometry.boundingBox.getCenter(new THREE.Vector3())
+              .multiply(this.hoveredMeshes[i].scale)
+              .applyQuaternion(this.hoveredMeshes[i].quaternion)
+          );
         this.targetMeshes[i].quaternion.copy(this.hoveredMeshes[i].quaternion);
-        this.hoveredMeshes[i].geometry.boundingBox.getSize(this.targetMeshes[i].scale);
+        this.hoveredMeshes[i].geometry.boundingBox.getSize(this.targetMeshes[i].scale)
+          .multiply(this.hoveredMeshes[i].scale);
         this.targetMeshes[i].visible = true;
       }
     }
