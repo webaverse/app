@@ -12,7 +12,7 @@ import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
-import {makeCubeMesh, /*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh, makeIconMesh, intersectUi, makeRayMesh} from './vr-ui.js';
+import {makeCubeMesh, /*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh, makeColorsMesh, makeIconMesh, intersectUi, makeRayMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import {makeAnimalFactory} from './animal.js';
 import {
@@ -5130,11 +5130,15 @@ const _makeInventoryShapesMesh = () => {
   return mesh;
 };
 
+const colorsMesh = makeColorsMesh();
+colorsMesh.visible = false;
+scene.add(colorsMesh);
+
 const detailsMesh = makeDetailsMesh(cubeMesh);
 detailsMesh.visible = false;
 scene.add(detailsMesh);
 
-const menuMeshes = [thingsMesh, shapesMesh, inventoryMesh];
+const menuMeshes = [thingsMesh, shapesMesh, inventoryMesh, colorsMesh];
 const uiMeshes = menuMeshes.concat([detailsMesh]);
 
 let selectedWeapon = 'hand';
@@ -5145,7 +5149,7 @@ let lastWeaponGrabs = [false, false];
 const _setSelectedWeapon = newSelectedWeapon => {
   selectedWeapon = newSelectedWeapon;
 
-  for (const uiMesh of uiMeshes) {
+  /* for (const uiMesh of uiMeshes) {
     uiMesh.visible = false;
   }
 
@@ -5179,7 +5183,7 @@ const _setSelectedWeapon = newSelectedWeapon => {
 
       inventoryMesh.visible = true;
     }
-  }
+  } */
 };
 const weapons = Array.from(document.querySelectorAll('.weapon'));
 for (let i = 0; i < weapons.length; i++) {
@@ -6484,22 +6488,36 @@ function animate(timestamp, frame) {
     _handleSelect();
     
     const _handleMenu = () => {
+      for (const uiMesh of uiMeshes) {
+        uiMesh.visible = false;
+      }
+
+      const selectedMenuMesh = (() => {
+        switch (selectedWeapon) {
+          case 'things': return thingsMesh;
+          case 'shapes': return shapesMesh;
+          case 'inventory': return inventoryMesh;
+          case 'colors': return colorsMesh;
+          default: return null;
+        }
+      })();
+
       if (currentSession) {
-        if (selectedWeapon === 'things') {
-          thingsMesh.position.copy(leftGamepad.position);
-          thingsMesh.quaternion.copy(leftGamepad.quaternion);
-          thingsMesh.scale.setScalar(1, 1, 1);
-          thingsMesh.visible = true;
-        } else if (selectedWeapon === 'shapes') {
-          shapesMesh.position.copy(leftGamepad.position);
-          shapesMesh.quaternion.copy(leftGamepad.quaternion);
-          shapesMesh.scale.setScalar(1, 1, 1);
-          shapesMesh.visible = true;
-        } else if (selectedWeapon === 'inventory') {
-          inventoryMesh.position.copy(leftGamepad.position);
-          inventoryMesh.quaternion.copy(leftGamepad.quaternion);
-          inventoryMesh.scale.setScalar(1, 1, 1);
-          inventoryMesh.visible = true;
+        if (selectedMenuMesh) {
+          selectedMenuMesh.position.copy(leftGamepad.position);
+          selectedMenuMesh.quaternion.copy(leftGamepad.quaternion);
+          selectedMenuMesh.scale.setScalar(1, 1, 1);
+          selectedMenuMesh.visible = true;
+        }
+      } else {
+        if (selectedMenuMesh && menuExpanded) {
+          if (!lastMenuExpanded) {
+            localMatrix.copy(rigManager.localRigMatrixEnabled ? rigManager.localRigMatrix : camera.matrixWorld)
+              .multiply(localMatrix2.makeTranslation(0, 0, -3))
+              .decompose(selectedMenuMesh.position, selectedMenuMesh.quaternion, selectedMenuMesh.scale);
+            selectedMenuMesh.scale.setScalar(20);
+          }
+          selectedMenuMesh.visible = true;
         }
       }
     };
@@ -6651,6 +6669,7 @@ function animate(timestamp, frame) {
   lastTeleport = currentTeleport;
   lastSelector = currentSelector;
   lastWeaponDown = currentWeaponDown;
+  lastMenuExpanded = menuExpanded;
   for (let i = 0; i < 2; i++) {
     lastWeaponGrabs[i] = currentWeaponGrabs[i];
   }
@@ -7108,6 +7127,8 @@ const _resetKeys = () => {
   }
 };
 let jumpState = false;
+let menuExpanded = false;
+let lastMenuExpanded = false;
 window.addEventListener('keydown', e => {
   switch (e.which) {
     case 48: // 0
@@ -7163,7 +7184,7 @@ window.addEventListener('keydown', e => {
     case 9: { // tab
       e.preventDefault();
       e.stopPropagation();
-      weapons.find(weapon => weapon.getAttribute('weapon') === 'select').click();
+      menuExpanded = !menuExpanded;
       break;
     }
     case 69: { // E

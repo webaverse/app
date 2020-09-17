@@ -938,6 +938,89 @@ p {
 </div>
 `;
 };
+const _makeColorsString = () => {
+  const w = uiSize;
+  const h = uiSize/2;
+  return `\
+}
+<style>
+* {
+  box-sizing: border-box;
+}
+.body {
+  display: flex;
+  width: ${w}px;
+  height: ${h}px;
+  background-color: #FFF;
+  border-left: ${w/10}px solid #ff7043;
+  font-family: 'Bangers';
+}
+.row {
+  display: flex;
+}
+.colors {
+  display: flex;
+  margin-right: 5px;
+  flex-direction: column;
+}
+.colors > .row > .color {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  position: relative;
+}
+.colors > .row > .color:hover {
+  background-color: #333;
+}
+.colors > .row > .color:active,
+.colors > .row > .color.selected {
+  background-color: #000;
+}
+.colors > .row > .color > .inner {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  right: 3px;
+}
+</style>
+<div class=body>
+  <div class=wrap>
+    <div class=colors>
+      <div class=row>
+        <a id=color-1 class="color {{#color1Selected}}selected{{/color1Selected}}"><div class=inner style="background-color: #ef5350;"></div></a>
+        <a id=color-2 class="color {{#color2Selected}}selected{{/color2Selected}}"><div class=inner style="background-color: #ec407a;"></div></a>
+        <a id=color-3 class="color {{#color3Selected}}selected{{/color3Selected}}"><div class=inner style="background-color: #ab47bc;"></div></a>
+        <a id=color-4 class="color {{#color4Selected}}selected{{/color4Selected}}"><div class=inner style="background-color: #7e57c2;"></div></a>
+        <a id=color-5 class="color {{#color5Selected}}selected{{/color5Selected}}"><div class=inner style="background-color: #5c6bc0;"></div></a>
+        <a id=color-6 class="color {{#color6Selected}}selected{{/color6Selected}}"><div class=inner style="background-color: #42a5f5;"></div></a>
+        <a id=color-7 class="color {{#color7Selected}}selected{{/color7Selected}}"><div class=inner style="background-color: #29b6f6;"></div></a>
+        <a id=color-8 class="color {{#color8Selected}}selected{{/color8Selected}}"><div class=inner style="background-color: #26c6da;"></div></a>
+        <a id=color-9 class="color {{#color9Selected}}selected{{/color9Selected}}"><div class=inner style="background-color: #26a69a;"></div></a>
+        <a id=color-10 class="color {{#color10Selected}}selected{{/color10Selected}}"><div class=inner style="background-color: #66bb6a;"></div></a>
+      </div>
+      <div class=row>
+        <a id=color-11 class="color {{#color11Selected}}selected{{/color11Selected}}"><div class=inner style="background-color: #9ccc65;"></div></a>
+        <a id=color-12 class="color {{#color12Selected}}selected{{/color12Selected}}"><div class=inner style="background-color: #d4e157;"></div></a>
+        <a id=color-13 class="color {{#color13Selected}}selected{{/color13Selected}}"><div class=inner style="background-color: #ffee58;"></div></a>
+        <a id=color-14 class="color {{#color14Selected}}selected{{/color14Selected}}"><div class=inner style="background-color: #ffca28;"></div></a>
+        <a id=color-15 class="color {{#color15Selected}}selected{{/color15Selected}}"><div class=inner style="background-color: #ffa726;"></div></a>
+        <a id=color-16 class="color {{#color16Selected}}selected{{/color16Selected}}"><div class=inner style="background-color: #ff7043;"></div></a>
+        <a id=color-17 class="color {{#color17Selected}}selected{{/color17Selected}}"><div class=inner style="background-color: #8d6e63;"></div></a>
+        <a id=color-18 class="color {{#color18Selected}}selected{{/color18Selected}}"><div class=inner style="background-color: #bdbdbd;"></div></a>
+        <a id=color-19 class="color {{#color19Selected}}selected{{/color19Selected}}"><div class=inner style="background-color: #78909c;"></div></a>
+        <a id=color-20 class="color {{#color20Selected}}selected{{/color20Selected}}"><div class=inner style="background-color: #333333;"></div></a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+};
 const _makeIconString = () => {
   const w = uiSize;
   const h = uiSize/2;
@@ -1482,6 +1565,75 @@ const makeDetailsMesh = cubeMesh => {
 
   return mesh;
 };
+const makeColorsMesh = () => {
+  const geometry = _flipUvs(
+    new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0))
+  );
+  const texture = new THREE.Texture(
+    null,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.LinearFilter,
+    THREE.LinearMipMapLinearFilter,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16,
+    THREE.LinearEncoding,
+  );
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    transparent: true,
+    alphaTest: 0.7,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.visible = false;
+  mesh.frustumCulled = false;
+
+  const highlightMesh = (() => {
+    const geometry = new THREE.BoxBufferGeometry(1, 1, 0.001);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x42a5f5,
+      transparent: true,
+      opacity: 0.5,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    return mesh;
+  })();
+  mesh.add(highlightMesh);
+  mesh.highlightMesh = highlightMesh;
+
+  let anchors = [];
+  mesh.update = () => {
+    const htmlString = _makeColorsString();
+    uiRenderer.render(htmlString, uiSize, uiSize)
+      .then(result => {
+        // imageData.data.set(result.data);
+        // ctx.putImageData(imageData, 0, 0);
+        // ctx.drawImage(result.data, 0, 0);
+        texture.image = result.data;
+        texture.needsUpdate = true;
+        mesh.visible = true;
+
+        anchors = result.anchors;
+        // console.log(anchors);
+      });
+  };
+  /* mesh.getAnchors = () => anchors;
+  mesh.click = anchor => {
+    const match = anchor.id.match(/^tile-([0-9]+)-([0-9]+)$/);
+    const i = parseInt(match[1], 10);
+    const j = parseInt(match[2], 10);
+    onclick(tiles[i][j]);
+  }; */
+  mesh.update();
+
+  return mesh;
+};
 const makeInventoryMesh = (cubeMesh, onscroll) => {
   const worldWidth = 0.2;
   const worldHeight = 0.2/2;
@@ -1672,6 +1824,7 @@ export {
   makeToolsMesh,
   makeDetailsMesh,
   makeInventoryMesh,
+  makeColorsMesh,
   makeIconMesh,
   intersectUi,
   /* makeWristMenu,
