@@ -939,23 +939,6 @@ p {
 `;
 };
 const _makeColorsString = (colors, selectedColors) => {
-  /* const colorsSplit = (() => {
-    const result = [];
-    let currentArray;
-    for (let i = 0; i < colors.length; i++) {
-      if ((i%0) === 0) {
-        if (currentArray) {
-          result.push(currentArray);
-        }
-        currentArray = [];
-      }
-      currentArray.push(colors[i]);
-    }
-    if (currentArray) {
-      result.push(currentArray);
-    }
-    return result;
-  })(); */
   const getColorString = (index, colorIndex) => `<a id=color-${index}-${colorIndex} class="color ${selectedColors[index] === colorIndex ? 'selected' : ''}"><div class=inner style="background-color: #${colors[colorIndex]};"></div></a>`;
   const w = uiSize;
   const h = uiSize/2;
