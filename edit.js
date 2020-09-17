@@ -5171,45 +5171,6 @@ let currentWeaponDown = false;
 let lastWeaponDown = false;
 let currentWeaponGrabs = [false, false];
 let lastWeaponGrabs = [false, false];
-const _setSelectedWeapon = newSelectedWeapon => {
-  selectedWeapon = newSelectedWeapon;
-
-  /* for (const uiMesh of uiMeshes) {
-    uiMesh.visible = false;
-  }
-
-  if (selectedWeapon === 'things') {
-    const newVisible = !thingsMesh.visible;
-    if (newVisible) {
-      localMatrix.copy(rigManager.localRigMatrixEnabled ? rigManager.localRigMatrix : camera.matrixWorld)
-        .multiply(localMatrix2.makeTranslation(0, 0, -3))
-        .decompose(thingsMesh.position, thingsMesh.quaternion, thingsMesh.scale);
-        thingsMesh.scale.setScalar(20);
-
-      thingsMesh.visible = true;
-    }
-  } else if (selectedWeapon === 'shapes') {
-    const newVisible = !shapesMesh.visible;
-    if (newVisible) {
-      localMatrix.copy(rigManager.localRigMatrixEnabled ? rigManager.localRigMatrix : camera.matrixWorld)
-        .multiply(localMatrix2.makeTranslation(0, 0, -3))
-        .decompose(shapesMesh.position, shapesMesh.quaternion, shapesMesh.scale);
-        shapesMesh.scale.setScalar(20);
-
-      shapesMesh.visible = true;
-    }
-  } else if (selectedWeapon === 'inventory') {
-    const newVisible = !inventoryMesh.visible;
-    if (newVisible) {
-      localMatrix.copy(rigManager.localRigMatrixEnabled ? rigManager.localRigMatrix : camera.matrixWorld)
-        .multiply(localMatrix2.makeTranslation(0, 0, -3))
-        .decompose(inventoryMesh.position, inventoryMesh.quaternion, inventoryMesh.scale);
-        inventoryMesh.scale.setScalar(20);
-
-      inventoryMesh.visible = true;
-    }
-  } */
-};
 const weapons = Array.from(document.querySelectorAll('.weapon'));
 for (let i = 0; i < weapons.length; i++) {
   const weapon = document.getElementById('weapon-' + (i + 1));
@@ -5219,10 +5180,12 @@ for (let i = 0; i < weapons.length; i++) {
     }
     weapon.classList.add('selected');
 
-    _setSelectedWeapon(weapon.getAttribute('weapon'));
+    selectedWeapon = weapon.getAttribute('weapon');
   });
 }
-const toolsMesh = makeToolsMesh(weapons.map(weapon => weapon.getAttribute('weapon')), _setSelectedWeapon);
+const toolsMesh = makeToolsMesh(weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
+  selectedWeapon = newSelectedWeapon;
+});
 toolsMesh.visible = false;
 scene.add(toolsMesh);
 
