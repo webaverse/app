@@ -938,11 +938,28 @@ p {
 </div>
 `;
 };
-const _makeColorsString = () => {
+const _makeColorsString = (colors, selectedColors) => {
+  /* const colorsSplit = (() => {
+    const result = [];
+    let currentArray;
+    for (let i = 0; i < colors.length; i++) {
+      if ((i%0) === 0) {
+        if (currentArray) {
+          result.push(currentArray);
+        }
+        currentArray = [];
+      }
+      currentArray.push(colors[i]);
+    }
+    if (currentArray) {
+      result.push(currentArray);
+    }
+    return result;
+  })(); */
+  const getColorString = (index, colorIndex) => `<a id=color-${index}-${colorIndex} class="color ${selectedColors[index] === colorIndex ? 'selected' : ''}"><div class=inner style="background-color: #${colors[colorIndex]};"></div></a>`;
   const w = uiSize;
   const h = uiSize/2;
   return `\
-}
 <style>
 * {
   box-sizing: border-box;
@@ -952,8 +969,10 @@ const _makeColorsString = () => {
   width: ${w}px;
   height: ${h}px;
   background-color: #FFF;
-  border-left: ${w/10}px solid #ff7043;
   font-family: 'Bangers';
+}
+h1 {
+  font-size: 100px;
 }
 .row {
   display: flex;
@@ -970,8 +989,8 @@ const _makeColorsString = () => {
   align-items: center;
   font-size: 16px;
   cursor: pointer;
-  width: 30px;
-  height: 30px;
+  width: 100px;
+  height: 100px;
   position: relative;
 }
 .colors > .row > .color:hover {
@@ -992,29 +1011,55 @@ const _makeColorsString = () => {
 <div class=body>
   <div class=wrap>
     <div class=colors>
+      <h1>Color 1</h1>
       <div class=row>
-        <a id=color-1 class="color {{#color1Selected}}selected{{/color1Selected}}"><div class=inner style="background-color: #ef5350;"></div></a>
-        <a id=color-2 class="color {{#color2Selected}}selected{{/color2Selected}}"><div class=inner style="background-color: #ec407a;"></div></a>
-        <a id=color-3 class="color {{#color3Selected}}selected{{/color3Selected}}"><div class=inner style="background-color: #ab47bc;"></div></a>
-        <a id=color-4 class="color {{#color4Selected}}selected{{/color4Selected}}"><div class=inner style="background-color: #7e57c2;"></div></a>
-        <a id=color-5 class="color {{#color5Selected}}selected{{/color5Selected}}"><div class=inner style="background-color: #5c6bc0;"></div></a>
-        <a id=color-6 class="color {{#color6Selected}}selected{{/color6Selected}}"><div class=inner style="background-color: #42a5f5;"></div></a>
-        <a id=color-7 class="color {{#color7Selected}}selected{{/color7Selected}}"><div class=inner style="background-color: #29b6f6;"></div></a>
-        <a id=color-8 class="color {{#color8Selected}}selected{{/color8Selected}}"><div class=inner style="background-color: #26c6da;"></div></a>
-        <a id=color-9 class="color {{#color9Selected}}selected{{/color9Selected}}"><div class=inner style="background-color: #26a69a;"></div></a>
-        <a id=color-10 class="color {{#color10Selected}}selected{{/color10Selected}}"><div class=inner style="background-color: #66bb6a;"></div></a>
+        ${getColorString(0, 0)}
+        ${getColorString(0, 1)}
+        ${getColorString(0, 2)}
+        ${getColorString(0, 3)}
+        ${getColorString(0, 4)}
+        ${getColorString(0, 5)}
+        ${getColorString(0, 6)}
+        ${getColorString(0, 7)}
+        ${getColorString(0, 8)}
+        ${getColorString(0, 9)}
       </div>
       <div class=row>
-        <a id=color-11 class="color {{#color11Selected}}selected{{/color11Selected}}"><div class=inner style="background-color: #9ccc65;"></div></a>
-        <a id=color-12 class="color {{#color12Selected}}selected{{/color12Selected}}"><div class=inner style="background-color: #d4e157;"></div></a>
-        <a id=color-13 class="color {{#color13Selected}}selected{{/color13Selected}}"><div class=inner style="background-color: #ffee58;"></div></a>
-        <a id=color-14 class="color {{#color14Selected}}selected{{/color14Selected}}"><div class=inner style="background-color: #ffca28;"></div></a>
-        <a id=color-15 class="color {{#color15Selected}}selected{{/color15Selected}}"><div class=inner style="background-color: #ffa726;"></div></a>
-        <a id=color-16 class="color {{#color16Selected}}selected{{/color16Selected}}"><div class=inner style="background-color: #ff7043;"></div></a>
-        <a id=color-17 class="color {{#color17Selected}}selected{{/color17Selected}}"><div class=inner style="background-color: #8d6e63;"></div></a>
-        <a id=color-18 class="color {{#color18Selected}}selected{{/color18Selected}}"><div class=inner style="background-color: #bdbdbd;"></div></a>
-        <a id=color-19 class="color {{#color19Selected}}selected{{/color19Selected}}"><div class=inner style="background-color: #78909c;"></div></a>
-        <a id=color-20 class="color {{#color20Selected}}selected{{/color20Selected}}"><div class=inner style="background-color: #333333;"></div></a>
+        ${getColorString(0, 10)}
+        ${getColorString(0, 11)}
+        ${getColorString(0, 12)}
+        ${getColorString(0, 13)}
+        ${getColorString(0, 14)}
+        ${getColorString(0, 15)}
+        ${getColorString(0, 16)}
+        ${getColorString(0, 17)}
+        ${getColorString(0, 18)}
+        ${getColorString(0, 19)}
+      </div>
+      <h1>Color 2</h1>
+      <div class=row>
+        ${getColorString(1, 0)}
+        ${getColorString(1, 1)}
+        ${getColorString(1, 2)}
+        ${getColorString(1, 3)}
+        ${getColorString(1, 4)}
+        ${getColorString(1, 5)}
+        ${getColorString(1, 6)}
+        ${getColorString(1, 7)}
+        ${getColorString(1, 8)}
+        ${getColorString(1, 9)}
+      </div>
+      <div class=row>
+        ${getColorString(1, 10)}
+        ${getColorString(1, 11)}
+        ${getColorString(1, 12)}
+        ${getColorString(1, 13)}
+        ${getColorString(1, 14)}
+        ${getColorString(1, 15)}
+        ${getColorString(1, 16)}
+        ${getColorString(1, 17)}
+        ${getColorString(1, 18)}
+        ${getColorString(1, 19)}
       </div>
     </div>
   </div>
@@ -1493,8 +1538,8 @@ const makeDetailsMesh = cubeMesh => {
   const material = new THREE.MeshBasicMaterial({
     map: texture,
     side: THREE.DoubleSide,
-    transparent: true,
-    alphaTest: 0.7,
+    // transparent: true,
+    // alphaTest: 0.7,
   });
   const mesh = new THREE.Mesh(geometry, material);
   // mesh.visible = false;
@@ -1565,10 +1610,14 @@ const makeDetailsMesh = cubeMesh => {
 
   return mesh;
 };
-const makeColorsMesh = () => {
+const makeColorsMesh = (cubeMesh, colors, oncolorchange) => {
+  const worldWidth = 0.2;
+  const worldHeight = 0.2/2;
+  const canvasWidth = uiSize;
+  const canvasHeight = uiSize/2;
   const geometry = _flipUvs(
-    new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0))
+    new THREE.PlaneBufferGeometry(worldWidth, worldHeight)
+     // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0))
   );
   const texture = new THREE.Texture(
     null,
@@ -1585,8 +1634,8 @@ const makeColorsMesh = () => {
   const material = new THREE.MeshBasicMaterial({
     map: texture,
     side: THREE.DoubleSide,
-    transparent: true,
-    alphaTest: 0.7,
+    // transparent: true,
+    // alphaTest: 0.7,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.visible = false;
@@ -1608,9 +1657,10 @@ const makeColorsMesh = () => {
   mesh.highlightMesh = highlightMesh;
 
   let anchors = [];
+  const selectedColors = [colors[0], colors[0]];
   mesh.update = () => {
-    const htmlString = _makeColorsString();
-    uiRenderer.render(htmlString, uiSize, uiSize)
+    const htmlString = _makeColorsString(colors, selectedColors);
+    uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
         // imageData.data.set(result.data);
         // ctx.putImageData(imageData, 0, 0);
@@ -1623,13 +1673,51 @@ const makeColorsMesh = () => {
         // console.log(anchors);
       });
   };
-  /* mesh.getAnchors = () => anchors;
-  mesh.click = anchor => {
-    const match = anchor.id.match(/^tile-([0-9]+)-([0-9]+)$/);
-    const i = parseInt(match[1], 10);
-    const j = parseInt(match[2], 10);
-    onclick(tiles[i][j]);
-  }; */
+  mesh.intersect = localIntersections => {
+    highlightMesh.visible = false;
+
+    let currentAnchor = null;
+    const [{point, uv}] = localIntersections;
+    cubeMesh.position.copy(point);
+    cubeMesh.visible = true;
+
+    localVector2D.copy(uv);
+    // localVector2D.y = 1 - localVector2D.y;
+    localVector2D.x *= canvasWidth;
+    localVector2D.y *= canvasHeight;
+
+    for (let i = 0; i < anchors.length; i++) {
+      const anchor = anchors[i];
+      const {top, bottom, left, right, width, height} = anchor;
+      if (localVector2D.x >= left && localVector2D.x < right && localVector2D.y >= top && localVector2D.y < bottom) {
+        currentAnchor = anchor;
+
+        highlightMesh.position.x = -worldWidth/2 + (left + width/2) / canvasWidth * worldWidth;
+        highlightMesh.position.y = worldHeight/2 - (top + height/2) / canvasHeight * worldHeight;
+        highlightMesh.scale.x = width / canvasWidth * worldWidth;
+        highlightMesh.scale.y = height / canvasHeight * worldHeight;
+        highlightMesh.visible = true;
+        break;
+      }
+    }
+    return currentAnchor;
+  };
+  mesh.click = anchorSpec => {
+    const {anchor} = anchorSpec;
+    // console.log('click', anchor);
+    const match = anchor.id.match(/^color-([0-9]+)-([0-9]+)$/);
+    if (match) {
+      const index = parseInt(match[1], 10);
+      const color = parseInt(match[2], 10);
+      selectedColors[index] = color;
+      mesh.update();
+      oncolorchange(selectedColors);
+    }
+    /* if (anchor === 'scrollbar') {
+      console.log('got uv', uv.y);
+    } */
+    // currentMesh && currentMesh.click(currentAnchor);
+  };
   mesh.update();
 
   return mesh;
@@ -1803,7 +1891,7 @@ const intersectUi = (raycaster, meshes) => {
       });
     // } */
     const [{object, point, uv}] = intersects;
-    const anchor = intersects[0].object.intersect(intersects);
+    const anchor = object.intersect(intersects);
     intersects.length = 0;
     return {
       object,
