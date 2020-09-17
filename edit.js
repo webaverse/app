@@ -3900,10 +3900,6 @@ class MeshComposer {
     }
   }
   ungrab(index) {
-    /* for (let i = 0; i < 2; i++) {
-      this.placeMeshes[i] = null;
-      this.placeMeshStates[i] = null;
-    } */
     if (this.isPinching()) {
       const transforms = _getRigTransforms();
       const otherSideIndex = _otherSideIndex(index);
