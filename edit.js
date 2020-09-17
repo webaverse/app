@@ -3835,12 +3835,8 @@ class MeshComposer {
       targetMesh.visible = false;
       scene.add(targetMesh);
     }
-    
-    /* this.startMatrix = new THREE.Matrix4();
-    this.grabStartMatrices = [
-      new THREE.Matrix4(),
-      new THREE.Matrix4(),
-    ]; */
+
+    this.placeMeshStates = [null, null];
     this.scaleState = null;
   }
   getPlaceMesh(index) {
@@ -3850,6 +3846,13 @@ class MeshComposer {
     scene.add(mesh);
     this.meshes.push(mesh);
     this.placeMeshes[index] = mesh;
+    
+    const transforms = _getRigTransforms();
+    this.placeMeshStates[index] = {
+      startPosition: transforms[index].position.clone(),
+      startQuaternion: transforms[index].quaternion.clone(),
+      containerStartMatrix: new THREE.Matrix4().compose(transforms[index].position, transforms[index].quaternion, new THREE.Vector3(1, 1, 1)),
+    };
   }
   addMesh(mesh) {
     this.meshes.push(mesh);
@@ -3863,15 +3866,21 @@ class MeshComposer {
   }
   trigger(index) {
     this.placeMeshes[index] = null;
+    this.placeMeshStates[index] = null;
   }
   grab(index) {
     const mesh = this.hoveredMeshes[index];
     if (mesh) {
+      const transforms = _getRigTransforms();
+
       this.placeMeshes[index] = mesh;
-      this.hoveredMeshes[index] = null;
+      this.placeMeshStates[index] = {
+        startPosition: transforms[index].position.clone(),
+        startQuaternion: transforms[index].quaternion.clone(),
+        containerStartMatrix: mesh.matrix.clone(),
+      };
 
       if (this.isPinching()) {
-        const transforms = _getRigTransforms();
         this.scaleState = {
           container: mesh,
           startPosition: transforms[0].position.clone()
@@ -3891,9 +3900,21 @@ class MeshComposer {
     }
   }
   ungrab(index) {
-    for (let i = 0; i < 2; i++) {
+    /* for (let i = 0; i < 2; i++) {
       this.placeMeshes[i] = null;
+      this.placeMeshStates[i] = null;
+    } */
+    if (this.isPinching()) {
+      const transforms = _getRigTransforms();
+      const otherSideIndex = _otherSideIndex(index);
+      this.placeMeshStates[otherSideIndex] = {
+        startPosition: transforms[otherSideIndex].position.clone(),
+        startQuaternion: transforms[otherSideIndex].quaternion.clone(),
+        containerStartMatrix: this.placeMeshes[otherSideIndex].matrix.clone(),
+      };
     }
+    this.placeMeshes[index] = null;
+    this.placeMeshStates[index] = null;
     this.scaleState = null;
   }
   update() {
@@ -3942,20 +3963,25 @@ class MeshComposer {
 
       container.matrix
         .copy(scaleState.containerStartMatrix)
-        .premultiply(new THREE.Matrix4().makeTranslation(-scaleState.containerStartPosition.x, -scaleState.containerStartPosition.y, -scaleState.containerStartPosition.z))
-        .premultiply(new THREE.Matrix4().makeScale(scaleFactor, scaleFactor, scaleFactor))
-        .premultiply(new THREE.Matrix4().makeRotationFromQuaternion(currentQuaternion))
-        .premultiply(new THREE.Matrix4().makeTranslation(scaleState.containerStartPosition.x, scaleState.containerStartPosition.y, scaleState.containerStartPosition.z))
-        .premultiply(new THREE.Matrix4().makeTranslation(positionDiff.x, positionDiff.y, positionDiff.z))
+        .premultiply(localMatrix.makeTranslation(-scaleState.containerStartPosition.x, -scaleState.containerStartPosition.y, -scaleState.containerStartPosition.z))
+        .premultiply(localMatrix.makeScale(scaleFactor, scaleFactor, scaleFactor))
+        .premultiply(localMatrix.makeRotationFromQuaternion(currentQuaternion))
+        .premultiply(localMatrix.makeTranslation(scaleState.containerStartPosition.x, scaleState.containerStartPosition.y, scaleState.containerStartPosition.z))
+        .premultiply(localMatrix.makeTranslation(positionDiff.x, positionDiff.y, positionDiff.z))
         .decompose(container.position, container.quaternion, container.scale);
     } else { // move
       for (let i = 0; i < transforms.length; i++) {
-        const transform = transforms[i];
-        const {position, quaternion} = transform;
-
         if (this.placeMeshes[i]) {
-          this.placeMeshes[i].position.copy(position);
-          this.placeMeshes[i].quaternion.copy(quaternion);
+          const transform = transforms[i];
+          const {position, quaternion} = transform;
+          const {startPosition, startQuaternion, containerStartMatrix} = this.placeMeshStates[i];
+
+          this.placeMeshes[i].matrix.copy(containerStartMatrix)
+            .premultiply(localMatrix.makeTranslation(-startPosition.x, -startPosition.y, -startPosition.z))
+            .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion.copy(startQuaternion).inverse()))
+            .premultiply(localMatrix.makeRotationFromQuaternion(quaternion))
+            .premultiply(localMatrix.makeTranslation(position.x, position.y, position.z))
+            .decompose(this.placeMeshes[i].position, this.placeMeshes[i].quaternion, this.placeMeshes[i].scale);
         }
       }
     }
