@@ -5531,7 +5531,6 @@ function animate(timestamp, frame) {
 
           if (
             buttons[2] >= 0.5 && lastButtons[index][2] < 0.5 &&
-            buttons[3] >= 0.5 && lastButtons[index][3] < 0.5 &&
             !(Math.abs(axes[0]) > 0.5 || Math.abs(axes[1]) > 0.5 || Math.abs(axes[2]) > 0.5 || Math.abs(axes[3]) > 0.5) &&
             !jumpState
           ) {
