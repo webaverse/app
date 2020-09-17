@@ -3835,6 +3835,13 @@ class MeshComposer {
       targetMesh.visible = false;
       scene.add(targetMesh);
     }
+    
+    /* this.startMatrix = new THREE.Matrix4();
+    this.grabStartMatrices = [
+      new THREE.Matrix4(),
+      new THREE.Matrix4(),
+    ]; */
+    this.scaleState = null;
   }
   getPlaceMesh(index) {
     return this.placeMeshes[index];
@@ -3851,6 +3858,9 @@ class MeshComposer {
   isLatched(mesh) {
     return this.placeMeshes.includes(mesh); 
   }
+  isPinching() {
+    return this.placeMeshes[0] !== null && this.placeMeshes[0] === this.placeMeshes[1];
+  }
   trigger(index) {
     this.placeMeshes[index] = null;
   }
@@ -3859,15 +3869,32 @@ class MeshComposer {
     if (mesh) {
       this.placeMeshes[index] = mesh;
       this.hoveredMeshes[index] = null;
+
+      if (this.isPinching()) {
+        const transforms = _getRigTransforms();
+        this.scaleState = {
+          container: mesh,
+          startPosition: transforms[0].position.clone()
+            .add(transforms[1].position)
+            .divideScalar(2),
+          startDirection: transforms[0].position.clone()
+            .sub(transforms[1].position)
+            .normalize(),
+          startWorldWidth: transforms[0].position
+            .distanceTo(transforms[1].position),
+          containerStartPosition: mesh.position.clone(),
+          containerStartQuaternion: mesh.quaternion.clone(),
+          containerStartScale: mesh.scale.clone(),
+          containerStartMatrix: mesh.matrix.clone(),
+        };
+      }
     }
   }
   ungrab(index) {
-    const otherSideIndex = _otherSideIndex(index);
-    const otherSideGrab = this.placeMeshes[otherSideIndex] == this.placeMeshes[index];
-    this.placeMeshes[index] = null;
-    if (otherSideGrab) {
-      this.placeMeshes[otherSideIndex] = null;
+    for (let i = 0; i < 2; i++) {
+      this.placeMeshes[i] = null;
     }
+    this.scaleState = null;
   }
   update() {
     const transforms = _getRigTransforms();
@@ -3892,26 +3919,55 @@ class MeshComposer {
       }
       return closestMesh;
     });
-    if (this.placeMeshes[0] !== null && this.placeMeshes[0] === this.placeMeshes[1]) { // pinch
-      console.log('pinch', this.placeMeshes[0]);
+    if (this.isPinching()) { // pinch
+      const {scaleState} = this;
+      const {container} = scaleState;
+      const startPosition = scaleState.startPosition.clone()
+        // .applyMatrix4(new THREE.Matrix4().getInverse(scaleState.containerStartMatrix));
+      const currentPosition = transforms[0].position.clone()
+        .add(transforms[1].position)
+        .divideScalar(2)
+        // .applyMatrix4(new THREE.Matrix4().getInverse(scaleState.containerStartMatrix));
+      const currentDirection = transforms[0].position.clone()
+        .sub(transforms[1].position)
+        .normalize();
+      const currentWorldWidth = transforms[0].position
+        .distanceTo(transforms[1].position);
+      const currentEuler = new THREE.Euler().setFromQuaternion(new THREE.Quaternion().setFromUnitVectors(scaleState.startDirection, currentDirection), 'YXZ');
+      currentEuler.x = 0;
+      currentEuler.z = 0;
+      const currentQuaternion = new THREE.Quaternion().setFromEuler(currentEuler);
+      const scaleFactor = currentWorldWidth/scaleState.startWorldWidth;
+      const positionDiff = currentPosition.clone().sub(startPosition);
+
+      container.matrix
+        .copy(scaleState.containerStartMatrix)
+        .premultiply(new THREE.Matrix4().makeTranslation(-scaleState.containerStartPosition.x, -scaleState.containerStartPosition.y, -scaleState.containerStartPosition.z))
+        .premultiply(new THREE.Matrix4().makeScale(scaleFactor, scaleFactor, scaleFactor))
+        .premultiply(new THREE.Matrix4().makeRotationFromQuaternion(currentQuaternion))
+        .premultiply(new THREE.Matrix4().makeTranslation(scaleState.containerStartPosition.x, scaleState.containerStartPosition.y, scaleState.containerStartPosition.z))
+        .premultiply(new THREE.Matrix4().makeTranslation(positionDiff.x, positionDiff.y, positionDiff.z))
+        .decompose(container.position, container.quaternion, container.scale);
     } else { // move
       for (let i = 0; i < transforms.length; i++) {
         const transform = transforms[i];
         const {position, quaternion} = transform;
 
-        this.targetMeshes[i].visible = false;
-
         if (this.placeMeshes[i]) {
           this.placeMeshes[i].position.copy(position);
           this.placeMeshes[i].quaternion.copy(quaternion);
         }
-        if (this.hoveredMeshes[i] && !this.isLatched(this.hoveredMeshes[i])) {
-          this.targetMeshes[i].position.copy(this.hoveredMeshes[i].position)
-            .add(this.hoveredMeshes[i].geometry.boundingBox.getCenter(new THREE.Vector3()).applyQuaternion(this.hoveredMeshes[i].quaternion));
-          this.targetMeshes[i].quaternion.copy(this.hoveredMeshes[i].quaternion);
-          this.hoveredMeshes[i].geometry.boundingBox.getSize(this.targetMeshes[i].scale);
-          this.targetMeshes[i].visible = true;
-        }
+      }
+    }
+    for (let i = 0; i < transforms.length; i++) {
+      this.targetMeshes[i].visible = false;
+
+      if (this.hoveredMeshes[i]) {
+        this.targetMeshes[i].position.copy(this.hoveredMeshes[i].position)
+          .add(this.hoveredMeshes[i].geometry.boundingBox.getCenter(new THREE.Vector3()).applyQuaternion(this.hoveredMeshes[i].quaternion));
+        this.targetMeshes[i].quaternion.copy(this.hoveredMeshes[i].quaternion);
+        this.hoveredMeshes[i].geometry.boundingBox.getSize(this.targetMeshes[i].scale);
+        this.targetMeshes[i].visible = true;
       }
     }
   }
@@ -5554,18 +5610,22 @@ function animate(timestamp, frame) {
     if (currentSelector) {
       const rightInputSource = inputSources.find(inputSource => inputSource.handedness === 'right');
       const pose = rightInputSource && frame.getPose(rightInputSource.targetRaySpace, renderer.xr.getReferenceSpace());
-      localMatrix2.fromArray(pose.transform.matrix)
-        .premultiply(dolly.matrix)
-        .decompose(localVector, localQuaternion, localVector2);
-      if (!lastSelector) {
-        toolsMesh.position.copy(localVector);
-        localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        toolsMesh.quaternion.setFromEuler(localEuler);
+      if (pose) {
+        localMatrix2.fromArray(pose.transform.matrix)
+          .premultiply(dolly.matrix)
+          .decompose(localVector, localQuaternion, localVector2);
+        if (!lastSelector) {
+          toolsMesh.position.copy(localVector);
+          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          toolsMesh.quaternion.setFromEuler(localEuler);
+        }
+        toolsMesh.update(localVector);
+        toolsMesh.visible = true;
+      } else {
+        toolsMesh.visible = false;
       }
-      toolsMesh.update(localVector);
-      toolsMesh.visible = true;
     } else {
       toolsMesh.visible = false;
     }
