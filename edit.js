@@ -5078,7 +5078,9 @@ const _makeInventoryShapesMesh = () => {
     tetrahedronMesh,
     torusMesh,
   ];
+  const scaleMatrix = new THREE.Matrix4().makeScale(0.1, 0.1, 0.1);
   for (const geometry of geometries) {
+    geometry.applyMatrix4(scaleMatrix);
     geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
     /* const height = boundingBox.getSize(new THREE.Vector3()).y;
     boundingBox.min.y += height/2;
@@ -5094,8 +5096,8 @@ const _makeInventoryShapesMesh = () => {
     const dx = i%3;
     const dy = (i-dx)/3;
     const g = geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeScale(w/4, w/4, w/4))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/2));
+      .applyMatrix4(new THREE.Matrix4().makeScale(w*2, w*2, w*2))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4));
     if (!g.index) {
       const indices = new Uint16Array(g.attributes.position.array.length/3);
       for (let i = 0; i < indices.length; i++) {
