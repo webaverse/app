@@ -7123,22 +7123,22 @@ let menuExpanded = false;
 let lastMenuExpanded = false;
 window.addEventListener('keydown', e => {
   switch (e.which) {
-    case 48: // 0
-    case 49:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57: // 9
-    {
-      let {which} = e;
-      if (which === 48) {
-        which += 10;
+    case 49: { // 1
+      let index = weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
+      index--;
+      if (index < 0) {
+        index = weapons.length - 1;
       }
-      weapons[which - 49].click();
+      weapons[index].click();
+      break;
+    }
+    case 50: { // 2
+      let index = weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
+      index++;
+      if (index >= weapons.length) {
+        index = 0;
+      }
+      weapons[index].click();
       break;
     }
     case 87: { // W
