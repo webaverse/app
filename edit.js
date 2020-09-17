@@ -7101,7 +7101,7 @@ window.addEventListener('keydown', e => {
     case 70: { // F
       // pe.grabdown('right');
       if (document.pointerLockElement) {
-        currentWeaponGrabs[0] = true;
+        currentWeaponGrabs[1] = true;
       }
       break;
     }
@@ -7219,7 +7219,7 @@ window.addEventListener('keyup', e => {
     case 70: { // F
       // pe.grabup('right');
       if (document.pointerLockElement) {
-        currentWeaponGrabs[0] = false;
+        currentWeaponGrabs[1] = false;
       }
       break;
     }
