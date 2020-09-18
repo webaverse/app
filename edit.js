@@ -4132,7 +4132,6 @@ class MeshComposer {
     }
   }
   commit() {
-    // const geometry = BufferGeometryUtils.mergeBufferGeometries(this.meshes.map(mesh => mesh.geometry));
     const {meshes} = this;
     const geometries = [];
     const textures = [];
