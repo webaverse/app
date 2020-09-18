@@ -1,34 +1,7 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.module.js';
-import {
-  makePromise,
-} from './constants.js';
+import {makePromise, WaitQueue} from './util.js';
 import Avatar from './avatars/avatars.js';
-
-class WaitQueue {
-  constructor() {
-    this.locked = false;
-    this.waiterCbs = [];
-  }
-
-  async lock() {
-    if (!this.locked) {
-      this.locked = true;
-    } else {
-      const p = makePromise();
-      this.waiterCbs.push(p.accept);
-      await p;
-    }
-  }
-
-  async unlock() {
-    if (this.waiterCbs.length > 0) {
-      this.waiterCbs.pop()();
-    } else {
-      this.locked = false;
-    }
-  }
-}
 
 class RigManager {
   constructor(scene) {
@@ -59,31 +32,36 @@ class RigManager {
     }
   }
 
-  async setLocalAvatarUrl(url) {
+  async addLocalRig(model) {
     await this.localRigQueue.lock();
+    this.scene.remove(this.localRig.model);
+    this.localRig = new Avatar(model, {
+      fingers: true,
+      hair: true,
+      visemes: true,
+      debug: model ? false : true,
+    });
+    this.scene.add(this.localRig.model);
+    await this.localRigQueue.unlock();
+  }
+
+  async setLocalAvatarUrl(url) {
     let o = null;
     try {
       o = await new Promise((accept, reject) => {
         new GLTFLoader().load(url, accept, xhr => {}, reject);
       });
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
-    o.scene.traverse(o => {
-      if (o.isMesh) {
-        o.frustumCulled = false;
-      }
-    });
-    this.scene.remove(this.localRig.model);
-    this.localRig = new Avatar(o, {
-      fingers: true,
-      hair: true,
-      visemes: true,
-      // decapitate: selectedTool === 'firstperson',
-    });
-    this.scene.add(this.localRig.model);
-
-    await this.localRigQueue.unlock();
+    if (o) {
+      o.scene.traverse(o => {
+        if (o.isMesh) {
+          o.frustumCulled = false;
+        }
+      });
+    }
+    this.addLocalRig(o);
   }
 
   async addPeerRig(peerId) {

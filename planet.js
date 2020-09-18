@@ -8,9 +8,10 @@ import {
   PLANET_OBJECT_SLOTS,
   PLANET_OBJECT_SIZE,
 } from './constants.js';
-import { XRChannelConnection } from 'https://2.metartc.com/xrrtc.js';
-import { loginManager } from './login.js';
-import { storageHost } from './constants.js';
+import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
+import {loginManager} from './login.js';
+import {storageHost} from './constants.js';
+import {makePromise} from './util.js';
 // import * as THREE from './three.module.js';
 // import { makeTextMesh } from './vr-ui.js';
 
