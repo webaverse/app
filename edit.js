@@ -3274,15 +3274,6 @@ const geometryWorker = (() => {
     mesh.updateTexture = data => {
       thingTexture.image.data = data;
       thingTexture.needsUpdate = true;
-
-      /* const canvas = document.createElement('canvas'); // XXX
-      canvas.width = thingTextureSize;
-      canvas.height = thingTextureSize;
-      const ctx = canvas.getContext('2d');
-      const imageData = ctx.createImageData(thingTextureSize, thingTextureSize);
-      imageData.data.set(thingTexture.image);
-      ctx.putImageData(imageData, 0, 0);
-      document.body.appendChild(canvas); */
     };
     return mesh;
   };
