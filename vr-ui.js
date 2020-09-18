@@ -1495,7 +1495,7 @@ const makeToolsMesh = (tools, selectTool) => {
 
   return mesh;
 };
-const makeDetailsMesh = cubeMesh => {
+const makeDetailsMesh = (cubeMesh, onrun, onadd, onremove, onclose) => {
   const worldWidth = 1;
   const worldHeight = 0.5;
   const canvasWidth = uiSize;
@@ -1583,12 +1583,27 @@ const makeDetailsMesh = cubeMesh => {
     return currentAnchor;
   };
   mesh.click = anchorSpec => {
-    // console.log('click', anchor);
     const {anchor} = anchorSpec;
-    /* if (anchor === 'scrollbar') {
-      console.log('got uv', uv.y);
-    } */
-    // currentMesh && currentMesh.click(currentAnchor);
+    if (anchor) {
+      switch (anchor.id) {
+        case 'run-button': {
+          onrun(anchorSpec);
+          break;
+        }
+        case 'add-button': {
+          onadd(anchorSpec);
+          break;
+        }
+        case 'remove-button': {
+          onremove(anchorSpec);
+          break;
+        }
+        case 'close-button': {
+          onclose();
+          break;
+        }
+      }
+    }
   };
   mesh.update();
 
