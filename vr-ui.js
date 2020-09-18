@@ -1640,7 +1640,7 @@ const makeColorsMesh = (cubeMesh, colors, oncolorchange) => {
   mesh.highlightMesh = highlightMesh;
 
   let anchors = [];
-  const selectedColors = [colors[0], colors[0]];
+  const selectedColors = [0, 1];
   mesh.update = () => {
     const htmlString = _makeColorsString(colors, selectedColors);
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)

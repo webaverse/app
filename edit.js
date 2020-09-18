@@ -5108,6 +5108,18 @@ const _makeInventoryShapesMesh = () => {
     return g;
   }));
   const material = new THREE.ShaderMaterial({
+    uniforms: {
+      color1: {
+        type: 'c',
+        value: new THREE.Color(0xff7043),
+        needsUpdate: true,
+      },
+      color2: {
+        type: 'c',
+        value: new THREE.Color(0xef5350),
+        needsUpdate: true,
+      },
+    },
     vertexShader: `\
       varying vec2 vUv;
 
@@ -5117,16 +5129,25 @@ const _makeInventoryShapesMesh = () => {
       }
     `,
     fragmentShader: `\
+      uniform vec3 color1;
+      uniform vec3 color2;
+
       varying vec2 vUv;
 
       void main() {
-        vec3 c = mix(vec3(${new THREE.Color(0xff7043).toArray().join(', ')}), vec3(${new THREE.Color(0xef5350).toArray().join(', ')}), vUv.y);
+        vec3 c = mix(color1, color2, vUv.y);
         gl_FragColor = vec4(c, 1.);
       }
     `,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.geometries = geometries;
+  mesh.setColors = selectedColors => {
+    material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
+    material.uniforms.color1.needsUpdate = true;
+    material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
+    material.uniforms.color2.needsUpdate = true;
+  };
   return mesh;
 };
 
@@ -5155,6 +5176,7 @@ const colors = [
 let selectedColors;
 const colorsMesh = makeColorsMesh(cubeMesh, colors, newSelectedColors => {
   selectedColors = newSelectedColors;
+  shapesMesh.inventoryShapesMesh.setColors(selectedColors);
 });
 colorsMesh.visible = false;
 scene.add(colorsMesh);
