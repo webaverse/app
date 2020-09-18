@@ -3572,7 +3572,7 @@ const MeshDrawer = (() => {
       const uvs = this.mesh.geometry.attributes.uv.array.slice(0, this.mesh.geometry.drawRange.count*2);
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
       geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
-      const material = _makeDrawMaterial(0xff7043, 0xef5350, this.mesh.material.uniforms.numPoints.value);
+      const material = _makeDrawMaterial(this.mesh.material.uniforms.color1.value.getHex(), this.mesh.material.uniforms.color2.value.getHex(), this.mesh.material.uniforms.numPoints.value);
       const mesh = new THREE.Mesh(geometry, material);
       mesh.matrix.copy(this.mesh.matrixWorld)
         .decompose(mesh.position, mesh.quaternion, mesh.scale);
