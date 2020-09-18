@@ -28,6 +28,8 @@ import {
 
   chunkDistance,
   BUILD_SNAP,
+
+  colors,
 } from './constants.js';
 import {makePromise, getNextMeshId, WaitQueue} from './util.js';
 import storage from './storage.js';
@@ -64,6 +66,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localFrustum = new THREE.Frustum();
+const localColor = new THREE.Color();
 const localObject = new THREE.Object3D();
 
 (async () => {
@@ -775,6 +778,62 @@ const VEGETATION_SHADER = {
       float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
       gl_FragColor.rgb *= max(max(worldFactor, cameraFactor), 0.1);
       gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.2 + sunIntensity*0.8), gl_FragCoord.z/gl_FragCoord.w/100.0);
+    }
+  `,
+};
+const THING_SHADER = {
+  uniforms: {
+    map: {
+      type: 't',
+      value: null,
+      needsUpdate: true,
+    },
+    /* uHitId: {
+      type: 'f',
+      value: -1,
+      needsUpdate: true,
+    },
+    uHitPosition: {
+      type: 'v3',
+      value: new THREE.Vector3(),
+      needsUpdate: true,
+    },
+    uSelectId: {
+      type: 'f',
+      value: -1,
+      needsUpdate: true,
+    },
+    sunIntensity: {
+      type: 'f',
+      value: 1,
+      needsUpdate: true,
+    }, */
+  },
+  vertexShader: `\
+    attribute vec3 color;
+    varying vec2 vUv;
+    varying vec3 vColor;
+
+    void main() {
+      vUv = uv;
+      vColor = color;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `\
+    uniform sampler2D map;
+
+    varying vec2 vUv;
+    varying vec3 vColor;
+
+    void main() {
+      vec4 c = vec4(vColor, 0.);
+      if (vUv.x >= 0.) {
+        c += texture2D(map, vUv);
+      } else {
+        c.a += 1.;
+      }
+      gl_FragColor = c;
     }
   `,
 };
@@ -3690,6 +3749,13 @@ const MeshDrawer = (() => {
       this.lastValue = v;
     }
 
+    setColors(selectedColors) {
+      material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
+      material.uniforms.color1.needsUpdate = true;
+      material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
+      material.uniforms.color2.needsUpdate = true;
+    }
+
     /* drawPolygonize(ps, holes, holeCounts, points, z, zs) {
       const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry} = geometryWorker.earcut(tracker, ps.byteOffset, ps.length / 2, holes.byteOffset, holeCounts.byteOffset, holeCounts.length, points.byteOffset, points.length, z, zs.byteOffset);
 
@@ -3874,6 +3940,13 @@ const _getRigTransforms = () => ([
 const _otherSideIndex = i => i === 1 ? 0 : 1;
 class MeshComposer {
   constructor() {
+    this.material = new THREE.ShaderMaterial({
+      uniforms: THREE.UniformsUtils.clone(THING_SHADER.uniforms),
+      vertexShader: THING_SHADER.vertexShader,
+      fragmentShader: THING_SHADER.fragmentShader,
+      /* side: THREE.DoubleSide,
+      transparent: true, */
+    });
     this.meshes = [];
     this.placeMeshes = [null, null];
     this.hoveredMeshes = [null, null];
@@ -5105,6 +5178,9 @@ const _makeInventoryContentsMesh = () => {
   return mesh;
 };
 const _makeInventoryShapesMesh = () => {
+  const color1 = new THREE.Color().setStyle('#' + colors[0]);
+  const color2 = new THREE.Color().setStyle('#' + colors[1]);
+
   const boxMesh = new THREE.BoxBufferGeometry()
   const coneMesh = new THREE.ConeBufferGeometry();
   const cylinderMesh = new THREE.CylinderBufferGeometry();
@@ -5129,9 +5205,16 @@ const _makeInventoryShapesMesh = () => {
   for (const geometry of geometries) {
     geometry.applyMatrix4(scaleMatrix);
     geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
-    /* const height = boundingBox.getSize(new THREE.Vector3()).y;
-    boundingBox.min.y += height/2;
-    boundingBox.max.y += height/2; */
+
+    const colors = new Float32Array(geometry.attributes.position.array.length);
+    for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+      const y = geometry.attributes.uv.array[i+1];
+      localColor.copy(color1).lerp(color2, y)
+        .toArray(colors, i/2*3);
+      geometry.attributes.uv.array[i] = -1;
+      geometry.attributes.uv.array[i+1] = -1;
+    }
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   }
 
   const h = 0.1;
@@ -5154,76 +5237,20 @@ const _makeInventoryShapesMesh = () => {
     }
     return g;
   }));
-  const material = new THREE.ShaderMaterial({
-    uniforms: {
-      color1: {
-        type: 'c',
-        value: new THREE.Color(0xff7043),
-        needsUpdate: true,
-      },
-      color2: {
-        type: 'c',
-        value: new THREE.Color(0xef5350),
-        needsUpdate: true,
-      },
-    },
-    vertexShader: `\
-      varying vec2 vUv;
-
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `\
-      uniform vec3 color1;
-      uniform vec3 color2;
-
-      varying vec2 vUv;
-
-      void main() {
-        vec3 c = mix(color1, color2, vUv.y);
-        gl_FragColor = vec4(c, 1.);
-      }
-    `,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
+  const mesh = new THREE.Mesh(geometry, meshComposer.material);
   mesh.geometries = geometries;
   mesh.setColors = selectedColors => {
-    material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
-    material.uniforms.color1.needsUpdate = true;
-    material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
-    material.uniforms.color2.needsUpdate = true;
+    color1.value.setStyle('#' + colors[selectedColors[0]]);
+    color2.value.setStyle('#' + colors[selectedColors[1]]);
   };
   return mesh;
 };
 
-const colors = [
-  'ef5350',
-  'ec407a',
-  'ab47bc',
-  '7e57c2',
-  '5c6bc0',
-  '42a5f5',
-  '29b6f6',
-  '26c6da',
-  '26a69a',
-  '66bb6a',
-  '9ccc65',
-  'd4e157',
-  'ffee58',
-  'ffca28',
-  'ffa726',
-  'ff7043',
-  '8d6e63',
-  'bdbdbd',
-  '78909c',
-  '333333',
-];
 let selectedColors;
 const colorsMesh = makeColorsMesh(cubeMesh, colors, newSelectedColors => {
   selectedColors = newSelectedColors;
   shapesMesh.inventoryShapesMesh.setColors(selectedColors);
+  meshDrawer.setColors(selectedColors);
 });
 colorsMesh.visible = false;
 scene.add(colorsMesh);
