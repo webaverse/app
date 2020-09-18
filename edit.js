@@ -2687,7 +2687,7 @@ const geometryWorker = (() => {
       bitang,
     };
   };
-  w.earcut = (tracker, ps, holes, holeCounts, points, z, zs, objectId, position, quaternion) => {
+  /* w.earcut = (tracker, ps, holes, holeCounts, points, z, zs, objectId, position, quaternion) => {
     const inPs = w.alloc(Float32Array, ps.length);
     inPs.set(ps);
     const inHoles = w.alloc(Float32Array, holes.length);
@@ -2736,7 +2736,7 @@ const geometryWorker = (() => {
         moduleInstance._deleteEarcutResult(tracker, resultOffset);
       },
     };
-  };
+  }; */
   w.update = () => {
     if (moduleInstance) {
       if (currentChunkMesh) {
@@ -3328,7 +3328,7 @@ const MeshDrawer = (() => {
     return canvas;
   };
 
-  const _makeDrawThingMesh = () => {
+  /* const _makeDrawThingMesh = () => {
     const geometry = new THREE.BufferGeometry();
     // geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     // geometry.setAttribute('uv3', new THREE.BufferAttribute(uvs, 3));
@@ -3486,7 +3486,46 @@ const MeshDrawer = (() => {
       const zs = new Float32Array(points.length / 2);
       return new ThingSource(points, undefined, undefined, undefined, undefined, zs, planeNormal, planeConstant, center, tang, bitang);
     }
-  }
+  } */
+  const _makeDrawMaterial = (color1, color2, numPoints) => new THREE.ShaderMaterial({
+    uniforms: {
+      color1: {
+        type: 'c',
+        value: new THREE.Color(color1),
+        needsUpdate: true,
+      },
+      color2: {
+        type: 'c',
+        value: new THREE.Color(color2),
+        needsUpdate: true,
+      },
+      numPoints: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
+      },
+    },
+    vertexShader: `\
+      varying vec2 vUv;
+
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `\
+      uniform vec3 color1;
+      uniform vec3 color2;
+      uniform float numPoints;
+
+      varying vec2 vUv;
+
+      void main() {
+        vec3 c = mix(color1, color2, vUv.y/numPoints);
+        gl_FragColor = vec4(c, 1.);
+      }
+    `,
+  });
   return class MeshDrawer {
     constructor() {
       const points = new Float32Array(512 * 1024);
@@ -3494,11 +3533,18 @@ const MeshDrawer = (() => {
       this.numPoints = 0;
 
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(512 * 1024), 3));
-      this.geometry = geometry;
-      const material = new THREE.MeshBasicMaterial({
-        color: 0x000000,
-      });
+      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * 128 * 1024), 3));
+      const uvs = new Float32Array(2 * 128 * 1024);
+      for (let i = 0; i < uvs.length; i += 2*4) {
+        const index = i/(2*4);
+        uvs[i+1] = index;
+        uvs[i+3] = index;
+        uvs[i+5] = index;
+        uvs[i+7] = index;
+      }
+      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      // this.geometry = geometry;
+      const material = _makeDrawMaterial(0xff7043, 0xef5350, 0);
       const mesh = new THREE.Mesh(geometry, material);
       mesh.visible = false;
       mesh.frustumCulled = false;
@@ -3507,28 +3553,43 @@ const MeshDrawer = (() => {
       this.lastPosition = new THREE.Vector3();
       this.numPositions = 0;
 
-      this.thingSources = [];
-      this.thingMeshes = [];
+      // this.thingSources = [];
+      // this.thingMeshes = [];
     }
 
     start(p) {
       this.lastPosition.copy(p);
       this.numPoints = 0;
       this.numPositions = 0;
-      this.geometry.setDrawRange(0, 0);
+      this.mesh.geometry.setDrawRange(0, 0);
       this.mesh.visible = false;
     }
 
     end(p) {
-      const thingSource = ThingSource.fromPoints(this.points.subarray(0, this.numPoints));
-      thingSource.updateGeometryData();
-      this.thingSources.push(thingSource);
+      const geometry = new THREE.BufferGeometry();
+      const positions = this.mesh.geometry.attributes.position.array.slice(0, this.mesh.geometry.drawRange.count*3);
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const uvs = this.mesh.geometry.attributes.uv.array.slice(0, this.mesh.geometry.drawRange.count*2);
+      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
+      const material = _makeDrawMaterial(0xff7043, 0xef5350, this.mesh.material.uniforms.numPoints.value);
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.matrix.copy(this.mesh.matrixWorld)
+        .decompose(mesh.position, mesh.quaternion, mesh.scale);
+      mesh.frustumCulled = false;
+      meshComposer.addMesh(mesh);
 
-      const thingMesh = _makeDrawThingMesh();
+      this.mesh.visible = false;
+
+      // const thingSource = ThingSource.fromPoints(this.points.subarray(0, this.numPoints));
+      // thingSource.updateGeometryData();
+      // this.thingSources.push(thingSource);
+
+      /* const thingMesh = _makeDrawThingMesh();
       thingMesh.setGeometryData(thingSource);
       thingMesh.setTexture(thingSource);
       chunkMeshContainer.add(thingMesh);
-      this.thingMeshes.push(thingMesh);
+      this.thingMeshes.push(thingMesh); */
     }
 
     update(p) {
@@ -3550,21 +3611,23 @@ const MeshDrawer = (() => {
       for (let i = 0; i < meshCubeGeometry.attributes.position.array.length; i += 3) {
         localVector.fromArray(meshCubeGeometry.attributes.position.array, i)
           .applyMatrix4(matrix)
-          .toArray(this.geometry.attributes.position.array, this.numPositions);
+          .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
         this.numPositions += 3;
       }
 
-      this.geometry.attributes.position.updateRange.offset = oldNumPositions;
-      this.geometry.attributes.position.updateRange.count = this.numPositions;
-      this.geometry.attributes.position.needsUpdate = true;
-      renderer.geometries.update(this.geometry);
-      this.geometry.setDrawRange(0, this.numPositions / 3);
+      this.mesh.geometry.attributes.position.updateRange.offset = oldNumPositions;
+      this.mesh.geometry.attributes.position.updateRange.count = this.numPositions;
+      this.mesh.geometry.attributes.position.needsUpdate = true;
+      renderer.geometries.update(this.mesh.geometry);
+      this.mesh.geometry.setDrawRange(0, this.numPositions / 3);
+      this.mesh.material.uniforms.numPoints.value = this.numPositions / 3;
+      this.mesh.material.uniforms.numPoints.needsUpdate = true;
       this.mesh.visible = true;
 
       this.lastPosition.copy(p);
     }
 
-    drawPolygonize(ps, holes, holeCounts, points, z, zs) {
+    /* drawPolygonize(ps, holes, holeCounts, points, z, zs) {
       const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry} = geometryWorker.earcut(tracker, ps.byteOffset, ps.length / 2, holes.byteOffset, holeCounts.byteOffset, holeCounts.length, points.byteOffset, points.length, z, zs.byteOffset);
 
       let geometry = new THREE.BufferGeometry();
@@ -3652,7 +3715,7 @@ const MeshDrawer = (() => {
       }
 
       return result;
-    }
+    } */
   };
 })();
 const _makeTargetMesh = (() => {
@@ -6387,10 +6450,10 @@ function animate(timestamp, frame) {
       currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
       currentThingMesh.material[0].uniforms.uSelectId.value = -1;
       currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-      for (const drawThingMesh of meshDrawer.thingMeshes) {
+      /* for (const drawThingMesh of meshDrawer.thingMeshes) {
         drawThingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
         drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
-      }
+      } */
       switch (selectedWeapon) {
         case 'select': {
           if (raycastChunkSpec) {
@@ -6409,12 +6472,12 @@ function animate(timestamp, frame) {
               currentThingMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
               currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
 
-              const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
+              /* const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
               if (index !== -1) {
                 const drawThingMesh = meshDrawer.thingMeshes[index];
                 drawThingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
                 drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
-              }
+              } */
             }
           }
           break;
