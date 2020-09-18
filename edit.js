@@ -3603,6 +3603,10 @@ const MeshDrawer = (() => {
         uvs[i+7] = index;
       }
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      geometry.boundingBox = new THREE.Box3(
+        new THREE.Vector3(Infinity, Infinity, Infinity),
+        new THREE.Vector3(-Infinity, -Infinity, -Infinity),
+      );
 
       const material = _makeDrawMaterial(localColor.setStyle('#' + colors[0]).getHex(), localColor.setStyle('#' + colors[1]).getHex(), 0);
       const mesh = new THREE.Mesh(geometry, material);
@@ -3627,6 +3631,8 @@ const MeshDrawer = (() => {
       this.numPositions = 0;
       this.numIndices = 0;
       this.mesh.geometry.setDrawRange(0, 0);
+      this.mesh.geometry.boundingBox.min.set(Infinity, Infinity, Infinity);
+      this.mesh.geometry.boundingBox.max.set(-Infinity, -Infinity, -Infinity);
       this.mesh.visible = false;
     }
 
@@ -3647,7 +3653,7 @@ const MeshDrawer = (() => {
       geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
       const indices = this.mesh.geometry.index.array.slice(0, this.numIndices);
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-      geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
+      geometry.boundingBox = this.mesh.geometry.boundingBox.clone();
       // const material = _makeDrawMaterial(this.mesh.material.uniforms.color1.value.getHex(), this.mesh.material.uniforms.color2.value.getHex(), this.mesh.material.uniforms.numPoints.value);
       const mesh = new THREE.Mesh(geometry, meshComposer.material);
       mesh.matrix.copy(this.mesh.matrixWorld)
@@ -3693,12 +3699,14 @@ const MeshDrawer = (() => {
           .add(startPoint)
           // .applyMatrix4(matrix)
           .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+        this.mesh.geometry.boundingBox.expandByPoint(localVector);
         this.numPositions += 3;
         localVector.set(startValue, 0, 0)
           .applyQuaternion(startQuaternion)
           .add(startPoint)
           // .applyMatrix4(matrix)
           .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+        this.mesh.geometry.boundingBox.expandByPoint(localVector);
         this.numPositions += 3;
       }
       localVector.set(-endValue, 0, 0)
@@ -3706,12 +3714,14 @@ const MeshDrawer = (() => {
         .add(endPoint)
         // .applyMatrix4(matrix)
         .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+      this.mesh.geometry.boundingBox.expandByPoint(localVector);
       this.numPositions += 3;
       localVector.set(endValue, 0, 0)
         .applyQuaternion(endQuaternion)
         .add(endPoint)
         // .applyMatrix4(matrix)
         .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+      this.mesh.geometry.boundingBox.expandByPoint(localVector);
       this.numPositions += 3;
 
       const oldNumIndices = this.numIndices;
