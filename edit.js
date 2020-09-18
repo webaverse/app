@@ -3603,7 +3603,8 @@ const MeshDrawer = (() => {
         uvs[i+7] = index;
       }
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-      const material = _makeDrawMaterial(0xff7043, 0xef5350, 0);
+
+      const material = _makeDrawMaterial(localColor.setStyle('#' + colors[0]).getHex(), localColor.setStyle('#' + colors[1]).getHex(), 0);
       const mesh = new THREE.Mesh(geometry, material);
       mesh.visible = false;
       mesh.frustumCulled = false;
@@ -3622,7 +3623,7 @@ const MeshDrawer = (() => {
     start(p, q, v) {
       this.lastPosition.copy(p);
       this.lastQuaternion.copy(q);
-      this.numPoints = 0;
+      // this.numPoints = 0;
       this.numPositions = 0;
       this.numIndices = 0;
       this.mesh.geometry.setDrawRange(0, 0);
@@ -3635,11 +3636,20 @@ const MeshDrawer = (() => {
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       const uvs = this.mesh.geometry.attributes.uv.array.slice(0, this.numPositions/3*2);
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      const colors = new Float32Array(geometry.attributes.position.array.length);
+      for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+        const y = geometry.attributes.uv.array[i+1]/this.mesh.material.uniforms.numPoints.value;
+        localColor.copy(this.mesh.material.uniforms.color1.value).lerp(this.mesh.material.uniforms.color2.value, y)
+          .toArray(colors, i/2*3);
+        geometry.attributes.uv.array[i] = -1;
+        geometry.attributes.uv.array[i+1] = -1;
+      }
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
       const indices = this.mesh.geometry.index.array.slice(0, this.numIndices);
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
-      const material = _makeDrawMaterial(this.mesh.material.uniforms.color1.value.getHex(), this.mesh.material.uniforms.color2.value.getHex(), this.mesh.material.uniforms.numPoints.value);
-      const mesh = new THREE.Mesh(geometry, material);
+      // const material = _makeDrawMaterial(this.mesh.material.uniforms.color1.value.getHex(), this.mesh.material.uniforms.color2.value.getHex(), this.mesh.material.uniforms.numPoints.value);
+      const mesh = new THREE.Mesh(geometry, meshComposer.material);
       mesh.matrix.copy(this.mesh.matrixWorld)
         .decompose(mesh.position, mesh.quaternion, mesh.scale);
       mesh.frustumCulled = false;
