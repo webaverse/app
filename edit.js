@@ -3637,9 +3637,6 @@ const MeshDrawer = (() => {
         .add(endPoint)
         // .applyMatrix4(matrix)
         .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
-      if (isNaN(localVector.x)) {
-        debugger;
-      }
       this.numPositions += 3;
       localVector.set(endValue, 0, 0)
         .applyQuaternion(endQuaternion)
