@@ -3622,8 +3622,6 @@ const MeshDrawer = (() => {
     drawPolygonize(ps, holes, holeCounts, points, z, zs) {
       const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry} = geometryWorker.earcut(tracker, ps.byteOffset, ps.length / 2, holes.byteOffset, holeCounts.byteOffset, holeCounts.length, points.byteOffset, points.length, z, zs.byteOffset);
 
-      // console.log('got earcut', positions, uvs, indices);
-
       let geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute('uv3', new THREE.BufferAttribute(uvs, 3));
