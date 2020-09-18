@@ -827,11 +827,9 @@ const THING_SHADER = {
     varying vec3 vColor;
 
     void main() {
-      vec4 c = vec4(vColor, 0.);
+      vec4 c = vec4(vColor, 1.);
       if (vUv.x >= 0.) {
-        c += texture2D(map, vUv);
-      } else {
-        c.a += 1.;
+        c *= texture2D(map, vUv);
       }
       gl_FragColor = c;
     }
