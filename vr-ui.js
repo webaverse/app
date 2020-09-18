@@ -788,6 +788,7 @@ p {
   <div class=buttons>
     <a class=button id=run-button>Run</a>
     <a class=button id=add-button>Add to inventory</a>
+    <a class=button id=remove-button>Remove</a>
   </div>
   <div class=header>
     <a class=close-button id=close-button>X</a>
