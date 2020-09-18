@@ -6957,30 +6957,32 @@ const _uploadGltf = async file => {
       }
       colorIndex += geometry.attributes.position.array.length;
     }
+    if (textures.length > 0) {
+      colors.fill(1);
+    }
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
   }
+  geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
 
   const texture = new THREE.Texture(atlasCanvas);
   texture.flipY = false;
   texture.needsUpdate = true;
-  const material = new THREE.MeshBasicMaterial({
-    map: texture,
-  });
-  // document.body.appendChild(atlasCanvas);
-  const meshMatrix = localMatrix
-    .compose(localVector.copy(camera.position).add(localVector3.set(0, 0, -1).applyQuaternion(camera.quaternion)), camera.quaternion, localVector2.set(1, 1, 1))
-    .premultiply(localMatrix2.getInverse(chunkMeshContainer.matrixWorld))
-    .decompose(localVector, localQuaternion, localVector2);
-  /* const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.copy(camera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion));
-  mesh.quaternion.copy(camera.quaternion);
-  mesh.frustumCulled = false;
-  scene.add(mesh); */
+  const material = meshComposer.material.clone();
+  material.uniforms.map.value = texture;
+  material.uniforms.map.needsUpdate = true;
 
-  {
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.matrix
+    .compose(localVector.copy(camera.position).add(localVector3.set(0, 0, -1).applyQuaternion(camera.quaternion)), camera.quaternion, localVector2.set(1, 1, 1))
+    // .premultiply(localMatrix2.getInverse(chunkMeshContainer.matrixWorld))
+    .decompose(mesh.position, mesh.quaternion, mesh.scale);
+  mesh.frustumCulled = false;
+  meshComposer.addMesh(mesh);
+
+  /* {
     const positions = geometryWorker.alloc(Float32Array, geometry.attributes.position.array.length);
     positions.set(geometry.attributes.position.array);
     const uvs = geometryWorker.alloc(Float32Array, geometry.attributes.uv.array.length);
@@ -7003,9 +7005,7 @@ const _uploadGltf = async file => {
         const u = URL.createObjectURL(b);
         thingFiles[objectId] = u;
       }, console.warn);
-
-    // console.log('got o', o, geometry, textures, atlas, rects, imageData, texture);
-  }
+  } */
 };
 const _uploadImg = async file => {
   const img = new Image();
