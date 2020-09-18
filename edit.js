@@ -40,7 +40,8 @@ import {player} from './player.js';
 import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
-import {storageHost} from './constants.js'
+import {storageHost} from './constants.js';
+import atlaspack from './atlaspack.js';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
@@ -4131,7 +4132,26 @@ class MeshComposer {
     }
   }
   commit() {
-    debugger;
+    // const geometry = BufferGeometryUtils.mergeBufferGeometries(this.meshes.map(mesh => mesh.geometry));
+    const {meshes} = this;
+    const geometries = [];
+    const textures = [];
+    for (const mesh of this.meshes) {
+      geometries.push(mesh.geometry);
+      if (mesh.material.uniforms.map.value) {
+        textures.push(mesh.material.uniforms.map.value);
+      } else {
+        textures.push(null);
+      }
+    }
+
+    const mesh = _mergeMeshes(meshes, geometries, textures);
+    scene.add(mesh);
+
+    for (const mesh of this.meshes) {
+      scene.remove(mesh);
+    }
+    this.meshes.length = 0;
   }
   cancel() {
     for (const mesh of this.meshes) {
@@ -5456,6 +5476,135 @@ const _makeExplosionMesh = () => {
 let explosionMeshes = [];
 
 let pxMeshes = [];
+
+const _makeAtlas = (size, images) => {
+  let atlasCanvas;
+  const rects = [];
+  {
+    for (let scale = 1; scale > 0; scale *= 0.5) {
+      atlasCanvas = document.createElement('canvas');
+      atlasCanvas.width = size;
+      atlasCanvas.height = size;
+      const atlas = atlaspack(atlasCanvas);
+      rects.length = 0;
+
+      let fit = true;
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+
+        if (image) {
+          const w = image.width * scale;
+          const h = image.height * scale;
+          const resizeCanvas = document.createElement('canvas');
+          resizeCanvas.width = w;
+          resizeCanvas.height = h;
+          const resizeCtx = resizeCanvas.getContext('2d');
+          resizeCtx.drawImage(image, 0, 0, w, h);
+
+          const rect = atlas.pack(resizeCanvas);
+          if (rect) {
+            rects.push(rect.rect);
+          } else {
+            fit = false;
+            break;
+          }
+        } else {
+          rects.push(null);
+        }
+      }
+      if (fit) {
+        break;
+      }
+    }
+  }
+  return {
+    atlasCanvas,
+    rects,
+  };
+};
+const _mergeMeshes = (meshes, geometries, textures) => {
+  const size = 512;
+  const images = textures.map(texture => texture && texture.image);
+  const {atlasCanvas, rects} = _makeAtlas(size, images);
+
+  const geometry = new THREE.BufferGeometry();
+  {
+    let numPositions = 0;
+    let numIndices = 0;
+    for (const geometry of geometries) {
+      numPositions += geometry.attributes.position.array.length;
+      numIndices += geometry.index.array.length;
+    }
+
+    const positions = new Float32Array(numPositions);
+    const uvs = new Float32Array(numPositions / 3 * 2);
+    const colors = new Float32Array(numPositions);
+    const indices = new Uint32Array(numIndices);
+    let positionIndex = 0;
+    let uvIndex = 0;
+    let colorIndex = 0;
+    let indicesIndex = 0;
+    for (let i = 0; i < meshes.length; i++) {
+      const mesh = meshes[i];
+      const geometry = geometries[i];
+      const rect = rects[i];
+
+      geometry.applyMatrix4(mesh.matrixWorld);
+
+      const indexOffset = positionIndex / 3;
+      if (geometry.index) {
+        for (let i = 0; i < geometry.index.array.length; i++) {
+          indices[indicesIndex++] = geometry.index.array[i] + indexOffset;
+        }
+      } else {
+        for (let i = 0; i < geometry.attributes.position.array.length / 3; i++) {
+          indices[indicesIndex++] = i + indexOffset;
+        }
+      }
+
+      positions.set(geometry.attributes.position.array, positionIndex);
+      positionIndex += geometry.attributes.position.array.length;
+      if (geometry.attributes.uv) {
+        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+          if (rect) {
+            uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
+            uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
+          } else {
+            uvs[uvIndex + i] = geometry.attributes.uv.array[i];
+            uvs[uvIndex + i + 1] = geometry.attributes.uv.array[i + 1];
+          }
+        }
+      } else {
+        uvs.fill(0, uvIndex, geometry.attributes.position.array.length / 3 * 2);
+      }
+      uvIndex += geometry.attributes.position.array.length / 3 * 2;
+      if (geometry.attributes.color) {
+        colors.set(geometry.attributes.color.array, colorIndex);
+      } else {
+        colors.fill(1, colorIndex, geometry.attributes.position.array.length);
+      }
+      colorIndex += geometry.attributes.position.array.length;
+    }
+    if (textures.length > 0) {
+      colors.fill(1);
+    }
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+  }
+  geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
+
+  const texture = new THREE.Texture(atlasCanvas);
+  texture.flipY = false;
+  texture.needsUpdate = true;
+  const material = meshComposer.material.clone();
+  material.uniforms.map.value = texture;
+  material.uniforms.map.needsUpdate = true;
+
+  const mesh = new THREE.Mesh(geometry, material);
+  return mesh;
+};
 
 const _applyGravity = timeDiff => {
   localVector.set(0, -9.8, 0);
@@ -6827,7 +6976,6 @@ renderer.setAnimationLoop(animate);
 
 const thingFiles = {};
 const _uploadGltf = async file => {
-  const {default: atlaspack} = await import('./atlaspack.js');
   const u = URL.createObjectURL(file);
   let o;
   let arrayBuffer;
@@ -6859,122 +7007,8 @@ const _uploadGltf = async file => {
       }
     }
   });
-  const rects = [];
 
-  const size = 512;
-  let atlasCanvas;
-  let atlas;
-  {
-    for (let scale = 1; scale > 0; scale *= 0.5) {
-      atlasCanvas = document.createElement('canvas');
-      atlasCanvas.width = size;
-      atlasCanvas.height = size;
-      atlas = atlaspack(atlasCanvas);
-      rects.length = 0;
-
-      let fit = true;
-      for (let i = 0; i < textures.length; i++) {
-        const texture = textures[i];
-        const {image} = texture;
-
-        const w = image.width * scale;
-        const h = image.height * scale;
-        const resizeCanvas = document.createElement('canvas');
-        resizeCanvas.width = w;
-        resizeCanvas.height = h;
-        const resizeCtx = resizeCanvas.getContext('2d');
-        resizeCtx.drawImage(image, 0, 0, w, h);
-
-        const rect = atlas.pack(resizeCanvas);
-        if (rect) {
-          rects.push(rect.rect);
-        } else {
-          fit = false;
-          break;
-        }
-      }
-      if (fit) {
-        break;
-      }
-    }
-  }
-
-  const geometry = new THREE.BufferGeometry();
-  {
-    let numPositions = 0;
-    let numIndices = 0;
-    for (const geometry of geometries) {
-      numPositions += geometry.attributes.position.array.length;
-      numIndices += geometry.index.array.length;
-    }
-
-    const positions = new Float32Array(numPositions);
-    const uvs = new Float32Array(numPositions / 3 * 2);
-    const colors = new Float32Array(numPositions);
-    const indices = new Uint32Array(numIndices);
-    let positionIndex = 0;
-    let uvIndex = 0;
-    let colorIndex = 0;
-    let indicesIndex = 0;
-    for (let i = 0; i < meshes.length; i++) {
-      const mesh = meshes[i];
-      const geometry = geometries[i];
-      const rect = rects[i];
-
-      geometry.applyMatrix4(mesh.matrixWorld);
-
-      const indexOffset = positionIndex / 3;
-      if (geometry.index) {
-        for (let i = 0; i < geometry.index.array.length; i++) {
-          indices[indicesIndex++] = geometry.index.array[i] + indexOffset;
-        }
-      } else {
-        for (let i = 0; i < geometry.attributes.position.array.length / 3; i++) {
-          indices[indicesIndex++] = i + indexOffset;
-        }
-      }
-
-      positions.set(geometry.attributes.position.array, positionIndex);
-      positionIndex += geometry.attributes.position.array.length;
-      if (geometry.attributes.uv) {
-        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-          if (rect) {
-            uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
-            uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
-          } else {
-            uvs[uvIndex + i] = geometry.attributes.uv.array[i];
-            uvs[uvIndex + i + 1] = geometry.attributes.uv.array[i + 1];
-          }
-        }
-      } else {
-        uvs.fill(0, uvIndex, geometry.attributes.position.array.length / 3 * 2);
-      }
-      uvIndex += geometry.attributes.position.array.length / 3 * 2;
-      if (geometry.attributes.color) {
-        colors.set(geometry.attributes.color.array, colorIndex);
-      } else {
-        colors.fill(1, colorIndex, geometry.attributes.position.array.length);
-      }
-      colorIndex += geometry.attributes.position.array.length;
-    }
-    if (textures.length > 0) {
-      colors.fill(1);
-    }
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-  }
-  geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
-
-  const texture = new THREE.Texture(atlasCanvas);
-  texture.flipY = false;
-  texture.needsUpdate = true;
-  const material = meshComposer.material.clone();
-  material.uniforms.map.value = texture;
-  material.uniforms.map.needsUpdate = true;
-
-  const mesh = new THREE.Mesh(geometry, material);
+  const mesh = _mergeMeshes(meshes, geometries, textures);
   mesh.matrix
     .compose(localVector.copy(camera.position).add(localVector3.set(0, 0, -1).applyQuaternion(camera.quaternion)), camera.quaternion, localVector2.set(1, 1, 1))
     // .premultiply(localMatrix2.getInverse(chunkMeshContainer.matrixWorld))
