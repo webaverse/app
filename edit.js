@@ -5626,7 +5626,7 @@ const _mergeMeshes = (meshes, geometries, textures) => {
       }
       colorIndex += geometry.attributes.position.array.length;
     }
-    if (textures.length > 0) {
+    if (textures.some(texture => !!texture)) {
       colors.fill(1);
     }
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
