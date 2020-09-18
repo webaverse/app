@@ -3582,6 +3582,7 @@ const MeshDrawer = (() => {
         gl_FragColor = vec4(c, 1.);
       }
     `,
+    side: THREE.DoubleSide,
   });
   return class MeshDrawer {
     constructor() {
