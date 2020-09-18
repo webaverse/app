@@ -5327,7 +5327,17 @@ const colorsMesh = makeColorsMesh(cubeMesh, colors, newSelectedColors => {
 colorsMesh.visible = false;
 scene.add(colorsMesh);
 
-const detailsMesh = makeDetailsMesh(cubeMesh);
+const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
+  // console.log('got run', anchorSpec);
+}, function onadd(anchorSpec) {
+  // console.log('got add', anchorSpec);
+   meshComposer.commit();
+}, function onremove(anchorSpec) {
+  // console.log('got remove', anchorSpec);
+  meshComposer.cancel();
+}, function onclose() {
+  detailsMesh.visible = false;
+});
 detailsMesh.visible = false;
 scene.add(detailsMesh);
 
