@@ -6750,8 +6750,8 @@ function animate(timestamp, frame) {
     _handleSelect();
     
     const _handleMenu = () => {
-      for (const uiMesh of uiMeshes) {
-        uiMesh.visible = false;
+      for (const menuMesh of menuMeshes) {
+        menuMesh.visible = false;
       }
 
       const selectedMenuMesh = (() => {
