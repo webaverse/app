@@ -4138,6 +4138,15 @@ class MeshComposer {
       }
     }
   }
+  commit() {
+    debugger;
+  }
+  cancel() {
+    for (const mesh of this.meshes) {
+      scene.remove(mesh);
+    }
+    this.meshes.length = 0;
+  }
 }
 const meshComposer = new MeshComposer();
 (() => {
