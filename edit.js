@@ -3529,61 +3529,6 @@ const MeshDrawer = (() => {
       thingMesh.setTexture(thingSource);
       chunkMeshContainer.add(thingMesh);
       this.thingMeshes.push(thingMesh);
-
-      /* (() => {
-        let index = 0;
-        const positions = new Float32Array(convexHull.points.length/2*3 * meshCubeGeometry.attributes.position.array.length);
-        for (let i = 0; i < convexHull.points.length/2; i++) {
-          for (let j = 0; j < meshCubeGeometry.attributes.position.array.length; j += 3) {
-            localVector.fromArray(meshCubeGeometry.attributes.position.array, j)
-              .multiplyScalar(0.01)
-              .add(convexHull.center)
-              .add(localVector2.copy(convexHull.tang).multiplyScalar(convexHull.points[i*2]))
-              .add(localVector2.copy(convexHull.bitang).multiplyScalar(convexHull.points[i*2+1]))
-              .toArray(positions, index);
-            index += 3;
-          }
-        }
-        // console.log('got positions', positions);
-
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        const material = new THREE.MeshBasicMaterial({
-          color: 0xFF0000,
-        });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.frustumCulled = false;
-        scene.add(mesh);
-      })();
-
-      (() => {
-        const geometry = new THREE.PlaneBufferGeometry(1, 1);
-        const material = new THREE.MeshBasicMaterial({
-          color: 0x0000FF,
-        });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.copy(convexHull.center);
-        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), convexHull.planeNormal);
-        mesh.frustumCulled = false;
-        scene.add(mesh);
-      })(); */
-
-      /* const fakeHoles = {
-        byteOffset: 0,
-        length: 0,
-      };
-      const fakeHoleCounts = {
-        byteOffset: 0,
-        length: 0,
-      };
-      const fakePoints = {
-        byteOffset: 0,
-        length: 0,
-      };
-      const zs = geometryWorker.alloc(Float32Array, convexHull.points/2);
-      zs.fill(0);
-
-      this.drawPolygonize(convexHull.points, fakeHoles, fakeHoleCounts, fakePoints, 0.01, zs); */
     }
 
     update(p) {
