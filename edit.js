@@ -3501,7 +3501,7 @@ const MeshDrawer = (() => {
       },
       numPoints: {
         type: 'f',
-        value: 0,
+        value: numPoints,
         needsUpdate: true,
       },
     },
