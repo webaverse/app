@@ -1,6 +1,18 @@
 import flow from './flow/flow.js';
 import flowConstants from './flow-constants.js';
 
+function buf2hex(buffer) {
+  return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+}
+async function genKeys(entropy) {
+  entropy = new TextEncoder().encode(entropy);
+  const digest = await crypto.subtle.digest('SHA-256', entropy);
+  return flow.crypto.genKeys({
+    entropy: buf2hex(digest),
+    entropyEnc: 'hex',
+  });
+};
+
 function uint8Array2hex(uint8Array) {
   return Array.prototype.map.call(uint8Array, x => ('00' + x.toString(16)).slice(-2)).join('');
 }
@@ -637,5 +649,6 @@ const testFlow = async () => {
 };
 
 export {
+  genKeys,
   testFlow,
 };

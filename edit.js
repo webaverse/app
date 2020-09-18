@@ -42,7 +42,8 @@ import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js'
 import atlaspack from './atlaspack.js';
-import {testFlow} from './blockchain.js';
+import {genKeys, testFlow} from './blockchain.js';
+window.genKeys = genKeys;
 window.testFlow = testFlow;
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
