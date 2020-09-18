@@ -7038,12 +7038,20 @@ const _uploadImg = async file => {
     new THREE.Vector3(-width/2, -height/2, -0.1),
     new THREE.Vector3(width/2, height/2, 0.1),
   );
+  const colors = new Float32Array(geometry.attributes.position.array.length);
+  colors.fill(1, 0, colors.length);
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
   const texture = new THREE.Texture(img);
   texture.needsUpdate = true;
-  const material = new THREE.MeshBasicMaterial({
+  /* const material = new THREE.MeshBasicMaterial({
     map: texture,
     side: THREE.DoubleSide,
-  });
+  }); */
+  const material = meshComposer.material.clone();
+  material.uniforms.map.value = texture;
+  material.uniforms.map.needsUpdate = true;
+
   const mesh = new THREE.Mesh(geometry, material);
   const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
   mesh.position.copy(xrCamera.position)
