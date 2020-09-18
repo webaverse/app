@@ -12,7 +12,7 @@ import {downloadFile, readFile, bindUploadFileButton} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
-import {makeUiFullMesh, makeTextMesh} from './vr-ui.js';
+import {makeCubeMesh, /*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh, makeColorsMesh, makeIconMesh, intersectUi, makeRayMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
 import {makeAnimalFactory} from './animal.js';
 import {
@@ -28,11 +28,10 @@ import {
 
   chunkDistance,
   BUILD_SNAP,
-  PLANET_OBJECT_SLOTS,
 
-  getNextMeshId,
-  makePromise,
+  colors,
 } from './constants.js';
+import {makePromise, getNextMeshId, WaitQueue} from './util.js';
 import storage from './storage.js';
 import alea from './alea.js';
 import easing from './easing.js';
@@ -41,7 +40,8 @@ import {player} from './player.js';
 import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
-import { storageHost } from './constants.js'
+import {storageHost} from './constants.js'
+import atlaspack from './atlaspack.js';
 import {testFlow} from './blockchain.js';
 window.testFlow = testFlow;
 
@@ -50,7 +50,7 @@ const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Ve
 const pid4 = Math.PI / 4;
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.3);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.3);
-const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
+// const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
 const baseHeight = PARCEL_SIZE / 2 - 10;
 const thingTextureSize = 4096;
@@ -61,7 +61,6 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
-const localVector6 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -70,10 +69,15 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localFrustum = new THREE.Frustum();
+const localRaycaster = new THREE.Raycaster();
+const localColor = new THREE.Color();
+const localObject = new THREE.Object3D();
 
 (async () => {
   await tryLogin();
 })(); 
+
+const loadPromise = makePromise();
 
 const scene = new THREE.Scene();
 const rigManager = new RigManager(scene);
@@ -83,6 +87,9 @@ const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerH
 camera.position.set(0, 1.6, 2);
 camera.rotation.order = 'YXZ';
 // camera.quaternion.set(0, 0, 0, 1);
+const dolly = new THREE.Object3D();
+dolly.add(camera);
+scene.add(dolly);
 
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('webgl2', {
@@ -119,43 +126,23 @@ orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, camera.posit
 orbitControls.update();
 
 loginManager.addEventListener('avatarchange', async (e) => {
-  rigManager.setLocalAvatarUrl(`${storageHost}/${e.data}`);
+  if (e.data) {
+    rigManager.setLocalAvatarUrl(`${storageHost}/${e.data}`);
+  } else {
+    rigManager.addLocalRig(null);
+  }
 })
 
 document.addEventListener('dragover', e => {
   e.preventDefault();
 });
-document.addEventListener('drop', e => {
+document.addEventListener('drop', async e => {
   e.preventDefault();
 
   if (e.dataTransfer.files.length > 0) {
     const [file] = e.dataTransfer.files;
-    window.dispatchEvent(new MessageEvent('upload', {
-      data: file,
-    }));
+    await _handleFileUpload(file);
   }
-});
-window.addEventListener('upload', async e => {
-  const file = e.data;
-
-  const d = await XRPackage.compileFromFile(file);
-  const p = new XRPackage(d);
-  if (p.type === 'webxr-site@0.0.1') {
-    // nothing
-  } else {
-    const xrCamera = pe.renderer.xr.getCamera(camera);
-    localMatrix
-      .copy(xrCamera.matrix)
-      .premultiply(pe.matrix)
-      .decompose(localVector, localQuaternion, localVector2);
-    localVector.add(localVector2.set(0, 0, -1.5).applyQuaternion(localQuaternion));
-    p.setMatrix(localMatrix.compose(localVector, localQuaternion, localVector2.set(1, 1, 1)));
-  }
-  await pe.add(p);
-
-  /* if (/\.vrm$/.test(file.name)) {
-    p.wearAvatar();
-  } */
 });
 
 const cubicBezier = easing(0, 1, 0, 1);
@@ -284,6 +271,7 @@ const _addItem = (position, quaternion) => {
       side: THREE.DoubleSide,
       transparent: true,
       depthWrite: false,
+      // blending: THREE.CustomBlending,
     });
     const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
     skirtMesh.frustumCulled = false;
@@ -332,9 +320,9 @@ const _addItem = (position, quaternion) => {
 
     return object;
   })();
-  itemMesh.position.copy(position);
+  itemMesh.position.copy(position).applyMatrix4(currentVegetationMesh.matrixWorld);
   itemMesh.quaternion.copy(quaternion);
-  currentVegetationMesh.add(itemMesh);
+  scene.add(itemMesh);
   itemMeshes.push(itemMesh);
 };
 const _makeHeightfieldShader = land => ({
@@ -707,6 +695,150 @@ ${land ? '' : `\
 });
 const LAND_SHADER = _makeHeightfieldShader(true);
 const WATER_SHADER = _makeHeightfieldShader(false);
+const VEGETATION_SHADER = {
+  uniforms: {
+    map: {
+      type: 't',
+      value: null,
+      needsUpdate: true,
+    },
+    uHitId: {
+      type: 'f',
+      value: -1,
+      needsUpdate: true,
+    },
+    uHitPosition: {
+      type: 'v3',
+      value: new THREE.Vector3(),
+      needsUpdate: true,
+    },
+    uSelectId: {
+      type: 'f',
+      value: -1,
+      needsUpdate: true,
+    },
+    sunIntensity: {
+      type: 'f',
+      value: 1,
+      needsUpdate: true,
+    },
+  },
+  vertexShader: `\
+    precision highp float;
+    precision highp int;
+
+    uniform float uHitId;
+    uniform vec3 uHitPosition;
+    uniform float uSelectId;
+    attribute float id;
+    attribute float skyLight;
+    attribute float torchLight;
+
+    varying vec2 vUv;
+    varying vec3 vSelectColor;
+    varying vec3 vWorldPosition;
+    varying float vSkyLight;
+    varying float vTorchLight;
+    // varying vec3 vNormal;
+
+    void main() {
+      vUv = uv;
+      vec3 p = position;
+      vSelectColor = vec3(0.);
+      if (uHitId == id) {
+        vSelectColor = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
+        p += uHitPosition;
+      }
+      if (uSelectId == id) {
+        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
+      }
+      // vNormal = normal;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+      vec4 worldPosition = modelViewMatrix * vec4( position, 1.0 );
+      vWorldPosition = worldPosition.xyz;
+      vSkyLight = skyLight/8.0;
+      vTorchLight = torchLight/8.0;
+    }
+  `,
+  fragmentShader: `\
+    precision highp float;
+    precision highp int;
+
+    uniform sampler2D map;
+    uniform float sunIntensity;
+    varying vec2 vUv;
+    varying vec3 vSelectColor;
+    varying vec3 vWorldPosition;
+    varying float vSkyLight;
+    varying float vTorchLight;
+    // varying vec3 vNormal;
+
+    // vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
+
+    void main() {
+      gl_FragColor = texture2D(map, vUv);
+      gl_FragColor.rgb += vSelectColor;
+      float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
+      float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
+      gl_FragColor.rgb *= max(max(worldFactor, cameraFactor), 0.1);
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.2 + sunIntensity*0.8), gl_FragCoord.z/gl_FragCoord.w/100.0);
+    }
+  `,
+};
+const THING_SHADER = {
+  uniforms: {
+    map: {
+      type: 't',
+      value: null,
+      needsUpdate: true,
+    },
+    /* uHitId: {
+      type: 'f',
+      value: -1,
+      needsUpdate: true,
+    },
+    uHitPosition: {
+      type: 'v3',
+      value: new THREE.Vector3(),
+      needsUpdate: true,
+    },
+    uSelectId: {
+      type: 'f',
+      value: -1,
+      needsUpdate: true,
+    },
+    sunIntensity: {
+      type: 'f',
+      value: 1,
+      needsUpdate: true,
+    }, */
+  },
+  vertexShader: `\
+    attribute vec3 color;
+    varying vec2 vUv;
+    varying vec3 vColor;
+
+    void main() {
+      vUv = uv;
+      vColor = color;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `\
+    uniform sampler2D map;
+
+    varying vec2 vUv;
+    varying vec3 vColor;
+
+    void main() {
+      vec4 c = vec4(vColor, 1.);
+      if (vUv.x >= 0.) {
+        c *= texture2D(map, vUv);
+      }
+      gl_FragColor = c;
+    }
+  `,
+};
 const _snapBuildPosition = p => {
   p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
   p.y = Math.floor(p.y / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
@@ -814,11 +946,12 @@ const geometryWorker = (() => {
     }
   }
 
+  const maxNumMessageArgs = 32;
   const messageSize =
     Int32Array.BYTES_PER_ELEMENT + // id
     Int32Array.BYTES_PER_ELEMENT + // method
     Int32Array.BYTES_PER_ELEMENT + // priority
-    32*Uint32Array.BYTES_PER_ELEMENT; // args
+    maxNumMessageArgs*Uint32Array.BYTES_PER_ELEMENT; // args
   const maxNumMessages = 1024;
   const callStackSize = maxNumMessages * messageSize;
   class CallStackMessage {
@@ -1071,6 +1204,8 @@ const geometryWorker = (() => {
     makeGeometrySet: methodIndex++,
     loadBake: methodIndex++,
     getGeometry: methodIndex++,
+    getGeometries: methodIndex++,
+    getGeometryKeys: methodIndex++,
     getAnimalGeometry: methodIndex++,
     marchObjects: methodIndex++,
     getHeight: methodIndex++,
@@ -1233,7 +1368,7 @@ const geometryWorker = (() => {
       {
         const textureOffset = m.pullU32();
         if (textureOffset) {
-          console.log('got texture update', textureOffset);
+          // console.log('got texture update', textureOffset);
           const textureData = new Uint8Array(moduleInstance.HEAP8.buffer, textureOffset, thingTextureSize * thingTextureSize * 4);
           currentThingMesh.updateTexture(textureData);
         }
@@ -1246,6 +1381,7 @@ const geometryWorker = (() => {
   };
   const cbIndex = new Map();
   const textEncoder = new TextEncoder();
+  const textDecoder = new TextDecoder();
   const w = {};
   /* window.earcut = () => {
     const positionsData = Float32Array.from([
@@ -1324,7 +1460,7 @@ const geometryWorker = (() => {
 
     await new Promise((accept, reject) => {
       let data;
-      callStack.allocRequest(METHODS.loadBake, false, m => {
+      callStack.allocRequest(METHODS.loadBake, true, m => {
         m.pushU32(geometrySet);
 
         data = w.alloc(Uint8Array, arrayBuffer.byteLength);
@@ -1337,9 +1473,9 @@ const geometryWorker = (() => {
       });
     });
   };
-  w.requestGeometry = (geometrySet, name) => new Promise((accept, reject) => {
+  w.requestGetGeometry = (geometrySet, name) => new Promise((accept, reject) => {
     let dstNameUint8Array;
-    callStack.allocRequest(METHODS.getGeometry, false, m => {
+    callStack.allocRequest(METHODS.getGeometry, true, m => {
       m.pushU32(geometrySet);
 
       const srcNameUint8Array = textEncoder.encode(name);
@@ -1350,23 +1486,121 @@ const geometryWorker = (() => {
     }, m => {
       const positionsOffset = m.pullU32();
       const uvsOffset = m.pullU32();
+      // const colorsOffset = m.pullU32();
       const indicesOffset = m.pullU32();
       const numPositions = m.pullU32();
       const numUvs = m.pullU32();
+      // const numColors = m.pullU32();
       const numIndices = m.pullU32();
+      const aabbOffset = m.pullU32();;
+      const boundingBox = new THREE.Box3(
+        new THREE.Vector3().fromArray(moduleInstance.HEAPF32.subarray(aabbOffset/Float32Array.BYTES_PER_ELEMENT, aabbOffset/Float32Array.BYTES_PER_ELEMENT + 3)),
+        new THREE.Vector3().fromArray(moduleInstance.HEAPF32.subarray(aabbOffset/Float32Array.BYTES_PER_ELEMENT + 3, aabbOffset/Float32Array.BYTES_PER_ELEMENT + 6)),
+      );
+      /* const height = boundingBox.getSize(new THREE.Vector3()).y;
+      boundingBox.min.y += height/2;
+      boundingBox.max.y += height/2; */
 
       const positions = new Float32Array(moduleInstance.HEAP8.buffer, positionsOffset, numPositions);
       const uvs = new Float32Array(moduleInstance.HEAP8.buffer, uvsOffset, numUvs);
+      // const colors = new Float32Array(moduleInstance.HEAP8.buffer, colorsOffset, numColors);
       const indices = new Uint32Array(moduleInstance.HEAP8.buffer, indicesOffset, numIndices);
 
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      // geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3, true));
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      renderer.geometries.update(geometry);
+
+      geometry.boundingBox = boundingBox;
 
       w.free(dstNameUint8Array.byteOffset);
 
       accept(geometry);
+    });
+  });
+  w.requestGetGeometries = (geometrySet, geometryRequests) => new Promise((accept, reject) => {
+    let geometryRequestsOffset;
+    callStack.allocRequest(METHODS.getGeometries, true, m => {
+      m.pushU32(geometrySet);
+      
+      const geometryRequestSize = MAX_NAME_LENGTH + 10*Float32Array.BYTES_PER_ELEMENT;
+      geometryRequestsOffset = moduleInstance._malloc(geometryRequestSize * geometryRequests.length);
+      
+      for (let i = 0; i < geometryRequests.length; i++) {
+        const geometryRequest = geometryRequests[i];
+        const {name, position, quaternion, scale} = geometryRequest;
+        const geometryRequestOffset = geometryRequestsOffset + i*geometryRequestSize;
+
+        const srcNameUint8Array = textEncoder.encode(name);
+        const dstNameUint8Array = moduleInstance.HEAPU8.subarray(geometryRequestOffset, geometryRequestOffset + MAX_NAME_LENGTH);
+        dstNameUint8Array.set(srcNameUint8Array);
+        dstNameUint8Array[srcNameUint8Array.length] = 0;
+
+        position.toArray(moduleInstance.HEAPF32, geometryRequestOffset/Float32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT);
+        quaternion.toArray(moduleInstance.HEAPF32, geometryRequestOffset/Float32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 3);
+        scale.toArray(moduleInstance.HEAPF32, geometryRequestOffset/Float32Array.BYTES_PER_ELEMENT + MAX_NAME_LENGTH/Float32Array.BYTES_PER_ELEMENT + 7);
+      }
+      
+      m.pushU32(geometryRequestsOffset);
+      m.pushU32(geometryRequests.length);
+    }, m => {
+      const positionsOffset = m.pullU32();
+      const uvsOffset = m.pullU32();
+      // const colorsOffset = m.pullU32();
+      const indicesOffset = m.pullU32();
+      const numPositions = m.pullU32();
+      const numUvs = m.pullU32();
+      // const numColors = m.pullU32();
+      const numIndices = m.pullU32();
+
+      const positions = new Float32Array(moduleInstance.HEAP8.buffer, positionsOffset, numPositions);
+      const uvs = new Float32Array(moduleInstance.HEAP8.buffer, uvsOffset, numUvs);
+      // const colors = new Float32Array(moduleInstance.HEAP8.buffer, colorsOffset, numColors);
+      const indices = new Uint32Array(moduleInstance.HEAP8.buffer, indicesOffset, numIndices);
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      // geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3, true));
+      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      renderer.geometries.update(geometry);
+
+      w.free(positionsOffset);
+      w.free(uvsOffset);
+      // w.free(colorsOffset);
+      w.free(indicesOffset);
+
+      accept(geometry);
+    });
+  });
+  w.requestGetGeometryKeys = geometrySet => new Promise((accept, reject) => {
+    callStack.allocRequest(METHODS.getGeometryKeys, true, m => {
+      m.pushU32(geometrySet);
+    }, m => {
+      const namesOffset = m.pullU32();
+      const numNames = m.pullU32();
+      
+      const result = [];
+      for (let i = 0; i < numNames; i++) {
+        const nameOffset = namesOffset + i*MAX_NAME_LENGTH;
+        const nameLength = (() => {
+          let j;
+          for (j = 0; j < MAX_NAME_LENGTH; j++) {
+            if (moduleInstance.HEAPU8[nameOffset+j] === 0) {
+              break;
+            }
+          }
+          return j;
+        })();
+        const name = textDecoder.decode(moduleInstance.HEAPU8.slice(nameOffset, nameOffset + nameLength));
+        result.push(name);
+      }
+
+      w.free(namesOffset);
+
+      accept(result);
     });
   });
   w.requestAnimalGeometry = hash => new Promise((accept, reject) => {
@@ -1810,6 +2044,70 @@ const geometryWorker = (() => {
       grounded: !!scratchStack.u32[18],
     } : null;
   };
+  w.getSubparcelArenaSpec = subparcelOffset => {
+    const subparcelArenaSpecOffset = scratchStack.u32.byteOffset;
+    moduleInstance._getSubparcelArenaSpec(subparcelOffset, subparcelArenaSpecOffset);
+    const subparcelArenaSpecOffset32 = subparcelArenaSpecOffset/Uint32Array.BYTES_PER_ELEMENT;
+
+    let index = 0;
+    let landArenaSpec, vegetationArenaSpec, thingArenaSpec;
+    {
+      const positionsFreeEntry = scratchStack.u32[index++];
+      const normalsFreeEntry = scratchStack.u32[index++];
+      const uvsFreeEntry = scratchStack.u32[index++];
+      const aosFreeEntry = scratchStack.u32[index++];
+      const idsFreeEntry = scratchStack.u32[index++];
+      const skyLightsFreeEntry = scratchStack.u32[index++];
+      const torchLightsFreeEntry = scratchStack.u32[index++];
+
+      landArenaSpec = {
+        positionsFreeEntry,
+        normalsFreeEntry,
+        uvsFreeEntry,
+        aosFreeEntry,
+        idsFreeEntry,
+        skyLightsFreeEntry,
+        torchLightsFreeEntry,
+      };
+    }
+    {
+      const positionsFreeEntry = scratchStack.u32[index++];
+      const uvsFreeEntry = scratchStack.u32[index++];
+      const idsFreeEntry = scratchStack.u32[index++];
+      const indicesFreeEntry = scratchStack.u32[index++];
+      const skyLightsFreeEntry = scratchStack.u32[index++];
+      const torchLightsFreeEntry = scratchStack.u32[index++];
+
+      vegetationArenaSpec = {
+        positionsFreeEntry,
+        uvsFreeEntry,
+        idsFreeEntry,
+        indicesFreeEntry,
+        skyLightsFreeEntry,
+        torchLightsFreeEntry,
+      };
+    }
+    {
+      const positionsFreeEntry = scratchStack.u32[index++];
+      const uvsFreeEntry = scratchStack.u32[index++];
+      const atlasUvsFreeEntry = scratchStack.u32[index++];
+      const idsFreeEntry = scratchStack.u32[index++];
+      const indicesFreeEntry = scratchStack.u32[index++];
+      const skyLightsFreeEntry = scratchStack.u32[index++];
+      const torchLightsFreeEntry = scratchStack.u32[index++];
+
+      thingArenaSpec = {
+        positionsFreeEntry,
+        uvsFreeEntry,
+        atlasUvsFreeEntry,
+        idsFreeEntry,
+        indicesFreeEntry,
+        skyLightsFreeEntry,
+        torchLightsFreeEntry,
+      };
+    }
+    return [landArenaSpec, vegetationArenaSpec, thingArenaSpec];
+  };
   /* w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => {
     scratchStack.u8.set(peeksData, 0);
     for (let i = 0; i < groupsData.length; i++) {
@@ -1966,12 +2264,16 @@ const geometryWorker = (() => {
       const numSubparcels = m.pullU32();
       // console.log('num subparcels add', numSubparcels);
       for (let i = 0; i < numSubparcels; i++) {
-        const positionsFreeEntry = m.pullU32();
-        const uvsFreeEntry = m.pullU32();
-        const idsFreeEntry = m.pullU32();
-        const indicesFreeEntry = m.pullU32();
-        const skyLightsFreeEntry = m.pullU32();
-        const torchLightsFreeEntry = m.pullU32();
+        const subparcelOffset = m.pullU32();
+        const [landArenaSpec, vegetationArenaSpec, thingArenaSpec] = geometryWorker.getSubparcelArenaSpec(subparcelOffset);
+        const {
+          positionsFreeEntry,
+          uvsFreeEntry,
+          idsFreeEntry,
+          indicesFreeEntry,
+          skyLightsFreeEntry,
+          torchLightsFreeEntry,
+        } = vegetationArenaSpec;
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -2043,12 +2345,16 @@ const geometryWorker = (() => {
     }, m => {
       const numSubparcels = m.pullU32();
       for (let i = 0; i < numSubparcels; i++) {
-        const positionsFreeEntry = m.pullU32();
-        const uvsFreeEntry = m.pullU32();
-        const idsFreeEntry = m.pullU32();
-        const indicesFreeEntry = m.pullU32();
-        const skyLightsFreeEntry = m.pullU32();
-        const torchLightsFreeEntry = m.pullU32();
+        const subparcelOffset = m.pullU32();
+        const [landArenaSpec, vegetationArenaSpec, thingArenaSpec] = geometryWorker.getSubparcelArenaSpec(subparcelOffset);
+        const {
+          positionsFreeEntry,
+          uvsFreeEntry,
+          idsFreeEntry,
+          indicesFreeEntry,
+          skyLightsFreeEntry,
+          torchLightsFreeEntry,
+        } = vegetationArenaSpec;
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -2115,13 +2421,17 @@ const geometryWorker = (() => {
     }, m => {
       const numSubparcels = m.pullU32();
       for (let i = 0; i < numSubparcels; i++) {
-        const positionsFreeEntry = m.pullU32();
-        const normalsFreeEntry = m.pullU32();
-        const uvsFreeEntry = m.pullU32();
-        const aosFreeEntry = m.pullU32();
-        const idsFreeEntry = m.pullU32();
-        const skyLightsFreeEntry = m.pullU32();
-        const torchLightsFreeEntry = m.pullU32();
+        const subparcelOffset = m.pullU32();
+        const [landArenaSpec, vegetationArenaSpec, thingArenaSpec] = geometryWorker.getSubparcelArenaSpec(subparcelOffset);
+        const {
+          positionsFreeEntry,
+          normalsFreeEntry,
+          uvsFreeEntry,
+          aosFreeEntry,
+          idsFreeEntry,
+          skyLightsFreeEntry,
+          torchLightsFreeEntry,
+        } = landArenaSpec;
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -2172,6 +2482,7 @@ const geometryWorker = (() => {
           torchLightsCount,
         });
       }
+
       callStack.allocRequest(METHODS.releaseAddRemoveObject, true, m2 => {
         m2.pushU32(tracker);
         m2.pushU32(numSubparcels);
@@ -2326,15 +2637,25 @@ const geometryWorker = (() => {
       m.pushF32Array(scale.toArray(new Float32Array(4)));
     }, m => {
       const objectId = m.pullU32();
+      const textureOffset = m.pullU32();
+      if (textureOffset) {
+        const textureData = new Uint8Array(moduleInstance.HEAP8.buffer, textureOffset, thingTextureSize * thingTextureSize * 4);
+        currentThingMesh.updateTexture(textureData);
+      }
+
       const numSubparcels = m.pullU32();
       for (let i = 0; i < numSubparcels; i++) {
-        const positionsFreeEntry = m.pullU32();
-        const uvsFreeEntry = m.pullU32();
-        const atlasUvsFreeEntry = m.pullU32();
-        const idsFreeEntry = m.pullU32();
-        const indicesFreeEntry = m.pullU32();
-        const skyLightsFreeEntry = m.pullU32();
-        const torchLightsFreeEntry = m.pullU32();
+        const subparcelOffset = m.pullU32();
+        const [landArenaSpec, vegetationArenaSpec, thingArenaSpec] = geometryWorker.getSubparcelArenaSpec(subparcelOffset);
+        const {
+          positionsFreeEntry,
+          uvsFreeEntry,
+          atlasUvsFreeEntry,
+          idsFreeEntry,
+          indicesFreeEntry,
+          skyLightsFreeEntry,
+          torchLightsFreeEntry,
+        } = thingArenaSpec;
 
         const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
         const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
@@ -2387,12 +2708,6 @@ const geometryWorker = (() => {
         });
       }
 
-      const textureOffset = m.pullU32();
-      if (textureOffset) {
-        const textureData = new Uint8Array(moduleInstance.HEAP8.buffer, textureOffset, thingTextureSize * thingTextureSize * 4);
-        currentThingMesh.updateTexture(textureData);
-      }
-
       callStack.allocRequest(METHODS.releaseAddRemoveObject, true, m2 => {
         m2.pushU32(tracker);
         m2.pushU32(numSubparcels);
@@ -2433,7 +2748,7 @@ const geometryWorker = (() => {
       bitang,
     };
   };
-  w.earcut = (tracker, ps, holes, holeCounts, points, z, zs, objectId, position, quaternion) => {
+  /* w.earcut = (tracker, ps, holes, holeCounts, points, z, zs, objectId, position, quaternion) => {
     const inPs = w.alloc(Float32Array, ps.length);
     inPs.set(ps);
     const inHoles = w.alloc(Float32Array, holes.length);
@@ -2482,7 +2797,7 @@ const geometryWorker = (() => {
         moduleInstance._deleteEarcutResult(tracker, resultOffset);
       },
     };
-  };
+  }; */
   w.update = () => {
     if (moduleInstance) {
       if (currentChunkMesh) {
@@ -2499,13 +2814,8 @@ const geometryWorker = (() => {
           (async () => {
             for (let i = 0; i < numAddedSubparcels; i++) {
               const subparcelOffset = moduleInstance.HEAP32[addedSubparcelsOffset / Uint32Array.BYTES_PER_ELEMENT + i];
-              // const x = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT];
-              // const y = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
-              // const z = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 2];
               const index = moduleInstance.HEAP32[subparcelOffset / Uint32Array.BYTES_PER_ELEMENT + 3];
               const uint8Array = await storage.getRawTemp(`subparcel:${index}`);
-              // console.log('got subarray', `subparcel:${index}`, uint8Array);
-              // console.log('subparcel update', index, uint8Array);
               moduleInstance._subparcelUpdate(
                 tracker,
                 threadPool,
@@ -2657,100 +2967,15 @@ const geometryWorker = (() => {
   }
   // culler = geometryWorker.makeCuller();
 
-  const vegetationMaterialOpaque = new THREE.ShaderMaterial({
-    uniforms: {
-      map: {
-        type: 't',
-        value: null,
-        needsUpdate: true,
-      },
-      uHitId: {
-        type: 'f',
-        value: -1,
-        needsUpdate: true,
-      },
-      uHitPosition: {
-        type: 'v3',
-        value: new THREE.Vector3(),
-        needsUpdate: true,
-      },
-      uSelectId: {
-        type: 'f',
-        value: -1,
-        needsUpdate: true,
-      },
-      sunIntensity: {
-        type: 'f',
-        value: 1,
-        needsUpdate: true,
-      },
-    },
-    vertexShader: `\
-      precision highp float;
-      precision highp int;
-
-      uniform float uHitId;
-      uniform vec3 uHitPosition;
-      uniform float uSelectId;
-      attribute float id;
-      attribute float skyLight;
-      attribute float torchLight;
-
-      varying vec2 vUv;
-      varying vec3 vSelectColor;
-      varying vec3 vWorldPosition;
-      varying float vSkyLight;
-      varying float vTorchLight;
-      // varying vec3 vNormal;
-
-      void main() {
-        vUv = uv;
-        vec3 p = position;
-        vSelectColor = vec3(0.);
-        if (uHitId == id) {
-          vSelectColor = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
-          p += uHitPosition;
-        }
-        if (uSelectId == id) {
-          vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
-        }
-        // vNormal = normal;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-        vec4 worldPosition = modelViewMatrix * vec4( position, 1.0 );
-        vWorldPosition = worldPosition.xyz;
-        vSkyLight = skyLight/8.0;
-        vTorchLight = torchLight/8.0;
-      }
-    `,
-    fragmentShader: `\
-      precision highp float;
-      precision highp int;
-
-      uniform sampler2D map;
-      uniform float sunIntensity;
-      varying vec2 vUv;
-      varying vec3 vSelectColor;
-      varying vec3 vWorldPosition;
-      varying float vSkyLight;
-      varying float vTorchLight;
-      // varying vec3 vNormal;
-
-      // vec3 l = normalize(vec3(-1.0, -1.0, -1.0));
-
-      void main() {
-        gl_FragColor = texture2D(map, vUv);
-        gl_FragColor.rgb += vSelectColor;
-        float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0;
-        float cameraFactor = floor(8.0 - length(vWorldPosition))/8.;
-        gl_FragColor.rgb *= max(max(worldFactor, cameraFactor), 0.1);
-        gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.2 + sunIntensity*0.8), gl_FragCoord.z/gl_FragCoord.w/100.0);
-      }
-    `,
+  const vegetationMaterial = new THREE.ShaderMaterial({
+    uniforms: THREE.UniformsUtils.clone(VEGETATION_SHADER.uniforms),
+    vertexShader: VEGETATION_SHADER.vertexShader,
+    fragmentShader: VEGETATION_SHADER.fragmentShader,
     side: THREE.DoubleSide,
     transparent: true,
   });
   const _makeBakedMesh = g => {
-    const mesh = new THREE.Mesh(g, vegetationMaterialOpaque);
+    const mesh = new THREE.Mesh(g, vegetationMaterial);
     mesh.frustumCulled = false;
     return mesh;
   };
@@ -2778,7 +3003,7 @@ const geometryWorker = (() => {
         'SM_Wep_SubMGun_Lite_01',
         'SM_Wep_Grenade_01',
         'SM_Wep_Crosshair_04',
-      ].map(n => geometryWorker.requestGeometry(geometrySet, n)));
+      ].map(n => geometryWorker.requestGetGeometry(geometrySet, n)));
       wallMesh = _makeBakedMesh(geometries[0]);
       wallMesh.buildType = 'wall';
       wallMesh.vegetationType = 'wood_wall';
@@ -2886,8 +3111,8 @@ const geometryWorker = (() => {
       return texture;
     })(),
   ]);
-  vegetationMaterialOpaque.uniforms.map.value = texture;
-  vegetationMaterialOpaque.uniforms.map.needsUpdate = true;
+  vegetationMaterial.uniforms.map.value = texture;
+  vegetationMaterial.uniforms.map.needsUpdate = true;
 
   const _makeVegetationMesh = () => {
     const geometry = new THREE.BufferGeometry();
@@ -2898,8 +3123,7 @@ const geometryWorker = (() => {
     geometry.setAttribute('torchLight', vegetationBufferAttributes.torchLight);
     geometry.setIndex(vegetationBufferAttributes.index);
     // geometry.allocators = allocators;
-    const material = vegetationMaterialOpaque;
-    const mesh = new THREE.Mesh(geometry, [material]);
+    const mesh = new THREE.Mesh(geometry, [vegetationMaterial]);
     mesh.frustumCulled = false;
 
     const slabs = {};
@@ -3111,15 +3335,6 @@ const geometryWorker = (() => {
     mesh.updateTexture = data => {
       thingTexture.image.data = data;
       thingTexture.needsUpdate = true;
-
-      /* const canvas = document.createElement('canvas'); // XXX
-      canvas.width = thingTextureSize;
-      canvas.height = thingTextureSize;
-      const ctx = canvas.getContext('2d');
-      const imageData = ctx.createImageData(thingTextureSize, thingTextureSize);
-      imageData.data.set(thingTexture.image);
-      ctx.putImageData(imageData, 0, 0);
-      document.body.appendChild(canvas); */
     };
     return mesh;
   };
@@ -3134,6 +3349,8 @@ const geometryWorker = (() => {
   }).then(() => {
     new Bot();
   });
+
+  loadPromise.accept();
 })();
 
 let numThings = 0;
@@ -3172,7 +3389,7 @@ const MeshDrawer = (() => {
     return canvas;
   };
 
-  const _makeDrawThingMesh = () => {
+  /* const _makeDrawThingMesh = () => {
     const geometry = new THREE.BufferGeometry();
     // geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     // geometry.setAttribute('uv3', new THREE.BufferAttribute(uvs, 3));
@@ -3330,143 +3547,233 @@ const MeshDrawer = (() => {
       const zs = new Float32Array(points.length / 2);
       return new ThingSource(points, undefined, undefined, undefined, undefined, zs, planeNormal, planeConstant, center, tang, bitang);
     }
-  }
+  } */
+  const _makeDrawMaterial = (color1, color2, numPoints) => new THREE.ShaderMaterial({
+    uniforms: {
+      color1: {
+        type: 'c',
+        value: new THREE.Color(color1),
+        needsUpdate: true,
+      },
+      color2: {
+        type: 'c',
+        value: new THREE.Color(color2),
+        needsUpdate: true,
+      },
+      numPoints: {
+        type: 'f',
+        value: numPoints,
+        needsUpdate: true,
+      },
+    },
+    vertexShader: `\
+      varying vec2 vUv;
+
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `\
+      uniform vec3 color1;
+      uniform vec3 color2;
+      uniform float numPoints;
+
+      varying vec2 vUv;
+
+      void main() {
+        vec3 c = mix(color1, color2, vUv.y/numPoints);
+        gl_FragColor = vec4(c, 1.);
+      }
+    `,
+    side: THREE.DoubleSide,
+  });
   return class MeshDrawer {
     constructor() {
-      const points = new Float32Array(512 * 1024);
-      this.points = points;
-      this.numPoints = 0;
+      // const points = new Float32Array(512 * 1024);
+      // this.points = points;
+      // this.numPoints = 0;
 
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(512 * 1024), 3));
-      this.geometry = geometry;
-      const material = new THREE.MeshBasicMaterial({
-        color: 0x000000,
-      });
+      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * 128 * 1024), 3));
+      geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(3 * 128 * 1024), 1));
+      const uvs = new Float32Array(2 * 128 * 1024);
+      for (let i = 0; i < uvs.length; i += 2*4) {
+        const index = i/(2*4);
+        uvs[i+1] = index;
+        uvs[i+3] = index;
+        uvs[i+5] = index;
+        uvs[i+7] = index;
+      }
+      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      geometry.boundingBox = new THREE.Box3(
+        new THREE.Vector3(Infinity, Infinity, Infinity),
+        new THREE.Vector3(-Infinity, -Infinity, -Infinity),
+      );
+
+      const material = _makeDrawMaterial(localColor.setStyle('#' + colors[0]).getHex(), localColor.setStyle('#' + colors[1]).getHex(), 0);
       const mesh = new THREE.Mesh(geometry, material);
       mesh.visible = false;
       mesh.frustumCulled = false;
       this.mesh = mesh;
 
       this.lastPosition = new THREE.Vector3();
+      this.lastQuaternion = new THREE.Quaternion();
+      this.lastValue = 0;
       this.numPositions = 0;
+      this.numIndices = 0;
 
-      this.thingSources = [];
-      this.thingMeshes = [];
+      // this.thingSources = [];
+      // this.thingMeshes = [];
     }
 
-    start(p) {
+    start(p, q, v) {
       this.lastPosition.copy(p);
-      this.numPoints = 0;
+      this.lastQuaternion.copy(q);
+      // this.numPoints = 0;
       this.numPositions = 0;
-      this.geometry.setDrawRange(0, 0);
+      this.numIndices = 0;
+      this.mesh.geometry.setDrawRange(0, 0);
+      this.mesh.geometry.boundingBox.min.set(Infinity, Infinity, Infinity);
+      this.mesh.geometry.boundingBox.max.set(-Infinity, -Infinity, -Infinity);
       this.mesh.visible = false;
     }
 
-    end(p) {
-      const thingSource = ThingSource.fromPoints(this.points.subarray(0, this.numPoints));
-      thingSource.updateGeometryData();
-      this.thingSources.push(thingSource);
+    end(p, q, v) {
+      const geometry = new THREE.BufferGeometry();
+      const positions = this.mesh.geometry.attributes.position.array.slice(0, this.numPositions);
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const uvs = this.mesh.geometry.attributes.uv.array.slice(0, this.numPositions/3*2);
+      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      const colors = new Float32Array(geometry.attributes.position.array.length);
+      for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+        const y = geometry.attributes.uv.array[i+1]/this.mesh.material.uniforms.numPoints.value;
+        localColor.copy(this.mesh.material.uniforms.color1.value).lerp(this.mesh.material.uniforms.color2.value, y)
+          .toArray(colors, i/2*3);
+        geometry.attributes.uv.array[i] = -1;
+        geometry.attributes.uv.array[i+1] = -1;
+      }
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      const indices = this.mesh.geometry.index.array.slice(0, this.numIndices);
+      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      geometry.boundingBox = this.mesh.geometry.boundingBox.clone();
+      // const material = _makeDrawMaterial(this.mesh.material.uniforms.color1.value.getHex(), this.mesh.material.uniforms.color2.value.getHex(), this.mesh.material.uniforms.numPoints.value);
+      const mesh = new THREE.Mesh(geometry, meshComposer.material);
+      mesh.matrix.copy(this.mesh.matrixWorld)
+        .decompose(mesh.position, mesh.quaternion, mesh.scale);
+      mesh.frustumCulled = false;
+      meshComposer.addMesh(mesh);
 
-      const thingMesh = _makeDrawThingMesh();
+      this.mesh.visible = false;
+
+      // const thingSource = ThingSource.fromPoints(this.points.subarray(0, this.numPoints));
+      // thingSource.updateGeometryData();
+      // this.thingSources.push(thingSource);
+
+      /* const thingMesh = _makeDrawThingMesh();
       thingMesh.setGeometryData(thingSource);
       thingMesh.setTexture(thingSource);
       chunkMeshContainer.add(thingMesh);
-      this.thingMeshes.push(thingMesh);
-
-      /* (() => {
-        let index = 0;
-        const positions = new Float32Array(convexHull.points.length/2*3 * meshCubeGeometry.attributes.position.array.length);
-        for (let i = 0; i < convexHull.points.length/2; i++) {
-          for (let j = 0; j < meshCubeGeometry.attributes.position.array.length; j += 3) {
-            localVector.fromArray(meshCubeGeometry.attributes.position.array, j)
-              .multiplyScalar(0.01)
-              .add(convexHull.center)
-              .add(localVector2.copy(convexHull.tang).multiplyScalar(convexHull.points[i*2]))
-              .add(localVector2.copy(convexHull.bitang).multiplyScalar(convexHull.points[i*2+1]))
-              .toArray(positions, index);
-            index += 3;
-          }
-        }
-        // console.log('got positions', positions);
-
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        const material = new THREE.MeshBasicMaterial({
-          color: 0xFF0000,
-        });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.frustumCulled = false;
-        scene.add(mesh);
-      })();
-
-      (() => {
-        const geometry = new THREE.PlaneBufferGeometry(1, 1);
-        const material = new THREE.MeshBasicMaterial({
-          color: 0x0000FF,
-        });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.copy(convexHull.center);
-        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), convexHull.planeNormal);
-        mesh.frustumCulled = false;
-        scene.add(mesh);
-      })(); */
-
-      /* const fakeHoles = {
-        byteOffset: 0,
-        length: 0,
-      };
-      const fakeHoleCounts = {
-        byteOffset: 0,
-        length: 0,
-      };
-      const fakePoints = {
-        byteOffset: 0,
-        length: 0,
-      };
-      const zs = geometryWorker.alloc(Float32Array, convexHull.points/2);
-      zs.fill(0);
-
-      this.drawPolygonize(convexHull.points, fakeHoles, fakeHoleCounts, fakePoints, 0.01, zs); */
+      this.thingMeshes.push(thingMesh); */
     }
 
-    update(p) {
-      p.toArray(this.points, this.numPoints);
-      this.numPoints += 3;
+    update(p, q, v) {
+      // p.toArray(this.points, this.numPoints);
+      // this.numPoints += 3;
 
       const startPoint = this.lastPosition;
       const endPoint = p;
-      const quaterion = localQuaternion.setFromUnitVectors(
+      const startQuaternion = this.lastQuaternion;
+      const endQuaternion = q;
+      const startValue = this.lastValue;
+      const endValue = v;
+      /* const quaternion = localQuaternion.setFromUnitVectors(
         localVector.set(0, 0, -1),
         localVector2.copy(endPoint).sub(startPoint).normalize(),
       );
       const midpoint = localVector.copy(startPoint).add(endPoint).divideScalar(2);
-      const scale = localVector2.set(0.01, 0.01, startPoint.distanceTo(endPoint));
-      const matrix = localMatrix.compose(midpoint, quaterion, scale);
+      const scale = localVector2.set(0.01, 0.01, startPoint.distanceTo(endPoint)); */
+      // const matrix = localMatrix.compose(midpoint, quaternion, scale);
 
       const oldNumPositions = this.numPositions;
-
-      for (let i = 0; i < meshCubeGeometry.attributes.position.array.length; i += 3) {
-        localVector.fromArray(meshCubeGeometry.attributes.position.array, i)
-          .applyMatrix4(matrix)
-          .toArray(this.geometry.attributes.position.array, this.numPositions);
+      if (this.numPositions === 0) {
+        localVector.set(-startValue, 0, 0)
+          .applyQuaternion(startQuaternion)
+          .add(startPoint)
+          // .applyMatrix4(matrix)
+          .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+        this.mesh.geometry.boundingBox.expandByPoint(localVector);
+        this.numPositions += 3;
+        localVector.set(startValue, 0, 0)
+          .applyQuaternion(startQuaternion)
+          .add(startPoint)
+          // .applyMatrix4(matrix)
+          .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+        this.mesh.geometry.boundingBox.expandByPoint(localVector);
         this.numPositions += 3;
       }
+      localVector.set(-endValue, 0, 0)
+        .applyQuaternion(endQuaternion)
+        .add(endPoint)
+        // .applyMatrix4(matrix)
+        .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+      this.mesh.geometry.boundingBox.expandByPoint(localVector);
+      this.numPositions += 3;
+      localVector.set(endValue, 0, 0)
+        .applyQuaternion(endQuaternion)
+        .add(endPoint)
+        // .applyMatrix4(matrix)
+        .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+      this.mesh.geometry.boundingBox.expandByPoint(localVector);
+      this.numPositions += 3;
 
-      this.geometry.attributes.position.updateRange.offset = oldNumPositions;
-      this.geometry.attributes.position.updateRange.count = this.numPositions;
-      this.geometry.attributes.position.needsUpdate = true;
-      renderer.geometries.update(this.geometry);
-      this.geometry.setDrawRange(0, this.numPositions / 3);
+      const oldNumIndices = this.numIndices;
+      const a = (this.numPositions - 3*4)/3;
+      const b = a+1;
+      const c = b+1;
+      const d = c+1;
+      this.mesh.geometry.index.array[this.numIndices++] = a;
+      this.mesh.geometry.index.array[this.numIndices++] = b;
+      this.mesh.geometry.index.array[this.numIndices++] = c;
+      this.mesh.geometry.index.array[this.numIndices++] = b;
+      this.mesh.geometry.index.array[this.numIndices++] = d;
+      this.mesh.geometry.index.array[this.numIndices++] = c;
+
+      /* this.mesh.geometry.index.array[this.numIndices++] = a;
+      this.mesh.geometry.index.array[this.numIndices++] = c;
+      this.mesh.geometry.index.array[this.numIndices++] = b;
+      this.mesh.geometry.index.array[this.numIndices++] = b;
+      this.mesh.geometry.index.array[this.numIndices++] = c;
+      this.mesh.geometry.index.array[this.numIndices++] = d; */
+
+      this.mesh.geometry.attributes.position.updateRange.offset = oldNumPositions;
+      this.mesh.geometry.attributes.position.updateRange.count = this.numPositions;
+      this.mesh.geometry.attributes.position.needsUpdate = true;
+
+      this.mesh.geometry.index.updateRange.offset = oldNumIndices;
+      this.mesh.geometry.index.updateRange.count = this.numIndices;
+      this.mesh.geometry.index.needsUpdate = true;
+
+      renderer.geometries.update(this.mesh.geometry);
+      this.mesh.geometry.setDrawRange(0, this.numIndices);
+      this.mesh.material.uniforms.numPoints.value = this.numIndices/6;
+      this.mesh.material.uniforms.numPoints.needsUpdate = true;
       this.mesh.visible = true;
 
       this.lastPosition.copy(p);
+      this.lastQuaternion.copy(q);
+      this.lastValue = v;
     }
 
-    drawPolygonize(ps, holes, holeCounts, points, z, zs) {
-      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry} = geometryWorker.earcut(tracker, ps.byteOffset, ps.length / 2, holes.byteOffset, holeCounts.byteOffset, holeCounts.length, points.byteOffset, points.length, z, zs.byteOffset);
+    setColors(selectedColors) {
+      material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
+      material.uniforms.color1.needsUpdate = true;
+      material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
+      material.uniforms.color2.needsUpdate = true;
+    }
 
-      // console.log('got earcut', positions, uvs, indices);
+    /* drawPolygonize(ps, holes, holeCounts, points, z, zs) {
+      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry} = geometryWorker.earcut(tracker, ps.byteOffset, ps.length / 2, holes.byteOffset, holeCounts.byteOffset, holeCounts.length, points.byteOffset, points.length, z, zs.byteOffset);
 
       let geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -3552,23 +3859,341 @@ const MeshDrawer = (() => {
         outUvs2[j + 1] = uvs[i + 1];
       }
 
-      /* const name = 'thing' + (++numThings);
-      // console.time('lol');
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      // console.timeEnd('lol');
-      const srcTexture = imageData.data;
-      const dstTexture = geometryWorker.alloc(Uint8Array, srcTexture.length);
-      dstTexture.set(srcTexture);
-      geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, outUvs2.byteOffset, indices.byteOffset, positions.length, outUvs2.length, indices.length, dstTexture.byteOffset, trianglePhysicsGeometry)
-        .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(3, -7, 3), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)))
-        .then(() => {
-          console.log('thing added');
-        }, console.warn); */
-
       return result;
-    }
+    } */
   };
 })();
+const _makeTargetMesh = (() => {
+  const targetMeshGeometry = (() => {
+    const targetGeometry = BufferGeometryUtils.mergeBufferGeometries([
+      new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1, 0)),
+      new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))))
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, 0.1)),
+      new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(1, 0, 0))))
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(0.1, 0, 0)),
+    ]);
+    return BufferGeometryUtils.mergeBufferGeometries([
+      targetGeometry.clone()
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, 0.5, -0.5)),
+      targetGeometry.clone()
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0))))
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, -0.5, -0.5)),
+      targetGeometry.clone()
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0.5)),
+      targetGeometry.clone()
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, 0.5, -0.5)),
+      targetGeometry.clone()
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0.5)),
+      targetGeometry.clone()
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, -1, 0))))
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0.5)),
+      targetGeometry.clone()
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, -1, 0))))
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, -0.5, -0.5)),
+      targetGeometry.clone()
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0.5)),
+    ])// .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+  })();
+  const targetVsh = `
+    #define M_PI 3.1415926535897932384626433832795
+    uniform float uTime;
+    // varying vec2 vUv;
+    void main() {
+      float f = 1.0 + pow(sin(uTime * M_PI), 0.5) * 0.2;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position * f, 1.);
+    }
+  `;
+  const targetFsh = `
+    uniform float uHighlight;
+    uniform float uTime;
+    void main() {
+      float f = max(1.0 - pow(uTime, 0.5), 0.1);
+      gl_FragColor = vec4(vec3(f * uHighlight), 1.0);
+    }
+  `;
+  return p => {
+    const geometry = targetMeshGeometry;
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        uHighlight: {
+          type: 'f',
+          value: 0,
+        },
+        uTime: {
+          type: 'f',
+          value: 0,
+        },
+      },
+      vertexShader: targetVsh,
+      fragmentShader: targetFsh,
+      // transparent: true,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    return mesh;
+  };
+})();
+const _getRigTransforms = () => ([
+  {
+    position: rigManager.localRig.inputs.leftGamepad.position,
+    quaternion: rigManager.localRig.inputs.leftGamepad.quaternion,
+  },
+  {
+    position: rigManager.localRig.inputs.rightGamepad.position,
+    quaternion: rigManager.localRig.inputs.rightGamepad.quaternion,
+  },
+]);
+const _otherSideIndex = i => i === 1 ? 0 : 1;
+class MeshComposer {
+  constructor() {
+    this.material = new THREE.ShaderMaterial({
+      uniforms: THREE.UniformsUtils.clone(THING_SHADER.uniforms),
+      vertexShader: THING_SHADER.vertexShader,
+      fragmentShader: THING_SHADER.fragmentShader,
+      side: THREE.DoubleSide,
+      transparent: true,
+    });
+    this.meshes = [];
+    this.placeMeshes = [null, null];
+    this.hoveredMeshes = [null, null];
+    this.targetMeshes = [_makeTargetMesh(), _makeTargetMesh()];
+    for (const targetMesh of this.targetMeshes) {
+      targetMesh.visible = false;
+      scene.add(targetMesh);
+    }
+
+    this.placeMeshStates = [null, null];
+    this.scaleState = null;
+  }
+  getPlaceMesh(index) {
+    return this.placeMeshes[index];
+  }
+  setPlaceMesh(index, mesh) {
+    scene.add(mesh);
+    this.meshes.push(mesh);
+    this.placeMeshes[index] = mesh;
+    
+    const transforms = _getRigTransforms();
+    this.placeMeshStates[index] = {
+      startPosition: transforms[index].position.clone(),
+      startQuaternion: transforms[index].quaternion.clone(),
+      containerStartMatrix: new THREE.Matrix4().compose(transforms[index].position, transforms[index].quaternion, new THREE.Vector3(1, 1, 1)),
+    };
+  }
+  addMesh(mesh) {
+    this.meshes.push(mesh);
+    scene.add(mesh);
+  }
+  isLatched(mesh) {
+    return this.placeMeshes.includes(mesh); 
+  }
+  isPinching() {
+    return this.placeMeshes[0] !== null && this.placeMeshes[0] === this.placeMeshes[1];
+  }
+  trigger(index) {
+    this.placeMeshes[index] = null;
+    this.placeMeshStates[index] = null;
+  }
+  grab(index) {
+    const mesh = this.hoveredMeshes[index];
+    if (mesh) {
+      const transforms = _getRigTransforms();
+
+      this.placeMeshes[index] = mesh;
+      this.placeMeshStates[index] = {
+        startPosition: transforms[index].position.clone(),
+        startQuaternion: transforms[index].quaternion.clone(),
+        containerStartMatrix: mesh.matrix.clone(),
+      };
+
+      if (this.isPinching()) {
+        this.scaleState = {
+          container: mesh,
+          startPosition: transforms[0].position.clone()
+            .add(transforms[1].position)
+            .divideScalar(2),
+          startDirection: transforms[0].position.clone()
+            .sub(transforms[1].position)
+            .normalize(),
+          startWorldWidth: transforms[0].position
+            .distanceTo(transforms[1].position),
+          containerStartPosition: mesh.position.clone(),
+          containerStartQuaternion: mesh.quaternion.clone(),
+          containerStartScale: mesh.scale.clone(),
+          containerStartMatrix: mesh.matrix.clone(),
+        };
+      }
+    }
+  }
+  ungrab(index) {
+    if (this.isPinching()) {
+      const transforms = _getRigTransforms();
+      const otherSideIndex = _otherSideIndex(index);
+      this.placeMeshStates[otherSideIndex] = {
+        startPosition: transforms[otherSideIndex].position.clone(),
+        startQuaternion: transforms[otherSideIndex].quaternion.clone(),
+        containerStartMatrix: this.placeMeshes[otherSideIndex].matrix.clone(),
+      };
+    }
+    this.placeMeshes[index] = null;
+    this.placeMeshStates[index] = null;
+    this.scaleState = null;
+  }
+  update() {
+    const transforms = _getRigTransforms();
+    this.hoveredMeshes = transforms.map((transform, index) => {
+      const {position, quaternion} = transform;
+      localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1));
+
+      let closestMesh = null;
+      let closestMeshDistance = Infinity;
+      for (const mesh of this.meshes) {
+        localMatrix2.copy(localMatrix)
+          .premultiply(localMatrix3.getInverse(mesh.matrixWorld))
+          .decompose(localVector, localQuaternion, localVector2);
+
+        if (mesh.geometry.boundingBox.containsPoint(localVector)) {
+          const distance = localVector.distanceTo(position);
+          if (distance < closestMeshDistance) {
+            closestMesh = mesh;
+            closestMeshDistance = distance;
+          }
+        }
+      }
+      return closestMesh;
+    });
+    if (this.isPinching()) { // pinch
+      const {scaleState} = this;
+      const {container} = scaleState;
+      const startPosition = scaleState.startPosition.clone()
+        // .applyMatrix4(new THREE.Matrix4().getInverse(scaleState.containerStartMatrix));
+      const currentPosition = transforms[0].position.clone()
+        .add(transforms[1].position)
+        .divideScalar(2)
+        // .applyMatrix4(new THREE.Matrix4().getInverse(scaleState.containerStartMatrix));
+      const currentDirection = transforms[0].position.clone()
+        .sub(transforms[1].position)
+        .normalize();
+      const currentWorldWidth = transforms[0].position
+        .distanceTo(transforms[1].position);
+      const currentEuler = new THREE.Euler().setFromQuaternion(new THREE.Quaternion().setFromUnitVectors(scaleState.startDirection, currentDirection), 'YXZ');
+      currentEuler.x = 0;
+      currentEuler.z = 0;
+      const currentQuaternion = new THREE.Quaternion().setFromEuler(currentEuler);
+      const scaleFactor = currentWorldWidth/scaleState.startWorldWidth;
+      const positionDiff = currentPosition.clone().sub(startPosition);
+
+      container.matrix
+        .copy(scaleState.containerStartMatrix)
+        .premultiply(localMatrix.makeTranslation(-scaleState.containerStartPosition.x, -scaleState.containerStartPosition.y, -scaleState.containerStartPosition.z))
+        .premultiply(localMatrix.makeScale(scaleFactor, scaleFactor, scaleFactor))
+        .premultiply(localMatrix.makeRotationFromQuaternion(currentQuaternion))
+        .premultiply(localMatrix.makeTranslation(scaleState.containerStartPosition.x, scaleState.containerStartPosition.y, scaleState.containerStartPosition.z))
+        .premultiply(localMatrix.makeTranslation(positionDiff.x, positionDiff.y, positionDiff.z))
+        .decompose(container.position, container.quaternion, container.scale);
+    } else { // move
+      for (let i = 0; i < transforms.length; i++) {
+        if (this.placeMeshes[i]) {
+          const transform = transforms[i];
+          const {position, quaternion} = transform;
+          const {startPosition, startQuaternion, containerStartMatrix} = this.placeMeshStates[i];
+
+          this.placeMeshes[i].matrix.copy(containerStartMatrix)
+            .premultiply(localMatrix.makeTranslation(-startPosition.x, -startPosition.y, -startPosition.z))
+            .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion.copy(startQuaternion).inverse()))
+            .premultiply(localMatrix.makeRotationFromQuaternion(quaternion))
+            .premultiply(localMatrix.makeTranslation(position.x, position.y, position.z))
+            .decompose(this.placeMeshes[i].position, this.placeMeshes[i].quaternion, this.placeMeshes[i].scale);
+        }
+      }
+    }
+    for (let i = 0; i < transforms.length; i++) {
+      this.targetMeshes[i].visible = false;
+
+      if (this.hoveredMeshes[i]) {
+        this.targetMeshes[i].position.copy(this.hoveredMeshes[i].position)
+          .add(
+            this.hoveredMeshes[i].geometry.boundingBox.getCenter(new THREE.Vector3())
+              .multiply(this.hoveredMeshes[i].scale)
+              .applyQuaternion(this.hoveredMeshes[i].quaternion)
+          );
+        this.targetMeshes[i].quaternion.copy(this.hoveredMeshes[i].quaternion);
+        this.hoveredMeshes[i].geometry.boundingBox.getSize(this.targetMeshes[i].scale)
+          .multiply(this.hoveredMeshes[i].scale);
+        this.targetMeshes[i].visible = true;
+      }
+    }
+  }
+  intersect(raycaster) {
+    let closestMesh = null;
+    let closestMeshDistance = Infinity;
+    for (const mesh of this.meshes) {
+      localMatrix.compose(
+        raycaster.ray.origin,
+        localQuaternion.setFromUnitVectors(
+          localVector2.set(0, 0, -1),
+          raycaster.ray.direction
+        ),
+        localVector2.set(1, 1, 1)
+      )
+        .premultiply(localMatrix2.getInverse(mesh.matrixWorld))
+        .decompose(localVector, localQuaternion, localVector2);
+      localRaycaster.ray.origin.copy(localVector);
+      localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
+      if (mesh.geometry.boundingBox) {
+        const point = localRaycaster.ray.intersectBox(mesh.geometry.boundingBox, localVector);
+        if (point) {
+          point.applyMatrix4(mesh.matrixWorld);
+          return {
+            object: mesh,
+            point: point.clone(),
+            anchor: null,
+            uv: new THREE.Vector2(),
+          };
+        }
+      }
+    }
+    return null;
+  }
+  commit() {
+    const {meshes} = this;
+    const geometries = [];
+    const textures = [];
+    for (const mesh of this.meshes) {
+      geometries.push(mesh.geometry);
+      if (mesh.material.uniforms.map.value) {
+        textures.push(mesh.material.uniforms.map.value);
+      } else {
+        textures.push(null);
+      }
+    }
+
+    const mesh = _mergeMeshes(meshes, geometries, textures);
+    scene.add(mesh);
+
+    for (const mesh of this.meshes) {
+      scene.remove(mesh);
+    }
+    this.meshes.length = 0;
+  }
+  cancel() {
+    for (const mesh of this.meshes) {
+      scene.remove(mesh);
+    }
+    this.meshes.length = 0;
+  }
+}
+const meshComposer = new MeshComposer();
 (() => {
   const effectController = {
     turbidity: 2,
@@ -3943,6 +4568,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const _updateCurrentPosition = position => {
     currentPosition.copy(position)
       .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
+    // `.log('current position', currentPosition.x);
   };
   /* const _updatePackages = () => {
     const packagesNeedUpdate = false;
@@ -4130,7 +4756,7 @@ for (let i = 0; i < 30; i++) {
   }
 } */
 
-let buildMode = null;
+let buildMode = 'wall';
 let plansMesh = null;
 let pencilMesh = null;
 let pickaxeMesh = null;
@@ -4208,7 +4834,7 @@ for (const handMesh of handMeshes) {
   scene.add(handMesh);
 }
 
-function parseQuery(queryString) {
+/* function parseQuery(queryString) {
   var query = {};
   var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
   for (var i = 0; i < pairs.length; i++) {
@@ -4216,86 +4842,7 @@ function parseQuery(queryString) {
     query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
   }
   return query;
-}
-
-const targetMeshGeometry = (() => {
-  const targetGeometry = BufferGeometryUtils.mergeBufferGeometries([
-    new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1, 0)),
-    new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1))))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, 0.1)),
-    new THREE.BoxBufferGeometry(0.03, 0.2, 0.03)
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), new THREE.Vector3(1, 0, 0))))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0.1, 0, 0)),
-  ]);
-  return BufferGeometryUtils.mergeBufferGeometries([
-    targetGeometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, 0.5, -0.5)),
-    targetGeometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0))))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, -0.5, -0.5)),
-    targetGeometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0.5)),
-    targetGeometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, 0.5, -0.5)),
-    targetGeometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0.5)),
-    targetGeometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1))))
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, -1, 0))))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0.5)),
-    targetGeometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))))
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, -1, 0))))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, -0.5, -0.5)),
-    targetGeometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(-1, 1, 0).normalize(), new THREE.Vector3(1, -1, 0).normalize())))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0.5)),
-  ]);// .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
-})();
-const targetVsh = `
-  #define M_PI 3.1415926535897932384626433832795
-  uniform float uTime;
-  // varying vec2 vUv;
-  void main() {
-    float f = 1.0 + pow(sin(uTime * M_PI), 0.5) * 0.2;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position * f, 1.);
-  }
-`;
-const targetFsh = `
-  uniform float uHighlight;
-  uniform float uTime;
-  void main() {
-    float f = max(1.0 - pow(uTime, 0.5), 0.1);
-    gl_FragColor = vec4(vec3(f * uHighlight), 1.0);
-  }
-`;
-const _makeTargetMesh = p => {
-  const geometry = targetMeshGeometry;
-  const material = new THREE.ShaderMaterial({
-    uniforms: {
-      uHighlight: {
-        type: 'f',
-        value: 0,
-      },
-      uTime: {
-        type: 'f',
-        value: 0,
-      },
-    },
-    vertexShader: targetVsh,
-    fragmentShader: targetFsh,
-    // transparent: true,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.frustumCulled = false;
-  return mesh;
-};
+} */
 
 const lineMeshes = [
   makeLineMesh(),
@@ -4564,8 +5111,270 @@ const hpMesh = (() => {
 })();
 scene.add(hpMesh);
 
-const uiMesh = makeUiFullMesh(scene);
-scene.add(uiMesh);
+const cubeMesh = makeCubeMesh();
+scene.add(cubeMesh);
+
+const rayMesh = makeRayMesh();
+rayMesh.visible = false;
+scene.add(rayMesh);
+
+/* const uiMesh = makeUiFullMesh(cubeMesh);
+scene.add(uiMesh); */
+
+const thingsMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
+  await loadPromise;
+  thingsMesh.queue.clearQueue();
+  await thingsMesh.queue.lock();
+
+  if (!thingsMesh.inventoryContentsMesh) {
+    thingsMesh.inventoryContentsMesh = _makeInventoryContentsMesh();
+    thingsMesh.inventoryContentsMesh.position.set(-0.1/2, 0, 0);
+    thingsMesh.inventoryContentsMesh.frustumCulled = false;
+    thingsMesh.add(thingsMesh.inventoryContentsMesh);
+  }
+
+  const geometryKeys = await geometryWorker.requestGetGeometryKeys(geometrySet);
+  const geometryRequests = [];
+
+  const h = 0.1;
+  const arrowW = h/10;
+  const wrapInnerW = h - 2*arrowW;
+  const w = wrapInnerW/3;
+
+  // console.log('scroll', scrollFactor, geometryKeys.length, Math.floor(scrollFactor*geometryKeys.length), Math.floor(scrollFactor*geometryKeys.length/3)*3);
+  const startIndex = Math.floor(scrollFactor*(geometryKeys.length-9)/3)*3;
+  let i = 0;
+  const currentGeometryKeys = [];
+  for (let dy = 0; dy < 3; dy++) {
+    for (let dx = 0; dx < 3; dx++) {
+      const srcIndex = startIndex + i;
+      if (srcIndex < geometryKeys.length) {
+        const name = geometryKeys[srcIndex];
+        geometryRequests.push({
+          name,
+          position: new THREE.Vector3(-h/2 + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/2),
+          quaternion: new THREE.Quaternion(),
+          scale: new THREE.Vector3(w, w, w),
+        });
+        currentGeometryKeys.push(name);
+        i++;
+      }
+    }
+  }
+  const newGeometry = await geometryWorker.requestGetGeometries(geometrySet, geometryRequests);
+  thingsMesh.inventoryContentsMesh.geometry.setAttribute('position', newGeometry.attributes.position);
+  thingsMesh.inventoryContentsMesh.geometry.setAttribute('uv', newGeometry.attributes.uv);
+  thingsMesh.inventoryContentsMesh.geometry.setIndex(newGeometry.index);
+
+  thingsMesh.geometryKeys = geometryKeys;
+  thingsMesh.currentGeometryKeys = currentGeometryKeys;
+
+  thingsMesh.queue.unlock();
+});
+thingsMesh.visible = false;
+thingsMesh.geometryKeys = null;
+thingsMesh.currentGeometryKeys = null;
+thingsMesh.inventoryContentsMesh = null;
+thingsMesh.queue = new WaitQueue();
+thingsMesh.handleIconClick = (i, srcIndex) => {
+  if (srcIndex < thingsMesh.currentGeometryKeys.length) {
+    const geometryKey = thingsMesh.currentGeometryKeys[srcIndex];
+    (async () => {
+      const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
+      const material = currentVegetationMesh.material[0];
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.frustumCulled = false;
+      meshComposer.setPlaceMesh(i, mesh);
+    })();
+  }
+};
+scene.add(thingsMesh);
+
+const shapesMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
+  await loadPromise;
+
+  if (!shapesMesh.inventoryShapesMesh) {
+    shapesMesh.inventoryShapesMesh = _makeInventoryShapesMesh();
+    shapesMesh.inventoryShapesMesh.frustumCulled = false;
+    shapesMesh.add(shapesMesh.inventoryShapesMesh);
+  }
+});
+shapesMesh.visible = false;
+shapesMesh.handleIconClick = (i, srcIndex) => {
+  // console.log('handle shapes click', srcIndex);
+  if (srcIndex < shapesMesh.inventoryShapesMesh.geometries.length) {
+    const geometry = shapesMesh.inventoryShapesMesh.geometries[srcIndex];
+    const material = shapesMesh.inventoryShapesMesh.material;
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    meshComposer.setPlaceMesh(i, mesh);
+
+    /* (async () => {
+      const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
+      const material = currentVegetationMesh.material[0];
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.frustumCulled = false;
+      meshComposer.setPlaceMesh(i, mesh);
+    })(); */
+  }
+};
+scene.add(shapesMesh);
+
+const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
+  await loadPromise;
+
+  /* if (!inventoryMesh.inventoryShapesMesh) {
+    inventoryMesh.inventoryShapesMesh = _makeInventoryShapesMesh();
+    inventoryMesh.inventoryShapesMesh.frustumCulled = false;
+    inventoryMesh.add(inventoryMesh.inventoryShapesMesh);
+  } */
+});
+inventoryMesh.visible = false;
+inventoryMesh.handleIconClick = (i, srcIndex) => {
+  console.log('handle inventory click', srcIndex);
+  /* if (srcIndex < inventoryMesh.currentGeometryKeys.length) {
+    const geometryKey = inventoryMesh.currentGeometryKeys[srcIndex];
+    (async () => {
+      const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
+      const material = currentVegetationMesh.material[0];
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.frustumCulled = false;
+      meshComposer.setPlaceMesh(i, mesh);
+    })();
+  } */
+};
+scene.add(inventoryMesh);
+
+const _makeInventoryContentsMesh = () => {
+  const geometry = new THREE.BufferGeometry();
+  const material = currentVegetationMesh.material[0];
+  const mesh = new THREE.Mesh(geometry, material);
+  return mesh;
+};
+const _makeInventoryShapesMesh = () => {
+  const color1 = new THREE.Color().setStyle('#' + colors[0]);
+  const color2 = new THREE.Color().setStyle('#' + colors[1]);
+
+  const boxMesh = new THREE.BoxBufferGeometry()
+  const coneMesh = new THREE.ConeBufferGeometry();
+  const cylinderMesh = new THREE.CylinderBufferGeometry();
+  const dodecahedronMesh = new THREE.DodecahedronBufferGeometry();
+  const icosahedronMesh = new THREE.IcosahedronBufferGeometry();
+  const octahedronMesh = new THREE.OctahedronBufferGeometry();
+  const sphereMesh = new THREE.SphereBufferGeometry();
+  const tetrahedronMesh = new THREE.TetrahedronBufferGeometry();
+  const torusMesh = new THREE.TorusBufferGeometry();
+  const geometries = [
+    boxMesh,
+    coneMesh,
+    cylinderMesh,
+    dodecahedronMesh,
+    icosahedronMesh,
+    octahedronMesh,
+    sphereMesh,
+    tetrahedronMesh,
+    torusMesh,
+  ];
+  const scaleMatrix = new THREE.Matrix4().makeScale(0.1, 0.1, 0.1);
+  for (const geometry of geometries) {
+    geometry.applyMatrix4(scaleMatrix);
+    geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
+
+    const colors = new Float32Array(geometry.attributes.position.array.length);
+    for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+      const y = geometry.attributes.uv.array[i+1];
+      localColor.copy(color1).lerp(color2, y)
+        .toArray(colors, i/2*3);
+      geometry.attributes.uv.array[i] = -1;
+      geometry.attributes.uv.array[i+1] = -1;
+    }
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  }
+
+  const h = 0.1;
+  const arrowW = h/10;
+  const wrapInnerW = h - 2*arrowW;
+  const w = wrapInnerW/3;
+
+  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries.map((geometry, i) => {
+    const dx = i%3;
+    const dy = (i-dx)/3;
+    const g = geometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(w*2, w*2, w*2))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4));
+    if (!g.index) {
+      const indices = new Uint16Array(g.attributes.position.array.length/3);
+      for (let i = 0; i < indices.length; i++) {
+        indices[i] = i;
+      }
+      g.setIndex(new THREE.BufferAttribute(indices, 1));
+    }
+    return g;
+  }));
+  const mesh = new THREE.Mesh(geometry, meshComposer.material);
+  mesh.geometries = geometries;
+  mesh.setColors = selectedColors => {
+    color1.value.setStyle('#' + colors[selectedColors[0]]);
+    color2.value.setStyle('#' + colors[selectedColors[1]]);
+  };
+  return mesh;
+};
+
+let selectedColors;
+const colorsMesh = makeColorsMesh(cubeMesh, colors, newSelectedColors => {
+  selectedColors = newSelectedColors;
+  shapesMesh.inventoryShapesMesh.setColors(selectedColors);
+  meshDrawer.setColors(selectedColors);
+});
+colorsMesh.visible = false;
+scene.add(colorsMesh);
+
+const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
+  // console.log('got run', anchorSpec);
+}, function onadd(anchorSpec) {
+  // console.log('got add', anchorSpec);
+   meshComposer.commit();
+}, function onremove(anchorSpec) {
+  // console.log('got remove', anchorSpec);
+  meshComposer.cancel();
+}, function onclose() {
+  detailsMesh.visible = false;
+});
+detailsMesh.visible = false;
+scene.add(detailsMesh);
+
+const menuMeshes = [thingsMesh, shapesMesh, inventoryMesh, colorsMesh];
+const uiMeshes = menuMeshes.concat([detailsMesh]);
+
+let selectedWeapon = 'hand';
+let lastSelectedWeapon = selectedWeapon;
+let currentWeaponDown = false;
+let lastWeaponDown = false;
+let currentWeaponGrabs = [false, false];
+let lastWeaponGrabs = [false, false];
+const weapons = Array.from(document.querySelectorAll('.weapon'));
+for (let i = 0; i < weapons.length; i++) {
+  const weapon = document.getElementById('weapon-' + (i + 1));
+  weapon.addEventListener('click', e => {
+    for (let i = 0; i < weapons.length; i++) {
+      weapons[i].classList.remove('selected');
+    }
+    weapon.classList.add('selected');
+
+    selectedWeapon = weapon.getAttribute('weapon');
+  });
+}
+const toolsMesh = makeToolsMesh(weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
+  selectedWeapon = newSelectedWeapon;
+});
+toolsMesh.visible = false;
+scene.add(toolsMesh);
+
+renderer.domElement.addEventListener('dblclick', e => {
+  if (!document.pointerLockElement) {
+    tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+  }
+});
 
 const numSmokes = 10;
 const numZs = 10;
@@ -4711,7 +5520,151 @@ let explosionMeshes = [];
 
 let pxMeshes = [];
 
-const _applyAvatarPhysics = (avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
+const _makeAtlas = (size, images) => {
+  let atlasCanvas;
+  const rects = [];
+  {
+    for (let scale = 1; scale > 0; scale *= 0.5) {
+      atlasCanvas = document.createElement('canvas');
+      atlasCanvas.width = size;
+      atlasCanvas.height = size;
+      const atlas = atlaspack(atlasCanvas);
+      rects.length = 0;
+
+      let fit = true;
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+
+        if (image) {
+          const w = image.width * scale;
+          const h = image.height * scale;
+          const resizeCanvas = document.createElement('canvas');
+          resizeCanvas.width = w;
+          resizeCanvas.height = h;
+          const resizeCtx = resizeCanvas.getContext('2d');
+          resizeCtx.drawImage(image, 0, 0, w, h);
+
+          const rect = atlas.pack(resizeCanvas);
+          if (rect) {
+            rects.push(rect.rect);
+          } else {
+            fit = false;
+            break;
+          }
+        } else {
+          rects.push(null);
+        }
+      }
+      if (fit) {
+        break;
+      }
+    }
+  }
+  return {
+    atlasCanvas,
+    rects,
+  };
+};
+const _mergeMeshes = (meshes, geometries, textures) => {
+  const size = 512;
+  const images = textures.map(texture => texture && texture.image);
+  const {atlasCanvas, rects} = _makeAtlas(size, images);
+
+  const geometry = new THREE.BufferGeometry();
+  {
+    let numPositions = 0;
+    let numIndices = 0;
+    for (const geometry of geometries) {
+      numPositions += geometry.attributes.position.array.length;
+      numIndices += geometry.index.array.length;
+    }
+
+    const positions = new Float32Array(numPositions);
+    const uvs = new Float32Array(numPositions / 3 * 2);
+    const colors = new Float32Array(numPositions);
+    const indices = new Uint32Array(numIndices);
+    let positionIndex = 0;
+    let uvIndex = 0;
+    let colorIndex = 0;
+    let indicesIndex = 0;
+    for (let i = 0; i < meshes.length; i++) {
+      const mesh = meshes[i];
+      const geometry = geometries[i];
+      const rect = rects[i];
+
+      geometry.applyMatrix4(mesh.matrixWorld);
+
+      const indexOffset = positionIndex / 3;
+      if (geometry.index) {
+        for (let i = 0; i < geometry.index.array.length; i++) {
+          indices[indicesIndex++] = geometry.index.array[i] + indexOffset;
+        }
+      } else {
+        for (let i = 0; i < geometry.attributes.position.array.length / 3; i++) {
+          indices[indicesIndex++] = i + indexOffset;
+        }
+      }
+
+      positions.set(geometry.attributes.position.array, positionIndex);
+      positionIndex += geometry.attributes.position.array.length;
+      if (geometry.attributes.uv) {
+        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+          if (rect) {
+            uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
+            uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
+          } else {
+            uvs[uvIndex + i] = geometry.attributes.uv.array[i];
+            uvs[uvIndex + i + 1] = geometry.attributes.uv.array[i + 1];
+          }
+        }
+      } else {
+        uvs.fill(0, uvIndex, geometry.attributes.position.array.length / 3 * 2);
+      }
+      uvIndex += geometry.attributes.position.array.length / 3 * 2;
+      if (geometry.attributes.color) {
+        colors.set(geometry.attributes.color.array, colorIndex);
+      } else {
+        colors.fill(1, colorIndex, geometry.attributes.position.array.length);
+      }
+      colorIndex += geometry.attributes.position.array.length;
+    }
+    if (textures.some(texture => !!texture)) {
+      colors.fill(1);
+    }
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+  }
+  geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
+
+  const texture = new THREE.Texture(atlasCanvas);
+  texture.flipY = false;
+  texture.needsUpdate = true;
+  const material = meshComposer.material.clone();
+  material.uniforms.map.value = texture;
+  material.uniforms.map.needsUpdate = true;
+
+  const mesh = new THREE.Mesh(geometry, material);
+  return mesh;
+};
+
+const _applyGravity = timeDiff => {
+  localVector.set(0, -9.8, 0);
+  localVector.multiplyScalar(timeDiff);
+  velocity.add(localVector);
+
+  const terminalVelocity = 50;
+  const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
+  velocity.x = _clampToTerminalVelocity(velocity.x * 0.7);
+  velocity.z = _clampToTerminalVelocity(velocity.z * 0.7);
+  velocity.y = _clampToTerminalVelocity(velocity.y);
+};
+const _jump = () => {
+  jumpState = true;
+  velocity.y += 5;
+};
+const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
   const oldVelocity = localVector3.copy(velocity);
 
   _applyVelocity(camera.position, velocity, timeDiff);
@@ -4780,8 +5733,14 @@ const _collideItems = matrix => {
   hpMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
   hpMesh.quaternion.slerp(localQuaternion2, 0.1);
 
-  uiMesh.position.copy(localVector3).add(localVector5.set(-0.3, -0.1, -0.5).applyQuaternion(localQuaternion2));
-  uiMesh.quaternion.copy(localQuaternion2);
+  // uiMesh.position.copy(localVector3).add(localVector5.set(-0.3, -0.1, -0.5).applyQuaternion(localQuaternion2));
+  // uiMesh.quaternion.copy(localQuaternion2);
+
+  // toolsMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, -0.25, -0.5).applyQuaternion(localQuaternion2)), 0.1);
+  // toolsMesh.quaternion.slerp(localQuaternion2, 0.1);
+
+  // inventoryMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0, -0.2).applyQuaternion(localQuaternion2)), 0.1);
+  // inventoryMesh.quaternion.slerp(localQuaternion2, 0.1);
 
   localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
   for (let i = 0; i < itemMeshes.length; i++) {
@@ -4789,7 +5748,7 @@ const _collideItems = matrix => {
     if (itemMesh.getWorldPosition(localVector5).distanceTo(localVector4) < 1) {
       itemMesh.pickUp();
     }
-    itemMesh.update(localVector5.copy(localVector3).applyMatrix4(localMatrix2.getInverse(currentChunkMesh.matrixWorld)));
+    itemMesh.update(localVector3);
   }
 
   for (const animal of animals) {
@@ -4803,7 +5762,7 @@ const _collideChunk = matrix => {
   currentChunkMesh && currentChunkMesh.update(localVector3);
 };
 
-const cubeMesh = (() => {
+/* const cubeMesh = (() => {
   const geometry = new THREE.BoxBufferGeometry(0.02, 0.02, 0.02);
   const material = new THREE.MeshBasicMaterial({
     color: 0x00FF00,
@@ -4811,20 +5770,24 @@ const cubeMesh = (() => {
   return new THREE.Mesh(geometry, material);
 })();
 cubeMesh.frustumCulled = false;
-scene.add(cubeMesh);
+scene.add(cubeMesh); */
 
 const velocity = new THREE.Vector3();
 // const lastGrabs = [false, false];
-const lastAxes = [[0, 0], [0, 0]];
+const lastAxes = [[0, 0, 0, 0], [0, 0, 0, 0]];
+const lastButtons = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]];
 let currentTeleport = false;
 let lastTeleport = false;
+let currentSelector = false;
+let lastSelector = false;
 const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 // let lastParcel  = new THREE.Vector3(0, 0, 0);
 let raycastChunkSpec = null;
 const startTime = Date.now();
 function animate(timestamp, frame) {
-  const timeDiff = 30 / 1000;// Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+  timestamp = timestamp || performance.now();
+  const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
 
   const now = Date.now();
@@ -4870,11 +5833,11 @@ function animate(timestamp, frame) {
   }
   skybox2 && skybox2.update();
   crosshairMesh && crosshairMesh.update();
-  uiMesh && uiMesh.update();
-
+  // uiMesh && uiMesh.update();
+  
+  const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
   if (currentSession) {
-    const xrCamera = renderer.xr.getCamera(camera);
-    
+    let walked = false;
     const inputSources = Array.from(currentSession.inputSources);
     for (let i = 0; i < inputSources.length; i++) {
       const inputSource = inputSources[i];
@@ -4883,7 +5846,6 @@ function animate(timestamp, frame) {
         const index = handedness === 'right' ? 1 : 0;
 
         // buttons
-        const {buttons} = gamepad;
         /* const grab = buttons[1].pressed;
         const lastGrab = lastGrabs[index];
         if (!lastGrab && grab) { // grip
@@ -4894,66 +5856,143 @@ function animate(timestamp, frame) {
         lastGrabs[index] = grab; */
 
         // axes
-        const {axes: axesSrc} = gamepad;
+        const {axes: axesSrc, buttons: buttonsSrc} = gamepad;
         const axes = [
           axesSrc[0] || 0,
           axesSrc[1] || 0,
           axesSrc[2] || 0,
           axesSrc[3] || 0,
         ];
+        const buttons = [
+          buttonsSrc[0] ? buttonsSrc[0].value : 0,
+          buttonsSrc[1] ? buttonsSrc[1].value : 0,
+          buttonsSrc[2] ? buttonsSrc[2].value : 0,
+          buttonsSrc[3] ? buttonsSrc[3].value : 0,
+          buttonsSrc[4] ? buttonsSrc[4].value : 0,
+          buttonsSrc[5] ? buttonsSrc[4].value : 0,
+        ];
         if (handedness === 'left') {
-          localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.z = 0;
-          localVector3.set(-(axes[0] + axes[2]), 0, -(axes[1] + axes[3]))
-            .applyEuler(localEuler)
-            .multiplyScalar(0.03);
+          const dx = axes[0] + axes[2];
+          const dy = axes[1] + axes[3];
+          if (Math.abs(dx) >= 0.01 || Math.abs(dx) >= 0.01) {
+            localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
+            localEuler.x = 0;
+            localEuler.z = 0;
+            localVector3.set(dx, 0, dy)
+              .applyEuler(localEuler)
+              .multiplyScalar(0.05);
 
-          localMatrix
-            .copy(chunkMeshContainer.matrix)
-            // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
-            .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
-            // .premultiply(localMatrix2.getInverse(localMatrix2))
-            .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
+            dolly.matrix
+              // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
+              .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
+              // .premultiply(localMatrix2.getInverse(localMatrix2))
+              .decompose(dolly.position, dolly.quaternion, dolly.scale);
+            walked = true;
+          }
+          
+          currentWeaponGrabs[1] = buttons[1] > 0.5;
         } else if (handedness === 'right') {
           const _applyRotation = r => {
-            localMatrix
-              .copy(chunkMeshContainer.matrix)
+            dolly.matrix
               .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
               .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
               .premultiply(localMatrix2.getInverse(localMatrix2))
-              .decompose(chunkMeshContainer.position, chunkMeshContainer.quaternion, chunkMeshContainer.scale);
+              .decompose(dolly.position, dolly.quaternion, dolly.scale);
           };
           if (
-            (axes[0] < -0.5 && !(lastAxes[index][0] < -0.5)) ||
-            (axes[2] < -0.5 && !(lastAxes[index][2] < -0.5))
-          ) {
-            _applyRotation(-Math.PI * 0.2);
-          } else if (
-            (axes[0] > 0.5 && !(lastAxes[index][0] > 0.5)) ||
-            (axes[2] > 0.5 && !(lastAxes[index][2] > 0.5))
+            (axes[0] < -0.75 && !(lastAxes[index][0] < -0.75)) ||
+            (axes[2] < -0.75 && !(lastAxes[index][2] < -0.75))
           ) {
             _applyRotation(Math.PI * 0.2);
+          } else if (
+            (axes[0] > 0.75 && !(lastAxes[index][0] > 0.75)) ||
+            (axes[2] > 0.75 && !(lastAxes[index][2] > 0.75))
+          ) {
+            _applyRotation(-Math.PI * 0.2);
           }
-          lastTeleport = (axes[1] < -0.5 || axes[3] < -0.5);
+          currentTeleport = (axes[1] < -0.75 || axes[3] < -0.75);
+          currentSelector = (axes[1] > 0.75 || axes[3] > 0.75);
+
+          currentWeaponDown = buttons[0] > 0.5;
+          currentWeaponGrabs[0] = buttons[1] > 0.5;
+
+          if (
+            buttons[2] >= 0.5 && lastButtons[index][2] < 0.5 &&
+            !(Math.abs(axes[0]) > 0.5 || Math.abs(axes[1]) > 0.5 || Math.abs(axes[2]) > 0.5 || Math.abs(axes[3]) > 0.5) &&
+            !jumpState
+          ) {
+            _jump();
+          }
         }
+
         lastAxes[index][0] = axes[0];
         lastAxes[index][1] = axes[1];
         lastAxes[index][2] = axes[2];
         lastAxes[index][3] = axes[3];
+        
+        lastButtons[index][0] = buttons[0];
+        lastButtons[index][1] = buttons[1];
+        lastButtons[index][2] = buttons[2];
+        lastButtons[index][3] = buttons[3];
+        lastButtons[index][4] = buttons[4];
       }
     }
     
-    const leftInputSource = inputSources.find(inputSource => inputSource.handedness === 'left');
+    if (currentSelector) {
+      const rightInputSource = inputSources.find(inputSource => inputSource.handedness === 'right');
+      const pose = rightInputSource && frame.getPose(rightInputSource.targetRaySpace, renderer.xr.getReferenceSpace());
+      if (pose) {
+        localMatrix2.fromArray(pose.transform.matrix)
+          .premultiply(dolly.matrix)
+          .decompose(localVector, localQuaternion, localVector2);
+        if (!lastSelector) {
+          toolsMesh.position.copy(localVector);
+          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          toolsMesh.quaternion.setFromEuler(localEuler);
+        }
+        toolsMesh.update(localVector);
+        toolsMesh.visible = true;
+      } else {
+        toolsMesh.visible = false;
+      }
+    } else {
+      toolsMesh.visible = false;
+    }
+    
+    _applyGravity(timeDiff);
+
+    if (walked || jumpState) {
+      localObject.matrix.copy(xrCamera.matrix)
+        .premultiply(dolly.matrix)
+        .decompose(localObject.position, localObject.quaternion, localObject.scale);
+      const originalPosition = localObject.position.clone();
+
+      _applyAvatarPhysics(localObject, null, false, false, false, timeDiff);
+
+      dolly.position.add(
+        localObject.position.clone().sub(originalPosition)
+      );
+    } else {
+      velocity.y = 0;
+      localMatrix.copy(xrCamera.matrix)
+        .premultiply(dolly.matrix);
+      _collideItems(localMatrix);
+      _collideChunk(localMatrix);
+      rigManager.setLocalRigMatrix(null);
+    }
+    /* const leftInputSource = inputSources.find(inputSource => inputSource.handedness === 'left');
     const pose = leftInputSource && frame.getPose(leftInputSource.targetRaySpace, renderer.xr.getReferenceSpace());
     if (pose) {
       localMatrix2.fromArray(pose.transform.matrix);
       _collideItems(localMatrix2);
     }
+    _collideChunk(xrCamera.matrix);
 
-    rigManager.setLocalRigMatrix(null);
+    rigManager.setLocalRigMatrix(null); */
   } else if (document.pointerLockElement) {
-    const speed = 30 * (keys.shift ? 3 : 1);
+    const speed = 100 * (keys.shift ? 3 : 1);
     const cameraEuler = camera.rotation.clone();
     cameraEuler.x = 0;
     cameraEuler.z = 0;
@@ -4973,24 +6012,19 @@ function animate(timestamp, frame) {
     if (localVector.length() > 0) {
       localVector.normalize().multiplyScalar(speed);
     }
-    localVector.y -= 9.8;
     localVector.multiplyScalar(timeDiff);
     velocity.add(localVector);
 
-    const terminalVelocity = 50;
-    const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
-    velocity.x = _clampToTerminalVelocity(velocity.x * 0.7);
-    velocity.z = _clampToTerminalVelocity(velocity.z * 0.7);
-    velocity.y = _clampToTerminalVelocity(velocity.y);
+    _applyGravity(timeDiff);
 
     if (selectedTool === 'firstperson') {
-      _applyAvatarPhysics(null, false, false, false, timeDiff);
+      _applyAvatarPhysics(camera, null, false, false, false, timeDiff);
     } else if (selectedTool === 'thirdperson') {
-      _applyAvatarPhysics(avatarCameraOffset, true, true, true, timeDiff);
+      _applyAvatarPhysics(camera, avatarCameraOffset, true, true, true, timeDiff);
     } else if (selectedTool === 'isometric') {
-      _applyAvatarPhysics(isometricCameraOffset, true, true, true, timeDiff);
+      _applyAvatarPhysics(camera, isometricCameraOffset, true, true, true, timeDiff);
     } else if (selectedTool === 'birdseye') {
-      _applyAvatarPhysics(new THREE.Vector3(0, -birdsEyeHeight + _getAvatarHeight(), 0), false, true, true, timeDiff);
+      _applyAvatarPhysics(camera, new THREE.Vector3(0, -birdsEyeHeight + _getAvatarHeight(), 0), false, true, true, timeDiff);
     } else {
       _collideItems(camera.matrix);
       _collideChunk(camera.matrix);
@@ -5030,6 +6064,7 @@ function animate(timestamp, frame) {
       let pose;
       if (inputSources[0] && (pose = frame.getPose(inputSources[0].targetRaySpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
+          .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
         leftGamepadPosition = localVector2.toArray();
         leftGamepadQuaternion = localQuaternion2.toArray();
@@ -5038,6 +6073,7 @@ function animate(timestamp, frame) {
       }
       if (inputSources[1] && (pose = frame.getPose(inputSources[1].targetRaySpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
+          .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
         rightGamepadPosition = localVector2.toArray();
         rightGamepadQuaternion = localQuaternion2.toArray();
@@ -5180,139 +6216,176 @@ function animate(timestamp, frame) {
   };
   _updateRig();
 
+  const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
+
   const _updateTools = () => {
-    orbitControls.enabled = selectedTool === 'camera' && !['pencil', 'paintbrush', 'physics'].includes(selectedWeapon);
+    orbitControls.enabled = selectedTool === 'camera' && !['pencil', 'paintbrush'].includes(selectedWeapon);
 
-    if (currentChunkMesh && geometryWorker) {
-      const result = geometryWorker.raycast(tracker, localVector, localQuaternion);
-      raycastChunkSpec = result;
-      if (raycastChunkSpec) {
-        raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
-        raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
-        raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
-        raycastChunkSpec.objectQuaternion = new THREE.Quaternion().fromArray(raycastChunkSpec.objectQuaternion);
-        cubeMesh.position.copy(raycastChunkSpec.point);
-      }
+    for (let i = 0; i < 2; i++) {
+      anchorSpecs[i] = null;
     }
+    raycastChunkSpec = null;
+    rayMesh.visible = false;
 
-    [assaultRifleMesh, grenadeMesh, crosshairMesh, plansMesh, pencilMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
-      if (weaponMesh) {
-        weaponMesh.visible = false;
-      }
-    });
-    const selectedWeaponModel = (() => {
-      switch (selectedWeapon) {
-        case 'rifle': {
-          return {
-            weapon: assaultRifleMesh,
-            crosshair: crosshairMesh,
-          };
+    const _raycastWeapon = () => {
+      if (['things', 'shapes', 'inventory', 'colors', 'select'].includes(selectedWeapon)) {
+        const [{position, quaternion}] = _getRigTransforms();
+        raycaster.ray.origin.copy(position);
+        raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
+        anchorSpecs[0] = intersectUi(raycaster, uiMeshes) || meshComposer.intersect(raycaster);
+
+        if (anchorSpecs[0]) {
+          rayMesh.position.copy(position);
+          rayMesh.quaternion.copy(quaternion);
+          rayMesh.scale.set(1, 1, position.distanceTo(anchorSpecs[0].point));
+          rayMesh.visible = true;
         }
-        case 'grenade': {
-          return {
-            weapon: grenadeMesh,
-            crosshair: crosshairMesh,
-          };
+      }
+      if (!anchorSpecs[0]) {
+        const result = geometryWorker.raycast(tracker, rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion);
+        raycastChunkSpec = result;
+        if (raycastChunkSpec) {
+          raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
+          raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
+          raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
+          raycastChunkSpec.objectQuaternion = new THREE.Quaternion().fromArray(raycastChunkSpec.objectQuaternion);
+          cubeMesh.position.copy(raycastChunkSpec.point);
+        }
+      }
+    };
+    _raycastWeapon();
+
+    const _selectWeapon = () => {
+      [assaultRifleMesh, grenadeMesh, crosshairMesh, plansMesh, pencilMesh, pickaxeMesh, paintBrushMesh].forEach(weaponMesh => {
+        if (weaponMesh) {
+          weaponMesh.visible = false;
+        }
+      });
+      const selectedWeaponModel = (() => {
+        switch (selectedWeapon) {
+          case 'rifle': {
+            return {
+              weapon: assaultRifleMesh,
+              crosshair: crosshairMesh,
+            };
+          }
+          case 'grenade': {
+            return {
+              weapon: grenadeMesh,
+              crosshair: crosshairMesh,
+            };
+          }
+          case 'pickaxe': {
+            return pickaxeMesh;
+          }
+          case 'shovel': {
+            return pickaxeMesh;
+          }
+          case 'build': {
+            return [plansMesh, pencilMesh];
+          }
+          case 'things': {
+            return pencilMesh;
+          }
+          case 'shapes': {
+            return pencilMesh;
+          }
+          case 'light': {
+            return paintBrushMesh;
+          }
+          case 'pencil': {
+            return pencilMesh;
+          }
+          case 'paintbrush': {
+            return paintBrushMesh;
+          }
+          case 'select': {
+            return pencilMesh;
+          }
+          case 'physics': {
+            return pencilMesh;
+          }
+          default: {
+            return null;
+          }
+        }
+      })();
+      if (selectedWeaponModel) {
+        if (!selectedWeaponModel.isMesh) {
+          if (Array.isArray(selectedWeaponModel)) {
+            // const pose2 = frame.getPose(session.inputSources[0].targetRaySpace, referenceSpace);
+            // localMatrix.fromArray(pose.transform.matrix)
+            // .decompose(localVector3, localQuaternion2, localVector4);
+
+            selectedWeaponModel.forEach((weaponMesh, i) => {
+              if (weaponMesh) {
+                if (i === 0) {
+                  weaponMesh.position.copy(rightGamepad.position);
+                  weaponMesh.quaternion.copy(rightGamepad.quaternion);
+                  weaponMesh.visible = true;
+                } else if (i === 1) {
+                  weaponMesh.position.copy(leftGamepad.position);
+                  weaponMesh.quaternion.copy(leftGamepad.quaternion);
+                  weaponMesh.visible = true;
+                }
+              }
+            });
+          } else {
+            const {weapon, crosshair} = selectedWeaponModel;
+            if (weapon) {
+              weapon.position.copy(rightGamepad.position);
+              weapon.quaternion.copy(rightGamepad.quaternion);
+              weapon.visible = true;
+            }
+            if (crosshair) {
+              crosshair.visible = true;
+            }
+          }
+        } else {
+          selectedWeaponModel.position.copy(rightGamepad.position);
+          selectedWeaponModel.quaternion.copy(rightGamepad.quaternion);
+          selectedWeaponModel.visible = true;
+        }
+      }
+      addMesh.visible = false;
+      removeMesh.visible = false;
+      switch (selectedWeapon) {
+        case 'rifle':
+        case 'grenade':
+        {
+          if (crosshairMesh) {
+            crosshairMesh.position.copy(rightGamepad.position)
+              .add(localVector2.set(0, 0, -500).applyQuaternion(rightGamepad.quaternion));
+            crosshairMesh.quaternion.copy(rightGamepad.quaternion);
+            crosshairMesh.visible = true;
+          }
+          break;
+        }
+        case 'pickaxe':
+        case 'shovel': {
+          if (raycastChunkSpec) {
+            removeMesh.position.copy(raycastChunkSpec.point);
+            removeMesh.quaternion.setFromUnitVectors(localVector2.set(0, 1, 0), raycastChunkSpec.normal);
+            removeMesh.visible = true;
+          }
+          break;
         }
         case 'build': {
-          return [plansMesh, pencilMesh];
-        }
-        case 'pickaxe': {
-          return pickaxeMesh;
-        }
-        case 'light': {
-          return paintBrushMesh;
-        }
-        case 'pencil': {
-          return pencilMesh;
-        }
-        case 'paintbrush': {
-          return paintBrushMesh;
-        }
-        case 'select': {
-          return pencilMesh;
-        }
-        case 'physics': {
-          return pencilMesh;
-        }
-        default: {
-          return null;
+          addMesh.position.copy(rightGamepad.position)
+            .add(localVector2.set(0, 0, -2).applyQuaternion(rightGamepad.quaternion));
+          addMesh.quaternion.copy(rightGamepad.quaternion);
+          addMesh.visible = true;
+          break;
         }
       }
-    })();
-    const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
-    if (selectedWeaponModel) {
-      if (!selectedWeaponModel.isMesh) {
-        if (Array.isArray(selectedWeaponModel)) {
-          // const pose2 = frame.getPose(session.inputSources[0].targetRaySpace, referenceSpace);
-          // localMatrix.fromArray(pose.transform.matrix)
-          // .decompose(localVector3, localQuaternion2, localVector4);
+    };
+    _selectWeapon();
 
-          selectedWeaponModel.forEach((weaponMesh, i) => {
-            if (weaponMesh) {
-              if (i === 0) {
-                weaponMesh.position.copy(rightGamepad.position);
-                weaponMesh.quaternion.copy(rightGamepad.quaternion);
-                weaponMesh.visible = true;
-              } else if (i === 1) {
-                weaponMesh.position.copy(leftGamepad.position);
-                weaponMesh.quaternion.copy(leftGamepad.quaternion);
-                weaponMesh.visible = true;
-              }
-            }
-          });
-        } else {
-          const {weapon, crosshair} = selectedWeaponModel;
-          if (weapon) {
-            weapon.position.copy(rightGamepad.position);
-            weapon.quaternion.copy(rightGamepad.quaternion);
-            weapon.visible = true;
-          }
-          if (crosshair) {
-            crosshair.visible = true;
-          }
-        }
-      } else {
-        selectedWeaponModel.position.copy(rightGamepad.position);
-        selectedWeaponModel.quaternion.copy(rightGamepad.quaternion);
-        selectedWeaponModel.visible = true;
-      }
-    }
-    addMesh.visible = false;
-    removeMesh.visible = false;
-    switch (selectedWeapon) {
-      case 'rifle':
-      case 'grenade':
-      {
-        if (crosshairMesh) {
-          crosshairMesh.position.copy(rightGamepad.position)
-            .add(localVector2.set(0, 0, -500).applyQuaternion(rightGamepad.quaternion));
-          crosshairMesh.quaternion.copy(rightGamepad.quaternion);
-          crosshairMesh.visible = true;
-        }
-        break;
-      }
-      case 'build': {
-        addMesh.position.copy(rightGamepad.position)
-          .add(localVector2.set(0, 0, -2).applyQuaternion(rightGamepad.quaternion));
-        addMesh.quaternion.copy(rightGamepad.quaternion);
-        addMesh.visible = true;
-        break;
-      }
-      case 'pickaxe': {
-        if (raycastChunkSpec) {
-          removeMesh.position.copy(raycastChunkSpec.point);
-          removeMesh.quaternion.setFromUnitVectors(localVector2.set(0, 1, 0), raycastChunkSpec.normal);
-          removeMesh.visible = true;
-        }
-        break;
-      }
-    }
-    if (wallMesh && currentChunkMesh) {
+    const _handleBuild = () => {
       [wallMesh, platformMesh, stairsMesh].forEach(buildMesh => {
         buildMesh.parent && buildMesh.parent.remove(buildMesh);
       });
-      if (buildMode) {
+      if (selectedWeapon === 'build') {
         const buildMesh = (() => {
           switch (buildMode) {
             case 'wall': return wallMesh;
@@ -5381,9 +6454,44 @@ function animate(timestamp, frame) {
 
         currentChunkMesh.add(buildMesh);
       }
-    }
-    if (currentWeaponDown && !lastWeaponDown && currentChunkMesh) {
-      if (!buildMode) {
+    };
+    _handleBuild();
+
+    const _handleDown = () => {
+      if (currentWeaponDown && !lastWeaponDown) { // XXX make this dual handed
+        // place
+        for (let i = 0; i < 2; i++) {
+          const placeMesh = meshComposer.getPlaceMesh(i);
+          if (placeMesh) {
+            meshComposer.trigger(i);
+            return;
+          }
+        }
+        // build
+        if (selectedWeapon === 'build') {
+          const buildMesh = (() => {
+            switch (buildMode) {
+              case 'wall': return wallMesh;
+              case 'floor': return platformMesh;
+              case 'stair': return stairsMesh;
+              default: return null;
+            }
+          })();
+          const hasBuildMesh = (() => {
+            for (const index in currentChunkMesh.vegetationMeshes) {
+              const subparcelBuildMeshesSpec = currentChunkMesh.vegetationMeshes[index];
+              if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
+                return true;
+              }
+            }
+            return false;
+          })();
+          if (!hasBuildMesh) {
+            geometryWorker.requestAddObject(tracker, geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
+          }
+          return;
+        }
+        // else
         const _applyLightfieldDelta = async (position, delta) => {
           localVector2.copy(position)
             .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
@@ -5394,18 +6502,20 @@ function animate(timestamp, frame) {
           const mineSpecs = _applyMineSpec(localVector2, delta, 'lightfield', SUBPARCEL_SIZE_P1, planet.getFieldIndex, delta);
           await _mine(mineSpecs, null);
         };
-        const _hit = () => {
+        const _applyHit = delta => {
           if (raycastChunkSpec) {
             if (raycastChunkSpec.objectId === 0) {
               localVector2.copy(raycastChunkSpec.point)
                 .applyMatrix4(localMatrix.getInverse(currentChunkMesh.matrixWorld));
 
-              geometryWorker.requestMine(tracker, localVector2, -0.3);
+              geometryWorker.requestMine(tracker, localVector2, delta);
             } else {
               currentVegetationMesh.hitTracker.hit(raycastChunkSpec.objectId, raycastChunkSpec.objectPosition, raycastChunkSpec.objectQuaternion, 30);
             }
           }
         };
+        const _hit = () => _applyHit(-0.3);
+        const _unhit = () => _applyHit(0.3);
         const _light = () => {
           if (raycastChunkSpec) {
             localVector2.copy(raycastChunkSpec.point)
@@ -5434,6 +6544,35 @@ function animate(timestamp, frame) {
         };
         const _damage = dmg => {
           hpMesh.damage(dmg);
+        };
+        const _openDetailsMesh = (point, mesh) => {
+          detailsMesh.position.copy(point);
+          localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
+            new THREE.Vector3(0, 0, -1),
+            detailsMesh.position.clone().sub(xrCamera.position).normalize()
+          ), 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          detailsMesh.quaternion.setFromEuler(localEuler);
+          detailsMesh.visible = true;
+        };
+        const _triggerAnchor = mesh => {
+          for (let i = 0; i < 2; i++) {
+            const anchorSpec = anchorSpecs[i];
+            if (anchorSpec) {
+              let match;
+              if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) { // menu icon
+                const srcIndex = parseInt(match[1], 10);
+                mesh.handleIconClick(i, srcIndex);
+              } else {
+                if (anchorSpec.object.click) { // menu non-icon
+                  anchorSpec.object.click(anchorSpec);
+                } else { // non-menu
+                  _openDetailsMesh(anchorSpec.point, anchorSpec.object);
+                }
+              }
+            }
+          }
         };
         switch (selectedWeapon) {
           case 'rifle': {
@@ -5475,61 +6614,63 @@ function animate(timestamp, frame) {
             }
             break;
           }
-          case 'build': {
-            if (addMesh.visible) {
-              _applyPotentialDelta(addMesh.position, 0.3);
-            }
-            break;
-          }
           case 'pickaxe': {
             _hit();
             break;
           }
+          case 'shovel': {
+            _unhit();
+            break;
+          }
           case 'light': {
             _light();
+            break;
           }
-        }
-      } else {
-        const buildMesh = (() => {
-          switch (buildMode) {
-            case 'wall': return wallMesh;
-            case 'floor': return platformMesh;
-            case 'stair': return stairsMesh;
-            default: return null;
+          case 'things': {
+            _triggerAnchor(thingsMesh);
+            break;
           }
-        })();
-        const hasBuildMesh = (() => {
-          for (const index in currentChunkMesh.vegetationMeshes) {
-            const subparcelBuildMeshesSpec = currentChunkMesh.vegetationMeshes[index];
-            if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
-              return true;
+          case 'shapes': {
+            _triggerAnchor(shapesMesh);
+            break;
+          }
+          case 'inventory': {
+            _triggerAnchor(inventoryMesh);
+            break;
+          }
+          case 'colors': {
+            _triggerAnchor(colorsMesh);
+            break;
+          }
+          case 'select': {
+            _triggerAnchor();
+            if (!anchorSpecs[0] && raycastChunkSpec) {
+              if (raycastChunkSpec.objectId !== 0) {
+                _openDetailsMesh(raycastChunkSpec.point, raycastChunkSpec.mesh);
+              }
             }
+            break;
           }
-          return false;
-        })();
-        if (!hasBuildMesh) {
-          geometryWorker.requestAddObject(tracker, geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
         }
       }
-    }
-    // mesh drawer
-    if (currentWeaponDown && currentChunkMesh) {
-      if (!buildMode) {
+      if (currentWeaponDown) {
         switch (selectedWeapon) {
           case 'pencil': {
-            if (document.pointerLockElement) {
+            if (currentSession) {
+              localVector2.copy(leftGamepad.position);
+              localQuaternion2.copy(leftGamepad.quaternion);
+            } else {
               localVector2.copy(pencilMesh.position)
                 .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
-            } else {
-              localVector2.copy(raycaster.ray.origin)
-                .add(localVector3.copy(raycaster.ray.direction).multiplyScalar(0.5));
             }
-            localVector2.applyMatrix4(localMatrix2.getInverse(meshDrawer.mesh.parent.matrixWorld));
+            localMatrix2.compose(localVector2, localQuaternion2, localVector3.set(1, 1, 1))
+              .premultiply(localMatrix3.getInverse(meshDrawer.mesh.parent.matrixWorld))
+              .decompose(localVector2, localQuaternion2, localVector3);
 
             if (!lastWeaponDown) {
-              meshDrawer.start(localVector2);
+              meshDrawer.start(localVector2, localQuaternion2, 0.1);
             }
-            meshDrawer.update(localVector2);
+            meshDrawer.update(localVector2, localQuaternion2, 0.1);
             break;
           }
           case 'paintbrush': {
@@ -5565,40 +6706,27 @@ function animate(timestamp, frame) {
             }
             break;
           }
-          case 'select': {
-            if (raycastChunkSpec) {
-              if (raycastChunkSpec.objectId !== 0) {
-                const thingFile = thingFiles[raycastChunkSpec.objectId];
-                if (thingFile) {
-                  rigManager.setLocalAvatarUrl(thingFile, () => {
-                    console.log('local rig update');
-                  }, console.warn);
-                }
-              }
-            }
-            break;
-          }
           case 'physics': {
             console.log('click physics 1');
             break;
           }
         }
       }
-    }
-    if (lastWeaponDown && !currentWeaponDown && currentChunkMesh) {
-      if (!buildMode) {
+      if (lastWeaponDown && !currentWeaponDown) {
         switch (selectedWeapon) {
           case 'pencil': {
-            if (document.pointerLockElement) {
+            if (currentSession) {
+              localVector2.copy(leftGamepad.position);
+              localQuaternion2.copy(leftGamepad.quaternion);
+            } else {
               localVector2.copy(pencilMesh.position)
                 .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
-            } else {
-              localVector2.copy(raycaster.ray.origin)
-                .add(localVector3.copy(raycaster.ray.direction).multiplyScalar(0.5));
             }
-            localVector2.applyMatrix4(localMatrix2.getInverse(meshDrawer.mesh.parent.matrixWorld));
+            localMatrix2.compose(localVector2, localQuaternion2, localVector3.set(1, 1, 1))
+              .premultiply(localMatrix3.getInverse(meshDrawer.mesh.parent.matrixWorld))
+              .decompose(localVector2, localQuaternion2, localVector3);
 
-            meshDrawer.end(localVector2);
+            meshDrawer.end(localVector2, localQuaternion2, 0.1);
             break;
           }
           case 'paintbrush': {
@@ -5611,23 +6739,37 @@ function animate(timestamp, frame) {
           }
         }
       }
-    }
-    if (!buildMode) {
+    };
+    _handleDown();
+
+    const _handleGrab = () => {
+      for (let i = 0; i < 2; i++) {
+        if (currentWeaponGrabs[i] && !lastWeaponGrabs[i]) {
+          meshComposer.grab(i);
+        }
+        if (!currentWeaponGrabs[i] && lastWeaponGrabs[i]) {
+          meshComposer.ungrab(i);
+        }
+      }
+    };
+    _handleGrab();
+
+    // select
+    const _handleSelect = () => {
+      for (const material of currentChunkMesh.material) {
+        material.uniforms.uSelectRange.value.set(NaN, NaN, NaN, NaN);
+        material.uniforms.uSelectRange.needsUpdate = true;
+      }
+      currentVegetationMesh.material[0].uniforms.uSelectId.value = -1;
+      currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+      currentThingMesh.material[0].uniforms.uSelectId.value = -1;
+      currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+      /* for (const drawThingMesh of meshDrawer.thingMeshes) {
+        drawThingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
+        drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
+      } */
       switch (selectedWeapon) {
         case 'select': {
-          for (const material of currentChunkMesh.material) {
-            material.uniforms.uSelectRange.value.set(NaN, NaN, NaN, NaN);
-            material.uniforms.uSelectRange.needsUpdate = true;
-          }
-          currentVegetationMesh.material[0].uniforms.uSelectId.value = -1;
-          currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-          currentThingMesh.material[0].uniforms.uSelectId.value = -1;
-          currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-          for (const drawThingMesh of meshDrawer.thingMeshes) {
-            drawThingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
-            drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
-          }
-
           if (raycastChunkSpec) {
             if (raycastChunkSpec.objectId === 0) {
               for (const material of currentChunkMesh.material) {
@@ -5644,18 +6786,55 @@ function animate(timestamp, frame) {
               currentThingMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
               currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
 
-              const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
+              /* const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
               if (index !== -1) {
                 const drawThingMesh = meshDrawer.thingMeshes[index];
                 drawThingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
                 drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
-              }
+              } */
             }
           }
           break;
         }
       }
-    }
+    };
+    _handleSelect();
+    
+    const _handleMenu = () => {
+      for (const menuMesh of menuMeshes) {
+        menuMesh.visible = false;
+      }
+
+      const selectedMenuMesh = (() => {
+        switch (selectedWeapon) {
+          case 'things': return thingsMesh;
+          case 'shapes': return shapesMesh;
+          case 'inventory': return inventoryMesh;
+          case 'colors': return colorsMesh;
+          default: return null;
+        }
+      })();
+
+      if (currentSession) {
+        if (selectedMenuMesh) {
+          selectedMenuMesh.position.copy(leftGamepad.position);
+          selectedMenuMesh.quaternion.copy(leftGamepad.quaternion);
+          selectedMenuMesh.scale.setScalar(1, 1, 1);
+          selectedMenuMesh.visible = true;
+        }
+      } else {
+        if (selectedMenuMesh && menuExpanded) {
+          if (!lastMenuExpanded || selectedWeapon !== lastSelectedWeapon) {
+            localMatrix.copy(rigManager.localRigMatrixEnabled ? rigManager.localRigMatrix : camera.matrixWorld)
+              .multiply(localMatrix2.makeTranslation(0, 0, -3))
+              .decompose(selectedMenuMesh.position, selectedMenuMesh.quaternion, selectedMenuMesh.scale);
+            selectedMenuMesh.scale.setScalar(20);
+          }
+          selectedMenuMesh.visible = true;
+        }
+      }
+    };
+    _handleMenu();
 
     /* const currentParcel = _getCurrentParcel(localVector);
     if (!currentParcel.equals(lastParcel)) {
@@ -5671,42 +6850,55 @@ function animate(timestamp, frame) {
       lastParcel = currentParcel;
     } */
 
-    const _teleportTo = (position, quaternion) => {
-      // console.log(position, quaternion, pose, avatar)
-      localMatrix.fromArray(rigManager.localRig.model.matrix)
-        .decompose(localVector2, localQuaternion2, localVector3);
+    const _handleTeleport = () => {
+      const _teleportTo = (position, quaternion) => {
+        // console.log(position, quaternion, pose, avatar)
+        /* localMatrix.fromArray(rigManager.localRig.model.matrix)
+          .decompose(localVector2, localQuaternion2, localVector3); */
 
-      worldContainer.matrix
-        .premultiply(localMatrix.makeTranslation(-position.x, -position.y, -position.z))
-        .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-        .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-        .premultiply(localMatrix.makeTranslation(0, -_getMinHeight(), 0))
-        .decompose(worldContainer.position, worldContainer.quaternion, worldContainer.scale);
+        if (currentSession) {
+          localMatrix.copy(xrCamera.matrix)
+            .premultiply(dolly.matrix)
+            .decompose(localVector2, localQuaternion2, localVector3);
+          dolly.matrix
+            .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
+            // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+            // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+            .premultiply(localMatrix.makeTranslation(0, _getFullAvatarHeight(), 0))
+            .decompose(dolly.position, dolly.quaternion, dolly.scale);
+        } else {
+          camera.matrix
+            .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
+            // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+            // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+            .premultiply(localMatrix.makeTranslation(0, _getFullAvatarHeight(), 0))
+            .decompose(camera.position, camera.quaternion, camera.scale);
+        }
 
-      velocity.set(0, 0, 0);
+        velocity.set(0, 0, 0);
+      };
+
+      /* if (currentTeleport && raycastChunkSpec) {
+        if (raycastChunkSpec.point) {
+          teleportMeshes[1].position.copy(raycastChunkSpec.point);
+          teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), raycastChunkSpec.normal);
+          teleportMeshes[1].visible = true;
+          teleportMeshes[1].lineMesh.visible = false;
+        }
+      } else if (lastTeleport && !currentTeleport && raycastChunkSpec) {
+        teleportMeshes[1].visible = false;
+        _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
+      } else { */
+        teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, currentTeleport, (p, q) => geometryWorker.raycast(tracker, p, q), (position, quaternion) => {
+          _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
+        });
+      // }
     };
-
-    const currentTeleportChunkMesh = raycastChunkSpec && raycastChunkSpec.mesh;
-    if (currentTeleport && currentTeleportChunkMesh) {
-      if (raycastChunkSpec.point) {
-        teleportMeshes[1].position.copy(raycastChunkSpec.point);
-        teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), raycastChunkSpec.normal);
-        teleportMeshes[1].visible = true;
-        teleportMeshes[1].lineMesh.visible = false;
-      }
-    } else if (lastTeleport && !currentTeleport && currentTeleportChunkMesh) {
-      teleportMeshes[1].visible = false;
-      _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
-      if (currentTeleportChunkMesh.isChunkMesh) {
-        currentChunkMesh = currentTeleportChunkMesh;
-      }
-    } else {
-      teleportMeshes[1].update(localVector, localQuaternion, currentTeleport, (position, quaternion) => {
-        _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
-      });
-    }
+    _handleTeleport();
   };
-  _updateTools();
+  if (currentChunkMesh && wallMesh) {
+    _updateTools();
+  }
 
   const _updateHands = () => {
     const session = renderer.xr.getSession();
@@ -5788,7 +6980,15 @@ function animate(timestamp, frame) {
     });
   }
   lastTeleport = currentTeleport;
+  lastSelector = currentSelector;
+  lastSelectedWeapon = selectedWeapon;
   lastWeaponDown = currentWeaponDown;
+  lastMenuExpanded = menuExpanded;
+  for (let i = 0; i < 2; i++) {
+    lastWeaponGrabs[i] = currentWeaponGrabs[i];
+  }
+
+  meshComposer.update();
 
   if (selectedTool === 'firstperson') {
     rigManager.localRig.decapitate();
@@ -5796,20 +6996,17 @@ function animate(timestamp, frame) {
     rigManager.localRig.undecapitate();
   }
 
-  geometryWorker && geometryWorker.update();
+  geometryWorker.update();
   planet.update();
 
-  localMatrix.multiplyMatrices(camera.projectionMatrix, localMatrix2.multiplyMatrices(camera.matrixWorldInverse, worldContainer.matrixWorld));
+  localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, worldContainer.matrixWorld));
   if (currentChunkMesh && currentVegetationMesh) {
-    if (!currentSession) {
-      localMatrix3.copy(camera.matrixWorld)
-    } else {
-      const xrCamera = renderer.xr.getCamera(camera);
-      localMatrix3.copy(xrCamera.matrix)
-    }
-    localMatrix3
+    localMatrix3.copy(xrCamera.matrix)
+      .premultiply(dolly.matrix)
       .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
       .decompose(localVector, localQuaternion, localVector2);
+    // localVector.x += Math.sin(Date.now()/1000)*15;
+    // console.log('cull x', Math.floor(localVector.x/10));
 
     const [landGroups, vegetationGroups, thingGroups] = geometryWorker.tickCull(tracker, localVector, localMatrix);
     currentChunkMesh.geometry.groups = landGroups;
@@ -5828,8 +7025,7 @@ renderer.setAnimationLoop(animate);
 // renderer.xr.setSession(proxySession);
 
 const thingFiles = {};
-bindUploadFileButton(document.getElementById('load-package-input'), async file => {
-  const {default: atlaspack} = await import('./atlaspack.js');
+const _uploadGltf = async file => {
   const u = URL.createObjectURL(file);
   let o;
   let arrayBuffer;
@@ -5861,128 +7057,16 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
       }
     }
   });
-  const rects = [];
 
-  const size = 512;
-  let atlasCanvas;
-  let atlas;
-  {
-    for (let scale = 1; scale > 0; scale *= 0.5) {
-      atlasCanvas = document.createElement('canvas');
-      atlasCanvas.width = size;
-      atlasCanvas.height = size;
-      atlas = atlaspack(atlasCanvas);
-      rects.length = 0;
-
-      let fit = true;
-      for (let i = 0; i < textures.length; i++) {
-        const texture = textures[i];
-        const {image} = texture;
-
-        const w = image.width * scale;
-        const h = image.height * scale;
-        const resizeCanvas = document.createElement('canvas');
-        resizeCanvas.width = w;
-        resizeCanvas.height = h;
-        const resizeCtx = resizeCanvas.getContext('2d');
-        resizeCtx.drawImage(image, 0, 0, w, h);
-
-        const rect = atlas.pack(resizeCanvas);
-        if (rect) {
-          rects.push(rect.rect);
-        } else {
-          fit = false;
-          break;
-        }
-      }
-      if (fit) {
-        break;
-      }
-    }
-  }
-
-  const geometry = new THREE.BufferGeometry();
-  {
-    let numPositions = 0;
-    let numIndices = 0;
-    for (const geometry of geometries) {
-      numPositions += geometry.attributes.position.array.length;
-      numIndices += geometry.index.array.length;
-    }
-
-    const positions = new Float32Array(numPositions);
-    const uvs = new Float32Array(numPositions / 3 * 2);
-    const colors = new Float32Array(numPositions);
-    const indices = new Uint32Array(numIndices);
-    let positionIndex = 0;
-    let uvIndex = 0;
-    let colorIndex = 0;
-    let indicesIndex = 0;
-    for (let i = 0; i < meshes.length; i++) {
-      const mesh = meshes[i];
-      const geometry = geometries[i];
-      const rect = rects[i];
-
-      geometry.applyMatrix4(mesh.matrixWorld);
-
-      const indexOffset = positionIndex / 3;
-      if (geometry.index) {
-        for (let i = 0; i < geometry.index.array.length; i++) {
-          indices[indicesIndex++] = geometry.index.array[i] + indexOffset;
-        }
-      } else {
-        for (let i = 0; i < geometry.attributes.position.array.length / 3; i++) {
-          indices[indicesIndex++] = i + indexOffset;
-        }
-      }
-
-      positions.set(geometry.attributes.position.array, positionIndex);
-      positionIndex += geometry.attributes.position.array.length;
-      if (geometry.attributes.uv) {
-        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-          if (rect) {
-            uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
-            uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
-          } else {
-            uvs[uvIndex + i] = geometry.attributes.uv.array[i];
-            uvs[uvIndex + i + 1] = geometry.attributes.uv.array[i + 1];
-          }
-        }
-      } else {
-        uvs.fill(0, uvIndex, geometry.attributes.position.array.length / 3 * 2);
-      }
-      uvIndex += geometry.attributes.position.array.length / 3 * 2;
-      if (geometry.attributes.color) {
-        colors.set(geometry.attributes.color.array, colorIndex);
-      } else {
-        colors.fill(1, colorIndex, geometry.attributes.position.array.length);
-      }
-      colorIndex += geometry.attributes.position.array.length;
-    }
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-  }
-
-  const texture = new THREE.Texture(atlasCanvas);
-  texture.flipY = false;
-  texture.needsUpdate = true;
-  const material = new THREE.MeshBasicMaterial({
-    map: texture,
-  });
-  // document.body.appendChild(atlasCanvas);
-  const meshMatrix = localMatrix
+  const mesh = _mergeMeshes(meshes, geometries, textures);
+  mesh.matrix
     .compose(localVector.copy(camera.position).add(localVector3.set(0, 0, -1).applyQuaternion(camera.quaternion)), camera.quaternion, localVector2.set(1, 1, 1))
-    .premultiply(localMatrix2.getInverse(chunkMeshContainer.matrixWorld))
-    .decompose(localVector, localQuaternion, localVector2);
-  /* const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.copy(camera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion));
-  mesh.quaternion.copy(camera.quaternion);
+    // .premultiply(localMatrix2.getInverse(chunkMeshContainer.matrixWorld))
+    .decompose(mesh.position, mesh.quaternion, mesh.scale);
   mesh.frustumCulled = false;
-  scene.add(mesh); */
+  meshComposer.addMesh(mesh);
 
-  {
+  /* {
     const positions = geometryWorker.alloc(Float32Array, geometry.attributes.position.array.length);
     positions.set(geometry.attributes.position.array);
     const uvs = geometryWorker.alloc(Float32Array, geometry.attributes.uv.array.length);
@@ -6005,15 +7089,111 @@ bindUploadFileButton(document.getElementById('load-package-input'), async file =
         const u = URL.createObjectURL(b);
         thingFiles[objectId] = u;
       }, console.warn);
-
-    // console.log('got o', o, geometry, textures, atlas, rects, imageData, texture);
+  } */
+};
+const _uploadImg = async file => {
+  const img = new Image();
+  await new Promise((accept, reject) => {
+    const u = URL.createObjectURL(file);
+    img.onload = () => {
+      accept();
+      _cleanup();
+    };
+    img.onerror = err => {
+      reject(err);
+      _cleanup();
+    }
+    const _cleanup = () => {
+      URL.revokeObjectURL(u);
+    };
+    img.src = u;
+  });
+  let {width, height} = img;
+  if (width >= height) {
+    height /= width;
+    width = 1;
   }
-});
+  if (height >= width) {
+    width /= height;
+    height = 1;
+  }
+  const geometry = new THREE.PlaneBufferGeometry(width, height);
+  geometry.boundingBox = new THREE.Box3(
+    new THREE.Vector3(-width/2, -height/2, -0.1),
+    new THREE.Vector3(width/2, height/2, 0.1),
+  );
+  const colors = new Float32Array(geometry.attributes.position.array.length);
+  colors.fill(1, 0, colors.length);
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const texture = new THREE.Texture(img);
+  texture.needsUpdate = true;
+  /* const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+  }); */
+  const material = meshComposer.material.clone();
+  material.uniforms.map.value = texture;
+  material.uniforms.map.needsUpdate = true;
+
+  const mesh = new THREE.Mesh(geometry, material);
+  const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
+  mesh.position.copy(xrCamera.position)
+    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
+  mesh.quaternion.copy(xrCamera.quaternion);
+  mesh.frustumCulled = false;
+  meshComposer.addMesh(mesh);
+};
+const _uploadScript = async file => {
+  const text = await new Promise((accept, reject) => {
+    const fr = new FileReader();
+    fr.onload = function() {
+      accept(this.result);
+    };
+    fr.onerror = reject;
+    fr.readAsText(file);
+  });
+  const mesh = makeIconMesh();
+  mesh.geometry.boundingBox = new THREE.Box3(
+    new THREE.Vector3(-1, -1/2, -0.1),
+    new THREE.Vector3(1, 1/2, 0.1),
+  );
+  const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
+  mesh.position.copy(xrCamera.position)
+    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
+  mesh.quaternion.copy(xrCamera.quaternion);
+  mesh.frustumCulled = false;
+  meshComposer.addMesh(mesh);
+  console.log('got text', mesh);
+  // eval(text);
+};
+const _handleFileUpload = async file => {
+  const match = file.name.match(/\.(.+)$/);
+  const ext = match[1];
+  switch (ext) {
+    case 'gltf':
+    case 'glb': {
+      await _uploadGltf(file);
+      break;
+    }
+    case 'png':
+    case 'gif':
+    case 'jpg': {
+      await _uploadImg(file);
+      break;
+    }
+    case 'js': {
+      await _uploadScript(file);
+      break;
+    }
+  }
+};
+bindUploadFileButton(document.getElementById('load-package-input'), _handleFileUpload);
 
 let selectedTool = 'camera';
 const _getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
 const _getAvatarHeight = () => _getFullAvatarHeight() * 0.9;
-const _getMinHeight = () => {
+/* const _getMinHeight = () => {
   if (rigManager.localRig) {
     const avatarHeight = rigManager.localRig ? _getAvatarHeight() : 1;
     const floorHeight = 0;
@@ -6022,21 +7202,53 @@ const _getMinHeight = () => {
   } else {
     return 1;
   }
-};
+}; */
 const birdsEyeHeight = 10;
 const avatarCameraOffset = new THREE.Vector3(0, 0, -1);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -5);
 const tools = Array.from(document.querySelectorAll('.tool'));
+const _requestPointerLock = () => new Promise((accept, reject) => {
+  if (!document.pointerLockElement) {
+    const _pointerlockchange = e => {
+      accept();
+      _cleanup();
+    };
+    document.addEventListener('pointerlockchange', _pointerlockchange);
+    const _pointerlockerror = err => {
+      reject(err);
+      _cleanup();
+    };
+    document.addEventListener('pointerlockerror', _pointerlockerror);
+    const _cleanup = () => {
+      document.removeEventListener('pointerlockchange', _pointerlockchange);
+      document.removeEventListener('pointerlockerror', _pointerlockerror);
+    };
+    renderer.domElement.requestPointerLock();
+  } else {
+    accept();
+  }
+});
+document.addEventListener('pointerlockchange', e => {
+  if (!document.pointerLockElement) {
+    tools.find(tool => tool.getAttribute('tool') === 'camera').click();
+    document.dispatchEvent(new MouseEvent('mouseup'));
+  }
+});
 for (let i = 0; i < tools.length; i++) {
   const tool = document.getElementById('tool-' + (i + 1));
-  tool.addEventListener('click', e => {
+  tool.addEventListener('click', async e => {
+    const newSelectedTool = tool.getAttribute('tool');
+    if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
+      await _requestPointerLock();
+    }
+
     for (let i = 0; i < tools.length; i++) {
       tools[i].classList.remove('selected');
     }
     tool.classList.add('selected');
 
     const oldSelectedTool = selectedTool;
-    selectedTool = tool.getAttribute('tool');
+    selectedTool = newSelectedTool;
 
     if (selectedTool !== oldSelectedTool) {
       // hoverTarget = null;
@@ -6072,17 +7284,10 @@ for (let i = 0; i < tools.length; i++) {
           velocity.set(0, 0, 0);
           break;
         }
-        case 'firstperson': {
-          document.dispatchEvent(new MouseEvent('mouseup'));
-          renderer.domElement.requestPointerLock();
-          break;
-        }
         case 'thirdperson': {
           camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
           camera.updateMatrixWorld();
 
-          document.dispatchEvent(new MouseEvent('mouseup'));
-          renderer.domElement.requestPointerLock();
           decapitate = false;
           break;
         }
@@ -6092,8 +7297,6 @@ for (let i = 0; i < tools.length; i++) {
           camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
           camera.updateMatrixWorld();
 
-          document.dispatchEvent(new MouseEvent('mouseup'));
-          renderer.domElement.requestPointerLock();
           decapitate = false;
           break;
         }
@@ -6103,8 +7306,6 @@ for (let i = 0; i < tools.length; i++) {
           camera.position.y -= -birdsEyeHeight + _getAvatarHeight();
           camera.updateMatrixWorld();
 
-          document.dispatchEvent(new MouseEvent('mouseup'));
-          renderer.domElement.requestPointerLock();
           decapitate = false;
           break;
         }
@@ -6119,27 +7320,6 @@ for (let i = 0; i < tools.length; i++) {
     }
   });
 }
-let selectedWeapon = 'hand';
-let currentWeaponDown = false;
-let lastWeaponDown = false;
-const weapons = Array.from(document.querySelectorAll('.weapon'));
-for (let i = 0; i < weapons.length; i++) {
-  const weapon = document.getElementById('weapon-' + (i + 1));
-  weapon.addEventListener('click', e => {
-    for (let i = 0; i < weapons.length; i++) {
-      weapons[i].classList.remove('selected');
-    }
-    weapon.classList.add('selected');
-
-    selectedWeapon = weapon.getAttribute('weapon');
-    buildMode = null;
-  });
-}
-document.addEventListener('pointerlockchange', e => {
-  if (!document.pointerLockElement) {
-    tools.find(tool => tool.matches('.tool[tool=camera]')).click();
-  }
-});
 
 const keys = {
   up: false,
@@ -6154,16 +7334,26 @@ const _resetKeys = () => {
   }
 };
 let jumpState = false;
+let menuExpanded = false;
+let lastMenuExpanded = false;
 window.addEventListener('keydown', e => {
   switch (e.which) {
-    case 49: // 1
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    {
-      tools[e.which - 49].click();
+    case 49: { // 1
+      let index = weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
+      index--;
+      if (index < 0) {
+        index = weapons.length - 1;
+      }
+      weapons[index].click();
+      break;
+    }
+    case 50: { // 2
+      let index = weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
+      index++;
+      if (index >= weapons.length) {
+        index = 0;
+      }
+      weapons[index].click();
       break;
     }
     case 87: { // W
@@ -6176,7 +7366,7 @@ window.addEventListener('keydown', e => {
     }
     case 65: { // A
       if (!document.pointerLockElement) {
-        uiMesh && uiMesh.rotate(-1);
+        // uiMesh && uiMesh.rotate(-1);
       } else {
         keys.left = true;
       }
@@ -6192,10 +7382,16 @@ window.addEventListener('keydown', e => {
     }
     case 68: { // D
       if (!document.pointerLockElement) {
-        uiMesh && uiMesh.rotate(1);
+        // uiMesh && uiMesh.rotate(1);
       } else {
         keys.right = true;
       }
+      break;
+    }
+    case 9: { // tab
+      e.preventDefault();
+      e.stopPropagation();
+      menuExpanded = !menuExpanded;
       break;
     }
     case 69: { // E
@@ -6220,6 +7416,33 @@ window.addEventListener('keydown', e => {
     }
     case 70: { // F
       // pe.grabdown('right');
+      if (document.pointerLockElement) {
+        currentWeaponGrabs[0] = true;
+      }
+      break;
+    }
+    case 86: { // V
+      e.preventDefault();
+      e.stopPropagation();
+      tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+      break;
+    }
+    case 66: { // B
+      e.preventDefault();
+      e.stopPropagation();
+      tools.find(tool => tool.getAttribute('tool') === 'thirdperson').click();
+      break;
+    }
+    case 78: { // N
+      e.preventDefault();
+      e.stopPropagation();
+      tools.find(tool => tool.getAttribute('tool') === 'isometric').click();
+      break;
+    }
+    case 77: { // M
+      e.preventDefault();
+      e.stopPropagation();
+      tools.find(tool => tool.getAttribute('tool') === 'birdseye').click();
       break;
     }
     case 16: { // shift
@@ -6231,17 +7454,16 @@ window.addEventListener('keydown', e => {
     case 32: { // space
       if (document.pointerLockElement) {
         if (!jumpState) {
-          jumpState = true;
-          velocity.y += 5;
+          _jump();
         }
       }
       break;
     }
     case 81: { // Q
-      if (selectedWeapon !== 'build') {
-        document.querySelector('.weapon[weapon="build"]').click();
-      } else {
+      if (selectedWeapon !== 'pickaxe') {
         document.querySelector('.weapon[weapon="pickaxe"]').click();
+      } else {
+        document.querySelector('.weapon[weapon="shovel"]').click();
       }
       break;
     }
@@ -6312,6 +7534,9 @@ window.addEventListener('keyup', e => {
     }
     case 70: { // F
       // pe.grabup('right');
+      if (document.pointerLockElement) {
+        currentWeaponGrabs[0] = false;
+      }
       break;
     }
     case 16: { // shift
@@ -6334,9 +7559,9 @@ window.addEventListener('mousedown', e => {
   }
 });
 window.addEventListener('mouseup', e => {
-  if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
+  /* if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
     // pe.grabtriggerup('right');
-  }
+  } */
   currentWeaponDown = false;
   currentTeleport = false;
 });
@@ -6419,14 +7644,12 @@ const _ensureLoadMesh = p => {
 };
 
 const raycaster = new THREE.Raycaster();
-const _updateRaycasterFromMouseEvent = (raycaster, e) => {
+let anchorSpecs = [null, null];
+/* const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(mouse, camera);
-  /* const candidateMeshes = pe.children
-    .map(p => p.volumeMesh)
-    .filter(o => !!o); */
-  uiMesh.intersect(raycaster);
-};
+  currentAnchor = inventoryMesh.intersect(raycaster) || detailsMesh.intersect(raycaster);
+}; */
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
   if (selectedTool === 'thirdperson') {
@@ -6456,19 +7679,22 @@ const _updateMouseMovement = e => {
 renderer.domElement.addEventListener('mousemove', e => {
   if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
     _updateMouseMovement(e);
-  } else if (selectedTool === 'camera') {
-    _updateRaycasterFromMouseEvent(raycaster, e);
-  } /* else if (selectedTool === 'select' && !getRealSession()) {
+  } /* else if (selectedTool === 'camera' && selectedWeapon === 'select') {
     _updateRaycasterFromMouseEvent(raycaster, e);
   } */
+});
+renderer.domElement.addEventListener('wheel', e => {
+  if (document.pointerLockElement) {
+    if (anchorSpecs[0] && [thingsMesh, inventoryMesh].includes(anchorSpecs[0].object)) {
+      anchorSpecs[0].object.scrollY(e.deltaY);
+    }
+    // console.log('got event', e.deltaX, e.deltaY, anchorSpec);
+  }
 });
 
-renderer.domElement.addEventListener('mousedown', e => {
-  /* if (!transformControlsHovered) {
-    _setSelectTarget(hoverTarget);
-  } */
+/* renderer.domElement.addEventListener('mousedown', e => {
   uiMesh.click();
-});
+}); */
 
 window.addEventListener('resize', e => {
   if (!currentSession) {
