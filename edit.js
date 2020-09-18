@@ -5167,6 +5167,7 @@ const menuMeshes = [thingsMesh, shapesMesh, inventoryMesh, colorsMesh];
 const uiMeshes = menuMeshes.concat([detailsMesh]);
 
 let selectedWeapon = 'hand';
+let lastSelectedWeapon = selectedWeapon;
 let currentWeaponDown = false;
 let lastWeaponDown = false;
 let currentWeaponGrabs = [false, false];
@@ -6503,7 +6504,7 @@ function animate(timestamp, frame) {
         }
       } else {
         if (selectedMenuMesh && menuExpanded) {
-          if (!lastMenuExpanded) {
+          if (!lastMenuExpanded || selectedWeapon !== lastSelectedWeapon) {
             localMatrix.copy(rigManager.localRigMatrixEnabled ? rigManager.localRigMatrix : camera.matrixWorld)
               .multiply(localMatrix2.makeTranslation(0, 0, -3))
               .decompose(selectedMenuMesh.position, selectedMenuMesh.quaternion, selectedMenuMesh.scale);
@@ -6660,6 +6661,7 @@ function animate(timestamp, frame) {
   }
   lastTeleport = currentTeleport;
   lastSelector = currentSelector;
+  lastSelectedWeapon = selectedWeapon;
   lastWeaponDown = currentWeaponDown;
   lastMenuExpanded = menuExpanded;
   for (let i = 0; i < 2; i++) {
