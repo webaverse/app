@@ -67,6 +67,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localFrustum = new THREE.Frustum();
+const localRaycaster = new THREE.Raycaster();
 const localColor = new THREE.Color();
 const localObject = new THREE.Object3D();
 
@@ -4131,6 +4132,37 @@ class MeshComposer {
       }
     }
   }
+  intersect(raycaster) {
+    let closestMesh = null;
+    let closestMeshDistance = Infinity;
+    for (const mesh of this.meshes) {
+      localMatrix.compose(
+        raycaster.ray.origin,
+        localQuaternion.setFromUnitVectors(
+          localVector2.set(0, 0, -1),
+          raycaster.ray.direction
+        ),
+        localVector2.set(1, 1, 1)
+      )
+        .premultiply(localMatrix2.getInverse(mesh.matrixWorld))
+        .decompose(localVector, localQuaternion, localVector2);
+      localRaycaster.ray.origin.copy(localVector);
+      localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
+      if (mesh.geometry.boundingBox) {
+        const point = localRaycaster.ray.intersectBox(mesh.geometry.boundingBox, localVector);
+        if (point) {
+          point.applyMatrix4(mesh.matrixWorld);
+          return {
+            object: mesh,
+            point: point.clone(),
+            anchor: null,
+            uv: new THREE.Vector2(),
+          };
+        }
+      }
+    }
+    return null;
+  }
   commit() {
     const {meshes} = this;
     const geometries = [];
@@ -6188,7 +6220,7 @@ function animate(timestamp, frame) {
         const [{position, quaternion}] = _getRigTransforms();
         raycaster.ray.origin.copy(position);
         raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
-        anchorSpecs[0] = intersectUi(raycaster, uiMeshes);
+        anchorSpecs[0] = intersectUi(raycaster, uiMeshes) || meshComposer.intersect(raycaster);
 
         if (anchorSpecs[0]) {
           rayMesh.position.copy(position);
@@ -6501,16 +6533,31 @@ function animate(timestamp, frame) {
         const _damage = dmg => {
           hpMesh.damage(dmg);
         };
+        const _openDetailsMesh = (point, mesh) => {
+          detailsMesh.position.copy(point);
+          localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
+            new THREE.Vector3(0, 0, -1),
+            detailsMesh.position.clone().sub(xrCamera.position).normalize()
+          ), 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          detailsMesh.quaternion.setFromEuler(localEuler);
+          detailsMesh.visible = true;
+        };
         const _triggerAnchor = mesh => {
           for (let i = 0; i < 2; i++) {
             const anchorSpec = anchorSpecs[i];
             if (anchorSpec) {
               let match;
-              if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) {
+              if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) { // menu icon
                 const srcIndex = parseInt(match[1], 10);
                 mesh.handleIconClick(i, srcIndex);
               } else {
-                anchorSpec.object.click(anchorSpec);
+                if (anchorSpec.object.click) { // menu non-icon
+                  anchorSpec.object.click(anchorSpec);
+                } else { // non-menu
+                  _openDetailsMesh(anchorSpec.point, anchorSpec.object);
+                }
               }
             }
           }
@@ -6587,15 +6634,7 @@ function animate(timestamp, frame) {
             _triggerAnchor();
             if (!anchorSpecs[0] && raycastChunkSpec) {
               if (raycastChunkSpec.objectId !== 0) {
-                detailsMesh.position.copy(raycastChunkSpec.point);
-                localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
-                  new THREE.Vector3(0, 0, -1),
-                  detailsMesh.position.clone().sub(xrCamera.position).normalize()
-                ), 'YXZ');
-                localEuler.x = 0;
-                localEuler.z = 0;
-                detailsMesh.quaternion.setFromEuler(localEuler);
-                detailsMesh.visible = true;
+                _openDetailsMesh(raycastChunkSpec.point, raycastChunkSpec.mesh);
               }
             }
             break;
