@@ -3651,19 +3651,6 @@ const MeshDrawer = (() => {
         outUvs2[j + 1] = uvs[i + 1];
       }
 
-      /* const name = 'thing' + (++numThings);
-      // console.time('lol');
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      // console.timeEnd('lol');
-      const srcTexture = imageData.data;
-      const dstTexture = geometryWorker.alloc(Uint8Array, srcTexture.length);
-      dstTexture.set(srcTexture);
-      geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, outUvs2.byteOffset, indices.byteOffset, positions.length, outUvs2.length, indices.length, dstTexture.byteOffset, trianglePhysicsGeometry)
-        .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, new THREE.Vector3(3, -7, 3), new THREE.Quaternion(), new THREE.Vector3(1, 1, 1)))
-        .then(() => {
-          console.log('thing added');
-        }, console.warn); */
-
       return result;
     }
   };
