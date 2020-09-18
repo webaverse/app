@@ -3528,12 +3528,13 @@ const MeshDrawer = (() => {
   });
   return class MeshDrawer {
     constructor() {
-      const points = new Float32Array(512 * 1024);
-      this.points = points;
-      this.numPoints = 0;
+      // const points = new Float32Array(512 * 1024);
+      // this.points = points;
+      // this.numPoints = 0;
 
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * 128 * 1024), 3));
+      geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(3 * 128 * 1024), 1));
       const uvs = new Float32Array(2 * 128 * 1024);
       for (let i = 0; i < uvs.length; i += 2*4) {
         const index = i/(2*4);
@@ -3543,7 +3544,6 @@ const MeshDrawer = (() => {
         uvs[i+7] = index;
       }
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-      // this.geometry = geometry;
       const material = _makeDrawMaterial(0xff7043, 0xef5350, 0);
       const mesh = new THREE.Mesh(geometry, material);
       mesh.visible = false;
@@ -3551,26 +3551,33 @@ const MeshDrawer = (() => {
       this.mesh = mesh;
 
       this.lastPosition = new THREE.Vector3();
+      this.lastQuaternion = new THREE.Quaternion();
+      this.lastValue = 0;
       this.numPositions = 0;
+      this.numIndices = 0;
 
       // this.thingSources = [];
       // this.thingMeshes = [];
     }
 
-    start(p) {
+    start(p, q, v) {
       this.lastPosition.copy(p);
+      this.lastQuaternion.copy(q);
       this.numPoints = 0;
       this.numPositions = 0;
+      this.numIndices = 0;
       this.mesh.geometry.setDrawRange(0, 0);
       this.mesh.visible = false;
     }
 
-    end(p) {
+    end(p, q, v) {
       const geometry = new THREE.BufferGeometry();
-      const positions = this.mesh.geometry.attributes.position.array.slice(0, this.mesh.geometry.drawRange.count*3);
+      const positions = this.mesh.geometry.attributes.position.array.slice(0, this.numPositions);
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      const uvs = this.mesh.geometry.attributes.uv.array.slice(0, this.mesh.geometry.drawRange.count*2);
+      const uvs = this.mesh.geometry.attributes.uv.array.slice(0, this.numPositions/3*2);
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      const indices = this.mesh.geometry.index.array.slice(0, this.numIndices);
+      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
       const material = _makeDrawMaterial(this.mesh.material.uniforms.color1.value.getHex(), this.mesh.material.uniforms.color2.value.getHex(), this.mesh.material.uniforms.numPoints.value);
       const mesh = new THREE.Mesh(geometry, material);
@@ -3592,39 +3599,91 @@ const MeshDrawer = (() => {
       this.thingMeshes.push(thingMesh); */
     }
 
-    update(p) {
-      p.toArray(this.points, this.numPoints);
-      this.numPoints += 3;
+    update(p, q, v) {
+      // p.toArray(this.points, this.numPoints);
+      // this.numPoints += 3;
 
       const startPoint = this.lastPosition;
       const endPoint = p;
-      const quaternion = localQuaternion.setFromUnitVectors(
+      const startQuaternion = this.lastQuaternion;
+      const endQuaternion = q;
+      const startValue = this.lastValue;
+      const endValue = v;
+      /* const quaternion = localQuaternion.setFromUnitVectors(
         localVector.set(0, 0, -1),
         localVector2.copy(endPoint).sub(startPoint).normalize(),
       );
       const midpoint = localVector.copy(startPoint).add(endPoint).divideScalar(2);
-      const scale = localVector2.set(0.01, 0.01, startPoint.distanceTo(endPoint));
-      const matrix = localMatrix.compose(midpoint, quaternion, scale);
+      const scale = localVector2.set(0.01, 0.01, startPoint.distanceTo(endPoint)); */
+      // const matrix = localMatrix.compose(midpoint, quaternion, scale);
 
       const oldNumPositions = this.numPositions;
+      if (this.numPositions === 0) {
+        localVector.set(-startValue, 0, 0)
+          .applyQuaternion(startQuaternion)
+          .add(startPoint)
+          // .applyMatrix4(matrix)
+          .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+        this.numPositions += 3;
+        localVector.set(startValue, 0, 0)
+          .applyQuaternion(startQuaternion)
+          .add(startPoint)
+          // .applyMatrix4(matrix)
+          .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+        this.numPositions += 3;
+      }
+      localVector.set(-endValue, 0, 0)
+        .applyQuaternion(endQuaternion)
+        .add(endPoint)
+        // .applyMatrix4(matrix)
+        .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+      if (isNaN(localVector.x)) {
+        debugger;
+      }
+      this.numPositions += 3;
+      localVector.set(endValue, 0, 0)
+        .applyQuaternion(endQuaternion)
+        .add(endPoint)
+        // .applyMatrix4(matrix)
+        .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+      this.numPositions += 3;
 
-      for (let i = 0; i < meshCubeGeometry.attributes.position.array.length; i += 3) {
+      const oldNumIndices = this.numIndices;
+      const a = (this.numPositions - 3*4)/3;
+      const b = a+1;
+      const c = b+1;
+      const d = c+1;
+      this.mesh.geometry.index.array[this.numIndices++] = a;
+      this.mesh.geometry.index.array[this.numIndices++] = b;
+      this.mesh.geometry.index.array[this.numIndices++] = c;
+      this.mesh.geometry.index.array[this.numIndices++] = b;
+      this.mesh.geometry.index.array[this.numIndices++] = d;
+      this.mesh.geometry.index.array[this.numIndices++] = c;
+
+      /* for (let i = 0; i < meshCubeGeometry.attributes.position.array.length; i += 3) {
         localVector.fromArray(meshCubeGeometry.attributes.position.array, i)
           .applyMatrix4(matrix)
           .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
         this.numPositions += 3;
-      }
+      } */
 
       this.mesh.geometry.attributes.position.updateRange.offset = oldNumPositions;
       this.mesh.geometry.attributes.position.updateRange.count = this.numPositions;
       this.mesh.geometry.attributes.position.needsUpdate = true;
+
+      this.mesh.geometry.index.updateRange.offset = oldNumIndices;
+      this.mesh.geometry.index.updateRange.count = this.numIndices;
+      this.mesh.geometry.index.needsUpdate = true;
+
       renderer.geometries.update(this.mesh.geometry);
-      this.mesh.geometry.setDrawRange(0, this.numPositions / 3);
-      this.mesh.material.uniforms.numPoints.value = this.numPositions / 3;
+      this.mesh.geometry.setDrawRange(0, this.numIndices);
+      this.mesh.material.uniforms.numPoints.value = this.numIndices/6;
       this.mesh.material.uniforms.numPoints.needsUpdate = true;
       this.mesh.visible = true;
 
       this.lastPosition.copy(p);
+      this.lastQuaternion.copy(q);
+      this.lastValue = v;
     }
 
     /* drawPolygonize(ps, holes, holeCounts, points, z, zs) {
@@ -6346,19 +6405,21 @@ function animate(timestamp, frame) {
       if (currentWeaponDown) {
         switch (selectedWeapon) {
           case 'pencil': {
-            if (document.pointerLockElement) {
+            if (currentSession) {
+              localVector2.copy(leftGamepad.position);
+              localQuaternion2.copy(leftGamepad.quaternion);
+            } else {
               localVector2.copy(pencilMesh.position)
                 .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
-            } else {
-              localVector2.copy(raycaster.ray.origin)
-                .add(localVector3.copy(raycaster.ray.direction).multiplyScalar(0.5));
             }
-            localVector2.applyMatrix4(localMatrix2.getInverse(meshDrawer.mesh.parent.matrixWorld));
+            localMatrix2.compose(localVector2, localQuaternion2, localVector3.set(1, 1, 1))
+              .premultiply(localMatrix3.getInverse(meshDrawer.mesh.parent.matrixWorld))
+              .decompose(localVector2, localQuaternion2, localVector3);
 
             if (!lastWeaponDown) {
-              meshDrawer.start(localVector2);
+              meshDrawer.start(localVector2, localQuaternion2, 0.1);
             }
-            meshDrawer.update(localVector2);
+            meshDrawer.update(localVector2, localQuaternion2, 0.1);
             break;
           }
           case 'paintbrush': {
@@ -6403,16 +6464,18 @@ function animate(timestamp, frame) {
       if (lastWeaponDown && !currentWeaponDown) {
         switch (selectedWeapon) {
           case 'pencil': {
-            if (document.pointerLockElement) {
+            if (currentSession) {
+              localVector2.copy(leftGamepad.position);
+              localQuaternion2.copy(leftGamepad.quaternion);
+            } else {
               localVector2.copy(pencilMesh.position)
                 .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
-            } else {
-              localVector2.copy(raycaster.ray.origin)
-                .add(localVector3.copy(raycaster.ray.direction).multiplyScalar(0.5));
             }
-            localVector2.applyMatrix4(localMatrix2.getInverse(meshDrawer.mesh.parent.matrixWorld));
+            localMatrix2.compose(localVector2, localQuaternion2, localVector3.set(1, 1, 1))
+              .premultiply(localMatrix3.getInverse(meshDrawer.mesh.parent.matrixWorld))
+              .decompose(localVector2, localQuaternion2, localVector3);
 
-            meshDrawer.end(localVector2);
+            meshDrawer.end(localVector2, localQuaternion2, 0.1);
             break;
           }
           case 'paintbrush': {
