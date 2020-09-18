@@ -3735,19 +3735,12 @@ const MeshDrawer = (() => {
       this.mesh.geometry.index.array[this.numIndices++] = d;
       this.mesh.geometry.index.array[this.numIndices++] = c;
 
-      this.mesh.geometry.index.array[this.numIndices++] = a;
+      /* this.mesh.geometry.index.array[this.numIndices++] = a;
       this.mesh.geometry.index.array[this.numIndices++] = c;
       this.mesh.geometry.index.array[this.numIndices++] = b;
       this.mesh.geometry.index.array[this.numIndices++] = b;
       this.mesh.geometry.index.array[this.numIndices++] = c;
-      this.mesh.geometry.index.array[this.numIndices++] = d;
-
-      /* for (let i = 0; i < meshCubeGeometry.attributes.position.array.length; i += 3) {
-        localVector.fromArray(meshCubeGeometry.attributes.position.array, i)
-          .applyMatrix4(matrix)
-          .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
-        this.numPositions += 3;
-      } */
+      this.mesh.geometry.index.array[this.numIndices++] = d; */
 
       this.mesh.geometry.attributes.position.updateRange.offset = oldNumPositions;
       this.mesh.geometry.attributes.position.updateRange.count = this.numPositions;
@@ -3759,7 +3752,7 @@ const MeshDrawer = (() => {
 
       renderer.geometries.update(this.mesh.geometry);
       this.mesh.geometry.setDrawRange(0, this.numIndices);
-      this.mesh.material.uniforms.numPoints.value = this.numIndices/12;
+      this.mesh.material.uniforms.numPoints.value = this.numIndices/6;
       this.mesh.material.uniforms.numPoints.needsUpdate = true;
       this.mesh.visible = true;
 
@@ -3963,8 +3956,8 @@ class MeshComposer {
       uniforms: THREE.UniformsUtils.clone(THING_SHADER.uniforms),
       vertexShader: THING_SHADER.vertexShader,
       fragmentShader: THING_SHADER.fragmentShader,
-      /* side: THREE.DoubleSide,
-      transparent: true, */
+      side: THREE.DoubleSide,
+      transparent: true,
     });
     this.meshes = [];
     this.placeMeshes = [null, null];
