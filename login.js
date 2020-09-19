@@ -240,6 +240,13 @@ class LoginManager extends EventTarget {
       data: name,
     }));
   }
+  
+  getAddress() {
+    return loginToken && loginToken.address;
+  }
+  getMnemonic() {
+    return loginToken && loginToken.mnemonic;
+  }
 
   getAvatar() {
     return userObject && userObject.avatarHash;
