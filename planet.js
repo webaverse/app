@@ -15,7 +15,7 @@ import {makePromise} from './util.js';
 // import * as THREE from './three.module.js';
 // import { makeTextMesh } from './vr-ui.js';
 
-const presenceHost = `wss://${document.location.hostname}:4443`;
+let presenceHost = '';
 
 const peerAvatarHashes = new Map();
 
@@ -559,8 +559,8 @@ let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
 
-const _connectRoom = async roomName => {
-  channelConnection = new XRChannelConnection(`${presenceHost}/`, {roomName});
+const _connectRoom = async (roomName, worldURL) => {
+  channelConnection = new XRChannelConnection(`wss://${worldURL}:4443`, {roomName});
 
   channelConnection.addEventListener('open', async e => {
     channelConnectionOpen = true;
@@ -777,23 +777,34 @@ planet.connect = async (rn, {online = true} = {}) => {
 window.addEventListener('load', () => {
   const button = document.getElementById('connectButton');
   if (button) {
-    document.getElementById('connectButton').addEventListener('click', (e) => {
+    document.getElementById('connectButton').addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (channelConnectionOpen) {
+        await fetch(`https://worlds.exokit.org/${presenceHost}`, {
+          method: 'DELETE'
+        })
         button.innerHTML = `
           <i class="fal fa-wifi"></i>
           <div class=label>Connect</div>
         `;
         channelConnection.close();
         channelConnectionOpen = false;
+        presenceHost = '';
       } else {
-        planet.connect('lol');
-        button.innerHTML = `
-          <i class="fal fa-wifi-slash"></i>
-          <div class=label>Disconnect</div>
-        `;
-      }
+          const response = fetch('https://worlds.exokit.org/create', {
+            method: 'POST'
+          })
+          if (response.ok) {
+            const json = await response.json();
+            presenceHost = json.name;
+            planet.connect('lol', presenceHost);
+            button.innerHTML = `
+              <i class="fal fa-wifi-slash"></i>
+              <div class=label>Disconnect</div>
+            `;
+          }
+        }
     })
   }
 })
