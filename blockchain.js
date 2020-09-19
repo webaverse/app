@@ -16,7 +16,7 @@ async function genKeys(entropy) {
 function uint8Array2hex(uint8Array) {
   return Array.prototype.map.call(uint8Array, x => ('00' + x.toString(16)).slice(-2)).join('');
 }
-const isSealed = tx => tx.status >= 4;
+const _isSealed = tx => tx.status >= 4;
 const _waitForTx = async txid => {
   for (;;) {
     const response2 = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
@@ -27,7 +27,7 @@ const _waitForTx = async txid => {
       ]),
     ]), { node: flowConstants.host });
     // console.log('got response 2', response2);
-    if (isSealed(response2.transaction)) {
+    if (_isSealed(response2.transaction)) {
       return response2;
     } else {
       await new Promise((accept, reject) => {
