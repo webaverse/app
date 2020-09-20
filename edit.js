@@ -7295,18 +7295,18 @@ window.addEventListener('keydown', e => {
     case 69: { // E
       if (document.pointerLockElement) {
         // nothing
-      } else {
+      /* } else {
         if (selectTarget && selectTarget.control) {
           selectTarget.control.setMode('rotate');
-        }
+        } */
       }
       break;
     }
     case 82: { // R
       if (document.pointerLockElement) {
         // pe.equip('back');
-      } else {
-        /* if (selectTarget && selectTarget.control) {
+      /* } else {
+        if (selectTarget && selectTarget.control) {
           selectTarget.control.setMode('scale');
         } */
       }
