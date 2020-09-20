@@ -5227,15 +5227,18 @@ const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
 inventoryMesh.visible = false;
 inventoryMesh.handleIconClick = async (i, srcIndex) => {
   const files = inventory.getFiles();
-  const file = files[i];
+  const file = files[srcIndex];
   const {name, hash} = file;
   const res = await fetch(`${storageHost}/${hash}`);
   const blob = await res.blob();
   blob.name = name;
 
-  // console.log('got arraybuffer', name, hash, blob);
-
   const mesh = await inventory.loadFileForWorld(blob);
+  mesh.traverse(o => {
+    if (o.isMesh) {
+      o.frustumCulled = false;
+    }
+  });
   scene.add(mesh);
 
   /* const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
@@ -5382,7 +5385,9 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
   const mesh = meshComposer.commit();
   mesh.material = new THREE.MeshBasicMaterial({
     map: mesh.material.uniforms.map.value,
+    side: THREE.DoubleSide,
     vertexColors: true,
+    transparent: true,
   });
   mesh.userData.gltfExtensions = {
     EXT_aabb: mesh.geometry.boundingBox.min.toArray()
@@ -5592,6 +5597,9 @@ const _makeAtlas = (size, images) => {
       atlasCanvas = document.createElement('canvas');
       atlasCanvas.width = size;
       atlasCanvas.height = size;
+      const ctx = atlasCanvas.getContext('2d');
+      ctx.fillStyle = '#FFF';
+      ctx.fillRect(0, 0, atlasCanvas.width, atlasCanvas.height);
       const atlas = atlaspack(atlasCanvas);
       rects.length = 0;
 
