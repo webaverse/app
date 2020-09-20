@@ -3,7 +3,7 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {OrbitControls} from './OrbitControls.js';
-import {GLTFLoader} from './GLTFLoader.js';
+// import {GLTFLoader} from './GLTFLoader.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
@@ -5226,13 +5226,23 @@ const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
 });
 inventoryMesh.visible = false;
 inventoryMesh.handleIconClick = async (i, srcIndex) => {
-  // console.log('handle inventory click', srcIndex);
   const files = inventory.getFiles();
   const file = files[i];
   const {name, hash} = file;
   const res = await fetch(`${storageHost}/${hash}`);
-  const arrayBuffer = await res.arrayBuffer();
-  console.log('got arraybuffer', name, hash, arrayBuffer);
+  const blob = await res.blob();
+  blob.name = name;
+
+  // console.log('got arraybuffer', name, hash, blob);
+
+  const mesh = await inventory.loadFileForWorld(blob);
+  scene.add(mesh);
+
+  /* const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
+  mesh.position.copy(xrCamera.position)
+    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
+  mesh.quaternion.copy(xrCamera.quaternion); */
+
   /* if (srcIndex < inventoryMesh.currentGeometryKeys.length) {
     const geometryKey = inventoryMesh.currentGeometryKeys[srcIndex];
     (async () => {
