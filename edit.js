@@ -43,10 +43,12 @@ import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
 import atlaspack from './atlaspack.js';
+import app from './app-object.js';
 
 const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host);
 const importMap = {
   three: _importMapUrl('./three.module.js'),
+  app: _importMapUrl('./app-object.js'),
 };
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
@@ -117,6 +119,10 @@ renderer.autoClear = false;
 renderer.sortObjects = false;
 renderer.physicallyCorrectLights = true;
 renderer.xr.enabled = true;
+
+app.renderer = renderer;
+app.scene = scene;
+app.camera = camera;
 
 const ambientLight = new THREE.AmbientLight(0xFFFFFF);
 scene.add(ambientLight);
