@@ -10,12 +10,10 @@ import {
 } from './constants.js';
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 import {loginManager} from './login.js';
-import {storageHost} from './constants.js';
+import { storageHost, worldsHost} from './constants.js';
 import {makePromise} from './util.js';
 // import * as THREE from './three.module.js';
 // import { makeTextMesh } from './vr-ui.js';
-
-let presenceHost = '';
 
 const peerAvatarHashes = new Map();
 
@@ -776,12 +774,16 @@ planet.connect = async (rn, {online = true} = {}) => {
 
 window.addEventListener('load', () => {
   const button = document.getElementById('connectButton');
+  let worldMeta = {
+    url: '',
+    id: ''
+  };
   if (button) {
     document.getElementById('connectButton').addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (channelConnectionOpen) {
-        await fetch(`https://worlds.exokit.org/${presenceHost}`, {
+        await fetch(`${worldsHost}/${worldMeta.id}`, {
           method: 'DELETE'
         })
         button.innerHTML = `
@@ -790,15 +792,15 @@ window.addEventListener('load', () => {
         `;
         channelConnection.close();
         channelConnectionOpen = false;
-        presenceHost = '';
       } else {
-          const response = fetch('https://worlds.exokit.org/create', {
+          const response = fetch(`${worldsHost}/create`, {
             method: 'POST'
           })
           if (response.ok) {
             const json = await response.json();
-            presenceHost = json.name;
-            planet.connect('lol', presenceHost);
+            worldMeta.url = json.url;
+            worldMeta.id = json.id;
+            planet.connect('lol', worldMeta.url);
             button.innerHTML = `
               <i class="fal fa-wifi-slash"></i>
               <div class=label>Disconnect</div>
