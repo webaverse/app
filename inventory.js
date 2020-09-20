@@ -1,5 +1,6 @@
 import {bindUploadFileButton} from './util.js';
 import wbn from './wbn.js';
+import {storageHost} from './constants.js';
 
 const textDecoder = new TextDecoder();
 
@@ -226,6 +227,13 @@ const _uploadWebBundle = async file => {
     });
 };
 const _handleFileUpload = async file => {
+  const res = await fetch(storageHost, {
+    method: 'POST',
+    body: file,
+  });
+  const {hash} = await res.json();
+  console.log('got hash', hash);
+
   const match = file.name.match(/\.(.+)$/);
   const ext = match[1];
   switch (ext) {
