@@ -212,8 +212,6 @@ const _uploadWebBundle = async file => {
 
   const bundle = new wbn.Bundle(arrayBuffer);
   const u = _mapUrl(bundle.primaryURL);
-  console.log('got url', u);
-  // debugger;
   import(u)
     .then(() => {
       console.log('import returned');
