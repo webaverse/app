@@ -3,7 +3,7 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {OrbitControls} from './OrbitControls.js';
-// import {GLTFLoader} from './GLTFLoader.js';
+import {GLTFLoader} from './GLTFLoader.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
@@ -5384,12 +5384,18 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
     map: mesh.material.uniforms.map.value,
     vertexColors: true,
   });
+  mesh.userData.gltfExtensions = {
+    EXT_aabb: mesh.geometry.boundingBox.min.toArray()
+      .concat(mesh.geometry.boundingBox.max.toArray()),
+  };
   new GLTFExporter().parse(mesh, async arrayBuffer => {
     arrayBuffer.name = 'object.glb';
     await inventory.uploadFile(arrayBuffer);
   }, {
     binary: true,
+    includeCustomExtensions: true,
   });
+
   detailsMesh.visible = false;
 }, function onremove(anchorSpec) {
   // console.log('got remove', anchorSpec);

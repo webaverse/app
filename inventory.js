@@ -26,7 +26,13 @@ const _loadGltf = async file => {
     URL.revokeObjectURL(u);
   }
   o = o.scene;
-  // XXX load AABB
+  o.traverse(o => {
+    if (o.isMesh && o.userData.gltfExtensions && o.userData.gltfExtensions.EXT_aabb) {
+      o.geometry.boundingBox = new THREE.Box3();
+      o.geometry.boundingBox.min.fromArray(o.userData.gltfExtensions.EXT_aabb, 0);
+      o.geometry.boundingBox.max.fromArray(o.userData.gltfExtensions.EXT_aabb, 3);
+    }
+  });
   return o;
 
   // XXX bake at upload time
