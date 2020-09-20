@@ -71,6 +71,9 @@ const localRaycaster = new THREE.Raycaster();
 const localColor = new THREE.Color();
 const localObject = new THREE.Object3D();
 
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
+
 (async () => {
   await tryLogin();
 })(); 
@@ -1378,8 +1381,6 @@ const geometryWorker = (() => {
     },
   };
   const cbIndex = new Map();
-  const textEncoder = new TextEncoder();
-  const textDecoder = new TextDecoder();
   const w = {};
   /* window.earcut = () => {
     const positionsData = Float32Array.from([
