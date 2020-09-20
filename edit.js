@@ -8,7 +8,7 @@ import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
 // import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import { tryLogin, loginManager } from './login.js';
-import {downloadFile, readFile, bindUploadFileButton} from './util.js';
+import {downloadFile} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
@@ -28,6 +28,8 @@ import {
 
   chunkDistance,
   BUILD_SNAP,
+
+  colors,
 } from './constants.js';
 import {makePromise, getNextMeshId, WaitQueue} from './util.js';
 import storage from './storage.js';
@@ -38,7 +40,10 @@ import {player} from './player.js';
 import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
-import {storageHost} from './constants.js'
+import {storageHost} from './constants.js';
+import atlaspack from './atlaspack.js';
+import app from './app-object.js';
+import inventory from './inventory.js';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
@@ -64,7 +69,12 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localFrustum = new THREE.Frustum();
+const localRaycaster = new THREE.Raycaster();
+const localColor = new THREE.Color();
 const localObject = new THREE.Object3D();
+
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
 
 (async () => {
   await tryLogin();
@@ -104,6 +114,10 @@ renderer.sortObjects = false;
 renderer.physicallyCorrectLights = true;
 renderer.xr.enabled = true;
 
+app.renderer = renderer;
+app.scene = scene;
+app.camera = camera;
+
 const ambientLight = new THREE.AmbientLight(0xFFFFFF);
 scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
@@ -123,18 +137,6 @@ loginManager.addEventListener('avatarchange', async (e) => {
     rigManager.setLocalAvatarUrl(`${storageHost}/${e.data}`);
   } else {
     rigManager.addLocalRig(null);
-  }
-})
-
-document.addEventListener('dragover', e => {
-  e.preventDefault();
-});
-document.addEventListener('drop', async e => {
-  e.preventDefault();
-
-  if (e.dataTransfer.files.length > 0) {
-    const [file] = e.dataTransfer.files;
-    await _handleFileUpload(file);
   }
 });
 
@@ -778,6 +780,60 @@ const VEGETATION_SHADER = {
     }
   `,
 };
+const THING_SHADER = {
+  uniforms: {
+    map: {
+      type: 't',
+      value: null,
+      needsUpdate: true,
+    },
+    /* uHitId: {
+      type: 'f',
+      value: -1,
+      needsUpdate: true,
+    },
+    uHitPosition: {
+      type: 'v3',
+      value: new THREE.Vector3(),
+      needsUpdate: true,
+    },
+    uSelectId: {
+      type: 'f',
+      value: -1,
+      needsUpdate: true,
+    },
+    sunIntensity: {
+      type: 'f',
+      value: 1,
+      needsUpdate: true,
+    }, */
+  },
+  vertexShader: `\
+    attribute vec3 color;
+    varying vec2 vUv;
+    varying vec3 vColor;
+
+    void main() {
+      vUv = uv;
+      vColor = color;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `\
+    uniform sampler2D map;
+
+    varying vec2 vUv;
+    varying vec3 vColor;
+
+    void main() {
+      vec4 c = vec4(vColor, 1.);
+      if (vUv.x >= 0.) {
+        c *= texture2D(map, vUv);
+      }
+      gl_FragColor = c;
+    }
+  `,
+};
 const _snapBuildPosition = p => {
   p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
   p.y = Math.floor(p.y / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
@@ -1319,8 +1375,6 @@ const geometryWorker = (() => {
     },
   };
   const cbIndex = new Map();
-  const textEncoder = new TextEncoder();
-  const textDecoder = new TextDecoder();
   const w = {};
   /* window.earcut = () => {
     const positionsData = Float32Array.from([
@@ -3525,6 +3579,7 @@ const MeshDrawer = (() => {
         gl_FragColor = vec4(c, 1.);
       }
     `,
+    side: THREE.DoubleSide,
   });
   return class MeshDrawer {
     constructor() {
@@ -3544,7 +3599,12 @@ const MeshDrawer = (() => {
         uvs[i+7] = index;
       }
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-      const material = _makeDrawMaterial(0xff7043, 0xef5350, 0);
+      geometry.boundingBox = new THREE.Box3(
+        new THREE.Vector3(Infinity, Infinity, Infinity),
+        new THREE.Vector3(-Infinity, -Infinity, -Infinity),
+      );
+
+      const material = _makeDrawMaterial(localColor.setStyle('#' + colors[0]).getHex(), localColor.setStyle('#' + colors[1]).getHex(), 0);
       const mesh = new THREE.Mesh(geometry, material);
       mesh.visible = false;
       mesh.frustumCulled = false;
@@ -3563,10 +3623,12 @@ const MeshDrawer = (() => {
     start(p, q, v) {
       this.lastPosition.copy(p);
       this.lastQuaternion.copy(q);
-      this.numPoints = 0;
+      // this.numPoints = 0;
       this.numPositions = 0;
       this.numIndices = 0;
       this.mesh.geometry.setDrawRange(0, 0);
+      this.mesh.geometry.boundingBox.min.set(Infinity, Infinity, Infinity);
+      this.mesh.geometry.boundingBox.max.set(-Infinity, -Infinity, -Infinity);
       this.mesh.visible = false;
     }
 
@@ -3576,11 +3638,20 @@ const MeshDrawer = (() => {
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       const uvs = this.mesh.geometry.attributes.uv.array.slice(0, this.numPositions/3*2);
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      const colors = new Float32Array(geometry.attributes.position.array.length);
+      for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+        const y = geometry.attributes.uv.array[i+1]/this.mesh.material.uniforms.numPoints.value;
+        localColor.copy(this.mesh.material.uniforms.color1.value).lerp(this.mesh.material.uniforms.color2.value, y)
+          .toArray(colors, i/2*3);
+        geometry.attributes.uv.array[i] = -1;
+        geometry.attributes.uv.array[i+1] = -1;
+      }
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
       const indices = this.mesh.geometry.index.array.slice(0, this.numIndices);
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-      geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
-      const material = _makeDrawMaterial(this.mesh.material.uniforms.color1.value.getHex(), this.mesh.material.uniforms.color2.value.getHex(), this.mesh.material.uniforms.numPoints.value);
-      const mesh = new THREE.Mesh(geometry, material);
+      geometry.boundingBox = this.mesh.geometry.boundingBox.clone();
+      // const material = _makeDrawMaterial(this.mesh.material.uniforms.color1.value.getHex(), this.mesh.material.uniforms.color2.value.getHex(), this.mesh.material.uniforms.numPoints.value);
+      const mesh = new THREE.Mesh(geometry, meshComposer.material);
       mesh.matrix.copy(this.mesh.matrixWorld)
         .decompose(mesh.position, mesh.quaternion, mesh.scale);
       mesh.frustumCulled = false;
@@ -3624,12 +3695,14 @@ const MeshDrawer = (() => {
           .add(startPoint)
           // .applyMatrix4(matrix)
           .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+        this.mesh.geometry.boundingBox.expandByPoint(localVector);
         this.numPositions += 3;
         localVector.set(startValue, 0, 0)
           .applyQuaternion(startQuaternion)
           .add(startPoint)
           // .applyMatrix4(matrix)
           .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+        this.mesh.geometry.boundingBox.expandByPoint(localVector);
         this.numPositions += 3;
       }
       localVector.set(-endValue, 0, 0)
@@ -3637,12 +3710,14 @@ const MeshDrawer = (() => {
         .add(endPoint)
         // .applyMatrix4(matrix)
         .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+      this.mesh.geometry.boundingBox.expandByPoint(localVector);
       this.numPositions += 3;
       localVector.set(endValue, 0, 0)
         .applyQuaternion(endQuaternion)
         .add(endPoint)
         // .applyMatrix4(matrix)
         .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
+      this.mesh.geometry.boundingBox.expandByPoint(localVector);
       this.numPositions += 3;
 
       const oldNumIndices = this.numIndices;
@@ -3657,19 +3732,12 @@ const MeshDrawer = (() => {
       this.mesh.geometry.index.array[this.numIndices++] = d;
       this.mesh.geometry.index.array[this.numIndices++] = c;
 
-      this.mesh.geometry.index.array[this.numIndices++] = a;
+      /* this.mesh.geometry.index.array[this.numIndices++] = a;
       this.mesh.geometry.index.array[this.numIndices++] = c;
       this.mesh.geometry.index.array[this.numIndices++] = b;
       this.mesh.geometry.index.array[this.numIndices++] = b;
       this.mesh.geometry.index.array[this.numIndices++] = c;
-      this.mesh.geometry.index.array[this.numIndices++] = d;
-
-      /* for (let i = 0; i < meshCubeGeometry.attributes.position.array.length; i += 3) {
-        localVector.fromArray(meshCubeGeometry.attributes.position.array, i)
-          .applyMatrix4(matrix)
-          .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
-        this.numPositions += 3;
-      } */
+      this.mesh.geometry.index.array[this.numIndices++] = d; */
 
       this.mesh.geometry.attributes.position.updateRange.offset = oldNumPositions;
       this.mesh.geometry.attributes.position.updateRange.count = this.numPositions;
@@ -3681,13 +3749,20 @@ const MeshDrawer = (() => {
 
       renderer.geometries.update(this.mesh.geometry);
       this.mesh.geometry.setDrawRange(0, this.numIndices);
-      this.mesh.material.uniforms.numPoints.value = this.numIndices/12;
+      this.mesh.material.uniforms.numPoints.value = this.numIndices/6;
       this.mesh.material.uniforms.numPoints.needsUpdate = true;
       this.mesh.visible = true;
 
       this.lastPosition.copy(p);
       this.lastQuaternion.copy(q);
       this.lastValue = v;
+    }
+
+    setColors(selectedColors) {
+      this.mesh.material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
+      this.mesh.material.uniforms.color1.needsUpdate = true;
+      this.mesh.material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
+      this.mesh.material.uniforms.color2.needsUpdate = true;
     }
 
     /* drawPolygonize(ps, holes, holeCounts, points, z, zs) {
@@ -3874,6 +3949,13 @@ const _getRigTransforms = () => ([
 const _otherSideIndex = i => i === 1 ? 0 : 1;
 class MeshComposer {
   constructor() {
+    this.material = new THREE.ShaderMaterial({
+      uniforms: THREE.UniformsUtils.clone(THING_SHADER.uniforms),
+      vertexShader: THING_SHADER.vertexShader,
+      fragmentShader: THING_SHADER.fragmentShader,
+      side: THREE.DoubleSide,
+      transparent: true,
+    });
     this.meshes = [];
     this.placeMeshes = [null, null];
     this.hoveredMeshes = [null, null];
@@ -4044,6 +4126,64 @@ class MeshComposer {
         this.targetMeshes[i].visible = true;
       }
     }
+  }
+  intersect(raycaster) {
+    let closestMesh = null;
+    let closestMeshDistance = Infinity;
+    for (const mesh of this.meshes) {
+      localMatrix.compose(
+        raycaster.ray.origin,
+        localQuaternion.setFromUnitVectors(
+          localVector2.set(0, 0, -1),
+          raycaster.ray.direction
+        ),
+        localVector2.set(1, 1, 1)
+      )
+        .premultiply(localMatrix2.getInverse(mesh.matrixWorld))
+        .decompose(localVector, localQuaternion, localVector2);
+      localRaycaster.ray.origin.copy(localVector);
+      localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
+      if (mesh.geometry.boundingBox) {
+        const point = localRaycaster.ray.intersectBox(mesh.geometry.boundingBox, localVector);
+        if (point) {
+          point.applyMatrix4(mesh.matrixWorld);
+          return {
+            object: mesh,
+            point: point.clone(),
+            anchor: null,
+            uv: new THREE.Vector2(),
+          };
+        }
+      }
+    }
+    return null;
+  }
+  commit() {
+    const {meshes} = this;
+    const geometries = [];
+    const textures = [];
+    for (const mesh of this.meshes) {
+      geometries.push(mesh.geometry);
+      if (mesh.material.uniforms.map.value) {
+        textures.push(mesh.material.uniforms.map.value);
+      } else {
+        textures.push(null);
+      }
+    }
+
+    const mesh = _mergeMeshes(meshes, geometries, textures);
+    scene.add(mesh);
+
+    for (const mesh of this.meshes) {
+      scene.remove(mesh);
+    }
+    this.meshes.length = 0;
+  }
+  cancel() {
+    for (const mesh of this.meshes) {
+      scene.remove(mesh);
+    }
+    this.meshes.length = 0;
   }
 }
 const meshComposer = new MeshComposer();
@@ -5076,11 +5216,10 @@ scene.add(shapesMesh);
 const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   await loadPromise;
 
-  /* if (!inventoryMesh.inventoryShapesMesh) {
-    inventoryMesh.inventoryShapesMesh = _makeInventoryShapesMesh();
-    inventoryMesh.inventoryShapesMesh.frustumCulled = false;
-    inventoryMesh.add(inventoryMesh.inventoryShapesMesh);
-  } */
+  if (!inventoryMesh.inventoryItemsMesh) {
+    inventoryMesh.inventoryItemsMesh = _makeInventoryItemsMesh();
+    inventoryMesh.add(inventoryMesh.inventoryItemsMesh);
+  }
 });
 inventoryMesh.visible = false;
 inventoryMesh.handleIconClick = (i, srcIndex) => {
@@ -5105,6 +5244,9 @@ const _makeInventoryContentsMesh = () => {
   return mesh;
 };
 const _makeInventoryShapesMesh = () => {
+  const color1 = new THREE.Color().setStyle('#' + colors[0]);
+  const color2 = new THREE.Color().setStyle('#' + colors[1]);
+
   const boxMesh = new THREE.BoxBufferGeometry()
   const coneMesh = new THREE.ConeBufferGeometry();
   const cylinderMesh = new THREE.CylinderBufferGeometry();
@@ -5126,12 +5268,26 @@ const _makeInventoryShapesMesh = () => {
     torusMesh,
   ];
   const scaleMatrix = new THREE.Matrix4().makeScale(0.1, 0.1, 0.1);
+  const _bakeGeometryColors = geometry => {
+    const colors = new Float32Array(geometry.attributes.position.array.length);
+    for (let i = 0; i < geometry.uvs.length; i += 2) {
+      const y = geometry.uvs[i+1];
+      localColor.copy(color1).lerp(color2, y)
+        .toArray(colors, i/2*3);
+    }
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  };
   for (const geometry of geometries) {
     geometry.applyMatrix4(scaleMatrix);
     geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
-    /* const height = boundingBox.getSize(new THREE.Vector3()).y;
-    boundingBox.min.y += height/2;
-    boundingBox.max.y += height/2; */
+
+    geometry.uvs = geometry.attributes.uv.array.slice();
+    for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+      geometry.attributes.uv.array[i] = -1;
+      geometry.attributes.uv.array[i+1] = -1;
+    }
+
+    _bakeGeometryColors(geometry);
   }
 
   const h = 0.1;
@@ -5139,7 +5295,7 @@ const _makeInventoryShapesMesh = () => {
   const wrapInnerW = h - 2*arrowW;
   const w = wrapInnerW/3;
 
-  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries.map((geometry, i) => {
+  const _compileGeometry = () => BufferGeometryUtils.mergeBufferGeometries(geometries.map((geometry, i) => {
     const dx = i%3;
     const dy = (i-dx)/3;
     const g = geometry.clone()
@@ -5154,81 +5310,62 @@ const _makeInventoryShapesMesh = () => {
     }
     return g;
   }));
-  const material = new THREE.ShaderMaterial({
-    uniforms: {
-      color1: {
-        type: 'c',
-        value: new THREE.Color(0xff7043),
-        needsUpdate: true,
-      },
-      color2: {
-        type: 'c',
-        value: new THREE.Color(0xef5350),
-        needsUpdate: true,
-      },
-    },
-    vertexShader: `\
-      varying vec2 vUv;
-
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `\
-      uniform vec3 color1;
-      uniform vec3 color2;
-
-      varying vec2 vUv;
-
-      void main() {
-        vec3 c = mix(color1, color2, vUv.y);
-        gl_FragColor = vec4(c, 1.);
-      }
-    `,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
+  const geometry = _compileGeometry();
+  const mesh = new THREE.Mesh(geometry, meshComposer.material);
   mesh.geometries = geometries;
   mesh.setColors = selectedColors => {
-    material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
-    material.uniforms.color1.needsUpdate = true;
-    material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
-    material.uniforms.color2.needsUpdate = true;
+    color1.setStyle('#' + colors[selectedColors[0]]);
+    color2.setStyle('#' + colors[selectedColors[1]]);
+    
+    for (const geometry of geometries) {
+      _bakeGeometryColors(geometry);
+    }
+    mesh.geometry = _compileGeometry();
   };
   return mesh;
 };
+const _makeInventoryItemsMesh = () => {
+  const h = 0.1;
+  const arrowW = h/10;
+  const wrapInnerW = h - 2*arrowW;
+  const w = wrapInnerW/3;
+  
+  const object = new THREE.Object3D();
+  object.update = files => {
+    for (let i = 0; i < files.length; i++) {
+      const {name, hash} = files[i];
+      const dx = i%3;
+      const dy = (i-dx)/3;
 
-const colors = [
-  'ef5350',
-  'ec407a',
-  'ab47bc',
-  '7e57c2',
-  '5c6bc0',
-  '42a5f5',
-  '29b6f6',
-  '26c6da',
-  '26a69a',
-  '66bb6a',
-  '9ccc65',
-  'd4e157',
-  'ffee58',
-  'ffca28',
-  'ffa726',
-  'ff7043',
-  '8d6e63',
-  'bdbdbd',
-  '78909c',
-  '333333',
-];
+      const textMesh = makeTextMesh(name, './Bangers-Regular.ttf', 0.003, 'left', 'bottom');
+      textMesh.position.set(-h + 0.004 + dx*w, h/2 - arrowW - w - dy*w, 0.001);
+      object.add(textMesh);
+    }
+  };
+  return object;
+};
+
 let selectedColors;
 const colorsMesh = makeColorsMesh(cubeMesh, colors, newSelectedColors => {
   selectedColors = newSelectedColors;
   shapesMesh.inventoryShapesMesh.setColors(selectedColors);
+  meshDrawer.setColors(selectedColors);
 });
 colorsMesh.visible = false;
 scene.add(colorsMesh);
 
-const detailsMesh = makeDetailsMesh(cubeMesh);
+const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
+  // console.log('got run', anchorSpec);
+}, function onadd(anchorSpec) {
+  // console.log('got add', anchorSpec);
+   meshComposer.commit();
+}, function onremove(anchorSpec) {
+  // console.log('got remove', anchorSpec);
+  meshComposer.cancel();
+  detailsMesh.visible = false;
+}, function onclose() {
+  detailsMesh.visible = false;
+});
 detailsMesh.visible = false;
 scene.add(detailsMesh);
 
@@ -5408,6 +5545,135 @@ const _makeExplosionMesh = () => {
 let explosionMeshes = [];
 
 let pxMeshes = [];
+
+const _makeAtlas = (size, images) => {
+  let atlasCanvas;
+  const rects = [];
+  {
+    for (let scale = 1; scale > 0; scale *= 0.5) {
+      atlasCanvas = document.createElement('canvas');
+      atlasCanvas.width = size;
+      atlasCanvas.height = size;
+      const atlas = atlaspack(atlasCanvas);
+      rects.length = 0;
+
+      let fit = true;
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+
+        if (image) {
+          const w = image.width * scale;
+          const h = image.height * scale;
+          const resizeCanvas = document.createElement('canvas');
+          resizeCanvas.width = w;
+          resizeCanvas.height = h;
+          const resizeCtx = resizeCanvas.getContext('2d');
+          resizeCtx.drawImage(image, 0, 0, w, h);
+
+          const rect = atlas.pack(resizeCanvas);
+          if (rect) {
+            rects.push(rect.rect);
+          } else {
+            fit = false;
+            break;
+          }
+        } else {
+          rects.push(null);
+        }
+      }
+      if (fit) {
+        break;
+      }
+    }
+  }
+  return {
+    atlasCanvas,
+    rects,
+  };
+};
+const _mergeMeshes = (meshes, geometries, textures) => {
+  const size = 512;
+  const images = textures.map(texture => texture && texture.image);
+  const {atlasCanvas, rects} = _makeAtlas(size, images);
+
+  const geometry = new THREE.BufferGeometry();
+  {
+    let numPositions = 0;
+    let numIndices = 0;
+    for (const geometry of geometries) {
+      numPositions += geometry.attributes.position.array.length;
+      numIndices += geometry.index.array.length;
+    }
+
+    const positions = new Float32Array(numPositions);
+    const uvs = new Float32Array(numPositions / 3 * 2);
+    const colors = new Float32Array(numPositions);
+    const indices = new Uint32Array(numIndices);
+    let positionIndex = 0;
+    let uvIndex = 0;
+    let colorIndex = 0;
+    let indicesIndex = 0;
+    for (let i = 0; i < meshes.length; i++) {
+      const mesh = meshes[i];
+      const geometry = geometries[i];
+      const rect = rects[i];
+
+      geometry.applyMatrix4(mesh.matrixWorld);
+
+      const indexOffset = positionIndex / 3;
+      if (geometry.index) {
+        for (let i = 0; i < geometry.index.array.length; i++) {
+          indices[indicesIndex++] = geometry.index.array[i] + indexOffset;
+        }
+      } else {
+        for (let i = 0; i < geometry.attributes.position.array.length / 3; i++) {
+          indices[indicesIndex++] = i + indexOffset;
+        }
+      }
+
+      positions.set(geometry.attributes.position.array, positionIndex);
+      positionIndex += geometry.attributes.position.array.length;
+      if (geometry.attributes.uv) {
+        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+          if (rect) {
+            uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
+            uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
+          } else {
+            uvs[uvIndex + i] = geometry.attributes.uv.array[i];
+            uvs[uvIndex + i + 1] = geometry.attributes.uv.array[i + 1];
+          }
+        }
+      } else {
+        uvs.fill(0, uvIndex, geometry.attributes.position.array.length / 3 * 2);
+      }
+      uvIndex += geometry.attributes.position.array.length / 3 * 2;
+      if (geometry.attributes.color) {
+        colors.set(geometry.attributes.color.array, colorIndex);
+      } else {
+        colors.fill(1, colorIndex, geometry.attributes.position.array.length);
+      }
+      colorIndex += geometry.attributes.position.array.length;
+    }
+    if (textures.some(texture => !!texture)) {
+      colors.fill(1);
+    }
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+  }
+  geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
+
+  const texture = new THREE.Texture(atlasCanvas);
+  texture.flipY = false;
+  texture.needsUpdate = true;
+  const material = meshComposer.material.clone();
+  material.uniforms.map.value = texture;
+  material.uniforms.map.needsUpdate = true;
+
+  const mesh = new THREE.Mesh(geometry, material);
+  return mesh;
+};
 
 const _applyGravity = timeDiff => {
   localVector.set(0, -9.8, 0);
@@ -5992,7 +6258,7 @@ function animate(timestamp, frame) {
         const [{position, quaternion}] = _getRigTransforms();
         raycaster.ray.origin.copy(position);
         raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
-        anchorSpecs[0] = intersectUi(raycaster, uiMeshes);
+        anchorSpecs[0] = intersectUi(raycaster, uiMeshes) || meshComposer.intersect(raycaster);
 
         if (anchorSpecs[0]) {
           rayMesh.position.copy(position);
@@ -6305,16 +6571,31 @@ function animate(timestamp, frame) {
         const _damage = dmg => {
           hpMesh.damage(dmg);
         };
+        const _openDetailsMesh = (point, mesh) => {
+          detailsMesh.position.copy(point);
+          localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
+            new THREE.Vector3(0, 0, -1),
+            detailsMesh.position.clone().sub(xrCamera.position).normalize()
+          ), 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          detailsMesh.quaternion.setFromEuler(localEuler);
+          detailsMesh.visible = true;
+        };
         const _triggerAnchor = mesh => {
           for (let i = 0; i < 2; i++) {
             const anchorSpec = anchorSpecs[i];
             if (anchorSpec) {
               let match;
-              if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) {
+              if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) { // menu icon
                 const srcIndex = parseInt(match[1], 10);
                 mesh.handleIconClick(i, srcIndex);
               } else {
-                anchorSpec.object.click(anchorSpec);
+                if (anchorSpec.object.click) { // menu non-icon
+                  anchorSpec.object.click(anchorSpec);
+                } else { // non-menu
+                  _openDetailsMesh(anchorSpec.point, anchorSpec.object);
+                }
               }
             }
           }
@@ -6391,15 +6672,7 @@ function animate(timestamp, frame) {
             _triggerAnchor();
             if (!anchorSpecs[0] && raycastChunkSpec) {
               if (raycastChunkSpec.objectId !== 0) {
-                detailsMesh.position.copy(raycastChunkSpec.point);
-                localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
-                  new THREE.Vector3(0, 0, -1),
-                  detailsMesh.position.clone().sub(xrCamera.position).normalize()
-                ), 'YXZ');
-                localEuler.x = 0;
-                localEuler.z = 0;
-                detailsMesh.quaternion.setFromEuler(localEuler);
-                detailsMesh.visible = true;
+                _openDetailsMesh(raycastChunkSpec.point, raycastChunkSpec.mesh);
               }
             }
             break;
@@ -6554,8 +6827,8 @@ function animate(timestamp, frame) {
     _handleSelect();
     
     const _handleMenu = () => {
-      for (const uiMesh of uiMeshes) {
-        uiMesh.visible = false;
+      for (const menuMesh of menuMeshes) {
+        menuMesh.visible = false;
       }
 
       const selectedMenuMesh = (() => {
@@ -6776,279 +7049,6 @@ function animate(timestamp, frame) {
 }
 renderer.setAnimationLoop(animate);
 // renderer.xr.setSession(proxySession);
-
-const thingFiles = {};
-const _uploadGltf = async file => {
-  const {default: atlaspack} = await import('./atlaspack.js');
-  const u = URL.createObjectURL(file);
-  let o;
-  let arrayBuffer;
-  try {
-    let xhr;
-    o = await new Promise((accept, reject) => {
-      new GLTFLoader().load(u, accept, x => {
-        xhr = x;
-      }, reject);
-    });
-    arrayBuffer = xhr.target.response;
-  } finally {
-    URL.revokeObjectURL(u);
-  }
-  o = o.scene;
-  o.updateMatrixWorld();
-
-  const meshes = [];
-  const geometries = [];
-  const textures = [];
-  o.traverse(o => {
-    if (o.isMesh) {
-      meshes.push(o);
-      geometries.push(o.geometry);
-      if (o.material.map) {
-        textures.push(o.material.map);
-      } else {
-        textures.push(null);
-      }
-    }
-  });
-  const rects = [];
-
-  const size = 512;
-  let atlasCanvas;
-  let atlas;
-  {
-    for (let scale = 1; scale > 0; scale *= 0.5) {
-      atlasCanvas = document.createElement('canvas');
-      atlasCanvas.width = size;
-      atlasCanvas.height = size;
-      atlas = atlaspack(atlasCanvas);
-      rects.length = 0;
-
-      let fit = true;
-      for (let i = 0; i < textures.length; i++) {
-        const texture = textures[i];
-        const {image} = texture;
-
-        const w = image.width * scale;
-        const h = image.height * scale;
-        const resizeCanvas = document.createElement('canvas');
-        resizeCanvas.width = w;
-        resizeCanvas.height = h;
-        const resizeCtx = resizeCanvas.getContext('2d');
-        resizeCtx.drawImage(image, 0, 0, w, h);
-
-        const rect = atlas.pack(resizeCanvas);
-        if (rect) {
-          rects.push(rect.rect);
-        } else {
-          fit = false;
-          break;
-        }
-      }
-      if (fit) {
-        break;
-      }
-    }
-  }
-
-  const geometry = new THREE.BufferGeometry();
-  {
-    let numPositions = 0;
-    let numIndices = 0;
-    for (const geometry of geometries) {
-      numPositions += geometry.attributes.position.array.length;
-      numIndices += geometry.index.array.length;
-    }
-
-    const positions = new Float32Array(numPositions);
-    const uvs = new Float32Array(numPositions / 3 * 2);
-    const colors = new Float32Array(numPositions);
-    const indices = new Uint32Array(numIndices);
-    let positionIndex = 0;
-    let uvIndex = 0;
-    let colorIndex = 0;
-    let indicesIndex = 0;
-    for (let i = 0; i < meshes.length; i++) {
-      const mesh = meshes[i];
-      const geometry = geometries[i];
-      const rect = rects[i];
-
-      geometry.applyMatrix4(mesh.matrixWorld);
-
-      const indexOffset = positionIndex / 3;
-      if (geometry.index) {
-        for (let i = 0; i < geometry.index.array.length; i++) {
-          indices[indicesIndex++] = geometry.index.array[i] + indexOffset;
-        }
-      } else {
-        for (let i = 0; i < geometry.attributes.position.array.length / 3; i++) {
-          indices[indicesIndex++] = i + indexOffset;
-        }
-      }
-
-      positions.set(geometry.attributes.position.array, positionIndex);
-      positionIndex += geometry.attributes.position.array.length;
-      if (geometry.attributes.uv) {
-        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-          if (rect) {
-            uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
-            uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
-          } else {
-            uvs[uvIndex + i] = geometry.attributes.uv.array[i];
-            uvs[uvIndex + i + 1] = geometry.attributes.uv.array[i + 1];
-          }
-        }
-      } else {
-        uvs.fill(0, uvIndex, geometry.attributes.position.array.length / 3 * 2);
-      }
-      uvIndex += geometry.attributes.position.array.length / 3 * 2;
-      if (geometry.attributes.color) {
-        colors.set(geometry.attributes.color.array, colorIndex);
-      } else {
-        colors.fill(1, colorIndex, geometry.attributes.position.array.length);
-      }
-      colorIndex += geometry.attributes.position.array.length;
-    }
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-  }
-
-  const texture = new THREE.Texture(atlasCanvas);
-  texture.flipY = false;
-  texture.needsUpdate = true;
-  const material = new THREE.MeshBasicMaterial({
-    map: texture,
-  });
-  // document.body.appendChild(atlasCanvas);
-  const meshMatrix = localMatrix
-    .compose(localVector.copy(camera.position).add(localVector3.set(0, 0, -1).applyQuaternion(camera.quaternion)), camera.quaternion, localVector2.set(1, 1, 1))
-    .premultiply(localMatrix2.getInverse(chunkMeshContainer.matrixWorld))
-    .decompose(localVector, localQuaternion, localVector2);
-  /* const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.copy(camera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion));
-  mesh.quaternion.copy(camera.quaternion);
-  mesh.frustumCulled = false;
-  scene.add(mesh); */
-
-  {
-    const positions = geometryWorker.alloc(Float32Array, geometry.attributes.position.array.length);
-    positions.set(geometry.attributes.position.array);
-    const uvs = geometryWorker.alloc(Float32Array, geometry.attributes.uv.array.length);
-    uvs.set(geometry.attributes.uv.array);
-    const indices = geometryWorker.alloc(Uint32Array, geometry.index.array.length);
-    indices.set(geometry.index.array);
-
-    const atlasCanvasCtx = atlasCanvas.getContext('2d');
-    const imageData = atlasCanvasCtx.getImageData(0, 0, atlasCanvas.width, atlasCanvas.height);
-    const texture = geometryWorker.alloc(Uint8Array, imageData.data.byteLength);
-    texture.set(imageData.data);
-
-    const name = 'thing' + (++numThings);
-    geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, texture.byteOffset, 0, 0)
-      .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, localVector, localQuaternion, localVector2))
-      .then(({objectId}) => {
-        const b = new Blob([arrayBuffer], {
-          type: 'application/octet-stream',
-        });
-        const u = URL.createObjectURL(b);
-        thingFiles[objectId] = u;
-      }, console.warn);
-
-    // console.log('got o', o, geometry, textures, atlas, rects, imageData, texture);
-  }
-};
-const _uploadImg = async file => {
-  const img = new Image();
-  await new Promise((accept, reject) => {
-    const u = URL.createObjectURL(file);
-    img.onload = () => {
-      accept();
-      _cleanup();
-    };
-    img.onerror = err => {
-      reject(err);
-      _cleanup();
-    }
-    const _cleanup = () => {
-      URL.revokeObjectURL(u);
-    };
-    img.src = u;
-  });
-  let {width, height} = img;
-  if (width >= height) {
-    height /= width;
-    width = 1;
-  }
-  if (height >= width) {
-    width /= height;
-    height = 1;
-  }
-  const geometry = new THREE.PlaneBufferGeometry(width, height);
-  geometry.boundingBox = new THREE.Box3(
-    new THREE.Vector3(-width/2, -height/2, -0.1),
-    new THREE.Vector3(width/2, height/2, 0.1),
-  );
-  const texture = new THREE.Texture(img);
-  texture.needsUpdate = true;
-  const material = new THREE.MeshBasicMaterial({
-    map: texture,
-    side: THREE.DoubleSide,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
-  mesh.position.copy(xrCamera.position)
-    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
-  mesh.quaternion.copy(xrCamera.quaternion);
-  mesh.frustumCulled = false;
-  meshComposer.addMesh(mesh);
-};
-const _uploadScript = async file => {
-  const text = await new Promise((accept, reject) => {
-    const fr = new FileReader();
-    fr.onload = function() {
-      accept(this.result);
-    };
-    fr.onerror = reject;
-    fr.readAsText(file);
-  });
-  const mesh = makeIconMesh();
-  mesh.geometry.boundingBox = new THREE.Box3(
-    new THREE.Vector3(-1, -1/2, -0.1),
-    new THREE.Vector3(1, 1/2, 0.1),
-  );
-  const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
-  mesh.position.copy(xrCamera.position)
-    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
-  mesh.quaternion.copy(xrCamera.quaternion);
-  mesh.frustumCulled = false;
-  meshComposer.addMesh(mesh);
-  console.log('got text', mesh);
-  // eval(text);
-};
-const _handleFileUpload = async file => {
-  const match = file.name.match(/\.(.+)$/);
-  const ext = match[1];
-  switch (ext) {
-    case 'gltf':
-    case 'glb': {
-      await _uploadGltf(file);
-      break;
-    }
-    case 'png':
-    case 'gif':
-    case 'jpg': {
-      await _uploadImg(file);
-      break;
-    }
-    case 'js': {
-      await _uploadScript(file);
-      break;
-    }
-  }
-};
-bindUploadFileButton(document.getElementById('load-package-input'), _handleFileUpload);
 
 let selectedTool = 'camera';
 const _getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
@@ -7502,6 +7502,11 @@ const _ensureLoadMesh = p => {
       });
   }
 };
+
+inventory.addEventListener('filesupdate', e => {
+  const files = e.data;
+  inventoryMesh.inventoryItemsMesh.update(files);
+});
 
 const raycaster = new THREE.Raycaster();
 let anchorSpecs = [null, null];
