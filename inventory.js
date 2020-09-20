@@ -1,3 +1,5 @@
+import * as THREE from './three.module.js';
+import {GLTFLoader} from './GLTFLoader.js';
 import {bindUploadFileButton} from './util.js';
 import wbn from './wbn.js';
 import {storageHost} from './constants.js';
@@ -13,8 +15,28 @@ const importMap = {
 };
 
 // const thingFiles = {};
-const _uploadGltf = async file => {
+const _loadGltf = async file => {
   const u = URL.createObjectURL(file);
+  let o;
+  try {
+    o = await new Promise((accept, reject) => {
+      new GLTFLoader().load(u, accept, function onprogress() {}, reject);
+    });
+  } finally {
+    URL.revokeObjectURL(u);
+  }
+  o = o.scene;
+  o.traverse(o => {
+    if (o.isMesh && o.userData.gltfExtensions && o.userData.gltfExtensions.EXT_aabb) {
+      o.geometry.boundingBox = new THREE.Box3();
+      o.geometry.boundingBox.min.fromArray(o.userData.gltfExtensions.EXT_aabb, 0);
+      o.geometry.boundingBox.max.fromArray(o.userData.gltfExtensions.EXT_aabb, 3);
+    }
+  });
+  return o;
+
+  // XXX bake at upload time
+  /* const u = URL.createObjectURL(file);
   let o;
   let arrayBuffer;
   try {
@@ -52,7 +74,7 @@ const _uploadGltf = async file => {
     // .premultiply(localMatrix2.getInverse(chunkMeshContainer.matrixWorld))
     .decompose(mesh.position, mesh.quaternion, mesh.scale);
   mesh.frustumCulled = false;
-  meshComposer.addMesh(mesh);
+  return mesh; */
 
   /* {
     const positions = geometryWorker.alloc(Float32Array, geometry.attributes.position.array.length);
@@ -79,7 +101,7 @@ const _uploadGltf = async file => {
       }, console.warn);
   } */
 };
-const _uploadImg = async file => {
+const _loadImg = async file => {
   const img = new Image();
   await new Promise((accept, reject) => {
     const u = URL.createObjectURL(file);
@@ -125,37 +147,25 @@ const _uploadImg = async file => {
   material.uniforms.map.needsUpdate = true;
 
   const mesh = new THREE.Mesh(geometry, material);
-  const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
-  mesh.position.copy(xrCamera.position)
-    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
-  mesh.quaternion.copy(xrCamera.quaternion);
   mesh.frustumCulled = false;
-  meshComposer.addMesh(mesh);
+  return mesh;
 };
-const _uploadScript = async file => {
-  const text = await new Promise((accept, reject) => {
-    const fr = new FileReader();
-    fr.onload = function() {
-      accept(this.result);
-    };
-    fr.onerror = reject;
-    fr.readAsText(file);
-  });
+const _loadScript = async file => {
   const mesh = makeIconMesh();
   mesh.geometry.boundingBox = new THREE.Box3(
     new THREE.Vector3(-1, -1/2, -0.1),
     new THREE.Vector3(1, 1/2, 0.1),
   );
-  const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
-  mesh.position.copy(xrCamera.position)
-    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
-  mesh.quaternion.copy(xrCamera.quaternion);
   mesh.frustumCulled = false;
-  meshComposer.addMesh(mesh);
-  console.log('got text', mesh);
-  // eval(text);
+  mesh.run = async () => {
+    const u = URL.createObjectURL(file);
+    await import(u).finally(() => {
+      URL.revokeObjectURL(u);
+    });
+  };
+  return mesh;
 };
-const _uploadWebBundle = async file => {
+const _loadWebBundle = async file => {
   const arrayBuffer = await new Promise((accept, reject) => {
     const fr = new FileReader();
     fr.onload = function() {
@@ -212,21 +222,30 @@ const _uploadWebBundle = async file => {
     return script;
   };
 
-  const bundle = new wbn.Bundle(arrayBuffer);
-  const u = _mapUrl(bundle.primaryURL);
-  import(u)
-    .then(() => {
-      console.log('import returned');
-    }, err => {
-      console.warn('import failed', err);
-    })
-    .finally(() => {
-      for (const u of urls) {
-        URL.revokeObjectURL(u);
-      }
-    });
+  const mesh = makeIconMesh();
+  mesh.geometry.boundingBox = new THREE.Box3(
+    new THREE.Vector3(-1, -1/2, -0.1),
+    new THREE.Vector3(1, 1/2, 0.1),
+  );
+  mesh.frustumCulled = false;
+  mesh.run = () => {
+    const bundle = new wbn.Bundle(arrayBuffer);
+    const u = _mapUrl(bundle.primaryURL);
+    import(u)
+      .then(() => {
+        console.log('import returned');
+      }, err => {
+        console.warn('import failed', err);
+      })
+      .finally(() => {
+        for (const u of urls) {
+          URL.revokeObjectURL(u);
+        }
+      });
+  };
+  return mesh;
 };
-const _handleFileUpload = async file => {
+inventory.uploadFile = async file => {
   const res = await fetch(storageHost, {
     method: 'POST',
     body: file,
@@ -241,32 +260,29 @@ const _handleFileUpload = async file => {
     data: files,
   }));
 };
-bindUploadFileButton(document.getElementById('load-package-input'), _handleFileUpload);
+bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFile);
 
 let files = [];
 inventory.getFiles = () => files;
-inventory.loadFile = async file => {
+inventory.loadFileForWorld = async file => {
   const match = file.name.match(/\.(.+)$/);
   const ext = match[1];
   switch (ext) {
     case 'gltf':
     case 'glb': {
-      await _uploadGltf(file);
-      break;
+      return await _loadGltf(file);
     }
     case 'png':
     case 'gif':
     case 'jpg': {
-      await _uploadImg(file);
-      break;
+      return await _loadImg(file);
     }
     case 'js': {
-      await _uploadScript(file);
+      return await _loadScript(file);
       break;
     }
     case 'wbn': {
-      await _uploadWebBundle(file);
-      break;
+      return await _loadWebBundle(file);
     }
   }
 };
@@ -279,7 +295,7 @@ document.addEventListener('drop', async e => {
 
   if (e.dataTransfer.files.length > 0) {
     const [file] = e.dataTransfer.files;
-    await _handleFileUpload(file);
+    await inventory.uploadFile(file);
   }
 });
 
