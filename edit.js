@@ -5597,6 +5597,9 @@ const _makeAtlas = (size, images) => {
       atlasCanvas = document.createElement('canvas');
       atlasCanvas.width = size;
       atlasCanvas.height = size;
+      const ctx = atlasCanvas.getContext('2d');
+      ctx.fillStyle = '#FFF';
+      ctx.fillRect(0, 0, atlasCanvas.width, atlasCanvas.height);
       const atlas = atlaspack(atlasCanvas);
       rects.length = 0;
 
