@@ -1704,7 +1704,7 @@ const makeColorsMesh = (cubeMesh, colors, oncolorchange) => {
   mesh.click = anchorSpec => {
     const {anchor} = anchorSpec;
     // console.log('click', anchor);
-    const match = anchor.id.match(/^color-([0-9]+)-([0-9]+)$/);
+    const match = anchor && anchor.id.match(/^color-([0-9]+)-([0-9]+)$/);
     if (match) {
       const index = parseInt(match[1], 10);
       const color = parseInt(match[2], 10);
