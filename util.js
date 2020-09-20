@@ -104,15 +104,20 @@ const _makeAtlas = (size, images) => {
         const image = images[i];
 
         if (image) {
-          const w = image.width * scale;
-          const h = image.height * scale;
-          const resizeCanvas = document.createElement('canvas');
-          resizeCanvas.width = w;
-          resizeCanvas.height = h;
-          const resizeCtx = resizeCanvas.getContext('2d');
-          resizeCtx.drawImage(image, 0, 0, w, h);
+          let rect;
+          if (!image.rigid) {
+            const w = image.width * scale;
+            const h = image.height * scale;
+            const resizeCanvas = document.createElement('canvas');
+            resizeCanvas.width = w;
+            resizeCanvas.height = h;
+            const resizeCtx = resizeCanvas.getContext('2d');
+            resizeCtx.drawImage(image, 0, 0, w, h);
 
-          const rect = atlas.pack(resizeCanvas);
+            rect = atlas.pack(resizeCanvas);
+          } else {
+            rect = atlas.pack(image);
+          }
           if (rect) {
             rects.push(rect.rect);
           } else {
