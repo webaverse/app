@@ -9,7 +9,6 @@ const _clone = o => JSON.parse(JSON.stringify(o));
 let loginToken = null;
 let userObject = null;
 async function pullUserObject() {
-
   const res = await fetch(`${usersEndpoint}/${loginToken.name}`);
   if (res.ok) {
     userObject = await res.json();
