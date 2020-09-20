@@ -1,14 +1,11 @@
 import flow from './flow/flow.js';
 import flowConstants from './flow-constants.js';
+import {accountsHost} from './constants.js';
 
-function buf2hex(buffer) {
-  return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
-}
-async function genKeys(entropy) {
-  entropy = new TextEncoder().encode(entropy);
-  const digest = await crypto.subtle.digest('SHA-256', entropy);
+const genKeys = async mnemonic => {
+  const seed = await bip39.mnemonicToSeed(mnemonic);
   return flow.crypto.genKeys({
-    entropy: buf2hex(digest),
+    entropy: seed.toString('hex'),
     entropyEnc: 'hex',
   });
 };
@@ -36,106 +33,54 @@ const _waitForTx = async txid => {
     }
   }
 };
-const _createContract = async contractSource => {
-  const contractKeys = flow.crypto.genKeys();
-  {
-    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.getAccount(flowConstants.address),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveParams,
-      ]),
-    ]), { node: flowConstants.host });
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
-
-    const signingFunction = flow.signingFunction.signingFunction(flowConstants.privateKey);
-
-    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.authorizations([flow.sdk.authorization(flowConstants.address, signingFunction, 0)]),
-      flow.sdk.payer(flow.sdk.authorization(flowConstants.address, signingFunction, 0)),
-      flow.sdk.proposer(flow.sdk.authorization(flowConstants.address, signingFunction, 0, seqNum)),
-      flow.sdk.limit(100),
-      flow.sdk.transaction`
-        transaction(publicKeys: [String], code: String) {
-          prepare(signer: AuthAccount) {
-            let acct = AuthAccount(payer: signer)
-            for key in publicKeys {
-              acct.addPublicKey(key.decodeHex())
-            }
-            acct.setCode(code.decodeHex())
-          }
-        }
-      `,
-      flow.sdk.args([
-        flow.sdk.arg([contractKeys.flowKey], flow.types.Array(flow.types.String)),
-        flow.sdk.arg(uint8Array2hex(new TextEncoder().encode(contractSource)), flow.types.String),
-      ]),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveArguments,
-        flow.sdk.resolveParams,
-        flow.sdk.resolveAccounts,
-        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
-        flow.sdk.resolveSignatures,
-      ]),
-    ]), { node: flowConstants.host });
-    console.log('got response 1', response);
-    const response2 = await _waitForTx(response.transactionId);
-    console.log('got response 2', response2);
-    contractKeys.address = response2.transaction.events[0].payload.value.fields[0].value.value.slice(2);
-    console.log('got response 3', contractKeys.address);
-  }
-  return contractKeys;
+const _createAccount = async () => {
+  const res = await fetch(accountsHost, {
+    method: 'POST',
+  });
+  const j = await res.json();
+  return j;
 };
-const _createAccount = async (ftContractAddress, nftContractAddress) => {
-  const userKeys = flow.crypto.genKeys();
-  // create user account
-  {
-    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.getAccount(flowConstants.address),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveParams,
-      ]),
-    ]), { node: flowConstants.host });
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+const _bakeContract = async (contractKeys, contractSource) => {
+  const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+    flow.sdk.getAccount(contractKeys.address),
+  ]), [
+    flow.sdk.resolve([
+      flow.sdk.resolveParams,
+    ]),
+  ]), { node: flowConstants.host });
+  const seqNum = acctResponse.account.keys[0].sequenceNumber;
 
-    const signingFunction = flow.signingFunction.signingFunction(flowConstants.privateKey);
+  const signingFunction = flow.signingFunction.signingFunction(contractKeys.privateKey);
 
-    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.authorizations([flow.sdk.authorization(flowConstants.address, signingFunction, 0)]),
-      flow.sdk.payer(flow.sdk.authorization(flowConstants.address, signingFunction, 0)),
-      flow.sdk.proposer(flow.sdk.authorization(flowConstants.address, signingFunction, 0, seqNum)),
-      flow.sdk.limit(100),
-      flow.sdk.transaction`
-        transaction(publicKeys: [String]) {
-          prepare(signer: AuthAccount) {
-            let acct = AuthAccount(payer: signer)
-            for key in publicKeys {
-              acct.addPublicKey(key.decodeHex())
-            }
-          }
+  const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
+    flow.sdk.authorizations([flow.sdk.authorization(contractKeys.address, signingFunction, 0)]),
+    flow.sdk.payer(flow.sdk.authorization(contractKeys.address, signingFunction, 0)),
+    flow.sdk.proposer(flow.sdk.authorization(contractKeys.address, signingFunction, 0, seqNum)),
+    flow.sdk.limit(100),
+    flow.sdk.transaction`
+      transaction(code: String) {
+        prepare(acct: AuthAccount) {
+          acct.setCode(code.decodeHex())
         }
-      `,
-      flow.sdk.args([
-        // flow.sdk.arg(2, t.Uint8),
-        flow.sdk.arg([userKeys.flowKey], flow.types.Array(flow.types.String)),
-      ]),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveArguments,
-        flow.sdk.resolveParams,
-        flow.sdk.resolveAccounts,
-        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
-        flow.sdk.resolveSignatures,
-      ]),
-    ]), { node: flowConstants.host });
-    console.log('got response 4', response);
-    const response2 = await _waitForTx(response.transactionId);
-    console.log('got response 5', response2);
-    userKeys.address = response2.transaction.events[0].payload.value.fields[0].value.value.slice(2);
-    console.log('got response 6', userKeys.address);
-  }
+      }
+    `,
+  ]), [
+    flow.sdk.args([
+      flow.sdk.arg(uint8Array2hex(new TextEncoder().encode(contractSource)), flow.types.String),
+    ]),
+    flow.sdk.resolve([
+      flow.sdk.resolveArguments,
+      flow.sdk.resolveParams,
+      flow.sdk.resolveAccounts,
+      flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
+      flow.sdk.resolveSignatures,
+    ]),
+  ]), { node: flowConstants.host });
+ 
+  const response2 = await _waitForTx(response.transactionId);
+  return response2;
+};
+const _bakeUserAccount = async (userKeys, ftContractAddress, nftContractAddress) => {
   // set up ft
   {
     const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
@@ -264,11 +209,38 @@ const testFlow = async () => {
     return text.replace('0xNFTADDRESS', flowConstants.NonFungibleToken);
   })();
 
-  const ftContractKeys = await _createContract(exampleTokenSource);
-  const nftContractKeys = await _createContract(exampleNFTSource);
+  console.log('ready to test');
 
-  const userKeys = await _createAccount(ftContractKeys.address, nftContractKeys.address);
-  const userKeys2 = await _createAccount(ftContractKeys.address, nftContractKeys.address);
+  const [
+    ftContractKeys,
+    nftContractKeys,
+    userKeys,
+    userKeys2,
+  ] = await Promise.all([
+    _createAccount(),
+    _createAccount(),
+    _createAccount(),
+    _createAccount(),
+  ]);
+
+  console.log('got keys', {
+    ftContractKeys,
+    nftContractKeys,
+    userKeys,
+    userKeys2,
+  });
+
+  await Promise.all([
+    _bakeContract(ftContractKeys, exampleTokenSource),
+    _bakeContract(nftContractKeys, exampleNFTSource),
+  ]);
+  console.log('baked contracts');
+  await Promise.all([
+    _bakeUserAccount(userKeys, ftContractKeys.address, nftContractKeys.address),
+    _bakeUserAccount(userKeys2, ftContractKeys.address, nftContractKeys.address),
+  ]);
+  console.log('baked user accounts');
+
   // mint ft
   {
     const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
