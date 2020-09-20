@@ -45,6 +45,8 @@ inventory.bakeFile = async file => {
           geometries.push(o.geometry);
           if (o.material.map) {
             textures.push(o.material.map);
+          } else if (o.material.emissiveMap) {
+            textures.push(o.material.emissiveMap);
           } else {
             textures.push(null);
           }
