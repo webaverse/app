@@ -4,7 +4,7 @@ import {GLTFExporter} from './GLTFExporter.js';
 import {bindUploadFileButton, mergeMeshes} from './util.js';
 import wbn from './wbn.js';
 import {storageHost} from './constants.js';
-import app from './app-object.js';
+// import app from './app-object.js';
 
 const inventory = new EventTarget();
 
