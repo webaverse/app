@@ -1,5 +1,5 @@
 import * as THREE from './three.module.js';
-import {GLTFLoader} from './GLTFLoader.module.js';
+import {GLTFLoader} from './GLTFLoader.js';
 import {makePromise, WaitQueue} from './util.js';
 import Avatar from './avatars/avatars.js';
 
