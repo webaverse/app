@@ -1768,7 +1768,7 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
     const innerW = iconW - margin; */
     const scrollbarW = fullW/40;
     const geometry = new THREE.PlaneBufferGeometry(scrollbarW, 1)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(-fullW + scrollbarW + wrapInnerW, -1/2, scrollbarW/2));
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(-fullW + scrollbarW/2 + wrapInnerW, -1/2, 0.001));
     const material = new THREE.MeshBasicMaterial({
       color: 0xffa726,
     });
