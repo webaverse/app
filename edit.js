@@ -4172,12 +4172,14 @@ class MeshComposer {
     }
 
     const mesh = _mergeMeshes(meshes, geometries, textures);
-    scene.add(mesh);
 
     for (const mesh of this.meshes) {
+      mesh.geometry.dispose();
       scene.remove(mesh);
     }
     this.meshes.length = 0;
+    
+    return mesh;
   }
   cancel() {
     for (const mesh of this.meshes) {
@@ -5286,6 +5288,14 @@ const _makeInventoryShapesMesh = () => {
       geometry.attributes.uv.array[i] = -1;
       geometry.attributes.uv.array[i+1] = -1;
     }
+    
+    if (!geometry.index) {
+      const indices = new Uint16Array(geometry.attributes.position.array.length/3);
+      for (let i = 0; i < indices.length; i++) {
+        indices[i] = i;
+      }
+      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+    }
 
     _bakeGeometryColors(geometry);
   }
@@ -5298,17 +5308,9 @@ const _makeInventoryShapesMesh = () => {
   const _compileGeometry = () => BufferGeometryUtils.mergeBufferGeometries(geometries.map((geometry, i) => {
     const dx = i%3;
     const dy = (i-dx)/3;
-    const g = geometry.clone()
+    return geometry.clone()
       .applyMatrix4(new THREE.Matrix4().makeScale(w*2, w*2, w*2))
       .applyMatrix4(new THREE.Matrix4().makeTranslation(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4));
-    if (!g.index) {
-      const indices = new Uint16Array(g.attributes.position.array.length/3);
-      for (let i = 0; i < indices.length; i++) {
-        indices[i] = i;
-      }
-      g.setIndex(new THREE.BufferAttribute(indices, 1));
-    }
-    return g;
   }));
   const geometry = _compileGeometry();
   const mesh = new THREE.Mesh(geometry, meshComposer.material);
@@ -5320,6 +5322,7 @@ const _makeInventoryShapesMesh = () => {
     for (const geometry of geometries) {
       _bakeGeometryColors(geometry);
     }
+    mesh.geometry.dispose();
     mesh.geometry = _compileGeometry();
   };
   return mesh;
@@ -5355,7 +5358,9 @@ colorsMesh.visible = false;
 scene.add(colorsMesh);
 
 const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
-  // console.log('got run', anchorSpec);
+  const mesh = meshComposer.commit();
+  scene.add(mesh);
+  detailsMesh.visible = false;
 }, function onadd(anchorSpec) {
   // console.log('got add', anchorSpec);
    meshComposer.commit();
