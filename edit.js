@@ -5364,9 +5364,9 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
   detailsMesh.visible = false;
 }, function onadd(anchorSpec) {
   const mesh = meshComposer.commit();
-  console.log('got add', mesh);
-  new GLTFExporter().parse(mesh, arrayBuffer => {
-    console.log('got exporter', arrayBuffer);
+  new GLTFExporter().parse(mesh, async arrayBuffer => {
+    arrayBuffer.name = 'object.glb';
+    await inventory.uploadFile(arrayBuffer);
   }, {
     binary: true,
   });
