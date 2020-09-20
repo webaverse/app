@@ -7187,6 +7187,7 @@ const keys = {
   left: false,
   right: false,
   shift: false,
+  ctrl: false
 };
 const _resetKeys = () => {
   for (const k in keys) {
@@ -7284,7 +7285,9 @@ window.addEventListener('keydown', e => {
     case 86: { // V
       e.preventDefault();
       e.stopPropagation();
-      tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+      if (!keys.ctrl && document.pointerLockElement) {
+        tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+      }
       break;
     }
     case 66: { // B
@@ -7303,6 +7306,12 @@ window.addEventListener('keydown', e => {
       e.preventDefault();
       e.stopPropagation();
       tools.find(tool => tool.getAttribute('tool') === 'birdseye').click();
+      break;
+    }
+    case 17: { // ctrl
+      if (document.pointerLockElement) {
+        keys.ctrl = true;
+      }
       break;
     }
     case 16: { // shift
@@ -7338,8 +7347,10 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 67: { // C
-      document.querySelector('.weapon[weapon="build"]').click();
-      buildMode = 'stair';
+      if (!keys.ctrl && document.pointerLockElement) {
+        document.querySelector('.weapon[weapon="build"]').click();
+        buildMode = 'stair';
+      }
       break;
     }
     /* case 80: { // P
@@ -7402,6 +7413,12 @@ window.addEventListener('keyup', e => {
     case 16: { // shift
       if (document.pointerLockElement) {
         keys.shift = false;
+      }
+      break;
+    }
+    case 17: { // ctrl
+      if (document.pointerLockElement) {
+        keys.ctrl = false;
       }
       break;
     }
