@@ -5225,8 +5225,14 @@ const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   }
 });
 inventoryMesh.visible = false;
-inventoryMesh.handleIconClick = (i, srcIndex) => {
-  console.log('handle inventory click', srcIndex);
+inventoryMesh.handleIconClick = async (i, srcIndex) => {
+  // console.log('handle inventory click', srcIndex);
+  const files = inventory.getFiles();
+  const file = files[i];
+  const {name, hash} = file;
+  const res = await fetch(`${storageHost}/${hash}`);
+  const arrayBuffer = await res.arrayBuffer();
+  console.log('got arraybuffer', name, hash, arrayBuffer);
   /* if (srcIndex < inventoryMesh.currentGeometryKeys.length) {
     const geometryKey = inventoryMesh.currentGeometryKeys[srcIndex];
     (async () => {
