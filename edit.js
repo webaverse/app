@@ -43,7 +43,7 @@ import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
 import atlaspack from './atlaspack.js';
 import app from './app-object.js';
-import './inventory.js';
+import inventory from './inventory.js';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
@@ -5216,11 +5216,10 @@ scene.add(shapesMesh);
 const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   await loadPromise;
 
-  /* if (!inventoryMesh.inventoryShapesMesh) {
-    inventoryMesh.inventoryShapesMesh = _makeInventoryShapesMesh();
-    inventoryMesh.inventoryShapesMesh.frustumCulled = false;
-    inventoryMesh.add(inventoryMesh.inventoryShapesMesh);
-  } */
+  if (!inventoryMesh.inventoryItemsMesh) {
+    inventoryMesh.inventoryItemsMesh = _makeInventoryItemsMesh();
+    inventoryMesh.add(inventoryMesh.inventoryItemsMesh);
+  }
 });
 inventoryMesh.visible = false;
 inventoryMesh.handleIconClick = (i, srcIndex) => {
@@ -5311,6 +5310,26 @@ const _makeInventoryShapesMesh = () => {
     color2.value.setStyle('#' + colors[selectedColors[1]]);
   };
   return mesh;
+};
+const _makeInventoryItemsMesh = () => {
+  const h = 0.1;
+  const arrowW = h/10;
+  const wrapInnerW = h - 2*arrowW;
+  const w = wrapInnerW/3;
+  
+  const object = new THREE.Object3D();
+  object.update = files => {
+    for (let i = 0; i < files.length; i++) {
+      const {name, hash} = files[i];
+      const dx = i%3;
+      const dy = (i-dx)/3;
+
+      const textMesh = makeTextMesh(name, './Bangers-Regular.ttf', 0.003, 'left', 'bottom');
+      textMesh.position.set(-h + 0.004 + dx*w, h/2 - arrowW - w - dy*w, 0.001);
+      object.add(textMesh);
+    }
+  };
+  return object;
 };
 
 let selectedColors;
@@ -7469,6 +7488,11 @@ const _ensureLoadMesh = p => {
       });
   }
 };
+
+inventory.addEventListener('filesupdate', e => {
+  const files = e.data;
+  inventoryMesh.inventoryItemsMesh.update(files);
+});
 
 const raycaster = new THREE.Raycaster();
 let anchorSpecs = [null, null];

@@ -2,6 +2,8 @@ import {bindUploadFileButton} from './util.js';
 import wbn from './wbn.js';
 import {storageHost} from './constants.js';
 
+const inventory = new EventTarget();
+
 const textDecoder = new TextDecoder();
 
 const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host);
@@ -230,8 +232,20 @@ const _handleFileUpload = async file => {
     body: file,
   });
   const {hash} = await res.json();
-  console.log('got hash', hash);
+  const {name} = file;
+  files.push({
+    name,
+    hash,
+  });
+  inventory.dispatchEvent(new MessageEvent('filesupdate', {
+    data: files,
+  }));
+};
+bindUploadFileButton(document.getElementById('load-package-input'), _handleFileUpload);
 
+let files = [];
+inventory.getFiles = () => files;
+inventory.loadFile = async file => {
   const match = file.name.match(/\.(.+)$/);
   const ext = match[1];
   switch (ext) {
@@ -256,7 +270,6 @@ const _handleFileUpload = async file => {
     }
   }
 };
-bindUploadFileButton(document.getElementById('load-package-input'), _handleFileUpload);
 
 document.addEventListener('dragover', e => {
   e.preventDefault();
@@ -269,3 +282,5 @@ document.addEventListener('drop', async e => {
     await _handleFileUpload(file);
   }
 });
+
+export default inventory;
