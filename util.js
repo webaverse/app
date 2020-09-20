@@ -181,12 +181,12 @@ export function mergeMeshes(meshes, geometries, textures) {
             uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
             uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
           } else {
-            uvs[uvIndex + i] = geometry.attributes.uv.array[i];
-            uvs[uvIndex + i + 1] = geometry.attributes.uv.array[i + 1];
+            uvs[uvIndex + i] = 1;
+            uvs[uvIndex + i + 1] = 1;
           }
         }
       } else {
-        uvs.fill(0, uvIndex, geometry.attributes.position.array.length / 3 * 2);
+        uvs.fill(1, uvIndex, geometry.attributes.position.array.length / 3 * 2);
       }
       uvIndex += geometry.attributes.position.array.length / 3 * 2;
       if (geometry.attributes.color) {
