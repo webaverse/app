@@ -141,7 +141,17 @@ const _makeAtlas = (size, images) => {
 export function mergeMeshes(meshes, geometries, textures) {
   const size = 512;
   const images = textures.map(texture => texture && texture.image);
-  const {atlasCanvas, rects} = _makeAtlas(size, images);
+  const colorsImage = document.createElement('canvas');
+  colorsImage.width = size/2;
+  colorsImage.height = 1;
+  colorsImage.rigid = true;
+  const colorsImageCtx = colorsImage.getContext('2d');
+  colorsImageCtx.fillStyle = '#FFF';
+  colorsImageCtx.fillRect(0, 0,  colorsImage.width,  colorsImage.height);
+  const {atlasCanvas, rects} = _makeAtlas(size, images.concat(colorsImage));
+  const colorsImageRect = rects[rects.length - 1];
+  let colorsImageColorIndex = 0;
+  const atlasCanvasCtx = atlasCanvas.getContext('2d');
 
   const geometry = new THREE.BufferGeometry();
   {
@@ -163,6 +173,7 @@ export function mergeMeshes(meshes, geometries, textures) {
     for (let i = 0; i < meshes.length; i++) {
       const mesh = meshes[i];
       const geometry = geometries[i];
+      const {material} = mesh;
       const rect = rects[i];
 
       geometry.applyMatrix4(mesh.matrixWorld);
@@ -180,18 +191,30 @@ export function mergeMeshes(meshes, geometries, textures) {
 
       positions.set(geometry.attributes.position.array, positionIndex);
       positionIndex += geometry.attributes.position.array.length;
-      if (geometry.attributes.uv) {
+      if (geometry.attributes.uv && rect) {
         for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-          if (rect) {
-            uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
-            uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
-          } else {
-            uvs[uvIndex + i] = 1;
-            uvs[uvIndex + i + 1] = 1;
-          }
+          uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
+          uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
         }
       } else {
-        uvs.fill(1, uvIndex, geometry.attributes.position.array.length / 3 * 2);
+        const color = material.color.clone();
+        if (material.emissive && material.emissiveIntensity > 0) {
+          color.lerp(material.emissive, material.emissiveIntensity);
+        }
+        atlasCanvasCtx.fillStyle = color.getStyle();
+        const uv = new THREE.Vector2(colorsImageRect.x + colorsImageColorIndex, colorsImageRect.y);
+        atlasCanvasCtx.fillRect(
+          uv.x,
+          uv.y,
+          uv.x + 1,
+          uv.y + 1
+        );
+        colorsImageColorIndex++;
+        
+        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+          uvs[uvIndex + i] = (uv.x + 0.5)/size;
+          uvs[uvIndex + i + 1] = (uv.y + 0.5)/size;
+        }
       }
       uvIndex += geometry.attributes.position.array.length / 3 * 2;
       if (geometry.attributes.color) {
