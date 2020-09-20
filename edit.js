@@ -5234,7 +5234,6 @@ inventoryMesh.handleIconClick = async (i, srcIndex) => {
   blob.name = name;
 
   const mesh = await inventory.loadFileForWorld(blob);
-  console.log('add mesh', mesh);
   mesh.traverse(o => {
     if (o.isMesh) {
       o.frustumCulled = false;
