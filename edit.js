@@ -3759,10 +3759,10 @@ const MeshDrawer = (() => {
     }
 
     setColors(selectedColors) {
-      material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
-      material.uniforms.color1.needsUpdate = true;
-      material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
-      material.uniforms.color2.needsUpdate = true;
+      this.mesh.material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
+      this.mesh.material.uniforms.color1.needsUpdate = true;
+      this.mesh.material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
+      this.mesh.material.uniforms.color2.needsUpdate = true;
     }
 
     /* drawPolygonize(ps, holes, holeCounts, points, z, zs) {
@@ -5306,8 +5306,8 @@ const _makeInventoryShapesMesh = () => {
   const mesh = new THREE.Mesh(geometry, meshComposer.material);
   mesh.geometries = geometries;
   mesh.setColors = selectedColors => {
-    color1.value.setStyle('#' + colors[selectedColors[0]]);
-    color2.value.setStyle('#' + colors[selectedColors[1]]);
+    color1.setStyle('#' + colors[selectedColors[0]]);
+    color2.setStyle('#' + colors[selectedColors[1]]);
   };
   return mesh;
 };
