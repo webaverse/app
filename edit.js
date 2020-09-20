@@ -5383,6 +5383,7 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
   mesh.material = new THREE.MeshBasicMaterial({
     map: mesh.material.uniforms.map.value,
     vertexColors: true,
+    transparent: true,
   });
   mesh.userData.gltfExtensions = {
     EXT_aabb: mesh.geometry.boundingBox.min.toArray()
