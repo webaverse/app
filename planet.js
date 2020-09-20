@@ -757,10 +757,10 @@ planet.update = () => {
   rigManager.update();
 };
 
-planet.connect = async (rn, {online = true} = {}) => {
+planet.connect = async (rn, url, {online = true} = {}) => {
   roomName = rn;
   if (online) {
-    await _connectRoom(roomName);
+    await _connectRoom(roomName, url);
   } else {
     await _loadStorage(roomName);
     await _loadLiveState(roomName);
@@ -793,14 +793,15 @@ window.addEventListener('load', () => {
         channelConnection.close();
         channelConnectionOpen = false;
       } else {
-          const response = fetch(`${worldsHost}/create`, {
+          const response = await fetch(`${worldsHost}/create`, {
             method: 'POST'
           })
           if (response.ok) {
             const json = await response.json();
+            console.log(json)
             worldMeta.url = json.url;
             worldMeta.id = json.id;
-            planet.connect('lol', worldMeta.url);
+            planet.connect('lol', json.url);
             button.innerHTML = `
               <i class="fal fa-wifi-slash"></i>
               <div class=label>Disconnect</div>
