@@ -5364,6 +5364,10 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
   detailsMesh.visible = false;
 }, function onadd(anchorSpec) {
   const mesh = meshComposer.commit();
+  mesh.material = new THREE.MeshBasicMaterial({
+    map: mesh.material.uniforms.map.value,
+    vertexColors: true,
+  });
   new GLTFExporter().parse(mesh, async arrayBuffer => {
     arrayBuffer.name = 'object.glb';
     await inventory.uploadFile(arrayBuffer);
