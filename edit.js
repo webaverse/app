@@ -5349,6 +5349,7 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
 }, function onremove(anchorSpec) {
   // console.log('got remove', anchorSpec);
   meshComposer.cancel();
+  detailsMesh.visible = false;
 }, function onclose() {
   detailsMesh.visible = false;
 });
