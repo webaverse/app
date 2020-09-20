@@ -36,22 +36,31 @@ inventory.bakeFile = async file => {
       }
       o = o.scene;
 
-      const meshes = [];
-      const geometries = [];
-      const textures = [];
+      const specs = [];
       o.traverse(o => {
         if (o.isMesh) {
-          meshes.push(o);
-          geometries.push(o.geometry);
+          const mesh = o;
+          const {geometry} = o;
+          let texture;
           if (o.material.map) {
-            textures.push(o.material.map);
+            texture = o.material.map;
           } else if (o.material.emissiveMap) {
-            textures.push(o.material.emissiveMap);
+            texture = o.material.emissiveMap;
           } else {
-            textures.push(null);
+            texture = null;
           }
+          specs.push({
+            mesh,
+            geometry,
+            texture,
+          });
         }
       });
+      specs.sort((a, b) => +a.mesh.material.transparent - +b.mesh.material.transparent);
+      const meshes = specs.map(spec => spec.mesh);
+      const geometries = specs.map(spec => spec.geometry);
+      const textures = specs.map(spec => spec.texture);
+
       const mesh = mergeMeshes(meshes, geometries, textures);
       mesh.userData.gltfExtensions = {
         EXT_aabb: mesh.geometry.boundingBox.min.toArray()
