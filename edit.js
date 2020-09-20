@@ -5227,7 +5227,7 @@ const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
 inventoryMesh.visible = false;
 inventoryMesh.handleIconClick = async (i, srcIndex) => {
   const files = inventory.getFiles();
-  const file = files[i];
+  const file = files[srcIndex];
   const {name, hash} = file;
   const res = await fetch(`${storageHost}/${hash}`);
   const blob = await res.blob();
