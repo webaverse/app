@@ -9,6 +9,7 @@ import {TransformControls} from './TransformControls.js';
 // import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import { tryLogin, loginManager } from './login.js';
 import {downloadFile, readFile, bindUploadFileButton} from './util.js';
+import wbn from './wbn.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
@@ -42,6 +43,11 @@ import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
 import atlaspack from './atlaspack.js';
+
+const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host);
+const importMap = {
+  three: _importMapUrl('./three.module.js'),
+};
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
@@ -7166,6 +7172,77 @@ const _uploadScript = async file => {
   console.log('got text', mesh);
   // eval(text);
 };
+const _uploadWebBundle = async file => {
+  const arrayBuffer = await new Promise((accept, reject) => {
+    const fr = new FileReader();
+    fr.onload = function() {
+      accept(this.result);
+    };
+    fr.onerror = reject;
+    fr.readAsArrayBuffer(file);
+  });
+
+  const urls = [];
+  const _getUrl = u => {
+    const mappedUrl = URL.createObjectURL(new Blob([u], {
+      type: 'text/javascript',
+    }));
+    urls.push(mappedUrl);
+    return mappedUrl;
+  };
+  const urlCache = {};
+  const _mapUrl = u => {
+    const importUrl = importMap[u];
+    if (importUrl) {
+      return importUrl;
+    } else {
+      const cachedUrl = urlCache[u];
+      if (cachedUrl) {
+        return cachedUrl;
+      } else {
+        const importUrl = new URL(u, 'https://xrpackage.org/').href;
+        let importResponse;
+        try {
+          importResponse = bundle.getResponse(importUrl);
+        } catch(err) {}
+        if (importResponse) {
+          const importBody = importResponse.body;
+          let importScript = textDecoder.decode(importBody);
+          importScript = _mapScript(importScript);
+          const cachedUrl = _getUrl(importScript);
+          urlCache[u] = cachedUrl;
+          return cachedUrl;
+        } else {
+          throw new Error('failed to find import url: ' + importUrl);
+        }
+      }
+    }
+  };
+  const _mapScript = script => {
+    const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
+    script = script.replace(r, function() {
+      const u = _mapUrl(arguments[2]);
+      return arguments[1] + u + arguments[3];
+    });
+    return script;
+  };
+
+  const bundle = new wbn.Bundle(arrayBuffer);
+  const u = _mapUrl(bundle.primaryURL);
+  console.log('got url', u);
+  // debugger;
+  import(u)
+    .then(() => {
+      console.log('import returned');
+    }, err => {
+      console.warn('import failed', err);
+    })
+    .finally(() => {
+      for (const u of urls) {
+        URL.revokeObjectURL(u);
+      }
+    });
+};
 const _handleFileUpload = async file => {
   const match = file.name.match(/\.(.+)$/);
   const ext = match[1];
@@ -7183,6 +7260,10 @@ const _handleFileUpload = async file => {
     }
     case 'js': {
       await _uploadScript(file);
+      break;
+    }
+    case 'wbn': {
+      await _uploadWebBundle(file);
       break;
     }
   }
