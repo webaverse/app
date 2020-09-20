@@ -4,6 +4,7 @@ import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {OrbitControls} from './OrbitControls.js';
 import {GLTFLoader} from './GLTFLoader.js';
+import {GLTFExporter} from './GLTFExporter.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
 // import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
@@ -5362,8 +5363,14 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
   scene.add(mesh);
   detailsMesh.visible = false;
 }, function onadd(anchorSpec) {
-  // console.log('got add', anchorSpec);
-   meshComposer.commit();
+  const mesh = meshComposer.commit();
+  console.log('got add', mesh);
+  new GLTFExporter().parse(mesh, arrayBuffer => {
+    console.log('got exporter', arrayBuffer);
+  }, {
+    binary: true,
+  });
+  detailsMesh.visible = false;
 }, function onremove(anchorSpec) {
   // console.log('got remove', anchorSpec);
   meshComposer.cancel();
