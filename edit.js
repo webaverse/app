@@ -5233,9 +5233,13 @@ inventoryMesh.handleIconClick = async (i, srcIndex) => {
   const blob = await res.blob();
   blob.name = name;
 
-  // console.log('got arraybuffer', name, hash, blob);
-
   const mesh = await inventory.loadFileForWorld(blob);
+  console.log('add mesh', mesh);
+  mesh.traverse(o => {
+    if (o.isMesh) {
+      o.frustumCulled = false;
+    }
+  });
   scene.add(mesh);
 
   /* const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
