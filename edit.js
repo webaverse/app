@@ -5268,19 +5268,26 @@ const _makeInventoryShapesMesh = () => {
     torusMesh,
   ];
   const scaleMatrix = new THREE.Matrix4().makeScale(0.1, 0.1, 0.1);
+  const _bakeGeometryColors = geometry => {
+    const colors = new Float32Array(geometry.attributes.position.array.length);
+    for (let i = 0; i < geometry.uvs.length; i += 2) {
+      const y = geometry.uvs[i+1];
+      localColor.copy(color1).lerp(color2, y)
+        .toArray(colors, i/2*3);
+    }
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  };
   for (const geometry of geometries) {
     geometry.applyMatrix4(scaleMatrix);
     geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
 
-    const colors = new Float32Array(geometry.attributes.position.array.length);
+    geometry.uvs = geometry.attributes.uv.array.slice();
     for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-      const y = geometry.attributes.uv.array[i+1];
-      localColor.copy(color1).lerp(color2, y)
-        .toArray(colors, i/2*3);
       geometry.attributes.uv.array[i] = -1;
       geometry.attributes.uv.array[i+1] = -1;
     }
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    _bakeGeometryColors(geometry);
   }
 
   const h = 0.1;
@@ -5288,7 +5295,7 @@ const _makeInventoryShapesMesh = () => {
   const wrapInnerW = h - 2*arrowW;
   const w = wrapInnerW/3;
 
-  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries.map((geometry, i) => {
+  const _compileGeometry = () => BufferGeometryUtils.mergeBufferGeometries(geometries.map((geometry, i) => {
     const dx = i%3;
     const dy = (i-dx)/3;
     const g = geometry.clone()
@@ -5303,11 +5310,17 @@ const _makeInventoryShapesMesh = () => {
     }
     return g;
   }));
+  const geometry = _compileGeometry();
   const mesh = new THREE.Mesh(geometry, meshComposer.material);
   mesh.geometries = geometries;
   mesh.setColors = selectedColors => {
     color1.setStyle('#' + colors[selectedColors[0]]);
     color2.setStyle('#' + colors[selectedColors[1]]);
+    
+    for (const geometry of geometries) {
+      _bakeGeometryColors(geometry);
+    }
+    mesh.geometry = _compileGeometry();
   };
   return mesh;
 };
