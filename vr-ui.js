@@ -788,6 +788,7 @@ p {
   <div class=buttons>
     <a class=button id=run-button>Run</a>
     <a class=button id=add-button>Add to inventory</a>
+    <a class=button id=remove-button>Remove</a>
   </div>
   <div class=header>
     <a class=close-button id=close-button>X</a>
@@ -1494,7 +1495,7 @@ const makeToolsMesh = (tools, selectTool) => {
 
   return mesh;
 };
-const makeDetailsMesh = cubeMesh => {
+const makeDetailsMesh = (cubeMesh, onrun, onadd, onremove, onclose) => {
   const worldWidth = 1;
   const worldHeight = 0.5;
   const canvasWidth = uiSize;
@@ -1582,12 +1583,27 @@ const makeDetailsMesh = cubeMesh => {
     return currentAnchor;
   };
   mesh.click = anchorSpec => {
-    // console.log('click', anchor);
     const {anchor} = anchorSpec;
-    /* if (anchor === 'scrollbar') {
-      console.log('got uv', uv.y);
-    } */
-    // currentMesh && currentMesh.click(currentAnchor);
+    if (anchor) {
+      switch (anchor.id) {
+        case 'run-button': {
+          onrun(anchorSpec);
+          break;
+        }
+        case 'add-button': {
+          onadd(anchorSpec);
+          break;
+        }
+        case 'remove-button': {
+          onremove(anchorSpec);
+          break;
+        }
+        case 'close-button': {
+          onclose();
+          break;
+        }
+      }
+    }
   };
   mesh.update();
 
@@ -1688,7 +1704,7 @@ const makeColorsMesh = (cubeMesh, colors, oncolorchange) => {
   mesh.click = anchorSpec => {
     const {anchor} = anchorSpec;
     // console.log('click', anchor);
-    const match = anchor.id.match(/^color-([0-9]+)-([0-9]+)$/);
+    const match = anchor && anchor.id.match(/^color-([0-9]+)-([0-9]+)$/);
     if (match) {
       const index = parseInt(match[1], 10);
       const color = parseInt(match[2], 10);
@@ -1752,7 +1768,7 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
     const innerW = iconW - margin; */
     const scrollbarW = fullW/40;
     const geometry = new THREE.PlaneBufferGeometry(scrollbarW, 1)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(-fullW + scrollbarW + wrapInnerW, -1/2, scrollbarW/2));
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(-fullW + scrollbarW/2 + wrapInnerW, -1/2, 0.001));
     const material = new THREE.MeshBasicMaterial({
       color: 0xffa726,
     });
