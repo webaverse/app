@@ -226,7 +226,7 @@ const _uploadWebBundle = async file => {
       }
     });
 };
-const _handleFileUpload = async file => {
+inventory.uploadFile = async file => {
   const res = await fetch(storageHost, {
     method: 'POST',
     body: file,
@@ -241,7 +241,7 @@ const _handleFileUpload = async file => {
     data: files,
   }));
 };
-bindUploadFileButton(document.getElementById('load-package-input'), _handleFileUpload);
+bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFile);
 
 let files = [];
 inventory.getFiles = () => files;
@@ -279,7 +279,7 @@ document.addEventListener('drop', async e => {
 
   if (e.dataTransfer.files.length > 0) {
     const [file] = e.dataTransfer.files;
-    await _handleFileUpload(file);
+    await inventory.uploadFile(file);
   }
 });
 
