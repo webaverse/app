@@ -5386,6 +5386,7 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
   const mesh = meshComposer.commit();
   mesh.material = new THREE.MeshBasicMaterial({
     map: mesh.material.uniforms.map.value,
+    side: THREE.DoubleSide,
     vertexColors: true,
     transparent: true,
   });
