@@ -3,7 +3,7 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {OrbitControls} from './OrbitControls.js';
-import {GLTFLoader} from './GLTFLoader.module.js';
+import {GLTFLoader} from './GLTFLoader.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
 // import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
