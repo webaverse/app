@@ -8,8 +8,8 @@ import {GLTFExporter} from './GLTFExporter.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
 // import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
-import { tryLogin, loginManager } from './login.js';
-import {downloadFile} from './util.js';
+import {tryLogin, loginManager} from './login.js';
+import {downloadFile, mergeMeshes} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
@@ -42,7 +42,6 @@ import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
-import atlaspack from './atlaspack.js';
 import app from './app-object.js';
 import inventory from './inventory.js';
 
@@ -4172,7 +4171,11 @@ class MeshComposer {
       }
     }
 
-    const mesh = _mergeMeshes(meshes, geometries, textures);
+    const mesh = mergeMeshes(meshes, geometries, textures);
+    const material = meshComposer.material.clone();
+    material.uniforms.map.value = mesh.material.map;
+    material.uniforms.map.needsUpdate = true;
+    mesh.material = material;
 
     for (const mesh of this.meshes) {
       mesh.geometry.dispose();
@@ -5381,7 +5384,7 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
   const mesh = meshComposer.commit();
   scene.add(mesh);
   detailsMesh.visible = false;
-}, function onadd(anchorSpec) {
+}, async function onadd(anchorSpec) {
   const mesh = meshComposer.commit();
   mesh.material = new THREE.MeshBasicMaterial({
     map: mesh.material.uniforms.map.value,
@@ -5393,13 +5396,14 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
     EXT_aabb: mesh.geometry.boundingBox.min.toArray()
       .concat(mesh.geometry.boundingBox.max.toArray()),
   };
-  new GLTFExporter().parse(mesh, async arrayBuffer => {
-    arrayBuffer.name = 'object.glb';
-    await inventory.uploadFile(arrayBuffer);
-  }, {
-    binary: true,
-    includeCustomExtensions: true,
+  const arrayBuffer = await new Promise((accept, reject) => {
+    new GLTFExporter().parse(mesh, accept, {
+      binary: true,
+      includeCustomExtensions: true,
+    });
   });
+  arrayBuffer.name = 'object.glb';
+  await inventory.uploadFile(arrayBuffer);
 
   detailsMesh.visible = false;
 }, function onremove(anchorSpec) {
@@ -5588,138 +5592,6 @@ const _makeExplosionMesh = () => {
 let explosionMeshes = [];
 
 let pxMeshes = [];
-
-const _makeAtlas = (size, images) => {
-  let atlasCanvas;
-  const rects = [];
-  {
-    for (let scale = 1; scale > 0; scale *= 0.5) {
-      atlasCanvas = document.createElement('canvas');
-      atlasCanvas.width = size;
-      atlasCanvas.height = size;
-      const ctx = atlasCanvas.getContext('2d');
-      ctx.fillStyle = '#FFF';
-      ctx.fillRect(0, 0, atlasCanvas.width, atlasCanvas.height);
-      const atlas = atlaspack(atlasCanvas);
-      rects.length = 0;
-
-      let fit = true;
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
-
-        if (image) {
-          const w = image.width * scale;
-          const h = image.height * scale;
-          const resizeCanvas = document.createElement('canvas');
-          resizeCanvas.width = w;
-          resizeCanvas.height = h;
-          const resizeCtx = resizeCanvas.getContext('2d');
-          resizeCtx.drawImage(image, 0, 0, w, h);
-
-          const rect = atlas.pack(resizeCanvas);
-          if (rect) {
-            rects.push(rect.rect);
-          } else {
-            fit = false;
-            break;
-          }
-        } else {
-          rects.push(null);
-        }
-      }
-      if (fit) {
-        break;
-      }
-    }
-  }
-  return {
-    atlasCanvas,
-    rects,
-  };
-};
-const _mergeMeshes = (meshes, geometries, textures) => {
-  const size = 512;
-  const images = textures.map(texture => texture && texture.image);
-  const {atlasCanvas, rects} = _makeAtlas(size, images);
-
-  const geometry = new THREE.BufferGeometry();
-  {
-    let numPositions = 0;
-    let numIndices = 0;
-    for (const geometry of geometries) {
-      numPositions += geometry.attributes.position.array.length;
-      numIndices += geometry.index.array.length;
-    }
-
-    const positions = new Float32Array(numPositions);
-    const uvs = new Float32Array(numPositions / 3 * 2);
-    const colors = new Float32Array(numPositions);
-    const indices = new Uint32Array(numIndices);
-    let positionIndex = 0;
-    let uvIndex = 0;
-    let colorIndex = 0;
-    let indicesIndex = 0;
-    for (let i = 0; i < meshes.length; i++) {
-      const mesh = meshes[i];
-      const geometry = geometries[i];
-      const rect = rects[i];
-
-      geometry.applyMatrix4(mesh.matrixWorld);
-
-      const indexOffset = positionIndex / 3;
-      if (geometry.index) {
-        for (let i = 0; i < geometry.index.array.length; i++) {
-          indices[indicesIndex++] = geometry.index.array[i] + indexOffset;
-        }
-      } else {
-        for (let i = 0; i < geometry.attributes.position.array.length / 3; i++) {
-          indices[indicesIndex++] = i + indexOffset;
-        }
-      }
-
-      positions.set(geometry.attributes.position.array, positionIndex);
-      positionIndex += geometry.attributes.position.array.length;
-      if (geometry.attributes.uv) {
-        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-          if (rect) {
-            uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
-            uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
-          } else {
-            uvs[uvIndex + i] = geometry.attributes.uv.array[i];
-            uvs[uvIndex + i + 1] = geometry.attributes.uv.array[i + 1];
-          }
-        }
-      } else {
-        uvs.fill(0, uvIndex, geometry.attributes.position.array.length / 3 * 2);
-      }
-      uvIndex += geometry.attributes.position.array.length / 3 * 2;
-      if (geometry.attributes.color) {
-        colors.set(geometry.attributes.color.array, colorIndex);
-      } else {
-        colors.fill(1, colorIndex, geometry.attributes.position.array.length);
-      }
-      colorIndex += geometry.attributes.position.array.length;
-    }
-    if (textures.some(texture => !!texture)) {
-      colors.fill(1);
-    }
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-  }
-  geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
-
-  const texture = new THREE.Texture(atlasCanvas);
-  texture.flipY = false;
-  texture.needsUpdate = true;
-  const material = meshComposer.material.clone();
-  material.uniforms.map.value = texture;
-  material.uniforms.map.needsUpdate = true;
-
-  const mesh = new THREE.Mesh(geometry, material);
-  return mesh;
-};
 
 const _applyGravity = timeDiff => {
   localVector.set(0, -9.8, 0);

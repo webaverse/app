@@ -1,8 +1,10 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
-import {bindUploadFileButton} from './util.js';
+import {GLTFExporter} from './GLTFExporter.js';
+import {bindUploadFileButton, mergeMeshes} from './util.js';
 import wbn from './wbn.js';
 import {storageHost} from './constants.js';
+import app from './app-object.js';
 
 const inventory = new EventTarget();
 
@@ -12,6 +14,63 @@ const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host);
 const importMap = {
   three: _importMapUrl('./three.module.js'),
   app: _importMapUrl('./app-object.js'),
+};
+
+const _getExt = fileName => {
+  const match = fileName.match(/\.(.+)$/);
+  return match && match[1];
+}
+inventory.bakeFile = async file => {
+  switch (_getExt(file.name)) {
+    case 'gltf':
+    case 'glb':
+    case 'vrm': {
+      const u = URL.createObjectURL(file);
+      let o;
+      try {
+        o = await new Promise((accept, reject) => {
+          new GLTFLoader().load(u, accept, function onprogress() {}, reject);
+        });
+      } finally {
+        URL.revokeObjectURL(u);
+      }
+      o = o.scene;
+
+      const meshes = [];
+      const geometries = [];
+      const textures = [];
+      o.traverse(o => {
+        if (o.isMesh) {
+          meshes.push(o);
+          geometries.push(o.geometry);
+          if (o.material.map) {
+            textures.push(o.material.map);
+          } else {
+            textures.push(null);
+          }
+        }
+      });
+      const mesh = mergeMeshes(meshes, geometries, textures);
+      mesh.userData.gltfExtensions = {
+        EXT_aabb: mesh.geometry.boundingBox.min.toArray()
+          .concat(mesh.geometry.boundingBox.max.toArray()),
+      };
+      const arrayBuffer = await new Promise((accept, reject) => {
+        new GLTFExporter().parse(mesh, accept, {
+          binary: true,
+          includeCustomExtensions: true,
+        });
+      });
+      const bakedFile = new Blob([arrayBuffer], {
+        type: 'model/gltf+binary',
+      });
+      bakedFile.name = file.name;
+      return bakedFile;
+    }
+    default: {
+      return file;
+    }
+  }
 };
 
 // const thingFiles = {};
@@ -246,12 +305,17 @@ const _loadWebBundle = async file => {
   return mesh;
 };
 inventory.uploadFile = async file => {
+  const bakedFile = await inventory.bakeFile(file);
+
+  /* const mesh = await inventory.loadFileForWorld(bakedFile);
+  app.scene.add(mesh); */
+
   const res = await fetch(storageHost, {
     method: 'POST',
-    body: file,
+    body: bakedFile,
   });
   const {hash} = await res.json();
-  const {name} = file;
+  const {name} = bakedFile;
   files.push({
     name,
     hash,
@@ -265,11 +329,10 @@ bindUploadFileButton(document.getElementById('load-package-input'), inventory.up
 let files = [];
 inventory.getFiles = () => files;
 inventory.loadFileForWorld = async file => {
-  const match = file.name.match(/\.(.+)$/);
-  const ext = match[1];
-  switch (ext) {
+  switch (_getExt(file.name)) {
     case 'gltf':
-    case 'glb': {
+    case 'glb':
+    case 'vrm': {
       return await _loadGltf(file);
     }
     case 'png':
