@@ -3,12 +3,13 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {OrbitControls} from './OrbitControls.js';
-import {GLTFLoader} from './GLTFLoader.module.js';
+import {GLTFLoader} from './GLTFLoader.js';
+import {GLTFExporter} from './GLTFExporter.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
 // import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
-import { tryLogin, loginManager } from './login.js';
-import {downloadFile, readFile, bindUploadFileButton} from './util.js';
+import {tryLogin, loginManager} from './login.js';
+import {downloadFile, mergeMeshes} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
@@ -40,10 +41,11 @@ import {player} from './player.js';
 import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
-import {storageHost} from './constants.js'
-import atlaspack from './atlaspack.js';
+import {storageHost} from './constants.js';
+import app from './app-object.js';
+import inventory from './inventory.js';
 import {testFlow} from './blockchain.js';
-window.testFlow = testFlow;
+window.testFlow = testFlow;master
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
@@ -72,6 +74,9 @@ const localFrustum = new THREE.Frustum();
 const localRaycaster = new THREE.Raycaster();
 const localColor = new THREE.Color();
 const localObject = new THREE.Object3D();
+
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
 
 (async () => {
   await tryLogin();
@@ -111,6 +116,10 @@ renderer.sortObjects = false;
 renderer.physicallyCorrectLights = true;
 renderer.xr.enabled = true;
 
+app.renderer = renderer;
+app.scene = scene;
+app.camera = camera;
+
 const ambientLight = new THREE.AmbientLight(0xFFFFFF);
 scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
@@ -130,18 +139,6 @@ loginManager.addEventListener('avatarchange', async (e) => {
     rigManager.setLocalAvatarUrl(`${storageHost}/${e.data}`);
   } else {
     rigManager.addLocalRig(null);
-  }
-})
-
-document.addEventListener('dragover', e => {
-  e.preventDefault();
-});
-document.addEventListener('drop', async e => {
-  e.preventDefault();
-
-  if (e.dataTransfer.files.length > 0) {
-    const [file] = e.dataTransfer.files;
-    await _handleFileUpload(file);
   }
 });
 
@@ -1380,8 +1377,6 @@ const geometryWorker = (() => {
     },
   };
   const cbIndex = new Map();
-  const textEncoder = new TextEncoder();
-  const textDecoder = new TextDecoder();
   const w = {};
   /* window.earcut = () => {
     const positionsData = Float32Array.from([
@@ -3645,7 +3640,7 @@ const MeshDrawer = (() => {
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       const uvs = this.mesh.geometry.attributes.uv.array.slice(0, this.numPositions/3*2);
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-      const colors = new Float32Array(geometry.attributes.position.array.length);
+      /* const colors = new Float32Array(geometry.attributes.position.array.length);
       for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
         const y = geometry.attributes.uv.array[i+1]/this.mesh.material.uniforms.numPoints.value;
         localColor.copy(this.mesh.material.uniforms.color1.value).lerp(this.mesh.material.uniforms.color2.value, y)
@@ -3653,17 +3648,21 @@ const MeshDrawer = (() => {
         geometry.attributes.uv.array[i] = -1;
         geometry.attributes.uv.array[i+1] = -1;
       }
-      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3)); */
       const indices = this.mesh.geometry.index.array.slice(0, this.numIndices);
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       geometry.boundingBox = this.mesh.geometry.boundingBox.clone();
+      const center = geometry.boundingBox.getCenter(new THREE.Vector3());
+      geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
       // const material = _makeDrawMaterial(this.mesh.material.uniforms.color1.value.getHex(), this.mesh.material.uniforms.color2.value.getHex(), this.mesh.material.uniforms.numPoints.value);
-      const mesh = new THREE.Mesh(geometry, meshComposer.material);
+      const mesh = new THREE.Mesh(geometry, this.mesh.material);
       mesh.matrix.copy(this.mesh.matrixWorld)
         .decompose(mesh.position, mesh.quaternion, mesh.scale);
+      mesh.position.add(center);
       mesh.frustumCulled = false;
       meshComposer.addMesh(mesh);
 
+      this.mesh.material = this.mesh.material.clone();
       this.mesh.visible = false;
 
       // const thingSource = ThingSource.fromPoints(this.points.subarray(0, this.numPoints));
@@ -3766,10 +3765,10 @@ const MeshDrawer = (() => {
     }
 
     setColors(selectedColors) {
-      material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
-      material.uniforms.color1.needsUpdate = true;
-      material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
-      material.uniforms.color2.needsUpdate = true;
+      this.mesh.material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
+      this.mesh.material.uniforms.color1.needsUpdate = true;
+      this.mesh.material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
+      this.mesh.material.uniforms.color2.needsUpdate = true;
     }
 
     /* drawPolygonize(ps, holes, holeCounts, points, z, zs) {
@@ -4165,26 +4164,41 @@ class MeshComposer {
     }
     return null;
   }
+  async run() {
+    if (this.meshes.length === 1) {
+      const [mesh] = this.meshes;
+      if (mesh.userData.gltfExtensions.EXT_hash) {
+        const u = `${storageHost}/${mesh.userData.gltfExtensions.EXT_hash}`;
+        await rigManager.setLocalAvatarUrl(u);
+      }
+    }
+  }
   commit() {
     const {meshes} = this;
     const geometries = [];
     const textures = [];
     for (const mesh of this.meshes) {
       geometries.push(mesh.geometry);
-      if (mesh.material.uniforms.map.value) {
+      if (mesh.material.uniforms.map && mesh.material.uniforms.map.value) {
         textures.push(mesh.material.uniforms.map.value);
       } else {
         textures.push(null);
       }
     }
 
-    const mesh = _mergeMeshes(meshes, geometries, textures);
-    scene.add(mesh);
+    const mesh = mergeMeshes(meshes, geometries, textures);
+    const material = meshComposer.material.clone();
+    material.uniforms.map.value = mesh.material.map;
+    material.uniforms.map.needsUpdate = true;
+    mesh.material = material;
 
     for (const mesh of this.meshes) {
+      mesh.geometry.dispose();
       scene.remove(mesh);
     }
     this.meshes.length = 0;
+    
+    return mesh;
   }
   cancel() {
     for (const mesh of this.meshes) {
@@ -5223,15 +5237,33 @@ scene.add(shapesMesh);
 const inventoryMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   await loadPromise;
 
-  /* if (!inventoryMesh.inventoryShapesMesh) {
-    inventoryMesh.inventoryShapesMesh = _makeInventoryShapesMesh();
-    inventoryMesh.inventoryShapesMesh.frustumCulled = false;
-    inventoryMesh.add(inventoryMesh.inventoryShapesMesh);
-  } */
+  if (!inventoryMesh.inventoryItemsMesh) {
+    inventoryMesh.inventoryItemsMesh = _makeInventoryItemsMesh();
+    inventoryMesh.add(inventoryMesh.inventoryItemsMesh);
+  }
 });
 inventoryMesh.visible = false;
-inventoryMesh.handleIconClick = (i, srcIndex) => {
-  console.log('handle inventory click', srcIndex);
+inventoryMesh.handleIconClick = async (i, srcIndex) => {
+  const files = inventory.getFiles();
+  const file = files[srcIndex];
+  const {name, hash} = file;
+  const res = await fetch(`${storageHost}/${hash}`);
+  const blob = await res.blob();
+  blob.name = name;
+
+  const mesh = await inventory.loadFileForWorld(blob);
+  mesh.traverse(o => {
+    if (o.isMesh) {
+      o.frustumCulled = false;
+    }
+  });
+  meshComposer.setPlaceMesh(i, mesh);
+
+  /* const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
+  mesh.position.copy(xrCamera.position)
+    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
+  mesh.quaternion.copy(xrCamera.quaternion); */
+
   /* if (srcIndex < inventoryMesh.currentGeometryKeys.length) {
     const geometryKey = inventoryMesh.currentGeometryKeys[srcIndex];
     (async () => {
@@ -5276,19 +5308,34 @@ const _makeInventoryShapesMesh = () => {
     torusMesh,
   ];
   const scaleMatrix = new THREE.Matrix4().makeScale(0.1, 0.1, 0.1);
+  const _bakeGeometryColors = geometry => {
+    const colors = new Float32Array(geometry.attributes.position.array.length);
+    for (let i = 0; i < geometry.uvs.length; i += 2) {
+      const y = geometry.uvs[i+1];
+      localColor.copy(color1).lerp(color2, y)
+        .toArray(colors, i/2*3);
+    }
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  };
   for (const geometry of geometries) {
     geometry.applyMatrix4(scaleMatrix);
     geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
 
-    const colors = new Float32Array(geometry.attributes.position.array.length);
+    geometry.uvs = geometry.attributes.uv.array.slice();
     for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-      const y = geometry.attributes.uv.array[i+1];
-      localColor.copy(color1).lerp(color2, y)
-        .toArray(colors, i/2*3);
       geometry.attributes.uv.array[i] = -1;
       geometry.attributes.uv.array[i+1] = -1;
     }
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
+    if (!geometry.index) {
+      const indices = new Uint16Array(geometry.attributes.position.array.length/3);
+      for (let i = 0; i < indices.length; i++) {
+        indices[i] = i;
+      }
+      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+    }
+
+    _bakeGeometryColors(geometry);
   }
 
   const h = 0.1;
@@ -5296,28 +5343,47 @@ const _makeInventoryShapesMesh = () => {
   const wrapInnerW = h - 2*arrowW;
   const w = wrapInnerW/3;
 
-  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries.map((geometry, i) => {
+  const _compileGeometry = () => BufferGeometryUtils.mergeBufferGeometries(geometries.map((geometry, i) => {
     const dx = i%3;
     const dy = (i-dx)/3;
-    const g = geometry.clone()
+    return geometry.clone()
       .applyMatrix4(new THREE.Matrix4().makeScale(w*2, w*2, w*2))
       .applyMatrix4(new THREE.Matrix4().makeTranslation(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4));
-    if (!g.index) {
-      const indices = new Uint16Array(g.attributes.position.array.length/3);
-      for (let i = 0; i < indices.length; i++) {
-        indices[i] = i;
-      }
-      g.setIndex(new THREE.BufferAttribute(indices, 1));
-    }
-    return g;
   }));
+  const geometry = _compileGeometry();
   const mesh = new THREE.Mesh(geometry, meshComposer.material);
   mesh.geometries = geometries;
   mesh.setColors = selectedColors => {
-    color1.value.setStyle('#' + colors[selectedColors[0]]);
-    color2.value.setStyle('#' + colors[selectedColors[1]]);
+    color1.setStyle('#' + colors[selectedColors[0]]);
+    color2.setStyle('#' + colors[selectedColors[1]]);
+    
+    for (const geometry of geometries) {
+      _bakeGeometryColors(geometry);
+    }
+    mesh.geometry.dispose();
+    mesh.geometry = _compileGeometry();
   };
   return mesh;
+};
+const _makeInventoryItemsMesh = () => {
+  const h = 0.1;
+  const arrowW = h/10;
+  const wrapInnerW = h - 2*arrowW;
+  const w = wrapInnerW/3;
+  
+  const object = new THREE.Object3D();
+  object.update = files => {
+    for (let i = 0; i < files.length; i++) {
+      const {name, hash} = files[i];
+      const dx = i%3;
+      const dy = (i-dx)/3;
+
+      const textMesh = makeTextMesh(name, './Bangers-Regular.ttf', 0.003, 'left', 'bottom');
+      textMesh.position.set(-h + 0.004 + dx*w, h/2 - arrowW - w - dy*w, 0.001);
+      object.add(textMesh);
+    }
+  };
+  return object;
 };
 
 let selectedColors;
@@ -5330,13 +5396,36 @@ colorsMesh.visible = false;
 scene.add(colorsMesh);
 
 const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
-  // console.log('got run', anchorSpec);
-}, function onadd(anchorSpec) {
-  // console.log('got add', anchorSpec);
-   meshComposer.commit();
+  meshComposer.run();
+  /* const mesh = meshComposer.commit();
+  scene.add(mesh);
+  detailsMesh.visible = false; */
+}, async function onadd(anchorSpec) {
+  const mesh = meshComposer.commit();
+  mesh.material = new THREE.MeshBasicMaterial({
+    map: mesh.material.uniforms.map.value,
+    side: THREE.DoubleSide,
+    vertexColors: true,
+    transparent: true,
+  });
+  mesh.userData.gltfExtensions = {
+    EXT_aabb: mesh.geometry.boundingBox.min.toArray()
+      .concat(mesh.geometry.boundingBox.max.toArray()),
+  };
+  const arrayBuffer = await new Promise((accept, reject) => {
+    new GLTFExporter().parse(mesh, accept, {
+      binary: true,
+      includeCustomExtensions: true,
+    });
+  });
+  arrayBuffer.name = 'object.glb';
+  await inventory.uploadFile(arrayBuffer);
+
+  detailsMesh.visible = false;
 }, function onremove(anchorSpec) {
   // console.log('got remove', anchorSpec);
   meshComposer.cancel();
+  detailsMesh.visible = false;
 }, function onclose() {
   detailsMesh.visible = false;
 });
@@ -5350,6 +5439,8 @@ let selectedWeapon = 'hand';
 let lastSelectedWeapon = selectedWeapon;
 let currentWeaponDown = false;
 let lastWeaponDown = false;
+let currentWeaponValue = 0;
+let lastWeaponValue = 0;
 let currentWeaponGrabs = [false, false];
 let lastWeaponGrabs = [false, false];
 const weapons = Array.from(document.querySelectorAll('.weapon'));
@@ -5519,135 +5610,6 @@ const _makeExplosionMesh = () => {
 let explosionMeshes = [];
 
 let pxMeshes = [];
-
-const _makeAtlas = (size, images) => {
-  let atlasCanvas;
-  const rects = [];
-  {
-    for (let scale = 1; scale > 0; scale *= 0.5) {
-      atlasCanvas = document.createElement('canvas');
-      atlasCanvas.width = size;
-      atlasCanvas.height = size;
-      const atlas = atlaspack(atlasCanvas);
-      rects.length = 0;
-
-      let fit = true;
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
-
-        if (image) {
-          const w = image.width * scale;
-          const h = image.height * scale;
-          const resizeCanvas = document.createElement('canvas');
-          resizeCanvas.width = w;
-          resizeCanvas.height = h;
-          const resizeCtx = resizeCanvas.getContext('2d');
-          resizeCtx.drawImage(image, 0, 0, w, h);
-
-          const rect = atlas.pack(resizeCanvas);
-          if (rect) {
-            rects.push(rect.rect);
-          } else {
-            fit = false;
-            break;
-          }
-        } else {
-          rects.push(null);
-        }
-      }
-      if (fit) {
-        break;
-      }
-    }
-  }
-  return {
-    atlasCanvas,
-    rects,
-  };
-};
-const _mergeMeshes = (meshes, geometries, textures) => {
-  const size = 512;
-  const images = textures.map(texture => texture && texture.image);
-  const {atlasCanvas, rects} = _makeAtlas(size, images);
-
-  const geometry = new THREE.BufferGeometry();
-  {
-    let numPositions = 0;
-    let numIndices = 0;
-    for (const geometry of geometries) {
-      numPositions += geometry.attributes.position.array.length;
-      numIndices += geometry.index.array.length;
-    }
-
-    const positions = new Float32Array(numPositions);
-    const uvs = new Float32Array(numPositions / 3 * 2);
-    const colors = new Float32Array(numPositions);
-    const indices = new Uint32Array(numIndices);
-    let positionIndex = 0;
-    let uvIndex = 0;
-    let colorIndex = 0;
-    let indicesIndex = 0;
-    for (let i = 0; i < meshes.length; i++) {
-      const mesh = meshes[i];
-      const geometry = geometries[i];
-      const rect = rects[i];
-
-      geometry.applyMatrix4(mesh.matrixWorld);
-
-      const indexOffset = positionIndex / 3;
-      if (geometry.index) {
-        for (let i = 0; i < geometry.index.array.length; i++) {
-          indices[indicesIndex++] = geometry.index.array[i] + indexOffset;
-        }
-      } else {
-        for (let i = 0; i < geometry.attributes.position.array.length / 3; i++) {
-          indices[indicesIndex++] = i + indexOffset;
-        }
-      }
-
-      positions.set(geometry.attributes.position.array, positionIndex);
-      positionIndex += geometry.attributes.position.array.length;
-      if (geometry.attributes.uv) {
-        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-          if (rect) {
-            uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
-            uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
-          } else {
-            uvs[uvIndex + i] = geometry.attributes.uv.array[i];
-            uvs[uvIndex + i + 1] = geometry.attributes.uv.array[i + 1];
-          }
-        }
-      } else {
-        uvs.fill(0, uvIndex, geometry.attributes.position.array.length / 3 * 2);
-      }
-      uvIndex += geometry.attributes.position.array.length / 3 * 2;
-      if (geometry.attributes.color) {
-        colors.set(geometry.attributes.color.array, colorIndex);
-      } else {
-        colors.fill(1, colorIndex, geometry.attributes.position.array.length);
-      }
-      colorIndex += geometry.attributes.position.array.length;
-    }
-    if (textures.some(texture => !!texture)) {
-      colors.fill(1);
-    }
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-  }
-  geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
-
-  const texture = new THREE.Texture(atlasCanvas);
-  texture.flipY = false;
-  texture.needsUpdate = true;
-  const material = meshComposer.material.clone();
-  material.uniforms.map.value = texture;
-  material.uniforms.map.needsUpdate = true;
-
-  const mesh = new THREE.Mesh(geometry, material);
-  return mesh;
-};
 
 const _applyGravity = timeDiff => {
   localVector.set(0, -9.8, 0);
@@ -5913,8 +5875,9 @@ function animate(timestamp, frame) {
           currentTeleport = (axes[1] < -0.75 || axes[3] < -0.75);
           currentSelector = (axes[1] > 0.75 || axes[3] > 0.75);
 
-          currentWeaponDown = buttons[0] > 0.5;
-          currentWeaponGrabs[0] = buttons[1] > 0.5;
+          currentWeaponDown = buttonsSrc[0].pressed;
+          currentWeaponValue = buttons[0];
+          currentWeaponGrabs[0] = buttonsSrc[1].pressed;
 
           if (
             buttons[2] >= 0.5 && lastButtons[index][2] < 0.5 &&
@@ -6068,8 +6031,16 @@ function animate(timestamp, frame) {
           .decompose(localVector2, localQuaternion2, localVector3);
         leftGamepadPosition = localVector2.toArray();
         leftGamepadQuaternion = localQuaternion2.toArray();
-        leftGamepadPointer = 0;
-        leftGamepadGrip = 0;
+
+        const {gamepad} = inputSources[0];
+        if (gamepad && gamepad.buttons.length >= 2) {
+          const {buttons} = gamepad;
+          leftGamepadPointer = buttons[0].value;
+          leftGamepadGrip = buttons[1].value;
+        } else {
+          leftGamepadPointer = 0;
+          leftGamepadGrip = 0;
+        }
       }
       if (inputSources[1] && (pose = frame.getPose(inputSources[1].targetRaySpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
@@ -6077,8 +6048,16 @@ function animate(timestamp, frame) {
           .decompose(localVector2, localQuaternion2, localVector3);
         rightGamepadPosition = localVector2.toArray();
         rightGamepadQuaternion = localQuaternion2.toArray();
-        rightGamepadPointer = 0;
-        rightGamepadGrip = 0;
+
+        const {gamepad} = inputSources[0];
+        if (gamepad && gamepad.buttons.length >= 2) {
+          const {buttons} = gamepad;
+          rightGamepadPointer = buttons[0].value;
+          rightGamepadGrip = buttons[1].value;
+        } else {
+          rightGamepadPointer = 0;
+          rightGamepadGrip = 0;
+        }
       }
 
       /* const _scaleMatrixPQ = (srcMatrixArray, p, q) => {
@@ -6653,26 +6632,33 @@ function animate(timestamp, frame) {
           }
         }
       }
-      if (currentWeaponDown) {
+      if (currentWeaponValue >= 0.01) {
         switch (selectedWeapon) {
           case 'pencil': {
+            let value;
             if (currentSession) {
-              localVector2.copy(leftGamepad.position);
-              localQuaternion2.copy(leftGamepad.quaternion);
+              localVector2.copy(rightGamepad.position);
+              localQuaternion2.copy(rightGamepad.quaternion);
+              value = currentWeaponValue * 0.1;
             } else {
               localVector2.copy(pencilMesh.position)
                 .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
+              value = 0.1;
             }
             localMatrix2.compose(localVector2, localQuaternion2, localVector3.set(1, 1, 1))
               .premultiply(localMatrix3.getInverse(meshDrawer.mesh.parent.matrixWorld))
               .decompose(localVector2, localQuaternion2, localVector3);
 
-            if (!lastWeaponDown) {
-              meshDrawer.start(localVector2, localQuaternion2, 0.1);
+            if (lastWeaponValue < 0.01) {
+              meshDrawer.start(localVector2, localQuaternion2, value);
             }
-            meshDrawer.update(localVector2, localQuaternion2, 0.1);
+            meshDrawer.update(localVector2, localQuaternion2, value);
             break;
           }
+        }
+      }
+      if (currentWeaponDown) {
+        switch (selectedWeapon) {
           case 'paintbrush': {
             console.log('click paintbrush 1');
 
@@ -6712,23 +6698,30 @@ function animate(timestamp, frame) {
           }
         }
       }
-      if (lastWeaponDown && !currentWeaponDown) {
+      if (lastWeaponValue >= 0.01 && currentWeaponValue < 0.01) {
         switch (selectedWeapon) {
           case 'pencil': {
+            let value;
             if (currentSession) {
-              localVector2.copy(leftGamepad.position);
-              localQuaternion2.copy(leftGamepad.quaternion);
+              localVector2.copy(rightGamepad.position);
+              localQuaternion2.copy(rightGamepad.quaternion);
+              value = currentWeaponValue * 0.1;
             } else {
               localVector2.copy(pencilMesh.position)
                 .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
+              value = 0.1;
             }
             localMatrix2.compose(localVector2, localQuaternion2, localVector3.set(1, 1, 1))
               .premultiply(localMatrix3.getInverse(meshDrawer.mesh.parent.matrixWorld))
               .decompose(localVector2, localQuaternion2, localVector3);
 
-            meshDrawer.end(localVector2, localQuaternion2, 0.1);
+            meshDrawer.end(localVector2, localQuaternion2, value);
             break;
           }
+        }
+      }
+      if (lastWeaponDown && !currentWeaponDown) {
+        switch (selectedWeapon) {
           case 'paintbrush': {
             console.log('click paintbrush 2');
             break;
@@ -6817,7 +6810,8 @@ function animate(timestamp, frame) {
 
       if (currentSession) {
         if (selectedMenuMesh) {
-          selectedMenuMesh.position.copy(leftGamepad.position);
+          selectedMenuMesh.position.copy(leftGamepad.position)
+            .add(localVector.set(0.1, 0.1, 0).applyQuaternion(leftGamepad.quaternion));
           selectedMenuMesh.quaternion.copy(leftGamepad.quaternion);
           selectedMenuMesh.scale.setScalar(1, 1, 1);
           selectedMenuMesh.visible = true;
@@ -6983,6 +6977,7 @@ function animate(timestamp, frame) {
   lastSelector = currentSelector;
   lastSelectedWeapon = selectedWeapon;
   lastWeaponDown = currentWeaponDown;
+  lastWeaponValue = currentWeaponValue;
   lastMenuExpanded = menuExpanded;
   for (let i = 0; i < 2; i++) {
     lastWeaponGrabs[i] = currentWeaponGrabs[i];
@@ -7023,172 +7018,6 @@ function animate(timestamp, frame) {
 }
 renderer.setAnimationLoop(animate);
 // renderer.xr.setSession(proxySession);
-
-const thingFiles = {};
-const _uploadGltf = async file => {
-  const u = URL.createObjectURL(file);
-  let o;
-  let arrayBuffer;
-  try {
-    let xhr;
-    o = await new Promise((accept, reject) => {
-      new GLTFLoader().load(u, accept, x => {
-        xhr = x;
-      }, reject);
-    });
-    arrayBuffer = xhr.target.response;
-  } finally {
-    URL.revokeObjectURL(u);
-  }
-  o = o.scene;
-  o.updateMatrixWorld();
-
-  const meshes = [];
-  const geometries = [];
-  const textures = [];
-  o.traverse(o => {
-    if (o.isMesh) {
-      meshes.push(o);
-      geometries.push(o.geometry);
-      if (o.material.map) {
-        textures.push(o.material.map);
-      } else {
-        textures.push(null);
-      }
-    }
-  });
-
-  const mesh = _mergeMeshes(meshes, geometries, textures);
-  mesh.matrix
-    .compose(localVector.copy(camera.position).add(localVector3.set(0, 0, -1).applyQuaternion(camera.quaternion)), camera.quaternion, localVector2.set(1, 1, 1))
-    // .premultiply(localMatrix2.getInverse(chunkMeshContainer.matrixWorld))
-    .decompose(mesh.position, mesh.quaternion, mesh.scale);
-  mesh.frustumCulled = false;
-  meshComposer.addMesh(mesh);
-
-  /* {
-    const positions = geometryWorker.alloc(Float32Array, geometry.attributes.position.array.length);
-    positions.set(geometry.attributes.position.array);
-    const uvs = geometryWorker.alloc(Float32Array, geometry.attributes.uv.array.length);
-    uvs.set(geometry.attributes.uv.array);
-    const indices = geometryWorker.alloc(Uint32Array, geometry.index.array.length);
-    indices.set(geometry.index.array);
-
-    const atlasCanvasCtx = atlasCanvas.getContext('2d');
-    const imageData = atlasCanvasCtx.getImageData(0, 0, atlasCanvas.width, atlasCanvas.height);
-    const texture = geometryWorker.alloc(Uint8Array, imageData.data.byteLength);
-    texture.set(imageData.data);
-
-    const name = 'thing' + (++numThings);
-    geometryWorker.requestAddThingGeometry(tracker, geometrySet, name, positions.byteOffset, uvs.byteOffset, indices.byteOffset, positions.length, uvs.length, indices.length, texture.byteOffset, 0, 0)
-      .then(() => geometryWorker.requestAddThing(tracker, geometrySet, name, localVector, localQuaternion, localVector2))
-      .then(({objectId}) => {
-        const b = new Blob([arrayBuffer], {
-          type: 'application/octet-stream',
-        });
-        const u = URL.createObjectURL(b);
-        thingFiles[objectId] = u;
-      }, console.warn);
-  } */
-};
-const _uploadImg = async file => {
-  const img = new Image();
-  await new Promise((accept, reject) => {
-    const u = URL.createObjectURL(file);
-    img.onload = () => {
-      accept();
-      _cleanup();
-    };
-    img.onerror = err => {
-      reject(err);
-      _cleanup();
-    }
-    const _cleanup = () => {
-      URL.revokeObjectURL(u);
-    };
-    img.src = u;
-  });
-  let {width, height} = img;
-  if (width >= height) {
-    height /= width;
-    width = 1;
-  }
-  if (height >= width) {
-    width /= height;
-    height = 1;
-  }
-  const geometry = new THREE.PlaneBufferGeometry(width, height);
-  geometry.boundingBox = new THREE.Box3(
-    new THREE.Vector3(-width/2, -height/2, -0.1),
-    new THREE.Vector3(width/2, height/2, 0.1),
-  );
-  const colors = new Float32Array(geometry.attributes.position.array.length);
-  colors.fill(1, 0, colors.length);
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-  const texture = new THREE.Texture(img);
-  texture.needsUpdate = true;
-  /* const material = new THREE.MeshBasicMaterial({
-    map: texture,
-    side: THREE.DoubleSide,
-  }); */
-  const material = meshComposer.material.clone();
-  material.uniforms.map.value = texture;
-  material.uniforms.map.needsUpdate = true;
-
-  const mesh = new THREE.Mesh(geometry, material);
-  const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
-  mesh.position.copy(xrCamera.position)
-    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
-  mesh.quaternion.copy(xrCamera.quaternion);
-  mesh.frustumCulled = false;
-  meshComposer.addMesh(mesh);
-};
-const _uploadScript = async file => {
-  const text = await new Promise((accept, reject) => {
-    const fr = new FileReader();
-    fr.onload = function() {
-      accept(this.result);
-    };
-    fr.onerror = reject;
-    fr.readAsText(file);
-  });
-  const mesh = makeIconMesh();
-  mesh.geometry.boundingBox = new THREE.Box3(
-    new THREE.Vector3(-1, -1/2, -0.1),
-    new THREE.Vector3(1, 1/2, 0.1),
-  );
-  const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
-  mesh.position.copy(xrCamera.position)
-    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
-  mesh.quaternion.copy(xrCamera.quaternion);
-  mesh.frustumCulled = false;
-  meshComposer.addMesh(mesh);
-  console.log('got text', mesh);
-  // eval(text);
-};
-const _handleFileUpload = async file => {
-  const match = file.name.match(/\.(.+)$/);
-  const ext = match[1];
-  switch (ext) {
-    case 'gltf':
-    case 'glb': {
-      await _uploadGltf(file);
-      break;
-    }
-    case 'png':
-    case 'gif':
-    case 'jpg': {
-      await _uploadImg(file);
-      break;
-    }
-    case 'js': {
-      await _uploadScript(file);
-      break;
-    }
-  }
-};
-bindUploadFileButton(document.getElementById('load-package-input'), _handleFileUpload);
 
 let selectedTool = 'camera';
 const _getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
@@ -7397,18 +7226,18 @@ window.addEventListener('keydown', e => {
     case 69: { // E
       if (document.pointerLockElement) {
         // nothing
-      } else {
+      /* } else {
         if (selectTarget && selectTarget.control) {
           selectTarget.control.setMode('rotate');
-        }
+        } */
       }
       break;
     }
     case 82: { // R
       if (document.pointerLockElement) {
         // pe.equip('back');
-      } else {
-        /* if (selectTarget && selectTarget.control) {
+      /* } else {
+        if (selectTarget && selectTarget.control) {
           selectTarget.control.setMode('scale');
         } */
       }
@@ -7553,6 +7382,7 @@ window.addEventListener('mousedown', e => {
       // pe.grabtriggerdown('right');
       // pe.grabuse('right');
       currentWeaponDown = true;
+      currentWeaponValue = 1;
     } else if (e.button === 2) {
       currentTeleport = true;
     }
@@ -7563,6 +7393,7 @@ window.addEventListener('mouseup', e => {
     // pe.grabtriggerup('right');
   } */
   currentWeaponDown = false;
+  currentWeaponValue = 0;
   currentTeleport = false;
 });
 
@@ -7642,6 +7473,11 @@ const _ensureLoadMesh = p => {
       });
   }
 };
+
+inventory.addEventListener('filesupdate', e => {
+  const files = e.data;
+  inventoryMesh.inventoryItemsMesh.update(files);
+});
 
 const raycaster = new THREE.Raycaster();
 let anchorSpecs = [null, null];
