@@ -3650,10 +3650,13 @@ const MeshDrawer = (() => {
       const indices = this.mesh.geometry.index.array.slice(0, this.numIndices);
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       geometry.boundingBox = this.mesh.geometry.boundingBox.clone();
+      const center = geometry.boundingBox.getCenter(new THREE.Vector3());
+      geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
       // const material = _makeDrawMaterial(this.mesh.material.uniforms.color1.value.getHex(), this.mesh.material.uniforms.color2.value.getHex(), this.mesh.material.uniforms.numPoints.value);
       const mesh = new THREE.Mesh(geometry, meshComposer.material);
       mesh.matrix.copy(this.mesh.matrixWorld)
         .decompose(mesh.position, mesh.quaternion, mesh.scale);
+      mesh.position.add(center);
       mesh.frustumCulled = false;
       meshComposer.addMesh(mesh);
 
