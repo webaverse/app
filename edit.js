@@ -5433,6 +5433,8 @@ let selectedWeapon = 'hand';
 let lastSelectedWeapon = selectedWeapon;
 let currentWeaponDown = false;
 let lastWeaponDown = false;
+let currentWeaponValue = 0;
+let lastWeaponValue = 0;
 let currentWeaponGrabs = [false, false];
 let lastWeaponGrabs = [false, false];
 const weapons = Array.from(document.querySelectorAll('.weapon'));
@@ -5867,8 +5869,9 @@ function animate(timestamp, frame) {
           currentTeleport = (axes[1] < -0.75 || axes[3] < -0.75);
           currentSelector = (axes[1] > 0.75 || axes[3] > 0.75);
 
-          currentWeaponDown = buttons[0] > 0.5;
-          currentWeaponGrabs[0] = buttons[1] > 0.5;
+          currentWeaponDown = buttonsSrc[0].pressed;
+          currentWeaponValue = buttons[0];
+          currentWeaponGrabs[0] = buttonsSrc[1].pressed;
 
           if (
             buttons[2] >= 0.5 && lastButtons[index][2] < 0.5 &&
@@ -6022,8 +6025,16 @@ function animate(timestamp, frame) {
           .decompose(localVector2, localQuaternion2, localVector3);
         leftGamepadPosition = localVector2.toArray();
         leftGamepadQuaternion = localQuaternion2.toArray();
-        leftGamepadPointer = 0;
-        leftGamepadGrip = 0;
+
+        const {gamepad} = inputSources[0];
+        if (gamepad && gamepad.buttons.length >= 2) {
+          const {buttons} = gamepad;
+          leftGamepadPointer = buttons[0].value;
+          leftGamepadGrip = buttons[1].value;
+        } else {
+          leftGamepadPointer = 0;
+          leftGamepadGrip = 0;
+        }
       }
       if (inputSources[1] && (pose = frame.getPose(inputSources[1].targetRaySpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
@@ -6031,8 +6042,16 @@ function animate(timestamp, frame) {
           .decompose(localVector2, localQuaternion2, localVector3);
         rightGamepadPosition = localVector2.toArray();
         rightGamepadQuaternion = localQuaternion2.toArray();
-        rightGamepadPointer = 0;
-        rightGamepadGrip = 0;
+
+        const {gamepad} = inputSources[0];
+        if (gamepad && gamepad.buttons.length >= 2) {
+          const {buttons} = gamepad;
+          rightGamepadPointer = buttons[0].value;
+          rightGamepadGrip = buttons[1].value;
+        } else {
+          rightGamepadPointer = 0;
+          rightGamepadGrip = 0;
+        }
       }
 
       /* const _scaleMatrixPQ = (srcMatrixArray, p, q) => {
@@ -6607,26 +6626,33 @@ function animate(timestamp, frame) {
           }
         }
       }
-      if (currentWeaponDown) {
+      if (currentWeaponValue >= 0.01) {
         switch (selectedWeapon) {
           case 'pencil': {
+            let value;
             if (currentSession) {
-              localVector2.copy(leftGamepad.position);
-              localQuaternion2.copy(leftGamepad.quaternion);
+              localVector2.copy(rightGamepad.position);
+              localQuaternion2.copy(rightGamepad.quaternion);
+              value = currentWeaponValue * 0.1;
             } else {
               localVector2.copy(pencilMesh.position)
                 .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
+              value = 0.1;
             }
             localMatrix2.compose(localVector2, localQuaternion2, localVector3.set(1, 1, 1))
               .premultiply(localMatrix3.getInverse(meshDrawer.mesh.parent.matrixWorld))
               .decompose(localVector2, localQuaternion2, localVector3);
 
-            if (!lastWeaponDown) {
-              meshDrawer.start(localVector2, localQuaternion2, 0.1);
+            if (lastWeaponValue < 0.01) {
+              meshDrawer.start(localVector2, localQuaternion2, value);
             }
-            meshDrawer.update(localVector2, localQuaternion2, 0.1);
+            meshDrawer.update(localVector2, localQuaternion2, value);
             break;
           }
+        }
+      }
+      if (currentWeaponDown) {
+        switch (selectedWeapon) {
           case 'paintbrush': {
             console.log('click paintbrush 1');
 
@@ -6666,23 +6692,30 @@ function animate(timestamp, frame) {
           }
         }
       }
-      if (lastWeaponDown && !currentWeaponDown) {
+      if (lastWeaponValue >= 0.01 && currentWeaponValue < 0.01) {
         switch (selectedWeapon) {
           case 'pencil': {
+            let value;
             if (currentSession) {
-              localVector2.copy(leftGamepad.position);
-              localQuaternion2.copy(leftGamepad.quaternion);
+              localVector2.copy(rightGamepad.position);
+              localQuaternion2.copy(rightGamepad.quaternion);
+              value = currentWeaponValue * 0.1;
             } else {
               localVector2.copy(pencilMesh.position)
                 .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
+              value = 0.1;
             }
             localMatrix2.compose(localVector2, localQuaternion2, localVector3.set(1, 1, 1))
               .premultiply(localMatrix3.getInverse(meshDrawer.mesh.parent.matrixWorld))
               .decompose(localVector2, localQuaternion2, localVector3);
 
-            meshDrawer.end(localVector2, localQuaternion2, 0.1);
+            meshDrawer.end(localVector2, localQuaternion2, value);
             break;
           }
+        }
+      }
+      if (lastWeaponDown && !currentWeaponDown) {
+        switch (selectedWeapon) {
           case 'paintbrush': {
             console.log('click paintbrush 2');
             break;
@@ -6937,6 +6970,7 @@ function animate(timestamp, frame) {
   lastSelector = currentSelector;
   lastSelectedWeapon = selectedWeapon;
   lastWeaponDown = currentWeaponDown;
+  lastWeaponValue = currentWeaponValue;
   lastMenuExpanded = menuExpanded;
   for (let i = 0; i < 2; i++) {
     lastWeaponGrabs[i] = currentWeaponGrabs[i];
@@ -7341,6 +7375,7 @@ window.addEventListener('mousedown', e => {
       // pe.grabtriggerdown('right');
       // pe.grabuse('right');
       currentWeaponDown = true;
+      currentWeaponValue = 1;
     } else if (e.button === 2) {
       currentTeleport = true;
     }
@@ -7351,6 +7386,7 @@ window.addEventListener('mouseup', e => {
     // pe.grabtriggerup('right');
   } */
   currentWeaponDown = false;
+  currentWeaponValue = 0;
   currentTeleport = false;
 });
 
