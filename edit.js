@@ -5242,7 +5242,7 @@ inventoryMesh.handleIconClick = async (i, srcIndex) => {
       o.frustumCulled = false;
     }
   });
-  scene.add(mesh);
+  meshComposer.setPlaceMesh(i, mesh);
 
   /* const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
   mesh.position.copy(xrCamera.position)
