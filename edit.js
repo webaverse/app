@@ -890,9 +890,11 @@ const currentChunkMeshId = getNextMeshId();
 let currentVegetationMesh = null;
 let currentThingMesh = null;
 let meshDrawer = null;
-let stairsMesh = null;
-let platformMesh = null;
-let wallMesh = null;
+const buildMeshes = {
+  walls: [null, null, null],
+  platforms: [null, null, null],
+  ramps: [null, null, null],
+};
 let woodMesh = null;
 let stoneMesh = null;
 let metalMesh = null;
@@ -2985,6 +2987,12 @@ const geometryWorker = (() => {
         'wood_wall',
         'wood_floor',
         'wood_ramp',
+        'stone_wall',
+        'stone_floor',
+        'stone_ramp',
+        'metal_wall',
+        'metal_floor',
+        'metal_ramp',
         'wood1',
         'stone2',
         'metal1',
@@ -2997,26 +3005,36 @@ const geometryWorker = (() => {
         'SM_Wep_Grenade_01',
         'SM_Wep_Crosshair_04',
       ].map(n => geometryWorker.requestGetGeometry(geometrySet, n)));
-      wallMesh = _makeBakedMesh(geometries[0]);
-      wallMesh.buildType = 'wall';
-      wallMesh.vegetationType = 'wood_wall';
-      platformMesh = _makeBakedMesh(geometries[1]);
-      platformMesh.buildType = 'floor';
-      platformMesh.vegetationType = 'wood_floor';
-      stairsMesh = _makeBakedMesh(geometries[2]);
-      stairsMesh.buildType = 'stair';
-      stairsMesh.vegetationType = 'wood_ramp';
-      woodMesh = _makeBakedMesh(geometries[3]);
-      stoneMesh = _makeBakedMesh(geometries[4]);
-      metalMesh = _makeBakedMesh(geometries[5]);
-      plansMesh = _makeBakedMesh(geometries[6]);
-      pencilMesh = _makeBakedMesh(geometries[7]);
-      pickaxeMesh = _makeBakedMesh(geometries[8]);
-      paintBrushMesh = _makeBakedMesh(geometries[9]);
-      assaultRifleMesh = _makeBakedMesh(geometries[10]);
-      smgMesh = _makeBakedMesh(geometries[11]);
-      grenadeMesh = _makeBakedMesh(geometries[12]);
-      crosshairMesh = _makeBakedMesh(geometries[13]);
+      let index = 0;
+      buildMeshes.walls[0] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.walls[0].vegetationType = 'wood_wall';
+      buildMeshes.platforms[0] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.platforms[0].vegetationType = 'wood_floor';
+      buildMeshes.ramps[0] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.ramps[0].vegetationType = 'wood_ramp';
+      buildMeshes.walls[1] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.walls[1].vegetationType = 'stone_ramp';
+      buildMeshes.platforms[1] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.platforms[1].vegetationType = 'stone_floor';
+      buildMeshes.ramps[1] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.ramps[1].vegetationType = 'stone_ramp';
+      buildMeshes.walls[2] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.walls[2].vegetationType = 'metal_wall';
+      buildMeshes.platforms[2] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.platforms[2].vegetationType = 'metal_floor';
+      buildMeshes.ramps[2] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.ramps[2].vegetationType = 'metal_ramp';
+      woodMesh = _makeBakedMesh(geometries[index++]);
+      stoneMesh = _makeBakedMesh(geometries[index++]);
+      metalMesh = _makeBakedMesh(geometries[index++]);
+      plansMesh = _makeBakedMesh(geometries[index++]);
+      pencilMesh = _makeBakedMesh(geometries[index++]);
+      pickaxeMesh = _makeBakedMesh(geometries[index++]);
+      paintBrushMesh = _makeBakedMesh(geometries[index++]);
+      assaultRifleMesh = _makeBakedMesh(geometries[index++]);
+      smgMesh = _makeBakedMesh(geometries[index++]);
+      grenadeMesh = _makeBakedMesh(geometries[index++]);
+      crosshairMesh = _makeBakedMesh(geometries[index++]);
 
       plansMesh.visible = false;
       scene.add(plansMesh);
@@ -6432,15 +6450,17 @@ function animate(timestamp, frame) {
     _selectWeapon();
 
     const _handleBuild = () => {
-      [wallMesh, platformMesh, stairsMesh].forEach(buildMesh => {
-        buildMesh.parent && buildMesh.parent.remove(buildMesh);
-      });
+      for (const k in buildMeshes) {
+        for (const buildMesh of buildMeshes[k]) {
+          buildMesh.parent && buildMesh.parent.remove(buildMesh);
+        }
+      }
       if (selectedWeapon === 'build') {
         const buildMesh = (() => {
           switch (buildMode) {
-            case 'wall': return wallMesh;
-            case 'floor': return platformMesh;
-            case 'stair': return stairsMesh;
+            case 'wall': return buildMeshes.walls[0];
+            case 'floor': return buildMeshes.platforms[0];
+            case 'stair': return buildMeshes.ramps[0];
             default: return null;
           }
         })();
@@ -6521,9 +6541,9 @@ function animate(timestamp, frame) {
         if (selectedWeapon === 'build') {
           const buildMesh = (() => {
             switch (buildMode) {
-              case 'wall': return wallMesh;
-              case 'floor': return platformMesh;
-              case 'stair': return stairsMesh;
+              case 'wall': return buildMeshes.walls[0];
+              case 'floor': return buildMeshes.platforms[0];
+              case 'stair': return buildMeshes.ramps[0];
               default: return null;
             }
           })();
@@ -6966,7 +6986,7 @@ function animate(timestamp, frame) {
     };
     _handleTeleport();
   };
-  if (currentChunkMesh && wallMesh) {
+  if (currentChunkMesh) {
     _updateTools();
   }
 
