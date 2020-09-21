@@ -3638,7 +3638,7 @@ const MeshDrawer = (() => {
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       const uvs = this.mesh.geometry.attributes.uv.array.slice(0, this.numPositions/3*2);
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-      const colors = new Float32Array(geometry.attributes.position.array.length);
+      /* const colors = new Float32Array(geometry.attributes.position.array.length);
       for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
         const y = geometry.attributes.uv.array[i+1]/this.mesh.material.uniforms.numPoints.value;
         localColor.copy(this.mesh.material.uniforms.color1.value).lerp(this.mesh.material.uniforms.color2.value, y)
@@ -3646,20 +3646,21 @@ const MeshDrawer = (() => {
         geometry.attributes.uv.array[i] = -1;
         geometry.attributes.uv.array[i+1] = -1;
       }
-      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3)); */
       const indices = this.mesh.geometry.index.array.slice(0, this.numIndices);
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       geometry.boundingBox = this.mesh.geometry.boundingBox.clone();
       const center = geometry.boundingBox.getCenter(new THREE.Vector3());
       geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
       // const material = _makeDrawMaterial(this.mesh.material.uniforms.color1.value.getHex(), this.mesh.material.uniforms.color2.value.getHex(), this.mesh.material.uniforms.numPoints.value);
-      const mesh = new THREE.Mesh(geometry, meshComposer.material);
+      const mesh = new THREE.Mesh(geometry, this.mesh.material);
       mesh.matrix.copy(this.mesh.matrixWorld)
         .decompose(mesh.position, mesh.quaternion, mesh.scale);
       mesh.position.add(center);
       mesh.frustumCulled = false;
       meshComposer.addMesh(mesh);
 
+      this.mesh.material = this.mesh.material.clone();
       this.mesh.visible = false;
 
       // const thingSource = ThingSource.fromPoints(this.points.subarray(0, this.numPoints));
@@ -4176,7 +4177,7 @@ class MeshComposer {
     const textures = [];
     for (const mesh of this.meshes) {
       geometries.push(mesh.geometry);
-      if (mesh.material.uniforms.map.value) {
+      if (mesh.material.uniforms.map && mesh.material.uniforms.map.value) {
         textures.push(mesh.material.uniforms.map.value);
       } else {
         textures.push(null);

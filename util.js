@@ -191,36 +191,67 @@ export function mergeMeshes(meshes, geometries, textures) {
 
       positions.set(geometry.attributes.position.array, positionIndex);
       positionIndex += geometry.attributes.position.array.length;
-      if (geometry.attributes.uv) {
-        if (rect) {
-          for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-            uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
-            uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
-          }
-        } else {
-          for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-            uvs[uvIndex + i] = -1;
-            uvs[uvIndex + i + 1] = -1;
-          }
+      if (geometry.attributes.uv && rect) {
+        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+          uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
+          uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
         }
       } else {
-        const color = material.color.clone();
-        if (material.emissive && material.emissiveIntensity > 0) {
-          color.lerp(material.emissive, material.emissiveIntensity);
-        }
-        atlasCanvasCtx.fillStyle = color.getStyle();
-        const uv = new THREE.Vector2(colorsImageRect.x + colorsImageColorIndex, colorsImageRect.y);
-        atlasCanvasCtx.fillRect(
-          uv.x,
-          uv.y,
-          uv.x + 1,
-          uv.y + 1
-        );
-        colorsImageColorIndex++;
-        
-        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-          uvs[uvIndex + i] = (uv.x + 0.5)/size;
-          uvs[uvIndex + i + 1] = (uv.y + 0.5)/size;
+        if (material.color) {
+          const color = material.color.clone();
+          if (material.emissive && material.emissiveIntensity > 0) {
+            color.lerp(material.emissive, material.emissiveIntensity);
+          }
+          atlasCanvasCtx.fillStyle = color.getStyle();
+          const uv = new THREE.Vector2(colorsImageRect.x + colorsImageColorIndex, colorsImageRect.y);
+          atlasCanvasCtx.fillRect(
+            uv.x,
+            uv.y,
+            uv.x + 1,
+            uv.y + 1
+          );
+          colorsImageColorIndex++;
+          uv.x += 0.5;
+          uv.y += 0.5;
+
+          for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+            uvs[uvIndex + i] = uv.x/size;
+            uvs[uvIndex + i + 1] = uv.y/size;
+          }
+        } else if (material.uniforms && material.uniforms.color1 && material.uniforms.color2) {
+          atlasCanvasCtx.fillStyle = material.uniforms.color1.value.getStyle();
+          const uv1 = new THREE.Vector2(colorsImageRect.x + colorsImageColorIndex, colorsImageRect.y);
+          atlasCanvasCtx.fillRect(
+            uv1.x,
+            uv1.y,
+            uv1.x + 1,
+            uv1.y + 1
+          );
+          colorsImageColorIndex++;
+          uv1.x += 0.5;
+          uv1.y += 0.5;
+
+          atlasCanvasCtx.fillStyle = material.uniforms.color2.value.getStyle();
+          const uv2 = new THREE.Vector2(colorsImageRect.x + colorsImageColorIndex, colorsImageRect.y);
+          atlasCanvasCtx.fillRect(
+            uv2.x,
+            uv2.y,
+            uv2.x + 1,
+            uv2.y + 1
+          );
+          colorsImageColorIndex++;
+          uv2.x += 0.5;
+          uv2.y += 0.5;
+
+          for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+            const y = geometry.attributes.uv.array[i];
+            const uv = uv1.clone().lerp(uv2, y);
+
+            uvs[uvIndex + i] = uv.x/size;
+            uvs[uvIndex + i + 1] = uv.y/size;
+          }
+        } else {
+          throw new Error('failed to uv mesh colors');
         }
       }
       uvIndex += geometry.attributes.position.array.length / 3 * 2;
