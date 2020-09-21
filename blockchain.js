@@ -33,14 +33,15 @@ const _waitForTx = async txid => {
     }
   }
 };
-const _createAccount = async () => {
+const _createAccount = async contractSource => {
   const res = await fetch(accountsHost, {
     method: 'POST',
+    body: contractSource || '',
   });
   const j = await res.json();
   return j;
 };
-const _bakeContract = async (contractKeys, contractSource) => {
+/* const _bakeContract = async (contractKeys, contractSource) => {
   const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
     flow.sdk.getAccount(contractKeys.address),
   ]), [
@@ -80,7 +81,7 @@ const _bakeContract = async (contractKeys, contractSource) => {
   const response2 = await _waitForTx(response.transactionId);
   console.log('bake contract result', response2);
   return response2;
-};
+}; */
 const _bakeUserAccount = async (userKeys, ftContractAddress, nftContractAddress) => {
   // set up ft
   {
@@ -218,8 +219,8 @@ const testFlow = async () => {
     userKeys,
     userKeys2,
   ] = await Promise.all([
-    _createAccount(),
-    _createAccount(),
+    _createAccount(exampleTokenSource),
+    _createAccount(exampleNFTSource),
     _createAccount(),
     _createAccount(),
   ]);
@@ -231,11 +232,11 @@ const testFlow = async () => {
     userKeys2,
   });
 
-  await Promise.all([
-    _bakeContract(ftContractKeys, exampleTokenSource),
-    _bakeContract(nftContractKeys, exampleNFTSource),
-  ]);
-  console.log('baked contracts');
+  /* console.log('baking ft', ftContractKeys);
+  await _bakeContract(ftContractKeys, exampleTokenSource);
+  console.log('baking nft', nftContractKeys);
+  await _bakeContract(nftContractKeys, exampleNFTSource);
+  console.log('baked contracts'); */
   await Promise.all([
     _bakeUserAccount(userKeys, ftContractKeys.address, nftContractKeys.address),
     _bakeUserAccount(userKeys2, ftContractKeys.address, nftContractKeys.address),
