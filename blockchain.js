@@ -78,6 +78,7 @@ const _bakeContract = async (contractKeys, contractSource) => {
   ]), { node: flowConstants.host });
  
   const response2 = await _waitForTx(response.transactionId);
+  console.log('bake contract result', response2);
   return response2;
 };
 const _bakeUserAccount = async (userKeys, ftContractAddress, nftContractAddress) => {
