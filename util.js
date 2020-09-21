@@ -191,10 +191,17 @@ export function mergeMeshes(meshes, geometries, textures) {
 
       positions.set(geometry.attributes.position.array, positionIndex);
       positionIndex += geometry.attributes.position.array.length;
-      if (geometry.attributes.uv && rect) {
-        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-          uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
-          uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
+      if (geometry.attributes.uv) {
+        if (rect) {
+          for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+            uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
+            uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
+          }
+        } else {
+          for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+            uvs[uvIndex + i] = -1;
+            uvs[uvIndex + i + 1] = -1;
+          }
         }
       } else {
         const color = material.color.clone();
