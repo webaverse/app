@@ -4158,6 +4158,15 @@ class MeshComposer {
     }
     return null;
   }
+  async run() {
+    if (this.meshes.length === 1) {
+      const [mesh] = this.meshes;
+      if (mesh.userData.gltfExtensions.EXT_hash) {
+        const u = `${storageHost}/${mesh.userData.gltfExtensions.EXT_hash}`;
+        await rigManager.setLocalAvatarUrl(u);
+      }
+    }
+  }
   commit() {
     const {meshes} = this;
     const geometries = [];
@@ -5381,9 +5390,10 @@ colorsMesh.visible = false;
 scene.add(colorsMesh);
 
 const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
-  const mesh = meshComposer.commit();
+  meshComposer.run();
+  /* const mesh = meshComposer.commit();
   scene.add(mesh);
-  detailsMesh.visible = false;
+  detailsMesh.visible = false; */
 }, async function onadd(anchorSpec) {
   const mesh = meshComposer.commit();
   mesh.material = new THREE.MeshBasicMaterial({
