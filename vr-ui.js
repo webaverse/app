@@ -34,9 +34,12 @@ const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anch
   return textMesh;
 };
 
+const rayColor = 0x64b5f6;
 const makeCubeMesh = () => {
-  const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.05, 0.05, 0.05), new THREE.MeshBasicMaterial({
-    color: 0x0000FF,
+  const geometry = new THREE.CylinderBufferGeometry(0.005, 0.005, 0.001)
+    .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1))));
+  const cubeMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+    color: rayColor,
   }));
   cubeMesh.visible = false;
   return cubeMesh;
@@ -485,7 +488,7 @@ const makeRayMesh = () => {
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1/2, 0))
       .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2))),
     new THREE.MeshBasicMaterial({
-      color: 0x64b5f6,
+      color: rayColor,
     })
   );
   ray.frustumCulled = false;
@@ -1557,8 +1560,9 @@ const makeDetailsMesh = (cubeMesh, onrun, onadd, onremove, onclose) => {
     highlightMesh.visible = false;
 
     let currentAnchor = null;
-    const [{point, uv}] = localIntersections;
+    const [{point, face, uv, object}] = localIntersections;
     cubeMesh.position.copy(point);
+    cubeMesh.quaternion.setFromUnitVectors(localVector.set(0, 0, 1), localVector2.copy(face.normal).applyQuaternion(object.quaternion));
     cubeMesh.visible = true;
 
     localVector2D.copy(uv);
@@ -1676,8 +1680,9 @@ const makeColorsMesh = (cubeMesh, colors, oncolorchange) => {
     highlightMesh.visible = false;
 
     let currentAnchor = null;
-    const [{point, uv}] = localIntersections;
+    const [{point, face, uv, object}] = localIntersections;
     cubeMesh.position.copy(point);
+    cubeMesh.quaternion.setFromUnitVectors(localVector.set(0, 0, 1), localVector2.copy(face.normal).applyQuaternion(object.quaternion));
     cubeMesh.visible = true;
 
     localVector2D.copy(uv);
@@ -1824,8 +1829,9 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
     highlightMesh.visible = false;
 
     let currentAnchor = null;
-    let [{point, uv}] = localIntersections;
+    let [{point, face, uv, object}] = localIntersections;
     cubeMesh.position.copy(point);
+    cubeMesh.quaternion.setFromUnitVectors(localVector.set(0, 0, 1), localVector2.copy(face.normal).applyQuaternion(object.quaternion));
     cubeMesh.visible = true;
 
     localVector2D.copy(uv);
