@@ -3382,172 +3382,8 @@ const MeshDrawer = (() => {
     canvas.ctx = ctx;
     return canvas;
   };
-
-  /* const _makeDrawThingMesh = () => {
-    const geometry = new THREE.BufferGeometry();
-    // geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    // geometry.setAttribute('uv3', new THREE.BufferAttribute(uvs, 3));
-    // geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-    // geometry = geometry.toNonIndexed();
-
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        tex: {
-          type: 't',
-          value: new THREE.Texture(),
-          needsUpdate: false,
-        },
-        uSelectColor: {
-          type: 'c',
-          value: new THREE.Color(0xFFFFFF),
-          needsUpdate: true,
-        },
-      },
-      vertexShader: `\
-        precision highp float;
-        precision highp int;
-
-        attribute vec3 uv3;
-        varying vec3 vUv;
-        varying vec3 vBarycentric;
-
-        void main() {
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          gl_Position = projectionMatrix * mvPosition;
-
-          vUv = uv3;
-
-          float vid = float(gl_VertexID);
-          if (mod(vid, 3.) < 0.5) {
-            vBarycentric = vec3(1., 0., 0.);
-          } else if (mod(vid, 3.) < 1.5) {
-            vBarycentric = vec3(0., 1., 0.);
-          } else {
-            vBarycentric = vec3(0., 0., 1.);
-          }
-        }
-      `,
-      fragmentShader: `\
-        precision highp float;
-        precision highp int;
-
-        #define PI 3.1415926535897932384626433832795
-
-        uniform sampler2D tex;
-        uniform sampler2D indexTex;
-        uniform vec3 uSelectColor;
-
-        varying vec3 vUv;
-        varying vec3 vBarycentric;
-
-        float edgeFactor() {
-          vec3 d = fwidth(vBarycentric);
-          vec3 a3 = smoothstep(vec3(0.0), d, vBarycentric);
-          return min(min(a3.x, a3.y), a3.z);
-        }
-
-        void main() {
-          vec3 c = texture2D(tex, vUv.xy).rgb;
-          // c *= vec3(vUv.x, 0., vUv.y);
-          c.rgb *= uSelectColor;
-          if (edgeFactor() <= 0.99) {
-            c += 0.5;
-          }
-          gl_FragColor = vec4(c, 1.);
-        }
-      `,
-      // side: THREE.DoubleSide,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.visible = false;
-    mesh.frustumCulled = false;
-    mesh.setGeometryData = thingSource => {
-      const {center, planeNormal, geometryData} = thingSource;
-      let geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(geometryData.positions, 3));
-      geometry.setAttribute('uv3', new THREE.BufferAttribute(geometryData.uvs, 3));
-      geometry.setIndex(new THREE.BufferAttribute(geometryData.indices, 1));
-      geometry = geometry.toNonIndexed();
-      mesh.geometry = geometry;
-
-      mesh.position.copy(center);
-      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), planeNormal);
-      mesh.visible = true;
-    };
-    mesh.setTexture = thingSource => {
-      const {canvas} = thingSource;
-      material.uniforms.tex.value.image = canvas;
-      material.uniforms.tex.value.needsUpdate = true;
-      material.uniforms.tex.needsUpdate = true;
-    };
-    return mesh;
-  };
-
-  class ThingSource {
-    constructor(
-      ps = new Float32Array(),
-      holes = new Float32Array(),
-      holeCounts = new Uint32Array(),
-      points = new Float32Array(),
-      z = 0,
-      zs = new Float32Array(),
-      planeNormal = new THREE.Vector3(),
-      planeConstant = 0,
-      center = new THREE.Vector3(),
-      tang = new THREE.Vector3(1, 0, 0),
-      bitang = new THREE.Vector3(0, 1, 0),
-    ) {
-      this.ps = ps;
-      this.holes = holes;
-      this.holeCounts = holeCounts;
-      this.points = points;
-      this.z = z;
-      this.zs = zs;
-      this.planeNormal = planeNormal;
-      this.planeConstant = planeConstant;
-      this.center = center;
-      this.tang = tang;
-      this.bitang = bitang;
-
-      this.geometryData = null;
-      this.canvas = _makeDrawThingCanvas();
-
-      this.objectId = Math.floor(Math.random() * 0xFFFFFF);
-      this.position = this.center.clone();
-      this.quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), this.planeNormal);
-      this.scale = new THREE.Vector3(1, 1, 1);
-      this.matrix = new THREE.Matrix4().compose(this.position, this.quaternion, this.scale);
-      this.matrixWorld = this.matrix.clone().premultiply(currentChunkMesh.matrixWorld);
-    }
-
-    updateGeometryData() {
-      if (this.geometryData) {
-        this.geometryData.destroy();
-        this.geometryData = null;
-      }
-      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry, destroy} = geometryWorker.earcut(tracker, this.ps, this.holes, this.holeCounts, this.points, this.z, this.zs, this.objectId, this.position, this.quaternion);
-      this.geometryData = {
-        positions,
-        uvs,
-        indices,
-        trianglePhysicsGeometry,
-        convexPhysicsGeometry,
-        destroy,
-      };
-    }
-
-    static fromPoints(pointsData) {
-      const {points, planeNormal, planeConstant, center, tang, bitang} = geometryWorker.convexHull(pointsData, camera.position);
-      const zs = new Float32Array(points.length / 2);
-      return new ThingSource(points, undefined, undefined, undefined, undefined, zs, planeNormal, planeConstant, center, tang, bitang);
-    }
-  } */
   return class MeshDrawer {
     constructor() {
-      // const points = new Float32Array(512 * 1024);
-      // this.points = points;
-      // this.numPoints = 0;
-
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * 128 * 1024), 3));
       geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(3 * 128 * 1024), 1));
@@ -3576,15 +3412,11 @@ const MeshDrawer = (() => {
       this.lastValue = 0;
       this.numPositions = 0;
       this.numIndices = 0;
-
-      // this.thingSources = [];
-      // this.thingMeshes = [];
     }
 
     start(p, q, v) {
       this.lastPosition.copy(p);
       this.lastQuaternion.copy(q);
-      // this.numPoints = 0;
       this.numPositions = 0;
       this.numIndices = 0;
       this.mesh.geometry.setDrawRange(0, 0);
@@ -3622,49 +3454,27 @@ const MeshDrawer = (() => {
       meshComposer.addMesh(mesh);
 
       this.mesh.visible = false;
-
-      // const thingSource = ThingSource.fromPoints(this.points.subarray(0, this.numPoints));
-      // thingSource.updateGeometryData();
-      // this.thingSources.push(thingSource);
-
-      /* const thingMesh = _makeDrawThingMesh();
-      thingMesh.setGeometryData(thingSource);
-      thingMesh.setTexture(thingSource);
-      chunkMeshContainer.add(thingMesh);
-      this.thingMeshes.push(thingMesh); */
     }
 
     update(p, q, v) {
-      // p.toArray(this.points, this.numPoints);
-      // this.numPoints += 3;
-
       const startPoint = this.lastPosition;
       const endPoint = p;
       const startQuaternion = this.lastQuaternion;
       const endQuaternion = q;
       const startValue = this.lastValue;
       const endValue = v;
-      /* const quaternion = localQuaternion.setFromUnitVectors(
-        localVector.set(0, 0, -1),
-        localVector2.copy(endPoint).sub(startPoint).normalize(),
-      );
-      const midpoint = localVector.copy(startPoint).add(endPoint).divideScalar(2);
-      const scale = localVector2.set(0.01, 0.01, startPoint.distanceTo(endPoint)); */
-      // const matrix = localMatrix.compose(midpoint, quaternion, scale);
 
       const oldNumPositions = this.numPositions;
       if (this.numPositions === 0) {
         localVector.set(-startValue, 0, 0)
           .applyQuaternion(startQuaternion)
           .add(startPoint)
-          // .applyMatrix4(matrix)
           .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
         this.mesh.geometry.boundingBox.expandByPoint(localVector);
         this.numPositions += 3;
         localVector.set(startValue, 0, 0)
           .applyQuaternion(startQuaternion)
           .add(startPoint)
-          // .applyMatrix4(matrix)
           .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
         this.mesh.geometry.boundingBox.expandByPoint(localVector);
         this.numPositions += 3;
@@ -3672,14 +3482,12 @@ const MeshDrawer = (() => {
       localVector.set(-endValue, 0, 0)
         .applyQuaternion(endQuaternion)
         .add(endPoint)
-        // .applyMatrix4(matrix)
         .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
       this.mesh.geometry.boundingBox.expandByPoint(localVector);
       this.numPositions += 3;
       localVector.set(endValue, 0, 0)
         .applyQuaternion(endQuaternion)
         .add(endPoint)
-        // .applyMatrix4(matrix)
         .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
       this.mesh.geometry.boundingBox.expandByPoint(localVector);
       this.numPositions += 3;
@@ -3728,96 +3536,6 @@ const MeshDrawer = (() => {
       this.mesh.material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
       this.mesh.material.uniforms.color2.needsUpdate = true;
     }
-
-    /* drawPolygonize(ps, holes, holeCounts, points, z, zs) {
-      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry} = geometryWorker.earcut(tracker, ps.byteOffset, ps.length / 2, holes.byteOffset, holeCounts.byteOffset, holeCounts.length, points.byteOffset, points.length, z, zs.byteOffset);
-
-      let geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      geometry.setAttribute('uv3', new THREE.BufferAttribute(uvs, 3));
-      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-      geometry = geometry.toNonIndexed();
-      const texture = new THREE.Texture(checkerboardCanvas);
-      texture.needsUpdate = true;
-      const material = new THREE.ShaderMaterial({
-        uniforms: {
-          tex: {
-            type: 't',
-            value: texture,
-            needsUpdate: true,
-          },
-        },
-        vertexShader: `\
-          precision highp float;
-          precision highp int;
-
-          attribute vec3 uv3;
-          varying vec3 vUv;
-          varying vec3 vBarycentric;
-
-          void main() {
-            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-            gl_Position = projectionMatrix * mvPosition;
-
-            vUv = uv3;
-
-            float vid = float(gl_VertexID);
-            if (mod(vid, 3.) < 0.5) {
-              vBarycentric = vec3(1., 0., 0.);
-            } else if (mod(vid, 3.) < 1.5) {
-              vBarycentric = vec3(0., 1., 0.);
-            } else {
-              vBarycentric = vec3(0., 0., 1.);
-            }
-          }
-        `,
-        fragmentShader: `\
-          precision highp float;
-          precision highp int;
-
-          #define PI 3.1415926535897932384626433832795
-
-          uniform sampler2D tex;
-          uniform sampler2D indexTex;
-
-          varying vec3 vUv;
-          varying vec3 vBarycentric;
-
-          float edgeFactor() {
-            vec3 d = fwidth(vBarycentric);
-            vec3 a3 = smoothstep(vec3(0.0), d, vBarycentric);
-            return min(min(a3.x, a3.y), a3.z);
-          }
-
-          void main() {
-            vec3 c = texture2D(tex, vUv.xy).rgb;
-            c *= vec3(vUv.x, 0., vUv.y);
-            if (edgeFactor() <= 0.99) {
-              c += 0.5;
-            }
-            gl_FragColor = vec4(c, 1.);
-          }
-        `,
-        // side: THREE.DoubleSide,
-      });
-      const mesh = new THREE.Mesh(geometry, material);
-      pe.scene.add(mesh);
-
-      const result = {
-        positions: positions.slice(),
-        uvs: uvs.slice(),
-        indices: indices.slice(),
-      };
-
-      // convert uvs from 3D (2D + island index) to 2D
-      const outUvs2 = geometryWorker.alloc(Float32Array, uvs.length / 3 * 2);
-      for (let i = 0, j = 0; i < uvs.length; i += 3, j += 2) {
-        outUvs2[j] = uvs[i];
-        outUvs2[j + 1] = uvs[i + 1];
-      }
-
-      return result;
-    } */
   };
 })();
 const _makeTargetMesh = (() => {
