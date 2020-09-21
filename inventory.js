@@ -20,20 +20,23 @@ const _getExt = fileName => {
   const match = fileName.match(/\.(.+)$/);
   return match && match[1];
 }
-inventory.bakeFile = async file => {
-  switch (_getExt(file.name)) {
+inventory.bakeHash = async (hash, fileName) => {
+  switch (_getExt(fileName)) {
     case 'gltf':
     case 'glb':
     case 'vrm': {
-      const u = URL.createObjectURL(file);
+      const u = `${storageHost}/${hash}`;
+      // const u = URL.createObjectURL(file);
       let o;
       try {
         o = await new Promise((accept, reject) => {
           new GLTFLoader().load(u, accept, function onprogress() {}, reject);
         });
-      } finally {
+      } catch(err) {
+        console.warn(err);
+      } /* finally {
         URL.revokeObjectURL(u);
-      }
+      } */
       o = o.scene;
 
       const specs = [];
@@ -65,6 +68,7 @@ inventory.bakeFile = async file => {
       mesh.userData.gltfExtensions = {
         EXT_aabb: mesh.geometry.boundingBox.min.toArray()
           .concat(mesh.geometry.boundingBox.max.toArray()),
+        EXT_hash: hash,
       };
       const arrayBuffer = await new Promise((accept, reject) => {
         new GLTFExporter().parse(mesh, accept, {
@@ -75,7 +79,7 @@ inventory.bakeFile = async file => {
       const bakedFile = new Blob([arrayBuffer], {
         type: 'model/gltf+binary',
       });
-      bakedFile.name = file.name;
+      bakedFile.name = fileName;
       return bakedFile;
     }
     default: {
@@ -325,20 +329,25 @@ const _loadWebBundle = async file => {
   return mesh;
 };
 inventory.uploadFile = async file => {
-  const bakedFile = await inventory.bakeFile(file);
+  const res = await fetch(storageHost, {
+    method: 'POST',
+    body: file,
+  });
+  const {hash} = await res.json();
+  const bakedFile = await inventory.bakeHash(hash, file.name);
 
   /* const mesh = await inventory.loadFileForWorld(bakedFile);
   app.scene.add(mesh); */
 
-  const res = await fetch(storageHost, {
+  const res2 = await fetch(storageHost, {
     method: 'POST',
     body: bakedFile,
   });
-  const {hash} = await res.json();
+  const {hash: bakedHash} = await res2.json();
   const {name} = bakedFile;
   files.push({
     name,
-    hash,
+    hash: bakedHash,
   });
   inventory.dispatchEvent(new MessageEvent('filesupdate', {
     data: files,
