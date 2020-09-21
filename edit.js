@@ -5106,6 +5106,28 @@ scene.add(rayMesh);
 /* const uiMesh = makeUiFullMesh(cubeMesh);
 scene.add(uiMesh); */
 
+const buildsMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
+  await loadPromise;
+
+  if (!buildsMesh.inventoryBuildsMesh) {
+    buildsMesh.inventoryBuildsMesh = _makeInventoryBuildsMesh();
+    buildsMesh.inventoryBuildsMesh.frustumCulled = false;
+    buildsMesh.add(buildsMesh.inventoryBuildsMesh);
+  }
+});
+buildsMesh.visible = false;
+buildsMesh.handleIconClick = (i, srcIndex) => {
+  console.log('handle builds click', i, srcIndex);
+  /* if (srcIndex < buildsMesh.inventoryShapesMesh.geometries.length) {
+    const geometry = shapesMesh.inventoryShapesMesh.geometries[srcIndex];
+    const material = shapesMesh.inventoryShapesMesh.material.clone();
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    meshComposer.setPlaceMesh(i, mesh);
+  } */
+};
+scene.add(buildsMesh);
+
 const thingsMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   await loadPromise;
   thingsMesh.queue.clearQueue();
@@ -5295,6 +5317,66 @@ const _makeInventoryContentsMesh = () => {
   const mesh = new THREE.Mesh(geometry, material);
   return mesh;
 };
+const _makeInventoryBuildsMesh = () => {
+  return new THREE.Object3D();
+  /* const boxMesh = new THREE.BoxBufferGeometry()
+  const coneMesh = new THREE.ConeBufferGeometry();
+  const cylinderMesh = new THREE.CylinderBufferGeometry();
+  const dodecahedronMesh = new THREE.DodecahedronBufferGeometry();
+  const icosahedronMesh = new THREE.IcosahedronBufferGeometry();
+  const octahedronMesh = new THREE.OctahedronBufferGeometry();
+  const sphereMesh = new THREE.SphereBufferGeometry();
+  const tetrahedronMesh = new THREE.TetrahedronBufferGeometry();
+  const torusMesh = new THREE.TorusBufferGeometry();
+  const geometries = [
+    boxMesh,
+    coneMesh,
+    cylinderMesh,
+    dodecahedronMesh,
+    icosahedronMesh,
+    octahedronMesh,
+    sphereMesh,
+    tetrahedronMesh,
+    torusMesh,
+  ];
+  const material = _makeDrawMaterial(localColor.setStyle('#' + colors[0]).getHex(), localColor.setStyle('#' + colors[1]).getHex(), 1);
+  const scaleMatrix = new THREE.Matrix4().makeScale(0.1, 0.1, 0.1);
+  for (const geometry of geometries) {
+    geometry.applyMatrix4(scaleMatrix);
+    geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
+    
+    if (!geometry.index) {
+      const indices = new Uint16Array(geometry.attributes.position.array.length/3);
+      for (let i = 0; i < indices.length; i++) {
+        indices[i] = i;
+      }
+      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+    }
+  }
+
+  const h = 0.1;
+  const arrowW = h/10;
+  const wrapInnerW = h - 2*arrowW;
+  const w = wrapInnerW/3;
+
+  const _compileGeometry = () => BufferGeometryUtils.mergeBufferGeometries(geometries.map((geometry, i) => {
+    const dx = i%3;
+    const dy = (i-dx)/3;
+    return geometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(w*2, w*2, w*2))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4));
+  }));
+  const geometry = _compileGeometry();
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.geometries = geometries;
+  mesh.setColors = selectedColors => {
+    mesh.material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
+    mesh.material.uniforms.color1.needsUpdate = true;
+    mesh.material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
+    mesh.material.uniforms.color2.needsUpdate = true;
+  };
+  return mesh; */
+};
 const _makeInventoryShapesMesh = () => {
   const boxMesh = new THREE.BoxBufferGeometry()
   const coneMesh = new THREE.ConeBufferGeometry();
@@ -5421,7 +5503,7 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
 detailsMesh.visible = false;
 scene.add(detailsMesh);
 
-const menuMeshes = [thingsMesh, shapesMesh, inventoryMesh, colorsMesh];
+const menuMeshes = [buildsMesh, thingsMesh, shapesMesh, inventoryMesh, colorsMesh];
 const uiMeshes = menuMeshes.concat([detailsMesh]);
 
 let selectedWeapon = 'hand';
@@ -6196,7 +6278,7 @@ function animate(timestamp, frame) {
     rayMesh.visible = false;
 
     const _raycastWeapon = () => {
-      if (['things', 'shapes', 'inventory', 'colors', 'select'].includes(selectedWeapon)) {
+      if (['build', 'things', 'shapes', 'inventory', 'colors', 'select'].includes(selectedWeapon)) {
         const [{position, quaternion}] = _getRigTransforms();
         raycaster.ray.origin.copy(position);
         raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
@@ -6594,6 +6676,10 @@ function animate(timestamp, frame) {
             _light();
             break;
           }
+          case 'build': {
+            _triggerAnchor(buildsMesh);
+            break;
+          }
           case 'things': {
             _triggerAnchor(thingsMesh);
             break;
@@ -6789,6 +6875,7 @@ function animate(timestamp, frame) {
 
       const selectedMenuMesh = (() => {
         switch (selectedWeapon) {
+          case 'build': return buildsMesh;
           case 'things': return thingsMesh;
           case 'shapes': return shapesMesh;
           case 'inventory': return inventoryMesh;
