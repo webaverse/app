@@ -4132,30 +4132,44 @@ class MeshComposer {
   }
   commit() {
     const {meshes} = this;
-    const geometries = [];
-    const textures = [];
-    for (const mesh of this.meshes) {
-      geometries.push(mesh.geometry);
-      if (mesh.material.uniforms.map && mesh.material.uniforms.map.value) {
-        textures.push(mesh.material.uniforms.map.value);
-      } else {
-        textures.push(null);
+    if (meshes.length > 0) {
+      const center = new THREE.Vector3();
+      for (const mesh of this.meshes) {
+        center.add(mesh.position);
       }
-    }
+      center.divideScalar(meshes.length);
+      for (const mesh of this.meshes) {
+        mesh.position.sub(center);
+        mesh.updateMatrixWorld();
+      }
 
-    const mesh = mergeMeshes(meshes, geometries, textures);
-    const material = meshComposer.material.clone();
-    material.uniforms.map.value = mesh.material.map;
-    material.uniforms.map.needsUpdate = true;
-    mesh.material = material;
+      const geometries = [];
+      const textures = [];
+      for (const mesh of this.meshes) {
+        geometries.push(mesh.geometry);
+        if (mesh.material.uniforms.map && mesh.material.uniforms.map.value) {
+          textures.push(mesh.material.uniforms.map.value);
+        } else {
+          textures.push(null);
+        }
+      }
 
-    for (const mesh of this.meshes) {
-      mesh.geometry.dispose();
-      scene.remove(mesh);
+      const mesh = mergeMeshes(meshes, geometries, textures);
+      const material = meshComposer.material.clone();
+      material.uniforms.map.value = mesh.material.map;
+      material.uniforms.map.needsUpdate = true;
+      mesh.material = material;
+
+      for (const mesh of this.meshes) {
+        mesh.geometry.dispose();
+        scene.remove(mesh);
+      }
+      this.meshes.length = 0;
+
+      return mesh;
+    } else {
+      return null;
     }
-    this.meshes.length = 0;
-    
-    return mesh;
   }
   cancel() {
     for (const mesh of this.meshes) {
