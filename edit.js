@@ -3541,46 +3541,6 @@ const MeshDrawer = (() => {
       return new ThingSource(points, undefined, undefined, undefined, undefined, zs, planeNormal, planeConstant, center, tang, bitang);
     }
   } */
-  const _makeDrawMaterial = (color1, color2, numPoints) => new THREE.ShaderMaterial({
-    uniforms: {
-      color1: {
-        type: 'c',
-        value: new THREE.Color(color1),
-        needsUpdate: true,
-      },
-      color2: {
-        type: 'c',
-        value: new THREE.Color(color2),
-        needsUpdate: true,
-      },
-      numPoints: {
-        type: 'f',
-        value: numPoints,
-        needsUpdate: true,
-      },
-    },
-    vertexShader: `\
-      varying vec2 vUv;
-
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `\
-      uniform vec3 color1;
-      uniform vec3 color2;
-      uniform float numPoints;
-
-      varying vec2 vUv;
-
-      void main() {
-        vec3 c = mix(color1, color2, vUv.y/numPoints);
-        gl_FragColor = vec4(c, 1.);
-      }
-    `,
-    side: THREE.DoubleSide,
-  });
   return class MeshDrawer {
     constructor() {
       // const points = new Float32Array(512 * 1024);
@@ -3653,14 +3613,13 @@ const MeshDrawer = (() => {
       const center = geometry.boundingBox.getCenter(new THREE.Vector3());
       geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
       // const material = _makeDrawMaterial(this.mesh.material.uniforms.color1.value.getHex(), this.mesh.material.uniforms.color2.value.getHex(), this.mesh.material.uniforms.numPoints.value);
-      const mesh = new THREE.Mesh(geometry, this.mesh.material);
+      const mesh = new THREE.Mesh(geometry, this.mesh.material.clone());
       mesh.matrix.copy(this.mesh.matrixWorld)
         .decompose(mesh.position, mesh.quaternion, mesh.scale);
       mesh.position.add(center);
       mesh.frustumCulled = false;
       meshComposer.addMesh(mesh);
 
-      this.mesh.material = this.mesh.material.clone();
       this.mesh.visible = false;
 
       // const thingSource = ThingSource.fromPoints(this.points.subarray(0, this.numPoints));
@@ -5216,7 +5175,7 @@ shapesMesh.handleIconClick = (i, srcIndex) => {
   // console.log('handle shapes click', srcIndex);
   if (srcIndex < shapesMesh.inventoryShapesMesh.geometries.length) {
     const geometry = shapesMesh.inventoryShapesMesh.geometries[srcIndex];
-    const material = shapesMesh.inventoryShapesMesh.material;
+    const material = shapesMesh.inventoryShapesMesh.material.clone();
     const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
     meshComposer.setPlaceMesh(i, mesh);
@@ -5275,6 +5234,47 @@ inventoryMesh.handleIconClick = async (i, srcIndex) => {
 };
 scene.add(inventoryMesh);
 
+const _makeDrawMaterial = (color1, color2, numPoints) => new THREE.ShaderMaterial({
+  uniforms: {
+    color1: {
+      type: 'c',
+      value: new THREE.Color(color1),
+      needsUpdate: true,
+    },
+    color2: {
+      type: 'c',
+      value: new THREE.Color(color2),
+      needsUpdate: true,
+    },
+    numPoints: {
+      type: 'f',
+      value: numPoints,
+      needsUpdate: true,
+    },
+  },
+  vertexShader: `\
+    varying vec2 vUv;
+
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `\
+    uniform vec3 color1;
+    uniform vec3 color2;
+    uniform float numPoints;
+
+    varying vec2 vUv;
+
+    void main() {
+      vec3 c = mix(color1, color2, vUv.y/numPoints);
+      gl_FragColor = vec4(c, 1.);
+    }
+  `,
+  side: THREE.DoubleSide,
+});
+
 const _makeInventoryContentsMesh = () => {
   const geometry = new THREE.BufferGeometry();
   const material = currentVegetationMesh.material[0];
@@ -5282,9 +5282,6 @@ const _makeInventoryContentsMesh = () => {
   return mesh;
 };
 const _makeInventoryShapesMesh = () => {
-  const color1 = new THREE.Color().setStyle('#' + colors[0]);
-  const color2 = new THREE.Color().setStyle('#' + colors[1]);
-
   const boxMesh = new THREE.BoxBufferGeometry()
   const coneMesh = new THREE.ConeBufferGeometry();
   const cylinderMesh = new THREE.CylinderBufferGeometry();
@@ -5305,25 +5302,11 @@ const _makeInventoryShapesMesh = () => {
     tetrahedronMesh,
     torusMesh,
   ];
+  const material = _makeDrawMaterial(localColor.setStyle('#' + colors[0]).getHex(), localColor.setStyle('#' + colors[1]).getHex(), 1);
   const scaleMatrix = new THREE.Matrix4().makeScale(0.1, 0.1, 0.1);
-  const _bakeGeometryColors = geometry => {
-    const colors = new Float32Array(geometry.attributes.position.array.length);
-    for (let i = 0; i < geometry.uvs.length; i += 2) {
-      const y = geometry.uvs[i+1];
-      localColor.copy(color1).lerp(color2, y)
-        .toArray(colors, i/2*3);
-    }
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  };
   for (const geometry of geometries) {
     geometry.applyMatrix4(scaleMatrix);
     geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
-
-    geometry.uvs = geometry.attributes.uv.array.slice();
-    for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-      geometry.attributes.uv.array[i] = -1;
-      geometry.attributes.uv.array[i+1] = -1;
-    }
     
     if (!geometry.index) {
       const indices = new Uint16Array(geometry.attributes.position.array.length/3);
@@ -5332,8 +5315,6 @@ const _makeInventoryShapesMesh = () => {
       }
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
     }
-
-    _bakeGeometryColors(geometry);
   }
 
   const h = 0.1;
@@ -5349,17 +5330,13 @@ const _makeInventoryShapesMesh = () => {
       .applyMatrix4(new THREE.Matrix4().makeTranslation(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4));
   }));
   const geometry = _compileGeometry();
-  const mesh = new THREE.Mesh(geometry, meshComposer.material);
+  const mesh = new THREE.Mesh(geometry, material);
   mesh.geometries = geometries;
   mesh.setColors = selectedColors => {
-    color1.setStyle('#' + colors[selectedColors[0]]);
-    color2.setStyle('#' + colors[selectedColors[1]]);
-    
-    for (const geometry of geometries) {
-      _bakeGeometryColors(geometry);
-    }
-    mesh.geometry.dispose();
-    mesh.geometry = _compileGeometry();
+    mesh.material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
+    mesh.material.uniforms.color1.needsUpdate = true;
+    mesh.material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
+    mesh.material.uniforms.color2.needsUpdate = true;
   };
   return mesh;
 };
