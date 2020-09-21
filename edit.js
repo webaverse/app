@@ -5336,41 +5336,21 @@ const _makeInventoryContentsMesh = () => {
   return mesh;
 };
 const _makeInventoryBuildsMesh = () => {
-  return new THREE.Object3D();
-  /* const boxMesh = new THREE.BoxBufferGeometry()
-  const coneMesh = new THREE.ConeBufferGeometry();
-  const cylinderMesh = new THREE.CylinderBufferGeometry();
-  const dodecahedronMesh = new THREE.DodecahedronBufferGeometry();
-  const icosahedronMesh = new THREE.IcosahedronBufferGeometry();
-  const octahedronMesh = new THREE.OctahedronBufferGeometry();
-  const sphereMesh = new THREE.SphereBufferGeometry();
-  const tetrahedronMesh = new THREE.TetrahedronBufferGeometry();
-  const torusMesh = new THREE.TorusBufferGeometry();
-  const geometries = [
-    boxMesh,
-    coneMesh,
-    cylinderMesh,
-    dodecahedronMesh,
-    icosahedronMesh,
-    octahedronMesh,
-    sphereMesh,
-    tetrahedronMesh,
-    torusMesh,
-  ];
-  const material = _makeDrawMaterial(localColor.setStyle('#' + colors[0]).getHex(), localColor.setStyle('#' + colors[1]).getHex(), 1);
   const scaleMatrix = new THREE.Matrix4().makeScale(0.1, 0.1, 0.1);
-  for (const geometry of geometries) {
-    geometry.applyMatrix4(scaleMatrix);
-    geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
-    
-    if (!geometry.index) {
-      const indices = new Uint16Array(geometry.attributes.position.array.length/3);
-      for (let i = 0; i < indices.length; i++) {
-        indices[i] = i;
-      }
-      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+  const geometries = (() => {
+    const result = Array(9);
+    for (let i = 0; i < buildMeshes.walls.length; i++) {
+      result[i*3] = buildMeshes.walls[i].geometry;
     }
-  }
+    for (let i = 0; i < buildMeshes.platforms.length; i++) {
+      result[i*3+1] = buildMeshes.platforms[i].geometry;
+    }
+    for (let i = 0; i < buildMeshes.ramps.length; i++) {
+      result[i*3+2] = buildMeshes.ramps[i].geometry;
+    }
+    return result;
+  })();
+  const material = buildMeshes.walls[0].material;
 
   const h = 0.1;
   const arrowW = h/10;
@@ -5381,19 +5361,13 @@ const _makeInventoryBuildsMesh = () => {
     const dx = i%3;
     const dy = (i-dx)/3;
     return geometry.clone()
-      .applyMatrix4(new THREE.Matrix4().makeScale(w*2, w*2, w*2))
+      .applyMatrix4(new THREE.Matrix4().makeScale(w*2 * 0.1, w*2 * 0.1, w*2 * 0.1))
       .applyMatrix4(new THREE.Matrix4().makeTranslation(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4));
   }));
   const geometry = _compileGeometry();
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.geometries = geometries;
-  mesh.setColors = selectedColors => {
-    mesh.material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
-    mesh.material.uniforms.color1.needsUpdate = true;
-    mesh.material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
-    mesh.material.uniforms.color2.needsUpdate = true;
-  };
-  return mesh; */
+  mesh.frustumCulled = false;
+  return mesh;
 };
 const _makeInventoryShapesMesh = () => {
   const boxMesh = new THREE.BoxBufferGeometry()
