@@ -4764,6 +4764,7 @@ for (let i = 0; i < 30; i++) {
 } */
 
 let buildMode = 'wall';
+let buildMat = 'wood';
 let plansMesh = null;
 let pencilMesh = null;
 let pickaxeMesh = null;
@@ -5139,14 +5140,13 @@ const buildsMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
 });
 buildsMesh.visible = false;
 buildsMesh.handleIconClick = (i, srcIndex) => {
-  console.log('handle builds click', i, srcIndex);
-  /* if (srcIndex < buildsMesh.inventoryShapesMesh.geometries.length) {
-    const geometry = shapesMesh.inventoryShapesMesh.geometries[srcIndex];
-    const material = shapesMesh.inventoryShapesMesh.material.clone();
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.frustumCulled = false;
-    meshComposer.setPlaceMesh(i, mesh);
-  } */
+  // console.log('handle builds click', i, srcIndex);
+  // if (srcIndex < buildsMesh.inventoryBuildsMesh.meshes.length) {
+    const dx = srcIndex%3;
+    const dy = (srcIndex-dx)/3;
+    buildMode = ['wall', 'floor', 'stair'][dx];
+    buildMat = ['wood', 'stone', 'metal'][dy];
+  // }
 };
 scene.add(buildsMesh);
 
@@ -5341,19 +5341,20 @@ const _makeInventoryContentsMesh = () => {
 };
 const _makeInventoryBuildsMesh = () => {
   const scaleMatrix = new THREE.Matrix4().makeScale(0.1, 0.1, 0.1);
-  const geometries = (() => {
+  const meshes = (() => {
     const result = Array(9);
     for (let i = 0; i < buildMeshes.walls.length; i++) {
-      result[i*3] = buildMeshes.walls[i].geometry;
+      result[i*3] = buildMeshes.walls[i];
     }
     for (let i = 0; i < buildMeshes.platforms.length; i++) {
-      result[i*3+1] = buildMeshes.platforms[i].geometry;
+      result[i*3+1] = buildMeshes.platforms[i];
     }
     for (let i = 0; i < buildMeshes.ramps.length; i++) {
-      result[i*3+2] = buildMeshes.ramps[i].geometry;
+      result[i*3+2] = buildMeshes.ramps[i];
     }
     return result;
   })();
+  const geometries = meshes.map(m => m.geometry);
   const material = buildMeshes.walls[0].material;
 
   const h = 0.1;
@@ -5371,6 +5372,7 @@ const _makeInventoryBuildsMesh = () => {
   const geometry = _compileGeometry();
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
+  mesh.meshes = meshes;
   return mesh;
 };
 const _makeInventoryShapesMesh = () => {
@@ -6435,10 +6437,11 @@ function animate(timestamp, frame) {
       }
       if (selectedWeapon === 'build') {
         const buildMesh = (() => {
+          const buildMatIndex = ['wood', 'stone', 'metal'].indexOf(buildMat);
           switch (buildMode) {
-            case 'wall': return buildMeshes.walls[0];
-            case 'floor': return buildMeshes.platforms[0];
-            case 'stair': return buildMeshes.ramps[0];
+            case 'wall': return buildMeshes.walls[buildMatIndex];
+            case 'floor': return buildMeshes.platforms[buildMatIndex];
+            case 'stair': return buildMeshes.ramps[buildMatIndex];
             default: return null;
           }
         })();
@@ -6514,30 +6517,6 @@ function animate(timestamp, frame) {
             meshComposer.trigger(i);
             return;
           }
-        }
-        // build
-        if (selectedWeapon === 'build') {
-          const buildMesh = (() => {
-            switch (buildMode) {
-              case 'wall': return buildMeshes.walls[0];
-              case 'floor': return buildMeshes.platforms[0];
-              case 'stair': return buildMeshes.ramps[0];
-              default: return null;
-            }
-          })();
-          const hasBuildMesh = (() => {
-            for (const index in currentChunkMesh.vegetationMeshes) {
-              const subparcelBuildMeshesSpec = currentChunkMesh.vegetationMeshes[index];
-              if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
-                return true;
-              }
-            }
-            return false;
-          })();
-          if (!hasBuildMesh) {
-            geometryWorker.requestAddObject(tracker, geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
-          }
-          return;
         }
         // else
         const _applyLightfieldDelta = async (position, delta) => {
@@ -6675,7 +6654,31 @@ function animate(timestamp, frame) {
             break;
           }
           case 'build': {
-            _triggerAnchor(buildsMesh);
+            if (anchorSpecs[0]) {
+              _triggerAnchor(buildsMesh);
+            } else {
+              const buildMesh = (() => {
+                const buildMatIndex = ['wood', 'stone', 'metal'].indexOf(buildMat);
+                switch (buildMode) {
+                  case 'wall': return buildMeshes.walls[buildMatIndex];
+                  case 'floor': return buildMeshes.platforms[buildMatIndex];
+                  case 'stair': return buildMeshes.ramps[buildMatIndex];
+                  default: return null;
+                }
+              })();
+              const hasBuildMesh = (() => {
+                for (const index in currentChunkMesh.vegetationMeshes) {
+                  const subparcelBuildMeshesSpec = currentChunkMesh.vegetationMeshes[index];
+                  if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
+                    return true;
+                  }
+                }
+                return false;
+              })();
+              if (!hasBuildMesh) {
+                geometryWorker.requestAddObject(tracker, geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
+              }
+            }
             break;
           }
           case 'things': {
