@@ -215,13 +215,15 @@ const _loadImg = async file => {
 
   const texture = new THREE.Texture(img);
   texture.needsUpdate = true;
-  /* const material = new THREE.MeshBasicMaterial({
+  const material = new THREE.MeshBasicMaterial({
     map: texture,
     side: THREE.DoubleSide,
-  }); */
-  const material = meshComposer.material.clone();
+    vertexColors: true,
+    transparent: true,
+  });
+  /* const material = meshComposer.material.clone();
   material.uniforms.map.value = texture;
-  material.uniforms.map.needsUpdate = true;
+  material.uniforms.map.needsUpdate = true; */
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
