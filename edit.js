@@ -6804,7 +6804,8 @@ function animate(timestamp, frame) {
 
       if (currentSession) {
         if (selectedMenuMesh) {
-          selectedMenuMesh.position.copy(leftGamepad.position);
+          selectedMenuMesh.position.copy(leftGamepad.position)
+            .add(localVector.set(0.1, 0.1, 0).applyQuaternion(leftGamepad.quaternion));
           selectedMenuMesh.quaternion.copy(leftGamepad.quaternion);
           selectedMenuMesh.scale.setScalar(1, 1, 1);
           selectedMenuMesh.visible = true;
