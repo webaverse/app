@@ -898,27 +898,6 @@ const buildMeshes = {
 let woodMesh = null;
 let stoneMesh = null;
 let metalMesh = null;
-/* const physicsShapes = (() => {
-  const result = {};
-  for (const mat of ['wood', 'stone', 'metal']) {
-    result[mat + '_wall'] = {
-      position: new THREE.Vector3(0, 1, -1),
-      quaternion: new THREE.Quaternion(),
-      scale: new THREE.Vector3(2, 2, 0.1),
-    };
-    result[mat + '_floor'] = {
-      position: new THREE.Vector3(0, 0, 0),
-      quaternion: new THREE.Quaternion(),
-      scale: new THREE.Vector3(2, 0.1, 2),
-    };
-    result[mat + '_ramp'] = {
-      position: new THREE.Vector3(0, 1, 0),
-      quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 4),
-      scale: new THREE.Vector3(2, 2 * Math.sqrt(2), 0.1),
-    };
-  }
-  return result;
-})(); */
 const basisLoader = new BasisTextureLoader();
 basisLoader.detectSupport(renderer);
 const geometryWorker = (() => {
