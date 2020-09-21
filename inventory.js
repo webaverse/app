@@ -96,17 +96,21 @@ const _loadGltf = async file => {
     URL.revokeObjectURL(u);
   }
   o = o.scene;
+  let mesh = null;
   o.traverse(o => {
-    if (o.isMesh) {
+    if (o.isMesh && mesh === null) {
       o.material.depthWrite = true;
       if (o.userData.gltfExtensions && o.userData.gltfExtensions.EXT_aabb) {
         o.geometry.boundingBox = new THREE.Box3();
         o.geometry.boundingBox.min.fromArray(o.userData.gltfExtensions.EXT_aabb, 0);
         o.geometry.boundingBox.max.fromArray(o.userData.gltfExtensions.EXT_aabb, 3);
+      } else {
+        o.geometry.computeBoundingBox();
       }
+      mesh = o;
     }
   });
-  return o;
+  return mesh;
 
   // XXX bake at upload time
   /* const u = URL.createObjectURL(file);
