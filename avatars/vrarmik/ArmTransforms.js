@@ -2,7 +2,7 @@ import THREE from '../../three.module.js';
 
 class ArmTransforms {
 	constructor() {
-        this.transform = new THREE.Object3D();
+    this.transform = new THREE.Object3D();
 		this.upperArm = new THREE.Object3D();
 		this.lowerArm = new THREE.Object3D();
 		this.hand = new THREE.Object3D();
@@ -22,7 +22,7 @@ class ArmTransforms {
 		this.littleFinger2 = new THREE.Object3D();
 		this.littleFinger3 = new THREE.Object3D();
 
-        this.transform.add(this.upperArm);
+    this.transform.add(this.upperArm);
 		this.upperArm.add(this.lowerArm);
 		this.lowerArm.add(this.hand);
 
