@@ -8,8 +8,8 @@ import {GLTFExporter} from './GLTFExporter.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
 // import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
-import { tryLogin, loginManager } from './login.js';
-import {downloadFile} from './util.js';
+import {tryLogin, loginManager} from './login.js';
+import {downloadFile, mergeMeshes} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
@@ -42,7 +42,6 @@ import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
-import atlaspack from './atlaspack.js';
 import app from './app-object.js';
 import inventory from './inventory.js';
 
@@ -891,29 +890,14 @@ const currentChunkMeshId = getNextMeshId();
 let currentVegetationMesh = null;
 let currentThingMesh = null;
 let meshDrawer = null;
-let stairsMesh = null;
-let platformMesh = null;
-let wallMesh = null;
+const buildMeshes = {
+  walls: [null, null, null],
+  platforms: [null, null, null],
+  ramps: [null, null, null],
+};
 let woodMesh = null;
 let stoneMesh = null;
 let metalMesh = null;
-const physicsShapes = {
-  wood_ramp: {
-    position: new THREE.Vector3(0, 1, 0),
-    quaternion: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 4),
-    scale: new THREE.Vector3(2, 2 * Math.sqrt(2), 0.1),
-  },
-  wood_floor: {
-    position: new THREE.Vector3(0, 0, 0),
-    quaternion: new THREE.Quaternion(),
-    scale: new THREE.Vector3(2, 0.1, 2),
-  },
-  wood_wall: {
-    position: new THREE.Vector3(0, 1, -1),
-    quaternion: new THREE.Quaternion(),
-    scale: new THREE.Vector3(2, 2, 0.1),
-  },
-};
 const basisLoader = new BasisTextureLoader();
 basisLoader.detectSupport(renderer);
 const geometryWorker = (() => {
@@ -2986,6 +2970,12 @@ const geometryWorker = (() => {
         'wood_wall',
         'wood_floor',
         'wood_ramp',
+        'stone_wall',
+        'stone_floor',
+        'stone_ramp',
+        'metal_wall',
+        'metal_floor',
+        'metal_ramp',
         'wood1',
         'stone2',
         'metal1',
@@ -2998,26 +2988,36 @@ const geometryWorker = (() => {
         'SM_Wep_Grenade_01',
         'SM_Wep_Crosshair_04',
       ].map(n => geometryWorker.requestGetGeometry(geometrySet, n)));
-      wallMesh = _makeBakedMesh(geometries[0]);
-      wallMesh.buildType = 'wall';
-      wallMesh.vegetationType = 'wood_wall';
-      platformMesh = _makeBakedMesh(geometries[1]);
-      platformMesh.buildType = 'floor';
-      platformMesh.vegetationType = 'wood_floor';
-      stairsMesh = _makeBakedMesh(geometries[2]);
-      stairsMesh.buildType = 'stair';
-      stairsMesh.vegetationType = 'wood_ramp';
-      woodMesh = _makeBakedMesh(geometries[3]);
-      stoneMesh = _makeBakedMesh(geometries[4]);
-      metalMesh = _makeBakedMesh(geometries[5]);
-      plansMesh = _makeBakedMesh(geometries[6]);
-      pencilMesh = _makeBakedMesh(geometries[7]);
-      pickaxeMesh = _makeBakedMesh(geometries[8]);
-      paintBrushMesh = _makeBakedMesh(geometries[9]);
-      assaultRifleMesh = _makeBakedMesh(geometries[10]);
-      smgMesh = _makeBakedMesh(geometries[11]);
-      grenadeMesh = _makeBakedMesh(geometries[12]);
-      crosshairMesh = _makeBakedMesh(geometries[13]);
+      let index = 0;
+      buildMeshes.walls[0] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.walls[0].vegetationType = 'wood_wall';
+      buildMeshes.platforms[0] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.platforms[0].vegetationType = 'wood_floor';
+      buildMeshes.ramps[0] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.ramps[0].vegetationType = 'wood_ramp';
+      buildMeshes.walls[1] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.walls[1].vegetationType = 'stone_ramp';
+      buildMeshes.platforms[1] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.platforms[1].vegetationType = 'stone_floor';
+      buildMeshes.ramps[1] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.ramps[1].vegetationType = 'stone_ramp';
+      buildMeshes.walls[2] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.walls[2].vegetationType = 'metal_wall';
+      buildMeshes.platforms[2] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.platforms[2].vegetationType = 'metal_floor';
+      buildMeshes.ramps[2] = _makeBakedMesh(geometries[index++]);
+      buildMeshes.ramps[2].vegetationType = 'metal_ramp';
+      woodMesh = _makeBakedMesh(geometries[index++]);
+      stoneMesh = _makeBakedMesh(geometries[index++]);
+      metalMesh = _makeBakedMesh(geometries[index++]);
+      plansMesh = _makeBakedMesh(geometries[index++]);
+      pencilMesh = _makeBakedMesh(geometries[index++]);
+      pickaxeMesh = _makeBakedMesh(geometries[index++]);
+      paintBrushMesh = _makeBakedMesh(geometries[index++]);
+      assaultRifleMesh = _makeBakedMesh(geometries[index++]);
+      smgMesh = _makeBakedMesh(geometries[index++]);
+      grenadeMesh = _makeBakedMesh(geometries[index++]);
+      crosshairMesh = _makeBakedMesh(geometries[index++]);
 
       plansMesh.visible = false;
       scene.add(plansMesh);
@@ -3382,212 +3382,8 @@ const MeshDrawer = (() => {
     canvas.ctx = ctx;
     return canvas;
   };
-
-  /* const _makeDrawThingMesh = () => {
-    const geometry = new THREE.BufferGeometry();
-    // geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    // geometry.setAttribute('uv3', new THREE.BufferAttribute(uvs, 3));
-    // geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-    // geometry = geometry.toNonIndexed();
-
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        tex: {
-          type: 't',
-          value: new THREE.Texture(),
-          needsUpdate: false,
-        },
-        uSelectColor: {
-          type: 'c',
-          value: new THREE.Color(0xFFFFFF),
-          needsUpdate: true,
-        },
-      },
-      vertexShader: `\
-        precision highp float;
-        precision highp int;
-
-        attribute vec3 uv3;
-        varying vec3 vUv;
-        varying vec3 vBarycentric;
-
-        void main() {
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          gl_Position = projectionMatrix * mvPosition;
-
-          vUv = uv3;
-
-          float vid = float(gl_VertexID);
-          if (mod(vid, 3.) < 0.5) {
-            vBarycentric = vec3(1., 0., 0.);
-          } else if (mod(vid, 3.) < 1.5) {
-            vBarycentric = vec3(0., 1., 0.);
-          } else {
-            vBarycentric = vec3(0., 0., 1.);
-          }
-        }
-      `,
-      fragmentShader: `\
-        precision highp float;
-        precision highp int;
-
-        #define PI 3.1415926535897932384626433832795
-
-        uniform sampler2D tex;
-        uniform sampler2D indexTex;
-        uniform vec3 uSelectColor;
-
-        varying vec3 vUv;
-        varying vec3 vBarycentric;
-
-        float edgeFactor() {
-          vec3 d = fwidth(vBarycentric);
-          vec3 a3 = smoothstep(vec3(0.0), d, vBarycentric);
-          return min(min(a3.x, a3.y), a3.z);
-        }
-
-        void main() {
-          vec3 c = texture2D(tex, vUv.xy).rgb;
-          // c *= vec3(vUv.x, 0., vUv.y);
-          c.rgb *= uSelectColor;
-          if (edgeFactor() <= 0.99) {
-            c += 0.5;
-          }
-          gl_FragColor = vec4(c, 1.);
-        }
-      `,
-      // side: THREE.DoubleSide,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.visible = false;
-    mesh.frustumCulled = false;
-    mesh.setGeometryData = thingSource => {
-      const {center, planeNormal, geometryData} = thingSource;
-      let geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(geometryData.positions, 3));
-      geometry.setAttribute('uv3', new THREE.BufferAttribute(geometryData.uvs, 3));
-      geometry.setIndex(new THREE.BufferAttribute(geometryData.indices, 1));
-      geometry = geometry.toNonIndexed();
-      mesh.geometry = geometry;
-
-      mesh.position.copy(center);
-      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), planeNormal);
-      mesh.visible = true;
-    };
-    mesh.setTexture = thingSource => {
-      const {canvas} = thingSource;
-      material.uniforms.tex.value.image = canvas;
-      material.uniforms.tex.value.needsUpdate = true;
-      material.uniforms.tex.needsUpdate = true;
-    };
-    return mesh;
-  };
-
-  class ThingSource {
-    constructor(
-      ps = new Float32Array(),
-      holes = new Float32Array(),
-      holeCounts = new Uint32Array(),
-      points = new Float32Array(),
-      z = 0,
-      zs = new Float32Array(),
-      planeNormal = new THREE.Vector3(),
-      planeConstant = 0,
-      center = new THREE.Vector3(),
-      tang = new THREE.Vector3(1, 0, 0),
-      bitang = new THREE.Vector3(0, 1, 0),
-    ) {
-      this.ps = ps;
-      this.holes = holes;
-      this.holeCounts = holeCounts;
-      this.points = points;
-      this.z = z;
-      this.zs = zs;
-      this.planeNormal = planeNormal;
-      this.planeConstant = planeConstant;
-      this.center = center;
-      this.tang = tang;
-      this.bitang = bitang;
-
-      this.geometryData = null;
-      this.canvas = _makeDrawThingCanvas();
-
-      this.objectId = Math.floor(Math.random() * 0xFFFFFF);
-      this.position = this.center.clone();
-      this.quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), this.planeNormal);
-      this.scale = new THREE.Vector3(1, 1, 1);
-      this.matrix = new THREE.Matrix4().compose(this.position, this.quaternion, this.scale);
-      this.matrixWorld = this.matrix.clone().premultiply(currentChunkMesh.matrixWorld);
-    }
-
-    updateGeometryData() {
-      if (this.geometryData) {
-        this.geometryData.destroy();
-        this.geometryData = null;
-      }
-      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry, destroy} = geometryWorker.earcut(tracker, this.ps, this.holes, this.holeCounts, this.points, this.z, this.zs, this.objectId, this.position, this.quaternion);
-      this.geometryData = {
-        positions,
-        uvs,
-        indices,
-        trianglePhysicsGeometry,
-        convexPhysicsGeometry,
-        destroy,
-      };
-    }
-
-    static fromPoints(pointsData) {
-      const {points, planeNormal, planeConstant, center, tang, bitang} = geometryWorker.convexHull(pointsData, camera.position);
-      const zs = new Float32Array(points.length / 2);
-      return new ThingSource(points, undefined, undefined, undefined, undefined, zs, planeNormal, planeConstant, center, tang, bitang);
-    }
-  } */
-  const _makeDrawMaterial = (color1, color2, numPoints) => new THREE.ShaderMaterial({
-    uniforms: {
-      color1: {
-        type: 'c',
-        value: new THREE.Color(color1),
-        needsUpdate: true,
-      },
-      color2: {
-        type: 'c',
-        value: new THREE.Color(color2),
-        needsUpdate: true,
-      },
-      numPoints: {
-        type: 'f',
-        value: numPoints,
-        needsUpdate: true,
-      },
-    },
-    vertexShader: `\
-      varying vec2 vUv;
-
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `\
-      uniform vec3 color1;
-      uniform vec3 color2;
-      uniform float numPoints;
-
-      varying vec2 vUv;
-
-      void main() {
-        vec3 c = mix(color1, color2, vUv.y/numPoints);
-        gl_FragColor = vec4(c, 1.);
-      }
-    `,
-    side: THREE.DoubleSide,
-  });
   return class MeshDrawer {
     constructor() {
-      // const points = new Float32Array(512 * 1024);
-      // this.points = points;
-      // this.numPoints = 0;
-
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * 128 * 1024), 3));
       geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(3 * 128 * 1024), 1));
@@ -3616,15 +3412,11 @@ const MeshDrawer = (() => {
       this.lastValue = 0;
       this.numPositions = 0;
       this.numIndices = 0;
-
-      // this.thingSources = [];
-      // this.thingMeshes = [];
     }
 
     start(p, q, v) {
       this.lastPosition.copy(p);
       this.lastQuaternion.copy(q);
-      // this.numPoints = 0;
       this.numPositions = 0;
       this.numIndices = 0;
       this.mesh.geometry.setDrawRange(0, 0);
@@ -3639,7 +3431,7 @@ const MeshDrawer = (() => {
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       const uvs = this.mesh.geometry.attributes.uv.array.slice(0, this.numPositions/3*2);
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-      const colors = new Float32Array(geometry.attributes.position.array.length);
+      /* const colors = new Float32Array(geometry.attributes.position.array.length);
       for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
         const y = geometry.attributes.uv.array[i+1]/this.mesh.material.uniforms.numPoints.value;
         localColor.copy(this.mesh.material.uniforms.color1.value).lerp(this.mesh.material.uniforms.color2.value, y)
@@ -3647,61 +3439,42 @@ const MeshDrawer = (() => {
         geometry.attributes.uv.array[i] = -1;
         geometry.attributes.uv.array[i+1] = -1;
       }
-      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3)); */
       const indices = this.mesh.geometry.index.array.slice(0, this.numIndices);
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
       geometry.boundingBox = this.mesh.geometry.boundingBox.clone();
+      const center = geometry.boundingBox.getCenter(new THREE.Vector3());
+      geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
       // const material = _makeDrawMaterial(this.mesh.material.uniforms.color1.value.getHex(), this.mesh.material.uniforms.color2.value.getHex(), this.mesh.material.uniforms.numPoints.value);
-      const mesh = new THREE.Mesh(geometry, meshComposer.material);
+      const mesh = new THREE.Mesh(geometry, this.mesh.material.clone());
       mesh.matrix.copy(this.mesh.matrixWorld)
         .decompose(mesh.position, mesh.quaternion, mesh.scale);
+      mesh.position.add(center);
       mesh.frustumCulled = false;
       meshComposer.addMesh(mesh);
 
       this.mesh.visible = false;
-
-      // const thingSource = ThingSource.fromPoints(this.points.subarray(0, this.numPoints));
-      // thingSource.updateGeometryData();
-      // this.thingSources.push(thingSource);
-
-      /* const thingMesh = _makeDrawThingMesh();
-      thingMesh.setGeometryData(thingSource);
-      thingMesh.setTexture(thingSource);
-      chunkMeshContainer.add(thingMesh);
-      this.thingMeshes.push(thingMesh); */
     }
 
     update(p, q, v) {
-      // p.toArray(this.points, this.numPoints);
-      // this.numPoints += 3;
-
       const startPoint = this.lastPosition;
       const endPoint = p;
       const startQuaternion = this.lastQuaternion;
       const endQuaternion = q;
       const startValue = this.lastValue;
       const endValue = v;
-      /* const quaternion = localQuaternion.setFromUnitVectors(
-        localVector.set(0, 0, -1),
-        localVector2.copy(endPoint).sub(startPoint).normalize(),
-      );
-      const midpoint = localVector.copy(startPoint).add(endPoint).divideScalar(2);
-      const scale = localVector2.set(0.01, 0.01, startPoint.distanceTo(endPoint)); */
-      // const matrix = localMatrix.compose(midpoint, quaternion, scale);
 
       const oldNumPositions = this.numPositions;
       if (this.numPositions === 0) {
         localVector.set(-startValue, 0, 0)
           .applyQuaternion(startQuaternion)
           .add(startPoint)
-          // .applyMatrix4(matrix)
           .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
         this.mesh.geometry.boundingBox.expandByPoint(localVector);
         this.numPositions += 3;
         localVector.set(startValue, 0, 0)
           .applyQuaternion(startQuaternion)
           .add(startPoint)
-          // .applyMatrix4(matrix)
           .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
         this.mesh.geometry.boundingBox.expandByPoint(localVector);
         this.numPositions += 3;
@@ -3709,14 +3482,12 @@ const MeshDrawer = (() => {
       localVector.set(-endValue, 0, 0)
         .applyQuaternion(endQuaternion)
         .add(endPoint)
-        // .applyMatrix4(matrix)
         .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
       this.mesh.geometry.boundingBox.expandByPoint(localVector);
       this.numPositions += 3;
       localVector.set(endValue, 0, 0)
         .applyQuaternion(endQuaternion)
         .add(endPoint)
-        // .applyMatrix4(matrix)
         .toArray(this.mesh.geometry.attributes.position.array, this.numPositions);
       this.mesh.geometry.boundingBox.expandByPoint(localVector);
       this.numPositions += 3;
@@ -3765,96 +3536,6 @@ const MeshDrawer = (() => {
       this.mesh.material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
       this.mesh.material.uniforms.color2.needsUpdate = true;
     }
-
-    /* drawPolygonize(ps, holes, holeCounts, points, z, zs) {
-      const {positions, uvs, indices, trianglePhysicsGeometry, convexPhysicsGeometry} = geometryWorker.earcut(tracker, ps.byteOffset, ps.length / 2, holes.byteOffset, holeCounts.byteOffset, holeCounts.length, points.byteOffset, points.length, z, zs.byteOffset);
-
-      let geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      geometry.setAttribute('uv3', new THREE.BufferAttribute(uvs, 3));
-      geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-      geometry = geometry.toNonIndexed();
-      const texture = new THREE.Texture(checkerboardCanvas);
-      texture.needsUpdate = true;
-      const material = new THREE.ShaderMaterial({
-        uniforms: {
-          tex: {
-            type: 't',
-            value: texture,
-            needsUpdate: true,
-          },
-        },
-        vertexShader: `\
-          precision highp float;
-          precision highp int;
-
-          attribute vec3 uv3;
-          varying vec3 vUv;
-          varying vec3 vBarycentric;
-
-          void main() {
-            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-            gl_Position = projectionMatrix * mvPosition;
-
-            vUv = uv3;
-
-            float vid = float(gl_VertexID);
-            if (mod(vid, 3.) < 0.5) {
-              vBarycentric = vec3(1., 0., 0.);
-            } else if (mod(vid, 3.) < 1.5) {
-              vBarycentric = vec3(0., 1., 0.);
-            } else {
-              vBarycentric = vec3(0., 0., 1.);
-            }
-          }
-        `,
-        fragmentShader: `\
-          precision highp float;
-          precision highp int;
-
-          #define PI 3.1415926535897932384626433832795
-
-          uniform sampler2D tex;
-          uniform sampler2D indexTex;
-
-          varying vec3 vUv;
-          varying vec3 vBarycentric;
-
-          float edgeFactor() {
-            vec3 d = fwidth(vBarycentric);
-            vec3 a3 = smoothstep(vec3(0.0), d, vBarycentric);
-            return min(min(a3.x, a3.y), a3.z);
-          }
-
-          void main() {
-            vec3 c = texture2D(tex, vUv.xy).rgb;
-            c *= vec3(vUv.x, 0., vUv.y);
-            if (edgeFactor() <= 0.99) {
-              c += 0.5;
-            }
-            gl_FragColor = vec4(c, 1.);
-          }
-        `,
-        // side: THREE.DoubleSide,
-      });
-      const mesh = new THREE.Mesh(geometry, material);
-      pe.scene.add(mesh);
-
-      const result = {
-        positions: positions.slice(),
-        uvs: uvs.slice(),
-        indices: indices.slice(),
-      };
-
-      // convert uvs from 3D (2D + island index) to 2D
-      const outUvs2 = geometryWorker.alloc(Float32Array, uvs.length / 3 * 2);
-      for (let i = 0, j = 0; i < uvs.length; i += 3, j += 2) {
-        outUvs2[j] = uvs[i];
-        outUvs2[j + 1] = uvs[i + 1];
-      }
-
-      return result;
-    } */
   };
 })();
 const _makeTargetMesh = (() => {
@@ -4159,28 +3840,55 @@ class MeshComposer {
     }
     return null;
   }
-  commit() {
-    const {meshes} = this;
-    const geometries = [];
-    const textures = [];
-    for (const mesh of this.meshes) {
-      geometries.push(mesh.geometry);
-      if (mesh.material.uniforms.map.value) {
-        textures.push(mesh.material.uniforms.map.value);
-      } else {
-        textures.push(null);
+  async run() {
+    if (this.meshes.length === 1) {
+      const [mesh] = this.meshes;
+      if (mesh.userData.gltfExtensions.EXT_hash) {
+        const u = `${storageHost}/${mesh.userData.gltfExtensions.EXT_hash}`;
+        await rigManager.setLocalAvatarUrl(u);
       }
     }
+  }
+  commit() {
+    const {meshes} = this;
+    if (meshes.length > 0) {
+      const center = new THREE.Vector3();
+      for (const mesh of this.meshes) {
+        center.add(mesh.position);
+      }
+      center.divideScalar(meshes.length);
+      for (const mesh of this.meshes) {
+        mesh.position.sub(center);
+        mesh.updateMatrixWorld();
+      }
 
-    const mesh = _mergeMeshes(meshes, geometries, textures);
+      const geometries = [];
+      const textures = [];
+      for (const mesh of this.meshes) {
+        geometries.push(mesh.geometry);
+        if (mesh.material.uniforms.map && mesh.material.uniforms.map.value) {
+          textures.push(mesh.material.uniforms.map.value);
+        } else {
+          textures.push(null);
+        }
+      }
 
-    for (const mesh of this.meshes) {
-      mesh.geometry.dispose();
-      scene.remove(mesh);
+      const mesh = mergeMeshes(meshes, geometries, textures);
+      const material = meshComposer.material.clone();
+      material.uniforms.map.value = mesh.material.map;
+      material.uniforms.map.needsUpdate = true;
+      mesh.material = material;
+
+      for (const mesh of this.meshes) {
+        mesh.geometry.dispose();
+        scene.remove(mesh);
+      }
+      this.meshes.length = 0;
+
+      return mesh;
+    } else {
+      return null;
     }
-    this.meshes.length = 0;
-    
-    return mesh;
   }
   cancel() {
     for (const mesh of this.meshes) {
@@ -4753,6 +4461,7 @@ for (let i = 0; i < 30; i++) {
 } */
 
 let buildMode = 'wall';
+let buildMat = 'wood';
 let plansMesh = null;
 let pencilMesh = null;
 let pickaxeMesh = null;
@@ -5117,6 +4826,27 @@ scene.add(rayMesh);
 /* const uiMesh = makeUiFullMesh(cubeMesh);
 scene.add(uiMesh); */
 
+const buildsMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
+  await loadPromise;
+
+  if (!buildsMesh.inventoryBuildsMesh) {
+    buildsMesh.inventoryBuildsMesh = _makeInventoryBuildsMesh();
+    buildsMesh.inventoryBuildsMesh.frustumCulled = false;
+    buildsMesh.add(buildsMesh.inventoryBuildsMesh);
+  }
+});
+buildsMesh.visible = false;
+buildsMesh.handleIconClick = (i, srcIndex) => {
+  // console.log('handle builds click', i, srcIndex);
+  // if (srcIndex < buildsMesh.inventoryBuildsMesh.meshes.length) {
+    const dx = srcIndex%3;
+    const dy = (srcIndex-dx)/3;
+    buildMode = ['wall', 'floor', 'stair'][dx];
+    buildMat = ['wood', 'stone', 'metal'][dy];
+  // }
+};
+scene.add(buildsMesh);
+
 const thingsMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   await loadPromise;
   thingsMesh.queue.clearQueue();
@@ -5200,7 +4930,7 @@ shapesMesh.handleIconClick = (i, srcIndex) => {
   // console.log('handle shapes click', srcIndex);
   if (srcIndex < shapesMesh.inventoryShapesMesh.geometries.length) {
     const geometry = shapesMesh.inventoryShapesMesh.geometries[srcIndex];
-    const material = shapesMesh.inventoryShapesMesh.material;
+    const material = shapesMesh.inventoryShapesMesh.material.clone();
     const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
     meshComposer.setPlaceMesh(i, mesh);
@@ -5239,7 +4969,7 @@ inventoryMesh.handleIconClick = async (i, srcIndex) => {
       o.frustumCulled = false;
     }
   });
-  scene.add(mesh);
+  meshComposer.setPlaceMesh(i, mesh);
 
   /* const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
   mesh.position.copy(xrCamera.position)
@@ -5259,16 +4989,90 @@ inventoryMesh.handleIconClick = async (i, srcIndex) => {
 };
 scene.add(inventoryMesh);
 
+const _makeDrawMaterial = (color1, color2, numPoints) => new THREE.ShaderMaterial({
+  uniforms: {
+    color1: {
+      type: 'c',
+      value: new THREE.Color(color1),
+      needsUpdate: true,
+    },
+    color2: {
+      type: 'c',
+      value: new THREE.Color(color2),
+      needsUpdate: true,
+    },
+    numPoints: {
+      type: 'f',
+      value: numPoints,
+      needsUpdate: true,
+    },
+  },
+  vertexShader: `\
+    varying vec2 vUv;
+
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `\
+    uniform vec3 color1;
+    uniform vec3 color2;
+    uniform float numPoints;
+
+    varying vec2 vUv;
+
+    void main() {
+      vec3 c = mix(color1, color2, vUv.y/numPoints);
+      gl_FragColor = vec4(c, 1.);
+    }
+  `,
+  side: THREE.DoubleSide,
+});
+
 const _makeInventoryContentsMesh = () => {
   const geometry = new THREE.BufferGeometry();
   const material = currentVegetationMesh.material[0];
   const mesh = new THREE.Mesh(geometry, material);
   return mesh;
 };
-const _makeInventoryShapesMesh = () => {
-  const color1 = new THREE.Color().setStyle('#' + colors[0]);
-  const color2 = new THREE.Color().setStyle('#' + colors[1]);
+const _makeInventoryBuildsMesh = () => {
+  const scaleMatrix = new THREE.Matrix4().makeScale(0.1, 0.1, 0.1);
+  const meshes = (() => {
+    const result = Array(9);
+    for (let i = 0; i < buildMeshes.walls.length; i++) {
+      result[i*3] = buildMeshes.walls[i];
+    }
+    for (let i = 0; i < buildMeshes.platforms.length; i++) {
+      result[i*3+1] = buildMeshes.platforms[i];
+    }
+    for (let i = 0; i < buildMeshes.ramps.length; i++) {
+      result[i*3+2] = buildMeshes.ramps[i];
+    }
+    return result;
+  })();
+  const geometries = meshes.map(m => m.geometry);
+  const material = buildMeshes.walls[0].material;
 
+  const h = 0.1;
+  const arrowW = h/10;
+  const wrapInnerW = h - 2*arrowW;
+  const w = wrapInnerW/3;
+
+  const _compileGeometry = () => BufferGeometryUtils.mergeBufferGeometries(geometries.map((geometry, i) => {
+    const dx = i%3;
+    const dy = (i-dx)/3;
+    return geometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(w*2 * 0.1, w*2 * 0.1, w*2 * 0.1))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4));
+  }));
+  const geometry = _compileGeometry();
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  mesh.meshes = meshes;
+  return mesh;
+};
+const _makeInventoryShapesMesh = () => {
   const boxMesh = new THREE.BoxBufferGeometry()
   const coneMesh = new THREE.ConeBufferGeometry();
   const cylinderMesh = new THREE.CylinderBufferGeometry();
@@ -5289,25 +5093,11 @@ const _makeInventoryShapesMesh = () => {
     tetrahedronMesh,
     torusMesh,
   ];
+  const material = _makeDrawMaterial(localColor.setStyle('#' + colors[0]).getHex(), localColor.setStyle('#' + colors[1]).getHex(), 1);
   const scaleMatrix = new THREE.Matrix4().makeScale(0.1, 0.1, 0.1);
-  const _bakeGeometryColors = geometry => {
-    const colors = new Float32Array(geometry.attributes.position.array.length);
-    for (let i = 0; i < geometry.uvs.length; i += 2) {
-      const y = geometry.uvs[i+1];
-      localColor.copy(color1).lerp(color2, y)
-        .toArray(colors, i/2*3);
-    }
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  };
   for (const geometry of geometries) {
     geometry.applyMatrix4(scaleMatrix);
     geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
-
-    geometry.uvs = geometry.attributes.uv.array.slice();
-    for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-      geometry.attributes.uv.array[i] = -1;
-      geometry.attributes.uv.array[i+1] = -1;
-    }
     
     if (!geometry.index) {
       const indices = new Uint16Array(geometry.attributes.position.array.length/3);
@@ -5316,8 +5106,6 @@ const _makeInventoryShapesMesh = () => {
       }
       geometry.setIndex(new THREE.BufferAttribute(indices, 1));
     }
-
-    _bakeGeometryColors(geometry);
   }
 
   const h = 0.1;
@@ -5333,17 +5121,13 @@ const _makeInventoryShapesMesh = () => {
       .applyMatrix4(new THREE.Matrix4().makeTranslation(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4));
   }));
   const geometry = _compileGeometry();
-  const mesh = new THREE.Mesh(geometry, meshComposer.material);
+  const mesh = new THREE.Mesh(geometry, material);
   mesh.geometries = geometries;
   mesh.setColors = selectedColors => {
-    color1.setStyle('#' + colors[selectedColors[0]]);
-    color2.setStyle('#' + colors[selectedColors[1]]);
-    
-    for (const geometry of geometries) {
-      _bakeGeometryColors(geometry);
-    }
-    mesh.geometry.dispose();
-    mesh.geometry = _compileGeometry();
+    mesh.material.uniforms.color1.value.setStyle('#' + colors[selectedColors[0]]);
+    mesh.material.uniforms.color1.needsUpdate = true;
+    mesh.material.uniforms.color2.value.setStyle('#' + colors[selectedColors[1]]);
+    mesh.material.uniforms.color2.needsUpdate = true;
   };
   return mesh;
 };
@@ -5354,11 +5138,22 @@ const _makeInventoryItemsMesh = () => {
   const w = wrapInnerW/3;
   
   const object = new THREE.Object3D();
-  object.update = files => {
+  object.update = async files => {
     for (let i = 0; i < files.length; i++) {
       const {name, hash} = files[i];
       const dx = i%3;
       const dy = (i-dx)/3;
+
+      {
+        const res = await fetch(`${storageHost}/${hash}`);
+        const blob = await res.blob();
+        blob.name = name;
+        const mesh = await inventory.loadFileForWorld(blob);
+
+        mesh.position.set(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4);
+        mesh.scale.set(w*2 * 0.1, w*2 * 0.1, w*2 * 0.1);
+        object.add(mesh);
+      }
 
       const textMesh = makeTextMesh(name, './Bangers-Regular.ttf', 0.003, 'left', 'bottom');
       textMesh.position.set(-h + 0.004 + dx*w, h/2 - arrowW - w - dy*w, 0.001);
@@ -5378,10 +5173,11 @@ colorsMesh.visible = false;
 scene.add(colorsMesh);
 
 const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
-  const mesh = meshComposer.commit();
+  meshComposer.run();
+  /* const mesh = meshComposer.commit();
   scene.add(mesh);
-  detailsMesh.visible = false;
-}, function onadd(anchorSpec) {
+  detailsMesh.visible = false; */
+}, async function onadd(anchorSpec) {
   const mesh = meshComposer.commit();
   mesh.material = new THREE.MeshBasicMaterial({
     map: mesh.material.uniforms.map.value,
@@ -5393,13 +5189,14 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
     EXT_aabb: mesh.geometry.boundingBox.min.toArray()
       .concat(mesh.geometry.boundingBox.max.toArray()),
   };
-  new GLTFExporter().parse(mesh, async arrayBuffer => {
-    arrayBuffer.name = 'object.glb';
-    await inventory.uploadFile(arrayBuffer);
-  }, {
-    binary: true,
-    includeCustomExtensions: true,
+  const arrayBuffer = await new Promise((accept, reject) => {
+    new GLTFExporter().parse(mesh, accept, {
+      binary: true,
+      includeCustomExtensions: true,
+    });
   });
+  arrayBuffer.name = 'object.glb';
+  await inventory.uploadFile(arrayBuffer);
 
   detailsMesh.visible = false;
 }, function onremove(anchorSpec) {
@@ -5412,13 +5209,15 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
 detailsMesh.visible = false;
 scene.add(detailsMesh);
 
-const menuMeshes = [thingsMesh, shapesMesh, inventoryMesh, colorsMesh];
+const menuMeshes = [buildsMesh, thingsMesh, shapesMesh, inventoryMesh, colorsMesh];
 const uiMeshes = menuMeshes.concat([detailsMesh]);
 
 let selectedWeapon = 'hand';
 let lastSelectedWeapon = selectedWeapon;
 let currentWeaponDown = false;
 let lastWeaponDown = false;
+let currentWeaponValue = 0;
+let lastWeaponValue = 0;
 let currentWeaponGrabs = [false, false];
 let lastWeaponGrabs = [false, false];
 const weapons = Array.from(document.querySelectorAll('.weapon'));
@@ -5588,138 +5387,6 @@ const _makeExplosionMesh = () => {
 let explosionMeshes = [];
 
 let pxMeshes = [];
-
-const _makeAtlas = (size, images) => {
-  let atlasCanvas;
-  const rects = [];
-  {
-    for (let scale = 1; scale > 0; scale *= 0.5) {
-      atlasCanvas = document.createElement('canvas');
-      atlasCanvas.width = size;
-      atlasCanvas.height = size;
-      const ctx = atlasCanvas.getContext('2d');
-      ctx.fillStyle = '#FFF';
-      ctx.fillRect(0, 0, atlasCanvas.width, atlasCanvas.height);
-      const atlas = atlaspack(atlasCanvas);
-      rects.length = 0;
-
-      let fit = true;
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
-
-        if (image) {
-          const w = image.width * scale;
-          const h = image.height * scale;
-          const resizeCanvas = document.createElement('canvas');
-          resizeCanvas.width = w;
-          resizeCanvas.height = h;
-          const resizeCtx = resizeCanvas.getContext('2d');
-          resizeCtx.drawImage(image, 0, 0, w, h);
-
-          const rect = atlas.pack(resizeCanvas);
-          if (rect) {
-            rects.push(rect.rect);
-          } else {
-            fit = false;
-            break;
-          }
-        } else {
-          rects.push(null);
-        }
-      }
-      if (fit) {
-        break;
-      }
-    }
-  }
-  return {
-    atlasCanvas,
-    rects,
-  };
-};
-const _mergeMeshes = (meshes, geometries, textures) => {
-  const size = 512;
-  const images = textures.map(texture => texture && texture.image);
-  const {atlasCanvas, rects} = _makeAtlas(size, images);
-
-  const geometry = new THREE.BufferGeometry();
-  {
-    let numPositions = 0;
-    let numIndices = 0;
-    for (const geometry of geometries) {
-      numPositions += geometry.attributes.position.array.length;
-      numIndices += geometry.index.array.length;
-    }
-
-    const positions = new Float32Array(numPositions);
-    const uvs = new Float32Array(numPositions / 3 * 2);
-    const colors = new Float32Array(numPositions);
-    const indices = new Uint32Array(numIndices);
-    let positionIndex = 0;
-    let uvIndex = 0;
-    let colorIndex = 0;
-    let indicesIndex = 0;
-    for (let i = 0; i < meshes.length; i++) {
-      const mesh = meshes[i];
-      const geometry = geometries[i];
-      const rect = rects[i];
-
-      geometry.applyMatrix4(mesh.matrixWorld);
-
-      const indexOffset = positionIndex / 3;
-      if (geometry.index) {
-        for (let i = 0; i < geometry.index.array.length; i++) {
-          indices[indicesIndex++] = geometry.index.array[i] + indexOffset;
-        }
-      } else {
-        for (let i = 0; i < geometry.attributes.position.array.length / 3; i++) {
-          indices[indicesIndex++] = i + indexOffset;
-        }
-      }
-
-      positions.set(geometry.attributes.position.array, positionIndex);
-      positionIndex += geometry.attributes.position.array.length;
-      if (geometry.attributes.uv) {
-        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-          if (rect) {
-            uvs[uvIndex + i] = rect.x / size + geometry.attributes.uv.array[i] * rect.w / size;
-            uvs[uvIndex + i + 1] = rect.y / size + geometry.attributes.uv.array[i + 1] * rect.h / size;
-          } else {
-            uvs[uvIndex + i] = geometry.attributes.uv.array[i];
-            uvs[uvIndex + i + 1] = geometry.attributes.uv.array[i + 1];
-          }
-        }
-      } else {
-        uvs.fill(0, uvIndex, geometry.attributes.position.array.length / 3 * 2);
-      }
-      uvIndex += geometry.attributes.position.array.length / 3 * 2;
-      if (geometry.attributes.color) {
-        colors.set(geometry.attributes.color.array, colorIndex);
-      } else {
-        colors.fill(1, colorIndex, geometry.attributes.position.array.length);
-      }
-      colorIndex += geometry.attributes.position.array.length;
-    }
-    if (textures.some(texture => !!texture)) {
-      colors.fill(1);
-    }
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-  }
-  geometry.boundingBox = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position);
-
-  const texture = new THREE.Texture(atlasCanvas);
-  texture.flipY = false;
-  texture.needsUpdate = true;
-  const material = meshComposer.material.clone();
-  material.uniforms.map.value = texture;
-  material.uniforms.map.needsUpdate = true;
-
-  const mesh = new THREE.Mesh(geometry, material);
-  return mesh;
-};
 
 const _applyGravity = timeDiff => {
   localVector.set(0, -9.8, 0);
@@ -5985,8 +5652,9 @@ function animate(timestamp, frame) {
           currentTeleport = (axes[1] < -0.75 || axes[3] < -0.75);
           currentSelector = (axes[1] > 0.75 || axes[3] > 0.75);
 
-          currentWeaponDown = buttons[0] > 0.5;
-          currentWeaponGrabs[0] = buttons[1] > 0.5;
+          currentWeaponDown = buttonsSrc[0].pressed;
+          currentWeaponValue = buttons[0];
+          currentWeaponGrabs[0] = buttonsSrc[1].pressed;
 
           if (
             buttons[2] >= 0.5 && lastButtons[index][2] < 0.5 &&
@@ -6140,8 +5808,16 @@ function animate(timestamp, frame) {
           .decompose(localVector2, localQuaternion2, localVector3);
         leftGamepadPosition = localVector2.toArray();
         leftGamepadQuaternion = localQuaternion2.toArray();
-        leftGamepadPointer = 0;
-        leftGamepadGrip = 0;
+
+        const {gamepad} = inputSources[0];
+        if (gamepad && gamepad.buttons.length >= 2) {
+          const {buttons} = gamepad;
+          leftGamepadPointer = buttons[0].value;
+          leftGamepadGrip = buttons[1].value;
+        } else {
+          leftGamepadPointer = 0;
+          leftGamepadGrip = 0;
+        }
       }
       if (inputSources[1] && (pose = frame.getPose(inputSources[1].targetRaySpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
@@ -6149,8 +5825,16 @@ function animate(timestamp, frame) {
           .decompose(localVector2, localQuaternion2, localVector3);
         rightGamepadPosition = localVector2.toArray();
         rightGamepadQuaternion = localQuaternion2.toArray();
-        rightGamepadPointer = 0;
-        rightGamepadGrip = 0;
+
+        const {gamepad} = inputSources[0];
+        if (gamepad && gamepad.buttons.length >= 2) {
+          const {buttons} = gamepad;
+          rightGamepadPointer = buttons[0].value;
+          rightGamepadGrip = buttons[1].value;
+        } else {
+          rightGamepadPointer = 0;
+          rightGamepadGrip = 0;
+        }
       }
 
       /* const _scaleMatrixPQ = (srcMatrixArray, p, q) => {
@@ -6234,7 +5918,7 @@ function animate(timestamp, frame) {
       rightGamepadPointer = xrState.gamepads[0].buttons[0].value;
       rightGamepadGrip = xrState.gamepads[0].buttons[1].value;
 
-      /* if (xrState.hands[1].visible[0]) {
+      if (xrState.hands[1].visible[0]) {
         for (let i = 0; i < 25; i++) {
           rig.inputs.leftGamepad.fingers[i].quaternion.fromArray(xrState.hands[1][i].orientation);
         }
@@ -6300,7 +5984,7 @@ function animate(timestamp, frame) {
     rayMesh.visible = false;
 
     const _raycastWeapon = () => {
-      if (['things', 'shapes', 'inventory', 'colors', 'select'].includes(selectedWeapon)) {
+      if (['build', 'things', 'shapes', 'inventory', 'colors', 'select'].includes(selectedWeapon)) {
         const [{position, quaternion}] = _getRigTransforms();
         raycaster.ray.origin.copy(position);
         raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
@@ -6454,15 +6138,18 @@ function animate(timestamp, frame) {
     _selectWeapon();
 
     const _handleBuild = () => {
-      [wallMesh, platformMesh, stairsMesh].forEach(buildMesh => {
-        buildMesh.parent && buildMesh.parent.remove(buildMesh);
-      });
+      for (const k in buildMeshes) {
+        for (const buildMesh of buildMeshes[k]) {
+          buildMesh.parent && buildMesh.parent.remove(buildMesh);
+        }
+      }
       if (selectedWeapon === 'build') {
         const buildMesh = (() => {
+          const buildMatIndex = ['wood', 'stone', 'metal'].indexOf(buildMat);
           switch (buildMode) {
-            case 'wall': return wallMesh;
-            case 'floor': return platformMesh;
-            case 'stair': return stairsMesh;
+            case 'wall': return buildMeshes.walls[buildMatIndex];
+            case 'floor': return buildMeshes.platforms[buildMatIndex];
+            case 'stair': return buildMeshes.ramps[buildMatIndex];
             default: return null;
           }
         })();
@@ -6538,30 +6225,6 @@ function animate(timestamp, frame) {
             meshComposer.trigger(i);
             return;
           }
-        }
-        // build
-        if (selectedWeapon === 'build') {
-          const buildMesh = (() => {
-            switch (buildMode) {
-              case 'wall': return wallMesh;
-              case 'floor': return platformMesh;
-              case 'stair': return stairsMesh;
-              default: return null;
-            }
-          })();
-          const hasBuildMesh = (() => {
-            for (const index in currentChunkMesh.vegetationMeshes) {
-              const subparcelBuildMeshesSpec = currentChunkMesh.vegetationMeshes[index];
-              if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
-                return true;
-              }
-            }
-            return false;
-          })();
-          if (!hasBuildMesh) {
-            geometryWorker.requestAddObject(tracker, geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
-          }
-          return;
         }
         // else
         const _applyLightfieldDelta = async (position, delta) => {
@@ -6698,6 +6361,34 @@ function animate(timestamp, frame) {
             _light();
             break;
           }
+          case 'build': {
+            if (anchorSpecs[0]) {
+              _triggerAnchor(buildsMesh);
+            } else {
+              const buildMesh = (() => {
+                const buildMatIndex = ['wood', 'stone', 'metal'].indexOf(buildMat);
+                switch (buildMode) {
+                  case 'wall': return buildMeshes.walls[buildMatIndex];
+                  case 'floor': return buildMeshes.platforms[buildMatIndex];
+                  case 'stair': return buildMeshes.ramps[buildMatIndex];
+                  default: return null;
+                }
+              })();
+              const hasBuildMesh = (() => {
+                for (const index in currentChunkMesh.vegetationMeshes) {
+                  const subparcelBuildMeshesSpec = currentChunkMesh.vegetationMeshes[index];
+                  if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
+                    return true;
+                  }
+                }
+                return false;
+              })();
+              if (!hasBuildMesh) {
+                geometryWorker.requestAddObject(tracker, geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
+              }
+            }
+            break;
+          }
           case 'things': {
             _triggerAnchor(thingsMesh);
             break;
@@ -6725,26 +6416,33 @@ function animate(timestamp, frame) {
           }
         }
       }
-      if (currentWeaponDown) {
+      if (currentWeaponValue >= 0.01) {
         switch (selectedWeapon) {
           case 'pencil': {
+            let value;
             if (currentSession) {
-              localVector2.copy(leftGamepad.position);
-              localQuaternion2.copy(leftGamepad.quaternion);
+              localVector2.copy(rightGamepad.position);
+              localQuaternion2.copy(rightGamepad.quaternion);
+              value = currentWeaponValue * 0.1;
             } else {
               localVector2.copy(pencilMesh.position)
                 .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
+              value = 0.1;
             }
             localMatrix2.compose(localVector2, localQuaternion2, localVector3.set(1, 1, 1))
               .premultiply(localMatrix3.getInverse(meshDrawer.mesh.parent.matrixWorld))
               .decompose(localVector2, localQuaternion2, localVector3);
 
-            if (!lastWeaponDown) {
-              meshDrawer.start(localVector2, localQuaternion2, 0.1);
+            if (lastWeaponValue < 0.01) {
+              meshDrawer.start(localVector2, localQuaternion2, value);
             }
-            meshDrawer.update(localVector2, localQuaternion2, 0.1);
+            meshDrawer.update(localVector2, localQuaternion2, value);
             break;
           }
+        }
+      }
+      if (currentWeaponDown) {
+        switch (selectedWeapon) {
           case 'paintbrush': {
             console.log('click paintbrush 1');
 
@@ -6784,23 +6482,30 @@ function animate(timestamp, frame) {
           }
         }
       }
-      if (lastWeaponDown && !currentWeaponDown) {
+      if (lastWeaponValue >= 0.01 && currentWeaponValue < 0.01) {
         switch (selectedWeapon) {
           case 'pencil': {
+            let value;
             if (currentSession) {
-              localVector2.copy(leftGamepad.position);
-              localQuaternion2.copy(leftGamepad.quaternion);
+              localVector2.copy(rightGamepad.position);
+              localQuaternion2.copy(rightGamepad.quaternion);
+              value = currentWeaponValue * 0.1;
             } else {
               localVector2.copy(pencilMesh.position)
                 .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
+              value = 0.1;
             }
             localMatrix2.compose(localVector2, localQuaternion2, localVector3.set(1, 1, 1))
               .premultiply(localMatrix3.getInverse(meshDrawer.mesh.parent.matrixWorld))
               .decompose(localVector2, localQuaternion2, localVector3);
 
-            meshDrawer.end(localVector2, localQuaternion2, 0.1);
+            meshDrawer.end(localVector2, localQuaternion2, value);
             break;
           }
+        }
+      }
+      if (lastWeaponDown && !currentWeaponDown) {
+        switch (selectedWeapon) {
           case 'paintbrush': {
             console.log('click paintbrush 2');
             break;
@@ -6879,6 +6584,7 @@ function animate(timestamp, frame) {
 
       const selectedMenuMesh = (() => {
         switch (selectedWeapon) {
+          case 'build': return buildsMesh;
           case 'things': return thingsMesh;
           case 'shapes': return shapesMesh;
           case 'inventory': return inventoryMesh;
@@ -6889,7 +6595,8 @@ function animate(timestamp, frame) {
 
       if (currentSession) {
         if (selectedMenuMesh) {
-          selectedMenuMesh.position.copy(leftGamepad.position);
+          selectedMenuMesh.position.copy(leftGamepad.position)
+            .add(localVector.set(0.1, 0.1, 0).applyQuaternion(leftGamepad.quaternion));
           selectedMenuMesh.quaternion.copy(leftGamepad.quaternion);
           selectedMenuMesh.scale.setScalar(1, 1, 1);
           selectedMenuMesh.visible = true;
@@ -6968,7 +6675,7 @@ function animate(timestamp, frame) {
     };
     _handleTeleport();
   };
-  if (currentChunkMesh && wallMesh) {
+  if (currentChunkMesh) {
     _updateTools();
   }
 
@@ -7055,6 +6762,7 @@ function animate(timestamp, frame) {
   lastSelector = currentSelector;
   lastSelectedWeapon = selectedWeapon;
   lastWeaponDown = currentWeaponDown;
+  lastWeaponValue = currentWeaponValue;
   lastMenuExpanded = menuExpanded;
   for (let i = 0; i < 2; i++) {
     lastWeaponGrabs[i] = currentWeaponGrabs[i];
@@ -7476,6 +7184,7 @@ window.addEventListener('mousedown', e => {
       // pe.grabtriggerdown('right');
       // pe.grabuse('right');
       currentWeaponDown = true;
+      currentWeaponValue = 1;
     } else if (e.button === 2) {
       currentTeleport = true;
     }
@@ -7486,6 +7195,7 @@ window.addEventListener('mouseup', e => {
     // pe.grabtriggerup('right');
   } */
   currentWeaponDown = false;
+  currentWeaponValue = 0;
   currentTeleport = false;
 });
 

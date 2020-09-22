@@ -1,8 +1,10 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
-import {bindUploadFileButton} from './util.js';
+import {GLTFExporter} from './GLTFExporter.js';
+import {bindUploadFileButton, mergeMeshes} from './util.js';
 import wbn from './wbn.js';
 import {storageHost} from './constants.js';
+// import app from './app-object.js';
 
 const inventory = new EventTarget();
 
@@ -12,6 +14,78 @@ const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host);
 const importMap = {
   three: _importMapUrl('./three.module.js'),
   app: _importMapUrl('./app-object.js'),
+};
+
+const _getExt = fileName => {
+  const match = fileName.match(/\.(.+)$/);
+  return match && match[1];
+}
+inventory.bakeHash = async (hash, fileName) => {
+  switch (_getExt(fileName)) {
+    case 'gltf':
+    case 'glb':
+    case 'vrm': {
+      const u = `${storageHost}/${hash}`;
+      // const u = URL.createObjectURL(file);
+      let o;
+      try {
+        o = await new Promise((accept, reject) => {
+          new GLTFLoader().load(u, accept, function onprogress() {}, reject);
+        });
+      } catch(err) {
+        console.warn(err);
+      } /* finally {
+        URL.revokeObjectURL(u);
+      } */
+      o = o.scene;
+
+      const specs = [];
+      o.traverse(o => {
+        if (o.isMesh) {
+          const mesh = o;
+          const {geometry} = o;
+          let texture;
+          if (o.material.map) {
+            texture = o.material.map;
+          } else if (o.material.emissiveMap) {
+            texture = o.material.emissiveMap;
+          } else {
+            texture = null;
+          }
+          specs.push({
+            mesh,
+            geometry,
+            texture,
+          });
+        }
+      });
+      specs.sort((a, b) => +a.mesh.material.transparent - +b.mesh.material.transparent);
+      const meshes = specs.map(spec => spec.mesh);
+      const geometries = specs.map(spec => spec.geometry);
+      const textures = specs.map(spec => spec.texture);
+
+      const mesh = mergeMeshes(meshes, geometries, textures);
+      mesh.userData.gltfExtensions = {
+        EXT_aabb: mesh.geometry.boundingBox.min.toArray()
+          .concat(mesh.geometry.boundingBox.max.toArray()),
+        EXT_hash: hash,
+      };
+      const arrayBuffer = await new Promise((accept, reject) => {
+        new GLTFExporter().parse(mesh, accept, {
+          binary: true,
+          includeCustomExtensions: true,
+        });
+      });
+      const bakedFile = new Blob([arrayBuffer], {
+        type: 'model/gltf+binary',
+      });
+      bakedFile.name = fileName;
+      return bakedFile;
+    }
+    default: {
+      return file;
+    }
+  }
 };
 
 // const thingFiles = {};
@@ -26,14 +100,21 @@ const _loadGltf = async file => {
     URL.revokeObjectURL(u);
   }
   o = o.scene;
+  let mesh = null;
   o.traverse(o => {
-    if (o.isMesh && o.userData.gltfExtensions && o.userData.gltfExtensions.EXT_aabb) {
-      o.geometry.boundingBox = new THREE.Box3();
-      o.geometry.boundingBox.min.fromArray(o.userData.gltfExtensions.EXT_aabb, 0);
-      o.geometry.boundingBox.max.fromArray(o.userData.gltfExtensions.EXT_aabb, 3);
+    if (o.isMesh && mesh === null) {
+      o.material.depthWrite = true;
+      if (o.userData.gltfExtensions && o.userData.gltfExtensions.EXT_aabb) {
+        o.geometry.boundingBox = new THREE.Box3();
+        o.geometry.boundingBox.min.fromArray(o.userData.gltfExtensions.EXT_aabb, 0);
+        o.geometry.boundingBox.max.fromArray(o.userData.gltfExtensions.EXT_aabb, 3);
+      } else {
+        o.geometry.computeBoundingBox();
+      }
+      mesh = o;
     }
   });
-  return o;
+  return mesh;
 
   // XXX bake at upload time
   /* const u = URL.createObjectURL(file);
@@ -138,13 +219,15 @@ const _loadImg = async file => {
 
   const texture = new THREE.Texture(img);
   texture.needsUpdate = true;
-  /* const material = new THREE.MeshBasicMaterial({
+  const material = new THREE.MeshBasicMaterial({
     map: texture,
     side: THREE.DoubleSide,
-  }); */
-  const material = meshComposer.material.clone();
+    vertexColors: true,
+    transparent: true,
+  });
+  /* const material = meshComposer.material.clone();
   material.uniforms.map.value = texture;
-  material.uniforms.map.needsUpdate = true;
+  material.uniforms.map.needsUpdate = true; */
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
@@ -251,10 +334,20 @@ inventory.uploadFile = async file => {
     body: file,
   });
   const {hash} = await res.json();
-  const {name} = file;
+  const bakedFile = await inventory.bakeHash(hash, file.name);
+
+  /* const mesh = await inventory.loadFileForWorld(bakedFile);
+  app.scene.add(mesh); */
+
+  const res2 = await fetch(storageHost, {
+    method: 'POST',
+    body: bakedFile,
+  });
+  const {hash: bakedHash} = await res2.json();
+  const {name} = bakedFile;
   files.push({
     name,
-    hash,
+    hash: bakedHash,
   });
   inventory.dispatchEvent(new MessageEvent('filesupdate', {
     data: files,
@@ -265,11 +358,10 @@ bindUploadFileButton(document.getElementById('load-package-input'), inventory.up
 let files = [];
 inventory.getFiles = () => files;
 inventory.loadFileForWorld = async file => {
-  const match = file.name.match(/\.(.+)$/);
-  const ext = match[1];
-  switch (ext) {
+  switch (_getExt(file.name)) {
     case 'gltf':
-    case 'glb': {
+    case 'glb':
+    case 'vrm': {
       return await _loadGltf(file);
     }
     case 'png':
