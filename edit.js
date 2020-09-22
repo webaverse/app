@@ -5959,7 +5959,7 @@ function animate(timestamp, frame) {
       rightGamepadPosition = localVector2.copy(localVector).add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion)).toArray();
       // .toArray(xrState.gamepads[0].position);
       rightGamepadQuaternion = localQuaternion.toArray();
-      rightGamepadPointer = 0;
+      rightGamepadPointer = (1 + Math.sin(Date.now()/1000*Math.PI*2))/2;
       rightGamepadGrip = 0;
     }
 
