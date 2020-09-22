@@ -6942,13 +6942,13 @@ const keys = {
   left: false,
   right: false,
   shift: false,
-  ctrl: false
 };
 const _resetKeys = () => {
   for (const k in keys) {
     keys[k] = false;
   }
 };
+const _inputFocused = () => document.activeElement && document.activeElement.tagName === 'INPUT';
 let jumpState = false;
 let menuExpanded = false;
 let lastMenuExpanded = false;
@@ -7038,29 +7038,35 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 86: { // V
-      e.preventDefault();
-      e.stopPropagation();
-      if (!keys.ctrl && document.pointerLockElement) {
+      if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
         tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
       }
       break;
     }
     case 66: { // B
-      e.preventDefault();
-      e.stopPropagation();
-      tools.find(tool => tool.getAttribute('tool') === 'thirdperson').click();
+      if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        tools.find(tool => tool.getAttribute('tool') === 'thirdperson').click();
+      }
       break;
     }
     case 78: { // N
-      e.preventDefault();
-      e.stopPropagation();
-      tools.find(tool => tool.getAttribute('tool') === 'isometric').click();
+      if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        tools.find(tool => tool.getAttribute('tool') === 'isometric').click();
+      }
       break;
     }
     case 77: { // M
-      e.preventDefault();
-      e.stopPropagation();
-      tools.find(tool => tool.getAttribute('tool') === 'birdseye').click();
+      if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        tools.find(tool => tool.getAttribute('tool') === 'birdseye').click();
+      }
       break;
     }
     case 17: { // ctrl
