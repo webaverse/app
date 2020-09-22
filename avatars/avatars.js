@@ -1109,36 +1109,36 @@ class Avatar {
       rightUpperLeg: this.legsManager.rightLeg.upperLeg,
       rightLowerLeg: this.legsManager.rightLeg.lowerLeg,
       rightFoot: this.legsManager.rightLeg.foot,
-      leftThumb2: this.shoulderTransforms.leftArm.thumb2,
-      leftThumb1: this.shoulderTransforms.leftArm.thumb1,
-      leftThumb0: this.shoulderTransforms.leftArm.thumb0,
-      leftIndexFinger3: this.shoulderTransforms.leftArm.indexFinger3,
-      leftIndexFinger2: this.shoulderTransforms.leftArm.indexFinger2,
-      leftIndexFinger1: this.shoulderTransforms.leftArm.indexFinger1,
-      leftMiddleFinger3: this.shoulderTransforms.leftArm.middleFinger3,
-      leftMiddleFinger2: this.shoulderTransforms.leftArm.middleFinger2,
-      leftMiddleFinger1: this.shoulderTransforms.leftArm.middleFinger1,
-      leftRingFinger3: this.shoulderTransforms.leftArm.ringFinger3,
-      leftRingFinger2: this.shoulderTransforms.leftArm.ringFinger2,
-      leftRingFinger1: this.shoulderTransforms.leftArm.ringFinger1,
-      leftLittleFinger3: this.shoulderTransforms.leftArm.littleFinger3,
-      leftLittleFinger2: this.shoulderTransforms.leftArm.littleFinger2,
-      leftLittleFinger1: this.shoulderTransforms.leftArm.littleFinger1,
-      rightThumb2: this.shoulderTransforms.rightArm.thumb2,
-      rightThumb1: this.shoulderTransforms.rightArm.thumb1,
-      rightThumb0: this.shoulderTransforms.rightArm.thumb0,
-      rightIndexFinger3: this.shoulderTransforms.rightArm.indexFinger3,
-      rightIndexFinger2: this.shoulderTransforms.rightArm.indexFinger2,
-      rightIndexFinger1: this.shoulderTransforms.rightArm.indexFinger1,
-      rightMiddleFinger3: this.shoulderTransforms.rightArm.middleFinger3,
-      rightMiddleFinger2: this.shoulderTransforms.rightArm.middleFinger2,
-      rightMiddleFinger1: this.shoulderTransforms.rightArm.middleFinger1,
-      rightRingFinger3: this.shoulderTransforms.rightArm.ringFinger3,
-      rightRingFinger2: this.shoulderTransforms.rightArm.ringFinger2,
-      rightRingFinger1: this.shoulderTransforms.rightArm.ringFinger1,
-      rightLittleFinger3: this.shoulderTransforms.rightArm.littleFinger3,
-      rightLittleFinger2: this.shoulderTransforms.rightArm.littleFinger2,
-      rightLittleFinger1: this.shoulderTransforms.rightArm.littleFinger1,
+      leftThumb2: this.shoulderTransforms.rightArm.thumb2,
+      leftThumb1: this.shoulderTransforms.rightArm.thumb1,
+      leftThumb0: this.shoulderTransforms.rightArm.thumb0,
+      leftIndexFinger3: this.shoulderTransforms.rightArm.indexFinger3,
+      leftIndexFinger2: this.shoulderTransforms.rightArm.indexFinger2,
+      leftIndexFinger1: this.shoulderTransforms.rightArm.indexFinger1,
+      leftMiddleFinger3: this.shoulderTransforms.rightArm.middleFinger3,
+      leftMiddleFinger2: this.shoulderTransforms.rightArm.middleFinger2,
+      leftMiddleFinger1: this.shoulderTransforms.rightArm.middleFinger1,
+      leftRingFinger3: this.shoulderTransforms.rightArm.ringFinger3,
+      leftRingFinger2: this.shoulderTransforms.rightArm.ringFinger2,
+      leftRingFinger1: this.shoulderTransforms.rightArm.ringFinger1,
+      leftLittleFinger3: this.shoulderTransforms.rightArm.littleFinger3,
+      leftLittleFinger2: this.shoulderTransforms.rightArm.littleFinger2,
+      leftLittleFinger1: this.shoulderTransforms.rightArm.littleFinger1,
+      rightThumb2: this.shoulderTransforms.leftArm.thumb2,
+      rightThumb1: this.shoulderTransforms.leftArm.thumb1,
+      rightThumb0: this.shoulderTransforms.leftArm.thumb0,
+      rightIndexFinger3: this.shoulderTransforms.leftArm.indexFinger3,
+      rightIndexFinger2: this.shoulderTransforms.leftArm.indexFinger2,
+      rightIndexFinger1: this.shoulderTransforms.leftArm.indexFinger1,
+      rightMiddleFinger3: this.shoulderTransforms.leftArm.middleFinger3,
+      rightMiddleFinger2: this.shoulderTransforms.leftArm.middleFinger2,
+      rightMiddleFinger1: this.shoulderTransforms.leftArm.middleFinger1,
+      rightRingFinger3: this.shoulderTransforms.leftArm.ringFinger3,
+      rightRingFinger2: this.shoulderTransforms.leftArm.ringFinger2,
+      rightRingFinger1: this.shoulderTransforms.leftArm.ringFinger1,
+      rightLittleFinger3: this.shoulderTransforms.leftArm.littleFinger3,
+      rightLittleFinger2: this.shoulderTransforms.leftArm.littleFinger2,
+      rightLittleFinger1: this.shoulderTransforms.leftArm.littleFinger1,
 		};
 		this.modelBoneOutputs = {
 	    Hips: this.outputs.hips,
@@ -1305,17 +1305,17 @@ class Avatar {
       };
       const _processFingerBones = left => {
         const fingerBones = left ? this.fingerBoneMap.left : this.fingerBoneMap.right;
-        const gamepadInput = left ? this.inputs.rightGamepad : this.inputs.leftGamepad;
+        const gamepadInput = left ? this.inputs.leftGamepad : this.inputs.rightGamepad;
         for (const fingerBone of fingerBones) {
           // if (fingerBone) {
             const {finger} = fingerBone;
             let setter;
             if (finger === 'thumb') {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, left ? 1 : -1, 0), gamepadInput.grip * Math.PI*(i === 0 ? 0.125 : 0.25));
+              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, left ? -1 : 1, 0), gamepadInput.grip * Math.PI*(i === 0 ? 0.125 : 0.25));
             } else if (finger === 'index') {
               setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.pointer * Math.PI*0.5);
             } else {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? -1 : 1), gamepadInput.grip * Math.PI*0.5);
+              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.grip * Math.PI*0.5);
             }
             let index = 0;
             _traverse(fingerBone, subFingerBone => {
