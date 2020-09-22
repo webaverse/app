@@ -9,7 +9,7 @@ import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
 // import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import {tryLogin, loginManager} from './login.js';
-import {downloadFile, mergeMeshes} from './util.js';
+import {hex2Uint8Array, downloadFile, mergeMeshes} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
@@ -2577,28 +2577,51 @@ const geometryWorker = (() => {
       });
     });
   });
-  w.requestAddThingGeometry = (tracker, geometrySet, name, positions, uvs, indices, numPositions, numUvs, numIndices, texture) => new Promise((accept, reject) => {
+  w.requestAddThingGeometry = (tracker, geometrySet, name, positions, uvs, indices, texture) => new Promise((accept, reject) => {
+    let positionOffset, uvOffset, indexOffset, textureOffset;
     callStack.allocRequest(METHODS.addThingGeometry, true, m => {
       m.pushU32(tracker);
       m.pushU32(geometrySet);
 
-      const srcNameUint8Array = textEncoder.encode(name);
-      const srcNameUint8Array2 = new Uint8Array(MAX_NAME_LENGTH);
-      srcNameUint8Array2.set(srcNameUint8Array);
-      srcNameUint8Array2[srcNameUint8Array.byteLength] = 0;
-      m.pushU8Array(srcNameUint8Array2);
+      if (typeof name === 'string') {
+        const srcNameUint8Array = textEncoder.encode(name);
+        const srcNameUint8Array2 = new Uint8Array(MAX_NAME_LENGTH);
+        srcNameUint8Array2.set(srcNameUint8Array);
+        srcNameUint8Array2[srcNameUint8Array.byteLength] = 0;
+        m.pushU8Array(srcNameUint8Array2);
+      } else {
+        const srcNameUint8Array2 = new Uint8Array(MAX_NAME_LENGTH);
+        srcNameUint8Array2.set(name);
+        srcNameUint8Array2[name.byteLength] = 0;
+        m.pushU8Array(srcNameUint8Array2);
+      }
 
+      positionOffset = moduleInstance._malloc(positions.length * Float32Array.BYTES_PER_ELEMENT);
+      moduleInstance.HEAPF32.set(positions, positionOffset/Float32Array.BYTES_PER_ELEMENT);
       m.pushU32(positions);
-      m.pushU32(uvs);
-      m.pushU32(indices);
 
-      m.pushU32(numPositions);
-      m.pushU32(numUvs);
-      m.pushU32(numIndices);
+      uvOffset = moduleInstance._malloc(uvs.length * Float32Array.BYTES_PER_ELEMENT);
+      moduleInstance.HEAPF32.set(positions, uvOffset/Float32Array.BYTES_PER_ELEMENT);
+      m.pushU32(uvOffset);
 
-      m.pushU32(texture);
+      indexOffset = moduleInstance._malloc(indices.length * Uint32Array.BYTES_PER_ELEMENT);
+      moduleInstance.HEAPU32.set(indices, indexOffset/Uint32Array.BYTES_PER_ELEMENT);
+      m.pushU32(indexOffset);
+
+      m.pushU32(positions.length);
+      m.pushU32(uvs.length);
+      m.pushU32(indices.length);
+
+      textureOffset = moduleInstance._malloc(texture.length);
+      moduleInstance.HEAPU8.set(texture, textureOffset);
+      m.pushU32(textureOffset);
     }, m => {
       accept();
+      
+      w.free(positionOffset);
+      w.free(uvOffset);
+      w.free(indexOffset);
+      w.free(textureOffset);
     });
   });
   w.requestAddThing = (tracker, geometrySet, name, position, quaternion, scale) => new Promise((accept, reject) => {
@@ -2606,11 +2629,18 @@ const geometryWorker = (() => {
       m.pushU32(tracker);
       m.pushU32(geometrySet);
 
-      const srcNameUint8Array = textEncoder.encode(name);
-      const srcNameUint8Array2 = new Uint8Array(MAX_NAME_LENGTH);
-      srcNameUint8Array2.set(srcNameUint8Array);
-      srcNameUint8Array2[srcNameUint8Array.byteLength] = 0;
-      m.pushU8Array(srcNameUint8Array2);
+      if (typeof name === 'string') {
+        const srcNameUint8Array = textEncoder.encode(name);
+        const srcNameUint8Array2 = new Uint8Array(MAX_NAME_LENGTH);
+        srcNameUint8Array2.set(srcNameUint8Array);
+        srcNameUint8Array2[srcNameUint8Array.byteLength] = 0;
+        m.pushU8Array(srcNameUint8Array2);
+      } else {
+        const srcNameUint8Array2 = new Uint8Array(MAX_NAME_LENGTH);
+        srcNameUint8Array2.set(name);
+        srcNameUint8Array2[name.byteLength] = 0;
+        m.pushU8Array(srcNameUint8Array2);
+      }
 
       m.pushF32Array(position.toArray(new Float32Array(3)));
       m.pushF32Array(quaternion.toArray(new Float32Array(4)));
@@ -5184,12 +5214,7 @@ const colorsMesh = makeColorsMesh(cubeMesh, colors, newSelectedColors => {
 colorsMesh.visible = false;
 scene.add(colorsMesh);
 
-const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
-  meshComposer.run();
-  /* const mesh = meshComposer.commit();
-  scene.add(mesh);
-  detailsMesh.visible = false; */
-}, async function onadd(anchorSpec) {
+const _bakeAndUploadComposerMesh = async () => {
   const mesh = meshComposer.commit();
   mesh.material = new THREE.MeshBasicMaterial({
     map: mesh.material.uniforms.map.value,
@@ -5208,7 +5233,25 @@ const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
     });
   });
   arrayBuffer.name = 'object.glb';
-  await inventory.uploadFile(arrayBuffer);
+  const file = await inventory.uploadFile(arrayBuffer);
+  file.mesh = mesh;
+  return file;
+};
+const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
+  meshComposer.run();
+}, async function onbake(anchorSpec) {
+  const file = await _bakeAndUploadComposerMesh();
+  const {mesh, hash} = file;
+  const hashUint8Array = hex2Uint8Array(hash);
+
+  const canvas = mesh.material.map.image;
+  const texture = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+  await geometryWorker.requestAddThingGeometry(tracker, geometrySet, hashUint8Array, mesh.geometry.attributes.position.array, mesh.geometry.attributes.uv.array, mesh.geometry.index.array, mesh.geometry.attributes.position.length, mesh.geometry.attributes.uv.array.length, mesh.geometry.index.array.length, texture);
+  await geometryWorker.requestAddThing(tracker, geometrySet, hashUint8Array, mesh.position, mesh.quaternion, mesh.scale);
+
+  detailsMesh.visible = false;
+}, async function onadd(anchorSpec) {
+  await _bakeAndUploadComposerMesh();
 
   detailsMesh.visible = false;
 }, function onremove(anchorSpec) {
