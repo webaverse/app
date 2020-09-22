@@ -5918,7 +5918,7 @@ function animate(timestamp, frame) {
       rightGamepadPointer = xrState.gamepads[0].buttons[0].value;
       rightGamepadGrip = xrState.gamepads[0].buttons[1].value;
 
-      /* if (xrState.hands[1].visible[0]) {
+      if (xrState.hands[1].visible[0]) {
         for (let i = 0; i < 25; i++) {
           rig.inputs.leftGamepad.fingers[i].quaternion.fromArray(xrState.hands[1][i].orientation);
         }
