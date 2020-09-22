@@ -726,7 +726,7 @@ class Avatar {
       const fingerRootBone = fingerTipBone.length > 0 ? _findFurthestParentBone(fingerTipBone[0], bone => r.test(bone.name)) : null;
       return fingerRootBone;
     };
-    const fingerBones = {
+    /* const fingerBones = {
       left: {
         thumb: _findFingerBone(/thumb/gi, true),
         index: _findFingerBone(/index/gi, true),
@@ -742,7 +742,144 @@ class Avatar {
         little: _findFingerBone(/little/gi, false) || _findFingerBone(/pinky/gi, false),
       },
     };
-    this.fingerBones = fingerBones;
+    this.fingerBones = fingerBones; */
+    const fingerBoneMap = {
+      left: [
+        {
+          name: 'leftThumb0',
+          finger: 'thumb',
+          children: [{
+            name: 'leftThumb1',
+            finger: 'thumb',
+            children: [{
+              name: 'leftThumb2',
+              finger: 'thumb',
+              children: [],
+            }],
+          }],
+        },
+        {
+          name: 'leftIndexFinger1',
+          finger: 'index',
+          children: [{
+            name: 'leftIndexFinger2',
+            finger: 'index',
+            children: [{
+              name: 'leftIndexFinger3',
+              finger: 'index',
+              children: [],
+            }],
+          }],
+        },
+        {
+          name: 'leftMiddleFinger1',
+          finger: 'middle',
+          children: [{
+            name: 'leftMiddleFinger2',
+            finger: 'middle',
+            children: [{
+              name: 'leftMiddleFinger3',
+              finger: 'middle',
+              children: [],
+            }],
+          }],
+        },
+        {
+          name: 'leftRingFinger1',
+          finger: 'ring',
+          children: [{
+            name: 'leftRingFinger2',
+            finger: 'ring',
+            children: [{
+              name: 'leftRingFinger3',
+              finger: 'ring',
+              children: [],
+            }],
+          }],
+        },
+        {
+          name: 'leftLittleFinger1',
+          finger: 'little',
+          children: [{
+            name: 'leftLittleFinger2',
+            finger: 'little',
+            children: [{
+              name: 'leftLittleFinger3',
+              finger: 'little',
+              children: [],
+            }],
+          }],
+        },
+      ],
+      right: [
+        {
+          name: 'rightThumb0',
+          finger: 'thumb',
+          children: [{
+            name: 'rightThumb1',
+            finger: 'thumb',
+            children: [{
+              name: 'rightThumb2',
+              finger: 'thumb',
+              children: [],
+            }],
+          }],
+        },
+        {
+          name: 'rightIndexFinger1',
+          finger: 'index',
+          children: [{
+            name: 'rightIndexFinger2',
+            finger: 'index',
+            children: [{
+              name: 'rightIndexFinger3',
+              finger: 'index',
+              children: [],
+            }],
+          }],
+        },
+        {
+          name: 'rightMiddleFinger1',
+          finger: 'middle',
+          children: [{
+            name: 'rightMiddleFinger2',
+            finger: 'middle',
+            children: [{
+              name: 'rightMiddleFinger3',
+              finger: 'middle',
+              children: [],
+            }],
+          }],
+        },
+        {
+          name: 'rightRingFinger1',
+          finger: 'ring',
+          children: [{
+            name: 'rightRingFinger2',
+            finger: 'ring',
+            children: [{
+              name: 'rightRingFinger3',
+              finger: 'ring',
+              children: [],
+            }],
+          }],
+        },
+        {
+          name: 'rightLittleFinger1',
+          finger: 'little',
+          children: [{
+            name: 'rightLittleFinger2',
+            finger: 'little',
+            children: [{
+              name: 'rightLittleFinger3',
+              finger: 'little',
+              children: [],
+            }],
+          }],
+        },
+      ],
+    };
+    this.fingerBoneMap = fingerBoneMap;
 
     const preRotations = {};
     const _ensurePrerotation = k => {
@@ -1160,15 +1297,15 @@ class Avatar {
     
     if (this.options.fingers) {
       const _processFingerBones = left => {
-        const fingerBones = left ? this.fingerBones.left : this.fingerBones.right;
+        const fingerBones = left ? this.fingerBoneMap.left : this.fingerBoneMap.right;
         const gamepadInput = left ? this.inputs.rightGamepad : this.inputs.leftGamepad;
-        for (const k in fingerBones) {
-          const fingerBone = fingerBones[k];
-          if (fingerBone) {
+        for (const fingerBone of fingerBones) {
+          // if (fingerBone) {
+            const {finger} = fingerBone;
             let setter;
-            if (k === 'thumb') {
+            if (finger === 'thumb') {
               setter = (q, i) => q.setFromAxisAngle(localVector.set(0, left ? 1 : -1, 0), gamepadInput.grip * Math.PI*(i === 0 ? 0.125 : 0.25));
-            } else if (k === 'index') {
+            } else if (finger === 'index') {
               setter = (q, i) => {
                 if (left) {
                   console.log('pointer', k, i, gamepadInput.pointer);
@@ -1182,7 +1319,7 @@ class Avatar {
             fingerBone.traverse(subFingerBone => {
               setter(subFingerBone.quaternion, index++);
             });
-          }
+          // }
         }
       };
       _processFingerBones(true);
