@@ -51,4 +51,8 @@ export const colors = [
 ];
 
 export const storageHost = 'https://storage.exokit.org';
+export const worldsHost = 'https://worlds.exokit.org';
+export const presenceHost = 'worlds.webaverse.com';
+
 // export const storageHost = 'https://127.0.0.1:443/storage';
+// export const worldsHost = 'https://127.0.0.1:443/worlds';

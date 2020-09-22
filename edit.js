@@ -31,6 +31,8 @@ import {
   BUILD_SNAP,
 
   colors,
+  
+  presenceHost,
 } from './constants.js';
 import {makePromise, getNextMeshId, WaitQueue} from './util.js';
 import storage from './storage.js';
@@ -3338,11 +3340,21 @@ const geometryWorker = (() => {
   meshDrawer = new MeshDrawer();
   chunkMeshContainer.add(meshDrawer.mesh);
 
-  planet.connect('lol', {
-    online: false,
-  }).then(() => {
-    new Bot();
-  });
+  const q = parseQuery(location.search);
+  if (q.w) {
+    const url = q.w + '.' + presenceHost;
+    await planet.connect({
+      online: true,
+      roomName: 'lol',
+      url,
+    });
+  } else {
+    await planet.connect({
+      online: false,
+      roomName: 'lol',
+    });
+  }
+  new Bot();
 
   loadPromise.accept();
 })();
@@ -4539,7 +4551,7 @@ for (const handMesh of handMeshes) {
   scene.add(handMesh);
 }
 
-/* function parseQuery(queryString) {
+function parseQuery(queryString) {
   var query = {};
   var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
   for (var i = 0; i < pairs.length; i++) {
@@ -4547,7 +4559,7 @@ for (const handMesh of handMeshes) {
     query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
   }
   return query;
-} */
+}
 
 const lineMeshes = [
   makeLineMesh(),
@@ -6947,6 +6959,7 @@ const _resetKeys = () => {
     keys[k] = false;
   }
 };
+const _inputFocused = () => document.activeElement && document.activeElement.tagName === 'INPUT';
 let jumpState = false;
 let menuExpanded = false;
 let lastMenuExpanded = false;
@@ -7036,27 +7049,35 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 86: { // V
-      e.preventDefault();
-      e.stopPropagation();
-      tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+      if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+      }
       break;
     }
     case 66: { // B
-      e.preventDefault();
-      e.stopPropagation();
-      tools.find(tool => tool.getAttribute('tool') === 'thirdperson').click();
+      if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        tools.find(tool => tool.getAttribute('tool') === 'thirdperson').click();
+      }
       break;
     }
     case 78: { // N
-      e.preventDefault();
-      e.stopPropagation();
-      tools.find(tool => tool.getAttribute('tool') === 'isometric').click();
+      if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        tools.find(tool => tool.getAttribute('tool') === 'isometric').click();
+      }
       break;
     }
     case 77: { // M
-      e.preventDefault();
-      e.stopPropagation();
-      tools.find(tool => tool.getAttribute('tool') === 'birdseye').click();
+      if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        tools.find(tool => tool.getAttribute('tool') === 'birdseye').click();
+      }
       break;
     }
     case 16: { // shift
@@ -7092,8 +7113,10 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 67: { // C
-      document.querySelector('.weapon[weapon="build"]').click();
-      buildMode = 'stair';
+      if (!keys.ctrl && document.pointerLockElement) {
+        document.querySelector('.weapon[weapon="build"]').click();
+        buildMode = 'stair';
+      }
       break;
     }
     /* case 80: { // P
