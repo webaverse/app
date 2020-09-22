@@ -5582,7 +5582,10 @@ function animate(timestamp, frame) {
   if (skybox) {
     skybox.material.uniforms.iTime.value = ((Date.now() - startTime) % 3000) / 3000;
   }
-  skybox2 && skybox2.update();
+  if (skybox2) {
+    skybox2.position.copy(rigManager.localRig.inputs.hmd.position);
+    skybox2.update();
+  }
   crosshairMesh && crosshairMesh.update();
   // uiMesh && uiMesh.update();
   
