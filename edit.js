@@ -7182,12 +7182,6 @@ window.addEventListener('keyup', e => {
       }
       break;
     }
-    case 17: { // ctrl
-      if (document.pointerLockElement) {
-        keys.ctrl = false;
-      }
-      break;
-    }
   }
 });
 window.addEventListener('mousedown', e => {
