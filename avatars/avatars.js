@@ -884,136 +884,46 @@ class Avatar {
     const fingerBoneMap = {
       left: [
         {
-          bone: this.poseManager.vrTransforms.leftHand.leftThumb0,
+          bones: [this.poseManager.vrTransforms.leftHand.leftThumb0, this.poseManager.vrTransforms.leftHand.leftThumb1, this.poseManager.vrTransforms.leftHand.leftThumb2],
           finger: 'thumb',
-          children: [{
-            bone: this.poseManager.vrTransforms.leftHand.leftThumb1,
-            // finger: 'thumb',
-            children: [{
-              bone: this.poseManager.vrTransforms.leftHand.leftThumb2,
-              // finger: 'thumb',
-              children: [],
-            }],
-          }],
         },
         {
-          bone: this.poseManager.vrTransforms.leftHand.leftIndexFinger1,
+          bones: [this.poseManager.vrTransforms.leftHand.leftIndexFinger1, this.poseManager.vrTransforms.leftHand.leftIndexFinger2, this.poseManager.vrTransforms.leftHand.leftIndexFinger3],
           finger: 'index',
-          children: [{
-            bone: this.poseManager.vrTransforms.leftHand.leftIndexFinger2,
-            // inger: 'index',
-            children: [{
-              bone: this.poseManager.vrTransforms.leftHand.leftIndexFinger3,
-              // finger: 'index',
-              children: [],
-            }],
-          }],
         },
         {
-          bone: this.poseManager.vrTransforms.leftHand.leftMiddleFinger1,
+          bones: [this.poseManager.vrTransforms.leftHand.leftMiddleFinger1, this.poseManager.vrTransforms.leftHand.leftMiddleFinger2, this.poseManager.vrTransforms.leftHand.leftMiddleFinger3],
           finger: 'middle',
-          children: [{
-            bone: this.poseManager.vrTransforms.leftHand.leftMiddleFinger2,
-            // finger: 'middle',
-            children: [{
-              bone: this.poseManager.vrTransforms.leftHand.leftMiddleFinger3,
-              // finger: 'middle',
-              children: [],
-            }],
-          }],
         },
         {
-          bone: this.poseManager.vrTransforms.leftHand.leftRingFinger1,
+          bones: [this.poseManager.vrTransforms.leftHand.leftRingFinger1, this.poseManager.vrTransforms.leftHand.leftRingFinger2, this.poseManager.vrTransforms.leftHand.leftRingFinger3],
           finger: 'ring',
-          children: [{
-            bone: this.poseManager.vrTransforms.leftHand.leftRingFinger2,
-            // finger: 'ring',
-            children: [{
-              bone: this.poseManager.vrTransforms.leftHand.leftRingFinger3,
-              // finger: 'ring',
-              children: [],
-            }],
-          }],
         },
         {
-          bone: this.poseManager.vrTransforms.leftHand.leftLittleFinger1,
+          bones: [this.poseManager.vrTransforms.leftHand.leftLittleFinger1, this.poseManager.vrTransforms.leftHand.leftLittleFinger2, this.poseManager.vrTransforms.leftHand.leftLittleFinger3],
           finger: 'little',
-          children: [{
-            bone: this.poseManager.vrTransforms.leftHand.leftLittleFinger2,
-            // finger: 'little',
-            children: [{
-              bone: this.poseManager.vrTransforms.leftHand.leftLittleFinger3,
-              // finger: 'little',
-              children: [],
-            }],
-          }],
         },
       ],
       right: [
         {
-          bone: this.poseManager.vrTransforms.rightHand.rightThumb0,
+          bones: [this.poseManager.vrTransforms.rightHand.rightThumb0, this.poseManager.vrTransforms.rightHand.rightThumb1, this.poseManager.vrTransforms.rightHand.rightThumb2],
           finger: 'thumb',
-          children: [{
-            bone: this.poseManager.vrTransforms.rightHand.rightThumb1,
-            // finger: 'thumb',
-            children: [{
-              bone: this.poseManager.vrTransforms.rightHand.rightThumb2,
-              // finger: 'thumb',
-              children: [],
-            }],
-          }],
         },
         {
-          bone: this.poseManager.vrTransforms.rightHand.rightIndexFinger1,
+          bones: [this.poseManager.vrTransforms.rightHand.rightIndexFinger1, this.poseManager.vrTransforms.rightHand.rightIndexFinger2, this.poseManager.vrTransforms.rightHand.rightIndexFinger3],
           finger: 'index',
-          children: [{
-            bone: this.poseManager.vrTransforms.rightHand.rightIndexFinger2,
-            // finger: 'index',
-            children: [{
-              bone: this.poseManager.vrTransforms.rightHand.rightIndexFinger3,
-              // finger: 'index',
-              children: [],
-            }],
-          }],
         },
         {
-          bone: this.poseManager.vrTransforms.rightHand.rightMiddleFinger1,
+          bones: [this.poseManager.vrTransforms.rightHand.rightMiddleFinger1, this.poseManager.vrTransforms.rightHand.rightMiddleFinger2, this.poseManager.vrTransforms.rightHand.rightMiddleFinger3],
           finger: 'middle',
-          children: [{
-            bone: this.poseManager.vrTransforms.rightHand.rightMiddleFinger2,
-            // finger: 'middle',
-            children: [{
-              bone: this.poseManager.vrTransforms.rightHand.rightMiddleFinger3,
-              // finger: 'middle',
-              children: [],
-            }],
-          }],
         },
         {
-          bone: this.poseManager.vrTransforms.rightHand.rightRingFinger1,
+          bones: [this.poseManager.vrTransforms.rightHand.rightRingFinger1, this.poseManager.vrTransforms.rightHand.rightRingFinger2, this.poseManager.vrTransforms.rightHand.rightRingFinger3],
           finger: 'ring',
-          children: [{
-            bone: this.poseManager.vrTransforms.rightHand.rightRingFinger2,
-            // finger: 'ring',
-            children: [{
-              bone: this.poseManager.vrTransforms.rightHand.rightRingFinger3,
-              // finger: 'ring',
-              children: [],
-            }],
-          }],
         },
         {
-          bone: this.poseManager.vrTransforms.rightHand.rightLittleFinger1,
+          bones: [this.poseManager.vrTransforms.rightHand.rightLittleFinger1, this.poseManager.vrTransforms.rightHand.rightLittleFinger2, this.poseManager.vrTransforms.rightHand.rightLittleFinger3],
           finger: 'little',
-          children: [{
-            bone: this.poseManager.vrTransforms.rightHand.rightLittleFinger2,
-            // finger: 'little',
-            children: [{
-              bone: this.poseManager.vrTransforms.rightHand.rightLittleFinger3,
-              // finger: 'little',
-              children: [],
-            }],
-          }],
         },
       ],
     };
@@ -1308,7 +1218,7 @@ class Avatar {
         const gamepadInput = left ? this.inputs.leftGamepad : this.inputs.rightGamepad;
         for (const fingerBone of fingerBones) {
           // if (fingerBone) {
-            const {finger} = fingerBone;
+            const {bones, finger} = fingerBone;
             let setter;
             if (finger === 'thumb') {
               setter = (q, i) => q.setFromAxisAngle(localVector.set(0, left ? -1 : 1, 0), gamepadInput.grip * Math.PI*(i === 0 ? 0.125 : 0.25));
@@ -1317,10 +1227,9 @@ class Avatar {
             } else {
               setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.grip * Math.PI*0.5);
             }
-            let index = 0;
-            _traverse(fingerBone, subFingerBone => {
-              setter(subFingerBone.bone.quaternion, index++);
-            });
+            for (let i = 0; i < bones.length; i++) {
+              setter(bones[i].quaternion, i);
+            }
           // }
         }
       };
