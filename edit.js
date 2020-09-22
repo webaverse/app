@@ -5138,11 +5138,22 @@ const _makeInventoryItemsMesh = () => {
   const w = wrapInnerW/3;
   
   const object = new THREE.Object3D();
-  object.update = files => {
+  object.update = async files => {
     for (let i = 0; i < files.length; i++) {
       const {name, hash} = files[i];
       const dx = i%3;
       const dy = (i-dx)/3;
+
+      {
+        const res = await fetch(`${storageHost}/${hash}`);
+        const blob = await res.blob();
+        blob.name = name;
+        const mesh = await inventory.loadFileForWorld(blob);
+
+        mesh.position.set(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4);
+        mesh.scale.set(w*2 * 0.1, w*2 * 0.1, w*2 * 0.1);
+        object.add(mesh);
+      }
 
       const textMesh = makeTextMesh(name, './Bangers-Regular.ttf', 0.003, 'left', 'bottom');
       textMesh.position.set(-h + 0.004 + dx*w, h/2 - arrowW - w - dy*w, 0.001);
