@@ -5959,8 +5959,8 @@ function animate(timestamp, frame) {
       rightGamepadPosition = localVector2.copy(localVector).add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion)).toArray();
       // .toArray(xrState.gamepads[0].position);
       rightGamepadQuaternion = localQuaternion.toArray();
-      rightGamepadPointer = (1 + Math.sin(Date.now()/1000*Math.PI*2))/2;
-      rightGamepadGrip = 1 - (1 + Math.sin(Date.now()/1000*Math.PI*2))/2;
+      rightGamepadPointer = 0;
+      rightGamepadGrip = 0;
     }
 
     /* HANDS.forEach((handedness, i) => {
