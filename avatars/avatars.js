@@ -1335,7 +1335,7 @@ class Avatar {
       const modelBone = this.modelBones[k];
       const modelBoneOutput = this.modelBoneOutputs[k];
 
-      if (k === 'Hips') {
+      if (/hips|thumb|finger/i.test(k)) {
         modelBone.position.copy(modelBoneOutput.position);
       }
       modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion)
