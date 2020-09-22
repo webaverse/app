@@ -69,6 +69,7 @@ class RigManager {
       fingers: true,
       hair: true,
       visemes: true,
+      debug: true
       // decapitate: selectedTool === 'firstperson',
     });
     this.scene.add(peerRig.model);
