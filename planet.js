@@ -754,7 +754,7 @@ const _connectRoom = async (roomName, worldURL) => {
 
 planet.update = () => {
   // update remote player rigs
-  rigManager.update();
+  // rigManager.update();
 };
 
 const button = document.getElementById('connectButton');
