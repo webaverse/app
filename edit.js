@@ -7080,12 +7080,6 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
-    case 17: { // ctrl
-      if (document.pointerLockElement) {
-        keys.ctrl = true;
-      }
-      break;
-    }
     case 16: { // shift
       if (document.pointerLockElement) {
         keys.shift = true;
