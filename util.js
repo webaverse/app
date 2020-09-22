@@ -1,6 +1,9 @@
 import * as THREE from './three.module.js';
 import atlaspack from './atlaspack.js';
 
+export function hex2Uint8Array(hex) {
+  return new Uint8Array(hex.match(/[\da-f]{2}/gi).map(h => parseInt(h, 16)))
+}
 export function downloadFile(file, filename) {
   const blobURL = URL.createObjectURL(file);
   const tempLink = document.createElement('a');
