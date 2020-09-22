@@ -1157,6 +1157,37 @@ class Avatar {
         });
       });
     }
+    
+    if (this.options.fingers) {
+      const _processFingerBones = left => {
+        const fingerBones = left ? this.fingerBones.left : this.fingerBones.right;
+        const gamepadInput = left ? this.inputs.rightGamepad : this.inputs.leftGamepad;
+        for (const k in fingerBones) {
+          const fingerBone = fingerBones[k];
+          if (fingerBone) {
+            let setter;
+            if (k === 'thumb') {
+              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, left ? 1 : -1, 0), gamepadInput.grip * Math.PI*(i === 0 ? 0.125 : 0.25));
+            } else if (k === 'index') {
+              setter = (q, i) => {
+                if (left) {
+                  console.log('pointer', k, i, gamepadInput.pointer);
+                }
+                return q.setFromAxisAngle(localVector.set(0, 0, left ? -1 : 1), gamepadInput.pointer * Math.PI*0.5);
+              }
+            } else {
+              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? -1 : 1), gamepadInput.grip * Math.PI*0.5);
+            }
+            let index = 0;
+            fingerBone.traverse(subFingerBone => {
+              setter(subFingerBone.quaternion, index++);
+            });
+          }
+        }
+      };
+      _processFingerBones(true);
+      _processFingerBones(false);
+    }
 
     this.shoulderTransforms.Update();
     this.legsManager.Update();
@@ -1183,32 +1214,6 @@ class Avatar {
     const now = Date.now();
     const timeDiff = Math.min(now - this.lastTimestamp, 1000);
     this.lastTimestamp = now;
-
-    if (this.options.fingers) {
-      const _processFingerBones = left => {
-        const fingerBones = left ? this.fingerBones.left : this.fingerBones.right;
-        const gamepadInput = left ? this.inputs.rightGamepad : this.inputs.leftGamepad;
-        for (const k in fingerBones) {
-          const fingerBone = fingerBones[k];
-          if (fingerBone) {
-            let setter;
-            if (k === 'thumb') {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, left ? 1 : -1, 0), gamepadInput.grip * Math.PI*(i === 0 ? 0.125 : 0.25));
-            } else if (k === 'index') {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? -1 : 1), gamepadInput.pointer * Math.PI*0.5);
-            } else {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? -1 : 1), gamepadInput.grip * Math.PI*0.5);
-            }
-            let index = 0;
-            fingerBone.traverse(subFingerBone => {
-              setter(subFingerBone.quaternion, index++);
-            });
-          }
-        }
-      };
-      _processFingerBones(true);
-      _processFingerBones(false);
-    }
 
     if (this.springBoneManager) {
       this.springBoneManager.lateUpdate(timeDiff / 1000);
