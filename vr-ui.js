@@ -790,6 +790,7 @@ p {
   </div>
   <div class=buttons>
     <a class=button id=run-button>Run</a>
+    <a class=button id=bake-button>Bake</a>
     <a class=button id=add-button>Add to inventory</a>
     <a class=button id=remove-button>Remove</a>
   </div>
@@ -1498,7 +1499,7 @@ const makeToolsMesh = (tools, selectTool) => {
 
   return mesh;
 };
-const makeDetailsMesh = (cubeMesh, onrun, onadd, onremove, onclose) => {
+const makeDetailsMesh = (cubeMesh, onrun, onbake, onadd, onremove, onclose) => {
   const worldWidth = 1;
   const worldHeight = 0.5;
   const canvasWidth = uiSize;
@@ -1592,6 +1593,10 @@ const makeDetailsMesh = (cubeMesh, onrun, onadd, onremove, onclose) => {
       switch (anchor.id) {
         case 'run-button': {
           onrun(anchorSpec);
+          break;
+        }
+        case 'bake-button': {
+          onbake(anchorSpec);
           break;
         }
         case 'add-button': {
