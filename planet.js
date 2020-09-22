@@ -757,7 +757,7 @@ planet.update = () => {
   rigManager.update();
 };
 
-planet.connect = async (rn, url, {online = true} = {}) => {
+planet.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   roomName = rn;
   if (online) {
     await _connectRoom(roomName, url);

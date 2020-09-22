@@ -3338,8 +3338,9 @@ const geometryWorker = (() => {
   meshDrawer = new MeshDrawer();
   chunkMeshContainer.add(meshDrawer.mesh);
 
-  planet.connect('lol', null, {
+  planet.connect({
     online: false,
+    roomName: 'lol',
   }).then(() => {
     new Bot();
   });
