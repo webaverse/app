@@ -336,9 +336,6 @@ inventory.uploadFile = async file => {
   const {hash} = await res.json();
   const bakedFile = await inventory.bakeHash(hash, file.name);
 
-  /* const mesh = await inventory.loadFileForWorld(bakedFile);
-  app.scene.add(mesh); */
-
   const res2 = await fetch(storageHost, {
     method: 'POST',
     body: bakedFile,
