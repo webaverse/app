@@ -558,7 +558,7 @@ let channelConnectionOpen = null;
 const peerConnections = [];
 
 const _connectRoom = async (roomName, worldURL) => {
-  channelConnection = new XRChannelConnection(`wss://${worldURL}:4443`, {roomName});
+  channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
 
   channelConnection.addEventListener('open', async e => {
     channelConnectionOpen = true;
