@@ -757,14 +757,19 @@ planet.update = () => {
   rigManager.update();
 };
 
+const button = document.getElementById('connectButton');
 planet.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   roomName = rn;
   if (online) {
     await _connectRoom(roomName, url);
-  } else {
-    await _loadStorage(roomName);
-    await _loadLiveState(roomName);
+    
+    button.innerHTML = `
+      <i class="fal fa-wifi-slash"></i>
+      <div class=label>Disconnect</div>
+    `;
   }
+  await _loadStorage(roomName);
+  await _loadLiveState(roomName);
 };
 /* planet.reload = () => {
   const b = _serializeState(state);
@@ -772,42 +777,24 @@ planet.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   return s;
 }; */
 
-window.addEventListener('load', () => {
-  const button = document.getElementById('connectButton');
-  let worldMeta = {
-    url: '',
-    id: ''
-  };
-  if (button) {
-    document.getElementById('connectButton').addEventListener('click', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (channelConnectionOpen) {
-        await fetch(`${worldsHost}/${worldMeta.id}`, {
-          method: 'DELETE'
-        })
-        button.innerHTML = `
-          <i class="fal fa-wifi"></i>
-          <div class=label>Connect</div>
-        `;
-        channelConnection.close();
-        channelConnectionOpen = false;
-      } else {
-          const response = await fetch(`${worldsHost}/create`, {
-            method: 'POST'
-          })
-          if (response.ok) {
-            const json = await response.json();
-            console.log(json)
-            worldMeta.url = json.url;
-            worldMeta.id = json.id;
-            planet.connect('lol', json.url);
-            button.innerHTML = `
-              <i class="fal fa-wifi-slash"></i>
-              <div class=label>Disconnect</div>
-            `;
-          }
-        }
+document.getElementById('connectButton').addEventListener('click', async (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (channelConnectionOpen) { // disconnect case
+    const res = await fetch(`${worldsHost}/${worldMeta.id}`, {
+      method: 'DELETE'
+    });
+    await res.blob();
+    
+    location.search = '';
+  } else { // connect case
+    const response = await fetch(`${worldsHost}/create`, {
+      method: 'POST'
     })
+    if (response.ok) {
+      const json = await response.json();
+      // console.log(json);
+      location.search = `?w=${json.id}`;
+    }
   }
-})
+});

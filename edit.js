@@ -31,6 +31,8 @@ import {
   BUILD_SNAP,
 
   colors,
+  
+  presenceHost,
 } from './constants.js';
 import {makePromise, getNextMeshId, WaitQueue} from './util.js';
 import storage from './storage.js';
@@ -3338,12 +3340,21 @@ const geometryWorker = (() => {
   meshDrawer = new MeshDrawer();
   chunkMeshContainer.add(meshDrawer.mesh);
 
-  planet.connect({
-    online: false,
-    roomName: 'lol',
-  }).then(() => {
-    new Bot();
-  });
+  const q = parseQuery(location.search);
+  if (q.w) {
+    const url = q.w + '.' + presenceHost;
+    await planet.connect({
+      online: true,
+      roomName: 'lol',
+      url,
+    });
+  } else {
+    await planet.connect({
+      online: false,
+      roomName: 'lol',
+    });
+  }
+  new Bot();
 
   loadPromise.accept();
 })();
@@ -4540,7 +4551,7 @@ for (const handMesh of handMeshes) {
   scene.add(handMesh);
 }
 
-/* function parseQuery(queryString) {
+function parseQuery(queryString) {
   var query = {};
   var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
   for (var i = 0; i < pairs.length; i++) {
@@ -4548,7 +4559,7 @@ for (const handMesh of handMeshes) {
     query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
   }
   return query;
-} */
+}
 
 const lineMeshes = [
   makeLineMesh(),
