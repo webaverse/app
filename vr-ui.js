@@ -3,7 +3,7 @@ import * as THREE from './three.module.js';
 import {TextMesh} from './textmesh-standalone.esm.js';
 import easing from './easing.js';
 import * as icons from './icons.js';
-
+import { Inventory as InventoryHTML } from './preact-ui/components/Inventory.js';
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
@@ -1808,7 +1808,9 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
   };
   mesh.update = () => {
     // console.log('update', scrollFactor, scrollbarHeight);
-    const htmlString = _makeInventoryString();
+    // const htmlString = _makeInventoryString();
+    const htmlString = InventoryHTML;
+
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
         /* imageData.data.set(result.data);

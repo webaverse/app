@@ -46,6 +46,9 @@ import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
 import app from './app-object.js';
 import inventory from './inventory.js';
+import Inventory from './preact-ui/index.js';
+
+console.log(Inventory)
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);

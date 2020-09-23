@@ -1,0 +1,45 @@
+* {
+    box-sizing: border-box;
+}
+
+h1 {
+    margin: 10px 0;
+    font-size: 100px;
+}
+
+p {
+    margin: 10px 0;
+    font-size: 60px;
+}
+
+.icon.selected {
+    background-color: #42a5f5;
+}
+
+.border.top-left {
+    top: 0;
+    left: 0;
+    border-bottom: 0;
+    border-right: 0;
+}
+
+.border.top-right {
+    top: 0;
+    right: 0;
+    border-bottom: 0;
+    border-left: 0;
+}
+
+.border.bottom-left {
+    bottom: 0;
+    left: 0;
+    border-top: 0;
+    border-right: 0;
+}
+
+.border.bottom-right {
+    bottom: 0;
+    right: 0;
+    border-top: 0;
+    border-left: 0;
+}
