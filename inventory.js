@@ -336,24 +336,25 @@ inventory.uploadFile = async file => {
   const {hash} = await res.json();
   const bakedFile = await inventory.bakeHash(hash, file.name);
 
-  /* const mesh = await inventory.loadFileForWorld(bakedFile);
-  app.scene.add(mesh); */
-
   const res2 = await fetch(storageHost, {
     method: 'POST',
     body: bakedFile,
   });
   const {hash: bakedHash} = await res2.json();
   const {name} = bakedFile;
-  files.push({
+  return {
     name,
     hash: bakedHash,
-  });
+  };
+};
+inventory.uploadFileToInventory = async file => {
+  const fileSpec = await inventory.uploadFile(file);
+  files.push(fileSpec);
   inventory.dispatchEvent(new MessageEvent('filesupdate', {
     data: files,
   }));
 };
-bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFile);
+bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFileToInventory);
 
 let files = [];
 inventory.getFiles = () => files;
@@ -387,7 +388,7 @@ document.addEventListener('drop', async e => {
 
   if (e.dataTransfer.files.length > 0) {
     const [file] = e.dataTransfer.files;
-    await inventory.uploadFile(file);
+    await inventory.uploadFileToInventory(file);
   }
 });
 

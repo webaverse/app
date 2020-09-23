@@ -10,12 +10,10 @@ import {
 } from './constants.js';
 import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
 import {loginManager} from './login.js';
-import {storageHost} from './constants.js';
+import {storageHost, worldsHost} from './constants.js';
 import {makePromise} from './util.js';
 // import * as THREE from './three.module.js';
 // import { makeTextMesh } from './vr-ui.js';
-
-const presenceHost = `wss://${document.location.hostname}:4443`;
 
 const peerAvatarHashes = new Map();
 
@@ -559,8 +557,8 @@ let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
 
-const _connectRoom = async roomName => {
-  channelConnection = new XRChannelConnection(`${presenceHost}/`, {roomName});
+const _connectRoom = async (roomName, worldURL) => {
+  channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
 
   channelConnection.addEventListener('open', async e => {
     channelConnectionOpen = true;
@@ -756,17 +754,22 @@ const _connectRoom = async roomName => {
 
 planet.update = () => {
   // update remote player rigs
-  rigManager.update();
+  // rigManager.update();
 };
 
-planet.connect = async (rn, {online = true} = {}) => {
+const button = document.getElementById('connectButton');
+planet.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   roomName = rn;
   if (online) {
-    await _connectRoom(roomName);
-  } else {
-    await _loadStorage(roomName);
-    await _loadLiveState(roomName);
+    await _connectRoom(roomName, url);
+    
+    button.innerHTML = `
+      <i class="fal fa-wifi-slash"></i>
+      <div class=label>Disconnect</div>
+    `;
   }
+  await _loadStorage(roomName);
+  await _loadLiveState(roomName);
 };
 /* planet.reload = () => {
   const b = _serializeState(state);
@@ -774,26 +777,24 @@ planet.connect = async (rn, {online = true} = {}) => {
   return s;
 }; */
 
-window.addEventListener('load', () => {
-  const button = document.getElementById('connectButton');
-  if (button) {
-    document.getElementById('connectButton').addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (channelConnectionOpen) {
-        button.innerHTML = `
-          <i class="fal fa-wifi"></i>
-          <div class=label>Connect</div>
-        `;
-        channelConnection.close();
-        channelConnectionOpen = false;
-      } else {
-        planet.connect('lol');
-        button.innerHTML = `
-          <i class="fal fa-wifi-slash"></i>
-          <div class=label>Disconnect</div>
-        `;
-      }
+document.getElementById('connectButton').addEventListener('click', async (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (channelConnectionOpen) { // disconnect case
+    const res = await fetch(`${worldsHost}/${worldMeta.id}`, {
+      method: 'DELETE'
+    });
+    await res.blob();
+    
+    location.search = '';
+  } else { // connect case
+    const response = await fetch(`${worldsHost}/create`, {
+      method: 'POST'
     })
+    if (response.ok) {
+      const json = await response.json();
+      // console.log(json);
+      location.search = `?w=${json.id}`;
+    }
   }
-})
+});
