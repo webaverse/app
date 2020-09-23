@@ -59,12 +59,11 @@ const _bakeContract = async (contractKeys, contractSource) => {
       args: [
         {value: uint8Array2hex(new TextEncoder().encode(contractSource)), type: 'String'},
       ],
+      wait: true,
     }),
   });
-  const response = await res.json();
+  const response2 = await res.json();
 
-  console.log('bake contract 1', response);
-  const response2 = await _waitForTx(response.transactionId);
   console.log('bake contract 2', response2);
   return response2;
 };
@@ -108,12 +107,11 @@ const _bakeUserAccount = async (userKeys, ftContractAddress, nftContractAddress)
               }
           }
         `,
+        wait: true,
       }),
     });
-    const response = await res.json();
+    const response2 = await res.json();
 
-    console.log('got response 7', response);
-    const response2 = await _waitForTx(response.transactionId);
     console.log('got response 8', response2);
   }
   // set up nft
@@ -150,12 +148,11 @@ const _bakeUserAccount = async (userKeys, ftContractAddress, nftContractAddress)
               }
           }
         `,
+        wait: true,
       }),
     });
-    const response = await res.json();
+    const response2 = await res.json();
 
-    console.log('got response 9', response);
-    const response2 = await _waitForTx(response.transactionId);
     console.log('got response 10', response2);
   }
   return userKeys;
@@ -247,12 +244,11 @@ const testFlow = async () => {
           {value: '0x' + userKeys.address, type: 'Address'},
           {value: '10.0', type: 'UFix64'},
         ],
+        wait: true,
       }),
     });
-    const response = await res.json();
+    const response2 = await res.json();
 
-    console.log('got response 11', response);
-    const response2 = await _waitForTx(response.transactionId);
     console.log('got response 12', response2);
   }
   // transfer ft
@@ -302,12 +298,11 @@ const testFlow = async () => {
           {value: '5.0', type: 'UFix64'},
           {value: '0x' + userKeys2.address, type: 'Address'},
         ],
+        wait: true,
       }),
     });
-    const response = await res.json();
+    const response2 = await res.json();
 
-    console.log('got response 13', response);
-    const response2 = await _waitForTx(response.transactionId);
     console.log('got response 14', response2);
   }
 
@@ -361,37 +356,29 @@ const testFlow = async () => {
           {value: 'lol', type: 'String'},
           {value: '0x' + userKeys.address, type: 'Address'},
         ],
+        wait: true,
       }),
     });
-    const response = await res.json();
+    const response2 = await res.json();
 
-    console.log('got response 15', response);
-    const response2 = await _waitForTx(response.transactionId);
     console.log('got response 16', response2);
     nft = parseInt(response2.transaction.events[0].payload.value.fields[0].value.value);
   }
   {
-    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      // flow.sdk.authorizations([flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)]),
-      // flow.sdk.payer(flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)),
-      // flow.sdk.proposer(flow.sdk.authorization(nftContractKeys.address, signingFunction, 0, seqNum)),
-      // flow.sdk.limit(100),
-      flow.sdk.script`
-        import ExampleNFT from 0x${nftContractKeys.address}
+    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+      method: 'POST',
+      body: JSON.stringify({
+        script: `\
+          import ExampleNFT from 0x${nftContractKeys.address}
 
-        pub fun main() : String {
-          return ExampleNFT.getHash(id: ${nft})
-        }
-      `,
-      /* flow.sdk.args([
-        flow.sdk.arg(nft, t.UInt64),
-      ]), */
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveParams,
-        flow.sdk.resolveArguments,
-      ]),
-    ]), { node: flowConstants.host });
+          pub fun main() : String {
+            return ExampleNFT.getHash(id: ${nft})
+          }
+        `,
+      }),
+    });
+    const response = await res.json();
+
     console.log('got response 15 A', response);
     console.log('got response 16 A', response.encodedData.value);
   }
@@ -443,12 +430,11 @@ const testFlow = async () => {
           {value: 'lol', type: 'String'},
           {value: '0x' + userKeys.address, type: 'Address'},
         ],
+        wait: true,
       }),
     });
-    const response = await res.json();
+    const response2 = await res.json();
 
-    console.log('got response 15 X', response);
-    const response2 = await _waitForTx(response.transactionId);
     console.log('got response 16 X', response2);
   }
   // transfer nft
@@ -493,12 +479,34 @@ const testFlow = async () => {
           {value: '0x' + userKeys2.address, type: 'Address'},
           {value: nft, type: 'UInt64'},
         ],
+        wait: true,
       }),
     });
-    const response = await res.json();
+    const response2 = await res.json();
 
-    console.log('got response 17', response);
-    const response2 = await _waitForTx(response.transactionId);
+    console.log('got response 18', response2);
+  }
+  // list nfts
+  {
+    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+      method: 'POST',
+      body: JSON.stringify({
+        script: `\
+          import NonFungibleToken from ${flowConstants.NonFungibleToken}
+
+          pub fun main() : [UInt64] {          
+            let acct = getAccount(${'0x' + userKeys2.address})
+            
+            let collectionRef = acct.getCapability(/public/NFTCollection)!.borrow<&{NonFungibleToken.CollectionPublic}>()
+              ?? panic("Could not borrow capability from public collection")
+
+            return collectionRef.getIDs()
+          }
+        `,
+      }),
+    });
+    const response2 = await res.json();
+
     console.log('got response 18', response2);
   }
 };
