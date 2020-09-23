@@ -1,6 +1,4 @@
 import { h } from 'preact';
-import { useState } from 'preact/hooks';
-import { uiSize, uiWorldSize, fullW, arrowW, wrapInnerW, margin, iconW, innerW, scrollbarW } from '../constants.js'
 import '../styles/inventory.css';
 
 const MakeIcons = (props) => {
