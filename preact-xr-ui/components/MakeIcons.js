@@ -1,7 +1,5 @@
-
-import { h, Component, render } from 'https://cdnjs.cloudflare.com/ajax/libs/preact/10.4.8/preact.module.min.js';
-import { setState, useEffect } from 'https://cdnjs.cloudflare.com/ajax/libs/preact/10.4.8/hooks.module.min.js';
-import { render as toStringRender } from 'https://cdn.jsdelivr.net/npm/preact-render-to-string@5.1.10/dist/index.min.js';
+import { h } from 'preact';
+import { useState } from 'preact/hooks';
 import { uiSize, uiWorldSize, fullW, arrowW, wrapInnerW, margin, iconW, innerW, scrollbarW } from '../constants.js'
 import '../styles/inventory.css';
 
