@@ -41,157 +41,119 @@ const _createAccount = async () => {
   return j;
 };
 const _bakeContract = async (contractKeys, contractSource) => {
-  const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-    flow.sdk.getAccount(contractKeys.address),
-  ]), [
-    flow.sdk.resolve([
-      flow.sdk.resolveParams,
-    ]),
-  ]), { node: flowConstants.host });
-  const seqNum = acctResponse.account.keys[0].sequenceNumber;
+  const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+    method: 'POST',
+    body: JSON.stringify({
+      address: contractKeys.address,
+      privateKey: contractKeys.privateKey,
+      publicKey: contractKeys.publicKey,
 
-  const signingFunction = flow.signingFunction.signingFunction(contractKeys.privateKey);
-
-  const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-    flow.sdk.authorizations([flow.sdk.authorization(contractKeys.address, signingFunction, 0)]),
-    flow.sdk.payer(flow.sdk.authorization(contractKeys.address, signingFunction, 0)),
-    flow.sdk.proposer(flow.sdk.authorization(contractKeys.address, signingFunction, 0, seqNum)),
-    flow.sdk.limit(100),
-    flow.sdk.transaction`
-      transaction(code: String) {
-        prepare(acct: AuthAccount) {
-          acct.setCode(code.decodeHex())
+      limit: 100,
+      transaction: `\
+        transaction(code: String) {
+          prepare(acct: AuthAccount) {
+            acct.setCode(code.decodeHex())
+          }
         }
-      }
-    `,
-  ]), [
-    flow.sdk.args([
-      flow.sdk.arg(uint8Array2hex(new TextEncoder().encode(contractSource)), flow.types.String),
-    ]),
-    flow.sdk.resolve([
-      flow.sdk.resolveArguments,
-      flow.sdk.resolveParams,
-      flow.sdk.resolveAccounts,
-      flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
-      flow.sdk.resolveSignatures,
-    ]),
-  ]), { node: flowConstants.host });
- 
+      `,
+      args: [
+        {value: uint8Array2hex(new TextEncoder().encode(contractSource)), type: 'String'},
+      ],
+    }),
+  });
+  const response = await res.json();
+
+  console.log('bake contract 1', response);
   const response2 = await _waitForTx(response.transactionId);
-  console.log('bake contract result', response2);
+  console.log('bake contract 2', response2);
   return response2;
 };
 const _bakeUserAccount = async (userKeys, ftContractAddress, nftContractAddress) => {
   // set up ft
   {
-    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.getAccount(userKeys.address),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveParams,
-      ]),
-    ]), { node: flowConstants.host });
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+      method: 'POST',
+      body: JSON.stringify({
+        address: userKeys.address,
+        privateKey: userKeys.privateKey,
+        publicKey: userKeys.publicKey,
 
-    const signingFunction = flow.signingFunction.signingFunction(userKeys.privateKey);
+        limit: 100,
+        transaction: `\
+          import FungibleToken from ${flowConstants.FungibleToken}
+          import ExampleToken from 0x${ftContractAddress}
 
-    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.authorizations([flow.sdk.authorization(userKeys.address, signingFunction, 0)]),
-      flow.sdk.payer(flow.sdk.authorization(userKeys.address, signingFunction, 0)),
-      flow.sdk.proposer(flow.sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
-      flow.sdk.limit(100),
-      flow.sdk.transaction`
-        import FungibleToken from ${flowConstants.FungibleToken}
-        import ExampleToken from 0x${ftContractAddress}
+          transaction {
 
-        transaction {
+              prepare(signer: AuthAccount) {
 
-            prepare(signer: AuthAccount) {
+                  if signer.borrow<&ExampleToken.Vault>(from: /storage/exampleTokenVault) == nil {
+                      // Create a new exampleToken Vault and put it in storage
+                      signer.save(<-ExampleToken.createEmptyVault(), to: /storage/exampleTokenVault)
 
-                if signer.borrow<&ExampleToken.Vault>(from: /storage/exampleTokenVault) == nil {
-                    // Create a new exampleToken Vault and put it in storage
-                    signer.save(<-ExampleToken.createEmptyVault(), to: /storage/exampleTokenVault)
+                      // Create a public capability to the Vault that only exposes
+                      // the deposit function through the Receiver interface
+                      signer.link<&ExampleToken.Vault{FungibleToken.Receiver}>(
+                          /public/exampleTokenReceiver,
+                          target: /storage/exampleTokenVault
+                      )
 
-                    // Create a public capability to the Vault that only exposes
-                    // the deposit function through the Receiver interface
-                    signer.link<&ExampleToken.Vault{FungibleToken.Receiver}>(
-                        /public/exampleTokenReceiver,
-                        target: /storage/exampleTokenVault
-                    )
+                      // Create a public capability to the Vault that only exposes
+                      // the balance field through the Balance interface
+                      signer.link<&ExampleToken.Vault{FungibleToken.Balance}>(
+                          /public/exampleTokenBalance,
+                          target: /storage/exampleTokenVault
+                      )
+                  }
+              }
+          }
+        `,
+      }),
+    });
+    const response = await res.json();
 
-                    // Create a public capability to the Vault that only exposes
-                    // the balance field through the Balance interface
-                    signer.link<&ExampleToken.Vault{FungibleToken.Balance}>(
-                        /public/exampleTokenBalance,
-                        target: /storage/exampleTokenVault
-                    )
-                }
-            }
-        }
-      `,
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveArguments,
-        flow.sdk.resolveParams,
-        flow.sdk.resolveAccounts,
-        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
-        flow.sdk.resolveSignatures,
-      ]),
-    ]), { node: flowConstants.host });
     console.log('got response 7', response);
     const response2 = await _waitForTx(response.transactionId);
     console.log('got response 8', response2);
   }
+  // set up nft
   {
-    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.getAccount(userKeys.address),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveParams,
-      ]),
-    ]), { node: flowConstants.host });
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+      method: 'POST',
+      body: JSON.stringify({
+        address: userKeys.address,
+        privateKey: userKeys.privateKey,
+        publicKey: userKeys.publicKey,
 
-    const signingFunction = flow.signingFunction.signingFunction(userKeys.privateKey);
+        limit: 100,
+        transaction: `\
+          import NonFungibleToken from ${flowConstants.NonFungibleToken}
+          import ExampleNFT from 0x${nftContractAddress}
+          // This transaction is what an account would run
+          // to set itself up to receive NFTs
 
-    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.authorizations([flow.sdk.authorization(userKeys.address, signingFunction, 0)]),
-      flow.sdk.payer(flow.sdk.authorization(userKeys.address, signingFunction, 0)),
-      flow.sdk.proposer(flow.sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
-      flow.sdk.limit(100),
-      flow.sdk.transaction`
-        import NonFungibleToken from ${flowConstants.NonFungibleToken}
-        import ExampleNFT from 0x${nftContractAddress}
-        // This transaction is what an account would run
-        // to set itself up to receive NFTs
+          transaction {
+              prepare(acct: AuthAccount) {
 
-        transaction {
-            prepare(acct: AuthAccount) {
+                  // If the account doesn't already have a collection
+                  if acct.borrow<&ExampleNFT.Collection>(from: /storage/NFTCollection) == nil {
 
-                // If the account doesn't already have a collection
-                if acct.borrow<&ExampleNFT.Collection>(from: /storage/NFTCollection) == nil {
+                      // Create a new empty collection
+                      let collection <- ExampleNFT.createEmptyCollection() as! @ExampleNFT.Collection
+                      
+                      // save it to the account
+                      acct.save(<-collection, to: /storage/NFTCollection)
 
-                    // Create a new empty collection
-                    let collection <- ExampleNFT.createEmptyCollection() as! @ExampleNFT.Collection
-                    
-                    // save it to the account
-                    acct.save(<-collection, to: /storage/NFTCollection)
+                      // create a public capability for the collection
+                      acct.link<&{NonFungibleToken.CollectionPublic}>(/public/NFTCollection, target: /storage/NFTCollection)
+                  }
+              }
+          }
+        `,
+      }),
+    });
+    const response = await res.json();
 
-                    // create a public capability for the collection
-                    acct.link<&{NonFungibleToken.CollectionPublic}>(/public/NFTCollection, target: /storage/NFTCollection)
-                }
-            }
-        }
-      `,
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveArguments,
-        flow.sdk.resolveParams,
-        flow.sdk.resolveAccounts,
-        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
-        flow.sdk.resolveSignatures,
-      ]),
-    ]), { node: flowConstants.host });
     console.log('got response 9', response);
     const response2 = await _waitForTx(response.transactionId);
     console.log('got response 10', response2);
@@ -244,87 +206,66 @@ const testFlow = async () => {
 
   // mint ft
   {
-    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.getAccount(ftContractKeys.address),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveParams,
-      ]),
-    ]), { node: flowConstants.host });
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+      method: 'POST',
+      body: JSON.stringify({
+        address: ftContractKeys.address,
+        privateKey: ftContractKeys.privateKey,
+        publicKey: ftContractKeys.publicKey,
 
-    const signingFunction = flow.signingFunction.signingFunction(ftContractKeys.privateKey);
+        limit: 100,
+        transaction: `\
+          import FungibleToken from ${flowConstants.FungibleToken}
+          import ExampleToken from 0x${ftContractKeys.address}
 
-    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.authorizations([flow.sdk.authorization(ftContractKeys.address, signingFunction, 0)]),
-      flow.sdk.payer(flow.sdk.authorization(ftContractKeys.address, signingFunction, 0)),
-      flow.sdk.proposer(flow.sdk.authorization(ftContractKeys.address, signingFunction, 0, seqNum)),
-      flow.sdk.limit(100),
-      flow.sdk.transaction`
-        import FungibleToken from ${flowConstants.FungibleToken}
-        import ExampleToken from 0x${ftContractKeys.address}
+          transaction(recipient: Address, amount: UFix64) {
+            let tokenAdmin: &ExampleToken.Administrator
+            let tokenReceiver: &{FungibleToken.Receiver}
 
-        transaction(recipient: Address, amount: UFix64) {
-          let tokenAdmin: &ExampleToken.Administrator
-          let tokenReceiver: &{FungibleToken.Receiver}
+            prepare(signer: AuthAccount) {
+                self.tokenAdmin = signer
+                .borrow<&ExampleToken.Administrator>(from: /storage/exampleTokenAdmin) 
+                ?? panic("Signer is not the token admin")
 
-          prepare(signer: AuthAccount) {
-              self.tokenAdmin = signer
-              .borrow<&ExampleToken.Administrator>(from: /storage/exampleTokenAdmin) 
-              ?? panic("Signer is not the token admin")
+                self.tokenReceiver = getAccount(recipient)
+                .getCapability(/public/exampleTokenReceiver)!
+                .borrow<&{FungibleToken.Receiver}>()
+                ?? panic("Unable to borrow receiver reference")
+            }
 
-              self.tokenReceiver = getAccount(recipient)
-              .getCapability(/public/exampleTokenReceiver)!
-              .borrow<&{FungibleToken.Receiver}>()
-              ?? panic("Unable to borrow receiver reference")
+            execute {
+                let minter <- self.tokenAdmin.createNewMinter(allowedAmount: amount)
+                let mintedVault <- minter.mintTokens(amount: amount)
+
+                self.tokenReceiver.deposit(from: <-mintedVault)
+
+                destroy minter
+            }
           }
+        `,
+        args: [
+          {value: '0x' + userKeys.address, type: 'Address'},
+          {value: '10.0', type: 'UFix64'},
+        ],
+      }),
+    });
+    const response = await res.json();
 
-          execute {
-              let minter <- self.tokenAdmin.createNewMinter(allowedAmount: amount)
-              let mintedVault <- minter.mintTokens(amount: amount)
-
-              self.tokenReceiver.deposit(from: <-mintedVault)
-
-              destroy minter
-          }
-      }
-      `,
-      flow.sdk.args([
-        flow.sdk.arg('0x' + userKeys.address, flow.types.Address),
-        flow.sdk.arg('10.0', flow.types.UFix64),
-      ]),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveArguments,
-        flow.sdk.resolveParams,
-        flow.sdk.resolveAccounts,
-        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
-        flow.sdk.resolveSignatures,
-      ]),
-    ]), { node: flowConstants.host });
     console.log('got response 11', response);
     const response2 = await _waitForTx(response.transactionId);
     console.log('got response 12', response2);
   }
   // transfer ft
   {
-    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.getAccount(userKeys.address),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveParams,
-      ]),
-    ]), { node: flowConstants.host });
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+      method: 'POST',
+      body: JSON.stringify({
+        address: ftContractKeys.address,
+        privateKey: ftContractKeys.privateKey,
+        publicKey: ftContractKeys.publicKey,
 
-    const signingFunction = flow.signingFunction.signingFunction(userKeys.privateKey);
-
-    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.authorizations([flow.sdk.authorization(userKeys.address, signingFunction, 0)]),
-      flow.sdk.payer(flow.sdk.authorization(userKeys.address, signingFunction, 0)),
-      flow.sdk.proposer(flow.sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
-      flow.sdk.limit(100),
-      flow.sdk.transaction`
+        limit: 100,
+        transaction: `\
           import FungibleToken from ${flowConstants.FungibleToken}
           import ExampleToken from 0x${ftContractKeys.address}
 
@@ -356,20 +297,15 @@ const testFlow = async () => {
                   receiverRef.deposit(from: <-self.sentVault)
               }
           }
-      `,
-      flow.sdk.args([
-        flow.sdk.arg('5.0', flow.types.UFix64),
-        flow.sdk.arg('0x' + userKeys2.address, flow.types.Address),
-      ]),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveArguments,
-        flow.sdk.resolveParams,
-        flow.sdk.resolveAccounts,
-        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
-        flow.sdk.resolveSignatures,
-      ]),
-    ]), { node: flowConstants.host });
+        `,
+        args: [
+          {value: '5.0', type: 'UFix64'},
+          {value: '0x' + userKeys2.address, type: 'Address'},
+        ],
+      }),
+    });
+    const response = await res.json();
+
     console.log('got response 13', response);
     const response2 = await _waitForTx(response.transactionId);
     console.log('got response 14', response2);
@@ -378,91 +314,63 @@ const testFlow = async () => {
   // mint nft
   let nft;
   {
-    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.getAccount(nftContractKeys.address),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveParams,
-      ]),
-    ]), { node: flowConstants.host });
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+      method: 'POST',
+      body: JSON.stringify({
+        address: nftContractKeys.address,
+        privateKey: nftContractKeys.privateKey,
+        publicKey: nftContractKeys.publicKey,
 
-    const signingFunction = flow.signingFunction.signingFunction(nftContractKeys.privateKey);
+        limit: 100,
+        transaction: `\
+          import NonFungibleToken from ${flowConstants.NonFungibleToken}
+          import ExampleNFT from 0x${nftContractKeys.address}
 
-    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.authorizations([flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)]),
-      flow.sdk.payer(flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)),
-      flow.sdk.proposer(flow.sdk.authorization(nftContractKeys.address, signingFunction, 0, seqNum)),
-      flow.sdk.limit(100),
-      flow.sdk.transaction`
-        import NonFungibleToken from ${flowConstants.NonFungibleToken}
-        import ExampleNFT from 0x${nftContractKeys.address}
+          // This script uses the NFTMinter resource to mint a new NFT
+          // It must be run with the account that has the minter resource
+          // stored in /storage/NFTMinter
 
-        // This script uses the NFTMinter resource to mint a new NFT
-        // It must be run with the account that has the minter resource
-        // stored in /storage/NFTMinter
+          transaction(hash: String, recipient: Address) {
+              
+              // local variable for storing the minter reference
+              let minter: &ExampleNFT.NFTMinter
 
-        transaction(hash: String, recipient: Address) {
-            
-            // local variable for storing the minter reference
-            let minter: &ExampleNFT.NFTMinter
+              prepare(signer: AuthAccount) {
 
-            prepare(signer: AuthAccount) {
+                  // borrow a reference to the NFTMinter resource in storage
+                  self.minter = signer.borrow<&ExampleNFT.NFTMinter>(from: /storage/NFTMinter)
+                      ?? panic("Could not borrow a reference to the NFT minter")
+              }
 
-                // borrow a reference to the NFTMinter resource in storage
-                self.minter = signer.borrow<&ExampleNFT.NFTMinter>(from: /storage/NFTMinter)
-                    ?? panic("Could not borrow a reference to the NFT minter")
-            }
+              execute {
+                  // Get the public account object for the recipient
+                  let recipient = getAccount(recipient)
 
-            execute {
-                // Get the public account object for the recipient
-                let recipient = getAccount(recipient)
+                  // Borrow the recipient's public NFT collection reference
+                  let receiver = recipient
+                      .getCapability(/public/NFTCollection)!
+                      .borrow<&{NonFungibleToken.CollectionPublic}>()
+                      ?? panic("Could not get receiver reference to the NFT Collection")
 
-                // Borrow the recipient's public NFT collection reference
-                let receiver = recipient
-                    .getCapability(/public/NFTCollection)!
-                    .borrow<&{NonFungibleToken.CollectionPublic}>()
-                    ?? panic("Could not get receiver reference to the NFT Collection")
+                  // Mint the NFT and deposit it to the recipient's collection
+                  self.minter.mintNFT(hash: hash, recipient: receiver)
+              }
+          }
+        `,
+        args: [
+          {value: 'lol', type: 'String'},
+          {value: '0x' + userKeys.address, type: 'Address'},
+        ],
+      }),
+    });
+    const response = await res.json();
 
-                // Mint the NFT and deposit it to the recipient's collection
-                self.minter.mintNFT(hash: hash, recipient: receiver)
-            }
-        }
-      `,
-      flow.sdk.args([
-        flow.sdk.arg('lol', flow.types.String),
-        flow.sdk.arg('0x' + userKeys.address, flow.types.Address),
-      ]),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveArguments,
-        flow.sdk.resolveParams,
-        flow.sdk.resolveAccounts,
-        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
-        flow.sdk.resolveSignatures,
-      ]),
-    ]), { node: flowConstants.host });
     console.log('got response 15', response);
     const response2 = await _waitForTx(response.transactionId);
     console.log('got response 16', response2);
     nft = parseInt(response2.transaction.events[0].payload.value.fields[0].value.value);
   }
   {
-    /* const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.getAccount(nftContractKeys.address),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveParams,
-      ]),
-    ]), { node: flowConstants.host });
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
-
-    const signingFunction = flow.signingFunction.signingFunction(nftContractKeys.privateKey); */
-
-    console.log('got args', flow.sdk.args([
-      flow.sdk.arg(nft, flow.types.UInt64),
-    ]));
-
     const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
       // flow.sdk.authorizations([flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)]),
       // flow.sdk.payer(flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)),
@@ -488,133 +396,107 @@ const testFlow = async () => {
     console.log('got response 16 A', response.encodedData.value);
   }
   {
-    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.getAccount(nftContractKeys.address),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveParams,
-      ]),
-    ]), { node: flowConstants.host });
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+      method: 'POST',
+      body: JSON.stringify({
+        address: nftContractKeys.address,
+        privateKey: nftContractKeys.privateKey,
+        publicKey: nftContractKeys.publicKey,
 
-    const signingFunction = flow.signingFunction.signingFunction(nftContractKeys.privateKey);
+        limit: 100,
+        transaction: `\
+          import NonFungibleToken from ${flowConstants.NonFungibleToken}
+          import ExampleNFT from 0x${nftContractKeys.address}
 
-    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.authorizations([flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)]),
-      flow.sdk.payer(flow.sdk.authorization(nftContractKeys.address, signingFunction, 0)),
-      flow.sdk.proposer(flow.sdk.authorization(nftContractKeys.address, signingFunction, 0, seqNum)),
-      flow.sdk.limit(100),
-      flow.sdk.transaction`
-        import NonFungibleToken from ${flowConstants.NonFungibleToken}
-        import ExampleNFT from 0x${nftContractKeys.address}
+          // This script uses the NFTMinter resource to mint a new NFT
+          // It must be run with the account that has the minter resource
+          // stored in /storage/NFTMinter
 
-        // This script uses the NFTMinter resource to mint a new NFT
-        // It must be run with the account that has the minter resource
-        // stored in /storage/NFTMinter
+          transaction(hash: String, recipient: Address) {
+              
+              // local variable for storing the minter reference
+              let minter: &ExampleNFT.NFTMinter
 
-        transaction(hash: String, recipient: Address) {
-            
-            // local variable for storing the minter reference
-            let minter: &ExampleNFT.NFTMinter
+              prepare(signer: AuthAccount) {
 
-            prepare(signer: AuthAccount) {
+                  // borrow a reference to the NFTMinter resource in storage
+                  self.minter = signer.borrow<&ExampleNFT.NFTMinter>(from: /storage/NFTMinter)
+                      ?? panic("Could not borrow a reference to the NFT minter")
+              }
 
-                // borrow a reference to the NFTMinter resource in storage
-                self.minter = signer.borrow<&ExampleNFT.NFTMinter>(from: /storage/NFTMinter)
-                    ?? panic("Could not borrow a reference to the NFT minter")
-            }
+              execute {
+                  // Get the public account object for the recipient
+                  let recipient = getAccount(recipient)
 
-            execute {
-                // Get the public account object for the recipient
-                let recipient = getAccount(recipient)
+                  // Borrow the recipient's public NFT collection reference
+                  let receiver = recipient
+                      .getCapability(/public/NFTCollection)!
+                      .borrow<&{NonFungibleToken.CollectionPublic}>()
+                      ?? panic("Could not get receiver reference to the NFT Collection")
 
-                // Borrow the recipient's public NFT collection reference
-                let receiver = recipient
-                    .getCapability(/public/NFTCollection)!
-                    .borrow<&{NonFungibleToken.CollectionPublic}>()
-                    ?? panic("Could not get receiver reference to the NFT Collection")
+                  // Mint the NFT and deposit it to the recipient's collection
+                  self.minter.mintNFT(hash: hash, recipient: receiver)
+              }
+          }
+        `,
+        args: [
+          {value: 'lol', type: 'String'},
+          {value: '0x' + userKeys.address, type: 'Address'},
+        ],
+      }),
+    });
+    const response = await res.json();
 
-                // Mint the NFT and deposit it to the recipient's collection
-                self.minter.mintNFT(hash: hash, recipient: receiver)
-            }
-        }
-      `,
-      flow.sdk.args([
-        flow.sdk.arg('lol', flow.types.String),
-        flow.sdk.arg('0x' + userKeys.address, flow.types.Address),
-      ]),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveArguments,
-        flow.sdk.resolveParams,
-        flow.sdk.resolveAccounts,
-        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
-        flow.sdk.resolveSignatures,
-      ]),
-    ]), { node: flowConstants.host });
     console.log('got response 15 X', response);
     const response2 = await _waitForTx(response.transactionId);
     console.log('got response 16 X', response2);
   }
   // transfer nft
   {
-    const acctResponse = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.getAccount(userKeys.address),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveParams,
-      ]),
-    ]), { node: flowConstants.host });
-    const seqNum = acctResponse.account.keys[0].sequenceNumber;
+    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+      method: 'POST',
+      body: JSON.stringify({
+        address: userKeys.address,
+        privateKey: userKeys.privateKey,
+        publicKey: userKeys.publicKey,
 
-    const signingFunction = flow.signingFunction.signingFunction(userKeys.privateKey);
+        limit: 100,
+        transaction: `\
+            import NonFungibleToken from ${flowConstants.NonFungibleToken}
+            import ExampleNFT from 0x${nftContractKeys.address}
 
-    const response = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.authorizations([flow.sdk.authorization(userKeys.address, signingFunction, 0)]),
-      flow.sdk.payer(flow.sdk.authorization(userKeys.address, signingFunction, 0)),
-      flow.sdk.proposer(flow.sdk.authorization(userKeys.address, signingFunction, 0, seqNum)),
-      flow.sdk.limit(100),
-      flow.sdk.transaction`
-          import NonFungibleToken from ${flowConstants.NonFungibleToken}
-          import ExampleNFT from 0x${nftContractKeys.address}
+            // This transaction is for transferring and NFT from 
+            // one account to another
 
-          // This transaction is for transferring and NFT from 
-          // one account to another
+            transaction(recipient: Address, withdrawID: UInt64) {
+                prepare(acct: AuthAccount) {
+                    
+                    // get the recipients public account object
+                    let recipient = getAccount(recipient)
 
-          transaction(recipient: Address, withdrawID: UInt64) {
-              prepare(acct: AuthAccount) {
-                  
-                  // get the recipients public account object
-                  let recipient = getAccount(recipient)
+                    // borrow a reference to the signer's NFT collection
+                    let collectionRef = acct.borrow<&ExampleNFT.Collection>(from: /storage/NFTCollection)
+                        ?? panic("Could not borrow a reference to the owner's collection")
 
-                  // borrow a reference to the signer's NFT collection
-                  let collectionRef = acct.borrow<&ExampleNFT.Collection>(from: /storage/NFTCollection)
-                      ?? panic("Could not borrow a reference to the owner's collection")
+                    // borrow a public reference to the receivers collection
+                    let depositRef = recipient.getCapability(/public/NFTCollection)!.borrow<&{NonFungibleToken.CollectionPublic}>()!
 
-                  // borrow a public reference to the receivers collection
-                  let depositRef = recipient.getCapability(/public/NFTCollection)!.borrow<&{NonFungibleToken.CollectionPublic}>()!
+                    // withdraw the NFT from the owner's collection
+                    let nft <- collectionRef.withdraw(withdrawID: withdrawID)
 
-                  // withdraw the NFT from the owner's collection
-                  let nft <- collectionRef.withdraw(withdrawID: withdrawID)
+                    // Deposit the NFT in the recipient's collection
+                    depositRef.deposit(token: <-nft)
+                }
+            }
+        `,
+        args: [
+          {value: '0x' + userKeys2.address, type: 'Address'},
+          {value: nft, type: 'UInt64'},
+        ],
+      }),
+    });
+    const response = await res.json();
 
-                  // Deposit the NFT in the recipient's collection
-                  depositRef.deposit(token: <-nft)
-              }
-          }
-      `,
-      flow.sdk.args([
-        flow.sdk.arg('0x' + userKeys2.address, flow.types.Address),
-        flow.sdk.arg(nft, flow.types.UInt64),
-      ]),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveArguments,
-        flow.sdk.resolveParams,
-        flow.sdk.resolveAccounts,
-        flow.sdk.resolveRefBlockId({ node: flowConstants.host }),
-        flow.sdk.resolveSignatures,
-      ]),
-    ]), { node: flowConstants.host });
     console.log('got response 17', response);
     const response2 = await _waitForTx(response.transactionId);
     console.log('got response 18', response2);
