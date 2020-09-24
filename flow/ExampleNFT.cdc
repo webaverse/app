@@ -2,7 +2,7 @@
 // It is not part of the official standard but it assumed to be
 // very similar to how many NFTs would implement the core functionality.
 
-import NonFungibleToken from 0xNFTADDRESS
+import NonFungibleToken from 0x631e88ae7f1d7c20
 
 pub contract ExampleNFT: NonFungibleToken {
 
