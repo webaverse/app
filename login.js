@@ -116,21 +116,7 @@ async function doLogin(email, code) {
   }
 }
 async function tryLogin() {
-  const localLoginToken = await storage.get('loginToken');
-  if (localLoginToken) {
-    const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(localLoginToken.email)}&token=${encodeURIComponent(localLoginToken.token)}`, {
-      method: 'POST'
-    });
-    if (res.status >= 200 && res.status < 300) {
-      loginToken = await res.json();
-
-      await storage.set('loginToken', loginToken);
-    } else {
-      await storage.remove('loginToken');
-
-      console.warn(`invalid status code: ${res.status}`);
-    }
-  }
+  loginToken = await storage.get('loginToken');
 
   const loginForm = document.getElementById('login-form');
   loginForm.classList.add('login-form');
