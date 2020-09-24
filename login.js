@@ -1,5 +1,5 @@
 import storage from './storage.js';
-import {getContractSource} from './blockchain.js';
+import {getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
 import {storageHost} from './constants.js'
 
 const loginEndpoint = 'https://login.exokit.org';
@@ -140,7 +140,7 @@ async function tryLogin() {
       <div class=login-error id=login-error></div>
     </div>
     <div class="phase-content phase-1-content">
-      <input type=email placeholder="your@email.com" id=login-email>
+      <input type=text placeholder="your@email.com" id=login-email>
       <input type=submit value="Log in" class="button highlight">
     </div>
     <div class="phase-content phase-2-content">
@@ -151,6 +151,9 @@ async function tryLogin() {
       <nav class=user-button id=user-button>
         <img src="favicon.ico">
         <span class=name id=user-name></span>
+        <nav class=button id=clipboard-button>
+          <i class="fal fa-clipboard"></i>
+        </nav>
         <input type=submit value="Log out" class="button highlight">
       </nav>
     </div>
@@ -186,6 +189,10 @@ async function tryLogin() {
     loginManager.setAvatar(null);
   }); */
 
+  document.getElementById('clipboard-button').addEventListener('click', e => {
+    navigator.clipboard.writeText(loginToken.mnemonic + ' ' + hexToWordList(loginToken.addr));
+  });
+
   const userButton = document.getElementById('user-button');
   const userDetails = document.getElementById('user-details');
   const loginEmail = document.getElementById('login-email');
@@ -215,18 +222,29 @@ async function tryLogin() {
       loginError.innerHTML = '';
       loginForm.classList.remove('phase-1');
 
-      const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(loginEmail.value)}`, {
-        method: 'POST',
-      });
-      if (res.status >= 200 && res.status < 300) {
-        loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
-        loginForm.classList.add('phase-2');
+      const split = loginEmail.value.split(/\s+/).filter(w => !!w);
+      if (split.length === 30) {
+        const mnemonic = split.slice(0, 24);
+        const addr = wordListToHex(split.slice(24).join(' '));
 
-        return res.blob();
+        finishLogin({
+          addr,
+          mnemonic,
+        });
       } else {
-        loginError.innerText = 'Invalid email!';
-        loginForm.classList.add('phase-1');
-        throw new Error(`invalid status code: ${res.status}`);
+        const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(loginEmail.value)}`, {
+          method: 'POST',
+        });
+        if (res.status >= 200 && res.status < 300) {
+          loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
+          loginForm.classList.add('phase-2');
+
+          return res.blob();
+        } else {
+          loginError.innerText = 'Invalid email!';
+          loginForm.classList.add('phase-1');
+          throw new Error(`invalid status code: ${res.status}`);
+        }
       }
     } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
       loginNotice.innerHTML = '';
