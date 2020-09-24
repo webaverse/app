@@ -43,7 +43,7 @@ async function ensureUserObjectBaked() {
 async function pullUserObject() {
   await ensureUserObjectBaked();
   
-  const contractSource = await getContractSource('getUserName.cdc');
+  const contractSource = await getContractSource('getUserData.cdc');
 
   const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
     method: 'POST',
