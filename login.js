@@ -24,15 +24,12 @@ async function ensureUserObjectBaked() {
   const isBaked = response.encodedData.value;
   if (!isBaked) {
     const contractSources = await getContractSource('bakeUserAccount.json');
-    console.log('got cs', contractSources);
     for (const contractSource of contractSources) {
       contractSource.address = loginToken.addr;
       contractSource.mnemonic = loginToken.mnemonic;
       contractSource.limit = 100;
       contractSource.wait = true;
-      
-      console.log('got', contractSource);
-      
+
       const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
         method: 'POST',
         body: JSON.stringify(contractSource),
@@ -44,12 +41,9 @@ async function ensureUserObjectBaked() {
   }
 }
 async function pullUserObject() {
-  console.log('got login', loginToken);
   await ensureUserObjectBaked();
   
   const contractSource = await getContractSource('getUserName.cdc');
-
-  console.log('use script', contractSource.replace(/ARG0/g, '0x' + loginToken.addr));
 
   const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
     method: 'POST',
@@ -60,7 +54,12 @@ async function pullUserObject() {
     }),
   });
   const response = await res.json();
-  console.log('got response 2', response);
+  const name = response.encodedData.value[0].value;
+  const avatarHash = response.encodedData.value[1].value;
+  userObject = {
+    name,
+    avatarHash,
+  };
 }
 /* async function pushUserObject() {
   const res = await fetch(`${usersEndpoint}/${loginToken.name}`, {
@@ -149,7 +148,7 @@ async function tryLogin() {
     <div class="phase-content phase-3-content">
       <nav class=user-button id=user-button>
         <img src="favicon.ico">
-        <span class=name id=login-email-static></span>
+        <span class=name id=user-name></span>
         <input type=submit value="Log out" class="button highlight">
       </nav>
     </div>
@@ -313,9 +312,6 @@ class LoginManager extends EventTarget {
     }));
     this.dispatchEvent(new MessageEvent('avatarchange', {
       data: userObject && userObject.avatarHash,
-    }));
-    this.dispatchEvent(new MessageEvent('inventorychange', {
-      data: userObject && _clone(userObject.inventory),
     }));
   }
 }
