@@ -1,7 +1,22 @@
 import flowConstants from './flow-constants.js';
+const {FungibleToken, NonFungibleToken, ExampleToken, ExampleNFT} = flowConstants;
 import {accountsHost} from './constants.js';
 import {uint8Array2hex} from './util.js';
 
+const _jsonParse = s => {
+  try {
+    return JSON.parse(s);
+  } catch (err) {
+  	return null;
+  }
+};
+const _runArray = async (userKeys, array) => {
+	const result = Array(array.length);
+  for (let i = 0; i < array.length; i++) {
+    result[i] = await _runSpec(userKeys, array[i]);
+  }
+  return result;
+};
 const _createAccount = async () => {
   const res = await fetch(accountsHost, {
     method: 'POST',
@@ -33,7 +48,46 @@ const _bakeContract = async (contractKeys, contractSource) => {
   });
   const response2 = await res.json();
 
-  console.log('bake contract 2', response2);
+  // console.log('bake contract 2', response2);
+  return response2;
+};
+const _runScript = async (userKeys, script) => {
+  const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+    method: 'POST',
+    body: JSON.stringify({
+      address: userKeys.address,
+      privateKey: userKeys.privateKey,
+      publicKey: userKeys.publicKey,
+
+      limit: 100,
+      script,
+      wait: true,
+    }),
+  });
+  const response2 = await res.json();
+
+  // console.log('bake contract 2', response2);
+  return response2;
+};
+const _runSpec = async (userKeys, spec) => {
+	const {transaction, script, args} = spec;
+  const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+    method: 'POST',
+    body: JSON.stringify({
+      address: userKeys.address,
+      privateKey: userKeys.privateKey,
+      publicKey: userKeys.publicKey,
+
+      limit: 100,
+      transaction,
+      script,
+      args,
+      wait: true,
+    }),
+  });
+  const response2 = await res.json();
+
+  // console.log('bake contract 2', response2);
   return response2;
 };
 
@@ -43,23 +97,47 @@ const _bakeContract = async (contractKeys, contractSource) => {
 	createAccountForm.addEventListener('submit', async e => {
 	  e.preventDefault();
 
+	  createAccountFormOutput.setAttribute('disabled', '');
+
 	  const userKeys = await _createAccount();
 	  createAccountFormOutput.value = JSON.stringify(userKeys, null, 2);
+	  createAccountFormOutput.removeAttribute('disabled');
 	});
 }
 {
 	const contractForm = document.getElementById('contract-form');
+	const contractFormKeys = document.getElementById('contract-form-keys');
 	const contractFormSource = document.getElementById('contract-form-source');
 	contractForm.addEventListener('submit', async e => {
 	  e.preventDefault();
 
-	  const contractSource = contractFormSource.value;
+	  const contractSource = contractFormSource.value
+	    .replace(/NONFUNGIBLETOKENADDRESS/g, NonFungibleToken)
+	    .replace(/FUNGIBLETOKENADDRESS/g, FungibleToken)
+	    .replace(/EXAMPLETOKENADDRESS/g, ExampleToken)
+	    .replace(/EXAMPLENFTADDRESS/g, ExampleNFT);
 	  contractFormSource.setAttribute('disabled', '');
 
-	  const contractKeys = await _createAccount();
-	  const contract = await _bakeContract(contractKeys, contractSource);
+    const contractKeys = JSON.parse(contractFormKeys.value);
 
-	  contractFormSource.value = JSON.stringify(contractKeys, null, 2);
-	  contractFormSource.removeAttribute('disabled');
+    let result, o;
+    if (contractSource.charAt(0) === '[') {
+     	console.log('run array');
+      result = await _runArray(contractKeys, eval(contractSource));
+    } else if (contractSource.charAt(0) === '{') {
+     	console.log('run array');
+      result = await _runSpec(contractKeys, eval(contractSource));
+    } else if (/pub contract /.test(contractSource)) {
+    	console.log('run contract');
+		  result = await _bakeContract(contractKeys, contractSource);
+		} else if (/transaction {/.test(contractSource)) {
+			console.log('run script');
+			result = await _runScript(contractKeys, contractSource);
+		} else {
+			console.warn('do not know how to run source', contractSource);
+		}
+
+		contractFormSource.value = JSON.stringify(result, null, 2);
+		contractFormSource.removeAttribute('disabled');
 	});
 }
