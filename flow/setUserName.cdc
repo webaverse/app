@@ -10,7 +10,6 @@ transaction {
     }
 
     execute {
-        self.state.keyValueMap["name"] = "lol"
-        // self.state.keyValueMap["avatar"] = "zol"
+        self.state.keyValueMap["name"] = "ARG0"
     }
 }
