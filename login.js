@@ -185,9 +185,9 @@ async function tryLogin() {
   const loginVerificationCode = document.getElementById('login-verification-code');
   const loginNotice = document.getElementById('login-notice');
   const loginError = document.getElementById('login-error');
-  userButton.addEventListener('click', e => {
+  /* userButton.addEventListener('click', e => {
     userButton.classList.toggle('open');
-  });
+  }); */
   /* userDetails.addEventListener('click', e => {
     // e.preventDefault();
     e.stopPropagation();
