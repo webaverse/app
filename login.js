@@ -1,28 +1,68 @@
 import storage from './storage.js';
-import { storageHost } from './constants.js'
+import {getContractSource} from './blockchain.js';
+import {storageHost} from './constants.js'
 
 const loginEndpoint = 'https://login.exokit.org';
-const usersEndpoint = 'https://users.exokit.org';
+// const usersEndpoint = 'https://users.exokit.org';
 
 const _clone = o => JSON.parse(JSON.stringify(o));
 
 let loginToken = null;
 let userObject = null;
-async function pullUserObject() {
-  const res = await fetch(`${usersEndpoint}/${loginToken.name}`);
-  if (res.ok) {
-    userObject = await res.json();
-  } else if (res.status === 404) {
-    userObject = {
-      name: loginToken.name,
-      avatarHash: null,
-      inventory: [],
-    };
-  } else {
-    throw new Error(`invalid status code: ${res.status}`);
+async function ensureUserObjectBaked() {
+  const contractSource = await getContractSource('isUserAccountBaked.cdc');
+
+  const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+    method: 'POST',
+    body: JSON.stringify({
+      limit: 100,
+      script: contractSource.replace(/ARG0/g, '0x' + loginToken.addr),
+      wait: true,
+    }),
+  });
+  const response = await res.json();
+  const isBaked = response.encodedData.value;
+  if (!isBaked) {
+    const contractSources = await getContractSource('bakeUserAccount.json');
+    console.log('got cs', contractSources);
+    for (const contractSource of contractSources) {
+      contractSource.address = loginToken.addr;
+      contractSource.mnemonic = loginToken.mnemonic;
+      contractSource.limit = 100;
+      contractSource.wait = true;
+      
+      console.log('got', contractSource);
+      
+      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+        method: 'POST',
+        body: JSON.stringify(contractSource),
+      });
+      
+      const response = await res.json();
+      console.log('baked account result', response);
+    }
   }
 }
-async function pushUserObject() {
+async function pullUserObject() {
+  console.log('got login', loginToken);
+  await ensureUserObjectBaked();
+  
+  const contractSource = await getContractSource('getUserName.cdc');
+
+  console.log('use script', contractSource.replace(/ARG0/g, '0x' + loginToken.addr));
+
+  const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+    method: 'POST',
+    body: JSON.stringify({
+      limit: 100,
+      script: contractSource.replace(/ARG0/g, '0x' + loginToken.addr),
+      wait: true,
+    }),
+  });
+  const response = await res.json();
+  console.log('got response 2', response);
+}
+/* async function pushUserObject() {
   const res = await fetch(`${usersEndpoint}/${loginToken.name}`, {
     method: 'PUT',
     body: JSON.stringify(userObject),
@@ -32,12 +72,11 @@ async function pushUserObject() {
   } else {
     throw new Error(`invalid status code: ${res.status}`);
   }
-}
+} */
 function updateUserObject() {
-  const loginEmailStatic = document.getElementById('login-email-static');
+  console.log('update user object', loginToken);
   const userName = document.getElementById('user-name');
   // const avatarName = document.getElementById('avatar-name');
-  loginEmailStatic.innerText = userObject.name;
   userName.innerText = userObject.name;
   // avatarName.innerText = userObject.avatarHash !== null ? userObject.avatarHash : 'None';
 
@@ -54,6 +93,8 @@ async function doLogin(email, code) {
     await storage.set('loginToken', newLoginToken);
 
     loginToken = newLoginToken;
+    
+    console.log('got user token', loginToken);
 
     const loginForm = document.getElementById('login-form');
     // document.body.classList.add('logged-in');
@@ -110,17 +151,6 @@ async function tryLogin() {
         <img src="favicon.ico">
         <span class=name id=login-email-static></span>
         <input type=submit value="Log out" class="button highlight">
-        <div class=user-details id=user-details>
-          <div class=label>Alias</div>
-          <div class="user-name" id=user-name></div>
-          <div class=label>Avatar</div>
-          <div class="avatar-name" id=avatar-name></div>
-          <h3>Upload Avatar</h3>
-          <input type='file' id="userAvatarInput">
-          <h3>Unload Avatar</h3>
-          <button id="unloadAvatar">Unload</button>
-          <nav class="button" style="display: none;" id=unwear-button>Unwear</nav>
-        </div>
       </nav>
     </div>
     <div class="phase-content phaseless-content">
@@ -128,7 +158,7 @@ async function tryLogin() {
     </div>
   `;
 
-  document.getElementById('userAvatarInput').addEventListener('change', async (e) => {
+  /* document.getElementById('userAvatarInput').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.addEventListener("load", async () => {      
@@ -147,13 +177,13 @@ async function tryLogin() {
     if (file) {
       reader.readAsArrayBuffer(file);
     }
-  })
+  }); */
 
-  document.getElementById('unloadAvatar').addEventListener('click', async (e) => {
+  /* document.getElementById('unloadAvatar').addEventListener('click', async (e) => {
     e.preventDefault();
     e.stopPropagation();
     loginManager.setAvatar(null);
-  })
+  }); */
 
   const userButton = document.getElementById('user-button');
   const userDetails = document.getElementById('user-details');
@@ -164,10 +194,10 @@ async function tryLogin() {
   userButton.addEventListener('click', e => {
     userButton.classList.toggle('open');
   });
-  userDetails.addEventListener('click', e => {
+  /* userDetails.addEventListener('click', e => {
     // e.preventDefault();
     e.stopPropagation();
-  });
+  }); */
   if (loginToken) {
     await pullUserObject();
     updateUserObject();
