@@ -146,12 +146,12 @@ const _runSpec = async (userKeys, spec) => {
 	    } else if (/pub contract /.test(contractSource)) {
 	    	console.log('run contract');
 			  result = await _bakeContract(contractKeys, contractSource);
-			} else if (/transaction /.test(contractSource)) {
-				console.log('run script');
-				result = await _runTransaction(contractKeys, contractSource);
-			} else if (/pub fun main\(\)/.test(contractSource)) {
+      } else if (/pub fun main\(\)/.test(contractSource)) {
 				console.log('run script');
 				result = await _runScript(contractSource);
+			} else if (/transaction /.test(contractSource)) {
+				console.log('run transaction');
+				result = await _runTransaction(contractKeys, contractSource);
 			} else {
 				console.warn('do not know how to run source', contractSource);
 			}
