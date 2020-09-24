@@ -3,7 +3,6 @@ const webpack = require('webpack');
 
 const entry = {
     inventory: './components/Inventory.js',
-    toolbar: './components/Toolbar.js'
 };
 
 module.exports = {

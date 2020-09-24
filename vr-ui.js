@@ -501,7 +501,7 @@ const uiRenderer = (() => {
   const loadPromise = Promise.all([
     new Promise((accept, reject) => {
       const iframe = document.createElement('iframe');
-      iframe.src = 'https://render.exokit.xyz/';
+      iframe.src = 'http://127.0.0.1:5500/';
       iframe.onload = () => {
         accept(iframe);
       };
