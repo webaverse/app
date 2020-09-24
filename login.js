@@ -80,6 +80,22 @@ function updateUserObject() {
 
   loginManager.pushUpdate();
 }
+async function finishLogin(newLoginToken) {
+  await storage.set('loginToken', newLoginToken);
+
+  loginToken = newLoginToken;
+
+  console.log('got user token', loginToken);
+
+  const loginForm = document.getElementById('login-form');
+  // document.body.classList.add('logged-in');
+  loginForm.classList.remove('phase-1');
+  loginForm.classList.remove('phase-2');
+  loginForm.classList.add('phase-3');
+
+  await pullUserObject();
+  updateUserObject();
+}
 async function doLogin(email, code) {
   const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
     method: 'POST',
@@ -88,20 +104,7 @@ async function doLogin(email, code) {
   if (res.status >= 200 && res.status < 300) {
     const newLoginToken = await res.json();
 
-    await storage.set('loginToken', newLoginToken);
-
-    loginToken = newLoginToken;
-    
-    console.log('got user token', loginToken);
-
-    const loginForm = document.getElementById('login-form');
-    // document.body.classList.add('logged-in');
-    loginForm.classList.remove('phase-1');
-    loginForm.classList.remove('phase-2');
-    loginForm.classList.add('phase-3');
-
-    await pullUserObject();
-    updateUserObject();
+    await finishLogin(newLoginToken);
 
     return true;
   } else {
