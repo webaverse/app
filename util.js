@@ -4,6 +4,9 @@ import atlaspack from './atlaspack.js';
 export function hex2Uint8Array(hex) {
   return new Uint8Array(hex.match(/[\da-f]{2}/gi).map(h => parseInt(h, 16)))
 }
+export function uint8Array2hex(uint8Array) {
+  return Array.prototype.map.call(uint8Array, x => ('00' + x.toString(16)).slice(-2)).join('');
+}
 export function downloadFile(file, filename) {
   const blobURL = URL.createObjectURL(file);
   const tempLink = document.createElement('a');

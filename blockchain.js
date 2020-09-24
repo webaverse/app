@@ -1,9 +1,7 @@
 import flowConstants from './flow-constants.js';
 import {accountsHost} from './constants.js';
+import {uint8Array2hex} from './util.js';
 
-function uint8Array2hex(uint8Array) {
-  return Array.prototype.map.call(uint8Array, x => ('00' + x.toString(16)).slice(-2)).join('');
-}
 const _createAccount = async () => {
   const res = await fetch(accountsHost, {
     method: 'POST',
