@@ -175,6 +175,33 @@ async function tryLogin() {
     loginManager.setAvatar(null);
   }); */
 
+  const userName = document.getElementById('user-name');
+  userName.addEventListener('click', e => {
+    userName.setAttribute('contenteditable', '');
+    userName.focus();
+    userName.addEventListener('blur', async e => {
+      userName.removeAttribute('contenteditable');
+
+      const newUserName = userName.innerText;
+
+      const contractSource = await getContractSource('setUserName.cdc');
+
+      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+        method: 'POST',
+        body: JSON.stringify({
+          address: loginToken.addr,
+          mnemonic: loginToken.mnemonic,
+
+          limit: 100,
+          transaction: contractSource.replace(/ARG0/g, newUserName),
+          wait: true,
+        }),
+      });
+      const response2 = await res.json();
+    }, {
+      once: true,
+    })
+  });
   document.getElementById('clipboard-button').addEventListener('click', e => {
     navigator.clipboard.writeText(loginToken.mnemonic + ' ' + hexToWordList(loginToken.addr));
   });
