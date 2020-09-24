@@ -210,7 +210,7 @@ async function tryLogin() {
 
       const split = loginEmail.value.split(/\s+/).filter(w => !!w);
       if (split.length === 30) {
-        const mnemonic = split.slice(0, 24);
+        const mnemonic = split.slice(0, 24).join(' ');
         const addr = wordListToHex(split.slice(24).join(' '));
 
         finishLogin({
