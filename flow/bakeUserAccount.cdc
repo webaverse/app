@@ -11,7 +11,7 @@
 
                   // Create a new empty collection
                   let state <- ExampleAccount.createState() as! @ExampleAccount.State
-                  
+
                   // save it to the account
                   acct.save(<-state, to: /storage/AccountCollection)
 
