@@ -1,5 +1,5 @@
 import flowConstants from './flow-constants.js';
-const {FungibleToken, NonFungibleToken, ExampleToken, ExampleNFT} = flowConstants;
+const {FungibleToken, NonFungibleToken, ExampleToken, ExampleNFT, ExampleAccount} = flowConstants;
 import {accountsHost} from './constants.js';
 import {uint8Array2hex} from './util.js';
 
@@ -115,7 +115,8 @@ const _runSpec = async (userKeys, spec) => {
 	    .replace(/NONFUNGIBLETOKENADDRESS/g, NonFungibleToken)
 	    .replace(/FUNGIBLETOKENADDRESS/g, FungibleToken)
 	    .replace(/EXAMPLETOKENADDRESS/g, ExampleToken)
-	    .replace(/EXAMPLENFTADDRESS/g, ExampleNFT);
+	    .replace(/EXAMPLENFTADDRESS/g, ExampleNFT)
+	    .replace(/EXAMPLEACCOUNTADDRESS/g, ExampleAccount);
 	  contractFormSource.setAttribute('disabled', '');
 
     const contractKeys = JSON.parse(contractFormKeys.value);
