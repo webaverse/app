@@ -883,7 +883,7 @@ const makeAnimal = null;
 // let chunkMeshes = [];
 const chunkMesh = null;
 const worldContainer = new THREE.Object3D();
-scene.add(worldContainer);
+// scene.add(worldContainer);
 const chunkMeshContainer = new THREE.Object3D();
 worldContainer.add(chunkMeshContainer);
 let currentChunkMesh = null;
@@ -902,6 +902,75 @@ let stoneMesh = null;
 let metalMesh = null;
 const basisLoader = new BasisTextureLoader();
 basisLoader.detectSupport(renderer);
+
+const parcelSize = 10;
+const parcelGeometry = (() => {
+  const tileGeometry = new THREE.PlaneBufferGeometry(1, 1)
+    .applyMatrix4(localMatrix.makeScale(0.95, 0.95, 1))
+    .applyMatrix4(localMatrix.makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)))
+    .toNonIndexed();
+  const numCoords = tileGeometry.attributes.position.array.length;
+  const numVerts = numCoords / 3;
+  const positions = new Float32Array(numCoords * parcelSize * parcelSize);
+  const centers = new Float32Array(numCoords * parcelSize * parcelSize);
+  const typesx = new Float32Array(numVerts * parcelSize * parcelSize);
+  const typesz = new Float32Array(numVerts * parcelSize * parcelSize);
+  let i = 0;
+  for (let x = -parcelSize / 2 + 0.5; x < parcelSize / 2; x++) {
+    for (let z = -parcelSize / 2 + 0.5; z < parcelSize / 2; z++) {
+      const newTileGeometry = tileGeometry.clone()
+        .applyMatrix4(localMatrix.makeTranslation(x, 0, z));
+      positions.set(newTileGeometry.attributes.position.array, i * newTileGeometry.attributes.position.array.length);
+      for (let j = 0; j < newTileGeometry.attributes.position.array.length / 3; j++) {
+        localVector.set(x, 0, z).toArray(centers, i * newTileGeometry.attributes.position.array.length + j * 3);
+      }
+      let typex = 0;
+      if (mod((x + parcelSize / 2 - 0.5), parcelSize) === 0) {
+        typex = 1 / 8;
+      } else if (mod((x + parcelSize / 2 - 0.5), parcelSize) === parcelSize - 1) {
+        typex = 2 / 8;
+      }
+      let typez = 0;
+      if (mod((z + parcelSize / 2 - 0.5), parcelSize) === 0) {
+        typez = 1 / 8;
+      } else if (mod((z + parcelSize / 2 - 0.5), parcelSize) === parcelSize - 1) {
+        typez = 2 / 8;
+      }
+      for (let j = 0; j < numVerts; j++) {
+        typesx[i * numVerts + j] = typex;
+        typesz[i * numVerts + j] = typez;
+      }
+      i++;
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  /* geometry.setAttribute('center', new THREE.BufferAttribute(centers, 3));
+  geometry.setAttribute('typex', new THREE.BufferAttribute(typesx, 1));
+  geometry.setAttribute('typez', new THREE.BufferAttribute(typesz, 1)); */
+  return geometry;
+})();
+
+const _makeFloorMesh = () => {
+  const geometry = parcelGeometry;
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x333333,
+    // opacity: 0.9,
+    side: THREE.DoubleSide,
+    // transparent: true,
+    /* polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1, */
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.y = -8;
+  mesh.frustumCulled = false;
+  return mesh;
+};
+const floorMesh = _makeFloorMesh();
+scene.add(floorMesh);
+
+
 const geometryWorker = (() => {
   class Allocator {
     constructor() {
@@ -4037,7 +4106,7 @@ const meshComposer = new MeshComposer();
     transparent: true,
   });
   skybox = new THREE.Mesh(sphere, material);
-  scene.add(skybox);
+  // scene.add(skybox);
 })();
 (() => {
   const guardianMesh = GuardianMesh([[
@@ -4784,7 +4853,7 @@ const cometFireMesh = (() => {
   cometFireMesh.frustumCulled = false;
   return cometFireMesh;
 })();
-scene.add(cometFireMesh);
+// scene.add(cometFireMesh);
 
 const hpMesh = (() => {
   const mesh = new THREE.Object3D();
@@ -4859,7 +4928,7 @@ const hpMesh = (() => {
 scene.add(hpMesh);
 
 const cubeMesh = makeCubeMesh();
-scene.add(cubeMesh);
+// scene.add(cubeMesh);
 
 const rayMesh = makeRayMesh();
 rayMesh.visible = false;
