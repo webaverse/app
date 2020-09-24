@@ -38,6 +38,16 @@ const _bakeContract = async (contractKeys, contractSource) => {
 };
 
 {
+	const createAccountForm = document.getElementById('create-account-form');
+	const createAccountFormOutput = document.getElementById('create-account-form-output');
+	createAccountForm.addEventListener('submit', async e => {
+	  e.preventDefault();
+
+	  const userKeys = await _createAccount();
+	  createAccountFormOutput.value = JSON.stringify(userKeys, null, 2);
+	});
+}
+{
 	const contractForm = document.getElementById('contract-form');
 	const contractFormSource = document.getElementById('contract-form-source');
 	contractForm.addEventListener('submit', async e => {
