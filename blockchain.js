@@ -1,5 +1,6 @@
 import flowConstants from './flow-constants.js';
 const {FungibleToken, NonFungibleToken, ExampleToken, ExampleNFT, ExampleAccount} = flowConstants;
+import wordList from './flow/wordlist.js';
 
 /* import flowConstants from './flow-constants.js';
 import {accountsHost} from './constants.js';
@@ -505,6 +506,33 @@ function resolveContractSource(contractSource) {
     .replace(/EXAMPLETOKENADDRESS/g, ExampleToken)
     .replace(/EXAMPLENFTADDRESS/g, ExampleNFT)
     .replace(/EXAMPLEACCOUNTADDRESS/g, ExampleAccount);
+}
+
+function hexToWordList(hex) {
+  const words = [];
+  let n = BigInt('0x' + hex);
+  n <<= 2n;
+  while (n !== 0n) {
+    const a = n & 0x7FFn;
+    words.push(wordList[Number(a)]);
+    n -= a;
+    n >>= 11n;
+  }
+  return words.join(' ');
+}
+function wordListToHex(words) {
+  words = words.split(/\s+/);
+
+  let n = 0n;
+  for (let i = words.length - 1; i >= 0; i--) {
+    const word = words[i];
+    const index = wordList.indexOf(word);
+    const a = BigInt(index);
+    n <<= 11n;
+    n |= a;
+  }
+  n >>= 2n;
+  return n.toString(16);
 }
 
 export {
