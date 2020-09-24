@@ -51,6 +51,24 @@ const _bakeContract = async (contractKeys, contractSource) => {
   // console.log('bake contract 2', response2);
   return response2;
 };
+const _runTransaction = async (userKeys, transaction) => {
+  const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+    method: 'POST',
+    body: JSON.stringify({
+      address: userKeys.address,
+      privateKey: userKeys.privateKey,
+      publicKey: userKeys.publicKey,
+
+      limit: 100,
+      transaction,
+      wait: true,
+    }),
+  });
+  const response2 = await res.json();
+
+  // console.log('bake contract 2', response2);
+  return response2;
+};
 const _runScript = async (userKeys, script) => {
   const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
     method: 'POST',
@@ -131,7 +149,10 @@ const _runSpec = async (userKeys, spec) => {
     } else if (/pub contract /.test(contractSource)) {
     	console.log('run contract');
 		  result = await _bakeContract(contractKeys, contractSource);
-		} else if (/transaction {/.test(contractSource)) {
+		} else if (/transaction /.test(contractSource)) {
+			console.log('run script');
+			result = await _runTransaction(contractKeys, contractSource);
+		} else if (/main/.test(contractSource)) {
 			console.log('run script');
 			result = await _runScript(contractKeys, contractSource);
 		} else {
