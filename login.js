@@ -54,8 +54,8 @@ async function pullUserObject() {
     }),
   });
   const response = await res.json();
-  const name = response.encodedData.value[0].value || 'Anonymous';
-  const avatarHash = response.encodedData.value[1].value;
+  const name = response.encodedData.value[0].value ? response.encodedData.value[0].value.value : 'Anonymous';
+  const avatarHash = response.encodedData.value[1].value && response.encodedData.value[1].value.value;
   userObject = {
     name,
     avatarHash,
