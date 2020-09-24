@@ -9,7 +9,6 @@ const _clone = o => JSON.parse(JSON.stringify(o));
 let loginToken = null;
 let userObject = null;
 async function pullUserObject() {
-
   const res = await fetch(`${usersEndpoint}/${loginToken.name}`);
   if (res.ok) {
     userObject = await res.json();
@@ -239,6 +238,13 @@ class LoginManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('usernamechange', {
       data: name,
     }));
+  }
+  
+  getAddress() {
+    return loginToken && loginToken.address;
+  }
+  getMnemonic() {
+    return loginToken && loginToken.mnemonic;
   }
 
   getAvatar() {
