@@ -73,7 +73,6 @@ async function pullUserObject() {
   }
 } */
 function updateUserObject() {
-  console.log('update user object', loginToken);
   const userName = document.getElementById('user-name');
   // const avatarName = document.getElementById('avatar-name');
   userName.innerText = userObject.name;
