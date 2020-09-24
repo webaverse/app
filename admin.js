@@ -1,5 +1,4 @@
-import flowConstants from './flow-constants.js';
-const {FungibleToken, NonFungibleToken, ExampleToken, ExampleNFT, ExampleAccount} = flowConstants;
+import {resolveContractSource} from './blockchain.js';
 import {accountsHost} from './constants.js';
 import {uint8Array2hex} from './util.js';
 
@@ -125,12 +124,7 @@ const _runSpec = async (userKeys, spec) => {
 	contractForm.addEventListener('submit', async e => {
 	  e.preventDefault();
 
-	  const contractSource = contractFormSource.value
-	    .replace(/NONFUNGIBLETOKENADDRESS/g, NonFungibleToken)
-	    .replace(/FUNGIBLETOKENADDRESS/g, FungibleToken)
-	    .replace(/EXAMPLETOKENADDRESS/g, ExampleToken)
-	    .replace(/EXAMPLENFTADDRESS/g, ExampleNFT)
-	    .replace(/EXAMPLEACCOUNTADDRESS/g, ExampleAccount);
+	  const contractSource = resolveContractSource(contractFormSource.value);
 	  contractFormSource.setAttribute('disabled', '');
 
     const contractKeys = _jsonParse(contractFormKeys.value);

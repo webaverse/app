@@ -1,4 +1,7 @@
 import flowConstants from './flow-constants.js';
+const {FungibleToken, NonFungibleToken, ExampleToken, ExampleNFT, ExampleAccount} = flowConstants;
+
+/* import flowConstants from './flow-constants.js';
 import {accountsHost} from './constants.js';
 import {uint8Array2hex} from './util.js';
 
@@ -478,8 +481,34 @@ const testFlow = async () => {
 
     console.log('got response 18', response2);
   }
-};
+}; */
+
+const contractSourceCache = {};
+async function getContractSource(p) {
+  let contractSource = contractSourceCache[p];
+  if (!contractSource) {
+    const res = await fetch('./flow/' + p);
+    contractSource = await res.text();
+    contractSource = resolveContractSource(contractSource);
+    if (/\.json$/.test(p)) {
+      contractSource = eval(contractSource);
+    }
+    contractSourceCache[p] = contractSource;
+  }
+  return contractSource;
+}
+
+function resolveContractSource(contractSource) {
+  return contractSource
+    .replace(/NONFUNGIBLETOKENADDRESS/g, NonFungibleToken)
+    .replace(/FUNGIBLETOKENADDRESS/g, FungibleToken)
+    .replace(/EXAMPLETOKENADDRESS/g, ExampleToken)
+    .replace(/EXAMPLENFTADDRESS/g, ExampleNFT)
+    .replace(/EXAMPLEACCOUNTADDRESS/g, ExampleAccount);
+}
 
 export {
-  testFlow,
+  // testFlow,
+  getContractSource,
+  resolveContractSource,
 };
