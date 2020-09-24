@@ -1,38 +1,9 @@
-// import flow from './flow/flow.js';
 import flowConstants from './flow-constants.js';
 import {accountsHost} from './constants.js';
-
-/* const genKeys = async mnemonic => {
-  const seed = await bip39.mnemonicToSeed(mnemonic);
-  return flow.crypto.genKeys({
-    entropy: seed.toString('hex'),
-    entropyEnc: 'hex',
-  });
-}; */
 
 function uint8Array2hex(uint8Array) {
   return Array.prototype.map.call(uint8Array, x => ('00' + x.toString(16)).slice(-2)).join('');
 }
-/* const _isSealed = tx => tx.status >= 4;
-const _waitForTx = async txid => {
-  for (;;) {
-    const response2 = await flow.sdk.send(await flow.sdk.pipe(await flow.sdk.build([
-      flow.sdk.getTransactionStatus(txid),
-    ]), [
-      flow.sdk.resolve([
-        flow.sdk.resolveParams,
-      ]),
-    ]), { node: flowConstants.host });
-    // console.log('got response 2', response2);
-    if (_isSealed(response2.transaction)) {
-      return response2;
-    } else {
-      await new Promise((accept, reject) => {
-        setTimeout(accept, 500);
-      });
-    }
-  }
-}; */
 const _createAccount = async () => {
   const res = await fetch(accountsHost, {
     method: 'POST',
@@ -512,6 +483,5 @@ const testFlow = async () => {
 };
 
 export {
-  // genKeys,
   testFlow,
 };
