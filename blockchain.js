@@ -539,4 +539,6 @@ export {
   // testFlow,
   getContractSource,
   resolveContractSource,
+  hexToWordList,
+  wordListToHex,
 };
