@@ -5,4 +5,5 @@ export default {
 
   ExampleToken: '0xbd726a7affc6afbf',
   ExampleNFT: '0xa00c3dd0aa47dbf7',
+  ExampleAccount: '0x4ad4afd89179f79b',
 };
