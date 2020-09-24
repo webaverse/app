@@ -69,14 +69,10 @@ const _runTransaction = async (userKeys, transaction) => {
   // console.log('bake contract 2', response2);
   return response2;
 };
-const _runScript = async (userKeys, script) => {
+const _runScript = async script => {
   const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
     method: 'POST',
     body: JSON.stringify({
-      address: userKeys.address,
-      privateKey: userKeys.privateKey,
-      publicKey: userKeys.publicKey,
-
       limit: 100,
       script,
       wait: true,
@@ -137,29 +133,33 @@ const _runSpec = async (userKeys, spec) => {
 	    .replace(/EXAMPLEACCOUNTADDRESS/g, ExampleAccount);
 	  contractFormSource.setAttribute('disabled', '');
 
-    const contractKeys = JSON.parse(contractFormKeys.value);
+    const contractKeys = _jsonParse(contractFormKeys.value);
 
-    let result, o;
-    if (contractSource.charAt(0) === '[') {
-     	console.log('run array');
-      result = await _runArray(contractKeys, eval(contractSource));
-    } else if (contractSource.charAt(0) === '{') {
-     	console.log('run array');
-      result = await _runSpec(contractKeys, eval(contractSource));
-    } else if (/pub contract /.test(contractSource)) {
-    	console.log('run contract');
-		  result = await _bakeContract(contractKeys, contractSource);
-		} else if (/transaction /.test(contractSource)) {
-			console.log('run script');
-			result = await _runTransaction(contractKeys, contractSource);
-		} else if (/main/.test(contractSource)) {
-			console.log('run script');
-			result = await _runScript(contractKeys, contractSource);
-		} else {
-			console.warn('do not know how to run source', contractSource);
+    try {
+	    let result, o;
+	    if (contractSource.charAt(0) === '[') {
+	     	console.log('run array');
+	      result = await _runArray(contractKeys, eval(contractSource));
+	    } else if (contractSource.charAt(0) === '{') {
+	     	console.log('run array');
+	      result = await _runSpec(contractKeys, eval(contractSource));
+	    } else if (/pub contract /.test(contractSource)) {
+	    	console.log('run contract');
+			  result = await _bakeContract(contractKeys, contractSource);
+			} else if (/transaction /.test(contractSource)) {
+				console.log('run script');
+				result = await _runTransaction(contractKeys, contractSource);
+			} else if (/pub fun main\(\)/.test(contractSource)) {
+				console.log('run script');
+				result = await _runScript(contractSource);
+			} else {
+				console.warn('do not know how to run source', contractSource);
+			}
+
+			contractFormSource.value = JSON.stringify(result, null, 2);
+		} catch(err) {
+			contractFormSource.value = err.stack;
 		}
-
-		contractFormSource.value = JSON.stringify(result, null, 2);
 		contractFormSource.removeAttribute('disabled');
 	});
 }
