@@ -47,6 +47,7 @@ import {storageHost} from './constants.js';
 import app from './app-object.js';
 import inventory from './inventory.js';
 import {testFlow} from './blockchain.js';
+// import { Inventory } from './preact-xr-ui/index.js';
 window.testFlow = testFlow;
 
 const zeroVector = new THREE.Vector3(0, 0, 0);

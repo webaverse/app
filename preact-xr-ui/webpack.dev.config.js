@@ -1,28 +1,24 @@
 const path = require('path');
 const webpack = require('webpack');
-
 const entry = {
-    inventory: './components/Inventory.js',
+    inventory: './src/components/Inventory.tsx',
 };
 
 module.exports = {
     entry,
     mode: 'development',
     devtool: 'eval-source-map',
-
+    watch: true,
     output: {
-        path: path.join(__dirname, 'build'),
-        publicPath: '/',
-        filename: '[name]/bundle.[name].js'
+        path: path.join(__dirname, 'dev'),
+        filename: '[name].bundle.js'
     },
-
     resolve: {
         alias: {
             react: 'preact/compat',
             'react-dom': 'preact/compat'
         }
     },
-
     module: {
         rules: [
             {
@@ -36,10 +32,19 @@ module.exports = {
                 use: ['babel-loader']
             },
             {
+                test: /\.ts(x?)$/,
+                exclude: /node_modules/,
+                use: [
+                    {
+                        loader: "ts-loader"
+                    }
+                ]
+            },
+            {
                 test: /\.(less|css)$/,
                 exclude: /node_modules/,
                 use: ['style-loader', 'css-loader', 'less-loader']
-              }
+            },
         ]
     },
 };

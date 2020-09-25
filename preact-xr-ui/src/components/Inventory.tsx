@@ -94,7 +94,4 @@ const Inventory = (props) => {
         </div>
     )
 }
-
-render(<Inventory />, document.getElementById('demo-memes'));
-
 export default Inventory;
