@@ -6,7 +6,7 @@ transaction {
   let tokenReceiver: &{FungibleToken.Receiver}
 
   prepare(signer: AuthAccount) {
-      let recipient : Address = 0x
+      let recipient : Address = ARG0
   
       self.tokenAdmin = signer
       .borrow<&ExampleToken.Administrator>(from: /storage/exampleTokenAdmin) 
@@ -19,7 +19,7 @@ transaction {
   }
 
   execute {
-      let amount : UFix64 = 100.0
+      let amount : UFix64 = ARG1
       let minter <- self.tokenAdmin.createNewMinter(allowedAmount: amount)
       let mintedVault <- minter.mintTokens(amount: amount)
 
