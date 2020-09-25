@@ -6,8 +6,8 @@ import ExampleNFT from EXAMPLENFTADDRESS
 
 transaction {
     prepare(acct: AuthAccount) {
-        let recipient : Address = 0x
-        let withdrawID : UInt64 = 0
+        let withdrawID : UInt64 = ARG0
+        let recipient : Address = ARG1
         
         // get the recipients public account object
         let acct2 = getAccount(recipient)

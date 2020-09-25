@@ -7,7 +7,7 @@ transaction {
     let sentVault: @FungibleToken.Vault
 
     prepare(signer: AuthAccount) {
-        let amount : UFix64 = 1.0
+        let amount : UFix64 = ARG0
 
         // Get a reference to the signer's stored vault
         let vaultRef = signer.borrow<&ExampleToken.Vault>(from: /storage/exampleTokenVault)
@@ -18,7 +18,7 @@ transaction {
     }
 
     execute {
-        let to : Address = 0x
+        let to : Address = ARG1
 
         // Get the recipient's public account object
         let recipient = getAccount(to)
