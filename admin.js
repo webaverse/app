@@ -30,6 +30,7 @@ const _bakeContract = async (contractKeys, contractSource) => {
       address: contractKeys.address,
       privateKey: contractKeys.privateKey,
       publicKey: contractKeys.publicKey,
+      mnemonic: userKeys.mnemonic,
 
       limit: 100,
       transaction: `\
@@ -57,6 +58,7 @@ const _runTransaction = async (userKeys, transaction) => {
       address: userKeys.address,
       privateKey: userKeys.privateKey,
       publicKey: userKeys.publicKey,
+      mnemonic: userKeys.mnemonic,
 
       limit: 100,
       transaction,
@@ -90,6 +92,7 @@ const _runSpec = async (userKeys, spec) => {
       address: userKeys.address,
       privateKey: userKeys.privateKey,
       publicKey: userKeys.publicKey,
+      mnemonic: userKeys.mnemonic,
 
       limit: 100,
       transaction,
