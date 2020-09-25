@@ -11,7 +11,7 @@ module.exports = {
     watch: true,
     output: {
         path: path.join(__dirname, 'dev'),
-        filename: '[name].bundle.js'
+        filename: '[name]/[name].bundle.js'
     },
     resolve: {
         alias: {
