@@ -18,8 +18,8 @@ transaction {
     }
 
     execute {
-        let hash : String = ""
-        let recipient : Address = 0x
+        let hash : String = "ARG0"
+        let recipient : Address = ARG1
 
         // Get the public account object for the recipient
         let acct = getAccount(recipient)
