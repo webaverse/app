@@ -1,5 +1,5 @@
 import flowConstants from './flow-constants.js';
-const {FungibleToken, NonFungibleToken, ExampleToken, ExampleNFT} = flowConstants;
+const {FungibleToken, NonFungibleToken, ExampleToken, ExampleNFT, ExampleAccount} = flowConstants;
 import {accountsHost} from './constants.js';
 import {uint8Array2hex} from './util.js';
 
@@ -51,7 +51,7 @@ const _bakeContract = async (contractKeys, contractSource) => {
   // console.log('bake contract 2', response2);
   return response2;
 };
-const _runScript = async (userKeys, script) => {
+const _runTransaction = async (userKeys, transaction) => {
   const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
     method: 'POST',
     body: JSON.stringify({
@@ -59,6 +59,20 @@ const _runScript = async (userKeys, script) => {
       privateKey: userKeys.privateKey,
       publicKey: userKeys.publicKey,
 
+      limit: 100,
+      transaction,
+      wait: true,
+    }),
+  });
+  const response2 = await res.json();
+
+  // console.log('bake contract 2', response2);
+  return response2;
+};
+const _runScript = async script => {
+  const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+    method: 'POST',
+    body: JSON.stringify({
       limit: 100,
       script,
       wait: true,
@@ -115,29 +129,37 @@ const _runSpec = async (userKeys, spec) => {
 	    .replace(/NONFUNGIBLETOKENADDRESS/g, NonFungibleToken)
 	    .replace(/FUNGIBLETOKENADDRESS/g, FungibleToken)
 	    .replace(/EXAMPLETOKENADDRESS/g, ExampleToken)
-	    .replace(/EXAMPLENFTADDRESS/g, ExampleNFT);
+	    .replace(/EXAMPLENFTADDRESS/g, ExampleNFT)
+	    .replace(/EXAMPLEACCOUNTADDRESS/g, ExampleAccount);
 	  contractFormSource.setAttribute('disabled', '');
 
-    const contractKeys = JSON.parse(contractFormKeys.value);
+    const contractKeys = _jsonParse(contractFormKeys.value);
 
-    let result, o;
-    if (contractSource.charAt(0) === '[') {
-     	console.log('run array');
-      result = await _runArray(contractKeys, eval(contractSource));
-    } else if (contractSource.charAt(0) === '{') {
-     	console.log('run array');
-      result = await _runSpec(contractKeys, eval(contractSource));
-    } else if (/pub contract /.test(contractSource)) {
-    	console.log('run contract');
-		  result = await _bakeContract(contractKeys, contractSource);
-		} else if (/transaction {/.test(contractSource)) {
-			console.log('run script');
-			result = await _runScript(contractKeys, contractSource);
-		} else {
-			console.warn('do not know how to run source', contractSource);
+    try {
+	    let result, o;
+	    if (contractSource.charAt(0) === '[') {
+	     	console.log('run array');
+	      result = await _runArray(contractKeys, eval(contractSource));
+	    } else if (contractSource.charAt(0) === '{') {
+	     	console.log('run array');
+	      result = await _runSpec(contractKeys, eval(contractSource));
+	    } else if (/pub contract /.test(contractSource)) {
+	    	console.log('run contract');
+			  result = await _bakeContract(contractKeys, contractSource);
+      } else if (/pub fun main\(\)/.test(contractSource)) {
+				console.log('run script');
+				result = await _runScript(contractSource);
+			} else if (/transaction /.test(contractSource)) {
+				console.log('run transaction');
+				result = await _runTransaction(contractKeys, contractSource);
+			} else {
+				console.warn('do not know how to run source', contractSource);
+			}
+
+			contractFormSource.value = JSON.stringify(result, null, 2);
+		} catch(err) {
+			contractFormSource.value = err.stack;
 		}
-
-		contractFormSource.value = JSON.stringify(result, null, 2);
 		contractFormSource.removeAttribute('disabled');
 	});
 }

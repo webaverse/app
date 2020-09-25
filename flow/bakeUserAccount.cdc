@@ -1,6 +1,29 @@
 [
   {
     transaction: `\
+      import ExampleAccount from EXAMPLEACCOUNTADDRESS
+
+      transaction {
+          prepare(acct: AuthAccount) {
+
+              // If the account doesn't already have a collection
+              if acct.borrow<&ExampleAccount.State>(from: /storage/AccountCollection) == nil {
+
+                  // Create a new empty collection
+                  let state <- ExampleAccount.createState() as! @ExampleAccount.State
+
+                  // save it to the account
+                  acct.save(<-state, to: /storage/AccountCollection)
+
+                  // create a public capability for the collection
+                  acct.link<&{ExampleAccount.ExampleAccountStatePublic}>(/public/AccountCollection, target: /storage/AccountCollection)
+              }
+          }
+      }
+    `,
+  },
+  {
+    transaction: `\
       import FungibleToken from FUNGIBLETOKENADDRESS
       import ExampleToken from EXAMPLETOKENADDRESS
 
