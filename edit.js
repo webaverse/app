@@ -23,15 +23,11 @@ import {
   SUBPARCEL_SIZE_P3,
   NUM_PARCELS,
   MAX_NAME_LENGTH,
-
   numSlices,
   slabRadius,
-
   chunkDistance,
   BUILD_SNAP,
-
   colors,
-  
   presenceHost,
 } from './constants.js';
 import {makePromise, getNextMeshId, WaitQueue} from './util.js';
@@ -46,6 +42,9 @@ import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
 import app from './app-object.js';
 import inventory from './inventory.js';
+
+import * as index from './preact-xr-ui/dev/index/index.bundle.js';
+import { render } from './node_modules/preact/dist/preact.module.js';
 // import {testFlow} from './blockchain.js';
 // window.testFlow = testFlow;
 
@@ -7496,3 +7495,11 @@ document.getElementById('enter-xr-button').addEventListener('click', e => {
     currentSession.end();
   }
 });
+
+
+const props = {message: 'hello'};
+
+window.addEventListener('load', (e) => {
+  console.log('hehe', index)
+  render(index.Inventory(props), document.getElementById('preact-container'));
+})

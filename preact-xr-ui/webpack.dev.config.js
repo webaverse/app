@@ -1,7 +1,8 @@
 const path = require('path');
 const webpack = require('webpack');
 const entry = {
-    inventory: './src/components/Inventory.tsx',
+    index: './src/index.js',
+    inventory: './src/components/Inventory.js',
 };
 
 module.exports = {
@@ -11,7 +12,7 @@ module.exports = {
     watch: true,
     output: {
         path: path.join(__dirname, 'dev'),
-        filename: '[name]/[name].bundle.js'
+        filename: '[name]/[name].bundle.js',
     },
     resolve: {
         alias: {
@@ -30,15 +31,6 @@ module.exports = {
                 test: /\.(js|jsx)$/,
                 exclude: /node_modules/,
                 use: ['babel-loader']
-            },
-            {
-                test: /\.ts(x?)$/,
-                exclude: /node_modules/,
-                use: [
-                    {
-                        loader: "ts-loader"
-                    }
-                ]
             },
             {
                 test: /\.(less|css)$/,
