@@ -5,7 +5,12 @@ import '../styles/inventory.less'
 const InventoryCard = (props) => {
     return (
         <div class="twoD-inventoryCard">
-
+            <img class="twoD-inventoryCardPreview" src="https://www.pinpng.com/pngs/m/5-52212_avatar-3d-model-free-hd-png-download.png"/>
+            <h4 class="twoD-inventoryCardName">item name</h4>
+            <div class="twoD-inventoryCardActions">
+                <button class="twoD-inventoryCardWearBtn">Wear</button>
+                <button class="twoD-inventoryCardInspectBtn">Inspect</button>
+            </div>
         </div>
     );
 }
@@ -15,7 +20,8 @@ const Inventory = (props) => {
     return (
         <div class="twoD-inventory">
             <div class="twoD-inventoryHeader">
-                <h1>Inventory</h1>
+                <h1 style={{ display: 'inline'}}>Inventory</h1>
+                <button class="twoD-inventoryUploadBtn">Upload</button>
             </div>
             <div class="twoD-inventoryList">
                 {

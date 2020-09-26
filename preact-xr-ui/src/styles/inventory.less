@@ -7,11 +7,25 @@
     border-radius: 20px;
 
     .twoD-inventoryHeader {
-        padding: 10px 40px;
+        padding: 20px 40px;
+        
+        .twoD-inventoryUploadBtn {
+            float: right;
+            padding: 10px 20px;
+            background-color: #42a5f5;
+            border: 0;
+            color: #FFF;
+            border-radius: 8px;
+            font-size: 16px;
+            white-space: nowrap;
+            text-decoration: none;
+            cursor: pointer;
+            user-select: none;
+        }
     }
 
     .twoD-inventoryList {
-        height: calc(100% - 82px);
+        max-height: calc(100% - 82px);
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
@@ -23,6 +37,56 @@
             width: 200px;
             background-color: aliceblue;
             margin: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0px 1px rgba(0, 0, 0, 0.24);
+            border-radius: 3px;
+            border: 1px #eeeef5 solid;
+            text-align: center;
+
+            .twoD-inventoryCardName {
+                margin-bottom: 9px;
+                margin-top: 5px;
+            }
+
+            .twoD-inventoryCardPreview {
+                height: 66%;
+                object-fit: cover;
+                width: 100%;
+            }
+
+            .twoD-inventoryCardActions {
+
+                .twoD-inventoryCardWearBtn {
+                    padding: 4px 8px;
+                    background-color: #30dc21;
+                    border: 0;
+                    color: #FFF;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    white-space: nowrap;
+                    text-decoration: none;
+                    cursor: pointer;
+                    user-select: none;
+                    margin-right: 8px;
+                }
+
+                .twoD-inventoryCardInspectBtn {
+                    padding: 4px 8px;
+                    background-color: #a049e8;
+                    border: 0;
+                    color: #FFF;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    white-space: nowrap;
+                    text-decoration: none;
+                    cursor: pointer;
+                    user-select: none;
+                    margin-left: 8px;
+                }
+            }
+        }
+
+        .twoD-inventoryCard:hover {
+            border: 1px #eeeef5 solid;
         }
     }
 }
