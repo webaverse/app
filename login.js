@@ -323,19 +323,34 @@ class LoginManager extends EventTarget {
     }));
   }
 
-  getInventory() {
-    return userObject ? _clone(userObject.inventory) : [];
-  }
+  async getInventory() {
+    if (loginToken) {
+      const contractSource = await getContractSource('getHashes.cdc');
 
-  async setInventory(inventory) {
-    if (userObject) {
-      userObject.inventory = inventory;
-      await pushUserObject();
-      // updateUserObject();
+      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+        method: 'POST',
+        body: JSON.stringify({
+          /* address: addr,
+          mnemonic, */
+
+          limit: 100,
+          script: contractSource
+            .replace(/ARG0/g, '0x' + loginToken.addr),
+          wait: true,
+        }),
+      });
+      const response2 = await res.json();
+
+      const entries = response2.encodedData.value.map(({value: {fields}}) => {
+        const id = parseInt(fields.find(field => field.name === 'id').value.value, 10);
+        const hash = fields.find(field => field.name === 'hash').value.value;
+        const filename = fields.find(field => field.name === 'filename').value.value;
+        return {id, hash, filename};
+      });
+      return entries;
+    } else {
+      return [];
     }
-    this.dispatchEvent(new MessageEvent('inventorychange', {
-      data: _clone(inventory),
-    }));
   }
 
   pushUpdate() {
