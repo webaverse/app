@@ -1,6 +1,7 @@
+import {contractsHost} from './constants.js';
 import flowConstants from './flow-constants.js';
 const {FungibleToken, NonFungibleToken, ExampleToken, ExampleNFT, ExampleAccount} = flowConstants;
-import wordList from './flow/wordlist.js';
+import wordList from './wordlist.js';
 
 /* import flowConstants from './flow-constants.js';
 import {accountsHost} from './constants.js';
@@ -488,7 +489,7 @@ const contractSourceCache = {};
 async function getContractSource(p) {
   let contractSource = contractSourceCache[p];
   if (!contractSource) {
-    const res = await fetch('./flow/' + p);
+    const res = await fetch(contractsHost + '/flow/' + p);
     contractSource = await res.text();
     contractSource = resolveContractSource(contractSource);
     if (/\.json$/.test(p)) {
