@@ -127,7 +127,7 @@ const _runSpec = async (userKeys, spec) => {
 	contractForm.addEventListener('submit', async e => {
 	  e.preventDefault();
 
-	  const contractSource = resolveContractSource(contractFormSource.value);
+	  const contractSource = await resolveContractSource(contractFormSource.value);
 	  contractFormSource.setAttribute('disabled', '');
 
     const contractKeys = _jsonParse(contractFormKeys.value);
