@@ -5,7 +5,7 @@ import '../styles/inventory.css';
 import MakeIcons from './MakeIcons.js';
 
 const Inventory = (props) => {
-    let [iconIndex, setIconIndex] = useState(0);
+    // let [iconIndex, setIconIndex] = useState(0);
     const icons = ['lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol', 'lol']
 
     console.log(props)

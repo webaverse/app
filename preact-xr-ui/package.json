@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "webpack-cli --watch --config webpack.dev.config.js",
+    "dev": "webpack-cli --config webpack.dev.config.js && ./fixBuild.sh",
     "build": "webpack-cli --config webpack.build.config.js"
   },
   "author": "The Metaverse",
