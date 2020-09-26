@@ -353,6 +353,49 @@ class LoginManager extends EventTarget {
     }
   }
 
+  async uploadToInventory(file) {
+    if (loginToken) {
+      const {name} = file;
+      if (name) {
+        const {mnemonic, addr} = loginToken;
+
+        let hash;
+        {
+          const res = await fetch('https://storage.exokit.org/', {
+            method: 'POST',
+            body: file,
+          });
+          const j = await res.json();
+          hash = j.hash;
+        }
+        {
+          const contractSource = await getContractSource('mintNft.cdc');
+
+          const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+            method: 'POST',
+            body: JSON.stringify({
+              address: addr,
+              mnemonic,
+
+              limit: 100,
+              transaction: contractSource
+                .replace(/ARG0/g, hash)
+                .replace(/ARG1/g, name),
+              wait: true,
+            }),
+          });
+          const response2 = await res.json();
+          const id = parseInt(response2.transaction.events[0].payload.value.fields.find(field => field.name === 'id').value.value, 10);
+          return id;
+        }
+      } else {
+        throw new Error('file has no name');
+      }
+    } else {
+      throw new Error('not logged in');
+    }
+  }
+
   pushUpdate() {
     this.dispatchEvent(new MessageEvent('usernamechange', {
       data: userObject && userObject.name,
