@@ -142,6 +142,8 @@
 
           const arrayBuffer = await blob.arrayBuffer();
 
+          console.log('png blob arrayBuffer', blob.size, arrayBuffer.byteLength);
+
           window.parent.postMessage({
             method: 'result',
             result: arrayBuffer,
