@@ -221,8 +221,8 @@
             img.onerror = reject;
             img.src = URL.createObjectURL(blob);
           });
-          img.style.width = `${img.width/window.devicePixelRatio}px`;
-          img.style.height = `${img.height/window.devicePixelRatio}px`;
+          img.style.width = `${width}px`;
+          img.style.height = `${height}px`;
           screenshotResult.appendChild(img);
 
           const arrayBuffer = await blob.arrayBuffer();
