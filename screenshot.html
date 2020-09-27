@@ -99,6 +99,14 @@
             method: 'result',
             result: arrayBuffer,
           }, '*', [arrayBuffer]);
+
+          if (dst) {
+            const res = await fetch(dst, {
+              method: 'POST',
+              body: arrayBuffer,
+            });
+            await res.blob();
+          }
         } else if (type === 'png' || type === 'jpg') {
           const u = `${storageHost}/${hash}`;
           let o;
@@ -138,6 +146,14 @@
             method: 'result',
             result: arrayBuffer,
           }, '*', [arrayBuffer]);
+
+          if (dst) {
+            const res = await fetch(dst, {
+              method: 'POST',
+              body: arrayBuffer,
+            });
+            await res.blob();
+          }
         } else if (type === 'gif') {
           const u = `${storageHost}/${hash}`;
           let o;
@@ -208,6 +224,14 @@
             method: 'result',
             result: arrayBuffer,
           }, '*', [arrayBuffer]);
+
+          if (dst) {
+            const res = await fetch(dst, {
+              method: 'POST',
+              body: arrayBuffer,
+            });
+            await res.blob();
+          }
         } else {
           console.warn('unknown output type', type);
         }
@@ -221,6 +245,14 @@
           method: 'error',
           error: err.stack,
         }, '*');
+
+        if (dst) {
+          const res = await fetch(dst, {
+            method: 'POST',
+            body: err.stack,
+          });
+          await res.blob();
+        }
       }
     })();
   </script>
