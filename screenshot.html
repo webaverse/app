@@ -95,18 +95,17 @@
             renderer.render(scene, camera);
           });
 
+          if (dst) {
+            fetch(dst, {
+              method: 'POST',
+              body: arrayBuffer,
+            }).then(res => res.blob());
+          }
+
           window.parent.postMessage({
             method: 'result',
             result: arrayBuffer,
           }, '*', [arrayBuffer]);
-
-          if (dst) {
-            const res = await fetch(dst, {
-              method: 'POST',
-              body: arrayBuffer,
-            });
-            await res.blob();
-          }
         } else if (type === 'png' || type === 'jpg') {
           const u = `${storageHost}/${hash}`;
           let o;
@@ -144,18 +143,17 @@
 
           console.log('png blob arrayBuffer', blob.size, arrayBuffer.byteLength);
 
+          if (dst) {
+            fetch(dst, {
+              method: 'POST',
+              body: arrayBuffer,
+            }).then(res => res.blob());
+          }
+
           window.parent.postMessage({
             method: 'result',
             result: arrayBuffer,
           }, '*', [arrayBuffer]);
-
-          if (dst) {
-            const res = await fetch(dst, {
-              method: 'POST',
-              body: arrayBuffer,
-            });
-            await res.blob();
-          }
         } else if (type === 'gif') {
           const u = `${storageHost}/${hash}`;
           let o;
@@ -222,18 +220,17 @@
 
           const arrayBuffer = await blob.arrayBuffer();
 
+          if (dst) {
+            fetch(dst, {
+              method: 'POST',
+              body: arrayBuffer,
+            }).then(res => res.blob());
+          }
+
           window.parent.postMessage({
             method: 'result',
             result: arrayBuffer,
           }, '*', [arrayBuffer]);
-
-          if (dst) {
-            const res = await fetch(dst, {
-              method: 'POST',
-              body: arrayBuffer,
-            });
-            await res.blob();
-          }
         } else {
           console.warn('unknown output type', type);
         }
@@ -243,18 +240,17 @@
         toggleElements(null, err);
         console.warn(err.stack);
 
+        if (dst) {
+          fetch(dst, {
+            method: 'POST',
+            body: err.stack,
+          }).then(res => res.blob());
+        }
+
         window.parent.postMessage({
           method: 'error',
           error: err.stack,
         }, '*');
-
-        if (dst) {
-          const res = await fetch(dst, {
-            method: 'POST',
-            body: err.stack,
-          });
-          await res.blob();
-        }
       }
     })();
   </script>
