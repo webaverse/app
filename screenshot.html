@@ -98,6 +98,9 @@
           if (dst) {
             fetch(dst, {
               method: 'POST',
+              headers: {
+                'Content-Type': 'model/gltf-binary',
+              },
               body: arrayBuffer,
             }).then(res => res.blob());
           }
@@ -126,8 +129,9 @@
           }
           renderer.render(scene, camera);
 
+          const mimeType = `image/${type === 'png' ? 'png' : 'jpeg'}`;
           const blob = await new Promise((accept, reject) => {
-            renderer.domElement.toBlob(accept, `image/${type === 'png' ? 'png' : 'jpeg'}`);
+            renderer.domElement.toBlob(accept, mimeType);
           });
           const img = new Image();
           await new Promise((accept, reject) => {
@@ -141,11 +145,14 @@
 
           const arrayBuffer = await blob.arrayBuffer();
 
-          console.log('png blob arrayBuffer', blob.size, arrayBuffer.byteLength);
+          // console.log('png blob arrayBuffer', blob.size, arrayBuffer.byteLength);
 
           if (dst) {
             fetch(dst, {
               method: 'POST',
+              headers: {
+                'Content-Type': mimeType,
+              },
               body: arrayBuffer,
             }).then(res => res.blob());
           }
@@ -223,6 +230,9 @@
           if (dst) {
             fetch(dst, {
               method: 'POST',
+              headers: {
+                'Content-Type': 'image/gif',
+              },
               body: arrayBuffer,
             }).then(res => res.blob());
           }
@@ -243,6 +253,9 @@
         if (dst) {
           fetch(dst, {
             method: 'POST',
+            headers: {
+              'Content-Type': 'text/plain',
+            },
             body: err.stack,
           }).then(res => res.blob());
         }
