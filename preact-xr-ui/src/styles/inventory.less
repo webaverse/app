@@ -42,7 +42,7 @@
     }
 
     .twoD-inventoryList {
-        max-height: calc(100% - 82px);
+        max-height: calc(100% - 95px);
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
@@ -50,18 +50,19 @@
         overflow-y: auto;
 
         .twoD-inventoryCard {
-            height: 200px;
+            height: 230px;
             width: 200px;
-            background-color: aliceblue;
+            background-color:#e6e8ef;
             margin: 10px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0px 1px rgba(0, 0, 0, 0.24);
-            border-radius: 3px;
+            box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);            
+            border-radius: 5px;
             border: 1px #eeeef5 solid;
             text-align: center;
 
             .twoD-inventoryCardName {
                 margin-bottom: 9px;
                 margin-top: 5px;
+                font-size: 15px;
             }
 
             .twoD-inventoryCardPreview {
@@ -73,7 +74,7 @@
             .twoD-inventoryCardActions {
 
                 .twoD-inventoryCardWearBtn {
-                    padding: 4px 8px;
+                    padding: 6px 10px;
                     background-color: #2ec19c;
                     border: 0;
                     color: #FFF;
@@ -87,7 +88,7 @@
                 }
 
                 .twoD-inventoryCardInspectBtn {
-                    padding: 4px 8px;
+                    padding: 6px 10px;
                     background-color: #a049e8;
                     border: 0;
                     color: #FFF;
