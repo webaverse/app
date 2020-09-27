@@ -47,10 +47,10 @@
 
         const scene = new THREE.Scene();
 
-        const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), new THREE.MeshBasicMaterial({
+        /* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), new THREE.MeshBasicMaterial({
           color: 0x0000FF,
         }));
-        scene.add(cubeMesh);
+        scene.add(cubeMesh); */
 
         const camera = new THREE.PerspectiveCamera(90, width / height, 0.1, 100);
         camera.position.copy(cameraPosition);
