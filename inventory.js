@@ -19,7 +19,7 @@ const importMap = {
 const _getExt = fileName => {
   const match = fileName.match(/\.(.+)$/);
   return match && match[1];
-}
+};
 inventory.bakeHash = async (hash, fileName) => {
   switch (_getExt(fileName)) {
     case 'gltf':
