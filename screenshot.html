@@ -39,6 +39,17 @@
     const cameraPosition = new THREE.Vector3(0, 1, -2);
     const cameraTarget = new THREE.Vector3(0, 0, 0);
 
+    const _makePromise = () => {
+      let accept, reject;
+      const p = new Promise((a, r) => {
+        accept = a;
+        reject = r;
+      });
+      p.accept = accept;
+      p.reject = reject;
+      return p;
+    };
+
     (async () => {
       const {hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
 
@@ -224,6 +235,105 @@
           img.style.width = `${width}px`;
           img.style.height = `${height}px`;
           screenshotResult.appendChild(img);
+
+          const arrayBuffer = await blob.arrayBuffer();
+
+          if (dst) {
+            fetch(dst, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'image/gif',
+              },
+              body: arrayBuffer,
+            }).then(res => res.blob());
+          }
+
+          window.parent.postMessage({
+            method: 'result',
+            result: arrayBuffer,
+          }, '*', [arrayBuffer]);
+        } else if (type === 'webm') {
+          const u = `${storageHost}/${hash}`;
+          let o;
+          try {
+            o = await new Promise((accept, reject) => {
+              new GLTFLoader().load(u, accept, function onprogress() {}, reject);
+            });
+          } catch(err) {
+            console.warn(err);
+          } /* finally {
+            URL.revokeObjectURL(u);
+          } */
+          o = o.scene;
+          scene.add(o);
+
+          const stream = renderer.domElement.captureStream(0);
+          const track = stream.getVideoTracks()[0];
+          const recordedChunks = [];
+
+          // renderer.getContext();
+          // screenshotResult.appendChild(renderer.domElement);
+          const mediaRecorder = new MediaRecorder(stream, {
+            mimeType: 'video/webm; codecs=vp9',
+          });
+
+          mediaRecorder.ondataavailable = event => {
+            // console.log('got data', event.data);
+            if (event.data.size > 0) {
+              recordedChunks.push(event.data);
+              // console.log(recordedChunks);
+              // download();
+            } else {
+              // ...
+            }
+          };
+          const p = _makePromise();
+          mediaRecorder.onstop = () => {
+            // console.log('done');
+            p.accept();
+          };
+          mediaRecorder.start();
+
+          const boundingBox = new THREE.Box3().setFromObject(o);
+          const center = boundingBox.getCenter(new THREE.Vector3());
+          const size = boundingBox.getSize(new THREE.Vector3());
+
+          renderer.setClearColor(0xFFFFFF, 1);
+
+          for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
+            await new Promise((accept, reject) => {
+              requestAnimationFrame(accept);
+            });
+            camera.position.copy(center)
+              .add(new THREE.Vector3(0, size.y / 2, 0))
+              .add(new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
+            camera.lookAt(center);
+            camera.updateMatrixWorld();
+            renderer.render(scene, camera);
+
+            track.requestFrame();
+            mediaRecorder.requestData();
+          }
+          mediaRecorder.stop();
+
+          await p;
+
+          const blob = new Blob(recordedChunks, {
+            type: 'video/webm',
+          });
+
+          const video = document.createElement('video');
+          video.muted = true;
+          video.autoplay = true;
+          await new Promise((accept, reject) => {
+            video.oncanplaythrough = accept;
+            video.onerror = reject;
+            video.src = URL.createObjectURL(blob);
+          });
+          video.style.width = `${width}px`;
+          video.style.height = `${height}px`;
+          video.loop = true;
+          screenshotResult.appendChild(video);
 
           const arrayBuffer = await blob.arrayBuffer();
 
