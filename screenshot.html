@@ -305,7 +305,7 @@
           });
 
           mediaRecorder.ondataavailable = event => {
-            console.log('got data', event.data);
+            // console.log('got data', event.data);
             if (event.data.size > 0) {
               recordedChunks.push(event.data);
               // console.log(recordedChunks);
@@ -316,7 +316,7 @@
           };
           const p = _makePromise();
           mediaRecorder.onstop = () => {
-            console.log('stop');
+            // console.log('stop');
             p.accept();
           };
           mediaRecorder.start();
