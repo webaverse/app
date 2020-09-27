@@ -139,7 +139,10 @@
           const center = boundingBox.getCenter(new THREE.Vector3());
           const size = boundingBox.getSize(new THREE.Vector3());
 
-          camera.position.y = size.y / 2;
+          camera.position.x = 0;
+          camera.position.y = center.y;
+          camera.position.z = -size.y / 2 / Math.tan(Math.PI * camera.fov / 360) * 1.2;
+          camera.lookAt(center);
           camera.updateMatrixWorld();
 
           if (type === 'jpg') {
