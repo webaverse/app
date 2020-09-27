@@ -302,7 +302,7 @@
 
           for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
             await new Promise((accept, reject) => {
-              requestAnimationFrame(accept);
+              setTimeout(accept, 1000/60);
             });
             camera.position.copy(center)
               .add(new THREE.Vector3(0, size.y / 2, 0))
