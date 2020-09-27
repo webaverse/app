@@ -29,22 +29,22 @@
   <script type=module>
     import * as THREE from './three.module.js';
     import {OrbitControls} from './OrbitControls.js';
+    import {GLTFLoader} from './GLTFLoader.js';
     import {bake, parseQuery, toggleElements} from './bakeUtils.js';
+    import {storageHost} from './constants.js';
 
-    const width = 512;
-    const height = 512;
+    const width = 1024;
+    const height = 1024;
     const cameraPosition = new THREE.Vector3(0, 1, -2);
     const cameraTarget = new THREE.Vector3(0, 0, 0);
 
     (async () => {
-      const {hash, type, dst} = parseQuery(decodeURIComponent(window.location.search));
+      const {hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
 
       try {
         toggleElements(false);
-        const {model, arrayBuffer, file} = await bake(hash, type, dst);
 
         const scene = new THREE.Scene();
-        scene.add(model);
 
         const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), new THREE.MeshBasicMaterial({
           color: 0x0000FF,
@@ -67,33 +67,79 @@
           alpha: true,
           antialias: true,
         });
-        // renderer.setClearColor(0xFFFFFF, 1);
         renderer.setSize(width, height);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        // renderer.clear(true, true, true);
-        renderer.render(scene, camera);
 
         const screenshotResult = document.getElementById('screenshot-result');
-        screenshotResult.appendChild(renderer.domElement);
 
-        renderer.domElement.style.background = '#F00';
+        if (type === 'gltf') {
+          const {model, arrayBuffer, file} = await bake(hash, ext, dst);
+          scene.add(model);
 
-        const orbitControls = new OrbitControls(camera, renderer.domElement, document);
-        orbitControls.screenSpacePanning = true;
-        orbitControls.enableMiddleZoom = false;
-        orbitControls.target.copy(cameraTarget);
-        orbitControls.update();
+          renderer.setPixelRatio(window.devicePixelRatio);
+          renderer.render(scene, camera);
 
-        renderer.setAnimationLoop(() => {
+          screenshotResult.appendChild(renderer.domElement);
+
+          renderer.domElement.style.background = '#F00';
+
+          const orbitControls = new OrbitControls(camera, renderer.domElement, document);
+          orbitControls.screenSpacePanning = true;
+          orbitControls.enableMiddleZoom = false;
+          orbitControls.target.copy(cameraTarget);
           orbitControls.update();
 
-          renderer.render(scene, camera);
-        });
+          renderer.setAnimationLoop(() => {
+            orbitControls.update();
 
-        window.parent.postMessage({
-          method: 'result',
-          result: arrayBuffer,
-        }, '*', [arrayBuffer]);
+            renderer.render(scene, camera);
+          });
+
+          window.parent.postMessage({
+            method: 'result',
+            result: arrayBuffer,
+          }, '*', [arrayBuffer]);
+        } else if (type === 'png' || type === 'jpg') {
+          const u = `${storageHost}/${hash}`;
+          let o;
+          try {
+            o = await new Promise((accept, reject) => {
+              new GLTFLoader().load(u, accept, function onprogress() {}, reject);
+            });
+          } catch(err) {
+            console.warn(err);
+          } /* finally {
+            URL.revokeObjectURL(u);
+          } */
+          o = o.scene;
+          scene.add(o);
+
+          if (type === 'jpg') {
+            renderer.setClearColor(0xFFFFFF, 1);
+          }
+          renderer.render(scene, camera);
+
+          const blob = await new Promise((accept, reject) => {
+            renderer.domElement.toBlob(accept, `image/${type === 'png' ? 'png' : 'jpeg'}`);
+          });
+          const img = new Image();
+          await new Promise((accept, reject) => {
+            img.onload = accept;
+            img.onerror = reject;
+            img.src = URL.createObjectURL(blob);
+          });
+          img.style.width = `${img.width/window.devicePixelRatio}px`;
+          img.style.height = `${img.height/window.devicePixelRatio}px`;
+          screenshotResult.appendChild(img);
+
+          const arrayBuffer = await blob.arrayBuffer();
+
+          window.parent.postMessage({
+            method: 'result',
+            result: arrayBuffer,
+          }, '*', [arrayBuffer]);
+        } else {
+          console.warn('unknown output type', type);
+        }
 
         toggleElements(true);
       } catch (err) {

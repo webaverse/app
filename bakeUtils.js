@@ -22,8 +22,8 @@ const errorTraceEl = document.getElementById('error-trace');
   return match && match[1];
 }; */
 
-const bake = async (hash, type, dst) => {
-  switch (type) {
+const bake = async (hash, ext, dst) => {
+  switch (ext) {
     case 'gltf':
     case 'glb':
     case 'vrm': {
