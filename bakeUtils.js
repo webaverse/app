@@ -28,7 +28,7 @@ const bake = async (hash, type, dst) => {
     case 'glb':
     case 'vrm': {
       const u = `${storageHost}/${hash}`;
-      console.log('got u', u);
+      // console.log('got u', u);
       let o;
       try {
         o = await new Promise((accept, reject) => {
