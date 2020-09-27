@@ -9,7 +9,7 @@ h3 {
 p {
   font-size: 1.2em;
 }
-.results {
+/* .results {
   display: flex;
   flex-direction: row;
   justify-content: space-around;
@@ -21,7 +21,7 @@ p {
 canvas {
   width: 100% !important;
   height: 100% !important;
-}
+} */
 
 #baking {
   display: block;

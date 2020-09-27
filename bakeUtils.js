@@ -1,20 +1,98 @@
 /* eslint-disable no-inner-declarations */
 
-import THREE from 'https://static.xrpackage.org/xrpackage/three.module.js';
-import {XRPackage, XRPackageEngine} from 'https://static.xrpackage.org/xrpackage.js';
-import {GLTFExporter} from 'https://static.xrpackage.org/GLTFExporter.js';
-import {OrbitControls} from 'https://static.xrpackage.org/xrpackage/OrbitControls.js';
-import {getWireframeMesh, getDefaultAabb, getPreviewMesh} from './volume.js';
-import {readFile} from 'https://static.xrpackage.org/xrpackage/util.js';
-import {screenshotEngine} from './screenshot-object.js';
+import * as THREE from './three.module.js';
+// import {XRPackage, XRPackageEngine} from 'https://static.xrpackage.org/xrpackage.js';
+import {GLTFLoader} from './GLTFLoader.js';
+import {GLTFExporter} from './GLTFExporter.js';
+import {OrbitControls} from './OrbitControls.js';
+// import {getWireframeMesh, getDefaultAabb, getPreviewMesh} from './volume.js';
+// import {readFile} from './util.js';
+// import {screenshotEngine} from './screenshot-object.js';
+import {bindUploadFileButton, mergeMeshes} from './util.js';
+import {storageHost} from './constants.js';
 
 const screenshotHeaderEl = document.getElementById('screenshot-header');
 const screenshotResultEl = document.getElementById('screenshot-result');
-const volumeHeaderEl = document.getElementById('volume-header');
-const volumeResultEl = document.getElementById('volume-result');
 const aabbHeaderEl = document.getElementById('aabb-header');
 const aabbResultEl = document.getElementById('aabb-result');
 const errorTraceEl = document.getElementById('error-trace');
+
+/* const _getExt = fileName => {
+  const match = fileName.match(/\.([^\.]+)$/);
+  return match && match[1];
+}; */
+
+const bake = async (hash, ext, dst) => {
+  switch (ext) {
+    case 'gltf':
+    case 'glb':
+    case 'vrm': {
+      const u = `${storageHost}/${hash}`;
+      // console.log('got u', u);
+      let o;
+      try {
+        o = await new Promise((accept, reject) => {
+          new GLTFLoader().load(u, accept, function onprogress() {}, reject);
+        });
+      } catch(err) {
+        console.warn(err);
+      } /* finally {
+        URL.revokeObjectURL(u);
+      } */
+      o = o.scene;
+
+      const specs = [];
+      o.traverse(o => {
+        if (o.isMesh) {
+          const mesh = o;
+          const {geometry} = o;
+          let texture;
+          if (o.material.map) {
+            texture = o.material.map;
+          } else if (o.material.emissiveMap) {
+            texture = o.material.emissiveMap;
+          } else {
+            texture = null;
+          }
+          specs.push({
+            mesh,
+            geometry,
+            texture,
+          });
+        }
+      });
+      specs.sort((a, b) => +a.mesh.material.transparent - +b.mesh.material.transparent);
+      const meshes = specs.map(spec => spec.mesh);
+      const geometries = specs.map(spec => spec.geometry);
+      const textures = specs.map(spec => spec.texture);
+
+      const mesh = mergeMeshes(meshes, geometries, textures);
+      mesh.userData.gltfExtensions = {
+        EXT_aabb: mesh.geometry.boundingBox.min.toArray()
+          .concat(mesh.geometry.boundingBox.max.toArray()),
+        EXT_hash: hash,
+      };
+      const arrayBuffer = await new Promise((accept, reject) => {
+        new GLTFExporter().parse(mesh, accept, {
+          binary: true,
+          includeCustomExtensions: true,
+        });
+      });
+      const bakedFile = new Blob([arrayBuffer], {
+        type: 'model/gltf+binary',
+      });
+      // bakedFile.name = fileName;
+      return {
+        model: mesh,
+        arrayBuffer: arrayBuffer,
+        file: bakedFile,
+      };
+    }
+    default: {
+      return null;
+    }
+  }
+};
 
 const parseQuery = queryString => {
   const query = {};
@@ -45,12 +123,11 @@ const toggleElements = (baked, err) => {
     errorEl.style.display = 'block';
 
     if (screenshotHeaderEl) screenshotHeaderEl.innerText = '';
-    if (volumeHeaderEl) volumeHeaderEl.innerText = '';
     errorTraceEl.innerText = err.stack;
   }
 };
 
-const screenshotWbn = async (srcWbn, dstGif) => {
+const screenshot = async (src, type, dst) => {
   screenshotHeaderEl.innerText = 'Screenshotting...';
   const {screenshotBlob} = await _screenshot(srcWbn, dstGif);
 
@@ -63,22 +140,6 @@ const screenshotWbn = async (srcWbn, dstGif) => {
   screenshotHeaderEl.innerText = 'Screenshotting done';
   const screenshot = await readFile(screenshotBlob);
   return {screenshot};
-};
-
-const volumizeWbn = async (srcWbn, dstVolume, dstAabb) => {
-  volumeHeaderEl.innerText = 'Volumizing...';
-  const {volumeBlob, aabb, domElement} = await _volumeize(srcWbn, dstVolume, dstAabb);
-
-  volumeResultEl.appendChild(domElement);
-  domElement.style.backgroundColor = '#EEE';
-  domElement.style.borderRadius = '10px';
-
-  aabbHeaderEl.innerText = 'AABB';
-  aabbResultEl.innerText = JSON.stringify(aabb, null, 2);
-  volumeHeaderEl.innerText = 'Volumizing done';
-
-  const volume = await readFile(volumeBlob);
-  return {volume, aabb};
 };
 
 const _screenshot = async (srcWbn, dstGif) => {
@@ -129,122 +190,4 @@ const _screenshot = async (srcWbn, dstGif) => {
   return {screenshotBlob};
 };
 
-const _volumeize = async (srcWbn, dstVolume, dstAabb) => {
-  const req = await fetch(srcWbn);
-  const arrayBuffer = await req.arrayBuffer();
-  const uint8Array = new Uint8Array(arrayBuffer);
-  const p = await (async () => {
-    try {
-      const p = new XRPackage(uint8Array);
-      await p.waitForLoad();
-      return p;
-    } catch (err) {
-      console.error(err.stack);
-      return null;
-    }
-  })();
-
-  if (!p) throw new Error('no package to volumize');
-  const renderer = new THREE.WebGLRenderer({
-    // canvas,
-    // context,
-    // preserveDrawingBuffer: true,
-  });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
-
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 1, 2);
-  camera.rotation.order = 'YXZ';
-
-  const orbitControls = new OrbitControls(camera, renderer.domElement, document);
-  orbitControls.screenSpacePanning = true;
-  orbitControls.enableMiddleZoom = false;
-  orbitControls.update();
-
-  const o = await getPreviewMesh(p);
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(o.positions, 3));
-  geometry.setIndex(new THREE.BufferAttribute(o.indices, 1));
-  const collisionMaterial = new THREE.MeshStandardMaterial({color: 0xFFFFFF});
-  const collisionMesh = new THREE.Mesh(geometry, collisionMaterial);
-  collisionMesh.frustumCulled = false;
-
-  let aabb = p.getAabb();
-  if (!aabb) {
-    const {type} = p;
-    if (type === 'gltf@0.0.1' || type === 'vrm@0.0.1') {
-      const model = await p.getModel();
-      aabb = new THREE.Box3().setFromObject(model);
-    } else {
-      aabb = getDefaultAabb();
-    }
-  }
-  aabb = [aabb.min.toArray(), aabb.max.toArray()];
-
-  const volumeData = await new Promise((resolve, reject) => {
-    const exporter = new GLTFExporter();
-    const exportScene = new THREE.Scene();
-    exportScene.add(collisionMesh);
-    const opts = {
-      binary: true,
-      includeCustomExtensions: true,
-    };
-    exporter.parse(exportScene, o => {
-      if (o instanceof ArrayBuffer) {
-        resolve(o);
-      } else {
-        const exporter = new GLTFExporter();
-        const exportScene = new THREE.Scene();
-        exportScene.add(new THREE.Mesh(new THREE.BoxBufferGeometry(0.01, 0.01, 0.01), collisionMaterial));
-        exportScene.add(collisionMesh);
-        exporter.parse(exportScene, resolve, opts);
-      }
-    }, opts);
-  });
-  const volumeBlob = new Blob([volumeData], {type: 'model/gltf-binary'});
-
-  if (dstVolume) {
-    const res = await fetch(dstVolume, {
-      method: 'PUT',
-      body: volumeBlob,
-    });
-    await res.blob();
-  }
-  if (dstAabb) {
-    const res = await fetch(dstAabb, {
-      method: 'PUT',
-      body: JSON.stringify(aabb),
-    });
-    await res.blob();
-  }
-
-  let wireframeMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
-    color: 0xFFFFFF,
-  }));
-  wireframeMesh = getWireframeMesh(wireframeMesh);
-  wireframeMesh.frustumCulled = false;
-
-  const pe = new XRPackageEngine({
-    width: 512,
-    height: 512,
-  });
-  pe.add(p);
-  await p.waitForLoad();
-  pe.scene.add(wireframeMesh);
-
-  function animate(timestamp, frame) {
-    orbitControls.update();
-    renderer.render(scene, camera);
-  }
-  renderer.setAnimationLoop(animate);
-
-  return {
-    domElement: pe.domElement,
-    volumeBlob,
-    aabb,
-  };
-};
-
-export {screenshotWbn, volumizeWbn, parseQuery, toggleElements};
+export {bake, screenshot, parseQuery, toggleElements};

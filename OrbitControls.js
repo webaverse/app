@@ -768,7 +768,7 @@ var OrbitControls = function ( object, domElement, document ) {
 		// Manually set the focus since calling preventDefault above
 		// prevents the browser from setting it automatically.
 
-		scope.domElement.focus ? scope.domElement.focus() : window.focus();
+		// scope.domElement.focus ? scope.domElement.focus() : window.focus();
 
 		var mouseAction;
 
@@ -923,7 +923,7 @@ var OrbitControls = function ( object, domElement, document ) {
 
 		if ( scope.enabled === false || scope.enableZoom === false || ( state !== STATE.NONE && state !== STATE.ROTATE ) ) return;
 
-		// event.preventDefault();
+		event.preventDefault();
 		event.stopPropagation();
 
 		scope.dispatchEvent( startEvent );
