@@ -135,6 +135,8 @@
           o = o.scene;
           scene.add(o);
 
+          camera.position.y = size.y / 2;
+
           if (type === 'jpg') {
             renderer.setClearColor(0xFFFFFF, 1);
           }
