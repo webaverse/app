@@ -267,18 +267,45 @@
           o = o.scene;
           scene.add(o);
 
-          const stream = renderer.domElement.captureStream(0);
+          const boundingBox = new THREE.Box3().setFromObject(o);
+          const center = boundingBox.getCenter(new THREE.Vector3());
+          const size = boundingBox.getSize(new THREE.Vector3());
+
+          renderer.setClearColor(0xFFFFFF, 1);
+
+          const frames = [];
+          for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
+            camera.position.copy(center)
+              .add(new THREE.Vector3(0, size.y / 2, 0))
+              .add(new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
+            camera.lookAt(center);
+            camera.updateMatrixWorld();
+            renderer.render(scene, camera);
+
+            const writeCanvas = document.createElement('canvas');
+            writeCanvas.width = width;
+            writeCanvas.height = height;
+            // draw
+            const writeCtx = writeCanvas.getContext('2d');
+            writeCtx.drawImage(renderer.domElement, 0, 0);
+
+            frames.push(writeCanvas);
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          const stream = canvas.captureStream(0);
           const track = stream.getVideoTracks()[0];
           const recordedChunks = [];
 
-          // renderer.getContext();
-          // screenshotResult.appendChild(renderer.domElement);
           const mediaRecorder = new MediaRecorder(stream, {
             mimeType: 'video/webm; codecs=vp9',
           });
 
           mediaRecorder.ondataavailable = event => {
-            // console.log('got data', event.data);
+            console.log('got data', event.data);
             if (event.data.size > 0) {
               recordedChunks.push(event.data);
               // console.log(recordedChunks);
@@ -289,30 +316,16 @@
           };
           const p = _makePromise();
           mediaRecorder.onstop = () => {
-            // console.log('done');
+            console.log('stop');
             p.accept();
           };
           mediaRecorder.start();
-
-          const boundingBox = new THREE.Box3().setFromObject(o);
-          const center = boundingBox.getCenter(new THREE.Vector3());
-          const size = boundingBox.getSize(new THREE.Vector3());
-
-          renderer.setClearColor(0xFFFFFF, 1);
-
-          for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
+          for (const frame of frames) {
+            ctx.drawImage(frame, 0, 0);
+            track.requestFrame();
             await new Promise((accept, reject) => {
               setTimeout(accept, 1000/60);
             });
-            camera.position.copy(center)
-              .add(new THREE.Vector3(0, size.y / 2, 0))
-              .add(new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
-            camera.lookAt(center);
-            camera.updateMatrixWorld();
-            renderer.render(scene, camera);
-
-            track.requestFrame();
-            // mediaRecorder.requestData();
           }
           mediaRecorder.stop();
 
