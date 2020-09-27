@@ -27,19 +27,22 @@
   </div>
 
   <script type=module>
-    import {screenshotWbn, parseQuery, toggleElements} from './bakeUtils.js';
+    import * as THREE from './three.module.js';
+    import {bake, parseQuery, toggleElements} from './bakeUtils.js';
 
     (async () => {
-      const {srcWbn, dstGif} = parseQuery(decodeURIComponent(window.location.search));
+      const {hash, type, dst} = parseQuery(decodeURIComponent(window.location.search));
 
       try {
         toggleElements(false);
-        const {screenshot} = await screenshotWbn(srcWbn, dstGif);
+        const {model, arrayBuffer, file} = await bake(hash, type, dst);
+
+        const scene = 
 
         window.parent.postMessage({
           method: 'result',
-          result: {screenshot},
-        }, '*', [screenshot.buffer]);
+          result: arrayBuffer,
+        }, '*', [arrayBuffer]);
 
         toggleElements(true);
       } catch (err) {
