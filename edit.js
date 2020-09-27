@@ -46,9 +46,6 @@ import inventory from './inventory.js';
 import * as index from './preact-xr-ui/dev/index/index.bundle.js';
 import { render } from './node_modules/preact/dist/preact.module.js';
 
-// import {testFlow} from './blockchain.js';
-// window.testFlow = testFlow;
-
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
 const pid4 = Math.PI / 4;

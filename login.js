@@ -1,28 +1,67 @@
 import storage from './storage.js';
-import { storageHost } from './constants.js'
+import {getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
+import {storageHost} from './constants.js'
 
 const loginEndpoint = 'https://login.exokit.org';
-const usersEndpoint = 'https://users.exokit.org';
+// const usersEndpoint = 'https://users.exokit.org';
 
 const _clone = o => JSON.parse(JSON.stringify(o));
 
 let loginToken = null;
 let userObject = null;
-async function pullUserObject() {
-  const res = await fetch(`${usersEndpoint}/${loginToken.name}`);
-  if (res.ok) {
-    userObject = await res.json();
-  } else if (res.status === 404) {
-    userObject = {
-      name: loginToken.name,
-      avatarHash: null,
-      inventory: [],
-    };
-  } else {
-    throw new Error(`invalid status code: ${res.status}`);
+async function ensureUserObjectBaked() {
+  const contractSource = await getContractSource('isUserAccountBaked.cdc');
+
+  const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+    method: 'POST',
+    body: JSON.stringify({
+      limit: 100,
+      script: contractSource.replace(/ARG0/g, '0x' + loginToken.addr),
+      wait: true,
+    }),
+  });
+  const response = await res.json();
+  const isBaked = response.encodedData.value;
+  if (!isBaked) {
+    const contractSources = await getContractSource('bakeUserAccount.json');
+    for (const contractSource of contractSources) {
+      contractSource.address = loginToken.addr;
+      contractSource.mnemonic = loginToken.mnemonic;
+      contractSource.limit = 100;
+      contractSource.wait = true;
+
+      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+        method: 'POST',
+        body: JSON.stringify(contractSource),
+      });
+      
+      const response = await res.json();
+      console.log('baked account result', response);
+    }
   }
 }
-async function pushUserObject() {
+async function pullUserObject() {
+  await ensureUserObjectBaked();
+  
+  const contractSource = await getContractSource('getUserData.cdc');
+
+  const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+    method: 'POST',
+    body: JSON.stringify({
+      limit: 100,
+      script: contractSource.replace(/ARG0/g, '0x' + loginToken.addr),
+      wait: true,
+    }),
+  });
+  const response = await res.json();
+  const name = response.encodedData.value[0].value ? response.encodedData.value[0].value.value : 'Anonymous';
+  const avatarHash = response.encodedData.value[1].value && response.encodedData.value[1].value.value;
+  userObject = {
+    name,
+    avatarHash,
+  };
+}
+/* async function pushUserObject() {
   const res = await fetch(`${usersEndpoint}/${loginToken.name}`, {
     method: 'PUT',
     body: JSON.stringify(userObject),
@@ -32,16 +71,30 @@ async function pushUserObject() {
   } else {
     throw new Error(`invalid status code: ${res.status}`);
   }
-}
+} */
 function updateUserObject() {
-  const loginEmailStatic = document.getElementById('login-email-static');
   const userName = document.getElementById('user-name');
   // const avatarName = document.getElementById('avatar-name');
-  loginEmailStatic.innerText = userObject.name;
   userName.innerText = userObject.name;
   // avatarName.innerText = userObject.avatarHash !== null ? userObject.avatarHash : 'None';
 
   loginManager.pushUpdate();
+}
+async function finishLogin(newLoginToken) {
+  await storage.set('loginToken', newLoginToken);
+
+  loginToken = newLoginToken;
+
+  console.log('got user token', loginToken);
+
+  const loginForm = document.getElementById('login-form');
+  // document.body.classList.add('logged-in');
+  loginForm.classList.remove('phase-1');
+  loginForm.classList.remove('phase-2');
+  loginForm.classList.add('phase-3');
+
+  await pullUserObject();
+  updateUserObject();
 }
 async function doLogin(email, code) {
   const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
@@ -51,18 +104,7 @@ async function doLogin(email, code) {
   if (res.status >= 200 && res.status < 300) {
     const newLoginToken = await res.json();
 
-    await storage.set('loginToken', newLoginToken);
-
-    loginToken = newLoginToken;
-
-    const loginForm = document.getElementById('login-form');
-    // document.body.classList.add('logged-in');
-    loginForm.classList.remove('phase-1');
-    loginForm.classList.remove('phase-2');
-    loginForm.classList.add('phase-3');
-
-    await pullUserObject();
-    updateUserObject();
+    await finishLogin(newLoginToken);
 
     return true;
   } else {
@@ -74,21 +116,7 @@ async function doLogin(email, code) {
   }
 }
 async function tryLogin() {
-  const localLoginToken = await storage.get('loginToken');
-  if (localLoginToken) {
-    const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(localLoginToken.email)}&token=${encodeURIComponent(localLoginToken.token)}`, {
-      method: 'POST'
-    });
-    if (res.status >= 200 && res.status < 300) {
-      loginToken = await res.json();
-
-      await storage.set('loginToken', loginToken);
-    } else {
-      await storage.remove('loginToken');
-
-      console.warn(`invalid status code: ${res.status}`);
-    }
-  }
+  loginToken = await storage.get('loginToken');
 
   const loginForm = document.getElementById('login-form');
   loginForm.classList.add('login-form');
@@ -98,7 +126,7 @@ async function tryLogin() {
       <div class=login-error id=login-error></div>
     </div>
     <div class="phase-content phase-1-content">
-      <input type=email placeholder="your@email.com" id=login-email>
+      <input type=text placeholder="your@email.com" id=login-email>
       <input type=submit value="Log in" class="button highlight">
     </div>
     <div class="phase-content phase-2-content">
@@ -108,19 +136,11 @@ async function tryLogin() {
     <div class="phase-content phase-3-content">
       <nav class=user-button id=user-button>
         <img src="favicon.ico">
-        <span class=name id=login-email-static></span>
+        <span class=name id=user-name></span>
+        <nav class=button id=clipboard-button>
+          <i class="fal fa-clipboard"></i>
+        </nav>
         <input type=submit value="Log out" class="button highlight">
-        <div class=user-details id=user-details>
-          <div class=label>Alias</div>
-          <div class="user-name" id=user-name></div>
-          <div class=label>Avatar</div>
-          <div class="avatar-name" id=avatar-name></div>
-          <h3>Upload Avatar</h3>
-          <input type='file' id="userAvatarInput">
-          <h3>Unload Avatar</h3>
-          <button id="unloadAvatar">Unload</button>
-          <nav class="button" style="display: none;" id=unwear-button>Unwear</nav>
-        </div>
       </nav>
     </div>
     <div class="phase-content phaseless-content">
@@ -128,7 +148,7 @@ async function tryLogin() {
     </div>
   `;
 
-  document.getElementById('userAvatarInput').addEventListener('change', async (e) => {
+  /* document.getElementById('userAvatarInput').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.addEventListener("load", async () => {      
@@ -147,27 +167,57 @@ async function tryLogin() {
     if (file) {
       reader.readAsArrayBuffer(file);
     }
-  })
+  }); */
 
-  document.getElementById('unloadAvatar').addEventListener('click', async (e) => {
+  /* document.getElementById('unloadAvatar').addEventListener('click', async (e) => {
     e.preventDefault();
     e.stopPropagation();
     loginManager.setAvatar(null);
-  })
+  }); */
+
+  const userName = document.getElementById('user-name');
+  userName.addEventListener('click', e => {
+    userName.setAttribute('contenteditable', '');
+    userName.focus();
+    userName.addEventListener('blur', async e => {
+      userName.removeAttribute('contenteditable');
+
+      const newUserName = userName.innerText;
+
+      const contractSource = await getContractSource('setUserName.cdc');
+
+      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+        method: 'POST',
+        body: JSON.stringify({
+          address: loginToken.addr,
+          mnemonic: loginToken.mnemonic,
+
+          limit: 100,
+          transaction: contractSource.replace(/ARG0/g, newUserName),
+          wait: true,
+        }),
+      });
+      const response2 = await res.json();
+    }, {
+      once: true,
+    })
+  });
+  document.getElementById('clipboard-button').addEventListener('click', e => {
+    navigator.clipboard.writeText(loginToken.mnemonic + ' ' + hexToWordList(loginToken.addr));
+  });
 
   const userButton = document.getElementById('user-button');
-  const userDetails = document.getElementById('user-details');
   const loginEmail = document.getElementById('login-email');
   const loginVerificationCode = document.getElementById('login-verification-code');
   const loginNotice = document.getElementById('login-notice');
   const loginError = document.getElementById('login-error');
-  userButton.addEventListener('click', e => {
+  /* userButton.addEventListener('click', e => {
     userButton.classList.toggle('open');
-  });
-  userDetails.addEventListener('click', e => {
+  }); */
+  /* userDetails.addEventListener('click', e => {
     // e.preventDefault();
     e.stopPropagation();
-  });
+  }); */
   if (loginToken) {
     await pullUserObject();
     updateUserObject();
@@ -184,18 +234,29 @@ async function tryLogin() {
       loginError.innerHTML = '';
       loginForm.classList.remove('phase-1');
 
-      const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(loginEmail.value)}`, {
-        method: 'POST',
-      });
-      if (res.status >= 200 && res.status < 300) {
-        loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
-        loginForm.classList.add('phase-2');
+      const split = loginEmail.value.split(/\s+/).filter(w => !!w);
+      if (split.length === 30) {
+        const mnemonic = split.slice(0, 24).join(' ');
+        const addr = wordListToHex(split.slice(24).join(' '));
 
-        return res.blob();
+        finishLogin({
+          addr,
+          mnemonic,
+        });
       } else {
-        loginError.innerText = 'Invalid email!';
-        loginForm.classList.add('phase-1');
-        throw new Error(`invalid status code: ${res.status}`);
+        const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(loginEmail.value)}`, {
+          method: 'POST',
+        });
+        if (res.status >= 200 && res.status < 300) {
+          loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
+          loginForm.classList.add('phase-2');
+
+          return res.blob();
+        } else {
+          loginError.innerText = 'Invalid email!';
+          loginForm.classList.add('phase-1');
+          throw new Error(`invalid status code: ${res.status}`);
+        }
       }
     } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
       loginNotice.innerHTML = '';
@@ -262,19 +323,77 @@ class LoginManager extends EventTarget {
     }));
   }
 
-  getInventory() {
-    return userObject ? _clone(userObject.inventory) : [];
+  async getInventory() {
+    if (loginToken) {
+      const contractSource = await getContractSource('getHashes.cdc');
+
+      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+        method: 'POST',
+        body: JSON.stringify({
+          /* address: addr,
+          mnemonic, */
+
+          limit: 100,
+          script: contractSource
+            .replace(/ARG0/g, '0x' + loginToken.addr),
+          wait: true,
+        }),
+      });
+      const response2 = await res.json();
+
+      const entries = response2.encodedData.value.map(({value: {fields}}) => {
+        const id = parseInt(fields.find(field => field.name === 'id').value.value, 10);
+        const hash = fields.find(field => field.name === 'hash').value.value;
+        const filename = fields.find(field => field.name === 'filename').value.value;
+        return {id, hash, filename};
+      });
+      return entries;
+    } else {
+      return [];
+    }
   }
 
-  async setInventory(inventory) {
-    if (userObject) {
-      userObject.inventory = inventory;
-      await pushUserObject();
-      // updateUserObject();
+  async uploadToInventory(file) {
+    if (loginToken) {
+      const {name} = file;
+      if (name) {
+        const {mnemonic, addr} = loginToken;
+
+        let hash;
+        {
+          const res = await fetch('https://storage.exokit.org/', {
+            method: 'POST',
+            body: file,
+          });
+          const j = await res.json();
+          hash = j.hash;
+        }
+        {
+          const contractSource = await getContractSource('mintNft.cdc');
+
+          const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+            method: 'POST',
+            body: JSON.stringify({
+              address: addr,
+              mnemonic,
+
+              limit: 100,
+              transaction: contractSource
+                .replace(/ARG0/g, hash)
+                .replace(/ARG1/g, name),
+              wait: true,
+            }),
+          });
+          const response2 = await res.json();
+          const id = parseInt(response2.transaction.events[0].payload.value.fields.find(field => field.name === 'id').value.value, 10);
+          return id;
+        }
+      } else {
+        throw new Error('file has no name');
+      }
+    } else {
+      throw new Error('not logged in');
     }
-    this.dispatchEvent(new MessageEvent('inventorychange', {
-      data: _clone(inventory),
-    }));
   }
 
   pushUpdate() {
@@ -283,9 +402,6 @@ class LoginManager extends EventTarget {
     }));
     this.dispatchEvent(new MessageEvent('avatarchange', {
       data: userObject && userObject.avatarHash,
-    }));
-    this.dispatchEvent(new MessageEvent('inventorychange', {
-      data: userObject && _clone(userObject.inventory),
     }));
   }
 }
