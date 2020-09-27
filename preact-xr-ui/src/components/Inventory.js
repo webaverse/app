@@ -20,9 +20,11 @@ const Inventory = (props) => {
     return (
         <div class="twoD-inventory">
             <div class="twoD-inventoryHeader">
-                <h1 style={{ display: 'inline'}}>Inventory</h1>
+                <i class="far fa-times-circle twoD-inventoryClose"></i>
+                <h1 class="twoD-inventoryHeaderTitle">Inventory</h1>
                 <button class="twoD-inventoryUploadBtn">Upload</button>
             </div>
+            <hr class="twoD-inventoryDivider"/>
             <div class="twoD-inventoryList">
                 {
                     array.map((value, index) => {
