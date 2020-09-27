@@ -1,5 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
+const EsmWebpackPlugin = require("@purtuga/esm-webpack-plugin");
 const entry = {
     index: './src/index.js',
     inventory: './src/components/Inventory.js',
@@ -11,7 +12,8 @@ module.exports = {
     devtool: 'cheap-module-source-map',
     output: {
         path: path.join(__dirname, 'build'),
-        filename: '[name]/[name].bundle.js'
+        filename: '[name]/[name].bundle.js',
+        library: 'preactXRUI'
     },
     resolve: {
         alias: {
@@ -41,4 +43,7 @@ module.exports = {
             }
         ]
     },
+    plugins: [
+        new EsmWebpackPlugin()
+    ]
 };

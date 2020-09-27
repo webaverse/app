@@ -7499,5 +7499,5 @@ const props = {message: 'hello'};
 
 window.addEventListener('load', (e) => {
   console.log('hehe', index)
-  render(index.default.Inventory(props), document.getElementById('preact-container'));
+  render(index.Inventory(props), document.getElementById('preact-container'));
 })
