@@ -28,7 +28,13 @@
 
   <script type=module>
     import * as THREE from './three.module.js';
+    import {OrbitControls} from './OrbitControls.js';
     import {bake, parseQuery, toggleElements} from './bakeUtils.js';
+
+    const width = 512;
+    const height = 512;
+    const cameraPosition = new THREE.Vector3(0, 1, -2);
+    const cameraTarget = new THREE.Vector3(0, 0, 0);
 
     (async () => {
       const {hash, type, dst} = parseQuery(decodeURIComponent(window.location.search));
@@ -37,7 +43,52 @@
         toggleElements(false);
         const {model, arrayBuffer, file} = await bake(hash, type, dst);
 
-        const scene = 
+        const scene = new THREE.Scene();
+        scene.add(model);
+
+        const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), new THREE.MeshBasicMaterial({
+          color: 0x0000FF,
+        }));
+        scene.add(cubeMesh);
+
+        const camera = new THREE.PerspectiveCamera(90, width / height, 0.1, 100);
+        camera.position.copy(cameraPosition);
+        camera.lookAt(cameraTarget);
+        // camera.quaternion.copy(cameraQuaternion);
+        // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
+        // const localAabb = model.boundingBoxMesh.scale.clone().applyQuaternion(model.quaternion);
+        // const modelHeight = Math.max(model.boundingBoxMesh.scale.x, model.boundingBoxMesh.scale.y, model.boundingBoxMesh.scale.z);
+        // camera.fov = 2 * Math.atan( modelHeight / ( 2 * dist ) ) * ( 180 / Math.PI );
+        // camera.updateProjectionMatrix();
+
+        // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
+
+       const renderer = new THREE.WebGLRenderer({
+          alpha: true,
+          antialias: true,
+        });
+        // renderer.setClearColor(0xFFFFFF, 1);
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        // renderer.clear(true, true, true);
+        renderer.render(scene, camera);
+
+        const screenshotResult = document.getElementById('screenshot-result');
+        screenshotResult.appendChild(renderer.domElement);
+
+        renderer.domElement.style.background = '#F00';
+
+        const orbitControls = new OrbitControls(camera, renderer.domElement, document);
+        orbitControls.screenSpacePanning = true;
+        orbitControls.enableMiddleZoom = false;
+        orbitControls.target.copy(cameraTarget);
+        orbitControls.update();
+
+        renderer.setAnimationLoop(() => {
+          orbitControls.update();
+
+          renderer.render(scene, camera);
+        });
 
         window.parent.postMessage({
           method: 'result',
