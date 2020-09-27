@@ -18,10 +18,10 @@ p {
   max-width: 50%;
   float: right;
 }
-canvas {
+/* canvas {
   width: 100% !important;
   height: 100% !important;
-}
+} */
 
 #baking {
   display: block;
