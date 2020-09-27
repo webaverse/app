@@ -140,6 +140,7 @@
           const size = boundingBox.getSize(new THREE.Vector3());
 
           camera.position.y = size.y / 2;
+          camera.updateMatrixWorld();
 
           if (type === 'jpg') {
             renderer.setClearColor(0xFFFFFF, 1);
