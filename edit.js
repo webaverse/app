@@ -4554,7 +4554,7 @@ const removeMesh = (() => {
 removeMesh.visible = false;
 scene.add(removeMesh);
 
-const jointGeometry = new THREE.BoxBufferGeometry(0.01, 0.01, 0.01);
+/* const jointGeometry = new THREE.BoxBufferGeometry(0.01, 0.01, 0.01);
 const jointPositions = jointGeometry.attributes.position.array.slice();
 const jointNumPositions = jointPositions.length;
 const jointMaterial = new THREE.MeshBasicMaterial({
@@ -4579,7 +4579,7 @@ const handMeshes = (() => {
 })();
 for (const handMesh of handMeshes) {
   scene.add(handMesh);
-}
+} */
 
 function parseQuery(queryString) {
   var query = {};
@@ -6682,7 +6682,7 @@ function animate(timestamp, frame) {
     _updateTools();
   }
 
-  const _updateHands = () => {
+  /* const _updateHands = () => {
     const session = renderer.xr.getSession();
     if (session) {
       const inputSource = session.inputSources[1];
@@ -6719,7 +6719,7 @@ function animate(timestamp, frame) {
       }
     }
   };
-  _updateHands();
+  _updateHands(); */
 
   /* if (planetAnimation) {
     const {startTime, endTime} = planetAnimation;
