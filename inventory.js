@@ -369,14 +369,14 @@ inventory.uploadFile = async file => {
     hash: bakedHash,
   };
 };
-inventory.uploadFileToInventory = async file => {
+const _uploadFileToInventory = async file => {
   const fileSpec = await inventory.uploadFile(file);
   files.push(fileSpec);
   inventory.dispatchEvent(new MessageEvent('filesupdate', {
     data: files,
   }));
 };
-bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFileToInventory);
+bindUploadFileButton(document.getElementById('load-package-input'), _uploadFileToInventory);
 
 let files = [];
 inventory.getFiles = () => files;
@@ -410,7 +410,7 @@ document.addEventListener('drop', async e => {
 
   if (e.dataTransfer.files.length > 0) {
     const [file] = e.dataTransfer.files;
-    await inventory.uploadFileToInventory(file);
+    await _uploadFileToInventory(file);
   }
 });
 
