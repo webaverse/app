@@ -148,33 +148,6 @@ async function tryLogin() {
     </div>
   `;
 
-  /* document.getElementById('userAvatarInput').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.addEventListener("load", async () => {      
-      const response = await fetch(storageHost, {
-        method: "POST",
-        body: reader.result
-      })
-      if (response.ok) {
-        const json = await response.json();
-        loginManager.setAvatar(json.hash);
-      } else {
-        console.error('Failed to upload new Avatar.', response);
-      }
-
-    });
-    if (file) {
-      reader.readAsArrayBuffer(file);
-    }
-  }); */
-
-  /* document.getElementById('unloadAvatar').addEventListener('click', async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    loginManager.setAvatar(null);
-  }); */
-
   const userName = document.getElementById('user-name');
   userName.addEventListener('click', e => {
     userName.setAttribute('contenteditable', '');
