@@ -1,6 +1,7 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import {GLTFExporter} from './GLTFExporter.js';
+import {mergeMeshes} from './util.js';
 // import {bake} from './bakeUtils.js';
 import {makeIconMesh} from './vr-ui.js';
 import wbn from './wbn.js';
@@ -70,6 +71,7 @@ const _loadGltf = async file => {
       .concat(mesh.geometry.boundingBox.max.toArray()),
     // EXT_hash: hash,
   };
+  return mesh;
 
   /* const u = URL.createObjectURL(file);
   let o;
