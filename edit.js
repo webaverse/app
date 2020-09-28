@@ -6860,7 +6860,6 @@ function animate(timestamp, frame) {
   // planet.flush();
 }
 renderer.setAnimationLoop(animate);
-// renderer.xr.setSession(proxySession);
 
 let selectedTool = 'camera';
 const _getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
@@ -7381,10 +7380,6 @@ renderer.domElement.addEventListener('wheel', e => {
     // console.log('got event', e.deltaX, e.deltaY, anchorSpec);
   }
 });
-
-/* renderer.domElement.addEventListener('mousedown', e => {
-  uiMesh.click();
-}); */
 
 window.addEventListener('resize', e => {
   if (!currentSession) {
