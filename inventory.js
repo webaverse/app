@@ -10,7 +10,7 @@ const inventory = new EventTarget();
 
 const textDecoder = new TextDecoder();
 
-const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host);
+const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
 const importMap = {
   three: _importMapUrl('./three.module.js'),
   app: _importMapUrl('./app-object.js'),
