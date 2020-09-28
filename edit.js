@@ -4879,13 +4879,10 @@ const buildsMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
 });
 buildsMesh.visible = false;
 buildsMesh.handleIconClick = (i, srcIndex) => {
-  // console.log('handle builds click', i, srcIndex);
-  // if (srcIndex < buildsMesh.inventoryBuildsMesh.meshes.length) {
-    const dx = srcIndex%3;
-    const dy = (srcIndex-dx)/3;
-    buildMode = ['wall', 'floor', 'stair'][dx];
-    buildMat = ['wood', 'stone', 'metal'][dy];
-  // }
+  const dx = srcIndex%3;
+  const dy = (srcIndex-dx)/3;
+  buildMode = ['wall', 'floor', 'stair'][dx];
+  buildMat = ['wood', 'stone', 'metal'][dy];
 };
 scene.add(buildsMesh);
 
@@ -4909,7 +4906,6 @@ const thingsMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   const wrapInnerW = h - 2*arrowW;
   const w = wrapInnerW/3;
 
-  // console.log('scroll', scrollFactor, geometryKeys.length, Math.floor(scrollFactor*geometryKeys.length), Math.floor(scrollFactor*geometryKeys.length/3)*3);
   const startIndex = Math.floor(scrollFactor*(geometryKeys.length-9)/3)*3;
   let i = 0;
   const currentGeometryKeys = [];
