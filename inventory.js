@@ -9,11 +9,12 @@ const _getExt = fileName => {
   return match && match[1];
 };
 inventory.uploadFile = async file => {
-  const {hash} = await loginManager.uploadFile(file);
+  const {id, hash} = await loginManager.uploadFile(file);
   const {name: filename} = file;
   const fileSpec = {
-    filename,
+    id,
     hash,
+    filename,
   };
   files.push(fileSpec);
   inventory.dispatchEvent(new MessageEvent('filesupdate', {
@@ -26,11 +27,7 @@ let files = [];
 inventory.getFiles = () => files;
 
 loginManager.addEventListener('inventorychange', async e => {
-  let files = await loginManager.getInventory();
-  files = files.map(entry => {
-    const {filename, hash} = entry;
-    return {filename, hash};
-  });
+  const  files = await loginManager.getInventory();
   inventory.dispatchEvent(new MessageEvent('filesupdate', {
     data: files,
   }));
