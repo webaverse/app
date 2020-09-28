@@ -6728,10 +6728,6 @@ function animate(timestamp, frame) {
     _tickPlanetAnimation(factor);
   } */
 
-  /* if (session) {
-    wristMenu.update(frame, session, renderer.xr.getReferenceSpace());
-  } */
-
   if (geometryWorker) {
     pxMeshes = pxMeshes.filter(pxMesh => {
       if (pxMesh.update()) {
