@@ -4969,21 +4969,12 @@ const shapesMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
 });
 shapesMesh.visible = false;
 shapesMesh.handleIconClick = (i, srcIndex) => {
-  // console.log('handle shapes click', srcIndex);
   if (srcIndex < shapesMesh.inventoryShapesMesh.geometries.length) {
     const geometry = shapesMesh.inventoryShapesMesh.geometries[srcIndex];
     const material = shapesMesh.inventoryShapesMesh.material.clone();
     const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
     meshComposer.setPlaceMesh(i, mesh);
-
-    /* (async () => {
-      const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
-      const material = currentVegetationMesh.material[0];
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.frustumCulled = false;
-      meshComposer.setPlaceMesh(i, mesh);
-    })(); */
   }
 };
 scene.add(shapesMesh);
@@ -5012,22 +5003,6 @@ inventoryMesh.handleIconClick = async (i, srcIndex) => {
     }
   });
   meshComposer.setPlaceMesh(i, mesh);
-
-  /* const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
-  mesh.position.copy(xrCamera.position)
-    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
-  mesh.quaternion.copy(xrCamera.quaternion); */
-
-  /* if (srcIndex < inventoryMesh.currentGeometryKeys.length) {
-    const geometryKey = inventoryMesh.currentGeometryKeys[srcIndex];
-    (async () => {
-      const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
-      const material = currentVegetationMesh.material[0];
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.frustumCulled = false;
-      meshComposer.setPlaceMesh(i, mesh);
-    })();
-  } */
 };
 scene.add(inventoryMesh);
 
@@ -5527,15 +5502,6 @@ const _collideItems = matrix => {
   hpMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
   hpMesh.quaternion.slerp(localQuaternion2, 0.1);
 
-  // uiMesh.position.copy(localVector3).add(localVector5.set(-0.3, -0.1, -0.5).applyQuaternion(localQuaternion2));
-  // uiMesh.quaternion.copy(localQuaternion2);
-
-  // toolsMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, -0.25, -0.5).applyQuaternion(localQuaternion2)), 0.1);
-  // toolsMesh.quaternion.slerp(localQuaternion2, 0.1);
-
-  // inventoryMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0, -0.2).applyQuaternion(localQuaternion2)), 0.1);
-  // inventoryMesh.quaternion.slerp(localQuaternion2, 0.1);
-
   localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
   for (let i = 0; i < itemMeshes.length; i++) {
     const itemMesh = itemMeshes[i];
@@ -5556,16 +5522,6 @@ const _collideChunk = matrix => {
   currentChunkMesh && currentChunkMesh.update(localVector3);
 };
 
-/* const cubeMesh = (() => {
-  const geometry = new THREE.BoxBufferGeometry(0.02, 0.02, 0.02);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x00FF00,
-  });
-  return new THREE.Mesh(geometry, material);
-})();
-cubeMesh.frustumCulled = false;
-scene.add(cubeMesh); */
-
 const velocity = new THREE.Vector3();
 // const lastGrabs = [false, false];
 const lastAxes = [[0, 0, 0, 0], [0, 0, 0, 0]];
@@ -5576,7 +5532,6 @@ let currentSelector = false;
 let lastSelector = false;
 const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
-// let lastParcel  = new THREE.Vector3(0, 0, 0);
 let raycastChunkSpec = null;
 const startTime = Date.now();
 function animate(timestamp, frame) {
@@ -5780,15 +5735,6 @@ function animate(timestamp, frame) {
       _collideChunk(localMatrix);
       rigManager.setLocalRigMatrix(null);
     }
-    /* const leftInputSource = inputSources.find(inputSource => inputSource.handedness === 'left');
-    const pose = leftInputSource && frame.getPose(leftInputSource.targetRaySpace, renderer.xr.getReferenceSpace());
-    if (pose) {
-      localMatrix2.fromArray(pose.transform.matrix);
-      _collideItems(localMatrix2);
-    }
-    _collideChunk(xrCamera.matrix);
-
-    rigManager.setLocalRigMatrix(null); */
   } else if (document.pointerLockElement) {
     const speed = 100 * (keys.shift ? 3 : 1);
     const cameraEuler = camera.rotation.clone();
@@ -5858,7 +5804,6 @@ function animate(timestamp, frame) {
       let inputSources = Array.from(currentSession.inputSources);
       inputSources = ['right', 'left']
         .map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
-      // console.log('got gamepads', gamepads);
       let pose;
       if (inputSources[0] && (pose = frame.getPose(inputSources[0].targetRaySpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
@@ -7242,24 +7187,11 @@ window.addEventListener('mousedown', e => {
   }
 });
 window.addEventListener('mouseup', e => {
-  /* if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
-    // pe.grabtriggerup('right');
-  } */
   currentWeaponDown = false;
   currentWeaponValue = 0;
   currentTeleport = false;
 });
 
-/* document.getElementById('reset-scene-button').addEventListener('click', e => {
-  pe.reset();
-});
-document.getElementById('export-scene-button').addEventListener('click', async e => {
-  const uint8Array = await pe.exportScene();
-  const b = new Blob([uint8Array], {
-    type: 'application/webbundle',
-  });
-  downloadFile(b, 'scene.wbn');
-}); */
 const loadVsh = `
   #define M_PI 3.1415926535897932384626433832795
   uniform float uTime;
@@ -7363,21 +7295,17 @@ const _updateMouseMovement = e => {
     camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
   }
   camera.updateMatrixWorld();
-  // setCamera(camera);
 };
 renderer.domElement.addEventListener('mousemove', e => {
   if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
     _updateMouseMovement(e);
-  } /* else if (selectedTool === 'camera' && selectedWeapon === 'select') {
-    _updateRaycasterFromMouseEvent(raycaster, e);
-  } */
+  }
 });
 renderer.domElement.addEventListener('wheel', e => {
   if (document.pointerLockElement) {
     if (anchorSpecs[0] && [thingsMesh, inventoryMesh].includes(anchorSpecs[0].object)) {
       anchorSpecs[0].object.scrollY(e.deltaY);
     }
-    // console.log('got event', e.deltaX, e.deltaY, anchorSpec);
   }
 });
 
