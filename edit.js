@@ -4799,6 +4799,7 @@ inventoryMesh.handleIconClick = async (i, srcIndex) => {
   blob.name = filename;
 
   const mesh = await runtime.loadFileForWorld(blob);
+  mesh.run && mesh.run();
   mesh.traverse(o => {
     if (o.isMesh) {
       o.frustumCulled = false;
