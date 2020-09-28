@@ -41,10 +41,8 @@ import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
 import {renderer, scene, camera, appManager} from './app-object.js';
+import App from './components/App.js';
 import inventory from './inventory.js';
-
-import * as index from './preact-xr-ui/dev/index/index.bundle.js';
-import { render } from './node_modules/preact/dist/preact.module.js';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
@@ -7222,6 +7220,5 @@ document.getElementById('enter-xr-button').addEventListener('click', e => {
 const props = {message: 'hello'};
 
 window.addEventListener('load', (e) => {
-  console.log('hehe', index)
-  render(index.Inventory(props), document.getElementById('preact-container'));
+  document.getElementById('preact-container').innerHTML = App(props);
 })
