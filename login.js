@@ -353,7 +353,7 @@ class LoginManager extends EventTarget {
     }
   }
 
-  async uploadToInventory(file) {
+  async uploadFile(file) {
     if (loginToken) {
       const {name} = file;
       if (name) {
