@@ -9,31 +9,25 @@ const _getExt = fileName => {
   return match && match[1];
 };
 inventory.uploadFile = async file => {
-  const {hash} = await loginManager.uploadFile(file);
+  const {id, hash} = await loginManager.uploadFile(file);
   const {name: filename} = file;
-  return {
-    filename,
+  const fileSpec = {
+    id,
     hash,
+    filename,
   };
-};
-const _uploadFileToInventory = async file => {
-  const fileSpec = await inventory.uploadFile(file);
   files.push(fileSpec);
   inventory.dispatchEvent(new MessageEvent('filesupdate', {
     data: files,
   }));
 };
-bindUploadFileButton(document.getElementById('load-package-input'), _uploadFileToInventory);
+bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFile);
 
 let files = [];
 inventory.getFiles = () => files;
 
 loginManager.addEventListener('inventorychange', async e => {
-  let files = await loginManager.getInventory();
-  files = files.map(entry => {
-    const {filename, hash} = entry;
-    return {filename, hash};
-  });
+  const files = await loginManager.getInventory();
   inventory.dispatchEvent(new MessageEvent('filesupdate', {
     data: files,
   }));
@@ -47,7 +41,7 @@ document.addEventListener('drop', async e => {
 
   if (e.dataTransfer.files.length > 0) {
     const [file] = e.dataTransfer.files;
-    await _uploadFileToInventory(file);
+    await inventory.uploadFile(file);
   }
 });
 

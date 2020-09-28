@@ -148,33 +148,6 @@ async function tryLogin() {
     </div>
   `;
 
-  /* document.getElementById('userAvatarInput').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.addEventListener("load", async () => {      
-      const response = await fetch(storageHost, {
-        method: "POST",
-        body: reader.result
-      })
-      if (response.ok) {
-        const json = await response.json();
-        loginManager.setAvatar(json.hash);
-      } else {
-        console.error('Failed to upload new Avatar.', response);
-      }
-
-    });
-    if (file) {
-      reader.readAsArrayBuffer(file);
-    }
-  }); */
-
-  /* document.getElementById('unloadAvatar').addEventListener('click', async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    loginManager.setAvatar(null);
-  }); */
-
   const userName = document.getElementById('user-name');
   userName.addEventListener('click', e => {
     userName.setAttribute('contenteditable', '');
@@ -184,7 +157,7 @@ async function tryLogin() {
 
       const newUserName = userName.innerText;
 
-      const contractSource = await getContractSource('setUserName.cdc');
+      const contractSource = await getContractSource('setUserData.cdc');
 
       const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
         method: 'POST',
@@ -193,7 +166,9 @@ async function tryLogin() {
           mnemonic: loginToken.mnemonic,
 
           limit: 100,
-          transaction: contractSource.replace(/ARG0/g, newUserName),
+          transaction: contractSource
+            .replace(/ARG0/g, 'name')
+            .replace(/ARG1/g, newUserName),
           wait: true,
         }),
       });
@@ -312,15 +287,53 @@ class LoginManager extends EventTarget {
     return userObject && userObject.avatarHash;
   }
 
-  async setAvatar(avatarHash) {
-    if (userObject) {
+  async setAvatar(id) {
+    if (loginToken) {
+      const {mnemonic, addr} = loginToken;
+      const [_setResponse, avatarHash] = await Promise.all([
+        (async () => {
+          const contractSource = await getContractSource('setUserData.cdc');
+
+          const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+            method: 'POST',
+            body: JSON.stringify({
+              address: addr,
+              mnemonic,
+
+              limit: 100,
+              script: contractSource
+                .replace(/ARG0/g, "avatar")
+                .replace(/ARG1/g, id),
+              wait: true,
+            }),
+          });
+          return await res.json();
+        })(),
+        (async () => {
+          const contractSource = await blockchain.getContractSource('getNft.cdc');
+
+          const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+            method: 'POST',
+            body: JSON.stringify({
+              limit: 100,
+              script: contractSource
+                .replace(/ARG0/g, n),
+              wait: true,
+            }),
+          });
+          const response2 = await res.json();
+          const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
+          return hash;
+        })(),
+      ]);
       userObject.avatarHash = avatarHash;
       await pushUserObject();
-      // updateUserObject();
+      this.dispatchEvent(new MessageEvent('avatarchange', {
+        data: avatarHash,
+      }));
+    } else {
+      throw new Error('not logged in');
     }
-    this.dispatchEvent(new MessageEvent('avatarchange', {
-      data: avatarHash,
-    }));
   }
 
   async getInventory() {
