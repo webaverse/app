@@ -9,7 +9,7 @@ import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
 // import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import {tryLogin, loginManager} from './login.js';
-import {hex2Uint8Array, downloadFile, mergeMeshes} from './util.js';
+import {parseQuery, hex2Uint8Array, downloadFile, mergeMeshes} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
@@ -4489,16 +4489,6 @@ const handMeshes = (() => {
 for (const handMesh of handMeshes) {
   scene.add(handMesh);
 } */
-
-function parseQuery(queryString) {
-  var query = {};
-  var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
-  for (var i = 0; i < pairs.length; i++) {
-    var pair = pairs[i].split('=');
-    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
-  }
-  return query;
-}
 
 const lineMeshes = [
   makeLineMesh(),

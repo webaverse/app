@@ -1,6 +1,15 @@
 import * as THREE from './three.module.js';
 import atlaspack from './atlaspack.js';
 
+export function parseQuery(queryString) {
+  var query = {};
+  var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
 export function hex2Uint8Array(hex) {
   return new Uint8Array(hex.match(/[\da-f]{2}/gi).map(h => parseInt(h, 16)))
 }
