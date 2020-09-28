@@ -541,7 +541,7 @@ const _loadStorage = async roomName => {
   } */
 };
 
-planet.flush = () => {
+/* planet.flush = () => {
   if (state) {
     if (channelConnection) {
       // throw new Error('unknown');
@@ -549,7 +549,7 @@ planet.flush = () => {
       _saveStorage(state.seedString);
     }
   }
-};
+}; */
 
 // multiplayer
 let roomName = null;
