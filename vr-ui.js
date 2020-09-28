@@ -1057,7 +1057,6 @@ const _makeIconString = () => {
   const w = uiSize;
   const h = uiSize/2;
   return `\
-}
 <style>
 * {
   box-sizing: border-box;

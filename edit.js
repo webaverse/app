@@ -9,7 +9,7 @@ import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
 // import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import {tryLogin, loginManager} from './login.js';
-import {hex2Uint8Array, downloadFile, mergeMeshes} from './util.js';
+import {parseQuery, hex2Uint8Array, downloadFile, mergeMeshes} from './util.js';
 // import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
 // import './gif.js';
 import {RigManager} from './rig.js';
@@ -40,7 +40,7 @@ import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
-import app from './app-object.js';
+import {renderer, scene, camera, appManager} from './app-object.js';
 import inventory from './inventory.js';
 
 import * as index from './preact-xr-ui/dev/index/index.bundle.js';
@@ -83,41 +83,12 @@ const textDecoder = new TextDecoder();
 
 const loadPromise = makePromise();
 
-const scene = new THREE.Scene();
 const rigManager = new RigManager(scene);
 planet.setBindings(scene, rigManager);
 
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 1.6, 2);
-camera.rotation.order = 'YXZ';
-// camera.quaternion.set(0, 0, 0, 1);
 const dolly = new THREE.Object3D();
 dolly.add(camera);
 scene.add(dolly);
-
-const canvas = document.getElementById('canvas');
-const context = canvas.getContext('webgl2', {
-  antialias: true,
-  alpha: true,
-  preserveDrawingBuffer: false,
-});
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-  context,
-  antialias: true,
-  alpha: true,
-  // preserveDrawingBuffer: false,
-});
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.autoClear = false;
-renderer.sortObjects = false;
-renderer.physicallyCorrectLights = true;
-renderer.xr.enabled = true;
-
-app.renderer = renderer;
-app.scene = scene;
-app.camera = camera;
 
 const ambientLight = new THREE.AmbientLight(0xFFFFFF);
 scene.add(ambientLight);
@@ -866,9 +837,6 @@ function mod(a, b) {
 const animals = [];
 const itemMeshes = [];
 
-// let chunkWorker = null;
-// let physxWorker = null;
-// let physicsWorker = null;
 let geometrySet = null;
 let tracker = null;
 let landAllocators = null;
@@ -877,9 +845,7 @@ let vegetationAllocators = null;
 let vegetationBufferAttributes = null;
 let thingAllocators = null;
 let thingBufferAttributes = null;
-// let culler = null;
 const makeAnimal = null;
-// let chunkMeshes = [];
 const chunkMesh = null;
 const worldContainer = new THREE.Object3D();
 // scene.add(worldContainer);
@@ -887,7 +853,6 @@ const chunkMeshContainer = new THREE.Object3D();
 worldContainer.add(chunkMeshContainer);
 let currentChunkMesh = null;
 const currentChunkMeshId = getNextMeshId();
-// let capsuleMesh = null;
 let currentVegetationMesh = null;
 let currentThingMesh = null;
 let meshDrawer = null;
@@ -2156,61 +2121,6 @@ const geometryWorker = (() => {
     }
     return [landArenaSpec, vegetationArenaSpec, thingArenaSpec];
   };
-  /* w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => {
-    scratchStack.u8.set(peeksData, 0);
-    for (let i = 0; i < groupsData.length; i++) {
-      const groupData = groupsData[i];
-      scratchStack.u32[16/Uint32Array.BYTES_PER_ELEMENT + i*3] = groupData.start;
-      scratchStack.u32[16/Uint32Array.BYTES_PER_ELEMENT + i*3+1] = groupData.count;
-      scratchStack.u32[16/Uint32Array.BYTES_PER_ELEMENT + i*3+2] = groupData.materialIndex;
-    }
-
-    const peeksOffset = scratchStack.u32.byteOffset;
-    const groupsOffset = scratchStack.u32.byteOffset + 16;
-
-    return moduleInstance._registerGroupSet(
-      culler,
-      x,
-      y,
-      z,
-      r,
-      peeksOffset,
-      groupsOffset,
-      groupsData.length
-    );
-  };
-  w.unregisterGroupSet = (culler, groupSet) => {
-    moduleInstance._unregisterGroupSet(culler, groupSet);
-  };
-  w.cull = (culler, position, matrix, slabRadius) => {
-    position.toArray(scratchStack.f32, 0);
-    matrix.toArray(scratchStack.f32, 3);
-
-    const positionOffset = scratchStack.f32.byteOffset;
-    const matrixOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
-    const cullResultsOffset = scratchStack.f32.byteOffset + (3 + 16)*Float32Array.BYTES_PER_ELEMENT;
-    const numCullResultsOffset = scratchStack.f32.byteOffset + (3 + 16 + 4096)*Float32Array.BYTES_PER_ELEMENT;
-
-    moduleInstance._cull(
-      culler,
-      positionOffset,
-      matrixOffset,
-      slabRadius,
-      cullResultsOffset,
-      numCullResultsOffset
-    );
-
-    const numCullResults = scratchStack.u32[3+16+4096];
-    const cullResults = Array(numCullResults);
-    for (let i = 0; i < cullResults.length; i++) {
-      cullResults[i] = {
-        start: scratchStack.u32[3+16 + i*3],
-        count: scratchStack.u32[3+16 + i*3 + 1],
-        materialIndex: scratchStack.u32[3+16 + i*3 + 2],
-      };
-    }
-    return cullResults;
-  }; */
   w.tickCull = (tracker, position, matrix) => {
     position.toArray(scratchStack.f32, 0);
     matrix.toArray(scratchStack.f32, 3);
@@ -3043,7 +2953,6 @@ const geometryWorker = (() => {
       torchLight: new THREE.BufferAttribute(thingAllocators.torchLights.getAs(Uint8Array), 1),
     };
   }
-  // culler = geometryWorker.makeCuller();
 
   const vegetationMaterial = new THREE.ShaderMaterial({
     uniforms: THREE.UniformsUtils.clone(VEGETATION_SHADER.uniforms),
@@ -4622,7 +4531,7 @@ const removeMesh = (() => {
 removeMesh.visible = false;
 scene.add(removeMesh);
 
-const jointGeometry = new THREE.BoxBufferGeometry(0.01, 0.01, 0.01);
+/* const jointGeometry = new THREE.BoxBufferGeometry(0.01, 0.01, 0.01);
 const jointPositions = jointGeometry.attributes.position.array.slice();
 const jointNumPositions = jointPositions.length;
 const jointMaterial = new THREE.MeshBasicMaterial({
@@ -4647,17 +4556,7 @@ const handMeshes = (() => {
 })();
 for (const handMesh of handMeshes) {
   scene.add(handMesh);
-}
-
-function parseQuery(queryString) {
-  var query = {};
-  var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
-  for (var i = 0; i < pairs.length; i++) {
-    var pair = pairs[i].split('=');
-    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
-  }
-  return query;
-}
+} */
 
 const lineMeshes = [
   makeLineMesh(),
@@ -4763,97 +4662,6 @@ const _tickPlanetAnimation = factor => {
   }
 }; */
 
-const cometFireMesh = (() => {
-  const radius = 1;
-  const opacity = 0.5;
-  const _makeSphereGeometry = (radius, color, position, scale) => {
-    const geometry = new THREE.SphereBufferGeometry(radius, 8, 5);
-    for (let i = 0; i < geometry.attributes.position.array.length; i += 3) {
-      if (geometry.attributes.position.array[i + 1] > 0) {
-        geometry.attributes.position.array[i] = Math.sign(geometry.attributes.position.array[i]);
-        geometry.attributes.position.array[i + 2] = Math.sign(geometry.attributes.position.array[i + 2]);
-      }
-    }
-
-    geometry
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(position.x, position.y, position.z))
-      .applyMatrix4(new THREE.Matrix4().makeScale(scale.x, scale.y, scale.z));
-
-    const c = new THREE.Color(color);
-    const colors = new Float32Array(geometry.attributes.position.array.length);
-    for (let i = 0; i < colors.length; i += 3) {
-      c.toArray(colors, i);
-    }
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-    return geometry;
-  };
-  const cometFireGeometry = BufferGeometryUtils.mergeBufferGeometries([
-    _makeSphereGeometry(radius, 0x5c6bc0, new THREE.Vector3(0, 0.9, 0), new THREE.Vector3(0.8, 10, 0.8)),
-    _makeSphereGeometry(radius, 0xef5350, new THREE.Vector3(0, 0.7, 0), new THREE.Vector3(2, 5, 2)),
-    _makeSphereGeometry(radius, 0xffa726, new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 1, 1)),
-  ]);
-  const cometFireMaterial = new THREE.ShaderMaterial({
-    uniforms: {
-      uAnimation: {
-        type: 'f',
-        value: 0,
-      },
-    },
-    vertexShader: `\
-      #define PI 3.1415926535897932384626433832795
-
-      uniform float uAnimation;
-      attribute vec3 color;
-      attribute float y;
-      attribute vec3 barycentric;
-      // varying float vY;
-      varying vec2 vUv;
-      // varying float vOpacity;
-      varying vec3 vColor;
-      void main() {
-        // vY = y * ${opacity.toFixed(8)};
-        // vUv = uv.x + uAnimation;
-        vUv = uv;
-        // vOpacity = 0.8 + 0.2 * (sin(uAnimation*5.0*PI*2.0)+1.0)/2.0;
-        // vOpacity *= 1.0-(uv.y/0.5);
-        // vOpacity = (0.5 + 0.5 * (sin(uv.x*PI*2.0/0.05) + 1.0)/2.0) * (0.3 + 1.0-uv.y/0.5);
-        /* vec3 p = position;
-        if (p.y > 0.0) {
-          p.x = sign(p.x) * 1.0;
-          p.z = sign(p.z) * 1.0;
-        } */
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        vColor = color;
-      }
-    `,
-    fragmentShader: `\
-      #define PI 3.1415926535897932384626433832795
-
-      uniform float uAnimation;
-      uniform sampler2D uCameraTex;
-      // varying float vY;
-      varying vec2 vUv;
-      // varying float vOpacity;
-      varying vec3 vColor;
-
-      void main() {
-        vec3 c2 = vColor * (2.0-vUv.y/0.5);
-        float a = 0.2 + (0.5 + 0.5 * pow((sin((vUv.x + uAnimation) *PI*2.0/0.1) + 1.0)/2.0, 2.0)) * (1.0-vUv.y/0.5);
-        gl_FragColor = vec4(c2, a);
-      }
-    `,
-    side: THREE.DoubleSide,
-    transparent: true,
-    depthWrite: false,
-  });
-  const cometFireMesh = new THREE.Mesh(cometFireGeometry, cometFireMaterial);
-  cometFireMesh.position.y = 1;
-  cometFireMesh.frustumCulled = false;
-  return cometFireMesh;
-})();
-// scene.add(cometFireMesh);
-
 const hpMesh = (() => {
   const mesh = new THREE.Object3D();
 
@@ -4947,13 +4755,10 @@ const buildsMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
 });
 buildsMesh.visible = false;
 buildsMesh.handleIconClick = (i, srcIndex) => {
-  // console.log('handle builds click', i, srcIndex);
-  // if (srcIndex < buildsMesh.inventoryBuildsMesh.meshes.length) {
-    const dx = srcIndex%3;
-    const dy = (srcIndex-dx)/3;
-    buildMode = ['wall', 'floor', 'stair'][dx];
-    buildMat = ['wood', 'stone', 'metal'][dy];
-  // }
+  const dx = srcIndex%3;
+  const dy = (srcIndex-dx)/3;
+  buildMode = ['wall', 'floor', 'stair'][dx];
+  buildMat = ['wood', 'stone', 'metal'][dy];
 };
 scene.add(buildsMesh);
 
@@ -4977,7 +4782,6 @@ const thingsMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
   const wrapInnerW = h - 2*arrowW;
   const w = wrapInnerW/3;
 
-  // console.log('scroll', scrollFactor, geometryKeys.length, Math.floor(scrollFactor*geometryKeys.length), Math.floor(scrollFactor*geometryKeys.length/3)*3);
   const startIndex = Math.floor(scrollFactor*(geometryKeys.length-9)/3)*3;
   let i = 0;
   const currentGeometryKeys = [];
@@ -5037,21 +4841,12 @@ const shapesMesh = makeInventoryMesh(cubeMesh, async scrollFactor => {
 });
 shapesMesh.visible = false;
 shapesMesh.handleIconClick = (i, srcIndex) => {
-  // console.log('handle shapes click', srcIndex);
   if (srcIndex < shapesMesh.inventoryShapesMesh.geometries.length) {
     const geometry = shapesMesh.inventoryShapesMesh.geometries[srcIndex];
     const material = shapesMesh.inventoryShapesMesh.material.clone();
     const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
     meshComposer.setPlaceMesh(i, mesh);
-
-    /* (async () => {
-      const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
-      const material = currentVegetationMesh.material[0];
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.frustumCulled = false;
-      meshComposer.setPlaceMesh(i, mesh);
-    })(); */
   }
 };
 scene.add(shapesMesh);
@@ -5073,29 +4868,13 @@ inventoryMesh.handleIconClick = async (i, srcIndex) => {
   const blob = await res.blob();
   blob.name = name;
 
-  const mesh = await inventory.loadFileForWorld(blob);
+  const mesh = await runtime.loadFileForWorld(blob);
   mesh.traverse(o => {
     if (o.isMesh) {
       o.frustumCulled = false;
     }
   });
   meshComposer.setPlaceMesh(i, mesh);
-
-  /* const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
-  mesh.position.copy(xrCamera.position)
-    .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
-  mesh.quaternion.copy(xrCamera.quaternion); */
-
-  /* if (srcIndex < inventoryMesh.currentGeometryKeys.length) {
-    const geometryKey = inventoryMesh.currentGeometryKeys[srcIndex];
-    (async () => {
-      const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
-      const material = currentVegetationMesh.material[0];
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.frustumCulled = false;
-      meshComposer.setPlaceMesh(i, mesh);
-    })();
-  } */
 };
 scene.add(inventoryMesh);
 
@@ -5595,15 +5374,6 @@ const _collideItems = matrix => {
   hpMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
   hpMesh.quaternion.slerp(localQuaternion2, 0.1);
 
-  // uiMesh.position.copy(localVector3).add(localVector5.set(-0.3, -0.1, -0.5).applyQuaternion(localQuaternion2));
-  // uiMesh.quaternion.copy(localQuaternion2);
-
-  // toolsMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, -0.25, -0.5).applyQuaternion(localQuaternion2)), 0.1);
-  // toolsMesh.quaternion.slerp(localQuaternion2, 0.1);
-
-  // inventoryMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0, -0.2).applyQuaternion(localQuaternion2)), 0.1);
-  // inventoryMesh.quaternion.slerp(localQuaternion2, 0.1);
-
   localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
   for (let i = 0; i < itemMeshes.length; i++) {
     const itemMesh = itemMeshes[i];
@@ -5624,16 +5394,6 @@ const _collideChunk = matrix => {
   currentChunkMesh && currentChunkMesh.update(localVector3);
 };
 
-/* const cubeMesh = (() => {
-  const geometry = new THREE.BoxBufferGeometry(0.02, 0.02, 0.02);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x00FF00,
-  });
-  return new THREE.Mesh(geometry, material);
-})();
-cubeMesh.frustumCulled = false;
-scene.add(cubeMesh); */
-
 const velocity = new THREE.Vector3();
 // const lastGrabs = [false, false];
 const lastAxes = [[0, 0, 0, 0], [0, 0, 0, 0]];
@@ -5644,7 +5404,6 @@ let currentSelector = false;
 let lastSelector = false;
 const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
-// let lastParcel  = new THREE.Vector3(0, 0, 0);
 let raycastChunkSpec = null;
 const startTime = Date.now();
 function animate(timestamp, frame) {
@@ -5688,7 +5447,6 @@ function animate(timestamp, frame) {
   for (const animal of animals) {
     animal.update();
   }
-  cometFireMesh.material.uniforms.uAnimation.value = (Date.now() % 2000) / 2000;
   hpMesh.update();
   if (skybox) {
     skybox.material.uniforms.iTime.value = ((Date.now() - startTime) % 3000) / 3000;
@@ -5848,15 +5606,6 @@ function animate(timestamp, frame) {
       _collideChunk(localMatrix);
       rigManager.setLocalRigMatrix(null);
     }
-    /* const leftInputSource = inputSources.find(inputSource => inputSource.handedness === 'left');
-    const pose = leftInputSource && frame.getPose(leftInputSource.targetRaySpace, renderer.xr.getReferenceSpace());
-    if (pose) {
-      localMatrix2.fromArray(pose.transform.matrix);
-      _collideItems(localMatrix2);
-    }
-    _collideChunk(xrCamera.matrix);
-
-    rigManager.setLocalRigMatrix(null); */
   } else if (document.pointerLockElement) {
     const speed = 100 * (keys.shift ? 3 : 1);
     const cameraEuler = camera.rotation.clone();
@@ -5926,7 +5675,6 @@ function animate(timestamp, frame) {
       let inputSources = Array.from(currentSession.inputSources);
       inputSources = ['right', 'left']
         .map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
-      // console.log('got gamepads', gamepads);
       let pose;
       if (inputSources[0] && (pose = frame.getPose(inputSources[0].targetRaySpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
@@ -6805,7 +6553,7 @@ function animate(timestamp, frame) {
     _updateTools();
   }
 
-  const _updateHands = () => {
+  /* const _updateHands = () => {
     const session = renderer.xr.getSession();
     if (session) {
       const inputSource = session.inputSources[1];
@@ -6842,17 +6590,13 @@ function animate(timestamp, frame) {
       }
     }
   };
-  _updateHands();
+  _updateHands(); */
 
   /* if (planetAnimation) {
     const {startTime, endTime} = planetAnimation;
     const now = Date.now();
     const factor = Math.min((now - startTime) / (endTime - startTime), 1);
     _tickPlanetAnimation(factor);
-  } */
-
-  /* if (session) {
-    wristMenu.update(frame, session, renderer.xr.getReferenceSpace());
   } */
 
   if (geometryWorker) {
@@ -6905,6 +6649,8 @@ function animate(timestamp, frame) {
   geometryWorker.update();
   planet.update();
 
+  appManager.tick(timestamp, frame);
+
   localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, worldContainer.matrixWorld));
   if (currentChunkMesh && currentVegetationMesh) {
     localMatrix3.copy(xrCamera.matrix)
@@ -6928,7 +6674,6 @@ function animate(timestamp, frame) {
   // planet.flush();
 }
 renderer.setAnimationLoop(animate);
-// renderer.xr.setSession(proxySession);
 
 let selectedTool = 'camera';
 const _getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
@@ -7311,24 +7056,11 @@ window.addEventListener('mousedown', e => {
   }
 });
 window.addEventListener('mouseup', e => {
-  /* if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
-    // pe.grabtriggerup('right');
-  } */
   currentWeaponDown = false;
   currentWeaponValue = 0;
   currentTeleport = false;
 });
 
-/* document.getElementById('reset-scene-button').addEventListener('click', e => {
-  pe.reset();
-});
-document.getElementById('export-scene-button').addEventListener('click', async e => {
-  const uint8Array = await pe.exportScene();
-  const b = new Blob([uint8Array], {
-    type: 'application/webbundle',
-  });
-  downloadFile(b, 'scene.wbn');
-}); */
 const loadVsh = `
   #define M_PI 3.1415926535897932384626433832795
   uniform float uTime;
@@ -7432,27 +7164,19 @@ const _updateMouseMovement = e => {
     camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
   }
   camera.updateMatrixWorld();
-  // setCamera(camera);
 };
 renderer.domElement.addEventListener('mousemove', e => {
   if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
     _updateMouseMovement(e);
-  } /* else if (selectedTool === 'camera' && selectedWeapon === 'select') {
-    _updateRaycasterFromMouseEvent(raycaster, e);
-  } */
+  }
 });
 renderer.domElement.addEventListener('wheel', e => {
   if (document.pointerLockElement) {
     if (anchorSpecs[0] && [thingsMesh, inventoryMesh].includes(anchorSpecs[0].object)) {
       anchorSpecs[0].object.scrollY(e.deltaY);
     }
-    // console.log('got event', e.deltaX, e.deltaY, anchorSpec);
   }
 });
-
-/* renderer.domElement.addEventListener('mousedown', e => {
-  uiMesh.click();
-}); */
 
 window.addEventListener('resize', e => {
   if (!currentSession) {

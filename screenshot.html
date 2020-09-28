@@ -31,6 +31,7 @@
     import {OrbitControls} from './OrbitControls.js';
     import {GLTFLoader} from './GLTFLoader.js';
     import {bake, parseQuery, toggleElements} from './bakeUtils.js';
+    import * as icons from './icons.js';
     import {storageHost} from './constants.js';
     import './gif.js';
 
@@ -49,41 +50,211 @@
       p.reject = reject;
       return p;
     };
+    const _makeRenderer = () => {
+      const renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true,
+      });
+      renderer.setSize(width, height);
+
+      const scene = new THREE.Scene();
+
+      /* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), new THREE.MeshBasicMaterial({
+        color: 0x0000FF,
+      }));
+      scene.add(cubeMesh); */
+
+      const camera = new THREE.PerspectiveCamera(90, width / height, 0.1, 100);
+      camera.position.copy(cameraPosition);
+      camera.lookAt(cameraTarget);
+      // camera.quaternion.copy(cameraQuaternion);
+      // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
+      // const localAabb = model.boundingBoxMesh.scale.clone().applyQuaternion(model.quaternion);
+      // const modelHeight = Math.max(model.boundingBoxMesh.scale.x, model.boundingBoxMesh.scale.y, model.boundingBoxMesh.scale.z);
+      // camera.fov = 2 * Math.atan( modelHeight / ( 2 * dist ) ) * ( 180 / Math.PI );
+      // camera.updateProjectionMatrix();
+
+      // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
+
+      return {renderer, scene, camera};
+    };
+
+    const _makeUiRenderer = () => {
+      const uiSize = 2048;
+      const uiWorldSize = 0.2;
+      const loadPromise = Promise.all([
+        new Promise((accept, reject) => {
+          const iframe = document.createElement('iframe');
+          iframe.src = 'https://render.exokit.xyz/';
+          iframe.onload = () => {
+            accept(iframe);
+          };
+          iframe.onerror = err => {
+            reject(err);
+          };
+          iframe.setAttribute('frameborder', 0);
+          iframe.style.position = 'absolute';
+          iframe.style.width = `${uiSize}px`;
+          iframe.style.height = `${uiSize}px`;
+          iframe.style.top = '-4096px';
+          iframe.style.left = '-4096px';
+          document.body.appendChild(iframe);
+        }),
+      ]);
+
+      let renderIds = 0;
+      return {
+        async render(htmlString, width, height) {
+          const [iframe/*, interfaceHtml */] = await loadPromise;
+
+          /* if (renderIds > 0) {
+            iframe.contentWindow.postMessage({
+              method: 'cancel',
+              id: renderIds,
+            }, '*');
+          } */
+
+          const start = Date.now();
+          const mc = new MessageChannel();
+          iframe.contentWindow.postMessage({
+            method: 'render',
+            id: ++renderIds,
+            htmlString,
+            templateData: null,
+            width,
+            height,
+            transparent: true,
+            bitmap: true,
+            port: mc.port2,
+          }, '*', [mc.port2]);
+          const result = await new Promise((accept, reject) => {
+            mc.port1.onmessage = e => {
+              const {data} = e;
+              const {error, result} = data;
+
+              if (result) {
+                console.log('time taken', Date.now() - start);
+
+                accept(result);
+              } else {
+                reject(error);
+              }
+            };
+          });
+          return result;
+        },
+      };
+    };
+    const _makeIconString = (hash, ext) => {
+      const w = width;
+      const h = height;
+      const icon = {
+        'js': icons.code,
+        'wbn': icons.boxOpen,
+      }[ext];
+      const _split = s => {
+        const splitCount = 32;
+        let result = 0;
+        for (let i = 0; i < s.length; i += splitCount) {
+          if (i !== 0) {
+            result += '<br>'
+          }
+          result += s.slice(i, i+splitCount);
+        }
+        return result;
+      };
+      return `\
+      <style>
+      * {
+        box-sizing: border-box;
+      }
+      .body {
+        display: flex;
+        width: ${w}px;
+        height: ${h}px;
+        background-color: #FFF;
+        border: ${w/20}px solid #ff7043;
+        border-top-width: ${w/5}px;
+        font-family: 'Bangers';
+      }
+      .wrap {
+        display: flex;
+        overflow: hidden;
+      }
+      .details {
+        display: flex;
+        padding: 50px;
+        background-color: #FFF;
+        flex: 1;
+        flex-direction: column;
+      }
+      h1 {
+        margin: 10px 0;
+        font-size: 100px;
+      }
+      p {
+        margin: 10px 0;
+        font-size: 60px;
+      }
+      .icon {
+        display: flex;
+        flex: 1;
+        justify-content: center;
+        align-items: center;
+      }
+      .hash {
+        position: absolute;
+        top: ${w/20}px;
+        left: ${w/20}px;
+        color: #FFF;
+        font-size: ${w/16}px;
+      }
+      .label {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        /* padding: ${w/30}px; */
+        background-color: #000;
+        color: #FFF;
+        font-size: ${w/5}px;
+      }
+      </style>
+      <div class=body>
+        <div class=icon>
+          <img src="${icon}" height=${h/2}>
+        </div>
+        <div class=hash>${_split(hash)}</div>
+        <div class=label>${ext.toUpperCase()}</div>
+      </div>
+      `;
+    };
 
     (async () => {
-      const {hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
-
       try {
         toggleElements(false);
-
-        const scene = new THREE.Scene();
-
-        /* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), new THREE.MeshBasicMaterial({
-          color: 0x0000FF,
-        }));
-        scene.add(cubeMesh); */
-
-        const camera = new THREE.PerspectiveCamera(90, width / height, 0.1, 100);
-        camera.position.copy(cameraPosition);
-        camera.lookAt(cameraTarget);
-        // camera.quaternion.copy(cameraQuaternion);
-        // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
-        // const localAabb = model.boundingBoxMesh.scale.clone().applyQuaternion(model.quaternion);
-        // const modelHeight = Math.max(model.boundingBoxMesh.scale.x, model.boundingBoxMesh.scale.y, model.boundingBoxMesh.scale.z);
-        // camera.fov = 2 * Math.atan( modelHeight / ( 2 * dist ) ) * ( 180 / Math.PI );
-        // camera.updateProjectionMatrix();
-
-        // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
-
-       const renderer = new THREE.WebGLRenderer({
-          alpha: true,
-          antialias: true,
-        });
-        renderer.setSize(width, height);
-
         const screenshotResult = document.getElementById('screenshot-result');
 
+        const {hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
+
+        const _loadGltf = async () => {
+          const u = `${storageHost}/${hash}`;
+          let o;
+          try {
+            o = await new Promise((accept, reject) => {
+              new GLTFLoader().load(u, accept, function onprogress() {}, reject);
+            });
+          } catch(err) {
+            console.warn(err);
+          } /* finally {
+            URL.revokeObjectURL(u);
+          } */
+          o = o.scene;
+          return o;
+        };
+
         if (type === 'gltf') {
+          const {renderer, scene, camera} = _makeRenderer();
+
           const {model, arrayBuffer, file} = await bake(hash, ext, dst);
           scene.add(model);
 
@@ -121,125 +292,133 @@
             result: arrayBuffer,
           }, '*', [arrayBuffer]);
         } else if (type === 'png' || type === 'jpg') {
-          const u = `${storageHost}/${hash}`;
-          let o;
-          try {
-            o = await new Promise((accept, reject) => {
-              new GLTFLoader().load(u, accept, function onprogress() {}, reject);
-            });
-          } catch(err) {
-            console.warn(err);
-          } /* finally {
-            URL.revokeObjectURL(u);
-          } */
-          o = o.scene;
-          scene.add(o);
+          const canvas = await (async () => {
+            if (['glb', 'vrm'].includes(ext)) {
+              const {renderer, scene, camera} = _makeRenderer();
 
-          const boundingBox = new THREE.Box3().setFromObject(o);
-          const center = boundingBox.getCenter(new THREE.Vector3());
-          const size = boundingBox.getSize(new THREE.Vector3());
+              const o = await _loadGltf();
+              scene.add(o);
 
-          camera.position.x = 0;
-          camera.position.y = center.y;
-          camera.position.z = -size.y / 2 / Math.tan(Math.PI * camera.fov / 360) * 1.2;
-          camera.lookAt(center);
-          camera.updateMatrixWorld();
+              const boundingBox = new THREE.Box3().setFromObject(o);
+              const center = boundingBox.getCenter(new THREE.Vector3());
+              const size = boundingBox.getSize(new THREE.Vector3());
 
-          if (ext === 'vrm') {
-            const _getTailBones = skeleton => {
-              const result = [];
-              const _recurse = bones => {
-                for (let i = 0; i < bones.length; i++) {
-                  const bone = bones[i];
-                  if (bone.children.length === 0) {
-                    if (!result.includes(bone)) {
-                      result.push(bone);
+              camera.position.x = 0;
+              camera.position.y = center.y;
+              camera.position.z = -size.y / 2 / Math.tan(Math.PI * camera.fov / 360) * 1.2;
+              camera.lookAt(center);
+              camera.updateMatrixWorld();
+
+              if (ext === 'vrm') {
+                const _getTailBones = skeleton => {
+                  const result = [];
+                  const _recurse = bones => {
+                    for (let i = 0; i < bones.length; i++) {
+                      const bone = bones[i];
+                      if (bone.children.length === 0) {
+                        if (!result.includes(bone)) {
+                          result.push(bone);
+                        }
+                      } else {
+                        _recurse(bone.children);
+                      }
                     }
-                  } else {
-                    _recurse(bone.children);
+                  };
+                  _recurse(skeleton.bones);
+                  return result;
+                };
+                const _findFurthestParentBone = (bone, pred) => {
+                  let result = null;
+                  for (; bone; bone = bone.parent) {
+                    if (pred(bone)) {
+                      result = bone;
+                    }
                   }
-                }
-              };
-              _recurse(skeleton.bones);
-              return result;
-            };
-            const _findFurthestParentBone = (bone, pred) => {
-              let result = null;
-              for (; bone; bone = bone.parent) {
-                if (pred(bone)) {
-                  result = bone;
-                }
-              }
-              return result;
-            };
-            const _countCharacters = (name, regex) => {
-              let result = 0;
-              for (let i = 0; i < name.length; i++) {
-                if (regex.test(name[i])) {
-                  result++;
-                }
-              }
-              return result;
-            };
-            const _findEye = (tailBones, left) => {
-              const regexp = left ? /l/i : /r/i;
-              const eyeBones = tailBones.map(tailBone => {
-                const eyeBone = _findFurthestParentBone(tailBone, bone => /eye/i.test(bone.name) && regexp.test(bone.name.replace(/eye/gi, '')));
-                if (eyeBone) {
-                  return eyeBone;
-                } else {
-                  return null;
-                }
-              }).filter(spec => spec).sort((a, b) => {
-                const aName = a.name.replace(/shoulder/gi, '');
-                const aLeftBalance = _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
-                const bName = b.name.replace(/shoulder/gi, '');
-                const bLeftBalance = _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
-                if (!left) {
-                  return aLeftBalance - bLeftBalance;
-                } else {
-                  return bLeftBalance - aLeftBalance;
-                }
-              });
-              const eyeBone = eyeBones.length > 0 ? eyeBones[0] : null;
-              if (eyeBone) {
-                return eyeBone;
-              } else {
-                return null;
-              }
-            };
+                  return result;
+                };
+                const _countCharacters = (name, regex) => {
+                  let result = 0;
+                  for (let i = 0; i < name.length; i++) {
+                    if (regex.test(name[i])) {
+                      result++;
+                    }
+                  }
+                  return result;
+                };
+                const _findEye = (tailBones, left) => {
+                  const regexp = left ? /l/i : /r/i;
+                  const eyeBones = tailBones.map(tailBone => {
+                    const eyeBone = _findFurthestParentBone(tailBone, bone => /eye/i.test(bone.name) && regexp.test(bone.name.replace(/eye/gi, '')));
+                    if (eyeBone) {
+                      return eyeBone;
+                    } else {
+                      return null;
+                    }
+                  }).filter(spec => spec).sort((a, b) => {
+                    const aName = a.name.replace(/shoulder/gi, '');
+                    const aLeftBalance = _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
+                    const bName = b.name.replace(/shoulder/gi, '');
+                    const bLeftBalance = _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
+                    if (!left) {
+                      return aLeftBalance - bLeftBalance;
+                    } else {
+                      return bLeftBalance - aLeftBalance;
+                    }
+                  });
+                  const eyeBone = eyeBones.length > 0 ? eyeBones[0] : null;
+                  if (eyeBone) {
+                    return eyeBone;
+                  } else {
+                    return null;
+                  }
+                };
 
-            const skinnedMeshes = [];
-            o.traverse(o => {
-              if (o.isSkinnedMesh) {
-                skinnedMeshes.push(o);
+                const skinnedMeshes = [];
+                o.traverse(o => {
+                  if (o.isSkinnedMesh) {
+                    skinnedMeshes.push(o);
+                  }
+                });
+                skinnedMeshes.sort((a, b) => b.skeleton.bones.length - a.skeleton.bones.length);
+                const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
+                const skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
+                const tailBones = _getTailBones(skeleton);
+                const eyes = [_findEye(tailBones, true), _findEye(tailBones, false)];
+                if (eyes[0] && eyes[1]) {
+                  const center = eyes[0].getWorldPosition(new THREE.Vector3())
+                    .add(eyes[1].getWorldPosition(new THREE.Vector3()))
+                    .divideScalar(2);
+                  camera.position.copy(center)
+                    .add(new THREE.Vector3(0, 0, -0.3));
+                  camera.fov = 60;
+                  camera.updateProjectionMatrix();
+                }
+                console.log('got eyes', eyes);
               }
-            });
-            skinnedMeshes.sort((a, b) => b.skeleton.bones.length - a.skeleton.bones.length);
-            const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
-            const skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
-            const tailBones = _getTailBones(skeleton);
-            const eyes = [_findEye(tailBones, true), _findEye(tailBones, false)];
-            if (eyes[0] && eyes[1]) {
-              const center = eyes[0].getWorldPosition(new THREE.Vector3())
-                .add(eyes[1].getWorldPosition(new THREE.Vector3()))
-                .divideScalar(2);
-              camera.position.copy(center)
-                .add(new THREE.Vector3(0, 0, -0.3));
-              camera.fov = 60;
-              camera.updateProjectionMatrix();
+
+              if (type === 'jpg') {
+                renderer.setClearColor(0xFFFFFF, 1);
+              }
+              renderer.render(scene, camera);
+              return renderer.domElement;
+            } else {
+              const uiRenderer = _makeUiRenderer();
+
+              const htmlString = _makeIconString(hash, ext);
+              const result = await uiRenderer.render(htmlString, width, height);
+              const {data, anchors} = result;
+              const canvas = document.createElement('canvas');
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(data, 0, 0);
+              return canvas;
             }
-            console.log('got eyes', eyes);
-          }
-
-          if (type === 'jpg') {
-            renderer.setClearColor(0xFFFFFF, 1);
-          }
-          renderer.render(scene, camera);
+          })();
 
           const mimeType = `image/${type === 'png' ? 'png' : 'jpeg'}`;
           const blob = await new Promise((accept, reject) => {
-            renderer.domElement.toBlob(accept, mimeType);
+            canvas.toBlob(accept, mimeType);
           });
           const img = new Image();
           await new Promise((accept, reject) => {
@@ -270,6 +449,8 @@
             result: arrayBuffer,
           }, '*', [arrayBuffer]);
         } else if (type === 'gif') {
+          const {renderer, scene, camera} = _makeRenderer();
+
           const u = `${storageHost}/${hash}`;
           let o;
           try {
@@ -350,6 +531,8 @@
             result: arrayBuffer,
           }, '*', [arrayBuffer]);
         } else if (type === 'webm') {
+          const {renderer, scene, camera} = _makeRenderer();
+
           const u = `${storageHost}/${hash}`;
           let o;
           try {
