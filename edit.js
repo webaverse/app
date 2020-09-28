@@ -867,9 +867,6 @@ function mod(a, b) {
 const animals = [];
 const itemMeshes = [];
 
-// let chunkWorker = null;
-// let physxWorker = null;
-// let physicsWorker = null;
 let geometrySet = null;
 let tracker = null;
 let landAllocators = null;
@@ -878,9 +875,7 @@ let vegetationAllocators = null;
 let vegetationBufferAttributes = null;
 let thingAllocators = null;
 let thingBufferAttributes = null;
-// let culler = null;
 const makeAnimal = null;
-// let chunkMeshes = [];
 const chunkMesh = null;
 const worldContainer = new THREE.Object3D();
 scene.add(worldContainer);
@@ -888,7 +883,6 @@ const chunkMeshContainer = new THREE.Object3D();
 worldContainer.add(chunkMeshContainer);
 let currentChunkMesh = null;
 const currentChunkMeshId = getNextMeshId();
-// let capsuleMesh = null;
 let currentVegetationMesh = null;
 let currentThingMesh = null;
 let meshDrawer = null;
@@ -2088,61 +2082,6 @@ const geometryWorker = (() => {
     }
     return [landArenaSpec, vegetationArenaSpec, thingArenaSpec];
   };
-  /* w.registerGroupSet = (culler, x, y, z, r, peeksData, groupsData) => {
-    scratchStack.u8.set(peeksData, 0);
-    for (let i = 0; i < groupsData.length; i++) {
-      const groupData = groupsData[i];
-      scratchStack.u32[16/Uint32Array.BYTES_PER_ELEMENT + i*3] = groupData.start;
-      scratchStack.u32[16/Uint32Array.BYTES_PER_ELEMENT + i*3+1] = groupData.count;
-      scratchStack.u32[16/Uint32Array.BYTES_PER_ELEMENT + i*3+2] = groupData.materialIndex;
-    }
-
-    const peeksOffset = scratchStack.u32.byteOffset;
-    const groupsOffset = scratchStack.u32.byteOffset + 16;
-
-    return moduleInstance._registerGroupSet(
-      culler,
-      x,
-      y,
-      z,
-      r,
-      peeksOffset,
-      groupsOffset,
-      groupsData.length
-    );
-  };
-  w.unregisterGroupSet = (culler, groupSet) => {
-    moduleInstance._unregisterGroupSet(culler, groupSet);
-  };
-  w.cull = (culler, position, matrix, slabRadius) => {
-    position.toArray(scratchStack.f32, 0);
-    matrix.toArray(scratchStack.f32, 3);
-
-    const positionOffset = scratchStack.f32.byteOffset;
-    const matrixOffset = scratchStack.f32.byteOffset + 3*Float32Array.BYTES_PER_ELEMENT;
-    const cullResultsOffset = scratchStack.f32.byteOffset + (3 + 16)*Float32Array.BYTES_PER_ELEMENT;
-    const numCullResultsOffset = scratchStack.f32.byteOffset + (3 + 16 + 4096)*Float32Array.BYTES_PER_ELEMENT;
-
-    moduleInstance._cull(
-      culler,
-      positionOffset,
-      matrixOffset,
-      slabRadius,
-      cullResultsOffset,
-      numCullResultsOffset
-    );
-
-    const numCullResults = scratchStack.u32[3+16+4096];
-    const cullResults = Array(numCullResults);
-    for (let i = 0; i < cullResults.length; i++) {
-      cullResults[i] = {
-        start: scratchStack.u32[3+16 + i*3],
-        count: scratchStack.u32[3+16 + i*3 + 1],
-        materialIndex: scratchStack.u32[3+16 + i*3 + 2],
-      };
-    }
-    return cullResults;
-  }; */
   w.tickCull = (tracker, position, matrix) => {
     position.toArray(scratchStack.f32, 0);
     matrix.toArray(scratchStack.f32, 3);
@@ -2975,7 +2914,6 @@ const geometryWorker = (() => {
       torchLight: new THREE.BufferAttribute(thingAllocators.torchLights.getAs(Uint8Array), 1),
     };
   }
-  // culler = geometryWorker.makeCuller();
 
   const vegetationMaterial = new THREE.ShaderMaterial({
     uniforms: THREE.UniformsUtils.clone(VEGETATION_SHADER.uniforms),
