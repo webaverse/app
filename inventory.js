@@ -1,4 +1,5 @@
 import {bindUploadFileButton} from './util.js';
+import {loginManager} from './login.js';
 import {storageHost} from './constants.js';
 
 const inventory = new EventTarget();
@@ -8,13 +9,10 @@ const _getExt = fileName => {
   return match && match[1];
 };
 inventory.uploadFile = async file => {
-  const res = await fetch(storageHost, {
-    method: 'POST',
-    body: file,
-  });
-  const {hash} = await res.json();
+  const {hash} = await loginManager.uploadFile(file);
+  const {name: filename} = file;
   return {
-    name,
+    filename,
     hash,
   };
 };
@@ -29,6 +27,17 @@ bindUploadFileButton(document.getElementById('load-package-input'), _uploadFileT
 
 let files = [];
 inventory.getFiles = () => files;
+
+loginManager.addEventListener('inventorychange', async e => {
+  let files = await loginManager.getInventory();
+  files = files.map(entry => {
+    const {filename, hash} = entry;
+    return {filename, hash};
+  });
+  inventory.dispatchEvent(new MessageEvent('filesupdate', {
+    data: files,
+  }));
+});
 
 document.addEventListener('dragover', e => {
   e.preventDefault();
