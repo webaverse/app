@@ -14,6 +14,7 @@ const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).
 const importMap = {
   three: _importMapUrl('./three.module.js'),
   app: _importMapUrl('./app-object.js'),
+  BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
 };
 
 const _clone = o => JSON.parse(JSON.stringify(o));
