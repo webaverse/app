@@ -114,7 +114,6 @@ loginManager.addEventListener('avatarchange', async (e) => {
 const cubicBezier = easing(0, 1, 0, 1);
 
 let skybox = null;
-let skybox2 = null;
 
 /* const _loadGltf = u => new Promise((accept, reject) => {
   new GLTFLoader().load(u, o => {
@@ -3859,7 +3858,7 @@ const meshComposer = new MeshComposer();
   };
   const sun = new THREE.Vector3();
   function update() {
-    var uniforms = skybox2.material.uniforms;
+    var uniforms = skybox.material.uniforms;
     uniforms.turbidity.value = effectController.turbidity;
     uniforms.rayleigh.value = effectController.rayleigh;
     uniforms.mieCoefficient.value = effectController.mieCoefficient;
@@ -3876,74 +3875,10 @@ const meshComposer = new MeshComposer();
 
     uniforms.sunPosition.value.copy(sun);
   }
-  skybox2 = new Sky();
-  skybox2.scale.setScalar(1000);
-  skybox2.update = update;
-  skybox2.update();
-  scene.add(skybox2);
-})();
-(() => {
-  const sphere = new THREE.SphereBufferGeometry(10, 32, 32);
-
-  const img = new Image();
-  img.src = './hexagon.jpg';
-  const texture = new THREE.Texture(img);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  img.onload = () => {
-    texture.needsUpdate = true;
-  };
-  img.onerror = err => {
-    console.warn(err.stack);
-  };
-
-  const material = new THREE.ShaderMaterial({
-    uniforms: {
-      tex: {type: 't', value: texture},
-      iTime: {value: 0},
-    },
-    vertexShader: `\
-      uniform float iTime;
-      varying vec2 uvs;
-      varying vec3 vNormal;
-      varying vec3 vWorldPosition;
-      void main() {
-        uvs = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-        vNormal = normal;
-        vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-        vWorldPosition = worldPosition.xyz;
-      }
-    `,
-    fragmentShader: `\
-      #define PI 3.1415926535897932384626433832795
-
-      uniform float iTime;
-      uniform sampler2D tex;
-      varying vec2 uvs;
-      varying vec3 vNormal;
-      varying vec3 vWorldPosition;
-
-      const vec3 c = vec3(${new THREE.Color(0x1565c0).toArray().join(', ')});
-
-      void main() {
-        vec2 uv = uvs;
-        uv.x *= 1.7320508075688772;
-        uv *= 8.0;
-
-        vec3 direction = vWorldPosition - cameraPosition;
-        float d = dot(vNormal, normalize(direction));
-        float glow = d < 0.0 ? max(1. + d * 2., 0.) : 0.;
-
-        float animationFactor = (1.0 + sin((uvs.y*2. + iTime) * PI*2.))/2.;
-        float a = glow + (1.0 - texture2D(tex, uv).r) * (0.01 + pow(animationFactor, 10.0) * 0.5);
-        gl_FragColor = vec4(c, a);
-      }
-    `,
-    side: THREE.DoubleSide,
-    transparent: true,
-  });
-  skybox = new THREE.Mesh(sphere, material);
+  skybox = new Sky();
+  skybox.scale.setScalar(1000);
+  skybox.update = update;
+  skybox.update();
   scene.add(skybox);
 })();
 (() => {
@@ -5341,22 +5276,22 @@ function animate(timestamp, frame) {
   lastTimestamp = timestamp;
 
   const now = Date.now();
-  if (currentChunkMesh && skybox2) {
+  if (currentChunkMesh && skybox) {
     for (const material of currentChunkMesh.material) {
       const {uniforms} = material;
       uniforms.uTime.value = (now % timeFactor) / timeFactor;
       uniforms.uTime.needsUpdate = true;
-      uniforms.sunIntensity.value = Math.max(skybox2.material.uniforms.sunPosition.value.y, 0);
+      uniforms.sunIntensity.value = Math.max(skybox.material.uniforms.sunPosition.value.y, 0);
       uniforms.sunIntensity.needsUpdate = true;
-      uniforms.sunDirection.value.copy(skybox2.material.uniforms.sunPosition.value).normalize();
+      uniforms.sunDirection.value.copy(skybox.material.uniforms.sunPosition.value).normalize();
       window.sunDirection = uniforms.sunDirection.value;
       uniforms.sunDirection.needsUpdate = true;
     }
   }
-  if (currentVegetationMesh && skybox2) {
+  if (currentVegetationMesh && skybox) {
     for (const material of currentVegetationMesh.material) {
       const {uniforms} = material;
-      uniforms.sunIntensity.value = Math.max(skybox2.material.uniforms.sunPosition.value.y, 0);
+      uniforms.sunIntensity.value = Math.max(skybox.material.uniforms.sunPosition.value.y, 0);
       uniforms.sunIntensity.needsUpdate = true;
     }
   }
@@ -5377,15 +5312,9 @@ function animate(timestamp, frame) {
     animal.update();
   }
   hpMesh.update();
-  if (skybox) {
-    skybox.material.uniforms.iTime.value = ((Date.now() - startTime) % 3000) / 3000;
-  }
-  if (skybox2) {
-    skybox2.position.copy(rigManager.localRig.inputs.hmd.position);
-    skybox2.update();
-  }
+  skybox.position.copy(rigManager.localRig.inputs.hmd.position);
+  skybox.update();
   crosshairMesh && crosshairMesh.update();
-  // uiMesh && uiMesh.update();
   
   const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
   if (currentSession) {
