@@ -11,19 +11,16 @@ const _getExt = fileName => {
 inventory.uploadFile = async file => {
   const {hash} = await loginManager.uploadFile(file);
   const {name: filename} = file;
-  return {
+  const fileSpec = {
     filename,
     hash,
   };
-};
-const _uploadFileToInventory = async file => {
-  const fileSpec = await inventory.uploadFile(file);
   files.push(fileSpec);
   inventory.dispatchEvent(new MessageEvent('filesupdate', {
     data: files,
   }));
 };
-bindUploadFileButton(document.getElementById('load-package-input'), _uploadFileToInventory);
+bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFile);
 
 let files = [];
 inventory.getFiles = () => files;
@@ -47,7 +44,7 @@ document.addEventListener('drop', async e => {
 
   if (e.dataTransfer.files.length > 0) {
     const [file] = e.dataTransfer.files;
-    await _uploadFileToInventory(file);
+    await inventory.uploadFile(file);
   }
 });
 

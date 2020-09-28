@@ -5011,15 +5011,13 @@ const _bakeAndUploadComposerMesh = async () => {
     });
   });
   arrayBuffer.name = 'object.glb';
-  const file = await inventory.uploadFile(arrayBuffer);
-  file.mesh = mesh;
-  return file;
+  const {hash} = await inventory.uploadFile(arrayBuffer);
+  return {mesh, hash};
 };
 const detailsMesh = makeDetailsMesh(cubeMesh, function onrun(anchorSpec) {
   meshComposer.run();
 }, async function onbake(anchorSpec) {
-  const file = await _bakeAndUploadComposerMesh();
-  const {mesh, hash} = file;
+  const {mesh, hash} = await _bakeAndUploadComposerMesh();
   const hashUint8Array = hex2Uint8Array(hash);
 
   const canvas = mesh.material.map.image;
