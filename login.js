@@ -353,7 +353,7 @@ class LoginManager extends EventTarget {
     }
   }
 
-  async uploadToInventory(file) {
+  async uploadFile(file) {
     if (loginToken) {
       const {name} = file;
       if (name) {
@@ -361,7 +361,7 @@ class LoginManager extends EventTarget {
 
         let hash;
         {
-          const res = await fetch('https://storage.exokit.org/', {
+          const res = await fetch(storageHost, {
             method: 'POST',
             body: file,
           });
@@ -386,7 +386,10 @@ class LoginManager extends EventTarget {
           });
           const response2 = await res.json();
           const id = parseInt(response2.transaction.events[0].payload.value.fields.find(field => field.name === 'id').value.value, 10);
-          return id;
+          return {
+            hash,
+            id,
+          };
         }
       } else {
         throw new Error('file has no name');
@@ -403,6 +406,7 @@ class LoginManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('avatarchange', {
       data: userObject && userObject.avatarHash,
     }));
+    this.dispatchEvent(new MessageEvent('inventorychange'));
   }
 }
 const loginManager = new LoginManager();

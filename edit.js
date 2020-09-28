@@ -7,11 +7,9 @@ import {GLTFLoader} from './GLTFLoader.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {TransformControls} from './TransformControls.js';
-// import {XRPackage, pe, renderer, scene, camera, parcelMaterial, floorMesh, proxySession, getRealSession, loginManager} from './run.js';
 import {tryLogin, loginManager} from './login.js';
+import runtime from './runtime.js';
 import {parseQuery, hex2Uint8Array, downloadFile, mergeMeshes} from './util.js';
-// import {wireframeMaterial, getWireframeMesh, meshIdToArray, decorateRaycastMesh, VolumeRaycaster} from './volume.js';
-// import './gif.js';
 import {RigManager} from './rig.js';
 import {makeCubeMesh, /*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh, makeColorsMesh, makeIconMesh, intersectUi, makeRayMesh} from './vr-ui.js';
 import {makeLineMesh, makeTeleportMesh} from './teleport.js';
@@ -4861,12 +4859,13 @@ inventoryMesh.visible = false;
 inventoryMesh.handleIconClick = async (i, srcIndex) => {
   const files = inventory.getFiles();
   const file = files[srcIndex];
-  const {name, hash} = file;
+  const {filename, hash} = file;
   const res = await fetch(`${storageHost}/${hash}`);
   const blob = await res.blob();
-  blob.name = name;
+  blob.name = filename;
 
   const mesh = await runtime.loadFileForWorld(blob);
+  mesh.run && mesh.run();
   mesh.traverse(o => {
     if (o.isMesh) {
       o.frustumCulled = false;
@@ -5027,22 +5026,22 @@ const _makeInventoryItemsMesh = () => {
   const object = new THREE.Object3D();
   object.update = async files => {
     for (let i = 0; i < files.length; i++) {
-      const {name, hash} = files[i];
+      const {filename, hash} = files[i];
       const dx = i%3;
       const dy = (i-dx)/3;
 
       {
         const res = await fetch(`${storageHost}/${hash}`);
         const blob = await res.blob();
-        blob.name = name;
-        const mesh = await inventory.loadFileForWorld(blob);
+        blob.name = filename;
+        const mesh = await runtime.loadFileForWorld(blob);
 
         mesh.position.set(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4);
         mesh.scale.set(w*2 * 0.1, w*2 * 0.1, w*2 * 0.1);
         object.add(mesh);
       }
 
-      const textMesh = makeTextMesh(name, './Bangers-Regular.ttf', 0.003, 'left', 'bottom');
+      const textMesh = makeTextMesh(filename, './Bangers-Regular.ttf', 0.003, 'left', 'bottom');
       textMesh.position.set(-h + 0.004 + dx*w, h/2 - arrowW - w - dy*w, 0.001);
       object.add(textMesh);
     }
@@ -7126,7 +7125,9 @@ const _ensureLoadMesh = p => {
   }
 };
 
-inventory.addEventListener('filesupdate', e => {
+inventory.addEventListener('filesupdate', async e => {
+  await loadPromise;
+
   const files = e.data;
   inventoryMesh.inventoryItemsMesh.update(files);
 });
