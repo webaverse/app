@@ -2,9 +2,9 @@ import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import {bindUploadFileButton, mergeMeshes} from './util.js';
+import {makeIconMesh} from './vr-ui.js';
 import wbn from './wbn.js';
 import {storageHost} from './constants.js';
-// import app from './app-object.js';
 
 const inventory = new EventTarget();
 
@@ -16,6 +16,7 @@ const importMap = {
   app: _importMapUrl('./app-object.js'),
 };
 
+const _clone = o => JSON.parse(JSON.stringify(o));
 const _getExt = fileName => {
   const match = fileName.match(/\.(.+)$/);
   return match && match[1];
@@ -248,6 +249,7 @@ const _loadScript = async file => {
   };
   return mesh;
 };
+let appIds = 0;
 const _loadWebBundle = async file => {
   const arrayBuffer = await new Promise((accept, reject) => {
     const fr = new FileReader();
@@ -257,6 +259,23 @@ const _loadWebBundle = async file => {
     fr.onerror = reject;
     fr.readAsArrayBuffer(file);
   });
+
+  const appId = ++appIds;
+  const localImportMap = _clone(importMap);
+  localImportMap.app = (() => {
+    const s = `\
+      import {renderer as _renderer, scene, camera, appManager} from ${JSON.stringify(importMap.app)};
+      const renderer = Object.create(_renderer);
+      renderer.setAnimationLoop = function(fn) {
+        appManager.setAnimationLoop(${appId}, fn);
+      };
+      export {renderer, scene, camera};
+    `;
+    const b = new Blob([s], {
+      type: 'application/javascript',
+    });
+    return URL.createObjectURL(b);
+  })();
 
   const urls = [];
   const _getUrl = u => {
@@ -268,7 +287,7 @@ const _loadWebBundle = async file => {
   };
   const urlCache = {};
   const _mapUrl = u => {
-    const importUrl = importMap[u];
+    const importUrl = localImportMap[u];
     if (importUrl) {
       return importUrl;
     } else {
@@ -305,26 +324,28 @@ const _loadWebBundle = async file => {
     return script;
   };
 
+  const bundle = new wbn.Bundle(arrayBuffer);
+  const u = _mapUrl(bundle.primaryURL);
+  import(u)
+    .then(() => {
+      console.log('import returned');
+    }, err => {
+      console.warn('import failed', u, err);
+    })
+    .finally(() => {
+      for (const u of urls) {
+        URL.revokeObjectURL(u);
+      }
+    });
+
   const mesh = makeIconMesh();
   mesh.geometry.boundingBox = new THREE.Box3(
     new THREE.Vector3(-1, -1/2, -0.1),
     new THREE.Vector3(1, 1/2, 0.1),
   );
   mesh.frustumCulled = false;
-  mesh.run = () => {
-    const bundle = new wbn.Bundle(arrayBuffer);
-    const u = _mapUrl(bundle.primaryURL);
-    import(u)
-      .then(() => {
-        console.log('import returned');
-      }, err => {
-        console.warn('import failed', err);
-      })
-      .finally(() => {
-        for (const u of urls) {
-          URL.revokeObjectURL(u);
-        }
-      });
+  mesh.remove = () => {
+    console.log('remove');
   };
   return mesh;
 };

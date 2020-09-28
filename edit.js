@@ -44,7 +44,7 @@ import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
-import app from './app-object.js';
+import {renderer, scene, camera, appManager} from './app-object.js';
 import inventory from './inventory.js';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
@@ -84,41 +84,12 @@ const textDecoder = new TextDecoder();
 
 const loadPromise = makePromise();
 
-const scene = new THREE.Scene();
 const rigManager = new RigManager(scene);
 planet.setBindings(scene, rigManager);
 
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 1.6, 2);
-camera.rotation.order = 'YXZ';
-// camera.quaternion.set(0, 0, 0, 1);
 const dolly = new THREE.Object3D();
 dolly.add(camera);
 scene.add(dolly);
-
-const canvas = document.getElementById('canvas');
-const context = canvas.getContext('webgl2', {
-  antialias: true,
-  alpha: true,
-  preserveDrawingBuffer: false,
-});
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-  context,
-  antialias: true,
-  alpha: true,
-  // preserveDrawingBuffer: false,
-});
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.autoClear = false;
-renderer.sortObjects = false;
-renderer.physicallyCorrectLights = true;
-renderer.xr.enabled = true;
-
-app.renderer = renderer;
-app.scene = scene;
-app.camera = camera;
 
 const ambientLight = new THREE.AmbientLight(0xFFFFFF);
 scene.add(ambientLight);
@@ -6619,6 +6590,8 @@ function animate(timestamp, frame) {
 
   geometryWorker.update();
   planet.update();
+
+  appManager.tick(timestamp, frame);
 
   localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, worldContainer.matrixWorld));
   if (currentChunkMesh && currentVegetationMesh) {
