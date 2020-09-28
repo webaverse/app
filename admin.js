@@ -1,4 +1,4 @@
-import {resolveContractSource} from './blockchain.js';
+import {resolveContractSource, hexToWordList} from './blockchain.js';
 import {accountsHost} from './constants.js';
 import {uint8Array2hex} from './util.js';
 
@@ -21,6 +21,7 @@ const _createAccount = async () => {
     method: 'POST',
   });
   const j = await res.json();
+  j.key = j.mnemonic + ' ' + hexToWordList(j.address);
   return j;
 };
 const _bakeContract = async (contractKeys, contractSource) => {
