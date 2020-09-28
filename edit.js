@@ -39,8 +39,14 @@ import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
 import {renderer, scene, camera, appManager} from './app-object.js';
-import App from './components/App.js';
+import { App, updateProps } from './components/App.js';
 import inventory from './inventory.js';
+
+let props = {
+  inventoryItems: inventory.getFiles()
+}
+
+updateProps(props);
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
@@ -7216,10 +7222,3 @@ document.getElementById('enter-xr-button').addEventListener('click', e => {
     currentSession.end();
   }
 });
-
-
-const props = {message: 'hello'};
-
-window.addEventListener('load', (e) => {
-  document.getElementById('preact-container').innerHTML = App(props);
-})
