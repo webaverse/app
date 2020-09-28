@@ -361,7 +361,7 @@ class LoginManager extends EventTarget {
 
         let hash;
         {
-          const res = await fetch('https://storage.exokit.org/', {
+          const res = await fetch(storageHost, {
             method: 'POST',
             body: file,
           });
