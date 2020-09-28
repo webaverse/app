@@ -306,26 +306,27 @@ const _loadWebBundle = async file => {
     return script;
   };
 
-  const bundle = new wbn.Bundle(arrayBuffer);
-  const u = _mapUrl(bundle.primaryURL);
-  import(u)
-    .then(() => {
-      console.log('import returned');
-    }, err => {
-      console.warn('import failed', u, err);
-    })
-    .finally(() => {
-      for (const u of urls) {
-        URL.revokeObjectURL(u);
-      }
-    });
-
   const mesh = makeIconMesh();
   mesh.geometry.boundingBox = new THREE.Box3(
     new THREE.Vector3(-1, -1/2, -0.1),
     new THREE.Vector3(1, 1/2, 0.1),
   );
   mesh.frustumCulled = false;
+  mesh.run = () => {
+    const bundle = new wbn.Bundle(arrayBuffer);
+    const u = _mapUrl(bundle.primaryURL);
+    import(u)
+      .then(() => {
+        console.log('import returned');
+      }, err => {
+        console.warn('import failed', u, err);
+      })
+      .finally(() => {
+        for (const u of urls) {
+          URL.revokeObjectURL(u);
+        }
+      });
+  };
   mesh.remove = () => {
     console.log('remove');
   };
