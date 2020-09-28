@@ -157,7 +157,7 @@ async function tryLogin() {
 
       const newUserName = userName.innerText;
 
-      const contractSource = await getContractSource('setUserName.cdc');
+      const contractSource = await getContractSource('setUserData.cdc');
 
       const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
         method: 'POST',
@@ -166,7 +166,9 @@ async function tryLogin() {
           mnemonic: loginToken.mnemonic,
 
           limit: 100,
-          transaction: contractSource.replace(/ARG0/g, newUserName),
+          transaction: contractSource
+            .replace(/ARG0/g, 'name')
+            .replace(/ARG1/g, newUserName),
           wait: true,
         }),
       });
