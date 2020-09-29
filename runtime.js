@@ -4,6 +4,7 @@ import {GLTFExporter} from './GLTFExporter.js';
 import {mergeMeshes} from './util.js';
 // import {bake} from './bakeUtils.js';
 import {makeIconMesh} from './vr-ui.js';
+import {appManager} from './app-object.js';
 import wbn from './wbn.js';
 import {storageHost} from './constants.js';
 
@@ -243,6 +244,7 @@ const _loadWebBundle = async file => {
   });
 
   const appId = ++appIds;
+  const app = appManager.createApp(appId);
   const localImportMap = _clone(importMap);
   localImportMap.app = (() => {
     const s = `\
@@ -251,7 +253,8 @@ const _loadWebBundle = async file => {
       renderer.setAnimationLoop = function(fn) {
         appManager.setAnimationLoop(${appId}, fn);
       };
-      export {renderer, scene, camera};
+      const app = appManager.getApp(${appId});
+      export {renderer, scene, camera, app};
     `;
     const b = new Blob([s], {
       type: 'application/javascript',
@@ -259,12 +262,12 @@ const _loadWebBundle = async file => {
     return URL.createObjectURL(b);
   })();
 
-  const urls = [];
+  const cachedUrls = [];
   const _getUrl = u => {
     const mappedUrl = URL.createObjectURL(new Blob([u], {
       type: 'text/javascript',
     }));
-    urls.push(mappedUrl);
+    cachedUrls.push(mappedUrl);
     return mappedUrl;
   };
   const urlCache = {};
@@ -306,6 +309,22 @@ const _loadWebBundle = async file => {
     return script;
   };
 
+  const bundle = new wbn.Bundle(arrayBuffer);
+  console.log('got bundle', bundle);
+  const {urls} = bundle;
+  for (const u of urls) {
+    const response = bundle.getResponse(u);
+    const {headers} = response;
+    const contentType = headers['content-type'] || 'application/octet-stream';
+    const b = new Blob([response.body], {
+      type: contentType,
+    });
+    const blobUrl = URL.createObjectURL(b);
+    const {pathname} = new URL(u);
+    app.files[pathname] = blobUrl;
+  }
+  const u = _mapUrl(bundle.primaryURL);
+
   const mesh = makeIconMesh();
   mesh.geometry.boundingBox = new THREE.Box3(
     new THREE.Vector3(-1, -1/2, -0.1),
@@ -313,8 +332,6 @@ const _loadWebBundle = async file => {
   );
   mesh.frustumCulled = false;
   mesh.run = () => {
-    const bundle = new wbn.Bundle(arrayBuffer);
-    const u = _mapUrl(bundle.primaryURL);
     import(u)
       .then(() => {
         console.log('import returned');
@@ -322,13 +339,14 @@ const _loadWebBundle = async file => {
         console.warn('import failed', u, err);
       })
       .finally(() => {
-        for (const u of urls) {
+        for (const u of cachedUrls) {
           URL.revokeObjectURL(u);
         }
       });
   };
   mesh.remove = () => {
     console.log('remove');
+    appManager.destroyApp(appId);
   };
   return mesh;
 };

@@ -29,7 +29,25 @@ camera.rotation.order = 'YXZ';
 
 class AppManager {
 	constructor() {
+		this.apps = [];
 		this.animationLoops = [];
+	}
+	createApp(appId) {
+		const app = new App(appId);
+		this.apps.push(app);
+		return app;
+	}
+	destroyApp(appId) {
+		const appIndex = this.apps.findIndex(app => app.appId === appId);
+		if (appIndex !== -1) {
+			const app = this.apps[appIndex];
+			app.dispatchEvent(new MessageEvent('terminate'));
+			this.apps.splice(appIndex, 1);
+		}
+		this.removeAnimationLoop(appId);
+	}
+	getApp(appId) {
+    return this.apps.find(app => app.appId === appId);
 	}
 	setAnimationLoop(appId, fn) {
 		let animationLoop = this.animationLoops.find(al => al.appId === appId);
@@ -55,5 +73,14 @@ class AppManager {
 	}
 }
 const appManager = new AppManager();
+
+class App extends EventTarget {
+	constructor(appId) {
+		super();
+
+    this.appId = appId;
+    this.files = {};
+	}
+}
 
 export {renderer, scene, camera, appManager};
