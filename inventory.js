@@ -21,7 +21,9 @@ inventory.uploadFile = async file => {
     data: files,
   }));
 };
-bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFile);
+document.addEventListener('load', () => {
+  bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFile);
+})
 
 let files = [];
 inventory.getFiles = () => files;

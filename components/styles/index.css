@@ -5,3 +5,11 @@
     position: fixed;
     z-index: 2;
 }
+.isOpaque {
+    height: 100vw;
+    width: 100vw;
+    background-color: white;
+    opacity: 70%;
+    position: fixed;
+    z-index: 1;
+}

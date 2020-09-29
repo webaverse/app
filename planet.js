@@ -777,24 +777,26 @@ planet.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   return s;
 }; */
 
-document.getElementById('connectButton').addEventListener('click', async (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  if (channelConnectionOpen) { // disconnect case
-    const res = await fetch(`${worldsHost}/${worldMeta.id}`, {
-      method: 'DELETE'
-    });
-    await res.blob();
-    
-    location.search = '';
-  } else { // connect case
-    const response = await fetch(`${worldsHost}/create`, {
-      method: 'POST'
-    })
-    if (response.ok) {
-      const json = await response.json();
-      // console.log(json);
-      location.search = `?w=${json.id}`;
+document.addEventListener('load',  () => {
+  document.getElementById('connectButton').addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (channelConnectionOpen) { // disconnect case
+      const res = await fetch(`${worldsHost}/${worldMeta.id}`, {
+        method: 'DELETE'
+      });
+      await res.blob();
+      
+      location.search = '';
+    } else { // connect case
+      const response = await fetch(`${worldsHost}/create`, {
+        method: 'POST'
+      })
+      if (response.ok) {
+        const json = await response.json();
+        // console.log(json);
+        location.search = `?w=${json.id}`;
+      }
     }
-  }
-});
+  });
+})

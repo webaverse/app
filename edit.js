@@ -42,12 +42,6 @@ import {renderer, scene, camera, appManager} from './app-object.js';
 import { App, updateProps } from './components/App.js';
 import inventory from './inventory.js';
 
-let props = {
-  inventoryItems: inventory.getFiles()
-}
-
-updateProps(props);
-
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
 const pid4 = Math.PI / 4;
@@ -79,9 +73,11 @@ const localObject = new THREE.Object3D();
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
-(async () => {
-  await tryLogin();
-})(); 
+window.addEventListener('load', () => {
+  (async () => {
+    await tryLogin();
+  })(); 
+})
 
 const loadPromise = makePromise();
 
@@ -7131,21 +7127,23 @@ function onSessionEnded() {
   renderer.xr.setSession(null);
   currentSession = null;
 }
-document.getElementById('enter-xr-button').addEventListener('click', e => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  if (currentSession === null) {
-    navigator.xr.requestSession('immersive-vr', {
-      requiredFeatures: [
-        'local-floor',
-        // 'bounded-floor',
-      ],
-      optionalFeatures: [
-        'hand-tracking',
-      ],
-    }).then(onSessionStarted);
-  } else {
-    currentSession.end();
-  }
-});
+window.addEventListener('load', () => {
+  document.getElementById('enter-xr-button').addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+  
+    if (currentSession === null) {
+      navigator.xr.requestSession('immersive-vr', {
+        requiredFeatures: [
+          'local-floor',
+          // 'bounded-floor',
+        ],
+        optionalFeatures: [
+          'hand-tracking',
+        ],
+      }).then(onSessionStarted);
+    } else {
+      currentSession.end();
+    }
+  });
+})

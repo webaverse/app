@@ -97,9 +97,11 @@ function makePromise() {
 }
 
 let file = null;
-bindUploadFileButton(document.getElementById('input-file'), f => {
-  file = f;
-});
+document.addEventListener('load', () => {
+  bindUploadFileButton(document.getElementById('input-file'), f => {
+    file = f;
+  });
+})
 
 const _mintFile = async () => {
   if (file) {
