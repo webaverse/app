@@ -4358,6 +4358,18 @@ planet.addEventListener('load', async e => {
 
   const height = await geometryWorker.requestGetHeight(chunkMesh.seedNum, ncx, ncy + SUBPARCEL_SIZE, ncz, baseHeight, PARCEL_SIZE);
   worldContainer.position.y = -height // - _getAvatarHeight();
+
+  const _loadGltf = u => new Promise((accept, reject) => {
+    new GLTFLoader().load(u, o => {
+      o = o.scene;
+      accept(o);
+    }, xhr => {}, reject);
+  });
+  const gltf = await _loadGltf('./npc.vrm');
+  gltf.position.set(0, 1, 0);
+  scene.add(gltf);
+  const rigCapsule = _makeRigCapsule();
+  gltf.add(rigCapsule);
 });
 planet.addEventListener('unload', () => {
   const oldChunkMesh = currentChunkMesh;
