@@ -9,7 +9,7 @@ const _clone = o => JSON.parse(JSON.stringify(o));
 
 let loginToken = null;
 let userObject = null;
-async function ensureUserObjectBaked() {
+/* async function ensureUserObjectBaked() {
   const contractSource = await getContractSource('isUserAccountBaked.cdc');
 
   const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
@@ -39,9 +39,9 @@ async function ensureUserObjectBaked() {
       console.log('baked account result', response);
     }
   }
-}
+} */
 async function pullUserObject() {
-  await ensureUserObjectBaked();
+  // await ensureUserObjectBaked();
   
   const contractSource = await getContractSource('getUserData.cdc');
 
