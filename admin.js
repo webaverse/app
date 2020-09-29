@@ -16,9 +16,12 @@ const _runArray = async (userKeys, array) => {
   }
   return result;
 };
-const _createAccount = async () => {
+const _createAccount = async ({bake = false} = {}) => {
   const res = await fetch(accountsHost, {
     method: 'POST',
+    body: JSON.stringify({
+      bake,
+    }),
   });
   const j = await res.json();
   j.key = j.mnemonic + ' ' + hexToWordList(j.address);
@@ -110,13 +113,16 @@ const _runSpec = async (userKeys, spec) => {
 
 {
 	const createAccountForm = document.getElementById('create-account-form');
+  const createAccountFormBakedCheckbox = document.getElementById('create-account-form-baked-checkbox');
 	const createAccountFormOutput = document.getElementById('create-account-form-output');
 	createAccountForm.addEventListener('submit', async e => {
 	  e.preventDefault();
 
 	  createAccountFormOutput.setAttribute('disabled', '');
 
-	  const userKeys = await _createAccount();
+	  const userKeys = await _createAccount({
+      bake: createAccountFormBakedCheckbox.checked,
+    });
 	  createAccountFormOutput.value = JSON.stringify(userKeys, null, 2);
 	  createAccountFormOutput.removeAttribute('disabled');
 	});
