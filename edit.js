@@ -7134,22 +7134,22 @@ function onSessionEnded() {
   currentSession = null;
 }
 window.addEventListener('load', () => {
-  document.getElementById('enter-xr-button').addEventListener('click', e => {
-    e.preventDefault();
-    e.stopPropagation();
+  // document.getElementById('enter-xr-button').addEventListener('click', e => {
+  //   e.preventDefault();
+  //   e.stopPropagation();
   
-    if (currentSession === null) {
-      navigator.xr.requestSession('immersive-vr', {
-        requiredFeatures: [
-          'local-floor',
-          // 'bounded-floor',
-        ],
-        optionalFeatures: [
-          'hand-tracking',
-        ],
-      }).then(onSessionStarted);
-    } else {
-      currentSession.end();
-    }
-  });
+  //   if (currentSession === null) {
+  //     navigator.xr.requestSession('immersive-vr', {
+  //       requiredFeatures: [
+  //         'local-floor',
+  //         // 'bounded-floor',
+  //       ],
+  //       optionalFeatures: [
+  //         'hand-tracking',
+  //       ],
+  //     }).then(onSessionStarted);
+  //   } else {
+  //     currentSession.end();
+  //   }
+  // });
 })

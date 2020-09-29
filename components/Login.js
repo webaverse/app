@@ -1,7 +1,6 @@
 import { tryLogin } from '../login.js';
 
 window.addEventListener('load', async () => {
-    console.log('hello')
     await tryLogin();
 })
 

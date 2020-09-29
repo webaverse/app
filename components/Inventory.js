@@ -24,7 +24,10 @@ const Inventory = (props) => {
             <div class="twoD-inventoryHeader">
                 <i class="far fa-times-circle twoD-inventoryClose"></i>
                 <h1 class="twoD-inventoryHeaderTitle">Inventory</h1>
-                <input class="twoD-inventoryUploadBtn" id="twoD-inventoryUploadBtn" type="file"></input>
+                <button class="twoD-inventoryUploadBtn">
+                    Upload
+                    <input id="twoD-inventoryUploadBtn" type="file" hidden>
+                </button>
             </div>
             <hr class="twoD-inventoryDivider"></hr>
             <div class="twoD-inventoryList">
