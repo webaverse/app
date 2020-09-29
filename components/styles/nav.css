@@ -1,0 +1,19 @@
+#twoD-nav {
+    position: fixed;
+    display: flex;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background-color: #FFF;
+    align-items: center;
+    user-select: none;
+    z-index: 10;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+}
+
+#twoD-nav .icon {
+  display: flex;
+  width: 50px;
+  justify-content: center;
+}

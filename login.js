@@ -116,6 +116,7 @@ async function doLogin(email, code) {
   }
 }
 async function tryLogin() {
+  console.log('hello')
   loginToken = await storage.get('loginToken');
 
   const loginForm = document.getElementById('login-form');

@@ -73,12 +73,6 @@ const localObject = new THREE.Object3D();
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
-window.addEventListener('load', () => {
-  (async () => {
-    await tryLogin();
-  })(); 
-})
-
 const loadPromise = makePromise();
 
 const rigManager = new RigManager(scene);

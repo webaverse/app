@@ -1,5 +1,5 @@
 import Inventory from './Inventory.js';
-import Toolbar from './Toolbar.js';
+import Nav from './Nav.js';
 import inventory from '../inventory.js';
 
 let appProps = {
@@ -10,7 +10,7 @@ const appContainer = document.getElementById('appContainer');
 
 const App = (props) => {
     return `
-        ${Toolbar(props)}
+        ${Nav(props)}
         ${Inventory(props)}
     `;
 }
@@ -21,7 +21,7 @@ window.addEventListener('load', (e) => {
         const file = e.target.files[0];
         appProps.inventory.uploadFile(file);
     })
-    console.log(appProps)
+    console.log(appProps);
 })
 
 const updateProps = (newProps) => {
