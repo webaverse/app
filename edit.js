@@ -5048,18 +5048,23 @@ let currentWeaponValue = 0;
 let lastWeaponValue = 0;
 let currentWeaponGrabs = [false, false];
 let lastWeaponGrabs = [false, false];
-const weapons = Array.from(document.querySelectorAll('.weapon'));
-for (let i = 0; i < weapons.length; i++) {
-  const weapon = document.getElementById('weapon-' + (i + 1));
-  weapon.addEventListener('click', e => {
-    for (let i = 0; i < weapons.length; i++) {
-      weapons[i].classList.remove('selected');
-    }
-    weapon.classList.add('selected');
+let weapons = [];
+window.addEventListener('load', () => {
+  const weapons = Array.from(document.querySelectorAll('.weapon'));
+  for (let i = 0; i < weapons.length; i++) {
+    const weapon = document.getElementById('weapon-' + (i + 1));
+    weapon.addEventListener('click', e => {
+      console.log('click')
+      for (let i = 0; i < weapons.length; i++) {
+        weapons[i].classList.remove('selected');
+      }
+      weapon.classList.add('selected');
+  
+      selectedWeapon = weapon.getAttribute('weapon');
+    });
+  }
+})
 
-    selectedWeapon = weapon.getAttribute('weapon');
-  });
-}
 const toolsMesh = makeToolsMesh(weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
   selectedWeapon = newSelectedWeapon;
 });
@@ -6611,7 +6616,10 @@ const _getAvatarHeight = () => _getFullAvatarHeight() * 0.9;
 const birdsEyeHeight = 10;
 const avatarCameraOffset = new THREE.Vector3(0, 0, -1);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -5);
-const tools = Array.from(document.querySelectorAll('.tool'));
+let tools = [];
+window.addEventListener('load', () => {
+  tools = Array.from(document.querySelectorAll('.tool'));
+})
 const _requestPointerLock = () => new Promise((accept, reject) => {
   if (!document.pointerLockElement) {
     const _pointerlockchange = e => {
@@ -6639,92 +6647,96 @@ document.addEventListener('pointerlockchange', e => {
     document.dispatchEvent(new MouseEvent('mouseup'));
   }
 });
-for (let i = 0; i < tools.length; i++) {
-  const tool = document.getElementById('tool-' + (i + 1));
-  tool.addEventListener('click', async e => {
-    const newSelectedTool = tool.getAttribute('tool');
-    if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
-      await _requestPointerLock();
-    }
 
-    for (let i = 0; i < tools.length; i++) {
-      tools[i].classList.remove('selected');
-    }
-    tool.classList.add('selected');
 
-    const oldSelectedTool = selectedTool;
-    selectedTool = newSelectedTool;
-
-    if (selectedTool !== oldSelectedTool) {
-      // hoverTarget = null;
-      // _setSelectTarget(null);
-
-      switch (oldSelectedTool) {
-        case 'thirdperson': {
-          camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
-          camera.updateMatrixWorld();
-          // setCamera(camera);
-          break;
-        }
-        case 'isometric': {
-          camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
-          camera.updateMatrixWorld();
-          // setCamera(camera);
-          break;
-        }
-        case 'birdseye': {
-          camera.position.y += -birdsEyeHeight + _getAvatarHeight();
-          camera.updateMatrixWorld();
-          // setCamera(camera);
-          break;
-        }
+window.addEventListener('load', () => {
+  for (let i = 0; i < tools.length; i++) {
+    const tool = document.getElementById('tool-' + (i + 1));
+    tool.addEventListener('click', async e => {
+      const newSelectedTool = tool.getAttribute('tool');
+      if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
+        await _requestPointerLock();
       }
 
-      let decapitate = true;
-      switch (selectedTool) {
-        case 'camera': {
-          document.exitPointerLock();
-          orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
-          _resetKeys();
-          velocity.set(0, 0, 0);
-          break;
-        }
-        case 'thirdperson': {
-          camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
-          camera.updateMatrixWorld();
+      for (let i = 0; i < tools.length; i++) {
+        tools[i].classList.remove('selected');
+      }
+      tool.classList.add('selected');
 
-          decapitate = false;
-          break;
-        }
-        case 'isometric': {
-          camera.rotation.x = -Math.PI / 6;
-          camera.quaternion.setFromEuler(camera.rotation);
-          camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
-          camera.updateMatrixWorld();
+      const oldSelectedTool = selectedTool;
+      selectedTool = newSelectedTool;
 
-          decapitate = false;
-          break;
-        }
-        case 'birdseye': {
-          camera.rotation.x = -Math.PI / 2;
-          camera.quaternion.setFromEuler(camera.rotation);
-          camera.position.y -= -birdsEyeHeight + _getAvatarHeight();
-          camera.updateMatrixWorld();
+      if (selectedTool !== oldSelectedTool) {
+        // hoverTarget = null;
+        // _setSelectTarget(null);
 
-          decapitate = false;
-          break;
+        switch (oldSelectedTool) {
+          case 'thirdperson': {
+            camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+            camera.updateMatrixWorld();
+            // setCamera(camera);
+            break;
+          }
+          case 'isometric': {
+            camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
+            camera.updateMatrixWorld();
+            // setCamera(camera);
+            break;
+          }
+          case 'birdseye': {
+            camera.position.y += -birdsEyeHeight + _getAvatarHeight();
+            camera.updateMatrixWorld();
+            // setCamera(camera);
+            break;
+          }
+        }
+
+        let decapitate = true;
+        switch (selectedTool) {
+          case 'camera': {
+            document.exitPointerLock();
+            orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
+            _resetKeys();
+            velocity.set(0, 0, 0);
+            break;
+          }
+          case 'thirdperson': {
+            camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+            camera.updateMatrixWorld();
+
+            decapitate = false;
+            break;
+          }
+          case 'isometric': {
+            camera.rotation.x = -Math.PI / 6;
+            camera.quaternion.setFromEuler(camera.rotation);
+            camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
+            camera.updateMatrixWorld();
+
+            decapitate = false;
+            break;
+          }
+          case 'birdseye': {
+            camera.rotation.x = -Math.PI / 2;
+            camera.quaternion.setFromEuler(camera.rotation);
+            camera.position.y -= -birdsEyeHeight + _getAvatarHeight();
+            camera.updateMatrixWorld();
+
+            decapitate = false;
+            break;
+          }
+        }
+        if (rigManager.localRig) {
+          if (decapitate) {
+            rigManager.localRig.decapitate();
+          } else {
+            rigManager.localRig.undecapitate();
+          }
         }
       }
-      if (rigManager.localRig) {
-        if (decapitate) {
-          rigManager.localRig.decapitate();
-        } else {
-          rigManager.localRig.undecapitate();
-        }
-      }
-    }
-  });
-}
+    });
+  }
+})
 
 const keys = {
   up: false,

@@ -10,7 +10,7 @@
 body {
   margin: 0;
   /* font-family: 'Open Sans'; */
-  font-family: 'Muli';
+  font-family: 'Muli' !important;
   font-size: 12px;
 
   --color: #ec407a;

@@ -4,6 +4,7 @@
     background-color: transparent;
     position: fixed;
     z-index: 2;
+    font-family: 'Muli' !important;
 }
 .isOpaque {
     height: 100vw;
