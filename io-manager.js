@@ -28,6 +28,8 @@ const _resetKeys = () => {
   }
 };
 
+const _inputFocused = () => document.activeElement && document.activeElement.tagName === 'INPUT';
+
 const _updateIo = () => {
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
   if (renderer.xr.getSession()) {
