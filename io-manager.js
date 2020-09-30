@@ -453,6 +453,11 @@ window.addEventListener('mouseup', e => {
   ioManager.currentWeaponValue = 0;
   ioManager.currentTeleport = false;
 });
+renderer.domElement.addEventListener('dblclick', e => {
+  if (!document.pointerLockElement) {
+    cameraManager.tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+  }
+});
 document.addEventListener('pointerlockchange', e => {
   if (!document.pointerLockElement) {
     cameraManager.tools.find(tool => tool.getAttribute('tool') === 'camera').click();
