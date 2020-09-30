@@ -728,8 +728,8 @@ planet.addEventListener('load', async e => {
       currentVegetationMesh.material[0].uniforms.uHitPosition.value.copy(positionOffset);
       currentVegetationMesh.material[0].uniforms.uHitPosition.needsUpdate = true;
     }, id => {
-      currentVegetationMesh.material[0].uniforms.uHitId.value = id;
-      currentVegetationMesh.material[0].uniforms.uHitId.needsUpdate = true;
+      geometryManager.currentVegetationMesh.material[0].uniforms.uHitId.value = id;
+      geometryManager.currentVegetationMesh.material[0].uniforms.uHitId.needsUpdate = true;
     }, (id, position, quaternion) => {
       _addItem(position, quaternion);
 
@@ -2863,6 +2863,8 @@ const geometryWorker = (() => {
 geometryManager.geometryWorker = geometryWorker;
 
 const _updateGeometry = () => {
+  geometryManager.crosshairMesh.update();
+  
   geometryWorker.update();
 };
 geometryManager.update = _updateGeometry;

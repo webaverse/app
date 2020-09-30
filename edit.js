@@ -500,14 +500,14 @@ for (let i = 0; i < 30; i++) {
 
 let buildMode = 'wall';
 let buildMat = 'wood';
-let plansMesh = null;
+/* let plansMesh = null;
 let pencilMesh = null;
 let pickaxeMesh = null;
 let paintBrushMesh = null;
 let assaultRifleMesh = null;
 let smgMesh = null;
 let grenadeMesh = null;
-let crosshairMesh = null;
+let crosshairMesh = null; */
 
 const redBuildMeshMaterial = new THREE.ShaderMaterial({
   vertexShader: `
@@ -643,8 +643,6 @@ const _tickPlanetAnimation = factor => {
   }
 }; */
 
-let pxMeshes = [];
-
 const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 const startTime = Date.now();
@@ -679,7 +677,6 @@ function animate(timestamp, frame) {
 
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
-  crosshairMesh && crosshairMesh.update();
 
   ioManager.update(timeDiff);
   physicsManager.update(timeDiff);
@@ -931,36 +928,6 @@ function animate(timestamp, frame) {
     const factor = Math.min((now - startTime) / (endTime - startTime), 1);
     _tickPlanetAnimation(factor);
   } */
-
-  // if (geometryWorker) {
-    pxMeshes = pxMeshes.filter(pxMesh => {
-      if (pxMesh.update()) {
-        if (!pxMesh.velocity.equals(zeroVector)) {
-          localMatrix.copy(pxMesh.matrixWorld)
-            .decompose(localVector, localQuaternion, localVector2);
-          const collision = geometryWorker.collide(geometryManager.tracker, 0.2, 0, localVector, localQuaternion2.set(0, 0, 0, 1), 1);
-
-          if (collision) {
-            localVector3.fromArray(collision.direction)
-              .applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse());
-            pxMesh.position.add(localVector3);
-            pxMesh.velocity.copy(zeroVector);
-            // pxMesh.angularVelocity.copy(zeroVector);
-          } else {
-            _applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
-            pxMesh.velocity.add(localVector.set(0, -9.8 * timeDiff, 0).applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse()));
-            pxMesh.rotation.x += pxMesh.angularVelocity.x;
-            pxMesh.rotation.y += pxMesh.angularVelocity.y;
-            pxMesh.rotation.z += pxMesh.angularVelocity.z;
-          }
-        }
-        return true;
-      } else {
-        pxMesh.parent.remove(pxMesh);
-        return false;
-      }
-    });
-  // }
 
   if (cameraManager.getTool() === 'firstperson') {
     rigManager.localRig.decapitate();

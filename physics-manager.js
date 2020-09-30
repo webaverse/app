@@ -174,7 +174,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
   }
   const oldVelocity = localVector3.copy(physicsManager.velocity);
 
-  _applyVelocity(camera.position, physicsManager.velocity, timeDiff);
+  applyVelocity(camera.position, physicsManager.velocity, timeDiff);
   camera.updateMatrixWorld();
   camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
   if (avatarOffset) {
@@ -228,12 +228,13 @@ const _collideCapsule = (() => {
     return geometryManager.geometryWorker.collide(geometryManager.tracker, 0.5, 0.5, localVector, q, 1);
   };
 })();
-const _applyVelocity = (() => {
+const applyVelocity = (() => {
   const localVector = new THREE.Vector3();
   return (position, velocity, timeDiff) => {
     position.add(localVector.copy(physicsManager.velocity).multiplyScalar(timeDiff));
   };
 })();
+physicsManager.applyVelocity = applyVelocity;
 const _collideItems = matrix => {
   matrix.decompose(localVector3, localQuaternion2, localVector4);
 

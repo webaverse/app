@@ -12,6 +12,7 @@ import {colors, storageHost} from './constants.js';
 
 const uiManager = new EventTarget();
 
+const localVector2 = new THREE.Vector3();
 const localColor = new THREE.Color();
 
 const hpMesh = (() => {
