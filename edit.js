@@ -1198,7 +1198,7 @@ const _tickPlanetAnimation = factor => {
 
 renderer.domElement.addEventListener('dblclick', e => {
   if (!document.pointerLockElement) {
-    tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+    cameraManager.tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
   }
 });
 
@@ -1794,9 +1794,9 @@ const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
   const selectedTool = cameraManager.getTool();
   if (selectedTool === 'thirdperson') {
-    camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+    camera.position.add(localVector.copy(cameraManager.avatarCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'isometric') {
-    camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
+    camera.position.add(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'birdseye') {
     camera.rotation.x = -Math.PI / 2;
     camera.quaternion.setFromEuler(camera.rotation);
@@ -1810,9 +1810,9 @@ const _updateMouseMovement = e => {
   }
 
   if (selectedTool === 'thirdperson') {
-    camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+    camera.position.sub(localVector.copy(cameraManager.avatarCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'isometric') {
-    camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
+    camera.position.sub(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
   }
   camera.updateMatrixWorld();
 };
