@@ -2421,7 +2421,7 @@ const geometryWorker = (() => {
         const torchLights = _decodeArenaEntry(landAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
         console.log('got positions', {positions, normals, uvs, aos, skyLights, torchLights}); */
 
-        currentChunkMesh.updateGeometry({
+        geometryManager.currentChunkMesh.updateGeometry({
           positionsStart,
           normalsStart,
           uvsStart,
@@ -2485,7 +2485,7 @@ const geometryWorker = (() => {
           const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
           const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-          currentChunkMesh.updateGeometry({
+          geometryManager.currentChunkMesh.updateGeometry({
             positionsStart,
             normalsStart,
             uvsStart,
