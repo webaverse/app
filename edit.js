@@ -15,7 +15,7 @@ import {
   THING_SHADER,
   makeDrawMaterial,
 } from './shaders.js';
-import {makeLineMesh, makeTeleportMesh} from './teleport.js';
+import {lineMeshes, teleportMeshes} from './teleport.js';
 import geometryManager /* {
   geometrySet,
   tracker,
@@ -66,7 +66,7 @@ import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {renderer, scene, camera, appManager} from './app-object.js';
-import weapons from './weapons-manager.js';
+import weaponsManager from './weapons-manager.js';
 import inventory from './inventory.js';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
@@ -2112,10 +2112,57 @@ function animate(timestamp, frame) {
   };
   _updateRig();
 
-  const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
+  // const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
 
   orbitControls.enabled = selectedTool === 'camera';
-  weapons.update();
+
+  weaponsManager.update();
+
+  const _handleTeleport = () => {
+    const _teleportTo = (position, quaternion) => {
+      // console.log(position, quaternion, pose, avatar)
+      /* localMatrix.fromArray(rigManager.localRig.model.matrix)
+        .decompose(localVector2, localQuaternion2, localVector3); */
+
+      if (currentSession) {
+        localMatrix.copy(xrCamera.matrix)
+          .premultiply(dolly.matrix)
+          .decompose(localVector2, localQuaternion2, localVector3);
+        dolly.matrix
+          .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
+          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+          // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+          .premultiply(localMatrix.makeTranslation(0, _getFullAvatarHeight(), 0))
+          .decompose(dolly.position, dolly.quaternion, dolly.scale);
+      } else {
+        camera.matrix
+          .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
+          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
+          // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
+          .premultiply(localMatrix.makeTranslation(0, _getFullAvatarHeight(), 0))
+          .decompose(camera.position, camera.quaternion, camera.scale);
+      }
+
+      velocity.set(0, 0, 0);
+    };
+
+    /* if (currentTeleport && raycastChunkSpec) {
+      if (raycastChunkSpec.point) {
+        teleportMeshes[1].position.copy(raycastChunkSpec.point);
+        teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), raycastChunkSpec.normal);
+        teleportMeshes[1].visible = true;
+        teleportMeshes[1].lineMesh.visible = false;
+      }
+    } else if (lastTeleport && !currentTeleport && raycastChunkSpec) {
+      teleportMeshes[1].visible = false;
+      _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
+    } else { */
+      teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, currentTeleport, (p, q) => geometryManager.geometryWorker.raycast(geometryManager.tracker, p, q), (position, quaternion) => {
+        _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
+      });
+    // }
+  };
+  _handleTeleport();
 
   /* const _updateHands = () => {
     const session = renderer.xr.getSession();
@@ -2163,7 +2210,7 @@ function animate(timestamp, frame) {
     _tickPlanetAnimation(factor);
   } */
 
-  if (geometryWorker) {
+  // if (geometryWorker) {
     pxMeshes = pxMeshes.filter(pxMesh => {
       if (pxMesh.update()) {
         if (!pxMesh.velocity.equals(zeroVector)) {
@@ -2191,10 +2238,9 @@ function animate(timestamp, frame) {
         return false;
       }
     });
-  }
+  // }
   lastTeleport = currentTeleport;
   lastMenuDown = currentMenuDown;
-  lastSelectedWeapon = selectedWeapon;
   lastWeaponDown = currentWeaponDown;
   lastWeaponValue = currentWeaponValue;
   lastMenuExpanded = menuExpanded;
@@ -2394,6 +2440,7 @@ let lastMenuExpanded = false;
 window.addEventListener('keydown', e => {
   switch (e.which) {
     case 49: { // 1
+      const selectedWeapon = weaponsManager.getWeapon();
       let index = weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
       index--;
       if (index < 0) {
@@ -2403,6 +2450,7 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 50: { // 2
+      const selectedWeapon = weaponsManager.getWeapon();
       let index = weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
       index++;
       if (index >= weapons.length) {
@@ -2523,6 +2571,7 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 81: { // Q
+      const selectedWeapon = weaponsManager.getWeapon();
       if (selectedWeapon !== 'pickaxe') {
         document.querySelector('.weapon[weapon="pickaxe"]').click();
       } else {
@@ -2613,6 +2662,7 @@ window.addEventListener('keyup', e => {
   }
 });
 window.addEventListener('mousedown', e => {
+  const selectedWeapon = weaponsManager.getWeapon();
   if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
     if (e.button === 0) {
       // pe.grabtriggerdown('right');
