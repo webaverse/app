@@ -24,6 +24,7 @@ import {renderer, scene} from './app-object.js';
 
 const localMatrix2 = new THREE.Matrix4();
 
+const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 

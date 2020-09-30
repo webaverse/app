@@ -227,6 +227,6 @@ const rigManager = new RigManager(scene);
 planet.setBindings(scene, rigManager);
 
 export {
-  RigManager,
+  // RigManager,
   rigManager,
 };

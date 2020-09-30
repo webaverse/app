@@ -1,5 +1,10 @@
+import * as THREE from './three.module.js';
 import {renderer, camera} from './app-object.js';
+import cameraManager from './camera-manager.js';
 import weaponsManager from './weapons-manager.js';
+import physicsManager from './physics-manager.js';
+
+const localVector = new THREE.Vector3();
 
 const ioManager = new EventTarget();
 
@@ -22,15 +27,16 @@ ioManager.keys = {
   right: false,
   shift: false,
 };
-const _resetKeys = () => {
+const resetKeys = () => {
   for (const k in ioManager.keys) {
     ioManager.keys[k] = false;
   }
 };
+ioManager.resetKeys = resetKeys;
 
 const _inputFocused = () => document.activeElement && document.activeElement.tagName === 'INPUT';
 
-const _updateIo = () => {
+const _updateIo = timeDiff => {
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
   if (renderer.xr.getSession()) {
     let walked = false;
@@ -40,16 +46,6 @@ const _updateIo = () => {
       const {handedness, gamepad} = inputSource;
       if (gamepad && gamepad.buttons.length >= 2) {
         const index = handedness === 'right' ? 1 : 0;
-
-        // buttons
-        /* const grab = buttons[1].pressed;
-        const lastGrab = lastGrabs[index];
-        if (!lastGrab && grab) { // grip
-          // pe.grabdown(handedness);
-        } else if (lastGrab && !grab) {
-          // pe.grabup(handedness);
-        }
-        lastGrabs[index] = grab; */
 
         // axes
         const {axes: axesSrc, buttons: buttonsSrc} = gamepad;
@@ -116,7 +112,7 @@ const _updateIo = () => {
           if (
             buttons[2] >= 0.5 && lastButtons[index][2] < 0.5 &&
             !(Math.abs(axes[0]) > 0.5 || Math.abs(axes[1]) > 0.5 || Math.abs(axes[2]) > 0.5 || Math.abs(axes[3]) > 0.5) &&
-            !jumpState
+            !physicsManager.getJumpState()
           ) {
             physicsManager.jump();
           }
@@ -134,7 +130,7 @@ const _updateIo = () => {
         ioManager.lastButtons[index][4] = buttons[4];
       }
     }
-    
+
     if (currentMenuDown) {
       const rightInputSource = inputSources.find(inputSource => inputSource.handedness === 'right');
       const pose = rightInputSource && frame.getPose(rightInputSource.targetRaySpace, renderer.xr.getReferenceSpace());
@@ -157,10 +153,10 @@ const _updateIo = () => {
     } else {
       toolsMesh.visible = false;
     }
-    
+
     _applyGravity(timeDiff);
 
-    if (walked || jumpState) {
+    if (walked || physicsManager.getJumpState()) {
       localObject.matrix.copy(xrCamera.matrix)
         .premultiply(dolly.matrix)
         .decompose(localObject.position, localObject.quaternion, localObject.scale);
@@ -180,28 +176,28 @@ const _updateIo = () => {
       rigManager.setLocalRigMatrix(null);
     }
   } else if (document.pointerLockElement) {
-    const speed = 100 * (keys.shift ? 3 : 1);
+    const speed = 100 * (ioManager.keys.shift ? 3 : 1);
     const cameraEuler = camera.rotation.clone();
     cameraEuler.x = 0;
     cameraEuler.z = 0;
     localVector.set(0, 0, 0);
-    if (keys.left) {
+    if (ioManager.keys.left) {
       localVector.add(new THREE.Vector3(-1, 0, 0).applyEuler(cameraEuler));
     }
-    if (keys.right) {
+    if (ioManager.keys.right) {
       localVector.add(new THREE.Vector3(1, 0, 0).applyEuler(cameraEuler));
     }
-    if (keys.up) {
+    if (ioManager.keys.up) {
       localVector.add(new THREE.Vector3(0, 0, -1).applyEuler(cameraEuler));
     }
-    if (keys.down) {
+    if (ioManager.keys.down) {
       localVector.add(new THREE.Vector3(0, 0, 1).applyEuler(cameraEuler));
     }
     if (localVector.length() > 0) {
       localVector.normalize().multiplyScalar(speed);
     }
     localVector.multiplyScalar(timeDiff);
-    velocity.add(localVector);
+    physicsManager.velocity.add(localVector);
   }
   
   ioManager.lastTeleport = ioManager.currentTeleport;
@@ -306,7 +302,7 @@ window.addEventListener('keydown', e => {
       if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+        cameraManager.tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
       }
       break;
     }
@@ -314,7 +310,7 @@ window.addEventListener('keydown', e => {
       if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        tools.find(tool => tool.getAttribute('tool') === 'thirdperson').click();
+        cameraManager.tools.find(tool => tool.getAttribute('tool') === 'thirdperson').click();
       }
       break;
     }
@@ -322,7 +318,7 @@ window.addEventListener('keydown', e => {
       if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        tools.find(tool => tool.getAttribute('tool') === 'isometric').click();
+        cameraManager.tools.find(tool => tool.getAttribute('tool') === 'isometric').click();
       }
       break;
     }
@@ -330,7 +326,7 @@ window.addEventListener('keydown', e => {
       if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        tools.find(tool => tool.getAttribute('tool') === 'birdseye').click();
+        cameraManager.tools.find(tool => tool.getAttribute('tool') === 'birdseye').click();
       }
       break;
     }
@@ -342,7 +338,7 @@ window.addEventListener('keydown', e => {
     }
     case 32: { // space
       if (document.pointerLockElement) {
-        if (!jumpState) {
+        if (!physicsManager.getJumpState()) {
           physicsManager.jump();
         }
       }
@@ -368,7 +364,7 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 67: { // C
-      if (!keys.ctrl && document.pointerLockElement) {
+      if (!ioManager.keys.ctrl && document.pointerLockElement) {
         document.querySelector('.weapon[weapon="build"]').click();
         buildMode = 'stair';
       }
@@ -402,38 +398,38 @@ window.addEventListener('keyup', e => {
   switch (e.which) {
     case 87: { // W
       if (document.pointerLockElement) {
-        keys.up = false;
+        ioManager.keys.up = false;
       }
       break;
     }
     case 65: { // A
       if (document.pointerLockElement) {
-        keys.left = false;
+        ioManager.keys.left = false;
       }
       break;
     }
     case 83: { // S
       if (document.pointerLockElement) {
-        keys.down = false;
+        ioManager.keys.down = false;
       }
       break;
     }
     case 68: { // D
       if (document.pointerLockElement) {
-        keys.right = false;
+        ioManager.keys.right = false;
       }
       break;
     }
     case 70: { // F
       // pe.grabup('right');
       if (document.pointerLockElement) {
-        currentWeaponGrabs[0] = false;
+        ioManager.currentWeaponGrabs[0] = false;
       }
       break;
     }
     case 16: { // shift
       if (document.pointerLockElement) {
-        keys.shift = false;
+        ioManager.keys.shift = false;
       }
       break;
     }
@@ -456,6 +452,12 @@ window.addEventListener('mouseup', e => {
   ioManager.currentWeaponDown = false;
   ioManager.currentWeaponValue = 0;
   ioManager.currentTeleport = false;
+});
+document.addEventListener('pointerlockchange', e => {
+  if (!document.pointerLockElement) {
+    cameraManager.tools.find(tool => tool.getAttribute('tool') === 'camera').click();
+    document.dispatchEvent(new MouseEvent('mouseup'));
+  }
 });
 
 export default ioManager;

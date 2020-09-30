@@ -13,12 +13,6 @@ export const slabRadius = Math.sqrt((SUBPARCEL_SIZE / 2) * (SUBPARCEL_SIZE / 2) 
 export const thingTextureSize = 4096;
 export const objectTextureSize = 512;
 
-/* export const slabTotalSize = 56 * 1024 * 1024;
-export const slabNumAttributes = 7;
-export const slabAttributeSize = slabTotalSize/slabNumAttributes;
-export const slabSliceTris = Math.floor(slabAttributeSize/numSlices/9/Float32Array.BYTES_PER_ELEMENT);
-export const slabSliceVertices = slabSliceTris * 3; */
-
 export const BUILD_SNAP = 2;
 
 export const MAX_NAME_LENGTH = 32;
