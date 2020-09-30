@@ -340,7 +340,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
             animal.parent.remove(animal);
             animal.destroy();
             animals.splice(animals.indexOf(animal), 1);
-            _addItem(animal.position, animal.quaternion);
+            addItemaddItem(animal.position, animal.quaternion);
           });
           animal.index = subparcel.index;
           mesh.add(animal);
@@ -726,13 +726,13 @@ planet.addEventListener('load', async e => {
       hps[id] = Math.max(hps[id] - dmg, 0);
       return hps[id] > 0;
     }, (positionOffset) => {
-      currentVegetationMesh.material[0].uniforms.uHitPosition.value.copy(positionOffset);
-      currentVegetationMesh.material[0].uniforms.uHitPosition.needsUpdate = true;
+      geometryManager.currentVegetationMesh.material[0].uniforms.uHitPosition.value.copy(positionOffset);
+      geometryManager.currentVegetationMesh.material[0].uniforms.uHitPosition.needsUpdate = true;
     }, id => {
       geometryManager.currentVegetationMesh.material[0].uniforms.uHitId.value = id;
       geometryManager.currentVegetationMesh.material[0].uniforms.uHitId.needsUpdate = true;
     }, (id, position, quaternion) => {
-      _addItem(position, quaternion);
+      physicsManager.addItem(position, quaternion);
 
       const subparcelPosition = new THREE.Vector3(
         Math.floor(position.x / SUBPARCEL_SIZE),
