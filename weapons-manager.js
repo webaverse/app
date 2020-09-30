@@ -1394,7 +1394,7 @@ const _updateWeapons = timeDiff => {
       case 'select': {
         if (raycastChunkSpec) {
           if (raycastChunkSpec.objectId === 0) {
-            for (const material of currentChunkMesh.material) {
+            for (const material of geometryManager.currentChunkMesh.material) {
               const minX = Math.floor(raycastChunkSpec.point.x / SUBPARCEL_SIZE);
               const minY = Math.floor(raycastChunkSpec.point.z / SUBPARCEL_SIZE);
               const maxX = minX + 1;
