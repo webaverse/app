@@ -215,6 +215,19 @@ class RigManager {
 
     peerRig.setFloorHeight(floorHeight);
   }
+  
+  getRigTransforms() {
+    return [
+      {
+        position: this.localRig.inputs.leftGamepad.position,
+        quaternion: this.localRig.inputs.leftGamepad.quaternion,
+      },
+      {
+        position: this.localRig.inputs.rightGamepad.position,
+        quaternion: this.localRig.inputs.rightGamepad.quaternion,
+      },
+    ];
+  }
 
   update() {
     this.localRig.update();

@@ -7,8 +7,8 @@ import {rigManager} from './rig.js';
 const localVector = new THREE.Vector3();
 
 let selectedTool = 'camera';
-const _getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
-const getAvatarHeight = () => _getFullAvatarHeight() * 0.9;
+const getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
+const getAvatarHeight = () => getFullAvatarHeight() * 0.9;
 /* const _getMinHeight = () => {
   if (rigManager.localRig) {
     const avatarHeight = rigManager.localRig ? getAvatarHeight() : 1;
@@ -137,6 +137,7 @@ const cameraManager = {
   birdsEyeHeight,
   avatarCameraOffset,
   isometricCameraOffset,
+  getFullAvatarHeight,
   getAvatarHeight,
   getTool() {
     return selectedTool;
