@@ -23,15 +23,20 @@ import {
   THING_SHADER,
   makeDrawMaterial,
 } from './shaders.js';
-import {colors} from './constants.js';
+import {
+  BUILD_SNAP,
+  colors,
+} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
 const localColor = new THREE.Color();
 const localRaycaster = new THREE.Raycaster();
 
@@ -780,6 +785,30 @@ geometryManager.addEventListener('load', () => {
   geometryManager.chunkMeshContainer.add(meshDrawer.mesh);
 });
 
+const _snapBuildPosition = p => {
+  p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
+  p.y = Math.floor(p.y / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
+  p.z = Math.floor(p.z / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
+  return p;
+};
+const _meshEquals = (a, b) => {
+  if (a.position.equals(b.position)) {
+    if (a.type === b.vegetationType) {
+      if (a.type === 'wood_wall') {
+        return Math.floor(a.quaternion.x / pid4) === Math.floor(b.quaternion.x / pid4) &&
+          Math.floor(a.quaternion.y / pid4) === Math.floor(b.quaternion.y / pid4) &&
+          Math.floor(a.quaternion.z / pid4) === Math.floor(b.quaternion.z / pid4) &&
+          Math.floor(a.quaternion.w / pid4) === Math.floor(b.quaternion.w / pid4);
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+};
 const _updateWeapons = timeDiff => {
   for (let i = 0; i < 2; i++) {
     anchorSpecs[i] = null;
@@ -952,6 +981,8 @@ const _updateWeapons = timeDiff => {
   _selectWeapon();
 
   const _handleBuild = () => {
+    const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
+    
     for (const k in geometryManager.buildMeshes) {
       for (const buildMesh of geometryManager.buildMeshes[k]) {
         buildMesh.parent && buildMesh.parent.remove(buildMesh);
@@ -974,7 +1005,7 @@ const _updateWeapons = timeDiff => {
       buildMesh.quaternion.copy(rightGamepad.quaternion);
 
       buildMesh.matrix.compose(buildMesh.position, buildMesh.quaternion, buildMesh.scale)
-        .premultiply(localMatrix2.getInverse(currentChunkMesh.matrixWorld))
+        .premultiply(localMatrix2.getInverse(geometryManager.currentChunkMesh.matrixWorld))
         .decompose(buildMesh.position, buildMesh.quaternion, buildMesh.scale);
       _snapBuildPosition(buildMesh.position);
 
@@ -1001,8 +1032,8 @@ const _updateWeapons = timeDiff => {
       ));
 
       const hasBuildMesh = (() => {
-        for (const index in currentChunkMesh.vegetationMeshes) {
-          const subparcelBuildMeshesSpec = currentChunkMesh.vegetationMeshes[index];
+        for (const index in geometryManager.currentChunkMesh.vegetationMeshes) {
+          const subparcelBuildMeshesSpec = geometryManager.currentChunkMesh.vegetationMeshes[index];
           if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
             return true;
           }
@@ -1025,7 +1056,7 @@ const _updateWeapons = timeDiff => {
         });
       }
 
-      currentChunkMesh.add(buildMesh);
+      geometryManager.currentChunkMesh.add(buildMesh);
     }
   };
   _handleBuild();
@@ -1182,9 +1213,9 @@ const _updateWeapons = timeDiff => {
             const buildMesh = (() => {
               const buildMatIndex = ['wood', 'stone', 'metal'].indexOf(buildMat);
               switch (buildMode) {
-                case 'wall': return buildMeshes.walls[buildMatIndex];
-                case 'floor': return buildMeshes.platforms[buildMatIndex];
-                case 'stair': return buildMeshes.ramps[buildMatIndex];
+                case 'wall': return geometryManager.buildMeshes.walls[buildMatIndex];
+                case 'floor': return geometryManager.buildMeshes.platforms[buildMatIndex];
+                case 'stair': return geometryManager.buildMeshes.ramps[buildMatIndex];
                 default: return null;
               }
             })();
