@@ -1565,8 +1565,8 @@ const weaponsManager = {
   setWeapon(newSelectedWeapon) {
     selectedWeapon = selectedWeapon;
   },
-  update() {
-    _updateWeapons();
+  update(timeDiff) {
+    _updateWeapons(timeDiff);
   },
 };
 export default weaponsManager;
