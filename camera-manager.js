@@ -1,5 +1,7 @@
 import * as THREE from './three.module.js';
 import {renderer, camera, orbitControls} from './app-object.js';
+import ioManager from './io-manager.js';
+import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 
 let selectedTool = 'camera';
@@ -88,7 +90,7 @@ for (let i = 0; i < tools.length; i++) {
           document.exitPointerLock();
           orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
           ioManager.resetKeys();
-          velocity.set(0, 0, 0);
+          physicsManager.velocity.set(0, 0, 0);
           break;
         }
         case 'thirdperson': {
