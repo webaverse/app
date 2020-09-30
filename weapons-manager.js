@@ -104,6 +104,8 @@ const _updateTools = () => {
   _raycastWeapon();
 
   const _selectWeapon = () => {
+    const {leftGamepad, rightGamepad} = rigManager.localRig.inputs;
+    
     [
       geometryManager.assaultRifleMesh,
       geometryManager.grenadeMesh,
