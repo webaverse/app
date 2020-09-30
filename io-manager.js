@@ -441,8 +441,8 @@ window.addEventListener('mousedown', e => {
     if (e.button === 0) {
       // pe.grabtriggerdown('right');
       // pe.grabuse('right');
-      currentWeaponDown = true;
-      currentWeaponValue = 1;
+      ioManager.currentWeaponDown = true;
+      ioManager.currentWeaponValue = 1;
     } else if (e.button === 2) {
       ioManager.currentTeleport = true;
     }
