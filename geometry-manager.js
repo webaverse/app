@@ -23,9 +23,11 @@ import {
 } from './constants.js';
 import {renderer, scene} from './app-object.js';
 
+const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
 const localMatrix2 = new THREE.Matrix4();
 
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
@@ -1300,11 +1302,6 @@ const geometryWorker = (() => {
       Module.postRun();
     }
   // });
-
-  const localVector = new THREE.Vector3();
-  const localVector2 = new THREE.Vector3();
-  const localQuaternion = new THREE.Quaternion();
-  const localQuaternion2 = new THREE.Quaternion();
 
   let methodIndex = 0;
   const METHODS = {
@@ -3004,17 +3001,19 @@ const _updateGeometry = () => {
 geometryManager.update = _updateGeometry;
 
 const _updatePhysics = p => {
+  localVector.copy(p).add(localVector2.set(0, -1, 0));
+  
   for (let i = 0; i < itemMeshes.length; i++) {
     const itemMesh = itemMeshes[i];
-    if (itemMesh.getWorldPosition(localVector5).distanceTo(p) < 1) {
+    if (itemMesh.getWorldPosition(localVector).distanceTo(p) < 1) {
       itemMesh.pickUp();
     }
-    itemMesh.update(localVector3);
+    itemMesh.update(p);
   }
 
   /* for (const animal of animals) {
     if (!animal.isHeadAnimating()) {
-      animal.lookAt(localVector3);
+      animal.lookAt(p);
     }
   } */
 };
