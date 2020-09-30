@@ -1,6 +1,8 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import {makePromise, WaitQueue} from './util.js';
+import {scene} from './app-object.js';
+import {planet} from './planet.js';
 import Avatar from './avatars/avatars.js';
 
 class RigManager {
@@ -221,4 +223,10 @@ class RigManager {
     })
   }
 }
-export {RigManager};
+const rigManager = new RigManager(scene);
+planet.setBindings(scene, rigManager);
+
+export {
+  RigManager,
+  rigManager,
+};
