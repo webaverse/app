@@ -1,5 +1,6 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+import {scene} from './app-object.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -128,7 +129,21 @@ const makeTeleportMesh = (lineMesh, index) => {
   return teleportMesh;
 };
 
+const lineMeshes = [
+  makeLineMesh(),
+  makeLineMesh(),
+];
+lineMeshes.forEach(lineMesh => {
+  scene.add(lineMesh);
+});
+const teleportMeshes = lineMeshes.map((lineMesh, i) => makeTeleportMesh(lineMesh, i));
+teleportMeshes.forEach(teleportMesh => {
+  scene.add(teleportMesh);
+});
+
 export {
   makeLineMesh,
   makeTeleportMesh,
+  lineMeshes,
+  teleportMeshes,
 };

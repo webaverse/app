@@ -5,9 +5,13 @@ export const SUBPARCEL_SIZE_P3 = SUBPARCEL_SIZE + 3;
 export const NUM_PARCELS = PARCEL_SIZE / SUBPARCEL_SIZE;
 
 export const chunkDistance = 3;
+export const baseHeight = PARCEL_SIZE / 2 - 10;
 
 export const numSlices = (1 + chunkDistance * 2 + 1) ** 3;
 export const slabRadius = Math.sqrt((SUBPARCEL_SIZE / 2) * (SUBPARCEL_SIZE / 2) * 3);
+
+export const thingTextureSize = 4096;
+export const objectTextureSize = 512;
 
 /* export const slabTotalSize = 56 * 1024 * 1024;
 export const slabNumAttributes = 7;

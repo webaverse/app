@@ -737,7 +737,7 @@ const _connectRoom = async (roomName, worldURL) => {
     const {data} = e;
     console.log('got init state', data);
 
-    _loadLiveState(roomName);
+    // _loadLiveState(roomName);
   });
   channelConnection.addEventListener('updateState', async e => {
     const {data} = e;
