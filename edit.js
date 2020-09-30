@@ -124,30 +124,6 @@ let skybox = null;
   }
   return i;
 }; */
-const _snapBuildPosition = p => {
-  p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
-  p.y = Math.floor(p.y / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
-  p.z = Math.floor(p.z / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
-  return p;
-};
-const _meshEquals = (a, b) => {
-  if (a.position.equals(b.position)) {
-    if (a.type === b.vegetationType) {
-      if (a.type === 'wood_wall') {
-        return Math.floor(a.quaternion.x / pid4) === Math.floor(b.quaternion.x / pid4) &&
-          Math.floor(a.quaternion.y / pid4) === Math.floor(b.quaternion.y / pid4) &&
-          Math.floor(a.quaternion.z / pid4) === Math.floor(b.quaternion.z / pid4) &&
-          Math.floor(a.quaternion.w / pid4) === Math.floor(b.quaternion.w / pid4);
-      } else {
-        return true;
-      }
-    } else {
-      return false;
-    }
-  } else {
-    return false;
-  }
-};
 function mod(a, b) {
   return ((a % b) + b) % b;
 }
