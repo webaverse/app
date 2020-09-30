@@ -25,12 +25,17 @@ import {
 } from './shaders.js';
 import {colors} from './constants.js';
 
+const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
+const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localColor = new THREE.Color();
 const localRaycaster = new THREE.Raycaster();
+
+const zeroVector = new THREE.Vector3();
 
 let selectedWeapon = 'unarmed';
 let lastSelectedWeapon = selectedWeapon;
@@ -48,6 +53,8 @@ for (let i = 0; i < weapons.length; i++) {
 }
 let raycastChunkSpec = null;
 let anchorSpecs = [null, null];
+
+let pxMeshes = [];
 
 const rayMesh = makeRayMesh();
 rayMesh.visible = false;
@@ -1083,7 +1090,7 @@ const _updateWeapons = timeDiff => {
         explosionMeshes.push(explosionMesh);
       };
       const _damage = dmg => {
-        hpMesh.damage(dmg);
+        uiManager.hpMesh.damage(dmg);
       };
       const _openDetailsMesh = (point, mesh) => {
         detailsMesh.position.copy(point);
@@ -1476,6 +1483,33 @@ const _updateWeapons = timeDiff => {
       return true;
     } else {
       scene.remove(explosionMesh);
+      return false;
+    }
+  });
+  pxMeshes = pxMeshes.filter(pxMesh => {
+    if (pxMesh.update()) {
+      if (!pxMesh.velocity.equals(zeroVector)) {
+        localMatrix.copy(pxMesh.matrixWorld)
+          .decompose(localVector, localQuaternion, localVector2);
+        const collision = geometryManager.geometryWorker.collide(geometryManager.tracker, 0.2, 0, localVector, localQuaternion2.set(0, 0, 0, 1), 1);
+
+        if (collision) {
+          localVector3.fromArray(collision.direction)
+            .applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse());
+          pxMesh.position.add(localVector3);
+          pxMesh.velocity.copy(zeroVector);
+          // pxMesh.angularVelocity.copy(zeroVector);
+        } else {
+          physicsManager.applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
+          pxMesh.velocity.add(localVector.set(0, -9.8 * timeDiff, 0).applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse()));
+          pxMesh.rotation.x += pxMesh.angularVelocity.x;
+          pxMesh.rotation.y += pxMesh.angularVelocity.y;
+          pxMesh.rotation.z += pxMesh.angularVelocity.z;
+        }
+      }
+      return true;
+    } else {
+      pxMesh.parent.remove(pxMesh);
       return false;
     }
   });
