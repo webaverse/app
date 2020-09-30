@@ -1,7 +1,8 @@
 import * as THREE from './three.module.js';
+import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import geometryManager from './geometry-manager.js';
 import weaponsManager from './weapons-manager.js';
-import {makeInventoryMesh} from './vr-ui.js';
+import {makeInventoryMesh, makeTextMesh} from './vr-ui.js';
 import {scene} from './app-object.js';
 import {WaitQueue} from './util.js';
 import {makeDrawMaterial} from './shaders.js';
@@ -10,9 +11,84 @@ import {colors} from './constants.js';
 
 const uiManager = new EventTarget();
 
+const localColor = new THREE.Color();
+
+const hpMesh = (() => {
+  const mesh = new THREE.Object3D();
+
+  let hp = 37;
+  let animation = null;
+  mesh.damage = dmg => {
+    hp -= dmg;
+    hp = Math.max(hp, 0);
+    textMesh.text = _getText();
+    textMesh.sync();
+    barMesh.scale.x = _getBar();
+
+    const startTime = Date.now();
+    const endTime = startTime + 500;
+    animation = {
+      update() {
+        const now = Date.now();
+        const factor = (now - startTime) / (endTime - startTime);
+        if (factor < 1) {
+          frameMesh.position.set(0, 0, 0)
+            .add(localVector2.set(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2).multiplyScalar((1 - factor) * 0.02));
+        } else {
+          animation.end();
+          animation = null;
+        }
+      },
+      end() {
+        frameMesh.position.set(0, 0, 0);
+        material.color.setHex(0x000000);
+      },
+    };
+    material.color.setHex(0xb71c1c);
+  };
+  mesh.update = () => {
+    animation && animation.update();
+  };
+
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([
+    new THREE.PlaneBufferGeometry(1, 0.02).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.02, 0)),
+    new THREE.PlaneBufferGeometry(1, 0.02).applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.02, 0)),
+    new THREE.PlaneBufferGeometry(0.02, 0.04).applyMatrix4(new THREE.Matrix4().makeTranslation(-1 / 2, 0, 0)),
+    new THREE.PlaneBufferGeometry(0.02, 0.04).applyMatrix4(new THREE.Matrix4().makeTranslation(1 / 2, 0, 0)),
+  ]);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+  });
+  const frameMesh = new THREE.Mesh(geometry, material);
+  frameMesh.frustumCulled = false;
+  mesh.add(frameMesh);
+
+  const geometry2 = new THREE.PlaneBufferGeometry(1, 0.02).applyMatrix4(new THREE.Matrix4().makeTranslation(1 / 2, 0, 0));
+  const material2 = new THREE.MeshBasicMaterial({
+    color: 0x81c784,
+  });
+  const barMesh = new THREE.Mesh(geometry2, material2);
+  barMesh.position.x = -1 / 2;
+  barMesh.position.z = -0.001;
+  const _getBar = () => hp / 100;
+  barMesh.scale.x = _getBar();
+  barMesh.frustumCulled = false;
+  frameMesh.add(barMesh);
+
+  const _getText = () => `HP ${hp}/100`;
+  const textMesh = makeTextMesh(_getText(), './Bangers-Regular.ttf', 0.05, 'left', 'bottom');
+  textMesh.position.x = -1 / 2;
+  textMesh.position.y = 0.05;
+  mesh.add(textMesh);
+
+  return mesh;
+})();
+scene.add(hpMesh);
+uiManager.hpMesh = hpMesh;
+
 const _makeInventoryContentsMesh = () => {
   const geometry = new THREE.BufferGeometry();
-  const material = currentVegetationMesh.material[0];
+  const material = geometryManager.currentVegetationMesh.material[0];
   const mesh = new THREE.Mesh(geometry, material);
   return mesh;
 };
@@ -143,39 +219,35 @@ const _makeInventoryItemsMesh = () => {
   return object;
 };
 
-geometryManager.addEventListener('load', () => {
-  const buildsMesh = makeInventoryMesh(weaponsManager.cubeMesh, async scrollFactor => {
-    await loadPromise;
+const _updateUi = () => {
+  hpMesh.update();
+};
+uiManager.update = _updateUi;
 
-    if (!buildsMesh.inventoryBuildsMesh) {
-      buildsMesh.inventoryBuildsMesh = _makeInventoryBuildsMesh();
-      buildsMesh.inventoryBuildsMesh.frustumCulled = false;
-      buildsMesh.add(buildsMesh.inventoryBuildsMesh);
-    }
+geometryManager.addEventListener('load', () => {  
+  const buildsMesh = makeInventoryMesh(weaponsManager.cubeMesh, async scrollFactor => {
+    // nothing
   });
-  buildsMesh.visible = false;
+  buildsMesh.inventoryBuildsMesh = _makeInventoryBuildsMesh();
+  buildsMesh.inventoryBuildsMesh.frustumCulled = false;
+  buildsMesh.add(buildsMesh.inventoryBuildsMesh);
   buildsMesh.handleIconClick = (i, srcIndex) => {
     const dx = srcIndex%3;
     const dy = (srcIndex-dx)/3;
     buildMode = ['wall', 'floor', 'stair'][dx];
     buildMat = ['wood', 'stone', 'metal'][dy];
   };
+  buildsMesh.visible = false;
   scene.add(buildsMesh);
   uiManager.buildsMesh = buildsMesh;
 
+  const queue = new WaitQueue()
   const thingsMesh = makeInventoryMesh(weaponsManager.cubeMesh, async scrollFactor => {
-    await loadPromise;
-    thingsMesh.queue.clearQueue();
-    await thingsMesh.queue.lock();
+    // await loadPromise;
+    queue.clearQueue();
+    await queue.lock();
 
-    if (!thingsMesh.inventoryContentsMesh) {
-      thingsMesh.inventoryContentsMesh = _makeInventoryContentsMesh();
-      thingsMesh.inventoryContentsMesh.position.set(-0.1/2, 0, 0);
-      thingsMesh.inventoryContentsMesh.frustumCulled = false;
-      thingsMesh.add(thingsMesh.inventoryContentsMesh);
-    }
-
-    const geometryKeys = await geometryWorker.requestGetGeometryKeys(geometrySet);
+    const geometryKeys = await geometryManager.geometryWorker.requestGetGeometryKeys(geometryManager.geometrySet);
     const geometryRequests = [];
 
     const h = 0.1;
@@ -202,7 +274,7 @@ geometryManager.addEventListener('load', () => {
         }
       }
     }
-    const newGeometry = await geometryWorker.requestGetGeometries(geometrySet, geometryRequests);
+    const newGeometry = await geometryManager.geometryWorker.requestGetGeometries(geometryManager.geometrySet, geometryRequests);
     thingsMesh.inventoryContentsMesh.geometry.setAttribute('position', newGeometry.attributes.position);
     thingsMesh.inventoryContentsMesh.geometry.setAttribute('uv', newGeometry.attributes.uv);
     thingsMesh.inventoryContentsMesh.geometry.setIndex(newGeometry.index);
@@ -210,38 +282,36 @@ geometryManager.addEventListener('load', () => {
     thingsMesh.geometryKeys = geometryKeys;
     thingsMesh.currentGeometryKeys = currentGeometryKeys;
 
-    thingsMesh.queue.unlock();
+    queue.unlock();
   });
-  thingsMesh.visible = false;
+  thingsMesh.inventoryContentsMesh = _makeInventoryContentsMesh();
+  thingsMesh.inventoryContentsMesh.position.set(-0.1/2, 0, 0);
+  thingsMesh.inventoryContentsMesh.frustumCulled = false;
+  thingsMesh.add(thingsMesh.inventoryContentsMesh);
   thingsMesh.geometryKeys = null;
   thingsMesh.currentGeometryKeys = null;
-  thingsMesh.inventoryContentsMesh = null;
-  thingsMesh.queue = new WaitQueue();
   thingsMesh.handleIconClick = (i, srcIndex) => {
     if (srcIndex < thingsMesh.currentGeometryKeys.length) {
       const geometryKey = thingsMesh.currentGeometryKeys[srcIndex];
       (async () => {
         const geometry = await geometryWorker.requestGetGeometry(geometrySet, geometryKey);
-        const material = currentVegetationMesh.material[0];
+        const material = geometryManager.currentVegetationMesh.material[0];
         const mesh = new THREE.Mesh(geometry, material);
         mesh.frustumCulled = false;
         meshComposer.setPlaceMesh(i, mesh);
       })();
     }
   };
+  thingsMesh.visible = false;
   scene.add(thingsMesh);
   uiManager.thingsMesh = thingsMesh;
 
   const shapesMesh = makeInventoryMesh(weaponsManager.cubeMesh, async scrollFactor => {
-    await loadPromise;
-
-    if (!shapesMesh.inventoryShapesMesh) {
-      shapesMesh.inventoryShapesMesh = _makeInventoryShapesMesh();
-      shapesMesh.inventoryShapesMesh.frustumCulled = false;
-      shapesMesh.add(shapesMesh.inventoryShapesMesh);
-    }
+    // nothing
   });
-  shapesMesh.visible = false;
+  shapesMesh.inventoryShapesMesh = _makeInventoryShapesMesh();
+  shapesMesh.inventoryShapesMesh.frustumCulled = false;
+  shapesMesh.add(shapesMesh.inventoryShapesMesh);
   shapesMesh.handleIconClick = (i, srcIndex) => {
     if (srcIndex < shapesMesh.inventoryShapesMesh.geometries.length) {
       const geometry = shapesMesh.inventoryShapesMesh.geometries[srcIndex];
@@ -251,6 +321,7 @@ geometryManager.addEventListener('load', () => {
       meshComposer.setPlaceMesh(i, mesh);
     }
   };
+  shapesMesh.visible = false;
   scene.add(shapesMesh);
   uiManager.shapesMesh = shapesMesh;
 

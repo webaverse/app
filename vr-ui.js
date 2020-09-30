@@ -1877,8 +1877,11 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
     }
     // currentMesh && currentMesh.click(currentAnchor);
   };
-  mesh.update();
-  mesh.updateScroll();
+  Promise.resolve()
+    .then(() => {
+      mesh.update();
+      mesh.updateScroll();
+    });
 
   return mesh;
 };

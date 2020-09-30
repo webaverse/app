@@ -13,18 +13,13 @@ import geometryManager /* {
   geometryWorker,
 } */ from './geometry-manager.js';
 import uiManager from './ui-manager.js';
+import ioManager from './io-manager.js';
 import {rigManager} from './rig.js';
 import {teleportMeshes} from './teleport.js';
 import {renderer, scene} from './app-object.js';
 
 let selectedWeapon = 'hand';
 let lastSelectedWeapon = selectedWeapon;
-let currentWeaponDown = false;
-let lastWeaponDown = false;
-let currentWeaponValue = 0;
-let lastWeaponValue = 0;
-let currentWeaponGrabs = [false, false];
-let lastWeaponGrabs = [false, false];
 const weapons = Array.from(document.querySelectorAll('.weapon'));
 for (let i = 0; i < weapons.length; i++) {
   const weapon = document.getElementById('weapon-' + (i + 1));
@@ -322,7 +317,7 @@ const _updateTools = () => {
   _handleBuild();
 
   const _handleDown = () => {
-    if (currentWeaponDown && !lastWeaponDown) { // XXX make this dual handed
+    if (ioManager.currentWeaponDown && !ioManager.lastWeaponDown) { // XXX make this dual handed
       // place
       for (let i = 0; i < 2; i++) {
         const placeMesh = meshComposer.getPlaceMesh(i);
@@ -521,14 +516,14 @@ const _updateTools = () => {
         }
       }
     }
-    if (currentWeaponValue >= 0.01) {
+    if (ioManager.currentWeaponValue >= 0.01) {
       switch (selectedWeapon) {
         case 'pencil': {
           let value;
           if (currentSession) {
             localVector2.copy(rightGamepad.position);
             localQuaternion2.copy(rightGamepad.quaternion);
-            value = currentWeaponValue * 0.1;
+            value = ioManager.currentWeaponValue * 0.1;
           } else {
             localVector2.copy(pencilMesh.position)
               .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
@@ -546,7 +541,7 @@ const _updateTools = () => {
         }
       }
     }
-    if (currentWeaponDown) {
+    if (ioManager.currentWeaponDown) {
       switch (selectedWeapon) {
         case 'paintbrush': {
           console.log('click paintbrush 1');
@@ -587,14 +582,14 @@ const _updateTools = () => {
         }
       }
     }
-    if (lastWeaponValue >= 0.01 && currentWeaponValue < 0.01) {
+    if (ioManager.lastWeaponValue >= 0.01 && ioManager.currentWeaponValue < 0.01) {
       switch (selectedWeapon) {
         case 'pencil': {
           let value;
           if (currentSession) {
             localVector2.copy(rightGamepad.position);
             localQuaternion2.copy(rightGamepad.quaternion);
-            value = currentWeaponValue * 0.1;
+            value = ioManager.currentWeaponValue * 0.1;
           } else {
             localVector2.copy(pencilMesh.position)
               .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
@@ -609,7 +604,7 @@ const _updateTools = () => {
         }
       }
     }
-    if (lastWeaponDown && !currentWeaponDown) {
+    if (ioManager.lastWeaponDown && !ioManager.currentWeaponDown) {
       switch (selectedWeapon) {
         case 'paintbrush': {
           console.log('click paintbrush 2');
@@ -626,10 +621,10 @@ const _updateTools = () => {
 
   const _handleGrab = () => {
     for (let i = 0; i < 2; i++) {
-      if (currentWeaponGrabs[i] && !lastWeaponGrabs[i]) {
+      if (ioManager.currentWeaponGrabs[i] && !ioManager.lastWeaponGrabs[i]) {
         meshComposer.grab(i);
       }
-      if (!currentWeaponGrabs[i] && lastWeaponGrabs[i]) {
+      if (!ioManager.currentWeaponGrabs[i] && ioManager.lastWeaponGrabs[i]) {
         meshComposer.ungrab(i);
       }
     }
@@ -762,21 +757,9 @@ const _updateTools = () => {
       velocity.set(0, 0, 0);
     };
 
-    /* if (currentTeleport && raycastChunkSpec) {
-      if (raycastChunkSpec.point) {
-        teleportMeshes[1].position.copy(raycastChunkSpec.point);
-        teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), raycastChunkSpec.normal);
-        teleportMeshes[1].visible = true;
-        teleportMeshes[1].lineMesh.visible = false;
-      }
-    } else if (lastTeleport && !currentTeleport && raycastChunkSpec) {
-      teleportMeshes[1].visible = false;
-      _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
-    } else { */
-      teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, currentTeleport, (p, q) => geometryManager.geometryWorker.raycast(geometryManager.tracker, p, q), (position, quaternion) => {
-        _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
-      });
-    // }
+    teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => geometryManager.geometryWorker.raycast(geometryManager.tracker, p, q), (position, quaternion) => {
+      _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
+    });
   };
   _handleTeleport();
 };
@@ -792,6 +775,9 @@ renderer.domElement.addEventListener('wheel', e => {
 const weaponsManager = {
   weapons,
   cubeMesh,
+  getWeapon() {
+    return selectedWeapon;
+  },
   setWeapon(newSelectedWeapon) {
     selectedWeapon = selectedWeapon;
   },

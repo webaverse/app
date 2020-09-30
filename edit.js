@@ -36,7 +36,8 @@ import geometryManager /* {
   currentThingMesh,
 } */ from './geometry-manager.js';
 import uiManager from './ui-manager.js';
-import {makeAnimalFactory} from './animal.js';
+import ioManager from './io-manager.js';
+import physicsManager from './physics-manager.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
@@ -144,127 +145,6 @@ let skybox = null;
   }
   return i;
 }; */
-const _addItem = (position, quaternion) => {
-  const itemMesh = (() => {
-    const radius = 0.5;
-    const segments = 12;
-    const color = 0x66bb6a;
-    const opacity = 0.5;
-
-    const object = new THREE.Object3D();
-
-    const matMeshes = [woodMesh, stoneMesh, metalMesh];
-    const matIndex = Math.floor(Math.random() * matMeshes.length);
-    const matMesh = matMeshes[matIndex];
-    const matMeshClone = matMesh.clone();
-    matMeshClone.position.y = 0.5;
-    matMeshClone.visible = true;
-    matMeshClone.isBuildMesh = true;
-    object.add(matMeshClone);
-
-    const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius / 2, 0));
-    const ys = new Float32Array(skirtGeometry.attributes.position.array.length / 3);
-    for (let i = 0; i < skirtGeometry.attributes.position.array.length / 3; i++) {
-      ys[i] = 1 - skirtGeometry.attributes.position.array[i * 3 + 1] / radius;
-    }
-    skirtGeometry.setAttribute('y', new THREE.BufferAttribute(ys, 1));
-    // skirtGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.5, 0));
-    const skirtMaterial = new THREE.ShaderMaterial({
-      uniforms: {
-        uAnimation: {
-          type: 'f',
-          value: 0,
-        },
-      },
-      vertexShader: `\
-        #define PI 3.1415926535897932384626433832795
-
-        uniform float uAnimation;
-        attribute float y;
-        attribute vec3 barycentric;
-        varying float vY;
-        varying float vUv;
-        varying float vOpacity;
-        void main() {
-          vY = y * ${opacity.toFixed(8)};
-          vUv = uv.x + uAnimation;
-          vOpacity = 0.5 + 0.5 * (sin(uAnimation*20.0*PI*2.0)+1.0)/2.0;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `\
-        #define PI 3.1415926535897932384626433832795
-
-        uniform sampler2D uCameraTex;
-        varying float vY;
-        varying float vUv;
-        varying float vOpacity;
-
-        vec3 c = vec3(${new THREE.Color(color).toArray().join(', ')});
-
-        void main() {
-          float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
-          gl_FragColor = vec4(c, a);
-        }
-      `,
-      side: THREE.DoubleSide,
-      transparent: true,
-      depthWrite: false,
-      // blending: THREE.CustomBlending,
-    });
-    const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
-    skirtMesh.frustumCulled = false;
-    skirtMesh.isBuildMesh = true;
-    object.add(skirtMesh);
-
-    let animation = null;
-    object.pickUp = () => {
-      if (!animation) {
-        skirtMesh.visible = false;
-
-        const now = Date.now();
-        const startTime = now;
-        const endTime = startTime + 1000;
-        const startPosition = object.position.clone();
-        animation = {
-          update(posePosition) {
-            const now = Date.now();
-            const factor = Math.min((now - startTime) / (endTime - startTime), 1);
-
-            if (factor < 0.5) {
-              const localFactor = factor / 0.5;
-              object.position.copy(startPosition)
-                .lerp(posePosition, cubicBezier(localFactor));
-            } else if (factor < 1) {
-              const localFactor = (factor - 0.5) / 0.5;
-              object.position.copy(posePosition);
-            } else {
-              object.parent.remove(object);
-              itemMeshes.splice(itemMeshes.indexOf(object), 1);
-              animation = null;
-            }
-          },
-        };
-      }
-    };
-    object.update = posePosition => {
-      if (!animation) {
-        const now = Date.now();
-        skirtMaterial.uniforms.uAnimation.value = (now % 60000) / 60000;
-        matMeshClone.rotation.y = (now % 5000) / 5000 * Math.PI * 2;
-      } else {
-        animation.update(posePosition);
-      }
-    };
-
-    return object;
-  })();
-  itemMesh.position.copy(position).applyMatrix4(currentVegetationMesh.matrixWorld);
-  itemMesh.quaternion.copy(quaternion);
-  scene.add(itemMesh);
-  itemMeshes.push(itemMesh);
-};
 const _snapBuildPosition = p => {
   p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
   p.y = Math.floor(p.y / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
@@ -293,10 +173,6 @@ function mod(a, b) {
   return ((a % b) + b) % b;
 }
 
-const animals = [];
-const itemMeshes = [];
-
-const makeAnimal = null;
 let meshDrawer = null;
 
 (async () => {
@@ -1341,78 +1217,6 @@ const _tickPlanetAnimation = factor => {
   }
 }; */
 
-const hpMesh = (() => {
-  const mesh = new THREE.Object3D();
-
-  let hp = 37;
-  let animation = null;
-  mesh.damage = dmg => {
-    hp -= dmg;
-    hp = Math.max(hp, 0);
-    textMesh.text = _getText();
-    textMesh.sync();
-    barMesh.scale.x = _getBar();
-
-    const startTime = Date.now();
-    const endTime = startTime + 500;
-    animation = {
-      update() {
-        const now = Date.now();
-        const factor = (now - startTime) / (endTime - startTime);
-        if (factor < 1) {
-          frameMesh.position.set(0, 0, 0)
-            .add(localVector2.set(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2).multiplyScalar((1 - factor) * 0.02));
-        } else {
-          animation.end();
-          animation = null;
-        }
-      },
-      end() {
-        frameMesh.position.set(0, 0, 0);
-        material.color.setHex(0x000000);
-      },
-    };
-    material.color.setHex(0xb71c1c);
-  };
-  mesh.update = () => {
-    animation && animation.update();
-  };
-
-  const geometry = BufferGeometryUtils.mergeBufferGeometries([
-    new THREE.PlaneBufferGeometry(1, 0.02).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.02, 0)),
-    new THREE.PlaneBufferGeometry(1, 0.02).applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.02, 0)),
-    new THREE.PlaneBufferGeometry(0.02, 0.04).applyMatrix4(new THREE.Matrix4().makeTranslation(-1 / 2, 0, 0)),
-    new THREE.PlaneBufferGeometry(0.02, 0.04).applyMatrix4(new THREE.Matrix4().makeTranslation(1 / 2, 0, 0)),
-  ]);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x000000,
-  });
-  const frameMesh = new THREE.Mesh(geometry, material);
-  frameMesh.frustumCulled = false;
-  mesh.add(frameMesh);
-
-  const geometry2 = new THREE.PlaneBufferGeometry(1, 0.02).applyMatrix4(new THREE.Matrix4().makeTranslation(1 / 2, 0, 0));
-  const material2 = new THREE.MeshBasicMaterial({
-    color: 0x81c784,
-  });
-  const barMesh = new THREE.Mesh(geometry2, material2);
-  barMesh.position.x = -1 / 2;
-  barMesh.position.z = -0.001;
-  const _getBar = () => hp / 100;
-  barMesh.scale.x = _getBar();
-  barMesh.frustumCulled = false;
-  frameMesh.add(barMesh);
-
-  const _getText = () => `HP ${hp}/100`;
-  const textMesh = makeTextMesh(_getText(), './Bangers-Regular.ttf', 0.05, 'left', 'bottom');
-  textMesh.position.x = -1 / 2;
-  textMesh.position.y = 0.05;
-  mesh.add(textMesh);
-
-  return mesh;
-})();
-scene.add(hpMesh);
-
 renderer.domElement.addEventListener('dblclick', e => {
   if (!document.pointerLockElement) {
     tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
@@ -1563,118 +1367,6 @@ let explosionMeshes = [];
 
 let pxMeshes = [];
 
-const _applyGravity = timeDiff => {
-  localVector.set(0, -9.8, 0);
-  localVector.multiplyScalar(timeDiff);
-  velocity.add(localVector);
-
-  const terminalVelocity = 50;
-  const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
-  velocity.x = _clampToTerminalVelocity(velocity.x * 0.7);
-  velocity.z = _clampToTerminalVelocity(velocity.z * 0.7);
-  velocity.y = _clampToTerminalVelocity(velocity.y);
-};
-const _jump = () => {
-  jumpState = true;
-  velocity.y += 5;
-};
-const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
-  const oldVelocity = localVector3.copy(velocity);
-
-  _applyVelocity(camera.position, velocity, timeDiff);
-  camera.updateMatrixWorld();
-  camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-  if (avatarOffset) {
-    localVector4.copy(avatarOffset);
-  } else {
-    localVector4.set(0, 0, 0);
-  }
-  if (cameraBasedOffset) {
-    localVector4.applyQuaternion(localQuaternion);
-  }
-  localVector.add(localVector4);
-  const collision = _collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
-  if (velocityAvatarDirection && oldVelocity.lengthSq() > 0) {
-    localQuaternion.setFromUnitVectors(localVector4.set(0, 0, -1), localVector5.set(oldVelocity.x, 0, oldVelocity.z).normalize());
-  }
-
-  if (collision) {
-    localVector4.fromArray(collision.direction);
-    camera.position.add(localVector4);
-    localVector.add(localVector4);
-    if (collision.grounded) {
-      velocity.y = 0;
-      jumpState = false;
-    } else {
-      jumpState = true;
-    }
-  } else {
-    jumpState = true;
-  }
-  localMatrix.compose(localVector, localQuaternion, localVector2);
-
-  rigManager.setLocalRigMatrix(updateRig ? localMatrix : null);
-
-  if (rigManager.localRig) {
-    if (jumpState) {
-      rigManager.localRig.setFloorHeight(-0xFFFFFF);
-    } else {
-      rigManager.localRig.setFloorHeight(localVector.y - _getAvatarHeight());
-    }
-  }
-
-  _collideItems(localMatrix);
-  _collideChunk(localMatrix);
-  camera.updateMatrixWorld();
-};
-const _collideCapsule = (() => {
-  const localVector = new THREE.Vector3();
-  return (p, q) => {
-    localVector.copy(p);
-    localVector.y -= 0.3;
-    return geometryWorker ? geometryWorker.collide(tracker, 0.5, 0.5, localVector, q, 1) : null;
-  };
-})();
-const _applyVelocity = (() => {
-  const localVector = new THREE.Vector3();
-  return (position, velocity, timeDiff) => {
-    position.add(localVector.copy(velocity).multiplyScalar(timeDiff));
-  };
-})();
-const _collideItems = matrix => {
-  matrix.decompose(localVector3, localQuaternion2, localVector4);
-
-  hpMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
-  hpMesh.quaternion.slerp(localQuaternion2, 0.1);
-
-  localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
-  for (let i = 0; i < itemMeshes.length; i++) {
-    const itemMesh = itemMeshes[i];
-    if (itemMesh.getWorldPosition(localVector5).distanceTo(localVector4) < 1) {
-      itemMesh.pickUp();
-    }
-    itemMesh.update(localVector3);
-  }
-
-  for (const animal of animals) {
-    if (!animal.isHeadAnimating()) {
-      animal.lookAt(localVector3);
-    }
-  }
-};
-const _collideChunk = matrix => {
-  matrix.decompose(localVector3, localQuaternion2, localVector4);
-  geometryManager.currentChunkMesh.update(localVector3);
-};
-
-const velocity = new THREE.Vector3();
-// const lastGrabs = [false, false];
-const lastAxes = [[0, 0, 0, 0], [0, 0, 0, 0]];
-const lastButtons = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]];
-let currentTeleport = false;
-let lastTeleport = false;
-let currentMenuDown = false;
-let lastMenuDown = false;
 const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 const startTime = Date.now();
@@ -1716,206 +1408,13 @@ function animate(timestamp, frame) {
     }
   });
 
-  for (const animal of animals) {
-    animal.update();
-  }
-  hpMesh.update();
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
   crosshairMesh && crosshairMesh.update();
-  
-  const xrCamera = currentSession ? renderer.xr.getCamera(camera) : camera;
-  if (currentSession) {
-    let walked = false;
-    const inputSources = Array.from(currentSession.inputSources);
-    for (let i = 0; i < inputSources.length; i++) {
-      const inputSource = inputSources[i];
-      const {handedness, gamepad} = inputSource;
-      if (gamepad && gamepad.buttons.length >= 2) {
-        const index = handedness === 'right' ? 1 : 0;
 
-        // buttons
-        /* const grab = buttons[1].pressed;
-        const lastGrab = lastGrabs[index];
-        if (!lastGrab && grab) { // grip
-          // pe.grabdown(handedness);
-        } else if (lastGrab && !grab) {
-          // pe.grabup(handedness);
-        }
-        lastGrabs[index] = grab; */
-
-        // axes
-        const {axes: axesSrc, buttons: buttonsSrc} = gamepad;
-        const axes = [
-          axesSrc[0] || 0,
-          axesSrc[1] || 0,
-          axesSrc[2] || 0,
-          axesSrc[3] || 0,
-        ];
-        const buttons = [
-          buttonsSrc[0] ? buttonsSrc[0].value : 0,
-          buttonsSrc[1] ? buttonsSrc[1].value : 0,
-          buttonsSrc[2] ? buttonsSrc[2].value : 0,
-          buttonsSrc[3] ? buttonsSrc[3].value : 0,
-          buttonsSrc[4] ? buttonsSrc[4].value : 0,
-          buttonsSrc[5] ? buttonsSrc[4].value : 0,
-        ];
-        if (handedness === 'left') {
-          const dx = axes[0] + axes[2];
-          const dy = axes[1] + axes[3];
-          if (Math.abs(dx) >= 0.01 || Math.abs(dx) >= 0.01) {
-            localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
-            localEuler.x = 0;
-            localEuler.z = 0;
-            localVector3.set(dx, 0, dy)
-              .applyEuler(localEuler)
-              .multiplyScalar(0.05);
-
-            dolly.matrix
-              // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
-              .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
-              // .premultiply(localMatrix2.getInverse(localMatrix2))
-              .decompose(dolly.position, dolly.quaternion, dolly.scale);
-            walked = true;
-          }
-          
-          currentWeaponGrabs[1] = buttons[1] > 0.5;
-        } else if (handedness === 'right') {
-          const _applyRotation = r => {
-            dolly.matrix
-              .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
-              .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
-              .premultiply(localMatrix2.getInverse(localMatrix2))
-              .decompose(dolly.position, dolly.quaternion, dolly.scale);
-          };
-          if (
-            (axes[0] < -0.75 && !(lastAxes[index][0] < -0.75)) ||
-            (axes[2] < -0.75 && !(lastAxes[index][2] < -0.75))
-          ) {
-            _applyRotation(Math.PI * 0.2);
-          } else if (
-            (axes[0] > 0.75 && !(lastAxes[index][0] > 0.75)) ||
-            (axes[2] > 0.75 && !(lastAxes[index][2] > 0.75))
-          ) {
-            _applyRotation(-Math.PI * 0.2);
-          }
-          currentTeleport = (axes[1] < -0.75 || axes[3] < -0.75);
-          currentMenuDown = (axes[1] > 0.75 || axes[3] > 0.75);
-
-          currentWeaponDown = buttonsSrc[0].pressed;
-          currentWeaponValue = buttons[0];
-          currentWeaponGrabs[0] = buttonsSrc[1].pressed;
-
-          if (
-            buttons[2] >= 0.5 && lastButtons[index][2] < 0.5 &&
-            !(Math.abs(axes[0]) > 0.5 || Math.abs(axes[1]) > 0.5 || Math.abs(axes[2]) > 0.5 || Math.abs(axes[3]) > 0.5) &&
-            !jumpState
-          ) {
-            _jump();
-          }
-        }
-
-        lastAxes[index][0] = axes[0];
-        lastAxes[index][1] = axes[1];
-        lastAxes[index][2] = axes[2];
-        lastAxes[index][3] = axes[3];
-        
-        lastButtons[index][0] = buttons[0];
-        lastButtons[index][1] = buttons[1];
-        lastButtons[index][2] = buttons[2];
-        lastButtons[index][3] = buttons[3];
-        lastButtons[index][4] = buttons[4];
-      }
-    }
-    
-    if (currentMenuDown) {
-      const rightInputSource = inputSources.find(inputSource => inputSource.handedness === 'right');
-      const pose = rightInputSource && frame.getPose(rightInputSource.targetRaySpace, renderer.xr.getReferenceSpace());
-      if (pose) {
-        localMatrix2.fromArray(pose.transform.matrix)
-          .premultiply(dolly.matrix)
-          .decompose(localVector, localQuaternion, localVector2);
-        if (!lastSelector) {
-          toolsMesh.position.copy(localVector);
-          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.z = 0;
-          toolsMesh.quaternion.setFromEuler(localEuler);
-        }
-        toolsMesh.update(localVector);
-        toolsMesh.visible = true;
-      } else {
-        toolsMesh.visible = false;
-      }
-    } else {
-      toolsMesh.visible = false;
-    }
-    
-    _applyGravity(timeDiff);
-
-    if (walked || jumpState) {
-      localObject.matrix.copy(xrCamera.matrix)
-        .premultiply(dolly.matrix)
-        .decompose(localObject.position, localObject.quaternion, localObject.scale);
-      const originalPosition = localObject.position.clone();
-
-      _applyAvatarPhysics(localObject, null, false, false, false, timeDiff);
-
-      dolly.position.add(
-        localObject.position.clone().sub(originalPosition)
-      );
-    } else {
-      velocity.y = 0;
-      localMatrix.copy(xrCamera.matrix)
-        .premultiply(dolly.matrix);
-      _collideItems(localMatrix);
-      _collideChunk(localMatrix);
-      rigManager.setLocalRigMatrix(null);
-    }
-  } else if (document.pointerLockElement) {
-    const speed = 100 * (keys.shift ? 3 : 1);
-    const cameraEuler = camera.rotation.clone();
-    cameraEuler.x = 0;
-    cameraEuler.z = 0;
-    localVector.set(0, 0, 0);
-    if (keys.left) {
-      localVector.add(new THREE.Vector3(-1, 0, 0).applyEuler(cameraEuler));
-    }
-    if (keys.right) {
-      localVector.add(new THREE.Vector3(1, 0, 0).applyEuler(cameraEuler));
-    }
-    if (keys.up) {
-      localVector.add(new THREE.Vector3(0, 0, -1).applyEuler(cameraEuler));
-    }
-    if (keys.down) {
-      localVector.add(new THREE.Vector3(0, 0, 1).applyEuler(cameraEuler));
-    }
-    if (localVector.length() > 0) {
-      localVector.normalize().multiplyScalar(speed);
-    }
-    localVector.multiplyScalar(timeDiff);
-    velocity.add(localVector);
-
-    _applyGravity(timeDiff);
-
-    if (selectedTool === 'firstperson') {
-      _applyAvatarPhysics(camera, null, false, false, false, timeDiff);
-    } else if (selectedTool === 'thirdperson') {
-      _applyAvatarPhysics(camera, avatarCameraOffset, true, true, true, timeDiff);
-    } else if (selectedTool === 'isometric') {
-      _applyAvatarPhysics(camera, isometricCameraOffset, true, true, true, timeDiff);
-    } else if (selectedTool === 'birdseye') {
-      _applyAvatarPhysics(camera, new THREE.Vector3(0, -birdsEyeHeight + _getAvatarHeight(), 0), false, true, true, timeDiff);
-    } else {
-      _collideItems(camera.matrix);
-      _collideChunk(camera.matrix);
-      rigManager.setLocalRigMatrix(null);
-    }
-  } else {
-    _collideItems(camera.matrix);
-    _collideChunk(camera.matrix);
-    rigManager.setLocalRigMatrix(null);
-  }
+  ioManager.update();
+  physicsManager.update();
+  uiManager.update();
 
   const _updateRig = () => {
     let hmdPosition, hmdQuaternion;
@@ -2118,52 +1617,6 @@ function animate(timestamp, frame) {
 
   weaponsManager.update();
 
-  const _handleTeleport = () => {
-    const _teleportTo = (position, quaternion) => {
-      // console.log(position, quaternion, pose, avatar)
-      /* localMatrix.fromArray(rigManager.localRig.model.matrix)
-        .decompose(localVector2, localQuaternion2, localVector3); */
-
-      if (currentSession) {
-        localMatrix.copy(xrCamera.matrix)
-          .premultiply(dolly.matrix)
-          .decompose(localVector2, localQuaternion2, localVector3);
-        dolly.matrix
-          .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
-          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-          // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-          .premultiply(localMatrix.makeTranslation(0, _getFullAvatarHeight(), 0))
-          .decompose(dolly.position, dolly.quaternion, dolly.scale);
-      } else {
-        camera.matrix
-          .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
-          // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
-          // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-          .premultiply(localMatrix.makeTranslation(0, _getFullAvatarHeight(), 0))
-          .decompose(camera.position, camera.quaternion, camera.scale);
-      }
-
-      velocity.set(0, 0, 0);
-    };
-
-    /* if (currentTeleport && raycastChunkSpec) {
-      if (raycastChunkSpec.point) {
-        teleportMeshes[1].position.copy(raycastChunkSpec.point);
-        teleportMeshes[1].quaternion.setFromUnitVectors(localVector.set(0, 1, 0), raycastChunkSpec.normal);
-        teleportMeshes[1].visible = true;
-        teleportMeshes[1].lineMesh.visible = false;
-      }
-    } else if (lastTeleport && !currentTeleport && raycastChunkSpec) {
-      teleportMeshes[1].visible = false;
-      _teleportTo(teleportMeshes[1].position, teleportMeshes[1].quaternion);
-    } else { */
-      teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, currentTeleport, (p, q) => geometryManager.geometryWorker.raycast(geometryManager.tracker, p, q), (position, quaternion) => {
-        _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
-      });
-    // }
-  };
-  _handleTeleport();
-
   /* const _updateHands = () => {
     const session = renderer.xr.getSession();
     if (session) {
@@ -2239,14 +1692,6 @@ function animate(timestamp, frame) {
       }
     });
   // }
-  lastTeleport = currentTeleport;
-  lastMenuDown = currentMenuDown;
-  lastWeaponDown = currentWeaponDown;
-  lastWeaponValue = currentWeaponValue;
-  lastMenuExpanded = menuExpanded;
-  for (let i = 0; i < 2; i++) {
-    lastWeaponGrabs[i] = currentWeaponGrabs[i];
-  }
 
   meshComposer.update();
 
@@ -2256,32 +1701,25 @@ function animate(timestamp, frame) {
     rigManager.localRig.undecapitate();
   }
 
-  geometryWorker.update();
+  geometryManager.update();
   planet.update();
 
   appManager.tick(timestamp, frame);
 
-  localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, worldContainer.matrixWorld));
-  if (currentChunkMesh && currentVegetationMesh) {
-    localMatrix3.copy(xrCamera.matrix)
-      .premultiply(dolly.matrix)
-      .premultiply(localMatrix2.getInverse(worldContainer.matrixWorld))
-      .decompose(localVector, localQuaternion, localVector2);
-    // localVector.x += Math.sin(Date.now()/1000)*15;
-    // console.log('cull x', Math.floor(localVector.x/10));
+  const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+  localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));
+  localMatrix3.copy(xrCamera.matrix)
+    .premultiply(dolly.matrix)
+    .premultiply(localMatrix2.getInverse(geometryManager.worldContainer.matrixWorld))
+    .decompose(localVector, localQuaternion, localVector2);
 
-    const [landGroups, vegetationGroups, thingGroups] = geometryWorker.tickCull(tracker, localVector, localMatrix);
-    currentChunkMesh.geometry.groups = landGroups;
-    currentVegetationMesh.geometry.groups = vegetationGroups;
-    currentThingMesh.geometry.groups = thingGroups;
-    // window.landGroups = landGroups;
-    // window.vegetationGroups = vegetationGroups;
-  }
+  const [landGroups, vegetationGroups, thingGroups] = geometryManager.geometryWorker.tickCull(geometryManager.tracker, localVector, localMatrix);
+  geometryManager.currentChunkMesh.geometry.groups = landGroups;
+  geometryManager.currentVegetationMesh.geometry.groups = vegetationGroups;
+  geometryManager.currentThingMesh.geometry.groups = thingGroups;
 
   renderer.render(scene, camera);
   // renderer.render(highlightScene, camera);
-
-  // planet.flush();
 }
 geometryManager.addEventListener('load', e => {
   meshDrawer = new MeshDrawer();
@@ -2421,264 +1859,8 @@ for (let i = 0; i < tools.length; i++) {
   });
 }
 
-const keys = {
-  up: false,
-  down: false,
-  left: false,
-  right: false,
-  shift: false,
-};
-const _resetKeys = () => {
-  for (const k in keys) {
-    keys[k] = false;
-  }
-};
 const _inputFocused = () => document.activeElement && document.activeElement.tagName === 'INPUT';
 let jumpState = false;
-let menuExpanded = false;
-let lastMenuExpanded = false;
-window.addEventListener('keydown', e => {
-  switch (e.which) {
-    case 49: { // 1
-      const selectedWeapon = weaponsManager.getWeapon();
-      let index = weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
-      index--;
-      if (index < 0) {
-        index = weapons.length - 1;
-      }
-      weapons[index].click();
-      break;
-    }
-    case 50: { // 2
-      const selectedWeapon = weaponsManager.getWeapon();
-      let index = weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
-      index++;
-      if (index >= weapons.length) {
-        index = 0;
-      }
-      weapons[index].click();
-      break;
-    }
-    case 87: { // W
-      if (!document.pointerLockElement) {
-        // nothing
-      } else {
-        keys.up = true;
-      }
-      break;
-    }
-    case 65: { // A
-      if (!document.pointerLockElement) {
-        // uiMesh && uiMesh.rotate(-1);
-      } else {
-        keys.left = true;
-      }
-      break;
-    }
-    case 83: { // S
-      if (!document.pointerLockElement) {
-        // nothing
-      } else {
-        keys.down = true;
-      }
-      break;
-    }
-    case 68: { // D
-      if (!document.pointerLockElement) {
-        // uiMesh && uiMesh.rotate(1);
-      } else {
-        keys.right = true;
-      }
-      break;
-    }
-    case 9: { // tab
-      e.preventDefault();
-      e.stopPropagation();
-      menuExpanded = !menuExpanded;
-      break;
-    }
-    case 69: { // E
-      if (document.pointerLockElement) {
-        // nothing
-      /* } else {
-        if (selectTarget && selectTarget.control) {
-          selectTarget.control.setMode('rotate');
-        } */
-      }
-      break;
-    }
-    case 82: { // R
-      if (document.pointerLockElement) {
-        // pe.equip('back');
-      /* } else {
-        if (selectTarget && selectTarget.control) {
-          selectTarget.control.setMode('scale');
-        } */
-      }
-      break;
-    }
-    case 70: { // F
-      // pe.grabdown('right');
-      if (document.pointerLockElement) {
-        currentWeaponGrabs[0] = true;
-      }
-      break;
-    }
-    case 86: { // V
-      if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
-      }
-      break;
-    }
-    case 66: { // B
-      if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        tools.find(tool => tool.getAttribute('tool') === 'thirdperson').click();
-      }
-      break;
-    }
-    case 78: { // N
-      if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        tools.find(tool => tool.getAttribute('tool') === 'isometric').click();
-      }
-      break;
-    }
-    case 77: { // M
-      if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        tools.find(tool => tool.getAttribute('tool') === 'birdseye').click();
-      }
-      break;
-    }
-    case 16: { // shift
-      if (document.pointerLockElement) {
-        keys.shift = true;
-      }
-      break;
-    }
-    case 32: { // space
-      if (document.pointerLockElement) {
-        if (!jumpState) {
-          _jump();
-        }
-      }
-      break;
-    }
-    case 81: { // Q
-      const selectedWeapon = weaponsManager.getWeapon();
-      if (selectedWeapon !== 'pickaxe') {
-        document.querySelector('.weapon[weapon="pickaxe"]').click();
-      } else {
-        document.querySelector('.weapon[weapon="shovel"]').click();
-      }
-      break;
-    }
-    case 90: { // Z
-      document.querySelector('.weapon[weapon="build"]').click();
-      buildMode = 'wall';
-      break;
-    }
-    case 88: { // X
-      document.querySelector('.weapon[weapon="build"]').click();
-      buildMode = 'floor';
-      break;
-    }
-    case 67: { // C
-      if (!keys.ctrl && document.pointerLockElement) {
-        document.querySelector('.weapon[weapon="build"]').click();
-        buildMode = 'stair';
-      }
-      break;
-    }
-    /* case 80: { // P
-      physics.resetObjectMesh(physicalMesh);
-      break;
-    } */
-    case 8: // backspace
-    case 46: // del
-    {
-      /* if (selectedObjectMeshes.length > 0) {
-          const oldSelectedObjectMeshes = selectedObjectMeshes;
-
-          _setHoveredObjectMesh(null);
-          _setSelectedObjectMesh(null, false);
-
-          const action = createAction('removeObjects', {
-            oldObjectMeshes: oldSelectedObjectMeshes,
-            container,
-            objectMeshes,
-          });
-          execute(action);
-        } */
-      break;
-    }
-  }
-});
-window.addEventListener('keyup', e => {
-  switch (e.which) {
-    case 87: { // W
-      if (document.pointerLockElement) {
-        keys.up = false;
-      }
-      break;
-    }
-    case 65: { // A
-      if (document.pointerLockElement) {
-        keys.left = false;
-      }
-      break;
-    }
-    case 83: { // S
-      if (document.pointerLockElement) {
-        keys.down = false;
-      }
-      break;
-    }
-    case 68: { // D
-      if (document.pointerLockElement) {
-        keys.right = false;
-      }
-      break;
-    }
-    case 70: { // F
-      // pe.grabup('right');
-      if (document.pointerLockElement) {
-        currentWeaponGrabs[0] = false;
-      }
-      break;
-    }
-    case 16: { // shift
-      if (document.pointerLockElement) {
-        keys.shift = false;
-      }
-      break;
-    }
-  }
-});
-window.addEventListener('mousedown', e => {
-  const selectedWeapon = weaponsManager.getWeapon();
-  if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
-    if (e.button === 0) {
-      // pe.grabtriggerdown('right');
-      // pe.grabuse('right');
-      currentWeaponDown = true;
-      currentWeaponValue = 1;
-    } else if (e.button === 2) {
-      currentTeleport = true;
-    }
-  }
-});
-window.addEventListener('mouseup', e => {
-  currentWeaponDown = false;
-  currentWeaponValue = 0;
-  currentTeleport = false;
-});
 
 const loadVsh = `
   #define M_PI 3.1415926535897932384626433832795
