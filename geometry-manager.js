@@ -1,6 +1,7 @@
 import * as THREE from './three.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import alea from './alea.js';
+import easing from './easing.js';
 import {
   LAND_SHADER,
   WATER_SHADER,
@@ -23,11 +24,14 @@ import {
 import {renderer, scene} from './app-object.js';
 
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector5 = new THREE.Vector3();
 const localMatrix2 = new THREE.Matrix4();
 
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
+const cubicBezier = easing(0, 1, 0, 1);
 
 const geometryManager = new EventTarget();
 geometryManager.geometrySet = null;
@@ -106,7 +110,11 @@ const addItem = (position, quaternion) => {
 
     const object = new THREE.Object3D();
 
-    const matMeshes = [woodMesh, stoneMesh, metalMesh];
+    const matMeshes = [
+      geometryManager.woodMesh,
+      geometryManager.stoneMesh,
+      geometryManager.metalMesh,
+    ];
     const matIndex = Math.floor(Math.random() * matMeshes.length);
     const matMesh = matMeshes[matIndex];
     const matMeshClone = matMesh.clone();
@@ -213,7 +221,7 @@ const addItem = (position, quaternion) => {
 
     return object;
   })();
-  itemMesh.position.copy(position).applyMatrix4(currentVegetationMesh.matrixWorld);
+  itemMesh.position.copy(position).applyMatrix4(geometryManager.currentVegetationMesh.matrixWorld);
   itemMesh.quaternion.copy(quaternion);
   scene.add(itemMesh);
   itemMeshes.push(itemMesh);
@@ -864,7 +872,7 @@ planet.addEventListener('load', async e => {
         Math.floor(position.y / SUBPARCEL_SIZE),
         Math.floor(position.z / SUBPARCEL_SIZE),
       );
-      geometryWorker.requestRemoveObject(tracker, geometrySet, subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, id);
+      geometryWorker.requestRemoveObject(geometryManager.tracker, geometryManager.geometrySet, subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, id);
 
       /* planet.editSubparcel(subparcelPosition.x, subparcelPosition.y, subparcelPosition.z, subparcel => {
         subparcel.removeVegetation(vegetationId);
@@ -2387,7 +2395,7 @@ const geometryWorker = (() => {
         const torchLights = _decodeArenaEntry(vegetationAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
         console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
 
-        currentVegetationMesh.updateGeometry({
+        geometryManager.currentVegetationMesh.updateGeometry({
           positionsStart,
           uvsStart,
           idsStart,
@@ -2468,7 +2476,7 @@ const geometryWorker = (() => {
         const torchLights = _decodeArenaEntry(vegetationAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
         console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
 
-        currentVegetationMesh.updateGeometry({
+        geometryManager.currentVegetationMesh.updateGeometry({
           positionsStart,
           uvsStart,
           idsStart,
@@ -2651,7 +2659,7 @@ const geometryWorker = (() => {
           const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
           const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-          currentVegetationMesh.updateGeometry({
+          geometryManager.currentVegetationMesh.updateGeometry({
             positionsStart,
             uvsStart,
             idsStart,
