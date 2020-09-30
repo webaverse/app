@@ -228,7 +228,10 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   const _updateCurrentPosition = position => {
     currentPosition.copy(position)
       .applyMatrix4(localMatrix2.getInverse(mesh.matrixWorld));
-    // `.log('current position', currentPosition.x);
+    // console.log('current position', currentPosition.toArray().join(','));
+    if (isNaN(currentPosition.x)) {
+      debugger;
+    }
   };
   /* const _updatePackages = () => {
     const packagesNeedUpdate = false;
@@ -485,7 +488,7 @@ planet.addEventListener('load', async e => {
     const ncz = Math.floor(p.z / SUBPARCEL_SIZE) * SUBPARCEL_SIZE;
 
     const height = geometryWorker.getHeight(chunkMesh.seedNum, ncx, ncy + SUBPARCEL_SIZE, ncz, baseHeight);
-    geometryManager.worldContainer.position.y = -height // - _getAvatarHeight();
+    geometryManager.worldContainer.position.y = -height // - cameraManager.getAvatarHeight();
   };
   await _initializePlanetOffset();
 

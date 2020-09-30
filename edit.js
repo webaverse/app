@@ -1386,8 +1386,8 @@ function animate(timestamp, frame) {
   crosshairMesh && crosshairMesh.update();
 
   ioManager.update(timeDiff);
-  physicsManager.update();
-  uiManager.update();
+  physicsManager.update(timeDiff);
+  uiManager.update(timeDiff);
 
   const _updateRig = () => {
     let hmdPosition, hmdQuaternion;

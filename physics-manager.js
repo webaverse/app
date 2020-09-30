@@ -169,6 +169,9 @@ const _applyGravity = timeDiff => {
   physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y);
 };
 const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
+  if (isNaN(physicsManager.velocity.x)) {
+    debugger;
+  }
   const oldVelocity = localVector3.copy(physicsManager.velocity);
 
   _applyVelocity(camera.position, physicsManager.velocity, timeDiff);
@@ -209,7 +212,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     if (jumpState) {
       rigManager.localRig.setFloorHeight(-0xFFFFFF);
     } else {
-      rigManager.localRig.setFloorHeight(localVector.y - _getAvatarHeight());
+      rigManager.localRig.setFloorHeight(localVector.y - cameraManager.getAvatarHeight());
     }
   }
 
@@ -292,7 +295,7 @@ const _updatePhysics = timeDiff => {
     } else if (selectedTool === 'isometric') {
       _applyAvatarPhysics(camera, cameraManager.isometricCameraOffset, true, true, true, timeDiff);
     } else if (selectedTool === 'birdseye') {
-      _applyAvatarPhysics(camera, new THREE.Vector3(0, -cameraManager.birdsEyeHeight + _getAvatarHeight(), 0), false, true, true, timeDiff);
+      _applyAvatarPhysics(camera, new THREE.Vector3(0, -cameraManager.birdsEyeHeight + cameraManager.getAvatarHeight(), 0), false, true, true, timeDiff);
     } else {
       _collideItems(camera.matrix);
       _collideChunk(camera.matrix);

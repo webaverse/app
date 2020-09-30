@@ -8,10 +8,10 @@ const localVector = new THREE.Vector3();
 
 let selectedTool = 'camera';
 const _getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
-const _getAvatarHeight = () => _getFullAvatarHeight() * 0.9;
+const getAvatarHeight = () => _getFullAvatarHeight() * 0.9;
 /* const _getMinHeight = () => {
   if (rigManager.localRig) {
-    const avatarHeight = rigManager.localRig ? _getAvatarHeight() : 1;
+    const avatarHeight = rigManager.localRig ? getAvatarHeight() : 1;
     const floorHeight = 0;
     const minHeight = floorHeight + avatarHeight;
     return minHeight;
@@ -79,7 +79,7 @@ for (let i = 0; i < tools.length; i++) {
           break;
         }
         case 'birdseye': {
-          camera.position.y += -birdsEyeHeight + _getAvatarHeight();
+          camera.position.y += -birdsEyeHeight + getAvatarHeight();
           camera.updateMatrixWorld();
           // setCamera(camera);
           break;
@@ -114,7 +114,7 @@ for (let i = 0; i < tools.length; i++) {
         case 'birdseye': {
           camera.rotation.x = -Math.PI / 2;
           camera.quaternion.setFromEuler(camera.rotation);
-          camera.position.y -= -birdsEyeHeight + _getAvatarHeight();
+          camera.position.y -= -birdsEyeHeight + getAvatarHeight();
           camera.updateMatrixWorld();
 
           decapitate = false;
@@ -137,6 +137,7 @@ const cameraManager = {
   birdsEyeHeight,
   avatarCameraOffset,
   isometricCameraOffset,
+  getAvatarHeight,
   getTool() {
     return selectedTool;
   },
