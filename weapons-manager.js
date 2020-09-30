@@ -12,11 +12,17 @@ import geometryManager /* {
   thingBufferAttributes,
   geometryWorker,
 } */ from './geometry-manager.js';
+import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
+import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import {teleportMeshes} from './teleport.js';
-import {renderer, scene} from './app-object.js';
+import {renderer, scene, camera} from './app-object.js';
+
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
 
 let selectedWeapon = 'hand';
 let lastSelectedWeapon = selectedWeapon;
@@ -77,7 +83,7 @@ const _updateTools = () => {
 
   const _raycastWeapon = () => {
     if (['build', 'things', 'shapes', 'inventory', 'colors', 'select'].includes(selectedWeapon)) {
-      const [{position, quaternion}] = _getRigTransforms();
+      const [{position, quaternion}] = rigManager.getRigTransforms();
       raycaster.ray.origin.copy(position);
       raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
       anchorSpecs[0] = intersectUi(raycaster, uiMeshes) || meshComposer.intersect(raycaster);
@@ -104,7 +110,7 @@ const _updateTools = () => {
   _raycastWeapon();
 
   const _selectWeapon = () => {
-    const {leftGamepad, rightGamepad} = rigManager.localRig.inputs;
+    const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
     
     [
       geometryManager.assaultRifleMesh,
@@ -211,11 +217,11 @@ const _updateTools = () => {
       case 'rifle':
       case 'grenade':
       {
-        if (crosshairMesh) {
-          crosshairMesh.position.copy(rightGamepad.position)
+        if (geometryManager.crosshairMesh) {
+          geometryManager.crosshairMesh.position.copy(rightGamepad.position)
             .add(localVector2.set(0, 0, -500).applyQuaternion(rightGamepad.quaternion));
-          crosshairMesh.quaternion.copy(rightGamepad.quaternion);
-          crosshairMesh.visible = true;
+          geometryManager.crosshairMesh.quaternion.copy(rightGamepad.quaternion);
+          geometryManager.crosshairMesh.visible = true;
         }
         break;
       }
@@ -417,7 +423,7 @@ const _updateTools = () => {
           localVector2.copy(assaultRifleMesh.position)
             .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(assaultRifleMesh.quaternion));
           _explode(localVector2, assaultRifleMesh.quaternion);
-          crosshairMesh.trigger();
+          geometryManager.crosshairMesh.trigger();
           break;
         }
         case 'grenade': {
@@ -737,7 +743,7 @@ const _updateTools = () => {
       /* localMatrix.fromArray(rigManager.localRig.model.matrix)
         .decompose(localVector2, localQuaternion2, localVector3); */
 
-      if (currentSession) {
+      if (renderer.xr.getSession()) {
         localMatrix.copy(xrCamera.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
@@ -752,11 +758,11 @@ const _updateTools = () => {
           .premultiply(localMatrix.makeTranslation(position.x - camera.position.x, position.y - camera.position.y, position.z - camera.position.z))
           // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
           // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-          .premultiply(localMatrix.makeTranslation(0, _getFullAvatarHeight(), 0))
+          .premultiply(localMatrix.makeTranslation(0, cameraManager.getFullAvatarHeight(), 0))
           .decompose(camera.position, camera.quaternion, camera.scale);
       }
 
-      velocity.set(0, 0, 0);
+      physicsManager.velocity.set(0, 0, 0);
     };
 
     teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => geometryManager.geometryWorker.raycast(geometryManager.tracker, p, q), (position, quaternion) => {

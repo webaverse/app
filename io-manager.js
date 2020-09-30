@@ -444,7 +444,7 @@ window.addEventListener('mousedown', e => {
       currentWeaponDown = true;
       currentWeaponValue = 1;
     } else if (e.button === 2) {
-      currentTeleport = true;
+      ioManager.currentTeleport = true;
     }
   }
 });

@@ -510,16 +510,6 @@ const _makeTargetMesh = (() => {
     return mesh;
   };
 })();
-const _getRigTransforms = () => ([
-  {
-    position: rigManager.localRig.inputs.leftGamepad.position,
-    quaternion: rigManager.localRig.inputs.leftGamepad.quaternion,
-  },
-  {
-    position: rigManager.localRig.inputs.rightGamepad.position,
-    quaternion: rigManager.localRig.inputs.rightGamepad.quaternion,
-  },
-]);
 const _otherSideIndex = i => i === 1 ? 0 : 1;
 class MeshComposer {
   constructor() {
@@ -604,7 +594,7 @@ class MeshComposer {
   }
   ungrab(index) {
     if (this.isPinching()) {
-      const transforms = _getRigTransforms();
+      const transforms = rigManager.getRigTransforms();
       const otherSideIndex = _otherSideIndex(index);
       this.placeMeshStates[otherSideIndex] = {
         startPosition: transforms[otherSideIndex].position.clone(),
@@ -617,7 +607,7 @@ class MeshComposer {
     this.scaleState = null;
   }
   update() {
-    const transforms = _getRigTransforms();
+    const transforms = rigManager.getRigTransforms();
     this.hoveredMeshes = transforms.map((transform, index) => {
       const {position, quaternion} = transform;
       localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1));
