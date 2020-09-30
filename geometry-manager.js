@@ -20,7 +20,6 @@ import {
   objectTextureSize,
   MAX_NAME_LENGTH,
 } from './constants.js';
-import physicsManager from './physics-manager.js';
 import {renderer, scene} from './app-object.js';
 
 const localVector2 = new THREE.Vector3();
@@ -96,6 +95,131 @@ const _makeHitTracker = (onDmg, onPositionUpdate, onColorUpdate, onRemove) => {
     },
   };
 };
+
+const itemMeshes = [];
+const addItem = (position, quaternion) => {
+  const itemMesh = (() => {
+    const radius = 0.5;
+    const segments = 12;
+    const color = 0x66bb6a;
+    const opacity = 0.5;
+
+    const object = new THREE.Object3D();
+
+    const matMeshes = [woodMesh, stoneMesh, metalMesh];
+    const matIndex = Math.floor(Math.random() * matMeshes.length);
+    const matMesh = matMeshes[matIndex];
+    const matMeshClone = matMesh.clone();
+    matMeshClone.position.y = 0.5;
+    matMeshClone.visible = true;
+    matMeshClone.isBuildMesh = true;
+    object.add(matMeshClone);
+
+    const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius / 2, 0));
+    const ys = new Float32Array(skirtGeometry.attributes.position.array.length / 3);
+    for (let i = 0; i < skirtGeometry.attributes.position.array.length / 3; i++) {
+      ys[i] = 1 - skirtGeometry.attributes.position.array[i * 3 + 1] / radius;
+    }
+    skirtGeometry.setAttribute('y', new THREE.BufferAttribute(ys, 1));
+    // skirtGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.5, 0));
+    const skirtMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uAnimation: {
+          type: 'f',
+          value: 0,
+        },
+      },
+      vertexShader: `\
+        #define PI 3.1415926535897932384626433832795
+
+        uniform float uAnimation;
+        attribute float y;
+        attribute vec3 barycentric;
+        varying float vY;
+        varying float vUv;
+        varying float vOpacity;
+        void main() {
+          vY = y * ${opacity.toFixed(8)};
+          vUv = uv.x + uAnimation;
+          vOpacity = 0.5 + 0.5 * (sin(uAnimation*20.0*PI*2.0)+1.0)/2.0;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `\
+        #define PI 3.1415926535897932384626433832795
+
+        uniform sampler2D uCameraTex;
+        varying float vY;
+        varying float vUv;
+        varying float vOpacity;
+
+        vec3 c = vec3(${new THREE.Color(color).toArray().join(', ')});
+
+        void main() {
+          float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
+          gl_FragColor = vec4(c, a);
+        }
+      `,
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthWrite: false,
+      // blending: THREE.CustomBlending,
+    });
+    const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
+    skirtMesh.frustumCulled = false;
+    skirtMesh.isBuildMesh = true;
+    object.add(skirtMesh);
+
+    let animation = null;
+    object.pickUp = () => {
+      if (!animation) {
+        skirtMesh.visible = false;
+
+        const now = Date.now();
+        const startTime = now;
+        const endTime = startTime + 1000;
+        const startPosition = object.position.clone();
+        animation = {
+          update(posePosition) {
+            const now = Date.now();
+            const factor = Math.min((now - startTime) / (endTime - startTime), 1);
+
+            if (factor < 0.5) {
+              const localFactor = factor / 0.5;
+              object.position.copy(startPosition)
+                .lerp(posePosition, cubicBezier(localFactor));
+            } else if (factor < 1) {
+              const localFactor = (factor - 0.5) / 0.5;
+              object.position.copy(posePosition);
+            } else {
+              object.parent.remove(object);
+              itemMeshes.splice(itemMeshes.indexOf(object), 1);
+              animation = null;
+            }
+          },
+        };
+      }
+    };
+    object.update = posePosition => {
+      if (!animation) {
+        const now = Date.now();
+        skirtMaterial.uniforms.uAnimation.value = (now % 60000) / 60000;
+        matMeshClone.rotation.y = (now % 5000) / 5000 * Math.PI * 2;
+      } else {
+        animation.update(posePosition);
+      }
+    };
+
+    return object;
+  })();
+  itemMesh.position.copy(position).applyMatrix4(currentVegetationMesh.matrixWorld);
+  itemMesh.quaternion.copy(quaternion);
+  scene.add(itemMesh);
+  itemMeshes.push(itemMesh);
+};
+geometryManager.addItem = addItem;
+
 /* const _align4 = n => {
   const d = n % 4;
   return d ? (n + 4 - d) : n;
@@ -733,7 +857,7 @@ planet.addEventListener('load', async e => {
       geometryManager.currentVegetationMesh.material[0].uniforms.uHitId.value = id;
       geometryManager.currentVegetationMesh.material[0].uniforms.uHitId.needsUpdate = true;
     }, (id, position, quaternion) => {
-      physicsManager.addItem(position, quaternion);
+      addItem(position, quaternion);
 
       const subparcelPosition = new THREE.Vector3(
         Math.floor(position.x / SUBPARCEL_SIZE),
@@ -2870,5 +2994,22 @@ const _updateGeometry = () => {
   geometryWorker.update();
 };
 geometryManager.update = _updateGeometry;
+
+const _updatePhysics = p => {
+  for (let i = 0; i < itemMeshes.length; i++) {
+    const itemMesh = itemMeshes[i];
+    if (itemMesh.getWorldPosition(localVector5).distanceTo(p) < 1) {
+      itemMesh.pickUp();
+    }
+    itemMesh.update(localVector3);
+  }
+
+  /* for (const animal of animals) {
+    if (!animal.isHeadAnimating()) {
+      animal.lookAt(localVector3);
+    }
+  } */
+};
+geometryManager.updatePhysics = _updatePhysics;
 
 export default geometryManager;
