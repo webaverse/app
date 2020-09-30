@@ -1,6 +1,6 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {makeCubeMesh, makeRayMesh} from './vr-ui.js';
+import {makeCubeMesh, makeRayMesh, intersectUi} from './vr-ui.js';
 import geometryManager /* {
   geometrySet,
   tracker,
@@ -39,6 +39,8 @@ const zeroVector = new THREE.Vector3();
 
 let selectedWeapon = 'unarmed';
 let lastSelectedWeapon = selectedWeapon;
+let buildMode = 'wall';
+let buildMat = 'wood';
 const weapons = Array.from(document.querySelectorAll('.weapon'));
 for (let i = 0; i < weapons.length; i++) {
   const weapon = document.getElementById('weapon-' + (i + 1));
@@ -790,7 +792,7 @@ const _updateWeapons = timeDiff => {
       const [{position, quaternion}] = rigManager.getRigTransforms();
       localRaycaster.ray.origin.copy(position);
       localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
-      anchorSpecs[0] = intersectUi(localRaycaster, uiMeshes) || meshComposer.intersect(localRaycaster);
+      anchorSpecs[0] = intersectUi(localRaycaster, uiManager.uiMeshes) || meshComposer.intersect(localRaycaster);
 
       if (anchorSpecs[0]) {
         rayMesh.position.copy(position);
@@ -959,9 +961,9 @@ const _updateWeapons = timeDiff => {
       const buildMesh = (() => {
         const buildMatIndex = ['wood', 'stone', 'metal'].indexOf(buildMat);
         switch (buildMode) {
-          case 'wall': return buildMeshes.walls[buildMatIndex];
-          case 'floor': return buildMeshes.platforms[buildMatIndex];
-          case 'stair': return buildMeshes.ramps[buildMatIndex];
+          case 'wall': return geometryManager.buildMeshes.walls[buildMatIndex];
+          case 'floor': return geometryManager.buildMeshes.platforms[buildMatIndex];
+          case 'stair': return geometryManager.buildMeshes.ramps[buildMatIndex];
           default: return null;
         }
       })();

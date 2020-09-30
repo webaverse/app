@@ -498,17 +498,6 @@ for (let i = 0; i < 30; i++) {
   }
 } */
 
-let buildMode = 'wall';
-let buildMat = 'wood';
-/* let plansMesh = null;
-let pencilMesh = null;
-let pickaxeMesh = null;
-let paintBrushMesh = null;
-let assaultRifleMesh = null;
-let smgMesh = null;
-let grenadeMesh = null;
-let crosshairMesh = null; */
-
 const redBuildMeshMaterial = new THREE.ShaderMaterial({
   vertexShader: `
     void main() {
