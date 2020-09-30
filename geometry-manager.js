@@ -20,6 +20,7 @@ import {
   objectTextureSize,
   MAX_NAME_LENGTH,
 } from './constants.js';
+import physicsManager from './physics-manager.js';
 import {renderer, scene} from './app-object.js';
 
 const localVector2 = new THREE.Vector3();
