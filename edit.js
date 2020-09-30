@@ -1668,6 +1668,8 @@ function animate(timestamp, frame) {
   planet.update();
 
   appManager.tick(timestamp, frame);
+  
+  ioManager.update(timeDiff);
 
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
   localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));

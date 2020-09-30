@@ -199,7 +199,10 @@ const _updateIo = timeDiff => {
     localVector.multiplyScalar(timeDiff);
     physicsManager.velocity.add(localVector);
   }
-  
+};
+ioManager.update = _updateIo;
+
+const _updateIoPost = () => {
   ioManager.lastTeleport = ioManager.currentTeleport;
   ioManager.lastMenuDown = ioManager.currentMenuDown;
   ioManager.lastWeaponDown = ioManager.currentWeaponDown;
@@ -209,7 +212,7 @@ const _updateIo = timeDiff => {
     ioManager.lastWeaponGrabs[i] = ioManager.currentWeaponGrabs[i];
   }
 };
-ioManager.update = _updateIo;
+ioManager.updatePost = _updateIoPost;
 
 window.addEventListener('keydown', e => {
   switch (e.which) {
