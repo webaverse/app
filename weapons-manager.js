@@ -23,6 +23,7 @@ import {renderer, scene, camera} from './app-object.js';
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
+const localRaycaster = new THREE.Raycaster();
 
 let selectedWeapon = 'unarmed';
 let lastSelectedWeapon = selectedWeapon;
@@ -84,9 +85,9 @@ const _updateTools = () => {
   const _raycastWeapon = () => {
     if (['build', 'things', 'shapes', 'inventory', 'colors', 'select'].includes(selectedWeapon)) {
       const [{position, quaternion}] = rigManager.getRigTransforms();
-      raycaster.ray.origin.copy(position);
-      raycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
-      anchorSpecs[0] = intersectUi(raycaster, uiMeshes) || meshComposer.intersect(raycaster);
+      localRaycaster.ray.origin.copy(position);
+      localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
+      anchorSpecs[0] = intersectUi(localRaycaster, uiMeshes) || meshComposer.intersect(localRaycaster);
 
       if (anchorSpecs[0]) {
         rayMesh.position.copy(position);
