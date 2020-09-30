@@ -57,7 +57,6 @@ import {
 } from './constants.js';
 import {makePromise, getNextMeshId, WaitQueue} from './util.js';
 import storage from './storage.js';
-import easing from './easing.js';
 import {planet} from './planet.js';
 import {player} from './player.js';
 import {Bot} from './bot.js';
@@ -104,8 +103,6 @@ loginManager.addEventListener('avatarchange', async (e) => {
     rigManager.addLocalRig(null);
   }
 });
-
-const cubicBezier = easing(0, 1, 0, 1);
 
 let skybox = null;
 
