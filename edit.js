@@ -973,7 +973,7 @@ function animate(timestamp, frame) {
 
   appManager.tick(timestamp, frame);
   
-  ioManager.update(timeDiff);
+  ioManager.updatePost(timeDiff);
 
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
   localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));

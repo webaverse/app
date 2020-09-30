@@ -1125,11 +1125,11 @@ const _updateWeapons = timeDiff => {
         }
         case 'grenade': {
           if (geometryManager.currentChunkMesh) {
-            const pxMesh = grenadeMesh.clone();
+            const pxMesh = geometryManager.grenadeMesh.clone();
 
-            localVector2.copy(grenadeMesh.position)
+            localVector2.copy(geometryManager.grenadeMesh.position)
               .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
-            localQuaternion2.copy(grenadeMesh.quaternion)
+            localQuaternion2.copy(geometryManager.grenadeMesh.quaternion)
               .premultiply(geometryManager.currentChunkMesh.getWorldQuaternion(localQuaternion3).inverse());
             pxMesh.position.copy(localVector2);
             pxMesh.velocity = new THREE.Vector3(0, 0, -10)
