@@ -246,11 +246,11 @@ const _collideItems = matrix => {
     itemMesh.update(localVector3);
   }
 
-  for (const animal of animals) {
+  /* for (const animal of animals) {
     if (!animal.isHeadAnimating()) {
       animal.lookAt(localVector3);
     }
-  }
+  } */
 };
 const _collideChunk = matrix => {
   matrix.decompose(localVector3, localQuaternion2, localVector4);
