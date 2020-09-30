@@ -117,8 +117,7 @@ const _collideItems = matrix => {
   uiManager.hpMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
   uiManager.hpMesh.quaternion.slerp(localQuaternion2, 0.1);
 
-  localVector4.copy(localVector3).add(localVector5.set(0, -1, 0));
-  geometryManager.updatePhysics(localVector4);
+  geometryManager.updatePhysics(localVector3);
 };
 const _collideChunk = matrix => {
   matrix.decompose(localVector3, localQuaternion2, localVector4);
