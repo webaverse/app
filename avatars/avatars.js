@@ -493,7 +493,7 @@ class Avatar {
     const Left_ringFinger3 = _findFinger(Left_wrist, /ring(?:finger)?3/i);
     const Left_ringFinger2 = Left_ringFinger3.parent;
     const Left_ringFinger1 = Left_ringFinger2.parent;
-    const Left_littleFinger3 = _findFinger(Left_wrist, /little(?:finger)?3/i);
+    const Left_littleFinger3 = _findFinger(Left_wrist, /little(?:finger)?3/i) || _findFinger(Left_wrist, /pinky3/i);
     const Left_littleFinger2 = Left_littleFinger3.parent;
     const Left_littleFinger1 = Left_littleFinger2.parent;
 	  const Left_elbow = Left_wrist.parent;
@@ -512,7 +512,7 @@ class Avatar {
     const Right_ringFinger3 = _findFinger(Right_wrist, /ring(?:finger)?3/i);
     const Right_ringFinger2 = Right_ringFinger3.parent;
     const Right_ringFinger1 = Right_ringFinger2.parent;
-    const Right_littleFinger3 = _findFinger(Right_wrist, /little(?:finger)?3/i);
+    const Right_littleFinger3 = _findFinger(Right_wrist, /little(?:finger)?3/i) || _findFinger(Right_wrist, /pinky3/i);
     const Right_littleFinger2 = Right_littleFinger3.parent;
     const Right_littleFinger1 = Right_littleFinger2.parent;
 	  const Right_elbow = Right_wrist.parent;
