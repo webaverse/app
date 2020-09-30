@@ -24,7 +24,7 @@ const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 
-let selectedWeapon = 'hand';
+let selectedWeapon = 'unarmed';
 let lastSelectedWeapon = selectedWeapon;
 const weapons = Array.from(document.querySelectorAll('.weapon'));
 for (let i = 0; i < weapons.length; i++) {
