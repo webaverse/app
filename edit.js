@@ -1196,12 +1196,6 @@ const _tickPlanetAnimation = factor => {
   }
 }; */
 
-renderer.domElement.addEventListener('dblclick', e => {
-  if (!document.pointerLockElement) {
-    cameraManager.tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
-  }
-});
-
 const numSmokes = 10;
 const numZs = 10;
 const explosionCubeGeometry = new THREE.BoxBufferGeometry(0.04, 0.04, 0.04);
