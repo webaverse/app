@@ -48,7 +48,7 @@ geometryManager.stoneMesh = null;
 geometryManager.metalMesh = null;
 
 geometryManager.worldContainer = new THREE.Object3D();
-// scene.add(worldContainer);
+scene.add(geometryManager.worldContainer);
 geometryManager.chunkMeshContainer = new THREE.Object3D();
 geometryManager.worldContainer.add(geometryManager.chunkMeshContainer);
 geometryManager.currentChunkMesh = null;

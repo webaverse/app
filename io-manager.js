@@ -215,29 +215,29 @@ window.addEventListener('keydown', e => {
   switch (e.which) {
     case 49: { // 1
       const selectedWeapon = weaponsManager.getWeapon();
-      let index = weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
+      let index = weaponsManager.weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
       index--;
       if (index < 0) {
-        index = weapons.length - 1;
+        index = weaponsManager.weapons.length - 1;
       }
-      weapons[index].click();
+      weaponsManager.weapons[index].click();
       break;
     }
     case 50: { // 2
       const selectedWeapon = weaponsManager.getWeapon();
-      let index = weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
+      let index = weaponsManager.weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
       index++;
-      if (index >= weapons.length) {
+      if (index >= weaponsManager.weapons.length) {
         index = 0;
       }
-      weapons[index].click();
+      weaponsManager.weapons[index].click();
       break;
     }
     case 87: { // W
       if (!document.pointerLockElement) {
         // nothing
       } else {
-        keys.up = true;
+        ioManager.keys.up = true;
       }
       break;
     }
@@ -245,7 +245,7 @@ window.addEventListener('keydown', e => {
       if (!document.pointerLockElement) {
         // uiMesh && uiMesh.rotate(-1);
       } else {
-        keys.left = true;
+        ioManager.keys.left = true;
       }
       break;
     }
@@ -253,7 +253,7 @@ window.addEventListener('keydown', e => {
       if (!document.pointerLockElement) {
         // nothing
       } else {
-        keys.down = true;
+        ioManager.keys.down = true;
       }
       break;
     }
@@ -261,14 +261,14 @@ window.addEventListener('keydown', e => {
       if (!document.pointerLockElement) {
         // uiMesh && uiMesh.rotate(1);
       } else {
-        keys.right = true;
+        ioManager.keys.right = true;
       }
       break;
     }
     case 9: { // tab
       e.preventDefault();
       e.stopPropagation();
-      menuExpanded = !menuExpanded;
+      ioManager.menuExpanded = !ioManager.menuExpanded;
       break;
     }
     case 69: { // E
@@ -294,7 +294,7 @@ window.addEventListener('keydown', e => {
     case 70: { // F
       // pe.grabdown('right');
       if (document.pointerLockElement) {
-        currentWeaponGrabs[0] = true;
+        ioManager.currentWeaponGrabs[0] = true;
       }
       break;
     }
@@ -332,7 +332,7 @@ window.addEventListener('keydown', e => {
     }
     case 16: { // shift
       if (document.pointerLockElement) {
-        keys.shift = true;
+        ioManager.keys.shift = true;
       }
       break;
     }

@@ -4,6 +4,8 @@ import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 
+const localVector = new THREE.Vector3();
+
 let selectedTool = 'camera';
 const _getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
 const _getAvatarHeight = () => _getFullAvatarHeight() * 0.9;
@@ -132,6 +134,9 @@ for (let i = 0; i < tools.length; i++) {
 
 const cameraManager = {
   tools,
+  birdsEyeHeight,
+  avatarCameraOffset,
+  isometricCameraOffset,
   getTool() {
     return selectedTool;
   },
