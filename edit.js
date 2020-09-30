@@ -2,7 +2,6 @@
 /* eslint no-unused-vars: 0 */
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {OrbitControls} from './OrbitControls.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import {TransformControls} from './TransformControls.js';
@@ -66,12 +65,12 @@ import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
-import {renderer, scene, camera, appManager} from './app-object.js';
+import {renderer, scene, camera, dolly, orbitControls, appManager} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
+import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
-const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
 const pid4 = Math.PI / 4;
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.3);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.3);
@@ -96,27 +95,7 @@ const localObject = new THREE.Object3D();
 
 (async () => {
   await tryLogin();
-})(); 
-
-const loadPromise = makePromise();
-
-const dolly = new THREE.Object3D();
-dolly.add(camera);
-scene.add(dolly);
-
-const ambientLight = new THREE.AmbientLight(0xFFFFFF);
-scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
-directionalLight.position.set(1, 2, 3);
-scene.add(directionalLight);
-/* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
-scene.add(directionalLight2); */
-
-const orbitControls = new OrbitControls(camera, canvas, document);
-orbitControls.screenSpacePanning = true;
-orbitControls.enableMiddleZoom = false;
-orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, camera.position.y, -3).applyQuaternion(camera.quaternion));
-orbitControls.update();
+})();
 
 loginManager.addEventListener('avatarchange', async (e) => {
   if (e.data) {
@@ -1412,7 +1391,7 @@ function animate(timestamp, frame) {
   skybox.update();
   crosshairMesh && crosshairMesh.update();
 
-  ioManager.update();
+  ioManager.update(timeDiff);
   physicsManager.update();
   uiManager.update();
 
@@ -1613,7 +1592,7 @@ function animate(timestamp, frame) {
 
   // const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
 
-  orbitControls.enabled = selectedTool === 'camera';
+  orbitControls.enabled = cameraManager.getTool() === 'camera';
 
   weaponsManager.update();
 
@@ -1695,7 +1674,7 @@ function animate(timestamp, frame) {
 
   meshComposer.update();
 
-  if (selectedTool === 'firstperson') {
+  if (cameraManager.getTool() === 'firstperson') {
     rigManager.localRig.decapitate();
   } else {
     rigManager.localRig.undecapitate();
@@ -1727,137 +1706,6 @@ geometryManager.addEventListener('load', e => {
 
   renderer.setAnimationLoop(animate);
 });
-
-let selectedTool = 'camera';
-const _getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
-const _getAvatarHeight = () => _getFullAvatarHeight() * 0.9;
-/* const _getMinHeight = () => {
-  if (rigManager.localRig) {
-    const avatarHeight = rigManager.localRig ? _getAvatarHeight() : 1;
-    const floorHeight = 0;
-    const minHeight = floorHeight + avatarHeight;
-    return minHeight;
-  } else {
-    return 1;
-  }
-}; */
-const birdsEyeHeight = 10;
-const avatarCameraOffset = new THREE.Vector3(0, 0, -1);
-const isometricCameraOffset = new THREE.Vector3(0, 0, -5);
-const tools = Array.from(document.querySelectorAll('.tool'));
-const _requestPointerLock = () => new Promise((accept, reject) => {
-  if (!document.pointerLockElement) {
-    const _pointerlockchange = e => {
-      accept();
-      _cleanup();
-    };
-    document.addEventListener('pointerlockchange', _pointerlockchange);
-    const _pointerlockerror = err => {
-      reject(err);
-      _cleanup();
-    };
-    document.addEventListener('pointerlockerror', _pointerlockerror);
-    const _cleanup = () => {
-      document.removeEventListener('pointerlockchange', _pointerlockchange);
-      document.removeEventListener('pointerlockerror', _pointerlockerror);
-    };
-    renderer.domElement.requestPointerLock();
-  } else {
-    accept();
-  }
-});
-document.addEventListener('pointerlockchange', e => {
-  if (!document.pointerLockElement) {
-    tools.find(tool => tool.getAttribute('tool') === 'camera').click();
-    document.dispatchEvent(new MouseEvent('mouseup'));
-  }
-});
-for (let i = 0; i < tools.length; i++) {
-  const tool = document.getElementById('tool-' + (i + 1));
-  tool.addEventListener('click', async e => {
-    const newSelectedTool = tool.getAttribute('tool');
-    if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
-      await _requestPointerLock();
-    }
-
-    for (let i = 0; i < tools.length; i++) {
-      tools[i].classList.remove('selected');
-    }
-    tool.classList.add('selected');
-
-    const oldSelectedTool = selectedTool;
-    selectedTool = newSelectedTool;
-
-    if (selectedTool !== oldSelectedTool) {
-      // hoverTarget = null;
-      // _setSelectTarget(null);
-
-      switch (oldSelectedTool) {
-        case 'thirdperson': {
-          camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
-          camera.updateMatrixWorld();
-          // setCamera(camera);
-          break;
-        }
-        case 'isometric': {
-          camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
-          camera.updateMatrixWorld();
-          // setCamera(camera);
-          break;
-        }
-        case 'birdseye': {
-          camera.position.y += -birdsEyeHeight + _getAvatarHeight();
-          camera.updateMatrixWorld();
-          // setCamera(camera);
-          break;
-        }
-      }
-
-      let decapitate = true;
-      switch (selectedTool) {
-        case 'camera': {
-          document.exitPointerLock();
-          orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
-          _resetKeys();
-          velocity.set(0, 0, 0);
-          break;
-        }
-        case 'thirdperson': {
-          camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
-          camera.updateMatrixWorld();
-
-          decapitate = false;
-          break;
-        }
-        case 'isometric': {
-          camera.rotation.x = -Math.PI / 6;
-          camera.quaternion.setFromEuler(camera.rotation);
-          camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
-          camera.updateMatrixWorld();
-
-          decapitate = false;
-          break;
-        }
-        case 'birdseye': {
-          camera.rotation.x = -Math.PI / 2;
-          camera.quaternion.setFromEuler(camera.rotation);
-          camera.position.y -= -birdsEyeHeight + _getAvatarHeight();
-          camera.updateMatrixWorld();
-
-          decapitate = false;
-          break;
-        }
-      }
-      if (rigManager.localRig) {
-        if (decapitate) {
-          rigManager.localRig.decapitate();
-        } else {
-          rigManager.localRig.undecapitate();
-        }
-      }
-    }
-  });
-}
 
 const loadVsh = `
   #define M_PI 3.1415926535897932384626433832795
@@ -1944,6 +1792,7 @@ const raycaster = new THREE.Raycaster();
 }; */
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
+  const selectedTool = cameraManager.getTool();
   if (selectedTool === 'thirdperson') {
     camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'isometric') {
@@ -1968,6 +1817,7 @@ const _updateMouseMovement = e => {
   camera.updateMatrixWorld();
 };
 renderer.domElement.addEventListener('mousemove', e => {
+  const selectedTool = cameraManager.getTool();
   if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
     _updateMouseMovement(e);
   }
