@@ -288,11 +288,11 @@ const _updatePhysics = timeDiff => {
     if (selectedTool === 'firstperson') {
       _applyAvatarPhysics(camera, null, false, false, false, timeDiff);
     } else if (selectedTool === 'thirdperson') {
-      _applyAvatarPhysics(camera, avatarCameraOffset, true, true, true, timeDiff);
+      _applyAvatarPhysics(camera, cameraManager.avatarCameraOffset, true, true, true, timeDiff);
     } else if (selectedTool === 'isometric') {
-      _applyAvatarPhysics(camera, isometricCameraOffset, true, true, true, timeDiff);
+      _applyAvatarPhysics(camera, cameraManager.isometricCameraOffset, true, true, true, timeDiff);
     } else if (selectedTool === 'birdseye') {
-      _applyAvatarPhysics(camera, new THREE.Vector3(0, -birdsEyeHeight + _getAvatarHeight(), 0), false, true, true, timeDiff);
+      _applyAvatarPhysics(camera, new THREE.Vector3(0, -cameraManager.birdsEyeHeight + _getAvatarHeight(), 0), false, true, true, timeDiff);
     } else {
       _collideItems(camera.matrix);
       _collideChunk(camera.matrix);
