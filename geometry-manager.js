@@ -8,6 +8,7 @@ import {
   THING_SHADER,
   makeDrawMaterial,
 } from './shaders.js';
+import storage from './storage.js';
 import {planet} from './planet.js';
 import {makePromise} from './util.js';
 import {
@@ -17,12 +18,14 @@ import {
   baseHeight,
   thingTextureSize,
   objectTextureSize,
+  MAX_NAME_LENGTH,
 } from './constants.js';
 import {renderer, scene} from './app-object.js';
 
 const localMatrix2 = new THREE.Matrix4();
 
 const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
 
 const geometryManager = new EventTarget();
 geometryManager.geometrySet = null;
@@ -497,8 +500,6 @@ planet.addEventListener('load', async e => {
     mesh.frustumCulled = false;
     return mesh;
   };
-
-  console.log('load 1');
 
   const [
     _meshes,
@@ -1238,7 +1239,7 @@ const geometryWorker = (() => {
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-        currentChunkMesh.updateGeometry({
+        geometryManager.currentChunkMesh.updateGeometry({
           positionsStart,
           normalsStart,
           uvsStart,
@@ -1278,7 +1279,7 @@ const geometryWorker = (() => {
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-        currentVegetationMesh.updateGeometry({
+        geometryManager.currentVegetationMesh.updateGeometry({
           positionsStart,
           uvsStart,
           idsStart,
@@ -1319,7 +1320,7 @@ const geometryWorker = (() => {
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-        currentThingMesh.updateGeometry({
+        geometryManager.currentThingMesh.updateGeometry({
           positionsStart,
           uvsStart,
           atlasUvsStart,
@@ -1347,7 +1348,7 @@ const geometryWorker = (() => {
       }
       {
         const subparcelSharedPtr = m.pullU32();
-        w.requestReleaseSubparcel(tracker, subparcelSharedPtr);
+        w.requestReleaseSubparcel(geometryManager.tracker, subparcelSharedPtr);
       }
     },
   };
@@ -2782,12 +2783,12 @@ const geometryWorker = (() => {
   }; */
   w.update = () => {
     if (moduleInstance) {
-      if (currentChunkMesh) {
+      if (geometryManager.currentChunkMesh) {
         const neededCoordsOffset = moduleInstance._updateNeededCoords(
-          tracker,
-          currentChunkMesh.currentPosition.x,
-          currentChunkMesh.currentPosition.y,
-          currentChunkMesh.currentPosition.z,
+          geometryManager.tracker,
+          geometryManager.currentChunkMesh.currentPosition.x,
+          geometryManager.currentChunkMesh.currentPosition.y,
+          geometryManager.currentChunkMesh.currentPosition.z,
         );
         if (neededCoordsOffset) {
           const addedSubparcelsOffset = moduleInstance.HEAPU32[neededCoordsOffset / Uint32Array.BYTES_PER_ELEMENT];
@@ -2799,9 +2800,9 @@ const geometryWorker = (() => {
               const index = moduleInstance.HEAP32[subparcelOffset / Uint32Array.BYTES_PER_ELEMENT + 3];
               const uint8Array = await storage.getRawTemp(`subparcel:${index}`);
               moduleInstance._subparcelUpdate(
-                tracker,
+                geometryManager.tracker,
                 threadPool,
-                geometrySet,
+                geometryManager.geometrySet,
                 neededCoordsOffset,
                 subparcelOffset,
                 1
@@ -2809,7 +2810,7 @@ const geometryWorker = (() => {
             }
           })().then(() => {
             moduleInstance._finishUpdate(
-              tracker,
+              geometryManager.tracker,
               neededCoordsOffset,
             );
           });
@@ -2856,5 +2857,10 @@ const geometryWorker = (() => {
   return w;
 })();
 geometryManager.geometryWorker = geometryWorker;
+
+const _updateGeometry = () => {
+  geometryWorker.update();
+};
+geometryManager.update = _updateGeometry;
 
 export default geometryManager;
