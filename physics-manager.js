@@ -107,7 +107,7 @@ const _collideCapsule = (() => {
 const applyVelocity = (() => {
   const localVector = new THREE.Vector3();
   return (position, velocity, timeDiff) => {
-    position.add(localVector.copy(physicsManager.velocity).multiplyScalar(timeDiff));
+    position.add(localVector.copy(velocity).multiplyScalar(timeDiff));
   };
 })();
 physicsManager.applyVelocity = applyVelocity;
