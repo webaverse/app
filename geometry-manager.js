@@ -22,6 +22,7 @@ import {
 } from './constants.js';
 import {renderer, scene} from './app-object.js';
 
+const localVector2 = new THREE.Vector3();
 const localMatrix2 = new THREE.Matrix4();
 
 const capsuleUpQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
