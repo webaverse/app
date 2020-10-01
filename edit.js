@@ -456,7 +456,7 @@ for (let i = 0; i < 30; i++) {
   }
 } */
 
-const redBuildMeshMaterial = new THREE.ShaderMaterial({
+/* const redBuildMeshMaterial = new THREE.ShaderMaterial({
   vertexShader: `
     void main() {
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position * 1.05, 1.);
@@ -469,7 +469,7 @@ const redBuildMeshMaterial = new THREE.ShaderMaterial({
   `,
   // side: THREE.DoubleSide,
   transparent: true,
-});
+}); */
 
 /* const jointGeometry = new THREE.BoxBufferGeometry(0.01, 0.01, 0.01);
 const jointPositions = jointGeometry.attributes.position.array.slice();
