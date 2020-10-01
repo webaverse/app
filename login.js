@@ -1,5 +1,5 @@
 import storage from './storage.js';
-import {getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
+import {createAccount, getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
 import {storageHost} from './constants.js'
 
 const loginEndpoint = 'https://login.exokit.org';
@@ -199,7 +199,14 @@ async function tryLogin() {
 
     loginForm.classList.add('phase-3');
   } else {
-    loginForm.classList.add('phase-1');
+    const newLoginToken = await createAccount({
+      bake: true,
+    });
+    const {address: addr, mnemonic} = newLoginToken;
+    await finishLogin({
+      addr,
+      mnemonic,
+    });
   }
   loginForm.addEventListener('submit', async e => {
     e.preventDefault();
