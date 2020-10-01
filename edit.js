@@ -63,7 +63,6 @@ import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
-import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {renderer, scene, camera, dolly, orbitControls, appManager} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
@@ -207,7 +206,7 @@ const _makeFloorMesh = () => {
   return mesh;
 };
 const floorMesh = _makeFloorMesh();
-floorMesh.position.y = -7;
+floorMesh.position.y = 0;
 scene.add(floorMesh);
 
 (() => {
@@ -385,66 +384,29 @@ scene.add(floorMesh);
   scene.add(mesh);
 })(); */
 
-const _makeRigCapsule = () => {
-  const geometry = new THREE.BufferGeometry().fromGeometry(new CapsuleGeometry());
-  const material = new THREE.ShaderMaterial({
-    vertexShader: `\
-      // uniform float iTime;
-      // varying vec2 uvs;
-      varying vec3 vNormal;
-      varying vec3 vWorldPosition;
-      void main() {
-        // uvs = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-        vNormal = normal;
-        vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-        vWorldPosition = worldPosition.xyz;
-      }
-    `,
-    fragmentShader: `\
-      #define PI 3.1415926535897932384626433832795
-
-      // uniform float iTime;
-      // varying vec2 uvs;
-      varying vec3 vNormal;
-      varying vec3 vWorldPosition;
-
-      const vec3 c = vec3(${new THREE.Color(0x1565c0).toArray().join(', ')});
-
-      void main() {
-        // vec2 uv = uvs;
-        // uv.x *= 1.7320508075688772;
-        // uv *= 8.0;
-
-        vec3 direction = vWorldPosition - cameraPosition;
-        float d = dot(vNormal, normalize(direction));
-        float glow = d < 0.0 ? max(1. + d * 2., 0.1) : 0.;
-
-        float a = glow;
-        gl_FragColor = vec4(c, a);
-      }
-    `,
-    side: THREE.DoubleSide,
-    transparent: true,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.frustumCulled = false;
-  return mesh;
-};
-
-// test npc crypto trade trade mesh
 (async () => {
-  const _loadGltf = u => new Promise((accept, reject) => {
+  rigManager.addPeerRig(-1);
+  rigManager.setPeerAvatarUrl('./npc.vrm', -1);
+  // rigManager.setPeerAvatarUrl('./model.glb', -1);
+  setInterval(() => {
+    rigManager.setPeerAvatarPose([
+      [[0, 1, 0], [0, 0, 0, 1]],
+      [[0, 0, 0], [0, 0, 0, 1], 0, 0],
+      [[0, 0, 0], [0, 0, 0, 1], 0, 0],
+      0
+    ], -1);
+  }, 100);
+
+  /* const _loadGltf = u => new Promise((accept, reject) => {
     new GLTFLoader().load(u, o => {
       o = o.scene;
       accept(o);
     }, xhr => {}, reject);
   });
-  const gltf = await _loadGltf('./npc.vrm');
-  gltf.position.set(0, -6, 0);
-  scene.add(gltf);
-  const rigCapsule = _makeRigCapsule();
-  gltf.add(rigCapsule);
+  const gltf = await _loadGltf();
+  gltf.position.set(0, 1, 0);
+  // gltf.position.set(0, -6, 0);
+  scene.add(gltf); */
 })();
 
 /* const generateModels = await _loadGltf('./generate.glb');
