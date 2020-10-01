@@ -1,16 +1,28 @@
 import Inventory from './Inventory.js';
-import Nav from './Nav.js';
 import inventory from '../inventory.js';
+import { getState, setState, getSpecificState } from '../state.js';
 import { setBindings } from './bindings.js';
 
+let appState = getState();
+
 let appProps = {
-    inventory: inventory,
-    inventoryItems: []
+    inventoryItems: appState.inventory.items,
 };
+
+let appHelpers = {
+    inventory: inventory
+}
+
+window.addEventListener('stateChanged', (e) => {
+    const changedState = getSpecificState(e.detail.changedKeys);
+    console.log('stateChanged', changedState);
+})
 
 export const App = (props) => {
     return `
-\        ${Inventory(props)}
+        <div id="twoD-app">
+            ${Inventory(props)}
+        </div>
     `;
 }
 
@@ -27,4 +39,4 @@ export const updateProps = (newProps) => {
     }
 }
 
-setBindings(appProps);
+setBindings(appState, appProps, appHelpers);
