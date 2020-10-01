@@ -898,6 +898,34 @@ p {
 </div>
 `;
 };
+const _makePopupString = (text) => {
+  const w = uiSize;
+  const h = uiSize*0.5;
+
+  return `\
+<style>
+* {
+  box-sizing: border-box;
+}
+.body {
+  width: ${w}px;
+  height: ${h}px;
+}
+.wrap {
+  display: inline-block;
+  background-color: #111;
+  color: #FFF;
+  font-family: 'Bangers';
+  font-size: ${h/10}px;
+  line-height: 1;
+  white-space: pre-wrap;
+}
+</style>
+<div class=body>
+  <div class=wrap>${escape(text)}</div>
+</div>
+`;
+};
 const _makeInventoryString = () => {
   const fullW = uiSize/2;
   const arrowW = fullW/10;
@@ -1837,6 +1865,119 @@ const makeTradeMesh = (cubeMesh, ontrade, onclose) => {
 
   return mesh;
 };
+const makePopupMesh = () => {
+  const worldWidth = 1;
+  const worldHeight = 0.5;
+  const canvasWidth = uiSize;
+  const canvasHeight = uiSize*0.5;
+  const geometry = _flipUvs(new THREE.PlaneBufferGeometry(worldWidth, worldHeight))
+    // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
+  /* const canvas = document.createElement('canvas');
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.createImageData(canvas.width, canvas.height); */
+  const texture = new THREE.Texture(
+    null,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.LinearFilter,
+    THREE.LinearMipMapLinearFilter,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16,
+    THREE.LinearEncoding,
+  );
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    transparent: true,
+    alphaTest: 0.7,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  // mesh.visible = false;
+  mesh.frustumCulled = false;
+
+  class PopupMessage {
+    constructor(text, endTime) {
+      this.text = text;
+      this.endTime = endTime;
+    }
+  }
+
+  let messages = [];
+  let needsUpdate = false;
+  // let anchors = [];
+  mesh.update = () => {
+    const now = Date.now();
+    messages = messages.filter(message => message.endTime > now);
+    if (needsUpdate) {
+      if (messages.length > 0) {
+        const text = messages.map(message => message.text).join('\n');
+        const htmlString = _makePopupString(text);
+        uiRenderer.render(htmlString, canvasWidth, canvasHeight)
+          .then(result => {
+            /* imageData.data.set(result.data);
+            ctx.putImageData(imageData, 0, 0); */
+            // ctx.drawImage(result.data, 0, 0);
+            texture.image = result.data;
+            texture.needsUpdate = true;
+            // mesh.visible = true;
+
+            // anchors = result.anchors;
+            // console.log(anchors);
+          });
+        console.log('visible');
+        mesh.visible = true;
+      } else {
+        mesh.visible = false;
+      }
+      needsUpdate = false;
+    }
+  };
+  // let currentMesh = null;
+  // let currentAnchor = null;
+  // const intersects = [];
+  // const localIntersections = [];
+  mesh.intersect = localIntersections => {
+    highlightMesh.visible = false;
+
+    let currentAnchor = null;
+    const [{point, face, uv, object}] = localIntersections;
+    cubeMesh.position.copy(point);
+    cubeMesh.quaternion.setFromUnitVectors(localVector.set(0, 0, 1), localVector2.copy(face.normal).applyQuaternion(object.quaternion));
+    cubeMesh.visible = true;
+
+    localVector2D.copy(uv);
+    // localVector2D.y = 1 - localVector2D.y;
+    localVector2D.x *= canvasWidth;
+    localVector2D.y *= canvasHeight;
+
+    for (let i = 0; i < anchors.length; i++) {
+      const anchor = anchors[i];
+      const {top, bottom, left, right, width, height} = anchor;
+      if (localVector2D.x >= left && localVector2D.x < right && localVector2D.y >= top && localVector2D.y < bottom) {
+        currentAnchor = anchor;
+
+        highlightMesh.position.x = -worldWidth/2 + (left + width/2) / canvasWidth * worldWidth;
+        highlightMesh.position.y = worldHeight/2 - (top + height/2) / canvasHeight * worldHeight;
+        highlightMesh.scale.x = width / canvasWidth * worldWidth;
+        highlightMesh.scale.y = height / canvasHeight * worldHeight;
+        highlightMesh.visible = true;
+        break;
+      }
+    }
+    return currentAnchor;
+  };
+  mesh.addMessage = text => {
+    messages.push(new PopupMessage(text, Date.now() + 5000));
+    needsUpdate = true;
+  };
+  // mesh.update();
+
+  return mesh;
+};
 const makeColorsMesh = (cubeMesh, colors, oncolorchange) => {
   const worldWidth = 0.2;
   const worldHeight = 0.2/2;
@@ -2144,6 +2285,7 @@ export {
   makeToolsMesh,
   makeDetailsMesh,
   makeTradeMesh,
+  makePopupMesh,
   makeInventoryMesh,
   makeColorsMesh,
   makeIconMesh,
