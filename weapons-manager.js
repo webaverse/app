@@ -1394,10 +1394,10 @@ const _updateWeapons = timeDiff => {
               material.uniforms.uSelectRange.needsUpdate = true;
             }
           } else {
-            currentVegetationMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
-            currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-            currentThingMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
-            currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+            geometryManager.currentVegetationMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
+            geometryManager.currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
+            geometryManager.currentThingMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
+            geometryManager.currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
 
             /* const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
             if (index !== -1) {
