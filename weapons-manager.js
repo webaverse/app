@@ -14,6 +14,7 @@ import {
   makeDrawMaterial,
 } from './shaders.js';
 import {
+  SUBPARCEL_SIZE,
   BUILD_SNAP,
   colors,
 } from './constants.js';
