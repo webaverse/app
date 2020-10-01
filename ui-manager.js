@@ -236,8 +236,8 @@ geometryManager.addEventListener('load', () => {
   buildsMesh.handleIconClick = (i, srcIndex) => {
     const dx = srcIndex%3;
     const dy = (srcIndex-dx)/3;
-    buildMode = ['wall', 'floor', 'stair'][dx];
-    buildMat = ['wood', 'stone', 'metal'][dy];
+    weaponsManager.buildMode = ['wall', 'floor', 'stair'][dx];
+    weaponsManager.buildMat = ['wood', 'stone', 'metal'][dy];
   };
   buildsMesh.visible = false;
   scene.add(buildsMesh);

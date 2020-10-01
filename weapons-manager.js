@@ -36,8 +36,6 @@ const zeroVector = new THREE.Vector3();
 
 let selectedWeapon = 'unarmed';
 let lastSelectedWeapon = selectedWeapon;
-let buildMode = 'wall';
-let buildMat = 'wood';
 const weapons = Array.from(document.querySelectorAll('.weapon'));
 for (let i = 0; i < weapons.length; i++) {
   const weapon = document.getElementById('weapon-' + (i + 1));
@@ -982,8 +980,8 @@ const _updateWeapons = timeDiff => {
     }
     if (selectedWeapon === 'build') {
       const buildMesh = (() => {
-        const buildMatIndex = ['wood', 'stone', 'metal'].indexOf(buildMat);
-        switch (buildMode) {
+        const buildMatIndex = ['wood', 'stone', 'metal'].indexOf(weaponsManager.buildMat);
+        switch (weaponsManager.buildMode) {
           case 'wall': return geometryManager.buildMeshes.walls[buildMatIndex];
           case 'floor': return geometryManager.buildMeshes.platforms[buildMatIndex];
           case 'stair': return geometryManager.buildMeshes.ramps[buildMatIndex];
@@ -1204,8 +1202,8 @@ const _updateWeapons = timeDiff => {
             _triggerAnchor(buildsMesh);
           } else {
             const buildMesh = (() => {
-              const buildMatIndex = ['wood', 'stone', 'metal'].indexOf(buildMat);
-              switch (buildMode) {
+              const buildMatIndex = ['wood', 'stone', 'metal'].indexOf(weaponsManager.buildMat);
+              switch (weaponsManager.buildMode) {
                 case 'wall': return geometryManager.buildMeshes.walls[buildMatIndex];
                 case 'floor': return geometryManager.buildMeshes.platforms[buildMatIndex];
                 case 'stair': return geometryManager.buildMeshes.ramps[buildMatIndex];
@@ -1553,6 +1551,8 @@ renderer.domElement.addEventListener('wheel', e => {
 const weaponsManager = {
   weapons,
   cubeMesh,
+  buildMode: 'wall',
+  buildMat: 'wood',
   getWeapon() {
     return selectedWeapon;
   },
