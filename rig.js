@@ -1,9 +1,12 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
+import {makeTextMesh} from './vr-ui.js';
 import {makePromise, WaitQueue} from './util.js';
 import {scene} from './app-object.js';
 import {planet} from './planet.js';
 import Avatar from './avatars/avatars.js';
+
+const localEuler = new THREE.Euler();
 
 class RigManager {
   constructor(scene) {
@@ -16,6 +19,9 @@ class RigManager {
       debug: true,
     });
     scene.add(this.localRig.model);
+    this.localRig.textMesh = makeTextMesh('Anonymous', undefined, 0.2, 'center', 'middle');
+    this.scene.add(this.localRig.textMesh);
+
     this.localRigMatrix = new THREE.Matrix4();
     this.localRigMatrixEnabled = false;
 
@@ -36,7 +42,10 @@ class RigManager {
 
   async addLocalRig(model) {
     await this.localRigQueue.lock();
+
+    const oldLocalRig = this.localRig;
     this.scene.remove(this.localRig.model);
+
     this.localRig = new Avatar(model, {
       fingers: true,
       hair: true,
@@ -44,7 +53,14 @@ class RigManager {
       debug: model ? false : true,
     });
     this.scene.add(this.localRig.model);
+    this.localRig.textMesh = oldLocalRig.textMesh;
+
     await this.localRigQueue.unlock();
+  }
+
+  setLocalAvatarName(name) {
+    this.localRig.textMesh.text = name;
+    this.localRig.textMesh.sync();
   }
 
   async setLocalAvatarUrl(url) {
@@ -80,13 +96,24 @@ class RigManager {
       // decapitate: selectedTool === 'firstperson',
     });
     this.scene.add(peerRig.model);
+
+    peerRig.textMesh = makeTextMesh('Anonymous', undefined, 0.2, 'center', 'middle');
+    this.scene.add(peerRig.textMesh);
+
     this.peerRigs.set(peerId, peerRig);
   }
 
   async removePeerRig(peerId) {
     const peerRig = this.peerRigs.get(peerId);
     this.scene.remove(peerRig.model);
+    this.scene.remove(peerRig.textMesh);
     this.peerRigs.delete(peerId);
+  }
+
+  setPeerAvatarName(name, peerId) {
+    const peerRig = this.peerRigs.get(peerId);
+    peerRig.textMesh.text = name;
+    peerRig.textMesh.sync();
   }
 
   async setPeerAvatarUrl(url, peerId) {
@@ -104,9 +131,9 @@ class RigManager {
         o.frustumCulled = false;
       }
     });
-    let peerRig = this.peerRigs.get(peerId);
-    this.scene.remove(peerRig.model);
-    peerRig = new Avatar(o, {
+    const oldPeerRig = this.peerRigs.get(peerId);
+    this.scene.remove(oldPeerRig.model);
+    const peerRig = new Avatar(o, {
       fingers: true,
       hair: true,
       visemes: true,
@@ -114,6 +141,8 @@ class RigManager {
     });
     this.scene.add(peerRig.model);
     this.peerRigs.set(peerId, peerRig);
+
+    peerRig.textMesh = oldPeerRig.textMesh;
 
     await this.peerRigQueue.unlock();
   }
@@ -193,6 +222,15 @@ class RigManager {
     this.localRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
     this.localRig.inputs.rightGamepad.pointer = rightGamepadPointer;
     this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
+
+    this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
+    this.localRig.textMesh.position.y += 0.5;
+    this.localRig.textMesh.quaternion.copy(this.localRig.inputs.hmd.quaternion);
+    localEuler.setFromQuaternion(this.localRig.textMesh.quaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.y += Math.PI;
+    localEuler.z = 0;
+    this.localRig.textMesh.quaternion.setFromEuler(localEuler);
   }
 
   setPeerAvatarPose(poseArray, peerId) {
@@ -219,6 +257,15 @@ class RigManager {
     peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
 
     peerRig.setFloorHeight(floorHeight);
+
+    peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
+    peerRig.textMesh.position.y += 0.5;
+    peerRig.textMesh.quaternion.copy(peerRig.inputs.hmd.quaternion);
+    localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.y += Math.PI;
+    localEuler.z = 0;
+    peerRig.textMesh.quaternion.setFromEuler(localEuler);
   }
   
   getRigTransforms() {

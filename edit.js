@@ -387,6 +387,7 @@ scene.add(floorMesh);
 (async () => {
   rigManager.addPeerRig(-1);
   rigManager.setPeerAvatarUrl('./npc.vrm', -1);
+  rigManager.setPeerAvatarName('Lollercopter', -1);
   // rigManager.setPeerAvatarUrl('./model.glb', -1);
   setInterval(() => {
     rigManager.setPeerAvatarPose([
@@ -397,16 +398,38 @@ scene.add(floorMesh);
     ], -1);
   }, 100);
 
-  /* const _loadGltf = u => new Promise((accept, reject) => {
-    new GLTFLoader().load(u, o => {
-      o = o.scene;
-      accept(o);
-    }, xhr => {}, reject);
-  });
-  const gltf = await _loadGltf();
-  gltf.position.set(0, 1, 0);
-  // gltf.position.set(0, -6, 0);
-  scene.add(gltf); */
+  /* {
+    const u = 'comet.wbn';
+    const res = await fetch('./' + u);
+    const file = await res.blob();
+    file.name = u;
+    // console.log('loading file');
+    const mesh = await runtime.loadFileForWorld(file);
+    scene.run();
+    // console.log('loaded file', mesh);
+    scene.add(mesh);
+  } */
+  {
+    const u = 'shield.wbn';
+    const res = await fetch('./' + u);
+    const file = await res.blob();
+    file.name = u;
+    // console.log('loading file');
+    const mesh = await runtime.loadFileForWorld(file);
+    mesh.run();
+    // console.log('loaded file', mesh);
+    scene.add(mesh);
+  }
+  /* {
+    const u = 'female.glb';
+    const res = await fetch('./' + u);
+    const file = await res.blob();
+    file.name = u;
+    // console.log('loading file');
+    const mesh = await runtime.loadFileForWorld(file);
+    console.log('loaded file', mesh);
+    scene.add(mesh);
+  } */
 })();
 
 /* const generateModels = await _loadGltf('./generate.glb');
