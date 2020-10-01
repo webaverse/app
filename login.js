@@ -364,9 +364,6 @@ class LoginManager extends EventTarget {
       const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
         method: 'POST',
         body: JSON.stringify({
-          /* address: addr,
-          mnemonic, */
-
           limit: 100,
           script: contractSource
             .replace(/ARG0/g, '0x' + loginToken.addr),
