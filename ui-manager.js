@@ -359,6 +359,7 @@ geometryManager.addEventListener('load', () => {
   });
   colorsMesh.visible = false;
   scene.add(colorsMesh);
+  uiManager.colorsMesh = colorsMesh;
 
   const _bakeAndUploadComposerMesh = async () => {
     const mesh = meshComposer.commit();
@@ -407,7 +408,7 @@ geometryManager.addEventListener('load', () => {
   });
   detailsMesh.visible = false;
   scene.add(detailsMesh);
-  uiManager.colorsMesh = colorsMesh;
+  uiManager.detailsMesh = detailsMesh;
 
   uiManager.menuMeshes = [
     uiManager.buildsMesh,
