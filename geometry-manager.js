@@ -794,8 +794,6 @@ planet.addEventListener('load', async e => {
   vegetationMaterial.uniforms.map.value = texture;
   vegetationMaterial.uniforms.map.needsUpdate = true;
 
-  console.log('load 2');
-
   const _makeVegetationMesh = () => {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', geometryManager.vegetationBufferAttributes.position);
