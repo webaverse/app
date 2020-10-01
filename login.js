@@ -194,27 +194,29 @@ async function tryLogin() {
   document.getElementById('changename-button').addEventListener('click', e => {
     userName.setAttribute('contenteditable', '');
     userName.focus();
+    const oldUserName = userName.innerText;
     userName.addEventListener('blur', async e => {
       userName.removeAttribute('contenteditable');
 
       const newUserName = userName.innerText;
+      if (newUserName !== oldUserName) {
+        const contractSource = await getContractSource('setUserData.cdc');
 
-      const contractSource = await getContractSource('setUserData.cdc');
+        const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+          method: 'POST',
+          body: JSON.stringify({
+            address: loginToken.addr,
+            mnemonic: loginToken.mnemonic,
 
-      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-        method: 'POST',
-        body: JSON.stringify({
-          address: loginToken.addr,
-          mnemonic: loginToken.mnemonic,
-
-          limit: 100,
-          transaction: contractSource
-            .replace(/ARG0/g, 'name')
-            .replace(/ARG1/g, newUserName),
-          wait: true,
-        }),
-      });
-      const response2 = await res.json();
+            limit: 100,
+            transaction: contractSource
+              .replace(/ARG0/g, 'name')
+              .replace(/ARG1/g, newUserName),
+            wait: true,
+          }),
+        });
+        const response2 = await res.json();
+      }
     }, {
       once: true,
     });
