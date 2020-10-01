@@ -1,5 +1,4 @@
-import {resolveContractSource, hexToWordList} from './blockchain.js';
-import {accountsHost} from './constants.js';
+import {createAccount, resolveContractSource, hexToWordList} from './blockchain.js';
 import {uint8Array2hex} from './util.js';
 
 const _jsonParse = s => {
@@ -15,17 +14,6 @@ const _runArray = async (userKeys, array) => {
     result[i] = await _runSpec(userKeys, array[i]);
   }
   return result;
-};
-const _createAccount = async ({bake = false} = {}) => {
-  const res = await fetch(accountsHost, {
-    method: 'POST',
-    body: JSON.stringify({
-      bake,
-    }),
-  });
-  const j = await res.json();
-  j.key = j.mnemonic + ' ' + hexToWordList(j.address);
-  return j;
 };
 const _bakeContract = async (contractKeys, contractSource) => {
   const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
@@ -120,7 +108,7 @@ const _runSpec = async (userKeys, spec) => {
 
     createAccountFormOutput.setAttribute('disabled', '');
 
-    const userKeys = await _createAccount({
+    const userKeys = await createAccount({
       bake: createAccountFormBakedCheckbox.checked,
     });
     createAccountFormOutput.value = JSON.stringify(userKeys, null, 2);
