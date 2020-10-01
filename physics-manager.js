@@ -15,6 +15,7 @@ const localVector5 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
+const localObject = new THREE.Object3D();
 
 const physicsManager = new EventTarget();
 

@@ -18,7 +18,7 @@ import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 import {teleportMeshes} from './teleport.js';
-import {renderer, scene, camera} from './app-object.js';
+import {renderer, scene, camera, dolly} from './app-object.js';
 import {
   THING_SHADER,
   makeDrawMaterial,
@@ -1476,6 +1476,7 @@ const _updateWeapons = timeDiff => {
 
   const _handleTeleport = () => {
     const _teleportTo = (position, quaternion) => {
+      const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
       // console.log(position, quaternion, pose, avatar)
       /* localMatrix.fromArray(rigManager.localRig.model.matrix)
         .decompose(localVector2, localQuaternion2, localVector3); */
@@ -1488,7 +1489,7 @@ const _updateWeapons = timeDiff => {
           .premultiply(localMatrix.makeTranslation(position.x - localVector2.x, position.y - localVector2.y, position.z - localVector2.z))
           // .premultiply(localMatrix.makeRotationFromQuaternion(localQuaternion3.copy(quaternion).inverse()))
           // .premultiply(localMatrix.makeTranslation(localVector2.x, localVector2.y, localVector2.z))
-          .premultiply(localMatrix.makeTranslation(0, _getFullAvatarHeight(), 0))
+          .premultiply(localMatrix.makeTranslation(0, cameraManager.getFullAvatarHeight(), 0))
           .decompose(dolly.position, dolly.quaternion, dolly.scale);
       } else {
         camera.matrix
