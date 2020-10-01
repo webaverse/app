@@ -147,13 +147,13 @@ const _updateIo = (timeDiff, frame) => {
         localMatrix2.fromArray(pose.transform.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector, localQuaternion, localVector2);
-        // if (!lastSelector) {
+        if (!ioManager.lastMenuDown) {
           uiManager.toolsMesh.position.copy(localVector);
           localEuler.setFromQuaternion(localQuaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.z = 0;
           uiManager.toolsMesh.quaternion.setFromEuler(localEuler);
-        // }
+        }
         uiManager.toolsMesh.update(localVector);
         uiManager.toolsMesh.visible = true;
       } else {
