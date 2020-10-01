@@ -137,16 +137,29 @@ async function tryLogin() {
       <nav class=user-button id=user-button>
         <img src="favicon.ico">
         <span class=name id=user-name></span>
-        <nav class=button id=clipboard-button>
-          <i class="fal fa-clipboard"></i>
-        </nav>
-        <input type=submit value="Log out" class="button highlight">
+        <i class="fal fa-bars"></i>
+        <div class=user-details>
+          <nav class=subbutton id=address-button>
+            <i class="fal fa-address-card"></i>
+            Copy address
+          </nav>
+          <nav class=subbutton id=privatekey-button>
+            <i class="fal fa-key"></i>
+            Copy private key
+          </nav>
+        </div>
+        <!-- <input type=submit value="Log out" class="button highlight"> -->
       </nav>
     </div>
     <div class="phase-content phaseless-content">
       <div>Working...</div>
     </div>
   `;
+
+  const userButton = document.getElementById('user-button');
+  userButton.addEventListener('click', e => {
+    userButton.classList.toggle('open');
+  });
 
   const userName = document.getElementById('user-name');
   userName.addEventListener('click', e => {
@@ -177,11 +190,14 @@ async function tryLogin() {
       once: true,
     })
   });
-  document.getElementById('clipboard-button').addEventListener('click', e => {
+  document.getElementById('address-button').addEventListener('click', e => {
+    navigator.clipboard.writeText(loginToken.addr);
+  });
+  document.getElementById('privatekey-button').addEventListener('click', e => {
     navigator.clipboard.writeText(loginToken.mnemonic + ' ' + hexToWordList(loginToken.addr));
   });
 
-  const userButton = document.getElementById('user-button');
+  // const userButton = document.getElementById('user-button');
   const loginEmail = document.getElementById('login-email');
   const loginVerificationCode = document.getElementById('login-verification-code');
   const loginNotice = document.getElementById('login-notice');
