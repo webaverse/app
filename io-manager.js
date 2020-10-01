@@ -1,11 +1,18 @@
 import * as THREE from './three.module.js';
-import {renderer, camera} from './app-object.js';
+import {renderer, camera, dolly} from './app-object.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
+const localMatrix2 = new THREE.Matrix4();
+const localMatrix3 = new THREE.Matrix4();
 
 const ioManager = new EventTarget();
 
@@ -38,7 +45,7 @@ ioManager.resetKeys = resetKeys;
 
 const _inputFocused = () => document.activeElement && document.activeElement.tagName === 'INPUT';
 
-const _updateIo = timeDiff => {
+const _updateIo = (timeDiff, frame) => {
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
   if (renderer.xr.getSession()) {
     ioManager.currentWalked = false;
@@ -94,13 +101,13 @@ const _updateIo = timeDiff => {
               .decompose(dolly.position, dolly.quaternion, dolly.scale);
           };
           if (
-            (axes[0] < -0.75 && !(lastAxes[index][0] < -0.75)) ||
-            (axes[2] < -0.75 && !(lastAxes[index][2] < -0.75))
+            (axes[0] < -0.75 && !(ioManager.lastAxes[index][0] < -0.75)) ||
+            (axes[2] < -0.75 && !(ioManager.lastAxes[index][2] < -0.75))
           ) {
             _applyRotation(Math.PI * 0.2);
           } else if (
-            (axes[0] > 0.75 && !(lastAxes[index][0] > 0.75)) ||
-            (axes[2] > 0.75 && !(lastAxes[index][2] > 0.75))
+            (axes[0] > 0.75 && !(ioManager.lastAxes[index][0] > 0.75)) ||
+            (axes[2] > 0.75 && !(ioManager.lastAxes[index][2] > 0.75))
           ) {
             _applyRotation(-Math.PI * 0.2);
           }
@@ -112,7 +119,7 @@ const _updateIo = timeDiff => {
           ioManager.currentWeaponGrabs[0] = buttonsSrc[1].pressed;
 
           if (
-            buttons[2] >= 0.5 && lastButtons[index][2] < 0.5 &&
+            buttons[2] >= 0.5 && ioManager.lastButtons[index][2] < 0.5 &&
             !(Math.abs(axes[0]) > 0.5 || Math.abs(axes[1]) > 0.5 || Math.abs(axes[2]) > 0.5 || Math.abs(axes[3]) > 0.5) &&
             !physicsManager.getJumpState()
           ) {
@@ -140,13 +147,13 @@ const _updateIo = timeDiff => {
         localMatrix2.fromArray(pose.transform.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector, localQuaternion, localVector2);
-        if (!lastSelector) {
+        // if (!lastSelector) {
           uiManager.toolsMesh.position.copy(localVector);
           localEuler.setFromQuaternion(localQuaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.z = 0;
           uiManager.toolsMesh.quaternion.setFromEuler(localEuler);
-        }
+        // }
         uiManager.toolsMesh.update(localVector);
         uiManager.toolsMesh.visible = true;
       } else {

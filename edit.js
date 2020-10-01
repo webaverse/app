@@ -640,9 +640,9 @@ function animate(timestamp, frame) {
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
 
-  ioManager.update(timeDiff);
-  physicsManager.update(timeDiff);
-  uiManager.update(timeDiff);
+  ioManager.update(timeDiff, frame);
+  physicsManager.update(timeDiff, frame);
+  uiManager.update(timeDiff, frame);
 
   const _updateRig = () => {
     let hmdPosition, hmdQuaternion;
@@ -843,7 +843,7 @@ function animate(timestamp, frame) {
 
   orbitControls.enabled = cameraManager.getTool() === 'camera';
 
-  weaponsManager.update(timeDiff);
+  weaponsManager.update(timeDiff, frame);
 
   /* const _updateHands = () => {
     const session = renderer.xr.getSession();
@@ -897,7 +897,7 @@ function animate(timestamp, frame) {
     rigManager.localRig.undecapitate();
   }
 
-  geometryManager.update();
+  geometryManager.update(timeDiff, frame);
   planet.update();
 
   appManager.tick(timestamp, frame);
