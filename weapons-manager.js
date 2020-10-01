@@ -1317,7 +1317,7 @@ const _updateWeapons = timeDiff => {
             localQuaternion2.copy(rightGamepad.quaternion);
             value = ioManager.currentWeaponValue * 0.1;
           } else {
-            localVector2.copy(pencilMesh.position)
+            localVector2.copy(geometryManager.pencilMesh.position)
               .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
             value = 0.1;
           }
