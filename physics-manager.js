@@ -1,8 +1,9 @@
 import * as THREE from './three.module.js';
 import uiManager from './ui-manager.js';
-import {renderer, camera} from './app-object.js';
+import {renderer, camera, dolly} from './app-object.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
+import ioManager from './io-manager.js';
 // import {makeAnimalFactory} from './animal.js';
 import {rigManager} from './rig.js';
 
@@ -129,7 +130,7 @@ const _updatePhysics = timeDiff => {
   if (renderer.xr.getSession()) {
     _applyGravity(timeDiff);
 
-    if (walked || jumpState) {
+    if (ioManager.currentWalked || jumpState) {
       localObject.matrix.copy(xrCamera.matrix)
         .premultiply(dolly.matrix)
         .decompose(localObject.position, localObject.quaternion, localObject.scale);
