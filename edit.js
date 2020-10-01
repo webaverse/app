@@ -418,7 +418,7 @@ const _makeRigCapsule = () => {
 
         vec3 direction = vWorldPosition - cameraPosition;
         float d = dot(vNormal, normalize(direction));
-        float glow = d < 0.0 ? max(1. + d * 2., 0.) : 0.;
+        float glow = d < 0.0 ? max(1. + d * 2., 0.1) : 0.;
 
         float a = glow;
         gl_FragColor = vec4(c, a);
