@@ -1816,6 +1816,19 @@ header.unlocking + .main .blocker .button
 .user-button .user-details .user-name:not(:last-child) {
   margin-bottom: 10px;
 }
+.user-button .subbutton {
+  display: flex;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.user-button .subbutton:hover {
+  background-color: #1e88e5;
+  color: #FFF;
+}
 
 .error {
   font-family: monospace;
