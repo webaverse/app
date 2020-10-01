@@ -9,6 +9,6 @@ export const setState = (newState) => {
     }
 }
 
-export const getState = (newState) => {
+export const getState = () => {
     return state;
 }
