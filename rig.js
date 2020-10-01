@@ -65,6 +65,11 @@ class RigManager {
     }
     this.addLocalRig(o);
   }
+  
+  isPeerRigModel(rig) {
+    const peerRigs = Array.from(this.peerRigs.values()).map(rig => rig.model);
+    return peerRigs.includes(rig);
+  }
 
   async addPeerRig(peerId) {
     const peerRig = new Avatar(null, {
