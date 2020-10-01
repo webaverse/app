@@ -12,10 +12,9 @@
     padding: 25px 35px 20px 35px;
 }
 
-.twoD-inventory .twoD-inventoryHeader .twoD-inventoryClose {
-    color: #d4193b;
+.twoD-inventory .twoD-inventoryHeader .twoD-inventoryIcon {
     margin-right: 20px;
-    font-size: 26px;
+    font-size: 30px;
 }
 
 .twoD-inventory .twoD-inventoryHeader .twoD-inventoryHeaderTitle {
@@ -93,7 +92,7 @@
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin-right: 8px;
+    margin-right: 5px;
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardActions .twoD-inventoryCardInspectBtn {
@@ -107,5 +106,5 @@
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin-left: 8px;
+    margin-left: 5px;
 }
