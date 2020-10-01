@@ -1120,12 +1120,12 @@ const _updateWeapons = timeDiff => {
         detailsMesh.position.copy(point);
         localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
           new THREE.Vector3(0, 0, -1),
-          detailsMesh.position.clone().sub(xrCamera.position).normalize()
+          uiManager.detailsMesh.position.clone().sub(xrCamera.position).normalize()
         ), 'YXZ');
         localEuler.x = 0;
         localEuler.z = 0;
-        detailsMesh.quaternion.setFromEuler(localEuler);
-        detailsMesh.visible = true;
+        uiManager.detailsMesh.quaternion.setFromEuler(localEuler);
+        uiManager.detailsMesh.visible = true;
       };
       const _triggerAnchor = mesh => {
         for (let i = 0; i < 2; i++) {
