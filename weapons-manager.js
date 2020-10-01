@@ -847,14 +847,23 @@ const _makeRigCapsule = () => {
   return mesh;
 };
 const rigCapsule = _makeRigCapsule();
-const _intersectRigs = raycaster => {
-  const intersections = raycaster.intersectObjects([rigCapsule], false, []);
-  if (intersections.length > 0) {
-    return intersections[0];
-  } else {
-    return null;
-  }
-};
+const _intersectRigs = (() => {
+  const intersects = [];
+  return raycaster => {
+    const intersections = raycaster.intersectObjects([rigCapsule], false, intersects);
+    if (intersections.length > 0) {
+      const [{object, point, uv}] = intersects;
+      intersects.length = 0;
+      return {
+        object,
+        point,
+        uv,
+      };
+    } else {
+      return null;
+    }
+  };
+})();
 const _updateWeapons = timeDiff => {
   for (let i = 0; i < 2; i++) {
     anchorSpecs[i] = null;
@@ -1173,7 +1182,27 @@ const _updateWeapons = timeDiff => {
       const _damage = dmg => {
         uiManager.hpMesh.damage(dmg);
       };
+      const _openTradeMesh = (point, mesh) => {
+        for (const infoMesh of uiManager.infoMeshes) {
+          infoMesh.visible = false;
+        }
+
+        const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+        uiManager.tradeMesh.position.copy(point);
+        localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
+          new THREE.Vector3(0, 0, -1),
+          uiManager.tradeMesh.position.clone().sub(xrCamera.position).normalize()
+        ), 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        uiManager.tradeMesh.quaternion.setFromEuler(localEuler);
+        uiManager.tradeMesh.visible = true;
+      };
       const _openDetailsMesh = (point, mesh) => {
+        for (const infoMesh of uiManager.infoMeshes) {
+          infoMesh.visible = false;
+        }
+
         const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
         uiManager.detailsMesh.position.copy(point);
         localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
@@ -1197,7 +1226,11 @@ const _updateWeapons = timeDiff => {
               if (anchorSpec.object.click) { // menu non-icon
                 anchorSpec.object.click(anchorSpec);
               } else { // non-menu
-                _openDetailsMesh(anchorSpec.point, anchorSpec.object);
+                if (anchorSpec.object === rigCapsule) {
+                  _openTradeMesh(anchorSpec.point, anchorSpec.object);
+                } else {
+                  _openDetailsMesh(anchorSpec.point, anchorSpec.object);
+                }
               }
             }
           }
@@ -1437,9 +1470,17 @@ const _updateWeapons = timeDiff => {
       drawThingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
       drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
     } */
+
+    if (rigCapsule.parent && !uiManager.tradeMesh.visible) {
+      rigCapsule.parent.remove(rigCapsule);
+    }
+    
     switch (selectedWeapon) {
       case 'select': {
-        if (raycastChunkSpec) {
+        if (anchorSpecs[0] && anchorSpecs[0].object === rigCapsule) {
+          rigCapsule.position.copy(anchorSpecs[0].object.position);
+          scene.add(rigCapsule);
+        } else if (raycastChunkSpec) {
           if (raycastChunkSpec.objectId === 0) {
             for (const material of geometryManager.currentChunkMesh.material) {
               const minX = Math.floor(raycastChunkSpec.point.x / SUBPARCEL_SIZE);
