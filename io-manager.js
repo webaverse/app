@@ -1,6 +1,7 @@
 import * as THREE from './three.module.js';
 import {renderer, camera} from './app-object.js';
 import cameraManager from './camera-manager.js';
+import uiManager from './ui-manager.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
 
@@ -20,6 +21,7 @@ ioManager.menuExpanded = false;
 ioManager.lastMenuExpanded = false;
 ioManager.currentWeaponGrabs = [false, false];
 ioManager.lastWeaponGrabs = [false, false];
+ioManager.currentWalked = false;
 ioManager.keys = {
   up: false,
   down: false,
@@ -39,8 +41,8 @@ const _inputFocused = () => document.activeElement && document.activeElement.tag
 const _updateIo = timeDiff => {
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
   if (renderer.xr.getSession()) {
-    let walked = false;
-    const inputSources = Array.from(currentSession.inputSources);
+    ioManager.currentWalked = false;
+    const inputSources = Array.from(renderer.xr.getSession().inputSources);
     for (let i = 0; i < inputSources.length; i++) {
       const inputSource = inputSources[i];
       const {handedness, gamepad} = inputSource;
@@ -79,10 +81,10 @@ const _updateIo = timeDiff => {
               .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
               // .premultiply(localMatrix2.getInverse(localMatrix2))
               .decompose(dolly.position, dolly.quaternion, dolly.scale);
-            walked = true;
+            ioManager.currentWalked = true;
           }
           
-          currentWeaponGrabs[1] = buttons[1] > 0.5;
+          ioManager.currentWeaponGrabs[1] = buttons[1] > 0.5;
         } else if (handedness === 'right') {
           const _applyRotation = r => {
             dolly.matrix
@@ -102,8 +104,8 @@ const _updateIo = timeDiff => {
           ) {
             _applyRotation(-Math.PI * 0.2);
           }
-          currentTeleport = (axes[1] < -0.75 || axes[3] < -0.75);
-          currentMenuDown = (axes[1] > 0.75 || axes[3] > 0.75);
+          ioManager.currentTeleport = (axes[1] < -0.75 || axes[3] < -0.75);
+          ioManager.currentMenuDown = (axes[1] > 0.75 || axes[3] > 0.75);
 
           ioManager.currentWeaponDown = buttonsSrc[0].pressed;
           ioManager.currentWeaponValue = buttons[0];
@@ -131,7 +133,7 @@ const _updateIo = timeDiff => {
       }
     }
 
-    if (currentMenuDown) {
+    if (ioManager.currentMenuDown) {
       const rightInputSource = inputSources.find(inputSource => inputSource.handedness === 'right');
       const pose = rightInputSource && frame.getPose(rightInputSource.targetRaySpace, renderer.xr.getReferenceSpace());
       if (pose) {
@@ -139,41 +141,19 @@ const _updateIo = timeDiff => {
           .premultiply(dolly.matrix)
           .decompose(localVector, localQuaternion, localVector2);
         if (!lastSelector) {
-          toolsMesh.position.copy(localVector);
+          uiManager.toolsMesh.position.copy(localVector);
           localEuler.setFromQuaternion(localQuaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.z = 0;
-          toolsMesh.quaternion.setFromEuler(localEuler);
+          uiManager.toolsMesh.quaternion.setFromEuler(localEuler);
         }
-        toolsMesh.update(localVector);
-        toolsMesh.visible = true;
+        uiManager.toolsMesh.update(localVector);
+        uiManager.toolsMesh.visible = true;
       } else {
-        toolsMesh.visible = false;
+        uiManager.toolsMesh.visible = false;
       }
     } else {
-      toolsMesh.visible = false;
-    }
-
-    _applyGravity(timeDiff);
-
-    if (walked || physicsManager.getJumpState()) {
-      localObject.matrix.copy(xrCamera.matrix)
-        .premultiply(dolly.matrix)
-        .decompose(localObject.position, localObject.quaternion, localObject.scale);
-      const originalPosition = localObject.position.clone();
-
-      _applyAvatarPhysics(localObject, null, false, false, false, timeDiff);
-
-      dolly.position.add(
-        localObject.position.clone().sub(originalPosition)
-      );
-    } else {
-      velocity.y = 0;
-      localMatrix.copy(xrCamera.matrix)
-        .premultiply(dolly.matrix);
-      _collideItems(localMatrix);
-      _collideChunk(localMatrix);
-      rigManager.setLocalRigMatrix(null);
+      uiManager.toolsMesh.visible = false;
     }
   } else if (document.pointerLockElement) {
     const speed = 100 * (ioManager.keys.shift ? 3 : 1);
