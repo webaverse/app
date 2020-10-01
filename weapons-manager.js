@@ -1312,7 +1312,7 @@ const _updateWeapons = timeDiff => {
       switch (selectedWeapon) {
         case 'pencil': {
           let value;
-          if (currentSession) {
+          if (renderer.xr.getSession()) {
             localVector2.copy(rightGamepad.position);
             localQuaternion2.copy(rightGamepad.quaternion);
             value = ioManager.currentWeaponValue * 0.1;
@@ -1378,7 +1378,7 @@ const _updateWeapons = timeDiff => {
       switch (selectedWeapon) {
         case 'pencil': {
           let value;
-          if (currentSession) {
+          if (renderer.xr.getSession()) {
             localVector2.copy(rightGamepad.position);
             localQuaternion2.copy(rightGamepad.quaternion);
             value = ioManager.currentWeaponValue * 0.1;
