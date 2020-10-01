@@ -801,7 +801,8 @@ const _meshEquals = (a, b) => {
   }
 };
 const _makeRigCapsule = () => {
-  const geometry = new THREE.BufferGeometry().fromGeometry(new CapsuleGeometry());
+  const geometry = new THREE.BufferGeometry().fromGeometry(new CapsuleGeometry())
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1, 0));
   const material = new THREE.ShaderMaterial({
     vertexShader: `\
       // uniform float iTime;
