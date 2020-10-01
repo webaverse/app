@@ -1,5 +1,6 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {makeCubeMesh, makeRayMesh, intersectUi} from './vr-ui.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
@@ -799,6 +800,61 @@ const _meshEquals = (a, b) => {
     return false;
   }
 };
+const _makeRigCapsule = () => {
+  const geometry = new THREE.BufferGeometry().fromGeometry(new CapsuleGeometry());
+  const material = new THREE.ShaderMaterial({
+    vertexShader: `\
+      // uniform float iTime;
+      // varying vec2 uvs;
+      varying vec3 vNormal;
+      varying vec3 vWorldPosition;
+      void main() {
+        // uvs = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        vNormal = normal;
+        vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+        vWorldPosition = worldPosition.xyz;
+      }
+    `,
+    fragmentShader: `\
+      #define PI 3.1415926535897932384626433832795
+
+      // uniform float iTime;
+      // varying vec2 uvs;
+      varying vec3 vNormal;
+      varying vec3 vWorldPosition;
+
+      const vec3 c = vec3(${new THREE.Color(0x1565c0).toArray().join(', ')});
+
+      void main() {
+        // vec2 uv = uvs;
+        // uv.x *= 1.7320508075688772;
+        // uv *= 8.0;
+
+        vec3 direction = vWorldPosition - cameraPosition;
+        float d = dot(vNormal, normalize(direction));
+        float glow = d < 0.0 ? max(1. + d * 2., 0.1) : 0.;
+
+        float a = glow;
+        gl_FragColor = vec4(c, a);
+      }
+    `,
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+};
+const rigCapsule = _makeRigCapsule();
+const _intersectRigs = raycaster => {
+  const intersections = raycaster.intersectObjects([rigCapsule], false, []);
+  if (intersections.length > 0) {
+    return intersections[0];
+  } else {
+    return null;
+  }
+};
 const _updateWeapons = timeDiff => {
   for (let i = 0; i < 2; i++) {
     anchorSpecs[i] = null;
@@ -811,7 +867,7 @@ const _updateWeapons = timeDiff => {
       const [{position, quaternion}] = rigManager.getRigTransforms();
       localRaycaster.ray.origin.copy(position);
       localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
-      anchorSpecs[0] = intersectUi(localRaycaster, uiManager.uiMeshes) || meshComposer.intersect(localRaycaster);
+      anchorSpecs[0] = intersectUi(localRaycaster, uiManager.uiMeshes) || meshComposer.intersect(localRaycaster) || _intersectRigs(localRaycaster);
 
       if (anchorSpecs[0]) {
         rayMesh.position.copy(position);
@@ -820,10 +876,12 @@ const _updateWeapons = timeDiff => {
         rayMesh.visible = true;
       }
     }
-    if (!anchorSpecs[0]) {
+    if (anchorSpecs[0]) { // anchor raycast
+      // nothing    
+    } else { // no anchor raycast
       const result = geometryManager.geometryWorker.raycast(geometryManager.tracker, rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion);
       raycastChunkSpec = result;
-      if (raycastChunkSpec) {
+      if (raycastChunkSpec) { // world geometry raycast
         raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
         raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
         raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
