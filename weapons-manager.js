@@ -1,17 +1,7 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {makeCubeMesh, makeRayMesh, intersectUi} from './vr-ui.js';
-import geometryManager /* {
-  geometrySet,
-  tracker,
-  landAllocators,
-  landBufferAttributes,
-  vegetationAllocators,
-  vegetationBufferAttributes,
-  thingAllocators,
-  thingBufferAttributes,
-  geometryWorker,
-} */ from './geometry-manager.js';
+import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
