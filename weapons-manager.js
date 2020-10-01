@@ -1118,7 +1118,8 @@ const _updateWeapons = timeDiff => {
         uiManager.hpMesh.damage(dmg);
       };
       const _openDetailsMesh = (point, mesh) => {
-        detailsMesh.position.copy(point);
+        const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+        uiManager.detailsMesh.position.copy(point);
         localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
           new THREE.Vector3(0, 0, -1),
           uiManager.detailsMesh.position.clone().sub(xrCamera.position).normalize()
