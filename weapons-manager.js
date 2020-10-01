@@ -1219,7 +1219,7 @@ const _updateWeapons = timeDiff => {
               return false;
             })();
             if (!hasBuildMesh) {
-              geometryManager.geometryWorker.requestAddObject(geometryManager.tracker, geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
+              geometryManager.geometryWorker.requestAddObject(geometryManager.tracker, geometryManager.geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
             }
           }
           break;
