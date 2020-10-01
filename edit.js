@@ -693,7 +693,7 @@ function animate(timestamp, frame) {
         rightGamepadPosition = localVector2.toArray();
         rightGamepadQuaternion = localQuaternion2.toArray();
 
-        const {gamepad} = inputSources[0];
+        const {gamepad} = inputSources[1];
         if (gamepad && gamepad.buttons.length >= 2) {
           const {buttons} = gamepad;
           rightGamepadPointer = buttons[0].value;
