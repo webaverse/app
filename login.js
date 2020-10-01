@@ -275,7 +275,17 @@ class LoginManager extends EventTarget {
       data: name,
     }));
   }
-  
+
+  async getLatestBlock() {
+    const res = await fetch(`https://accounts.exokit.org/latestBlock`);
+    return await res.json();
+  }
+
+  async getEvents() {
+    const res = await fetch(`https://accounts.exokit.org/latestBlock`);
+    return await res.json();
+  }
+
   getAddress() {
     return loginToken && loginToken.address;
   }
