@@ -19,6 +19,7 @@ import {
   BUILD_SNAP,
   colors,
 } from './constants.js';
+import { setState } from './state.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -47,6 +48,7 @@ for (let i = 0; i < weapons.length; i++) {
     weapon.classList.add('selected');
 
     selectedWeapon = weapon.getAttribute('weapon');
+    setState({ selectedWeapon: selectedWeapon })
   });
 }
 let raycastChunkSpec = null;

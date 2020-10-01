@@ -8,8 +8,6 @@ export const setBindings = (appState, appProps, appHelpers) => {
         appContainer.innerHTML = App(appProps);
         console.log(appProps);
 
-
-
         // INVENTORY
         appContainer.querySelector('#twoD-inventoryUploadBtn').addEventListener('change', (e) => {
             const file = e.target.files[0];

@@ -3,9 +3,7 @@ const state = {
     inventory: {
         items: []
     },
-    toolbar: {
-        selected: ''
-    }
+    selectedWeapon: null
 };
 
 const emitChange = (changedKeys) => {
