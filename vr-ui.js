@@ -800,6 +800,104 @@ p {
 </div>
 `;
 };
+const _makeTradeString = (ftAmount, ftBalance) => {
+  const w = uiSize;
+  const h = uiSize*0.5;
+
+  return `\
+<style>
+* {
+  box-sizing: border-box;
+}
+.body {
+  display: flex;
+  width: ${w}px;
+  height: ${h}px;
+  background-color: #FFF;
+  border-left: ${w/10}px solid #ff7043;
+  font-family: 'Bangers';
+}
+.wrap {
+  display: flex;
+  padding-left: ${w/30}px;
+  flex: 1;
+  flex-direction: column;
+}
+.buttons {
+  display: flex;
+  flex-direction: column;
+}
+.buttons .button {
+  display: flex;
+  width: 400px;
+  height: 400px;
+  margin: 50px;
+  border: 10px solid #000;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 100px;
+}
+.header {
+  display: flex;
+  flex-direction: column;
+}
+.close-button {
+  display: flex;
+  width: 200px;
+  height: 200px;
+  background-color: #000;
+  color: #FFF;
+  justify-content: center;
+  align-items: center;
+  font-size: 100px;
+}
+h1 {
+  margin: 30px 0;
+  font-size: 200px;
+}
+p {
+  margin: 30px 0;
+  font-size: 100px;
+}
+.notches {
+  display: flex;
+  font-size: 100px;
+}
+.notches .notch {
+  display: flex;
+  padding: 30px;
+  border: 5px solid #000;
+  border-radius: 30px;
+  justify-content: center;
+  align-items: center;
+}
+</style>
+<div class=body>
+  <!-- <div class=wrap>
+    <h1>Details</h1>
+    <p>Lorem ipsum</p>
+  </div> -->
+  <div class=wrap>
+    <div class=ft>
+      <div class=notches>
+        <a class=notch id=notch-down>-</a>
+        <div>${ftAmount}/${ftBalance}</div>
+        <a class=notch id=notch-up>+</a>
+      </div>
+    </div>
+    <div class=nft>
+    </div>
+  </div>
+  <div class=buttons>
+    <a class=button id=trade-button>Trade</a>
+  </div>
+  <div class=header>
+    <a class=close-button id=close-button>X</a>
+  </div>
+</div>
+`;
+};
 const _makeInventoryString = () => {
   const fullW = uiSize/2;
   const arrowW = fullW/10;
@@ -1617,6 +1715,128 @@ const makeDetailsMesh = (cubeMesh, onrun, onbake, onadd, onremove, onclose) => {
 
   return mesh;
 };
+const makeTradeMesh = (cubeMesh, ontrade, onclose) => {
+  const worldWidth = 1;
+  const worldHeight = 0.5;
+  const canvasWidth = uiSize;
+  const canvasHeight = uiSize*0.5;
+  const geometry = _flipUvs(new THREE.PlaneBufferGeometry(worldWidth, worldHeight))
+    // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
+  /* const canvas = document.createElement('canvas');
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.createImageData(canvas.width, canvas.height); */
+  const texture = new THREE.Texture(
+    null,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.LinearFilter,
+    THREE.LinearMipMapLinearFilter,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    16,
+    THREE.LinearEncoding,
+  );
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    // transparent: true,
+    // alphaTest: 0.7,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  // mesh.visible = false;
+  mesh.frustumCulled = false;
+
+  const highlightMesh = _makeHighlightMesh();
+  mesh.add(highlightMesh);
+  // mesh.highlightMesh = highlightMesh;
+
+  let ftAmount = 7;
+  let ftBalance = 10;
+
+  let anchors = [];
+  mesh.update = () => {
+    const htmlString = _makeTradeString(ftAmount, ftBalance);
+    uiRenderer.render(htmlString, canvasWidth, canvasHeight)
+      .then(result => {
+        /* imageData.data.set(result.data);
+        ctx.putImageData(imageData, 0, 0); */
+        // ctx.drawImage(result.data, 0, 0);
+        texture.image = result.data;
+        texture.needsUpdate = true;
+        // mesh.visible = true;
+
+        anchors = result.anchors;
+        // console.log(anchors);
+      });
+  };
+  // let currentMesh = null;
+  // let currentAnchor = null;
+  // const intersects = [];
+  // const localIntersections = [];
+  mesh.intersect = localIntersections => {
+    highlightMesh.visible = false;
+
+    let currentAnchor = null;
+    const [{point, face, uv, object}] = localIntersections;
+    cubeMesh.position.copy(point);
+    cubeMesh.quaternion.setFromUnitVectors(localVector.set(0, 0, 1), localVector2.copy(face.normal).applyQuaternion(object.quaternion));
+    cubeMesh.visible = true;
+
+    localVector2D.copy(uv);
+    // localVector2D.y = 1 - localVector2D.y;
+    localVector2D.x *= canvasWidth;
+    localVector2D.y *= canvasHeight;
+
+    for (let i = 0; i < anchors.length; i++) {
+      const anchor = anchors[i];
+      const {top, bottom, left, right, width, height} = anchor;
+      if (localVector2D.x >= left && localVector2D.x < right && localVector2D.y >= top && localVector2D.y < bottom) {
+        currentAnchor = anchor;
+
+        highlightMesh.position.x = -worldWidth/2 + (left + width/2) / canvasWidth * worldWidth;
+        highlightMesh.position.y = worldHeight/2 - (top + height/2) / canvasHeight * worldHeight;
+        highlightMesh.scale.x = width / canvasWidth * worldWidth;
+        highlightMesh.scale.y = height / canvasHeight * worldHeight;
+        highlightMesh.visible = true;
+        break;
+      }
+    }
+    return currentAnchor;
+  };
+  mesh.click = anchorSpec => {
+    const {anchor} = anchorSpec;
+    if (anchor) {
+      switch (anchor.id) {
+        case 'notch-down': {
+          ftAmount--;
+          ftAmount = Math.max(ftAmount, 0);
+          mesh.update();
+          break;
+        }
+        case 'notch-up': {
+          ftAmount++;
+          ftAmount = Math.min(ftAmount, ftBalance);
+          mesh.update();
+          break;
+        }
+        case 'trade-button': {
+          ontrade(anchorSpec);
+          break;
+        }
+        case 'close-button': {
+          onclose();
+          break;
+        }
+      }
+    }
+  };
+  mesh.update();
+
+  return mesh;
+};
 const makeColorsMesh = (cubeMesh, colors, oncolorchange) => {
   const worldWidth = 0.2;
   const worldHeight = 0.2/2;
@@ -1923,6 +2143,7 @@ export {
   makeTextMesh,
   makeToolsMesh,
   makeDetailsMesh,
+  makeTradeMesh,
   makeInventoryMesh,
   makeColorsMesh,
   makeIconMesh,

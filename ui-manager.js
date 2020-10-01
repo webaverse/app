@@ -7,7 +7,7 @@ import {makeInventoryMesh, makeTextMesh} from './vr-ui.js';
 import {scene} from './app-object.js';
 import {WaitQueue} from './util.js';
 import {makeDrawMaterial} from './shaders.js';
-import {makeColorsMesh, makeDetailsMesh, makeToolsMesh} from './vr-ui.js';
+import {makeColorsMesh, makeDetailsMesh, makeTradeMesh, makeToolsMesh} from './vr-ui.js';
 import {colors, storageHost} from './constants.js';
 
 const uiManager = new EventTarget();
@@ -410,26 +410,8 @@ geometryManager.addEventListener('load', () => {
   scene.add(detailsMesh);
   uiManager.detailsMesh = detailsMesh;
   
-  const tradeMesh = makeDetailsMesh(weaponsManager.cubeMesh, function onrun(anchorSpec) {
-    meshComposer.run();
-  }, async function onbake(anchorSpec) {
-    const {mesh, hash} = await _bakeAndUploadComposerMesh();
-    const hashUint8Array = hex2Uint8Array(hash);
-
-    const canvas = mesh.material.map.image;
-    const texture = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
-    await geometryWorker.requestAddThingGeometry(tracker, geometrySet, hashUint8Array, mesh.geometry.attributes.position.array, mesh.geometry.attributes.uv.array, mesh.geometry.index.array, mesh.geometry.attributes.position.length, mesh.geometry.attributes.uv.array.length, mesh.geometry.index.array.length, texture);
-    await geometryWorker.requestAddThing(tracker, geometrySet, hashUint8Array, mesh.position, mesh.quaternion, mesh.scale);
-
-    tradeMesh.visible = false;
-  }, async function onadd(anchorSpec) {
-    await _bakeAndUploadComposerMesh();
-
-    tradeMesh.visible = false;
-  }, function onremove(anchorSpec) {
-    // console.log('got remove', anchorSpec);
-    meshComposer.cancel();
-    tradeMesh.visible = false;
+  const tradeMesh = makeTradeMesh(weaponsManager.cubeMesh, function ontrade(anchorSpec) {
+    console.log('trade');
   }, function onclose() {
     tradeMesh.visible = false;
   });
