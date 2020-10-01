@@ -409,6 +409,33 @@ geometryManager.addEventListener('load', () => {
   detailsMesh.visible = false;
   scene.add(detailsMesh);
   uiManager.detailsMesh = detailsMesh;
+  
+  const tradeMesh = makeDetailsMesh(weaponsManager.cubeMesh, function onrun(anchorSpec) {
+    meshComposer.run();
+  }, async function onbake(anchorSpec) {
+    const {mesh, hash} = await _bakeAndUploadComposerMesh();
+    const hashUint8Array = hex2Uint8Array(hash);
+
+    const canvas = mesh.material.map.image;
+    const texture = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    await geometryWorker.requestAddThingGeometry(tracker, geometrySet, hashUint8Array, mesh.geometry.attributes.position.array, mesh.geometry.attributes.uv.array, mesh.geometry.index.array, mesh.geometry.attributes.position.length, mesh.geometry.attributes.uv.array.length, mesh.geometry.index.array.length, texture);
+    await geometryWorker.requestAddThing(tracker, geometrySet, hashUint8Array, mesh.position, mesh.quaternion, mesh.scale);
+
+    tradeMesh.visible = false;
+  }, async function onadd(anchorSpec) {
+    await _bakeAndUploadComposerMesh();
+
+    tradeMesh.visible = false;
+  }, function onremove(anchorSpec) {
+    // console.log('got remove', anchorSpec);
+    meshComposer.cancel();
+    tradeMesh.visible = false;
+  }, function onclose() {
+    tradeMesh.visible = false;
+  });
+  tradeMesh.visible = false;
+  scene.add(tradeMesh);
+  uiManager.tradeMesh = tradeMesh;
 
   uiManager.menuMeshes = [
     uiManager.buildsMesh,
@@ -417,7 +444,12 @@ geometryManager.addEventListener('load', () => {
     uiManager.inventoryMesh,
     uiManager.colorsMesh,
   ];
-  uiManager.uiMeshes = uiManager.menuMeshes.concat([detailsMesh]);
+  uiManager.infoMeshes = [
+    uiManager.detailsMesh,
+    uiManager.tradeMesh,
+  ];
+  uiManager.uiMeshes = uiManager.menuMeshes
+    .concat(uiManager.infoMeshes);
 
   uiManager.toolsMesh = makeToolsMesh(weaponsManager.weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
     weaponsManager.setWeapon(newSelectedWeapon);
