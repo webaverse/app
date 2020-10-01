@@ -1301,10 +1301,8 @@ const _updateWeapons = timeDiff => {
         }
         case 'select': {
           _triggerAnchor();
-          if (!anchorSpecs[0] && raycastChunkSpec) {
-            if (raycastChunkSpec.objectId !== 0) {
-              _openDetailsMesh(raycastChunkSpec.point, raycastChunkSpec.mesh);
-            }
+          if (!anchorSpecs[0] && raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
+            _openDetailsMesh(raycastChunkSpec.point, raycastChunkSpec.mesh);
           }
           break;
         }
