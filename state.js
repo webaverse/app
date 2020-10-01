@@ -1,10 +1,10 @@
-let state = {
+const state = {
     inventory: {},
     avaersAviary: {}
 };
 
 export const setState = (newState) => {
-    for (let k in newState) {
+    for (const k in newState) {
        state[k] = newState[k];
     }
 }
