@@ -17,6 +17,7 @@ const importMap = {
   three: _importMapUrl('./three.module.js'),
   app: _importMapUrl('./app-object.js'),
   BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
+  GLTFLoader: _importMapUrl('./GLTFLoader.js'),
 };
 
 const _clone = o => JSON.parse(JSON.stringify(o));
