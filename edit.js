@@ -67,6 +67,7 @@ import {renderer, scene, camera, dolly, orbitControls, appManager} from './app-o
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
+import { App } from './components/App.js';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const pid4 = Math.PI / 4;
