@@ -7,6 +7,7 @@ import {makeInventoryMesh, makeTextMesh} from './vr-ui.js';
 import {scene} from './app-object.js';
 import {WaitQueue} from './util.js';
 import {makeDrawMaterial} from './shaders.js';
+import {loginManager} from './login.js';
 import {makeColorsMesh, makeDetailsMesh, makeTradeMesh, makeToolsMesh} from './vr-ui.js';
 import {colors, storageHost} from './constants.js';
 
@@ -409,9 +410,9 @@ geometryManager.addEventListener('load', () => {
   detailsMesh.visible = false;
   scene.add(detailsMesh);
   uiManager.detailsMesh = detailsMesh;
-  
-  const tradeMesh = makeTradeMesh(weaponsManager.cubeMesh, function ontrade(anchorSpec) {
-    console.log('trade');
+
+  const tradeMesh = makeTradeMesh(weaponsManager.cubeMesh, function ontrade(ftAmount) {
+    loginManager.sendFt(loginManager.getAddress(), ftAmount); // XXX
   }, function onclose() {
     tradeMesh.visible = false;
   });

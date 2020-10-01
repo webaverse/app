@@ -1823,7 +1823,7 @@ const makeTradeMesh = (cubeMesh, ontrade, onclose) => {
           break;
         }
         case 'trade-button': {
-          ontrade(anchorSpec);
+          ontrade(ftAmount);
           break;
         }
         case 'close-button': {
