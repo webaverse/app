@@ -345,18 +345,18 @@ window.addEventListener('keydown', e => {
     }
     case 90: { // Z
       document.querySelector('.weapon[weapon="build"]').click();
-      buildMode = 'wall';
+      uiManager.buildMode = 'wall';
       break;
     }
     case 88: { // X
       document.querySelector('.weapon[weapon="build"]').click();
-      buildMode = 'floor';
+      uiManager.buildMode = 'floor';
       break;
     }
     case 67: { // C
       if (!ioManager.keys.ctrl && document.pointerLockElement) {
         document.querySelector('.weapon[weapon="build"]').click();
-        buildMode = 'stair';
+        uiManager.buildMode = 'stair';
       }
       break;
     }
