@@ -415,30 +415,6 @@ scene.add(floorMesh);
   } */
 })();
 
-/* const generateModels = await _loadGltf('./generate.glb');
-for (let i = 0; i < 30; i++) {
-  for (;;) {
-    localVector.copy(chunkMesh.position)
-      .add(localVector2.set(-10 + rng() * (PARCEL_SIZE+20), -10 + rng() * (PARCEL_SIZE+20), -10 + rng() * (PARCEL_SIZE+20)));
-    localQuaternion.set(rng(), rng(), rng(), rng()).normalize();
-    pointRaycaster.raycastMeshes(chunkMesh, localVector, localQuaternion);
-    const raycastChunkSpec = pointRaycaster.readRaycast(chunkMesh, localVector, localQuaternion);
-    if (raycastChunkSpec) {
-      const generateModel = generateModels.children[Math.floor(rng() * generateModels.children.length)];
-      const generateModelClone = generateModel.clone();
-      generateModelClone.position.copy(raycastChunkSpec.point);
-      generateModelClone.quaternion.setFromUnitVectors(localVector.set(0, 0, -1), raycastChunkSpec.normal);
-      generateModelClone.matrix
-        .compose(generateModelClone.position, generateModelClone.quaternion, generateModelClone.scale)
-        .premultiply(localMatrix.getInverse(chunkMesh.matrixWorld))
-        .decompose(generateModelClone.position, generateModelClone.quaternion, generateModelClone.scale);
-      generateModelClone.isBuildMesh = true;
-      chunkMesh.add(generateModelClone);
-      break;
-    }
-  }
-} */
-
 /* const redBuildMeshMaterial = new THREE.ShaderMaterial({
   vertexShader: `
     void main() {
