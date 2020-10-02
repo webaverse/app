@@ -1913,12 +1913,12 @@ const makePopupMesh = () => {
     }
   }
 
-  let messages = [];
+  const messages = [];
   let needsUpdate = false;
   // let anchors = [];
   mesh.update = () => {
-    const now = Date.now();
-    messages = messages.filter(message => message.endTime > now);
+    // const now = Date.now();
+    // messages = messages.filter(message => message.endTime > now);
     if (needsUpdate) {
       if (messages.length > 0) {
         const text = messages.map(message => message.text).join('\n');
@@ -1978,7 +1978,12 @@ const makePopupMesh = () => {
     return currentAnchor;
   };
   mesh.addMessage = text => {
-    messages.push(new PopupMessage(text, Date.now() + 5000));
+    const message = new PopupMessage(text);
+    messages.push(message);
+    setTimeout(() => {
+      messages.splice(messages.indexOf(message), 1);
+      needsUpdate = true;
+    }, 5000);
     needsUpdate = true;
   };
   // mesh.update();
