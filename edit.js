@@ -7,6 +7,7 @@ import {GLTFExporter} from './GLTFExporter.js';
 import {TransformControls} from './TransformControls.js';
 import {tryLogin, loginManager} from './login.js';
 import runtime from './runtime.js';
+import flowConstants from './flow-constants.js';
 import {parseQuery, hex2Uint8Array, downloadFile, mergeMeshes} from './util.js';
 import {rigManager} from './rig.js';
 import {makeCubeMesh, /*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh, makeColorsMesh, makeIconMesh, intersectUi/*, makeRayMesh*/} from './vr-ui.js';
@@ -932,8 +933,12 @@ geometryManager.addEventListener('load', e => {
         lastCheckedBlock = latestBlock;
       }
       if (latestBlock !== lastCheckedBlock) {
+        const {ExampleToken} = await flowConstants.load();
         const txs = {};
-        const events = await loginManager.getEvents(['A.bd726a7affc6afbf.ExampleToken.TokensWithdrawn', 'A.bd726a7affc6afbf.ExampleToken.TokensDeposited'], lastCheckedBlock, latestBlock);
+        const events = await loginManager.getEvents([
+          `A.${ExampleToken.slice(2)}.ExampleToken.TokensWithdrawn`,
+          `A.${ExampleToken.slice(2)}.ExampleToken.TokensDeposited`,
+        ], lastCheckedBlock, latestBlock);
         // console.log('got events', events);
         for (const event of events) {
           const {payload: {value: {fields}}, transactionId} = event;
