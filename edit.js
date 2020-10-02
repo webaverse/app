@@ -897,7 +897,7 @@ geometryManager.addEventListener('load', e => {
     setTimeout(_recurse, 1000);
   } */
   {
-    const s = new WebSocket('ws://events.exokit.org/');
+    const s = new WebSocket('wss://events.exokit.org/');
     s.onopen = () => {
       s.onmessage = e => {
         const s = e.data;
