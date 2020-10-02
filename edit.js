@@ -905,15 +905,69 @@ function animate(timestamp, frame) {
   // renderer.render(highlightScene, camera);
 }
 geometryManager.addEventListener('load', e => {
-  const _recurse = async () => {
-    const balance = await loginManager.getBalance();
-    uiManager.tradeMesh.setBalance(balance);
+  {
+    const _recurse = async () => {
+      const balance = await loginManager.getBalance();
+      uiManager.tradeMesh.setBalance(balance);
+      setTimeout(_recurse, 1000);
+    };
     setTimeout(_recurse, 1000);
-  };
-  setTimeout(_recurse, 1000);
-  setInterval(() => {
-    uiManager.popupMesh.addMessage('lol ' + Math.random());
-  }, 5000);
+  }
+  {
+    /* setInterval(() => {
+      // uiManager.popupMesh.addMessage('lol ' + Math.random());
+    }, 100); */
+    /* async getLatestBlock() {
+      const res = await fetch(`https://accounts.exokit.org/latestBlock`);
+      return await res.json();
+    }
+    async getEvents() {
+      const res = await fetch(`https://accounts.exokit.org/latestBlock`);
+      return await res.json();
+    } */
+    let lastCheckedBlock = 0;
+    const _recurse = async () => {
+      const latestBlock = await loginManager.getLatestBlock();
+      if (!lastCheckedBlock) {
+        lastCheckedBlock = latestBlock;
+      }
+      if (latestBlock !== lastCheckedBlock) {
+        const txs = {};
+        const events = await loginManager.getEvents(['A.bd726a7affc6afbf.ExampleToken.TokensWithdrawn', 'A.bd726a7affc6afbf.ExampleToken.TokensDeposited'], lastCheckedBlock, latestBlock);
+        // console.log('got events', events);
+        for (const event of events) {
+          const {payload: {value: {fields}}, transactionId} = event;
+          const amountField = fields.find(field => field.name === 'amount');
+          const fromField = fields.find(field => field.name === 'from');
+          const toField = fields.find(field => field.name === 'to');
+          let tx = txs[transactionId];
+          if (!tx) {
+            tx = {};
+            txs[transactionId] = tx;
+          }
+          if (amountField) {
+            tx.amount = parseFloat(amountField.value.value);
+          }
+          if (fromField) {
+            tx.from = fromField.value.value.value;
+          }
+          if (toField) {
+            tx.to = toField.value.value.value;
+          }
+        }
+        // console.log('got txs', txs);
+        for (const k in txs) {
+          const tx = txs[k];
+          if (tx.from && tx.to) {
+            uiManager.popupMesh.addMessage(`${tx.from} sent ${tx.to} ${tx.amount}`);
+          }
+        }
+        lastCheckedBlock = latestBlock;
+      }
+      setTimeout(_recurse, 1000);
+    };
+    setTimeout(_recurse, 1000);
+  }
 
   renderer.setAnimationLoop(animate);
 });
