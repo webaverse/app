@@ -16,25 +16,7 @@ import {
   makeDrawMaterial,
 } from './shaders.js';
 import {lineMeshes, teleportMeshes} from './teleport.js';
-import geometryManager /* {
-  geometrySet,
-  tracker,
-  landAllocators,
-  landBufferAttributes,
-  vegetationAllocators,
-  vegetationBufferAttributes,
-  thingAllocators,
-  thingBufferAttributes,
-
-  geometryWorker,
-  
-  chunkMesh,
-  worldContainer,
-  chunkMeshContainer,
-  currentChunkMesh,
-  currentVegetationMesh,
-  currentThingMesh,
-} */ from './geometry-manager.js';
+import geometryManager from './geometry-manager.js';
 import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
