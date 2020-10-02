@@ -42,12 +42,17 @@ const weapons = Array.from(document.querySelectorAll('.weapon'));
 for (let i = 0; i < weapons.length; i++) {
   const weapon = document.getElementById('weapon-' + (i + 1));
   weapon.addEventListener('click', e => {
+    const isActive = weapon.classList.contains('selected');
     for (let i = 0; i < weapons.length; i++) {
       weapons[i].classList.remove('selected');
     }
-    weapon.classList.add('selected');
-
-    selectedWeapon = weapon.getAttribute('weapon');
+    if (isActive) {
+      weapon.classList.remove('selected');
+      selectedWeapon = null;
+    } else {
+      weapon.classList.add('selected');
+      selectedWeapon = weapon.getAttribute('weapon');
+    }
     setState({ selectedWeapon: selectedWeapon })
   });
 }
