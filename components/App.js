@@ -2,7 +2,6 @@ import Inventory from './Inventory.js';
 import inventory from '../inventory.js';
 import { getState, setState, getSpecificState } from '../state.js';
 import { setBindings } from './bindings.js';
-import { renderer } from '../app-object.js';
 
 // A copy of the shared state with 3d, just keep this always a copy, but you can CHOOSE when you would like to update the state. Don't use this in components. It's just for reference.
 let appState = getState();
@@ -33,24 +32,20 @@ export const toggleMenus = (props) => {
 export const App = (props) => {
     return `
         <div id="twoD-app">
-            ${toggleMenus()}
+            ${toggleMenus(props)}
         </div>
     `;
 }
 
 // This is a optimziation function for updating the appProps. Does prop checking, checks for unneeded changes, rerenders app if needed, also resets bindings. Should use this function and never do this: appProps = newProps
 export const updateProps = (newProps) => {
-    let shouldUpdate = false;
     for (let k in newProps) {
         if (appProps[k] !== newProps[k]) {
             appProps[k] = newProps[k];
-            shouldUpdate = true;
         }
     }
-    if (shouldUpdate && !appProps.isXR) {
-        document.getElementById('appContainer').innerHTML = App(appProps);
-        setBindings(appState, appProps, appHelpers);
-    }
+    document.getElementById('appContainer').innerHTML = App(appProps);
+    setBindings(appProps, appHelpers);
 }
 
 // This listens to our CustomEvent for state changes. It returns just keys. Can choose to fetch whatever key / value pair you actually care about updating in the App. Optimization layer. Use this.
@@ -63,4 +58,6 @@ window.addEventListener('stateChanged', (e) => {
     updateProps(changedState);
 })
 
-updateProps(appProps);
+window.addEventListener('load', () => {
+    setBindings(appProps, appHelpers);
+});

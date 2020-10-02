@@ -73,7 +73,6 @@
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardPreview {
     height: 66%;
-    object-fit: cover;
     width: 100%;
 }
 
