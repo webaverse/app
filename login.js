@@ -189,7 +189,7 @@ async function tryLogin() {
     }
   });
   document.getElementById('address-button').addEventListener('click', e => {
-    navigator.clipboard.writeText(loginToken.addr);
+    navigator.clipboard.writeText('0x' + loginToken.addr);
   });
   document.getElementById('privatekey-button').addEventListener('click', async e => {
     navigator.clipboard.writeText(loginToken.mnemonic + ' ' + hexToWordList(loginToken.addr));
