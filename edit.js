@@ -410,7 +410,7 @@ scene.add(floorMesh);
     // console.log('loaded file', mesh);
     scene.add(mesh);
   } */
-  {
+  /* {
     const u = 'shield.wbn';
     const res = await fetch('./' + u);
     const file = await res.blob();
@@ -420,7 +420,7 @@ scene.add(floorMesh);
     mesh.run();
     // console.log('loaded file', mesh);
     scene.add(mesh);
-  }
+  } */
   /* {
     const u = 'female.glb';
     const res = await fetch('./' + u);
