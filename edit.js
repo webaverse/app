@@ -880,7 +880,7 @@ geometryManager.addEventListener('load', e => {
   renderer.setAnimationLoop(animate);
 });
 
-const loadVsh = `
+/* const loadVsh = `
   #define M_PI 3.1415926535897932384626433832795
   uniform float uTime;
   
@@ -941,7 +941,7 @@ const _ensureLoadMesh = p => {
         p.loadMesh.visible = false;
       });
   }
-};
+}; */
 
 geometryManager.addEventListener('load', () => {
   const files = inventory.getFiles();
