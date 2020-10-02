@@ -88,21 +88,6 @@ loginManager.addEventListener('avatarchange', async (e) => {
 
 let skybox = null;
 
-/* const _loadGltf = u => new Promise((accept, reject) => {
-  new GLTFLoader().load(u, o => {
-    o = o.scene;
-    accept(o);
-  }, xhr => {}, reject);
-}); */
-/* const _getStringLength = (uint8Array, offset) => {
-  let i;
-  for (i = 0; i < uint8Array.length; i++, offset++) {
-    if (uint8Array[offset] === 0) {
-      break;
-    }
-  }
-  return i;
-}; */
 function mod(a, b) {
   return ((a % b) + b) % b;
 }
