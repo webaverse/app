@@ -101,16 +101,13 @@ const _runSpec = async (userKeys, spec) => {
 
 {
   const createAccountForm = document.getElementById('create-account-form');
-  const createAccountFormBakedCheckbox = document.getElementById('create-account-form-baked-checkbox');
   const createAccountFormOutput = document.getElementById('create-account-form-output');
   createAccountForm.addEventListener('submit', async e => {
     e.preventDefault();
 
     createAccountFormOutput.setAttribute('disabled', '');
 
-    const userKeys = await createAccount({
-      bake: createAccountFormBakedCheckbox.checked,
-    });
+    const userKeys = await createAccount();
     createAccountFormOutput.value = JSON.stringify(userKeys, null, 2);
     createAccountFormOutput.removeAttribute('disabled');
   });

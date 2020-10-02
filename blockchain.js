@@ -3,12 +3,9 @@ import flowConstants from './flow-constants.js';
 import wordList from './wordlist.js';
 import {accountsHost} from './constants.js';
 
-const createAccount = async ({bake = false} = {}) => {
+const createAccount = async () => {
   const res = await fetch(accountsHost, {
     method: 'POST',
-    body: JSON.stringify({
-      bake,
-    }),
   });
   const j = await res.json();
   j.key = j.mnemonic + ' ' + hexToWordList(j.address);

@@ -250,9 +250,7 @@ async function tryLogin() {
       unregisteredWarning.style.display = null;
     }
   } else {
-    const newLoginToken = await createAccount({
-      bake: true,
-    });
+    const newLoginToken = await createAccount();
     const {address: addr, mnemonic} = newLoginToken;
     await finishLogin({
       addr,
