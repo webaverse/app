@@ -11,10 +11,14 @@ const _getExt = fileName => {
 inventory.uploadFile = async file => {
   const {id, hash} = await loginManager.uploadFile(file);
   const {name: filename} = file;
+  const match = filename.match(/\.([^\.]+)$/);
+  const ext = match ? match[1] : 'bin';
+  const preview = `https://preview.exokit.org/${hash}.${ext}/preview.png`;
   const fileSpec = {
     id,
     hash,
     filename,
+    preview,
   };
   files.push(fileSpec);
   inventory.dispatchEvent(new MessageEvent('filesupdate', {

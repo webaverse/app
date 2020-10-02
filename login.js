@@ -455,7 +455,10 @@ class LoginManager extends EventTarget {
         const id = parseInt(fields.find(field => field.name === 'id').value.value, 10);
         const hash = fields.find(field => field.name === 'hash').value.value;
         const filename = fields.find(field => field.name === 'filename').value.value;
-        return {id, hash, filename};
+        const match = filename.match(/\.([^\.]+)$/);
+        const ext = match ? match[1] : 'bin';
+        const preview = `https://preview.exokit.org/${hash}.${ext}/preview.png`,
+        return {id, hash, filename, preview};
       });
       return entries;
     } else {
