@@ -1332,19 +1332,19 @@ const _updateWeapons = timeDiff => {
           break;
         }
         case 'things': {
-          _triggerAnchor(thingsMesh);
+          _triggerAnchor(uiManager.thingsMesh);
           break;
         }
         case 'shapes': {
-          _triggerAnchor(shapesMesh);
+          _triggerAnchor(uiManager.shapesMesh);
           break;
         }
         case 'inventory': {
-          _triggerAnchor(inventoryMesh);
+          _triggerAnchor(uiManager.inventoryMesh);
           break;
         }
         case 'colors': {
-          _triggerAnchor(colorsMesh);
+          _triggerAnchor(uiManager.colorsMesh);
           break;
         }
         case 'select': {
