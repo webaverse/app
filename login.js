@@ -347,8 +347,11 @@ class LoginManager extends EventTarget {
     return await res.json();
   }
 
-  async getEvents() {
-    const res = await fetch(`https://accounts.exokit.org/latestBlock`);
+  async getEvents(eventTypes, startBlock, endBlock) {
+    if (Array.isArray(eventTypes)) {
+      eventTypes = eventTypes.join(',');
+    }
+    const res = await fetch(`https://accounts.exokit.org/getEvents/${eventTypes}/${startBlock}/${endBlock}`);
     return await res.json();
   }
 
