@@ -1781,8 +1781,8 @@ const makeTradeMesh = (cubeMesh, ontrade, onclose) => {
   mesh.add(highlightMesh);
   // mesh.highlightMesh = highlightMesh;
 
-  let ftAmount = 7;
-  let ftBalance = 10;
+  let ftAmount = 0;
+  let ftBalance = 0;
 
   let anchors = [];
   mesh.update = () => {
@@ -1859,6 +1859,13 @@ const makeTradeMesh = (cubeMesh, ontrade, onclose) => {
           break;
         }
       }
+    }
+  };
+  mesh.setBalance = newBalance => {
+    if (newBalance !== ftBalance) {
+      ftBalance = newBalance;
+      ftAmount = Math.min(ftBalance, ftAmount);
+      mesh.update();
     }
   };
   mesh.update();
