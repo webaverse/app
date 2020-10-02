@@ -906,6 +906,10 @@ function animate(timestamp, frame) {
   // renderer.render(highlightScene, camera);
 }
 geometryManager.addEventListener('load', e => {
+  setInterval(() => {
+    uiManager.popupMesh.addMessage('lol ' + Math.random());
+  }, 5000);
+
   renderer.setAnimationLoop(animate);
 });
 

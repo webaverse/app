@@ -1354,7 +1354,7 @@ const _updateWeapons = timeDiff => {
             value = ioManager.currentWeaponValue * 0.1;
           } else {
             localVector2.copy(geometryManager.pencilMesh.position)
-              .add(localVector3.set(0, 0, -0.5).applyQuaternion(pencilMesh.quaternion));
+              .add(localVector3.set(0, 0, -0.5).applyQuaternion(geometryManager.pencilMesh.quaternion));
             value = 0.1;
           }
           localMatrix2.compose(localVector2, localQuaternion2, localVector3.set(1, 1, 1))
