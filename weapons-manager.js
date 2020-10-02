@@ -773,7 +773,7 @@ const MeshDrawer = (() => {
   };
 })();
 let meshDrawer = null;
-geometryManager.addEventListener('load', () => {
+geometryManager.waitForLoad().then(() => {
   meshDrawer = new MeshDrawer();
   geometryManager.chunkMeshContainer.add(meshDrawer.mesh);
 });

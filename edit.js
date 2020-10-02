@@ -74,18 +74,6 @@ const localRaycaster = new THREE.Raycaster();
 const localColor = new THREE.Color();
 const localObject = new THREE.Object3D();
 
-(async () => {
-  await tryLogin();
-})();
-
-loginManager.addEventListener('avatarchange', async (e) => {
-  if (e.data) {
-    rigManager.setLocalAvatarUrl(`${storageHost}/${e.data}`);
-  } else {
-    rigManager.addLocalRig(null);
-  }
-});
-
 let skybox = null;
 
 function mod(a, b) {
@@ -849,34 +837,7 @@ function animate(timestamp, frame) {
   renderer.render(scene, camera);
   // renderer.render(highlightScene, camera);
 }
-geometryManager.addEventListener('load', e => {
-  /* {
-    const _recurse = async () => {
-      const balance = await loginManager.getBalance();
-      uiManager.tradeMesh.setBalance(balance);
-      setTimeout(_recurse, 1000);
-    };
-    setTimeout(_recurse, 1000);
-  } */
-  {
-    const s = new WebSocket('wss://events.exokit.org/');
-    s.onopen = () => {
-      s.onmessage = e => {
-        const s = e.data;
-        const tx = JSON.parse(s);
-        if (tx.from && tx.to) {
-          uiManager.popupMesh.addMessage(`${tx.from} sent ${tx.to} ${tx.amount}`);
-        }
-      };
-    };
-    s.onerror = err => {
-      console.warn('events websocket error', err);
-    };
-    s.onclose = () => {
-      console.warn('events websocket closed');
-    };
-  }
-
+geometryManager.waitForLoad().then(e => {
   renderer.setAnimationLoop(animate);
 });
 
@@ -943,91 +904,103 @@ const _ensureLoadMesh = p => {
   }
 }; */
 
-geometryManager.addEventListener('load', () => {
-  const files = inventory.getFiles();
-  uiManager.inventoryMesh.inventoryItemsMesh.update(files);
-  
-  inventory.addEventListener('filesupdate', e => {
-    const files = e.data;
+const _initializeLogin = async () => {
+  await tryLogin();
+
+  const _initializeUserUi = async () => {
+    await geometryManager.waitForLoad();
+
+    const files = inventory.getFiles();
     uiManager.inventoryMesh.inventoryItemsMesh.update(files);
-  });
-});
+    
+    inventory.addEventListener('filesupdate', e => {
+      const files = e.data;
+      uiManager.inventoryMesh.inventoryItemsMesh.update(files);
+    });
+  };
+  _initializeUserUi();
+  const _initializeRigUi = () => {
+    const username = loginManager.getUsername() || 'Anonymous';
+    rigManager.setLocalAvatarName(username);
+    loginManager.addEventListener('usernamechange', e => {
+      const username = e.data || 'Anonymous';
+      rigManager.setLocalAvatarName(username);
+    });
 
-// const raycaster = new THREE.Raycaster();
-/* const _updateRaycasterFromMouseEvent = (raycaster, e) => {
-  const mouse = new THREE.Vector2(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
-  raycaster.setFromCamera(mouse, camera);
-  currentAnchor = inventoryMesh.intersect(raycaster) || detailsMesh.intersect(raycaster);
-}; */
-const _updateMouseMovement = e => {
-  const {movementX, movementY} = e;
-  const selectedTool = cameraManager.getTool();
-  if (selectedTool === 'thirdperson') {
-    camera.position.add(localVector.copy(cameraManager.avatarCameraOffset).applyQuaternion(camera.quaternion));
-  } else if (selectedTool === 'isometric') {
-    camera.position.add(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
-  } else if (selectedTool === 'birdseye') {
-    camera.rotation.x = -Math.PI / 2;
-    camera.quaternion.setFromEuler(camera.rotation);
-  }
-
-  camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
-  if (selectedTool !== 'isometric' && selectedTool !== 'birdseye') {
-    camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
-    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
-    camera.quaternion.setFromEuler(camera.rotation);
-  }
-
-  if (selectedTool === 'thirdperson') {
-    camera.position.sub(localVector.copy(cameraManager.avatarCameraOffset).applyQuaternion(camera.quaternion));
-  } else if (selectedTool === 'isometric') {
-    camera.position.sub(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
-  }
-  camera.updateMatrixWorld();
+    const avatarHash = loginManager.getAvatar();
+    if (avatarHash) {
+      rigManager.setLocalAvatarUrl(`${storageHost}/${avatarHash}`);
+    }
+    loginManager.addEventListener('avatarchange', e => {
+      const avatarHash = e.data;
+      if (avatarHash) {
+        rigManager.setLocalAvatarUrl(`${storageHost}/${avatarHash}`);
+      } else {
+        rigManager.addLocalRig(null);
+      }
+    });
+  };
+  _initializeRigUi();
+  /* {
+    const _recurse = async () => {
+      const balance = await loginManager.getBalance();
+      uiManager.tradeMesh.setBalance(balance);
+      setTimeout(_recurse, 1000);
+    };
+    setTimeout(_recurse, 1000);
+  } */
+  const _listenBlockchainEvents = () => {
+    const s = new WebSocket('wss://events.exokit.org/');
+    s.onopen = () => {
+      s.onmessage = e => {
+        const s = e.data;
+        const tx = JSON.parse(s);
+        if (tx.from && tx.to) {
+          uiManager.popupMesh.addMessage(`${tx.from} sent ${tx.to} ${tx.amount}`);
+        }
+      };
+    };
+    s.onerror = err => {
+      console.warn('events websocket error', err);
+    };
+    s.onclose = () => {
+      console.warn('events websocket closed');
+    };
+  };
+  _listenBlockchainEvents();
 };
-renderer.domElement.addEventListener('mousemove', e => {
-  const selectedTool = cameraManager.getTool();
-  if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
-    _updateMouseMovement(e);
+_initializeLogin();
+
+const _initializeXr = () => {
+  let currentSession = null;
+  function onSessionStarted(session) {
+    session.addEventListener('end', onSessionEnded);
+    renderer.xr.setSession(session);
+    // renderer.xr.setReferenceSpaceType('local-floor');
+    currentSession = session;
   }
-});
-
-window.addEventListener('resize', e => {
-  if (!currentSession) {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+  function onSessionEnded() {
+    currentSession.removeEventListener('end', onSessionEnded);
+    renderer.xr.setSession(null);
+    currentSession = null;
   }
-});
+  document.getElementById('enter-xr-button').addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
 
-let currentSession = null;
-function onSessionStarted(session) {
-  session.addEventListener('end', onSessionEnded);
-  renderer.xr.setSession(session);
-  // renderer.xr.setReferenceSpaceType('local-floor');
-  currentSession = session;
-}
-function onSessionEnded() {
-  currentSession.removeEventListener('end', onSessionEnded);
-  renderer.xr.setSession(null);
-  currentSession = null;
-}
-document.getElementById('enter-xr-button').addEventListener('click', e => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  if (currentSession === null) {
-    navigator.xr.requestSession('immersive-vr', {
-      requiredFeatures: [
-        'local-floor',
-        // 'bounded-floor',
-      ],
-      optionalFeatures: [
-        'hand-tracking',
-      ],
-    }).then(onSessionStarted);
-  } else {
-    currentSession.end();
-  }
-});
+    if (currentSession === null) {
+      navigator.xr.requestSession('immersive-vr', {
+        requiredFeatures: [
+          'local-floor',
+          // 'bounded-floor',
+        ],
+        optionalFeatures: [
+          'hand-tracking',
+        ],
+      }).then(onSessionStarted);
+    } else {
+      currentSession.end();
+    }
+  });
+};
+_initializeXr();

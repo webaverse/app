@@ -421,6 +421,38 @@ window.addEventListener('keyup', e => {
     }
   }
 });
+const _updateMouseMovement = e => {
+  const {movementX, movementY} = e;
+  const selectedTool = cameraManager.getTool();
+  if (selectedTool === 'thirdperson') {
+    camera.position.add(localVector.copy(cameraManager.avatarCameraOffset).applyQuaternion(camera.quaternion));
+  } else if (selectedTool === 'isometric') {
+    camera.position.add(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
+  } else if (selectedTool === 'birdseye') {
+    camera.rotation.x = -Math.PI / 2;
+    camera.quaternion.setFromEuler(camera.rotation);
+  }
+
+  camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
+  if (selectedTool !== 'isometric' && selectedTool !== 'birdseye') {
+    camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
+    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
+    camera.quaternion.setFromEuler(camera.rotation);
+  }
+
+  if (selectedTool === 'thirdperson') {
+    camera.position.sub(localVector.copy(cameraManager.avatarCameraOffset).applyQuaternion(camera.quaternion));
+  } else if (selectedTool === 'isometric') {
+    camera.position.sub(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
+  }
+  camera.updateMatrixWorld();
+};
+renderer.domElement.addEventListener('mousemove', e => {
+  const selectedTool = cameraManager.getTool();
+  if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
+    _updateMouseMovement(e);
+  }
+});
 window.addEventListener('mousedown', e => {
   const selectedWeapon = weaponsManager.getWeapon();
   if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
@@ -448,6 +480,14 @@ document.addEventListener('pointerlockchange', e => {
   if (!document.pointerLockElement) {
     cameraManager.tools.find(tool => tool.getAttribute('tool') === 'camera').click();
     document.dispatchEvent(new MouseEvent('mouseup'));
+  }
+});
+window.addEventListener('resize', e => {
+  if (!renderer.xr.getSession()) {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
   }
 });
 
