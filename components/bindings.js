@@ -3,12 +3,9 @@ import { App, updateProps } from './App.js';
 export const setBindings = (appState, appProps, appHelpers) => {
     window.addEventListener('load', () => {
 
-        // APP
-        const appContainer = document.getElementById('appContainer');
-        appContainer.innerHTML = App(appProps);
-        console.log(appProps);
-
         // INVENTORY
+        console.log('lolrofl', appHelpers.inventory.getItems());
+
         appContainer.querySelector('#twoD-inventoryUploadBtn').addEventListener('change', (e) => {
             const file = e.target.files[0];
             appHelpers.inventory.uploadFile(file);
