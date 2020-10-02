@@ -1,7 +1,10 @@
+import inventory from '../inventory.js';
+import { updateProps } from './App.js';
+
 const InventoryCard = (props = {}) => {
     return `
         <div class="twoD-inventoryCard">
-            <img class="twoD-inventoryCardPreview" src="./components/empty.png"></img>
+            <img class="twoD-inventoryCardPreview" src="${props.preview}"></img>
             <h4 class="twoD-inventoryCardName">${props.name}</h4>
             <div class="twoD-inventoryCardActions">
                 <button class="twoD-inventoryCardWearBtn">
@@ -27,14 +30,17 @@ const Inventory = (props = {}) => {
                 <button class="twoD-inventoryUploadBtn">
                     <i class="fal fa-arrow-alt-from-top" style="margin-right: 5px;"></i>
                     Upload
-                    <input id="twoD-inventoryUploadBtn" type="file">
+                    <input id="twoD-inventoryUploadBtn" type="file" onchange="handleInventoryUpload()">
                 </button>
             </div>
             <hr class="twoD-inventoryDivider"></hr>
             <div class="twoD-inventoryList">
                 ${
                     inventoryItems.map((value, index) => {
-                        return InventoryCard({ name: value.filename || '' })
+                        return InventoryCard({ 
+                            name: value.filename || '',
+                            preview: value.preview || ''
+                        })
                     }).join('')
                 }
             </div>
