@@ -342,7 +342,7 @@ class LoginManager extends EventTarget {
     }));
   }
 
-  async getLatestBlock() {
+  /* async getLatestBlock() {
     const res = await fetch(`https://accounts.exokit.org/latestBlock`);
     return await res.json();
   }
@@ -353,7 +353,7 @@ class LoginManager extends EventTarget {
     }
     const res = await fetch(`https://accounts.exokit.org/getEvents/${eventTypes}/${startBlock}/${endBlock}`);
     return await res.json();
-  }
+  } */
 
   getAddress() {
     return loginToken && loginToken.address;
