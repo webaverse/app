@@ -181,6 +181,13 @@ async function tryLogin() {
   });
 
   const userName = document.getElementById('user-name');
+  userName.addEventListener('keydown', e => {
+    if (e.which === 13) {
+      e.preventDefault();
+      e.stopPropagation();
+      userName.blur();
+    }
+  });
   document.getElementById('address-button').addEventListener('click', e => {
     navigator.clipboard.writeText(loginToken.addr);
   });

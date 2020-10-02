@@ -43,7 +43,7 @@ const resetKeys = () => {
 };
 ioManager.resetKeys = resetKeys;
 
-const _inputFocused = () => document.activeElement && document.activeElement.tagName === 'INPUT';
+const _inputFocused = () => document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.getAttribute('contenteditable') !== null);
 
 const _updateIo = (timeDiff, frame) => {
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
