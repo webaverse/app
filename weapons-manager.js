@@ -1669,7 +1669,7 @@ const weaponsManager = {
     return selectedWeapon;
   },
   setWeapon(newSelectedWeapon) {
-    selectedWeapon = selectedWeapon;
+    selectedWeapon = newSelectedWeapon;
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);
