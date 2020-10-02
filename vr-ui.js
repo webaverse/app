@@ -498,7 +498,7 @@ const makeRayMesh = () => {
 };
 
 const uiSize = 2048;
-const uiWorldSize = 0.2;
+const uiWorldSize = 0.4;
 
 const uiRenderer = (() => {
   const loadPromise = Promise.all([
@@ -681,10 +681,22 @@ const _makeToolsString = (tools, selectedWeapon) => {
 * {
   box-sizing: border-box;
 }
+/* body {
+  width: ${uiSize}px;
+  height: ${uiSize}px;
+  background-color: red;
+} */
 .body {
   display: flex;
-  background-color: transparent;
   font-family: 'Bangers';
+  flex-direction: column;
+}
+.wrap,
+.tool {
+  height: ${h/2}px;
+}
+.wrap {
+  width: ${uiSize}px;
 }
 .tool {
   display: flex;
@@ -699,9 +711,13 @@ const _makeToolsString = (tools, selectedWeapon) => {
 .tool.selected {
   background-color: #ff7043;
 }
+.tool.big {
+  width: 100%;
+}
 .tool .img {
-  width: ${wInner - margin*2}px;
-  height: ${h - margin*2 - textW}px;
+  flex: 1;
+  /* width: ${wInner - margin*2}px;
+  height: ${h - margin*2 - textW}px; */
   margin: ${margin}px;
   background-color: #FFF;
 }
@@ -713,14 +729,25 @@ const _makeToolsString = (tools, selectedWeapon) => {
   color: #FFF;
   font-size: ${textW}px;
 }
+.tools {
+  display: flex;
+}
 </style>
 <div class=body>
-  ${tools.map(tool => `\
-    <a class="tool ${tool === selectedWeapon ? 'selected' : ''}" id=tool-${tool}>
+  <div class=wrap>
+    <a class="tool big ${selectedWeapon === 'menu' ? 'selected' : ''}" id=menu>
       <div class=img></div>
-      <div class=text>${tool}</div>
+      <div class=text>Menu</div>
     </a>
-  `).join('\n')}
+  </div>
+  <div class=tools>
+    ${tools.map(tool => `\
+      <a class="tool ${tool === selectedWeapon ? 'selected' : ''}" id=tool-${tool}>
+        <div class=img></div>
+        <div class=text>${tool}</div>
+      </a>
+    `).join('\n')}
+  </div>
 </div>
 `;
 };
@@ -1533,7 +1560,7 @@ const makeUiFullMesh = cubeMesh => {
 const makeToolsMesh = (tools, selectTool) => {
   const canvasWidth = uiSize;
   const canvasHeight = uiSize*uiWorldSize;
-  const geometry = _flipUvs(new THREE.PlaneBufferGeometry(1, 0.2));
+  const geometry = _flipUvs(new THREE.PlaneBufferGeometry(1, uiWorldSize));
     // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
   /* const canvas = document.createElement('canvas');
   canvas.width = uiSize;
@@ -1582,26 +1609,34 @@ const makeToolsMesh = (tools, selectTool) => {
   let lastSelectedWeapon = null;
   mesh.update = position => {
     if (position) {
+      const menuToolPosition = mesh.position.clone()
+        .add(new THREE.Vector3(0, 0.5, 0).applyQuaternion(mesh.quaternion))
       const toolPositions = tools.map((tool, i) =>
         mesh.position.clone()
-          .add(new THREE.Vector3(-1/2 + 1/tools.length/2 + i/tools.length, 0, 0).applyQuaternion(mesh.quaternion))
+          .add(new THREE.Vector3(-1/2 + 1/tools.length/2 + i/tools.length, -0.5, 0).applyQuaternion(mesh.quaternion))
       );
-      let closestToolIndex = 0;
-      let closestToolDistance = toolPositions[0].distanceTo(position);
-      for (let i = 1; i < tools.length; i++) {
+      let closestToolIndex = -1;
+      let closestToolDistance = menuToolPosition.distanceTo(position);
+      for (let i = 0; i < tools.length; i++) {
         const distance = toolPositions[i].distanceTo(position);
         if (distance < closestToolDistance) {
           closestToolIndex = i;
           closestToolDistance = distance;
         }
       }
-      selectedWeapon = tools[closestToolIndex];
+      if (closestToolIndex === -1) {
+        selectedWeapon = 'menu';
+      } else {
+        selectedWeapon = tools[closestToolIndex];
+      }
     } else {
-      selectedWeapon = tools[0];
+      if (selectedWeapon === 'menu') {
+        // XXX open menu
+      } else {
+        selectTool(selectedWeapon);
+      }
     }
     if (selectedWeapon !== lastSelectedWeapon) {
-      selectTool(selectedWeapon);
-      
       const htmlString = _makeToolsString(tools, selectedWeapon);
       uiRenderer.render(htmlString, canvasWidth, canvasHeight)
         .then(result => {
