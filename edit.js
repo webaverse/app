@@ -921,6 +921,48 @@ const _initializeLogin = async () => {
       const files = e.data;
       uiManager.inventoryMesh.inventoryItemsMesh.update(files);
     });
+    
+    const _listenBlockchainEvents = async () => {
+      const address = '0x' + loginManager.getAddress();
+
+      const loadPromise = makePromise();
+      loginManager.getBalance()
+        .then(balance => {
+          uiManager.tradeMesh.setBalance(balance);
+          loadPromise.accept();
+        });
+
+      const s = new WebSocket('wss://events.exokit.org/');
+      s.onopen = () => {
+        s.onmessage = async e => {
+          const s = e.data;
+          const tx = JSON.parse(s);
+          await loadPromise;
+          if (tx.from && tx.to && tx.amount) {
+            uiManager.popupMesh.addMessage(`${tx.from} sent ${tx.to} ${tx.amount}`);
+          }
+          if (tx.from === address) {
+            let balance = uiManager.tradeMesh.getBalance();
+            const oldBalance = balance;
+            balance -= tx.amount;
+            uiManager.tradeMesh.setBalance(balance);
+          }
+          if (tx.to === address) {
+            let balance = uiManager.tradeMesh.getBalance();
+            const oldBalance = balance;
+            balance += tx.amount;
+            uiManager.tradeMesh.setBalance(balance);
+          }
+        };
+      };
+      s.onerror = err => {
+        console.warn('events websocket error', err);
+      };
+      s.onclose = () => {
+        console.warn('events websocket closed');
+      };
+    };
+    _listenBlockchainEvents();
   };
   _initializeUserUi();
   const _initializeRigUi = () => {
@@ -945,55 +987,6 @@ const _initializeLogin = async () => {
     });
   };
   _initializeRigUi();
-  /* {
-    const _recurse = async () => {
-      const balance = await loginManager.getBalance();
-      uiManager.tradeMesh.setBalance(balance);
-      setTimeout(_recurse, 1000);
-    };
-    setTimeout(_recurse, 1000);
-  } */
-  const _listenBlockchainEvents = async () => {
-    const address = '0x' + loginManager.getAddress();
-
-    const loadPromise = makePromise();
-    loginManager.getBalance()
-      .then(balance => {
-        uiManager.tradeMesh.setBalance(balance);
-        loadPromise.accept();
-      });
-
-    const s = new WebSocket('wss://events.exokit.org/');
-    s.onopen = () => {
-      s.onmessage = async e => {
-        const s = e.data;
-        const tx = JSON.parse(s);
-        await loadPromise;
-        if (tx.from && tx.to && tx.amount) {
-          uiManager.popupMesh.addMessage(`${tx.from} sent ${tx.to} ${tx.amount}`);
-        }
-        if (tx.from === address) {
-          let balance = uiManager.tradeMesh.getBalance();
-          const oldBalance = balance;
-          balance -= tx.amount;
-          uiManager.tradeMesh.setBalance(balance);
-        }
-        if (tx.to === address) {
-          let balance = uiManager.tradeMesh.getBalance();
-          const oldBalance = balance;
-          balance += tx.amount;
-          uiManager.tradeMesh.setBalance(balance);
-        }
-      };
-    };
-    s.onerror = err => {
-      console.warn('events websocket error', err);
-    };
-    s.onclose = () => {
-      console.warn('events websocket closed');
-    };
-  };
-  _listenBlockchainEvents();
 };
 _initializeLogin();
 
