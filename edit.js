@@ -593,8 +593,9 @@ function animate(timestamp, frame) {
     hmdPosition = localVector.toArray();
     hmdQuaternion = localQuaternion.toArray();
 
-    if (currentSession) {
-      let inputSources = Array.from(currentSession.inputSources);
+    const session = renderer.xr.getSession();
+    if (session) {
+      let inputSources = Array.from(session.inputSources);
       inputSources = ['right', 'left']
         .map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
       let pose;
