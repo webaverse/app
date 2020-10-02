@@ -204,53 +204,49 @@ ioManager.updatePost = _updateIoPost;
 window.addEventListener('keydown', e => {
   switch (e.which) {
     case 49: { // 1
-      const selectedWeapon = weaponsManager.getWeapon();
-      let index = weaponsManager.weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
-      index--;
-      if (index < 0) {
-        index = weaponsManager.weapons.length - 1;
+      if (document.pointerLockElement) {
+        const selectedWeapon = weaponsManager.getWeapon();
+        let index = weaponsManager.weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
+        index--;
+        if (index < 0) {
+          index = weaponsManager.weapons.length - 1;
+        }
+        weaponsManager.weapons[index].click();
       }
-      weaponsManager.weapons[index].click();
       break;
     }
     case 50: { // 2
-      const selectedWeapon = weaponsManager.getWeapon();
-      let index = weaponsManager.weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
-      index++;
-      if (index >= weaponsManager.weapons.length) {
-        index = 0;
+      if (document.pointerLockElement) {
+        const selectedWeapon = weaponsManager.getWeapon();
+        let index = weaponsManager.weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
+        index++;
+        if (index >= weaponsManager.weapons.length) {
+          index = 0;
+        }
+        weaponsManager.weapons[index].click();
       }
-      weaponsManager.weapons[index].click();
       break;
     }
     case 87: { // W
-      if (!document.pointerLockElement) {
-        // nothing
-      } else {
+      if (document.pointerLockElement) {
         ioManager.keys.up = true;
       }
       break;
     }
     case 65: { // A
-      if (!document.pointerLockElement) {
-        // uiMesh && uiMesh.rotate(-1);
-      } else {
+      if (document.pointerLockElement) {
         ioManager.keys.left = true;
       }
       break;
     }
     case 83: { // S
-      if (!document.pointerLockElement) {
-        // nothing
-      } else {
+      if (document.pointerLockElement) {
         ioManager.keys.down = true;
       }
       break;
     }
     case 68: { // D
-      if (!document.pointerLockElement) {
-        // uiMesh && uiMesh.rotate(1);
-      } else {
+      if (document.pointerLockElement) {
         ioManager.keys.right = true;
       }
       break;
