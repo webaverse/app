@@ -912,10 +912,6 @@ const loadFsh = `
 `;
 const loadMeshMaterial = new THREE.ShaderMaterial({
   uniforms: {
-    /* uHighlight: {
-      type: 'f',
-      value: 0,
-    }, */
     uTime: {
       type: 'f',
       value: 0,
