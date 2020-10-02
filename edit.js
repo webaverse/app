@@ -76,35 +76,8 @@ const localRaycaster = new THREE.Raycaster();
 const localColor = new THREE.Color();
 const localObject = new THREE.Object3D();
 
-(async () => {
-  await tryLogin();
-})();
-
-loginManager.addEventListener('avatarchange', async (e) => {
-  if (e.data) {
-    rigManager.setLocalAvatarUrl(`${storageHost}/${e.data}`);
-  } else {
-    rigManager.addLocalRig(null);
-  }
-});
-
 let skybox = null;
 
-/* const _loadGltf = u => new Promise((accept, reject) => {
-  new GLTFLoader().load(u, o => {
-    o = o.scene;
-    accept(o);
-  }, xhr => {}, reject);
-}); */
-/* const _getStringLength = (uint8Array, offset) => {
-  let i;
-  for (i = 0; i < uint8Array.length; i++, offset++) {
-    if (uint8Array[offset] === 0) {
-      break;
-    }
-  }
-  return i;
-}; */
 function mod(a, b) {
   return ((a % b) + b) % b;
 }
@@ -417,30 +390,6 @@ scene.add(floorMesh);
   } */
 })();
 
-/* const generateModels = await _loadGltf('./generate.glb');
-for (let i = 0; i < 30; i++) {
-  for (;;) {
-    localVector.copy(chunkMesh.position)
-      .add(localVector2.set(-10 + rng() * (PARCEL_SIZE+20), -10 + rng() * (PARCEL_SIZE+20), -10 + rng() * (PARCEL_SIZE+20)));
-    localQuaternion.set(rng(), rng(), rng(), rng()).normalize();
-    pointRaycaster.raycastMeshes(chunkMesh, localVector, localQuaternion);
-    const raycastChunkSpec = pointRaycaster.readRaycast(chunkMesh, localVector, localQuaternion);
-    if (raycastChunkSpec) {
-      const generateModel = generateModels.children[Math.floor(rng() * generateModels.children.length)];
-      const generateModelClone = generateModel.clone();
-      generateModelClone.position.copy(raycastChunkSpec.point);
-      generateModelClone.quaternion.setFromUnitVectors(localVector.set(0, 0, -1), raycastChunkSpec.normal);
-      generateModelClone.matrix
-        .compose(generateModelClone.position, generateModelClone.quaternion, generateModelClone.scale)
-        .premultiply(localMatrix.getInverse(chunkMesh.matrixWorld))
-        .decompose(generateModelClone.position, generateModelClone.quaternion, generateModelClone.scale);
-      generateModelClone.isBuildMesh = true;
-      chunkMesh.add(generateModelClone);
-      break;
-    }
-  }
-} */
-
 /* const redBuildMeshMaterial = new THREE.ShaderMaterial({
   vertexShader: `
     void main() {
@@ -634,8 +583,9 @@ function animate(timestamp, frame) {
     hmdPosition = localVector.toArray();
     hmdQuaternion = localQuaternion.toArray();
 
-    if (currentSession) {
-      let inputSources = Array.from(currentSession.inputSources);
+    const session = renderer.xr.getSession();
+    if (session) {
+      let inputSources = Array.from(session.inputSources);
       inputSources = ['right', 'left']
         .map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
       let pose;
@@ -889,79 +839,11 @@ function animate(timestamp, frame) {
   renderer.render(scene, camera);
   // renderer.render(highlightScene, camera);
 }
-geometryManager.addEventListener('load', e => {
-  {
-    const _recurse = async () => {
-      const balance = await loginManager.getBalance();
-      uiManager.tradeMesh.setBalance(balance);
-      setTimeout(_recurse, 1000);
-    };
-    setTimeout(_recurse, 1000);
-  }
-  {
-    /* setInterval(() => {
-      // uiManager.popupMesh.addMessage('lol ' + Math.random());
-    }, 100); */
-    /* async getLatestBlock() {
-      const res = await fetch(`https://accounts.exokit.org/latestBlock`);
-      return await res.json();
-    }
-    async getEvents() {
-      const res = await fetch(`https://accounts.exokit.org/latestBlock`);
-      return await res.json();
-    } */
-    let lastCheckedBlock = 0;
-    const _recurse = async () => {
-      const latestBlock = await loginManager.getLatestBlock();
-      if (!lastCheckedBlock) {
-        lastCheckedBlock = latestBlock;
-      }
-      if (latestBlock !== lastCheckedBlock) {
-        const {ExampleToken} = await flowConstants.load();
-        const txs = {};
-        const events = await loginManager.getEvents([
-          `A.${ExampleToken.slice(2)}.ExampleToken.TokensWithdrawn`,
-          `A.${ExampleToken.slice(2)}.ExampleToken.TokensDeposited`,
-        ], lastCheckedBlock, latestBlock);
-        // console.log('got events', events);
-        for (const event of events) {
-          const {payload: {value: {fields}}, transactionId} = event;
-          const amountField = fields.find(field => field.name === 'amount');
-          const fromField = fields.find(field => field.name === 'from');
-          const toField = fields.find(field => field.name === 'to');
-          let tx = txs[transactionId];
-          if (!tx) {
-            tx = {};
-            txs[transactionId] = tx;
-          }
-          if (amountField) {
-            tx.amount = parseFloat(amountField.value.value);
-          }
-          if (fromField) {
-            tx.from = fromField.value.value.value;
-          }
-          if (toField) {
-            tx.to = toField.value.value.value;
-          }
-        }
-        // console.log('got txs', txs);
-        for (const k in txs) {
-          const tx = txs[k];
-          if (tx.from && tx.to) {
-            uiManager.popupMesh.addMessage(`${tx.from} sent ${tx.to} ${tx.amount}`);
-          }
-        }
-        lastCheckedBlock = latestBlock;
-      }
-      setTimeout(_recurse, 1000);
-    };
-    setTimeout(_recurse, 1000);
-  }
-
+geometryManager.waitForLoad().then(e => {
   renderer.setAnimationLoop(animate);
 });
 
-const loadVsh = `
+/* const loadVsh = `
   #define M_PI 3.1415926535897932384626433832795
   uniform float uTime;
   
@@ -993,10 +875,6 @@ const loadFsh = `
 `;
 const loadMeshMaterial = new THREE.ShaderMaterial({
   uniforms: {
-    /* uHighlight: {
-      type: 'f',
-      value: 0,
-    }, */
     uTime: {
       type: 'f',
       value: 0,
@@ -1026,95 +904,106 @@ const _ensureLoadMesh = p => {
         p.loadMesh.visible = false;
       });
   }
-};
-
-geometryManager.addEventListener('load', () => {
-  const files = inventory.getFiles();
-  uiManager.inventoryMesh.inventoryItemsMesh.update(files);
-  
-  inventory.addEventListener('filesupdate', e => {
-    const files = e.data;
-    uiManager.inventoryMesh.inventoryItemsMesh.update(files);
-  });
-});
-
-const raycaster = new THREE.Raycaster();
-/* const _updateRaycasterFromMouseEvent = (raycaster, e) => {
-  const mouse = new THREE.Vector2(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
-  raycaster.setFromCamera(mouse, camera);
-  currentAnchor = inventoryMesh.intersect(raycaster) || detailsMesh.intersect(raycaster);
 }; */
-const _updateMouseMovement = e => {
-  const {movementX, movementY} = e;
-  const selectedTool = cameraManager.getTool();
-  if (selectedTool === 'thirdperson') {
-    camera.position.add(localVector.copy(cameraManager.avatarCameraOffset).applyQuaternion(camera.quaternion));
-  } else if (selectedTool === 'isometric') {
-    camera.position.add(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
-  } else if (selectedTool === 'birdseye') {
-    camera.rotation.x = -Math.PI / 2;
-    camera.quaternion.setFromEuler(camera.rotation);
-  }
 
-  camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
-  if (selectedTool !== 'isometric' && selectedTool !== 'birdseye') {
-    camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
-    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
-    camera.quaternion.setFromEuler(camera.rotation);
-  }
+const _initializeLogin = async () => {
+  await tryLogin();
 
-  if (selectedTool === 'thirdperson') {
-    camera.position.sub(localVector.copy(cameraManager.avatarCameraOffset).applyQuaternion(camera.quaternion));
-  } else if (selectedTool === 'isometric') {
-    camera.position.sub(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
-  }
-  camera.updateMatrixWorld();
+  const _initializeUserUi = async () => {
+    await geometryManager.waitForLoad();
+
+    const files = inventory.getFiles();
+    uiManager.inventoryMesh.inventoryItemsMesh.update(files);
+    
+    inventory.addEventListener('filesupdate', e => {
+      const files = e.data;
+      uiManager.inventoryMesh.inventoryItemsMesh.update(files);
+    });
+  };
+  _initializeUserUi();
+  const _initializeRigUi = () => {
+    const username = loginManager.getUsername() || 'Anonymous';
+    rigManager.setLocalAvatarName(username);
+    loginManager.addEventListener('usernamechange', e => {
+      const username = e.data || 'Anonymous';
+      rigManager.setLocalAvatarName(username);
+    });
+
+    const avatarHash = loginManager.getAvatar();
+    if (avatarHash) {
+      rigManager.setLocalAvatarUrl(`${storageHost}/${avatarHash}`);
+    }
+    loginManager.addEventListener('avatarchange', e => {
+      const avatarHash = e.data;
+      if (avatarHash) {
+        rigManager.setLocalAvatarUrl(`${storageHost}/${avatarHash}`);
+      } else {
+        rigManager.addLocalRig(null);
+      }
+    });
+  };
+  _initializeRigUi();
+  /* {
+    const _recurse = async () => {
+      const balance = await loginManager.getBalance();
+      uiManager.tradeMesh.setBalance(balance);
+      setTimeout(_recurse, 1000);
+    };
+    setTimeout(_recurse, 1000);
+  } */
+  const _listenBlockchainEvents = () => {
+    const s = new WebSocket('wss://events.exokit.org/');
+    s.onopen = () => {
+      s.onmessage = e => {
+        const s = e.data;
+        const tx = JSON.parse(s);
+        if (tx.from && tx.to) {
+          uiManager.popupMesh.addMessage(`${tx.from} sent ${tx.to} ${tx.amount}`);
+        }
+      };
+    };
+    s.onerror = err => {
+      console.warn('events websocket error', err);
+    };
+    s.onclose = () => {
+      console.warn('events websocket closed');
+    };
+  };
+  _listenBlockchainEvents();
 };
-renderer.domElement.addEventListener('mousemove', e => {
-  const selectedTool = cameraManager.getTool();
-  if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
-    _updateMouseMovement(e);
+_initializeLogin();
+
+const _initializeXr = () => {
+  let currentSession = null;
+  function onSessionStarted(session) {
+    session.addEventListener('end', onSessionEnded);
+    renderer.xr.setSession(session);
+    // renderer.xr.setReferenceSpaceType('local-floor');
+    currentSession = session;
+    setState({ isXR: true })
   }
-});
-
-window.addEventListener('resize', e => {
-  if (!currentSession) {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-  }
-});
-
-let currentSession = null;
-function onSessionStarted(session) {
-  session.addEventListener('end', onSessionEnded);
-  renderer.xr.setSession(session);
-  // renderer.xr.setReferenceSpaceType('local-floor');
-  currentSession = session;
-  setState({ isXR: true })
-}
-function onSessionEnded() {
-  currentSession.removeEventListener('end', onSessionEnded);
-  renderer.xr.setSession(null);
-  currentSession = null;
-}
-document.getElementById('enter-xr-button').addEventListener('click', e => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  if (currentSession === null) {
-    navigator.xr.requestSession('immersive-vr', {
-      requiredFeatures: [
-        'local-floor',
-        // 'bounded-floor',
-      ],
-      optionalFeatures: [
-        'hand-tracking',
-      ],
-    }).then(onSessionStarted);
-  } else {
+  function onSessionEnded() {
+    currentSession.removeEventListener('end', onSessionEnded);
+    renderer.xr.setSession(null);
+    currentSession = null;
     setState({ isXR: false })
-    currentSession.end();
   }
-});
+  document.getElementById('enter-xr-button').addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (currentSession === null) {
+      navigator.xr.requestSession('immersive-vr', {
+        requiredFeatures: [
+          'local-floor',
+          // 'bounded-floor',
+        ],
+        optionalFeatures: [
+          'hand-tracking',
+        ],
+      }).then(onSessionStarted);
+    } else {
+      currentSession.end();
+    }
+  });
+};
+_initializeXr();
