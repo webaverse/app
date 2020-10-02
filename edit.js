@@ -953,7 +953,7 @@ geometryManager.addEventListener('load', () => {
   });
 });
 
-const raycaster = new THREE.Raycaster();
+// const raycaster = new THREE.Raycaster();
 /* const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(((e.clientX) / window.innerWidth) * 2 - 1, -((e.clientY) / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(mouse, camera);
