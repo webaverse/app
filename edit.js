@@ -907,6 +907,12 @@ function animate(timestamp, frame) {
   // renderer.render(highlightScene, camera);
 }
 geometryManager.addEventListener('load', e => {
+  const _recurse = async () => {
+    const balance = await loginManager.getBalance();
+    uiManager.tradeMesh.setBalance(balance);
+    setTimeout(_recurse, 1000);
+  };
+  setTimeout(_recurse, 1000);
   setInterval(() => {
     uiManager.popupMesh.addMessage('lol ' + Math.random());
   }, 5000);

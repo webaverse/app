@@ -189,7 +189,7 @@ async function tryLogin() {
     }
   });
   document.getElementById('address-button').addEventListener('click', e => {
-    navigator.clipboard.writeText(loginToken.addr);
+    navigator.clipboard.writeText('0x' + loginToken.addr);
   });
   document.getElementById('privatekey-button').addEventListener('click', async e => {
     navigator.clipboard.writeText(loginToken.mnemonic + ' ' + hexToWordList(loginToken.addr));
@@ -426,7 +426,7 @@ class LoginManager extends EventTarget {
         }),
       });
       const response2 = await res.json();
-      const balance = response2.encodedData.value;
+      const balance = parseFloat(response2.encodedData.value);
       return balance;
     } else {
       return 0;
