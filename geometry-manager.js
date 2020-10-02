@@ -35,7 +35,11 @@ const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 const cubicBezier = easing(0, 1, 0, 1);
 
-const geometryManager = new EventTarget();
+const geometryManager = {};
+
+const loadPromise = makePromise();
+geometryManager.waitForLoad = () => loadPromise;
+
 geometryManager.geometrySet = null;
 geometryManager.tracker = null;
 geometryManager.landAllocators = null;
@@ -1020,8 +1024,8 @@ planet.addEventListener('load', async e => {
   };
   geometryManager.currentThingMesh = _makeThingMesh();
   geometryManager.chunkMeshContainer.add(geometryManager.currentThingMesh);
-  
-  geometryManager.dispatchEvent(new MessageEvent('load'));
+
+  loadPromise.accept();
 });
 /* planet.addEventListener('unload', () => {
   const oldChunkMesh = currentChunkMesh;

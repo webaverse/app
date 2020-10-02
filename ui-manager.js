@@ -149,7 +149,7 @@ const _makeInventoryItemsMesh = () => {
   return object;
 };
 
-geometryManager.addEventListener('load', () => {
+geometryManager.waitForLoad().then(() => {
   const hpMesh = (() => {
     const mesh = new THREE.Object3D();
 
