@@ -949,14 +949,36 @@ const _initializeLogin = async () => {
     };
     setTimeout(_recurse, 1000);
   } */
-  const _listenBlockchainEvents = () => {
+  const _listenBlockchainEvents = async () => {
+    const address = '0x' + loginManager.getAddress();
+
+    const loadPromise = makePromise();
+    loginManager.getBalance()
+      .then(balance => {
+        uiManager.tradeMesh.setBalance(balance);
+        loadPromise.accept();
+      });
+
     const s = new WebSocket('wss://events.exokit.org/');
     s.onopen = () => {
-      s.onmessage = e => {
+      s.onmessage = async e => {
         const s = e.data;
         const tx = JSON.parse(s);
-        if (tx.from && tx.to) {
+        await loadPromise;
+        if (tx.from && tx.to && tx.amount) {
           uiManager.popupMesh.addMessage(`${tx.from} sent ${tx.to} ${tx.amount}`);
+        }
+        if (tx.from === address) {
+          let balance = uiManager.tradeMesh.getBalance();
+          const oldBalance = balance;
+          balance -= tx.amount;
+          uiManager.tradeMesh.setBalance(balance);
+        }
+        if (tx.to === address) {
+          let balance = uiManager.tradeMesh.getBalance();
+          const oldBalance = balance;
+          balance += tx.amount;
+          uiManager.tradeMesh.setBalance(balance);
         }
       };
     };

@@ -1861,6 +1861,7 @@ const makeTradeMesh = (cubeMesh, ontrade, onclose) => {
       }
     }
   };
+  mesh.getBalance = () => ftBalance;
   mesh.setBalance = newBalance => {
     if (newBalance !== ftBalance) {
       ftBalance = newBalance;
