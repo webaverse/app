@@ -426,7 +426,7 @@ class LoginManager extends EventTarget {
         }),
       });
       const response2 = await res.json();
-      const balance = response2.encodedData.value;
+      const balance = parseFloat(response2.encodedData.value);
       return balance;
     } else {
       return 0;
