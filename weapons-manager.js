@@ -1298,7 +1298,7 @@ const _updateWeapons = timeDiff => {
         }
         case 'build': {
           if (anchorSpecs[0]) {
-            _triggerAnchor(buildsMesh);
+            _triggerAnchor(uiManager.buildsMesh);
           } else {
             const buildMesh = (() => {
               const buildMatIndex = ['wood', 'stone', 'metal'].indexOf(weaponsManager.buildMat);
