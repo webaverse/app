@@ -356,7 +356,7 @@ class LoginManager extends EventTarget {
   } */
 
   getAddress() {
-    return loginToken && loginToken.address;
+    return loginToken && loginToken.addr;
   }
   getMnemonic() {
     return loginToken && loginToken.mnemonic;
