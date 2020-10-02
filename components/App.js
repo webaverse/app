@@ -40,7 +40,7 @@ export const App = (props) => {
 export const updateProps = (newProps) => {
     let shouldUpdate = false;
     for (let k in newProps) {
-        if (appProps[k] !== newProps[k] && newProps[k]) {
+        if (appProps[k] !== newProps[k]) {
             appProps[k] = newProps[k];
             shouldUpdate = true;
         }
