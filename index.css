@@ -1771,6 +1771,7 @@ header.unlocking + .main .blocker .button
   position: relative;
   display: flex;
   height: 100%;
+  min-width: 180px;
   padding: 0 10px;
   align-items: center;
   cursor: pointer;
@@ -1787,6 +1788,7 @@ header.unlocking + .main .blocker .button
 .user-button .name {
   display: flex;
   padding: 0 10px;
+  flex: 1;
   align-items: center;
   overflow: hidden;
   white-space: nowrap;
@@ -1795,13 +1797,29 @@ header.unlocking + .main .blocker .button
 .user-button:not(.open) .user-details {
   display: none;
 }
+.user-button i {
+  font-size: 16px;
+}
+.user-button .unregistered-warning {
+  display: flex;
+  position: relative;
+  padding: 10px;
+  flex-direction: column;
+}
+.user-button .unregistered-warning .label {
+  position: absolute;
+  padding: 0 5px;
+  bottom: 0;
+  left: 0;
+  font-size: 10px;
+}
 .user-button .user-details {
   position: absolute;
   display: flex;
   top: 50px;
   right: 0;
   min-width: 100%;
-  padding: 20px;
+  padding: 10px;
   background-color: #111;
   color: #FFF;
   flex-direction: column;
@@ -1815,6 +1833,20 @@ header.unlocking + .main .blocker .button
 }
 .user-button .user-details .user-name:not(:last-child) {
   margin-bottom: 10px;
+}
+.user-button .subbutton {
+  display: flex;
+  height: 30px;
+  padding: 0 10px;
+  align-items: center;
+  cursor: pointer;
+}
+.user-button .subbutton:hover {
+  background-color: #1e88e5;
+  color: #FFF;
+}
+.user-button .subbutton i {
+  margin-right: 10px;
 }
 
 .error {

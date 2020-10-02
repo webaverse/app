@@ -1,5 +1,5 @@
 import storage from './storage.js';
-import {getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
+import {createAccount, getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
 import {storageHost} from './constants.js'
 
 const loginEndpoint = 'https://login.exokit.org';
@@ -126,8 +126,9 @@ async function tryLogin() {
       <div class=login-error id=login-error></div>
     </div>
     <div class="phase-content phase-1-content">
-      <input type=text placeholder="your@email.com" id=login-email>
+      <input type=text placeholder="Email or key" id=login-email>
       <input type=submit value="Log in" class="button highlight">
+      <input type=button value="Cancel" class="button highlight" id=login-cancel>
     </div>
     <div class="phase-content phase-2-content">
       <input type=text placeholder="Verification code" id=login-verification-code>
@@ -137,10 +138,30 @@ async function tryLogin() {
       <nav class=user-button id=user-button>
         <img src="favicon.ico">
         <span class=name id=user-name></span>
-        <nav class=button id=clipboard-button>
-          <i class="fal fa-clipboard"></i>
-        </nav>
-        <input type=submit value="Log out" class="button highlight">
+        <div class=unregistered-warning id=unregistered-warning style="display: none">
+          <i class="fal fa-exclamation-triangle"></i>
+          <div class=label>unreg</div>
+        </div>
+        <i class="fal fa-bars"></i>
+        <div class=user-details>
+          <nav class=subbutton id=address-button>
+            <i class="fal fa-address-card"></i>
+            Address copy
+          </nav>
+          <nav class=subbutton id=privatekey-button>
+            <i class="fal fa-key"></i>
+            Private key copy
+          </nav>
+          <nav class=subbutton id=changename-button>
+            <i class="fal fa-signature"></i>
+            Change name
+          </nav>
+          <nav class=subbutton id=signin-button>
+            <i class="fal fa-sign-in"></i>
+            Switch account
+          </nav>
+        </div>
+        <!-- <input type=submit value="Log out" class="button highlight"> -->
       </nav>
     </div>
     <div class="phase-content phaseless-content">
@@ -148,40 +169,73 @@ async function tryLogin() {
     </div>
   `;
 
+  const userButton = document.getElementById('user-button');
+  userButton.addEventListener('click', e => {
+    userButton.classList.toggle('open');
+  });
+
+  const loginCancel = document.getElementById('login-cancel');
+  loginCancel.addEventListener('click', e => {
+    loginForm.classList.remove('phase-1');
+    loginForm.classList.add('phase-3');
+  });
+
   const userName = document.getElementById('user-name');
-  userName.addEventListener('click', e => {
+  userName.addEventListener('keydown', e => {
+    if (e.which === 13) {
+      e.preventDefault();
+      e.stopPropagation();
+      userName.blur();
+    }
+  });
+  document.getElementById('address-button').addEventListener('click', e => {
+    navigator.clipboard.writeText(loginToken.addr);
+  });
+  document.getElementById('privatekey-button').addEventListener('click', async e => {
+    navigator.clipboard.writeText(loginToken.mnemonic + ' ' + hexToWordList(loginToken.addr));
+    delete loginToken.unregistered;
+    await storage.set('loginToken', loginToken);
+
+    unregisteredWarning.style.display = 'none';
+  });
+  document.getElementById('changename-button').addEventListener('click', e => {
     userName.setAttribute('contenteditable', '');
     userName.focus();
+    const oldUserName = userName.innerText;
     userName.addEventListener('blur', async e => {
       userName.removeAttribute('contenteditable');
 
       const newUserName = userName.innerText;
+      if (newUserName !== oldUserName) {
+        const contractSource = await getContractSource('setUserData.cdc');
 
-      const contractSource = await getContractSource('setUserData.cdc');
+        const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+          method: 'POST',
+          body: JSON.stringify({
+            address: loginToken.addr,
+            mnemonic: loginToken.mnemonic,
 
-      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-        method: 'POST',
-        body: JSON.stringify({
-          address: loginToken.addr,
-          mnemonic: loginToken.mnemonic,
-
-          limit: 100,
-          transaction: contractSource
-            .replace(/ARG0/g, 'name')
-            .replace(/ARG1/g, newUserName),
-          wait: true,
-        }),
-      });
-      const response2 = await res.json();
+            limit: 100,
+            transaction: contractSource
+              .replace(/ARG0/g, 'name')
+              .replace(/ARG1/g, newUserName),
+            wait: true,
+          }),
+        });
+        const response2 = await res.json();
+      }
     }, {
       once: true,
-    })
+    });
   });
-  document.getElementById('clipboard-button').addEventListener('click', e => {
-    navigator.clipboard.writeText(loginToken.mnemonic + ' ' + hexToWordList(loginToken.addr));
+  document.getElementById('signin-button').addEventListener('click', e => {
+    loginForm.classList.remove('phase-3');
+    loginForm.classList.add('phase-1');
+    loginEmail.focus();
   });
+  const unregisteredWarning = document.getElementById('unregistered-warning');
 
-  const userButton = document.getElementById('user-button');
+  // const userButton = document.getElementById('user-button');
   const loginEmail = document.getElementById('login-email');
   const loginVerificationCode = document.getElementById('login-verification-code');
   const loginNotice = document.getElementById('login-notice');
@@ -198,8 +252,20 @@ async function tryLogin() {
     updateUserObject();
 
     loginForm.classList.add('phase-3');
+
+    if (loginToken.unregistered) {
+      unregisteredWarning.style.display = null;
+    }
   } else {
-    loginForm.classList.add('phase-1');
+    const newLoginToken = await createAccount();
+    const {address: addr, mnemonic} = newLoginToken;
+    await finishLogin({
+      addr,
+      mnemonic,
+      unregistered: true,
+    });
+
+    unregisteredWarning.style.display = null;
   }
   loginForm.addEventListener('submit', async e => {
     e.preventDefault();
@@ -275,7 +341,17 @@ class LoginManager extends EventTarget {
       data: name,
     }));
   }
-  
+
+  async getLatestBlock() {
+    const res = await fetch(`https://accounts.exokit.org/latestBlock`);
+    return await res.json();
+  }
+
+  async getEvents() {
+    const res = await fetch(`https://accounts.exokit.org/latestBlock`);
+    return await res.json();
+  }
+
   getAddress() {
     return loginToken && loginToken.address;
   }

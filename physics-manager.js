@@ -119,6 +119,11 @@ const _collideItems = matrix => {
   uiManager.hpMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
   uiManager.hpMesh.quaternion.slerp(localQuaternion2, 0.1);
 
+  if (uiManager.popupMesh.visible) {
+    uiManager.popupMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, -0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
+    uiManager.popupMesh.quaternion.slerp(localQuaternion2, 0.1);
+  }
+
   geometryManager.updatePhysics(localVector3);
 };
 const _collideChunk = matrix => {
