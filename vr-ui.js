@@ -1345,16 +1345,11 @@ const makeIconMesh = () => {
 
   return mesh;
 };
-const makeUiMesh = (label, tiles, onclick) => {
+/* const makeUiMesh = (label, tiles, onclick) => {
   const geometry = _flipUvs(
     new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize)
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0))
   );
-  /* const canvas = document.createElement('canvas');
-  canvas.width = uiSize;
-  canvas.height = uiSize;
-  const ctx = canvas.getContext('2d');
-  const imageData = ctx.createImageData(canvas.width, canvas.height); */
   const texture = new THREE.Texture(
     null,
     THREE.UVMapping,
@@ -1556,7 +1551,7 @@ const makeUiFullMesh = cubeMesh => {
     currentMesh && currentMesh.click(currentAnchor);
   };
   return wrap;
-};
+}; */
 const makeToolsMesh = (tools, selectTool) => {
   const canvasWidth = uiSize;
   const canvasHeight = uiSize*uiWorldSize;
