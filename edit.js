@@ -840,7 +840,9 @@ function animate(timestamp, frame) {
   // renderer.render(highlightScene, camera);
 }
 geometryManager.waitForLoad().then(e => {
-  renderer.setAnimationLoop(animate);
+  setTimeout(() => {
+    renderer.setAnimationLoop(animate);
+  });
 });
 
 /* const loadVsh = `
