@@ -3,7 +3,8 @@ const state = {
     inventory: {
         items: []
     },
-    selectedWeapon: null
+    selectedWeapon: null,
+    pointerLock: false
 };
 
 const emitChange = (changedKeys) => {

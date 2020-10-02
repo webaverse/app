@@ -3,6 +3,8 @@ import * as THREE from './three.module.js';
 import {TextMesh} from './textmesh-standalone.esm.js';
 import easing from './easing.js';
 import * as icons from './icons.js';
+import Inventory from './components/Inventory.js';
+import { getState } from './state.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -2180,7 +2182,9 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
   };
   mesh.update = () => {
     // console.log('update', scrollFactor, scrollbarHeight);
-    const htmlString = _makeInventoryString();
+    // const htmlString = _makeInventoryString();
+    const state = getState();
+    const htmlString = Inventory(state.inventory.items);
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
         /* imageData.data.set(result.data);
