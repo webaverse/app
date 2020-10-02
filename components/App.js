@@ -2,6 +2,7 @@ import Inventory from './Inventory.js';
 import inventory from '../inventory.js';
 import { getState, setState, getSpecificState } from '../state.js';
 import { setBindings } from './bindings.js';
+import { renderer } from '../app-object.js';
 
 // A copy of the shared state with 3d, just keep this always a copy, but you can CHOOSE when you would like to update the state. Don't use this in components. It's just for reference.
 let appState = getState();
@@ -9,7 +10,8 @@ let appState = getState();
 // Construct from state the actual props that matter to you for components. This is a layer of optimization. Do not just make this the same as the full state object unless you truly need it.
 let appProps = {
     inventoryItems: appState.inventory.items,
-    selectedWeapon: appState.selectedWeapon
+    selectedWeapon: appState.selectedWeapon,
+    isXR: appState.isXR
 };
 
 // This is only passed into the setBindings() as some helpers to use API calls and other value getting actions. These functions cannot go inside components. Do not put functions inside state or props. They go in here.
@@ -45,7 +47,7 @@ export const updateProps = (newProps) => {
             shouldUpdate = true;
         }
     }
-    if (shouldUpdate) {
+    if (shouldUpdate && !appProps.isXR) {
         document.getElementById('appContainer').innerHTML = App(appProps);
         setBindings(appState, appProps, appHelpers);
     }
@@ -58,5 +60,7 @@ window.addEventListener('stateChanged', (e) => {
     for (let k in changedState) {
         appState[k] = changedState[k];
     }
-    updateProps(changedState)
+    updateProps(changedState);
 })
+
+updateProps(appProps);

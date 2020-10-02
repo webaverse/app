@@ -68,6 +68,7 @@ import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
 import { App } from './components/App.js';
+import { setState } from './state.js';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const pid4 = Math.PI / 4;
@@ -1044,6 +1045,7 @@ function onSessionStarted(session) {
   renderer.xr.setSession(session);
   // renderer.xr.setReferenceSpaceType('local-floor');
   currentSession = session;
+  setState({ isXR: true })
 }
 function onSessionEnded() {
   currentSession.removeEventListener('end', onSessionEnded);
@@ -1065,6 +1067,7 @@ document.getElementById('enter-xr-button').addEventListener('click', e => {
       ],
     }).then(onSessionStarted);
   } else {
+    setState({ isXR: false })
     currentSession.end();
   }
 });
