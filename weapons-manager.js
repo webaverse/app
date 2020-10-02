@@ -33,6 +33,7 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localColor = new THREE.Color();
 const localRaycaster = new THREE.Raycaster();
+const localRaycaster2 = new THREE.Raycaster();
 
 const zeroVector = new THREE.Vector3();
 
@@ -845,21 +846,26 @@ const _makeRigCapsule = () => {
     transparent: true,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.geometry.computeBoundingBox();
   mesh.frustumCulled = false;
   return mesh;
 };
 const rigCapsule = _makeRigCapsule();
 const _intersectRigs = (() => {
-  const intersects = [];
+  const target = new THREE.Vector3();
   return raycaster => {
-    const intersections = raycaster.intersectObjects([rigCapsule], false, intersects);
-    if (intersections.length > 0) {
-      const [{object, point, uv}] = intersects;
-      intersects.length = 0;
+    localMatrix.compose(raycaster.ray.origin, localQuaternion.setFromUnitVectors(localVector2.set(0, 0, -1), raycaster.ray.direction), localVector3.set(1, 1, 1))
+      .premultiply(localMatrix2.getInverse(rigCapsule.matrixWorld))
+      .decompose(localRaycaster2.ray.origin, localQuaternion, localVector2);
+    localRaycaster2.ray.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
+    const intersection = localRaycaster2.ray.intersectBox(rigCapsule.geometry.boundingBox, target);
+    if (intersection) {
+      const object = rigCapsule;
+      const point = intersection;
       return {
         object,
         point,
-        uv,
+        uv: null,
       };
     } else {
       return null;
