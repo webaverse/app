@@ -161,6 +161,7 @@ const _updateIo = (timeDiff, frame) => {
         uiManager.toolsMesh.visible = false;
       }
     } else {
+      uiManager.toolsMesh.update(null);
       uiManager.toolsMesh.visible = false;
     }
   } else if (document.pointerLockElement) {

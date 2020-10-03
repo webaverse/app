@@ -887,11 +887,17 @@ const _updateWeapons = timeDiff => {
   rayMesh.visible = false;
 
   const _raycastWeapon = () => {
+    const intersectionCandidates = [uiManager.menuMesh];
     if (['build', 'things', 'shapes', 'inventory', 'colors', 'select'].includes(selectedWeapon)) {
+      intersectionCandidates.push.apply(intersectionCandidates, uiManager.toolMenuMeshes);
+    }
+    {
       const [{position, quaternion}] = rigManager.getRigTransforms();
       localRaycaster.ray.origin.copy(position);
       localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
-      anchorSpecs[0] = intersectUi(localRaycaster, uiManager.uiMeshes) || meshComposer.intersect(localRaycaster) || _intersectRigs(localRaycaster);
+      anchorSpecs[0] = intersectUi(localRaycaster, intersectionCandidates) ||
+        meshComposer.intersect(localRaycaster) ||
+        _intersectRigs(localRaycaster);
 
       if (anchorSpecs[0]) {
         rayMesh.position.copy(position);
@@ -1134,225 +1140,229 @@ const _updateWeapons = timeDiff => {
   _handleBuild();
 
   const _handleDown = () => {
-    if (ioManager.currentWeaponDown && !ioManager.lastWeaponDown) { // XXX make this dual handed
-      // place
+    const _triggerAnchor = mesh => {
       for (let i = 0; i < 2; i++) {
-        const placeMesh = meshComposer.getPlaceMesh(i);
-        if (placeMesh) {
-          meshComposer.trigger(i);
-          return;
+        const anchorSpec = anchorSpecs[i];
+        if (anchorSpec) {
+          let match;
+          if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) { // menu icon
+            const srcIndex = parseInt(match[1], 10);
+            mesh.handleIconClick(i, srcIndex);
+          } else {
+            if (anchorSpec.object.click) { // menu non-icon
+              anchorSpec.object.click(anchorSpec);
+            } else { // non-menu
+              if (anchorSpec.object === rigCapsule) {
+                _openTradeMesh(anchorSpec.point, anchorSpec.object);
+              } else {
+                _openDetailsMesh(anchorSpec.point, anchorSpec.object);
+              }
+            }
+          }
         }
       }
-      // else
-      const _applyLightfieldDelta = async (position, delta) => {
-        localVector2.copy(position)
-          .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
-        localVector2.x = Math.floor(localVector2.x);
-        localVector2.y = Math.floor(localVector2.y);
-        localVector2.z = Math.floor(localVector2.z);
-
-        const mineSpecs = _applyMineSpec(localVector2, delta, 'lightfield', SUBPARCEL_SIZE_P1, planet.getFieldIndex, delta);
-        await _mine(mineSpecs, null);
-      };
-      const _applyHit = delta => {
-        if (raycastChunkSpec) {
-          if (raycastChunkSpec.objectId === 0) {
-            localVector2.copy(raycastChunkSpec.point)
-              .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
-
-            geometryManager.geometryWorker.requestMine(geometryManager.tracker, localVector2, delta);
-          } else {
-            geometryManager.currentVegetationMesh.hitTracker.hit(raycastChunkSpec.objectId, raycastChunkSpec.objectPosition, raycastChunkSpec.objectQuaternion, 30);
-          }
-        }
-      };
-      const _hit = () => _applyHit(-0.3);
-      const _unhit = () => _applyHit(0.3);
-      const _light = () => {
-        if (raycastChunkSpec) {
-          localVector2.copy(raycastChunkSpec.point)
-            .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
-
-          geometryManager.geometryWorker.requestLight(geometryManager.tracker, localVector2, 4);
-
-          /* if (raycastChunkSpec.mesh.isChunkMesh || raycastChunkSpec.mesh.isVegetationMesh) {
-            _applyLightfieldDelta(raycastChunkSpec.point, 4);
-
-            localVector2.copy(raycastChunkSpec.point)
-              .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
-            localVector2.x = Math.floor(localVector2.x / SUBPARCEL_SIZE);
-            localVector2.y = Math.floor(localVector2.y / SUBPARCEL_SIZE);
-            localVector2.z = Math.floor(localVector2.z / SUBPARCEL_SIZE);
-            geometryManager.currentChunkMesh.updateSlab(localVector2.x, localVector2.y, localVector2.z);
-          } */
-        }
-      };
-      const _explode = (position, quaternion) => {
-        const explosionMesh = _makeExplosionMesh();
-        explosionMesh.position.copy(position);
-        explosionMesh.quaternion.copy(quaternion);
-        scene.add(explosionMesh);
-        explosionMeshes.push(explosionMesh);
-      };
-      const _damage = dmg => {
-        uiManager.hpMesh.damage(dmg);
-      };
-      const _openTradeMesh = (point, mesh) => {
-        for (const infoMesh of uiManager.infoMeshes) {
-          infoMesh.visible = false;
-        }
-
-        const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-        uiManager.tradeMesh.position.copy(point);
-        localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
-          new THREE.Vector3(0, 0, -1),
-          uiManager.tradeMesh.position.clone().sub(xrCamera.position).normalize()
-        ), 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        uiManager.tradeMesh.quaternion.setFromEuler(localEuler);
-        uiManager.tradeMesh.visible = true;
-      };
-      const _openDetailsMesh = (point, mesh) => {
-        for (const infoMesh of uiManager.infoMeshes) {
-          infoMesh.visible = false;
-        }
-
-        const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-        uiManager.detailsMesh.position.copy(point);
-        localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
-          new THREE.Vector3(0, 0, -1),
-          uiManager.detailsMesh.position.clone().sub(xrCamera.position).normalize()
-        ), 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        uiManager.detailsMesh.quaternion.setFromEuler(localEuler);
-        uiManager.detailsMesh.visible = true;
-      };
-      const _triggerAnchor = mesh => {
+    };
+    if (ioManager.currentWeaponDown && !ioManager.lastWeaponDown) { // XXX make this dual handed
+      if (anchorSpecs[0] && anchorSpecs[0].object === uiManager.menuMesh) {
+        _triggerAnchor(anchorSpecs[0]);
+      } else {
+        // place
         for (let i = 0; i < 2; i++) {
-          const anchorSpec = anchorSpecs[i];
-          if (anchorSpec) {
-            let match;
-            if (match = anchorSpec.anchor && anchorSpec.anchor.id.match(/^icon-([0-9]+)$/)) { // menu icon
-              const srcIndex = parseInt(match[1], 10);
-              mesh.handleIconClick(i, srcIndex);
-            } else {
-              if (anchorSpec.object.click) { // menu non-icon
-                anchorSpec.object.click(anchorSpec);
-              } else { // non-menu
-                if (anchorSpec.object === rigCapsule) {
-                  _openTradeMesh(anchorSpec.point, anchorSpec.object);
-                } else {
-                  _openDetailsMesh(anchorSpec.point, anchorSpec.object);
-                }
-              }
-            }
+          const placeMesh = meshComposer.getPlaceMesh(i);
+          if (placeMesh) {
+            meshComposer.trigger(i);
+            return;
           }
         }
-      };
-      switch (selectedWeapon) {
-        case 'rifle': {
-          _hit();
-          localVector2.copy(geometryManager.assaultRifleMesh.position)
-            .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(geometryManager.assaultRifleMesh.quaternion));
-          _explode(localVector2, geometryManager.assaultRifleMesh.quaternion);
-          geometryManager.crosshairMesh.trigger();
-          break;
-        }
-        case 'grenade': {
-          if (geometryManager.currentChunkMesh) {
-            const pxMesh = geometryManager.grenadeMesh.clone();
+        // else
+        const _applyLightfieldDelta = async (position, delta) => {
+          localVector2.copy(position)
+            .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
+          localVector2.x = Math.floor(localVector2.x);
+          localVector2.y = Math.floor(localVector2.y);
+          localVector2.z = Math.floor(localVector2.z);
 
-            localVector2.copy(geometryManager.grenadeMesh.position)
-              .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
-            localQuaternion2.copy(geometryManager.grenadeMesh.quaternion)
-              .premultiply(geometryManager.currentChunkMesh.getWorldQuaternion(localQuaternion3).inverse());
-            pxMesh.position.copy(localVector2);
-            pxMesh.velocity = new THREE.Vector3(0, 0, -10)
-              .applyQuaternion(localQuaternion2);
-            pxMesh.angularVelocity = new THREE.Vector3((-1 + Math.random() * 2) * Math.PI * 2 * 0.01, (-1 + Math.random() * 2) * Math.PI * 2 * 0.01, (-1 + Math.random() * 2) * Math.PI * 2 * 0.01);
-            pxMesh.isBuildMesh = true;
-            const startTime = Date.now();
-            const endTime = startTime + 3000;
-            pxMesh.update = () => {
-              if (Date.now() < endTime) {
-                return true;
-              } else {
-                pxMesh.getWorldPosition(localVector2);
-                pxMesh.getWorldQuaternion(localQuaternion2);
-                _explode(localVector2, localQuaternion2);
-                _damage(15);
-                return false;
-              }
-            };
-            geometryManager.currentChunkMesh.add(pxMesh);
-            pxMeshes.push(pxMesh);
-          }
-          break;
-        }
-        case 'pickaxe': {
-          _hit();
-          break;
-        }
-        case 'shovel': {
-          _unhit();
-          break;
-        }
-        case 'light': {
-          _light();
-          break;
-        }
-        case 'build': {
-          if (anchorSpecs[0]) {
-            _triggerAnchor(uiManager.buildsMesh);
-          } else {
-            const buildMesh = (() => {
-              const buildMatIndex = ['wood', 'stone', 'metal'].indexOf(weaponsManager.buildMat);
-              switch (weaponsManager.buildMode) {
-                case 'wall': return geometryManager.buildMeshes.walls[buildMatIndex];
-                case 'floor': return geometryManager.buildMeshes.platforms[buildMatIndex];
-                case 'stair': return geometryManager.buildMeshes.ramps[buildMatIndex];
-                default: return null;
-              }
-            })();
-            const hasBuildMesh = (() => {
-              for (const index in geometryManager.currentChunkMesh.vegetationMeshes) {
-                const subparcelBuildMeshesSpec = geometryManager.currentChunkMesh.vegetationMeshes[index];
-                if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
-                  return true;
-                }
-              }
-              return false;
-            })();
-            if (!hasBuildMesh) {
-              geometryManager.geometryWorker.requestAddObject(geometryManager.tracker, geometryManager.geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
+          const mineSpecs = _applyMineSpec(localVector2, delta, 'lightfield', SUBPARCEL_SIZE_P1, planet.getFieldIndex, delta);
+          await _mine(mineSpecs, null);
+        };
+        const _applyHit = delta => {
+          if (raycastChunkSpec) {
+            if (raycastChunkSpec.objectId === 0) {
+              localVector2.copy(raycastChunkSpec.point)
+                .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
+
+              geometryManager.geometryWorker.requestMine(geometryManager.tracker, localVector2, delta);
+            } else {
+              geometryManager.currentVegetationMesh.hitTracker.hit(raycastChunkSpec.objectId, raycastChunkSpec.objectPosition, raycastChunkSpec.objectQuaternion, 30);
             }
           }
-          break;
-        }
-        case 'things': {
-          _triggerAnchor(uiManager.thingsMesh);
-          break;
-        }
-        case 'shapes': {
-          _triggerAnchor(uiManager.shapesMesh);
-          break;
-        }
-        case 'inventory': {
-          _triggerAnchor(uiManager.inventoryMesh);
-          break;
-        }
-        case 'colors': {
-          _triggerAnchor(uiManager.colorsMesh);
-          break;
-        }
-        case 'select': {
-          _triggerAnchor();
-          if (!anchorSpecs[0] && raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
-            _openDetailsMesh(raycastChunkSpec.point, raycastChunkSpec.mesh);
+        };
+        const _hit = () => _applyHit(-0.3);
+        const _unhit = () => _applyHit(0.3);
+        const _light = () => {
+          if (raycastChunkSpec) {
+            localVector2.copy(raycastChunkSpec.point)
+              .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
+
+            geometryManager.geometryWorker.requestLight(geometryManager.tracker, localVector2, 4);
+
+            /* if (raycastChunkSpec.mesh.isChunkMesh || raycastChunkSpec.mesh.isVegetationMesh) {
+              _applyLightfieldDelta(raycastChunkSpec.point, 4);
+
+              localVector2.copy(raycastChunkSpec.point)
+                .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
+              localVector2.x = Math.floor(localVector2.x / SUBPARCEL_SIZE);
+              localVector2.y = Math.floor(localVector2.y / SUBPARCEL_SIZE);
+              localVector2.z = Math.floor(localVector2.z / SUBPARCEL_SIZE);
+              geometryManager.currentChunkMesh.updateSlab(localVector2.x, localVector2.y, localVector2.z);
+            } */
           }
-          break;
+        };
+        const _explode = (position, quaternion) => {
+          const explosionMesh = _makeExplosionMesh();
+          explosionMesh.position.copy(position);
+          explosionMesh.quaternion.copy(quaternion);
+          scene.add(explosionMesh);
+          explosionMeshes.push(explosionMesh);
+        };
+        const _damage = dmg => {
+          uiManager.hpMesh.damage(dmg);
+        };
+        const _openTradeMesh = (point, mesh) => {
+          for (const infoMesh of uiManager.infoMeshes) {
+            infoMesh.visible = false;
+          }
+
+          const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+          uiManager.tradeMesh.position.copy(point);
+          localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
+            new THREE.Vector3(0, 0, -1),
+            uiManager.tradeMesh.position.clone().sub(xrCamera.position).normalize()
+          ), 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          uiManager.tradeMesh.quaternion.setFromEuler(localEuler);
+          uiManager.tradeMesh.visible = true;
+        };
+        const _openDetailsMesh = (point, mesh) => {
+          for (const infoMesh of uiManager.infoMeshes) {
+            infoMesh.visible = false;
+          }
+
+          const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+          uiManager.detailsMesh.position.copy(point);
+          localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
+            new THREE.Vector3(0, 0, -1),
+            uiManager.detailsMesh.position.clone().sub(xrCamera.position).normalize()
+          ), 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          uiManager.detailsMesh.quaternion.setFromEuler(localEuler);
+          uiManager.detailsMesh.visible = true;
+        };
+        switch (selectedWeapon) {
+          case 'rifle': {
+            _hit();
+            localVector2.copy(geometryManager.assaultRifleMesh.position)
+              .add(localVector3.set(0, 0.09, -0.7).applyQuaternion(geometryManager.assaultRifleMesh.quaternion));
+            _explode(localVector2, geometryManager.assaultRifleMesh.quaternion);
+            geometryManager.crosshairMesh.trigger();
+            break;
+          }
+          case 'grenade': {
+            if (geometryManager.currentChunkMesh) {
+              const pxMesh = geometryManager.grenadeMesh.clone();
+
+              localVector2.copy(geometryManager.grenadeMesh.position)
+                .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
+              localQuaternion2.copy(geometryManager.grenadeMesh.quaternion)
+                .premultiply(geometryManager.currentChunkMesh.getWorldQuaternion(localQuaternion3).inverse());
+              pxMesh.position.copy(localVector2);
+              pxMesh.velocity = new THREE.Vector3(0, 0, -10)
+                .applyQuaternion(localQuaternion2);
+              pxMesh.angularVelocity = new THREE.Vector3((-1 + Math.random() * 2) * Math.PI * 2 * 0.01, (-1 + Math.random() * 2) * Math.PI * 2 * 0.01, (-1 + Math.random() * 2) * Math.PI * 2 * 0.01);
+              pxMesh.isBuildMesh = true;
+              const startTime = Date.now();
+              const endTime = startTime + 3000;
+              pxMesh.update = () => {
+                if (Date.now() < endTime) {
+                  return true;
+                } else {
+                  pxMesh.getWorldPosition(localVector2);
+                  pxMesh.getWorldQuaternion(localQuaternion2);
+                  _explode(localVector2, localQuaternion2);
+                  _damage(15);
+                  return false;
+                }
+              };
+              geometryManager.currentChunkMesh.add(pxMesh);
+              pxMeshes.push(pxMesh);
+            }
+            break;
+          }
+          case 'pickaxe': {
+            _hit();
+            break;
+          }
+          case 'shovel': {
+            _unhit();
+            break;
+          }
+          case 'light': {
+            _light();
+            break;
+          }
+          case 'build': {
+            if (anchorSpecs[0]) {
+              _triggerAnchor(uiManager.buildsMesh);
+            } else {
+              const buildMesh = (() => {
+                const buildMatIndex = ['wood', 'stone', 'metal'].indexOf(weaponsManager.buildMat);
+                switch (weaponsManager.buildMode) {
+                  case 'wall': return geometryManager.buildMeshes.walls[buildMatIndex];
+                  case 'floor': return geometryManager.buildMeshes.platforms[buildMatIndex];
+                  case 'stair': return geometryManager.buildMeshes.ramps[buildMatIndex];
+                  default: return null;
+                }
+              })();
+              const hasBuildMesh = (() => {
+                for (const index in geometryManager.currentChunkMesh.vegetationMeshes) {
+                  const subparcelBuildMeshesSpec = geometryManager.currentChunkMesh.vegetationMeshes[index];
+                  if (subparcelBuildMeshesSpec && subparcelBuildMeshesSpec.meshes.some(m => _meshEquals(m, buildMesh))) {
+                    return true;
+                  }
+                }
+                return false;
+              })();
+              if (!hasBuildMesh) {
+                geometryManager.geometryWorker.requestAddObject(geometryManager.tracker, geometryManager.geometrySet, buildMesh.vegetationType, buildMesh.position, buildMesh.quaternion);
+              }
+            }
+            break;
+          }
+          case 'things': {
+            _triggerAnchor(uiManager.thingsMesh);
+            break;
+          }
+          case 'shapes': {
+            _triggerAnchor(uiManager.shapesMesh);
+            break;
+          }
+          case 'inventory': {
+            _triggerAnchor(uiManager.inventoryMesh);
+            break;
+          }
+          case 'colors': {
+            _triggerAnchor(uiManager.colorsMesh);
+            break;
+          }
+          case 'select': {
+            _triggerAnchor();
+            if (!anchorSpecs[0] && raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
+              _openDetailsMesh(raycastChunkSpec.point, raycastChunkSpec.mesh);
+            }
+            break;
+          }
         }
       }
     }
@@ -1526,7 +1536,7 @@ const _updateWeapons = timeDiff => {
   _handleSelect();
   
   const _handleMenu = () => {
-    for (const menuMesh of uiManager.menuMeshes) {
+    for (const menuMesh of uiManager.toolMenuMeshes) {
       menuMesh.visible = false;
     }
 
