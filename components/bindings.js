@@ -12,5 +12,18 @@ export const setBindings = (appContainer, onclickMap) => {
 		  	    });
 		    }
 		}
+		const draggableEls = Array.from(appContainer.querySelectorAll('[draggable]'));
+		for (const el of draggableEls) {
+			el.addEventListener('dragstart', e => {
+			    setTimeout(() => {
+                   const appContainer = document.getElementById('appContainer');
+				   appContainer.style.display = 'none';
+				});
+			});
+			el.addEventListener('dragend', e => {
+                const appContainer = document.getElementById('appContainer');
+				appContainer.style.display = null;
+			});
+		}
 	}
 };
