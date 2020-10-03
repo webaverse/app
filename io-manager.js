@@ -256,7 +256,8 @@ window.addEventListener('keydown', e => {
     case 9: { // tab
       e.preventDefault();
       e.stopPropagation();
-      ioManager.menuExpanded = !ioManager.menuExpanded;
+      uiManager.menuMesh.toggleOpen();
+      // ioManager.menuExpanded = !ioManager.menuExpanded;
       break;
     }
     case 69: { // E
