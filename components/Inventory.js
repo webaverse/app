@@ -3,7 +3,7 @@ import { updateProps } from './App.js';
 
 const InventoryCard = (props = {}) => {
     return `
-        <div class="twoD-inventoryCard">
+        <div class="twoD-inventoryCard" draggable>
             <img class="twoD-inventoryCardPreview" src="${props.preview}"></img>
             <h4 class="twoD-inventoryCardName">${props.name}</h4>
             <div class="twoD-inventoryCardActions">
