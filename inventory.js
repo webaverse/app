@@ -31,7 +31,7 @@ let files = [];
 inventory.getFiles = () => files;
 
 loginManager.addEventListener('inventorychange', async e => {
-  const files = await loginManager.getInventory();
+  files = await loginManager.getInventory();
   inventory.dispatchEvent(new MessageEvent('filesupdate', {
     data: files,
   }));
