@@ -334,7 +334,7 @@ class LoginManager extends EventTarget {
   async setUsername(name) {
     if (userObject) {
       userObject.name = name;
-      await pushUserObject();
+      // await pushUserObject();
       updateUserObject();
     }
     this.dispatchEvent(new MessageEvent('usernamechange', {
@@ -380,7 +380,7 @@ class LoginManager extends EventTarget {
               mnemonic,
 
               limit: 100,
-              script: contractSource
+              transaction: contractSource
                 .replace(/ARG0/g, "avatar")
                 .replace(/ARG1/g, id),
               wait: true,
@@ -389,14 +389,14 @@ class LoginManager extends EventTarget {
           return await res.json();
         })(),
         (async () => {
-          const contractSource = await blockchain.getContractSource('getNft.cdc');
+          const contractSource = await getContractSource('getNft.cdc');
 
           const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
             method: 'POST',
             body: JSON.stringify({
               limit: 100,
               script: contractSource
-                .replace(/ARG0/g, n),
+                .replace(/ARG0/g, id),
               wait: true,
             }),
           });
@@ -406,7 +406,7 @@ class LoginManager extends EventTarget {
         })(),
       ]);
       userObject.avatarHash = avatarHash;
-      await pushUserObject();
+      // await pushUserObject();
       this.dispatchEvent(new MessageEvent('avatarchange', {
         data: avatarHash,
       }));
