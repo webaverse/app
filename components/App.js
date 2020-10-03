@@ -1,7 +1,8 @@
 import Inventory from './Inventory.js';
 import inventory from '../inventory.js';
-import { getState, setState, getSpecificState } from '../state.js';
-import { setBindings } from './bindings.js';
+import {loginManager} from '../login.js';
+import {getState, setState, getSpecificState} from '../state.js';
+import {setBindings} from './bindings.js';
 
 let appState = getState();
 
@@ -11,9 +12,19 @@ let appProps = {
     isXR: appState.isXR
 };
 
-let appHelpers = {
-    inventory: inventory
-}
+const onclickBindings = {
+  'inventory-wear': e => {
+    const id = parseInt(e.target.getAttribute('inventoryid'), 10);
+    loginManager.setAvatar(id);
+  },
+  'inventory-upload': e => {
+    const file = document.getElementById("twoD-inventoryUploadBtn").files[0];
+    inventory.uploadFile(file);
+  },
+};
+inventory.addEventListener('filesupdate', (e) => {
+  updateProps({ inventoryItems: appProps.inventoryItems.concat(e.data)})
+});
 
 export const toggleMenus = (props) => {
     switch (appProps.selectedWeapon) {
@@ -42,11 +53,11 @@ export const updateProps = (newProps) => {
     if (appProps.pointerLock || appProps.isXR || !appProps.selectedWeapon) {
         appContainer.style.display = 'none';
         appContainer.innerHTML = '';
-        setBindings(appProps, appHelpers);
+        setBindings(null, onclickBindings);
     } else {
         appContainer.style.display = 'block';
         appContainer.innerHTML = App(appProps);
-        setBindings(appProps, appHelpers);
+        setBindings(appContainer, onclickBindings);
     }
 }
 
@@ -60,5 +71,6 @@ window.addEventListener('stateChanged', (e) => {
 })
 
 window.addEventListener('load', () => {
-    setBindings(appProps, appHelpers);
+    const appContainer = document.getElementById('appContainer');
+    setBindings(appContainer, onclickBindings);
 });
