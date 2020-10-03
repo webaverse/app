@@ -1,4 +1,5 @@
-import Inventory from './Inventory.js';
+import Menu from './Menu.js';
+import WeaponWheel from './WeaponWheel.js';
 import inventory from '../inventory.js';
 import {loginManager} from '../login.js';
 import {getState, setState, getSpecificState} from '../state.js';
@@ -9,7 +10,7 @@ let appState = getState();
 let appProps = {
     inventoryItems: appState.inventory.items,
     selectedWeapon: appState.selectedWeapon,
-    isXR: appState.isXR
+    isXR: appState.isXR,
 };
 
 const onclickBindings = {
@@ -28,8 +29,10 @@ inventory.addEventListener('filesupdate', (e) => {
 
 export const toggleMenus = (props) => {
     switch (appProps.selectedWeapon) {
-        case 'inventory':
-            return Inventory(props);
+        case 'menu':
+            return Menu(props);
+        case 'weaponWheel':
+            return WeaponWheel(props);
         default: 
             return;
     }
@@ -50,7 +53,7 @@ export const updateProps = (newProps) => {
             appProps[k] = newProps[k];
         }
     }
-    if (appProps.pointerLock || appProps.isXR || !appProps.selectedWeapon) {
+    if (appProps.pointerLock || appProps.isXR || !appProps.selectedWeapon && !appProps.weaponWheel) {
         appContainer.style.display = 'none';
         appContainer.innerHTML = '';
         setBindings(null, onclickBindings);
@@ -63,7 +66,7 @@ export const updateProps = (newProps) => {
 
 window.addEventListener('stateChanged', (e) => {
     const changedState = getSpecificState(e.detail.changedKeys);
-    // console.log('stateChanged', changedState);
+    console.log('stateChanged', changedState);
     for (let k in changedState) {
         appState[k] = changedState[k];
     }
