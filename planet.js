@@ -8,7 +8,7 @@ import {
   PLANET_OBJECT_SLOTS,
   PLANET_OBJECT_SIZE,
 } from './constants.js';
-import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
+import {XRChannelConnection} from './xrrtc.js';
 import {loginManager} from './login.js';
 import {storageHost, worldsHost} from './constants.js';
 import {makePromise} from './util.js';
