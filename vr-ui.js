@@ -2471,6 +2471,7 @@ export {
   makeInventoryMesh,
   makeColorsMesh,
   makeIconMesh,
+  makeMenuMesh,
   intersectUi,
   /* makeWristMenu,
   makeHighlightMesh, */
