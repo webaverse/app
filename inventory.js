@@ -43,7 +43,22 @@ document.addEventListener('dragover', e => {
 document.addEventListener('drop', async e => {
   e.preventDefault();
 
-  if (e.dataTransfer.files.length > 0) {
+  let jsonFile = Array.from(e.dataTransfer.items).find(item => item.type === 'application/json');
+  if (jsonFile) {
+    const s = await new Promise((accept, reject) => {
+        jsonFile.getAsString(accept);
+    });
+    const j = JSON.parse(s);
+    const {dragid} = j;
+    const match = dragid.match(/^inventory-([0-9]+)$/);
+    if (match) {
+      const id = parseInt(match[1], 10);
+      const file = files.find(file => file.id === id);
+      if (file) {
+        console.log('intantiate file', file);
+      }
+    }
+  } else if (e.dataTransfer.files.length > 0) {
     const [file] = e.dataTransfer.files;
     await inventory.uploadFile(file);
   }
