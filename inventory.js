@@ -1,7 +1,8 @@
+import * as THREE from './three.module.js';
 import {bindUploadFileButton} from './util.js';
 import {loginManager} from './login.js';
 import runtime from './runtime.js';
-import {scene} from './app-object.js';
+import {renderer, scene, camera} from './app-object.js';
 import {storageHost} from './constants.js';
 
 const inventory = new EventTarget();
@@ -63,8 +64,12 @@ document.addEventListener('drop', async e => {
         file.name = filename;
         // console.log('loading file');
         const mesh = await runtime.loadFileForWorld(file);
+        {
+          const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+          mesh.position.copy(xrCamera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(xrCamera.quaternion));
+          mesh.quaternion.copy(xrCamera.quaternion);
+        }
         mesh.run && mesh.run();
-        // console.log('loaded file', mesh);
         scene.add(mesh);
       }
     }
