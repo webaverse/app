@@ -1303,7 +1303,7 @@ nav {
 </style>
 <div class=body>
   <h1>Menu</h1>
-  <nav>Button</nav>
+  <nav id=button>Button</nav>
 </div>
 `;
 };
