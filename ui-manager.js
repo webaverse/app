@@ -359,6 +359,15 @@ geometryManager.waitForLoad().then(() => {
 
   const menuMesh = makeMenuMesh(weaponsManager.cubeMesh);
   menuMesh.visible = false;
+  menuMesh.toggleOpen = () => {
+    uiManager.menuMesh.visible = !uiManager.menuMesh.visible;
+    if (uiManager.menuMesh.visible) {
+      const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+      uiManager.menuMesh.position.copy(xrCamera.position)
+        .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
+      uiManager.menuMesh.quaternion.copy(xrCamera.quaternion);
+    }
+  };
   scene.add(menuMesh);
   uiManager.menuMesh = menuMesh;
 
@@ -443,11 +452,7 @@ geometryManager.waitForLoad().then(() => {
   uiManager.toolsMesh = makeToolsMesh(weaponsManager.weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
     weaponsManager.setWeapon(newSelectedWeapon);
   }, () => {
-    const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-    uiManager.menuMesh.position.copy(xrCamera.position)
-      .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
-    uiManager.menuMesh.quaternion.copy(xrCamera.quaternion);
-    uiManager.menuMesh.visible = !uiManager.menuMesh.visible;
+    menuMesh.toggleOpen();
   });
   uiManager.toolsMesh.visible = false;
   scene.add(uiManager.toolsMesh);
