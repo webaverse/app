@@ -94,10 +94,12 @@ class AppManager {
 const appManager = new AppManager();
 
 class App extends EventTarget {
-  constructor(appId) {
+  constructor(appId, object) {
     super();
 
     this.appId = appId;
+    this.object = object;
+
     this.files = {};
   }
 }
