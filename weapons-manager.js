@@ -1532,7 +1532,7 @@ const _updateWeapons = timeDiff => {
   _handleSelect();
   
   const _handleMenu = () => {
-    for (const menuMesh of uiManager.menuMeshes) {
+    for (const menuMesh of uiManager.toolMenuMeshes) {
       menuMesh.visible = false;
     }
 

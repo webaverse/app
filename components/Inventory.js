@@ -3,11 +3,11 @@ import { updateProps } from './App.js';
 
 const InventoryCard = (props = {}) => {
     return `
-        <div class="twoD-inventoryCard">
+        <div class="twoD-inventoryCard" draggable dragid="inventory-${props.id}">
             <img class="twoD-inventoryCardPreview" src="${props.preview}"></img>
             <h4 class="twoD-inventoryCardName">${props.name}</h4>
             <div class="twoD-inventoryCardActions">
-                <button class="twoD-inventoryCardWearBtn" onclick=inventory-wear inventoryid=${props.id}>
+                <button class="twoD-inventoryCardWearBtn" onclick=inventory-wear inventoryid="${props.id}"">
                     <i class="fal fa-hand-sparkles" style="margin-right: 5px;"></i>
                     Wear
                 </button>
