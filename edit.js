@@ -357,6 +357,17 @@ scene.add(floorMesh);
   }, 100);
 
   /* {
+    const u = 'lightsaber.wbn';
+    const res = await fetch('./' + u);
+    const file = await res.blob();
+    file.name = u;
+    // console.log('loading file');
+    const mesh = await runtime.loadFileForWorld(file);
+    mesh.run();
+    console.log('loaded file', mesh);
+    scene.add(mesh);
+  } */
+  /* {
     const u = 'comet.wbn';
     const res = await fetch('./' + u);
     const file = await res.blob();

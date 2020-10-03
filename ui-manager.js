@@ -434,7 +434,8 @@ geometryManager.waitForLoad().then(() => {
   scene.add(popupMesh);
   uiManager.popupMesh = popupMesh;
 
-  uiManager.toolMenuMeshes = [
+  uiManager.menuMeshes = [
+    uiManager.menuMesh,
     uiManager.buildsMesh,
     uiManager.thingsMesh,
     uiManager.shapesMesh,
@@ -445,8 +446,7 @@ geometryManager.waitForLoad().then(() => {
     uiManager.detailsMesh,
     uiManager.tradeMesh,
   ];
-  uiManager.uiMeshes = [menuMesh]
-    .concat(uiManager.toolMenuMeshes)
+  uiManager.uiMeshes = uiManager.menuMeshes
     .concat(uiManager.infoMeshes);
 
   uiManager.toolsMesh = makeToolsMesh(weaponsManager.weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
