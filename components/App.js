@@ -33,16 +33,19 @@ export const App = (props) => {
 }
 
 export const updateProps = (newProps) => {
+    const appContainer = document.getElementById('appContainer');
     for (let k in newProps) {
         if (appProps[k] !== newProps[k]) {
             appProps[k] = newProps[k];
         }
     }
-    if (appProps.pointerLock || appProps.isXR) {
-        document.getElementById('appContainer').innerHTML = '';
+    if (appProps.pointerLock || appProps.isXR || !appProps.selectedWeapon) {
+        appContainer.style.display = 'none';
+        appContainer.innerHTML = '';
         setBindings(appProps, appHelpers);
     } else {
-        document.getElementById('appContainer').innerHTML = App(appProps);
+        appContainer.style.display = 'block';
+        appContainer.innerHTML = App(appProps);
         setBindings(appProps, appHelpers);
     }
 }
