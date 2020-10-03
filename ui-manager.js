@@ -434,14 +434,16 @@ geometryManager.waitForLoad().then(() => {
   scene.add(popupMesh);
   uiManager.popupMesh = popupMesh;
 
-  uiManager.menuMeshes = [
-    uiManager.menuMesh,
+  uiManager.toolMenuMeshes = [
     uiManager.buildsMesh,
     uiManager.thingsMesh,
     uiManager.shapesMesh,
     uiManager.inventoryMesh,
     uiManager.colorsMesh,
   ];
+  uiManager.menuMeshes = [
+    uiManager.menuMesh,
+  ].concat(uiManager.toolMenuMeshes);
   uiManager.infoMeshes = [
     uiManager.detailsMesh,
     uiManager.tradeMesh,
