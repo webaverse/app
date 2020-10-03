@@ -51,8 +51,8 @@ class AppManager {
     this.apps = [];
     this.animationLoops = [];
   }
-  createApp(appId) {
-    const app = new App(appId);
+  createApp(appId, object) {
+    const app = new App(appId, object);
     this.apps.push(app);
     return app;
   }
