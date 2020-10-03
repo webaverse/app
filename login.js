@@ -396,7 +396,7 @@ class LoginManager extends EventTarget {
             body: JSON.stringify({
               limit: 100,
               script: contractSource
-                .replace(/ARG0/g, n),
+                .replace(/ARG0/g, id),
               wait: true,
             }),
           });
