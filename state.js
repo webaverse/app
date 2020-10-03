@@ -1,29 +1,28 @@
-    const state = {
-        isXR: false,
-        pointerLock: false,
-        menu: {
-            isHidden: true,
-            activeTab: '',
-            account: {
-                name: '',
-                avatar: null,
-                isMic: false,
-                equipped: []
-            },
-            inventory: {
-                items: []
-            },
-            world: {
-                peers: []
-            },
-
+export const state = {
+    isXR: false,
+    pointerLock: false,
+    menu: {
+        visible: false,
+        activeTab: '',
+        account: {
+            name: '',
+            avatar: null,
+            isMic: false,
+            equipped: []
         },
-        weaponWheel: {
-            isHidden: true,
-            activeWeapon: '',
-            weapons: [],
-        }
-    };
+        inventory: {
+            items: []
+        },
+        world: {
+            peers: []
+        },
+    },
+    weaponWheel: {
+        visible: false,
+        activeWeapon: '',
+        weapons: [],
+    }
+};
 
 const emitChange = (changedKeys) => {
     window.dispatchEvent(new CustomEvent("stateChanged", { 
