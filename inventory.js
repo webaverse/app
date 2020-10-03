@@ -1,5 +1,7 @@
 import {bindUploadFileButton} from './util.js';
 import {loginManager} from './login.js';
+import runtime from './runtime.js';
+import {scene} from './app-object.js';
 import {storageHost} from './constants.js';
 
 const inventory = new EventTarget();
@@ -53,9 +55,17 @@ document.addEventListener('drop', async e => {
     const match = dragid.match(/^inventory-([0-9]+)$/);
     if (match) {
       const id = parseInt(match[1], 10);
-      const file = files.find(file => file.id === id);
-      if (file) {
-        console.log('intantiate file', file);
+      const inventoryFile = files.find(file => file.id === id);
+      if (inventoryFile) {
+        const {hash, filename} = inventoryFile;
+        const res = await fetch(`${storageHost}/${hash}`);
+        const file = await res.blob();
+        file.name = filename;
+        // console.log('loading file');
+        const mesh = await runtime.loadFileForWorld(file);
+        mesh.run && mesh.run();
+        // console.log('loaded file', mesh);
+        scene.add(mesh);
       }
     }
   } else if (e.dataTransfer.files.length > 0) {
