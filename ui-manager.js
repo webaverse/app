@@ -4,11 +4,11 @@ import geometryManager from './geometry-manager.js';
 import weaponsManager from './weapons-manager.js';
 import runtime from './runtime.js';
 import {makeInventoryMesh, makeTextMesh} from './vr-ui.js';
-import {scene} from './app-object.js';
+import {renderer, scene, camera} from './app-object.js';
 import {WaitQueue} from './util.js';
 import {makeDrawMaterial} from './shaders.js';
 import {loginManager} from './login.js';
-import {makeColorsMesh, makeDetailsMesh, makeTradeMesh, makePopupMesh, makeToolsMesh} from './vr-ui.js';
+import {makeColorsMesh, makeMenuMesh, makeDetailsMesh, makeTradeMesh, makePopupMesh, makeToolsMesh} from './vr-ui.js';
 import {colors, storageHost} from './constants.js';
 
 const uiManager = new EventTarget();
@@ -357,6 +357,11 @@ geometryManager.waitForLoad().then(() => {
   scene.add(colorsMesh);
   uiManager.colorsMesh = colorsMesh;
 
+  const menuMesh = makeMenuMesh(weaponsManager.cubeMesh);
+  menuMesh.visible = false;
+  scene.add(menuMesh);
+  uiManager.menuMesh = menuMesh;
+
   const _bakeAndUploadComposerMesh = async () => {
     const mesh = meshComposer.commit();
     mesh.material = new THREE.MeshBasicMaterial({
@@ -420,7 +425,7 @@ geometryManager.waitForLoad().then(() => {
   scene.add(popupMesh);
   uiManager.popupMesh = popupMesh;
 
-  uiManager.menuMeshes = [
+  uiManager.toolMenuMeshes = [
     uiManager.buildsMesh,
     uiManager.thingsMesh,
     uiManager.shapesMesh,
@@ -431,11 +436,18 @@ geometryManager.waitForLoad().then(() => {
     uiManager.detailsMesh,
     uiManager.tradeMesh,
   ];
-  uiManager.uiMeshes = uiManager.menuMeshes
+  uiManager.uiMeshes = [menuMesh]
+    .concat(uiManager.toolMenuMeshes)
     .concat(uiManager.infoMeshes);
 
   uiManager.toolsMesh = makeToolsMesh(weaponsManager.weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
     weaponsManager.setWeapon(newSelectedWeapon);
+  }, () => {
+    const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+    uiManager.menuMesh.position.copy(xrCamera.position)
+      .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
+    uiManager.menuMesh.quaternion.copy(xrCamera.quaternion);
+    uiManager.menuMesh.visible = !uiManager.menuMesh.visible;
   });
   uiManager.toolsMesh.visible = false;
   scene.add(uiManager.toolsMesh);
