@@ -887,15 +887,11 @@ const _updateWeapons = timeDiff => {
   rayMesh.visible = false;
 
   const _raycastWeapon = () => {
-    const intersectionCandidates = [uiManager.menuMesh];
     if (['build', 'things', 'shapes', 'inventory', 'colors', 'select'].includes(selectedWeapon)) {
-      intersectionCandidates.push.apply(intersectionCandidates, uiManager.toolMenuMeshes);
-    }
-    {
       const [{position, quaternion}] = rigManager.getRigTransforms();
       localRaycaster.ray.origin.copy(position);
       localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
-      anchorSpecs[0] = intersectUi(localRaycaster, intersectionCandidates) ||
+      anchorSpecs[0] = intersectUi(localRaycaster, uiManager.menuMeshes) ||
         meshComposer.intersect(localRaycaster) ||
         _intersectRigs(localRaycaster);
 
@@ -1536,7 +1532,7 @@ const _updateWeapons = timeDiff => {
   _handleSelect();
   
   const _handleMenu = () => {
-    for (const menuMesh of uiManager.toolMenuMeshes) {
+    for (const menuMesh of uiManager.menuMeshes) {
       menuMesh.visible = false;
     }
 
