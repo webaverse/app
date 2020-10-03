@@ -380,7 +380,7 @@ class LoginManager extends EventTarget {
               mnemonic,
 
               limit: 100,
-              script: contractSource
+              transaction: contractSource
                 .replace(/ARG0/g, "avatar")
                 .replace(/ARG1/g, id),
               wait: true,
