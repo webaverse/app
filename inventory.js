@@ -30,6 +30,20 @@ inventory.uploadFile = async file => {
 };
 bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFile);
 
+inventory.discardFile = async id => {
+  const fileIndex = files.findIndex(file => file.id === id);
+  if (fileIndex !== -1) {
+    files.splice(fileIndex, 1);
+    inventory.dispatchEvent(new MessageEvent('filesupdate', {
+      data: files,
+    }));
+
+    await loginManager.destroyNft(id);
+  } else {
+    throw new Error('no such inventory file id');
+  }
+};
+
 let files = [];
 inventory.getFiles = () => files;
 
