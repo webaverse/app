@@ -334,7 +334,7 @@ class LoginManager extends EventTarget {
   async setUsername(name) {
     if (userObject) {
       userObject.name = name;
-      await pushUserObject();
+      // await pushUserObject();
       updateUserObject();
     }
     this.dispatchEvent(new MessageEvent('usernamechange', {
@@ -406,7 +406,7 @@ class LoginManager extends EventTarget {
         })(),
       ]);
       userObject.avatarHash = avatarHash;
-      await pushUserObject();
+      // await pushUserObject();
       this.dispatchEvent(new MessageEvent('avatarchange', {
         data: avatarHash,
       }));
