@@ -6,7 +6,7 @@ import {mergeMeshes} from './util.js';
 import {makeIconMesh} from './vr-ui.js';
 import {appManager} from './app-object.js';
 import wbn from './wbn.js';
-import {storageHost} from './constants.js';
+// import {storageHost} from './constants.js';
 
 const runtime = {};
 
