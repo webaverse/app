@@ -1687,7 +1687,7 @@ const makeUiFullMesh = cubeMesh => {
   };
   return wrap;
 }; */
-const makeToolsMesh = (tools, selectTool) => {
+const makeToolsMesh = (tools, selectTool, selectMenu) => {
   const canvasWidth = uiSize;
   const canvasHeight = uiSize*uiWorldSize;
   const geometry = _flipUvs(new THREE.PlaneBufferGeometry(1, uiWorldSize));
@@ -1737,6 +1737,7 @@ const makeToolsMesh = (tools, selectTool) => {
   // let anchors = [];
   let selectedWeapon = null;
   let lastSelectedWeapon = null;
+  let lastDown = false;
   mesh.update = position => {
     if (position) {
       const menuToolPosition = mesh.position.clone()
@@ -1759,12 +1760,16 @@ const makeToolsMesh = (tools, selectTool) => {
       } else {
         selectedWeapon = tools[closestToolIndex];
       }
+      lastDown = true;
     } else {
-      if (selectedWeapon === 'menu') {
-        // XXX open menu
-      } else {
-        selectTool(selectedWeapon);
+      if (lastDown) {
+        if (selectedWeapon === 'menu') {
+          selectMenu();
+        } else {
+          selectTool(selectedWeapon);
+        }
       }
+      lastDown = false;
     }
     if (selectedWeapon !== lastSelectedWeapon) {
       const htmlString = _makeToolsString(tools, selectedWeapon);
