@@ -7,7 +7,7 @@ const InventoryCard = (props = {}) => {
             <img class="twoD-inventoryCardPreview" src="${props.preview}"></img>
             <h4 class="twoD-inventoryCardName">${props.name}</h4>
             <div class="twoD-inventoryCardActions">
-                <button class="twoD-inventoryCardWearBtn" onclick=inventory-wear inventoryid="${props.id}"">
+                <button class="twoD-inventoryCardWearBtn" onclick=inventory-wear inventoryid="${props.id}">
                     <i class="fal fa-hand-sparkles" style="margin-right: 5px;"></i>
                     Wear
                 </button>
