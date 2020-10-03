@@ -311,7 +311,7 @@ const _loadWebBundle = async file => {
   };
 
   const bundle = new wbn.Bundle(arrayBuffer);
-  console.log('got bundle', bundle);
+  // console.log('got bundle', bundle);
   const {urls} = bundle;
   for (const u of urls) {
     const response = bundle.getResponse(u);
