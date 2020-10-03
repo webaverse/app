@@ -11,6 +11,10 @@ const InventoryCard = (props = {}) => {
                     <i class="fal fa-hand-sparkles" style="margin-right: 5px;"></i>
                     Wear
                 </button>
+                <button class="twoD-inventoryCardWearBtn" onclick=inventory-discard inventoryid="${props.id}">
+                    <i class="fal fa-trash" style="margin-right: 5px;"></i>
+                    Discard
+                </button>
                 <button class="twoD-inventoryCardInspectBtn">
                     <i class="fal fa-search-plus" style="margin-right: 5px;"></i>
                     Inspect

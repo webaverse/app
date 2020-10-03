@@ -17,6 +17,10 @@ const onclickBindings = {
     const id = parseInt(e.target.getAttribute('inventoryid'), 10);
     loginManager.setAvatar(id);
   },
+  'inventory-discard': async e => {
+    const id = parseInt(e.target.getAttribute('inventoryid'), 10);
+    await inventory.discardFile(id);
+  },
   'inventory-upload': e => {
     const file = document.getElementById("twoD-inventoryUploadBtn").files[0];
     inventory.uploadFile(file);
