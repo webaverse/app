@@ -389,7 +389,7 @@ class LoginManager extends EventTarget {
           return await res.json();
         })(),
         (async () => {
-          const contractSource = await blockchain.getContractSource('getNft.cdc');
+          const contractSource = await getContractSource('getNft.cdc');
 
           const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
             method: 'POST',
