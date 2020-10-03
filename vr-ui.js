@@ -4,7 +4,7 @@ import {TextMesh} from './textmesh-standalone.esm.js';
 import easing from './easing.js';
 import * as icons from './icons.js';
 import Inventory from './components/Inventory.js';
-import { getState } from './state.js';
+import {getState} from './state.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
