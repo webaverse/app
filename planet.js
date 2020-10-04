@@ -857,3 +857,6 @@ planet.addEventListener('trackedobjectadd', async e => {
     scene.add(mesh);
   }
 });
+planet.addEventListener('trackedobjectremove', async e => {
+  // XXX
+});
