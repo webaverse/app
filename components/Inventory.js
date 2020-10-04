@@ -26,15 +26,12 @@ const Inventory = (props = {}) => {
     return `
         <div class="twoD-inventory">
             <div class="twoD-inventoryHeader">
-                <i class="fal fa-backpack twoD-inventoryIcon"></i>
-                <h1 class="twoD-inventoryHeaderTitle">Inventory</h1>
                 <button class="twoD-inventoryUploadBtn">
                     <i class="fal fa-arrow-alt-from-top" style="margin-right: 5px;"></i>
                     Upload
                     <input id="twoD-inventoryUploadBtn" type="file" onchange="inventory-upload">
                 </button>
             </div>
-            <hr class="twoD-inventoryDivider"></hr>
             <div class="twoD-inventoryList">
                 ${
                     inventoryItems.map((value, index) => {
