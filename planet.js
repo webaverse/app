@@ -477,13 +477,13 @@ const _loadLiveState = seedString => {
     return vegetations;
   };
 })(); */
-const _saveStorage = async roomName => {
-  /* if (dirtySubparcels.length > 0) {
-    for (const subparcel of dirtySubparcels) {
-      await storage.setRaw(`planet/${roomName}/subparcels/${subparcel.x}/${subparcel.y}/${subparcel.z}`, subparcel.data);
-    }
-    dirtySubparcels.length = 0;
-  } */
+/* const _saveStorage = async roomName => {
+  // if (dirtySubparcels.length > 0) {
+    // for (const subparcel of dirtySubparcels) {
+      // await storage.setRaw(`planet/${roomName}/subparcels/${subparcel.x}/${subparcel.y}/${subparcel.z}`, subparcel.data);
+    // }
+    // dirtySubparcels.length = 0;
+  // }
   // const b = _serializeState(state);
   // await storage.setRaw(roomName, b);
 };
@@ -513,41 +513,6 @@ const _loadStorage = async roomName => {
       const v = state[k];
       await storage.set(`planet/${roomName}/${k}`, v);
     }));
-  }
-
-  /* const keys = await storage.keys();
-  const prefix = `planet/${roomName}/subparcels/`;
-  const promises = [];
-  for (const k of keys) {
-    if (k.startsWith(prefix)) {
-      const match = k.slice(prefix.length).match(/^([-0-9]+)\/([-0-9]+)\/([-0-9]+)/);
-      const p = (async () => {
-        const ab = await storage.getRaw(k);
-        const uint8Array = geometryWorker.alloc(Uint8Array, ab.byteLength);
-        uint8Array.set(new Uint8Array(ab));
-        const subparcel = new Subparcel(uint8Array);
-        subparcel.readMetadata();
-        subparcel.load = Promise.resolve();
-        // subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
-        return subparcel;
-      })();
-      promises.push(p);
-    }
-  }
-  const subparcelsArray = await Promise.all(promises);
-  subparcels = {};
-  for (const subparcel of subparcelsArray) {
-    subparcels[subparcel.index] = subparcel;
-  } */
-};
-
-/* planet.flush = () => {
-  if (state) {
-    if (channelConnection) {
-      // throw new Error('unknown');
-    } else {
-      _saveStorage(state.seedString);
-    }
   }
 }; */
 
