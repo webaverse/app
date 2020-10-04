@@ -24,7 +24,7 @@
  */
 "use strict";
 
-import THREE from "./three.module.js";
+import * as THREE from "./three.module.js";
 
 /**
  * @namespace
