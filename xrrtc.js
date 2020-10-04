@@ -118,7 +118,7 @@ class XRChannelConnection extends EventTarget {
         }
       });
     });
-    [
+    /* [
       'initState',
       'updateState',
     ].forEach(m => {
@@ -127,7 +127,7 @@ class XRChannelConnection extends EventTarget {
           data: e.data,
         }));
       });
-    });
+    }); */
     (async () => {
       await dialogClient.join();
       await dialogClient.enableChatDataProducer();
