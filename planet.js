@@ -1,3 +1,4 @@
+import * as THREE from './three.module.js';
 import storage from './storage.js';
 import {XRChannelConnection} from './xrrtc.js';
 import Y from './yjs.js';
@@ -19,6 +20,13 @@ import {
 import {makePromise, getRandomString} from './util.js';
 // import * as THREE from './three.module.js';
 // import { makeTextMesh } from './vr-ui.js';
+
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
+const localRaycaster = new THREE.Raycaster();
 
 const peerAvatarHashes = new Map();
 
@@ -562,14 +570,15 @@ const _bindState = state => {
         }));
       }
     }
-    /* for (const name of lastObjects) {
+    for (const name of lastObjects) {
       if (!nextObjects.includes(name)) {
         // removedObjects.push(name);
-        this.dispatchEvent(new MessageEvent('trackedobjectremove', {
+        // const trackedObject = planet.getTrackedObject(name);
+        planet.dispatchEvent(new MessageEvent('trackedobjectremove', {
           data: name,
         }));
       }
-    } */
+    }
 
     lastObjects = nextObjects;
   });
@@ -815,6 +824,7 @@ document.getElementById('connectButton').addEventListener('click', async (e) => 
   }
 });
 
+const objects = [];
 planet.addObject = (contentId, position, quaternion) => {
   state.transact(() => {
     const instanceId = getRandomString();
@@ -825,10 +835,27 @@ planet.addObject = (contentId, position, quaternion) => {
     trackedObject.set('quaternion', quaternion.toArray());
   });
 };
+planet.removeObject = object => {
+  const {instanceId} = object;
+  state.transact(() => {
+    const objects = state.getArray('objects');
+    const objectsJson = objects.toJSON();
+    const index = objectsJson.indexOf(instanceId);
+    if (index !== -1) {
+      objects.delete(index, 1);
+
+      const trackedObject = state.getMap('object.' + instanceId);
+      const keys = Array.from(trackedObject.keys());
+      for (const key in keys) {
+        trackedObject.delete(key);
+      }
+    }
+  });
+};
 planet.addEventListener('trackedobjectadd', async e => {
   const trackedObject = e.data;
   const trackedObjectJson = trackedObject.toJSON();
-  const {contentId, position, quaternion} = trackedObjectJson;
+  const {instanceId, contentId, position, quaternion} = trackedObjectJson;
 
   {
     const contractSource = await getContractSource('getNft.cdc');
@@ -854,13 +881,51 @@ planet.addEventListener('trackedobjectadd', async e => {
     mesh.quaternion.fromArray(quaternion);
     
     mesh.run && mesh.run();
+    mesh.instanceId = instanceId;
+
     scene.add(mesh);
+    objects.push(mesh);
   }
 });
 planet.addEventListener('trackedobjectremove', async e => {
-  // XXX
+  const instanceId = e.data;
+  const index = objects.findIndex(object => object.instanceId === instanceId);
+  if (index !== -1) {
+    const object = objects[index];
+    object.destroy && object.destroy();
+    scene.remove(object);
+    objects.splice(index, 1);
+  }
 });
 planet.isObject = object => objects.includes(object);
 planet.intersectObjects = raycaster => {
+  let closestMesh = null;
+  let closestMeshDistance = Infinity;
+  for (const mesh of objects) {
+    localMatrix.compose(
+      raycaster.ray.origin,
+      localQuaternion.setFromUnitVectors(
+        localVector2.set(0, 0, -1),
+        raycaster.ray.direction
+      ),
+      localVector2.set(1, 1, 1)
+    )
+      .premultiply(localMatrix2.getInverse(mesh.matrixWorld))
+      .decompose(localVector, localQuaternion, localVector2);
+    localRaycaster.ray.origin.copy(localVector);
+    localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
+    if (mesh.geometry.boundingBox) {
+      const point = localRaycaster.ray.intersectBox(mesh.geometry.boundingBox, localVector);
+      if (point) {
+        point.applyMatrix4(mesh.matrixWorld);
+        return {
+          object: mesh,
+          point: point.clone(),
+          anchor: null,
+          uv: new THREE.Vector2(),
+        };
+      }
+    }
+  }
   return false; // XXX
 };
