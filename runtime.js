@@ -245,8 +245,31 @@ const _loadWebBundle = async file => {
   });
 
   const appId = ++appIds;
-  const object = new THREE.Object3D();
-  const app = appManager.createApp(appId, object);
+  const mesh = makeIconMesh();
+  mesh.geometry.boundingBox = new THREE.Box3(
+    new THREE.Vector3(-1, -1/2, -0.1),
+    new THREE.Vector3(1, 1/2, 0.1),
+  );
+  mesh.frustumCulled = false;
+  mesh.run = () => {
+    import(u)
+      .then(() => {
+        console.log('import returned');
+      }, err => {
+        console.warn('import failed', u, err);
+      })
+      .finally(() => {
+        for (const u of cachedUrls) {
+          URL.revokeObjectURL(u);
+        }
+      });
+  };
+  mesh.remove = () => {
+    console.log('remove');
+    appManager.destroyApp(appId);
+  };
+
+  const app = appManager.createApp(appId, mesh);
   const localImportMap = _clone(importMap);
   localImportMap.app = (() => {
     const s = `\
@@ -327,32 +350,7 @@ const _loadWebBundle = async file => {
   }
   const u = _mapUrl(bundle.primaryURL);
 
-  const mesh = makeIconMesh();
-  mesh.geometry.boundingBox = new THREE.Box3(
-    new THREE.Vector3(-1, -1/2, -0.1),
-    new THREE.Vector3(1, 1/2, 0.1),
-  );
-  mesh.frustumCulled = false;
-  object.add(mesh);
-
-  object.run = () => {
-    import(u)
-      .then(() => {
-        console.log('import returned');
-      }, err => {
-        console.warn('import failed', u, err);
-      })
-      .finally(() => {
-        for (const u of cachedUrls) {
-          URL.revokeObjectURL(u);
-        }
-      });
-  };
-  object.remove = () => {
-    console.log('remove');
-    appManager.destroyApp(appId);
-  };
-  return object;
+  return mesh;
 };
 
 runtime.loadFileForWorld = async file => {
