@@ -1,6 +1,3 @@
-import inventory from '../inventory.js';
-import { updateProps } from './App.js';
-
 const InventoryCard = (props = {}) => {
     return `
         <div class="twoD-inventoryCard" draggable dragid="inventory-${props.id}">
