@@ -1401,8 +1401,8 @@ const makeMenuMesh = cubeMesh => {
   const material = new THREE.MeshBasicMaterial({
     map: texture,
     side: THREE.DoubleSide,
-    // transparent: true,
-    // alphaTest: 0.7,
+    transparent: true,
+    alphaTest: 0.7,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.visible = false;
