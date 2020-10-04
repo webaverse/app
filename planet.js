@@ -768,7 +768,7 @@ planet.connect = async ({online = true, roomName: rn, url = null} = {}) => {
       <div class=label>Disconnect</div>
     `;
   }
-  await _loadStorage(roomName);
+  // await _loadStorage(roomName);
   await _loadLiveState(roomName);
 };
 /* planet.reload = () => {
