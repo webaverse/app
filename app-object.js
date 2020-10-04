@@ -81,7 +81,7 @@ class AppManager {
   }
   removeAnimationLoop(appId) {
     const index = this.animationLoops.findIndex(al => al.appId === appId);
-    if (inded !== -1) {
+    if (index !== -1) {
       this.animationLoops.splice(index, 1);
     }
   }
