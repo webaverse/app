@@ -1,6 +1,8 @@
 import * as THREE from './three.module.js';
-import {bindUploadFileButton} from './util.js';
+import {getRandomString, bindUploadFileButton} from './util.js';
 import {loginManager} from './login.js';
+import {planet} from './planet.js';
+import {getContractSource} from './blockchain.js';
 import runtime from './runtime.js';
 import {renderer, scene, camera} from './app-object.js';
 import {storageHost} from './constants.js';
@@ -70,26 +72,57 @@ document.addEventListener('drop', async e => {
     const match = dragid.match(/^inventory-([0-9]+)$/);
     if (match) {
       const id = parseInt(match[1], 10);
-      const inventoryFile = files.find(file => file.id === id);
-      if (inventoryFile) {
-        const {hash, filename} = inventoryFile;
-        const res = await fetch(`${storageHost}/${hash}`);
-        const file = await res.blob();
-        file.name = filename;
-        // console.log('loading file');
-        const mesh = await runtime.loadFileForWorld(file);
-        {
-          const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-          mesh.position.copy(xrCamera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(xrCamera.quaternion));
-          mesh.quaternion.copy(xrCamera.quaternion);
-        }
-        mesh.run && mesh.run();
-        scene.add(mesh);
-      }
+
+      planet.transactState(() => {
+        const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+        const position = xrCamera.position.clone()
+          .add(new THREE.Vector3(0, 0, -1).applyQuaternion(xrCamera.quaternion))
+          .toArray();
+        const quaternion = xrCamera.quaternion.toArray();
+
+        const instanceId = getRandomString();
+        const trackedObject = planet.getTrackedObject(instanceId);
+        trackedObject.set('instanceId', instanceId);
+        trackedObject.set('contentId', id);
+        trackedObject.set('position', position);
+        trackedObject.set('quaternion', quaternion);
+      });
     }
   } else if (e.dataTransfer.files.length > 0) {
     const [file] = e.dataTransfer.files;
     await inventory.uploadFile(file);
+  }
+});
+planet.addEventListener('trackedobjectadd', async e => {
+  const trackedObject = e.data;
+  const trackedObjectJson = trackedObject.toJSON();
+  const {contentId, position, quaternion} = trackedObjectJson;
+
+  {
+    const contractSource = await getContractSource('getNft.cdc');
+
+    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+      method: 'POST',
+      body: JSON.stringify({
+        limit: 100,
+        script: contractSource
+          .replace(/ARG0/g, contentId),
+        wait: true,
+      }),
+    });
+    const response2 = await res.json();
+    const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
+
+    const res2 = await fetch(`${storageHost}/${hash}`);
+    const file = await res2.blob();
+    file.name = filename;
+    // console.log('loading file');
+    const mesh = await runtime.loadFileForWorld(file);
+    mesh.position.fromArray(position);
+    mesh.quaternion.fromArray(quaternion);
+    
+    mesh.run && mesh.run();
+    scene.add(mesh);
   }
 });
 
