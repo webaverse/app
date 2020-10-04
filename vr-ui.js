@@ -1366,12 +1366,6 @@ const makeIconMesh = () => {
       });
   };
   mesh.getAnchors = () => anchors;
-  mesh.click = anchor => {
-    const match = anchor.id.match(/^tile-([0-9]+)-([0-9]+)$/);
-    const i = parseInt(match[1], 10);
-    const j = parseInt(match[2], 10);
-    onclick(tiles[i][j]);
-  };
   mesh.update();
 
   return mesh;
