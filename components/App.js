@@ -22,9 +22,10 @@ const onclickBindings = {
   },
 };
 
-inventory.addEventListener('filesupdate', (e) => {
-    state.menu.inventory.items = state.menu.inventory.items.concat(e.data)
-    updateProps({ inventoryItems: state.menu.inventory.items })
+inventory.addEventListener('filesupdate', e => {
+  updateProps({
+    inventoryItems: e.data,
+  });
 });
 
 export const toggleMenus = (props) => {
