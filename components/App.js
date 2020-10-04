@@ -54,7 +54,7 @@ export const updateProps = (newProps) => {
             appState[k] = newProps[k];
         }
     }
-    if (appState.pointerLock || appState.isXR) {
+    if (appState.pointerLock || appState.isXR || !appState.selectedWeapon) {
         appContainer.style.display = 'none';
         appContainer.innerHTML = '';
         setBindings(null, onclickBindings);
