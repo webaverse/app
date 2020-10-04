@@ -8,20 +8,24 @@ import { setBindings } from './bindings.js';
 let appState = state;
 
 const onclickBindings = {
-    'inventory-wear': (e) => {
-        const id = parseInt(e.target.getAttribute('inventoryid'), 10);
-        loginManager.setAvatar(id);
-    },
-    'inventory-upload': (e) => {
-        setState({ invento })
-        const file = document.getElementById("twoD-inventoryUploadBtn").files[0];
-        inventory.uploadFile(file);
-    },
+  'inventory-wear': e => {
+    const id = parseInt(e.target.getAttribute('inventoryid'), 10);
+    loginManager.setAvatar(id);
+  },
+  'inventory-discard': async e => {
+    const id = parseInt(e.target.getAttribute('inventoryid'), 10);
+    await inventory.discardFile(id);
+  },
+  'inventory-upload': e => {
+    const file = document.getElementById("twoD-inventoryUploadBtn").files[0];
+    inventory.uploadFile(file);
+  },
 };
 
 inventory.addEventListener('filesupdate', (e) => {
-    state.menu.inventory.items = state.menu.inventory.items.concat(e.data)
-    updateProps({ inventoryItems: state.menu.inventory.items })
+    updateProps({
+        inventoryItems: e.data,
+    })
 });
 
 export const toggleMenus = (props) => {

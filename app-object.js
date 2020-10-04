@@ -51,8 +51,8 @@ class AppManager {
     this.apps = [];
     this.animationLoops = [];
   }
-  createApp(appId) {
-    const app = new App(appId);
+  createApp(appId, object) {
+    const app = new App(appId, object);
     this.apps.push(app);
     return app;
   }
@@ -94,10 +94,12 @@ class AppManager {
 const appManager = new AppManager();
 
 class App extends EventTarget {
-  constructor(appId) {
+  constructor(appId, object) {
     super();
 
     this.appId = appId;
+    this.object = object;
+
     this.files = {};
   }
 }

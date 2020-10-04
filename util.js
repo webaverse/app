@@ -10,6 +10,9 @@ export function parseQuery(queryString) {
   }
   return query;
 }
+export function getRandomString() {
+  return Math.random().toString(36).substring(7);
+}
 export function hex2Uint8Array(hex) {
   return new Uint8Array(hex.match(/[\da-f]{2}/gi).map(h => parseInt(h, 16)))
 }

@@ -1,5 +1,8 @@
+import * as THREE from './three.module.js';
 import {bindUploadFileButton} from './util.js';
 import {loginManager} from './login.js';
+import {planet} from './planet.js';
+import {renderer, scene, camera} from './app-object.js';
 import {storageHost} from './constants.js';
 
 const inventory = new EventTarget();
@@ -27,6 +30,20 @@ inventory.uploadFile = async file => {
 };
 bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFile);
 
+inventory.discardFile = async id => {
+  const fileIndex = files.findIndex(file => file.id === id);
+  if (fileIndex !== -1) {
+    files.splice(fileIndex, 1);
+    inventory.dispatchEvent(new MessageEvent('filesupdate', {
+      data: files,
+    }));
+
+    await loginManager.destroyNft(id);
+  } else {
+    throw new Error('no such inventory file id');
+  }
+};
+
 let files = [];
 inventory.getFiles = () => files;
 
@@ -53,10 +70,13 @@ document.addEventListener('drop', async e => {
     const match = dragid.match(/^inventory-([0-9]+)$/);
     if (match) {
       const id = parseInt(match[1], 10);
-      const file = files.find(file => file.id === id);
-      if (file) {
-        console.log('intantiate file', file);
-      }
+
+      const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+      const position = xrCamera.position.clone()
+        .add(new THREE.Vector3(0, 0, -1).applyQuaternion(xrCamera.quaternion));
+      const quaternion = xrCamera.quaternion;
+
+      planet.addObject(id, position, quaternion);
     }
   } else if (e.dataTransfer.files.length > 0) {
     const [file] = e.dataTransfer.files;

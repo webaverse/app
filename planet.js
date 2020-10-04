@@ -1,4 +1,9 @@
 import storage from './storage.js';
+import {XRChannelConnection} from './xrrtc.js';
+import Y from './yjs.js';
+import {loginManager} from './login.js';
+import {getContractSource} from './blockchain.js';
+import runtime from './runtime.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
@@ -7,11 +12,11 @@ import {
   MAX_NAME_LENGTH,
   PLANET_OBJECT_SLOTS,
   PLANET_OBJECT_SIZE,
+
+  storageHost,
+  worldsHost,
 } from './constants.js';
-import {XRChannelConnection} from 'https://2.metartc.com/xrrtc.js';
-import {loginManager} from './login.js';
-import {storageHost, worldsHost} from './constants.js';
-import {makePromise} from './util.js';
+import {makePromise, getRandomString} from './util.js';
 // import * as THREE from './three.module.js';
 // import { makeTextMesh } from './vr-ui.js';
 
@@ -46,8 +51,6 @@ const _getFieldIndex = (x, y, z) => x + y * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P
 
 // planet
 export const planet = new EventTarget();
-
-let state = null;
 
 planet.getSubparcelIndex = _getSubparcelIndex;
 planet.getPotentialIndex = _getPotentialIndex;
@@ -420,9 +423,11 @@ Subparcel.offsets = (() => {
 planet.Subparcel = Subparcel;
 
 const _loadLiveState = seedString => {
-  planet.dispatchEvent(new MessageEvent('unload'));
+  // planet.dispatchEvent(new MessageEvent('unload'));
   planet.dispatchEvent(new MessageEvent('load', {
-    data: state,
+    data: {
+      seedString,
+    },
   }));
 };
 
@@ -477,13 +482,13 @@ const _loadLiveState = seedString => {
     return vegetations;
   };
 })(); */
-const _saveStorage = async roomName => {
-  /* if (dirtySubparcels.length > 0) {
-    for (const subparcel of dirtySubparcels) {
-      await storage.setRaw(`planet/${roomName}/subparcels/${subparcel.x}/${subparcel.y}/${subparcel.z}`, subparcel.data);
-    }
-    dirtySubparcels.length = 0;
-  } */
+/* const _saveStorage = async roomName => {
+  // if (dirtySubparcels.length > 0) {
+    // for (const subparcel of dirtySubparcels) {
+      // await storage.setRaw(`planet/${roomName}/subparcels/${subparcel.x}/${subparcel.y}/${subparcel.z}`, subparcel.data);
+    // }
+    // dirtySubparcels.length = 0;
+  // }
   // const b = _serializeState(state);
   // await storage.setRaw(roomName, b);
 };
@@ -514,41 +519,6 @@ const _loadStorage = async roomName => {
       await storage.set(`planet/${roomName}/${k}`, v);
     }));
   }
-
-  /* const keys = await storage.keys();
-  const prefix = `planet/${roomName}/subparcels/`;
-  const promises = [];
-  for (const k of keys) {
-    if (k.startsWith(prefix)) {
-      const match = k.slice(prefix.length).match(/^([-0-9]+)\/([-0-9]+)\/([-0-9]+)/);
-      const p = (async () => {
-        const ab = await storage.getRaw(k);
-        const uint8Array = geometryWorker.alloc(Uint8Array, ab.byteLength);
-        uint8Array.set(new Uint8Array(ab));
-        const subparcel = new Subparcel(uint8Array);
-        subparcel.readMetadata();
-        subparcel.load = Promise.resolve();
-        // subparcel.vegetations = _makeVegetations(subparcel.x, subparcel.y, subparcel.z);
-        return subparcel;
-      })();
-      promises.push(p);
-    }
-  }
-  const subparcelsArray = await Promise.all(promises);
-  subparcels = {};
-  for (const subparcel of subparcelsArray) {
-    subparcels[subparcel.index] = subparcel;
-  } */
-};
-
-/* planet.flush = () => {
-  if (state) {
-    if (channelConnection) {
-      // throw new Error('unknown');
-    } else {
-      _saveStorage(state.seedString);
-    }
-  }
 }; */
 
 // multiplayer
@@ -556,7 +526,54 @@ let roomName = null;
 let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
+let state = null;
 
+planet.getTrackedObjects = () => {
+  const objects = state.getArray('objects');
+  const objectsJson = objects.toJSON();
+  return objectsJson.map(name => state.getMap('object.' + name));
+};
+planet.getTrackedObject = name => {
+  const objects = state.getArray('objects');
+  const objectsJson = objects.toJSON();
+  if (!objectsJson.includes(name)) {
+    objects.push([name]);
+  }
+
+  return state.getMap('object.' + name);
+};
+const _bindState = state => {
+  const objects = state.getArray('objects');
+  let lastObjects = [];
+  objects.observe(() => {
+    const nextObjects = objects.toJSON();
+
+    // const addedObjects = [];
+    // const removedObjects = [];
+    for (const name of nextObjects) {
+      if (!lastObjects.includes(name)) {
+        // addedObjects.push(name);
+        /* this.dispatchEvent(new MessageEvent('trackedobjectadd', {
+          data: name,
+        })); */
+        const trackedObject = planet.getTrackedObject(name);
+        planet.dispatchEvent(new MessageEvent('trackedobjectadd', {
+          data: trackedObject,
+        }));
+      }
+    }
+    /* for (const name of lastObjects) {
+      if (!nextObjects.includes(name)) {
+        // removedObjects.push(name);
+        this.dispatchEvent(new MessageEvent('trackedobjectremove', {
+          data: name,
+        }));
+      }
+    } */
+
+    lastObjects = nextObjects;
+  });
+};
 const _connectRoom = async (roomName, worldURL) => {
   channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
 
@@ -634,7 +651,7 @@ const _connectRoom = async (roomName, worldURL) => {
     }
     channelConnectionOpen = false;
   }, {once: true});
-  window.channelConnection = channelConnection;
+  // window.channelConnection = channelConnection;
   channelConnection.addEventListener('peerconnection', async e => {
     const peerConnection = e.data;
     console.log('New Peer', e);
@@ -733,7 +750,7 @@ const _connectRoom = async (roomName, worldURL) => {
     }
   });
 
-  channelConnection.addEventListener('initState', async e => {
+  /* channelConnection.addEventListener('initState', async e => {
     const {data} = e;
     console.log('got init state', data);
 
@@ -749,13 +766,15 @@ const _connectRoom = async (roomName, worldURL) => {
     } else {
       delete state[key];
     }
-  });
+  }); */
+  state = channelConnection.state;
+  _bindState(state);
 };
 
-planet.update = () => {
+/* planet.update = () => {
   // update remote player rigs
   // rigManager.update();
-};
+}; */
 
 const button = document.getElementById('connectButton');
 planet.connect = async ({online = true, roomName: rn, url = null} = {}) => {
@@ -767,16 +786,13 @@ planet.connect = async ({online = true, roomName: rn, url = null} = {}) => {
       <i class="fal fa-wifi-slash"></i>
       <div class=label>Disconnect</div>
     `;
+  } else {
+    state = new Y.Doc();
+    _bindState(state);
   }
-  await _loadStorage(roomName);
+  // await _loadStorage(roomName);
   await _loadLiveState(roomName);
 };
-/* planet.reload = () => {
-  const b = _serializeState(state);
-  const s = _deserializeState(b);
-  return s;
-}; */
-
 document.getElementById('connectButton').addEventListener('click', async (e) => {
   e.preventDefault();
   e.stopPropagation();
@@ -798,3 +814,52 @@ document.getElementById('connectButton').addEventListener('click', async (e) => 
     }
   }
 });
+
+planet.addObject = (contentId, position, quaternion) => {
+  state.transact(() => {
+    const instanceId = getRandomString();
+    const trackedObject = planet.getTrackedObject(instanceId);
+    trackedObject.set('instanceId', instanceId);
+    trackedObject.set('contentId', contentId);
+    trackedObject.set('position', position.toArray());
+    trackedObject.set('quaternion', quaternion.toArray());
+  });
+};
+planet.addEventListener('trackedobjectadd', async e => {
+  const trackedObject = e.data;
+  const trackedObjectJson = trackedObject.toJSON();
+  const {contentId, position, quaternion} = trackedObjectJson;
+
+  {
+    const contractSource = await getContractSource('getNft.cdc');
+
+    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+      method: 'POST',
+      body: JSON.stringify({
+        limit: 100,
+        script: contractSource
+          .replace(/ARG0/g, contentId),
+        wait: true,
+      }),
+    });
+    const response2 = await res.json();
+    const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
+
+    const res2 = await fetch(`${storageHost}/${hash}`);
+    const file = await res2.blob();
+    file.name = filename;
+    // console.log('loading file');
+    const mesh = await runtime.loadFileForWorld(file);
+    mesh.position.fromArray(position);
+    mesh.quaternion.fromArray(quaternion);
+    
+    mesh.run && mesh.run();
+    scene.add(mesh);
+  }
+});
+planet.addEventListener('trackedobjectremove', async e => {
+  // XXX
+});
+planet.intersectObjects = raycaster => {
+  return false; // XXX
+};
