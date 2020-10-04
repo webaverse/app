@@ -420,7 +420,9 @@ planet.Subparcel = Subparcel;
 const _loadLiveState = seedString => {
   // planet.dispatchEvent(new MessageEvent('unload'));
   planet.dispatchEvent(new MessageEvent('load', {
-    data: state,
+    data: {
+      seedString,
+    },
   }));
 };
 
