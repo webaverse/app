@@ -828,7 +828,7 @@ function animate(timestamp, frame) {
   }
 
   geometryManager.update(timeDiff, frame);
-  planet.update();
+  // planet.update();
 
   appManager.tick(timestamp, frame);
   
