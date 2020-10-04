@@ -1161,7 +1161,7 @@ const _updateWeapons = timeDiff => {
       }
     };
     if (ioManager.currentWeaponDown && !ioManager.lastWeaponDown) { // XXX make this dual handed
-      if (anchorSpecs[0] && anchorSpecs[0].object === uiManager.menuMesh) {
+      if (anchorSpecs[0] && (anchorSpecs[0].object === uiManager.menuMesh || planet.isObject(anchorSpecs[0].object))) {
         _triggerAnchor(anchorSpecs[0]);
       } else {
         // place
