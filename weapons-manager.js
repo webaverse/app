@@ -892,6 +892,7 @@ const _updateWeapons = timeDiff => {
       localRaycaster.ray.origin.copy(position);
       localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
       anchorSpecs[0] = intersectUi(localRaycaster, uiManager.uiMeshes) ||
+        planet.intersectObjects(localRaycaster) ||
         meshComposer.intersect(localRaycaster) ||
         _intersectRigs(localRaycaster);
 
