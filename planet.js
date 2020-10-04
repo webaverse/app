@@ -5,6 +5,8 @@ import Y from './yjs.js';
 import {loginManager} from './login.js';
 import {getContractSource} from './blockchain.js';
 import runtime from './runtime.js';
+import {rigManager} from './rig.js';
+import {scene} from './app-object.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
@@ -63,13 +65,6 @@ export const planet = new EventTarget();
 planet.getSubparcelIndex = _getSubparcelIndex;
 planet.getPotentialIndex = _getPotentialIndex;
 planet.getFieldIndex = _getFieldIndex;
-
-let scene;
-let rigManager;
-planet.setBindings = (_scene, _rigManager) => {
-  scene = _scene;
-  rigManager = _rigManager;
-};
 
 const _getStringLength = s => {
   let i;
