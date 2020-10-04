@@ -1,6 +1,9 @@
 import storage from './storage.js';
 import {XRChannelConnection} from './xrrtc.js';
 import Y from './yjs.js';
+import {loginManager} from './login.js';
+import {getContractSource} from './blockchain.js';
+import runtime from './runtime.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
@@ -9,10 +12,11 @@ import {
   MAX_NAME_LENGTH,
   PLANET_OBJECT_SLOTS,
   PLANET_OBJECT_SIZE,
+
+  storageHost,
+  worldsHost,
 } from './constants.js';
-import {loginManager} from './login.js';
-import {storageHost, worldsHost} from './constants.js';
-import {makePromise} from './util.js';
+import {makePromise, getRandomString} from './util.js';
 // import * as THREE from './three.module.js';
 // import { makeTextMesh } from './vr-ui.js';
 
@@ -767,8 +771,6 @@ const _connectRoom = async (roomName, worldURL) => {
   _bindState(state);
 };
 
-planet.transactState = fn => state.transact(fn);
-
 /* planet.update = () => {
   // update remote player rigs
   // rigManager.update();
@@ -791,12 +793,6 @@ planet.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   // await _loadStorage(roomName);
   await _loadLiveState(roomName);
 };
-/* planet.reload = () => {
-  const b = _serializeState(state);
-  const s = _deserializeState(b);
-  return s;
-}; */
-
 document.getElementById('connectButton').addEventListener('click', async (e) => {
   e.preventDefault();
   e.stopPropagation();
@@ -816,5 +812,48 @@ document.getElementById('connectButton').addEventListener('click', async (e) => 
       // console.log(json);
       location.search = `?w=${json.id}`;
     }
+  }
+});
+
+planet.addObject = (contentId, position, quaternion) => {
+  state.transact(() => {
+    const instanceId = getRandomString();
+    const trackedObject = planet.getTrackedObject(instanceId);
+    trackedObject.set('instanceId', instanceId);
+    trackedObject.set('contentId', contentId);
+    trackedObject.set('position', position.toArray());
+    trackedObject.set('quaternion', quaternion.toArray());
+  });
+};
+planet.addEventListener('trackedobjectadd', async e => {
+  const trackedObject = e.data;
+  const trackedObjectJson = trackedObject.toJSON();
+  const {contentId, position, quaternion} = trackedObjectJson;
+
+  {
+    const contractSource = await getContractSource('getNft.cdc');
+
+    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+      method: 'POST',
+      body: JSON.stringify({
+        limit: 100,
+        script: contractSource
+          .replace(/ARG0/g, contentId),
+        wait: true,
+      }),
+    });
+    const response2 = await res.json();
+    const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
+
+    const res2 = await fetch(`${storageHost}/${hash}`);
+    const file = await res2.blob();
+    file.name = filename;
+    // console.log('loading file');
+    const mesh = await runtime.loadFileForWorld(file);
+    mesh.position.fromArray(position);
+    mesh.quaternion.fromArray(quaternion);
+    
+    mesh.run && mesh.run();
+    scene.add(mesh);
   }
 });
