@@ -1,10 +1,10 @@
 import Inventory from './Inventory.js';
 
-const Menu = (props = {}) => {
+const Menu = (props) => {
     return `
         <div class="twoD-menu">
             <div class="twoD-menuNav">
-                hello
+                ${Inventory(props)}
             </div>
         </div>
     `;

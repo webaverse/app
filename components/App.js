@@ -2,35 +2,35 @@ import Menu from './Menu.js';
 import WeaponWheel from './WeaponWheel.js';
 import inventory from '../inventory.js';
 import { loginManager } from '../login.js';
-import { state, getState, setState, getSpecificState } from '../state.js';
+import { state, getSpecificState } from '../state.js';
 import { setBindings } from './bindings.js';
 
 let appState = state;
 
 const onclickBindings = {
-  'inventory-wear': e => {
+  'inventory-wear': (e) => {
     const id = parseInt(e.target.getAttribute('inventoryid'), 10);
     loginManager.setAvatar(id);
   },
-  'inventory-discard': async e => {
+  'inventory-discard': async (e) => {
     const id = parseInt(e.target.getAttribute('inventoryid'), 10);
     await inventory.discardFile(id);
   },
-  'inventory-upload': e => {
+  'inventory-upload': (e) => {
     const file = document.getElementById("twoD-inventoryUploadBtn").files[0];
     inventory.uploadFile(file);
   },
 };
 
 inventory.addEventListener('filesupdate', (e) => {
-    updateProps({
-        inventoryItems: e.data,
-    })
+    state.menu.inventory.items = state.menu.inventory.items.concat(e.data)
+    updateProps({ inventoryItems: state.menu.inventory.items })
 });
 
 export const toggleMenus = (props) => {
+    console.log(appState)
     switch (appState.selectedWeapon) {
-        case 'menu':
+        case 'inventory':
             return Menu(props);
         case 'weaponWheel':
             return WeaponWheel(props);
