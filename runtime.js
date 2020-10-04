@@ -264,8 +264,7 @@ const _loadWebBundle = async file => {
         }
       });
   };
-  mesh.remove = () => {
-    console.log('remove');
+  mesh.destroy = () => {
     appManager.destroyApp(appId);
   };
 
