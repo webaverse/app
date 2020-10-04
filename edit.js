@@ -84,12 +84,11 @@ function mod(a, b) {
 
 (async () => {
   const q = parseQuery(location.search);
-  if (q.w) {
-    const url = q.w + '.' + presenceHost;
+  if (q.u) {
     await planet.connect({
       online: true,
       roomName: 'lol',
-      url,
+      url: q.u,
     });
   } else {
     await planet.connect({
@@ -829,7 +828,7 @@ function animate(timestamp, frame) {
   }
 
   geometryManager.update(timeDiff, frame);
-  planet.update();
+  // planet.update();
 
   appManager.tick(timestamp, frame);
   

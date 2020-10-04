@@ -560,6 +560,29 @@ class LoginManager extends EventTarget {
     }
   }
 
+  async destroyNft(id) {
+    if (loginToken) {
+      const {mnemonic, addr} = loginToken;
+      const contractSource = await getContractSource('destroyNft.cdc');
+
+      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+        method: 'POST',
+        body: JSON.stringify({
+          address: addr,
+          mnemonic,
+
+          limit: 100,
+          transaction: contractSource
+            .replace(/ARG0/g, id),
+          wait: true,
+        }),
+      });
+      const response2 = await res.json();
+    } else {
+      throw new Error('not logged in');
+    }
+  }
+
   pushUpdate() {
     this.dispatchEvent(new MessageEvent('usernamechange', {
       data: userObject && userObject.name,

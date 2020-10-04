@@ -6,7 +6,7 @@ import {mergeMeshes} from './util.js';
 import {makeIconMesh} from './vr-ui.js';
 import {appManager} from './app-object.js';
 import wbn from './wbn.js';
-import {storageHost} from './constants.js';
+// import {storageHost} from './constants.js';
 
 const runtime = {};
 
@@ -245,7 +245,31 @@ const _loadWebBundle = async file => {
   });
 
   const appId = ++appIds;
-  const app = appManager.createApp(appId);
+  const mesh = makeIconMesh();
+  mesh.geometry.boundingBox = new THREE.Box3(
+    new THREE.Vector3(-1, -1/2, -0.1),
+    new THREE.Vector3(1, 1/2, 0.1),
+  );
+  mesh.frustumCulled = false;
+  mesh.run = () => {
+    import(u)
+      .then(() => {
+        console.log('import returned');
+      }, err => {
+        console.warn('import failed', u, err);
+      })
+      .finally(() => {
+        for (const u of cachedUrls) {
+          URL.revokeObjectURL(u);
+        }
+      });
+  };
+  mesh.remove = () => {
+    console.log('remove');
+    appManager.destroyApp(appId);
+  };
+
+  const app = appManager.createApp(appId, mesh);
   const localImportMap = _clone(importMap);
   localImportMap.app = (() => {
     const s = `\
@@ -311,7 +335,7 @@ const _loadWebBundle = async file => {
   };
 
   const bundle = new wbn.Bundle(arrayBuffer);
-  console.log('got bundle', bundle);
+  // console.log('got bundle', bundle);
   const {urls} = bundle;
   for (const u of urls) {
     const response = bundle.getResponse(u);
@@ -326,29 +350,6 @@ const _loadWebBundle = async file => {
   }
   const u = _mapUrl(bundle.primaryURL);
 
-  const mesh = makeIconMesh();
-  mesh.geometry.boundingBox = new THREE.Box3(
-    new THREE.Vector3(-1, -1/2, -0.1),
-    new THREE.Vector3(1, 1/2, 0.1),
-  );
-  mesh.frustumCulled = false;
-  mesh.run = () => {
-    import(u)
-      .then(() => {
-        console.log('import returned');
-      }, err => {
-        console.warn('import failed', u, err);
-      })
-      .finally(() => {
-        for (const u of cachedUrls) {
-          URL.revokeObjectURL(u);
-        }
-      });
-  };
-  mesh.remove = () => {
-    console.log('remove');
-    appManager.destroyApp(appId);
-  };
   return mesh;
 };
 
