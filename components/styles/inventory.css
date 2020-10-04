@@ -17,7 +17,6 @@
 }
 
 .twoD-inventory .twoD-inventoryHeader .twoD-inventoryUploadBtn {
-    float: right;
     padding: 10px 20px;
     background-color: #42a5f5;
     border: 0;
@@ -36,7 +35,7 @@
 }
 
 .twoD-inventory .twoD-inventoryList {
-    max-height: calc(100% - 95px);
+    height: calc(80vh - 155px);
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -45,8 +44,8 @@
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard {
-    height: 230px;
-    width: 200px;
+    height: 300px;
+    width: 250px;
     background-color:#e6e8ef;
     margin: 10px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);            
@@ -66,7 +65,7 @@
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardPreview {
-    height: 66%;
+    height: 60%;
     width: 100%;
 }
 
@@ -85,7 +84,7 @@
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin-right: 5px;
+    margin: 5px;
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardActions .twoD-inventoryCardInspectBtn {
@@ -99,5 +98,19 @@
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin-left: 5px;
+    margin: 5px;
+}
+
+.twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardActions .twoD-inventoryCardDiscardBtn {
+    padding: 6px 10px;
+    background-color:#c12e5a;
+    border: 0;
+    color: #FFF;
+    border-radius: 8px;
+    font-size: 14px;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    margin: 5px;
 }
