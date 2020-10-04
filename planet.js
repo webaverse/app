@@ -1,4 +1,6 @@
 import storage from './storage.js';
+import {XRChannelConnection} from './xrrtc.js';
+import Y from './yjs.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
@@ -8,7 +10,6 @@ import {
   PLANET_OBJECT_SLOTS,
   PLANET_OBJECT_SIZE,
 } from './constants.js';
-import {XRChannelConnection} from './xrrtc.js';
 import {loginManager} from './login.js';
 import {storageHost, worldsHost} from './constants.js';
 import {makePromise} from './util.js';
@@ -523,6 +524,52 @@ let channelConnectionOpen = null;
 const peerConnections = [];
 let state = null;
 
+planet.getTrackedObjects = () => {
+  const objects = state.getArray('objects');
+  const objectsJson = objects.toJSON();
+  return objectsJson.map(name => state.getMap('object.' + name));
+};
+planet.getTrackedObject = name => {
+  const objects = state.getArray('objects');
+  const objectsJson = objects.toJSON();
+  if (!objectsJson.includes(name)) {
+    objects.push([name]);
+  }
+
+  return state.getMap('object.' + name);
+};
+const _bindState = state => {
+  const objects = state.getArray('objects');
+  let lastObjects = [];
+  objects.observe(() => {
+    const nextObjects = objects.toJSON();
+
+    // const addedObjects = [];
+    // const removedObjects = [];
+    for (const name of nextObjects) {
+      if (!lastObjects.includes(name)) {
+        // addedObjects.push(name);
+        /* this.dispatchEvent(new MessageEvent('trackedobjectadd', {
+          data: name,
+        })); */
+        const trackedObject = planet.getTrackedObject(name);
+        planet.dispatchEvent(new MessageEvent('trackedobjectadd', {
+          data: trackedObject,
+        }));
+      }
+    }
+    /* for (const name of lastObjects) {
+      if (!nextObjects.includes(name)) {
+        // removedObjects.push(name);
+        this.dispatchEvent(new MessageEvent('trackedobjectremove', {
+          data: name,
+        }));
+      }
+    } */
+
+    lastObjects = nextObjects;
+  });
+};
 const _connectRoom = async (roomName, worldURL) => {
   channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
 
@@ -716,6 +763,8 @@ const _connectRoom = async (roomName, worldURL) => {
       delete state[key];
     }
   }); */
+  state = channelConnection.state;
+  _bindState(state);
 };
 
 planet.transactState = fn => state.transact(fn);
@@ -735,6 +784,9 @@ planet.connect = async ({online = true, roomName: rn, url = null} = {}) => {
       <i class="fal fa-wifi-slash"></i>
       <div class=label>Disconnect</div>
     `;
+  } else {
+    state = new Y.Doc();
+    _bindState(state);
   }
   // await _loadStorage(roomName);
   await _loadLiveState(roomName);
