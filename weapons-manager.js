@@ -1436,12 +1436,16 @@ const _updateWeapons = timeDiff => {
   _handleDown();
 
   const _handleGrab = () => {
+    const transforms = rigManager.getRigTransforms();
     for (let i = 0; i < 2; i++) {
       if (ioManager.currentWeaponGrabs[i] && !ioManager.lastWeaponGrabs[i]) {
-        meshComposer.grab(i);
+        const {position} = transforms[i];
+        planet.grabbedObjects[i] = planet.getClosestObject(position, 0.3);
+        // meshComposer.grab(i);
       }
       if (!ioManager.currentWeaponGrabs[i] && ioManager.lastWeaponGrabs[i]) {
-        meshComposer.ungrab(i);
+        planet.grabbedObjects[i] = null;
+        // meshComposer.ungrab(i);
       }
     }
   };

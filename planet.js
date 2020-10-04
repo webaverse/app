@@ -820,6 +820,7 @@ document.getElementById('connectButton').addEventListener('click', async (e) => 
 });
 
 const objects = [];
+const grabbedObjects = [null, null];
 planet.addObject = (contentId, position, quaternion) => {
   state.transact(() => {
     const instanceId = getRandomString();
@@ -923,4 +924,31 @@ planet.intersectObjects = raycaster => {
     }
   }
   return false; // XXX
+};
+planet.getClosestObject = (position, maxDistance) => {
+  let closestObject = null;
+  let closestObjectDistance = Infinity;
+  for (const object of objects) {
+    const distance = position.distanceTo(object.position);
+    if (distance < closestObjectDistance && distance < maxDistance) {
+      closestObject = object;
+      closestObjectDistance = distance;
+    }
+  }
+  return closestObject;
+};
+planet.grabbedObjects = [null, null];
+planet.update = () => {
+  const _updateObjectsGrab = () => {
+    const transforms = rigManager.getRigTransforms();
+    for (let i = 0; i < 2; i++) {
+      const grabbedObject = planet.grabbedObjects[i];
+      if (grabbedObject) {
+        const {position, quaternion} = transforms[0];
+        grabbedObject.position.copy(position);
+        grabbedObject.quaternion.copy(quaternion);
+      }
+    }
+  };
+  _updateObjectsGrab();
 };
