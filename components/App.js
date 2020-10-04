@@ -68,7 +68,7 @@ export const updateProps = (newProps) => {
 
 window.addEventListener('stateChanged', (e) => {
     const changedState = getSpecificState(e.detail.changedKeys);
-    console.log('stateChanged', changedState);
+    // console.log('stateChanged', changedState);
     for (let k in changedState) {
         appState[k] = changedState[k];
     }
