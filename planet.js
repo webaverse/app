@@ -860,6 +860,7 @@ planet.addEventListener('trackedobjectadd', async e => {
 planet.addEventListener('trackedobjectremove', async e => {
   // XXX
 });
+planet.isObject = object => objects.includes(object);
 planet.intersectObjects = raycaster => {
   return false; // XXX
 };
