@@ -35,7 +35,7 @@
 }
 
 .twoD-inventory .twoD-inventoryList {
-    height: calc(80vh - 155px);
+    max-height: calc(80vh - 155px);
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -44,14 +44,21 @@
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard {
-    height: 300px;
+    height: 240px;
     width: 250px;
-    background-color:#e6e8ef;
+    background-color: #e6e8ef;
     margin: 10px;
-    box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);            
+    box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
     border-radius: 5px;
     border: 1px #eeeef5 solid;
     text-align: center;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.twoD-inventory .twoD-inventoryList .twoD-inventoryCard:hover {
+    height: 320px;
+    transition: height 0.5s;
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard:hover {
@@ -65,7 +72,7 @@
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardPreview {
-    height: 60%;
+    height: 200px;
     width: 100%;
 }
 
