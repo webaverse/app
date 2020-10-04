@@ -47,8 +47,6 @@ const _getFieldIndex = (x, y, z) => x + y * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P
 // planet
 export const planet = new EventTarget();
 
-let state = null;
-
 planet.getSubparcelIndex = _getSubparcelIndex;
 planet.getPotentialIndex = _getPotentialIndex;
 planet.getFieldIndex = _getFieldIndex;
@@ -521,6 +519,7 @@ let roomName = null;
 let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
+let state = null;
 
 const _connectRoom = async (roomName, worldURL) => {
   channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
