@@ -1,23 +1,23 @@
 const InventoryCard = (props = {}) => {
     return `
-        <div class="twoD-inventoryCard" draggable dragid="inventory-${props.id}">
+        <a class="twoD-inventoryCard" draggable dragid="inventory-${props.id}">
             <img class="twoD-inventoryCardPreview" src="${props.preview}"></img>
             <h4 class="twoD-inventoryCardName">${props.name}</h4>
             <div class="twoD-inventoryCardActions">
-                <button class="twoD-inventoryCardWearBtn" onclick=inventory-wear inventoryid="${props.id}">
+                <a class="twoD-inventoryCardWearBtn" onclick=inventory-wear inventoryid="${props.id}">
                     <i class="fal fa-hand-sparkles" style="margin-right: 5px;"></i>
                     Wear
-                </button>
-                <button class="twoD-inventoryCardDiscardBtn" onclick=inventory-discard inventoryid="${props.id}">
+                </a>
+                <a class="twoD-inventoryCardDiscardBtn" onclick=inventory-discard inventoryid="${props.id}">
                     <i class="fal fa-trash" style="margin-right: 5px;"></i>
                     Discard
-                </button>
-                <button class="twoD-inventoryCardInspectBtn">
+                </a>
+                <a class="twoD-inventoryCardInspectBtn">
                     <i class="fal fa-search-plus" style="margin-right: 5px;"></i>
                     Inspect
-                </button>
+                </a>
             </div>
-        </div>
+        </a>
     `;
 }
 
@@ -151,11 +151,11 @@ const Inventory = (props = {}) => {
         </style>
         <div class="twoD-inventory">
             <div class="twoD-inventoryHeader">
-                <button class="twoD-inventoryUploadBtn">
+                <a class="twoD-inventoryUploadBtn">
                     <i class="fal fa-arrow-alt-from-top" style="margin-right: 5px;"></i>
                     Upload
                     <input id="twoD-inventoryUploadBtn" type="file" onchange="inventory-upload">
-                </button>
+                </a>
             </div>
             <div class="twoD-inventoryList">
                 ${
