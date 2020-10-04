@@ -30,6 +30,7 @@
     import * as THREE from './three.module.js';
     import {OrbitControls} from './OrbitControls.js';
     import {GLTFLoader} from './GLTFLoader.js';
+    import {VOXLoader} from './VOXLoader.js';
     import {bake, toggleElements} from './bakeUtils.js';
     import {parseQuery} from './util.js';
     import * as icons from './icons.js';
@@ -261,6 +262,24 @@
           o = o.scene;
           return o;
         };
+        const _loadVox = async () => {
+          // const u = `${storageHost}/${hash}`;
+          const u = './chr_cat.vox';
+          let o;
+          try {
+            o = await new Promise((accept, reject) => {
+              new VOXLoader({
+                scale: 0.01,
+              }).load(u, accept, function onprogress() {}, reject);
+            });
+          } catch(err) {
+            console.warn(err);
+          } /* finally {
+            URL.revokeObjectURL(u);
+          } */
+          console.log('got o', u, o);
+          return o;
+        };
 
         if (type === 'gltf') {
           const {renderer, scene, camera} = _makeRenderer();
@@ -303,10 +322,20 @@
           }, '*', [arrayBuffer]);
         } else if (type === 'png' || type === 'jpg') {
           const canvas = await (async () => {
-            if (['glb', 'vrm'].includes(ext)) {
+            if (['glb', 'vrm', 'vox'].includes(ext)) {
               const {renderer, scene, camera} = _makeRenderer();
 
-              const o = await _loadGltf();
+              const o = await (async () => {
+                switch (ext) {
+                  case 'glb':
+                  case 'vrm':
+                    return await _loadGltf();
+                  case 'vox':
+                    return await _loadVox();
+                  default:
+                    return null;
+                }
+              })();
               scene.add(o);
 
               const boundingBox = new THREE.Box3().setFromObject(o);
