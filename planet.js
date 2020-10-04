@@ -718,10 +718,10 @@ const _connectRoom = async (roomName, worldURL) => {
   });
 };
 
-planet.update = () => {
+/* planet.update = () => {
   // update remote player rigs
   // rigManager.update();
-};
+}; */
 
 const button = document.getElementById('connectButton');
 planet.connect = async ({online = true, roomName: rn, url = null} = {}) => {
