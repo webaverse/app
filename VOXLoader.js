@@ -2702,8 +2702,8 @@ var vox = {};
 })();
 
 const tesselate = (() => {
-  const NUM_POSITIONS_CHUNK = 100 * 1024;
-  const MASK_SIZE = 4096;
+  const NUM_POSITIONS_CHUNK = 1024 * 1024;
+  const MASK_SIZE = 512*1024;
   const colors = new Uint32Array(MASK_SIZE);
   const invColors = new Uint32Array(MASK_SIZE);
   const mask = new Uint8Array(MASK_SIZE);
