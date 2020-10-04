@@ -699,7 +699,7 @@ const _connectRoom = async (roomName, worldURL) => {
     }
   });
 
-  channelConnection.addEventListener('initState', async e => {
+  /* channelConnection.addEventListener('initState', async e => {
     const {data} = e;
     console.log('got init state', data);
 
@@ -715,8 +715,10 @@ const _connectRoom = async (roomName, worldURL) => {
     } else {
       delete state[key];
     }
-  });
+  }); */
 };
+
+planet.transactState = fn => state.transact(fn);
 
 /* planet.update = () => {
   // update remote player rigs
