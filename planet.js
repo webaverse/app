@@ -600,7 +600,7 @@ const _connectRoom = async (roomName, worldURL) => {
     }
     channelConnectionOpen = false;
   }, {once: true});
-  window.channelConnection = channelConnection;
+  // window.channelConnection = channelConnection;
   channelConnection.addEventListener('peerconnection', async e => {
     const peerConnection = e.data;
     console.log('New Peer', e);
