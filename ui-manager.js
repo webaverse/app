@@ -459,6 +459,40 @@ geometryManager.waitForLoad().then(() => {
   uiManager.toolsMesh.visible = false;
   scene.add(uiManager.toolsMesh);
 
+  uiManager.openTradeMesh = (point, mesh) => {
+    for (const infoMesh of uiManager.infoMeshes) {
+      infoMesh.visible = false;
+    }
+
+    const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+    uiManager.tradeMesh.position.copy(point);
+    localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
+      new THREE.Vector3(0, 0, -1),
+      uiManager.tradeMesh.position.clone().sub(xrCamera.position).normalize()
+    ), 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    uiManager.tradeMesh.quaternion.setFromEuler(localEuler);
+    uiManager.tradeMesh.visible = true;
+  };
+  uiManager.openDetailsMesh = (point, mesh) => {
+    for (const infoMesh of uiManager.infoMeshes) {
+      infoMesh.visible = false;
+    }
+
+    const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+    uiManager.detailsMesh.position.copy(point);
+    localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
+      new THREE.Vector3(0, 0, -1),
+      uiManager.detailsMesh.position.clone().sub(xrCamera.position).normalize()
+    ), 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    uiManager.detailsMesh.quaternion.setFromEuler(localEuler);
+    uiManager.detailsMesh.visible = true;
+    uiManager.detailsMesh.target = mesh;
+  };
+
   uiManager.update = () => {
     hpMesh.update();
     popupMesh.update();
