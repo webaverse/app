@@ -7,6 +7,7 @@ import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
+import {planet} from './planet.js';
 import {rigManager} from './rig.js';
 import {teleportMeshes} from './teleport.js';
 import {renderer, scene, camera, dolly} from './app-object.js';

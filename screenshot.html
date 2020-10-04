@@ -30,6 +30,7 @@
     import * as THREE from './three.module.js';
     import {OrbitControls} from './OrbitControls.js';
     import {GLTFLoader} from './GLTFLoader.js';
+    import {VOXLoader} from './VOXLoader.js';
     import {bake, toggleElements} from './bakeUtils.js';
     import {parseQuery} from './util.js';
     import * as icons from './icons.js';
@@ -76,6 +77,15 @@
       // camera.updateProjectionMatrix();
 
       // camera.lookAt(model.boundingBoxMesh.getWorldPosition(new THREE.Vector3()));
+
+      /* const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.1);
+      scene.add(ambientLight); */
+      const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+      directionalLight.position.set(1, 2, -3);
+      scene.add(directionalLight);
+      /* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 2);
+      directionalLight2.position.set(0, 0, -3);
+      scene.add(directionalLight2); */
 
       return {renderer, scene, camera};
     };
@@ -252,6 +262,23 @@
           o = o.scene;
           return o;
         };
+        const _loadVox = async () => {
+          const u = `${storageHost}/${hash}`;
+          let o;
+          try {
+            o = await new Promise((accept, reject) => {
+              new VOXLoader({
+                scale: 0.01,
+              }).load(u, accept, function onprogress() {}, reject);
+            });
+          } catch(err) {
+            console.warn(err);
+          } /* finally {
+            URL.revokeObjectURL(u);
+          } */
+          console.log('got o', u, o);
+          return o;
+        };
 
         if (type === 'gltf') {
           const {renderer, scene, camera} = _makeRenderer();
@@ -294,10 +321,20 @@
           }, '*', [arrayBuffer]);
         } else if (type === 'png' || type === 'jpg') {
           const canvas = await (async () => {
-            if (['glb', 'vrm'].includes(ext)) {
+            if (['glb', 'vrm', 'vox'].includes(ext)) {
               const {renderer, scene, camera} = _makeRenderer();
 
-              const o = await _loadGltf();
+              const o = await (async () => {
+                switch (ext) {
+                  case 'glb':
+                  case 'vrm':
+                    return await _loadGltf();
+                  case 'vox':
+                    return await _loadVox();
+                  default:
+                    return null;
+                }
+              })();
               scene.add(o);
 
               const boundingBox = new THREE.Box3().setFromObject(o);
@@ -306,7 +343,11 @@
 
               camera.position.x = 0;
               camera.position.y = center.y;
-              camera.position.z = -size.y / 2 / Math.tan(Math.PI * camera.fov / 360) * 1.2;
+              camera.position.z = -Math.max(
+                size.y / 2 / Math.tan(Math.PI * camera.fov / 360),
+                Math.abs(size.x),
+                Math.abs(size.z)
+              ) * 1.2;
               camera.lookAt(center);
               camera.updateMatrixWorld();
 
