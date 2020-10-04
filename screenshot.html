@@ -344,7 +344,11 @@
 
               camera.position.x = 0;
               camera.position.y = center.y;
-              camera.position.z = -size.y / 2 / Math.tan(Math.PI * camera.fov / 360) * 1.2;
+              camera.position.z = -Math.max(
+                size.y / 2 / Math.tan(Math.PI * camera.fov / 360),
+                Math.abs(size.x),
+                Math.abs(size.z)
+              ) * 1.2;
               camera.lookAt(center);
               camera.updateMatrixWorld();
 
