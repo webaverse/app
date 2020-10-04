@@ -3,7 +3,6 @@ import {GLTFLoader} from './GLTFLoader.js';
 import {makeTextMesh} from './vr-ui.js';
 import {makePromise, WaitQueue} from './util.js';
 import {scene} from './app-object.js';
-import {planet} from './planet.js';
 import Avatar from './avatars/avatars.js';
 
 const localEuler = new THREE.Euler();
@@ -289,7 +288,6 @@ class RigManager {
   }
 }
 const rigManager = new RigManager(scene);
-planet.setBindings(scene, rigManager);
 
 export {
   // RigManager,
