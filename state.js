@@ -1,10 +1,27 @@
-const state = {
+export const state = {
     isXR: false,
-    inventory: {
-        items: []
+    pointerLock: false,
+    menu: {
+        visible: false,
+        activeTab: '',
+        account: {
+            name: '',
+            avatar: null,
+            isMic: false,
+            equipped: []
+        },
+        inventory: {
+            items: []
+        },
+        world: {
+            peers: []
+        },
     },
-    selectedWeapon: null,
-    pointerLock: false
+    weaponWheel: {
+        visible: false,
+        activeWeapon: '',
+        weapons: [],
+    }
 };
 
 const emitChange = (changedKeys) => {

@@ -1,42 +1,40 @@
-import Inventory from './Inventory.js';
+import Menu from './Menu.js';
+import WeaponWheel from './WeaponWheel.js';
 import inventory from '../inventory.js';
-import {loginManager} from '../login.js';
-import {getState, setState, getSpecificState} from '../state.js';
-import {setBindings} from './bindings.js';
+import { loginManager } from '../login.js';
+import { state, getSpecificState } from '../state.js';
+import { setBindings } from './bindings.js';
 
-let appState = getState();
-
-let appProps = {
-    inventoryItems: appState.inventory.items,
-    selectedWeapon: appState.selectedWeapon,
-    isXR: appState.isXR
-};
+let appState = state;
 
 const onclickBindings = {
-  'inventory-wear': e => {
+  'inventory-wear': (e) => {
     const id = parseInt(e.target.getAttribute('inventoryid'), 10);
     loginManager.setAvatar(id);
   },
-  'inventory-discard': async e => {
+  'inventory-discard': async (e) => {
     const id = parseInt(e.target.getAttribute('inventoryid'), 10);
     await inventory.discardFile(id);
   },
-  'inventory-upload': e => {
+  'inventory-upload': (e) => {
     const file = document.getElementById("twoD-inventoryUploadBtn").files[0];
     inventory.uploadFile(file);
   },
 };
+
 inventory.addEventListener('filesupdate', (e) => {
-    updateProps({
-        inventoryItems: e.data,
-    })
+    state.menu.inventory.items = state.menu.inventory.items.concat(e.data)
+    updateProps({ inventoryItems: state.menu.inventory.items })
 });
 
 export const toggleMenus = (props) => {
-    switch (appProps.selectedWeapon) {
+    console.log(appState)
+    switch (appState.selectedWeapon) {
         case 'inventory':
-            return Inventory(props);
-        default: 
+            return Menu(props);
+        case 'weaponWheel':
+            return WeaponWheel(props);
+        default:
             return;
     }
 }
@@ -52,24 +50,24 @@ export const App = (props) => {
 export const updateProps = (newProps) => {
     const appContainer = document.getElementById('appContainer');
     for (let k in newProps) {
-        if (appProps[k] !== newProps[k]) {
-            appProps[k] = newProps[k];
+        if (appState[k] !== newProps[k]) {
+            appState[k] = newProps[k];
         }
     }
-    if (appProps.pointerLock || appProps.isXR || !appProps.selectedWeapon) {
+    if (appState.pointerLock || appState.isXR) {
         appContainer.style.display = 'none';
         appContainer.innerHTML = '';
         setBindings(null, onclickBindings);
     } else {
         appContainer.style.display = 'block';
-        appContainer.innerHTML = App(appProps);
+        appContainer.innerHTML = App(appState);
         setBindings(appContainer, onclickBindings);
     }
 }
 
 window.addEventListener('stateChanged', (e) => {
     const changedState = getSpecificState(e.detail.changedKeys);
-    // console.log('stateChanged', changedState);
+    console.log('stateChanged', changedState);
     for (let k in changedState) {
         appState[k] = changedState[k];
     }
