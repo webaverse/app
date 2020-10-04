@@ -14,6 +14,8 @@ import {colors, storageHost} from './constants.js';
 const uiManager = new EventTarget();
 
 const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 const localColor = new THREE.Color();
 
 const _makeInventoryContentsMesh = () => {
