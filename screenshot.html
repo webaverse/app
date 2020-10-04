@@ -81,11 +81,11 @@
       /* const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.1);
       scene.add(ambientLight); */
       const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
-      directionalLight.position.set(1, 2, -3);
+      directionalLight.position.set(2, 2, -2);
       scene.add(directionalLight);
-      /* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 2);
-      directionalLight2.position.set(0, 0, -3);
-      scene.add(directionalLight2); */
+      const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
+      directionalLight2.position.set(-2, 2, 2);
+      scene.add(directionalLight2);
 
       return {renderer, scene, camera};
     };
