@@ -3,7 +3,7 @@ import * as THREE from './three.module.js';
 import {TextMesh} from './textmesh-standalone.esm.js';
 import easing from './easing.js';
 import * as icons from './icons.js';
-import Inventory from './components/Inventory.js';
+import Menu from './threeD-components/Menu.js';
 import {getState} from './state.js';
 
 const localVector = new THREE.Vector3();
@@ -1425,7 +1425,9 @@ const makeMenuMesh = cubeMesh => {
 
   let anchors = [];
   mesh.update = () => {
-    const htmlString = _makeMenuString();
+    // const htmlString = _makeMenuString();
+    const state = getState();
+    const htmlString = Menu({ inventoryItems: state.menu.inventory.items });
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
         // imageData.data.set(result.data);
@@ -2353,9 +2355,7 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
   };
   mesh.update = () => {
     // console.log('update', scrollFactor, scrollbarHeight);
-    // const htmlString = _makeInventoryString();
-    const state = getState();
-    const htmlString = Inventory(state.menu.inventory.items);
+    const htmlString = _makeInventoryString();
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
         /* imageData.data.set(result.data);
