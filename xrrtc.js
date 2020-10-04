@@ -1,4 +1,5 @@
 import RoomClient from './client/RoomClient.js';
+import Y from './yjs.js';
 
 /* const defaultIceServers = [
   {'urls': 'stun:stun.stunprotocol.org:3478'},
@@ -135,10 +136,19 @@ class XRChannelConnection extends EventTarget {
       // await dialogClient.enableWebcam();
     })();
     this.dialogClient = dialogClient;
-    dialogClient._protoo._transport.on('rawMessage', e => {
-      console.log('got raw message', e);
+
+    this.state = new Y.Doc();
+    dialogClient._protoo._transport._ws.binaryType = 'arraybuffer';
+    dialogClient._protoo._transport._ws.addEventListener('open', () => {
+      dialogClient._protoo._transport._ws.addEventListener('message', e => {
+        if (e.data instanceof ArrayBuffer) {
+          Y.applyUpdate(this.state, new Uint8Array(e.data));
+        }
+      });
+      this.state.on('update', b => {
+        dialogClient._protoo._transport._ws.send(b);
+      });
     });
-    console.log('got client', dialogClient);
   }
 
   /* setState(key, value) {
