@@ -1138,38 +1138,6 @@ const _updateWeapons = timeDiff => {
   _handleBuild();
 
   const _handleDown = () => {
-    const _openTradeMesh = (point, mesh) => {
-      for (const infoMesh of uiManager.infoMeshes) {
-        infoMesh.visible = false;
-      }
-
-      const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-      uiManager.tradeMesh.position.copy(point);
-      localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
-        new THREE.Vector3(0, 0, -1),
-        uiManager.tradeMesh.position.clone().sub(xrCamera.position).normalize()
-      ), 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      uiManager.tradeMesh.quaternion.setFromEuler(localEuler);
-      uiManager.tradeMesh.visible = true;
-    };
-    const _openDetailsMesh = (point, mesh) => {
-      for (const infoMesh of uiManager.infoMeshes) {
-        infoMesh.visible = false;
-      }
-
-      const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-      uiManager.detailsMesh.position.copy(point);
-      localEuler.setFromQuaternion(localQuaternion.setFromUnitVectors(
-        new THREE.Vector3(0, 0, -1),
-        uiManager.detailsMesh.position.clone().sub(xrCamera.position).normalize()
-      ), 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      uiManager.detailsMesh.quaternion.setFromEuler(localEuler);
-      uiManager.detailsMesh.visible = true;
-    };
     const _triggerAnchor = mesh => {
       for (let i = 0; i < 2; i++) {
         const anchorSpec = anchorSpecs[i];
@@ -1183,9 +1151,9 @@ const _updateWeapons = timeDiff => {
               anchorSpec.object.click(anchorSpec);
             } else { // non-menu
               if (anchorSpec.object === rigCapsule) {
-                _openTradeMesh(anchorSpec.point, anchorSpec.object);
+                uiManager.openTradeMesh(anchorSpec.point, anchorSpec.object);
               } else {
-                _openDetailsMesh(anchorSpec.point, anchorSpec.object);
+                uiManager.openDetailsMesh(anchorSpec.point, anchorSpec.object);
               }
             }
           }
@@ -1357,7 +1325,7 @@ const _updateWeapons = timeDiff => {
           case 'select': {
             _triggerAnchor();
             if (!anchorSpecs[0] && raycastChunkSpec && raycastChunkSpec.objectId !== 0) {
-              _openDetailsMesh(raycastChunkSpec.point, raycastChunkSpec.mesh);
+              uiManager.openDetailsMesh(raycastChunkSpec.point, raycastChunkSpec.mesh);
             }
             break;
           }
