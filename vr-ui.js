@@ -2355,7 +2355,7 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
     // console.log('update', scrollFactor, scrollbarHeight);
     // const htmlString = _makeInventoryString();
     const state = getState();
-    const htmlString = Inventory(state.inventory.items);
+    const htmlString = Inventory(state.menu.inventory.items);
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
         /* imageData.data.set(result.data);

@@ -20,6 +20,7 @@ import {
   BUILD_SNAP,
   colors,
 } from './constants.js';
+import { planet } from './planet.js';
 import { setState } from './state.js';
 
 const localVector = new THREE.Vector3();
