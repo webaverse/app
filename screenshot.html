@@ -492,18 +492,17 @@
         } else if (type === 'gif') {
           const {renderer, scene, camera} = _makeRenderer();
 
-          const u = `${storageHost}/${hash}`;
-          let o;
-          try {
-            o = await new Promise((accept, reject) => {
-              new GLTFLoader().load(u, accept, function onprogress() {}, reject);
-            });
-          } catch(err) {
-            console.warn(err);
-          } /* finally {
-            URL.revokeObjectURL(u);
-          } */
-          o = o.scene;
+          const o = await (async () => {
+            switch (ext) {
+              case 'glb':
+              case 'vrm':
+                return await _loadGltf();
+              case 'vox':
+                return await _loadVox();
+              default:
+                return null;
+            }
+          })();
           scene.add(o);
 
           const boundingBox = new THREE.Box3().setFromObject(o);
@@ -574,18 +573,17 @@
         } else if (type === 'webm') {
           const {renderer, scene, camera} = _makeRenderer();
 
-          const u = `${storageHost}/${hash}`;
-          let o;
-          try {
-            o = await new Promise((accept, reject) => {
-              new GLTFLoader().load(u, accept, function onprogress() {}, reject);
-            });
-          } catch(err) {
-            console.warn(err);
-          } /* finally {
-            URL.revokeObjectURL(u);
-          } */
-          o = o.scene;
+          const o = await (async () => {
+            switch (ext) {
+              case 'glb':
+              case 'vrm':
+                return await _loadGltf();
+              case 'vox':
+                return await _loadVox();
+              default:
+                return null;
+            }
+          })();
           scene.add(o);
 
           const boundingBox = new THREE.Box3().setFromObject(o);
