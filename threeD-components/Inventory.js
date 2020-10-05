@@ -13,10 +13,12 @@ const InventoryDetails = props => {
   const {selectedId, selectedHash, selectedFileName} = props;
   return `\
     <div class=details>
-      <div class=id>${selectedId}</div>
-      <div class=id>${selectedHash}</div>
-      <div class=id>${selectedFileName}</div>
-      <a class=button>Spawn</a>
+      ${selectedId !== null ? `\
+        <div class=id>${selectedId}</div>
+        <div class=id>${selectedHash}</div>
+        <div class=id>${selectedFileName}</div>
+        <a class=button id=inventory-spawn name=${selectedId}>Spawn</a
+      ` : ''}
     </div>
   `;
 };

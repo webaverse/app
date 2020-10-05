@@ -60,12 +60,7 @@ document.addEventListener('dragover', e => {
 document.addEventListener('drop', async e => {
   e.preventDefault();
 
-  let jsonFile = Array.from(e.dataTransfer.items).find(item => item.type === 'application/json');
-  if (jsonFile) {
-    const s = await new Promise((accept, reject) => {
-        jsonFile.getAsString(accept);
-    });
-    const j = JSON.parse(s);
+  const _loadJson = j => {
     const {dragid} = j;
     const match = dragid.match(/^inventory-([0-9]+)$/);
     if (match) {
@@ -78,9 +73,21 @@ document.addEventListener('drop', async e => {
 
       planet.addObject(id, position, quaternion);
     }
-  } else if (e.dataTransfer.files.length > 0) {
-    const [file] = e.dataTransfer.files;
-    await inventory.uploadFile(file);
+  };
+  if (e.data) {
+    _loadJson(e.data);
+  } else {
+    let jsonFile = Array.from(e.dataTransfer.items).find(item => item.type === 'application/json');
+    if (jsonFile) {
+      const s = await new Promise((accept, reject) => {
+        jsonFile.getAsString(accept);
+      });
+      const j = JSON.parse(s);
+      _loadJson(j);
+    } else if (e.dataTransfer.files.length > 0) {
+      const [file] = e.dataTransfer.files;
+      await inventory.uploadFile(file);
+    }
   }
 });
 
