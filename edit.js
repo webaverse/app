@@ -342,7 +342,7 @@ scene.add(floorMesh);
 })(); */
 
 (async () => {
-  rigManager.addPeerRig(-1);
+  /* rigManager.addPeerRig(-1);
   rigManager.setPeerAvatarUrl('./npc.vrm', -1);
   rigManager.setPeerAvatarName('Lollercopter', -1);
   // rigManager.setPeerAvatarUrl('./model.glb', -1);
@@ -353,7 +353,7 @@ scene.add(floorMesh);
       [[0, 0, 0], [0, 0, 0, 1], 0, 0],
       0
     ], -1);
-  }, 100);
+  }, 100); */
 
   /* {
     const u = 'lightsaber.wbn';
