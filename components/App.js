@@ -42,6 +42,14 @@ export const onclickBindings = {
       menu,
     });
   },
+  'inventory-spawn': async e => {
+    const id = e.name;
+    document.dispatchEvent(new MessageEvent('drop', {
+      data: {
+        dragid: 'inventory-' + id,
+      },
+    }));
+  },
   'inventory-item': e => {
     const id = parseInt(e.name, 10);
     const files = inventory.getFiles();

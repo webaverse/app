@@ -4,8 +4,12 @@ const InventoryCard = (props = {}) => {
             <img class="twoD-inventoryCardPreview" src="${props.preview}"></img>
             <h4 class="twoD-inventoryCardName">${props.name}</h4>
             <div class="twoD-inventoryCardActions">
+                <button class="twoD-inventoryCardWearBtn" onclick=inventory-spawn inventoryid="${props.id}">
+                    <i class="fal fa-magic" style="margin-right: 5px;"></i>
+                    Spawn
+                </button>
                 <button class="twoD-inventoryCardWearBtn" onclick=inventory-wear inventoryid="${props.id}">
-                    <i class="fal fa-hand-sparkles" style="margin-right: 5px;"></i>
+                    <i class="fal fa-tshirt" style="margin-right: 5px;"></i>
                     Wear
                 </button>
                 <button class="twoD-inventoryCardDiscardBtn" onclick=inventory-discard inventoryid="${props.id}">
