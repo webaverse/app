@@ -1,6 +1,5 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {CapsuleGeometry} from './CapsuleGeometry.js';
 import {makeCubeMesh, makeRayMesh, intersectUi} from './vr-ui.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
@@ -810,76 +809,6 @@ const _meshEquals = (a, b) => {
     return false;
   }
 };
-const _makeRigCapsule = () => {
-  const geometry = new THREE.BufferGeometry().fromGeometry(new CapsuleGeometry())
-    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1, 0));
-  const material = new THREE.ShaderMaterial({
-    vertexShader: `\
-      // uniform float iTime;
-      // varying vec2 uvs;
-      varying vec3 vNormal;
-      varying vec3 vWorldPosition;
-      void main() {
-        // uvs = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-        vNormal = normal;
-        vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-        vWorldPosition = worldPosition.xyz;
-      }
-    `,
-    fragmentShader: `\
-      #define PI 3.1415926535897932384626433832795
-
-      // uniform float iTime;
-      // varying vec2 uvs;
-      varying vec3 vNormal;
-      varying vec3 vWorldPosition;
-
-      const vec3 c = vec3(${new THREE.Color(0x1565c0).toArray().join(', ')});
-
-      void main() {
-        // vec2 uv = uvs;
-        // uv.x *= 1.7320508075688772;
-        // uv *= 8.0;
-
-        vec3 direction = vWorldPosition - cameraPosition;
-        float d = dot(vNormal, normalize(direction));
-        float glow = d < 0.0 ? max(1. + d * 2., 0.1) : 0.;
-
-        float a = glow;
-        gl_FragColor = vec4(c, a);
-      }
-    `,
-    side: THREE.DoubleSide,
-    transparent: true,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.geometry.computeBoundingBox();
-  mesh.frustumCulled = false;
-  return mesh;
-};
-const rigCapsule = _makeRigCapsule();
-const _intersectRigs = (() => {
-  const target = new THREE.Vector3();
-  return raycaster => {
-    localMatrix.compose(raycaster.ray.origin, localQuaternion.setFromUnitVectors(localVector2.set(0, 0, -1), raycaster.ray.direction), localVector3.set(1, 1, 1))
-      .premultiply(localMatrix2.getInverse(rigCapsule.matrixWorld))
-      .decompose(localRaycaster2.ray.origin, localQuaternion, localVector2);
-    localRaycaster2.ray.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
-    const intersection = localRaycaster2.ray.intersectBox(rigCapsule.geometry.boundingBox, target);
-    if (intersection) {
-      const object = rigCapsule;
-      const point = intersection;
-      return {
-        object,
-        point,
-        uv: null,
-      };
-    } else {
-      return null;
-    }
-  };
-})();
 const _updateWeapons = timeDiff => {
   for (let i = 0; i < 2; i++) {
     anchorSpecs[i] = null;
@@ -894,8 +823,8 @@ const _updateWeapons = timeDiff => {
       localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
       anchorSpecs[0] = intersectUi(localRaycaster, uiManager.uiMeshes) ||
         planet.intersectObjects(localRaycaster) ||
-        meshComposer.intersect(localRaycaster) ||
-        _intersectRigs(localRaycaster);
+        rigManager.intersectPeerRigs(localRaycaster) ||
+        meshComposer.intersect(localRaycaster);
 
       if (anchorSpecs[0]) {
         rayMesh.position.copy(position);
@@ -1150,7 +1079,7 @@ const _updateWeapons = timeDiff => {
             if (anchorSpec.object.click) { // menu non-icon
               anchorSpec.object.click(anchorSpec);
             } else { // non-menu
-              if (anchorSpec.object === rigCapsule) {
+              if (rigManager.isPeerRig(anchorSpec.object)) {
                 uiManager.openTradeMesh(anchorSpec.point, anchorSpec.object);
               } else {
                 uiManager.openDetailsMesh(anchorSpec.point, anchorSpec.object);
@@ -1466,15 +1395,15 @@ const _updateWeapons = timeDiff => {
       drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
     } */
 
-    if (rigCapsule.parent && !uiManager.tradeMesh.visible) {
-      rigCapsule.parent.remove(rigCapsule);
+    rigManager.unhighlightPeerRigs();
+    if (uiManager.tradeMesh.visible) {
+      rigManager.highlightPeerRig(uiManager.tradeMesh.target);
     }
-    
+
     switch (selectedWeapon) {
       case 'select': {
-        if (anchorSpecs[0] && anchorSpecs[0].object === rigCapsule) {
-          rigCapsule.position.copy(anchorSpecs[0].object.position);
-          scene.add(rigCapsule);
+        if (anchorSpecs[0] && rigManager.isPeerRig(anchorSpecs[0].object)) {
+          rigManager.highlightPeerRig(anchorSpecs[0].object);
         } else if (raycastChunkSpec) {
           if (raycastChunkSpec.objectId === 0) {
             for (const material of geometryManager.currentChunkMesh.material) {
