@@ -9,6 +9,11 @@ const InventoryCard = (props = {}) => {
     </a>
   `;
 };
+const InventoryAvatar = props => {
+  return `<div class=avatar>
+    <img src="${location.protocol}//${location.host}/female.png">
+  </div>`;
+};
 const InventoryDetails = props => {
   const {selectedId, selectedHash, selectedFileName} = props;
   return `\
@@ -104,7 +109,7 @@ const Inventory = (props = {}) => {
       }
     </style>
     <div class="threeD-inventory">
-      <div class=avatar></div>
+      ${InventoryAvatar()}
       <div class=tiles>
         ${inventoryItems.map(item => InventoryCard(item)).join('\n')}
       </div>
