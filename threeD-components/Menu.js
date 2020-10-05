@@ -1,4 +1,6 @@
 import Inventory from './Inventory.js';
+import Social from './Social.js';
+import World from './World.js';
 
 const Menu = (props) => {
     return `
@@ -18,16 +20,17 @@ const Menu = (props) => {
     .threeD-menuNavTab {
         flex-grow: 1;
         text-align: center;
-        border: 1px #9c9c9c solid;
+        border-bottom: 20px transparent solid;
         cursor: pointer;
         font-size: 40px;
     }
-    
+    .threeD-menuNavTab.selected {
+        border-bottom-color: #333;
+    }
     #threeD-menuNavTab-inventory {
         border-radius: 20px 0px 0px 0px;
         color: white;
         background-color: #8a3dca;
-        border-bottom: 20px solid #f463ff;
     }
     
     #threeD-menuNavTab-account {
@@ -40,23 +43,28 @@ const Menu = (props) => {
         color: white;
         background-color:#ff7043;
     }
-    
     </style>
     <div class="threeD-menu">
         <div class="threeD-menuNav">
-            <a class="threeD-menuNavTab" id="threeD-menuNavTab-inventory">
+            <a class="threeD-menuNavTab ${props.activeTab === 'inventory' ? 'selected' : ''}" id="threeD-menuNavTab-inventory">
                 <h1>Inventory</h1>
             </a>
-            <a class="threeD-menuNavTab" id="threeD-menuNavTab-account">
-                <h1>Account</h1>
+            <a class="threeD-menuNavTab ${props.activeTab === 'social' ? 'selected' : ''}" id="threeD-menuNavTab-social">
+                <h1>Social</h1>
             </a>
-            <a class="threeD-menuNavTab" id="threeD-menuNavTab-world">
+            <a class="threeD-menuNavTab ${props.activeTab === 'world' ? 'selected' : ''}" id="threeD-menuNavTab-world">
                 <h1>World</h1>
             </a>
         </div>
-        <div>
+        ${props.activeTab === 'inventory' ? `<div>
             ${Inventory(props)}
-        <div>
+        <div>` : ''}
+        ${props.activeTab === 'social' ? `<div>
+            ${Social(props)}
+        <div>` : ''}
+        ${props.activeTab === 'world' ? `<div>
+            ${World(props)}
+        <div>` : ''}
     </div>
     `;
 }

@@ -1,13 +1,14 @@
 import Menu from './Menu.js';
 import WeaponWheel from './WeaponWheel.js';
+import uiManager from '../ui-manager.js';
 import inventory from '../inventory.js';
 import { loginManager } from '../login.js';
-import { state, getSpecificState } from '../state.js';
+import { state, getState, setState, getSpecificState } from '../state.js';
 import { setBindings } from './bindings.js';
 
 let appState = state;
 
-const onclickBindings = {
+export const onclickBindings = {
   'inventory-wear': e => {
     const id = parseInt(e.target.getAttribute('inventoryid'), 10);
     loginManager.setAvatar(id);
@@ -19,6 +20,27 @@ const onclickBindings = {
   'inventory-upload': e => {
     const file = document.getElementById("twoD-inventoryUploadBtn").files[0];
     inventory.uploadFile(file);
+  },
+  'threeD-menuNavTab-inventory': e => {
+    const {menu} = getState();
+    menu.activeTab = 'inventory';
+    setState({
+      menu,
+    });
+  },
+  'threeD-menuNavTab-social': e => {
+    const {menu} = getState();
+    menu.activeTab = 'social';
+    setState({
+      menu,
+    });
+  },
+  'threeD-menuNavTab-world': e => {
+    const {menu} = getState();
+    menu.activeTab = 'world';
+    setState({
+      menu,
+    });
   },
 };
 
@@ -51,14 +73,19 @@ export const App = (props) => {
 export const updateProps = (newProps) => {
     const appContainer = document.getElementById('appContainer');
     for (let k in newProps) {
-        if (appState[k] !== newProps[k]) {
+        // if (appState[k] !== newProps[k]) {
             appState[k] = newProps[k];
-        }
+        // }
     }
-    if (appState.pointerLock || appState.isXR || !appState.selectedWeapon) {
+    if (appState.pointerLock || appState.isXR) {
         appContainer.style.display = 'none';
-        appContainer.innerHTML = '';
-        setBindings(null, onclickBindings);
+        if ('menu' in newProps) {
+          uiManager.menuMesh.update();
+        }
+    } else if (!appState.selectedWeapon) {
+        appContainer.style.display = 'none';
+        // appContainer.innerHTML = '';
+        // setBindings(null, onclickBindings);
     } else {
         appContainer.style.display = 'block';
         appContainer.innerHTML = App(appState);
@@ -68,7 +95,6 @@ export const updateProps = (newProps) => {
 
 window.addEventListener('stateChanged', (e) => {
     const changedState = getSpecificState(e.detail.changedKeys);
-    // console.log('stateChanged', changedState);
     for (let k in changedState) {
         appState[k] = changedState[k];
     }

@@ -3,7 +3,7 @@ export const state = {
     pointerLock: false,
     menu: {
         visible: false,
-        activeTab: '',
+        activeTab: 'inventory',
         account: {
             name: '',
             avatar: null,
