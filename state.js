@@ -30,7 +30,7 @@ export const state = {
 const emitChange = (changedKeys) => {
     window.dispatchEvent(new CustomEvent("stateChanged", { 
         detail: {
-            changedKeys: changedKeys 
+            changedKeys,
         }
     }));
 };
