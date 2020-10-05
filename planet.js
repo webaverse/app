@@ -705,7 +705,7 @@ const _connectRoom = async (roomName, worldURL) => {
             rigManager.setPeerAvatarName(name, peerId);
             peerAvatarNames.set(peerId, name);
           }
-          const currentPeerName = peerAvatarHashes.get(peerId);
+          const currentPeerHash = peerAvatarHashes.get(peerId);
           if (currentPeerHash !== avatarHash && avatarHash) {
             rigManager.setPeerAvatarUrl(`${storageHost}/${avatarHash}`, peerId);
             peerAvatarHashes.set(peerId, avatarHash);
