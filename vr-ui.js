@@ -5,7 +5,7 @@ import {CapsuleGeometry} from './CapsuleGeometry.js';
 import easing from './easing.js';
 import * as icons from './icons.js';
 import Menu from './threeD-components/Menu.js';
-import {getState} from './state.js';
+import {getState, setState} from './state.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1419,7 +1419,7 @@ const makeIconMesh = () => {
 
   return mesh;
 };
-const makeMenuMesh = cubeMesh => {
+const makeMenuMesh = (cubeMesh, onclickBindings) => {
   const canvasWidth = uiSize;
   const canvasHeight = uiSize;
   const worldWidth = 1;
@@ -1470,7 +1470,10 @@ const makeMenuMesh = cubeMesh => {
   mesh.update = () => {
     // const htmlString = _makeMenuString();
     const state = getState();
-    const htmlString = Menu({ inventoryItems: state.menu.inventory.items });
+    const htmlString = Menu({
+      activeTab: state.menu.activeTab,
+      inventoryItems: state.menu.inventory.items
+    });
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
         // imageData.data.set(result.data);
@@ -1484,10 +1487,13 @@ const makeMenuMesh = cubeMesh => {
       });
   };
   mesh.getAnchors = () => anchors;
-  mesh.click = anchor => {
-    console.log('click anchor', anchor);
-    /* const match = anchor.id.match(/^tile-([0-9]+)-([0-9]+)$/);
-    const i = parseInt(match[1], 10);
+  mesh.click = anchorSpec => {
+    const {anchor} = anchorSpec;
+    const onclick = anchor ? onclickBindings[anchor.id] : null;
+    if (onclick) {
+      onclick(anchor);
+    }
+    /* const i = parseInt(match[1], 10);
     const j = parseInt(match[2], 10);
     onclick(tiles[i][j]); */
   };

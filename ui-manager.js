@@ -3,6 +3,7 @@ import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import geometryManager from './geometry-manager.js';
 import weaponsManager from './weapons-manager.js';
 import runtime from './runtime.js';
+import {onclickBindings} from './components/App.js';
 import {makeInventoryMesh, makeTextMesh} from './vr-ui.js';
 import {renderer, scene, camera} from './app-object.js';
 import {WaitQueue} from './util.js';
@@ -360,7 +361,7 @@ geometryManager.waitForLoad().then(() => {
   scene.add(colorsMesh);
   uiManager.colorsMesh = colorsMesh;
 
-  const menuMesh = makeMenuMesh(weaponsManager.cubeMesh);
+  const menuMesh = makeMenuMesh(weaponsManager.cubeMesh, onclickBindings);
   menuMesh.visible = false;
   menuMesh.toggleOpen = () => {
     uiManager.menuMesh.visible = !uiManager.menuMesh.visible;
