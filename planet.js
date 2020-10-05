@@ -30,6 +30,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
 
+const peerAvatarNames = new Map();
 const peerAvatarHashes = new Map();
 
 function abs(n) {
@@ -693,21 +694,17 @@ const _connectRoom = async (roomName, worldURL) => {
           localEuler.z = 0;
           peerRig.textMesh.quaternion.setFromEuler(localEuler); 
           */
-        } else if (method === 'name') {
-          /*
-          const {peerId, name} = j;
-          if (peerRig.textMesh && peerId === peerConnection.connectionId && peerRig && name !== peerRig.textMesh.text) {
-            peerRig.textMesh.text = name;
-            peerRig.textMesh.sync();
-          } 
-          */
-        } else if (method === 'avatar') {
-          const {peerId, hash} = j;
-          const currentPeerHash = peerAvatarHashes.get(peerId);
-          if (currentPeerHash !== hash && hash) {
-            rigManager.setPeerAvatarUrl(`${storageHost}/${hash}`, peerId);
+        } else if (method === 'status') {
+          const {peerId, name, avatarHash} = j;
+          const currentPeerName = peerAvatarNames.get(peerId);
+          if (currentPeerName !== name && name) {
+            rigManager.setPeerAvatarName(name, peerId);
+            peerAvatarNames.set(peerId, name);
           }
-          peerAvatarHashes.set(peerId, hash);
+          if (currentPeerHash !== avatarHash && avatarHash) {
+            rigManager.setPeerAvatarUrl(`${storageHost}/${avatarHash}`, peerId);
+            peerAvatarHashes.set(peerId, avatarHash);
+          }
         } else {
           console.warn('unknown method', method);
         }
@@ -736,14 +733,12 @@ const _connectRoom = async (roomName, worldURL) => {
     if (live) {
       interval = setInterval(() => {
         channelConnection.send(JSON.stringify({
-          method: 'name',
+          method: 'status',
           peerId: channelConnection.connectionId,
-          name: loginManager.getUsername(),
-        }));
-        channelConnection.send(JSON.stringify({
-          method: 'avatar',
-          peerId: channelConnection.connectionId,
-          hash: loginManager.getAvatar(),
+          status: {
+            name: loginManager.getUsername(),
+            avatarHash: loginManager.getAvatar()
+          },
         }));
         const pose = rigManager.getLocalAvatarPose();
         channelConnection.send(JSON.stringify({
