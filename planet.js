@@ -666,6 +666,7 @@ const _connectRoom = async (roomName, worldURL) => {
 
     rigManager.addPeerRig(peerConnection.connectionId);
     const peerRig = rigManager.peerRigs.get(peerConnection.connectionId);
+    peerRig.peerConnection = peerConnection;
 
     peerConnection.addEventListener('close', async () => {
       peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
@@ -673,7 +674,7 @@ const _connectRoom = async (roomName, worldURL) => {
       live = false;
 
       planet.dispatchEvent(new MessageEvent('peersupdate', {
-        data: peerConnections,
+        data: Array.from(rigManager.peerRigs.values()),
       }));
     });
 
@@ -699,7 +700,7 @@ const _connectRoom = async (roomName, worldURL) => {
           peerRig.textMesh.quaternion.setFromEuler(localEuler); 
           */
         } else if (method === 'status') {
-          const {peerId, name, avatarHash} = j;
+          const {peerId, status: {name, avatarHash}} = j;
           const currentPeerName = peerAvatarNames.get(peerId);
           if (currentPeerName !== name && name) {
             rigManager.setPeerAvatarName(name, peerId);
@@ -754,7 +755,7 @@ const _connectRoom = async (roomName, worldURL) => {
     }
 
     planet.dispatchEvent(new MessageEvent('peersupdate', {
-      data: peerConnections,
+      data: Array.from(rigManager.peerRigs.values()),
     }));
   });
 
