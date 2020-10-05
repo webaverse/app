@@ -1325,7 +1325,7 @@ p {
 </div>
 `;
 };
-const _makeMenuString = () => {
+/* const _makeMenuString = () => {
   const w = uiSize;
   const h = uiSize;
   return `\
@@ -1355,7 +1355,7 @@ nav {
   <nav id=button>Button</nav>
 </div>
 `;
-};
+}; */
 const makeIconMesh = () => {
   const geometry = _flipUvs(
     new THREE.PlaneBufferGeometry(1, 1/2)
