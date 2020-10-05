@@ -1470,9 +1470,10 @@ const makeMenuMesh = (cubeMesh, onclickBindings) => {
   mesh.update = () => {
     // const htmlString = _makeMenuString();
     const state = getState();
+    console.log('update state', state);
     const htmlString = Menu({
       activeTab: state.menu.activeTab,
-      inventoryItems: state.menu.inventory.items
+      inventoryItems: state.menu.inventory.items,
     });
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
