@@ -8,7 +8,7 @@ export const state = {
             name: '',
             avatar: null,
             isMic: false,
-            equipped: []
+            equipped: [],
         },
         inventory: {
             items: [],
@@ -17,7 +17,8 @@ export const state = {
             selectedFileName: null,
         },
         world: {
-            peers: []
+            peers: [],
+            selectedPeerId: null,
         },
     },
     weaponWheel: {
