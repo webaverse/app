@@ -49,6 +49,7 @@ export const colors = [
 ];
 
 export const storageHost = 'https://storage.exokit.org';
+export const previewHost = 'https://preview.exokit.org'
 export const worldsHost = 'https://worlds.exokit.org';
 export const accountsHost = 'https://accounts.exokit.org';
 export const contractsHost = 'https://contracts.webaverse.com';
