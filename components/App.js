@@ -47,7 +47,6 @@ export const onclickBindings = {
 inventory.addEventListener('filesupdate', e => {
   const {menu} = state;
   menu.inventory.items = e.data;
-  console.log('new files', e.data);
   updateProps({
     menu,
   });
