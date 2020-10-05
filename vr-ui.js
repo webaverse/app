@@ -1,6 +1,7 @@
 import * as THREE from './three.module.js';
 // import {scene} from './run.js';
 import {TextMesh} from './textmesh-standalone.esm.js';
+import {CapsuleGeometry} from './CapsuleGeometry.js';
 import easing from './easing.js';
 import * as icons from './icons.js';
 import Menu from './threeD-components/Menu.js';
@@ -495,6 +496,54 @@ const makeRayMesh = () => {
   );
   ray.frustumCulled = false;
   return ray;
+};
+const makeRigCapsule = () => {
+  const geometry = new THREE.BufferGeometry().fromGeometry(new CapsuleGeometry())
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1, 0));
+  const material = new THREE.ShaderMaterial({
+    vertexShader: `\
+      // uniform float iTime;
+      // varying vec2 uvs;
+      varying vec3 vNormal;
+      varying vec3 vWorldPosition;
+      void main() {
+        // uvs = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        vNormal = normal;
+        vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+        vWorldPosition = worldPosition.xyz;
+      }
+    `,
+    fragmentShader: `\
+      #define PI 3.1415926535897932384626433832795
+
+      // uniform float iTime;
+      // varying vec2 uvs;
+      varying vec3 vNormal;
+      varying vec3 vWorldPosition;
+
+      const vec3 c = vec3(${new THREE.Color(0x1565c0).toArray().join(', ')});
+
+      void main() {
+        // vec2 uv = uvs;
+        // uv.x *= 1.7320508075688772;
+        // uv *= 8.0;
+
+        vec3 direction = vWorldPosition - cameraPosition;
+        float d = dot(vNormal, normalize(direction));
+        float glow = d < 0.0 ? max(1. + d * 2., 0.1) : 0.;
+
+        float a = glow;
+        gl_FragColor = vec4(c, a);
+      }
+    `,
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.geometry.computeBoundingBox();
+  mesh.frustumCulled = false;
+  return mesh;
 };
 
 const uiSize = 2048;
@@ -2475,4 +2524,5 @@ export {
   /* makeWristMenu,
   makeHighlightMesh, */
   makeRayMesh,
+  makeRigCapsule,
 };
