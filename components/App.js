@@ -47,32 +47,33 @@ export const onclickBindings = {
 inventory.addEventListener('filesupdate', e => {
   const {menu} = state;
   menu.inventory.items = e.data;
+  console.log('new files', e.data);
   updateProps({
     menu,
   });
 });
 
 export const toggleMenus = (props) => {
-    console.log(appState)
-    switch (appState.selectedWeapon) {
-        case 'inventory':
-            return Menu(props);
-        case 'weaponWheel':
-            return WeaponWheel(props);
-        default:
-            return;
-    }
+  // console.log(appState)
+  switch (appState.selectedWeapon) {
+    case 'inventory':
+      return Menu(props);
+    case 'weaponWheel':
+      return WeaponWheel(props);
+    default:
+      return;
+  }
 }
 
 export const App = (props) => {
-    return `
-        <div id="twoD-app">
-            ${toggleMenus(props)}
-        </div>
-    `;
+  return `\
+    <div id="twoD-app">
+      ${toggleMenus(props)}
+    </div>
+  `;
 }
 
-export const updateProps = (newProps) => {
+export const updateProps = newProps => {
     const appContainer = document.getElementById('appContainer');
     for (let k in newProps) {
         // if (appState[k] !== newProps[k]) {
@@ -81,7 +82,7 @@ export const updateProps = (newProps) => {
     }
     if (appState.pointerLock || appState.isXR) {
         appContainer.style.display = 'none';
-        if ('menu' in newProps) {
+        if ('menu' in newProps || 'pointerLock' in newProps || 'isXR' in newProps) {
           uiManager.menuMesh.update();
         }
     } else if (!appState.selectedWeapon) {
