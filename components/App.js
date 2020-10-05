@@ -65,7 +65,12 @@ export const onclickBindings = {
     });
   },
   'peer': e => {
-    console.log('got peer', e);
+    const connectionId = e.name;
+    const {menu} = getState();
+    menu.world.selectedPeerId = connectionId;
+    setState({
+      menu,
+    });
   },
 };
 
