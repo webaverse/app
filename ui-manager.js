@@ -433,6 +433,7 @@ geometryManager.waitForLoad().then(() => {
     tradeMesh.visible = false;
   });
   tradeMesh.visible = false;
+  tradeMesh.target = null;
   scene.add(tradeMesh);
   uiManager.tradeMesh = tradeMesh;
 
@@ -481,6 +482,7 @@ geometryManager.waitForLoad().then(() => {
     localEuler.z = 0;
     uiManager.tradeMesh.quaternion.setFromEuler(localEuler);
     uiManager.tradeMesh.visible = true;
+    uiManager.tradeMesh.target = mesh;
   };
   uiManager.openDetailsMesh = (point, mesh) => {
     for (const infoMesh of uiManager.infoMeshes) {
