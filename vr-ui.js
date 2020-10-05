@@ -1477,6 +1477,8 @@ const makeMenuMesh = (cubeMesh, onclickBindings) => {
       selectedId: state.menu.inventory.selectedId,
       selectedHash: state.menu.inventory.selectedHash,
       selectedFileName: state.menu.inventory.selectedFileName,
+      peers: state.menu.world.peers,
+      selectedPeerId: state.menu.world.selectedPeerId,
     });
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
