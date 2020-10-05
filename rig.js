@@ -1,11 +1,19 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
-import {makeTextMesh} from './vr-ui.js';
+import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, WaitQueue} from './util.js';
 import {scene} from './app-object.js';
 import Avatar from './avatars/avatars.js';
 
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
+const localMatrix3 = new THREE.Matrix4();
+const localRaycaster = new THREE.Raycaster();
 
 class RigManager {
   constructor(scene) {
@@ -102,6 +110,10 @@ class RigManager {
 
     peerRig.textMesh = makeTextMesh('Anonymous', undefined, 0.2, 'center', 'middle');
     this.scene.add(peerRig.textMesh);
+    
+    peerRig.rigCapsule = makeRigCapsule();
+    peerRig.rigCapsule.visible = false;
+    this.scene.add(peerRig.rigCapsule);
 
     this.peerRigs.set(peerId, peerRig);
   }
@@ -146,6 +158,7 @@ class RigManager {
     this.peerRigs.set(peerId, peerRig);
 
     peerRig.textMesh = oldPeerRig.textMesh;
+    peerRig.rigCapsule = oldPeerRig.rigCapsule;
 
     await this.peerRigQueue.unlock();
   }
@@ -269,6 +282,50 @@ class RigManager {
     localEuler.y += Math.PI;
     localEuler.z = 0;
     peerRig.textMesh.quaternion.setFromEuler(localEuler);
+
+    peerRig.rigCapsule.position.copy(peerRig.inputs.hmd.position);
+  }
+  
+  intersectPeerRigs(raycaster) {
+    let closestPeerRig = null;
+    let closestPeerRigDistance = Infinity;
+    for (const peerRig of this.peerRigs.values()) {
+      /* console.log('got peer rig', peerRig);
+      if (!peerRig.rigCapsule) {
+        debugger;
+      } */
+      localMatrix2.compose(peerRig.inputs.hmd.position, peerRig.inputs.hmd.quaternion, localVector2.set(1, 1, 1));
+      localMatrix.compose(raycaster.ray.origin, localQuaternion.setFromUnitVectors(localVector2.set(0, 0, -1), raycaster.ray.direction), localVector3.set(1, 1, 1))
+        .premultiply(
+          localMatrix3.getInverse(
+            localMatrix2
+          )
+        )
+        .decompose(localRaycaster.ray.origin, localQuaternion, localVector2);
+      localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
+      const intersection = localRaycaster.ray.intersectBox(peerRig.rigCapsule.geometry.boundingBox, localVector);
+      if (intersection) {
+        const object = peerRig;
+        const point = intersection.applyMatrix4(localMatrix2);
+        return {
+          object,
+          point,
+          uv: null,
+        };
+      } else {
+        return null;
+      }
+    }
+  }
+
+  unhighlightPeerRigs() {
+    for (const peerRig of this.peerRigs.values()) {
+      peerRig.rigCapsule.visible = false;
+    }
+  }
+
+  highlightPeerRig(peerRig) {
+    peerRig.rigCapsule.visible = true;
   }
   
   getRigTransforms() {
