@@ -672,7 +672,7 @@ const _connectRoom = async (roomName, worldURL) => {
       rigManager.removePeerRig(peerConnection.connectionId);
       live = false;
 
-      this.dispatchEvent(new MessageEvent('peersupdate', {
+      planet.dispatchEvent(new MessageEvent('peersupdate', {
         data: peerConnections,
       }));
     });
@@ -752,7 +752,7 @@ const _connectRoom = async (roomName, worldURL) => {
       }, 10);
     }
 
-    this.dispatchEvent(new MessageEvent('peersupdate', {
+    planet.dispatchEvent(new MessageEvent('peersupdate', {
       data: peerConnections,
     }));
   });
