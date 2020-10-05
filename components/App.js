@@ -3,6 +3,7 @@ import WeaponWheel from './WeaponWheel.js';
 import uiManager from '../ui-manager.js';
 import inventory from '../inventory.js';
 import {loginManager} from '../login.js';
+import {planet} from '../planet.js';
 import {state, getState, setState, getSpecificState} from '../state.js';
 import {setBindings} from './bindings.js';
 
@@ -63,11 +64,21 @@ export const onclickBindings = {
       menu,
     });
   },
+  'peer': e => {
+    console.log('got peer', e);
+  },
 };
 
 inventory.addEventListener('filesupdate', e => {
   const {menu} = state;
   menu.inventory.items = e.data;
+  updateProps({
+    menu,
+  });
+});
+planet.addEventListener('peersupdate', e => {
+  const {menu} = state;
+  menu.world.peers = e.data;
   updateProps({
     menu,
   });
