@@ -42,6 +42,19 @@ export const onclickBindings = {
       menu,
     });
   },
+  'inventory-item': e => {
+    const id = parseInt(e.name, 10);
+    const files = inventory.getFiles();
+    const file = files.find(file => file.id === id);
+    const {hash, filename, preview} = file;
+    const {menu} = getState();
+    menu.inventory.selectedId = id;
+    menu.inventory.selectedHash = hash;
+    menu.inventory.selectedFileName = filename;
+    setState({
+      menu,
+    });
+  },
 };
 
 inventory.addEventListener('filesupdate', e => {
