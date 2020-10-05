@@ -1,10 +1,19 @@
+import {previewHost} from '../constants.js';
+
+const _getExt = fileName => {
+  const match = fileName.match(/\.(.+)$/);
+  return match && match[1];
+};
+
 const InventoryCard = (props = {}) => {
+  const ext = _getExt(props.filename) || 'bin';
   return `\
     <a class=tile id=inventory-item name=${props.id}>
       <div class="border top-left"></div>
       <div class="border top-right"></div>
       <div class="border bottom-left"></div>
       <div class="border bottom-right"></div>
+      <img src="${previewHost}/${props.hash}.${ext}/preview.png">
       <div class=text>${props.filename}</div>
     </a>
   `;
@@ -65,6 +74,15 @@ const Inventory = (props = {}) => {
         margin-right: 2%;
         margin-bottom: 2%;
         padding-bottom: 0;
+      }
+      .tiles .tile img {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
       }
       .tiles .tile .text {
         padding: 20px;
