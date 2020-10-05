@@ -287,7 +287,7 @@ class RigManager {
   update() {
     this.localRig.update();
     this.peerRigs.forEach(rig => {
-        rig.update();
+      rig.update();
     })
   }
 }
