@@ -499,7 +499,7 @@ const makeRayMesh = () => {
 };
 const makeRigCapsule = () => {
   const geometry = new THREE.BufferGeometry().fromGeometry(new CapsuleGeometry())
-    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1, 0));
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.7, 0));
   const material = new THREE.ShaderMaterial({
     vertexShader: `\
       // uniform float iTime;
