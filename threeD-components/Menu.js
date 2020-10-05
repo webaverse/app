@@ -2,7 +2,7 @@ import Inventory from './Inventory.js';
 import Social from './Social.js';
 import World from './World.js';
 
-const Menu = (props) => {
+const Menu = props => {
     return `
     <style>
     .threeD-menu {

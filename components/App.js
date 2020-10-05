@@ -2,9 +2,9 @@ import Menu from './Menu.js';
 import WeaponWheel from './WeaponWheel.js';
 import uiManager from '../ui-manager.js';
 import inventory from '../inventory.js';
-import { loginManager } from '../login.js';
-import { state, getState, setState, getSpecificState } from '../state.js';
-import { setBindings } from './bindings.js';
+import {loginManager} from '../login.js';
+import {state, getState, setState, getSpecificState} from '../state.js';
+import {setBindings} from './bindings.js';
 
 let appState = state;
 
@@ -18,7 +18,7 @@ export const onclickBindings = {
     await inventory.discardFile(id);
   },
   'inventory-upload': e => {
-    const file = document.getElementById("twoD-inventoryUploadBtn").files[0];
+    const file = document.getElementById('twoD-inventoryUploadBtn').files[0];
     inventory.uploadFile(file);
   },
   'threeD-menuNavTab-inventory': e => {
@@ -52,11 +52,13 @@ inventory.addEventListener('filesupdate', e => {
   });
 });
 
-export const toggleMenus = (props) => {
-  // console.log(appState)
+export const toggleMenus = props => {
   switch (appState.selectedWeapon) {
     case 'inventory':
-      return Menu(props);
+      return Menu({
+        activeTab: appState.menu.activeTab,
+        inventoryItems: appState.menu.inventory.items,
+      });
     case 'weaponWheel':
       return WeaponWheel(props);
     default:

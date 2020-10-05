@@ -15,12 +15,26 @@ const Inventory = (props = {}) => {
   return `\
     <style>
       .threeD-inventory {
+        display: flex;
       }
       .wrap {
         position: relative;
       }
+      .avatar {
+        display: flex;
+        width: 400px;
+        height: 800px;
+        background-color: #111;
+      }
+      .details {
+        display: flex;
+        width: 400px;
+        height: 800px;
+        background-color: #111;
+      }
       .tiles {
         display: flex;
+        flex: 1;
       }
       .tiles .tile {
         display: flex;
