@@ -11,7 +11,10 @@ export const state = {
             equipped: []
         },
         inventory: {
-            items: []
+            items: [],
+            selectedId: null,
+            selectedHash: null,
+            selectedFileName: null,
         },
         world: {
             peers: []

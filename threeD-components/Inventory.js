@@ -1,6 +1,6 @@
 const InventoryCard = (props = {}) => {
   return `\
-    <a class=tile id=inventory-id-${props.id}>
+    <a class=tile id=inventory-item name=${props.id}>
       <div class="border top-left"></div>
       <div class="border top-right"></div>
       <div class="border bottom-left"></div>
@@ -8,10 +8,22 @@ const InventoryCard = (props = {}) => {
       <div class=text>${props.filename}</div>
     </a>
   `;
-}
+};
+const InventoryDetails = props => {
+  const {selectedId, selectedHash, selectedFileName} = props;
+  return `\
+    <div class=details>
+      <div class=id>${selectedId}</div>
+      <div class=id>${selectedHash}</div>
+      <div class=id>${selectedFileName}</div>
+      <a class=button>Spawn</a>
+    </div>
+  `;
+};
 
 const Inventory = (props = {}) => {
   let inventoryItems = props.inventoryItems || [];
+  const {selectedId, selectedHash, selectedFileName} = props;
   return `\
     <style>
       .threeD-inventory {
@@ -82,13 +94,23 @@ const Inventory = (props = {}) => {
         border-top: 0;
         border-left: 0;
       }
+      .details {
+        display: flex;
+        flex-direction: column;
+        color: #FFF;
+        font-size: 80px;
+      }
     </style>
     <div class="threeD-inventory">
       <div class=avatar></div>
       <div class=tiles>
         ${inventoryItems.map(item => InventoryCard(item)).join('\n')}
       </div>
-      <div class=details></div>
+      ${InventoryDetails({
+        selectedId,
+        selectedHash,
+        selectedFileName,
+      })}
     </div>
   `;
 }
