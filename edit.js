@@ -1,9 +1,9 @@
 /* global Web3 */
 /* eslint no-unused-vars: 0 */
 import * as THREE from './three.module.js';
-import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {GLTFLoader} from './GLTFLoader.js';
-import {GLTFExporter} from './GLTFExporter.js';
+// import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+// import {GLTFLoader} from './GLTFLoader.js';
+// import {GLTFExporter} from './GLTFExporter.js';
 // import {TransformControls} from './TransformControls.js';
 import {tryLogin, loginManager} from './login.js';
 // import runtime from './runtime.js';
