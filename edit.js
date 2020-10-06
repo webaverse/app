@@ -535,8 +535,6 @@ function animate(timestamp, frame) {
       uniforms.sunDirection.value.copy(skybox.material.uniforms.sunPosition.value).normalize();
       uniforms.sunDirection.needsUpdate = true;
     }
-  }
-  if (skybox) {
     for (const material of geometryManager.currentVegetationMesh.material) {
       const {uniforms} = material;
       uniforms.sunIntensity.value = Math.max(skybox.material.uniforms.sunPosition.value.y, 0);
