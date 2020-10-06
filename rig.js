@@ -275,31 +275,33 @@ class RigManager {
 
     const peerRig = this.peerRigs.get(peerId);
 
-    peerRig.inputs.hmd.position.fromArray(hmdPosition);
-    peerRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
+    if (peerRig) {
+      peerRig.inputs.hmd.position.fromArray(hmdPosition);
+      peerRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
 
-    peerRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition);
-    peerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
-    peerRig.inputs.leftGamepad.pointer = leftGamepadPointer;
-    peerRig.inputs.leftGamepad.grip = leftGamepadGrip;
+      peerRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition);
+      peerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
+      peerRig.inputs.leftGamepad.pointer = leftGamepadPointer;
+      peerRig.inputs.leftGamepad.grip = leftGamepadGrip;
 
-    peerRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
-    peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
-    peerRig.inputs.rightGamepad.pointer = rightGamepadPointer;
-    peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
+      peerRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
+      peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
+      peerRig.inputs.rightGamepad.pointer = rightGamepadPointer;
+      peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
 
-    peerRig.setFloorHeight(floorHeight);
+      peerRig.setFloorHeight(floorHeight);
 
-    peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
-    peerRig.textMesh.position.y += 0.5;
-    peerRig.textMesh.quaternion.copy(peerRig.inputs.hmd.quaternion);
-    localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
-    localEuler.x = 0;
-    localEuler.y += Math.PI;
-    localEuler.z = 0;
-    peerRig.textMesh.quaternion.setFromEuler(localEuler);
+      peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
+      peerRig.textMesh.position.y += 0.5;
+      peerRig.textMesh.quaternion.copy(peerRig.inputs.hmd.quaternion);
+      localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.y += Math.PI;
+      localEuler.z = 0;
+      peerRig.textMesh.quaternion.setFromEuler(localEuler);
 
-    peerRig.rigCapsule.position.copy(peerRig.inputs.hmd.position);
+      peerRig.rigCapsule.position.copy(peerRig.inputs.hmd.position);
+    }
   }
   
   intersectPeerRigs(raycaster) {
