@@ -4,6 +4,7 @@ const Social = (props = {}) => {
   let peers = props.peers || [];
   const {selectedPeerId, selectedId} = props;
   const peerRig = selectedPeerId && peers.find(rig => rig.peerConnection.connectionId === selectedPeerId);
+  // console.log('got peers', {peers, selectedPeerId, peerRig});
   const selectedPeerName = peerRig && peerRig.textMesh.text;
   const selectedAvatarUrl = peerRig && peerRig.avatarUrl && `${previewHost}/${peerRig.avatarUrl.match(/([^\/]+)$/)[1]}.vrm/preview.png`;
   return `
