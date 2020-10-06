@@ -2,6 +2,7 @@ import * as THREE from './three.module.js';
 import {bindUploadFileButton} from './util.js';
 import {loginManager} from './login.js';
 import {planet} from './planet.js';
+import {getContractSource} from './blockchain.js';
 import {renderer, scene, camera} from './app-object.js';
 import {storageHost} from './constants.js';
 
@@ -42,6 +43,29 @@ inventory.discardFile = async id => {
 
 let files = [];
 inventory.getOwnedFiles = () => files;
+inventory.getFiles = async (start, end) => {
+  const contractSource = await getContractSource('getNfts.cdc');
+
+  const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+    method: 'POST',
+    body: JSON.stringify({
+      limit: 100,
+      script: contractSource
+        .replace(/ARG0/g, start)
+        .replace(/ARG1/g, end),
+      wait: true,
+    }),
+  });
+  const response2 = await res.json();
+  const items = response2.encodedData.value.map(value => {
+    const {fields} = value.value;
+    const id = parseInt(fields.find(field => field.name === 'id').value.value, 10);
+    const hash = fields.find(field => field.name === 'hash').value.value;
+    const filename = fields.find(field => field.name === 'filename').value.value;
+    return {id, hash, filename};
+  });
+  return items;
+};
 
 loginManager.addEventListener('inventorychange', async e => {
   files = await loginManager.getInventory();
