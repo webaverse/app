@@ -17,11 +17,6 @@ const aabbHeaderEl = document.getElementById('aabb-header');
 const aabbResultEl = document.getElementById('aabb-result');
 const errorTraceEl = document.getElementById('error-trace');
 
-/* const _getExt = fileName => {
-  const match = fileName.match(/\.([^\.]+)$/);
-  return match && match[1];
-}; */
-
 const bake = async (hash, ext, dst) => {
   switch (ext) {
     case 'gltf':
