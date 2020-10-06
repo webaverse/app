@@ -147,7 +147,7 @@ class RigManager {
     if (oldPeerRig) {
       oldPeerRig.avatarUrl = url;
 
-      let o = null;
+      let o;
       if (url) {
         try {
           o = await new Promise((accept, reject) => {
