@@ -56,9 +56,13 @@ async function pullUserObject() {
   const response = await res.json();
   const name = response.encodedData.value[0].value ? response.encodedData.value[0].value.value : 'Anonymous';
   const avatarHash = response.encodedData.value[1].value && response.encodedData.value[1].value.value;
+  const avatarFileName = response.encodedData.value[2].value && response.encodedData.value[2].value.value;
   userObject = {
     name,
-    avatarHash,
+    avatar: {
+      hash: avatarHash,
+      filename: avatarFileName,
+    },
   };
 }
 /* async function pushUserObject() {
@@ -361,13 +365,13 @@ class LoginManager extends EventTarget {
   }
 
   getAvatar() {
-    return userObject && userObject.avatarHash;
+    return userObject && userObject.avatar;
   }
 
   async setAvatar(id) {
     if (loginToken) {
       const {mnemonic, addr} = loginToken;
-      const [_setResponse, avatarHash] = await Promise.all([
+      const [_setResponse, avatarSpec] = await Promise.all([
         (async () => {
           const contractSource = await getContractSource('setUserData.cdc');
 
@@ -400,13 +404,13 @@ class LoginManager extends EventTarget {
           });
           const response2 = await res.json();
           const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
-          return hash;
+          return {hash, filename};
         })(),
       ]);
-      userObject.avatarHash = avatarHash;
+      userObject.avatar = avatarSpec;
       // await pushUserObject();
       this.dispatchEvent(new MessageEvent('avatarchange', {
-        data: avatarHash,
+        data: avatarSpec,
       }));
     } else {
       throw new Error('not logged in');
@@ -586,7 +590,7 @@ class LoginManager extends EventTarget {
       data: userObject && userObject.name,
     }));
     this.dispatchEvent(new MessageEvent('avatarchange', {
-      data: userObject && userObject.avatarHash,
+      data: userObject && userObject.avatar,
     }));
     this.dispatchEvent(new MessageEvent('inventorychange'));
   }
