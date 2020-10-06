@@ -44,7 +44,7 @@ export const onclickBindings = {
     loginManager.setAvatar(id);
   },
   'inventory-discard': async e => {
-    const id = parseInt(e.target.getAttribute('inventoryid'), 10);
+    const id = parseInt(e.name, 10);
     await inventory.discardFile(id);
   },
   'inventory-upload': e => {
