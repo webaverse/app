@@ -26,14 +26,17 @@ class RigManager {
       debug: true,
     });
     scene.add(this.localRig.model);
+
+    this.localRig.avatarUrl = null;
+
     this.localRig.textMesh = makeTextMesh('Anonymous', undefined, 0.2, 'center', 'middle');
     this.scene.add(this.localRig.textMesh);
 
     this.localRigMatrix = new THREE.Matrix4();
     this.localRigMatrixEnabled = false;
 
-    this.localRigQueue = new WaitQueue();
-    this.peerRigQueue = new WaitQueue();
+    // this.localRigQueue = new WaitQueue();
+    // this.peerRigQueue = new WaitQueue();
 
     this.peerRigs = new Map();
   }
@@ -47,46 +50,50 @@ class RigManager {
     }
   }
 
-  async addLocalRig(model) {
-    await this.localRigQueue.lock();
-
-    const oldLocalRig = this.localRig;
-    this.scene.remove(this.localRig.model);
-
-    this.localRig = new Avatar(model, {
-      fingers: true,
-      hair: true,
-      visemes: true,
-      debug: model ? false : true,
-    });
-    this.scene.add(this.localRig.model);
-    this.localRig.textMesh = oldLocalRig.textMesh;
-
-    await this.localRigQueue.unlock();
-  }
-
   setLocalAvatarName(name) {
     this.localRig.textMesh.text = name;
     this.localRig.textMesh.sync();
   }
 
   async setLocalAvatarUrl(url) {
+    // await this.localRigQueue.lock();
+
+    const oldLocalRig = this.localRig;
+    oldLocalRig.url = url;
+
     let o = null;
-    try {
-      o = await new Promise((accept, reject) => {
-        new GLTFLoader().load(url, accept, xhr => {}, reject);
-      });
-    } catch (e) {
-      console.log(e);
+    if (url) {
+      try {
+        o = await new Promise((accept, reject) => {
+          new GLTFLoader().load(url, accept, xhr => {}, reject);
+        });
+      } catch (e) {
+        console.log(e);
+      }
+      if (o) {
+        o.scene.traverse(o => {
+          if (o.isMesh) {
+            o.frustumCulled = false;
+          }
+        });
+      }
     }
-    if (o) {
-      o.scene.traverse(o => {
-        if (o.isMesh) {
-          o.frustumCulled = false;
-        }
+
+    if (oldLocalRig.url === url) {
+      this.scene.remove(oldLocalRig.model);
+
+      this.localRig = new Avatar(o, {
+        fingers: true,
+        hair: true,
+        visemes: true,
+        debug: !o,
       });
+      this.scene.add(this.localRig.model);
+      this.localRig.textMesh = oldLocalRig.textMesh;
+      this.localRig.avatarUrl = oldLocalRig.url;
     }
-    this.addLocalRig(o);
+
+    // await this.localRigQueue.unlock();
   }
   
   isPeerRig(rig) {
@@ -165,6 +172,7 @@ class RigManager {
           hair: true,
           visemes: true,
           // decapitate: selectedTool === 'firstperson',
+          debug: !o,
         });
         this.scene.add(peerRig.model);
         this.peerRigs.set(peerId, peerRig);
