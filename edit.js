@@ -6,9 +6,8 @@ import {GLTFLoader} from './GLTFLoader.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import {TransformControls} from './TransformControls.js';
 import {tryLogin, loginManager} from './login.js';
-import runtime from './runtime.js';
-import flowConstants from './flow-constants.js';
-import {parseQuery, hex2Uint8Array, downloadFile, mergeMeshes} from './util.js';
+// import runtime from './runtime.js';
+import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
 // import {makeRayMesh} from './vr-ui.js';
 import {
