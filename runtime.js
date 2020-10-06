@@ -1,5 +1,6 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
+import {VOXLoader} from './VOXLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 import {mergeMeshes} from './util.js';
 // import {bake} from './bakeUtils.js';
@@ -166,6 +167,22 @@ const _loadGltf = async file => {
         thingFiles[objectId] = u;
       }, console.warn);
   } */
+};
+const _loadVox = async file => {
+  const u = URL.createObjectURL(file);
+  let o;
+  try {
+    o = await new Promise((accept, reject) => {
+      new VOXLoader({
+        scale: 0.01,
+      }).load(u, accept, function onprogress() {}, reject);
+    });
+  } catch(err) {
+    console.warn(err);
+  } finally {
+    URL.revokeObjectURL(u);
+  }
+  return o;
 };
 const _loadImg = async file => {
   const img = new Image();
@@ -358,6 +375,9 @@ runtime.loadFileForWorld = async file => {
     case 'glb':
     case 'vrm': {
       return await _loadGltf(file);
+    }
+    case 'vox': {
+      return await _loadVox(file);
     }
     case 'png':
     case 'gif':
