@@ -10,7 +10,7 @@ import runtime from './runtime.js';
 import flowConstants from './flow-constants.js';
 import {parseQuery, hex2Uint8Array, downloadFile, mergeMeshes} from './util.js';
 import {rigManager} from './rig.js';
-import {makeCubeMesh, /*makeUiFullMesh,*/ makeTextMesh, makeToolsMesh, makeDetailsMesh, makeInventoryMesh, makeColorsMesh, makeIconMesh, intersectUi/*, makeRayMesh*/} from './vr-ui.js';
+// import {makeRayMesh} from './vr-ui.js';
 import {
   THING_SHADER,
   makeDrawMaterial,
@@ -21,22 +21,7 @@ import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {
-  PARCEL_SIZE,
   SUBPARCEL_SIZE,
-  SUBPARCEL_SIZE_P1,
-  SUBPARCEL_SIZE_P3,
-  NUM_PARCELS,
-  MAX_NAME_LENGTH,
-
-  numSlices,
-  slabRadius,
-
-  chunkDistance,
-  BUILD_SNAP,
-
-  colors,
-  
-  presenceHost,
 } from './constants.js';
 import {makePromise} from './util.js';
 import {planet} from './planet.js';
