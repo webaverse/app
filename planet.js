@@ -733,7 +733,15 @@ const _connectRoom = async (roomName, worldURL) => {
       microphoneMediaStream = new MediaStream([track]);
       const audio = document.createElement('audio');
       audio.srcObject = microphoneMediaStream;
-      audio.play();
+      const _tryPlay = async () => {
+        try {
+          await audio.play();
+        } catch(err) {
+          console.warn('play failed', err);
+          setTimeout(_tryPlay, 1000);
+        }
+      };
+      _tryPlay();
       if (peerRig) {
         rigManager.setPeerMicMediaStream(microphoneMediaStream, peerConnection.connectionId);
         track.addEventListener('ended', e => {
