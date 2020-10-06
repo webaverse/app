@@ -7,8 +7,16 @@ export const setBindings = (appContainer, onclickMap) => {
 		    for (const el of els) {
 		    	const handlerName = el.getAttribute('on' + handlerType);
 		    	el.removeAttribute('on' + handlerType);
+		    	// console.log('click handler type', handlerType, handlerName);
 		    	el.addEventListener(handlerType, e => {
-		            onclickMap[handlerName](e);
+		    		// debugger;
+		    		// console.log('click handler type', handlerType, handlerName);
+		    		const id = el.getAttribute('id');
+		    		const name = el.getAttribute('name');
+		            onclickMap[handlerName]({
+		            	id,
+		                name,
+		            });
 		  	    });
 		    }
 		}
