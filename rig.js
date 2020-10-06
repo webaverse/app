@@ -110,7 +110,9 @@ class RigManager {
 
     peerRig.textMesh = makeTextMesh('Anonymous', undefined, 0.2, 'center', 'middle');
     this.scene.add(peerRig.textMesh);
-    
+
+    peerRig.avatarUrl = null;
+
     peerRig.rigCapsule = makeRigCapsule();
     peerRig.rigCapsule.visible = false;
     this.scene.add(peerRig.rigCapsule);
@@ -132,35 +134,49 @@ class RigManager {
   }
 
   async setPeerAvatarUrl(url, peerId) {
-    await this.peerRigQueue.lock();
-    let o = null;
-    try {
-      o = await new Promise((accept, reject) => {
-        new GLTFLoader().load(url, accept, xhr => {}, reject);
-      });
-    } catch (e) {
-      console.log(e)
-    }
-    o.scene.traverse(o => {
-      if (o.isMesh) {
-        o.frustumCulled = false;
+    // await this.peerRigQueue.lock();
+
+    let oldPeerRig = this.peerRigs.get(peerId);
+    if (oldPeerRig) {
+      oldPeerRig.avatarUrl = url;
+
+      let o = null;
+      if (url) {
+        try {
+          o = await new Promise((accept, reject) => {
+            new GLTFLoader().load(url, accept, xhr => {}, reject);
+          });
+        } catch (e) {
+          console.log(e)
+        }
+        o.scene.traverse(o => {
+          if (o.isMesh) {
+            o.frustumCulled = false;
+          }
+        });
       }
-    });
-    const oldPeerRig = this.peerRigs.get(peerId);
-    this.scene.remove(oldPeerRig.model);
-    const peerRig = new Avatar(o, {
-      fingers: true,
-      hair: true,
-      visemes: true,
-      // decapitate: selectedTool === 'firstperson',
-    });
-    this.scene.add(peerRig.model);
-    this.peerRigs.set(peerId, peerRig);
 
-    peerRig.textMesh = oldPeerRig.textMesh;
-    peerRig.rigCapsule = oldPeerRig.rigCapsule;
+      oldPeerRig = this.peerRigs.get(peerId);
+      if (oldPeerRig && oldPeerRig.avatarUrl === url) {
+        this.scene.remove(oldPeerRig.model);
 
-    await this.peerRigQueue.unlock();
+        const peerRig = new Avatar(o, {
+          fingers: true,
+          hair: true,
+          visemes: true,
+          // decapitate: selectedTool === 'firstperson',
+        });
+        this.scene.add(peerRig.model);
+        this.peerRigs.set(peerId, peerRig);
+
+        peerRig.textMesh = oldPeerRig.textMesh;
+        peerRig.avatarUrl = oldPeerRig.avatarUrl;
+        // console.log('peer rig avatar url', peerId, url, new Error().stack);
+        peerRig.rigCapsule = oldPeerRig.rigCapsule;
+      }
+    }
+
+    // await this.peerRigQueue.unlock();
   }
 
   setPeerMicMediaStream(mediaStream, peerId) {
