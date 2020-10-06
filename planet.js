@@ -636,9 +636,9 @@ const _connectRoom = async (roomName, worldURL) => {
       } else {
         rigManager.localRig.setMicrophoneMediaStream(null);
         const tracks = mediaStream.getAudioTracks();
-        tracks.forEach(t => {
-          mediaStream.removeTrack(t);
-        })
+        for (const track of tracks) {
+          track.stop();
+        }
       }
     });
 
