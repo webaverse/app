@@ -24,6 +24,7 @@ export const setBindings = (appContainer, onclickMap) => {
             const els = Array.from(appContainer.querySelectorAll('input[type=file][onchange]'));
 		    for (const el of els) {
 		    	const handlerName = el.getAttribute('onchange');
+		    	el.removeAttribute('onchange');
 				bindUploadFileButton(el, file => {
                     const id = el.getAttribute('id');
 		    		const name = el.getAttribute('name');
