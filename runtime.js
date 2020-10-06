@@ -23,7 +23,7 @@ const importMap = {
 
 const _clone = o => JSON.parse(JSON.stringify(o));
 const _getExt = fileName => {
-  const match = fileName.match(/\.(.+)$/);
+  const match = fileName.match(/\.([^\.]+)$/);
   return match && match[1];
 };
 
