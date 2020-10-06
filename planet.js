@@ -684,7 +684,7 @@ const _connectRoom = async (roomName, worldURL) => {
         const j = JSON.parse(data);
         const {method} = j;
         if (method === 'pose') {
-          const { pose } = j;
+          const {pose} = j;
           const [head, leftGamepad, rightGamepad, floorHeight] = pose;
           rigManager.setPeerAvatarPose(pose, peerConnection.connectionId);
           /*
