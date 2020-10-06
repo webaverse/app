@@ -957,7 +957,7 @@ document.getElementById('connectButton').addEventListener('click', async (e) => 
     if (response.ok) {
       const json = await response.json();
       // console.log(json);
-      location.search = `?w=${json.id}`;
+      location.search = `?u=${json.id}.worlds.webaverse.com`;
     }
   }
 });
