@@ -989,10 +989,9 @@ const _initializeLogin = async () => {
     }
     loginManager.addEventListener('avatarchange', e => {
       const avatarHash = e.data;
-      if (avatarHash) {
-        rigManager.setLocalAvatarUrl(`${storageHost}/${avatarHash}`);
-      } else {
-        rigManager.addLocalRig(null);
+      const newAvatarUrl = avatarHash ? `${storageHost}/${avatarHash}` : null;
+      if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
+        rigManager.setLocalAvatarUrl(newAvatarUrl);
       }
     });
   };
