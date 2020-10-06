@@ -40,27 +40,27 @@ async function resolveContractSource(contractSource) {
 function hexToWordList(hex) {
   const words = [];
   let n = BigInt('0x' + hex);
-  n <<= 2n;
-  while (n !== 0n) {
-    const a = n & 0x7FFn;
+  n <<= BigInt(2);
+  while (n !== BigInt(0)) {
+    const a = n & BigInt(0x7FF);
     words.push(wordList[Number(a)]);
     n -= a;
-    n >>= 11n;
+    n >>= BigInt(11);
   }
   return words.join(' ');
 }
 function wordListToHex(words) {
   words = words.split(/\s+/);
 
-  let n = 0n;
+  let n = BigInt(0);
   for (let i = words.length - 1; i >= 0; i--) {
     const word = words[i];
     const index = wordList.indexOf(word);
     const a = BigInt(index);
-    n <<= 11n;
+    n <<= BigInt(11);
     n |= a;
   }
-  n >>= 2n;
+  n >>= BigInt(2);
   return n.toString(16);
 }
 
