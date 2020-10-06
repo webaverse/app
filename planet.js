@@ -566,9 +566,9 @@ const _bindState = state => {
     for (const name of lastObjects) {
       if (!nextObjects.includes(name)) {
         // removedObjects.push(name);
-        // const trackedObject = planet.getTrackedObject(name);
+        const trackedObject = state.getMap('object.' + name);
         planet.dispatchEvent(new MessageEvent('trackedobjectremove', {
-          data: name,
+          data: trackedObject,
         }));
       }
     }
@@ -861,16 +861,30 @@ planet.addEventListener('trackedobjectadd', async e => {
 
     scene.add(mesh);
     objects.push(mesh);
+
+    mesh.setPose = (position, quaternion) => {
+      trackedObject.set('position', position.toArray());
+      trackedObject.set('quaternion', quaternion.toArray());
+    };
+
+    const _observe = () => {
+      mesh.position.fromArray(trackedObject.get('position'));
+      mesh.quaternion.fromArray(trackedObject.get('quaternion'));
+    };
+    trackedObject.observe(_observe);
+    trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
   }
 });
 planet.addEventListener('trackedobjectremove', async e => {
-  const instanceId = e.data;
+  const trackedObject = e.data;
+  const instanceId = instanceId.get('instanceId');
   const index = objects.findIndex(object => object.instanceId === instanceId);
   if (index !== -1) {
     const object = objects[index];
     object.destroy && object.destroy();
     scene.remove(object);
     objects.splice(index, 1);
+    trackedObject.unobserve();
   }
 });
 planet.isObject = object => objects.includes(object);
@@ -925,8 +939,9 @@ planet.update = () => {
       const grabbedObject = planet.grabbedObjects[i];
       if (grabbedObject) {
         const {position, quaternion} = transforms[0];
-        grabbedObject.position.copy(position);
-        grabbedObject.quaternion.copy(quaternion);
+        // grabbedObject.position.copy(position);
+        // grabbedObject.quaternion.copy(quaternion);
+        grabbedObject.setPose(position, quaternion);
       }
     }
   };
