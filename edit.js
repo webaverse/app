@@ -38,8 +38,7 @@ import {
   
   presenceHost,
 } from './constants.js';
-import {makePromise, getNextMeshId, WaitQueue} from './util.js';
-import storage from './storage.js';
+import {makePromise} from './util.js';
 import {planet} from './planet.js';
 import {player} from './player.js';
 import {Bot} from './bot.js';
