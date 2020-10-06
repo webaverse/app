@@ -4,7 +4,7 @@ import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import {GLTFExporter} from './GLTFExporter.js';
-import {TransformControls} from './TransformControls.js';
+// import {TransformControls} from './TransformControls.js';
 import {tryLogin, loginManager} from './login.js';
 // import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
@@ -24,7 +24,6 @@ import {
 } from './constants.js';
 import {makePromise} from './util.js';
 import {planet} from './planet.js';
-import {player} from './player.js';
 // import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
