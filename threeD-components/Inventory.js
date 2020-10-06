@@ -37,6 +37,8 @@ const InventoryDetails = props => {
         <div class=id>${selectedHash}</div>
         <div class=id>${selectedFileName}</div>
         <a class=button id=inventory-spawn name=${selectedId}>Spawn</a>
+        <a class=button id=inventory-wear name=${selectedId}>Wear</a>
+        <a class=button id=inventory-discard name=${selectedId}>Discard</a>
       ` : ''}
     </div>
   `;
