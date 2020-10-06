@@ -333,7 +333,7 @@ geometryManager.waitForLoad().then(() => {
   inventoryMesh.add(inventoryMesh.inventoryItemsMesh);
   inventoryMesh.visible = false;
   inventoryMesh.handleIconClick = async (i, srcIndex) => {
-    const files = inventory.getFiles();
+    const files = inventory.getOwnedFiles();
     const file = files[srcIndex];
     const {filename, hash} = file;
     const res = await fetch(`${storageHost}/${hash}`);
