@@ -141,9 +141,11 @@ const _makeInventoryItemsMesh = () => {
         blob.name = filename;
         const mesh = await runtime.loadFileForWorld(blob);
 
-        mesh.position.set(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4);
-        mesh.scale.set(w*2 * 0.1, w*2 * 0.1, w*2 * 0.1);
-        object.add(mesh);
+        if (mesh) {
+          mesh.position.set(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4);
+          mesh.scale.set(w*2 * 0.1, w*2 * 0.1, w*2 * 0.1);
+          object.add(mesh);
+        }
       }
 
       const textMesh = makeTextMesh(filename, './Bangers-Regular.ttf', 0.003, 'left', 'bottom');
