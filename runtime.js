@@ -365,7 +365,7 @@ const _loadWebBundle = async file => {
   return mesh;
 };
 
-runtime.loadFileForWorld = async file => {
+runtime.loadFile = async file => {
   switch (getExt(file.name)) {
     case 'gltf':
     case 'glb':
