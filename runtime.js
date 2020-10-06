@@ -2,7 +2,7 @@ import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import {VOXLoader} from './VOXLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
-import {mergeMeshes} from './util.js';
+import {getExt, mergeMeshes} from './util.js';
 // import {bake} from './bakeUtils.js';
 import {makeIconMesh} from './vr-ui.js';
 import {appManager} from './app-object.js';
@@ -22,10 +22,6 @@ const importMap = {
 };
 
 const _clone = o => JSON.parse(JSON.stringify(o));
-const _getExt = fileName => {
-  const match = fileName.match(/\.([^\.]+)$/);
-  return match && match[1];
-};
 
 // const thingFiles = {};
 const _loadGltf = async file => {
@@ -370,7 +366,7 @@ const _loadWebBundle = async file => {
 };
 
 runtime.loadFileForWorld = async file => {
-  switch (_getExt(file.name)) {
+  switch (getExt(file.name)) {
     case 'gltf':
     case 'glb':
     case 'vrm': {

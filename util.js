@@ -19,6 +19,10 @@ export function hex2Uint8Array(hex) {
 export function uint8Array2hex(uint8Array) {
   return Array.prototype.map.call(uint8Array, x => ('00' + x.toString(16)).slice(-2)).join('');
 }
+export const getExt = fileName => {
+  const match = fileName.match(/\.([^\.]+)$/);
+  return match && match[1];
+};
 export function downloadFile(file, filename) {
   const blobURL = URL.createObjectURL(file);
   const tempLink = document.createElement('a');

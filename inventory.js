@@ -7,10 +7,6 @@ import {storageHost} from './constants.js';
 
 const inventory = new EventTarget();
 
-const _getExt = fileName => {
-  const match = fileName.match(/\.(.+)$/);
-  return match && match[1];
-};
 inventory.uploadFile = async file => {
   const {id, hash} = await loginManager.uploadFile(file);
   const {name: filename} = file;
