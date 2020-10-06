@@ -747,19 +747,21 @@ const _connectRoom = async (roomName, worldURL) => {
     let interval;
     if (live) {
       interval = setInterval(() => {
-        channelConnection.send(JSON.stringify({
-          method: 'status',
-          peerId: channelConnection.connectionId,
-          status: {
-            name: loginManager.getUsername(),
-            avatarHash: loginManager.getAvatar()
-          },
-        }));
-        const pose = rigManager.getLocalAvatarPose();
-        channelConnection.send(JSON.stringify({
-          method: 'pose',
-          pose,
-        }));
+        if (channelConnection.dataChannel) {
+          channelConnection.send(JSON.stringify({
+            method: 'status',
+            peerId: channelConnection.connectionId,
+            status: {
+              name: loginManager.getUsername(),
+              avatarHash: loginManager.getAvatar()
+            },
+          }));
+          const pose = rigManager.getLocalAvatarPose();
+          channelConnection.send(JSON.stringify({
+            method: 'pose',
+            pose,
+          }));
+        }
       }, 10);
     }
 
