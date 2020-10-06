@@ -19,6 +19,9 @@ export const state = {
             selectedHash: null,
             selectedFileName: null,
         },
+        browse: {
+            items: [],
+        },
         world: {
             peers: [],
             selectedPeerId: null,

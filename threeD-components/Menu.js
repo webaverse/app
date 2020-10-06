@@ -1,4 +1,5 @@
 import Inventory from './Inventory.js';
+import Browse from './Browse.js';
 import Social from './Social.js';
 import World from './World.js';
 
@@ -49,6 +50,9 @@ const Menu = props => {
             <a class="threeD-menuNavTab ${props.activeTab === 'inventory' ? 'selected' : ''}" id="threeD-menuNavTab-inventory">
                 <h1>Inventory</h1>
             </a>
+            <a class="threeD-menuNavTab ${props.activeTab === 'browse' ? 'selected' : ''}" id="threeD-menuNavTab-browse">
+                <h1>Browse</h1>
+            </a>
             <a class="threeD-menuNavTab ${props.activeTab === 'social' ? 'selected' : ''}" id="threeD-menuNavTab-social">
                 <h1>Social</h1>
             </a>
@@ -58,6 +62,9 @@ const Menu = props => {
         </div>
         ${props.activeTab === 'inventory' ? `<div>
             ${Inventory(props)}
+        <div>` : ''}
+        ${props.activeTab === 'browse' ? `<div>
+            ${Browse(props)}
         <div>` : ''}
         ${props.activeTab === 'social' ? `<div>
             ${Social(props)}

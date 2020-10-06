@@ -917,6 +917,15 @@ const _initializeLogin = async () => {
     };
     _initInventory();
 
+    const _initBrowse = async () => {
+      const items = await inventory.getFiles(0, 21);
+
+      const {menu} = getState();
+      menu.browse.items = items;
+      setState({menu});
+    };
+    _initBrowse();
+
     const _listenBlockchainEvents = async () => {
       const address = '0x' + loginManager.getAddress();
 

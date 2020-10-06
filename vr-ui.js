@@ -1480,6 +1480,7 @@ const makeMenuMesh = (cubeMesh, onclickBindings) => {
       selectedId: state.menu.inventory.selectedId,
       selectedHash: state.menu.inventory.selectedHash,
       selectedFileName: state.menu.inventory.selectedFileName,
+      allItems: state.menu.browse.items,
       peers: state.menu.world.peers,
       selectedPeerId: state.menu.world.selectedPeerId,
     });
