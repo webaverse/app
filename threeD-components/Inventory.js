@@ -9,6 +9,7 @@ const InventoryAvatar = props => {
       <div class=avatar-placeholder>No avatar</div>
     `}
     <div class=name>${props.username}</div>
+    <div class=name>${props.balance} FT</div>
   </div>`;
 };
 const InventoryDetails = props => {
@@ -42,7 +43,7 @@ const InventoryCard = (props = {}) => {
 
 const Inventory = (props = {}) => {
   let inventoryItems = props.inventoryItems || [];
-  const {username, avatarHash, selectedId, selectedHash, selectedFileName} = props;
+  const {username, avatarHash, balance, selectedId, selectedHash, selectedFileName} = props;
   return `\
     <style>
       .threeD-inventory {
@@ -144,6 +145,7 @@ const Inventory = (props = {}) => {
       ${InventoryAvatar({
         username,
         avatarHash,
+        balance,
       })}
       <div class=tiles>
         ${inventoryItems.map(item => InventoryCard(item)).join('\n')}

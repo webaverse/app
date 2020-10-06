@@ -13,6 +13,7 @@ export const state = {
             equipped: [],
         }, */
         inventory: {
+        	balance: 0,
             items: [],
             selectedId: null,
             selectedHash: null,
