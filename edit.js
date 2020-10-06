@@ -920,7 +920,10 @@ const _initializeLogin = async () => {
       const loadPromise = makePromise();
       loginManager.getBalance()
         .then(balance => {
-          uiManager.tradeMesh.setBalance(balance);
+          const {menu} = getState();
+          menu.inventory.balance = balance;
+          setState({menu});
+
           loadPromise.accept();
         });
 
@@ -934,16 +937,14 @@ const _initializeLogin = async () => {
             uiManager.popupMesh.addMessage(`${tx.from} sent ${tx.to} ${tx.amount}`);
           }
           if (tx.from === address) {
-            let balance = uiManager.tradeMesh.getBalance();
-            const oldBalance = balance;
-            balance -= tx.amount;
-            uiManager.tradeMesh.setBalance(balance);
+            const {menu} = getState();
+            menu.inventory.balance -= tx.amount;
+            setState({menu});
           }
           if (tx.to === address) {
-            let balance = uiManager.tradeMesh.getBalance();
-            const oldBalance = balance;
-            balance += tx.amount;
-            uiManager.tradeMesh.setBalance(balance);
+            const {menu} = getState();
+            menu.inventory.balance += tx.amount;
+            setState({menu});
           }
         };
       };
