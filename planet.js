@@ -877,7 +877,7 @@ planet.addEventListener('trackedobjectadd', async e => {
 });
 planet.addEventListener('trackedobjectremove', async e => {
   const trackedObject = e.data;
-  const instanceId = instanceId.get('instanceId');
+  const instanceId = trackedObject.get('instanceId');
   const index = objects.findIndex(object => object.instanceId === instanceId);
   if (index !== -1) {
     const object = objects[index];
