@@ -533,7 +533,6 @@ function animate(timestamp, frame) {
       uniforms.sunIntensity.value = Math.max(skybox.material.uniforms.sunPosition.value.y, 0);
       uniforms.sunIntensity.needsUpdate = true;
       uniforms.sunDirection.value.copy(skybox.material.uniforms.sunPosition.value).normalize();
-      window.sunDirection = uniforms.sunDirection.value;
       uniforms.sunDirection.needsUpdate = true;
     }
   }
