@@ -74,9 +74,7 @@ async function pullUserObject() {
 } */
 function updateUserObject() {
   const userName = document.getElementById('user-name');
-  // const avatarName = document.getElementById('avatar-name');
   userName.innerText = userObject.name;
-  // avatarName.innerText = userObject.avatarHash !== null ? userObject.avatarHash : 'None';
 
   loginManager.pushUpdate();
 }
