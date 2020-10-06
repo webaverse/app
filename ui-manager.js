@@ -2,6 +2,7 @@ import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import geometryManager from './geometry-manager.js';
 import weaponsManager from './weapons-manager.js';
+import inventory from './inventory.js';
 import runtime from './runtime.js';
 import {onclickBindings} from './components/App.js';
 import {makeInventoryMesh, makeTextMesh} from './vr-ui.js';
