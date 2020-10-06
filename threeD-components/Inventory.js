@@ -1,19 +1,6 @@
 import {getExt} from '../util.js';
 import {previewHost} from '../constants.js';
 
-const InventoryCard = (props = {}) => {
-  const ext = getExt(props.filename) || 'bin';
-  return `\
-    <a class=tile id=inventory-item name=${props.id}>
-      <div class="border top-left"></div>
-      <div class="border top-right"></div>
-      <div class="border bottom-left"></div>
-      <div class="border bottom-right"></div>
-      <img src="${previewHost}/${props.hash}.${ext}/preview.png">
-      <div class=text>${props.filename}</div>
-    </a>
-  `;
-};
 const InventoryAvatar = props => {
   return `<div class=avatar>
     ${props.avatarHash ? `\
@@ -37,6 +24,19 @@ const InventoryDetails = props => {
         <a class=button id=inventory-discard name=${selectedId}>Discard</a>
       ` : ''}
     </div>
+  `;
+};
+const InventoryCard = (props = {}) => {
+  const ext = getExt(props.filename) || 'bin';
+  return `\
+    <a class=tile id=inventory-item name=${props.id}>
+      <div class="border top-left"></div>
+      <div class="border top-right"></div>
+      <div class="border bottom-left"></div>
+      <div class="border bottom-right"></div>
+      <img src="${previewHost}/${props.hash}.${ext}/preview.png">
+      <div class=text>${props.filename}</div>
+    </a>
   `;
 };
 
