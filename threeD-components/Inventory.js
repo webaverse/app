@@ -1,12 +1,8 @@
+import {getExt} from '../util.js';
 import {previewHost} from '../constants.js';
 
-const _getExt = fileName => {
-  const match = fileName.match(/\.(.+)$/);
-  return match && match[1];
-};
-
 const InventoryCard = (props = {}) => {
-  const ext = _getExt(props.filename) || 'bin';
+  const ext = getExt(props.filename) || 'bin';
   return `\
     <a class=tile id=inventory-item name=${props.id}>
       <div class="border top-left"></div>
