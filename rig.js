@@ -3,6 +3,7 @@ import {GLTFLoader} from './GLTFLoader.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, WaitQueue} from './util.js';
 import {scene} from './app-object.js';
+import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 
 const localVector = new THREE.Vector3();
@@ -55,39 +56,46 @@ class RigManager {
     this.localRig.textMesh.sync();
   }
 
-  async setLocalAvatarUrl(url) {
+  async setLocalAvatarUrl(url, filename) {
     // await this.localRigQueue.lock();
 
     const oldLocalRig = this.localRig;
     oldLocalRig.url = url;
 
-    let o = null;
+    let o;
     if (url) {
-      try {
-        o = await new Promise((accept, reject) => {
-          new GLTFLoader().load(url, accept, xhr => {}, reject);
-        });
-      } catch (e) {
-        console.log(e);
-      }
-      if (o) {
-        o.scene.traverse(o => {
-          if (o.isMesh) {
-            o.frustumCulled = false;
-          }
-        });
-      }
+      const res = await fetch(url);
+      const blob = await res.blob();
+      blob.name = filename;
+      o = await runtime.loadFile(blob);
     }
 
     if (oldLocalRig.url === url) {
       this.scene.remove(oldLocalRig.model);
-
-      this.localRig = new Avatar(o, {
-        fingers: true,
-        hair: true,
-        visemes: true,
-        debug: !o,
-      });
+      if (o) {
+        if (o.raw) {
+          this.localRig = new Avatar(o.raw, {
+            fingers: true,
+            hair: true,
+            visemes: true,
+            debug: false //!o,
+          });
+        } else {
+          this.localRig = new Avatar();
+          this.localRig.model = o;
+          this.localRig.inputs.hmd = this.localRig.model;
+          this.localRig.update = () => {
+            // nothing
+          };
+        }
+      } else {
+        this.localRig = new Avatar(null, {
+          fingers: true,
+          hair: true,
+          visemes: true,
+          debug: true,
+        });
+      }
       this.scene.add(this.localRig.model);
       this.localRig.textMesh = oldLocalRig.textMesh;
       this.localRig.avatarUrl = oldLocalRig.url;
