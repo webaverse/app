@@ -20,7 +20,7 @@ inventory.uploadFile = async file => {
     preview,
   };
   files.push(fileSpec);
-  inventory.dispatchEvent(new MessageEvent('filesupdate', {
+  inventory.dispatchEvent(new MessageEvent('ownedfilesupdate', {
     data: files,
   }));
 };
@@ -30,7 +30,7 @@ inventory.discardFile = async id => {
   const fileIndex = files.findIndex(file => file.id === id);
   if (fileIndex !== -1) {
     files.splice(fileIndex, 1);
-    inventory.dispatchEvent(new MessageEvent('filesupdate', {
+    inventory.dispatchEvent(new MessageEvent('ownedfilesupdate', {
       data: files,
     }));
 
@@ -41,11 +41,11 @@ inventory.discardFile = async id => {
 };
 
 let files = [];
-inventory.getFiles = () => files;
+inventory.getOwnedFiles = () => files;
 
 loginManager.addEventListener('inventorychange', async e => {
   files = await loginManager.getInventory();
-  inventory.dispatchEvent(new MessageEvent('filesupdate', {
+  inventory.dispatchEvent(new MessageEvent('ownedfilesupdate', {
     data: files,
   }));
 });
