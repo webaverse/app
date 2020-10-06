@@ -1,6 +1,6 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
-import {GLTFExporter} from './GLTFExporter.js';
+// import {GLTFExporter} from './GLTFExporter.js';
 import {mergeMeshes} from './util.js';
 // import {bake} from './bakeUtils.js';
 import {makeIconMesh} from './vr-ui.js';
