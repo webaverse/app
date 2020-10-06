@@ -906,14 +906,17 @@ const _initializeLogin = async () => {
   const _initializeUserUi = async () => {
     await geometryManager.waitForLoad();
 
-    const files = inventory.getFiles();
-    uiManager.inventoryMesh.inventoryItemsMesh.update(files);
-    
-    inventory.addEventListener('filesupdate', e => {
-      const files = e.data;
+    const _initInventory = () => {
+      const files = inventory.getOwnedFiles();
       uiManager.inventoryMesh.inventoryItemsMesh.update(files);
-    });
-    
+      
+      inventory.addEventListener('ownedfilesupdate', e => {
+        const files = e.data;
+        uiManager.inventoryMesh.inventoryItemsMesh.update(files);
+      });
+    };
+    _initInventory();
+
     const _listenBlockchainEvents = async () => {
       const address = '0x' + loginManager.getAddress();
 
