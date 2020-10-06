@@ -77,17 +77,19 @@ const Inventory = (props = {}) => {
       }
       .tiles {
         display: flex;
-        flex: 1;
+        margin-right: auto;
+        flex-wrap: wrap;
+        align-content: flex-start;
       }
       .tiles .tile {
-        display: flex;
+        display: inline-flex;
         position: relative;
         width: 200px;
         height: 200px;
         flex-direction: column;
         background-color: #7e57c2;
-        margin-right: 2%;
-        margin-bottom: 2%;
+        margin-right: 20px;
+        margin-bottom: 20px;
         padding-bottom: 0;
       }
       .tiles .tile img {
