@@ -41,7 +41,7 @@ import {
 import {makePromise} from './util.js';
 import {planet} from './planet.js';
 import {player} from './player.js';
-import {Bot} from './bot.js';
+// import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
@@ -95,7 +95,7 @@ function mod(a, b) {
       roomName: 'lol',
     });
   }
-  new Bot();
+  // new Bot();
 })();
 
 const parcelSize = 10;
