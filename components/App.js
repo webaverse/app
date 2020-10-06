@@ -48,8 +48,7 @@ export const onclickBindings = {
     await inventory.discardFile(id);
   },
   'inventory-upload': e => {
-    const file = document.getElementById('twoD-inventoryUploadBtn').files[0];
-    inventory.uploadFile(file);
+    inventory.uploadFile(e.file);
   },
   'inventory-item': e => {
     const id = parseInt(e.name, 10);
