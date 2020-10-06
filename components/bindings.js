@@ -1,16 +1,15 @@
-import { App, updateProps } from './App.js';
+import {App, updateProps} from './App.js';
+import {bindUploadFileButton} from '../util.js';
 
 export const setBindings = (appContainer, onclickMap) => {
     if (appContainer) {
-    	for (const handlerType of ['click', 'change']) {
-		    const els = Array.from(appContainer.querySelectorAll('[on' + handlerType + ']'));
+    	// onclick
+    	{
+		    const els = Array.from(appContainer.querySelectorAll('[onclick]'));
 		    for (const el of els) {
-		    	const handlerName = el.getAttribute('on' + handlerType);
-		    	el.removeAttribute('on' + handlerType);
-		    	// console.log('click handler type', handlerType, handlerName);
-		    	el.addEventListener(handlerType, e => {
-		    		// debugger;
-		    		// console.log('click handler type', handlerType, handlerName);
+		    	const handlerName = el.getAttribute('onclick');
+		    	el.removeAttribute('onclick');
+		    	el.addEventListener('click', e => {
 		    		const id = el.getAttribute('id');
 		    		const name = el.getAttribute('name');
 		            onclickMap[handlerName]({
@@ -20,6 +19,23 @@ export const setBindings = (appContainer, onclickMap) => {
 		  	    });
 		    }
 		}
+		// file
+		{
+            const els = Array.from(appContainer.querySelectorAll('input[type=file][onchange]'));
+		    for (const el of els) {
+		    	const handlerName = el.getAttribute('onchange');
+				bindUploadFileButton(el, file => {
+                    const id = el.getAttribute('id');
+		    		const name = el.getAttribute('name');
+		            onclickMap[handlerName]({
+		            	id,
+		                name,
+		                file,
+		            });
+				});
+		    }
+		}
+        // drag
 		const draggableEls = Array.from(appContainer.querySelectorAll('[draggable]'));
 		for (const el of draggableEls) {
 			el.addEventListener('dragstart', e => {
