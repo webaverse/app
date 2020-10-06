@@ -978,18 +978,18 @@ const _initializeLogin = async () => {
       }
     });
 
-    const avatarHash = loginManager.getAvatar();
-    if (avatarHash) {
-      rigManager.setLocalAvatarUrl(`${storageHost}/${avatarHash}`);
+    const avatar = loginManager.getAvatar();
+    if (avatar.hash) {
+      rigManager.setLocalAvatarUrl(`${storageHost}/${avatar.hash}`, avatar.filename);
     }
     loginManager.addEventListener('avatarchange', e => {
-      const avatarHash = e.data;
-      const newAvatarUrl = avatarHash ? `${storageHost}/${avatarHash}` : null;
+      const avatar = e.data;
+      const newAvatarUrl = avatar ? `${storageHost}/${avatar.hash}` : null;
       if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
-        rigManager.setLocalAvatarUrl(newAvatarUrl);
+        rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.filename);
 
         const {menu} = getState();
-        menu.avatarHash = avatarHash;
+        menu.avatarHash = avatar.hash;
         setState({
           menu,
         });
@@ -998,7 +998,7 @@ const _initializeLogin = async () => {
 
     const {menu} = getState();
     menu.username = username;
-    menu.avatarHash = avatarHash;
+    menu.avatarHash = avatar.hash;
     setState({
       menu,
     });
