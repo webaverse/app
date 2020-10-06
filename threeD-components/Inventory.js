@@ -20,7 +20,12 @@ const InventoryCard = (props = {}) => {
 };
 const InventoryAvatar = props => {
   return `<div class=avatar>
-    <img src="${location.protocol}//${location.host}/female.png">
+    ${props.avatarHash ? `\
+      <img src="${previewHost}/${props.avatarHash}.vrm/preview.png">
+    ` : `\
+      <div class=avatar-placeholder>No avatar</div>
+    `}
+    <div class=name>${props.username}</div>
   </div>`;
 };
 const InventoryDetails = props => {
@@ -39,7 +44,7 @@ const InventoryDetails = props => {
 
 const Inventory = (props = {}) => {
   let inventoryItems = props.inventoryItems || [];
-  const {selectedId, selectedHash, selectedFileName} = props;
+  const {username, avatarHash, selectedId, selectedHash, selectedFileName} = props;
   return `\
     <style>
       .threeD-inventory {
@@ -51,8 +56,19 @@ const Inventory = (props = {}) => {
       .avatar {
         display: flex;
         width: 400px;
-        height: 800px;
+        flex-direction: column;
         background-color: #111;
+        color: #FFF;
+        font-size: 80px;
+      }
+      .avatar img,
+      .avatar .avatar-placeholder
+      {
+        display: flex;
+        width: 100%;
+        height: 800px;
+        justify-content: center;
+        align-items: center;
       }
       .details {
         display: flex;
@@ -127,7 +143,10 @@ const Inventory = (props = {}) => {
       }
     </style>
     <div class="threeD-inventory">
-      ${InventoryAvatar()}
+      ${InventoryAvatar({
+        username,
+        avatarHash,
+      })}
       <div class=tiles>
         ${inventoryItems.map(item => InventoryCard(item)).join('\n')}
       </div>

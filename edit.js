@@ -49,8 +49,8 @@ import {renderer, scene, camera, dolly, orbitControls, appManager} from './app-o
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
-import { App } from './components/App.js';
-import { setState } from './state.js';
+import {App} from './components/App.js';
+import {getState, setState} from './state.js';
 
 const zeroVector = new THREE.Vector3(0, 0, 0);
 const pid4 = Math.PI / 4;
@@ -977,9 +977,18 @@ const _initializeLogin = async () => {
   const _initializeRigUi = () => {
     const username = loginManager.getUsername() || 'Anonymous';
     rigManager.setLocalAvatarName(username);
+
     loginManager.addEventListener('usernamechange', e => {
       const username = e.data || 'Anonymous';
-      rigManager.setLocalAvatarName(username);
+      if (username !== rigManager.localRig.textMesh.text) {
+        rigManager.setLocalAvatarName(username);
+
+        const {menu} = getState();
+        menu.username = username;
+        setState({
+          menu,
+        });
+      }
     });
 
     const avatarHash = loginManager.getAvatar();
@@ -991,7 +1000,20 @@ const _initializeLogin = async () => {
       const newAvatarUrl = avatarHash ? `${storageHost}/${avatarHash}` : null;
       if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
         rigManager.setLocalAvatarUrl(newAvatarUrl);
+
+        const {menu} = getState();
+        menu.avatarHash = avatarHash;
+        setState({
+          menu,
+        });
       }
+    });
+
+    const {menu} = getState();
+    menu.username = username;
+    menu.avatarHash = avatarHash;
+    setState({
+      menu,
     });
   };
   _initializeRigUi();

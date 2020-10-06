@@ -1473,6 +1473,8 @@ const makeMenuMesh = (cubeMesh, onclickBindings) => {
     // console.log('update state', state);
     const htmlString = Menu({
       activeTab: state.menu.activeTab,
+      username: state.menu.username,
+      avatarHash: state.menu.avatarHash,
       inventoryItems: state.menu.inventory.items,
       selectedId: state.menu.inventory.selectedId,
       selectedHash: state.menu.inventory.selectedHash,

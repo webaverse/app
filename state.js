@@ -4,12 +4,14 @@ export const state = {
     menu: {
         visible: false,
         activeTab: 'inventory',
-        account: {
+        username: 'Anonymous',
+        avatarHash: null,
+        /* account: {
             name: '',
             avatar: null,
             isMic: false,
             equipped: [],
-        },
+        }, */
         inventory: {
             items: [],
             selectedId: null,
