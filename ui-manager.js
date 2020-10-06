@@ -139,7 +139,7 @@ const _makeInventoryItemsMesh = () => {
         const res = await fetch(`${storageHost}/${hash}`);
         const blob = await res.blob();
         blob.name = filename;
-        const mesh = await runtime.loadFileForWorld(blob);
+        const mesh = await runtime.loadFile(blob);
 
         mesh.position.set(-h + w/2 + dx*w, h/2 - arrowW - w/2 - dy*w, w/4);
         mesh.scale.set(w*2 * 0.1, w*2 * 0.1, w*2 * 0.1);
@@ -340,7 +340,7 @@ geometryManager.waitForLoad().then(() => {
     const blob = await res.blob();
     blob.name = filename;
 
-    const mesh = await runtime.loadFileForWorld(blob);
+    const mesh = await runtime.loadFile(blob);
     mesh.run && mesh.run();
     mesh.traverse(o => {
       if (o.isMesh) {

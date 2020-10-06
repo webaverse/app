@@ -852,7 +852,7 @@ planet.addEventListener('trackedobjectadd', async e => {
     const file = await res2.blob();
     file.name = filename;
     // console.log('loading file');
-    const mesh = await runtime.loadFileForWorld(file);
+    const mesh = await runtime.loadFile(file);
     mesh.position.fromArray(position);
     mesh.quaternion.fromArray(quaternion);
     
