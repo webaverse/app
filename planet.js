@@ -30,9 +30,6 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
 
-const peerAvatarNames = new Map();
-const peerAvatarHashes = new Map();
-
 function abs(n) {
   return (n ^ (n >> 31)) - (n >> 31);
 }
@@ -701,15 +698,27 @@ const _connectRoom = async (roomName, worldURL) => {
           */
         } else if (method === 'status') {
           const {peerId, status: {name, avatarHash}} = j;
-          const currentPeerName = peerAvatarNames.get(peerId);
-          if (currentPeerName !== name && name) {
+          const peerRig = rigManager.peerRigs.get(peerId);
+
+          let updated = false;
+
+          const currentPeerName = peerRig.textMesh.text;
+          if (currentPeerName !== name) {
             rigManager.setPeerAvatarName(name, peerId);
-            peerAvatarNames.set(peerId, name);
+            updated = true;
           }
-          const currentPeerHash = peerAvatarHashes.get(peerId);
-          if (currentPeerHash !== avatarHash && avatarHash) {
-            rigManager.setPeerAvatarUrl(`${storageHost}/${avatarHash}`, peerId);
-            peerAvatarHashes.set(peerId, avatarHash);
+
+          const newAvatarUrl = avatarHash ? `${storageHost}/${avatarHash}` : null;
+          const currentAvatarUrl = peerRig.avatarUrl;
+          if (currentAvatarUrl !== newAvatarUrl) {
+            rigManager.setPeerAvatarUrl(newAvatarUrl, peerId);
+            updated = true;
+          }
+
+          if (updated) {
+            planet.dispatchEvent(new MessageEvent('peersupdate', {
+              data: Array.from(rigManager.peerRigs.values()),
+            }));
           }
         } else {
           console.warn('unknown method', method);
