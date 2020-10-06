@@ -1,7 +1,7 @@
 import {getExt} from '../util.js';
 import {previewHost} from '../constants.js';
 
-const InventoryAvatar = props => {
+export const InventoryAvatar = props => {
   return `<div class=avatar>
     ${props.avatarHash ? `\
       <img src="${previewHost}/${props.avatarHash}.vrm/preview.png">
@@ -12,7 +12,7 @@ const InventoryAvatar = props => {
     <div class=name>${props.balance} FT</div>
   </div>`;
 };
-const InventoryDetails = props => {
+export const InventoryDetails = props => {
   const {selectedId, selectedHash, selectedFileName} = props;
   return `\
     <div class=details>
@@ -27,10 +27,10 @@ const InventoryDetails = props => {
     </div>
   `;
 };
-const InventoryCard = (props = {}) => {
+export const InventoryCard = (props = {}) => {
   const ext = getExt(props.filename) || 'bin';
   return `\
-    <a class=tile id=inventory-item name=${props.id}>
+    <a class=tile id=${props.anchor} name=${props.id}>
       <div class="border top-left"></div>
       <div class="border top-right"></div>
       <div class="border bottom-left"></div>
@@ -41,7 +41,7 @@ const InventoryCard = (props = {}) => {
   `;
 };
 
-const Inventory = (props = {}) => {
+export const Inventory = (props = {}) => {
   let inventoryItems = props.inventoryItems || [];
   const {username, avatarHash, balance, selectedId, selectedHash, selectedFileName} = props;
   return `\
@@ -77,6 +77,7 @@ const Inventory = (props = {}) => {
       }
       .tiles {
         display: flex;
+        width: ${2048 - 400}px;
         margin-right: auto;
         flex-wrap: wrap;
         align-content: flex-start;
@@ -150,7 +151,12 @@ const Inventory = (props = {}) => {
         balance,
       })}
       <div class=tiles>
-        ${inventoryItems.map(item => InventoryCard(item)).join('\n')}
+        ${inventoryItems.map(item => InventoryCard({
+          anchor: 'inventory-item',
+          id: item.id,
+          hash: item.hash,
+          filename: item.filename,
+        })).join('\n')}
       </div>
       ${InventoryDetails({
         selectedId,

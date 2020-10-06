@@ -17,6 +17,13 @@ export const onclickBindings = {
       menu,
     });
   },
+  'threeD-menuNavTab-browse': e => {
+    const {menu} = getState();
+    menu.activeTab = 'browse';
+    setState({
+      menu,
+    });
+  },
   'threeD-menuNavTab-social': e => {
     const {menu} = getState();
     menu.activeTab = 'social';
@@ -52,10 +59,21 @@ export const onclickBindings = {
   },
   'inventory-item': e => {
     const id = parseInt(e.name, 10);
-    const files = inventory.getFiles();
-    const file = files.find(file => file.id === id);
-    const {hash, filename, preview} = file;
     const {menu} = getState();
+    const file = menu.inventory.items.find(file => file.id === id);
+    const {hash, filename, preview} = file;
+    menu.inventory.selectedId = id;
+    menu.inventory.selectedHash = hash;
+    menu.inventory.selectedFileName = filename;
+    setState({
+      menu,
+    });
+  },
+  'browse-item': e => {
+    const id = parseInt(e.name, 10);
+    const {menu} = getState();
+    const file = menu.browse.items.find(file => file.id === id);
+    const {hash, filename, preview} = file;
     menu.inventory.selectedId = id;
     menu.inventory.selectedHash = hash;
     menu.inventory.selectedFileName = filename;
