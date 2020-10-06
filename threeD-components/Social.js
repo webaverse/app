@@ -1,7 +1,11 @@
+import {previewHost} from '../constants.js';
+
 const Social = (props = {}) => {
   let peers = props.peers || [];
-  const {selectedPeerId} = props;
-  console.log('got peers', peers);
+  const {selectedPeerId, selectedId} = props;
+  const peerRig = selectedPeerId && peers.find(rig => rig.peerConnection.connectionId === selectedPeerId);
+  const selectedPeerName = peerRig && peerRig.textMesh.text;
+  const selectedAvatarUrl = peerRig && peerRig.avatarUrl && `${previewHost}/${peerRig.avatarUrl.match(/([^\/]+)$/)[1]}.vrm/preview.png`;
   return `
     <style>
       .threeD-social {
@@ -23,7 +27,7 @@ const Social = (props = {}) => {
         display: flex;
         flex: 1;
       }
-      .peer-list .placeholder {
+      .peer-list .list-placeholder {
         display: flex;
         height: 400px;
         justify-content: center;
@@ -31,10 +35,21 @@ const Social = (props = {}) => {
         font-size: 100px;
       }
       .peer-details {
-        width: 600px;
+        width: 400px;
         height: 1000px;
         background-color: #111;
         color: #FFF;
+      }
+      .peer-details img,
+      .peer-details .img-placeholder
+      {
+        display: flex;
+        width: 100%;
+        height: 600px;
+        background-color: #111;
+        color: #FFF;
+        justify-content: center;
+        align-items: center;
       }
     </style>
     <div class=threeD-social>
@@ -45,13 +60,14 @@ const Social = (props = {}) => {
             <div class=chevron>&gt;</div>
           </a>`;
         }).join('\n') : `\
-          <div class=placeholder>No peers</div>
+          <div class=list-placeholder>No peers</div>
         `}
       </div>
       <div class=peer-details>
         ${selectedPeerId !== null ? `\
-          <div class=name>${selectedPeerId}</div>
-          <div class=></div>
+          ${selectedAvatarUrl ? `<img src="${selectedAvatarUrl}">` : '<div class=img-placeholder>No avatar</div>'}
+          <div class=name>${selectedPeerName}</div>
+          ${selectedId !== null ? `<a class=button id=send-nft name=${selectedId}>Send NFT</a>` : ''}
         ` : ''}
       <div>
     </div>
