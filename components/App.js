@@ -2,41 +2,74 @@ import Menu from './Menu.js';
 import WeaponWheel from './WeaponWheel.js';
 import uiManager from '../ui-manager.js';
 import inventory from '../inventory.js';
-import {loginManager} from '../login.js';
-import {planet} from '../planet.js';
-import {state, getState, setState, getSpecificState} from '../state.js';
-import {setBindings} from './bindings.js';
+import { loginManager } from '../login.js';
+import { planet } from '../planet.js';
+import { state, getState, setState, getSpecificState } from '../state.js';
+import { setBindings } from './bindings.js';
 
 let appState = state;
 
 export const onclickBindings = {
   'threeD-menuNavTab-inventory': e => {
-    const {menu} = getState();
+    const { menu } = getState();
     menu.activeTab = 'inventory';
     setState({
       menu,
     });
   },
   'threeD-menuNavTab-browse': e => {
-    const {menu} = getState();
+    const { menu } = getState();
     menu.activeTab = 'browse';
     setState({
       menu,
     });
   },
   'threeD-menuNavTab-social': e => {
-    const {menu} = getState();
+    const { menu } = getState();
     menu.activeTab = 'social';
     setState({
       menu,
     });
   },
   'threeD-menuNavTab-world': e => {
-    const {menu} = getState();
+    const { menu } = getState();
     menu.activeTab = 'world';
     setState({
       menu,
     });
+  },
+  'twoD-menuNavTab-inventory': e => {
+    const { menu } = getState();
+    menu.activeTab = 'inventory';
+    setState({
+      menu,
+    });
+  },
+  'twoD-menuNavTab-browse': e => {
+    const { menu } = getState();
+    menu.activeTab = 'browse';
+    setState({
+      menu,
+    });
+  },
+  'twoD-menuNavTab-social': e => {
+    const { menu } = getState();
+    menu.activeTab = 'social';
+    setState({
+      menu,
+    });
+  },
+  'twoD-menuNavTab-worlds': async (e) => {
+    const { menu } = getState();
+    const response = await fetch('https://worlds.exokit.org/list');
+    const json = await response.json();
+    console.log(json)
+    menu.worlds = json.worlds;
+    menu.activeTab = 'worlds';
+    setState({
+      menu,
+    });
+    
   },
   'inventory-spawn': async e => {
     const id = e.name;
@@ -59,9 +92,9 @@ export const onclickBindings = {
   },
   'inventory-item': e => {
     const id = parseInt(e.name, 10);
-    const {menu} = getState();
+    const { menu } = getState();
     const file = menu.inventory.items.find(file => file.id === id);
-    const {hash, filename, preview} = file;
+    const { hash, filename, preview } = file;
     menu.inventory.selectedId = id;
     menu.inventory.selectedHash = hash;
     menu.inventory.selectedFileName = filename;
@@ -71,9 +104,9 @@ export const onclickBindings = {
   },
   'browse-item': e => {
     const id = parseInt(e.name, 10);
-    const {menu} = getState();
+    const { menu } = getState();
     const file = menu.browse.items.find(file => file.id === id);
-    const {hash, filename, preview} = file;
+    const { hash, filename, preview } = file;
     menu.inventory.selectedId = id;
     menu.inventory.selectedHash = hash;
     menu.inventory.selectedFileName = filename;
@@ -83,7 +116,7 @@ export const onclickBindings = {
   },
   'peer': e => {
     const connectionId = e.name;
-    const {menu} = getState();
+    const { menu } = getState();
     menu.world.selectedPeerId = connectionId;
     setState({
       menu,
@@ -98,14 +131,14 @@ export const onclickBindings = {
 };
 
 inventory.addEventListener('filesupdate', e => {
-  const {menu} = state;
+  const { menu } = state;
   menu.inventory.items = e.data;
   updateProps({
     menu,
   });
 });
 planet.addEventListener('peersupdate', e => {
-  const {menu} = state;
+  const { menu } = state;
   menu.world.peers = e.data;
   updateProps({
     menu,
@@ -118,6 +151,7 @@ export const toggleMenus = props => {
       return Menu({
         activeTab: appState.menu.activeTab,
         inventoryItems: appState.menu.inventory.items,
+        worlds: appState.menu.worlds
       });
     case 'weaponWheel':
       return WeaponWheel(props);
@@ -135,37 +169,37 @@ export const App = (props) => {
 }
 
 export const updateProps = newProps => {
-    const appContainer = document.getElementById('appContainer');
-    for (let k in newProps) {
-        // if (appState[k] !== newProps[k]) {
-            appState[k] = newProps[k];
-        // }
+  const appContainer = document.getElementById('appContainer');
+  for (let k in newProps) {
+    // if (appState[k] !== newProps[k]) {
+    appState[k] = newProps[k];
+    // }
+  }
+  if (appState.pointerLock || appState.isXR) {
+    appContainer.style.display = 'none';
+    if ('menu' in newProps || 'pointerLock' in newProps || 'isXR' in newProps) {
+      uiManager.menuMesh.update();
     }
-    if (appState.pointerLock || appState.isXR) {
-        appContainer.style.display = 'none';
-        if ('menu' in newProps || 'pointerLock' in newProps || 'isXR' in newProps) {
-          uiManager.menuMesh.update();
-        }
-    } else if (!appState.selectedWeapon) {
-        appContainer.style.display = 'none';
-        // appContainer.innerHTML = '';
-        // setBindings(null, onclickBindings);
-    } else {
-        appContainer.style.display = 'block';
-        appContainer.innerHTML = App(appState);
-        setBindings(appContainer, onclickBindings);
-    }
+  } else if (!appState.selectedWeapon) {
+    appContainer.style.display = 'none';
+    // appContainer.innerHTML = '';
+    // setBindings(null, onclickBindings);
+  } else {
+    appContainer.style.display = 'block';
+    appContainer.innerHTML = App(appState);
+    setBindings(appContainer, onclickBindings);
+  }
 }
 
 window.addEventListener('stateChanged', (e) => {
-    const changedState = getSpecificState(e.detail.changedKeys);
-    for (let k in changedState) {
-        appState[k] = changedState[k];
-    }
-    updateProps(changedState);
+  const changedState = getSpecificState(e.detail.changedKeys);
+  for (let k in changedState) {
+    appState[k] = changedState[k];
+  }
+  updateProps(changedState);
 })
 
 window.addEventListener('load', () => {
-    const appContainer = document.getElementById('appContainer');
-    setBindings(appContainer, onclickBindings);
+  const appContainer = document.getElementById('appContainer');
+  setBindings(appContainer, onclickBindings);
 });

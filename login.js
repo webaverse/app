@@ -500,11 +500,19 @@ class LoginManager extends EventTarget {
             }),
           });
           const response2 = await res.json();
-          const id = parseInt(response2.transaction.events[0].payload.value.fields.find(field => field.name === 'id').value.value, 10);
-          return {
-            hash,
-            id,
-          };
+          if (response2?.transaction?.events[0]) {
+            console.log(response2)
+            const id = parseInt(response2.transaction.events[0].payload.value.fields.find(field => field.name === 'id').value.value, 10);
+            return {
+              hash,
+              id,
+            };
+          } else {
+              return {
+                hash,
+                id,
+              };
+          }
         }
       } else {
         throw new Error('file has no name');
