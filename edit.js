@@ -800,12 +800,6 @@ function animate(timestamp, frame) {
     _tickPlanetAnimation(factor);
   } */
 
-  if (cameraManager.getTool() === 'firstperson') {
-    rigManager.localRig.decapitate();
-  } else {
-    rigManager.localRig.undecapitate();
-  }
-
   geometryManager.update(timeDiff, frame);
   planet.update();
 
