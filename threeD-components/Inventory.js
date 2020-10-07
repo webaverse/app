@@ -2,7 +2,7 @@ import {getExt} from '../util.js';
 import {previewHost} from '../constants.js';
 
 export const InventoryAvatar = props => {
-  const ext = getExt(props.avatarFileName) || 'bin';
+  const ext = (props.avatarFileName && getExt(props.avatarFileName)) || 'bin';
   return `<div class=avatar>
     ${props.avatarHash ? `\
       <img src="${previewHost}/${props.avatarHash}.${ext}/preview.png">
