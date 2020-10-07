@@ -756,12 +756,15 @@ const _connectRoom = async (roomName, worldURL) => {
     if (live) {
       interval = setInterval(() => {
         if (channelConnection.dataChannel) {
+          const name = loginManager.getUsername();
+          const avatarSpec = loginManager.getAvatar();
+          const avatarHash = avatarSpec && avatarSpec.hash;
           channelConnection.send(JSON.stringify({
             method: 'status',
             peerId: channelConnection.connectionId,
             status: {
-              name: loginManager.getUsername(),
-              avatarHash: loginManager.getAvatar()
+              name,
+              avatarHash,
             },
           }));
           const pose = rigManager.getLocalAvatarPose();
