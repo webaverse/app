@@ -5,7 +5,7 @@ import {planet} from './planet.js';
 import {getContractSource} from './blockchain.js';
 import {getState, setState} from './state.js';
 import {renderer, scene, camera} from './app-object.js';
-import {storageHost} from './constants.js';
+import {storageHost, previewExt} from './constants.js';
 
 const inventory = new EventTarget();
 
@@ -14,7 +14,7 @@ inventory.uploadFile = async file => {
   const {name: filename} = file;
   const match = filename.match(/\.([^\.]+)$/);
   const ext = match ? match[1] : 'bin';
-  const preview = `https://preview.exokit.org/${hash}.${ext}/preview.png`;
+  const preview = `https://preview.exokit.org/${hash}.${ext}/preview.${previewExt}`;
   const fileSpec = {
     id,
     hash,

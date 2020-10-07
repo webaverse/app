@@ -1,6 +1,6 @@
 import storage from './storage.js';
 import {createAccount, getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
-import {storageHost} from './constants.js'
+import {storageHost, previewExt} from './constants.js'
 
 const loginEndpoint = 'https://login.exokit.org';
 // const usersEndpoint = 'https://users.exokit.org';
@@ -459,7 +459,7 @@ class LoginManager extends EventTarget {
         const filename = fields.find(field => field.name === 'filename').value.value;
         const match = filename.match(/\.([^\.]+)$/);
         const ext = match ? match[1] : 'bin';
-        const preview = `https://preview.exokit.org/${hash}.${ext}/preview.png`;
+        const preview = `https://preview.exokit.org/${hash}.${ext}/preview.${previewExt}`;
         return {id, hash, filename, preview};
       });
       return entries;

@@ -47,6 +47,7 @@ export const colors = [
   '78909c',
   '333333',
 ];
+export const previewExt = 'jpg';
 
 export const storageHost = 'https://storage.exokit.org';
 export const previewHost = 'https://preview.exokit.org'

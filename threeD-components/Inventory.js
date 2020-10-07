@@ -1,11 +1,11 @@
 import {getExt} from '../util.js';
-import {previewHost} from '../constants.js';
+import {previewHost, previewExt} from '../constants.js';
 
 export const InventoryAvatar = props => {
   const ext = (props.avatarFileName && getExt(props.avatarFileName)) || 'bin';
   return `<div class=avatar>
     ${props.avatarHash ? `\
-      <img src="${previewHost}/${props.avatarHash}.${ext}/preview.png">
+      <img src="${previewHost}/${props.avatarHash}.${ext}/preview.${previewExt}">
     ` : `\
       <div class=avatar-placeholder>No avatar</div>
     `}
@@ -36,7 +36,7 @@ export const InventoryCard = (props = {}) => {
       <div class="border top-right"></div>
       <div class="border bottom-left"></div>
       <div class="border bottom-right"></div>
-      <img src="${previewHost}/${props.hash}.${ext}/preview.png">
+      <img src="${previewHost}/${props.hash}.${ext}/preview.${previewExt}">
       <div class=text>${props.filename}</div>
     </a>
   `;
