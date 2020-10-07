@@ -232,7 +232,7 @@
       </style>
       <div class=body>
         <div class=icon>
-          <img src="${icon}" height=${h/2}>
+          <img ${icon ? `src="${icon}"` : ''} height=${h/2}>
         </div>
         <div class=hash>${_split(hash)}</div>
         <div class=label>${ext.toUpperCase()}</div>
