@@ -698,6 +698,20 @@
           }, '*', [arrayBuffer]);
         } else {
           console.warn('unknown output type', type);
+
+          if (dst) {
+            fetch(dst, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/octet-stream',
+              },
+            }).then(res => res.blob());
+          }
+
+          window.parent.postMessage({
+            method: 'result',
+            result: null,
+          }, '*');
         }
 
         toggleElements(true);
