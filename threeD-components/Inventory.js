@@ -2,9 +2,10 @@ import {getExt} from '../util.js';
 import {previewHost} from '../constants.js';
 
 export const InventoryAvatar = props => {
+  const ext = getExt(props.avatarFileName) || 'bin';
   return `<div class=avatar>
     ${props.avatarHash ? `\
-      <img src="${previewHost}/${props.avatarHash}.vrm/preview.png">
+      <img src="${previewHost}/${props.avatarHash}.${ext}/preview.png">
     ` : `\
       <div class=avatar-placeholder>No avatar</div>
     `}
@@ -43,7 +44,7 @@ export const InventoryCard = (props = {}) => {
 
 export const Inventory = (props = {}) => {
   let inventoryItems = props.inventoryItems || [];
-  const {username, avatarHash, balance, selectedId, selectedHash, selectedFileName} = props;
+  const {username, avatarHash, avatarFileName, balance, selectedId, selectedHash, selectedFileName} = props;
   return `\
     <style>
       .threeD-inventory {
@@ -148,6 +149,7 @@ export const Inventory = (props = {}) => {
       ${InventoryAvatar({
         username,
         avatarHash,
+        avatarFileName,
         balance,
       })}
       <div class=tiles>
