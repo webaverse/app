@@ -62,7 +62,7 @@ function mod(a, b) {
     await planet.connect({
       online: true,
       roomName: 'lol',
-      url: q.u + '.worlds.webaverse.com',
+      url: q.u,
     });
   } else {
     await planet.connect({
