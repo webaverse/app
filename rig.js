@@ -1,5 +1,6 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
+import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, WaitQueue} from './util.js';
 import {scene} from './app-object.js';
@@ -379,7 +380,13 @@ class RigManager {
     this.localRig.update();
     this.peerRigs.forEach(rig => {
       rig.update();
-    })
+    });
+
+    if (cameraManager.getTool() === 'firstperson') {
+      rigManager.localRig.decapitate();
+    } else {
+      rigManager.localRig.undecapitate();
+    }
   }
 }
 const rigManager = new RigManager(scene);
