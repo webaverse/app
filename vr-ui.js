@@ -1475,6 +1475,7 @@ const makeMenuMesh = (cubeMesh, onclickBindings) => {
       activeTab: state.menu.activeTab,
       username: state.menu.username,
       avatarHash: state.menu.avatarHash,
+      avatarFileName: state.menu.avatarFileName,
       inventoryItems: state.menu.inventory.items,
       balance: state.menu.inventory.balance,
       selectedId: state.menu.inventory.selectedId,

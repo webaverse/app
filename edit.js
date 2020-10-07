@@ -996,6 +996,7 @@ const _initializeLogin = async () => {
 
         const {menu} = getState();
         menu.avatarHash = avatar.hash;
+        menu.avatarFileName = avatar.filename;
         setState({
           menu,
         });
@@ -1005,6 +1006,7 @@ const _initializeLogin = async () => {
     const {menu} = getState();
     menu.username = username;
     menu.avatarHash = avatar.hash;
+    menu.avatarFileName = avatar.filename;
     setState({
       menu,
     });

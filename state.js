@@ -6,6 +6,7 @@ export const state = {
         activeTab: 'inventory',
         username: 'Anonymous',
         avatarHash: null,
+        avatarFileName: null,
         /* account: {
             name: '',
             avatar: null,
