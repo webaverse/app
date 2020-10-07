@@ -21,28 +21,14 @@ const Menu = props => {
     .threeD-menuNavTab {
         flex-grow: 1;
         text-align: center;
+        background-color: #42a5f5;
         border-bottom: 20px transparent solid;
-        cursor: pointer;
+        color: #FFF;
         font-size: 40px;
     }
     .threeD-menuNavTab.selected {
+        background-color: #ff7043;
         border-bottom-color: #333;
-    }
-    #threeD-menuNavTab-inventory {
-        border-radius: 20px 0px 0px 0px;
-        color: white;
-        background-color: #8a3dca;
-    }
-    
-    #threeD-menuNavTab-account {
-        color: white;
-        background-color: #5bc152;
-    }
-    
-    #threeD-menuNavTab-world {
-        border-radius: 0px 20px 0px 0px;
-        color: white;
-        background-color:#ff7043;
     }
     </style>
     <div class="threeD-menu">
