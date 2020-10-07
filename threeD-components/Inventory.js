@@ -32,12 +32,13 @@ export const InventoryCard = (props = {}) => {
   const ext = getExt(props.filename) || 'bin';
   return `\
     <a class=tile id=${props.anchor} name=${props.id}>
+      <img src="${previewHost}/${props.hash}.${ext}/preview.${previewExt}">
       <div class="border top-left"></div>
       <div class="border top-right"></div>
       <div class="border bottom-left"></div>
       <div class="border bottom-right"></div>
-      <img src="${previewHost}/${props.hash}.${ext}/preview.${previewExt}">
       <div class=text>${props.filename}</div>
+      <div class=balance>${props.balance}</div>
     </a>
   `;
 };
@@ -93,6 +94,7 @@ export const Inventory = (props = {}) => {
         margin-right: 20px;
         margin-bottom: 20px;
         padding-bottom: 0;
+        overflow: hidden;
       }
       .tiles .tile img {
         position: absolute;
@@ -103,16 +105,30 @@ export const Inventory = (props = {}) => {
         width: 200px;
         height: 200px;
       }
-      .tiles .tile .text {
-        padding: 20px;
-        padding-top: 0;
+      .tiles .tile .text,
+      .tiles .tile .balance
+      {
+        padding: 10px;
+        background-color: #111;
         color: #FFF;
+        font-size: 50px;
+      }
+      .tiles .tile .text {
+        position: absolute;
+        top: 0;
+        left: 0;
+        font-size: 30px;
+      }
+      .tiles .tile .balance {
+        position: absolute;
+        bottom: 0;
+        left: 0;
       }
       .border {
         position: absolute;
-        width: 20px;
-        height: 20px;
-        border: 20px solid #111;
+        width: 10px;
+        height: 10px;
+        border: 10px solid #111;
       }
       .border.top-left {
         top: 0;
@@ -158,6 +174,7 @@ export const Inventory = (props = {}) => {
           id: item.id,
           hash: item.hash,
           filename: item.filename,
+          balance: item.balance,
         })).join('\n')}
       </div>
       ${InventoryDetails({
