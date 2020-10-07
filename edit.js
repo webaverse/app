@@ -35,8 +35,8 @@ import inventory from './inventory.js';
 import {App} from './components/App.js';
 import {getState, setState} from './state.js';
 
-const zeroVector = new THREE.Vector3(0, 0, 0);
-const pid4 = Math.PI / 4;
+// const zeroVector = new THREE.Vector3(0, 0, 0);
+// const pid4 = Math.PI / 4;
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.3);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.3);
 // const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
@@ -44,19 +44,11 @@ const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.3);
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
-const localVector4 = new THREE.Vector3();
-const localVector5 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
-const localQuaternion3 = new THREE.Quaternion();
-const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
-const localFrustum = new THREE.Frustum();
-const localRaycaster = new THREE.Raycaster();
-const localColor = new THREE.Color();
-const localObject = new THREE.Object3D();
 
 let skybox = null;
 
