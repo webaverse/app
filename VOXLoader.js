@@ -3130,23 +3130,27 @@ export class VOXLoader {
     this.center = center;
   }
   async load(url, resolve, progress, reject) {
-    const parser = new VOXParser();
-    const {dims, voxels} = await parser.parse(url);
-    const voxMesh = new VOXMesh(dims);
-    for (let i = 0; i < voxels.length; i++) {
-      const [x, y, z, c] = voxels[i];
-      voxMesh.set(c, x, y, z);
+    try {
+      const parser = new VOXParser();
+      const {dims, voxels} = await parser.parse(url);
+      const voxMesh = new VOXMesh(dims);
+      for (let i = 0; i < voxels.length; i++) {
+        const [x, y, z, c] = voxels[i];
+        voxMesh.set(c, x, y, z);
+      }
+      const mesh = voxMesh.generate();
+      mesh.geometry.applyMatrix4(new THREE.Matrix4().makeScale(-1, 1, -1)).applyMatrix4(new THREE.Matrix4().makeTranslation(dims[0]/2, 0, dims[2]/2));
+      if (this.scale) {
+        mesh.geometry.applyMatrix4(new THREE.Matrix4().makeScale(this.scale, this.scale, this.scale));
+      }
+      if (this.center) {
+        const box = new THREE.Box3().setFromObject(mesh);
+        const center = box.getCenter(new THREE.Vector3());
+        mesh.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
+      }
+      resolve(mesh);
+    } catch(err) {
+      reject(err);
     }
-    const mesh = voxMesh.generate();
-    mesh.geometry.applyMatrix4(new THREE.Matrix4().makeScale(-1, 1, -1)).applyMatrix4(new THREE.Matrix4().makeTranslation(dims[0]/2, 0, dims[2]/2));
-    if (this.scale) {
-      mesh.geometry.applyMatrix4(new THREE.Matrix4().makeScale(this.scale, this.scale, this.scale));
-    }
-    if (this.center) {
-      const box = new THREE.Box3().setFromObject(mesh);
-      const center = box.getCenter(new THREE.Vector3());
-      mesh.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-center.x, -center.y, -center.z));
-    }
-    resolve(mesh);
   }
 }
