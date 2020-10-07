@@ -1,42 +1,42 @@
-import {App, updateProps} from './App.js';
-import {bindUploadFileButton} from '../util.js';
+import { App, updateProps } from './App.js';
+import { bindUploadFileButton } from '../util.js';
 
 export const setBindings = (appContainer, onclickMap) => {
-    if (appContainer) {
-    	// onclick
-    	{
-		    const els = Array.from(appContainer.querySelectorAll('[onclick]'));
-		    for (const el of els) {
-		    	const handlerName = el.getAttribute('onclick');
-		    	el.removeAttribute('onclick');
-		    	el.addEventListener('click', e => {
-		    		const id = el.getAttribute('id');
-		    		const name = el.getAttribute('name');
-		            onclickMap[handlerName]({
-		            	id,
-		                name,
-		            });
-		  	    });
-		    }
+	if (appContainer) {
+		// onclick
+		{
+			const els = Array.from(appContainer.querySelectorAll('[onclick]'));
+			for (const el of els) {
+				const handlerName = el.getAttribute('onclick');
+				el.removeAttribute('onclick');
+				el.addEventListener('click', e => {
+					const id = el.getAttribute('id');
+					const name = el.getAttribute('name');
+					onclickMap[handlerName]({
+						id,
+						name,
+					});
+				});
+			}
 		}
 		// file
 		{
-            const els = Array.from(appContainer.querySelectorAll('input[type=file][onchange]'));
-		    for (const el of els) {
-		    	const handlerName = el.getAttribute('onchange');
-		    	el.removeAttribute('onchange');
+			const els = Array.from(appContainer.querySelectorAll('input[type=file][onchange]'));
+			for (const el of els) {
+				const handlerName = el.getAttribute('onchange');
+				el.removeAttribute('onchange');
 				bindUploadFileButton(el, file => {
-                    const id = el.getAttribute('id');
-		    		const name = el.getAttribute('name');
-		            onclickMap[handlerName]({
-		            	id,
-		                name,
-		                file,
-		            });
+					const id = el.getAttribute('id');
+					const name = el.getAttribute('name');
+					onclickMap[handlerName]({
+						id,
+						name,
+						file,
+					});
 				});
-		    }
+			}
 		}
-        // drag
+		// drag
 		const draggableEls = Array.from(appContainer.querySelectorAll('[draggable]'));
 		for (const el of draggableEls) {
 			el.addEventListener('dragstart', e => {
@@ -44,13 +44,13 @@ export const setBindings = (appContainer, onclickMap) => {
 				e.dataTransfer.setData('application/json', JSON.stringify({
 					dragid,
 				}))
-			    setTimeout(() => {
-                   const appContainer = document.getElementById('appContainer');
-				   appContainer.style.display = 'none';
+				setTimeout(() => {
+					const appContainer = document.getElementById('appContainer');
+					appContainer.style.display = 'none';
 				});
 			});
 			el.addEventListener('dragend', e => {
-                const appContainer = document.getElementById('appContainer');
+				const appContainer = document.getElementById('appContainer');
 				appContainer.style.display = null;
 			});
 		}
