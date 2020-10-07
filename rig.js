@@ -60,8 +60,15 @@ class RigManager {
   async setLocalAvatarUrl(url, filename) {
     // await this.localRigQueue.lock();
 
-    const oldLocalRig = this.localRig;
-    oldLocalRig.url = url;
+    await this.setAvatar(this.localRig, newLocalRig => {
+      this.localRig = newLocalRig;
+    }, url, filename);
+
+    // await this.localRigQueue.unlock();
+  }
+
+  async setAvatar(oldRig, setRig, url, filename) {
+    oldRig.url = url;
 
     let o;
     if (url) {
@@ -71,38 +78,41 @@ class RigManager {
       o = await runtime.loadFile(blob);
     }
 
-    if (oldLocalRig.url === url) {
-      this.scene.remove(oldLocalRig.model);
+    if (oldRig.url === url) {
+      this.scene.remove(oldRig.model);
+
+      let localRig;
       if (o) {
         if (o.raw) {
-          this.localRig = new Avatar(o.raw, {
+          localRig = new Avatar(o.raw, {
             fingers: true,
             hair: true,
             visemes: true,
             debug: false //!o,
           });
         } else {
-          this.localRig = new Avatar();
-          this.localRig.model = o;
-          this.localRig.inputs.hmd = this.localRig.model;
-          this.localRig.update = () => {
+          localRig = new Avatar();
+          localRig.model = o;
+          localRig.inputs.hmd = localRig.model;
+          localRig.update = () => {
             // nothing
           };
         }
       } else {
-        this.localRig = new Avatar(null, {
+        localRig = new Avatar(null, {
           fingers: true,
           hair: true,
           visemes: true,
           debug: true,
         });
       }
-      this.scene.add(this.localRig.model);
-      this.localRig.textMesh = oldLocalRig.textMesh;
-      this.localRig.avatarUrl = oldLocalRig.url;
-    }
+      this.scene.add(localRig.model);
+      localRig.textMesh = oldRig.textMesh;
+      localRig.avatarUrl = oldRig.url;
+      localRig.rigCapsule = oldRig.rigCapsule;
 
-    // await this.localRigQueue.unlock();
+      setRig(localRig);
+    }
   }
   
   isPeerRig(rig) {
@@ -149,49 +159,13 @@ class RigManager {
     peerRig.textMesh.sync();
   }
 
-  async setPeerAvatarUrl(url, peerId) {
+  async setPeerAvatarUrl(url, filename, peerId) {
     // await this.peerRigQueue.lock();
 
-    let oldPeerRig = this.peerRigs.get(peerId);
-    if (oldPeerRig) {
-      oldPeerRig.avatarUrl = url;
-
-      let o;
-      if (url) {
-        try {
-          o = await new Promise((accept, reject) => {
-            new GLTFLoader().load(url, accept, xhr => {}, reject);
-          });
-        } catch (e) {
-          console.log(e)
-        }
-        o.scene.traverse(o => {
-          if (o.isMesh) {
-            o.frustumCulled = false;
-          }
-        });
-      }
-
-      oldPeerRig = this.peerRigs.get(peerId);
-      if (oldPeerRig && oldPeerRig.avatarUrl === url) {
-        this.scene.remove(oldPeerRig.model);
-
-        const peerRig = new Avatar(o, {
-          fingers: true,
-          hair: true,
-          visemes: true,
-          // decapitate: selectedTool === 'firstperson',
-          debug: !o,
-        });
-        this.scene.add(peerRig.model);
-        this.peerRigs.set(peerId, peerRig);
-
-        peerRig.textMesh = oldPeerRig.textMesh;
-        peerRig.avatarUrl = oldPeerRig.avatarUrl;
-        // console.log('peer rig avatar url', peerId, url, new Error().stack);
-        peerRig.rigCapsule = oldPeerRig.rigCapsule;
-      }
-    }
+    const oldPeerRig = this.peerRigs.get(peerId);
+    await this.setAvatar(oldPeerRig, newPeerRig => {
+      this.peerRigs.set(peerId, newPeerRig);
+    }, url, filename);
 
     // await this.peerRigQueue.unlock();
   }
