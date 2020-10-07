@@ -28,6 +28,7 @@ export const state = {
             peers: [],
             selectedPeerId: null,
         },
+        worlds: [],
     },
     weaponWheel: {
         visible: false,
