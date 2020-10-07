@@ -501,7 +501,6 @@ class LoginManager extends EventTarget {
           });
           const response2 = await res.json();
           if (response2?.transaction?.events[0]) {
-            console.log(response2)
             const id = parseInt(response2.transaction.events[0].payload.value.fields.find(field => field.name === 'id').value.value, 10);
             return {
               hash,

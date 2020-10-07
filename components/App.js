@@ -2,10 +2,10 @@ import Menu from './Menu.js';
 import WeaponWheel from './WeaponWheel.js';
 import uiManager from '../ui-manager.js';
 import inventory from '../inventory.js';
-import { loginManager } from '../login.js';
-import { planet } from '../planet.js';
-import { state, getState, setState, getSpecificState } from '../state.js';
-import { setBindings } from './bindings.js';
+import {loginManager} from '../login.js';
+import {planet} from '../planet.js';
+import {state, getState, setState, getSpecificState} from '../state.js';
+import {setBindings} from './bindings.js';
 
 let appState = state;
 
