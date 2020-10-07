@@ -320,129 +320,7 @@
           }, '*', [arrayBuffer]);
         } else if (type === 'png' || type === 'jpg') {
           const canvas = await (async () => {
-            if (['glb', 'vrm', 'vox'].includes(ext)) {
-              const {renderer, scene, camera} = _makeRenderer();
-
-              const o = await (async () => {
-                switch (ext) {
-                  case 'glb':
-                  case 'vrm':
-                    return await _loadGltf();
-                  case 'vox':
-                    return await _loadVox();
-                  default:
-                    return null;
-                }
-              })();
-              scene.add(o);
-
-              const boundingBox = new THREE.Box3().setFromObject(o);
-              const center = boundingBox.getCenter(new THREE.Vector3());
-              const size = boundingBox.getSize(new THREE.Vector3());
-
-              camera.position.x = 0;
-              camera.position.y = center.y;
-              camera.position.z = -Math.max(
-                size.y / 2 / Math.tan(Math.PI * camera.fov / 360),
-                Math.abs(size.x),
-                Math.abs(size.z)
-              ) * 1.2;
-              camera.lookAt(center);
-              camera.updateMatrixWorld();
-
-              if (ext === 'vrm') {
-                const _getTailBones = skeleton => {
-                  const result = [];
-                  const _recurse = bones => {
-                    for (let i = 0; i < bones.length; i++) {
-                      const bone = bones[i];
-                      if (bone.children.length === 0) {
-                        if (!result.includes(bone)) {
-                          result.push(bone);
-                        }
-                      } else {
-                        _recurse(bone.children);
-                      }
-                    }
-                  };
-                  _recurse(skeleton.bones);
-                  return result;
-                };
-                const _findFurthestParentBone = (bone, pred) => {
-                  let result = null;
-                  for (; bone; bone = bone.parent) {
-                    if (pred(bone)) {
-                      result = bone;
-                    }
-                  }
-                  return result;
-                };
-                const _countCharacters = (name, regex) => {
-                  let result = 0;
-                  for (let i = 0; i < name.length; i++) {
-                    if (regex.test(name[i])) {
-                      result++;
-                    }
-                  }
-                  return result;
-                };
-                const _findEye = (tailBones, left) => {
-                  const regexp = left ? /l/i : /r/i;
-                  const eyeBones = tailBones.map(tailBone => {
-                    const eyeBone = _findFurthestParentBone(tailBone, bone => /eye/i.test(bone.name) && regexp.test(bone.name.replace(/eye/gi, '')));
-                    if (eyeBone) {
-                      return eyeBone;
-                    } else {
-                      return null;
-                    }
-                  }).filter(spec => spec).sort((a, b) => {
-                    const aName = a.name.replace(/shoulder/gi, '');
-                    const aLeftBalance = _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
-                    const bName = b.name.replace(/shoulder/gi, '');
-                    const bLeftBalance = _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
-                    if (!left) {
-                      return aLeftBalance - bLeftBalance;
-                    } else {
-                      return bLeftBalance - aLeftBalance;
-                    }
-                  });
-                  const eyeBone = eyeBones.length > 0 ? eyeBones[0] : null;
-                  if (eyeBone) {
-                    return eyeBone;
-                  } else {
-                    return null;
-                  }
-                };
-
-                const skinnedMeshes = [];
-                o.traverse(o => {
-                  if (o.isSkinnedMesh) {
-                    skinnedMeshes.push(o);
-                  }
-                });
-                skinnedMeshes.sort((a, b) => b.skeleton.bones.length - a.skeleton.bones.length);
-                const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
-                const skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
-                const tailBones = _getTailBones(skeleton);
-                const eyes = [_findEye(tailBones, true), _findEye(tailBones, false)];
-                if (eyes[0] && eyes[1]) {
-                  const center = eyes[0].getWorldPosition(new THREE.Vector3())
-                    .add(eyes[1].getWorldPosition(new THREE.Vector3()))
-                    .divideScalar(2);
-                  camera.position.copy(center)
-                    .add(new THREE.Vector3(0, 0, -0.3));
-                  camera.fov = 60;
-                  camera.updateProjectionMatrix();
-                }
-                console.log('got eyes', eyes);
-              }
-
-              if (type === 'jpg') {
-                renderer.setClearColor(0xFFFFFF, 1);
-              }
-              renderer.render(scene, camera);
-              return renderer.domElement;
-            } else {
+            const _renderDefaultCanvas = async () => {
               const uiRenderer = _makeUiRenderer();
 
               const htmlString = _makeIconString(hash, ext);
@@ -454,6 +332,141 @@
               const ctx = canvas.getContext('2d');
               ctx.drawImage(data, 0, 0);
               return canvas;
+            };
+
+            if (['glb', 'vrm', 'vox'].includes(ext)) {
+              const {renderer, scene, camera} = _makeRenderer();
+
+              let o;
+              try {
+                switch (ext) {
+                  case 'glb':
+                  case 'vrm': {
+                    o = await _loadGltf();
+                    break;
+                  }
+                  case 'vox': {
+                    o = await _loadVox();
+                    break;
+                  }
+                }
+              } catch (err) {
+                console.warn(err);
+              }
+              if (o) {
+                scene.add(o);
+
+                const boundingBox = new THREE.Box3().setFromObject(o);
+                const center = boundingBox.getCenter(new THREE.Vector3());
+                const size = boundingBox.getSize(new THREE.Vector3());
+
+                camera.position.x = 0;
+                camera.position.y = center.y;
+                camera.position.z = -Math.max(
+                  size.y / 2 / Math.tan(Math.PI * camera.fov / 360),
+                  Math.abs(size.x),
+                  Math.abs(size.z)
+                ) * 1.2;
+                camera.lookAt(center);
+                camera.updateMatrixWorld();
+
+                if (ext === 'vrm') {
+                  const _getTailBones = skeleton => {
+                    const result = [];
+                    const _recurse = bones => {
+                      for (let i = 0; i < bones.length; i++) {
+                        const bone = bones[i];
+                        if (bone.children.length === 0) {
+                          if (!result.includes(bone)) {
+                            result.push(bone);
+                          }
+                        } else {
+                          _recurse(bone.children);
+                        }
+                      }
+                    };
+                    _recurse(skeleton.bones);
+                    return result;
+                  };
+                  const _findFurthestParentBone = (bone, pred) => {
+                    let result = null;
+                    for (; bone; bone = bone.parent) {
+                      if (pred(bone)) {
+                        result = bone;
+                      }
+                    }
+                    return result;
+                  };
+                  const _countCharacters = (name, regex) => {
+                    let result = 0;
+                    for (let i = 0; i < name.length; i++) {
+                      if (regex.test(name[i])) {
+                        result++;
+                      }
+                    }
+                    return result;
+                  };
+                  const _findEye = (tailBones, left) => {
+                    const regexp = left ? /l/i : /r/i;
+                    const eyeBones = tailBones.map(tailBone => {
+                      const eyeBone = _findFurthestParentBone(tailBone, bone => /eye/i.test(bone.name) && regexp.test(bone.name.replace(/eye/gi, '')));
+                      if (eyeBone) {
+                        return eyeBone;
+                      } else {
+                        return null;
+                      }
+                    }).filter(spec => spec).sort((a, b) => {
+                      const aName = a.name.replace(/shoulder/gi, '');
+                      const aLeftBalance = _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
+                      const bName = b.name.replace(/shoulder/gi, '');
+                      const bLeftBalance = _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
+                      if (!left) {
+                        return aLeftBalance - bLeftBalance;
+                      } else {
+                        return bLeftBalance - aLeftBalance;
+                      }
+                    });
+                    const eyeBone = eyeBones.length > 0 ? eyeBones[0] : null;
+                    if (eyeBone) {
+                      return eyeBone;
+                    } else {
+                      return null;
+                    }
+                  };
+
+                  const skinnedMeshes = [];
+                  o.traverse(o => {
+                    if (o.isSkinnedMesh) {
+                      skinnedMeshes.push(o);
+                    }
+                  });
+                  skinnedMeshes.sort((a, b) => b.skeleton.bones.length - a.skeleton.bones.length);
+                  const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
+                  const skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
+                  const tailBones = _getTailBones(skeleton);
+                  const eyes = [_findEye(tailBones, true), _findEye(tailBones, false)];
+                  if (eyes[0] && eyes[1]) {
+                    const center = eyes[0].getWorldPosition(new THREE.Vector3())
+                      .add(eyes[1].getWorldPosition(new THREE.Vector3()))
+                      .divideScalar(2);
+                    camera.position.copy(center)
+                      .add(new THREE.Vector3(0, 0, -0.3));
+                    camera.fov = 60;
+                    camera.updateProjectionMatrix();
+                  }
+                  console.log('got eyes', eyes);
+                }
+
+                if (type === 'jpg') {
+                  renderer.setClearColor(0xFFFFFF, 1);
+                }
+                renderer.render(scene, camera);
+                return renderer.domElement;
+              } else {
+                return await _renderDefaultCanvas();
+              }
+            } else {
+              return await _renderDefaultCanvas();
             }
           })();
 
