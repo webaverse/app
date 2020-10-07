@@ -697,7 +697,7 @@ const _connectRoom = async (roomName, worldURL) => {
           peerRig.textMesh.quaternion.setFromEuler(localEuler); 
           */
         } else if (method === 'status') {
-          const {peerId, status: {name, avatarHash}} = j;
+          const {peerId, status: {name, avatarHash, avatarFileName}} = j;
           const peerRig = rigManager.peerRigs.get(peerId);
 
           let updated = false;
@@ -711,7 +711,7 @@ const _connectRoom = async (roomName, worldURL) => {
           const newAvatarUrl = avatarHash ? `${storageHost}/${avatarHash}` : null;
           const currentAvatarUrl = peerRig.avatarUrl;
           if (currentAvatarUrl !== newAvatarUrl) {
-            rigManager.setPeerAvatarUrl(newAvatarUrl, peerId);
+            rigManager.setPeerAvatarUrl(newAvatarUrl, avatarFileName, peerId);
             updated = true;
           }
 
@@ -759,12 +759,14 @@ const _connectRoom = async (roomName, worldURL) => {
           const name = loginManager.getUsername();
           const avatarSpec = loginManager.getAvatar();
           const avatarHash = avatarSpec && avatarSpec.hash;
+          const avatarFileName = avatarSpec && avatarSpec.filename;
           channelConnection.send(JSON.stringify({
             method: 'status',
             peerId: channelConnection.connectionId,
             status: {
               name,
               avatarHash,
+              avatarFileName,
             },
           }));
           const pose = rigManager.getLocalAvatarPose();
