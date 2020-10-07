@@ -89,6 +89,12 @@ export const onclickBindings = {
       menu,
     });
   },
+  'browse-arrow-up': e => {
+    inventory.scrollBrowse(-1);
+  },
+  'browse-arrow-down': e => {
+    inventory.scrollBrowse(1);
+  },
 };
 
 inventory.addEventListener('filesupdate', e => {

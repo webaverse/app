@@ -3,6 +3,7 @@ import {bindUploadFileButton} from './util.js';
 import {loginManager} from './login.js';
 import {planet} from './planet.js';
 import {getContractSource} from './blockchain.js';
+import {getState, setState} from './state.js';
 import {renderer, scene, camera} from './app-object.js';
 import {storageHost} from './constants.js';
 
@@ -66,6 +67,17 @@ inventory.getFiles = async (start, end) => {
   });
   return items;
 };
+const itemsPerBrowsePage = 21;
+inventory.scrollBrowse = async delta => {
+  const {menu} = getState();
+  menu.browse.page += delta;
+  menu.browse.page = Math.max(menu.browse.page, 0);
+  const items = await inventory.getFiles(menu.browse.page * itemsPerBrowsePage, (menu.browse.page + 1) * itemsPerBrowsePage);
+
+  menu.browse.items = items;
+  setState({menu});
+};
+inventory.scrollBrowse(0);
 
 loginManager.addEventListener('inventorychange', async e => {
   files = await loginManager.getInventory();

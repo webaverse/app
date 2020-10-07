@@ -21,6 +21,7 @@ export const state = {
             selectedFileName: null,
         },
         browse: {
+            page: 0,
             items: [],
         },
         world: {
