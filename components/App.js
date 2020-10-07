@@ -130,7 +130,7 @@ export const onclickBindings = {
   },
 };
 
-inventory.addEventListener('filesupdate', e => {
+inventory.addEventListener('ownedfilesupdate', e => {
   const { menu } = state;
   menu.inventory.items = e.data;
   updateProps({
