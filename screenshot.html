@@ -241,12 +241,12 @@
     };
 
     (async () => {
+      toggleElements(false);
+      const screenshotResult = document.getElementById('screenshot-result');
+
+      const {hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
+
       try {
-        toggleElements(false);
-        const screenshotResult = document.getElementById('screenshot-result');
-
-        const {hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
-
         const _loadGltf = async () => {
           const u = `${storageHost}/${hash}`;
           let o;
