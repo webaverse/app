@@ -14,61 +14,22 @@
     flex-grow: 1;
     text-align: center;
     border: 1px white solid;
+    color: white;
     cursor: pointer;
+    background-color: #00a6ff;
+}
+
+.twoD-menuNavTab.selected {
+    background-color:#ff5f2d;
+    border-bottom: 5px solid#4a4949;
 }
 
 .twoD-menuNavTab-inventory {
     border-radius: 20px 0px 0px 0px;
-    color: white;
-    background-color: #8a3dca;
-}
-
-.twoD-menuNavTab-inventory.selected {
-    border-bottom: 5px solid #f463ff;
-}
-
-.twoD-menuNavTab-inventory:hover {
-    background-color: #aa50f5;
-}
-
-.twoD-menuNavTab-browse {
-    color: white;
-    background-color: #f90083;
-}
-
-.twoD-menuNavTab-browse.selected {
-    border-bottom: 5px solid #f2f32c;
-}
-
-.twoD-menuNavTab-browse:hover {
-    background-color:#f900c8;
-}
-
-.twoD-menuNavTab-social {
-    background-color: #00a6ff;
-    color: white;
-}
-
-.twoD-menuNavTab-social.selected {
-    border-bottom: 5px solid#2cf339;
-}
-
-.twoD-menuNavTab-social:hover {
-    background-color:#00beff;
 }
 
 .twoD-menuNavTab-worlds {
     border-radius: 0px 20px 0px 0px;
-    color: white;
-    background-color:#ff5f2d;
-}
-
-.twoD-menuNavTab-worlds.selected {
-    border-bottom: 5px solid#f32c3d;
-}
-
-.twoD-menuNavTab-worlds:hover {
-    background-color:#ff782f;
 }
 
 .twoD-worlds {
