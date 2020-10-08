@@ -140,6 +140,7 @@ inventory.addEventListener('ownedfilesupdate', e => {
 planet.addEventListener('peersupdate', e => {
   const { menu } = state;
   menu.world.peers = e.data;
+  menu.social.peers = e.data;
   updateProps({
     menu,
   });

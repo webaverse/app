@@ -7,12 +7,6 @@ export const state = {
         username: 'Anonymous',
         avatarHash: null,
         avatarFileName: null,
-        /* account: {
-            name: '',
-            avatar: null,
-            isMic: false,
-            equipped: [],
-        }, */
         inventory: {
         	balance: 0,
             items: [],
@@ -23,6 +17,9 @@ export const state = {
         browse: {
             page: 0,
             items: [],
+        },
+        social: {
+            peers: []
         },
         world: {
             peers: [],
