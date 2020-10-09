@@ -18,12 +18,14 @@ export const InventoryDetails = props => {
   return `\
     <div class=details>
       ${selectedId !== null ? `\
-        <div class=id>${selectedId}</div>
-        <div class=id>${selectedHash}</div>
-        <div class=id>${selectedFileName}</div>
-        <a class=button id=inventory-spawn name=${selectedId}>Spawn</a>
-        <a class=button id=inventory-wear name=${selectedId}>Wear</a>
-        <a class=button id=inventory-discard name=${selectedId}>Discard</a>
+        <div class=text>${selectedId}</div>
+        <div class=text>${selectedHash}</div>
+        <div class=text>${selectedFileName}</div>
+        <div class=buttons>
+          <a class=button id=inventory-spawn name=${selectedId}>Spawn</a>
+          <a class=button id=inventory-wear name=${selectedId}>Wear</a>
+          <a class=button id=inventory-discard name=${selectedId}>Discard</a>
+        </div>
       ` : ''}
     </div>
   `;
@@ -80,7 +82,6 @@ export const Inventory = (props = {}) => {
       .tiles {
         display: flex;
         width: ${2048 - 400}px;
-        margin-right: auto;
         flex-wrap: wrap;
         align-content: flex-start;
       }
@@ -156,9 +157,25 @@ export const Inventory = (props = {}) => {
       }
       .details {
         display: flex;
-        flex-direction: column;
+        width: 400px;
         color: #FFF;
-        font-size: 80px;
+        font-size: 50px;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .details .text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .details .buttons {
+        display: flex;
+        margin-top: auto;
+        flex-direction: column;
+      }
+      .details .button {
+        border: 5px solid;
+        padding: 10px;
       }
     </style>
     <div class="threeD-inventory">
