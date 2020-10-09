@@ -19,8 +19,11 @@ const Menu = props => {
         display: flex;
     }
     .threeD-menuNavTab {
-        flex-grow: 1;
-        text-align: center;
+        display: flex;
+        height: 200px;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
         background-color: #42a5f5;
         border-bottom: 20px transparent solid;
         color: #FFF;

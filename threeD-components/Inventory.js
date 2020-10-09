@@ -18,12 +18,16 @@ export const InventoryDetails = props => {
   return `\
     <div class=details>
       ${selectedId !== null ? `\
-        <div class=id>${selectedId}</div>
-        <div class=id>${selectedHash}</div>
-        <div class=id>${selectedFileName}</div>
-        <a class=button id=inventory-spawn name=${selectedId}>Spawn</a>
-        <a class=button id=inventory-wear name=${selectedId}>Wear</a>
-        <a class=button id=inventory-discard name=${selectedId}>Discard</a>
+        <div class=texts>
+          <div class=text>${selectedId}</div>
+          <div class=text>${selectedHash}</div>
+          <div class=text>${selectedFileName}</div>
+        </div>
+        <div class=buttons>
+          <a class=button id=inventory-spawn name=${selectedId}>Spawn</a>
+          <a class=button id=inventory-wear name=${selectedId}>Wear</a>
+          <a class=button id=inventory-discard name=${selectedId}>Discard</a>
+        </div>
       ` : ''}
     </div>
   `;
@@ -32,13 +36,14 @@ export const InventoryCard = (props = {}) => {
   const ext = getExt(props.filename) || 'bin';
   return `\
     <a class=tile id=${props.anchor} name=${props.id}>
+      ${props.selected ? '<div class=outline></div>' : ''}
       <img src="${previewHost}/${props.hash}.${ext}/preview.${previewExt}">
       <div class="border top-left"></div>
       <div class="border top-right"></div>
       <div class="border bottom-left"></div>
       <div class="border bottom-right"></div>
       <div class=text>${props.filename}</div>
-      <div class=balance>${props.balance}</div>
+      ${props.balance !== undefined ? `<div class=balance>${props.balance}</div>` : ''}
     </a>
   `;
 };
@@ -50,13 +55,12 @@ export const Inventory = (props = {}) => {
     <style>
       .threeD-inventory {
         display: flex;
-      }
-      .wrap {
-        position: relative;
+        height: ${2048 - 200}px;
       }
       .avatar {
         display: flex;
         width: 400px;
+        height: 100%;
         flex-direction: column;
         background-color: #111;
         color: #FFF;
@@ -67,20 +71,15 @@ export const Inventory = (props = {}) => {
       {
         display: flex;
         width: 100%;
-        height: 800px;
         justify-content: center;
         align-items: center;
-      }
-      .details {
-        display: flex;
-        width: 400px;
-        height: 800px;
-        background-color: #111;
       }
       .tiles {
         display: flex;
         width: ${2048 - 400}px;
-        margin-right: auto;
+        height: 100%;
+        padding-top: 20px;
+        padding-left: 20px;
         flex-wrap: wrap;
         align-content: flex-start;
       }
@@ -94,7 +93,6 @@ export const Inventory = (props = {}) => {
         margin-right: 20px;
         margin-bottom: 20px;
         padding-bottom: 0;
-        overflow: hidden;
       }
       .tiles .tile img {
         position: absolute;
@@ -123,6 +121,14 @@ export const Inventory = (props = {}) => {
         position: absolute;
         bottom: 0;
         left: 0;
+      }
+      .tiles .tile .outline {
+        position: absolute;
+        left: -20px;
+        right: -20px;
+        top: -20px;
+        bottom: -20px;
+        background-color: #ff7043;
       }
       .border {
         position: absolute;
@@ -156,12 +162,32 @@ export const Inventory = (props = {}) => {
       }
       .details {
         display: flex;
-        flex-direction: column;
+        width: 400px;
+        height: 100%;
+        background-color: #111;
         color: #FFF;
-        font-size: 80px;
+        font-size: 50px;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .details .texts {
+        height: 250px;
+      }
+      .details .text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .details .buttons {
+        display: flex;
+        flex-direction: column;
+      }
+      .details .button {
+        border: 5px solid;
+        padding: 10px;
       }
     </style>
-    <div class="threeD-inventory">
+    <div class=threeD-inventory>
       ${InventoryAvatar({
         username,
         avatarHash,
@@ -175,6 +201,7 @@ export const Inventory = (props = {}) => {
           hash: item.hash,
           filename: item.filename,
           balance: item.balance,
+          selected: selectedId === item.id,
         })).join('\n')}
       </div>
       ${InventoryDetails({
