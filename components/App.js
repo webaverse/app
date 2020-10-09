@@ -69,7 +69,12 @@ export const onclickBindings = {
     setState({
       menu,
     });
-    
+  },
+  'twoD-social-peerCard-shareWorld': e => {
+    const copyText = document.getElementById("twoD-social-peerCard-shareWorldUrl");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    document.execCommand("copy");
   },
   'inventory-spawn': async e => {
     const id = e.name;
@@ -152,7 +157,8 @@ export const toggleMenus = props => {
       return Menu({
         activeTab: appState.menu.activeTab,
         inventoryItems: appState.menu.inventory.items,
-        worlds: appState.menu.worlds
+        worlds: appState.menu.worlds,
+        peers: appState.menu.social.peers
       });
     case 'weaponWheel':
       return WeaponWheel(props);
