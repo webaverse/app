@@ -19,10 +19,15 @@
   display: flex;
 }
 
+.twoD-worlds-card-meta {
+  padding: 15px;
+}
+
 .twoD-worlds .twoD-worlds-card .twoD-worlds-card-img {
   height: 100%;
 }
 
 .twoD-worlds .twoD-worlds-card .twoD-worlds-card-url {
   font-size: 35px;
+  margin: 0px;
 }
