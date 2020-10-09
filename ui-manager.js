@@ -369,7 +369,7 @@ geometryManager.waitForLoad().then(() => {
     if (uiManager.menuMesh.visible) {
       const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
       uiManager.menuMesh.position.copy(xrCamera.position)
-        .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
+        .add(new THREE.Vector3(0, 0, -2).applyQuaternion(xrCamera.quaternion));
       uiManager.menuMesh.quaternion.copy(xrCamera.quaternion);
     }
   };
