@@ -451,6 +451,7 @@ class LoginManager extends EventTarget {
           wait: true,
         }),
       });
+      console.log(res)
       const response2 = await res.json();
 
       const entries = response2.encodedData.value.map(({value: {fields}}) => {

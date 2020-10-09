@@ -31,29 +31,3 @@
 .twoD-menuNavTab-worlds {
     border-radius: 0px 20px 0px 0px;
 }
-
-.twoD-worlds {
-    max-height: calc(80vh - 75px);
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: flex-start;
-    overflow-y: auto;
-}
-
-.twoD-worlds .twoD-worlds-card {
-    width: 95%;
-    height: 200px;
-    background-color: aliceblue;
-    padding: 10px;
-    margin-top: 15px;
-}
-
-.twoD-worlds .twoD-worlds-card .twoD-worlds-card-img {
-    height: 100%;
-}
-
-.twoD-worlds .twoD-worlds-card .twoD-worlds-card-url {
-    display: inline;
-    font-size: 35px;
-}
