@@ -2,15 +2,16 @@ const WorldCard = (props) => {
   return `
     <div class="twoD-worlds-card">
       <img class="twoD-worlds-card-img" src="./world-placeholder.png">
-      <a href="${window.location.href + '?u=' + props.worldName}">
+      <div class="twoD-worlds-card-meta">
+        <a href="${window.location.href + '?u=' + props.worldName}">
         <h2 class="twoD-worlds-card-url">${props.worldName}</h2>
-      </a>
+        </a>
+      </div>
     </div>
   `;
 }
 
 const Worlds = (props) => {
-  console.log(props)
   return `
     <div class="twoD-worlds">
     ${

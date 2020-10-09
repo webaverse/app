@@ -1,0 +1,102 @@
+.twoD-social {
+  max-height: calc(80vh - 75px);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+}
+
+.twoD-social-peerCard {
+  width: 95%;
+  height: 200px;
+  background-color: aliceblue;
+  padding: 10px;
+  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
+  border-radius: 5px;
+  border: 1px #eeeef5 solid;
+  margin: 15px;
+  display: flex;
+}
+
+.twoD-social-peerCard-imgWrap {
+  width: 220px;
+}
+
+.twoD-social-peerCard-avatar {
+  height: 100%;
+}
+
+.twoD-social-peerCard-peerName {
+  width: 220px;
+}
+
+.twoD-social-peerCard-actions {
+  width: 220px; 
+  text-align: center; 
+  padding-top: 20px;
+}
+
+.twoD-social-peerCard-teleport {
+  padding: 10px 20px;
+  background-color: #2ec19c;
+  border: 0;
+  color: #FFF;
+  border-radius: 8px;
+  font-size: 18px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  margin: 5px;
+}
+
+.twoD-social-peerCard-trade {
+  padding: 10px 20px;
+  background-color: #a049e8;
+  border: 0;
+  color: #FFF;
+  border-radius: 8px;
+  font-size: 18px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  margin: 5px;
+}
+
+.twoD-social-peerCard-shareWorld {
+  padding: 15px 20px;
+  background-color: #a049e8;
+  border: 0;
+  color: #FFF;
+  border-radius: 8px;
+  font-size: 25px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  margin-top: 25px;
+  margin-bottom: 50px;
+  text-align: center;
+}
+
+.twoD-social-peerCard-shareWorldUrl {
+  border: 0;
+  font-weight: 700;
+  font-size: 22px;
+  display: block;
+  width: 100%;
+  text-align: center;
+  outline: none;
+}
+
+.twoD-social-noPeers {
+  text-align: center; 
+  width: 100%;
+}
+
+.twoD-social-noPeers-header {
+  margin-top: 15vh; 
+  font-size: 45px;
+}
