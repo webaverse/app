@@ -12,7 +12,6 @@ const WorldCard = (props) => {
 }
 
 const Worlds = (props) => {
-  console.log(props)
   return `
     <div class="twoD-worlds">
     ${

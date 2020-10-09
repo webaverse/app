@@ -69,7 +69,12 @@ export const onclickBindings = {
     setState({
       menu,
     });
-    
+  },
+  'twoD-social-peerCard-shareWorld': e => {
+    const copyText = document.getElementById("twoD-social-peerCard-shareWorldUrl");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    document.execCommand("copy");
   },
   'inventory-spawn': async e => {
     const id = e.name;
