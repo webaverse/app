@@ -25,7 +25,6 @@ const BrowseCard = (props = {}) => {
   `;
 };
 const Browse = (props = {}) => {
-  console.log(props)
   let allItems = props.allItems || [];
   return `
     <div class="twoD-browse">
@@ -34,8 +33,8 @@ const Browse = (props = {}) => {
           allItems.map((value, index) => {
             return BrowseCard({
               id: value.id,
-              name: value.filename || '',
-              preview: value.preview || ''
+              name: value.filename,
+              preview: value.preview
             })
           }).join('')
         }
