@@ -18,9 +18,11 @@ export const InventoryDetails = props => {
   return `\
     <div class=details>
       ${selectedId !== null ? `\
-        <div class=text>${selectedId}</div>
-        <div class=text>${selectedHash}</div>
-        <div class=text>${selectedFileName}</div>
+        <div class=texts>
+          <div class=text>${selectedId}</div>
+          <div class=text>${selectedHash}</div>
+          <div class=text>${selectedFileName}</div>
+        </div>
         <div class=buttons>
           <a class=button id=inventory-spawn name=${selectedId}>Spawn</a>
           <a class=button id=inventory-wear name=${selectedId}>Wear</a>
@@ -41,7 +43,7 @@ export const InventoryCard = (props = {}) => {
       <div class="border bottom-left"></div>
       <div class="border bottom-right"></div>
       <div class=text>${props.filename}</div>
-      <div class=balance>${props.balance}</div>
+      ${props.balance !== undefined ? `<div class=balance>${props.balance}</div>` : ''}
     </a>
   `;
 };
@@ -53,13 +55,12 @@ export const Inventory = (props = {}) => {
     <style>
       .threeD-inventory {
         display: flex;
-      }
-      .wrap {
-        position: relative;
+        height: ${2048 - 200}px;
       }
       .avatar {
         display: flex;
         width: 400px;
+        height: 100%;
         flex-direction: column;
         background-color: #111;
         color: #FFF;
@@ -70,19 +71,13 @@ export const Inventory = (props = {}) => {
       {
         display: flex;
         width: 100%;
-        height: 800px;
         justify-content: center;
         align-items: center;
-      }
-      .details {
-        display: flex;
-        width: 400px;
-        height: 800px;
-        background-color: #111;
       }
       .tiles {
         display: flex;
         width: ${2048 - 400}px;
+        height: 100%;
         padding-top: 20px;
         padding-left: 20px;
         flex-wrap: wrap;
@@ -168,10 +163,15 @@ export const Inventory = (props = {}) => {
       .details {
         display: flex;
         width: 400px;
+        height: 100%;
+        background-color: #111;
         color: #FFF;
         font-size: 50px;
         flex-direction: column;
         overflow: hidden;
+      }
+      .details .texts {
+        height: 250px;
       }
       .details .text {
         overflow: hidden;
@@ -180,7 +180,6 @@ export const Inventory = (props = {}) => {
       }
       .details .buttons {
         display: flex;
-        margin-top: auto;
         flex-direction: column;
       }
       .details .button {
@@ -188,7 +187,7 @@ export const Inventory = (props = {}) => {
         padding: 10px;
       }
     </style>
-    <div class="threeD-inventory">
+    <div class=threeD-inventory>
       ${InventoryAvatar({
         username,
         avatarHash,
