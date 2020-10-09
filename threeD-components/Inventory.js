@@ -34,6 +34,7 @@ export const InventoryCard = (props = {}) => {
   const ext = getExt(props.filename) || 'bin';
   return `\
     <a class=tile id=${props.anchor} name=${props.id}>
+      ${props.selected ? '<div class=outline></div>' : ''}
       <img src="${previewHost}/${props.hash}.${ext}/preview.${previewExt}">
       <div class="border top-left"></div>
       <div class="border top-right"></div>
@@ -82,6 +83,8 @@ export const Inventory = (props = {}) => {
       .tiles {
         display: flex;
         width: ${2048 - 400}px;
+        padding-top: 20px;
+        padding-left: 20px;
         flex-wrap: wrap;
         align-content: flex-start;
       }
@@ -95,7 +98,7 @@ export const Inventory = (props = {}) => {
         margin-right: 20px;
         margin-bottom: 20px;
         padding-bottom: 0;
-        overflow: hidden;
+        /* overflow: hidden; */
       }
       .tiles .tile img {
         position: absolute;
@@ -124,6 +127,14 @@ export const Inventory = (props = {}) => {
         position: absolute;
         bottom: 0;
         left: 0;
+      }
+      .tiles .tile .outline {
+        position: absolute;
+        left: -20px;
+        right: -20px;
+        top: -20px;
+        bottom: -20px;
+        background-color: #ff7043;
       }
       .border {
         position: absolute;
@@ -192,6 +203,7 @@ export const Inventory = (props = {}) => {
           hash: item.hash,
           filename: item.filename,
           balance: item.balance,
+          selected: selectedId === item.id,
         })).join('\n')}
       </div>
       ${InventoryDetails({
