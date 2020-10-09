@@ -9,20 +9,14 @@ export const Browse = (props = {}) => {
     <style>
       .threeD-browse {
         display: flex;
-      }
-      .wrap {
-        position: relative;
-      }
-      .details {
-        display: flex;
-        width: 400px;
-        height: 800px;
-        background-color: #111;
+        height: ${2048 - 200}px;
       }
       .tiles {
         display: flex;
-        width: ${2048 - 400 - 100}px;
-        margin-right: auto;
+        width: ${2048 - 400}px;
+        height: 100%;
+        padding-top: 20px;
+        padding-left: 20px;
         flex-wrap: wrap;
         align-content: flex-start;
       }
@@ -46,16 +40,38 @@ export const Browse = (props = {}) => {
         width: 200px;
         height: 200px;
       }
-      .tiles .tile .text {
-        padding: 20px;
-        padding-top: 0;
+      .tiles .tile .text,
+      .tiles .tile .balance
+      {
+        padding: 10px;
+        background-color: #111;
         color: #FFF;
+        font-size: 50px;
+      }
+      .tiles .tile .text {
+        position: absolute;
+        top: 0;
+        left: 0;
+        font-size: 30px;
+      }
+      .tiles .tile .balance {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+      }
+      .tiles .tile .outline {
+        position: absolute;
+        left: -20px;
+        right: -20px;
+        top: -20px;
+        bottom: -20px;
+        background-color: #ff7043;
       }
       .border {
         position: absolute;
-        width: 20px;
-        height: 20px;
-        border: 20px solid #111;
+        width: 10px;
+        height: 10px;
+        border: 10px solid #111;
       }
       .border.top-left {
         top: 0;
@@ -83,9 +99,29 @@ export const Browse = (props = {}) => {
       }
       .details {
         display: flex;
-        flex-direction: column;
+        width: 400px;
+        height: 100%;
+        background-color: #111;
         color: #FFF;
-        font-size: 80px;
+        font-size: 50px;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .details .texts {
+        height: 250px;
+      }
+      .details .text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .details .buttons {
+        display: flex;
+        flex-direction: column;
+      }
+      .details .button {
+        border: 5px solid;
+        padding: 10px;
       }
       .arrows {
         display: flex;
@@ -93,8 +129,8 @@ export const Browse = (props = {}) => {
       }
       .arrows .arrow {
         display: flex;
-        width: 100px;
-        height: 100px;
+        width: 150px;
+        height: 150px;
         background-color: #111;
         justify-content: center;
         align-items: center;
@@ -109,13 +145,14 @@ export const Browse = (props = {}) => {
         
       }
     </style>
-    <div class="threeD-browse">
+    <div class=threeD-browse>
       <div class=tiles>
         ${allItems.map(item => InventoryCard({
           anchor: 'browse-item',
           id: item.id,
           hash: item.hash,
           filename: item.filename,
+          selected: selectedId === item.id,
         })).join('\n')}
       </div>
       <div class=arrows>
