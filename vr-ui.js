@@ -1422,11 +1422,11 @@ const makeIconMesh = () => {
 const makeMenuMesh = (cubeMesh, onclickBindings) => {
   const canvasWidth = uiSize;
   const canvasHeight = uiSize;
-  const worldWidth = 1;
-  const worldHeight = 1;
+  const worldWidth = 2;
+  const worldHeight = 2;
   
   const geometry = _flipUvs(
-    new THREE.PlaneBufferGeometry(1, 1)
+    new THREE.PlaneBufferGeometry(worldWidth, worldHeight)
       // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0))
   );
   const texture = new THREE.Texture(
