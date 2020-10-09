@@ -19,8 +19,22 @@
   display: flex;
 }
 
+.twoD-social-peerCard-imgWrap {
+  width: 220px;
+}
+
 .twoD-social-peerCard-avatar {
   height: 100%;
+}
+
+.twoD-social-peerCard-peerName {
+  width: 220px;
+}
+
+.twoD-social-peerCard-actions {
+  width: 220px; 
+  text-align: center; 
+  padding-top: 20px;
 }
 
 .twoD-social-peerCard-teleport {
@@ -75,4 +89,14 @@
   width: 100%;
   text-align: center;
   outline: none;
+}
+
+.twoD-social-noPeers {
+  text-align: center; 
+  width: 100%;
+}
+
+.twoD-social-noPeers-header {
+  margin-top: 15vh; 
+  font-size: 45px;
 }
