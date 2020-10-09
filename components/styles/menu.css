@@ -33,7 +33,7 @@
 }
 
 .twoD-worlds {
-    height: calc(80vh - 75px);
+    max-height: calc(80vh - 75px);
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
