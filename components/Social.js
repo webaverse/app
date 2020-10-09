@@ -3,7 +3,7 @@ const PeerCard = (props) => {
   return `
     <div class="twoD-social-peerCard">
       <div class="twoD-social-peerCard-imgWrap">
-        <img class="twoD-social-peerCard-avatar" src="https://media.istockphoto.com/vectors/default-avatar-profile-icon-gray-placeholder-photo-vector-id844061224?b=1&k=6&m=844061224&s=612x612&w=0&h=adm3xmgWwC3YTVC2swWz02NDmtZ6vFaIw8a_XBGsOLk=">
+        <img class="twoD-social-peerCard-avatar" src="../assets/avatar.jpg">
       </div>
       <div class="twoD-social-peerCard-peerName">
         <h2>Peer ID</h2>
