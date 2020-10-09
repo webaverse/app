@@ -158,7 +158,8 @@ export const toggleMenus = props => {
         activeTab: appState.menu.activeTab,
         inventoryItems: appState.menu.inventory.items,
         worlds: appState.menu.worlds,
-        peers: appState.menu.social.peers
+        peers: appState.menu.social.peers,
+        allItems: appState.menu.browse.items
       });
     case 'weaponWheel':
       return WeaponWheel(props);
