@@ -28,13 +28,13 @@ async function getContractSource(p) {
 }
 
 async function resolveContractSource(contractSource) {
-  const {FungibleToken, NonFungibleToken, ExampleToken, ExampleNFT, ExampleAccount} = await flowConstants.load();
+  const {FungibleToken, NonFungibleToken, WebaverseToken, WebaverseNFT, WebaverseAccount} = await flowConstants.load();
   return contractSource
     .replace(/NONFUNGIBLETOKENADDRESS/g, NonFungibleToken)
     .replace(/FUNGIBLETOKENADDRESS/g, FungibleToken)
-    .replace(/EXAMPLETOKENADDRESS/g, ExampleToken)
-    .replace(/EXAMPLENFTADDRESS/g, ExampleNFT)
-    .replace(/EXAMPLEACCOUNTADDRESS/g, ExampleAccount);
+    .replace(/WEBAVERSETOKENADDRESS/g, WebaverseToken)
+    .replace(/WEBAVERSENFTADDRESS/g, WebaverseNFT)
+    .replace(/WEBAVERSEACCOUNTADDRESS/g, WebaverseAccount);
 }
 
 function hexToWordList(hex) {
