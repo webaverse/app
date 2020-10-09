@@ -1426,7 +1426,7 @@ const makeMenuMesh = (cubeMesh, onclickBindings) => {
   const worldHeight = 1;
   
   const geometry = _flipUvs(
-    new THREE.PlaneBufferGeometry(1, 1)
+    new THREE.PlaneBufferGeometry(worldWidth, worldHeight)
       // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0))
   );
   const texture = new THREE.Texture(
