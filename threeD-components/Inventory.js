@@ -98,7 +98,6 @@ export const Inventory = (props = {}) => {
         margin-right: 20px;
         margin-bottom: 20px;
         padding-bottom: 0;
-        /* overflow: hidden; */
       }
       .tiles .tile img {
         position: absolute;
