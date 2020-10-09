@@ -7,7 +7,6 @@ const PeerCard = (props) => {
   `;
 }
 
-
 const Social = (props) => {
   return `
     <div class="twoD-social">

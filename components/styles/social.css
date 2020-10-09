@@ -1,0 +1,14 @@
+.twoD-social {
+  max-height: calc(80vh - 75px);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+}
+
+.twoD-social-peerCard {
+  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
+  border-radius: 5px;
+  border: 1px #eeeef5 solid;
+}
