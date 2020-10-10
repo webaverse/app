@@ -3142,7 +3142,7 @@ export class VOXLoader {
         voxMesh.set(c, x, y, z);
       }
       const mesh = voxMesh.generate();
-      mesh.geometry.applyMatrix4(new THREE.Matrix4().makeScale(-1, 1, -1)).applyMatrix4(new THREE.Matrix4().makeTranslation(dims[0]/2, 0, dims[2]/2));
+      mesh.geometry.applyMatrix4(new THREE.Matrix4().makeScale(-1, 1, -1)).applyMatrix4(new THREE.Matrix4().makeTranslation(x/2, 0, y/2));
       if (this.scale) {
         mesh.geometry.applyMatrix4(new THREE.Matrix4().makeScale(this.scale, this.scale, this.scale));
       }
