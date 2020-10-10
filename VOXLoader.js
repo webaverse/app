@@ -3134,15 +3134,15 @@ export class VOXLoader {
       const parser = new VOXParser();
       const {dims, voxels} = await parser.parse(url);
       const [x, y, z] = dims;
-      dims[1] = z;
-      dims[2] = y;
-      const voxMesh = new VOXMesh(dims);
+      // dims[1] = z;
+      // dims[2] = y;
+      const voxMesh = new VOXMesh([x, z, y]);
       for (let i = 0; i < voxels.length; i++) {
         const [x, y, z, c] = voxels[i];
         voxMesh.set(c, x, y, z);
       }
       const mesh = voxMesh.generate();
-      mesh.geometry.applyMatrix4(new THREE.Matrix4().makeScale(-1, 1, -1)).applyMatrix4(new THREE.Matrix4().makeTranslation(dims[0]/2, 0, dims[2]/2));
+      mesh.geometry.applyMatrix4(new THREE.Matrix4().makeScale(-1, 1, -1)).applyMatrix4(new THREE.Matrix4().makeTranslation(x/2, 0, y/2));
       if (this.scale) {
         mesh.geometry.applyMatrix4(new THREE.Matrix4().makeScale(this.scale, this.scale, this.scale));
       }
