@@ -1,5 +1,4 @@
 const PeerCard = (props) => {
-  console.log(props)
   return `
     <div class="twoD-social-peerCard">
       <div class="twoD-social-peerCard-imgWrap">
@@ -11,7 +10,7 @@ const PeerCard = (props) => {
       </div>
       <div class="twoD-social-peerCard-actions">
         <button class="twoD-social-peerCard-teleport">Teleport</button>
-        <button class="twoD-social-peerCard-trade">Trade</button>
+        <button class="twoD-social-peerCard-trade" onclick="twoD-social-peerCard-trade" name="${props.peerName}">Trade</button>
       </div>
     </div>
   `;
@@ -24,7 +23,7 @@ const Social = (props) => {
         ${
           props.peers.map((value, index) => {
             return PeerCard({peerName: value.peerConnection.connectionId})
-          })
+          }).join('')
         }
       </div>
     `;

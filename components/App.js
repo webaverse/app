@@ -76,6 +76,59 @@ export const onclickBindings = {
     copyText.setSelectionRange(0, 99999);
     document.execCommand("copy");
   },
+  'twoD-social-peerCard-trade': e => {
+    console.log(e);
+    const { menu } = getState();
+    menu.trade.visible = true;
+    menu.trade.toPeer = e.name;
+    menu.trade.fromPeer = 'lol' //need local peer id
+    setState({
+      menu,
+    });
+  },
+  'twoD-trade-inventory-card': e => {
+    const { menu } = getState();
+    menu.trade.selectedItem = e.name;
+    setState({
+      menu,
+    });
+  },
+  'twoD-trade-peers-card': e => {
+    const { menu } = getState();
+    menu.trade.toPeer = e.name;
+    setState({
+      menu,
+    });
+  },
+  'twoD-trade-cancel': e => {
+    const { menu } = getState();
+    menu.trade = {
+      visible: false,
+      toPeer: null,
+      fromPeer: null,
+      selectedItems: [],
+      agreement: false
+    }
+    setState({
+      menu,
+    });
+  },
+  'twoD-trade-accept': e => {
+    const { menu } = getState();
+
+    // TRADE IT ()
+    
+    menu.trade = {
+      visible: false,
+      toPeer: null,
+      fromPeer: null,
+      selectedItems: [],
+      agreement: false
+    }
+    setState({
+      menu,
+    });
+  },
   'inventory-spawn': async e => {
     const id = e.name;
     document.dispatchEvent(new MessageEvent('drop', {
@@ -159,7 +212,8 @@ export const toggleMenus = props => {
         inventoryItems: appState.menu.inventory.items,
         worlds: appState.menu.worlds,
         peers: appState.menu.social.peers,
-        allItems: appState.menu.browse.items
+        allItems: appState.menu.browse.items,
+        trade: appState.menu.trade
       });
     case 'weaponWheel':
       return WeaponWheel(props);
