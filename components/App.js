@@ -77,11 +77,10 @@ export const onclickBindings = {
     document.execCommand("copy");
   },
   'twoD-social-peerCard-trade': e => {
-    console.log(e);
     const { menu } = getState();
     menu.trade.visible = true;
     menu.trade.toPeer = e.name;
-    menu.trade.fromPeer = 'lol' //need local peer id
+    menu.trade.fromPeer = 'lol' // need local peer id
     setState({
       menu,
     });

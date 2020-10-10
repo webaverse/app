@@ -47,12 +47,15 @@ const Trade = (props) => {
       <div class="twoD-trade-peers">
         ${
           peers.map((value, index) => {
-            return PeerCard({peerName: value.peerConnection.connectionId})
+            if (value.peerConnection && value.peerConnection.connectionId) {
+              return PeerCard({peerName: value.peerConnection.connectionId})
+            }
+            return;
           }).join('')
         }
       </div>
-      <div style="display: flex;">
-        <div style="width: 50%">
+      <div class="twoD-trade-actions">
+        <div class="twoD-trade-info">
           <h1 class="twoD-trade-sectionHeader">Selected Peer: <p>${toPeer}</p></h1>
           <h1 class="twoD-trade-sectionHeader">Item for Trade: <p>${selectedItem}</p></h1>
         </div>

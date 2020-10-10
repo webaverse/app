@@ -116,3 +116,9 @@
   margin-bottom: 50px;
   text-align: center;
 }
+.twoD-trade-actions {
+  display: flex;
+}
+.twoD-trade-info {
+  width: 50%
+}
