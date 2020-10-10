@@ -3134,9 +3134,9 @@ export class VOXLoader {
       const parser = new VOXParser();
       const {dims, voxels} = await parser.parse(url);
       const [x, y, z] = dims;
-      dims[1] = z;
-      dims[2] = y;
-      const voxMesh = new VOXMesh(dims);
+      // dims[1] = z;
+      // dims[2] = y;
+      const voxMesh = new VOXMesh([x, z, y]);
       for (let i = 0; i < voxels.length; i++) {
         const [x, y, z, c] = voxels[i];
         voxMesh.set(c, x, y, z);
