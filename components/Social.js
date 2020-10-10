@@ -22,7 +22,10 @@ const Social = (props) => {
       <div class="twoD-social">
         ${
           props.peers.map((value, index) => {
-            return PeerCard({peerName: value.peerConnection.connectionId})
+            if (value.peerConnection && value.peerConnection.connectionId) {
+              return PeerCard({peerName: value.peerConnection.connectionId})
+            }
+            return;
           }).join('')
         }
       </div>
