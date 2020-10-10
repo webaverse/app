@@ -2215,11 +2215,13 @@ const makePopupMesh = () => {
   mesh.addMessage = text => {
     const message = new PopupMessage(text);
     messages.push(message);
-    setTimeout(() => {
-      messages.splice(messages.indexOf(message), 1);
-      needsUpdate = true;
-    }, 5000);
     needsUpdate = true;
+    return message;
+  };
+  mesh.removeMessage = message => {
+    messages.splice(messages.indexOf(message), 1);
+    needsUpdate = true;
+    return message;
   };
   // mesh.update();
 
