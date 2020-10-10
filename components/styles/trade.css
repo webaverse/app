@@ -1,0 +1,118 @@
+.twoD-trade {
+  
+}
+
+.twoD-trade-header {
+  width: 100%;
+  height: 100px;
+  background-color: #00a6ff;
+  color: white;
+  text-align: center;
+  border-radius: 20px 20px 0px 0px;
+  padding-top: 1px;
+  font-size: 20px;
+}
+
+.twoD-trade-sectionHeader {
+  padding: 10px;
+  padding-left: 35px;
+}
+
+.twoD-trade-inventory {
+  height: calc(30vh - 155px);  
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+}
+
+.twoD-trade-inventory-card {
+  height: 140px;
+  width: 150px;
+  background-color: #e6e8ef;
+  margin: 10px;
+  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
+  border-radius: 5px;
+  border: 1px #eeeef5 solid;
+  text-align: center;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.twoD-trade-inventory-card-preview {
+  height: 100px;
+  width: 100%;
+}
+
+.twoD-trade-inventory-card-name {
+  margin-bottom: 9px;
+  margin-top: 5px;
+  font-size: 15px;
+}
+
+.twoD-trade-peers {
+  height: calc(30vh - 155px);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+}
+
+.twoD-trade-peers-card {
+  width: 300px;
+  height: 125px;
+  background-color: aliceblue;
+  padding: 10px;
+  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
+  border-radius: 5px;
+  border: 1px #eeeef5 solid;
+  margin: 15px;
+  display: flex;
+  cursor: pointer;
+}
+
+.twoD-trade-peers-card-imgWrap {
+  width: 145px;
+}
+
+.twoD-trade-peers-card-avatar {
+  height: 100%;
+}
+
+.twoD-trade-peers-card-peerName {
+  width: 220px;
+}
+
+.twoD-trade-cancel {
+  padding: 15px 20px;
+  background-color: red;
+  border: 0;
+  color: #FFF;
+  border-radius: 8px;
+  font-size: 25px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  margin-top: 25px;
+  margin-bottom: 50px;
+  text-align: center;
+}
+
+.twoD-trade-accept {
+  padding: 15px 20px;
+  background-color: green;
+  border: 0;
+  color: #FFF;
+  border-radius: 8px;
+  font-size: 25px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  margin-top: 25px;
+  margin-bottom: 50px;
+  text-align: center;
+}

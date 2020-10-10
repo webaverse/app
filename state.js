@@ -26,6 +26,13 @@ export const state = {
             selectedPeerId: null,
         },
         worlds: [],
+        trade: {
+            visible: false,
+            toPeer: null,
+            fromPeer: null,
+            selectedItems: [],
+            agreement: false
+        }
     },
     weaponWheel: {
         visible: false,
