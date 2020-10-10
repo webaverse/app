@@ -920,7 +920,10 @@ const _initializeLogin = async () => {
           const tx = JSON.parse(s);
           await loadPromise;
           if (tx.from && tx.to && tx.amount) {
-            uiManager.popupMesh.addMessage(`${tx.from} sent ${tx.to} ${tx.amount}`);
+            const message = uiManager.popupMesh.addMessage(`${tx.from} sent ${tx.to} ${tx.amount}`);
+            setTimeout(() => {
+              uiManager.popupMesh.removeMessage(message);
+            }, 5000);
           }
           if (tx.from === address) {
             const {menu} = getState();
