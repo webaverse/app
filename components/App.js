@@ -134,15 +134,17 @@ export const onclickBindings = {
   },
   'twoD-trade-accept': e => {
     const { menu } = getState();
-
-    // TRADE IT ()
-    
-    menu.trade = {
-      visible: false,
-      toPeer: null,
-      fromPeer: null,
-      selectedItems: [],
-      agreement: false
+    if (menu.trade.agreement) {
+      // TRADE IT ()
+      menu.trade = {
+        visible: false,
+        toPeer: null,
+        fromPeer: null,
+        selectedItems: [],
+        agreement: false
+      }
+    } else {
+      // no agreement
     }
     setState({
       menu,
@@ -150,7 +152,7 @@ export const onclickBindings = {
   },
   'twoD-trade-agreement': e => {
     const { menu } = getState();
-    console.log(e)
+    menu.trade.agreement = !menu.trade.agreement;
     setState({
       menu,
     });
