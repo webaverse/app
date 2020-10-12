@@ -6,6 +6,7 @@ import {loginManager} from '../login.js';
 import {planet} from '../planet.js';
 import {state, getState, setState, getSpecificState} from '../state.js';
 import {setBindings} from './bindings.js';
+import {getContractSource} from '../blockchain.js';
 
 let appState = state;
 
@@ -145,7 +146,7 @@ export const onclickBindings = {
       menu,
     });
   },
-  'twoD-trade-accept': e => {
+  'twoD-trade-accept': async (e) => {
     const { menu } = getState();
     if (menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem) {
 
@@ -156,6 +157,23 @@ export const onclickBindings = {
         item: menu.trade.selectedItem
       }
       console.log(trade)
+
+      const contractSource = await getContractSource('transferNft.cdc');
+      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+        method: 'POST',
+        body: JSON.stringify({
+          address: trade.fromPeer,
+          mnemonic: loginManager.getMnemonic(),
+          limit: 1000,
+          transaction: contractSource
+            .replace(/ARG0/g, trade.item)
+            .replace(/ARG1/g, '0x' + trade.toPeer)
+            .replace(/ARG2/g, 1),
+          wait: true,
+        }),
+      });
+      const response2 = await res.json();
+      console.log(response2)
 
       menu.trade = {
         visible: false,
