@@ -34,7 +34,7 @@ const Social = (props) => {
     return `
       <div class="twoD-social">
         <div class="twoD-social-noPeers">
-          <h1 class="twoD-social-noPeers-header">World is Empty</h1>
+          <h1 class="twoD-social-noPeers-header">Nobody is here</h1>
           <button class="twoD-social-peerCard-shareWorld" onclick="twoD-social-peerCard-shareWorld" value="Copy / Paste">
             <p style="margin: 0;">
               <i class="fal fa-copy" style="padding: 15px;"></i>
