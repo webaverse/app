@@ -130,6 +130,13 @@
   margin-bottom: 50px;
   text-align: center;
 }
+
+.twoD-trade-accept.disabled {
+  background-color: #b9b7b7;
+  cursor: not-allowed;
+  color: #FFF;
+}
+
 .twoD-trade-actions {
   display: flex;
 }

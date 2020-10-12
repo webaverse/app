@@ -61,11 +61,11 @@ const Trade = (props) => {
           <h1 class="twoD-trade-info-header">Item for Trade: <p class="twoD-trade-info-detail">${selectedItem}</p></h1>
         </div>
         <div> 
-          <input type="checkbox" id="twoD-trade-agreement" name="twoD-trade-agreement" checked="${agreement}" onclick="twoD-trade-agreement">
+          <input type="checkbox" id="twoD-trade-agreement" name="twoD-trade-agreement" ${agreement ? 'checked' : ''} onclick="twoD-trade-agreement">
           <label style="font-size: 20px;" for="twoD-trade-agreement"> I agree to trade my token.</label><br>
           <br/>
           <button class="twoD-trade-cancel" onclick="twoD-trade-cancel">Cancel</button>
-          <button class="twoD-trade-accept" onclick="twoD-trade-accept">Accept</button>
+          <button class="twoD-trade-accept ${!agreement ? 'disabled' : ''}" onclick="twoD-trade-accept">Accept</button>
         </div>
       </div>
     </div>
