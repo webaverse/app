@@ -30,7 +30,7 @@ export const state = {
             visible: false,
             toPeer: null,
             fromPeer: null,
-            selectedItems: [],
+            selectedItem: null,
             agreement: false
         }
     },

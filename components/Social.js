@@ -6,11 +6,11 @@ const PeerCard = (props) => {
       </div>
       <div class="twoD-social-peerCard-peerName">
         <h2>Peer ID</h2>
-        <h1>${props.peerName}</h1>
+        <h1>${props.peerAddress}</h1>
       </div>
       <div class="twoD-social-peerCard-actions">
         <button class="twoD-social-peerCard-teleport">Teleport</button>
-        <button class="twoD-social-peerCard-trade" onclick="twoD-social-peerCard-trade" name="${props.peerName}">Trade</button>
+        <button class="twoD-social-peerCard-trade" onclick="twoD-social-peerCard-trade" name="${props.peerAddress}">Trade</button>
       </div>
     </div>
   `;
@@ -22,8 +22,8 @@ const Social = (props) => {
       <div class="twoD-social">
         ${
           props.peers.map((value, index) => {
-            if (value.peerConnection && value.peerConnection.connectionId) {
-              return PeerCard({peerName: value.peerConnection.connectionId})
+            if (value.address) {
+              return PeerCard({peerAddress: value.address})
             }
             return;
           }).join('')
