@@ -200,7 +200,7 @@ export const updateProps = newProps => {
     const newHtml = App(appState);
     const child = appContainer.children[0];
     if (child) {
-      appContainerTmp.innerHTML = newHtml;
+      appContainerTmp.innerHTML = newHtml.replace(/(>)[\s]+(<)/gm, '$1$2');
       const diff = diffDOM.diff(child, appContainerTmp.children[0]);
       diffDOM.apply(child, diff);
     } else {
