@@ -60,10 +60,9 @@ class XRChannelConnection extends EventTarget {
       }
     }; */
 
-    const {roomName = 'room', displayName = 'user'} = options;
+    const {roomName = 'room'} = options;
     const dialogClient = new RoomClient({
-      url: `${url}?roomId=${roomName}&peerId=${this.connectionId}`,
-      displayName,
+      url: `${url}?roomId=${roomName}&peerId=${this.connectionId}`
     });
     dialogClient.addEventListener('addsend', async e => {
       const {data: {dataProducer: {id, _dataChannel}}} = e;
