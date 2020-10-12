@@ -11,7 +11,8 @@
 }
 
 .twoD-browse .twoD-browse-list .twoD-browse-card {
-    height: 240px;
+    /* height: 240px; */
+    height: 320px;
     width: 250px;
     background-color: #e6e8ef;
     margin: 10px;
@@ -21,15 +22,6 @@
     text-align: center;
     overflow: hidden;
     cursor: pointer;
-}
-
-.twoD-browse .twoD-browse-list .twoD-browse-card:hover {
-    height: 320px;
-    transition: height 0.5s;
-}
-
-.twoD-browse .twoD-browse-list .twoD-browse-card:hover {
-    border: 1px #eeeef5 solid;
 }
 
 .twoD-browse .twoD-browse-list .twoD-browse-card .twoD-browse-card-name {
