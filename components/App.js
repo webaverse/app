@@ -80,8 +80,21 @@ export const onclickBindings = {
     const { menu } = getState();
     menu.trade.visible = true;
     menu.trade.toPeer = e.name;
-    menu.trade.fromPeer = 'lol' // need local peer id
-    setState({ menu });
+    menu.trade.fromPeer = loginManager.getAddress();
+    setState({ menu }, () => {
+      const selectedItem = document.getElementById(`twoD-trade-inventory-card-${menu.trade.selectedItem}`);
+      const inventoryCards = document.getElementsByClassName('twoD-trade-inventory-card');
+      const selectedPeer = document.getElementById(`twoD-trade-peers-card-${menu.trade.toPeer}`);
+      const peerCards = document.getElementsByClassName('twoD-trade-peers-card');
+      for (let i = 0; i < peerCards.length; i++) {
+        peerCards[i].classList.remove('selected');
+      }
+      for (let i = 0; i < inventoryCards.length; i++) {
+        inventoryCards[i].classList.remove('selected');
+      }
+      selectedItem ? selectedItem.classList.add('selected') : null;
+      selectedPeer ? selectedPeer.classList.add('selected') : null;
+    });
   },
   'twoD-trade-inventory-card': e => {
     const { menu } = getState();
@@ -134,8 +147,16 @@ export const onclickBindings = {
   },
   'twoD-trade-accept': e => {
     const { menu } = getState();
-    if (menu.trade.agreement) {
+    if (menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem) {
+
       // TRADE IT ()
+      const trade = {
+        toPeer: menu.trade.toPeer,
+        fromPeer: menu.trade.fromPeer,
+        item: menu.trade.selectedItem
+      }
+      console.log(trade)
+
       menu.trade = {
         visible: false,
         toPeer: null,
@@ -153,8 +174,19 @@ export const onclickBindings = {
   'twoD-trade-agreement': e => {
     const { menu } = getState();
     menu.trade.agreement = !menu.trade.agreement;
-    setState({
-      menu,
+    setState({ menu }, () => {
+      const selectedItem = document.getElementById(`twoD-trade-inventory-card-${menu.trade.selectedItem}`);
+      const inventoryCards = document.getElementsByClassName('twoD-trade-inventory-card');
+      const selectedPeer = document.getElementById(`twoD-trade-peers-card-${menu.trade.toPeer}`);
+      const peerCards = document.getElementsByClassName('twoD-trade-peers-card');
+      for (let i = 0; i < peerCards.length; i++) {
+        peerCards[i].classList.remove('selected');
+      }
+      for (let i = 0; i < inventoryCards.length; i++) {
+        inventoryCards[i].classList.remove('selected');
+      }
+      selectedItem ? selectedItem.classList.add('selected') : null;
+      selectedPeer ? selectedPeer.classList.add('selected') : null;
     });
   },
   'inventory-spawn': async e => {
@@ -218,7 +250,7 @@ export const onclickBindings = {
     const { menu } = getState();
     menu.trade.visible = true;
     menu.trade.selectedItem = e.name
-    menu.trade.fromPeer = 'lol' // need local peer id
+    menu.trade.fromPeer = loginManager.getAddress();
     setState({ menu }, () => {
       const selectedItem = document.getElementById(`twoD-trade-inventory-card-${e.name}`);
       const inventoryCards = document.getElementsByClassName('twoD-trade-inventory-card');

@@ -1,6 +1,6 @@
 const InventoryCard = (props = {}) => {
   return `
-      <div class="twoD-trade-inventory-card" onclick="twoD-trade-inventory-card" name="${props.name}" id="twoD-trade-inventory-card-${props.name}">
+      <div class="twoD-trade-inventory-card" onclick="twoD-trade-inventory-card" name="${props.id}" id="twoD-trade-inventory-card-${props.id}">
           <img class="twoD-trade-inventory-card-preview" src="${props.preview}"></img>
           <h4 class="twoD-trade-inventory-card-name">${props.name}</h4>
       </div>
@@ -9,13 +9,13 @@ const InventoryCard = (props = {}) => {
 
 const PeerCard = (props) => {
   return `
-    <div class="twoD-trade-peers-card" onclick="twoD-trade-peers-card" name="${props.peerName}" id="twoD-trade-peers-card-${props.peerName}">
+    <div class="twoD-trade-peers-card" onclick="twoD-trade-peers-card" name="${props.peerAddress}" id="twoD-trade-peers-card-${props.peerAddress}">
       <div class="twoD-trade-peers-card-imgWrap">
         <img class="twoD-trade-peers-card-avatar" src="../assets/avatar.jpg">
       </div>
       <div class="twoD-trade-peers-card-peerName">
         <h2>Peer ID</h2>
-        <h1>${props.peerName}</h1>
+        <h1>${props.peerAddress}</h1>
       </div>
     </div>
   `;
@@ -25,6 +25,7 @@ const Trade = (props) => {
   let inventoryItems = props.inventoryItems || [];
   let peers = props.peers || [];
   let toPeer = props.trade.toPeer || '';
+  let fromPeer = props.trade.fromPeer || '';
   let selectedItem = props.trade.selectedItem || '';
   let agreement = props.trade.agreement || false;
   return `
@@ -48,8 +49,8 @@ const Trade = (props) => {
       <div class="twoD-trade-peers">
         ${
           peers.map((value, index) => {
-            if (value.peerConnection && value.peerConnection.connectionId) {
-              return PeerCard({peerName: value.peerConnection.connectionId})
+            if (value.address) {
+              return PeerCard({peerAddress: value.address})
             }
             return;
           }).join('')
@@ -61,11 +62,11 @@ const Trade = (props) => {
           <h1 class="twoD-trade-info-header">Item for Trade: <p class="twoD-trade-info-detail">${selectedItem}</p></h1>
         </div>
         <div> 
-          <input type="checkbox" id="twoD-trade-agreement" name="twoD-trade-agreement" ${agreement ? 'checked' : ''} onclick="twoD-trade-agreement">
-          <label style="font-size: 20px;" for="twoD-trade-agreement"> I agree to trade my token.</label><br>
+          <input style="cursor: pointer;" type="checkbox" id="twoD-trade-agreement" name="twoD-trade-agreement" ${agreement ? 'checked' : ''} onclick="twoD-trade-agreement">
+          <label style="font-size: 20px; cursor: pointer;" for="twoD-trade-agreement"> I agree to trade my token.</label><br>
           <br/>
           <button class="twoD-trade-cancel" onclick="twoD-trade-cancel">Cancel</button>
-          <button class="twoD-trade-accept ${!agreement ? 'disabled' : ''}" onclick="twoD-trade-accept">Accept</button>
+          <button class="twoD-trade-accept ${!agreement || !toPeer || !fromPeer || !selectedItem ? 'disabled' : ''}" onclick="twoD-trade-accept">Accept</button>
         </div>
       </div>
     </div>
