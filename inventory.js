@@ -63,7 +63,9 @@ inventory.getFiles = async (start, end) => {
     const id = parseInt(fields.find(field => field.name === 'id').value.value, 10);
     const hash = fields.find(field => field.name === 'hash').value.value;
     const filename = fields.find(field => field.name === 'filename').value.value;
-    return {id, hash, filename};
+    const ext = getExt(filename);
+    const preview = `https://preview.exokit.org/${hash}.${ext}/preview.${previewExt}`;
+    return {id, hash, filename, preview};
   });
   return items;
 };
