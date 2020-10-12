@@ -5,6 +5,7 @@ import {planet} from './planet.js';
 import {getContractSource} from './blockchain.js';
 import {getState, setState} from './state.js';
 import {renderer, scene, camera} from './app-object.js';
+import {getExt} from './util.js';
 import {storageHost, previewExt} from './constants.js';
 
 const inventory = new EventTarget();
@@ -12,8 +13,7 @@ const inventory = new EventTarget();
 inventory.uploadFile = async file => {
   const {id, hash} = await loginManager.uploadFile(file);
   const {name: filename} = file;
-  const match = filename.match(/\.([^\.]+)$/);
-  const ext = match ? match[1] : 'bin';
+  const ext = getExt(filename);
   const preview = `https://preview.exokit.org/${hash}.${ext}/preview.${previewExt}`;
   const fileSpec = {
     id,
@@ -63,7 +63,9 @@ inventory.getFiles = async (start, end) => {
     const id = parseInt(fields.find(field => field.name === 'id').value.value, 10);
     const hash = fields.find(field => field.name === 'hash').value.value;
     const filename = fields.find(field => field.name === 'filename').value.value;
-    return {id, hash, filename};
+    const ext = getExt(filename);
+    const preview = `https://preview.exokit.org/${hash}.${ext}/preview.${previewExt}`;
+    return {id, hash, filename, preview};
   });
   return items;
 };
