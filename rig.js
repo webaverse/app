@@ -358,7 +358,7 @@ class RigManager {
       rig.update();
     });
 
-    if (cameraManager.getTool() === 'firstperson' || !!renderer.xr.getSession()) {
+    if (/^(?:camera|firstperson)$/.test(cameraManager.getTool()) || !!renderer.xr.getSession()) {
       rigManager.localRig.decapitate();
     } else {
       rigManager.localRig.undecapitate();
