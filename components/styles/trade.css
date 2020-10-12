@@ -1,5 +1,6 @@
 .twoD-trade {
-  
+  overflow: auto;
+  max-height: 100%;
 }
 
 .twoD-trade-header {
@@ -11,20 +12,22 @@
   border-radius: 20px 20px 0px 0px;
   padding-top: 1px;
   font-size: 20px;
+  margin-bottom: 25px;
 }
 
 .twoD-trade-sectionHeader {
-  padding: 10px;
   padding-left: 35px;
 }
 
 .twoD-trade-inventory {
-  height: calc(30vh - 155px);  
+  height: 240px; 
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
   overflow-y: auto;
+  margin: 30px;
+  border: 1px #d2c1c1 solid;
 }
 
 .twoD-trade-inventory-card {
@@ -56,12 +59,14 @@
 }
 
 .twoD-trade-peers {
-  height: calc(30vh - 155px);
+  height: 240px; 
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
   overflow-y: auto;
+  margin: 30px;
+  border: 1px #d2c1c1 solid;
 }
 
 .twoD-trade-peers-card {
@@ -95,7 +100,7 @@
 
 .twoD-trade-cancel {
   padding: 15px 20px;
-  background-color: red;
+  background-color: #ff0058;
   border: 0;
   color: #FFF;
   border-radius: 8px;
@@ -107,11 +112,12 @@
   margin-top: 25px;
   margin-bottom: 50px;
   text-align: center;
+  margin-right: 30px;
 }
 
 .twoD-trade-accept {
   padding: 15px 20px;
-  background-color: green;
+  background-color: #00a236;
   border: 0;
   color: #FFF;
   border-radius: 8px;
@@ -129,4 +135,16 @@
 }
 .twoD-trade-info {
   width: 50%
+}
+.twoD-trade-info-detail {
+  font-size: 20px;
+  color: #0066ff;
+}
+.twoD-trade-info-header {
+  padding-left: 35px;
+}
+#trade-agreement {
+  height: 20px;
+  width: 20px;
+  margin-right: 15px;
 }
