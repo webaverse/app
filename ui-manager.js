@@ -122,7 +122,7 @@ const _makeInventoryShapesMesh = () => {
   };
   return mesh;
 };
-const _makeInventoryItemsMesh = () => {
+/* const _makeInventoryItemsMesh = () => {
   const h = 0.1;
   const arrowW = h/10;
   const wrapInnerW = h - 2*arrowW;
@@ -152,7 +152,7 @@ const _makeInventoryItemsMesh = () => {
     }
   };
   return object;
-};
+}; */
 
 geometryManager.waitForLoad().then(() => {
   const hpMesh = (() => {
@@ -328,7 +328,7 @@ geometryManager.waitForLoad().then(() => {
   scene.add(shapesMesh);
   uiManager.shapesMesh = shapesMesh;
 
-  const inventoryMesh = makeInventoryMesh(weaponsManager.cubeMesh, () => {});
+  /* const inventoryMesh = makeInventoryMesh(weaponsManager.cubeMesh, () => {});
   inventoryMesh.inventoryItemsMesh = _makeInventoryItemsMesh();
   inventoryMesh.add(inventoryMesh.inventoryItemsMesh);
   inventoryMesh.visible = false;
@@ -350,7 +350,7 @@ geometryManager.waitForLoad().then(() => {
     meshComposer.setPlaceMesh(i, mesh);
   };
   scene.add(inventoryMesh);
-  uiManager.inventoryMesh = inventoryMesh;
+  uiManager.inventoryMesh = inventoryMesh; */
 
   let selectedColors;
   const colorsMesh = makeColorsMesh(weaponsManager.cubeMesh, colors, newSelectedColors => {
@@ -448,7 +448,7 @@ geometryManager.waitForLoad().then(() => {
     uiManager.buildsMesh,
     uiManager.thingsMesh,
     uiManager.shapesMesh,
-    uiManager.inventoryMesh,
+    // uiManager.inventoryMesh,
     uiManager.colorsMesh,
   ];
   uiManager.menuMeshes = [
