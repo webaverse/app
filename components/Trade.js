@@ -1,6 +1,6 @@
 const InventoryCard = (props = {}) => {
   return `
-      <div class="twoD-trade-inventory-card" onclick="twoD-trade-inventory-card" name="${props.name}">
+      <div class="twoD-trade-inventory-card" onclick="twoD-trade-inventory-card" name="${props.name}" id="twoD-trade-inventory-card-${props.name}">
           <img class="twoD-trade-inventory-card-preview" src="${props.preview}"></img>
           <h4 class="twoD-trade-inventory-card-name">${props.name}</h4>
       </div>
