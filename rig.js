@@ -68,50 +68,52 @@ class RigManager {
   }
 
   async setAvatar(oldRig, setRig, url, filename) {
-    oldRig.url = url;
+    if (oldRig.url !== url) {
+      oldRig.url = url;
 
-    let o;
-    if (url) {
-      const res = await fetch(url);
-      const blob = await res.blob();
-      blob.name = filename;
-      o = await runtime.loadFile(blob);
-    }
+      let o;
+      if (url) {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        blob.name = filename;
+        o = await runtime.loadFile(blob);
+      }
 
-    if (oldRig.url === url) {
-      this.scene.remove(oldRig.model);
+      if (oldRig.url === url) {
+        this.scene.remove(oldRig.model);
 
-      let localRig;
-      if (o) {
-        if (o.raw) {
-          localRig = new Avatar(o.raw, {
+        let localRig;
+        if (o) {
+          if (o.raw) {
+            localRig = new Avatar(o.raw, {
+              fingers: true,
+              hair: true,
+              visemes: true,
+              debug: false //!o,
+            });
+          } else {
+            localRig = new Avatar();
+            localRig.model = o;
+            localRig.inputs.hmd = localRig.model;
+            localRig.update = () => {
+              // nothing
+            };
+          }
+        } else {
+          localRig = new Avatar(null, {
             fingers: true,
             hair: true,
             visemes: true,
-            debug: false //!o,
+            debug: true,
           });
-        } else {
-          localRig = new Avatar();
-          localRig.model = o;
-          localRig.inputs.hmd = localRig.model;
-          localRig.update = () => {
-            // nothing
-          };
         }
-      } else {
-        localRig = new Avatar(null, {
-          fingers: true,
-          hair: true,
-          visemes: true,
-          debug: true,
-        });
-      }
-      this.scene.add(localRig.model);
-      localRig.textMesh = oldRig.textMesh;
-      localRig.avatarUrl = oldRig.url;
-      localRig.rigCapsule = oldRig.rigCapsule;
+        this.scene.add(localRig.model);
+        localRig.textMesh = oldRig.textMesh;
+        localRig.avatarUrl = oldRig.url;
+        localRig.rigCapsule = oldRig.rigCapsule;
 
-      setRig(localRig);
+        setRig(localRig);
+      }
     }
   }
   

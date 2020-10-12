@@ -69,8 +69,8 @@ export const Browse = (props = {}) => {
       }
       .border {
         position: absolute;
-        width: 10px;
-        height: 10px;
+        width: 20px;
+        height: 20px;
         border: 10px solid #111;
       }
       .border.top-left {
