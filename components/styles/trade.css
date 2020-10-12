@@ -40,6 +40,10 @@
   cursor: pointer;
 }
 
+.twoD-trade-inventory-card.selected {
+  border: 2px #4faeff solid
+}
+
 .twoD-trade-inventory-card-preview {
   height: 100px;
   width: 100%;
@@ -71,6 +75,10 @@
   margin: 15px;
   display: flex;
   cursor: pointer;
+}
+
+.twoD-trade-peers-card.selected {
+  border: 2px #4faeff solid
 }
 
 .twoD-trade-peers-card-imgWrap {

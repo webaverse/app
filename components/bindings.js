@@ -1,4 +1,3 @@
-import { App, updateProps } from './App.js';
 import { bindUploadFileButton } from '../util.js';
 
 export const setBindings = (appContainer, onclickMap) => {

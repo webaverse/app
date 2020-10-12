@@ -88,8 +88,13 @@ export const onclickBindings = {
   'twoD-trade-inventory-card': e => {
     const { menu } = getState();
     menu.trade.selectedItem = e.name;
-    setState({
-      menu,
+    setState({ menu }, () => {
+      const elem = document.getElementById(`twoD-trade-inventory-card-${e.name}`);
+      const cards = document.getElementsByClassName('twoD-trade-inventory-card');
+      for (let i = 0; i < cards.length; i++) {
+        cards[i].classList.remove('selected');
+      }
+      elem.classList.add('selected');
     });
   },
   'twoD-trade-peers-card': e => {
@@ -229,12 +234,10 @@ export const App = (props) => {
   `;
 }
 
-export const updateProps = newProps => {
+export const updateProps = (newProps, cb) => {
   const appContainer = document.getElementById('appContainer');
   for (let k in newProps) {
-    // if (appState[k] !== newProps[k]) {
     appState[k] = newProps[k];
-    // }
   }
   if (appState.pointerLock || appState.isXR) {
     appContainer.style.display = 'none';
@@ -243,21 +246,23 @@ export const updateProps = newProps => {
     }
   } else if (!appState.selectedWeapon) {
     appContainer.style.display = 'none';
-    // appContainer.innerHTML = '';
-    // setBindings(null, onclickBindings);
   } else {
     appContainer.style.display = 'block';
     appContainer.innerHTML = App(appState);
     setBindings(appContainer, onclickBindings);
   }
+  if (cb) {
+    cb();
+  }
 }
 
 window.addEventListener('stateChanged', (e) => {
   const changedState = getSpecificState(e.detail.changedKeys);
+  const cb = e.detail.cb ? e.detail.cb : null;
   for (let k in changedState) {
     appState[k] = changedState[k];
   }
-  updateProps(changedState);
+  updateProps(changedState, cb);
 })
 
 window.addEventListener('load', () => {
