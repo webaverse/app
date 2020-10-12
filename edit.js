@@ -889,7 +889,7 @@ const _initializeLogin = async () => {
   const _initializeUserUi = async () => {
     await geometryManager.waitForLoad();
 
-    const _initInventory = () => {
+    /* const _initInventory = () => {
       const files = inventory.getOwnedFiles();
       uiManager.inventoryMesh.inventoryItemsMesh.update(files);
       
@@ -898,7 +898,7 @@ const _initializeLogin = async () => {
         uiManager.inventoryMesh.inventoryItemsMesh.update(files);
       });
     };
-    _initInventory();
+    _initInventory(); */
 
     const _listenBlockchainEvents = async () => {
       const address = '0x' + loginManager.getAddress();
