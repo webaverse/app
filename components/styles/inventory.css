@@ -44,7 +44,8 @@
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard {
-    height: 240px;
+    /* height: 240px; */
+    height: 320px;
     width: 250px;
     background-color: #e6e8ef;
     margin: 10px;
@@ -54,15 +55,6 @@
     text-align: center;
     overflow: hidden;
     cursor: pointer;
-}
-
-.twoD-inventory .twoD-inventoryList .twoD-inventoryCard:hover {
-    height: 320px;
-    transition: height 0.5s;
-}
-
-.twoD-inventory .twoD-inventoryList .twoD-inventoryCard:hover {
-    border: 1px #eeeef5 solid;
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardName {
