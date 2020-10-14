@@ -6,6 +6,7 @@ import {loginManager} from '../login.js';
 import {planet} from '../planet.js';
 import {state, getState, setState, getSpecificState} from '../state.js';
 import {setBindings} from './bindings.js';
+import {getContractSource} from '../blockchain.js';
 import DiffDOM from '../diffDOM.js';
 const diffDOM = new DiffDOM();
 
@@ -79,6 +80,97 @@ export const onclickBindings = {
     copyText.setSelectionRange(0, 99999);
     document.execCommand("copy");
   },
+  'twoD-social-peerCard-trade': e => {
+    const { menu } = getState();
+    menu.trade.visible = true;
+    menu.trade.toPeer = e.name;
+    menu.trade.fromPeer = loginManager.getAddress();
+    setState({ menu });
+  },
+  'twoD-trade-inventory-card': e => {
+    const { menu } = getState();
+    menu.trade.selectedItem = parseInt(e.name, 10);
+    setState({ menu });
+  },
+  'twoD-trade-peers-card': e => {
+    const { menu } = getState();
+    menu.trade.toPeer = e.name;
+    setState({ menu });
+  },
+  'twoD-trade-cancel': e => {
+    const { menu } = getState();
+    menu.trade = {
+      visible: false,
+      toPeer: null,
+      fromPeer: null,
+      selectedItems: [],
+      agreement: false
+    }
+    setState({
+      menu,
+    });
+  },
+  'twoD-trade-accept': async (e) => {
+    const { menu } = getState();
+    if (menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem) {
+
+      // TRADE IT ()
+      const trade = {
+        toPeer: menu.trade.toPeer,
+        fromPeer: menu.trade.fromPeer,
+        item: menu.trade.selectedItem
+      }
+      console.log(trade)
+
+      const contractSource = await getContractSource('transferNft.cdc');
+      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+        method: 'POST',
+        body: JSON.stringify({
+          address: trade.fromPeer,
+          mnemonic: loginManager.getMnemonic(),
+          limit: 1000,
+          transaction: contractSource
+            .replace(/ARG0/g, trade.item)
+            .replace(/ARG1/g, '0x' + trade.toPeer)
+            .replace(/ARG2/g, 1),
+          wait: true,
+        }),
+      });
+      const response2 = await res.json();
+      console.log(response2)
+
+      menu.trade = {
+        visible: false,
+        toPeer: null,
+        fromPeer: null,
+        selectedItems: [],
+        agreement: false
+      }
+    } else {
+      // no agreement
+    }
+    setState({
+      menu,
+    });
+  },
+  'twoD-trade-agreement': e => {
+    const { menu } = getState();
+    menu.trade.agreement = !menu.trade.agreement;
+    setState({ menu }, () => {
+      const selectedItem = document.getElementById(`twoD-trade-inventory-card-${menu.trade.selectedItem}`);
+      const inventoryCards = document.getElementsByClassName('twoD-trade-inventory-card');
+      const selectedPeer = document.getElementById(`twoD-trade-peers-card-${menu.trade.toPeer}`);
+      const peerCards = document.getElementsByClassName('twoD-trade-peers-card');
+      for (let i = 0; i < peerCards.length; i++) {
+        peerCards[i].classList.remove('selected');
+      }
+      for (let i = 0; i < inventoryCards.length; i++) {
+        inventoryCards[i].classList.remove('selected');
+      }
+      selectedItem ? selectedItem.classList.add('selected') : null;
+      selectedPeer ? selectedPeer.classList.add('selected') : null;
+    });
+  },
   'inventory-spawn': async e => {
     const id = e.name;
     document.dispatchEvent(new MessageEvent('drop', {
@@ -136,6 +228,24 @@ export const onclickBindings = {
   'browse-arrow-down': e => {
     inventory.scrollBrowse(1);
   },
+  'twoD-inventoryCardTradeBtn': e => {
+    const { menu } = getState();
+    menu.trade.visible = true;
+    menu.trade.selectedItem = e.name
+    menu.trade.fromPeer = loginManager.getAddress();
+    setState({ menu }, () => {
+      const selectedItem = document.getElementById(`twoD-trade-inventory-card-${e.name}`);
+      const inventoryCards = document.getElementsByClassName('twoD-trade-inventory-card');
+      const peerCards = document.getElementsByClassName('twoD-trade-peers-card');
+      for (let i = 0; i < peerCards.length; i++) {
+        peerCards[i].classList.remove('selected');
+      }
+      for (let i = 0; i < inventoryCards.length; i++) {
+        inventoryCards[i].classList.remove('selected');
+      }
+      selectedItem ? selectedItem.classList.add('selected') : null;
+    });
+  }
 };
 
 inventory.addEventListener('ownedfilesupdate', e => {
@@ -162,7 +272,8 @@ export const toggleMenus = props => {
         inventoryItems: appState.menu.inventory.items,
         worlds: appState.menu.worlds,
         peers: appState.menu.social.peers,
-        allItems: appState.menu.browse.items
+        allItems: appState.menu.browse.items,
+        trade: appState.menu.trade
       });
     case 'weaponWheel':
       return WeaponWheel(props);
@@ -182,9 +293,7 @@ export const App = (props) => {
 export const updateProps = newProps => {
   const appContainer = document.getElementById('appContainer');
   for (let k in newProps) {
-    // if (appState[k] !== newProps[k]) {
     appState[k] = newProps[k];
-    // }
   }
   if (appState.pointerLock || appState.isXR) {
     appContainer.style.display = 'none';
@@ -193,8 +302,6 @@ export const updateProps = newProps => {
     }
   } else if (!appState.selectedWeapon) {
     appContainer.style.display = 'none';
-    // appContainer.innerHTML = '';
-    // setBindings(null, onclickBindings);
   } else {
     appContainer.style.display = 'block';
     const newHtml = App(appState);

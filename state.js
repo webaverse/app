@@ -26,6 +26,13 @@ export const state = {
             selectedPeerId: null,
         },
         worlds: [],
+        trade: {
+            visible: false,
+            toPeer: null,
+            fromPeer: null,
+            selectedItem: null,
+            agreement: false
+        }
     },
     weaponWheel: {
         visible: false,
@@ -34,7 +41,7 @@ export const state = {
     }
 };
 
-const emitChange = (changedKeys) => {
+const emitChange = changedKeys => {
     window.dispatchEvent(new CustomEvent('stateChanged', { 
         detail: {
             changedKeys,

@@ -16,9 +16,9 @@ const InventoryCard = (props = {}) => {
                     <i class="fal fa-trash" style="margin-right: 5px;"></i>
                     Discard
                 </button>
-                <button class="twoD-inventoryCardInspectBtn">
-                    <i class="fal fa-search-plus" style="margin-right: 5px;"></i>
-                    Inspect
+                <button class="twoD-inventoryCardTradeBtn" onclick="twoD-inventoryCardTradeBtn" name="${props.id}">
+                    <i class="fal fa-gift" style="margin-right: 5px;"></i>
+                    Trade
                 </button>
             </div>
         </div>

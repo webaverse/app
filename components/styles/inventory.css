@@ -86,7 +86,7 @@
     margin: 5px;
 }
 
-.twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardActions .twoD-inventoryCardInspectBtn {
+.twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardActions .twoD-inventoryCardTradeBtn {
     padding: 6px 10px;
     background-color: #a049e8;
     border: 0;
