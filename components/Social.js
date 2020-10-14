@@ -1,5 +1,4 @@
 const PeerCard = (props) => {
-  console.log(props)
   return `
     <div class="twoD-social-peerCard">
       <div class="twoD-social-peerCard-imgWrap">
@@ -7,11 +6,11 @@ const PeerCard = (props) => {
       </div>
       <div class="twoD-social-peerCard-peerName">
         <h2>Peer ID</h2>
-        <h1>${props.peerName}</h1>
+        <h1>${props.peerAddress}</h1>
       </div>
       <div class="twoD-social-peerCard-actions">
         <button class="twoD-social-peerCard-teleport">Teleport</button>
-        <button class="twoD-social-peerCard-trade">Trade</button>
+        <button class="twoD-social-peerCard-trade" onclick="twoD-social-peerCard-trade" name="${props.peerAddress}">Trade</button>
       </div>
     </div>
   `;
@@ -23,8 +22,11 @@ const Social = (props) => {
       <div class="twoD-social">
         ${
           props.peers.map((value, index) => {
-            return PeerCard({peerName: value.peerConnection.connectionId})
-          })
+            if (value.address) {
+              return PeerCard({peerAddress: value.address})
+            }
+            return;
+          }).join('')
         }
       </div>
     `;
@@ -32,7 +34,7 @@ const Social = (props) => {
     return `
       <div class="twoD-social">
         <div class="twoD-social-noPeers">
-          <h1 class="twoD-social-noPeers-header">World is Empty</h1>
+          <h1 class="twoD-social-noPeers-header">Nobody is here</h1>
           <button class="twoD-social-peerCard-shareWorld" onclick="twoD-social-peerCard-shareWorld" value="Copy / Paste">
             <p style="margin: 0;">
               <i class="fal fa-copy" style="padding: 15px;"></i>

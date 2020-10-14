@@ -1,4 +1,3 @@
-import { App, updateProps } from './App.js';
 import { bindUploadFileButton } from '../util.js';
 
 export const setBindings = (appContainer, onclickMap) => {
@@ -14,7 +13,7 @@ export const setBindings = (appContainer, onclickMap) => {
 					const name = el.getAttribute('name');
 					onclickMap[handlerName]({
 						id,
-						name,
+						name
 					});
 				};
 			}
