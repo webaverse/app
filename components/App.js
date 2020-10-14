@@ -7,8 +7,11 @@ import {planet} from '../planet.js';
 import {state, getState, setState, getSpecificState} from '../state.js';
 import {setBindings} from './bindings.js';
 import {getContractSource} from '../blockchain.js';
+import DiffDOM from '../diffDOM.js';
+const diffDOM = new DiffDOM();
 
 let appState = state;
+const appContainerTmp = document.createElement('div');
 
 export const onclickBindings = {
   'threeD-menuNavTab-inventory': e => {
@@ -301,7 +304,15 @@ export const updateProps = newProps => {
     appContainer.style.display = 'none';
   } else {
     appContainer.style.display = 'block';
-    appContainer.innerHTML = App(appState);
+    const newHtml = App(appState);
+    const child = appContainer.children[0];
+    if (child) {
+      appContainerTmp.innerHTML = newHtml.replace(/(>)[\s]+(<)/gm, '$1$2');
+      const diff = diffDOM.diff(child, appContainerTmp.children[0]);
+      diffDOM.apply(child, diff);
+    } else {
+      appContainer.innerHTML = newHtml;
+    }
     setBindings(appContainer, onclickBindings);
   }
 }

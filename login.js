@@ -282,10 +282,12 @@ async function tryLogin() {
         const mnemonic = split.slice(0, 24).join(' ');
         const addr = wordListToHex(split.slice(24).join(' '));
 
-        finishLogin({
+        await finishLogin({
           addr,
           mnemonic,
         });
+
+        location.reload();
       } else {
         const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(loginEmail.value)}`, {
           method: 'POST',
@@ -306,17 +308,15 @@ async function tryLogin() {
       loginError.innerHTML = '';
       loginForm.classList.remove('phase-2');
 
-      if (await doLogin(loginEmail.value, loginVerificationCode.value)) {
-        /* xrEngine.postMessage({
-          method: 'login',
-          loginToken,
-        }); */
+      const loginOk = await doLogin(loginEmail.value, loginVerificationCode.value);
+      if (loginOk) {
+        location.reload();
       }
-    } else if (loginForm.classList.contains('phase-3')) {
+    } /* else if (loginForm.classList.contains('phase-3')) {
       await storage.remove('loginToken');
 
-      window.location.reload();
-    }
+      location.reload();
+    } */
   });
 }
 
