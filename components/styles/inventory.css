@@ -30,6 +30,17 @@
     border: 1px white solid;
 }
 
+.twoD-inventory .twoD-inventoryHeader input {
+    position: relative;
+    height: 40px;
+    top: -10px;
+    left: -118px;
+    width: 115px;
+    opacity: 0;
+    z-index: 10;
+    cursor: pointer;
+}
+
 .twoD-inventory .twoD-inventoryDivider {
     border-color: white;
     margin: 0px 30px 10px 30px;
@@ -45,13 +56,12 @@
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard {
-    height: 240px;    
+    height: 330px;    
     width: 250px;
     background-color: black;
     color: white;
     margin: 10px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
-    border-radius: 5px;
     border: 1px #eeeef5 solid;
     text-align: center;
     overflow: hidden;
@@ -73,12 +83,24 @@
 
 }
 
+.twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardActions .twoD-inventoryCardSpawnBtn {
+    padding: 6px 10px;
+    background-color: #ff5f2d;
+    border: #ffffffd6 1px solid;    
+    color: #FFF;
+    font-size: 14px;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    margin: 5px;
+}
+
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardActions .twoD-inventoryCardWearBtn {
     padding: 6px 10px;
-    background-color: #2ec19c;
-    border: 0;
+    background-color:#00a6ff;
+    border: #ffffffd6 1px solid;
     color: #FFF;
-    border-radius: 8px;
     font-size: 14px;
     white-space: nowrap;
     text-decoration: none;
@@ -90,9 +112,8 @@
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardActions .twoD-inventoryCardTradeBtn {
     padding: 6px 10px;
     background-color: #a049e8;
-    border: 0;
+    border: #ffffffd6 1px solid;
     color: #FFF;
-    border-radius: 8px;
     font-size: 14px;
     white-space: nowrap;
     text-decoration: none;
@@ -104,9 +125,8 @@
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardActions .twoD-inventoryCardDiscardBtn {
     padding: 6px 10px;
     background-color:#c12e5a;
-    border: 0;
+    border: #ffffffd6 1px solid;
     color: #FFF;
-    border-radius: 8px;
     font-size: 14px;
     white-space: nowrap;
     text-decoration: none;
