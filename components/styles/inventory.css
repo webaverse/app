@@ -27,6 +27,7 @@
     text-decoration: none;
     cursor: pointer;
     user-select: none;
+    border: 1px white solid;
 }
 
 .twoD-inventory .twoD-inventoryDivider {
@@ -44,10 +45,10 @@
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard {
-    /* height: 240px; */
-    height: 320px;
+    height: 240px;    
     width: 250px;
-    background-color: #e6e8ef;
+    background-color: black;
+    color: white;
     margin: 10px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
     border-radius: 5px;
@@ -59,8 +60,8 @@
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardName {
     margin-bottom: 9px;
-    margin-top: 5px;
-    font-size: 15px;
+    margin-top: 3px;
+    font-size: 18px;
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardPreview {
