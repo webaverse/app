@@ -218,20 +218,9 @@ export const onclickBindings = {
   'twoD-inventoryCardTradeBtn': e => {
     const { menu } = getState();
     menu.trade.visible = true;
-    menu.trade.selectedItem = e.name
+    menu.trade.selectedItem = parseInt(e.name, 10);
     menu.trade.fromPeer = loginManager.getAddress();
-    setState({ menu }, () => {
-      const selectedItem = document.getElementById(`twoD-trade-inventory-card-${e.name}`);
-      const inventoryCards = document.getElementsByClassName('twoD-trade-inventory-card');
-      const peerCards = document.getElementsByClassName('twoD-trade-peers-card');
-      for (let i = 0; i < peerCards.length; i++) {
-        peerCards[i].classList.remove('selected');
-      }
-      for (let i = 0; i < inventoryCards.length; i++) {
-        inventoryCards[i].classList.remove('selected');
-      }
-      selectedItem ? selectedItem.classList.add('selected') : null;
-    });
+    setState({ menu });
   }
 };
 
