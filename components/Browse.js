@@ -4,7 +4,7 @@ const BrowseCard = (props = {}) => {
       <img class="twoD-browse-card-preview" src="${props.preview}"></img>
       <h4 class="twoD-browse-card-name">${props.name}</h4>
       <div class="twoD-browse-card-actions">
-        <button class="twoD-browse-card-wearBtn" onclick=inventory-spawn name="${props.id}">
+        <button class="twoD-browse-card-spawnBtn" onclick=inventory-spawn name="${props.id}">
           <i class="fal fa-magic" style="margin-right: 5px;"></i>
           Spawn
         </button>
