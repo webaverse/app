@@ -36,7 +36,8 @@ const Inventory = (props = {}) => {
                 </button>
                 <input id="twoD-inventoryUploadBtn" type="file" onchange="inventory-upload">
             </div>
-            <div class="twoD-inventoryList">
+            <div class="twoD-inventory-content">
+                <div class="twoD-inventoryList">
                 ${
                     inventoryItems.map((value, index) => {
                         return InventoryCard({
@@ -46,6 +47,10 @@ const Inventory = (props = {}) => {
                         })
                     }).join('')
                 }
+                </div>
+                <div class="twoD-inventory-preview">
+                
+                </div>
             </div>
         </div>
     `;
