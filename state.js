@@ -13,6 +13,7 @@ export const state = {
             selectedId: null,
             selectedHash: null,
             selectedFileName: null,
+            selectedItem: null
         },
         browse: {
             page: 0,

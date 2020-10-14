@@ -3,7 +3,8 @@
 }
 
 .twoD-inventory .twoD-inventoryHeader {
-    padding: 25px 35px 20px 35px;
+    padding: 15px 30px 5px 30px;
+    background-color: #00000099;
 }
 
 .twoD-inventory .twoD-inventoryHeader .twoD-inventoryIcon {
@@ -17,12 +18,10 @@
 }
 
 .twoD-inventory .twoD-inventoryHeader .twoD-inventoryUploadBtn {
-    padding: 10px 20px;
+    padding: 10px 25px;
     background-color: #42a5f5;
-    border: 0;
     color: #FFF;
-    border-radius: 8px;
-    font-size: 16px;
+    font-size: 18px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
@@ -34,8 +33,8 @@
     position: relative;
     height: 40px;
     top: -10px;
-    left: -118px;
-    width: 115px;
+    left: -130px;
+    width: 130px;
     opacity: 0;
     z-index: 10;
     cursor: pointer;
@@ -47,7 +46,7 @@
 }
 
 .twoD-inventory .twoD-inventoryList {
-    max-height: calc(80vh - 166px);
+    max-height: calc(80vh - 142px);
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -56,8 +55,8 @@
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard {
-    height: 330px;    
-    width: 250px;
+    height: 200px;    
+    width: 200px;
     background-color: black;
     color: white;
     margin: 10px;
@@ -68,6 +67,10 @@
     cursor: pointer;
 }
 
+.twoD-inventory .twoD-inventoryList .twoD-inventoryCard.selected {
+    border: 2px #4faeff solid;
+}
+
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardName {
     margin-bottom: 9px;
     margin-top: 3px;
@@ -75,7 +78,7 @@
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardPreview {
-    height: 200px;
+    height: 160px;
     width: 100%;
 }
 
@@ -83,54 +86,82 @@
 
 }
 
-.twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardActions .twoD-inventoryCardSpawnBtn {
-    padding: 6px 10px;
+.twoD-inventory-preview-spawnBtn {
+    padding: 12px 10px;
     background-color: #ff5f2d;
     border: #ffffffd6 1px solid;    
     color: #FFF;
-    font-size: 14px;
+    font-size: 16px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin: 5px;
+    margin: 10px 0px 10px 0px;
+    width: 100%;
 }
 
-.twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardActions .twoD-inventoryCardWearBtn {
-    padding: 6px 10px;
+.twoD-inventory-preview-wearBtn {
+    padding: 12px 10px;
     background-color:#00a6ff;
     border: #ffffffd6 1px solid;
     color: #FFF;
-    font-size: 14px;
+    font-size: 16px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin: 5px;
+    margin: 10px 0px 10px 0px;
+    width: 100%;
 }
 
-.twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardActions .twoD-inventoryCardTradeBtn {
-    padding: 6px 10px;
+.twoD-inventory-preview-tradeBtn {
+    padding: 12px 10px;
     background-color: #a049e8;
     border: #ffffffd6 1px solid;
     color: #FFF;
-    font-size: 14px;
+    font-size: 16px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin: 5px;
+    margin: 10px 0px 10px 0px;
+    width: 100%;
 }
 
-.twoD-inventory .twoD-inventoryList .twoD-inventoryCard .twoD-inventoryCardActions .twoD-inventoryCardDiscardBtn {
-    padding: 6px 10px;
+.twoD-inventory-preview-discardBtn {
+    padding: 12px 10px;
     background-color:#c12e5a;
     border: #ffffffd6 1px solid;
     color: #FFF;
-    font-size: 14px;
+    font-size: 16px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin: 5px;
+    margin: 10px 0px 10px 0px;
+    width: 100%;
+}
+
+.twoD-inventory-content {
+    display: flex;
+}
+
+.twoD-inventory-preview {
+    height: calc(80vh - 143px);
+    min-width: 300px;
+    width: 600px;
+    overflow-y: auto;
+    background-color: #000000c2;
+    padding: 15px;
+}
+
+.twoD-inventory-preview-header {
+    font-size: 26px;
+    color: white;
+    padding-left: 15px;
+}
+
+.twoD-inventory-preview-img {
+    height: 350px;
+    width: 100%;
 }
