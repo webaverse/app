@@ -134,3 +134,14 @@
     user-select: none;
     margin: 5px;
 }
+
+.twoD-inventory-content {
+    display: flex;
+}
+
+.twoD-inventory-preview {
+    height: calc(80vh - 165px);
+    width: 600px;
+    overflow-y: auto;
+    background-color: #00000099;
+}
