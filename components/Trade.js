@@ -31,6 +31,7 @@ const Trade = props => {
   return `
     <div class="twoD-trade">
       <div class="twoD-trade-header">
+        <i class="fal fa-arrow-left twoD-trade-header-backBtn" onclick="twoD-trade-cancel"></i>
         <h1>Trade</h1>
       </div>
       <h1 class="twoD-trade-sectionHeader">Select Item:</h1>
