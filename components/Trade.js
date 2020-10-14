@@ -42,7 +42,7 @@ const Trade = props => {
                   id: value.id,
                   name: value.filename,
                   preview: value.preview,
-                  selected: selectedItem == value.id,
+                  selected: selectedItem === value.id,
               })
           }).join('')
         }
