@@ -41,11 +41,10 @@ export const state = {
     }
 };
 
-const emitChange = (changedKeys, cb) => {
+const emitChange = changedKeys => {
     window.dispatchEvent(new CustomEvent('stateChanged', { 
         detail: {
             changedKeys,
-            cb
         }
     }));
 };
@@ -58,11 +57,11 @@ export const getSpecificState = (keys) => {
      return returnState;
 }
 
-export const setState = (newState, cb) => {
+export const setState = newState => {
     for (const k in newState) {
        state[k] = newState[k];
     }
-    emitChange(Object.keys(newState), cb);
+    emitChange(Object.keys(newState));
 };
 
 export const getState = () => {
