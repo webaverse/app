@@ -155,3 +155,15 @@
   width: 20px;
   margin-right: 15px;
 }
+.twoD-trade-header-backBtn {
+  float: left;
+  margin: 34px;
+  font-size: 35px;
+  cursor: pointer;
+}
+.twoD-trade-header-backBtn:hover {
+  color: #ffae94;
+}
+.twoD-trade-header-backBtn:active {
+  color: #ffae94;
+}
