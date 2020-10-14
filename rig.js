@@ -3,7 +3,7 @@ import {GLTFLoader} from './GLTFLoader.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, WaitQueue} from './util.js';
-import {scene} from './app-object.js';
+import {renderer, scene} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 
@@ -358,7 +358,7 @@ class RigManager {
       rig.update();
     });
 
-    if (cameraManager.getTool() === 'firstperson') {
+    if (/^(?:camera|firstperson)$/.test(cameraManager.getTool()) || !!renderer.xr.getSession()) {
       rigManager.localRig.decapitate();
     } else {
       rigManager.localRig.undecapitate();

@@ -8,14 +8,14 @@ export const setBindings = (appContainer, onclickMap) => {
 			for (const el of els) {
 				const handlerName = el.getAttribute('onclick');
 				el.removeAttribute('onclick');
-				el.addEventListener('click', e => {
+				el.onclick = e => {
 					const id = el.getAttribute('id');
 					const name = el.getAttribute('name');
 					onclickMap[handlerName]({
 						id,
 						name
 					});
-				});
+				};
 			}
 		}
 		// file
@@ -38,7 +38,7 @@ export const setBindings = (appContainer, onclickMap) => {
 		// drag
 		const draggableEls = Array.from(appContainer.querySelectorAll('[draggable]'));
 		for (const el of draggableEls) {
-			el.addEventListener('dragstart', e => {
+			el.ondragstart = e => {
 				const dragid = el.getAttribute('dragid');
 				e.dataTransfer.setData('application/json', JSON.stringify({
 					dragid,
@@ -47,11 +47,11 @@ export const setBindings = (appContainer, onclickMap) => {
 					const appContainer = document.getElementById('appContainer');
 					appContainer.style.display = 'none';
 				});
-			});
-			el.addEventListener('dragend', e => {
+			};
+			el.ondragend = e => {
 				const appContainer = document.getElementById('appContainer');
 				appContainer.style.display = null;
-			});
+			};
 		}
 	}
 };
