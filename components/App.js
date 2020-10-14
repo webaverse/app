@@ -7,8 +7,11 @@ import {planet} from '../planet.js';
 import {state, getState, setState, getSpecificState} from '../state.js';
 import {setBindings} from './bindings.js';
 import {getContractSource} from '../blockchain.js';
+import DiffDOM from '../diffDOM.js';
+const diffDOM = new DiffDOM();
 
 let appState = state;
+const appContainerTmp = document.createElement('div');
 
 export const onclickBindings = {
   'threeD-menuNavTab-inventory': e => {
@@ -82,56 +85,17 @@ export const onclickBindings = {
     menu.trade.visible = true;
     menu.trade.toPeer = e.name;
     menu.trade.fromPeer = loginManager.getAddress();
-    setState({ menu }, () => {
-      const selectedItem = document.getElementById(`twoD-trade-inventory-card-${menu.trade.selectedItem}`);
-      const inventoryCards = document.getElementsByClassName('twoD-trade-inventory-card');
-      const selectedPeer = document.getElementById(`twoD-trade-peers-card-${menu.trade.toPeer}`);
-      const peerCards = document.getElementsByClassName('twoD-trade-peers-card');
-      for (let i = 0; i < peerCards.length; i++) {
-        peerCards[i].classList.remove('selected');
-      }
-      for (let i = 0; i < inventoryCards.length; i++) {
-        inventoryCards[i].classList.remove('selected');
-      }
-      selectedItem ? selectedItem.classList.add('selected') : null;
-      selectedPeer ? selectedPeer.classList.add('selected') : null;
-    });
+    setState({ menu });
   },
   'twoD-trade-inventory-card': e => {
     const { menu } = getState();
-    menu.trade.selectedItem = e.name;
-    setState({ menu }, () => {
-      const selectedItem = document.getElementById(`twoD-trade-inventory-card-${e.name}`);
-      const inventoryCards = document.getElementsByClassName('twoD-trade-inventory-card');
-      const selectedPeer = document.getElementById(`twoD-trade-peers-card-${menu.trade.toPeer}`);
-      const peerCards = document.getElementsByClassName('twoD-trade-peers-card');
-      for (let i = 0; i < peerCards.length; i++) {
-        peerCards[i].classList.remove('selected');
-      }
-      for (let i = 0; i < inventoryCards.length; i++) {
-        inventoryCards[i].classList.remove('selected');
-      }
-      selectedItem ? selectedItem.classList.add('selected') : null;
-      selectedPeer ? selectedPeer.classList.add('selected') : null;
-    });
+    menu.trade.selectedItem = parseInt(e.name, 10);
+    setState({ menu });
   },
   'twoD-trade-peers-card': e => {
     const { menu } = getState();
     menu.trade.toPeer = e.name;
-    setState({ menu }, () => {
-      const selectedItem = document.getElementById(`twoD-trade-inventory-card-${menu.trade.selectedItem}`);
-      const inventoryCards = document.getElementsByClassName('twoD-trade-inventory-card');
-      const selectedPeer = document.getElementById(`twoD-trade-peers-card-${e.name}`);
-      const peerCards = document.getElementsByClassName('twoD-trade-peers-card');
-      for (let i = 0; i < peerCards.length; i++) {
-        peerCards[i].classList.remove('selected');
-      }
-      for (let i = 0; i < inventoryCards.length; i++) {
-        inventoryCards[i].classList.remove('selected');
-      }
-      selectedItem ? selectedItem.classList.add('selected') : null;
-      selectedPeer ? selectedPeer.classList.add('selected') : null;
-    });
+    setState({ menu });
   },
   'twoD-trade-cancel': e => {
     const { menu } = getState();
@@ -340,7 +304,15 @@ export const updateProps = newProps => {
     appContainer.style.display = 'none';
   } else {
     appContainer.style.display = 'block';
-    appContainer.innerHTML = App(appState);
+    const newHtml = App(appState);
+    const child = appContainer.children[0];
+    if (child) {
+      appContainerTmp.innerHTML = newHtml.replace(/(>)[\s]+(<)/gm, '$1$2');
+      const diff = diffDOM.diff(child, appContainerTmp.children[0]);
+      diffDOM.apply(child, diff);
+    } else {
+      appContainer.innerHTML = newHtml;
+    }
     setBindings(appContainer, onclickBindings);
   }
 }

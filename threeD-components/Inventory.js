@@ -14,7 +14,7 @@ export const InventoryAvatar = props => {
   </div>`;
 };
 export const InventoryDetails = props => {
-  const {selectedId, selectedHash, selectedFileName} = props;
+  const {selectedId, selectedHash, selectedFileName, owned} = props;
   return `\
     <div class=details>
       ${selectedId !== null ? `\
@@ -26,7 +26,7 @@ export const InventoryDetails = props => {
         <div class=buttons>
           <a class=button id=inventory-spawn name=${selectedId}>Spawn</a>
           <a class=button id=inventory-wear name=${selectedId}>Wear</a>
-          <a class=button id=inventory-discard name=${selectedId}>Discard</a>
+          ${owned ? `<a class=button id=inventory-discard name=${selectedId}>Discard</a>` : ''}
         </div>
       ` : ''}
     </div>
@@ -208,6 +208,7 @@ export const Inventory = (props = {}) => {
         selectedId,
         selectedHash,
         selectedFileName,
+        owned: true,
       })}
     </div>
   `;

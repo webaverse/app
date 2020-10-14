@@ -1,6 +1,6 @@
 const InventoryCard = (props = {}) => {
   return `
-      <div class="twoD-trade-inventory-card" onclick="twoD-trade-inventory-card" name="${props.id}" id="twoD-trade-inventory-card-${props.id}">
+      <div class="twoD-trade-inventory-card ${props.selected ? 'selected' : ''}" onclick="twoD-trade-inventory-card" name="${props.id}" id="twoD-trade-inventory-card-${props.id}">
           <img class="twoD-trade-inventory-card-preview" src="${props.preview}"></img>
           <h4 class="twoD-trade-inventory-card-name">${props.name}</h4>
       </div>
@@ -9,7 +9,7 @@ const InventoryCard = (props = {}) => {
 
 const PeerCard = (props) => {
   return `
-    <div class="twoD-trade-peers-card" onclick="twoD-trade-peers-card" name="${props.peerAddress}" id="twoD-trade-peers-card-${props.peerAddress}">
+    <div class="twoD-trade-peers-card ${props.selected ? 'selected' : ''}" onclick="twoD-trade-peers-card" name="${props.peerAddress}" id="twoD-trade-peers-card-${props.peerAddress}">
       <div class="twoD-trade-peers-card-imgWrap">
         <img class="twoD-trade-peers-card-avatar" src="../assets/avatar.jpg">
       </div>
@@ -21,13 +21,13 @@ const PeerCard = (props) => {
   `;
 }
 
-const Trade = (props) => {
-  let inventoryItems = props.inventoryItems || [];
-  let peers = props.peers || [];
-  let toPeer = props.trade.toPeer || '';
-  let fromPeer = props.trade.fromPeer || '';
-  let selectedItem = props.trade.selectedItem || '';
-  let agreement = props.trade.agreement || false;
+const Trade = props => {
+  let inventoryItems = props.inventoryItems;
+  let peers = props.peers;
+  let toPeer = props.trade.toPeer;
+  let fromPeer = props.trade.fromPeer;
+  let selectedItem = props.trade.selectedItem;
+  let agreement = !!props.trade.agreement;
   return `
     <div class="twoD-trade">
       <div class="twoD-trade-header">
@@ -39,8 +39,9 @@ const Trade = (props) => {
           inventoryItems.map((value, index) => {
               return InventoryCard({
                   id: value.id,
-                  name: value.filename || '',
-                  preview: value.preview || ''
+                  name: value.filename,
+                  preview: value.preview,
+                  selected: selectedItem === value.id,
               })
           }).join('')
         }
@@ -50,7 +51,10 @@ const Trade = (props) => {
         ${
           peers.map((value, index) => {
             if (value.address) {
-              return PeerCard({peerAddress: value.address})
+              return PeerCard({
+                peerAddress: value.address,
+                selected: value.address === toPeer,
+              });
             }
             return;
           }).join('')

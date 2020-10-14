@@ -481,7 +481,7 @@ class Avatar {
 	  const Spine = _findSpine(Chest, Hips);
 	  const Left_shoulder = _findShoulder(tailBones, true);
 	  const Left_wrist = _findHand(Left_shoulder);
-    const Left_thumb2 = _findFinger(Left_wrist, /thumb3_end|thumb2|thumb_distal/i, true);
+    const Left_thumb2 = _findFinger(Left_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal/i, true);
     const Left_thumb1 = Left_thumb2.parent;
     const Left_thumb0 = Left_thumb1.parent;
     const Left_indexFinger3 = _findFinger(Left_wrist, /index(?:finger)?3|index_distal/i);
@@ -500,7 +500,7 @@ class Avatar {
 	  const Left_arm = Left_elbow.parent;
 	  const Right_shoulder = _findShoulder(tailBones, false);
 	  const Right_wrist = _findHand(Right_shoulder);
-    const Right_thumb2 = _findFinger(Right_wrist, /thumb3_end|thumb2|thumb_distal/i);
+    const Right_thumb2 = _findFinger(Right_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal/i);
     const Right_thumb1 = Right_thumb2.parent;
     const Right_thumb0 = Right_thumb1.parent;
     const Right_indexFinger3 = _findFinger(Right_wrist, /index(?:finger)?3|index_distal/i);

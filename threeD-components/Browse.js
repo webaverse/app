@@ -163,6 +163,7 @@ export const Browse = (props = {}) => {
         selectedId,
         selectedHash,
         selectedFileName,
+        owned: false,
       })}
     </div>
   `;
