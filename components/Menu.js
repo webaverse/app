@@ -28,12 +28,12 @@ const Menu = (props) => {
                     <h1>Worlds</h1>
                 </div>
             </div>
-            <div>
+            <div class="twoD-menu-content">
                 ${props.activeTab === 'inventory' ? Inventory(props) : ''}
                 ${props.activeTab === 'browse' ? Browse(props) : ''}
                 ${props.activeTab === 'social' ? Social(props) : ''}
                 ${props.activeTab === 'worlds' ? Worlds(props) : ''}
-            <div>
+            </div>
         </div>
         `;
     }
