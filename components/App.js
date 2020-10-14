@@ -114,13 +114,11 @@ export const onclickBindings = {
     const { menu } = getState();
     if (menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem) {
 
-      // TRADE IT ()
       const trade = {
         toPeer: menu.trade.toPeer,
         fromPeer: menu.trade.fromPeer,
         item: menu.trade.selectedItem
       };
-      // console.log(trade)
 
       const contractSource = await getContractSource('transferNft.cdc');
       const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
@@ -221,6 +219,16 @@ export const onclickBindings = {
     menu.trade.selectedItem = parseInt(e.name, 10);
     menu.trade.fromPeer = loginManager.getAddress();
     setState({ menu });
+  },
+  'twoD-inventory-card': e => {
+    const { menu } = getState();
+    menu.inventory.selectedId = parseInt(e.name, 10);
+    menu.inventory.items.forEach((item) => {
+      if (item.id === menu.inventory.selectedId) {
+        menu.inventory.selectedItem = item;
+      }
+    })
+    setState({ menu });
   }
 };
 
@@ -249,7 +257,8 @@ export const toggleMenus = props => {
         worlds: appState.menu.worlds,
         peers: appState.menu.social.peers,
         allItems: appState.menu.browse.items,
-        trade: appState.menu.trade
+        trade: appState.menu.trade,
+        inventory: appState.menu.inventory
       });
     case 'weaponWheel':
       return WeaponWheel(props);
