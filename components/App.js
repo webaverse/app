@@ -156,20 +156,7 @@ export const onclickBindings = {
   'twoD-trade-agreement': e => {
     const { menu } = getState();
     menu.trade.agreement = !menu.trade.agreement;
-    setState({ menu }, () => {
-      const selectedItem = document.getElementById(`twoD-trade-inventory-card-${menu.trade.selectedItem}`);
-      const inventoryCards = document.getElementsByClassName('twoD-trade-inventory-card');
-      const selectedPeer = document.getElementById(`twoD-trade-peers-card-${menu.trade.toPeer}`);
-      const peerCards = document.getElementsByClassName('twoD-trade-peers-card');
-      for (let i = 0; i < peerCards.length; i++) {
-        peerCards[i].classList.remove('selected');
-      }
-      for (let i = 0; i < inventoryCards.length; i++) {
-        inventoryCards[i].classList.remove('selected');
-      }
-      selectedItem ? selectedItem.classList.add('selected') : null;
-      selectedPeer ? selectedPeer.classList.add('selected') : null;
-    });
+    setState({ menu });
   },
   'inventory-spawn': async e => {
     const id = e.name;
