@@ -10,7 +10,6 @@
   background-color: #00a6ff;
   color: white;
   text-align: center;
-  border-radius: 20px 20px 0px 0px;
   padding-top: 1px;
   font-size: 20px;
   margin-bottom: 25px;
@@ -140,13 +139,15 @@
 
 .twoD-trade-actions {
   display: flex;
+  background-color: #000000b3;
+  padding: 23px;
 }
 .twoD-trade-info {
-  width: 50%
+  width: 50%;
 }
 .twoD-trade-info-detail {
   font-size: 20px;
-  color: #0066ff;
+  color: #00a6ff;
 }
 .twoD-trade-info-header {
   padding-left: 35px;
