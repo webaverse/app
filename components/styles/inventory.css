@@ -47,7 +47,7 @@
 }
 
 .twoD-inventory .twoD-inventoryList {
-    max-height: calc(80vh - 155px);
+    max-height: calc(80vh - 166px);
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
