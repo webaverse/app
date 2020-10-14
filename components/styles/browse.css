@@ -1,8 +1,5 @@
-
-
-
 .twoD-browse .twoD-browse-list {
-    max-height: calc(80vh - 155px);
+    max-height: calc(80vh - 70px);    
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -11,13 +8,12 @@
 }
 
 .twoD-browse .twoD-browse-list .twoD-browse-card {
-    /* height: 240px; */
-    height: 320px;
+    height: 330px;    
     width: 250px;
-    background-color: #e6e8ef;
+    background-color: black;
+    color: white;
     margin: 10px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
-    border-radius: 5px;
     border: 1px #eeeef5 solid;
     text-align: center;
     overflow: hidden;
@@ -26,8 +22,8 @@
 
 .twoD-browse .twoD-browse-list .twoD-browse-card .twoD-browse-card-name {
     margin-bottom: 9px;
-    margin-top: 5px;
-    font-size: 15px;
+    margin-top: 3px;
+    font-size: 18px;
 }
 
 .twoD-browse .twoD-browse-list .twoD-browse-card .twoD-browse-card-preview {
@@ -39,12 +35,24 @@
 
 }
 
+.twoD-browse .twoD-browse-list .twoD-browse-card .twoD-browse-card-actions .twoD-browse-card-spawnBtn {
+    padding: 6px 10px;
+    background-color: #ff5f2d;
+    border: #ffffffd6 1px solid;    
+    color: #FFF;
+    font-size: 14px;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    margin: 5px;
+}
+
 .twoD-browse .twoD-browse-list .twoD-browse-card .twoD-browse-card-actions .twoD-browse-card-wearBtn {
     padding: 6px 10px;
-    background-color: #2ec19c;
-    border: 0;
+    background-color:#00a6ff;
+    border: #ffffffd6 1px solid;
     color: #FFF;
-    border-radius: 8px;
     font-size: 14px;
     white-space: nowrap;
     text-decoration: none;
@@ -56,9 +64,8 @@
 .twoD-browse .twoD-browse-list .twoD-browse-card .twoD-browse-card-actions .twoD-browse-card-inspectBtn {
     padding: 6px 10px;
     background-color: #a049e8;
-    border: 0;
+    border: #ffffffd6 1px solid;
     color: #FFF;
-    border-radius: 8px;
     font-size: 14px;
     white-space: nowrap;
     text-decoration: none;
@@ -70,9 +77,8 @@
 .twoD-browse .twoD-browse-list .twoD-browse-card .twoD-browse-card-actions .twoD-browse-card-discardBtn {
     padding: 6px 10px;
     background-color:#c12e5a;
-    border: 0;
+    border: #ffffffd6 1px solid;
     color: #FFF;
-    border-radius: 8px;
     font-size: 14px;
     white-space: nowrap;
     text-decoration: none;

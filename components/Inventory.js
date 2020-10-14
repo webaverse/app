@@ -4,7 +4,7 @@ const InventoryCard = (props = {}) => {
             <img class="twoD-inventoryCardPreview" src="${props.preview}"></img>
             <h4 class="twoD-inventoryCardName">${props.name}</h4>
             <div class="twoD-inventoryCardActions">
-                <button class="twoD-inventoryCardWearBtn" onclick=inventory-spawn name="${props.id}">
+                <button class="twoD-inventoryCardSpawnBtn" onclick=inventory-spawn name="${props.id}">
                     <i class="fal fa-magic" style="margin-right: 5px;"></i>
                     Spawn
                 </button>
@@ -33,8 +33,8 @@ const Inventory = (props = {}) => {
                 <button class="twoD-inventoryUploadBtn">
                     <i class="fal fa-arrow-alt-from-top" style="margin-right: 5px;"></i>
                     Upload
-                    <input id="twoD-inventoryUploadBtn" type="file" onchange="inventory-upload">
                 </button>
+                <input id="twoD-inventoryUploadBtn" type="file" onchange="inventory-upload">
             </div>
             <div class="twoD-inventoryList">
                 ${

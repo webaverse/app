@@ -1,11 +1,9 @@
 .twoD-menu {
-    background-color: white;
     height: 80vh;
     width: 80vw;
     margin: 0 auto;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    border-radius: 20px;
     margin-top: 10vh;
+    background-color: #00000054;
 }
 .twoD-menuNav {
     display: flex;
@@ -13,7 +11,7 @@
 .twoD-menuNavTab {
     flex-grow: 1;
     text-align: center;
-    border: 1px white solid;
+    border: 4px solid #00a6ff;
     color: white;
     cursor: pointer;
     background-color: #00a6ff;
@@ -21,13 +19,4 @@
 
 .twoD-menuNavTab.selected {
     background-color:#ff5f2d;
-    border-bottom: 5px solid#4a4949;
-}
-
-.twoD-menuNavTab-inventory {
-    border-radius: 20px 0px 0px 0px;
-}
-
-.twoD-menuNavTab-worlds {
-    border-radius: 0px 20px 0px 0px;
 }
