@@ -326,7 +326,7 @@ export const App = (props) => {
   `;
 }
 
-export const updateProps = (newProps, cb) => {
+export const updateProps = newProps => {
   const appContainer = document.getElementById('appContainer');
   for (let k in newProps) {
     appState[k] = newProps[k];
@@ -343,18 +343,14 @@ export const updateProps = (newProps, cb) => {
     appContainer.innerHTML = App(appState);
     setBindings(appContainer, onclickBindings);
   }
-  if (cb) {
-    cb();
-  }
 }
 
 window.addEventListener('stateChanged', (e) => {
   const changedState = getSpecificState(e.detail.changedKeys);
-  const cb = e.detail.cb ? e.detail.cb : null;
   for (let k in changedState) {
     appState[k] = changedState[k];
   }
-  updateProps(changedState, cb);
+  updateProps(changedState);
 })
 
 window.addEventListener('load', () => {
