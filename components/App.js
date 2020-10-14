@@ -218,7 +218,7 @@ export const onclickBindings = {
   'twoD-inventoryCardTradeBtn': e => {
     const { menu } = getState();
     menu.trade.visible = true;
-    menu.trade.selectedItem = parseInt(e.name);
+    menu.trade.selectedItem = parseInt(e.name, 10);
     menu.trade.fromPeer = loginManager.getAddress();
     setState({ menu });
   }
