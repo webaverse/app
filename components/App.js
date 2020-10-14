@@ -119,8 +119,8 @@ export const onclickBindings = {
         toPeer: menu.trade.toPeer,
         fromPeer: menu.trade.fromPeer,
         item: menu.trade.selectedItem
-      }
-      console.log(trade)
+      };
+      // console.log(trade)
 
       const contractSource = await getContractSource('transferNft.cdc');
       const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
