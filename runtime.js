@@ -309,13 +309,13 @@ const _loadWebBundle = async file => {
   const localImportMap = _clone(importMap);
   localImportMap.app = (() => {
     const s = `\
-      import {renderer as _renderer, scene, camera, appManager} from ${JSON.stringify(importMap.app)};
+      import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
       const renderer = Object.create(_renderer);
       renderer.setAnimationLoop = function(fn) {
         appManager.setAnimationLoop(${appId}, fn);
       };
       const app = appManager.getApp(${appId});
-      export {renderer, scene, camera, app};
+      export {renderer, scene, camera, orbitControls, app};
     `;
     const b = new Blob([s], {
       type: 'application/javascript',
