@@ -32,22 +32,24 @@ Array.from(document.querySelectorAll('.avatar-grid > .avatar.upload')).forEach(a
   };
 });
 
+const _nextPhase = async () => {
+  ftu.classList.remove('phase-' + ftuPhase);
+  ftuPhase++;
+  if (ftuPhase <= 3) {
+    ftu.classList.add('phase-' + ftuPhase);
+  } else {
+    await loginManager.setFtu(ftuUsername.value, '');
+  }
+};
 Array.from(document.querySelectorAll('.next-phase-button')).forEach(nextPhaseButton => {
-  nextPhaseButton.onclick = async () => {
-    ftu.classList.remove('phase-' + ftuPhase);
-    ftuPhase++;
-    if (ftuPhase <= 3) {
-      ftu.classList.add('phase-' + ftuPhase);
-    } else {
-      await loginManager.setFtu(ftuUsername.value, '');
-    }
-  };
+  nextPhaseButton.onclick = _nextPhase;
 });
 
+const _prevPhase = async () => {
+  ftu.classList.remove('phase-' + ftuPhase);
+  ftuPhase--;
+  ftu.classList.add('phase-' + ftuPhase);
+};
 Array.from(document.querySelectorAll('.prev-phase-button')).forEach(prevPhaseButton => {
-  prevPhaseButton.onclick = async () => {
-    ftu.classList.remove('phase-' + ftuPhase);
-    ftuPhase--;
-    ftu.classList.add('phase-' + ftuPhase);
-  };
+  prevPhaseButton.onclick = _prevPhase;
 });
