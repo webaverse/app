@@ -1,5 +1,5 @@
 .twoD-browse .twoD-browse-list {
-    max-height: calc(80vh - 70px);    
+    max-height: calc(90vh - 70px);   
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
