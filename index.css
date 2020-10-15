@@ -1992,10 +1992,12 @@ body.dragging-package .footer {
   flex-wrap: wrap;
 }
 .ftu .ftu-phase .avatar-grid .avatar {
+  position: relative;
   display: flex;
   margin-right: 5px;
   margin-bottom: 5px;
   flex-direction: column;
+  overflow: hidden;
 }
 .ftu .ftu-phase .avatar-grid .avatar img {
   width: 80px;
