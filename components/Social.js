@@ -19,7 +19,7 @@ const PeerCard = (props) => {
 const Social = (props) => {
   if (props.peers && props.peers.length > 0) {
     return `
-      <div class="twoD-social">
+      <div class="twoD-social-peerList">
         ${
           props.peers.map((value, index) => {
             if (value.address) {
