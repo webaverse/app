@@ -34,44 +34,46 @@ const Trade = props => {
         <i class="fal fa-arrow-left twoD-trade-header-backBtn" onclick="twoD-trade-cancel"></i>
         <h1>Trade</h1>
       </div>
-      <h1 class="twoD-trade-sectionHeader">Select Item:</h1>
-      <div class="twoD-trade-inventory">
-        ${
-          inventoryItems.map((value, index) => {
-              return InventoryCard({
-                  id: value.id,
-                  name: value.filename,
-                  preview: value.preview,
-                  selected: selectedItem === value.id,
-              })
-          }).join('')
-        }
-      </div>
-      <h1 class="twoD-trade-sectionHeader">Select Peer:</h1>
-      <div class="twoD-trade-peers">
-        ${
-          peers.map((value, index) => {
-            if (value.address) {
-              return PeerCard({
-                peerAddress: value.address,
-                selected: value.address === toPeer,
-              });
-            }
-            return;
-          }).join('')
-        }
-      </div>
-      <div class="twoD-trade-actions">
-        <div class="twoD-trade-info">
-          <h1 class="twoD-trade-info-header">Selected Peer: <p class="twoD-trade-info-detail">${toPeer}</p></h1>
-          <h1 class="twoD-trade-info-header">Item for Trade: <p class="twoD-trade-info-detail">${selectedItem}</p></h1>
+      <div class="twoD-trade-content">
+        <h1 class="twoD-trade-sectionHeader">Select Item:</h1>
+        <div class="twoD-trade-inventory">
+          ${
+            inventoryItems.map((value, index) => {
+                return InventoryCard({
+                    id: value.id,
+                    name: value.filename,
+                    preview: value.preview,
+                    selected: selectedItem === value.id,
+                })
+            }).join('')
+          }
         </div>
-        <div> 
-          <input style="cursor: pointer;" type="checkbox" id="twoD-trade-agreement" name="twoD-trade-agreement" ${agreement ? 'checked' : ''} onclick="twoD-trade-agreement">
-          <label style="font-size: 20px; cursor: pointer;" for="twoD-trade-agreement"> I agree to trade my token.</label><br>
-          <br/>
-          <button class="twoD-trade-cancel" onclick="twoD-trade-cancel">Cancel</button>
-          <button class="twoD-trade-accept ${!agreement || !toPeer || !fromPeer || !selectedItem ? 'disabled' : ''}" onclick="twoD-trade-accept">Accept</button>
+        <h1 class="twoD-trade-sectionHeader">Select Peer:</h1>
+        <div class="twoD-trade-peers">
+          ${
+            peers.map((value, index) => {
+              if (value.address) {
+                return PeerCard({
+                  peerAddress: value.address,
+                  selected: value.address === toPeer,
+                });
+              }
+              return;
+            }).join('')
+          }
+        </div>
+        <div class="twoD-trade-actions">
+          <div class="twoD-trade-info">
+            <h1 class="twoD-trade-info-header">Selected Peer: <p class="twoD-trade-info-detail">${toPeer}</p></h1>
+            <h1 class="twoD-trade-info-header">Item for Trade: <p class="twoD-trade-info-detail">${selectedItem}</p></h1>
+          </div>
+          <div> 
+            <input style="cursor: pointer;" type="checkbox" id="twoD-trade-agreement" name="twoD-trade-agreement" ${agreement ? 'checked' : ''} onclick="twoD-trade-agreement">
+            <label style="font-size: 20px; cursor: pointer;" for="twoD-trade-agreement"> I agree to trade my token.</label><br>
+            <br/>
+            <button class="twoD-trade-cancel" onclick="twoD-trade-cancel">Cancel</button>
+            <button class="twoD-trade-accept ${!agreement || !toPeer || !fromPeer || !selectedItem ? 'disabled' : ''}" onclick="twoD-trade-accept">Accept</button>
+          </div>
         </div>
       </div>
     </div>
