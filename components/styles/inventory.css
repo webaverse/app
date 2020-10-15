@@ -26,7 +26,6 @@
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    border: 1px white solid;
 }
 
 .twoD-inventory .twoD-inventoryHeader input {
@@ -46,12 +45,12 @@
 }
 
 .twoD-inventory .twoD-inventoryList {
-    max-height: calc(80vh - 142px);
+    max-height: calc(90vh - 140px);
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: flex-start;
-    overflow-y: auto;
+    overflow-y: scroll;
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard {
@@ -61,9 +60,7 @@
     color: white;
     margin: 10px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
-    border: 1px #eeeef5 solid;
     text-align: center;
-    overflow: hidden;
     cursor: pointer;
 }
 
@@ -87,81 +84,103 @@
 }
 
 .twoD-inventory-preview-spawnBtn {
-    padding: 12px 10px;
+    padding: 10px 10px;
     background-color: #ff5f2d;
-    border: #ffffffd6 1px solid;    
     color: #FFF;
     font-size: 16px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin: 10px 0px 10px 0px;
-    width: 100%;
+    margin: 8px 0px 8px 0px;
+    width: 82%;
 }
 
 .twoD-inventory-preview-wearBtn {
-    padding: 12px 10px;
+    padding: 10px 10px;
     background-color:#00a6ff;
-    border: #ffffffd6 1px solid;
     color: #FFF;
     font-size: 16px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin: 10px 0px 10px 0px;
-    width: 100%;
+    margin: 8px 0px 8px 0px;
+    width: 82%;
 }
 
 .twoD-inventory-preview-tradeBtn {
-    padding: 12px 10px;
+    padding: 10px 10px;
     background-color: #a049e8;
-    border: #ffffffd6 1px solid;
     color: #FFF;
     font-size: 16px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin: 10px 0px 10px 0px;
-    width: 100%;
+    margin: 8px 0px 8px 0px;
+    width: 82%;
 }
 
 .twoD-inventory-preview-discardBtn {
-    padding: 12px 10px;
+    padding: 10px 10px;
     background-color:#c12e5a;
-    border: #ffffffd6 1px solid;
     color: #FFF;
     font-size: 16px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin: 10px 0px 10px 0px;
-    width: 100%;
+    margin: 8px 0px 8px 0px;
+    width: 82%;
 }
 
 .twoD-inventory-content {
     display: flex;
+    height: 82vh;
 }
 
 .twoD-inventory-preview {
-    height: calc(80vh - 143px);
+    height: calc(90vh - 140px);
     min-width: 300px;
     width: 600px;
-    overflow-y: auto;
+    overflow-y: scroll;
     background-color: #000000c2;
     padding: 15px;
+}
+
+.twoD-inventory-preview-actions {
+    text-align: center;
 }
 
 .twoD-inventory-preview-header {
     font-size: 26px;
     color: white;
-    padding-left: 15px;
+    padding-left: 2px;
+    margin: 10px 0px 8px 0px;
 }
 
 .twoD-inventory-preview-img {
     height: 350px;
     width: 100%;
+}
+
+.twoD-inventory-preview-logo {
+    color: white;
+    font-size: 40px;
+    position: absolute;
+    bottom: 45px;
+    right: 42px;
+}
+
+@media only screen and (max-height: 1000px) {
+    .twoD-inventory .twoD-inventory-preview-img {
+        height: 300px;
+    }
+}
+
+@media only screen and (max-height: 750px) {
+    .twoD-inventory .twoD-inventory-preview-img {
+        height: 275px;
+    }
 }
