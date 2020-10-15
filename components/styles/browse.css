@@ -5,6 +5,7 @@
     align-items: flex-start;
     overflow-y: auto;
     height: 85vh;
+    flex-grow: 1;
 }
 
 .twoD-browse .twoD-browse-list .twoD-browse-card {
@@ -73,7 +74,7 @@
 .twoD-browse-preview {
     height: 85vh;
     min-width: 400px;
-    width: 600px;
+    max-width: 400px;
     overflow-y: auto;
     background-color: #000000c2;
     padding: 15px;

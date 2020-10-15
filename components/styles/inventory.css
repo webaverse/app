@@ -52,6 +52,7 @@
     justify-content: flex-start;
     align-items: flex-start;
     overflow-y: auto;
+    flex-grow: 1;
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard {
@@ -148,7 +149,7 @@
 .twoD-inventory-preview {
     height: calc(90vh - 135px);
     min-width: 400px;
-    width: 600px;
+    max-width: 400px;
     overflow-y: auto;
     background-color: #000000c2;
     padding: 15px;
