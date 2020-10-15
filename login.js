@@ -57,12 +57,14 @@ async function pullUserObject() {
   const name = response.encodedData.value[0].value ? response.encodedData.value[0].value.value : 'Anonymous';
   const avatarHash = response.encodedData.value[1].value && response.encodedData.value[1].value.value;
   const avatarFileName = response.encodedData.value[2].value && response.encodedData.value[2].value.value;
+  const ftu = !!(response.encodedData.value[3].value && response.encodedData.value[3].value.value);
   userObject = {
     name,
     avatar: {
       hash: avatarHash,
       filename: avatarFileName,
     },
+    ftu,
   };
 }
 /* async function pushUserObject() {
@@ -415,6 +417,36 @@ class LoginManager extends EventTarget {
     } else {
       throw new Error('not logged in');
     }
+  }
+
+  getFtu() {
+    return !!(userObject && userObject.ftu);
+  }
+
+  async setFtu(name, avatar) {
+    const contractSource = await getContractSource('setUserDataMulti.cdc');
+
+    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+      method: 'POST',
+      body: JSON.stringify({
+        address: loginToken.addr,
+        mnemonic: loginToken.mnemonic,
+
+        limit: 100,
+        transaction: contractSource
+          .replace(/ARG0/g, JSON.stringify(['name', 'avatar', 'ftu']))
+          .replace(/ARG1/g, JSON.stringify([name, avatar, '1'])),
+        wait: true,
+      }),
+    });
+    const response2 = await res.json();
+
+    this.dispatchEvent(new MessageEvent('usernamechange', {
+      data: name,
+    }));
+    this.dispatchEvent(new MessageEvent('avatarchange', {
+      data: avatar,
+    }));
   }
 
   async getBalance() {
