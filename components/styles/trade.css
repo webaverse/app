@@ -1,7 +1,10 @@
 .twoD-trade {
-  overflow: auto;
-  max-height: 100%;
   color: white;
+}
+
+.twoD-trade-content {
+  overflow-y: scroll;
+  max-height: calc(90vh - 126px);
 }
 
 .twoD-trade-header {
@@ -20,12 +23,12 @@
 }
 
 .twoD-trade-inventory {
-  height: 240px; 
+  height: 305px;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
-  overflow-y: auto;
+  overflow-y: scroll;
   margin: 30px;
   border: 1px #d2c1c1 solid;
 }
@@ -59,12 +62,12 @@
 }
 
 .twoD-trade-peers {
-  height: 240px; 
+  height: 305px;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
-  overflow-y: auto;
+  overflow-y: scroll;
   margin: 30px;
   border: 1px #d2c1c1 solid;
 }
