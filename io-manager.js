@@ -344,17 +344,21 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 90: { // Z
-      document.querySelector('.weapon[weapon="build"]').click();
-      weaponsManager.buildMode = 'wall';
+      if (document.pointerLockElement) {
+        document.querySelector('.weapon[weapon="build"]').click();
+        weaponsManager.buildMode = 'wall';
+      }
       break;
     }
     case 88: { // X
-      document.querySelector('.weapon[weapon="build"]').click();
-      weaponsManager.buildMode = 'floor';
+      if (document.pointerLockElement) {
+        document.querySelector('.weapon[weapon="build"]').click();
+        weaponsManager.buildMode = 'floor';
+      }
       break;
     }
     case 67: { // C
-      if (!ioManager.keys.ctrl && document.pointerLockElement) {
+      if (document.pointerLockElement) {
         document.querySelector('.weapon[weapon="build"]').click();
         weaponsManager.buildMode = 'stair';
       }
