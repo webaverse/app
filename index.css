@@ -1289,10 +1289,10 @@ input[type=file].hidden {
   overflow: auto;
 }
 
-/* textarea {
+textarea {
   width: 800px;
   height: 200px;
-} */
+}
 
 /* .main .sidebar {
   display: flex;
