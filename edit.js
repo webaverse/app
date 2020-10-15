@@ -33,6 +33,7 @@ import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
 import {App} from './components/App.js';
+import {tryTutorial} from './tutorial.js';
 import {getState, setState} from './state.js';
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
@@ -885,6 +886,7 @@ const _ensureLoadMesh = p => {
 
 const _initializeLogin = async () => {
   await tryLogin();
+  await tryTutorial();
 
   const _initializeUserUi = async () => {
     await geometryManager.waitForLoad();
