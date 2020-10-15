@@ -32,9 +32,9 @@ const Inventory = (props = {}) => {
                 }
                 </div>
                 <div class="twoD-inventory-preview">
-                    <img class="twoD-inventory-preview-img" src="${props.inventory?.selectedItem?.preview}"></img>
-                    <h1 class="twoD-inventory-preview-header">${props.inventory?.selectedItem?.filename}</h1>
-                    <div class="twoD-inventory-preview-actions">
+                    <img class="twoD-inventory-preview-img" src="${props.inventory?.selectedItem?.preview || '../assets/avatar.jpg'}"></img>
+                    <h1 class="twoD-inventory-preview-header">${props.inventory?.selectedItem?.filename || 'No Items in Inventory'}</h1>
+                    <div class="twoD-inventory-preview-actions ${!props.inventory?.selectedItem ? 'hidden' : ''}">
                         <button class="twoD-inventory-preview-spawnBtn" onclick=inventory-spawn name="${props.inventory?.selectedItem?.id}">
                             <i class="fal fa-magic" style="margin-right: 5px;"></i>
                             Spawn
