@@ -13,6 +13,12 @@ export async function tryTutorial() {
   ftuUsername.select();
 }
 
+ftuUsername.addEventListener('keydown', e => {
+  if (e.which === 13) {
+    _nextPhase();
+  }
+});
+
 Array.from(document.querySelectorAll('.avatar-grid > .avatar.model')).forEach(avatarButton => {
   avatarButton.onclick = () => {
     console.log('click avatar');
