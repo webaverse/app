@@ -1,9 +1,13 @@
 .twoD-social {
-  max-height: calc(80vh - 70px);
+  height: 85vh;
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.twoD-social-peerList {
+  height: 85vh;
   overflow-y: auto;
 }
 
@@ -95,12 +99,14 @@
 }
 
 .twoD-social-noPeers {
-  text-align: center; 
+  text-align: center;
   width: 100%;
   color: white;
+  background-color: #000000c2;
+  padding: 120px 0px 120px 0px;
 }
 
 .twoD-social-noPeers-header {
-  margin-top: 15vh; 
-  font-size: 50px;
+    font-size: 50px;
+    margin: 0px 0px 20px 0px;
 }
