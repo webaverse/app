@@ -1971,6 +1971,12 @@ body.dragging-package .footer {
 .ftu .ftu-phase .buttons {
   position: absolute;
   display: flex;
+}
+.ftu .ftu-phase .buttons.top {
+  top: 100px;
+  left: 50px;
+}
+.ftu .ftu-phase .buttons.bottom {
   bottom: 50px;
   right: 50px;
 }
@@ -1986,10 +1992,31 @@ body.dragging-package .footer {
   flex-wrap: wrap;
 }
 .ftu .ftu-phase .avatar-grid .avatar {
+  display: flex;
   margin-right: 5px;
   margin-bottom: 5px;
+  flex-direction: column;
 }
 .ftu .ftu-phase .avatar-grid .avatar img {
   width: 80px;
   height: 80px;
+}
+.ftu .ftu-phase .avatar-grid .avatar i {
+  display: flex;
+  width: 80px;
+  height: 60px;
+  font-size: 50px;
+  background-color: #111;
+  color: #FFF;
+  justify-content: center;
+  align-items: center;
+}
+.ftu .ftu-phase .avatar-grid .avatar .text {
+  display: flex;
+  background-color: #111;
+  color: #FFF;
+  font-size: 16px;
+  line-height: 20px;
+  justify-content: center;
+  align-items: center;
 }
