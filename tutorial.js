@@ -9,6 +9,8 @@ export async function tryTutorial() {
   const ftuDone = loginManager.getFtu() && !parseQuery(location.search)['ftu'];
   ftuPhase = ftuDone ? 4 : 1;
   ftu.classList.add('phase-' + ftuPhase);
+  ftuUsername.focus();
+  ftuUsername.select();
 }
 
 Array.from(document.querySelectorAll('.avatar-grid > .avatar.model')).forEach(avatarButton => {
