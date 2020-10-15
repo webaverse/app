@@ -24,9 +24,9 @@ const Browse = (props = {}) => {
           }
         </div>
         <div class="twoD-browse-preview">
-          <img class="twoD-browse-preview-img" src="${props.browse?.selectedItem?.preview}"></img>
-          <h1 class="twoD-browse-preview-header">${props.browse?.selectedItem?.filename}</h1>
-          <div class="twoD-browse-preview-actions">
+          <img class="twoD-browse-preview-img" src="${props.browse?.selectedItem?.preview || '../assets/avatar.jpg'}"></img>
+          <h1 class="twoD-browse-preview-header">${props.browse?.selectedItem?.filename || 'No Items in World'}</h1>
+          <div class="twoD-browse-preview-actions ${!props.inventory?.selectedItem ? 'hidden' : ''}">
             <button class="twoD-browse-preview-spawnBtn" onclick=browse-spawn name="${props.browse?.selectedItem?.id}">
               <i class="fal fa-magic" style="margin-right: 5px;"></i>
               Spawn

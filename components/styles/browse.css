@@ -83,6 +83,10 @@
     text-align: center;
 }
 
+.twoD-browse-preview-actions.hidden {
+    display: none;
+}
+
 .twoD-browse-preview-header {
     font-size: 26px;
     color: white;
