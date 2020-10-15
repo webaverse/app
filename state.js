@@ -18,6 +18,8 @@ export const state = {
         browse: {
             page: 0,
             items: [],
+            selectedId: null, // Int
+            selectedItem: null // {}
         },
         social: {
             peers: []

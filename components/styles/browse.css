@@ -1,5 +1,5 @@
 .twoD-browse .twoD-browse-list {
-    max-height: calc(90vh - 70px);   
+    max-height: calc(85vh - 3px);  
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -8,16 +8,18 @@
 }
 
 .twoD-browse .twoD-browse-list .twoD-browse-card {
-    height: 330px;    
-    width: 250px;
+    height: 200px;    
+    width: 200px;
     background-color: black;
     color: white;
     margin: 10px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
-    border: 1px #eeeef5 solid;
     text-align: center;
-    overflow: hidden;
     cursor: pointer;
+}
+
+.twoD-browse .twoD-browse-list .twoD-browse-card.selected {
+    border: 2px #4faeff solid;
 }
 
 .twoD-browse .twoD-browse-list .twoD-browse-card .twoD-browse-card-name {
@@ -27,7 +29,7 @@
 }
 
 .twoD-browse .twoD-browse-list .twoD-browse-card .twoD-browse-card-preview {
-    height: 200px;
+    height: 160px;
     width: 100%;
 }
 
@@ -35,54 +37,104 @@
 
 }
 
-.twoD-browse .twoD-browse-list .twoD-browse-card .twoD-browse-card-actions .twoD-browse-card-spawnBtn {
-    padding: 6px 10px;
+.twoD-browse-preview-spawnBtn {
+    padding: 10px 10px;
     background-color: #ff5f2d;
-    border: #ffffffd6 1px solid;    
     color: #FFF;
-    font-size: 14px;
+    font-size: 16px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin: 5px;
+    margin: 8px 0px 8px 0px;
+    width: 82%;
 }
 
-.twoD-browse .twoD-browse-list .twoD-browse-card .twoD-browse-card-actions .twoD-browse-card-wearBtn {
-    padding: 6px 10px;
+.twoD-browse-preview-wearBtn {
+    padding: 10px 10px;
     background-color:#00a6ff;
-    border: #ffffffd6 1px solid;
     color: #FFF;
-    font-size: 14px;
+    font-size: 16px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin: 5px;
+    margin: 8px 0px 8px 0px;
+    width: 82%;
 }
 
-.twoD-browse .twoD-browse-list .twoD-browse-card .twoD-browse-card-actions .twoD-browse-card-inspectBtn {
-    padding: 6px 10px;
+.twoD-browse-preview-tradeBtn {
+    padding: 10px 10px;
     background-color: #a049e8;
-    border: #ffffffd6 1px solid;
     color: #FFF;
-    font-size: 14px;
+    font-size: 16px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin: 5px;
+    margin: 8px 0px 8px 0px;
+    width: 82%;
 }
 
-.twoD-browse .twoD-browse-list .twoD-browse-card .twoD-browse-card-actions .twoD-browse-card-discardBtn {
-    padding: 6px 10px;
+.twoD-browse-preview-discardBtn {
+    padding: 10px 10px;
     background-color:#c12e5a;
-    border: #ffffffd6 1px solid;
     color: #FFF;
-    font-size: 14px;
+    font-size: 16px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
     user-select: none;
-    margin: 5px;
+    margin: 8px 0px 8px 0px;
+    width: 82%;
+}
+
+.twoD-browse-content {
+    display: flex;
+    height: 85vh;
+}
+
+.twoD-browse-preview {
+    height: calc(85vh - 3px);
+    min-width: 400px;
+    width: 600px;
+    overflow-y: auto;
+    background-color: #000000c2;
+    padding: 15px;
+}
+
+.twoD-browse-preview-actions {
+    text-align: center;
+}
+
+.twoD-browse-preview-header {
+    font-size: 26px;
+    color: white;
+    padding-left: 2px;
+    margin: 10px 0px 8px 0px;
+}
+
+.twoD-browse-preview-img {
+    height: 350px;
+    width: 100%;
+}
+
+.twoD-browse-preview-logo {
+    color: white;
+    font-size: 40px;
+    position: absolute;
+    bottom: 45px;
+    right: 42px;
+}
+
+@media only screen and (max-height: 1000px) {
+    .twoD-browse .twoD-browse-preview-img {
+        height: 300px;
+    }
+}
+
+@media only screen and (max-height: 750px) {
+    .twoD-browse .twoD-browse-preview-img {
+        height: 275px;
+    }
 }
