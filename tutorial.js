@@ -22,6 +22,8 @@ ftuUsername.addEventListener('keydown', e => {
 Array.from(document.querySelectorAll('.avatar-grid > .avatar.model')).forEach(avatarButton => {
   avatarButton.onclick = () => {
     console.log('click avatar');
+    const avatar = avatarButton.getAttribute('avatar');
+    loginManager.setAvatar(avatar);
   };
 });
 Array.from(document.querySelectorAll('.avatar-grid > .avatar.upload')).forEach(avatarButton => {
