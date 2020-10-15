@@ -1,5 +1,5 @@
 import {loginManager} from './login.js';
-import {parseQuery} from './util.js';
+import {parseQuery, bindUploadFileButton, getExt} from './util.js';
 
 const ftu = document.getElementById('ftu');
 const ftuUsername = document.getElementById('ftu-username');
@@ -26,10 +26,14 @@ Array.from(document.querySelectorAll('.avatar-grid > .avatar.model')).forEach(av
     loginManager.setAvatar(avatar);
   };
 });
-Array.from(document.querySelectorAll('.avatar-grid > .avatar.upload')).forEach(avatarButton => {
-  avatarButton.onclick = () => {
-    console.log('click upload');
-  };
+
+bindUploadFileButton(document.getElementById('ftu-upload-avatar-input'), async file => {
+  if (getExt(file.name) === 'vrm') {
+    const {hash, id} = await loginManager.uploadFile(file);
+    console.log('got file upload', {hash, id});
+  } else {
+    console.warn('uploaded avatar is not .vrm');
+  }
 });
 
 const _nextPhase = async () => {
