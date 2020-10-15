@@ -995,6 +995,33 @@ const _initializeLogin = async () => {
 };
 _initializeLogin();
 
+const wheelCanvas = (() => {
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = `
+    position: absolute;
+    top: 100px;
+    left: 100px;
+    width: auto !important;
+    height: auto !important;
+  `;
+  canvas.width = size;
+  canvas.height = size;
+
+  const ctx = canvas.getContext('2d');
+  const numSlices = 6;
+  for (let i = 0; i < numSlices; i++) {
+    ctx.beginPath();
+    ctx.arc(size/2, size/2, size/2, i*Math.PI*2/numSlices + Math.PI*0.02, (i+1)*Math.PI*2/numSlices - Math.PI*0.02, false);
+    ctx.arc(size/2, size/2, size/4, (i+1)*Math.PI*2/numSlices - Math.PI*0.02, i*Math.PI*2/numSlices + Math.PI*0.02, true);
+    // ctx.lineTo(size/2, size/2);
+    ctx.fill();
+  }
+
+  return canvas;
+})();
+document.body.appendChild(wheelCanvas);
+
 const _initializeXr = () => {
   let currentSession = null;
   function onSessionStarted(session) {
