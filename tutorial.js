@@ -2,21 +2,21 @@ import storage from './storage.js';
 
 const ftu = document.getElementById('ftu');
 // const ftuPhases = Array.from(document.querySelectorAll('.ftu-phase'));
-let ftuPhase = 1;
+let ftuPhase;
 export async function tryTutorial() {
-  ftuPhase = await storage.get('ftu');
-  if (typeof ftuPhase !== 'number') {
-  	ftuPhase = 1;
-  }
+  const ftuDone = await storage.get('ftuDone');
+  ftuPhase = ftuDone ? 4 : 1;
   ftu.classList.add('phase-' + ftuPhase);
 }
 
 Array.from(document.querySelectorAll('.next-phase-button')).forEach(nextPhaseButton => {
-  nextPhaseButton.onclick = () => {
+  nextPhaseButton.onclick = async () => {
     ftu.classList.remove('phase-' + ftuPhase);
     ftuPhase++;
     if (ftuPhase <= 3) {
       ftu.classList.add('phase-' + ftuPhase);
+    } else {
+      await storage.set('ftuDone', true);
     }
   };
 });
