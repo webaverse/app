@@ -75,7 +75,9 @@ inventory.scrollBrowse = async delta => {
   menu.browse.page += delta;
   menu.browse.page = Math.max(menu.browse.page, 0);
   const items = await inventory.getFiles(menu.browse.page * itemsPerBrowsePage, (menu.browse.page + 1) * itemsPerBrowsePage);
-
+  if(!menu.browse.selectedItem) {
+    menu.browse.selectedItem = items[0];
+  }
   menu.browse.items = items;
   setState({menu});
 };

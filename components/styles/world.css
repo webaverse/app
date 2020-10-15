@@ -1,5 +1,5 @@
 .twoD-worlds {
-  max-height: calc(80vh - 70px);
+  max-height: 85vh;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;

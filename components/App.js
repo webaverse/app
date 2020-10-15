@@ -222,21 +222,13 @@ export const onclickBindings = {
   'twoD-inventory-card': e => {
     const { menu } = getState();
     menu.inventory.selectedId = parseInt(e.name, 10);
-    menu.inventory.items.forEach((item) => {
-      if (item.id === menu.inventory.selectedId) {
-        menu.inventory.selectedItem = item;
-      }
-    })
+    menu.inventory.selectedItem = menu.inventory.items.find(item => item.id === menu.inventory.selectedId);
     setState({ menu });
   },
   'twoD-browse-card': e => {
     const { menu } = getState();
     menu.browse.selectedId = parseInt(e.name, 10);
-    menu.browse.items.forEach((item) => {
-      if (item.id === menu.browse.selectedId) {
-        menu.browse.selectedItem = item;
-      }
-    })
+    menu.browse.selectedItem = menu.browse.items.find(item => item.id === menu.browse.selectedId);
     setState({ menu });
   }
 };
@@ -244,6 +236,9 @@ export const onclickBindings = {
 inventory.addEventListener('ownedfilesupdate', e => {
   const { menu } = state;
   menu.inventory.items = e.data;
+  if(!menu.inventory.selectedItem) {
+    menu.inventory.selectedItem = e.data[0];
+  }
   updateProps({
     menu,
   });
