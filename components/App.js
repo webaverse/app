@@ -67,7 +67,6 @@ export const onclickBindings = {
     const { menu } = getState();
     const response = await fetch('https://worlds.exokit.org/list');
     const json = await response.json();
-    console.log(json)
     menu.worlds = json.worlds;
     menu.activeTab = 'worlds';
     setState({
@@ -229,6 +228,16 @@ export const onclickBindings = {
       }
     })
     setState({ menu });
+  },
+  'twoD-browse-card': e => {
+    const { menu } = getState();
+    menu.browse.selectedId = parseInt(e.name, 10);
+    menu.browse.items.forEach((item) => {
+      if (item.id === menu.browse.selectedId) {
+        menu.browse.selectedItem = item;
+      }
+    })
+    setState({ menu });
   }
 };
 
@@ -258,7 +267,8 @@ export const toggleMenus = props => {
         peers: appState.menu.social.peers,
         allItems: appState.menu.browse.items,
         trade: appState.menu.trade,
-        inventory: appState.menu.inventory
+        inventory: appState.menu.inventory,
+        browse: appState.menu.browse
       });
     case 'weaponWheel':
       return WeaponWheel(props);
