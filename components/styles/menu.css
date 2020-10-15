@@ -11,7 +11,6 @@
 .twoD-menuNavTab {
     flex-grow: 1;
     text-align: center;
-    border: 2px solid #00a6ff;
     color: white;
     cursor: pointer;
     background-color: #00a6ff;
