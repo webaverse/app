@@ -11,6 +11,17 @@ export async function tryTutorial() {
   ftu.classList.add('phase-' + ftuPhase);
 }
 
+Array.from(document.querySelectorAll('.avatar-grid > .avatar.model')).forEach(avatarButton => {
+  avatarButton.onclick = () => {
+    console.log('click avatar');
+  };
+});
+Array.from(document.querySelectorAll('.avatar-grid > .avatar.upload')).forEach(avatarButton => {
+  avatarButton.onclick = () => {
+    console.log('click upload');
+  };
+});
+
 Array.from(document.querySelectorAll('.next-phase-button')).forEach(nextPhaseButton => {
   nextPhaseButton.onclick = async () => {
     ftu.classList.remove('phase-' + ftuPhase);
