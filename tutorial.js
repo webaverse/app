@@ -1,11 +1,12 @@
 import {loginManager} from './login.js';
+import {parseQuery} from './util.js';
 
 const ftu = document.getElementById('ftu');
 const ftuUsername = document.getElementById('ftu-username');
 
 let ftuPhase;
 export async function tryTutorial() {
-  const ftuDone = loginManager.getFtu();
+  const ftuDone = loginManager.getFtu() && !parseQuery(location.search)['ftu'];
   ftuPhase = ftuDone ? 4 : 1;
   ftu.classList.add('phase-' + ftuPhase);
 }
@@ -19,5 +20,13 @@ Array.from(document.querySelectorAll('.next-phase-button')).forEach(nextPhaseBut
     } else {
       await loginManager.setFtu(ftuUsername.value, '');
     }
+  };
+});
+
+Array.from(document.querySelectorAll('.prev-phase-button')).forEach(prevPhaseButton => {
+  prevPhaseButton.onclick = async () => {
+    ftu.classList.remove('phase-' + ftuPhase);
+    ftuPhase--;
+    ftu.classList.add('phase-' + ftuPhase);
   };
 });
