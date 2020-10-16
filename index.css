@@ -2032,3 +2032,28 @@ body.dragging-package .footer {
   justify-content: center;
   align-items: center;
 }
+.ftu .ftu-phase .controls-wrapper {
+  display: flex;
+}
+.ftu .ftu-phase .controls-grid {
+  padding: 20px;
+}
+.ftu .ftu-phase .controls-header {
+  text-decoration: underline;
+  font-size: 35px;
+}
+.ftu .ftu-phase .controls-grid .key {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  font-size: 25px;
+  background-color: black;
+  color: white;
+  padding-top: 2px;
+  margin-bottom: 15px;
+  margin-right: 12px;
+  display: inline-block;
+}
+.ftu .ftu-phase .controls-grid .keyInfo {
+  font-size: 24px;
+}
