@@ -1570,6 +1570,16 @@ renderer.domElement.addEventListener('wheel', e => {
   }
 });
 
+const wheelCanvas = document.createElement('canvas');
+wheelCanvas.style.cssText = `
+  display: none;
+  position: absolute;
+  top: 100px;
+  left: 100px;
+  width: auto !important;
+  height: auto !important;
+`;
+document.body.appendChild(wheelCanvas);
 (async () => {
   const weaponIcons = [
     "\uf256",
@@ -1594,18 +1604,10 @@ renderer.domElement.addEventListener('wheel', e => {
   ]);
 
   const size = 512;
-  const canvas = document.createElement('canvas');
-  canvas.style.cssText = `
-    position: absolute;
-    top: 100px;
-    left: 100px;
-    width: auto !important;
-    height: auto !important;
-  `;
-  canvas.width = size;
-  canvas.height = size;
+  wheelCanvas.width = size;
+  wheelCanvas.height = size;
 
-  const ctx = canvas.getContext('2d');
+  const ctx = wheelCanvas.getContext('2d');
   const numSlices = weapons.length;
   const selectedSlice = 0;
   for (let i = 0; i < numSlices; i++) {
@@ -1633,11 +1635,7 @@ renderer.domElement.addEventListener('wheel', e => {
     ctx.font = '12px Muli';
     ctx.fillText(label.innerText, size/2 + Math.cos(midAngle)*(size/2+size/4)/2, size/2 + Math.sin(midAngle)*(size/2+size/4)/2 + 20);
   }
-
-  return canvas;
-})().then(wheelCanvas => {
-  document.body.appendChild(wheelCanvas);
-});
+})();
 
 const weaponsManager = {
   weapons,
@@ -1649,6 +1647,9 @@ const weaponsManager = {
   },
   setWeapon(newSelectedWeapon) {
     selectedWeapon = newSelectedWeapon;
+  },
+  setWeaponWheel(newOpen) {
+    wheelCanvas.style.display = newOpen ? null : 'none';
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);
