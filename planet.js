@@ -842,25 +842,51 @@ planet.addEventListener('trackedobjectadd', async e => {
   const trackedObjectJson = trackedObject.toJSON();
   const {instanceId, contentId, position, quaternion} = trackedObjectJson;
 
-  {
-    const contractSource = await getContractSource('getNft.cdc');
+  const file = await (async () => {
+    if (typeof contentId === 'number') {
+      const contractSource = await getContractSource('getNft.cdc');
 
-    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-      method: 'POST',
-      body: JSON.stringify({
-        limit: 100,
-        script: contractSource
-          .replace(/ARG0/g, contentId),
-        wait: true,
-      }),
-    });
-    const response2 = await res.json();
-    const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
+      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+        method: 'POST',
+        body: JSON.stringify({
+          limit: 100,
+          script: contractSource
+            .replace(/ARG0/g, contentId),
+          wait: true,
+        }),
+      });
+      const response2 = await res.json();
+      const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
 
-    const res2 = await fetch(`${storageHost}/${hash}`);
-    const file = await res2.blob();
-    file.name = filename;
-    // console.log('loading file');
+      const res2 = await fetch(`${storageHost}/${hash}`);
+      const file = await res2.blob();
+      file.name = filename;
+      return file;
+    } else if (typeof contentId === 'string') {
+      let u, filename;
+      if (/blob:/.test(contentId)) {
+        const match = contentId.match(/^(.+)\/([^\/]+)$/);
+        if (match) {
+          u = match[1];
+          filename = match[2];
+        } else {
+          console.warn('blob url not decorated', contentId);
+          return null;
+        }
+      } else {
+        u = contentId;
+        filename = contentId;
+      }
+      const res2 = await fetch(u);
+      const file = await res2.blob();
+      file.name = filename;
+      return file;
+    } else {
+      console.warn('unknown content id type', contentId);
+      return null;
+    }
+  })();
+  if (file) {
     const mesh = await runtime.loadFile(file);
     mesh.position.fromArray(position);
     mesh.quaternion.fromArray(quaternion);
