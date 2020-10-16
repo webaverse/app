@@ -20,6 +20,7 @@ import {
   colors,
 } from './constants.js';
 import { setState } from './state.js';
+import FontFaceObserver from './fontfaceobserver.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1569,25 +1570,29 @@ renderer.domElement.addEventListener('wheel', e => {
   }
 });
 
-// setTimeout(() => {
-const weaponIcons = [
-  "\uf256",
-  "\uf710",
-  "\uf1e2",
-  "\uf6b2",
-  "\uf713",
-  "\uf279",
-  "\uf54e",
-  "\uf1b2",
-  "\uf53f",
-  "\uf5d4",
-  "\uf0e7",
-  "\uf040",
-  "\uf55d",
-  "\ue025",
-  "\uf245",
-];
-const wheelCanvas = (() => {
+(async () => {
+  const weaponIcons = [
+    "\uf256",
+    "\uf710",
+    "\uf1e2",
+    "\uf6b2",
+    "\uf713",
+    "\uf279",
+    "\uf54e",
+    "\uf1b2",
+    "\uf53f",
+    "\uf5d4",
+    "\uf0e7",
+    "\uf040",
+    "\uf55d",
+    "\ue025",
+    "\uf245",
+  ];
+  await Promise.all([
+    new FontFaceObserver('Muli').load(null, 10000),
+    new FontFaceObserver('Font Awesome 5 Pro').load(weaponIcons.join(''), 10000),
+  ]);
+
   const size = 512;
   const canvas = document.createElement('canvas');
   canvas.style.cssText = `
@@ -1630,9 +1635,9 @@ const wheelCanvas = (() => {
   }
 
   return canvas;
-})();
-document.body.appendChild(wheelCanvas);
-// }, 10000);
+})().then(wheelCanvas => {
+  document.body.appendChild(wheelCanvas);
+});
 
 const weaponsManager = {
   weapons,
