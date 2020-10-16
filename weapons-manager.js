@@ -1624,7 +1624,7 @@ document.body.appendChild(wheelDotCanvas);
     new FontFaceObserver('Font Awesome 5 Pro').load(weaponIcons.join(''), 10000),
   ]);
 
-  const size = 512;
+  const size = 400;
   const canvas = document.createElement('canvas');
   canvas.style.cssText = `
     width: auto !important;
