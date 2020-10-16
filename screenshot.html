@@ -34,7 +34,6 @@
     import {bake, toggleElements} from './bakeUtils.js';
     import {parseQuery} from './util.js';
     import * as icons from './icons.js';
-    import {storageHost} from './constants.js';
     import './gif.js';
 
     const width = 512;
@@ -248,15 +247,14 @@
       toggleElements(false);
       const screenshotResult = document.getElementById('screenshot-result');
 
-      const {hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
+      const {url, hash, ext, type, dst} = parseQuery(decodeURIComponent(window.location.search));
 
       try {
         const _loadGltf = async () => {
-          const u = `${storageHost}/${hash}`;
           let o;
           try {
             o = await new Promise((accept, reject) => {
-              new GLTFLoader().load(u, accept, function onprogress() {}, reject);
+              new GLTFLoader().load(url, accept, function onprogress() {}, reject);
             });
           } catch(err) {
             console.warn(err);
@@ -267,13 +265,12 @@
           return o;
         };
         const _loadVox = async () => {
-          const u = `${storageHost}/${hash}`;
           let o;
           try {
             o = await new Promise((accept, reject) => {
               new VOXLoader({
                 scale: 0.01,
-              }).load(u, accept, function onprogress() {}, reject);
+              }).load(url, accept, function onprogress() {}, reject);
             });
           } catch(err) {
             console.warn(err);
