@@ -163,6 +163,14 @@ export const onclickBindings = {
       },
     }));
   },
+  'browse-spawn': async e => {
+    const id = e.name;
+    document.dispatchEvent(new MessageEvent('drop', {
+      data: {
+        dragid: 'inventory-' + id,
+      },
+    }));
+  },
   'inventory-wear': e => {
     const id = parseInt(e.name, 10);
     loginManager.setAvatar(id);
