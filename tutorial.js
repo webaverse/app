@@ -22,7 +22,7 @@ ftuUsername.addEventListener('keydown', e => {
 
 const avatarGrid = document.getElementById('avatar-grid');
 const avatarGridUpload = avatarGrid.querySelector('.avatar.upload');
-[
+const avatarDivs = [
   'male.vrm',
   'female.vrm',
   'Darkness_Shibu.vrm',
@@ -34,21 +34,25 @@ const avatarGridUpload = avatarGrid.querySelector('.avatar.upload');
   'Victoria_Rubin.vrm',
   'Vita.vrm',
   // 'Vivi.vrm',
-].forEach(name => {
+].map(name => {
   const url = 'https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/' + name;
   const previewUrl = `https://preview.exokit.org/[${url}]/preview.png`;
   const avatarDiv = document.createElement('div');
   avatarDiv.classList.add('avatar');
   avatarDiv.classList.add('model');
-  // avatarDiv.setAttribute('avatar', url);
   avatarDiv.innerHTML = `<img src="${previewUrl}">`;
   avatarDiv.onclick = () => {
-    // console.log('click avatar');
+    for (const avatarDiv of avatarDivs) {
+      avatarDiv.classList.remove('selected');
+    }
+    avatarDiv.classList.add('selected');
     // loginManager.setAvatar(url);
     rigManager.setLocalAvatarUrl(url, name);
   };
 
   avatarGrid.insertBefore(avatarDiv, avatarGridUpload);
+  
+  return avatarDiv;
 });
 
 bindUploadFileButton(document.getElementById('ftu-upload-avatar-input'), async file => {
