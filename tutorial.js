@@ -19,6 +19,31 @@ ftuUsername.addEventListener('keydown', e => {
   }
 });
 
+const avatarGrid = document.getElementById('avatar-grid');
+const avatarGridUpload = avatarGrid.querySelector('.avatar.upload');
+[
+  'male.vrm',
+  'female.vrm',
+  'Darkness_Shibu.vrm',
+  'HairSample_Female.vrm',
+  'HairSample_Male.vrm',
+  'Sakurada_Fumiriya.vrm',
+  // 'Sendagaya_Shibu.vrm',
+  'Sendagaya_Shino.vrm',
+  'Victoria_Rubin.vrm',
+  'Vita.vrm',
+  // 'Vivi.vrm',
+].forEach(name => {
+  const url = 'https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/' + name;
+  const previewUrl = `https://preview.exokit.org/[${url}]/preview.png`;
+  const avatarDiv = document.createElement('div');
+  avatarDiv.classList.add('avatar');
+  avatarDiv.classList.add('model');
+  avatarDiv.setAttribute('avatar', url);
+  avatarDiv.innerHTML = `<img src="${previewUrl}">`
+  avatarGrid.insertBefore(avatarDiv, avatarGridUpload);
+});
+
 Array.from(document.querySelectorAll('.avatar-grid > .avatar.model')).forEach(avatarButton => {
   avatarButton.onclick = () => {
     console.log('click avatar');
