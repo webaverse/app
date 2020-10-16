@@ -1584,6 +1584,18 @@ wheel.style.cssText = `
   align-items: center;
 `;
 document.body.appendChild(wheel);
+
+const size = 400;
+const wheelCanvas = document.createElement('canvas');
+wheelCanvas.style.cssText = `
+  width: auto !important;
+  height: auto !important;
+`;
+wheelCanvas.width = size;
+wheelCanvas.height = size;
+wheelCanvas.ctx = wheelCanvas.getContext('2d');
+wheel.appendChild(wheelCanvas);
+
 const wheelDotCanvas = (() => {
   const size = 4;
   const canvas = document.createElement('canvas');
@@ -1601,68 +1613,63 @@ const wheelDotCanvas = (() => {
   return canvas;
 })();
 document.body.appendChild(wheelDotCanvas);
-(async () => {
-  const weaponIcons = [
-    '\uf256',
-    '\uf710',
-    '\uf1e2',
-    '\uf6b2',
-    '\uf713',
-    '\uf279',
-    '\uf54e',
-    '\uf1b2',
-    '\uf53f',
-    '\uf5d4',
-    '\uf0e7',
-    '\uf040',
-    '\uf55d',
-    '\ue025',
-    '\uf245',
-  ];
-  await Promise.all([
-    new FontFaceObserver('Muli').load(null, 10000),
-    new FontFaceObserver('Font Awesome 5 Pro').load(weaponIcons.join(''), 10000),
-  ]);
 
-  const size = 400;
-  const canvas = document.createElement('canvas');
-  canvas.style.cssText = `
-    width: auto !important;
-    height: auto !important;
-  `;
-  canvas.width = size;
-  canvas.height = size;
+const weaponIcons = [
+  '\uf256',
+  '\uf710',
+  '\uf1e2',
+  '\uf6b2',
+  '\uf713',
+  '\uf279',
+  '\uf54e',
+  '\uf1b2',
+  '\uf53f',
+  '\uf5d4',
+  '\uf0e7',
+  '\uf040',
+  '\uf55d',
+  '\ue025',
+  '\uf245',
+];
+let wheelReady = false;
+const loadPromise = Promise.all([
+  new FontFaceObserver('Muli').load(null, 10000),
+  new FontFaceObserver('Font Awesome 5 Pro').load(weaponIcons.join(''), 10000),
+]).then(() => {
+  wheelReady = true;
+});
+const _renderWheel = (() => {
+  let lastSelectedSlice = 0;
+  return selectedSlice => {
+    if (selectedSlice !== lastSelectedSlice) {
+      const {ctx} = wheelCanvas;
+      
+      const numSlices = weapons.length;
+      const interval = Math.PI*0.01;
+      for (let i = 0; i < numSlices; i++) {
+        ctx.fillStyle = i === selectedSlice ? '#4fc3f7' : '#111';
+        ctx.beginPath();
+        const startAngle = i*Math.PI*2/numSlices + interval - Math.PI/2;
+        const endAngle = (i+1)*Math.PI*2/numSlices - interval - Math.PI/2;
+        ctx.arc(size/2, size/2, size/2, startAngle, endAngle, false);
+        ctx.arc(size/2, size/2, size/4, endAngle, startAngle, true);
+        ctx.fill();
 
-  const ctx = canvas.getContext('2d');
-  const numSlices = weapons.length;
-  const selectedSlice = 0;
-  for (let i = 0; i < numSlices; i++) {
-    ctx.fillStyle = i === selectedSlice ? '#4fc3f7' : '#111';
-    ctx.beginPath();
-    const interval = Math.PI*0.01;
-    const startAngle = i*Math.PI*2/numSlices + interval - Math.PI/2;
-    const endAngle = (i+1)*Math.PI*2/numSlices - interval - Math.PI/2;
-    ctx.arc(size/2, size/2, size/2, startAngle, endAngle, false);
-    ctx.arc(size/2, size/2, size/4, endAngle, startAngle, true);
-    // ctx.lineTo(size/2, size/2);
-    ctx.fill();
+        ctx.font = '20px \'Font Awesome 5 Pro\'';
+        ctx.fillStyle = '#FFF';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const midAngle = (startAngle + endAngle)/2;
+        const weapon = weapons[i];
+        const label = weapon.querySelector('.label');
+        ctx.fillText(weaponIcons[i], size/2 + Math.cos(midAngle)*(size/2+size/4)/2, size/2 + Math.sin(midAngle)*(size/2+size/4)/2);
+        ctx.font = '12px Muli';
+        ctx.fillText(label.innerText, size/2 + Math.cos(midAngle)*(size/2+size/4)/2, size/2 + Math.sin(midAngle)*(size/2+size/4)/2 + 20);
+      }
 
-    // startAngle += Math.PI/4;
-    // endAngle += Math.PI/4;
-    ctx.font = '20px \'Font Awesome 5 Pro\'';
-    ctx.fillStyle = '#FFF';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    let midAngle = (startAngle + endAngle)/2;
-    // midAngle += Math.PI/4;
-    const weapon = weapons[i];
-    const label = weapon.querySelector('.label');
-    ctx.fillText(weaponIcons[i], size/2 + Math.cos(midAngle)*(size/2+size/4)/2, size/2 + Math.sin(midAngle)*(size/2+size/4)/2);
-    ctx.font = '12px Muli';
-    ctx.fillText(label.innerText, size/2 + Math.cos(midAngle)*(size/2+size/4)/2, size/2 + Math.sin(midAngle)*(size/2+size/4)/2 + 20);
-  }
-
-  wheel.appendChild(canvas);
+      lastSelectedSlice = selectedSlice;
+    }
+  };
 })();
 
 const weaponsManager = {
@@ -1691,14 +1698,39 @@ const weaponsManager = {
     }
   },
   updateWeaponWheel(e) {
-    const {movementX, movementY} = e;
+    if (wheelReady) {
+      const {movementX, movementY} = e;
 
-    let left = parseInt(wheelDotCanvas.style.left, 10);
-    let top = parseInt(wheelDotCanvas.style.top, 10);
-    left += movementX;
-    top += movementY;
-    wheelDotCanvas.style.left = `${left}px`;
-    wheelDotCanvas.style.top = `${top}px`;
+      let left = parseInt(wheelDotCanvas.style.left, 10);
+      let top = parseInt(wheelDotCanvas.style.top, 10);
+      left += movementX;
+      top += movementY;
+      wheelDotCanvas.style.left = `${left}px`;
+      wheelDotCanvas.style.top = `${top}px`;
+
+      const mousePosition = new THREE.Vector2(left, top);
+      const wheelCanvasRect = wheelCanvas.getBoundingClientRect();
+
+      let selectedSlice = 0;
+      let selectedSliceDistance = Infinity;
+      const numSlices = weapons.length;
+      const interval = Math.PI*0.01;
+      for (let i = 0; i < numSlices; i++) {
+        const startAngle = i*Math.PI*2/numSlices + interval - Math.PI/2;
+        const endAngle = (i+1)*Math.PI*2/numSlices - interval - Math.PI/2;
+        const midAngle = (startAngle + endAngle)/2;
+        const slicePosition = new THREE.Vector2(
+          wheelCanvasRect.left + size/2 + Math.cos(midAngle)*(size/2+size/4)/2,
+          wheelCanvasRect.top + size/2 + Math.sin(midAngle)*(size/2+size/4)/2
+        );
+        const distance = mousePosition.distanceTo(slicePosition);
+        if (distance < selectedSliceDistance) {
+          selectedSlice = i;
+          selectedSliceDistance = distance;
+        }
+      }
+      _renderWheel(selectedSlice);
+    }
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);
