@@ -3,8 +3,8 @@
 }
 
 .twoD-trade-content {
-  overflow-y: scroll;
-  max-height: calc(90vh - 126px);
+  overflow-y: auto;
+  height: 82vh;
 }
 
 .twoD-trade-header {
@@ -15,7 +15,6 @@
   text-align: center;
   padding-top: 1px;
   font-size: 20px;
-  margin-bottom: 25px;
 }
 
 .twoD-trade-sectionHeader {
@@ -28,7 +27,7 @@
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
-  overflow-y: scroll;
+  overflow-y: auto;
   margin: 30px;
   border: 1px #d2c1c1 solid;
 }
@@ -67,7 +66,7 @@
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
-  overflow-y: scroll;
+  overflow-y: auto;
   margin: 30px;
   border: 1px #d2c1c1 solid;
 }
@@ -106,7 +105,6 @@
   background-color: #ff0058;
   border: 0;
   color: #FFF;
-  border-radius: 8px;
   font-size: 25px;
   white-space: nowrap;
   text-decoration: none;
@@ -120,10 +118,9 @@
 
 .twoD-trade-accept {
   padding: 15px 20px;
-  background-color: #00a236;
+  background-color: #12bd4b;
   border: 0;
   color: #FFF;
-  border-radius: 8px;
   font-size: 25px;
   white-space: nowrap;
   text-decoration: none;
@@ -143,7 +140,11 @@
 .twoD-trade-actions {
   display: flex;
   background-color: #000000b3;
-  padding: 23px;
+  padding: 25px;
+  position: relative;
+  bottom: 0;
+  right: 0;
+  left: 0;
 }
 .twoD-trade-info {
   width: 50%;
@@ -161,10 +162,11 @@
   margin-right: 15px;
 }
 .twoD-trade-header-backBtn {
-  float: left;
   margin: 34px;
   font-size: 35px;
   cursor: pointer;
+  position: absolute;
+  left: 20px;
 }
 .twoD-trade-header-backBtn:hover {
   color: #ffae94;

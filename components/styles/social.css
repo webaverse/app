@@ -1,9 +1,13 @@
 .twoD-social {
-  max-height: calc(80vh - 70px);
+  height: 85vh;
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.twoD-social-peerList {
+  height: 85vh;
   overflow-y: auto;
 }
 
@@ -13,8 +17,6 @@
   background-color: black;
   padding: 10px;
   box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
-  border-radius: 5px;
-  border: 1px #eeeef5 solid;
   margin: 15px;
   display: flex;
   color: white;
@@ -41,37 +43,34 @@
 .twoD-social-peerCard-teleport {
   padding: 10px 20px;
   background-color: #2ec19c;
-  border: #ffffffd6 1px solid;
   color: #FFF;
-  border-radius: 8px;
   font-size: 18px;
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
   user-select: none;
   margin: 5px;
+  border: 0;
 }
 
 .twoD-social-peerCard-trade {
   padding: 10px 20px;
   background-color: #a049e8;
-  border: #ffffffd6 1px solid;
   color: #FFF;
-  border-radius: 8px;
   font-size: 18px;
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
   user-select: none;
   margin: 5px;
+  border: 0;
 }
 
 .twoD-social-peerCard-shareWorld {
   padding: 15px 20px;
-  background-color: #a049e8;
+  background-color: #00a6ff;
   border: 0;
   color: #FFF;
-  border-radius: 8px;
   font-size: 25px;
   white-space: nowrap;
   text-decoration: none;
@@ -95,12 +94,14 @@
 }
 
 .twoD-social-noPeers {
-  text-align: center; 
+  text-align: center;
   width: 100%;
   color: white;
+  background-color: #000000c2;
+  padding: 120px 0px 120px 0px;
 }
 
 .twoD-social-noPeers-header {
-  margin-top: 15vh; 
-  font-size: 50px;
+    font-size: 50px;
+    margin: 0px 0px 20px 0px;
 }

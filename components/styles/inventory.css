@@ -26,6 +26,7 @@
     text-decoration: none;
     cursor: pointer;
     user-select: none;
+    border: 0;
 }
 
 .twoD-inventory .twoD-inventoryHeader input {
@@ -45,12 +46,13 @@
 }
 
 .twoD-inventory .twoD-inventoryList {
-    max-height: calc(90vh - 140px);
+    height: calc(90vh - 135px);
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-start;
-    overflow-y: scroll;
+    overflow-y: auto;
+    flex-grow: 1;
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard {
@@ -58,10 +60,11 @@
     width: 200px;
     background-color: black;
     color: white;
-    margin: 10px;
+    margin: 20px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
     text-align: center;
     cursor: pointer;
+    border: 2px #ffffff00 solid;
 }
 
 .twoD-inventory .twoD-inventoryList .twoD-inventoryCard.selected {
@@ -94,6 +97,7 @@
     user-select: none;
     margin: 8px 0px 8px 0px;
     width: 82%;
+    border: 0;
 }
 
 .twoD-inventory-preview-wearBtn {
@@ -107,6 +111,7 @@
     user-select: none;
     margin: 8px 0px 8px 0px;
     width: 82%;
+    border: 0;
 }
 
 .twoD-inventory-preview-tradeBtn {
@@ -120,6 +125,7 @@
     user-select: none;
     margin: 8px 0px 8px 0px;
     width: 82%;
+    border: 0;
 }
 
 .twoD-inventory-preview-discardBtn {
@@ -133,6 +139,7 @@
     user-select: none;
     margin: 8px 0px 8px 0px;
     width: 82%;
+    border: 0;
 }
 
 .twoD-inventory-content {
@@ -141,17 +148,22 @@
 }
 
 .twoD-inventory-preview {
-    height: calc(90vh - 140px);
-    min-width: 300px;
-    width: 600px;
-    overflow-y: scroll;
+    height: calc(90vh - 135px);
+    min-width: 400px;
+    max-width: 400px;
+    overflow-y: auto;
     background-color: #000000c2;
     padding: 15px;
+}
+
+.twoD-inventory-preview-content.hidden {
+    display: none;
 }
 
 .twoD-inventory-preview-actions {
     text-align: center;
 }
+
 
 .twoD-inventory-preview-header {
     font-size: 26px;

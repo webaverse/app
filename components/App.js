@@ -163,6 +163,14 @@ export const onclickBindings = {
       },
     }));
   },
+  'browse-spawn': async e => {
+    const id = e.name;
+    document.dispatchEvent(new MessageEvent('drop', {
+      data: {
+        dragid: 'inventory-' + id,
+      },
+    }));
+  },
   'inventory-wear': e => {
     const id = parseInt(e.name, 10);
     loginManager.setAvatar(id);
@@ -222,21 +230,13 @@ export const onclickBindings = {
   'twoD-inventory-card': e => {
     const { menu } = getState();
     menu.inventory.selectedId = parseInt(e.name, 10);
-    menu.inventory.items.forEach((item) => {
-      if (item.id === menu.inventory.selectedId) {
-        menu.inventory.selectedItem = item;
-      }
-    })
+    menu.inventory.selectedItem = menu.inventory.items.find(item => item.id === menu.inventory.selectedId);
     setState({ menu });
   },
   'twoD-browse-card': e => {
     const { menu } = getState();
     menu.browse.selectedId = parseInt(e.name, 10);
-    menu.browse.items.forEach((item) => {
-      if (item.id === menu.browse.selectedId) {
-        menu.browse.selectedItem = item;
-      }
-    })
+    menu.browse.selectedItem = menu.browse.items.find(item => item.id === menu.browse.selectedId);
     setState({ menu });
   }
 };
