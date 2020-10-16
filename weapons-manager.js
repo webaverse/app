@@ -1570,16 +1570,20 @@ renderer.domElement.addEventListener('wheel', e => {
   }
 });
 
-const wheelCanvas = document.createElement('canvas');
-wheelCanvas.style.cssText = `
+const wheel = document.createElement('div');
+wheel.style.cssText = `
   display: none;
   position: absolute;
-  top: 100px;
-  left: 100px;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   width: auto !important;
   height: auto !important;
+  justify-content: center;
+  align-items: center;
 `;
-document.body.appendChild(wheelCanvas);
+document.body.appendChild(wheel);
 const wheelDotCanvas = (() => {
   const size = 4;
   const canvas = document.createElement('canvas');
@@ -1588,6 +1592,8 @@ const wheelDotCanvas = (() => {
   canvas.style.cssText = `
     display: none;
     position: absolute;
+    width: auto !important;
+    height: auto !important;
   `;
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#4fc3f7';
@@ -1619,10 +1625,15 @@ document.body.appendChild(wheelDotCanvas);
   ]);
 
   const size = 512;
-  wheelCanvas.width = size;
-  wheelCanvas.height = size;
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = `
+    width: auto !important;
+    height: auto !important;
+  `;
+  canvas.width = size;
+  canvas.height = size;
 
-  const ctx = wheelCanvas.getContext('2d');
+  const ctx = canvas.getContext('2d');
   const numSlices = weapons.length;
   const selectedSlice = 0;
   for (let i = 0; i < numSlices; i++) {
@@ -1650,6 +1661,8 @@ document.body.appendChild(wheelDotCanvas);
     ctx.font = '12px Muli';
     ctx.fillText(label.innerText, size/2 + Math.cos(midAngle)*(size/2+size/4)/2, size/2 + Math.sin(midAngle)*(size/2+size/4)/2 + 20);
   }
+
+  wheel.appendChild(canvas);
 })();
 
 const weaponsManager = {
@@ -1666,13 +1679,13 @@ const weaponsManager = {
   },
   setWeaponWheel(newOpen) {
     if (newOpen && !weaponsManager.weaponWheel) {
-      wheelCanvas.style.display = null;
+      wheel.style.display = 'flex';
       wheelDotCanvas.style.display = null;
       wheelDotCanvas.style.left = `${window.innerWidth/2}px`;
       wheelDotCanvas.style.top = `${window.innerHeight/2}px`;
       weaponsManager.weaponWheel = true;
     } else if (weaponsManager.weaponWheel && !newOpen) {
-      wheelCanvas.style.display = 'none';
+      wheel.style.display = 'none';
       wheelDotCanvas.style.display = 'none';
       weaponsManager.weaponWheel = false;
     }
