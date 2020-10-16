@@ -1010,12 +1010,28 @@ const wheelCanvas = (() => {
 
   const ctx = canvas.getContext('2d');
   const numSlices = 6;
+  const selectedSlice = 0;
   for (let i = 0; i < numSlices; i++) {
+    ctx.fillStyle = i === selectedSlice ? '#4fc3f7' : '#111';
     ctx.beginPath();
-    ctx.arc(size/2, size/2, size/2, i*Math.PI*2/numSlices + Math.PI*0.02, (i+1)*Math.PI*2/numSlices - Math.PI*0.02, false);
-    ctx.arc(size/2, size/2, size/4, (i+1)*Math.PI*2/numSlices - Math.PI*0.02, i*Math.PI*2/numSlices + Math.PI*0.02, true);
+    const startAngle = i*Math.PI*2/numSlices + Math.PI*0.02;
+    const endAngle = (i+1)*Math.PI*2/numSlices - Math.PI*0.02;
+    ctx.arc(size/2, size/2, size/2, startAngle, endAngle, false);
+    ctx.arc(size/2, size/2, size/4, endAngle, startAngle, true);
     // ctx.lineTo(size/2, size/2);
     ctx.fill();
+  }
+  for (let i = 0; i < numSlices; i++) {
+    let startAngle = i*Math.PI*2/numSlices + Math.PI*0.02;
+    let endAngle = (i+1)*Math.PI*2/numSlices - Math.PI*0.02;
+    // startAngle += Math.PI/4;
+    // endAngle += Math.PI/4;
+    ctx.fillStyle = '#FFF';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    let midAngle = (startAngle + endAngle)/2;
+    // midAngle += Math.PI/4;
+    ctx.fillText('Lollercopter ' + i, size/2 + Math.cos(midAngle)*(size/2+size/4)/2, size/2 + Math.sin(midAngle)*(size/2+size/4)/2);
   }
 
   return canvas;
