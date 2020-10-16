@@ -334,13 +334,7 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 81: { // Q
-      setState({ weaponWheel: true })
-      // const selectedWeapon = weaponsManager.getWeapon();
-      // if (selectedWeapon !== 'pickaxe') {
-      //   document.querySelector('.weapon[weapon="pickaxe"]').click();
-      // } else {
-      //   document.querySelector('.weapon[weapon="shovel"]').click();
-      // }
+      weaponsManager.setWeaponWheel(true);
       break;
     }
     case 90: { // Z
@@ -387,7 +381,7 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => {
   switch (e.which) {
     case 81: { // Q
-      setState({ weaponWheel: false })
+      weaponsManager.setWeaponWheel(false);
       break;
     }
     case 87: { // W
