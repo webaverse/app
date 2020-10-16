@@ -375,7 +375,6 @@ scene.add(floorMesh);
   } */
 })();
 
-
 const geometry = new THREE.CircleBufferGeometry(1, 32)
   .applyMatrix4(new THREE.Matrix4().makeScale(0.5, 1, 1));
 const material = new THREE.ShaderMaterial({
@@ -438,6 +437,11 @@ const material = new THREE.ShaderMaterial({
   transparent: true,
 });
 const portalMesh = new THREE.Mesh(geometry, material);
+portalMesh.update = () => {
+  const portalRate = 30000;
+  portalMesh.material.uniforms.iTime.value = (Date.now()/portalRate) % 1;
+  portalMesh.material.uniforms.iTime.needsUpdate = true;
+};
 portalMesh.position.y = 1;
 scene.add(portalMesh);
 
@@ -583,9 +587,7 @@ function animate(timestamp, frame) {
   const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
 
-  const portalRate = 30000;
-  portalMesh.material.uniforms.iTime.value = (Date.now()/portalRate) % 1;
-  portalMesh.material.uniforms.iTime.needsUpdate = true;
+  portalMesh.update();
 
   const now = Date.now();
   if (skybox) {
