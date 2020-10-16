@@ -375,6 +375,72 @@ scene.add(floorMesh);
   } */
 })();
 
+
+const geometry = new THREE.CircleBufferGeometry(1, 32)
+  .applyMatrix4(new THREE.Matrix4().makeScale(0.5, 1, 1));
+const material = new THREE.ShaderMaterial({
+  uniforms: {
+    // tex: {type: 't', value: texture, needsUpdate: true},
+    iTime: {value: 0, needsUpdate: true},
+  },
+  vertexShader: `\
+    // uniform float iTime;
+    varying vec2 uvs;
+    /* varying vec3 vNormal;
+    varying vec3 vWorldPosition; */
+    void main() {
+      uvs = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      // vNormal = normal;
+      // vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+      /// vWorldPosition = worldPosition.xyz;
+    }
+  `,
+  fragmentShader: `\
+    #define PI 3.1415926535897932384626433832795
+
+    uniform float iTime;
+    // uniform sampler2D tex;
+    varying vec2 uvs;
+    /* arying vec3 vNormal;
+    varying vec3 vWorldPosition; */
+
+    const vec3 c = vec3(${new THREE.Color(0x1565c0).toArray().join(', ')});
+
+    void main() {
+      vec2 uv = uvs;
+      /* uv.x *= 1.7320508075688772;
+      uv *= 8.0;
+
+      vec3 direction = vWorldPosition - cameraPosition;
+      float d = dot(vNormal, normalize(direction));
+      float glow = d < 0.0 ? max(1. + d * 2., 0.) : 0.;
+
+      float animationFactor = (1.0 + sin((uvs.y*2. + iTime) * PI*2.))/2.;
+      float a = glow + (1.0 - texture2D(tex, uv).r) * (0.01 + pow(animationFactor, 10.0) * 0.5); */
+
+      const vec3 c = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
+
+      vec2 distanceVector = abs(uv - 0.5)*2.;
+      float a = pow(length(distanceVector), 5.);
+      vec2 normalizedDistanceVector = normalize(distanceVector);
+      float angle = atan(normalizedDistanceVector.y, normalizedDistanceVector.x) + iTime*PI*2.;
+      float skirt = pow(sin(angle*50.) * cos(angle*20.), 5.) * 0.2;
+      a += skirt;
+      // if (length(f) > 0.8) {
+        gl_FragColor = vec4(c, a);
+      /* } else {
+        discard;
+      } */
+    }
+  `,
+  side: THREE.DoubleSide,
+  transparent: true,
+});
+const portalMesh = new THREE.Mesh(geometry, material);
+portalMesh.position.y = 1;
+scene.add(portalMesh);
+
 /* const redBuildMeshMaterial = new THREE.ShaderMaterial({
   vertexShader: `
     void main() {
@@ -516,6 +582,10 @@ function animate(timestamp, frame) {
   timestamp = timestamp || performance.now();
   const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
+
+  const portalRate = 30000;
+  portalMesh.material.uniforms.iTime.value = (Date.now()/portalRate) % 1;
+  portalMesh.material.uniforms.iTime.needsUpdate = true;
 
   const now = Date.now();
   if (skybox) {
