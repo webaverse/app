@@ -374,11 +374,9 @@ scene.add(floorMesh);
     scene.add(mesh);
   } */
   {
-    const urlFile = new Blob(['https://google.com'], {type: 'text/plain'});
-    urlFile.name = 'google.url';
-    const urlMesh = await runtime.loadFile(urlFile);
-    urlMesh.position.y = 1;
-    scene.add(urlMesh);
+    const file = new Blob(['https://google.com'], {type: 'text/plain'});
+    const u = URL.createObjectURL(file) + '/file.url';
+    planet.addObject(u, new THREE.Vector3(0, 1.5, 0), new THREE.Quaternion());
   }
 })();
 
