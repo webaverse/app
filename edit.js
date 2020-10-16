@@ -1014,16 +1014,13 @@ const wheelCanvas = (() => {
   for (let i = 0; i < numSlices; i++) {
     ctx.fillStyle = i === selectedSlice ? '#4fc3f7' : '#111';
     ctx.beginPath();
-    const startAngle = i*Math.PI*2/numSlices + Math.PI*0.02;
-    const endAngle = (i+1)*Math.PI*2/numSlices - Math.PI*0.02;
+    const startAngle = i*Math.PI*2/numSlices + Math.PI*0.02 - Math.PI/2;
+    const endAngle = (i+1)*Math.PI*2/numSlices - Math.PI*0.02 - Math.PI/2;
     ctx.arc(size/2, size/2, size/2, startAngle, endAngle, false);
     ctx.arc(size/2, size/2, size/4, endAngle, startAngle, true);
     // ctx.lineTo(size/2, size/2);
     ctx.fill();
-  }
-  for (let i = 0; i < numSlices; i++) {
-    let startAngle = i*Math.PI*2/numSlices + Math.PI*0.02;
-    let endAngle = (i+1)*Math.PI*2/numSlices - Math.PI*0.02;
+
     // startAngle += Math.PI/4;
     // endAngle += Math.PI/4;
     ctx.fillStyle = '#FFF';
