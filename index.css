@@ -7,6 +7,11 @@
   100% { transform: rotate(360deg); }
 }
 
+@font-face {
+  font-family: 'Bangers';
+  src: url('Bangers-Regular.woff2') format('woff2');
+}
+
 body {
   margin: 0;
   /* font-family: 'Open Sans'; */
@@ -431,7 +436,7 @@ body.loading .pagination
   font-weight: 400;
 }
 
-header .wallet {
+/* header .wallet {
   display: flex;
   height: 37px;
   margin-right: 10px;
@@ -447,7 +452,7 @@ header .wallet.none, header .wallet.import, header .wallet.locked, header .walle
 
 header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, header.builtin.unlocked .wallet.unlocked, header.builtin:not(.import):not(.locked):not(.unlocked) .wallet.none {
   display: flex;
-}
+} */
 
 .sidebar {
   width: 150px;
@@ -1201,21 +1206,17 @@ canvas {
   z-index: 1;
 }
 
-/* .right {
-  margin-left: auto;
-} */
-
-.buttons {
+.header .buttons {
   display: flex;
   height: 100%;
   align-items: center;
 }
 
-.buttons .button {
+.header .buttons .button {
   margin-right: 10px;
 }
 
-.button {
+.header .button {
   display: flex;
   position: relative;
   justify-content: center;
@@ -1233,43 +1234,26 @@ canvas {
   overflow: hidden;
 }
 
-/* .button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 5px 10px;
-  background-color: #42a5f5;
-  color: #FFF;
-  border-radius: 8px;
-  white-space: nowrap;
-  cursor: pointer;
-} */
-
-.button:hover:enabled {
+.header .button:hover:enabled {
   background-color: #1e88e5;
 }
 
-.button:disabled {
+.header .button:disabled {
   background-color: gray;
 }
 
-.button:active {
+.header .button:active {
   transform: translateY(1px);
 }
 
-.button.secondary {
+.header .button.secondary {
   background-color: #ef5350;
 }
 
-.button.secondary:hover {
+.header .button.secondary:hover {
   background-color: #e53935;
 }
-
-/* .button:not(:first-child) {
-  margin-left: 10px;
-} */
-
-.button > i {
+.header .button > i {
   margin-right: 5px;
 }
 
@@ -1283,16 +1267,16 @@ input[type=file].hidden {
   outline: none;
 }
 
-.buttons label {
+.header .buttons label {
   display: flex;
   align-items: center;
 }
 
-.buttons label span {
+.header .buttons label span {
   margin-right: 10px;
 }
 
-.buttons input[type=range] {
+.header .buttons input[type=range] {
   margin-right: 10px;
 }
 
@@ -1912,7 +1896,7 @@ body.dragging-package .footer {
   display: none;
 }
 
-.avatar {
+/* .avatar {
   display: flex;
 }
 .avatar img {
@@ -1925,4 +1909,151 @@ body.dragging-package .footer {
 .avatar .wrap {
   display: flex;
   flex-direction: column;
+} */
+.ftu {
+  display: flex;
+  flex-direction: column;
+  font-family: 'Bangers';
+}
+.ftu:not(.phase-1) .ftu-phase-1,
+.ftu:not(.phase-2) .ftu-phase-2,
+.ftu:not(.phase-3) .ftu-phase-3 {
+  display: none;
+}
+.ftu .ftu-phase {
+  display: flex;
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  background: #00000080;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+.ftu .ftu-phase .wrap {
+  position: relative;
+  padding: 30px;
+  background-color: #5c6bc0;
+}
+.ftu .ftu-phase .wrap .label {
+  position: absolute;
+  top: -50px;
+  left: -50px;
+  padding: 5px;
+  color: #FFF;
+  font-size: 50px;
+  background: #ef5350;
+}
+.ftu .ftu-phase .wrap .label .background {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 50%;
+  width: 100%;
+  transform: SkewY(-4deg);
+  transform-origin: bottom right;
+  background: inherit;
+}
+.ftu .ftu-phase .wrap .label .content {
+  position: relative;
+}
+.ftu .ftu-phase .wrap input[type=text] {
+  padding: 10px 20px;
+  border: 0;
+  background-color: #FFFFFFA0;
+  font-family: inherit;
+  font-size: 20px;
+  outline: none;
+}
+.ftu .ftu-phase .wrap input[type=text]:focus {
+  background-color: #FFF;
+}
+.ftu .ftu-phase .buttons {
+  position: absolute;
+  display: flex;
+}
+.ftu .ftu-phase .buttons.top {
+  top: 100px;
+  left: 50px;
+}
+.ftu .ftu-phase .buttons.bottom {
+  bottom: 50px;
+  right: 50px;
+}
+.ftu .ftu-phase .buttons .button {
+  padding: 10px;
+  background-color: #111;
+  color: #FFF;
+  font-size: 50px;
+  cursor: pointer;
+}
+.ftu .ftu-phase .buttons .button:hover {
+  color: #ff5f2d;
+}
+.ftu .ftu-phase .avatar-grid {
+  display: flex;
+  width: 450px;
+  flex-wrap: wrap;
+}
+.ftu .ftu-phase .avatar-grid .avatar {
+  position: relative;
+  display: flex;
+  border: 5px solid transparent;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+}
+.ftu .ftu-phase .avatar-grid .avatar:hover {
+  border: 5px solid #ff5f2d;
+}
+.ftu .ftu-phase .avatar-grid .avatar.selected {
+  border-color: #1e88e5;
+}
+.ftu .ftu-phase .avatar-grid .avatar img {
+  width: 80px;
+  height: 80px;
+}
+.ftu .ftu-phase .avatar-grid .avatar i {
+  display: flex;
+  width: 80px;
+  height: 60px;
+  font-size: 50px;
+  background-color: #111;
+  color: #FFF;
+  justify-content: center;
+  align-items: center;
+}
+.ftu .ftu-phase .avatar-grid .avatar .text {
+  display: flex;
+  background-color: #111;
+  color: #FFF;
+  font-size: 16px;
+  line-height: 20px;
+  justify-content: center;
+  align-items: center;
+}
+.ftu .ftu-phase .controls-wrapper {
+  display: flex;
+}
+.ftu .ftu-phase .controls-grid {
+  padding: 20px;
+}
+.ftu .ftu-phase .controls-header {
+  text-decoration: underline;
+  font-size: 35px;
+}
+.ftu .ftu-phase .controls-grid .key {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  font-size: 25px;
+  background-color: black;
+  color: white;
+  padding-top: 2px;
+  margin-bottom: 15px;
+  margin-right: 12px;
+  display: inline-block;
+}
+.ftu .ftu-phase .controls-grid .keyInfo {
+  font-size: 24px;
 }
