@@ -373,11 +373,12 @@ scene.add(floorMesh);
     console.log('loaded file', mesh);
     scene.add(mesh);
   } */
-  {
+  /* {
+    // portal
     const file = new Blob(['https://google.com'], {type: 'text/plain'});
     const u = URL.createObjectURL(file) + '/file.url';
     planet.addObject(u, new THREE.Vector3(0, 1.5, 0), new THREE.Quaternion());
-  }
+  } */
 })();
 
 /* const redBuildMeshMaterial = new THREE.ShaderMaterial({
