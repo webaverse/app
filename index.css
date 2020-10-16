@@ -1988,16 +1988,18 @@ body.dragging-package .footer {
 }
 .ftu .ftu-phase .avatar-grid {
   display: flex;
-  width: 425px;
+  width: 450px;
   flex-wrap: wrap;
 }
 .ftu .ftu-phase .avatar-grid .avatar {
   position: relative;
   display: flex;
-  margin-right: 5px;
-  margin-bottom: 5px;
+  border: 5px solid transparent;
   flex-direction: column;
   overflow: hidden;
+}
+.ftu .ftu-phase .avatar-grid .avatar.selected {
+  border-color: #1e88e5;
 }
 .ftu .ftu-phase .avatar-grid .avatar img {
   width: 80px;
