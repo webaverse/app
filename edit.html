@@ -194,7 +194,100 @@
     <form id=login-form></form>
   </header>
 
-  <div id="appContainer" style="display: none"></div>
+  <div id=appContainer style="display: none"></div>
+  <div class=ftu id=ftu>
+    <div class="ftu-phase ftu-phase-1">
+      <div class=wrap>
+        <div class=label><div class=background></div><div class=content>Call me...</div></div>
+        <input type=text value="Anonymous" id=ftu-username>
+      </div>
+      <div class="buttons bottom">
+        <div class="button next-phase-button">Next</div>
+      </div>
+    </div>
+    <div class="ftu-phase ftu-phase-2">
+      <div class=wrap>
+        <div class=label>Looking good</div>
+        <div class=avatar-grid id=avatar-grid>
+          <div class="avatar upload">
+            <i class="fa fa-upload"></i>
+            <div class=text>Upload VRM</div>
+            <input type=file class=hidden id=ftu-upload-avatar-input>
+          </div>
+        </div>
+      </div>
+      <div class="buttons top">
+        <div class="button prev-phase-button">Prev</div>
+      </div>
+      <div class="buttons bottom">
+        <div class="button next-phase-button">Next</div>
+      </div>
+    </div>
+    <div class="ftu-phase ftu-phase-3">
+      <div class=wrap>
+        <div class=label>Ready?</div>
+        <h1 class="controls-header">Controls</h1>
+        <div class="controls-wrapper">
+          <div class=controls-grid>
+            <div class="keyContainer">
+              <div class="key">E</div>
+              <small class="keyInfo"> Open Inventory</small>
+            </div>
+            <div class="keyContainer">
+              <div class="key">F</div>
+              <small class="keyInfo"> Open Inventory</small>
+            </div>
+            <div class="keyContainer">
+              <div class="key">F</div>
+              <small class="keyInfo"> Open Inventory</small>
+            </div>
+            <div class="keyContainer">
+              <div class="key">Z</div>
+              <small class="keyInfo"> Open Inventory</small>
+            </div>
+          </div>
+          <div class=controls-grid>
+            <div class="keyContainer">
+              <div class="key">E</div>
+              <small class="keyInfo"> Open Inventory</small>
+            </div>
+            <div class="keyContainer">
+              <div class="key">F</div>
+              <small class="keyInfo"> Open Inventory</small>
+            </div>
+            <div class="keyContainer">
+              <div class="key">F</div>
+              <small class="keyInfo"> Open Inventory</small>
+            </div>
+            <div class="keyContainer">
+              <div class="key">Z</div>
+              <small class="keyInfo"> Open Inventory</small>
+            </div>
+          </div>
+          <div class=controls-grid>
+            <div class="keyContainer">
+              <div class="key">W</div>
+              <div class="key">A</div>
+              <div class="key">S</div>
+              <div class="key">D</div>
+              <small class="keyInfo">Movement</small>
+              </div>
+              <div class="keyContainer">
+                <div class="key" style="width: 70px;">Space</div>
+                <small class="keyInfo">Jump</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="buttons top">
+        <div class="button prev-phase-button">Prev</div>
+      </div>
+      <div class="buttons bottom">
+        <div class="button next-phase-button">Next</div>
+      </div>
+    </div>
+  </div>
 
   <canvas id=canvas></canvas>
   <script src="./bin/geometry.js"></script>
