@@ -450,9 +450,13 @@ const _updateMouseMovement = e => {
   camera.updateMatrixWorld();
 };
 renderer.domElement.addEventListener('mousemove', e => {
-  const selectedTool = cameraManager.getTool();
-  if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
-    _updateMouseMovement(e);
+  if (weaponsManager.weaponWheel) {
+    weaponsManager.updateWeaponWheel(e);
+  } else {
+    const selectedTool = cameraManager.getTool();
+    if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
+      _updateMouseMovement(e);
+    }
   }
 });
 window.addEventListener('mousedown', e => {
