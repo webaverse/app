@@ -1985,6 +1985,10 @@ body.dragging-package .footer {
   background-color: #111;
   color: #FFF;
   font-size: 50px;
+  cursor: pointer;
+}
+.ftu .ftu-phase .buttons .button:hover {
+  color: #ff5f2d;
 }
 .ftu .ftu-phase .avatar-grid {
   display: flex;
@@ -1997,6 +2001,10 @@ body.dragging-package .footer {
   border: 5px solid transparent;
   flex-direction: column;
   overflow: hidden;
+  cursor: pointer;
+}
+.ftu .ftu-phase .avatar-grid .avatar:hover {
+  border: 5px solid #ff5f2d;
 }
 .ftu .ftu-phase .avatar-grid .avatar.selected {
   border-color: #1e88e5;
