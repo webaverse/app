@@ -1580,6 +1580,21 @@ wheelCanvas.style.cssText = `
   height: auto !important;
 `;
 document.body.appendChild(wheelCanvas);
+const wheelDotCanvas = (() => {
+  const size = 4;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  canvas.style.cssText = `
+    display: none;
+    position: absolute;
+  `;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#4fc3f7';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  return canvas;
+})();
+document.body.appendChild(wheelDotCanvas);
 (async () => {
   const weaponIcons = [
     '\uf256',
@@ -1642,6 +1657,7 @@ const weaponsManager = {
   cubeMesh,
   buildMode: 'wall',
   buildMat: 'wood',
+  weaponWheel: false,
   getWeapon() {
     return selectedWeapon;
   },
@@ -1649,7 +1665,27 @@ const weaponsManager = {
     selectedWeapon = newSelectedWeapon;
   },
   setWeaponWheel(newOpen) {
-    wheelCanvas.style.display = newOpen ? null : 'none';
+    if (newOpen && !weaponsManager.weaponWheel) {
+      wheelCanvas.style.display = null;
+      wheelDotCanvas.style.display = null;
+      wheelDotCanvas.style.left = `${window.innerWidth/2}px`;
+      wheelDotCanvas.style.top = `${window.innerHeight/2}px`;
+      weaponsManager.weaponWheel = true;
+    } else if (weaponsManager.weaponWheel && !newOpen) {
+      wheelCanvas.style.display = 'none';
+      wheelDotCanvas.style.display = 'none';
+      weaponsManager.weaponWheel = false;
+    }
+  },
+  updateWeaponWheel(e) {
+    const {movementX, movementY} = e;
+
+    let left = parseInt(wheelDotCanvas.style.left, 10);
+    let top = parseInt(wheelDotCanvas.style.top, 10);
+    left += movementX;
+    top += movementY;
+    wheelDotCanvas.style.left = `${left}px`;
+    wheelDotCanvas.style.top = `${top}px`;
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);
