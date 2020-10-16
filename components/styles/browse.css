@@ -17,6 +17,7 @@
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
     text-align: center;
     cursor: pointer;
+    border: 2px #ffffff00 solid;
 }
 
 .twoD-browse .twoD-browse-list .twoD-browse-card.selected {
