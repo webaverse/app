@@ -156,12 +156,14 @@
     padding: 15px;
 }
 
+.twoD-inventory-preview-content.hidden {
+    display: none;
+}
+
 .twoD-inventory-preview-actions {
     text-align: center;
 }
-.twoD-inventory-preview-actions.hidden {
-    display: none;
-}
+
 
 .twoD-inventory-preview-header {
     font-size: 26px;

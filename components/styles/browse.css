@@ -81,6 +81,10 @@
     padding: 15px;
 }
 
+.twoD-browse-preview-content.hidden {
+    display: none;
+}
+
 .twoD-browse-preview-actions {
     text-align: center;
 }

@@ -244,9 +244,6 @@ export const onclickBindings = {
 inventory.addEventListener('ownedfilesupdate', e => {
   const { menu } = state;
   menu.inventory.items = e.data;
-  if(!menu.inventory.selectedItem) {
-    menu.inventory.selectedItem = e.data[0];
-  }
   updateProps({
     menu,
   });
