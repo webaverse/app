@@ -4,7 +4,7 @@ import {VOXLoader} from './VOXLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 import {getExt, mergeMeshes} from './util.js';
 // import {bake} from './bakeUtils.js';
-import {makeIconMesh} from './vr-ui.js';
+import {makeIconMesh, makeTextMesh} from './vr-ui.js';
 import {appManager} from './app-object.js';
 import wbn from './wbn.js';
 // import {storageHost} from './constants.js';
@@ -389,7 +389,9 @@ const _loadWebBundle = async file => {
 
   return mesh;
 };
-const _loadLink = async () => {
+const _loadLink = async file => {
+  const text = await file.text();
+
   const geometry = new THREE.CircleBufferGeometry(1, 32)
     .applyMatrix4(new THREE.Matrix4().makeScale(0.5, 1, 1));
   const material = new THREE.ShaderMaterial({
@@ -462,6 +464,10 @@ const _loadLink = async () => {
   };
   // portalMesh.position.y = 1;
   // scene.add(portalMesh);
+
+  const textMesh = makeTextMesh(text.slice(0, 80), undefined, 0.2, 'center', 'middle');
+  textMesh.position.y = 1.2;
+  portalMesh.add(textMesh);
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
