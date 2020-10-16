@@ -305,7 +305,8 @@ const _loadWebBundle = async file => {
     appManager.destroyApp(appId);
   };
 
-  const app = appManager.createApp(appId, mesh);
+  const app = appManager.createApp(appId);
+  app.object = mesh;
   const localImportMap = _clone(importMap);
   localImportMap.app = (() => {
     const s = `\
