@@ -1569,6 +1569,71 @@ renderer.domElement.addEventListener('wheel', e => {
   }
 });
 
+// setTimeout(() => {
+const weaponIcons = [
+  "\uf256",
+  "\uf710",
+  "\uf1e2",
+  "\uf6b2",
+  "\uf713",
+  "\uf279",
+  "\uf54e",
+  "\uf1b2",
+  "\uf53f",
+  "\uf5d4",
+  "\uf0e7",
+  "\uf040",
+  "\uf55d",
+  "\ue025",
+  "\uf245",
+];
+const wheelCanvas = (() => {
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = `
+    position: absolute;
+    top: 100px;
+    left: 100px;
+    width: auto !important;
+    height: auto !important;
+  `;
+  canvas.width = size;
+  canvas.height = size;
+
+  const ctx = canvas.getContext('2d');
+  const numSlices = weapons.length;
+  const selectedSlice = 0;
+  for (let i = 0; i < numSlices; i++) {
+    ctx.fillStyle = i === selectedSlice ? '#4fc3f7' : '#111';
+    ctx.beginPath();
+    const interval = Math.PI*0.01;
+    const startAngle = i*Math.PI*2/numSlices + interval - Math.PI/2;
+    const endAngle = (i+1)*Math.PI*2/numSlices - interval - Math.PI/2;
+    ctx.arc(size/2, size/2, size/2, startAngle, endAngle, false);
+    ctx.arc(size/2, size/2, size/4, endAngle, startAngle, true);
+    // ctx.lineTo(size/2, size/2);
+    ctx.fill();
+
+    // startAngle += Math.PI/4;
+    // endAngle += Math.PI/4;
+    ctx.font = '20px \'Font Awesome 5 Pro\'';
+    ctx.fillStyle = '#FFF';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    let midAngle = (startAngle + endAngle)/2;
+    // midAngle += Math.PI/4;
+    const weapon = weapons[i];
+    const label = weapon.querySelector('.label');
+    ctx.fillText(weaponIcons[i], size/2 + Math.cos(midAngle)*(size/2+size/4)/2, size/2 + Math.sin(midAngle)*(size/2+size/4)/2);
+    ctx.font = '12px Muli';
+    ctx.fillText(label.innerText, size/2 + Math.cos(midAngle)*(size/2+size/4)/2, size/2 + Math.sin(midAngle)*(size/2+size/4)/2 + 20);
+  }
+
+  return canvas;
+})();
+document.body.appendChild(wheelCanvas);
+// }, 10000);
+
 const weaponsManager = {
   weapons,
   cubeMesh,

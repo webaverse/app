@@ -995,46 +995,6 @@ const _initializeLogin = async () => {
 };
 _initializeLogin();
 
-const wheelCanvas = (() => {
-  const size = 512;
-  const canvas = document.createElement('canvas');
-  canvas.style.cssText = `
-    position: absolute;
-    top: 100px;
-    left: 100px;
-    width: auto !important;
-    height: auto !important;
-  `;
-  canvas.width = size;
-  canvas.height = size;
-
-  const ctx = canvas.getContext('2d');
-  const numSlices = 6;
-  const selectedSlice = 0;
-  for (let i = 0; i < numSlices; i++) {
-    ctx.fillStyle = i === selectedSlice ? '#4fc3f7' : '#111';
-    ctx.beginPath();
-    const startAngle = i*Math.PI*2/numSlices + Math.PI*0.02 - Math.PI/2;
-    const endAngle = (i+1)*Math.PI*2/numSlices - Math.PI*0.02 - Math.PI/2;
-    ctx.arc(size/2, size/2, size/2, startAngle, endAngle, false);
-    ctx.arc(size/2, size/2, size/4, endAngle, startAngle, true);
-    // ctx.lineTo(size/2, size/2);
-    ctx.fill();
-
-    // startAngle += Math.PI/4;
-    // endAngle += Math.PI/4;
-    ctx.fillStyle = '#FFF';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    let midAngle = (startAngle + endAngle)/2;
-    // midAngle += Math.PI/4;
-    ctx.fillText('Lollercopter ' + i, size/2 + Math.cos(midAngle)*(size/2+size/4)/2, size/2 + Math.sin(midAngle)*(size/2+size/4)/2);
-  }
-
-  return canvas;
-})();
-document.body.appendChild(wheelCanvas);
-
 const _initializeXr = () => {
   let currentSession = null;
   function onSessionStarted(session) {
