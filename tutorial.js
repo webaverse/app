@@ -1,4 +1,5 @@
 import {loginManager} from './login.js';
+import {rigManager} from './rig.js';
 import {parseQuery, bindUploadFileButton, getExt} from './util.js';
 
 const ftu = document.getElementById('ftu');
@@ -39,17 +40,15 @@ const avatarGridUpload = avatarGrid.querySelector('.avatar.upload');
   const avatarDiv = document.createElement('div');
   avatarDiv.classList.add('avatar');
   avatarDiv.classList.add('model');
-  avatarDiv.setAttribute('avatar', url);
-  avatarDiv.innerHTML = `<img src="${previewUrl}">`
-  avatarGrid.insertBefore(avatarDiv, avatarGridUpload);
-});
-
-Array.from(document.querySelectorAll('.avatar-grid > .avatar.model')).forEach(avatarButton => {
-  avatarButton.onclick = () => {
-    console.log('click avatar');
-    const avatar = avatarButton.getAttribute('avatar');
-    loginManager.setAvatar(avatar);
+  // avatarDiv.setAttribute('avatar', url);
+  avatarDiv.innerHTML = `<img src="${previewUrl}">`;
+  avatarDiv.onclick = () => {
+    // console.log('click avatar');
+    // loginManager.setAvatar(url);
+    rigManager.setLocalAvatarUrl(url, name);
   };
+
+  avatarGrid.insertBefore(avatarDiv, avatarGridUpload);
 });
 
 bindUploadFileButton(document.getElementById('ftu-upload-avatar-input'), async file => {
