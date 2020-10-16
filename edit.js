@@ -6,7 +6,7 @@ import * as THREE from './three.module.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {TransformControls} from './TransformControls.js';
 import {tryLogin, loginManager} from './login.js';
-// import runtime from './runtime.js';
+import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
 // import {makeRayMesh} from './vr-ui.js';
