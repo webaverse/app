@@ -373,6 +373,13 @@ scene.add(floorMesh);
     console.log('loaded file', mesh);
     scene.add(mesh);
   } */
+  {
+    const urlFile = new Blob(['https://google.com'], {type: 'text/plain'});
+    urlFile.name = 'google.url';
+    const urlMesh = await runtime.loadFile(urlFile);
+    urlMesh.position.y = 1;
+    scene.add(urlMesh);
+  }
 })();
 
 /* const redBuildMeshMaterial = new THREE.ShaderMaterial({
