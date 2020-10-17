@@ -3,9 +3,6 @@ import localforage from './localforage.js';
 const iframe = document.createElement('iframe');
 iframe.onload = () => {
   console.log('iframe load');
-  iframe.contentWindow.onmessage = e => {
-    console.log('got message', e.data);
-  };
   iframe.contentWindow.postMessage({
     _localstorage: true,
     url: window.location.href,
@@ -16,6 +13,16 @@ iframe.onerror = err => {
 };
 iframe.src = 'https://localstorage.webaverse.com/';
 document.body.appendChild(iframe);
+
+const _message = e => {
+  const j = e.data;
+  if (j && j._localstorage) {
+    window.removeEventListener('message', _message);
+
+    console.log('got json', j);
+  }
+};
+window.addEventListener('message', _message);
 
 const tempStorage = {};
 const storage = {
