@@ -1,5 +1,6 @@
 import localforage from './localforage.js';
 import {makePromise} from './util.js';
+import {localstorageHost} from './constants.js';
 
 let ids = 0;
 const loadPromise = new Promise((accept, reject) => {
@@ -13,7 +14,7 @@ const loadPromise = new Promise((accept, reject) => {
     accept(channel.port1);
   };
   iframe.onerror = reject;
-  iframe.src = 'https://localstorage.webaverse.com/';
+  iframe.src = localstorageHost;
   iframe.setAttribute('frameborder', 0);
   iframe.style.position = 'absolute';
   iframe.style.top = '-4096px';
