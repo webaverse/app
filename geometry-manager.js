@@ -1345,7 +1345,7 @@ const geometryWorker = (() => {
       // const z = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 2];
       const index = moduleInstance.HEAP32[subparcelOffset / Uint32Array.BYTES_PER_ELEMENT + 3];
       const uint8Array = moduleInstance.HEAPU8.slice(subparcelOffset, subparcelOffset + subparcelSize);
-      storage.setRawTemp(`subparcel:${index}`, uint8Array);
+      // storage.setRawTemp(`subparcel:${index}`, uint8Array);
       /* .then(() => {
           console.log('set raw ok', x, y, z, `subparcel:${index}`);
         }); */
