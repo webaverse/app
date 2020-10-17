@@ -165,7 +165,6 @@ async function tryLogin() {
             Switch account
           </nav>
         </div>
-        <!-- <input type=submit value="Log out" class="button highlight"> -->
       </nav>
     </div>
     <div class="phase-content phaseless-content">
