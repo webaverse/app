@@ -5,24 +5,11 @@ let ids = 0;
 const loadPromise = new Promise((accept, reject) => {
   const iframe = document.createElement('iframe');
   iframe.onload = () => {
-    console.log('iframe load outer 1');
-
     const channel = new MessageChannel();
-    channel.port1.onmessage = e => {
-      console.log('got message outer', e.data);
-    };
-
     iframe.contentWindow.postMessage({
       _localstorage: true,
       port: channel.port2,
     }, '*', [channel.port2]);
-
-    /* channel.port1.postMessage({
-
-    }); */
-    // window.port = channel.port1;
-
-    console.log('iframe load outer 2');
     accept(channel.port1);
   };
   iframe.onerror = reject;
