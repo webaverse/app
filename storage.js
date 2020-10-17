@@ -21,7 +21,6 @@ const loadPromise = new Promise((accept, reject) => {
   document.body.appendChild(iframe);
 });
 
-const tempStorage = {};
 const storage = {
   get(key) {
     return loadPromise.then(port => new Promise((accept, reject) => {
