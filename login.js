@@ -164,6 +164,10 @@ async function tryLogin() {
             <i class="fal fa-sign-in"></i>
             Switch account
           </nav>
+          <nav class=subbutton id=logout-button>
+            <i class="fal fa-sign-out"></i>
+            Log out
+          </nav>
         </div>
       </nav>
     </div>
@@ -235,6 +239,10 @@ async function tryLogin() {
     loginForm.classList.remove('phase-3');
     loginForm.classList.add('phase-1');
     loginEmail.focus();
+  });
+  document.getElementById('logout-button').addEventListener('click', async e => {
+    await storage.remove('loginToken');
+    window.location.reload();
   });
   const unregisteredWarning = document.getElementById('unregistered-warning');
 
