@@ -2,27 +2,35 @@ import localforage from './localforage.js';
 
 const iframe = document.createElement('iframe');
 iframe.onload = () => {
-  console.log('iframe load outer');
+  console.log('iframe load outer 1');
+
+  const channel = new MessageChannel();
+  channel.port1.onmessage = e => {
+    console.log('got message outer', e.data);
+  };
+
+  /* iframe.contentWindow.onmessage = e => {
+    const j = e.data;
+    if (j && j._localstorage) {
+      window.removeEventListener('message', _message);
+      console.log('got json', j);
+      j.port.postMessage({lol: zol});
+    }
+  }; */
   iframe.contentWindow.postMessage({
     _localstorage: true,
-    url: window.location.href,
-  }, '*');
+    port: channel.port2,
+  }, '*', [channel.port2]);
+
+  channel.port1.postMessage({lol: 'zol'});
+
+  console.log('iframe load outer 2');
 };
 iframe.onerror = err => {
   console.warn('iframe error', err);
 };
 iframe.src = 'https://localstorage.webaverse.com/';
 document.body.appendChild(iframe);
-
-const _message = e => {
-  const j = e.data;
-  if (j && j._localstorage) {
-    window.removeEventListener('message', _message);
-
-    console.log('got json', j);
-  }
-};
-window.addEventListener('message', _message);
 
 const tempStorage = {};
 const storage = {
