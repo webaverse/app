@@ -2934,8 +2934,8 @@ const geometryWorker = (() => {
           (async () => {
             for (let i = 0; i < numAddedSubparcels; i++) {
               const subparcelOffset = moduleInstance.HEAP32[addedSubparcelsOffset / Uint32Array.BYTES_PER_ELEMENT + i];
-              const index = moduleInstance.HEAP32[subparcelOffset / Uint32Array.BYTES_PER_ELEMENT + 3];
-              const uint8Array = await storage.getRawTemp(`subparcel:${index}`);
+              /* const index = moduleInstance.HEAP32[subparcelOffset / Uint32Array.BYTES_PER_ELEMENT + 3];
+              const uint8Array = await storage.getRawTemp(`subparcel:${index}`); */
               moduleInstance._subparcelUpdate(
                 geometryManager.tracker,
                 threadPool,
