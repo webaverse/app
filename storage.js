@@ -2,7 +2,7 @@ import localforage from './localforage.js';
 
 const iframe = document.createElement('iframe');
 iframe.onload = () => {
-  console.log('iframe load');
+  console.log('iframe load outer');
   iframe.contentWindow.postMessage({
     _localstorage: true,
     url: window.location.href,
