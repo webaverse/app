@@ -54,9 +54,6 @@ const storage = {
       });
     }));
   },
-  /* async getRaw(k) {
-    return await localforage.getItem(k);
-  }, */
   set(key, value) {
     return loadPromise.then(port => new Promise((accept, reject) => {
       const _message = e => {
@@ -76,9 +73,6 @@ const storage = {
       });
     }));
   },
-  /* async setRaw(k, v) {
-    await localforage.setItem(k, v);
-  }, */
   remove(key) {
     return loadPromise.then(port => new Promise((accept, reject) => {
       const _message = e => {
@@ -97,14 +91,5 @@ const storage = {
       });
     }));
   },
-  /* async keys() {
-    return await localforage.keys();
-  },
-  async getRawTemp(k) {
-    return tempStorage[k];
-  },
-  async setRawTemp(k, v) {
-    tempStorage[k] = v;
-  }, */
 };
 export default storage;
