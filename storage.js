@@ -11,6 +11,7 @@ const loadPromise = new Promise((accept, reject) => {
       _localstorage: true,
       port: channel.port2,
     }, '*', [channel.port2]);
+    channel.port1.start();
     accept(channel.port1);
   };
   iframe.onerror = reject;
