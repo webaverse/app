@@ -1,7 +1,20 @@
 import localforage from './localforage.js';
 
-const tempStorage = {};
+const iframe = document.createElement('iframe');
+iframe.onload = () => {
+  console.log('iframe load');
+  iframe.contentWindow.onmessage = e => {
+    console.log('got message', e.data);
+  };
+  iframe.contentWindow.postMessage(JSON.stringify({url: window.location.href}));
+};
+iframe.onerror = err => {
+  console.warn('iframe error', err);
+};
+iframe.src = 'https://localstorage.webaverse.com/';
+document.body.appendChild(iframe);
 
+const tempStorage = {};
 const storage = {
   async get(k) {
     const s = await localforage.getItem(k);
