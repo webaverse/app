@@ -6,7 +6,10 @@ iframe.onload = () => {
   iframe.contentWindow.onmessage = e => {
     console.log('got message', e.data);
   };
-  iframe.contentWindow.postMessage(JSON.stringify({url: window.location.href}));
+  iframe.contentWindow.postMessage({
+    _localstorage: true,
+    url: window.location.href,
+  });
 };
 iframe.onerror = err => {
   console.warn('iframe error', err);
