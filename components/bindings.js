@@ -11,9 +11,11 @@ export const setBindings = (appContainer, onclickMap) => {
 				el.onclick = e => {
 					const id = el.getAttribute('id');
 					const name = el.getAttribute('name');
+					const href = el.getAttribute('href');
 					onclickMap[handlerName]({
 						id,
-						name
+						name,
+						href,
 					});
 				};
 			}
@@ -27,9 +29,11 @@ export const setBindings = (appContainer, onclickMap) => {
 				bindUploadFileButton(el, file => {
 					const id = el.getAttribute('id');
 					const name = el.getAttribute('name');
+					const href = el.getAttribute('href');
 					onclickMap[handlerName]({
 						id,
 						name,
+						href,
 						file,
 					});
 				});

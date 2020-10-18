@@ -22,6 +22,7 @@ ftuUsername.addEventListener('keydown', e => {
 
 const avatarGrid = document.getElementById('avatar-grid');
 const avatarGridUpload = avatarGrid.querySelector('.avatar.upload');
+let selectedAvatar = '';
 const avatarDivs = [
   'male.vrm',
   'female.vrm',
@@ -46,8 +47,8 @@ const avatarDivs = [
       avatarDiv.classList.remove('selected');
     }
     avatarDiv.classList.add('selected');
-    // loginManager.setAvatar(url);
     rigManager.setLocalAvatarUrl(url, name);
+    selectedAvatar = url;
   };
 
   avatarGrid.insertBefore(avatarDiv, avatarGridUpload);
@@ -70,7 +71,7 @@ const _nextPhase = async () => {
   if (ftuPhase <= 3) {
     ftu.classList.add('phase-' + ftuPhase);
   } else {
-    await loginManager.setFtu(ftuUsername.value, '');
+    await loginManager.setFtu(ftuUsername.value, selectedAvatar);
   }
 };
 Array.from(document.querySelectorAll('.next-phase-button')).forEach(nextPhaseButton => {
