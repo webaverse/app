@@ -1,4 +1,3 @@
-import localforage from './localforage.js';
 import {makePromise} from './util.js';
 import {localstorageHost} from './constants.js';
 
