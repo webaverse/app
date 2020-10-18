@@ -1,6 +1,7 @@
 import storage from './storage.js';
 import {createAccount, getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
-import {storageHost, previewExt} from './constants.js'
+import {storageHost, previewHost, previewExt} from './constants.js';
+import {getExt} from './util.js';
 
 const loginEndpoint = 'https://login.exokit.org';
 // const usersEndpoint = 'https://users.exokit.org';
@@ -55,14 +56,16 @@ async function pullUserObject() {
   });
   const response = await res.json();
   const name = response.encodedData.value[0].value ? response.encodedData.value[0].value.value : 'Anonymous';
-  const avatarHash = response.encodedData.value[1].value && response.encodedData.value[1].value.value;
+  const avatarUrl = response.encodedData.value[1].value && response.encodedData.value[1].value.value;
   const avatarFileName = response.encodedData.value[2].value && response.encodedData.value[2].value.value;
-  const ftu = !!(response.encodedData.value[3].value && response.encodedData.value[3].value.value);
+  const avatarPreview = response.encodedData.value[3].value && response.encodedData.value[3].value.value;
+  const ftu = !!(response.encodedData.value[3].value && response.encodedData.value[4].value.value);
   userObject = {
     name,
     avatar: {
-      hash: avatarHash,
+      url: avatarUrl,
       filename: avatarFileName,
+      preview: avatarPreview,
     },
     ftu,
   };
@@ -380,46 +383,51 @@ class LoginManager extends EventTarget {
   async setAvatar(id) {
     if (loginToken) {
       const {mnemonic, addr} = loginToken;
-      const [_setResponse, avatarSpec] = await Promise.all([
-        (async () => {
-          const contractSource = await getContractSource('setUserData.cdc');
+      const {filename, hash} = await (async () => {
+        const contractSource = await getContractSource('getNft.cdc');
 
-          const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-            method: 'POST',
-            body: JSON.stringify({
-              address: addr,
-              mnemonic,
+        const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+          method: 'POST',
+          body: JSON.stringify({
+            limit: 100,
+            script: contractSource
+              .replace(/ARG0/g, id),
+            wait: true,
+          }),
+        });
+        const response2 = await res.json();
+        const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
+        return {hash, filename};
+      })();
+      const url = `${storageHost}/${hash}`;
+      const ext = getExt(filename);
+      const preview = `${previewHost}/${hash}.${ext}/preview.${previewExt}`;
+      {
+        const contractSource = await getContractSource('setUserDataMulti.cdc');
 
-              limit: 100,
-              transaction: contractSource
-                .replace(/ARG0/g, "avatar")
-                .replace(/ARG1/g, id),
-              wait: true,
-            }),
-          });
-          return await res.json();
-        })(),
-        (async () => {
-          const contractSource = await getContractSource('getNft.cdc');
+        const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+          method: 'POST',
+          body: JSON.stringify({
+            address: loginToken.addr,
+            mnemonic: loginToken.mnemonic,
 
-          const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-            method: 'POST',
-            body: JSON.stringify({
-              limit: 100,
-              script: contractSource
-                .replace(/ARG0/g, id),
-              wait: true,
-            }),
-          });
-          const response2 = await res.json();
-          const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
-          return {hash, filename};
-        })(),
-      ]);
-      userObject.avatar = avatarSpec;
+            limit: 100,
+            transaction: contractSource
+              .replace(/ARG0/g, JSON.stringify(['name', 'avatarUrl', 'avatarFilename', 'avatarPreview', 'ftu']))
+              .replace(/ARG1/g, JSON.stringify([name, url, filename, preview, '1'])),
+            wait: true,
+          }),
+        });
+        await res.json();
+      }
+      userObject.avatar = {
+        url,
+        filename,
+        preview,
+      };
       // await pushUserObject();
       this.dispatchEvent(new MessageEvent('avatarchange', {
-        data: avatarSpec,
+        data: userObject.avatar,
       }));
     } else {
       throw new Error('not logged in');
@@ -430,7 +438,9 @@ class LoginManager extends EventTarget {
     return !!(userObject && userObject.ftu);
   }
 
-  async setFtu(name, avatar) {
+  async setFtu(name, avatarUrl) {
+    const avatarPreview = `${previewHost}/[${avatarUrl}]/preview.${previewExt}`;
+
     const contractSource = await getContractSource('setUserDataMulti.cdc');
 
     const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
@@ -441,8 +451,8 @@ class LoginManager extends EventTarget {
 
         limit: 100,
         transaction: contractSource
-          .replace(/ARG0/g, JSON.stringify(['name', 'avatar', 'ftu']))
-          .replace(/ARG1/g, JSON.stringify([name, avatar, '1'])),
+          .replace(/ARG0/g, JSON.stringify(['name', 'avatarUrl', 'avatarFilename', 'avatarPreview', 'ftu']))
+          .replace(/ARG1/g, JSON.stringify([name, avatarUrl, avatarUrl, avatarPreview, '1'])),
         wait: true,
       }),
     });
@@ -451,8 +461,13 @@ class LoginManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('usernamechange', {
       data: name,
     }));
+    userObject.avatar = {
+      url: avatarUrl,
+      filename: avatarUrl,
+      preview: avatarPreview,
+    };
     this.dispatchEvent(new MessageEvent('avatarchange', {
-      data: avatar,
+      data: userObject.avatar,
     }));
   }
 
