@@ -7,6 +7,7 @@ export const state = {
         username: 'Anonymous',
         avatarHash: null,
         avatarFileName: null,
+        avatarPreview: null,
         inventory: {
         	balance: 0,
             items: [],
