@@ -697,7 +697,7 @@ const _connectRoom = async (roomName, worldURL) => {
           peerRig.textMesh.quaternion.setFromEuler(localEuler); 
           */
         } else if (method === 'status') {
-          const {peerId, status: {name, avatarHash, avatarFileName, address}} = j;
+          const {peerId, status: {name, avatarUrl, avatarFileName, address}} = j;
           const peerRig = rigManager.peerRigs.get(peerId);
           peerRig.address = address;
           peerConnection.address = address;
@@ -710,7 +710,7 @@ const _connectRoom = async (roomName, worldURL) => {
             updated = true;
           }
 
-          const newAvatarUrl = avatarHash ? `${storageHost}/${avatarHash}` : null;
+          const newAvatarUrl = avatarUrl || null;
           const currentAvatarUrl = peerRig.avatarUrl;
           if (currentAvatarUrl !== newAvatarUrl) {
             rigManager.setPeerAvatarUrl(newAvatarUrl, avatarFileName, peerId);
@@ -760,7 +760,7 @@ const _connectRoom = async (roomName, worldURL) => {
         if (channelConnection.dataChannel) {
           const name = loginManager.getUsername();
           const avatarSpec = loginManager.getAvatar();
-          const avatarHash = avatarSpec && avatarSpec.hash;
+          const avatarUrl = avatarSpec && avatarSpec.url;
           const avatarFileName = avatarSpec && avatarSpec.filename;
           const address = loginManager.getAddress();
           channelConnection.send(JSON.stringify({
@@ -768,7 +768,7 @@ const _connectRoom = async (roomName, worldURL) => {
             peerId: channelConnection.connectionId,
             status: {
               name,
-              avatarHash,
+              avatarUrl,
               avatarFileName,
               address
             },
