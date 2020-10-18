@@ -413,8 +413,8 @@ class LoginManager extends EventTarget {
 
             limit: 100,
             transaction: contractSource
-              .replace(/ARG0/g, JSON.stringify(['name', 'avatarUrl', 'avatarFilename', 'avatarPreview', 'ftu']))
-              .replace(/ARG1/g, JSON.stringify([name, url, filename, preview, '1'])),
+              .replace(/ARG0/g, JSON.stringify(['avatarUrl', 'avatarFilename', 'avatarPreview']))
+              .replace(/ARG1/g, JSON.stringify([url, filename, preview])),
             wait: true,
           }),
         });
