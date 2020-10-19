@@ -62,41 +62,98 @@ export const onclickBindings = {
       visible: false,
       toPeer: null,
       fromPeer: null,
-      selectedItems: [],
-      agreement: false
+      selectedItem: null,
+      agreement: false,
+      inventoryPage: 0,
+      peersPage: 0,
+    }
+    setState({
+      menu,
+    });
+  },
+  'threeD-trade-cancel': (e) => {
+    const { menu } = getState();
+    menu.trade = {
+      visible: false,
+      toPeer: null,
+      fromPeer: null,
+      selectedItem: null,
+      agreement: false,
+      inventoryPage: 0,
+      peersPage: 0,
     }
     setState({
       menu,
     });
   },
   'threeD-trade-peers-card': (e) => {
+    console.log('hello', e)
     const { menu } = getState();
     menu.trade.toPeer = e.name;
     setState({ menu });
   },
   'threeD-trade-inventory-back': (e) => {
     const { menu } = getState();
-    --menu.trade.inventoryPage;
-    console.log(menu.trade.inventoryPage)
+    menu.trade.inventoryPage > 0 ? --menu.trade.inventoryPage : null;
     setState({ menu });
   },
   'threeD-trade-inventory-forward': (e) => {
     const { menu } = getState();
     ++menu.trade.inventoryPage;
-    console.log(menu.trade.inventoryPage)
     setState({ menu });
   },
   'threeD-trade-peers-back': (e) => {
     const { menu } = getState();
-    --menu.trade.peersPage;
-    console.log(menu.trade.peersPage)
+    menu.trade.peersPage > 0 ? --menu.trade.peersPage : null;
     setState({ menu });
   },
   'threeD-trade-peers-forward': (e) => {
     const { menu } = getState();
     ++menu.trade.peersPage;
-    console.log(menu.trade.peersPage)
     setState({ menu });
+  },
+  'threeD-trade-accept': async (e) => {
+    const { menu } = getState();
+    if (menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem) {
+
+      const trade = {
+        toPeer: menu.trade.toPeer,
+        fromPeer: menu.trade.fromPeer,
+        item: menu.trade.selectedItem
+      };
+
+      const contractSource = await getContractSource('transferNft.cdc');
+      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
+        method: 'POST',
+        body: JSON.stringify({
+          address: trade.fromPeer,
+          mnemonic: loginManager.getMnemonic(),
+          limit: 1000,
+          transaction: contractSource
+            .replace(/ARG0/g, trade.item)
+            .replace(/ARG1/g, '0x' + trade.toPeer)
+            .replace(/ARG2/g, 1),
+          wait: true,
+        }),
+      });
+      const response2 = await res.json();
+      console.log(response2)
+
+      menu.trade = {
+        visible: false,
+        toPeer: null,
+        fromPeer: null,
+        selectedItem: null,
+        agreement: false,
+        inventoryPage: 0,
+        peersPage: 0,
+      }
+    } else {
+      // no agreement
+    }
+    setState({
+      menu,
+    });
   },
   'twoD-menuNavTab-inventory': e => {
     const { menu } = getState();
@@ -158,8 +215,10 @@ export const onclickBindings = {
       visible: false,
       toPeer: null,
       fromPeer: null,
-      selectedItems: [],
-      agreement: false
+      selectedItem: null,
+      agreement: false,
+      inventoryPage: 0,
+      peersPage: 0,
     }
     setState({
       menu,
