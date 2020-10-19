@@ -59,7 +59,7 @@ async function pullUserObject() {
   const avatarUrl = response.encodedData.value[1].value && response.encodedData.value[1].value.value;
   const avatarFileName = response.encodedData.value[2].value && response.encodedData.value[2].value.value;
   const avatarPreview = response.encodedData.value[3].value && response.encodedData.value[3].value.value;
-  const ftu = !!(response.encodedData.value[3].value && response.encodedData.value[4].value.value);
+  const ftu = !!(response.encodedData.value[4].value && response.encodedData.value[4].value.value);
   userObject = {
     name,
     avatar: {
