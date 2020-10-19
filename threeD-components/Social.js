@@ -56,6 +56,7 @@ const Social = (props = {}) => {
     <div class=threeD-social>
       <div class=peer-list>
         ${peers.length > 0 ? peers.map(rig => {
+          console.log(rig)
           return `<a class=peer id=peer name=${rig.peerConnection.connectionId}>
             <div class=name>${rig.textMesh.text}</div>
             <div class=chevron>&gt;</div>
@@ -68,7 +69,7 @@ const Social = (props = {}) => {
         ${selectedPeerId !== null ? `\
           ${selectedAvatarUrl ? `<img src="${selectedAvatarUrl}">` : '<div class=img-placeholder>No avatar</div>'}
           <div class=name>${selectedPeerName}</div>
-          ${selectedId !== null ? `<a class=button id=send-nft name=${selectedId}>Send NFT</a>` : ''}
+          ${selectedPeerId !== null ? `<a class="button" id="threeD-social-tradeBtn" name="${selectedPeerId}">Trade</a>` : ''}
         ` : ''}
       <div>
     </div>
