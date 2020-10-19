@@ -1,9 +1,9 @@
 const InventoryCard = (props = {}) => {
   return `
-      <div class="threeD-trade-inventory-card ${props.selected ? 'selected' : ''}" onclick="threeD-trade-inventory-card" name="${props.id}" id="threeD-trade-inventory-card">
-          <img class="threeD-trade-inventory-card-preview" src="${props.preview}"></img>
+      <a class="threeD-trade-inventory-card ${props.selected ? 'selected' : ''}" onclick="threeD-trade-inventory-card" name="${props.id}" id="threeD-trade-inventory-card">
+          <img class="threeD-trade-inventory-card-preview" src="${props.preview}" style="height: 50px; width: 50px;"></img>
           <h4 class="threeD-trade-inventory-card-name">${props.name}</h4>
-      </div>
+      </a>
   `;
 }
 
@@ -83,8 +83,8 @@ const Trade = props => {
   }
   
   .threeD-trade-inventory-card-preview {
-    height: 220px;
-    width: 100%;
+    height: 100px;
+    width: 100px;
   }
   
   .threeD-trade-inventory-card-name {

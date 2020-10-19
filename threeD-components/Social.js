@@ -57,7 +57,7 @@ const Social = (props = {}) => {
       <div class=peer-list>
         ${peers.length > 0 ? peers.map(rig => {
           console.log(rig)
-          return `<a class=peer id=peer name=${rig.peerConnection.connectionId}>
+          return `<a class=peer id=peer name=${rig?.peerConnection?.connectionId}>
             <div class=name>${rig.textMesh.text}</div>
             <div class=chevron>&gt;</div>
           </a>`;
