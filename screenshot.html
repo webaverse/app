@@ -473,6 +473,7 @@
                   accept(img);
                 };
                 img.onerror = reject;
+                img.crossOrigin = 'Anonymous';
                 img.src = url;
               });
               const canvas = document.createElement('canvas');
