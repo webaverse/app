@@ -69,6 +69,35 @@ export const onclickBindings = {
       menu,
     });
   },
+  'threeD-trade-peers-card': (e) => {
+    const { menu } = getState();
+    menu.trade.toPeer = e.name;
+    setState({ menu });
+  },
+  'threeD-trade-inventory-back': (e) => {
+    const { menu } = getState();
+    --menu.trade.inventoryPage;
+    console.log(menu.trade.inventoryPage)
+    setState({ menu });
+  },
+  'threeD-trade-inventory-forward': (e) => {
+    const { menu } = getState();
+    ++menu.trade.inventoryPage;
+    console.log(menu.trade.inventoryPage)
+    setState({ menu });
+  },
+  'threeD-trade-peers-back': (e) => {
+    const { menu } = getState();
+    --menu.trade.peersPage;
+    console.log(menu.trade.peersPage)
+    setState({ menu });
+  },
+  'threeD-trade-peers-forward': (e) => {
+    const { menu } = getState();
+    ++menu.trade.peersPage;
+    console.log(menu.trade.peersPage)
+    setState({ menu });
+  },
   'twoD-menuNavTab-inventory': e => {
     const { menu } = getState();
     menu.activeTab = 'inventory';

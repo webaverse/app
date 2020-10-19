@@ -35,7 +35,9 @@ export const state = {
             toPeer: null,
             fromPeer: null,
             selectedItem: null,
-            agreement: false
+            agreement: false,
+            inventoryPage: 0,
+            peersPage: 0,
         }
     },
     weaponWheel: {
