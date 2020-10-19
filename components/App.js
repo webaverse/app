@@ -155,6 +155,11 @@ export const onclickBindings = {
       menu,
     });
   },
+  'threeD-trade-inventory-card': e => {
+    const { menu } = getState();
+    menu.trade.selectedItem = parseInt(e.name, 10);
+    setState({ menu });
+  },
   'twoD-menuNavTab-inventory': e => {
     const { menu } = getState();
     menu.activeTab = 'inventory';

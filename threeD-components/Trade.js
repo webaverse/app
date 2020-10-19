@@ -9,7 +9,7 @@ const InventoryCard = (props = {}) => {
 
 const PeerCard = (props) => {
   return `
-    <a class="threeD-trade-peers-card ${props.selected ? 'selected' : ''}" onclick="threeD-trade-peers-card" name="${props.peerAddress}" id="threeD-trade-peers-card-${props.peerAddress}">
+    <a class="threeD-trade-peers-card ${props.selected ? 'selected' : ''}" onclick="threeD-trade-peers-card" name="${props.peerAddress}" id="threeD-trade-peers-card">
       <div class="threeD-trade-peers-card-imgWrap">
         <img class="threeD-trade-peers-card-avatar" src="../assets/avatar.jpg">
       </div>
@@ -66,7 +66,7 @@ const Trade = props => {
   }
   
   .threeD-trade-inventory-card {
-    height: 140px;
+    height: 260px;
     width: 150px;
     background-color: black;
     color: white;
@@ -83,7 +83,7 @@ const Trade = props => {
   }
   
   .threeD-trade-inventory-card-preview {
-    height: 100px;
+    height: 220px;
     width: 100%;
   }
   
