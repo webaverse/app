@@ -9,7 +9,7 @@ const InventoryCard = (props = {}) => {
 
 const PeerCard = (props) => {
   return `
-    <div class="threeD-trade-peers-card ${props.selected ? 'selected' : ''}" onclick="threeD-trade-peers-card" name="${props.peerAddress}" id="threeD-trade-peers-card-${props.peerAddress}">
+    <a class="threeD-trade-peers-card ${props.selected ? 'selected' : ''}" onclick="threeD-trade-peers-card" name="${props.peerAddress}" id="threeD-trade-peers-card-${props.peerAddress}">
       <div class="threeD-trade-peers-card-imgWrap">
         <img class="threeD-trade-peers-card-avatar" src="../assets/avatar.jpg">
       </div>
@@ -17,7 +17,7 @@ const PeerCard = (props) => {
         <h2>Peer ID</h2>
         <h1>${props.peerAddress}</h1>
       </div>
-    </div>
+    </a>
   `;
 }
 
@@ -28,7 +28,6 @@ const Trade = props => {
   let fromPeer = props.trade.fromPeer;
   let selectedItem = props.trade.selectedItem;
   let agreement = !!props.trade.agreement;
-  console.log(inventoryItems)
   return `
   <style>
   .threeD-trade {
@@ -98,7 +97,7 @@ const Trade = props => {
     height: 305px;
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-start;
     overflow-y: auto;
     margin: 30px;
@@ -107,7 +106,7 @@ const Trade = props => {
   
   .threeD-trade-peers-card {
     width: 410px;
-    height: 125px;
+    height: 260px;
     background-color: black;
     padding: 10px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
@@ -232,6 +231,19 @@ const Trade = props => {
     font-size: 80px;
     margin-left: 30px;
   }
+  .threeD-trade-peers-card-peerName h1 {
+    font-size: 40px;
+  }
+
+  .threeD-trade-peers-card-peerName h2 {
+    font-size: 30px;
+  }
+  #threeD-trade-inventory-page {
+    display: inline;
+  }
+  #threeD-trade-peers-page {
+    display: inline;
+  }
   </style>
     <div class="threeD-trade">
       <div class="threeD-trade-header">
@@ -245,6 +257,7 @@ const Trade = props => {
           Select Item:
           <div class="threeD-trade-inventory-pagination">
             <a id="threeD-trade-inventory-back"><</a>
+            <p id="threeD-trade-inventory-page">${props.trade.inventoryPage}</p>
             <a id="threeD-trade-inventory-forward">></a>
           </div>
         </h1>
@@ -264,18 +277,17 @@ const Trade = props => {
           Select Peer:
           <div class="threeD-trade-peers-pagination">
             <a id="threeD-trade-peers-back"><</a>
+            <p id="threeD-trade-peers-page">${props.trade.peersPage}</p>
             <a id="threeD-trade-peers-forward">></a>
           </div>
         </h1>
         <div class="threeD-trade-peers">
           ${
             peers.map((value, index) => {
-              if (value.address) {
                 return PeerCard({
                   peerAddress: value.address,
                   selected: value.address === toPeer,
                 });
-              }
               return;
             }).join('')
           }
