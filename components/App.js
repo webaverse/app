@@ -42,6 +42,33 @@ export const onclickBindings = {
       menu,
     });
   },
+  'threeD-social-tradeBtn': (e) => {
+    const { menu } = getState();
+    menu.trade.visible = true;
+    menu.trade.toPeer = e.name;
+    menu.trade.fromPeer = loginManager.getAddress();
+    setState({
+      menu,
+    });
+  },
+  'threeD-trade-agreement': (e) => {
+    const { menu } = getState();
+    menu.trade.agreement = !menu.trade.agreement;
+    setState({ menu });
+  },
+  'threeD-trade-header-backBtn': (e) => {
+    const { menu } = getState();
+    menu.trade = {
+      visible: false,
+      toPeer: null,
+      fromPeer: null,
+      selectedItems: [],
+      agreement: false
+    }
+    setState({
+      menu,
+    });
+  },
   'twoD-menuNavTab-inventory': e => {
     const { menu } = getState();
     menu.activeTab = 'inventory';
