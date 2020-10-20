@@ -1,4 +1,6 @@
 import Web3 from './web3.min.js';
+import bip32 from './bip32.js';
+import bip39 from './bip39.js';
 import contractAddress from 'https://contracts.webaverse.com/ethereum/address.js';
 import contractAbi from 'https://contracts.webaverse.com/ethereum/abi.js';
 
@@ -12,6 +14,8 @@ import contractAbi from 'https://contracts.webaverse.com/ethereum/abi.js';
   // contract.methods.mint('0x08E242bB06D85073e69222aF8273af419d19E4f6', '0x1', 1).send({from: address})
 
   window.Web3 = Web3;
+  window.bip32 = bip32;
+  window.bip39 = bip39;
   window.web3 = web3;
   window.contract = contract;
   window.address = address;
@@ -28,6 +32,8 @@ import contractAbi from 'https://contracts.webaverse.com/ethereum/abi.js';
     const s = '0x' + sgn.slice(66, 130);
     const v = '0x' + sgn.slice(130, 132);
     console.log('got', JSON.stringify({r, s, v}, null, 2));
+    
+    const res = await fetch();
   };
   /* function verify() internal pure returns(bool) {
     bytes memory prefix = "\x19Ethereum Signed Message:\n32";
