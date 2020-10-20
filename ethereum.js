@@ -2,6 +2,8 @@ import Web3 from './web3.min.js';
 import contractAddress from 'https://contracts.webaverse.com/ethereum/address.js';
 import contractAbi from 'https://contracts.webaverse.com/ethereum/abi.js';
 
+// const _numberToHex = n => '0x' + web3.utils.padLeft(new web3.utils.BN(n).toString(16), 32);
+
 (async () => {
   const web3 = new Web3(window.ethereum);
   window.ethereum.enable();
@@ -16,13 +18,18 @@ import contractAbi from 'https://contracts.webaverse.com/ethereum/abi.js';
   window.contract = contract;
   window.address = address;
   window.test = async () => {
-    const msg = 'lol';
-    var h = web3.utils.sha3(msg)
-    var sgn = await web3.eth.personal.sign(h, address)
-    const r = sgn.slice(0,66)
-    const s = '0x' + sgn.slice(66,130)
-    const v = '0x' + sgn.slice(130,132)
-    console.log('got', [r, s, v]);
+    const to = '0x08E242bB06D85073e69222aF8273af419d19E4f6';
+    const amount = {t: 'uint256', v: new web3.utils.BN(1).toString(10) };
+    const timestamp = {t: 'uint256', v: new web3.utils.BN(10).toString(10) };
+    const chainId = {t: 'uint256', v: new web3.utils.BN(1).toString(10) };
+    const message = web3.utils.encodePacked(to, amount, timestamp, chainId);
+    const hashedMessage = web3.utils.sha3(message);
+    console.log('got message', {to, amount, timestamp, message, hashedMessage});
+    const sgn = await web3.eth.personal.sign(hashedMessage, address);
+    const r = sgn.slice(0, 66);
+    const s = '0x' + sgn.slice(66, 130);
+    const v = '0x' + sgn.slice(130, 132);
+    console.log('got', JSON.stringify({r, s, v}, null, 2));
   };
   /* function verify() internal pure returns(bool) {
     bytes memory prefix = "\x19Ethereum Signed Message:\n32";
