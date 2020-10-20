@@ -36,4 +36,11 @@ import contractAbi from 'https://contracts.webaverse.com/ethereum/abi.js';
     
     return ecrecover(prefixedHash, v, r, s) == a;
   } */
+  /*
+    const events = await contract.getPastEvents('Transfer', {fromBlock: 0, toBlock: 'latest',})
+    for (const event of events) {
+      const {returnValues} = event;
+      const {from, to, amount} = returnValues;
+    }
+  */
 })();
