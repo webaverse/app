@@ -10,13 +10,7 @@ const InventoryCard = (props) => {
 const PeerCard = (props) => {
   return `
     <a class="threeD-trade-peers-card ${props.selected ? 'selected' : ''}" onclick="threeD-trade-peers-card" name="${props.peerAddress}" id="threeD-trade-peers-card">
-      <div class="threeD-trade-peers-card-imgWrap">
-        <img class="threeD-trade-peers-card-avatar" src="../assets/avatar.jpg">
-      </div>
-      <div class="threeD-trade-peers-card-peerName">
-        <h2>Peer ID</h2>
-        <h1>${props.peerAddress}</h1>
-      </div>
+      <h1 class="threeD-trade-peers-card-address">${props.peerAddress}</h1>
     </a>
   `;
 }
@@ -74,17 +68,16 @@ const Trade = props => {
     border-radius: 5px;
     border: 1px #eeeef5 solid;
     margin: 15px;
-    display: flex;
     cursor: pointer;
   }
   
   .threeD-trade-inventory-card.selected {
-    border: 2px #4faeff solid
+    border: 8px #4faeff solid
   }
   
   .threeD-trade-inventory-card-preview {
-    height: 90%;
-    width: 90%;
+    height: 100px !important;
+    width: 100px !important;
   }
   
   .threeD-trade-inventory-card-name {
@@ -107,37 +100,27 @@ const Trade = props => {
     width: 410px;
     height: 260px;
     background-color: black;
-    padding: 10px;
+    padding: 25px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
-    border-radius: 5px;
     border: 1px #eeeef5 solid;
     margin: 15px;
-    display: flex;
     cursor: pointer;
   }
   
   .threeD-trade-peers-card.selected {
-    border: 2px #4faeff solid
+    border: 8px #4faeff solid
   }
-  
-  .threeD-trade-peers-card-imgWrap {
-    width: 145px;
-  }
-  
-  .threeD-trade-peers-card-avatar {
-    height: 100%;
-  }
-  
-  .threeD-trade-peers-card-peerName {
-    width: 220px;
+
+  .threeD-trade-peers-card-address {
+    font-size: 60px;
   }
   
   .threeD-trade-cancel {
-    padding: 15px 20px;
+    padding: 25px 35px;
     background-color: #ff0058;
     border: 0;
     color: #FFF;
-    font-size: 50px;
+    font-size: 80px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
@@ -145,15 +128,15 @@ const Trade = props => {
     margin-top: 25px;
     margin-bottom: 50px;
     text-align: center;
-    margin-right: 30px;
+    margin-right: 100px;
   }
   
   .threeD-trade-accept {
-    padding: 15px 20px;
+    padding: 25px 35px;
     background-color: #12bd4b;
     border: 0;
     color: #FFF;
-    font-size: 50px;
+    font-size: 80px;
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
@@ -178,30 +161,37 @@ const Trade = props => {
     right: 0;
     left: 0;
   }
+
+  .threeD-trade-actions-agreement {
+    padding-top: 35px;
+  }
+
   .threeD-trade-info {
     width: 50%;
   }
   .threeD-trade-info-detail {
-    font-size: 50px;
+    font-size: 60px;
     color: #00a6ff;
   }
   .threeD-trade-info-header {
     padding-left: 50px;
+    font-size: 50px;
   }
   #threeD-trade-agreement {
-    height: 50px;
-    width: 50px;
+    height: 100px;
+    width: 100px;
     margin-right: 15px;
   }
   #threeD-trade-agreement-label {
-    font-size: 40px !important;
+    font-size: 70px !important;
   }
   #threeD-trade-header-backBtn {
     margin: 34px;
-    font-size: 65px;
+    font-size: 80px;
     cursor: pointer;
     position: absolute;
     left: 20px;
+    padding: 25px;
   }
   #threeD-trade-header-backBtn:hover {
     color: #ffae94;
@@ -218,30 +208,25 @@ const Trade = props => {
   #threeD-trade-inventory-back, #threeD-trade-peers-back {
     background-color: black;
     display: inline-block;
-    width: 80px;
-    height: 80px;
-    font-size: 80px;
+    width: 90px;
+    height: 90px;
+    font-size: 85px;
   }
   #threeD-trade-inventory-forward, #threeD-trade-peers-forward {
     background-color: black;
     display: inline-block;
-    width: 80px;
-    height: 80px;
-    font-size: 80px;
+    width: 90px;
+    height: 90px;
+    font-size: 85px;
     margin-left: 30px;
-  }
-  .threeD-trade-peers-card-peerName h1 {
-    font-size: 40px;
-  }
-
-  .threeD-trade-peers-card-peerName h2 {
-    font-size: 30px;
   }
   #threeD-trade-inventory-page {
     display: inline;
+    font-size: 80px;
   }
   #threeD-trade-peers-page {
     display: inline;
+    font-size: 80px;
   }
   </style>
     <div class="threeD-trade">
@@ -302,7 +287,7 @@ const Trade = props => {
               <p class="threeD-trade-info-detail">${selectedItem}</p>
             </h1>
           </div>
-          <div> 
+          <div class="threeD-trade-actions-agreement"> 
             <input style="cursor: pointer;" type="checkbox" id="threeD-trade-agreement" name="threeD-trade-agreement" ${agreement ? 'checked' : ''} onclick="threeD-trade-agreement">
             <label style="font-size: 20px; cursor: pointer;" for="threeD-trade-agreement" id="threeD-trade-agreement-label"> I agree to trade my token.</label><br>
             <div class="threeD-spacer"></div>
