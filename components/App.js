@@ -7,7 +7,7 @@ import {planet} from '../planet.js';
 import {state, getState, setState, getSpecificState} from '../state.js';
 import {setBindings} from './bindings.js';
 import {getContractSource} from '../blockchain.js';
-import DiffDOM from '../diffDOM.js';
+import DiffDOM from '../diffDOM.js'; 
 const diffDOM = new DiffDOM();
 
 let appState = state;
@@ -151,7 +151,7 @@ export const onclickBindings = {
     } else {
       // no agreement
     }
-    setState({
+    setState({ 
       menu,
     });
   },
@@ -282,6 +282,13 @@ export const onclickBindings = {
         dragid: 'inventory-' + id,
       },
     }));
+  },
+  'inventory-trade': async e => {
+    const { menu } = getState();
+    menu.trade.visible = true;
+    menu.trade.selectedItem = parseInt(e.name, 10);
+    menu.trade.fromPeer = loginManager.getAddress();
+    setState({ menu });
   },
   'browse-spawn': async e => {
     const id = e.name;

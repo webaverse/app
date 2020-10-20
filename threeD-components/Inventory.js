@@ -26,6 +26,7 @@ export const InventoryDetails = props => {
           <a class=button id=inventory-spawn name=${selectedId}>Spawn</a>
           <a class=button id=inventory-wear name=${selectedId}>Wear</a>
           ${owned ? `<a class=button id=inventory-discard name=${selectedId}>Discard</a>` : ''}
+          ${owned ? `<a class=button id=inventory-trade name=${selectedId}>Trade</a>` : ''}
         </div>
       ` : ''}
     </div>

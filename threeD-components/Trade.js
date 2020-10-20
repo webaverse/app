@@ -1,9 +1,9 @@
-const InventoryCard = (props = {}) => {
+const InventoryCard = (props) => {
   return `
-      <a class="threeD-trade-inventory-card ${props.selected ? 'selected' : ''}" onclick="threeD-trade-inventory-card" name="${props.id}" id="threeD-trade-inventory-card">
-          <img class="threeD-trade-inventory-card-preview" src="${props.preview}" style="height: 50px; width: 50px;"></img>
-          <h4 class="threeD-trade-inventory-card-name">${props.name}</h4>
-      </a>
+    <a class="threeD-trade-inventory-card ${props.selected ? 'selected' : ''}" onclick="threeD-trade-inventory-card" name="${props.id}" id="threeD-trade-inventory-card">
+      <img class="threeD-trade-inventory-card-preview" src="${props.preview}">
+      <h4 class="threeD-trade-inventory-card-name">${props.name}</h4>
+    </a>
   `;
 }
 
@@ -22,8 +22,8 @@ const PeerCard = (props) => {
 }
 
 const Trade = props => {
-  let inventoryItems = props.inventoryItems;
-  let peers = props.peers;
+  let inventoryItems = props.inventoryItems.slice(3 * props.trade.inventoryPage, 3 * (props.trade.inventoryPage + 1));
+  let peers = props.peers.slice(3 * props.trade.peersPage, 3 * (props.trade.peersPage + 1));
   let toPeer = props.trade.toPeer; 
   let fromPeer = props.trade.fromPeer;
   let selectedItem = props.trade.selectedItem;
@@ -58,23 +58,23 @@ const Trade = props => {
     height: 305px;
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-start;
-    overflow-y: auto;
     margin: 30px;
     border: 4px #d2c1c1 solid;
+    overflow: hidden;
   }
   
   .threeD-trade-inventory-card {
+    width: 260px;
     height: 260px;
-    width: 150px;
     background-color: black;
-    color: white;
-    margin: 10px;
+    padding: 10px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
+    border-radius: 5px;
     border: 1px #eeeef5 solid;
-    text-align: center;
-    overflow: hidden;
+    margin: 15px;
+    display: flex;
     cursor: pointer;
   }
   
@@ -83,8 +83,8 @@ const Trade = props => {
   }
   
   .threeD-trade-inventory-card-preview {
-    height: 100px;
-    width: 100px;
+    height: 90%;
+    width: 90%;
   }
   
   .threeD-trade-inventory-card-name {
@@ -99,7 +99,6 @@ const Trade = props => {
     flex-wrap: wrap;
     justify-content: flex-start;
     align-items: flex-start;
-    overflow-y: auto;
     margin: 30px;
     border: 4px #d2c1c1 solid;
   }
