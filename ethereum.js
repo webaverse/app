@@ -2,8 +2,6 @@ import Web3 from './web3.min.js';
 import contractAddress from 'https://contracts.webaverse.com/ethereum/address.js';
 import contractAbi from 'https://contracts.webaverse.com/ethereum/abi.js';
 
-// const _numberToHex = n => '0x' + web3.utils.padLeft(new web3.utils.BN(n).toString(16), 32);
-
 (async () => {
   const web3 = new Web3(window.ethereum);
   window.ethereum.enable();
