@@ -74,6 +74,7 @@ export const onclickBindings = {
     console.log('hello', e)
     const { menu } = getState();
     menu.trade.toPeer = e.name;
+    menu.trade.agreement = false;
     setState({ menu });
   },
   'threeD-trade-inventory-back': (e) => {
@@ -130,6 +131,7 @@ export const onclickBindings = {
   'threeD-trade-inventory-card': e => {
     const { menu } = getState();
     menu.trade.selectedItem = parseInt(e.name, 10);
+    menu.trade.agreement = false;
     setState({ menu });
   },
   'twoD-menuNavTab-inventory': e => {
@@ -196,13 +198,11 @@ export const onclickBindings = {
   'twoD-trade-accept': async (e) => {
     const { menu } = getState();
     if (menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem) {
-
       const trade = {
         toPeer: menu.trade.toPeer,
         fromPeer: menu.trade.fromPeer,
         item: menu.trade.selectedItem
       };
-
       const contractSource = await getContractSource('transferNft.cdc');
       const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
         method: 'POST',
@@ -218,21 +218,13 @@ export const onclickBindings = {
         }),
       });
       const response2 = await res.json();
-      console.log(response2)
-
-      menu.trade = {
-        visible: false,
-        toPeer: null,
-        fromPeer: null,
-        selectedItems: [],
-        agreement: false
-      }
+      menu.trade = JSON.parse(JSON.stringify(defaultState.menu.trade));
+      setState({
+        menu,
+      });
     } else {
       // no agreement
     }
-    setState({
-      menu,
-    });
   },
   'twoD-trade-agreement': e => {
     const { menu } = getState();
