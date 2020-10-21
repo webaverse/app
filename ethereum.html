@@ -11,24 +11,41 @@
     .body {
       display: flex;
     }
-    .body > form {
+    .body > section {
+      display: flex;
       flex: 1;
+      flex-direction: column;
     }
   </style>
 </head>
 
 <body class="body overflow">
-  <form id=eth-form>
-    <h3>ETH</h3>
-    <!-- <textarea id=create-account-form-output placeholder="// keys"></textarea> -->
-    <input type=submit>
-  </form>
-  <form id=sidechain-form>
-    <h3>Sidechain</h3>
-    <!-- <textarea id=contract-form-keys placeholder="// keys"></textarea>
-    <textarea id=contract-form-source placeholder="// contract source"></textarea> -->
-    <input type=submit>
-  </form>
+  <section>
+    <h1>ETH</h3>
+    <form id=eth-ft-form>
+      <h2>FT</h2>
+      <!-- <textarea id=create-account-form-output placeholder="// keys"></textarea> -->
+      <input type=submit value="Move to Sidechain >">
+    </form>
+    <form id=eth-nft-form>
+      <h2>NFT</h2>
+      <!-- <textarea id=create-account-form-output placeholder="// keys"></textarea> -->
+      <input type=submit value="Move to Sidechain >">
+    </form>
+  </section>
+  <section>
+    <h1>Sidechain</h3>
+    <form id=sidechain-ft-form>
+      <h2>FT</h2>
+      <!-- <textarea id=create-account-form-output placeholder="// keys"></textarea> -->
+      <input type=submit value="< Move to ETH">
+    </form>
+    <form id=sidechain-nft-form>
+      <h2>NFT</h2>
+      <!-- <textarea id=create-account-form-output placeholder="// keys"></textarea> -->
+      <input type=submit value="< Move to ETH">
+    </form>
+  </section>
 
   <script type=module src=ethereum.js></script>
 </body>
