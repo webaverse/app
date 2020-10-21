@@ -185,12 +185,12 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         v: new web3.utils.BN(amt),
       };
       
-      // deposit on main
+      // deposit on main chain
       const receipt = await contracts.main.FT.methods.transfer(FTProxyAddress, amount.v).send({
         from: address,
       });
 
-      // get main deposit receipt signature
+      // get main chain deposit receipt signature
       console.log('got receipt', receipt);
       const {transactionHash} = receipt;
       const timestamp = {
@@ -286,6 +286,46 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
   sidechainFtForm.addEventListener('submit', async e => {
     e.preventDefault();
     e.stopPropagation();
+
+    const amt = parseInt(sidechainFtAmountInput.value, 10);
+    if (!isNaN(amt)) {
+      const amount = {
+        t: 'uint256',
+        v: new web3.utils.BN(amt),
+      };
+      
+      // deposit on sidechain
+      const receipt = await contracts.sidechain.FT.methods.transfer(FTProxyAddress, amount.v).send({
+        from: address,
+      });
+
+      // get sidechain deposit receipt signature
+      console.log('got receipt', receipt);
+      const {transactionHash} = receipt;
+      const timestamp = {
+        t: 'uint256',
+        // v: new web3.utils.BN(Date.now()),
+        v: transactionHash,
+      };
+      const chainId = {
+        t: 'uint256',
+        v: new web3.utils.BN(1),
+      };
+      const message = web3.utils.encodePacked(address, amount, timestamp, chainId);
+      const hashedMessage = web3.utils.sha3(message);
+      const sgn = await web3.eth.personal.sign(hashedMessage, address);
+      const r = sgn.slice(0, 66);
+      const s = '0x' + sgn.slice(66, 130);
+      const v = '0x' + sgn.slice(130, 132);
+      console.log('got', JSON.stringify({r, s, v}, null, 2));
+
+      // withdraw receipt signature on main chain
+      await contracts.main.FTProxy.methods.withdraw(address, amount.v, timestamp.v, r, s, v).send({
+        from: address,
+      });
+    } else {
+      console.log('failed to parse', JSON.stringify(sidechainFtAmountInput.value));
+    }
   });
   
   const sidechainNftForm = document.getElementById('sidechain-nft-form');
