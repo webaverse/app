@@ -185,7 +185,7 @@ export const Inventory = (props = {}) => {
       .details .button {
         border: 5px solid;
         padding: 20px;
-        margin: 20px 0px 20px 0px;
+        margin: 20px 0px;
       }
     </style>
     <div class=threeD-inventory>
