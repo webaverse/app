@@ -16,13 +16,14 @@ const PeerCard = (props) => {
 }
 
 const Trade = (props) => {
-  let inventoryItems = props.inventoryItems.slice(3 * props.trade.inventoryPage, 3 * (props.trade.inventoryPage + 1));
-  let peers = props.peers.slice(3 * props.trade.peersPage, 3 * (props.trade.peersPage + 1));
-  let toPeer = props.trade.toPeer; 
-  let fromPeer = props.trade.fromPeer;
-  let selectedItem = props.inventoryItems.find(item => item.id === props.trade.selectedItem);
-  let agreement = !!props.trade.agreement;
-  let selectedName = selectedItem ? selectedItem.filename : null;
+  const pageLimit = 3;
+  const inventoryItems = props.inventoryItems.slice(pageLimit * props.trade.inventoryPage, pageLimit * (props.trade.inventoryPage + 1));
+  const peers = props.peers.slice(pageLimit * props.trade.peersPage, pageLimit * (props.trade.peersPage + 1));
+  const toPeer = props.trade.toPeer; 
+  const fromPeer = props.trade.fromPeer;
+  const selectedItem = props.inventoryItems.find(item => item.id === props.trade.selectedItem);
+  const agreement = !!props.trade.agreement;
+  const selectedName = selectedItem ? selectedItem.filename : null;
   return `
   <style>
   .threeD-trade {
@@ -67,7 +68,7 @@ const Trade = (props) => {
     padding: 10px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
     border-radius: 5px;
-    border: 1px #eeeef5 solid;
+    border: 8px black solid;
     margin: 15px;
     cursor: pointer;
   }
@@ -103,7 +104,7 @@ const Trade = (props) => {
     background-color: black;
     padding: 10px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
-    border: 1px #eeeef5 solid;
+    border: 8px black solid;
     margin: 15px;
     cursor: pointer;
     text-align: center;
@@ -186,6 +187,7 @@ const Trade = (props) => {
   }
   #threeD-trade-agreement-label {
     font-size: 70px !important;
+    cursor: pointer;
   }
   #threeD-trade-header-backBtn {
     margin: 34px;
@@ -290,7 +292,7 @@ const Trade = (props) => {
           </div>
           <div class="threeD-trade-actions-agreement"> 
             <input style="cursor: pointer;" type="checkbox" id="threeD-trade-agreement" name="threeD-trade-agreement" ${agreement ? 'checked' : ''} onclick="threeD-trade-agreement">
-            <label style="font-size: 20px; cursor: pointer;" for="threeD-trade-agreement" id="threeD-trade-agreement-label"> I agree to trade my token.</label><br>
+            <label for="threeD-trade-agreement" id="threeD-trade-agreement-label"> I agree to trade my token.</label><br>
             <div class="threeD-spacer"></div>
             <a class="threeD-trade-cancel" id="threeD-trade-cancel" onclick="threeD-trade-cancel">Cancel</a>
             <a class="threeD-trade-accept ${!agreement || !toPeer || !fromPeer || !selectedItem ? 'disabled' : ''}" id="threeD-trade-accept" onclick="threeD-trade-accept">Accept</a>
