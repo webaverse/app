@@ -78,6 +78,10 @@ export function makePromise() {
 let nextMeshId = 0;
 export const getNextMeshId = () => ++nextMeshId;
 
+export function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
 export class WaitQueue {
   constructor() {
     this.locked = false;
