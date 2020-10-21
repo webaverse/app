@@ -13,7 +13,12 @@
     }
     .body > section {
       display: flex;
-      flex: 1;
+      wifth: 400px;
+      padding-right: 100px;
+      flex-direction: column;
+    }
+    .body > section > form {
+      display: flex;
       flex-direction: column;
     }
   </style>
@@ -24,26 +29,26 @@
     <h1>ETH</h3>
     <form id=eth-ft-form>
       <h2>FT</h2>
-      <!-- <textarea id=create-account-form-output placeholder="// keys"></textarea> -->
-      <input type=submit value="Move to Sidechain >">
+      <textarea id=eth-ft-amount placeholder="amount"></textarea>
+      <input type=submit value="Move FT to Sidechain >">
     </form>
     <form id=eth-nft-form>
       <h2>NFT</h2>
-      <!-- <textarea id=create-account-form-output placeholder="// keys"></textarea> -->
-      <input type=submit value="Move to Sidechain >">
+      <textarea id=eth-nft-id placeholder="id"></textarea>
+      <input type=submit value="Move NFT to Sidechain >">
     </form>
   </section>
   <section>
     <h1>Sidechain</h3>
     <form id=sidechain-ft-form>
       <h2>FT</h2>
-      <!-- <textarea id=create-account-form-output placeholder="// keys"></textarea> -->
-      <input type=submit value="< Move to ETH">
+      <textarea id=sidechain-ft-amount placeholder="amount"></textarea>
+      <input type=submit value="< Move FT to ETH">
     </form>
     <form id=sidechain-nft-form>
       <h2>NFT</h2>
-      <!-- <textarea id=create-account-form-output placeholder="// keys"></textarea> -->
-      <input type=submit value="< Move to ETH">
+      <textarea id=sidechain-nft-id placeholder="id"></textarea>
+      <input type=submit value="< Move NFT to ETH">
     </form>
   </section>
 
