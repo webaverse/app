@@ -1,4 +1,4 @@
-export const state = {
+export const defaultState = {
     isXR: false,
     pointerLock: false,
     menu: {
@@ -35,7 +35,9 @@ export const state = {
             toPeer: null,
             fromPeer: null,
             selectedItem: null,
-            agreement: false
+            agreement: false,
+            inventoryPage: 0,
+            peersPage: 0,
         }
     },
     weaponWheel: {
@@ -44,6 +46,8 @@ export const state = {
         weapons: [],
     }
 };
+
+export const state = JSON.parse(JSON.stringify(defaultState));
 
 const emitChange = changedKeys => {
     window.dispatchEvent(new CustomEvent('stateChanged', { 
