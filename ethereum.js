@@ -42,6 +42,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
   window.web3 = web3;
   window.contract = contract;
   window.address = address; */
+  window.contracts = contracts;
   window.test = async () => {
     const address = web3.currentProvider.selectedAddress;
 
@@ -220,13 +221,44 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
   
   const ethNftForm = document.getElementById('eth-nft-form');
   const ethNftIdInput = document.getElementById('eth-nft-id');
-  ethFtForm.addEventListener('submit', async e => {
+  ethNftForm.addEventListener('submit', async e => {
     e.preventDefault();
     e.stopPropagation();
 
     const amt = parseInt(ethNftIdInput.value, 10);
     if (!isNaN(amt)) {
-      
+      /* // deposit on sidechain
+      const receipt2 = await contracts.sidechain.NFT.methods.transferFrom(address, NFTProxyAddressSidechain, tokenId.v).send({
+        from: address,
+      });
+      console.log('got receipt', receipt2);
+
+      // get sidechain deposit receipt signature
+      const {transactionHash} = receipt2;
+      const timestamp = {
+        t: 'uint256',
+        // v: new web3.utils.BN(Date.now()),
+        v: transactionHash,
+      };
+      const chainId = {
+        t: 'uint256',
+        v: new web3.utils.BN(2),
+      };
+
+      const filenameHash = web3.utils.sha3(filename);
+      const message = web3.utils.encodePacked(address, tokenId, hash, filenameHash, timestamp, chainId);
+      const hashedMessage = web3.utils.sha3(message);
+      const sgn = await web3.eth.personal.sign(hashedMessage, address);
+      const r = sgn.slice(0, 66);
+      const s = '0x' + sgn.slice(66, 130);
+      const v = '0x' + sgn.slice(130, 132);
+      console.log('got', JSON.stringify({r, s, v}, null, 2));
+
+      // withdraw receipt signature on sidechain
+      // console.log('main withdraw', [address, tokenId.v.toString(10), hash.v.toString(10), filename, timestamp.v.toString(10), r, s, v]);
+      await contracts.main.NFTProxy.methods.withdraw(address, tokenId.v, hash.v, filename, timestamp.v, r, s, v).send({
+        from: address,
+      }); */
     } else {
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
     }
@@ -244,6 +276,61 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
   sidechainNftForm.addEventListener('submit', async e => {
     e.preventDefault();
     e.stopPropagation();
+    
+    const id = parseInt(sidechainNftIdInput.value, 10);
+    if (!isNaN(id)) {
+      const tokenId = {
+        t: 'uint256',
+        v: new web3.utils.BN(id),
+      };
+      
+      const hashSpec = await contracts.sidechain.NFT.methods.getHash(tokenId.v).call();
+      const hash = {
+        t: 'uint256',
+        v: new web3.utils.BN(hashSpec),
+      };
+      const filenameSpec = await contracts.sidechain.NFT.methods.getMetadata(hashSpec, 'filename').call();
+      const filename = {
+        t: 'string',
+        v: filenameSpec,
+      };
+      console.log('got filename hash', hash, filename);
+      
+      // deposit on sidechain
+      const receipt2 = await contracts.sidechain.NFT.methods.transferFrom(address, NFTProxyAddressSidechain, tokenId.v).send({
+        from: address,
+      });
+      console.log('got receipt', receipt2);
+
+      // get sidechain deposit receipt signature
+      const {transactionHash} = receipt2;
+      const timestamp = {
+        t: 'uint256',
+        // v: new web3.utils.BN(Date.now()),
+        v: transactionHash,
+      };
+      const chainId = {
+        t: 'uint256',
+        v: new web3.utils.BN(2),
+      };
+
+      const filenameHash = web3.utils.sha3(filename.v);
+      const message = web3.utils.encodePacked(address, tokenId, hash, filenameHash, timestamp, chainId);
+      const hashedMessage = web3.utils.sha3(message);
+      const sgn = await web3.eth.personal.sign(hashedMessage, address);
+      const r = sgn.slice(0, 66);
+      const s = '0x' + sgn.slice(66, 130);
+      const v = '0x' + sgn.slice(130, 132);
+      console.log('got', JSON.stringify({r, s, v}, null, 2));
+
+      // withdraw receipt signature on sidechain
+      // console.log('main withdraw', [address, tokenId.v.toString(10), hash.v.toString(10), filename, timestamp.v.toString(10), r, s, v]);
+      await contracts.main.NFTProxy.methods.withdraw(address, tokenId.v, hash.v, filename.v, timestamp.v, r, s, v).send({
+        from: address,
+      });
+    } else {
+      console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
+    }
   });
   
   /* window.testEvents = async () => {
