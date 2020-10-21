@@ -9,6 +9,7 @@ import {setBindings} from './bindings.js';
 import {getContractSource} from '../blockchain.js';
 import DiffDOM from '../diffDOM.js';
 import {inventoryPageLimit, peersPageLimit} from '../threeD-components/constants.js';
+import {cloneObject} from './helpersjs';
 
 const diffDOM = new DiffDOM();
 
@@ -65,14 +66,14 @@ export const onclickBindings = {
   },
   'threeD-trade-header-backBtn': e => {
     const {menu} = getState();
-    menu.trade = JSON.parse(JSON.stringify(defaultState.menu.trade));
+    menu.trade = cloneObject(defaultState.menu.trade);
     setState({
       menu,
     });
   },
   'threeD-trade-cancel': e => {
     const {menu} = getState();
-    menu.trade = JSON.parse(JSON.stringify(defaultState.menu.trade));
+    menu.trade = cloneObject(defaultState.menu.trade);
     setState({
       menu,
     });
@@ -126,7 +127,7 @@ export const onclickBindings = {
         }),
       });
       const response2 = await res.json();
-      menu.trade = JSON.parse(JSON.stringify(defaultState.menu.trade));
+      menu.trade = cloneObject(defaultState.menu.trade);
       setState({ 
         menu,
       });
@@ -224,7 +225,7 @@ export const onclickBindings = {
         }),
       });
       const response2 = await res.json();
-      menu.trade = JSON.parse(JSON.stringify(defaultState.menu.trade));
+      menu.trade = cloneObject(defaultState.menu.trade);
       setState({
         menu,
       });
