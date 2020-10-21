@@ -1,3 +1,4 @@
+import {inventoryPageLimit, peersPageLimit} from '../constants.js';
 const InventoryCard = (props) => {
   return `
     <a class="threeD-trade-inventory-card ${props.selected ? 'selected' : ''}" onclick="threeD-trade-inventory-card" name="${props.id}" id="threeD-trade-inventory-card">
@@ -16,9 +17,8 @@ const PeerCard = (props) => {
 }
 
 const Trade = (props) => {
-  const pageLimit = 3;
-  const inventoryItems = props.inventoryItems.slice(pageLimit * props.trade.inventoryPage, pageLimit * (props.trade.inventoryPage + 1));
-  const peers = props.peers.slice(pageLimit * props.trade.peersPage, pageLimit * (props.trade.peersPage + 1));
+  const inventoryItems = props.inventoryItems.slice(inventoryPageLimit * props.trade.inventoryPage, inventoryPageLimit * (props.trade.inventoryPage + 1));
+  const peers = props.peers.slice(peersPageLimit * props.trade.peersPage, peersPageLimit * (props.trade.peersPage + 1));
   const toPeer = props.trade.toPeer; 
   const fromPeer = props.trade.fromPeer;
   const selectedItem = props.inventoryItems.find(item => item.id === props.trade.selectedItem);

@@ -56,3 +56,6 @@ export const accountsHost = 'https://accounts.exokit.org';
 export const contractsHost = 'https://contracts.webaverse.com';
 export const presenceHost = 'worlds.webaverse.com';
 export const localstorageHost = 'https://localstorage.webaverse.com';
+
+export const inventoryPageLimit = 6;
+export const peersPageLimit = 4;
