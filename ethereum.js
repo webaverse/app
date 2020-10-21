@@ -37,11 +37,11 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
   // contract.methods.mint('0x08E242bB06D85073e69222aF8273af419d19E4f6', '0x1', 1).send({from: address})
 
   window.Web3 = Web3;
-  window.bip32 = bip32;
+  /* window.bip32 = bip32;
   window.bip39 = bip39;
   window.web3 = web3;
   window.contract = contract;
-  window.address = address;
+  window.address = address; */
   window.test = async () => {
     const address = web3.currentProvider.selectedAddress;
 
