@@ -132,12 +132,12 @@ export const onclickBindings = {
       });
       const response2 = await res.json();
       menu.trade = JSON.parse(JSON.stringify(defaultState.menu.trade));
+      setState({ 
+        menu,
+      });
     } else {
       // no agreement
     }
-    setState({ 
-      menu,
-    });
   },
   'threeD-trade-inventory-card': e => {
     const { menu } = getState();
