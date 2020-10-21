@@ -18,7 +18,7 @@ const appContainerTmp = document.createElement('div');
 
 export const isTradeReady = () => {
   const {menu} = getState();
-  return menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem;
+  return !!(menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem);
 }
 
 export const onclickBindings = {
