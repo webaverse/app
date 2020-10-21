@@ -15,13 +15,14 @@ const PeerCard = (props) => {
   `;
 }
 
-const Trade = props => {
+const Trade = (props) => {
   let inventoryItems = props.inventoryItems.slice(3 * props.trade.inventoryPage, 3 * (props.trade.inventoryPage + 1));
   let peers = props.peers.slice(3 * props.trade.peersPage, 3 * (props.trade.peersPage + 1));
   let toPeer = props.trade.toPeer; 
   let fromPeer = props.trade.fromPeer;
-  let selectedItem = props.trade.selectedItem;
+  let selectedItem = props.inventoryItems.find(item => item.id === props.trade.selectedItem);
   let agreement = !!props.trade.agreement;
+  let selectedName = selectedItem ? selectedItem.filename : null;
   return `
   <style>
   .threeD-trade {
@@ -49,7 +50,7 @@ const Trade = props => {
   }
   
   .threeD-trade-inventory {
-    height: 305px;
+    height: 350px;
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
@@ -60,8 +61,8 @@ const Trade = props => {
   }
   
   .threeD-trade-inventory-card {
-    width: 260px;
-    height: 260px;
+    width: 300px;
+    height: 310px;
     background-color: black;
     padding: 10px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
@@ -76,18 +77,18 @@ const Trade = props => {
   }
   
   .threeD-trade-inventory-card-preview {
-    height: 100px !important;
-    width: 100px !important;
+    height: 85%;
+    width: 100%;
   }
   
   .threeD-trade-inventory-card-name {
     margin-bottom: 9px;
-    margin-top: 5px;
-    font-size: 15px;
+    margin-top: 5px; 
+    font-size: 35px;
   }
   
   .threeD-trade-peers {
-    height: 305px;
+    height: 200px;
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
@@ -98,13 +99,14 @@ const Trade = props => {
   
   .threeD-trade-peers-card {
     width: 410px;
-    height: 260px;
+    height: 160px;
     background-color: black;
-    padding: 25px;
+    padding: 10px;
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
     border: 1px #eeeef5 solid;
     margin: 15px;
     cursor: pointer;
+    text-align: center;
   }
   
   .threeD-trade-peers-card.selected {
@@ -252,7 +254,7 @@ const Trade = props => {
                   id: value.id,
                   name: value.filename,
                   preview: value.preview,
-                  selected: selectedItem === value.id,
+                  selected: selectedItem.id === value.id,
               })
             }).join('')
           }
@@ -283,7 +285,7 @@ const Trade = props => {
             </h1>
             <h1 class="threeD-trade-info-header">
               Item for Trade: 
-              <p class="threeD-trade-info-detail">${selectedItem}</p>
+              <p class="threeD-trade-info-detail">${selectedName}</p>
             </h1>
           </div>
           <div class="threeD-trade-actions-agreement"> 
