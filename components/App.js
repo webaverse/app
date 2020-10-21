@@ -4,10 +4,10 @@ import uiManager from '../ui-manager.js';
 import inventory from '../inventory.js';
 import {loginManager} from '../login.js';
 import {planet} from '../planet.js';
-import {state, getState, setState, getSpecificState} from '../state.js';
+import {state, getState, setState, getSpecificState, defaultState} from '../state.js';
 import {setBindings} from './bindings.js';
 import {getContractSource} from '../blockchain.js';
-import DiffDOM from '../diffDOM.js'; 
+import DiffDOM from '../diffDOM.js';
 const diffDOM = new DiffDOM();
 
 let appState = state;
@@ -58,30 +58,14 @@ export const onclickBindings = {
   },
   'threeD-trade-header-backBtn': (e) => {
     const { menu } = getState();
-    menu.trade = {
-      visible: false,
-      toPeer: null,
-      fromPeer: null,
-      selectedItem: null,
-      agreement: false,
-      inventoryPage: 0,
-      peersPage: 0,
-    }
+    menu.trade = defaultState.menu.trade;
     setState({
       menu,
     });
   },
   'threeD-trade-cancel': (e) => {
     const { menu } = getState();
-    menu.trade = {
-      visible: false,
-      toPeer: null,
-      fromPeer: null,
-      selectedItem: null,
-      agreement: false,
-      inventoryPage: 0,
-      peersPage: 0,
-    }
+    menu.trade = defaultState.menu.trade;
     setState({
       menu,
     });
@@ -139,15 +123,7 @@ export const onclickBindings = {
       const response2 = await res.json();
       console.log(response2)
 
-      menu.trade = {
-        visible: false,
-        toPeer: null,
-        fromPeer: null,
-        selectedItem: null,
-        agreement: false,
-        inventoryPage: 0,
-        peersPage: 0,
-      }
+      menu.trade = defaultState.menu.trade;
     } else {
       // no agreement
     }
@@ -216,15 +192,7 @@ export const onclickBindings = {
   },
   'twoD-trade-cancel': e => {
     const { menu } = getState();
-    menu.trade = {
-      visible: false,
-      toPeer: null,
-      fromPeer: null,
-      selectedItem: null,
-      agreement: false,
-      inventoryPage: 0,
-      peersPage: 0,
-    }
+    menu.trade = defaultState.menu.trade;
     setState({
       menu,
     });

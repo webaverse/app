@@ -1,4 +1,4 @@
-export const state = {
+export const defaultState = {
     isXR: false,
     pointerLock: false,
     menu: {
@@ -46,6 +46,8 @@ export const state = {
         weapons: [],
     }
 };
+
+export const state = defaultState;
 
 const emitChange = changedKeys => {
     window.dispatchEvent(new CustomEvent('stateChanged', { 
