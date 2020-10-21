@@ -8,6 +8,8 @@ import {state, getState, setState, getSpecificState, defaultState} from '../stat
 import {setBindings} from './bindings.js';
 import {getContractSource} from '../blockchain.js';
 import DiffDOM from '../diffDOM.js';
+import {inventoryPageLimit, peersPageLimit} from '../constants.js';
+
 const diffDOM = new DiffDOM();
 
 let appState = state;
@@ -84,7 +86,7 @@ export const onclickBindings = {
   },
   'threeD-trade-inventory-forward': (e) => {
     const { menu } = getState();
-    ++menu.trade.inventoryPage;
+    menu.trade.inventoryPage < Math.round(menu.inventory.items.length / inventoryPageLimit) ? menu.trade.inventoryPage++ : null;
     setState({ menu });
   },
   'threeD-trade-peers-back': (e) => {
@@ -94,7 +96,7 @@ export const onclickBindings = {
   },
   'threeD-trade-peers-forward': (e) => {
     const { menu } = getState();
-    menu.trade.peersPage++;
+    menu.trade.peersPage < Math.round(menu.social.peers.length / peersPageLimit) ? menu.trade.peersPage++ : null;
     setState({ menu });
   },
   'threeD-trade-accept': async (e) => {
