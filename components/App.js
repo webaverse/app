@@ -9,7 +9,7 @@ import {setBindings} from './bindings.js';
 import {getContractSource} from '../blockchain.js';
 import DiffDOM from '../diffDOM.js';
 import {inventoryPageLimit, peersPageLimit} from '../threeD-components/constants.js';
-import {cloneObject} from './helpersjs';
+import {cloneObject} from './helpers.js';
 
 const diffDOM = new DiffDOM();
 
