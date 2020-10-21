@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Webaverse Ethereum admin</title>
+  <link href="index.css" rel=stylesheet>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Muli:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
+  <style>
+    .body {
+      display: flex;
+    }
+    .body > form {
+      flex: 1;
+    }
+  </style>
+</head>
+
+<body class="body overflow">
+  <form id=eth-form>
+    <h3>ETH</h3>
+    <!-- <textarea id=create-account-form-output placeholder="// keys"></textarea> -->
+    <input type=submit>
+  </form>
+  <form id=sidechain-form>
+    <h3>Sidechain</h3>
+    <!-- <textarea id=contract-form-keys placeholder="// keys"></textarea>
+    <textarea id=contract-form-source placeholder="// contract source"></textarea> -->
+    <input type=submit>
+  </form>
+
+  <script type=module src=ethereum.js></script>
+</body>
+
+</html>
