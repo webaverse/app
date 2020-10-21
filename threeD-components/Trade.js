@@ -1,5 +1,5 @@
 import { isTradeReady } from '../components/App.js';
-import {inventoryPageLimit, peersPageLimit} from '../constants.js';
+import {inventoryPageLimit, peersPageLimit} from './constants.js';
 const InventoryCard = (props) => {
   return `
     <a class="threeD-trade-inventory-card ${props.selected ? 'selected' : ''}" onclick="threeD-trade-inventory-card" name="${props.id}" id="threeD-trade-inventory-card">

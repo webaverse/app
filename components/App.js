@@ -8,7 +8,7 @@ import {state, getState, setState, getSpecificState, defaultState} from '../stat
 import {setBindings} from './bindings.js';
 import {getContractSource} from '../blockchain.js';
 import DiffDOM from '../diffDOM.js';
-import {inventoryPageLimit, peersPageLimit} from '../constants.js';
+import {inventoryPageLimit, peersPageLimit} from '../threeD-components/constants.js';
 
 const diffDOM = new DiffDOM();
 
@@ -16,45 +16,41 @@ let appState = state;
 const appContainerTmp = document.createElement('div');
 
 export const isTradeReady = () => {
-  const { menu } = getState();
-  if(menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem) {
-    return true;
-  } else {
-    return false;
-  }
+  const {menu} = getState();
+  return menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem;
 }
 
 export const onclickBindings = {
   'threeD-menuNavTab-inventory': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.activeTab = 'inventory';
     setState({
       menu,
     });
   },
   'threeD-menuNavTab-browse': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.activeTab = 'browse';
     setState({
       menu,
     });
   },
   'threeD-menuNavTab-social': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.activeTab = 'social';
     setState({
       menu,
     });
   },
   'threeD-menuNavTab-world': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.activeTab = 'world';
     setState({
       menu,
     });
   },
-  'threeD-social-tradeBtn': (e) => {
-    const { menu } = getState();
+  'threeD-social-tradeBtn': e => {
+    const {menu} = getState();
     menu.trade.visible = true;
     menu.trade.toPeer = e.name;
     menu.trade.fromPeer = loginManager.getAddress();
@@ -62,54 +58,53 @@ export const onclickBindings = {
       menu,
     });
   },
-  'threeD-trade-agreement': (e) => {
-    const { menu } = getState();
+  'threeD-trade-agreement': e => {
+    const {menu} = getState();
     menu.trade.agreement = !menu.trade.agreement;
-    setState({ menu });
+    setState({menu});
   },
-  'threeD-trade-header-backBtn': (e) => {
-    const { menu } = getState();
+  'threeD-trade-header-backBtn': e => {
+    const {menu} = getState();
     menu.trade = JSON.parse(JSON.stringify(defaultState.menu.trade));
     setState({
       menu,
     });
   },
-  'threeD-trade-cancel': (e) => {
-    const { menu } = getState();
+  'threeD-trade-cancel': e => {
+    const {menu} = getState();
     menu.trade = JSON.parse(JSON.stringify(defaultState.menu.trade));
     setState({
       menu,
     });
   },
-  'threeD-trade-peers-card': (e) => {
-    console.log('hello', e)
-    const { menu } = getState();
+  'threeD-trade-peers-card': e => {
+    const {menu} = getState();
     menu.trade.toPeer = e.name;
     menu.trade.agreement = false;
-    setState({ menu });
+    setState({menu});
   },
-  'threeD-trade-inventory-back': (e) => {
-    const { menu } = getState();
+  'threeD-trade-inventory-back': e => {
+    const {menu} = getState();
     menu.trade.inventoryPage > 0 ? menu.trade.inventoryPage-- : null;
-    setState({ menu });
+    setState({menu});
   },
-  'threeD-trade-inventory-forward': (e) => {
-    const { menu } = getState();
+  'threeD-trade-inventory-forward': e => {
+    const {menu} = getState();
     menu.trade.inventoryPage < Math.round(menu.inventory.items.length / inventoryPageLimit) ? menu.trade.inventoryPage++ : null;
-    setState({ menu });
+    setState({menu});
   },
-  'threeD-trade-peers-back': (e) => {
-    const { menu } = getState();
+  'threeD-trade-peers-back': e => {
+    const {menu} = getState();
     menu.trade.peersPage > 0 ? menu.trade.peersPage-- : null;
-    setState({ menu });
+    setState({menu});
   },
-  'threeD-trade-peers-forward': (e) => {
-    const { menu } = getState();
+  'threeD-trade-peers-forward': e => {
+    const {menu} = getState();
     menu.trade.peersPage < Math.round(menu.social.peers.length / peersPageLimit) ? menu.trade.peersPage++ : null;
-    setState({ menu });
+    setState({menu});
   },
   'threeD-trade-accept': async (e) => {
-    const { menu } = getState();
+    const {menu} = getState();
     if (isTradeReady()) {
       const trade = {
         toPeer: menu.trade.toPeer,
@@ -140,34 +135,34 @@ export const onclickBindings = {
     }
   },
   'threeD-trade-inventory-card': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.trade.selectedItem = parseInt(e.name, 10);
     menu.trade.agreement = false;
-    setState({ menu });
+    setState({menu});
   },
   'twoD-menuNavTab-inventory': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.activeTab = 'inventory';
     setState({
       menu,
     });
   },
   'twoD-menuNavTab-browse': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.activeTab = 'browse';
     setState({
       menu,
     });
   },
   'twoD-menuNavTab-social': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.activeTab = 'social';
     setState({
       menu,
     });
   },
   'twoD-menuNavTab-worlds': async (e) => {
-    const { menu } = getState();
+    const {menu} = getState();
     const response = await fetch('https://worlds.exokit.org/list');
     const json = await response.json();
     menu.worlds = json.worlds;
@@ -183,31 +178,31 @@ export const onclickBindings = {
     document.execCommand("copy");
   },
   'twoD-social-peerCard-trade': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.trade.visible = true;
     menu.trade.toPeer = e.name;
     menu.trade.fromPeer = loginManager.getAddress();
-    setState({ menu });
+    setState({menu});
   },
   'twoD-trade-inventory-card': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.trade.selectedItem = parseInt(e.name, 10);
-    setState({ menu });
+    setState({menu});
   },
   'twoD-trade-peers-card': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.trade.toPeer = e.name;
-    setState({ menu });
+    setState({menu});
   },
   'twoD-trade-cancel': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.trade = defaultState.menu.trade;
     setState({
       menu,
     });
   },
   'twoD-trade-accept': async (e) => {
-    const { menu } = getState();
+    const {menu} = getState();
     if (isTradeReady()) {
       const trade = {
         toPeer: menu.trade.toPeer,
@@ -238,9 +233,9 @@ export const onclickBindings = {
     }
   },
   'twoD-trade-agreement': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.trade.agreement = !menu.trade.agreement;
-    setState({ menu });
+    setState({menu});
   },
   'inventory-spawn': async e => {
     const id = e.name;
@@ -251,11 +246,11 @@ export const onclickBindings = {
     }));
   },
   'inventory-trade': async e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.trade.visible = true;
     menu.trade.selectedItem = parseInt(e.name, 10);
     menu.trade.fromPeer = loginManager.getAddress();
-    setState({ menu });
+    setState({menu});
   },
   'browse-spawn': async e => {
     const id = e.name;
@@ -278,7 +273,7 @@ export const onclickBindings = {
   },
   'inventory-item': e => {
     const id = parseInt(e.name, 10);
-    const { menu } = getState();
+    const {menu} = getState();
     const file = menu.inventory.items.find(file => file.id === id);
     const { hash, filename, preview } = file;
     menu.inventory.selectedId = id;
@@ -290,7 +285,7 @@ export const onclickBindings = {
   },
   'browse-item': e => {
     const id = parseInt(e.name, 10);
-    const { menu } = getState();
+    const {menu} = getState();
     const file = menu.browse.items.find(file => file.id === id);
     const { hash, filename, preview } = file;
     menu.inventory.selectedId = id;
@@ -302,7 +297,7 @@ export const onclickBindings = {
   },
   'peer': e => {
     const connectionId = e.name;
-    const { menu } = getState();
+    const {menu} = getState();
     menu.world.selectedPeerId = connectionId;
     setState({
       menu,
@@ -315,35 +310,35 @@ export const onclickBindings = {
     inventory.scrollBrowse(1);
   },
   'twoD-inventoryCardTradeBtn': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.trade.visible = true;
     menu.trade.selectedItem = parseInt(e.name, 10);
     menu.trade.fromPeer = loginManager.getAddress();
-    setState({ menu });
+    setState({menu});
   },
   'twoD-inventory-card': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.inventory.selectedId = parseInt(e.name, 10);
     menu.inventory.selectedItem = menu.inventory.items.find(item => item.id === menu.inventory.selectedId);
-    setState({ menu });
+    setState({menu});
   },
   'twoD-browse-card': e => {
-    const { menu } = getState();
+    const {menu} = getState();
     menu.browse.selectedId = parseInt(e.name, 10);
     menu.browse.selectedItem = menu.browse.items.find(item => item.id === menu.browse.selectedId);
-    setState({ menu });
+    setState({menu});
   }
 };
 
 inventory.addEventListener('ownedfilesupdate', e => {
-  const { menu } = state;
+  const {menu} = state;
   menu.inventory.items = e.data;
   updateProps({
     menu,
   });
 });
 planet.addEventListener('peersupdate', e => {
-  const { menu } = state;
+  const {menu} = state;
   menu.world.peers = e.data;
   menu.social.peers = e.data;
   updateProps({
