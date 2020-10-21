@@ -61,12 +61,12 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         t: 'uint256',
         v: new web3.utils.BN(1),
       };
-      await contracts.main.FT.methods.mint(address, 1).send({
+      await contracts.main.FT.methods.mint(address, amount.v).send({
         from: address,
       });
       
       // deposit on main
-      const receipt = await contracts.main.FT.methods.transfer(FTProxyAddress, 1).send({
+      const receipt = await contracts.main.FT.methods.transfer(FTProxyAddress, amount.v).send({
         from: address,
       });
 
@@ -170,6 +170,82 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
     ]);
     console.log('ALL OK');
   };
+
+  const ethFtForm = document.getElementById('eth-ft-form');
+  const ethFtAmountInput = document.getElementById('eth-ft-amount');
+  ethFtForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const amt = parseInt(ethFtAmountInput.value, 10);
+    if (!isNaN(amt)) {
+      const amount = {
+        t: 'uint256',
+        v: new web3.utils.BN(amt),
+      };
+      
+      // deposit on main
+      const receipt = await contracts.main.FT.methods.transfer(FTProxyAddress, amount.v).send({
+        from: address,
+      });
+
+      // get main deposit receipt signature
+      console.log('got receipt', receipt);
+      const {transactionHash} = receipt;
+      const timestamp = {
+        t: 'uint256',
+        // v: new web3.utils.BN(Date.now()),
+        v: transactionHash,
+      };
+      const chainId = {
+        t: 'uint256',
+        v: new web3.utils.BN(3),
+      };
+      const message = web3.utils.encodePacked(address, amount, timestamp, chainId);
+      const hashedMessage = web3.utils.sha3(message);
+      const sgn = await web3.eth.personal.sign(hashedMessage, address);
+      const r = sgn.slice(0, 66);
+      const s = '0x' + sgn.slice(66, 130);
+      const v = '0x' + sgn.slice(130, 132);
+      console.log('got', JSON.stringify({r, s, v}, null, 2));
+
+      // withdraw receipt signature on sidechain
+      await contracts.sidechain.FTProxy.methods.withdraw(address, amount.v, timestamp.v, r, s, v).send({
+        from: address,
+      });
+    } else {
+      console.log('failed to parse', JSON.stringify(ethFtAmountInput.value));
+    }
+  });
+  
+  const ethNftForm = document.getElementById('eth-nft-form');
+  const ethNftIdInput = document.getElementById('eth-nft-id');
+  ethFtForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const amt = parseInt(ethNftIdInput.value, 10);
+    if (!isNaN(amt)) {
+      
+    } else {
+      console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
+    }
+  });
+  
+  const sidechainFtForm = document.getElementById('sidechain-ft-form');
+  const sidechainFtAmountInput = document.getElementById('sidechain-ft-amount');
+  sidechainFtForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  
+  const sidechainNftForm = document.getElementById('sidechain-nft-form');
+  const sidechainNftIdInput = document.getElementById('sidechain-nft-id');
+  sidechainNftForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  
   /* window.testEvents = async () => {
     const events = await contract.getPastEvents('Transfer', {fromBlock: 0, toBlock: 'latest',})
     for (const event of events) {
