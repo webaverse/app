@@ -70,7 +70,6 @@ const Trade = (props) => {
     border-radius: 5px;
     border: 8px black solid;
     margin: 15px;
-    cursor: pointer;
   }
   
   .threeD-trade-inventory-card.selected {
@@ -106,7 +105,6 @@ const Trade = (props) => {
     box-shadow: 0 3px 3px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
     border: 8px black solid;
     margin: 15px;
-    cursor: pointer;
     text-align: center;
   }
   
@@ -126,8 +124,6 @@ const Trade = (props) => {
     font-size: 80px;
     white-space: nowrap;
     text-decoration: none;
-    cursor: pointer;
-    user-select: none;
     margin-top: 25px;
     margin-bottom: 50px;
     text-align: center;
@@ -142,8 +138,6 @@ const Trade = (props) => {
     font-size: 80px;
     white-space: nowrap;
     text-decoration: none;
-    cursor: pointer;
-    user-select: none;
     margin-top: 25px;
     margin-bottom: 50px;
     text-align: center;
@@ -151,7 +145,6 @@ const Trade = (props) => {
   
   .threeD-trade-accept.disabled {
     background-color: #b9b7b7;
-    cursor: not-allowed;
     color: #FFF;
   }
   
@@ -187,12 +180,10 @@ const Trade = (props) => {
   }
   #threeD-trade-agreement-label {
     font-size: 70px !important;
-    cursor: pointer;
   }
   #threeD-trade-header-backBtn {
     margin: 34px;
     font-size: 80px;
-    cursor: pointer;
     position: absolute;
     left: 20px;
     padding: 25px;
@@ -291,7 +282,7 @@ const Trade = (props) => {
             </h1>
           </div>
           <div class="threeD-trade-actions-agreement"> 
-            <input style="cursor: pointer;" type="checkbox" id="threeD-trade-agreement" name="threeD-trade-agreement" ${agreement ? 'checked' : ''} onclick="threeD-trade-agreement">
+            <input type="checkbox" id="threeD-trade-agreement" name="threeD-trade-agreement" ${agreement ? 'checked' : ''} onclick="threeD-trade-agreement">
             <label for="threeD-trade-agreement" id="threeD-trade-agreement-label"> I agree to trade my token.</label><br>
             <div class="threeD-spacer"></div>
             <a class="threeD-trade-cancel" id="threeD-trade-cancel" onclick="threeD-trade-cancel">Cancel</a>
