@@ -43,9 +43,9 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
   window.contract = contract;
   window.address = address;
   window.test = async () => {
+    const address = web3.currentProvider.selectedAddress;
+
     const _testFt = async () => {
-      const address = web3.currentProvider.selectedAddress;
-      
       // allow FT minting
       await Promise.all([
         contracts.main.FT.methods.addAllowedMinter(FTProxyAddress).send({
@@ -61,7 +61,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         t: 'uint256',
         v: new web3.utils.BN(1),
       };
-      await contracts.main.FT.methods.mint(web3.currentProvider.selectedAddress, 1).send({
+      await contracts.main.FT.methods.mint(address, 1).send({
         from: address,
       });
       
@@ -70,7 +70,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         from: address,
       });
 
-      // get receipt signature
+      // get main deposit receipt signature
       console.log('got receipt', receipt);
       const {transactionHash} = receipt;
       const timestamp = {
@@ -94,10 +94,83 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       await contracts.sidechain.FTProxy.methods.withdraw(address, amount.v, timestamp.v, r, s, v).send({
         from: address,
       });
+      
+      console.log('FT OK');
     };
-    await _testFt();
+    const _testNft = async () => {
+      await Promise.all([
+        contracts.main.NFT.methods.addAllowedMinter(NFTProxyAddress).send({
+          from: address,
+        }),
+        contracts.sidechain.NFT.methods.addAllowedMinter(NFTProxyAddressSidechain).send({
+          from: address,
+        }),
+        contracts.main.NFT.methods.setApprovalForAll(NFTProxyAddress, true).send({
+          from: address,
+        }),
+        contracts.sidechain.NFT.methods.setApprovalForAll(NFTProxyAddressSidechain, true).send({
+          from: address,
+        }),
+      ]);
+
+      // mint on sidechain
+      const hash = {
+        t: 'uint256',
+        v: new web3.utils.BN(Date.now()),
+      };
+      const filename = 'lol.png';
+      console.log('nft', address, hash, filename, 1);
+      const receipt = await contracts.sidechain.NFT.methods.mint(address, hash.v, filename, 1).send({
+        from: address,
+      });
+      const tokenId = {
+        t: 'uint256',
+        v: new web3.utils.BN(receipt.events.Transfer.returnValues.tokenId),
+      };
+      // console.log('got receipt', [address, NFTProxyAddressSidechain, tokenId], {NFTAddress, NFTAddressSidechain, NFTProxyAddress, NFTProxyAddressSidechain});
+
+      // deposit on sidechain
+      const receipt2 = await contracts.sidechain.NFT.methods.transferFrom(address, NFTProxyAddressSidechain, tokenId.v).send({
+        from: address,
+      });
+      console.log('got receipt', receipt2);
+
+      // get sidechain deposit receipt signature
+      const {transactionHash} = receipt2;
+      const timestamp = {
+        t: 'uint256',
+        // v: new web3.utils.BN(Date.now()),
+        v: transactionHash,
+      };
+      const chainId = {
+        t: 'uint256',
+        v: new web3.utils.BN(2),
+      };
+
+      const filenameHash = web3.utils.sha3(filename);
+      const message = web3.utils.encodePacked(address, tokenId, hash, filenameHash, timestamp, chainId);
+      const hashedMessage = web3.utils.sha3(message);
+      const sgn = await web3.eth.personal.sign(hashedMessage, address);
+      const r = sgn.slice(0, 66);
+      const s = '0x' + sgn.slice(66, 130);
+      const v = '0x' + sgn.slice(130, 132);
+      console.log('got', JSON.stringify({r, s, v}, null, 2));
+
+      // withdraw receipt signature on sidechain
+      // console.log('main withdraw', [address, tokenId.v.toString(10), hash.v.toString(10), filename, timestamp.v.toString(10), r, s, v]);
+      await contracts.main.NFTProxy.methods.withdraw(address, tokenId.v, hash.v, filename, timestamp.v, r, s, v).send({
+        from: address,
+      });
+      
+      console.log('NFT OK');
+    };
+    await Promise.all([
+      _testFt(),
+      _testNft(),
+    ]);
+    console.log('ALL OK');
   };
-  window.testEvents = async () => {
+  /* window.testEvents = async () => {
     const events = await contract.getPastEvents('Transfer', {fromBlock: 0, toBlock: 'latest',})
     for (const event of events) {
       const {returnValues} = event;
@@ -106,7 +179,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         console.log('got event', {from, to, value});
       }
     }
-  };
+  }; */
   /* function verify() internal pure returns(bool) {
     bytes memory prefix = "\x19Ethereum Signed Message:\n32";
     bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, keccak256("lol")));
