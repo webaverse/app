@@ -1,3 +1,4 @@
+import { isTradeReady } from '../components/App.js';
 import {inventoryPageLimit, peersPageLimit} from '../constants.js';
 const InventoryCard = (props) => {
   return `
@@ -286,7 +287,7 @@ const Trade = (props) => {
             <label for="threeD-trade-agreement" id="threeD-trade-agreement-label"> I agree to trade my token.</label><br>
             <div class="threeD-spacer"></div>
             <a class="threeD-trade-cancel" id="threeD-trade-cancel" onclick="threeD-trade-cancel">Cancel</a>
-            <a class="threeD-trade-accept ${!agreement || !toPeer || !fromPeer || !selectedItem ? 'disabled' : ''}" id="threeD-trade-accept" onclick="threeD-trade-accept">Accept</a>
+            <a class="threeD-trade-accept ${!isTradeReady() ? 'disabled' : ''}" id="threeD-trade-accept" onclick="threeD-trade-accept">Accept</a>
           </div>
         </div>
       </div>

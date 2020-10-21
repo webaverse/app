@@ -15,6 +15,15 @@ const diffDOM = new DiffDOM();
 let appState = state;
 const appContainerTmp = document.createElement('div');
 
+export const isTradeReady = () => {
+  const { menu } = getState();
+  if(menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 export const onclickBindings = {
   'threeD-menuNavTab-inventory': e => {
     const { menu } = getState();
@@ -101,7 +110,7 @@ export const onclickBindings = {
   },
   'threeD-trade-accept': async (e) => {
     const { menu } = getState();
-    if (menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem) {
+    if (isTradeReady()) {
       const trade = {
         toPeer: menu.trade.toPeer,
         fromPeer: menu.trade.fromPeer,
@@ -199,7 +208,7 @@ export const onclickBindings = {
   },
   'twoD-trade-accept': async (e) => {
     const { menu } = getState();
-    if (menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem) {
+    if (isTradeReady()) {
       const trade = {
         toPeer: menu.trade.toPeer,
         fromPeer: menu.trade.fromPeer,
