@@ -47,7 +47,7 @@ export const defaultState = {
     }
 };
 
-export const state = defaultState;
+export const state = JSON.parse(JSON.stringify(defaultState));
 
 const emitChange = changedKeys => {
     window.dispatchEvent(new CustomEvent('stateChanged', { 

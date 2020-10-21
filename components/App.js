@@ -58,14 +58,14 @@ export const onclickBindings = {
   },
   'threeD-trade-header-backBtn': (e) => {
     const { menu } = getState();
-    menu.trade = defaultState.menu.trade;
+    menu.trade = JSON.parse(JSON.stringify(defaultState.menu.trade));
     setState({
       menu,
     });
   },
   'threeD-trade-cancel': (e) => {
     const { menu } = getState();
-    menu.trade = defaultState.menu.trade;
+    menu.trade = JSON.parse(JSON.stringify(defaultState.menu.trade));
     setState({
       menu,
     });
@@ -78,7 +78,7 @@ export const onclickBindings = {
   },
   'threeD-trade-inventory-back': (e) => {
     const { menu } = getState();
-    menu.trade.inventoryPage > 0 ? --menu.trade.inventoryPage : null;
+    menu.trade.inventoryPage > 0 ? menu.trade.inventoryPage-- : null;
     setState({ menu });
   },
   'threeD-trade-inventory-forward': (e) => {
@@ -88,24 +88,22 @@ export const onclickBindings = {
   },
   'threeD-trade-peers-back': (e) => {
     const { menu } = getState();
-    menu.trade.peersPage > 0 ? --menu.trade.peersPage : null;
+    menu.trade.peersPage > 0 ? menu.trade.peersPage-- : null;
     setState({ menu });
   },
   'threeD-trade-peers-forward': (e) => {
     const { menu } = getState();
-    ++menu.trade.peersPage;
+    menu.trade.peersPage++;
     setState({ menu });
   },
   'threeD-trade-accept': async (e) => {
     const { menu } = getState();
     if (menu.trade.agreement && menu.trade.toPeer && menu.trade.fromPeer && menu.trade.selectedItem) {
-
       const trade = {
         toPeer: menu.trade.toPeer,
         fromPeer: menu.trade.fromPeer,
         item: menu.trade.selectedItem
       };
-
       const contractSource = await getContractSource('transferNft.cdc');
       const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
         method: 'POST',
@@ -121,9 +119,7 @@ export const onclickBindings = {
         }),
       });
       const response2 = await res.json();
-      console.log(response2)
-
-      menu.trade = defaultState.menu.trade;
+      menu.trade = JSON.parse(JSON.stringify(defaultState.menu.trade));
     } else {
       // no agreement
     }
