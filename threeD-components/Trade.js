@@ -248,12 +248,12 @@ const Trade = props => {
         <div class="threeD-trade-inventory">
           ${
             inventoryItems.map((value, index) => {
-                return InventoryCard({
-                    id: value.id,
-                    name: value.filename,
-                    preview: value.preview,
-                    selected: selectedItem === value.id,
-                })
+              return InventoryCard({
+                  id: value.id,
+                  name: value.filename,
+                  preview: value.preview,
+                  selected: selectedItem === value.id,
+              })
             }).join('')
           }
         </div>
@@ -268,11 +268,10 @@ const Trade = props => {
         <div class="threeD-trade-peers">
           ${
             peers.map((value, index) => {
-                return PeerCard({
-                  peerAddress: value.address,
-                  selected: value.address === toPeer,
-                });
-              return;
+              return PeerCard({
+                peerAddress: value.address,
+                selected: value.address === toPeer,
+              });
             }).join('')
           }
         </div>
