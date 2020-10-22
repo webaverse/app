@@ -2,6 +2,10 @@ import Web3 from './web3.min.js';
 import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
+import ethereumJsTx from './ethereumjs-tx.js';
+// import ethereumJsTx from './ethereumjs-tx2.js';
+const {Transaction, Common} = ethereumJsTx;
+// Transaction.prototype.getChainId = () => 1337;
 import addresses from 'https://contracts.webaverse.com/ethereum/address.js';
 import abis from 'https://contracts.webaverse.com/ethereum/abi.js';
 let {
@@ -53,35 +57,15 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
     new web3['main'].utils.BN(testAddress.slice(2), 16).xor(new web3['main'].utils.BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF', 16)).toString(16),
     40
   );
-  const sidechainPrivateKey = sidechainWallet.getPrivateKeyString();
+  const testPrivateKey = sidechainWallet.getPrivateKeyString();
+  // const testAccount = web3['sidechain'].eth.accounts.privateKeyToAccount(testPrivateKey);
+  // web3['sidechain'].eth.accounts.wallet.add(testPrivateKey);
 
   window.Web3 = Web3;
   window.bip39 = bip39;
   window.hdkey = hdkey;
   window.web3 = web3;
   window.contracts = contracts;
-  window.test1 = async () => {
-    try {
-      const tx = contracts.sidechain.FT.methods.addAllowedMinter(FTProxyAddressSidechain);
-      const data = tx.encodeABI();
-      const gas = await tx.estimateGas({
-        from: testAddress,
-      });
-      console.log('got data gas', data, gas);
-      const signedTransaction = web3['sidechain'].eth.accounts.signTransaction({
-        // this could be provider.addresses[0] if it exists
-        from: testAddress, 
-        // this encodes the ABI of the method and the arguements
-        data,
-        gas,
-      }, sidechainPrivateKey);
-      console.log('got signed', sidechainWallet);
-
-      // web3[chainName].eth.accounts.sign(hashedMessage, wallet.getPrivateKeyString())
-    } catch(err) {
-      console.warn('could not enable FT minting');
-    }
-  };
   window.test = async () => {
     const address = web3['main'].currentProvider.selectedAddress;
 
@@ -110,9 +94,23 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         from: address,
       });
 
-      const signature = await fetch(`https://sign.exokit.org/main/FT/${receipt.transactionHash}`).then(res => res.json());
-      console.log('got sig', `https://sign.exokit.org/main/FT/${receipt.transactionHash}`, signature);
-      debugger;
+      const maxIterations = 10;
+      const _getSignature = async () => {
+        for (let i = 0; i < 10; i++) {
+          const signature = await fetch(`https://sign.exokit.org/main/FT/${receipt.transactionHash}`).then(res => res.json());
+          console.log('got sig', `https://sign.exokit.org/main/FT/${receipt.transactionHash}`, signature);
+          if (signature) {
+            return signature;
+          } else {
+            await new Promise((accept, reject) => {
+              setTimeout(accept, 1000);
+            });
+          }
+        }
+        return null;
+      };
+      const signature = await _getSignature();
+      // debugger;
       const {amount, timestamp, r, s, v} = signature;
 
       /* // get main deposit receipt signature
@@ -136,20 +134,185 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
 
       // withdraw receipt signature on sidechain
       {
-        const tx = contracts.sidechain.FTProxy.methods.withdraw(testAddress, amount, timestamp, r, s, v);
-        const data = tx.encodeABI();
-        const gas = await tx.estimateGas({
+        console.log('run tx', [testAddress, amount, timestamp, r, s, v]);
+        const txData = contracts.sidechain.FTProxy.methods.withdraw(testAddress, amount, timestamp, r, s, v);
+        const data = txData.encodeABI();
+        const gas = await txData.estimateGas({
           from: testAddress,
         });
+        let gasPrice = await web3['sidechain'].eth.getGasPrice();
+        gasPrice = parseInt(gasPrice, 10);
         // console.log('got data gas', data, gas);
-        const signedTransaction = web3['sidechain'].eth.accounts.signTransaction({
+        const nonce = await web3['sidechain'].eth.getTransactionCount(testAddress);
+        /* console.log('signing tx', {
           // this could be provider.addresses[0] if it exists
           from: testAddress, 
           // this encodes the ABI of the method and the arguements
           data,
           gas,
-        }, sidechainPrivateKey);
-        console.log('got signed tx', signedTransaction);
+          gasPrice,
+          nonce,
+        }, testAddress); */
+        /* const signature = await web3['sidechain'].eth.accounts.signTransaction({
+          data,
+          gas,
+        }, testPrivateKey);
+        console.log('got sig', signature, testPrivateKey);
+        debugger; */
+        /* console.log('constructing tx', {
+          // from: testAddress,
+          nonce,
+          gasPrice,
+          // gasLimit: 100000,
+          data,
+        }); */
+        const testPrivateKeyBytes = Uint8Array.from(web3.sidechain.utils.hexToBytes(testPrivateKey));
+        console.log('from tx', {
+          chainId: '1337',
+          // from: testAddress,
+          nonce: '0x' + new web3['sidechain'].utils.BN(nonce).toString(16),
+          // gasLimit: gas,
+          gasPrice: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
+          gasLimit: '0x' + new web3['sidechain'].utils.BN(1000000).toString(16),
+          data,
+        }, {
+          common: Common.forCustomChain(
+            'mainnet',
+            {
+              name: 'geth',
+              networkId: 1,
+              chainId: 1337,
+              genesis: {
+                timestamp: `0x0`,
+                hash: "0x",
+                gasLimit: "8000000",
+                difficulty: '0x1',
+                nonce: "0x0",
+                extraData: "0x0000000000000000000000000000000000000000000000000000000000000000A57c89548A982eB90dDA1D8069b73355c2EffC340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                // stateRoot: bufferToHex(stateTrie.root),
+              },
+              /* {
+  "config": {
+    "chainId": 1337,
+    "homesteadBlock": 0,
+    "eip150Block": 0,
+    "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "eip155Block": 0,
+    "eip158Block": 0,
+    "byzantiumBlock": 0,
+    "petersburgBlock": 0,
+    "constantinopleBlock": 0,
+    "clique": {
+      "period": 1,
+      "epoch": 30000
+    }
+  },
+  "nonce": "0x0",
+  "timestamp": "0x0",
+  "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000A57c89548A982eB90dDA1D8069b73355c2EffC340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "gasLimit": "8000000",
+  "difficulty": "0x1",
+  "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "coinbase": "0x0000000000000000000000000000000000000000",
+  "alloc": {
+    "A57c89548A982eB90dDA1D8069b73355c2EffC34": { "balance": "100" }
+  },
+  "number": "0x0",
+  "gasUsed": "0x0",
+  "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+} */
+            },
+            'petersburg',
+          ),
+        });
+        let tx = Transaction.fromTxData({
+          // chainId: '1337',
+          // from: testAddress,
+          to: FTProxyAddressSidechain,
+          nonce: '0x' + new web3['sidechain'].utils.BN(nonce).toString(16),
+          // gasLimit: gas,
+          gas: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
+          gasPrice: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
+          gasLimit: '0x' + new web3['sidechain'].utils.BN(1000000).toString(16),
+          data,
+        }, {
+          common: Common.forCustomChain(
+            'mainnet',
+            {
+              name: 'geth',
+              networkId: 1,
+              chainId: 1337,
+              genesis: {
+                timestamp: `0x0`,
+                hash: "0x",
+                gasLimit: "8000000",
+                difficulty: '0x1',
+                nonce: "0x0",
+                extraData: "0x0000000000000000000000000000000000000000000000000000000000000000A57c89548A982eB90dDA1D8069b73355c2EffC340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                // stateRoot: bufferToHex(stateTrie.root),
+              },
+              /* {
+  "config": {
+    "chainId": 1337,
+    "homesteadBlock": 0,
+    "eip150Block": 0,
+    "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "eip155Block": 0,
+    "eip158Block": 0,
+    "byzantiumBlock": 0,
+    "petersburgBlock": 0,
+    "constantinopleBlock": 0,
+    "clique": {
+      "period": 1,
+      "epoch": 30000
+    }
+  },
+  "nonce": "0x0",
+  "timestamp": "0x0",
+  "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000A57c89548A982eB90dDA1D8069b73355c2EffC340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "gasLimit": "8000000",
+  "difficulty": "0x1",
+  "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "coinbase": "0x0000000000000000000000000000000000000000",
+  "alloc": {
+    "A57c89548A982eB90dDA1D8069b73355c2EffC34": { "balance": "100" }
+  },
+  "number": "0x0",
+  "gasUsed": "0x0",
+  "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+} */
+            },
+            'petersburg',
+          ),
+        }).sign(testPrivateKeyBytes);
+        // console.log('got signed tx', tx);
+        /* let tx = new Transaction({
+          chainId: 1337,
+          from: testAddress,
+          nonce: web3.sidechain.utils.toHex(nonce),
+          // gasLimit: gas,
+          gasPrice: web3.sidechain.utils.toHex(gasPrice),
+          gasLimit: web3.sidechain.utils.toHex(100000),
+          data,
+        }, {
+          common: Common.forCustomChain(
+            'mainnet',
+            {
+              name: 'sidechain',
+              networkId: 1337,
+              chainId: 1337,
+            },
+            'petersburg',
+          ),
+        }); 
+        console.log('load tx', tx);
+        const testPrivateKeyBytes = Uint8Array.from(web3.sidechain.utils.hexToBytes(testPrivateKey));
+        console.log('got tx', tx, testPrivateKeyBytes);
+        tx.sign(testPrivateKeyBytes); */
+        const rawTx = '0x' + tx.serialize().toString('hex');
+        console.log('signed tx', tx, rawTx);
+        const sentTx = await web3['sidechain'].eth.sendSignedTransaction(rawTx);
+        console.log('sent tx', sentTx);
       }
       /* await contracts.sidechain.FTProxy.methods.withdraw(testAddress, amount, timestamp, r, s, v).send({
         from: address,
