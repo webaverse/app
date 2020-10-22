@@ -97,23 +97,23 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       ]); */
 
       // mint on main
-      const amount = {
+      const ftAmount = {
         t: 'uint256',
         v: new web3['main'].utils.BN(1),
       };
-      await contracts.main.FT.methods.mint(address, amount.v).send({
+      await contracts.main.FT.methods.mint(address, ftAmount.v).send({
         from: address,
       });
       
       // deposit on main
-      const receipt = await contracts.main.FT.methods.transfer(sidechainAddressInverse, amount.v).send({
+      const receipt = await contracts.main.FT.methods.transfer(sidechainAddressInverse, ftAmount.v).send({
         from: address,
       });
 
       const signature = await fetch(`https://sign.exokit.org/main/FT/${receipt.transactionHash}`).then(res => res.json());
       console.log('got sig', `https://sign.exokit.org/main/FT/${receipt.transactionHash}`, signature);
       debugger;
-      const {r, s, v} = signature;
+      const {amount, timestamp, r, s, v} = signature;
 
       /* // get main deposit receipt signature
       console.log('got main ft deposit receipt', receipt);
@@ -135,9 +135,25 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       console.log('got', JSON.stringify({r, s, v}, null, 2)); */
 
       // withdraw receipt signature on sidechain
-      await contracts.sidechain.FTProxy.methods.withdraw(address, amount.v, timestamp.v, r, s, v).send({
+      {
+        const tx = contracts.sidechain.FTProxy.methods.withdraw(sidechainAddress, amount, timestamp, r, s, v);
+        const data = tx.encodeABI();
+        const gas = await tx.estimateGas({
+          from: sidechainAddress,
+        });
+        // console.log('got data gas', data, gas);
+        const signedTransaction = web3['sidechain'].eth.accounts.signTransaction({
+          // this could be provider.addresses[0] if it exists
+          from: sidechainAddress, 
+          // this encodes the ABI of the method and the arguements
+          data,
+          gas,
+        }, sidechainPrivateKey);
+        console.log('got signed tx', signedTransaction);
+      }
+      /* await contracts.sidechain.FTProxy.methods.withdraw(sidechainAddress, amount, timestamp, r, s, v).send({
         from: address,
-      });
+      }); */
       
       console.log('FT OK');
     };
