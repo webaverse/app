@@ -1,5 +1,4 @@
 import Web3 from './web3.min.js';
-// import bip32 from './bip32.js';
 import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
@@ -10,10 +9,6 @@ let {
   sidechain: {Account: AccountAddressSidechain, FT: FTAddressSidechain, NFT: NFTAddressSidechain, FTProxy: FTProxyAddressSidechain, NFTProxy: NFTProxyAddressSidechain},
 } = addresses;
 let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi} = abis;
-
-function u8ToHex(uint8Array) {
-  return Array.prototype.map.call(uint8Array, x => ('00' + x.toString(16)).slice(-2)).join('');
-}
 
 (async () => {
   const web3 = new Web3(window.ethereum);
@@ -43,11 +38,9 @@ function u8ToHex(uint8Array) {
   // contract.methods.mint('0x08E242bB06D85073e69222aF8273af419d19E4f6', '0x1', 1).send({from: address})
 
   window.Web3 = Web3;
-  // window.bip32 = bip32;
   window.bip39 = bip39;
   window.hdkey = hdkey;
   window.web3 = web3;
-  window.u8ToHex = u8ToHex;
   window.contracts = contracts;
   window.test = async () => {
     const address = web3.currentProvider.selectedAddress;
