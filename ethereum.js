@@ -48,9 +48,9 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
 
   const sidechainSeedPhrase = 'fox acquire elite cave behave fine doll inch ride rely small pause';
   const sidechainWallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(sidechainSeedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-  const sidechainAddress = sidechainWallet.getAddressString();
-  const sidechainAddressInverse = '0x' + web3['main'].utils.padLeft(
-    new web3['main'].utils.BN(sidechainAddress.slice(2), 16).xor(new web3['main'].utils.BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF', 16)).toString(16),
+  const testAddress = sidechainWallet.getAddressString();
+  const testAddressInverse = '0x' + web3['main'].utils.padLeft(
+    new web3['main'].utils.BN(testAddress.slice(2), 16).xor(new web3['main'].utils.BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF', 16)).toString(16),
     40
   );
   const sidechainPrivateKey = sidechainWallet.getPrivateKeyString();
@@ -65,12 +65,12 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       const tx = contracts.sidechain.FT.methods.addAllowedMinter(FTProxyAddressSidechain);
       const data = tx.encodeABI();
       const gas = await tx.estimateGas({
-        from: sidechainAddress,
+        from: testAddress,
       });
       console.log('got data gas', data, gas);
       const signedTransaction = web3['sidechain'].eth.accounts.signTransaction({
         // this could be provider.addresses[0] if it exists
-        from: sidechainAddress, 
+        from: testAddress, 
         // this encodes the ABI of the method and the arguements
         data,
         gas,
@@ -106,7 +106,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       });
       
       // deposit on main
-      const receipt = await contracts.main.FT.methods.transfer(sidechainAddressInverse, ftAmount.v).send({
+      const receipt = await contracts.main.FT.methods.transfer(testAddressInverse, ftAmount.v).send({
         from: address,
       });
 
@@ -136,22 +136,22 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
 
       // withdraw receipt signature on sidechain
       {
-        const tx = contracts.sidechain.FTProxy.methods.withdraw(sidechainAddress, amount, timestamp, r, s, v);
+        const tx = contracts.sidechain.FTProxy.methods.withdraw(testAddress, amount, timestamp, r, s, v);
         const data = tx.encodeABI();
         const gas = await tx.estimateGas({
-          from: sidechainAddress,
+          from: testAddress,
         });
         // console.log('got data gas', data, gas);
         const signedTransaction = web3['sidechain'].eth.accounts.signTransaction({
           // this could be provider.addresses[0] if it exists
-          from: sidechainAddress, 
+          from: testAddress, 
           // this encodes the ABI of the method and the arguements
           data,
           gas,
         }, sidechainPrivateKey);
         console.log('got signed tx', signedTransaction);
       }
-      /* await contracts.sidechain.FTProxy.methods.withdraw(sidechainAddress, amount, timestamp, r, s, v).send({
+      /* await contracts.sidechain.FTProxy.methods.withdraw(testAddress, amount, timestamp, r, s, v).send({
         from: address,
       }); */
       
