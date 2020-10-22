@@ -167,64 +167,6 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
           data,
         }); */
         const testPrivateKeyBytes = Uint8Array.from(web3.sidechain.utils.hexToBytes(testPrivateKey));
-        console.log('from tx', {
-          chainId: '1337',
-          // from: testAddress,
-          nonce: '0x' + new web3['sidechain'].utils.BN(nonce).toString(16),
-          // gasLimit: gas,
-          gasPrice: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
-          gasLimit: '0x' + new web3['sidechain'].utils.BN(1000000).toString(16),
-          data,
-        }, {
-          common: Common.forCustomChain(
-            'mainnet',
-            {
-              name: 'geth',
-              networkId: 1,
-              chainId: 1337,
-              genesis: {
-                timestamp: `0x0`,
-                hash: "0x",
-                gasLimit: "8000000",
-                difficulty: '0x1',
-                nonce: "0x0",
-                extraData: "0x0000000000000000000000000000000000000000000000000000000000000000A57c89548A982eB90dDA1D8069b73355c2EffC340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                // stateRoot: bufferToHex(stateTrie.root),
-              },
-              /* {
-  "config": {
-    "chainId": 1337,
-    "homesteadBlock": 0,
-    "eip150Block": 0,
-    "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "eip155Block": 0,
-    "eip158Block": 0,
-    "byzantiumBlock": 0,
-    "petersburgBlock": 0,
-    "constantinopleBlock": 0,
-    "clique": {
-      "period": 1,
-      "epoch": 30000
-    }
-  },
-  "nonce": "0x0",
-  "timestamp": "0x0",
-  "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000A57c89548A982eB90dDA1D8069b73355c2EffC340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-  "gasLimit": "8000000",
-  "difficulty": "0x1",
-  "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-  "coinbase": "0x0000000000000000000000000000000000000000",
-  "alloc": {
-    "A57c89548A982eB90dDA1D8069b73355c2EffC34": { "balance": "100" }
-  },
-  "number": "0x0",
-  "gasUsed": "0x0",
-  "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
-} */
-            },
-            'petersburg',
-          ),
-        });
         let tx = Transaction.fromTxData({
           // chainId: '1337',
           // from: testAddress,
@@ -242,45 +184,6 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
               name: 'geth',
               networkId: 1,
               chainId: 1337,
-              genesis: {
-                timestamp: `0x0`,
-                hash: "0x",
-                gasLimit: "8000000",
-                difficulty: '0x1',
-                nonce: "0x0",
-                extraData: "0x0000000000000000000000000000000000000000000000000000000000000000A57c89548A982eB90dDA1D8069b73355c2EffC340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                // stateRoot: bufferToHex(stateTrie.root),
-              },
-              /* {
-  "config": {
-    "chainId": 1337,
-    "homesteadBlock": 0,
-    "eip150Block": 0,
-    "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "eip155Block": 0,
-    "eip158Block": 0,
-    "byzantiumBlock": 0,
-    "petersburgBlock": 0,
-    "constantinopleBlock": 0,
-    "clique": {
-      "period": 1,
-      "epoch": 30000
-    }
-  },
-  "nonce": "0x0",
-  "timestamp": "0x0",
-  "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000A57c89548A982eB90dDA1D8069b73355c2EffC340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-  "gasLimit": "8000000",
-  "difficulty": "0x1",
-  "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-  "coinbase": "0x0000000000000000000000000000000000000000",
-  "alloc": {
-    "A57c89548A982eB90dDA1D8069b73355c2EffC34": { "balance": "100" }
-  },
-  "number": "0x0",
-  "gasUsed": "0x0",
-  "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
-} */
             },
             'petersburg',
           ),
