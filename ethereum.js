@@ -1,6 +1,8 @@
 import Web3 from './web3.min.js';
-import bip32 from './bip32.js';
+// import bip32 from './bip32.js';
 import bip39 from './bip39.js';
+import hdkeySpec from './hdkey.js';
+const hdkey = hdkeySpec.default;
 import addresses from 'https://contracts.webaverse.com/ethereum/address.js';
 import abis from 'https://contracts.webaverse.com/ethereum/abi.js';
 let {
@@ -8,6 +10,10 @@ let {
   sidechain: {Account: AccountAddressSidechain, FT: FTAddressSidechain, NFT: NFTAddressSidechain, FTProxy: FTProxyAddressSidechain, NFTProxy: NFTProxyAddressSidechain},
 } = addresses;
 let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi} = abis;
+
+function u8ToHex(uint8Array) {
+  return Array.prototype.map.call(uint8Array, x => ('00' + x.toString(16)).slice(-2)).join('');
+}
 
 (async () => {
   const web3 = new Web3(window.ethereum);
@@ -37,11 +43,11 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
   // contract.methods.mint('0x08E242bB06D85073e69222aF8273af419d19E4f6', '0x1', 1).send({from: address})
 
   window.Web3 = Web3;
-  /* window.bip32 = bip32;
+  // window.bip32 = bip32;
   window.bip39 = bip39;
+  window.hdkey = hdkey;
   window.web3 = web3;
-  window.contract = contract;
-  window.address = address; */
+  window.u8ToHex = u8ToHex;
   window.contracts = contracts;
   window.test = async () => {
     const address = web3.currentProvider.selectedAddress;
@@ -389,7 +395,14 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
     }
   });
-  
+  window.testAccount = seedPhrase => {
+	  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(seedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+	  console.log('got wallet', wallet);
+	  const account = wallet.getAddressString();
+	  const publicKey = wallet.getPublicKeyString();
+	  const privateKey = wallet.getPrivateKeyString();
+	  console.log('got address', {account, publicKey, privateKey});
+  };
   /* window.testEvents = async () => {
     const events = await contract.getPastEvents('Transfer', {fromBlock: 0, toBlock: 'latest',})
     for (const event of events) {
