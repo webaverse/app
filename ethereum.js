@@ -11,42 +11,82 @@ let {
 let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi} = abis;
 
 (async () => {
-  const web3 = new Web3(window.ethereum);
-  window.ethereum.enable();
+  const web3 = {
+    main: new Web3(window.ethereum),
+    sidechain: new Web3(new Web3.providers.HttpProvider('http://13.56.80.83:8545')),
+  };
+  await window.ethereum.enable();
+  
+  const networkType = await web3['main'].eth.net.getNetworkType();
+  if (networkType !== 'rinkeby') {
+    document.write('switch to Rinkeby');
+    return;
+  }
 
   const contracts = {
     main: {
-      Account: new web3.eth.Contract(AccountAbi, AccountAddress),
-      FT: new web3.eth.Contract(FTAbi, FTAddress),
-      FTProxy: new web3.eth.Contract(FTProxyAbi, FTProxyAddress),
-      NFT: new web3.eth.Contract(NFTAbi, NFTAddress),
-      NFTProxy: new web3.eth.Contract(NFTProxyAbi, NFTProxyAddress),
+      Account: new web3['main'].eth.Contract(AccountAbi, AccountAddress),
+      FT: new web3['main'].eth.Contract(FTAbi, FTAddress),
+      FTProxy: new web3['main'].eth.Contract(FTProxyAbi, FTProxyAddress),
+      NFT: new web3['main'].eth.Contract(NFTAbi, NFTAddress),
+      NFTProxy: new web3['main'].eth.Contract(NFTProxyAbi, NFTProxyAddress),
     },
     sidechain: {
-      Account: new web3.eth.Contract(AccountAbi, AccountAddressSidechain),
-      FT: new web3.eth.Contract(FTAbi, FTAddressSidechain),
-      FTProxy: new web3.eth.Contract(FTProxyAbi, FTProxyAddressSidechain),
-      NFT: new web3.eth.Contract(NFTAbi, NFTAddressSidechain),
-      NFTProxy: new web3.eth.Contract(NFTProxyAbi, NFTProxyAddressSidechain),
+      Account: new web3['sidechain'].eth.Contract(AccountAbi, AccountAddressSidechain),
+      FT: new web3['sidechain'].eth.Contract(FTAbi, FTAddressSidechain),
+      FTProxy: new web3['sidechain'].eth.Contract(FTProxyAbi, FTProxyAddressSidechain),
+      NFT: new web3['sidechain'].eth.Contract(NFTAbi, NFTAddressSidechain),
+      NFTProxy: new web3['sidechain'].eth.Contract(NFTProxyAbi, NFTProxyAddressSidechain),
     },
   };
 
-  const contract = new web3.eth.Contract(FTAbi, FTAddress);
-  const proxyContract = new web3.eth.Contract(FTProxyAbi, FTProxyAddress);
-  const address = web3.currentProvider.selectedAddress;
+  // const contract = new web3.eth.Contract(FTAbi, FTAddress);
+  // const proxyContract = new web3.eth.Contract(FTProxyAbi, FTProxyAddress);
+  const address = web3['main'].currentProvider.selectedAddress;
   
   // contract.methods.mint('0x08E242bB06D85073e69222aF8273af419d19E4f6', '0x1', 1).send({from: address})
+
+  const sidechainSeedPhrase = 'fox acquire elite cave behave fine doll inch ride rely small pause';
+  const sidechainWallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(sidechainSeedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+  const sidechainAddress = sidechainWallet.getAddressString();
+  const sidechainAddressInverse = '0x' + web3['main'].utils.padLeft(
+    new web3['main'].utils.BN(sidechainAddress.slice(2), 16).xor(new web3['main'].utils.BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF', 16)).toString(16),
+    40
+  );
+  const sidechainPrivateKey = sidechainWallet.getPrivateKeyString();
 
   window.Web3 = Web3;
   window.bip39 = bip39;
   window.hdkey = hdkey;
   window.web3 = web3;
   window.contracts = contracts;
+  window.test1 = async () => {
+    try {
+      const tx = contracts.sidechain.FT.methods.addAllowedMinter(FTProxyAddressSidechain);
+      const data = tx.encodeABI();
+      const gas = await tx.estimateGas({
+        from: sidechainAddress,
+      });
+      console.log('got data gas', data, gas);
+      const signedTransaction = web3['sidechain'].eth.accounts.signTransaction({
+        // this could be provider.addresses[0] if it exists
+        from: sidechainAddress, 
+        // this encodes the ABI of the method and the arguements
+        data,
+        gas,
+      }, sidechainPrivateKey);
+      console.log('got signed', sidechainWallet);
+
+      // web3[chainName].eth.accounts.sign(hashedMessage, wallet.getPrivateKeyString())
+    } catch(err) {
+      console.warn('could not enable FT minting');
+    }
+  };
   window.test = async () => {
-    const address = web3.currentProvider.selectedAddress;
+    const address = web3['main'].currentProvider.selectedAddress;
 
     const _testFt = async () => {
-      // allow FT minting
+      /* // allow FT minting
       await Promise.all([
         contracts.main.FT.methods.addAllowedMinter(FTProxyAddress).send({
           from: address,
@@ -54,28 +94,32 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         contracts.sidechain.FT.methods.addAllowedMinter(FTProxyAddressSidechain).send({
           from: address,
         }),
-      ]);
+      ]); */
 
       // mint on main
       const amount = {
         t: 'uint256',
-        v: new web3.utils.BN(1),
+        v: new web3['main'].utils.BN(1),
       };
       await contracts.main.FT.methods.mint(address, amount.v).send({
         from: address,
       });
       
       // deposit on main
-      const receipt = await contracts.main.FT.methods.transfer(FTProxyAddress, amount.v).send({
+      const receipt = await contracts.main.FT.methods.transfer(sidechainAddressInverse, amount.v).send({
         from: address,
       });
 
-      // get main deposit receipt signature
-      console.log('got receipt', receipt);
+      const signature = await fetch(`https://sign.exokit.org/main/FT/${receipt.transactionHash}`).then(res => res.json());
+      console.log('got sig', `https://sign.exokit.org/main/FT/${receipt.transactionHash}`, signature);
+      debugger;
+      const {r, s, v} = signature;
+
+      /* // get main deposit receipt signature
+      console.log('got main ft deposit receipt', receipt);
       const {transactionHash} = receipt;
       const timestamp = {
         t: 'uint256',
-        // v: new web3.utils.BN(Date.now()),
         v: transactionHash,
       };
       const chainId = {
@@ -88,7 +132,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       const r = sgn.slice(0, 66);
       const s = '0x' + sgn.slice(66, 130);
       const v = '0x' + sgn.slice(130, 132);
-      console.log('got', JSON.stringify({r, s, v}, null, 2));
+      console.log('got', JSON.stringify({r, s, v}, null, 2)); */
 
       // withdraw receipt signature on sidechain
       await contracts.sidechain.FTProxy.methods.withdraw(address, amount.v, timestamp.v, r, s, v).send({
@@ -133,7 +177,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       const receipt2 = await contracts.sidechain.NFT.methods.transferFrom(address, NFTProxyAddressSidechain, tokenId.v).send({
         from: address,
       });
-      console.log('got receipt', receipt2);
+      console.log('got sidechain nft deposit receipt', receipt2);
 
       // get sidechain deposit receipt signature
       const {transactionHash} = receipt2;
@@ -166,7 +210,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
     };
     await Promise.all([
       _testFt(),
-      _testNft(),
+      // _testNft(),
     ]);
     console.log('ALL OK');
   };
@@ -391,10 +435,10 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
   window.testAccount = seedPhrase => {
 	  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(seedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
 	  console.log('got wallet', wallet);
-	  const account = wallet.getAddressString();
+	  const address = wallet.getAddressString();
 	  const publicKey = wallet.getPublicKeyString();
 	  const privateKey = wallet.getPrivateKeyString();
-	  console.log('got address', {account, publicKey, privateKey});
+	  console.log('got address', {address, publicKey, privateKey});
   };
   /* window.testEvents = async () => {
     const events = await contract.getPastEvents('Transfer', {fromBlock: 0, toBlock: 'latest',})
