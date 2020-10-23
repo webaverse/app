@@ -168,7 +168,8 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       console.log('got', JSON.stringify({r, s, v}, null, 2)); */
 
       // withdraw receipt signature on sidechain
-      const receipt2 = await runSidechainTransaction('FT', 'withdraw', testAddress, amount, timestamp, r, s, v);
+      console.log('run withdraw', [testAddress, amount, timestamp, r, s, v]);
+      const receipt2 = await runSidechainTransaction('FTProxy', 'withdraw', testAddress, amount, timestamp, r, s, v);
       /* await contracts.sidechain.FTProxy.methods.withdraw(testAddress, amount, timestamp, r, s, v).send({
         from: address,
       }); */
