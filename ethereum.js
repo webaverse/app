@@ -69,6 +69,21 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
   window.test = async () => {
     const address = web3['main'].currentProvider.selectedAddress;
 
+    const getTransactionSignature = async (chainName, contractName, transactionHash) => {
+      const u = `https://sign.exokit.org/${chainName}/${contractName}/${transactionHash}`;
+      for (let i = 0; i < 10; i++) {
+        const signature = await fetch(u).then(res => res.json());
+        console.log('got sig', u, signature);
+        if (signature) {
+          return signature;
+        } else {
+          await new Promise((accept, reject) => {
+            setTimeout(accept, 1000);
+          });
+        }
+      }
+      return null;
+    };
     const _testFt = async () => {
       /* // allow FT minting
       await Promise.all([
@@ -94,22 +109,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         from: address,
       });
 
-      const maxIterations = 10;
-      const _getSignature = async () => {
-        for (let i = 0; i < 10; i++) {
-          const signature = await fetch(`https://sign.exokit.org/main/FT/${receipt.transactionHash}`).then(res => res.json());
-          console.log('got sig', `https://sign.exokit.org/main/FT/${receipt.transactionHash}`, signature);
-          if (signature) {
-            return signature;
-          } else {
-            await new Promise((accept, reject) => {
-              setTimeout(accept, 1000);
-            });
-          }
-        }
-        return null;
-      };
-      const signature = await _getSignature();
+      const signature = await getTransactionSignature('main', 'FT', receipt.transactionHash);
       // debugger;
       const {amount, timestamp, r, s, v} = signature;
 
@@ -224,7 +224,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       console.log('FT OK');
     };
     const _testNft = async () => {
-      await Promise.all([
+      /* await Promise.all([
         contracts.main.NFT.methods.addAllowedMinter(NFTProxyAddress).send({
           from: address,
         }),
@@ -237,17 +237,21 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         contracts.sidechain.NFT.methods.setApprovalForAll(NFTProxyAddressSidechain, true).send({
           from: address,
         }),
-      ]);
+      ]); */
 
       // mint on sidechain
       const hash = {
         t: 'uint256',
-        v: new web3.utils.BN(Date.now()),
+        v: new web3['sidechain'].utils.BN(Date.now()),
+      };
+      const count = {
+        t: 'uint256',
+        v: new web3['sidechain'].utils.BN(1),
       };
       const filename = 'lol.png';
       console.log('nft', address, hash, filename, 1);
-      const receipt = await contracts.sidechain.NFT.methods.mint(address, hash.v, filename, 1).send({
-        from: address,
+      const receipt = await contracts.sidechain.NFT.methods.mint(address, hash.v, filename, count.v).send({
+        from: testAddress,
       });
       const tokenId = {
         t: 'uint256',
@@ -256,10 +260,15 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       // console.log('got receipt', [address, NFTProxyAddressSidechain, tokenId], {NFTAddress, NFTAddressSidechain, NFTProxyAddress, NFTProxyAddressSidechain});
 
       // deposit on sidechain
-      const receipt2 = await contracts.sidechain.NFT.methods.transferFrom(address, NFTProxyAddressSidechain, tokenId.v).send({
-        from: address,
+      const receipt2 = await contracts.sidechain.NFT.methods.transferFrom(testAddress, testAddressInverse, tokenId.v).send({
+        from: testAddress,
       });
       console.log('got sidechain nft deposit receipt', receipt2);
+      
+      const signature = await getTransactionSignature('sidechain', 'NFT', receipt2.transactionHash);
+      console.log('got signature', signature);
+      debugger;
+      // const {amount, timestamp, r, s, v} = signature;
 
       // get sidechain deposit receipt signature
       const {transactionHash} = receipt2;
@@ -291,8 +300,8 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       console.log('NFT OK');
     };
     await Promise.all([
-      _testFt(),
-      // _testNft(),
+      // _testFt(),
+      _testNft(),
     ]);
     console.log('ALL OK');
   };
