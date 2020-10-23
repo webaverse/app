@@ -96,7 +96,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       const nonce = await web3['sidechain'].eth.getTransactionCount(testAddress);
       const testPrivateKeyBytes = Uint8Array.from(web3.sidechain.utils.hexToBytes(testPrivateKey));
       let tx = Transaction.fromTxData({
-        to: NFTAddressSidechain,
+        to: contracts['sidechain'][contractName]._address,
         nonce: '0x' + new web3['sidechain'].utils.BN(nonce).toString(16),
         gas: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
         gasPrice: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
