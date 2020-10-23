@@ -230,7 +230,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       };
       const chainId = {
         t: 'uint256',
-        v: new web3.utils.BN(2),
+        v: new web3['main'].utils.BN(2),
       };
 
       const filenameHash = web3.utils.sha3(filename);
