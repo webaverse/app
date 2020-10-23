@@ -168,11 +168,8 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         }); */
         const testPrivateKeyBytes = Uint8Array.from(web3.sidechain.utils.hexToBytes(testPrivateKey));
         let tx = Transaction.fromTxData({
-          // chainId: '1337',
-          // from: testAddress,
           to: FTProxyAddressSidechain,
           nonce: '0x' + new web3['sidechain'].utils.BN(nonce).toString(16),
-          // gasLimit: gas,
           gas: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
           gasPrice: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
           gasLimit: '0x' + new web3['sidechain'].utils.BN(1000000).toString(16),
@@ -250,14 +247,51 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       };
       const filename = 'lol.png';
       console.log('nft', address, hash, filename, 1);
-      const receipt = await contracts.sidechain.NFT.methods.mint(address, hash.v, filename, count.v).send({
+      
+      const receipt = await (async () => {
+        console.log('run tx', [address, hash.v, filename, count.v]);
+        const txData = contracts.sidechain.NFT.methods.mint(address, hash.v, filename, count.v);
+        const data = txData.encodeABI();
+        const gas = await txData.estimateGas({
+          from: testAddress,
+        });
+        let gasPrice = await web3['sidechain'].eth.getGasPrice();
+        gasPrice = parseInt(gasPrice, 10);
+        const nonce = await web3['sidechain'].eth.getTransactionCount(testAddress);
+        const testPrivateKeyBytes = Uint8Array.from(web3.sidechain.utils.hexToBytes(testPrivateKey));
+        let tx = Transaction.fromTxData({
+          to: NFTAddressSidechain,
+          nonce: '0x' + new web3['sidechain'].utils.BN(nonce).toString(16),
+          gas: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
+          gasPrice: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
+          gasLimit: '0x' + new web3['sidechain'].utils.BN(1000000).toString(16),
+          data,
+        }, {
+          common: Common.forCustomChain(
+            'mainnet',
+            {
+              name: 'geth',
+              networkId: 1,
+              chainId: 1337,
+            },
+            'petersburg',
+          ),
+        }).sign(testPrivateKeyBytes);
+        const rawTx = '0x' + tx.serialize().toString('hex');
+        console.log('signed tx', tx, rawTx);
+        const receipt = await web3['sidechain'].eth.sendSignedTransaction(rawTx);
+        console.log('sent tx', receipt);
+        return receipt;
+      })();
+      /* const receipt = await contracts.sidechain.NFT.methods.mint(address, hash.v, filename, count.v).send({ // XXX replace
         from: testAddress,
-      });
+      }); */
+      
       const tokenId = {
         t: 'uint256',
-        v: new web3.utils.BN(receipt.events.Transfer.returnValues.tokenId),
+        v: new web3['sidechain'].utils.BN(receipt.logs[0].topics[3].slice(2), 16),
       };
-      // console.log('got receipt', [address, NFTProxyAddressSidechain, tokenId], {NFTAddress, NFTAddressSidechain, NFTProxyAddress, NFTProxyAddressSidechain});
+      console.log('got receipt', receipt.logs[0].topics[3].slice(2), tokenId);
 
       // deposit on sidechain
       const receipt2 = await contracts.sidechain.NFT.methods.transferFrom(testAddress, testAddressInverse, tokenId.v).send({
