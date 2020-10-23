@@ -85,7 +85,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       return null;
     };
     const runSidechainTransaction = async (contractName, method, ...args) => {
-      // console.log('run tx', [address, hash.v, filename, count.v]);
+      // console.log('run tx', contracts['sidechain'], [contractName, method]);
       const txData = contracts['sidechain'][contractName].methods[method](...args);
       const data = txData.encodeABI();
       const gas = await txData.estimateGas({
