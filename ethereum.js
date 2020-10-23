@@ -84,9 +84,9 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       }
       return null;
     };
-    const runSidechainTransaction = async (method, ...args) => {
+    const runSidechainTransaction = async (contractName, method, ...args) => {
       // console.log('run tx', [address, hash.v, filename, count.v]);
-      const txData = contracts['sidechain'].NFT.methods[method](...args);
+      const txData = contracts['sidechain'][contractName].methods[method](...args);
       const data = txData.encodeABI();
       const gas = await txData.estimateGas({
         from: testAddress,
@@ -168,7 +168,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       console.log('got', JSON.stringify({r, s, v}, null, 2)); */
 
       // withdraw receipt signature on sidechain
-      const receipt2 = await runSidechainTransaction('withdraw', testAddress, amount, timestamp, r, s, v);
+      const receipt2 = await runSidechainTransaction('FT', 'withdraw', testAddress, amount, timestamp, r, s, v);
       /* await contracts.sidechain.FTProxy.methods.withdraw(testAddress, amount, timestamp, r, s, v).send({
         from: address,
       }); */
@@ -203,7 +203,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       const filename = 'lol.png';
       console.log('nft', address, hash, filename, 1);
 
-      const receipt = await runSidechainTransaction('mint', testAddress, hash.v, filename, count.v);
+      const receipt = await runSidechainTransaction('NFT', 'mint', testAddress, hash.v, filename, count.v);
 
       const tokenId = {
         t: 'uint256',
@@ -212,7 +212,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       console.log('got receipt', receipt.logs[0].topics[3].slice(2), tokenId);
 
       // deposit on sidechain
-      const receipt2 = await runSidechainTransaction('transferFrom', testAddress, testAddressInverse, tokenId.v);
+      const receipt2 = await runSidechainTransaction('NFT', 'transferFrom', testAddress, testAddressInverse, tokenId.v);
       console.log('got sidechain nft deposit receipt', receipt2);
       
       const signature = await getTransactionSignature('sidechain', 'NFT', receipt2.transactionHash);
