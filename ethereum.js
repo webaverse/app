@@ -203,7 +203,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       const filename = 'lol.png';
       console.log('nft', address, hash, filename, 1);
 
-      const receipt = await runSidechainTransaction('mint', address, hash.v, filename, count.v);
+      const receipt = await runSidechainTransaction('mint', testAddress, hash.v, filename, count.v);
 
       const tokenId = {
         t: 'uint256',
