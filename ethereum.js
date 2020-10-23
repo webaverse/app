@@ -213,7 +213,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
 
       // deposit on sidechain
       const receipt2 = await runSidechainTransaction('NFT', 'transferFrom', testAddress, testAddressInverse, tokenId.v);
-      console.log('got sidechain nft deposit receipt', receipt2);
+      console.log('got sidechain nft deposit receipt', [testAddress, testAddressInverse, tokenId.v], receipt2);
       
       const signature = await getTransactionSignature('sidechain', 'NFT', receipt2.transactionHash);
       console.log('got signature', signature);
