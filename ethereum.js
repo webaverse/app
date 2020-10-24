@@ -491,6 +491,19 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
     }
   });
+  
+  const ethBalanceEl = document.getElementById('eth-balance');
+  contracts['main'].FT.methods.balanceOf(address).call()
+    .then(balance => {
+      ethBalanceEl.innerText = balance;
+    });
+
+  const sidechainBalanceEl = document.getElementById('sidechain-balance');
+  contracts['sidechain'].FT.methods.balanceOf(testAddress).call()
+    .then(balance => {
+      sidechainBalanceEl.innerText = balance;
+    });
+
   /* window.testAccount = seedPhrase => {
 	  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(seedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
 	  console.log('got wallet', wallet);
