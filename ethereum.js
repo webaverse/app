@@ -464,14 +464,41 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
     }
   });
-  window.testAccount = seedPhrase => {
+  const sidechainMintForm = document.getElementById('sidechain-mint-form');
+  const sidechainMintFilenameInput = document.getElementById('sidechain-mint-filename');
+  sidechainMintForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const fn = sidechainMintFilenameInput.value;
+    if (fn) {
+      const filename = {
+        t: 'string',
+        v: fn,
+      };
+      const hash = {
+        t: 'uint256',
+        v: new web3['sidechain'].utils.BN(Date.now()),
+      };
+      const count = {
+        t: 'uint256',
+        v: new web3['sidechain'].utils.BN(1),
+      };
+      
+      const receipt = await runSidechainTransaction('NFT', 'mint', testAddress, hash.v, filename.v, count.v);
+      sidechainMintFilenameInput.value = new web3['sidechain'].utils.BN(receipt.logs[0].topics[3].slice(2), 16).toNumber();
+    } else {
+      console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
+    }
+  });
+  /* window.testAccount = seedPhrase => {
 	  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(seedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
 	  console.log('got wallet', wallet);
 	  const address = wallet.getAddressString();
 	  const publicKey = wallet.getPublicKeyString();
 	  const privateKey = wallet.getPrivateKeyString();
 	  console.log('got address', {address, publicKey, privateKey});
-  };
+  }; */
   /* window.testEvents = async () => {
     const events = await contract.getPastEvents('Transfer', {fromBlock: 0, toBlock: 'latest',})
     for (const event of events) {
