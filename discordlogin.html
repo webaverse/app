@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>xrpackage | login</title>
+  <link href="index.css" rel=stylesheet>
+  <link href="https://fonts.googleapis.com/css2?family=Muli:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
+</head>
+
+<body class="header-gap">
+  <header class=header id=header>
+    <a href="/" class="nav icon">山</a>
+    <nav class="selector nav bar-left" id=selector>
+      <i class="fa fa-user head"></i>
+      <div class=header-label id=header-label>Log in</div>
+      <i class="fa fa-chevron-down tail"></i>
+      <div class=selections id=selections>
+        <a href="run.html" class=selection id=run-mode>
+          <i class="fa fa-play"></i>
+          <div class=wrap>
+            <h3>Run mode</h3>
+            <p>Switch to run mode</p>
+          </div>
+        </a>
+        <a href="edit.html" class=selection id=edit-mode>
+          <i class="fa fa-pencil"></i>
+          <div class=wrap>
+            <h3>Edit mode</h3>
+            <p>Switch to edit mode</p>
+          </div>
+        </a>
+        <a href="browse.html" class="selection dim">
+          <i class="fa fa-solar-system"></i>
+          <div class=wrap>
+            <h3>Browse packages</h3>
+            <p>Explore the XRPackage registry</p>
+          </div>
+        </a>
+        <a href="help.html" class=selection>
+          <i class="fa fa-book"></i>
+          <div class=wrap>
+            <h3>Documentation</h3>
+            <p>Learn how to make packages and worlds</p>
+          </div>
+        </a>
+      </div>
+    </nav>
+    <form id=login-form></form>
+  </header>
+
+<script type=module>
+import './selector.js';
+import {XRPackageEngine} from 'https://static.xrpackage.org/xrpackage.js';
+import {doLogin, tryLogin} from './login.js';
+
+function parseQuery(queryString) {
+  var query = {};
+  var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
+
+(async () => {
+  // await XRPackageEngine.waitForLoad();
+
+  const q = parseQuery(window.location.search);
+  /* const {email, code} = q;
+  if (email && code && await doLogin(email, code)) {
+    delete q.email;
+    delete q.code;
+    window.location.search = '?' + Object.keys(q).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(q[k])).join('&');
+  } else {
+    await tryLogin();
+  } */
+})();
+
+</script>
+</body>
+
+</html>
