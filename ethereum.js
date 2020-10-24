@@ -61,6 +61,57 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
   // const testAccount = web3['sidechain'].eth.accounts.privateKeyToAccount(testPrivateKey);
   // web3['sidechain'].eth.accounts.wallet.add(testPrivateKey);
 
+  const getTransactionSignature = async (chainName, contractName, transactionHash) => {
+    const u = `https://sign.exokit.org/${chainName}/${contractName}/${transactionHash}`;
+    for (let i = 0; i < 10; i++) {
+      const signature = await fetch(u).then(res => res.json());
+      console.log('got sig', u, signature);
+      if (signature) {
+        return signature;
+      } else {
+        await new Promise((accept, reject) => {
+          setTimeout(accept, 1000);
+        });
+      }
+    }
+    return null;
+  };
+  const runSidechainTransaction = async (contractName, method, ...args) => {
+    // console.log('run tx', contracts['sidechain'], [contractName, method]);
+    const txData = contracts['sidechain'][contractName].methods[method](...args);
+    const data = txData.encodeABI();
+    const gas = await txData.estimateGas({
+      from: testAddress,
+    });
+    let gasPrice = await web3['sidechain'].eth.getGasPrice();
+    gasPrice = parseInt(gasPrice, 10);
+    const nonce = await web3['sidechain'].eth.getTransactionCount(testAddress);
+    const testPrivateKeyBytes = Uint8Array.from(web3.sidechain.utils.hexToBytes(testPrivateKey));
+    let tx = Transaction.fromTxData({
+      to: contracts['sidechain'][contractName]._address,
+      nonce: '0x' + new web3['sidechain'].utils.BN(nonce).toString(16),
+      gas: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
+      gasPrice: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
+      gasLimit: '0x' + new web3['sidechain'].utils.BN(1000000).toString(16),
+      data,
+    }, {
+      common: Common.forCustomChain(
+        'mainnet',
+        {
+          name: 'geth',
+          networkId: 1,
+          chainId: 1337,
+        },
+        'petersburg',
+      ),
+    }).sign(testPrivateKeyBytes);
+    const rawTx = '0x' + tx.serialize().toString('hex');
+    // console.log('signed tx', tx, rawTx);
+    const receipt = await web3['sidechain'].eth.sendSignedTransaction(rawTx);
+    // console.log('sent tx', receipt);
+    return receipt;
+  };
+
   window.Web3 = Web3;
   window.bip39 = bip39;
   window.hdkey = hdkey;
@@ -69,56 +120,6 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
   window.test = async () => {
     const address = web3['main'].currentProvider.selectedAddress;
 
-    const getTransactionSignature = async (chainName, contractName, transactionHash) => {
-      const u = `https://sign.exokit.org/${chainName}/${contractName}/${transactionHash}`;
-      for (let i = 0; i < 10; i++) {
-        const signature = await fetch(u).then(res => res.json());
-        console.log('got sig', u, signature);
-        if (signature) {
-          return signature;
-        } else {
-          await new Promise((accept, reject) => {
-            setTimeout(accept, 1000);
-          });
-        }
-      }
-      return null;
-    };
-    const runSidechainTransaction = async (contractName, method, ...args) => {
-      // console.log('run tx', contracts['sidechain'], [contractName, method]);
-      const txData = contracts['sidechain'][contractName].methods[method](...args);
-      const data = txData.encodeABI();
-      const gas = await txData.estimateGas({
-        from: testAddress,
-      });
-      let gasPrice = await web3['sidechain'].eth.getGasPrice();
-      gasPrice = parseInt(gasPrice, 10);
-      const nonce = await web3['sidechain'].eth.getTransactionCount(testAddress);
-      const testPrivateKeyBytes = Uint8Array.from(web3.sidechain.utils.hexToBytes(testPrivateKey));
-      let tx = Transaction.fromTxData({
-        to: contracts['sidechain'][contractName]._address,
-        nonce: '0x' + new web3['sidechain'].utils.BN(nonce).toString(16),
-        gas: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
-        gasPrice: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
-        gasLimit: '0x' + new web3['sidechain'].utils.BN(1000000).toString(16),
-        data,
-      }, {
-        common: Common.forCustomChain(
-          'mainnet',
-          {
-            name: 'geth',
-            networkId: 1,
-            chainId: 1337,
-          },
-          'petersburg',
-        ),
-      }).sign(testPrivateKeyBytes);
-      const rawTx = '0x' + tx.serialize().toString('hex');
-      // console.log('signed tx', tx, rawTx);
-      const receipt = await web3['sidechain'].eth.sendSignedTransaction(rawTx);
-      // console.log('sent tx', receipt);
-      return receipt;
-    };
     const _testFt = async () => {
       /* // allow FT minting
       await Promise.all([
@@ -153,31 +154,9 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       const signature = await getTransactionSignature('main', 'FT', receipt.transactionHash);
       const {amount, timestamp, r, s, v} = signature;
 
-      /* // get main deposit receipt signature
-      console.log('got main ft deposit receipt', receipt);
-      const {transactionHash} = receipt;
-      const timestamp = {
-        t: 'uint256',
-        v: transactionHash,
-      };
-      const chainId = {
-        t: 'uint256',
-        v: new web3.utils.BN(3),
-      };
-      const message = web3.utils.encodePacked(address, amount, timestamp, chainId);
-      const hashedMessage = web3.utils.sha3(message);
-      const sgn = await web3.eth.personal.sign(hashedMessage, address);
-      const r = sgn.slice(0, 66);
-      const s = '0x' + sgn.slice(66, 130);
-      const v = '0x' + sgn.slice(130, 132);
-      console.log('got', JSON.stringify({r, s, v}, null, 2)); */
-
       // withdraw receipt signature on sidechain
       console.log('run withdraw', [testAddress, amount, timestamp, r, s, v]);
       const receipt2 = await runSidechainTransaction('FTProxy', 'withdraw', testAddress, amount, timestamp, r, s, v);
-      /* await contracts.sidechain.FTProxy.methods.withdraw(testAddress, amount, timestamp, r, s, v).send({
-        from: address,
-      }); */
       
       console.log('FT OK');
     };
@@ -272,40 +251,29 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
 
     const amt = parseInt(ethFtAmountInput.value, 10);
     if (!isNaN(amt)) {
-      const amount = {
+      const ftAmount = {
         t: 'uint256',
-        v: new web3.utils.BN(amt),
+        v: new web3['main'].utils.BN(amt),
       };
       
-      // deposit on main chain
-      const receipt = await contracts.main.FT.methods.transfer(FTProxyAddress, amount.v).send({
+      // approve on main chain
+      const receipt0 = await contracts.main.FT.methods.approve(FTProxyAddress, ftAmount.v).send({
         from: address,
       });
+      
+      // deposit on main chain
+      console.log('deposit', testAddress, amt);
+      const receipt = await contracts.main.FTProxy.methods.deposit(testAddress, ftAmount.v).send({
+        from: address,
+      });
+      console.log('got receipt', receipt);
 
       // get main chain deposit receipt signature
-      console.log('got receipt', receipt);
-      const {transactionHash} = receipt;
-      const timestamp = {
-        t: 'uint256',
-        // v: new web3.utils.BN(Date.now()),
-        v: transactionHash,
-      };
-      const chainId = {
-        t: 'uint256',
-        v: new web3.utils.BN(3),
-      };
-      const message = web3.utils.encodePacked(address, amount, timestamp, chainId);
-      const hashedMessage = web3.utils.sha3(message);
-      const sgn = await web3.eth.personal.sign(hashedMessage, address);
-      const r = sgn.slice(0, 66);
-      const s = '0x' + sgn.slice(66, 130);
-      const v = '0x' + sgn.slice(130, 132);
-      console.log('got', JSON.stringify({r, s, v}, null, 2));
+      const signature = await getTransactionSignature('main', 'FT', receipt.transactionHash);
+      const {amount, timestamp, r, s, v} = signature;
 
       // withdraw receipt signature on sidechain
-      await contracts.sidechain.FTProxy.methods.withdraw(address, amount.v, timestamp.v, r, s, v).send({
-        from: address,
-      });
+      const receipt2 = await runSidechainTransaction('FTProxy', 'withdraw', testAddress, amount, timestamp, r, s, v);
     } else {
       console.log('failed to parse', JSON.stringify(ethFtAmountInput.value));
     }
