@@ -503,10 +503,10 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       ethBalanceEl.innerText = ftBalance;
     }
     {
-      const nftBalance = await contracts['main'].NFT.methods.balanceOf(testAddress).call();
+      const nftBalance = await contracts['main'].NFT.methods.balanceOf(address).call();
       const tokens = [];
       for (let i = 0; i < nftBalance; i++) {
-        const id = await contracts['main'].NFT.methods.tokenOfOwnerByIndex(testAddress, i).call();
+        const id = await contracts['main'].NFT.methods.tokenOfOwnerByIndex(address, i).call();
         const url = await contracts['main'].NFT.methods.tokenURI(id).call();
         const res = await fetch(url);
         const j = await res.json();
@@ -521,7 +521,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         el.classList.add('token');
         el.innerHTML = `<img src="${token.image}">`;
         el.addEventListener('click', e => {
-          sidechainNftIdInput.value = token.id;
+          ethNftIdInput.value = token.id;
         });
         ethTokensEl.appendChild(el);
       }
