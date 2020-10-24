@@ -14,12 +14,14 @@ let {
 } = addresses;
 let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi} = abis;
 
+const web3Endpoint = 'http://13.56.80.83:8545';
 const storageHost = 'https://storage.exokit.org';
+const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=684141574808272937&redirect_uri=https%3A%2F%2Fapp.webaverse.com%2Flogin.html&response_type=code&scope=identify`;
 
 (async () => {
   const web3 = {
     main: new Web3(window.ethereum),
-    sidechain: new Web3(new Web3.providers.HttpProvider('http://13.56.80.83:8545')),
+    sidechain: new Web3(new Web3.providers.HttpProvider(web3Endpoint)),
   };
   await window.ethereum.enable();
   
@@ -500,6 +502,16 @@ const storageHost = 'https://storage.exokit.org';
     } else {
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
     }
+  });
+
+  const connectMetamaskButton = document.getElementById('connect-metamask-button');
+  connectMetamaskButton.addEventListener('click', e => {
+    console.log('connect metamask'); // finish this
+  });
+
+  const connectDiscordButton = document.getElementById('connect-discord-button');
+  connectDiscordButton.addEventListener('click', e => {
+    location.href = discordOauthUrl;
   });
   
   const ethBalanceEl = document.getElementById('eth-balance');
