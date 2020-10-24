@@ -53,10 +53,10 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
   const sidechainSeedPhrase = 'fox acquire elite cave behave fine doll inch ride rely small pause';
   const sidechainWallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(sidechainSeedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
   const testAddress = sidechainWallet.getAddressString();
-  const testAddressInverse = '0x' + web3['main'].utils.padLeft(
+  /* const testAddressInverse = '0x' + web3['main'].utils.padLeft(
     new web3['main'].utils.BN(testAddress.slice(2), 16).xor(new web3['main'].utils.BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF', 16)).toString(16),
     40
-  );
+  ); */
   const testPrivateKey = sidechainWallet.getPrivateKeyString();
   // const testAccount = web3['sidechain'].eth.accounts.privateKeyToAccount(testPrivateKey);
   // web3['sidechain'].eth.accounts.wallet.add(testPrivateKey);
@@ -138,11 +138,18 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       await contracts.main.FT.methods.mint(address, ftAmount.v).send({
         from: address,
       });
+      console.log('minted');
       
       // deposit on main
-      const receipt = await contracts.main.FT.methods.transfer(testAddressInverse, ftAmount.v).send({
+      const receipt0 = await contracts.main.FT.methods.approve(FTProxyAddress, ftAmount.v).send({
         from: address,
       });
+      console.log('got sig 1', receipt0);
+      const receipt = await contracts.main.FTProxy.methods.deposit(testAddress, ftAmount.v).send({
+        from: address,
+      });
+      console.log('got sig 2', receipt);
+      debugger;
 
       const signature = await getTransactionSignature('main', 'FT', receipt.transactionHash);
       // debugger;
@@ -251,8 +258,8 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       console.log('NFT OK');
     };
     await Promise.all([
-      // _testFt(),
-      _testNft(),
+      _testFt(),
+      // _testNft(),
     ]);
     console.log('ALL OK');
   };
