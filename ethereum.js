@@ -274,6 +274,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
 
       // withdraw receipt signature on sidechain
       const receipt2 = await runSidechainTransaction('FTProxy', 'withdraw', testAddress, amount, timestamp, r, s, v);
+      console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(ethFtAmountInput.value));
     }
@@ -310,16 +311,16 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       });
       
       // deposit on main chain
-      const receipt2 = await contracts.main.NFTProxy.methods.deposit(address, tokenId.v).send({
+      const receipt = await contracts.main.NFTProxy.methods.deposit(testAddress, tokenId.v).send({
         from: address,
       });
-      console.log('got receipt', receipt2);
+      console.log('got receipt', receipt);
 
       // get main chain deposit receipt signature
-      const signature = await getTransactionSignature('main', 'NFT', receipt2.transactionHash);
+      const signature = await getTransactionSignature('main', 'NFT', receipt.transactionHash);
       console.log('got sig', signature);
-      debugger;
-      const {amount, timestamp, r, s, v} = signature;
+      // debugger;
+      const {timestamp, r, s, v} = signature;
       /* const {transactionHash} = receipt2;
       const timestamp = {
         t: 'uint256',
@@ -341,9 +342,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
 
       // withdraw receipt signature on sidechain
       // console.log('main withdraw', [address, tokenId.v.toString(10), hash.v.toString(10), filename, timestamp.v.toString(10), r, s, v]);
-      await contracts.sidechain.NFTProxy.methods.withdraw(address, tokenId.v, hash.v, filename.v, timestamp.v, r, s, v).send({
-        from: address,
-      });
+      await runSidechainTransaction('NFTProxy', 'withdraw', testAddress, tokenId.v, hash.v, filename.v, timestamp, r, s, v);
       console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
@@ -460,6 +459,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       await contracts.main.NFTProxy.methods.withdraw(address, tokenId.v, hash.v, filename.v, timestamp.v, r, s, v).send({
         from: address,
       });
+      console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
     }
