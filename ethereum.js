@@ -217,18 +217,20 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         t: 'uint256',
         v: new web3['sidechain'].utils.BN(receipt.logs[0].topics[3].slice(2), 16),
       };
-      console.log('got receipt', receipt.logs[0].topics[3].slice(2), tokenId);
+      console.log('got receipt 1', receipt.logs[0].topics[3].slice(2), tokenId);
+
+      // approve sidechain
+      const receipt2 = await runSidechainTransaction('NFT', 'setApprovalForAll', NFTProxyAddressSidechain, true);
+      console.log('got receipt 2', receipt2);
 
       // deposit on sidechain
-      const receipt2 = await runSidechainTransaction('NFT', 'transferFrom', testAddress, testAddressInverse, tokenId.v);
-      console.log('got sidechain nft deposit receipt', [testAddress, testAddressInverse, tokenId.v], receipt2);
+      const receipt3 = await runSidechainTransaction('NFTProxy', 'deposit', address, tokenId.v);
+      console.log('got sidechain nft deposit receipt', [address, tokenId.v], receipt3);
       
-      const signature = await getTransactionSignature('sidechain', 'NFT', receipt2.transactionHash);
-      console.log('got signature', signature);
-      debugger;
-      // const {amount, timestamp, r, s, v} = signature;
-
       // get sidechain deposit receipt signature
+      const signature = await getTransactionSignature('sidechain', 'NFT', receipt3.transactionHash);
+      console.log('got signature', signature);
+
       const timestamp = {
         t: 'uint256',
         // v: new web3.utils.BN(Date.now()),
@@ -250,16 +252,16 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       console.log('got', JSON.stringify({r, s, v}, null, 2)); */
 
       // withdraw receipt signature on sidechain
-      console.log('main withdraw', [testAddress, '0x' + tokenId.v.toString(16), '0x' + hash.v.toString(16), filename, '0x' + timestamp.v.toString(16), r, s, v]);
-      await contracts.main.NFTProxy.methods.withdraw(testAddress, tokenId.v, hash.v, filename, timestamp.v, r, s, v).send({
+      console.log('main withdraw', [address, '0x' + tokenId.v.toString(16), '0x' + hash.v.toString(16), filename, '0x' + timestamp.v.toString(16), r, s, v]);
+      await contracts.main.NFTProxy.methods.withdraw(address, tokenId.v, hash.v, filename, timestamp.v, r, s, v).send({
         from: address,
       });
       
       console.log('NFT OK');
     };
     await Promise.all([
-      _testFt(),
-      // _testNft(),
+      // _testFt(),
+      _testNft(),
     ]);
     console.log('ALL OK');
   };
