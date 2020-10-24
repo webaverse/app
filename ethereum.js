@@ -314,7 +314,6 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       const {transactionHash} = receipt2;
       const timestamp = {
         t: 'uint256',
-        // v: new web3.utils.BN(Date.now()),
         v: transactionHash,
       };
       const chainId = {
@@ -336,6 +335,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       await contracts.sidechain.NFTProxy.methods.withdraw(address, tokenId.v, hash.v, filename.v, timestamp.v, r, s, v).send({
         from: address,
       });
+      console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
     }
@@ -349,19 +349,22 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
 
     const amt = parseInt(sidechainFtAmountInput.value, 10);
     if (!isNaN(amt)) {
-      const amount = {
+      const ftAmount = {
         t: 'uint256',
-        v: new web3.utils.BN(amt),
+        v: new web3['sidechain'].utils.BN(amt),
       };
       
+      // approve on sidechain
+      const receipt0 = await runSidechainTransaction('FT', 'approve', FTProxyAddressSidechain, ftAmount.v);
+      
       // deposit on sidechain
-      const receipt = await contracts.sidechain.FT.methods.transfer(FTProxyAddress, amount.v).send({
-        from: address,
-      });
+      const receipt = await runSidechainTransaction('FTProxy', 'deposit', address, ftAmount.v);
+      console.log('got receipt', receipt);
 
       // get sidechain deposit receipt signature
-      console.log('got receipt', receipt);
-      const {transactionHash} = receipt;
+      const signature = await getTransactionSignature('sidechain', 'FT', receipt.transactionHash);
+      const {amount, timestamp, r, s, v} = signature;
+      /* const {transactionHash} = receipt;
       const timestamp = {
         t: 'uint256',
         // v: new web3.utils.BN(Date.now()),
@@ -377,12 +380,13 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       const r = sgn.slice(0, 66);
       const s = '0x' + sgn.slice(66, 130);
       const v = '0x' + sgn.slice(130, 132);
-      console.log('got', JSON.stringify({r, s, v}, null, 2));
+      console.log('got', JSON.stringify({r, s, v}, null, 2)); */
 
       // withdraw receipt signature on main chain
-      await contracts.main.FTProxy.methods.withdraw(address, amount.v, timestamp.v, r, s, v).send({
+      await contracts.main.FTProxy.methods.withdraw(address, amount, timestamp, r, s, v).send({
         from: address,
       });
+      console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(sidechainFtAmountInput.value));
     }
