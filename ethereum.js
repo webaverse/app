@@ -90,7 +90,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     let gasPrice = await web3['sidechain'].eth.getGasPrice();
     gasPrice = parseInt(gasPrice, 10);
     const nonce = await web3['sidechain'].eth.getTransactionCount(testAddress);
-    const testPrivateKeyBytes = Uint8Array.from(web3.sidechain.utils.hexToBytes(testPrivateKey));
+    const testPrivateKeyBytes = Uint8Array.from(web3['sidechain'].utils.hexToBytes(testPrivateKey));
     let tx = Transaction.fromTxData({
       to: contracts['sidechain'][contractName]._address,
       nonce: '0x' + new web3['sidechain'].utils.BN(nonce).toString(16),
