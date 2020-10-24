@@ -506,12 +506,12 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       const nftBalance = await contracts['main'].NFT.methods.balanceOf(testAddress).call();
       const tokens = [];
       for (let i = 0; i < nftBalance; i++) {
-        const tokenId = await contracts['main'].NFT.methods.tokenOfOwnerByIndex(testAddress, i).call();
-        const url = await contracts['main'].NFT.methods.tokenURI(tokenId).call();
+        const id = await contracts['main'].NFT.methods.tokenOfOwnerByIndex(testAddress, i).call();
+        const url = await contracts['main'].NFT.methods.tokenURI(id).call();
         const res = await fetch(url);
         const j = await res.json();
         tokens.push({
-          tokenId,
+          id,
           image: j.image,
         });
       }
@@ -520,6 +520,9 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         const el = document.createElement('div');
         el.classList.add('token');
         el.innerHTML = `<img src="${token.image}">`;
+        el.addEventListener('click', e => {
+          sidechainNftIdInput.innerText = token.id;
+        });
         ethTokensEl.appendChild(el);
       }
     }
@@ -533,12 +536,12 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       const nftBalance = await contracts['sidechain'].NFT.methods.balanceOf(testAddress).call();
       const tokens = [];
       for (let i = 0; i < nftBalance; i++) {
-        const tokenId = await contracts['sidechain'].NFT.methods.tokenOfOwnerByIndex(testAddress, i).call();
-        const url = await contracts['sidechain'].NFT.methods.tokenURI(tokenId).call();
+        const id = await contracts['sidechain'].NFT.methods.tokenOfOwnerByIndex(testAddress, i).call();
+        const url = await contracts['sidechain'].NFT.methods.tokenURI(id).call();
         const res = await fetch(url);
         const j = await res.json();
         tokens.push({
-          tokenId,
+          id,
           image: j.image,
         });
       }
@@ -547,6 +550,9 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         const el = document.createElement('div');
         el.classList.add('token');
         el.innerHTML = `<img src="${token.image}">`;
+        el.addEventListener('click', e => {
+          sidechainNftIdInput.innerText = token.id;
+        });
         sidechainTokensEl.appendChild(el);
       }
     }
