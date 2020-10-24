@@ -149,10 +149,8 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         from: address,
       });
       console.log('got sig 2', receipt);
-      debugger;
 
       const signature = await getTransactionSignature('main', 'FT', receipt.transactionHash);
-      // debugger;
       const {amount, timestamp, r, s, v} = signature;
 
       /* // get main deposit receipt signature
@@ -260,7 +258,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       console.log('NFT OK');
     };
     await Promise.all([
-      // _testFt(),
+      _testFt(),
       _testNft(),
     ]);
     console.log('ALL OK');
