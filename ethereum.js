@@ -521,7 +521,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         el.classList.add('token');
         el.innerHTML = `<img src="${token.image}">`;
         el.addEventListener('click', e => {
-          sidechainNftIdInput.innerText = token.id;
+          sidechainNftIdInput.value = token.id;
         });
         ethTokensEl.appendChild(el);
       }
@@ -551,7 +551,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         el.classList.add('token');
         el.innerHTML = `<img src="${token.image}">`;
         el.addEventListener('click', e => {
-          sidechainNftIdInput.innerText = token.id;
+          sidechainNftIdInput.value = token.id;
         });
         sidechainTokensEl.appendChild(el);
       }
