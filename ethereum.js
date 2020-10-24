@@ -14,6 +14,8 @@ let {
 } = addresses;
 let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi} = abis;
 
+const storageHost = 'https://storage.exokit.org';
+
 (async () => {
   const web3 = {
     main: new Web3(window.ethereum),
@@ -465,20 +467,28 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
     }
   });
   const sidechainMintForm = document.getElementById('sidechain-mint-form');
-  const sidechainMintFilenameInput = document.getElementById('sidechain-mint-filename');
+  const sidechainMintFileInput = document.getElementById('sidechain-mint-file');
   sidechainMintForm.addEventListener('submit', async e => {
     e.preventDefault();
     e.stopPropagation();
+
+    const {files} = sidechainMintFileInput;
+    if (files.length > 0) {
+    	const [file] = files;
+
+    	const res = await fetch(storageHost, {
+        method: 'POST',
+        body: file,
+    	});
+    	const j = await res.json();
     
-    const fn = sidechainMintFilenameInput.value;
-    if (fn) {
       const filename = {
         t: 'string',
-        v: fn,
+        v: file.name,
       };
       const hash = {
         t: 'uint256',
-        v: new web3['sidechain'].utils.BN(Date.now()),
+        v: '0x' + web3['main'].utils.padLeft(j.hash, 32),
       };
       const count = {
         t: 'uint256',
