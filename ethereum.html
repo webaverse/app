@@ -21,6 +21,10 @@
       display: flex;
       flex-direction: column;
     }
+    .token > img {
+      width: 100px;
+      height: 100px;
+    }
   </style>
 </head>
 
@@ -29,6 +33,8 @@
     <h1>ETH</h3>
     <h2>Balance</h2>
     <div id=eth-balance>-</div>
+    <h2>Tokens</h2>
+    <div id=eth-tokens></div>
     <form id=eth-ft-form>
       <h2>FT</h2>
       <textarea id=eth-ft-amount placeholder="amount"></textarea>
@@ -44,6 +50,8 @@
     <h1>Sidechain</h3>
     <h2>Balance</h2>
     <div id=sidechain-balance>-</div>
+    <h2>Tokens</h2>
+    <div id=sidechain-tokens></div>
     <form id=sidechain-ft-form>
       <h2>FT</h2>
       <textarea id=sidechain-ft-amount placeholder="amount"></textarea>

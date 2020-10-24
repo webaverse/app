@@ -493,16 +493,64 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
   });
   
   const ethBalanceEl = document.getElementById('eth-balance');
-  contracts['main'].FT.methods.balanceOf(address).call()
-    .then(balance => {
-      ethBalanceEl.innerText = balance;
-    });
-
+  const ethTokensEl = document.getElementById('eth-tokens');
   const sidechainBalanceEl = document.getElementById('sidechain-balance');
-  contracts['sidechain'].FT.methods.balanceOf(testAddress).call()
-    .then(balance => {
-      sidechainBalanceEl.innerText = balance;
-    });
+  const sidechainTokensEl = document.getElementById('sidechain-tokens');
+  (async () => {
+    // main
+    {
+      const ftBalance = await contracts['main'].FT.methods.balanceOf(address).call()
+      ethBalanceEl.innerText = ftBalance;
+    }
+    {
+      const nftBalance = await contracts['main'].NFT.methods.balanceOf(testAddress).call();
+      const tokens = [];
+      for (let i = 0; i < nftBalance; i++) {
+        const tokenId = await contracts['main'].NFT.methods.tokenOfOwnerByIndex(testAddress, i).call();
+        const url = await contracts['main'].NFT.methods.tokenURI(tokenId).call();
+        const res = await fetch(url);
+        const j = await res.json();
+        tokens.push({
+          tokenId,
+          image: j.image,
+        });
+      }
+      console.log('got main chain token ids', tokens);
+      for (const token of tokens) {
+        const el = document.createElement('div');
+        el.classList.add('token');
+        el.innerHTML = `<img src="${token.image}">`;
+        ethTokensEl.appendChild(el);
+      }
+    }
+    
+    // sidechain
+    {
+      const ftBalance = await contracts['sidechain'].FT.methods.balanceOf(testAddress).call();
+      sidechainBalanceEl.innerText = ftBalance;
+    }
+    {
+      const nftBalance = await contracts['sidechain'].NFT.methods.balanceOf(testAddress).call();
+      const tokens = [];
+      for (let i = 0; i < nftBalance; i++) {
+        const tokenId = await contracts['sidechain'].NFT.methods.tokenOfOwnerByIndex(testAddress, i).call();
+        const url = await contracts['sidechain'].NFT.methods.tokenURI(tokenId).call();
+        const res = await fetch(url);
+        const j = await res.json();
+        tokens.push({
+          tokenId,
+          image: j.image,
+        });
+      }
+      console.log('got sidechain token ids', tokens);
+      for (const token of tokens) {
+        const el = document.createElement('div');
+        el.classList.add('token');
+        el.innerHTML = `<img src="${token.image}">`;
+        sidechainTokensEl.appendChild(el);
+      }
+    }
+  })();
 
   /* window.testAccount = seedPhrase => {
 	  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(seedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
