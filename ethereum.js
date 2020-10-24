@@ -289,13 +289,13 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
     if (!isNaN(id)) {
       const tokenId = {
         t: 'uint256',
-        v: new web3.utils.BN(id),
+        v: new web3['main'].utils.BN(id),
       };
       
       const hashSpec = await contracts.main.NFT.methods.getHash(tokenId.v).call();
       const hash = {
         t: 'uint256',
-        v: new web3.utils.BN(hashSpec),
+        v: new web3['main'].utils.BN(hashSpec),
       };
       const filenameSpec = await contracts.main.NFT.methods.getMetadata(hashSpec, 'filename').call();
       const filename = {
@@ -304,14 +304,23 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       };
       console.log('got filename hash', hash, filename);
       
+      // approve on main chain
+      const receipt0 = await contracts.main.NFT.methods.setApprovalForAll(NFTProxyAddress, true).send({
+        from: address,
+      });
+      
       // deposit on main chain
-      const receipt2 = await contracts.main.NFT.methods.transferFrom(address, NFTProxyAddress, tokenId.v).send({
+      const receipt2 = await contracts.main.NFTProxy.methods.deposit(address, tokenId.v).send({
         from: address,
       });
       console.log('got receipt', receipt2);
 
       // get main chain deposit receipt signature
-      const {transactionHash} = receipt2;
+      const signature = await getTransactionSignature('main', 'NFT', receipt2.transactionHash);
+      console.log('got sig', signature);
+      debugger;
+      const {amount, timestamp, r, s, v} = signature;
+      /* const {transactionHash} = receipt2;
       const timestamp = {
         t: 'uint256',
         v: transactionHash,
@@ -328,7 +337,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       const r = sgn.slice(0, 66);
       const s = '0x' + sgn.slice(66, 130);
       const v = '0x' + sgn.slice(130, 132);
-      console.log('got', JSON.stringify({r, s, v}, null, 2));
+      console.log('got', JSON.stringify({r, s, v}, null, 2)); */
 
       // withdraw receipt signature on sidechain
       // console.log('main withdraw', [address, tokenId.v.toString(10), hash.v.toString(10), filename, timestamp.v.toString(10), r, s, v]);
@@ -402,13 +411,13 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
     if (!isNaN(id)) {
       const tokenId = {
         t: 'uint256',
-        v: new web3.utils.BN(id),
+        v: new web3['sidechain'].utils.BN(id),
       };
       
       const hashSpec = await contracts.sidechain.NFT.methods.getHash(tokenId.v).call();
       const hash = {
         t: 'uint256',
-        v: new web3.utils.BN(hashSpec),
+        v: new web3['sidechain'].utils.BN(hashSpec),
       };
       const filenameSpec = await contracts.sidechain.NFT.methods.getMetadata(hashSpec, 'filename').call();
       const filename = {
@@ -416,23 +425,25 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
         v: filenameSpec,
       };
       console.log('got filename hash', hash, filename);
+
+      // approve on sidechain
+      const receipt0 = await runSidechainTransaction('NFT', 'setApprovalForAll', NFTProxyAddressSidechain, true);
       
       // deposit on sidechain
-      const receipt2 = await contracts.sidechain.NFT.methods.transferFrom(address, NFTProxyAddressSidechain, tokenId.v).send({
-        from: address,
-      });
-      console.log('got receipt', receipt2);
+      const receipt = await runSidechainTransaction('NFTProxy', 'deposit', address, tokenId.v);
+      console.log('got receipt', receipt);
 
       // get sidechain deposit receipt signature
-      const {transactionHash} = receipt2;
+      const signature = await getTransactionSignature('sidechain', 'NFT', receipt.transactionHash);
+      console.log('got signature', signature);
       const timestamp = {
         t: 'uint256',
-        // v: new web3.utils.BN(Date.now()),
-        v: transactionHash,
+        v: signature.timestamp,
       };
-      const chainId = {
+      const {r, s, v} = signature;
+      /* const chainId = {
         t: 'uint256',
-        v: new web3.utils.BN(2),
+        v: new web3['sidechain'].utils.BN(2),
       };
 
       const filenameHash = web3.utils.sha3(filename.v);
@@ -442,7 +453,7 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
       const r = sgn.slice(0, 66);
       const s = '0x' + sgn.slice(66, 130);
       const v = '0x' + sgn.slice(130, 132);
-      console.log('got', JSON.stringify({r, s, v}, null, 2));
+      console.log('got', JSON.stringify({r, s, v}, null, 2)); */
 
       // withdraw receipt signature on sidechain
       // console.log('main withdraw', [address, tokenId.v.toString(10), hash.v.toString(10), filename, timestamp.v.toString(10), r, s, v]);
