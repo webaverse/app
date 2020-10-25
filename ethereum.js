@@ -68,6 +68,12 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   };
   const runSidechainTransaction = async (contractName, method, ...args) => {
     // console.log('run tx', contracts['sidechain'], [contractName, method]);
+
+    const {mnemonic} = loginToken;
+    const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+    const privateKey = wallet.getPrivateKeyString();
+    const privateKeyBytes = Uint8Array.from(web3['sidechain'].utils.hexToBytes(privateKey));
+
     const txData = contracts['sidechain'][contractName].methods[method](...args);
     const data = txData.encodeABI();
     const gas = await txData.estimateGas({
@@ -76,7 +82,6 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     let gasPrice = await web3['sidechain'].eth.getGasPrice();
     gasPrice = parseInt(gasPrice, 10);
     const nonce = await web3['sidechain'].eth.getTransactionCount(sidechainAddress);
-    const testPrivateKeyBytes = Uint8Array.from(web3['sidechain'].utils.hexToBytes(testPrivateKey));
     let tx = Transaction.fromTxData({
       to: contracts['sidechain'][contractName]._address,
       nonce: '0x' + new web3['sidechain'].utils.BN(nonce).toString(16),
@@ -94,7 +99,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         },
         'petersburg',
       ),
-    }).sign(testPrivateKeyBytes);
+    }).sign(privateKeyBytes);
     const rawTx = '0x' + tx.serialize().toString('hex');
     // console.log('signed tx', tx, rawTx);
     const receipt = await web3['sidechain'].eth.sendSignedTransaction(rawTx);
