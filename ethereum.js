@@ -583,7 +583,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           const {image, properties: {filename, hash, ext}} = j;
           if (!tokens.some(token => token.hash === hash)) {
             const balance = await contracts['main'].NFT.methods.balanceOfHash(address, hash).call();
-            const totalSupply = await contracts['main'].NFT.methods.totalSupplyOfHash(hash).call();
+            const totalSupply = await contracts['sidechain'].NFT.methods.totalSupplyOfHash(hash).call();
             tokens.push({
               id,
               image,
