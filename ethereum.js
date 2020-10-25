@@ -53,13 +53,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   const sidechainSeedPhrase = 'fox acquire elite cave behave fine doll inch ride rely small pause';
   const sidechainWallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(sidechainSeedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
   const testAddress = sidechainWallet.getAddressString();
-  /* const testAddressInverse = '0x' + web3['main'].utils.padLeft(
-    new web3['main'].utils.BN(testAddress.slice(2), 16).xor(new web3['main'].utils.BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF', 16)).toString(16),
-    40
-  ); */
   const testPrivateKey = sidechainWallet.getPrivateKeyString();
-  // const testAccount = web3['sidechain'].eth.accounts.privateKeyToAccount(testPrivateKey);
-  // web3['sidechain'].eth.accounts.wallet.add(testPrivateKey);
 
   const getTransactionSignature = async (chainName, contractName, transactionHash) => {
     const u = `https://sign.exokit.org/${chainName}/${contractName}/${transactionHash}`;
