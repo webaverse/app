@@ -28,7 +28,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   
   const networkType = await web3['main'].eth.net.getNetworkType();
   if (networkType !== 'rinkeby') {
-    document.write('switch to Rinkeby');
+    document.write(`network is ${networkType}; switch to Rinkeby`);
     return;
   }
 
@@ -660,7 +660,14 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   const sidechainAddressEl = document.getElementById('sidechain-address');
   const sidechainBalanceEl = document.getElementById('sidechain-balance');
   const sidechainTokensEl = document.getElementById('sidechain-tokens');
+  const ftContractAddressLink = document.getElementById('ft-contract-address-link');
+  const nftContractAddressLink = document.getElementById('nft-contract-address-link');
   (async () => {
+    ftContractAddressLink.innerText = FTAddress;
+    ftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${FTAddress}`;
+    nftContractAddressLink.innerText = NFTAddress;
+    nftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${NFTAddress}`;
+    
     await _connectMetamask();
     await _absorbDiscord();
   })();
