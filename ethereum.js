@@ -305,12 +305,12 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       // withdraw receipt signature on sidechain
       const receipt2 = await runSidechainTransaction('FTProxy', 'withdraw', sidechainAddress, amount, timestamp, r, s, v);
       
-      ethFtButton.disabled = false;
-      
       console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(ethFtAmountInput.value));
     }
+    
+    ethFtButton.disabled = false;
   });
   
   const ethNftForm = document.getElementById('eth-nft-form');
@@ -378,12 +378,12 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       // console.log('main withdraw', [address, tokenId.v.toString(10), hash.v.toString(10), filename, timestamp.v.toString(10), r, s, v]);
       await runSidechainTransaction('NFTProxy', 'withdraw', sidechainAddress, tokenId.v, hash.v, filename.v, timestamp, r, s, v);
       
-      ethNftButton.disabled = false;
-      
       console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
     }
+    
+    ethNftButton.disabled = false;
   });
   
   const sidechainFtForm = document.getElementById('sidechain-ft-form');
@@ -435,12 +435,12 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         from: address,
       });
       
-      sidechainFtButton.disabled = false;
-      
       console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(sidechainFtAmountInput.value));
     }
+    
+    sidechainFtButton.disabled = false;
   });
   
   const sidechainNftForm = document.getElementById('sidechain-nft-form');
@@ -506,12 +506,12 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         from: address,
       });
       
-      sidechainNftButton.disabled = false;
-      
       console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
     }
+    
+    sidechainNftButton.disabled = false;
   });
   const sidechainMintForm = document.getElementById('sidechain-mint-form');
   const sidechainMintFileInput = document.getElementById('sidechain-mint-file');
