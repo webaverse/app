@@ -15,7 +15,7 @@ import {parseQuery} from './util.js';
     const j = await res.json();
     const {mnemonic} = j;
     await storage.set('loginToken', {mnemonic});
-    location.path = '/ethereum.html';
+    location.href = '/ethereum.html';
   } else {
     console.warn('no discord code provided', q);
   }
