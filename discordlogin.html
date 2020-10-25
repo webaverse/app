@@ -13,8 +13,9 @@ import {parseQuery} from './util.js';
   if (code) {
     const res = await fetch(`https://login.exokit.org/?discordcode=${code}`, {method: 'POST'});
     const j = await res.json();
-    console.log('got j', j);
-    // await storage.set('loginToken', newLoginToken);
+    const {mnemonic} = j;
+    await storage.set('loginToken', {mnemonic});
+    location.path = '/ethereum.html';
   } else {
     console.warn('no discord code provided', q);
   }
