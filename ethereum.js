@@ -526,16 +526,27 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           const url = await contracts['main'].NFT.methods.tokenURI(id).call();
           const res = await fetch(url);
           const j = await res.json();
+          const {image, properties: {filename, hash, ext}} = j;
           tokens.push({
             id,
-            image: j.image,
+            image,
+            filename,
+            hash,
+            ext,
           });
         }
         // console.log('got main chain token ids', tokens);
         for (const token of tokens) {
           const el = document.createElement('div');
           el.classList.add('token');
-          el.innerHTML = `<img src="${token.image}">`;
+          el.innerHTML = `
+            <img src="${token.image}">
+            <div class=wrap>
+              <div class=filename>${escape(token.filename)}</div>
+              <div class=hash>${escape(token.hash)}</div>
+              <div class=ext>${escape(token.ext || '')}</div>
+            </div>
+          `;
           el.addEventListener('click', e => {
             ethNftIdInput.value = token.id;
           });
@@ -590,16 +601,27 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         const url = await contracts['sidechain'].NFT.methods.tokenURI(id).call();
         const res = await fetch(url);
         const j = await res.json();
+        const {image, properties: {filename, hash, ext}} = j;
         tokens.push({
           id,
-          image: j.image,
+          image,
+          filename,
+          hash,
+          ext,
         });
       }
       // console.log('got sidechain token ids', tokens);
       for (const token of tokens) {
         const el = document.createElement('div');
         el.classList.add('token');
-        el.innerHTML = `<img src="${token.image}">`;
+        el.innerHTML = `
+          <img src="${token.image}">
+          <div class=wrap>
+            <div class=filename>${escape(token.filename)}</div>
+            <div class=hash>${escape(token.hash)}</div>
+            <div class=ext>${escape(token.ext || '')}</div>
+          </div>
+        `;
         el.addEventListener('click', e => {
           sidechainNftIdInput.value = token.id;
         });

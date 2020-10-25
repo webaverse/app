@@ -21,10 +21,34 @@
       display: flex;
       flex-direction: column;
     }
+    .token {
+      position: relative;
+      display: flex;
+      margin-bottom: 10px;
+      background-color: rgba(255, 255, 255, 0.2);
+    }
     .token > img {
       width: 100px;
       height: 100px;
+      margin-right: 20px;
       object-fit: contain;
+    }
+    .token .wrap {
+      // display: flex;
+      // flex-direction: column;
+    }
+    .token .wrap .filename,
+    .token .wrap .hash {
+      // display: inline-block;
+      background-color: #111;
+      color: #FFF;
+    }
+    .token .ext {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background-color: #111;
+      color: #FFF;
     }
     .hidden {
       display: none;
