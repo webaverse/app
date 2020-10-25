@@ -48,13 +48,12 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     },
   };
 
-  let address, loginToken;
+  let address, loginToken, sidechainAddress;
 
-  const sidechainSeedPhrase = 'fox acquire elite cave behave fine doll inch ride rely small pause';
+  /* const sidechainSeedPhrase = 'fox acquire elite cave behave fine doll inch ride rely small pause';
   const sidechainWallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(sidechainSeedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-  const testAddress = sidechainWallet.getAddressString();
-  const testPrivateKey = sidechainWallet.getPrivateKeyString();
-
+  const sidechainAddress = sidechainWallet.getAddressString();
+  const testPrivateKey = sidechainWallet.getPrivateKeyString(); */
   const getTransactionSignature = async (chainName, contractName, transactionHash) => {
     const u = `https://sign.exokit.org/${chainName}/${contractName}/${transactionHash}`;
     for (let i = 0; i < 10; i++) {
@@ -75,11 +74,11 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     const txData = contracts['sidechain'][contractName].methods[method](...args);
     const data = txData.encodeABI();
     const gas = await txData.estimateGas({
-      from: testAddress,
+      from: sidechainAddress,
     });
     let gasPrice = await web3['sidechain'].eth.getGasPrice();
     gasPrice = parseInt(gasPrice, 10);
-    const nonce = await web3['sidechain'].eth.getTransactionCount(testAddress);
+    const nonce = await web3['sidechain'].eth.getTransactionCount(sidechainAddress);
     const testPrivateKeyBytes = Uint8Array.from(web3['sidechain'].utils.hexToBytes(testPrivateKey));
     let tx = Transaction.fromTxData({
       to: contracts['sidechain'][contractName]._address,
@@ -140,7 +139,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         from: address,
       });
       console.log('got sig 1', receipt0);
-      const receipt = await contracts.main.FTProxy.methods.deposit(testAddress, ftAmount.v).send({
+      const receipt = await contracts.main.FTProxy.methods.deposit(sidechainAddress, ftAmount.v).send({
         from: address,
       });
       console.log('got sig 2', receipt);
@@ -149,8 +148,8 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       const {amount, timestamp, r, s, v} = signature;
 
       // withdraw receipt signature on sidechain
-      console.log('run withdraw', [testAddress, amount, timestamp, r, s, v]);
-      const receipt2 = await runSidechainTransaction('FTProxy', 'withdraw', testAddress, amount, timestamp, r, s, v);
+      console.log('run withdraw', [sidechainAddress, amount, timestamp, r, s, v]);
+      const receipt2 = await runSidechainTransaction('FTProxy', 'withdraw', sidechainAddress, amount, timestamp, r, s, v);
       
       console.log('FT OK');
     };
@@ -182,7 +181,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       const filename = 'lol.png';
       console.log('nft', address, hash, filename, 1);
 
-      const receipt = await runSidechainTransaction('NFT', 'mint', testAddress, hash.v, filename, count.v);
+      const receipt = await runSidechainTransaction('NFT', 'mint', sidechainAddress, hash.v, filename, count.v);
 
       const tokenId = {
         t: 'uint256',
@@ -256,8 +255,8 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       });
       
       // deposit on main chain
-      console.log('deposit', testAddress, amt);
-      const receipt = await contracts.main.FTProxy.methods.deposit(testAddress, ftAmount.v).send({
+      console.log('deposit', sidechainAddress, amt);
+      const receipt = await contracts.main.FTProxy.methods.deposit(sidechainAddress, ftAmount.v).send({
         from: address,
       });
       console.log('got receipt', receipt);
@@ -267,7 +266,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       const {amount, timestamp, r, s, v} = signature;
 
       // withdraw receipt signature on sidechain
-      const receipt2 = await runSidechainTransaction('FTProxy', 'withdraw', testAddress, amount, timestamp, r, s, v);
+      const receipt2 = await runSidechainTransaction('FTProxy', 'withdraw', sidechainAddress, amount, timestamp, r, s, v);
       console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(ethFtAmountInput.value));
@@ -305,7 +304,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       });
       
       // deposit on main chain
-      const receipt = await contracts.main.NFTProxy.methods.deposit(testAddress, tokenId.v).send({
+      const receipt = await contracts.main.NFTProxy.methods.deposit(sidechainAddress, tokenId.v).send({
         from: address,
       });
       console.log('got receipt', receipt);
@@ -336,7 +335,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
 
       // withdraw receipt signature on sidechain
       // console.log('main withdraw', [address, tokenId.v.toString(10), hash.v.toString(10), filename, timestamp.v.toString(10), r, s, v]);
-      await runSidechainTransaction('NFTProxy', 'withdraw', testAddress, tokenId.v, hash.v, filename.v, timestamp, r, s, v);
+      await runSidechainTransaction('NFTProxy', 'withdraw', sidechainAddress, tokenId.v, hash.v, filename.v, timestamp, r, s, v);
       console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
@@ -490,7 +489,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         v: new web3['sidechain'].utils.BN(1),
       };
       
-      const receipt = await runSidechainTransaction('NFT', 'mint', testAddress, hash.v, filename.v, count.v);
+      const receipt = await runSidechainTransaction('NFT', 'mint', sidechainAddress, hash.v, filename.v, count.v);
       sidechainNftIdInput.value = new web3['sidechain'].utils.BN(receipt.logs[0].topics[3].slice(2), 16).toNumber();
     } else {
       console.log('no files');
@@ -562,6 +561,10 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   const _absorbDiscord = async () => {
     loginToken = await storage.get('loginToken') || null;
     if (loginToken) {
+      const {mnemonic} = loginToken;
+      const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+      sidechainAddress = wallet.getAddressString();
+      
       sidechainSection.classList.remove('hidden');
       connectDiscordButton.classList.add('hidden');
       disconnectDiscordButton.classList.remove('hidden');
@@ -574,14 +577,14 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       sidechainAddressEl.innerText = address;
     }
     {
-      const ftBalance = await contracts['sidechain'].FT.methods.balanceOf(testAddress).call();
+      const ftBalance = await contracts['sidechain'].FT.methods.balanceOf(sidechainAddress).call();
       sidechainBalanceEl.innerText = ftBalance;
     }
     {
-      const nftBalance = await contracts['sidechain'].NFT.methods.balanceOf(testAddress).call();
+      const nftBalance = await contracts['sidechain'].NFT.methods.balanceOf(sidechainAddress).call();
       const tokens = [];
       for (let i = 0; i < nftBalance; i++) {
-        const id = await contracts['sidechain'].NFT.methods.tokenOfOwnerByIndex(testAddress, i).call();
+        const id = await contracts['sidechain'].NFT.methods.tokenOfOwnerByIndex(sidechainAddress, i).call();
         const url = await contracts['sidechain'].NFT.methods.tokenURI(id).call();
         const res = await fetch(url);
         const j = await res.json();
