@@ -702,11 +702,13 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   const sidechainTokensEl = document.getElementById('sidechain-tokens');
   const ftContractAddressLink = document.getElementById('ft-contract-address-link');
   const nftContractAddressLink = document.getElementById('nft-contract-address-link');
+  const nftContractOpenSeaLink = document.getElementById('nft-contract-opensea-link');
   (async () => {
     ftContractAddressLink.innerText = FTAddress;
     ftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${FTAddress}`;
     nftContractAddressLink.innerText = NFTAddress;
     nftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${NFTAddress}`;
+    nftContractOpenSeaLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}opensea.io/assets/m3-v3`;
     
     await _connectMetamask();
     await _absorbDiscord();
