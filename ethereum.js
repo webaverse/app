@@ -510,6 +510,35 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       address = web3['main'].currentProvider.selectedAddress;
       ethSection.classList.remove('hidden');
       connectMetamaskButton.classList.add('hidden');
+      
+      {
+        const ftBalance = await contracts['main'].FT.methods.balanceOf(address).call()
+        ethBalanceEl.innerText = ftBalance;
+      }
+      {
+        const nftBalance = await contracts['main'].NFT.methods.balanceOf(address).call();
+        const tokens = [];
+        for (let i = 0; i < nftBalance; i++) {
+          const id = await contracts['main'].NFT.methods.tokenOfOwnerByIndex(address, i).call();
+          const url = await contracts['main'].NFT.methods.tokenURI(id).call();
+          const res = await fetch(url);
+          const j = await res.json();
+          tokens.push({
+            id,
+            image: j.image,
+          });
+        }
+        // console.log('got main chain token ids', tokens);
+        for (const token of tokens) {
+          const el = document.createElement('div');
+          el.classList.add('token');
+          el.innerHTML = `<img src="${token.image}">`;
+          el.addEventListener('click', e => {
+            ethNftIdInput.value = token.id;
+          });
+          ethTokensEl.appendChild(el);
+        }
+      }
     } catch (err) {
       console.warn(err);
     }
@@ -520,50 +549,13 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     location.href = discordOauthUrl;
   };
   connectDiscordButton.addEventListener('click', _connectDiscord);
-  
-  const ethBalanceEl = document.getElementById('eth-balance');
-  const ethTokensEl = document.getElementById('eth-tokens');
-  const sidechainBalanceEl = document.getElementById('sidechain-balance');
-  const sidechainTokensEl = document.getElementById('sidechain-tokens');
-  (async () => {
-    await _connectMetamask();
+  const _absorbDiscord = async () => {
     loginToken = await storage.get('loginToken') || null;
     if (loginToken) {
       sidechainSection.classList.remove('hidden');
       connectDiscordButton.classList.add('hidden');
     }
-
-    // main
-    {
-      const ftBalance = await contracts['main'].FT.methods.balanceOf(address).call()
-      ethBalanceEl.innerText = ftBalance;
-    }
-    {
-      const nftBalance = await contracts['main'].NFT.methods.balanceOf(address).call();
-      const tokens = [];
-      for (let i = 0; i < nftBalance; i++) {
-        const id = await contracts['main'].NFT.methods.tokenOfOwnerByIndex(address, i).call();
-        const url = await contracts['main'].NFT.methods.tokenURI(id).call();
-        const res = await fetch(url);
-        const j = await res.json();
-        tokens.push({
-          id,
-          image: j.image,
-        });
-      }
-      console.log('got main chain token ids', tokens);
-      for (const token of tokens) {
-        const el = document.createElement('div');
-        el.classList.add('token');
-        el.innerHTML = `<img src="${token.image}">`;
-        el.addEventListener('click', e => {
-          ethNftIdInput.value = token.id;
-        });
-        ethTokensEl.appendChild(el);
-      }
-    }
     
-    // sidechain
     {
       const ftBalance = await contracts['sidechain'].FT.methods.balanceOf(testAddress).call();
       sidechainBalanceEl.innerText = ftBalance;
@@ -581,7 +573,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           image: j.image,
         });
       }
-      console.log('got sidechain token ids', tokens);
+      // console.log('got sidechain token ids', tokens);
       for (const token of tokens) {
         const el = document.createElement('div');
         el.classList.add('token');
@@ -592,6 +584,17 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         sidechainTokensEl.appendChild(el);
       }
     }
+  };
+  
+  const ethAddressEl = document.getElementById('eth-address');
+  const ethBalanceEl = document.getElementById('eth-balance');
+  const ethTokensEl = document.getElementById('eth-tokens');
+  const sidechainAddressEl = document.getElementById('sidechain-address');
+  const sidechainBalanceEl = document.getElementById('sidechain-balance');
+  const sidechainTokensEl = document.getElementById('sidechain-tokens');
+  (async () => {
+    await _connectMetamask();
+    await _absorbDiscord();
   })();
 
   /* window.testAccount = seedPhrase => {
