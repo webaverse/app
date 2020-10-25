@@ -548,15 +548,24 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   };
   connectMetamaskButton.addEventListener('click', _connectMetamask);
   const connectDiscordButton = document.getElementById('connect-discord-button');
+  const disconnectDiscordButton = document.getElementById('disconnect-discord-button');
   const _connectDiscord = () => {
     location.href = discordOauthUrl;
   };
   connectDiscordButton.addEventListener('click', _connectDiscord);
+  const _disconnectDiscord = async () => {
+    await storage.remove('loginToken');
+    sidechainSection.classList.add('hidden');
+    connectDiscordButton.classList.remove('hidden');
+    disconnectDiscordButton.classList.add('hidden');
+  };
+  disconnectDiscordButton.addEventListener('click', _disconnectDiscord);
   const _absorbDiscord = async () => {
     loginToken = await storage.get('loginToken') || null;
     if (loginToken) {
       sidechainSection.classList.remove('hidden');
       connectDiscordButton.classList.add('hidden');
+      disconnectDiscordButton.classList.remove('hidden');
     }
 
     {
