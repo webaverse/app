@@ -240,9 +240,12 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
 
   const ethFtForm = document.getElementById('eth-ft-form');
   const ethFtAmountInput = document.getElementById('eth-ft-amount');
+  const ethFtButton = document.getElementById('eth-ft-button');
   ethFtForm.addEventListener('submit', async e => {
     e.preventDefault();
     e.stopPropagation();
+    
+    ethFtButton.disabled = true;
 
     const amt = parseInt(ethFtAmountInput.value, 10);
     if (!isNaN(amt)) {
@@ -269,6 +272,9 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
 
       // withdraw receipt signature on sidechain
       const receipt2 = await runSidechainTransaction('FTProxy', 'withdraw', sidechainAddress, amount, timestamp, r, s, v);
+      
+      ethFtButton.disabled = false;
+      
       console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(ethFtAmountInput.value));
@@ -277,9 +283,12 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   
   const ethNftForm = document.getElementById('eth-nft-form');
   const ethNftIdInput = document.getElementById('eth-nft-id');
+  const ethNftButton = document.getElementById('eth-nft-button');
   ethNftForm.addEventListener('submit', async e => {
     e.preventDefault();
     e.stopPropagation();
+    
+    ethNftButton.disabled = true;
 
     const id = parseInt(ethNftIdInput.value, 10);
     if (!isNaN(id)) {
@@ -338,6 +347,9 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       // withdraw receipt signature on sidechain
       // console.log('main withdraw', [address, tokenId.v.toString(10), hash.v.toString(10), filename, timestamp.v.toString(10), r, s, v]);
       await runSidechainTransaction('NFTProxy', 'withdraw', sidechainAddress, tokenId.v, hash.v, filename.v, timestamp, r, s, v);
+      
+      ethNftButton.disabled = false;
+      
       console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
@@ -346,9 +358,12 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   
   const sidechainFtForm = document.getElementById('sidechain-ft-form');
   const sidechainFtAmountInput = document.getElementById('sidechain-ft-amount');
+  const sidechainFtButton = document.getElementById('sidechain-ft-button');
   sidechainFtForm.addEventListener('submit', async e => {
     e.preventDefault();
     e.stopPropagation();
+    
+    sidechainFtButton.disabled = true;
 
     const amt = parseInt(sidechainFtAmountInput.value, 10);
     if (!isNaN(amt)) {
@@ -389,6 +404,9 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       await contracts.main.FTProxy.methods.withdraw(address, amount, timestamp, r, s, v).send({
         from: address,
       });
+      
+      sidechainFtButton.disabled = false;
+      
       console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(sidechainFtAmountInput.value));
@@ -397,9 +415,12 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   
   const sidechainNftForm = document.getElementById('sidechain-nft-form');
   const sidechainNftIdInput = document.getElementById('sidechain-nft-id');
+  const sidechainNftButton = document.getElementById('sidechain-nft-button');
   sidechainNftForm.addEventListener('submit', async e => {
     e.preventDefault();
     e.stopPropagation();
+    
+    sidechainNftButton.disabled = true;
     
     const id = parseInt(sidechainNftIdInput.value, 10);
     if (!isNaN(id)) {
@@ -454,6 +475,9 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       await contracts.main.NFTProxy.methods.withdraw(address, tokenId.v, hash.v, filename.v, timestamp.v, r, s, v).send({
         from: address,
       });
+      
+      sidechainNftButton.disabled = false;
+      
       console.log('OK');
     } else {
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
