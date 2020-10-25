@@ -1,3 +1,4 @@
+import storage from './storage.js';
 import Web3 from './web3.min.js';
 import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
@@ -16,14 +17,13 @@ let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy:
 
 const web3Endpoint = 'http://13.56.80.83:8545';
 const storageHost = 'https://storage.exokit.org';
-const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=684141574808272937&redirect_uri=https%3A%2F%2Fapp.webaverse.com%2Flogin.html&response_type=code&scope=identify`;
+const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=684141574808272937&redirect_uri=https%3A%2F%2Fapp.webaverse.com%2Fdiscordlogin.html&response_type=code&scope=identify`;
 
 (async () => {
   const web3 = {
     main: new Web3(window.ethereum),
     sidechain: new Web3(new Web3.providers.HttpProvider(web3Endpoint)),
   };
-  await window.ethereum.enable();
   
   const networkType = await web3['main'].eth.net.getNetworkType();
   if (networkType !== 'rinkeby') {
@@ -48,11 +48,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     },
   };
 
-  // const contract = new web3.eth.Contract(FTAbi, FTAddress);
-  // const proxyContract = new web3.eth.Contract(FTProxyAbi, FTProxyAddress);
-  const address = web3['main'].currentProvider.selectedAddress;
-  
-  // contract.methods.mint('0x08E242bB06D85073e69222aF8273af419d19E4f6', '0x1', 1).send({from: address})
+  let address, loginToken;
 
   const sidechainSeedPhrase = 'fox acquire elite cave behave fine doll inch ride rely small pause';
   const sidechainWallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(sidechainSeedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
@@ -503,22 +499,40 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
     }
   });
+  
+  const ethSection = document.getElementById('eth-section');
+  const sidechainSection = document.getElementById('sidechain-section');
 
   const connectMetamaskButton = document.getElementById('connect-metamask-button');
-  connectMetamaskButton.addEventListener('click', e => {
-    console.log('connect metamask'); // finish this
-  });
-
+  const _connectMetamask = async () => {
+    try {
+      await window.ethereum.enable();
+      address = web3['main'].currentProvider.selectedAddress;
+      ethSection.classList.remove('hidden');
+      connectMetamaskButton.classList.add('hidden');
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+  connectMetamaskButton.addEventListener('click', _connectMetamask);
   const connectDiscordButton = document.getElementById('connect-discord-button');
-  connectDiscordButton.addEventListener('click', e => {
+  const _connectDiscord = () => {
     location.href = discordOauthUrl;
-  });
+  };
+  connectDiscordButton.addEventListener('click', _connectDiscord);
   
   const ethBalanceEl = document.getElementById('eth-balance');
   const ethTokensEl = document.getElementById('eth-tokens');
   const sidechainBalanceEl = document.getElementById('sidechain-balance');
   const sidechainTokensEl = document.getElementById('sidechain-tokens');
   (async () => {
+    await _connectMetamask();
+    loginToken = await storage.get('loginToken') || null;
+    if (loginToken) {
+      sidechainSection.classList.remove('hidden');
+      connectDiscordButton.classList.add('hidden');
+    }
+
     // main
     {
       const ftBalance = await contracts['main'].FT.methods.balanceOf(address).call()

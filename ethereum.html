@@ -11,19 +11,22 @@
     .body {
       display: flex;
     }
-    .body > section {
+    section {
       display: flex;
       wifth: 400px;
       padding-right: 100px;
       flex-direction: column;
     }
-    .body > section > form {
+    form {
       display: flex;
       flex-direction: column;
     }
     .token > img {
       width: 100px;
       height: 100px;
+    }
+    .hidden {
+      display: none;
     }
   </style>
 </head>
@@ -32,43 +35,47 @@
   <section>
     <h1>ETH</h3>
     <input type=button id=connect-metamask-button value="Connect Metamask">
-    <h2>Balance</h2>
-    <div id=eth-balance>-</div>
-    <h2>Tokens</h2>
-    <div id=eth-tokens></div>
-    <form id=eth-ft-form>
-      <h2>FT</h2>
-      <textarea id=eth-ft-amount placeholder="amount"></textarea>
-      <input type=submit value="Move FT to Sidechain >">
-    </form>
-    <form id=eth-nft-form>
-      <h2>NFT</h2>
-      <textarea id=eth-nft-id placeholder="id"></textarea>
-      <input type=submit value="Move NFT to Sidechain >">
-    </form>
+    <section id=eth-section class=hidden>
+      <h2>Balance</h2>
+      <div id=eth-balance>-</div>
+      <h2>Tokens</h2>
+      <div id=eth-tokens></div>
+      <form id=eth-ft-form>
+        <h2>FT</h2>
+        <textarea id=eth-ft-amount placeholder="amount"></textarea>
+        <input type=submit value="Move FT to Sidechain >">
+      </form>
+      <form id=eth-nft-form>
+        <h2>NFT</h2>
+        <textarea id=eth-nft-id placeholder="id"></textarea>
+        <input type=submit value="Move NFT to Sidechain >">
+      </form>
+    </section>
   </section>
   <section>
     <h1>Sidechain</h3>
     <input type=button id=connect-discord-button value="Connect Discord">
-    <h2>Balance</h2>
-    <div id=sidechain-balance>-</div>
-    <h2>Tokens</h2>
-    <div id=sidechain-tokens></div>
-    <form id=sidechain-ft-form>
-      <h2>FT</h2>
-      <textarea id=sidechain-ft-amount placeholder="amount"></textarea>
-      <input type=submit value="< Move FT to ETH">
-    </form>
-    <form id=sidechain-nft-form>
-      <h2>NFT</h2>
-      <textarea id=sidechain-nft-id placeholder="id"></textarea>
-      <input type=submit value="< Move NFT to ETH">
-    </form>
-    <form id=sidechain-mint-form>
-      <h2>Mint</h2>
-      <input type=file id=sidechain-mint-file>
-      <input type=submit value="Mint token">
-    </form>
+    <section id=sidechain-section class=hidden>
+      <h2>Balance</h2>
+      <div id=sidechain-balance>-</div>
+      <h2>Tokens</h2>
+      <div id=sidechain-tokens></div>
+      <form id=sidechain-ft-form>
+        <h2>FT</h2>
+        <textarea id=sidechain-ft-amount placeholder="amount"></textarea>
+        <input type=submit value="< Move FT to ETH">
+      </form>
+      <form id=sidechain-nft-form>
+        <h2>NFT</h2>
+        <textarea id=sidechain-nft-id placeholder="id"></textarea>
+        <input type=submit value="< Move NFT to ETH">
+      </form>
+      <form id=sidechain-mint-form>
+        <h2>Mint</h2>
+        <input type=file id=sidechain-mint-file>
+        <input type=submit value="Mint token">
+      </form>
+    </section>
   </section>
 
   <script type=module src=ethereum.js></script>
