@@ -460,9 +460,12 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   });
   const sidechainMintForm = document.getElementById('sidechain-mint-form');
   const sidechainMintFileInput = document.getElementById('sidechain-mint-file');
+  const sidechainMintButton = document.getElementById('sidechain-mint-button');
   sidechainMintForm.addEventListener('submit', async e => {
     e.preventDefault();
     e.stopPropagation();
+    
+    sidechainMintButton.disabled = true;
 
     const {files} = sidechainMintFileInput;
     if (files.length > 0) {
@@ -490,8 +493,10 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       const receipt = await runSidechainTransaction('NFT', 'mint', testAddress, hash.v, filename.v, count.v);
       sidechainNftIdInput.value = new web3['sidechain'].utils.BN(receipt.logs[0].topics[3].slice(2), 16).toNumber();
     } else {
-      console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
+      console.log('no files');
     }
+    
+    sidechainMintButton.disabled = false;
   });
   
   const ethSection = document.getElementById('eth-section');
