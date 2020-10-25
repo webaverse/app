@@ -581,15 +581,20 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           const res = await fetch(url);
           const j = await res.json();
           const {image, properties: {filename, hash, ext}} = j;
-          tokens.push({
-            id,
-            image,
-            filename,
-            hash,
-            ext,
-          });
+          if (!tokens.some(token => token.hash === hash)) {
+            const balance = await contracts['main'].NFT.methods.balanceOfHash(address, hash).call();
+            const totalSupply = await contracts['main'].NFT.methods.totalSupplyOfHash(hash).call();
+            tokens.push({
+              id,
+              image,
+              filename,
+              hash,
+              ext,
+              balance,
+              totalSupply,
+            });
+          }
         }
-        // console.log('got main chain token ids', tokens);
         for (const token of tokens) {
           const el = document.createElement('div');
           el.classList.add('token');
@@ -597,7 +602,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
             <img src="${token.image}">
             <div class=wrap>
               <a href="https://storage.exokit.org/${token.hash.slice(2)}" class=filename>${escape(token.filename)}</a>
-              <div class=hash>${token.hash}</div>
+              <div class=hash>${token.id}. ${token.hash} (${token.balance}/${token.totalSupply})</div>
               <div class=ext>${escape(token.ext || '')}</div>
             </div>
           `;
@@ -656,15 +661,20 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         const res = await fetch(url);
         const j = await res.json();
         const {image, properties: {filename, hash, ext}} = j;
-        tokens.push({
-          id,
-          image,
-          filename,
-          hash,
-          ext,
-        });
+        if (!tokens.some(token => token.hash === hash)) {
+          const balance = await contracts['sidechain'].NFT.methods.balanceOfHash(sidechainAddress, hash).call();
+          const totalSupply = await contracts['sidechain'].NFT.methods.totalSupplyOfHash(hash).call();
+          tokens.push({
+            id,
+            image,
+            filename,
+            hash,
+            ext,
+            balance,
+            totalSupply,
+          });
+        }
       }
-      // console.log('got sidechain token ids', tokens);
       for (const token of tokens) {
         const el = document.createElement('div');
         el.classList.add('token');
@@ -672,12 +682,12 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           <img src="${token.image}">
           <div class=wrap>
             <a href="https://storage.exokit.org/${token.hash.slice(2)}" class=filename>${escape(token.filename)}</a>
-            <div class=hash>${token.hash}</div>
+            <div class=hash>${token.id}. ${token.hash} (${token.balance}/${token.totalSupply})</div>
             <div class=ext>${escape(token.ext || '')}</div>
           </div>
         `;
         el.addEventListener('click', e => {
-          sidechainNftIdInput.value = token.id;
+          ethNftIdInput.value = token.id;
         });
         sidechainTokensEl.appendChild(el);
       }
