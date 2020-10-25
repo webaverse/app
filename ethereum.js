@@ -512,6 +512,9 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       connectMetamaskButton.classList.add('hidden');
       
       {
+        ethAddressEl.innerText = address;
+      }
+      {
         const ftBalance = await contracts['main'].FT.methods.balanceOf(address).call()
         ethBalanceEl.innerText = ftBalance;
       }
@@ -555,7 +558,13 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       sidechainSection.classList.remove('hidden');
       connectDiscordButton.classList.add('hidden');
     }
-    
+
+    {
+      const {mnemonic} = loginToken;
+      const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+      const address = wallet.getAddressString();
+      sidechainAddressEl.innerText = address;
+    }
     {
       const ftBalance = await contracts['sidechain'].FT.methods.balanceOf(testAddress).call();
       sidechainBalanceEl.innerText = ftBalance;
