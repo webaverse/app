@@ -687,7 +687,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           </div>
         `;
         el.addEventListener('click', e => {
-          ethNftIdInput.value = token.id;
+          sidechainNftIdInput.value = token.id;
         });
         sidechainTokensEl.appendChild(el);
       }
