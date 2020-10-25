@@ -542,8 +542,8 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           el.innerHTML = `
             <img src="${token.image}">
             <div class=wrap>
-              <div class=filename>${escape(token.filename)}</div>
-              <div class=hash>${escape(token.hash)}</div>
+              <a href="https://storage.exokit.org/${token.hash.slice(2)}" class=filename>${escape(token.filename)}</a>
+              <div class=hash>${token.hash}</div>
               <div class=ext>${escape(token.ext || '')}</div>
             </div>
           `;
@@ -617,8 +617,8 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         el.innerHTML = `
           <img src="${token.image}">
           <div class=wrap>
-            <div class=filename>${escape(token.filename)}</div>
-            <div class=hash>${escape(token.hash)}</div>
+            <a href="https://storage.exokit.org/${token.hash.slice(2)}" class=filename>${escape(token.filename)}</a>
+            <div class=hash>${token.hash}</div>
             <div class=ext>${escape(token.ext || '')}</div>
           </div>
         `;
