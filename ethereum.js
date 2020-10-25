@@ -237,6 +237,40 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     ]);
     console.log('ALL OK');
   };
+  const checkMainFtApproved = async amt => {
+    const receipt0 = await contracts.main.FT.methods.allowance(address, FTProxyAddress).call();
+    
+    if (receipt0 < amt) {
+      window.alert('First you have to approve the FT contract to handle funds. This will only happen once.');
+      
+      const fullAmount = {
+        t: 'uint256',
+        v: new web3['main'].utils.BN(1e9)
+          .mul(new web3['main'].utils.BN(1e9))
+          .mul(new web3['main'].utils.BN(1e9)),
+      };
+      const receipt1 = await contracts.main.FT.methods.approve(FTProxyAddress, fullAmount.v).send({
+        from: address,
+      });
+      return receipt1;
+    } else {
+      return null;
+    }
+  };
+  const checkMainNftApproved = async () => {
+    const approved = await contracts.main.NFT.methods.isApprovedForAll(address, NFTProxyAddress).call();
+    
+    if (!approved) {
+      window.alert('First you have to approve the NFT contract to handle tokens. This will only happen once.');
+      
+      const receipt1 = await contracts.main.NFT.methods.setApprovalForAll(NFTProxyAddress, true).send({
+        from: address,
+      });
+      return receipt1;
+    } else {
+      return null;
+    }
+  };
 
   const ethFtForm = document.getElementById('eth-ft-form');
   const ethFtAmountInput = document.getElementById('eth-ft-amount');
@@ -255,9 +289,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       };
       
       // approve on main chain
-      const receipt0 = await contracts.main.FT.methods.approve(FTProxyAddress, ftAmount.v).send({
-        from: address,
-      });
+      await checkMainFtApproved(amt);
       
       // deposit on main chain
       console.log('deposit', sidechainAddress, amt);
@@ -310,9 +342,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       console.log('got filename hash', hash, filename);
       
       // approve on main chain
-      const receipt0 = await contracts.main.NFT.methods.setApprovalForAll(NFTProxyAddress, true).send({
-        from: address,
-      });
+      await checkMainNftApproved();
       
       // deposit on main chain
       const receipt = await contracts.main.NFTProxy.methods.deposit(sidechainAddress, tokenId.v).send({
