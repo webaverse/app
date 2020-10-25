@@ -15,7 +15,8 @@ let {
 } = addresses;
 let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi} = abis;
 
-const web3Endpoint = 'http://13.56.80.83:8545';
+// const web3Endpoint = 'http://13.56.80.83:8545';
+const web3Endpoint = 'https://ethereum.exokit.org';
 const storageHost = 'https://storage.exokit.org';
 const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=684141574808272937&redirect_uri=https%3A%2F%2Fapp.webaverse.com%2Fdiscordlogin.html&response_type=code&scope=identify`;
 
