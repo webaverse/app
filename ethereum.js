@@ -488,7 +488,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       };
       
       const receipt = await runSidechainTransaction('NFT', 'mint', testAddress, hash.v, filename.v, count.v);
-      sidechainMintFilenameInput.value = new web3['sidechain'].utils.BN(receipt.logs[0].topics[3].slice(2), 16).toNumber();
+      sidechainNftIdInput.value = new web3['sidechain'].utils.BN(receipt.logs[0].topics[3].slice(2), 16).toNumber();
     } else {
       console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
     }
