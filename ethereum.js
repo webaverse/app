@@ -50,10 +50,6 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
 
   let address, loginToken, sidechainAddress;
 
-  /* const sidechainSeedPhrase = 'fox acquire elite cave behave fine doll inch ride rely small pause';
-  const sidechainWallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(sidechainSeedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-  const sidechainAddress = sidechainWallet.getAddressString();
-  const testPrivateKey = sidechainWallet.getPrivateKeyString(); */
   const getTransactionSignature = async (chainName, contractName, transactionHash) => {
     const u = `https://sign.exokit.org/${chainName}/${contractName}/${transactionHash}`;
     for (let i = 0; i < 10; i++) {
