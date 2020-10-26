@@ -552,6 +552,49 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     sidechainMetadataSetButton.disabled = false;
   });
   
+  const sidechainCollaboratorsIdInput = document.getElementById('sidechain-collaborators-id');
+  const sidechainCollaboratorsAddressInput = document.getElementById('sidechain-collaborators-address');
+  const sidechainCollaboratorsAddButton = document.getElementById('sidechain-collaborators-add-button');
+  const sidechainCollaboratorsRemoveButton = document.getElementById('sidechain-collaborators-remove-button');
+  sidechainCollaboratorsAddButton.addEventListener('click', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    sidechainCollaboratorsAddButton.disabled = true;
+    sidechainCollaboratorsRemoveButton.disabled = true;
+
+    try {    
+      const id = sidechainCollaboratorsIdInput.value;
+      const address = sidechainCollaboratorsAddressInput.value;
+      const hash = await contracts.sidechain.NFT.methods.getHash(id).call();
+      await runSidechainTransaction('NFT', 'addCollaborator', hash, address);
+    } catch(err) {
+      console.warn(err.stack);
+    }
+    
+    sidechainCollaboratorsAddButton.disabled = false;
+    sidechainCollaboratorsRemoveButton.disabled = false;
+  });
+  sidechainCollaboratorsRemoveButton.addEventListener('click', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    sidechainCollaboratorsAddButton.disabled = true;
+    sidechainCollaboratorsRemoveButton.disabled = true;
+
+    try {
+      const id = sidechainCollaboratorsIdInput.value;
+      const address = sidechainCollaboratorsAddressInput.value;
+      const hash = await contracts.sidechain.NFT.methods.getHash(id).call();
+      await runSidechainTransaction('NFT', 'removeCollaborator', hash, address);
+    } catch(err) {
+      console.warn(err.stack);
+    }
+    
+    sidechainCollaboratorsAddButton.disabled = false;
+    sidechainCollaboratorsRemoveButton.disabled = false;
+  });
+  
   const sidechainMintForm = document.getElementById('sidechain-mint-form');
   const sidechainMintFileInput = document.getElementById('sidechain-mint-file');
   const sidechainMintCount = document.getElementById('sidechain-mint-count');
