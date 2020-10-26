@@ -513,6 +513,45 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     
     sidechainNftButton.disabled = false;
   });
+  
+  const sidechainMetadataIdInput = document.getElementById('sidechain-metadata-id');
+  const sidechainMetadataKeyInput = document.getElementById('sidechain-metadata-key');
+  const sidechainMetadataValueInput = document.getElementById('sidechain-metadata-value');
+  const sidechainMetadataGetButton = document.getElementById('sidechain-metadata-get-button');
+  const sidechainMetadataSetButton = document.getElementById('sidechain-metadata-set-button');
+  sidechainMetadataGetButton.addEventListener('click', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    sidechainMetadataGetButton.disabled = true;
+    sidechainMetadataSetButton.disabled = true;
+    
+    const id = sidechainMetadataIdInput.value;
+    const key = sidechainMetadataKeyInput.value;
+    const hash = await contracts.sidechain.NFT.methods.getHash(id).call();
+    const value = await contracts.sidechain.NFT.methods.getMetadata(hash, key).call();
+    sidechainMetadataValueInput.value = value;
+    
+    sidechainMetadataGetButton.disabled = false;
+    sidechainMetadataSetButton.disabled = false;
+  });
+  sidechainMetadataSetButton.addEventListener('click', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    sidechainMetadataGetButton.disabled = true;
+    sidechainMetadataSetButton.disabled = true;
+    
+    const id = sidechainMetadataIdInput.value;
+    const key = sidechainMetadataKeyInput.value;
+    const value = sidechainMetadataValueInput.value;
+    const hash = await contracts.sidechain.NFT.methods.getHash(id).call();
+    await runSidechainTransaction('NFT', 'setMetadata', hash, key, value);
+    
+    sidechainMetadataGetButton.disabled = false;
+    sidechainMetadataSetButton.disabled = false;
+  });
+  
   const sidechainMintForm = document.getElementById('sidechain-mint-form');
   const sidechainMintFileInput = document.getElementById('sidechain-mint-file');
   const sidechainMintCount = document.getElementById('sidechain-mint-count');
