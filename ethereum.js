@@ -680,9 +680,14 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
             });
           }
         }
+        ethTokensEl.innerHTML = '';
         for (const token of tokens) {
           const el = document.createElement('div');
           el.classList.add('token');
+          if (ethNftIdInput.value === token.id) {
+            el.classList.add('selected');
+          }
+          el.setAttribute('tokenid', token.id);
           el.innerHTML = `
             <img src="${token.image}">
             <div class=wrap>
@@ -693,6 +698,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           `;
           el.addEventListener('click', e => {
             ethNftIdInput.value = token.id;
+            ethNftIdInput.dispatchEvent(new KeyboardEvent('input'));
           });
           ethTokensEl.appendChild(el);
         }
@@ -760,9 +766,14 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           });
         }
       }
+      sidechainTokensEl.innerHTML = '';
       for (const token of tokens) {
         const el = document.createElement('div');
         el.classList.add('token');
+        if (sidechainNftIdInput.value === token.id) {
+          el.classList.add('selected');
+        }
+        el.setAttribute('tokenid', token.id);
         el.innerHTML = `
           <img src="${token.image}">
           <div class=wrap>
@@ -773,11 +784,31 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         `;
         el.addEventListener('click', e => {
           sidechainNftIdInput.value = token.id;
+          sidechainNftIdInput.dispatchEvent(new KeyboardEvent('input'));
         });
         sidechainTokensEl.appendChild(el);
       }
     }
   };
+
+  ethNftIdInput.addEventListener('input', e => {
+    const els = Array.from(document.querySelectorAll('#eth-tokens .token'));
+    for (const el of els) {
+      el.classList.remove('selected');
+    }
+    const el = document.querySelector('#eth-tokens .token[tokenid="' + e.target.value + '"]');
+    el && el.classList.add('selected');
+    // console.log('eth nft change 1', e.target.value, !!el);
+  });
+  sidechainNftIdInput.addEventListener('input', e => {
+    const els = Array.from(document.querySelectorAll('#sidechain-tokens .token'));
+    for (const el of els) {
+      el.classList.remove('selected');
+    }
+    const el = document.querySelector('#sidechain-tokens .token[tokenid="' + e.target.value + '"]');
+    el && el.classList.add('selected');
+    // console.log('eth nft change 2', e.target.value, !!el);
+  });
   
   const ethAddressEl = document.getElementById('eth-address');
   const ethBalanceEl = document.getElementById('eth-balance');
