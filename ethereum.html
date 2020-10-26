@@ -88,22 +88,28 @@
         <div id=eth-balance>-</div>
         <h2>Tokens</h2>
         <div id=eth-tokens>Loading...</div>
-        <form id=eth-ft-form>
-          <h2>FT</h2>
-          <textarea id=eth-ft-amount placeholder="amount"></textarea>
-          <input type=submit id=eth-ft-button value="Move FT to Sidechain >">
-        </form>
-        <form id=eth-nft-form>
-          <h2>NFT</h2>
-          <textarea id=eth-nft-id placeholder="id"></textarea>
-          <input type=submit id=eth-nft-button value="Move NFT to Sidechain >">
-        </form>
+        <div class="forms hidden">
+          <form id=eth-ft-form>
+            <h2>FT</h2>
+            <textarea id=eth-ft-amount placeholder="amount"></textarea>
+            <input type=submit id=eth-ft-button value="Move FT to Sidechain >">
+          </form>
+          <form id=eth-nft-form>
+            <h2>NFT</h2>
+            <textarea id=eth-nft-id placeholder="id"></textarea>
+            <input type=submit id=eth-nft-button value="Move NFT to Sidechain >">
+          </form>
+        </div>
       </section>
     </section>
     <section>
       <h1>Sidechain</h3>
-      <input type=button id=connect-discord-button value="Connect Discord">
-      <input type=button class=hidden id=disconnect-discord-button value="Disconnect Discord">
+      <div id=connect-buttons class=connect-buttons>
+        <input type=button id=connect-key-button value="Enter key">
+        <input type=button id=connect-email-button value="Log in via email">
+        <input type=button id=connect-discord-button value="Connect Discord">
+      </div>
+      <input type=button class=hidden id=disconnect-button value="Disconnect">
       <section id=sidechain-section class=hidden>
         <h2>Address</h2>
         <div id=sidechain-address>0x</div>
@@ -111,37 +117,39 @@
         <div id=sidechain-balance>-</div>
         <h2>Tokens</h2>
         <div id=sidechain-tokens>Loading...</div>
-        <form id=sidechain-ft-form>
-          <h2>FT</h2>
-          <textarea id=sidechain-ft-amount placeholder="amount"></textarea>
-          <input type=submit id=sidechain-ft-button value="< Move FT to ETH">
-        </form>
-        <form id=sidechain-nft-form>
-          <h2>NFT</h2>
-          <textarea id=sidechain-nft-id placeholder="id"></textarea>
-          <input type=submit id=sidechain-nft-button value="< Move NFT to ETH">
-        </form>
-        <form id=sidechain-metadata-form>
-          <h2>Metadata</h2>
-          <input type=number id=sidechain-metadata-id min=1 placeholder=id>
-          <input type=text id=sidechain-metadata-key placeholder=key>
-          <input type=text id=sidechain-metadata-value placeholder=value>
-          <input type=button id=sidechain-metadata-get-button value="Get">
-          <input type=button id=sidechain-metadata-set-button value="Set">
-        </form>
-        <form id=sidechain-collaborators-form>
-          <h2>Collaborators</h2>
-          <input type=number id=sidechain-collaborators-id min=1 placeholder=id>
-          <input type=text id=sidechain-collaborators-address placeholder=address>
-          <input type=button id=sidechain-collaborators-add-button value="Add">
-          <input type=button id=sidechain-collaborators-remove-button value="Remove">
-        </form>
-        <form id=sidechain-mint-form>
-          <h2>Mint</h2>
-          <input type=file id=sidechain-mint-file>
-          <input type=number id=sidechain-mint-count value=1 min=1 max=100>
-          <input type=submit id=sidechain-mint-button value="Mint token">
-        </form>
+        <div class="forms hidden">
+          <form id=sidechain-ft-form>
+            <h2>FT</h2>
+            <textarea id=sidechain-ft-amount placeholder="amount"></textarea>
+            <input type=submit id=sidechain-ft-button value="< Move FT to ETH">
+          </form>
+          <form id=sidechain-nft-form>
+            <h2>NFT</h2>
+            <textarea id=sidechain-nft-id placeholder="id"></textarea>
+            <input type=submit id=sidechain-nft-button value="< Move NFT to ETH">
+          </form>
+          <form id=sidechain-metadata-form>
+            <h2>Metadata</h2>
+            <input type=number id=sidechain-metadata-id min=1 placeholder=id>
+            <input type=text id=sidechain-metadata-key placeholder=key>
+            <input type=text id=sidechain-metadata-value placeholder=value>
+            <input type=button id=sidechain-metadata-get-button value="Get">
+            <input type=button id=sidechain-metadata-set-button value="Set">
+          </form>
+          <form id=sidechain-collaborators-form>
+            <h2>Collaborators</h2>
+            <input type=number id=sidechain-collaborators-id min=1 placeholder=id>
+            <input type=text id=sidechain-collaborators-address placeholder=address>
+            <input type=button id=sidechain-collaborators-add-button value="Add">
+            <input type=button id=sidechain-collaborators-remove-button value="Remove">
+          </form>
+          <form id=sidechain-mint-form>
+            <h2>Mint</h2>
+            <input type=file id=sidechain-mint-file>
+            <input type=number id=sidechain-mint-count value=1 min=1 max=100>
+            <input type=submit id=sidechain-mint-button value="Mint token">
+          </form>
+        </div>
       </section>
     </section>
   </main>

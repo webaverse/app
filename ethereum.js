@@ -702,91 +702,110 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           });
           ethTokensEl.appendChild(el);
         }
+        if (address && sidechainAddress) {
+          Array.from(document.querySelectorAll('.forms > form')).forEach(formEl => {
+            formEl.classList.remove('hidden');
+          });
+        }
       }
     } catch (err) {
       console.warn(err);
     }
   };
   connectMetamaskButton.addEventListener('click', _connectMetamask);
+  const connectButtons = document.getElementById('connect-buttons');
+  const connectKeyButton = document.getElementById('connect-key-button');
+  const connectEmailButton = document.getElementById('connect-email-button');
   const connectDiscordButton = document.getElementById('connect-discord-button');
-  const disconnectDiscordButton = document.getElementById('disconnect-discord-button');
+  const disconnectButton = document.getElementById('disconnect-button');
+  connectKeyButton.addEventListener('click', e => {
+    // XXX
+  });
+  connectEmailButton.addEventListener('click', e => {
+    // XXX
+  });
   const _connectDiscord = () => {
     location.href = discordOauthUrl;
   };
   connectDiscordButton.addEventListener('click', _connectDiscord);
-  const _disconnectDiscord = async () => {
+  const _disconnect = async () => {
     await storage.remove('loginToken');
     sidechainSection.classList.add('hidden');
-    connectDiscordButton.classList.remove('hidden');
-    disconnectDiscordButton.classList.add('hidden');
+    connectButtons.classList.remove('hidden');
+    disconnectButton.classList.add('hidden');
+    
+    Array.from(document.querySelectorAll('.forms > form')).forEach(formEl => {
+      formEl.classList.add('hidden');
+    });
   };
-  disconnectDiscordButton.addEventListener('click', _disconnectDiscord);
+  disconnectButton.addEventListener('click', _disconnect);
   const _absorbDiscord = async () => {
     loginToken = await storage.get('loginToken') || null;
     if (loginToken) {
-      const {mnemonic} = loginToken;
-      const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-      sidechainAddress = wallet.getAddressString();
-      
-      sidechainSection.classList.remove('hidden');
-      connectDiscordButton.classList.add('hidden');
-      disconnectDiscordButton.classList.remove('hidden');
-    }
+      {
+        const {mnemonic} = loginToken;
+        const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+        sidechainAddress = wallet.getAddressString();
 
-    {
-      const {mnemonic} = loginToken;
-      const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-      const address = wallet.getAddressString();
-      sidechainAddressEl.innerText = address;
-    }
-    {
-      const ftBalance = await contracts['sidechain'].FT.methods.balanceOf(sidechainAddress).call();
-      sidechainBalanceEl.innerText = ftBalance;
-    }
-    {
-      const nftBalance = await contracts['sidechain'].NFT.methods.balanceOf(sidechainAddress).call();
-      const tokens = [];
-      for (let i = 0; i < nftBalance; i++) {
-        const id = await contracts['sidechain'].NFT.methods.tokenOfOwnerByIndex(sidechainAddress, i).call();
-        const url = await contracts['sidechain'].NFT.methods.tokenURI(id).call();
-        const res = await fetch(url);
-        const j = await res.json();
-        const {image, properties: {filename, hash, ext}} = j;
-        if (!tokens.some(token => token.hash === hash)) {
-          const balance = await contracts['sidechain'].NFT.methods.balanceOfHash(sidechainAddress, hash).call();
-          const totalSupply = await contracts['sidechain'].NFT.methods.totalSupplyOfHash(hash).call();
-          tokens.push({
-            id,
-            image,
-            filename,
-            hash,
-            ext,
-            balance,
-            totalSupply,
+        sidechainAddressEl.innerText = sidechainAddress;
+        sidechainSection.classList.remove('hidden');
+        connectButtons.classList.add('hidden');
+        disconnectButton.classList.remove('hidden');
+      }
+      {
+        const ftBalance = await contracts['sidechain'].FT.methods.balanceOf(sidechainAddress).call();
+        sidechainBalanceEl.innerText = ftBalance;
+      }
+      {
+        const nftBalance = await contracts['sidechain'].NFT.methods.balanceOf(sidechainAddress).call();
+        const tokens = [];
+        for (let i = 0; i < nftBalance; i++) {
+          const id = await contracts['sidechain'].NFT.methods.tokenOfOwnerByIndex(sidechainAddress, i).call();
+          const url = await contracts['sidechain'].NFT.methods.tokenURI(id).call();
+          const res = await fetch(url);
+          const j = await res.json();
+          const {image, properties: {filename, hash, ext}} = j;
+          if (!tokens.some(token => token.hash === hash)) {
+            const balance = await contracts['sidechain'].NFT.methods.balanceOfHash(sidechainAddress, hash).call();
+            const totalSupply = await contracts['sidechain'].NFT.methods.totalSupplyOfHash(hash).call();
+            tokens.push({
+              id,
+              image,
+              filename,
+              hash,
+              ext,
+              balance,
+              totalSupply,
+            });
+          }
+        }
+        sidechainTokensEl.innerHTML = '';
+        for (const token of tokens) {
+          const el = document.createElement('div');
+          el.classList.add('token');
+          if (sidechainNftIdInput.value === token.id) {
+            el.classList.add('selected');
+          }
+          el.setAttribute('tokenid', token.id);
+          el.innerHTML = `
+            <img src="${token.image}">
+            <div class=wrap>
+              <a href="https://storage.exokit.org/${token.hash.slice(2)}" class=filename>${escape(token.filename)}</a>
+              <div class=hash>${token.id}. ${token.hash} (${token.balance}/${token.totalSupply})</div>
+              <div class=ext>${escape(token.ext || '')}</div>
+            </div>
+          `;
+          el.addEventListener('click', e => {
+            sidechainNftIdInput.value = token.id;
+            sidechainNftIdInput.dispatchEvent(new KeyboardEvent('input'));
           });
+          sidechainTokensEl.appendChild(el);
         }
       }
-      sidechainTokensEl.innerHTML = '';
-      for (const token of tokens) {
-        const el = document.createElement('div');
-        el.classList.add('token');
-        if (sidechainNftIdInput.value === token.id) {
-          el.classList.add('selected');
-        }
-        el.setAttribute('tokenid', token.id);
-        el.innerHTML = `
-          <img src="${token.image}">
-          <div class=wrap>
-            <a href="https://storage.exokit.org/${token.hash.slice(2)}" class=filename>${escape(token.filename)}</a>
-            <div class=hash>${token.id}. ${token.hash} (${token.balance}/${token.totalSupply})</div>
-            <div class=ext>${escape(token.ext || '')}</div>
-          </div>
-        `;
-        el.addEventListener('click', e => {
-          sidechainNftIdInput.value = token.id;
-          sidechainNftIdInput.dispatchEvent(new KeyboardEvent('input'));
+      if (address && sidechainAddress) {
+        Array.from(document.querySelectorAll('.forms > form')).forEach(formEl => {
+          formEl.classList.remove('hidden');
         });
-        sidechainTokensEl.appendChild(el);
       }
     }
   };
