@@ -703,7 +703,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           ethTokensEl.appendChild(el);
         }
         if (address && sidechainAddress) {
-          Array.from(document.querySelectorAll('.token-forms > form')).forEach(formEl => {
+          Array.from(document.querySelectorAll('.token-forms')).forEach(formEl => {
             formEl.classList.remove('hidden');
           });
         }
@@ -713,16 +713,25 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     }
   };
   connectMetamaskButton.addEventListener('click', _connectMetamask);
+  
   const connectButtons = document.getElementById('connect-buttons');
   const connectKeyButton = document.getElementById('connect-key-button');
   const connectEmailButton = document.getElementById('connect-email-button');
   const connectDiscordButton = document.getElementById('connect-discord-button');
   const disconnectButton = document.getElementById('disconnect-button');
+  const ethKeyForm = document.getElementById('eth-key-form');
+  const ethKeyInput = document.getElementById('eth-key-input');
+  const ethEmailForm = document.getElementById('eth-email-form');
+  const ethEmailInput = document.getElementById('eth-email-input');
+  const ethCodeForm = document.getElementById('eth-code-form');
+  const ethCodeInput = document.getElementById('eth-code-input');
   connectKeyButton.addEventListener('click', e => {
-    connectButtons.classList.remove('hidden');
+    connectButtons.classList.add('hidden');
+    ethKeyForm.classList.remove('hidden');
   });
   connectEmailButton.addEventListener('click', e => {
-    // XXX
+    connectButtons.classList.add('hidden');
+    ethEmailForm.classList.remove('hidden');
   });
   const _connectDiscord = () => {
     location.href = discordOauthUrl;
@@ -734,12 +743,25 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     connectButtons.classList.remove('hidden');
     disconnectButton.classList.add('hidden');
     
-    Array.from(document.querySelectorAll('.token-forms > form')).forEach(formEl => {
+    Array.from(document.querySelectorAll('.token-forms')).forEach(formEl => {
       formEl.classList.add('hidden');
     });
   };
   disconnectButton.addEventListener('click', _disconnect);
-  const _absorbDiscord = async () => {
+  ethKeyForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (bip39.validateMnemonic(ethKeyInput.value)) {
+      const mnemonic = ethKeyInput.value;
+      await storage.set('loginToken', {mnemonic});
+      ethKeyForm.classList.add('hidden');
+      await _absorbSidechain();
+    } else {
+      console.warn('invalid mnemonic');
+    }
+  });
+  const _absorbSidechain = async () => {
     loginToken = await storage.get('loginToken') || null;
     if (loginToken) {
       {
@@ -803,7 +825,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         }
       }
       if (address && sidechainAddress) {
-        Array.from(document.querySelectorAll('.token-forms > form')).forEach(formEl => {
+        Array.from(document.querySelectorAll('.token-forms')).forEach(formEl => {
           formEl.classList.remove('hidden');
         });
       }
@@ -844,7 +866,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   nftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${NFTAddress}`;
   nftContractOpenSeaLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}opensea.io/assets/m3-v3`;
   _connectMetamask().catch(console.warn);
-  _absorbDiscord().catch(console.warn);
+  _absorbSidechain().catch(console.warn);
 
   /* window.testAccount = seedPhrase => {
 	  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(seedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
