@@ -721,10 +721,13 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   const disconnectButton = document.getElementById('disconnect-button');
   const ethKeyForm = document.getElementById('eth-key-form');
   const ethKeyInput = document.getElementById('eth-key-input');
+  const ethKeyCancelButton = document.getElementById('eth-key-cancel-button');
   const ethEmailForm = document.getElementById('eth-email-form');
   const ethEmailInput = document.getElementById('eth-email-input');
+  const ethEmailCancelButton = document.getElementById('eth-email-cancel-button');
   const ethCodeForm = document.getElementById('eth-code-form');
   const ethCodeInput = document.getElementById('eth-code-input');
+  const ethCodeCancelButton = document.getElementById('eth-code-cancel-button');
   connectKeyButton.addEventListener('click', e => {
     connectButtons.classList.add('hidden');
     ethKeyForm.classList.remove('hidden');
@@ -760,6 +763,18 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     } else {
       console.warn('invalid mnemonic');
     }
+  });
+  ethKeyCancelButton.addEventListener('click', e => {
+    ethKeyForm.classList.add('hidden');
+    connectButtons.classList.remove('hidden');
+  });
+  ethEmailCancelButton.addEventListener('click', e => {
+    ethEmailForm.classList.add('hidden');
+    connectButtons.classList.remove('hidden');
+  });
+  ethCodeCancelButton.addEventListener('click', e => {
+    ethCodeForm.classList.add('hidden');
+    connectButtons.classList.remove('hidden');
   });
   const _absorbSidechain = async () => {
     loginToken = await storage.get('loginToken') || null;
