@@ -6,8 +6,6 @@ import storage from './storage.js';
 import {parseQuery} from './util.js';
 
 (async () => {
-  // await XRPackageEngine.waitForLoad();
-
   const q = parseQuery(location.search);
   const {code} = q;
   if (code) {
@@ -19,14 +17,6 @@ import {parseQuery} from './util.js';
   } else {
     console.warn('no discord code provided', q);
   }
-  /* const {email, code} = q;
-  if (email && code && await doLogin(email, code)) {
-    delete q.email;
-    delete q.code;
-    window.location.search = '?' + Object.keys(q).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(q[k])).join('&');
-  } else {
-    await tryLogin();
-  } */
 })();
 
 </script>
