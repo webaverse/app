@@ -10,10 +10,10 @@ const {Transaction, Common} = ethereumJsTx;
 import addresses from 'https://contracts.webaverse.com/ethereum/address.js';
 import abis from 'https://contracts.webaverse.com/ethereum/abi.js';
 let {
-  main: {Account: AccountAddress, FT: FTAddress, NFT: NFTAddress, FTProxy: FTProxyAddress, NFTProxy: NFTProxyAddress},
-  sidechain: {Account: AccountAddressSidechain, FT: FTAddressSidechain, NFT: NFTAddressSidechain, FTProxy: FTProxyAddressSidechain, NFTProxy: NFTProxyAddressSidechain},
+  main: {Account: AccountAddress, FT: FTAddress, NFT: NFTAddress, FTProxy: FTProxyAddress, NFTProxy: NFTProxyAddress, Trade: TradeAddress},
+  sidechain: {Account: AccountAddressSidechain, FT: FTAddressSidechain, NFT: NFTAddressSidechain, FTProxy: FTProxyAddressSidechain, NFTProxy: NFTProxyAddressSidechain, Trade: TradeAddressSidechain},
 } = addresses;
-let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi} = abis;
+let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi, Trade: TradeAbi} = abis;
 
 // const web3Endpoint = 'http://13.56.80.83:8545';
 const web3Endpoint = 'https://ethereum.exokit.org';
@@ -39,6 +39,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       FTProxy: new web3['main'].eth.Contract(FTProxyAbi, FTProxyAddress),
       NFT: new web3['main'].eth.Contract(NFTAbi, NFTAddress),
       NFTProxy: new web3['main'].eth.Contract(NFTProxyAbi, NFTProxyAddress),
+      Trade: new web3['main'].eth.Contract(TradeAbi, TradeAddress),
     },
     sidechain: {
       Account: new web3['sidechain'].eth.Contract(AccountAbi, AccountAddressSidechain),
@@ -46,6 +47,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       FTProxy: new web3['sidechain'].eth.Contract(FTProxyAbi, FTProxyAddressSidechain),
       NFT: new web3['sidechain'].eth.Contract(NFTAbi, NFTAddressSidechain),
       NFTProxy: new web3['sidechain'].eth.Contract(NFTProxyAbi, NFTProxyAddressSidechain),
+      Trade: new web3['sidechain'].eth.Contract(TradeAbi, TradeAddressSidechain),
     },
   };
 
