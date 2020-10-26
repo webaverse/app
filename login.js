@@ -1,9 +1,8 @@
 import storage from './storage.js';
 import {createAccount, getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
-import {storageHost, previewHost, previewExt} from './constants.js';
+import {storageHost, previewHost, loginEndpoint, previewExt} from './constants.js';
 import {getExt} from './util.js';
 
-const loginEndpoint = 'https://login.exokit.org';
 // const usersEndpoint = 'https://users.exokit.org';
 
 const _clone = o => JSON.parse(JSON.stringify(o));

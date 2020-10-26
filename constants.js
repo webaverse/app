@@ -56,3 +56,4 @@ export const accountsHost = 'https://accounts.exokit.org';
 export const contractsHost = 'https://contracts.webaverse.com';
 export const presenceHost = 'worlds.webaverse.com';
 export const localstorageHost = 'https://localstorage.webaverse.com';
+export const loginEndpoint = 'https://login.exokit.org';
