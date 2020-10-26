@@ -515,6 +515,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   });
   const sidechainMintForm = document.getElementById('sidechain-mint-form');
   const sidechainMintFileInput = document.getElementById('sidechain-mint-file');
+  const sidechainMintCount = document.getElementById('sidechain-mint-count');
   const sidechainMintButton = document.getElementById('sidechain-mint-button');
   sidechainMintForm.addEventListener('submit', async e => {
     e.preventDefault();
@@ -542,7 +543,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       };
       const count = {
         t: 'uint256',
-        v: new web3['sidechain'].utils.BN(1),
+        v: new web3['sidechain'].utils.BN(sidechainMintCount.value),
       };
       
       const receipt = await runSidechainTransaction('NFT', 'mint', sidechainAddress, hash.v, filename.v, count.v);
