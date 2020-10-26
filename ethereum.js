@@ -649,7 +649,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       address = web3['main'].currentProvider.selectedAddress;
       ethSection.classList.remove('hidden');
       connectMetamaskButton.classList.add('hidden');
-      
+
       {
         ethAddressEl.innerText = address;
       }
@@ -788,16 +788,13 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   const ftContractAddressLink = document.getElementById('ft-contract-address-link');
   const nftContractAddressLink = document.getElementById('nft-contract-address-link');
   const nftContractOpenSeaLink = document.getElementById('nft-contract-opensea-link');
-  (async () => {
-    ftContractAddressLink.innerText = FTAddress;
-    ftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${FTAddress}`;
-    nftContractAddressLink.innerText = NFTAddress;
-    nftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${NFTAddress}`;
-    nftContractOpenSeaLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}opensea.io/assets/m3-v3`;
-    
-    await _connectMetamask();
-    await _absorbDiscord();
-  })();
+  ftContractAddressLink.innerText = FTAddress;
+  ftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${FTAddress}`;
+  nftContractAddressLink.innerText = NFTAddress;
+  nftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${NFTAddress}`;
+  nftContractOpenSeaLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}opensea.io/assets/m3-v3`;
+  _connectMetamask().catch(console.warn);
+  _absorbDiscord().catch(console.warn);
 
   /* window.testAccount = seedPhrase => {
 	  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(seedPhrase)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
