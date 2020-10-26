@@ -703,7 +703,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           ethTokensEl.appendChild(el);
         }
         if (address && sidechainAddress) {
-          Array.from(document.querySelectorAll('.forms > form')).forEach(formEl => {
+          Array.from(document.querySelectorAll('.token-forms > form')).forEach(formEl => {
             formEl.classList.remove('hidden');
           });
         }
@@ -719,7 +719,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   const connectDiscordButton = document.getElementById('connect-discord-button');
   const disconnectButton = document.getElementById('disconnect-button');
   connectKeyButton.addEventListener('click', e => {
-    // XXX
+    connectButtons.classList.remove('hidden');
   });
   connectEmailButton.addEventListener('click', e => {
     // XXX
@@ -734,7 +734,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     connectButtons.classList.remove('hidden');
     disconnectButton.classList.add('hidden');
     
-    Array.from(document.querySelectorAll('.forms > form')).forEach(formEl => {
+    Array.from(document.querySelectorAll('.token-forms > form')).forEach(formEl => {
       formEl.classList.add('hidden');
     });
   };
@@ -803,7 +803,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         }
       }
       if (address && sidechainAddress) {
-        Array.from(document.querySelectorAll('.forms > form')).forEach(formEl => {
+        Array.from(document.querySelectorAll('.token-forms > form')).forEach(formEl => {
           formEl.classList.remove('hidden');
         });
       }
