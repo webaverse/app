@@ -57,7 +57,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     const u = `https://sign.exokit.org/${chainName}/${contractName}/${transactionHash}`;
     for (let i = 0; i < 10; i++) {
       const signature = await fetch(u).then(res => res.json());
-      console.log('got sig', u, signature);
+      // console.log('got sig', u, signature);
       if (signature) {
         return signature;
       } else {
