@@ -1,4 +1,5 @@
 import storage from './storage.js';
+import {loginEndpoint} from './constants.js';
 import Web3 from './web3.min.js';
 import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
@@ -762,6 +763,37 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       await _absorbSidechain();
     } else {
       console.warn('invalid mnemonic');
+    }
+  });
+  ethEmailForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(ethEmailInput.value)}`, {
+      method: 'POST',
+    });
+    if (res.status >= 200 && res.status < 300) {
+      ethEmailForm.classList.add('hidden');
+      ethCodeForm.classList.remove('hidden');
+    } else {
+      console.warn('invalid status code: ' + res.status);
+    }
+  });
+  ethCodeForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(ethEmailInput.value)}&code=${encodeURIComponent(ethCodeInput.value)}`, {
+      method: 'POST',
+    });
+    if (res.status >= 200 && res.status < 300) {
+      const j = await res.json();
+      const {mnemonic} = j;
+      await storage.set('loginToken', {mnemonic});
+      ethCodeForm.classList.add('hidden');
+      await _absorbSidechain();
+    } else {
+      console.warn('invalid status code: ' + res.status);
     }
   });
   ethKeyCancelButton.addEventListener('click', e => {
