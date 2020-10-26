@@ -8,8 +8,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Muli:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     main {
       display: flex;
+      padding-bottom: 120px;
     }
     section {
       display: flex;
@@ -62,6 +66,10 @@
       color: #FFF;
     }
     footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
       display: flex;
       height: 100px;
       margin-top: 20px;
@@ -112,14 +120,17 @@
       <input type=button class=hidden id=disconnect-button value="Disconnect">
       <form id=eth-key-form class=hidden>
         <input type=text id=eth-key-input placeholder="seed phrase">
+        <input type=button id=eth-key-cancel-button value="Cancel">
         <input type=submit>
       </form>
       <form id=eth-email-form class=hidden>
         <input type=text id=eth-email-input placeholder="your@email.com">
+        <input type=button id=eth-email-cancel-button value="Cancel">
         <input type=submit>
       </form>
       <form id=eth-code-form class=hidden>
         <input type=text id=eth-code-input placeholder=123456>
+        <input type=button id=eth-code-cancel-button value="Cancel">
         <input type=submit>
       </form>
       <section id=sidechain-section class=hidden>
