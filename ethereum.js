@@ -32,6 +32,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
     document.write(`network is ${networkType}; switch to Rinkeby`);
     return;
   }
+  const openSeaUrl = `https://${networkType === 'main' ? '' : networkType + '.'}opensea.io/assets/m3-v7`;
 
   const contracts = {
     main: {
@@ -911,7 +912,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
   ftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${FTAddress}`;
   nftContractAddressLink.innerText = NFTAddress;
   nftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${NFTAddress}`;
-  nftContractOpenSeaLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}opensea.io/assets/m3-v7`;
+  nftContractOpenSeaLink.href = openSeaUrl;
   _connectMetamask().catch(console.warn);
   _absorbSidechain().catch(console.warn);
 
