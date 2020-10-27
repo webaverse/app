@@ -694,7 +694,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           el.innerHTML = `
             <img src="${token.image}">
             <div class=wrap>
-              <a href="https://storage.exokit.org/${token.hash.slice(2)}" class=filename>${escape(token.filename)}</a>
+              <a href="https://storage.exokit.org/${token.hash.slice(2)}/${token.filename}" class=filename>${escape(token.filename)}</a>
               <a href="${openSeaUrlPrefix}/${NFTAddress}/${token.id}/" class=hash>${token.id}. ${token.hash} (${token.balance}/${token.totalSupply})</a>
               <div class=ext>${escape(token.ext || '')}</div>
             </div>
