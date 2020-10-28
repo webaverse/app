@@ -276,7 +276,7 @@ export const onclickBindings = {
     const id = parseInt(e.name, 10);
     const {menu} = getState();
     const file = menu.inventory.items.find(file => file.id === id);
-    const { hash, filename, preview } = file;
+    const {hash, filename, preview} = file;
     menu.inventory.selectedId = id;
     menu.inventory.selectedHash = hash;
     menu.inventory.selectedFileName = filename;
@@ -288,7 +288,7 @@ export const onclickBindings = {
     const id = parseInt(e.name, 10);
     const {menu} = getState();
     const file = menu.browse.items.find(file => file.id === id);
-    const { hash, filename, preview } = file;
+    const {hash, filename, preview} = file;
     menu.inventory.selectedId = id;
     menu.inventory.selectedHash = hash;
     menu.inventory.selectedFileName = filename;

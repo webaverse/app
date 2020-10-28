@@ -14,7 +14,7 @@ inventory.uploadFile = async file => {
   const {id, hash} = await loginManager.uploadFile(file);
   const {name: filename} = file;
   const ext = getExt(filename);
-  const preview = `https://preview.exokit.org/${hash}.${ext}/preview.${previewExt}`;
+  const preview = `https://preview.exokit.org/${hash.slice(2)}.${ext}/preview.${previewExt}`;
   const fileSpec = {
     id,
     hash,
@@ -66,7 +66,7 @@ inventory.getFiles = async (start, end) => {
     const hash = fields.find(field => field.name === 'hash').value.value;
     const filename = fields.find(field => field.name === 'filename').value.value;
     const ext = getExt(filename);
-    const preview = `https://preview.exokit.org/${hash}.${ext}/preview.${previewExt}`;
+    const preview = `https://preview.exokit.org/${hash.slice(2)}.${ext}/preview.${previewExt}`;
     return {id, hash, filename, preview};
   }); */
   return tokens;
