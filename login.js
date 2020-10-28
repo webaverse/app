@@ -1,49 +1,89 @@
 import storage from './storage.js';
 // import {createAccount, getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
-import bip39 from './bip39.js';
+// import * as blockchain from './blockchain.js';
 import {storageHost, previewHost, loginEndpoint, previewExt} from './constants.js';
 import {getExt} from './util.js';
+import Web3 from './web3.min.js';
+import bip39 from './bip39.js';
+import hdkeySpec from './hdkey.js';
+const hdkey = hdkeySpec.default;
+import ethereumJsTx from './ethereumjs-tx.js';
+const {Transaction, Common} = ethereumJsTx;
+import * as blockchain from './blockchain.js';
 
 // const usersEndpoint = 'https://users.exokit.org';
 
 const _clone = o => JSON.parse(JSON.stringify(o));
 
-let loginToken = null;
-let userObject = null;
-/* async function ensureUserObjectBaked() {
-  const contractSource = await getContractSource('isUserAccountBaked.cdc');
-
-  const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-    method: 'POST',
-    body: JSON.stringify({
-      limit: 100,
-      script: contractSource.replace(/ARG0/g, '0x' + loginToken.addr),
-      wait: true,
-    }),
-  });
-  const response = await res.json();
-  const isBaked = response.encodedData.value;
-  if (!isBaked) {
-    const contractSources = await getContractSource('bakeUserAccount.json');
-    for (const contractSource of contractSources) {
-      contractSource.address = loginToken.addr;
-      contractSource.mnemonic = loginToken.mnemonic;
-      contractSource.limit = 100;
-      contractSource.wait = true;
-
-      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-        method: 'POST',
-        body: JSON.stringify(contractSource),
+const getTransactionSignature = async (chainName, contractName, transactionHash) => {
+  const u = `https://sign.exokit.org/${chainName}/${contractName}/${transactionHash}`;
+  for (let i = 0; i < 10; i++) {
+    const signature = await fetch(u).then(res => res.json());
+    // console.log('got sig', u, signature);
+    if (signature) {
+      return signature;
+    } else {
+      await new Promise((accept, reject) => {
+        setTimeout(accept, 1000);
       });
-      
-      const response = await res.json();
-      console.log('baked account result', response);
     }
   }
-} */
+  return null;
+};
+const runTransaction = async (contractName, method, ...args) => {
+  // console.log('run tx', contracts['sidechain'], [contractName, method]);
+  const {web3, contracts} = await blockchain.load();
+
+  const {mnemonic} = loginToken;
+  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+  const address = wallet.getAddressString();
+  const privateKey = wallet.getPrivateKeyString();
+  const privateKeyBytes = Uint8Array.from(web3.utils.hexToBytes(privateKey));
+
+  const txData = contracts[contractName].methods[method](...args);
+  const data = txData.encodeABI();
+  const gas = await txData.estimateGas({
+    from: address,
+  });
+  let gasPrice = await web3.eth.getGasPrice();
+  gasPrice = parseInt(gasPrice, 10);
+  const nonce = await web3.eth.getTransactionCount(address);
+  let tx = Transaction.fromTxData({
+    to: contracts[contractName]._address,
+    nonce: '0x' + new web3.utils.BN(nonce).toString(16),
+    gas: '0x' + new web3.utils.BN(gasPrice).toString(16),
+    gasPrice: '0x' + new web3.utils.BN(gasPrice).toString(16),
+    gasLimit: '0x' + new web3.utils.BN(8000000).toString(16),
+    data,
+  }, {
+    common: Common.forCustomChain(
+      'mainnet',
+      {
+        name: 'geth',
+        networkId: 1,
+        chainId: 1337,
+      },
+      'petersburg',
+    ),
+  }).sign(privateKeyBytes);
+  const rawTx = '0x' + tx.serialize().toString('hex');
+  // console.log('signed tx', tx, rawTx);
+  const receipt = await web3.eth.sendSignedTransaction(rawTx);
+  // console.log('sent tx', receipt);
+  return receipt;
+};
+
+let loginToken = null;
+let userObject = null;
 async function pullUserObject() {
-  // await ensureUserObjectBaked();
-  
+  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+  const address = wallet.getAddressString();
+  const res = await fetch(`https://accounts.webaverse.com/${address}`);
+  const result = await res.json();
+  console.log('got user object', result);
+  const {name, avatarUrl, avatarFileName, avatarPreview, ftu} = result;
+
+  /* const {web3} = await blockchain.load();
   const contractSource = await getContractSource('getUserData.cdc');
 
   const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
@@ -59,7 +99,7 @@ async function pullUserObject() {
   const avatarUrl = response.encodedData.value[1].value && response.encodedData.value[1].value.value;
   const avatarFileName = response.encodedData.value[2].value && response.encodedData.value[2].value.value;
   const avatarPreview = response.encodedData.value[3].value && response.encodedData.value[3].value.value;
-  const ftu = !!(response.encodedData.value[4].value && response.encodedData.value[4].value.value);
+  const ftu = !!(response.encodedData.value[4].value && response.encodedData.value[4].value.value); */
   userObject = {
     name,
     avatar: {
@@ -443,9 +483,17 @@ class LoginManager extends EventTarget {
   }
 
   async setFtu(name, avatarUrl) {
+    const address = this.getAddress();
     const avatarPreview = `${previewHost}/[${avatarUrl}]/preview.${previewExt}`;
 
-    const contractSource = await getContractSource('setUserDataMulti.cdc');
+    await Promise.all([
+      runTransaction('Account', 'setMetadata', address, 'name', name),
+      runTransaction('Account', 'setMetadata', address, 'avatarUrl', avatarUrl),
+      runTransaction('Account', 'setMetadata', address, 'avatarFilename', avatarUrl),
+      runTransaction('Account', 'setMetadata', address, 'avatarPreview', avatarPreview),
+      runTransaction('Account', 'setMetadata', address, 'ftu', '1'),
+    ]);
+    /* const contractSource = await getContractSource('setUserDataMulti.cdc');
 
     const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
       method: 'POST',
@@ -460,7 +508,7 @@ class LoginManager extends EventTarget {
         wait: true,
       }),
     });
-    const response2 = await res.json();
+    const response2 = await res.json(); */
 
     this.dispatchEvent(new MessageEvent('usernamechange', {
       data: name,
@@ -498,7 +546,10 @@ class LoginManager extends EventTarget {
 
   async getInventory() {
     if (loginToken) {
-      const contractSource = await getContractSource('getHashes.cdc');
+      const address = this.getAddress();
+      const res = await fetch(`https://tokens.webaverse.com/${address}`);
+      const tokens = await res.json();
+      /* const contractSource = await getContractSource('getHashes.cdc');
 
       const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
         method: 'POST',
@@ -520,8 +571,8 @@ class LoginManager extends EventTarget {
         const ext = match ? match[1] : 'bin';
         const preview = `https://preview.exokit.org/${hash}.${ext}/preview.${previewExt}`;
         return {id, hash, filename, balance, preview};
-      });
-      return entries;
+      }); */
+      return tokens;
     } else {
       return [];
     }
