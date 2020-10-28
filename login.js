@@ -100,7 +100,7 @@ async function pullUserObject() {
   const address = wallet.getAddressString();
   const res = await fetch(`https://accounts.webaverse.com/${address}`);
   const result = await res.json();
-  console.log('got user object', result);
+  console.log('pull user object', result);
   const {name, avatarUrl, avatarFileName, avatarPreview, ftu} = result;
 
   /* const {web3} = await blockchain.load();
@@ -151,8 +151,6 @@ async function finishLogin(newLoginToken) {
   await storage.set('loginToken', newLoginToken);
 
   loginToken = newLoginToken;
-
-  console.log('got user token', loginToken);
 
   const loginForm = document.getElementById('login-form');
   // document.body.classList.add('logged-in');
