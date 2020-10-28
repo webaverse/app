@@ -10,7 +10,6 @@ const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 const {Transaction, Common} = ethereumJsTx;
 import * as blockchain from './blockchain.js';
-import {makePromise} from './util.js';
 
 // const usersEndpoint = 'https://users.exokit.org';
 
@@ -31,35 +30,33 @@ const getTransactionSignature = async (chainName, contractName, transactionHash)
   }
   return null;
 };
-const transactionQueue = {
-  running: false,
-  queue: [],
-  lock() {
-    if (!this.running) {
-      this.running = true;
-      return Promise.resolve();
+const getNonce = (() => {
+  const promises = {};
+  return async address => {
+    if (!promises[address]) {
+      promises[address] = new Promise((accept, reject) => {
+        web3.eth.getTransactionCount(address, (error, n) => {
+          if (error) {
+            reject(error);
+          } else {
+            accept(n);
+          }
+        });
+      });
     } else {
-      const promise = makePromise();
-      this.queue.push(promise.accept);
-      return promise;
+      promises[address] = promises[address].then(n => n + 1);
     }
-  },
-  unlock() {
-    this.running = false;
-    if (this.queue.length > 0) {
-      this.queue.shift()();
-    }
-  },
-};
+    const n = await promises[address];
+    return n;
+  };
+})();
 const runTransaction = async (contractName, method, ...args) => {
   // console.log('run tx', contracts['sidechain'], [contractName, method]);
   const {web3, contracts} = await blockchain.load();
-  await transactionQueue.lock();
 
   const {mnemonic} = loginToken;
   const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
   const address = wallet.getAddressString();
-  // console.log('got mnem', mnemonic, address);
   const privateKey = wallet.getPrivateKeyString();
   const privateKeyBytes = Uint8Array.from(web3.utils.hexToBytes(privateKey));
 
@@ -70,7 +67,7 @@ const runTransaction = async (contractName, method, ...args) => {
   });
   let gasPrice = await web3.eth.getGasPrice();
   gasPrice = parseInt(gasPrice, 10);
-  const nonce = await web3.eth.getTransactionCount(address);
+  const nonce = await getNonce(address);
   let tx = Transaction.fromTxData({
     to: contracts[contractName]._address,
     nonce: '0x' + new web3.utils.BN(nonce).toString(16),
@@ -92,7 +89,7 @@ const runTransaction = async (contractName, method, ...args) => {
   const rawTx = '0x' + tx.serialize().toString('hex');
   // console.log('signed tx', tx, rawTx);
   const receipt = await web3.eth.sendSignedTransaction(rawTx);
-  transactionQueue.unlock();
+  // console.log('sent tx', receipt);
   return receipt;
 };
 
@@ -514,7 +511,6 @@ class LoginManager extends EventTarget {
       runTransaction('Account', 'setMetadata', address, 'avatarPreview', avatarPreview),
       runTransaction('Account', 'setMetadata', address, 'ftu', '1'),
     ]);
-    console.log('wrote all tx');
     /* const contractSource = await getContractSource('setUserDataMulti.cdc');
 
     const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
