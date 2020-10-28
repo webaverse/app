@@ -281,7 +281,9 @@ async function tryLogin() {
 
       const newUserName = userName.innerText;
       if (newUserName !== oldUserName) {
-        const contractSource = await getContractSource('setUserData.cdc');
+        const address = this.getAddress();
+        await runTransaction('Account', 'setMetadata', address, 'name', name);
+        /* const contractSource = await getContractSource('setUserData.cdc');
 
         const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
           method: 'POST',
@@ -296,7 +298,7 @@ async function tryLogin() {
             wait: true,
           }),
         });
-        const response2 = await res.json();
+        const response2 = await res.json(); */
       }
     }, {
       once: true,
@@ -448,8 +450,11 @@ class LoginManager extends EventTarget {
 
   async setAvatar(id) {
     if (loginToken) {
-      const {mnemonic} = loginToken;
-      const {filename, hash} = await (async () => {
+      // const {mnemonic} = loginToken;
+      const res = await fetch(`https://tokens.webaverse.com/${id}`);
+      const token = await res.json();
+      const {filename, hash} = token.properties;
+      /* const {filename, hash} = await (async () => {
         const contractSource = await getContractSource('getNft.cdc');
 
         const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
@@ -464,11 +469,17 @@ class LoginManager extends EventTarget {
         const response2 = await res.json();
         const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
         return {hash, filename};
-      })();
+      })(); */
       const url = `${storageHost}/${hash.slice(2)}`;
       const ext = getExt(filename);
       const preview = `${previewHost}/${hash.slice(2)}.${ext}/preview.${previewExt}`;
-      {
+      const address = this.getAddress();
+      await Promise.all([
+        runTransaction('Account', 'setMetadata', address, 'avatarUrl', url),
+        runTransaction('Account', 'setMetadata', address, 'avatarFileName', filename),
+        runTransaction('Account', 'setMetadata', address, 'avatarPreview', preview),
+      ]);
+      /* {
         const contractSource = await getContractSource('setUserDataMulti.cdc');
 
         const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
@@ -485,7 +496,7 @@ class LoginManager extends EventTarget {
           }),
         });
         await res.json();
-      }
+      } */
       userObject.avatar = {
         url,
         filename,
