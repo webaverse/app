@@ -799,7 +799,10 @@ function animate(timestamp, frame) {
     _tickPlanetAnimation(factor);
   } */
 
-  geometryManager.update(timeDiff, frame);
+  const geometryEnabled = false;
+  if (geometryEnabled) {
+    geometryManager.update(timeDiff, frame);
+  }
   planet.update();
 
   appManager.tick(timestamp, frame);
@@ -813,10 +816,12 @@ function animate(timestamp, frame) {
     .premultiply(localMatrix2.getInverse(geometryManager.worldContainer.matrixWorld))
     .decompose(localVector, localQuaternion, localVector2);
 
-  const [landGroups, vegetationGroups, thingGroups] = geometryManager.geometryWorker.tickCull(geometryManager.tracker, localVector, localMatrix);
-  geometryManager.currentChunkMesh.geometry.groups = landGroups;
-  geometryManager.currentVegetationMesh.geometry.groups = vegetationGroups;
-  geometryManager.currentThingMesh.geometry.groups = thingGroups;
+  if (geometryEnabled) {
+    const [landGroups, vegetationGroups, thingGroups] = geometryManager.geometryWorker.tickCull(geometryManager.tracker, localVector, localMatrix);
+    geometryManager.currentChunkMesh.geometry.groups = landGroups;
+    geometryManager.currentVegetationMesh.geometry.groups = vegetationGroups;
+    geometryManager.currentThingMesh.geometry.groups = thingGroups;
+  }
 
   renderer.render(scene, camera);
   // renderer.render(highlightScene, camera);
