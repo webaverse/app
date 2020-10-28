@@ -45,7 +45,9 @@ inventory.discardFile = async id => {
 let files = [];
 inventory.getOwnedFiles = () => files;
 inventory.getFiles = async (start, end) => {
-  const contractSource = await getContractSource('getNfts.cdc');
+  const res = await fetch(`https://tokens.webaverse.com/${start+1}-${end+1}`);
+  const tokens = await res.json();
+  /* const contractSource = await getContractSource('getNfts.cdc');
 
   const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
     method: 'POST',
@@ -66,8 +68,8 @@ inventory.getFiles = async (start, end) => {
     const ext = getExt(filename);
     const preview = `https://preview.exokit.org/${hash}.${ext}/preview.${previewExt}`;
     return {id, hash, filename, preview};
-  });
-  return items;
+  }); */
+  return tokens;
 };
 const itemsPerBrowsePage = 21;
 inventory.scrollBrowse = async delta => {
