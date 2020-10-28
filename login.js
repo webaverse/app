@@ -1,5 +1,6 @@
 import storage from './storage.js';
-import {createAccount, getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
+// import {createAccount, getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
+import bip39 from './bip39.js';
 import {storageHost, previewHost, loginEndpoint, previewExt} from './constants.js';
 import {getExt} from './util.js';
 
@@ -198,10 +199,12 @@ async function tryLogin() {
     }
   });
   document.getElementById('address-button').addEventListener('click', e => {
-    navigator.clipboard.writeText('0x' + loginToken.addr);
+    const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+    const address = wallet.getAddressString();
+    navigator.clipboard.writeText(address);
   });
   document.getElementById('privatekey-button').addEventListener('click', async e => {
-    navigator.clipboard.writeText(loginToken.mnemonic + ' ' + hexToWordList(loginToken.addr));
+    navigator.clipboard.writeText(loginToken.mnemonic);
     delete loginToken.unregistered;
     await storage.set('loginToken', loginToken);
 
@@ -270,10 +273,8 @@ async function tryLogin() {
       unregisteredWarning.style.display = null;
     }
   } else {
-    const newLoginToken = await createAccount();
-    const {address: addr, mnemonic} = newLoginToken;
+    const mnemonic = bip39.generateMnemonic();
     await finishLogin({
-      addr,
       mnemonic,
       unregistered: true,
     });
@@ -289,12 +290,10 @@ async function tryLogin() {
       loginForm.classList.remove('phase-1');
 
       const split = loginEmail.value.split(/\s+/).filter(w => !!w);
-      if (split.length === 30) {
-        const mnemonic = split.slice(0, 24).join(' ');
-        const addr = wordListToHex(split.slice(24).join(' '));
+      if (split.length === 12) {
+        const mnemonic = split.slice(0, 12).join(' ');
 
         await finishLogin({
-          addr,
           mnemonic,
         });
 
@@ -369,7 +368,13 @@ class LoginManager extends EventTarget {
   } */
 
   getAddress() {
-    return loginToken && loginToken.addr;
+    if (loginToken.mnemonic) {
+      const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+      const address = wallet.getAddressString();
+      return address;
+    } else {
+      return null;
+    }
   }
   getMnemonic() {
     return loginToken && loginToken.mnemonic;
@@ -381,7 +386,7 @@ class LoginManager extends EventTarget {
 
   async setAvatar(id) {
     if (loginToken) {
-      const {mnemonic, addr} = loginToken;
+      const {mnemonic} = loginToken;
       const {filename, hash} = await (async () => {
         const contractSource = await getContractSource('getNft.cdc');
 
