@@ -6,7 +6,7 @@ import {loginManager} from '../login.js';
 import {planet} from '../planet.js';
 import {state, getState, setState, getSpecificState, defaultState} from '../state.js';
 import {setBindings} from './bindings.js';
-import {getContractSource} from '../blockchain.js';
+// import {getContractSource} from '../blockchain.js';
 import DiffDOM from '../diffDOM.js';
 import {inventoryPageLimit, peersPageLimit} from '../threeD-components/constants.js';
 import {clone} from '../util.js';

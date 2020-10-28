@@ -3,7 +3,7 @@ import storage from './storage.js';
 import {XRChannelConnection} from './xrrtc.js';
 import Y from './yjs.js';
 import {loginManager} from './login.js';
-import {getContractSource} from './blockchain.js';
+// import {getContractSource} from './blockchain.js';
 import runtime from './runtime.js';
 import {rigManager} from './rig.js';
 import {scene} from './app-object.js';

@@ -2,7 +2,7 @@ import * as THREE from './three.module.js';
 import {bindUploadFileButton} from './util.js';
 import {loginManager} from './login.js';
 import {planet} from './planet.js';
-import {getContractSource} from './blockchain.js';
+// import {getContractSource} from './blockchain.js';
 import {getState, setState} from './state.js';
 import {renderer, scene, camera} from './app-object.js';
 import {getExt} from './util.js';
