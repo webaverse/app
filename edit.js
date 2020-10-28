@@ -897,18 +897,7 @@ const _initializeLogin = async () => {
   const _initializeUserUi = async () => {
     await geometryManager.waitForLoad();
 
-    /* const _initInventory = () => {
-      const files = inventory.getOwnedFiles();
-      uiManager.inventoryMesh.inventoryItemsMesh.update(files);
-      
-      inventory.addEventListener('ownedfilesupdate', e => {
-        const files = e.data;
-        uiManager.inventoryMesh.inventoryItemsMesh.update(files);
-      });
-    };
-    _initInventory(); */
-
-    const _listenBlockchainEvents = async () => {
+    /* const _listenBlockchainEvents = async () => {
       const address = '0x' + loginManager.getAddress();
 
       const loadPromise = makePromise();
@@ -952,7 +941,7 @@ const _initializeLogin = async () => {
         console.warn('events websocket closed');
       };
     };
-    _listenBlockchainEvents();
+    _listenBlockchainEvents(); */
   };
   _initializeUserUi();
   const _initializeRigUi = () => {
