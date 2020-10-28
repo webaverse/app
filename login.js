@@ -30,6 +30,26 @@ const getTransactionSignature = async (chainName, contractName, transactionHash)
   }
   return null;
 };
+const getNonce = (() => {
+  const promises = {};
+  return async address => {
+    if (!promises[address]) {
+      promises[address] = new Promise((accept, reject) => {
+        web3.eth.getTransactionCount(address, (error, n) => {
+          if (error) {
+            reject(error);
+          } else {
+            accept(n);
+          }
+        });
+      });
+    } else {
+      promises[address] = promises[address].then(n => n + 1);
+    }
+    const n = await promises[address];
+    return n;
+  };
+})();
 const runTransaction = async (contractName, method, ...args) => {
   // console.log('run tx', contracts['sidechain'], [contractName, method]);
   const {web3, contracts} = await blockchain.load();
@@ -47,7 +67,7 @@ const runTransaction = async (contractName, method, ...args) => {
   });
   let gasPrice = await web3.eth.getGasPrice();
   gasPrice = parseInt(gasPrice, 10);
-  const nonce = await web3.eth.getTransactionCount(address);
+  const nonce = await getNonce(address);
   let tx = Transaction.fromTxData({
     to: contracts[contractName]._address,
     nonce: '0x' + new web3.utils.BN(nonce).toString(16),
