@@ -1,5 +1,4 @@
 import {getExt} from '../util.js';
-import {previewHost} from '../constants.js';
 import {InventoryDetails, InventoryCard} from './Inventory.js';
 
 export const Browse = (props = {}) => {
@@ -150,8 +149,8 @@ export const Browse = (props = {}) => {
         ${allItems.map(item => InventoryCard({
           anchor: 'browse-item',
           id: item.id,
-          hash: item.hash,
-          filename: item.filename,
+          hash: item.properties.hash,
+          filename: item.properties.filename,
           selected: selectedId === item.id,
         })).join('\n')}
       </div>

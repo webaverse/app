@@ -465,9 +465,9 @@ class LoginManager extends EventTarget {
         const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
         return {hash, filename};
       })();
-      const url = `${storageHost}/${hash}`;
+      const url = `${storageHost}/${hash.slice(2)}`;
       const ext = getExt(filename);
-      const preview = `${previewHost}/${hash}.${ext}/preview.${previewExt}`;
+      const preview = `${previewHost}/${hash.slice(2)}.${ext}/preview.${previewExt}`;
       {
         const contractSource = await getContractSource('setUserDataMulti.cdc');
 
@@ -592,7 +592,7 @@ class LoginManager extends EventTarget {
         const balance = parseInt(fields.find(field => field.name === 'balance').value.value, 10);
         const match = filename.match(/\.([^\.]+)$/);
         const ext = match ? match[1] : 'bin';
-        const preview = `https://preview.exokit.org/${hash}.${ext}/preview.${previewExt}`;
+        const preview = `https://preview.exokit.org/${hash.slice(2)}.${ext}/preview.${previewExt}`;
         return {id, hash, filename, balance, preview};
       }); */
       return tokens;

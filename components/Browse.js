@@ -18,21 +18,21 @@ const Browse = (props = {}) => {
                 id: value.id,
                 name: value.filename,
                 preview: value.preview,
-                selected: value.id === props.browse?.selectedItem?.id ? 'selected' : ''
+                selected: value.id === props.browse.selectedItem ? 'selected' : ''
               })
             }).join('')
           }
         </div>
         <div class="twoD-browse-preview">
           <div class="twoD-browse-preview-content ${!props.browse?.selectedItem ? 'hidden' : ''}">
-            <img class="twoD-browse-preview-img" src="${props.browse?.selectedItem?.preview || '../assets/avatar.jpg'}"></img>
-            <h1 class="twoD-browse-preview-header">${props.browse?.selectedItem?.filename || 'No Items in World'}</h1>
+            <img class="twoD-browse-preview-img" src="${props.browse.selectedItem.properties.preview || '../assets/avatar.jpg'}"></img>
+            <h1 class="twoD-browse-preview-header">${props.browse.selectedItem.properties.filename || 'No Items in World'}</h1>
             <div class="twoD-browse-preview-actions">
-              <button class="twoD-browse-preview-spawnBtn" onclick=browse-spawn name="${props.browse?.selectedItem?.id}">
+              <button class="twoD-browse-preview-spawnBtn" onclick=browse-spawn name="${props.browse.selectedItem.id}">
                 <i class="fal fa-magic" style="margin-right: 5px;"></i>
                 Spawn
               </button>
-              <button class="twoD-browse-preview-wearBtn" onclick=browse-wear name="${props.browse?.selectedItem?.id}">
+              <button class="twoD-browse-preview-wearBtn" onclick=browse-wear name="${props.browse.selectedItem.id}">
                 <i class="fal fa-tshirt" style="margin-right: 5px;"></i>
                 Wear
               </button>

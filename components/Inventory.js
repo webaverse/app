@@ -26,29 +26,29 @@ const Inventory = (props = {}) => {
                             id: value.id,
                             name: value.filename || '',
                             preview: value.preview || '',
-                            selected: value.id === props.inventory?.selectedItem?.id ? 'selected' : ''
+                            selected: value.id === props.inventory.selectedItem ? 'selected' : ''
                         })
                     }).join('')
                 }
                 </div>
                 <div class="twoD-inventory-preview">
                     <div class="twoD-inventory-preview-content ${!props.inventory?.selectedItem ? 'hidden' : ''}">
-                        <img class="twoD-inventory-preview-img" src="${props.inventory?.selectedItem?.preview || '../assets/avatar.jpg'}"></img>
-                        <h1 class="twoD-inventory-preview-header">${props.inventory?.selectedItem?.filename || 'No Items in Inventory'}</h1>
+                        <img class="twoD-inventory-preview-img" src="${props.inventory.selectedItem.preview || '../assets/avatar.jpg'}"></img>
+                        <h1 class="twoD-inventory-preview-header">${props.inventory.selectedItem.filename || 'No Items in Inventory'}</h1>
                         <div class="twoD-inventory-preview-actions">
-                            <button class="twoD-inventory-preview-spawnBtn" onclick=inventory-spawn name="${props.inventory?.selectedItem?.id}">
+                            <button class="twoD-inventory-preview-spawnBtn" onclick=inventory-spawn name="${props.inventory.selectedItem.id}">
                                 <i class="fal fa-magic" style="margin-right: 5px;"></i>
                                 Spawn
                             </button>
-                            <button class="twoD-inventory-preview-wearBtn" onclick=inventory-wear name="${props.inventory?.selectedItem?.id}">
+                            <button class="twoD-inventory-preview-wearBtn" onclick=inventory-wear name="${props.inventory.selectedItem.id}">
                                 <i class="fal fa-tshirt" style="margin-right: 5px;"></i>
                                 Wear
                             </button>
-                            <button class="twoD-inventory-preview-discardBtn" onclick=inventory-discard name="${props.inventory?.selectedItem?.id}">
+                            <button class="twoD-inventory-preview-discardBtn" onclick=inventory-discard name="${props.inventory.selectedItem.id}">
                                 <i class="fal fa-trash" style="margin-right: 5px;"></i>
                                 Discard
                             </button>
-                            <button class="twoD-inventory-preview-tradeBtn" onclick="twoD-inventoryCardTradeBtn" name="${props.inventory?.selectedItem?.id}">
+                            <button class="twoD-inventory-preview-tradeBtn" onclick="twoD-inventoryCardTradeBtn" name="${props.inventory.selectedItem.id}">
                                 <i class="fal fa-gift" style="margin-right: 5px;"></i>
                                 Trade
                             </button>

@@ -37,7 +37,7 @@ export const InventoryCard = (props = {}) => {
   return `\
     <a class=tile id=${props.anchor} name=${props.id}>
       ${props.selected ? '<div class=outline></div>' : ''}
-      <img src="${previewHost}/${props.hash}.${ext}/preview.${previewExt}">
+      <img src="${previewHost}/${props.hash.slice(2)}.${ext}/preview.${previewExt}">
       <div class="border top-left"></div>
       <div class="border top-right"></div>
       <div class="border bottom-left"></div>
@@ -200,8 +200,8 @@ export const Inventory = (props = {}) => {
         ${inventoryItems.map(item => InventoryCard({
           anchor: 'inventory-item',
           id: item.id,
-          hash: item.hash,
-          filename: item.filename,
+          hash: item.properties.hash,
+          filename: item.properties.filename,
           balance: item.balance,
           selected: selectedId === item.id,
         })).join('\n')}
