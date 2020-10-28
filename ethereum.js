@@ -16,15 +16,14 @@ let {
 } = addresses;
 let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi, Trade: TradeAbi} = abis;
 
-// const web3Endpoint = 'http://13.56.80.83:8545';
-const web3Endpoint = 'https://ethereum.exokit.org';
+const web3SidechainEndpoint = 'https://ethereum.exokit.org';
 const storageHost = 'https://storage.exokit.org';
 const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=684141574808272937&redirect_uri=https%3A%2F%2Fapp.webaverse.com%2Fdiscordlogin.html&response_type=code&scope=identify`;
 
 (async () => {
   const web3 = {
     main: new Web3(window.ethereum),
-    sidechain: new Web3(new Web3.providers.HttpProvider(web3Endpoint)),
+    sidechain: new Web3(new Web3.providers.HttpProvider(web3SidechainEndpoint)),
   };
   
   const networkType = await web3['main'].eth.net.getNetworkType();
@@ -661,7 +660,11 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         ethBalanceEl.innerText = ftBalance;
       }
       {
-        const nftBalance = await contracts['main'].NFT.methods.balanceOf(address).call();
+        const res = await fetch(`https://tokens-main.webaverse.com/${address}`);
+        const tokens = await res.json();
+        // console.log('got tokens', tokens);
+
+        /* const nftBalance = await contracts['main'].NFT.methods.balanceOf(address).call();
         const tokens = [];
         for (let i = 0; i < nftBalance; i++) {
           const id = await contracts['main'].NFT.methods.tokenOfOwnerByIndex(address, i).call();
@@ -682,7 +685,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
               totalSupply,
             });
           }
-        }
+        } */
         ethTokensEl.innerHTML = '';
         for (const token of tokens) {
           const el = document.createElement('div');
@@ -694,9 +697,9 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           el.innerHTML = `
             <img src="${token.image}">
             <div class=wrap>
-              <a href="https://storage.exokit.org/${token.hash.slice(2)}/${token.filename}" class=filename>${escape(token.filename)}</a>
-              <a href="${openSeaUrlPrefix}/${NFTAddress}/${token.id}/" class=hash>${token.id}. ${token.hash} (${token.balance}/${token.totalSupply})</a>
-              <div class=ext>${escape(token.ext || '')}</div>
+              <a href="https://storage.exokit.org/${token.properties.hash.slice(2)}/${token.properties.filename}" class=filename>${escape(token.properties.filename)}</a>
+              <a href="${openSeaUrlPrefix}/${NFTAddress}/${token.id}/" class=hash>${token.id}. ${token.properties.hash} (${token.balance}/${token.totalSupply})</a>
+              <div class=ext>${escape(token.properties.ext || '')}</div>
             </div>
           `;
           el.addEventListener('click', e => {
@@ -828,7 +831,11 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
         sidechainBalanceEl.innerText = ftBalance;
       }
       {
-        const nftBalance = await contracts['sidechain'].NFT.methods.balanceOf(sidechainAddress).call();
+        const res = await fetch(`https://tokens-side.webaverse.com/${sidechainAddress}`);
+        const tokens = await res.json();
+        // console.log('got tokens', tokens);
+
+        /* const nftBalance = await contracts['sidechain'].NFT.methods.balanceOf(sidechainAddress).call();
         const tokens = [];
         for (let i = 0; i < nftBalance; i++) {
           const id = await contracts['sidechain'].NFT.methods.tokenOfOwnerByIndex(sidechainAddress, i).call();
@@ -849,7 +856,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
               totalSupply,
             });
           }
-        }
+        } */
         sidechainTokensEl.innerHTML = '';
         for (const token of tokens) {
           const el = document.createElement('div');
@@ -861,9 +868,9 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
           el.innerHTML = `
             <img src="${token.image}">
             <div class=wrap>
-              <a href="https://storage.exokit.org/${token.hash.slice(2)}" class=filename>${escape(token.filename)}</a>
-              <div class=hash>${token.id}. ${token.hash} (${token.balance}/${token.totalSupply})</div>
-              <div class=ext>${escape(token.ext || '')}</div>
+              <a href="https://storage.exokit.org/${token.properties.hash.slice(2)}" class=filename>${escape(token.properties.filename)}</a>
+              <div class=hash>${token.id}. ${token.properties.hash} (${token.balance}/${token.totalSupply})</div>
+              <div class=ext>${escape(token.properties.ext || '')}</div>
             </div>
           `;
           el.addEventListener('click', e => {
