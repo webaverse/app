@@ -515,7 +515,7 @@ class LoginManager extends EventTarget {
       runTransaction('Account', 'setMetadata', address, 'avatarPreview', avatarPreview),
       runTransaction('Account', 'setMetadata', address, 'ftu', '1'),
     ]);
-    console.log('wrote all tx');
+    // console.log('wrote all tx');
     /* const contractSource = await getContractSource('setUserDataMulti.cdc');
 
     const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
