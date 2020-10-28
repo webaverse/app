@@ -507,7 +507,7 @@ class LoginManager extends EventTarget {
     await Promise.all([
       runTransaction('Account', 'setMetadata', address, 'name', name),
       runTransaction('Account', 'setMetadata', address, 'avatarUrl', avatarUrl),
-      runTransaction('Account', 'setMetadata', address, 'avatarFilename', avatarUrl),
+      runTransaction('Account', 'setMetadata', address, 'avatarFileName', avatarUrl),
       runTransaction('Account', 'setMetadata', address, 'avatarPreview', avatarPreview),
       runTransaction('Account', 'setMetadata', address, 'ftu', '1'),
     ]);
