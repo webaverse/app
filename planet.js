@@ -844,7 +844,10 @@ planet.addEventListener('trackedobjectadd', async e => {
 
   const file = await (async () => {
     if (typeof contentId === 'number') {
-      const contractSource = await getContractSource('getNft.cdc');
+      const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
+      const token = await res.json();
+      const {hash, filename} = token.properties;
+      /* const contractSource = await getContractSource('getNft.cdc');
 
       const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
         method: 'POST',
@@ -856,9 +859,9 @@ planet.addEventListener('trackedobjectadd', async e => {
         }),
       });
       const response2 = await res.json();
-      const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
+      const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value); */
 
-      const res2 = await fetch(`${storageHost}/${hash}`);
+      const res2 = await fetch(`${storageHost}/${hash.slice(2)}`);
       const file = await res2.blob();
       file.name = filename;
       return file;
