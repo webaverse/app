@@ -54,7 +54,6 @@ const transactionQueue = {
 const runTransaction = async (contractName, method, ...args) => {
   // console.log('run tx', contracts['sidechain'], [contractName, method]);
   const {web3, contracts} = await blockchain.load();
-  await transactionQueue.lock();
 
   const {mnemonic} = loginToken;
   const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
@@ -70,6 +69,8 @@ const runTransaction = async (contractName, method, ...args) => {
   });
   let gasPrice = await web3.eth.getGasPrice();
   gasPrice = parseInt(gasPrice, 10);
+
+  await transactionQueue.lock();
   const nonce = await web3.eth.getTransactionCount(address);
   let tx = Transaction.fromTxData({
     to: contracts[contractName]._address,
