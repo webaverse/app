@@ -231,9 +231,9 @@ geometryManager.waitForLoad().then(() => {
   const buildsMesh = makeInventoryMesh(weaponsManager.cubeMesh, async scrollFactor => {
     // nothing
   });
-  buildsMesh.inventoryBuildsMesh = _makeInventoryBuildsMesh();
+  /* buildsMesh.inventoryBuildsMesh = _makeInventoryBuildsMesh();
   buildsMesh.inventoryBuildsMesh.frustumCulled = false;
-  buildsMesh.add(buildsMesh.inventoryBuildsMesh);
+  buildsMesh.add(buildsMesh.inventoryBuildsMesh); */
   buildsMesh.handleIconClick = (i, srcIndex) => {
     const dx = srcIndex%3;
     const dy = (srcIndex-dx)/3;
@@ -247,7 +247,7 @@ geometryManager.waitForLoad().then(() => {
   const queue = new WaitQueue()
   const thingsMesh = makeInventoryMesh(weaponsManager.cubeMesh, async scrollFactor => {
     // await loadPromise;
-    queue.clearQueue();
+    /* queue.clearQueue();
     await queue.lock();
 
     const geometryKeys = await geometryManager.geometryWorker.requestGetGeometryKeys(geometryManager.geometrySet);
@@ -285,12 +285,12 @@ geometryManager.waitForLoad().then(() => {
     thingsMesh.geometryKeys = geometryKeys;
     thingsMesh.currentGeometryKeys = currentGeometryKeys;
 
-    queue.unlock();
+    queue.unlock(); */
   });
-  thingsMesh.inventoryContentsMesh = _makeInventoryContentsMesh();
+  /* thingsMesh.inventoryContentsMesh = _makeInventoryContentsMesh();
   thingsMesh.inventoryContentsMesh.position.set(-0.1/2, 0, 0);
   thingsMesh.inventoryContentsMesh.frustumCulled = false;
-  thingsMesh.add(thingsMesh.inventoryContentsMesh);
+  thingsMesh.add(thingsMesh.inventoryContentsMesh); */
   thingsMesh.geometryKeys = null;
   thingsMesh.currentGeometryKeys = null;
   thingsMesh.handleIconClick = (i, srcIndex) => {
