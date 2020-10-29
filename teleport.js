@@ -1,6 +1,6 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {scene} from './app-object.js';
+import {renderer, scene} from './app-object.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -85,7 +85,12 @@ const makeTeleportMesh = (lineMesh, index) => {
 
     if (visible) {
       localVector.copy(position);
-      localEuler.setFromQuaternion(localQuaternion.copy(quaternion).multiply(localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), Math.PI*0.25)), 'YXZ');
+      if (renderer.xr.getSession()) {
+        localQuaternion.copy(quaternion).multiply(localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), Math.PI*0.25));
+      } else {
+        localQuaternion.copy(quaternion);
+      }
+      localEuler.setFromQuaternion(localQuaternion, 'YXZ');
 
       let i;
       const maxSteps = 50;
