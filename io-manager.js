@@ -76,7 +76,7 @@ const _updateIo = (timeDiff, frame) => {
         if (handedness === 'left') {
           const dx = axes[0] + axes[2];
           const dy = axes[1] + axes[3];
-          if (Math.abs(dx) >= 0.01 || Math.abs(dx) >= 0.01) {
+          if (Math.abs(dx) >= 0.01 || Math.abs(dy) >= 0.01) {
             localEuler.setFromQuaternion(xrCamera.quaternion, 'YXZ');
             localEuler.x = 0;
             localEuler.z = 0;
