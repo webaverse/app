@@ -994,8 +994,8 @@ class Avatar {
       .distanceTo(modelBones.Left_wrist.getWorldPosition(new THREE.Vector3()));
     const handWidth = modelBones.Left_indexFinger1.getWorldPosition(new THREE.Vector3())
       .distanceTo(modelBones.Left_littleFinger1.getWorldPosition(new THREE.Vector3()));
-    this.fingerOffsetLeft = new THREE.Vector3(handWidth*0.5, -handWidth*0.25, indexDistance);
-    this.fingerOffsetRight = new THREE.Vector3(-handWidth*0.5, -handWidth*0.25, indexDistance);
+    this.fingerOffsetLeft = new THREE.Vector3(handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
+    this.fingerOffsetRight = new THREE.Vector3(-handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
 
 		this.inputs = {
       hmd: this.poseManager.vrTransforms.head,
