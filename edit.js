@@ -38,8 +38,8 @@ import {getState, setState} from './state.js';
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const pid4 = Math.PI / 4;
-const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.3);
-const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.3);
+const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
+const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 // const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
 const localVector = new THREE.Vector3();
