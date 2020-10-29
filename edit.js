@@ -47,6 +47,7 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
+const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
@@ -561,6 +562,7 @@ function animate(timestamp, frame) {
         localMatrix.fromArray(pose.transform.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
+        localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI*0.5));
         leftGamepadPosition = localVector2.toArray();
         leftGamepadQuaternion = localQuaternion2.toArray();
 
@@ -578,6 +580,7 @@ function animate(timestamp, frame) {
         localMatrix.fromArray(pose.transform.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
+        localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI*0.5));
         rightGamepadPosition = localVector2.toArray();
         rightGamepadQuaternion = localQuaternion2.toArray();
 
