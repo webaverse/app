@@ -986,6 +986,7 @@ const _updateWeapons = timeDiff => {
   _selectWeapon();
 
   const _handleBuild = () => {
+    return;
     const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
     
     for (const k in geometryManager.buildMeshes) {
@@ -1382,6 +1383,7 @@ const _updateWeapons = timeDiff => {
 
   // select
   const _handleSelect = () => {
+    return;
     for (const material of geometryManager.currentChunkMesh.material) {
       material.uniforms.uSelectRange.value.set(NaN, NaN, NaN, NaN);
       material.uniforms.uSelectRange.needsUpdate = true;

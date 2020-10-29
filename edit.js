@@ -524,26 +524,6 @@ function animate(timestamp, frame) {
   lastTimestamp = timestamp;
 
   const now = Date.now();
-  if (skybox) {
-    for (const material of geometryManager.currentChunkMesh.material) {
-      const {uniforms} = material;
-      uniforms.uTime.value = (now % timeFactor) / timeFactor;
-      uniforms.uTime.needsUpdate = true;
-      uniforms.sunIntensity.value = Math.max(skybox.material.uniforms.sunPosition.value.y, 0);
-      uniforms.sunIntensity.needsUpdate = true;
-      uniforms.sunDirection.value.copy(skybox.material.uniforms.sunPosition.value).normalize();
-      uniforms.sunDirection.needsUpdate = true;
-    }
-    for (const material of geometryManager.currentVegetationMesh.material) {
-      const {uniforms} = material;
-      uniforms.sunIntensity.value = Math.max(skybox.material.uniforms.sunPosition.value.y, 0);
-      uniforms.sunIntensity.needsUpdate = true;
-    }
-  }
-  // if (geometryManager.currentVegetationMesh) {
-    geometryManager.currentVegetationMesh.hitTracker.update();
-  // }
-
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
 
