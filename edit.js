@@ -14,7 +14,7 @@ import {
   THING_SHADER,
   makeDrawMaterial,
 } from './shaders.js';
-import {lineMeshes, teleportMeshes} from './teleport.js';
+// import {lineMeshes, teleportMeshes} from './teleport.js';
 import geometryManager from './geometry-manager.js';
 import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
