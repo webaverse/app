@@ -95,7 +95,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
   }
 
   _collideItems(localMatrix);
-  _collideChunk(localMatrix);
+  // _collideChunk(localMatrix);
   camera.updateMatrixWorld();
 };
 const _collideCapsule = (() => {
@@ -103,7 +103,7 @@ const _collideCapsule = (() => {
   return (p, q) => {
     localVector.copy(p);
     localVector.y -= 0.3;
-    return geometryManager.geometryWorker.collide(geometryManager.tracker, 0.5, 0.5, localVector, q, 1);
+    return geometryManager.geometryWorker.collidePhysics(geometryManager.physics, 0.5, 0.5, localVector, q, 1);
   };
 })();
 const applyVelocity = (() => {
@@ -126,11 +126,12 @@ const _collideItems = matrix => {
 
   geometryManager.updatePhysics(localVector3);
 };
-const _collideChunk = matrix => {
+/* const _collideChunk = matrix => {
   matrix.decompose(localVector3, localQuaternion2, localVector4);
   geometryManager.currentChunkMesh.update(localVector3);
-};
+}; */
 
+let updateIndex = 0;
 const _updatePhysics = timeDiff => {
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
   if (renderer.xr.getSession()) {
@@ -152,7 +153,7 @@ const _updatePhysics = timeDiff => {
       localMatrix.copy(xrCamera.matrix)
         .premultiply(dolly.matrix);
       _collideItems(localMatrix);
-      _collideChunk(localMatrix);
+      // _collideChunk(localMatrix);
       rigManager.setLocalRigMatrix(null);
     }
   } else if (document.pointerLockElement) {
@@ -169,13 +170,28 @@ const _updatePhysics = timeDiff => {
       _applyAvatarPhysics(camera, new THREE.Vector3(0, -cameraManager.birdsEyeHeight + cameraManager.getAvatarHeight(), 0), false, true, true, timeDiff);
     } else {
       _collideItems(camera.matrix);
-      _collideChunk(camera.matrix);
+      // _collideChunk(camera.matrix);
       rigManager.setLocalRigMatrix(null);
     }
   } else {
     _collideItems(camera.matrix);
-    _collideChunk(camera.matrix);
+    // _collideChunk(camera.matrix);
     rigManager.setLocalRigMatrix(null);
+  }
+
+  {
+    const updatesIn = ((updateIndex%100) === 0) ? [{
+      id: 3,
+      position: new THREE.Vector3(0, 10, 0),
+      quaternion: new THREE.Quaternion(0, 0, 0, 1),
+    }] : [];
+    const updatesOut = geometryManager.geometryWorker.simulatePhysics(geometryManager.physics, updatesIn, timeDiff);
+    for (let i = 0; i < updatesOut.length; i++) {
+      const {position, quaternion} = updatesOut[i];
+      geometryManager.physicsCube.position.copy(position);
+      geometryManager.physicsCube.quaternion.copy(quaternion);
+    }
+    updateIndex++;
   }
 
   /* const _updateAnimals = () => {

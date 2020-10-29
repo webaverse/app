@@ -792,9 +792,9 @@ const geometryWorker = (() => {
     Module.postRun = () => {
       moduleInstance = localModuleInstance;
       // moduleInstance._globalInit();
-      callStack = new CallStack();
+      // callStack = new CallStack();
       scratchStack = new ScratchStack();
-      threadPool = moduleInstance._makeThreadPool(1);
+      // threadPool = moduleInstance._makeThreadPool(1);
       // threadPool = moduleInstance._getThreadPool();
       modulePromise.accept();
     };
@@ -805,189 +805,6 @@ const geometryWorker = (() => {
   // });
 
   let methodIndex = 0;
-  const METHODS = {
-    NULL: methodIndex++,
-    makeArenaAllocator: methodIndex++,
-    arenaAlloc: methodIndex++,
-    arenaFree: methodIndex++,
-    makeGeometrySet: methodIndex++,
-    loadBake: methodIndex++,
-    getGeometry: methodIndex++,
-    getGeometries: methodIndex++,
-    getGeometryKeys: methodIndex++,
-    getAnimalGeometry: methodIndex++,
-    marchObjects: methodIndex++,
-    getHeight: methodIndex++,
-    noise: methodIndex++,
-    marchingCubes: methodIndex++,
-    bakeGeometry: methodIndex++,
-    getSubparcel: methodIndex++,
-    releaseSubparcel: methodIndex++,
-    chunk: methodIndex++,
-    mine: methodIndex++,
-    releaseMine: methodIndex++,
-    light: methodIndex++,
-    addObject: methodIndex++,
-    removeObject: methodIndex++,
-    releaseAddRemoveObject: methodIndex++,
-    addThingGeometry: methodIndex++,
-    addThing: methodIndex++,
-  };
-  let messageIndex = 0;
-  const MESSAGES = {
-    [--messageIndex]: function updateSubparcel(m) {
-      const subparcelOffset = m.pullU32();
-      const subparcelSize = m.pullU32();
-
-      // const x = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT];
-      // const y = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 1];
-      // const z = moduleInstance.HEAP32[subparcelOffset/Uint32Array.BYTES_PER_ELEMENT + 2];
-      const index = moduleInstance.HEAP32[subparcelOffset / Uint32Array.BYTES_PER_ELEMENT + 3];
-      const uint8Array = moduleInstance.HEAPU8.slice(subparcelOffset, subparcelOffset + subparcelSize);
-      // storage.setRawTemp(`subparcel:${index}`, uint8Array);
-      /* .then(() => {
-          console.log('set raw ok', x, y, z, `subparcel:${index}`);
-        }); */
-    },
-    [--messageIndex]: function updateGeometry(m) {
-      {
-        const positionsFreeEntry = m.pullU32();
-        const normalsFreeEntry = m.pullU32();
-        const uvsFreeEntry = m.pullU32();
-        const aosFreeEntry = m.pullU32();
-        const idsFreeEntry = m.pullU32();
-        const skyLightsFreeEntry = m.pullU32();
-        const torchLightsFreeEntry = m.pullU32();
-
-        const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const normalsStart = moduleInstance.HEAPU32[normalsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const aosStart = moduleInstance.HEAPU32[aosFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const idsStart = moduleInstance.HEAPU32[idsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-
-        const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const normalsCount = moduleInstance.HEAPU32[normalsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const aosCount = moduleInstance.HEAPU32[aosFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const idsCount = moduleInstance.HEAPU32[idsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-
-        geometryManager.currentChunkMesh.updateGeometry({
-          positionsStart,
-          normalsStart,
-          uvsStart,
-          aosStart,
-          idsStart,
-          skyLightsStart,
-          torchLightsStart,
-
-          positionsCount,
-          normalsCount,
-          uvsCount,
-          aosCount,
-          idsCount,
-          skyLightsCount,
-          torchLightsCount,
-        });
-      }
-      {
-        const positionsFreeEntry = m.pullU32();
-        const uvsFreeEntry = m.pullU32();
-        const idsFreeEntry = m.pullU32();
-        const indicesFreeEntry = m.pullU32();
-        const skyLightsFreeEntry = m.pullU32();
-        const torchLightsFreeEntry = m.pullU32();
-
-        const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const idsStart = moduleInstance.HEAPU32[idsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-
-        const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const idsCount = moduleInstance.HEAPU32[idsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-
-        geometryManager.currentVegetationMesh.updateGeometry({
-          positionsStart,
-          uvsStart,
-          idsStart,
-          indicesStart,
-          skyLightsStart,
-          torchLightsStart,
-
-          positionsCount,
-          uvsCount,
-          idsCount,
-          indicesCount,
-          skyLightsCount,
-          torchLightsCount,
-        });
-      }
-      {
-        const positionsFreeEntry = m.pullU32();
-        const uvsFreeEntry = m.pullU32();
-        const atlasUvsFreeEntry = m.pullU32();
-        const idsFreeEntry = m.pullU32();
-        const indicesFreeEntry = m.pullU32();
-        const skyLightsFreeEntry = m.pullU32();
-        const torchLightsFreeEntry = m.pullU32();
-
-        const positionsStart = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const uvsStart = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const atlasUvsStart = moduleInstance.HEAPU32[atlasUvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const idsStart = moduleInstance.HEAPU32[idsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const indicesStart = moduleInstance.HEAPU32[indicesFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const skyLightsStart = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-        const torchLightsStart = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT];
-
-        const positionsCount = moduleInstance.HEAPU32[positionsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const uvsCount = moduleInstance.HEAPU32[uvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const atlasUvsCount = moduleInstance.HEAPU32[atlasUvsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const idsCount = moduleInstance.HEAPU32[idsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-        const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-
-        geometryManager.currentThingMesh.updateGeometry({
-          positionsStart,
-          uvsStart,
-          atlasUvsStart,
-          idsStart,
-          indicesStart,
-          skyLightsStart,
-          torchLightsStart,
-
-          positionsCount,
-          uvsCount,
-          atlasUvsCount,
-          idsCount,
-          indicesCount,
-          skyLightsCount,
-          torchLightsCount,
-        });
-      }
-      {
-        const textureOffset = m.pullU32();
-        if (textureOffset) {
-          // console.log('got texture update', textureOffset);
-          const textureData = new Uint8Array(moduleInstance.HEAP8.buffer, textureOffset, thingTextureSize * thingTextureSize * 4);
-          currentThingMesh.updateTexture(textureData);
-        }
-      }
-      {
-        const subparcelSharedPtr = m.pullU32();
-        w.requestReleaseSubparcel(geometryManager.tracker, subparcelSharedPtr);
-      }
-    },
-  };
   const cbIndex = new Map();
   const w = {};
   /* window.earcut = () => {
@@ -1574,14 +1391,52 @@ const geometryWorker = (() => {
   w.unregisterGeometry = ptr => {
     moduleInstance._unregisterGeometry(ptr);
   }; */
-  w.raycast = (tracker, p, q) => {
+  w.makePhysics = () => moduleInstance._makePhysics();
+  w.simulatePhysics = (physics, updates, elapsedTime) => {
+    const maxNumUpdates = 10;
+    let index = 0;
+    const ids = scratchStack.u32.subarray(index, index + maxNumUpdates);
+    index += maxNumUpdates;
+    const positions = scratchStack.f32.subarray(index, index + maxNumUpdates*3);
+    index += maxNumUpdates*3;
+    const quaternions = scratchStack.f32.subarray(index, index + maxNumUpdates*4);
+    index += maxNumUpdates*4;
+
+    for (let i = 0; i < updates.length; i++) {
+      const update = updates[i];
+      ids[i] = update.id;
+      update.position.toArray(positions, i*3);
+      update.quaternion.toArray(quaternions, i*4);
+    }
+
+    const numNewUpdates = moduleInstance._simulatePhysics(
+      physics,
+      ids.byteOffset,
+      positions.byteOffset,
+      quaternions.byteOffset,
+      updates.length,
+      elapsedTime
+    );
+    
+    const newUpdates = Array(numNewUpdates);
+    for (let i = 0; i < numNewUpdates; i++) {
+      newUpdates[i] = {
+        id: ids[i],
+        position: new THREE.Vector3().fromArray(positions, i*3),
+        quaternion: new THREE.Quaternion().fromArray(quaternions, i*4),
+      };
+    }
+    
+    return newUpdates;
+  };
+  w.raycastPhysics = (physics, p, q) => {
     p.toArray(scratchStack.f32, 0);
     localVector.set(0, 0, -1)
       .applyQuaternion(q)
       .toArray(scratchStack.f32, 3);
-    geometryManager.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-    localVector.toArray(scratchStack.f32, 6);
-    localQuaternion.toArray(scratchStack.f32, 9);
+    // geometryManager.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    localVector.set(0, 0, 0).toArray(scratchStack.f32, 6);
+    localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 9);
 
     const originOffset = scratchStack.f32.byteOffset;
     const directionOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
@@ -1610,8 +1465,8 @@ const geometryWorker = (() => {
       faceIndex: allocator.alloc(Uint32Array, 1),
     }; */
 
-    moduleInstance._raycast(
-      tracker,
+    moduleInstance._raycastPhysics(
+      physics,
       originOffset,
       directionOffset,
       meshPositionOffset,
@@ -1641,14 +1496,14 @@ const geometryWorker = (() => {
       objectQuaternion,
     } : null;
   };
-  w.collide = (tracker, radius, halfHeight, p, q, maxIter) => {
+  w.collidePhysics = (physics, radius, halfHeight, p, q, maxIter) => {
     p.toArray(scratchStack.f32, 0);
     localQuaternion.copy(q)
       .premultiply(capsuleUpQuaternion)
       .toArray(scratchStack.f32, 3);
-    geometryManager.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-    localVector.toArray(scratchStack.f32, 7);
-    localQuaternion.toArray(scratchStack.f32, 10);
+    // geometryManager.currentChunkMesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+    localVector.set(0, 0, 0).toArray(scratchStack.f32, 7);
+    localQuaternion.set(0, 0, 0, 1).toArray(scratchStack.f32, 10);
 
     const positionOffset = scratchStack.f32.byteOffset;
     const quaternionOffset = scratchStack.f32.byteOffset + 3 * Float32Array.BYTES_PER_ELEMENT;
@@ -1668,9 +1523,21 @@ const geometryWorker = (() => {
       direction: allocator.alloc(Float32Array, 3),
       grounded: allocator.alloc(Uint32Array, 1),
     }; */
+    
+    /* console.log('collide physics', [physics,
+      radius,
+      halfHeight,
+      positionOffset,
+      quaternionOffset,
+      meshPositionOffset,
+      meshQuaternionOffset,
+      maxIter,
+      hitOffset,
+      directionOffset,
+      groundedOffset]); */
 
-    moduleInstance._collide(
-      tracker,
+    moduleInstance._collidePhysics(
+      physics,
       radius,
       halfHeight,
       positionOffset,

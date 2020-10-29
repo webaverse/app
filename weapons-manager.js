@@ -836,7 +836,7 @@ const _updateWeapons = timeDiff => {
     if (anchorSpecs[0]) { // anchor raycast
       // nothing    
     } else { // no anchor raycast
-      const result = geometryManager.geometryWorker.raycast(geometryManager.tracker, rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion);
+      const result = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion);
       raycastChunkSpec = result;
       if (raycastChunkSpec) { // world geometry raycast
         raycastChunkSpec.point = new THREE.Vector3().fromArray(raycastChunkSpec.point);
@@ -1517,7 +1517,7 @@ const _updateWeapons = timeDiff => {
       physicsManager.velocity.set(0, 0, 0);
     };
 
-    teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => geometryManager.geometryWorker.raycast(geometryManager.tracker, p, q), (position, quaternion) => {
+    teleportMeshes[1].update(rigManager.localRig.inputs.leftGamepad.position, rigManager.localRig.inputs.leftGamepad.quaternion, ioManager.currentTeleport, (p, q) => geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, p, q), (position, quaternion) => {
       _teleportTo(position, localQuaternion.set(0, 0, 0, 1));
     });
   };
