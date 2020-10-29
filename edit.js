@@ -557,7 +557,7 @@ function animate(timestamp, frame) {
       inputSources = ['right', 'left']
         .map(handedness => inputSources.find(inputSource => inputSource.handedness === handedness));
       let pose;
-      if (inputSources[0] && (pose = frame.getPose(inputSources[0].targetRaySpace, renderer.xr.getReferenceSpace()))) {
+      if (inputSources[0] && (pose = frame.getPose(inputSources[0].gripSpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
@@ -574,7 +574,7 @@ function animate(timestamp, frame) {
           leftGamepadGrip = 0;
         }
       }
-      if (inputSources[1] && (pose = frame.getPose(inputSources[1].targetRaySpace, renderer.xr.getReferenceSpace()))) {
+      if (inputSources[1] && (pose = frame.getPose(inputSources[1].gripSpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
