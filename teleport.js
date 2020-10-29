@@ -6,6 +6,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
+const localQuaternion2 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
@@ -84,7 +85,7 @@ const makeTeleportMesh = (lineMesh, index) => {
 
     if (visible) {
       localVector.copy(position);
-      localEuler.setFromQuaternion(quaternion, 'YXZ');
+      localEuler.setFromQuaternion(localQuaternion.copy(quaternion).multiply(localQuaternion2.setFromAxisAngle(localVector2.set(1, 0, 0), Math.PI*0.25)), 'YXZ');
 
       let i;
       const maxSteps = 50;
