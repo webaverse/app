@@ -990,6 +990,12 @@ class Avatar {
     this.shoulderWidth = modelBones.Left_arm.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Right_arm.getWorldPosition(new THREE.Vector3()));
     this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
     this.rightArmLength = this.shoulderTransforms.rightArm.armLength;
+    const indexDistance = modelBones.Left_indexFinger1.getWorldPosition(new THREE.Vector3())
+      .distanceTo(modelBones.Left_wrist.getWorldPosition(new THREE.Vector3()));
+    const handWidth = modelBones.Left_indexFinger1.getWorldPosition(new THREE.Vector3())
+      .distanceTo(modelBones.Left_littleFinger1.getWorldPosition(new THREE.Vector3()));
+    this.fingerOffsetLeft = new THREE.Vector3(handWidth/2, -handWidth*0.25, indexDistance);
+    this.fingerOffsetRight = new THREE.Vector3(-handWidth/2, -handWidth*0.25, indexDistance);
 
 		this.inputs = {
       hmd: this.poseManager.vrTransforms.head,
@@ -1186,10 +1192,13 @@ class Avatar {
 	update() {
 // return;
 
-   const wasDecapitated = this.decapitated;
-   if (this.springBoneManager && wasDecapitated) {
-    this.undecapitate();
-   }
+    const wasDecapitated = this.decapitated;
+    if (this.springBoneManager && wasDecapitated) {
+      this.undecapitate();
+    }
+    
+    this.inputs.leftGamepad.position.add(localVector.copy(this.fingerOffsetLeft).applyQuaternion(this.inputs.leftGamepad.quaternion));
+    this.inputs.rightGamepad.position.add(localVector.copy(this.fingerOffsetRight).applyQuaternion(this.inputs.rightGamepad.quaternion));
 
     const modelScaleFactor = this.inputs.hmd.scaleFactor;
     if (modelScaleFactor !== this.lastModelScaleFactor) {
