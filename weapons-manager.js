@@ -20,6 +20,7 @@ import {
   colors,
 } from './constants.js';
 import { setState } from './state.js';
+import FontFaceObserver from './fontfaceobserver.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1571,16 +1572,167 @@ renderer.domElement.addEventListener('wheel', e => {
   }
 });
 
+const wheel = document.createElement('div');
+wheel.style.cssText = `
+  display: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: auto !important;
+  height: auto !important;
+  justify-content: center;
+  align-items: center;
+`;
+document.body.appendChild(wheel);
+
+const size = 400;
+const wheelCanvas = document.createElement('canvas');
+wheelCanvas.style.cssText = `
+  width: auto !important;
+  height: auto !important;
+`;
+wheelCanvas.width = size;
+wheelCanvas.height = size;
+wheelCanvas.ctx = wheelCanvas.getContext('2d');
+wheel.appendChild(wheelCanvas);
+
+const wheelDotCanvas = (() => {
+  const size = 4;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  canvas.style.cssText = `
+    display: none;
+    position: absolute;
+    width: auto !important;
+    height: auto !important;
+  `;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#4fc3f7';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  return canvas;
+})();
+document.body.appendChild(wheelDotCanvas);
+
+const weaponIcons = [
+  '\uf256',
+  '\uf710',
+  '\uf1e2',
+  '\uf6b2',
+  '\uf713',
+  '\uf279',
+  '\uf54e',
+  '\uf1b2',
+  '\uf53f',
+  '\uf5d4',
+  '\uf0e7',
+  '\uf040',
+  '\uf55d',
+  '\ue025',
+  '\uf245',
+];
+let wheelReady = false;
+const loadPromise = Promise.all([
+  new FontFaceObserver('Muli').load(null, 10000),
+  new FontFaceObserver('Font Awesome 5 Pro').load(weaponIcons.join(''), 10000),
+]).then(() => {
+  wheelReady = true;
+});
+const _renderWheel = (() => {
+  let lastSelectedSlice = 0;
+  return selectedSlice => {
+    if (selectedSlice !== lastSelectedSlice) {
+      const {ctx} = wheelCanvas;
+      
+      const numSlices = weapons.length;
+      const interval = Math.PI*0.01;
+      for (let i = 0; i < numSlices; i++) {
+        ctx.fillStyle = i === selectedSlice ? '#4fc3f7' : '#111';
+        ctx.beginPath();
+        const startAngle = i*Math.PI*2/numSlices + interval - Math.PI/2;
+        const endAngle = (i+1)*Math.PI*2/numSlices - interval - Math.PI/2;
+        ctx.arc(size/2, size/2, size/2, startAngle, endAngle, false);
+        ctx.arc(size/2, size/2, size/4, endAngle, startAngle, true);
+        ctx.fill();
+
+        ctx.font = '20px \'Font Awesome 5 Pro\'';
+        ctx.fillStyle = '#FFF';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const midAngle = (startAngle + endAngle)/2;
+        const weapon = weapons[i];
+        const label = weapon.querySelector('.label');
+        ctx.fillText(weaponIcons[i], size/2 + Math.cos(midAngle)*(size/2+size/4)/2, size/2 + Math.sin(midAngle)*(size/2+size/4)/2);
+        ctx.font = '12px Muli';
+        ctx.fillText(label.innerText, size/2 + Math.cos(midAngle)*(size/2+size/4)/2, size/2 + Math.sin(midAngle)*(size/2+size/4)/2 + 20);
+      }
+
+      lastSelectedSlice = selectedSlice;
+    }
+  };
+})();
+
 const weaponsManager = {
   weapons,
   cubeMesh,
   buildMode: 'wall',
   buildMat: 'wood',
+  weaponWheel: false,
   getWeapon() {
     return selectedWeapon;
   },
   setWeapon(newSelectedWeapon) {
     selectedWeapon = newSelectedWeapon;
+  },
+  setWeaponWheel(newOpen) {
+    if (newOpen && !weaponsManager.weaponWheel) {
+      wheel.style.display = 'flex';
+      wheelDotCanvas.style.display = null;
+      wheelDotCanvas.style.left = `${window.innerWidth/2}px`;
+      wheelDotCanvas.style.top = `${window.innerHeight/2}px`;
+      weaponsManager.weaponWheel = true;
+    } else if (weaponsManager.weaponWheel && !newOpen) {
+      wheel.style.display = 'none';
+      wheelDotCanvas.style.display = 'none';
+      weaponsManager.weaponWheel = false;
+    }
+  },
+  updateWeaponWheel(e) {
+    if (wheelReady) {
+      const {movementX, movementY} = e;
+
+      let left = parseInt(wheelDotCanvas.style.left, 10);
+      let top = parseInt(wheelDotCanvas.style.top, 10);
+      left += movementX;
+      top += movementY;
+      wheelDotCanvas.style.left = `${left}px`;
+      wheelDotCanvas.style.top = `${top}px`;
+
+      const mousePosition = new THREE.Vector2(left, top);
+      const wheelCanvasRect = wheelCanvas.getBoundingClientRect();
+
+      let selectedSlice = 0;
+      let selectedSliceDistance = Infinity;
+      const numSlices = weapons.length;
+      const interval = Math.PI*0.01;
+      for (let i = 0; i < numSlices; i++) {
+        const startAngle = i*Math.PI*2/numSlices + interval - Math.PI/2;
+        const endAngle = (i+1)*Math.PI*2/numSlices - interval - Math.PI/2;
+        const midAngle = (startAngle + endAngle)/2;
+        const slicePosition = new THREE.Vector2(
+          wheelCanvasRect.left + size/2 + Math.cos(midAngle)*(size/2+size/4)/2,
+          wheelCanvasRect.top + size/2 + Math.sin(midAngle)*(size/2+size/4)/2
+        );
+        const distance = mousePosition.distanceTo(slicePosition);
+        if (distance < selectedSliceDistance) {
+          selectedSlice = i;
+          selectedSliceDistance = distance;
+        }
+      }
+      _renderWheel(selectedSlice);
+    }
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);
