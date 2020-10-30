@@ -562,7 +562,11 @@ function animate(timestamp, frame) {
         localMatrix.fromArray(pose.transform.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
-        localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI*0.5));
+        if (!inputSources[0].profiles.includes('oculus-hand')) {
+          localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI*0.5));
+        } else {
+          localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), Math.PI*0.5)).multiply(localQuaternion3.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2));
+        }
         leftGamepadPosition = localVector2.toArray();
         leftGamepadQuaternion = localQuaternion2.toArray();
 
@@ -580,7 +584,11 @@ function animate(timestamp, frame) {
         localMatrix.fromArray(pose.transform.matrix)
           .premultiply(dolly.matrix)
           .decompose(localVector2, localQuaternion2, localVector3);
-        localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI*0.5));
+        if (!inputSources[1].profiles.includes('oculus-hand')) {
+          localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(1, 0, 0), -Math.PI*0.5));
+        } else {
+          localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), -Math.PI*0.5)).multiply(localQuaternion3.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2));
+        }
         rightGamepadPosition = localVector2.toArray();
         rightGamepadQuaternion = localQuaternion2.toArray();
 
