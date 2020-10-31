@@ -318,6 +318,8 @@ scene.add(floorMesh);
 })(); */
 
 (async () => {
+  await geometryManager.waitForLoad();
+
   /* rigManager.addPeerRig(-1);
   rigManager.setPeerAvatarUrl('./npc.vrm', -1);
   rigManager.setPeerAvatarName('Lollercopter', -1);
@@ -330,6 +332,35 @@ scene.add(floorMesh);
       0
     ], -1);
   }, 100); */
+  
+  {
+    const u = 'assets/firest32.glb';
+    const res = await fetch('./' + u);
+    const file = await res.blob();
+    file.name = u;
+    // console.log('loading file');
+    const mesh = await runtime.loadFile(file, {
+      optimize: false,
+    });
+    console.log('loaded file', mesh);
+    scene.add(mesh);
+    window.THREE = THREE;
+
+    /* {
+      const res = await fetch('assets/home.bin');
+      const arrayBuffer = await res.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      console.log('loaded buffer', uint8Array);
+      geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, uint8Array);
+    } */
+    // geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, mesh);
+    
+    /* const ambientLight = new THREE.AmbientLight(0xFFFFFF, 2);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
+    directionalLight.position.set(1, 2, 3);
+    scene.add(directionalLight); */
+  }
 
   /* {
     const u = 'lightsaber.wbn';
