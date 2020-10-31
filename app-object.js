@@ -18,7 +18,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.autoClear = false;
 renderer.sortObjects = false;
-renderer.physicallyCorrectLights = true;
+// renderer.physicallyCorrectLights = true;
 renderer.xr.enabled = true;
 
 const scene = new THREE.Scene();
