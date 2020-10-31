@@ -1,5 +1,7 @@
 import * as THREE from './three.module.js';
 import {OrbitControls} from './OrbitControls.js';
+import {EffectComposer} from './EffectComposer.js';
+import {SSAOPass} from './SSAOPass.js';
 
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('webgl2', {
@@ -45,6 +47,81 @@ orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
 orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, camera.position.y, -3).applyQuaternion(camera.quaternion));
 orbitControls.update();
+
+const composer = (() => {
+    /* container = document.createElement( 'div' );
+    document.body.appendChild( container );
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
+
+    camera = new THREE.PerspectiveCamera( 65, window.innerWidth / window.innerHeight, 100, 700 );
+    camera.position.z = 500;
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color( 0xaaaaaa );
+
+    scene.add( new THREE.DirectionalLight() );
+    scene.add( new THREE.HemisphereLight() );
+
+    group = new THREE.Group();
+    scene.add( group );
+
+    const geometry = new THREE.BoxBufferGeometry( 10, 10, 10 );
+
+    for ( let i = 0; i < 100; i ++ ) {
+
+      const material = new THREE.MeshLambertMaterial( {
+        color: Math.random() * 0xffffff
+      } );
+
+      const mesh = new THREE.Mesh( geometry, material );
+      mesh.position.x = Math.random() * 400 - 200;
+      mesh.position.y = Math.random() * 400 - 200;
+      mesh.position.z = Math.random() * 400 - 200;
+      mesh.rotation.x = Math.random();
+      mesh.rotation.y = Math.random();
+      mesh.rotation.z = Math.random();
+
+      mesh.scale.setScalar( Math.random() * 10 + 2 );
+      group.add( mesh );
+
+    }
+
+    stats = new Stats();
+    container.appendChild( stats.dom ); */
+
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    const composer = new EffectComposer( renderer );
+
+    const ssaoPass = new SSAOPass( scene, camera, width, height );
+    ssaoPass.kernelRadius = 16;
+    composer.addPass( ssaoPass );
+
+    // Init gui
+    /* const gui = new GUI();
+
+    gui.add( ssaoPass, 'output', {
+      'Default': SSAOPass.OUTPUT.Default,
+      'SSAO Only': SSAOPass.OUTPUT.SSAO,
+      'SSAO Only + Blur': SSAOPass.OUTPUT.Blur,
+      'Beauty': SSAOPass.OUTPUT.Beauty,
+      'Depth': SSAOPass.OUTPUT.Depth,
+      'Normal': SSAOPass.OUTPUT.Normal
+    } ).onChange( function ( value ) {
+
+      ssaoPass.output = parseInt( value );
+
+    } );
+    gui.add( ssaoPass, 'kernelRadius' ).min( 0 ).max( 32 );
+    gui.add( ssaoPass, 'minDistance' ).min( 0.001 ).max( 0.02 );
+    gui.add( ssaoPass, 'maxDistance' ).min( 0.01 ).max( 0.3 ); */
+
+  return composer;
+})();
 
 class AppManager {
   constructor() {
@@ -103,4 +180,4 @@ class App extends EventTarget {
   }
 }
 
-export {renderer, scene, camera, dolly, orbitControls, appManager};
+export {renderer, scene, camera, dolly, orbitControls, composer, appManager};

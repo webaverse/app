@@ -1,5 +1,5 @@
 import * as THREE from './three.module.js';
-import {renderer, camera, dolly} from './app-object.js';
+import {renderer, camera, dolly, composer} from './app-object.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import weaponsManager from './weapons-manager.js';
@@ -498,6 +498,7 @@ document.addEventListener('pointerlockchange', e => {
 window.addEventListener('resize', e => {
   if (!renderer.xr.getSession()) {
     renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
 
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();

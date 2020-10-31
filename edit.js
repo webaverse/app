@@ -28,7 +28,7 @@ import {planet} from './planet.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
-import {renderer, scene, camera, dolly, orbitControls, appManager} from './app-object.js';
+import {renderer, scene, camera, dolly, orbitControls, composer, appManager} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
@@ -845,7 +845,8 @@ function animate(timestamp, frame) {
     geometryManager.currentThingMesh.geometry.groups = thingGroups;
   }
 
-  renderer.render(scene, camera);
+  // renderer.render(scene, camera);
+  composer.render();
   // renderer.render(highlightScene, camera);
 }
 geometryManager.waitForLoad().then(e => {
