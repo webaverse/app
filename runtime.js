@@ -25,7 +25,7 @@ const importMap = {
 const _clone = o => JSON.parse(JSON.stringify(o));
 
 // const thingFiles = {};
-const _loadGltf = async file => {
+const _loadGltf = async (file, {optimize = true} = {}) => {
   // const u = `${storageHost}/${hash}`;
   const u = URL.createObjectURL(file);
   let o;
@@ -40,38 +40,43 @@ const _loadGltf = async file => {
   }
   o = o.scene;
 
-  const specs = [];
-  o.traverse(o => {
-    if (o.isMesh) {
-      const mesh = o;
-      const {geometry} = o;
-      let texture;
-      if (o.material.map) {
-        texture = o.material.map;
-      } else if (o.material.emissiveMap) {
-        texture = o.material.emissiveMap;
-      } else {
-        texture = null;
+  console.log('optimize', optimize, new Error().stack);
+  if (optimize) {
+    const specs = [];
+    o.traverse(o => {
+      if (o.isMesh) {
+        const mesh = o;
+        const {geometry} = o;
+        let texture;
+        if (o.material.map) {
+          texture = o.material.map;
+        } else if (o.material.emissiveMap) {
+          texture = o.material.emissiveMap;
+        } else {
+          texture = null;
+        }
+        specs.push({
+          mesh,
+          geometry,
+          texture,
+        });
       }
-      specs.push({
-        mesh,
-        geometry,
-        texture,
-      });
-    }
-  });
-  specs.sort((a, b) => +a.mesh.material.transparent - +b.mesh.material.transparent);
-  const meshes = specs.map(spec => spec.mesh);
-  const geometries = specs.map(spec => spec.geometry);
-  const textures = specs.map(spec => spec.texture);
+    });
+    specs.sort((a, b) => +a.mesh.material.transparent - +b.mesh.material.transparent);
+    const meshes = specs.map(spec => spec.mesh);
+    const geometries = specs.map(spec => spec.geometry);
+    const textures = specs.map(spec => spec.texture);
 
-  const mesh = mergeMeshes(meshes, geometries, textures);
-  mesh.userData.gltfExtensions = {
-    EXT_aabb: mesh.geometry.boundingBox.min.toArray()
-      .concat(mesh.geometry.boundingBox.max.toArray()),
-    // EXT_hash: hash,
-  };
-  return mesh;
+    const mesh = mergeMeshes(meshes, geometries, textures);
+    mesh.userData.gltfExtensions = {
+      EXT_aabb: mesh.geometry.boundingBox.min.toArray()
+        .concat(mesh.geometry.boundingBox.max.toArray()),
+      // EXT_hash: hash,
+    };
+    return mesh;
+  } else {
+    return o;
+  }
 
   /* const u = URL.createObjectURL(file);
   let o;
@@ -497,32 +502,32 @@ const _loadLink = async file => {
   return portalMesh;
 };
 
-runtime.loadFile = async file => {
+runtime.loadFile = async (file, opts) => {
   switch (getExt(file.name)) {
     case 'gltf':
     case 'glb': {
-      return await _loadGltf(file);
+      return await _loadGltf(file, opts);
     }
     case 'vrm': {
-      return await _loadVrm(file);
+      return await _loadVrm(file, opts);
     }
     case 'vox': {
-      return await _loadVox(file);
+      return await _loadVox(file, opts);
     }
     case 'png':
     case 'gif':
     case 'jpg': {
-      return await _loadImg(file);
+      return await _loadImg(file, opts);
     }
     case 'js': {
-      return await _loadScript(file);
+      return await _loadScript(file, opts);
       break;
     }
     case 'wbn': {
-      return await _loadWebBundle(file);
+      return await _loadWebBundle(file, opts);
     }
     case 'url': {
-      return await _loadLink(file);
+      return await _loadLink(file, opts);
     }
   }
 };
