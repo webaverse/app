@@ -2240,12 +2240,13 @@ const geometryWorker = (() => {
 
     const allocator = new Allocator();
     const positions = allocator.alloc(Float32Array, geometry.attributes.position.count * 3);
-    for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
+    /* for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
       localVector
         .fromArray(geometry.attributes.position.data.array, j)
         .applyMatrix4(mesh.matrixWorld)
         .toArray(positions, i);
-    }
+    } */
+    positions.set(geometry.attributes.position.array);
     const indices = allocator.alloc(Uint32Array, geometry.index.count);
     indices.set(geometry.index.array);
     moduleInstance._cookGeometryPhysics(
@@ -2261,15 +2262,18 @@ const geometryWorker = (() => {
     allocator.freeAll();
 
     const dataPtr = scratchStack.u32[0];
-    /* const dataLength = scratchStack.u32[1];
+    const dataLength = scratchStack.u32[1];
     const streamPtr = scratchStack.u32[2];
-    const b = new Blob([
-      new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength),
-    ], {
-      type: 'application/octet-stream',
-    });
-    const u = URL.createObjectURL(b);
-    console.log('got u', u); */
+    
+    {
+      const b = new Blob([
+        new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength),
+      ], {
+        type: 'application/octet-stream',
+      });
+      const u = URL.createObjectURL(b);
+      console.log('got u', u);
+    }
 
     moduleInstance._addGeometryPhysics(
       physics,
