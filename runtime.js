@@ -1,5 +1,6 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
+import {KTX2Loader} from './KTX2Loader.js';
 import {VOXLoader} from './VOXLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 import {getExt, mergeMeshes} from './util.js';
@@ -13,6 +14,10 @@ import wbn from './wbn.js';
 const runtime = {};
 
 const textDecoder = new TextDecoder();
+const gltfLoader = new GLTFLoader();
+const ktx2Loader = new KTX2Loader();
+ktx2Loader.detectSupport(renderer);
+gltfLoader.setKTX2Loader(ktx2Loader);
 
 const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
 const importMap = {
@@ -31,7 +36,7 @@ const _loadGltf = async (file, {optimize = true} = {}) => {
   let o;
   try {
     o = await new Promise((accept, reject) => {
-      new GLTFLoader().load(u, accept, function onprogress() {}, reject);
+      gltfLoader.load(u, accept, function onprogress() {}, reject);
     });
   } catch(err) {
     console.warn(err);
@@ -82,7 +87,7 @@ const _loadGltf = async (file, {optimize = true} = {}) => {
   let o;
   try {
     o = await new Promise((accept, reject) => {
-      new GLTFLoader().load(u, accept, function onprogress() {}, reject);
+      gltfLoader.load(u, accept, function onprogress() {}, reject);
     });
   } finally {
     URL.revokeObjectURL(u);
@@ -111,7 +116,7 @@ const _loadGltf = async (file, {optimize = true} = {}) => {
   try {
     let xhr;
     o = await new Promise((accept, reject) => {
-      new GLTFLoader().load(u, accept, x => {
+      gltfLoader.load(u, accept, x => {
         xhr = x;
       }, reject);
     });
@@ -175,7 +180,7 @@ const _loadVrm = async file => {
   let o;
   try {
     o = await new Promise((accept, reject) => {
-      new GLTFLoader().load(u, accept, function onprogress() {}, reject);
+      gltfLoader.load(u, accept, function onprogress() {}, reject);
     });
   } catch(err) {
     console.warn(err);
