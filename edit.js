@@ -122,7 +122,7 @@ const parcelGeometry = (() => {
   geometry.setAttribute('typez', new THREE.BufferAttribute(typesz, 1)); */
   return geometry;
 })();
-const _makeFloorMesh = () => {
+/* const _makeFloorMesh = () => {
   const geometry = parcelGeometry;
   const material = new THREE.MeshBasicMaterial({
     color: 0x333333,
@@ -140,7 +140,7 @@ const _makeFloorMesh = () => {
 };
 const floorMesh = _makeFloorMesh();
 floorMesh.position.y = 0;
-scene.add(floorMesh);
+scene.add(floorMesh); */
 
 (() => {
   const effectController = {
@@ -378,6 +378,40 @@ scene.add(floorMesh);
     const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
     directionalLight.position.set(1, 2, 3);
     scene.add(directionalLight); */
+  }
+  
+  {
+    const u = 'assets/sword.glb';
+    const res = await fetch('./' + u);
+    const file = await res.blob();
+    file.name = u;
+    let mesh = await runtime.loadFile(file, {
+      optimize: false,
+    });
+    /* mesh.traverse(o => {
+      if (o.isLight) {
+        o.visible = false;
+      }
+    }); */
+    console.log('loading file sword', mesh);
+    scene.add(mesh);
+  }
+  
+  {
+    const u = 'assets/space.glb';
+    const res = await fetch('./' + u);
+    const file = await res.blob();
+    file.name = u;
+    let mesh = await runtime.loadFile(file, {
+      optimize: false,
+    });
+    mesh.traverse(o => {
+      if (o.isLight) {
+        o.visible = false;
+      }
+    });
+    console.log('loading file space', mesh);
+    scene.add(mesh);
   }
 
   /* {
