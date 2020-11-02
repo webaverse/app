@@ -50,6 +50,7 @@ class AppManager {
   constructor() {
     this.apps = [];
     this.animationLoops = [];
+    this.grabs = [null, null];
   }
   createApp(appId) {
     const app = new App(appId);
@@ -84,6 +85,12 @@ class AppManager {
     if (index !== -1) {
       this.animationLoops.splice(index, 1);
     }
+  }
+  grab(side, mesh) {
+    this.grabs[side === 'left' ? 0 : 1] = mesh;
+  }
+  release(side) {
+    this.grabs[side === 'left' ? 0 : 1] = null;
   }
   tick() {
     for (const al of this.animationLoops) {

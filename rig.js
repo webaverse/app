@@ -3,7 +3,7 @@ import {GLTFLoader} from './GLTFLoader.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, WaitQueue} from './util.js';
-import {renderer, scene} from './app-object.js';
+import {renderer, scene, appManager} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 
@@ -362,6 +362,16 @@ class RigManager {
       rigManager.localRig.decapitate();
     } else {
       rigManager.localRig.undecapitate();
+    }
+    
+    for (let i = 0; i < appManager.grabs.length; i++) {
+      const grab = appManager.grabs[i === 0 ? 1 : 0];
+      if (grab) {
+        const transforms = this.getRigTransforms();
+        const transform = transforms[i];
+        grab.position.copy(transform.position);
+        grab.quaternion.copy(transform.quaternion);
+      }
     }
   }
 }
