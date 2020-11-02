@@ -382,7 +382,7 @@ scene.add(floorMesh); */
   }
   
   {
-    const u = 'assets/sword2.glb';
+    const u = 'assets/sword.glb';
     const res = await fetch('./' + u);
     const file = await res.blob();
     file.name = u;
