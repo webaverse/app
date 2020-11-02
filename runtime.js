@@ -1,6 +1,8 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
-import {KTX2Loader} from './KTX2Loader.js';
+// import {KTX2Loader} from './KTX2Loader.js';
+import {MeshoptDecoder} from './meshopt_decoder.module.js';
+import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {VOXLoader} from './VOXLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 import {getExt, mergeMeshes} from './util.js';
@@ -15,9 +17,12 @@ const runtime = {};
 
 const textDecoder = new TextDecoder();
 const gltfLoader = new GLTFLoader();
-const ktx2Loader = new KTX2Loader();
-ktx2Loader.detectSupport(renderer);
-gltfLoader.setKTX2Loader(ktx2Loader);
+gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+const basisLoader = new BasisTextureLoader();
+// const ktx2Loader = new KTX2Loader();
+basisLoader.detectSupport(renderer);
+gltfLoader.setBasisLoader(basisLoader);
+basisLoader.detectSupport(renderer);
 
 const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
 const importMap = {

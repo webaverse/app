@@ -71,7 +71,7 @@ var GLTFLoader = ( function () {
 
 		this.dracoLoader = null;
 		this.ddsLoader = null;
-		this.ktx2Loader = null;
+		this.basisLoader = null;
 		this.meshoptDecoder = null;
 
 		this.pluginCallbacks = [];
@@ -203,9 +203,9 @@ var GLTFLoader = ( function () {
 
 		},
 
-		setKTX2Loader: function ( ktx2Loader ) {
+		setBasisLoader: function ( basisLoader ) {
 
-			this.ktx2Loader = ktx2Loader;
+			this.basisLoader = basisLoader;
 			return this;
 
 		},
@@ -292,7 +292,7 @@ var GLTFLoader = ( function () {
 				path: path || this.resourcePath || '',
 				crossOrigin: this.crossOrigin,
 				manager: this.manager,
-				ktx2Loader: this.ktx2Loader,
+				basisLoader: this.basisLoader,
 				meshoptDecoder: this.meshoptDecoder
 
 			} );
@@ -768,22 +768,23 @@ var GLTFLoader = ( function () {
 		var json = parser.json;
 
 		var textureDef = json.textures[ textureIndex ];
-
-		if ( ! textureDef.extensions || ! textureDef.extensions[ this.name ] ) {
+    if (json.images[textureDef.source] && json.images[textureDef.source].mimeType === 'image/basis') {
+      // nothing
+    } else if ( ! textureDef.extensions || ! textureDef.extensions[ this.name ] ) {
 
 			return null;
 
 		}
 
-		var extension = textureDef.extensions[ this.name ];
+		var extension = textureDef.extensions ? textureDef.extensions[ this.name ] : textureDef;
 		var source = json.images[ extension.source ];
-		var loader = parser.options.ktx2Loader;
+		var loader = parser.options.basisLoader;
 
 		if ( ! loader ) {
 
 			if ( json.extensionsRequired && json.extensionsRequired.indexOf( this.name ) >= 0 ) {
 
-				throw new Error( 'THREE.GLTFLoader: setKTX2Loader must be called before loading KTX2 textures' );
+				throw new Error( 'THREE.GLTFLoader: setBasisLoader must be called before loading Basis textures' );
 
 			} else {
 
