@@ -523,6 +523,9 @@ planet.addEventListener('load', async e => {
   }));
   scene.add(physicsCube);
   geometryManager.physicsCube = physicsCube;
+  
+  geometryWorker.addBoxGeometryPhysics(geometryManager.physics, new THREE.Vector3(0, -1, 0), new THREE.Quaternion(), new THREE.Vector3(100, 1, 100), 0x2, false);
+  geometryWorker.addBoxGeometryPhysics(geometryManager.physics, new THREE.Vector3(0, 5, 0), new THREE.Quaternion(), new THREE.Vector3(0.5, 0.5, 0.5), 0x3, true);
 
   loadPromise.accept();
 });
@@ -2344,6 +2347,26 @@ const geometryWorker = (() => {
       },
     };
   }; */
+  w.addBoxGeometryPhysics = (physics, position, quaternion, size, id, dynamic) => {
+    const allocator = new Allocator();
+    const p = allocator.alloc(Float32Array, 3);
+    const q = allocator.alloc(Float32Array, 4);
+    const s = allocator.alloc(Float32Array, 3);
+    
+    position.toArray(p);
+    quaternion.toArray(q);
+    size.toArray(s);
+    
+    moduleInstance._addBoxGeometryPhysics(
+      physics,
+      p.byteOffset,
+      q.byteOffset,
+      s.byteOffset,
+      id,
+      +dynamic,
+    );
+    allocator.freeAll();
+  };
   w.update = () => {
     if (moduleInstance) {
       if (geometryManager.currentChunkMesh) {
