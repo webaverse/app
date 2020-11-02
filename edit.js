@@ -396,6 +396,15 @@ scene.add(floorMesh); */
     });
     console.log('loading file sword', mesh);
     scene.add(mesh);
+    
+    // const sword = mesh.getObjectByName('sword');
+    const smg = mesh.getObjectByName('smg');
+    window.addEventListener('keydown', e => {
+      // console.log('got key', sword, e.keydown);
+      if (e.which === 70) {
+        appManager.grab('right', smg);
+      }
+    });
   }
   
   /* {
