@@ -50,7 +50,6 @@ const _loadGltf = async (file, {optimize = true} = {}) => {
   }
   o = o.scene;
 
-  console.log('optimize', optimize, new Error().stack);
   if (optimize) {
     const specs = [];
     o.traverse(o => {
