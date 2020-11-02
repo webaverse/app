@@ -331,7 +331,7 @@ scene.add(floorMesh); */
   }, 100); */
   
   {
-    const u = 'assets/firest32.glb';
+    const u = 'assets/firest33.glb';
     const res = await fetch('./' + u);
     const file = await res.blob();
     file.name = u;
