@@ -994,15 +994,26 @@ class Avatar {
       .distanceTo(modelBones.Left_wrist.getWorldPosition(new THREE.Vector3()));
     const handWidth = modelBones.Left_indexFinger1.getWorldPosition(new THREE.Vector3())
       .distanceTo(modelBones.Left_littleFinger1.getWorldPosition(new THREE.Vector3()));
-    this.fingerOffsetLeft = new THREE.Vector3(handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
-    this.fingerOffsetRight = new THREE.Vector3(-handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
+    this.handOffsetLeft = new THREE.Vector3(handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
+    this.handOffsetRight = new THREE.Vector3(-handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
 
+    const _makeInput = () => {
+      const result = new THREE.Object3D();
+      result.pointer = 0;
+      result.grip = 0;
+      return result;
+    };
 		this.inputs = {
+      hmd: _makeInput(),
+			leftGamepad: _makeInput(),
+			rightGamepad: _makeInput(),
+		};
+    this.sdkInputs = {
       hmd: this.poseManager.vrTransforms.head,
 			leftGamepad: this.poseManager.vrTransforms.leftHand,
 			rightGamepad: this.poseManager.vrTransforms.rightHand,
-		};
-    this.inputs.hmd.scaleFactor = 1;
+    };
+    this.sdkInputs.hmd.scaleFactor = 1;
     this.lastModelScaleFactor = 1;
 		this.outputs = {
 			eyes: this.shoulderTransforms.eyes,
@@ -1190,17 +1201,25 @@ class Avatar {
     this.shoulderTransforms.hips.updateMatrixWorld();
   }
 	update() {
-// return;
-
     const wasDecapitated = this.decapitated;
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
     }
-    
-    this.inputs.leftGamepad.position.add(localVector.copy(this.fingerOffsetLeft).applyQuaternion(this.inputs.leftGamepad.quaternion));
-    this.inputs.rightGamepad.position.add(localVector.copy(this.fingerOffsetRight).applyQuaternion(this.inputs.rightGamepad.quaternion));
 
-    const modelScaleFactor = this.inputs.hmd.scaleFactor;
+    this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
+    this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
+    this.sdkInputs.leftGamepad.position.copy(this.inputs.leftGamepad.position).add(localVector.copy(this.handOffsetLeft).applyQuaternion(this.inputs.leftGamepad.quaternion));
+    this.sdkInputs.leftGamepad.quaternion.copy(this.inputs.leftGamepad.quaternion);
+    this.sdkInputs.leftGamepad.pointer = this.inputs.leftGamepad.pointer;
+    this.sdkInputs.leftGamepad.grip = this.inputs.leftGamepad.grip;
+    this.sdkInputs.rightGamepad.position.copy(this.inputs.rightGamepad.position).add(localVector.copy(this.handOffsetRight).applyQuaternion(this.inputs.rightGamepad.quaternion));
+    this.sdkInputs.rightGamepad.quaternion.copy(this.inputs.rightGamepad.quaternion);
+    this.sdkInputs.rightGamepad.pointer = this.inputs.rightGamepad.pointer;
+    this.sdkInputs.rightGamepad.grip = this.inputs.rightGamepad.grip;
+    
+    window.sdkInputs = this.sdkInputs;
+
+    const modelScaleFactor = this.sdkInputs.hmd.scaleFactor;
     if (modelScaleFactor !== this.lastModelScaleFactor) {
       this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
       this.lastModelScaleFactor = modelScaleFactor;
@@ -1224,7 +1243,7 @@ class Avatar {
       };
       const _processFingerBones = left => {
         const fingerBones = left ? this.fingerBoneMap.left : this.fingerBoneMap.right;
-        const gamepadInput = left ? this.inputs.leftGamepad : this.inputs.rightGamepad;
+        const gamepadInput = left ? this.sdkInputs.leftGamepad : this.sdkInputs.rightGamepad;
         for (const fingerBone of fingerBones) {
           // if (fingerBone) {
             const {bones, finger} = fingerBone;
