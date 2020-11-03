@@ -271,15 +271,6 @@ const _loadImg = async file => {
   return mesh;
 };
 const _loadScript = async file => {
-  const arrayBuffer = await new Promise((accept, reject) => {
-    const fr = new FileReader();
-    fr.onload = function() {
-      accept(this.result);
-    };
-    fr.onerror = reject;
-    fr.readAsArrayBuffer(file);
-  });
-
   const appId = ++appIds;
   const mesh = makeIconMesh();
   mesh.geometry.boundingBox = new THREE.Box3(
@@ -331,25 +322,50 @@ const _loadScript = async file => {
     cachedUrls.push(mappedUrl);
     return mappedUrl;
   };
-  const _mapUrl = u => {
+  const urlCache = {};
+  const _mapUrl = async u => {
     const importUrl = localImportMap[u];
     if (importUrl) {
       return importUrl;
     } else {
-      return u;
+      const cachedUrl = urlCache[u];
+      if (cachedUrl) {
+        return cachedUrl;
+      } else {
+        const res = await fetch(u);
+        if (res.ok) {
+          let importScript = await res.text();
+          importScript = await _mapScript(importScript, u);
+          const cachedUrl = _getUrl(importScript);
+          urlCache[u] = cachedUrl;
+          return cachedUrl;
+        } else {
+          throw new Error('failed to load import url: ' + u);
+        }
+      }
     }
   };
-  const _mapScript = script => {
+  const _mapScript = async (script, scriptUrl) => {
     const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
+    const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
+      let u = match[2];
+      if (/^\.\//.test(u)) {
+        u = new URL(u, scriptUrl).href;
+      }
+      return await _mapUrl(u);
+    }));
+    let index = 0;
     script = script.replace(r, function() {
-      const u = _mapUrl(arguments[2]);
-      return arguments[1] + u + arguments[3];
+      return arguments[1] + replacements[index++] + arguments[3];
     });
     return script;
   };
 
   let u = file.url || URL.createObjectURL(file);
-  u = _mapUrl(u);
+  if (/^\.\//.test(u)) {
+    u = new URL(u, location.href).href;
+  }
+  u = await _mapUrl(u);
 
   return mesh;
 };
