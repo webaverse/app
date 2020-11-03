@@ -365,6 +365,15 @@ scene.add(floorMesh); */
   }
   
   {
+    const mesh = await runtime.loadFile({
+      name: 'index.js',
+      url: 'https://avaer.github.io/mirror/index.js',
+    });
+    mesh.run();
+    scene.add(mesh);
+  }
+  
+  {
     const u = 'assets/parkour.glb';
     const res = await fetch('./' + u);
     const file = await res.blob();
