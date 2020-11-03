@@ -387,6 +387,41 @@ scene.add(floorMesh); */
       }
     });
     console.log('loading file parkour', mesh);
+    {
+      const geometries = [];
+      const parcelSize = 100;
+      const _getGeometry = p => {
+        let g = geometries.find(g => g.boundingBox.containsPoint(p));
+        if (!g) {
+          g = new THREE.BufferGeometry();
+          const positions = new Float32Array(1024 * 1024 * 3);
+          g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+          const normals = new Float32Array(1024 * 1024 * 3);
+          g.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+          const minX = Math.min(p.x/parcelSize)*parcelSize;
+          const minZ = Math.min(p.z/parcelSize)*parcelSize;
+          g.boundingBox = new THREE.Box3(
+            new THREE.Vector3(minX, -Infinity, minX + parcelSize),
+            new THREE.Vector3(minZ, -Infinity, minZ + parcelSize),
+          );
+          let positionIndex = 0;
+          g.addPoint = (p, n) => {
+            p.toArray(positions, positionIndex);
+            n.toArray(normals, positionIndex);
+            positionIndex += 3;
+          };
+          geometries.push(g);
+        }
+        return g;
+      };
+      const {geometry} = mesh;
+      for (let i = 0; i < geometry.attributes.position.array.length; i += 3) {
+        const p = localVector.fromArray(geometry.attributes.position.array, i);
+        const n = localVector.fromArray(geometry.attributes.normal.array, i);
+        const g = _getGeometry(p);
+        g.addPoint(p, n);
+      }
+    }
     scene.add(mesh);
   }
   
