@@ -605,7 +605,7 @@ scene.add(floorMesh); */
     });
   }
   
-  /* {
+  {
     const u = 'assets/space.glb';
     const res = await fetch('./' + u);
     const file = await res.blob();
@@ -614,10 +614,13 @@ scene.add(floorMesh); */
       optimize: false,
     });
     mesh = mesh.children[0].children[0].children[0].children.find(c => c.name === 'laser_orange_04').children[0];
+    mesh.position.y = 1;
     mesh.material = new THREE.MeshBasicMaterial({map: mesh.material.emissiveMap});
+    const s = 0.1;
+    mesh.scale.set(s, s, s);
     console.log('loading file space', mesh);
     scene.add(mesh);
-  } */
+  }
 
   /* {
     const u = 'lightsaber.wbn';
