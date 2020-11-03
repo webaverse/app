@@ -391,7 +391,7 @@ scene.add(floorMesh); */
   }
   
   {
-    const u = 'assets/sword.glb';
+    const u = 'assets/sword2.glb';
     const res = await fetch('./' + u);
     const file = await res.blob();
     file.name = u;
@@ -405,8 +405,7 @@ scene.add(floorMesh); */
     });
     console.log('loading file sword', mesh);
     scene.add(mesh);
-    
-    // const sword = mesh.getObjectByName('sword');
+
     const smg = mesh.getObjectByName('smg');
     window.addEventListener('keydown', e => {
       // console.log('got key', sword, e.keydown);
