@@ -271,18 +271,86 @@ const _loadImg = async file => {
   return mesh;
 };
 const _loadScript = async file => {
+  const arrayBuffer = await new Promise((accept, reject) => {
+    const fr = new FileReader();
+    fr.onload = function() {
+      accept(this.result);
+    };
+    fr.onerror = reject;
+    fr.readAsArrayBuffer(file);
+  });
+
+  const appId = ++appIds;
   const mesh = makeIconMesh();
   mesh.geometry.boundingBox = new THREE.Box3(
     new THREE.Vector3(-1, -1/2, -0.1),
     new THREE.Vector3(1, 1/2, 0.1),
   );
   mesh.frustumCulled = false;
-  mesh.run = async () => {
-    const u = URL.createObjectURL(file);
-    await import(u).finally(() => {
-      URL.revokeObjectURL(u);
-    });
+  mesh.run = () => {
+    import(u)
+      .then(() => {
+        console.log('import returned');
+      }, err => {
+        console.warn('import failed', u, err);
+      })
+      .finally(() => {
+        for (const u of cachedUrls) {
+          URL.revokeObjectURL(u);
+        }
+      });
   };
+  mesh.destroy = () => {
+    appManager.destroyApp(appId);
+  };
+
+  const app = appManager.createApp(appId);
+  app.object = mesh;
+  const localImportMap = _clone(importMap);
+  localImportMap.app = (() => {
+    const s = `\
+      import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
+      const renderer = Object.create(_renderer);
+      renderer.setAnimationLoop = function(fn) {
+        appManager.setAnimationLoop(${appId}, fn);
+      };
+      const app = appManager.getApp(${appId});
+      export {renderer, scene, camera, orbitControls, app};
+    `;
+    const b = new Blob([s], {
+      type: 'application/javascript',
+    });
+    return URL.createObjectURL(b);
+  })();
+
+  const cachedUrls = [];
+  const _getUrl = u => {
+    const mappedUrl = URL.createObjectURL(new Blob([u], {
+      type: 'text/javascript',
+    }));
+    cachedUrls.push(mappedUrl);
+    return mappedUrl;
+  };
+  const _mapUrl = u => {
+    const importUrl = localImportMap[u];
+    if (importUrl) {
+      return importUrl;
+    } else {
+      return u;
+    }
+  };
+  const _mapScript = script => {
+    const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
+    script = script.replace(r, function() {
+      const u = _mapUrl(arguments[2]);
+      return arguments[1] + u + arguments[3];
+    });
+    return script;
+  };
+
+  let u = file.url || URL.createObjectURL(file);
+  u = _mapUrl(u);
+
   return mesh;
 };
 let appIds = 0;
