@@ -387,7 +387,6 @@ const _loadWebBundle = async file => {
   };
 
   const bundle = new wbn.Bundle(arrayBuffer);
-  // console.log('got bundle', bundle);
   const {urls} = bundle;
   for (const u of urls) {
     const response = bundle.getResponse(u);
@@ -530,7 +529,6 @@ runtime.loadFile = async (file, opts) => {
     }
     case 'js': {
       return await _loadScript(file, opts);
-      break;
     }
     case 'wbn': {
       return await _loadWebBundle(file, opts);
