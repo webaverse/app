@@ -1852,7 +1852,6 @@ bakeFormEl.addEventListener('submit', async e => {
           scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
           scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT*2,
         );
-        allocator.freeAll();
 
         const dataPtr = scratchStack.u32[0];
         const dataLength = scratchStack.u32[1];
@@ -1860,6 +1859,7 @@ bakeFormEl.addEventListener('submit', async e => {
         
         const result = new Uint8Array(dataLength);
         result.set(new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength));
+        allocator.freeAll();
         return result;
       };
       w.addGeometryPhysics = (physics, mesh) => {
