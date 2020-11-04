@@ -488,7 +488,7 @@ const _loadWebBundle = async file => {
   return mesh;
 };
 const _loadLink = async file => {
-  const url = await file.text();
+  const href = await file.text();
 
   const geometry = new THREE.CircleBufferGeometry(1, 32)
     .applyMatrix4(new THREE.Matrix4().makeScale(0.5, 1, 1));
@@ -563,7 +563,7 @@ const _loadLink = async file => {
   // portalMesh.position.y = 1;
   // scene.add(portalMesh);
 
-  const textMesh = makeTextMesh(url.slice(0, 80), undefined, 0.2, 'center', 'middle');
+  const textMesh = makeTextMesh(href.slice(0, 80), undefined, 0.2, 'center', 'middle');
   textMesh.position.y = 1.2;
   portalMesh.add(textMesh);
 
@@ -582,6 +582,7 @@ const _loadLink = async file => {
         if (timeDiff >= 2000) {
           renderer.setAnimationLoop(null);
           window.location.href = url;
+          window.location.href = href;
         }
       } else {
         inRangeStart = now;
