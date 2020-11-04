@@ -1858,7 +1858,8 @@ bakeFormEl.addEventListener('submit', async e => {
         const dataLength = scratchStack.u32[1];
         const streamPtr = scratchStack.u32[2];
         
-        const result = moduleInstance.HEAP8.slice(dataPtr, dataLength);
+        const result = new Uint8Array(dataLength);
+        result.set(new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength));
         return result;
       };
       w.addGeometryPhysics = (physics, mesh) => {
