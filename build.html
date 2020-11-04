@@ -2076,12 +2076,18 @@ bakeFormEl.addEventListener('submit', async e => {
       new GLTFLoader().load(u, accept, function onprogress() {}, reject);
     });
     o = o.scene;
+    o.updateMatrixWorld();
     let mesh = null;
     o.traverse(o => {
       if (!mesh && o.isMesh) {
         mesh = o;
       }
     });
+    mesh.geometry.applyMatrix4(mesh.matrixWorld);
+    mesh.position.set(0, 0, 0);
+    mesh.quaternion.set(0, 0, 0, 1);
+    mesh.scale.set(1, 1, 1);
+    mesh.updateMatrixWorld();
 
     const physicsBuffer = await geometryWorker.cookGeometryPhysics(physics, mesh);
     const b = new Blob([physicsBuffer], {
