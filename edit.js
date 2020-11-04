@@ -51,6 +51,7 @@ const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
+const localTriangle = new THREE.Triangle();
 
 let skybox = null;
 
@@ -405,21 +406,24 @@ scene.add(floorMesh); */
             new THREE.Vector3(minZ, -Infinity, minZ + parcelSize),
           );
           let positionIndex = 0;
-          g.addPoint = (p, n) => {
-            p.toArray(positions, positionIndex);
-            n.toArray(normals, positionIndex);
-            positionIndex += 3;
+          g.addPoint = (positionsArray, normalsArray, sourceIndex) => {
+            positions.set(positionsArray.toArray(sourceIndex, sourceIndex+9), positionIndex);
+            normals.set(normalsArray.toArray(sourceIndex, sourceIndex+9), positionIndex);
+            positionIndex += 9;
           };
           geometries.push(g);
         }
         return g;
       };
       const {geometry} = mesh;
-      for (let i = 0; i < geometry.attributes.position.array.length; i += 3) {
-        const p = localVector.fromArray(geometry.attributes.position.array, i);
-        const n = localVector.fromArray(geometry.attributes.normal.array, i);
-        const g = _getGeometry(p);
-        g.addPoint(p, n);
+      for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
+        const center = localTriangle.set(
+          localVector.fromArray(geometry.attributes.position.array, i),
+          localVector2.fromArray(geometry.attributes.position.array, i+3),
+          localVector3.fromArray(geometry.attributes.position.array, i+6),
+        ).getCenter(localVector);
+        const g = _getGeometry(center);
+        g.addPoint(geometry.attributes.position.array, geometry.attributes.normal.array, i);
       }
     }
     scene.add(mesh);
