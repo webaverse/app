@@ -45,6 +45,7 @@ const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -379,61 +380,79 @@ scene.add(floorMesh); */
     const res = await fetch('./' + u);
     const file = await res.blob();
     file.name = u;
-    let mesh = await runtime.loadFile(file, {
+    const o = await runtime.loadFile(file, {
       optimize: false,
     });
-    mesh.traverse(o => {
-      if (o.isLight) {
-        o.visible = false;
+    let mesh = null;
+    o.traverse(o => {
+      if (!mesh && o.isMesh) {
+        mesh = o;
       }
     });
     console.log('loading file parkour', mesh);
+    scene.add(mesh);
     {
       const geometries = [];
-      const parcelSize = 100;
+      const parcelSize = 200;
       const _getGeometry = p => {
         let g = geometries.find(g => g.boundingBox.containsPoint(p));
         if (!g) {
           g = new THREE.BufferGeometry();
-          const positions = new Float32Array(1024 * 1024 * 3);
-          g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-          const normals = new Float32Array(1024 * 1024 * 3);
-          g.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-          const minX = Math.min(p.x/parcelSize)*parcelSize;
-          const minZ = Math.min(p.z/parcelSize)*parcelSize;
+          const positions = new Float32Array(1024 * 1024 * 8);
+          const normals = new Float32Array(1024 * 1024 * 8);
+          
+          const minX = Math.floor(p.x/parcelSize)*parcelSize;
+          const minZ = Math.floor(p.z/parcelSize)*parcelSize;
           g.boundingBox = new THREE.Box3(
-            new THREE.Vector3(minX, -Infinity, minX + parcelSize),
-            new THREE.Vector3(minZ, -Infinity, minZ + parcelSize),
+            new THREE.Vector3(minX, -Infinity, minZ),
+            new THREE.Vector3(minX + parcelSize, Infinity, minZ + parcelSize),
           );
+          g.boundingSphere = new THREE.Sphere(g.boundingBox.min.clone().add(g.boundingBox.max).divideScalar(2), Math.sqrt((parcelSize**2)*3));
           let positionIndex = 0;
-          g.addPoint = (positionsArray, normalsArray, sourceIndex) => {
-            positions.set(positionsArray.toArray(sourceIndex, sourceIndex+9), positionIndex);
-            normals.set(normalsArray.toArray(sourceIndex, sourceIndex+9), positionIndex);
-            positionIndex += 9;
+          g.addPoint = (p, n) => {
+            p.toArray(positions, positionIndex);
+            n.toArray(normals, positionIndex);
+            positionIndex += 3;
+            if (positionIndex > positions.length) {
+              debugger;
+            }
+          };
+          g.finalize = () => {
+            g.setAttribute('position', new THREE.BufferAttribute(positions.slice(0, positionIndex), 3));
+            g.setAttribute('normal', new THREE.BufferAttribute(normals.slice(0, positionIndex), 3));
           };
           geometries.push(g);
         }
         return g;
       };
+      mesh.updateMatrixWorld();
       const {geometry} = mesh;
-      for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
+      console.log('got mesh', {mesh, geometry});
+      for (let i = 0; i < geometry.index.array.length; i += 3) {
+        const a = geometry.index.array[i];
+        const b = geometry.index.array[i+1];
+        const c = geometry.index.array[i+2];
         const center = localTriangle.set(
-          localVector.fromArray(geometry.attributes.position.array, i),
-          localVector2.fromArray(geometry.attributes.position.array, i+3),
-          localVector3.fromArray(geometry.attributes.position.array, i+6),
-        ).getCenter(localVector);
+          localVector.fromArray(geometry.attributes.position.array, a*3).applyMatrix4(mesh.matrixWorld),
+          localVector2.fromArray(geometry.attributes.position.array, b*3).applyMatrix4(mesh.matrixWorld),
+          localVector3.fromArray(geometry.attributes.position.array, c*3).applyMatrix4(mesh.matrixWorld),
+        ).getMidpoint(localVector4);
+        localVector.fromArray(geometry.attributes.normal.array, a*3).applyQuaternion(mesh.quaternion);
+        localVector2.fromArray(geometry.attributes.normal.array, b*3).applyQuaternion(mesh.quaternion);
+        localVector3.fromArray(geometry.attributes.normal.array, c*3).applyQuaternion(mesh.quaternion);
         const g = _getGeometry(center);
-        g.addPoint(geometry.attributes.position.array, geometry.attributes.normal.array, i);
+        g.addPoint(localTriangle.a, localVector);
+        g.addPoint(localTriangle.b, localVector2);
+        g.addPoint(localTriangle.c, localVector3);
       }
       const meshes = geometries.map(geometry => {
-        const mesh = new THREE.Mesh(geometry, mesh.material);
-        return mesh;
+        geometry.finalize();
+        return new THREE.Mesh(geometry, mesh.material);
       });
       for (const mesh of meshes) {
         scene.add(mesh);
       }
     }
-    // scene.add(mesh);
   }
   
   {
