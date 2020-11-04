@@ -2299,6 +2299,9 @@ const geometryWorker = (() => {
     );
     allocator.freeAll();
   };
+  w.removeGeometryPhysics = (physics, id) => {
+    moduleInstance.removeGeometryPhysics(physics, id);
+  };
   /* w.earcut = (tracker, ps, holes, holeCounts, points, z, zs, objectId, position, quaternion) => {
     const inPs = w.alloc(Float32Array, ps.length);
     inPs.set(ps);
