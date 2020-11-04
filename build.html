@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+<body>
+  <form id=split-form>
+    <input type=number value=100 id=split-size>
+    <input type=file id=split-file>
+    <input type=submit>
+  </form>
+<script type=module>
+import * as THREE from './three.module.js';
+import {GLTFLoader} from './GLTFLoader.js';
+import {GLTFExporter} from './GLTFExporter.js';
+import {downloadFile} from './util.js';
+
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
+const localTriangle = new THREE.Triangle();
+
+const splitFormEl = document.getElementById('split-form');
+const splitSizeEl = document.getElementById('split-size');
+const splitFileEl = document.getElementById('split-file');
+
+splitFormEl.addEventListener('submit', async e => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  const [file] = splitFileEl.files;
+  if (file) {
+    let o = await new Promise((accept, reject) => {
+      const u = URL.createObjectURL(file);
+      new GLTFLoader().load(u, accept, function onprogress() {}, reject);
+    });
+    o = o.scene;
+    let mesh = null;
+    o.traverse(o => {
+      if (!mesh && o.isMesh) {
+        mesh = o;
+      }
+    });
+    const geometries = [];
+    const parcelSize = parseInt(splitSizeEl.value, 10);
+    const _getGeometry = p => {
+      let g = geometries.find(g => g.boundingBox.containsPoint(p));
+      if (!g) {
+        g = new THREE.BufferGeometry();
+        const positions = new Float32Array(1024 * 1024 * 8);
+        const normals = new Float32Array(1024 * 1024 * 8);
+        
+        const minX = Math.floor(p.x/parcelSize)*parcelSize;
+        const minZ = Math.floor(p.z/parcelSize)*parcelSize;
+        g.boundingBox = new THREE.Box3(
+          new THREE.Vector3(minX, -Infinity, minZ),
+          new THREE.Vector3(minX + parcelSize, Infinity, minZ + parcelSize),
+        );
+        g.boundingSphere = new THREE.Sphere(g.boundingBox.min.clone().add(g.boundingBox.max).divideScalar(2), Math.sqrt((parcelSize**2)*3));
+        let positionIndex = 0;
+        g.addPoint = (p, n) => {
+          p.toArray(positions, positionIndex);
+          n.toArray(normals, positionIndex);
+          positionIndex += 3;
+          if (positionIndex > positions.length) {
+            debugger;
+          }
+        };
+        g.finalize = () => {
+          g.setAttribute('position', new THREE.BufferAttribute(positions.slice(0, positionIndex), 3));
+          g.setAttribute('normal', new THREE.BufferAttribute(normals.slice(0, positionIndex), 3));
+        };
+        geometries.push(g);
+      }
+      return g;
+    };
+    mesh.updateMatrixWorld();
+    const {geometry} = mesh;
+    for (let i = 0; i < geometry.index.array.length; i += 3) {
+      const a = geometry.index.array[i];
+      const b = geometry.index.array[i+1];
+      const c = geometry.index.array[i+2];
+      const center = localTriangle.set(
+        localVector.fromArray(geometry.attributes.position.array, a*3).applyMatrix4(mesh.matrixWorld),
+        localVector2.fromArray(geometry.attributes.position.array, b*3).applyMatrix4(mesh.matrixWorld),
+        localVector3.fromArray(geometry.attributes.position.array, c*3).applyMatrix4(mesh.matrixWorld),
+      ).getMidpoint(localVector4);
+      localVector.fromArray(geometry.attributes.normal.array, a*3).applyQuaternion(mesh.quaternion);
+      localVector2.fromArray(geometry.attributes.normal.array, b*3).applyQuaternion(mesh.quaternion);
+      localVector3.fromArray(geometry.attributes.normal.array, c*3).applyQuaternion(mesh.quaternion);
+      const g = _getGeometry(center);
+      g.addPoint(localTriangle.a, localVector);
+      g.addPoint(localTriangle.b, localVector2);
+      g.addPoint(localTriangle.c, localVector3);
+    }
+    const meshes = geometries.map(geometry => {
+      geometry.finalize();
+      return new THREE.Mesh(geometry, mesh.material);
+    });
+
+    const newMesh = new THREE.Scene();
+    for (const child of meshes) {
+      newMesh.add(child);
+    }
+    const data = await new Promise((accept, reject) => {
+      new GLTFExporter().parse(newMesh, accept, {
+        binary: true,
+        includeCustomExtensions: true,
+      });
+    });
+    const b = new Blob([data], {
+      type: 'application/octet-stream',
+    });
+    downloadFile(b, 'target.glb');
+  }
+});
+</script>
+</body>
+</html>
