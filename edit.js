@@ -425,8 +425,15 @@ scene.add(floorMesh); */
         const g = _getGeometry(center);
         g.addPoint(geometry.attributes.position.array, geometry.attributes.normal.array, i);
       }
+      const meshes = geometries.map(geometry => {
+        const mesh = new THREE.Mesh(geometry, mesh.material);
+        return mesh;
+      });
+      for (const mesh of meshes) {
+        scene.add(mesh);
+      }
     }
-    scene.add(mesh);
+    // scene.add(mesh);
   }
   
   {
