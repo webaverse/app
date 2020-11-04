@@ -1893,7 +1893,7 @@ bakeFormEl.addEventListener('submit', async e => {
         const dataLength = scratchStack.u32[1];
         const streamPtr = scratchStack.u32[2];
         
-        {
+        /* {
           const b = new Blob([
             new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength),
           ], {
@@ -1901,7 +1901,7 @@ bakeFormEl.addEventListener('submit', async e => {
           });
           const u = URL.createObjectURL(b);
           console.log('got u', u);
-        }
+        } */
 
         moduleInstance._addGeometryPhysics(
           physics,
