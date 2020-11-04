@@ -378,7 +378,7 @@ scene.add(floorMesh); */
   {
     const mesh = await runtime.loadFile({
       name: 'parkour.scn',
-      url: './parkour/parkour.scn',
+      url: 'https://avaer.github.io/parkour/parkour.scn',
     }, {
       optimize: false,
     });
