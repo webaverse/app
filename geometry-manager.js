@@ -2268,7 +2268,7 @@ const geometryWorker = (() => {
     const dataLength = scratchStack.u32[1];
     const streamPtr = scratchStack.u32[2];
     
-    {
+    /* {
       const b = new Blob([
         new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength),
       ], {
@@ -2276,7 +2276,7 @@ const geometryWorker = (() => {
       });
       const u = URL.createObjectURL(b);
       console.log('got u', u);
-    }
+    } */
 
     moduleInstance._addGeometryPhysics(
       physics,
