@@ -2237,7 +2237,7 @@ const geometryWorker = (() => {
       bitang,
     };
   };
-  w.addGeometryPhysics = (physics, mesh) => {
+  w.addGeometryPhysics = (physics, mesh, id) => {
     mesh.updateMatrixWorld();
     const {geometry} = mesh;
 
@@ -2282,10 +2282,11 @@ const geometryWorker = (() => {
       physics,
       dataPtr,
       dataLength,
+      id,
       streamPtr,
     );
   };
-  w.addCookedGeometryPhysics = (physics, buffer) => {
+  w.addCookedGeometryPhysics = (physics, buffer, id) => {
     const allocator = new Allocator();
     const buffer2 = allocator.alloc(Uint8Array, buffer.length);
     buffer2.set(buffer);
@@ -2293,6 +2294,7 @@ const geometryWorker = (() => {
       physics,
       buffer2.byteOffset,
       buffer2.byteLength,
+      id,
       0,
     );
     allocator.freeAll();
