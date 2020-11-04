@@ -363,7 +363,7 @@ scene.add(floorMesh); */
     console.log('loaded file', mesh);
     scene.add(mesh);
 
-    geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, mesh);
+    geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, mesh, 0x100);
   }
   
   {
@@ -376,82 +376,50 @@ scene.add(floorMesh); */
   }
   
   {
-    const u = 'assets/parkour.glb';
-    const res = await fetch('./' + u);
-    const file = await res.blob();
-    file.name = u;
-    const o = await runtime.loadFile(file, {
-      optimize: false,
-    });
-    let mesh = null;
-    o.traverse(o => {
-      if (!mesh && o.isMesh) {
-        mesh = o;
-      }
-    });
-    console.log('loading file parkour', mesh);
-    scene.add(mesh);
     {
-      const geometries = [];
-      const parcelSize = 200;
-      const _getGeometry = p => {
-        let g = geometries.find(g => g.boundingBox.containsPoint(p));
-        if (!g) {
-          g = new THREE.BufferGeometry();
-          const positions = new Float32Array(1024 * 1024 * 8);
-          const normals = new Float32Array(1024 * 1024 * 8);
-          
-          const minX = Math.floor(p.x/parcelSize)*parcelSize;
-          const minZ = Math.floor(p.z/parcelSize)*parcelSize;
-          g.boundingBox = new THREE.Box3(
-            new THREE.Vector3(minX, -Infinity, minZ),
-            new THREE.Vector3(minX + parcelSize, Infinity, minZ + parcelSize),
-          );
-          g.boundingSphere = new THREE.Sphere(g.boundingBox.min.clone().add(g.boundingBox.max).divideScalar(2), Math.sqrt((parcelSize**2)*3));
-          let positionIndex = 0;
-          g.addPoint = (p, n) => {
-            p.toArray(positions, positionIndex);
-            n.toArray(normals, positionIndex);
-            positionIndex += 3;
-            if (positionIndex > positions.length) {
-              debugger;
-            }
-          };
-          g.finalize = () => {
-            g.setAttribute('position', new THREE.BufferAttribute(positions.slice(0, positionIndex), 3));
-            g.setAttribute('normal', new THREE.BufferAttribute(normals.slice(0, positionIndex), 3));
-          };
-          geometries.push(g);
-        }
-        return g;
-      };
-      mesh.updateMatrixWorld();
-      const {geometry} = mesh;
-      console.log('got mesh', {mesh, geometry});
-      for (let i = 0; i < geometry.index.array.length; i += 3) {
-        const a = geometry.index.array[i];
-        const b = geometry.index.array[i+1];
-        const c = geometry.index.array[i+2];
-        const center = localTriangle.set(
-          localVector.fromArray(geometry.attributes.position.array, a*3).applyMatrix4(mesh.matrixWorld),
-          localVector2.fromArray(geometry.attributes.position.array, b*3).applyMatrix4(mesh.matrixWorld),
-          localVector3.fromArray(geometry.attributes.position.array, c*3).applyMatrix4(mesh.matrixWorld),
-        ).getMidpoint(localVector4);
-        localVector.fromArray(geometry.attributes.normal.array, a*3).applyQuaternion(mesh.quaternion);
-        localVector2.fromArray(geometry.attributes.normal.array, b*3).applyQuaternion(mesh.quaternion);
-        localVector3.fromArray(geometry.attributes.normal.array, c*3).applyQuaternion(mesh.quaternion);
-        const g = _getGeometry(center);
-        g.addPoint(localTriangle.a, localVector);
-        g.addPoint(localTriangle.b, localVector2);
-        g.addPoint(localTriangle.c, localVector3);
-      }
-      const meshes = geometries.map(geometry => {
-        geometry.finalize();
-        return new THREE.Mesh(geometry, mesh.material);
+      const u = 'assets/parkour3.glb';
+      const res = await fetch('./' + u);
+      const file = await res.blob();
+      file.name = u;
+      const o = await runtime.loadFile(file, {
+        optimize: false,
       });
-      for (const mesh of meshes) {
-        scene.add(mesh);
-      }
+      let mesh = null;
+      o.traverse(o => {
+        if (!mesh && o.isMesh) {
+          mesh = o;
+        }
+      });
+      scene.add(mesh);
+    }
+    /* {
+      const u = 'assets/parkour.glb';
+      const res = await fetch('./' + u);
+      const file = await res.blob();
+      file.name = u;
+      const o = await runtime.loadFile(file, {
+        optimize: false,
+      });
+      o.updateMatrixWorld();
+      let mesh = null;
+      o.traverse(o => {
+        if (!mesh && o.isMesh) {
+          mesh = o;
+        }
+      });
+      mesh.geometry.applyMatrix4(mesh.matrixWorld);
+      mesh.position.set(0, 0, 0);
+      mesh.quaternion.set(0, 0, 0, 1);
+      mesh.scale.set(1, 1, 1);
+      mesh.updateMatrixWorld();
+      console.log('adding', mesh);
+      geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, mesh, 0x101); 
+    } */
+    {
+      const res = await fetch('assets/parkour.bin');
+      let physicsBuffer = await res.arrayBuffer();
+      physicsBuffer = new Uint8Array(physicsBuffer);
+      geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, 0x101);
     }
   }
   
