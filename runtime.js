@@ -7,6 +7,7 @@ import {VOXLoader} from './VOXLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 import {getExt, mergeMeshes} from './util.js';
 // import {bake} from './bakeUtils.js';
+// import geometryManager from './geometry-manager.js';
 import {rigManager} from './rig.js';
 import {makeIconMesh, makeTextMesh} from './vr-ui.js';
 import {renderer, appManager} from './app-object.js';
@@ -14,6 +15,7 @@ import wbn from './wbn.js';
 // import {storageHost} from './constants.js';
 
 const runtime = {};
+let nextPhysicsId = 0;
 
 const textDecoder = new TextDecoder();
 const gltfLoader = new GLTFLoader();
@@ -487,6 +489,57 @@ const _loadWebBundle = async file => {
 
   return mesh;
 };
+const _loadScn = async (file, opts) => {
+  let u = file.url || URL.createObjectURL(file);
+  if (/^\.\//.test(u)) {
+    u = new URL(u, location.href).href;
+  }
+  
+  const res = await fetch(u);
+  const j = await res.json();
+  const {objects} = j;
+  
+  const scene = new THREE.Object3D();
+  const physicsBuffers = [];
+  let physicsIds = [];
+
+  for (const object of objects) {
+    let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, physics_url} = object;
+    start_url = new URL(start_url, u).href;
+    if (physics_url) {
+      physics_url = new URL(physics_url, u).href;
+    }
+
+    const res = await fetch(start_url);
+    const blob = await res.blob();
+    blob.name = start_url;
+    const mesh = await runtime.loadFile(blob, opts);
+    mesh.position.fromArray(position);
+    mesh.quaternion.fromArray(quaternion);
+    mesh.scale.fromArray(scale);
+    scene.add(mesh);
+    
+    if (physics_url) {
+      const res = await fetch(physics_url);
+      let physicsBuffer = await res.arrayBuffer();
+      physicsBuffer = new Uint8Array(physicsBuffer);
+      physicsBuffers.push(physicsBuffer);
+    }
+  }
+  scene.run = ({geometryManager}) => {
+    physicsIds = physicsBuffers.map(physicsBuffer => {
+      const physicsId = ++nextPhysicsId;
+      geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, physicsId);
+    });
+  };
+  scene.destroy = ({geometryManager}) => {
+    for (const physicsId of physicsIds) {
+      geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsId);
+    }
+    physicsIds.length = 0;
+  };
+  return scene;
+};
 const _loadLink = async file => {
   const href = await file.text();
 
@@ -581,7 +634,6 @@ const _loadLink = async file => {
         const timeDiff = now - inRangeStart;
         if (timeDiff >= 2000) {
           renderer.setAnimationLoop(null);
-          window.location.href = url;
           window.location.href = href;
         }
       } else {
@@ -617,6 +669,9 @@ runtime.loadFile = async (file, opts) => {
     }
     case 'wbn': {
       return await _loadWebBundle(file, opts);
+    }
+    case 'scn': {
+      return await _loadScn(file, opts);
     }
     case 'url': {
       return await _loadLink(file, opts);
