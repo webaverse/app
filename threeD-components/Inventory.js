@@ -56,6 +56,7 @@ export const Inventory = (props = {}) => {
       .threeD-inventory {
         display: flex;
         height: ${2048 - 200}px;
+        background-color: rgba(255, 255, 255, 0.7);
       }
       .avatar {
         display: flex;
