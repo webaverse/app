@@ -376,6 +376,24 @@ scene.add(floorMesh); */
   }
   
   {
+    const mesh = await runtime.loadFile({
+      name: 'parkour.scn',
+      url: './parkour/parkour.scn',
+    }, {
+      optimize: false,
+    });
+    const runSpec = {
+      geometryManager,
+    };
+    mesh.run(runSpec);
+    scene.add(mesh);
+    /* const res = await fetch('assets/parkour.bin');
+    let physicsBuffer = await res.arrayBuffer();
+    physicsBuffer = new Uint8Array(physicsBuffer);
+    geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, 0x101); */
+  }
+  
+  /* {
     {
       const u = 'assets/parkour3.glb';
       const res = await fetch('./' + u);
@@ -392,36 +410,13 @@ scene.add(floorMesh); */
       });
       scene.add(mesh);
     }
-    /* {
-      const u = 'assets/parkour.glb';
-      const res = await fetch('./' + u);
-      const file = await res.blob();
-      file.name = u;
-      const o = await runtime.loadFile(file, {
-        optimize: false,
-      });
-      o.updateMatrixWorld();
-      let mesh = null;
-      o.traverse(o => {
-        if (!mesh && o.isMesh) {
-          mesh = o;
-        }
-      });
-      mesh.geometry.applyMatrix4(mesh.matrixWorld);
-      mesh.position.set(0, 0, 0);
-      mesh.quaternion.set(0, 0, 0, 1);
-      mesh.scale.set(1, 1, 1);
-      mesh.updateMatrixWorld();
-      console.log('adding', mesh);
-      geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, mesh, 0x101); 
-    } */
     {
       const res = await fetch('assets/parkour.bin');
       let physicsBuffer = await res.arrayBuffer();
       physicsBuffer = new Uint8Array(physicsBuffer);
       geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, 0x101);
     }
-  }
+  } */
   
   {
     const u = 'assets/sword2.glb';
