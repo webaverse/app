@@ -30,6 +30,8 @@ const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).
 const importMap = {
   three: _importMapUrl('./three.module.js'),
   app: _importMapUrl('./app-object.js'),
+  runtime: _importMapUrl('./runtime.js'),
+  physicsManager: _importMapUrl('./physics-manager.js'),
   BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
   GLTFLoader: _importMapUrl('./GLTFLoader.js'),
 };
@@ -303,12 +305,14 @@ const _loadScript = async file => {
   localImportMap.app = (() => {
     const s = `\
       import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
+      import runtime from ${JSON.stringify(importMap.runtime)};
+      import physics from ${JSON.stringify(importMap.physicsManager)};
       const renderer = Object.create(_renderer);
       renderer.setAnimationLoop = function(fn) {
         appManager.setAnimationLoop(${appId}, fn);
       };
       const app = appManager.getApp(${appId});
-      export {renderer, scene, camera, orbitControls, app};
+      export {renderer, scene, camera, orbitControls, runtime, physics, app, appManager};
     `;
     const b = new Blob([s], {
       type: 'application/javascript',
@@ -412,12 +416,14 @@ const _loadWebBundle = async file => {
   localImportMap.app = (() => {
     const s = `\
       import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
+      import runtime from ${JSON.stringify(importMap.runtime)};
+      import physics from ${JSON.stringify(importMap.physicsManager)};
       const renderer = Object.create(_renderer);
       renderer.setAnimationLoop = function(fn) {
         appManager.setAnimationLoop(${appId}, fn);
       };
       const app = appManager.getApp(${appId});
-      export {renderer, scene, camera, orbitControls, app};
+      export {renderer, scene, camera, orbitControls, runtime, physics, app, appManager};
     `;
     const b = new Blob([s], {
       type: 'application/javascript',
