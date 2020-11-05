@@ -390,6 +390,20 @@ scene.add(floorMesh); */
   }
   
   {
+    const mesh = await runtime.loadFile({
+      name: 'index.js',
+      url: './weapons/index.js',
+    }, {
+      optimize: false,
+    });
+    const runSpec = {
+      geometryManager,
+    };
+    mesh.run(runSpec);
+    scene.add(mesh);
+  }
+
+  /* {
     const u = 'assets/sword2.glb';
     const res = await fetch('./' + u);
     const file = await res.blob();
@@ -598,8 +612,8 @@ scene.add(floorMesh); */
       scene.add(shotMesh);
       shots.push(shotMesh);
     });
-  }
-  
+  } */
+
   {
     const u = 'assets/space.glb';
     const res = await fetch('./' + u);
@@ -805,8 +819,8 @@ const _tickPlanetAnimation = factor => {
 const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 const startTime = Date.now();
-let shots = [];
-let explosionMeshes = [];
+// let shots = [];
+// let explosionMeshes = [];
 function animate(timestamp, frame) {
   timestamp = timestamp || performance.now();
   const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
@@ -1084,7 +1098,7 @@ function animate(timestamp, frame) {
   }
   planet.update();
 
-  shots = shots.filter(shot => shot.update(now, timeDiff));
+  /* shots = shots.filter(shot => shot.update(now, timeDiff));
   explosionMeshes = explosionMeshes.filter(explosionMesh => {
     explosionMesh.material.uniforms.uAnimation.value += timeDiff;
     if (explosionMesh.material.uniforms.uAnimation.value < 1) {
@@ -1093,7 +1107,7 @@ function animate(timestamp, frame) {
       scene.remove(explosionMesh);
       return false;
     }
-  });
+  }); */
 
   appManager.tick(timestamp, frame);
   
