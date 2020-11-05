@@ -399,6 +399,8 @@ scene.add(floorMesh); */
       optimize: false,
     });
     mesh.run();
+    mesh.position.set(-4, 0, -2);
+    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0));
     scene.add(mesh);
   }
 
