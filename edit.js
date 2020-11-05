@@ -762,17 +762,13 @@ function animate(timestamp, frame) {
     itemMesh.update();
   }
   if (physicsCubePhysicsId !== 0) {
-    const updatesIn = ((updateIndex%100) === 0) ? [{
-      id: physicsCubePhysicsId,
-      position: new THREE.Vector3(0, 10, 0),
-      quaternion: new THREE.Quaternion(0, 0, 0, 1),
-    }] : [];
-    const updatesOut = geometryManager.geometryWorker.simulatePhysics(geometryManager.physics, updatesIn, timeDiff);
-    for (let i = 0; i < updatesOut.length; i++) {
-      const {position, quaternion} = updatesOut[i];
-      physicsCube.position.copy(position);
-      physicsCube.quaternion.copy(quaternion);
+    if ((updateIndex % 100) === 0) {
+      physicsManager.setPhysicsTransform(physicsCubePhysicsId, new THREE.Vector3(0, 10, 0), new THREE.Quaternion(0, 0, 0, 1));
     }
+    physicsManager.simulatePhysics(timeDiff);
+    const {position, quaternion} = physicsManager.getPhysicsTransform(physicsCubePhysicsId);
+    physicsCube.position.copy(position);
+    physicsCube.quaternion.copy(quaternion);
     updateIndex++;
   }
 

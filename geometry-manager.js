@@ -2235,12 +2235,6 @@ const geometryWorker = (() => {
 
     const allocator = new Allocator();
     const positions = allocator.alloc(Float32Array, geometry.attributes.position.count * 3);
-    /* for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
-      localVector
-        .fromArray(geometry.attributes.position.data.array, j)
-        .applyMatrix4(mesh.matrixWorld)
-        .toArray(positions, i);
-    } */
     positions.set(geometry.attributes.position.array);
     const indices = allocator.alloc(Uint32Array, geometry.index.count);
     indices.set(geometry.index.array);
@@ -2259,16 +2253,6 @@ const geometryWorker = (() => {
     const dataPtr = scratchStack.u32[0];
     const dataLength = scratchStack.u32[1];
     const streamPtr = scratchStack.u32[2];
-    
-    /* {
-      const b = new Blob([
-        new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength),
-      ], {
-        type: 'application/octet-stream',
-      });
-      const u = URL.createObjectURL(b);
-      console.log('got u', u);
-    } */
 
     moduleInstance._addGeometryPhysics(
       physics,
@@ -2290,6 +2274,39 @@ const geometryWorker = (() => {
       0,
     );
     allocator.freeAll();
+  };
+  w.addConvexGeometryPhysics = (physics, mesh, id) => {
+    mesh.updateMatrixWorld();
+    const {geometry} = mesh;
+
+    const allocator = new Allocator();
+    const positions = allocator.alloc(Float32Array, geometry.attributes.position.count * 3);
+    positions.set(geometry.attributes.position.array);
+    const indices = allocator.alloc(Uint32Array, geometry.index.count);
+    indices.set(geometry.index.array);
+    moduleInstance._cookConvexGeometryPhysics(
+      physics,
+      positions.byteOffset,
+      indices.byteOffset,
+      positions.length,
+      indices.length,
+      scratchStack.u32.byteOffset,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT*2,
+    );
+    allocator.freeAll();
+
+    const dataPtr = scratchStack.u32[0];
+    const dataLength = scratchStack.u32[1];
+    const streamPtr = scratchStack.u32[2];
+
+    moduleInstance._addConvexGeometryPhysics(
+      physics,
+      dataPtr,
+      dataLength,
+      id,
+      streamPtr,
+    );
   };
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance.removeGeometryPhysics(physics, id);
