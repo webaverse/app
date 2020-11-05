@@ -372,11 +372,11 @@ const _loadScript = async file => {
     return script;
   };
 
-  let u = file.url || URL.createObjectURL(file);
-  if (/^\.\//.test(u)) {
-    u = new URL(u, location.href).href;
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (/^\.\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, location.href).href;
   }
-  u = await _mapUrl(u);
+  const u = await _mapUrl(srcUrl);
 
   return mesh;
 };
@@ -501,12 +501,12 @@ const _loadWebBundle = async file => {
   return mesh;
 };
 const _loadScn = async (file, opts) => {
-  let u = file.url || URL.createObjectURL(file);
-  if (/^\.\//.test(u)) {
-    u = new URL(u, location.href).href;
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (/^\.\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, location.href).href;
   }
   
-  const res = await fetch(u);
+  const res = await fetch(srcUrl);
   const j = await res.json();
   const {objects} = j;
   
@@ -516,9 +516,9 @@ const _loadScn = async (file, opts) => {
 
   for (const object of objects) {
     let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, physics_url} = object;
-    start_url = new URL(start_url, u).href;
+    start_url = new URL(start_url, srcUrl).href;
     if (physics_url) {
-      physics_url = new URL(physics_url, u).href;
+      physics_url = new URL(physics_url, srcUrl).href;
     }
 
     const res = await fetch(start_url);
