@@ -31,6 +31,17 @@ const jump = () => {
 };
 physicsManager.jump = jump;
 
+let nextPhysicsId = 0;
+physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
+  const physicsId = ++nextPhysicsId;
+  geometryManager.geometryWorker.addBoxGeometryPhysics(geometryManager.physics, position, quaternion, size, physicsId, dynamic);
+  return physicsId;
+};
+physicsManager.addMeshGeometry = mesh => {
+  const physicsId = ++nextPhysicsId;
+  geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, mesh, physicsId);
+  return physicsId;
+};
 physicsManager.raycast = (position, quaternion) => geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
 
 /* const makeAnimal = null;
@@ -133,7 +144,6 @@ const _collideItems = matrix => {
   geometryManager.currentChunkMesh.update(localVector3);
 }; */
 
-let updateIndex = 0;
 const _updatePhysics = timeDiff => {
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
   if (renderer.xr.getSession()) {
@@ -179,21 +189,6 @@ const _updatePhysics = timeDiff => {
     _collideItems(camera.matrix);
     // _collideChunk(camera.matrix);
     rigManager.setLocalRigMatrix(null);
-  }
-
-  {
-    const updatesIn = ((updateIndex%100) === 0) ? [{
-      id: 3,
-      position: new THREE.Vector3(0, 10, 0),
-      quaternion: new THREE.Quaternion(0, 0, 0, 1),
-    }] : [];
-    const updatesOut = geometryManager.geometryWorker.simulatePhysics(geometryManager.physics, updatesIn, timeDiff);
-    for (let i = 0; i < updatesOut.length; i++) {
-      const {position, quaternion} = updatesOut[i];
-      geometryManager.physicsCube.position.copy(position);
-      geometryManager.physicsCube.quaternion.copy(quaternion);
-    }
-    updateIndex++;
   }
 
   /* const _updateAnimals = () => {
