@@ -31,6 +31,8 @@ const jump = () => {
 };
 physicsManager.jump = jump;
 
+physicsManager.raycast = (position, quaternion) => geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+
 /* const makeAnimal = null;
 const animals = [];
 physicsManager.animals = animals; */
