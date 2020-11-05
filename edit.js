@@ -387,36 +387,7 @@ scene.add(floorMesh); */
     };
     mesh.run(runSpec);
     scene.add(mesh);
-    /* const res = await fetch('assets/parkour.bin');
-    let physicsBuffer = await res.arrayBuffer();
-    physicsBuffer = new Uint8Array(physicsBuffer);
-    geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, 0x101); */
   }
-  
-  /* {
-    {
-      const u = 'assets/parkour3.glb';
-      const res = await fetch('./' + u);
-      const file = await res.blob();
-      file.name = u;
-      const o = await runtime.loadFile(file, {
-        optimize: false,
-      });
-      let mesh = null;
-      o.traverse(o => {
-        if (!mesh && o.isMesh) {
-          mesh = o;
-        }
-      });
-      scene.add(mesh);
-    }
-    {
-      const res = await fetch('assets/parkour.bin');
-      let physicsBuffer = await res.arrayBuffer();
-      physicsBuffer = new Uint8Array(physicsBuffer);
-      geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, 0x101);
-    }
-  } */
   
   {
     const u = 'assets/sword2.glb';
