@@ -31,9 +31,9 @@ const jump = () => {
 };
 physicsManager.jump = jump;
 
-const makeAnimal = null;
+/* const makeAnimal = null;
 const animals = [];
-physicsManager.animals = animals;
+physicsManager.animals = animals; */
 
 const _applyGravity = timeDiff => {
   localVector.set(0, -9.8, 0);
