@@ -392,7 +392,7 @@ scene.add(floorMesh); */
   {
     const mesh = await runtime.loadFile({
       name: 'index.js',
-      url: 'https://avaer.github.io//weapons/index.js',
+      url: 'https://avaer.github.io/weapons/index.js',
     }, {
       optimize: false,
     });
