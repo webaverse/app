@@ -540,7 +540,7 @@ const _loadScn = async (file, opts) => {
   scene.run = ({geometryManager}) => {
     physicsIds = physicsBuffers.map(physicsBuffer => {
       const physicsId = ++nextPhysicsId;
-      geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, physicsId);
+      geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, new THREE.Vector3(), new THREE.Quaternion() physicsId);
     });
   };
   scene.destroy = ({geometryManager}) => {
