@@ -319,6 +319,11 @@ const _loadScript = async file => {
     });
     return URL.createObjectURL(b);
   })();
+  app.files = new Proxy({}, {
+    get(target, p) {
+      return new URL(p, srcUrl).href;
+    },
+  });
 
   const cachedUrls = [];
   const _getUrl = u => {
