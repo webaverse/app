@@ -331,13 +331,15 @@ scene.add(floorMesh); */
       0
     ], -1);
   }, 100); */
+
+  const floorPhysicsId = physicsManager.addBoxGeometry(new THREE.Vector3(0, -1, 0), new THREE.Quaternion(), new THREE.Vector3(100, 1, 100), false);
+  physicsCubePhysicsId = physicsManager.addBoxGeometry(new THREE.Vector3(0, 5, 0), new THREE.Quaternion(), new THREE.Vector3(0.5, 0.5, 0.5), true);
   
   {
     const u = 'assets/firest33.glb';
     const res = await fetch('./' + u);
     const file = await res.blob();
     file.name = u;
-    // console.log('loading file');
     let mesh = await runtime.loadFile(file, {
       optimize: false,
     });
@@ -733,6 +735,13 @@ const addItem = async (position, quaternion) => {
 };
 addItem(new THREE.Vector3(0, 1, 0), new THREE.Quaternion());
 
+let updateIndex = 0;
+const physicsCube = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), new THREE.MeshPhongMaterial({
+  color: 0xFF0000,
+}));
+scene.add(physicsCube);
+let physicsCubePhysicsId = 0;
+
 const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 const startTime = Date.now();
@@ -751,6 +760,20 @@ function animate(timestamp, frame) {
   
   for (const itemMesh of itemMeshes) {
     itemMesh.update();
+  }
+  if (physicsCubePhysicsId !== 0) {
+    const updatesIn = ((updateIndex%100) === 0) ? [{
+      id: physicsCubePhysicsId,
+      position: new THREE.Vector3(0, 10, 0),
+      quaternion: new THREE.Quaternion(0, 0, 0, 1),
+    }] : [];
+    const updatesOut = geometryManager.geometryWorker.simulatePhysics(geometryManager.physics, updatesIn, timeDiff);
+    for (let i = 0; i < updatesOut.length; i++) {
+      const {position, quaternion} = updatesOut[i];
+      physicsCube.position.copy(position);
+      physicsCube.quaternion.copy(quaternion);
+    }
+    updateIndex++;
   }
 
   const _updateRig = () => {

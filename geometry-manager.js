@@ -518,14 +518,6 @@ planet.addEventListener('load', async e => {
 
   await geometryWorker.waitForLoad();
   geometryManager.physics = geometryWorker.makePhysics();
-  const physicsCube = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), new THREE.MeshPhongMaterial({
-    color: 0xFF0000,
-  }));
-  scene.add(physicsCube);
-  geometryManager.physicsCube = physicsCube;
-  
-  geometryWorker.addBoxGeometryPhysics(geometryManager.physics, new THREE.Vector3(0, -1, 0), new THREE.Quaternion(), new THREE.Vector3(100, 1, 100), 0x2, false);
-  geometryWorker.addBoxGeometryPhysics(geometryManager.physics, new THREE.Vector3(0, 5, 0), new THREE.Quaternion(), new THREE.Vector3(0.5, 0.5, 0.5), 0x3, true);
 
   loadPromise.accept();
 });
