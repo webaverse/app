@@ -365,7 +365,7 @@ scene.add(floorMesh); */
     console.log('loaded file', mesh);
     scene.add(mesh);
 
-    geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, mesh, 0x100);
+    physicsManager.addGeometry(mesh);
   }
   
   {
