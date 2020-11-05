@@ -586,10 +586,6 @@ scene.add(floorMesh); */
               _explode();
               return false;
             }
-            /* raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
-            raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
-            raycastChunkSpec.objectQuaternion = new THREE.Quaternion().fromArray(raycastChunkSpec.objectQuaternion);
-            cubeMesh.position.copy(raycastChunkSpec.point); */
           }
           
           shotMesh.position.add(localVector);
