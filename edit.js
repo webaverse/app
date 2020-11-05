@@ -400,23 +400,6 @@ scene.add(floorMesh); */
     scene.add(mesh);
   }
 
-  {
-    const u = 'assets/space.glb';
-    const res = await fetch('./' + u);
-    const file = await res.blob();
-    file.name = u;
-    let mesh = await runtime.loadFile(file, {
-      optimize: false,
-    });
-    mesh = mesh.children[0].children[0].children[0].children.find(c => c.name === 'laser_orange_04').children[0];
-    mesh.position.y = 1;
-    mesh.material = new THREE.MeshBasicMaterial({map: mesh.material.emissiveMap});
-    const s = 0.1;
-    mesh.scale.set(s, s, s);
-    console.log('loading file space', mesh);
-    scene.add(mesh);
-  }
-
   /* {
     const u = 'lightsaber.wbn';
     const res = await fetch('./' + u);
@@ -602,6 +585,154 @@ const _tickPlanetAnimation = factor => {
   }
 }; */
 
+const itemMeshes = [];
+const addItem = async (position, quaternion) => {
+  const u = 'assets/mat.glb';
+  const res = await fetch('./' + u);
+  const file = await res.blob();
+  file.name = u;
+  let mesh = await runtime.loadFile(file, {
+    optimize: false,
+  });
+  mesh = mesh.children[0]//.children.find(c => c.name === 'laser_orange_04');
+  // console.log('loading file space', mesh);
+  // mesh.position.y = 1;
+  for (const child of mesh.children) {
+    child.material = new THREE.MeshBasicMaterial({map: child.material.emissiveMap});
+  }
+  const s = 0.1;
+  mesh.quaternion.premultiply(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 1, 0)));
+  mesh.scale.set(s, s, s);
+  
+  const itemMesh = (() => {
+    const radius = 0.5;
+    const segments = 12;
+    const color = 0x66bb6a;
+    const opacity = 0.5;
+
+    const object = new THREE.Object3D();
+
+    object.add(mesh);
+
+    /* const matMeshes = [
+      geometryManager.woodMesh,
+      geometryManager.stoneMesh,
+      geometryManager.metalMesh,
+    ];
+    const matIndex = Math.floor(Math.random() * matMeshes.length);
+    const matMesh = matMeshes[matIndex];
+    const matMeshClone = matMesh.clone();
+    matMeshClone.position.y = 0.5;
+    matMeshClone.visible = true;
+    matMeshClone.isBuildMesh = true;
+    object.add(matMeshClone); */
+
+    const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius / 2, 0));
+    const ys = new Float32Array(skirtGeometry.attributes.position.array.length / 3);
+    for (let i = 0; i < skirtGeometry.attributes.position.array.length / 3; i++) {
+      ys[i] = 1 - skirtGeometry.attributes.position.array[i * 3 + 1] / radius;
+    }
+    skirtGeometry.setAttribute('y', new THREE.BufferAttribute(ys, 1));
+    // skirtGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.5, 0));
+    const skirtMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uAnimation: {
+          type: 'f',
+          value: 0,
+        },
+      },
+      vertexShader: `\
+        #define PI 3.1415926535897932384626433832795
+
+        uniform float uAnimation;
+        attribute float y;
+        attribute vec3 barycentric;
+        varying float vY;
+        varying float vUv;
+        varying float vOpacity;
+        void main() {
+          vY = y * ${opacity.toFixed(8)};
+          vUv = uv.x + uAnimation;
+          vOpacity = 0.5 + 0.5 * (sin(uAnimation*20.0*PI*2.0)+1.0)/2.0;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `\
+        #define PI 3.1415926535897932384626433832795
+
+        uniform sampler2D uCameraTex;
+        varying float vY;
+        varying float vUv;
+        varying float vOpacity;
+
+        vec3 c = vec3(${new THREE.Color(color).toArray().join(', ')});
+
+        void main() {
+          float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
+          gl_FragColor = vec4(c, a);
+        }
+      `,
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthWrite: false,
+      // blending: THREE.CustomBlending,
+    });
+    const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
+    skirtMesh.frustumCulled = false;
+    skirtMesh.isBuildMesh = true;
+    object.add(skirtMesh);
+
+    let animation = null;
+    /* object.pickUp = () => {
+      if (!animation) {
+        skirtMesh.visible = false;
+
+        const now = Date.now();
+        const startTime = now;
+        const endTime = startTime + 1000;
+        const startPosition = object.position.clone();
+        animation = {
+          update(posePosition) {
+            const now = Date.now();
+            const factor = Math.min((now - startTime) / (endTime - startTime), 1);
+
+            if (factor < 0.5) {
+              const localFactor = factor / 0.5;
+              object.position.copy(startPosition)
+                .lerp(posePosition, cubicBezier(localFactor));
+            } else if (factor < 1) {
+              const localFactor = (factor - 0.5) / 0.5;
+              object.position.copy(posePosition);
+            } else {
+              object.parent.remove(object);
+              itemMeshes.splice(itemMeshes.indexOf(object), 1);
+              animation = null;
+            }
+          },
+        };
+      }
+    }; */
+    object.update = posePosition => {
+      if (!animation) {
+        const now = Date.now();
+        mesh.position.y = 1 + Math.sin(now/1000*Math.PI)*0.1;
+        mesh.rotation.z = (now % 5000) / 5000 * Math.PI * 2;
+        skirtMaterial.uniforms.uAnimation.value = (now % 60000) / 60000;
+      } else {
+        animation.update(posePosition);
+      }
+    };
+
+    return object;
+  })();
+  itemMesh.position.copy(position)//.applyMatrix4(geometryManager.currentVegetationMesh.matrixWorld);
+  itemMesh.quaternion.copy(quaternion);
+  scene.add(itemMesh);
+  itemMeshes.push(itemMesh);
+};
+addItem(new THREE.Vector3(0, 1, 0), new THREE.Quaternion());
+
 const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 const startTime = Date.now();
@@ -617,6 +748,10 @@ function animate(timestamp, frame) {
   ioManager.update(timeDiff, frame);
   physicsManager.update(timeDiff, frame);
   uiManager.update(timeDiff, frame);
+  
+  for (const itemMesh of itemMeshes) {
+    itemMesh.update();
+  }
 
   const _updateRig = () => {
     let hmdPosition, hmdQuaternion;
