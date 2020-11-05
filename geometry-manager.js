@@ -2254,9 +2254,9 @@ const geometryWorker = (() => {
     const dataLength = scratchStack.u32[1];
     const streamPtr = scratchStack.u32[2];
 
-    const positionBuffer = scratchStack.subarray(3, 6);
+    const positionBuffer = scratchStack.f32.subarray(3, 6);
     mesh.position.toArray(positionBuffer);
-    const quaternionBuffer = scratchStack.subarray(6, 10);
+    const quaternionBuffer = scratchStack.f32.subarray(6, 10);
     mesh.quaternion.toArray(quaternionBuffer);
 
     moduleInstance._addGeometryPhysics(
@@ -2274,9 +2274,9 @@ const geometryWorker = (() => {
     const buffer2 = allocator.alloc(Uint8Array, buffer.length);
     buffer2.set(buffer);
 
-    const positionBuffer = scratchStack.subarray(0, 3);
+    const positionBuffer = scratchStack.f32.subarray(0, 3);
     position.toArray(positionBuffer);
-    const quaternionBuffer = scratchStack.subarray(3, 7);
+    const quaternionBuffer = scratchStack.f32.subarray(3, 7);
     quaternion.toArray(quaternionBuffer);
 
     moduleInstance._addGeometryPhysics(
@@ -2315,9 +2315,9 @@ const geometryWorker = (() => {
     const dataLength = scratchStack.u32[1];
     const streamPtr = scratchStack.u32[2];
 
-    const positionBuffer = scratchStack.subarray(3, 6);
+    const positionBuffer = scratchStack.f32.subarray(3, 6);
     mesh.position.toArray(positionBuffer);
-    const quaternionBuffer = scratchStack.subarray(6, 10);
+    const quaternionBuffer = scratchStack.f32.subarray(6, 10);
     mesh.quaternion.toArray(quaternionBuffer);
 
     moduleInstance._addConvexGeometryPhysics(
