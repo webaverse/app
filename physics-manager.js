@@ -32,17 +32,53 @@ const jump = () => {
 physicsManager.jump = jump;
 
 let nextPhysicsId = 0;
+const physicsObjects = {};
+const physicsUpdates = [];
+const _makePhysicsObject = () => ({
+  position: new THREE.Vector3(),
+  quaternion: new THREE.Quaternion(),
+});
 physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
   const physicsId = ++nextPhysicsId;
   geometryManager.geometryWorker.addBoxGeometryPhysics(geometryManager.physics, position, quaternion, size, physicsId, dynamic);
+  physicsObjects[physicsId] = _makePhysicsObject();
   return physicsId;
 };
-physicsManager.addMeshGeometry = mesh => {
+physicsManager.addGeometry = mesh => {
   const physicsId = ++nextPhysicsId;
   geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, mesh, physicsId);
+  physicsObjects[physicsId] = _makePhysicsObject();
+  return physicsId;
+};
+physicsManager.addConvexGeometry = mesh => {
+  const physicsId = ++nextPhysicsId;
+  geometryManager.geometryWorker.addConvexGeometryPhysics(geometryManager.physics, mesh, physicsId);
+  physicsObjects[physicsId] = _makePhysicsObject();
   return physicsId;
 };
 physicsManager.raycast = (position, quaternion) => geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+physicsManager.getPhysicsTransform = physicsId => physicsObjects[physicsId];
+physicsManager.setPhysicsTransform = (physicsId, position, quaternion) => {
+  const physicsObject = physicsObjects[physicsId];
+  physicsObject.position.copy(position);
+  physicsObject.quaternion.copy(quaternion);
+  
+  physicsUpdates.push({
+    id: physicsId,
+    position: position.clone(),
+    quaternion: quaternion.clone(),
+  });
+};
+physicsManager.simulatePhysics = timeDiff => {
+  const updatesOut = geometryManager.geometryWorker.simulatePhysics(geometryManager.physics, physicsUpdates, timeDiff);
+  physicsUpdates.length = 0;
+  for (const updateOut of updatesOut) {
+    const {id, position, quaternion} = updateOut;
+    const physicsObject = physicsObjects[id];
+    physicsObject.position.copy(position);
+    physicsObject.quaternion.copy(quaternion);
+  }
+};
 
 /* const makeAnimal = null;
 const animals = [];
