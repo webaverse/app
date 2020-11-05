@@ -86,6 +86,9 @@ class AppManager {
       this.animationLoops.splice(index, 1);
     }
   }
+  getGrab(side) {
+    return this.grabs[side === 'left' ? 0 : 1];
+  }
   grab(side, mesh) {
     this.grabs[side === 'left' ? 0 : 1] = mesh;
   }

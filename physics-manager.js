@@ -80,6 +80,8 @@ physicsManager.simulatePhysics = timeDiff => {
   }
 };
 
+physicsManager.getRigTransforms = () => rigManager.getRigTransforms();
+
 /* const makeAnimal = null;
 const animals = [];
 physicsManager.animals = animals; */
