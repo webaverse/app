@@ -67,6 +67,10 @@ physicsManager.addCookedConvexGeometry = (buffer, position, quaternion) => {
   return physicsId;
 };
 
+physicsManager.removeGeometry = physicsId => {
+  geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsId);
+};
+
 physicsManager.raycast = (position, quaternion) => geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
 physicsManager.getPhysicsTransform = physicsId => physicsObjects[physicsId];
 physicsManager.setPhysicsTransform = (physicsId, position, quaternion) => {
