@@ -48,6 +48,9 @@ const _requestPointerLock = () => new Promise((accept, reject) => {
 for (let i = 0; i < tools.length; i++) {
   const tool = document.getElementById('tool-' + (i + 1));
   tool.addEventListener('click', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+
     const newSelectedTool = tool.getAttribute('tool');
     if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
       await _requestPointerLock();
