@@ -30,6 +30,7 @@ const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).
 const importMap = {
   three: _importMapUrl('./three.module.js'),
   app: _importMapUrl('./app-object.js'),
+  world: _importMapUrl('./world.js'),
   runtime: _importMapUrl('./runtime.js'),
   physicsManager: _importMapUrl('./physics-manager.js'),
   BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
@@ -274,6 +275,24 @@ const _loadImg = async file => {
   mesh.frustumCulled = false;
   return mesh;
 };
+const _makeAppUrl = appId => {
+  const s = `\
+    import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
+    import runtime from ${JSON.stringify(importMap.runtime)};
+    import {world} from ${JSON.stringify(importMap.world)};
+    import physics from ${JSON.stringify(importMap.physicsManager)};
+    const renderer = Object.create(_renderer);
+    renderer.setAnimationLoop = function(fn) {
+      appManager.setAnimationLoop(${appId}, fn);
+    };
+    const app = appManager.getApp(${appId});
+    export {renderer, scene, camera, orbitControls, runtime, world, physics, app, appManager};
+  `;
+  const b = new Blob([s], {
+    type: 'application/javascript',
+  });
+  return URL.createObjectURL(b);
+};
 const _loadScript = async file => {
   const appId = ++appIds;
   const mesh = makeIconMesh();
@@ -302,23 +321,7 @@ const _loadScript = async file => {
   const app = appManager.createApp(appId);
   app.object = mesh;
   const localImportMap = _clone(importMap);
-  localImportMap.app = (() => {
-    const s = `\
-      import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
-      import runtime from ${JSON.stringify(importMap.runtime)};
-      import physics from ${JSON.stringify(importMap.physicsManager)};
-      const renderer = Object.create(_renderer);
-      renderer.setAnimationLoop = function(fn) {
-        appManager.setAnimationLoop(${appId}, fn);
-      };
-      const app = appManager.getApp(${appId});
-      export {renderer, scene, camera, orbitControls, runtime, physics, app, appManager};
-    `;
-    const b = new Blob([s], {
-      type: 'application/javascript',
-    });
-    return URL.createObjectURL(b);
-  })();
+  localImportMap.app = _makeAppUrl(appId);
   app.files = new Proxy({}, {
     get(target, p) {
       return new URL(p, srcUrl).href;
@@ -418,23 +421,7 @@ const _loadWebBundle = async file => {
   const app = appManager.createApp(appId);
   app.object = mesh;
   const localImportMap = _clone(importMap);
-  localImportMap.app = (() => {
-    const s = `\
-      import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
-      import runtime from ${JSON.stringify(importMap.runtime)};
-      import physics from ${JSON.stringify(importMap.physicsManager)};
-      const renderer = Object.create(_renderer);
-      renderer.setAnimationLoop = function(fn) {
-        appManager.setAnimationLoop(${appId}, fn);
-      };
-      const app = appManager.getApp(${appId});
-      export {renderer, scene, camera, orbitControls, runtime, physics, app, appManager};
-    `;
-    const b = new Blob([s], {
-      type: 'application/javascript',
-    });
-    return URL.createObjectURL(b);
-  })();
+  localImportMap.app = _makeAppUrl(appId);
 
   const cachedUrls = [];
   const _getUrl = u => {
