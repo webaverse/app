@@ -363,7 +363,7 @@ const _loadScript = async file => {
     const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
     const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
       let u = match[2];
-      if (/^\.\//.test(u)) {
+      if (/^\.+\//.test(u)) {
         u = new URL(u, scriptUrl).href;
       }
       return await _mapUrl(u);
@@ -376,7 +376,7 @@ const _loadScript = async file => {
   };
 
   let srcUrl = file.url || URL.createObjectURL(file);
-  if (/^\.\//.test(srcUrl)) {
+  if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, location.href).href;
   }
   const u = await _mapUrl(srcUrl);
@@ -489,7 +489,7 @@ const _loadWebBundle = async file => {
 };
 const _loadScn = async (file, opts) => {
   let srcUrl = file.url || URL.createObjectURL(file);
-  if (/^\.\//.test(srcUrl)) {
+  if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, location.href).href;
   }
   
