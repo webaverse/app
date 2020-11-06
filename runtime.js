@@ -349,7 +349,7 @@ const _loadScript = async file => {
         const res = await fetch(u);
         if (res.ok) {
           let importScript = await res.text();
-          importScript = await _mapScript(importScript, u);
+          importScript = await _mapScript(importScript, srcUrl);
           const cachedUrl = _getUrl(importScript);
           urlCache[u] = cachedUrl;
           return cachedUrl;
