@@ -73,6 +73,12 @@ physicsManager.disableGeometry = physicsId => {
 physicsManager.enableGeometry = physicsId => {
   geometryManager.geometryWorker.enableGeometryPhysics(geometryManager.physics, physicsId);
 };
+physicsManager.disableGeometryQueries = physicsId => {
+  geometryManager.geometryWorker.disableGeometryQueriesPhysics(geometryManager.physics, physicsId);
+};
+physicsManager.enableGeometryQueries = physicsId => {
+  geometryManager.geometryWorker.enableGeometryQueriesPhysics(geometryManager.physics, physicsId);
+};
 physicsManager.removeGeometry = physicsId => {
   geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsId);
 };

@@ -2418,6 +2418,12 @@ const geometryWorker = (() => {
   w.enableGeometryPhysics = (physics, id) => {
     moduleInstance._enableGeometryPhysics(physics, id);
   };
+  w.disableGeometryQueriesPhysics = (physics, id) => {
+    moduleInstance._disableGeometryQueriesPhysics(physics, id);
+  };
+  w.enableGeometryQueriesPhysics = (physics, id) => {
+    moduleInstance._enableGeometryQueriesPhysics(physics, id);
+  };
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance.removeGeometryPhysics(physics, id);
   };
