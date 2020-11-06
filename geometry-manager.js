@@ -2425,7 +2425,7 @@ const geometryWorker = (() => {
     moduleInstance._enableGeometryQueriesPhysics(physics, id);
   };
   w.removeGeometryPhysics = (physics, id) => {
-    moduleInstance.removeGeometryPhysics(physics, id);
+    moduleInstance._removeGeometryPhysics(physics, id);
   };
 
   /* w.earcut = (tracker, ps, holes, holeCounts, points, z, zs, objectId, position, quaternion) => {
