@@ -14,6 +14,9 @@ import {renderer, appManager} from './app-object.js';
 import wbn from './wbn.js';
 // import {storageHost} from './constants.js';
 
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+
 const runtime = {};
 let nextPhysicsId = 0;
 
@@ -629,7 +632,10 @@ const _loadLink = async file => {
   appManager.setAnimationLoop(appId, () => {
     portalMesh.update();
 
-    const distance = rigManager.localRig.inputs.hmd.position.distanceTo(portalMesh.position);
+    const distance = rigManager.localRig.inputs.hmd.position.distanceTo(
+      localVector.copy(portalMesh.position)
+        .add(localVector2.set(0, 1, 0).applyQuaternion(portalMesh.quaternion))
+    );
     if (distance < 1) {
       const now = Date.now();
       if (inRangeStart !== null) {
