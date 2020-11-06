@@ -810,11 +810,12 @@ const _connectRoom = async (roomName, worldURL) => {
 
 const objects = [];
 const grabbedObjects = [null, null];
-planet.addObject = (contentId, position, quaternion) => {
+planet.addObject = (contentId, parentId, position, quaternion) => {
   state.transact(() => {
     const instanceId = getRandomString();
     const trackedObject = planet.getTrackedObject(instanceId);
     trackedObject.set('instanceId', instanceId);
+    trackedObject.set('parentId', parentId);
     trackedObject.set('contentId', contentId);
     trackedObject.set('position', position.toArray());
     trackedObject.set('quaternion', quaternion.toArray());
@@ -840,7 +841,7 @@ planet.removeObject = object => {
 planet.addEventListener('trackedobjectadd', async e => {
   const trackedObject = e.data;
   const trackedObjectJson = trackedObject.toJSON();
-  const {instanceId, contentId, position, quaternion} = trackedObjectJson;
+  const {instanceId, parentId, contentId, position, quaternion} = trackedObjectJson;
 
   const file = await (async () => {
     if (typeof contentId === 'number') {
