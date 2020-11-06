@@ -412,6 +412,18 @@ scene.add(floorMesh); */
     scene.add(mesh);
   }
 
+  {
+    const u = 'https://cv.webaverse.com/';
+    const blob = new Blob([u], {
+      type: 'text/url',
+    });
+    blob.name = 'portal.url';
+    const mesh = await runtime.loadFile(blob);
+    mesh.run();
+    mesh.position.set(0, 0, -2);
+    scene.add(mesh);
+  }
+
   /* {
     const u = 'lightsaber.wbn';
     const res = await fetch('./' + u);
