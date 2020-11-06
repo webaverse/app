@@ -62,7 +62,7 @@ physicsManager.addConvexGeometry = mesh => {
 physicsManager.cookConvexGeometry = mesh => geometryManager.geometryWorker.cookConvexGeometryPhysics(geometryManager.physics, mesh);
 physicsManager.addCookedConvexGeometry = (buffer, position, quaternion) => {
   const physicsId = ++nextPhysicsId;
-  geometryManager.geometryWorker.addCookedConvexGeometryPhysics(physics, buffer, position, quaternion, physicsId);
+  geometryManager.geometryWorker.addCookedConvexGeometryPhysics(geometryManager.physics, buffer, position, quaternion, physicsId);
   physicsObjects[physicsId] = _makePhysicsObject();
   return physicsId;
 };
