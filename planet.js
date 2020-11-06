@@ -822,18 +822,35 @@ planet.addObject = (contentId, parentId, position, quaternion) => {
   });
 };
 planet.removeObject = object => {
-  const {instanceId} = object;
+  const {instanceId: removeInstanceId} = object;
   state.transact(() => {
     const objects = state.getArray('objects');
     const objectsJson = objects.toJSON();
-    const index = objectsJson.indexOf(instanceId);
-    if (index !== -1) {
-      objects.delete(index, 1);
+    const removeIndex = objectsJson.indexOf(removeInstanceId);
+    if (removeIndex !== -1) {
+      const childRemoveIndices = (() => {
+        const result = [];
+        for (let i = 0; i < objectsJson.length; i++) {
+          const objectInstanceId = objectsJson[i];
+          const object = state.getMap('object.' + objectInstanceId);
+          const objectJson = object.toJSON();
+          if (objectJson.parentId === removeInstanceId) {
+            result.push(i);
+          }
+        }
+        return result;
+      })();
+      const allRemoveIndices = [removeIndex].concat(childRemoveIndices);
+      for (const removeIndex of allRemoveIndices) {
+        const instanceId = objectsJson[removeIndex];
 
-      const trackedObject = state.getMap('object.' + instanceId);
-      const keys = Array.from(trackedObject.keys());
-      for (const key in keys) {
-        trackedObject.delete(key);
+        objects.delete(removeIndex, 1);
+
+        const trackedObject = state.getMap('object.' + instanceId);
+        const keys = Array.from(trackedObject.keys());
+        for (const key in keys) {
+          trackedObject.delete(key);
+        }
       }
     }
   });
@@ -897,6 +914,7 @@ planet.addEventListener('trackedobjectadd', async e => {
     
     mesh.run && mesh.run();
     mesh.instanceId = instanceId;
+    mesh.parentId = parentId;
 
     scene.add(mesh);
     objects.push(mesh);
