@@ -884,24 +884,24 @@ world.addEventListener('trackedobjectadd', async e => {
       file.name = filename;
       return file;
     } else if (typeof contentId === 'string') {
-      let u, filename;
+      let url, name;
       if (/blob:/.test(contentId)) {
         const match = contentId.match(/^(.+)\/([^\/]+)$/);
         if (match) {
-          u = match[1];
-          filename = match[2];
+          url = match[1];
+          name = match[2];
         } else {
           console.warn('blob url not decorated', contentId);
           return null;
         }
       } else {
-        u = contentId;
-        filename = contentId;
+        url = contentId;
+        name = contentId;
       }
-      const res2 = await fetch(u);
-      const file = await res2.blob();
-      file.name = filename;
-      return file;
+      return {
+        url,
+        name,
+      };
     } else {
       console.warn('unknown content id type', contentId);
       return null;
