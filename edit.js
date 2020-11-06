@@ -419,8 +419,29 @@ scene.add(floorMesh); */
     });
     blob.name = 'portal.url';
     const mesh = await runtime.loadFile(blob);
-    mesh.run();
-    mesh.position.set(0, 0, -2);
+    mesh.position.set(-2, 0, -12);
+    scene.add(mesh);
+  }
+  
+  {
+    const u = 'https://dcl.webaverse.com/';
+    const blob = new Blob([u], {
+      type: 'text/url',
+    });
+    blob.name = 'portal.url';
+    const mesh = await runtime.loadFile(blob);
+    mesh.position.set(2, 0, -12);
+    scene.add(mesh);
+  }
+  
+  {
+    const u = 'https://h.webaverse.com/';
+    const blob = new Blob([u], {
+      type: 'text/url',
+    });
+    blob.name = 'portal.url';
+    const mesh = await runtime.loadFile(blob);
+    mesh.position.set(0, 0, -12);
     scene.add(mesh);
   }
 
