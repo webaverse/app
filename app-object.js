@@ -51,6 +51,7 @@ class AppManager {
     this.apps = [];
     this.animationLoops = [];
     this.grabs = [null, null];
+    // this.grabs = [null, null];
   }
   createApp(appId) {
     const app = new App(appId);
@@ -86,7 +87,7 @@ class AppManager {
       this.animationLoops.splice(index, 1);
     }
   }
-  getGrab(side) {
+  /* getGrab(side) {
     return this.grabs[side === 'left' ? 0 : 1];
   }
   grab(side, mesh) {
@@ -94,7 +95,7 @@ class AppManager {
   }
   release(side) {
     this.grabs[side === 'left' ? 0 : 1] = null;
-  }
+  } */
   tick() {
     for (const al of this.animationLoops) {
       al.fn.apply(null, arguments);

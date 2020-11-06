@@ -364,7 +364,7 @@ class RigManager {
       rigManager.localRig.undecapitate();
     }
     
-    for (let i = 0; i < appManager.grabs.length; i++) {
+    /* for (let i = 0; i < appManager.grabs.length; i++) {
       const grab = appManager.grabs[i === 0 ? 1 : 0];
       if (grab) {
         const transforms = this.getRigTransforms();
@@ -372,7 +372,7 @@ class RigManager {
         grab.position.copy(transform.position);
         grab.quaternion.copy(transform.quaternion);
       }
-    }
+    } */
   }
 }
 const rigManager = new RigManager(scene);

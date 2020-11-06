@@ -809,7 +809,6 @@ const _connectRoom = async (roomName, worldURL) => {
 };
 
 const objects = [];
-const grabbedObjects = [null, null];
 world.addObject = (contentId, parentId, position, quaternion) => {
   state.transact(() => {
     const instanceId = getRandomString();
@@ -989,6 +988,7 @@ world.getClosestObject = (position, maxDistance) => {
   return closestObject;
 };
 world.grabbedObjects = [null, null];
+world.getGrab = side => world.grabbedObjects[side === 'left' ? 1 : 0];
 world.update = () => {
   const _updateObjectsGrab = () => {
     const transforms = rigManager.getRigTransforms();
