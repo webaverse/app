@@ -333,7 +333,6 @@ scene.add(floorMesh); */
   }, 100); */
 
   const floorPhysicsId = physicsManager.addBoxGeometry(new THREE.Vector3(0, -1, 0), new THREE.Quaternion(), new THREE.Vector3(100, 1, 100), false);
-  physicsCubePhysicsId = physicsManager.addBoxGeometry(new THREE.Vector3(0, 5, 0), new THREE.Quaternion(), new THREE.Vector3(0.5, 0.5, 0.5), true);
   
   {
     const u = 'assets/firest33.glb';
@@ -371,13 +370,21 @@ scene.add(floorMesh); */
   {
     const mesh = await runtime.loadFile({
       name: 'index.js',
-      url: 'https://avaer.github.io/mirror/index.js',
+      url: 'https://avaer.github.io/physicscube/index.js',
     });
     mesh.run();
     scene.add(mesh);
   }
   
   {
+    const mesh = await runtime.loadFile({
+      name: 'index.js',
+      url: 'https://avaer.github.io/mirror/index.js',
+    });
+    mesh.run();
+    scene.add(mesh);
+  }
+
     const mesh = await runtime.loadFile({
       name: 'parkour.scn',
       url: 'https://avaer.github.io/parkour/parkour.scn',
@@ -737,13 +744,6 @@ const addItem = async (position, quaternion) => {
 };
 addItem(new THREE.Vector3(0, 1, 0), new THREE.Quaternion());
 
-let updateIndex = 0;
-const physicsCube = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), new THREE.MeshPhongMaterial({
-  color: 0xFF0000,
-}));
-scene.add(physicsCube);
-let physicsCubePhysicsId = 0;
-
 const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 const startTime = Date.now();
@@ -759,20 +759,11 @@ function animate(timestamp, frame) {
   ioManager.update(timeDiff, frame);
   physicsManager.update(timeDiff, frame);
   uiManager.update(timeDiff, frame);
-  
+
   for (const itemMesh of itemMeshes) {
     itemMesh.update();
   }
-  if (physicsCubePhysicsId !== 0) {
-    if ((updateIndex % 100) === 0) {
-      physicsManager.setPhysicsTransform(physicsCubePhysicsId, new THREE.Vector3(0, 10, 0), new THREE.Quaternion(0, 0, 0, 1));
-    }
-    physicsManager.simulatePhysics(timeDiff);
-    const {position, quaternion} = physicsManager.getPhysicsTransform(physicsCubePhysicsId);
-    physicsCube.position.copy(position);
-    physicsCube.quaternion.copy(quaternion);
-    updateIndex++;
-  }
+  physicsManager.simulatePhysics(timeDiff);
 
   const _updateRig = () => {
     let hmdPosition, hmdQuaternion;
