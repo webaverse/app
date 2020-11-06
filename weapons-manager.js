@@ -6,7 +6,7 @@ import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
-import {planet} from './planet.js';
+import {world} from './world.js';
 import {rigManager} from './rig.js';
 import {teleportMeshes} from './teleport.js';
 import {renderer, scene, camera, dolly} from './app-object.js';
@@ -823,7 +823,7 @@ const _updateWeapons = timeDiff => {
       localRaycaster.ray.origin.copy(position);
       localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(quaternion);
       anchorSpecs[0] = intersectUi(localRaycaster, uiManager.uiMeshes) ||
-        planet.intersectObjects(localRaycaster) ||
+        world.intersectObjects(localRaycaster) ||
         rigManager.intersectPeerRigs(localRaycaster) ||
         meshComposer.intersect(localRaycaster);
 
@@ -1092,7 +1092,7 @@ const _updateWeapons = timeDiff => {
       }
     };
     if (ioManager.currentWeaponDown && !ioManager.lastWeaponDown) { // XXX make this dual handed
-      if (anchorSpecs[0] && (anchorSpecs[0].object === uiManager.menuMesh || planet.isObject(anchorSpecs[0].object))) {
+      if (anchorSpecs[0] && (anchorSpecs[0].object === uiManager.menuMesh || world.isObject(anchorSpecs[0].object))) {
         _triggerAnchor(anchorSpecs[0]);
       } else {
         // place
@@ -1111,7 +1111,7 @@ const _updateWeapons = timeDiff => {
           localVector2.y = Math.floor(localVector2.y);
           localVector2.z = Math.floor(localVector2.z);
 
-          const mineSpecs = _applyMineSpec(localVector2, delta, 'lightfield', SUBPARCEL_SIZE_P1, planet.getFieldIndex, delta);
+          const mineSpecs = _applyMineSpec(localVector2, delta, 'lightfield', SUBPARCEL_SIZE_P1, world.getFieldIndex, delta);
           await _mine(mineSpecs, null);
         };
         const _applyHit = delta => {
@@ -1371,11 +1371,11 @@ const _updateWeapons = timeDiff => {
     for (let i = 0; i < 2; i++) {
       if (ioManager.currentWeaponGrabs[i] && !ioManager.lastWeaponGrabs[i]) {
         const {position} = transforms[i];
-        planet.grabbedObjects[i] = planet.getClosestObject(position, 0.3);
+        world.grabbedObjects[i] = world.getClosestObject(position, 0.3);
         // meshComposer.grab(i);
       }
       if (!ioManager.currentWeaponGrabs[i] && ioManager.lastWeaponGrabs[i]) {
-        planet.grabbedObjects[i] = null;
+        world.grabbedObjects[i] = null;
         // meshComposer.ungrab(i);
       }
     }

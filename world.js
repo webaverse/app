@@ -57,12 +57,12 @@ const _getSubparcelIndex = (x, y, z) => abs(x) | (abs(y) << 9) | (abs(z) << 18) 
 const _getPotentialIndex = (x, y, z) => (x + 1) + (y + 1) * SUBPARCEL_SIZE_P3 * SUBPARCEL_SIZE_P3 + (z + 1) * SUBPARCEL_SIZE_P3;
 const _getFieldIndex = (x, y, z) => x + y * SUBPARCEL_SIZE_P1 * SUBPARCEL_SIZE_P1 + z * SUBPARCEL_SIZE_P1;
 
-// planet
-export const planet = new EventTarget();
+// world
+export const world = new EventTarget();
 
-planet.getSubparcelIndex = _getSubparcelIndex;
-planet.getPotentialIndex = _getPotentialIndex;
-planet.getFieldIndex = _getFieldIndex;
+world.getSubparcelIndex = _getSubparcelIndex;
+world.getPotentialIndex = _getPotentialIndex;
+world.getFieldIndex = _getFieldIndex;
 
 const _getStringLength = s => {
   let i;
@@ -188,7 +188,7 @@ export class Subparcel {
   }
 
   update() {
-    planet.dispatchEvent(new MessageEvent('subparcelupdate', {
+    world.dispatchEvent(new MessageEvent('subparcelupdate', {
       data: this,
     }));
   }
@@ -330,7 +330,7 @@ const _unlockAll = keys => {
     }
   }
 };
-planet.requestRemoteSubparcels = async (keys) => {
+world.requestRemoteSubparcels = async (keys) => {
   // XXX return array of subparcel data or null if did not exist
   await _lockAll(keys);
   const promises = keys.map(key => storage.getRaw(`chunks/${key}`));
@@ -349,7 +349,7 @@ planet.requestRemoteSubparcels = async (keys) => {
     channelConnection.getFile(key);
   });
 };
-planet.writeSubparcels = async edits => {
+world.writeSubparcels = async edits => {
   const keys = edits.map(([key]) => key);
   await _lockAll(keys);
   const promises = edits.map(async ([key, arrayBuffer]) => storage.setRaw(`chunks/${key}`, arrayBuffer));
@@ -366,13 +366,13 @@ planet.writeSubparcels = async edits => {
     channelConnection.runCode({script: edit, numArgs: 0});
   });
 };
-planet.onRemoteSubparcelsEdit = (edits) => {
+world.onRemoteSubparcelsEdit = (edits) => {
   // XXX called from the connection when a peer runs an edit g
   for (const key of edits) {
     console.log('got edit', key);
   }
 };
-planet.makeSubparcel = (x = 0, y = 0, z = 0) => {
+world.makeSubparcel = (x = 0, y = 0, z = 0) => {
   const subparcel = new Subparcel();
   subparcel.x = x;
   subparcel.y = y;
@@ -421,11 +421,11 @@ Subparcel.offsets = (() => {
     initialLength,
   };
 })();
-planet.Subparcel = Subparcel;
+world.Subparcel = Subparcel;
 
 const _loadLiveState = seedString => {
-  // planet.dispatchEvent(new MessageEvent('unload'));
-  planet.dispatchEvent(new MessageEvent('load', {
+  // world.dispatchEvent(new MessageEvent('unload'));
+  world.dispatchEvent(new MessageEvent('load', {
     data: {
       seedString,
     },
@@ -529,12 +529,12 @@ let channelConnectionOpen = null;
 const peerConnections = [];
 let state = null;
 
-planet.getTrackedObjects = () => {
+world.getTrackedObjects = () => {
   const objects = state.getArray('objects');
   const objectsJson = objects.toJSON();
   return objectsJson.map(name => state.getMap('object.' + name));
 };
-planet.getTrackedObject = name => {
+world.getTrackedObject = name => {
   const objects = state.getArray('objects');
   const objectsJson = objects.toJSON();
   if (!objectsJson.includes(name)) {
@@ -557,8 +557,8 @@ const _bindState = state => {
         /* this.dispatchEvent(new MessageEvent('trackedobjectadd', {
           data: name,
         })); */
-        const trackedObject = planet.getTrackedObject(name);
-        planet.dispatchEvent(new MessageEvent('trackedobjectadd', {
+        const trackedObject = world.getTrackedObject(name);
+        world.dispatchEvent(new MessageEvent('trackedobjectadd', {
           data: trackedObject,
         }));
       }
@@ -567,7 +567,7 @@ const _bindState = state => {
       if (!nextObjects.includes(name)) {
         // removedObjects.push(name);
         const trackedObject = state.getMap('object.' + name);
-        planet.dispatchEvent(new MessageEvent('trackedobjectremove', {
+        world.dispatchEvent(new MessageEvent('trackedobjectremove', {
           data: trackedObject,
         }));
       }
@@ -644,7 +644,7 @@ const _connectRoom = async (roomName, worldURL) => {
 
     channelConnection.dialogClient.addEventListener('peerEdit', e => {
       console.log(e);
-      planet.onRemoteSubparcelsEdit(e.data.keys);
+      world.onRemoteSubparcelsEdit(e.data.keys);
     });
   }, {once: true});
   channelConnection.addEventListener('close', e => {
@@ -670,7 +670,7 @@ const _connectRoom = async (roomName, worldURL) => {
       rigManager.removePeerRig(peerConnection.connectionId);
       live = false;
 
-      planet.dispatchEvent(new MessageEvent('peersupdate', {
+      world.dispatchEvent(new MessageEvent('peersupdate', {
         data: Array.from(rigManager.peerRigs.values()),
       }));
     });
@@ -718,7 +718,7 @@ const _connectRoom = async (roomName, worldURL) => {
           }
 
           if (updated) {
-            planet.dispatchEvent(new MessageEvent('peersupdate', {
+            world.dispatchEvent(new MessageEvent('peersupdate', {
               data: Array.from(rigManager.peerRigs.values()),
             }));
           }
@@ -782,7 +782,7 @@ const _connectRoom = async (roomName, worldURL) => {
       }, 10);
     }
 
-    planet.dispatchEvent(new MessageEvent('peersupdate', {
+    world.dispatchEvent(new MessageEvent('peersupdate', {
       data: Array.from(rigManager.peerRigs.values()),
     }));
   });
@@ -810,10 +810,10 @@ const _connectRoom = async (roomName, worldURL) => {
 
 const objects = [];
 const grabbedObjects = [null, null];
-planet.addObject = (contentId, parentId, position, quaternion) => {
+world.addObject = (contentId, parentId, position, quaternion) => {
   state.transact(() => {
     const instanceId = getRandomString();
-    const trackedObject = planet.getTrackedObject(instanceId);
+    const trackedObject = world.getTrackedObject(instanceId);
     trackedObject.set('instanceId', instanceId);
     trackedObject.set('parentId', parentId);
     trackedObject.set('contentId', contentId);
@@ -821,7 +821,7 @@ planet.addObject = (contentId, parentId, position, quaternion) => {
     trackedObject.set('quaternion', quaternion.toArray());
   });
 };
-planet.removeObject = object => {
+world.removeObject = object => {
   const {instanceId: removeInstanceId} = object;
   state.transact(() => {
     const objects = state.getArray('objects');
@@ -855,7 +855,7 @@ planet.removeObject = object => {
     }
   });
 };
-planet.addEventListener('trackedobjectadd', async e => {
+world.addEventListener('trackedobjectadd', async e => {
   const trackedObject = e.data;
   const trackedObjectJson = trackedObject.toJSON();
   const {instanceId, parentId, contentId, position, quaternion} = trackedObjectJson;
@@ -932,7 +932,7 @@ planet.addEventListener('trackedobjectadd', async e => {
     trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
   }
 });
-planet.addEventListener('trackedobjectremove', async e => {
+world.addEventListener('trackedobjectremove', async e => {
   const trackedObject = e.data;
   const instanceId = trackedObject.get('instanceId');
   const index = objects.findIndex(object => object.instanceId === instanceId);
@@ -944,8 +944,8 @@ planet.addEventListener('trackedobjectremove', async e => {
     trackedObject.unobserve();
   }
 });
-planet.isObject = object => objects.includes(object);
-planet.intersectObjects = raycaster => {
+world.isObject = object => objects.includes(object);
+world.intersectObjects = raycaster => {
   let closestMesh = null;
   let closestMeshDistance = Infinity;
   for (const mesh of objects) {
@@ -976,7 +976,7 @@ planet.intersectObjects = raycaster => {
   }
   return false; // XXX
 };
-planet.getClosestObject = (position, maxDistance) => {
+world.getClosestObject = (position, maxDistance) => {
   let closestObject = null;
   let closestObjectDistance = Infinity;
   for (const object of objects) {
@@ -988,12 +988,12 @@ planet.getClosestObject = (position, maxDistance) => {
   }
   return closestObject;
 };
-planet.grabbedObjects = [null, null];
-planet.update = () => {
+world.grabbedObjects = [null, null];
+world.update = () => {
   const _updateObjectsGrab = () => {
     const transforms = rigManager.getRigTransforms();
     for (let i = 0; i < 2; i++) {
-      const grabbedObject = planet.grabbedObjects[i];
+      const grabbedObject = world.grabbedObjects[i];
       if (grabbedObject) {
         const {position, quaternion} = transforms[0];
         // grabbedObject.position.copy(position);
@@ -1006,7 +1006,7 @@ planet.update = () => {
 };
 
 const button = document.getElementById('connectButton');
-planet.connect = async ({online = true, roomName: rn, url = null} = {}) => {
+world.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   roomName = rn;
   if (online) {
     await _connectRoom(roomName, url);

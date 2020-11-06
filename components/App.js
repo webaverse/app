@@ -3,7 +3,7 @@ import WeaponWheel from './WeaponWheel.js';
 import uiManager from '../ui-manager.js';
 import inventory from '../inventory.js';
 import {loginManager} from '../login.js';
-import {planet} from '../planet.js';
+import {world} from '../world.js';
 import {state, getState, setState, getSpecificState, defaultState} from '../state.js';
 import {setBindings} from './bindings.js';
 // import {getContractSource} from '../blockchain.js';
@@ -338,7 +338,7 @@ inventory.addEventListener('ownedfilesupdate', e => {
     menu,
   });
 });
-planet.addEventListener('peersupdate', e => {
+world.addEventListener('peersupdate', e => {
   const {menu} = state;
   menu.world.peers = e.data;
   menu.social.peers = e.data;

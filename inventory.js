@@ -1,7 +1,7 @@
 import * as THREE from './three.module.js';
 import {bindUploadFileButton} from './util.js';
 import {loginManager} from './login.js';
-import {planet} from './planet.js';
+import {world} from './world.js';
 // import {getContractSource} from './blockchain.js';
 import {getState, setState} from './state.js';
 import {renderer, scene, camera} from './app-object.js';
@@ -106,7 +106,7 @@ document.addEventListener('drop', async e => {
         .add(new THREE.Vector3(0, 0, -1).applyQuaternion(xrCamera.quaternion));
       const quaternion = xrCamera.quaternion;
 
-      planet.addObject(id, position, quaternion);
+      world.addObject(id, position, quaternion);
     }
   };
   if (e.data) {

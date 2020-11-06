@@ -1,9 +1,9 @@
 import * as THREE from './three.module.js';
 import {
-  planet,
+  world,
   Subparcel,
   SubparcelObject,
-} from './planet.js';
+} from './world.js';
 import {
   SUBPARCEL_SIZE,
   PLANET_OBJECT_SLOTS,
@@ -11,7 +11,7 @@ import {
 
 function * gen() {
   for (;;) {
-    const subparcel = planet.getSubparcel(14, 29, 16);
+    const subparcel = world.getSubparcel(14, 29, 16);
     const subparcel2 = subparcel.clone();
     const position = new THREE.Vector3(
       subparcel2.x * SUBPARCEL_SIZE,
