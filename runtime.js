@@ -544,7 +544,8 @@ const _loadLink = async file => {
   const href = await file.text();
 
   const geometry = new THREE.CircleBufferGeometry(1, 32)
-    .applyMatrix4(new THREE.Matrix4().makeScale(0.5, 1, 1));
+    .applyMatrix4(new THREE.Matrix4().makeScale(0.5, 1, 1))
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1, 0));
   const material = new THREE.ShaderMaterial({
     uniforms: {
       // tex: {type: 't', value: texture, needsUpdate: true},
@@ -617,7 +618,8 @@ const _loadLink = async file => {
   // scene.add(portalMesh);
 
   const textMesh = makeTextMesh(href.slice(0, 80), undefined, 0.2, 'center', 'middle');
-  textMesh.position.y = 1.2;
+  textMesh.position.y = 2.2;
+  textMesh.color = 0xCCCCCC;
   portalMesh.add(textMesh);
 
   let inRangeStart = null;
