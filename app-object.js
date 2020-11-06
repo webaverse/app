@@ -50,7 +50,6 @@ class AppManager {
   constructor() {
     this.apps = [];
     this.animationLoops = [];
-    this.grabs = [null, null];
     // this.grabs = [null, null];
   }
   createApp(appId) {
