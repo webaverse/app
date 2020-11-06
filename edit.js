@@ -23,7 +23,7 @@ import {
   SUBPARCEL_SIZE,
 } from './constants.js';
 import {makePromise} from './util.js';
-import {planet} from './planet.js';
+import {world} from './world.js';
 // import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
@@ -63,13 +63,13 @@ function mod(a, b) {
 (async () => {
   const q = parseQuery(location.search);
   if (q.u) {
-    await planet.connect({
+    await world.connect({
       online: true,
       roomName: 'lol',
       url: q.u,
     });
   } else {
-    await planet.connect({
+    await world.connect({
       online: false,
       roomName: 'lol',
     });
@@ -451,7 +451,7 @@ scene.add(floorMesh); */
     // portal
     const file = new Blob(['https://google.com'], {type: 'text/plain'});
     const u = URL.createObjectURL(file) + '/file.url';
-    planet.addObject(u, new THREE.Vector3(0, 1.5, 0), new THREE.Quaternion());
+    world.addObject(u, null, new THREE.Vector3(0, 1.5, 0), new THREE.Quaternion());
   } */
 })();
 
@@ -1036,7 +1036,7 @@ function animate(timestamp, frame) {
   if (geometryEnabled) {
     geometryManager.update(timeDiff, frame);
   }
-  planet.update();
+  world.update();
 
   appManager.tick(timestamp, frame);
   

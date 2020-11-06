@@ -10,7 +10,7 @@ import {renderer, scene, camera} from './app-object.js';
 import {WaitQueue} from './util.js';
 import {makeDrawMaterial} from './shaders.js';
 import {loginManager} from './login.js';
-import {planet} from './planet.js';
+import {world} from './world.js';
 import {makeColorsMesh, makeMenuMesh, makeDetailsMesh, makeTradeMesh, makePopupMesh, makeToolsMesh} from './vr-ui.js';
 import {colors, storageHost} from './constants.js';
 
@@ -415,7 +415,7 @@ geometryManager.waitForLoad().then(() => {
 
     detailsMesh.visible = false;
   }, function onremove(anchorSpec) {
-    planet.removeObject(detailsMesh.target);
+    world.removeObject(detailsMesh.target);
 
     detailsMesh.visible = false;
 

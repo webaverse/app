@@ -10,7 +10,7 @@ import {
   makeDrawMaterial,
 } from './shaders.js';
 import storage from './storage.js';
-import {planet} from './planet.js';
+import {world} from './world.js';
 import {makePromise} from './util.js';
 import {
   PARCEL_SIZE,
@@ -385,7 +385,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
           for (let i = 0; i < neededCoords.length; i++) {
             const neededCoord = neededCoords[i];
             const {index} = neededCoord;
-            const subparcel = planet.peekSubparcelByIndex(index);
+            const subparcel = world.peekSubparcelByIndex(index);
             for (const pkg of subparcel.packages) {
               if (!mesh.objects.some(object => object.package === pkg)) {
                 const p = await XRPackage.download(pkg.dataHash);
@@ -406,12 +406,12 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
             const sx = Math.floor(p.package.position[0]/subparcelSize);
             const sy = Math.floor(p.package.position[1]/subparcelSize);
             const sz = Math.floor(p.package.position[2]/subparcelSize);
-            const index = planet.getSubparcelIndex(sx, sy, sz);
+            const index = world.getSubparcelIndex(sx, sy, sz);
             if (!neededCoordIndices[index]) {
               pe.remove(p);
               mesh.objects.splice(mesh.objects.indexOf(p), 1);
             } else {
-              const subparcel = planet.peekSubparcelByIndex(index);
+              const subparcel = world.peekSubparcelByIndex(index);
               if (!subparcel.packages.includes(p.package)) {
                 pe.remove(p);
                 mesh.objects.splice(mesh.objects.indexOf(p), 1);
@@ -460,7 +460,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
 
       let live = true;
       (async () => {
-        const subparcel = planet.peekSubparcelByIndex(index);
+        const subparcel = world.peekSubparcelByIndex(index);
         await subparcel.load;
         if (!live) return;
 
@@ -511,7 +511,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   return mesh;
 };
 
-planet.addEventListener('load', async e => {
+world.addEventListener('load', async e => {
   const {data: chunkSpec} = e;
   const {seedString} = chunkSpec; 
   const seed = Math.floor(alea(seedString)() * 0xFFFFFF);
@@ -521,7 +521,7 @@ planet.addEventListener('load', async e => {
 
   loadPromise.accept();
 });
-/* planet.addEventListener('unload', () => {
+/* world.addEventListener('unload', () => {
   const oldChunkMesh = currentChunkMesh;
   if (oldChunkMesh) {
     chunkMeshContainer.remove(oldChunkMesh);
@@ -1678,7 +1678,7 @@ const geometryWorker = (() => {
       const subparcelPtr = callStack.ou32[offset++];
       const subparcelSharedPtr = callStack.ou32[offset++];
       if (subparcelSharedPtr) {
-        const numObjects = moduleInstance.HEAPU32[(subparcelPtr + planet.Subparcel.offsets.numObjects)/Uint32Array.BYTES_PER_ELEMENT];
+        const numObjects = moduleInstance.HEAPU32[(subparcelPtr + world.Subparcel.offsets.numObjects)/Uint32Array.BYTES_PER_ELEMENT];
         console.log('got num objects', numObjects);
 
         w.requestReleaseSubparcel()
