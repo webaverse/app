@@ -2412,6 +2412,12 @@ const geometryWorker = (() => {
     allocator.freeAll();
   };
 
+  w.disableGeometryPhysics = (physics, id) => {
+    moduleInstance._disableGeometryPhysics(physics, id);
+  };
+  w.enableGeometryPhysics = (physics, id) => {
+    moduleInstance._enableGeometryPhysics(physics, id);
+  };
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance.removeGeometryPhysics(physics, id);
   };

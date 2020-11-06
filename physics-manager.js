@@ -67,6 +67,12 @@ physicsManager.addCookedConvexGeometry = (buffer, position, quaternion) => {
   return physicsId;
 };
 
+physicsManager.disableGeometry = physicsId => {
+  geometryManager.geometryWorker.disableGeometryPhysics(geometryManager.physics, physicsId);
+};
+physicsManager.enableGeometry = physicsId => {
+  geometryManager.geometryWorker.enableGeometryPhysics(geometryManager.physics, physicsId);
+};
 physicsManager.removeGeometry = physicsId => {
   geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsId);
 };
