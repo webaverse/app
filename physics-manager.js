@@ -38,24 +38,35 @@ const _makePhysicsObject = () => ({
   position: new THREE.Vector3(),
   quaternion: new THREE.Quaternion(),
 });
+
 physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
   const physicsId = ++nextPhysicsId;
   geometryManager.geometryWorker.addBoxGeometryPhysics(geometryManager.physics, position, quaternion, size, physicsId, dynamic);
   physicsObjects[physicsId] = _makePhysicsObject();
   return physicsId;
 };
+
 physicsManager.addGeometry = mesh => {
   const physicsId = ++nextPhysicsId;
   geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, mesh, physicsId);
   physicsObjects[physicsId] = _makePhysicsObject();
   return physicsId;
 };
+
 physicsManager.addConvexGeometry = mesh => {
   const physicsId = ++nextPhysicsId;
   geometryManager.geometryWorker.addConvexGeometryPhysics(geometryManager.physics, mesh, physicsId);
   physicsObjects[physicsId] = _makePhysicsObject();
   return physicsId;
 };
+physicsManager.cookConvexGeometry = mesh => geometryManager.geometryWorker.cookConvexGeometryPhysics(geometryManager.physics, mesh);
+physicsManager.addCookedConvexGeometry = (buffer, position, quaternion) => {
+  const physicsId = ++nextPhysicsId;
+  geometryManager.geometryWorker.addCookedConvexGeometryPhysics(physics, buffer, position, quaternion, physicsId);
+  physicsObjects[physicsId] = _makePhysicsObject();
+  return physicsId;
+};
+
 physicsManager.raycast = (position, quaternion) => geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
 physicsManager.getPhysicsTransform = physicsId => physicsObjects[physicsId];
 physicsManager.setPhysicsTransform = (physicsId, position, quaternion) => {

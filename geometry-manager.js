@@ -2229,6 +2229,7 @@ const geometryWorker = (() => {
       bitang,
     };
   };
+
   w.addGeometryPhysics = (physics, mesh, id) => {
     mesh.updateMatrixWorld();
     const {geometry} = mesh;
@@ -2269,6 +2270,35 @@ const geometryWorker = (() => {
       streamPtr,
     );
   };
+  w.cookGeometryPhysics = (physics, mesh) => {
+    mesh.updateMatrixWorld();
+    const {geometry} = mesh;
+
+    const allocator = new Allocator();
+    const positions = allocator.alloc(Float32Array, geometry.attributes.position.count * 3);
+    positions.set(geometry.attributes.position.array);
+    const indices = allocator.alloc(Uint32Array, geometry.index.count);
+    indices.set(geometry.index.array);
+    moduleInstance._cookGeometryPhysics(
+      physics,
+      positions.byteOffset,
+      indices.byteOffset,
+      positions.length,
+      indices.length,
+      scratchStack.u32.byteOffset,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT*2,
+    );
+
+    const dataPtr = scratchStack.u32[0];
+    const dataLength = scratchStack.u32[1];
+    const streamPtr = scratchStack.u32[2]; // XXX delete if it will not be deleted
+
+    const result = new Uint8Array(dataLength);
+    result.set(new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength));
+    allocator.freeAll();
+    return result;
+  };
   w.addCookedGeometryPhysics = (physics, buffer, position, quaternion, id) => {
     const allocator = new Allocator();
     const buffer2 = allocator.alloc(Uint8Array, buffer.length);
@@ -2290,6 +2320,7 @@ const geometryWorker = (() => {
     );
     allocator.freeAll();
   };
+
   w.addConvexGeometryPhysics = (physics, mesh, id) => {
     mesh.updateMatrixWorld();
     const {geometry} = mesh;
@@ -2329,7 +2360,58 @@ const geometryWorker = (() => {
       id,
       streamPtr,
     );
+  };  
+  w.cookConvexGeometryPhysics = (physics, mesh) => {
+    mesh.updateMatrixWorld();
+    const {geometry} = mesh;
+
+    const allocator = new Allocator();
+    const positions = allocator.alloc(Float32Array, geometry.attributes.position.count * 3);
+    positions.set(geometry.attributes.position.array);
+    const indices = allocator.alloc(Uint32Array, geometry.index.count);
+    indices.set(geometry.index.array);
+    moduleInstance._cookConvexGeometryPhysics(
+      physics,
+      positions.byteOffset,
+      indices.byteOffset,
+      positions.length,
+      indices.length,
+      scratchStack.u32.byteOffset,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
+      scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT*2,
+    );
+
+    const dataPtr = scratchStack.u32[0];
+    const dataLength = scratchStack.u32[1];
+    const streamPtr = scratchStack.u32[2];
+    
+    const result = new Uint8Array(dataLength);
+    result.set(new Uint8Array(moduleInstance.HEAP8.buffer, dataPtr, dataLength));
+    allocator.freeAll();
+    return result;
   };
+  w.addCookedConvexGeometryPhysics = (physics, buffer, position, quaternion, id) => {
+    const allocator = new Allocator();
+    const buffer2 = allocator.alloc(Uint8Array, buffer.length);
+    buffer2.set(buffer);
+
+    const positionBuffer = scratchStack.f32.subarray(0, 3);
+    position.toArray(positionBuffer);
+    const quaternionBuffer = scratchStack.f32.subarray(3, 7);
+    quaternion.toArray(quaternionBuffer);
+
+    moduleInstance._addConvexGeometryPhysics(
+      physics,
+      buffer2.byteOffset,
+      buffer2.byteLength,
+      positionBuffer.byteOffset,
+      quaternionBuffer.byteOffset,
+      id,
+      0,
+    );
+    allocator.freeAll();
+  };
+
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance.removeGeometryPhysics(physics, id);
   };
