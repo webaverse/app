@@ -2237,14 +2237,14 @@ const geometryWorker = (() => {
     const allocator = new Allocator();
     const positions = allocator.alloc(Float32Array, geometry.attributes.position.count * 3);
     positions.set(geometry.attributes.position.array);
-    const indices = allocator.alloc(Uint32Array, geometry.index.count);
-    indices.set(geometry.index.array);
+    const indices = geometry.index ? allocator.alloc(Uint32Array, geometry.index.count) : null;
+    indices && indices.set(geometry.index.array);
     moduleInstance._cookGeometryPhysics(
       physics,
       positions.byteOffset,
-      indices.byteOffset,
+      indices ? indices.byteOffset : 0,
       positions.length,
-      indices.length,
+      indices ? indices.length : 0,
       scratchStack.u32.byteOffset,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT*2,
@@ -2277,14 +2277,14 @@ const geometryWorker = (() => {
     const allocator = new Allocator();
     const positions = allocator.alloc(Float32Array, geometry.attributes.position.count * 3);
     positions.set(geometry.attributes.position.array);
-    const indices = allocator.alloc(Uint32Array, geometry.index.count);
-    indices.set(geometry.index.array);
+    const indices = geometry.index ? allocator.alloc(Uint32Array, geometry.index.count) : null;
+    indices && indices.set(geometry.index.array);
     moduleInstance._cookGeometryPhysics(
       physics,
       positions.byteOffset,
-      indices.byteOffset,
+      indices ? indices.byteOffset : 0,
       positions.length,
-      indices.length,
+      indices ? indices.length : 0,
       scratchStack.u32.byteOffset,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT*2,
@@ -2328,14 +2328,14 @@ const geometryWorker = (() => {
     const allocator = new Allocator();
     const positions = allocator.alloc(Float32Array, geometry.attributes.position.count * 3);
     positions.set(geometry.attributes.position.array);
-    const indices = allocator.alloc(Uint32Array, geometry.index.count);
-    indices.set(geometry.index.array);
+    const indices = geometry.index ? allocator.alloc(Uint32Array, geometry.index.count) : null;
+    indices && indices.set(geometry.index.array);
     moduleInstance._cookConvexGeometryPhysics(
       physics,
       positions.byteOffset,
-      indices.byteOffset,
+      indices ? indices.byteOffset : 0,
       positions.length,
-      indices.length,
+      indices ? indices.length : 0,
       scratchStack.u32.byteOffset,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT*2,
@@ -2368,14 +2368,14 @@ const geometryWorker = (() => {
     const allocator = new Allocator();
     const positions = allocator.alloc(Float32Array, geometry.attributes.position.count * 3);
     positions.set(geometry.attributes.position.array);
-    const indices = allocator.alloc(Uint32Array, geometry.index.count);
-    indices.set(geometry.index.array);
+    const indices = geometry.index ? allocator.alloc(Uint32Array, geometry.index.count) : null;
+    indices && indices.set(geometry.index.array);
     moduleInstance._cookConvexGeometryPhysics(
       physics,
       positions.byteOffset,
-      indices.byteOffset,
+      indices ? indices.byteOffset : 0,
       positions.length,
-      indices.length,
+      indices ? indices.length : 0,
       scratchStack.u32.byteOffset,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT,
       scratchStack.u32.byteOffset + Uint32Array.BYTES_PER_ELEMENT*2,
@@ -2415,6 +2415,7 @@ const geometryWorker = (() => {
   w.removeGeometryPhysics = (physics, id) => {
     moduleInstance.removeGeometryPhysics(physics, id);
   };
+
   /* w.earcut = (tracker, ps, holes, holeCounts, points, z, zs, objectId, position, quaternion) => {
     const inPs = w.alloc(Float32Array, ps.length);
     inPs.set(ps);
