@@ -131,9 +131,6 @@ const _applyGravity = timeDiff => {
   physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y);
 };
 const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
-  if (isNaN(physicsManager.velocity.x)) {
-    debugger;
-  }
   const oldVelocity = localVector3.copy(physicsManager.velocity);
 
   applyVelocity(camera.position, physicsManager.velocity, timeDiff);
