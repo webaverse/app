@@ -9,7 +9,7 @@ import {tryLogin, loginManager} from './login.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
-import {makeRayMesh} from './vr-ui.js';
+// import {makeRayMesh} from './vr-ui.js';
 import {
   THING_SHADER,
   makeDrawMaterial,
@@ -315,46 +315,6 @@ scene.add(floorMesh); */
   mesh.position.x = -5;
   scene.add(mesh);
 })(); */
-
-let rayMesh = null;
-{
-  rayMesh = makeRayMesh();
-  rayMesh.visible = false;
-  rayMesh.target = new THREE.Vector3();
-  scene.add(rayMesh);
-
-  window.addEventListener('mousedown', e => {
-    if (e.button === 0) {
-      const transforms = rigManager.getRigTransforms();
-      const {position, quaternion} = transforms[0];
-      
-      const result = physicsManager.raycast(position, quaternion);
-      if (result) { // world geometry raycast
-        rayMesh.target.fromArray(result.point);
-        rayMesh.visible = true;
-        
-        physicsManager.setGravity(false);
-        physicsManager.velocity.setScalar(0);
-      } else {
-        rayMesh.visible = false;
-        
-        physicsManager.setGravity(true);
-      }
-    }
-  });
-  window.addEventListener('mouseup', e => {
-    if (e.button === 0) {
-      rayMesh.visible = false;
-      
-      physicsManager.setGravity(true);
-
-      const transforms = rigManager.getRigTransforms();
-      const {position} = transforms[0];
-      const direction = rayMesh.target.clone().sub(position).normalize();
-      physicsManager.velocity.copy(direction).multiplyScalar(10);
-    }
-  });
-}
 
 (async () => {
   await geometryManager.waitForLoad();
@@ -866,24 +826,6 @@ function animate(timestamp, frame) {
   const now = Date.now();
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
-
-  if (rayMesh.visible) {
-    const transforms = rigManager.getRigTransforms();
-    const {position} = transforms[0];
-
-    rayMesh.position.copy(position);
-    rayMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), rayMesh.target.clone().sub(position).normalize());
-    rayMesh.scale.z = rayMesh.target.distanceTo(position);    
-    
-    const direction = rayMesh.target.clone().sub(position)
-      .normalize()
-      .multiplyScalar(10 * timeDiff);
-
-    physicsManager.offset.add(direction);
-    /* dolly.matrix
-      .premultiply(localMatrix3.makeTranslation(direction.x, direction.y, direction.z))
-      .decompose(dolly.position, dolly.quaternion, dolly.scale); */
-  }
 
   ioManager.update(timeDiff, frame);
   physicsManager.update(timeDiff, frame);
