@@ -319,6 +319,8 @@ scene.add(floorMesh); */
 (async () => {
   await geometryManager.waitForLoad();
 
+  runtime.setGeometryManager(geometryManager);
+
   /* rigManager.addPeerRig(-1);
   rigManager.setPeerAvatarUrl('./npc.vrm', -1);
   rigManager.setPeerAvatarName('Lollercopter', -1);
