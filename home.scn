@@ -21,14 +21,6 @@
       "quaternion": [0, 0, 0, 1],
       "scale": [1, 1, 1],
       "start_url": "https://avaer.github.io/hookshot/index.js"
-    },
-    {
-      "name": "model",
-      "position": [0, 0, 0],
-      "quaternion": [0, 0, 0, 1],
-      "scale": [1, 1, 1],
-      "start_url": "https://avaer.github.io/parkour/parkour.glb",
-      "physics_url": "https://avaer.github.io/parkour/parkour.bin"
     }
   ]
 }
