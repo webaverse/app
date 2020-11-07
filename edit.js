@@ -324,35 +324,35 @@ let rayMesh = null;
   scene.add(rayMesh);
 
   window.addEventListener('mousedown', e => {
-    const transforms = rigManager.getRigTransforms();
-    const {position, quaternion} = transforms[0];
-    
-    const result = physicsManager.raycast(position, quaternion);
-    if (result) { // world geometry raycast
-      rayMesh.target.fromArray(result.point);
-
-      rayMesh.position.copy(position);
-      rayMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), rayMesh.target.clone().sub(position).normalize());
-      rayMesh.scale.z = rayMesh.target.distanceTo(position);
-      rayMesh.visible = true;
+    if (e.button === 0) {
+      const transforms = rigManager.getRigTransforms();
+      const {position, quaternion} = transforms[0];
       
-      physicsManager.setGravity(false);
-      physicsManager.velocity.setScalar(0);
-    } else {
-      rayMesh.visible = false;
-      
-      physicsManager.setGravity(true);
+      const result = physicsManager.raycast(position, quaternion);
+      if (result) { // world geometry raycast
+        rayMesh.target.fromArray(result.point);
+        rayMesh.visible = true;
+        
+        physicsManager.setGravity(false);
+        physicsManager.velocity.setScalar(0);
+      } else {
+        rayMesh.visible = false;
+        
+        physicsManager.setGravity(true);
+      }
     }
   });
   window.addEventListener('mouseup', e => {
-    rayMesh.visible = false;
-    
-    physicsManager.setGravity(true);
+    if (e.button === 0) {
+      rayMesh.visible = false;
+      
+      physicsManager.setGravity(true);
 
-    const transforms = rigManager.getRigTransforms();
-    const {position} = transforms[0];
-    const direction = rayMesh.target.clone().sub(position).normalize();
-    physicsManager.velocity.copy(direction).multiplyScalar(10);
+      const transforms = rigManager.getRigTransforms();
+      const {position} = transforms[0];
+      const direction = rayMesh.target.clone().sub(position).normalize();
+      physicsManager.velocity.copy(direction).multiplyScalar(10);
+    }
   });
 }
 
@@ -872,14 +872,17 @@ function animate(timestamp, frame) {
   if (rayMesh.visible) {
     const transforms = rigManager.getRigTransforms();
     const {position} = transforms[0];
-    const direction = rayMesh.target.clone().sub(position).normalize();
-    direction.multiplyScalar(10 * timeDiff);
-    // physicsManager.velocity.add(direction);
+
+    rayMesh.position.copy(position);
+    rayMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), rayMesh.target.clone().sub(position).normalize());
+    rayMesh.scale.z = rayMesh.target.distanceTo(position);    
+    
+    const direction = rayMesh.target.clone().sub(position)
+      .normalize()
+      .multiplyScalar(10 * timeDiff);
 
     dolly.matrix
-      // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
       .premultiply(localMatrix3.makeTranslation(direction.x, direction.y, direction.z))
-      // .premultiply(localMatrix2.getInverse(localMatrix2))
       .decompose(dolly.position, dolly.quaternion, dolly.scale);
   }
 
