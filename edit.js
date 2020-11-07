@@ -375,8 +375,8 @@ let rayMesh = null;
   const floorPhysicsId = physicsManager.addBoxGeometry(new THREE.Vector3(0, -1, 0), new THREE.Quaternion(), new THREE.Vector3(100, 1, 100), false);
   
   {
-    const u = 'assets/firest33.glb';
-    const res = await fetch('./' + u);
+    const u = 'https://avaer.github.io/home/home.glb';
+    const res = await fetch(u);
     const file = await res.blob();
     file.name = u;
     let mesh = await runtime.loadFile(file, {
