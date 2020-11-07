@@ -2231,7 +2231,6 @@ const geometryWorker = (() => {
   };
 
   w.addGeometryPhysics = (physics, mesh, id) => {
-    mesh.updateMatrixWorld();
     const {geometry} = mesh;
 
     const allocator = new Allocator();
