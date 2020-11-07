@@ -513,7 +513,7 @@ const _loadScn = async (file, opts) => {
   let physicsIds = [];
 
   for (const object of objects) {
-    let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, physics_url} = object;
+    let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, physics_url = null, optimize = false} = object;
     start_url = new URL(start_url, srcUrl).href;
     if (physics_url) {
       physics_url = new URL(physics_url, srcUrl).href;
@@ -522,7 +522,9 @@ const _loadScn = async (file, opts) => {
     const res = await fetch(start_url);
     const blob = await res.blob();
     blob.name = start_url;
-    const mesh = await runtime.loadFile(blob, opts);
+    const mesh = await runtime.loadFile(blob, {
+      optimize,
+    });
     mesh.position.fromArray(position);
     mesh.quaternion.fromArray(quaternion);
     mesh.scale.fromArray(scale);
