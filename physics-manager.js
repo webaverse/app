@@ -22,6 +22,9 @@ const physicsManager = new EventTarget();
 const velocity = new THREE.Vector3();
 physicsManager.velocity = velocity;
 
+const offset = new THREE.Vector3();
+physicsManager.offset = offset;
+
 let jumpState = false;
 const getJumpState = () => jumpState;
 physicsManager.getJumpState = getJumpState;
@@ -134,6 +137,10 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
   const oldVelocity = localVector3.copy(physicsManager.velocity);
 
   applyVelocity(camera.position, physicsManager.velocity, timeDiff);
+
+  camera.position.add(physicsManager.offset);
+  physicsManager.offset.setScalar(0);
+
   camera.updateMatrixWorld();
   camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
   if (avatarOffset) {
