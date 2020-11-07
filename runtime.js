@@ -574,12 +574,18 @@ const _loadScn = async (file, opts) => {
     }
   }
   scene.run = () => {
+    for (const child of scene.children) {
+      child.run && child.run();
+    }
     physicsIds = physicsBuffers.map(physicsBuffer => {
       const physicsId = ++nextPhysicsId;
       geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, new THREE.Vector3(), new THREE.Quaternion(), physicsId);
     });
   };
   scene.destroy = () => {
+    for (const child of scene.children) {
+      child.destroy && child.destroy();
+    }
     for (const physicsId of physicsIds) {
       geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsId);
     }
