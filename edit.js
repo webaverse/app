@@ -371,23 +371,13 @@ scene.add(floorMesh); */
   
   {
     const mesh = await runtime.loadFile({
-      name: 'index.js',
-      url: 'https://avaer.github.io/physicscube/index.js',
+      name: 'home.scn',
+      url: './home.scn',
     });
     mesh.run();
     scene.add(mesh);
   }
 
-  {
-    const mesh = await runtime.loadFile({
-      name: 'index.js',
-      url: './hookshot/index.js',
-    });
-    mesh.position.y = 1;
-    mesh.run();
-    scene.add(mesh);
-  }
-  
   {
     const u = 'assets/case.glb';
     const res = await fetch('./' + u);
