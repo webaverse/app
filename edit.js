@@ -417,14 +417,12 @@ let rayMesh = null;
   }
 
   {
-    const u = 'assets/hookshot.glb';
-    const res = await fetch('./' + u);
-    const file = await res.blob();
-    file.name = u;
-    let mesh = await runtime.loadFile(file, {
-      optimize: false,
+    const mesh = await runtime.loadFile({
+      name: 'index.js',
+      url: './hookshot/index.js',
     });
     mesh.position.y = 1;
+    mesh.run();
     scene.add(mesh);
   }
   
