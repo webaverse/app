@@ -20,8 +20,10 @@ const localVector2 = new THREE.Vector3();
 const runtime = {};
 
 let geometryManager = null;
-runtime.setGeometryManager = newGeometryManager => {
+let physicsManager = null;
+runtime.injectDependencies = (newGeometryManager, newPhysicsManager) => {
   geometryManager = newGeometryManager;
+  physicsManager = newPhysicsManager;
 };
 
 let nextPhysicsId = 0;

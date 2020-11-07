@@ -319,7 +319,7 @@ scene.add(floorMesh); */
 (async () => {
   await geometryManager.waitForLoad();
 
-  runtime.setGeometryManager(geometryManager);
+  runtime.injectDependencies(geometryManager, physicsManager);
 
   /* rigManager.addPeerRig(-1);
   rigManager.setPeerAvatarUrl('./npc.vrm', -1);
