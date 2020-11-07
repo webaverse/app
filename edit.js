@@ -375,17 +375,53 @@ scene.add(floorMesh); */
     mesh.run();
     scene.add(mesh);
   }
+
+  {
+    const u = 'assets/hookshot.glb';
+    const res = await fetch('./' + u);
+    const file = await res.blob();
+    file.name = u;
+    let mesh = await runtime.loadFile(file, {
+      optimize: false,
+    });
+    mesh.position.y = 1;
+    scene.add(mesh);
+  }
   
   {
+    const u = 'assets/case.glb';
+    const res = await fetch('./' + u);
+    const file = await res.blob();
+    file.name = u;
+    let mesh = await runtime.loadFile(file, {
+      optimize: false,
+    });
+    mesh.position.set(0, 0, 1);
+    scene.add(mesh);
+  }
+  
+  {
+    const u = 'assets/crate.glb';
+    const res = await fetch('./' + u);
+    const file = await res.blob();
+    file.name = u;
+    let mesh = await runtime.loadFile(file, {
+      optimize: false,
+    });
+    mesh.position.set(0, 0, 2);
+    scene.add(mesh);
+  }
+  
+  /* {
     const mesh = await runtime.loadFile({
       name: 'index.js',
       url: 'https://avaer.github.io/mirror/index.js',
     });
     mesh.run();
     scene.add(mesh);
-  }
+  } */
 
-  {
+  /* {
     const mesh = await runtime.loadFile({
       name: 'parkour.scn',
       url: 'https://avaer.github.io/parkour/parkour.scn',
@@ -397,12 +433,12 @@ scene.add(floorMesh); */
     };
     mesh.run(runSpec);
     scene.add(mesh);
-  }
+  } */
   
   {
     const mesh = await runtime.loadFile({
       name: 'index.js',
-      url: 'https://avaer.github.io/weapons/index.js',
+      url: './weapons/index.js',
     }, {
       optimize: false,
     });
@@ -639,11 +675,14 @@ const addItem = async (position, quaternion) => {
   let mesh = await runtime.loadFile(file, {
     optimize: false,
   });
-  mesh = mesh.children[0]//.children.find(c => c.name === 'laser_orange_04');
-  // console.log('loading file space', mesh);
+  console.log('loading file space', mesh);
+  // debugger;
+  // mesh = mesh.children[0]//.children.find(c => c.name === 'laser_orange_04');
   // mesh.position.y = 1;
-  for (const child of mesh.children) {
-    child.material = new THREE.MeshBasicMaterial({map: child.material.emissiveMap});
+  for (let i = 0; i < mesh.children.length; i++) {
+    const child = mesh.children[i];
+    child.position.x = -3 + i;
+    child.material = new THREE.MeshBasicMaterial({map: child.material.map});
   }
   const s = 0.1;
   mesh.quaternion.premultiply(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 1, 0)));
