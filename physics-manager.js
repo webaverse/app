@@ -118,10 +118,15 @@ const _applyGravity = timeDiff => {
   localVector.multiplyScalar(timeDiff);
   physicsManager.velocity.add(localVector);
 
+  if (!jumpState) {
+    physicsManager.velocity.x *= 0.7;
+    physicsManager.velocity.z *= 0.7;
+  }
+
   const terminalVelocity = 50;
   const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
-  physicsManager.velocity.x = _clampToTerminalVelocity(physicsManager.velocity.x * 0.7);
-  physicsManager.velocity.z = _clampToTerminalVelocity(physicsManager.velocity.z * 0.7);
+  physicsManager.velocity.x = _clampToTerminalVelocity(physicsManager.velocity.x);
+  physicsManager.velocity.z = _clampToTerminalVelocity(physicsManager.velocity.z);
   physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y);
 };
 const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
