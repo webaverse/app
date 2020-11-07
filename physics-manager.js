@@ -113,8 +113,9 @@ physicsManager.getRigTransforms = () => rigManager.getRigTransforms();
 const animals = [];
 physicsManager.animals = animals; */
 
+const gravity = new THREE.Vector3(0, -9.8, 0);
 const _applyGravity = timeDiff => {
-  localVector.set(0, -9.8, 0);
+  localVector.copy(gravity);
   localVector.multiplyScalar(timeDiff);
   physicsManager.velocity.add(localVector);
 
@@ -213,6 +214,16 @@ const _collideItems = matrix => {
   matrix.decompose(localVector3, localQuaternion2, localVector4);
   geometryManager.currentChunkMesh.update(localVector3);
 }; */
+
+physicsManager.setGravity = g => {
+  if (g === true) {
+    gravity.set(0, -9.8, 0);
+  } else if (g === false) {
+    gravity.setScalar(0);
+  } else {
+    gravity.copy(g);
+  }
+};
 
 const _updatePhysics = timeDiff => {
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
