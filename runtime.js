@@ -52,7 +52,7 @@ const importMap = {
 const _clone = o => JSON.parse(JSON.stringify(o));
 
 // const thingFiles = {};
-const _loadGltf = async (file, {optimize = true} = {}) => {
+const _loadGltf = async (file, {optimize = false, physics = false} = {}) => {
   // const u = `${storageHost}/${hash}`;
   const u = URL.createObjectURL(file);
   let o;
@@ -515,7 +515,7 @@ const _loadScn = async (file, opts) => {
   let physicsIds = [];
 
   for (const object of objects) {
-    let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, physics_url = null, optimize = false} = object;
+    let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, physics_url = null, optimize = false, physics = false} = object;
     start_url = new URL(start_url, srcUrl).href;
     if (physics_url) {
       physics_url = new URL(physics_url, srcUrl).href;
@@ -526,12 +526,47 @@ const _loadScn = async (file, opts) => {
     blob.name = start_url;
     const mesh = await runtime.loadFile(blob, {
       optimize,
+      physics,
     });
     mesh.position.fromArray(position);
     mesh.quaternion.fromArray(quaternion);
     mesh.scale.fromArray(scale);
     scene.add(mesh);
-    
+
+    if (physics) {
+      mesh.updateMatrixWorld();
+      
+      const meshes = [];
+      mesh.traverse(o => {
+        if (o.isMesh) {
+          meshes.push(o);
+        }
+      });
+      for (const mesh of meshes) {
+        const {geometry} = mesh;
+        const newGeometry = new THREE.BufferGeometry();
+
+        if (geometry.attributes.position.isInterleavedBufferAttribute) {
+          const positions = new Float32Array(geometry.attributes.position.count * 3);
+          for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
+            localVector
+              .fromArray(geometry.attributes.position.data.array, j)
+              .applyMatrix4(mesh.matrixWorld)
+              .toArray(positions, i);
+          }
+          newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        } else {
+          newGeometry.setAttribute('position', geometry.attribute.position);
+        }
+        
+        if (geometry.index) {
+          newGeometry.setIndex(geometry.index);
+        }
+
+        const newMesh = new THREE.Mesh(newGeometry);
+        physicsManager.addGeometry(newMesh);
+      }
+    }
     if (physics_url) {
       const res = await fetch(physics_url);
       let physicsBuffer = await res.arrayBuffer();
