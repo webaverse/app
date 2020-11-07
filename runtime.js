@@ -18,6 +18,12 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 
 const runtime = {};
+
+let geometryManager = null;
+runtime.setGeometryManager = newGeometryManager => {
+  geometryManager = newGeometryManager;
+};
+
 let nextPhysicsId = 0;
 
 const textDecoder = new TextDecoder();
@@ -529,13 +535,13 @@ const _loadScn = async (file, opts) => {
       physicsBuffers.push(physicsBuffer);
     }
   }
-  scene.run = ({geometryManager}) => {
+  scene.run = () => {
     physicsIds = physicsBuffers.map(physicsBuffer => {
       const physicsId = ++nextPhysicsId;
       geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, new THREE.Vector3(), new THREE.Quaternion(), physicsId);
     });
   };
-  scene.destroy = ({geometryManager}) => {
+  scene.destroy = () => {
     for (const physicsId of physicsIds) {
       geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsId);
     }
