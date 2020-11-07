@@ -316,9 +316,11 @@ scene.add(floorMesh); */
   scene.add(mesh);
 })(); */
 
+let rayMesh = null;
 {
-  const rayMesh = makeRayMesh();
+  rayMesh = makeRayMesh();
   rayMesh.visible = false;
+  rayMesh.target = new THREE.Vector3();
   scene.add(rayMesh);
 
   window.addEventListener('mousedown', e => {
@@ -327,20 +329,30 @@ scene.add(floorMesh); */
     
     const result = physicsManager.raycast(position, quaternion);
     if (result) { // world geometry raycast
-      result.point = new THREE.Vector3().fromArray(result.point);
+      rayMesh.target.fromArray(result.point);
 
       rayMesh.position.copy(position);
-      rayMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), result.point.clone().sub(position).normalize());
-      rayMesh.scale.z = result.point.distanceTo(position);
+      rayMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), rayMesh.target.clone().sub(position).normalize());
+      rayMesh.scale.z = rayMesh.target.distanceTo(position);
       rayMesh.visible = true;
-
-      /* raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
-      raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
-      raycastChunkSpec.objectQuaternion = new THREE.Quaternion().fromArray(raycastChunkSpec.objectQuaternion);
-      cubeMesh.position.copy(raycastChunkSpec.point); */
+      
+      physicsManager.setGravity(false);
+      physicsManager.velocity.setScalar(0);
     } else {
       rayMesh.visible = false;
+      
+      physicsManager.setGravity(true);
     }
+  });
+  window.addEventListener('mouseup', e => {
+    rayMesh.visible = false;
+    
+    physicsManager.setGravity(true);
+
+    const transforms = rigManager.getRigTransforms();
+    const {position} = transforms[0];
+    const direction = rayMesh.target.clone().sub(position).normalize();
+    physicsManager.velocity.copy(direction).multiplyScalar(10);
   });
 }
 
@@ -856,6 +868,20 @@ function animate(timestamp, frame) {
   const now = Date.now();
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
+
+  if (rayMesh.visible) {
+    const transforms = rigManager.getRigTransforms();
+    const {position} = transforms[0];
+    const direction = rayMesh.target.clone().sub(position).normalize();
+    direction.multiplyScalar(10 * timeDiff);
+    // physicsManager.velocity.add(direction);
+
+    dolly.matrix
+      // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
+      .premultiply(localMatrix3.makeTranslation(direction.x, direction.y, direction.z))
+      // .premultiply(localMatrix2.getInverse(localMatrix2))
+      .decompose(dolly.position, dolly.quaternion, dolly.scale);
+  }
 
   ioManager.update(timeDiff, frame);
   physicsManager.update(timeDiff, frame);
