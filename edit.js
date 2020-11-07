@@ -9,7 +9,7 @@ import {tryLogin, loginManager} from './login.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
-// import {makeRayMesh} from './vr-ui.js';
+import {makeRayMesh} from './vr-ui.js';
 import {
   THING_SHADER,
   makeDrawMaterial,
@@ -315,6 +315,34 @@ scene.add(floorMesh); */
   mesh.position.x = -5;
   scene.add(mesh);
 })(); */
+
+{
+  const rayMesh = makeRayMesh();
+  rayMesh.visible = false;
+  scene.add(rayMesh);
+
+  window.addEventListener('mousedown', e => {
+    const transforms = rigManager.getRigTransforms();
+    const {position, quaternion} = transforms[0];
+    
+    const result = physicsManager.raycast(position, quaternion);
+    if (result) { // world geometry raycast
+      result.point = new THREE.Vector3().fromArray(result.point);
+
+      rayMesh.position.copy(position);
+      rayMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), result.point.clone().sub(position).normalize());
+      rayMesh.scale.z = result.point.distanceTo(position);
+      rayMesh.visible = true;
+
+      /* raycastChunkSpec.normal = new THREE.Vector3().fromArray(raycastChunkSpec.normal);
+      raycastChunkSpec.objectPosition = new THREE.Vector3().fromArray(raycastChunkSpec.objectPosition);
+      raycastChunkSpec.objectQuaternion = new THREE.Quaternion().fromArray(raycastChunkSpec.objectQuaternion);
+      cubeMesh.position.copy(raycastChunkSpec.point); */
+    } else {
+      rayMesh.visible = false;
+    }
+  });
+}
 
 (async () => {
   await geometryManager.waitForLoad();
