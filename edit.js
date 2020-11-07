@@ -337,39 +337,6 @@ scene.add(floorMesh); */
   const floorPhysicsId = physicsManager.addBoxGeometry(new THREE.Vector3(0, -1, 0), new THREE.Quaternion(), new THREE.Vector3(100, 1, 100), false);
   
   {
-    const u = 'https://avaer.github.io/home/home.glb';
-    const res = await fetch(u);
-    const file = await res.blob();
-    file.name = u;
-    let mesh = await runtime.loadFile(file, {
-      optimize: false,
-    });
-    mesh.updateMatrixWorld();
-    mesh = mesh.children[0];
-    mesh.frustumCulled = false;
-    {
-      const {geometry} = mesh;
-      const matrix = mesh.matrixWorld.clone().premultiply(new THREE.Matrix4().makeScale(0.5, 0.5, 0.5));
-      const positions = new Float32Array(geometry.attributes.position.count * 3);
-      for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
-        localVector
-          .fromArray(geometry.attributes.position.data.array, j)
-          .applyMatrix4(matrix)
-          .toArray(positions, i);
-      }
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    }
-    mesh.position.set(0, 0, 0);
-    mesh.quaternion.set(0, 0, 0, 1);
-    mesh.scale.set(1, 1, 1);
-    // mesh.geometry.applyMatrix4(new THREE.Matrix4().makeScale(0.5, 0.5, 0.5));
-    console.log('loaded file', mesh);
-    scene.add(mesh);
-
-    physicsManager.addGeometry(mesh);
-  }
-  
-  {
     const mesh = await runtime.loadFile({
       name: 'home.scn',
       url: './home.scn',
