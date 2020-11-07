@@ -881,9 +881,10 @@ function animate(timestamp, frame) {
       .normalize()
       .multiplyScalar(10 * timeDiff);
 
-    dolly.matrix
+    physicsManager.offset.add(direction);
+    /* dolly.matrix
       .premultiply(localMatrix3.makeTranslation(direction.x, direction.y, direction.z))
-      .decompose(dolly.position, dolly.quaternion, dolly.scale);
+      .decompose(dolly.position, dolly.quaternion, dolly.scale); */
   }
 
   ioManager.update(timeDiff, frame);
