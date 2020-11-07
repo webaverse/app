@@ -183,10 +183,15 @@ const _updateIo = (timeDiff, frame) => {
       localVector.add(new THREE.Vector3(0, 0, 1).applyEuler(cameraEuler));
     }
     if (localVector.length() > 0) {
-      localVector.normalize().multiplyScalar(speed);
+      localVector.normalize().multiplyScalar(speed * timeDiff);
+
+      physicsManager.velocity.add(localVector);
+
+      if (physicsManager.getJumpState()) {
+        physicsManager.velocity.x *= 0.7;
+        physicsManager.velocity.z *= 0.7;
+      }
     }
-    localVector.multiplyScalar(timeDiff);
-    physicsManager.velocity.add(localVector);
   }
 };
 ioManager.update = _updateIo;
