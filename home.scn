@@ -20,8 +20,7 @@
       "quaternion": [0, 0, 0, 1],
       "scale": [1, 1, 1],
       "start_url": "https://avaer.github.io/parkour/parkour.glb",
-      "physics_url": "https://avaer.github.io/parkour/parkour.bin",
-      "optimize": false
+      "physics_url": "https://avaer.github.io/parkour/parkour.bin"
     }
   ]
 }
