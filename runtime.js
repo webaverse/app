@@ -53,8 +53,7 @@ const _clone = o => JSON.parse(JSON.stringify(o));
 
 // const thingFiles = {};
 const _loadGltf = async (file, {optimize = false, physics = false} = {}) => {
-  // const u = `${storageHost}/${hash}`;
-  const u = URL.createObjectURL(file);
+  const u = file.url || URL.createObjectURL(file);
   let o;
   try {
     o = await new Promise((accept, reject) => {
@@ -521,10 +520,10 @@ const _loadScn = async (file, opts) => {
       physics_url = new URL(physics_url, srcUrl).href;
     }
 
-    const res = await fetch(start_url);
-    const blob = await res.blob();
-    blob.name = start_url;
-    const mesh = await runtime.loadFile(blob, {
+    const mesh = await runtime.loadFile({
+      url: start_url,
+      name: start_url,
+    }, {
       optimize,
       physics,
     });
