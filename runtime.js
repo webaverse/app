@@ -54,7 +54,7 @@ const importMap = {
 const _clone = o => JSON.parse(JSON.stringify(o));
 
 // const thingFiles = {};
-const _loadGltf = async (file, {optimize = false, physics = false} = {}) => {
+const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false} = {}) => {
   const u = file.url || URL.createObjectURL(file);
   let o;
   try {
@@ -68,42 +68,87 @@ const _loadGltf = async (file, {optimize = false, physics = false} = {}) => {
   }
   o = o.scene;
 
-  if (optimize) {
-    const specs = [];
-    o.traverse(o => {
-      if (o.isMesh) {
-        const mesh = o;
-        const {geometry} = o;
-        let texture;
-        if (o.material.map) {
-          texture = o.material.map;
-        } else if (o.material.emissiveMap) {
-          texture = o.material.emissiveMap;
-        } else {
-          texture = null;
+  const mesh = (() => {
+    if (optimize) {
+      const specs = [];
+      o.traverse(o => {
+        if (o.isMesh) {
+          const mesh = o;
+          const {geometry} = o;
+          let texture;
+          if (o.material.map) {
+            texture = o.material.map;
+          } else if (o.material.emissiveMap) {
+            texture = o.material.emissiveMap;
+          } else {
+            texture = null;
+          }
+          specs.push({
+            mesh,
+            geometry,
+            texture,
+          });
         }
-        specs.push({
-          mesh,
-          geometry,
-          texture,
-        });
+      });
+      specs.sort((a, b) => +a.mesh.material.transparent - +b.mesh.material.transparent);
+      const meshes = specs.map(spec => spec.mesh);
+      const geometries = specs.map(spec => spec.geometry);
+      const textures = specs.map(spec => spec.texture);
+
+      const mesh = mergeMeshes(meshes, geometries, textures);
+      mesh.userData.gltfExtensions = {
+        EXT_aabb: mesh.geometry.boundingBox.min.toArray()
+          .concat(mesh.geometry.boundingBox.max.toArray()),
+        // EXT_hash: hash,
+      };
+      return mesh;
+    } else {
+      return o;
+    }
+  })();
+  
+  if (physics) {
+    mesh.updateMatrixWorld();
+    
+    const meshes = [];
+    mesh.traverse(o => {
+      if (o.isMesh) {
+        meshes.push(o);
       }
     });
-    specs.sort((a, b) => +a.mesh.material.transparent - +b.mesh.material.transparent);
-    const meshes = specs.map(spec => spec.mesh);
-    const geometries = specs.map(spec => spec.geometry);
-    const textures = specs.map(spec => spec.texture);
+    for (const mesh of meshes) {
+      const {geometry} = mesh;
+      const newGeometry = new THREE.BufferGeometry();
 
-    const mesh = mergeMeshes(meshes, geometries, textures);
-    mesh.userData.gltfExtensions = {
-      EXT_aabb: mesh.geometry.boundingBox.min.toArray()
-        .concat(mesh.geometry.boundingBox.max.toArray()),
-      // EXT_hash: hash,
-    };
-    return mesh;
-  } else {
-    return o;
+      if (geometry.attributes.position.isInterleavedBufferAttribute) {
+        const positions = new Float32Array(geometry.attributes.position.count * 3);
+        for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
+          localVector
+            .fromArray(geometry.attributes.position.data.array, j)
+            .applyMatrix4(mesh.matrixWorld)
+            .toArray(positions, i);
+        }
+        newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      } else {
+        newGeometry.setAttribute('position', geometry.attribute.position);
+      }
+      
+      if (geometry.index) {
+        newGeometry.setIndex(geometry.index);
+      }
+
+      const newMesh = new THREE.Mesh(newGeometry);
+      physicsManager.addGeometry(newMesh);
+    }
   }
+  if (physics_url) {
+    const res = await fetch(physics_url);
+    let physicsBuffer = await res.arrayBuffer();
+    physicsBuffer = new Uint8Array(physicsBuffer);
+    physicsBuffers.push(physicsBuffer);
+  }
+  
+  return mesh;
 
   /* const u = URL.createObjectURL(file);
   let o;
@@ -517,12 +562,21 @@ const _loadScn = async (file, opts) => {
 
   for (const object of objects) {
     let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, physics_url = null, optimize = false, physics = false} = object;
+    const parentId = null;
+    position = new THREE.Vector3().fromArray(position);
+    quaternion = new THREE.Quaternion().fromArray(quaternion);
     start_url = new URL(start_url, srcUrl).href;
     if (physics_url) {
       physics_url = new URL(physics_url, srcUrl).href;
     }
 
-    const mesh = await runtime.loadFile({
+    world.addObject(start_url, parentId, position, quaternion, {
+      optimize,
+      physics,
+      physics_url,
+    });
+
+    /* const mesh = await runtime.loadFile({
       url: start_url,
       name: start_url,
     }, {
@@ -532,48 +586,7 @@ const _loadScn = async (file, opts) => {
     mesh.position.fromArray(position);
     mesh.quaternion.fromArray(quaternion);
     mesh.scale.fromArray(scale);
-    scene.add(mesh);
-
-    if (physics) {
-      mesh.updateMatrixWorld();
-      
-      const meshes = [];
-      mesh.traverse(o => {
-        if (o.isMesh) {
-          meshes.push(o);
-        }
-      });
-      for (const mesh of meshes) {
-        const {geometry} = mesh;
-        const newGeometry = new THREE.BufferGeometry();
-
-        if (geometry.attributes.position.isInterleavedBufferAttribute) {
-          const positions = new Float32Array(geometry.attributes.position.count * 3);
-          for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
-            localVector
-              .fromArray(geometry.attributes.position.data.array, j)
-              .applyMatrix4(mesh.matrixWorld)
-              .toArray(positions, i);
-          }
-          newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        } else {
-          newGeometry.setAttribute('position', geometry.attribute.position);
-        }
-        
-        if (geometry.index) {
-          newGeometry.setIndex(geometry.index);
-        }
-
-        const newMesh = new THREE.Mesh(newGeometry);
-        physicsManager.addGeometry(newMesh);
-      }
-    }
-    if (physics_url) {
-      const res = await fetch(physics_url);
-      let physicsBuffer = await res.arrayBuffer();
-      physicsBuffer = new Uint8Array(physicsBuffer);
-      physicsBuffers.push(physicsBuffer);
-    }
+    scene.add(mesh); */
   }
   scene.run = () => {
     for (const child of scene.children) {
