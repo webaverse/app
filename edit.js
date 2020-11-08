@@ -9,7 +9,7 @@ import {tryLogin, loginManager} from './login.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
-import {makeRayMesh, makeTextMesh} from './vr-ui.js';
+import {makeRayMesh, makeTextMesh, makeHighlightMesh} from './vr-ui.js';
 import {
   THING_SHADER,
   makeDrawMaterial,
@@ -337,6 +337,10 @@ class MultiSimplex {
     return result;
   }
 }
+const highlightMesh = makeHighlightMesh();
+highlightMesh.visible = false;
+scene.add(highlightMesh);
+const anchors = [];
 (async () => {
   await geometryManager.waitForLoad();
 
