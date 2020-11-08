@@ -48,7 +48,7 @@ const makeCubeMesh = () => {
   return cubeMesh;
 };
 
-const _makeHighlightMesh = () => {
+const makeHighlightMesh = () => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 0.001);
   const material = new THREE.MeshBasicMaterial({
     color: 0x42a5f5,
@@ -472,18 +472,6 @@ const makeWristMenu = ({scene, ray, highlightMesh, addPackage}) => {
   };
 
   return object;
-};
-const makeHighlightMesh = () => {
-  const highlightMesh = new THREE.Mesh(
-    new THREE.BoxBufferGeometry(1, 1, 1),
-    new THREE.MeshBasicMaterial({
-      color: 0x4fc3f7,
-      transparent: true,
-      opacity: 0.1,
-    })
-  );
-  highlightMesh.visible = false;
-  return highlightMesh;
 }; */
 const makeRayMesh = () => {
   const ray = new THREE.Mesh(
@@ -1894,7 +1882,7 @@ const makeDetailsMesh = (cubeMesh, onrun, onbake, onadd, onremove, onclose) => {
   // mesh.visible = false;
   mesh.frustumCulled = false;
 
-  const highlightMesh = _makeHighlightMesh();
+  const highlightMesh = makeHighlightMesh();
   mesh.add(highlightMesh);
   // mesh.highlightMesh = highlightMesh;
 
@@ -2013,7 +2001,7 @@ const makeTradeMesh = (cubeMesh, ontrade, onclose) => {
   // mesh.visible = false;
   mesh.frustumCulled = false;
 
-  const highlightMesh = _makeHighlightMesh();
+  const highlightMesh = makeHighlightMesh();
   mesh.add(highlightMesh);
   // mesh.highlightMesh = highlightMesh;
 
@@ -2376,7 +2364,7 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
   // mesh.visible = false;
   mesh.frustumCulled = false;
 
-  const highlightMesh = _makeHighlightMesh();
+  const highlightMesh = makeHighlightMesh();
   mesh.add(highlightMesh);
   // mesh.highlightMesh = highlightMesh;
 
@@ -2542,8 +2530,8 @@ export {
   makeIconMesh,
   makeMenuMesh,
   intersectUi,
-  /* makeWristMenu,
-  makeHighlightMesh, */
+  /* makeWristMenu, */
+  makeHighlightMesh,
   makeRayMesh,
   makeRigCapsule,
 };
