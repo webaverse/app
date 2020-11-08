@@ -40,6 +40,10 @@ import {getState, setState} from './state.js';
 // const pid4 = Math.PI / 4;
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
+const leftHandGlideOffset = new THREE.Vector3(0.7, -0.2, 0);
+const rightHandGlideOffset = new THREE.Vector3(-0.7, -0.2, 0);
+const leftHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0));
+const rightHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0));
 // const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
 const localVector = new THREE.Vector3();
@@ -917,16 +921,36 @@ function animate(timestamp, frame) {
 
     const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
     if (!leftGamepadPosition) {
-      leftGamepadPosition = localVector2.copy(localVector).add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion)).toArray();
-      // .toArray(xrState.gamepads[1].position);
-      leftGamepadQuaternion = localQuaternion.toArray();
+      if (!physicsManager.getGlideState()) {
+        leftGamepadPosition = localVector2.copy(localVector)
+          .add(localVector3.copy(leftHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+          .toArray();
+        leftGamepadQuaternion = localQuaternion.toArray();
+      } else {
+        leftGamepadPosition = localVector2.copy(localVector)
+          .add(localVector3.copy(leftHandGlideOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+          .toArray();
+        leftGamepadQuaternion = localQuaternion2.copy(localQuaternion)
+          .premultiply(leftHandGlideQuaternion)
+          .toArray();
+      }
       leftGamepadPointer = 0;
       leftGamepadGrip = 0;
     }
     if (!rightGamepadPosition) {
-      rightGamepadPosition = localVector2.copy(localVector).add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion)).toArray();
-      // .toArray(xrState.gamepads[0].position);
-      rightGamepadQuaternion = localQuaternion.toArray();
+      if (!physicsManager.getGlideState()) {
+        rightGamepadPosition = localVector2.copy(localVector)
+          .add(localVector3.copy(rightHandOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+          .toArray();
+        rightGamepadQuaternion = localQuaternion.toArray();
+      } else {
+        rightGamepadPosition = localVector2.copy(localVector)
+          .add(localVector3.copy(rightHandGlideOffset).multiplyScalar(handOffsetScale).applyQuaternion(localQuaternion))
+          .toArray();
+        rightGamepadQuaternion = localQuaternion2.copy(localQuaternion)
+          .premultiply(rightHandGlideQuaternion)
+          .toArray();
+      }
       rightGamepadPointer = 0;
       rightGamepadGrip = 0;
     }
