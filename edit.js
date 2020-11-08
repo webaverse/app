@@ -391,19 +391,6 @@ scene.add(floorMesh); */
     mesh.run(runSpec);
     scene.add(mesh);
   } */
-  
-  {
-    const mesh = await runtime.loadFile({
-      name: 'index.js',
-      url: './weapons/index.js',
-    }, {
-      optimize: false,
-    });
-    mesh.run();
-    mesh.position.set(-4, 0, -2);
-    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0));
-    scene.add(mesh);
-  }
 
   {
     const u = 'https://cv.webaverse.com/';
