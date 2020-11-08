@@ -209,6 +209,9 @@ const _updateIoPost = () => {
 ioManager.updatePost = _updateIoPost;
 
 window.addEventListener('keydown', e => {
+  if (e.repeat) {
+    return;
+  }
   switch (e.which) {
     case 49: { // 1
       if (document.pointerLockElement) {
@@ -334,6 +337,8 @@ window.addEventListener('keydown', e => {
       if (document.pointerLockElement) {
         if (!physicsManager.getJumpState()) {
           physicsManager.jump();
+        } else {
+          physicsManager.glide();
         }
       }
       break;

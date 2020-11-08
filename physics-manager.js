@@ -34,6 +34,14 @@ const jump = () => {
 };
 physicsManager.jump = jump;
 
+let glideState = false;
+const getGlideState = () => glideState;
+physicsManager.getGlideState = getGlideState;
+const glide = () => {
+  glideState = true;
+};
+physicsManager.glide = glide;
+
 let nextPhysicsId = 0;
 const physicsObjects = {};
 const physicsUpdates = [];
@@ -164,6 +172,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     if (collision.grounded) {
       physicsManager.velocity.y = 0;
       jumpState = false;
+      glideState = false;
     } else {
       jumpState = true;
     }
@@ -180,6 +189,9 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     } else {
       rigManager.localRig.setFloorHeight(localVector.y - cameraManager.getAvatarHeight());
     }
+    /* if (glideState) {
+      rigManager.localRig.setGlide(glideState);
+    } */
   }
 
   _collideItems(localMatrix);
