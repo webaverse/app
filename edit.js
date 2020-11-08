@@ -392,39 +392,6 @@ scene.add(floorMesh); */
     scene.add(mesh);
   } */
 
-  {
-    const u = 'https://cv.webaverse.com/';
-    const blob = new Blob([u], {
-      type: 'text/url',
-    });
-    blob.name = 'portal.url';
-    const mesh = await runtime.loadFile(blob);
-    mesh.position.set(-2, 0, -12);
-    scene.add(mesh);
-  }
-  
-  {
-    const u = 'https://dcl.webaverse.com/';
-    const blob = new Blob([u], {
-      type: 'text/url',
-    });
-    blob.name = 'portal.url';
-    const mesh = await runtime.loadFile(blob);
-    mesh.position.set(2, 0, -12);
-    scene.add(mesh);
-  }
-  
-  {
-    const u = 'https://h.webaverse.com/';
-    const blob = new Blob([u], {
-      type: 'text/url',
-    });
-    blob.name = 'portal.url';
-    const mesh = await runtime.loadFile(blob);
-    mesh.position.set(0, 0, -12);
-    scene.add(mesh);
-  }
-
   /* {
     const u = 'lightsaber.wbn';
     const res = await fetch('./' + u);
