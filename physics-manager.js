@@ -7,6 +7,8 @@ import ioManager from './io-manager.js';
 // import {makeAnimalFactory} from './animal.js';
 import {rigManager} from './rig.js';
 
+const leftQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0));
+
 const localVector = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -37,10 +39,10 @@ physicsManager.jump = jump;
 let glideState = false;
 const getGlideState = () => glideState;
 physicsManager.getGlideState = getGlideState;
-const glide = () => {
-  glideState = true;
+const setGlide = newGlideState => {
+  glideState = newGlideState;
 };
-physicsManager.glide = glide;
+physicsManager.setGlide = setGlide;
 
 let nextPhysicsId = 0;
 const physicsObjects = {};
@@ -126,11 +128,29 @@ physicsManager.animals = animals; */
 
 const gravity = new THREE.Vector3(0, -9.8, 0);
 const _applyGravity = timeDiff => {
-  localVector.copy(gravity);
-  localVector.multiplyScalar(timeDiff);
+  localVector.copy(gravity)
+    .multiplyScalar(timeDiff);
+
+  let gliding;
+  if (glideState && physicsManager.velocity.y < 0) {
+    const transforms = rigManager.getRigTransforms();
+
+    localVector
+      .add(
+        localVector2.copy(transforms[0].position)
+          .sub(transforms[1].position)
+          .normalize()
+          .applyQuaternion(leftQuaternion)
+          .multiplyScalar(3)
+      );
+    physicsManager.velocity.y *= 0.95;
+    gliding = true;
+  } else {
+    gliding = false;
+  }
   physicsManager.velocity.add(localVector);
 
-  if (!jumpState) {
+  if (!jumpState || gliding) {
     physicsManager.velocity.x *= 0.7;
     physicsManager.velocity.z *= 0.7;
   }
