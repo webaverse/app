@@ -16,6 +16,13 @@
       "start_url": "https://avaer.github.io/physicscube/index.js"
     },
     {
+      "name": "weapons",
+      "position": [-4, 0, -2],
+      "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865475],
+      "scale": [1, 1, 1],
+      "start_url": "https://avaer.github.io/weapons/index.js"
+    },
+    {
       "name": "hookshot",
       "position": [0, 1, 0],
       "quaternion": [0, 0, 0, 1],
