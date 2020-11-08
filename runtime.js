@@ -561,11 +561,22 @@ const _loadScn = async (file, opts) => {
   let physicsIds = [];
 
   for (const object of objects) {
-    let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, physics_url = null, optimize = false, physics = false} = object;
+    let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, filename, content, physics_url = null, optimize = false, physics = false} = object;
     const parentId = null;
     position = new THREE.Vector3().fromArray(position);
     quaternion = new THREE.Quaternion().fromArray(quaternion);
-    start_url = new URL(start_url, srcUrl).href;
+    if (start_url) {
+      start_url = new URL(start_url, srcUrl).href;
+    } else if (filename && content) {
+      const blob = new Blob([content], {
+        type: 'application/octet-stream',
+      });
+      start_url = URL.createObjectURL(blob);
+      start_url += '/' + filename;
+    } else {
+      console.warn('cannot load contentless object', object);
+      continue;
+    }
     if (physics_url) {
       physics_url = new URL(physics_url, srcUrl).href;
     }
@@ -609,7 +620,13 @@ const _loadScn = async (file, opts) => {
   return scene;
 };
 const _loadLink = async file => {
-  const href = await file.text();
+  let href;
+  if (file.url) {
+    const res = await fetch(file.url);
+    href = await res.text();
+  } else {
+    href = await file.text();
+  }
 
   const geometry = new THREE.CircleBufferGeometry(1, 32)
     .applyMatrix4(new THREE.Matrix4().makeScale(0.5, 1, 1))
