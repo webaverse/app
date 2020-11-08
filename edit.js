@@ -340,7 +340,9 @@ class MultiSimplex {
 const highlightMesh = makeHighlightMesh();
 highlightMesh.visible = false;
 scene.add(highlightMesh);
-const anchors = [];
+const anchorMeshes = [];
+const rayMesh = makeRayMesh();
+scene.add(rayMesh);
 (async () => {
   await geometryManager.waitForLoad();
 
@@ -495,6 +497,7 @@ const anchors = [];
     const buttonMesh = _makeButtonMesh('Lol');
     buttonMesh.position.y = 1;
     scene.add(buttonMesh);
+    anchorMeshes.push(buttonMesh);
 
     const _makeArrowMesh = () => {
       const rightArrowShape = new THREE.Shape();
@@ -517,12 +520,16 @@ const anchors = [];
       return mesh;
     };
     const rightArrowMesh = _makeArrowMesh();
+    rightArrowMesh.position.x = 0.6;
     rightArrowMesh.position.y = 1;
     scene.add(rightArrowMesh);
+    anchorMeshes.push(rightArrowMesh);
     const leftArrowMesh = _makeArrowMesh();
+    leftArrowMesh.position.x = -0.6;
     leftArrowMesh.position.y = 1;
     leftArrowMesh.rotation.z = Math.PI;
     scene.add(leftArrowMesh);
+    anchorMeshes.push(leftArrowMesh);
 
     const _makeCornersMesh = () => {
       const cornersShape = new THREE.Shape();
@@ -560,6 +567,7 @@ const anchors = [];
     const cornersMesh = _makeCornersMesh();
     cornersMesh.position.y = 1;
     scene.add(cornersMesh);
+    anchorMeshes.push(cornersMesh);
   }
 
     const mesh = await runtime.loadFile({
@@ -968,6 +976,33 @@ function animate(timestamp, frame) {
   ioManager.update(timeDiff, frame);
   physicsManager.update(timeDiff, frame);
   uiManager.update(timeDiff, frame);
+
+  {
+    const transforms = rigManager.getRigTransforms();
+    const {position, quaternion} = transforms[0];
+    rayMesh.position.copy(position);
+    rayMesh.quaternion.copy(quaternion);
+    rayMesh.scale.z = 10;
+    
+    highlightMesh.visible = false;
+    for (const anchorMesh of anchorMeshes) {
+      localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1))
+        .premultiply(localMatrix2.getInverse(anchorMesh.matrixWorld))
+        .decompose(localVector, localQuaternion, localVector2);
+      localVector3.set(0, 0, -1)
+        .applyQuaternion(localQuaternion);
+      const ray = new THREE.Ray(localVector, localVector3);
+      const intersection = ray.intersectBox(anchorMesh.boundingBox, localVector4);
+      if (intersection) {
+        highlightMesh.position.copy(anchorMesh.position)
+          .add(anchorMesh.boundingBox.getCenter(localVector4).applyQuaternion(anchorMesh.quaternion));
+        highlightMesh.quaternion.copy(anchorMesh.quaternion);
+        anchorMesh.boundingBox.getSize(highlightMesh.scale);
+        highlightMesh.visible = true;
+        break;
+      }
+    }
+  }
 
   for (const itemMesh of itemMeshes) {
     itemMesh.update();
