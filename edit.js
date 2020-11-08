@@ -507,6 +507,44 @@ class MultiSimplex {
     leftArrowMesh.position.y = 1;
     leftArrowMesh.rotation.z = Math.PI;
     scene.add(leftArrowMesh);
+
+    const _makeCornersMesh = () => {
+      const object = new THREE.Object3D();
+      const cornersShape = new THREE.Shape();
+      (function corners(ctx) {
+        const size = 0.03;
+        ctx.moveTo(-size, size);
+        ctx.lineTo(size*2, size);
+        ctx.lineTo(size*2, 0);
+        ctx.lineTo(0, 0);
+        ctx.lineTo(0, -size*2);
+        ctx.lineTo(-size, -size*2);
+      })(cornersShape);
+      const cornersGeometry = new THREE.ShapeBufferGeometry(cornersShape);
+      const topLeftCornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
+      topLeftCornerMesh.position.x = -0.5;
+      topLeftCornerMesh.position.y = 0.5;
+      object.add(topLeftCornerMesh);
+      const topRightCornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
+      topRightCornerMesh.position.x = 0.5;
+      topRightCornerMesh.position.y = 0.5;
+      topRightCornerMesh.rotation.z = -Math.PI/2;
+      object.add(topRightCornerMesh);
+      const bottomRightCornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
+      bottomRightCornerMesh.position.x = 0.5;
+      bottomRightCornerMesh.position.y = -0.5;
+      bottomRightCornerMesh.rotation.z = -Math.PI/2*2;
+      object.add(bottomRightCornerMesh);
+      const bottomLeftCornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
+      bottomLeftCornerMesh.position.x = -0.5;
+      bottomLeftCornerMesh.position.y = -0.5;
+      bottomLeftCornerMesh.rotation.z = -Math.PI/2*3;
+      object.add(bottomLeftCornerMesh);
+      return object;
+    };
+    const cornersMesh = _makeCornersMesh();
+    cornersMesh.position.y = 1;
+    scene.add(cornersMesh);
   }
 
     const mesh = await runtime.loadFile({
