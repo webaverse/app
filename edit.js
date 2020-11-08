@@ -1,7 +1,7 @@
 /* global Web3 */
 /* eslint no-unused-vars: 0 */
 import * as THREE from './three.module.js';
-// import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 // import {GLTFLoader} from './GLTFLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {TransformControls} from './TransformControls.js';
@@ -466,54 +466,65 @@ const anchors = [];
         const w = x2 - x1;
         const h = y2 - y1;
         
-        const leftMesh = new THREE.Mesh(new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, Math.PI/2, Math.PI), blackMaterial);
-        object.add(leftMesh);
-        const rightMesh = new THREE.Mesh(new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, -Math.PI/2, Math.PI), blackMaterial);
-        rightMesh.position.x = w;
-        object.add(rightMesh);
-        const topMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), blackMaterial);
-        topMesh.position.x = w/2;
-        topMesh.position.y = size*0.6 + size*0.6*0.1/2;
-        topMesh.scale.x = w;
-        topMesh.scale.y = size*0.6 * 0.1;
-        object.add(topMesh);
-        const bottomMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), blackMaterial);
-        bottomMesh.position.x = w/2;
-        bottomMesh.position.y = -size*0.6 - size*0.6*0.1/2;
-        bottomMesh.scale.x = w;
-        bottomMesh.scale.y = size*0.6 * 0.1;
-        object.add(bottomMesh);
+        const outlineGeometry = BufferGeometryUtils.mergeBufferGeometries([
+          new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, Math.PI/2, Math.PI),
+          new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, -Math.PI/2, Math.PI)
+            .applyMatrix4(new THREE.Matrix4().makeTranslation(w, 0, 0)),
+          new THREE.PlaneBufferGeometry(1, 1)
+            .applyMatrix4(new THREE.Matrix4().makeScale(w, size*0.6 * 0.1, 1))
+            .applyMatrix4(new THREE.Matrix4().makeTranslation(w/2, size*0.6 + size*0.6*0.1/2, 0)),
+          new THREE.PlaneBufferGeometry(1, 1)
+            .applyMatrix4(new THREE.Matrix4().makeScale(w, size*0.6 * 0.1, 1))
+            .applyMatrix4(new THREE.Matrix4().makeTranslation(w/2, -size*0.6 - size*0.6*0.1/2, 0))
+        ]);
+        
+        const outlineMesh = new THREE.Mesh(outlineGeometry, blackMaterial);
+        object.add(outlineMesh);
+        
+        outlineGeometry.computeBoundingBox();
+        object.boundingBox = outlineGeometry.boundingBox.clone();
+        object.boundingBox.min.z = -0.01;
+        object.boundingBox.max.z = 0.01;
       });
       object.add(textMesh);
+
+      object.boundingBox = new THREE.Box3();
       
       return object;
     };
     const buttonMesh = _makeButtonMesh('Lol');
     buttonMesh.position.y = 1;
     scene.add(buttonMesh);
-    
-    const rightArrowShape = new THREE.Shape();
-    (function rightArrow(ctx) {
-      const size = 0.05;
-      const thickness = 0.02;
-      ctx.moveTo(-size, size);
-      ctx.lineTo(-size + thickness, size);
-      ctx.lineTo(thickness, 0);
-      ctx.lineTo(-size + thickness, -size);
-      ctx.lineTo(-size, -size);
-      ctx.lineTo(0, 0);
-    })(rightArrowShape);
-    const rightArrowGeometry = new THREE.ShapeBufferGeometry(rightArrowShape);
-    const rightArrowMesh = new THREE.Mesh(rightArrowGeometry, blackMaterial);
+
+    const _makeArrowMesh = () => {
+      const rightArrowShape = new THREE.Shape();
+      (function rightArrow(ctx) {
+        const size = 0.05;
+        const thickness = 0.02;
+        ctx.moveTo(-size, size);
+        ctx.lineTo(-size + thickness, size);
+        ctx.lineTo(thickness, 0);
+        ctx.lineTo(-size + thickness, -size);
+        ctx.lineTo(-size, -size);
+        ctx.lineTo(0, 0);
+      })(rightArrowShape);
+      const rightArrowGeometry = new THREE.ShapeBufferGeometry(rightArrowShape);
+      const mesh = new THREE.Mesh(rightArrowGeometry, blackMaterial);
+      rightArrowGeometry.computeBoundingBox();
+      mesh.boundingBox = rightArrowGeometry.boundingBox.clone();
+      mesh.boundingBox.min.z = -0.01;
+      mesh.boundingBox.max.z = 0.01;
+      return mesh;
+    };
+    const rightArrowMesh = _makeArrowMesh();
     rightArrowMesh.position.y = 1;
     scene.add(rightArrowMesh);
-    const leftArrowMesh = new THREE.Mesh(rightArrowGeometry, blackMaterial);
+    const leftArrowMesh = _makeArrowMesh();
     leftArrowMesh.position.y = 1;
     leftArrowMesh.rotation.z = Math.PI;
     scene.add(leftArrowMesh);
 
     const _makeCornersMesh = () => {
-      const object = new THREE.Object3D();
       const cornersShape = new THREE.Shape();
       (function corners(ctx) {
         const size = 0.03;
@@ -524,27 +535,27 @@ const anchors = [];
         ctx.lineTo(0, -size*2);
         ctx.lineTo(-size, -size*2);
       })(cornersShape);
-      const cornersGeometry = new THREE.ShapeBufferGeometry(cornersShape);
-      const topLeftCornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
-      topLeftCornerMesh.position.x = -0.5;
-      topLeftCornerMesh.position.y = 0.5;
-      object.add(topLeftCornerMesh);
-      const topRightCornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
-      topRightCornerMesh.position.x = 0.5;
-      topRightCornerMesh.position.y = 0.5;
-      topRightCornerMesh.rotation.z = -Math.PI/2;
-      object.add(topRightCornerMesh);
-      const bottomRightCornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
-      bottomRightCornerMesh.position.x = 0.5;
-      bottomRightCornerMesh.position.y = -0.5;
-      bottomRightCornerMesh.rotation.z = -Math.PI/2*2;
-      object.add(bottomRightCornerMesh);
-      const bottomLeftCornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
-      bottomLeftCornerMesh.position.x = -0.5;
-      bottomLeftCornerMesh.position.y = -0.5;
-      bottomLeftCornerMesh.rotation.z = -Math.PI/2*3;
-      object.add(bottomLeftCornerMesh);
-      return object;
+      const cornerGeometry = new THREE.ShapeBufferGeometry(cornersShape);
+      const cornersGeometry = BufferGeometryUtils.mergeBufferGeometries([
+        cornerGeometry.clone()
+          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0)))
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0)),
+        cornerGeometry.clone()
+          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/2)))
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0)),
+        cornerGeometry.clone()
+          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/2*2)))
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)),
+        cornerGeometry.clone()
+          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/2*3)))
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0))
+      ]);
+      const cornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
+      cornersGeometry.computeBoundingBox();
+      cornerMesh.boundingBox = cornersGeometry.boundingBox.clone();
+      cornerMesh.boundingBox.min.z = -0.01;
+      cornerMesh.boundingBox.max.z = 0.01;
+      return cornerMesh;
     };
     const cornersMesh = _makeCornersMesh();
     cornersMesh.position.y = 1;
