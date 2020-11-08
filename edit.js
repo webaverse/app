@@ -570,6 +570,7 @@ scene.add(rayMesh);
     anchorMeshes.push(cornersMesh);
   }
 
+  {
     const mesh = await runtime.loadFile({
       name: 'home.scn',
       url: './home.scn',
