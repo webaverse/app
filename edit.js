@@ -345,7 +345,7 @@ scene.add(floorMesh); */
     scene.add(mesh);
   }
 
-  {
+  /* {
     const u = 'assets/case.glb';
     const res = await fetch('./' + u);
     const file = await res.blob();
@@ -367,7 +367,7 @@ scene.add(floorMesh); */
     });
     mesh.position.set(0, 0, 2);
     scene.add(mesh);
-  }
+  } */
   
   /* {
     const mesh = await runtime.loadFile({
