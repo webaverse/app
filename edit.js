@@ -450,6 +450,7 @@ class MultiSimplex {
     textMesh.position.y = 2;
     scene.add(textMesh);
 
+    const blackMaterial = new THREE.MeshBasicMaterial({color: 0x333333});
     const _makeButtonMesh = (text, font, size = 0.1) => {
       const object = new THREE.Object3D();
       
@@ -461,7 +462,6 @@ class MultiSimplex {
         const w = x2 - x1;
         const h = y2 - y1;
         
-        const blackMaterial = new THREE.MeshBasicMaterial({color: 0x333333});
         const leftMesh = new THREE.Mesh(new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, Math.PI/2, Math.PI), blackMaterial);
         object.add(leftMesh);
         const rightMesh = new THREE.Mesh(new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, -Math.PI/2, Math.PI), blackMaterial);
@@ -487,6 +487,26 @@ class MultiSimplex {
     const buttonMesh = _makeButtonMesh('Lol');
     buttonMesh.position.y = 1;
     scene.add(buttonMesh);
+    
+    const rightArrowShape = new THREE.Shape();
+    (function rightArrow(ctx) {
+      const size = 0.05;
+      const thickness = 0.02;
+      ctx.moveTo(-size, size);
+      ctx.lineTo(-size + thickness, size);
+      ctx.lineTo(thickness, 0);
+      ctx.lineTo(-size + thickness, -size);
+      ctx.lineTo(-size, -size);
+      ctx.lineTo(0, 0);
+    })(rightArrowShape);
+    const rightArrowGeometry = new THREE.ShapeBufferGeometry(rightArrowShape);
+    const rightArrowMesh = new THREE.Mesh(rightArrowGeometry, blackMaterial);
+    rightArrowMesh.position.y = 1;
+    scene.add(rightArrowMesh);
+    const leftArrowMesh = new THREE.Mesh(rightArrowGeometry, blackMaterial);
+    leftArrowMesh.position.y = 1;
+    leftArrowMesh.rotation.z = Math.PI;
+    scene.add(leftArrowMesh);
   }
 
     const mesh = await runtime.loadFile({
