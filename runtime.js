@@ -21,9 +21,11 @@ const runtime = {};
 
 let geometryManager = null;
 let physicsManager = null;
-runtime.injectDependencies = (newGeometryManager, newPhysicsManager) => {
+let world = null;
+runtime.injectDependencies = (newGeometryManager, newPhysicsManager, newWorld) => {
   geometryManager = newGeometryManager;
   physicsManager = newPhysicsManager;
+  world = newWorld;
 };
 
 let nextPhysicsId = 0;
