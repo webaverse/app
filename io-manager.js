@@ -338,7 +338,7 @@ window.addEventListener('keydown', e => {
         if (!physicsManager.getJumpState()) {
           physicsManager.jump();
         } else {
-          physicsManager.glide();
+          physicsManager.setGlide(!physicsManager.getGlideState());
         }
       }
       break;
