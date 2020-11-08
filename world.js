@@ -809,7 +809,7 @@ const _connectRoom = async (roomName, worldURL) => {
 };
 
 const objects = [];
-world.addObject = (contentId, parentId, position, quaternion) => {
+world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
   state.transact(() => {
     const instanceId = getRandomString();
     const trackedObject = world.getTrackedObject(instanceId);
@@ -818,6 +818,7 @@ world.addObject = (contentId, parentId, position, quaternion) => {
     trackedObject.set('contentId', contentId);
     trackedObject.set('position', position.toArray());
     trackedObject.set('quaternion', quaternion.toArray());
+    trackedObject.set('options', JSON.stringify(options));
   });
 };
 world.removeObject = object => {
@@ -857,7 +858,8 @@ world.removeObject = object => {
 world.addEventListener('trackedobjectadd', async e => {
   const trackedObject = e.data;
   const trackedObjectJson = trackedObject.toJSON();
-  const {instanceId, parentId, contentId, position, quaternion} = trackedObjectJson;
+  const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
+  const options = JSON.parse(optionsString);
 
   const file = await (async () => {
     if (typeof contentId === 'number') {
@@ -907,7 +909,7 @@ world.addEventListener('trackedobjectadd', async e => {
     }
   })();
   if (file) {
-    const mesh = await runtime.loadFile(file);
+    const mesh = await runtime.loadFile(file, options);
     mesh.position.fromArray(position);
     mesh.quaternion.fromArray(quaternion);
     
