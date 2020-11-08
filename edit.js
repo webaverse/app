@@ -449,7 +449,44 @@ class MultiSimplex {
     const textMesh = makeTextMesh(`Hootshot\nThis is the best hookshot you'll find.\n`, undefined, 0.2);
     textMesh.position.y = 2;
     scene.add(textMesh);
-    
+
+    const _makeButtonMesh = (text, font, size = 0.1) => {
+      const object = new THREE.Object3D();
+      
+      const textMesh = makeTextMesh(text, font, size);
+      textMesh._needsSync = true;
+      textMesh.sync(() => {
+        const renderInfo = textMesh.textRenderInfo;
+        const [x1, y1, x2, y2] = renderInfo.totalBounds;
+        const w = x2 - x1;
+        const h = y2 - y1;
+        
+        const blackMaterial = new THREE.MeshBasicMaterial({color: 0x333333});
+        const leftMesh = new THREE.Mesh(new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, Math.PI/2, Math.PI), blackMaterial);
+        object.add(leftMesh);
+        const rightMesh = new THREE.Mesh(new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, -Math.PI/2, Math.PI), blackMaterial);
+        rightMesh.position.x = w;
+        object.add(rightMesh);
+        const topMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), blackMaterial);
+        topMesh.position.x = w/2;
+        topMesh.position.y = size*0.6 + size*0.6*0.1/2;
+        topMesh.scale.x = w;
+        topMesh.scale.y = size*0.6 * 0.1;
+        object.add(topMesh);
+        const bottomMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), blackMaterial);
+        bottomMesh.position.x = w/2;
+        bottomMesh.position.y = -size*0.6 - size*0.6*0.1/2;
+        bottomMesh.scale.x = w;
+        bottomMesh.scale.y = size*0.6 * 0.1;
+        object.add(bottomMesh);
+      });
+      object.add(textMesh);
+      
+      return object;
+    };
+    const buttonMesh = _makeButtonMesh('Lol');
+    buttonMesh.position.y = 1;
+    scene.add(buttonMesh);
   }
 
     const mesh = await runtime.loadFile({
