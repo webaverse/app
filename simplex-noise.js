@@ -26,6 +26,8 @@ Better rank ordering method by Stefan Gustavson in 2012.
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
+const exports = {};
+const module = {exports};
 (function() {
   'use strict';
 
@@ -474,3 +476,4 @@ Better rank ordering method by Stefan Gustavson in 2012.
   }
 
 })();
+export default module.exports;
