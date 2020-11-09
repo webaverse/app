@@ -1737,7 +1737,6 @@ const menuMesh = (() => {
     const selectedTab = tabNames[i];
     if (selectedTab === 'Scene') {
       _renderScene();
-      console.log('done render', object, items);
     } else {
       _renderAll();
     }
