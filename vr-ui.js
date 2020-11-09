@@ -2518,6 +2518,7 @@ const intersectUi = (raycaster, meshes) => {
 };
 
 const blackMaterial = new THREE.MeshBasicMaterial({color: 0x333333});
+const blueMaterial = new THREE.MeshBasicMaterial({color: 0x42a5f5});
 const makeButtonMesh = (text, font, size = 0.1) => {  
   const textMesh = makeTextMesh(text, font, size);
   textMesh._needsSync = true;
@@ -2627,22 +2628,38 @@ const makeTabs = (tabs, selectedTab, size = 0.08, width = 1) => {
   const object = new THREE.Object3D();
 
   (async () => {
+    const widths = [];
     let offset = 0;
     for (const tab of tabs) {
       const textMesh = makeTextMesh(tab, undefined, size);
-      textMesh._needsSync = true;
-      textMesh.sync(() => {
+      await new Promise((accept, reject) => {
+        textMesh._needsSync = true;
+        textMesh.sync(accept);
+      });
+      {
         const renderInfo = textMesh.textRenderInfo;
         const [x1, y1, x2, y2] = renderInfo.totalBounds;
         const w = x2 - x1;
         const h = y2 - y1;
         
         textMesh.position.x = -width/2 + offset;
-        
+
         offset += w;
-      });
+        
+        widths.push(offset);
+      }
       object.add(textMesh);
     }
+    
+    const selectedTabIndex = tabs.indexOf(selectedTab);
+    const selectedTabOffset = selectedTabIndex === 0 ? 0 : widths[selectedTabIndex - 1];
+    const selectedTabWidth = selectedTabIndex === 0 ? widths[0] : (widths[selectedTabIndex] - widths[selectedTabIndex - 1]);
+    const backgroundGeometry = new THREE.PlaneBufferGeometry(1, 1)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(1/2, 0, -0.01));
+    const backgroundMesh = new THREE.Mesh(backgroundGeometry, blueMaterial);
+    backgroundMesh.position.x = -width/2 + selectedTabOffset;
+    backgroundMesh.scale.set(selectedTabWidth, size, 1);
+    object.add(backgroundMesh);
   })();
 
   return object;
