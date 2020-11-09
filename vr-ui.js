@@ -2697,6 +2697,11 @@ const makeItem = (previewUrl, text, size = 0.1, width = 1) => {
   cornersMesh.position.x = -width/2 + size/2;
   cornersMesh.scale.setScalar(size);
   object.add(cornersMesh);
+  
+  const textMesh = makeTextMesh(text, undefined, size/2);
+  textMesh.position.x = -width/2 + size + size/4;
+  textMesh.position.y = size/4;
+  object.add(textMesh);
 
   return object;
 };

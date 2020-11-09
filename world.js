@@ -809,6 +809,7 @@ const _connectRoom = async (roomName, worldURL) => {
 };
 
 const objects = [];
+world.getObjects = () => objects;
 world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
   state.transact(() => {
     const instanceId = getRandomString();
@@ -912,6 +913,8 @@ world.addEventListener('trackedobjectadd', async e => {
     const mesh = await runtime.loadFile(file, options);
     mesh.position.fromArray(position);
     mesh.quaternion.fromArray(quaternion);
+    
+    mesh.name = file.name;
     
     mesh.run && mesh.run();
     mesh.instanceId = instanceId;

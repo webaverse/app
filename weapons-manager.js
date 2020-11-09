@@ -1688,7 +1688,7 @@ const menuMesh = (() => {
   offset -= 0.1;
 
   const items = [];
-  const _renderItems = () => {
+  const _renderAll = () => {
     let offset = itemsOffset;
 
     const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Orion');
@@ -1702,6 +1702,18 @@ const menuMesh = (() => {
     object.add(item2);
     items.push(item2);
     offset -= 0.1;
+  };
+  const _renderScene = () => {
+    let offset = itemsOffset;
+    
+    const worldObjects = world.getObjects();
+    for (const worldObject of worldObjects) {
+      const item = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, worldObject.name);
+      item.position.y = offset;
+      object.add(item);
+      items.push(item);
+      offset -= 0.1;
+    }
   };
   const _clearItems = () => {
     for (const item of items) {
@@ -1724,8 +1736,10 @@ const menuMesh = (() => {
     
     const selectedTab = tabNames[i];
     if (selectedTab === 'Scene') {
+      _renderScene();
+      console.log('done render', object, items);
     } else {
-      _renderItems();
+      _renderAll();
     }
   };
   object.add(tabs);
@@ -1737,7 +1751,7 @@ const menuMesh = (() => {
   object.add(scrollbar);
   
   const itemsOffset = offset;
-  _renderItems();
+  _renderAll();
 
   return object;
 })();
