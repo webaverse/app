@@ -2646,16 +2646,7 @@ const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size
     });
 
     const renderInfo = textMesh.textRenderInfo;
-    const {glyphBounds, caretPositions, totalBounds} = renderInfo;
-    let caretWidth = 0;
-    for (let i = 0; i < s.length && i < caretIndex; i++) {
-      const x1 = glyphBounds[i*4];
-      const y1 = glyphBounds[i*4+1];
-      const x2 = glyphBounds[i*4+2];
-      const y2 = glyphBounds[i*4+3];
-      const w = x2 - x1;
-      caretWidth += w;
-    }
+    const {caretPositions, totalBounds} = renderInfo;
     caretMesh.position.x = caretIndex*3 < caretPositions.length ? caretPositions[caretIndex*3] : totalBounds[totalBounds.length - 2];
   };
 
