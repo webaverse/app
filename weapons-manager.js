@@ -1716,13 +1716,15 @@ const menuMesh = (() => {
     for (const worldObject of worldObjects) {
       const item = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, worldObject.name);
       item.position.y = offset;
-      item.onenter = horizontalIndex => {
+      item.onenter = async horizontalIndex => {
         
         if (horizontalIndex === 0) {
           console.log('open', worldObject.instanceId);
           // world.removeObject(worldObject.instanceId);
         } else {
           world.removeObject(worldObject.instanceId);
+          _clearItems();
+          _renderScene();
         }
       };
       object.add(item);
