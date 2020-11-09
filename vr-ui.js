@@ -2603,6 +2603,26 @@ const makeCornersMesh = () => {
   const cornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
   return cornerMesh;
 };
+const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size = 0.1, width = 1) => {  
+  const textMesh = makeTextMesh(text, font, size);
+  
+  const underlineGeometry = new THREE.PlaneBufferGeometry(1, 0.01)
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, -size/2, 0));
+  const underlineMesh = new THREE.Mesh(underlineGeometry, blackMaterial);
+  textMesh.add(underlineMesh);
+  
+  const caretGeometry = new THREE.PlaneBufferGeometry(0.01, 0.08)
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(-width/2 + 0.01/2, 0, 0));
+  const caretMesh = new THREE.Mesh(caretGeometry, blackMaterial);
+  textMesh.add(caretMesh);
+
+  textMesh.geometry.boundingBox = new THREE.Box3(
+    new THREE.Vector3(-width/2, -size/2, 0.01),
+    new THREE.Vector3(width/2, size/2, 0.01)
+  );
+  
+  return textMesh;
+};
 
 export {
   makeCubeMesh,
@@ -2625,4 +2645,5 @@ export {
   makeButtonMesh,
   makeArrowMesh,
   makeCornersMesh,
+  makeTextInput,
 };
