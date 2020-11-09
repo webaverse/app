@@ -887,33 +887,6 @@ function animate(timestamp, frame) {
   physicsManager.update(timeDiff, frame);
   uiManager.update(timeDiff, frame);
 
-  {
-    const transforms = rigManager.getRigTransforms();
-    const {position, quaternion} = transforms[0];
-    rayMesh.position.copy(position);
-    rayMesh.quaternion.copy(quaternion);
-    rayMesh.scale.z = 10;
-    
-    highlightMesh.visible = false;
-    for (const anchorMesh of anchorMeshes) {
-      localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1))
-        .premultiply(localMatrix2.getInverse(anchorMesh.matrixWorld))
-        .decompose(localVector, localQuaternion, localVector2);
-      localVector3.set(0, 0, -1)
-        .applyQuaternion(localQuaternion);
-      localRay.set(localVector, localVector3);
-      const intersection = localRay.intersectBox(anchorMesh.geometry.boundingBox, localVector4);
-      if (intersection) {
-        highlightMesh.position.copy(anchorMesh.position)
-          .add(anchorMesh.geometry.boundingBox.getCenter(localVector4).applyQuaternion(anchorMesh.quaternion));
-        highlightMesh.quaternion.copy(anchorMesh.quaternion);
-        anchorMesh.geometry.boundingBox.getSize(highlightMesh.scale);
-        highlightMesh.visible = true;
-        break;
-      }
-    }
-  }
-
   for (const itemMesh of itemMeshes) {
     itemMesh.update();
   }
@@ -1144,6 +1117,34 @@ function animate(timestamp, frame) {
     rigManager.update();
   };
   _updateRig();
+  
+  const _updateAnchors = () => {
+    const transforms = rigManager.getRigTransforms();
+    const {position, quaternion} = transforms[0];
+    rayMesh.position.copy(position);
+    rayMesh.quaternion.copy(quaternion);
+    rayMesh.scale.z = 10;
+    
+    highlightMesh.visible = false;
+    for (const anchorMesh of anchorMeshes) {
+      localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1))
+        .premultiply(localMatrix2.getInverse(anchorMesh.matrixWorld))
+        .decompose(localVector, localQuaternion, localVector2);
+      localVector3.set(0, 0, -1)
+        .applyQuaternion(localQuaternion);
+      localRay.set(localVector, localVector3);
+      const intersection = localRay.intersectBox(anchorMesh.geometry.boundingBox, localVector4);
+      if (intersection) {
+        highlightMesh.position.copy(anchorMesh.position)
+          .add(anchorMesh.geometry.boundingBox.getCenter(localVector4).applyQuaternion(anchorMesh.quaternion));
+        highlightMesh.quaternion.copy(anchorMesh.quaternion);
+        anchorMesh.geometry.boundingBox.getSize(highlightMesh.scale);
+        highlightMesh.visible = true;
+        break;
+      }
+    }
+  };
+  _updateAnchors();
 
   // const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
 
