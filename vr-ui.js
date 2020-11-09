@@ -2693,7 +2693,7 @@ const makeTabs = (tabs, selectedTab, size = 0.08, width = 1) => {
 
   return object;
 };
-const makeItem = (item, previewUrl, text, size = 0.1, width = 1) => {
+const makeItem = (previewUrl, text, size = 0.1, width = 1) => {
   const object = new THREE.Object3D();
 
   const cornersMesh = makeCornersMesh();
@@ -2768,8 +2768,9 @@ const makeItem = (item, previewUrl, text, size = 0.1, width = 1) => {
     object.select(Math.min(Math.max(horizontalIndex + offset, 0), 1));
   };
   object.enter = () => {
-    console.log('enter object', item, horizontalIndex);
+    object.onenter && object.onenter();
   };
+  object.onenter = null;
 
   return object;
 };
