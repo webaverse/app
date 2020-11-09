@@ -2720,7 +2720,7 @@ const makeTabs = (tabs, selectedTab, size = 0.08, width = 1) => {
 
   return object;
 };
-const makeItem = (previewUrl, text, size = 0.1, width = 1) => {
+const makeItem = (previewUrl, text, size = 0.1, width = 1, buttons = []) => {
   const object = new THREE.Object3D();
 
   const cornersMesh = makeCornersMesh();
@@ -2736,8 +2736,7 @@ const makeItem = (previewUrl, text, size = 0.1, width = 1) => {
   const loadPromise = makePromise();
 
   const widths = [];
-  const buttonsOffset = width/2*0.6;
-  const buttons = ['open', 'del'];
+  const buttonsOffset = buttons.length * width/2*0.3;
   (async () => {
     let offset = 0;
 
