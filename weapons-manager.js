@@ -1691,13 +1691,13 @@ const menuMesh = (() => {
   const _renderAll = () => {
     let offset = itemsOffset;
 
-    const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Orion');
+    const item1 = makeItem({}, `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Orion');
     item1.position.y = offset;
     object.add(item1);
     items.push(item1);
     offset -= 0.1;
 
-    const item2 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/female.vrm]/preview.png`, 'Orion');
+    const item2 = makeItem({}, `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/female.vrm]/preview.png`, 'Orion');
     item2.position.y = offset;
     object.add(item2);
     items.push(item2);
@@ -1708,7 +1708,7 @@ const menuMesh = (() => {
     
     const worldObjects = world.getObjects();
     for (const worldObject of worldObjects) {
-      const item = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, worldObject.name);
+      const item = makeItem({}, `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, worldObject.name);
       item.position.y = offset;
       object.add(item);
       items.push(item);
@@ -1773,6 +1773,12 @@ const menuMesh = (() => {
       if (item) {
         item.selectOffset(offset);
       }
+    }
+  };
+  object.enter = () => {
+    const item = items[verticalIndex];
+    if (item) {
+      item.enter();
     }
   };
 
@@ -1864,6 +1870,9 @@ const weaponsManager = {
   },
   menuHorizontal(offset) {
     menuMesh.offsetHorizontal(offset);
+  },
+  menuEnter() {
+    menuMesh.enter();
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);

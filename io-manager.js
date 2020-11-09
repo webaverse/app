@@ -453,6 +453,12 @@ window.addEventListener('keyup', e => {
       }
       break;
     }
+    case 13: { // enter
+      if (document.pointerLockElement && weaponsManager.getMenu()) {
+        weaponsManager.menuEnter();
+      }
+      break;
+    }
   }
 });
 const _updateMouseMovement = e => {
