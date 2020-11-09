@@ -1682,7 +1682,8 @@ const menuMesh = (() => {
 
   let offset = 0.1;
 
-  const header = makeTextInput(undefined, 'Search...');
+  let s = '';
+  const header = makeTextInput(s, 'Search...');
   header.position.y = offset;
   object.add(header);
   offset -= 0.1;
@@ -1717,7 +1718,6 @@ const menuMesh = (() => {
       const item = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, worldObject.name);
       item.position.y = offset;
       item.onenter = async horizontalIndex => {
-        
         if (horizontalIndex === 0) {
           console.log('open', worldObject.instanceId);
           // world.removeObject(worldObject.instanceId);
@@ -1784,7 +1784,12 @@ const menuMesh = (() => {
   };
   object.offsetHorizontal = offset => {
     if (verticalIndex === -1) {
-      menuMesh.tabs.selectOffset(offset);
+      const text = header.getText();
+      if (!text) {
+        menuMesh.tabs.selectOffset(offset);
+      } else {
+        header.setText(text, Math.min(Math.max(header.caretIndex + offset, 0), text.length));
+      }
     } else {
       const item = items[verticalIndex];
       if (item) {
@@ -1796,6 +1801,17 @@ const menuMesh = (() => {
     const item = items[verticalIndex];
     if (item) {
       item.enter();
+    }
+  };
+  object.key = c => {
+    if (c !== '\b') {
+      s = s.slice(0, header.caretIndex) + c + s.slice(header.caretIndex);
+      header.setText(s, header.caretIndex + 1);
+    } else {
+      if (header.caretIndex > 0) {
+        s = s.slice(0, header.caretIndex - 1) + s.slice(header.caretIndex);
+        header.setText(s, header.caretIndex - 1);
+      }
     }
   };
 
@@ -1890,6 +1906,9 @@ const weaponsManager = {
   },
   menuEnter() {
     menuMesh.enter();
+  },
+  menuKey(c) {
+    menuMesh.key(c);
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);

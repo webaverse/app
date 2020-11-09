@@ -213,36 +213,43 @@ window.addEventListener('keydown', e => {
     return;
   }
   if (weaponsManager.getMenu() && document.pointerLockElement) {
-    /* if (/^[a-z0-9]$/i.test(e.key)) {
-    } */
-    switch (e.which) {
-      case 9: { // tab
-        e.preventDefault();
-        e.stopPropagation();
-        weaponsManager.setMenu(false);
-        // uiManager.menuMesh.toggleOpen();
-        // ioManager.menuExpanded = !ioManager.menuExpanded;
-        break;
-      }
-      case 38: { // up
-        weaponsManager.menuVertical(-1);
-        break;
-      }
-      case 40: { // down
-        weaponsManager.menuVertical(1);
-        break;
-      }
-      case 37: { // left
-        weaponsManager.menuHorizontal(-1);
-        break;
-      }
-      case 39: { // right
-        weaponsManager.menuHorizontal(1);
-        break;
-      }
-      case 13: { // enter
-        weaponsManager.menuEnter();
-        break;
+    // console.log('got key', e.key, e.which);
+    if (/^[a-z0-9]$/i.test(e.key)) {
+      weaponsManager.menuKey(e.key);
+    } else {
+      switch (e.which) {
+        case 9: { // tab
+          e.preventDefault();
+          e.stopPropagation();
+          weaponsManager.setMenu(false);
+          // uiManager.menuMesh.toggleOpen();
+          // ioManager.menuExpanded = !ioManager.menuExpanded;
+          break;
+        }
+        case 8: { // backspace
+          weaponsManager.menuKey('\b');
+          break;
+        }
+        case 38: { // up
+          weaponsManager.menuVertical(-1);
+          break;
+        }
+        case 40: { // down
+          weaponsManager.menuVertical(1);
+          break;
+        }
+        case 37: { // left
+          weaponsManager.menuHorizontal(-1);
+          break;
+        }
+        case 39: { // right
+          weaponsManager.menuHorizontal(1);
+          break;
+        }
+        case 13: { // enter
+          weaponsManager.menuEnter();
+          break;
+        }
       }
     }
   } else {

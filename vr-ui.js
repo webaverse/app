@@ -2605,25 +2605,61 @@ const makeCornersMesh = () => {
   const cornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
   return cornerMesh;
 };
-const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size = 0.1, width = 1) => {  
-  const textMesh = makeTextMesh(text, font, size);
+const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size = 0.1, width = 1) => {
+  const textInput = new THREE.Object3D();
+
+  let textMesh = makeTextMesh(text, font, size);
+  textMesh.position.x = -width/2;
   
   const underlineGeometry = new THREE.PlaneBufferGeometry(1, 0.01)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, -size/2, 0));
   const underlineMesh = new THREE.Mesh(underlineGeometry, blackMaterial);
-  textMesh.add(underlineMesh);
+  textInput.add(underlineMesh);
   
   const caretGeometry = new THREE.PlaneBufferGeometry(0.01, 0.08)
     .applyMatrix4(new THREE.Matrix4().makeTranslation(-width/2 + 0.01/2, 0, 0));
   const caretMesh = new THREE.Mesh(caretGeometry, blackMaterial);
-  textMesh.add(caretMesh);
+  textInput.add(caretMesh);
 
-  textMesh.geometry.boundingBox = new THREE.Box3(
-    new THREE.Vector3(-width/2, -size/2, 0.01),
-    new THREE.Vector3(width/2, size/2, 0.01)
-  );
-  
-  return textMesh;
+  textInput.geometry = {
+    boundingBox: new THREE.Box3(
+      new THREE.Vector3(0, -size/2, 0.01),
+      new THREE.Vector3(width, size/2, 0.01)
+    ),
+  };
+
+  textInput.add(textMesh);
+
+  textInput.caretIndex = text.length;
+  textInput.getText = () => textMesh.text;
+  textInput.setText = async (s, caretIndex) => {
+    textInput.remove(textMesh);
+    textMesh = makeTextMesh(s, font, size);
+    textMesh.position.x = -width/2;
+    textInput.add(textMesh);
+    
+    textInput.caretIndex = caretIndex;
+    
+    await new Promise((accept, reject) => {
+      textMesh._needsSync = true;
+      textMesh.sync(accept);
+    });
+
+    const renderInfo = textMesh.textRenderInfo;
+    const {glyphBounds, caretPositions, totalBounds} = renderInfo;
+    let caretWidth = 0;
+    for (let i = 0; i < s.length && i < caretIndex; i++) {
+      const x1 = glyphBounds[i*4];
+      const y1 = glyphBounds[i*4+1];
+      const x2 = glyphBounds[i*4+2];
+      const y2 = glyphBounds[i*4+3];
+      const w = x2 - x1;
+      caretWidth += w;
+    }
+    caretMesh.position.x = caretIndex*3 < caretPositions.length ? caretPositions[caretIndex*3] : totalBounds[totalBounds.length - 2];
+  };
+
+  return textInput;
 };
 const makeTabs = (tabs, selectedTab, size = 0.08, width = 1) => {
   const object = new THREE.Object3D();
