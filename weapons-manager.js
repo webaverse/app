@@ -1853,6 +1853,9 @@ const weaponsManager = {
       menuMesh.position.copy(xrCamera.position)
         .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
       menuMesh.quaternion.copy(xrCamera.quaternion);
+      
+      menuMesh.setVertical(-1);
+      menuMesh.tabs.select(0);
     }
     menuMesh.visible = newOpen;
   },
