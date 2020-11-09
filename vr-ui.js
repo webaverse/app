@@ -7,6 +7,7 @@ import easing from './easing.js';
 import * as icons from './icons.js';
 import Menu from './threeD-components/Menu.js';
 import {getState, setState} from './state.js';
+import {makePromise} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -2627,8 +2628,10 @@ const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size
 const makeTabs = (tabs, selectedTab, size = 0.08, width = 1) => {
   const object = new THREE.Object3D();
 
+  const loadPromise = makePromise();
+
+  const widths = [];
   (async () => {
-    const widths = [];
     let offset = 0;
     for (const tab of tabs) {
       const textMesh = makeTextMesh(tab, undefined, size);
@@ -2651,16 +2654,37 @@ const makeTabs = (tabs, selectedTab, size = 0.08, width = 1) => {
       object.add(textMesh);
     }
     
-    const selectedTabIndex = tabs.indexOf(selectedTab);
+    backgroundMesh.visible = true;
+
+    loadPromise.accept();
+  })();
+
+  const backgroundGeometry = new THREE.PlaneBufferGeometry(1, 1)
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(1/2, 0, -0.01));
+  const backgroundMesh = new THREE.Mesh(backgroundGeometry, blueMaterial);
+  backgroundMesh.visible = false;
+  object.add(backgroundMesh);
+
+  let selectedTabIndex = tabs.indexOf(selectedTab);
+  object.selectOffset = offset => {
+    selectedTabIndex += offset;
+    if (selectedTabIndex < 0) {
+      selectedTabIndex += tabs.length;
+    }
+    if (selectedTabIndex >= tabs.length) {
+      selectedTabIndex -= tabs.length;
+    }
+    _updateBackgroundMesh();
+  };
+  const _updateBackgroundMesh = async () => {
+    await loadPromise;
+
     const selectedTabOffset = selectedTabIndex === 0 ? 0 : widths[selectedTabIndex - 1];
     const selectedTabWidth = selectedTabIndex === 0 ? widths[0] : (widths[selectedTabIndex] - widths[selectedTabIndex - 1]);
-    const backgroundGeometry = new THREE.PlaneBufferGeometry(1, 1)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(1/2, 0, -0.01));
-    const backgroundMesh = new THREE.Mesh(backgroundGeometry, blueMaterial);
     backgroundMesh.position.x = -width/2 + selectedTabOffset;
     backgroundMesh.scale.set(selectedTabWidth, size, 1);
-    object.add(backgroundMesh);
-  })();
+  };
+  _updateBackgroundMesh();
 
   return object;
 };

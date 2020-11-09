@@ -1697,6 +1697,7 @@ const menuMesh = (() => {
   tabs.position.y = offset;
   object.add(tabs);
   offset -= 0.1;
+  object.tabs = tabs;
 
   const scrollbar = makeScrollbar(4);
   scrollbar.position.y = offset;
@@ -1788,6 +1789,9 @@ const weaponsManager = {
       menuMesh.quaternion.copy(xrCamera.quaternion);
     }
     menuMesh.visible = newOpen;
+  },
+  menuOffset(offset) {
+    menuMesh.tabs.selectOffset(offset);
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);
