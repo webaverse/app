@@ -1690,32 +1690,49 @@ const menuMesh = (() => {
 
   const items = [];
   const _renderAll = () => {
-    let offset = itemsOffset;
+    _clearItems();
+    
+    if (!header.getText()) {
+      let offset = itemsOffset;
 
-    const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Orion');
-    item1.position.y = offset;
-    item1.onenter = () => {
-      console.log('enter 1');
-    };
-    object.add(item1);
-    items.push(item1);
-    offset -= 0.1;
+      const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Orion', undefined, undefined, ['open']);
+      item1.position.y = offset;
+      item1.onenter = () => {
+        console.log('enter 1');
+      };
+      object.add(item1);
+      items.push(item1);
+      offset -= 0.1;
 
-    const item2 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/female.vrm]/preview.png`, 'Orion');
-    item2.position.y = offset;
-    item2.onenter = () => {
-      console.log('enter 2');
-    };
-    object.add(item2);
-    items.push(item2);
-    offset -= 0.1;
+      const item2 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/female.vrm]/preview.png`, 'Orion', undefined, undefined, ['open']);
+      item2.position.y = offset;
+      item2.onenter = () => {
+        console.log('enter 2');
+      };
+      object.add(item2);
+      items.push(item2);
+      offset -= 0.1;
+    } else {
+      let offset = itemsOffset;
+
+      const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Orion', undefined, undefined, ['open']);
+      item1.position.y = offset;
+      item1.onenter = () => {
+        console.log('enter 1');
+      };
+      object.add(item1);
+      items.push(item1);
+      offset -= 0.1;
+    }
   };
   const _renderScene = () => {
+    _clearItems();
+    
     let offset = itemsOffset;
     
     const worldObjects = world.getObjects();
     for (const worldObject of worldObjects) {
-      const item = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, worldObject.name);
+      const item = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, worldObject.name, undefined, undefined, ['open', 'del']);
       item.position.y = offset;
       item.onenter = async horizontalIndex => {
         if (horizontalIndex === 0) {
@@ -1749,8 +1766,6 @@ const menuMesh = (() => {
   const tabs = makeTabs(tabNames, tabNames[0]);
   tabs.position.y = offset;
   tabs.ontabchange = i => {
-    _clearItems();
-
     const selectedTab = tabNames[i];
     if (selectedTab === 'Scene') {
       _renderScene();
@@ -1807,16 +1822,19 @@ const menuMesh = (() => {
     if (c !== '\b') {
       s = s.slice(0, header.caretIndex) + c + s.slice(header.caretIndex);
       header.setText(s, header.caretIndex + 1);
+      _renderAll();
     } else {
       if (header.caretIndex > 0) {
         s = s.slice(0, header.caretIndex - 1) + s.slice(header.caretIndex);
         header.setText(s, header.caretIndex - 1);
+        _renderAll();
       }
     }
   };
   object.paste = s2 => {
     s = s.slice(0, header.caretIndex) + s2 + s.slice(header.caretIndex);
     header.setText(s, header.caretIndex + s2.length);
+    _renderAll();
   };
 
   const itemsOffset = offset;
