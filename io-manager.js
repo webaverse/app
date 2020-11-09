@@ -563,9 +563,10 @@ window.addEventListener('paste', async e => {
   e.preventDefault();
   const items = Array.from(e.clipboardData.items);
   if (items.length > 0) {
-    const s = await new Promise((accept, reject) => {
+    let s = await new Promise((accept, reject) => {
       items[0].getAsString(accept);
     });
+    s = s.slice(0, 256);
     weaponsManager.menuPaste(s);
   }
 });
