@@ -2623,6 +2623,30 @@ const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size
   
   return textMesh;
 };
+const makeTabs = (tabs, selectedTab, size = 0.1, width = 1) => {
+  const object = new THREE.Object3D();
+
+  (async () => {
+    let offset = 0;
+    for (const tab of tabs) {
+      const textMesh = makeTextMesh(tab, undefined, size);
+      textMesh._needsSync = true;
+      textMesh.sync(() => {
+        const renderInfo = textMesh.textRenderInfo;
+        const [x1, y1, x2, y2] = renderInfo.totalBounds;
+        const w = x2 - x1;
+        const h = y2 - y1;
+        
+        textMesh.position.x = -width/2 + offset;
+        
+        offset += w;
+      });
+      object.add(textMesh);
+    }
+  })();
+
+  return object;
+};
 
 export {
   makeCubeMesh,
@@ -2646,4 +2670,5 @@ export {
   makeArrowMesh,
   makeCornersMesh,
   makeTextInput,
+  makeTabs,
 };

@@ -1,6 +1,6 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {makeCubeMesh, makeRayMesh, makeTextInput, intersectUi} from './vr-ui.js';
+import {makeCubeMesh, makeRayMesh, makeTextInput, makeTabs, intersectUi} from './vr-ui.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
@@ -1679,9 +1679,18 @@ const _renderWheel = (() => {
 
 const menuMesh = (() => {
   const object = new THREE.Object3D();
-  
+
   const header = makeTextInput(undefined, 'Search...');
+  header.position.y = 0.1;
   object.add(header);
+
+  const tabs = makeTabs([
+    'All',
+    'Things',
+    'Social',
+    'Worlds',
+  ], 'All');
+  object.add(tabs);
 
   return object;
 })();
