@@ -338,7 +338,7 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 69: { // E
-      weaponsManager.setMenu(true);
+      weaponsManager.setMenu(!weaponsManager.getMenu());
       break;
     }
     case 90: { // Z
