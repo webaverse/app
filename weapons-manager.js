@@ -1718,7 +1718,24 @@ const menuMesh = (() => {
       const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Add', undefined, undefined, ['object', 'portal']);
       item1.position.y = offset;
       item1.onenter = index => {
-        console.log('enter 1', index);
+        if (index === 0) {
+          const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+          localVector.copy(xrCamera.position)
+            .add(localVector2.set(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
+          world.addObject(s, null, localVector, xrCamera.quaternion);
+        } else if (index === 1) {
+          const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+          localVector.copy(xrCamera.position)
+            .add(localVector2.set(0, 0, -1.5).applyQuaternion(xrCamera.quaternion))
+            .add(localVector2.set(0, -1, 0));
+          localEuler.setFromQuaternion(xrCamera.quaternion, localEuler.order);
+          localEuler.x = 0;
+          localEuler.z = 0;
+          localQuaternion.setFromEuler(localEuler);
+          const file = new Blob([s], {type: 'text/plain'});
+          const u = URL.createObjectURL(file) + '/file.url';
+          world.addObject(u, null, localVector, localQuaternion);
+        }
       };
       object.add(item1);
       items.push(item1);
@@ -1930,7 +1947,7 @@ const weaponsManager = {
     if (newOpen) {
       const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
       menuMesh.position.copy(xrCamera.position)
-        .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
+        .add(localVector.set(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
       menuMesh.quaternion.copy(xrCamera.quaternion);
       
       menuMesh.setVertical(-1);
