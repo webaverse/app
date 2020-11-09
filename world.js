@@ -822,8 +822,7 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
     trackedObject.set('options', JSON.stringify(options));
   });
 };
-world.removeObject = object => {
-  const {instanceId: removeInstanceId} = object;
+world.removeObject = removeInstanceId => {
   state.transact(() => {
     const objects = state.getArray('objects');
     const objectsJson = objects.toJSON();
@@ -915,7 +914,8 @@ world.addEventListener('trackedobjectadd', async e => {
     mesh.quaternion.fromArray(quaternion);
     
     mesh.name = file.name;
-    
+    mesh.instanceId = instanceId;
+
     mesh.run && mesh.run();
     mesh.instanceId = instanceId;
     mesh.parentId = parentId;
