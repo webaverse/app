@@ -2768,7 +2768,7 @@ const makeItem = (previewUrl, text, size = 0.1, width = 1) => {
     object.select(Math.min(Math.max(horizontalIndex + offset, 0), 1));
   };
   object.enter = () => {
-    object.onenter && object.onenter();
+    object.onenter && object.onenter(horizontalIndex);
   };
   object.onenter = null;
 
