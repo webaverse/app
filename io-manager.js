@@ -268,16 +268,6 @@ window.addEventListener('keydown', e => {
       // ioManager.menuExpanded = !ioManager.menuExpanded;
       break;
     }
-    case 69: { // E
-      if (document.pointerLockElement) {
-        // nothing
-      /* } else {
-        if (selectTarget && selectTarget.control) {
-          selectTarget.control.setMode('rotate');
-        } */
-      }
-      break;
-    }
     case 82: { // R
       if (document.pointerLockElement) {
         // pe.equip('back');
@@ -345,6 +335,10 @@ window.addEventListener('keydown', e => {
     }
     case 81: { // Q
       weaponsManager.setWeaponWheel(true);
+      break;
+    }
+    case 69: { // E
+      weaponsManager.setMenu(true);
       break;
     }
     case 90: { // Z
