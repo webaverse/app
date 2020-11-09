@@ -2621,6 +2621,12 @@ const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size
   const caretMesh = new THREE.Mesh(caretGeometry, blackMaterial);
   textInput.add(caretMesh);
 
+  const backgroundGeometry = new THREE.PlaneBufferGeometry(1, 1)
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(width/2, 0, -0.01));
+  const backgroundMesh = new THREE.Mesh(backgroundGeometry, blueMaterial);
+  backgroundMesh.visible = false;
+  textInput.add(backgroundMesh);
+
   textInput.geometry = {
     boundingBox: new THREE.Box3(
       new THREE.Vector3(0, -size/2, 0.01),
@@ -2631,13 +2637,16 @@ const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size
   textInput.add(textMesh);
 
   textInput.caretIndex = text.length;
+  textInput.selectRange = [0, 0];
   textInput.getText = () => textMesh.text;
   textInput.setText = async (s, caretIndex) => {
     textInput.remove(textMesh);
     textMesh = makeTextMesh(s, font, size);
     textMesh.position.x = -width/2;
     textInput.add(textMesh);
-    
+
+    textInput.selectRange = [0, s.length];
+
     textInput.caretIndex = caretIndex;
     
     await new Promise((accept, reject) => {
@@ -2648,6 +2657,20 @@ const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size
     const renderInfo = textMesh.textRenderInfo;
     const {caretPositions, totalBounds} = renderInfo;
     caretMesh.position.x = s.length > 0 ? (caretIndex*3 < caretPositions.length ? caretPositions[caretIndex*3] : totalBounds[totalBounds.length - 2]) : 0;
+
+    const selectWidth = textInput.selectRange[1] - textInput.selectRange[0];
+    if (selectWidth > 0) {
+      const {glyphBounds} = renderInfo;
+      const x1 = textInput.selectRange[0] !== 0 ? glyphBounds[(textInput.selectRange[0] - 1)*4 + 2] : 0;
+      const x2 = textInput.selectRange[1] !== 0 ? glyphBounds[(textInput.selectRange[1] - 1)*4 + 2] : 0;
+      const w = x1 + x2;
+      backgroundMesh.position.x = -width/2 + x1;
+      backgroundMesh.scale.x = w;
+      backgroundMesh.scale.y = size;
+      backgroundMesh.visible = true;
+    } else {
+      backgroundMesh.visible = false;
+    }
   };
 
   return textInput;
