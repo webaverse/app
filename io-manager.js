@@ -566,7 +566,7 @@ window.addEventListener('paste', async e => {
     let s = await new Promise((accept, reject) => {
       items[0].getAsString(accept);
     });
-    s = s.slice(0, 256);
+    s = s.replace(/[\n\r]+/g, '').slice(0, 256);
     weaponsManager.menuPaste(s);
   }
 });
