@@ -1814,6 +1814,10 @@ const menuMesh = (() => {
       }
     }
   };
+  object.paste = s2 => {
+    s = s.slice(0, header.caretIndex) + s2 + s.slice(header.caretIndex);
+    header.setText(s, header.caretIndex + s2.length);
+  };
 
   const itemsOffset = offset;
   _renderAll();
@@ -1909,6 +1913,9 @@ const weaponsManager = {
   },
   menuKey(c) {
     menuMesh.key(c);
+  },
+  menuPaste(s) {
+    menuMesh.paste(s);
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);

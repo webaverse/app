@@ -213,9 +213,10 @@ window.addEventListener('keydown', e => {
     return;
   }
   if (weaponsManager.getMenu() && document.pointerLockElement) {
-    // console.log('got key', e.key, e.which);
     if (/^[a-z0-9]$/i.test(e.key)) {
-      weaponsManager.menuKey(e.key);
+      if (!e.ctrlKey) {
+        weaponsManager.menuKey(e.key);
+      }
     } else {
       switch (e.which) {
         case 9: { // tab
@@ -556,6 +557,16 @@ window.addEventListener('resize', e => {
 
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
+  }
+});
+window.addEventListener('paste', async e => {
+  e.preventDefault();
+  const items = Array.from(e.clipboardData.items);
+  if (items.length > 0) {
+    const s = await new Promise((accept, reject) => {
+      items[0].getAsString(accept);
+    });
+    weaponsManager.menuPaste(s);
   }
 });
 
