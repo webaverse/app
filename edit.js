@@ -869,9 +869,16 @@ const addItem = async (position, quaternion) => {
   scene.add(itemMesh);
   itemMeshes.push(itemMesh);
 };
-addItem(new THREE.Vector3(0, 1, 0), new THREE.Quaternion());
 
-const timeFactor = 60 * 1000;
+{ // XXX
+  addItem(new THREE.Vector3(0, 1, 0), new THREE.Quaternion());
+
+  const file = new Blob(['https://google.com'], {type: 'text/plain'});
+  const u = URL.createObjectURL(file) + '/file.url';
+  world.addObject(u, null, new THREE.Vector3(), new THREE.Quaternion());
+}
+
+// const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 const startTime = Date.now();
 function animate(timestamp, frame) {
