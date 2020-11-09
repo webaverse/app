@@ -1715,13 +1715,31 @@ const menuMesh = (() => {
     } else {
       let offset = itemsOffset;
 
-      const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Orion', undefined, undefined, ['open']);
+      const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Add', undefined, undefined, ['object', 'portal']);
       item1.position.y = offset;
-      item1.onenter = () => {
-        console.log('enter 1');
+      item1.onenter = index => {
+        console.log('enter 1', index);
       };
       object.add(item1);
       items.push(item1);
+      offset -= 0.1;
+      
+      const item2 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'World', undefined, undefined, ['join']);
+      item2.position.y = offset;
+      item2.onenter = () => {
+        console.log('enter 1', index);
+      };
+      object.add(item2);
+      items.push(item2);
+      offset -= 0.1;
+      
+      const item3 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'User', undefined, undefined, ['profile', 'trade']);
+      item3.position.y = offset;
+      item3.onenter = () => {
+        console.log('enter 1', index);
+      };
+      object.add(item3);
+      items.push(item3);
       offset -= 0.1;
     }
   };
