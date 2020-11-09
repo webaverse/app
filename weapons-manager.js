@@ -1687,14 +1687,47 @@ const menuMesh = (() => {
   object.add(header);
   offset -= 0.1;
 
-  const tabs = makeTabs([
+  const items = [];
+  const _renderItems = () => {
+    let offset = itemsOffset;
+
+    const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Orion');
+    item1.position.y = offset;
+    object.add(item1);
+    items.push(item1);
+    offset -= 0.1;
+
+    const item2 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/female.vrm]/preview.png`, 'Orion');
+    item2.position.y = offset;
+    object.add(item2);
+    items.push(item2);
+    offset -= 0.1;
+  };
+  const _clearItems = () => {
+    for (const item of items) {
+      object.remove(item);
+    }
+    items.length = 0;
+  };
+
+  const tabNames = [
     'All',
     'Things',
     'Social',
     'Worlds',
     'Scene',
-  ], 'All');
+  ];
+  const tabs = makeTabs(tabNames, tabNames[0]);
   tabs.position.y = offset;
+  tabs.ontabchange = i => {
+    _clearItems();
+    
+    const selectedTab = tabNames[i];
+    if (selectedTab === 'Scene') {
+    } else {
+      _renderItems();
+    }
+  };
   object.add(tabs);
   offset -= 0.1;
   object.tabs = tabs;
@@ -1702,16 +1735,9 @@ const menuMesh = (() => {
   const scrollbar = makeScrollbar(4);
   scrollbar.position.y = offset;
   object.add(scrollbar);
-
-  const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Orion');
-  item1.position.y = offset;
-  object.add(item1);
-  offset -= 0.1;
-
-  const item2 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/female.vrm]/preview.png`, 'Orion');
-  item2.position.y = offset;
-  object.add(item2);
-  offset -= 0.1;
+  
+  const itemsOffset = offset;
+  _renderItems();
 
   return object;
 })();

@@ -2675,6 +2675,8 @@ const makeTabs = (tabs, selectedTab, size = 0.08, width = 1) => {
       selectedTabIndex -= tabs.length;
     }
     _updateBackgroundMesh();
+    
+    object.ontabchange && object.ontabchange(selectedTabIndex);
   };
   const _updateBackgroundMesh = async () => {
     await loadPromise;
