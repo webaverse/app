@@ -1,6 +1,6 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {makeCubeMesh, makeRayMesh, intersectUi} from './vr-ui.js';
+import {makeCubeMesh, makeRayMesh, makeTextInput, intersectUi} from './vr-ui.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
@@ -1677,6 +1677,17 @@ const _renderWheel = (() => {
   };
 })();
 
+const menuMesh = (() => {
+  const object = new THREE.Object3D();
+  
+  const header = makeTextInput(undefined, 'Search...');
+  object.add(header);
+
+  return object;
+})();
+menuMesh.visible = false;
+scene.add(menuMesh);
+
 const weaponsManager = {
   weapons,
   cubeMesh,
@@ -1736,6 +1747,18 @@ const weaponsManager = {
       }
       _renderWheel(selectedSlice);
     }
+  },
+  getMenu() {
+    return menuMesh.visible;
+  },
+  setMenu(newOpen) {
+    if (newOpen) {
+      const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+      menuMesh.position.copy(xrCamera.position)
+        .add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
+      menuMesh.quaternion.copy(xrCamera.quaternion);
+    }
+    menuMesh.visible = newOpen;
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);
