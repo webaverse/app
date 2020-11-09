@@ -1785,7 +1785,7 @@ const menuMesh = (() => {
   object.offsetHorizontal = offset => {
     if (verticalIndex === -1) {
       const text = header.getText();
-      if (!text) {
+      if (!text || (offset < 0 && header.caretIndex === 0) || (offset > 0 && header.caretIndex === text.length)) {
         menuMesh.tabs.selectOffset(offset);
       } else {
         header.setText(text, Math.min(Math.max(header.caretIndex + offset, 0), text.length));
