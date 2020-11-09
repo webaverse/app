@@ -1,6 +1,6 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {makeCubeMesh, makeRayMesh, makeTextInput, makeTabs, intersectUi} from './vr-ui.js';
+import {makeCubeMesh, makeRayMesh, makeTextInput, makeTabs, makeItem, makeScrollbar, intersectUi} from './vr-ui.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
@@ -1680,17 +1680,37 @@ const _renderWheel = (() => {
 const menuMesh = (() => {
   const object = new THREE.Object3D();
 
+  let offset = 0.1;
+
   const header = makeTextInput(undefined, 'Search...');
-  header.position.y = 0.1;
+  header.position.y = offset;
   object.add(header);
+  offset -= 0.1;
 
   const tabs = makeTabs([
     'All',
     'Things',
     'Social',
     'Worlds',
+    'Scene',
   ], 'All');
+  tabs.position.y = offset;
   object.add(tabs);
+  offset -= 0.1;
+
+  const scrollbar = makeScrollbar(4);
+  scrollbar.position.y = offset;
+  object.add(scrollbar);
+
+  const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Orion');
+  item1.position.y = offset;
+  object.add(item1);
+  offset -= 0.1;
+
+  const item2 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/female.vrm]/preview.png`, 'Orion');
+  item2.position.y = offset;
+  object.add(item2);
+  offset -= 0.1;
 
   return object;
 })();
