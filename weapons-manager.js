@@ -1733,7 +1733,7 @@ const menuMesh = (() => {
   tabs.position.y = offset;
   tabs.ontabchange = i => {
     _clearItems();
-    
+
     const selectedTab = tabNames[i];
     if (selectedTab === 'Scene') {
       _renderScene();
@@ -1746,10 +1746,37 @@ const menuMesh = (() => {
   offset -= 0.1;
   object.tabs = tabs;
 
-  const scrollbar = makeScrollbar(4);
+  const scrollbar = makeScrollbar(4, 20);
   scrollbar.position.y = offset;
   object.add(scrollbar);
-  
+
+  let verticalIndex = -1;
+  object.setVertical = index => {
+    for (const item of items) {
+      item.select(-1);
+    }
+
+    verticalIndex = index;
+
+    const item = items[verticalIndex];
+    if (item) {
+      item.select(0);
+    }
+  };
+  object.offsetVertical = offset => {
+    object.setVertical(Math.max(verticalIndex + offset, -1) );
+  };
+  object.offsetHorizontal = offset => {
+    if (verticalIndex === -1) {
+      menuMesh.tabs.selectOffset(offset);
+    } else {
+      const item = items[verticalIndex];
+      if (item) {
+        item.selectOffset(offset);
+      }
+    }
+  };
+
   const itemsOffset = offset;
   _renderAll();
 
@@ -1830,8 +1857,11 @@ const weaponsManager = {
     }
     menuMesh.visible = newOpen;
   },
-  menuOffset(offset) {
-    menuMesh.tabs.selectOffset(offset);
+  menuVertical(offset) {
+    menuMesh.offsetVertical(offset);
+  },
+  menuHorizontal(offset) {
+    menuMesh.offsetHorizontal(offset);
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);
