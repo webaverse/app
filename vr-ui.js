@@ -2623,7 +2623,7 @@ const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size
   
   return textMesh;
 };
-const makeTabs = (tabs, selectedTab, size = 0.1, width = 1) => {
+const makeTabs = (tabs, selectedTab, size = 0.08, width = 1) => {
   const object = new THREE.Object3D();
 
   (async () => {
@@ -2646,6 +2646,24 @@ const makeTabs = (tabs, selectedTab, size = 0.1, width = 1) => {
   })();
 
   return object;
+};
+const makeItem = (previewUrl, text, size = 0.1, width = 1) => {
+  const object = new THREE.Object3D();
+
+  const cornersMesh = makeCornersMesh();
+  cornersMesh.position.x = -width/2 + size/2;
+  cornersMesh.scale.setScalar(size);
+  object.add(cornersMesh);
+
+  return object;
+};
+const makeScrollbar = (slots = 4, size = 0.1, width = 1) => {
+  const barWidth = 0.01;
+  const barHeight = slots * size;
+  const scrollbarGeometry = new THREE.PlaneBufferGeometry(barWidth, barHeight)
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(width/2 - barWidth/2, -barHeight/2 + size/2, 0));
+  const scrollbarMesh = new THREE.Mesh(scrollbarGeometry, blackMaterial);
+  return scrollbarMesh;
 };
 
 export {
@@ -2671,4 +2689,6 @@ export {
   makeCornersMesh,
   makeTextInput,
   makeTabs,
+  makeItem,
+  makeScrollbar,
 };
