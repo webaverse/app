@@ -431,27 +431,25 @@ window.addEventListener('keyup', e => {
     }
     case 38: { // up
       if (document.pointerLockElement && weaponsManager.getMenu()) {
-        // ioManager.keys.shift = false;
+        weaponsManager.menuVertical(-1);
       }
       break;
     }
     case 40: { // down
       if (document.pointerLockElement && weaponsManager.getMenu()) {
-        // ioManager.keys.shift = false;
+        weaponsManager.menuVertical(1);
       }
       break;
     }
     case 37: { // left
       if (document.pointerLockElement && weaponsManager.getMenu()) {
-        weaponsManager.menuOffset(-1);
-        // ioManager.keys.shift = false;
+        weaponsManager.menuHorizontal(-1);
       }
       break;
     }
     case 39: { // right
       if (document.pointerLockElement && weaponsManager.getMenu()) {
-        weaponsManager.menuOffset(1);
-        // ioManager.keys.shift = false;
+        weaponsManager.menuHorizontal(1);
       }
       break;
     }

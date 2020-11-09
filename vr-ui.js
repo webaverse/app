@@ -2520,7 +2520,7 @@ const intersectUi = (raycaster, meshes) => {
 
 const blackMaterial = new THREE.MeshBasicMaterial({color: 0x333333});
 const blueMaterial = new THREE.MeshBasicMaterial({color: 0x42a5f5});
-const makeButtonMesh = (text, font, size = 0.1) => {  
+const makeButtonMesh = (text, font = './GeosansLight.ttf', size = 0.1) => {  
   const textMesh = makeTextMesh(text, font, size);
   textMesh._needsSync = true;
   textMesh.sync(() => {
@@ -2703,9 +2703,71 @@ const makeItem = (previewUrl, text, size = 0.1, width = 1) => {
   textMesh.position.y = size/4;
   object.add(textMesh);
 
+  const loadPromise = makePromise();
+
+  const widths = [];
+  const buttonsOffset = width/2*0.6;
+  const buttons = ['open', 'del'];
+  (async () => {
+    let offset = 0;
+
+    for (const button of buttons) {
+      const buttonMesh = makeButtonMesh(button, undefined, size/2);
+      buttonMesh.position.x = buttonsOffset + offset;
+      object.add(buttonMesh);
+      
+      await new Promise((accept, reject) => {
+        buttonMesh._needsSync = true;
+        buttonMesh.sync(accept);
+      });
+      {
+        const renderInfo = textMesh.textRenderInfo;
+        const [x1, y1, x2, y2] = renderInfo.totalBounds;
+        const w = x2 - x1;
+        const h = y2 - y1;
+
+        offset += w;
+          
+        widths.push(offset);
+      }
+    }
+    loadPromise.accept();
+  })();
+
+  const backgroundGeometry = new THREE.PlaneBufferGeometry(1, 1)
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(1/2, 0, -0.01));
+  const backgroundMesh = new THREE.Mesh(backgroundGeometry, blueMaterial);
+  backgroundMesh.scale.y = size/2;
+  backgroundMesh.visible = false;
+  object.add(backgroundMesh);
+
+  let horizontalIndex = -1;
+  const _updateBackgroundMesh = async () => {
+    await loadPromise;
+
+    if (horizontalIndex !== -1) {
+      const selectedButtonOffset = horizontalIndex === 0 ? 0 : widths[horizontalIndex - 1];
+      const selectedButtonWidth = horizontalIndex === 0 ? widths[0] : (widths[horizontalIndex] - widths[horizontalIndex - 1]);
+      backgroundMesh.position.x = buttonsOffset + selectedButtonOffset;
+      backgroundMesh.scale.set(selectedButtonWidth, size, 1);
+      backgroundMesh.visible = true;
+    } else {
+      backgroundMesh.visible = false;
+    }
+  };
+  _updateBackgroundMesh();
+
+  object.select = index => {
+    horizontalIndex = index;
+    _updateBackgroundMesh();
+  };
+  object.selectOffset = offset => {
+    object.select(Math.min(Math.max(horizontalIndex + offset, 0), 1));
+  };
+
   return object;
 };
-const makeScrollbar = (slots = 4, size = 0.1, width = 1) => {
+const makeScrollbar = (slots = 4, totalSlots = 20, size = 0.1, width = 1) => {
   const barWidth = 0.01;
   const barHeight = slots * size;
   const scrollbarGeometry = new THREE.PlaneBufferGeometry(barWidth, barHeight)
