@@ -1,7 +1,6 @@
 /* global Web3 */
 /* eslint no-unused-vars: 0 */
 import * as THREE from './three.module.js';
-import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 // import {GLTFLoader} from './GLTFLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {TransformControls} from './TransformControls.js';
@@ -9,7 +8,7 @@ import {tryLogin, loginManager} from './login.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
-import {makeRayMesh, makeTextMesh, makeHighlightMesh} from './vr-ui.js';
+import {makeRayMesh, makeTextMesh, makeHighlightMesh, makeButtonMesh, makeArrowMesh, makeCornersMesh} from './vr-ui.js';
 import {
   THING_SHADER,
   makeDrawMaterial,
@@ -56,6 +55,7 @@ const localQuaternion3 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
+const localRay = new THREE.Ray();
 const localTriangle = new THREE.Triangle();
 
 let skybox = null;
@@ -456,115 +456,24 @@ scene.add(rayMesh);
     textMesh.position.y = 2;
     scene.add(textMesh);
 
-    const blackMaterial = new THREE.MeshBasicMaterial({color: 0x333333});
-    const _makeButtonMesh = (text, font, size = 0.1) => {
-      const object = new THREE.Object3D();
-      
-      const textMesh = makeTextMesh(text, font, size);
-      textMesh._needsSync = true;
-      textMesh.sync(() => {
-        const renderInfo = textMesh.textRenderInfo;
-        const [x1, y1, x2, y2] = renderInfo.totalBounds;
-        const w = x2 - x1;
-        const h = y2 - y1;
-        
-        const outlineGeometry = BufferGeometryUtils.mergeBufferGeometries([
-          new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, Math.PI/2, Math.PI),
-          new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, -Math.PI/2, Math.PI)
-            .applyMatrix4(new THREE.Matrix4().makeTranslation(w, 0, 0)),
-          new THREE.PlaneBufferGeometry(1, 1)
-            .applyMatrix4(new THREE.Matrix4().makeScale(w, size*0.6 * 0.1, 1))
-            .applyMatrix4(new THREE.Matrix4().makeTranslation(w/2, size*0.6 + size*0.6*0.1/2, 0)),
-          new THREE.PlaneBufferGeometry(1, 1)
-            .applyMatrix4(new THREE.Matrix4().makeScale(w, size*0.6 * 0.1, 1))
-            .applyMatrix4(new THREE.Matrix4().makeTranslation(w/2, -size*0.6 - size*0.6*0.1/2, 0))
-        ]);
-        
-        const outlineMesh = new THREE.Mesh(outlineGeometry, blackMaterial);
-        object.add(outlineMesh);
-        
-        outlineGeometry.computeBoundingBox();
-        object.boundingBox = outlineGeometry.boundingBox.clone();
-        object.boundingBox.min.z = -0.01;
-        object.boundingBox.max.z = 0.01;
-      });
-      object.add(textMesh);
-
-      object.boundingBox = new THREE.Box3();
-      
-      return object;
-    };
-    const buttonMesh = _makeButtonMesh('Lol');
+    const buttonMesh = makeButtonMesh('Lol');
     buttonMesh.position.y = 1;
     scene.add(buttonMesh);
     anchorMeshes.push(buttonMesh);
 
-    const _makeArrowMesh = () => {
-      const rightArrowShape = new THREE.Shape();
-      (function rightArrow(ctx) {
-        const size = 0.05;
-        const thickness = 0.02;
-        ctx.moveTo(-size, size);
-        ctx.lineTo(-size + thickness, size);
-        ctx.lineTo(thickness, 0);
-        ctx.lineTo(-size + thickness, -size);
-        ctx.lineTo(-size, -size);
-        ctx.lineTo(0, 0);
-      })(rightArrowShape);
-      const rightArrowGeometry = new THREE.ShapeBufferGeometry(rightArrowShape);
-      const mesh = new THREE.Mesh(rightArrowGeometry, blackMaterial);
-      rightArrowGeometry.computeBoundingBox();
-      mesh.boundingBox = rightArrowGeometry.boundingBox.clone();
-      mesh.boundingBox.min.z = -0.01;
-      mesh.boundingBox.max.z = 0.01;
-      return mesh;
-    };
-    const rightArrowMesh = _makeArrowMesh();
+    const rightArrowMesh = makeArrowMesh();
     rightArrowMesh.position.x = 0.6;
     rightArrowMesh.position.y = 1;
     scene.add(rightArrowMesh);
     anchorMeshes.push(rightArrowMesh);
-    const leftArrowMesh = _makeArrowMesh();
+    const leftArrowMesh = makeArrowMesh();
     leftArrowMesh.position.x = -0.6;
     leftArrowMesh.position.y = 1;
     leftArrowMesh.rotation.z = Math.PI;
     scene.add(leftArrowMesh);
     anchorMeshes.push(leftArrowMesh);
 
-    const _makeCornersMesh = () => {
-      const cornersShape = new THREE.Shape();
-      (function corners(ctx) {
-        const size = 0.03;
-        ctx.moveTo(-size, size);
-        ctx.lineTo(size*2, size);
-        ctx.lineTo(size*2, 0);
-        ctx.lineTo(0, 0);
-        ctx.lineTo(0, -size*2);
-        ctx.lineTo(-size, -size*2);
-      })(cornersShape);
-      const cornerGeometry = new THREE.ShapeBufferGeometry(cornersShape);
-      const cornersGeometry = BufferGeometryUtils.mergeBufferGeometries([
-        cornerGeometry.clone()
-          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0)))
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0)),
-        cornerGeometry.clone()
-          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/2)))
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0)),
-        cornerGeometry.clone()
-          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/2*2)))
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)),
-        cornerGeometry.clone()
-          .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/2*3)))
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0))
-      ]);
-      const cornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
-      cornersGeometry.computeBoundingBox();
-      cornerMesh.boundingBox = cornersGeometry.boundingBox.clone();
-      cornerMesh.boundingBox.min.z = -0.01;
-      cornerMesh.boundingBox.max.z = 0.01;
-      return cornerMesh;
-    };
-    const cornersMesh = _makeCornersMesh();
+    const cornersMesh = makeCornersMesh();
     cornersMesh.position.y = 1;
     scene.add(cornersMesh);
     anchorMeshes.push(cornersMesh);
@@ -992,13 +901,13 @@ function animate(timestamp, frame) {
         .decompose(localVector, localQuaternion, localVector2);
       localVector3.set(0, 0, -1)
         .applyQuaternion(localQuaternion);
-      const ray = new THREE.Ray(localVector, localVector3);
-      const intersection = ray.intersectBox(anchorMesh.boundingBox, localVector4);
+      localRay.set(localVector, localVector3);
+      const intersection = localRay.intersectBox(anchorMesh.geometry.boundingBox, localVector4);
       if (intersection) {
         highlightMesh.position.copy(anchorMesh.position)
-          .add(anchorMesh.boundingBox.getCenter(localVector4).applyQuaternion(anchorMesh.quaternion));
+          .add(anchorMesh.geometry.boundingBox.getCenter(localVector4).applyQuaternion(anchorMesh.quaternion));
         highlightMesh.quaternion.copy(anchorMesh.quaternion);
-        anchorMesh.boundingBox.getSize(highlightMesh.scale);
+        anchorMesh.geometry.boundingBox.getSize(highlightMesh.scale);
         highlightMesh.visible = true;
         break;
       }

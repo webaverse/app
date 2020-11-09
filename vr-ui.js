@@ -1,4 +1,5 @@
 import * as THREE from './three.module.js';
+import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 // import {scene} from './run.js';
 import {TextMesh} from './textmesh-standalone.esm.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
@@ -2516,6 +2517,93 @@ const intersectUi = (raycaster, meshes) => {
   }
 };
 
+const blackMaterial = new THREE.MeshBasicMaterial({color: 0x333333});
+const makeButtonMesh = (text, font, size = 0.1) => {  
+  const textMesh = makeTextMesh(text, font, size);
+  textMesh._needsSync = true;
+  textMesh.sync(() => {
+    const renderInfo = textMesh.textRenderInfo;
+    const [x1, y1, x2, y2] = renderInfo.totalBounds;
+    const w = x2 - x1;
+    const h = y2 - y1;
+    
+    const outlineGeometry = BufferGeometryUtils.mergeBufferGeometries([
+      new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, Math.PI/2, Math.PI),
+      new THREE.RingBufferGeometry(size*0.6, size*0.6 * 1.1, 8, 8, -Math.PI/2, Math.PI)
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(w, 0, 0)),
+      new THREE.PlaneBufferGeometry(1, 1)
+        .applyMatrix4(new THREE.Matrix4().makeScale(w, size*0.6 * 0.1, 1))
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(w/2, size*0.6 + size*0.6*0.1/2, 0)),
+      new THREE.PlaneBufferGeometry(1, 1)
+        .applyMatrix4(new THREE.Matrix4().makeScale(w, size*0.6 * 0.1, 1))
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(w/2, -size*0.6 - size*0.6*0.1/2, 0))
+    ]);
+    outlineGeometry.computeBoundingBox();
+
+    textMesh.geometry.boundingBox = outlineGeometry.boundingBox.clone();
+    textMesh.geometry.boundingBox.min.z = -0.01;
+    textMesh.geometry.boundingBox.max.z = 0.01;
+    
+    const outlineMesh = new THREE.Mesh(outlineGeometry, blackMaterial);
+    textMesh.add(outlineMesh);
+  });
+
+  textMesh.geometry.boundingBox = new THREE.Box3();
+  
+  return textMesh;
+};
+const makeArrowMesh = () => {
+  const rightArrowShape = new THREE.Shape();
+  (function rightArrow(ctx) {
+    const size = 0.05;
+    const thickness = 0.02;
+    ctx.moveTo(-size, size);
+    ctx.lineTo(-size + thickness, size);
+    ctx.lineTo(thickness, 0);
+    ctx.lineTo(-size + thickness, -size);
+    ctx.lineTo(-size, -size);
+    ctx.lineTo(0, 0);
+  })(rightArrowShape);
+  const rightArrowGeometry = new THREE.ShapeBufferGeometry(rightArrowShape);
+  rightArrowGeometry.computeBoundingBox();
+  rightArrowGeometry.boundingBox.min.z = -0.01;
+  rightArrowGeometry.boundingBox.max.z = 0.01;
+  const mesh = new THREE.Mesh(rightArrowGeometry, blackMaterial);
+  return mesh;
+};
+const makeCornersMesh = () => {
+  const cornersShape = new THREE.Shape();
+  (function corners(ctx) {
+    const size = 0.03;
+    ctx.moveTo(-size, size);
+    ctx.lineTo(size*2, size);
+    ctx.lineTo(size*2, 0);
+    ctx.lineTo(0, 0);
+    ctx.lineTo(0, -size*2);
+    ctx.lineTo(-size, -size*2);
+  })(cornersShape);
+  const cornerGeometry = new THREE.ShapeBufferGeometry(cornersShape);
+  const cornersGeometry = BufferGeometryUtils.mergeBufferGeometries([
+    cornerGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, 0.5, 0)),
+    cornerGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/2)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0)),
+    cornerGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/2*2)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0.5, -0.5, 0)),
+    cornerGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI/2*3)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(-0.5, -0.5, 0))
+  ]);
+  cornersGeometry.computeBoundingBox();
+  cornersGeometry.boundingBox.min.z = -0.01;
+  cornersGeometry.boundingBox.max.z = 0.01;
+  const cornerMesh = new THREE.Mesh(cornersGeometry, blackMaterial);
+  return cornerMesh;
+};
+
 export {
   makeCubeMesh,
   /* makeUiMesh,
@@ -2534,4 +2622,7 @@ export {
   makeHighlightMesh,
   makeRayMesh,
   makeRigCapsule,
+  makeButtonMesh,
+  makeArrowMesh,
+  makeCornersMesh,
 };
