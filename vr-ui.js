@@ -2666,8 +2666,8 @@ const makeTabs = (tabs, selectedTab, size = 0.08, width = 1) => {
   object.add(backgroundMesh);
 
   let selectedTabIndex = tabs.indexOf(selectedTab);
-  object.selectOffset = offset => {
-    selectedTabIndex += offset;
+  object.select = index => {
+    selectedTabIndex = index;
     if (selectedTabIndex < 0) {
       selectedTabIndex += tabs.length;
     }
@@ -2677,6 +2677,9 @@ const makeTabs = (tabs, selectedTab, size = 0.08, width = 1) => {
     _updateBackgroundMesh();
     
     object.ontabchange && object.ontabchange(selectedTabIndex);
+  };
+  object.selectOffset = offset => {
+    object.select(selectedTabIndex + offset);
   };
   const _updateBackgroundMesh = async () => {
     await loadPromise;
