@@ -11,7 +11,14 @@ app.use((req, res, next) => {
   res.set('Access-Control-Allow-Origin', '*');
   next();
 });
-app.use(express.static(__dirname));
+const appStatic = express.static(__dirname);
+app.use(appStatic);
+app.get('*', (req, res, next) => {
+  req.url = '404.html';
+  res.set('Content-Type', 'text/html');
+  next();
+});
+app.use(appStatic);
 
 http.createServer(app)
   .listen(3000);
