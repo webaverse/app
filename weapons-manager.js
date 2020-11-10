@@ -1760,6 +1760,43 @@ const menuMesh = (() => {
       offset -= 0.1;
     }
   };
+  const _renderObjects = () => {
+    _clearItems();
+    
+    let offset = itemsOffset;
+    
+    const featuredObjects = [
+      {
+        name: 'weapons',
+        url: `https://avaer.github.io/weapons/index.js`,
+      },
+      {
+        name: 'hookshot',
+        url: `https://avaer.github.io/hookshot/index.js`,
+      },
+    ];
+    for (const featuredObject of featuredObjects) {
+      const item = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, featuredObject.name, undefined, undefined, ['add']);
+      item.position.y = offset;
+      item.onenter = async horizontalIndex => {
+        const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+        localVector.copy(xrCamera.position)
+          .add(localVector2.set(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
+        world.addObject(featuredObject.url, null, localVector, xrCamera.quaternion);
+        /* if (horizontalIndex === 0) {
+          console.log('open', worldObject.instanceId);
+          // world.removeObject(worldObject.instanceId);
+        } else {
+          world.removeObject(worldObject.instanceId);
+          _clearItems();
+          _renderScene();
+        } */
+      };
+      object.add(item);
+      items.push(item);
+      offset -= 0.1;
+    }
+  };
   const _renderScene = () => {
     _clearItems();
     
@@ -1802,7 +1839,9 @@ const menuMesh = (() => {
   tabs.position.y = offset;
   tabs.ontabchange = i => {
     const selectedTab = tabNames[i];
-    if (selectedTab === 'Scene') {
+    if (selectedTab === 'Objects') {
+      _renderObjects();
+    } else if (selectedTab === 'Scene') {
       _renderScene();
     } else {
       _renderAll();
