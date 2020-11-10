@@ -2845,7 +2845,7 @@ const makeItem = (previewUrl, text, size = 0.1, width = 1, buttons = []) => {
     _updateBackgroundMesh();
   };
   object.selectOffset = offset => {
-    object.select(Math.min(Math.max(horizontalIndex + offset, 0), 1));
+    object.select(Math.min(Math.max(horizontalIndex + offset, 0), buttons.length - 1));
   };
   object.enter = () => {
     object.onenter && object.onenter(horizontalIndex);

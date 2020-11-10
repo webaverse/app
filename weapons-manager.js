@@ -1783,19 +1783,63 @@ const menuMesh = (() => {
         localVector.copy(xrCamera.position)
           .add(localVector2.set(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
         world.addObject(featuredObject.url, null, localVector, xrCamera.quaternion);
-        /* if (horizontalIndex === 0) {
-          console.log('open', worldObject.instanceId);
-          // world.removeObject(worldObject.instanceId);
-        } else {
-          world.removeObject(worldObject.instanceId);
-          _clearItems();
-          _renderScene();
-        } */
       };
       object.add(item);
       items.push(item);
       offset -= 0.1;
     }
+  };
+  const _renderWorlds = async () => {
+    _clearItems();
+    
+    let offset = itemsOffset;
+
+    const worlds = await (async () => {
+      const res = await fetch('https://worlds.exokit.org/');
+      const j = await res.json();
+      return j;
+    })();
+    for (const world of worlds) {
+      const item = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, world.name, undefined, undefined, ['connect', 'portal', 'del']);
+      item.position.y = offset;
+      item.onenter = async horizontalIndex => {
+        if (horizontalIndex === 0) {
+          console.log('connect world', world);
+        } else if (horizontalIndex === 1) {
+          console.log('portal world', world);
+        } else if (horizontalIndex === 2) {
+          console.log('delete world', world);
+        }
+      };
+      object.add(item);
+      items.push(item);
+      offset -= 0.1;
+    }
+
+    const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'New', undefined, undefined, ['create']);
+    item1.position.y = offset;
+    item1.onenter = async () => {
+      function makeId() {
+        const length = 4;
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
+          result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
+      }
+      const res = await fetch('https://worlds.exokit.org/' + makeId(), {
+        method: 'POST',
+      });
+      const j = await res.json();
+      console.log('got result', j);
+      _renderWorlds();
+    };
+    object.add(item1);
+    items.push(item1);
+    offset -= 0.1;
+    offset -= 0.1;
   };
   const _renderScene = () => {
     _clearItems();
@@ -1829,8 +1873,8 @@ const menuMesh = (() => {
   };
 
   const tabNames = [
-    'Avatar',
-    'Social',
+    'Me',
+    'Creators',
     'Objects',
     'Worlds',
     'Scene',
@@ -1841,6 +1885,8 @@ const menuMesh = (() => {
     const selectedTab = tabNames[i];
     if (selectedTab === 'Objects') {
       _renderObjects();
+    } else if (selectedTab === 'Worlds') {
+      _renderWorlds();
     } else if (selectedTab === 'Scene') {
       _renderScene();
     } else {
