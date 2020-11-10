@@ -1829,16 +1829,16 @@ const menuMesh = (() => {
       item.select(0);
     }
   };
-  object.offsetVertical = offset => {
+  object.offsetVertical = (offset, shift) => {
     object.setVertical(Math.max(verticalIndex + offset, -1) );
   };
-  object.offsetHorizontal = offset => {
+  object.offsetHorizontal = (offset, shift) => {
     if (verticalIndex === -1) {
       const text = header.getText();
       if (!text || (offset < 0 && header.caretIndex === 0) || (offset > 0 && header.caretIndex === text.length)) {
         menuMesh.tabs.selectOffset(offset);
       } else {
-        header.setText(text, Math.min(Math.max(header.caretIndex + offset, 0), text.length));
+        header.setText(text, Math.min(Math.max(header.caretIndex + offset, 0), text.length), shift);
       }
     } else {
       const item = items[verticalIndex];
@@ -1856,19 +1856,19 @@ const menuMesh = (() => {
   object.key = c => {
     if (c !== '\b') {
       s = s.slice(0, header.caretIndex) + c + s.slice(header.caretIndex);
-      header.setText(s, header.caretIndex + 1);
+      header.setText(s, header.caretIndex + 1, false);
       _renderAll();
     } else {
       if (header.caretIndex > 0) {
         s = s.slice(0, header.caretIndex - 1) + s.slice(header.caretIndex);
-        header.setText(s, header.caretIndex - 1);
+        header.setText(s, header.caretIndex - 1, false);
         _renderAll();
       }
     }
   };
   object.paste = s2 => {
     s = s.slice(0, header.caretIndex) + s2 + s.slice(header.caretIndex);
-    header.setText(s, header.caretIndex + s2.length);
+    header.setText(s, header.caretIndex + s2.length, false);
     _renderAll();
   };
 
@@ -1955,11 +1955,11 @@ const weaponsManager = {
     }
     menuMesh.visible = newOpen;
   },
-  menuVertical(offset) {
-    menuMesh.offsetVertical(offset);
+  menuVertical(offset, shift) {
+    menuMesh.offsetVertical(offset, shift);
   },
-  menuHorizontal(offset) {
-    menuMesh.offsetHorizontal(offset);
+  menuHorizontal(offset, shift) {
+    menuMesh.offsetHorizontal(offset, shift);
   },
   menuEnter() {
     menuMesh.enter();

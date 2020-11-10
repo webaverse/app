@@ -2639,15 +2639,33 @@ const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size
   textInput.caretIndex = text.length;
   textInput.selectRange = [0, 0];
   textInput.getText = () => textMesh.text;
-  textInput.setText = async (s, caretIndex) => {
+  textInput.setText = async (s, caretIndex, shift) => {
     textInput.remove(textMesh);
     textMesh = makeTextMesh(s, font, size);
     textMesh.position.x = -width/2;
     textInput.add(textMesh);
 
-    textInput.selectRange = [0, s.length];
-
+    const oldCaretIndex = textInput.caretIndex;
     textInput.caretIndex = caretIndex;
+
+    if (shift) {
+      if (caretIndex < oldCaretIndex) {
+        if (textInput.selectRange[0] === oldCaretIndex) {
+          textInput.selectRange[0] = caretIndex;
+        } else if (textInput.selectRange[1] === oldCaretIndex) {
+          textInput.selectRange[1] = caretIndex;
+        }
+      } else if (caretIndex > oldCaretIndex) {
+        if (textInput.selectRange[1] === oldCaretIndex) {
+          textInput.selectRange[1] = caretIndex;
+        } else if (textInput.selectRange[0] === oldCaretIndex) {
+          textInput.selectRange[0] = caretIndex;
+        }
+      }
+    } else {
+      textInput.selectRange[0] = caretIndex;
+      textInput.selectRange[1] = caretIndex;
+    }
     
     await new Promise((accept, reject) => {
       textMesh._needsSync = true;
@@ -2663,7 +2681,7 @@ const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size
       const {glyphBounds} = renderInfo;
       const x1 = textInput.selectRange[0] !== 0 ? glyphBounds[(textInput.selectRange[0] - 1)*4 + 2] : 0;
       const x2 = textInput.selectRange[1] !== 0 ? glyphBounds[(textInput.selectRange[1] - 1)*4 + 2] : 0;
-      const w = x1 + x2;
+      const w = x2 - x1;
       backgroundMesh.position.x = -width/2 + x1;
       backgroundMesh.scale.x = w;
       backgroundMesh.scale.y = size;
