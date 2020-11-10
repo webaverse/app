@@ -1789,7 +1789,7 @@ const menuMesh = (() => {
       offset -= 0.1;
     }
   };
-  const _renderWorlds = async () => {
+  const _renderRooms = async () => {
     _clearItems();
     
     let offset = itemsOffset;
@@ -1823,7 +1823,7 @@ const menuMesh = (() => {
             method: 'DELETE',
           });
           const j = await res.text();
-          _renderWorlds();
+          _renderRooms();
         }
       };
       object.add(item);
@@ -1848,8 +1848,7 @@ const menuMesh = (() => {
         method: 'POST',
       });
       const j = await res.json();
-      console.log('got result', j);
-      _renderWorlds();
+      _renderRooms();
     };
     object.add(item1);
     items.push(item1);
@@ -1890,18 +1889,19 @@ const menuMesh = (() => {
   const tabNames = [
     'Me',
     'Creators',
-    'Objects',
+    'Items',
     'Worlds',
+    'Rooms',
     'Scene',
   ];
   const tabs = makeTabs(tabNames, 0.07);
   tabs.position.y = offset;
   tabs.ontabchange = i => {
     const selectedTab = tabNames[i];
-    if (selectedTab === 'Objects') {
+    if (selectedTab === 'Items') {
       _renderObjects();
-    } else if (selectedTab === 'Worlds') {
-      _renderWorlds();
+    } else if (selectedTab === 'Rooms') {
+      _renderRooms();
     } else if (selectedTab === 'Scene') {
       _renderScene();
     } else {
