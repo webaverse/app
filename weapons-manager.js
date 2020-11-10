@@ -1823,11 +1823,7 @@ const menuMesh = (() => {
     }
 
     verticalIndex = index;
-    if (verticalIndex !== -1) {
-      menuMesh.tabs.select(-1);
-    } else {
-      menuMesh.tabs.select(0);
-    }
+    menuMesh.tabs.setEnabled(verticalIndex === -1);
 
     const item = items[verticalIndex];
     if (item) {
