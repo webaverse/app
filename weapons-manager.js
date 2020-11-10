@@ -1792,8 +1792,7 @@ const menuMesh = (() => {
   };
 
   const tabNames = [
-    'All',
-    'Things',
+    'Add',
     'Social',
     'Worlds',
     'Scene',
