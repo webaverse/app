@@ -1794,16 +1794,7 @@ const menuMesh = (() => {
 
     let offset = itemsOffset;
 
-    const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Create', undefined, undefined, ['new']);
-    item1.position.y = offset;
-    item1.onenter = async () => {
-      console.log('new world');
-    };
-    object.add(item1);
-    items.push(item1);
-    offset -= 0.1;
-
-    const item2 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'File', undefined, undefined, ['load', 'save']);
+    const item2 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'File', undefined, undefined, ['new', 'load', 'save']);
     item2.position.y = offset;
     item2.onenter = async () => {
       console.log('save world');
@@ -1816,6 +1807,15 @@ const menuMesh = (() => {
     _clearItems();
     
     let offset = itemsOffset;
+
+    const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Connected', undefined, undefined, ['disconnect']);
+    item1.position.y = offset;
+    item1.onenter = async horizontalIndex => {
+      // XXX
+    };
+    object.add(item1);
+    items.push(item1);
+    offset -= 0.1;
 
     const worlds = await (async () => {
       const res = await fetch('https://worlds.exokit.org/');
@@ -1854,9 +1854,9 @@ const menuMesh = (() => {
       offset -= 0.1;
     }
 
-    const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Create', undefined, undefined, ['new instance']);
-    item1.position.y = offset;
-    item1.onenter = async () => {
+    const item2 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Create', undefined, undefined, ['new instance']);
+    item2.position.y = offset;
+    item2.onenter = async horizontalIndex => {
       function makeId() {
         const length = 4;
         let result = '';
@@ -1873,8 +1873,8 @@ const menuMesh = (() => {
       const j = await res.json();
       _renderInstances();
     };
-    object.add(item1);
-    items.push(item1);
+    object.add(item2);
+    items.push(item2);
     offset -= 0.1;
   };
   const _renderScene = () => {
