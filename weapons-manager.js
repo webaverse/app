@@ -1799,20 +1799,30 @@ const menuMesh = (() => {
       const j = await res.json();
       return j;
     })();
-    for (const world of worlds) {
-      const item = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, world.name, undefined, undefined, ['connect', 'portal', 'del']);
+    for (const w of worlds) {
+      const item = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, w.name, undefined, undefined, ['connect', 'portal', 'del']);
       item.position.y = offset;
       item.onenter = async horizontalIndex => {
+        const _getWorldUrl = () => `https://app.webaverse.com?u=${w.publicIp}:${w.port}`;
         if (horizontalIndex === 0) {
-          console.log('connect world', world);
+          location.href = _getWorldUrl();
         } else if (horizontalIndex === 1) {
-          console.log('portal world', world);
+          const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+          localVector.copy(xrCamera.position)
+            .add(localVector2.set(0, 0, -1.5).applyQuaternion(xrCamera.quaternion))
+            .add(localVector2.set(0, -1, 0));
+          localEuler.setFromQuaternion(xrCamera.quaternion, localEuler.order);
+          localEuler.x = 0;
+          localEuler.z = 0;
+          localQuaternion.setFromEuler(localEuler);
+          const file = new Blob([_getWorldUrl()], {type: 'text/plain'});
+          const u = URL.createObjectURL(file) + '/file.url';
+          world.addObject(u, null, localVector, localQuaternion);
         } else if (horizontalIndex === 2) {
-          const res = await fetch('https://worlds.exokit.org/' + world.name, {
+          const res = await fetch('https://worlds.exokit.org/' + w.name, {
             method: 'DELETE',
           });
           const j = await res.text();
-          console.log('delete world', world, j);
           _renderWorlds();
         }
       };
