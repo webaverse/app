@@ -240,11 +240,11 @@ window.addEventListener('keydown', e => {
           break;
         }
         case 37: { // left
-          weaponsManager.menuHorizontal(-1);
+          weaponsManager.menuHorizontal(-1, e.shiftKey);
           break;
         }
         case 39: { // right
-          weaponsManager.menuHorizontal(1);
+          weaponsManager.menuHorizontal(1, e.shiftKey);
           break;
         }
         case 13: { // enter
