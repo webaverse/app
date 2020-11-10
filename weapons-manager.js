@@ -1789,7 +1789,30 @@ const menuMesh = (() => {
       offset -= 0.1;
     }
   };
-  const _renderRooms = async () => {
+  const _renderWorlds = async () => {
+    _clearItems();
+
+    let offset = itemsOffset;
+
+    const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Create', undefined, undefined, ['new']);
+    item1.position.y = offset;
+    item1.onenter = async () => {
+      console.log('new world');
+    };
+    object.add(item1);
+    items.push(item1);
+    offset -= 0.1;
+
+    const item2 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'File', undefined, undefined, ['load', 'save']);
+    item2.position.y = offset;
+    item2.onenter = async () => {
+      console.log('save world');
+    };
+    object.add(item2);
+    items.push(item2);
+    offset -= 0.1;
+  };
+  const _renderInstances = async () => {
     _clearItems();
     
     let offset = itemsOffset;
@@ -1823,7 +1846,7 @@ const menuMesh = (() => {
             method: 'DELETE',
           });
           const j = await res.text();
-          _renderRooms();
+          _renderInstances();
         }
       };
       object.add(item);
@@ -1831,7 +1854,7 @@ const menuMesh = (() => {
       offset -= 0.1;
     }
 
-    const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'New', undefined, undefined, ['create']);
+    const item1 = makeItem(`https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`, 'Create', undefined, undefined, ['new instance']);
     item1.position.y = offset;
     item1.onenter = async () => {
       function makeId() {
@@ -1848,11 +1871,10 @@ const menuMesh = (() => {
         method: 'POST',
       });
       const j = await res.json();
-      _renderRooms();
+      _renderInstances();
     };
     object.add(item1);
     items.push(item1);
-    offset -= 0.1;
     offset -= 0.1;
   };
   const _renderScene = () => {
@@ -1891,7 +1913,7 @@ const menuMesh = (() => {
     'Creators',
     'Items',
     'Worlds',
-    'Rooms',
+    'Instances',
     'Scene',
   ];
   const tabs = makeTabs(tabNames, 0.07);
@@ -1900,8 +1922,10 @@ const menuMesh = (() => {
     const selectedTab = tabNames[i];
     if (selectedTab === 'Items') {
       _renderObjects();
-    } else if (selectedTab === 'Rooms') {
-      _renderRooms();
+    } else if (selectedTab === 'Worlds') {
+      _renderWorlds();
+    } else if (selectedTab === 'Instances') {
+      _renderInstances();
     } else if (selectedTab === 'Scene') {
       _renderScene();
     } else {
