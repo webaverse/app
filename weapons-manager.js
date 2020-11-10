@@ -1792,12 +1792,13 @@ const menuMesh = (() => {
   };
 
   const tabNames = [
-    'Add',
+    'Avatar',
     'Social',
+    'Objects',
     'Worlds',
     'Scene',
   ];
-  const tabs = makeTabs(tabNames);
+  const tabs = makeTabs(tabNames, 0.07);
   tabs.position.y = offset;
   tabs.ontabchange = i => {
     const selectedTab = tabNames[i];
