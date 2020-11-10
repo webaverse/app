@@ -41,7 +41,28 @@ const zeroVector = new THREE.Vector3();
 
 let selectedWeapon = 'unarmed';
 let lastSelectedWeapon = selectedWeapon;
-const weapons = Array.from(document.querySelectorAll('.weapon'));
+const weapons = [
+  'lol',
+  'zol',
+];
+const weaponIcons = [
+  '\uf256',
+  '\uf710',
+  '\uf1e2',
+  '\uf6b2',
+  '\uf713',
+  '\uf279',
+  '\uf54e',
+  '\uf1b2',
+  '\uf53f',
+  '\uf5d4',
+  '\uf0e7',
+  '\uf040',
+  '\uf55d',
+  '\ue025',
+  '\uf245',
+];
+/* const weapons = Array.from(document.querySelectorAll('.weapon'));
 for (let i = 0; i < weapons.length; i++) {
   const weapon = document.getElementById('weapon-' + (i + 1));
   weapon.addEventListener('click', e => {
@@ -58,7 +79,7 @@ for (let i = 0; i < weapons.length; i++) {
     }
     setState({ selectedWeapon: selectedWeapon })
   });
-}
+} */
 let raycastChunkSpec = null;
 let anchorSpecs = [null, null];
 
@@ -1617,23 +1638,6 @@ const wheelDotCanvas = (() => {
 })();
 document.body.appendChild(wheelDotCanvas);
 
-const weaponIcons = [
-  '\uf256',
-  '\uf710',
-  '\uf1e2',
-  '\uf6b2',
-  '\uf713',
-  '\uf279',
-  '\uf54e',
-  '\uf1b2',
-  '\uf53f',
-  '\uf5d4',
-  '\uf0e7',
-  '\uf040',
-  '\uf55d',
-  '\ue025',
-  '\uf245',
-];
 let wheelReady = false;
 const loadPromise = Promise.all([
   new FontFaceObserver('Muli').load(null, 10000),
@@ -1648,7 +1652,7 @@ const _renderWheel = (() => {
       const {ctx} = wheelCanvas;
 
       ctx.clearRect(0, 0, pixelSize, pixelSize);
-      
+
       const numSlices = weapons.length;
       const interval = Math.PI*0.01;
       for (let i = 0; i < numSlices; i++) {
@@ -1666,10 +1670,9 @@ const _renderWheel = (() => {
         ctx.textBaseline = 'middle';
         const midAngle = (startAngle + endAngle)/2;
         const weapon = weapons[i];
-        const label = weapon.querySelector('.label');
         ctx.fillText(weaponIcons[i], pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2, pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2);
         ctx.font = (pixelSize/30) + 'px Muli';
-        ctx.fillText(label.innerText, pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2, pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2 + pixelSize/20);
+        ctx.fillText(weapon, pixelSize/2 + Math.cos(midAngle)*(pixelSize/2+pixelSize/4)/2, pixelSize/2 + Math.sin(midAngle)*(pixelSize/2+pixelSize/4)/2 + pixelSize/20);
       }
 
       lastSelectedSlice = selectedSlice;
