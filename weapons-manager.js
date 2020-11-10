@@ -1808,7 +1808,12 @@ const menuMesh = (() => {
         } else if (horizontalIndex === 1) {
           console.log('portal world', world);
         } else if (horizontalIndex === 2) {
-          console.log('delete world', world);
+          const res = await fetch('https://worlds.exokit.org/' + world.name, {
+            method: 'DELETE',
+          });
+          const j = await res.text();
+          console.log('delete world', world, j);
+          _renderWorlds();
         }
       };
       object.add(item);
