@@ -1859,7 +1859,11 @@ const menuMesh = (() => {
       header.setText(s, header.caretIndex + 1, false);
       _renderAll();
     } else {
-      if (header.caretIndex > 0) {
+      if (header.selectRange[1] > header.selectRange[0]) {
+        s = s.slice(0, header.selectRange[0]) + s.slice(header.selectRange[1]);
+        header.setText(s, header.selectRange[0], false);
+        _renderAll();
+      } else if (header.caretIndex > 0) {
         s = s.slice(0, header.caretIndex - 1) + s.slice(header.caretIndex);
         header.setText(s, header.caretIndex - 1, false);
         _renderAll();
