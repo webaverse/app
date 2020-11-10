@@ -2733,7 +2733,8 @@ const makeTabs = (tabs, size = 0.08, width = 1) => {
   backgroundMesh.visible = false;
   object.add(backgroundMesh);
 
-  let selectedTabIndex = -1;
+  let selectedTabIndex = 0;
+  let enabled = false;
   object.select = index => {
     selectedTabIndex = index;
 
@@ -2751,10 +2752,15 @@ const makeTabs = (tabs, size = 0.08, width = 1) => {
     }
     object.select(index);
   };
+  object.getEnabled = () => enabled;
+  object.setEnabled = newEnabled => {
+    enabled = newEnabled;
+    _updateBackgroundMesh();
+  };
   const _updateBackgroundMesh = async () => {
     await loadPromise;
 
-    if (selectedTabIndex !== -1) {
+    if (enabled) {
       const selectedTabOffset = selectedTabIndex === 0 ? 0 : widths[selectedTabIndex - 1];
       const selectedTabWidth = selectedTabIndex === 0 ? widths[0] : (widths[selectedTabIndex] - widths[selectedTabIndex - 1]);
       backgroundMesh.position.x = -width/2 + selectedTabOffset;
