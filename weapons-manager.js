@@ -1855,9 +1855,15 @@ const menuMesh = (() => {
   };
   object.key = c => {
     if (c !== '\b') {
-      s = s.slice(0, header.caretIndex) + c + s.slice(header.caretIndex);
-      header.setText(s, header.caretIndex + 1, false);
-      _renderAll();
+      if (header.selectRange[1] > header.selectRange[0]) {
+        s = s.slice(0, header.selectRange[0]) + c + s.slice(header.selectRange[1]);
+        header.setText(s, header.selectRange[0] + 1, false);
+        _renderAll();
+      } else {
+        s = s.slice(0, header.caretIndex) + c + s.slice(header.caretIndex);
+        header.setText(s, header.caretIndex + 1, false);
+        _renderAll();
+      }
     } else {
       if (header.selectRange[1] > header.selectRange[0]) {
         s = s.slice(0, header.selectRange[0]) + s.slice(header.selectRange[1]);
@@ -1871,9 +1877,15 @@ const menuMesh = (() => {
     }
   };
   object.paste = s2 => {
-    s = s.slice(0, header.caretIndex) + s2 + s.slice(header.caretIndex);
-    header.setText(s, header.caretIndex + s2.length, false);
-    _renderAll();
+    if (header.selectRange[1] > header.selectRange[0]) {
+      s = s.slice(0, header.selectRange[0]) + s2 + s.slice(header.selectRange[1]);
+      header.setText(s, header.selectRange[0] + s2.length, false);
+      _renderAll();
+    } else {
+      s = s.slice(0, header.caretIndex) + s2 + s.slice(header.caretIndex);
+      header.setText(s, header.caretIndex + s2.length, false);
+      _renderAll();
+    }
   };
 
   const itemsOffset = offset;
