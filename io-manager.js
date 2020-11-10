@@ -214,7 +214,20 @@ window.addEventListener('keydown', e => {
   }
   if (weaponsManager.getMenu() && document.pointerLockElement) {
     if (/^[a-z0-9]$/i.test(e.key)) {
-      if (!e.ctrlKey) {
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.which) {
+          case 65: { // a
+            e.preventDefault();
+            e.stopPropagation();
+            weaponsManager.menuSelectAll();
+            break;
+          }
+          case 8: { // backspace
+            weaponsManager.menuKey('\b');
+            break;
+          }
+        }
+      } else {
         weaponsManager.menuKey(e.key);
       }
     } else {

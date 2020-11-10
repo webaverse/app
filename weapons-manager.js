@@ -1876,6 +1876,12 @@ const menuMesh = (() => {
       }
     }
   };
+  object.selectAll = () => {
+    const text = header.getText();
+    header.selectRange[0] = 0;
+    header.selectRange[1] = text.length;
+    header.setText(text, text.length, true);
+  };
   object.paste = s2 => {
     if (header.selectRange[1] > header.selectRange[0]) {
       s = s.slice(0, header.selectRange[0]) + s2 + s.slice(header.selectRange[1]);
@@ -1982,6 +1988,9 @@ const weaponsManager = {
   },
   menuKey(c) {
     menuMesh.key(c);
+  },
+  menuSelectAll() {
+    menuMesh.selectAll();
   },
   menuPaste(s) {
     menuMesh.paste(s);
