@@ -2693,7 +2693,7 @@ const makeTextInput = (text, placeholder = '', font = './GeosansLight.ttf', size
 
   return textInput;
 };
-const makeTabs = (tabs, selectedTab, size = 0.08, width = 1) => {
+const makeTabs = (tabs, size = 0.08, width = 1) => {
   const object = new THREE.Object3D();
 
   const loadPromise = makePromise();
@@ -2733,29 +2733,36 @@ const makeTabs = (tabs, selectedTab, size = 0.08, width = 1) => {
   backgroundMesh.visible = false;
   object.add(backgroundMesh);
 
-  let selectedTabIndex = tabs.indexOf(selectedTab);
+  let selectedTabIndex = -1;
   object.select = index => {
     selectedTabIndex = index;
-    if (selectedTabIndex < 0) {
-      selectedTabIndex += tabs.length;
-    }
-    if (selectedTabIndex >= tabs.length) {
-      selectedTabIndex -= tabs.length;
-    }
+
     _updateBackgroundMesh();
     
     object.ontabchange && object.ontabchange(selectedTabIndex);
   };
   object.selectOffset = offset => {
-    object.select(selectedTabIndex + offset);
+    let index = selectedTabIndex + offset;
+    if (index < 0) {
+      index += tabs.length;
+    }
+    if (index >= tabs.length) {
+      index -= tabs.length;
+    }
+    object.select(index);
   };
   const _updateBackgroundMesh = async () => {
     await loadPromise;
 
-    const selectedTabOffset = selectedTabIndex === 0 ? 0 : widths[selectedTabIndex - 1];
-    const selectedTabWidth = selectedTabIndex === 0 ? widths[0] : (widths[selectedTabIndex] - widths[selectedTabIndex - 1]);
-    backgroundMesh.position.x = -width/2 + selectedTabOffset;
-    backgroundMesh.scale.set(selectedTabWidth, size, 1);
+    if (selectedTabIndex !== -1) {
+      const selectedTabOffset = selectedTabIndex === 0 ? 0 : widths[selectedTabIndex - 1];
+      const selectedTabWidth = selectedTabIndex === 0 ? widths[0] : (widths[selectedTabIndex] - widths[selectedTabIndex - 1]);
+      backgroundMesh.position.x = -width/2 + selectedTabOffset;
+      backgroundMesh.scale.set(selectedTabWidth, size, 1);
+      backgroundMesh.visible = true;
+    } else {
+      backgroundMesh.visible = false;
+    }
   };
   _updateBackgroundMesh();
 

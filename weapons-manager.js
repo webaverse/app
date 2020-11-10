@@ -1798,7 +1798,7 @@ const menuMesh = (() => {
     'Worlds',
     'Scene',
   ];
-  const tabs = makeTabs(tabNames, tabNames[0]);
+  const tabs = makeTabs(tabNames);
   tabs.position.y = offset;
   tabs.ontabchange = i => {
     const selectedTab = tabNames[i];
@@ -1816,13 +1816,18 @@ const menuMesh = (() => {
   scrollbar.position.y = offset;
   object.add(scrollbar);
 
-  let verticalIndex = -1;
+  let verticalIndex = -2;
   object.setVertical = index => {
     for (const item of items) {
       item.select(-1);
     }
 
     verticalIndex = index;
+    if (verticalIndex !== -1) {
+      menuMesh.tabs.select(-1);
+    } else {
+      menuMesh.tabs.select(0);
+    }
 
     const item = items[verticalIndex];
     if (item) {
@@ -1830,16 +1835,14 @@ const menuMesh = (() => {
     }
   };
   object.offsetVertical = (offset, shift) => {
-    object.setVertical(Math.max(verticalIndex + offset, -1) );
+    object.setVertical(Math.min(Math.max(verticalIndex + offset, -2), items.length - 1));
   };
   object.offsetHorizontal = (offset, shift) => {
-    if (verticalIndex === -1) {
+    if (verticalIndex === -2) {
       const text = header.getText();
-      if (!text || (offset < 0 && header.caretIndex === 0) || (offset > 0 && header.caretIndex === text.length)) {
-        menuMesh.tabs.selectOffset(offset);
-      } else {
-        header.setText(text, Math.min(Math.max(header.caretIndex + offset, 0), text.length), shift);
-      }
+      header.setText(text, Math.min(Math.max(header.caretIndex + offset, 0), text.length), shift);
+    } else if (verticalIndex === -1) {
+      menuMesh.tabs.selectOffset(offset);
     } else {
       const item = items[verticalIndex];
       if (item) {
@@ -1874,6 +1877,9 @@ const menuMesh = (() => {
         header.setText(s, header.caretIndex - 1, false);
         _renderAll();
       }
+    }
+    if (verticalIndex !== -2) {
+      object.setVertical(-2);
     }
   };
   object.selectAll = () => {
@@ -1972,8 +1978,7 @@ const weaponsManager = {
         .add(localVector.set(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
       menuMesh.quaternion.copy(xrCamera.quaternion);
       
-      menuMesh.setVertical(-1);
-      menuMesh.tabs.select(0);
+      menuMesh.setVertical(-2);
     }
     menuMesh.visible = newOpen;
   },
