@@ -461,13 +461,13 @@ geometryManager.waitForLoad().then(() => {
   uiManager.uiMeshes = uiManager.menuMeshes
     .concat(uiManager.infoMeshes);
 
-  uiManager.toolsMesh = makeToolsMesh(weaponsManager.weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
+  /* uiManager.toolsMesh = makeToolsMesh(weaponsManager.weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
     weaponsManager.setWeapon(newSelectedWeapon);
   }, () => {
     menuMesh.toggleOpen();
   });
   uiManager.toolsMesh.visible = false;
-  scene.add(uiManager.toolsMesh);
+  scene.add(uiManager.toolsMesh); */
 
   uiManager.openTradeMesh = (point, mesh) => {
     for (const infoMesh of uiManager.infoMeshes) {
