@@ -1453,9 +1453,11 @@ const _initializeXr = () => {
     }
   });
   if (navigator.xr) {
-    navigator.xr.supportsSession(sessionMode, sessionOpts).then(() => {
-      enterXrButton.style.display = null;
-      noXrButton.style.display = 'none';
+    navigator.xr.isSessionSupported(sessionMode).then(ok => {
+      if (ok) {
+        enterXrButton.style.display = null;
+        noXrButton.style.display = 'none';
+      }
     }).catch(err => {
       console.warn(err);
     });
