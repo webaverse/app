@@ -2230,6 +2230,7 @@ footer {
   height: calc(300px - 5px*2 - 20px*2);
   margin: 20px;
   background-color: #FFF;
+  border-radius: 5px;
 }
 .store .items li .avatar {
   display: flex;
