@@ -2179,6 +2179,7 @@ footer {
 .store .users li {
   display: inline-block;
   margin: 10px;
+  box-shadow: 0 1px 0 0 #CCC;
 }
 .store .users li .preview {
   display: flex;
@@ -2189,12 +2190,12 @@ footer {
 }
 .store .users li .wrap {
   padding: 20px;
-  background-color: #F8F8F8;
+  background-color: #EEE;
 }
 .store .users li .detail-2 {
   display: inline-block;
   padding: 5px 10px;
-  background-color: #FFF;
+  background-color: #DDD;
   border-radius: 100px;
 }
 .store .users li .avatar {
