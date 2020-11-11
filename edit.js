@@ -1457,7 +1457,7 @@ const _initializeXr = () => {
       enterXrButton.style.display = null;
       noXrButton.style.display = 'none';
     }).catch(err => {
-      console.warn(err.stack);
+      console.warn(err);
     });
   }
 };
