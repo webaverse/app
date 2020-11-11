@@ -2163,12 +2163,13 @@ footer {
   outline: none;
 }
 .store ul {
-  margin: 10px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 .store ul li {
   display: inline-block;
+  margin: 10px;
 }
 .store ul li .preview {
   display: flex;
@@ -2195,8 +2196,10 @@ footer {
 }
 .store section {
   display: flex;
+  max-height: 100vh;
   flex-direction: column;
   flex: 1;
+  overflow-y: auto;
 }
 .store section iframe {
   display: flex;
