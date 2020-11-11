@@ -395,7 +395,7 @@ window.addEventListener('keydown', e => {
         weaponsManager.setMenu(true);
         break;
       } */
-      case 90: { // Z
+      /* case 90: { // Z
         if (document.pointerLockElement) {
           document.querySelector('.weapon[weapon="build"]').click();
           weaponsManager.buildMode = 'wall';
@@ -415,7 +415,7 @@ window.addEventListener('keydown', e => {
           weaponsManager.buildMode = 'stair';
         }
         break;
-      }
+      } */
       /* case 80: { // P
         physics.resetObjectMesh(physicalMesh);
         break;
