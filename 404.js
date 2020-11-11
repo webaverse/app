@@ -96,7 +96,7 @@ if (match) {
     const itemsEl = div.querySelector('.items');
     itemsEl.innerHTML = files.map(file => `\
       <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
-        <div class=title>Card title</div>
+        <div class=title>${file.properties.filename}</div>
         <a href="#" class="anchor">
           <img src="${file.image}" class="preview">
         </a>
