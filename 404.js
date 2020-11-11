@@ -11,7 +11,7 @@ if (match) {
   div.innerHTML = `\
     <section>
       <div class=tabs>
-        <div class=tab>Me</div>
+        <div class="tab selected">Me</div>
         <div class=tab>Creators</div>
         <div class=tab>Items</div>
       </div>
@@ -37,4 +37,14 @@ if (match) {
   iframe.src = '/edit.html?o=' + `https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`;
   iframe.setAttribute('frameBorder', 0)
   document.getElementById('iframe-container').appendChild(iframe);
+
+  const tabsElement = Array.from(div.querySelectorAll('.tab'));
+  for (const tab of tabsElement) {
+  	tab.addEventListener('click', e => {
+      for (const tab of tabsElement) {
+      	tab.classList.remove('selected');
+      }
+      tab.classList.add('selected');
+  	});
+  }
 }
