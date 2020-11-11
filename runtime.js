@@ -243,7 +243,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   } */
 };
 const _loadVrm = async file => {
-  const u = URL.createObjectURL(file);
+  const u = file.url || URL.createObjectURL(file);
   let o;
   try {
     o = await new Promise((accept, reject) => {
@@ -285,7 +285,7 @@ const _loadVox = async file => {
 const _loadImg = async file => {
   const img = new Image();
   await new Promise((accept, reject) => {
-    const u = URL.createObjectURL(file);
+    const u = file.url || URL.createObjectURL(file);
     img.onload = () => {
       accept();
       _cleanup();
