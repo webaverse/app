@@ -812,6 +812,7 @@ const targetMesh = _makeTargetMesh();
 targetMesh.position.y = 3;
 targetMesh.visible = false;
 scene.add(targetMesh);
+let highlightedObject = null;
 
 /* const _snapBuildPosition = p => {
   p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
@@ -1382,22 +1383,6 @@ const _updateWeapons = timeDiff => {
   };
   _handleDown();
 
-  const _handleGrab = () => {
-    const transforms = rigManager.getRigTransforms();
-    for (let i = 0; i < 2; i++) {
-      if (ioManager.currentWeaponGrabs[i] && !ioManager.lastWeaponGrabs[i]) {
-        const {position} = transforms[i];
-        world.grabbedObjects[i] = world.getClosestObject(position, 0.3);
-        // meshComposer.grab(i);
-      }
-      if (!ioManager.currentWeaponGrabs[i] && ioManager.lastWeaponGrabs[i]) {
-        world.grabbedObjects[i] = null;
-        // meshComposer.ungrab(i);
-      }
-    }
-  };
-  _handleGrab();
-
   // select
   const _handleSelect = () => {
     return;
@@ -1484,14 +1469,15 @@ const _updateWeapons = timeDiff => {
     const width = 1;
     const length = 100;    
     localBox.setFromCenterAndSize(
-      localVector.set(0, 0, -length/2),
+      localVector.set(0, 0, -length/2 - 0.05),
       localVector2.set(width, width, length)
     );
 
     targetMesh.visible = false;
+    highlightedObject = null;
 
-    const candidates = [targetMesh];
-    for (const candidate of candidates) {
+    const objects = world.getObjects();
+    for (const candidate of objects) {
       const transforms = rigManager.getRigTransforms();
       const {position, quaternion} = transforms[0];
       localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
@@ -1501,12 +1487,34 @@ const _updateWeapons = timeDiff => {
         )
         .decompose(localVector, localQuaternion, localVector2);
       if (localBox.containsPoint(localVector)) {
+        targetMesh.position.copy(candidate.position);
         targetMesh.visible = true;
+        highlightedObject = candidate;
         break;
       }
     }
   };
   _handleTarget();
+
+  const _handleGrab = () => {
+    const transforms = rigManager.getRigTransforms();
+    for (let i = 0; i < 2; i++) {
+      if (ioManager.currentWeaponGrabs[i] && !ioManager.lastWeaponGrabs[i]) {
+        const {position} = transforms[i];
+        world.grabbedObjects[i] = world.getClosestObject(position, 0.3);
+        if (!world.grabbedObjects[i]) {
+          world.grabbedObjects[i] = highlightedObject;
+          highlightedObject = null;
+        }
+        // meshComposer.grab(i);
+      }
+      if (!ioManager.currentWeaponGrabs[i] && ioManager.lastWeaponGrabs[i]) {
+        world.grabbedObjects[i] = null;
+        // meshComposer.ungrab(i);
+      }
+    }
+  };
+  _handleGrab();
 
   /* const currentParcel = _getCurrentParcel(localVector);
   if (!currentParcel.equals(lastParcel)) {
