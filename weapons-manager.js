@@ -1428,13 +1428,6 @@ const _updateWeapons = timeDiff => {
             geometryManager.currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
             geometryManager.currentThingMesh.material[0].uniforms.uSelectId.value = raycastChunkSpec.objectId;
             geometryManager.currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-
-            /* const index = meshDrawer.thingSources.findIndex(thingSource => thingSource.objectId === raycastChunkSpec.objectId);
-            if (index !== -1) {
-              const drawThingMesh = meshDrawer.thingMeshes[index];
-              drawThingMesh.material.uniforms.uSelectColor.value.setHex(0x29b6f6);
-              drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
-            } */
           }
         }
         break;
