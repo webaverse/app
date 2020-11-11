@@ -17,7 +17,7 @@ if (match) {
         <div class=tab>Creators</div>
         <div class=tab>Items</div>
       </div>
-      <div class="content selected" id=me-content>
+      <div class="content selected">
 		    <ul class=users>
 		      <li>
 		        <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="preview">
@@ -30,13 +30,29 @@ if (match) {
 		    </ul>
 	      <button class=big-button>Mint NFT...</button>
       </div>
-      <div class=content id=creators-content>
+      <div class=content>
       </div>
-      <div class=content id=items-content>
+      <div class=content>
       </div>
     </section>
     <section>
-      <ul class=items></ul>
+	    <div class="content2 selected">
+	      <ul class=users>
+		      <li>
+		        <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="preview">
+		        <div class="wrap">
+		          <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+		          <div class=detail-1>avaer</div>
+		          <div class=detail-2>0xdeadbeef</div>
+		        </div>
+		      </li>
+		    </ul>
+	    </div>
+	    <div class="content2">
+	    </div>
+	    <div class="content2">
+	      <ul class=items></ul>
+	    </div>
     </section>
     <section id=iframe-container></section>
   `;
@@ -49,13 +65,24 @@ if (match) {
   document.getElementById('iframe-container').appendChild(iframe);
 
   const tabsElements = Array.from(div.querySelectorAll('.tab'));
+  const contents = Array.from(div.querySelectorAll('.content'));
+  const contents2 = Array.from(div.querySelectorAll('.content2'));
   for (let i = 0; i < tabsElements.length; i++) {
   	const tab = tabsElements[i];
+  	const content = contents[i];
+  	const content2 = contents2[i];
   	tab.addEventListener('click', e => {
-      for (const tab of tabsElements) {
+  		for (let i = 0; i < tabsElements.length; i++) {
+  			const tab = tabsElements[i];
+  	    const content = contents[i];
+  	    const content2 = contents2[i];
       	tab.classList.remove('selected');
+      	content.classList.remove('selected');
+      	content2.classList.remove('selected');
       }
       tab.classList.add('selected');
+      content.classList.add('selected');
+      content2.classList.add('selected');
   	});
   }
 
