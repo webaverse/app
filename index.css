@@ -2127,3 +2127,55 @@ footer {
   border-color: rgba(0, 0, 0, 0.1);
   color: #FFF;
 }
+
+.store {
+  display: flex;
+}
+.store .tabs {
+  display: flex;
+}
+.store .tabs .tab {
+  display: flex;
+  height: 50px;
+  padding: 10px;
+  align-items: center;
+}
+.store ul {
+  padding: 0;
+  list-style: none;
+}
+.store ul li {
+  display: inline-block;
+}
+.store ul li .preview {
+  display: flex;
+  width: 400px;
+  height: 200px;
+  background-color: #111;
+  object-fit: cover;
+}
+.store ul li .wrap {
+  padding: 20px;
+  background-color: #F8F8F8;
+}
+.store ul li .detail-2 {
+  display: inline-block;
+  padding: 5px 10px;
+  background-color: #FFF;
+  border-radius: 100px;
+}
+.store ul li .avatar {
+  display: flex;
+  width: 30px;
+  height: 30px;
+  border-radius: 100px;
+}
+.store section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.store section iframe {
+  display: flex;
+  height: 100vh;
+}
