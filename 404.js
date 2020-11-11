@@ -89,7 +89,7 @@ if (match) {
   inventory.getFiles(0, 100).then(files => {
     const items = div.querySelector('.items');
     items.innerHTML = files.map(file => `\
-      <li>
+      <li class=card>
         <img src="${file.image}" class="preview">
         <div class="wrap">
           <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
@@ -98,5 +98,25 @@ if (match) {
         </div>
       </li>
     `).join('\n');
+  });
+
+  window.addEventListener('mousemove', e => {
+    let {clientX, clientY, target} = e;
+    target = target.closest('.card');
+    if (target) {
+    	const {x, y, width, height} = target.getBoundingClientRect();
+    	const cx = x + width/2;
+    	const cy = y + height/2;
+    	const dx = (clientX - cx) / width * 30;
+    	const dy = -(clientY - cy) / width * 30;
+    	target.style.transform = `rotateY(${dx}deg) rotateX(${dy}deg)`;
+	  }
+  });
+  window.addEventListener('mouseout', e => {
+  	let {clientX, clientY, target} = e;
+  	target = target.closest('.card');
+    if (target) {
+    	target.style.transform = null;
+	  }
   });
 }

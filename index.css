@@ -2219,9 +2219,11 @@ footer {
   background-image: linear-gradient(to bottom, #7474BF 0%, #348AC7 100%);
   border: 5px solid #0f3472;
   border-radius: 10px;
-  box-shadow: 0 20px 20px #808080;
   flex-direction: column;
-  transform: rotateY(20deg) rotateX(20deg);
+  transition: box-shadow cubic-bezier(0, 1, 0, 1) 0.3s;
+}
+.store .items li:hover {
+  box-shadow: 0 20px 20px #808080;
 }
 .store .items li .preview {
   width: calc(300px - 5px*2 - 20px*2);
