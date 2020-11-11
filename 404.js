@@ -58,11 +58,16 @@ if (match) {
   `;
   document.body.appendChild(div);
 
-  const iframe = document.createElement('iframe');
-  iframe.classList.add('preview');
-  iframe.src = '/edit.html?o=' + `https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`;
-  iframe.setAttribute('frameBorder', 0)
-  document.getElementById('iframe-container').appendChild(iframe);
+  const iframeContainer = document.getElementById('iframe-container');
+  const _setIframe = u => {
+	  const iframe = document.createElement('iframe');
+	  iframe.classList.add('preview');
+	  iframe.src = '/edit.html?o=' + u;
+	  iframe.setAttribute('frameBorder', 0);
+	  iframeContainer.innerHTML = '';
+	  iframeContainer.appendChild(iframe);
+	};
+	_setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
 
   const tabsElements = Array.from(div.querySelectorAll('.tab'));
   const contents = Array.from(div.querySelectorAll('.content'));
@@ -87,10 +92,13 @@ if (match) {
   }
 
   inventory.getFiles(0, 100).then(files => {
-    const items = div.querySelector('.items');
-    items.innerHTML = files.map(file => `\
-      <li class=card>
-        <img src="${file.image}" class="preview">
+  	console.log('got files', files);
+    const itemsEl = div.querySelector('.items');
+    itemsEl.innerHTML = files.map(file => `\
+      <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
+        <a href="#" class="anchor">
+          <img src="${file.image}" class="preview">
+        </a>
         <div class="wrap">
           <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
           <div class=detail-1>avaer</div>
@@ -98,6 +106,16 @@ if (match) {
         </div>
       </li>
     `).join('\n');
+    const items = Array.from(itemsEl.querySelectorAll('.item'));
+
+    for (const item of items) {
+    	const anchor = item.querySelector('.anchor');
+    	anchor.addEventListener('click', e => {
+        const hash = item.getAttribute('hash');
+        const filename = item.getAttribute('filename');
+        _setIframe(`https://storage.exokit.org/${hash}/${filename}`);
+    	});
+    }
   });
 
   window.addEventListener('mousemove', e => {
