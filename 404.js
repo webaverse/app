@@ -37,21 +37,12 @@ if (match) {
     </section>
     <section>
 	    <div class="content2 selected">
-	      <ul class=users>
-		      <li>
-		        <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="preview">
-		        <div class="wrap">
-		          <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
-		          <div class=detail-1>avaer</div>
-		          <div class=detail-2>0xdeadbeef</div>
-		        </div>
-		      </li>
-		    </ul>
 	    </div>
 	    <div class="content2">
+        <ul class=users id=users></ul>
 	    </div>
 	    <div class="content2">
-	      <ul class=items></ul>
+	      <ul class=items id=items></ul>
 	    </div>
     </section>
     <section id=iframe-container></section>
@@ -92,8 +83,7 @@ if (match) {
   }
 
   inventory.getFiles(0, 100).then(files => {
-  	console.log('got files', files);
-    const itemsEl = div.querySelector('.items');
+    const itemsEl = div.querySelector('#items');
     itemsEl.innerHTML = files.map(file => `\
       <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
         <div class=title>${file.properties.filename}</div>
@@ -118,6 +108,37 @@ if (match) {
     	});
     }
   });
+  
+  (async() => {
+    const res = await fetch('https://accounts.webaverse.com/');
+    const accounts = await res.json();
+    console.log('got accounts', accounts);
+
+    const usersEl = div.querySelector('#users');
+    usersEl.innerHTML = accounts.map(account => {
+      const avatarUrl = account.avatarUrl || `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
+      return `\
+        <li class=user>
+          <img src="${avatarUrl}" class="preview">
+          <div class="wrap">
+            <img src="${avatarUrl}" class="avatar">
+            <div class=detail-1>${account.name || 'Anonymous'}</div>
+            <div class=detail-2>${account.address}</div>
+          </div>
+        </li>
+      `;
+    }).join('\n');
+    const users = Array.from(itemsEl.querySelectorAll('.user'));
+
+    /* for (const user of users) {
+    	const anchor = item.querySelector('.anchor');
+    	anchor.addEventListener('click', e => {
+        const hash = item.getAttribute('hash');
+        const filename = item.getAttribute('filename');
+        _setIframe(`https://storage.exokit.org/${hash}/${filename}`);
+    	});
+    } */
+  })();
 
   window.addEventListener('mousemove', e => {
     let {clientX, clientY, target} = e;
