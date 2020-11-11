@@ -2152,6 +2152,12 @@ footer {
 .store .tabs .tab.selected {
   background-color: #7986cb;
 }
+.store .content:not(.selected) {
+  display: none;
+}
+.store .content2:not(.selected) {
+  display: none;
+}
 .store .big-button {
   padding: 10px;
   background-color: transparent;
