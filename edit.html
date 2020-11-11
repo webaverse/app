@@ -172,10 +172,10 @@
             <i class="fal fa-microphone"></i>
             <div class=label>Microphone</div>
           </a>
-          <a class="function" id=enter-xr-button>
+          <!-- <a class="function" id=enter-xr-button>
             <i class="fal fa-vr-cardboard"></i>
             <div class=label>Enter XR</div>
-          </a>
+          </a> -->
         </div>
       </div>
       <div class=bar></div>
@@ -193,6 +193,35 @@
 
     <form id=login-form></form>
   </header>
+  <footer>
+    <div class="helper">
+      <div class="keys">
+        <div class="label">Move</div>
+        <div class="row">
+          <div class="key"></div>
+          <div class="key">W</div>
+          <div class="key"></div>
+        </div>
+        <div class="row">
+          <div class="key">A</div>
+          <div class="key">S</div>
+          <div class="key">D</div>
+        </div>
+      </div>
+      <div class="keys">
+        <div class="row"></div>
+        <div class="row">
+          <div class="label center">Camera</div>
+          <div class="key">V</div>
+          <div class="key">B</div>
+          <div class="key">N</div>
+          <div class="key">M</div>
+        </div>
+      </div>
+      <nav class="enter-xr-button" id="enter-xr-button" style="display: none;">Enter XR</nav>
+      <nav class="enter-xr-button disabled" id="no-xr-button">No XR</nav>
+    </div>
+  </footer>
 
   <div id=appContainer style="display: none"></div>
   <div class=ftu id=ftu>
