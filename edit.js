@@ -1431,22 +1431,34 @@ const _initializeXr = () => {
     currentSession = null;
     setState({ isXR: false })
   }
-  document.getElementById('enter-xr-button').addEventListener('click', e => {
+  const sessionMode = 'immersive-vr';
+  const sessionOpts = {
+    requiredFeatures: [
+      'local-floor',
+      // 'bounded-floor',
+    ],
+    optionalFeatures: [
+      'hand-tracking',
+    ],
+  };
+  const enterXrButton = document.getElementById('enter-xr-button');
+  const noXrButton = document.getElementById('no-xr-button');
+  enterXrButton.addEventListener('click', e => {
     e.preventDefault();
     e.stopPropagation();
     if (currentSession === null) {
-      navigator.xr.requestSession('immersive-vr', {
-        requiredFeatures: [
-          'local-floor',
-          // 'bounded-floor',
-        ],
-        optionalFeatures: [
-          'hand-tracking',
-        ],
-      }).then(onSessionStarted);
+      navigator.xr.requestSession(sessionMode, sessionOpts).then(onSessionStarted);
     } else {
       currentSession.end();
     }
   });
+  if (navigator.xr) {
+    navigator.xr.supportsSession(sessionMode, sessionOpts).then(() => {
+      enterXrButton.style.display = null;
+      noXrButton.style.display = 'none';
+    }).catch(err => {
+      console.warn(err.stack);
+    });
+  }
 };
 _initializeXr();
