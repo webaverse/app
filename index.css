@@ -2057,3 +2057,73 @@ body.dragging-package .footer {
 .ftu .ftu-phase .controls-grid .keyInfo {
   font-size: 24px;
 }
+
+footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+}
+.helper {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  user-select: none;
+}
+.keys {
+  position: relative;
+  display: flex;
+  margin-right: 10px;
+  flex-direction: column;
+}
+.keys .row {
+  display: flex;
+  min-height: 34px;
+}
+.keys .label {
+  position: absolute;
+  display: flex;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+.keys .label.center {
+  justify-content: center;
+}
+.keys .key {
+  width: 40px;
+  height: 30px;
+}
+.keys .key:empty {
+  visibility: hidden;
+}
+.keys .key,
+.enter-xr-button
+{
+  display: flex;
+  margin: 2px;
+  padding: 10px;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid currentColor;
+  border-radius: 7px;
+  font-size: 16px;
+}
+.enter-xr-button.disabled {
+  color: #ef5350;
+}
+.enter-xr-button:not(.disabled) {
+  cursor: pointer;
+}
+.enter-xr-button:not(.disabled):hover {
+  background-color: #7e57c2;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #FFF;
+}
+.enter-xr-button:not(.disabled):active {
+  background-color: #ef5350;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #FFF;
+}
