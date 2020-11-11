@@ -18,7 +18,17 @@ if (match) {
         <div class=tab>Items</div>
       </div>
       <div class="content selected" id=me-content>
-        <button class=big-button>Mint NFT...</button>
+		    <ul class=users>
+		      <li>
+		        <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="preview">
+		        <div class="wrap">
+		          <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+		          <div class=detail-1>avaer</div>
+		          <div class=detail-2>0xdeadbeef</div>
+		        </div>
+		      </li>
+		    </ul>
+	      <button class=big-button>Mint NFT...</button>
       </div>
       <div class=content id=creators-content>
       </div>
@@ -26,16 +36,7 @@ if (match) {
       </div>
     </section>
     <section>
-      <ul>
-        <li>
-          <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="preview">
-          <div class="wrap">
-            <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
-            <div class=detail-1>avaer</div>
-            <div class=detail-2>0xdeadbeef</div>
-          </div>
-        </li>
-      </ul>
+      <ul class=items></ul>
     </section>
     <section id=iframe-container></section>
   `;
@@ -59,6 +60,16 @@ if (match) {
   }
 
   inventory.getFiles(0, 100).then(files => {
-    console.log('got files', files);
+    const items = div.querySelector('.items');
+    items.innerHTML = files.map(file => `\
+      <li>
+        <img src="${file.image}" class="preview">
+        <div class="wrap">
+          <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+          <div class=detail-1>avaer</div>
+          <div class=detail-2>0xdeadbeef</div>
+        </div>
+      </li>
+    `).join('\n');
   });
 }
