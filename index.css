@@ -2223,7 +2223,7 @@ footer {
   transition: box-shadow cubic-bezier(0, 1, 0, 1) 0.3s;
 }
 .store .items li:hover {
-  box-shadow: 0 20px 10px #666;
+  box-shadow: 0 20px 10px #333;
 }
 .store .items li .title {
   display: inline-block;
