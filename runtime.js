@@ -297,6 +297,7 @@ const _loadImg = async file => {
     const _cleanup = () => {
       URL.revokeObjectURL(u);
     };
+    img.crossOrigin = '';
     img.src = u;
   });
   let {width, height} = img;
