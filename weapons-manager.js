@@ -36,6 +36,7 @@ const localMatrix3 = new THREE.Matrix4();
 const localColor = new THREE.Color();
 const localRaycaster = new THREE.Raycaster();
 const localRaycaster2 = new THREE.Raycaster();
+const localBox = new THREE.Box3();
 
 const zeroVector = new THREE.Vector3();
 
@@ -807,7 +808,12 @@ geometryManager.waitForLoad().then(() => {
   geometryManager.chunkMeshContainer.add(meshDrawer.mesh);
 });
 
-const _snapBuildPosition = p => {
+const targetMesh = _makeTargetMesh();
+targetMesh.position.y = 3;
+targetMesh.visible = false;
+scene.add(targetMesh);
+
+/* const _snapBuildPosition = p => {
   p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
   p.y = Math.floor(p.y / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
   p.z = Math.floor(p.z / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
@@ -830,9 +836,9 @@ const _meshEquals = (a, b) => {
   } else {
     return false;
   }
-};
+}; */
 const _updateWeapons = timeDiff => {
-  for (let i = 0; i < 2; i++) {
+  /* for (let i = 0; i < 2; i++) {
     anchorSpecs[i] = null;
   }
   raycastChunkSpec = null;
@@ -1472,7 +1478,35 @@ const _updateWeapons = timeDiff => {
       }
     }
   };
-  _handleMenu();
+  _handleMenu(); */
+
+  const _handleTarget = () => {
+    const width = 1;
+    const length = 100;    
+    localBox.setFromCenterAndSize(
+      localVector.set(0, 0, -length/2),
+      localVector2.set(width, width, length)
+    );
+
+    targetMesh.visible = false;
+
+    const candidates = [targetMesh];
+    for (const candidate of candidates) {
+      const transforms = rigManager.getRigTransforms();
+      const {position, quaternion} = transforms[0];
+      localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
+        .premultiply(
+          localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
+            .getInverse(localMatrix2)
+        )
+        .decompose(localVector, localQuaternion, localVector2);
+      if (localBox.containsPoint(localVector)) {
+        targetMesh.visible = true;
+        break;
+      }
+    }
+  };
+  _handleTarget();
 
   /* const currentParcel = _getCurrentParcel(localVector);
   if (!currentParcel.equals(lastParcel)) {
