@@ -66,17 +66,28 @@ function mod(a, b) {
 
 (async () => {
   const q = parseQuery(location.search);
-  if (q.u) {
+  if (q.m) { // multiplayer
     await world.connect({
       online: true,
       roomName: 'lol',
-      url: q.u,
+      url: q.um,
     });
   } else {
     await world.connect({
       online: false,
       roomName: 'lol',
     });
+  }
+  if (q.b) { // base
+    const mesh = await runtime.loadFile({
+      name: q.b,
+      url: q.b,
+    });
+    mesh.run && mesh.run();
+    scene.add(mesh);
+  }
+  if (q.o) { // object
+    world.addObject(q.o);
   }
   // new Bot();
 })();
