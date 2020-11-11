@@ -11,6 +11,10 @@
   font-family: 'Bangers';
   src: url('Bangers-Regular.woff2') format('woff2');
 }
+@font-face {
+  font-family: 'GeoSans';
+  src: url('GeoSansLight.woff2') format('woff2'); /* Super Modern Browsers */
+}
 
 body {
   margin: 0;
@@ -2130,17 +2134,26 @@ footer {
 
 .store {
   display: flex;
+  font-family: 'GeoSans';
 }
 .store .tabs {
   display: flex;
+  width: 100%;
+  background-color: #111;
+  color: #FFF;
+  font-size: 16px;
 }
 .store .tabs .tab {
   display: flex;
   height: 50px;
-  padding: 10px;
+  padding: 0 20px;
   align-items: center;
 }
+.store .tabs .tab.selected {
+  background-color: #7986cb;
+}
 .store ul {
+  margin: 10px;
   padding: 0;
   list-style: none;
 }
