@@ -1,10 +1,10 @@
 import * as THREE from './three.module.js';
 import {bindUploadFileButton} from './util.js';
 import {loginManager} from './login.js';
-import {world} from './world.js';
+// import {world} from './world.js';
 // import {getContractSource} from './blockchain.js';
 import {getState, setState} from './state.js';
-import {renderer, scene, camera} from './app-object.js';
+// import {renderer, scene, camera} from './app-object.js';
 import {getExt} from './util.js';
 import {storageHost, previewExt} from './constants.js';
 
@@ -26,8 +26,6 @@ inventory.uploadFile = async file => {
     data: files,
   }));
 };
-bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFile);
-
 inventory.discardFile = async id => {
   const fileIndex = files.findIndex(file => file.id === id);
   if (fileIndex !== -1) {
@@ -89,6 +87,7 @@ loginManager.addEventListener('inventorychange', async e => {
   }));
 });
 
+/* bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFile);
 document.addEventListener('dragover', e => {
   e.preventDefault();
 });
@@ -124,6 +123,6 @@ document.addEventListener('drop', async e => {
       await inventory.uploadFile(file);
     }
   }
-});
+}); */
 
 export default inventory;
