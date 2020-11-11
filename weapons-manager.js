@@ -1155,17 +1155,6 @@ const _updateWeapons = timeDiff => {
               .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
 
             geometryManager.geometryWorker.requestLight(geometryManager.tracker, localVector2, 4);
-
-            /* if (raycastChunkSpec.mesh.isChunkMesh || raycastChunkSpec.mesh.isVegetationMesh) {
-              _applyLightfieldDelta(raycastChunkSpec.point, 4);
-
-              localVector2.copy(raycastChunkSpec.point)
-                .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
-              localVector2.x = Math.floor(localVector2.x / SUBPARCEL_SIZE);
-              localVector2.y = Math.floor(localVector2.y / SUBPARCEL_SIZE);
-              localVector2.z = Math.floor(localVector2.z / SUBPARCEL_SIZE);
-              geometryManager.currentChunkMesh.updateSlab(localVector2.x, localVector2.y, localVector2.z);
-            } */
           }
         };
         const _explode = (position, quaternion) => {
@@ -1414,10 +1403,6 @@ const _updateWeapons = timeDiff => {
     geometryManager.currentVegetationMesh.material[0].uniforms.uSelectId.needsUpdate = true;
     geometryManager.currentThingMesh.material[0].uniforms.uSelectId.value = -1;
     geometryManager.currentThingMesh.material[0].uniforms.uSelectId.needsUpdate = true;
-    /* for (const drawThingMesh of meshDrawer.thingMeshes) {
-      drawThingMesh.material.uniforms.uSelectColor.value.setHex(0xFFFFFF);
-      drawThingMesh.material.uniforms.uSelectColor.needsUpdate = true;
-    } */
 
     rigManager.unhighlightPeerRigs();
     if (uiManager.tradeMesh.visible) {
