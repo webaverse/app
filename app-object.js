@@ -1,5 +1,6 @@
 import * as THREE from './three.module.js';
 import {OrbitControls} from './OrbitControls.js';
+import {CSS3DRenderer} from './CSS3DRenderer.js';
 
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('webgl2', {
@@ -45,6 +46,15 @@ orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
 orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, camera.position.y, -3).applyQuaternion(camera.quaternion));
 orbitControls.update();
+
+const renderer2 = new CSS3DRenderer();
+renderer2.setSize(window.innerWidth, window.innerHeight);
+renderer2.domElement.style.position = 'absolute';
+renderer2.domElement.style.top = 0;
+document.body.insertBefore(renderer2.domElement, canvas);
+
+const scene2 = new THREE.Scene();
+const scene3 = new THREE.Scene();
 
 class AppManager {
   constructor() {
@@ -113,4 +123,4 @@ class App extends EventTarget {
   }
 }
 
-export {renderer, scene, camera, dolly, orbitControls, appManager};
+export {renderer, scene, camera, dolly, orbitControls, renderer2, scene2, scene3, appManager};
