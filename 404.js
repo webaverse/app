@@ -140,7 +140,7 @@ if (match) {
     } */
   })();
 
-  window.addEventListener('mousemove', e => {
+  /* window.addEventListener('mousemove', e => {
     let {clientX, clientY, target} = e;
     target = target.closest('.card');
     if (target) {
@@ -158,5 +158,5 @@ if (match) {
     if (target) {
     	target.style.transform = null;
 	  }
-  });
+  }); */
 }
