@@ -1,6 +1,7 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
 // import {KTX2Loader} from './KTX2Loader.js';
+import {CSS3DObject} from './CSS3DRenderer.js';
 import {MeshoptDecoder} from './meshopt_decoder.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {VOXLoader} from './VOXLoader.js';
@@ -10,7 +11,7 @@ import {getExt, mergeMeshes} from './util.js';
 // import geometryManager from './geometry-manager.js';
 import {rigManager} from './rig.js';
 import {makeIconMesh, makeTextMesh} from './vr-ui.js';
-import {renderer, appManager} from './app-object.js';
+import {renderer, scene2, appManager} from './app-object.js';
 import wbn from './wbn.js';
 // import {storageHost} from './constants.js';
 
@@ -737,6 +738,60 @@ const _loadLink = async file => {
 
   return portalMesh;
 };
+const _loadIframe = async (file, opts) => {
+  let href;
+  if (file.url) {
+    const res = await fetch(file.url);
+    href = await res.text();
+  } else {
+    href = await file.text();
+  }
+
+  const width = 600;
+  const height = 400;
+
+  const iframe = document.createElement('iframe');
+  iframe.src = href;
+  iframe.style.width = width + 'px';
+  iframe.style.height = height + 'px';
+  // iframe.style.opacity = 0.75;
+  iframe.style.background = 'white';
+  // iframe.style.backfaceVisibility = 'visible';
+
+  const object = new CSS3DObject(iframe);
+  // object.position.set(0, 1, 0);
+  // object.scale.setScalar(0.01);
+  object.frustumCulled = false;
+
+  const object2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(width, height), new THREE.MeshBasicMaterial({
+    transparent: true,
+    // color: 0xFF0000,
+    opacity: 0,
+    side: THREE.DoubleSide,
+  }));
+  // object2.position.copy(object.position);
+  // object2.quaternion.copy(object.quaternion);
+  // object2.scale.copy(object.scale);
+  object2.scale.setScalar(0.01);
+  object2.frustumCulled = false;
+  object2.renderOrder = -Infinity;
+  // scene3.add(object2);
+  object2.onAfterRender = () => {
+    object.position.copy(object2.position);
+    object.quaternion.copy(object2.quaternion);
+    object.scale.copy(object2.scale);
+    object.matrix.copy(object2.matrix);
+    object.matrixWorld.copy(object2.matrixWorld);
+  };
+  object2.run = () => {
+    scene2.add(object);
+  };
+  object2.destroy = () => {
+    scene2.remove(object);
+  };
+  
+  return object2;
+};
 
 runtime.loadFile = async (file, opts) => {
   switch (getExt(file.name)) {
@@ -766,6 +821,9 @@ runtime.loadFile = async (file, opts) => {
     }
     case 'url': {
       return await _loadLink(file, opts);
+    }
+    case 'iframe': {
+      return await _loadIframe(file, opts);
     }
   }
 };
