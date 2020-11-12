@@ -1424,7 +1424,7 @@ _initializeLogin();
   iframe.src = 'http://lol.com/'
   iframe.style.width = 600 + 'px';
   iframe.style.height = 400 + 'px';
-  iframe.style.opacity = 0.75;
+  // iframe.style.opacity = 0.75;
   iframe.style.background = 'white';
   // iframe.style.backfaceVisibility = 'visible';
 
