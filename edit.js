@@ -1442,6 +1442,7 @@ _initializeLogin();
   object2.position.copy(object.position);
   object2.quaternion.copy(object.quaternion);
   object2.scale.copy(object.scale);
+  object2.frustumCulled = false;
   scene3.add(object2);
 }
 
