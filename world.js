@@ -6,7 +6,7 @@ import {loginManager} from './login.js';
 // import {getContractSource} from './blockchain.js';
 import runtime from './runtime.js';
 import {rigManager} from './rig.js';
-import {scene} from './app-object.js';
+import {scene, scene3} from './app-object.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
@@ -920,7 +920,11 @@ world.addEventListener('trackedobjectadd', async e => {
     mesh.instanceId = instanceId;
     mesh.parentId = parentId;
 
-    scene.add(mesh);
+    if (mesh.renderOrder === -Infinity) {
+      scene3.add(mesh);
+    } else {
+      scene.add(mesh);
+    }
     objects.push(mesh);
 
     mesh.setPose = (position, quaternion) => {
