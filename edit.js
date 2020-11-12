@@ -4,6 +4,7 @@ import * as THREE from './three.module.js';
 // import {GLTFLoader} from './GLTFLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {TransformControls} from './TransformControls.js';
+import {CSS3DObject} from './CSS3DRenderer.js';
 import {tryLogin, loginManager} from './login.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
@@ -27,7 +28,7 @@ import {world} from './world.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
-import {renderer, scene, camera, dolly, orbitControls, appManager} from './app-object.js';
+import {renderer, scene, camera, dolly, orbitControls, renderer2, scene2, scene3, appManager} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
@@ -1240,7 +1241,9 @@ function animate(timestamp, frame) {
     geometryManager.currentThingMesh.geometry.groups = thingGroups;
   }
 
+  renderer.render(scene3, camera);
   renderer.render(scene, camera);
+  renderer2.render(scene2, camera);
   // renderer.render(highlightScene, camera);
 }
 geometryManager.waitForLoad().then(e => {
@@ -1415,6 +1418,32 @@ const _initializeLogin = async () => {
   _initializeRigUi();
 };
 _initializeLogin();
+
+{
+  const iframe = document.createElement('iframe');
+  iframe.src = 'http://lol.com/'
+  iframe.style.width = 600 + 'px';
+  iframe.style.height = 400 + 'px';
+  iframe.style.opacity = 0.75;
+  iframe.style.background = 'white';
+  // iframe.style.backfaceVisibility = 'visible';
+
+  const object = new CSS3DObject(iframe);
+  object.position.set(0, 1, 0);
+  object.scale.setScalar(0.01);
+  object.frustumCulled = false;
+  scene2.add(object);
+
+  const object2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(600, 400), new THREE.MeshBasicMaterial({
+    transparent: true,
+    opacity: 0,
+    side: THREE.DoubleSide,
+  }));
+  object2.position.copy(object.position);
+  object2.quaternion.copy(object.quaternion);
+  object2.scale.copy(object.scale);
+  scene3.add(object2);
+}
 
 const _initializeXr = () => {
   let currentSession = null;
