@@ -740,8 +740,6 @@ const addItem = async (position, quaternion) => {
   let mesh = await runtime.loadFile(file, {
     optimize: false,
   });
-  console.log('loading file space', mesh);
-  // debugger;
   // mesh = mesh.children[0]//.children.find(c => c.name === 'laser_orange_04');
   // mesh.position.y = 1;
   for (let i = 0; i < mesh.children.length; i++) {
@@ -883,14 +881,16 @@ const addItem = async (position, quaternion) => {
 
 { // XXX
   addItem(new THREE.Vector3(0, 1, 0), new THREE.Quaternion());
-
+}
+{
   const file = new Blob(['https://google.com'], {type: 'text/plain'});
   const u = URL.createObjectURL(file) + '/file.url';
   world.addObject(u, null, new THREE.Vector3(), new THREE.Quaternion());
-
+}
+{
   const file = new Blob(['http://lol.com'], {type: 'text/plain'});
   const u = URL.createObjectURL(file) + '/file.iframe';
-  world.addObject(u, null, new THREE.Vector3(0, 1, 0), new THREE.Quaternion());
+  world.addObject(u, null, new THREE.Vector3(0, 1, -3), new THREE.Quaternion());
 }
 
 // const timeFactor = 60 * 1000;
