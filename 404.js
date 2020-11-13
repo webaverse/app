@@ -103,12 +103,12 @@ const _loadContents = () => {
 	  }
   }); */
 };
-const _ensureStore = () => {
+/* const _ensureStore = () => {
 	if (!document.querySelector('.store')) {
 		_setStoreHtml();
 	  _loadContents();
 	}
-};
+}; */
 const _setIframe = u => {
 	const iframeContainer = document.getElementById('iframe-container');
 	iframeContainer.innerHTML = '';
@@ -138,7 +138,7 @@ const _set404Html = () => {
 const _setUrl = async u => {
   let match;
   if (match = u.match(/^(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0xa-f0-9]+))?)?(?:\/)?$/i)) {
-    _ensureStore();
+    // _ensureStore();
 
     const users = !!match[1];
     const address = match[2];
@@ -148,15 +148,21 @@ const _setUrl = async u => {
     if (address) {
       const tokenIds = await contracts.NFT.methods.getTokenIdsOf(address).call();
 
+      let username = await contracts.Account.methods.getMetadata(myAddress, 'name').call();
+      if (!username) {
+        username = 'Anonymous';
+      }
+      const balance = await contracts.FT.methods.balanceOf(address).call();
+
       _setStoreHtml(`\
-        <section>
+        <section class=profile>
           <ul class=users>
             <li>
               <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="preview">
               <div class="wrap">
                 <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
                 <div class=detail-1>${username}</div>
-                <div class=detail-2>${myAddress}</div>
+                <div class=detail-2>${address}</div>
                 <div class=detail-3>${balance} FT</div>
               </div>
             </li>
