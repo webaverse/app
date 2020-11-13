@@ -110,6 +110,7 @@ const _loadContents = () => {
 	}
 }; */
 const _setIframe = u => {
+  return; // XXX
 	const iframeContainer = document.getElementById('iframe-container');
 	iframeContainer.innerHTML = '';
 	if (u) {
@@ -167,7 +168,7 @@ const _setUrl = async u => {
               </div>
             </li>
           </ul>
-          <a href="edit.html" class=big-button>Goto HomeSpace</a>
+          <!-- <a href="edit.html" class=big-button>Goto HomeSpace</a> -->
           <button class=big-button>Mint NFT...</button>
           <button class=big-button>Withdraw to mainnet...</button>
         </section>
@@ -280,7 +281,7 @@ const _setUrl = async u => {
               </div>
             </li>
           </ul>
-          <a href="edit.html" class=big-button>Goto HomeSpace</a>
+          <!-- <a href="edit.html" class=big-button>Goto HomeSpace</a> -->
           <button class=big-button>Mint NFT...</button>
           <button class=big-button>Withdraw to mainnet...</button>
         </section>
