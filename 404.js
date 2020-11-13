@@ -218,7 +218,7 @@ const _setUrl = async u => {
       _selecTabIndex(1);
     } else if (items) {
       const itemsEl = document.querySelector('#items');
-      
+
       inventory.getFiles(0, 100).then(files => {
         itemsEl.innerHTML = files.map(file => `\
           <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
