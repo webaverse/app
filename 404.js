@@ -50,6 +50,7 @@ const _setStoreHtml = async () => {
 		    </ul>
 	      <a href="edit.html" class=big-button>Goto HomeSpace</a>
 	      <button class=big-button>Mint NFT...</button>
+	      <button class=big-button>Withdraw to mainnet...</button>
       </div>
       <div class=content>
       </div>
