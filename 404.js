@@ -4,6 +4,9 @@ import * as blockchain from './blockchain.js';
 (async () => {
 
 const _setStoreHtml = () => {
+  const oldStore = document.querySelector('.store');
+  oldStore && oldStore.parentNode.removeChild(oldStore);
+  
   const div = document.createElement('div');
   div.classList.add('store');
   div.innerHTML = `\
@@ -52,10 +55,13 @@ const _setStoreHtml = () => {
       e.preventDefault();
 
       const href = tab.getAttribute('href');
-      history.pushState({}, '', href);
-      _setUrl(href);
+      _pushState(href);
   	});
   }
+};
+const _pushState = u => {
+  history.pushState({}, '', u);
+  _setUrl(u);
 };
 const _selecTabIndex = index => {
   const div = document.querySelector('.store');
@@ -120,8 +126,11 @@ const _setIframe = u => {
 };
 
 const _set404Html = () => {
+  const oldStore = document.querySelector('.store');
+  oldStore && oldStore.parentNode.removeChild(oldStore);
+
   const div = document.createElement('div');
-  div.classList.add('error');
+  div.classList.add('store');
   div.innerHTML = `\
     <section>
       <h1>404</h1>
@@ -139,25 +148,23 @@ const {
 
 const _setUrl = async u => {
   let match;
-  if (match = u.match(/^\/(?:([0xa-f0-9]+)(?:\/([0xa-f0-9]+))?)?(users|items)?$/i)) {
+  if (match = u.match(/^(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0xa-f0-9]+))?)?(?:\/)?$/i)) {
     _ensureStore();
 
     // const username = match[1];
     // const hash = match[2];
-    const address = match[1];
-    const hash = match[2];
-    const users = match[3] === 'users';
-    const items = match[3] === 'items';
+    const users = !!match[1];
+    const address = match[2];
+    const items = !!match[3];
+    const hash = match[4];
+    console.log('got', {users, address, items, hash});
 
-    if (address && !hash) {
+    if (address) {
       const tokenIds = await contracts.NFT.methods.getTokenIdsOf(address).call();
-      console.log('got token ids', tokenIds);
       
       _selecTabIndex(1);
-    } else if (address && hash) {
+    } else if (hash) {
       _setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
-
-      _setIframe(null);
       _selecTabIndex(2);
     } else if (users) {
       const usersEl = document.querySelector('#users');
@@ -199,6 +206,7 @@ const _setUrl = async u => {
       const itemsEl = document.querySelector('#items');
       
       inventory.getFiles(0, 100).then(files => {
+        console.log('got files', files);
         itemsEl.innerHTML = files.map(file => `\
           <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
             <div class=title>${file.properties.filename}</div>
@@ -219,7 +227,7 @@ const _setUrl = async u => {
           anchor.addEventListener('click', e => {
             const hash = item.getAttribute('hash');
             const filename = item.getAttribute('filename');
-            _setIframe(`https://storage.exokit.org/${hash}/${filename}`);
+            _pushState(`/items/0x${hash}`);
           });
         }
       });
