@@ -23,6 +23,7 @@ let username = await contracts.Account.methods.getMetadata(address, 'name').call
 if (!username) {
   username = 'Anonymous';
 }
+const balance = await contracts.FT.methods.balanceOf(address).call();
 
 const _setStoreHtml = async () => {
   const oldStore = document.querySelector('.store');
@@ -45,6 +46,7 @@ const _setStoreHtml = async () => {
 		          <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
 		          <div class=detail-1>${username}</div>
               <div class=detail-2>${address}</div>
+              <div class=detail-3>${balance} FT</div>
 		        </div>
 		      </li>
 		    </ul>
