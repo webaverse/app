@@ -2217,7 +2217,7 @@ footer {
 }
 .store .items li {
   --size: 200px;
-  display: flex;
+  display: inline-flex;
   width: var(--size);
   height: calc(var(--size) / 6.3 * 8.8); /* pokemon card dimensions */
   margin: 10px;
@@ -2264,6 +2264,14 @@ footer {
   border-radius: 5px;
   box-shadow: inset 0 0 10px #000;
   flex: 1;
+  overflow: hidden;
+}
+.store .items li .wrap > .detail-1,
+.store .items li .wrap > .detail-2,
+.store .items li .wrap > .detail-3
+{
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .store section {
   display: flex;
