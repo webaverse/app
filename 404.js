@@ -17,62 +17,24 @@ const {
 const loginToken = await storage.get('loginToken');
 const {mnemonic} = loginToken;
 const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-const address = wallet.getAddressString();
+const myAddress = wallet.getAddressString();
 
-let username = await contracts.Account.methods.getMetadata(address, 'name').call();
+let username = await contracts.Account.methods.getMetadata(myAddress, 'name').call();
 if (!username) {
   username = 'Anonymous';
 }
-const balance = await contracts.FT.methods.balanceOf(address).call();
+const balance = await contracts.FT.methods.balanceOf(myAddress).call();
 
-const _setStoreHtml = async () => {
-  const oldStore = document.querySelector('.store');
-  oldStore && oldStore.parentNode.removeChild(oldStore);
-
+const _renderTabs = () => {
   const div = document.createElement('div');
-  div.classList.add('store');
+  div.classList.add('tabs');
   div.innerHTML = `\
-    <section>
-      <div class=tabs>
-        <a href="/" class="tab selected">Me</a>
-        <a href="/users" class=tab>Creators</a>
-        <a href="/items" class=tab>Items</a>
-      </div>
-      <div class="content selected">
-		    <ul class=users>
-		      <li>
-		        <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="preview">
-		        <div class="wrap">
-		          <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
-		          <div class=detail-1>${username}</div>
-              <div class=detail-2>${address}</div>
-              <div class=detail-3>${balance} FT</div>
-		        </div>
-		      </li>
-		    </ul>
-	      <a href="edit.html" class=big-button>Goto HomeSpace</a>
-	      <button class=big-button>Mint NFT...</button>
-	      <button class=big-button>Withdraw to mainnet...</button>
-      </div>
-      <div class=content>
-      </div>
-      <div class=content>
-      </div>
-    </section>
-    <section>
-	    <div class="content2 selected">
-	    </div>
-	    <div class="content2">
-        <ul class=users id=users></ul>
-	    </div>
-	    <div class="content2">
-	      <ul class=items id=items></ul>
-	    </div>
-    </section>
-    <section id=iframe-container></section>
+    <a href="/" class="tab selected">Me</a>
+    <a href="/users" class=tab>Creators</a>
+    <a href="/items" class=tab>Items</a>
   `;
   document.body.appendChild(div);
-
+  
   const tabsElements = Array.from(div.querySelectorAll('.tab'));
   for (let i = 0; i < tabsElements.length; i++) {
   	const tab = tabsElements[i];
@@ -84,31 +46,40 @@ const _setStoreHtml = async () => {
   	});
   }
 };
+const _setStoreHtml = h => {
+  const oldStore = document.querySelector('.store');
+  oldStore && oldStore.parentNode.removeChild(oldStore);
+  
+  const div = document.createElement('div');
+  div.classList.add('store');
+  div.innerHTML = h;
+  document.body.appendChild(div);
+};
 const _pushState = u => {
   history.pushState({}, '', u);
   _setUrl(u);
 };
 const _selecTabIndex = index => {
-  const div = document.querySelector('.store');
+  const div = document.querySelector('.tabs');
   const tabsElements = Array.from(div.querySelectorAll('.tab'));
   const contents = Array.from(div.querySelectorAll('.content'));
   const contents2 = Array.from(div.querySelectorAll('.content2'));
   
   for (let i = 0; i < tabsElements.length; i++) {
     const tab = tabsElements[i];
-    const content = contents[i];
-    const content2 = contents2[i];
+    /* const content = contents[i];
+    const content2 = contents2[i]; */
     tab.classList.remove('selected');
-    content.classList.remove('selected');
-    content2.classList.remove('selected');
+    /* content.classList.remove('selected');
+    content2.classList.remove('selected'); */
   }
   if (index !== -1) {
     const tab = tabsElements[index];
-    const content = contents[index];
-    const content2 = contents2[index];
+    /* const content = contents[index];
+    const content2 = contents2[index]; */
     tab.classList.add('selected');
-    content.classList.add('selected');
-    content2.classList.add('selected');
+    /* content.classList.add('selected');
+    content2.classList.add('selected'); */
   }
 };
 const _loadContents = () => {
@@ -176,12 +147,41 @@ const _setUrl = async u => {
 
     if (address) {
       const tokenIds = await contracts.NFT.methods.getTokenIdsOf(address).call();
+
+      _setStoreHtml(`\
+        <section>
+          <ul class=users>
+            <li>
+              <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="preview">
+              <div class="wrap">
+                <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+                <div class=detail-1>${username}</div>
+                <div class=detail-2>${myAddress}</div>
+                <div class=detail-3>${balance} FT</div>
+              </div>
+            </li>
+          </ul>
+          <a href="edit.html" class=big-button>Goto HomeSpace</a>
+          <button class=big-button>Mint NFT...</button>
+          <button class=big-button>Withdraw to mainnet...</button>
+        </section>
+      `);
       
       _selecTabIndex(1);
     } else if (hash) {
+      _setStoreHtml(`\
+        <section id=iframe-container></section>
+      `);
+      
       _setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
       _selecTabIndex(2);
     } else if (users) {
+      _setStoreHtml(`\
+        <section>
+          <ul class=users id=users></ul>
+        </section>
+      `);
+      
       const usersEl = document.querySelector('#users');
 
       // (async() => {
@@ -218,9 +218,16 @@ const _setUrl = async u => {
         }
       // })();
 
-      _setIframe(null);
       _selecTabIndex(1);
     } else if (items) {
+      _setStoreHtml(`\
+        <section>
+          <div class="content2">
+            <ul class=items id=items></ul>
+          </div>
+        </section>
+      `);
+
       const itemsEl = document.querySelector('#items');
 
       inventory.getFiles(0, 100).then(files => {
@@ -232,8 +239,8 @@ const _setUrl = async u => {
             </a>
             <div class="wrap">
               <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
-              <div class=detail-1>avaer</div>
-              <div class=detail-2>0xdeadbeef</div>
+              <div class=detail-1>${username}</div>
+              <div class=detail-2>${myAddress}</div>
             </div>
           </li>
         `).join('\n');
@@ -252,16 +259,35 @@ const _setUrl = async u => {
         }
       });
 
-      _setIframe(null);
       _selecTabIndex(2);
     } else {
-      _setIframe(null);
+      _setStoreHtml(`\
+        <section class=profile>
+          <ul class=users>
+            <li>
+              <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="preview">
+              <div class="wrap">
+                <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+                <div class=detail-1>${username}</div>
+                <div class=detail-2>${myAddress}</div>
+                <div class=detail-3>${balance} FT</div>
+              </div>
+            </li>
+          </ul>
+          <a href="edit.html" class=big-button>Goto HomeSpace</a>
+          <button class=big-button>Mint NFT...</button>
+          <button class=big-button>Withdraw to mainnet...</button>
+        </section>
+      `);
+      
       _selecTabIndex(0);
     }
   } else {
     _set404Html();
   }
 };
+
+_renderTabs();
 
 window.addEventListener('popstate', event => {
   _setUrl(location.pathname);

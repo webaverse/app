@@ -2139,28 +2139,28 @@ footer {
 .store section {
   perspective: 800px;
 }
-.store .tabs {
+.tabs {
   display: flex;
   width: 100%;
   background-color: #111;
   color: #FFF;
   font-size: 16px;
 }
-.store .tabs .tab {
+.tabs .tab {
   display: flex;
   height: 50px;
   padding: 0 20px;
   align-items: center;
 }
-.store .tabs .tab.selected {
+.tabs .tab.selected {
   background-color: #7986cb;
 }
-.store .content:not(.selected) {
+/* .store .content:not(.selected) {
   display: none;
 }
 .store .content2:not(.selected) {
   display: none;
-}
+} */
 .store .big-button {
   padding: 10px;
   background-color: transparent;
@@ -2170,6 +2170,9 @@ footer {
   font-family: inherit;
   font-size: 16px;
   outline: none;
+}
+.store .profile {
+  max-width: 420px;
 }
 .store .users {
   margin: 0;
