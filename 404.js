@@ -1,12 +1,33 @@
 import inventory from './inventory.js';
 import * as blockchain from './blockchain.js';
+import storage from './storage.js';
+import bip39 from './bip39.js';
+import hdkeySpec from './hdkey.js';
+const hdkey = hdkeySpec.default;
 
 (async () => {
 
-const _setStoreHtml = () => {
+const {
+  /* web3,
+  addresses,
+  abis, */
+  contracts,
+} = await blockchain.load();
+
+const loginToken = await storage.get('loginToken');
+const {mnemonic} = loginToken;
+const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+const address = wallet.getAddressString();
+
+let username = await contracts.Account.methods.getMetadata(address, 'name').call();
+if (!username) {
+  username = 'Anonymous';
+}
+
+const _setStoreHtml = async () => {
   const oldStore = document.querySelector('.store');
   oldStore && oldStore.parentNode.removeChild(oldStore);
-  
+
   const div = document.createElement('div');
   div.classList.add('store');
   div.innerHTML = `\
@@ -22,8 +43,8 @@ const _setStoreHtml = () => {
 		        <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="preview">
 		        <div class="wrap">
 		          <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
-		          <div class=detail-1>avaer</div>
-		          <div class=detail-2>0xdeadbeef</div>
+		          <div class=detail-1>${username}</div>
+              <div class=detail-2>${address}</div>
 		        </div>
 		      </li>
 		    </ul>
@@ -139,13 +160,6 @@ const _set404Html = () => {
   document.body.appendChild(div);
 };
 
-const {
-  /* web3,
-  addresses,
-  abis, */
-  contracts,
-} = await blockchain.load();
-
 const _setUrl = async u => {
   let match;
   if (match = u.match(/^(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0xa-f0-9]+))?)?(?:\/)?$/i)) {
@@ -203,7 +217,6 @@ const _setUrl = async u => {
       const itemsEl = document.querySelector('#items');
       
       inventory.getFiles(0, 100).then(files => {
-        console.log('got files', files);
         itemsEl.innerHTML = files.map(file => `\
           <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
             <div class=title>${file.properties.filename}</div>
