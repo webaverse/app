@@ -115,7 +115,7 @@ const _setIframe = u => {
 	if (u) {
 	  const iframe = document.createElement('iframe');
 	  iframe.classList.add('preview');
-	  iframe.src = '/edit.html?o=' + u;
+	  iframe.src = '/edit.html?ftu=0&o=' + u;
 	  iframe.setAttribute('frameBorder', 0);
 	  iframeContainer.appendChild(iframe);
 	}
