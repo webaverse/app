@@ -149,7 +149,7 @@ const _setUrl = async u => {
     if (address) {
       const tokenIds = await contracts.NFT.methods.getTokenIdsOf(address).call();
 
-      let username = await contracts.Account.methods.getMetadata(myAddress, 'name').call();
+      let username = await contracts.Account.methods.getMetadata(address, 'name').call();
       if (!username) {
         username = 'Anonymous';
       }
