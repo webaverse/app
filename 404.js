@@ -151,13 +151,10 @@ const _setUrl = async u => {
   if (match = u.match(/^(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0xa-f0-9]+))?)?(?:\/)?$/i)) {
     _ensureStore();
 
-    // const username = match[1];
-    // const hash = match[2];
     const users = !!match[1];
     const address = match[2];
     const items = !!match[3];
     const hash = match[4];
-    console.log('got', {users, address, items, hash});
 
     if (address) {
       const tokenIds = await contracts.NFT.methods.getTokenIdsOf(address).call();
