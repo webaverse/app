@@ -179,7 +179,6 @@ const _setUrl = async u => {
       _selecTabIndex(2);
     } else if (users) {
       const usersEl = document.querySelector('#users');
-      const itemsEl = document.querySelector('#items');
 
       // (async() => {
         const res = await fetch('https://accounts.webaverse.com/');
@@ -189,8 +188,10 @@ const _setUrl = async u => {
         usersEl.innerHTML = accounts.map(account => {
           const avatarUrl = account.avatarUrl || `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
           return `\
-            <li class=user>
-              <img src="${avatarUrl}" class="preview">
+            <li class=user address="${account.address}">
+              <a href="/users/${account.address}" class="anchor">
+                <img src="${avatarUrl}" class="preview">
+              </a>
               <div class="wrap">
                 <img src="${avatarUrl}" class="avatar">
                 <div class=detail-1>${account.name || 'Anonymous'}</div>
@@ -199,16 +200,18 @@ const _setUrl = async u => {
             </li>
           `;
         }).join('\n');
-        const users = Array.from(itemsEl.querySelectorAll('.user'));
+        const users = Array.from(usersEl.querySelectorAll('.user'));
 
-        /* for (const user of users) {
-          const anchor = item.querySelector('.anchor');
+        for (const user of users) {
+          const anchor = user.querySelector('.anchor');
           anchor.addEventListener('click', e => {
-            const hash = item.getAttribute('hash');
-            const filename = item.getAttribute('filename');
-            _setIframe(`https://storage.exokit.org/${hash}/${filename}`);
+            e.preventDefault();
+            /* const address = user.getAttribute('address');
+            _pushState(`/users/${account.address}`); */
+            const href = anchor.getAttribute('href');
+            _pushState(href);
           });
-        } */
+        }
       // })();
 
       _setIframe(null);
@@ -220,7 +223,7 @@ const _setUrl = async u => {
         itemsEl.innerHTML = files.map(file => `\
           <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
             <div class=title>${file.properties.filename}</div>
-            <a href="#" class="anchor">
+            <a href="/items/${file.properties.hash}" class="anchor">
               <img src="${file.image}" class="preview">
             </a>
             <div class="wrap">
@@ -235,9 +238,12 @@ const _setUrl = async u => {
         for (const item of items) {
           const anchor = item.querySelector('.anchor');
           anchor.addEventListener('click', e => {
-            const hash = item.getAttribute('hash');
+            e.preventDefault();
+            /* const hash = item.getAttribute('hash');
             const filename = item.getAttribute('filename');
-            _pushState(`/items/0x${hash}`);
+            _pushState(`/items/0x${hash}`); */
+            const href = anchor.getAttribute('href');
+            _pushState(href);
           });
         }
       });
