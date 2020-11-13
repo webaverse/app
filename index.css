@@ -2213,9 +2213,10 @@ footer {
   transform-origin: 50% 50%;
 }
 .store .items li {
+  --size: 300px;
   display: flex;
-  width: 300px;
-  height: calc(300px / 6.3 * 8.8);
+  width: var(--size);
+  height: calc(var(--size) / 6.3 * 8.8); /* pokemon card dimensions */
   margin: 10px;
   background-image: linear-gradient(to bottom, #667db6 0%, #0082c8 100%);
   border: 5px solid #0f3472;
