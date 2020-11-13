@@ -2213,7 +2213,7 @@ footer {
   transform-origin: 50% 50%;
 }
 .store .items li {
-  --size: 300px;
+  --size: 200px;
   display: flex;
   width: var(--size);
   height: calc(var(--size) / 6.3 * 8.8); /* pokemon card dimensions */
@@ -2230,15 +2230,15 @@ footer {
 .store .items li .title {
   display: inline-block;
   margin: 5px 20px;
-  font-size: 24px;
+  font-size: calc(var(--size) * 0.1);
   // background: #000;
   // background-image: linear-gradient(to right, #f12711 0%, #f5af19 100%);
   // color: #FFF;
   align-self: flex-start;
 }
 .store .items li .preview {
-  width: calc(300px - 5px*2 - 20px*2);
-  height: calc((300px - 5px*2 - 20px*2) * 3 / 4);
+  width: calc(var(--size) - 5px*2 - 20px*2);
+  height: calc((var(--size) - 5px*2 - 20px*2) * 3 / 4);
   margin: 20px;
   margin-top: 0;
   background-color: #FFF;
@@ -2247,8 +2247,8 @@ footer {
 }
 .store .items li .avatar {
   display: flex;
-  width: 30px;
-  height: 30px;
+  width: calc(var(--size) * 0.1);
+  height: calc(var(--size) * 0.1);
   border-radius: 100px;
 }
 .store .items li .wrap {
