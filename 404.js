@@ -1,13 +1,6 @@
 import inventory from './inventory.js';
 
-const pathname = location.pathname;
-// const match = pathname.match(/^\/([a-z0-9]+)\/([a-z0-9]+)$/i);
-const match = pathname.match(/^\/([0xa-f0-9]+)$/i);
-if (match) {
-  // const username = match[1];
-  // const hash = match[2];
-  const address = match[1];
-
+const _setStoreHtml = () => {
   const div = document.createElement('div');
   div.classList.add('store');
   div.innerHTML = `\
@@ -49,17 +42,6 @@ if (match) {
   `;
   document.body.appendChild(div);
 
-  const iframeContainer = document.getElementById('iframe-container');
-  const _setIframe = u => {
-	  const iframe = document.createElement('iframe');
-	  iframe.classList.add('preview');
-	  iframe.src = '/edit.html?o=' + u;
-	  iframe.setAttribute('frameBorder', 0);
-	  iframeContainer.innerHTML = '';
-	  iframeContainer.appendChild(iframe);
-	};
-	_setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
-
   const tabsElements = Array.from(div.querySelectorAll('.tab'));
   const contents = Array.from(div.querySelectorAll('.content'));
   const contents2 = Array.from(div.querySelectorAll('.content2'));
@@ -81,9 +63,12 @@ if (match) {
       content2.classList.add('selected');
   	});
   }
+};
+const _loadContents = () => {
+  const itemsEl = document.querySelector('#items');
+  const usersEl = document.querySelector('#users');
 
   inventory.getFiles(0, 100).then(files => {
-    const itemsEl = div.querySelector('#items');
     itemsEl.innerHTML = files.map(file => `\
       <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
         <div class=title>${file.properties.filename}</div>
@@ -114,7 +99,6 @@ if (match) {
     const accounts = await res.json();
     console.log('got accounts', accounts);
 
-    const usersEl = div.querySelector('#users');
     usersEl.innerHTML = accounts.map(account => {
       const avatarUrl = account.avatarUrl || `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
       return `\
@@ -159,4 +143,48 @@ if (match) {
     	target.style.transform = null;
 	  }
   }); */
+};
+const _ensureStore = () => {
+	if (!document.querySelector('.store')) {
+		_setStoreHtml();
+	  _loadContents();
+	}
+};
+const _setIframe = u => {
+	const iframeContainer = document.getElementById('iframe-container');
+  const iframe = document.createElement('iframe');
+  iframe.classList.add('preview');
+  iframe.src = '/edit.html?o=' + u;
+  iframe.setAttribute('frameBorder', 0);
+  iframeContainer.innerHTML = '';
+  iframeContainer.appendChild(iframe);
+};
+
+const _set404Html = () => {
+  const div = document.createElement('div');
+  div.classList.add('error');
+  div.innerHTML = `\
+    <section>
+      <h1>404</h1>
+    </section>
+  `;
+  document.body.appendChild(div);
+};
+
+const pathname = location.pathname;
+// const match = pathname.match(/^\/([a-z0-9]+)\/([a-z0-9]+)$/i);
+let match;
+if (match = pathname.match(/^\/(?:([0xa-f0-9]+)(?:\/([0xa-f0-9]+))?)?$/i)) {
+  _ensureStore();
+
+  // const username = match[1];
+  // const hash = match[2];
+  const address = match[1];
+  const hash = match[2];
+
+  if (hash) {
+    _setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
+  }
+} else {
+  _set404Html();
 }
