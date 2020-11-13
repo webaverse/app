@@ -152,12 +152,14 @@ const _ensureStore = () => {
 };
 const _setIframe = u => {
 	const iframeContainer = document.getElementById('iframe-container');
-  const iframe = document.createElement('iframe');
-  iframe.classList.add('preview');
-  iframe.src = '/edit.html?o=' + u;
-  iframe.setAttribute('frameBorder', 0);
-  iframeContainer.innerHTML = '';
-  iframeContainer.appendChild(iframe);
+	iframeContainer.innerHTML = '';
+	if (u) {
+	  const iframe = document.createElement('iframe');
+	  iframe.classList.add('preview');
+	  iframe.src = '/edit.html?o=' + u;
+	  iframe.setAttribute('frameBorder', 0);
+	  iframeContainer.appendChild(iframe);
+	}
 };
 
 const _set404Html = () => {
@@ -184,6 +186,8 @@ if (match = pathname.match(/^\/(?:([0xa-f0-9]+)(?:\/([0xa-f0-9]+))?)?$/i)) {
 
   if (hash) {
     _setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
+  } else {
+  	_setIframe(null);
   }
 } else {
   _set404Html();
