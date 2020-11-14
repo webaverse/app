@@ -1,11 +1,40 @@
 import inventory from './inventory.js';
 import * as blockchain from './blockchain.js';
+import {tryLogin} from './login.js';
 import storage from './storage.js';
 import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 
 (async () => {
+
+const _renderHeader = () => {
+  const div = document.createElement('header');
+  // div.classList.add('tabs');
+  div.innerHTML = `\
+    <div class=tabs>
+      <a href="/" class="tab selected">Me</a>
+      <a href="/users" class=tab>Creators</a>
+      <a href="/items" class=tab>Items</a>
+    </div>
+    <form id=login-form></form>
+  `;
+  document.body.appendChild(div);
+  
+  const tabsElements = Array.from(div.querySelectorAll('.tab'));
+  for (let i = 0; i < tabsElements.length; i++) {
+  	const tab = tabsElements[i];
+  	tab.addEventListener('click', e => {
+      e.preventDefault();
+
+      const href = tab.getAttribute('href');
+      _pushState(href);
+  	});
+  }
+};
+_renderHeader();
+
+await tryLogin();
 
 const {
   /* web3,
@@ -25,27 +54,6 @@ if (!username) {
 }
 const balance = await contracts.FT.methods.balanceOf(myAddress).call();
 
-const _renderTabs = () => {
-  const div = document.createElement('div');
-  div.classList.add('tabs');
-  div.innerHTML = `\
-    <a href="/" class="tab selected">Me</a>
-    <a href="/users" class=tab>Creators</a>
-    <a href="/items" class=tab>Items</a>
-  `;
-  document.body.appendChild(div);
-  
-  const tabsElements = Array.from(div.querySelectorAll('.tab'));
-  for (let i = 0; i < tabsElements.length; i++) {
-  	const tab = tabsElements[i];
-  	tab.addEventListener('click', e => {
-      e.preventDefault();
-
-      const href = tab.getAttribute('href');
-      _pushState(href);
-  	});
-  }
-};
 const _setStoreHtml = h => {
   const oldStore = document.querySelector('.store');
   oldStore && oldStore.parentNode.removeChild(oldStore);
@@ -293,8 +301,6 @@ const _setUrl = async u => {
     _set404Html();
   }
 };
-
-_renderTabs();
 
 window.addEventListener('popstate', event => {
   _setUrl(location.pathname);
