@@ -18,7 +18,7 @@ const _renderHeader = () => {
       <a href="/users" class=tab>Creators</a>
       <a href="/items" class=tab>Items</a>
     </div>
-    <form id=login-form></form>
+    <form id=login-form style="display: none;"></form>
   `;
   document.body.appendChild(div);
   
