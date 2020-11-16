@@ -1435,7 +1435,7 @@ const _initializeXr = () => {
     currentSession.removeEventListener('end', onSessionEnded);
     renderer.xr.setSession(null);
     currentSession = null;
-    setState({ isXR: false })
+    setState({ isXR: false });
   }
   const sessionMode = 'immersive-vr';
   const sessionOpts = {
