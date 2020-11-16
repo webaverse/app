@@ -2232,12 +2232,15 @@ footer {
 }
 .store .items li .title {
   display: inline-block;
+  width: calc(var(--size) - 20px*2);
   margin: 5px 20px;
   font-size: calc(var(--size) * 0.1);
   // background: #000;
   // background-image: linear-gradient(to right, #f12711 0%, #f5af19 100%);
   // color: #FFF;
   align-self: flex-start;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .store .items li .preview {
   width: calc(var(--size) - 5px*2 - 20px*2);
