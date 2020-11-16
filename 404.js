@@ -14,6 +14,7 @@ const _renderHeader = () => {
   div.innerHTML = `\
     <div class=tabs>
       <a href="/" class="tab selected">Me</a>
+      <a href="/store" class=tab>Store</a>
       <a href="/users" class=tab>Creators</a>
       <a href="/items" class=tab>Items</a>
     </div>
@@ -34,26 +35,6 @@ const _renderHeader = () => {
 };
 _renderHeader();
 
-await tryLogin();
-
-const {
-  /* web3,
-  addresses,
-  abis, */
-  contracts,
-} = await blockchain.load();
-
-const loginToken = await storage.get('loginToken');
-const {mnemonic} = loginToken;
-const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-const myAddress = wallet.getAddressString();
-
-let username = await contracts.Account.methods.getMetadata(myAddress, 'name').call();
-if (!username) {
-  username = 'Anonymous';
-}
-const balance = await contracts.FT.methods.balanceOf(myAddress).call();
-
 const _setStoreHtml = h => {
   const oldStore = document.querySelector('.store');
   oldStore && oldStore.parentNode.removeChild(oldStore);
@@ -70,8 +51,8 @@ const _pushState = u => {
 const _selecTabIndex = index => {
   const div = document.querySelector('.tabs');
   const tabsElements = Array.from(div.querySelectorAll('.tab'));
-  const contents = Array.from(div.querySelectorAll('.content'));
-  const contents2 = Array.from(div.querySelectorAll('.content2'));
+  // const contents = Array.from(div.querySelectorAll('.content'));
+  // const contents2 = Array.from(div.querySelectorAll('.content2'));
   
   for (let i = 0; i < tabsElements.length; i++) {
     const tab = tabsElements[i];
@@ -146,15 +127,59 @@ const _set404Html = () => {
 
 const _setUrl = async u => {
   let match;
-  if (match = u.match(/^(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0xa-f0-9]+))?)?(?:\/)?$/i)) {
+  if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0xa-f0-9]+))?)?(?:\/)?$/i)) {
     // _ensureStore();
 
-    const users = !!match[1];
-    const address = match[2];
-    const items = !!match[3];
-    const hash = match[4];
+    const store = !!match[1];
+    const users = !!match[2];
+    const address = match[3];
+    const items = !!match[4];
+    const hash = match[5];
 
-    if (address) {
+    if (store) {
+      _setStoreHtml(`\
+        <section>
+          <div class="content2">
+            <ul class=items id=items></ul>
+          </div>
+        </section>
+      `);
+      
+      const res = await fetch('https://store.webaverse.com/');
+      const booths = await res.json();
+      
+      const itemsEl = document.querySelector('#items');
+      
+      // const files = await inventory.getFiles(0, 100);
+      itemsEl.innerHTML = booths.map(files => files.map(file => `\
+        <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
+          <div class=title>${file.properties.filename}</div>
+          <a href="/items/${file.properties.hash}" class="anchor">
+            <img src="${file.image}" class="preview">
+          </a>
+          <div class="wrap">
+            <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+            <div class=detail-1>${username}</div>
+            <div class=detail-2>${myAddress}</div>
+          </div>
+        </li>
+      `)).flat().join('\n');
+      const items = Array.from(itemsEl.querySelectorAll('.item'));
+
+      for (const item of items) {
+        const anchor = item.querySelector('.anchor');
+        anchor.addEventListener('click', e => {
+          e.preventDefault();
+          /* const hash = item.getAttribute('hash');
+          const filename = item.getAttribute('filename');
+          _pushState(`/items/0x${hash}`); */
+          const href = anchor.getAttribute('href');
+          _pushState(href);
+        });
+      }
+      
+      _selecTabIndex(1);
+    } else if (address) {
       const tokenIds = await contracts.NFT.methods.getTokenIdsOf(address).call();
 
       let username = await contracts.Account.methods.getMetadata(address, 'name').call();
@@ -182,7 +207,7 @@ const _setUrl = async u => {
         </section>
       `);
       
-      _selecTabIndex(1);
+      _selecTabIndex(3);
     } else if (hash) {
       _setStoreHtml(`\
         <section id=iframe-container></section>
@@ -233,7 +258,7 @@ const _setUrl = async u => {
         }
       // })();
 
-      _selecTabIndex(1);
+      _selecTabIndex(2);
     } else if (items) {
       _setStoreHtml(`\
         <section>
@@ -245,36 +270,35 @@ const _setUrl = async u => {
 
       const itemsEl = document.querySelector('#items');
 
-      inventory.getFiles(0, 100).then(files => {
-        itemsEl.innerHTML = files.map(file => `\
-          <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
-            <div class=title>${file.properties.filename}</div>
-            <a href="/items/${file.properties.hash}" class="anchor">
-              <img src="${file.image}" class="preview">
-            </a>
-            <div class="wrap">
-              <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
-              <div class=detail-1>${username}</div>
-              <div class=detail-2>${myAddress}</div>
-            </div>
-          </li>
-        `).join('\n');
-        const items = Array.from(itemsEl.querySelectorAll('.item'));
+      const files = await inventory.getFiles(0, 100);
+      itemsEl.innerHTML = files.map(file => `\
+        <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
+          <div class=title>${file.properties.filename}</div>
+          <a href="/items/${file.properties.hash}" class="anchor">
+            <img src="${file.image}" class="preview">
+          </a>
+          <div class="wrap">
+            <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+            <div class=detail-1>${username}</div>
+            <div class=detail-2>${myAddress}</div>
+          </div>
+        </li>
+      `).join('\n');
+      const items = Array.from(itemsEl.querySelectorAll('.item'));
 
-        for (const item of items) {
-          const anchor = item.querySelector('.anchor');
-          anchor.addEventListener('click', e => {
-            e.preventDefault();
-            /* const hash = item.getAttribute('hash');
-            const filename = item.getAttribute('filename');
-            _pushState(`/items/0x${hash}`); */
-            const href = anchor.getAttribute('href');
-            _pushState(href);
-          });
-        }
-      });
+      for (const item of items) {
+        const anchor = item.querySelector('.anchor');
+        anchor.addEventListener('click', e => {
+          e.preventDefault();
+          /* const hash = item.getAttribute('hash');
+          const filename = item.getAttribute('filename');
+          _pushState(`/items/0x${hash}`); */
+          const href = anchor.getAttribute('href');
+          _pushState(href);
+        });
+      }
 
-      _selecTabIndex(2);
+      _selecTabIndex(3);
     } else {
       _setStoreHtml(`\
         <section class=profile>
@@ -301,6 +325,26 @@ const _setUrl = async u => {
     _set404Html();
   }
 };
+
+await tryLogin();
+
+const {
+  /* web3,
+  addresses,
+  abis, */
+  contracts,
+} = await blockchain.load();
+
+const loginToken = await storage.get('loginToken');
+const {mnemonic} = loginToken;
+const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+const myAddress = wallet.getAddressString();
+
+let username = await contracts.Account.methods.getMetadata(myAddress, 'name').call();
+if (!username) {
+  username = 'Anonymous';
+}
+const balance = await contracts.FT.methods.balanceOf(myAddress).call();
 
 window.addEventListener('popstate', event => {
   _setUrl(location.pathname);
