@@ -136,7 +136,7 @@ const _setUrl = async u => {
     const items = !!match[4];
     const hash = match[5];
 
-    if (store) {
+    if (store) { // store
       _setStoreHtml(`\
         <section>
           <div class="content2">
@@ -179,7 +179,7 @@ const _setUrl = async u => {
       }
       
       _selecTabIndex(1);
-    } else if (address) {
+    } else if (address) { // user
       const tokenIds = await contracts.NFT.methods.getTokenIdsOf(address).call();
 
       let username = await contracts.Account.methods.getMetadata(address, 'name').call();
@@ -202,20 +202,58 @@ const _setUrl = async u => {
             </li>
           </ul>
           <!-- <a href="edit.html" class=big-button>Goto HomeSpace</a> -->
-          <button class=big-button>Mint NFT...</button>
-          <button class=big-button>Withdraw to mainnet...</button>
+          <!-- <button class=big-button>Mint NFT...</button>
+          <button class=big-button>Withdraw to mainnet...</button> -->
+        </section>
+        <section>
+          <div class="content2">
+            <ul class=items id=items></ul>
+          </div>
         </section>
       `);
+
+      const res = await fetch('https://tokens.webaverse.com/' + address);
+      const files = await res.json();
+      
+      const itemsEl = document.querySelector('#items');
+      
+      // const files = await inventory.getFiles(0, 100);
+      itemsEl.innerHTML = files.map(file => `\
+        <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
+          <div class=title>${file.properties.filename}</div>
+          <a href="/items/${file.properties.hash}" class="anchor">
+            <img src="${file.image}" class="preview">
+          </a>
+          <div class="wrap">
+            <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+            <div class=detail-1>${username}</div>
+            <div class=detail-2>${myAddress}</div>
+          </div>
+        </li>
+      `).join('\n');
+      const items = Array.from(itemsEl.querySelectorAll('.item'));
+
+      for (const item of items) {
+        const anchor = item.querySelector('.anchor');
+        anchor.addEventListener('click', e => {
+          e.preventDefault();
+          /* const hash = item.getAttribute('hash');
+          const filename = item.getAttribute('filename');
+          _pushState(`/items/0x${hash}`); */
+          const href = anchor.getAttribute('href');
+          _pushState(href);
+        });
+      }
       
       _selecTabIndex(3);
-    } else if (hash) {
+    } else if (hash) { // item
       _setStoreHtml(`\
         <section id=iframe-container></section>
       `);
       
       _setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
       _selecTabIndex(3);
-    } else if (users) {
+    } else if (users) { // users
       _setStoreHtml(`\
         <section>
           <ul class=users id=users></ul>
@@ -259,7 +297,7 @@ const _setUrl = async u => {
       // })();
 
       _selecTabIndex(2);
-    } else if (items) {
+    } else if (items) { // items
       _setStoreHtml(`\
         <section>
           <div class="content2">
@@ -299,7 +337,7 @@ const _setUrl = async u => {
       }
 
       _selecTabIndex(3);
-    } else {
+    } else { // home
       _setStoreHtml(`\
         <section class=profile>
           <ul class=users>
