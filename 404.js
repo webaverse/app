@@ -214,7 +214,7 @@ const _setUrl = async u => {
       `);
       
       _setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
-      _selecTabIndex(2);
+      _selecTabIndex(3);
     } else if (users) {
       _setStoreHtml(`\
         <section>
