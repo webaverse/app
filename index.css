@@ -2287,3 +2287,12 @@ footer {
   display: flex;
   height: 100vh;
 }
+.store .booth .label {
+  font-size: 16px;
+}
+.store .booth {
+  margin: 10px;
+  padding: 10px;
+  background-image: linear-gradient(to right, #ccc, #eee);
+  border-radius: 10px;
+}

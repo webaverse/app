@@ -154,21 +154,32 @@ const _setUrl = async u => {
       
       const itemsEl = document.querySelector('#items');
       
-      // const files = await inventory.getFiles(0, 100);
-      itemsEl.innerHTML = booths.map(files => files.map(file => `\
-        <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
-          <div class=title>${file.properties.filename}</div>
-          <a href="/items/${file.id}" class="anchor">
-            <img src="${file.image}" class="preview">
-          </a>
-          <div class="wrap">
-            <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
-            <div class=detail-1>${username}</div>
-            <div class=detail-2>${myAddress}</div>
-            <div class=detail-3>${file.properties.hash.slice(2)}</div>
-          </div>
-        </li>
-      `)).flat().join('\n');
+      console.log('got booths', booths);
+      itemsEl.innerHTML = booths.map(booth => {
+        if (booth.files.length > 0) {
+          return `\
+            <div class=booth>
+              <div class=label><b>${booth.address}</b> selling <b>${booth.files.length}</b></div>
+              ${booth.files.map(file => `\
+                <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
+                  <div class=title>${file.properties.filename}</div>
+                  <a href="/items/${file.id}" class="anchor">
+                    <img src="${file.image}" class="preview">
+                  </a>
+                  <div class="wrap">
+                    <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+                    <div class=detail-1>${username}</div>
+                    <div class=detail-2>${myAddress}</div>
+                    <div class=detail-3>${file.properties.hash.slice(2)}</div>
+                  </div>
+                </li>
+              `).join('\n')}
+            </div>
+          `;
+        } else {
+          return '';
+        }
+      }).flat().join('\n');
       const items = Array.from(itemsEl.querySelectorAll('.item'));
 
       for (const item of items) {
