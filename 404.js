@@ -125,7 +125,10 @@ const _set404Html = () => {
   document.body.appendChild(div);
 };
 
+let currentUrl = '';
 const _setUrl = async u => {
+  currentUrl = u;
+
   let match;
   if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0xa-f0-9]+))?)?(?:\/)?$/i)) {
     // _ensureStore();
@@ -147,6 +150,7 @@ const _setUrl = async u => {
       
       const res = await fetch('https://store.webaverse.com/');
       const booths = await res.json();
+      if (currentUrl !== u) return;
       
       const itemsEl = document.querySelector('#items');
       
@@ -192,6 +196,11 @@ const _setUrl = async u => {
         avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
       }
       const balance = await contracts.FT.methods.balanceOf(address).call();
+      
+      const res = await fetch('https://tokens.webaverse.com/' + address);
+      const files = await res.json();
+
+      if (currentUrl !== u) return;
 
       _setStoreHtml(`\
         <section class=profile>
@@ -216,9 +225,6 @@ const _setUrl = async u => {
           </div>
         </section>
       `);
-
-      const res = await fetch('https://tokens.webaverse.com/' + address);
-      const files = await res.json();
       
       const itemsEl = document.querySelector('#items');
       
@@ -272,6 +278,8 @@ const _setUrl = async u => {
         const res = await fetch('https://accounts.webaverse.com/');
         const accounts = await res.json();
         // console.log('got accounts', accounts);
+        
+        if (currentUrl !== u) return;
 
         usersEl.innerHTML = accounts.map(account => {
           const avatarPreview = account.avatarPreview || `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
@@ -304,6 +312,10 @@ const _setUrl = async u => {
 
       _selectTabIndex(2);
     } else if (items) { // items
+      const files = await inventory.getFiles(0, 100);
+      
+      if (currentUrl !== u) return;
+
       _setStoreHtml(`\
         <section>
           <div class="content2">
@@ -313,8 +325,6 @@ const _setUrl = async u => {
       `);
 
       const itemsEl = document.querySelector('#items');
-
-      const files = await inventory.getFiles(0, 100);
       itemsEl.innerHTML = files.map(file => `\
         <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
           <div class=title>${file.properties.filename}</div>
