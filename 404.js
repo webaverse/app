@@ -153,8 +153,7 @@ const _setUrl = async u => {
       if (currentUrl !== u) return;
       
       const itemsEl = document.querySelector('#items');
-      
-      console.log('got booths', booths);
+
       itemsEl.innerHTML = booths.map(booth => {
         if (booth.files.length > 0) {
           return `\
