@@ -130,7 +130,7 @@ const _setUrl = async u => {
   currentUrl = u;
 
   let match;
-  if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0-9]+))?)?(?:\/)?$/i)) {
+  if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0-9]+))?)?(?:\/)?(?:\/(mint))?$/i)) {
     // _ensureStore();
 
     const store = !!match[1];
@@ -138,6 +138,7 @@ const _setUrl = async u => {
     const address = match[3];
     const items = !!match[4];
     const tokenId = match[5];
+    const mint = match[6];
 
     if (store) { // store
       _setStoreHtml(`\
@@ -391,6 +392,14 @@ const _setUrl = async u => {
       }
 
       _selectTabIndex(3);
+    } else if (mint) {
+      _setStoreHtml(`\
+        <section class=profile>
+          mint
+        </section>
+      `);
+      
+      _selectTabIndex(0);
     } else { // home
       _setStoreHtml(`\
         <section class=profile>
@@ -414,10 +423,19 @@ const _setUrl = async u => {
             </a>
           </div>
           <!-- <a href="edit.html" class=big-button>Goto HomeSpace</a> -->
-          <button class=big-button>Mint NFT...</button>
-          <button class=big-button>Withdraw to mainnet...</button>
+          <a href="/mint" class=big-button id=mint-link>Mint NFT...</a>
+          <a class=big-button>Withdraw to mainnet...</a>
         </section>
       `);
+      
+      const mintLinkEl = document.querySelector('#mint-link');
+      mintLinkEl.addEventListener('click', e => {
+        e.preventDefault();
+        // e.stopPropagation();
+        
+        const href = e.target.getAttribute('href');
+        _pushState(href);
+      });
       
       _selectTabIndex(0);
     }
