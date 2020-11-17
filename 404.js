@@ -130,14 +130,14 @@ const _setUrl = async u => {
   currentUrl = u;
 
   let match;
-  if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0xa-f0-9]+))?)?(?:\/)?$/i)) {
+  if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0-9]+))?)?(?:\/)?$/i)) {
     // _ensureStore();
 
     const store = !!match[1];
     const users = !!match[2];
     const address = match[3];
     const items = !!match[4];
-    const hash = match[5];
+    const tokenId = match[5];
 
     if (store) { // store
       _setStoreHtml(`\
@@ -156,9 +156,9 @@ const _setUrl = async u => {
       
       // const files = await inventory.getFiles(0, 100);
       itemsEl.innerHTML = booths.map(files => files.map(file => `\
-        <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
+        <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
           <div class=title>${file.properties.filename}</div>
-          <a href="/items/${file.properties.hash}" class="anchor">
+          <a href="/items/${file.id}" class="anchor">
             <img src="${file.image}" class="preview">
           </a>
           <div class="wrap">
@@ -230,9 +230,9 @@ const _setUrl = async u => {
       
       // const files = await inventory.getFiles(0, 100);
       itemsEl.innerHTML = files.map(file => `\
-        <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
+        <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
           <div class=title>${file.properties.filename}</div>
-          <a href="/items/${file.properties.hash}" class="anchor">
+          <a href="/items/${file.id}" class="anchor">
             <img src="${file.image}" class="preview">
           </a>
           <div class="wrap">
@@ -258,12 +258,39 @@ const _setUrl = async u => {
       }
       
       _selectTabIndex(3);
-    } else if (hash) { // item
-      _setStoreHtml(`\
+    } else if (tokenId) { // item
+      /* _setStoreHtml(`\
         <section id=iframe-container></section>
+      `); */
+
+      const res = await fetch('https://tokens.webaverse.com/' + tokenId);
+      const file = await res.json();
+
+      if (currentUrl !== u) return;
+
+      _setStoreHtml(`\
+        <section class=profile>
+          <ul class=items>
+            <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
+              <div class=title>${file.properties.filename}</div>
+              <a href="/items/${file.id}" class="anchor">
+                <img src="${file.image}" class="preview">
+              </a>
+              <div class="wrap">
+                <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+                <div class=detail-1>${username}</div>
+                <div class=detail-2>${myAddress}</div>
+                <div class=detail-3>${file.properties.hash.slice(2)}</div>
+              </div>
+            </li>
+          </ul>
+          <!-- <a href="edit.html" class=big-button>Goto HomeSpace</a> -->
+          <!-- <button class=big-button>Mint NFT...</button>
+          <button class=big-button>Withdraw to mainnet...</button> -->
+        </section>
       `);
       
-      _setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
+      // _setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
       _selectTabIndex(3);
     } else if (users) { // users
       _setStoreHtml(`\
@@ -326,9 +353,9 @@ const _setUrl = async u => {
 
       const itemsEl = document.querySelector('#items');
       itemsEl.innerHTML = files.map(file => `\
-        <li class="item card" hash="${file.properties.hash.slice(2)}" filename="${file.properties.filename}">
+        <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
           <div class=title>${file.properties.filename}</div>
-          <a href="/items/${file.properties.hash}" class="anchor">
+          <a href="/items/${file.id}" class="anchor">
             <img src="${file.image}" class="preview">
           </a>
           <div class="wrap">
