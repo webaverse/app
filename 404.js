@@ -1,12 +1,91 @@
 import inventory from './inventory.js';
-import * as blockchain from './blockchain.js';
-import {tryLogin} from './login.js';
+// import * as blockchain from './blockchain.js';
+import {tryLogin, loginManager} from './login.js';
 import storage from './storage.js';
+import Web3 from './web3.min.js';
 import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
+import ethereumJsTx from './ethereumjs-tx.js';
+const {Transaction, Common} = ethereumJsTx;
+import addresses from 'https://contracts.webaverse.com/ethereum/address.js';
+import abis from 'https://contracts.webaverse.com/ethereum/abi.js';
+let {
+  main: {Account: AccountAddress, FT: FTAddress, NFT: NFTAddress, FTProxy: FTProxyAddress, NFTProxy: NFTProxyAddress, Trade: TradeAddress},
+  sidechain: {Account: AccountAddressSidechain, FT: FTAddressSidechain, NFT: NFTAddressSidechain, FTProxy: FTProxyAddressSidechain, NFTProxy: NFTProxyAddressSidechain, Trade: TradeAddressSidechain},
+} = addresses;
+let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi, Trade: TradeAbi} = abis;
+
+const web3SidechainEndpoint = 'https://ethereum.exokit.org';
+const storageHost = 'https://storage.exokit.org';
+// const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=684141574808272937&redirect_uri=https%3A%2F%2Fapp.webaverse.com%2Fdiscordlogin.html&response_type=code&scope=identify`;
 
 (async () => {
+
+const web3 = {
+  main: new Web3(window.ethereum),
+  sidechain: new Web3(new Web3.providers.HttpProvider(web3SidechainEndpoint)),
+};
+
+const contracts = {
+  main: {
+    Account: new web3['main'].eth.Contract(AccountAbi, AccountAddress),
+    FT: new web3['main'].eth.Contract(FTAbi, FTAddress),
+    FTProxy: new web3['main'].eth.Contract(FTProxyAbi, FTProxyAddress),
+    NFT: new web3['main'].eth.Contract(NFTAbi, NFTAddress),
+    NFTProxy: new web3['main'].eth.Contract(NFTProxyAbi, NFTProxyAddress),
+    Trade: new web3['main'].eth.Contract(TradeAbi, TradeAddress),
+  },
+  sidechain: {
+    Account: new web3['sidechain'].eth.Contract(AccountAbi, AccountAddressSidechain),
+    FT: new web3['sidechain'].eth.Contract(FTAbi, FTAddressSidechain),
+    FTProxy: new web3['sidechain'].eth.Contract(FTProxyAbi, FTProxyAddressSidechain),
+    NFT: new web3['sidechain'].eth.Contract(NFTAbi, NFTAddressSidechain),
+    NFTProxy: new web3['sidechain'].eth.Contract(NFTProxyAbi, NFTProxyAddressSidechain),
+    Trade: new web3['sidechain'].eth.Contract(TradeAbi, TradeAddressSidechain),
+  },
+};
+
+const runSidechainTransaction = async (contractName, method, ...args) => {
+  // console.log('run tx', contracts['sidechain'], [contractName, method]);
+
+  const {mnemonic} = loginToken;
+  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+  const privateKey = wallet.getPrivateKeyString();
+  const privateKeyBytes = Uint8Array.from(web3['sidechain'].utils.hexToBytes(privateKey));
+
+  const txData = contracts['sidechain'][contractName].methods[method](...args);
+  const data = txData.encodeABI();
+  const gas = await txData.estimateGas({
+    from: myAddress,
+  });
+  let gasPrice = await web3['sidechain'].eth.getGasPrice();
+  gasPrice = parseInt(gasPrice, 10);
+  const nonce = await web3['sidechain'].eth.getTransactionCount(myAddress);
+  let tx = Transaction.fromTxData({
+    to: contracts['sidechain'][contractName]._address,
+    nonce: '0x' + new web3['sidechain'].utils.BN(nonce).toString(16),
+    gas: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
+    gasPrice: '0x' + new web3['sidechain'].utils.BN(gasPrice).toString(16),
+    gasLimit: '0x' + new web3['sidechain'].utils.BN(8000000).toString(16),
+    data,
+  }, {
+    common: Common.forCustomChain(
+      'mainnet',
+      {
+        name: 'geth',
+        networkId: 1,
+        chainId: 1337,
+      },
+      'petersburg',
+    ),
+  }).sign(privateKeyBytes);
+  const rawTx = '0x' + tx.serialize().toString('hex');
+  // console.log('signed tx', tx, rawTx);
+  const receipt = await web3['sidechain'].eth.sendSignedTransaction(rawTx);
+  // console.log('sent tx', receipt);
+  return receipt;
+};
 
 const _renderHeader = () => {
   const div = document.createElement('header');
@@ -141,6 +220,24 @@ const _setUrl = async u => {
     const mint = match[6];
 
     if (store) { // store
+      const res = await fetch('https://store.webaverse.com/');
+      const booths = await res.json();
+      await Promise.all(booths.map(async booth => {
+        let username = await contracts['sidechain'].Account.methods.getMetadata(booth.address, 'name').call();
+        if (!username) {
+          username = 'Anonymous';
+        }
+        booth.username = username;
+        
+        let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(booth.address, 'avatarPreview').call();
+        if (!avatarPreview) {
+          avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
+        }
+        booth.avatarPreview = avatarPreview;
+      }));
+
+      if (currentUrl !== u) return;
+      
       _setStoreHtml(`\
         <section>
           <div class="content2">
@@ -148,10 +245,6 @@ const _setUrl = async u => {
           </div>
         </section>
       `);
-      
-      const res = await fetch('https://store.webaverse.com/');
-      const booths = await res.json();
-      if (currentUrl !== u) return;
       
       const itemsEl = document.querySelector('#items');
 
@@ -167,9 +260,9 @@ const _setUrl = async u => {
                     <img src="${file.image}" class="preview">
                   </a>
                   <div class="wrap">
-                    <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
-                    <div class=detail-1>${username}</div>
-                    <div class=detail-2>${myAddress}</div>
+                    <img src="${booth.avatarPreview}" class="avatar">
+                    <div class=detail-1>${booth.username}</div>
+                    <div class=detail-2>${booth.address}</div>
                     <div class=detail-3>${file.properties.hash.slice(2)}</div>
                   </div>
                 </li>
@@ -196,17 +289,17 @@ const _setUrl = async u => {
       
       _selectTabIndex(1);
     } else if (address) { // user
-      const tokenIds = await contracts.NFT.methods.getTokenIdsOf(address).call();
+      const tokenIds = await contracts['sidechain'].NFT.methods.getTokenIdsOf(address).call();
 
-      let username = await contracts.Account.methods.getMetadata(address, 'name').call();
+      let username = await contracts['sidechain'].Account.methods.getMetadata(address, 'name').call();
       if (!username) {
         username = 'Anonymous';
       }
-      let avatarPreview = await contracts.Account.methods.getMetadata(address, 'avatarPreview').call();
+      let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(address, 'avatarPreview').call();
       if (!avatarPreview) {
         avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
       }
-      const balance = await contracts.FT.methods.balanceOf(address).call();
+      const balance = await contracts['sidechain'].FT.methods.balanceOf(address).call();
       
       const res = await fetch('https://tokens.webaverse.com/' + address);
       const files = await res.json();
@@ -276,6 +369,15 @@ const _setUrl = async u => {
 
       const res = await fetch('https://tokens.webaverse.com/' + tokenId);
       const file = await res.json();
+      
+      /* let username = await contracts['sidechain'].Account.methods.getMetadata(myAddress, 'name').call();
+      if (!username) {
+        username = 'Anonymous';
+      }
+      let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(myAddress, 'avatarPreview').call();
+      if (!avatarPreview) {
+        avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
+      } */
 
       if (currentUrl !== u) return;
 
@@ -394,20 +496,81 @@ const _setUrl = async u => {
       _selectTabIndex(3);
     } else if (mint) {
       _setStoreHtml(`\
-        <section class=profile>
-          mint
-        </section>
+        <form id=sidechain-mint-form>
+          <h2>Mint</h2>
+          <input type=file id=sidechain-mint-file>
+          <input type=number id=sidechain-mint-count value=1 min=1 max=100>
+          <input type=submit id=sidechain-mint-button value="Mint token">
+        </form>
       `);
+      
+      const sidechainMintForm = document.getElementById('sidechain-mint-form');
+      const sidechainMintFileInput = document.getElementById('sidechain-mint-file');
+      const sidechainMintCount = document.getElementById('sidechain-mint-count');
+      const sidechainMintButton = document.getElementById('sidechain-mint-button');
+      sidechainMintForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        sidechainMintButton.disabled = true;
+
+        const {files} = sidechainMintFileInput;
+        if (files.length > 0) {
+          const [file] = files;
+
+          const res = await fetch(storageHost, {
+            method: 'POST',
+            body: file,
+          });
+          const j = await res.json();
+        
+          const filename = {
+            t: 'string',
+            v: file.name,
+          };
+          const hash = {
+            t: 'uint256',
+            v: '0x' + web3['sidechain'].utils.padLeft(j.hash, 32),
+          };
+          const count = {
+            t: 'uint256',
+            v: new web3['sidechain'].utils.BN(sidechainMintCount.value),
+          };
+          
+          const receipt = await runSidechainTransaction('NFT', 'mint', myAddress, hash.v, filename.v, count.v);
+          console.log('minted', receipt);
+          // sidechainNftIdInput.value = new web3['sidechain'].utils.BN(receipt.logs[0].topics[3].slice(2), 16).toNumber();
+        } else {
+          console.log('no files');
+        }
+        
+        sidechainMintButton.disabled = false;
+      });
       
       _selectTabIndex(0);
     } else { // home
+      let username = await contracts['sidechain'].Account.methods.getMetadata(myAddress, 'name').call();
+      if (!username) {
+        username = 'Anonymous';
+      }
+      let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(myAddress, 'avatarPreview').call();
+      if (!avatarPreview) {
+        avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
+      }
+      const balance = await contracts['sidechain'].FT.methods.balanceOf(myAddress).call();
+    
+      const res = await fetch('https://tokens.webaverse.com/' + myAddress);
+      const files = await res.json();
+
+      if (currentUrl !== u) return;
+      
       _setStoreHtml(`\
         <section class=profile>
           <ul class=users>
             <li>
-              <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="preview">
+              <img src="${avatarPreview}" class="preview">
               <div class="wrap">
-                <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+                <img src="${avatarPreview}" class="avatar">
                 <div class=detail-1>${username}</div>
                 <div class=detail-2>${myAddress}</div>
                 <div class=detail-3>${balance} FT</div>
@@ -426,7 +589,43 @@ const _setUrl = async u => {
           <a href="/mint" class=big-button id=mint-link>Mint NFT...</a>
           <a class=big-button>Withdraw to mainnet...</a>
         </section>
+        <section>
+          <div class="content2">
+            <ul class=items id=items></ul>
+          </div>
+        </section>
       `);
+      
+      const itemsEl = document.querySelector('#items');
+      
+      // const files = await inventory.getFiles(0, 100);
+      itemsEl.innerHTML = files.map(file => `\
+        <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
+          <div class=title>${file.properties.filename}</div>
+          <a href="/items/${file.id}" class="anchor">
+            <img src="${file.image}" class="preview">
+          </a>
+          <div class="wrap">
+            <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+            <div class=detail-1>${username}</div>
+            <div class=detail-2>${myAddress}</div>
+            <div class=detail-3>${file.properties.hash.slice(2)}</div>
+          </div>
+        </li>
+      `).join('\n');
+      const items = Array.from(itemsEl.querySelectorAll('.item'));
+
+      for (const item of items) {
+        const anchor = item.querySelector('.anchor');
+        anchor.addEventListener('click', e => {
+          e.preventDefault();
+          /* const hash = item.getAttribute('hash');
+          const filename = item.getAttribute('filename');
+          _pushState(`/items/0x${hash}`); */
+          const href = anchor.getAttribute('href');
+          _pushState(href);
+        });
+      }
       
       const mintLinkEl = document.querySelector('#mint-link');
       mintLinkEl.addEventListener('click', e => {
@@ -446,23 +645,10 @@ const _setUrl = async u => {
 
 await tryLogin();
 
-const {
-  /* web3,
-  addresses,
-  abis, */
-  contracts,
-} = await blockchain.load();
-
 const loginToken = await storage.get('loginToken');
 const {mnemonic} = loginToken;
 const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
 const myAddress = wallet.getAddressString();
-
-let username = await contracts.Account.methods.getMetadata(myAddress, 'name').call();
-if (!username) {
-  username = 'Anonymous';
-}
-const balance = await contracts.FT.methods.balanceOf(myAddress).call();
 
 window.addEventListener('popstate', event => {
   _setUrl(location.pathname);
