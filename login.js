@@ -9,7 +9,7 @@ import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 const {Transaction, Common} = ethereumJsTx;
-import * as blockchain from './blockchain.js';
+import {web3, contracts, getAddressFromMnemonic} from './blockchain.js';
 import {makePromise} from './util.js';
 
 // const usersEndpoint = 'https://users.exokit.org';
@@ -52,9 +52,6 @@ const transactionQueue = {
   },
 };
 const runTransaction = async (contractName, method, ...args) => {
-  // console.log('run tx', contracts['sidechain'], [contractName, method]);
-  const {web3, contracts} = await blockchain.load();
-
   const {mnemonic} = loginToken;
   const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
   const address = wallet.getAddressString();
@@ -62,7 +59,7 @@ const runTransaction = async (contractName, method, ...args) => {
   const privateKey = wallet.getPrivateKeyString();
   const privateKeyBytes = Uint8Array.from(web3.utils.hexToBytes(privateKey));
 
-  const txData = contracts[contractName].methods[method](...args);
+  const txData = contracts['sidechain'][contractName].methods[method](...args);
   const data = txData.encodeABI();
   const gas = await txData.estimateGas({
     from: address,
@@ -73,7 +70,7 @@ const runTransaction = async (contractName, method, ...args) => {
   await transactionQueue.lock();
   const nonce = await web3.eth.getTransactionCount(address);
   let tx = Transaction.fromTxData({
-    to: contracts[contractName]._address,
+    to: contracts['sidechain'][contractName]._address,
     nonce: '0x' + new web3.utils.BN(nonce).toString(16),
     gas: '0x' + new web3.utils.BN(gasPrice).toString(16),
     gasPrice: '0x' + new web3.utils.BN(gasPrice).toString(16),
@@ -100,11 +97,10 @@ const runTransaction = async (contractName, method, ...args) => {
 let loginToken = null;
 let userObject = null;
 async function pullUserObject() {
-  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-  const address = wallet.getAddressString();
+  const address = getAddressFromMnemonic(loginToken.mnemonic);
   const res = await fetch(`https://accounts.webaverse.com/${address}`);
   const result = await res.json();
-  console.log('pull user object', result);
+  // console.log('pull user object', result);
   const {name, avatarUrl, avatarFileName, avatarPreview, ftu} = result;
 
   /* const {web3} = await blockchain.load();
@@ -148,6 +144,9 @@ async function pullUserObject() {
 function updateUserObject() {
   const userName = document.getElementById('user-name');
   userName.innerText = userObject.name;
+
+  const avatarIcon = document.getElementById('avatar-icon');
+  avatarIcon.src = userObject.avatar.preview;
 
   loginManager.pushUpdate();
 }
@@ -205,7 +204,7 @@ async function tryLogin() {
     </div>
     <div class="phase-content phase-3-content">
       <nav class=user-button id=user-button>
-        <img src="favicon.ico">
+        <img id=avatar-icon>
         <span class=name id=user-name></span>
         <div class=unregistered-warning id=unregistered-warning style="display: none">
           <i class="fal fa-exclamation-triangle"></i>
@@ -557,7 +556,7 @@ class LoginManager extends EventTarget {
     }));
   }
 
-  async getBalance() {
+  /* async getBalance() {
     if (loginToken) {
       const contractSource = await getContractSource('getBalance.cdc');
 
@@ -576,7 +575,7 @@ class LoginManager extends EventTarget {
     } else {
       return 0;
     }
-  }
+  } */
 
   async getInventory() {
     if (loginToken) {
