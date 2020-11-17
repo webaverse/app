@@ -187,15 +187,19 @@ const _setUrl = async u => {
       if (!username) {
         username = 'Anonymous';
       }
+      let avatarPreview = await contracts.Account.methods.getMetadata(address, 'avatarPreview').call();
+      if (!avatarPreview) {
+        avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
+      }
       const balance = await contracts.FT.methods.balanceOf(address).call();
 
       _setStoreHtml(`\
         <section class=profile>
           <ul class=users>
             <li>
-              <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="preview">
+              <img src="${avatarPreview}" class="preview">
               <div class="wrap">
-                <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+                <img src="${avatarPreview}" class="avatar">
                 <div class=detail-1>${username}</div>
                 <div class=detail-2>${address}</div>
                 <div class=detail-3>${balance} FT</div>
