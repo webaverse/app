@@ -405,6 +405,14 @@ const _setUrl = async u => {
               </div>
             </li>
           </ul>
+          <div class=tiles>
+            <a href="#" class="tile">
+              <div class="wrap">
+                <h3>Land</h3>
+                <i class="fas fa-mountains" aria-hidden="true"></i>
+              </div>
+            </a>
+          </div>
           <!-- <a href="edit.html" class=big-button>Goto HomeSpace</a> -->
           <button class=big-button>Mint NFT...</button>
           <button class=big-button>Withdraw to mainnet...</button>

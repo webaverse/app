@@ -2276,6 +2276,59 @@ footer {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.store .profile .tiles {
+  display: flex;
+  padding: 20px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.store .profile .tiles .tile {
+  position: relative;
+  margin-right: calc(var(--size) * 2);
+  background-color: #FFF;
+  pointer-events: all;
+  --color: #7e57c2;
+  --size: 15px;
+}
+.store .profile .tiles .tile::before {
+  transform: skew(-30deg, 0);
+  position: absolute;
+  top: -10px;
+  left: 3px;
+  right: -3px;
+  height: 10px;
+  background-color: var(--color);
+  content: '';
+}
+.store .profile .tiles .tile::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border: 5px solid var(--color);
+  content: '';
+}
+.store .profile .tiles .tile .wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: calc(var(--size) * 6);
+  height: calc(var(--size) * 7.5);
+  padding: calc(var(--size) * 0.7);
+  overflow: hidden;
+}
+.store .profile .tiles .tile h3 {
+  margin: 0;
+  text-transform: uppercase;
+}
+.store .profile .tiles .tile i {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: auto;
+  font-size: calc(var(--size) * 3);
+}
 .store section {
   display: flex;
   max-height: 100vh;
