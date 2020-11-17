@@ -2331,7 +2331,6 @@ footer {
 }
 .store section {
   display: flex;
-  max-height: 100vh;
   flex-direction: column;
   flex: 1;
   overflow-y: auto;
