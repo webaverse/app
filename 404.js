@@ -270,14 +270,14 @@ const _setUrl = async u => {
         // console.log('got accounts', accounts);
 
         usersEl.innerHTML = accounts.map(account => {
-          const avatarUrl = account.avatarUrl || `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
+          const avatarPreview = account.avatarPreview || `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
           return `\
             <li class=user address="${account.address}">
               <a href="/users/${account.address}" class="anchor">
-                <img src="${avatarUrl}" class="preview">
+                <img src="${avatarPreview}" class="preview">
               </a>
               <div class="wrap">
-                <img src="${avatarUrl}" class="avatar">
+                <img src="${avatarPreview}" class="avatar">
                 <div class=detail-1>${account.name || 'Anonymous'}</div>
                 <div class=detail-2>${account.address}</div>
               </div>
