@@ -161,6 +161,7 @@ const _setUrl = async u => {
             <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
             <div class=detail-1>${username}</div>
             <div class=detail-2>${myAddress}</div>
+            <div class=detail-3>${file.properties.hash.slice(2)}</div>
           </div>
         </li>
       `)).flat().join('\n');
@@ -228,6 +229,7 @@ const _setUrl = async u => {
             <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
             <div class=detail-1>${username}</div>
             <div class=detail-2>${myAddress}</div>
+            <div class=detail-3>${file.properties.hash.slice(2)}</div>
           </div>
         </li>
       `).join('\n');
@@ -319,6 +321,7 @@ const _setUrl = async u => {
             <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
             <div class=detail-1>${username}</div>
             <div class=detail-2>${myAddress}</div>
+            <div class=detail-3>${file.properties.hash.slice(2)}</div>
           </div>
         </li>
       `).join('\n');
