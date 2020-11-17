@@ -48,7 +48,7 @@ const _pushState = u => {
   history.pushState({}, '', u);
   _setUrl(u);
 };
-const _selecTabIndex = index => {
+const _selectTabIndex = index => {
   const div = document.querySelector('.tabs');
   const tabsElements = Array.from(div.querySelectorAll('.tab'));
   // const contents = Array.from(div.querySelectorAll('.content'));
@@ -179,7 +179,7 @@ const _setUrl = async u => {
         });
       }
       
-      _selecTabIndex(1);
+      _selectTabIndex(1);
     } else if (address) { // user
       const tokenIds = await contracts.NFT.methods.getTokenIdsOf(address).call();
 
@@ -251,14 +251,14 @@ const _setUrl = async u => {
         });
       }
       
-      _selecTabIndex(3);
+      _selectTabIndex(3);
     } else if (hash) { // item
       _setStoreHtml(`\
         <section id=iframe-container></section>
       `);
       
       _setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
-      _selecTabIndex(3);
+      _selectTabIndex(3);
     } else if (users) { // users
       _setStoreHtml(`\
         <section>
@@ -302,7 +302,7 @@ const _setUrl = async u => {
         }
       // })();
 
-      _selecTabIndex(2);
+      _selectTabIndex(2);
     } else if (items) { // items
       _setStoreHtml(`\
         <section>
@@ -343,7 +343,7 @@ const _setUrl = async u => {
         });
       }
 
-      _selecTabIndex(3);
+      _selectTabIndex(3);
     } else { // home
       _setStoreHtml(`\
         <section class=profile>
@@ -364,7 +364,7 @@ const _setUrl = async u => {
         </section>
       `);
       
-      _selecTabIndex(0);
+      _selectTabIndex(0);
     }
   } else {
     _set404Html();
