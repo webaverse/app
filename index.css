@@ -1772,6 +1772,18 @@ header.unlocking + .main .blocker .button
 .user-button img {
   width: 30px;
   height: 30px;
+  border-radius: 100px;
+}
+.user-button img:not([src]),
+.avatar-icon-placeholder {
+  display: none;
+}
+.user-button img:not([src]) + .avatar-icon-placeholder {
+  display: block;
+  width: 30px;
+  height: 30px;
+  background-color: #CCC;
+  border-radius: 100px;
 }
 .user-button .name {
   display: flex;

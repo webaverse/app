@@ -143,10 +143,14 @@ async function pullUserObject() {
 } */
 function updateUserObject() {
   const userName = document.getElementById('user-name');
-  userName.innerText = userObject.name;
+  userName.innerText = userObject.name || 'Anonymous';
 
   const avatarIcon = document.getElementById('avatar-icon');
-  avatarIcon.src = userObject.avatar.preview;
+  if (userObject.avatar.preview) {
+    avatarIcon.src = userObject.avatar.preview;
+  } else {
+    delete avatarIcon.src;
+  }
 
   loginManager.pushUpdate();
 }
@@ -205,6 +209,7 @@ async function tryLogin() {
     <div class="phase-content phase-3-content">
       <nav class=user-button id=user-button>
         <img id=avatar-icon>
+        <div class=avatar-icon-placeholder></div>
         <span class=name id=user-name></span>
         <div class=unregistered-warning id=unregistered-warning style="display: none">
           <i class="fal fa-exclamation-triangle"></i>
