@@ -2161,6 +2161,9 @@ footer {
 .store .content2:not(.selected) {
   display: none;
 } */
+.store {
+  padding-top: 50px;
+}
 .store .big-button {
   padding: 10px;
   background-color: transparent;

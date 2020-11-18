@@ -18,7 +18,7 @@ const storageHost = 'https://storage.exokit.org';
 
 const _renderHeader = () => {
   const div = document.createElement('header');
-  // div.classList.add('tabs');
+  div.classList.add('header');
   div.innerHTML = `\
     <div class=tabs>
       <a href="/" class="tab selected">Me</a>
