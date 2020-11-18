@@ -8,7 +8,7 @@ import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 const {Transaction, Common} = ethereumJsTx;
-import {web3, getAddressFromMnemonic} from './blockchain.js';
+import {web3, contracts, getAddressFromMnemonic} from './blockchain.js';
 
 const web3SidechainEndpoint = 'https://ethereum.exokit.org';
 const storageHost = 'https://storage.exokit.org';
@@ -232,6 +232,24 @@ const _setUrl = async u => {
       
       const res = await fetch('https://tokens.webaverse.com/' + address);
       const files = await res.json();
+      
+      const owners = await Promise.all(files.map(async file => {
+        const address = file.owner;
+        let username = await contracts['sidechain'].Account.methods.getMetadata(address, 'name').call();
+        if (!username) {
+          username = 'Anonymous';
+        }
+        let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(address, 'avatarPreview').call();
+        if (!avatarPreview) {
+          avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
+        }
+        
+        return {
+          address,
+          username,
+          avatarPreview,
+        };
+      }));
 
       if (currentUrl !== u) return;
 
@@ -262,20 +280,23 @@ const _setUrl = async u => {
       const itemsEl = document.querySelector('#items');
       
       // const files = await inventory.getFiles(0, 100);
-      itemsEl.innerHTML = files.map(file => `\
-        <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
-          <div class=title>${file.properties.filename}</div>
-          <a href="/items/${file.id}" class="anchor">
-            <img src="${file.image}" class="preview">
-          </a>
-          <div class="wrap">
-            <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
-            <div class=detail-1>${username}</div>
-            <div class=detail-2>${myAddress}</div>
-            <div class=detail-3>${file.properties.hash.slice(2)}</div>
-          </div>
-        </li>
-      `).join('\n');
+      itemsEl.innerHTML = files.map((file, i) => {
+        const owner = owners[i];
+        return `\
+          <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
+            <div class=title>${file.properties.filename}</div>
+            <a href="/items/${file.id}" class="anchor">
+              <img src="${file.image}" class="preview">
+            </a>
+            <div class="wrap">
+              <img src="${owner.avatarPreview}" class="avatar">
+              <div class=detail-1>${owner.username}</div>
+              <div class=detail-2>${owner.address}</div>
+              <div class=detail-3>${file.properties.hash.slice(2)}</div>
+            </div>
+          </li>
+        `;
+      }).join('\n');
       const items = Array.from(itemsEl.querySelectorAll('.item'));
 
       for (const item of items) {
@@ -299,14 +320,14 @@ const _setUrl = async u => {
       const res = await fetch('https://tokens.webaverse.com/' + tokenId);
       const file = await res.json();
       
-      /* let username = await contracts['sidechain'].Account.methods.getMetadata(myAddress, 'name').call();
+      let username = await contracts['sidechain'].Account.methods.getMetadata(myAddress, 'name').call();
       if (!username) {
         username = 'Anonymous';
       }
       let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(myAddress, 'avatarPreview').call();
       if (!avatarPreview) {
         avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
-      } */
+      }
 
       if (currentUrl !== u) return;
 
@@ -383,6 +404,24 @@ const _setUrl = async u => {
     } else if (items) { // items
       const files = await inventory.getFiles(0, 100);
       
+      const owners = await Promise.all(files.map(async file => {
+        const address = file.owner;
+        let username = await contracts['sidechain'].Account.methods.getMetadata(address, 'name').call();
+        if (!username) {
+          username = 'Anonymous';
+        }
+        let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(address, 'avatarPreview').call();
+        if (!avatarPreview) {
+          avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
+        }
+        
+        return {
+          address,
+          username,
+          avatarPreview,
+        };
+      }));
+      
       if (currentUrl !== u) return;
 
       _setStoreHtml(`\
@@ -394,20 +433,23 @@ const _setUrl = async u => {
       `);
 
       const itemsEl = document.querySelector('#items');
-      itemsEl.innerHTML = files.map(file => `\
-        <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
-          <div class=title>${file.properties.filename}</div>
-          <a href="/items/${file.id}" class="anchor">
-            <img src="${file.image}" class="preview">
-          </a>
-          <div class="wrap">
-            <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
-            <div class=detail-1>${username}</div>
-            <div class=detail-2>${myAddress}</div>
-            <div class=detail-3>${file.properties.hash.slice(2)}</div>
-          </div>
-        </li>
-      `).join('\n');
+      itemsEl.innerHTML = files.map((file, i) => {
+        const owner = owners[i];
+        return `\
+          <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
+            <div class=title>${file.properties.filename}</div>
+            <a href="/items/${file.id}" class="anchor">
+              <img src="${file.image}" class="preview">
+            </a>
+            <div class="wrap">
+              <img src="${owner.avatarPreview}" class="avatar">
+              <div class=detail-1>${owner.username}</div>
+              <div class=detail-2>${owner.address}</div>
+              <div class=detail-3>${file.properties.hash.slice(2)}</div>
+            </div>
+          </li>
+        `;
+      }).join('\n');
       const items = Array.from(itemsEl.querySelectorAll('.item'));
 
       for (const item of items) {
@@ -509,8 +551,20 @@ const _setUrl = async u => {
           <div class=tiles>
             <a href="#" class="tile">
               <div class="wrap">
-                <h3>Land</h3>
-                <i class="fas fa-mountains" aria-hidden="true"></i>
+                <h3>Slot 1</h3>
+                <i class="fas fa-sword" aria-hidden="true"></i>
+              </div>
+            </a>
+            <a href="#" class="tile">
+              <div class="wrap">
+                <h3>Slot 2</h3>
+                <i class="fas fa-sword" aria-hidden="true"></i>
+              </div>
+            </a>
+            <a href="#" class="tile">
+              <div class="wrap">
+                <h3>Slot 3</h3>
+                <i class="fas fa-sword" aria-hidden="true"></i>
               </div>
             </a>
           </div>
