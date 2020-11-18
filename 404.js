@@ -548,25 +548,28 @@ const _setUrl = async u => {
               </div>
             </li>
           </ul>
-          <div class=tiles>
-            <a href="#" class="tile">
-              <div class="wrap">
-                <h3>Slot 1</h3>
-                <i class="fas fa-sword" aria-hidden="true"></i>
-              </div>
-            </a>
-            <a href="#" class="tile">
-              <div class="wrap">
-                <h3>Slot 2</h3>
-                <i class="fas fa-sword" aria-hidden="true"></i>
-              </div>
-            </a>
-            <a href="#" class="tile">
-              <div class="wrap">
-                <h3>Slot 3</h3>
-                <i class="fas fa-sword" aria-hidden="true"></i>
-              </div>
-            </a>
+          <div class=favorites>
+            <h1>Favorites</h1>
+            <div class=tiles>
+              <a href="#" class="tile selected">
+                <div class="wrap">
+                  <h3>Slot 1</h3>
+                  <i class="fas fa-sword" aria-hidden="true"></i>
+                </div>
+              </a>
+              <a href="#" class="tile">
+                <div class="wrap">
+                  <h3>Slot 2</h3>
+                  <i class="fas fa-sword" aria-hidden="true"></i>
+                </div>
+              </a>
+              <a href="#" class="tile">
+                <div class="wrap">
+                  <h3>Slot 3</h3>
+                  <i class="fas fa-sword" aria-hidden="true"></i>
+                </div>
+              </a>
+            </div>
           </div>
           <!-- <a href="edit.html" class=big-button>Goto HomeSpace</a> -->
           <a href="/mint" class=big-button id=mint-link>Mint NFT...</a>
