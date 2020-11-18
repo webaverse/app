@@ -2379,3 +2379,22 @@ footer {
   background-image: linear-gradient(to right, #ccc, #eee);
   border-radius: 10px;
 }
+
+.sidebar {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  flex-direction: column;
+}
+.sidebar .side {
+  padding: 20px;
+  border-top: 1px solid #CCC;
+}
+.sidebar .side .key {
+  margin-bottom: 10px;
+  color: #999;
+  text-transform: uppercase;
+}
+.sidebar .side .value {
+  // color: #111;
+}

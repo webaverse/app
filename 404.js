@@ -351,6 +351,26 @@ const _setUrl = async u => {
           <!-- <button class=big-button>Mint NFT...</button>
           <button class=big-button>Withdraw to mainnet...</button> -->
         </section>
+        <section>
+          <div class=sidebar>
+            <div class=side>
+              <div class=key>Minter</div>
+              <div class=value>${file.minter}</div>
+            </div>
+            <div class=side>
+              <div class=key>Owner</div>
+              <div class=value>${file.owner}</div>
+            </div>
+            <div class=side>
+              <div class=key>Token id</div>
+              <div class=value>${file.id}</div>
+            </div>
+            <div class=side>
+              <div class=key>Timestamp</div>
+              <div class=value>${new Date().toString()}</div>
+            </div>
+          </div>
+        </section>
       `);
       
       // _setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
