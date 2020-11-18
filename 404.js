@@ -334,7 +334,7 @@ const _setUrl = async u => {
       _setStoreHtml(`\
         <section class=profile>
           <ul class=items>
-            <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
+            <li class="item card big" tokenid="${file.id}" filename="${file.properties.filename}">
               <div class=title>${file.properties.filename}</div>
               <a href="/items/${file.id}" class="anchor">
                 <img src="${file.image}" class="preview">

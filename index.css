@@ -2245,11 +2245,14 @@ footer {
 .store .items li:hover {
   box-shadow: 0 20px 10px #333;
 }
+.store .items li.big {
+  --size: 300px;
+}
 .store .items li .title {
   display: inline-block;
   width: calc(var(--size) - 20px*2);
-  margin: 5px 20px;
-  font-size: calc(var(--size) * 0.1);
+  margin: calc(var(--size) * 0.04) 20px;
+  font-size: calc(var(--size) * 0.07);
   // background: #000;
   // background-image: linear-gradient(to right, #f12711 0%, #f5af19 100%);
   // color: #FFF;
