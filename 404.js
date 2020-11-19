@@ -13,8 +13,11 @@ import {web3, contracts, getAddressFromMnemonic} from './blockchain.js';
 const web3SidechainEndpoint = 'https://ethereum.exokit.org';
 const storageHost = 'https://storage.exokit.org';
 // const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=684141574808272937&redirect_uri=https%3A%2F%2Fapp.webaverse.com%2Fdiscordlogin.html&response_type=code&scope=identify`;
+let mainnetAddress = null;
 
 (async () => {
+
+const networkType = await web3['main'].eth.net.getNetworkType();
 
 const _renderHeader = () => {
   const div = document.createElement('header');
@@ -543,6 +546,11 @@ const _setUrl = async u => {
       
       _selectTabIndex(0);
     } else if (mainnet) { // mainnet
+      if (networkType !== 'rinkeby') {
+        document.write(`network is ${networkType}; switch to Rinkeby`);
+        return;
+      }
+    
       const files = await inventory.getFiles(0, 100);
       
       const owners = await Promise.all(files.map(async file => {
@@ -567,6 +575,27 @@ const _setUrl = async u => {
 
       _setStoreHtml(`\
         <a href="/" class=switch-network-link>Switch to sidechain</a>
+        <input type=button id=connect-metamask-button value="Connect Metamask">
+        <section id=connect-mainnet-section>
+          <h2>Address</h2>
+          <div id=eth-address>0x</div>
+          <h2>Balance</h2>
+          <div id=eth-balance>-</div>
+          <h2>Tokens</h2>
+          <div id=eth-tokens>Loading...</div>
+          <div class="token-forms hidden">
+            <form id=eth-ft-form>
+              <h2>FT</h2>
+              <textarea id=eth-ft-amount placeholder="amount"></textarea>
+              <input type=submit id=eth-ft-button value="Move FT to Sidechain >">
+            </form>
+            <form id=eth-nft-form>
+              <h2>NFT</h2>
+              <textarea id=eth-nft-id placeholder="id"></textarea>
+              <input type=submit id=eth-nft-button value="Move NFT to Sidechain >">
+            </form>
+          </div>
+        </section>
         <section>
           <div class="content2">
             <ul class=items id=items></ul>
@@ -614,48 +643,76 @@ const _setUrl = async u => {
         _pushState(href);
       });
 
-      /* const sidechainMintForm = document.getElementById('sidechain-mint-form');
-      const sidechainMintFileInput = document.getElementById('sidechain-mint-file');
-      const sidechainMintCount = document.getElementById('sidechain-mint-count');
-      const sidechainMintButton = document.getElementById('sidechain-mint-button');
-      sidechainMintForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        sidechainMintButton.disabled = true;
+      const mainnetSection = document.getElementById('connect-mainnet-section');
+      const connectMetamaskButton = document.getElementById('connect-metamask-button');
+      const _connectMetamask = async () => {
+        try {
+          await window.ethereum.enable();
+          mainnetAddress = web3['main'].currentProvider.selectedAddress;
+          mainnetSection.classList.remove('hidden');
+          connectMetamaskButton.classList.add('hidden');
 
-        const {files} = sidechainMintFileInput;
-        if (files.length > 0) {
-          const [file] = files;
+          {
+            ethAddressEl.innerText = mainnetAddress;
+          }
+          {
+            const ftBalance = await contracts['main'].FT.methods.balanceOf(mainnetAddress).call()
+            ethBalanceEl.innerText = ftBalance;
+          }
+          {
+            const res = await fetch(`https://tokens-main.webaverse.com/${mainnetAddress}`);
+            const tokens = await res.json();
+            // console.log('got tokens', tokens);
 
-          const res = await fetch(storageHost, {
-            method: 'POST',
-            body: file,
-          });
-          const j = await res.json();
-        
-          const filename = {
-            t: 'string',
-            v: file.name,
-          };
-          const hash = {
-            t: 'uint256',
-            v: '0x' + web3['sidechain'].utils.padLeft(j.hash, 32),
-          };
-          const count = {
-            t: 'uint256',
-            v: new web3['sidechain'].utils.BN(sidechainMintCount.value),
-          };
-          
-          const receipt = await runSidechainTransaction('NFT', 'mint', myAddress, hash.v, filename.v, count.v);
-          console.log('minted', receipt);
-          // sidechainNftIdInput.value = new web3['sidechain'].utils.BN(receipt.logs[0].topics[3].slice(2), 16).toNumber();
-        } else {
-          console.log('no files');
+            ethTokensEl.innerHTML = '';
+            for (const token of tokens) {
+              const el = document.createElement('div');
+              el.classList.add('token');
+              if (ethNftIdInput.value === token.id) {
+                el.classList.add('selected');
+              }
+              el.setAttribute('tokenid', token.id);
+              el.innerHTML = `
+                <img src="${token.image}">
+                <div class=wrap>
+                  <a href="https://storage.exokit.org/${token.properties.hash.slice(2)}/${token.properties.filename}" class=filename>${escape(token.properties.filename)}</a>
+                  <a href="${openSeaUrlPrefix}/${contracts.main.NFT.address}/${token.id}/" class=hash>${token.id}. ${token.properties.hash} (${token.balance}/${token.totalSupply})</a>
+                  <div class=ext>${escape(token.properties.ext || '')}</div>
+                </div>
+              `;
+              el.addEventListener('click', e => {
+                ethNftIdInput.value = ethNftIdInput.value !== token.id ? token.id : '';
+                ethNftIdInput.dispatchEvent(new KeyboardEvent('input'));
+              });
+              ethTokensEl.appendChild(el);
+            }
+            if (address && sidechainAddress) {
+              Array.from(document.querySelectorAll('.token-forms')).forEach(formEl => {
+                formEl.classList.remove('hidden');
+              });
+            }
+          }
+        } catch (err) {
+          console.warn(err);
         }
-        
-        sidechainMintButton.disabled = false;
-      }); */
+      };
+      connectMetamaskButton.addEventListener('click', _connectMetamask);
+      
+      const ethAddressEl = document.getElementById('eth-address');
+      const ethBalanceEl = document.getElementById('eth-balance');
+      const ethTokensEl = document.getElementById('eth-tokens');
+      const sidechainAddressEl = document.getElementById('sidechain-address');
+      const sidechainBalanceEl = document.getElementById('sidechain-balance');
+      const sidechainTokensEl = document.getElementById('sidechain-tokens');
+      /* const ftContractAddressLink = document.getElementById('ft-contract-address-link');
+      const nftContractAddressLink = document.getElementById('nft-contract-address-link');
+      const nftContractOpenSeaLink = document.getElementById('nft-contract-opensea-link');
+      ftContractAddressLink.innerText = contracts.main.FT.address;
+      ftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${contracts.main.FT.address}`;
+      nftContractAddressLink.innerText = contracts.main.NFT.address;
+      nftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${NFTAddress}`;
+      nftContractOpenSeaLink.href = openSeaUrl; */
+      _connectMetamask().catch(console.warn);
       
       _selectTabIndex(0);
     } else if (withdrawId) {
