@@ -2323,7 +2323,6 @@ footer {
 }
 .store .profile .tiles {
   display: flex;
-  overflow: hidden;
   pointer-events: none;
 }
 .store .profile .tiles .tile {
