@@ -2250,7 +2250,7 @@ footer {
 }
 .store .items li .title {
   display: inline-block;
-  width: calc(var(--size) - 20px*2);
+  width: calc(var(--size) - 20px*2 - 5px*2);
   margin: calc(var(--size) * 0.04) 20px;
   font-size: calc(var(--size) * 0.07);
   // background: #000;
@@ -2258,6 +2258,7 @@ footer {
   // color: #FFF;
   align-self: flex-start;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 .store .items li .preview {
