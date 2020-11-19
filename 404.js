@@ -138,7 +138,7 @@ const _setUrl = async u => {
   currentUrl = u;
 
   let match;
-  if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0-9]+))?)?(?:\/)?(?:\/(mint))?$/i)) {
+  if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0-9]+))?)?(?:\/(mint))?(?:\/(withdraw))?(?:\/)?$/i)) {
     // _ensureStore();
 
     const store = !!match[1];
@@ -147,6 +147,7 @@ const _setUrl = async u => {
     const items = !!match[4];
     const tokenId = match[5];
     const mint = match[6];
+    const withdraw = match[7];
 
     if (store) { // store
       const res = await fetch('https://store.webaverse.com/');
@@ -539,6 +540,19 @@ const _setUrl = async u => {
       });
       
       _selectTabIndex(0);
+    } else if (withdraw) {
+      const balance = await contracts['sidechain'].FT.methods.balanceOf(myAddress).call();
+
+      _setStoreHtml(`\
+        <form id=sidechain-withdraw-form>
+          <h2>Withdraw</h2>
+          <div>${balance} FT</div>
+          <input type=number id=sidechain-withdraw-value value=1 min=1 max=100>
+          <input type=submit id=sidechain-withdraw-button value="Withdraw">
+        </form>
+      `);
+      
+      _selectTabIndex(0);
     } else { // home
       let username = await contracts['sidechain'].Account.methods.getMetadata(myAddress, 'name').call();
       if (!username) {
@@ -564,7 +578,7 @@ const _setUrl = async u => {
                 <img src="${avatarPreview}" class="avatar">
                 <div class=detail-1>${username}</div>
                 <div class=detail-2>${myAddress}</div>
-                <div class=detail-3>${balance} FT</div>
+                <div class=detail-3>${balance} FT (<a href="/withdraw" id=widthdraw-ft-link>withdraw</a>)</div>
               </div>
             </li>
           </ul>
@@ -591,9 +605,7 @@ const _setUrl = async u => {
               </a>
             </div>
           </div>
-          <!-- <a href="edit.html" class=big-button>Goto HomeSpace</a> -->
           <a href="/mint" class=big-button id=mint-link>Mint NFT...</a>
-          <a class=big-button>Withdraw to mainnet...</a>
         </section>
         <section>
           <div class="content2">
@@ -635,6 +647,15 @@ const _setUrl = async u => {
       
       const mintLinkEl = document.querySelector('#mint-link');
       mintLinkEl.addEventListener('click', e => {
+        e.preventDefault();
+        // e.stopPropagation();
+        
+        const href = e.target.getAttribute('href');
+        _pushState(href);
+      });
+
+      const withdrawFtLink = document.querySelector('#widthdraw-ft-link');
+      withdrawFtLink.addEventListener('click', e => {
         e.preventDefault();
         // e.stopPropagation();
         
