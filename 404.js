@@ -138,7 +138,7 @@ const _setUrl = async u => {
   currentUrl = u;
 
   let match;
-  if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0-9]+))?)?(?:\/(mint))?(?:\/(withdraw)(?:\/([0-9]+))?)?(?:\/)?$/i)) {
+  if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0-9]+))?)?(?:\/(mint))?(?:\/(mainnet))?(?:\/(withdraw)(?:\/([0-9]+))?)?(?:\/)?$/i)) {
     // _ensureStore();
 
     const store = !!match[1];
@@ -147,8 +147,9 @@ const _setUrl = async u => {
     const items = !!match[4];
     const tokenId = match[5];
     const mint = match[6];
-    const withdraw = match[7];
-    const withdrawId = match[8];
+    const mainnet = match[7];
+    const withdraw = match[8];
+    const withdrawId = match[9];
 
     if (store) { // store
       const res = await fetch('https://store.webaverse.com/');
@@ -541,6 +542,122 @@ const _setUrl = async u => {
       });
       
       _selectTabIndex(0);
+    } else if (mainnet) { // mainnet
+      const files = await inventory.getFiles(0, 100);
+      
+      const owners = await Promise.all(files.map(async file => {
+        const address = file.owner;
+        let username = await contracts['sidechain'].Account.methods.getMetadata(address, 'name').call();
+        if (!username) {
+          username = 'Anonymous';
+        }
+        let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(address, 'avatarPreview').call();
+        if (!avatarPreview) {
+          avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
+        }
+        
+        return {
+          address,
+          username,
+          avatarPreview,
+        };
+      }));
+      
+      if (currentUrl !== u) return;
+
+      _setStoreHtml(`\
+        <a href="/" class=switch-network-link>Switch to sidechain</a>
+        <section>
+          <div class="content2">
+            <ul class=items id=items></ul>
+          </div>
+        </section>
+      `);
+
+      const itemsEl = document.querySelector('#items');
+      itemsEl.innerHTML = files.map((file, i) => {
+        const owner = owners[i];
+        return `\
+          <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
+            <div class=title>${file.properties.filename}</div>
+            <a href="/items/${file.id}" class="anchor">
+              <img src="${file.image}" class="preview">
+            </a>
+            <div class="wrap">
+              <img src="${owner.avatarPreview}" class="avatar">
+              <div class=detail-1>${owner.username}</div>
+              <div class=detail-2>${owner.address}</div>
+              <div class=detail-3>${file.properties.hash.slice(2)}</div>
+            </div>
+          </li>
+        `;
+      }).join('\n');
+      const items = Array.from(itemsEl.querySelectorAll('.item'));
+
+      for (const item of items) {
+        const anchor = item.querySelector('.anchor');
+        anchor.addEventListener('click', e => {
+          e.preventDefault();
+          /* const hash = item.getAttribute('hash');
+          const filename = item.getAttribute('filename');
+          _pushState(`/items/0x${hash}`); */
+          const href = anchor.getAttribute('href');
+          _pushState(href);
+        });
+      }
+      
+      const switchNetworkLink = document.querySelector('.switch-network-link');
+      switchNetworkLink.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        const href = e.target.getAttribute('href');
+        _pushState(href);
+      });
+
+      /* const sidechainMintForm = document.getElementById('sidechain-mint-form');
+      const sidechainMintFileInput = document.getElementById('sidechain-mint-file');
+      const sidechainMintCount = document.getElementById('sidechain-mint-count');
+      const sidechainMintButton = document.getElementById('sidechain-mint-button');
+      sidechainMintForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        sidechainMintButton.disabled = true;
+
+        const {files} = sidechainMintFileInput;
+        if (files.length > 0) {
+          const [file] = files;
+
+          const res = await fetch(storageHost, {
+            method: 'POST',
+            body: file,
+          });
+          const j = await res.json();
+        
+          const filename = {
+            t: 'string',
+            v: file.name,
+          };
+          const hash = {
+            t: 'uint256',
+            v: '0x' + web3['sidechain'].utils.padLeft(j.hash, 32),
+          };
+          const count = {
+            t: 'uint256',
+            v: new web3['sidechain'].utils.BN(sidechainMintCount.value),
+          };
+          
+          const receipt = await runSidechainTransaction('NFT', 'mint', myAddress, hash.v, filename.v, count.v);
+          console.log('minted', receipt);
+          // sidechainNftIdInput.value = new web3['sidechain'].utils.BN(receipt.logs[0].topics[3].slice(2), 16).toNumber();
+        } else {
+          console.log('no files');
+        }
+        
+        sidechainMintButton.disabled = false;
+      }); */
+      
+      _selectTabIndex(0);
     } else if (withdrawId) {
       _setStoreHtml(`\
         <form id=sidechain-withdraw-form>
@@ -710,6 +827,7 @@ const _setUrl = async u => {
       if (currentUrl !== u) return;
       
       _setStoreHtml(`\
+        <a href="/mainnet" class=switch-network-link>Switch to mainnet</a>
         <section class=profile>
           <ul class=users>
             <li>
@@ -810,6 +928,14 @@ const _setUrl = async u => {
         e.preventDefault();
         // e.stopPropagation();
         
+        const href = e.target.getAttribute('href');
+        _pushState(href);
+      });
+      
+      const switchNetworkLink = document.querySelector('.switch-network-link');
+      switchNetworkLink.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
         const href = e.target.getAttribute('href');
         _pushState(href);
       });

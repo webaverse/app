@@ -2409,3 +2409,11 @@ footer {
 .sidebar .side .value {
   // color: #111;
 }
+
+.switch-network-link {
+  position: absolute;
+  top: 50px;
+  right: 10px;
+  font-size: 30px;
+  z-index: 1;
+}
