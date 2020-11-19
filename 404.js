@@ -546,18 +546,78 @@ const _setUrl = async u => {
         <form id=sidechain-withdraw-form>
           <h2>Withdraw</h2>
           <div>NFT ${withdrawId}</div>
-          <input type=submit id=sidechain-withdraw-button value="Withdraw NFT">
+          <input type=submit id=sidechain-nft-button value="Withdraw NFT">
         </form>
       `);
 
       const withdrawForm = document.getElementById('sidechain-withdraw-form');
-      withdrawForm.addEventListener('submit', e => {
+      const sidechainNftButton = document.getElementById('sidechain-nft-button');
+      withdrawForm.addEventListener('submit', async e => {
         e.preventDefault();
         e.stopPropagation();
 
-        const tokenId = parseInt(withdrawId, 10);
+        sidechainNftButton.disabled = true;
+    
+        const id = parseInt(withdrawId, 10);
+        if (!isNaN(id)) {
+          const tokenId = {
+            t: 'uint256',
+            v: new web3['sidechain'].utils.BN(id),
+          };
+          
+          const hashSpec = await contracts.sidechain.NFT.methods.getHash(tokenId.v).call();
+          const hash = {
+            t: 'uint256',
+            v: new web3['sidechain'].utils.BN(hashSpec),
+          };
+          const filenameSpec = await contracts.sidechain.NFT.methods.getMetadata(hashSpec, 'filename').call();
+          const filename = {
+            t: 'string',
+            v: filenameSpec,
+          };
+          console.log('got filename hash', hash, filename);
 
-        console.log('withdraw nft', tokenId);
+          // approve on sidechain
+          const receipt0 = await runSidechainTransaction('NFT', 'setApprovalForAll', NFTProxyAddressSidechain, true);
+          
+          // deposit on sidechain
+          const receipt = await runSidechainTransaction('NFTProxy', 'deposit', address, tokenId.v);
+          console.log('got receipt', receipt);
+
+          // get sidechain deposit receipt signature
+          const signature = await getTransactionSignature('sidechain', 'NFT', receipt.transactionHash);
+          console.log('got signature', signature);
+          const timestamp = {
+            t: 'uint256',
+            v: signature.timestamp,
+          };
+          const {r, s, v} = signature;
+          /* const chainId = {
+            t: 'uint256',
+            v: new web3['sidechain'].utils.BN(2),
+          };
+
+          const filenameHash = web3.utils.sha3(filename.v);
+          const message = web3.utils.encodePacked(address, tokenId, hash, filenameHash, timestamp, chainId);
+          const hashedMessage = web3.utils.sha3(message);
+          const sgn = await web3.eth.personal.sign(hashedMessage, address);
+          const r = sgn.slice(0, 66);
+          const s = '0x' + sgn.slice(66, 130);
+          const v = '0x' + sgn.slice(130, 132);
+          console.log('got', JSON.stringify({r, s, v}, null, 2)); */
+
+          // withdraw receipt signature on sidechain
+          // console.log('main withdraw', [address, tokenId.v.toString(10), hash.v.toString(10), filename, timestamp.v.toString(10), r, s, v]);
+          await contracts.main.NFTProxy.methods.withdraw(address, tokenId.v, hash.v, filename.v, timestamp.v, r, s, v).send({
+            from: address,
+          });
+          
+          console.log('OK');
+        } else {
+          console.log('failed to parse', JSON.stringify(ethNftIdInput.value));
+        }
+        
+        sidechainNftButton.disabled = false;
       });
       
       _selectTabIndex(0);
@@ -570,19 +630,66 @@ const _setUrl = async u => {
         <form id=sidechain-withdraw-form>
           <h2>Withdraw</h2>
           <div>${balance} FT</div>
-          <input type=number id=sidechain-withdraw-value value=1 min=1 max=100>
-          <input type=submit id=sidechain-withdraw-button value="Withdraw FTs">
+          <input type=number id=sidechain-ft-amount value=1 min=1 max=100>
+          <input type=submit id=sidechain-ft-button value="Withdraw FTs">
         </form>
       `);
 
       const withdrawForm = document.getElementById('sidechain-withdraw-form');
-      withdrawForm.addEventListener('submit', e => {
+      const sidechainFtAmountInput = document.getElementById('sidechain-ft-amount');
+      const sidechainFtButton = document.getElementById('sidechain-ft-button');
+      withdrawForm.addEventListener('submit', async e => {
         e.preventDefault();
         e.stopPropagation();
 
-        const value = document.getElementById('sidechain-withdraw-value').value;
+        sidechainFtButton.disabled = true;
 
-        console.log('withdraw ft', value);
+        const amt = parseInt(sidechainFtAmountInput.value, 10);
+        if (!isNaN(amt)) {
+          const ftAmount = {
+            t: 'uint256',
+            v: new web3['sidechain'].utils.BN(amt),
+          };
+          
+          // approve on sidechain
+          const receipt0 = await runSidechainTransaction('FT', 'approve', FTProxyAddressSidechain, ftAmount.v);
+          
+          // deposit on sidechain
+          const receipt = await runSidechainTransaction('FTProxy', 'deposit', address, ftAmount.v);
+          console.log('got receipt', receipt);
+
+          // get sidechain deposit receipt signature
+          const signature = await getTransactionSignature('sidechain', 'FT', receipt.transactionHash);
+          const {amount, timestamp, r, s, v} = signature;
+          /* const {transactionHash} = receipt;
+          const timestamp = {
+            t: 'uint256',
+            // v: new web3.utils.BN(Date.now()),
+            v: transactionHash,
+          };
+          const chainId = {
+            t: 'uint256',
+            v: new web3.utils.BN(1),
+          };
+          const message = web3.utils.encodePacked(address, amount, timestamp, chainId);
+          const hashedMessage = web3.utils.sha3(message);
+          const sgn = await web3.eth.personal.sign(hashedMessage, address);
+          const r = sgn.slice(0, 66);
+          const s = '0x' + sgn.slice(66, 130);
+          const v = '0x' + sgn.slice(130, 132);
+          console.log('got', JSON.stringify({r, s, v}, null, 2)); */
+
+          // withdraw receipt signature on main chain
+          await contracts.main.FTProxy.methods.withdraw(address, amount, timestamp, r, s, v).send({
+            from: address,
+          });
+          
+          console.log('OK');
+        } else {
+          console.log('failed to parse', JSON.stringify(sidechainFtAmountInput.value));
+        }
+        
+        sidechainFtButton.disabled = false;
       });
 
       _selectTabIndex(0);
@@ -675,6 +782,16 @@ const _setUrl = async u => {
           const filename = item.getAttribute('filename');
           _pushState(`/items/0x${hash}`); */
           const href = anchor.getAttribute('href');
+          _pushState(href);
+        });
+
+        const withdrawNftLink = item.querySelector('.widthdraw-nft-link');
+        withdrawNftLink.addEventListener('click', e => {
+          e.preventDefault();
+          /* const hash = item.getAttribute('hash');
+          const filename = item.getAttribute('filename');
+          _pushState(`/items/0x${hash}`); */
+          const href = withdrawNftLink.getAttribute('href');
           _pushState(href);
         });
       }
