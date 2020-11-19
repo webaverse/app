@@ -574,32 +574,32 @@ const _setUrl = async u => {
       if (currentUrl !== u) return;
 
       _setStoreHtml(`\
-        <a href="/" class=switch-network-link>Switch to sidechain</a>
-        <input type=button id=connect-metamask-button value="Connect Metamask">
-        <section id=connect-mainnet-section>
-          <h2>Address</h2>
-          <div id=eth-address>0x</div>
-          <h2>Balance</h2>
-          <div id=eth-balance>-</div>
-          <h2>Tokens</h2>
-          <div id=eth-tokens>Loading...</div>
-          <div class="token-forms hidden">
-            <form id=eth-ft-form>
-              <h2>FT</h2>
-              <textarea id=eth-ft-amount placeholder="amount"></textarea>
-              <input type=submit id=eth-ft-button value="Move FT to Sidechain >">
-            </form>
-            <form id=eth-nft-form>
-              <h2>NFT</h2>
-              <textarea id=eth-nft-id placeholder="id"></textarea>
-              <input type=submit id=eth-nft-button value="Move NFT to Sidechain >">
-            </form>
-          </div>
-        </section>
         <section>
-          <div class="content2">
-            <ul class=items id=items></ul>
-          </div>
+          <a href="/" class=switch-network-link>Switch to sidechain</a>
+          <input type=button id=connect-metamask-button value="Connect Metamask">
+          <section id=connect-mainnet-section>
+            <h2>Address</h2>
+            <div id=eth-address>0x</div>
+            <h2>Balance</h2>
+            <div id=eth-balance>-</div>
+            <div class="token-forms hidden">
+              <form id=eth-ft-form>
+                <h2>FT</h2>
+                <input type=number id=eth-ft-amount value=1 min=1 max=100>
+                <input type=submit id=eth-ft-button value="Move FT to Sidechain >">
+              </form>
+              <form id=eth-nft-form>
+                <h2>NFT</h2>
+                <textarea id=eth-nft-id placeholder="id"></textarea>
+                <input type=submit id=eth-nft-button value="Move NFT to Sidechain >">
+              </form>
+            </div>
+          </section>
+          <section>
+            <div class="content2">
+              <ul class=items id=items></ul>
+            </div>
+          </section>
         </section>
       `);
 
@@ -618,6 +618,7 @@ const _setUrl = async u => {
               <div class=detail-2>${owner.address}</div>
               <div class=detail-3>${file.properties.hash.slice(2)}</div>
             </div>
+            <div class=bottom>(<a href="/withdraw/${file.id}" class=widthdraw-nft-link>deposit</a>)</div>
           </li>
         `;
       }).join('\n');
@@ -664,7 +665,6 @@ const _setUrl = async u => {
             const tokens = await res.json();
             // console.log('got tokens', tokens);
 
-            ethTokensEl.innerHTML = '';
             for (const token of tokens) {
               const el = document.createElement('div');
               el.classList.add('token');
