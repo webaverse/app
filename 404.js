@@ -582,7 +582,7 @@ const _setUrl = async u => {
             <div id=eth-address>0x</div>
             <h2>Balance</h2>
             <div id=eth-balance>-</div>
-            <div class="token-forms hidden">
+            <div class=token-forms>
               <form id=eth-ft-form>
                 <h2>FT</h2>
                 <input type=number id=eth-ft-amount value=1 min=1 max=100>
