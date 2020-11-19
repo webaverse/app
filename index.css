@@ -2253,6 +2253,9 @@ footer {
 .store .items li.big {
   --size: 300px;
 }
+.store .items li.small {
+  --size: 150px;
+}
 .store .items li .title {
   display: inline-block;
   width: calc(var(--size) - 20px*2 - 5px*2);

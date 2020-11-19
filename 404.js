@@ -141,7 +141,7 @@ const _setUrl = async u => {
   currentUrl = u;
 
   let match;
-  if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0-9]+))?)?(?:\/(mint))?(?:\/(mainnet))?(?:\/(withdraw)(?:\/([0-9]+))?)?(?:\/)?$/i)) {
+  if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0-9]+))?)?(?:\/(mint))?(?:\/(mainnet)(?:\/(deposit)(?:\/([0-9]+))?)?)?(?:\/(withdraw)(?:\/([0-9]+))?)?(?:\/)?$/i)) {
     // _ensureStore();
 
     const store = !!match[1];
@@ -151,8 +151,10 @@ const _setUrl = async u => {
     const tokenId = match[5];
     const mint = match[6];
     const mainnet = match[7];
-    const withdraw = match[8];
-    const withdrawId = match[9];
+    const deposit = match[8];
+    const mainnetTokenId = match[9];
+    const withdraw = match[10];
+    const withdrawId = match[11];
 
     if (store) { // store
       const res = await fetch('https://store.webaverse.com/');
@@ -545,6 +547,135 @@ const _setUrl = async u => {
       });
       
       _selectTabIndex(0);
+    } else if (mainnetTokenId) { // mainnet item
+      /* _setStoreHtml(`\
+        <section id=iframe-container></section>
+      `); */
+
+      const res = await fetch('https://tokens.webaverse.com/' + mainnetTokenId);
+      const file = await res.json();
+      
+      let username = await contracts['sidechain'].Account.methods.getMetadata(myAddress, 'name').call();
+      if (!username) {
+        username = 'Anonymous';
+      }
+      let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(myAddress, 'avatarPreview').call();
+      if (!avatarPreview) {
+        avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
+      }
+
+      if (currentUrl !== u) return;
+
+      _setStoreHtml(`\
+        <section>
+          <form id=sidechain-withdraw-form>
+            <input type=submit id=sidechain-nft-button value="Deposit to Sidechain">
+          </form>
+          <section class=profile>
+            <ul class=items>
+              <li class="item card small" tokenid="${file.id}" filename="${file.properties.filename}">
+                <div class=title>${file.properties.filename}</div>
+                <a href="/items/${file.id}" class="anchor" id=item-anchor>
+                  <img src="${file.image}" class="preview">
+                </a>
+                <div class="wrap">
+                  <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+                  <div class=detail-1>${username}</div>
+                  <div class=detail-2>${myAddress}</div>
+                  <div class=detail-3>${file.properties.hash.slice(2)}</div>
+                </div>
+              </li>
+            </ul>
+            <!-- <a href="edit.html" class=big-button>Goto HomeSpace</a> -->
+            <!-- <button class=big-button>Mint NFT...</button>
+            <button class=big-button>Withdraw to mainnet...</button> -->
+          </section>
+        </section>
+      `);
+      
+      const anchor = document.getElementById('item-anchor');
+      anchor.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const href = anchor.getAttribute('href');
+         _pushState(href);
+      });
+      
+      // _setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
+      _selectTabIndex(3);
+    } else if (deposit) {
+      const balance = await contracts['sidechain'].FT.methods.balanceOf(myAddress).call();
+
+      if (currentUrl !== u) return;
+
+      _setStoreHtml(`\
+        <form id=sidechain-withdraw-form>
+          <h2>Deposit FT</h2>
+          <div>${balance} FT</div>
+          <input type=number id=sidechain-ft-amount value=1 min=1 max=100>
+          <input type=submit id=sidechain-ft-button value="Deposit FTs to sidechain">
+        </form>
+      `);
+
+      const withdrawForm = document.getElementById('sidechain-withdraw-form');
+      const sidechainFtAmountInput = document.getElementById('sidechain-ft-amount');
+      const sidechainFtButton = document.getElementById('sidechain-ft-button');
+      withdrawForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        sidechainFtButton.disabled = true;
+
+        const amt = parseInt(sidechainFtAmountInput.value, 10);
+        if (!isNaN(amt)) {
+          const ftAmount = {
+            t: 'uint256',
+            v: new web3['sidechain'].utils.BN(amt),
+          };
+          
+          // approve on sidechain
+          const receipt0 = await runSidechainTransaction('FT', 'approve', FTProxyAddressSidechain, ftAmount.v);
+          
+          // deposit on sidechain
+          const receipt = await runSidechainTransaction('FTProxy', 'deposit', address, ftAmount.v);
+          console.log('got receipt', receipt);
+
+          // get sidechain deposit receipt signature
+          const signature = await getTransactionSignature('sidechain', 'FT', receipt.transactionHash);
+          const {amount, timestamp, r, s, v} = signature;
+          /* const {transactionHash} = receipt;
+          const timestamp = {
+            t: 'uint256',
+            // v: new web3.utils.BN(Date.now()),
+            v: transactionHash,
+          };
+          const chainId = {
+            t: 'uint256',
+            v: new web3.utils.BN(1),
+          };
+          const message = web3.utils.encodePacked(address, amount, timestamp, chainId);
+          const hashedMessage = web3.utils.sha3(message);
+          const sgn = await web3.eth.personal.sign(hashedMessage, address);
+          const r = sgn.slice(0, 66);
+          const s = '0x' + sgn.slice(66, 130);
+          const v = '0x' + sgn.slice(130, 132);
+          console.log('got', JSON.stringify({r, s, v}, null, 2)); */
+
+          // withdraw receipt signature on main chain
+          await contracts.main.FTProxy.methods.withdraw(address, amount, timestamp, r, s, v).send({
+            from: address,
+          });
+          
+          console.log('OK');
+        } else {
+          console.log('failed to parse', JSON.stringify(sidechainFtAmountInput.value));
+        }
+        
+        sidechainFtButton.disabled = false;
+      });
+
+      _selectTabIndex(0);
     } else if (mainnet) { // mainnet
       if (networkType !== 'rinkeby') {
         document.write(`network is ${networkType}; switch to Rinkeby`);
@@ -581,18 +712,9 @@ const _setUrl = async u => {
             <h2>Address</h2>
             <div id=eth-address>0x</div>
             <h2>Balance</h2>
-            <div id=eth-balance>-</div>
-            <div class=token-forms>
-              <form id=eth-ft-form>
-                <h2>FT</h2>
-                <input type=number id=eth-ft-amount value=1 min=1 max=100>
-                <input type=submit id=eth-ft-button value="Move FT to Sidechain >">
-              </form>
-              <form id=eth-nft-form>
-                <h2>NFT</h2>
-                <textarea id=eth-nft-id placeholder="id"></textarea>
-                <input type=submit id=eth-nft-button value="Move NFT to Sidechain >">
-              </form>
+            <div>
+              <span id=eth-balance>-</span>
+              <span class=bottom>(<a href="/mainnet/deposit" id=widthdraw-ft-link>deposit</a>)</span>
             </div>
           </section>
           <section>
@@ -618,7 +740,7 @@ const _setUrl = async u => {
               <div class=detail-2>${owner.address}</div>
               <div class=detail-3>${file.properties.hash.slice(2)}</div>
             </div>
-            <div class=bottom>(<a href="/withdraw/${file.id}" class=widthdraw-nft-link>deposit</a>)</div>
+            <div class=bottom>(<a href="/mainnet/deposit/${file.id}" class=widthdraw-nft-link>deposit</a>)</div>
           </li>
         `;
       }).join('\n');
@@ -634,7 +756,26 @@ const _setUrl = async u => {
           const href = anchor.getAttribute('href');
           _pushState(href);
         });
+
+        const withdrawNftLink = item.querySelector('.widthdraw-nft-link');
+        withdrawNftLink.addEventListener('click', e => {
+          e.preventDefault();
+          /* const hash = item.getAttribute('hash');
+          const filename = item.getAttribute('filename');
+          _pushState(`/items/0x${hash}`); */
+          const href = withdrawNftLink.getAttribute('href');
+          _pushState(href);
+        });
       }
+      
+      const withdrawFtLink = document.querySelector('#widthdraw-ft-link');
+      withdrawFtLink.addEventListener('click', e => {
+        e.preventDefault();
+        // e.stopPropagation();
+        
+        const href = e.target.getAttribute('href');
+        _pushState(href);
+      });
       
       const switchNetworkLink = document.querySelector('.switch-network-link');
       switchNetworkLink.addEventListener('click', e => {
@@ -716,13 +857,59 @@ const _setUrl = async u => {
       
       _selectTabIndex(0);
     } else if (withdrawId) {
+      /* _setStoreHtml(`\
+        <section id=iframe-container></section>
+      `); */
+
+      const res = await fetch('https://tokens.webaverse.com/' + withdrawId);
+      const file = await res.json();
+      
+      let username = await contracts['sidechain'].Account.methods.getMetadata(myAddress, 'name').call();
+      if (!username) {
+        username = 'Anonymous';
+      }
+      let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(myAddress, 'avatarPreview').call();
+      if (!avatarPreview) {
+        avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
+      }
+
+      if (currentUrl !== u) return;
+
       _setStoreHtml(`\
-        <form id=sidechain-withdraw-form>
-          <h2>Withdraw</h2>
-          <div>NFT ${withdrawId}</div>
-          <input type=submit id=sidechain-nft-button value="Withdraw NFT">
-        </form>
+        <section>
+          <form id=sidechain-withdraw-form>
+            <input type=submit id=sidechain-nft-button value="Deposit to Sidechain">
+          </form>
+          <section class=profile>
+            <ul class=items>
+              <li class="item card small" tokenid="${file.id}" filename="${file.properties.filename}">
+                <div class=title>${file.properties.filename}</div>
+                <a href="/items/${file.id}" class="anchor" id=item-anchor>
+                  <img src="${file.image}" class="preview">
+                </a>
+                <div class="wrap">
+                  <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png" class="avatar">
+                  <div class=detail-1>${username}</div>
+                  <div class=detail-2>${myAddress}</div>
+                  <div class=detail-3>${file.properties.hash.slice(2)}</div>
+                </div>
+              </li>
+            </ul>
+            <!-- <a href="edit.html" class=big-button>Goto HomeSpace</a> -->
+            <!-- <button class=big-button>Mint NFT...</button>
+            <button class=big-button>Withdraw to mainnet...</button> -->
+          </section>
+        </section>
       `);
+      
+      const anchor = document.getElementById('item-anchor');
+      anchor.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const href = anchor.getAttribute('href');
+         _pushState(href);
+      });
 
       const withdrawForm = document.getElementById('sidechain-withdraw-form');
       const sidechainNftButton = document.getElementById('sidechain-nft-button');
@@ -802,10 +989,10 @@ const _setUrl = async u => {
 
       _setStoreHtml(`\
         <form id=sidechain-withdraw-form>
-          <h2>Withdraw</h2>
+          <h2>Withdraw FT</h2>
           <div>${balance} FT</div>
           <input type=number id=sidechain-ft-amount value=1 min=1 max=100>
-          <input type=submit id=sidechain-ft-button value="Withdraw FTs">
+          <input type=submit id=sidechain-ft-button value="Withdraw FTs from mainnet">
         </form>
       `);
 
