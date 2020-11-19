@@ -138,7 +138,7 @@ const _setUrl = async u => {
   currentUrl = u;
 
   let match;
-  if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0-9]+))?)?(?:\/(mint))?(?:\/(withdraw))?(?:\/)?$/i)) {
+  if (match = u.match(/^(?:\/(store))?(?:\/(users)(?:\/([0xa-f0-9]+))?)?(?:\/(items)(?:\/([0-9]+))?)?(?:\/(mint))?(?:\/(withdraw)(?:\/([0-9]+))?)?(?:\/)?$/i)) {
     // _ensureStore();
 
     const store = !!match[1];
@@ -148,6 +148,7 @@ const _setUrl = async u => {
     const tokenId = match[5];
     const mint = match[6];
     const withdraw = match[7];
+    const withdrawId = match[8];
 
     if (store) { // store
       const res = await fetch('https://store.webaverse.com/');
@@ -540,18 +541,50 @@ const _setUrl = async u => {
       });
       
       _selectTabIndex(0);
+    } else if (withdrawId) {
+      _setStoreHtml(`\
+        <form id=sidechain-withdraw-form>
+          <h2>Withdraw</h2>
+          <div>NFT ${withdrawId}</div>
+          <input type=submit id=sidechain-withdraw-button value="Withdraw NFT">
+        </form>
+      `);
+
+      const withdrawForm = document.getElementById('sidechain-withdraw-form');
+      withdrawForm.addEventListener('submit', e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const tokenId = parseInt(withdrawId, 10);
+
+        console.log('withdraw nft', tokenId);
+      });
+      
+      _selectTabIndex(0);
     } else if (withdraw) {
       const balance = await contracts['sidechain'].FT.methods.balanceOf(myAddress).call();
+
+      if (currentUrl !== u) return;
 
       _setStoreHtml(`\
         <form id=sidechain-withdraw-form>
           <h2>Withdraw</h2>
           <div>${balance} FT</div>
           <input type=number id=sidechain-withdraw-value value=1 min=1 max=100>
-          <input type=submit id=sidechain-withdraw-button value="Withdraw">
+          <input type=submit id=sidechain-withdraw-button value="Withdraw FTs">
         </form>
       `);
-      
+
+      const withdrawForm = document.getElementById('sidechain-withdraw-form');
+      withdrawForm.addEventListener('submit', e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const value = document.getElementById('sidechain-withdraw-value').value;
+
+        console.log('withdraw ft', value);
+      });
+
       _selectTabIndex(0);
     } else { // home
       let username = await contracts['sidechain'].Account.methods.getMetadata(myAddress, 'name').call();
@@ -629,6 +662,7 @@ const _setUrl = async u => {
             <div class=detail-2>${myAddress}</div>
             <div class=detail-3>${file.properties.hash.slice(2)}</div>
           </div>
+          <div class=bottom>(<a href="/withdraw/${file.id}" class=widthdraw-nft-link>withdraw</a>)</div>
         </li>
       `).join('\n');
       const items = Array.from(itemsEl.querySelectorAll('.item'));
