@@ -2233,6 +2233,7 @@ footer {
 .store .items li {
   --size: 200px;
   display: inline-flex;
+  position: relative;
   width: var(--size);
   height: calc(var(--size) / 6.3 * 8.8); /* pokemon card dimensions */
   margin: 10px;
@@ -2295,6 +2296,12 @@ footer {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.store .items li .bottom {
+  position: absolute;
+  bottom: -20px;
+  right: 0;
+}
+
 .store .profile .favorites {
   display: flex;
   margin-bottom: 20px;
