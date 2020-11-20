@@ -2,13 +2,13 @@ import inventory from './inventory.js';
 // import * as blockchain from './blockchain.js';
 import {tryLogin, loginManager} from './login.js';
 import storage from './storage.js';
+import {web3, contracts, getAddressFromMnemonic, runSidechainTransaction, getTransactionSignature} from './blockchain.js';
 // import Web3 from './web3.min.js';
 import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 const {Transaction, Common} = ethereumJsTx;
-import {web3, contracts, getAddressFromMnemonic} from './blockchain.js';
 
 const web3SidechainEndpoint = 'https://ethereum.exokit.org';
 const storageHost = 'https://storage.exokit.org';
@@ -536,7 +536,7 @@ const _setUrl = async u => {
             v: new web3['sidechain'].utils.BN(sidechainMintCount.value),
           };
           
-          const receipt = await runSidechainTransaction('NFT', 'mint', myAddress, hash.v, filename.v, count.v);
+          const receipt = await runSidechainTransaction(loginManager.getMnemonic())('NFT', 'mint', myAddress, hash.v, filename.v, count.v);
           console.log('minted', receipt);
           // sidechainNftIdInput.value = new web3['sidechain'].utils.BN(receipt.logs[0].topics[3].slice(2), 16).toNumber();
         } else {
@@ -635,10 +635,10 @@ const _setUrl = async u => {
           };
           
           // approve on sidechain
-          const receipt0 = await runSidechainTransaction('FT', 'approve', FTProxyAddressSidechain, ftAmount.v);
+          const receipt0 = await runSidechainTransaction(loginManager.getMnemonic())('FT', 'approve', contracts['sidechain'].FTProxy._address, ftAmount.v);
           
           // deposit on sidechain
-          const receipt = await runSidechainTransaction('FTProxy', 'deposit', address, ftAmount.v);
+          const receipt = await runSidechainTransaction(loginManager.getMnemonic())('FTProxy', 'deposit', address, ftAmount.v);
           console.log('got receipt', receipt);
 
           // get sidechain deposit receipt signature
@@ -939,10 +939,10 @@ const _setUrl = async u => {
           console.log('got filename hash', hash, filename);
 
           // approve on sidechain
-          const receipt0 = await runSidechainTransaction('NFT', 'setApprovalForAll', NFTProxyAddressSidechain, true);
+          const receipt0 = await runSidechainTransaction(loginManager.getMnemonic())('NFT', 'setApprovalForAll', contracts['sidechain'].NFTProxy._address, true);
           
           // deposit on sidechain
-          const receipt = await runSidechainTransaction('NFTProxy', 'deposit', address, tokenId.v);
+          const receipt = await runSidechainTransaction(loginManager.getMnemonic())('NFTProxy', 'deposit', address, tokenId.v);
           console.log('got receipt', receipt);
 
           // get sidechain deposit receipt signature
@@ -992,7 +992,7 @@ const _setUrl = async u => {
           <h2>Withdraw FT</h2>
           <div>${balance} FT</div>
           <input type=number id=sidechain-ft-amount value=1 min=1 max=100>
-          <input type=submit id=sidechain-ft-button value="Withdraw FTs from mainnet">
+          <input type=submit id=sidechain-ft-button value="Withdraw FTs to mainnet">
         </form>
       `);
 
@@ -1013,11 +1013,12 @@ const _setUrl = async u => {
           };
           
           // approve on sidechain
-          const receipt0 = await runSidechainTransaction('FT', 'approve', FTProxyAddressSidechain, ftAmount.v);
+          // console.log('got addr', ['FT', 'approve', contracts['sidechain'].FTProxy._address, ftAmount.v], mainnetAddress);
+          const receipt0 = await runSidechainTransaction(loginManager.getMnemonic())('FT', 'approve', contracts['sidechain'].FTProxy._address, ftAmount.v);
           
           // deposit on sidechain
-          const receipt = await runSidechainTransaction('FTProxy', 'deposit', address, ftAmount.v);
-          console.log('got receipt', receipt);
+          const receipt = await runSidechainTransaction(loginManager.getMnemonic())('FTProxy', 'deposit', mainnetAddress, ftAmount.v);
+          // console.log('got receipt', receipt);
 
           // get sidechain deposit receipt signature
           const signature = await getTransactionSignature('sidechain', 'FT', receipt.transactionHash);
@@ -1041,8 +1042,8 @@ const _setUrl = async u => {
           console.log('got', JSON.stringify({r, s, v}, null, 2)); */
 
           // withdraw receipt signature on main chain
-          await contracts.main.FTProxy.methods.withdraw(address, amount, timestamp, r, s, v).send({
-            from: address,
+          await contracts.main.FTProxy.methods.withdraw(mainnetAddress, amount, timestamp, r, s, v).send({
+            from: mainnetAddress,
           });
           
           console.log('OK');

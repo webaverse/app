@@ -39,20 +39,43 @@ const contracts = {
   },
 };
 
-const runSidechainTransaction = async (contractName, method, ...args) => {
-  const {mnemonic} = loginToken;
-  const wallet = _getWalletFromMnemonic(mnemonic);
+const transactionQueue = {
+  running: false,
+  queue: [],
+  lock() {
+    if (!this.running) {
+      this.running = true;
+      return Promise.resolve();
+    } else {
+      const promise = makePromise();
+      this.queue.push(promise.accept);
+      return promise;
+    }
+  },
+  unlock() {
+    this.running = false;
+    if (this.queue.length > 0) {
+      this.queue.shift()();
+    }
+  },
+};
+const runSidechainTransaction = mnemonic => async (contractName, method, ...args) => {
+  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
+  const address = wallet.getAddressString();
+  // console.log('got mnem', mnemonic, address);
   const privateKey = wallet.getPrivateKeyString();
   const privateKeyBytes = Uint8Array.from(web3['sidechain'].utils.hexToBytes(privateKey));
 
   const txData = contracts['sidechain'][contractName].methods[method](...args);
   const data = txData.encodeABI();
   const gas = await txData.estimateGas({
-    from: myAddress,
+    from: address,
   });
   let gasPrice = await web3['sidechain'].eth.getGasPrice();
   gasPrice = parseInt(gasPrice, 10);
-  const nonce = await web3['sidechain'].eth.getTransactionCount(myAddress);
+
+  await transactionQueue.lock();
+  const nonce = await web3['sidechain'].eth.getTransactionCount(address);
   let tx = Transaction.fromTxData({
     to: contracts['sidechain'][contractName]._address,
     nonce: '0x' + new web3['sidechain'].utils.BN(nonce).toString(16),
@@ -74,8 +97,23 @@ const runSidechainTransaction = async (contractName, method, ...args) => {
   const rawTx = '0x' + tx.serialize().toString('hex');
   // console.log('signed tx', tx, rawTx);
   const receipt = await web3['sidechain'].eth.sendSignedTransaction(rawTx);
-  // console.log('sent tx', receipt);
+  transactionQueue.unlock();
   return receipt;
+};
+const getTransactionSignature = async (chainName, contractName, transactionHash) => {
+  const u = `https://sign.exokit.org/${chainName}/${contractName}/${transactionHash}`;
+  for (let i = 0; i < 10; i++) {
+    const signature = await fetch(u).then(res => res.json());
+    // console.log('got sig', u, signature);
+    if (signature) {
+      return signature;
+    } else {
+      await new Promise((accept, reject) => {
+        setTimeout(accept, 1000);
+      });
+    }
+  }
+  return null;
 };
 
 const _getWalletFromMnemonic = mnemonic => hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic))
@@ -88,5 +126,6 @@ export {
   web3,
   contracts,
   runSidechainTransaction,
+  getTransactionSignature,
   getAddressFromMnemonic,
 };
