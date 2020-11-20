@@ -17,7 +17,16 @@ let mainnetAddress = null;
 
 (async () => {
 
-const networkType = await web3['main'].eth.net.getNetworkType();
+let networkType;
+try {
+  networkType = await web3['main'].eth.net.getNetworkType();
+  if (networkType !== 'rinkeby') {
+      document.write(`network is ${networkType}; switch to Rinkeby`);
+      return;
+  }
+} catch(err) {
+  // console.warn(err.stack);
+}
 
 const _renderHeader = () => {
   const div = document.createElement('header');
@@ -677,11 +686,6 @@ const _setUrl = async u => {
 
       _selectTabIndex(0);
     } else if (mainnet) { // mainnet
-      if (networkType !== 'rinkeby') {
-        document.write(`network is ${networkType}; switch to Rinkeby`);
-        return;
-      }
-    
       const files = await inventory.getFiles(0, 100);
       
       const owners = await Promise.all(files.map(async file => {
