@@ -720,7 +720,6 @@ const _setUrl = async u => {
       _setStoreHtml(`\
         <section>
           <a href="/" class=switch-network-link>Switch to sidechain</a>
-          <input type=button id=connect-metamask-button value="Connect Metamask">
           <section id=connect-mainnet-section>
             <h2>Address</h2>
             <div id=eth-address>0x</div>
