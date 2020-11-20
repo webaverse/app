@@ -14,85 +14,7 @@ import {makePromise} from './util.js';
 
 // const usersEndpoint = 'https://users.exokit.org';
 
-const _clone = o => JSON.parse(JSON.stringify(o));
-
-const getTransactionSignature = async (chainName, contractName, transactionHash) => {
-  const u = `https://sign.exokit.org/${chainName}/${contractName}/${transactionHash}`;
-  for (let i = 0; i < 10; i++) {
-    const signature = await fetch(u).then(res => res.json());
-    // console.log('got sig', u, signature);
-    if (signature) {
-      return signature;
-    } else {
-      await new Promise((accept, reject) => {
-        setTimeout(accept, 1000);
-      });
-    }
-  }
-  return null;
-};
-const transactionQueue = {
-  running: false,
-  queue: [],
-  lock() {
-    if (!this.running) {
-      this.running = true;
-      return Promise.resolve();
-    } else {
-      const promise = makePromise();
-      this.queue.push(promise.accept);
-      return promise;
-    }
-  },
-  unlock() {
-    this.running = false;
-    if (this.queue.length > 0) {
-      this.queue.shift()();
-    }
-  },
-};
-const runTransaction = async (contractName, method, ...args) => {
-  const {mnemonic} = loginToken;
-  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-  const address = wallet.getAddressString();
-  // console.log('got mnem', mnemonic, address);
-  const privateKey = wallet.getPrivateKeyString();
-  const privateKeyBytes = Uint8Array.from(web3.utils.hexToBytes(privateKey));
-
-  const txData = contracts['sidechain'][contractName].methods[method](...args);
-  const data = txData.encodeABI();
-  const gas = await txData.estimateGas({
-    from: address,
-  });
-  let gasPrice = await web3.eth.getGasPrice();
-  gasPrice = parseInt(gasPrice, 10);
-
-  await transactionQueue.lock();
-  const nonce = await web3.eth.getTransactionCount(address);
-  let tx = Transaction.fromTxData({
-    to: contracts['sidechain'][contractName]._address,
-    nonce: '0x' + new web3.utils.BN(nonce).toString(16),
-    gas: '0x' + new web3.utils.BN(gasPrice).toString(16),
-    gasPrice: '0x' + new web3.utils.BN(gasPrice).toString(16),
-    gasLimit: '0x' + new web3.utils.BN(8000000).toString(16),
-    data,
-  }, {
-    common: Common.forCustomChain(
-      'mainnet',
-      {
-        name: 'geth',
-        networkId: 1,
-        chainId: 1337,
-      },
-      'petersburg',
-    ),
-  }).sign(privateKeyBytes);
-  const rawTx = '0x' + tx.serialize().toString('hex');
-  // console.log('signed tx', tx, rawTx);
-  const receipt = await web3.eth.sendSignedTransaction(rawTx);
-  transactionQueue.unlock();
-  return receipt;
-};
+// const _clone = o => JSON.parse(JSON.stringify(o));
 
 let loginToken = null;
 let userObject = null;
@@ -286,7 +208,7 @@ async function tryLogin() {
       const newUserName = userName.innerText;
       if (newUserName !== oldUserName) {
         const address = this.getAddress();
-        await runTransaction('Account', 'setMetadata', address, 'name', name);
+        await runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'name', name);
         /* const contractSource = await getContractSource('setUserData.cdc');
 
         const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
@@ -479,9 +401,9 @@ class LoginManager extends EventTarget {
       const preview = `${previewHost}/${hash.slice(2)}.${ext}/preview.${previewExt}`;
       const address = this.getAddress();
       await Promise.all([
-        runTransaction('Account', 'setMetadata', address, 'avatarUrl', url),
-        runTransaction('Account', 'setMetadata', address, 'avatarFileName', filename),
-        runTransaction('Account', 'setMetadata', address, 'avatarPreview', preview),
+        runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarUrl', url),
+        runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarFileName', filename),
+        runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarPreview', preview),
       ]);
       /* {
         const contractSource = await getContractSource('setUserDataMulti.cdc');
@@ -524,11 +446,11 @@ class LoginManager extends EventTarget {
     const avatarPreview = `${previewHost}/[${avatarUrl}]/preview.${previewExt}`;
 
     await Promise.all([
-      runTransaction('Account', 'setMetadata', address, 'name', name),
-      runTransaction('Account', 'setMetadata', address, 'avatarUrl', avatarUrl),
-      runTransaction('Account', 'setMetadata', address, 'avatarFileName', avatarUrl),
-      runTransaction('Account', 'setMetadata', address, 'avatarPreview', avatarPreview),
-      runTransaction('Account', 'setMetadata', address, 'ftu', '1'),
+      runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'name', name),
+      runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarUrl', avatarUrl),
+      runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarFileName', avatarUrl),
+      runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarPreview', avatarPreview),
+      runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'ftu', '1'),
     ]);
     // console.log('wrote all tx');
     /* const contractSource = await getContractSource('setUserDataMulti.cdc');
