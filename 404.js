@@ -19,13 +19,22 @@ let mainnetAddress = null;
 
 let networkType;
 try {
-  networkType = await web3['main'].eth.net.getNetworkType();
-  if (networkType !== 'rinkeby') {
+  if (window.ethereum) {
+    await window.ethereum.enable();
+
+    networkType = await web3['main'].eth.net.getNetworkType();
+    if (networkType === 'rinkeby') {
+      mainnetAddress = web3['main'].currentProvider.selectedAddress;
+    } else {
       document.write(`network is ${networkType}; switch to Rinkeby`);
       return;
+    }
+  } else {
+    networkType = null;
   }
 } catch(err) {
   // console.warn(err.stack);
+  networkType = null;
 }
 
 const _renderHeader = () => {
@@ -789,75 +798,55 @@ const _setUrl = async u => {
         _pushState(href);
       });
 
-      const mainnetSection = document.getElementById('connect-mainnet-section');
-      const connectMetamaskButton = document.getElementById('connect-metamask-button');
-      const _connectMetamask = async () => {
-        try {
-          await window.ethereum.enable();
-          mainnetAddress = web3['main'].currentProvider.selectedAddress;
-          mainnetSection.classList.remove('hidden');
-          connectMetamaskButton.classList.add('hidden');
+      if (mainnetAddress) {
+        const mainnetSection = document.getElementById('connect-mainnet-section');
+        const ethAddressEl = document.getElementById('eth-address');
+        const ethBalanceEl = document.getElementById('eth-balance');
+        const ethTokensEl = document.getElementById('eth-tokens');
 
-          {
-            ethAddressEl.innerText = mainnetAddress;
-          }
-          {
-            const ftBalance = await contracts['main'].FT.methods.balanceOf(mainnetAddress).call()
-            ethBalanceEl.innerText = ftBalance;
-          }
-          {
-            const res = await fetch(`https://tokens-main.webaverse.com/${mainnetAddress}`);
-            const tokens = await res.json();
-            // console.log('got tokens', tokens);
+        mainnetSection.classList.remove('hidden');
+        // connectMetamaskButton.classList.add('hidden');
 
-            for (const token of tokens) {
-              const el = document.createElement('div');
-              el.classList.add('token');
-              if (ethNftIdInput.value === token.id) {
-                el.classList.add('selected');
-              }
-              el.setAttribute('tokenid', token.id);
-              el.innerHTML = `
-                <img src="${token.image}">
-                <div class=wrap>
-                  <a href="https://storage.exokit.org/${token.properties.hash.slice(2)}/${token.properties.filename}" class=filename>${escape(token.properties.filename)}</a>
-                  <a href="${openSeaUrlPrefix}/${contracts.main.NFT.address}/${token.id}/" class=hash>${token.id}. ${token.properties.hash} (${token.balance}/${token.totalSupply})</a>
-                  <div class=ext>${escape(token.properties.ext || '')}</div>
-                </div>
-              `;
-              el.addEventListener('click', e => {
-                ethNftIdInput.value = ethNftIdInput.value !== token.id ? token.id : '';
-                ethNftIdInput.dispatchEvent(new KeyboardEvent('input'));
-              });
-              ethTokensEl.appendChild(el);
-            }
-            if (address && sidechainAddress) {
-              Array.from(document.querySelectorAll('.token-forms')).forEach(formEl => {
-                formEl.classList.remove('hidden');
-              });
-            }
-          }
-        } catch (err) {
-          console.warn(err);
+        {
+          ethAddressEl.innerText = mainnetAddress;
         }
-      };
-      connectMetamaskButton.addEventListener('click', _connectMetamask);
-      
-      const ethAddressEl = document.getElementById('eth-address');
-      const ethBalanceEl = document.getElementById('eth-balance');
-      const ethTokensEl = document.getElementById('eth-tokens');
-      const sidechainAddressEl = document.getElementById('sidechain-address');
-      const sidechainBalanceEl = document.getElementById('sidechain-balance');
-      const sidechainTokensEl = document.getElementById('sidechain-tokens');
-      /* const ftContractAddressLink = document.getElementById('ft-contract-address-link');
-      const nftContractAddressLink = document.getElementById('nft-contract-address-link');
-      const nftContractOpenSeaLink = document.getElementById('nft-contract-opensea-link');
-      ftContractAddressLink.innerText = contracts.main.FT.address;
-      ftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${contracts.main.FT.address}`;
-      nftContractAddressLink.innerText = contracts.main.NFT.address;
-      nftContractAddressLink.href = `https://${networkType === 'main' ? '' : networkType + '.'}etherscan.io/address/${NFTAddress}`;
-      nftContractOpenSeaLink.href = openSeaUrl; */
-      _connectMetamask().catch(console.warn);
+        {
+          const ftBalance = await contracts['main'].FT.methods.balanceOf(mainnetAddress).call()
+          ethBalanceEl.innerText = ftBalance;
+        }
+        {
+          const res = await fetch(`https://tokens-main.webaverse.com/${mainnetAddress}`);
+          const tokens = await res.json();
+          // console.log('got tokens', tokens);
+
+          for (const token of tokens) {
+            const el = document.createElement('div');
+            el.classList.add('token');
+            if (ethNftIdInput.value === token.id) {
+              el.classList.add('selected');
+            }
+            el.setAttribute('tokenid', token.id);
+            el.innerHTML = `
+              <img src="${token.image}">
+              <div class=wrap>
+                <a href="https://storage.exokit.org/${token.properties.hash.slice(2)}/${token.properties.filename}" class=filename>${escape(token.properties.filename)}</a>
+                <a href="${openSeaUrlPrefix}/${contracts.main.NFT.address}/${token.id}/" class=hash>${token.id}. ${token.properties.hash} (${token.balance}/${token.totalSupply})</a>
+                <div class=ext>${escape(token.properties.ext || '')}</div>
+              </div>
+            `;
+            el.addEventListener('click', e => {
+              ethNftIdInput.value = ethNftIdInput.value !== token.id ? token.id : '';
+              ethNftIdInput.dispatchEvent(new KeyboardEvent('input'));
+            });
+            ethTokensEl.appendChild(el);
+          }
+          if (address && sidechainAddress) {
+            Array.from(document.querySelectorAll('.token-forms')).forEach(formEl => {
+              formEl.classList.remove('hidden');
+            });
+          }
+        }
+      }
       
       _selectTabIndex(0);
     } else if (withdrawId) {
