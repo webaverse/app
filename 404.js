@@ -934,12 +934,12 @@ const _setUrl = async u => {
           const receipt0 = await runSidechainTransaction(loginManager.getMnemonic())('NFT', 'setApprovalForAll', contracts['sidechain'].NFTProxy._address, true);
           
           // deposit on sidechain
-          const receipt = await runSidechainTransaction(loginManager.getMnemonic())('NFTProxy', 'deposit', address, tokenId.v);
-          console.log('got receipt', receipt);
+          const receipt = await runSidechainTransaction(loginManager.getMnemonic())('NFTProxy', 'deposit', mainnetAddress, tokenId.v);
+          // console.log('got receipt', receipt);
 
           // get sidechain deposit receipt signature
           const signature = await getTransactionSignature('sidechain', 'NFT', receipt.transactionHash);
-          console.log('got signature', signature);
+          // console.log('got signature', signature);
           const timestamp = {
             t: 'uint256',
             v: signature.timestamp,
@@ -961,8 +961,8 @@ const _setUrl = async u => {
 
           // withdraw receipt signature on sidechain
           // console.log('main withdraw', [address, tokenId.v.toString(10), hash.v.toString(10), filename, timestamp.v.toString(10), r, s, v]);
-          await contracts.main.NFTProxy.methods.withdraw(address, tokenId.v, hash.v, filename.v, timestamp.v, r, s, v).send({
-            from: address,
+          await contracts.main.NFTProxy.methods.withdraw(mainnetAddress, tokenId.v, hash.v, filename.v, timestamp.v, r, s, v).send({
+            from: mainnetAddress,
           });
           
           console.log('OK');
