@@ -870,7 +870,7 @@ const _setUrl = async u => {
       _setStoreHtml(`\
         <section>
           <form id=sidechain-withdraw-form>
-            <input type=submit id=sidechain-nft-button value="Deposit to Sidechain">
+            <input type=submit id=sidechain-nft-button value="Withdraw to Mainnet">
           </form>
           <section class=profile>
             <ul class=items>
