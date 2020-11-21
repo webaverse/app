@@ -12,6 +12,9 @@ const {Transaction, Common} = ethereumJsTx;
 
 const web3SidechainEndpoint = 'https://ethereum.exokit.org';
 const storageHost = 'https://storage.exokit.org';
+const expectedNetworkType = 'rinkeby';
+const openSeaUrlPrefix = `https://${expectedNetworkType === 'main' ? '' : expectedNetworkType + '.'}opensea.io/assets`;
+const openSeaUrl = `${openSeaUrlPrefix}/m3-v7`;
 // const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=684141574808272937&redirect_uri=https%3A%2F%2Fapp.webaverse.com%2Fdiscordlogin.html&response_type=code&scope=identify`;
 let mainnetAddress = null;
 
@@ -23,7 +26,7 @@ try {
     await window.ethereum.enable();
 
     networkType = await web3['main'].eth.net.getNetworkType();
-    if (networkType === 'rinkeby') {
+    if (expectedNetworkType === 'rinkeby') {
       mainnetAddress = web3['main'].currentProvider.selectedAddress;
     } else {
       document.write(`network is ${networkType}; switch to Rinkeby`);
