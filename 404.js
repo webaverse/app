@@ -698,25 +698,29 @@ const _setUrl = async u => {
 
       _selectTabIndex(0);
     } else if (mainnet) { // mainnet
-      const files = await inventory.getFiles(0, 100);
-      
-      const owners = await Promise.all(files.map(async file => {
-        const address = file.owner;
-        let username = await contracts['sidechain'].Account.methods.getMetadata(address, 'name').call();
-        if (!username) {
-          username = 'Anonymous';
-        }
-        let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(address, 'avatarPreview').call();
-        if (!avatarPreview) {
-          avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
-        }
-        
-        return {
-          address,
-          username,
-          avatarPreview,
-        };
-      }));
+      let files = [], owners = [];
+      if (mainnetAddress) {
+        const res = await fetch(`https://tokens-main.webaverse.com/${mainnetAddress}`);
+        files = await res.json();
+
+        owners = await Promise.all(files.map(async file => {
+          const address = file.owner;
+          let username = await contracts['sidechain'].Account.methods.getMetadata(address, 'name').call();
+          if (!username) {
+            username = 'Anonymous';
+          }
+          let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(address, 'avatarPreview').call();
+          if (!avatarPreview) {
+            avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
+          }
+          
+          return {
+            address,
+            username,
+            avatarPreview,
+          };
+        }));
+      }
       
       if (currentUrl !== u) return;
 
@@ -816,7 +820,7 @@ const _setUrl = async u => {
           const ftBalance = await contracts['main'].FT.methods.balanceOf(mainnetAddress).call()
           ethBalanceEl.innerText = ftBalance;
         }
-        {
+        /* {
           const res = await fetch(`https://tokens-main.webaverse.com/${mainnetAddress}`);
           const tokens = await res.json();
           // console.log('got tokens', tokens);
@@ -824,9 +828,6 @@ const _setUrl = async u => {
           for (const token of tokens) {
             const el = document.createElement('div');
             el.classList.add('token');
-            if (ethNftIdInput.value === token.id) {
-              el.classList.add('selected');
-            }
             el.setAttribute('tokenid', token.id);
             el.innerHTML = `
               <img src="${token.image}">
@@ -836,10 +837,6 @@ const _setUrl = async u => {
                 <div class=ext>${escape(token.properties.ext || '')}</div>
               </div>
             `;
-            el.addEventListener('click', e => {
-              ethNftIdInput.value = ethNftIdInput.value !== token.id ? token.id : '';
-              ethNftIdInput.dispatchEvent(new KeyboardEvent('input'));
-            });
             ethTokensEl.appendChild(el);
           }
           if (address && sidechainAddress) {
@@ -847,7 +844,7 @@ const _setUrl = async u => {
               formEl.classList.remove('hidden');
             });
           }
-        }
+        } */
       }
       
       _selectTabIndex(0);
