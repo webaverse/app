@@ -115,6 +115,20 @@ const _setIframe = u => {
 	  iframeContainer.appendChild(iframe);
 	}
 };
+const _checkMainNftApproved = async () => {
+  const approved = await contracts.main.NFT.methods.isApprovedForAll(mainnetAddress, contracts.main.NFTProxy._address).call();
+
+  if (!approved) {
+    window.alert('First you have to approve the NFT contract to handle tokens. This will only happen once.');
+
+    const receipt1 = await contracts.main.NFT.methods.setApprovalForAll(contracts.main.NFTProxy._address, true).send({
+      from: mainnetAddress,
+    });
+    return receipt1;
+  } else {
+    return null;
+  }
+};
 
 const _set404Html = () => {
   const oldStore = document.querySelector('.store');
@@ -562,7 +576,7 @@ const _setUrl = async u => {
 
       _setStoreHtml(`\
         <section>
-          <form id=sidechain-withdraw-form>
+          <form id=sidechain-deposit-form>
             <input type=submit id=sidechain-nft-button value="Deposit to Sidechain">
           </form>
           <section class=profile>
@@ -595,7 +609,73 @@ const _setUrl = async u => {
         const href = anchor.getAttribute('href');
          _pushState(href);
       });
-      
+
+      const depositForm = document.getElementById('sidechain-deposit-form');
+      const sidechainNftButton = document.getElementById('sidechain-nft-button');
+      depositForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        sidechainNftButton.disabled = true;
+
+        const id = parseInt(mainnetTokenId, 10);
+        const tokenId = {
+          t: 'uint256',
+          v: new web3['main'].utils.BN(id),
+        };
+        
+        const hashSpec = await contracts.main.NFT.methods.getHash(tokenId.v).call();
+        const hash = {
+          t: 'uint256',
+          v: new web3['main'].utils.BN(hashSpec),
+        };
+        const filenameSpec = await contracts.main.NFT.methods.getMetadata(hashSpec, 'filename').call();
+        const filename = {
+          t: 'string',
+          v: filenameSpec,
+        };
+        // console.log('got filename hash', hash, filename);
+
+        // approve on main chain
+        await _checkMainNftApproved();
+        
+        // deposit on main chain
+        const receipt = await contracts.main.NFTProxy.methods.deposit(myAddress, tokenId.v).send({
+          from: mainnetAddress,
+        });
+        // console.log('got receipt', receipt);
+
+        // get main chain deposit receipt signature
+        const signature = await getTransactionSignature('main', 'NFT', receipt.transactionHash);
+        // console.log('got sig', signature);
+        // debugger;
+        const {timestamp, r, s, v} = signature;
+        /* const {transactionHash} = receipt2;
+        const timestamp = {
+          t: 'uint256',
+          v: transactionHash,
+        };
+        const chainId = {
+          t: 'uint256',
+          v: new web3.utils.BN(4),
+        };
+
+        const filenameHash = web3.utils.sha3(filename.v);
+        const message = web3.utils.encodePacked(address, tokenId, hash, filenameHash, timestamp, chainId);
+        const hashedMessage = web3.utils.sha3(message);
+        const sgn = await web3.eth.personal.sign(hashedMessage, address);
+        const r = sgn.slice(0, 66);
+        const s = '0x' + sgn.slice(66, 130);
+        const v = '0x' + sgn.slice(130, 132);
+        console.log('got', JSON.stringify({r, s, v}, null, 2)); */
+
+        // withdraw receipt signature on sidechain
+        // console.log('main withdraw', [address, tokenId.v.toString(10), hash.v.toString(10), filename, timestamp.v.toString(10), r, s, v]);
+        await runSidechainTransaction('NFTProxy', 'withdraw', myAddress, tokenId.v, hash.v, filename.v, timestamp, r, s, v);
+
+        sidechainNftButton.disabled = false;
+      });
+
       // _setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
       _selectTabIndex(3);
     } else if (deposit) {
