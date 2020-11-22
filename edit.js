@@ -403,12 +403,7 @@ scene.add(rayMesh);
     }
     geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3));
     const material = new THREE.ShaderMaterial({
-      uniforms: {
-        /* uTime: {
-          type: 'f',
-          value: 0,
-        }, */
-      },
+      uniforms: {},
       vertexShader: `\
         #define PI 3.1415926535897932384626433832795
 
