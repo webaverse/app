@@ -9,7 +9,7 @@ import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 const {Transaction, Common} = ethereumJsTx;
-import {web3, contracts, getAddressFromMnemonic} from './blockchain.js';
+import {web3, contracts, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
 import {makePromise} from './util.js';
 
 // const usersEndpoint = 'https://users.exokit.org';
