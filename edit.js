@@ -427,11 +427,6 @@ scene.add(rayMesh);
         const vec3 lineColor1 = vec3(${new THREE.Color(0xef5350).toArray().join(', ')});
         const vec3 lineColor2 = vec3(${new THREE.Color(0xff7043).toArray().join(', ')});
 
-        /* float edgeFactor() {
-          vec3 d = fwidth(vBarycentric);
-          vec3 f = step(d * lineWidth, vBarycentric);
-          return min(min(f.x, f.y), f.z);
-        } */
         float gridFactor (vec3 bary, float width, float feather) {
           float w1 = width - feather * 0.5;
           // vec3 bary = vec3(vBC.x, vBC.y, 1.0 - vBC.x - vBC.y);
