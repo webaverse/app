@@ -103,33 +103,6 @@ const _selectTabIndex = index => {
     content2.classList.add('selected'); */
   }
 };
-const _loadContents = () => {
-  /* window.addEventListener('mousemove', e => {
-    let {clientX, clientY, target} = e;
-    target = target.closest('.card');
-    if (target) {
-    	const {x, y, width, height} = target.getBoundingClientRect();
-    	const cx = x + width/2;
-    	const cy = y + height/2;
-    	const dx = (clientX - cx) / width * 30;
-    	const dy = -(clientY - cy) / width * 30;
-    	target.style.transform = `rotateY(${dx}deg) rotateX(${dy}deg)`;
-	  }
-  });
-  window.addEventListener('mouseout', e => {
-  	let {clientX, clientY, target} = e;
-  	target = target.closest('.card');
-    if (target) {
-    	target.style.transform = null;
-	  }
-  }); */
-};
-/* const _ensureStore = () => {
-	if (!document.querySelector('.store')) {
-		_setStoreHtml();
-	  _loadContents();
-	}
-}; */
 const _setIframe = u => {
   return; // XXX
 	const iframeContainer = document.getElementById('iframe-container');
