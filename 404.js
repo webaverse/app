@@ -115,6 +115,26 @@ const _setIframe = u => {
 	  iframeContainer.appendChild(iframe);
 	}
 };
+const _checkMainFtApproved = async amt => {
+  const receipt0 = await contracts.main.FT.methods.allowance(mainnetAddress, contracts.main.FTProxy._address).call();
+  
+  if (receipt0 < amt) {
+    window.alert('First you have to approve the FT contract to handle funds. This will only happen once.');
+    
+    const fullAmount = {
+      t: 'uint256',
+      v: new web3['main'].utils.BN(1e9)
+        .mul(new web3['main'].utils.BN(1e9))
+        .mul(new web3['main'].utils.BN(1e9)),
+    };
+    const receipt1 = await contracts.main.FT.methods.approve(contracts.main.FTProxy._address, fullAmount.v).send({
+      from: mainnetAddress,
+    });
+    return receipt1;
+  } else {
+    return null;
+  }
+};
 const _checkMainNftApproved = async () => {
   const approved = await contracts.main.NFT.methods.isApprovedForAll(mainnetAddress, contracts.main.NFTProxy._address).call();
 
@@ -679,74 +699,58 @@ const _setUrl = async u => {
       // _setIframe(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm`);
       _selectTabIndex(3);
     } else if (deposit) {
-      const balance = await contracts['sidechain'].FT.methods.balanceOf(myAddress).call();
+      const balance = await contracts['main'].FT.methods.balanceOf(mainnetAddress).call();
 
       if (currentUrl !== u) return;
 
       _setStoreHtml(`\
-        <form id=sidechain-withdraw-form>
+        <form id=mainnet-withdraw-form>
           <h2>Deposit FT</h2>
           <div>${balance} FT</div>
-          <input type=number id=sidechain-ft-amount value=1 min=1 max=100>
-          <input type=submit id=sidechain-ft-button value="Deposit FTs to sidechain">
+          <input type=number id=mainnet-ft-amount value=1 min=1 max=100>
+          <input type=submit id=mainnet-ft-button value="Deposit FTs to sidechain">
         </form>
       `);
 
-      const withdrawForm = document.getElementById('sidechain-withdraw-form');
-      const sidechainFtAmountInput = document.getElementById('sidechain-ft-amount');
-      const sidechainFtButton = document.getElementById('sidechain-ft-button');
+      const withdrawForm = document.getElementById('mainnet-withdraw-form');
+      const mainnetFtAmountInput = document.getElementById('mainnet-ft-amount');
+      const mainnetFtButton = document.getElementById('mainnet-ft-button');
       withdrawForm.addEventListener('submit', async e => {
         e.preventDefault();
         e.stopPropagation();
 
-        sidechainFtButton.disabled = true;
+        mainnetFtButton.disabled = true;
 
-        const amt = parseInt(sidechainFtAmountInput.value, 10);
+        const amt = parseInt(mainnetFtAmountInput.value, 10);
         if (!isNaN(amt)) {
           const ftAmount = {
             t: 'uint256',
-            v: new web3['sidechain'].utils.BN(amt),
+            v: new web3['main'].utils.BN(amt),
           };
           
-          // approve on sidechain
-          const receipt0 = await runSidechainTransaction(loginManager.getMnemonic())('FT', 'approve', contracts['sidechain'].FTProxy._address, ftAmount.v);
+          // approve on main chain
+          await _checkMainFtApproved(amt);
           
-          // deposit on sidechain
-          const receipt = await runSidechainTransaction(loginManager.getMnemonic())('FTProxy', 'deposit', address, ftAmount.v);
-          console.log('got receipt', receipt);
-
-          // get sidechain deposit receipt signature
-          const signature = await getTransactionSignature('sidechain', 'FT', receipt.transactionHash);
-          const {amount, timestamp, r, s, v} = signature;
-          /* const {transactionHash} = receipt;
-          const timestamp = {
-            t: 'uint256',
-            // v: new web3.utils.BN(Date.now()),
-            v: transactionHash,
-          };
-          const chainId = {
-            t: 'uint256',
-            v: new web3.utils.BN(1),
-          };
-          const message = web3.utils.encodePacked(address, amount, timestamp, chainId);
-          const hashedMessage = web3.utils.sha3(message);
-          const sgn = await web3.eth.personal.sign(hashedMessage, address);
-          const r = sgn.slice(0, 66);
-          const s = '0x' + sgn.slice(66, 130);
-          const v = '0x' + sgn.slice(130, 132);
-          console.log('got', JSON.stringify({r, s, v}, null, 2)); */
-
-          // withdraw receipt signature on main chain
-          await contracts.main.FTProxy.methods.withdraw(address, amount, timestamp, r, s, v).send({
-            from: address,
+          // deposit on main chain
+          // console.log('deposit', myAddress, amt);
+          const receipt = await contracts.main.FTProxy.methods.deposit(myAddress, ftAmount.v).send({
+            from: mainnetAddress,
           });
+          // console.log('got receipt', receipt);
+
+          // get main chain deposit receipt signature
+          const signature = await getTransactionSignature('main', 'FT', receipt.transactionHash);
+          const {amount, timestamp, r, s, v} = signature;
+
+          // withdraw receipt signature on sidechain
+          const receipt2 = await runSidechainTransaction('FTProxy', 'withdraw', myAddress, amount, timestamp, r, s, v);
           
           console.log('OK');
         } else {
-          console.log('failed to parse', JSON.stringify(sidechainFtAmountInput.value));
+          console.log('failed to parse', JSON.stringify(mainnetFtAmountInput.value));
         }
         
-        sidechainFtButton.disabled = false;
+        mainnetFtButton.disabled = false;
       });
 
       _selectTabIndex(0);
