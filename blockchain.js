@@ -3,6 +3,7 @@ import bip39 from './bip39.js';
 import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
+import {makePromise} from './util.js';
 const {Transaction, Common} = ethereumJsTx;
 import addresses from 'https://contracts.webaverse.com/ethereum/address.js';
 import abis from 'https://contracts.webaverse.com/ethereum/abi.js';
