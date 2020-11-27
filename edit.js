@@ -373,9 +373,9 @@ scene.add(rayMesh);
     ], -1);
   }, 100); */
 
-  // const floorPhysicsId = physicsManager.addBoxGeometry(new THREE.Vector3(0, -1, 0), new THREE.Quaternion(), new THREE.Vector3(100, 1, 100), false);
+  const floorPhysicsId = physicsManager.addBoxGeometry(new THREE.Vector3(0, -1, 0), new THREE.Quaternion(), new THREE.Vector3(100, 1, 100), false);
 
-  {
+  /* {
     const simplex = new MultiSimplex('lol', 6);
     
     let geometry = new THREE.PlaneBufferGeometry(32, 32, 32, 32);
@@ -479,16 +479,16 @@ scene.add(rayMesh);
     cornersMesh.position.y = 1;
     scene.add(cornersMesh);
     anchorMeshes.push(cornersMesh);
-  }
+  } */
 
-  {
+  /* {
     const mesh = await runtime.loadFile({
       name: 'home.scn',
       url: './home.scn',
     });
     mesh.run();
     scene.add(mesh);
-  }
+  } */
 
   /* {
     const u = 'assets/case.glb';
