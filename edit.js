@@ -34,6 +34,7 @@ import inventory from './inventory.js';
 import {App} from './components/App.js';
 import {tryTutorial} from './tutorial.js';
 import {getState, setState} from './state.js';
+import {update as planetUpdate} from './planet.js';
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const pid4 = Math.PI / 4;
