@@ -48,6 +48,7 @@ const importMap = {
   runtime: _importMapUrl('./runtime.js'),
   physicsManager: _importMapUrl('./physics-manager.js'),
   vrUi: _importMapUrl('./vr-ui.js'),
+  crypto: _importMapUrl('./crypto.js'),
   BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
   GLTFLoader: _importMapUrl('./GLTFLoader.js'),
 };
@@ -342,12 +343,13 @@ const _makeAppUrl = appId => {
     import {world} from ${JSON.stringify(importMap.world)};
     import physics from ${JSON.stringify(importMap.physicsManager)};
     import * as ui from ${JSON.stringify(importMap.vrUi)};
+    import * as crypto from ${JSON.stringify(importMap.crypto)};
     const renderer = Object.create(_renderer);
     renderer.setAnimationLoop = function(fn) {
       appManager.setAnimationLoop(${appId}, fn);
     };
     const app = appManager.getApp(${appId});
-    export {renderer, scene, camera, orbitControls, runtime, world, physics, ui, app, appManager};
+    export {renderer, scene, camera, orbitControls, runtime, world, physics, ui, crypto, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
