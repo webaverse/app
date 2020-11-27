@@ -2,7 +2,7 @@ import {web3, contracts, runSidechainTransaction} from './blockchain.js';
 import {loginManager} from './login.js';
 import {storageHost} from './constants.js';
 
-const mintToken = async file => {
+const mintToken = async (file, {description = ''} = {}) => {
   const res = await fetch(storageHost, {
     method: 'POST',
     body: file,
@@ -36,8 +36,8 @@ const mintToken = async file => {
         tokenId = null;
       }
       if (status) {
-        console.log('minting', ['NFT', 'mint', address, '0x' + hash, file.name, 'captured video', quantity]);
-        const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, file.name, 'captured video', quantity);
+        console.log('minting', ['NFT', 'mint', address, '0x' + hash, file.name, description, quantity]);
+        const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, file.name, description, quantity);
         status = result.status;
         transactionHash = result.transactionHash;
         tokenId = new web3['sidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
