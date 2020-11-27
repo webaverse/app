@@ -23385,6 +23385,8 @@ function WebGLRenderer( parameters ) {
 
 	initGLContext();
 
+	this.geometries = geometries;
+
 	// xr
 
 	const xr = new WebXRManager( _this, _gl );
