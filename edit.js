@@ -905,6 +905,8 @@ function animate(timestamp, frame) {
   }
   physicsManager.simulatePhysics(timeDiff);
 
+  planetUpdate();
+
   const _updateRig = () => {
     let hmdPosition, hmdQuaternion;
     let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip;
