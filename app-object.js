@@ -118,8 +118,8 @@ class App extends EventTarget {
     super();
 
     this.appId = appId;
-
     this.files = {};
+    this.object = null;
   }
 }
 
