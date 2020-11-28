@@ -8,7 +8,7 @@ import htm from '/web_modules/htm.js';
 
 const html = htm.bind(React.createElement)
 
-const AssetDetails = (
+const AssetDetails = ({
     id,
     name,
     description,
@@ -27,7 +27,7 @@ const AssetDetails = (
     minterAddress,
     minterUsername,
     networkType
-) => {
+}) => {
     return html`
       <div class="assetDetails">
         <div class="assetDetailsLeftColumn">

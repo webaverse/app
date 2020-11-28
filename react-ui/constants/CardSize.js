@@ -4,3 +4,5 @@ export const CardSize = {
   Medium: "medium",
   Large: "large"
 };
+
+export default CardSize;

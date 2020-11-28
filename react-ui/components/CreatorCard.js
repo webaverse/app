@@ -3,17 +3,17 @@ import htm from '/web_modules/htm.js';
 
 const html = htm.bind(React.createElement)
 
-const Creator = (
+const Creator = ({
   name,
   avatarUrl,
   avatarFileName,
   avatarPreview,
   ftu = 0,
   address
-) => {
+}) => {
     return html`
       <div class="creator">
-        <div class="avatarPreview"><img src=${avatarPreview}></div>
+        <div class="avatarPreview"><img src=${avatarPreview} /></div>
         <div class="creatorName">${name}</div>
         <div class="creatorFtu">${ftu}</div>
         <div class="creatorAddress">${address}</div>

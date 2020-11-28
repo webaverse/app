@@ -3,16 +3,16 @@ import htm from '/web_modules/htm.js';
 
 const html = htm.bind(React.createElement)
 
-const Card = (
+const Card = ({
   id,
-  name,
+  assetName,
   description,
   image,
   hash,
   external_url,
   filename,
+  buyPrice,
   ext,
-  numberInEdition,
   totalSupply,
   balance,
   ownerAvatarPreview,
@@ -23,18 +23,19 @@ const Card = (
   minterUsername,
   cardSize,
   networkType
-) => {
+}) => {
     return html`
       <div class="card card_${cardSize}">
-
-        <div class="upperCardInfo upperCardInfo_${cardSize} upperCardInfo_${assetType}">
+      <div class="debug">
+      </div>
+        <div class="upperCardInfo upperCardInfo_${cardSize} upperCardInfo_${ext}">
           <div class="upperCardInfoLeft upperCardInfoLeft_${cardSize}">
-            <span class="cardAssetName cardAssetName_${cardSize}">${name}</span>
+            <span class="cardAssetName cardName_${cardSize}">${assetName}</span>
           </div>
 
           <div class="upperCardInfoRight">
             <span class="networkType networkType_${cardSize}">${networkType}</span>
-            <span class="assetType assetType_${cardSize} assetType_${ext}">${ext}</span>
+            <span class="ext ext_${cardSize} ext_${ext}">${ext}</span>
           </div>
         </div>
 
@@ -50,7 +51,7 @@ const Card = (
                 <span class="ownerIcon ownerIcon_${cardSize}"><img src=${ownerAvatarPreview} /></span>
                 <span class="ownerName ownerName_${cardSize}">${ownerUsername}></span>
               </span>
-              <span class="edition edition_${cardSize}"> ${numberInEdition} of ${totalSupply}</span>
+              <span class="edition edition_${cardSize}">${totalSupply}</span>
               <span class="greaseLoadedIntoAsset greaseLoadedIntoAsset_${cardSize}"> ${balance}Ψ</span>
           </div>
         </div>
