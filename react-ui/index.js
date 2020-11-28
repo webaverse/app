@@ -8,12 +8,13 @@ window.css = csz
 window.html = htm.bind(React.createElement)
 
 const Route = {
-  '/': React.lazy(() => import('./routes/profile/index.js')),
-  '/profile': React.lazy(() => import('./routes/profile/index.js')),
-  '/gallery': React.lazy(() => import('./routes/gallery/index.js')),
-  '/creators': React.lazy(() => import('./routes/creators/index.js')),
-  '/mint': React.lazy(() => import('./routes/mint/index.js')),
-  '*': React.lazy(() => import('./routes/notfound/index.js')),
+  '/': React.lazy(() => import('./pages/Profile.js')),
+  '/profile': React.lazy(() => import('./pages/Profile.js')),
+  '/settings': React.lazy(() => import('./pages/Settings.js')),
+  '/gallery': React.lazy(() => import('./pages/Gallery.js')),
+  '/creators': React.lazy(() => import('./pages/Creators.js')),
+  '/mint': React.lazy(() => import('./pages/Mint.js')),
+  '*': React.lazy(() => import('./pages/NotFound.js')),
 }
 
 ReactDOM.render(
