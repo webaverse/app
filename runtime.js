@@ -828,6 +828,12 @@ runtime.loadFile = async (file, opts) => {
     case 'iframe': {
       return await _loadIframe(file, opts);
     }
+    case 'mp3': {
+      throw new Error('audio not implemented');
+    }
+    case 'video': {
+      throw new Error('video not implemented');
+    }
   }
 };
 
