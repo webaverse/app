@@ -11,11 +11,12 @@ const CreatorCardGrid = (
       <div class="creatorGrid">
       ${creatorData.map(creator => html`
         <${CreatorCard}
-            key="${creatorAddress}"
-            creatorName="${creator.creatorName}"
-            creatorXp="${creator.creatorXp}"
-            creatorAddress="${creator.creatorAddress}"
-            creatorAvatarImage="${creator.creatorAvatarImage}"
+            key="${creator.address}"
+            name="${creator.name}"
+            ftu="${creator.ftu}"
+            avatarPreview="${creator.avatarPreview}"
+            avatarFileName="${creator.avatarFileName}"
+            avatarUrl="${creator.avatarUrl}"
         />
         `)}
       </div>

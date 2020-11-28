@@ -12,21 +12,24 @@ const AssetCardGrid = (
       <div class="assetDataGrid ${assetType}">
       ${assetData.map(asset => html`
         <${AssetCard}
-            key="${assetHash}"
-            assetName=${asset.assetName}
-            assetHash=${asset.assetHash}
-            assetDescription=${asset.assetDescription}
+            key="${id}"
+            assetName=${asset.name}
+            assetDescription=${asset.description}
+            assetImage=${asset.image}
+            assetHash=${asset.hash}
             numberInEdition=${asset.numberInEdition}
+            totalSupply=${asset.totalSupply}
+            balance=${asset.balance}
             totalInEdition=${asset.totalInEdition}
-            greaseLoadedIntoAsset=${asset.greaseLoadedIntoAsset}
             assetType=${asset.assetType}
-            assetImage=${asset.assetImage}
-            ownerIcon=${asset.ownerIcon}
-            ownerName=${asset.ownerName}
-            creatorIcon=${asset.creatorIcon}
-            creatorName=${asset.creatorName}
-            networkType=${asset.networkType}
+            ownerAvatarPreview=${asset.ownerAvatarPreview}
+            ownerUsername=${asset.ownerUsername}
+            ownerAddress=${asset.ownerAddress}
+            minterAvatarPreview=${asset.minterAvatarPreview}
+            minterUsername=${asset.minterUsername}
+            minterAddress=${asset.minterAddress}
             cardSize=${cardSize}
+            networkType=${asset.networkType}
         />
         `)}
       </div>

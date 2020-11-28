@@ -4,7 +4,7 @@ import Login from "./Login";
 
 const html = htm.bind(React.createElement)
 
-const NavBar = () => {
+const NavBar = (username, avatarPreview) => {
   
     return html`
     <div class="topbar">
@@ -14,7 +14,7 @@ const NavBar = () => {
         <span className='nav-item'><a href='/creators' className='nav-link'>Creators</a></span>
         <span className='nav-item'><a href='/mint' className='nav-link'>Mint NFT</a></span>
       </nav>
-    <${Login} />
+    <${Login} username="${username}" avatarPreview="${avatarPreview}"  />
     </div>
     `;
   };
