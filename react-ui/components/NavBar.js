@@ -1,10 +1,12 @@
 import { React, useEffect } from '/web_modules/es-react.js';
 import htm from '/web_modules/htm.js';
-import Login from "./Login";
+import Login from "./Login.js";
 
 const html = htm.bind(React.createElement)
 
-const NavBar = (username, avatarPreview) => {
+const NavBar = ({username, avatarPreview}) => {
+
+  if(username === undefined) username = "Guest";
   
     return html`
     <div class="topbar">
@@ -14,7 +16,7 @@ const NavBar = (username, avatarPreview) => {
         <span className='nav-item'><a href='/creators' className='nav-link'>Creators</a></span>
         <span className='nav-item'><a href='/mint' className='nav-link'>Mint NFT</a></span>
       </nav>
-    <${Login} username="${username}" avatarPreview="${avatarPreview}"  />
+    <${Login} username=${username} avatarPreview=${avatarPreview}  />
     </div>
     `;
   };

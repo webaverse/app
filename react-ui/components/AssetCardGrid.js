@@ -1,35 +1,44 @@
-import { React } from '/web_modules/es-react.js';
-import htm from '/web_modules/htm.js';
-import AssetCard from './AssetCard'
+import { React } from '../web_modules/es-react.js';
+import htm from '../web_modules/htm.js';
+import AssetCard from './AssetCard.js'
 
 const html = htm.bind(React.createElement)
 
-const AssetCardGrid = (
-  assetData,
+const AssetCardGrid = ({
+  data,
   cardSize
-) => {
+}) => {
+  console.log("data is")
+  console.log(data);
+  data.map(asset => {
+    console.log("Asset is ");
+    console.log(asset);
+  }
+  )
     return html`
-      <div class="assetDataGrid ${assetType}">
-      ${assetData.map(asset => html`
+      <div class="assetDataGrid">
+      ${data.map(asset => html`
         <${AssetCard}
-            key="${id}"
+            key="${asset.id}"
+            id=${asset.id}
             assetName=${asset.name}
-            assetDescription=${asset.description}
-            assetImage=${asset.image}
-            assetHash=${asset.hash}
-            numberInEdition=${asset.numberInEdition}
+            description=${asset.description}
+            image=${asset.image}
+            hash=${asset.properties.hash}
+            external_url=${asset.external_url}
+            filename=${asset.properties.filename}
+            ext=${asset.properties.ext}
             totalSupply=${asset.totalSupply}
             balance=${asset.balance}
-            totalInEdition=${asset.totalInEdition}
-            assetType=${asset.assetType}
-            ownerAvatarPreview=${asset.ownerAvatarPreview}
-            ownerUsername=${asset.ownerUsername}
-            ownerAddress=${asset.ownerAddress}
-            minterAvatarPreview=${asset.minterAvatarPreview}
-            minterUsername=${asset.minterUsername}
-            minterAddress=${asset.minterAddress}
+            buyPrice=${asset.buyPrice}
+            ownerAvatarPreview=${asset.owner.avatarPreview}
+            ownerUsername=${asset.owner.username}
+            ownerAddress=${asset.owner.address}
+            minterAvatarPreview=${asset.minter.avatarPreview}
+            minterUsername=${asset.minter.username}
+            minterAddress=${asset.minter.address}
             cardSize=${cardSize}
-            networkType=${asset.networkType}
+            networkType='webaverse'
         />
         `)}
       </div>
@@ -37,3 +46,4 @@ const AssetCardGrid = (
   };
 
   export default AssetCardGrid;
+

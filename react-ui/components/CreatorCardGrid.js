@@ -1,12 +1,12 @@
 import { React } from '/web_modules/es-react.js';
 import htm from '/web_modules/htm.js';
-import CreatorCard from './CreatorCard'
+import CreatorCard from './CreatorCard.js'
 
 const html = htm.bind(React.createElement)
 
-const CreatorCardGrid = (
+const CreatorCardGrid = ({
   creatorData
-) => {
+}) => {
     return html`
       <div class="creatorGrid">
       ${creatorData.map(creator => html`

@@ -1,8 +1,8 @@
 import { React, useEffect } from '/web_modules/es-react.js';
 import htm from '/web_modules/htm.js';
 
-import MockCreatorData from '../mock/CreatorData'
-import CreatorCardGrid from './CreatorCardGrid'
+import MockCreatorData from '../mock/CreatorsData.js'
+import CreatorCardGrid from '../components/CreatorCardGrid.js'
 
 const html = htm.bind(React.createElement)
 const creatorData = MockCreatorData

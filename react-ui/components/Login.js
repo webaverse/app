@@ -1,8 +1,8 @@
-import { useState } from '/web_modules/es-react.js';
+import { useState } from '../web_modules/es-react.js';
 
 const guestAvatarImage = "../images/test.png";
 
-const Login = (username, avatarPreview) => {
+const Login = ({username, avatarPreview}) => {
     const [loggedIn, setLoggedIn] = useState(false);
     const [menuIsOpen, setMenuOpen] = useState(false);
 
