@@ -58,7 +58,14 @@
       "position": [0, 0, 0],
       "quaternion": [0, 0, 0, 1],
       "scale": [1, 1, 1],
-      "start_url": "https://avaer.github.io/camera/index.js"
+      "start_url": "https://avaer.github.io/planet/index.js"
+    },
+    {
+      "name": "land",
+      "position": [-20, 2, 0],
+      "quaternion": [0, 0, 0, 1],
+      "scale": [1, 1, 1],
+      "start_url": "https://avaer.github.io/land/index.js"
     }
   ]
 }
