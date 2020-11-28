@@ -4,6 +4,7 @@ import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 import {makePromise} from './util.js';
+import {storageHost, web3SidechainEndpoint} from './constants.js';
 const {Transaction, Common} = ethereumJsTx;
 import addresses from 'https://contracts.webaverse.com/ethereum/address.js';
 import abis from 'https://contracts.webaverse.com/ethereum/abi.js';
@@ -12,9 +13,6 @@ let {
   sidechain: {Account: AccountAddressSidechain, FT: FTAddressSidechain, NFT: NFTAddressSidechain, FTProxy: FTProxyAddressSidechain, NFTProxy: NFTProxyAddressSidechain, Trade: TradeAddressSidechain},
 } = addresses;
 let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi, Trade: TradeAbi} = abis;
-
-const web3SidechainEndpoint = 'https://ethereum.exokit.org';
-const storageHost = 'https://storage.exokit.org';
 
 const web3 = {
   main: new Web3(window.ethereum),

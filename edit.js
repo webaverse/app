@@ -64,34 +64,6 @@ function mod(a, b) {
   return ((a % b) + b) % b;
 }
 
-(async () => {
-  const q = parseQuery(location.search);
-  if (q.m) { // multiplayer
-    await world.connect({
-      online: true,
-      roomName: 'lol',
-      url: q.um,
-    });
-  } else {
-    await world.connect({
-      online: false,
-      roomName: 'lol',
-    });
-  }
-  if (q.b) { // base
-    const mesh = await runtime.loadFile({
-      name: q.b,
-      url: q.b,
-    });
-    mesh.run && mesh.run();
-    scene.add(mesh);
-  }
-  if (q.o) { // object
-    world.addObject(q.o);
-  }
-  // new Bot();
-})();
-
 const parcelSize = 10;
 const parcelGeometry = (() => {
   const tileGeometry = new THREE.PlaneBufferGeometry(1, 1)
@@ -354,10 +326,53 @@ scene.add(highlightMesh);
 const anchorMeshes = [];
 const rayMesh = makeRayMesh();
 scene.add(rayMesh);
+
+const q = parseQuery(location.search);
+(async () => {
+  if (q.m) { // multiplayer
+    await world.connect({
+      online: true,
+      roomName: 'lol',
+      url: q.um,
+    });
+  } else {
+    await world.connect({
+      online: false,
+      roomName: 'lol',
+    });
+  }
+  // new Bot();
+})();
 (async () => {
   await geometryManager.waitForLoad();
 
   runtime.injectDependencies(geometryManager, physicsManager, world);
+
+  if (q.o) { // object
+    world.addObject(q.o);
+  }
+  {
+    const mesh = await runtime.loadFile({
+      name: 'home.scn',
+      url: './home.scn',
+    });
+    mesh.run();
+    scene.add(mesh);
+  }
+
+  {
+    addItem(new THREE.Vector3(0, 1, 0), new THREE.Quaternion());
+  }
+  {
+    const file = new Blob(['https://google.com'], {type: 'text/plain'});
+    const u = URL.createObjectURL(file) + '/file.url';
+    world.addObject(u, null, new THREE.Vector3(), new THREE.Quaternion());
+  }
+  {
+    const file = new Blob(['http://lol.com'], {type: 'text/plain'});
+    const u = URL.createObjectURL(file) + '/file.iframe';
+    world.addObject(u, null, new THREE.Vector3(0, 1, -3), new THREE.Quaternion());
+  }
 
   /* rigManager.addPeerRig(-1);
   rigManager.setPeerAvatarUrl('./npc.vrm', -1);
@@ -478,15 +493,6 @@ scene.add(rayMesh);
     cornersMesh.position.y = 1;
     scene.add(cornersMesh);
     anchorMeshes.push(cornersMesh);
-  }
-
-  {
-    const mesh = await runtime.loadFile({
-      name: 'home.scn',
-      url: './home.scn',
-    });
-    mesh.run();
-    scene.add(mesh);
   }
 
   /* {
@@ -868,20 +874,6 @@ const addItem = async (position, quaternion) => {
   scene.add(itemMesh);
   itemMeshes.push(itemMesh);
 };
-
-{ // XXX
-  addItem(new THREE.Vector3(0, 1, 0), new THREE.Quaternion());
-}
-{
-  const file = new Blob(['https://google.com'], {type: 'text/plain'});
-  const u = URL.createObjectURL(file) + '/file.url';
-  world.addObject(u, null, new THREE.Vector3(), new THREE.Quaternion());
-}
-{
-  const file = new Blob(['http://lol.com'], {type: 'text/plain'});
-  const u = URL.createObjectURL(file) + '/file.iframe';
-  world.addObject(u, null, new THREE.Vector3(0, 1, -3), new THREE.Quaternion());
-}
 
 // const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();

@@ -188,13 +188,13 @@ const _setUrl = async u => {
       const res = await fetch('https://store.webaverse.com/');
       const booths = await res.json();
       await Promise.all(booths.map(async booth => {
-        let username = await contracts['sidechain'].Account.methods.getMetadata(booth.address, 'name').call();
+        let username = await contracts['sidechain'].Account.methods.getMetadata(booth.seller, 'name').call();
         if (!username) {
           username = 'Anonymous';
         }
         booth.username = username;
         
-        let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(booth.address, 'avatarPreview').call();
+        let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(booth.seller, 'avatarPreview').call();
         if (!avatarPreview) {
           avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
         }
@@ -214,11 +214,11 @@ const _setUrl = async u => {
       const itemsEl = document.querySelector('#items');
 
       itemsEl.innerHTML = booths.map(booth => {
-        if (booth.files.length > 0) {
+        if (booth.entries.length > 0) {
           return `\
             <div class=booth>
-              <div class=label><b>${booth.address}</b> selling <b>${booth.files.length}</b></div>
-              ${booth.files.map(file => `\
+              <div class=label><b>${booth.seller}</b> selling <b>${booth.entries.length}</b></div>
+              ${booth.entries.map(file => `\
                 <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
                   <div class=title>${file.properties.filename}</div>
                   <a href="/items/${file.id}" class="anchor">
@@ -227,7 +227,7 @@ const _setUrl = async u => {
                   <div class="wrap">
                     <img src="${booth.avatarPreview}" class="avatar">
                     <div class=detail-1>${booth.username}</div>
-                    <div class=detail-2>${booth.address}</div>
+                    <div class=detail-2>${booth.seller}</div>
                     <div class=detail-3>${file.properties.hash.slice(2)}</div>
                   </div>
                 </li>
