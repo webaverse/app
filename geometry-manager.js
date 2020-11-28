@@ -2346,9 +2346,9 @@ const geometryWorker = (() => {
     const streamPtr = scratchStack.u32[2];
 
     const positionBuffer = scratchStack.f32.subarray(3, 6);
-    mesh.position.toArray(positionBuffer);
+    mesh.getWorldPosition(localVector).toArray(positionBuffer);
     const quaternionBuffer = scratchStack.f32.subarray(6, 10);
-    mesh.quaternion.toArray(quaternionBuffer);
+    mesh.getWorldQuaternion(localQuaternion).toArray(quaternionBuffer);
 
     moduleInstance._addConvexGeometryPhysics(
       physics,
