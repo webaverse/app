@@ -268,24 +268,6 @@ const _setUrl = async u => {
       
       const res = await fetch('https://tokens.webaverse.com/' + address);
       const files = await res.json();
-      
-      const owners = await Promise.all(files.map(async file => {
-        const address = file.owner;
-        let username = await contracts['sidechain'].Account.methods.getMetadata(address, 'name').call();
-        if (!username) {
-          username = 'Anonymous';
-        }
-        let avatarPreview = await contracts['sidechain'].Account.methods.getMetadata(address, 'avatarPreview').call();
-        if (!avatarPreview) {
-          avatarPreview = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png`;
-        }
-        
-        return {
-          address,
-          username,
-          avatarPreview,
-        };
-      }));
 
       if (currentUrl !== u) return;
 
@@ -317,7 +299,6 @@ const _setUrl = async u => {
       
       // const files = await inventory.getFiles(0, 100);
       itemsEl.innerHTML = files.map((file, i) => {
-        const owner = owners[i];
         return `\
           <li class="item card" tokenid="${file.id}" filename="${file.properties.filename}">
             <div class=title>${file.properties.filename}</div>
@@ -325,9 +306,9 @@ const _setUrl = async u => {
               <img src="${file.image}" class="preview">
             </a>
             <div class="wrap">
-              <img src="${owner.avatarPreview}" class="avatar">
-              <div class=detail-1>${owner.username}</div>
-              <div class=detail-2>${owner.address}</div>
+              <img src="${file.owner.avatarPreview}" class="avatar">
+              <div class=detail-1>${file.owner.username}</div>
+              <div class=detail-2>${file.owner.address}</div>
               <div class=detail-3>${file.properties.hash.slice(2)}</div>
             </div>
           </li>
