@@ -1,8 +1,6 @@
-import { React, useEffect } from '/web_modules/es-react.js';
+import MockUserProfileData from '../mock/UserProfileData';
+import { React } from '/web_modules/es-react.js';
 import htm from '/web_modules/htm.js';
-import AssetCardGrid from './AssetCardGrid';
-import MockUserCardData from '../mock/UserCardData'
-import MockUserProfileData from '../mock/UserProfileData'
 
 const html = htm.bind(React.createElement)
 
