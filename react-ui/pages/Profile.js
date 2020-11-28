@@ -17,6 +17,8 @@ const Profile = () => {
 
   const cardData = MockUserCardData;
 
+  return html`yes`
+  
     return html`
       <div>
         <div class="profileHeader">
