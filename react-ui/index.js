@@ -1,9 +1,7 @@
 import { React, ReactDOM } from './web_modules/es-react.js'
 import htm from './web_modules/htm.js'
 import NavBar from './components/NavBar.js';
-import csz from './web_modules/csz.js'
 
-window.css = csz
 window.React = React
 window.html = htm.bind(React.createElement)
 
