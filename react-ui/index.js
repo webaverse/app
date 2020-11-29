@@ -1,12 +1,14 @@
 import { React, ReactDOM } from './web_modules/es-react.js'
 import htm from './web_modules/htm.js'
 import NavBar from './components/NavBar.js';
+import csz from './web_modules/csz.js'
 
+window.css = csz
 window.React = React
 window.html = htm.bind(React.createElement)
 
 const Route = {
-  '/': React.lazy(() => import('./components/Profile.js')),
+  '/': React.lazy(() => import('./pages/MyProfile.js')),
   '/profile': React.lazy(() => import('./pages/MyProfile.js')),
   '/gallery': React.lazy(() => import('./pages/Gallery.js')),
   '/creators': React.lazy(() => import('./pages/Creators.js')),
