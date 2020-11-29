@@ -3,7 +3,7 @@ import htm from '../web_modules/htm.js';
 import AssetCardGrid from './AssetCardGrid.js'
 import csz from '../web_modules/csz.js'
 
-const styles = csz`./Booth.css`
+const styles = csz`/components/Booth.css`
 
 
 const html = htm.bind(React.createElement)
@@ -14,7 +14,7 @@ const Booth = ({
 }) => {
     return html`
       <div class=${styles}>
-        <div class="booth ${cardSize}">
+        <div className="booth ${cardSize}">
           <${AssetCardGrid} data=${data.entries} cardSize=${cardSize} />
         </div>
       </div>

@@ -1,3 +1,8 @@
+.loginComponent {
+    right: 0;
+    position:absolute;
+}
+
 .loginComponentDropdown {
 
 }
@@ -6,14 +11,16 @@
 
 }
 
-.loginComponent {
-
-}
-
 .loginUsername {
 
 }
 
 .loginAvatarPreview {
+    height:2em;
+    width: 2em;
+}
 
+.loginAvatarPreview img {
+    height:2em;
+    width: 2em;
 }

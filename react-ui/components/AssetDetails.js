@@ -9,7 +9,7 @@ import htm from '/web_modules/htm.js';
 const html = htm.bind(React.createElement)
 import csz from '../web_modules/csz.js'
 
-const styles = csz`./Booth.css`
+const styles = csz`/components/Booth.css`
 
 const AssetDetails = ({
     id,
@@ -33,8 +33,8 @@ const AssetDetails = ({
 }) => {
     return html`
         <div class=${styles}>
-            <div class="assetDetails">
-                <div class="assetDetailsLeftColumn">
+            <div className="assetDetails">
+                <div className="assetDetailsLeftColumn">
                     <${AssetCard}
                         key="${id}"
                         assetName=${name}
@@ -56,16 +56,16 @@ const AssetDetails = ({
                         networkType=${networkType}
                     /> 
                 </div>
-                <div class="assetDetailsRightColumn">
-                    <div class="assetDetailsRightColumnHeader"> YOU OWN THIS ASSET </div>
-                    <div class="assetDetailsRightColumnBody">
-                        <button class="assetDetailsButton">Set As Avatar</button>
-                        <button class="assetDetailsButton">Set As Homespace</button>
-                        <button class="assetDetailsButton">Add To Loadout</button>
-                        <button class="assetDetailsButton">Deposit To Webaverse</button>
+                <div className="assetDetailsRightColumn">
+                    <div className="assetDetailsRightColumnHeader"> YOU OWN THIS ASSET </div>
+                    <div className="assetDetailsRightColumnBody">
+                        <button className="assetDetailsButton">Set As Avatar</button>
+                        <button className="assetDetailsButton">Set As Homespace</button>
+                        <button className="assetDetailsButton">Add To Loadout</button>
+                        <button className="assetDetailsButton">Deposit To Webaverse</button>
                     </div>
-                    <div class="assetDetailsRightColumnFooter">
-                        <button class="assetDetailsButton assetDetailsFooterButton">Close</button>
+                    <div className="assetDetailsRightColumnFooter">
+                        <button className="assetDetailsButton assetDetailsFooterButton">Close</button>
                     </div>
                 </div>
             </div>

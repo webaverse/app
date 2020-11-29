@@ -13,7 +13,7 @@ const data = MockGalleryData;
 const GalleryPage = () => {
 
   return html`
-    <div class="galleryPage">
+    <div className="galleryPage">
       ${data.map(asset => html`
         <${Booth} data=${asset} cardSize=${CardSize.Small} />
       `)}

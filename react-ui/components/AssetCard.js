@@ -1,6 +1,7 @@
 import { React } from '/web_modules/es-react.js';
 import htm from '/web_modules/htm.js';
-const styles = css`./AssetCard.css`
+import csz from '../web_modules/csz.js'
+const styles = csz`/components/AssetCard.css`
 
 const html = htm.bind(React.createElement)
 
