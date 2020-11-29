@@ -1,4 +1,4 @@
-const style = css`/routes/home/index.css`
+const style = csz`/routes/home/index.css`
 
 export default () => html`
   <div className=${style}>

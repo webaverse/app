@@ -3,7 +3,7 @@ import htm from '/web_modules/htm.js';
 import CreatorCard from './CreatorCard.js'
 import csz from '../web_modules/csz.js'
 
-const styles = csz`./CreatorCardGrid.css`
+const styles = csz`/components/CreatorCardGrid.css`
 
 const html = htm.bind(React.createElement)
 
@@ -12,7 +12,7 @@ const CreatorCardGrid = ({
 }) => {
     return html`
     <div class=${styles}>
-        <div class="creatorGrid">
+        <div className="creatorGrid">
         ${creatorData.map(creator => html`
           <${CreatorCard}
               key="${creator.address}"

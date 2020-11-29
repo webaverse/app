@@ -1,9 +1,9 @@
 import { React, useEffect } from '../web_modules/es-react.js';
 import htm from '../web_modules/htm.js';
 import Login from "./Login.js";
-import csz from '../web_modules/csz.js'
+import css from '../web_modules/csz.js'
 
-const styles = csz`./NavBar.css`
+const styles = css`/components/NavBar.css`
 
 const html = htm.bind(React.createElement)
 

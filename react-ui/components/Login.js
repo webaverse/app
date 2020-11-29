@@ -1,7 +1,7 @@
 import { useState } from '../web_modules/es-react.js';
 import csz from '../web_modules/csz.js'
 
-const styles = csz`./Login.css`
+const styles = csz`/components/Login.css`
 
 const guestAvatarImage = "../images/test.png";
 
