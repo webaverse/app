@@ -27,39 +27,39 @@ const Card = ({
 }) => {
     return html`
       <div className=${styles}>
-        <div className="card card_${cardSize}">
-          <div className="upperCardInfo upperCardInfo_${cardSize} upperCardInfo_${ext.replace('.','')}">
-            <div className="upperCardInfoLeft upperCardInfoLeft_${cardSize}">
-              <span className="cardAssetName cardName_${cardSize}">${assetName}</span>
+        <div className="card card ${cardSize}">
+          <div className="upperCardInfo upperCardInfo ${cardSize} upperCardInfo_${ext.replace('.','')}">
+            <div className="upperCardInfoLeft upperCardInfoLeft ${cardSize}">
+              <span className="cardAssetName cardName ${cardSize}">${assetName}</span>
             </div>
 
             <div className="upperCardInfoRight">
-              <span className="networkType networkType_${cardSize}">${networkType}</span>
-              <span className="ext ext_${cardSize} ext_${ext}">${ext}</span>
+              <span className="networkType networkType ${cardSize}">${networkType}</span>
+              <span className="ext ext ${cardSize} ext_${ext}">${ext}</span>
             </div>
           </div>
 
-          <div className="assetImage assetImage_${cardSize}"><img src=${image} /></div>
+          <div className="assetImage assetImage ${cardSize}"><img src=${image} /></div>
 
-          <div className="lowerCardInfo lowerCardInfo_${cardSize}">
-            <div className="lowerCardInfoTop lowerCardInfoTop_${cardSize}">
-                <span className="creator creator_${cardSize}">
-                  <span className="creatorIcon creatorIcon_${cardSize}"><img src=${minterAvatarPreview} /></span>
-                  <span className="creatorName creatorName_${cardSize}">${minterAddress}></span>
+          <div className="lowerCardInfo lowerCardInfo ${cardSize}">
+            <div className="lowerCardInfoTop lowerCardInfoTop ${cardSize}">
+                <span className="creator creator ${cardSize}">
+                  <span className="creatorIcon creatorIcon ${cardSize}"><img src=${minterAvatarPreview} /></span>
+                  <span className="creatorName creatorName ${cardSize}">${minterAddress}></span>
                 </span>
-                <span className="owner owner_${cardSize}">
-                  <span className="ownerIcon ownerIcon_${cardSize}"><img src=${ownerAvatarPreview} /></span>
-                  <span className="ownerName ownerName_${cardSize}">${ownerUsername}></span>
+                <span className="owner owner ${cardSize}">
+                  <span className="ownerIcon ownerIcon ${cardSize}"><img src=${ownerAvatarPreview} /></span>
+                  <span className="ownerName ownerName ${cardSize}">${ownerUsername}></span>
                 </span>
-                <span className="edition edition_${cardSize}">${totalSupply}</span>
-                <span className="greaseLoadedIntoAsset greaseLoadedIntoAsset_${cardSize}"> ${balance}Ψ</span>
+                <span className="edition edition ${cardSize}">${totalSupply}</span>
+                <span className="greaseLoadedIntoAsset greaseLoadedIntoAsset ${cardSize}"> ${balance}Ψ</span>
             </div>
           </div>
-          <div className="lowerCardInfoMiddle lowerCardInfoMiddle_${cardSize}">
-            <span className="assetDescription assetDescription_${cardSize}">${description}</span>
+          <div className="lowerCardInfoMiddle lowerCardInfoMiddle ${cardSize}">
+            <span className="assetDescription assetDescription ${cardSize}">${description}</span>
           </div>
-          <div className="lowerCardInfoBottom lowerCardInfoBottom_${cardSize}">
-            <span className="assetHash assetHash_${cardSize}">${hash}</span>
+          <div className="lowerCardInfoBottom lowerCardInfoBottom ${cardSize}">
+            <span className="assetHash assetHash ${cardSize}">${hash}</span>
           </div>
         </div>
       </div>
