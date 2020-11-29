@@ -1,5 +1,6 @@
 import { React } from '/web_modules/es-react.js';
 import htm from '/web_modules/htm.js';
+const styles = css`./AssetCard.css`
 
 const html = htm.bind(React.createElement)
 
@@ -25,41 +26,41 @@ const Card = ({
   networkType
 }) => {
     return html`
-      <div class="card card_${cardSize}">
-      <div class="debug">
-      </div>
-        <div class="upperCardInfo upperCardInfo_${cardSize} upperCardInfo_${ext}">
-          <div class="upperCardInfoLeft upperCardInfoLeft_${cardSize}">
-            <span class="cardAssetName cardName_${cardSize}">${assetName}</span>
+      <div className=${styles}>
+        <div className="card card_${cardSize}">
+          <div className="upperCardInfo upperCardInfo_${cardSize} upperCardInfo_${ext.replace('.','')}">
+            <div className="upperCardInfoLeft upperCardInfoLeft_${cardSize}">
+              <span className="cardAssetName cardName_${cardSize}">${assetName}</span>
+            </div>
+
+            <div className="upperCardInfoRight">
+              <span className="networkType networkType_${cardSize}">${networkType}</span>
+              <span className="ext ext_${cardSize} ext_${ext}">${ext}</span>
+            </div>
           </div>
 
-          <div class="upperCardInfoRight">
-            <span class="networkType networkType_${cardSize}">${networkType}</span>
-            <span class="ext ext_${cardSize} ext_${ext}">${ext}</span>
-          </div>
-        </div>
+          <div className="assetImage assetImage_${cardSize}"><img src=${image} /></div>
 
-        <div class="assetImage assetImage_${cardSize}"><img src=${image} /></div>
-
-        <div class="lowerCardInfo lowerCardInfo_${cardSize}">
-          <div class="lowerCardInfoTop lowerCardInfoTop_${cardSize}">
-              <span class="creator creator_${cardSize}">
-                <span class="creatorIcon creatorIcon_${cardSize}"><img src=${minterAvatarPreview} /></span>
-                <span class="creatorName creatorName_${cardSize}">${minterAddress}></span>
-              </span>
-              <span class="owner owner_${cardSize}">
-                <span class="ownerIcon ownerIcon_${cardSize}"><img src=${ownerAvatarPreview} /></span>
-                <span class="ownerName ownerName_${cardSize}">${ownerUsername}></span>
-              </span>
-              <span class="edition edition_${cardSize}">${totalSupply}</span>
-              <span class="greaseLoadedIntoAsset greaseLoadedIntoAsset_${cardSize}"> ${balance}Ψ</span>
+          <div className="lowerCardInfo lowerCardInfo_${cardSize}">
+            <div className="lowerCardInfoTop lowerCardInfoTop_${cardSize}">
+                <span className="creator creator_${cardSize}">
+                  <span className="creatorIcon creatorIcon_${cardSize}"><img src=${minterAvatarPreview} /></span>
+                  <span className="creatorName creatorName_${cardSize}">${minterAddress}></span>
+                </span>
+                <span className="owner owner_${cardSize}">
+                  <span className="ownerIcon ownerIcon_${cardSize}"><img src=${ownerAvatarPreview} /></span>
+                  <span className="ownerName ownerName_${cardSize}">${ownerUsername}></span>
+                </span>
+                <span className="edition edition_${cardSize}">${totalSupply}</span>
+                <span className="greaseLoadedIntoAsset greaseLoadedIntoAsset_${cardSize}"> ${balance}Ψ</span>
+            </div>
           </div>
-        </div>
-        <div class="lowerCardInfoMiddle lowerCardInfoMiddle_${cardSize}">
-          <span class="assetDescription assetDescription_${cardSize}">${description}</span>
-        </div>
-        <div class="lowerCardInfoBottom lowerCardInfoBottom_${cardSize}">
-          <span class="assetHash assetHash_${cardSize}">${hash}</span>
+          <div className="lowerCardInfoMiddle lowerCardInfoMiddle_${cardSize}">
+            <span className="assetDescription assetDescription_${cardSize}">${description}</span>
+          </div>
+          <div className="lowerCardInfoBottom lowerCardInfoBottom_${cardSize}">
+            <span className="assetHash assetHash_${cardSize}">${hash}</span>
+          </div>
         </div>
       </div>
     `;

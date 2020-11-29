@@ -1,4 +1,7 @@
 import { useState } from '../web_modules/es-react.js';
+import csz from '../web_modules/csz.js'
+
+const styles = csz`./Login.css`
 
 const guestAvatarImage = "../images/test.png";
 
@@ -7,29 +10,31 @@ const Login = ({username, avatarPreview}) => {
     const [menuIsOpen, setMenuOpen] = useState(false);
 
     const loggedInView = html`
-    <div class="loginComponentDropdown">
-        <span class="loginComponent_link"><a href="/settings">Settings</a></span>
-        <span class="loginComponent_link"><a href="/logout">Logout</a></span>
+    <div className="loginComponentDropdown">
+        <span className="loginComponentLink"><a href="/settings">Settings</a></span>
+        <span className="loginComponentLink"><a href="/logout">Logout</a></span>
     </div>
     `
 
     const guestView = html`
-    <div class="loginComponentDropdown">
+    <div className="loginComponentDropdown">
         <span>Guest View - Login stuff here</span>
     </div>
     `
 
     return html`
-        <div class="loginComponent">
-            <div class="loginComponentNav">
-                <span class="login_username"> ${loggedIn ? username : 'Guest' } </span>
-                <span class="login_avatarPreview"><img src="${loggedIn ? avatarPreview : guestAvatarImage}" /></span>
+    <div className=${styles}>
+        <div className="loginComponent">
+            <div className="loginComponentNav">
+                <span className="loginUsername"> ${loggedIn ? username : 'Guest' } </span>
+                <span className="loginAvatarPreview"><img src="${loggedIn ? avatarPreview : guestAvatarImage}" /></span>
             </div>
             ${  (menuIsOpen && loggedIn) ? loggedInView :
                 (menuIsOpen && !loggedIn) ? guestView :
                 ''
             }
         </div>
+    </div>
     `
 }
 

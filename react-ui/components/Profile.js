@@ -1,10 +1,14 @@
 import { React } from '/web_modules/es-react.js';
 import htm from '/web_modules/htm.js';
 import AssetCardGrid from './AssetCardGrid.js'
+import csz from '../web_modules/csz.js'
+
+const styles = csz`./Profile.css`
 
 const html = htm.bind(React.createElement)
 
 const Profile = ({userAddress, userData}) => {
+  console.log("userData is ", userData);
   
   const avatarPreview = userData.avatarPreview;
   const homeSpacePreview = userData.homeSpacePreview;
@@ -13,7 +17,7 @@ const Profile = ({userAddress, userData}) => {
   const cardData = userData.tokens;
   
     return html`
-      <div>
+      <div className=${styles}>
         <div class="profileHeader">
           <div class="homespaceBannerImage"><img src="${homeSpacePreview}" /></div>
           <div class="avatarImage"><img src="${avatarPreview}" /></div>
