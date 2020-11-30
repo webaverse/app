@@ -1,5 +1,5 @@
 import THREE from '../three.module.js';
-import './vrarmik/three-vrm.module.js';
+import './vrarmik/three-vrm.js';
 import {BufferGeometryUtils} from '../BufferGeometryUtils.js';
 import {fixSkeletonZForward} from './vrarmik/SkeletonUtils.js';
 import PoseManager from './vrarmik/PoseManager.js';
