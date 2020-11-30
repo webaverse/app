@@ -6,6 +6,9 @@
  * @pixiv/three-vrm is distributed under the MIT License
  * https://github.com/pixiv/three-vrm/blob/master/LICENSE
  */
+
+import THREE from '../../three.module.js';
+
 var __three_vrm__ =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
