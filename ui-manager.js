@@ -225,7 +225,7 @@ geometryManager.waitForLoad().then(() => {
 
     return mesh;
   })();
-  scene.add(hpMesh);
+  // scene.add(hpMesh);
   uiManager.hpMesh = hpMesh;
 
   const buildsMesh = makeInventoryMesh(weaponsManager.cubeMesh, async scrollFactor => {
