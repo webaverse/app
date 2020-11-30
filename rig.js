@@ -573,7 +573,6 @@ class RigManager {
       Right_knee: ,
       Right_ankle: , */
 
-      
       for (const k in mapping) {
         const dst = mapping[k];
         if (dst) {
@@ -595,7 +594,9 @@ class RigManager {
           }
         }
       }
-
+      testRig.outputs.hips.position.copy(this.localRig.outputs.hips.position)
+        .add(localVector.set(0, 0, -1));
+      testRig.outputs.hips.quaternion.premultiply(this.localRig.outputs.hips.quaternion);
       testRig.update();
     }
     
