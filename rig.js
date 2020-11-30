@@ -8,25 +8,42 @@ import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import {FBXLoader} from './FBXLoader.js';
 
-let testRig = null, objects = [], animations = [], animation1 = null, animation2 = null;
+const animationFileNames = [
+  `idle.fbx`,
+  `jump.fbx`,
+  `left strafe walking.fbx`,
+  `left strafe.fbx`,
+  // `left turn 90.fbx`,
+  // `left turn.fbx`,
+  `right strafe walking.fbx`,
+  `right strafe.fbx`,
+  // `right turn 90.fbx`,
+  // `right turn.fbx`,
+  `running.fbx`,
+  `walking.fbx`,
+  // `ybot.fbx`,
+  `walking backwards.fbx`,
+  `running backwards.fbx`,
+];
+const animationsSelectMap = {
+  'idle.fbx': new THREE.Vector3(0, 0, 0),
+  'jump.fbx': new THREE.Vector3(0, 1, 0),
+  'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
+  'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
+  // `left turn 90.fbx`,
+  // `left turn.fbx`,
+  'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
+  'right strafe.fbx': new THREE.Vector3(1, 0, 0),
+  // `right turn 90.fbx`,
+  // `right turn.fbx`,
+  'running.fbx': new THREE.Vector3(0, 0, -1),
+  'walking.fbx': new THREE.Vector3(0, 0, -0.5),
+  // `ybot.fbx`,
+  'walking backwards.fbx': new THREE.Vector3(0, 0, -0.5),
+  'running backwards.fbx': new THREE.Vector3(0, 0, -1),
+};
+let testRig = null, objects = [], animations = [], lastPosition = new THREE.Vector3();
 (async () => {
-  const animationFileNames = [
-    `idle.fbx`,
-    `jump.fbx`,
-    `left strafe walking.fbx`,
-    `left strafe.fbx`,
-    // `left turn 90.fbx`,
-    // `left turn.fbx`,
-    `right strafe walking.fbx`,
-    `right strafe.fbx`,
-    // `right turn 90.fbx`,
-    // `right turn.fbx`,
-    `running.fbx`,
-    `walking.fbx`,
-    // `ybot.fbx`,
-    `walking backwards.fbx`,
-    `running backwards.fbx`,
-  ];
   const fbxLoader = new FBXLoader();
   for (const name of animationFileNames) {
     const u = './animations/' + name;
@@ -45,10 +62,8 @@ let testRig = null, objects = [], animations = [], animation1 = null, animation2
       action.play();
     */
   }
-  animation1 = animations.find(a => a.name === 'running.fbx');
-  animation2 = animations.find(a => a.name === 'left strafe.fbx');
-  animation2.duration = animation1.duration;
   animations.forEach(animation => {
+    animation.initialDuration = animation.duration;
     animation.interpolants = {};
     animation.tracks.forEach(track => {
       const i = track.createInterpolant();
@@ -93,8 +108,6 @@ let testRig = null, objects = [], animations = [], animation1 = null, animation2
 
   window.objects = objects;
   window.animations = animations;
-  window.animation1 = animation1;
-  window.animation2 = animation2;
   window.testRig = testRig;
 })();
 
@@ -515,73 +528,34 @@ class RigManager {
         'mixamorigLeftFoot.quaternion': testRig.outputs.rightFoot.quaternion,
         'mixamorigLeftToeBase.quaternion': null,
       };
+      const _selectAnimations = positionDiff => {
+        const closestAnimations = animations.slice().sort((a, b) => {
+          const targetPosition1 = animationsSelectMap[a.name];
+          const distance1 = targetPosition1.distanceTo(positionDiff);
 
-      /*
-      */
+          const targetPosition2 = animationsSelectMap[b.name];
+          const distance2 = targetPosition2.distanceTo(positionDiff);
 
-      // -
+          return distance1 - distance2;
+        }).slice(0, 2);
+        closestAnimations[0].duration = closestAnimations[1].duration = Math.min(closestAnimations[0].initialDuration, closestAnimations[1].initialDuration);
+        return closestAnimations;
+      };
 
-      /* Hips: ,
-      Spine: ,
-      Chest: ,
-      Neck: ,
-      Head: ,
-
-      Left_shoulder: ,
-      Left_arm: ,
-      Left_elbow: ,
-      Left_wrist: ,
-      Left_thumb2: ,
-      Left_thumb1: ,
-      Left_thumb0: ,
-      Left_indexFinger3: ,
-      Left_indexFinger2: ,
-      Left_indexFinger1: ,
-      Left_middleFinger3: ,
-      Left_middleFinger2: ,
-      Left_middleFinger1: ,
-      Left_ringFinger3: ,
-      Left_ringFinger2: ,
-      Left_ringFinger1: ,
-      Left_littleFinger3: ,
-      Left_littleFinger2: ,
-      Left_littleFinger1: ,
-      Left_leg: ,
-      Left_knee: ,
-      Left_ankle: ,
-
-      Right_shoulder: ,
-      Right_arm: ,
-      Right_elbow: ,
-      Right_wrist: ,
-      Right_thumb2: ,
-      Right_thumb1: ,
-      Right_thumb0: ,
-      Right_indexFinger3: ,
-      Right_indexFinger2: ,
-      Right_indexFinger1: ,
-      Right_middleFinger3: ,
-      Right_middleFinger2: ,
-      Right_middleFinger1: ,
-      Right_ringFinger3: ,
-      Right_ringFinger2: ,
-      Right_ringFinger1: ,
-      Right_littleFinger3: ,
-      Right_littleFinger2: ,
-      Right_littleFinger1: ,
-      Right_leg: ,
-      Right_knee: ,
-      Right_ankle: , */
-
+      const currentPosition = this.localRig.outputs.hips.position.clone();
+      const positionDiff = currentPosition.clone()
+        .sub(lastPosition)
+        .normalize();
+      const selectedAnimations = _selectAnimations(positionDiff);
       for (const k in mapping) {
         const dst = mapping[k];
         if (dst) {
-          const f1 = (Date.now()/1000) % animation1.duration;
-          const src1 = animation1.interpolants[k];
+          const f1 = (Date.now()/1000) % selectedAnimations[0].duration;
+          const src1 = selectedAnimations[0].interpolants[k];
           const v1 = src1.evaluate(f1);
 
-          const f2 = (Date.now()/1000) % animation2.duration;
-          const src2 = animation2.interpolants[k];
+          const f2 = (Date.now()/1000) % selectedAnimations[1].duration;
+          const src2 = selectedAnimations[1].interpolants[k];
           const v2 = src2.evaluate(f2);
 
           if (v1.length === 3) {
@@ -596,8 +570,11 @@ class RigManager {
       }
       testRig.outputs.hips.position.copy(this.localRig.outputs.hips.position)
         .add(localVector.set(0, 0, -1));
-      testRig.outputs.hips.quaternion.premultiply(this.localRig.outputs.hips.quaternion);
+      // testRig.outputs.hips.quaternion.premultiply(this.localRig.outputs.hips.quaternion);
+      testRig.outputs.hips.quaternion.premultiply(localQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
       testRig.update();
+
+      lastPosition.copy(currentPosition);
     }
     
     /* for (let i = 0; i < appManager.grabs.length; i++) {
