@@ -180,7 +180,7 @@ class ShoulderPoser
       hmdUpEuler.y = 0;
 
       this.shoulder.neck.quaternion.setFromEuler(hmdFlatEuler)
-        .premultiply(Helpers.getWorldQuaternion(this.shoulder.neck.parent, localQuaternion).inverse());
+        .premultiply(Helpers.getWorldQuaternion(this.shoulder.neck.parent, localQuaternion).invert());
       Helpers.updateMatrixMatrixWorld(this.shoulder.neck);
 
       this.shoulder.head.quaternion.setFromEuler(hmdUpEuler);
@@ -203,11 +203,11 @@ class ShoulderPoser
       const hmdXYRotation = localQuaternion2.setFromEuler(hmdEuler);
 
       this.shoulder.neck.quaternion.copy(hmdXYRotation)
-        .premultiply(Helpers.getWorldQuaternion(this.shoulder.neck.parent, localQuaternion3).inverse());
+        .premultiply(Helpers.getWorldQuaternion(this.shoulder.neck.parent, localQuaternion3).invert());
       Helpers.updateMatrixMatrixWorld(this.shoulder.neck);
 
       this.shoulder.head.quaternion.copy(hmdRotation)
-        .premultiply(Helpers.getWorldQuaternion(this.shoulder.head.parent, localQuaternion3).inverse());
+        .premultiply(Helpers.getWorldQuaternion(this.shoulder.head.parent, localQuaternion3).invert());
       Helpers.updateMatrixMatrixWorld(this.shoulder.head);
 
       Helpers.updateMatrixWorld(this.shoulder.eyes);
@@ -287,7 +287,7 @@ class ShoulderPoser
       	this.shoulder.transform.quaternion.multiply(localQuaternion3.setFromAxisAngle(rightVector, (1-standFactor) * Math.PI/4));
       } */
       this.shoulder.transform.quaternion
-			  .premultiply(Helpers.getWorldQuaternion(this.shoulder.transform.parent, localQuaternion).inverse());
+			  .premultiply(Helpers.getWorldQuaternion(this.shoulder.transform.parent, localQuaternion).invert());
 			Helpers.updateMatrixMatrixWorld(this.shoulder.transform);
       Helpers.updateMatrixWorld(this.shoulder.leftShoulderAnchor);
       Helpers.updateMatrixWorld(this.shoulder.rightShoulderAnchor);
@@ -330,7 +330,7 @@ class ShoulderPoser
 			const hipsRotation = localQuaternion.copy(this.shoulder.hips.quaternion)
         .multiply(z180Quaternion);
 			const hipsRotationInverse = localQuaternion2.copy(hipsRotation)
-			  .inverse();
+			  .invert();
 
 			const distanceLeftHand = localVector.copy(this.vrTransforms.leftHand.position)
 			  .sub(this.vrTransforms.head.position)

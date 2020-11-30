@@ -448,7 +448,7 @@ class MeshComposer {
       let closestMeshDistance = Infinity;
       for (const mesh of this.meshes) {
         localMatrix2.copy(localMatrix)
-          .premultiply(localMatrix3.getInverse(mesh.matrixWorld))
+          .premultiply(localMatrix3.copy(mesh.matrixWorld).invert())
           .decompose(localVector, localQuaternion, localVector2);
 
         if (mesh.geometry.boundingBox.containsPoint(localVector)) {
@@ -465,11 +465,11 @@ class MeshComposer {
       const {scaleState} = this;
       const {container} = scaleState;
       const startPosition = scaleState.startPosition.clone()
-        // .applyMatrix4(new THREE.Matrix4().getInverse(scaleState.containerStartMatrix));
+        // .applyMatrix4(scaleState.containerStartMatrix.clone().invert());
       const currentPosition = transforms[0].position.clone()
         .add(transforms[1].position)
         .divideScalar(2)
-        // .applyMatrix4(new THREE.Matrix4().getInverse(scaleState.containerStartMatrix));
+        // .applyMatrix4(scaleState.containerStartMatrix.clone().invert());
       const currentDirection = transforms[0].position.clone()
         .sub(transforms[1].position)
         .normalize();
@@ -535,7 +535,7 @@ class MeshComposer {
         ),
         localVector2.set(1, 1, 1)
       )
-        .premultiply(localMatrix2.getInverse(mesh.matrixWorld))
+        .premultiply(localMatrix2.copy(mesh.matrixWorld).invert())
         .decompose(localVector, localQuaternion, localVector2);
       localRaycaster.ray.origin.copy(localVector);
       localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
@@ -1040,7 +1040,7 @@ const _updateWeapons = timeDiff => {
       buildMesh.quaternion.copy(rightGamepad.quaternion);
 
       buildMesh.matrix.compose(buildMesh.position, buildMesh.quaternion, buildMesh.scale)
-        .premultiply(localMatrix2.getInverse(geometryManager.currentChunkMesh.matrixWorld))
+        .premultiply(localMatrix2.copy(geometryManager.currentChunkMesh.matrixWorld).invert())
         .decompose(buildMesh.position, buildMesh.quaternion, buildMesh.scale);
       _snapBuildPosition(buildMesh.position);
 
@@ -1134,7 +1134,7 @@ const _updateWeapons = timeDiff => {
         // else
         const _applyLightfieldDelta = async (position, delta) => {
           localVector2.copy(position)
-            .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
+            .applyMatrix4(localMatrix.copy(geometryManager.currentChunkMesh.matrixWorld).invert());
           localVector2.x = Math.floor(localVector2.x);
           localVector2.y = Math.floor(localVector2.y);
           localVector2.z = Math.floor(localVector2.z);
@@ -1146,7 +1146,7 @@ const _updateWeapons = timeDiff => {
           if (raycastChunkSpec) {
             if (raycastChunkSpec.objectId === 0) {
               localVector2.copy(raycastChunkSpec.point)
-                .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
+                .applyMatrix4(localMatrix.copy(geometryManager.currentChunkMesh.matrixWorld).invert());
 
               geometryManager.geometryWorker.requestMine(geometryManager.tracker, localVector2, delta);
             } else {
@@ -1159,7 +1159,7 @@ const _updateWeapons = timeDiff => {
         const _light = () => {
           if (raycastChunkSpec) {
             localVector2.copy(raycastChunkSpec.point)
-              .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
+              .applyMatrix4(localMatrix.copy(geometryManager.currentChunkMesh.matrixWorld).invert());
 
             geometryManager.geometryWorker.requestLight(geometryManager.tracker, localVector2, 4);
           }
@@ -1188,7 +1188,7 @@ const _updateWeapons = timeDiff => {
               const pxMesh = geometryManager.grenadeMesh.clone();
 
               localVector2.copy(geometryManager.grenadeMesh.position)
-                .applyMatrix4(localMatrix.getInverse(geometryManager.currentChunkMesh.matrixWorld));
+                .applyMatrix4(localMatrix.copy(geometryManager.currentChunkMesh.matrixWorld).invert());
               localQuaternion2.copy(geometryManager.grenadeMesh.quaternion)
                 .premultiply(geometryManager.currentChunkMesh.getWorldQuaternion(localQuaternion3).inverse());
               pxMesh.position.copy(localVector2);
@@ -1294,7 +1294,7 @@ const _updateWeapons = timeDiff => {
             value = 0.1;
           }
           localMatrix2.compose(localVector2, localQuaternion2, localVector3.set(1, 1, 1))
-            .premultiply(localMatrix3.getInverse(meshDrawer.mesh.parent.matrixWorld))
+            .premultiply(localMatrix3.copy(meshDrawer.mesh.parent.matrixWorld).invert())
             .decompose(localVector2, localQuaternion2, localVector3);
 
           if (lastWeaponValue < 0.01) {
@@ -1360,7 +1360,7 @@ const _updateWeapons = timeDiff => {
             value = 0.1;
           }
           localMatrix2.compose(localVector2, localQuaternion2, localVector3.set(1, 1, 1))
-            .premultiply(localMatrix3.getInverse(meshDrawer.mesh.parent.matrixWorld))
+            .premultiply(localMatrix3.copy(meshDrawer.mesh.parent.matrixWorld).invert())
             .decompose(localVector2, localQuaternion2, localVector3);
 
           meshDrawer.end(localVector2, localQuaternion2, value);
@@ -1483,7 +1483,7 @@ const _updateWeapons = timeDiff => {
       localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
         .premultiply(
           localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
-            .getInverse(localMatrix2)
+            .invert()
         )
         .decompose(localVector, localQuaternion, localVector2);
       if (localBox.containsPoint(localVector)) {

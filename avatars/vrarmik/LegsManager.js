@@ -122,7 +122,7 @@ class Leg {
       )
     )
       .multiply(downHalfRotation)
-      .premultiply(Helpers.getWorldQuaternion(this.transform, localQuaternion2).inverse());
+      .premultiply(Helpers.getWorldQuaternion(this.transform, localQuaternion2).invert());
     Helpers.updateMatrixMatrixWorld(this.upperLeg);
 
     this.lowerLeg.quaternion.setFromRotationMatrix(
@@ -133,7 +133,7 @@ class Leg {
       )
     )
       .multiply(downHalfRotation)
-      .premultiply(Helpers.getWorldQuaternion(this.upperLeg, localQuaternion2).inverse());
+      .premultiply(Helpers.getWorldQuaternion(this.upperLeg, localQuaternion2).invert());
     Helpers.updateMatrixMatrixWorld(this.lowerLeg);
 
     // this.lowerLeg.position = lowerLegPosition;
@@ -142,7 +142,7 @@ class Leg {
       // this.foot.position = footPosition;
       this.foot.quaternion.copy(footRotation)
         .multiply(downHalfRotation)
-        .premultiply(Helpers.getWorldQuaternion(this.lowerLeg, localQuaternion2).inverse());
+        .premultiply(Helpers.getWorldQuaternion(this.lowerLeg, localQuaternion2).invert());
       Helpers.updateMatrixMatrixWorld(this.foot);
     /* } else {
       this.foot.quaternion.slerp(downQuarterRotation, 0.1);
@@ -227,7 +227,7 @@ class LegsManager {
     hipsFloorEuler.x = 0;
     hipsFloorEuler.z = 0;
     const planeMatrix = localMatrix.compose(hipsFloorPosition, localQuaternion.setFromEuler(hipsFloorEuler), oneVector);
-    const planeMatrixInverse = localMatrix2.getInverse(planeMatrix);
+    const planeMatrixInverse = localMatrix2.copy(planeMatrix).invert();
 
     const fakePosition = localVector2;
     const fakeScale = localVector3;
