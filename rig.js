@@ -6,6 +6,39 @@ import {makePromise, WaitQueue} from './util.js';
 import {renderer, scene, appManager} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
+import {FBXLoader} from './FBXLoader.js';
+
+(async () => {
+  const animationFileNames = [
+    `idle.fbx`,
+    `jump.fbx`,
+    `left strafe walking.fbx`,
+    `left strafe.fbx`,
+    `left turn 90.fbx`,
+    `left turn.fbx`,
+    `right strafe walking.fbx`,
+    `right strafe.fbx`,
+    `right turn 90.fbx`,
+    `right turn.fbx`,
+    `running.fbx`,
+    `walking.fbx`,
+    `ybot.fbx`,
+  ];
+  const loader = new FBXLoader();
+  for (const name of animationFileNames) {
+    const u = 'https://webaverse.github.io/assets/animations/' + name;
+    const o = await new Promise((accept, reject) => {
+      loader.load(u, accept, function progress() {}, reject);
+    });
+    console.log('loaded animation', o);
+    /*
+      mixer = new THREE.AnimationMixer( object );
+
+      const action = mixer.clipAction( object.animations[ 0 ] );
+      action.play();
+    */
+  }
+})();
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
