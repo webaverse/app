@@ -808,12 +808,12 @@ function animate(timestamp, frame) {
 
     if (rigManager.localRigMatrixEnabled) {
       localMatrix.copy(rigManager.localRigMatrix);
-      // .premultiply(localMatrix2.getInverse(this.matrix))
+      // .premultiply(localMatrix2.copy(this.matrix).invert())
       // .toArray(xrState.poseMatrix);
     } else {
       localMatrix.copy(camera.matrixWorld);
-      // .getInverse(localMatrix)
-      // .premultiply(localMatrix2.getInverse(this.matrix))
+      // .copy(localMatrix).invert()
+      // .premultiply(localMatrix2.copy(this.matrix).invert())
       // .toArray(xrState.poseMatrix);
     }
     localMatrix // .fromArray(this.xrState.poseMatrix)
@@ -934,7 +934,7 @@ function animate(timestamp, frame) {
         _loadInputSource(i);
       } */
 
-      /* localMatrix2.getInverse(this.matrix);
+      /* localMatrix2.copy(this.matrix).invert();
       localMatrix3
         .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
         .premultiply(localMatrix2)
@@ -1037,7 +1037,7 @@ function animate(timestamp, frame) {
     highlightMesh.visible = false;
     for (const anchorMesh of anchorMeshes) {
       localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1))
-        .premultiply(localMatrix2.getInverse(anchorMesh.matrixWorld))
+        .premultiply(localMatrix2.copy(anchorMesh.matrixWorld).invert())
         .decompose(localVector, localQuaternion, localVector2);
       localVector3.set(0, 0, -1)
         .applyQuaternion(localQuaternion);
@@ -1121,7 +1121,7 @@ function animate(timestamp, frame) {
   localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));
   localMatrix3.copy(xrCamera.matrix)
     .premultiply(dolly.matrix)
-    .premultiply(localMatrix2.getInverse(geometryManager.worldContainer.matrixWorld))
+    .premultiply(localMatrix2.copy(geometryManager.worldContainer.matrixWorld).invert())
     .decompose(localVector, localQuaternion, localVector2);
 
   if (geometryEnabled) {
