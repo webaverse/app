@@ -368,7 +368,7 @@ const _loadScript = async file => {
   mesh.run = () => {
     import(u)
       .then(() => {
-        console.log('import returned');
+        // console.log('import returned');
       }, err => {
         console.warn('import failed', u, err);
       })
