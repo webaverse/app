@@ -1216,8 +1216,6 @@ class Avatar {
     this.sdkInputs.rightGamepad.quaternion.copy(this.inputs.rightGamepad.quaternion);
     this.sdkInputs.rightGamepad.pointer = this.inputs.rightGamepad.pointer;
     this.sdkInputs.rightGamepad.grip = this.inputs.rightGamepad.grip;
-    
-    window.sdkInputs = this.sdkInputs;
 
     const modelScaleFactor = this.sdkInputs.hmd.scaleFactor;
     if (modelScaleFactor !== this.lastModelScaleFactor) {
