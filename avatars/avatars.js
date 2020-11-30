@@ -1206,65 +1206,68 @@ class Avatar {
       this.undecapitate();
     }
 
-    this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
-    this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
-    this.sdkInputs.leftGamepad.position.copy(this.inputs.leftGamepad.position).add(localVector.copy(this.handOffsetLeft).applyQuaternion(this.inputs.leftGamepad.quaternion));
-    this.sdkInputs.leftGamepad.quaternion.copy(this.inputs.leftGamepad.quaternion);
-    this.sdkInputs.leftGamepad.pointer = this.inputs.leftGamepad.pointer;
-    this.sdkInputs.leftGamepad.grip = this.inputs.leftGamepad.grip;
-    this.sdkInputs.rightGamepad.position.copy(this.inputs.rightGamepad.position).add(localVector.copy(this.handOffsetRight).applyQuaternion(this.inputs.rightGamepad.quaternion));
-    this.sdkInputs.rightGamepad.quaternion.copy(this.inputs.rightGamepad.quaternion);
-    this.sdkInputs.rightGamepad.pointer = this.inputs.rightGamepad.pointer;
-    this.sdkInputs.rightGamepad.grip = this.inputs.rightGamepad.grip;
+    const absorb = this.options.absorb === undefined || !!this.options.absorb;
+    if (absorb) {
+      this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
+      this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
+      this.sdkInputs.leftGamepad.position.copy(this.inputs.leftGamepad.position).add(localVector.copy(this.handOffsetLeft).applyQuaternion(this.inputs.leftGamepad.quaternion));
+      this.sdkInputs.leftGamepad.quaternion.copy(this.inputs.leftGamepad.quaternion);
+      this.sdkInputs.leftGamepad.pointer = this.inputs.leftGamepad.pointer;
+      this.sdkInputs.leftGamepad.grip = this.inputs.leftGamepad.grip;
+      this.sdkInputs.rightGamepad.position.copy(this.inputs.rightGamepad.position).add(localVector.copy(this.handOffsetRight).applyQuaternion(this.inputs.rightGamepad.quaternion));
+      this.sdkInputs.rightGamepad.quaternion.copy(this.inputs.rightGamepad.quaternion);
+      this.sdkInputs.rightGamepad.pointer = this.inputs.rightGamepad.pointer;
+      this.sdkInputs.rightGamepad.grip = this.inputs.rightGamepad.grip;
 
-    const modelScaleFactor = this.sdkInputs.hmd.scaleFactor;
-    if (modelScaleFactor !== this.lastModelScaleFactor) {
-      this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
-      this.lastModelScaleFactor = modelScaleFactor;
+      const modelScaleFactor = this.sdkInputs.hmd.scaleFactor;
+      if (modelScaleFactor !== this.lastModelScaleFactor) {
+        this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
+        this.lastModelScaleFactor = modelScaleFactor;
 
-      this.springBoneManager && this.springBoneManager.springBoneGroupList.forEach(springBoneGroup => {
-        springBoneGroup.forEach(springBone => {
-          springBone._worldBoneLength = springBone.bone
-            .localToWorld(localVector.copy(springBone._initialLocalChildPosition))
-            .sub(springBone._worldPosition)
-            .length();
+        this.springBoneManager && this.springBoneManager.springBoneGroupList.forEach(springBoneGroup => {
+          springBoneGroup.forEach(springBone => {
+            springBone._worldBoneLength = springBone.bone
+              .localToWorld(localVector.copy(springBone._initialLocalChildPosition))
+              .sub(springBone._worldPosition)
+              .length();
+          });
         });
-      });
-    }
-    
-    if (this.options.fingers) {
-      const _traverse = (o, fn) => {
-        fn(o);
-        for (const child of o.children) {
-          _traverse(child, fn);
-        }
-      };
-      const _processFingerBones = left => {
-        const fingerBones = left ? this.fingerBoneMap.left : this.fingerBoneMap.right;
-        const gamepadInput = left ? this.sdkInputs.leftGamepad : this.sdkInputs.rightGamepad;
-        for (const fingerBone of fingerBones) {
-          // if (fingerBone) {
-            const {bones, finger} = fingerBone;
-            let setter;
-            if (finger === 'thumb') {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, left ? -1 : 1, 0), gamepadInput.grip * Math.PI*(i === 0 ? 0.125 : 0.25));
-            } else if (finger === 'index') {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.pointer * Math.PI*0.5);
-            } else {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.grip * Math.PI*0.5);
-            }
-            for (let i = 0; i < bones.length; i++) {
-              setter(bones[i].quaternion, i);
-            }
-          // }
-        }
-      };
-      _processFingerBones(true);
-      _processFingerBones(false);
-    }
+      }
+      
+      if (this.options.fingers) {
+        const _traverse = (o, fn) => {
+          fn(o);
+          for (const child of o.children) {
+            _traverse(child, fn);
+          }
+        };
+        const _processFingerBones = left => {
+          const fingerBones = left ? this.fingerBoneMap.left : this.fingerBoneMap.right;
+          const gamepadInput = left ? this.sdkInputs.leftGamepad : this.sdkInputs.rightGamepad;
+          for (const fingerBone of fingerBones) {
+            // if (fingerBone) {
+              const {bones, finger} = fingerBone;
+              let setter;
+              if (finger === 'thumb') {
+                setter = (q, i) => q.setFromAxisAngle(localVector.set(0, left ? -1 : 1, 0), gamepadInput.grip * Math.PI*(i === 0 ? 0.125 : 0.25));
+              } else if (finger === 'index') {
+                setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.pointer * Math.PI*0.5);
+              } else {
+                setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.grip * Math.PI*0.5);
+              }
+              for (let i = 0; i < bones.length; i++) {
+                setter(bones[i].quaternion, i);
+              }
+            // }
+          }
+        };
+        _processFingerBones(true);
+        _processFingerBones(false);
+      }
 
-    this.shoulderTransforms.Update();
-    this.legsManager.Update();
+      this.shoulderTransforms.Update();
+      this.legsManager.Update();
+    }
 
 	  for (const k in this.modelBones) {
       const modelBone = this.modelBones[k];
@@ -1275,12 +1278,14 @@ class Avatar {
       }
       modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion)
 
-      if (k === 'Left_ankle' || k === 'Right_ankle') {
-        modelBone.quaternion.multiply(upRotation);
-      } else if (k === 'Left_wrist') {
-        modelBone.quaternion.multiply(leftRotation); // center
-      } else if (k === 'Right_wrist') {
-        modelBone.quaternion.multiply(rightRotation); // center
+      if (absorb) {
+        if (k === 'Left_ankle' || k === 'Right_ankle') {
+          modelBone.quaternion.multiply(upRotation);
+        } else if (k === 'Left_wrist') {
+          modelBone.quaternion.multiply(leftRotation); // center
+        } else if (k === 'Right_wrist') {
+          modelBone.quaternion.multiply(rightRotation); // center
+        }
       }
       modelBone.updateMatrixWorld();
     }
@@ -1348,10 +1353,12 @@ class Avatar {
     }
 
     if (this.debugMeshes) {
-      this.outputs.leftHand.quaternion.multiply(rightRotation); // center
-      this.outputs.leftHand.updateMatrixWorld();
-      this.outputs.rightHand.quaternion.multiply(leftRotation); // center
-      this.outputs.rightHand.updateMatrixWorld();
+      if (absorb) {
+        this.outputs.leftHand.quaternion.multiply(rightRotation); // center
+        this.outputs.leftHand.updateMatrixWorld();
+        this.outputs.rightHand.quaternion.multiply(leftRotation); // center
+        this.outputs.rightHand.updateMatrixWorld();
+      }
 
       for (const k in this.debugMeshes.attributes) {
         const attribute = this.debugMeshes.attributes[k];
