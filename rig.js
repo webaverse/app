@@ -8,7 +8,7 @@ import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import {FBXLoader} from './FBXLoader.js';
 
-let testRig = null, objects = [], animations = [], animation = null;
+let testRig = null, objects = [], animations = [], animation1 = null, animation2 = null;
 (async () => {
   const animationFileNames = [
     `idle.fbx`,
@@ -21,9 +21,11 @@ let testRig = null, objects = [], animations = [], animation = null;
     `right strafe.fbx`,
     // `right turn 90.fbx`,
     // `right turn.fbx`,
-    // `running.fbx`,
+    `running.fbx`,
     `walking.fbx`,
     // `ybot.fbx`,
+    `walking backwards.fbx`,
+    `running backwards.fbx`,
   ];
   const fbxLoader = new FBXLoader();
   for (const name of animationFileNames) {
@@ -43,17 +45,21 @@ let testRig = null, objects = [], animations = [], animation = null;
       action.play();
     */
   }
-  animation = animations.find(a => a.name === 'idle.fbx');
-  animation.interpolants = {};
-  animation.tracks.forEach(track => {
-    const i = track.createInterpolant();
-    i.name = track.name;
-    animation.interpolants[track.name] = i;
-    return i;
+  animation1 = animations.find(a => a.name === 'running.fbx');
+  animation2 = animations.find(a => a.name === 'left strafe.fbx');
+  animation2.duration = animation1.duration;
+  animations.forEach(animation => {
+    animation.interpolants = {};
+    animation.tracks.forEach(track => {
+      const i = track.createInterpolant();
+      i.name = track.name;
+      animation.interpolants[track.name] = i;
+      return i;
+    });
+    for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
+      animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
+    }
   });
-  for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
-    animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
-  }
 
   const gltfLoader = new GLTFLoader();
   const model = await new Promise((accept, reject) => {
@@ -87,7 +93,8 @@ let testRig = null, objects = [], animations = [], animation = null;
 
   window.objects = objects;
   window.animations = animations;
-  window.animation = animation;
+  window.animation1 = animation1;
+  window.animation2 = animation2;
   window.testRig = testRig;
 })();
 
@@ -566,13 +573,26 @@ class RigManager {
       Right_knee: ,
       Right_ankle: , */
 
-      const f = (Date.now()/1000) % animation.duration;
+      
       for (const k in mapping) {
         const dst = mapping[k];
         if (dst) {
-          const src = animation.interpolants[k];
-          const v = src.evaluate(f);
-          dst.fromArray(v);
+          const f1 = (Date.now()/1000) % animation1.duration;
+          const src1 = animation1.interpolants[k];
+          const v1 = src1.evaluate(f1);
+
+          const f2 = (Date.now()/1000) % animation2.duration;
+          const src2 = animation2.interpolants[k];
+          const v2 = src2.evaluate(f2);
+
+          if (v1.length === 3) {
+            dst.fromArray(v1).add(localVector.fromArray(v2));
+            dst.x = 0;
+            dst.z = 0;
+            dst.y -= testRig.hipsHeight * 1.25;
+          } else {
+            dst.fromArray(v1).slerp(localQuaternion.fromArray(v2), 0.5);
+          }
         }
       }
 
