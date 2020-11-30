@@ -15,19 +15,19 @@ let testRig = null, objects = [], animations = [], animation = null;
     `jump.fbx`,
     `left strafe walking.fbx`,
     `left strafe.fbx`,
-    `left turn 90.fbx`,
-    `left turn.fbx`,
+    // `left turn 90.fbx`,
+    // `left turn.fbx`,
     `right strafe walking.fbx`,
     `right strafe.fbx`,
-    `right turn 90.fbx`,
-    `right turn.fbx`,
-    `running.fbx`,
+    // `right turn 90.fbx`,
+    // `right turn.fbx`,
+    // `running.fbx`,
     `walking.fbx`,
-    `ybot.fbx`,
+    // `ybot.fbx`,
   ];
   const fbxLoader = new FBXLoader();
   for (const name of animationFileNames) {
-    const u = 'https://webaverse.github.io/assets/animations/' + name;
+    const u = './animations/' + name;
     let o = await new Promise((accept, reject) => {
       fbxLoader.load(u, accept, function progress() {}, reject);
     });
@@ -43,7 +43,7 @@ let testRig = null, objects = [], animations = [], animation = null;
       action.play();
     */
   }
-  animation = animations.find(a => a.name === 'jump.fbx');
+  animation = animations.find(a => a.name === 'idle.fbx');
   animation.interpolants = {};
   animation.tracks.forEach(track => {
     const i = track.createInterpolant();
