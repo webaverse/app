@@ -8,6 +8,7 @@ import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import {FBXLoader} from './FBXLoader.js';
 
+let testRig = null, objects = [], animations = [], animation = null;
 (async () => {
   const animationFileNames = [
     `idle.fbx`,
@@ -24,13 +25,17 @@ import {FBXLoader} from './FBXLoader.js';
     `walking.fbx`,
     `ybot.fbx`,
   ];
-  const loader = new FBXLoader();
+  const fbxLoader = new FBXLoader();
   for (const name of animationFileNames) {
     const u = 'https://webaverse.github.io/assets/animations/' + name;
-    const o = await new Promise((accept, reject) => {
-      loader.load(u, accept, function progress() {}, reject);
+    let o = await new Promise((accept, reject) => {
+      fbxLoader.load(u, accept, function progress() {}, reject);
     });
-    console.log('loaded animation', o);
+    objects.push(o);
+    o = o.animations[0];
+    o.name = name;
+    animations.push(o);
+    // console.log('loaded animation', o);
     /*
       mixer = new THREE.AnimationMixer( object );
 
@@ -38,6 +43,52 @@ import {FBXLoader} from './FBXLoader.js';
       action.play();
     */
   }
+  animation = animations.find(a => a.name === 'jump.fbx');
+  animation.interpolants = {};
+  animation.tracks.forEach(track => {
+    const i = track.createInterpolant();
+    i.name = track.name;
+    animation.interpolants[track.name] = i;
+    return i;
+  });
+  for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
+    animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
+  }
+
+  const gltfLoader = new GLTFLoader();
+  const model = await new Promise((accept, reject) => {
+    gltfLoader.load(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/female.vrm`, accept, function progress() {}, reject);
+  });
+  testRig = new Avatar(model, {
+    fingers: true,
+    hair: true,
+    visemes: true,
+    debug: true,
+    absorb: false,
+  });
+  // testRig.model.position.z = -1;
+  testRig.inputs.hmd.position.y = 1.3;
+  testRig.inputs.leftGamepad.position.set(
+    0.2,
+    testRig.inputs.hmd.position.y - 0.2,
+    -0.2
+  );
+  testRig.inputs.rightGamepad.position.set(
+    -0.2,
+    testRig.inputs.hmd.position.y - 0.2,
+    -0.2
+  );
+  testRig.model.traverse(o => {
+    if (o.isMesh) {
+      o.frustumCulled = false;
+    }
+  });
+  scene.add(testRig.model);
+
+  window.objects = objects;
+  window.animations = animations;
+  window.animation = animation;
+  window.testRig = testRig;
 })();
 
 const localVector = new THREE.Vector3();
@@ -122,7 +173,7 @@ class RigManager {
               fingers: true,
               hair: true,
               visemes: true,
-              debug: false //!o,
+              debug: true //!o,
             });
           } else {
             localRig = new Avatar();
@@ -395,6 +446,137 @@ class RigManager {
       rigManager.localRig.decapitate();
     } else {
       rigManager.localRig.undecapitate();
+    }
+
+    if (testRig) {
+      const mapping = {
+        'mixamorigHips.position': testRig.outputs.hips.position,
+        'mixamorigHips.quaternion': testRig.outputs.hips.quaternion,
+        'mixamorigSpine.quaternion': testRig.outputs.spine.quaternion,
+        'mixamorigSpine1.quaternion': null,
+        'mixamorigSpine2.quaternion': testRig.outputs.chest.quaternion,
+        'mixamorigNeck.quaternion': testRig.outputs.neck.quaternion,
+        'mixamorigHead.quaternion': testRig.outputs.head.quaternion,
+
+        'mixamorigLeftShoulder.quaternion': testRig.outputs.rightShoulder.quaternion,
+        'mixamorigLeftArm.quaternion': testRig.outputs.rightUpperArm.quaternion,
+        'mixamorigLeftForeArm.quaternion': testRig.outputs.rightLowerArm.quaternion,
+        'mixamorigLeftHand.quaternion': testRig.outputs.leftHand.quaternion,
+        'mixamorigLeftHandMiddle1.quaternion': testRig.outputs.leftMiddleFinger1.quaternion,
+        'mixamorigLeftHandMiddle2.quaternion': testRig.outputs.leftMiddleFinger2.quaternion,
+        'mixamorigLeftHandMiddle3.quaternion': testRig.outputs.leftMiddleFinger3.quaternion,
+        'mixamorigLeftHandThumb1.quaternion': testRig.outputs.leftThumb0.quaternion,
+        'mixamorigLeftHandThumb2.quaternion': testRig.outputs.leftThumb1.quaternion,
+        'mixamorigLeftHandThumb3.quaternion': testRig.outputs.leftThumb2.quaternion,
+        'mixamorigLeftHandIndex1.quaternion': testRig.outputs.leftIndexFinger1.quaternion,
+        'mixamorigLeftHandIndex2.quaternion': testRig.outputs.leftIndexFinger2.quaternion,
+        'mixamorigLeftHandIndex3.quaternion': testRig.outputs.leftIndexFinger3.quaternion,
+        'mixamorigLeftHandRing1.quaternion': testRig.outputs.leftRingFinger1.quaternion,
+        'mixamorigLeftHandRing2.quaternion': testRig.outputs.leftRingFinger2.quaternion,
+        'mixamorigLeftHandRing3.quaternion': testRig.outputs.leftRingFinger3.quaternion,
+        'mixamorigLeftHandPinky1.quaternion': testRig.outputs.leftLittleFinger1.quaternion,
+        'mixamorigLeftHandPinky2.quaternion': testRig.outputs.leftLittleFinger2.quaternion,
+        'mixamorigLeftHandPinky3.quaternion': testRig.outputs.leftLittleFinger3.quaternion,
+
+        'mixamorigRightShoulder.quaternion': testRig.outputs.leftShoulder.quaternion,
+        'mixamorigRightArm.quaternion': testRig.outputs.leftUpperArm.quaternion,
+        'mixamorigRightForeArm.quaternion': testRig.outputs.leftLowerArm.quaternion,
+        'mixamorigRightHand.quaternion': testRig.outputs.rightHand.quaternion,
+        'mixamorigRightHandMiddle1.quaternion': testRig.outputs.rightMiddleFinger1.quaternion,
+        'mixamorigRightHandMiddle2.quaternion': testRig.outputs.rightMiddleFinger2.quaternion,
+        'mixamorigRightHandMiddle3.quaternion': testRig.outputs.rightMiddleFinger3.quaternion,
+        'mixamorigRightHandThumb1.quaternion': testRig.outputs.rightThumb0.quaternion,
+        'mixamorigRightHandThumb2.quaternion': testRig.outputs.rightThumb1.quaternion,
+        'mixamorigRightHandThumb3.quaternion': testRig.outputs.rightThumb2.quaternion,
+        'mixamorigRightHandIndex1.quaternion': testRig.outputs.rightIndexFinger1.quaternion,
+        'mixamorigRightHandIndex2.quaternion': testRig.outputs.rightIndexFinger2.quaternion,
+        'mixamorigRightHandIndex3.quaternion': testRig.outputs.rightIndexFinger3.quaternion,
+        'mixamorigRightHandRing1.quaternion': testRig.outputs.rightRingFinger1.quaternion,
+        'mixamorigRightHandRing2.quaternion': testRig.outputs.rightRingFinger2.quaternion,
+        'mixamorigRightHandRing3.quaternion': testRig.outputs.rightRingFinger3.quaternion,
+        'mixamorigRightHandPinky1.quaternion': testRig.outputs.rightLittleFinger1.quaternion,
+        'mixamorigRightHandPinky2.quaternion': testRig.outputs.rightLittleFinger2.quaternion,
+        'mixamorigRightHandPinky3.quaternion': testRig.outputs.rightLittleFinger3.quaternion,
+
+        'mixamorigRightUpLeg.quaternion': testRig.outputs.leftUpperLeg.quaternion,
+        'mixamorigRightLeg.quaternion': testRig.outputs.leftLowerLeg.quaternion,
+        'mixamorigRightFoot.quaternion': testRig.outputs.leftFoot.quaternion,
+        'mixamorigRightToeBase.quaternion': null,
+
+        'mixamorigLeftUpLeg.quaternion': testRig.outputs.rightUpperLeg.quaternion,
+        'mixamorigLeftLeg.quaternion': testRig.outputs.rightLowerLeg.quaternion,
+        'mixamorigLeftFoot.quaternion': testRig.outputs.rightFoot.quaternion,
+        'mixamorigLeftToeBase.quaternion': null,
+      };
+
+      /*
+      */
+
+      // -
+
+      /* Hips: ,
+      Spine: ,
+      Chest: ,
+      Neck: ,
+      Head: ,
+
+      Left_shoulder: ,
+      Left_arm: ,
+      Left_elbow: ,
+      Left_wrist: ,
+      Left_thumb2: ,
+      Left_thumb1: ,
+      Left_thumb0: ,
+      Left_indexFinger3: ,
+      Left_indexFinger2: ,
+      Left_indexFinger1: ,
+      Left_middleFinger3: ,
+      Left_middleFinger2: ,
+      Left_middleFinger1: ,
+      Left_ringFinger3: ,
+      Left_ringFinger2: ,
+      Left_ringFinger1: ,
+      Left_littleFinger3: ,
+      Left_littleFinger2: ,
+      Left_littleFinger1: ,
+      Left_leg: ,
+      Left_knee: ,
+      Left_ankle: ,
+
+      Right_shoulder: ,
+      Right_arm: ,
+      Right_elbow: ,
+      Right_wrist: ,
+      Right_thumb2: ,
+      Right_thumb1: ,
+      Right_thumb0: ,
+      Right_indexFinger3: ,
+      Right_indexFinger2: ,
+      Right_indexFinger1: ,
+      Right_middleFinger3: ,
+      Right_middleFinger2: ,
+      Right_middleFinger1: ,
+      Right_ringFinger3: ,
+      Right_ringFinger2: ,
+      Right_ringFinger1: ,
+      Right_littleFinger3: ,
+      Right_littleFinger2: ,
+      Right_littleFinger1: ,
+      Right_leg: ,
+      Right_knee: ,
+      Right_ankle: , */
+
+      const f = (Date.now()/1000) % animation.duration;
+      for (const k in mapping) {
+        const dst = mapping[k];
+        if (dst) {
+          const src = animation.interpolants[k];
+          const v = src.evaluate(f);
+          dst.fromArray(v);
+        }
+      }
+
+      testRig.update();
     }
     
     /* for (let i = 0; i < appManager.grabs.length; i++) {
