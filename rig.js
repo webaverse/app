@@ -633,7 +633,7 @@ class RigManager {
       const positionDiff = lastPosition.clone()
         .sub(currentPosition)
         .multiplyScalar(10);
-      smoothVelocity.lerp(positionDiff, 0.7);
+      smoothVelocity.lerp(positionDiff, 0.5);
       localEuler.setFromQuaternion(this.localRig.outputs.hips.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
