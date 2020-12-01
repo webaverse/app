@@ -32,7 +32,7 @@ const Profile = ({userAddress, userData}) => {
             <span className="profileInventory"><a href="#">Inventory</a></span>
           </div>
           <div className="profileBodyAssets">
-            <${AssetCardGrid} data=${cardData} />
+            <${AssetCardGrid} data=${cardData} cardSize='medium' />
           </div>
         </div>
       </div>

@@ -1,7 +1,4 @@
 import { useState } from '../web_modules/es-react.js';
-import csz from '../web_modules/csz.js'
-
-const styles = csz`/components/Login.css`
 
 const guestAvatarImage = "../images/test.png";
 
@@ -23,7 +20,6 @@ const Login = ({username, avatarPreview}) => {
     `
 
     return html`
-    <div className=${styles}>
         <div className="loginComponent">
             <div className="loginComponentNav">
                 <span className="loginUsername"> ${loggedIn ? username : 'Guest' } </span>
@@ -34,7 +30,6 @@ const Login = ({username, avatarPreview}) => {
                 ''
             }
         </div>
-    </div>
     `
 }
 

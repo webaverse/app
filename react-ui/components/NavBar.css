@@ -1,20 +1,67 @@
 .topbar {
     width: 100%;
-    height:3em;
+    height: 3em;
     background: white;
 }
 
 .navbar {
     width: 100%;
+    height: 100%;
 }
 
 .nav-item {
-    margin-top: 1em;
-    margin-bottom: 1em;
-    height:3em;
+    margin: auto;
+    padding: 2em;
     background: rgb(197, 197, 255);
+    text-align: center;
+}
+
+.nav-logo {
+    margin: auto;
+    padding: 2em;
+    background: rgb(197, 197, 255);
+    text-align: center;
+}
+
+.nav-logo h1 {
+    display: inline;
 }
 
 .nav-link {
-    margin:1em;
+    text-align: center;
+    height: 100%;
+}
+
+.nav-link a {
+    text-align: center;
+    height: 100%;
+}
+
+.loginComponent {
+    top: 0;
+    right: 0;
+    position:absolute;
+    height: 3em;
+}
+
+.loginComponentDropdown {
+
+}
+
+.loginComponentLink {
+
+}
+
+.loginUsername {
+
+}
+
+.loginAvatarPreview {
+    height:2em;
+    width: 2em;
+}
+
+.loginAvatarPreview img {
+    height:2em;
+    width: 2em;
 }

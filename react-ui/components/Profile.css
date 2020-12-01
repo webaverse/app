@@ -1,26 +1,54 @@
 .profileHeader {
-
+    width: 100%;
+    height: 30%;
 }
 
 .homespaceBannerImage {
+    width: 100%;
+    height: 20em;
+}
 
+.homespaceBannerImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .avatarImage {
+    position:absolute;
+    top: 5em;
+    width: 6em;
+}
 
+.avatarImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .username {
-
+    background-color: #ffffff;
+    position:absolute;
+    top: 5em;
+    left: 8em;
+    width: 12em;
 }
 
 .userAddress {
-
+    background-color: #ffffff;
+    position:absolute;
+    top: 7em;
+    left: 8em;
+    width: 12em;
 }
 
 
 .userGrease {
-
+    background-color: #ffffff;
+    position:absolute;
+    top: 9em;
+    left: 8em;
+    width: 12em;
 }
 
 
