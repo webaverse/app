@@ -7,6 +7,7 @@ import {renderer, scene, appManager} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import {FBXLoader} from './FBXLoader.js';
+import physicsMananager from './physics-manager.js';
 
 const animationFileNames = [
   `idle.fbx`,
@@ -42,7 +43,7 @@ const animationsSelectMap = {
   'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
   'running backwards.fbx': new THREE.Vector3(0, 0, 1),
 };
-let testRig = null, objects = [], animations = [], lastPosition = new THREE.Vector3(), smoothVelocity = new THREE.Vector3();
+let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAnimation = null, lastPosition = new THREE.Vector3(), smoothVelocity = new THREE.Vector3();
 (async () => {
   const fbxLoader = new FBXLoader();
   for (const name of animationFileNames) {
@@ -63,6 +64,8 @@ let testRig = null, objects = [], animations = [], lastPosition = new THREE.Vect
     */
   }
   animations.forEach(animation => {
+    animation.isIdle = /idle/i.test(animation.name);
+    animation.isJump = /jump/i.test(animation.name);
     animation.initialDuration = animation.duration;
     animation.interpolants = {};
     animation.tracks.forEach(track => {
@@ -75,6 +78,8 @@ let testRig = null, objects = [], animations = [], lastPosition = new THREE.Vect
       animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
     }
   });
+  idleAnimation = animations.find(a => a.isIdle);
+  jumpAnimation = animations.find(a => a.isJump);
 
   const gltfLoader = new GLTFLoader();
   const model = await new Promise((accept, reject) => {
@@ -529,6 +534,7 @@ class RigManager {
         'mixamorigLeftToeBase.quaternion': null,
       };
       const _selectAnimations = v => {
+        const jumpState = physicsMananager.getJumpState();
         const closestAnimations = animations.slice().sort((a, b) => {
           const targetPosition1 = animationsSelectMap[a.name];
           const distance1 = targetPosition1.distanceTo(v);
@@ -578,6 +584,22 @@ class RigManager {
             dst.y -= testRig.hipsHeight * 1.25;
           } else {
             dst.fromArray(v1).slerp(localQuaternion.fromArray(v2), factor2);
+          }
+
+          if (physicsMananager.getJumpState()) {
+            const t2 = (Date.now() - physicsMananager.getJumpStartTime())/1000 * 0.7 + 0.7;
+            const src2 = jumpAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            if (v1.length === 3) {
+              /* dst.fromArray(v1).add(localVector.fromArray(v2));
+              dst.x = 0;
+              dst.z = 0;
+              dst.y -= testRig.hipsHeight * 1.25; */
+            } else {
+              const factor = 1; // Math.min((Date.now() - physicsMananager.getJumpStartTime()), 1);
+              dst.slerp(localQuaternion.fromArray(v2), factor);
+            }
           }
         }
       }
