@@ -179,6 +179,7 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
+const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
@@ -612,7 +613,10 @@ class RigManager {
         .sub(currentPosition)
         .multiplyScalar(10);
       smoothVelocity.lerp(positionDiff, 0.7);
-      const selectedAnimations = _selectAnimations(smoothVelocity.clone().applyQuaternion(this.localRig.outputs.hips.quaternion.clone().invert()));
+      localEuler.setFromQuaternion(this.localRig.outputs.hips.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      const selectedAnimations = _selectAnimations(smoothVelocity.clone().applyEuler(localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order)));
 
       const distance1 = animationsSelectMap[selectedAnimations[0].name].distanceTo(positionDiff);
       const distance2 = animationsSelectMap[selectedAnimations[1].name].distanceTo(positionDiff);
@@ -649,7 +653,7 @@ class RigManager {
           }
 
           if (physicsMananager.getJumpState()) {
-            const t2 = (Date.now() - physicsMananager.getJumpStartTime())/1000 * 0.7 + 0.7;
+            const t2 = (Date.now() - physicsMananager.getJumpStartTime())/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
@@ -667,7 +671,7 @@ class RigManager {
       }
       testRig.outputs.hips.position.copy(this.localRig.outputs.hips.position)
         .add(localVector.set(0, 0, -1));
-      testRig.outputs.hips.quaternion.premultiply(this.localRig.outputs.hips.quaternion);
+      testRig.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
       // testRig.outputs.hips.quaternion.premultiply(localQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
       testRig.update();
 
