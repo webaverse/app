@@ -549,11 +549,11 @@ class RigManager {
       };
 
       const currentPosition = this.localRig.outputs.hips.position.clone();
-      const positionDiff = currentPosition.clone()
-        .sub(lastPosition)
+      const positionDiff = lastPosition.clone()
+        .sub(currentPosition)
         .multiplyScalar(10);
       smoothVelocity.lerp(positionDiff, 0.9);
-      const selectedAnimations = _selectAnimations(smoothVelocity);
+      const selectedAnimations = _selectAnimations(smoothVelocity.clone().applyQuaternion(this.localRig.outputs.hips.quaternion.clone().invert()));
 
       const distance1 = animationsSelectMap[selectedAnimations[0].name].distanceTo(positionDiff);
       const distance2 = animationsSelectMap[selectedAnimations[1].name].distanceTo(positionDiff);
@@ -605,8 +605,8 @@ class RigManager {
       }
       testRig.outputs.hips.position.copy(this.localRig.outputs.hips.position)
         .add(localVector.set(0, 0, -1));
-      // testRig.outputs.hips.quaternion.premultiply(this.localRig.outputs.hips.quaternion);
-      testRig.outputs.hips.quaternion.premultiply(localQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
+      testRig.outputs.hips.quaternion.premultiply(this.localRig.outputs.hips.quaternion);
+      // testRig.outputs.hips.quaternion.premultiply(localQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
       testRig.update();
 
       lastPosition.copy(currentPosition);
