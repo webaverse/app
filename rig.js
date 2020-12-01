@@ -75,9 +75,9 @@ const animationsDistanceMap = {
   'falling landing.fbx': new THREE.Vector3(0, -2, 0),
   //
   'left strafe walking reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(2),
-  'left strafe reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(2),
+  'left strafe reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(5),
   'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
-  'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
+  'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(5),
 };
 let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAnimation = null, lastPosition = new THREE.Vector3(), smoothVelocity = new THREE.Vector3();
 (async () => {
