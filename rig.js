@@ -753,10 +753,10 @@ class RigManager {
           const v2 = src2.evaluate(t2);
 
           if (v1.length === 3) {
-            dst.fromArray(v1).add(localVector.fromArray(v2));
+            /* dst.fromArray(v1).add(localVector.fromArray(v2));
             dst.x = 0;
             dst.z = 0;
-            dst.y -= testRig.hipsHeight * 1.25;
+            dst.y -= testRig.hipsHeight * 1.25; */
           } else {
             dst.fromArray(v1);
             if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
