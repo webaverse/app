@@ -6,10 +6,10 @@ import MockUserProfileData from "../mock/UserProfileData.js";
 
 const html = htm.bind(React.createElement)
 
-const CreatorProfile = () => {
+const CreatorProfilePage = () => {
     return html`
         <${Profile} userAddress=${MockAddress} userData=${MockUserProfileData} />
     `
   };
 
-  export default CreatorProfile;
+  export default CreatorProfilePage;
