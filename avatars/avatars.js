@@ -996,7 +996,7 @@ class Avatar {
       .distanceTo(modelBones.Left_littleFinger1.getWorldPosition(new THREE.Vector3()));
     this.handOffsetLeft = new THREE.Vector3(handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
     this.handOffsetRight = new THREE.Vector3(-handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
-    this.hipsHeight = modelBones.Hips.getWorldPosition(new THREE.Vector3()).y;
+    // this.hipsHeight = modelBones.Hips.getWorldPosition(new THREE.Vector3()).y;
 
     const _makeInput = () => {
       const result = new THREE.Object3D();
