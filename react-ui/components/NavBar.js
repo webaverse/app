@@ -13,7 +13,6 @@ const NavBar = ({username, avatarPreview}) => {
   
     return html`
     <div className=${styles}>
-      <div className="topbar">
         <nav className="navbar">
           <span className='nav-logo'><h1>Webaverse</h1></span>
           <span className='nav-item'><a href='/profile' className='nav-link'>Profile</a></span>
@@ -22,7 +21,6 @@ const NavBar = ({username, avatarPreview}) => {
           <span className='nav-item'><a href='/mint' className='nav-link'>Mint NFT</a></span>
         </nav>
       <${Login} username=${username} avatarPreview=${avatarPreview}  />
-      </div>
     </div>
     `;
   };

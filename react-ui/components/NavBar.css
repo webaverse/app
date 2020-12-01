@@ -1,26 +1,32 @@
-.topbar {
+& {
     width: 100%;
     height: 3em;
     background: white;
 }
 
+a {
+    text-decoration: none;
+    color: #000000;
+}
+
+a:hover {
+    text-decoration: none;
+    color: #333333;
+}
+
 .navbar {
     width: 100%;
     height: 100%;
+    display: flex;
+    justify-content: left;
 }
 
 .nav-item {
-    margin: auto;
-    padding: 2em;
-    background: rgb(197, 197, 255);
-    text-align: center;
+    padding: 1em;
 }
 
 .nav-logo {
-    margin: auto;
-    padding: 2em;
-    background: rgb(197, 197, 255);
-    text-align: center;
+    padding: 1em;
 }
 
 .nav-logo h1 {
@@ -28,19 +34,19 @@
 }
 
 .nav-link {
-    text-align: center;
     height: 100%;
 }
 
 .nav-link a {
-    text-align: center;
     height: 100%;
 }
 
 .loginComponent {
+    text-align: right;
     top: 0;
     right: 0;
     position:absolute;
+    width: 20%;
     height: 3em;
 }
 
