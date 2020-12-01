@@ -229,7 +229,6 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     top: false,
     bottom: false,
   });
-  // testRig.model.position.z = -1;
   testRig.inputs.hmd.position.y = 1.3;
   testRig.inputs.leftGamepad.position.set(
     0.2,
