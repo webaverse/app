@@ -1377,7 +1377,7 @@ class Avatar {
     }
 
     if (this.debugMeshes) {
-      if (!this.getTopEnabled()) {
+      if (this.getTopEnabled()) {
         this.outputs.leftHand.quaternion.multiply(rightRotation); // center
         this.outputs.leftHand.updateMatrixWorld();
         this.outputs.rightHand.quaternion.multiply(leftRotation); // center
