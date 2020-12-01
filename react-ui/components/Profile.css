@@ -60,6 +60,20 @@
 
 }
 
+.profileBodyNav a {
+    text-decoration: none;
+    color: #000000;
+    font-size: 1.5em;
+    padding:1em;
+}
+
+.profileBodyNav a:hover {
+    text-decoration: none;
+    color: #333333;
+    font-size: 1.5em;
+    padding:1em;
+}
+
 .profileLoadout {
 
 }
