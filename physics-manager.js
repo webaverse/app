@@ -28,10 +28,14 @@ const offset = new THREE.Vector3();
 physicsManager.offset = offset;
 
 let jumpState = false;
+let jumpStartTime = 0;
 const getJumpState = () => jumpState;
 physicsManager.getJumpState = getJumpState;
+const getJumpStartTime = () => jumpStartTime;
+physicsManager.getJumpStartTime = getJumpStartTime;
 const jump = () => {
   jumpState = true;
+  jumpStartTime = Date.now();
   physicsManager.velocity.y += 5;
 };
 physicsManager.jump = jump;
@@ -192,12 +196,15 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     if (collision.grounded) {
       physicsManager.velocity.y = 0;
       jumpState = false;
+      jumpStartTime = 0;
       glideState = false;
-    } else {
+    } else if (!jumpState) {
       jumpState = true;
+      jumpStartTime = Date.now();
     }
-  } else {
+  } else if (!jumpState) {
     jumpState = true;
+    jumpStartTime = Date.now();
   }
   localMatrix.compose(localVector, localQuaternion, localVector2);
 
