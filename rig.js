@@ -25,6 +25,7 @@ const animationFileNames = [
   // `ybot.fbx`,
   `walking backwards.fbx`,
   `running backwards.fbx`,
+  `falling.fbx`,
   `falling idle.fbx`,
   `falling landing.fbx`,
 ];
@@ -44,8 +45,9 @@ const animationsSelectMap = {
   // `ybot.fbx`,
   'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
   'running backwards.fbx': new THREE.Vector3(0, 0, 1),
+  'falling.fbx': new THREE.Vector3(0, -1, 0),
   'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
-  'falling landing.fbx': new THREE.Vector3(0, -1, 0),
+  'falling landing.fbx': new THREE.Vector3(0, -2, 0),
 };
 let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAnimation = null, lastPosition = new THREE.Vector3(), smoothVelocity = new THREE.Vector3();
 (async () => {
@@ -68,6 +70,29 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     */
   }
   animations.forEach(animation => {
+    animation.direction = (() => {
+      switch (animation.name) {
+        case 'running.fbx':
+        case 'walking.fbx':
+          return 'forward';
+        case 'running backwards.fbx':
+        case 'walking backwards.fbx':
+          return 'backward';
+        case 'left strafe walking.fbx':
+        case 'left strafe.fbx':
+          return 'left';
+        case 'right strafe walking.fbx':
+        case 'right strafe.fbx':
+          return 'right';
+        case 'jump.fbx':
+        case 'falling.fbx':
+        case 'falling idle.fbx':
+        case 'falling idle.fbx':
+          return 'jump';
+        default:
+          return null;
+      }
+    })();
     animation.isIdle = /idle/i.test(animation.name);
     animation.isJump = /jump/i.test(animation.name);
     animation.initialDuration = animation.duration;
@@ -538,8 +563,8 @@ class RigManager {
         'mixamorigLeftToeBase.quaternion': null,
       };
       const _selectAnimations = v => {
-        const jumpState = physicsMananager.getJumpState();
-        const closestAnimations = animations.slice().sort((a, b) => {
+        // const jumpState = physicsMananager.getJumpState();
+        const selectedAnimations = animations.slice().sort((a, b) => {
           const targetPosition1 = animationsSelectMap[a.name];
           const distance1 = targetPosition1.distanceTo(v);
 
@@ -548,15 +573,25 @@ class RigManager {
 
           return distance1 - distance2;
         }).slice(0, 2);
-        closestAnimations[0].duration = closestAnimations[1].duration = Math.max(closestAnimations[0].initialDuration, closestAnimations[1].initialDuration);
-        return closestAnimations;
+        /* const selectedAnimations = [];
+        for (let i = 0; i < closestAnimations.length; i++) {
+          const animation = closestAnimations[i];
+          if (selectedAnimations.length === 0 || selectedAnimations[0].direction !== animation.direction) {
+            selectedAnimations.push(animation);
+          }
+          if (selectedAnimations.length >= 2) {
+            break;
+          }
+        } */
+        selectedAnimations[0].duration = selectedAnimations[1].duration = Math.max(selectedAnimations[0].initialDuration, selectedAnimations[1].initialDuration);
+        return selectedAnimations;
       };
 
       const currentPosition = this.localRig.outputs.hips.position.clone();
       const positionDiff = lastPosition.clone()
         .sub(currentPosition)
         .multiplyScalar(10);
-      smoothVelocity.lerp(positionDiff, 0.9);
+      smoothVelocity.lerp(positionDiff, 0.7);
       const selectedAnimations = _selectAnimations(smoothVelocity.clone().applyQuaternion(this.localRig.outputs.hips.quaternion.clone().invert()));
 
       const distance1 = animationsSelectMap[selectedAnimations[0].name].distanceTo(positionDiff);
@@ -587,7 +622,10 @@ class RigManager {
             dst.z = 0;
             dst.y -= testRig.hipsHeight * 1.25;
           } else {
-            dst.fromArray(v1).slerp(localQuaternion.fromArray(v2), factor2);
+            dst.fromArray(v1);
+            if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
+              dst.slerp(localQuaternion.fromArray(v2), factor2);
+            }
           }
 
           if (physicsMananager.getJumpState()) {
