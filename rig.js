@@ -25,6 +25,8 @@ const animationFileNames = [
   // `ybot.fbx`,
   `walking backwards.fbx`,
   `running backwards.fbx`,
+  `falling idle.fbx`,
+  `falling landing.fbx`,
 ];
 const animationsSelectMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
@@ -42,6 +44,8 @@ const animationsSelectMap = {
   // `ybot.fbx`,
   'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
   'running backwards.fbx': new THREE.Vector3(0, 0, 1),
+  'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
+  'falling landing.fbx': new THREE.Vector3(0, -1, 0),
 };
 let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAnimation = null, lastPosition = new THREE.Vector3(), smoothVelocity = new THREE.Vector3();
 (async () => {
