@@ -163,12 +163,12 @@ scene.add(floorMesh); */
   skybox.update();
   scene.add(skybox);
 })();
-(() => {
+/* (() => {
   const guardianMesh = GuardianMesh([[
     0, 0, SUBPARCEL_SIZE, SUBPARCEL_SIZE,
   ]], 0x42a5f5);
   scene.add(guardianMesh);
-})();
+})(); */
 /* (async () => {
   const HEIGHTFIELD_SHADER2 = {
     uniforms: {
@@ -335,14 +335,31 @@ const q = parseQuery(location.search);
   }
   {
     const mesh = await runtime.loadFile({
+      name: 'index.js',
+      url: 'https://avaer.github.io/land/index.js',
+    });
+    mesh.run();
+    scene.add(mesh);
+  }
+  {
+    const mesh = await runtime.loadFile({
+      name: 'index.js',
+      url: 'https://avaer.github.io/mirror/index.js',
+    });
+    mesh.position.z = -1;
+    mesh.run();
+    scene.add(mesh);
+  }
+  /* {
+    const mesh = await runtime.loadFile({
       name: 'home.scn',
       url: './home.scn',
     });
     mesh.run();
     scene.add(mesh);
-  }
+  } */
 
-  {
+  /* {
     addItem(new THREE.Vector3(0, 1, 0), new THREE.Quaternion());
   }
   {
@@ -354,7 +371,7 @@ const q = parseQuery(location.search);
     const file = new Blob(['http://lol.com'], {type: 'text/plain'});
     const u = URL.createObjectURL(file) + '/file.iframe';
     world.addObject(u, null, new THREE.Vector3(0, 1, -3), new THREE.Quaternion());
-  }
+  } */
 
   /* rigManager.addPeerRig(-1);
   rigManager.setPeerAvatarUrl('./npc.vrm', -1);
@@ -371,7 +388,7 @@ const q = parseQuery(location.search);
 
   // const floorPhysicsId = physicsManager.addBoxGeometry(new THREE.Vector3(0, -1, 0), new THREE.Quaternion(), new THREE.Vector3(100, 1, 100), false);
 
-  {
+  /* {
     // const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anchorX = 'left', anchorY = 'middle') => {
     const textMesh = makeTextMesh(`Hootshot\nThis is the best hookshot you'll find.\n`, undefined, 0.2);
     textMesh.position.y = 2;
@@ -398,7 +415,7 @@ const q = parseQuery(location.search);
     cornersMesh.position.y = 1;
     scene.add(cornersMesh);
     anchorMeshes.push(cornersMesh);
-  }
+  } */
 
   /* {
     const u = 'assets/case.glb';
