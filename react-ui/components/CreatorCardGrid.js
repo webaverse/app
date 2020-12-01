@@ -11,8 +11,7 @@ const CreatorCardGrid = ({
   creatorData
 }) => {
     return html`
-    <div class=${styles}>
-        <div className="creatorGrid">
+        <div className="${styles} creatorGrid">
         ${creatorData.map(creator => html`
           <${CreatorCard}
               key="${creator.address}"
@@ -21,9 +20,9 @@ const CreatorCardGrid = ({
               avatarPreview="${creator.avatarPreview}"
               avatarFileName="${creator.avatarFileName}"
               avatarUrl="${creator.avatarUrl}"
+              address="${creator.address}"
           />
           `)}
-        </div>
       </div>
     `;
   };

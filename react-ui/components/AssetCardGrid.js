@@ -5,7 +5,7 @@ import AssetCard from './AssetCard.js'
 const html = htm.bind(React.createElement)
 import csz from '../web_modules/csz.js'
 
-const styles = csz`/components/Booth.css`
+const styles = csz`/components/AssetCardGrid.css`
 
 const AssetCardGrid = ({
   data,
@@ -19,8 +19,7 @@ const AssetCardGrid = ({
   }
   )
     return html`
-    <div class=${styles}>
-      <div className="assetDataGrid ${cardSize}">
+      <div className="${styles} ${cardSize}">
         ${data.map(asset => html`
           <${AssetCard}
               key="${asset.id}"
@@ -46,7 +45,6 @@ const AssetCardGrid = ({
           />
           `)}
         </div>
-      </div>
     `;
   };
 

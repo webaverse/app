@@ -15,14 +15,14 @@ const Creator = ({
   address
 }) => {
     return html`
-      <div class=${styles}>
-        <div className="creator">
-          <div className="avatarPreview"><img src=${avatarPreview} /></div>
-          <div className="creatorName">${name}</div>
-          <div className="creatorFtu">${ftu}</div>
-          <div className="creatorAddress">${address}</div>
+        <div className="${styles} creator">
+          <div className="avatarPreview"><img src="${avatarPreview}" /></div>
+          <div className="creatorInfo">
+            <div className="creatorName">${name}</div>
+            <div className="creatorFtu">${ftu}</div>
+            <div className="creatorAddress">${address}</div>
+          </div>
         </div>
-      </div>
     `;
   };
 

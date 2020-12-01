@@ -1,19 +1,42 @@
-.creator {
-
+& {
+    background-color: #cccccc;
+    width: 12em;
+    height: 16em;
+    display: inline-block;
+    padding:2em;
+    margin: 2em;
 }
 
-.avatarPreview {
+& img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 
+
+.avatarPreview {
+width: 12em;
+height: 12em;
+}
+
+.creatorInfo {
+    width: 12em;
+    word-wrap: break-word;
 }
 
 .creatorName {
-
+    width: 6em;
+    display: inline-block;
 }
 
 .creatorFtu {
-
+    width: 6em;
+    float: right;
+    display: inline-block;
+    text-align: right;
 }
 
 .creatorAddress {
-
+    width:100%;
+    margin: auto;
 }

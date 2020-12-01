@@ -13,11 +13,9 @@ const Booth = ({
   cardSize
 }) => {
     return html`
-      <div class=${styles}>
-        <div className="booth ${cardSize}">
+        <div className="${styles} booth ${cardSize}">
           <${AssetCardGrid} data=${data.entries} cardSize=${cardSize} />
         </div>
-      </div>
     `;
   };
 
