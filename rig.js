@@ -48,6 +48,36 @@ const animationsSelectMap = {
   'falling.fbx': new THREE.Vector3(0, -1, 0),
   'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
   'falling landing.fbx': new THREE.Vector3(0, -2, 0),
+  //
+  'left strafe walking reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
+  'left strafe reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
+  'right strafe walking reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
+  'right strafe reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
+};
+const animationsDistanceMap = {
+  'idle.fbx': new THREE.Vector3(0, 0, 0),
+  'jump.fbx': new THREE.Vector3(0, 1, 0),
+  'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
+  'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
+  // `left turn 90.fbx`,
+  // `left turn.fbx`,
+  'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
+  'right strafe.fbx': new THREE.Vector3(1, 0, 0),
+  // `right turn 90.fbx`,
+  // `right turn.fbx`,
+  'running.fbx': new THREE.Vector3(0, 0, -1),
+  'walking.fbx': new THREE.Vector3(0, 0, -0.5),
+  // `ybot.fbx`,
+  'running backwards.fbx': new THREE.Vector3(0, 0, 1),
+  'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
+  'falling.fbx': new THREE.Vector3(0, -1, 0),
+  'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
+  'falling landing.fbx': new THREE.Vector3(0, -2, 0),
+  //
+  'left strafe walking reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(2),
+  'left strafe reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(2),
+  'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
+  'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
 };
 let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAnimation = null, lastPosition = new THREE.Vector3(), smoothVelocity = new THREE.Vector3();
 (async () => {
@@ -69,6 +99,41 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
       action.play();
     */
   }
+  const _reverseAnimation = animation => {
+    animation = animation.clone();
+    const {tracks} = animation;
+    for (const track of tracks) {
+      track.times.reverse();
+      for (let i = 0; i < track.times.length; i++) {
+        track.times[i] = animation.duration - track.times[i];
+      }
+
+      const values2 = new track.values.constructor(track.values.length);
+      const valueSize = track.getValueSize();
+      const numValues = track.values.length / valueSize;
+      for (let i = 0; i < numValues; i++) {
+        const aIndex = i;
+        const bIndex = numValues - 1 - i;
+        for (let j = 0; j < valueSize; j++) {
+          values2[aIndex * valueSize + j] = track.values[bIndex * valueSize + j];
+        }
+      }
+      track.values = values2;
+    }
+    return animation;
+  };
+  const reversibleAnimationNames = [
+    `left strafe walking.fbx`,
+    `left strafe.fbx`,
+    `right strafe walking.fbx`,
+    `right strafe.fbx`,
+  ];
+  for (const name of reversibleAnimationNames) {
+    const animation = animations.find(a => a.name === name);
+    const reverseAnimation = _reverseAnimation(animation);
+    reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
+    animations.push(reverseAnimation);
+  }
 
   const _normalizeAnimationDurations = (animations, baseAnimation) => {
     for (let i = 1; i < animations.length; i++) {
@@ -89,6 +154,8 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     // `walking backwards.fbx`,
     `left strafe walking.fbx`,
     `right strafe walking.fbx`,
+    `left strafe walking reverse.fbx`,
+    `right strafe walking reverse.fbx`,
   ].map(name => animations.find(a => a.name === name));
   _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
   const runningAnimations = [
@@ -96,6 +163,8 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     // `running backwards.fbx`,
     `left strafe.fbx`,
     `right strafe.fbx`,
+    `left strafe reverse.fbx`,
+    `right strafe reverse.fbx`,
   ].map(name => animations.find(a => a.name === name));
   _normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
   animations.forEach(animation => {
@@ -109,9 +178,13 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
           return 'backward';
         case 'left strafe walking.fbx':
         case 'left strafe.fbx':
+        case 'left strafe walking reverse.fbx':
+        case 'left strafe reverse.fbx':
           return 'left';
         case 'right strafe walking.fbx':
         case 'right strafe.fbx':
+        case 'right strafe walking reverse.fbx':
+        case 'right strafe reverse.fbx':
           return 'right';
         case 'jump.fbx':
         case 'falling.fbx':
@@ -128,7 +201,8 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     animation.isBackward = /backward/i.test(animation.name);
     animation.isLeft = /left/i.test(animation.name);
     animation.isRight = /right/i.test(animation.name);
-    animation.isRunning = /running|left strafe\.|right strafe\./i.test(animation.name);
+    animation.isRunning = /running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
+    animation.isReverse = /reverse/i.test(animation.name);
     animation.interpolants = {};
     animation.tracks.forEach(track => {
       const i = track.createInterpolant();
@@ -609,23 +683,39 @@ class RigManager {
         if (selectedAnimations[1].isIdle) {
           selectedAnimations[1] = selectedAnimations[0];
         }
-        /* if (selectedAnimations.some(a => a.isBackward) && selectedAnimations.some(a => a.isLeft)) {
+        if (selectedAnimations.some(a => a.isBackward) && selectedAnimations.some(a => a.isLeft)) {
           if (selectedAnimations.some(a => a.isRunning)) {
-            selectedAnimations[0] = animations.find(a => a.isRight && a.isRunning);
+            selectedAnimations[0] = animations.find(a => a.isRight && a.isRunning && a.isReverse);
             selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+            // selectedAnimations[1] = selectedAnimations[0];
+            if (selectedAnimations.some(a => !a)) {
+              debugger;
+            }
           } else {
-            selectedAnimations[0] = animations.find(a => a.isRight && !a.isRunning);
+            selectedAnimations[0] = animations.find(a => a.isRight && !a.isRunning && a.isReverse);
             selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+            // selectedAnimations[1] = selectedAnimations[0];
+            if (selectedAnimations.some(a => !a)) {
+              debugger;
+            }
           }
         } else if (selectedAnimations.some(a => a.isBackward) && selectedAnimations.some(a => a.isRight)) {
           if (selectedAnimations.some(a => a.isRunning)) {
-            selectedAnimations[0] = animations.find(a => a.isLeft && a.isRunning);
+            selectedAnimations[0] = animations.find(a => a.isLeft && a.isRunning && a.isReverse);
             selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+            // selectedAnimations[1] = selectedAnimations[0];
+            if (selectedAnimations.some(a => !a)) {
+              debugger;
+            }
           } else {
-            selectedAnimations[0] = animations.find(a => a.isLeft && !a.isRunning);
+            selectedAnimations[0] = animations.find(a => a.isLeft && !a.isRunning && a.isReverse);
             selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+            // selectedAnimations[1] = selectedAnimations[0];
+            if (selectedAnimations.some(a => !a)) {
+              debugger;
+            }
           }
-        } */
+        }
         return selectedAnimations;
       };
 
@@ -639,11 +729,11 @@ class RigManager {
       localEuler.z = 0;
       const selectedAnimations = _selectAnimations(smoothVelocity.clone().applyEuler(localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order)));
 
-      const distance1 = animationsSelectMap[selectedAnimations[0].name].distanceTo(positionDiff);
-      const distance2 = animationsSelectMap[selectedAnimations[1].name].distanceTo(positionDiff);
+      const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(positionDiff);
+      const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(positionDiff);
       const totalDistance = distance1 + distance2;
-      const factor1 = 1 - distance1/totalDistance;
-      const factor2 = 1 - distance2/totalDistance;
+      let factor1 = 1 - distance1/totalDistance;
+      let factor2 = 1 - distance2/totalDistance;
 
       if (window.lol) {
         console.log({positionDiff, smoothVelocity, factor1, factor2, distance1, distance2});
