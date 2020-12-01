@@ -44,6 +44,8 @@ class ShoulderTransforms {
 
     this.leftArmIk = new VRArmIK(this.leftArm, this, this.shoulderPoser, this.shoulderPoser.vrTransforms.leftHand, true);
     this.rightArmIk = new VRArmIK(this.rightArm, this, this.shoulderPoser, this.shoulderPoser.vrTransforms.rightHand, false);
+
+    this.enabled = true;
   }
 
   Start() {
@@ -52,9 +54,11 @@ class ShoulderTransforms {
   }
 
   Update() {
-    this.shoulderPoser.Update();
-    this.leftArmIk.Update();
-    this.rightArmIk.Update();
+  	if (this.enabled) {
+	    this.shoulderPoser.Update();
+	    this.leftArmIk.Update();
+	    this.rightArmIk.Update();
+	  }
   }
 }
 
