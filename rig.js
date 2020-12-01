@@ -23,8 +23,8 @@ const animationFileNames = [
   `running.fbx`,
   `walking.fbx`,
   // `ybot.fbx`,
-  `walking backwards.fbx`,
   `running backwards.fbx`,
+  `walking backwards.fbx`,
   `falling.fbx`,
   `falling idle.fbx`,
   `falling landing.fbx`,
@@ -43,8 +43,8 @@ const animationsSelectMap = {
   'running.fbx': new THREE.Vector3(0, 0, -1),
   'walking.fbx': new THREE.Vector3(0, 0, -0.5),
   // `ybot.fbx`,
-  'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
   'running backwards.fbx': new THREE.Vector3(0, 0, 1),
+  'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
   'falling.fbx': new THREE.Vector3(0, -1, 0),
   'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
   'falling landing.fbx': new THREE.Vector3(0, -2, 0),
@@ -86,26 +86,26 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
   };
   const walkingAnimations = [
     `walking.fbx`,
-    `walking backwards.fbx`,
+    // `walking backwards.fbx`,
     `left strafe walking.fbx`,
     `right strafe walking.fbx`,
   ].map(name => animations.find(a => a.name === name));
-  _normalizeAnimationDurations(walkingAnimations, walkingAnimations.slice().sort((a, b) => b.duration - a.duration)[0]);
+  _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
   const runningAnimations = [
     `running.fbx`,
-    `running backwards.fbx`,
+    // `running backwards.fbx`,
     `left strafe.fbx`,
     `right strafe.fbx`,
   ].map(name => animations.find(a => a.name === name));
-  _normalizeAnimationDurations(runningAnimations, runningAnimations.slice().sort((a, b) => b.duration - a.duration)[0]);
+  _normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
   animations.forEach(animation => {
     animation.direction = (() => {
       switch (animation.name) {
         case 'running.fbx':
         case 'walking.fbx':
           return 'forward';
-        case 'walking backwards.fbx':
         case 'running backwards.fbx':
+        case 'walking backwards.fbx':
           return 'backward';
         case 'left strafe walking.fbx':
         case 'left strafe.fbx':
@@ -124,7 +124,11 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     })();
     animation.isIdle = /idle/i.test(animation.name);
     animation.isJump = /jump/i.test(animation.name);
-    // animation.initialDuration = animation.duration;
+    animation.isForward = /forward/i.test(animation.name);
+    animation.isBackward = /backward/i.test(animation.name);
+    animation.isLeft = /left/i.test(animation.name);
+    animation.isRight = /right/i.test(animation.name);
+    animation.isRunning = /right/i.test(animation.name);
     animation.interpolants = {};
     animation.tracks.forEach(track => {
       const i = track.createInterpolant();
@@ -605,6 +609,9 @@ class RigManager {
         if (selectedAnimations[1].isIdle) {
           selectedAnimations[1] = selectedAnimations[0];
         }
+        /* if (selectedAnimations.some()) {
+
+        } */
         return selectedAnimations;
       };
 
@@ -625,7 +632,7 @@ class RigManager {
       const factor2 = 1 - distance2/totalDistance;
 
       if (window.lol) {
-        console.log({positionDiff, smoothVelocity, factor1, factor2});
+        console.log({positionDiff, smoothVelocity, factor1, factor2, distance1, distance2});
         debugger;
       }
 
