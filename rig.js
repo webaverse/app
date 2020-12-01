@@ -110,6 +110,24 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
   idleAnimation = animations.find(a => a.isIdle);
   jumpAnimation = animations.find(a => a.isJump);
 
+  const walkingAnimations = [
+    `walking.fbx`,
+    `walking backwards.fbx`,
+    `left strafe walking.fbx`,
+    `right strafe walking.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+  for (let i = 1; i < walkingAnimations.length; i++) {
+    const animation = walkingAnimations[i];
+    console.log('got duration', animation);
+    animation.duration = animation[0].duration;
+  }
+  const runningAnimations = [
+    `running.fbx`,
+    `running backwards.fbx`,
+    `left strafe.fbx`,
+    `right strafe.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+
   const gltfLoader = new GLTFLoader();
   const model = await new Promise((accept, reject) => {
     gltfLoader.load(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/female.vrm`, accept, function progress() {}, reject);
@@ -583,7 +601,6 @@ class RigManager {
             break;
           }
         } */
-        selectedAnimations[0].duration = selectedAnimations[1].duration = Math.max(selectedAnimations[0].initialDuration, selectedAnimations[1].initialDuration);
         return selectedAnimations;
       };
 
@@ -600,10 +617,10 @@ class RigManager {
       const factor1 = 1 - distance1/totalDistance;
       const factor2 = 1 - distance2/totalDistance;
 
-      /* if (window.lol) {
+      if (window.lol) {
         console.log({positionDiff, smoothVelocity, factor1, factor2});
         debugger;
-      } */
+      }
 
       for (const k in mapping) {
         const dst = mapping[k];
