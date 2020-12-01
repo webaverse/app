@@ -39,10 +39,10 @@ const animationsSelectMap = {
   'running.fbx': new THREE.Vector3(0, 0, -1),
   'walking.fbx': new THREE.Vector3(0, 0, -0.5),
   // `ybot.fbx`,
-  'walking backwards.fbx': new THREE.Vector3(0, 0, -0.5),
-  'running backwards.fbx': new THREE.Vector3(0, 0, -1),
+  'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
+  'running backwards.fbx': new THREE.Vector3(0, 0, 1),
 };
-let testRig = null, objects = [], animations = [], lastPosition = new THREE.Vector3();
+let testRig = null, objects = [], animations = [], lastPosition = new THREE.Vector3(), smoothVelocity = new THREE.Vector3();
 (async () => {
   const fbxLoader = new FBXLoader();
   for (const name of animationFileNames) {
@@ -528,35 +528,48 @@ class RigManager {
         'mixamorigLeftFoot.quaternion': testRig.outputs.rightFoot.quaternion,
         'mixamorigLeftToeBase.quaternion': null,
       };
-      const _selectAnimations = positionDiff => {
+      const _selectAnimations = v => {
         const closestAnimations = animations.slice().sort((a, b) => {
           const targetPosition1 = animationsSelectMap[a.name];
-          const distance1 = targetPosition1.distanceTo(positionDiff);
+          const distance1 = targetPosition1.distanceTo(v);
 
           const targetPosition2 = animationsSelectMap[b.name];
-          const distance2 = targetPosition2.distanceTo(positionDiff);
+          const distance2 = targetPosition2.distanceTo(v);
 
           return distance1 - distance2;
         }).slice(0, 2);
-        closestAnimations[0].duration = closestAnimations[1].duration = Math.min(closestAnimations[0].initialDuration, closestAnimations[1].initialDuration);
+        closestAnimations[0].duration = closestAnimations[1].duration = Math.max(closestAnimations[0].initialDuration, closestAnimations[1].initialDuration);
         return closestAnimations;
       };
 
       const currentPosition = this.localRig.outputs.hips.position.clone();
       const positionDiff = currentPosition.clone()
         .sub(lastPosition)
-        .normalize();
-      const selectedAnimations = _selectAnimations(positionDiff);
+        .multiplyScalar(10);
+      smoothVelocity.lerp(positionDiff, 0.9);
+      const selectedAnimations = _selectAnimations(smoothVelocity);
+
+      const distance1 = animationsSelectMap[selectedAnimations[0].name].distanceTo(positionDiff);
+      const distance2 = animationsSelectMap[selectedAnimations[1].name].distanceTo(positionDiff);
+      const totalDistance = distance1 + distance2;
+      const factor1 = 1 - distance1/totalDistance;
+      const factor2 = 1 - distance2/totalDistance;
+
+      if (window.lol) {
+        console.log({positionDiff, smoothVelocity, factor1, factor2});
+        debugger;
+      }
+
       for (const k in mapping) {
         const dst = mapping[k];
         if (dst) {
-          const f1 = (Date.now()/1000) % selectedAnimations[0].duration;
+          const t1 = (Date.now()/1000) % selectedAnimations[0].duration;
           const src1 = selectedAnimations[0].interpolants[k];
-          const v1 = src1.evaluate(f1);
+          const v1 = src1.evaluate(t1);
 
-          const f2 = (Date.now()/1000) % selectedAnimations[1].duration;
+          const t2 = (Date.now()/1000) % selectedAnimations[1].duration;
           const src2 = selectedAnimations[1].interpolants[k];
-          const v2 = src2.evaluate(f2);
+          const v2 = src2.evaluate(t2);
 
           if (v1.length === 3) {
             dst.fromArray(v1).add(localVector.fromArray(v2));
@@ -564,7 +577,7 @@ class RigManager {
             dst.z = 0;
             dst.y -= testRig.hipsHeight * 1.25;
           } else {
-            dst.fromArray(v1).slerp(localQuaternion.fromArray(v2), 0.5);
+            dst.fromArray(v1).slerp(localQuaternion.fromArray(v2), factor2);
           }
         }
       }
