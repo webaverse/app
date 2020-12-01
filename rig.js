@@ -69,14 +69,43 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
       action.play();
     */
   }
+
+  const _normalizeAnimationDurations = (animations, baseAnimation) => {
+    for (let i = 1; i < animations.length; i++) {
+      const animation = animations[i];
+      const oldDuration = animation.duration;
+      const newDuration = baseAnimation.duration;
+      for (const track of animation.tracks) {
+        const {times} = track;
+        for (let j = 0; j < times.length; j++) {
+          // times[i] *= newDuration/oldDuration;
+        }
+      }
+      animation.duration = newDuration;
+    }
+  };
+  const walkingAnimations = [
+    `walking.fbx`,
+    `walking backwards.fbx`,
+    `left strafe walking.fbx`,
+    `right strafe walking.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+  _normalizeAnimationDurations(walkingAnimations, walkingAnimations.slice().sort((a, b) => b.duration - a.duration)[0]);
+  const runningAnimations = [
+    `running.fbx`,
+    `running backwards.fbx`,
+    `left strafe.fbx`,
+    `right strafe.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+  _normalizeAnimationDurations(runningAnimations, runningAnimations.slice().sort((a, b) => b.duration - a.duration)[0]);
   animations.forEach(animation => {
     animation.direction = (() => {
       switch (animation.name) {
         case 'running.fbx':
         case 'walking.fbx':
           return 'forward';
-        case 'running backwards.fbx':
         case 'walking backwards.fbx':
+        case 'running backwards.fbx':
           return 'backward';
         case 'left strafe walking.fbx':
         case 'left strafe.fbx':
@@ -95,7 +124,7 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     })();
     animation.isIdle = /idle/i.test(animation.name);
     animation.isJump = /jump/i.test(animation.name);
-    animation.initialDuration = animation.duration;
+    // animation.initialDuration = animation.duration;
     animation.interpolants = {};
     animation.tracks.forEach(track => {
       const i = track.createInterpolant();
@@ -109,24 +138,6 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
   });
   idleAnimation = animations.find(a => a.isIdle);
   jumpAnimation = animations.find(a => a.isJump);
-
-  const walkingAnimations = [
-    `walking.fbx`,
-    `walking backwards.fbx`,
-    `left strafe walking.fbx`,
-    `right strafe walking.fbx`,
-  ].map(name => animations.find(a => a.name === name));
-  for (let i = 1; i < walkingAnimations.length; i++) {
-    const animation = walkingAnimations[i];
-    console.log('got duration', animation);
-    animation.duration = animation[0].duration;
-  }
-  const runningAnimations = [
-    `running.fbx`,
-    `running backwards.fbx`,
-    `left strafe.fbx`,
-    `right strafe.fbx`,
-  ].map(name => animations.find(a => a.name === name));
 
   const gltfLoader = new GLTFLoader();
   const model = await new Promise((accept, reject) => {
@@ -581,7 +592,6 @@ class RigManager {
         'mixamorigLeftToeBase.quaternion': null,
       };
       const _selectAnimations = v => {
-        // const jumpState = physicsMananager.getJumpState();
         const selectedAnimations = animations.slice().sort((a, b) => {
           const targetPosition1 = animationsSelectMap[a.name];
           const distance1 = targetPosition1.distanceTo(v);
@@ -591,16 +601,9 @@ class RigManager {
 
           return distance1 - distance2;
         }).slice(0, 2);
-        /* const selectedAnimations = [];
-        for (let i = 0; i < closestAnimations.length; i++) {
-          const animation = closestAnimations[i];
-          if (selectedAnimations.length === 0 || selectedAnimations[0].direction !== animation.direction) {
-            selectedAnimations.push(animation);
-          }
-          if (selectedAnimations.length >= 2) {
-            break;
-          }
-        } */
+        if (selectedAnimations[1].isIdle) {
+          selectedAnimations[1] = selectedAnimations[0];
+        }
         return selectedAnimations;
       };
 
