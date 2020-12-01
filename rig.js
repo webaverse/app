@@ -555,10 +555,10 @@ class RigManager {
       const factor1 = 1 - distance1/totalDistance;
       const factor2 = 1 - distance2/totalDistance;
 
-      if (window.lol) {
+      /* if (window.lol) {
         console.log({positionDiff, smoothVelocity, factor1, factor2});
         debugger;
-      }
+      } */
 
       for (const k in mapping) {
         const dst = mapping[k];
