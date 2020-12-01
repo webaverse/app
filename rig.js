@@ -128,7 +128,7 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     animation.isBackward = /backward/i.test(animation.name);
     animation.isLeft = /left/i.test(animation.name);
     animation.isRight = /right/i.test(animation.name);
-    animation.isRunning = /right/i.test(animation.name);
+    animation.isRunning = /running|left strafe\.|right strafe\./i.test(animation.name);
     animation.interpolants = {};
     animation.tracks.forEach(track => {
       const i = track.createInterpolant();
@@ -609,8 +609,22 @@ class RigManager {
         if (selectedAnimations[1].isIdle) {
           selectedAnimations[1] = selectedAnimations[0];
         }
-        /* if (selectedAnimations.some()) {
-
+        /* if (selectedAnimations.some(a => a.isBackward) && selectedAnimations.some(a => a.isLeft)) {
+          if (selectedAnimations.some(a => a.isRunning)) {
+            selectedAnimations[0] = animations.find(a => a.isRight && a.isRunning);
+            selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+          } else {
+            selectedAnimations[0] = animations.find(a => a.isRight && !a.isRunning);
+            selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+          }
+        } else if (selectedAnimations.some(a => a.isBackward) && selectedAnimations.some(a => a.isRight)) {
+          if (selectedAnimations.some(a => a.isRunning)) {
+            selectedAnimations[0] = animations.find(a => a.isLeft && a.isRunning);
+            selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+          } else {
+            selectedAnimations[0] = animations.find(a => a.isLeft && !a.isRunning);
+            selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+          }
         } */
         return selectedAnimations;
       };
