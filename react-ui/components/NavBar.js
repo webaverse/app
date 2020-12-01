@@ -15,6 +15,7 @@ const NavBar = ({username, avatarPreview}) => {
     <div className=${styles}>
       <div className="topbar">
         <nav className="navbar">
+          <span className='nav-logo'><h1>Webaverse</h1></span>
           <span className='nav-item'><a href='/profile' className='nav-link'>Profile</a></span>
           <span className='nav-item'><a href='/gallery' className='nav-link'>Gallery</a></span>
           <span className='nav-item'><a href='/creators' className='nav-link'>Creators</a></span>

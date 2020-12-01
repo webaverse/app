@@ -27,8 +27,7 @@ const Card = ({
   networkType
 }) => {
     return html`
-      <div className=${styles}>
-        <div className="card card ${cardSize}">
+        <div className="${styles} card ${cardSize}">
           <div className="upperCardInfo upperCardInfo ${cardSize} upperCardInfo_${ext.replace('.','')}">
             <div className="upperCardInfoLeft upperCardInfoLeft ${cardSize}">
               <span className="cardAssetName cardName ${cardSize}">${assetName}</span>
@@ -63,7 +62,6 @@ const Card = ({
             <span className="assetHash assetHash ${cardSize}">${hash}</span>
           </div>
         </div>
-      </div>
     `;
   };
 
