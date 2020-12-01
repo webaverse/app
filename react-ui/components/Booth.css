@@ -1,5 +1,7 @@
-.booth {
-
+&.booth {
+    flex-wrap: wrap;
+    width:100%;
+    display:flex;
 }
 
 .booth.small {

@@ -1,15 +1,18 @@
-.assetDataGrid {
+& {
+    flex-wrap: wrap;
+    width:100%;
+    display:flex;
+}
+
+
+& .small {
 
 }
 
-.assetDataGrid.small {
+& .medium {
 
 }
 
-.assetDataGrid.medium {
-
-}
-
-.assetDataGrid.large {
+& .large {
 
 }
