@@ -1133,6 +1133,13 @@ class Avatar {
     this.shoulderTransforms.Start();
     this.legsManager.Start();
 
+    if (options.top !== undefined) {
+      this.setTopEnabled(!!options.top);
+    }
+    if (options.bottom !== undefined) {
+      this.setBottomEnabled(!!options.bottom);
+    }
+
     this.decapitated = false;
     if (options.decapitate) {
       if (springBoneManagerPromise) {
@@ -1201,14 +1208,25 @@ class Avatar {
 
     this.shoulderTransforms.hips.updateMatrixWorld();
   }
+  setTopEnabled(enabled) {
+    this.shoulderTransforms.enabled = enabled;
+  }
+  getTopEnabled() {
+    return this.shoulderTransforms.enabled;
+  }
+  setBottomEnabled(enabled) {
+    this.legsManager.enabled = enabled;
+  }
+  getBottomEnabled() {
+    return this.legsManager.enabled;
+  }
 	update() {
     const wasDecapitated = this.decapitated;
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
     }
 
-    const absorb = this.options.absorb === undefined || !!this.options.absorb;
-    if (absorb) {
+    if (this.getTopEnabled()) {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
       this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
       this.sdkInputs.leftGamepad.position.copy(this.inputs.leftGamepad.position).add(localVector.copy(this.handOffsetLeft).applyQuaternion(this.inputs.leftGamepad.quaternion));
@@ -1267,6 +1285,8 @@ class Avatar {
       }
 
       this.shoulderTransforms.Update();
+    }
+    if (this.getBottomEnabled()) {
       this.legsManager.Update();
     }
 
@@ -1279,13 +1299,16 @@ class Avatar {
       }
       modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion)
 
-      if (absorb) {
-        if (k === 'Left_ankle' || k === 'Right_ankle') {
-          modelBone.quaternion.multiply(upRotation);
-        } else if (k === 'Left_wrist') {
+      if (this.getTopEnabled()) {
+        if (k === 'Left_wrist') {
           modelBone.quaternion.multiply(leftRotation); // center
         } else if (k === 'Right_wrist') {
           modelBone.quaternion.multiply(rightRotation); // center
+        }
+      }
+      if (this.getBottomEnabled()) {
+        if (k === 'Left_ankle' || k === 'Right_ankle') {
+          modelBone.quaternion.multiply(upRotation);
         }
       }
       modelBone.updateMatrixWorld();
@@ -1354,7 +1377,7 @@ class Avatar {
     }
 
     if (this.debugMeshes) {
-      if (absorb) {
+      if (!this.getTopEnabled()) {
         this.outputs.leftHand.quaternion.multiply(rightRotation); // center
         this.outputs.leftHand.updateMatrixWorld();
         this.outputs.rightHand.quaternion.multiply(leftRotation); // center
