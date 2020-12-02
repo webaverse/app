@@ -13,6 +13,8 @@ const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.4);
 
 const localVector = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
 const _localizeMatrixWorld = bone => {
@@ -996,6 +998,7 @@ class Avatar {
       .distanceTo(modelBones.Left_littleFinger1.getWorldPosition(new THREE.Vector3()));
     this.handOffsetLeft = new THREE.Vector3(handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
     this.handOffsetRight = new THREE.Vector3(-handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
+    this.eyeToHipsOffset = modelBones.Hips.getWorldPosition(new THREE.Vector3()).sub(eyePosition);
     // this.hipsHeight = modelBones.Hips.getWorldPosition(new THREE.Vector3()).y;
 
     const _makeInput = () => {
@@ -1285,6 +1288,16 @@ class Avatar {
       }
 
       this.shoulderTransforms.Update();
+    } else {
+      this.outputs.hips.position.copy(this.inputs.hmd.position)
+        .add(this.eyeToHipsOffset);
+
+      localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      localEuler.y += Math.PI;
+      this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
+      // testRig.outputs.hips.quaternion.premultiply(localQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
     }
     if (this.getBottomEnabled()) {
       this.legsManager.Update();
