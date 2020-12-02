@@ -252,10 +252,6 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     }
   });
   scene.add(testRig.model);
-
-  window.objects = objects;
-  window.animations = animations;
-  window.testRig = testRig;
 })();
 
 const localVector = new THREE.Vector3();
