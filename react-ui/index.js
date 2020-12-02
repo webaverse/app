@@ -9,11 +9,9 @@ import CreatorsPage from './pages/CreatorsPage.js';
 import NotFoundPage from './pages/NotFoundPage.js';
 
 import { UserContext } from './constants/UserContext.js';
-import UserManager from './classes/UserManager.js';
 
 window.React = React
 window.html = htm.bind(React.createElement);
-window.UserManager = new UserManager();
 
 const myProfile = html`<${MyProfile} />`;
 const gallery = html`<${Gallery} />`;
