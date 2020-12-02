@@ -9,6 +9,7 @@ import Avatar from './avatars/avatars.js';
 import {FBXLoader} from './FBXLoader.js';
 import physicsMananager from './physics-manager.js';
 // import cbor from './cbor.js';
+import animationsJson from './animations/animations.js';
 
 const animationsSelectMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
@@ -133,6 +134,7 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
   downloadFile(new Blob(['export default ', animationsString], {
     type: 'application/octet-stream',
   }), 'animations.json'); */
+  animations = animationsJson.map(a => THREE.AnimationClip.parse(a));
 
   const _normalizeAnimationDurations = (animations, baseAnimation) => {
     for (let i = 1; i < animations.length; i++) {
