@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-(function(global, undefined) { "use strict";
+// (function(global, undefined) { "use strict";
 var POW_2_24 = 5.960464477539063e-8,
     POW_2_32 = 4294967296,
     POW_2_53 = 9007199254740992;
@@ -395,12 +395,13 @@ function decode(data, tagger, simpleValue) {
 }
 
 var obj = { encode: encode, decode: decode };
+export default obj;
 
-if (typeof define === "function" && define.amd)
+/* if (typeof define === "function" && define.amd)
   define("cbor/cbor", obj);
 else if (typeof module !== "undefined" && module.exports)
   module.exports = obj;
 else if (!global.CBOR)
   global.CBOR = obj;
 
-})(this);
+})(this); */
