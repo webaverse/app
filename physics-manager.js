@@ -229,7 +229,7 @@ const _collideCapsule = (() => {
   const localVector = new THREE.Vector3();
   return (p, q) => {
     localVector.copy(p);
-    localVector.y -= 0.3;
+    localVector.y -= 0.5;
     return geometryManager.geometryWorker.collidePhysics(geometryManager.physics, 0.5, 0.5, localVector, q, 1);
   };
 })();
