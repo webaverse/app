@@ -735,10 +735,10 @@ class RigManager {
       let factor1 = 1 - distance1/totalDistance;
       let factor2 = 1 - distance2/totalDistance;
 
-      if (window.lol) {
+      /* if (window.lol) {
         console.log({positionDiff, smoothVelocity, factor1, factor2, distance1, distance2});
         debugger;
-      }
+      } */
 
       for (const k in mapping) {
         const dst = mapping[k];
