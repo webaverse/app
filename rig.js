@@ -373,7 +373,6 @@ class RigManager {
     localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
     positionDiff.applyEuler(localEuler2);
     this.smoothVelocity.lerp(positionDiff, 0.5);
-    // this.smoothVelocity.applyEuler(localEuler2);
     this.lastPosition.copy(currentPosition);
 
     this.localRig.setTopEnabled(/^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()));
