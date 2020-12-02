@@ -8,7 +8,7 @@ import MintPage from './pages/MintPage.js';
 import CreatorsPage from './pages/CreatorsPage.js';
 import NotFoundPage from './pages/NotFoundPage.js';
 
-  import { UserContext } from './constants/UserContext.js';
+import { UserContext } from './constants/UserContext.js';
 
 window.React = React
 window.html = htm.bind(React.createElement)
@@ -34,14 +34,20 @@ const PageRouter = () => {
   `
 }
 
-ReactDOM.render(
-  html`
-    <${React.Suspense} fallback=${html`<div></div>`}>
-    <${UserContext.Provider} value="test from context">
-      <${PageRouter} />
-    </ ${UserContext.Provider}>
-    <//>
-  `,
+const Application = () => {
+  const [userContext, setUserContext] = useState(null);
+
+  return html`
+  <${React.Suspense} fallback=${html`<div></div>`}>
+  <${UserContext.Provider} value="${userContext}">
+    <${PageRouter} />
+  </ ${UserContext.Provider}>
+  <//>
+`
+}
+
+ReactDOM.render(html`<${Application} />`
+  ,
   document.getElementById('root')
 )
 

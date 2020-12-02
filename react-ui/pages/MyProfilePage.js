@@ -3,13 +3,11 @@ import htm from '/web_modules/htm.js';
 import MockAddress from "../mock/Address.js"
 import Profile from "../components/Profile.js"
 import MockUserProfileData from "../mock/UserProfileData.js";
-import { UserContext } from '../constants/UserContext.js';
 
 const html = htm.bind(React.createElement)
 
 
 const MyProfile = () => {
-    const userContext = useContext(UserContext);
     return html`
         <${Profile} userAddress=${MockAddress} userData=${MockUserProfileData} />
     `
