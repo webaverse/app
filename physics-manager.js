@@ -299,7 +299,7 @@ const _updatePhysics = timeDiff => {
     if (selectedTool === 'firstperson') {
       _applyAvatarPhysics(camera, null, false, false, false, timeDiff);
     } else if (selectedTool === 'thirdperson') {
-      _applyAvatarPhysics(camera, cameraManager.avatarCameraOffset, true, true, true, timeDiff);
+      _applyAvatarPhysics(camera, cameraManager.avatarCameraOffset, true, false, true, timeDiff);
     } else if (selectedTool === 'isometric') {
       _applyAvatarPhysics(camera, cameraManager.isometricCameraOffset, true, true, true, timeDiff);
     } else if (selectedTool === 'birdseye') {

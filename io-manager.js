@@ -509,7 +509,7 @@ const _updateMouseMovement = e => {
   }
 
   camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
-  if (selectedTool !== 'isometric' && selectedTool !== 'birdseye') {
+  if (selectedTool !== 'birdseye') {
     camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
     camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
     camera.quaternion.setFromEuler(camera.rotation);

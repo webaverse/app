@@ -20,8 +20,8 @@ const getAvatarHeight = () => getFullAvatarHeight() * 0.9;
   }
 }; */
 const birdsEyeHeight = 10;
-const avatarCameraOffset = new THREE.Vector3(0, 0, -1);
-const isometricCameraOffset = new THREE.Vector3(0, 0, -5);
+const avatarCameraOffset = new THREE.Vector3(0, 0, -1.5);
+const isometricCameraOffset = new THREE.Vector3(0, 0, -2);
 const tools = Array.from(document.querySelectorAll('.tool'));
 
 const _requestPointerLock = () => new Promise((accept, reject) => {
