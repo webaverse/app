@@ -1,44 +1,63 @@
-import { React, useContext } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { React, useContext, useEffect, useReducer } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '../web_modules/htm.js';
 import css from '../web_modules/csz.js'
 import { useState } from 'https://unpkg.com/es-react@16.13.1/dev';
-import { UserContext } from '../constants/UserContext.js';
-
+import { LoginReducer } from '../reducers/LoginReducer.js';
+import ActionTypes from '../constants/ActionTypes.js';
 const styles = css`/components/NavBar.css`
 
 const html = htm.bind(React.createElement)
 
-const guestAvatarImage = "../images/test.png";
+const defaultAvatarImage = "../images/test.png";
 
-const UserComponent = ({username, avatarPreview}) => {
-    const [menuIsOpen, setMenuOpen] = useState(false);
+const UserComponent = () => {
 
-    const {userContext, setUserContext} = useContext(UserContext);
-    const loggedIn = false;
+  const initialState = {
+    loginToken: null,
+    publicKey: null,
+    privateKey: null,
+    name: null,
+    mainnetAddress: null,
+    avatarThumbnail: null,
+    showUserDropdown: false
+  }
 
-    const loggedInView = html`
-    <div className="loginComponentDropdown">
-        <span className="loginComponentLink"><a href="/settings">Settings</a></span>
-        <span className="loginComponentLink"><a href="/logout">Logout</a></span>
-    </div>
+  const [state, dispatch] = useReducer(LoginReducer, initialState);
+
+  useEffect(() => {
+    dispatch({ type: ActionTypes.InitializeUserObject });
+    console.log("state is", state);
+  }, [])
+
+    const onLoginSubmit = (e) => {
+      e.preventDefault();
+      console.log(e);
+      dispatch({ type: ActionTypes.LoginWithPrivateKey })
+    }
+
+    const loginForm = () => html`
+      <form className="loginForm" onSubmit="${onLoginSubmit}">
+        <p>Token is ${state.loginToken}</p>
+        <input type="text" placeholder="privatekey" />
+        <button className="submit" type="submit">
+          Login
+        </button>
+      </form>
     `
 
-    const guestView = html`
+    const DropDown = () => html`
     <div className="loginComponentDropdown">
-        <span>Guest View - Login stuff here</span>
+      <${loginForm} />
     </div>
     `
 
     return html`
         <div className="loginComponent">
             <div className="loginComponentNav">
-                <span className="loginUsername"> ${loggedIn ? username : 'Guest' } </span>
-                <span className="loginAvatarPreview"><img src="${loggedIn ? avatarPreview : guestAvatarImage}" /></span>
+                <span className="loginUsername"> ${state.name !== null ? state.names : 'Guest' } </span>
+                <span className="loginAvatarPreview"><img src="${state.avatarThumbnail !== null ? state.avatarThumbnail : defaultAvatarImage}" /></span>
             </div>
-            ${  (menuIsOpen && loggedIn) ? loggedInView :
-                (menuIsOpen && !loggedIn) ? guestView :
-                ''
-            }
+                <${DropDown} />
         </div>
     `
 }
