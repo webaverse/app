@@ -151,22 +151,28 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
   };
   const walkingAnimations = [
     `walking.fbx`,
-    // `walking backwards.fbx`,
     `left strafe walking.fbx`,
     `right strafe walking.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+  _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
+  const walkingBackwardAnimations = [
+    `walking backwards.fbx`,
     `left strafe walking reverse.fbx`,
     `right strafe walking reverse.fbx`,
   ].map(name => animations.find(a => a.name === name));
-  _normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
+  _normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
   const runningAnimations = [
     `running.fbx`,
-    // `running backwards.fbx`,
     `left strafe.fbx`,
     `right strafe.fbx`,
+  ].map(name => animations.find(a => a.name === name));
+  _normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
+  const runningBackwardAnimations = [
+    `running backwards.fbx`,
     `left strafe reverse.fbx`,
     `right strafe reverse.fbx`,
   ].map(name => animations.find(a => a.name === name));
-  _normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
+  _normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
   animations.forEach(animation => {
     animation.direction = (() => {
       switch (animation.name) {
