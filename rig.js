@@ -91,13 +91,6 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     o = o.animations[0];
     o.name = name;
     animations.push(o);
-    // console.log('loaded animation', o);
-    /*
-      mixer = new THREE.AnimationMixer( object );
-
-      const action = mixer.clipAction( object.animations[ 0 ] );
-      action.play();
-    */
   }
   const _reverseAnimation = animation => {
     animation = animation.clone();
