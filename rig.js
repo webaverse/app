@@ -8,28 +8,6 @@ import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import physicsMananager from './physics-manager.js';
 
-let testRig = null;
-(async () => {
-  const gltfLoader = new GLTFLoader();
-  const model = await new Promise((accept, reject) => {
-    gltfLoader.load(`https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/female.vrm`, accept, function progress() {}, reject);
-  });
-  testRig = new Avatar(model, {
-    fingers: true,
-    hair: true,
-    visemes: true,
-    debug: true,
-    top: false,
-    bottom: false,
-  });
-  testRig.model.traverse(o => {
-    if (o.isMesh) {
-      o.frustumCulled = false;
-    }
-  });
-  scene.add(testRig.model);
-})();
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -279,24 +257,6 @@ class RigManager {
     localEuler.y += Math.PI;
     localEuler.z = 0;
     this.localRig.textMesh.quaternion.setFromEuler(localEuler);
-
-    if (testRig) {
-      testRig.inputs.hmd.position.fromArray(hmdPosition)
-        .add(localVector.set(0, -0.2, -1)); // XXX for testing
-      testRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
-
-      testRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition)
-        .add(localVector.set(0, -0.2, -1)); // XXX for testing
-      testRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
-      testRig.inputs.leftGamepad.pointer = leftGamepadPointer;
-      testRig.inputs.leftGamepad.grip = leftGamepadGrip;
-
-      testRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition)
-        .add(localVector.set(0, -0.2, -1)); // XXX for testing
-      testRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
-      testRig.inputs.rightGamepad.pointer = rightGamepadPointer;
-      testRig.inputs.rightGamepad.grip = rightGamepadGrip;
-    }
   }
 
   setPeerAvatarPose(poseArray, peerId) {
@@ -394,6 +354,8 @@ class RigManager {
   }
 
   update() {
+    this.localRig.setTopEnabled(/^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()) || !!renderer.xr.getSession());
+    this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && physicsMananager.velocity.length() < 0.001);
     this.localRig.update();
     this.peerRigs.forEach(rig => {
       rig.update();
@@ -403,12 +365,6 @@ class RigManager {
       rigManager.localRig.decapitate();
     } else {
       rigManager.localRig.undecapitate();
-    }
-
-    if (testRig) {
-      testRig.setTopEnabled(/^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()) || !!renderer.xr.getSession());
-      testRig.setBottomEnabled(testRig.getTopEnabled() && physicsMananager.velocity.length() < 0.001);
-      testRig.update();
     }
     
     /* for (let i = 0; i < appManager.grabs.length; i++) {
