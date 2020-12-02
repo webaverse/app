@@ -801,7 +801,7 @@ class RigManager {
       }
 
       testRig.setTopEnabled(cameraManager.getTool() === 'firstperson' || !!renderer.xr.getSession());
-      testRig.setBottomEnabled(smoothVelocity.length() < 0.01);
+      testRig.setBottomEnabled(testRig.getTopEnabled() && smoothVelocity.length() < 0.01);
       testRig.update();
 
       lastPosition.copy(currentPosition);
