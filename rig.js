@@ -6,7 +6,7 @@ import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
 import {renderer, scene, appManager} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
-import {FBXLoader} from './FBXLoader.js';
+// import {FBXLoader} from './FBXLoader.js';
 import physicsMananager from './physics-manager.js';
 import animationsJson from './animations/animations.js';
 
