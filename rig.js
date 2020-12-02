@@ -505,17 +505,17 @@ class RigManager {
 
     if (testRig) {
       testRig.inputs.hmd.position.fromArray(hmdPosition)
-        .add(localVector.set(0, 0, -1)); // XXX for testing
+        .add(localVector.set(0, -0.2, -1)); // XXX for testing
       testRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
 
       testRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition)
-        .add(localVector.set(0, 0, -1)); // XXX for testing
+        .add(localVector.set(0, -0.2, -1)); // XXX for testing
       testRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
       testRig.inputs.leftGamepad.pointer = leftGamepadPointer;
       testRig.inputs.leftGamepad.grip = leftGamepadGrip;
 
       testRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition)
-        .add(localVector.set(0, 0, -1)); // XXX for testing
+        .add(localVector.set(0, -0.2, -1)); // XXX for testing
       testRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
       testRig.inputs.rightGamepad.pointer = rightGamepadPointer;
       testRig.inputs.rightGamepad.grip = rightGamepadGrip;
