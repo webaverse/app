@@ -200,7 +200,6 @@ class LegsManager {
   		/* this.hmdVelocity.multiplyScalar(1-velocityLearningFactor)
   		  .add(localVector.copy(this.poseManager.vrTransforms.head.position).sub(this.lastHmdPosition).multiplyScalar(velocityLearningFactor)); */
   		this.hmdVelocity.copy(this.poseManager.vrTransforms.head.position).sub(this.lastHmdPosition);
-  		this.lastHmdPosition.copy(this.poseManager.vrTransforms.head.position);
   		// console.log('v', this.hmdVelocity.toArray().join(','));
 
       this.leftLeg.standFactor = this.leftLeg.getStandFactor();
@@ -457,6 +456,7 @@ class LegsManager {
   		this.leftLeg.Update();
   		this.rightLeg.Update();
     }
+    this.lastHmdPosition.copy(this.poseManager.vrTransforms.head.position);
   }
 }
 
