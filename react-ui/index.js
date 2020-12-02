@@ -1,4 +1,4 @@
-import { React, ReactDOM } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { React, ReactDOM, useState, useReducer } from 'https://unpkg.com/es-react@16.13.1/dev';
 import Router, { Route } from './web_modules/react-es-router.js';
 import htm from './web_modules/htm.js'
 import NavBar from './components/NavBar.js';
@@ -9,9 +9,11 @@ import CreatorsPage from './pages/CreatorsPage.js';
 import NotFoundPage from './pages/NotFoundPage.js';
 
 import { UserContext } from './constants/UserContext.js';
+// import { reducer } from './reducer.js';
 
 window.React = React
 window.html = htm.bind(React.createElement)
+// window.UserManager = new UserManager();
 
 const myProfile = html`<${MyProfile} />`;
 const gallery = html`<${Gallery} />`;
@@ -35,13 +37,25 @@ const PageRouter = () => {
 }
 
 const Application = () => {
-  const [userContext, setUserContext] = useState(null);
+  const userObject = {
+    token: null,
+    publicKey: null,
+    privateKey: null,
+    userName: null,
+    mainnetAddress: null,
+    avatarThumbnail: null
+  }
+
+  // const [applicationState, dispatchApplicationState] = useReducer(reducer, []);
+
+
+  const [userContext, setUserContext] = useState(userObject);
 
   return html`
   <${React.Suspense} fallback=${html`<div></div>`}>
-  <${UserContext.Provider} value="${userContext}">
-    <${PageRouter} />
-  </ ${UserContext.Provider}>
+    <${UserContext.Provider} value="${{userContext, setUserContext}}">
+      <${PageRouter} />
+    </ ${UserContext.Provider}>
   <//>
 `
 }
