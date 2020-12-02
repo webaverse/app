@@ -1425,8 +1425,8 @@ class Avatar {
       'mixamorigLeftToeBase.quaternion': null,
     };
 
-    this.lastPosition = new THREE.Vector3()
-    this.smoothVelocity = new THREE.Vector3();
+    this.direction = new THREE.Vector3();
+    this.velocity = new THREE.Vector3();
     this.jumping = false;
     this.jumpStartTime = 0;
 	}
@@ -1551,20 +1551,10 @@ class Avatar {
         }
         return selectedAnimations;
       };
+      const selectedAnimations = _selectAnimations(this.velocity);
 
-      const currentPosition = this.inputs.hmd.position.clone();
-      const positionDiff = this.lastPosition.clone()
-        .sub(currentPosition)
-        .multiplyScalar(10);
-      this.smoothVelocity.lerp(positionDiff, 0.5);
-      localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
-      localEuler.x = 0;
-      localEuler.z = 0;
-      localEuler.y += Math.PI;
-      const selectedAnimations = _selectAnimations(this.smoothVelocity.clone().applyEuler(localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order)));
-
-      const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(positionDiff);
-      const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(positionDiff);
+      const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
+      const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
       const totalDistance = distance1 + distance2;
       // let factor1 = 1 - distance1/totalDistance;
       let factor2 = 1 - distance2/totalDistance;
@@ -1594,7 +1584,6 @@ class Avatar {
           }
         }
       }
-      this.lastPosition.copy(currentPosition);
     };
     _applyAnimation();
 
