@@ -60,7 +60,7 @@ const animationsDistanceMap = {
   'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
   'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
 };
-let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAnimation = null, lastPosition = new THREE.Vector3(), smoothVelocity = new THREE.Vector3();
+let testRig = null, objects = [], animations = [], jumpAnimation = null, lastPosition = new THREE.Vector3(), smoothVelocity = new THREE.Vector3();
 (async () => {
   /* const fbxLoader = new FBXLoader();
   const animationFileNames = [
@@ -220,7 +220,6 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
       animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
     } */
   });
-  idleAnimation = animations.find(a => a.isIdle);
   jumpAnimation = animations.find(a => a.isJump);
 
   const gltfLoader = new GLTFLoader();
