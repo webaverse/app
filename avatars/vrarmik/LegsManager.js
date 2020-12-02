@@ -85,6 +85,8 @@ class Leg {
 
     Helpers.getWorldPosition(this.upperLeg, this.eyesToUpperLegOffset)
   	  .sub(Helpers.getWorldPosition(this.legsManager.rig.shoulderTransforms.eyes, localVector));
+
+    // this.Reset();
   }
 
   Update() {
@@ -149,6 +151,19 @@ class Leg {
     } */
 	}
 
+  /* Reset() {
+    this.standing = true;
+    this.standFactor = 1;
+    const now = Date.now();
+    this.lastStandTimestamp = now;
+    this.lastJumpTimestamp = now;
+
+    this.stepping = false;
+    this.lastStepTimestamp = now;
+
+    this.balance = 1;
+  } */
+
 	getStandFactor() {
 		return 1 - Math.pow(Math.min(Math.max(
 			(Helpers.getWorldPosition(this.legsManager.rig.shoulderTransforms.eyes, localVector).add(this.eyesToUpperLegOffset).y - this.legsManager.poseManager.vrTransforms.floorHeight - this.legLength) / (this.legsManager.rig.height*0.2),
@@ -173,6 +188,7 @@ class LegsManager {
     this.hmdVelocity = new THREE.Vector3();
 
     this.enabled = true;
+    this.lastEnabled = false;
   }
 
   Start() {
@@ -181,10 +197,33 @@ class LegsManager {
   	this.lastHmdPosition.copy(this.poseManager.vrTransforms.head.position);
   	this.leftLeg.Start();
   	this.rightLeg.Start();
+
+    this.Reset();
+  }
+
+  Reset() {
+    Helpers.copyTransform(this.leftLeg.upperLeg, this.rig.modelBones.Right_leg);
+    Helpers.copyTransform(this.leftLeg.lowerLeg, this.rig.modelBones.Right_knee);
+    Helpers.copyTransform(this.leftLeg.foot, this.rig.modelBones.Right_ankle);
+    this.leftLeg.foot.getWorldPosition(this.leftLeg.foot.stickTransform.position);
+    this.leftLeg.foot.getWorldQuaternion(this.leftLeg.foot.stickTransform.quaternion);
+
+    Helpers.copyTransform(this.rightLeg.upperLeg, this.rig.modelBones.Left_leg);
+    Helpers.copyTransform(this.rightLeg.lowerLeg, this.rig.modelBones.Left_knee);
+    Helpers.copyTransform(this.rightLeg.foot, this.rig.modelBones.Left_ankle);
+    this.rightLeg.foot.getWorldPosition(this.rightLeg.foot.stickTransform.position);
+    this.rightLeg.foot.getWorldQuaternion(this.rightLeg.foot.stickTransform.quaternion);
+
+    // this.leftLeg.Reset();
+    // this.rightLeg.Reset();
   }
 
 	Update() {
     if (this.enabled) {
+      if (!this.lastEnabled) {
+        this.Reset();
+      }
+
   		Helpers.updateMatrixWorld(this.leftLeg.transform);
   		Helpers.updateMatrixWorld(this.leftLeg.upperLeg);
   		Helpers.updateMatrixWorld(this.leftLeg.lowerLeg);
@@ -457,6 +496,7 @@ class LegsManager {
   		this.rightLeg.Update();
     }
     this.lastHmdPosition.copy(this.poseManager.vrTransforms.head.position);
+    this.lastEnabled = this.enabled;
   }
 }
 
