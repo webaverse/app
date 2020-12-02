@@ -707,33 +707,17 @@ class RigManager {
           if (selectedAnimations.some(a => a.isRunning)) {
             selectedAnimations[0] = animations.find(a => a.isRight && a.isRunning && a.isReverse);
             selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
-            // selectedAnimations[1] = selectedAnimations[0];
-            /* if (selectedAnimations.some(a => !a)) {
-              debugger;
-            } */
           } else {
             selectedAnimations[0] = animations.find(a => a.isRight && !a.isRunning && a.isReverse);
             selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
-            // selectedAnimations[1] = selectedAnimations[0];
-            /* if (selectedAnimations.some(a => !a)) {
-              debugger;
-            } */
           }
         } else if (selectedAnimations.some(a => a.isBackward) && selectedAnimations.some(a => a.isRight)) {
           if (selectedAnimations.some(a => a.isRunning)) {
             selectedAnimations[0] = animations.find(a => a.isLeft && a.isRunning && a.isReverse);
             selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
-            // selectedAnimations[1] = selectedAnimations[0];
-            /* if (selectedAnimations.some(a => !a)) {
-              debugger;
-            } */
           } else {
             selectedAnimations[0] = animations.find(a => a.isLeft && !a.isRunning && a.isReverse);
             selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
-            // selectedAnimations[1] = selectedAnimations[0];
-            /* if (selectedAnimations.some(a => !a)) {
-              debugger;
-            } */
           }
         }
         return selectedAnimations;
