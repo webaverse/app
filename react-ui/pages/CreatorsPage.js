@@ -1,4 +1,4 @@
-import { React, useEffect } from '/web_modules/es-react.js';
+import { React, useEffect } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '/web_modules/htm.js';
 
 import MockCreatorData from '../mock/CreatorsData.js'

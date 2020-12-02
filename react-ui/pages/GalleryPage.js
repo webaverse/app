@@ -1,4 +1,4 @@
-import { React } from '../web_modules/es-react.js';
+import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '../web_modules/htm.js';
 import CardSize from '../constants/CardSize.js'
 import Booth from "../components/Booth.js";
