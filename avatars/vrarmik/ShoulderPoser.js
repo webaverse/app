@@ -86,6 +86,9 @@ class ShoulderPoser {
 
     this.updateHips();
 
+    this.shoulder.leftShoulderAnchor.quaternion.set(0, 0, 0, 1);
+    this.shoulder.rightShoulderAnchor.quaternion.set(0, 0, 0, 1);
+
     // this.shoulder.transform.rotation = Quaternion.identity;
     // this.positionShoulder();
     this.rotateShoulderBase();
