@@ -27,8 +27,6 @@ const Helpers = {
     dst.position.copy(src.position);
     dst.quaternion.copy(src.quaternion);
     dst.scale.copy(src.scale);
-    // dst.matrix.copy(src.matrix);
-    // dst.matrixWorld.copy(src.matrixWorld);
   }
 };
 
