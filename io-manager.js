@@ -141,7 +141,7 @@ const _updateIo = (timeDiff, frame) => {
       }
     }
 
-    if (ioManager.currentMenuDown) {
+    /* if (ioManager.currentMenuDown) {
       const rightInputSource = inputSources.find(inputSource => inputSource.handedness === 'right');
       const pose = rightInputSource && frame.getPose(rightInputSource.targetRaySpace, renderer.xr.getReferenceSpace());
       if (pose) {
@@ -163,7 +163,7 @@ const _updateIo = (timeDiff, frame) => {
     } else {
       uiManager.toolsMesh.update(null);
       uiManager.toolsMesh.visible = false;
-    }
+    } */
   } else if (document.pointerLockElement) {
     const speed = 100 * (ioManager.keys.shift ? 3 : 1);
     const cameraEuler = camera.rotation.clone();
