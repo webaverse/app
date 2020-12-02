@@ -8,7 +8,7 @@ import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import {FBXLoader} from './FBXLoader.js';
 import physicsMananager from './physics-manager.js';
-import cbor from './cbor.js';
+// import cbor from './cbor.js';
 
 const animationsSelectMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
@@ -62,7 +62,7 @@ const animationsDistanceMap = {
 };
 let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAnimation = null, lastPosition = new THREE.Vector3(), smoothVelocity = new THREE.Vector3();
 (async () => {
-  const fbxLoader = new FBXLoader();
+  /* const fbxLoader = new FBXLoader();
   const animationFileNames = [
     `idle.fbx`,
     `jump.fbx`,
@@ -128,9 +128,11 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
     animations.push(reverseAnimation);
   }
-  const ab = cbor.encode(animations.map(a => a.toJSON()));
-  animations = cbor.decode(ab).map(a => THREE.AnimationClip.parse(a));
-  downloadFile(new Blob([ab], {type: 'application/octet-stream'}), 'animations.cbor');
+  const animationsString = JSON.stringify(animations.map(a => a.toJSON()));
+  animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
+  downloadFile(new Blob(['export default ', animationsString], {
+    type: 'application/octet-stream',
+  }), 'animations.json'); */
 
   const _normalizeAnimationDurations = (animations, baseAnimation) => {
     for (let i = 1; i < animations.length; i++) {
