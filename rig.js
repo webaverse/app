@@ -60,7 +60,7 @@ const animationsDistanceMap = {
   'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
   'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
 };
-let testRig = null, objects = [], animations = [], jumpAnimation = null, lastPosition = new THREE.Vector3(), smoothVelocity = new THREE.Vector3();
+let testRig = null, animations = [], jumpAnimation = null, lastPosition = new THREE.Vector3(), smoothVelocity = new THREE.Vector3();
 (async () => {
   /* const fbxLoader = new FBXLoader();
   const animationFileNames = [
@@ -88,7 +88,6 @@ let testRig = null, objects = [], animations = [], jumpAnimation = null, lastPos
     let o = await new Promise((accept, reject) => {
       fbxLoader.load(u, accept, function progress() {}, reject);
     });
-    objects.push(o);
     o = o.animations[0];
     o.name = name;
     animations.push(o);
