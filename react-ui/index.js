@@ -9,11 +9,11 @@ import CreatorsPage from './pages/CreatorsPage.js';
 import NotFoundPage from './pages/NotFoundPage.js';
 
 import { UserContext } from './constants/UserContext.js';
-// import { reducer } from './reducer.js';
+import UserManager from './classes/UserManager.js';
 
 window.React = React
-window.html = htm.bind(React.createElement)
-// window.UserManager = new UserManager();
+window.html = htm.bind(React.createElement);
+window.UserManager = new UserManager();
 
 const myProfile = html`<${MyProfile} />`;
 const gallery = html`<${Gallery} />`;
@@ -37,23 +37,10 @@ const PageRouter = () => {
 }
 
 const Application = () => {
-  const userObject = {
-    token: null,
-    publicKey: null,
-    privateKey: null,
-    userName: null,
-    mainnetAddress: null,
-    avatarThumbnail: null
-  }
-
-  // const [applicationState, dispatchApplicationState] = useReducer(reducer, []);
-
-
-  const [userContext, setUserContext] = useState(userObject);
 
   return html`
   <${React.Suspense} fallback=${html`<div></div>`}>
-    <${UserContext.Provider} value="${{userContext, setUserContext}}">
+    <${UserContext.Provider}>
       <${PageRouter} />
     </ ${UserContext.Provider}>
   <//>

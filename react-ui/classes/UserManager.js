@@ -1,71 +1,16 @@
-import bip39 from '../../bip39.js';
-import { getAddressFromMnemonic, runSidechainTransaction } from '../../blockchain.js';
-import { loginEndpoint, previewExt, previewHost, storageHost } from '../../constants.js';
-import storage from '../../storage.js';
-import { getExt } from '../../util.js';
+import bip39 from '../webaverse/bip39.js';
+import { getAddressFromMnemonic, runSidechainTransaction } from '../webaverse/blockchain.js';
+import { loginEndpoint, previewExt, previewHost, storageHost } from '../webaverse/constants.js';
+import storage from '../webaverse/storage.js';
+import { getExt } from '../webaverse/util.js';
 
-export default class UserManager extends EventTarget {
+export default class UserManager {
     constructor() {
-        super();
     }
 
     loginToken = null;
     userObject = null;
 
-    pullUserObject = async () => {
-        const address = getAddressFromMnemonic(this.loginToken.mnemonic);
-        const res = await fetch(`https://accounts.webaverse.com/${address}`);
-        const result = await res.json();
-        const { name, avatarUrl, avatarFileName, avatarPreview, ftu } = result;
-        this.userObject = {
-            name,
-            avatar: {
-                url: avatarUrl,
-                filename: avatarFileName,
-                preview: avatarPreview,
-            },
-            ftu,
-        };
-    }
-
-    finishLogin = async (newLoginToken) => {
-        await storage.set('loginToken', newLoginToken);
-
-        this.loginToken = newLoginToken;
-
-        await pullUserObject();
-    }
-
-    doLogin = async (email, code) => {
-        const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
-            method: 'POST',
-        });
-
-        if (res.status >= 200 && res.status < 300) {
-            const newLoginToken = await res.json();
-            await finishLogin(newLoginToken);
-            return true;
-        } else {
-            const loginError = document.getElementById('login-error');
-            const loginForm = document.getElementById('login-form');
-            loginError.innerText = 'Invalid code!';
-            loginForm.classList.add('phase-2');
-            return false;
-        }
-    }
-
-    tryLogin = async () => {
-        this.loginToken = await storage.get('loginToken');
-        if (this.loginToken) {
-            await pullUserObject();
-            if (this.loginToken.unregistered) console.warn("Login token is unregistered");
-        } else {
-            const mnemonic = bip39.generateMnemonic();
-            await finishLogin({ mnemonic, unregistered: true });
-        }
-    }
-
-    isLoggedIn = () => !!this.userObject;
 
     getUsername = () => this.userObject && this.userObject.name;
 
