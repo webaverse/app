@@ -13,23 +13,22 @@ import animationsJson from './animations/animations.js';
 const animationsSelectMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
   'jump.fbx': new THREE.Vector3(0, 1, 0),
+
   'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
   'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
-  // `left turn 90.fbx`,
-  // `left turn.fbx`,
   'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
   'right strafe.fbx': new THREE.Vector3(1, 0, 0),
-  // `right turn 90.fbx`,
-  // `right turn.fbx`,
+
   'running.fbx': new THREE.Vector3(0, 0, -1),
   'walking.fbx': new THREE.Vector3(0, 0, -0.5),
-  // `ybot.fbx`,
+
   'running backwards.fbx': new THREE.Vector3(0, 0, 1),
   'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
+
   'falling.fbx': new THREE.Vector3(0, -1, 0),
   'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
   'falling landing.fbx': new THREE.Vector3(0, -2, 0),
-  //
+
   'left strafe walking reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
   'left strafe reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
   'right strafe walking reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
@@ -38,23 +37,22 @@ const animationsSelectMap = {
 const animationsDistanceMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
   'jump.fbx': new THREE.Vector3(0, 1, 0),
+
   'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
   'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
-  // `left turn 90.fbx`,
-  // `left turn.fbx`,
   'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
   'right strafe.fbx': new THREE.Vector3(1, 0, 0),
-  // `right turn 90.fbx`,
-  // `right turn.fbx`,
+
   'running.fbx': new THREE.Vector3(0, 0, -1),
   'walking.fbx': new THREE.Vector3(0, 0, -0.5),
-  // `ybot.fbx`,
+
   'running backwards.fbx': new THREE.Vector3(0, 0, 1),
   'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
+
   'falling.fbx': new THREE.Vector3(0, -1, 0),
   'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
   'falling landing.fbx': new THREE.Vector3(0, -2, 0),
-  //
+
   'left strafe walking reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(2),
   'left strafe reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(3),
   'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
