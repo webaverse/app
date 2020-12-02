@@ -1,0 +1,73 @@
+& {
+    width: 100%;
+    height: 3em;
+    background: white;
+}
+
+a {
+    text-decoration: none;
+    color: #000000;
+}
+
+a:hover {
+    text-decoration: none;
+    color: #333333;
+}
+
+.navbar {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: left;
+}
+
+.nav-item {
+    padding: 1em;
+}
+
+.nav-logo {
+    padding: 1em;
+}
+
+.nav-logo h1 {
+    display: inline;
+}
+
+.nav-link {
+    height: 100%;
+}
+
+.nav-link a {
+    height: 100%;
+}
+
+.loginComponent {
+    text-align: right;
+    top: 0;
+    right: 0;
+    position:absolute;
+    width: 20%;
+    height: 3em;
+}
+
+.loginComponentDropdown {
+
+}
+
+.loginComponentLink {
+
+}
+
+.loginUsername {
+
+}
+
+.loginAvatarPreview {
+    height:2em;
+    width: 2em;
+}
+
+.loginAvatarPreview img {
+    height:2em;
+    width: 2em;
+}
