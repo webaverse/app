@@ -210,9 +210,9 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
       animation.interpolants[track.name] = i;
       return i;
     });
-    for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
+    /* for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
       animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
-    }
+    } */
   });
   idleAnimation = animations.find(a => a.isIdle);
   jumpAnimation = animations.find(a => a.isJump);
@@ -630,7 +630,7 @@ class RigManager {
 
     if (testRig) {
       const mapping = {
-        'mixamorigHips.position': testRig.outputs.hips.position,
+        // 'mixamorigHips.position': testRig.outputs.hips.position,
         'mixamorigHips.quaternion': testRig.outputs.hips.quaternion,
         'mixamorigSpine.quaternion': testRig.outputs.spine.quaternion,
         'mixamorigSpine1.quaternion': null,
