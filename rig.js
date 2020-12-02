@@ -8,7 +8,6 @@ import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import {FBXLoader} from './FBXLoader.js';
 import physicsMananager from './physics-manager.js';
-// import cbor from './cbor.js';
 import animationsJson from './animations/animations.js';
 
 const animationsSelectMap = {
