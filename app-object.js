@@ -7,6 +7,7 @@ const context = canvas.getContext('webgl2', {
   antialias: true,
   alpha: true,
   preserveDrawingBuffer: false,
+  xrCompatible: true,
 });
 const renderer = new THREE.WebGLRenderer({
   canvas,
