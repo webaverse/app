@@ -13,6 +13,7 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
+const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
@@ -37,9 +38,9 @@ class RigManager {
 
     this.localRigMatrix = new THREE.Matrix4();
     this.localRigMatrixEnabled = false;
-
-    // this.localRigQueue = new WaitQueue();
-    // this.peerRigQueue = new WaitQueue();
+    
+    this.lastPosition = new THREE.Vector3();
+    this.smoothVelocity = new THREE.Vector3();
 
     this.peerRigs = new Map();
   }
@@ -354,8 +355,23 @@ class RigManager {
   }
 
   update() {
-    this.localRig.setTopEnabled(/^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()) || !!renderer.xr.getSession());
-    this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && physicsMananager.velocity.length() < 0.001);
+    const currentPosition = this.localRig.inputs.hmd.position;
+    const currentQuaternion = this.localRig.inputs.hmd.quaternion;
+    const positionDiff = localVector.copy(this.lastPosition)
+      .sub(currentPosition)
+      .multiplyScalar(20);
+    this.smoothVelocity.lerp(positionDiff, 0.5);
+    localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    localEuler.y += Math.PI;
+    this.smoothVelocity.applyEuler(localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order));
+    this.lastPosition.copy(currentPosition);
+
+    this.localRig.setTopEnabled(!!renderer.xr.getSession() || /^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()));
+    this.localRig.setBottomEnabled(!renderer.xr.getSession() && (this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001));
+    this.localRig.direction.copy(positionDiff);
+    this.localRig.velocity.copy(this.smoothVelocity);
     this.localRig.update();
     this.peerRigs.forEach(rig => {
       rig.update();
