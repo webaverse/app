@@ -1566,7 +1566,7 @@ class Avatar {
       const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(positionDiff);
       const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(positionDiff);
       const totalDistance = distance1 + distance2;
-      let factor1 = 1 - distance1/totalDistance;
+      // let factor1 = 1 - distance1/totalDistance;
       let factor2 = 1 - distance2/totalDistance;
 
       for (const k in this.animationMapping) {
