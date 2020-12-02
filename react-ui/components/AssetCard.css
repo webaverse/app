@@ -1,0 +1,362 @@
+
+img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+&.card {
+    background-color: #ffffff;
+    width: 16em;
+    height: 24em;
+    display: flex;
+    flex-direction: column;
+    padding:2em;
+}
+
+.upperCardInfo {
+    background: #AAAAAA;
+    display: flex;
+}
+
+.upperCardInfoLeft {
+    background: #999999;
+
+}
+
+.upperCardInfoRight {
+    background: #888888;
+
+}
+
+.cardAssetName {
+    background: #777777;
+
+}
+
+.networkType {
+    background: #666666;
+
+}
+
+.assetImage {
+    background-color: #ffffff;
+    width: 16em;
+    height: 16em;
+}
+
+.lowerCardInfo {
+    background: #444444;
+
+}
+
+.lowerCardInfoTop {
+    background: #333333;
+
+}
+
+.creator {
+    background: #222222;
+}
+
+.creatorIcon img {
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+}
+
+.creatorName {
+    background: #444444;
+    display: none;
+}
+
+.owner {
+    background: #555555;
+}
+
+.ownerIcon img {
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+}
+
+.ownerName {
+    background: #777777;
+    display: none;
+
+}
+
+.edition {
+    background: #888888;
+}
+
+.greaseLoadedIntoAsset {
+    background: #999999;
+}
+
+.lowerCardInfoMiddle {
+    background: #AAAAAA;
+}
+
+.assetDescription {
+    width:12em;
+    background: #CCCCCC;
+    font-size: .5em;
+    word-wrap: break-word;
+}
+
+.lowerCardInfoBottom {
+    background: #DDDDDD;
+}
+
+.assetHash {
+    background: #CCCCCC;
+    font-size: .4em;
+}
+
+.card.small {
+
+}
+
+.card.medium {
+
+}
+
+.card.large {
+
+}
+
+.upperCardInfo.image {
+
+}
+
+.upperCardInfo.vrm {
+
+}
+
+.upperCardInfo.gltf {
+
+}
+
+.upperCardInfoLeft.small {
+
+}
+
+.upperCardInfoLeft.medium {
+
+}
+
+.upperCardInfoLeft.large {
+
+}
+
+
+.upperCardInfoRight.small {
+
+}
+
+.upperCardInfoRight.medium {
+
+}
+
+.upperCardInfoRight.large {
+
+}
+
+.cardAssetName.small {
+
+}
+
+.cardAssetName.medium {
+
+}
+
+.cardAssetName.large {
+
+}
+
+.networkType.small {
+
+}
+
+.networkType.medium {
+
+}
+
+.networkType.large {
+
+}
+
+.assetImage.small {
+
+}
+
+.assetImage.medium {
+
+}
+
+.assetImage.large {
+
+}
+.lowerCardInfo.small {
+
+}
+
+.lowerCardInfo.medium {
+
+}
+
+.lowerCardInfo.large {
+
+}
+.lowerCardInfoTop.small {
+
+}
+
+.lowerCardInfoTop.medium {
+
+}
+
+.lowerCardInfoTop.large {
+
+}
+.creator.small {
+
+}
+
+.creator.medium {
+
+}
+
+.creator.large {
+
+}
+.creatorIcon.small {
+
+}
+
+.creatorIcon.medium {
+
+}
+
+.creatorIcon.large {
+
+}
+
+.creatorName.small {
+
+}
+
+.creatorName.medium {
+
+}
+
+.creatorName.large {
+
+}
+
+.owner.small {
+
+}
+
+.owner.medium {
+
+}
+
+.owner.large {
+
+}
+
+.ownerIcon.small {
+
+}
+
+.ownerIcon.medium {
+
+}
+
+.ownerIcon.large {
+
+}
+
+.ownerName.small {
+
+}
+
+.ownerName.medium {
+
+}
+
+.ownerName.large {
+
+}
+
+.edition.small {
+
+}
+
+.edition.medium {
+
+}
+
+.edition.large {
+
+}
+
+.greaseLoadedIntoAsset.small {
+
+}
+
+.greaseLoadedIntoAsset.medium {
+
+}
+
+.greaseLoadedIntoAsset.large {
+
+}
+
+.lowerCardInfoMiddle.medium {
+
+}
+
+.lowerCardInfoMiddle.large {
+
+}
+
+
+.assetDescription.small {
+
+}
+
+.assetDescription.medium {
+
+}
+
+.assetDescription.large {
+
+}
+
+
+.lowerCardInfoBottom.small {
+
+}
+
+.lowerCardInfoBottom.medium {
+
+}
+
+.lowerCardInfoBottom.large {
+
+}
+
+.assetHash.small {
+
+}
+
+.assetHash.medium {
+
+}
+
+.assetHash.large {
+
+}

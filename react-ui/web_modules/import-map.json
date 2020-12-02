@@ -1,6 +1,0 @@
-{
-  "imports": {
-    "es-react": "./es-react.js",
-    "htm": "./htm.js"
-  }
-}
