@@ -2,33 +2,14 @@ import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
-import {makePromise, WaitQueue} from './util.js';
+import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
 import {renderer, scene, appManager} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import {FBXLoader} from './FBXLoader.js';
 import physicsMananager from './physics-manager.js';
+import cbor from './cbor.js';
 
-const animationFileNames = [
-  `idle.fbx`,
-  `jump.fbx`,
-  `left strafe walking.fbx`,
-  `left strafe.fbx`,
-  // `left turn 90.fbx`,
-  // `left turn.fbx`,
-  `right strafe walking.fbx`,
-  `right strafe.fbx`,
-  // `right turn 90.fbx`,
-  // `right turn.fbx`,
-  `running.fbx`,
-  `walking.fbx`,
-  // `ybot.fbx`,
-  `running backwards.fbx`,
-  `walking backwards.fbx`,
-  `falling.fbx`,
-  `falling idle.fbx`,
-  `falling landing.fbx`,
-];
 const animationsSelectMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
   'jump.fbx': new THREE.Vector3(0, 1, 0),
@@ -82,6 +63,26 @@ const animationsDistanceMap = {
 let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAnimation = null, lastPosition = new THREE.Vector3(), smoothVelocity = new THREE.Vector3();
 (async () => {
   const fbxLoader = new FBXLoader();
+  const animationFileNames = [
+    `idle.fbx`,
+    `jump.fbx`,
+    `left strafe walking.fbx`,
+    `left strafe.fbx`,
+    // `left turn 90.fbx`,
+    // `left turn.fbx`,
+    `right strafe walking.fbx`,
+    `right strafe.fbx`,
+    // `right turn 90.fbx`,
+    // `right turn.fbx`,
+    `running.fbx`,
+    `walking.fbx`,
+    // `ybot.fbx`,
+    `running backwards.fbx`,
+    `walking backwards.fbx`,
+    `falling.fbx`,
+    `falling idle.fbx`,
+    `falling landing.fbx`,
+  ];
   for (const name of animationFileNames) {
     const u = './animations/' + name;
     let o = await new Promise((accept, reject) => {
@@ -127,6 +128,9 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
     animations.push(reverseAnimation);
   }
+  const ab = cbor.encode(animations.map(a => a.toJSON()));
+  animations = cbor.decode(ab).map(a => THREE.AnimationClip.parse(a));
+  downloadFile(new Blob([ab], {type: 'application/octet-stream'}), 'animations.cbor');
 
   const _normalizeAnimationDurations = (animations, baseAnimation) => {
     for (let i = 1; i < animations.length; i++) {
