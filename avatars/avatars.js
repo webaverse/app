@@ -1286,8 +1286,6 @@ class Avatar {
         _processFingerBones(true);
         _processFingerBones(false);
       }
-
-      this.shoulderTransforms.Update();
     } else {
       this.outputs.hips.position.copy(this.inputs.hmd.position)
         .add(this.eyeToHipsOffset);
@@ -1299,9 +1297,9 @@ class Avatar {
       this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
       // testRig.outputs.hips.quaternion.premultiply(localQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
     }
-    if (this.getBottomEnabled()) {
-      this.legsManager.Update();
-    }
+
+    this.shoulderTransforms.Update();
+    this.legsManager.Update();
 
 	  for (const k in this.modelBones) {
       const modelBone = this.modelBones[k];
