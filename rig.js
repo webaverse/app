@@ -3,7 +3,7 @@ import {GLTFLoader} from './GLTFLoader.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
-import {renderer, scene, appManager} from './app-object.js';
+import {renderer, scene, dolly, appManager} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import physicsMananager from './physics-manager.js';
@@ -355,11 +355,17 @@ class RigManager {
   }
 
   update() {
-    const currentPosition = this.localRig.inputs.hmd.position;
-    const currentQuaternion = this.localRig.inputs.hmd.quaternion;
-    const positionDiff = localVector.copy(this.lastPosition)
+    let currentPosition, currentQuaternion;
+    if (!renderer.xr.getSession()) {
+      currentPosition = this.localRig.inputs.hmd.position;
+      currentQuaternion = this.localRig.inputs.hmd.quaternion;
+    } else {
+      currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
+      currentQuaternion = dolly.quaternion;
+    }
+    const positionDiff = localVector2.copy(this.lastPosition)
       .sub(currentPosition)
-      .multiplyScalar(20);
+      .multiplyScalar(15);
     this.smoothVelocity.lerp(positionDiff, 0.5);
     localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
     localEuler.x = 0;
@@ -368,8 +374,8 @@ class RigManager {
     this.smoothVelocity.applyEuler(localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order));
     this.lastPosition.copy(currentPosition);
 
-    this.localRig.setTopEnabled(!!renderer.xr.getSession() || /^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()));
-    this.localRig.setBottomEnabled(!renderer.xr.getSession() && (this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001));
+    this.localRig.setTopEnabled(/^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()));
+    this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001);
     this.localRig.direction.copy(positionDiff);
     this.localRig.velocity.copy(this.smoothVelocity);
     this.localRig.update();
