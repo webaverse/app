@@ -167,12 +167,23 @@ class ShoulderPoser {
     const spinePosition = chestPosition.sub(localVector2.copy(this.shoulder.transform.position).applyQuaternion(hmdXYRotation));
     const hipsPosition = spinePosition.sub(localVector2.copy(this.shoulder.spine.position).applyQuaternion(hmdXYRotation));
 
-    this.shoulder.hips.position.copy(hipsPosition);
-    this.shoulder.hips.quaternion.copy(hmdXYRotation);
-    Helpers.updateMatrix(this.shoulder.hips);
-    this.shoulder.hips.matrixWorld.copy(this.shoulder.hips.matrix);
-    Helpers.updateMatrixWorld(this.shoulder.spine);
-    Helpers.updateMatrixWorld(this.shoulder.transform);
+    if (this.rig.legsManager.enabled) {
+	    this.shoulder.hips.position.copy(hipsPosition);
+	    this.shoulder.hips.quaternion.copy(hmdXYRotation);
+	    Helpers.updateMatrix(this.shoulder.hips);
+	    this.shoulder.hips.matrixWorld.copy(this.shoulder.hips.matrix);
+	    Helpers.updateMatrixWorld(this.shoulder.spine);
+	    Helpers.updateMatrixWorld(this.shoulder.transform);
+	  } else {
+	    this.shoulder.hips.position.copy(hipsPosition);
+	    // this.shoulder.hips.quaternion.copy(hmdXYRotation);
+	  	// this.shoulder.spine.position.copy(spinePosition);
+	  	// this.shoulder.spine.quaternion.copy(hmdXYRotation);
+	  	Helpers.updateMatrix(this.shoulder.hips);
+	  	this.shoulder.hips.matrixWorld.copy(this.shoulder.hips.matrix);
+	  	Helpers.updateMatrixWorld(this.shoulder.spine);
+	    Helpers.updateMatrixWorld(this.shoulder.transform);
+	  }
   }
 
   /* updateNeck() {
