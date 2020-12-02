@@ -759,7 +759,7 @@ class RigManager {
         debugger;
       } */
 
-      testRig.setTopEnabled(cameraManager.getTool() === 'firstperson' || !!renderer.xr.getSession());
+      testRig.setTopEnabled(/^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()) || !!renderer.xr.getSession());
       testRig.setBottomEnabled(testRig.getTopEnabled() && smoothVelocity.length() < 0.001);
       for (const k in mapping) {
         const dst = mapping[k];
