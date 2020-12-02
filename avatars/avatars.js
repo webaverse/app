@@ -1286,7 +1286,8 @@ class Avatar {
         _processFingerBones(true);
         _processFingerBones(false);
       }
-    } else {
+    }
+    if (!this.getBottomEnabled()) {
       this.outputs.hips.position.copy(this.inputs.hmd.position)
         .add(this.eyeToHipsOffset);
 
