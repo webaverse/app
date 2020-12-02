@@ -758,16 +758,9 @@ class RigManager {
           const src2 = selectedAnimations[1].interpolants[k];
           const v2 = src2.evaluate(t2);
 
-          if (v1.length === 3) {
-            /* dst.fromArray(v1).add(localVector.fromArray(v2));
-            dst.x = 0;
-            dst.z = 0;
-            dst.y -= testRig.hipsHeight * 1.25; */
-          } else {
-            dst.fromArray(v1);
-            if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
-              dst.slerp(localQuaternion.fromArray(v2), factor2);
-            }
+          dst.fromArray(v1);
+          if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
+            dst.slerp(localQuaternion.fromArray(v2), factor2);
           }
 
           if (physicsMananager.getJumpState()) {
@@ -775,15 +768,7 @@ class RigManager {
             const src2 = jumpAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
-            if (v1.length === 3) {
-              /* dst.fromArray(v1).add(localVector.fromArray(v2));
-              dst.x = 0;
-              dst.z = 0;
-              dst.y -= testRig.hipsHeight * 1.25; */
-            } else {
-              const factor = 1; // Math.min((Date.now() - physicsMananager.getJumpStartTime()), 1);
-              dst.slerp(localQuaternion.fromArray(v2), factor);
-            }
+            dst.fromArray(v2);
           }
         }
       }
