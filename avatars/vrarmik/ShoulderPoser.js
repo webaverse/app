@@ -84,6 +84,8 @@ class ShoulderPoser {
       this.shoulder.lastStandTimestamp = Date.now();
     }
 
+    this.shoulder.spine.quaternion.set(0, 0, 0, 1);
+
     this.updateHips();
 
     this.shoulder.leftShoulderAnchor.quaternion.set(0, 0, 0, 1);
