@@ -7,15 +7,228 @@ import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
 import MicrophoneWorker from './microphone-worker.js';
 import skeletonString from './skeleton.js';
+// import {FBXLoader} from './FBXLoader.js';
+import physicsMananager from '../physics-manager.js';
+import animationsJson from '../animations/animations.js';
+
+const localVector = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
+const localEuler2 = new THREE.Euler();
+const localMatrix = new THREE.Matrix4();
 
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.4);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.4);
 
-const localVector = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
-const localEuler = new THREE.Euler();
-const localMatrix = new THREE.Matrix4();
+const animationsSelectMap = {
+  'idle.fbx': new THREE.Vector3(0, 0, 0),
+  'jump.fbx': new THREE.Vector3(0, 1, 0),
+
+  'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
+  'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
+  'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
+  'right strafe.fbx': new THREE.Vector3(1, 0, 0),
+
+  'running.fbx': new THREE.Vector3(0, 0, -1),
+  'walking.fbx': new THREE.Vector3(0, 0, -0.5),
+
+  'running backwards.fbx': new THREE.Vector3(0, 0, 1),
+  'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
+
+  'falling.fbx': new THREE.Vector3(0, -1, 0),
+  'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
+  'falling landing.fbx': new THREE.Vector3(0, -2, 0),
+
+  'left strafe walking reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
+  'left strafe reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
+  'right strafe walking reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
+  'right strafe reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
+};
+const animationsDistanceMap = {
+  'idle.fbx': new THREE.Vector3(0, 0, 0),
+  'jump.fbx': new THREE.Vector3(0, 1, 0),
+
+  'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
+  'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
+  'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
+  'right strafe.fbx': new THREE.Vector3(1, 0, 0),
+
+  'running.fbx': new THREE.Vector3(0, 0, -1),
+  'walking.fbx': new THREE.Vector3(0, 0, -0.5),
+
+  'running backwards.fbx': new THREE.Vector3(0, 0, 1),
+  'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
+
+  'falling.fbx': new THREE.Vector3(0, -1, 0),
+  'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
+  'falling landing.fbx': new THREE.Vector3(0, -2, 0),
+
+  'left strafe walking reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(2),
+  'left strafe reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(3),
+  'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
+  'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
+};
+/* (async () => {
+  const fbxLoader = new FBXLoader();
+  const animationFileNames = [
+    `idle.fbx`,
+    `jump.fbx`,
+    `left strafe walking.fbx`,
+    `left strafe.fbx`,
+    // `left turn 90.fbx`,
+    // `left turn.fbx`,
+    `right strafe walking.fbx`,
+    `right strafe.fbx`,
+    // `right turn 90.fbx`,
+    // `right turn.fbx`,
+    `running.fbx`,
+    `walking.fbx`,
+    // `ybot.fbx`,
+    `running backwards.fbx`,
+    `walking backwards.fbx`,
+    `falling.fbx`,
+    `falling idle.fbx`,
+    `falling landing.fbx`,
+  ];
+  for (const name of animationFileNames) {
+    const u = './animations/' + name;
+    let o = await new Promise((accept, reject) => {
+      fbxLoader.load(u, accept, function progress() {}, reject);
+    });
+    o = o.animations[0];
+    o.name = name;
+    animations.push(o);
+  }
+  const _reverseAnimation = animation => {
+    animation = animation.clone();
+    const {tracks} = animation;
+    for (const track of tracks) {
+      track.times.reverse();
+      for (let i = 0; i < track.times.length; i++) {
+        track.times[i] = animation.duration - track.times[i];
+      }
+
+      const values2 = new track.values.constructor(track.values.length);
+      const valueSize = track.getValueSize();
+      const numValues = track.values.length / valueSize;
+      for (let i = 0; i < numValues; i++) {
+        const aIndex = i;
+        const bIndex = numValues - 1 - i;
+        for (let j = 0; j < valueSize; j++) {
+          values2[aIndex * valueSize + j] = track.values[bIndex * valueSize + j];
+        }
+      }
+      track.values = values2;
+    }
+    return animation;
+  };
+  const reversibleAnimationNames = [
+    `left strafe walking.fbx`,
+    `left strafe.fbx`,
+    `right strafe walking.fbx`,
+    `right strafe.fbx`,
+  ];
+  for (const name of reversibleAnimationNames) {
+    const animation = animations.find(a => a.name === name);
+    const reverseAnimation = _reverseAnimation(animation);
+    reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
+    animations.push(reverseAnimation);
+  }
+  const animationsString = JSON.stringify(animations.map(a => a.toJSON()));
+  animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
+  downloadFile(new Blob(['export default ', animationsString], {
+    type: 'application/octet-stream',
+  }), 'animations.json');
+})(); */
+const animations = animationsJson.map(a => THREE.AnimationClip.parse(a));
+
+const _normalizeAnimationDurations = (animations, baseAnimation) => {
+  for (let i = 1; i < animations.length; i++) {
+    const animation = animations[i];
+    const oldDuration = animation.duration;
+    const newDuration = baseAnimation.duration;
+    for (const track of animation.tracks) {
+      const {times} = track;
+      for (let j = 0; j < times.length; j++) {
+        // times[i] *= newDuration/oldDuration;
+      }
+    }
+    animation.duration = newDuration;
+  }
+};
+const walkingAnimations = [
+  `walking.fbx`,
+  `left strafe walking.fbx`,
+  `right strafe walking.fbx`,
+].map(name => animations.find(a => a.name === name));
+_normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
+const walkingBackwardAnimations = [
+  `walking backwards.fbx`,
+  `left strafe walking reverse.fbx`,
+  `right strafe walking reverse.fbx`,
+].map(name => animations.find(a => a.name === name));
+_normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
+const runningAnimations = [
+  `running.fbx`,
+  `left strafe.fbx`,
+  `right strafe.fbx`,
+].map(name => animations.find(a => a.name === name));
+_normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
+const runningBackwardAnimations = [
+  `running backwards.fbx`,
+  `left strafe reverse.fbx`,
+  `right strafe reverse.fbx`,
+].map(name => animations.find(a => a.name === name));
+_normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
+animations.forEach(animation => {
+  animation.direction = (() => {
+    switch (animation.name) {
+      case 'running.fbx':
+      case 'walking.fbx':
+        return 'forward';
+      case 'running backwards.fbx':
+      case 'walking backwards.fbx':
+        return 'backward';
+      case 'left strafe walking.fbx':
+      case 'left strafe.fbx':
+      case 'left strafe walking reverse.fbx':
+      case 'left strafe reverse.fbx':
+        return 'left';
+      case 'right strafe walking.fbx':
+      case 'right strafe.fbx':
+      case 'right strafe walking reverse.fbx':
+      case 'right strafe reverse.fbx':
+        return 'right';
+      case 'jump.fbx':
+      case 'falling.fbx':
+      case 'falling idle.fbx':
+      case 'falling idle.fbx':
+        return 'jump';
+      default:
+        return null;
+    }
+  })();
+  animation.isIdle = /idle/i.test(animation.name);
+  animation.isJump = /jump/i.test(animation.name);
+  animation.isForward = /forward/i.test(animation.name);
+  animation.isBackward = /backward/i.test(animation.name);
+  animation.isLeft = /left/i.test(animation.name);
+  animation.isRight = /right/i.test(animation.name);
+  animation.isRunning = /running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
+  animation.isReverse = /reverse/i.test(animation.name);
+  animation.interpolants = {};
+  animation.tracks.forEach(track => {
+    const i = track.createInterpolant();
+    i.name = track.name;
+    animation.interpolants[track.name] = i;
+    return i;
+  });
+  /* for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
+    animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
+  } */
+});
+const jumpAnimation = animations.find(a => a.isJump);
 
 const _localizeMatrixWorld = bone => {
   bone.matrix.copy(bone.matrixWorld);
@@ -1153,6 +1366,69 @@ class Avatar {
         this.decapitate();
       }
     }
+
+    this.animationMapping = {
+      // 'mixamorigHips.position': this.outputs.hips.position,
+      'mixamorigHips.quaternion': this.outputs.hips.quaternion,
+      'mixamorigSpine.quaternion': this.outputs.spine.quaternion,
+      'mixamorigSpine1.quaternion': null,
+      'mixamorigSpine2.quaternion': this.outputs.chest.quaternion,
+      'mixamorigNeck.quaternion': this.outputs.neck.quaternion,
+      'mixamorigHead.quaternion': this.outputs.head.quaternion,
+
+      'mixamorigLeftShoulder.quaternion': this.outputs.rightShoulder.quaternion,
+      'mixamorigLeftArm.quaternion': this.outputs.rightUpperArm.quaternion,
+      'mixamorigLeftForeArm.quaternion': this.outputs.rightLowerArm.quaternion,
+      'mixamorigLeftHand.quaternion': this.outputs.leftHand.quaternion,
+      'mixamorigLeftHandMiddle1.quaternion': this.outputs.leftMiddleFinger1.quaternion,
+      'mixamorigLeftHandMiddle2.quaternion': this.outputs.leftMiddleFinger2.quaternion,
+      'mixamorigLeftHandMiddle3.quaternion': this.outputs.leftMiddleFinger3.quaternion,
+      'mixamorigLeftHandThumb1.quaternion': this.outputs.leftThumb0.quaternion,
+      'mixamorigLeftHandThumb2.quaternion': this.outputs.leftThumb1.quaternion,
+      'mixamorigLeftHandThumb3.quaternion': this.outputs.leftThumb2.quaternion,
+      'mixamorigLeftHandIndex1.quaternion': this.outputs.leftIndexFinger1.quaternion,
+      'mixamorigLeftHandIndex2.quaternion': this.outputs.leftIndexFinger2.quaternion,
+      'mixamorigLeftHandIndex3.quaternion': this.outputs.leftIndexFinger3.quaternion,
+      'mixamorigLeftHandRing1.quaternion': this.outputs.leftRingFinger1.quaternion,
+      'mixamorigLeftHandRing2.quaternion': this.outputs.leftRingFinger2.quaternion,
+      'mixamorigLeftHandRing3.quaternion': this.outputs.leftRingFinger3.quaternion,
+      'mixamorigLeftHandPinky1.quaternion': this.outputs.leftLittleFinger1.quaternion,
+      'mixamorigLeftHandPinky2.quaternion': this.outputs.leftLittleFinger2.quaternion,
+      'mixamorigLeftHandPinky3.quaternion': this.outputs.leftLittleFinger3.quaternion,
+
+      'mixamorigRightShoulder.quaternion': this.outputs.leftShoulder.quaternion,
+      'mixamorigRightArm.quaternion': this.outputs.leftUpperArm.quaternion,
+      'mixamorigRightForeArm.quaternion': this.outputs.leftLowerArm.quaternion,
+      'mixamorigRightHand.quaternion': this.outputs.rightHand.quaternion,
+      'mixamorigRightHandMiddle1.quaternion': this.outputs.rightMiddleFinger1.quaternion,
+      'mixamorigRightHandMiddle2.quaternion': this.outputs.rightMiddleFinger2.quaternion,
+      'mixamorigRightHandMiddle3.quaternion': this.outputs.rightMiddleFinger3.quaternion,
+      'mixamorigRightHandThumb1.quaternion': this.outputs.rightThumb0.quaternion,
+      'mixamorigRightHandThumb2.quaternion': this.outputs.rightThumb1.quaternion,
+      'mixamorigRightHandThumb3.quaternion': this.outputs.rightThumb2.quaternion,
+      'mixamorigRightHandIndex1.quaternion': this.outputs.rightIndexFinger1.quaternion,
+      'mixamorigRightHandIndex2.quaternion': this.outputs.rightIndexFinger2.quaternion,
+      'mixamorigRightHandIndex3.quaternion': this.outputs.rightIndexFinger3.quaternion,
+      'mixamorigRightHandRing1.quaternion': this.outputs.rightRingFinger1.quaternion,
+      'mixamorigRightHandRing2.quaternion': this.outputs.rightRingFinger2.quaternion,
+      'mixamorigRightHandRing3.quaternion': this.outputs.rightRingFinger3.quaternion,
+      'mixamorigRightHandPinky1.quaternion': this.outputs.rightLittleFinger1.quaternion,
+      'mixamorigRightHandPinky2.quaternion': this.outputs.rightLittleFinger2.quaternion,
+      'mixamorigRightHandPinky3.quaternion': this.outputs.rightLittleFinger3.quaternion,
+
+      'mixamorigRightUpLeg.quaternion': this.outputs.leftUpperLeg.quaternion,
+      'mixamorigRightLeg.quaternion': this.outputs.leftLowerLeg.quaternion,
+      'mixamorigRightFoot.quaternion': this.outputs.leftFoot.quaternion,
+      'mixamorigRightToeBase.quaternion': null,
+
+      'mixamorigLeftUpLeg.quaternion': this.outputs.rightUpperLeg.quaternion,
+      'mixamorigLeftLeg.quaternion': this.outputs.rightLowerLeg.quaternion,
+      'mixamorigLeftFoot.quaternion': this.outputs.rightFoot.quaternion,
+      'mixamorigLeftToeBase.quaternion': null,
+    };
+
+    this.lastPosition = new THREE.Vector3()
+    this.smoothVelocity = new THREE.Vector3();
 	}
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
@@ -1229,6 +1505,86 @@ class Avatar {
       this.undecapitate();
     }
 
+    const _applyAnimation = () => {
+      const _selectAnimations = v => {
+        const selectedAnimations = animations.slice().sort((a, b) => {
+          const targetPosition1 = animationsSelectMap[a.name];
+          const distance1 = targetPosition1.distanceTo(v);
+
+          const targetPosition2 = animationsSelectMap[b.name];
+          const distance2 = targetPosition2.distanceTo(v);
+
+          return distance1 - distance2;
+        }).slice(0, 2);
+        if (selectedAnimations[1].isIdle) {
+          selectedAnimations[1] = selectedAnimations[0];
+        }
+        if (selectedAnimations.some(a => a.isBackward) && selectedAnimations.some(a => a.isLeft)) {
+          if (selectedAnimations.some(a => a.isRunning)) {
+            selectedAnimations[0] = animations.find(a => a.isRight && a.isRunning && a.isReverse);
+            selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+          } else {
+            selectedAnimations[0] = animations.find(a => a.isRight && !a.isRunning && a.isReverse);
+            selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+          }
+        } else if (selectedAnimations.some(a => a.isBackward) && selectedAnimations.some(a => a.isRight)) {
+          if (selectedAnimations.some(a => a.isRunning)) {
+            selectedAnimations[0] = animations.find(a => a.isLeft && a.isRunning && a.isReverse);
+            selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+          } else {
+            selectedAnimations[0] = animations.find(a => a.isLeft && !a.isRunning && a.isReverse);
+            selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+          }
+        }
+        return selectedAnimations;
+      };
+
+      const currentPosition = this.inputs.hmd.position.clone();
+      const positionDiff = this.lastPosition.clone()
+        .sub(currentPosition)
+        .multiplyScalar(10);
+      this.smoothVelocity.lerp(positionDiff, 0.5);
+      localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      localEuler.y += Math.PI;
+      const selectedAnimations = _selectAnimations(this.smoothVelocity.clone().applyEuler(localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order)));
+
+      const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(positionDiff);
+      const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(positionDiff);
+      const totalDistance = distance1 + distance2;
+      let factor1 = 1 - distance1/totalDistance;
+      let factor2 = 1 - distance2/totalDistance;
+
+      for (const k in this.animationMapping) {
+        const dst = this.animationMapping[k];
+        if (dst) {
+          const t1 = (Date.now()/1000) % selectedAnimations[0].duration;
+          const src1 = selectedAnimations[0].interpolants[k];
+          const v1 = src1.evaluate(t1);
+
+          const t2 = (Date.now()/1000) % selectedAnimations[1].duration;
+          const src2 = selectedAnimations[1].interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          dst.fromArray(v1);
+          if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
+            dst.slerp(localQuaternion.fromArray(v2), factor2);
+          }
+
+          if (physicsMananager.getJumpState()) {
+            const t2 = (Date.now() - physicsMananager.getJumpStartTime())/1000 * 0.6 + 0.7;
+            const src2 = jumpAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          }
+        }
+      }
+      this.lastPosition.copy(currentPosition);
+    };
+    _applyAnimation();
+
     if (this.getTopEnabled()) {
       this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
       this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
@@ -1296,7 +1652,6 @@ class Avatar {
       localEuler.z = 0;
       localEuler.y += Math.PI;
       this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
-      // testRig.outputs.hips.quaternion.premultiply(localQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
     }
 
     this.shoulderTransforms.Update();
