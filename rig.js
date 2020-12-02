@@ -688,6 +688,55 @@ class RigManager {
         'mixamorigLeftFoot.quaternion': testRig.outputs.rightFoot.quaternion,
         'mixamorigLeftToeBase.quaternion': null,
       };
+      const headTracks = {
+        'mixamorigHips.position': true,
+        'mixamorigHips.quaternion': true,
+        'mixamorigSpine.quaternion': true,
+        'mixamorigSpine1.quaternion': true,
+        'mixamorigSpine2.quaternion': true,
+        'mixamorigNeck.quaternion': true,
+        'mixamorigHead.quaternion': true,
+
+        'mixamorigLeftShoulder.quaternion': true,
+        'mixamorigLeftArm.quaternion': true,
+        'mixamorigLeftForeArm.quaternion': true,
+        'mixamorigLeftHand.quaternion': true,
+        'mixamorigLeftHandMiddle1.quaternion': true,
+        'mixamorigLeftHandMiddle2.quaternion': true,
+        'mixamorigLeftHandMiddle3.quaternion': true,
+        'mixamorigLeftHandThumb1.quaternion': true,
+        'mixamorigLeftHandThumb2.quaternion': true,
+        'mixamorigLeftHandThumb3.quaternion': true,
+        'mixamorigLeftHandIndex1.quaternion': true,
+        'mixamorigLeftHandIndex2.quaternion': true,
+        'mixamorigLeftHandIndex3.quaternion': true,
+        'mixamorigLeftHandRing1.quaternion': true,
+        'mixamorigLeftHandRing2.quaternion': true,
+        'mixamorigLeftHandRing3.quaternion': true,
+        'mixamorigLeftHandPinky1.quaternion': true,
+        'mixamorigLeftHandPinky2.quaternion': true,
+        'mixamorigLeftHandPinky3.quaternion': true,
+
+        'mixamorigRightShoulder.quaternion': true,
+        'mixamorigRightArm.quaternion': true,
+        'mixamorigRightForeArm.quaternion': true,
+        'mixamorigRightHand.quaternion': true,
+        'mixamorigRightHandMiddle1.quaternion': true,
+        'mixamorigRightHandMiddle2.quaternion': true,
+        'mixamorigRightHandMiddle3.quaternion': true,
+        'mixamorigRightHandThumb1.quaternion': true,
+        'mixamorigRightHandThumb2.quaternion': true,
+        'mixamorigRightHandThumb3.quaternion': true,
+        'mixamorigRightHandIndex1.quaternion': true,
+        'mixamorigRightHandIndex2.quaternion': true,
+        'mixamorigRightHandIndex3.quaternion': true,
+        'mixamorigRightHandRing1.quaternion': true,
+        'mixamorigRightHandRing2.quaternion': true,
+        'mixamorigRightHandRing3.quaternion': true,
+        'mixamorigRightHandPinky1.quaternion': true,
+        'mixamorigRightHandPinky2.quaternion': true,
+        'mixamorigRightHandPinky3.quaternion': true,
+      };
       const _selectAnimations = v => {
         const selectedAnimations = animations.slice().sort((a, b) => {
           const targetPosition1 = animationsSelectMap[a.name];
@@ -759,7 +808,12 @@ class RigManager {
         debugger;
       } */
 
+      testRig.setTopEnabled(cameraManager.getTool() === 'firstperson' || !!renderer.xr.getSession());
+      testRig.setBottomEnabled(testRig.getTopEnabled() && smoothVelocity.length() < 0.001);
       for (const k in mapping) {
+        if (headTracks[k] && testRig.getTopEnabled()) {
+          continue;
+        }
         const dst = mapping[k];
         if (dst) {
           const t1 = (Date.now()/1000) % selectedAnimations[0].duration;
@@ -799,9 +853,6 @@ class RigManager {
           }
         }
       }
-
-      testRig.setTopEnabled(cameraManager.getTool() === 'firstperson' || !!renderer.xr.getSession());
-      testRig.setBottomEnabled(testRig.getTopEnabled() && smoothVelocity.length() < 0.001);
       testRig.update();
 
       lastPosition.copy(currentPosition);
