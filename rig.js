@@ -229,7 +229,7 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     top: false,
     bottom: false,
   });
-  testRig.inputs.hmd.position.y = 1.3;
+  /* testRig.inputs.hmd.position.y = 1.3;
   testRig.inputs.leftGamepad.position.set(
     0.2,
     testRig.inputs.hmd.position.y - 0.2,
@@ -239,7 +239,7 @@ let testRig = null, objects = [], animations = [], idleAnimation = null, jumpAni
     -0.2,
     testRig.inputs.hmd.position.y - 0.2,
     -0.2
-  );
+  ); */
   testRig.model.traverse(o => {
     if (o.isMesh) {
       o.frustumCulled = false;
@@ -502,6 +502,24 @@ class RigManager {
     localEuler.y += Math.PI;
     localEuler.z = 0;
     this.localRig.textMesh.quaternion.setFromEuler(localEuler);
+
+    if (testRig) {
+      testRig.inputs.hmd.position.fromArray(hmdPosition)
+        .add(localVector.set(0, 0, -1)); // XXX for testing
+      testRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
+
+      testRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition)
+        .add(localVector.set(0, 0, -1)); // XXX for testing
+      testRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
+      testRig.inputs.leftGamepad.pointer = leftGamepadPointer;
+      testRig.inputs.leftGamepad.grip = leftGamepadGrip;
+
+      testRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition)
+        .add(localVector.set(0, 0, -1)); // XXX for testing
+      testRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
+      testRig.inputs.rightGamepad.pointer = rightGamepadPointer;
+      testRig.inputs.rightGamepad.grip = rightGamepadGrip;
+    }
   }
 
   setPeerAvatarPose(poseArray, peerId) {
@@ -719,14 +737,15 @@ class RigManager {
         return selectedAnimations;
       };
 
-      const currentPosition = this.localRig.outputs.hips.position.clone();
+      const currentPosition = testRig.inputs.hmd.position.clone();
       const positionDiff = lastPosition.clone()
         .sub(currentPosition)
         .multiplyScalar(10);
       smoothVelocity.lerp(positionDiff, 0.5);
-      localEuler.setFromQuaternion(this.localRig.outputs.hips.quaternion, 'YXZ');
+      localEuler.setFromQuaternion(testRig.inputs.hmd.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
+      localEuler.y += Math.PI;
       const selectedAnimations = _selectAnimations(smoothVelocity.clone().applyEuler(localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order)));
 
       const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(positionDiff);
@@ -780,10 +799,8 @@ class RigManager {
           }
         }
       }
-      testRig.outputs.hips.position.copy(this.localRig.outputs.hips.position)
-        .add(localVector.set(0, 0, -1));
-      testRig.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
-      // testRig.outputs.hips.quaternion.premultiply(localQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
+
+      testRig.setTopEnabled(cameraManager.getTool() === 'firstperson' || !!renderer.xr.getSession());
       testRig.update();
 
       lastPosition.copy(currentPosition);
