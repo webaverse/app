@@ -1,4 +1,4 @@
-import { useState } from '../web_modules/es-react.js';
+import { useState } from 'https://unpkg.com/es-react@16.13.1/dev';
 
 const guestAvatarImage = "../images/test.png";
 

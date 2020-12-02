@@ -1,4 +1,4 @@
-import { React } from "./es-react.js";
+import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
 import { createBrowserHistory } from "https://cdn.skypack.dev/history";
 
 const RouterContext = React.createContext();
@@ -84,7 +84,6 @@ export default ({ baseUrl = "/", cb, children }) => {
     let canRoute = false;
     let ErrorComponent;
     const nonRouteChildren = React.Children.map(children, (child) => {
-      console.log("Child is", child);
       if (!child.props.path) {
         return child;
       }

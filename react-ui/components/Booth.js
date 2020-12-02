@@ -1,4 +1,4 @@
-import { React } from '../web_modules/es-react.js';
+import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '../web_modules/htm.js';
 import AssetCardGrid from './AssetCardGrid.js'
 import csz from '../web_modules/csz.js'

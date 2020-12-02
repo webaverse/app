@@ -3,7 +3,7 @@
 // RIght column div with menuy in it
 // Detail buttons
 
-import { React } from '/web_modules/es-react.js';
+import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '/web_modules/htm.js';
 
 const html = htm.bind(React.createElement)
