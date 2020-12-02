@@ -8,7 +8,6 @@ import LegsManager from './vrarmik/LegsManager.js';
 import MicrophoneWorker from './microphone-worker.js';
 import skeletonString from './skeleton.js';
 // import {FBXLoader} from './FBXLoader.js';
-import physicsMananager from '../physics-manager.js';
 import animationsJson from '../animations/animations.js';
 
 const localVector = new THREE.Vector3();
@@ -1428,6 +1427,8 @@ class Avatar {
 
     this.lastPosition = new THREE.Vector3()
     this.smoothVelocity = new THREE.Vector3();
+    this.jumping = false;
+    this.jumpStartTime = 0;
 	}
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
@@ -1504,7 +1505,20 @@ class Avatar {
       this.undecapitate();
     }
 
+    const _updateJump = () => {
+      const floorHeight = this.getFloorHeight();
+      const minHeight = floorHeight + this.height * 0.9;
+      const jumping = this.inputs.hmd.position.y > minHeight;
+      const oldJumping = this.jumping;
+      this.jumping = jumping;
+      if (jumping && !oldJumping) {
+        this.jumpStartTime = Date.now();
+      }
+    };
+    _updateJump();
+
     const _applyAnimation = () => {
+      const now = Date.now();
       const _selectAnimations = v => {
         const selectedAnimations = animations.slice().sort((a, b) => {
           const targetPosition1 = animationsSelectMap[a.name];
@@ -1571,8 +1585,8 @@ class Avatar {
             dst.slerp(localQuaternion.fromArray(v2), factor2);
           }
 
-          if (physicsMananager.getJumpState()) {
-            const t2 = (Date.now() - physicsMananager.getJumpStartTime())/1000 * 0.6 + 0.7;
+          if (this.jumping) {
+            const t2 = (now - this.jumpStartTime)/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
