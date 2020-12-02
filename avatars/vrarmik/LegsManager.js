@@ -242,7 +242,7 @@ class LegsManager {
   		// console.log('v', this.hmdVelocity.toArray().join(','));
 
       this.leftLeg.standFactor = this.leftLeg.getStandFactor();
-  	  this.leftLeg.standing = this.leftLeg.standFactor >= 1;
+  	  this.leftLeg.standing = true; // this.leftLeg.standFactor >= 1;
   	  if (this.leftLeg.standing) {
   	  	this.leftLeg.lastStandTimestamp = now;
   	  } else {
@@ -252,7 +252,7 @@ class LegsManager {
         this.leftLeg.stepping = false;
   	  }
   	  this.rightLeg.standFactor = this.rightLeg.getStandFactor();
-  	  this.rightLeg.standing = this.rightLeg.standFactor >= 1;
+  	  this.rightLeg.standing = true; // this.rightLeg.standFactor >= 1;
   	  if (this.rightLeg.standing) {
   	  	this.rightLeg.lastStandTimestamp = now;
   	  } else {
