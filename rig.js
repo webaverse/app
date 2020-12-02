@@ -688,7 +688,7 @@ class RigManager {
         'mixamorigLeftFoot.quaternion': testRig.outputs.rightFoot.quaternion,
         'mixamorigLeftToeBase.quaternion': null,
       };
-      const headTracks = {
+      /* const headTracks = {
         'mixamorigHips.position': true,
         'mixamorigHips.quaternion': true,
         'mixamorigSpine.quaternion': true,
@@ -736,7 +736,7 @@ class RigManager {
         'mixamorigRightHandPinky1.quaternion': true,
         'mixamorigRightHandPinky2.quaternion': true,
         'mixamorigRightHandPinky3.quaternion': true,
-      };
+      }; */
       const _selectAnimations = v => {
         const selectedAnimations = animations.slice().sort((a, b) => {
           const targetPosition1 = animationsSelectMap[a.name];
@@ -811,9 +811,9 @@ class RigManager {
       testRig.setTopEnabled(cameraManager.getTool() === 'firstperson' || !!renderer.xr.getSession());
       testRig.setBottomEnabled(testRig.getTopEnabled() && smoothVelocity.length() < 0.001);
       for (const k in mapping) {
-        if (headTracks[k] && testRig.getTopEnabled()) {
+        /* if (headTracks[k] && testRig.getTopEnabled()) {
           continue;
-        }
+        } */
         const dst = mapping[k];
         if (dst) {
           const t1 = (Date.now()/1000) % selectedAnimations[0].duration;
