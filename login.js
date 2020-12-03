@@ -120,12 +120,12 @@ async function tryLogin() {
       <div class=login-error id=login-error></div>
     </div>
     <div class="phase-content phase-1-content">
-      <input type=text placeholder="Email or key" id=login-email>
+      <input type=text placeholder="Email or key" autocomplete="off" id=login-email>
       <input type=submit value="Log in" class="button highlight">
       <input type=button value="Cancel" class="button highlight" id=login-cancel>
     </div>
     <div class="phase-content phase-2-content">
-      <input type=text placeholder="Verification code" id=login-verification-code>
+      <input type=text placeholder="Verification code" autocomplete="off" id=login-verification-code>
       <input type=submit value="Verify" class="button highlight">
     </div>
     <div class="phase-content phase-3-content">
