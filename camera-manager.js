@@ -8,7 +8,7 @@ const localVector = new THREE.Vector3();
 
 let selectedTool = 'camera';
 const getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
-const getAvatarHeight = () => getFullAvatarHeight() * 0.99;
+const getAvatarHeight = getFullAvatarHeight; // () => getFullAvatarHeight() * 0.9;
 /* const _getMinHeight = () => {
   if (rigManager.localRig) {
     const avatarHeight = rigManager.localRig ? getAvatarHeight() : 1;
