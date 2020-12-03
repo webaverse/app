@@ -804,6 +804,7 @@ function animate(timestamp, frame) {
   timestamp = timestamp || performance.now();
   const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
+  const session = renderer.xr.getSession();
 
   const now = Date.now();
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
@@ -838,7 +839,6 @@ function animate(timestamp, frame) {
     hmdPosition = localVector.toArray();
     hmdQuaternion = localQuaternion.toArray();
 
-    const session = renderer.xr.getSession();
     if (session) {
       let inputSources = Array.from(session.inputSources);
       inputSources = ['right', 'left']
@@ -1134,7 +1134,7 @@ function animate(timestamp, frame) {
   
   ioManager.updatePost(timeDiff);
 
-  const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+  const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
   localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));
   localMatrix3.copy(xrCamera.matrix)
     .premultiply(dolly.matrix)
