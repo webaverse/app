@@ -565,13 +565,21 @@ document.addEventListener('pointerlockchange', e => {
   }
 });
 window.addEventListener('resize', e => {
-  if (!renderer.xr.getSession()) {
+  // if (!renderer.xr.getSession()) {
+    if (renderer.xr.getSession()) {
+      renderer.xr.isPresenting = false;
+    }
+
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer2.setSize(window.innerWidth, window.innerHeight);
 
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-  }
+    
+    if (renderer.xr.getSession()) {
+      renderer.xr.isPresenting = true;
+    }
+  // }
 });
 window.addEventListener('paste', async e => {
   if (!_inputFocused()) {
