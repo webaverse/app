@@ -262,8 +262,10 @@ class LegsManager {
         this.rightLeg.stepping = false;
   	  } */
 
+      const floorHeight = this.poseManager.vrTransforms.floorHeight + this.rig.height * 0.1;
+
       const hipsFloorPosition = localVector.copy(this.hips.position);
-      hipsFloorPosition.y = this.poseManager.vrTransforms.floorHeight;
+      hipsFloorPosition.y = floorHeight;
       const hipsFloorEuler = localEuler.setFromQuaternion(this.hips.quaternion, 'YXZ');
       hipsFloorEuler.x = 0;
       hipsFloorEuler.z = 0;
@@ -429,7 +431,7 @@ class LegsManager {
       if (this.rig.shoulderTransforms.prone) {
       	const targetPosition = Helpers.getWorldPosition(this.leftLeg.upperLeg, localVector6)
           .add(
-          	localVector7.set(0, -this.leftLeg.legLength*0.95 + this.poseManager.vrTransforms.floorHeight, 0)
+          	localVector7.set(0, -this.leftLeg.legLength*0.95 + floorHeight, 0)
           	  .applyQuaternion(this.hips.quaternion)
           );
         targetPosition.y = 0;
@@ -455,13 +457,13 @@ class LegsManager {
         this.leftLeg.foot.stickTransform.position.lerp(targetPosition, 0.1); */
   		} else {
   			const targetPosition = localVector6.copy(this.leftLeg.foot.stickTransform.position);
-  			targetPosition.y = this.poseManager.vrTransforms.floorHeight;
+  			targetPosition.y = floorHeight;
   			this.leftLeg.foot.stickTransform.position.lerp(targetPosition, 0.2);
   		}
   		if (this.rig.shoulderTransforms.prone) {
       	const targetPosition = Helpers.getWorldPosition(this.rightLeg.upperLeg, localVector6)
           .add(
-          	localVector7.set(0, -this.rightLeg.legLength*0.95 + this.poseManager.vrTransforms.floorHeight, 0)
+          	localVector7.set(0, -this.rightLeg.legLength*0.95 + floorHeight, 0)
           	  .applyQuaternion(this.hips.quaternion)
           );
         targetPosition.y = 0;
@@ -488,7 +490,7 @@ class LegsManager {
         this.rightLeg.foot.stickTransform.position.lerp(targetPosition, 0.1); */
   		} else {
   			const targetPosition = localVector6.copy(this.rightLeg.foot.stickTransform.position);
-  			targetPosition.y = this.poseManager.vrTransforms.floorHeight;
+  			targetPosition.y = floorHeight;
   			this.rightLeg.foot.stickTransform.position.lerp(targetPosition, 0.2);
   		}
 
