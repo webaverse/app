@@ -1507,8 +1507,8 @@ class Avatar {
 
     const _updateJump = () => {
       const floorHeight = this.getFloorHeight();
-      const minHeight = floorHeight + this.height;
-      const jumping = this.inputs.hmd.position.y > minHeight;
+      const maxStandHeight = floorHeight + this.height * 1.1;
+      const jumping = this.inputs.hmd.position.y > maxStandHeight;
       const oldJumping = this.jumping;
       this.jumping = jumping;
       if (jumping && !oldJumping) {
