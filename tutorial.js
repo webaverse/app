@@ -7,7 +7,8 @@ const ftuUsername = document.getElementById('ftu-username');
 
 let ftuPhase;
 export async function tryTutorial() {
-  const ftuDone = loginManager.getFtu() && !parseQuery(location.search)['ftu'];
+  const ftuQs = parseQuery(location.search)['ftu'];
+  const ftuDone = (loginManager.getFtu() || ftuQs === '0') && ftuQs !== '1';
   ftuPhase = ftuDone ? 4 : 1;
   ftu.classList.add('phase-' + ftuPhase);
   ftuUsername.focus();
