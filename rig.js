@@ -6,7 +6,7 @@ import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
 import {renderer, scene, dolly, appManager} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
-import physicsMananager from './physics-manager.js';
+import physicsManager from './physics-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -380,6 +380,8 @@ class RigManager {
     this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001);
     this.localRig.direction.copy(positionDiff);
     this.localRig.velocity.copy(this.smoothVelocity);
+    this.localRig.jumpState = physicsManager.getJumpState();
+    this.localRig.jumpStartTime = physicsManager.getJumpStartTime();
     this.localRig.update();
     this.peerRigs.forEach(rig => {
       rig.update();
