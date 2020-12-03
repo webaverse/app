@@ -87,7 +87,7 @@ const _updateIo = (timeDiff, frame) => {
             dolly.matrix
               // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
               .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
-              // .premultiply(localMatrix2.getInverse(localMatrix2))
+              // .premultiply(localMatrix2.copy(localMatrix2).invert())
               .decompose(dolly.position, dolly.quaternion, dolly.scale);
             ioManager.currentWalked = true;
           }
@@ -98,7 +98,7 @@ const _updateIo = (timeDiff, frame) => {
             dolly.matrix
               .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
               .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
-              .premultiply(localMatrix2.getInverse(localMatrix2))
+              .premultiply(localMatrix2.copy(localMatrix2).invert())
               .decompose(dolly.position, dolly.quaternion, dolly.scale);
           };
           if (
