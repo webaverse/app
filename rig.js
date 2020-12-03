@@ -362,7 +362,7 @@ class RigManager {
       currentQuaternion = this.localRig.inputs.hmd.quaternion;
     } else {
       currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
-      currentQuaternion = dolly.quaternion;
+      currentQuaternion = this.localRig.inputs.hmd.quaternion;
     }
     const positionDiff = localVector2.copy(this.lastPosition)
       .sub(currentPosition)
