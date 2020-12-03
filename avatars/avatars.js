@@ -1427,7 +1427,7 @@ class Avatar {
 
     this.direction = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
-    this.jumping = false;
+    this.jumpState = false;
     this.jumpStartTime = 0;
 	}
   initializeBonePositions(setups) {
@@ -1505,18 +1505,6 @@ class Avatar {
       this.undecapitate();
     }
 
-    const _updateJump = () => {
-      const floorHeight = this.getFloorHeight();
-      const maxStandHeight = floorHeight + this.height * 1.1;
-      const jumping = this.inputs.hmd.position.y > maxStandHeight;
-      const oldJumping = this.jumping;
-      this.jumping = jumping;
-      if (jumping && !oldJumping) {
-        this.jumpStartTime = Date.now();
-      }
-    };
-    _updateJump();
-
     const _applyAnimation = () => {
       const now = Date.now();
       const _selectAnimations = v => {
@@ -1575,7 +1563,7 @@ class Avatar {
             dst.slerp(localQuaternion.fromArray(v2), factor2);
           }
 
-          if (this.jumping) {
+          if (this.jumpState) {
             const t2 = (now - this.jumpStartTime)/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
