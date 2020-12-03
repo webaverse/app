@@ -1,6 +1,7 @@
 import THREE from '../../three.module.js';
 import {Helpers} from './Unity.js';
 
+const avatarHeightFactor = 0.95;
 const stepRate = 0.2;
 const stepHeight = 0.2;
 const stepMinDistance = 0;
@@ -262,7 +263,7 @@ class LegsManager {
         this.rightLeg.stepping = false;
   	  } */
 
-      const floorHeight = this.poseManager.vrTransforms.floorHeight + this.rig.height * 0.1;
+      const floorHeight = this.poseManager.vrTransforms.floorHeight + this.rig.height * (1 - avatarHeightFactor);
 
       const hipsFloorPosition = localVector.copy(this.hips.position);
       hipsFloorPosition.y = floorHeight;
