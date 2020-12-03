@@ -355,8 +355,9 @@ class RigManager {
   }
 
   update() {
+    const session = renderer.xr.getSession();
     let currentPosition, currentQuaternion;
-    if (!renderer.xr.getSession()) {
+    if (!session) {
       currentPosition = this.localRig.inputs.hmd.position;
       currentQuaternion = this.localRig.inputs.hmd.quaternion;
     } else {
@@ -375,7 +376,7 @@ class RigManager {
     this.smoothVelocity.lerp(positionDiff, 0.5);
     this.lastPosition.copy(currentPosition);
 
-    this.localRig.setTopEnabled(/^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()));
+    this.localRig.setTopEnabled(!!session || /^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()));
     this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001);
     this.localRig.direction.copy(positionDiff);
     this.localRig.velocity.copy(this.smoothVelocity);
