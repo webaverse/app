@@ -229,8 +229,10 @@ const _collideCapsule = (() => {
   const localVector = new THREE.Vector3();
   return (p, q) => {
     localVector.copy(p);
-    localVector.y -= 0.5;
-    return geometryManager.geometryWorker.collidePhysics(geometryManager.physics, 0.5, 0.5, localVector, q, 1);
+    localVector.y -= rigManager.localRig.height/2;
+    const radius = 0.3;
+    const halfHeight = Math.max(rigManager.localRig.height/2 - radius, 0);
+    return geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, localVector, q, 1);
   };
 })();
 const applyVelocity = (() => {
