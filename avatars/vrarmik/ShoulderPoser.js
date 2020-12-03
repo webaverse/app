@@ -152,13 +152,13 @@ class ShoulderPoser {
     hmdEuler.z = 0;
     const hmdXYRotation = localQuaternion2.setFromEuler(hmdEuler);
     hmdXYRotation.multiply(localQuaternion3.setFromAxisAngle(rightVector, this.shoulder.proneFactor * Math.PI / 2));
-    if (!this.rig.legsManager.leftLeg.standing && !this.rig.legsManager.rightLeg.standing) {
+    /* if (!this.rig.legsManager.leftLeg.standing && !this.rig.legsManager.rightLeg.standing) {
       const jumpFactor = 1 - Math.min(this.rig.legsManager.leftLeg.standFactor, this.rig.legsManager.rightLeg.standFactor);
       hmdXYRotation.multiply(localQuaternion3.setFromAxisAngle(rightVector, jumpFactor * Math.PI / 4));
     } else {
       const standFactor = Math.min(this.rig.legsManager.leftLeg.standFactor, this.rig.legsManager.rightLeg.standFactor);
       hmdXYRotation.multiply(localQuaternion3.setFromAxisAngle(rightVector, (1 - standFactor) * Math.PI / 4));
-    }
+    } */
 
     const headPosition = localVector.copy(this.vrTransforms.head.position)
       .sub(localVector2.copy(this.shoulder.eyes.position).applyQuaternion(hmdRotation));
