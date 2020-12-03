@@ -574,14 +574,16 @@ window.addEventListener('resize', e => {
   }
 });
 window.addEventListener('paste', async e => {
-  e.preventDefault();
-  const items = Array.from(e.clipboardData.items);
-  if (items.length > 0) {
-    let s = await new Promise((accept, reject) => {
-      items[0].getAsString(accept);
-    });
-    s = s.replace(/[\n\r]+/g, '').slice(0, 256);
-    weaponsManager.menuPaste(s);
+  if (!_inputFocused()) {
+    e.preventDefault();
+    const items = Array.from(e.clipboardData.items);
+    if (items.length > 0) {
+      let s = await new Promise((accept, reject) => {
+        items[0].getAsString(accept);
+      });
+      s = s.replace(/[\n\r]+/g, '').slice(0, 256);
+      weaponsManager.menuPaste(s);
+    }
   }
 });
 
