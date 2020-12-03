@@ -49,6 +49,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -59,6 +60,10 @@ const localRay = new THREE.Ray();
 const localTriangle = new THREE.Triangle();
 
 let skybox = null;
+let xrscenetexture = null;
+let xrsceneplane = null;
+let xrscenecam = null;
+let xrscene = null;
 
 function mod(a, b) {
   return ((a % b) + b) % b;
@@ -1152,6 +1157,34 @@ function animate(timestamp, frame) {
   renderer.render(scene, camera);
   renderer2.render(scene2, camera);
   // renderer.render(highlightScene, camera);
+  
+  if (session && document.visibilityState == 'visible') {
+    const {baseLayer} = session.renderState;
+    if (!xrscenetexture) {
+      xrscenetexture = new THREE.DataTexture(null, baseLayer.framebufferWidth, baseLayer.framebufferHeight, THREE.RGBAFormat);
+      xrscenetexture.minFilter = THREE.NearestFilter;
+      xrscenetexture.magFilter = THREE.NearestFilter;
+
+      xrscene = new THREE.Scene();
+
+      xrsceneplane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), new THREE.MeshBasicMaterial({map: xrscenetexture, /*side: THREE.DoubleSide,*/ color: 0xffffff}));
+      xrscene.add(xrsceneplane);
+
+      xrscenecam = new THREE.OrthographicCamera(-1 / 2, 1 / 2, 1 / 2, -1 / 2, -1, 1);
+      xrscene.add(xrscenecam);
+    }
+
+    renderer.xr.enabled = false;
+    renderer.copyFramebufferToTexture(localVector2D.set(baseLayer.framebufferWidth / 2, 0, 0), xrscenetexture);
+    renderer.setFramebuffer(null);
+
+    const oldOutputEncoding = renderer.outputEncoding;
+    renderer.outputEncoding = THREE.LinearEncoding;
+    renderer.setViewport(0, 0, canvas.width * window.devicePixelRatio, canvas.height * window.devicePixelRatio);
+    renderer.render(xrscene, xrscenecam);
+    renderer.xr.enabled = true;
+    renderer.outputEncoding = oldOutputEncoding;
+  }
 }
 geometryManager.waitForLoad().then(e => {
   setTimeout(() => {
