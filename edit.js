@@ -168,12 +168,12 @@ scene.add(floorMesh); */
   skybox.update();
   scene.add(skybox);
 })();
-/* (() => {
+(() => {
   const guardianMesh = GuardianMesh([[
-    0, 0, SUBPARCEL_SIZE, SUBPARCEL_SIZE,
+    0, -SUBPARCEL_SIZE - 4, SUBPARCEL_SIZE, -4,
   ]], 0x42a5f5);
   scene.add(guardianMesh);
-})(); */
+})();
 /* (async () => {
   const HEIGHTFIELD_SHADER2 = {
     uniforms: {
