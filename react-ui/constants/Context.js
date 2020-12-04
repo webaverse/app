@@ -12,6 +12,10 @@ export const initialState = {
     avatarFileName: null,
     avatarPreview: null,
     ftu: true,
-    inventory: null
+    inventory: null,
+    creatorProfiles: {},
+    creatorInventories: {},
+    lastFileHash: null,
+    lastFileId: null
   }
 export const Context = createContext(initialState);

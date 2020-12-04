@@ -8,7 +8,7 @@ import NotFoundPage from './pages/NotFoundPage.js';
 import htm from './web_modules/htm.js';
 import Router, { Route } from './web_modules/react-es-router.js';
 import { Context, initialState } from './constants/Context.js';
-import { Reducer } from './reducers/Reducer.js';
+import { Reducer } from './functions/Reducer.js';
 import ActionTypes from './constants/ActionTypes.js';
 
 window.html = htm.bind(React.createElement);
@@ -24,7 +24,7 @@ const Application = () => {
 
 
 useEffect(() => {
-  dispatch({type: ActionTypes.InitializeUserObject});
+  dispatch({type: ActionTypes.InitializeState});
 }, []);
   return html`
   <${Context.Provider} value=${[state, dispatch]}>
