@@ -1,5 +1,5 @@
 import bip39 from '../libs/bip39.js';
-import { getAddressFromMnemonic, getContractSource, runSidechainTransaction } from '../webaverse/blockchain.js';
+import { web3, getAddressFromMnemonic, runSidechainTransaction } from '../webaverse/blockchain.js';
 import { loginEndpoint, previewExt, previewHost, storageHost } from '../webaverse/constants.js';
 import storage from '../webaverse/storage.js';
 import { getExt } from '../webaverse/util.js';
