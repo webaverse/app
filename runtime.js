@@ -47,6 +47,7 @@ const importMap = {
   world: _importMapUrl('./world.js'),
   runtime: _importMapUrl('./runtime.js'),
   physicsManager: _importMapUrl('./physics-manager.js'),
+  rig: _importMapUrl('./rig.js'),
   vrUi: _importMapUrl('./vr-ui.js'),
   crypto: _importMapUrl('./crypto.js'),
   BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
@@ -342,6 +343,7 @@ const _makeAppUrl = appId => {
     import runtime from ${JSON.stringify(importMap.runtime)};
     import {world} from ${JSON.stringify(importMap.world)};
     import physics from ${JSON.stringify(importMap.physicsManager)};
+    import {rigManager} from ${JSON.stringify(importMap.rig)};
     import * as ui from ${JSON.stringify(importMap.vrUi)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
     const renderer = Object.create(_renderer);
@@ -349,6 +351,19 @@ const _makeAppUrl = appId => {
       appManager.setAnimationLoop(${appId}, fn);
     };
     const app = appManager.getApp(${appId});
+    let recursion = 0;
+    app.onBeforeRender = () => {
+      recursion++;
+      if (recursion === 1) {
+        rigManager.localRig.undecapitate();
+      }
+    };
+    app.onAfterRender = () => {
+      recursion--;
+      if (recursion === 0) {
+        rigManager.localRig.decapitate();
+      }
+    };
     export {renderer, scene, camera, orbitControls, runtime, world, physics, ui, crypto, app, appManager};
   `;
   const b = new Blob([s], {
