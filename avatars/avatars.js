@@ -1769,7 +1769,7 @@ class Avatar {
     }
   }
 
-  /* decapitate() {
+  decapitate() {
     if (!this.decapitated) {
       this.modelBones.Head.traverse(o => {
         o.savedPosition.copy(o.position);
@@ -1798,7 +1798,7 @@ class Avatar {
       }
       this.decapitated = false;
     }
-  } */
+  }
 
   setFloorHeight(floorHeight) {
     this.poseManager.vrTransforms.floorHeight = floorHeight;

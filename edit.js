@@ -1153,14 +1153,27 @@ function animate(timestamp, frame) {
     geometryManager.currentThingMesh.geometry.groups = thingGroups;
   }
 
+  // high priority render
   renderer.render(scene3, camera);
+  // main render
+  scene.add(rigManager.localRig.model);
+  rigManager.localRig.model.visible = false;
   renderer.render(scene, camera);
-  avatarCamera.position.copy(camera.position);
-  avatarCamera.quaternion.copy(camera.quaternion);
-  avatarCamera.scale.copy(camera.scale);
-  avatarCamera.updateMatrixWorld();
-  renderer.render(avatarScene, avatarCamera);
+  // local avatar render
+  {
+    rigManager.localRig.model.visible = true;
+    avatarScene.add(rigManager.localRig.model);
+    if (/^(?:camera|firstperson)$/.test(cameraManager.getTool()) || !!renderer.xr.getSession()) {
+      rigManager.localRig.decapitate();
+    } else {
+      rigManager.localRig.undecapitate();
+    }
+    renderer.render(avatarScene, camera);
+    rigManager.localRig.undecapitate();
+  }
+  // dom render
   renderer2.render(scene2, camera);
+  // highlight render
   // renderer.render(highlightScene, camera);
   
   if (session && document.visibilityState == 'visible') {
