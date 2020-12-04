@@ -2090,17 +2090,23 @@ body.dragging-package .footer {
 
 footer {
   position: absolute;
+  display: flex;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 1;
 }
 .helper {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
   display: flex;
+  padding-bottom: 10px;
   user-select: none;
+}
+.helper.left {
+  padding-left: 10px;
+  margin-right: auto;
+}
+.helper.right {
+  padding-right: 10px;
 }
 .keys {
   position: relative;
@@ -2121,6 +2127,10 @@ footer {
 }
 .keys .label.center {
   justify-content: center;
+}
+.keys .label.lower {
+  top: 15px;
+  left: 6px;
 }
 .keys .key {
   width: 40px;
