@@ -3,7 +3,7 @@ import {GLTFLoader} from './GLTFLoader.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
-import {renderer, scene, avatarScene, dolly, appManager} from './app-object.js';
+import {renderer, scene, dolly, appManager} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
@@ -29,7 +29,7 @@ class RigManager {
       visemes: true,
       debug: true,
     });
-    avatarScene.add(this.localRig.model);
+    scene.add(this.localRig.model);
 
     this.localRig.avatarUrl = null;
 
@@ -109,7 +109,7 @@ class RigManager {
             debug: true,
           });
         }
-        avatarScene.add(localRig.model);
+        scene.add(localRig.model);
         localRig.textMesh = oldRig.textMesh;
         localRig.avatarUrl = oldRig.url;
         localRig.rigCapsule = oldRig.rigCapsule;
@@ -386,12 +386,6 @@ class RigManager {
     this.peerRigs.forEach(rig => {
       rig.update();
     });
-
-    /* if (/^(?:camera|firstperson)$/.test(cameraManager.getTool()) || !!renderer.xr.getSession()) {
-      rigManager.localRig.decapitate();
-    } else {
-      rigManager.localRig.undecapitate();
-    } */
 
     /* for (let i = 0; i < appManager.grabs.length; i++) {
       const grab = appManager.grabs[i === 0 ? 1 : 0];
