@@ -819,13 +819,13 @@ let mapRenderer, mapScene, mapCamera;
   mapRenderer.setPixelRatio(window.devicePixelRatio);
   mapScene = new THREE.Scene();
 
-  mapCamera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
-  mapCamera.position.set(0, 3, 14);
+  mapCamera = new THREE.PerspectiveCamera(60, 200 / 140, 0.1, 1000);
+  mapCamera.position.set(0, 4, 10);
   mapCamera.rotation.order = 'YXZ';
   mapCamera.lookAt(new THREE.Vector3(0, 0, 0));
 
   const planeMesh = (() => {
-    const s = 0.05;
+    const s = 0.1;
     const geometry = BufferGeometryUtils.mergeBufferGeometries([
       new THREE.BoxBufferGeometry(10, s, s).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -10/2)),
       new THREE.BoxBufferGeometry(10, s, s).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, 10/2)),
