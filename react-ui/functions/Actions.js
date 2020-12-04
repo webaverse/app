@@ -4,7 +4,6 @@ import { loginEndpoint, previewExt, previewHost, storageHost } from '../webavers
 import storage from '../webaverse/storage.js';
 import { getExt } from '../webaverse/util.js';
 
-
 export const initializeEtherium = async (state) => {
   let networkType;
   if (!window.ethereum)
@@ -167,65 +166,39 @@ export const uploadFile = async (file, state) => {
   const { mnemonic, addr } = state.loginToken;
   const res = await fetch(storageHost, { method: 'POST', body: file });
   const { hash } = await res.json();
-  const contractSource = await getContractSource('mintNft.cdc');
 
-  const response = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-    method: 'POST',
-    body: JSON.stringify({
-      address: addr,
-      mnemonic,
-      limit: 100,
-      transaction: contractSource
-        .replace(/ARG0/g, hash)
-        .replace(/ARG1/g, file.name),
-      wait: true,
-    }),
-  });
+  const fullAmount = {
+    t: 'uint256',
+    v: new web3.utils.BN(1e9)
+      .mul(new web3.utils.BN(1e9))
+      .mul(new web3.utils.BN(1e9)),
+  };
 
-  const responseJson = await response.json();
-  if (responseJson?.transaction?.events[0]) {
-    const id = parseInt(responseJson.transaction.events[0].payload.value.fields.find(field => field.name === 'id').value.value, 10);
-  } else console.warn("sendTransaction post request was not successful");
-  return { ...state, lastFileHash: hash, lastFileId: id };
-};
+  let status, transactionHash, tokenIds;
+  try {
+    {
+      const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['NFT']._address, fullAmount.v);
+      status = result.status;
+      transactionHash = '0x0';
+      tokenIds = [];
+    }
+    if (status) {
+      const description = '';
+      // console.log('minting', ['NFT', 'mint', addr, '0x' + hash, file.name, description, quantity]);
+      const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', addr, '0x' + hash, file.name, description, quantity);
+      status = result.status;
+      transactionHash = result.transactionHash;
+      const tokenId = new web3.utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
+      tokenIds = [tokenId, tokenId + quantity - 1];
+    }
+  } catch(err) {
+    console.warn(err.stack);
+    status = false;
+    transactionHash = '0x0';
+    tokenIds = [];
+  }
 
-export const sendNft = async (address, id, state) => {
-  if (!state.loginToken)
-    throw new Error('not logged in');
-  const { mnemonic, addr } = state.loginToken;
-  const contractSource = await getContractSource('transferNft.cdc');
-
-  await fetch(`https://accounts.exokit.org/sendTransaction`, {
-    method: 'POST',
-    body: JSON.stringify({
-      address: addr,
-      mnemonic,
-      limit: 100,
-      transaction: contractSource
-        .replace(/ARG0/g, id)
-        .replace(/ARG1/g, '0x' + address),
-      wait: true,
-    }),
-  });
-};
-
-export const destroyNft = async (id, state) => {
-  if (!state.loginToken)
-    throw new Error('not logged in');
-  const { mnemonic, addr } = state.loginToken;
-  const contractSource = await getContractSource('destroyNft.cdc');
-
-  await fetch(`https://accounts.exokit.org/sendTransaction`, {
-    method: 'POST',
-    body: JSON.stringify({
-      address: addr,
-      mnemonic,
-      limit: 100,
-      transaction: contractSource
-        .replace(/ARG0/g, id),
-      wait: true,
-    }),
-  });
+  return { tokenIds };
 };
 
 export const pullUserObject = async (state) => {
