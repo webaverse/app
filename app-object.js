@@ -24,23 +24,32 @@ renderer.sortObjects = false;
 renderer.xr.enabled = true;
 
 const scene = new THREE.Scene();
+const avatarScene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 1.6, 2);
 camera.rotation.order = 'YXZ';
-// camera.quaternion.set(0, 0, 0, 1);
+
+const avatarCamera = camera.clone();
+avatarCamera.near = 0.2;
+avatarCamera.updateProjectionMatrix();
 
 const dolly = new THREE.Object3D();
 dolly.add(camera);
+dolly.add(avatarCamera);
 scene.add(dolly);
 
-const ambientLight = new THREE.AmbientLight(0xFFFFFF);
-scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xFFFFFF);
-directionalLight.position.set(1, 2, 3);
-scene.add(directionalLight);
-/* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
-scene.add(directionalLight2); */
+const _addDefaultLights = scene => {
+  const ambientLight = new THREE.AmbientLight(0xFFFFFF);
+  scene.add(ambientLight);
+  const directionalLight = new THREE.DirectionalLight(0xFFFFFF);
+  directionalLight.position.set(1, 2, 3);
+  scene.add(directionalLight);
+  /* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
+  scene.add(directionalLight2); */
+};
+_addDefaultLights(scene);
+_addDefaultLights(avatarScene);
 
 const orbitControls = new OrbitControls(camera, canvas);
 orbitControls.screenSpacePanning = true;
@@ -124,4 +133,4 @@ class App extends EventTarget {
   }
 }
 
-export {renderer, scene, camera, dolly, orbitControls, renderer2, scene2, scene3, appManager};
+export {renderer, scene, avatarScene, camera, avatarCamera, dolly, orbitControls, renderer2, scene2, scene3, appManager};

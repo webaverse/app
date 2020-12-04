@@ -1,5 +1,5 @@
 import * as THREE from './three.module.js';
-import {renderer, renderer2, camera, dolly} from './app-object.js';
+import {renderer, renderer2, camera, avatarCamera, dolly} from './app-object.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import weaponsManager from './weapons-manager.js';
@@ -575,6 +575,9 @@ window.addEventListener('resize', e => {
 
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
+
+    avatarCamera.aspect = window.innerWidth / window.innerHeight;
+    avatarCamera.updateProjectionMatrix();
     
     if (renderer.xr.getSession()) {
       renderer.xr.isPresenting = true;

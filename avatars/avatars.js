@@ -1354,7 +1354,7 @@ class Avatar {
       this.setBottomEnabled(!!options.bottom);
     }
 
-    this.decapitated = false;
+    /* this.decapitated = false;
     if (options.decapitate) {
       if (springBoneManagerPromise) {
         springBoneManagerPromise.then(() => {
@@ -1363,7 +1363,7 @@ class Avatar {
       } else {
         this.decapitate();
       }
-    }
+    } */
 
     this.animationMapping = {
       // 'mixamorigHips.position': this.outputs.hips.position,
@@ -1500,10 +1500,10 @@ class Avatar {
     return this.legsManager.enabled;
   }
 	update() {
-    const wasDecapitated = this.decapitated;
+    /* const wasDecapitated = this.decapitated;
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
-    }
+    } */
 
     const _applyAnimation = () => {
       const now = Date.now();
@@ -1678,9 +1678,9 @@ class Avatar {
     if (this.springBoneManager) {
       this.springBoneManager.lateUpdate(timeDiff / 1000);
     }
-    if (this.springBoneManager && wasDecapitated) {
+    /* if (this.springBoneManager && wasDecapitated) {
       this.decapitate();
-    }
+    } */
 
     if (this.options.visemes) {
       const aaValue = Math.min(this.volume * 10, 1);
@@ -1769,7 +1769,7 @@ class Avatar {
     }
   }
 
-  decapitate() {
+  /* decapitate() {
     if (!this.decapitated) {
       this.modelBones.Head.traverse(o => {
         o.savedPosition.copy(o.position);
@@ -1798,7 +1798,7 @@ class Avatar {
       }
       this.decapitated = false;
     }
-  }
+  } */
 
   setFloorHeight(floorHeight) {
     this.poseManager.vrTransforms.floorHeight = floorHeight;

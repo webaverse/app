@@ -339,7 +339,7 @@ const _loadImg = async file => {
 };
 const _makeAppUrl = appId => {
   const s = `\
-    import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
+    import {renderer as _renderer, scene, avatarScene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
     import runtime from ${JSON.stringify(importMap.runtime)};
     import {world} from ${JSON.stringify(importMap.world)};
     import physics from ${JSON.stringify(importMap.physicsManager)};
@@ -351,20 +351,7 @@ const _makeAppUrl = appId => {
       appManager.setAnimationLoop(${appId}, fn);
     };
     const app = appManager.getApp(${appId});
-    let recursion = 0;
-    app.onBeforeRender = () => {
-      recursion++;
-      if (recursion === 1) {
-        rigManager.localRig.undecapitate();
-      }
-    };
-    app.onAfterRender = () => {
-      recursion--;
-      if (recursion === 0) {
-        rigManager.localRig.decapitate();
-      }
-    };
-    export {renderer, scene, camera, orbitControls, runtime, world, physics, ui, crypto, app, appManager};
+    export {renderer, scene, avatarScene, camera, orbitControls, runtime, world, physics, ui, crypto, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
