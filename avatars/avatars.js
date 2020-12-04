@@ -1704,6 +1704,9 @@ class Avatar {
           if (aaMorphTargetIndex === undefined) {
             aaMorphTargetIndex = morphTargetDictionary['29'];
           }
+          if (aaMorphTargetIndex === undefined) {
+            aaMorphTargetIndex = morphTargetDictionary['target_23'];
+          }
           if (aaMorphTargetIndex !== undefined) {
             morphTargetInfluences[aaMorphTargetIndex] = aaValue;
           }
