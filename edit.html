@@ -16,45 +16,19 @@
     <div id=progress-bar class=progress-bar></div>
     <a href="/" class="nav icon">
       <img src="assets/logo-circle.svg">
-      <div class=name>Erithor @-1,3</div>
+      <div class=name id=location-label>Erithor @-1,3</div>
     </a>
 
     <div class="buttons right">
-      <div class=bar></div>
+      <!-- <div class=bar></div> -->
       <div class=functions style="transform-origin: 0 0;">
         <div class=row>
-          <a class="function">
+          <!-- <a class="function">
             <i class="fal fa-file-plus">
               <input type=file class=hidden id=load-package-input>
             </i>
             <div class=label>Add file</div>
-          </a>
-          <!-- <a class="function">
-            <i class="fal fa-text"></i>
-            <div class=label>Add text</div>
           </a> -->
-        </div>
-      </div>
-      <div class=bar></div>
-      <div class=functions style="transform-origin: 0 0;">
-        <div class=row>
-          <a class="function" id=mic-button>
-            <i class="fal fa-microphone"></i>
-            <div class=label>Microphone</div>
-          </a>
-          <!-- <a class="function" id=enter-xr-button>
-            <i class="fal fa-vr-cardboard"></i>
-            <div class=label>Enter XR</div>
-          </a> -->
-        </div>
-      </div>
-      <div class=bar></div>
-      <div class=functions style="transform-origin: 0 0;">
-        <div class=row>
-          <a class="function" id=connectButton>
-            <i class="fal fa-wifi"></i>
-            <div class=label>Connect</div>
-          </a>
         </div>
       </div>
     </div>
@@ -88,6 +62,8 @@
           <div class="key" id="key-m" function="birdseye">M</div>
         </div>
       </div>
+      <nav class="enter-xr-button" id="mic-on-button" style="display: none;">Mic On</nav>
+      <nav class="enter-xr-button disabled" id="mic-off-button">Mic Off</nav>
       <nav class="enter-xr-button" id="enter-xr-button" style="display: none;">Enter XR</nav>
       <nav class="enter-xr-button disabled" id="no-xr-button">No XR</nav>
     </div>
