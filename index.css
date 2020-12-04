@@ -1209,7 +1209,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: var(--color);
 }
 
-canvas {
+#canvas {
   position: absolute;
   width: 100vw;
   height: 100vh;
@@ -2099,16 +2099,25 @@ footer {
   z-index: 1;
 }
 .helper {
+  position: relative;
   display: flex;
   padding-bottom: 10px;
   user-select: none;
 }
 .helper.left {
   padding-left: 10px;
+  padding-bottom: 10px;
   margin-right: auto;
 }
 .helper.right {
   padding-right: 10px;
+}
+#map-canvas {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  width: 200px;
+  height: 140px;
 }
 .keys {
   position: relative;
