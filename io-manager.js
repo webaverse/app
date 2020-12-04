@@ -274,7 +274,7 @@ window.addEventListener('keydown', e => {
         weaponsManager.setMenu(true);
         break;
       }
-      case 49: { // 1
+      /* case 49: { // 1
         if (document.pointerLockElement) {
           const selectedWeapon = weaponsManager.getWeapon();
           let index = weaponsManager.weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
@@ -297,7 +297,7 @@ window.addEventListener('keydown', e => {
           weaponsManager.weapons[index].click();
         }
         break;
-      }
+      } */
       case 87: { // W
         if (document.pointerLockElement) {
           ioManager.keys.up = true;
