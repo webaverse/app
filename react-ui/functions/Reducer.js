@@ -1,5 +1,5 @@
 import { ActionTypes } from "../constants/ActionTypes.js";
-import { initialize, sendNft, destroyNft, copyAddress, copyPrivateKey, setUsername, setAvatar, setHomespace, setLoadoutState, getInventoryForSelf, uploadFile, setFtu, requestTokenByEmail, loginWithEmailCode, loginWithEmailOrPrivateKey, logout } from "./Actions";
+import { initialize, sendNft, destroyNft, copyAddress, copyPrivateKey, setUsername, setAvatar, setHomespace, setLoadoutState, getInventoryForSelf, uploadFile, setFtu, requestTokenByEmail, loginWithEmailCode, loginWithEmailOrPrivateKey, logout } from "./Actions.js";
 
 export const Reducer = async (state, action) => {
   switch (action.type) {
