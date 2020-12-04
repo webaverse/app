@@ -22,7 +22,12 @@ const getAvatarHeight = getFullAvatarHeight; // () => getFullAvatarHeight() * 0.
 const birdsEyeHeight = 10;
 const avatarCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2);
-const tools = Array.from(document.querySelectorAll('.tool'));
+const tools = [
+  'key-v',
+  'key-b',
+  'key-n',
+  'key-m',
+].map(id => document.getElementById(id));
 
 const _requestPointerLock = () => new Promise((accept, reject) => {
   if (!document.pointerLockElement) {
@@ -46,94 +51,92 @@ const _requestPointerLock = () => new Promise((accept, reject) => {
   }
 });
 for (let i = 0; i < tools.length; i++) {
-  const tool = document.getElementById('tool-' + (i + 1));
+  const tool = tools[i]
   tool.addEventListener('click', async e => {
     e.preventDefault();
     e.stopPropagation();
 
-    const newSelectedTool = tool.getAttribute('tool');
+    const newSelectedTool = tool.getAttribute('function');
     if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
       await _requestPointerLock();
     }
 
-    for (let i = 0; i < tools.length; i++) {
-      tools[i].classList.remove('selected');
-    }
-    tool.classList.add('selected');
-
-    const oldSelectedTool = selectedTool;
-    selectedTool = newSelectedTool;
-
-    if (selectedTool !== oldSelectedTool) {
-      // hoverTarget = null;
-      // _setSelectTarget(null);
-
-      switch (oldSelectedTool) {
-        case 'thirdperson': {
-          camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
-          camera.updateMatrixWorld();
-          // setCamera(camera);
-          break;
-        }
-        case 'isometric': {
-          camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
-          camera.updateMatrixWorld();
-          // setCamera(camera);
-          break;
-        }
-        case 'birdseye': {
-          camera.position.y += -birdsEyeHeight + getAvatarHeight();
-          camera.updateMatrixWorld();
-          // setCamera(camera);
-          break;
-        }
-      }
-
-      // let decapitate = true;
-      switch (selectedTool) {
-        case 'camera': {
-          document.exitPointerLock();
-          orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
-          ioManager.resetKeys();
-          physicsManager.velocity.set(0, 0, 0);
-          break;
-        }
-        case 'thirdperson': {
-          camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
-          camera.updateMatrixWorld();
-
-          // decapitate = false;
-          break;
-        }
-        case 'isometric': {
-          camera.rotation.x = -Math.PI / 6;
-          camera.quaternion.setFromEuler(camera.rotation);
-          camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
-          camera.updateMatrixWorld();
-
-          // decapitate = false;
-          break;
-        }
-        case 'birdseye': {
-          camera.rotation.x = -Math.PI / 2;
-          camera.quaternion.setFromEuler(camera.rotation);
-          camera.position.y -= -birdsEyeHeight + getAvatarHeight();
-          camera.updateMatrixWorld();
-
-          // decapitate = false;
-          break;
-        }
-      }
-      /* if (rigManager.localRig) {
-        if (decapitate) {
-          rigManager.localRig.decapitate();
-        } else {
-          rigManager.localRig.undecapitate();
-        }
-      } */
-    }
+    selectTool(newSelectedTool);
   });
 }
+const selectTool = newSelectedTool => {
+  const oldSelectedTool = selectedTool;
+  selectedTool = newSelectedTool;
+
+  if (selectedTool !== oldSelectedTool) {
+    // hoverTarget = null;
+    // _setSelectTarget(null);
+
+    switch (oldSelectedTool) {
+      case 'thirdperson': {
+        camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+        camera.updateMatrixWorld();
+        // setCamera(camera);
+        break;
+      }
+      case 'isometric': {
+        camera.position.add(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
+        camera.updateMatrixWorld();
+        // setCamera(camera);
+        break;
+      }
+      case 'birdseye': {
+        camera.position.y += -birdsEyeHeight + getAvatarHeight();
+        camera.updateMatrixWorld();
+        // setCamera(camera);
+        break;
+      }
+    }
+
+    // let decapitate = true;
+    switch (selectedTool) {
+      case 'camera': {
+        // document.exitPointerLock();
+        orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
+        ioManager.resetKeys();
+        physicsManager.velocity.set(0, 0, 0);
+        break;
+      }
+      case 'thirdperson': {
+        camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+        camera.updateMatrixWorld();
+
+        // decapitate = false;
+        break;
+      }
+      case 'isometric': {
+        camera.rotation.x = -Math.PI / 6;
+        camera.quaternion.setFromEuler(camera.rotation);
+        camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
+        camera.updateMatrixWorld();
+
+        // decapitate = false;
+        break;
+      }
+      case 'birdseye': {
+        camera.rotation.x = -Math.PI / 2;
+        camera.quaternion.setFromEuler(camera.rotation);
+        camera.position.y -= -birdsEyeHeight + getAvatarHeight();
+        camera.updateMatrixWorld();
+
+        // decapitate = false;
+        break;
+      }
+    }
+    /* if (rigManager.localRig) {
+      if (decapitate) {
+        rigManager.localRig.decapitate();
+      } else {
+        rigManager.localRig.undecapitate();
+      }
+    } */
+  }
+};
 
 const cameraManager = {
   tools,
@@ -145,8 +148,6 @@ const cameraManager = {
   getTool() {
     return selectedTool;
   },
-  setTool(newSelectedTool) {
-    selectedTool = newSelectedTool;
-  },
+  selectTool,
 };
 export default cameraManager;

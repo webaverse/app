@@ -343,7 +343,7 @@ window.addEventListener('keydown', e => {
         if (!_inputFocused()) {
           e.preventDefault();
           e.stopPropagation();
-          cameraManager.tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+          document.getElementById('key-v').click();
         }
         break;
       }
@@ -351,7 +351,7 @@ window.addEventListener('keydown', e => {
         if (!_inputFocused()) {
           e.preventDefault();
           e.stopPropagation();
-          cameraManager.tools.find(tool => tool.getAttribute('tool') === 'thirdperson').click();
+          document.getElementById('key-b').click();
         }
         break;
       }
@@ -359,7 +359,7 @@ window.addEventListener('keydown', e => {
         if (!_inputFocused()) {
           e.preventDefault();
           e.stopPropagation();
-          cameraManager.tools.find(tool => tool.getAttribute('tool') === 'isometric').click();
+          document.getElementById('key-n').click();
         }
         break;
       }
@@ -367,7 +367,7 @@ window.addEventListener('keydown', e => {
         if (!_inputFocused()) {
           e.preventDefault();
           e.stopPropagation();
-          cameraManager.tools.find(tool => tool.getAttribute('tool') === 'birdseye').click();
+          document.getElementById('key-m').click();
         }
         break;
       }
@@ -552,14 +552,14 @@ window.addEventListener('mouseup', e => {
 });
 renderer.domElement.addEventListener('dblclick', e => {
   if (!document.pointerLockElement) {
-    cameraManager.tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+    document.getElementById('key-v').click();
   }
 });
 document.addEventListener('pointerlockchange', e => {
   if (!document.pointerLockElement) {
-    setState({ pointerLock: false })
-    cameraManager.tools.find(tool => tool.getAttribute('tool') === 'camera').click();
-    document.dispatchEvent(new MouseEvent('mouseup'));
+    // setState({ pointerLock: false })
+    cameraManager.selectTool('camera');
+    // document.dispatchEvent(new MouseEvent('mouseup'));
   } else {
     setState({ pointerLock: true })
   }
