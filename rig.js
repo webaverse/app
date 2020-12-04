@@ -82,7 +82,7 @@ class RigManager {
       }
 
       if (oldRig.url === url) {
-        this.scene.remove(oldRig.model);
+        oldRig.model.parent.remove(oldRig.model);
 
         let localRig;
         if (o) {
@@ -152,8 +152,8 @@ class RigManager {
 
   async removePeerRig(peerId) {
     const peerRig = this.peerRigs.get(peerId);
-    this.scene.remove(peerRig.model);
-    this.scene.remove(peerRig.textMesh);
+    peerRig.model.parent.remove(peerRig.model);
+    peerRig.textMesh.parent.remove(peerRig.textMesh);
     this.peerRigs.delete(peerId);
   }
 
