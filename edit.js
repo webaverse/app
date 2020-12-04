@@ -27,7 +27,7 @@ import {world} from './world.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
-import {renderer, scene, camera, dolly, orbitControls, renderer2, scene2, scene3, appManager} from './app-object.js';
+import {renderer, scene, avatarScene, camera, avatarCamera, dolly, orbitControls, renderer2, scene2, scene3, appManager} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
@@ -1155,6 +1155,11 @@ function animate(timestamp, frame) {
 
   renderer.render(scene3, camera);
   renderer.render(scene, camera);
+  avatarCamera.position.copy(camera.position);
+  avatarCamera.quaternion.copy(camera.quaternion);
+  avatarCamera.scale.copy(camera.scale);
+  avatarCamera.updateMatrixWorld();
+  renderer.render(avatarScene, avatarCamera);
   renderer2.render(scene2, camera);
   // renderer.render(highlightScene, camera);
   

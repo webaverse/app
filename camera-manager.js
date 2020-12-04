@@ -89,7 +89,7 @@ for (let i = 0; i < tools.length; i++) {
         }
       }
 
-      let decapitate = true;
+      // let decapitate = true;
       switch (selectedTool) {
         case 'camera': {
           document.exitPointerLock();
@@ -102,7 +102,7 @@ for (let i = 0; i < tools.length; i++) {
           camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
           camera.updateMatrixWorld();
 
-          decapitate = false;
+          // decapitate = false;
           break;
         }
         case 'isometric': {
@@ -111,7 +111,7 @@ for (let i = 0; i < tools.length; i++) {
           camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
           camera.updateMatrixWorld();
 
-          decapitate = false;
+          // decapitate = false;
           break;
         }
         case 'birdseye': {
@@ -120,17 +120,17 @@ for (let i = 0; i < tools.length; i++) {
           camera.position.y -= -birdsEyeHeight + getAvatarHeight();
           camera.updateMatrixWorld();
 
-          decapitate = false;
+          // decapitate = false;
           break;
         }
       }
-      if (rigManager.localRig) {
+      /* if (rigManager.localRig) {
         if (decapitate) {
           rigManager.localRig.decapitate();
         } else {
           rigManager.localRig.undecapitate();
         }
-      }
+      } */
     }
   });
 }
