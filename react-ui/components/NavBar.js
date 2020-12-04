@@ -16,6 +16,7 @@ const NavBarUserLoginForm = () => {
     }
 
   return html`
+  <div className="loginComponentDropdown">
     <form className="loginForm" onSubmit="${onLoginSubmit}">
       <p>Token is ${state.loginToken}</p>
       <input type="text" placeholder="privatekey" />
@@ -23,6 +24,7 @@ const NavBarUserLoginForm = () => {
         Login
       </button>
     </form>
+  </div>
   `
 }
 
@@ -37,9 +39,7 @@ const NavBarUser = () => {
                 <span className="loginUsername"> ${name} </span>
                 <span className="loginAvatarPreview"><img src=${avatarPreview} /></span>
             </div>
-            <div className="loginComponentDropdown">
               <${NavBarUserLoginForm} />
-            </div>
         </div>
     `
 }
