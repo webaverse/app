@@ -616,6 +616,11 @@ scene.add(wristMenu); */
   downloadFile(b, 'target.glb');
 }; */
 
+const _getCurrentCoord = (p, v) => v.set(
+  Math.floor(p.x),
+  Math.floor(p.y),
+  Math.floor(p.z),
+)
 /* const _getCurrentParcel = p => new THREE.Vector3(
   Math.floor((p.x+5)/10),
   0,
@@ -805,10 +810,13 @@ const addItem = async (position, quaternion) => {
 // const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 const startTime = Date.now();
+const lastCoord = new THREE.Vector3(0, 0, 0);
+const locationLabel = document.getElementById('location-label');
 function animate(timestamp, frame) {
   timestamp = timestamp || performance.now();
   const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
+
   const session = renderer.xr.getSession();
 
   const now = Date.now();
@@ -1048,7 +1056,15 @@ function animate(timestamp, frame) {
     rigManager.update();
   };
   _updateRig();
-  
+
+  {
+    _getCurrentCoord(rigManager.localRig.inputs.hmd.position, localVector);
+    if (localVector.x !== lastCoord.x || localVector.z !== lastCoord.z) {
+      locationLabel.innerText = `Erithor @${localVector.x},${localVector.z}`;
+      lastCoord.copy(localVector);
+    }
+  }
+
   const _updateAnchors = () => {
     const transforms = rigManager.getRigTransforms();
     const {position, quaternion} = transforms[0];
