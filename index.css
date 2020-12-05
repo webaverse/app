@@ -75,21 +75,33 @@ img:not([src]) {
   left: 0;
   width: 100%;
   height: 50px;
-  background-color: #FFF;
   align-items: center;
   user-select: none;
   z-index: 3;
 }
 
-.header {
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+.header .icon + .keys {
+  position: absolute;
+  top: 50px;
+  left: 18px;
 }
 
-.header .icon
+.header .icon > img
 {
   display: flex;
-  width: 50px;
-  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #7986cb;
+  background-color: #7986cb;
+  border-radius: 100px;
+}
+
+.header .icon > .name {
+  margin-left: -5px;
+  padding: 2px 5px;
+  background-color: #7986cb;
+  color: #FFF;
+  z-index: -1;
 }
 
 .header .nav
@@ -98,7 +110,7 @@ img:not([src]) {
   display: flex;
   height: 100%;
   padding: 0 20px;
-  justify-content: center;
+  /* justify-content: center; */
   align-items: center;
   border-top: 3px solid transparent;
   border-bottom: 3px solid transparent;
@@ -1197,7 +1209,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: var(--color);
 }
 
-canvas {
+#canvas {
   position: absolute;
   width: 100vw;
   height: 100vh;
@@ -2080,17 +2092,32 @@ body.dragging-package .footer {
 
 footer {
   position: absolute;
+  display: flex;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 1;
 }
 .helper {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
+  position: relative;
   display: flex;
+  padding-bottom: 10px;
   user-select: none;
+}
+.helper.left {
+  padding-left: 10px;
+  padding-bottom: 10px;
+  margin-right: auto;
+}
+.helper.right {
+  padding-right: 10px;
+}
+#map-canvas {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  width: 200px;
+  height: 140px;
 }
 .keys {
   position: relative;
