@@ -37,6 +37,7 @@ const rotatePointers = () => {
     setTimeout(function() {
       if (pointers.length <= 0 && document.querySelector("meta[name=monetization]")) {
         document.querySelector("meta[name=monetization]").remove();
+        document.monetization.removeEventListener("monetizationprogress", log);
       }
       if (pointers.length <= 0 || !document.monetization) return;
 
@@ -49,7 +50,7 @@ const rotatePointers = () => {
         monetizationTag.content = pointers[currentIndex].monetizationPointer;
         document.head.appendChild(monetizationTag);
 
-        document.monetization.addEventListener('monetizationprogress', ev => {
+        document.monetization.addEventListener('monetizationprogress', function log(ev) {
           let total = 0, scale;
           if (total === 0) {
             scale = ev.detail.assetScale
