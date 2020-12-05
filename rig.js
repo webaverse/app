@@ -66,10 +66,33 @@ class RigManager {
       };
       const geometry = new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
         .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2, 0));
-      const material = new THREE.MeshBasicMaterial({
-        color: 0x9ccc65,
+      const loadVsh = `
+        varying vec2 vUv;
+        void main() {
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+          vUv = uv;
+          vUv.x /= ${w.toFixed(8)};
+          vUv.y /= ${h.toFixed(8)};
+        }
+      `;
+      const loadFsh = `
+        varying vec2 vUv;
+
+        vec3 mix2(vec3 v1, vec3 v2, float a) {
+          return v1 * (1. - a) + v2 * a;
+        }
+
+        void main() {
+          gl_FragColor = vec4(
+            mix2(vec3(${new THREE.Color(0x3f51b5).toArray().join(', ')}), vec3(${new THREE.Color(0x7986cb).toArray().join(', ')}), vUv.y),
+            1.0
+          );
+        }
+      `;
+      const material = new THREE.ShaderMaterial({
+        vertexShader: loadVsh,
+        fragmentShader: loadFsh,
         side: THREE.DoubleSide,
-        // wireframe: true,
       });
       const nametagMesh = new THREE.Mesh( geometry, material );
       nametagMesh.position.z = -0.01;
