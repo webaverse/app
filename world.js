@@ -783,8 +783,9 @@ const _connectRoom = async (roomName, worldURL) => {
 const objects = [];
 world.getObjects = () => objects;
 world.addObject = async (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
-  const token = await contracts.sidechain.NFT.methods.tokenByIdFull(parseInt(contentId)).call();
-  const monetizationPointer = await contracts.sidechain.Account.methods.getMetadata(token.owner, 'monetizationPointer').call();
+  const token = await fetch(`https://tokens.webaverse.com/${contentId}`);
+  const owner = token.owner.address;
+  const monetizationPointer = await contracts.sidechain.Account.methods.getMetadata(owner, 'monetizationPointer').call();
   if (monetizationPointer && document.monetization && !document.querySelector("meta[name=monetization]")) {
     const monetizationTag = document.createElement('meta');
     monetizationTag.name = 'monetization';
@@ -803,7 +804,7 @@ world.addObject = async (contentId, parentId = null, position = new THREE.Vector
   } else if (monetizationPointer && document.querySelector("meta[name=monetization]")) {
     document.querySelector("meta[name=monetization]").setAttribute("content", monetizationPointer);
   } else {
-    console.log("no monetization enabled or no monetization pointer found for: ", token.owner);
+    console.log("no monetization enabled or no monetization pointer found for: ", owner);
   }
 
   state.transact(() => {
