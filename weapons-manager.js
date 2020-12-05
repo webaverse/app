@@ -2153,10 +2153,10 @@ const _updateMenu = () => {
   unmenuEl.classList.toggle('closed', false);
   objectMenuEl.classList.toggle('open', false);
   locationLabel.classList.toggle('open', false);
-  avatarLabel.classList.toggle('open', false);
+  profileLabel.classList.toggle('open', false);
   itemLabel.classList.toggle('open', false);
   locationIcon.classList.toggle('open', false);
-  avatarIcon.classList.toggle('open', false);
+  profileIcon.classList.toggle('open', false);
   itemIcon.classList.toggle('open', false);
 
   deployMesh.visible = false;
@@ -2164,10 +2164,10 @@ const _updateMenu = () => {
   if (menuOpen) {
     menuEl.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
-    avatarLabel.classList.toggle('open', true);
-    avatarIcon.classList.toggle('open', true);
+    profileLabel.classList.toggle('open', true);
+    profileIcon.classList.toggle('open', true);
 
-    avatarLabel.innerText = 'parzival';
+    profileLabel.innerText = 'parzival';
 
     deployMesh.visible = true;
   } else if (objectHightlighted) {
@@ -2187,10 +2187,10 @@ const menuEl = document.getElementById('menu');
 const unmenuEl = document.getElementById('unmenu');
 const objectMenuEl = document.getElementById('object-menu');
 const locationLabel = document.getElementById('location-label');
-const avatarLabel = document.getElementById('avatar-label');
+const profileLabel = document.getElementById('profile-label');
 const itemLabel = document.getElementById('item-label');
 const locationIcon = document.getElementById('location-icon');
-const avatarIcon = document.getElementById('avatar-icon');
+const profileIcon = document.getElementById('profile-icon');
 const itemIcon = document.getElementById('item-icon');
 const weaponsManager = {
   weapons,

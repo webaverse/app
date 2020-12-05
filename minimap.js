@@ -72,6 +72,23 @@ const _initMap = () => {
 };
 _initMap();
 
+const objectGeometry = new THREE.BoxBufferGeometry(0.5, 0.5, 0.5);
+const objectMaterial = new THREE.MeshBasicMaterial({
+  color: 0x5c6bc0,
+});
+
+const objects = [];
+const _makeObject = baseMesh => {
+  const mesh = new THREE.Mesh(objectGeometry, objectMaterial);
+  mesh.frustumCulled = false;
+  mesh.update = () => {
+    mesh.position.copy(baseMesh.position);
+    mesh.quaternion.copy(baseMesh.quaternion);
+    mesh.scale.copy(baseMesh.scale);
+  };
+  return mesh;
+};
+
 const update = () => {
   localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
   localEuler.x = 0;
@@ -82,9 +99,23 @@ const update = () => {
   mapIndicator.quaternion.setFromEuler(localEuler);
   mapCamera.lookAt(mapIndicator.position);
   mapRenderer.render(mapScene, mapCamera);
+
+  for (const object of objects) {
+    object.update();
+  }
 };
 
 const minimap = {
   update,
+  addObject(baseMesh) {
+    const object = _makeObject(baseMesh);
+    mapScene.add(object);
+    objects.push(object);
+    return object;
+  },
+  removeObject(object) {
+    mapScene.remove(object);
+    objects.splice(objects.indexOf(object), 1);
+  },
 };
 export default minimap;
