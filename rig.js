@@ -1,6 +1,7 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
-import {MeshLine, MeshLineMaterial} from './MeshLine.js';
+import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+// import {MeshLine, MeshLineMaterial} from './MeshLine.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
@@ -36,17 +37,38 @@ class RigManager {
 
     this.localRig.textMesh = makeTextMesh('Anonymous', undefined, 0.15, 'center', 'middle');
     {
+      const geometry = new THREE.CircleBufferGeometry(0.1, 32);
+      const img = new Image();
+      img.src = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg`;
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        texture.needsUpdate = true;
+      };
+      img.onerror = err => {
+        console.warn(err.stack);
+      };
+      const texture = new THREE.Texture(img);
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+      });
+      const avatarMesh = new THREE.Mesh(geometry, material);
+      avatarMesh.position.x = -0.5;
+      avatarMesh.position.y = -0.02;
+      this.localRig.textMesh.add(avatarMesh);
+    }
+    {
       const w = 1;
-      const h = 0.2;
+      const h = 0.15;
       const roundedRectShape = new THREE.Shape();
-      ( function roundedRect( ctx, x, y, width, height, indentWidth, indentHeight, radius ) {
+      ( function roundedRect( ctx, x, y, width, height, radius ) {
         ctx.moveTo( x, y + radius );
         ctx.lineTo( x, y + height - radius );
         ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
-        ctx.lineTo( x + radius + indentWidth, y + height );
+        /* ctx.lineTo( x + radius + indentWidth, y + height );
         ctx.lineTo( x + radius + indentWidth + indentHeight, y + height - indentHeight );
         ctx.lineTo( x + width - radius - indentWidth - indentHeight, y + height - indentHeight );
-        ctx.lineTo( x + width - radius - indentWidth, y + height );
+        ctx.lineTo( x + width - radius - indentWidth, y + height ); */
         ctx.lineTo( x + width - radius, y + height );
         ctx.quadraticCurveTo( x + width, y + height, x + width, y + height - radius );
         ctx.lineTo( x + width, y + radius );
@@ -54,19 +76,7 @@ class RigManager {
         ctx.lineTo( x + radius, y );
         ctx.quadraticCurveTo( x, y, x, y + radius );
         ctx.lineTo( x, y + radius );
-      } )( roundedRectShape, 0, 0, w, h, 0.1, 0.04, 0.08 );
-      const points = roundedRectShape.getPoints().map(v2 => new THREE.Vector3(v2.x, v2.y, 0));
-      const material = new MeshLineMaterial({
-        color: 0x43a047,
-        sizeAttenuation: true,
-        lineWidth: 0.01,
-        // resolution: new THREE.Vector2(renderer.domElement.width, renderer.domElement.height),
-      });
-      const geometry = new MeshLine();
-      geometry.setPoints(points);
-      geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2, -0.01));
-      const nametagMesh = new THREE.Mesh(geometry, material);
-      this.localRig.textMesh.add(nametagMesh);
+      } )( roundedRectShape, 0, 0, w, h, h/2 );
 
       const extrudeSettings = {
         steps: 2,
@@ -78,14 +88,19 @@ class RigManager {
         bevelOffset: 0,
         bevelSegments: 0, */
       };
-      const geometry2 = new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
-        .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2, -0.01));
+      const geometry = BufferGeometryUtils.mergeBufferGeometries([
+        new THREE.CircleBufferGeometry(0.13, 32)
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -0.02, -0.01)).toNonIndexed(),
+        new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.01)),
+      ]);
       const material2 = new THREE.LineBasicMaterial({
         color: 0x66bb6a,
         transparent: true,
-        opacity: 0.5,
+        opacity: 0.1,
+        side: THREE.DoubleSide,
       });
-      const nametagMesh2 = new THREE.Mesh(geometry2, material2);
+      const nametagMesh2 = new THREE.Mesh(geometry, material2);
       this.localRig.textMesh.add(nametagMesh2);
     }
     this.scene.add(this.localRig.textMesh);
