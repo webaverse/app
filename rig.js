@@ -1,5 +1,6 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
+import {MeshLine, MeshLineMaterial} from './MeshLine.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
@@ -54,6 +55,20 @@ class RigManager {
         ctx.quadraticCurveTo( x, y, x, y + radius );
         ctx.lineTo( x, y + radius );
       } )( roundedRectShape, 0, 0, w, h, 0.1, 0.04, 0.08 );
+      const points = roundedRectShape.getPoints().map(v2 => new THREE.Vector3(v2.x, v2.y, 0));
+      const color = 0x66bb6a;
+      const material = new MeshLineMaterial({
+        color,
+        sizeAttenuation: true,
+        lineWidth: 0.01,
+        // resolution: new THREE.Vector2(renderer.domElement.width, renderer.domElement.height),
+      });
+      const geometry = new MeshLine();
+      geometry.setPoints(points);
+      geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2, -0.01));
+      const nametagMesh = new THREE.Mesh(geometry, material);
+      this.localRig.textMesh.add(nametagMesh);
+
       const extrudeSettings = {
         steps: 2,
         depth: 0,
@@ -64,39 +79,15 @@ class RigManager {
         bevelOffset: 0,
         bevelSegments: 0, */
       };
-      const geometry = new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
-        .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2, 0));
-      const loadVsh = `
-        varying vec2 vUv;
-        void main() {
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
-          vUv = uv;
-          vUv.x /= ${w.toFixed(8)};
-          vUv.y /= ${h.toFixed(8)};
-        }
-      `;
-      const loadFsh = `
-        varying vec2 vUv;
-
-        vec3 mix2(vec3 v1, vec3 v2, float a) {
-          return v1 * (1. - a) + v2 * a;
-        }
-
-        void main() {
-          gl_FragColor = vec4(
-            mix2(vec3(${new THREE.Color(0x3f51b5).toArray().join(', ')}), vec3(${new THREE.Color(0x7986cb).toArray().join(', ')}), vUv.y),
-            1.0
-          );
-        }
-      `;
-      const material = new THREE.ShaderMaterial({
-        vertexShader: loadVsh,
-        fragmentShader: loadFsh,
-        side: THREE.DoubleSide,
+      const geometry2 = new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2, -0.01));
+      const material2 = new THREE.LineBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.5,
       });
-      const nametagMesh = new THREE.Mesh( geometry, material );
-      nametagMesh.position.z = -0.01;
-      this.localRig.textMesh.add(nametagMesh);
+      const nametagMesh2 = new THREE.Mesh(geometry2, material2);
+      this.localRig.textMesh.add(nametagMesh2);
     }
     this.scene.add(this.localRig.textMesh);
 
