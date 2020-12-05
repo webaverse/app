@@ -464,14 +464,20 @@ const _loadScript = async file => {
 };
 let appIds = 0;
 const _loadWebBundle = async file => {
-  const arrayBuffer = await new Promise((accept, reject) => {
-    const fr = new FileReader();
-    fr.onload = function() {
-      accept(this.result);
-    };
-    fr.onerror = reject;
-    fr.readAsArrayBuffer(file);
-  });
+  let arrayBuffer;
+  if (file.url) {
+    const res = await fetch(file.url);
+    arrayBuffer = await res.arrayBuffer();
+  } else {
+    arrayBuffer = await new Promise((accept, reject) => {
+      const fr = new FileReader();
+      fr.onload = function() {
+        accept(this.result);
+      };
+      fr.onerror = reject;
+      fr.readAsArrayBuffer(file);
+    });
+  }
 
   const appId = ++appIds;
   const mesh = new THREE.Object3D(); // makeIconMesh();
