@@ -844,12 +844,10 @@ setTimeout(() => {
   world.addObject(17);
 }, 5000);
 world.removeObject = removeInstanceId => {
-  (() => {
+  state.transact(() => {
     const index = pointers.findIndex(x => x.instanceId === removeInstanceId);
     if (index !== undefined) pointers.splice(index, 1);
-  })();
 
-  state.transact(() => {
     const objects = state.getArray('objects');
     const objectsJson = objects.toJSON();
     const removeIndex = objectsJson.indexOf(removeInstanceId);
