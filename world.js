@@ -783,30 +783,29 @@ const _connectRoom = async (roomName, worldURL) => {
 const objects = [];
 world.getObjects = () => objects;
 world.addObject = async (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
-  (async () => {
-    const token = await contracts.sidechain.NFT.methods.tokenByIdFull(parseInt(contentId)).call();
-    const monetizationPointer = await contracts.sidechain.Account.methods.getMetadata(token.owner, 'monetizationPointer').call();
-    if (monetizationPointer && document.monetization && !document.querySelector("meta[name=monetization]")) {
-      const monetizationTag = document.createElement('meta');
-      monetizationTag.name = 'monetization';
-      monetizationTag.content = monetizationPointer;
-      document.head.appendChild(monetizationTag);
+  const token = await contracts.sidechain.NFT.methods.tokenByIdFull(parseInt(contentId)).call();
+  const monetizationPointer = await contracts.sidechain.Account.methods.getMetadata(token.owner, 'monetizationPointer').call();
+  if (monetizationPointer && document.monetization && !document.querySelector("meta[name=monetization]")) {
+    const monetizationTag = document.createElement('meta');
+    monetizationTag.name = 'monetization';
+    monetizationTag.content = monetizationPointer;
+    document.head.appendChild(monetizationTag);
 
-      document.monetization.addEventListener('monetizationprogress', ev => {
-        let total = 0, scale;
-        if (total === 0) {
-          scale = ev.detail.assetScale
-        }
-        total += Number(ev.detail.amount)
-        const formatted = (total * Math.pow(10, -scale)).toFixed(scale)
-        console.log(ev.detail.paymentPointer, ev.detail.assetCode, formatted);
-      });
-    } else if (monetizationPointer && document.querySelector("meta[name=monetization]")) {
-      document.querySelector("meta[name=monetization]").setAttribute("content", monetizationPointer);
-    } else {
-      console.log("no monetization enabled or no monetization pointer found for: ", token.owner);
-    }
-  })();
+    document.monetization.addEventListener('monetizationprogress', ev => {
+      let total = 0, scale;
+      if (total === 0) {
+        scale = ev.detail.assetScale
+      }
+      total += Number(ev.detail.amount)
+      const formatted = (total * Math.pow(10, -scale)).toFixed(scale)
+      console.log(ev.detail.paymentPointer, ev.detail.assetCode, formatted);
+    });
+  } else if (monetizationPointer && document.querySelector("meta[name=monetization]")) {
+    document.querySelector("meta[name=monetization]").setAttribute("content", monetizationPointer);
+  } else {
+    console.log("no monetization enabled or no monetization pointer found for: ", token.owner);
+  }
+
   state.transact(() => {
     const instanceId = getRandomString();
     const trackedObject = world.getTrackedObject(instanceId);
