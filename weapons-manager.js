@@ -821,6 +821,8 @@ scene.add(deployMesh);
 const _deploy = () => {
   if (deployMesh.visible) {
     world.addObject(`https://avaer.github.io/lightsaber/index.js`, null, deployMesh.position, deployMesh.quaternion);
+
+    weaponsManager.setMenu(false);
   }
 };
 
@@ -1483,28 +1485,31 @@ const _updateWeapons = timeDiff => {
       localVector2.set(width, width, length)
     );
 
+    targetMesh.visible = false;
     const oldHighlightedObject = highlightedObject;
     highlightedObject = null;
 
-    const objects = world.getObjects();
-    for (const candidate of objects) {
-      const transforms = rigManager.getRigTransforms();
-      const {position, quaternion} = transforms[0];
-      localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
-        .premultiply(
-          localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
-            .invert()
-        )
-        .decompose(localVector, localQuaternion, localVector2);
-      if (localBox.containsPoint(localVector)) {
-        targetMesh.position.copy(candidate.position);
-        targetMesh.visible = true;
-        highlightedObject = candidate;
-        break;
+    if (!weaponsManager.getMenu()) {
+      const objects = world.getObjects();
+      for (const candidate of objects) {
+        const transforms = rigManager.getRigTransforms();
+        const {position, quaternion} = transforms[0];
+        localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
+          .premultiply(
+            localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
+              .invert()
+          )
+          .decompose(localVector, localQuaternion, localVector2);
+        if (localBox.containsPoint(localVector)) {
+          targetMesh.position.copy(candidate.position);
+          targetMesh.visible = true;
+          highlightedObject = candidate;
+          break;
+        }
       }
-    }
-    if (highlightedObject !== oldHighlightedObject) {
-      _updateMenu();
+      if (highlightedObject !== oldHighlightedObject) {
+        _updateMenu();
+      }
     }
   };
   _handleTarget();
@@ -2139,17 +2144,17 @@ const _updateMenu = () => {
 
   deployMesh.visible = false;
 
-  if (objectHightlighted) {
-    unmenuEl.classList.toggle('closed', true);
-    itemLabel.classList.toggle('open', true);
-    itemIcon.classList.toggle('open', true);
-  } else if (menuOpen) {
+  if (menuOpen) {
     menuEl.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
     avatarLabel.classList.toggle('open', true);
     avatarIcon.classList.toggle('open', true);
 
     deployMesh.visible = true;
+  } else if (objectHightlighted) {
+    unmenuEl.classList.toggle('closed', true);
+    itemLabel.classList.toggle('open', true);
+    itemIcon.classList.toggle('open', true);
   } else {
     locationIcon.classList.toggle('open', true);
     locationLabel.classList.toggle('open', true);
@@ -2158,6 +2163,7 @@ const _updateMenu = () => {
 
 const menuEl = document.getElementById('menu');
 const unmenuEl = document.getElementById('unmenu');
+const objectMenuEl = document.getElementById('object-menu');
 const locationLabel = document.getElementById('location-label');
 const avatarLabel = document.getElementById('avatar-label');
 const itemLabel = document.getElementById('item-label');
