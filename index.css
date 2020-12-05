@@ -2471,6 +2471,9 @@ footer {
 .menu.open {
   left: 0;
 }
+.menu.secondary {
+  // background-color: #00000010;
+}
 .menu .profile-picture {
   width: 150px;
   height: 150px;
