@@ -30,6 +30,48 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
 
+let pointers = [];
+let currentIndex = 0;
+const rotatePointers = () => {
+    setTimeout(function() {
+      if (pointers.length <= 0 && document.querySelector("meta[name=monetization]")) {
+        document.querySelector("meta[name=monetization]").remove();
+      }
+      if (pointers.length <= 0 || !document.monetization) return;
+
+      console.log('CURRENT POINTER ROTATION --', currentIndex, "instanceId: ", pointers[currentIndex].instanceId, "current pointer:", pointers[currentIndex].monetizationPointer, "time: ", new Date().toLocaleTimeString());
+      console.log("array of monetizationPointers:", JSON.stringify(pointers));
+  
+      if (!document.querySelector("meta[name=monetization]")) {
+        const monetizationTag = document.createElement('meta');
+        monetizationTag.name = 'monetization';
+        monetizationTag.content = pointers[currentIndex].monetizationPointer;
+        document.head.appendChild(monetizationTag);
+
+        document.monetization.addEventListener('monetizationprogress', ev => {
+          let total = 0, scale;
+          if (total === 0) {
+            scale = ev.detail.assetScale
+          }
+          total += Number(ev.detail.amount)
+          const formatted = (total * Math.pow(10, -scale)).toFixed(scale)
+          console.log("STREAMING PAYMENT --", "pointer:", ev.detail.paymentPointer, "payment:", ev.detail.assetCode, formatted, "time:", new Date().toLocaleTimeString());
+        });
+      } else if (document.querySelector("meta[name=monetization]")) {
+        document.querySelector("meta[name=monetization]").setAttribute("content", pointers[currentIndex].monetizationPointer);
+      }
+
+      if (currentIndex >= pointers.length - 1) {
+        currentIndex = 0;
+      } else {
+        currentIndex++;
+      }
+
+      rotatePointers();
+    }, 10000); // Every 10 sec
+}
+rotatePointers();
+
 function abs(n) {
   return (n ^ (n >> 31)) - (n >> 31);
 }
@@ -782,33 +824,7 @@ const _connectRoom = async (roomName, worldURL) => {
 const objects = [];
 world.getObjects = () => objects;
 world.addObject = async (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
-(async () => {
-  const token = await fetch(`https://tokens.webaverse.com/${contentId}`).then(res => res.json());
-  const owner = token.owner.address;
-  const monetizationPointer = token.owner.monetizationPointer;
-  if (monetizationPointer && document.monetization && !document.querySelector("meta[name=monetization]")) {
-    const monetizationTag = document.createElement('meta');
-    monetizationTag.name = 'monetization';
-    monetizationTag.content = monetizationPointer;
-    document.head.appendChild(monetizationTag);
-
-    document.monetization.addEventListener('monetizationprogress', ev => {
-      let total = 0, scale;
-      if (total === 0) {
-        scale = ev.detail.assetScale
-      }
-      total += Number(ev.detail.amount)
-      const formatted = (total * Math.pow(10, -scale)).toFixed(scale)
-      console.log(ev.detail.paymentPointer, ev.detail.assetCode, formatted);
-    });
-  } else if (monetizationPointer && document.querySelector("meta[name=monetization]")) {
-    document.querySelector("meta[name=monetization]").setAttribute("content", monetizationPointer);
-  } else {
-    console.log("no monetization enabled or no monetization pointer found for: ", owner);
-  }
-})();
-
-  state.transact(() => {
+  state.transact(async () => {
     const instanceId = getRandomString();
     const trackedObject = world.getTrackedObject(instanceId);
     trackedObject.set('instanceId', instanceId);
@@ -817,9 +833,21 @@ world.addObject = async (contentId, parentId = null, position = new THREE.Vector
     trackedObject.set('position', position.toArray());
     trackedObject.set('quaternion', quaternion.toArray());
     trackedObject.set('options', JSON.stringify(options));
+
+    const token = await fetch(`https://tokens.webaverse.com/${contentId}`).then(res => res.json());
+    const monetizationPointer = token.owner.monetizationPointer;
+    pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer});
   });
 };
+setTimeout(() => {
+  world.addObject(17);
+}, 5000);
 world.removeObject = removeInstanceId => {
+  (() => {
+    const index = pointers.findIndex(x => x.instanceId === removeInstanceId);
+    if (index !== undefined) pointers.splice(index, 1);
+  })();
+
   state.transact(() => {
     const objects = state.getArray('objects');
     const objectsJson = objects.toJSON();
