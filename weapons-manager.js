@@ -825,6 +825,13 @@ const _deploy = () => {
     weaponsManager.setMenu(false);
   }
 };
+const _delete = () => {
+  if (highlightedObject) {
+    console.log('delete', highlightedObject);
+
+    world.removeObject(highlightedObject.instanceId);
+  }
+};
 
 /* const _snapBuildPosition = p => {
   p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
@@ -2135,6 +2142,7 @@ const _updateMenu = () => {
 
   menuEl.classList.toggle('open', false);
   unmenuEl.classList.toggle('closed', false);
+  objectMenuEl.classList.toggle('open', false);
   locationLabel.classList.toggle('open', false);
   avatarLabel.classList.toggle('open', false);
   itemLabel.classList.toggle('open', false);
@@ -2153,6 +2161,7 @@ const _updateMenu = () => {
     deployMesh.visible = true;
   } else if (objectHightlighted) {
     unmenuEl.classList.toggle('closed', true);
+    objectMenuEl.classList.toggle('open', true);
     itemLabel.classList.toggle('open', true);
     itemIcon.classList.toggle('open', true);
   } else {
@@ -2257,6 +2266,9 @@ const weaponsManager = {
   menuEnter() {
     // menuMesh.enter();
     _deploy();
+  },
+  menuDelete() {
+    _delete();
   },
   menuKey(c) {
     menuMesh.key(c);
