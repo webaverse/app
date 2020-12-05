@@ -845,7 +845,10 @@ let mapRenderer, mapScene, mapCamera, mapCameraOffset, mapIndicator;
     };
     const geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings )
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
-    const material = new THREE.MeshBasicMaterial({ color: 0xef5350, side: THREE.DoubleSide, });
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xef5350,
+      side: THREE.DoubleSide,
+    });
     mapIndicator = new THREE.Mesh( geometry, material );
     mapIndicator.frustumCulled = false;
     mapScene.add(mapIndicator);
