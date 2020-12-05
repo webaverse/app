@@ -54,6 +54,7 @@ const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
@@ -808,7 +809,7 @@ const addItem = async (position, quaternion) => {
   itemMeshes.push(itemMesh);
 };
 
-let mapRenderer, mapScene, mapCamera;
+let mapRenderer, mapScene, mapCamera, mapCameraOffset, mapIndicator;
 {
   const mapCanvas = document.getElementById('map-canvas');
   mapRenderer = new THREE.WebGLRenderer({
@@ -820,18 +821,18 @@ let mapRenderer, mapScene, mapCamera;
   mapScene = new THREE.Scene();
 
   mapCamera = new THREE.PerspectiveCamera(60, 200 / 140, 0.1, 1000);
-  mapCamera.position.set(0, 4, 10);
+  mapCameraOffset = new THREE.Vector3(0, 4, 10);
+  mapCamera.position.copy(mapCameraOffset);
   mapCamera.rotation.order = 'YXZ';
   mapCamera.lookAt(new THREE.Vector3(0, 0, 0));
 
   {
-    const length = 0.12, width = 0.8;
     const shape = new THREE.Shape();
     shape.moveTo( -1, 0 );
     shape.lineTo( 0, -2 );
     shape.lineTo( 1, 0 );
     shape.lineTo( 0, -0.5 );
-    shape.lineTo( -1, 0 );
+    // shape.lineTo( -1, 0 );
     const extrudeSettings = {
       steps: 0.2,
       depth: 0.1,
@@ -842,11 +843,12 @@ let mapRenderer, mapScene, mapCamera;
       bevelOffset: 0,
       bevelSegments: 1,
     };
-    const geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings );
+    const geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings )
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 2, 0));
     const material = new THREE.MeshBasicMaterial({ color: 0xef5350, side: THREE.DoubleSide, });
-    const mesh = new THREE.Mesh( geometry, material );
-    mesh.position.y = 2;
-    mapScene.add( mesh );
+    mapIndicator = new THREE.Mesh( geometry, material );
+    mapIndicator.frustumCulled = false;
+    mapScene.add( mapIndicator );
   }
 
   const planeMesh = (() => {
@@ -863,6 +865,7 @@ let mapRenderer, mapScene, mapCamera;
       opacity: 0.5,
     });
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
     return mesh;
   })();
   mapScene.add(planeMesh);
@@ -879,8 +882,6 @@ function animate(timestamp, frame) {
   lastTimestamp = timestamp;
 
   const session = renderer.xr.getSession();
-
-  mapRenderer.render(mapScene, mapCamera);
 
   const now = Date.now();
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
@@ -1254,7 +1255,19 @@ function animate(timestamp, frame) {
   renderer2.render(scene2, camera);
   // highlight render
   // renderer.render(highlightScene, camera);
-  
+  // map render
+  {
+    localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    mapCamera.position.copy(rigManager.localRig.inputs.hmd.position)
+      .add(localVector.copy(mapCameraOffset).applyEuler(localEuler));
+    mapIndicator.position.copy(rigManager.localRig.inputs.hmd.position);
+    mapIndicator.quaternion.setFromEuler(localEuler);
+    mapCamera.lookAt(mapIndicator.position);
+    mapRenderer.render(mapScene, mapCamera);
+  }
+
   if (session && document.visibilityState == 'visible') {
     const {baseLayer} = session.renderState;
     if (!xrscenetexture) {
