@@ -881,23 +881,29 @@ world.addEventListener('trackedobjectadd', async e => {
     }
   })();
   if (file) {
-    const mesh = await runtime.loadFile(file, options);
-    mesh.position.fromArray(position);
-    mesh.quaternion.fromArray(quaternion);
-    
-    mesh.name = file.name;
-    mesh.instanceId = instanceId;
+    let mesh = await runtime.loadFile(file, options);
+    if (mesh) {
+      mesh.position.fromArray(position);
+      mesh.quaternion.fromArray(quaternion);
+      
+      mesh.name = file.name;
+      mesh.instanceId = instanceId;
 
-    mesh.run && mesh.run();
-    mesh.instanceId = instanceId;
-    mesh.parentId = parentId;
+      mesh.run && mesh.run();
+      mesh.instanceId = instanceId;
+      mesh.parentId = parentId;
 
-    if (mesh.renderOrder === -Infinity) {
-      scene3.add(mesh);
+      if (mesh.renderOrder === -Infinity) {
+        scene3.add(mesh);
+      } else {
+        scene.add(mesh);
+      }
     } else {
+      console.warn('failed to load object', file);
+
+      mesh = new THREE.Object3D();
       scene.add(mesh);
     }
-    objects.push(mesh);
 
     mesh.setPose = (position, quaternion) => {
       trackedObject.set('position', position.toArray());
@@ -914,6 +920,8 @@ world.addEventListener('trackedobjectadd', async e => {
     // minimap
     const minimapObject = minimap.addObject(mesh);
     mesh.minimapObject = minimapObject;
+
+    objects.push(mesh);
   }
 });
 world.addEventListener('trackedobjectremove', async e => {
