@@ -791,6 +791,8 @@ world.addObject = async (contentId, parentId = null, position = new THREE.Vector
       monetizationTag.name = 'monetization';
       monetizationTag.content = monetizationPointer;
       document.head.appendChild(monetizationTag);
+    } else if (monetizationPointer && document.querySelector("meta[name=monetization]") {
+      document.querySelector("meta[name=monetization]").setAttribute("content", monetizationPointer);
     } else {
       console.log("no monetization pointer found for: ", token.owner);
     }
