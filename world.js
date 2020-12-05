@@ -6,6 +6,7 @@ import {loginManager} from './login.js';
 // import {getContractSource} from './blockchain.js';
 import runtime from './runtime.js';
 import {rigManager} from './rig.js';
+import minimap from './minimap.js';
 import {scene, scene3} from './app-object.js';
 import {
   PARCEL_SIZE,
@@ -909,6 +910,10 @@ world.addEventListener('trackedobjectadd', async e => {
     };
     trackedObject.observe(_observe);
     trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
+
+    // minimap
+    const minimapObject = minimap.addObject(mesh);
+    mesh.minimapObject = minimapObject;
   }
 });
 world.addEventListener('trackedobjectremove', async e => {
@@ -921,6 +926,9 @@ world.addEventListener('trackedobjectremove', async e => {
     scene.remove(object);
     objects.splice(index, 1);
     trackedObject.unobserve();
+
+    // minimap
+    minimap.removeObject(object.minimapObject);
   }
 });
 world.isObject = object => objects.includes(object);
