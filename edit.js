@@ -824,6 +824,31 @@ let mapRenderer, mapScene, mapCamera;
   mapCamera.rotation.order = 'YXZ';
   mapCamera.lookAt(new THREE.Vector3(0, 0, 0));
 
+  {
+    const length = 0.12, width = 0.8;
+    const shape = new THREE.Shape();
+    shape.moveTo( -1, 0 );
+    shape.lineTo( 0, -2 );
+    shape.lineTo( 1, 0 );
+    shape.lineTo( 0, -0.5 );
+    shape.lineTo( -1, 0 );
+    const extrudeSettings = {
+      steps: 0.2,
+      depth: 0.1,
+      // bevelEnabled: false,
+      bevelEnabled: true,
+      bevelThickness: 0,
+      bevelSize: 0,
+      bevelOffset: 0,
+      bevelSegments: 1,
+    };
+    const geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings );
+    const material = new THREE.MeshBasicMaterial({ color: 0xef5350, side: THREE.DoubleSide, });
+    const mesh = new THREE.Mesh( geometry, material );
+    mesh.position.y = 2;
+    mapScene.add( mesh );
+  }
+
   const planeMesh = (() => {
     const s = 0.1;
     const geometry = BufferGeometryUtils.mergeBufferGeometries([
