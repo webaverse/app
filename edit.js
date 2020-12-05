@@ -834,7 +834,7 @@ let mapRenderer, mapScene, mapCamera, mapCameraOffset, mapIndicator;
     shape.lineTo( 0, -0.5 );
     // shape.lineTo( -1, 0 );
     const extrudeSettings = {
-      steps: 0.2,
+      steps: 2,
       depth: 0.1,
       // bevelEnabled: false,
       bevelEnabled: true,
@@ -848,7 +848,7 @@ let mapRenderer, mapScene, mapCamera, mapCameraOffset, mapIndicator;
     const material = new THREE.MeshBasicMaterial({ color: 0xef5350, side: THREE.DoubleSide, });
     mapIndicator = new THREE.Mesh( geometry, material );
     mapIndicator.frustumCulled = false;
-    mapScene.add( mapIndicator );
+    mapScene.add(mapIndicator);
   }
 
   const planeMesh = (() => {
