@@ -75,7 +75,6 @@ class RigManager {
         ctx.quadraticCurveTo( x + width, y, x + width - radius, y );
         ctx.lineTo( x + radius, y );
         ctx.quadraticCurveTo( x, y, x, y + radius );
-        ctx.lineTo( x, y + radius );
       } )( roundedRectShape, 0, 0, w, h, h/2 );
 
       const extrudeSettings = {
