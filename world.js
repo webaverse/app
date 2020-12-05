@@ -835,11 +835,6 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
     trackedObject.set('position', position.toArray());
     trackedObject.set('quaternion', quaternion.toArray());
     trackedObject.set('options', JSON.stringify(options));
-
-    const token = await fetch(`https://tokens.webaverse.com/${contentId}`).then(res => res.json());
-    const monetizationPointer = token.owner.monetizationPointer;
-    pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer});
-  });
 };
 setTimeout(() => {
   world.addObject(17);
