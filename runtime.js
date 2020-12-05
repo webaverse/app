@@ -475,11 +475,11 @@ const _loadWebBundle = async file => {
 
   const appId = ++appIds;
   const mesh = new THREE.Object3D(); // makeIconMesh();
-  mesh.geometry.boundingBox = new THREE.Box3(
+  /* mesh.geometry.boundingBox = new THREE.Box3(
     new THREE.Vector3(-1, -1/2, -0.1),
     new THREE.Vector3(1, 1/2, 0.1),
   );
-  mesh.frustumCulled = false;
+  mesh.frustumCulled = false; */
   mesh.run = () => {
     import(u)
       .then(() => {
