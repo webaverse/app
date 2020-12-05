@@ -216,7 +216,7 @@ window.addEventListener('keydown', e => {
     case 9: { // tab
       e.preventDefault();
       e.stopPropagation();
-      weaponsManager.setMenu(!weaponsManager.getMenu());
+      document.getElementById('key-tab').click();
       break;
     }
     /* case 9: { // tab

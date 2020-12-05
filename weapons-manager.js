@@ -2145,6 +2145,14 @@ const menuMesh = (() => {
 menuMesh.visible = false;
 scene.add(menuMesh);
 
+const keyTabEl = document.getElementById('key-tab');
+const keyTab2El = document.getElementById('key-tab-2');
+[keyTabEl, keyTab2El].forEach(el => {
+  el.addEventListener('click', e => {
+    weaponsManager.setMenu(!weaponsManager.getMenu());
+  });
+});
+
 const _updateMenu = () => {
   const {menuOpen} = weaponsManager;
   const objectHightlighted = !!highlightedObject;
