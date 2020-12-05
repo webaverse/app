@@ -814,6 +814,10 @@ targetMesh.visible = false;
 scene.add(targetMesh);
 let highlightedObject = null;
 
+const deployMesh = _makeTargetMesh();
+deployMesh.visible = false;
+scene.add(deployMesh);
+
 /* const _snapBuildPosition = p => {
   p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
   p.y = Math.floor(p.y / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
@@ -1516,6 +1520,66 @@ const _updateWeapons = timeDiff => {
   };
   _handleGrab();
 
+  const _handleDeploy = () => {
+    if (deployMesh.visible) {
+      const transforms = rigManager.getRigTransforms();
+      const transform = transforms[1];
+      const {position, quaternion} = transform;
+
+      const maxDistance = 10;
+
+      let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+      if (collision) {
+        const {point} = collision;
+        deployMesh.position.fromArray(point);
+        deployMesh.quaternion.copy(quaternion);
+
+        if (deployMesh.position.distanceTo(position) > maxDistance) {
+          collision = null;
+        }
+      }
+      if (!collision) {
+        deployMesh.position.copy(position).add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
+        deployMesh.quaternion.copy(quaternion);
+        /* physicsManager.applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
+        pxMesh.velocity.add(localVector.set(0, -9.8 * timeDiff, 0).applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse()));
+        pxMesh.rotation.x += pxMesh.angularVelocity.x;
+        pxMesh.rotation.y += pxMesh.angularVelocity.y;
+        pxMesh.rotation.z += pxMesh.angularVelocity.z; */
+      }
+
+      deployMesh.material.uniforms.uTime.value = (Date.now()%1000)/1000;
+    }
+    /* const width = 1;
+    const length = 100;    
+    localBox.setFromCenterAndSize(
+      localVector.set(0, 0, -length/2 - 0.05),
+      localVector2.set(width, width, length)
+    );
+
+    deployMesh.visible = false;
+    highlightedObject = null;
+
+    const objects = world.getObjects();
+    for (const candidate of objects) {
+      const transforms = rigManager.getRigTransforms();
+      const {position, quaternion} = transforms[0];
+      localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
+        .premultiply(
+          localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
+            .invert()
+        )
+        .decompose(localVector, localQuaternion, localVector2);
+      if (localBox.containsPoint(localVector)) {
+        targetMesh.position.copy(candidate.position);
+        targetMesh.visible = true;
+        highlightedObject = candidate;
+        break;
+      }
+    } */
+  };
+  _handleDeploy();
+
   /* const currentParcel = _getCurrentParcel(localVector);
   if (!currentParcel.equals(lastParcel)) {
     if (currentParcel.x !== lastParcel.x) {
@@ -2126,6 +2190,7 @@ const weaponsManager = {
     }
     menuMesh.visible = newOpen; */
     menuEl.classList.toggle('open');
+    deployMesh.visible = menuEl.classList.contains('open');
   },
   menuVertical(offset, shift) {
     menuMesh.offsetVertical(offset, shift);
