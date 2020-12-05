@@ -787,10 +787,14 @@ world.addObject = async (contentId, parentId = null, position = new THREE.Vector
   (async () => {
     const token = await contracts.sidechain.NFT.methods.tokenByIdFull(parseInt(contentId)).call();
     const monetizationPointer = await contracts.sidechain.Account.methods.getMetadata(token.owner, 'monetizationPointer').call();
-    const monetizationTag = document.createElement('meta');
-    monetizationTag.name = 'monetization';
-    monetizationTag.content = monetizationPointer;
-    document.head.appendChild(monetizationTag);
+    if (monetizationPointer) {
+      const monetizationTag = document.createElement('meta');
+      monetizationTag.name = 'monetization';
+      monetizationTag.content = monetizationPointer;
+      document.head.appendChild(monetizationTag);
+    } else {
+      console.log("no monetization pointer found for: ", token.owner);
+    }
   })();
   state.transact(() => {
     const instanceId = getRandomString();
