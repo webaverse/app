@@ -34,10 +34,10 @@ class RigManager {
 
     this.localRig.avatarUrl = null;
 
-    this.localRig.textMesh = makeTextMesh('Anonymous', undefined, 0.2, 'center', 'middle');
+    this.localRig.textMesh = makeTextMesh('Anonymous', undefined, 0.15, 'center', 'middle');
     {
-      const w = 1.1;
-      const h = 0.25;
+      const w = 1;
+      const h = 0.2;
       const roundedRectShape = new THREE.Shape();
       ( function roundedRect( ctx, x, y, width, height, indentWidth, indentHeight, radius ) {
         ctx.moveTo( x, y + radius );
@@ -56,9 +56,8 @@ class RigManager {
         ctx.lineTo( x, y + radius );
       } )( roundedRectShape, 0, 0, w, h, 0.1, 0.04, 0.08 );
       const points = roundedRectShape.getPoints().map(v2 => new THREE.Vector3(v2.x, v2.y, 0));
-      const color = 0x66bb6a;
       const material = new MeshLineMaterial({
-        color,
+        color: 0x43a047,
         sizeAttenuation: true,
         lineWidth: 0.01,
         // resolution: new THREE.Vector2(renderer.domElement.width, renderer.domElement.height),
@@ -82,7 +81,7 @@ class RigManager {
       const geometry2 = new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
         .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2, -0.01));
       const material2 = new THREE.LineBasicMaterial({
-        color,
+        color: 0x66bb6a,
         transparent: true,
         opacity: 0.5,
       });
