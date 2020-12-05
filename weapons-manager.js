@@ -813,23 +813,32 @@ targetMesh.position.y = 3;
 targetMesh.visible = false;
 scene.add(targetMesh);
 let highlightedObject = null;
+let movingObject = null;
 
 const deployMesh = _makeTargetMesh();
 deployMesh.visible = false;
 scene.add(deployMesh);
 
-const _deploy = () => {
+const _enter = () => {
   if (deployMesh.visible) {
     world.addObject(`https://avaer.github.io/lightsaber/index.js`, null, deployMesh.position, deployMesh.quaternion);
 
     weaponsManager.setMenu(false);
+  } else if (highlightedObject) {
+    movingObject = highlightedObject;
+  } else if (movingObject) {
+    movingObject = null;
   }
 };
 const _delete = () => {
   if (highlightedObject) {
-    console.log('delete', highlightedObject);
-
     world.removeObject(highlightedObject.instanceId);
+    highlightedObject = null;
+    _updateMenu();
+  } else if (movingObject) {
+    world.removeObject(movingObject.instanceId);
+    movingObject = null;
+    _updateMenu();
   }
 };
 
@@ -1484,7 +1493,8 @@ const _updateWeapons = timeDiff => {
   };
   _handleMenu(); */
 
-  const _handleTarget = () => {
+  const maxDistance = 10;
+  const _handleHighlight = () => {
     const width = 1;
     const length = 100;    
     localBox.setFromCenterAndSize(
@@ -1496,7 +1506,7 @@ const _updateWeapons = timeDiff => {
     const oldHighlightedObject = highlightedObject;
     highlightedObject = null;
 
-    if (!weaponsManager.getMenu()) {
+    if (!weaponsManager.getMenu() && !movingObject) {
       const objects = world.getObjects();
       for (const candidate of objects) {
         const transforms = rigManager.getRigTransforms();
@@ -1519,7 +1529,30 @@ const _updateWeapons = timeDiff => {
       }
     }
   };
-  _handleTarget();
+  _handleHighlight();
+
+  const _handleMove = () => {
+    if (movingObject) {
+      const transforms = rigManager.getRigTransforms();
+      const {position, quaternion} = transforms[0];
+
+      let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+      if (collision) {
+        const {point} = collision;
+        movingObject.position.fromArray(point);
+        movingObject.quaternion.copy(quaternion);
+
+        if (movingObject.position.distanceTo(position) > maxDistance) {
+          collision = null;
+        }
+      }
+      if (!collision) {
+        movingObject.position.copy(position).add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
+        movingObject.quaternion.copy(quaternion);
+      }
+    }
+  };
+  _handleMove();
 
   const _handleGrab = () => {
     const transforms = rigManager.getRigTransforms();
@@ -1544,10 +1577,7 @@ const _updateWeapons = timeDiff => {
   const _handleDeploy = () => {
     if (deployMesh.visible) {
       const transforms = rigManager.getRigTransforms();
-      const transform = transforms[1];
-      const {position, quaternion} = transform;
-
-      const maxDistance = 10;
+      const {position, quaternion} = transforms[0];
 
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
@@ -1562,42 +1592,10 @@ const _updateWeapons = timeDiff => {
       if (!collision) {
         deployMesh.position.copy(position).add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
         deployMesh.quaternion.copy(quaternion);
-        /* physicsManager.applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
-        pxMesh.velocity.add(localVector.set(0, -9.8 * timeDiff, 0).applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse()));
-        pxMesh.rotation.x += pxMesh.angularVelocity.x;
-        pxMesh.rotation.y += pxMesh.angularVelocity.y;
-        pxMesh.rotation.z += pxMesh.angularVelocity.z; */
       }
 
       deployMesh.material.uniforms.uTime.value = (Date.now()%1000)/1000;
     }
-    /* const width = 1;
-    const length = 100;    
-    localBox.setFromCenterAndSize(
-      localVector.set(0, 0, -length/2 - 0.05),
-      localVector2.set(width, width, length)
-    );
-
-    deployMesh.visible = false;
-    highlightedObject = null;
-
-    const objects = world.getObjects();
-    for (const candidate of objects) {
-      const transforms = rigManager.getRigTransforms();
-      const {position, quaternion} = transforms[0];
-      localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
-        .premultiply(
-          localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
-            .invert()
-        )
-        .decompose(localVector, localQuaternion, localVector2);
-      if (localBox.containsPoint(localVector)) {
-        targetMesh.position.copy(candidate.position);
-        targetMesh.visible = true;
-        highlightedObject = candidate;
-        break;
-      }
-    } */
   };
   _handleDeploy();
 
@@ -2265,7 +2263,7 @@ const weaponsManager = {
   },
   menuEnter() {
     // menuMesh.enter();
-    _deploy();
+    _enter();
   },
   menuDelete() {
     _delete();
