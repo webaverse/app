@@ -213,7 +213,7 @@ window.addEventListener('keydown', e => {
     return;
   }
   if (weaponsManager.getMenu() && document.pointerLockElement) {
-    if (/^[a-z0-9]$/i.test(e.key)) {
+    /* if (/^[a-z0-9]$/i.test(e.key)) {
       if (e.ctrlKey || e.metaKey) {
         switch (e.which) {
           case 65: { // a
@@ -230,7 +230,7 @@ window.addEventListener('keydown', e => {
       } else {
         weaponsManager.menuKey(e.key);
       }
-    } else {
+    } else { */
       switch (e.which) {
         case 9: { // tab
           e.preventDefault();
@@ -265,7 +265,7 @@ window.addEventListener('keydown', e => {
           break;
         }
       }
-    }
+    // }
   } else {
     switch (e.which) {
       case 9: { // tab

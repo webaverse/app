@@ -2051,6 +2051,7 @@ const menuMesh = (() => {
 menuMesh.visible = false;
 scene.add(menuMesh);
 
+const menuEl = document.getElementById('menu');
 const weaponsManager = {
   weapons,
   cubeMesh,
@@ -2115,7 +2116,7 @@ const weaponsManager = {
     return menuMesh.visible;
   },
   setMenu(newOpen) {
-    if (newOpen) {
+    /* if (newOpen) {
       const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
       menuMesh.position.copy(xrCamera.position)
         .add(localVector.set(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
@@ -2123,7 +2124,8 @@ const weaponsManager = {
       
       menuMesh.setVertical(-2);
     }
-    menuMesh.visible = newOpen;
+    menuMesh.visible = newOpen; */
+    menuEl.classList.toggle('open');
   },
   menuVertical(offset, shift) {
     menuMesh.offsetVertical(offset, shift);
