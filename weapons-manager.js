@@ -808,11 +808,14 @@ geometryManager.waitForLoad().then(() => {
   geometryManager.chunkMeshContainer.add(meshDrawer.mesh);
 });
 
-const targetMesh = _makeTargetMesh();
-targetMesh.position.y = 3;
-targetMesh.visible = false;
-scene.add(targetMesh);
+const highlightMesh = _makeTargetMesh();
+highlightMesh.visible = false;
+scene.add(highlightMesh);
 let highlightedObject = null;
+
+const moveMesh = _makeTargetMesh();
+moveMesh.visible = false;
+scene.add(moveMesh);
 let movingObject = null;
 
 const deployMesh = _makeTargetMesh();
@@ -1502,7 +1505,7 @@ const _updateWeapons = timeDiff => {
       localVector2.set(width, width, length)
     );
 
-    targetMesh.visible = false;
+    highlightMesh.visible = false;
     const oldHighlightedObject = highlightedObject;
     highlightedObject = null;
 
@@ -1518,8 +1521,8 @@ const _updateWeapons = timeDiff => {
           )
           .decompose(localVector, localQuaternion, localVector2);
         if (localBox.containsPoint(localVector)) {
-          targetMesh.position.copy(candidate.position);
-          targetMesh.visible = true;
+          highlightMesh.position.copy(candidate.position);
+          highlightMesh.visible = true;
           highlightedObject = candidate;
           break;
         }
@@ -1532,6 +1535,8 @@ const _updateWeapons = timeDiff => {
   _handleHighlight();
 
   const _handleMove = () => {
+    moveMesh.visible = false;
+
     if (movingObject) {
       const transforms = rigManager.getRigTransforms();
       const {position, quaternion} = transforms[0];
@@ -1539,17 +1544,22 @@ const _updateWeapons = timeDiff => {
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
         const {point} = collision;
-        movingObject.position.fromArray(point);
-        movingObject.quaternion.copy(quaternion);
+        moveMesh.position.fromArray(point);
+        moveMesh.quaternion.copy(quaternion);
 
-        if (movingObject.position.distanceTo(position) > maxDistance) {
+        if (moveMesh.position.distanceTo(position) > maxDistance) {
           collision = null;
         }
       }
       if (!collision) {
-        movingObject.position.copy(position).add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
-        movingObject.quaternion.copy(quaternion);
+        moveMesh.position.copy(position).add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
+        moveMesh.quaternion.copy(quaternion);
       }
+
+      movingObject.position.copy(moveMesh.position);
+      movingObject.quaternion.copy(moveMesh.quaternion);
+
+      moveMesh.visible = true;
     }
   };
   _handleMove();
