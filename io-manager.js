@@ -314,13 +314,20 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
-    case 70: { // F
+    case 69: { // E
       // pe.grabdown('right');
       if (document.pointerLockElement) {
         ioManager.currentWeaponGrabs[0] = true;
       }
       break;
     }
+    /* case 70: { // F
+      // pe.grabdown('right');
+      if (document.pointerLockElement) {
+        ioManager.currentWeaponGrabs[0] = true;
+      }
+      break;
+    } */
     case 86: { // V
       if (!_inputFocused()) {
         e.preventDefault();
@@ -443,13 +450,20 @@ window.addEventListener('keyup', e => {
         }
         break;
       }
-      case 70: { // F
+      case 69: { // E
         // pe.grabup('right');
         if (document.pointerLockElement) {
           ioManager.currentWeaponGrabs[0] = false;
         }
         break;
       }
+      /* case 70: { // F
+        // pe.grabup('right');
+        if (document.pointerLockElement) {
+          ioManager.currentWeaponGrabs[0] = false;
+        }
+        break;
+      } */
       case 16: { // shift
         if (document.pointerLockElement) {
           ioManager.keys.shift = false;
