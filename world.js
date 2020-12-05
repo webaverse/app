@@ -41,8 +41,8 @@ const rotatePointers = () => {
       }
       if (pointers.length <= 0 || !document.monetization) return;
 
-      console.log('CURRENT POINTER ROTATION --', currentIndex, "instanceId: ", pointers[currentIndex].instanceId, "current pointer:", pointers[currentIndex].monetizationPointer, "time: ", new Date().toLocaleTimeString());
-      console.log("array of monetizationPointers:", JSON.stringify(pointers));
+      //console.log('CURRENT POINTER ROTATION --', currentIndex, "instanceId: ", pointers[currentIndex].instanceId, "current pointer:", pointers[currentIndex].monetizationPointer, "time: ", new Date().toLocaleTimeString());
+      //console.log("array of monetizationPointers:", JSON.stringify(pointers));
   
       if (!document.querySelector("meta[name=monetization]")) {
         const monetizationTag = document.createElement('meta');
@@ -57,7 +57,7 @@ const rotatePointers = () => {
           }
           total += Number(ev.detail.amount)
           const formatted = (total * Math.pow(10, -scale)).toFixed(scale)
-          console.log("STREAMING PAYMENT --", "pointer:", ev.detail.paymentPointer, "payment:", ev.detail.assetCode, formatted, "time:", new Date().toLocaleTimeString());
+       //   console.log("STREAMING PAYMENT --", "pointer:", ev.detail.paymentPointer, "payment:", ev.detail.assetCode, formatted, "time:", new Date().toLocaleTimeString());
         });
       } else if (document.querySelector("meta[name=monetization]")) {
         document.querySelector("meta[name=monetization]").setAttribute("content", pointers[currentIndex].monetizationPointer);
@@ -838,7 +838,7 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
   });
 };
 setTimeout(() => {
-  world.addObject(17);
+  world.addObject(17, null, new THREE.Vector3(0, 2, -10), new THREE.Quaternion());
 }, 5000);
 world.removeObject = removeInstanceId => {
   state.transact(() => {
@@ -883,7 +883,7 @@ world.addEventListener('trackedobjectadd', async e => {
   const options = JSON.parse(optionsString);
 
   const file = await (async () => {
-    if (typeof contentId === 'number') {
+    if (typeof contentId === 'number' || /^\d+$/.test(contentId)) {
       const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
       const token = await res.json();
 
