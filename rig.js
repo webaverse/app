@@ -91,7 +91,7 @@ class RigManager {
         new THREE.CircleBufferGeometry(0.13, 32)
           .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -0.02, -0.01)).toNonIndexed(),
         new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.01)),
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.02)),
       ]);
       const material2 = new THREE.LineBasicMaterial({
         color: 0x66bb6a,
