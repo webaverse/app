@@ -836,6 +836,7 @@ const _enter = () => {
 const _delete = () => {
   if (highlightedObject) {
     world.removeObject(highlightedObject.instanceId);
+    console.log('delete', highlightedObject);
     highlightedObject = null;
     _updateMenu();
   } else if (movingObject) {
@@ -2166,12 +2167,16 @@ const _updateMenu = () => {
     avatarLabel.classList.toggle('open', true);
     avatarIcon.classList.toggle('open', true);
 
+    avatarLabel.innerText = 'parzival';
+
     deployMesh.visible = true;
   } else if (objectHightlighted) {
     unmenuEl.classList.toggle('closed', true);
     objectMenuEl.classList.toggle('open', true);
     itemLabel.classList.toggle('open', true);
     itemIcon.classList.toggle('open', true);
+
+    itemLabel.innerText = 'lightsaber';
   } else {
     locationIcon.classList.toggle('open', true);
     locationLabel.classList.toggle('open', true);
