@@ -34,6 +34,47 @@ class RigManager {
     this.localRig.avatarUrl = null;
 
     this.localRig.textMesh = makeTextMesh('Anonymous', undefined, 0.2, 'center', 'middle');
+    {
+      const w = 1.1;
+      const h = 0.25;
+      const roundedRectShape = new THREE.Shape();
+      ( function roundedRect( ctx, x, y, width, height, indentWidth, indentHeight, radius ) {
+        ctx.moveTo( x, y + radius );
+        ctx.lineTo( x, y + height - radius );
+        ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
+        ctx.lineTo( x + radius + indentWidth, y + height );
+        ctx.lineTo( x + radius + indentWidth + indentHeight, y + height - indentHeight );
+        ctx.lineTo( x + width - radius - indentWidth - indentHeight, y + height - indentHeight );
+        ctx.lineTo( x + width - radius - indentWidth, y + height );
+        ctx.lineTo( x + width - radius, y + height );
+        ctx.quadraticCurveTo( x + width, y + height, x + width, y + height - radius );
+        ctx.lineTo( x + width, y + radius );
+        ctx.quadraticCurveTo( x + width, y, x + width - radius, y );
+        ctx.lineTo( x + radius, y );
+        ctx.quadraticCurveTo( x, y, x, y + radius );
+        ctx.lineTo( x, y + radius );
+      } )( roundedRectShape, 0, 0, w, h, 0.1, 0.04, 0.08 );
+      const extrudeSettings = {
+        steps: 2,
+        depth: 0,
+        bevelEnabled: false,
+        /* bevelEnabled: true,
+        bevelThickness: 0,
+        bevelSize: 0,
+        bevelOffset: 0,
+        bevelSegments: 0, */
+      };
+      const geometry = new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2, 0));
+      const material = new THREE.MeshBasicMaterial({
+        color: 0x9ccc65,
+        side: THREE.DoubleSide,
+        // wireframe: true,
+      });
+      const nametagMesh = new THREE.Mesh( geometry, material );
+      nametagMesh.position.z = -0.01;
+      this.localRig.textMesh.add(nametagMesh);
+    }
     this.scene.add(this.localRig.textMesh);
 
     this.localRigMatrix = new THREE.Matrix4();
