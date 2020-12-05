@@ -560,7 +560,7 @@ const _loadWebBundle = async file => {
     });
     const blobUrl = URL.createObjectURL(b);
     const {pathname} = new URL(u);
-    app.files[pathname] = blobUrl;
+    app.files['.' + pathname] = blobUrl;
   }
   const u = _mapUrl(bundle.primaryURL);
 
