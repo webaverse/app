@@ -42,7 +42,7 @@ const rotatePointers = () => {
       if (pointers.length <= 0 || !document.monetization) return;
 
       //console.log('CURRENT POINTER ROTATION --', currentIndex, "instanceId: ", pointers[currentIndex].instanceId, "current pointer:", pointers[currentIndex].monetizationPointer, "time: ", new Date().toLocaleTimeString());
-      //console.log("array of monetizationPointers:", JSON.stringify(pointers));
+      console.log("array of monetizationPointers:", JSON.stringify(pointers));
   
       if (!document.querySelector("meta[name=monetization]")) {
         const monetizationTag = document.createElement('meta');
@@ -838,7 +838,7 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
   });
 };
 setTimeout(() => {
-  world.addObject(17, null, new THREE.Vector3(0, 2, -10), new THREE.Quaternion());
+  world.addObject(31, null, new THREE.Vector3(0, 2, -10), new THREE.Quaternion());
 }, 5000);
 world.removeObject = removeInstanceId => {
   state.transact(() => {
