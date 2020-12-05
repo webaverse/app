@@ -1,5 +1,4 @@
 import * as THREE from './three.module.js';
-import { web3, contracts } from './blockchain.js';
 import storage from './storage.js';
 import {XRChannelConnection} from './xrrtc.js';
 import Y from './yjs.js';
@@ -786,7 +785,7 @@ world.getObjects = () => objects;
 world.addObject = async (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
   const token = await fetch(`https://tokens.webaverse.com/${contentId}`);
   const owner = token.owner.address;
-  const monetizationPointer = await contracts.sidechain.Account.methods.getMetadata(owner, 'monetizationPointer').call();
+  const monetizationPointer = token.owner.monetizationPointer;
   if (monetizationPointer && document.monetization && !document.querySelector("meta[name=monetization]")) {
     const monetizationTag = document.createElement('meta');
     monetizationTag.name = 'monetization';
