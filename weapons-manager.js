@@ -1483,7 +1483,7 @@ const _updateWeapons = timeDiff => {
       localVector2.set(width, width, length)
     );
 
-    targetMesh.visible = false;
+    const oldHighlightedObject = highlightedObject;
     highlightedObject = null;
 
     const objects = world.getObjects();
@@ -1502,6 +1502,9 @@ const _updateWeapons = timeDiff => {
         highlightedObject = candidate;
         break;
       }
+    }
+    if (highlightedObject !== oldHighlightedObject) {
+      _updateMenu();
     }
   };
   _handleTarget();
@@ -2121,17 +2124,52 @@ const menuMesh = (() => {
 menuMesh.visible = false;
 scene.add(menuMesh);
 
+const _updateMenu = () => {
+  const {menuOpen} = weaponsManager;
+  const objectHightlighted = !!highlightedObject;
+
+  menuEl.classList.toggle('open', false);
+  unmenuEl.classList.toggle('closed', false);
+  locationLabel.classList.toggle('open', false);
+  avatarLabel.classList.toggle('open', false);
+  itemLabel.classList.toggle('open', false);
+  locationIcon.classList.toggle('open', false);
+  avatarIcon.classList.toggle('open', false);
+  itemIcon.classList.toggle('open', false);
+
+  deployMesh.visible = false;
+
+  if (objectHightlighted) {
+    unmenuEl.classList.toggle('closed', true);
+    itemLabel.classList.toggle('open', true);
+    itemIcon.classList.toggle('open', true);
+  } else if (menuOpen) {
+    menuEl.classList.toggle('open', true);
+    unmenuEl.classList.toggle('closed', true);
+    avatarLabel.classList.toggle('open', true);
+    avatarIcon.classList.toggle('open', true);
+
+    deployMesh.visible = true;
+  } else {
+    locationIcon.classList.toggle('open', true);
+    locationLabel.classList.toggle('open', true);
+  }
+};
+
 const menuEl = document.getElementById('menu');
 const unmenuEl = document.getElementById('unmenu');
 const locationLabel = document.getElementById('location-label');
 const avatarLabel = document.getElementById('avatar-label');
+const itemLabel = document.getElementById('item-label');
 const locationIcon = document.getElementById('location-icon');
 const avatarIcon = document.getElementById('avatar-icon');
+const itemIcon = document.getElementById('item-icon');
 const weaponsManager = {
   weapons,
   cubeMesh,
   buildMode: 'wall',
   buildMat: 'wood',
+  menuOpen: false,
   weaponWheel: false,
   getWeapon() {
     return selectedWeapon;
@@ -2189,7 +2227,7 @@ const weaponsManager = {
   },
   getMenu() {
     // return menuMesh.visible;
-    return menuEl.classList.contains('open');
+    return this.menuOpen;
   },
   setMenu(newOpen) {
     /* if (newOpen) {
@@ -2201,13 +2239,8 @@ const weaponsManager = {
       menuMesh.setVertical(-2);
     }
     menuMesh.visible = newOpen; */
-    menuEl.classList.toggle('open', newOpen);
-    unmenuEl.classList.toggle('closed', newOpen);
-    locationLabel.classList.toggle('open', !newOpen);
-    avatarLabel.classList.toggle('open', newOpen);
-    locationIcon.classList.toggle('open', !newOpen);
-    avatarIcon.classList.toggle('open', newOpen);
-    deployMesh.visible = newOpen;
+    this.menuOpen = newOpen;
+    _updateMenu();
   },
   menuVertical(offset, shift) {
     menuMesh.offsetVertical(offset, shift);
