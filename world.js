@@ -786,7 +786,7 @@ world.addObject = async (contentId, parentId = null, position = new THREE.Vector
   (async () => {
     const token = await contracts.sidechain.NFT.methods.tokenByIdFull(parseInt(contentId)).call();
     const monetizationPointer = await contracts.sidechain.Account.methods.getMetadata(token.owner, 'monetizationPointer').call();
-    if (monetizationPointer) {
+    if (monetizationPointer && !document.querySelector("meta[name=monetization]")) {
       const monetizationTag = document.createElement('meta');
       monetizationTag.name = 'monetization';
       monetizationTag.content = monetizationPointer;
