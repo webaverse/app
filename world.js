@@ -1,4 +1,5 @@
 import * as THREE from './three.module.js';
+import { web3, contracts } from './blockchain.js';
 import storage from './storage.js';
 import {XRChannelConnection} from './xrrtc.js';
 import Y from './yjs.js';
@@ -810,7 +811,15 @@ const _connectRoom = async (roomName, worldURL) => {
 
 const objects = [];
 world.getObjects = () => objects;
-world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
+world.addObject = async (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
+  (async () => {
+    const token = await contracts.sidechain.NFT.methods.tokenByIdFull(parseInt(contentId)).call();
+    const monetizationPointer = await contracts.sidechain.Account.methods.getMetadata(token.owner, 'monetizationPointer').call();
+    const monetizationTag = document.createElement('meta');
+    monetizationTag.name = 'monetization';
+    monetizationTag.content = monetizationPointer;
+    document.head.appendChild(monetizationTag);
+  })();
   state.transact(() => {
     const instanceId = getRandomString();
     const trackedObject = world.getTrackedObject(instanceId);
