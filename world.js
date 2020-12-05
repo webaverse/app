@@ -824,8 +824,8 @@ const _connectRoom = async (roomName, worldURL) => {
 
 const objects = [];
 world.getObjects = () => objects;
-world.addObject = async (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
-  state.transact(async () => {
+world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
+  state.transact(() => {
     const instanceId = getRandomString();
     const trackedObject = world.getTrackedObject(instanceId);
     trackedObject.set('instanceId', instanceId);
@@ -889,6 +889,10 @@ world.addEventListener('trackedobjectadd', async e => {
     if (typeof contentId === 'number') {
       const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
       const token = await res.json();
+
+      const monetizationPointer = token.owner.monetizationPointer;
+      pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer});
+
       const {hash, filename} = token.properties;
       /* const contractSource = await getContractSource('getNft.cdc');
 
