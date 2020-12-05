@@ -3,7 +3,7 @@ import {GLTFLoader} from './GLTFLoader.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
-import {renderer, scene, dolly, appManager} from './app-object.js';
+import {renderer, scene, camera, dolly, appManager} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
@@ -253,9 +253,7 @@ class RigManager {
     this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
     this.localRig.textMesh.position.y += 0.5;
     this.localRig.textMesh.quaternion.copy(this.localRig.inputs.hmd.quaternion);
-    localEuler.setFromQuaternion(this.localRig.textMesh.quaternion, 'YXZ');
-    localEuler.x = 0;
-    localEuler.y += Math.PI;
+    localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
     localEuler.z = 0;
     this.localRig.textMesh.quaternion.setFromEuler(localEuler);
   }
