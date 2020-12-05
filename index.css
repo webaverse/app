@@ -80,12 +80,6 @@ img:not([src]) {
   z-index: 3;
 }
 
-.header .icon + .keys {
-  position: absolute;
-  top: 50px;
-  left: 18px;
-}
-
 .header .icon > img
 {
   display: flex;
@@ -2443,21 +2437,29 @@ footer {
   z-index: 1;
 }
 
-.menu {
+.menu, .unmenu {
   display: flex;
   position: absolute;
-  left: -300px;
   top: 0;
   bottom: 0;
   width: 300px;
   height: 100vh;
   padding: 30px;
-  /* background-color: #FFF; */
-  background-color: #FFFFFF10;
-  /* border-right: 3px solid #000; */
   flex-direction: column;
   z-index: 1;
   transition: all 0.5s cubic-bezier(0, 1, 0, 1);
+}
+.menu > section,
+.unmenu > section
+{
+  display: flex;
+  flex-direction: column;
+}
+.menu {
+  left: -300px;
+  /* background-color: #FFF; */
+  background-color: #FFFFFF10;
+  /* border-right: 3px solid #000; */
 }
 .menu.open {
   left: 0;
@@ -2466,4 +2468,15 @@ footer {
   width: 150px;
   height: 150px;
   object-fit: contain;
+}
+.unmenu {
+  left: 0;
+}
+.unmenu.closed {
+  left: -300px;
+}
+.unmenu .keys {
+  position: absolute;
+  top: 50px;
+  left: 18px;
 }

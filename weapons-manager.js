@@ -2122,6 +2122,7 @@ menuMesh.visible = false;
 scene.add(menuMesh);
 
 const menuEl = document.getElementById('menu');
+const unmenuEl = document.getElementById('unmenu');
 const weaponsManager = {
   weapons,
   cubeMesh,
@@ -2197,6 +2198,7 @@ const weaponsManager = {
     }
     menuMesh.visible = newOpen; */
     menuEl.classList.toggle('open', newOpen);
+    unmenuEl.classList.toggle('closed', newOpen);
     deployMesh.visible = newOpen;
   },
   menuVertical(offset, shift) {
