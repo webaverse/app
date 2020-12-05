@@ -818,6 +818,12 @@ const deployMesh = _makeTargetMesh();
 deployMesh.visible = false;
 scene.add(deployMesh);
 
+const _deploy = () => {
+  if (deployMesh.visible) {
+    world.addObject(`https://avaer.github.io/lightsaber/index.js`, null, deployMesh.position, deployMesh.quaternion);
+  }
+};
+
 /* const _snapBuildPosition = p => {
   p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
   p.y = Math.floor(p.y / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
@@ -2177,7 +2183,8 @@ const weaponsManager = {
     }
   },
   getMenu() {
-    return menuMesh.visible;
+    // return menuMesh.visible;
+    return menuEl.classList.contains('open');
   },
   setMenu(newOpen) {
     /* if (newOpen) {
@@ -2189,8 +2196,8 @@ const weaponsManager = {
       menuMesh.setVertical(-2);
     }
     menuMesh.visible = newOpen; */
-    menuEl.classList.toggle('open');
-    deployMesh.visible = menuEl.classList.contains('open');
+    menuEl.classList.toggle('open', newOpen);
+    deployMesh.visible = newOpen;
   },
   menuVertical(offset, shift) {
     menuMesh.offsetVertical(offset, shift);
@@ -2199,7 +2206,8 @@ const weaponsManager = {
     menuMesh.offsetHorizontal(offset, shift);
   },
   menuEnter() {
-    menuMesh.enter();
+    // menuMesh.enter();
+    _deploy();
   },
   menuKey(c) {
     menuMesh.key(c);
