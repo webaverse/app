@@ -4,16 +4,16 @@ import * as THREE from './three.module.js';
 // import {GLTFLoader} from './GLTFLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {TransformControls} from './TransformControls.js';
-import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+// import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {tryLogin, loginManager} from './login.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
 import {makeRayMesh, makeTextMesh, makeHighlightMesh, makeButtonMesh, makeArrowMesh, makeCornersMesh} from './vr-ui.js';
-import {
+/* import {
   THING_SHADER,
   makeDrawMaterial,
-} from './shaders.js';
+} from './shaders.js'; */
 // import {lineMeshes, teleportMeshes} from './teleport.js';
 import geometryManager from './geometry-manager.js';
 import uiManager from './ui-manager.js';
@@ -32,6 +32,7 @@ import {renderer, scene, avatarScene, camera, avatarCamera, dolly, orbitControls
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
+import minimap from './minimap.js';
 import {App} from './components/App.js';
 import {tryTutorial} from './tutorial.js';
 import {getState, setState} from './state.js';
@@ -54,7 +55,6 @@ const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
-const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
@@ -809,71 +809,6 @@ const addItem = async (position, quaternion) => {
   itemMeshes.push(itemMesh);
 };
 
-let mapRenderer, mapScene, mapCamera, mapCameraOffset, mapIndicator;
-{
-  const mapCanvas = document.getElementById('map-canvas');
-  mapRenderer = new THREE.WebGLRenderer({
-    canvas: mapCanvas,
-    antialias: true,
-    alpha: true,
-  });
-  mapRenderer.setPixelRatio(window.devicePixelRatio);
-  mapScene = new THREE.Scene();
-
-  mapCamera = new THREE.PerspectiveCamera(60, 200 / 140, 0.1, 1000);
-  mapCameraOffset = new THREE.Vector3(0, 4, 10);
-  mapCamera.position.copy(mapCameraOffset);
-  mapCamera.rotation.order = 'YXZ';
-  mapCamera.lookAt(new THREE.Vector3(0, 0, 0));
-
-  {
-    const shape = new THREE.Shape();
-    shape.moveTo( -1, 0 );
-    shape.lineTo( 0, -2 );
-    shape.lineTo( 1, 0 );
-    shape.lineTo( 0, -0.5 );
-    // shape.lineTo( -1, 0 );
-    const extrudeSettings = {
-      steps: 2,
-      depth: 0.1,
-      // bevelEnabled: false,
-      bevelEnabled: true,
-      bevelThickness: 0,
-      bevelSize: 0,
-      bevelOffset: 0,
-      bevelSegments: 1,
-    };
-    const geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings )
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
-    const material = new THREE.MeshBasicMaterial({
-      color: 0xef5350,
-      side: THREE.DoubleSide,
-    });
-    mapIndicator = new THREE.Mesh( geometry, material );
-    mapIndicator.frustumCulled = false;
-    mapScene.add(mapIndicator);
-  }
-
-  const planeMesh = (() => {
-    const s = 0.1;
-    const geometry = BufferGeometryUtils.mergeBufferGeometries([
-      new THREE.BoxBufferGeometry(10, s, s).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -10/2)),
-      new THREE.BoxBufferGeometry(10, s, s).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, 10/2)),
-      new THREE.BoxBufferGeometry(s, s, 10).applyMatrix4(new THREE.Matrix4().makeTranslation(10/2, 0, 0)),
-      new THREE.BoxBufferGeometry(s, s, 10).applyMatrix4(new THREE.Matrix4().makeTranslation(-10/2, 0, 0)),
-    ]);
-    const material = new THREE.MeshBasicMaterial({
-      color: 0x000000,
-      transparent: true,
-      opacity: 0.5,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.frustumCulled = false;
-    return mesh;
-  })();
-  mapScene.add(planeMesh);
-}
-
 // const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 const startTime = Date.now();
@@ -1258,18 +1193,8 @@ function animate(timestamp, frame) {
   renderer2.render(scene2, camera);
   // highlight render
   // renderer.render(highlightScene, camera);
-  // map render
-  {
-    localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
-    localEuler.x = 0;
-    localEuler.z = 0;
-    mapCamera.position.copy(rigManager.localRig.inputs.hmd.position)
-      .add(localVector.copy(mapCameraOffset).applyEuler(localEuler));
-    mapIndicator.position.copy(rigManager.localRig.inputs.hmd.position);
-    mapIndicator.quaternion.setFromEuler(localEuler);
-    mapCamera.lookAt(mapIndicator.position);
-    mapRenderer.render(mapScene, mapCamera);
-  }
+
+  minimap.update();
 
   if (session && document.visibilityState == 'visible') {
     const {baseLayer} = session.renderState;
