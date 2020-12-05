@@ -776,6 +776,7 @@ const _loadIframe = async (file, opts) => {
 
   const iframe = document.createElement('iframe');
   iframe.src = href;
+  iframe.allow = 'monetization';
   iframe.style.width = width + 'px';
   iframe.style.height = height + 'px';
   // iframe.style.opacity = 0.75;
