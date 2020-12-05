@@ -338,7 +338,11 @@ const q = parseQuery(location.search);
   runtime.injectDependencies(geometryManager, physicsManager, world);
 
   if (q.o) { // object
-    world.addObject(q.o);
+    let contentId = parseInt(q.o);
+    if (isNaN(contentId)) {
+      contentId = q.o;
+    }
+    world.addObject(contentId);
   }
   {
     const mesh = await runtime.loadFile({
