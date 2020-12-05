@@ -610,7 +610,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   overflow: hidden;
 }
 
-.dropdown {
+/* .dropdown {
   display: flex;
   position: absolute;
   top: 50px;
@@ -618,7 +618,6 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   width: 300px;
   height: calc(100% - 50px);
   background-color: #FFF;
-  /* border-left: 3px solid #EEE; */
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
   flex-direction: column;
   overflow: auto;
@@ -678,7 +677,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .dropdown .tabs .tab > nav:hover {
   background-color: var(--color);
   color: #FFF;
-}
+} */
 
 .subpage {
   position: absolute;
@@ -2190,7 +2189,7 @@ footer {
 .store section {
   perspective: 800px;
 }
-.tabs {
+/* .tabs {
   display: flex;
   width: 100%;
   background-color: #111;
@@ -2205,7 +2204,8 @@ footer {
 }
 .tabs .tab.selected {
   background-color: #7986cb;
-}
+} */
+
 /* .store .content:not(.selected) {
   display: none;
 }
@@ -2500,8 +2500,44 @@ footer {
 .unmenu.closed {
   left: -300px;
 }
-.unmenu .keys {
+.menu .tabs,
+.menu .key-helpers,
+.unmenu .key-helpers
+{
   position: absolute;
   top: 50px;
   left: 18px;
+}
+
+.tabs {
+  display: flex;
+}
+.tabs .tab,
+.key-helpers .key-helper .key
+{
+  display: flex;
+  padding: 3px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid currentColor;
+  border-radius: 7px;
+  font-size: 16px;
+}
+
+.key-helpers {
+  display: flex;
+  flex-direction: column;
+}
+.key-helpers .key-helper {
+  display: flex;
+  align-items: center;
+}
+.key-helpers .key-helper .key {
+
+}
+.key-helpers .key-helper .label {
+  width: 50px;
+  margin-left: auto;
 }
