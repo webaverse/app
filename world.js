@@ -834,7 +834,7 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
     trackedObject.set('position', position.toArray());
     trackedObject.set('quaternion', quaternion.toArray());
     trackedObject.set('options', JSON.stringify(options));
-  })
+  });
 };
 setTimeout(() => {
   world.addObject(17);
