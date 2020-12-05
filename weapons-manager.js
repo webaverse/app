@@ -2123,6 +2123,10 @@ scene.add(menuMesh);
 
 const menuEl = document.getElementById('menu');
 const unmenuEl = document.getElementById('unmenu');
+const locationLabel = document.getElementById('location-label');
+const avatarLabel = document.getElementById('avatar-label');
+const locationIcon = document.getElementById('location-icon');
+const avatarIcon = document.getElementById('avatar-icon');
 const weaponsManager = {
   weapons,
   cubeMesh,
@@ -2199,6 +2203,10 @@ const weaponsManager = {
     menuMesh.visible = newOpen; */
     menuEl.classList.toggle('open', newOpen);
     unmenuEl.classList.toggle('closed', newOpen);
+    locationLabel.classList.toggle('open', !newOpen);
+    avatarLabel.classList.toggle('open', newOpen);
+    locationIcon.classList.toggle('open', !newOpen);
+    avatarIcon.classList.toggle('open', newOpen);
     deployMesh.visible = newOpen;
   },
   menuVertical(offset, shift) {

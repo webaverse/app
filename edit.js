@@ -876,6 +876,7 @@ let lastTimestamp = performance.now();
 const startTime = Date.now();
 const lastCoord = new THREE.Vector3(0, 0, 0);
 const locationLabel = document.getElementById('location-label');
+const avatarLabel = document.getElementById('avatar-label');
 function animate(timestamp, frame) {
   timestamp = timestamp || performance.now();
   const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);

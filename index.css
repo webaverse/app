@@ -80,7 +80,7 @@ img:not([src]) {
   z-index: 3;
 }
 
-.header .icon > img
+.header .icon > .img
 {
   display: flex;
   width: 40px;
@@ -89,6 +89,10 @@ img:not([src]) {
   background-color: #7986cb;
   border-radius: 100px;
 }
+.header .icon > .img:not(.open)
+{
+  display: none;
+}
 
 .header .icon > .name {
   margin-left: -5px;
@@ -96,6 +100,9 @@ img:not([src]) {
   background-color: #7986cb;
   color: #FFF;
   z-index: -1;
+}
+.header .icon > .name:not(.open) {
+  display: none;
 }
 
 .header .nav
