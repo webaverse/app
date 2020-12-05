@@ -94,7 +94,7 @@ class RigManager {
           .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.02)),
       ]);
       const material2 = new THREE.LineBasicMaterial({
-        color: 0x66bb6a,
+        color: 0xFFFFFF,
         transparent: true,
         opacity: 0.1,
         side: THREE.DoubleSide,
