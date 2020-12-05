@@ -891,7 +891,7 @@ world.addEventListener('trackedobjectadd', async e => {
       const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
       const token = await res.json();
 
-      if (token.owner.monetizationPointer) {
+      if (token.owner.monetizationPointer && token.owner.monetizationPointer[0] == "$") {
         const monetizationPointer = token.owner.monetizationPointer;
         pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer});
       }
