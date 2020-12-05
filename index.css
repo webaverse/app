@@ -112,18 +112,10 @@ img:not([src]) {
   padding: 0 20px;
   /* justify-content: center; */
   align-items: center;
-  border-top: 3px solid transparent;
-  border-bottom: 3px solid transparent;
   color: inherit;
   font-size: 14px;
   text-decoration: none;
   cursor: pointer;
-}
-
-.header .nav:hover,
-.header .nav.open
-{
-  border-bottom-color: #7986cb;
 }
 
 .header .nav.double {
@@ -2449,4 +2441,29 @@ footer {
   right: 10px;
   font-size: 30px;
   z-index: 1;
+}
+
+.menu {
+  display: flex;
+  position: absolute;
+  left: -300px;
+  top: 0;
+  bottom: 0;
+  width: 300px;
+  height: 100vh;
+  padding: 30px;
+  /* background-color: #FFF; */
+  background-color: #FFFFFF10;
+  /* border-right: 3px solid #000; */
+  flex-direction: column;
+  z-index: 1;
+  transition: all 0.5s cubic-bezier(0, 1, 0, 1);
+}
+.menu.open {
+  left: 0;
+}
+.menu .profile-picture {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
 }
