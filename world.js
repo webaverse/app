@@ -891,8 +891,10 @@ world.addEventListener('trackedobjectadd', async e => {
       const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
       const token = await res.json();
 
-      const monetizationPointer = token.owner.monetizationPointer;
-      pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer});
+      if (token.owner.monetizationPointer) {
+        const monetizationPointer = token.owner.monetizationPointer;
+        pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer});
+      }
 
       const {hash, filename} = token.properties;
       /* const contractSource = await getContractSource('getNft.cdc');
