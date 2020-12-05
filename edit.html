@@ -4,15 +4,6 @@
 <head>
   <title>山</title>
   <link href="/index.css" rel=stylesheet>
-  <link href="/components/styles/index.css" rel=stylesheet>
-  <link href="/components/styles/inventory.css" rel=stylesheet>
-  <link href="/components/styles/weaponWheel.css" rel=stylesheet>
-  <link href="/components/styles/menu.css" rel=stylesheet>
-  <link href="/components/styles/world.css" rel=stylesheet>
-  <link href="/components/styles/social.css" rel=stylesheet>
-  <link href="/components/styles/browse.css" rel=stylesheet>
-  <link href="/components/styles/trade.css" rel=stylesheet>
-
 
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Muli:wght@400;600&display=swap" rel="stylesheet">
@@ -23,168 +14,29 @@
 <body>
   <header class=header id=header>
     <div id=progress-bar class=progress-bar></div>
-    <a href="/" class="nav icon">山</a>
-    <!-- <nav class="selector nav bar-left" id=selector>
-      <i class="fa fa-map-marker-alt head"></i>
-      <div class=header-label id=header-label>Sandbox</div>
-      <i class="fa fa-chevron-down tail"></i>
-      <div class=selections id=selections>
-        <a href="run.html" class=selection id=run-mode>
-          <i class="fa fa-play"></i>
-          <div class=wrap>
-            <h3>Run mode</h3>
-            <p>Switch to run mode</p>
-          </div>
-        </a>
-        <a href="edit.html" class="selection dim" id=edit-mode>
-          <i class="fa fa-pencil"></i>
-          <div class=wrap>
-            <h3>Edit mode</h3>
-            <p>You are currently editing this world</p>
-          </div>
-        </a>
-        <a href="browse.html" class=selection>
-          <i class="fa fa-solar-system"></i>
-          <div class=wrap>
-            <h3>Browse packages</h3>
-            <p>Explore the XRPackage registry</p>
-          </div>
-        </a>
-        <a href="help.html" class=selection>
-          <i class="fa fa-book"></i>
-          <div class=wrap>
-            <h3>Documentation</h3>
-            <p>Learn how to make packages and worlds</p>
-          </div>
-        </a>
+    <a href="/" class="nav icon">
+      <img src="assets/logo-circle.svg">
+      <div class=name id=location-label>Unknown @0,0</div>
+    </a>
+
+    <div class="keys">
+      <div class="row">
+        <div class="key">Tab</div>
+        <div class="key"></div>
+        <div class="key"></div>
       </div>
-    </nav> -->
+    </div>
 
     <div class="buttons right">
-      <div class=tools style="transform-origin: 0 0;">
-        <div class=row>
-          <a id=tool-1 class="tool selected" tool="camera">
-            <i class="fal fa-camera"></i>
-            <div class=label>Camera tool [ESC]</div>
-          </a>
-          <a id=tool-2 class="tool" tool="firstperson">
-            <i class="fal fa-eye"></i>
-            <div class=label>First person [V]</div>
-          </a>
-          <a id=tool-3 class="tool" tool="thirdperson">
-            <i class="fal fa-walking"></i>
-            <div class=label>Third person [B]</div>
-          </a>
-          <a id=tool-4 class="tool" tool="isometric">
-            <i class="fal fa-cubes"></i>
-            <div class=label>Isometric view [N]</div>
-          </a>
-          <a id=tool-5 class="tool" tool="birdseye">
-            <i class="fal fa-feather-alt"></i>
-            <div class=label>Birds eye view [M]</div>
-          </a>
-        </div>
-      </div>
-      <div class=bar></div>
-      <!-- <div class=weapons style="transform-origin: 0 0;">
-        <div class=row>
-          <a id=weapon-1 class="weapon selected" weapon="unarmed">
-            <i class="fal fa-hand-paper"></i>
-            <div class=label>Empty hand [1]</div>
-          </a>
-          <a id=weapon-2 class="weapon" weapon="rifle">
-            <i class="fal fa-scythe"></i>
-            <div class=label>Rifle [2]</div>
-          </a>
-          <a id=weapon-3 class="weapon" weapon="grenade">
-            <i class="fal fa-bomb"></i>
-            <div class=label>Grenade [3]</div>
-          </a>
-          <a id=weapon-4 class="weapon" weapon="pickaxe">
-            <i class="fal fa-axe"></i>
-            <div class=label>Pickaxe [4]</div>
-          </a>
-          <a id=weapon-5 class="weapon" weapon="shovel">
-            <i class="fal fa-shovel"></i>
-            <div class=label>Shovel [5]</div>
-          </a>
-          <a id=weapon-6 class="weapon" weapon="build">
-            <i class="fal fa-map"></i>
-            <div class=label>Build [6]</div>
-          </a>
-          <a id=weapon-7 class="weapon" weapon="things">
-            <i class="fal fa-store"></i>
-            <div class=label>Things [7]</div>
-          </a>
-          <a id=weapon-8 class="weapon" weapon="shapes">
-            <i class="fal fa-cube"></i>
-            <div class=label>Shapes [8]</div>
-          </a>
-          <a id=weapon-9 class="weapon" weapon="colors">
-            <i class="fal fa-palette"></i>
-            <div class=label>Colors [9]</div>
-          </a>
-          <a id=weapon-10 class="weapon" weapon="inventory">
-            <i class="fal fa-backpack"></i>
-            <div class=label>Inventory [10]</div>
-          </a>
-          <a id=weapon-11 class="weapon" weapon="light">
-            <i class="fal fa-bolt"></i>
-            <div class=label>Light [11]</div>
-          </a>
-          <a id=weapon-12 class="weapon" weapon="pencil">
-            <i class="fal fa-pencil"></i>
-            <div class=label>Pencil [12]</div>
-          </a>
-          <a id=weapon-13 class="weapon" weapon="paintbrush">
-            <i class="fal fa-brush"></i>
-            <div class=label>Paintbrush [13]</div>
-          </a>
-          <a id=weapon-14 class="weapon" weapon="physics">
-            <i class="fal fa-raygun"></i>
-            <div class=label>Physics [14]</div>
-          </a>
-          <a id=weapon-15 class="weapon" weapon="select">
-            <i class="fal fa-mouse-pointer"></i>
-            <div class=label>Select [TAB]</div>
-          </a>
-        </div>
-      </div>
-      <div class=bar></div> -->
+      <!-- <div class=bar></div> -->
       <div class=functions style="transform-origin: 0 0;">
         <div class=row>
-          <a class="function">
+          <!-- <a class="function">
             <i class="fal fa-file-plus">
               <input type=file class=hidden id=load-package-input>
             </i>
             <div class=label>Add file</div>
-          </a>
-          <!-- <a class="function">
-            <i class="fal fa-text"></i>
-            <div class=label>Add text</div>
           </a> -->
-        </div>
-      </div>
-      <div class=bar></div>
-      <div class=functions style="transform-origin: 0 0;">
-        <div class=row>
-          <a class="function" id=mic-button>
-            <i class="fal fa-microphone"></i>
-            <div class=label>Microphone</div>
-          </a>
-          <!-- <a class="function" id=enter-xr-button>
-            <i class="fal fa-vr-cardboard"></i>
-            <div class=label>Enter XR</div>
-          </a> -->
-        </div>
-      </div>
-      <div class=bar></div>
-      <div class=functions style="transform-origin: 0 0;">
-        <div class=row>
-          <a class="function" id=connectButton>
-            <i class="fal fa-wifi"></i>
-            <div class=label>Connect</div>
-          </a>
         </div>
       </div>
     </div>
@@ -194,7 +46,10 @@
     <form id=login-form></form>
   </header>
   <footer>
-    <div class="helper">
+    <div class="helper left">
+      <canvas width=200 height=140 id="map-canvas"></canvas>
+    </div>
+    <div class="helper right">
       <div class="keys">
         <div class="label">Move</div>
         <div class="row">
@@ -212,12 +67,14 @@
         <div class="row"></div>
         <div class="row">
           <div class="label center">Camera</div>
-          <div class="key">V</div>
-          <div class="key">B</div>
-          <div class="key">N</div>
-          <div class="key">M</div>
+          <div class="key" id="key-v" function="firstperson">V</div>
+          <div class="key" id="key-b" function="thirdperson">B</div>
+          <div class="key" id="key-n" function="isometric">N</div>
+          <div class="key" id="key-m" function="birdseye">M</div>
         </div>
       </div>
+      <nav class="enter-xr-button" id="mic-on-button" style="display: none;">Mic On</nav>
+      <nav class="enter-xr-button disabled" id="mic-off-button">Mic Off</nav>
       <nav class="enter-xr-button" id="enter-xr-button" style="display: none;">Enter XR</nav>
       <nav class="enter-xr-button disabled" id="no-xr-button">No XR</nav>
     </div>

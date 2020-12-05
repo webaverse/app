@@ -614,35 +614,6 @@ const _connectRoom = async (roomName, worldURL) => {
       }
     });
 
-     const _latchMediaStream = async () => {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-      const track = mediaStream.getAudioTracks()[0];
-      track.addEventListener('ended', async e => {
-        await channelConnection.setMicrophoneMediaStream(null);
-      });
-      await channelConnection.setMicrophoneMediaStream(mediaStream);
-    };
-
-    const micButton = document.getElementById('mic-button');
-    micButton.addEventListener('click', async e => {
-      micButton.classList.toggle('enabled');
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-      if (micButton.classList.contains('enabled')) {
-        rigManager.localRig.setMicrophoneMediaStream(mediaStream);
-        _latchMediaStream();
-      } else {
-        rigManager.localRig.setMicrophoneMediaStream(null);
-        const tracks = mediaStream.getAudioTracks();
-        for (const track of tracks) {
-          track.stop();
-        }
-      }
-    });
-
     channelConnection.dialogClient.addEventListener('peerEdit', e => {
       console.log(e);
       world.onRemoteSubparcelsEdit(e.data.keys);
@@ -1023,7 +994,50 @@ world.update = () => {
   _updateObjectsGrab();
 };
 
-const button = document.getElementById('connectButton');
+const _latchMediaStream = async () => {
+  const mediaStream = await navigator.mediaDevices.getUserMedia({
+    audio: true,
+  });
+  const track = mediaStream.getAudioTracks()[0];
+  track.addEventListener('ended', async e => {
+    if (channelConnection) {
+      await channelConnection.setMicrophoneMediaStream(null);
+    }
+  });
+  if (channelConnection) {
+    await channelConnection.setMicrophoneMediaStream(mediaStream);
+  }
+};
+
+const micOffButton = document.getElementById('mic-off-button');
+const micOnButton = document.getElementById('mic-on-button');
+[micOffButton, micOnButton].forEach(button => {
+  button.addEventListener('click', async e => {
+    const enable = button === micOffButton;
+    if (enable) {
+      micOffButton.style.display = 'none';
+      micOnButton.style.display = null;
+    } else {
+      micOffButton.style.display = null;
+      micOnButton.style.display = 'none';
+    }
+    const mediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    });
+    if (enable) {
+      rigManager.localRig.setMicrophoneMediaStream(mediaStream);
+      _latchMediaStream();
+    } else {
+      rigManager.localRig.setMicrophoneMediaStream(null);
+      const tracks = mediaStream.getAudioTracks();
+      for (const track of tracks) {
+        track.stop();
+      }
+    }
+  });
+});
+
+// const button = document.getElementById('connectButton');
 world.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   roomName = rn;
   if (online) {
@@ -1040,7 +1054,7 @@ world.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   // await _loadStorage(roomName);
   await _loadLiveState(roomName);
 };
-document.getElementById('connectButton').addEventListener('click', async (e) => {
+/* document.getElementById('connectButton').addEventListener('click', async (e) => {
   e.preventDefault();
   e.stopPropagation();
   if (channelConnectionOpen) { // disconnect case
@@ -1060,4 +1074,4 @@ document.getElementById('connectButton').addEventListener('click', async (e) => 
       location.search = `?u=${json.id}.worlds.webaverse.com`;
     }
   }
-});
+}); */
