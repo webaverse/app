@@ -442,7 +442,7 @@ class RigManager {
     this.smoothVelocity.lerp(positionDiff, 0.5);
     this.lastPosition.copy(currentPosition);
 
-    this.localRig.setTopEnabled(!!session || /^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()));
+    this.localRig.setTopEnabled(!!session || /^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()) || physicsManager.getGlideState());
     this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
     this.localRig.direction.copy(positionDiff);
     this.localRig.velocity.copy(this.smoothVelocity);
