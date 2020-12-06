@@ -4,6 +4,13 @@ import {scene} from './app-object.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localBox = new THREE.Box3();
+
+const blueColor = 0x42a5f5;
+const greenColor = 0xaed581;
+
 let skybox;
 {
   const effectController = {
@@ -40,20 +47,36 @@ let skybox;
   skybox.update();
   scene.add(skybox);
 }
-const universeSpec = [{
+const universeSpecs = [{
   extents: [
     0, 0, -10 - 4,
     10, 3, -4,
   ],
 }];
-universeSpec.forEach(spec => {
-  const guardianMesh = GuardianMesh(spec.extents, 0x42a5f5);
-  scene.add(guardianMesh);
+const worldSpecs = universeSpecs.map(spec => {
+  const guardianMesh = GuardianMesh(spec.extents, blueColor);
+  return guardianMesh;
 });
+for (const worldSpec of worldSpecs) {
+	scene.add(worldSpec);
+}
 
 const update = () => {
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
+
+  for (const worldSpec of worldSpecs) {
+    worldSpec.material.uniforms.uColor.value.setHex(blueColor);
+  }
+
+  const intersectionIndex = universeSpecs.findIndex(spec =>
+  	localBox.set(localVector.fromArray(spec.extents, 0), localVector2.fromArray(spec.extents, 3))
+  	  .containsPoint(rigManager.localRig.inputs.hmd.position)
+  );
+  if (intersectionIndex !== -1) {
+    const worldSpec = worldSpecs[intersectionIndex];
+    worldSpec.material.uniforms.uColor.value.setHex(greenColor);
+  }
 };
 
 export {
