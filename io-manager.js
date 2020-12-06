@@ -321,13 +321,11 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
-    /* case 70: { // F
+    case 70: { // F
       // pe.grabdown('right');
-      if (document.pointerLockElement) {
-        ioManager.currentWeaponGrabs[0] = true;
-      }
+      physicsManager.setFlyState(!physicsManager.getFlyState());
       break;
-    } */
+    }
     case 86: { // V
       if (!_inputFocused()) {
         e.preventDefault();
@@ -371,7 +369,7 @@ window.addEventListener('keydown', e => {
         if (!physicsManager.getJumpState()) {
           physicsManager.jump();
         } else {
-          physicsManager.setGlide(!physicsManager.getGlideState());
+          physicsManager.setGlide(!physicsManager.getGlideState() && !physicsManager.getFlyState());
         }
       }
       break;
