@@ -955,7 +955,7 @@ world.addEventListener('trackedobjectadd', async e => {
         pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer});
       }
       if (document.monetization && trackedObjectJson.instanceId) {
-          window.document[`monetization${trackedObjectJson.instanceId}`].dispatchEvent(new Event('monetizationstart'));
+    //      window.document[`monetization${trackedObjectJson.instanceId}`].dispatchEvent(new Event('monetizationstart'));
       }
 
       let address;
@@ -964,7 +964,8 @@ world.addEventListener('trackedobjectadd', async e => {
         address = await web3['main'].eth.getAccounts();
         address = address[0];
         if (token.owner.address === address) {
-          window.document[`monetization${trackedObjectJson.instanceId}`].dispatchEvent(new Event('monetizationstart'));
+            console.log("owner of NFT!!!!"); // DEBUGGING xxx
+     //     window.document[`monetization${trackedObjectJson.instanceId}`].dispatchEvent(new Event('monetizationstart'));
         }
       }
 
