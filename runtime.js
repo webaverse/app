@@ -549,11 +549,12 @@ const _loadWebBundle = async (file, opts, instanceId) => {
   };
   const _mapScript = script => {
     if (instanceId) {
+      script = script.replace("document.monetization", `window.document.monetization${instanceId}`);
+      script = script.replace("document.monetization.addEventListener", `window.document.monetization${instanceId}.addEventListener`);
       script = `
-        document.monetization${instanceId} = document.createElement('div'); 
+        window.document.monetization${instanceId} = window.document.createElement('div');
       ` + script; 
     }
-    script = script.replace("document.monetization", `document.monetization${instanceId}`);
     const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
     script = script.replace(r, function() {
       const u = _mapUrl(arguments[2]);
