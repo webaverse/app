@@ -339,7 +339,7 @@ const _loadImg = async file => {
 };
 const _makeAppUrl = appId => {
   const s = `\
-    import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
+    import {renderer as _renderer, scene, camera, appManager} from ${JSON.stringify(importMap.app)};
     import runtime from ${JSON.stringify(importMap.runtime)};
     import {world} from ${JSON.stringify(importMap.world)};
     import physics from ${JSON.stringify(importMap.physicsManager)};
@@ -364,7 +364,7 @@ const _makeAppUrl = appId => {
         rigManager.localRig.model.visible = false;
       }
     };
-    export {renderer, scene, camera, orbitControls, runtime, world, physics, ui, crypto, app, appManager};
+    export {renderer, scene, camera, runtime, world, physics, ui, crypto, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
