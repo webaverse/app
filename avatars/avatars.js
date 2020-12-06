@@ -202,7 +202,7 @@ animations.forEach(animation => {
       case 'jump.fbx':
       case 'falling.fbx':
       case 'falling idle.fbx':
-      case 'falling idle.fbx':
+      case 'falling landing.fbx':
         return 'jump';
       default:
         return null;
