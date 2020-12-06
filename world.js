@@ -43,7 +43,7 @@ const rotatePointers = () => {
       if (pointers.length <= 0 || !document.monetization) return;
 
       //console.log('CURRENT POINTER ROTATION --', currentIndex, "instanceId: ", pointers[currentIndex].instanceId, "current pointer:", pointers[currentIndex].monetizationPointer, "time: ", new Date().toLocaleTimeString());
-      console.log("array of monetizationPointers:", JSON.stringify(pointers));
+     // console.log("array of monetizationPointers:", JSON.stringify(pointers));
   
       if (!document.querySelector("meta[name=monetization]")) {
         const monetizationTag = document.createElement('meta');
@@ -62,6 +62,23 @@ const rotatePointers = () => {
         });
       } else if (document.querySelector("meta[name=monetization]")) {
         document.querySelector("meta[name=monetization]").setAttribute("content", pointers[currentIndex].monetizationPointer);
+        document.monetization.addEventListener('monetizationstart', (e) => {
+          console.log("could dispatch event now");
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+
+          const detail = e.detail;
+          console.log("dispatching event with detail:", detail);
+          detail.instanceId = pointers[currentIndex].instanceId;
+          document.monetizationdispatchEvent(
+            new CustomEvent("monetizationstart", {
+              detail: {
+                ...detail,
+              },
+            }),
+          );  
+        });
       }
 
       if (currentIndex >= pointers.length - 1) {
@@ -839,7 +856,8 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
   });
 };
 setTimeout(() => {
-  world.addObject(31, null, new THREE.Vector3(0, 2, -10), new THREE.Quaternion());
+  world.addObject(37, null, new THREE.Vector3(0, 2, -2), new THREE.Quaternion());
+  world.addObject(35, null, new THREE.Vector3(0, 2, -2), new THREE.Quaternion());
 }, 5000);
 world.removeObject = removeInstanceId => {
   state.transact(() => {
@@ -932,7 +950,7 @@ world.addEventListener('trackedobjectadd', async e => {
     }
   })();
   if (file) {
-    let mesh = await runtime.loadFile(file, options, trackedObjectJson.instanceId);
+    let mesh = await runtime.loadFile(file, options, instanceId);
     if (mesh) {
       mesh.position.fromArray(position);
       mesh.quaternion.fromArray(quaternion);
@@ -954,25 +972,23 @@ world.addEventListener('trackedobjectadd', async e => {
         const monetizationPointer = token.owner.monetizationPointer;
         pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer});
       }
-      if (document.monetization && trackedObjectJson.instanceId) {
+      if (document.monetization && instanceId) {
+        console.log("dispatching event monetization enabled with instanceid:", instanceId);
         const ev = new CustomEvent('monetizationstart', {
           detail: {
-            instanceId: trackedObjectJson.instanceId
+            instanceId: instanceId
           }
         });
         window.document.monetization.dispatchEvent(ev);
-      }
-
-      let address;
-      if (window.ethereum) {
+      } else if (window.ethereum) {
         await window.ethereum.enable();
-        address = await web3['main'].eth.getAccounts();
+        let address = await web3['main'].eth.getAccounts();
         address = address[0];
         if (token.owner.address === address) {
           console.log("owner of NFT!!!!"); // DEBUGGING xxx
           const ev = new CustomEvent('monetizationstart', {
             detail: {
-              instanceId: trackedObjectJson.instanceId
+              instanceId: instanceId
             }
           });
           window.document.monetization.dispatchEvent(ev);

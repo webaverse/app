@@ -49,7 +49,6 @@ const importMap = {
   physicsManager: _importMapUrl('./physics-manager.js'),
   rig: _importMapUrl('./rig.js'),
   vrUi: _importMapUrl('./vr-ui.js'),
-  monetization: _importMapUrl('./monetization.js'),
   crypto: _importMapUrl('./crypto.js'),
   BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
   GLTFLoader: _importMapUrl('./GLTFLoader.js'),
@@ -339,6 +338,7 @@ const _loadImg = async file => {
   return mesh;
 };
 const _makeAppUrl = (appId, instanceId) => {
+  console.log("_makeAppUrl passing instanceId:", instanceId);
   const s = `\
     import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
     import runtime from ${JSON.stringify(importMap.runtime)};
@@ -347,9 +347,48 @@ const _makeAppUrl = (appId, instanceId) => {
     import {rigManager} from ${JSON.stringify(importMap.rig)};
     import * as ui from ${JSON.stringify(importMap.vrUi)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
-    import monetization from ${JSON.stringify(importMap.monetization)};
 
-    monetization("${instanceId}");
+    const instanceId = "${instanceId}";
+    if (instanceId && instanceId != "" && instanceId != "undefined") {
+      /* Handle Default Web Monetization Events */
+      const monetizationStartHandler = (e) => {
+        let INSTANCE_ID = "${instanceId}";
+        console.log("INSTANCE_ID=", INSTANCE_ID);
+    
+        if (!e.detail.instanceId) {
+          console.log("stopped propagrating 1");
+          e.stopPropagation();
+        } else if (e.detail.instanceId === INSTANCE_ID) {
+          console.log(e.detail.instanceId, "matches", INSTANCE_ID);
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        } else {
+          console.log("stopped propagrating 2");
+          e.stopPropagation();
+        }
+      }
+      const monetizationStopHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      }
+      const monetizationPendingHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      }
+      const monetizationProgressHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      }
+      if (document.monetization) {
+        document.monetization.addEventListener('monetizationstart', e => { monetizationStartHandler(e) })
+        document.monetization.addEventListener('monetizationstop', e => { monetizationStopHandler(e) })
+        document.monetization.addEventListener('monetizationpending', e => { monetizationPendingHandler(e) })
+        document.monetization.addEventListener('monetizationprogress', e => { monetizationProgressHandler(e) })
+      }
+    }
 
     const renderer = Object.create(_renderer);
     renderer.setAnimationLoop = function(fn) {
@@ -369,7 +408,7 @@ const _makeAppUrl = (appId, instanceId) => {
         rigManager.localRig.model.visible = false;
       }
     };
-    export {renderer, scene, camera, orbitControls, runtime, world, physics, ui, monetization, crypto, app, appManager};
+    export {renderer, scene, camera, orbitControls, runtime, world, physics, ui, crypto, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',

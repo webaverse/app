@@ -1,47 +1,44 @@
-  export default (instanceId) => {
-    if (!instanceId) { return; }
+export default (instanceId) => {
+  if (!instanceId) { return; }
 
-    const monetizationStartHandler = (e) => {
-      console.log("e:", e.detail);
-      console.log("instanceId:", instanceId);
+  /* Handle Default Web Monetization Events */
+  const monetizationStartHandler = (e) => {
+    const INSTANCE_ID = instanceId;
 
-      if (e.detail.instanceId === instanceId) {
-        console.log("!!! starting monetization id=", instanceId);
-      } else {
-        console.log("no id -- but starting monetization id=", instanceId);
-      }
+    if (!e.detail.instanceId) {
+      console.log("stopped");
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
+    } else if (e.detail.instanceId === INSTANCE_ID) {
+      console.log("matches id----");
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    } else {
+      console.log("final else INSTANCE_ID:", INSTANCE_ID, "e.detail.instanceId:", e.detail.instanceId);
+      e.stopPropagation();
+      e.stopImmediatePropagation();
     }
-    const monetizationStopHandler = (e) => {
-      if (e.instanceId === instanceId) {
-
-      } else {
-
-      }
-    }
-    const monetizationPendingHandler = (e) => {
-      if (e.instanceId === instanceId) {
-
-      } else {
-
-      }
-    }
-    const monetizationProgressHandler = (e) => {
-      if (e.instanceId === instanceId) {
-
-      } else {
-
-      }
-    }
-
-    if (!document.monetization) {
-      document.monetization = document.createElement('div');
-    }
-
+  }
+  const monetizationStopHandler = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+  }
+  const monetizationPendingHandler = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+  }
+  const monetizationProgressHandler = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+  }
+  if (document.monetization) {
     document.monetization.addEventListener('monetizationstart', e => { monetizationStartHandler(e) })
     document.monetization.addEventListener('monetizationstop', e => { monetizationStopHandler(e) })
     document.monetization.addEventListener('monetizationpending', e => { monetizationPendingHandler(e) })
     document.monetization.addEventListener('monetizationprogress', e => { monetizationProgressHandler(e) })
   }
+}
