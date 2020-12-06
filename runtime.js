@@ -338,7 +338,7 @@ const _loadImg = async file => {
   mesh.frustumCulled = false;
   return mesh;
 };
-const _makeAppUrl = appId => {
+const _makeAppUrl = (appId, instanceId) => {
   const s = `\
     import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
     import runtime from ${JSON.stringify(importMap.runtime)};
@@ -346,8 +346,11 @@ const _makeAppUrl = appId => {
     import physics from ${JSON.stringify(importMap.physicsManager)};
     import {rigManager} from ${JSON.stringify(importMap.rig)};
     import * as ui from ${JSON.stringify(importMap.vrUi)};
-    import * as monetization from ${JSON.stringify(importMap.monetization)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
+    import monetization from ${JSON.stringify(importMap.monetization)};
+
+    monetization("${instanceId}");
+
     const renderer = Object.create(_renderer);
     renderer.setAnimationLoop = function(fn) {
       appManager.setAnimationLoop(${appId}, fn);
@@ -465,7 +468,7 @@ const _loadScript = async file => {
   return mesh;
 };
 let appIds = 0;
-const _loadWebBundle = async (file) => {
+const _loadWebBundle = async (file, opts, instanceId) => {
   let arrayBuffer;
 
   if (file.url) {
@@ -509,7 +512,7 @@ const _loadWebBundle = async (file) => {
   const app = appManager.createApp(appId);
   app.object = mesh;
   const localImportMap = _clone(importMap);
-  localImportMap.app = _makeAppUrl(appId);
+  localImportMap.app = _makeAppUrl(appId, instanceId);
 
   const cachedUrls = [];
   const _getUrl = u => {
@@ -821,7 +824,7 @@ const _loadIframe = async (file, opts) => {
   return object2;
 };
 
-runtime.loadFile = async (file, opts) => {
+runtime.loadFile = async (file, opts, instanceId) => {
   switch (getExt(file.name)) {
     case 'gltf':
     case 'glb': {
@@ -842,7 +845,7 @@ runtime.loadFile = async (file, opts) => {
       return await _loadScript(file, opts);
     }
     case 'wbn': {
-      return await _loadWebBundle(file, opts);
+      return await _loadWebBundle(file, opts, instanceId);
     }
     case 'scn': {
       return await _loadScn(file, opts);
