@@ -1,4 +1,4 @@
-import { React, useEffect, useContext } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { React, useEffect, useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '/web_modules/htm.js';
 import AssetCardGrid from './AssetCardGrid.js'
 import csz from '../web_modules/csz.js'
@@ -11,16 +11,18 @@ const html = htm.bind(React.createElement)
 
 const Profile = ({userAddress}) => {
   const {state, dispatch} = useContext(Context);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     console.log("Rendering my profile");
-    dispatch({ type: ActionTypes.GetProfileForCreator, payload: { address: state.address } });
+    dispatch({ type: ActionTypes.GetProfileForCreator, payload: { address: userAddress } });
     console.log(state.creatorProfiles);
   }, [])
 
     return html`
-    <div className=${styles}>
+    <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
     ${userAddress && state.creatorProfiles[userAddress] && html`
+    <div className=${styles}>
         <div className="profileHeader">
           <div className="homespaceBannerImage"><img src="${state.creatorProfiles[userAddress].homeSpacePreview}" /></div>
           <div className="avatarImage"><img src="${state.creatorProfiles[userAddress].avatarPreview}" /></div>
@@ -35,11 +37,12 @@ const Profile = ({userAddress}) => {
             <span className="profileInventory"><a href="#">Inventory</a></span>
           </div>
           <div className="profileBodyAssets">
-            <${AssetCardGrid} data=${state.creatorProfiles[userAddress].tokens} cardSize='medium' />
+            <${AssetCardGrid} data=${state.creatorInventories[userAddress][currentPage]} cardSize='medium' />
           </div>
         </div>
-        `}
         </div>
+        `}
+        <//>
     `;
   };
 

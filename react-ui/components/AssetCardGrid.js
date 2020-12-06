@@ -11,13 +11,7 @@ const AssetCardGrid = ({
   data,
   cardSize
 }) => {
-  console.log("data is")
-  console.log(data);
-  data.map(asset => {
-    console.log("Asset is ");
-    console.log(asset);
-  }
-  )
+  console.log("Data is", data);
     return html`
       <div className="${styles} ${cardSize}">
         ${data.map(asset => html`
