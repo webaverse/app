@@ -366,7 +366,7 @@ const _makeAppUrl = appId => {
         rigManager.localRig.model.visible = false;
       }
     };
-    export {renderer, scene, camera, orbitControls, runtime, world, physics, ui, crypto, app, appManager};
+    export {renderer, scene, camera, orbitControls, runtime, world, physics, ui, monetization, crypto, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
