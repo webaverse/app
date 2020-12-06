@@ -1,7 +1,7 @@
 import { React, ReactDOM, useEffect, useReducer, useState } from 'https://unpkg.com/es-react/dev';
 import ActionTypes from './constants/ActionTypes.js';
 import { Context } from './constants/Context.js';
-import { copyAddress, copyPrivateKey, getBooths, getInventoryForCreator, getProfileForCreator, initializeStart, loginWithEmailCode, loginWithEmailOrPrivateKey, logout, requestTokenByEmail, setAvatar, setFtu, setHomespace, setLoadoutState, setUsername, uploadFile } from './functions/ReducerFunctions.js';
+import { copyAddress, copyPrivateKey, getBooths, getCreators, getInventoryForCreator, getProfileForCreator, initializeStart, loginWithEmailCode, loginWithEmailOrPrivateKey, logout, requestTokenByEmail, setAvatar, setFtu, setHomespace, setLoadoutState, setUsername, uploadFile } from './functions/ReducerFunctions.js';
 import NavBar from './components/NavBar.js';
 
 import htm from './web_modules/htm.js';
@@ -23,6 +23,8 @@ const initialValues = {
   inventory: null,
   creatorProfiles: {},
   creatorInventories: {},
+  creators: {},
+  booths: {},
   lastFileHash: null,
   lastFileId: null
 };
@@ -63,7 +65,7 @@ const Application = () => {
 
 
       case ActionTypes.GetCreators:
-        getCreators.then(newState => {
+        getCreators(action.payload.page, state).then(newState => {
           dispatch({ type: ActionTypes.GetCreators.concat('End'), payload: { state: newState } });
         });
         return state;

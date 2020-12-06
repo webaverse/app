@@ -166,6 +166,17 @@ export const getBooths = async (page, state) => {
   return await getInventoryForCreator(creatorAddress, 1, newState);
 };
 
+export const getCreators = async (page, state) => {
+  // Use cached page
+  if (state.creators[page] !== undefined) return state;
+
+  const res = await fetch(`https://accounts.webaverse.com/`);
+  const creators = await res.json();
+  let newState = { ...state };
+  newState.creators[page] = creators;
+  return newState;
+};
+
 export const uploadFile = async (file, state) => {
   if (!state.loginToken)
     throw new Error('not logged in');

@@ -1,17 +1,34 @@
-import { React, useEffect } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { React, useEffect, useState, useContext } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '/web_modules/htm.js';
+import ActionTypes from '../constants/ActionTypes.js';
+import css from '../web_modules/csz.js';
+const styles = css`/components/CreatorsPage.css`
+import { Context } from '../constants/Context.js';
 
-import MockCreatorData from '../mock/CreatorsData.js'
 import CreatorCardGrid from '../components/CreatorCardGrid.js'
 
 const html = htm.bind(React.createElement)
-const creatorData = MockCreatorData
 
 const CreatorsPage = () => {
+  const {state, dispatch} = useContext(Context);
+  const [currentPage, setCurrentPage] = useState(1);
+
+
+  useEffect(() => {
+    console.log("Rendering creators");
+    dispatch({ type: ActionTypes.GetCreators, payload: { page: currentPage } });
+  }, [])
+  // Get Creators
+
     return html`
-      <div>
-        <${CreatorCardGrid} creatorData=${creatorData} />
-      </div>
+    <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
+    ${state.creators[currentPage] && html`
+     <div className=${styles}>
+        <${CreatorCardGrid} creatorData=${state.creators[currentPage]} />
+        </div>
+      `}
+    <//>
+
     `;
   };
 
