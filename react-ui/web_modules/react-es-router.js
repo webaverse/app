@@ -49,8 +49,6 @@ export const Link = ({ to, children, element = "a", ...rest }) => {
 };
 
 export const Route = ({ component, path, ...rest }) => {
-  console.log("Component is ")
-  console.log(component);
   return React.createElement(
     "div",
     {
