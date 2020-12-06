@@ -1,5 +1,5 @@
 import * as THREE from './three.module.js';
-import {renderer, renderer2, camera, dolly} from './app-object.js';
+import {renderer, renderer2, camera, avatarCamera, dolly} from './app-object.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import weaponsManager from './weapons-manager.js';
@@ -36,6 +36,8 @@ ioManager.keys = {
   left: false,
   right: false,
   shift: false,
+  space: false,
+  ctrl: false,
 };
 const resetKeys = () => {
   for (const k in ioManager.keys) {
@@ -87,7 +89,7 @@ const _updateIo = (timeDiff, frame) => {
             dolly.matrix
               // .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
               .premultiply(localMatrix3.makeTranslation(localVector3.x, localVector3.y, localVector3.z))
-              // .premultiply(localMatrix2.getInverse(localMatrix2))
+              // .premultiply(localMatrix2.copy(localMatrix2).invert())
               .decompose(dolly.position, dolly.quaternion, dolly.scale);
             ioManager.currentWalked = true;
           }
@@ -98,7 +100,7 @@ const _updateIo = (timeDiff, frame) => {
             dolly.matrix
               .premultiply(localMatrix2.makeTranslation(-xrCamera.position.x, -xrCamera.position.y, -xrCamera.position.z))
               .premultiply(localMatrix3.makeRotationFromQuaternion(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), r)))
-              .premultiply(localMatrix2.getInverse(localMatrix2))
+              .premultiply(localMatrix2.copy(localMatrix2).invert())
               .decompose(dolly.position, dolly.quaternion, dolly.scale);
           };
           if (
@@ -166,22 +168,37 @@ const _updateIo = (timeDiff, frame) => {
     } */
   } else if (document.pointerLockElement) {
     const speed = 100 * (ioManager.keys.shift ? 3 : 1);
-    const cameraEuler = camera.rotation.clone();
-    cameraEuler.x = 0;
-    cameraEuler.z = 0;
     localVector.set(0, 0, 0);
+    const direction = new THREE.Vector3(0, 0, 0);
     if (ioManager.keys.left) {
-      localVector.add(new THREE.Vector3(-1, 0, 0).applyEuler(cameraEuler));
+      direction.x -= 1;
     }
     if (ioManager.keys.right) {
-      localVector.add(new THREE.Vector3(1, 0, 0).applyEuler(cameraEuler));
+      direction.x += 1;
     }
     if (ioManager.keys.up) {
-      localVector.add(new THREE.Vector3(0, 0, -1).applyEuler(cameraEuler));
+      direction.z -= 1;
     }
     if (ioManager.keys.down) {
-      localVector.add(new THREE.Vector3(0, 0, 1).applyEuler(cameraEuler));
+      direction.z += 1;
     }
+    const flyState = physicsManager.getFlyState();
+    if (flyState) {
+      direction.applyQuaternion(camera.quaternion);
+      
+      if (ioManager.keys.space) {
+        direction.y += 1;
+      }
+      if (ioManager.keys.ctrl) {
+        direction.y -= 1;
+      }
+    } else {  
+      const cameraEuler = camera.rotation.clone();
+      cameraEuler.x = 0;
+      cameraEuler.z = 0;
+      direction.applyEuler(cameraEuler);
+    }
+    localVector.add(direction);
     if (localVector.length() > 0) {
       localVector.normalize().multiplyScalar(speed * timeDiff);
 
@@ -190,6 +207,9 @@ const _updateIo = (timeDiff, frame) => {
       if (physicsManager.getJumpState()) {
         physicsManager.velocity.x *= 0.7;
         physicsManager.velocity.z *= 0.7;
+        if (flyState) {
+          physicsManager.velocity.y *= 0.7;
+        }
       }
     }
   }
@@ -212,233 +232,208 @@ window.addEventListener('keydown', e => {
   if (e.repeat) {
     return;
   }
-  if (weaponsManager.getMenu() && document.pointerLockElement) {
-    if (/^[a-z0-9]$/i.test(e.key)) {
-      if (e.ctrlKey || e.metaKey) {
-        switch (e.which) {
-          case 65: { // a
-            e.preventDefault();
-            e.stopPropagation();
-            weaponsManager.menuSelectAll();
-            break;
-          }
-          case 8: { // backspace
-            weaponsManager.menuKey('\b');
-            break;
-          }
-        }
-      } else {
-        weaponsManager.menuKey(e.key);
-      }
-    } else {
-      switch (e.which) {
-        case 9: { // tab
-          e.preventDefault();
-          e.stopPropagation();
-          weaponsManager.setMenu(false);
-          // uiManager.menuMesh.toggleOpen();
-          // ioManager.menuExpanded = !ioManager.menuExpanded;
-          break;
-        }
-        case 8: { // backspace
-          weaponsManager.menuKey('\b');
-          break;
-        }
-        case 38: { // up
-          weaponsManager.menuVertical(-1);
-          break;
-        }
-        case 40: { // down
-          weaponsManager.menuVertical(1);
-          break;
-        }
-        case 37: { // left
-          weaponsManager.menuHorizontal(-1, e.shiftKey);
-          break;
-        }
-        case 39: { // right
-          weaponsManager.menuHorizontal(1, e.shiftKey);
-          break;
-        }
-        case 13: { // enter
-          weaponsManager.menuEnter();
-          break;
-        }
-      }
+  switch (e.which) {
+    case 9: { // tab
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('key-tab').click();
+      break;
     }
-  } else {
-    switch (e.which) {
-      case 9: { // tab
+    /* case 9: { // tab
+        e.preventDefault();
+      e.stopPropagation();
+      weaponsManager.setMenu(false);
+      // uiManager.menuMesh.toggleOpen();
+      // ioManager.menuExpanded = !ioManager.menuExpanded;
+      break;
+    } */
+    case 8: { // backspace
+      // weaponsManager.menuKey('\b');
+      e.preventDefault();
+      e.stopPropagation();
+      weaponsManager.menuDelete();
+      break;
+    }
+    /* case 38: { // up
+      weaponsManager.menuVertical(-1);
+      break;
+    }
+    case 40: { // down
+      weaponsManager.menuVertical(1);
+      break;
+    }
+    case 37: { // left
+      weaponsManager.menuHorizontal(-1, e.shiftKey);
+      break;
+    }
+    case 39: { // right
+      weaponsManager.menuHorizontal(1, e.shiftKey);
+      break;
+    } */
+    case 13: { // enter
+      e.preventDefault();
+      e.stopPropagation();
+      weaponsManager.menuEnter();
+      break;
+    }
+    /* case 49: { // 1
+      if (document.pointerLockElement) {
+        const selectedWeapon = weaponsManager.getWeapon();
+        let index = weaponsManager.weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
+        index--;
+        if (index < 0) {
+          index = weaponsManager.weapons.length - 1;
+        }
+        weaponsManager.weapons[index].click();
+      }
+      break;
+    }
+    case 50: { // 2
+      if (document.pointerLockElement) {
+        const selectedWeapon = weaponsManager.getWeapon();
+        let index = weaponsManager.weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
+        index++;
+        if (index >= weaponsManager.weapons.length) {
+          index = 0;
+        }
+        weaponsManager.weapons[index].click();
+      }
+      break;
+    } */
+    case 87: { // W
+      if (document.pointerLockElement) {
+        ioManager.keys.up = true;
+      }
+      break;
+    }
+    case 65: { // A
+      if (document.pointerLockElement) {
+        ioManager.keys.left = true;
+      }
+      break;
+    }
+    case 83: { // S
+      if (document.pointerLockElement) {
+        ioManager.keys.down = true;
+      }
+      break;
+    }
+    case 68: { // D
+      if (document.pointerLockElement) {
+        ioManager.keys.right = true;
+      }
+      break;
+    }
+    case 82: { // R
+      if (document.pointerLockElement) {
+        // pe.equip('back');
+      /* } else {
+        if (selectTarget && selectTarget.control) {
+          selectTarget.control.setMode('scale');
+        } */
+      }
+      break;
+    }
+    case 69: { // E
+      // pe.grabdown('right');
+      if (document.pointerLockElement) {
+        ioManager.currentWeaponGrabs[0] = true;
+      }
+      break;
+    }
+    case 70: { // F
+      // pe.grabdown('right');
+      physicsManager.setFlyState(!physicsManager.getFlyState());
+      break;
+    }
+    case 86: { // V
+      if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        weaponsManager.setMenu(true);
-        break;
+        document.getElementById('key-v').click();
       }
-      case 49: { // 1
-        if (document.pointerLockElement) {
-          const selectedWeapon = weaponsManager.getWeapon();
-          let index = weaponsManager.weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
-          index--;
-          if (index < 0) {
-            index = weaponsManager.weapons.length - 1;
-          }
-          weaponsManager.weapons[index].click();
-        }
-        break;
-      }
-      case 50: { // 2
-        if (document.pointerLockElement) {
-          const selectedWeapon = weaponsManager.getWeapon();
-          let index = weaponsManager.weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
-          index++;
-          if (index >= weaponsManager.weapons.length) {
-            index = 0;
-          }
-          weaponsManager.weapons[index].click();
-        }
-        break;
-      }
-      case 87: { // W
-        if (document.pointerLockElement) {
-          ioManager.keys.up = true;
-        }
-        break;
-      }
-      case 65: { // A
-        if (document.pointerLockElement) {
-          ioManager.keys.left = true;
-        }
-        break;
-      }
-      case 83: { // S
-        if (document.pointerLockElement) {
-          ioManager.keys.down = true;
-        }
-        break;
-      }
-      case 68: { // D
-        if (document.pointerLockElement) {
-          ioManager.keys.right = true;
-        }
-        break;
-      }
-      case 82: { // R
-        if (document.pointerLockElement) {
-          // pe.equip('back');
-        /* } else {
-          if (selectTarget && selectTarget.control) {
-            selectTarget.control.setMode('scale');
-          } */
-        }
-        break;
-      }
-      case 70: { // F
-        // pe.grabdown('right');
-        if (document.pointerLockElement) {
-          ioManager.currentWeaponGrabs[0] = true;
-        }
-        break;
-      }
-      case 86: { // V
-        if (!_inputFocused()) {
-          e.preventDefault();
-          e.stopPropagation();
-          cameraManager.tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
-        }
-        break;
-      }
-      case 66: { // B
-        if (!_inputFocused()) {
-          e.preventDefault();
-          e.stopPropagation();
-          cameraManager.tools.find(tool => tool.getAttribute('tool') === 'thirdperson').click();
-        }
-        break;
-      }
-      case 78: { // N
-        if (!_inputFocused()) {
-          e.preventDefault();
-          e.stopPropagation();
-          cameraManager.tools.find(tool => tool.getAttribute('tool') === 'isometric').click();
-        }
-        break;
-      }
-      case 77: { // M
-        if (!_inputFocused()) {
-          e.preventDefault();
-          e.stopPropagation();
-          cameraManager.tools.find(tool => tool.getAttribute('tool') === 'birdseye').click();
-        }
-        break;
-      }
-      case 16: { // shift
-        if (document.pointerLockElement) {
-          ioManager.keys.shift = true;
-        }
-        break;
-      }
-      case 32: { // space
-        if (document.pointerLockElement) {
-          if (!physicsManager.getJumpState()) {
-            physicsManager.jump();
-          } else {
-            physicsManager.setGlide(!physicsManager.getGlideState());
-          }
-        }
-        break;
-      }
-      case 81: { // Q
-        weaponsManager.setWeaponWheel(true);
-        break;
-      }
-      /* case 69: { // E
-        weaponsManager.setMenu(true);
-        break;
-      } */
-      /* case 90: { // Z
-        if (document.pointerLockElement) {
-          document.querySelector('.weapon[weapon="build"]').click();
-          weaponsManager.buildMode = 'wall';
-        }
-        break;
-      }
-      case 88: { // X
-        if (document.pointerLockElement) {
-          document.querySelector('.weapon[weapon="build"]').click();
-          weaponsManager.buildMode = 'floor';
-        }
-        break;
-      }
-      case 67: { // C
-        if (document.pointerLockElement) {
-          document.querySelector('.weapon[weapon="build"]').click();
-          weaponsManager.buildMode = 'stair';
-        }
-        break;
-      } */
-      /* case 80: { // P
-        physics.resetObjectMesh(physicalMesh);
-        break;
-      } */
-      case 8: // backspace
-      case 46: // del
-      {
-        /* if (selectedObjectMeshes.length > 0) {
-            const oldSelectedObjectMeshes = selectedObjectMeshes;
-
-            _setHoveredObjectMesh(null);
-            _setSelectedObjectMesh(null, false);
-
-            const action = createAction('removeObjects', {
-              oldObjectMeshes: oldSelectedObjectMeshes,
-              container,
-              objectMeshes,
-            });
-            execute(action);
-          } */
-        break;
-      }
+      break;
     }
+    case 66: { // B
+      if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.getElementById('key-b').click();
+      }
+      break;
+    }
+    case 78: { // N
+      if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.getElementById('key-n').click();
+      }
+      break;
+    }
+    case 77: { // M
+      if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.getElementById('key-m').click();
+      }
+      break;
+    }
+    case 16: { // shift
+      if (document.pointerLockElement) {
+        ioManager.keys.shift = true;
+      }
+      break;
+    }
+    case 32: { // space
+      if (document.pointerLockElement) {
+        ioManager.keys.space = true;
+        if (!physicsManager.getJumpState()) {
+          physicsManager.jump();
+        } else {
+          physicsManager.setGlide(!physicsManager.getGlideState() && !physicsManager.getFlyState());
+        }
+      }
+      break;
+    }
+    case 17: { // ctrl
+      if (document.pointerLockElement) {
+        ioManager.keys.ctrl = true;
+      }
+      break;
+    }
+    case 81: { // Q
+      weaponsManager.setWeaponWheel(true);
+      break;
+    }
+    /* case 69: { // E
+      weaponsManager.setMenu(true);
+      break;
+    } */
+    /* case 90: { // Z
+      if (document.pointerLockElement) {
+        document.querySelector('.weapon[weapon="build"]').click();
+        weaponsManager.buildMode = 'wall';
+      }
+      break;
+    }
+    case 88: { // X
+      if (document.pointerLockElement) {
+        document.querySelector('.weapon[weapon="build"]').click();
+        weaponsManager.buildMode = 'floor';
+      }
+      break;
+    }
+    case 67: { // C
+      if (document.pointerLockElement) {
+        document.querySelector('.weapon[weapon="build"]').click();
+        weaponsManager.buildMode = 'stair';
+      }
+      break;
+    } */
+    /* case 80: { // P
+      physics.resetObjectMesh(physicalMesh);
+      break;
+    } */
   }
 });
 window.addEventListener('keyup', e => {
@@ -480,13 +475,32 @@ window.addEventListener('keyup', e => {
         }
         break;
       }
-      case 70: { // F
+      case 32: { // space
+        if (document.pointerLockElement) {
+          ioManager.keys.space = false;
+        }
+        break;
+      }
+      case 17: { // ctrl
+        if (document.pointerLockElement) {
+          ioManager.keys.ctrl = false;
+        }
+        break;
+      }
+      case 69: { // E
         // pe.grabup('right');
         if (document.pointerLockElement) {
           ioManager.currentWeaponGrabs[0] = false;
         }
         break;
       }
+      /* case 70: { // F
+        // pe.grabup('right');
+        if (document.pointerLockElement) {
+          ioManager.currentWeaponGrabs[0] = false;
+        }
+        break;
+      } */
       case 16: { // shift
         if (document.pointerLockElement) {
           ioManager.keys.shift = false;
@@ -552,36 +566,49 @@ window.addEventListener('mouseup', e => {
 });
 renderer.domElement.addEventListener('dblclick', e => {
   if (!document.pointerLockElement) {
-    cameraManager.tools.find(tool => tool.getAttribute('tool') === 'firstperson').click();
+    document.getElementById('key-v').click();
   }
 });
 document.addEventListener('pointerlockchange', e => {
   if (!document.pointerLockElement) {
-    setState({ pointerLock: false })
-    cameraManager.tools.find(tool => tool.getAttribute('tool') === 'camera').click();
-    document.dispatchEvent(new MouseEvent('mouseup'));
+    // setState({ pointerLock: false })
+    cameraManager.selectTool('camera');
+    // document.dispatchEvent(new MouseEvent('mouseup'));
   } else {
     setState({ pointerLock: true })
   }
 });
 window.addEventListener('resize', e => {
-  if (!renderer.xr.getSession()) {
+  // if (!renderer.xr.getSession()) {
+    if (renderer.xr.getSession()) {
+      renderer.xr.isPresenting = false;
+    }
+
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer2.setSize(window.innerWidth, window.innerHeight);
 
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-  }
+
+    avatarCamera.aspect = window.innerWidth / window.innerHeight;
+    avatarCamera.updateProjectionMatrix();
+    
+    if (renderer.xr.getSession()) {
+      renderer.xr.isPresenting = true;
+    }
+  // }
 });
 window.addEventListener('paste', async e => {
-  e.preventDefault();
-  const items = Array.from(e.clipboardData.items);
-  if (items.length > 0) {
-    let s = await new Promise((accept, reject) => {
-      items[0].getAsString(accept);
-    });
-    s = s.replace(/[\n\r]+/g, '').slice(0, 256);
-    weaponsManager.menuPaste(s);
+  if (!_inputFocused()) {
+    e.preventDefault();
+    const items = Array.from(e.clipboardData.items);
+    if (items.length > 0) {
+      let s = await new Promise((accept, reject) => {
+        items[0].getAsString(accept);
+      });
+      s = s.replace(/[\n\r]+/g, '').slice(0, 256);
+      weaponsManager.menuPaste(s);
+    }
   }
 });
 

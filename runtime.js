@@ -47,6 +47,7 @@ const importMap = {
   world: _importMapUrl('./world.js'),
   runtime: _importMapUrl('./runtime.js'),
   physicsManager: _importMapUrl('./physics-manager.js'),
+  rig: _importMapUrl('./rig.js'),
   vrUi: _importMapUrl('./vr-ui.js'),
   crypto: _importMapUrl('./crypto.js'),
   BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
@@ -338,10 +339,11 @@ const _loadImg = async file => {
 };
 const _makeAppUrl = appId => {
   const s = `\
-    import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
+    import {renderer as _renderer, scene, camera, appManager} from ${JSON.stringify(importMap.app)};
     import runtime from ${JSON.stringify(importMap.runtime)};
     import {world} from ${JSON.stringify(importMap.world)};
     import physics from ${JSON.stringify(importMap.physicsManager)};
+    import {rigManager} from ${JSON.stringify(importMap.rig)};
     import * as ui from ${JSON.stringify(importMap.vrUi)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
     const renderer = Object.create(_renderer);
@@ -349,7 +351,20 @@ const _makeAppUrl = appId => {
       appManager.setAnimationLoop(${appId}, fn);
     };
     const app = appManager.getApp(${appId});
-    export {renderer, scene, camera, orbitControls, runtime, world, physics, ui, crypto, app, appManager};
+    let recursion = 0;
+    app.onBeforeRender = () => {
+      recursion++;
+      if (recursion === 1) {
+        rigManager.localRig.model.visible = true;
+      }
+    };
+    app.onAfterRender = () => {
+      recursion--;
+      if (recursion === 0) {
+        rigManager.localRig.model.visible = false;
+      }
+    };
+    export {renderer, scene, camera, runtime, world, physics, ui, crypto, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
@@ -449,22 +464,28 @@ const _loadScript = async file => {
 };
 let appIds = 0;
 const _loadWebBundle = async file => {
-  const arrayBuffer = await new Promise((accept, reject) => {
-    const fr = new FileReader();
-    fr.onload = function() {
-      accept(this.result);
-    };
-    fr.onerror = reject;
-    fr.readAsArrayBuffer(file);
-  });
+  let arrayBuffer;
+  if (file.url) {
+    const res = await fetch(file.url);
+    arrayBuffer = await res.arrayBuffer();
+  } else {
+    arrayBuffer = await new Promise((accept, reject) => {
+      const fr = new FileReader();
+      fr.onload = function() {
+        accept(this.result);
+      };
+      fr.onerror = reject;
+      fr.readAsArrayBuffer(file);
+    });
+  }
 
   const appId = ++appIds;
-  const mesh = makeIconMesh();
-  mesh.geometry.boundingBox = new THREE.Box3(
+  const mesh = new THREE.Object3D(); // makeIconMesh();
+  /* mesh.geometry.boundingBox = new THREE.Box3(
     new THREE.Vector3(-1, -1/2, -0.1),
     new THREE.Vector3(1, 1/2, 0.1),
   );
-  mesh.frustumCulled = false;
+  mesh.frustumCulled = false; */
   mesh.run = () => {
     import(u)
       .then(() => {
@@ -545,7 +566,7 @@ const _loadWebBundle = async file => {
     });
     const blobUrl = URL.createObjectURL(b);
     const {pathname} = new URL(u);
-    app.files[pathname] = blobUrl;
+    app.files['.' + pathname] = blobUrl;
   }
   const u = _mapUrl(bundle.primaryURL);
 

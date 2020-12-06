@@ -1,12 +1,14 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
+import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+// import {MeshLine, MeshLineMaterial} from './MeshLine.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
-import {renderer, scene, dolly, appManager} from './app-object.js';
+import {renderer, scene, camera, dolly, appManager} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
-import physicsMananager from './physics-manager.js';
+import physicsManager from './physics-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -33,7 +35,73 @@ class RigManager {
 
     this.localRig.avatarUrl = null;
 
-    this.localRig.textMesh = makeTextMesh('Anonymous', undefined, 0.2, 'center', 'middle');
+    this.localRig.textMesh = makeTextMesh('Anonymous', undefined, 0.15, 'center', 'middle');
+    {
+      const geometry = new THREE.CircleBufferGeometry(0.1, 32);
+      const img = new Image();
+      img.src = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg`;
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        texture.needsUpdate = true;
+      };
+      img.onerror = err => {
+        console.warn(err.stack);
+      };
+      const texture = new THREE.Texture(img);
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+      });
+      const avatarMesh = new THREE.Mesh(geometry, material);
+      avatarMesh.position.x = -0.5;
+      avatarMesh.position.y = -0.02;
+      this.localRig.textMesh.add(avatarMesh);
+    }
+    {
+      const w = 1;
+      const h = 0.15;
+      const roundedRectShape = new THREE.Shape();
+      ( function roundedRect( ctx, x, y, width, height, radius ) {
+        ctx.moveTo( x, y + radius );
+        ctx.lineTo( x, y + height - radius );
+        ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
+        /* ctx.lineTo( x + radius + indentWidth, y + height );
+        ctx.lineTo( x + radius + indentWidth + indentHeight, y + height - indentHeight );
+        ctx.lineTo( x + width - radius - indentWidth - indentHeight, y + height - indentHeight );
+        ctx.lineTo( x + width - radius - indentWidth, y + height ); */
+        ctx.lineTo( x + width - radius, y + height );
+        ctx.quadraticCurveTo( x + width, y + height, x + width, y + height - radius );
+        ctx.lineTo( x + width, y + radius );
+        ctx.quadraticCurveTo( x + width, y, x + width - radius, y );
+        ctx.lineTo( x + radius, y );
+        ctx.quadraticCurveTo( x, y, x, y + radius );
+      } )( roundedRectShape, 0, 0, w, h, h/2 );
+
+      const extrudeSettings = {
+        steps: 2,
+        depth: 0,
+        bevelEnabled: false,
+        /* bevelEnabled: true,
+        bevelThickness: 0,
+        bevelSize: 0,
+        bevelOffset: 0,
+        bevelSegments: 0, */
+      };
+      const geometry = BufferGeometryUtils.mergeBufferGeometries([
+        new THREE.CircleBufferGeometry(0.13, 32)
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -0.02, -0.01)).toNonIndexed(),
+        new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.02)),
+      ]);
+      const material2 = new THREE.LineBasicMaterial({
+        color: 0xFFFFFF,
+        transparent: true,
+        opacity: 0.1,
+        side: THREE.DoubleSide,
+      });
+      const nametagMesh2 = new THREE.Mesh(geometry, material2);
+      this.localRig.textMesh.add(nametagMesh2);
+    }
     this.scene.add(this.localRig.textMesh);
 
     this.localRigMatrix = new THREE.Matrix4();
@@ -82,7 +150,7 @@ class RigManager {
       }
 
       if (oldRig.url === url) {
-        this.scene.remove(oldRig.model);
+        oldRig.model.parent.remove(oldRig.model);
 
         let localRig;
         if (o) {
@@ -109,7 +177,7 @@ class RigManager {
             debug: true,
           });
         }
-        this.scene.add(localRig.model);
+        scene.add(localRig.model);
         localRig.textMesh = oldRig.textMesh;
         localRig.avatarUrl = oldRig.url;
         localRig.rigCapsule = oldRig.rigCapsule;
@@ -152,8 +220,8 @@ class RigManager {
 
   async removePeerRig(peerId) {
     const peerRig = this.peerRigs.get(peerId);
-    this.scene.remove(peerRig.model);
-    this.scene.remove(peerRig.textMesh);
+    peerRig.model.parent.remove(peerRig.model);
+    peerRig.textMesh.parent.remove(peerRig.textMesh);
     this.peerRigs.delete(peerId);
   }
 
@@ -253,9 +321,7 @@ class RigManager {
     this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
     this.localRig.textMesh.position.y += 0.5;
     this.localRig.textMesh.quaternion.copy(this.localRig.inputs.hmd.quaternion);
-    localEuler.setFromQuaternion(this.localRig.textMesh.quaternion, 'YXZ');
-    localEuler.x = 0;
-    localEuler.y += Math.PI;
+    localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
     localEuler.z = 0;
     this.localRig.textMesh.quaternion.setFromEuler(localEuler);
   }
@@ -355,13 +421,14 @@ class RigManager {
   }
 
   update() {
+    const session = renderer.xr.getSession();
     let currentPosition, currentQuaternion;
-    if (!renderer.xr.getSession()) {
+    if (!session) {
       currentPosition = this.localRig.inputs.hmd.position;
       currentQuaternion = this.localRig.inputs.hmd.quaternion;
     } else {
       currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
-      currentQuaternion = dolly.quaternion;
+      currentQuaternion = this.localRig.inputs.hmd.quaternion;
     }
     const positionDiff = localVector2.copy(this.lastPosition)
       .sub(currentPosition)
@@ -375,21 +442,19 @@ class RigManager {
     this.smoothVelocity.lerp(positionDiff, 0.5);
     this.lastPosition.copy(currentPosition);
 
-    this.localRig.setTopEnabled(/^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()));
-    this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001);
+    this.localRig.setTopEnabled(!!session || /^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()) || physicsManager.getGlideState());
+    this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
     this.localRig.direction.copy(positionDiff);
     this.localRig.velocity.copy(this.smoothVelocity);
+    this.localRig.jumpState = physicsManager.getJumpState();
+    this.localRig.jumpStartTime = physicsManager.getJumpStartTime();
+    this.localRig.flyState = physicsManager.getFlyState();
+    this.localRig.flyStartTime = physicsManager.getFlyStartTime();
     this.localRig.update();
     this.peerRigs.forEach(rig => {
       rig.update();
     });
 
-    if (/^(?:camera|firstperson)$/.test(cameraManager.getTool()) || !!renderer.xr.getSession()) {
-      rigManager.localRig.decapitate();
-    } else {
-      rigManager.localRig.undecapitate();
-    }
-    
     /* for (let i = 0; i < appManager.grabs.length; i++) {
       const grab = appManager.grabs[i === 0 ? 1 : 0];
       if (grab) {

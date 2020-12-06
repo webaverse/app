@@ -1,5 +1,5 @@
 import * as THREE from './three.module.js';
-import {OrbitControls} from './OrbitControls.js';
+// import {OrbitControls} from './OrbitControls.js';
 import {CSS3DRenderer} from './CSS3DRenderer.js';
 
 const canvas = document.getElementById('canvas');
@@ -24,29 +24,41 @@ renderer.sortObjects = false;
 renderer.xr.enabled = true;
 
 const scene = new THREE.Scene();
+const avatarScene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 1.6, 2);
 camera.rotation.order = 'YXZ';
-// camera.quaternion.set(0, 0, 0, 1);
+
+const avatarCamera = camera.clone();
+avatarCamera.near = 0.2;
+avatarCamera.updateProjectionMatrix();
 
 const dolly = new THREE.Object3D();
+// fixes a bug: avatar glitching when dropped exactly at an axis
+const epsilon = 0.000001;
+dolly.position.set(epsilon, epsilon, epsilon);
 dolly.add(camera);
+dolly.add(avatarCamera);
 scene.add(dolly);
 
-const ambientLight = new THREE.AmbientLight(0xFFFFFF);
-scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xFFFFFF);
-directionalLight.position.set(1, 2, 3);
-scene.add(directionalLight);
-/* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
-scene.add(directionalLight2); */
+const _addDefaultLights = scene => {
+  const ambientLight = new THREE.AmbientLight(0xFFFFFF);
+  scene.add(ambientLight);
+  const directionalLight = new THREE.DirectionalLight(0xFFFFFF);
+  directionalLight.position.set(1, 2, 3);
+  scene.add(directionalLight);
+  /* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
+  scene.add(directionalLight2); */
+};
+_addDefaultLights(scene);
+_addDefaultLights(avatarScene);
 
-const orbitControls = new OrbitControls(camera, canvas);
+/* const orbitControls = new OrbitControls(camera, canvas);
 orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
 orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, camera.position.y, -3).applyQuaternion(camera.quaternion));
-orbitControls.update();
+orbitControls.update(); */
 
 const renderer2 = new CSS3DRenderer();
 renderer2.setSize(window.innerWidth, window.innerHeight);
@@ -124,4 +136,4 @@ class App extends EventTarget {
   }
 }
 
-export {renderer, scene, camera, dolly, orbitControls, renderer2, scene2, scene3, appManager};
+export {renderer, scene, avatarScene, camera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager};

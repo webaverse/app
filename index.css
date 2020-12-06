@@ -75,21 +75,49 @@ img:not([src]) {
   left: 0;
   width: 100%;
   height: 50px;
-  background-color: #FFF;
   align-items: center;
   user-select: none;
   z-index: 3;
 }
 
-.header {
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
-}
-
-.header .icon
+.header .icon > .img
 {
   display: flex;
-  width: 50px;
-  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--color);
+  background-color: var(--color);
+  border-radius: 100px;
+}
+.header .icon > .img:not(.open)
+{
+  display: none;
+}
+
+.header .icon > .name {
+  margin-left: -5px;
+  padding: 2px 5px;
+  color: #FFF;
+  background-color: var(--color);
+  z-index: -1;
+}
+.header .icon > .img.primary,
+.header .icon > .name.primary
+{
+  --color: #7986cb;
+}
+.header .icon > .img.secondary,
+.header .icon > .name.secondary
+{
+  --color: #66bb6a;
+}
+.header .icon > .img.tertiary,
+.header .icon > .name.tertiary
+{
+  --color: #ef5350;
+}
+.header .icon > .name:not(.open) {
+  display: none;
 }
 
 .header .nav
@@ -98,20 +126,12 @@ img:not([src]) {
   display: flex;
   height: 100%;
   padding: 0 20px;
-  justify-content: center;
+  /* justify-content: center; */
   align-items: center;
-  border-top: 3px solid transparent;
-  border-bottom: 3px solid transparent;
   color: inherit;
   font-size: 14px;
   text-decoration: none;
   cursor: pointer;
-}
-
-.header .nav:hover,
-.header .nav.open
-{
-  border-bottom-color: #7986cb;
 }
 
 .header .nav.double {
@@ -590,7 +610,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   overflow: hidden;
 }
 
-.dropdown {
+/* .dropdown {
   display: flex;
   position: absolute;
   top: 50px;
@@ -598,7 +618,6 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   width: 300px;
   height: calc(100% - 50px);
   background-color: #FFF;
-  /* border-left: 3px solid #EEE; */
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
   flex-direction: column;
   overflow: auto;
@@ -658,7 +677,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
 .dropdown .tabs .tab > nav:hover {
   background-color: var(--color);
   color: #FFF;
-}
+} */
 
 .subpage {
   position: absolute;
@@ -1197,7 +1216,7 @@ header.builtin.import .wallet.import, header.builtin.locked .wallet.locked, head
   color: var(--color);
 }
 
-canvas {
+#canvas {
   position: absolute;
   width: 100vw;
   height: 100vh;
@@ -2080,17 +2099,32 @@ body.dragging-package .footer {
 
 footer {
   position: absolute;
+  display: flex;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 1;
 }
 .helper {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
+  position: relative;
   display: flex;
+  padding-bottom: 10px;
   user-select: none;
+}
+.helper.left {
+  padding-left: 10px;
+  padding-bottom: 10px;
+  margin-right: auto;
+}
+.helper.right {
+  padding-right: 10px;
+}
+#map-canvas {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  width: 200px;
+  height: 140px;
 }
 .keys {
   position: relative;
@@ -2155,7 +2189,7 @@ footer {
 .store section {
   perspective: 800px;
 }
-.tabs {
+/* .tabs {
   display: flex;
   width: 100%;
   background-color: #111;
@@ -2170,7 +2204,8 @@ footer {
 }
 .tabs .tab.selected {
   background-color: #7986cb;
-}
+} */
+
 /* .store .content:not(.selected) {
   display: none;
 }
@@ -2422,4 +2457,87 @@ footer {
   right: 10px;
   font-size: 30px;
   z-index: 1;
+}
+
+.menu, .unmenu {
+  display: flex;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 300px;
+  height: 100vh;
+  padding: 30px;
+  flex-direction: column;
+  z-index: 1;
+  transition: all 0.5s cubic-bezier(0, 1, 0, 1);
+}
+.menu > section,
+.unmenu > section
+{
+  display: flex;
+  flex-direction: column;
+}
+.menu {
+  left: -300px;
+  /* background-color: #FFF; */
+  background-color: #FFFFFF10;
+  /* border-right: 3px solid #000; */
+}
+.menu.open {
+  left: 0;
+}
+.menu.secondary {
+  // background-color: #00000010;
+}
+.menu .profile-picture {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+}
+.unmenu {
+  left: 0;
+}
+.unmenu.closed {
+  left: -300px;
+}
+.menu .tabs,
+.menu .key-helpers,
+.unmenu .key-helpers
+{
+  position: absolute;
+  top: 50px;
+  left: 18px;
+}
+
+.tabs {
+  display: flex;
+}
+.tabs .tab,
+.key-helpers .key-helper .key
+{
+  display: flex;
+  padding: 3px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid currentColor;
+  border-radius: 7px;
+  font-size: 16px;
+}
+
+.key-helpers {
+  display: flex;
+  flex-direction: column;
+}
+.key-helpers .key-helper {
+  display: flex;
+  align-items: center;
+}
+.key-helpers .key-helper .key {
+
+}
+.key-helpers .key-helper .label {
+  width: 50px;
+  margin-left: auto;
 }

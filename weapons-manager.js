@@ -808,11 +808,42 @@ geometryManager.waitForLoad().then(() => {
   geometryManager.chunkMeshContainer.add(meshDrawer.mesh);
 });
 
-const targetMesh = _makeTargetMesh();
-targetMesh.position.y = 3;
-targetMesh.visible = false;
-scene.add(targetMesh);
+const highlightMesh = _makeTargetMesh();
+highlightMesh.visible = false;
+scene.add(highlightMesh);
 let highlightedObject = null;
+
+const moveMesh = _makeTargetMesh();
+moveMesh.visible = false;
+scene.add(moveMesh);
+let movingObject = null;
+
+const deployMesh = _makeTargetMesh();
+deployMesh.visible = false;
+scene.add(deployMesh);
+
+const _enter = () => {
+  if (deployMesh.visible) {
+    world.addObject(`https://avaer.github.io/lightsaber/index.js`, null, deployMesh.position, deployMesh.quaternion);
+
+    weaponsManager.setMenu(false);
+  } else if (highlightedObject) {
+    movingObject = highlightedObject;
+  } else if (movingObject) {
+    movingObject = null;
+  }
+};
+const _delete = () => {
+  if (highlightedObject) {
+    world.removeObject(highlightedObject.instanceId);
+    highlightedObject = null;
+    _updateMenu();
+  } else if (movingObject) {
+    world.removeObject(movingObject.instanceId);
+    movingObject = null;
+    _updateMenu();
+  }
+};
 
 /* const _snapBuildPosition = p => {
   p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
@@ -1465,7 +1496,8 @@ const _updateWeapons = timeDiff => {
   };
   _handleMenu(); */
 
-  const _handleTarget = () => {
+  const maxDistance = 10;
+  const _handleHighlight = () => {
     const width = 1;
     const length = 100;    
     localBox.setFromCenterAndSize(
@@ -1473,28 +1505,64 @@ const _updateWeapons = timeDiff => {
       localVector2.set(width, width, length)
     );
 
-    targetMesh.visible = false;
+    highlightMesh.visible = false;
+    const oldHighlightedObject = highlightedObject;
     highlightedObject = null;
 
-    const objects = world.getObjects();
-    for (const candidate of objects) {
-      const transforms = rigManager.getRigTransforms();
-      const {position, quaternion} = transforms[0];
-      localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
-        .premultiply(
-          localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
-            .invert()
-        )
-        .decompose(localVector, localQuaternion, localVector2);
-      if (localBox.containsPoint(localVector)) {
-        targetMesh.position.copy(candidate.position);
-        targetMesh.visible = true;
-        highlightedObject = candidate;
-        break;
+    if (!weaponsManager.getMenu() && !movingObject) {
+      const objects = world.getObjects();
+      for (const candidate of objects) {
+        const transforms = rigManager.getRigTransforms();
+        const {position, quaternion} = transforms[0];
+        localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
+          .premultiply(
+            localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
+              .invert()
+          )
+          .decompose(localVector, localQuaternion, localVector2);
+        if (localBox.containsPoint(localVector) && !world.grabbedObjects.includes(candidate)) {
+          highlightMesh.position.copy(candidate.position);
+          highlightMesh.visible = true;
+          highlightedObject = candidate;
+          break;
+        }
+      }
+      if (highlightedObject !== oldHighlightedObject) {
+        _updateMenu();
       }
     }
   };
-  _handleTarget();
+  _handleHighlight();
+
+  const _handleMove = () => {
+    moveMesh.visible = false;
+
+    if (movingObject) {
+      const transforms = rigManager.getRigTransforms();
+      const {position, quaternion} = transforms[0];
+
+      let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+      if (collision) {
+        const {point} = collision;
+        moveMesh.position.fromArray(point);
+        moveMesh.quaternion.copy(quaternion);
+
+        if (moveMesh.position.distanceTo(position) > maxDistance) {
+          collision = null;
+        }
+      }
+      if (!collision) {
+        moveMesh.position.copy(position).add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
+        moveMesh.quaternion.copy(quaternion);
+      }
+
+      movingObject.position.copy(moveMesh.position);
+      movingObject.quaternion.copy(moveMesh.quaternion);
+
+      moveMesh.visible = true;
+    }
+  };
+  _handleMove();
 
   const _handleGrab = () => {
     const transforms = rigManager.getRigTransforms();
@@ -1515,6 +1583,31 @@ const _updateWeapons = timeDiff => {
     }
   };
   _handleGrab();
+
+  const _handleDeploy = () => {
+    if (deployMesh.visible) {
+      const transforms = rigManager.getRigTransforms();
+      const {position, quaternion} = transforms[0];
+
+      let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+      if (collision) {
+        const {point} = collision;
+        deployMesh.position.fromArray(point);
+        deployMesh.quaternion.copy(quaternion);
+
+        if (deployMesh.position.distanceTo(position) > maxDistance) {
+          collision = null;
+        }
+      }
+      if (!collision) {
+        deployMesh.position.copy(position).add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
+        deployMesh.quaternion.copy(quaternion);
+      }
+
+      deployMesh.material.uniforms.uTime.value = (Date.now()%1000)/1000;
+    }
+  };
+  _handleDeploy();
 
   /* const currentParcel = _getCurrentParcel(localVector);
   if (!currentParcel.equals(lastParcel)) {
@@ -2051,11 +2144,67 @@ const menuMesh = (() => {
 menuMesh.visible = false;
 scene.add(menuMesh);
 
+const keyTabEl = document.getElementById('key-tab');
+const keyTab2El = document.getElementById('key-tab-2');
+[keyTabEl, keyTab2El].forEach(el => {
+  el.addEventListener('click', e => {
+    weaponsManager.setMenu(!weaponsManager.getMenu());
+  });
+});
+
+const _updateMenu = () => {
+  const {menuOpen} = weaponsManager;
+  const objectHightlighted = !!highlightedObject;
+
+  menuEl.classList.toggle('open', false);
+  unmenuEl.classList.toggle('closed', false);
+  objectMenuEl.classList.toggle('open', false);
+  locationLabel.classList.toggle('open', false);
+  profileLabel.classList.toggle('open', false);
+  itemLabel.classList.toggle('open', false);
+  locationIcon.classList.toggle('open', false);
+  profileIcon.classList.toggle('open', false);
+  itemIcon.classList.toggle('open', false);
+
+  deployMesh.visible = false;
+
+  if (menuOpen) {
+    menuEl.classList.toggle('open', true);
+    unmenuEl.classList.toggle('closed', true);
+    profileLabel.classList.toggle('open', true);
+    profileIcon.classList.toggle('open', true);
+
+    profileLabel.innerText = 'parzival';
+
+    deployMesh.visible = true;
+  } else if (objectHightlighted) {
+    unmenuEl.classList.toggle('closed', true);
+    objectMenuEl.classList.toggle('open', true);
+    itemLabel.classList.toggle('open', true);
+    itemIcon.classList.toggle('open', true);
+
+    itemLabel.innerText = 'lightsaber';
+  } else {
+    locationIcon.classList.toggle('open', true);
+    locationLabel.classList.toggle('open', true);
+  }
+};
+
+const menuEl = document.getElementById('menu');
+const unmenuEl = document.getElementById('unmenu');
+const objectMenuEl = document.getElementById('object-menu');
+const locationLabel = document.getElementById('location-label');
+const profileLabel = document.getElementById('profile-label');
+const itemLabel = document.getElementById('item-label');
+const locationIcon = document.getElementById('location-icon');
+const profileIcon = document.getElementById('profile-icon');
+const itemIcon = document.getElementById('item-icon');
 const weaponsManager = {
   weapons,
   cubeMesh,
   buildMode: 'wall',
   buildMat: 'wood',
+  menuOpen: false,
   weaponWheel: false,
   getWeapon() {
     return selectedWeapon;
@@ -2112,10 +2261,11 @@ const weaponsManager = {
     }
   },
   getMenu() {
-    return menuMesh.visible;
+    // return menuMesh.visible;
+    return this.menuOpen;
   },
   setMenu(newOpen) {
-    if (newOpen) {
+    /* if (newOpen) {
       const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
       menuMesh.position.copy(xrCamera.position)
         .add(localVector.set(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
@@ -2123,7 +2273,9 @@ const weaponsManager = {
       
       menuMesh.setVertical(-2);
     }
-    menuMesh.visible = newOpen;
+    menuMesh.visible = newOpen; */
+    this.menuOpen = newOpen;
+    _updateMenu();
   },
   menuVertical(offset, shift) {
     menuMesh.offsetVertical(offset, shift);
@@ -2132,7 +2284,11 @@ const weaponsManager = {
     menuMesh.offsetHorizontal(offset, shift);
   },
   menuEnter() {
-    menuMesh.enter();
+    // menuMesh.enter();
+    _enter();
+  },
+  menuDelete() {
+    _delete();
   },
   menuKey(c) {
     menuMesh.key(c);
