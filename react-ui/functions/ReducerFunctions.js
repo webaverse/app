@@ -1,18 +1,15 @@
-import bip39 from '../libs/bip39.js';
-import { web3, getAddressFromMnemonic, runSidechainTransaction } from '../webaverse/blockchain.js';
-import { loginEndpoint, previewExt, previewHost, storageHost } from '../webaverse/constants.js';
 import storage from '../webaverse/storage.js';
-import { getExt } from '../webaverse/util.js';
+import { getAddressFromMnemonic } from '../webaverse/blockchain.js';
+
 
 export const initializeEtherium = async (state) => {
-  let networkType;
   if (!window.ethereum)
-    return networkType = null;
+    return { ...state, networkType: null };
   await window.ethereum.enable();
 
-  networkType = await web3['main'].eth.net.getNetworkType();
-  mainnetAddress = web3['main'].currentProvider.selectedAddress;
-  return { ...state, mainnetAddress, networkType };
+  let networkType = await web3['main'].eth.net.getNetworkType();
+  mainnetAddress = web3['main'].currentProvider?.selectedAddress;
+  return mainnetAddress ? { ...state, mainnetAddress, networkType } : state;
 };
 
 export const checkMainFtApproved = async (amt) => {
@@ -48,8 +45,7 @@ export const checkMainNftApproved = async () => {
 
 };
 
-
-export const setUsername = async (name, state) => {
+export const setUsername = (name, state) => {
   console.warn("Setting username in user object, but not to server");
   return { ...state, name };
 };
@@ -126,42 +122,56 @@ export const setFtu = async (name, avatarUrl, state) => {
   return { ...state, avatarUrl: avatarUrl, avatarFileName: avatarUrl, avatarPreview: avatarPreview };
 };
 
-export const getInventoryForSelf = async (state) => {
-  if (!state.loginToken) return [];
-
-  // Use cached page
-  if(state.inventory[page] !== undefined) return state;
-
-  const address = getAddress();
-  const res = await fetch(`https://tokens.webaverse.com/${address}?page=`);
-  const inventory = await res.json();
-  return { ...state, inventory };
-};
-
 export const getInventoryForCreator = async (creatorAddress, page, state) => {
   // Use cached page
-  if(state.creatorInventories[creatorAddress] !== undefined &&
-    state.creatorInventories[creatorAddress][page])
-    {
-      return state;
-    }
+  if (state.creatorInventories[creatorAddress] !== undefined &&
+    state.creatorInventories[creatorAddress][page]) {
+    return state;
+  }
 
   const res = await fetch(`https://tokens.webaverse.com/${creatorAddress}?page=`);
   const creatorInventory = await res.json();
-  const newState = {...state}
-  if(newState.creatorInventories[creatorAddress] === undefined){
-    newState.creatorInventories[creatorAddress] = {}
+  const newState = { ...state };
+  if (newState.creatorInventories[creatorAddress] === undefined) {
+    newState.creatorInventories[creatorAddress] = {};
   }
-  if(newState.creatorInventories[creatorAddress][page] === undefined){
+  if (newState.creatorInventories[creatorAddress][page] === undefined) {
     newState.creatorInventories[creatorAddress][page] = creatorInventory;
   }
 
   return newState;
 };
 
+export const getProfileForCreator = async (creatorAddress, state) => {
+  // Use cached page
+  if (state.creatorProfiles[creatorAddress] !== undefined)
+    return state;
+
+  const res = await fetch(`https://accounts.webaverse.com/${creatorAddress}`);
+  const creatorProfile = await res.json();
+  let newState = { ...state };
+  newState.creatorProfiles[creatorAddress] = creatorProfile;
+  return await getInventoryForCreator(creatorAddress, 1, newState);
+};
+
+export const getBooths = async (page, state) => {
+  // Use cached page
+  if (state.creatorProfiles[creatorAddress] !== undefined)
+    return state;
+
+  const res = await fetch(`https://store.webaverse.com`);
+  const creatorProfile = await res.json();
+  const newState = { ...state };
+  newState.creatorInventories[creatorAddress] = creatorProfile;
+  newState = await getInventoryForCreator(creatorAddress, 1, newState);
+  return newState;
+};
+
 export const uploadFile = async (file, state) => {
-  if (!state.loginToken) throw new Error('not logged in');
-  if (!file.name) throw new Error('file has no name');
+  if (!state.loginToken)
+    throw new Error('not logged in');
+  if (!file.name)
+    throw new Error('file has no name');
 
   const { mnemonic, addr } = state.loginToken;
   const res = await fetch(storageHost, { method: 'POST', body: file });
@@ -191,7 +201,7 @@ export const uploadFile = async (file, state) => {
       const tokenId = new web3.utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
       tokenIds = [tokenId, tokenId + quantity - 1];
     }
-  } catch(err) {
+  } catch (err) {
     console.warn(err.stack);
     status = false;
     transactionHash = '0x0';
@@ -202,16 +212,17 @@ export const uploadFile = async (file, state) => {
 };
 
 export const pullUserObject = async (state) => {
+  console.log("Pulling user object");
   const address = getAddressFromMnemonic(state.loginToken.mnemonic);
-  console.log("Address is", address);
   const res = await fetch(`https://accounts.webaverse.com/${address}`);
   const result = await res.json();
-  console.log("result is, ", result);
-  return {
+  const newState = {
     ...state,
     address,
     ...result
   };
+  console.log("New state is: ", newState);
+  return newState;
 };
 
 export const requestTokenByEmail = async (email) => {
@@ -221,7 +232,6 @@ export const requestTokenByEmail = async (email) => {
   alert(`Code sent to ${loginEmail.value}!`);
   return state;
 };
-
 
 export const loginWithEmailCode = async (email, code, state) => {
   const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
@@ -251,6 +261,7 @@ export const loginWithEmailOrPrivateKey = async (emailOrPrivateKey, state) => {
 };
 
 export const setNewLoginToken = async (newLoginToken, state) => {
+  console.log("Setting new login token");
   await storage.set('loginToken', newLoginToken);
 
   return await pullUserObject({ ...state, loginToken: newLoginToken });
@@ -264,7 +275,6 @@ export const copyAddress = async (state) => {
   return state;
 };
 
-
 export const copyPrivateKey = async (state) => {
   navigator.clipboard.writeText(state.loginToken.mnemonic);
   console.log("Copied private key to clipboard", state.loginToken.mnemonic);
@@ -273,28 +283,22 @@ export const copyPrivateKey = async (state) => {
 
 export const logout = async (state) => {
   await storage.remove('loginToken');
-  return await initialize(state);
+  return await initializeStart(state);
 };
 
-export const initialize = async (state) => {
-  state.loginToken = await storage.get('loginToken');
-  const newState = await pullUserObject(state);
+export const initializeStart = async (state) => {
+  let loginToken = await storage.get('loginToken');
 
-  await initializeEtherium(state);
-
-  if (state.loginToken) {
-    if (newState.loginToken.unregistered) {
-      console.warn("Login token is unregistered");
-    }
-    return newState;
-  } else {
-    const mnemonic = bip39.generateMnemonic();
-
-    await storage.set('loginToken', { mnemonic, unregistered: true });
-
-    return {
-      ...newState,
-      loginToken: newLoginToken
-    };
+  if (!loginToken) {
+    console.log("Generating login token");
+    loginToken = bip39.generateMnemonic();
+    await storage.set('loginToken', { mnemonic: loginToken, unregistered: true });
   }
+
+  const newState = await pullUserObject({ ...state, loginToken });
+  // newState = await initializeEtherium(newState);
+  if (newState.loginToken.unregistered)
+    console.warn("Login token is unregistered");
+  return newState;
 };
+
