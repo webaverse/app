@@ -1520,7 +1520,7 @@ const _updateWeapons = timeDiff => {
               .invert()
           )
           .decompose(localVector, localQuaternion, localVector2);
-        if (localBox.containsPoint(localVector)) {
+        if (localBox.containsPoint(localVector) && !world.grabbedObjects.includes(candidate)) {
           highlightMesh.position.copy(candidate.position);
           highlightMesh.visible = true;
           highlightedObject = candidate;
