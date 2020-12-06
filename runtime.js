@@ -463,8 +463,9 @@ const _loadScript = async file => {
   return mesh;
 };
 let appIds = 0;
-const _loadWebBundle = async file => {
+const _loadWebBundle = async (file, opts, instanceId) => {
   let arrayBuffer;
+
   if (file.url) {
     const res = await fetch(file.url);
     arrayBuffer = await res.arrayBuffer();
@@ -547,6 +548,12 @@ const _loadWebBundle = async file => {
     }
   };
   const _mapScript = script => {
+    if (instanceId) {
+      script = `
+        document.monetization${instanceId} = document.createElement('div'); 
+      ` + script; 
+    }
+    script = script.replace("document.monetization", `document.monetization${instanceId}`);
     const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
     script = script.replace(r, function() {
       const u = _mapUrl(arguments[2]);
@@ -818,7 +825,7 @@ const _loadIframe = async (file, opts) => {
   return object2;
 };
 
-runtime.loadFile = async (file, opts) => {
+runtime.loadFile = async (file, opts, instanceId) => {
   switch (getExt(file.name)) {
     case 'gltf':
     case 'glb': {
@@ -839,7 +846,7 @@ runtime.loadFile = async (file, opts) => {
       return await _loadScript(file, opts);
     }
     case 'wbn': {
-      return await _loadWebBundle(file, opts);
+      return await _loadWebBundle(file, opts, instanceId);
     }
     case 'scn': {
       return await _loadScn(file, opts);
