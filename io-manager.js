@@ -36,6 +36,8 @@ ioManager.keys = {
   left: false,
   right: false,
   shift: false,
+  space: false,
+  ctrl: false,
 };
 const resetKeys = () => {
   for (const k in ioManager.keys) {
@@ -179,6 +181,12 @@ const _updateIo = (timeDiff, frame) => {
     }
     if (ioManager.keys.down) {
       direction.z += 1;
+    }
+    if (ioManager.keys.space) {
+      direction.y += 1;
+    }
+    if (ioManager.keys.ctrl) {
+      direction.y -= 1;
     }
     const flyState = physicsManager.getFlyState();
     if (flyState) {
@@ -377,11 +385,18 @@ window.addEventListener('keydown', e => {
     }
     case 32: { // space
       if (document.pointerLockElement) {
+        ioManager.keys.space = true;
         if (!physicsManager.getJumpState()) {
           physicsManager.jump();
         } else {
           physicsManager.setGlide(!physicsManager.getGlideState() && !physicsManager.getFlyState());
         }
+      }
+      break;
+    }
+    case 17: { // ctrl
+      if (document.pointerLockElement) {
+        ioManager.keys.ctrl = true;
       }
       break;
     }
@@ -456,6 +471,18 @@ window.addEventListener('keyup', e => {
       case 68: { // D
         if (document.pointerLockElement) {
           ioManager.keys.right = false;
+        }
+        break;
+      }
+      case 32: { // space
+        if (document.pointerLockElement) {
+          ioManager.keys.space = false;
+        }
+        break;
+      }
+      case 17: { // ctrl
+        if (document.pointerLockElement) {
+          ioManager.keys.ctrl = false;
         }
         break;
       }
