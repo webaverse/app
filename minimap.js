@@ -2,6 +2,7 @@ import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {rigManager} from './rig.js';
 import {camera} from './app-object.js';
+import {GuardianMesh} from './land.js';
 
 const localVector = new THREE.Vector3();
 const localEuler = new THREE.Euler();
@@ -88,6 +89,12 @@ const _makeObject = baseMesh => {
   };
   return mesh;
 };
+const _makeWorld = extents => {
+  const mesh = new GuardianMesh(extents, 0x000000);
+  mesh.frustumCulled = false;
+  mesh.update = () => {};
+  return mesh;
+};
 
 const update = () => {
   localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
@@ -116,6 +123,12 @@ const minimap = {
   removeObject(object) {
     mapScene.remove(object);
     objects.splice(objects.indexOf(object), 1);
+  },
+  addWorld(extents) {
+    const object = _makeWorld(extents);
+    mapScene.add(object);
+    objects.push(object);
+    return object;
   },
 };
 export default minimap;

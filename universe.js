@@ -3,6 +3,7 @@ import {rigManager} from './rig.js';
 import {scene} from './app-object.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
+import minimap from './minimap.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -53,20 +54,20 @@ const universeSpecs = [{
     10, 3, -4,
   ],
 }];
-const worldSpecs = universeSpecs.map(spec => {
+const worldObjects = universeSpecs.map(spec => {
   const guardianMesh = GuardianMesh(spec.extents, blueColor);
+  const worldObject = minimap.addWorld(spec.extents);
+  guardianMesh.worldObject = worldObject;
+  scene.add(guardianMesh);
   return guardianMesh;
 });
-for (const worldSpec of worldSpecs) {
-	scene.add(worldSpec);
-}
 
 const update = () => {
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
 
-  for (const worldSpec of worldSpecs) {
-    worldSpec.material.uniforms.uColor.value.setHex(blueColor);
+  for (const worldObject of worldObjects) {
+    worldObject.material.uniforms.uColor.value.setHex(blueColor);
   }
 
   const intersectionIndex = universeSpecs.findIndex(spec =>
@@ -74,8 +75,8 @@ const update = () => {
   	  .containsPoint(rigManager.localRig.inputs.hmd.position)
   );
   if (intersectionIndex !== -1) {
-    const worldSpec = worldSpecs[intersectionIndex];
-    worldSpec.material.uniforms.uColor.value.setHex(greenColor);
+    const worldObject = worldObjects[intersectionIndex];
+    worldObject.material.uniforms.uColor.value.setHex(greenColor);
   }
 };
 
