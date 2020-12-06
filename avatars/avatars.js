@@ -7,6 +7,7 @@ import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
 import MicrophoneWorker from './microphone-worker.js';
 import skeletonString from './skeleton.js';
+import easing from '../easing.js';
 import animationsJson from '../animations/animations.js';
 
 /* import {FBXLoader} from '../FBXLoader.js';
@@ -21,6 +22,7 @@ const localMatrix = new THREE.Matrix4();
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.4);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.4);
+const cubicBezier = easing(0, 1, 0, 1);
 
 const animationsSelectMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
@@ -1450,6 +1452,8 @@ class Avatar {
     this.velocity = new THREE.Vector3();
     this.jumpState = false;
     this.jumpStartTime = 0;
+    this.flyState = false;
+    this.flyStartTime = 0;
 	}
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
@@ -1590,6 +1594,15 @@ class Avatar {
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
+          }
+          const flyTimeDiff = now - this.flyStartTime;
+          if (this.flyState || flyTimeDiff < 1000) {
+            const t2 = (now - this.flyStartTime)/1000;
+            const f = this.flyState ? Math.min(cubicBezier(flyTimeDiff/1000), 1) : (1 - Math.min(cubicBezier(flyTimeDiff/1000), 1));
+            const src2 = floatAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2 % floatAnimation.duration);
+
+            dst.slerp(localQuaternion.fromArray(v2), f);
           }
         }
       }
