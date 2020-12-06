@@ -7,8 +7,10 @@ import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
 import MicrophoneWorker from './microphone-worker.js';
 import skeletonString from './skeleton.js';
-// import {FBXLoader} from './FBXLoader.js';
 import animationsJson from '../animations/animations.js';
+
+/* import {FBXLoader} from '../FBXLoader.js';
+import {downloadFile} from '../util.js'; */
 
 const localVector = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
@@ -35,14 +37,17 @@ const animationsSelectMap = {
   'running backwards.fbx': new THREE.Vector3(0, 0, 1),
   'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
 
-  'falling.fbx': new THREE.Vector3(0, -1, 0),
+  /* 'falling.fbx': new THREE.Vector3(0, -1, 0),
   'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
-  'falling landing.fbx': new THREE.Vector3(0, -2, 0),
+  'falling landing.fbx': new THREE.Vector3(0, -2, 0), */
 
   'left strafe walking reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
   'left strafe reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
   'right strafe walking reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
   'right strafe reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
+  
+  // 'floating.fbx': new THREE.Vector3(0, Infinity, 0),
+  'treading water.fbx': new THREE.Vector3(0, Infinity, 0),
 };
 const animationsDistanceMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
@@ -59,16 +64,22 @@ const animationsDistanceMap = {
   'running backwards.fbx': new THREE.Vector3(0, 0, 1),
   'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
 
-  'falling.fbx': new THREE.Vector3(0, -1, 0),
+  /* 'falling.fbx': new THREE.Vector3(0, -1, 0),
   'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
-  'falling landing.fbx': new THREE.Vector3(0, -2, 0),
+  'falling landing.fbx': new THREE.Vector3(0, -2, 0), */
 
   'left strafe walking reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(2),
   'left strafe reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(3),
   'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
   'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
+  
+  // 'floating.fbx': new THREE.Vector3(0, Infinity, 0),
+  'treading water.fbx': new THREE.Vector3(0, Infinity, 0),
 };
-/* (async () => {
+let animations = animationsJson.map(a => THREE.AnimationClip.parse(a));
+/* // bake animations
+(async () => {
+  animations = [];
   const fbxLoader = new FBXLoader();
   const animationFileNames = [
     `idle.fbx`,
@@ -86,9 +97,11 @@ const animationsDistanceMap = {
     // `ybot.fbx`,
     `running backwards.fbx`,
     `walking backwards.fbx`,
-    `falling.fbx`,
-    `falling idle.fbx`,
-    `falling landing.fbx`,
+    // `falling.fbx`,
+    // `falling idle.fbx`,
+    // `falling landing.fbx`,
+    // `floating.fbx`,
+    `treading water.fbx`,
   ];
   for (const name of animationFileNames) {
     const u = './animations/' + name;
@@ -136,11 +149,13 @@ const animationsDistanceMap = {
   }
   const animationsString = JSON.stringify(animations.map(a => a.toJSON()));
   animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
-  downloadFile(new Blob(['export default ', animationsString], {
-    type: 'application/octet-stream',
-  }), 'animations.json');
-})(); */
-const animations = animationsJson.map(a => THREE.AnimationClip.parse(a));
+  console.log('exporting', animations);
+  downloadFile(new Blob(['export default ' + animationsString], {
+    type: 'text/javascript',
+  }), 'animations.js');
+})().catch(err => {
+  console.warn(err);
+}); */
 
 const _normalizeAnimationDurations = (animations, baseAnimation) => {
   for (let i = 1; i < animations.length; i++) {
@@ -200,16 +215,21 @@ animations.forEach(animation => {
       case 'right strafe reverse.fbx':
         return 'right';
       case 'jump.fbx':
-      case 'falling.fbx':
+      /* case 'falling.fbx':
       case 'falling idle.fbx':
-      case 'falling landing.fbx':
+      case 'falling landing.fbx': */
         return 'jump';
+      // case 'floating.fbx':
+      case 'treading water.fbx':
+        return 'float';
       default:
         return null;
     }
   })();
   animation.isIdle = /idle/i.test(animation.name);
   animation.isJump = /jump/i.test(animation.name);
+  // animation.isFalling  = /falling/i.test(animation.name);
+  animation.isFloat  = /treading/i.test(animation.name);
   animation.isForward = /forward/i.test(animation.name);
   animation.isBackward = /backward/i.test(animation.name);
   animation.isLeft = /left/i.test(animation.name);
@@ -228,6 +248,7 @@ animations.forEach(animation => {
   } */
 });
 const jumpAnimation = animations.find(a => a.isJump);
+const floatAnimation = animations.find(a => a.isFloat);
 
 const _localizeMatrixWorld = bone => {
   bone.matrix.copy(bone.matrixWorld);
