@@ -78,6 +78,8 @@ const update = () => {
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
 
+  const oldWorld = currentWorld;
+
   const _parseUniverseSpec = spec => localBox.set(localVector.fromArray(spec.extents, 0), localVector2.fromArray(spec.extents, 3));
   const intersectionIndex = universeSpecs.findIndex(spec =>
   	_parseUniverseSpec(spec)
@@ -85,21 +87,22 @@ const update = () => {
   );
   const intersection = universeSpecs[intersectionIndex];
   if (intersection) {
-    const newWorld = worldObjects[intersectionIndex];
-    if (newWorld !== currentWorld) {
-    	currentWorld = newWorld;
-
-	    const objects = world.getObjects();
-	    for (const object of objects) {
-	      world.removeObject(object.instanceId);
-	    }
-
-	    const u = `https://avaer.github.io/physicscube/index.js`;
-	    const center = _parseUniverseSpec(intersection).getCenter(localVector);
-	    world.addObject(u, null, center, new THREE.Quaternion());
-	  }
+    currentWorld = worldObjects[intersectionIndex];
   } else {
   	currentWorld = null;
+  }
+
+  if (currentWorld !== oldWorld) {
+    const objects = world.getObjects();
+    for (const object of objects) {
+      world.removeObject(object.instanceId);
+    }
+
+    if (currentWorld) {
+      const u = `https://avaer.github.io/physicscube/index.js`;
+      const center = _parseUniverseSpec(intersection).getCenter(localVector);
+      world.addObject(u, null, center, new THREE.Quaternion());
+    }
   }
 
   for (const worldObject of worldObjects) {
