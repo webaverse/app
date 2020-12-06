@@ -1,6 +1,7 @@
 
 export const ActionTypes = {
   InitializeState: 'InitializeState',
+  InitializeStateEnd: 'InitializeStateEnd',
   SendNft: 'SendNft',
   BuyNft: 'BuyNft',
   SellNft: 'SellNft',
@@ -8,7 +9,8 @@ export const ActionTypes = {
   AddFtToNft: 'AddFtToNft',
   DepositFt: 'DepositFt',
   WithdrawFt: 'WithdrawFt',
-  GetInventoryForSelf: 'GetInventoryForSelf',
+  GetProfileForCreator: 'GetProfileForCreator',
+  GetProfileForCreatorEnd: 'GetProfileForCreatorEnd',
   GetInventoryForCreator: 'GetInventoryForCreator',
   GetBooths: 'GetBooths',
   GetCreators: 'GetCreators',

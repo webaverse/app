@@ -1,14 +1,13 @@
-import { React, useContext } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { useContext } from 'https://unpkg.com/es-react@16.13.1/dev';
 import ActionTypes from '../constants/ActionTypes.js';
 import { Context } from '../constants/Context.js';
 import css from '../web_modules/csz.js';
-import htm from '../web_modules/htm.js';
 const styles = css`/components/NavBar.css`
 
 const defaultAvatarImage = "../images/test.png";
 
 const NavBarUserLoginForm = () => {
-  const [ state, dispatch ] = useContext(Context);
+  const { state, dispatch } = useContext(Context);
       const onLoginSubmit = (e) => {
       e.preventDefault();
       console.log(e);
@@ -16,37 +15,34 @@ const NavBarUserLoginForm = () => {
     }
 
   return html`
-  <div className="loginComponentDropdown">
     <form className="loginForm" onSubmit="${onLoginSubmit}">
-      <p>Token is ${state.loginToken}</p>
       <input type="text" placeholder="privatekey" />
       <button className="submit" type="submit">
         Login
       </button>
     </form>
-  </div>
   `
 }
 
 const NavBarUser = () => {
-  const [ state, dispatch ] = useContext(Context);
+  const { state, dispatch } = useContext(Context);
   const name = state.name ?? "Guest";
   const avatarPreview = state.avatarThumbnail ?? defaultAvatarImage;
 
     return html`
         <div className="loginComponent">
             <div className="loginComponentNav">
-                <span className="loginUsername"> ${name} </span>
-                <span className="loginAvatarPreview"><img src=${avatarPreview} /></span>
+                <span className="loginUsername"> ${state.name} </span>
+                <span className="loginAvatarPreview"><img src=${state.avatarPreview} /></span>
             </div>
+            <div className="loginComponentDropdown">
               <${NavBarUserLoginForm} />
+            </div>
         </div>
     `
 }
 
 const NavBar = () => {
-  const [ state, dispatch ] = useContext(Context);
-
     return html`
     <div className=${styles}>
         <nav className="navbar">
