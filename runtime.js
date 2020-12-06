@@ -337,7 +337,7 @@ const _loadImg = async file => {
   mesh.frustumCulled = false;
   return mesh;
 };
-const _makeAppUrl = (appId, instanceId) => {
+const _makeAppUrl = (appId) => {
   const s = `\
     import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
     import runtime from ${JSON.stringify(importMap.runtime)};
@@ -508,7 +508,7 @@ const _loadWebBundle = async (file, opts, instanceId) => {
   const app = appManager.createApp(appId);
   app.object = mesh;
   const localImportMap = _clone(importMap);
-  localImportMap.app = _makeAppUrl(appId, instanceId);
+  localImportMap.app = _makeAppUrl(appId);
 
   const cachedUrls = [];
   const _getUrl = u => {
@@ -549,15 +549,20 @@ const _loadWebBundle = async (file, opts, instanceId) => {
     }
   };
   const _mapScript = script => {
-    script = script.replace("document.monetization", `document.monetization_${instanceId}`);
-    script = script.replace("document.monetization.addEventListener", `document.monetization_${instanceId}.addEventListener`);
-    script = `document.monetization_${instanceId} = document.createElement('div')` + script;
-
     const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
     script = script.replace(r, function() {
       const u = _mapUrl(arguments[2]);
       return arguments[1] + u + arguments[3];
     });
+
+    if (instanceId) {
+      script = script.replace("document.monetization", `window.document.monetization${instanceId}`);
+      script = script.replace("document.monetization.addEventListener", `window.document.monetization${instanceId}.addEventListener`);
+      script = `
+        window.document.monetization${instanceId} = window.document.createElement('div');
+      ` + script;
+    }
+
     return script;
   };
 
