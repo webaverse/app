@@ -160,11 +160,10 @@ export const getBooths = async (page, state) => {
     return state;
 
   const res = await fetch(`https://store.webaverse.com`);
-  const creatorProfile = await res.json();
+  const booths = await res.json();
   const newState = { ...state };
-  newState.creatorInventories[creatorAddress] = creatorProfile;
-  newState = await getInventoryForCreator(creatorAddress, 1, newState);
-  return newState;
+  newState.booths[page] = booths;
+  return await getInventoryForCreator(creatorAddress, 1, newState);
 };
 
 export const uploadFile = async (file, state) => {
