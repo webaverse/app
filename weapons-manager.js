@@ -1527,9 +1527,9 @@ const _updateWeapons = timeDiff => {
           break;
         }
       }
-      if (highlightedObject !== oldHighlightedObject) {
-        _updateMenu();
-      }
+    }
+    if (highlightedObject !== oldHighlightedObject) {
+      _updateMenu();
     }
   };
   _handleHighlight();
