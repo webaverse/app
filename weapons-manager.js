@@ -1565,6 +1565,7 @@ const _updateWeapons = timeDiff => {
   _handleMove();
 
   const _handleGrab = () => {
+    let changed = false;
     const transforms = rigManager.getRigTransforms();
     for (let i = 0; i < 2; i++) {
       if (ioManager.currentWeaponGrabs[i] && !ioManager.lastWeaponGrabs[i]) {
@@ -1573,13 +1574,18 @@ const _updateWeapons = timeDiff => {
         if (!world.grabbedObjects[i]) {
           world.grabbedObjects[i] = highlightedObject;
           highlightedObject = null;
+          changed = true;
         }
         // meshComposer.grab(i);
       }
       if (!ioManager.currentWeaponGrabs[i] && ioManager.lastWeaponGrabs[i]) {
         world.grabbedObjects[i] = null;
         // meshComposer.ungrab(i);
+        changed = true;
       }
+    }
+    if (changed) {
+      _updateMenu();
     }
   };
   _handleGrab();
