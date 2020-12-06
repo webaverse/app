@@ -49,6 +49,7 @@ const importMap = {
   physicsManager: _importMapUrl('./physics-manager.js'),
   rig: _importMapUrl('./rig.js'),
   vrUi: _importMapUrl('./vr-ui.js'),
+  monetization: _importMapUrl('./monetization.js'),
   crypto: _importMapUrl('./crypto.js'),
   BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
   GLTFLoader: _importMapUrl('./GLTFLoader.js'),
@@ -345,6 +346,7 @@ const _makeAppUrl = appId => {
     import physics from ${JSON.stringify(importMap.physicsManager)};
     import {rigManager} from ${JSON.stringify(importMap.rig)};
     import * as ui from ${JSON.stringify(importMap.vrUi)};
+    import * as monetization from ${JSON.stringify(importMap.monetization)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
     const renderer = Object.create(_renderer);
     renderer.setAnimationLoop = function(fn) {
