@@ -836,7 +836,6 @@ const _enter = () => {
 const _delete = () => {
   if (highlightedObject) {
     world.removeObject(highlightedObject.instanceId);
-    console.log('delete', highlightedObject);
     highlightedObject = null;
     _updateMenu();
   } else if (movingObject) {
