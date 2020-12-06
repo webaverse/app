@@ -40,12 +40,16 @@ let skybox;
   skybox.update();
   scene.add(skybox);
 }
-{
-  const guardianMesh = GuardianMesh([[
-    0, -10 - 4, 10, -4,
-  ]], 0x42a5f5);
+const universeSpec = [{
+  extents: [
+    0, 0, -10 - 4,
+    10, 3, -4,
+  ],
+}];
+universeSpec.forEach(spec => {
+  const guardianMesh = GuardianMesh(spec.extents, 0x42a5f5);
   scene.add(guardianMesh);
-}
+});
 
 const update = () => {
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
