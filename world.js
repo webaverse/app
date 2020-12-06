@@ -1,5 +1,6 @@
 import * as THREE from './three.module.js';
 import storage from './storage.js';
+import {web3} from './blockchain.js';
 import {XRChannelConnection} from './xrrtc.js';
 import Y from './yjs.js';
 import {loginManager} from './login.js';
@@ -933,21 +934,6 @@ world.addEventListener('trackedobjectadd', async e => {
   if (file) {
     let mesh = await runtime.loadFile(file, options, trackedObjectJson.instanceId);
     if (mesh) {
-      if (token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
-        const monetizationPointer = token.owner.monetizationPointer;
-        pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer});
-      }
-      if (document.monetization && trackedObjectJson.instanceId) {
-        document[`monetization${trackedObjectJson.instanceId}`].dispatchEvent('monetizationstart');
-      }
-      const address = loginManager.getAddress();
-      console.log(token.owner.address); // DEBUGGING xxx
-      console.log(address); // DEBUGGING xxx
-      if (token.owner.address === address) {
-        document[`monetization${trackedObjectJson.instanceId}`].dispatchEvent('monetizationstart');
-        console.log("same address!"); // DEBUGGING xxx
-      }
-
       mesh.position.fromArray(position);
       mesh.quaternion.fromArray(quaternion);
       
@@ -963,6 +949,26 @@ world.addEventListener('trackedobjectadd', async e => {
       } else {
         scene.add(mesh);
       }
+
+      if (token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
+        const monetizationPointer = token.owner.monetizationPointer;
+        pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer});
+      }
+      if (document.monetization && trackedObjectJson.instanceId) {
+          window.document[`monetization${trackedObjectJson.instanceId}`].dispatchEvent(new Event('monetizationstart'));
+      }
+
+      let address;
+      if (window.ethereum) {
+        await window.ethereum.enable();
+        address = await web3['main'].eth.getAccounts();
+        address = address[0];
+        if (token.owner.address === address) {
+          window.document[`monetization${trackedObjectJson.instanceId}`].dispatchEvent(new Event('monetizationstart'));
+        }
+      }
+
+
     } else {
       console.warn('failed to load object', file);
 
