@@ -79,7 +79,7 @@ setInterval(() => {
   } else {
     currentIndex++;
   }
-}, 10000); // Every 5 sec
+}, 5000); // Every 5 sec
 
 function abs(n) {
   return (n ^ (n >> 31)) - (n >> 31);
