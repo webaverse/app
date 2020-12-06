@@ -1,7 +1,6 @@
-import MockUserProfileData from '../mock/UserProfileData';
 import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
+import MockUserProfileData from '../mock/UserProfileData';
 import htm from '/web_modules/htm.js';
-import csz from '../web_modules/csz.js'
 
 const html = htm.bind(React.createElement)
 

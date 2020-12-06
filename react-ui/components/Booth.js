@@ -12,6 +12,7 @@ const Booth = ({
   data,
   cardSize
 }) => {
+  console.log("Data is", data);
     return html`
         <div className="${styles} booth ${cardSize}">
           <${AssetCardGrid} data=${data.entries} cardSize=${cardSize} />
