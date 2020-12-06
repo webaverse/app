@@ -881,17 +881,12 @@ world.addEventListener('trackedobjectadd', async e => {
   const trackedObjectJson = trackedObject.toJSON();
   const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
   const options = JSON.parse(optionsString);
+  const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
+  const token = await res.json();
+
 
   const file = await (async () => {
     if (typeof contentId === 'number' || /^\d+$/.test(contentId)) {
-      const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
-      const token = await res.json();
-
-      if (token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
-        const monetizationPointer = token.owner.monetizationPointer;
-        pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer});
-      }
-
       const {hash, filename} = token.properties;
       /* const contractSource = await getContractSource('getNft.cdc');
 
@@ -936,8 +931,23 @@ world.addEventListener('trackedobjectadd', async e => {
     }
   })();
   if (file) {
-    let mesh = await runtime.loadFile(file, options);
+    let mesh = await runtime.loadFile(file, options, trackedObjectJson.instanceId);
     if (mesh) {
+      if (token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
+        const monetizationPointer = token.owner.monetizationPointer;
+        pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer});
+      }
+      if (document.monetization && trackedObjectJson.instanceId) {
+        document[`monetization${trackedObjectJson.instanceId}`].dispatchEvent('monetizationstart');
+      }
+      const address = loginManager.getAddress();
+      console.log(token.owner.address); // DEBUGGING xxx
+      console.log(address); // DEBUGGING xxx
+      if (token.owner.address === address) {
+        document[`monetization${trackedObjectJson.instanceId}`].dispatchEvent('monetizationstart');
+        console.log("same address!"); // DEBUGGING xxx
+      }
+
       mesh.position.fromArray(position);
       mesh.quaternion.fromArray(quaternion);
       
