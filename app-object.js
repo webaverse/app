@@ -84,7 +84,7 @@ class AppManager {
     const appIndex = this.apps.findIndex(app => app.appId === appId);
     if (appIndex !== -1) {
       const app = this.apps[appIndex];
-      app.dispatchEvent(new MessageEvent('terminate'));
+      app.dispatchEvent(new MessageEvent('unload'));
       this.apps.splice(appIndex, 1);
     }
     this.removeAnimationLoop(appId);
