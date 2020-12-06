@@ -184,14 +184,14 @@ const _updateIo = (timeDiff, frame) => {
     }
     const flyState = physicsManager.getFlyState();
     if (flyState) {
+      direction.applyQuaternion(camera.quaternion);
+      
       if (ioManager.keys.space) {
         direction.y += 1;
       }
       if (ioManager.keys.ctrl) {
         direction.y -= 1;
       }
-      
-      direction.applyQuaternion(camera.quaternion);
     } else {  
       const cameraEuler = camera.rotation.clone();
       cameraEuler.x = 0;
