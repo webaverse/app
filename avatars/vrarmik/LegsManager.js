@@ -120,7 +120,7 @@ class Leg {
       localMatrix.lookAt(
         zeroVector,
         localVector5.copy(upperLegPosition).sub(lowerLegPosition),
-        localVector6.set(0, 1, 0).applyQuaternion(footRotation)
+        localVector6.set(0, 0, 1).applyQuaternion(footRotation)
       )
     )
       .multiply(downHalfRotation)
@@ -262,7 +262,7 @@ class LegsManager {
         this.rightLeg.stepping = false;
   	  } */
 
-      const floorHeight = this.poseManager.vrTransforms.floorHeight + this.rig.height * 0.1;
+      const floorHeight = this.poseManager.vrTransforms.floorHeight;
 
       const hipsFloorPosition = localVector.copy(this.hips.position);
       hipsFloorPosition.y = floorHeight;
@@ -331,7 +331,7 @@ class LegsManager {
           .multiply(upHalfRotation);
   	  }
 
-  	  // position
+  	  // step
 
       const _getLegStepFactor = leg => {
       	if (leg.stepping) {
@@ -427,6 +427,8 @@ class LegsManager {
           this.leftLeg.balance = 1;
   			}
   		}
+      
+      // position
 
       if (this.rig.shoulderTransforms.prone) {
       	const targetPosition = Helpers.getWorldPosition(this.leftLeg.upperLeg, localVector6)

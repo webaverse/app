@@ -4,15 +4,16 @@ import * as THREE from './three.module.js';
 // import {GLTFLoader} from './GLTFLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {TransformControls} from './TransformControls.js';
+// import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {tryLogin, loginManager} from './login.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
 import {makeRayMesh, makeTextMesh, makeHighlightMesh, makeButtonMesh, makeArrowMesh, makeCornersMesh} from './vr-ui.js';
-import {
+/* import {
   THING_SHADER,
   makeDrawMaterial,
-} from './shaders.js';
+} from './shaders.js'; */
 // import {lineMeshes, teleportMeshes} from './teleport.js';
 import geometryManager from './geometry-manager.js';
 import uiManager from './ui-manager.js';
@@ -27,10 +28,11 @@ import {world} from './world.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
-import {renderer, scene, camera, dolly, orbitControls, renderer2, scene2, scene3, appManager} from './app-object.js';
+import {renderer, scene, avatarScene, camera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
+import minimap from './minimap.js';
 import {App} from './components/App.js';
 import {tryTutorial} from './tutorial.js';
 import {getState, setState} from './state.js';
@@ -49,6 +51,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -59,6 +62,10 @@ const localRay = new THREE.Ray();
 const localTriangle = new THREE.Triangle();
 
 let skybox = null;
+let xrscenetexture = null;
+let xrsceneplane = null;
+let xrscenecam = null;
+let xrscene = null;
 
 function mod(a, b) {
   return ((a % b) + b) % b;
@@ -163,12 +170,12 @@ scene.add(floorMesh); */
   skybox.update();
   scene.add(skybox);
 })();
-/* (() => {
+(() => {
   const guardianMesh = GuardianMesh([[
-    0, 0, SUBPARCEL_SIZE, SUBPARCEL_SIZE,
+    0, -SUBPARCEL_SIZE - 4, SUBPARCEL_SIZE, -4,
   ]], 0x42a5f5);
   scene.add(guardianMesh);
-})(); */
+})();
 /* (async () => {
   const HEIGHTFIELD_SHADER2 = {
     uniforms: {
@@ -331,7 +338,11 @@ const q = parseQuery(location.search);
   runtime.injectDependencies(geometryManager, physicsManager, world);
 
   if (q.o) { // object
-    world.addObject(q.o);
+    let contentId = parseInt(q.o);
+    if (isNaN(contentId)) {
+      contentId = q.o;
+    }
+    world.addObject(contentId);
   }
   {
     const mesh = await runtime.loadFile({
@@ -611,6 +622,11 @@ scene.add(wristMenu); */
   downloadFile(b, 'target.glb');
 }; */
 
+const _getCurrentCoord = (p, v) => v.set(
+  Math.floor(p.x),
+  Math.floor(p.y),
+  Math.floor(p.z),
+)
 /* const _getCurrentParcel = p => new THREE.Vector3(
   Math.floor((p.x+5)/10),
   0,
@@ -800,10 +816,14 @@ const addItem = async (position, quaternion) => {
 // const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 const startTime = Date.now();
+const lastCoord = new THREE.Vector3(0, 0, 0);
+const locationLabel = document.getElementById('location-label');
 function animate(timestamp, frame) {
   timestamp = timestamp || performance.now();
   const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
+
+  const session = renderer.xr.getSession();
 
   const now = Date.now();
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
@@ -838,7 +858,6 @@ function animate(timestamp, frame) {
     hmdPosition = localVector.toArray();
     hmdQuaternion = localQuaternion.toArray();
 
-    const session = renderer.xr.getSession();
     if (session) {
       let inputSources = Array.from(session.inputSources);
       inputSources = ['right', 'left']
@@ -1043,7 +1062,15 @@ function animate(timestamp, frame) {
     rigManager.update();
   };
   _updateRig();
-  
+
+  {
+    _getCurrentCoord(rigManager.localRig.inputs.hmd.position, localVector);
+    if (localVector.x !== lastCoord.x || localVector.z !== lastCoord.z) {
+      locationLabel.innerText = `Erithor @${localVector.x},${localVector.z}`;
+      lastCoord.copy(localVector);
+    }
+  }
+
   const _updateAnchors = () => {
     const transforms = rigManager.getRigTransforms();
     const {position, quaternion} = transforms[0];
@@ -1074,7 +1101,7 @@ function animate(timestamp, frame) {
 
   // const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
 
-  orbitControls.enabled = cameraManager.getTool() === 'camera';
+  // orbitControls.enabled = cameraManager.getTool() === 'camera';
 
   weaponsManager.update(timeDiff, frame);
 
@@ -1134,7 +1161,7 @@ function animate(timestamp, frame) {
   
   ioManager.updatePost(timeDiff);
 
-  const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+  const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
   localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));
   localMatrix3.copy(xrCamera.matrix)
     .premultiply(dolly.matrix)
@@ -1148,10 +1175,58 @@ function animate(timestamp, frame) {
     geometryManager.currentThingMesh.geometry.groups = thingGroups;
   }
 
+  // high priority render
   renderer.render(scene3, camera);
+  // main render
+  scene.add(rigManager.localRig.model);
+  rigManager.localRig.model.visible = false;
   renderer.render(scene, camera);
+  // local avatar render
+  {
+    rigManager.localRig.model.visible = true;
+    avatarScene.add(rigManager.localRig.model);
+    if (/^(?:camera|firstperson)$/.test(cameraManager.getTool()) || !!renderer.xr.getSession()) {
+      rigManager.localRig.decapitate();
+    } else {
+      rigManager.localRig.undecapitate();
+    }
+    renderer.render(avatarScene, camera);
+    rigManager.localRig.undecapitate();
+  }
+  // dom render
   renderer2.render(scene2, camera);
+  // highlight render
   // renderer.render(highlightScene, camera);
+
+  minimap.update();
+
+  if (session && document.visibilityState == 'visible') {
+    const {baseLayer} = session.renderState;
+    if (!xrscenetexture) {
+      xrscenetexture = new THREE.DataTexture(null, baseLayer.framebufferWidth, baseLayer.framebufferHeight, THREE.RGBAFormat);
+      xrscenetexture.minFilter = THREE.NearestFilter;
+      xrscenetexture.magFilter = THREE.NearestFilter;
+
+      xrscene = new THREE.Scene();
+
+      xrsceneplane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), new THREE.MeshBasicMaterial({map: xrscenetexture, /*side: THREE.DoubleSide,*/ color: 0xffffff}));
+      xrscene.add(xrsceneplane);
+
+      xrscenecam = new THREE.OrthographicCamera(-1 / 2, 1 / 2, 1 / 2, -1 / 2, -1, 1);
+      xrscene.add(xrscenecam);
+    }
+
+    renderer.xr.enabled = false;
+    renderer.copyFramebufferToTexture(localVector2D.set(baseLayer.framebufferWidth / 2, 0, 0), xrscenetexture);
+    renderer.setFramebuffer(null);
+
+    const oldOutputEncoding = renderer.outputEncoding;
+    renderer.outputEncoding = THREE.LinearEncoding;
+    renderer.setViewport(0, 0, canvas.width * window.devicePixelRatio, canvas.height * window.devicePixelRatio);
+    renderer.render(xrscene, xrscenecam);
+    renderer.xr.enabled = true;
+    renderer.outputEncoding = oldOutputEncoding;
+  }
 }
 geometryManager.waitForLoad().then(e => {
   setTimeout(() => {

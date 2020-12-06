@@ -352,7 +352,7 @@ geometryManager.waitForLoad().then(() => {
   scene.add(inventoryMesh);
   uiManager.inventoryMesh = inventoryMesh; */
 
-  let selectedColors;
+  /* let selectedColors;
   const colorsMesh = makeColorsMesh(weaponsManager.cubeMesh, colors, newSelectedColors => {
     selectedColors = newSelectedColors;
     shapesMesh.inventoryShapesMesh.setColors(selectedColors);
@@ -360,7 +360,7 @@ geometryManager.waitForLoad().then(() => {
   });
   colorsMesh.visible = false;
   scene.add(colorsMesh);
-  uiManager.colorsMesh = colorsMesh;
+  uiManager.colorsMesh = colorsMesh; */
 
   const menuMesh = makeMenuMesh(weaponsManager.cubeMesh, onclickBindings);
   menuMesh.visible = false;
