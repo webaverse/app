@@ -1,29 +1,34 @@
-import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { React, useEffect, useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '/web_modules/htm.js';
 import AssetCardGrid from './AssetCardGrid.js'
 import csz from '../web_modules/csz.js'
+import { Context } from '../constants/Context.js';
+import ActionTypes from '../constants/ActionTypes.js';
 
 const styles = csz`/components/Profile.css`
 
 const html = htm.bind(React.createElement)
 
-const Profile = ({userAddress, userData}) => {
-  console.log("userData is ", userData);
-  
-  const avatarPreview = userData.avatarPreview;
-  const homeSpacePreview = userData.homeSpacePreview;
-  const username = userData.username;
-  const balance = userData.balance;
-  const cardData = userData.tokens;
-  
+const Profile = ({userAddress}) => {
+  const {state, dispatch} = useContext(Context);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    console.log("Rendering my profile");
+    dispatch({ type: ActionTypes.GetProfileForCreator, payload: { address: userAddress } });
+    console.log(state.creatorProfiles);
+  }, [])
+
     return html`
-      <div className=${styles}>
+    <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
+    ${userAddress && state.creatorProfiles[userAddress] && html`
+    <div className=${styles}>
         <div className="profileHeader">
-          <div className="homespaceBannerImage"><img src="${homeSpacePreview}" /></div>
-          <div className="avatarImage"><img src="${avatarPreview}" /></div>
-          <div className="username">${username}</div>
+          <div className="homespaceBannerImage"><img src="${state.creatorProfiles[userAddress].homeSpacePreview}" /></div>
+          <div className="avatarImage"><img src="${state.creatorProfiles[userAddress].avatarPreview}" /></div>
+          <div className="username">${state.creatorProfiles[userAddress].username}</div>
           <div className="userAddress">${userAddress}</div>
-          <div className="userGrease">${balance}Ψ</div>
+          <div className="userGrease">${state.creatorProfiles[userAddress].balance}Ψ</div>
         </div>
         <div className="profileBody">
           <div className="profileBodyNav">
@@ -32,10 +37,12 @@ const Profile = ({userAddress, userData}) => {
             <span className="profileInventory"><a href="#">Inventory</a></span>
           </div>
           <div className="profileBodyAssets">
-            <${AssetCardGrid} data=${cardData} cardSize='small' />
+            <${AssetCardGrid} data=${state.creatorInventories[userAddress][currentPage]} cardSize='medium' />
           </div>
         </div>
-      </div>
+        </div>
+        `}
+        <//>
     `;
   };
 

@@ -2,6 +2,7 @@ import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {rigManager} from './rig.js';
 import {camera} from './app-object.js';
+import {GuardianMesh} from './land.js';
 
 const localVector = new THREE.Vector3();
 const localEuler = new THREE.Euler();
@@ -88,6 +89,38 @@ const _makeObject = baseMesh => {
   };
   return mesh;
 };
+const _makeWorld = extents => {
+  const box = new THREE.Box3().set(
+    new THREE.Vector3().fromArray(extents, 0),
+    new THREE.Vector3().fromArray(extents, 3),
+  );
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([
+    new THREE.PlaneBufferGeometry(size.x, size.y)
+      // .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(center.x, center.y, center.z + size.z/2)),
+    new THREE.PlaneBufferGeometry(size.x, size.y)
+      // .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(center.x, center.y, center.z - size.z/2)),
+    new THREE.PlaneBufferGeometry(size.z, size.y)
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(center.x + size.z/2, center.y, center.z)),
+    new THREE.PlaneBufferGeometry(size.z, size.y)
+      .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(center.x - size.x/2, center.y, center.z)),
+  ]);
+  const material = new THREE.MeshNormalMaterial({
+    color: 0x9ccc65,
+    /* transparent: true,
+    opacity: 0.5, */
+    side: THREE.DoubleSide,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  mesh.update = () => {};
+  return mesh;
+};
 
 const update = () => {
   localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
@@ -116,6 +149,12 @@ const minimap = {
   removeObject(object) {
     mapScene.remove(object);
     objects.splice(objects.indexOf(object), 1);
+  },
+  addWorld(extents) {
+    const object = _makeWorld(extents);
+    mapScene.add(object);
+    objects.push(object);
+    return object;
   },
 };
 export default minimap;

@@ -1,5 +1,5 @@
-import * as THREE from './three.module.js';
-import atlaspack from './atlaspack.js';
+import * as THREE from '../libs/three.module.js';
+import atlaspack from '../libs/atlaspack.js';
 
 export function parseQuery(queryString) {
   var query = {};
