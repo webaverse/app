@@ -16,7 +16,7 @@ const AssetCardGrid = ({
       <div className="${styles} ${cardSize}">
         ${data.map(asset => html`
           <${AssetCard}
-              key="${asset.id}"
+              key=${asset}
               id=${asset.id}
               assetName=${asset.name}
               description=${asset.description}
