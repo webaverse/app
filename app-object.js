@@ -1,5 +1,5 @@
 import * as THREE from './three.module.js';
-import {OrbitControls} from './OrbitControls.js';
+// import {OrbitControls} from './OrbitControls.js';
 import {CSS3DRenderer} from './CSS3DRenderer.js';
 
 const canvas = document.getElementById('canvas');
@@ -54,11 +54,11 @@ const _addDefaultLights = scene => {
 _addDefaultLights(scene);
 _addDefaultLights(avatarScene);
 
-const orbitControls = new OrbitControls(camera, canvas);
+/* const orbitControls = new OrbitControls(camera, canvas);
 orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
 orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, camera.position.y, -3).applyQuaternion(camera.quaternion));
-orbitControls.update();
+orbitControls.update(); */
 
 const renderer2 = new CSS3DRenderer();
 renderer2.setSize(window.innerWidth, window.innerHeight);
@@ -136,4 +136,4 @@ class App extends EventTarget {
   }
 }
 
-export {renderer, scene, avatarScene, camera, avatarCamera, dolly, orbitControls, renderer2, scene2, scene3, appManager};
+export {renderer, scene, avatarScene, camera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager};

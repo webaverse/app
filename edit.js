@@ -28,7 +28,7 @@ import {world} from './world.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
-import {renderer, scene, avatarScene, camera, avatarCamera, dolly, orbitControls, renderer2, scene2, scene3, appManager} from './app-object.js';
+import {renderer, scene, avatarScene, camera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
@@ -1101,7 +1101,7 @@ function animate(timestamp, frame) {
 
   // const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
 
-  orbitControls.enabled = cameraManager.getTool() === 'camera';
+  // orbitControls.enabled = cameraManager.getTool() === 'camera';
 
   weaponsManager.update(timeDiff, frame);
 
