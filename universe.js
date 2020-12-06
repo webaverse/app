@@ -62,6 +62,14 @@ const worldObjects = universeSpecs.map(spec => {
   return guardianMesh;
 });
 
+const lastCoord = new THREE.Vector3(0, 0, 0);
+const locationIcon = document.getElementById('location-icon');
+const locationLabel = document.getElementById('location-label');
+const _getCurrentCoord = (p, v) => v.set(
+  Math.floor(p.x),
+  Math.floor(p.y),
+  Math.floor(p.z),
+);
 const update = () => {
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
@@ -74,9 +82,22 @@ const update = () => {
   	localBox.set(localVector.fromArray(spec.extents, 0), localVector2.fromArray(spec.extents, 3))
   	  .containsPoint(rigManager.localRig.inputs.hmd.position)
   );
-  if (intersectionIndex !== -1) {
+  let worldName;
+  const intersected = intersectionIndex !== -1;
+  if (intersected) {
     const worldObject = worldObjects[intersectionIndex];
     worldObject.material.uniforms.uColor.value.setHex(greenColor);
+    worldName = 'Erithor';
+  } else {
+  	worldName = 'The Void';
+  }
+
+  _getCurrentCoord(rigManager.localRig.inputs.hmd.position, localVector);
+  if (!localVector.equals(lastCoord)) {
+  	locationIcon.classList.toggle('highlight', intersected);
+  	locationLabel.classList.toggle('highlight', intersected);
+    locationLabel.innerText = worldName + ` @${localVector.x},${localVector.z}`;
+    lastCoord.copy(localVector);
   }
 };
 
