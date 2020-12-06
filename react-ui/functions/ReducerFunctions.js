@@ -156,14 +156,14 @@ export const getProfileForCreator = async (creatorAddress, state) => {
 
 export const getBooths = async (page, state) => {
   // Use cached page
-  if (state.creatorProfiles[creatorAddress] !== undefined)
+  if (state.booths[page] !== undefined)
     return state;
 
   const res = await fetch(`https://store.webaverse.com`);
   const booths = await res.json();
   const newState = { ...state };
   newState.booths[page] = booths;
-  return await getInventoryForCreator(creatorAddress, 1, newState);
+  return newState;
 };
 
 export const getCreators = async (page, state) => {

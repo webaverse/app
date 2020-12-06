@@ -2,10 +2,9 @@ import { React, useEffect, useState, useContext } from 'https://unpkg.com/es-rea
 import htm from '/web_modules/htm.js';
 import ActionTypes from '../constants/ActionTypes.js';
 import css from '../web_modules/csz.js';
+import CreatorCard from './CreatorCard.js';
 const styles = css`/components/CreatorsPage.css`
 import { Context } from '../constants/Context.js';
-
-import CreatorCardGrid from '../components/CreatorCardGrid.js'
 
 const html = htm.bind(React.createElement)
 
@@ -24,7 +23,17 @@ const CreatorsPage = () => {
     <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
     ${state.creators[currentPage] && html`
      <div className=${styles}>
-        <${CreatorCardGrid} creatorData=${state.creators[currentPage]} />
+        ${state.creators[currentPage].map(creator => html`
+          <${CreatorCard}
+              key="${creator.address}"
+              name="${creator.name}"
+              ftu="${creator.ftu}"
+              avatarPreview="${creator.avatarPreview}"
+              avatarFileName="${creator.avatarFileName}"
+              avatarUrl="${creator.avatarUrl}"
+              address="${creator.address}"
+          />
+          `)}
         </div>
       `}
     <//>
