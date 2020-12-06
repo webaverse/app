@@ -32,65 +32,54 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
 
+let ethereumAddress;
+if (window.ethereum) {
+  (async () => {
+    await window.ethereum.enable();
+    let address = await web3['main'].eth.getAccounts();
+    ethereumAddress = address[0];
+  })();
+}
+
+let pendingMonetizationStart = [];
+setInterval(() => {
+  if (pendingMonetizationStart.length > 0) {
+    pendingMonetizationStart.map((id, i) => {
+      const instanceId = pendingMonetizationStart[i].instanceId;
+      if (ethereumAddress && ethereumAddress == pendingMonetizationStart[i].ownerAddress) {
+        window.document[`monetization${instanceId}`].dispatchEvent(new Event('monetizationstart'));
+      } else if (document.monetization) {
+        window.document[`monetization${instanceId}`].dispatchEvent(new Event('monetizationstart'));
+      }
+      pendingMonetizationStart.splice(i, 1);
+    });
+  }
+}, 100); // Every .1 sec
+
 let pointers = [];
 let currentIndex = 0;
-const rotatePointers = () => {
-    setTimeout(function() {
-      if (pointers.length <= 0 && document.querySelector("meta[name=monetization]")) {
-        document.querySelector("meta[name=monetization]").remove();
-        document.monetization.removeEventListener("monetizationprogress", log);
-      }
-      if (pointers.length <= 0 || !document.monetization) return;
+setInterval(() => {
+  if (pointers.length <= 0 && document.querySelector("meta[name=monetization]")) {
+    document.querySelector("meta[name=monetization]").remove();
+    document.monetization.removeEventListener("monetizationprogress", log);
+  }
+  if (pointers.length <= 0 || !document.monetization) return;
 
-      //console.log('CURRENT POINTER ROTATION --', currentIndex, "instanceId: ", pointers[currentIndex].instanceId, "current pointer:", pointers[currentIndex].monetizationPointer, "time: ", new Date().toLocaleTimeString());
-     // console.log("array of monetizationPointers:", JSON.stringify(pointers));
-  
-      if (!document.querySelector("meta[name=monetization]")) {
-        const monetizationTag = document.createElement('meta');
-        monetizationTag.name = 'monetization';
-        monetizationTag.content = pointers[currentIndex].monetizationPointer;
-        document.head.appendChild(monetizationTag);
+  if (!document.querySelector("meta[name=monetization]")) {
+    const monetizationTag = document.createElement('meta');
+    monetizationTag.name = 'monetization';
+    monetizationTag.content = pointers[currentIndex].monetizationPointer;
+    document.head.appendChild(monetizationTag);
+  } else if (document.querySelector("meta[name=monetization]")) {
+    document.querySelector("meta[name=monetization]").setAttribute("content", pointers[currentIndex].monetizationPointer);
+  }
 
-        document.monetization.addEventListener('monetizationprogress', function log(ev) {
-          let total = 0, scale;
-          if (total === 0) {
-            scale = ev.detail.assetScale
-          }
-          total += Number(ev.detail.amount)
-          const formatted = (total * Math.pow(10, -scale)).toFixed(scale)
-       //   console.log("STREAMING PAYMENT --", "pointer:", ev.detail.paymentPointer, "payment:", ev.detail.assetCode, formatted, "time:", new Date().toLocaleTimeString());
-        });
-      } else if (document.querySelector("meta[name=monetization]")) {
-        document.querySelector("meta[name=monetization]").setAttribute("content", pointers[currentIndex].monetizationPointer);
-        document.monetization.addEventListener('monetizationstart', (e) => {
-          console.log("could dispatch event now");
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-
-          const detail = e.detail;
-          console.log("dispatching event with detail:", detail);
-          detail.instanceId = pointers[currentIndex].instanceId;
-          document.monetizationdispatchEvent(
-            new CustomEvent("monetizationstart", {
-              detail: {
-                ...detail,
-              },
-            }),
-          );  
-        });
-      }
-
-      if (currentIndex >= pointers.length - 1) {
-        currentIndex = 0;
-      } else {
-        currentIndex++;
-      }
-
-      rotatePointers();
-    }, 10000); // Every 10 sec
-}
-rotatePointers();
+  if (currentIndex >= pointers.length - 1) {
+    currentIndex = 0;
+  } else {
+    currentIndex++;
+  }
+}, 10000); // Every 5 sec
 
 function abs(n) {
   return (n ^ (n >> 31)) - (n >> 31);
@@ -856,8 +845,8 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
   });
 };
 setTimeout(() => {
-  world.addObject(37, null, new THREE.Vector3(0, 2, -2), new THREE.Quaternion());
-  world.addObject(35, null, new THREE.Vector3(0, 2, -2), new THREE.Quaternion());
+  world.addObject(35, null, new THREE.Vector3(-0.5, 1, 1.25), new THREE.Quaternion());
+  world.addObject(38, null, new THREE.Vector3(0.5, 1, 1.25), new THREE.Quaternion());
 }, 5000);
 world.removeObject = removeInstanceId => {
   state.transact(() => {
@@ -902,7 +891,6 @@ world.addEventListener('trackedobjectadd', async e => {
   const options = JSON.parse(optionsString);
   const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
   const token = await res.json();
-
 
   const file = await (async () => {
     if (typeof contentId === 'number' || /^\d+$/.test(contentId)) {
@@ -968,33 +956,12 @@ world.addEventListener('trackedobjectadd', async e => {
         scene.add(mesh);
       }
 
-      if (token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
+      if (token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
         const monetizationPointer = token.owner.monetizationPointer;
-        pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer});
+        const ownerAddress = token.owner.address;
+        pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer, "ownerAddress": ownerAddress });
+        pendingMonetizationStart.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer, "ownerAddress": ownerAddress });
       }
-      if (document.monetization && instanceId) {
-        console.log("dispatching event monetization enabled with instanceid:", instanceId);
-        const ev = new CustomEvent('monetizationstart', {
-          detail: {
-            instanceId: instanceId
-          }
-        });
-        window.document.monetization.dispatchEvent(ev);
-      } else if (window.ethereum) {
-        await window.ethereum.enable();
-        let address = await web3['main'].eth.getAccounts();
-        address = address[0];
-        if (token.owner.address === address) {
-          console.log("owner of NFT!!!!"); // DEBUGGING xxx
-          const ev = new CustomEvent('monetizationstart', {
-            detail: {
-              instanceId: instanceId
-            }
-          });
-          window.document.monetization.dispatchEvent(ev);
-        }
-      }
-
 
     } else {
       console.warn('failed to load object', file);
