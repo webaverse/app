@@ -857,8 +857,8 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
   });
 };
 setTimeout(() => {
-  world.addObject(35, null, new THREE.Vector3(-0.5, 1, 1.25), new THREE.Quaternion());
-  world.addObject(38, null, new THREE.Vector3(0.5, 1, 1.25), new THREE.Quaternion());
+// new contract world.addObject(35, null, new THREE.Vector3(-0.5, 1, 1.25), new THREE.Quaternion());
+//  world.addObject(46, null, new THREE.Vector3(0.5, 1, 1.25), new THREE.Quaternion());
 }, 5000);
 world.removeObject = removeInstanceId => {
   state.transact(() => {
