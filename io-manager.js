@@ -343,7 +343,7 @@ window.addEventListener('keydown', e => {
     }
     case 70: { // F
       // pe.grabdown('right');
-      physicsManager.setFlyState(!physicsManager.getFlyState());
+      document.getElementById('key-f').click();
       break;
     }
     case 86: { // V
