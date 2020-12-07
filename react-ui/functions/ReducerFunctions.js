@@ -1,36 +1,5 @@
-import { React, ReactDOM, useEffect, useReducer, useState } from 'https://unpkg.com/es-react/dev';
-import { getAddressFromMnemonic, runSidechainTransaction, web3 } from '../webaverse/blockchain.js';
 import storage from '../webaverse/storage.js';
-import { PageRouter } from './components/PageRouter.js';
-import ActionTypes from './constants/ActionTypes.js';
-import { Context } from './constants/Context.js';
-import htm from './web_modules/htm.js';
-const storageHost = 'https://storage.exokit.org';
-
-
-window.html = htm.bind(React.createElement);
-
-const initialValues = {
-  useWebXR: false,
-  loginToken: null,
-  name: null,
-  mainnetAddress: null,
-  avatarThumbnail: null,
-  showUserDropdown: false,
-  address: null,
-  avatarUrl: null,
-  avatarFileName: null,
-  avatarPreview: null,
-  ftu: true,
-  inventory: null,
-  creatorProfiles: {},
-  creatorInventories: {},
-  creators: {},
-  booths: {},
-  lastFileHash: null,
-  lastFileId: null
-};
-
+import { getAddressFromMnemonic } from '../webaverse/blockchain.js';
 
 
 export const initializeEthereum = async (state) => {
@@ -208,15 +177,15 @@ export const getCreators = async (page, state) => {
   return newState;
 };
 
-export const mintNft = async (file, name, description, quantity, successCallback, errorCallback, state) => {
+export const uploadFile = async (file, state) => {
+  if (!state.loginToken)
+    throw new Error('not logged in');
+  if (!file.name)
+    throw new Error('file has no name');
+
   const { mnemonic, addr } = state.loginToken;
   const res = await fetch(storageHost, { method: 'POST', body: file });
   const { hash } = await res.json();
-
-  let status, transactionHash, tokenIds;
-
-  
-  try {
 
   const fullAmount = {
     t: 'uint256',
@@ -225,6 +194,8 @@ export const mintNft = async (file, name, description, quantity, successCallback
       .mul(new web3.utils.BN(1e9)),
   };
 
+  let status, transactionHash, tokenIds;
+  try {
     {
       const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['NFT']._address, fullAmount.v);
       status = result.status;
@@ -232,22 +203,22 @@ export const mintNft = async (file, name, description, quantity, successCallback
       tokenIds = [];
     }
     if (status) {
-      const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', addr, '0x' + hash, name, description, quantity);
+      const description = '';
+      // console.log('minting', ['NFT', 'mint', addr, '0x' + hash, file.name, description, quantity]);
+      const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', addr, '0x' + hash, file.name, description, quantity);
       status = result.status;
       transactionHash = result.transactionHash;
       const tokenId = new web3.utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
       tokenIds = [tokenId, tokenId + quantity - 1];
-      successCallback();
     }
   } catch (err) {
     console.warn(err.stack);
     status = false;
     transactionHash = '0x0';
     tokenIds = [];
-    errorCallback();
   }
 
-  return await pullUserObject(state);
+  return { tokenIds };
 };
 
 export const pullUserObject = async (state) => {
@@ -268,7 +239,7 @@ export const requestTokenByEmail = async (email) => {
   await fetch(`/gateway?email=${encodeURIComponent(email)}`, {
     method: 'POST',
   });
-  alert(`Code sent to ${email}!`);
+  alert(`Code sent to ${loginEmail.value}!`);
   return state;
 };
 
@@ -287,16 +258,15 @@ export const loginWithEmailCode = async (email, code, state) => {
 };
 
 export const loginWithEmailOrPrivateKey = async (emailOrPrivateKey, state) => {
-  console.log("emailOrPrivateKey is", emailOrPrivateKey);
   const split = emailOrPrivateKey.split(/\s+/).filter(w => !!w);
-
   if (split.length === 12) {
     // Private key
     const mnemonic = split.slice(0, 12).join(' ');
     return await setNewLoginToken(mnemonic);
   } else {
     // Email
-    return await requestTokenByEmail(emailOrPrivateKey);
+    requestTokenByEmail(email);
+    return state;
   }
 };
 
@@ -342,206 +312,3 @@ export const initializeStart = async (state) => {
   return newState;
 };
 
-const Application = () => {
-  const [state, dispatch] = useReducer((state, action) => {
-    switch (action.type) {
-      case ActionTypes.InitializeState:
-        initializeStart(state).then(newState => {
-          dispatch({ type: ActionTypes.InitializeStateEnd, payload: { state: newState } });
-        });
-        return state;
-  
-      case ActionTypes.InitializeStateEnd:
-        return { ...state, ...action.payload.state };
-  
-  
-      case ActionTypes.GetProfileForCreator:
-        getProfileForCreator(action.payload.address, state).then(newState => {
-          dispatch({ type: ActionTypes.GetProfileForCreator.concat('End'), payload: { state: newState } });
-        });
-        return state;
-  
-      case ActionTypes.GetProfileForCreator.concat('End'):
-        console.log("New state is", { ...state, ...action.payload.state });
-        return { ...state, ...action.payload.state };
-  
-  
-      case ActionTypes.GetInventoryForCreator:
-        getInventoryForCreator(action.payload.address, action.payload.page, state).then(newState => {
-          dispatch({ type: ActionTypes.GetInventoryForCreator.concat('End'), payload: { state: newState } });
-        });
-        return state;
-  
-      case ActionTypes.GetInventoryForCreator.concat('End'):
-        return { ...state, ...action.payload.state };
-  
-  
-      case ActionTypes.GetCreators:
-        getCreators(action.payload.page, state).then(newState => {
-          dispatch({ type: ActionTypes.GetCreators.concat('End'), payload: { state: newState } });
-        });
-        return state;
-  
-      case ActionTypes.GetCreators.concat('End'):
-        return { ...state, ...action.payload.state };
-  
-  
-      case ActionTypes.GetBooths:
-        console.log("GetBooths for creator action is", action.payload);
-        getBooths(action.payload.page, state).then(newState => {
-          dispatch({ type: ActionTypes.GetBooths.concat('End'), payload: { state: newState } });
-        });
-        return state;
-  
-      case ActionTypes.GetBooths.concat('End'):
-        return { ...state, ...action.payload.state };
-
-
-      case ActionTypes.RequestEmailToken.concat('End'):
-        return { ...state, ...action.payload.state };
-
-      case ActionTypes.LoginWithEmailOrPrivateKey:
-        loginWithEmailOrPrivateKey(action.payload.emailOrPrivateKey, state).then(newState => {
-          dispatch({ type: ActionTypes.LoginWithEmailOrPrivateKey.concat('End'), payload: { state: newState } });
-
-        });
-      return state;
-  
-
-      case ActionTypes.GatewayWithEmail:
-        loginWithEmailCode(action.payload.email, action.payload.code, state).then(newState => {
-          dispatch({ type: ActionTypes.GatewayWithEmail.concat('End'), payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.GatewayWithEmail.concat('End'):
-        return { ...state, ...action.payload.state };
-
-  
-      case ActionTypes.Logout:
-        logout(action.payload.assetId, state).then(newState => {
-          dispatch({ type: ActionTypes.Logout.concat('End'), payload: { state: newState } });
-        });
-        return state;
-
-        case ActionTypes.Logout.concat('End'):
-          return { ...state, ...action.payload.state };
-
-
-      case ActionTypes.MintNft:
-        mintNft(action.payload.file,
-                action.payload.name,
-                action.payload.description,
-                action.payload.quantity,
-                action.payload.successCallback,
-                action.payload.errorCallback,
-                state
-          ).then(newState => {
-          dispatch({ type: ActionTypes.MintNft.concat('End'), payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.MintNft.concat('End'):
-        return { ...state, ...action.payload.state };
-        
-  
-      // case ActionTypes.SendNft:
-      //   return sendNft(action.payload.receiverAddress, action.payload.assetId, state);
-  
-      // case ActionTypes.BuyNft:
-      //   return buyNft(action.payload.assetId, state);
-  
-      // case ActionTypes.SellNft:
-      //   return sellNft(action.payload.assetId, state);
-  
-      // case ActionTypes.DestroyNft:
-      //   return destroyNft(action.payload.assetId, state);
-  
-      // case ActionTypes.AddFtToNft:
-      //   return addFtToNft(action.payload.assetId, state);
-  
-      // case ActionTypes.DepositFt:
-      //   return depositFt(action.payload.amount, state);
-  
-      // case ActionTypes.WithdrawFt:
-      //   return withdrawFt(action.payload.amount, state);
-  
-      // case ActionTypes.CopyAddress:
-      //   newState = copyAddress(state);
-      //   break;
-  
-      // case ActionTypes.CopyPrivateKey:
-      //   newState = copyPrivateKey(state);
-      //   break;
-  
-      // case ActionTypes.ChangeName:
-      //   newState = setUsername(action.payload.newUserName, state);
-      //   break;
-  
-      // case ActionTypes.SetAvatar:
-      //   newState = setAvatar(action.payload.assetId, state);
-      //   break;
-  
-      // case ActionTypes.SetHomespace:
-      //   newState = setHomespace(action.payload.assetId, state);
-      //   break;
-  
-      // case ActionTypes.AddToLoadout:
-      //   newState = setLoadoutState(action.payload.assetId, true, state);
-      //   break;
-  
-      // case ActionTypes.RemoveFromLoadout:
-      //   newState = setLoadoutState(action.payload.assetId, false, state);
-      //   break;
-  
-      // case ActionTypes.UploadFile:
-      //   newState = uploadFile(action.payload.file, state);
-      //   break;
-  
-      // case ActionTypes.SetFtu:
-      //   newState = setFtu(state);
-      //   break;
-  
-      default:
-        console.warn("Default case in reducer, something is wrong");
-        return state;
-  
-    }
-  }, initialValues);
-  window.dispatch = dispatch;
-  window.state = state;
-  const [initState, setInitState] = useState(false);
-
-  useEffect(() => {
-    window.dispatch = dispatch;
-  }, [dispatch]);
-
-  useEffect(() => {
-    window.state = state;
-  }, [state]);
-
-  useEffect(() => {
-    if (!initState) {
-      setInitState(true);
-      dispatch({ type: ActionTypes.InitializeState });
-      console.log("Render!");
-    }
-  }, []);
-  return html`
-  <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
-  ${state.address && html`
-  <${Context.Provider} value=${{ state, dispatch }}>  
-    ${!state.useWebXR ? html`
-      <${PageRouter} />
-    ` : html`
-      <${WebXRContext} />
-    `}
-    </${Context.Provider}>
-    `}
-  <//>
-`
-}
-
-ReactDOM.render(html`<${Application} />`,
-  document.getElementById('root')
-)
