@@ -1,12 +1,8 @@
-import { React, useContext, useEffect, useReducer } from 'https://unpkg.com/es-react@16.13.1/dev';
-
-import htm from '../web_modules/htm.js';
-import css from '../web_modules/csz.js'
-import { useState, useContext } from 'https://unpkg.com/es-react@16.13.1/dev';
-import { LoginReducer } from '../reducers/LoginReducer.js';
+import { useContext } from 'https://unpkg.com/es-react@16.13.1/dev';
 import ActionTypes from '../constants/ActionTypes.js';
 import { Context } from '../constants/Context.js';
 import css from '../web_modules/csz.js';
+
 const styles = css`/components/NavBar.css`
 
 const defaultAvatarImage = "../images/test.png";
@@ -31,17 +27,13 @@ const NavBarUserLoginForm = () => {
 
 const NavBarUser = () => {
   const { state, dispatch } = useContext(Context);
-  const name = state.name ?? "Guest";
+  const name = state.name !== "" && state.name !== null ? state.name : "Guest";
   const avatarPreview = state.avatarThumbnail ?? defaultAvatarImage;
-
-    // <span className="loginUsername"> Guest${state.name !== null ? state.name : 'Guest' } </span>
-    // <span className="loginAvatarPreview"><img src="${state.avatarThumbnail !== null ? state.avatarThumbnail : defaultAvatarImage}" /></span>
-
     return html`
         <div className="loginComponent">
             <div className="loginComponentNav">
-                <span className="loginUsername"> ${state.name} </span>
-                <span className="loginAvatarPreview"><img src=${state.avatarPreview} /></span>
+                <span className="loginUsername"> ${name} </span>
+                <span className="loginAvatarPreview"><img src=${avatarPreview} /></span>
             </div>
             <div className="loginComponentDropdown">
               <${NavBarUserLoginForm} />
