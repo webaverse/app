@@ -121,7 +121,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
 
   const physicsBuffers = [];
   let physicsIds = [];
-  /* if (physics) {
+  if (physics) {
     mesh.updateMatrixWorld();
     
     const meshes = [];
@@ -154,7 +154,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       const newMesh = new THREE.Mesh(newGeometry);
       physicsManager.addGeometry(newMesh);
     }
-  } */
+  }
   if (physics_url) {
     const res = await fetch(physics_url);
     let physicsBuffer = await res.arrayBuffer();
