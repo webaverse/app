@@ -175,6 +175,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     }
     physicsIds.length = 0;
   };
+  mesh.getPhysicsIds = () => physicsIds;
   
   return mesh;
 

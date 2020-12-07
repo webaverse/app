@@ -6,6 +6,7 @@ import {loginManager} from './login.js';
 // import {getContractSource} from './blockchain.js';
 import runtime from './runtime.js';
 import {rigManager} from './rig.js';
+import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
 import {scene, scene3} from './app-object.js';
 import {
@@ -891,6 +892,12 @@ world.addEventListener('trackedobjectadd', async e => {
 
       if (mesh.run) {
         mesh.run();
+      }
+      if (mesh.getPhysicsIds) {
+        const physicsIds = mesh.getPhysicsIds();
+        for (const physicsId of physicsIds) {
+          physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion);
+        }
       }
       mesh.instanceId = instanceId;
       mesh.parentId = parentId;
