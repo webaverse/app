@@ -270,8 +270,8 @@ const highlightMesh = makeHighlightMesh();
 highlightMesh.visible = false;
 scene.add(highlightMesh);
 const anchorMeshes = [];
-const rayMesh = makeRayMesh();
-scene.add(rayMesh);
+/* const rayMesh = makeRayMesh();
+scene.add(rayMesh); */
 
 const q = parseQuery(location.search);
 (async () => {
@@ -1014,10 +1014,10 @@ function animate(timestamp, frame) {
   const _updateAnchors = () => {
     const transforms = rigManager.getRigTransforms();
     const {position, quaternion} = transforms[0];
-    rayMesh.position.copy(position);
+    /* rayMesh.position.copy(position);
     rayMesh.quaternion.copy(quaternion);
-    rayMesh.scale.z = 10;
-    
+    rayMesh.scale.z = 10; */
+
     highlightMesh.visible = false;
     for (const anchorMesh of anchorMeshes) {
       localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1))
