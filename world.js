@@ -8,7 +8,7 @@ import {loginManager} from './login.js';
 import runtime from './runtime.js';
 import {rigManager} from './rig.js';
 import minimap from './minimap.js';
-import {scene, scene3} from './app-object.js';
+import {camera, scene, scene3} from './app-object.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
@@ -46,6 +46,18 @@ setInterval(() => {
   if (pendingMonetizationStart.length > 0) {
     pendingMonetizationStart.map((id, i) => {
       const instanceId = pendingMonetizationStart[i].instanceId;
+      const object = pendingMonetizationStart[i].object;
+
+      const listener = new THREE.AudioListener();
+      camera.add( listener );
+      const sound = new THREE.PositionalAudio( listener );
+      const audioLoader = new THREE.AudioLoader();
+      audioLoader.load('./assets/unlockSound.mp3', function( buffer ) {
+        sound.setBuffer( buffer );
+        sound.setRefDistance( 20 );
+        sound.play();
+      });
+
       if (ethereumAddress && ethereumAddress == pendingMonetizationStart[i].ownerAddress) {
         window.document[`monetization${instanceId}`].dispatchEvent(new Event('monetizationstart'));
       } else if (document.monetization) {
@@ -960,7 +972,7 @@ world.addEventListener('trackedobjectadd', async e => {
         const monetizationPointer = token.owner.monetizationPointer;
         const ownerAddress = token.owner.address;
         pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer, "ownerAddress": ownerAddress });
-        pendingMonetizationStart.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer, "ownerAddress": ownerAddress });
+        pendingMonetizationStart.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer, "ownerAddress": ownerAddress, "object": mesh });
       }
 
     } else {
