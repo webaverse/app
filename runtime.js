@@ -118,8 +118,10 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       return o;
     }
   })();
-  
-  if (physics) {
+
+  const physicsBuffers = [];
+  let physicsIds = [];
+  /* if (physics) {
     mesh.updateMatrixWorld();
     
     const meshes = [];
@@ -152,13 +154,26 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       const newMesh = new THREE.Mesh(newGeometry);
       physicsManager.addGeometry(newMesh);
     }
-  }
+  } */
   if (physics_url) {
     const res = await fetch(physics_url);
     let physicsBuffer = await res.arrayBuffer();
     physicsBuffer = new Uint8Array(physicsBuffer);
     physicsBuffers.push(physicsBuffer);
   }
+
+  mesh.run = () => {
+    physicsIds = physicsBuffers.map(physicsBuffer => {
+      const physicsId = ++nextPhysicsId;
+      geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, new THREE.Vector3(), new THREE.Quaternion(), physicsId);
+    });
+  };
+  mesh.destroy = () => {
+    for (const physicsId of physicsIds) {
+      geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsId);
+    }
+    physicsIds.length = 0;
+  };
   
   return mesh;
 
@@ -547,7 +562,7 @@ const _loadManifestJson = async (file, {files = null} = {}) => {
 
   const res = await fetch(srcUrl);
   const j = await res.json();
-  const {start_url} = j;
+  let {start_url, physics_url} = j;
   const u = './' + start_url;
 
   if (/\.js$/.test(u)) {
@@ -645,12 +660,24 @@ const _loadManifestJson = async (file, {files = null} = {}) => {
 
     return mesh; */
   } else {
+    if (physics_url) {
+      physics_url = './' + physics_url;
+
+      if (files) {
+        physics_url = files[physics_url];
+      }
+      if (/^\.+\//.test(physics_url)) {
+        physics_url = new URL(physics_url, srcUrl).href;
+      }
+    }
+
     return await runtime.loadFile({
       url: u,
       name: u,
     }, {
       files,
       parentUrl: srcUrl,
+      physics_url,
     });
   }
 };
