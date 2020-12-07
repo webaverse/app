@@ -5,7 +5,7 @@ import htm from '/web_modules/htm.js';
 const html = htm.bind(React.createElement)
 
 const CreatorProfilePage = () => {
-    const address = new URLSearchParams(window.location.search).get('id');
+    let address = new URLSearchParams(window.location.search).get('address');
     console.log("Addres is", address);
     return html`
     <div>

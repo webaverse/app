@@ -1,6 +1,7 @@
-import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { React, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '../web_modules/htm.js';
 import AssetCard from './AssetCard.js'
+import AssetDetails from './AssetDetails.js'
 
 const html = htm.bind(React.createElement)
 import csz from '../web_modules/csz.js'
@@ -12,7 +13,41 @@ const AssetCardGrid = ({
   cardSize
 }) => {
   console.log("Data is", data);
+  const [currentAsset, setCurrentAsset] = useState(null)
+
+  const showCardDetails = (asset) => {
+    console.log("Showing card details", asset);
+    setCurrentAsset(asset);
+  }
+
+  const hideCardDetails = () => {
+    console.log("Hiding card details");
+    setCurrentAsset(null);
+  }
+
     return html`
+      ${currentAsset !== null && html`
+          <${AssetDetails}
+            id${currentAsset.id}
+            name=${currentAsset.name}
+            description=${currentAsset.description}
+            image=${currentAsset.image}
+            hash=${currentAsset.properties.hash}
+            external_url=${currentAsset.external_url}
+            filename=${currentAsset.properties.filename}
+            ext=${currentAsset.properties.ext}
+            totalSupply=${currentAsset.totalSupply}
+            balance=${currentAsset.balance}
+            ownerAvatarPreview=${currentAsset.owner.avatarPreview}
+            ownerUsername=${currentAsset.owner.username}
+            ownerAddress=${currentAsset.owner.address}
+            minterAvatarPreview=${currentAsset.minter.avatarPreview}
+            minterAddress=${currentAsset.minter.address}
+            minterUsername=${currentAsset.minter.username}
+            hideDetailsFunction=${hideCardDetails}
+            networkType='webaverse'
+          />
+      `}
       <div className="${styles} ${cardSize}">
         ${data.map(asset => html`
           <${AssetCard}
@@ -35,6 +70,7 @@ const AssetCardGrid = ({
               minterUsername=${asset.minter.username}
               minterAddress=${asset.minter.address}
               cardSize=${cardSize}
+              onClickFunction=${() => showCardDetails(asset)}
               networkType='webaverse'
           />
           `)}
