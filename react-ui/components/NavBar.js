@@ -1,83 +1,74 @@
-import { React, useContext, useEffect, useReducer } from 'https://unpkg.com/es-react@16.13.1/dev';
-import htm from '../web_modules/htm.js';
-import css from '../web_modules/csz.js'
-import { useState } from 'https://unpkg.com/es-react@16.13.1/dev';
-import { LoginReducer } from '../reducers/LoginReducer.js';
+import { useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
 import ActionTypes from '../constants/ActionTypes.js';
-const styles = css`/components/NavBar.css`
+import { Context } from '../constants/Context.js';
+import css from '../web_modules/csz.js';
 
-const html = htm.bind(React.createElement)
+const styles = css`/components/NavBar.css`
 
 const defaultAvatarImage = "../images/test.png";
 
-const UserComponent = () => {
+const NavBarUserLoginForm = () => {
+  const [inputState, setInputState] = useState("");
 
-  const initialState = {
-    loginToken: null,
-    publicKey: null,
-    privateKey: null,
-    name: null,
-    mainnetAddress: null,
-    avatarThumbnail: null,
-    showUserDropdown: false
+  const handleChange = (event) => {
+    setInputState({ value: event.target.value });
   }
 
-  const [state, dispatch] = useReducer(LoginReducer, initialState);
+  const { state, dispatch } = useContext(Context);
 
-  useEffect(() => {
-    dispatch({ type: ActionTypes.InitializeUserObject });
-    console.log("state is", state);
-  }, [])
+  const onLoginSubmit = (e) => {
+    e.preventDefault();
+    console.log(e);
+    dispatch({ type: ActionTypes.LoginWithEmailOrPrivateKey, payload: { emailOrPrivateKey: inputState.value } });
+  }
 
-    const onLoginSubmit = (e) => {
-      e.preventDefault();
-      console.log(e);
-      dispatch({ type: ActionTypes.LoginWithPrivateKey })
-    }
+  return html`
+    <form className="loginForm" onSubmit="${onLoginSubmit}">
+      <input type="text" placeholder="Login with email or private key" onChange=${handleChange}/>
+      <button className="submit" type="submit">
+        Login
+      </button>
+    </form>
+  `
+}
 
-    const loginForm = () => html`
-      <form className="loginForm" onSubmit="${onLoginSubmit}">
-        <p>Token is ${state.loginToken}</p>
-        <input type="text" placeholder="privatekey" />
-        <button className="submit" type="submit">
-          Login
-        </button>
-      </form>
-    `
-
-    const DropDown = () => html`
-    <div className="loginComponentDropdown">
-      <${loginForm} />
-    </div>
-    `
-
-    return html`
+const NavBarUser = () => {
+  const { state, dispatch } = useContext(Context);
+  const [loginComponentOpen, setLoginComponent] = useState(false);
+  const name = state.name !== "" && state.name !== null ? state.name : "Guest";
+  const avatarPreview = state.avatarThumbnail ?? defaultAvatarImage;
+  const toggleLoginComponent = () => {
+    console.log("login component toggle");
+    setLoginComponent(!loginComponentOpen);
+  }
+  return html`
         <div className="loginComponent">
-            <div className="loginComponentNav">
-                <span className="loginUsername"> ${state.name !== null ? state.names : 'Guest' } </span>
-                <span className="loginAvatarPreview"><img src="${state.avatarThumbnail !== null ? state.avatarThumbnail : defaultAvatarImage}" /></span>
+            <div className="loginComponentNav" onClick=${toggleLoginComponent}>
+                <span className="loginUsername"> ${name} </span>
+                <span className="loginAvatarPreview"><img src=${avatarPreview} /></span>
             </div>
-                <${DropDown} />
+            ${loginComponentOpen && html`
+              <div className="loginComponentDropdown">
+                <${NavBarUserLoginForm} />
+              </div>
+            `}
         </div>
     `
 }
 
-const NavBar = ({username, avatarPreview}) => {
-
-  if(username === undefined) username = "Guest";
-  
-    return html`
+const NavBar = () => {
+  return html`
     <div className=${styles}>
         <nav className="navbar">
-          <span className='nav-logo'><h1>Webaverse</h1></span>
+          <span className='nav-logo'><h1>Ψ Webaverse</h1></span>
           <span className='nav-item'><a href='/profile' className='nav-link'>Profile</a></span>
           <span className='nav-item'><a href='/gallery' className='nav-link'>Gallery</a></span>
           <span className='nav-item'><a href='/creators' className='nav-link'>Creators</a></span>
           <span className='nav-item'><a href='/mint' className='nav-link'>Mint NFT</a></span>
         </nav>
-      <${UserComponent} username=${username} avatarPreview=${avatarPreview}  />
+      <${NavBarUser}  />
     </div>
     `;
-  };
+};
 
-  export default NavBar;
+export default NavBar;

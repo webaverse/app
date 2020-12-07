@@ -1,4 +1,6 @@
 import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { useRouter } from '../web_modules/react-es-router.js';
+
 import htm from '/web_modules/htm.js';
 import csz from '../web_modules/csz.js'
 
@@ -15,7 +17,7 @@ const Creator = ({
   address
 }) => {
     return html`
-        <div className="${styles} creator">
+        <div className="${styles} creator" onClick=${() => window.location = '/creator?address='+address}>
           <div className="avatarPreview"><img src="${avatarPreview}" /></div>
           <div className="creatorInfo">
             <div className="creatorName">${name}</div>

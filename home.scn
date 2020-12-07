@@ -30,6 +30,13 @@
       "start_url": "https://avaer.github.io/hookshot/index.js"
     },
     {
+      "name": "lightsaber",
+      "position": [0, 1, 0],
+      "quaternion": [0, 0, 0, 1],
+      "scale": [1, 1, 1],
+      "start_url": "https://avaer.github.io/lightsaber/index.js"
+    },
+    {
       "name": "cv",
       "position": [-2, 0, -12],
       "quaternion": [0, 0, 0, 1],

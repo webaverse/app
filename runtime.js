@@ -57,17 +57,26 @@ const importMap = {
 const _clone = o => JSON.parse(JSON.stringify(o));
 
 // const thingFiles = {};
-const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false} = {}) => {
-  const u = file.url || URL.createObjectURL(file);
+const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, files = null, parentUrl = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  }
+
   let o;
   try {
     o = await new Promise((accept, reject) => {
-      gltfLoader.load(u, accept, function onprogress() {}, reject);
+      gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
     });
   } catch(err) {
     console.warn(err);
   } finally {
-    URL.revokeObjectURL(u);
+    if (/^blob:/.test(srcUrl)) {
+      URL.revokeObjectURL(u);
+    }
   }
   o = o.scene;
 
@@ -109,7 +118,9 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       return o;
     }
   })();
-  
+
+  const physicsBuffers = [];
+  let physicsIds = [];
   if (physics) {
     mesh.updateMatrixWorld();
     
@@ -150,6 +161,21 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     physicsBuffer = new Uint8Array(physicsBuffer);
     physicsBuffers.push(physicsBuffer);
   }
+
+  mesh.run = () => {
+    physicsIds = physicsBuffers.map(physicsBuffer => {
+      const physicsId = ++nextPhysicsId;
+      geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, new THREE.Vector3(), new THREE.Quaternion(), physicsId);
+      return physicsId;
+    });
+  };
+  mesh.destroy = () => {
+    for (const physicsId of physicsIds) {
+      geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsId);
+    }
+    physicsIds.length = 0;
+  };
+  mesh.getPhysicsIds = () => physicsIds;
   
   return mesh;
 
@@ -245,17 +271,26 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       }, console.warn);
   } */
 };
-const _loadVrm = async file => {
-  const u = file.url || URL.createObjectURL(file);
+const _loadVrm = async (file, {files = null, parentUrl = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  }
+
   let o;
   try {
     o = await new Promise((accept, reject) => {
-      gltfLoader.load(u, accept, function onprogress() {}, reject);
+      gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
     });
   } catch(err) {
     console.warn(err);
   } finally {
-    URL.revokeObjectURL(u);
+    if (/^blob:/.test(srcUrl)) {
+      URL.revokeObjectURL(srcUrl);
+    }
   }
   o.scene.raw = o;
   o = o.scene;
@@ -339,10 +374,11 @@ const _loadImg = async file => {
 };
 const _makeAppUrl = (appId) => {
   const s = `\
-    import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
+    import {renderer as _renderer, scene, camera, appManager} from ${JSON.stringify(importMap.app)};
+    import * as THREE from ${JSON.stringify(importMap.three)};
     import runtime from ${JSON.stringify(importMap.runtime)};
     import {world} from ${JSON.stringify(importMap.world)};
-    import physics from ${JSON.stringify(importMap.physicsManager)};
+    import _physics from ${JSON.stringify(importMap.physicsManager)};
     import {rigManager} from ${JSON.stringify(importMap.rig)};
     import * as ui from ${JSON.stringify(importMap.vrUi)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
@@ -351,6 +387,53 @@ const _makeAppUrl = (appId) => {
     renderer.setAnimationLoop = function(fn) {
       appManager.setAnimationLoop(${appId}, fn);
     };
+
+    const physics = {};
+    for (const k in _physics) {
+      physics[k] = _physics[k];
+    }
+    const localVector = new THREE.Vector3();
+    const localVector2 = new THREE.Vector3();
+    const localQuaternion = new THREE.Quaternion();
+    const localMatrix = new THREE.Matrix4();
+    const localMatrix2 = new THREE.Matrix4();
+    physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
+      localMatrix
+        .compose(position, quaternion, localVector2.set(1, 1, 1))
+        .premultiply(app.object.matrixWorld)
+        .decompose(localVector, localQuaternion, localVector2);
+      position = localVector;
+      quaternion = localQuaternion;
+      return addBoxGeometry.call(this, position, quaternion, size, dynamic);
+    })(physics.addBoxGeometry);
+    physics.addGeometry = (addGeometry => function(mesh) {
+      return addGeometry.apply(this, arguments);
+    })(physics.addGeometry);
+    physics.addConvexGeometry = (addConvexGeometry => function(mesh) {
+      return addConvexGeometry.apply(this, arguments);
+    })(physics.addConvexGeometry);
+    physics.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion) {
+      return addCookedConvexGeometry.apply(this, arguments);
+    })(physics.addCookedConvexGeometry);
+    physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
+      const transform = getPhysicsTransform.apply(this, arguments);
+      const {position, quaternion} = transform;
+      localMatrix
+        .compose(position, quaternion, localVector2.set(1, 1, 1))
+        .premultiply(localMatrix2.copy(app.object.matrixWorld).invert())
+        .decompose(position, quaternion, localVector2);
+      return transform;
+    })(physics.getPhysicsTransform);
+    physics.setPhysicsTransform = (setPhysicsTransform => function(physicsId, position, quaternion) {
+      localMatrix
+        .compose(position, quaternion, localVector2.set(1, 1, 1))
+        .premultiply(app.object.matrixWorld)
+        .decompose(localVector, localQuaternion, localVector2);
+      position = localVector;
+      quaternion = localQuaternion;
+      return setPhysicsTransform.call(this, physicsId, position, quaternion);
+    })(physics.setPhysicsTransform);
+
     const app = appManager.getApp(${appId});
     let recursion = 0;
     app.onBeforeRender = () => {
@@ -365,22 +448,22 @@ const _makeAppUrl = (appId) => {
         rigManager.localRig.model.visible = false;
       }
     };
-    export {renderer, scene, camera, orbitControls, runtime, world, physics, ui, crypto, app, appManager};
+    export {renderer, scene, camera, runtime, world, physics, ui, crypto, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
   });
   return URL.createObjectURL(b);
 };
-const _loadScript = async file => {
+const _loadScript = async (file, {files = null, parentUrl = null} = {}) => {
   const appId = ++appIds;
-  const mesh = new THREE.Object3D(); // makeIconMesh();
-  mesh.geometry = new THREE.BufferGeometry();
+  const mesh = new THREE.Object3D();
+  /* mesh.geometry = new THREE.BufferGeometry();
   mesh.geometry.boundingBox = new THREE.Box3(
     new THREE.Vector3(-1, -1/2, -0.1),
     new THREE.Vector3(1, 1/2, 0.1),
   );
-  mesh.frustumCulled = false;
+  mesh.frustumCulled = false; */
   mesh.run = () => {
     import(u)
       .then(() => {
@@ -402,7 +485,7 @@ const _loadScript = async file => {
   app.object = mesh;
   const localImportMap = _clone(importMap);
   localImportMap.app = _makeAppUrl(appId);
-  app.files = new Proxy({}, {
+  app.files = files || new Proxy({}, {
     get(target, p) {
       return new URL(p, srcUrl).href;
     },
@@ -444,7 +527,11 @@ const _loadScript = async file => {
     const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
       let u = match[2];
       if (/^\.+\//.test(u)) {
-        u = new URL(u, scriptUrl).href;
+        if (files) {
+          u = files[u];
+        } else {
+          u = new URL(u, scriptUrl).href;
+        }
       }
       return await _mapUrl(u);
     }));
@@ -456,12 +543,145 @@ const _loadScript = async file => {
   };
 
   let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
   if (/^\.+\//.test(srcUrl)) {
-    srcUrl = new URL(srcUrl, location.href).href;
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
   }
   const u = await _mapUrl(srcUrl);
 
   return mesh;
+};
+const _loadManifestJson = async (file, {files = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, location.href).href;
+  }
+
+  const res = await fetch(srcUrl);
+  const j = await res.json();
+  let {start_url, physics_url} = j;
+  const u = './' + start_url;
+
+  if (/\.js$/.test(u)) {
+    return await _loadScript({
+      url: u,
+      name: u,
+    }, {
+      files,
+      parentUrl: srcUrl,
+    });
+
+    /* const appId = ++appIds;
+    const mesh = new THREE.Object3D();
+    mesh.geometry = new THREE.BufferGeometry();
+    mesh.geometry.boundingBox = new THREE.Box3(
+      new THREE.Vector3(-1, -1/2, -0.1),
+      new THREE.Vector3(1, 1/2, 0.1),
+    );
+    mesh.frustumCulled = false;
+    mesh.run = () => {
+      import(u)
+        .then(() => {
+          // console.log('import returned');
+        }, err => {
+          console.warn('import failed', u, err);
+        })
+        .finally(() => {
+          for (const u of cachedUrls) {
+            URL.revokeObjectURL(u);
+          }
+        });
+    };
+    mesh.destroy = () => {
+      appManager.destroyApp(appId);
+    };
+
+    const app = appManager.createApp(appId);
+    app.object = mesh;
+    const localImportMap = _clone(importMap);
+    localImportMap.app = _makeAppUrl(appId);
+    app.files = new Proxy({}, {
+      get(target, p) {
+        return new URL(p, srcUrl).href;
+      },
+    });
+
+    const cachedUrls = [];
+    const _getUrl = u => {
+      const mappedUrl = URL.createObjectURL(new Blob([u], {
+        type: 'text/javascript',
+      }));
+      cachedUrls.push(mappedUrl);
+      return mappedUrl;
+    };
+    const urlCache = {};
+    const _mapUrl = async u => {
+      const importUrl = localImportMap[u];
+      if (importUrl) {
+        return importUrl;
+      } else {
+        const cachedUrl = urlCache[u];
+        if (cachedUrl) {
+          return cachedUrl;
+        } else {
+          const res = await fetch(u);
+          if (res.ok) {
+            let importScript = await res.text();
+            importScript = await _mapScript(importScript, srcUrl);
+            const cachedUrl = _getUrl(importScript);
+            urlCache[u] = cachedUrl;
+            return cachedUrl;
+          } else {
+            throw new Error('failed to load import url: ' + u);
+          }
+        }
+      }
+    };
+    const _mapScript = async (script, scriptUrl) => {
+      const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
+      const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
+        let u = match[2];
+        if (/^\.+\//.test(u)) {
+          u = new URL(u, scriptUrl).href;
+        }
+        return await _mapUrl(u);
+      }));
+      let index = 0;
+      script = script.replace(r, function() {
+        return arguments[1] + replacements[index++] + arguments[3];
+      });
+      return script;
+    };
+
+    const u = await _mapUrl(srcUrl);
+
+    return mesh; */
+  } else {
+    if (physics_url) {
+      physics_url = './' + physics_url;
+
+      if (files) {
+        physics_url = files[physics_url];
+      }
+      if (/^\.+\//.test(physics_url)) {
+        physics_url = new URL(physics_url, srcUrl).href;
+      }
+    }
+
+    return await runtime.loadFile({
+      url: u,
+      name: u,
+    }, {
+      files,
+      parentUrl: srcUrl,
+      physics_url,
+    });
+  }
 };
 let appIds = 0;
 const _loadWebBundle = async (file, opts, instanceId) => {
@@ -481,91 +701,7 @@ const _loadWebBundle = async (file, opts, instanceId) => {
     });
   }
 
-  const appId = ++appIds;
-  const mesh = new THREE.Object3D(); // makeIconMesh();
-  /* mesh.geometry.boundingBox = new THREE.Box3(
-    new THREE.Vector3(-1, -1/2, -0.1),
-    new THREE.Vector3(1, 1/2, 0.1),
-  );
-  mesh.frustumCulled = false; */
-  mesh.run = () => {
-    import(u)
-      .then(() => {
-        console.log('import returned');
-      }, err => {
-        console.warn('import failed', u, err);
-      })
-      .finally(() => {
-        for (const u of cachedUrls) {
-          URL.revokeObjectURL(u);
-        }
-      });
-  };
-  mesh.destroy = () => {
-    appManager.destroyApp(appId);
-  };
-
-  const app = appManager.createApp(appId);
-  app.object = mesh;
-  const localImportMap = _clone(importMap);
-  localImportMap.app = _makeAppUrl(appId);
-
-  const cachedUrls = [];
-  const _getUrl = u => {
-    const mappedUrl = URL.createObjectURL(new Blob([u], {
-      type: 'text/javascript',
-    }));
-    cachedUrls.push(mappedUrl);
-    return mappedUrl;
-  };
-  const urlCache = {};
-  const _mapUrl = u => {
-    const importUrl = localImportMap[u];
-    if (importUrl) {
-      return importUrl;
-    } else {
-      const cachedUrl = urlCache[u];
-      if (cachedUrl) {
-        return cachedUrl;
-      } else {
-        const importUrl = new URL(u, 'https://xrpackage.org/').href;
-        let importResponse;
-        try {
-          importResponse = bundle.getResponse(importUrl);
-        } catch(err) {
-          console.warn(err);
-        }
-        if (importResponse) {
-          const importBody = importResponse.body;
-          let importScript = textDecoder.decode(importBody);
-          importScript = _mapScript(importScript);
-          const cachedUrl = _getUrl(importScript);
-          urlCache[u] = cachedUrl;
-          return cachedUrl;
-        } else {
-          throw new Error('failed to find import url: ' + importUrl);
-        }
-      }
-    }
-  };
-  const _mapScript = script => {
-    const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
-    script = script.replace(r, function() {
-      const u = _mapUrl(arguments[2]);
-      return arguments[1] + u + arguments[3];
-    });
-
-    if (instanceId) {
-      script = script.replace("document.monetization", `window.document.monetization${instanceId}`);
-      script = script.replace("document.monetization.addEventListener", `window.document.monetization${instanceId}.addEventListener`);
-      script = `
-        window.document.monetization${instanceId} = window.document.createElement('div');
-      ` + script;
-    }
-
-    return script;
-  };
-
+  const files = {};
   const bundle = new wbn.Bundle(arrayBuffer);
   const {urls} = bundle;
   for (const u of urls) {
@@ -577,11 +713,15 @@ const _loadWebBundle = async (file, opts, instanceId) => {
     });
     const blobUrl = URL.createObjectURL(b);
     const {pathname} = new URL(u);
-    app.files['.' + pathname] = blobUrl;
+    files['.' + pathname] = blobUrl;
   }
-  const u = _mapUrl(bundle.primaryURL);
-
-  return mesh;
+  const u = './manifest.json';
+  return await runtime.loadFile({
+    url: u,
+    name: u,
+  }, {
+    files,
+  });
 };
 const _loadScn = async (file, opts) => {
   let srcUrl = file.url || URL.createObjectURL(file);
@@ -848,6 +988,9 @@ runtime.loadFile = async (file, opts, instanceId) => {
     }
     case 'js': {
       return await _loadScript(file, opts);
+    }
+    case 'json': {
+      return await _loadManifestJson(file, opts);
     }
     case 'wbn': {
       return await _loadWebBundle(file, opts, instanceId);

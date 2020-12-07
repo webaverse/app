@@ -116,6 +116,11 @@ img:not([src]) {
 {
   --color: #ef5350;
 }
+.header .icon > .img.highlight,
+.header .icon > .name.highlight
+{
+  --color: #29b6f6;
+}
 .header .icon > .name:not(.open) {
   display: none;
 }

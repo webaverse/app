@@ -1,7 +1,10 @@
 & {
     width: 100%;
-    height: 3em;
+    height: 4em;
     background: white;
+    display: flex;
+    align-self: center;
+    justify-content: center;
 }
 
 a {
@@ -19,17 +22,26 @@ a:hover {
     height: 100%;
     display: flex;
     justify-content: left;
+    align-items: center;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.24);
 }
 
 .nav-item {
-    padding: 1em;
+    padding: 1.5em;
+    cursor: pointer;
+}
+
+.nav-item:hover {
+    background: rgba(0, 0, 0, 0.04);
 }
 
 .nav-logo {
-    padding: 1em;
+    padding-left: 1.5em;
+    padding-right: 1.5em;
 }
 
 .nav-logo h1 {
+    font-weight: 400;
     display: inline;
 }
 
@@ -50,8 +62,12 @@ a:hover {
     height: 3em;
 }
 
-.loginComponentDropdown {
+.loginComponentNav {
+    display: flex;
+    align-items: center;
+}
 
+.loginComponentDropdown {
 }
 
 .loginComponentLink {
