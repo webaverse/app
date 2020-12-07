@@ -57,17 +57,26 @@ const importMap = {
 const _clone = o => JSON.parse(JSON.stringify(o));
 
 // const thingFiles = {};
-const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false} = {}) => {
-  const u = file.url || URL.createObjectURL(file);
+const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, files = null, parentUrl = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  }
+
   let o;
   try {
     o = await new Promise((accept, reject) => {
-      gltfLoader.load(u, accept, function onprogress() {}, reject);
+      gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
     });
   } catch(err) {
     console.warn(err);
   } finally {
-    URL.revokeObjectURL(u);
+    if (/^blob:/.test(srcUrl)) {
+      URL.revokeObjectURL(u);
+    }
   }
   o = o.scene;
 
@@ -245,17 +254,26 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       }, console.warn);
   } */
 };
-const _loadVrm = async file => {
-  const u = file.url || URL.createObjectURL(file);
+const _loadVrm = async (file, {files = null, parentUrl = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  }
+
   let o;
   try {
     o = await new Promise((accept, reject) => {
-      gltfLoader.load(u, accept, function onprogress() {}, reject);
+      gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
     });
   } catch(err) {
     console.warn(err);
   } finally {
-    URL.revokeObjectURL(u);
+    if (/^blob:/.test(srcUrl)) {
+      URL.revokeObjectURL(srcUrl);
+    }
   }
   o.scene.raw = o;
   o = o.scene;
@@ -420,7 +438,7 @@ const _makeAppUrl = appId => {
   });
   return URL.createObjectURL(b);
 };
-const _loadScript = async (file, {files = null} = {}) => {
+const _loadScript = async (file, {files = null, parentUrl = null} = {}) => {
   const appId = ++appIds;
   const mesh = new THREE.Object3D();
   /* mesh.geometry = new THREE.BufferGeometry();
@@ -512,7 +530,7 @@ const _loadScript = async (file, {files = null} = {}) => {
     srcUrl = files[srcUrl];
   }
   if (/^\.+\//.test(srcUrl)) {
-    srcUrl = new URL(srcUrl, location.href).href;
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
   }
   const u = await _mapUrl(srcUrl);
 
@@ -536,7 +554,10 @@ const _loadManifestJson = async (file, {files = null} = {}) => {
     return await _loadScript({
       url: u,
       name: u,
-    }, {files});
+    }, {
+      files,
+      parentUrl: srcUrl,
+    });
 
     /* const appId = ++appIds;
     const mesh = new THREE.Object3D();
@@ -627,7 +648,10 @@ const _loadManifestJson = async (file, {files = null} = {}) => {
     return await runtime.loadFile({
       url: u,
       name: u,
-    }, {files});
+    }, {
+      files,
+      parentUrl: srcUrl,
+    });
   }
 };
 let appIds = 0;
