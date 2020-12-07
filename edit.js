@@ -19,16 +19,14 @@ import geometryManager from './geometry-manager.js';
 import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
-import {
-  SUBPARCEL_SIZE,
-} from './constants.js';
 import {makePromise} from './util.js';
 import {world} from './world.js';
+import * as universe from './universe.js';
 // import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
-import {renderer, scene, avatarScene, camera, avatarCamera, dolly, orbitControls, renderer2, scene2, scene3, appManager} from './app-object.js';
+import {renderer, scene, avatarScene, camera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
@@ -135,47 +133,6 @@ const floorMesh = _makeFloorMesh();
 floorMesh.position.y = 0;
 scene.add(floorMesh); */
 
-(() => {
-  const effectController = {
-    turbidity: 2,
-    rayleigh: 3,
-    mieCoefficient: 0.2,
-    mieDirectionalG: 0.9999,
-    inclination: 0, // elevation / inclination
-    azimuth: 0, // Facing front,
-    // exposure: renderer.toneMappingExposure
-  };
-  const sun = new THREE.Vector3();
-  function update() {
-    var uniforms = skybox.material.uniforms;
-    uniforms.turbidity.value = effectController.turbidity;
-    uniforms.rayleigh.value = effectController.rayleigh;
-    uniforms.mieCoefficient.value = effectController.mieCoefficient;
-    uniforms.mieDirectionalG.value = effectController.mieDirectionalG;
-
-    // effectController.azimuth = (0.05 + ((Date.now() / 1000) * 0.1)) % 1;
-    effectController.azimuth = 0.25;
-    var theta = Math.PI * (effectController.inclination - 0.5);
-    var phi = 2 * Math.PI * (effectController.azimuth - 0.5);
-
-    sun.x = Math.cos(phi);
-    sun.y = Math.sin(phi) * Math.sin(theta);
-    sun.z = Math.sin(phi) * Math.cos(theta);
-
-    uniforms.sunPosition.value.copy(sun);
-  }
-  skybox = new Sky();
-  skybox.scale.setScalar(1000);
-  skybox.update = update;
-  skybox.update();
-  scene.add(skybox);
-})();
-(() => {
-  const guardianMesh = GuardianMesh([[
-    0, -SUBPARCEL_SIZE - 4, SUBPARCEL_SIZE, -4,
-  ]], 0x42a5f5);
-  scene.add(guardianMesh);
-})();
 /* (async () => {
   const HEIGHTFIELD_SHADER2 = {
     uniforms: {
@@ -313,8 +270,8 @@ const highlightMesh = makeHighlightMesh();
 highlightMesh.visible = false;
 scene.add(highlightMesh);
 const anchorMeshes = [];
-const rayMesh = makeRayMesh();
-scene.add(rayMesh);
+/* const rayMesh = makeRayMesh();
+scene.add(rayMesh); */
 
 const q = parseQuery(location.search);
 (async () => {
@@ -622,11 +579,6 @@ scene.add(wristMenu); */
   downloadFile(b, 'target.glb');
 }; */
 
-const _getCurrentCoord = (p, v) => v.set(
-  Math.floor(p.x),
-  Math.floor(p.y),
-  Math.floor(p.z),
-)
 /* const _getCurrentParcel = p => new THREE.Vector3(
   Math.floor((p.x+5)/10),
   0,
@@ -816,19 +768,15 @@ const addItem = async (position, quaternion) => {
 // const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 const startTime = Date.now();
-const lastCoord = new THREE.Vector3(0, 0, 0);
-const locationLabel = document.getElementById('location-label');
 function animate(timestamp, frame) {
   timestamp = timestamp || performance.now();
   const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
 
   const session = renderer.xr.getSession();
-
   const now = Date.now();
-  skybox.position.copy(rigManager.localRig.inputs.hmd.position);
-  skybox.update();
 
+  universe.update();
   ioManager.update(timeDiff, frame);
   physicsManager.update(timeDiff, frame);
   uiManager.update(timeDiff, frame);
@@ -1063,21 +1011,13 @@ function animate(timestamp, frame) {
   };
   _updateRig();
 
-  {
-    _getCurrentCoord(rigManager.localRig.inputs.hmd.position, localVector);
-    if (localVector.x !== lastCoord.x || localVector.z !== lastCoord.z) {
-      locationLabel.innerText = `Erithor @${localVector.x},${localVector.z}`;
-      lastCoord.copy(localVector);
-    }
-  }
-
   const _updateAnchors = () => {
     const transforms = rigManager.getRigTransforms();
     const {position, quaternion} = transforms[0];
-    rayMesh.position.copy(position);
+    /* rayMesh.position.copy(position);
     rayMesh.quaternion.copy(quaternion);
-    rayMesh.scale.z = 10;
-    
+    rayMesh.scale.z = 10; */
+
     highlightMesh.visible = false;
     for (const anchorMesh of anchorMeshes) {
       localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1))
@@ -1101,7 +1041,7 @@ function animate(timestamp, frame) {
 
   // const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
 
-  orbitControls.enabled = cameraManager.getTool() === 'camera';
+  // orbitControls.enabled = cameraManager.getTool() === 'camera';
 
   weaponsManager.update(timeDiff, frame);
 

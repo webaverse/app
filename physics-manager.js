@@ -40,6 +40,27 @@ const jump = () => {
 };
 physicsManager.jump = jump;
 
+let flyState = false;
+let flyStartTime = 0;
+const getFlyState = () => flyState;
+physicsManager.getFlyState = getFlyState;
+const setFlyState = newFlyState => {
+  const now = Date.now();
+  flyState = newFlyState;
+  flyStartTime = now;
+  if (newFlyState) {
+    if (!jumpState) {
+      jump();
+    }
+  } else {
+    jumpStartTime = now;
+  }
+  glideState = false;
+};
+physicsManager.setFlyState = setFlyState;
+const getFlyStartTime = () => flyStartTime;
+physicsManager.getFlyStartTime = getFlyStartTime;
+
 let glideState = false;
 const getGlideState = () => glideState;
 physicsManager.getGlideState = getGlideState;
@@ -132,38 +153,42 @@ physicsManager.animals = animals; */
 
 const gravity = new THREE.Vector3(0, -9.8, 0);
 const _applyGravity = timeDiff => {
-  localVector.copy(gravity)
-    .multiplyScalar(timeDiff);
-
-  let gliding;
-  if (glideState && physicsManager.velocity.y < 0) {
-    const transforms = rigManager.getRigTransforms();
-
-    localVector
-      .add(
-        localVector2.copy(transforms[0].position)
-          .sub(transforms[1].position)
-          .normalize()
-          .applyQuaternion(leftQuaternion)
-          .multiplyScalar(3)
-      );
-    physicsManager.velocity.y *= 0.95;
-    gliding = true;
+  if (flyState) {
+    physicsManager.velocity.multiplyScalar(0.9);
   } else {
-    gliding = false;
-  }
-  physicsManager.velocity.add(localVector);
+    localVector.copy(gravity)
+      .multiplyScalar(timeDiff);
 
-  if (!jumpState || gliding) {
-    physicsManager.velocity.x *= 0.7;
-    physicsManager.velocity.z *= 0.7;
-  }
+    let gliding;
+    if (glideState && physicsManager.velocity.y < 0) {
+      const transforms = rigManager.getRigTransforms();
 
-  const terminalVelocity = 50;
-  const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
-  physicsManager.velocity.x = _clampToTerminalVelocity(physicsManager.velocity.x);
-  physicsManager.velocity.z = _clampToTerminalVelocity(physicsManager.velocity.z);
-  physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y);
+      localVector
+        .add(
+          localVector2.copy(transforms[0].position)
+            .sub(transforms[1].position)
+            .normalize()
+            .applyQuaternion(leftQuaternion)
+            .multiplyScalar(3)
+        );
+      physicsManager.velocity.y *= 0.95;
+      gliding = true;
+    } else {
+      gliding = false;
+    }
+    physicsManager.velocity.add(localVector);
+
+    if (!jumpState || gliding) {
+      physicsManager.velocity.x *= 0.7;
+      physicsManager.velocity.z *= 0.7;
+    }
+
+    const terminalVelocity = 50;
+    const _clampToTerminalVelocity = v => Math.min(Math.max(v, -terminalVelocity), terminalVelocity);
+    physicsManager.velocity.x = _clampToTerminalVelocity(physicsManager.velocity.x);
+    physicsManager.velocity.z = _clampToTerminalVelocity(physicsManager.velocity.z);
+    physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y);
+  }
 };
 const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
   const oldVelocity = localVector3.copy(physicsManager.velocity);
@@ -325,5 +350,9 @@ const _updatePhysics = timeDiff => {
   _updateAnimals(); */
 };
 physicsManager.update = _updatePhysics;
+
+document.getElementById('key-f').addEventListener('click', () => {
+  physicsManager.setFlyState(!physicsManager.getFlyState());
+});
 
 export default physicsManager;

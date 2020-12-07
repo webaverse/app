@@ -1,10 +1,35 @@
 
 export const ActionTypes = {
-  InitializeUserObject: 'initialize',
-  LoginWithPrivateKey: 'key_login',
-  RequestEmailToken: 'email_request',
-  LoginWithEmail: 'email_login',
-  Logout: 'logout'
+  InitializeState: 'InitializeState',
+  InitializeStateEnd: 'InitializeStateEnd',
+  SendNft: 'SendNft',
+  BuyNft: 'BuyNft',
+  SellNft: 'SellNft',
+  DestroyNft: 'DestroyNft',
+  AddFtToNft: 'AddFtToNft',
+  DepositFt: 'DepositFt',
+  WithdrawFt: 'WithdrawFt',
+  GetProfileForCreator: 'GetProfileForCreator',
+  GetProfileForCreatorEnd: 'GetProfileForCreatorEnd',
+  GetInventoryForCreator: 'GetInventoryForCreator',
+  GetBooths: 'GetBooths',
+  GetCreators: 'GetCreators',
+  CopyAddress: 'CopyAddress',
+  CopyPrivateKey: 'CopyPrivateKey',
+  ChangeName: 'ChangeName',
+  SetAvatar: 'SetAvatar',
+  SetHomespace: 'SetHomespace',
+  AddToLoadout: 'AddToLoadout',
+  RemoveFromLoadout: 'RemoveFromLoadout',
+  UploadFile: 'UploadFile',
+  AddToLoadout: 'SetFtu',
+  AddToLoadout: 'AddToLoadout',
+  AddToLoadout: 'AddToLoadout',
+  AddToLoadout: 'AddToLoadout',
+  LoginWithEmailOrPrivateKey: 'LoginWithEmailOrPrivateKey',
+  RequestEmailToken: 'RequestEmailToken',
+  LoginWithEmail: 'LoginWithEmail',
+  Logout: 'Logout'
 };
 
 export default ActionTypes;

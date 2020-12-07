@@ -339,10 +339,11 @@ const _loadImg = async file => {
 };
 const _makeAppUrl = (appId) => {
   const s = `\
-    import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
+    import {renderer as _renderer, scene, camera, appManager} from ${JSON.stringify(importMap.app)};
+    import * as THREE from ${JSON.stringify(importMap.three)};
     import runtime from ${JSON.stringify(importMap.runtime)};
     import {world} from ${JSON.stringify(importMap.world)};
-    import physics from ${JSON.stringify(importMap.physicsManager)};
+    import _physics from ${JSON.stringify(importMap.physicsManager)};
     import {rigManager} from ${JSON.stringify(importMap.rig)};
     import * as ui from ${JSON.stringify(importMap.vrUi)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
@@ -351,6 +352,53 @@ const _makeAppUrl = (appId) => {
     renderer.setAnimationLoop = function(fn) {
       appManager.setAnimationLoop(${appId}, fn);
     };
+
+    const physics = {};
+    for (const k in _physics) {
+      physics[k] = _physics[k];
+    }
+    const localVector = new THREE.Vector3();
+    const localVector2 = new THREE.Vector3();
+    const localQuaternion = new THREE.Quaternion();
+    const localMatrix = new THREE.Matrix4();
+    const localMatrix2 = new THREE.Matrix4();
+    physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
+      localMatrix
+        .compose(position, quaternion, localVector2.set(1, 1, 1))
+        .premultiply(app.object.matrixWorld)
+        .decompose(localVector, localQuaternion, localVector2);
+      position = localVector;
+      quaternion = localQuaternion;
+      return addBoxGeometry.call(this, position, quaternion, size, dynamic);
+    })(physics.addBoxGeometry);
+    physics.addGeometry = (addGeometry => function(mesh) {
+      return addGeometry.apply(this, arguments);
+    })(physics.addGeometry);
+    physics.addConvexGeometry = (addConvexGeometry => function(mesh) {
+      return addConvexGeometry.apply(this, arguments);
+    })(physics.addConvexGeometry);
+    physics.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion) {
+      return addCookedConvexGeometry.apply(this, arguments);
+    })(physics.addCookedConvexGeometry);
+    physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
+      const transform = getPhysicsTransform.apply(this, arguments);
+      const {position, quaternion} = transform;
+      localMatrix
+        .compose(position, quaternion, localVector2.set(1, 1, 1))
+        .premultiply(localMatrix2.copy(app.object.matrixWorld).invert())
+        .decompose(position, quaternion, localVector2);
+      return transform;
+    })(physics.getPhysicsTransform);
+    physics.setPhysicsTransform = (setPhysicsTransform => function(physicsId, position, quaternion) {
+      localMatrix
+        .compose(position, quaternion, localVector2.set(1, 1, 1))
+        .premultiply(app.object.matrixWorld)
+        .decompose(localVector, localQuaternion, localVector2);
+      position = localVector;
+      quaternion = localQuaternion;
+      return setPhysicsTransform.call(this, physicsId, position, quaternion);
+    })(physics.setPhysicsTransform);
+
     const app = appManager.getApp(${appId});
     let recursion = 0;
     app.onBeforeRender = () => {
@@ -365,7 +413,7 @@ const _makeAppUrl = (appId) => {
         rigManager.localRig.model.visible = false;
       }
     };
-    export {renderer, scene, camera, orbitControls, runtime, world, physics, ui, crypto, app, appManager};
+    export {renderer, scene, camera, runtime, world, physics, ui, crypto, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
