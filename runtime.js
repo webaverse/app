@@ -29,8 +29,6 @@ runtime.injectDependencies = (newGeometryManager, newPhysicsManager, newWorld) =
   world = newWorld;
 };
 
-let nextPhysicsId = 0;
-
 const textDecoder = new TextDecoder();
 const gltfLoader = new GLTFLoader();
 gltfLoader.setMeshoptDecoder(MeshoptDecoder);
@@ -164,14 +162,12 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
 
   mesh.run = () => {
     physicsIds = physicsBuffers.map(physicsBuffer => {
-      const physicsId = ++nextPhysicsId;
-      geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, new THREE.Vector3(), new THREE.Quaternion(), physicsId);
-      return physicsId;
+      return physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion);
     });
   };
   mesh.destroy = () => {
     for (const physicsId of physicsIds) {
-      geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsId);
+      physicsManager.removeGeometry(physicsId);
     }
     physicsIds.length = 0;
   };
@@ -404,11 +400,14 @@ const _makeAppUrl = appId => {
         .decompose(localVector, localQuaternion, localVector2);
       position = localVector;
       quaternion = localQuaternion;
-      return addBoxGeometry.call(this, position, quaternion, size, dynamic);
+      return addBoxGeometry.call(this, position, quaternion, size, dynamic); // XXX align this
     })(physics.addBoxGeometry);
     physics.addGeometry = (addGeometry => function(mesh) {
       return addGeometry.apply(this, arguments);
     })(physics.addGeometry);
+    physics.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion) {
+      return addCookedGeometry.apply(this, arguments);
+    })(physics.addCookedGeometry);
     physics.addConvexGeometry = (addConvexGeometry => function(mesh) {
       return addConvexGeometry.apply(this, arguments);
     })(physics.addConvexGeometry);
@@ -780,8 +779,7 @@ const _loadScn = async (file, opts) => {
       child.run && child.run();
     }
     physicsIds = physicsBuffers.map(physicsBuffer => {
-      const physicsId = ++nextPhysicsId;
-      geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, new THREE.Vector3(), new THREE.Quaternion(), physicsId);
+      return physicsManager.addCookedGeometry(physicsBuffer, position, quaternion);
     });
   };
   scene.destroy = () => {
@@ -789,7 +787,7 @@ const _loadScn = async (file, opts) => {
       child.destroy && child.destroy();
     }
     for (const physicsId of physicsIds) {
-      geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsId);
+      physicsManager.removeGeometry(physicsId);
     }
     physicsIds.length = 0;
   };
