@@ -2,6 +2,7 @@
 export const ActionTypes = {
   InitializeState: 'InitializeState',
   InitializeStateEnd: 'InitializeStateEnd',
+  MintNft: 'MintNft',
   SendNft: 'SendNft',
   BuyNft: 'BuyNft',
   SellNft: 'SellNft',
@@ -28,7 +29,7 @@ export const ActionTypes = {
   AddToLoadout: 'AddToLoadout',
   LoginWithEmailOrPrivateKey: 'LoginWithEmailOrPrivateKey',
   RequestEmailToken: 'RequestEmailToken',
-  LoginWithEmail: 'LoginWithEmail',
+  GatewayWithEmail: 'LoginWithEmail',
   Logout: 'Logout'
 };
 

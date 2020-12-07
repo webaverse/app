@@ -40,7 +40,7 @@ const Profile = ({userAddress}) => {
             <${AssetCardGrid} data=${state.creatorInventories[userAddress][currentPage]} cardSize='medium' />
           </div>
         </div>
-        </div>
+    </div>
         `}
         <//>
     `;

@@ -2,7 +2,7 @@ import storage from '../webaverse/storage.js';
 import { getAddressFromMnemonic } from '../webaverse/blockchain.js';
 
 
-export const initializeEtherium = async (state) => {
+export const initializeEthereum = async (state) => {
   if (!window.ethereum)
     return { ...state, networkType: null };
   await window.ethereum.enable();
@@ -236,7 +236,7 @@ export const pullUserObject = async (state) => {
 };
 
 export const requestTokenByEmail = async (email) => {
-  await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}`, {
+  await fetch(`/gateway?email=${encodeURIComponent(email)}`, {
     method: 'POST',
   });
   alert(`Code sent to ${loginEmail.value}!`);
@@ -244,7 +244,7 @@ export const requestTokenByEmail = async (email) => {
 };
 
 export const loginWithEmailCode = async (email, code, state) => {
-  const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
+  const res = await fetch(`/gateway?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
     method: 'POST',
   });
 
@@ -306,7 +306,7 @@ export const initializeStart = async (state) => {
   }
 
   const newState = await pullUserObject({ ...state, loginToken });
-  // newState = await initializeEtherium(newState);
+  // newState = await initializeEthereum(newState);
   if (newState.loginToken.unregistered)
     console.warn("Login token is unregistered");
   return newState;
