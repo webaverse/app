@@ -236,7 +236,7 @@ export const pullUserObject = async (state) => {
 };
 
 export const requestTokenByEmail = async (email) => {
-  await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}`, {
+  await fetch(`/gateway?email=${encodeURIComponent(email)}`, {
     method: 'POST',
   });
   alert(`Code sent to ${loginEmail.value}!`);
@@ -244,7 +244,7 @@ export const requestTokenByEmail = async (email) => {
 };
 
 export const loginWithEmailCode = async (email, code, state) => {
-  const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
+  const res = await fetch(`/gateway?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
     method: 'POST',
   });
 

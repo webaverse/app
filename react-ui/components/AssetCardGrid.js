@@ -26,9 +26,11 @@ const AssetCardGrid = ({
   }
 
     return html`
-      ${currentAsset !== null && html`
+    <${React.Fragment}>
+    ${currentAsset !== null && html`
           <${AssetDetails}
-            id${currentAsset.id}
+            id=${currentAsset.id}
+            key=${currentAsset.id}
             name=${currentAsset.name}
             description=${currentAsset.description}
             image=${currentAsset.image}
@@ -51,7 +53,7 @@ const AssetCardGrid = ({
       <div className="${styles} ${cardSize}">
         ${data.map(asset => html`
           <${AssetCard}
-              key=${asset}
+              key=${asset.properties.hash}
               id=${asset.id}
               assetName=${asset.name}
               description=${asset.description}
@@ -74,8 +76,9 @@ const AssetCardGrid = ({
               networkType='webaverse'
           />
           `)}
-        </div>
-    `;
+          </div>
+      </${React.Fragment}>
+    `
   };
 
   export default AssetCardGrid;
