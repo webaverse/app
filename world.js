@@ -889,7 +889,9 @@ world.addEventListener('trackedobjectadd', async e => {
       mesh.name = file.name;
       mesh.instanceId = instanceId;
 
-      mesh.run && mesh.run();
+      if (mesh.run) {
+        mesh.run();
+      }
       mesh.instanceId = instanceId;
       mesh.parentId = parentId;
 
