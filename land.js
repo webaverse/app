@@ -8,14 +8,14 @@ const wallGeometry = (() => {
   const panelGeometries = [];
   for (let x = -1 / 2; x <= 1 / 2; x++) {
     panelGeometries.push(
-      new THREE.BoxBufferGeometry(0.01, 2, 0.01)
-        .applyMatrix4(new THREE.Matrix4().makeTranslation(x, 1, -1 / 2)),
+      new THREE.BoxBufferGeometry(0.01, 1, 0.01)
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(x, 0, -1/2)),
     );
   }
-  for (let h = 0; h <= 2; h++) {
+  for (let h = 0; h <= 1; h++) {
     panelGeometries.push(
       new THREE.BoxBufferGeometry(1, 0.01, 0.01)
-        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, h, -1 / 2)),
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(0, h -1/2, -1/2)),
     );
   }
   return BufferGeometryUtils.mergeBufferGeometries(panelGeometries);
@@ -35,30 +35,34 @@ const distanceFactor = 64;
 export function GuardianMesh(extents, color) {
   const geometry = (() => {
     const geometries = [];
-    const [[x1, y1, x2, y2]] = extents;
+    const [x1, y1, z1, x2, y2, z2] = extents;
     const ax1 = (x1 + 0.5);
     const ay1 = (y1 + 0.5);
+    const az1 = (z1 + 0.5);
     const ax2 = (x2 + 0.5);
     const ay2 = (y2 + 0.5);
-    for (let x = ax1; x < ax2; x++) {
-      geometries.push(
-        topWallGeometry.clone()
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(x, 0, ay1)),
-      );
-      geometries.push(
-        bottomWallGeometry.clone()
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(x, 0, (ay2 - 1))),
-      );
-    }
+    const az2 = (z2 + 0.5);
     for (let y = ay1; y < ay2; y++) {
-      geometries.push(
-        leftWallGeometry.clone()
-          .applyMatrix4(new THREE.Matrix4().makeTranslation(ax1, 0, y)),
-      );
-      geometries.push(
-        rightWallGeometry.clone()
-          .applyMatrix4(new THREE.Matrix4().makeTranslation((ax2 - 1), 0, y)),
-      );
+      for (let x = ax1; x < ax2; x++) {
+        geometries.push(
+          topWallGeometry.clone()
+            .applyMatrix4(new THREE.Matrix4().makeTranslation(x, y, az1)),
+        );
+        geometries.push(
+          bottomWallGeometry.clone()
+            .applyMatrix4(new THREE.Matrix4().makeTranslation(x, y, (az2 - 1))),
+        );
+      }
+      for (let z = az1; z < az2; z++) {
+        geometries.push(
+          leftWallGeometry.clone()
+            .applyMatrix4(new THREE.Matrix4().makeTranslation(ax1, y, z)),
+        );
+        geometries.push(
+          rightWallGeometry.clone()
+            .applyMatrix4(new THREE.Matrix4().makeTranslation((ax2 - 1), y, z)),
+        );
+      }
     }
     return BufferGeometryUtils.mergeBufferGeometries(geometries);
   })();

@@ -836,7 +836,6 @@ const _enter = () => {
 const _delete = () => {
   if (highlightedObject) {
     world.removeObject(highlightedObject.instanceId);
-    console.log('delete', highlightedObject);
     highlightedObject = null;
     _updateMenu();
   } else if (movingObject) {
@@ -1498,6 +1497,11 @@ const _updateWeapons = timeDiff => {
   _handleMenu(); */
 
   const maxDistance = 10;
+  const _snap = (v, n) => v.set(
+    Math.round(v.x/n)*n,
+    Math.round(v.y/n)*n,
+    Math.round(v.z/n)*n,
+  );
   const _handleHighlight = () => {
     const width = 1;
     const length = 100;    
@@ -1521,16 +1525,16 @@ const _updateWeapons = timeDiff => {
               .invert()
           )
           .decompose(localVector, localQuaternion, localVector2);
-        if (localBox.containsPoint(localVector)) {
+        if (localBox.containsPoint(localVector) && !world.grabbedObjects.includes(candidate)) {
           highlightMesh.position.copy(candidate.position);
           highlightMesh.visible = true;
           highlightedObject = candidate;
           break;
         }
       }
-      if (highlightedObject !== oldHighlightedObject) {
-        _updateMenu();
-      }
+    }
+    if (highlightedObject !== oldHighlightedObject) {
+      _updateMenu();
     }
   };
   _handleHighlight();
@@ -1545,8 +1549,14 @@ const _updateWeapons = timeDiff => {
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
         const {point} = collision;
-        moveMesh.position.fromArray(point);
-        moveMesh.quaternion.copy(quaternion);
+        _snap(localVector.fromArray(point), 1);
+        moveMesh.position.copy(localVector)
+          .add(localVector2.set(0, 0.01, 0));
+        localEuler.setFromQuaternion(quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
+        moveMesh.quaternion.setFromEuler(localEuler);
 
         if (moveMesh.position.distanceTo(position) > maxDistance) {
           collision = null;
@@ -1566,6 +1576,7 @@ const _updateWeapons = timeDiff => {
   _handleMove();
 
   const _handleGrab = () => {
+    let changed = false;
     const transforms = rigManager.getRigTransforms();
     for (let i = 0; i < 2; i++) {
       if (ioManager.currentWeaponGrabs[i] && !ioManager.lastWeaponGrabs[i]) {
@@ -1574,13 +1585,18 @@ const _updateWeapons = timeDiff => {
         if (!world.grabbedObjects[i]) {
           world.grabbedObjects[i] = highlightedObject;
           highlightedObject = null;
+          changed = true;
         }
         // meshComposer.grab(i);
       }
       if (!ioManager.currentWeaponGrabs[i] && ioManager.lastWeaponGrabs[i]) {
         world.grabbedObjects[i] = null;
         // meshComposer.ungrab(i);
+        changed = true;
       }
+    }
+    if (changed) {
+      _updateMenu();
     }
   };
   _handleGrab();
@@ -1593,8 +1609,14 @@ const _updateWeapons = timeDiff => {
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
         const {point} = collision;
-        deployMesh.position.fromArray(point);
-        deployMesh.quaternion.copy(quaternion);
+        _snap(localVector.fromArray(point), 1);
+        deployMesh.position.copy(localVector)
+          .add(localVector2.set(0, 0.01, 0));
+        localEuler.setFromQuaternion(quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
+        deployMesh.quaternion.setFromEuler(localEuler);
 
         if (deployMesh.position.distanceTo(position) > maxDistance) {
           collision = null;

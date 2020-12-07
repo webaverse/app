@@ -36,6 +36,8 @@ ioManager.keys = {
   left: false,
   right: false,
   shift: false,
+  space: false,
+  ctrl: false,
 };
 const resetKeys = () => {
   for (const k in ioManager.keys) {
@@ -166,22 +168,37 @@ const _updateIo = (timeDiff, frame) => {
     } */
   } else if (document.pointerLockElement) {
     const speed = 100 * (ioManager.keys.shift ? 3 : 1);
-    const cameraEuler = camera.rotation.clone();
-    cameraEuler.x = 0;
-    cameraEuler.z = 0;
     localVector.set(0, 0, 0);
+    const direction = new THREE.Vector3(0, 0, 0);
     if (ioManager.keys.left) {
-      localVector.add(new THREE.Vector3(-1, 0, 0).applyEuler(cameraEuler));
+      direction.x -= 1;
     }
     if (ioManager.keys.right) {
-      localVector.add(new THREE.Vector3(1, 0, 0).applyEuler(cameraEuler));
+      direction.x += 1;
     }
     if (ioManager.keys.up) {
-      localVector.add(new THREE.Vector3(0, 0, -1).applyEuler(cameraEuler));
+      direction.z -= 1;
     }
     if (ioManager.keys.down) {
-      localVector.add(new THREE.Vector3(0, 0, 1).applyEuler(cameraEuler));
+      direction.z += 1;
     }
+    const flyState = physicsManager.getFlyState();
+    if (flyState) {
+      direction.applyQuaternion(camera.quaternion);
+      
+      if (ioManager.keys.space) {
+        direction.y += 1;
+      }
+      if (ioManager.keys.ctrl) {
+        direction.y -= 1;
+      }
+    } else {  
+      const cameraEuler = camera.rotation.clone();
+      cameraEuler.x = 0;
+      cameraEuler.z = 0;
+      direction.applyEuler(cameraEuler);
+    }
+    localVector.add(direction);
     if (localVector.length() > 0) {
       localVector.normalize().multiplyScalar(speed * timeDiff);
 
@@ -190,6 +207,9 @@ const _updateIo = (timeDiff, frame) => {
       if (physicsManager.getJumpState()) {
         physicsManager.velocity.x *= 0.7;
         physicsManager.velocity.z *= 0.7;
+        if (flyState) {
+          physicsManager.velocity.y *= 0.7;
+        }
       }
     }
   }
@@ -321,13 +341,11 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
-    /* case 70: { // F
+    case 70: { // F
       // pe.grabdown('right');
-      if (document.pointerLockElement) {
-        ioManager.currentWeaponGrabs[0] = true;
-      }
+      document.getElementById('key-f').click();
       break;
-    } */
+    }
     case 86: { // V
       if (!_inputFocused()) {
         e.preventDefault();
@@ -368,11 +386,18 @@ window.addEventListener('keydown', e => {
     }
     case 32: { // space
       if (document.pointerLockElement) {
+        ioManager.keys.space = true;
         if (!physicsManager.getJumpState()) {
           physicsManager.jump();
         } else {
-          physicsManager.setGlide(!physicsManager.getGlideState());
+          physicsManager.setGlide(!physicsManager.getGlideState() && !physicsManager.getFlyState());
         }
+      }
+      break;
+    }
+    case 17: { // ctrl
+      if (document.pointerLockElement) {
+        ioManager.keys.ctrl = true;
       }
       break;
     }
@@ -447,6 +472,18 @@ window.addEventListener('keyup', e => {
       case 68: { // D
         if (document.pointerLockElement) {
           ioManager.keys.right = false;
+        }
+        break;
+      }
+      case 32: { // space
+        if (document.pointerLockElement) {
+          ioManager.keys.space = false;
+        }
+        break;
+      }
+      case 17: { // ctrl
+        if (document.pointerLockElement) {
+          ioManager.keys.ctrl = false;
         }
         break;
       }
