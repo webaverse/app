@@ -44,7 +44,7 @@ const AssetDetails = ({
     const isForSale = salePrice !== undefined && salePrice !== null && salePrice !== ""
 
     return html`
-        <div class=${styles}>
+        <div className=${styles}>
             <div className="assetDetails">
                 <div className="assetDetailsLeftColumn">
                     <${AssetCard}

@@ -2,7 +2,7 @@ import { React, ReactDOM, useEffect, useReducer, useState } from 'https://unpkg.
 import ActionTypes from './constants/ActionTypes.js';
 import { Context } from './constants/Context.js';
 import NavBar from './components/NavBar.js';
-
+import { loginEndpoint } from './webaverse/constants.js'
 import htm from './web_modules/htm.js';
 import { PageRouter } from './components/PageRouter.js';
 
@@ -33,7 +33,7 @@ import storage from '../webaverse/storage.js';
 import { getAddressFromMnemonic } from '../webaverse/blockchain.js';
 
 
-export const initializeEtherium = async (state) => {
+export const initializeEthereum = async (state) => {
   if (!window.ethereum)
     return { ...state, networkType: null };
   await window.ethereum.enable();
@@ -270,7 +270,7 @@ export const requestTokenByEmail = async (email) => {
   await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}`, {
     method: 'POST',
   });
-  alert(`Code sent to ${loginEmail.value}!`);
+  alert(`Code sent to ${email}!`);
   return state;
 };
 
@@ -289,15 +289,16 @@ export const loginWithEmailCode = async (email, code, state) => {
 };
 
 export const loginWithEmailOrPrivateKey = async (emailOrPrivateKey, state) => {
+  console.log("emailOrPrivateKey is", emailOrPrivateKey);
   const split = emailOrPrivateKey.split(/\s+/).filter(w => !!w);
+
   if (split.length === 12) {
     // Private key
     const mnemonic = split.slice(0, 12).join(' ');
     return await setNewLoginToken(mnemonic);
   } else {
     // Email
-    requestTokenByEmail(email);
-    return state;
+    return await requestTokenByEmail(emailOrPrivateKey);
   }
 };
 
@@ -337,7 +338,7 @@ export const initializeStart = async (state) => {
   }
 
   const newState = await pullUserObject({ ...state, loginToken });
-  // newState = await initializeEtherium(newState);
+  // newState = await initializeEthereum(newState);
   if (newState.loginToken.unregistered)
     console.warn("Login token is unregistered");
   return newState;
@@ -396,80 +397,90 @@ const Application = () => {
   
       case ActionTypes.GetBooths.concat('End'):
         return { ...state, ...action.payload.state };
-  
-  
-      case ActionTypes.SendNft:
-        return sendNft(action.payload.receiverAddress, action.payload.assetId, state);
-  
-      case ActionTypes.BuyNft:
-        return buyNft(action.payload.assetId, state);
-  
-      case ActionTypes.SellNft:
-        return sellNft(action.payload.assetId, state);
-  
-      case ActionTypes.DestroyNft:
-        return destroyNft(action.payload.assetId, state);
-  
-      case ActionTypes.AddFtToNft:
-        return addFtToNft(action.payload.assetId, state);
-  
-      case ActionTypes.DepositFt:
-        return depositFt(action.payload.amount, state);
-  
-      case ActionTypes.WithdrawFt:
-        return withdrawFt(action.payload.amount, state);
-  
-      case ActionTypes.CopyAddress:
-        newState = copyAddress(state);
-        break;
-  
-      case ActionTypes.CopyPrivateKey:
-        newState = copyPrivateKey(state);
-        break;
-  
-      case ActionTypes.ChangeName:
-        newState = setUsername(action.payload.newUserName, state);
-        break;
-  
-      case ActionTypes.SetAvatar:
-        newState = setAvatar(action.payload.assetId, state);
-        break;
-  
-      case ActionTypes.SetHomespace:
-        newState = setHomespace(action.payload.assetId, state);
-        break;
-  
-      case ActionTypes.AddToLoadout:
-        newState = setLoadoutState(action.payload.assetId, true, state);
-        break;
-  
-      case ActionTypes.RemoveFromLoadout:
-        newState = setLoadoutState(action.payload.assetId, false, state);
-        break;
-  
-      case ActionTypes.UploadFile:
-        newState = uploadFile(action.payload.file, state);
-        break;
-  
-      case ActionTypes.SetFtu:
-        newState = setFtu(state);
-        break;
-  
-      case ActionTypes.RequestEmailToken:
-        newState = requestTokenByEmail(action.payload.email, state);
-        break;
+
+      case ActionTypes.RequestEmailToken.concat('End'):
+        return { ...state, ...action.payload.state };
+
+      case ActionTypes.LoginWithEmailOrPrivateKey:
+        loginWithEmailOrPrivateKey(action.payload.emailOrPrivateKey, state).then(newState => {
+          dispatch({ type: ActionTypes.LoginWithEmailOrPrivateKey.concat('End'), payload: { state: newState } });
+
+        });
+      return state;
   
       case ActionTypes.LoginWithEmail:
-        newState = loginWithEmailCode(action.payload.email, action.payload.code, state);
-        break;
-  
-      case ActionTypes.LoginWithEmailOrPrivateKey:
-        newState = loginWithEmailOrPrivateKey(action.payload.emailOrPrivateKey, state);
-        break;
+        loginWithEmailCode(action.payload.email, action.payload.code, state).then(newState => {
+          dispatch({ type: ActionTypes.LoginWithEmail.concat('End'), payload: { state: newState } });
+        });
+
+      case ActionTypes.LoginWithEmail.concat('End'):
+        return { ...state, ...action.payload.state };
+
   
       case ActionTypes.Logout:
-        newState = logout(action.payload.assetId, state);
-        break;
+        logout(action.payload.assetId, state).then(newState => {
+          dispatch({ type: ActionTypes.Logout.concat('End'), payload: { state: newState } });
+        });
+
+        case ActionTypes.Logout.concat('End'):
+          return { ...state, ...action.payload.state };
+  
+      // case ActionTypes.SendNft:
+      //   return sendNft(action.payload.receiverAddress, action.payload.assetId, state);
+  
+      // case ActionTypes.BuyNft:
+      //   return buyNft(action.payload.assetId, state);
+  
+      // case ActionTypes.SellNft:
+      //   return sellNft(action.payload.assetId, state);
+  
+      // case ActionTypes.DestroyNft:
+      //   return destroyNft(action.payload.assetId, state);
+  
+      // case ActionTypes.AddFtToNft:
+      //   return addFtToNft(action.payload.assetId, state);
+  
+      // case ActionTypes.DepositFt:
+      //   return depositFt(action.payload.amount, state);
+  
+      // case ActionTypes.WithdrawFt:
+      //   return withdrawFt(action.payload.amount, state);
+  
+      // case ActionTypes.CopyAddress:
+      //   newState = copyAddress(state);
+      //   break;
+  
+      // case ActionTypes.CopyPrivateKey:
+      //   newState = copyPrivateKey(state);
+      //   break;
+  
+      // case ActionTypes.ChangeName:
+      //   newState = setUsername(action.payload.newUserName, state);
+      //   break;
+  
+      // case ActionTypes.SetAvatar:
+      //   newState = setAvatar(action.payload.assetId, state);
+      //   break;
+  
+      // case ActionTypes.SetHomespace:
+      //   newState = setHomespace(action.payload.assetId, state);
+      //   break;
+  
+      // case ActionTypes.AddToLoadout:
+      //   newState = setLoadoutState(action.payload.assetId, true, state);
+      //   break;
+  
+      // case ActionTypes.RemoveFromLoadout:
+      //   newState = setLoadoutState(action.payload.assetId, false, state);
+      //   break;
+  
+      // case ActionTypes.UploadFile:
+      //   newState = uploadFile(action.payload.file, state);
+      //   break;
+  
+      // case ActionTypes.SetFtu:
+      //   newState = setFtu(state);
+      //   break;
   
       default:
         console.warn("Default case in reducer, something is wrong");
