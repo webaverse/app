@@ -311,3 +311,8 @@ export function mergeMeshes(meshes, geometries, textures) {
   const mesh = new THREE.Mesh(geometry, material);
   return mesh;
 }
+
+let nextPhysicsId = 0;
+export function getNextPhysicsId() {
+  return ++nextPhysicsId;
+}

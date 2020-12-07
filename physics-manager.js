@@ -6,6 +6,7 @@ import cameraManager from './camera-manager.js';
 import ioManager from './io-manager.js';
 // import {makeAnimalFactory} from './animal.js';
 import {rigManager} from './rig.js';
+import {getNextPhysicsId} from './util.js';
 
 const leftQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0));
 
@@ -69,7 +70,6 @@ const setGlide = newGlideState => {
 };
 physicsManager.setGlide = setGlide;
 
-let nextPhysicsId = 0;
 const physicsObjects = {};
 const physicsUpdates = [];
 const _makePhysicsObject = () => ({
@@ -78,28 +78,35 @@ const _makePhysicsObject = () => ({
 });
 
 physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
-  const physicsId = ++nextPhysicsId;
+  const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addBoxGeometryPhysics(geometryManager.physics, position, quaternion, size, physicsId, dynamic);
   physicsObjects[physicsId] = _makePhysicsObject();
   return physicsId;
 };
 
 physicsManager.addGeometry = mesh => {
-  const physicsId = ++nextPhysicsId;
+  const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, mesh, physicsId);
+  physicsObjects[physicsId] = _makePhysicsObject();
+  return physicsId;
+};
+physicsManager.cookGeometry = mesh => geometryManager.geometryWorker.cookGeometryPhysics(geometryManager.physics, mesh);
+physicsManager.addCookedGeometry = (buffer, position, quaternion) => {
+  const physicsId = getNextPhysicsId();
+  geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, buffer, position, quaternion, physicsId);
   physicsObjects[physicsId] = _makePhysicsObject();
   return physicsId;
 };
 
 physicsManager.addConvexGeometry = mesh => {
-  const physicsId = ++nextPhysicsId;
+  const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addConvexGeometryPhysics(geometryManager.physics, mesh, physicsId);
   physicsObjects[physicsId] = _makePhysicsObject();
   return physicsId;
 };
 physicsManager.cookConvexGeometry = mesh => geometryManager.geometryWorker.cookConvexGeometryPhysics(geometryManager.physics, mesh);
 physicsManager.addCookedConvexGeometry = (buffer, position, quaternion) => {
-  const physicsId = ++nextPhysicsId;
+  const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addCookedConvexGeometryPhysics(geometryManager.physics, buffer, position, quaternion, physicsId);
   physicsObjects[physicsId] = _makePhysicsObject();
   return physicsId;
