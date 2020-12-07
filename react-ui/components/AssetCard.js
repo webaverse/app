@@ -16,6 +16,7 @@ const Card = ({
   buyPrice,
   ext,
   totalSupply,
+  numberInEdition,
   balance,
   ownerAvatarPreview,
   ownerUsername,
@@ -24,11 +25,15 @@ const Card = ({
   minterAddress,
   minterUsername,
   cardSize,
-  networkType
+  networkType,
+  onClickFunction
 }) => {
     return html`
-        <div className="${styles} card ${cardSize}">
-          <div className="upperCardInfo upperCardInfo ${cardSize} upperCardInfo scheme-${id} upperCardInfo_${ext.replace('.','')}">
+        <div
+          className="${styles} card ${cardSize}" 
+            onClick=${onClickFunction}
+        >
+          <div className="upperCardInfo upperCardInfo ${cardSize} upperCardInfo scheme-${id} upperCardInfo_${(ext ?? "").replace('.','')}">
             <div className="upperCardInfoLeft upperCardInfoLeft ${cardSize}">
               <span className="cardAssetName cardName ${cardSize}">${assetName}</span>
             </div>
@@ -47,7 +52,7 @@ const Card = ({
                 <div className="lowerCardInfoTopLeftGroup">
                   <span className="creator creator ${cardSize}">
                     <span className="creatorIcon creatorIcon ${cardSize}"><img src=${minterAvatarPreview} /></span>
-                    <span className="creatorName creatorName ${cardSize}">${minterAddress}></span>
+                    <span className="creatorName creatorName ${cardSize}">${minterUsername}></span>
                   </span>
                   <span className="owner owner ${cardSize}">
                     <span className="ownerIcon ownerIcon ${cardSize}"><img src=${ownerAvatarPreview} /></span>
@@ -56,7 +61,7 @@ const Card = ({
                   <span className="arrow-down arrow-down ${cardSize}"></span>
                 </div>
                 <div className="lowerCardInfoTopClear"></div>
-                <span className="edition edition ${cardSize}">#${totalSupply} out of ${totalSupply}</span>
+                <span className="edition edition ${cardSize}">${totalSupply} available</span>
               </div>
               <span className="greaseLoadedIntoAsset greaseLoadedIntoAsset ${cardSize}"> ${balance}Ψ</span>
             </div>
