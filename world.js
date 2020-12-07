@@ -48,21 +48,26 @@ setInterval(() => {
     pendingMonetizationStart.map((id, i) => {
       const instanceId = pendingMonetizationStart[i].instanceId;
       const object = pendingMonetizationStart[i].object;
+      const monetization = window.document[`monetization${instanceId}`];
 
       const listener = new THREE.AudioListener();
       camera.add( listener );
       const sound = new THREE.PositionalAudio( listener );
       const audioLoader = new THREE.AudioLoader();
-      audioLoader.load('./assets/unlockSound.mp3', function( buffer ) {
-        sound.setBuffer( buffer );
-        sound.setRefDistance( 20 );
-        sound.play();
-      });
+      const playSound = () => {
+        audioLoader.load('./assets/unlockSound.mp3', function( buffer ) {
+          sound.setBuffer( buffer );
+          sound.setRefDistance( 20 );
+          sound.play();
+        });
+      }
 
-      if (ethereumAddress && ethereumAddress == pendingMonetizationStart[i].ownerAddress) {
-        window.document[`monetization${instanceId}`].dispatchEvent(new Event('monetizationstart'));
-      } else if (document.monetization) {
-        window.document[`monetization${instanceId}`].dispatchEvent(new Event('monetizationstart'));
+      if (monetization && ethereumAddress && ethereumAddress == pendingMonetizationStart[i].ownerAddress) {
+        monetization.dispatchEvent(new Event('monetizationstart'));
+        playSound();
+      } else if (monetization && document.monetization) {
+        monetization.dispatchEvent(new Event('monetizationstart'));
+        playSound();
       }
       pendingMonetizationStart.splice(i, 1);
     });
@@ -858,8 +863,7 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
   });
 };
 setTimeout(() => {
-// new contract world.addObject(35, null, new THREE.Vector3(-0.5, 1, 1.25), new THREE.Quaternion());
-//  world.addObject(46, null, new THREE.Vector3(0.5, 1, 1.25), new THREE.Quaternion());
+  world.addObject(11, null, new THREE.Vector3(-0.5, 1, 1.25), new THREE.Quaternion());
 }, 5000);
 world.removeObject = removeInstanceId => {
   state.transact(() => {
