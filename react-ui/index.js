@@ -1,10 +1,12 @@
 import { React, ReactDOM, useEffect, useReducer, useState } from 'https://unpkg.com/es-react/dev';
+import { getAddressFromMnemonic, runSidechainTransaction, web3 } from '../webaverse/blockchain.js';
+import storage from '../webaverse/storage.js';
+import { PageRouter } from './components/PageRouter.js';
 import ActionTypes from './constants/ActionTypes.js';
 import { Context } from './constants/Context.js';
-import NavBar from './components/NavBar.js';
-import { loginEndpoint } from './webaverse/constants.js'
 import htm from './web_modules/htm.js';
-import { PageRouter } from './components/PageRouter.js';
+const storageHost = 'https://storage.exokit.org';
+
 
 window.html = htm.bind(React.createElement);
 
@@ -29,8 +31,6 @@ const initialValues = {
   lastFileId: null
 };
 
-import storage from '../webaverse/storage.js';
-import { getAddressFromMnemonic } from '../webaverse/blockchain.js';
 
 
 export const initializeEthereum = async (state) => {
@@ -208,15 +208,15 @@ export const getCreators = async (page, state) => {
   return newState;
 };
 
-export const uploadFile = async (file, state) => {
-  if (!state.loginToken)
-    throw new Error('not logged in');
-  if (!file.name)
-    throw new Error('file has no name');
-
+export const mintNft = async (file, name, description, quantity, successCallback, errorCallback, state) => {
   const { mnemonic, addr } = state.loginToken;
   const res = await fetch(storageHost, { method: 'POST', body: file });
   const { hash } = await res.json();
+
+  let status, transactionHash, tokenIds;
+
+  
+  try {
 
   const fullAmount = {
     t: 'uint256',
@@ -225,8 +225,6 @@ export const uploadFile = async (file, state) => {
       .mul(new web3.utils.BN(1e9)),
   };
 
-  let status, transactionHash, tokenIds;
-  try {
     {
       const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['NFT']._address, fullAmount.v);
       status = result.status;
@@ -234,22 +232,22 @@ export const uploadFile = async (file, state) => {
       tokenIds = [];
     }
     if (status) {
-      const description = '';
-      // console.log('minting', ['NFT', 'mint', addr, '0x' + hash, file.name, description, quantity]);
-      const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', addr, '0x' + hash, file.name, description, quantity);
+      const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', addr, '0x' + hash, name, description, quantity);
       status = result.status;
       transactionHash = result.transactionHash;
       const tokenId = new web3.utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
       tokenIds = [tokenId, tokenId + quantity - 1];
+      successCallback();
     }
   } catch (err) {
     console.warn(err.stack);
     status = false;
     transactionHash = '0x0';
     tokenIds = [];
+    errorCallback();
   }
 
-  return { tokenIds };
+  return await pullUserObject(state);
 };
 
 export const pullUserObject = async (state) => {
@@ -267,7 +265,7 @@ export const pullUserObject = async (state) => {
 };
 
 export const requestTokenByEmail = async (email) => {
-  await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}`, {
+  await fetch(`/gateway?email=${encodeURIComponent(email)}`, {
     method: 'POST',
   });
   alert(`Code sent to ${email}!`);
@@ -275,7 +273,7 @@ export const requestTokenByEmail = async (email) => {
 };
 
 export const loginWithEmailCode = async (email, code, state) => {
-  const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
+  const res = await fetch(`/gateway?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
     method: 'POST',
   });
 
@@ -398,6 +396,7 @@ const Application = () => {
       case ActionTypes.GetBooths.concat('End'):
         return { ...state, ...action.payload.state };
 
+
       case ActionTypes.RequestEmailToken.concat('End'):
         return { ...state, ...action.payload.state };
 
@@ -408,12 +407,14 @@ const Application = () => {
         });
       return state;
   
-      case ActionTypes.LoginWithEmail:
-        loginWithEmailCode(action.payload.email, action.payload.code, state).then(newState => {
-          dispatch({ type: ActionTypes.LoginWithEmail.concat('End'), payload: { state: newState } });
-        });
 
-      case ActionTypes.LoginWithEmail.concat('End'):
+      case ActionTypes.GatewayWithEmail:
+        loginWithEmailCode(action.payload.email, action.payload.code, state).then(newState => {
+          dispatch({ type: ActionTypes.GatewayWithEmail.concat('End'), payload: { state: newState } });
+        });
+        return state;
+
+      case ActionTypes.GatewayWithEmail.concat('End'):
         return { ...state, ...action.payload.state };
 
   
@@ -421,9 +422,28 @@ const Application = () => {
         logout(action.payload.assetId, state).then(newState => {
           dispatch({ type: ActionTypes.Logout.concat('End'), payload: { state: newState } });
         });
+        return state;
 
         case ActionTypes.Logout.concat('End'):
           return { ...state, ...action.payload.state };
+
+
+      case ActionTypes.MintNft:
+        mintNft(action.payload.file,
+                action.payload.name,
+                action.payload.description,
+                action.payload.quantity,
+                action.payload.successCallback,
+                action.payload.errorCallback,
+                state
+          ).then(newState => {
+          dispatch({ type: ActionTypes.MintNft.concat('End'), payload: { state: newState } });
+        });
+        return state;
+
+      case ActionTypes.MintNft.concat('End'):
+        return { ...state, ...action.payload.state };
+        
   
       // case ActionTypes.SendNft:
       //   return sendNft(action.payload.receiverAddress, action.payload.assetId, state);
@@ -510,9 +530,8 @@ const Application = () => {
   return html`
   <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
   ${state.address && html`
-  <${Context.Provider} value=${{ state, dispatch }}>
+  <${Context.Provider} value=${{ state, dispatch }}>  
     ${!state.useWebXR ? html`
-      <${NavBar} />
       <${PageRouter} />
     ` : html`
       <${WebXRContext} />
