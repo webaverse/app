@@ -9,10 +9,10 @@ import { Context } from '../constants/Context.js';
 
 const html = htm.bind(React.createElement)
 
-const CreatorsPage = () => {
+const GalleryPage = () => {
   const { state, dispatch } = useContext(Context);
   const [currentPage, setCurrentPage] = useState(1);
-
+  let boothId = 0;
   useEffect(() => {
     console.log("Rendering gallery");
     dispatch({ type: ActionTypes.GetBooths, payload: { page: currentPage } });
@@ -23,13 +23,12 @@ const CreatorsPage = () => {
     ${state.booths[currentPage] && html`
     <div className="${styles}">
       ${state.booths[currentPage].map(asset => html`
-      <${Booth} key=${asset} data=${asset} cardSize=${CardSize.Small} />
+      <${Booth} key=${boothId++} data=${asset} cardSize=${CardSize.Small} />
       `)}
       </div>
       `}
     <//>
-
     `;
 };
 
-export default CreatorsPage;
+export default GalleryPage;
