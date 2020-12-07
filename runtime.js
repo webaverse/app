@@ -166,6 +166,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     physicsIds = physicsBuffers.map(physicsBuffer => {
       const physicsId = ++nextPhysicsId;
       geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, new THREE.Vector3(), new THREE.Quaternion(), physicsId);
+      return physicsId;
     });
   };
   mesh.destroy = () => {
