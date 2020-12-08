@@ -1,10 +1,12 @@
 import * as THREE from './three.module.js';
+import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {rigManager} from './rig.js';
 import {scene} from './app-object.js';
 import {Sky} from './Sky.js';
 import {world} from './world.js';
 import {GuardianMesh} from './land.js';
 import minimap from './minimap.js';
+import {makeTextMesh} from './vr-ui.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -56,12 +58,91 @@ const universeSpecs = [{
     10, 3, -4,
   ],
 }];
+const _makeLabelMesh = text => {
+  const w = 2;
+  const h = 0.3;
+  const textMesh = makeTextMesh(text, undefined, h, 'center', 'middle');
+  textMesh.color = 0xFFFFFF;
+  textMesh.sync();
+  {
+    const geometry = new THREE.CircleBufferGeometry(h/2, 32);
+    const img = new Image();
+    img.src = `http://127.0.0.1:3000/assets/logo-circle.svg`;
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      texture.needsUpdate = true;
+    };
+    img.onerror = err => {
+      console.warn(err.stack);
+    };
+    const texture = new THREE.Texture(img);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+    });
+    const avatarMesh = new THREE.Mesh(geometry, material);
+    avatarMesh.position.x = -w/2;
+    avatarMesh.position.y = -0.02;
+    textMesh.add(avatarMesh);
+  }
+  {
+    const roundedRectShape = new THREE.Shape();
+    ( function roundedRect( ctx, x, y, width, height, radius ) {
+      ctx.moveTo( x, y + radius );
+      ctx.lineTo( x, y + height - radius );
+      ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
+      /* ctx.lineTo( x + radius + indentWidth, y + height );
+      ctx.lineTo( x + radius + indentWidth + indentHeight, y + height - indentHeight );
+      ctx.lineTo( x + width - radius - indentWidth - indentHeight, y + height - indentHeight );
+      ctx.lineTo( x + width - radius - indentWidth, y + height ); */
+      ctx.lineTo( x + width - radius, y + height );
+      ctx.quadraticCurveTo( x + width, y + height, x + width, y + height - radius );
+      ctx.lineTo( x + width, y + radius );
+      ctx.quadraticCurveTo( x + width, y, x + width - radius, y );
+      ctx.lineTo( x + radius, y );
+      ctx.quadraticCurveTo( x, y, x, y + radius );
+    } )( roundedRectShape, 0, 0, w, h, h/2 );
+
+    const extrudeSettings = {
+      steps: 2,
+      depth: 0,
+      bevelEnabled: false,
+      /* bevelEnabled: true,
+      bevelThickness: 0,
+      bevelSize: 0,
+      bevelOffset: 0,
+      bevelSegments: 0, */
+    };
+    const geometry = BufferGeometryUtils.mergeBufferGeometries([
+      new THREE.CircleBufferGeometry(0.13, 32)
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -0.02, -0.01)).toNonIndexed(),
+      new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.02)),
+    ]);
+    const material2 = new THREE.LineBasicMaterial({
+      color: 0x000000,
+      transparent: true,
+      opacity: 0.5,
+      side: THREE.DoubleSide,
+    });
+    const nametagMesh2 = new THREE.Mesh(geometry, material2);
+    textMesh.add(nametagMesh2);
+  }
+  return textMesh;
+};
 const worldObjects = universeSpecs.map(spec => {
   const guardianMesh = GuardianMesh(spec.extents, blueColor);
   guardianMesh.name = spec.name;
   const worldObject = minimap.addWorld(spec.extents);
   guardianMesh.worldObject = worldObject;
   scene.add(guardianMesh);
+
+  const labelMesh = _makeLabelMesh('Erithor');
+  labelMesh.position.x = (spec.extents[0]+spec.extents[3])/2;
+  labelMesh.position.y = spec.extents[4] + 1;
+  labelMesh.position.z = (spec.extents[2]+spec.extents[5])/2;
+  guardianMesh.add(labelMesh);
+
   return guardianMesh;
 });
 
