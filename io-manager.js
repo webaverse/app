@@ -4,7 +4,7 @@ import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
-import {setState} from './state.js';
+// import {setState} from './state.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -575,7 +575,7 @@ document.addEventListener('pointerlockchange', e => {
     cameraManager.selectTool('camera');
     // document.dispatchEvent(new MouseEvent('mouseup'));
   } else {
-    setState({ pointerLock: true })
+    // setState({ pointerLock: true })
   }
 });
 window.addEventListener('resize', e => {

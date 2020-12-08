@@ -21,6 +21,8 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.autoClear = false;
 renderer.sortObjects = false;
 // renderer.physicallyCorrectLights = true;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.xr.enabled = true;
 
 const scene = new THREE.Scene();
@@ -42,17 +44,31 @@ dolly.add(camera);
 dolly.add(avatarCamera);
 scene.add(dolly);
 
-const _addDefaultLights = scene => {
+const _addDefaultLights = (scene, shadowMap) => {
   const ambientLight = new THREE.AmbientLight(0xFFFFFF);
   scene.add(ambientLight);
+  scene.ambientLight = ambientLight;
   const directionalLight = new THREE.DirectionalLight(0xFFFFFF);
   directionalLight.position.set(1, 2, 3);
   scene.add(directionalLight);
+  scene.directionalLight = directionalLight;
   /* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
   scene.add(directionalLight2); */
+  if (shadowMap) {
+    const SHADOW_MAP_WIDTH = 1024;
+    const SHADOW_MAP_HEIGHT = 1024;
+
+    directionalLight.castShadow = true;
+
+    directionalLight.shadow.camera = new THREE.PerspectiveCamera( 50, 1, 0.1, 50 );
+    // directionalLight.shadow.bias = 0.0001;
+
+    directionalLight.shadow.mapSize.width = SHADOW_MAP_WIDTH;
+    directionalLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
+  }
 };
-_addDefaultLights(scene);
-_addDefaultLights(avatarScene);
+_addDefaultLights(scene, true);
+_addDefaultLights(avatarScene, false);
 
 /* const orbitControls = new OrbitControls(camera, canvas);
 orbitControls.screenSpacePanning = true;
