@@ -541,10 +541,10 @@ const _loadScript = async (file, {files = null, parentUrl = null} = {}, instance
       return arguments[1] + replacements[index++] + arguments[3];
     });
     if (instanceId) {
-      script = script.replace("document.monetization", `window.document.monetization${instanceId}`);
-      script = script.replace("document.monetization.addEventListener", `window.document.monetization${instanceId}.addEventListener`);
+      script = script.replace("document.monetization", `document.monetization${instanceId}`);
+      script = script.replace("document.monetization.addEventListener", `document.monetization${instanceId}.addEventListener`);
       script = `
-        window.document.monetization${instanceId} = window.document.createElement('div');
+        document.monetization${instanceId} = document.createElement('eventTarget');
       ` + script;
     }
     return script;
