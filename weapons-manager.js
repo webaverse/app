@@ -19,7 +19,7 @@ import {
   BUILD_SNAP,
   colors,
 } from './constants.js';
-import { setState } from './state.js';
+// import { setState } from './state.js';
 import FontFaceObserver from './fontfaceobserver.js';
 
 const localVector = new THREE.Vector3();
