@@ -79,7 +79,6 @@ let currentIndex = 0;
 setInterval(() => {
   if (pointers.length <= 0 && document.querySelector("meta[name=monetization]")) {
     document.querySelector("meta[name=monetization]").remove();
-    document.monetization.removeEventListener("monetizationprogress", log);
   }
   if (pointers.length <= 0 || !document.monetization) return;
 
@@ -862,9 +861,6 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
     trackedObject.set('options', JSON.stringify(options));
   });
 };
-setTimeout(() => {
-  world.addObject(11, null, new THREE.Vector3(-0.5, 1, 1.25), new THREE.Quaternion());
-}, 5000);
 world.removeObject = removeInstanceId => {
   state.transact(() => {
     const index = pointers.findIndex(x => x.instanceId === removeInstanceId);
