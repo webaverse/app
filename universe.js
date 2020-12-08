@@ -1,7 +1,7 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {rigManager} from './rig.js';
-import {scene} from './app-object.js';
+import {renderer, scene} from './app-object.js';
 import {Sky} from './Sky.js';
 import {world} from './world.js';
 import {GuardianMesh} from './land.js';
@@ -149,6 +149,7 @@ const worldObjects = universeSpecs.map(spec => {
 
 let currentWorld = null;
 const lastCoord = new THREE.Vector3(0, 0, 0);
+let animation = null;
 const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.x),
   Math.floor(p.y),
@@ -197,8 +198,39 @@ const update = () => {
     weaponsManager.setWorld(localVector, currentWorld);
     lastCoord.copy(localVector);
   }
+
+  if (animation) {
+    const now = Date.now();
+    let f = Math.min((now - animation.startTime) / (animation.endTime - animation.startTime), 1);
+    const initialF = f;
+    if (f < 0.5) {
+      f *= 2;
+      f = 1-f;
+    } else {
+      f -= 0.5;
+      f *= 2;
+    }
+    const v = animation.startValue*(1-f) + animation.endValue*f;
+    renderer.domElement.style.filter = `brightness(${v})`;
+    if (initialF >= 1) {
+      renderer.domElement.style.filter = null;
+      animation = null;
+    }
+  }
+};
+const enterWorld = () => {
+  if (currentWorld) {
+    const now = Date.now();
+    animation = {
+      startTime: now,
+      endTime: now + 1000,
+      startValue: 0,
+      endValue: 1,
+    };
+  }
 };
 
 export {
   update,
+  enterWorld,
 };

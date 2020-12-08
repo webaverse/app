@@ -4,6 +4,7 @@ import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
+import * as universe from './universe.js';
 // import {setState} from './state.js';
 
 const localVector = new THREE.Vector3();
@@ -336,7 +337,7 @@ window.addEventListener('keydown', e => {
     }
     case 69: { // E
       // pe.grabdown('right');
-      if (document.pointerLockElement) {
+      if (!universe.enterWorld() && document.pointerLockElement) {
         ioManager.currentWeaponGrabs[0] = true;
       }
       break;
