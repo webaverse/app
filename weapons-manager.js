@@ -2188,6 +2188,7 @@ const _updateMenu = () => {
   locationIcon.classList.toggle('open', false);
   profileIcon.classList.toggle('open', false);
   itemIcon.classList.toggle('open', false);
+  itemMonetizationIcon.classList.toggle('open', false);
 
   deployMesh.visible = false;
 
