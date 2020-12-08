@@ -117,6 +117,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     }
   })();
 
+  const physicsMeshes = [];
   const physicsBuffers = [];
   let physicsIds = [];
   if (physics) {
@@ -149,8 +150,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
         newGeometry.setIndex(geometry.index);
       }
 
-      const newMesh = new THREE.Mesh(newGeometry);
-      physicsManager.addGeometry(newMesh);
+      const physicsMesh = new THREE.Mesh(newGeometry);
+      physicsMeshes.push(physicsMesh);
     }
   }
   if (physics_url) {
@@ -161,9 +162,10 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   }
 
   mesh.run = () => {
-    physicsIds = physicsBuffers.map(physicsBuffer => {
-      return physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion);
-    });
+    physicsIds = physicsMeshes.map(physicsMesh => physicsManager.addGeometry(physicsMesh))
+      .concat(physicsBuffers.map(physicsBuffer => {
+        return physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion);
+      }));
   };
   mesh.destroy = () => {
     for (const physicsId of physicsIds) {
@@ -734,27 +736,29 @@ const _loadScn = async (file, opts) => {
   const {objects} = j;
   
   const scene = new THREE.Object3D();
-  const physicsBuffers = [];
-  let physicsIds = [];
+  /* const physicsBuffers = [];
+  let physicsIds = []; */
 
-  for (const object of objects) {
+  const promises = objects.map(async object => {
     let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, filename, content, physics_url = null, optimize = false, physics = false} = object;
     const parentId = null;
     position = new THREE.Vector3().fromArray(position);
     quaternion = new THREE.Quaternion().fromArray(quaternion);
+    scale = new THREE.Vector3().fromArray(scale);
     if (start_url) {
       start_url = new URL(start_url, srcUrl).href;
+      filename = start_url;
     } else if (filename && content) {
       const blob = new Blob([content], {
         type: 'application/octet-stream',
       });
       start_url = URL.createObjectURL(blob);
-      start_url += '/' + filename;
+      // start_url += '/' + filename;
     } else {
       console.warn('cannot load contentless object', object);
-      continue;
+      return;
     }
-    if (physics_url) {
+    /* if (physics_url) {
       physics_url = new URL(physics_url, srcUrl).href;
     }
 
@@ -762,36 +766,31 @@ const _loadScn = async (file, opts) => {
       optimize,
       physics,
       physics_url,
-    });
+    }); */
 
-    /* const mesh = await runtime.loadFile({
+    const mesh = await runtime.loadFile({
       url: start_url,
-      name: start_url,
+      name: filename,
     }, {
       optimize,
       physics,
+      physics_url,
     });
-    mesh.position.fromArray(position);
-    mesh.quaternion.fromArray(quaternion);
-    mesh.scale.fromArray(scale);
-    scene.add(mesh); */
-  }
+    mesh.position.copy(position);
+    mesh.quaternion.copy(quaternion);
+    mesh.scale.copy(scale);
+    scene.add(mesh);
+  });
+  await Promise.all(promises);
   scene.run = () => {
     for (const child of scene.children) {
       child.run && child.run();
     }
-    physicsIds = physicsBuffers.map(physicsBuffer => {
-      return physicsManager.addCookedGeometry(physicsBuffer, position, quaternion);
-    });
   };
   scene.destroy = () => {
     for (const child of scene.children) {
       child.destroy && child.destroy();
     }
-    for (const physicsId of physicsIds) {
-      physicsManager.removeGeometry(physicsId);
-    }
-    physicsIds.length = 0;
   };
   return scene;
 };
