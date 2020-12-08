@@ -2205,7 +2205,9 @@ const _updateMenu = () => {
     objectMenuEl.classList.toggle('open', true);
     itemLabel.classList.toggle('open', true);
     itemIcon.classList.toggle('open', true);
-
+    if (document.monetization) {
+      itemMonetizedIcon.classList.toggle('open', true);
+    }
     itemLabel.innerText = 'lightsaber';
   } else {
     locationIcon.classList.toggle('open', true);
@@ -2222,6 +2224,7 @@ const itemLabel = document.getElementById('item-label');
 const locationIcon = document.getElementById('location-icon');
 const profileIcon = document.getElementById('profile-icon');
 const itemIcon = document.getElementById('item-icon');
+const itemMonetizedIcon = document.getElementById('item-monetized-icon');
 const weaponsManager = {
   weapons,
   cubeMesh,
