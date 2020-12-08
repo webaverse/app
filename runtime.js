@@ -368,7 +368,7 @@ const _loadImg = async file => {
   mesh.frustumCulled = false;
   return mesh;
 };
-const _makeAppUrl = (appId) => {
+const _makeAppUrl = appId => {
   const s = `\
     import {renderer as _renderer, scene, camera, appManager} from ${JSON.stringify(importMap.app)};
     import * as THREE from ${JSON.stringify(importMap.three)};
