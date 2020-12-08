@@ -146,9 +146,9 @@ class RigManager {
     const avatarMesh = new THREE.Mesh(geometry, material);
     avatarMesh.position.x = -0.5;
     avatarMesh.position.y = -0.02;
-    this.localRig.textMesh.add(avatarMesh);
 
-    this.localRig.textMesh.sync();
+    this.localRig.textMesh.remove(this.localRig.textMesh.children[0]);
+    this.localRig.textMesh.add(avatarMesh);
   }
 
   async setLocalAvatarUrl(url, filename) {
