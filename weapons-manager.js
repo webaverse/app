@@ -2191,6 +2191,7 @@ const _updateMenu = () => {
   profileLabel.classList.toggle('open', false);
   itemLabel.classList.toggle('open', false);
   locationIcon.classList.toggle('open', false);
+  locationIcon.classList.toggle('highlight', false);
   profileIcon.classList.toggle('open', false);
   itemIcon.classList.toggle('open', false);
 
