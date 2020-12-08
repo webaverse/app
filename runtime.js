@@ -73,7 +73,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     console.warn(err);
   } finally {
     if (/^blob:/.test(srcUrl)) {
-      URL.revokeObjectURL(u);
+      URL.revokeObjectURL(srcUrl);
     }
   }
   o = o.scene;
