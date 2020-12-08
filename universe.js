@@ -149,8 +149,6 @@ const worldObjects = universeSpecs.map(spec => {
 
 let currentWorld = null;
 const lastCoord = new THREE.Vector3(0, 0, 0);
-// const locationIcon = document.getElementById('location-icon');
-// const locationLabel = document.getElementById('location-label');
 const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.x),
   Math.floor(p.y),
