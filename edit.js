@@ -1293,7 +1293,9 @@ const _initializeLogin = async () => {
   _initializeUserUi();
   const _initializeRigUi = () => {
     const username = loginManager.getUsername() || 'Anonymous';
+    const avatarImage = loginManager.getAvatarPreview();
     rigManager.setLocalAvatarName(username);
+    rigManager.setLocalAvatarImage(avatarImage);
 
     loginManager.addEventListener('usernamechange', e => {
       const username = e.data || 'Anonymous';
