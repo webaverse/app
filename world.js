@@ -60,7 +60,6 @@ setInterval(() => {
         monetization.dispatchEvent(new Event('monetizationstart'));
         playSound();
       }
-      console.log("pendingMonetizationStart:", pendingMonetizationStart[i]);
       pendingMonetizationStart.splice(i, 1);
     });
   }
