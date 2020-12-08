@@ -782,7 +782,7 @@ const _connectRoom = async (roomName, worldURL) => {
 };
 
 const objects = [];
-world.getObjects = () => objects;
+world.getObjects = () => objects.slice();
 world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
   state.transact(() => {
     const instanceId = getRandomString();
