@@ -813,6 +813,9 @@ highlightMesh.visible = false;
 scene.add(highlightMesh);
 let highlightedObject = null;
 
+const coord = new THREE.Vector3();
+let highlightedWorld = null;
+
 const moveMesh = _makeTargetMesh();
 moveMesh.visible = false;
 scene.add(moveMesh);
@@ -2182,7 +2185,9 @@ const _updateMenu = () => {
   menuEl.classList.toggle('open', false);
   unmenuEl.classList.toggle('closed', false);
   objectMenuEl.classList.toggle('open', false);
+  worldMenuEl.classList.toggle('open', false);
   locationLabel.classList.toggle('open', false);
+  locationLabel.classList.toggle('highlight', false);
   profileLabel.classList.toggle('open', false);
   itemLabel.classList.toggle('open', false);
   locationIcon.classList.toggle('open', false);
@@ -2200,6 +2205,16 @@ const _updateMenu = () => {
     profileLabel.innerText = 'parzival';
 
     deployMesh.visible = true;
+  } else if (highlightedWorld) {
+    unmenuEl.classList.toggle('closed', true);
+    objectMenuEl.classList.toggle('open', false);
+    locationLabel.classList.toggle('open', true);
+    locationIcon.classList.toggle('open', true);
+
+    locationIcon.classList.toggle('highlight', !!highlightedWorld);
+    locationLabel.classList.toggle('highlight', !!highlightedWorld);
+
+    worldMenuEl.classList.toggle('open', true);
   } else if (objectHightlighted) {
     unmenuEl.classList.toggle('closed', true);
     objectMenuEl.classList.toggle('open', true);
@@ -2211,11 +2226,14 @@ const _updateMenu = () => {
     locationIcon.classList.toggle('open', true);
     locationLabel.classList.toggle('open', true);
   }
+
+  locationLabel.innerText = (highlightedWorld ? highlightedWorld.name : 'The Void') + ` @${coord.x},${coord.z}`;
 };
 
 const menuEl = document.getElementById('menu');
 const unmenuEl = document.getElementById('unmenu');
 const objectMenuEl = document.getElementById('object-menu');
+const worldMenuEl = document.getElementById('world-menu');
 const locationLabel = document.getElementById('location-label');
 const profileLabel = document.getElementById('profile-label');
 const itemLabel = document.getElementById('item-label');
@@ -2321,6 +2339,11 @@ const weaponsManager = {
   },
   menuPaste(s) {
     menuMesh.paste(s);
+  },
+  setWorld(newCoord, newHighlightedWorld) {
+    coord.copy(newCoord);
+    highlightedWorld = newHighlightedWorld;
+    _updateMenu();
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);
