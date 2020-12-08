@@ -53,16 +53,20 @@ let skybox;
   scene.add(skybox);
 }
 const universeSpecs = {
-  objects: [
+  universeObjects: [
     {
       position: [0, 0, 0],
-      url: 'https://avaer.github.io/land/index.js',
+      start_url: 'https://avaer.github.io/land/index.js',
     },
     {
       position: [0, 0, -1],
-      url: 'https://avaer.github.io/mirror/index.js',
+      start_url: 'https://avaer.github.io/mirror/index.js',
     }
   ],
+  userObject: {
+    position: [0, 0, -1],
+    start_url: './home.scn',
+  },
   parcels: [{
   	name: 'Erithor',
     extents: [
@@ -175,7 +179,7 @@ const _updateWorld = newWorld => {
   }
 
   if (newWorld) {
-    // XXXX
+    loadUserWorld();
   } else {
     loadDefaultWorld();
   }
@@ -183,12 +187,19 @@ const _updateWorld = newWorld => {
   currentWorld = newWorld;
 };
 const loadDefaultWorld = () => {
-  for (const objectSpec of universeSpecs.objects) {
+  for (const objectSpec of universeSpecs.universeObjects) {
     const position = objectSpec.position ? new THREE.Vector3().fromArray(objectSpec.position) : new THREE.Vector3();
     const quaternion = objectSpec.quaternion ? new THREE.Quaternion().fromArray(objectSpec.quaternion) : new THREE.Quaternion();
     // const scale = objectSpec.scale ? new THREE.Vector3().fromArray(objectSpec.scale) : new THREE.Vector3();
-    world.addObject(objectSpec.url, null, position, quaternion);
+    world.addObject(objectSpec.start_url, null, position, quaternion);
   }
+};
+const loadUserWorld = () => {
+  const objectSpec = universeSpecs.userObject;
+  const position = objectSpec.position ? new THREE.Vector3().fromArray(objectSpec.position) : new THREE.Vector3();
+  const quaternion = objectSpec.quaternion ? new THREE.Quaternion().fromArray(objectSpec.quaternion) : new THREE.Quaternion();
+  // const scale = objectSpec.scale ? new THREE.Vector3().fromArray(objectSpec.scale) : new THREE.Vector3();
+  world.addObject(objectSpec.start_url, null, position, quaternion);
 };
 const update = () => {
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
