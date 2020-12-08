@@ -16,19 +16,39 @@ const NavBarUserLoginForm = () => {
 
   const { state, dispatch } = useContext(Context);
 
-  const onLoginSubmit = (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
-    console.log(e);
     dispatch({ type: ActionTypes.LoginWithEmailOrPrivateKey, payload: { emailOrPrivateKey: inputState.value } });
   }
 
+  const handleLogout = (e) => {
+    e.preventDefault();
+    dispatch({ type: ActionTypes.Logout});
+  }
+
+  const copyAddress = (e) => {
+    e.preventDefault();
+    navigator.clipboard.writeText(state.address);
+    console.log("Copied address to clipboard", state.address);
+  };
+  
+  const copyPrivateKey = (e) => {
+    e.preventDefault();
+
+    navigator.clipboard.writeText(state.loginToken.mnemonic);
+    console.log("Copied private key to clipboard", state.loginToken.mnemonic);
+  };
+
   return html`
-    <form className="loginForm" onSubmit="${onLoginSubmit}">
+    <div className="loginForm">
       <input type="text" placeholder="Login with email or private key" onChange=${handleChange}/>
-      <button className="submit" type="submit">
-        Login
-      </button>
-    </form>
+      <button className="submit" type="submit" onClick="${handleLogin}">Login</button>
+      <button className="submit" type="submit" onClick="${copyAddress}">Copy Address</button>
+
+      <button className="submit" type="submit" onClick="${copyPrivateKey}">Copy Private Key</button>
+
+      <button className="submit" type="submit" onClick="${handleLogout}">Logout</button>
+    </div>
   `
 }
 
