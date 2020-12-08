@@ -5,6 +5,7 @@ import {scene} from './app-object.js';
 import {Sky} from './Sky.js';
 import {world} from './world.js';
 import {GuardianMesh} from './land.js';
+import weaponsManager from './weapons-manager.js';
 import minimap from './minimap.js';
 import {makeTextMesh} from './vr-ui.js';
 
@@ -148,8 +149,8 @@ const worldObjects = universeSpecs.map(spec => {
 
 let currentWorld = null;
 const lastCoord = new THREE.Vector3(0, 0, 0);
-const locationIcon = document.getElementById('location-icon');
-const locationLabel = document.getElementById('location-label');
+// const locationIcon = document.getElementById('location-icon');
+// const locationLabel = document.getElementById('location-label');
 const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.x),
   Math.floor(p.y),
@@ -173,7 +174,7 @@ const update = () => {
   	currentWorld = null;
   }
 
-  if (currentWorld !== oldWorld) {
+  /* if (currentWorld !== oldWorld) {
     const objects = world.getObjects();
     for (const object of objects) {
       world.removeObject(object.instanceId);
@@ -184,7 +185,7 @@ const update = () => {
       const center = _parseUniverseSpec(intersection).getCenter(localVector);
       world.addObject(u, null, center, new THREE.Quaternion());
     }
-  }
+  } */
 
   for (const worldObject of worldObjects) {
     worldObject.material.uniforms.uColor.value.setHex(blueColor);
@@ -195,9 +196,7 @@ const update = () => {
 
   _getCurrentCoord(rigManager.localRig.inputs.hmd.position, localVector);
   if (!localVector.equals(lastCoord)) {
-  	locationIcon.classList.toggle('highlight', !!intersection);
-  	locationLabel.classList.toggle('highlight', !!intersection);
-    locationLabel.innerText = (currentWorld ? currentWorld.name : 'The Void') + ` @${localVector.x},${localVector.z}`;
+    weaponsManager.setWorld(localVector, currentWorld);
     lastCoord.copy(localVector);
   }
 };
