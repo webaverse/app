@@ -39,20 +39,20 @@ setInterval(() => {
       const instanceId = pendingMonetizationStart[i].instanceId;
       const object = pendingMonetizationStart[i].object;
       const monetization = window.document[`monetization${instanceId}`];
+      const ethereumAddress = loginManager.getAddress();
 
       const listener = new THREE.AudioListener();
-      camera.add( listener );
-      const sound = new THREE.PositionalAudio( listener );
+      camera.add(listener);
+      const sound = new THREE.PositionalAudio(listener);
       const audioLoader = new THREE.AudioLoader();
       const playSound = () => {
-        audioLoader.load('./assets/unlockSound.mp3', function( buffer ) {
-          sound.setBuffer( buffer );
-          sound.setRefDistance( 20 );
+        audioLoader.load('./assets/unlockSound.mp3', function(buffer) {
+          sound.setBuffer(buffer);
+          sound.setRefDistance(20);
           sound.play();
         });
       }
 
-      const ethereumAddress = loginManager.getAddress();
       if (monetization && ethereumAddress && ethereumAddress == pendingMonetizationStart[i].ownerAddress) {
         monetization.dispatchEvent(new Event('monetizationstart'));
         playSound();
@@ -60,6 +60,7 @@ setInterval(() => {
         monetization.dispatchEvent(new Event('monetizationstart'));
         playSound();
       }
+      console.log("pendingMonetizationStart:", pendingMonetizationStart[i]);
       pendingMonetizationStart.splice(i, 1);
     });
   }
