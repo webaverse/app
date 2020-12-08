@@ -222,7 +222,6 @@ export const uploadFile = async (file, state) => {
 };
 
 export const pullUserObject = async (state) => {
-  console.log("Pulling user object");
   const address = getAddressFromMnemonic(state.loginToken.mnemonic);
   const res = await fetch(`https://accounts.webaverse.com/${address}`);
   const result = await res.json();
@@ -231,7 +230,6 @@ export const pullUserObject = async (state) => {
     address,
     ...result
   };
-  console.log("New state is: ", newState);
   return newState;
 };
 
@@ -263,10 +261,10 @@ export const loginWithEmailOrPrivateKey = async (emailOrPrivateKey, state) => {
     // Private key
     const mnemonic = split.slice(0, 12).join(' ');
     return await setNewLoginToken(mnemonic);
+
   } else {
     // Email
-    requestTokenByEmail(email);
-    return state;
+    return await requestTokenByEmail(email);
   }
 };
 

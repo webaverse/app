@@ -1,12 +1,14 @@
 import { React, ReactDOM, useEffect, useReducer, useState } from 'https://unpkg.com/es-react/dev';
 import { getAddressFromMnemonic, runSidechainTransaction, web3 } from '../webaverse/blockchain.js';
-import storage from '../webaverse/storage.js';
+import storage from './webaverse/storage.js';
+import bip39 from './libs/bip39.js'
 import { PageRouter } from './components/PageRouter.js';
 import ActionTypes from './constants/ActionTypes.js';
 import { Context } from './constants/Context.js';
 import htm from './web_modules/htm.js';
+import hdkeySpec from './libs/hdkey.js';
 const storageHost = 'https://storage.exokit.org';
-
+const hdkey = hdkeySpec.default;
 
 window.html = htm.bind(React.createElement);
 
@@ -86,6 +88,7 @@ export const getAddress = (state) => {
     return null;
   const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(state.loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
   const address = wallet.getAddressString();
+  console.log("Address is", address);
   return { ...state, address };
 };
 
@@ -260,7 +263,6 @@ export const pullUserObject = async (state) => {
     address,
     ...result
   };
-  console.log("New state is: ", newState);
   return newState;
 };
 
@@ -307,20 +309,6 @@ export const setNewLoginToken = async (newLoginToken, state) => {
   return await pullUserObject({ ...state, loginToken: newLoginToken });
 };
 
-export const copyAddress = async (state) => {
-  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(state.loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-  const address = wallet.getAddressString();
-  navigator.clipboard.writeText(address);
-  console.log("Copied address to clipboard", address);
-  return state;
-};
-
-export const copyPrivateKey = async (state) => {
-  navigator.clipboard.writeText(state.loginToken.mnemonic);
-  console.log("Copied private key to clipboard", state.loginToken.mnemonic);
-  return state;
-};
-
 export const logout = async (state) => {
   await storage.remove('loginToken');
   return await initializeStart(state);
@@ -328,18 +316,18 @@ export const logout = async (state) => {
 
 export const initializeStart = async (state) => {
   let loginToken = await storage.get('loginToken');
-
   if (!loginToken) {
     console.log("Generating login token");
-    loginToken = bip39.generateMnemonic();
+    loginToken = await bip39.generateMnemonic();
     await storage.set('loginToken', { mnemonic: loginToken, unregistered: true });
   }
-
+  
   const newState = await pullUserObject({ ...state, loginToken });
   // newState = await initializeEthereum(newState);
   if (newState.loginToken.unregistered)
-    console.warn("Login token is unregistered");
-  return newState;
+  console.warn("Login token is unregistered");
+  console.log("login token is", loginToken);
+  return await getAddress(newState);
 };
 
 const Application = () => {
@@ -362,7 +350,6 @@ const Application = () => {
         return state;
   
       case ActionTypes.GetProfileForCreator.concat('End'):
-        console.log("New state is", { ...state, ...action.payload.state });
         return { ...state, ...action.payload.state };
   
   
@@ -407,6 +394,9 @@ const Application = () => {
         });
       return state;
   
+      case ActionTypes.LoginWithEmailOrPrivateKey.concat('End'):
+        return { ...state, ...action.payload.state };
+
 
       case ActionTypes.GatewayWithEmail:
         loginWithEmailCode(action.payload.email, action.payload.code, state).then(newState => {
@@ -419,7 +409,7 @@ const Application = () => {
 
   
       case ActionTypes.Logout:
-        logout(action.payload.assetId, state).then(newState => {
+        logout(state).then(newState => {
           dispatch({ type: ActionTypes.Logout.concat('End'), payload: { state: newState } });
         });
         return state;
@@ -466,14 +456,6 @@ const Application = () => {
       // case ActionTypes.WithdrawFt:
       //   return withdrawFt(action.payload.amount, state);
   
-      // case ActionTypes.CopyAddress:
-      //   newState = copyAddress(state);
-      //   break;
-  
-      // case ActionTypes.CopyPrivateKey:
-      //   newState = copyPrivateKey(state);
-      //   break;
-  
       // case ActionTypes.ChangeName:
       //   newState = setUsername(action.payload.newUserName, state);
       //   break;
@@ -504,6 +486,7 @@ const Application = () => {
   
       default:
         console.warn("Default case in reducer, something is wrong");
+        console.warn(action);
         return state;
   
     }
