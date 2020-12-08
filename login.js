@@ -374,6 +374,10 @@ class LoginManager extends EventTarget {
     return userObject && userObject.avatar;
   }
 
+  getAvatarPreview() {
+    return userObject && userObject.avatar.preview;
+  }
+
   async setAvatar(id) {
     if (loginToken) {
       // const {mnemonic} = loginToken;
