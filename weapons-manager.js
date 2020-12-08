@@ -2205,7 +2205,7 @@ const _updateMenu = () => {
     objectMenuEl.classList.toggle('open', true);
     itemLabel.classList.toggle('open', true);
     itemIcon.classList.toggle('open', true);
-    if (document.monetization) {
+    if (document.monetization.state == 'started') {
       itemMonetizedIcon.classList.toggle('open', true);
     }
     itemLabel.innerText = 'lightsaber';
