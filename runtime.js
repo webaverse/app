@@ -456,7 +456,7 @@ const _makeAppUrl = appId => {
   });
   return URL.createObjectURL(b);
 };
-const _loadScript = async (file, {files = null, parentUrl = null} = {}, instanceId) => {
+const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null} = {}) => {
   const appId = ++appIds;
   const mesh = new THREE.Object3D();
   /* mesh.geometry = new THREE.BufferGeometry();
@@ -561,7 +561,7 @@ const _loadScript = async (file, {files = null, parentUrl = null} = {}, instance
 
   return mesh;
 };
-const _loadManifestJson = async (file, {files = null} = {}, instanceId) => {
+const _loadManifestJson = async (file, {files = null, instanceId = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files) {
     srcUrl = files[srcUrl];
@@ -582,7 +582,8 @@ const _loadManifestJson = async (file, {files = null} = {}, instanceId) => {
     }, {
       files,
       parentUrl: srcUrl,
-    }, instanceId);
+      instanceId,
+    });
 
     /* const appId = ++appIds;
     const mesh = new THREE.Object3D();
@@ -692,7 +693,7 @@ const _loadManifestJson = async (file, {files = null} = {}, instanceId) => {
   }
 };
 let appIds = 0;
-const _loadWebBundle = async (file, opts, instanceId) => {
+const _loadWebBundle = async (file, {instanceId = null}) => {
   let arrayBuffer;
 
   if (file.url) {
@@ -730,7 +731,8 @@ const _loadWebBundle = async (file, opts, instanceId) => {
     name: u,
   }, {
     files,
-  }, instanceId);
+    instanceId,
+  });
 };
 const _loadScn = async (file, opts) => {
   let srcUrl = file.url || URL.createObjectURL(file);
@@ -977,7 +979,7 @@ const _loadIframe = async (file, opts) => {
   return object2;
 };
 
-runtime.loadFile = async (file, opts, instanceId) => {
+runtime.loadFile = async (file, opts) => {
   switch (getExt(file.name)) {
     case 'gltf':
     case 'glb': {
@@ -995,13 +997,13 @@ runtime.loadFile = async (file, opts, instanceId) => {
       return await _loadImg(file, opts);
     }
     case 'js': {
-      return await _loadScript(file, opts, instanceId);
+      return await _loadScript(file, opts);
     }
     case 'json': {
-      return await _loadManifestJson(file, opts, instanceId);
+      return await _loadManifestJson(file, opts);
     }
     case 'wbn': {
-      return await _loadWebBundle(file, opts, instanceId);
+      return await _loadWebBundle(file, opts);
     }
     case 'scn': {
       return await _loadScn(file, opts);
