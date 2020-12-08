@@ -32,38 +32,25 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
 
-let pendingMonetizationStart = [];
+const pendingMonetizationStart = [];
 setInterval(() => {
   if (pendingMonetizationStart.length > 0) {
-    pendingMonetizationStart.map((id, i) => {
-      const instanceId = pendingMonetizationStart[i].instanceId;
-      const object = pendingMonetizationStart[i].object;
-      const monetization = window.document[`monetization${instanceId}`];
-      const ethereumAddress = loginManager.getAddress();
+    pendingMonetizationStart.map(({instanceId, ownerAddress}, i) => {
+      const monetization = document[`monetization${instanceId}`];
+      if (monetization) {
+        const ethereumAddress = loginManager.getAddress();
 
-      const listener = new THREE.AudioListener();
-      camera.add(listener);
-      const sound = new THREE.PositionalAudio(listener);
-      const audioLoader = new THREE.AudioLoader();
-      const playSound = () => {
-        audioLoader.load('./assets/unlockSound.mp3', function(buffer) {
-          sound.setBuffer(buffer);
-          sound.setRefDistance(20);
-          sound.play();
-        });
+        if (monetization && ethereumAddress && ethereumAddress == ownerAddress) {
+          monetization.dispatchEvent(new Event('monetizationstart'));
+          pendingMonetizationStart.splice(i, 1);
+        } else if (monetization && document.monetization) {
+          monetization.dispatchEvent(new Event('monetizationstart'));
+          pendingMonetizationStart.splice(i, 1);
+        }
       }
-
-      if (monetization && ethereumAddress && ethereumAddress == pendingMonetizationStart[i].ownerAddress) {
-        monetization.dispatchEvent(new Event('monetizationstart'));
-        playSound();
-      } else if (monetization && document.monetization) {
-        monetization.dispatchEvent(new Event('monetizationstart'));
-        playSound();
-      }
-      pendingMonetizationStart.splice(i, 1);
     });
   }
-}, 500); // Every .5 sec
+}, 100);
 
 let pointers = [];
 let currentIndex = 0;
@@ -942,7 +929,7 @@ world.addEventListener('trackedobjectadd', async e => {
     }
   })();
   if (file) {
-    let mesh = await runtime.loadFile(file, options, instanceId);
+    let mesh = await runtime.loadFile(file, {instanceId: instanceId});
     if (mesh) {
       mesh.position.fromArray(position);
       mesh.quaternion.fromArray(quaternion);
@@ -972,7 +959,7 @@ world.addEventListener('trackedobjectadd', async e => {
         const monetizationPointer = token.owner.monetizationPointer;
         const ownerAddress = token.owner.address.toLowerCase();
         pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer, "ownerAddress": ownerAddress });
-        pendingMonetizationStart.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer, "ownerAddress": ownerAddress, "object": mesh });
+        pendingMonetizationStart.push({instanceId, ownerAddress});
       }
 
     } else {
