@@ -167,10 +167,80 @@ const worldObjects = universeSpecs.parcels.map(spec => {
   return guardianMesh;
 });
 
+const warpMesh = (() => {
+  const boxGeometry = new THREE.BoxBufferGeometry(0.1, 0.1, 1);
+  const numBoxes = 3000;
+  const scale = 50;
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(boxGeometry.attributes.position.array.length * numBoxes), 3));
+  geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(boxGeometry.attributes.uv.array.length * numBoxes), 2));
+  geometry.setAttribute('offset', new THREE.BufferAttribute(new Float32Array(boxGeometry.attributes.position.array.length * numBoxes), 3));
+  geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(boxGeometry.index.array.length * numBoxes), 1));
+  for (let i = 0; i < numBoxes; i++) {
+    geometry.attributes.position.array.set(boxGeometry.attributes.position.array, i * boxGeometry.attributes.position.array.length);
+    geometry.attributes.uv.array.set(boxGeometry.attributes.uv.array, i * boxGeometry.attributes.uv.array.length);
+    
+    for (let j = 0; j < boxGeometry.index.array.length; j++) {
+      geometry.index.array[i * boxGeometry.index.array.length + j] = boxGeometry.index.array[j] + i * boxGeometry.attributes.position.array.length/3;
+    }
+
+    const offset = new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2)
+      .multiplyScalar(scale);
+    for (let j = 0; j < boxGeometry.attributes.position.array.length; j += 3) {
+      offset.toArray(geometry.attributes.offset.array, i * boxGeometry.attributes.position.array.length + j);
+    }
+  }
+  geometry.attributes.position.needsUpdate = true;
+  geometry.attributes.uv.needsUpdate = true;
+  geometry.attributes.offset.needsUpdate = true;
+  geometry.index.needsUpdate = true;
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: {
+        type: 'f',
+        value: 0,
+        needsUpdate: true,
+      },
+    },
+    vertexShader: `\
+      attribute vec3 offset;
+      // varying vec2 vUv;
+      uniform float uTime;
+
+      void main() {
+        // vUv = uv;
+        vec3 p = offset;
+        p.z = mod(p.z + uTime * ${(scale*2).toFixed(8)}, ${(scale*2).toFixed(8)}) - ${scale.toFixed(8)};
+        p += position;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+      }
+    `,
+    fragmentShader: `\
+      // uniform vec3 color1;
+      // uniform vec3 color2;
+      // uniform float numPoints;
+
+      // varying vec2 vUv;
+
+      void main() {
+        // vec3 c = mix(color1, color2, vUv.y/numPoints);
+        gl_FragColor = vec4(${new THREE.Color(0x111111).toArray().join(', ')}, 0.2);
+      }
+    `,
+    transparent: true,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  window.mesh = mesh;
+  mesh.frustumCulled = false;
+  return mesh;
+})();
+warpMesh.visible = false;
+scene.add(warpMesh);
+
 let currentWorld = null;
 let highlightedWorld = null;
 const lastCoord = new THREE.Vector3(0, 0, 0);
-let animation = null;
+// let animation = null;
 const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.x),
   Math.floor(p.y),
@@ -249,7 +319,7 @@ const update = () => {
     lastCoord.copy(localVector);
   }
 
-  if (animation) {
+  /* if (animation) {
     const now = Date.now();
     let f = Math.min((now - animation.startTime) / (animation.endTime - animation.startTime), 1);
     const initialF = f;
@@ -270,12 +340,22 @@ const update = () => {
       renderer.domElement.style.filter = null;
       animation = null;
     }
+  } */
+
+  if (warpMesh.visible) {
+    warpMesh.material.uniforms.uTime.value = (Date.now() % 2000) / 2000;
+    warpMesh.material.uniforms.uTime.needsUpdate = true;
   }
 };
 const enterWorld = () => {
-  if (highlightedWorld && !animation) {
+  if (highlightedWorld && !warpMesh.visible /*&& !animation*/) {
     const world = currentWorld ? null : highlightedWorld;
-    const now = Date.now();
+    warpMesh.visible = true;
+    _updateWorld(world);
+    setTimeout(() => {
+      warpMesh.visible = false;
+    }, 3000);
+    /* const now = Date.now();
     animation = {
       startTime: now,
       endTime: now + 1000,
@@ -284,7 +364,10 @@ const enterWorld = () => {
       onmid() {
         _updateWorld(world);
       },
-    };
+    }; */
+    return true;
+  } else {
+    return false;
   }
 };
 
