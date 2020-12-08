@@ -1,6 +1,5 @@
 import * as THREE from './three.module.js';
 import storage from './storage.js';
-import {web3} from './blockchain.js';
 import {XRChannelConnection} from './xrrtc.js';
 import Y from './yjs.js';
 import {loginManager} from './login.js';
@@ -33,15 +32,6 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
 
-let ethereumAddress;
-if (window.ethereum) {
-  (async () => {
-    await window.ethereum.enable();
-    let address = await web3['main'].eth.getAccounts();
-    ethereumAddress = address[0];
-  })();
-}
-
 let pendingMonetizationStart = [];
 setInterval(() => {
   if (pendingMonetizationStart.length > 0) {
@@ -62,6 +52,7 @@ setInterval(() => {
         });
       }
 
+      const ethereumAddress = loginManager.getAddress();
       if (monetization && ethereumAddress && ethereumAddress == pendingMonetizationStart[i].ownerAddress) {
         monetization.dispatchEvent(new Event('monetizationstart'));
         playSound();
@@ -72,7 +63,7 @@ setInterval(() => {
       pendingMonetizationStart.splice(i, 1);
     });
   }
-}, 100); // Every .1 sec
+}, 500); // Every .5 sec
 
 let pointers = [];
 let currentIndex = 0;
@@ -979,7 +970,7 @@ world.addEventListener('trackedobjectadd', async e => {
 
       if (token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
         const monetizationPointer = token.owner.monetizationPointer;
-        const ownerAddress = token.owner.address;
+        const ownerAddress = token.owner.address.toLowerCase();
         pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer, "ownerAddress": ownerAddress });
         pendingMonetizationStart.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer, "ownerAddress": ownerAddress, "object": mesh });
       }
