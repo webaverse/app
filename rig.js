@@ -96,7 +96,7 @@ class RigManager {
       const material2 = new THREE.LineBasicMaterial({
         color: 0xFFFFFF,
         transparent: true,
-        opacity: 0.1,
+        opacity: 0.5,
         side: THREE.DoubleSide,
       });
       const nametagMesh2 = new THREE.Mesh(geometry, material2);
