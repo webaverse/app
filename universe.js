@@ -64,7 +64,7 @@ const universeSpecs = {
     }
   ],
   userObject: {
-    position: [0, 0, -1],
+    position: [0, 0, 0],
     start_url: './home.scn',
   },
   parcels: [{
