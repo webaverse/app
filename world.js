@@ -425,14 +425,14 @@ Subparcel.offsets = (() => {
 })();
 world.Subparcel = Subparcel;
 
-const _loadLiveState = seedString => {
+/* const _loadLiveState = seedString => {
   // world.dispatchEvent(new MessageEvent('unload'));
   world.dispatchEvent(new MessageEvent('load', {
     data: {
       seedString,
     },
   }));
-};
+}; */
 
 /* const _makeVegetations = (() => {
   const numVegetations = 2;
@@ -529,7 +529,6 @@ let roomName = null;
 let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
-let state = null;
 
 world.getTrackedObjects = () => {
   const objects = state.getArray('objects');
@@ -545,6 +544,8 @@ world.getTrackedObject = name => {
 
   return state.getMap('object.' + name);
 };
+
+let state = new Y.Doc();
 const _bindState = state => {
   const objects = state.getArray('objects');
   let lastObjects = [];
@@ -578,6 +579,7 @@ const _bindState = state => {
     lastObjects = nextObjects;
   });
 };
+_bindState(state);
 const _connectRoom = async (roomName, worldURL) => {
   channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
 
@@ -1054,7 +1056,7 @@ const micOnButton = document.getElementById('mic-on-button');
 });
 
 // const button = document.getElementById('connectButton');
-world.connect = async ({online = true, roomName: rn, url = null} = {}) => {
+/* world.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   roomName = rn;
   if (online) {
     await _connectRoom(roomName, url);
@@ -1069,7 +1071,7 @@ world.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   }
   // await _loadStorage(roomName);
   await _loadLiveState(roomName);
-};
+}; */
 /* document.getElementById('connectButton').addEventListener('click', async (e) => {
   e.preventDefault();
   e.stopPropagation();

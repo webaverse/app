@@ -274,7 +274,7 @@ const anchorMeshes = [];
 scene.add(rayMesh); */
 
 const q = parseQuery(location.search);
-(async () => {
+/* (async () => {
   if (q.m) { // multiplayer
     await world.connect({
       online: true,
@@ -288,11 +288,13 @@ const q = parseQuery(location.search);
     });
   }
   // new Bot();
-})();
+})(); */
 (async () => {
   await geometryManager.waitForLoad();
 
   runtime.injectDependencies(geometryManager, physicsManager, world);
+
+  universe.loadDefaultWorld();
 
   if (q.o) { // object
     let contentId = parseInt(q.o);
@@ -300,23 +302,6 @@ const q = parseQuery(location.search);
       contentId = q.o;
     }
     world.addObject(contentId);
-  }
-  {
-    const mesh = await runtime.loadFile({
-      name: 'index.js',
-      url: 'https://avaer.github.io/land/index.js',
-    });
-    mesh.run();
-    scene.add(mesh);
-  }
-  {
-    const mesh = await runtime.loadFile({
-      name: 'index.js',
-      url: 'https://avaer.github.io/mirror/index.js',
-    });
-    mesh.position.z = -1;
-    mesh.run();
-    scene.add(mesh);
   }
   /* {
     const mesh = await runtime.loadFile({

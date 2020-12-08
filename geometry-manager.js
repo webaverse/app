@@ -37,8 +37,8 @@ const cubicBezier = easing(0, 1, 0, 1);
 
 const geometryManager = {};
 
-const loadPromise = makePromise();
-geometryManager.waitForLoad = () => loadPromise;
+const modulePromise = makePromise();
+geometryManager.waitForLoad = () => modulePromise;
 
 geometryManager.geometrySet = null;
 geometryManager.tracker = null;
@@ -511,7 +511,7 @@ const _makeChunkMesh = async (seedString, parcelSize, subparcelSize) => {
   return mesh;
 };
 
-world.addEventListener('load', async e => {
+/* world.addEventListener('load', async e => {
   const {data: chunkSpec} = e;
   const {seedString} = chunkSpec; 
   const seed = Math.floor(alea(seedString)() * 0xFFFFFF);
@@ -520,7 +520,7 @@ world.addEventListener('load', async e => {
   geometryManager.physics = geometryWorker.makePhysics();
 
   loadPromise.accept();
-});
+}); */
 /* world.addEventListener('unload', () => {
   const oldChunkMesh = currentChunkMesh;
   if (oldChunkMesh) {
@@ -762,7 +762,7 @@ const geometryWorker = (() => {
     }
   }
   
-  const modulePromise = makePromise();
+  // const modulePromise = makePromise();
   /* const INITIAL_INITIAL_MEMORY = 52428800;
   const WASM_PAGE_SIZE = 65536;
   const wasmMemory = new WebAssembly.Memory({
@@ -791,12 +791,11 @@ const geometryWorker = (() => {
       scratchStack = new ScratchStack();
       // threadPool = moduleInstance._makeThreadPool(1);
       // threadPool = moduleInstance._getThreadPool();
+
+      geometryManager.physics = geometryWorker.makePhysics();
+
       modulePromise.accept();
     };
-    if (Module.calledRun) {
-      Module.onRuntimeInitialized();
-      Module.postRun();
-    }
   // });
 
   let methodIndex = 0;
@@ -849,7 +848,7 @@ const geometryWorker = (() => {
 
     meshDrawer.drawPolygonize(positions, holes, holeCounts, points, 0.5, zs);
   }; */
-  w.waitForLoad = () => modulePromise;
+  // w.waitForLoad = () => modulePromise;
   w.alloc = (constructor, count) => {
     if (count > 0) {
       const size = constructor.BYTES_PER_ELEMENT * count;
@@ -2599,5 +2598,13 @@ const _updatePhysics = p => {
   } */
 };
 geometryManager.updatePhysics = _updatePhysics;
+
+const _initModule = () => {
+  if (Module.calledRun) {
+    Module.onRuntimeInitialized();
+    Module.postRun();
+  }
+};
+_initModule();
 
 export default geometryManager;

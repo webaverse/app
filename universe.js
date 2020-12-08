@@ -52,13 +52,25 @@ let skybox;
   skybox.update();
   scene.add(skybox);
 }
-const universeSpecs = [{
-	name: 'Erithor',
-  extents: [
-    0, 0, -10 - 4,
-    10, 3, -4,
+const universeSpecs = {
+  objects: [
+    {
+      position: [0, 0, 0],
+      url: 'https://avaer.github.io/land/index.js',
+    },
+    {
+      position: [0, 0, -1],
+      url: 'https://avaer.github.io/mirror/index.js',
+    }
   ],
-}];
+  parcels: [{
+  	name: 'Erithor',
+    extents: [
+      0, 0, -10 - 4,
+      10, 3, -4,
+    ],
+  }],
+};
 const _makeLabelMesh = text => {
   const w = 2;
   const h = 0.3;
@@ -131,7 +143,7 @@ const _makeLabelMesh = text => {
   }
   return textMesh;
 };
-const worldObjects = universeSpecs.map(spec => {
+const worldObjects = universeSpecs.parcels.map(spec => {
   const guardianMesh = GuardianMesh(spec.extents, blueColor);
   guardianMesh.name = spec.name;
   const worldObject = minimap.addWorld(spec.extents);
@@ -148,6 +160,7 @@ const worldObjects = universeSpecs.map(spec => {
 });
 
 let currentWorld = null;
+let highlightedWorld = null;
 const lastCoord = new THREE.Vector3(0, 0, 0);
 let animation = null;
 const _getCurrentCoord = (p, v) => v.set(
@@ -155,31 +168,53 @@ const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.y),
   Math.floor(p.z),
 );
+const _updateWorld = newWorld => {
+  const objects = world.getObjects();
+  for (const object of objects) {
+    world.removeObject(object.instanceId);
+  }
+
+  if (newWorld) {
+    // XXXX
+  } else {
+    loadDefaultWorld();
+  }
+
+  currentWorld = newWorld;
+};
+const loadDefaultWorld = () => {
+  for (const objectSpec of universeSpecs.objects) {
+    const position = objectSpec.position ? new THREE.Vector3().fromArray(objectSpec.position) : new THREE.Vector3();
+    const quaternion = objectSpec.quaternion ? new THREE.Quaternion().fromArray(objectSpec.quaternion) : new THREE.Quaternion();
+    // const scale = objectSpec.scale ? new THREE.Vector3().fromArray(objectSpec.scale) : new THREE.Vector3();
+    world.addObject(objectSpec.url, null, position, quaternion);
+  }
+};
 const update = () => {
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
 
-  const oldWorld = currentWorld;
+  const oldWorld = highlightedWorld;
 
-  const _parseUniverseSpec = spec => localBox.set(localVector.fromArray(spec.extents, 0), localVector2.fromArray(spec.extents, 3));
-  const intersectionIndex = universeSpecs.findIndex(spec =>
-  	_parseUniverseSpec(spec)
+  const _parseParcelSpec = spec => localBox.set(localVector.fromArray(spec.extents, 0), localVector2.fromArray(spec.extents, 3));
+  const intersectionIndex = universeSpecs.parcels.findIndex(spec =>
+  	_parseParcelSpec(spec)
   	  .containsPoint(rigManager.localRig.inputs.hmd.position)
   );
-  const intersection = universeSpecs[intersectionIndex];
+  const intersection = universeSpecs.parcels[intersectionIndex];
   if (intersection) {
-    currentWorld = worldObjects[intersectionIndex];
+    highlightedWorld = worldObjects[intersectionIndex];
   } else {
-  	currentWorld = null;
+  	highlightedWorld = null;
   }
 
-  /* if (currentWorld !== oldWorld) {
+  /* if (highlightedWorld !== oldWorld) {
     const objects = world.getObjects();
     for (const object of objects) {
       world.removeObject(object.instanceId);
     }
 
-    if (currentWorld) {
+    if (highlightedWorld) {
       const u = `https://avaer.github.io/physicscube/index.js`;
       const center = _parseUniverseSpec(intersection).getCenter(localVector);
       world.addObject(u, null, center, new THREE.Quaternion());
@@ -189,13 +224,13 @@ const update = () => {
   for (const worldObject of worldObjects) {
     worldObject.material.uniforms.uColor.value.setHex(blueColor);
   }
-  if (currentWorld) {
-  	currentWorld.material.uniforms.uColor.value.setHex(greenColor);
+  if (highlightedWorld) {
+  	highlightedWorld.material.uniforms.uColor.value.setHex(greenColor);
   }
 
   _getCurrentCoord(rigManager.localRig.inputs.hmd.position, localVector);
   if (!localVector.equals(lastCoord)) {
-    weaponsManager.setWorld(localVector, currentWorld);
+    weaponsManager.setWorld(localVector, highlightedWorld);
     lastCoord.copy(localVector);
   }
 
@@ -212,6 +247,10 @@ const update = () => {
     }
     const v = animation.startValue*(1-f) + animation.endValue*f;
     renderer.domElement.style.filter = `brightness(${v})`;
+    if (initialF >= 0.5 && animation.onmid) {
+      animation.onmid();
+      animation.onmid = null;
+    }
     if (initialF >= 1) {
       renderer.domElement.style.filter = null;
       animation = null;
@@ -219,18 +258,23 @@ const update = () => {
   }
 };
 const enterWorld = () => {
-  if (currentWorld) {
+  if (highlightedWorld && !animation) {
+    const world = currentWorld ? null : highlightedWorld;
     const now = Date.now();
     animation = {
       startTime: now,
       endTime: now + 1000,
       startValue: 0,
       endValue: 1,
+      onmid() {
+        _updateWorld(world);
+      },
     };
   }
 };
 
 export {
+  loadDefaultWorld,
   update,
   enterWorld,
 };
