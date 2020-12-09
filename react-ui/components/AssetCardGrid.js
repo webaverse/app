@@ -46,7 +46,7 @@ const AssetCardGrid = ({
             minterAvatarPreview=${currentAsset.minter.avatarPreview}
             minterAddress=${currentAsset.minter.address}
             minterUsername=${currentAsset.minter.username}
-            hideDetailsFunction=${hideCardDetails}
+            hideDetails=${hideCardDetails}
             networkType='webaverse'
           />
       `}

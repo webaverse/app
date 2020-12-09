@@ -5,10 +5,11 @@ import AssetCard from './AssetCard.js';
 import CardSize from '../constants/CardSize.js';
 const html = htm.bind(React.createElement)
 import csz from '../web_modules/csz.js';
+import ActionTypes from '../constants/ActionTypes.js';
 
 const styles = csz`/components/AssetDetails.css`;
 
-const AssetDetails = ({
+export const AssetDetails = ({
     id,
     name,
     description,
@@ -29,7 +30,7 @@ const AssetDetails = ({
     minterUsername,
     networkType,
     salePrice,
-    hideDetailsFunction,
+    hideDetails,
     assetType
 }) => {
     const {state, dispatch} = useContext(Context);
@@ -42,6 +43,56 @@ const AssetDetails = ({
 
     // Otherwise, is this asset for sale?
     const isForSale = salePrice !== undefined && salePrice !== null && salePrice !== ""
+
+    const setAvatar = (e) => {
+        e.preventDefault();
+        dispatch({ type: ActionTypes.SetAvatar, payload: { hash }});
+    }
+
+    const setHomespace = (e) => {
+        e.preventDefault();
+        dispatch({ type: ActionTypes.SetHomespace, payload: { hash }});
+    }
+
+    const addToLoadout = (e) => {
+        e.preventDefault();
+        dispatch({ type: ActionTypes.AddToLoadout, payload: { hash }});
+    }
+    
+    const removeFromLoadout = (e) => {
+        e.preventDefault();
+        dispatch({ type: ActionTypes.RemoveFromLoadout, payload: { hash }});
+    }
+
+    const depositToMainnet = (e) => {
+        e.preventDefault();
+        dispatch({ type: ActionTypes.WithdrawNft, payload: { hash }});
+    }
+
+    const depositToWebaverse = (e) => {
+        e.preventDefault();
+        dispatch({ type: ActionTypes.DepositNft, payload: { hash }});
+    }
+
+    const handleReupload = (e) => {
+        e.preventDefault();
+        console.warn ("Handle reuploading image");
+    }
+
+    const cancelSale = (e) => {
+        e.preventDefault();
+        dispatch({ type: ActionTypes.UnsellNft, payload: { hash }});
+    }
+
+    const sellAsset = (e) => {
+        e.preventDefault();
+        dispatch({ type: ActionTypes.SellNft, payload: { hash }});
+    }
+
+    const buyAsset = (e) => {
+        e.preventDefault();
+        dispatch({ type: ActionTypes.BuyNft, payload: { hash }});
+    }
 
     return html`
         <div className=${styles}>
@@ -71,31 +122,41 @@ const AssetDetails = ({
                 <div className="assetDetailsRightColumn">
                     <div className="assetDetailsRightColumnHeader"> ${userOwnsThisAsset ? 'You Own This Asset' : 'Asset Details'} </div>
                     <div className="assetDetailsRightColumnBody">
+
                     ${userOwnsThisAsset && html`
-                        <button className="assetDetailsButton">Set As Avatar</button>
-                        <button className="assetDetailsButton">Set As Homespace</button>
-                        <button className="assetDetailsButton">Add To Loadout</button>
-                        <button className="assetDetailsButton">Deposit To Webaverse</button>
+                    ${/* TODO: Hide corresponding button if this asset is already avatar, homespace or in loadout, and add option to remove from loadout if is in */''}
+                        <button className="assetDetailsButton" onClick=${setAvatar}>Set As Avatar</button>
+                        <button className="assetDetailsButton" onClick=${setHomespace}>Set As Homespace</button>
+                        <button className="assetDetailsButton" onClick=${addToLoadout}>Add To Loadout</button>
+
+                        ${networkType == 'webaverse' ? html`
+                        <button className="assetDetailsButton" onClick=${depositToMainnet}>Deposit To Mainnet</button>
+                        ` : html`
+                        <button className="assetDetailsButton" onClick=${depositToWebaverse}>Deposit To Webaverse</button>
+                        `}
+
                             ${userCreatedThisAsset && html`
-                            <button className="assetDetailsButton">Reupload Asset</button>
+                            <button className="assetDetailsButton" onClick=${handleReupload}>Reupload Asset</button>
                             `}
+
                             ${isForSale ? html`
-                            <button className="assetDetailsButton">Unsell Asset</button>
+                            <button className="assetDetailsButton" onClick=${cancelSale}>Cancel Sale</button>
                             ` : html `
-                            <button className="assetDetailsButton">Sell Asset</button>
+                            <button className="assetDetailsButton" onClick=${sellAsset}>Sell Asset</button>
                             `}
                         `}
+                        
                     ${!userOwnsThisAsset && html`
                         ${isForSale ? html`
                         <p>Sale price is ${salePrice}</p>
-                        <button className="assetDetailsButton">Unsell Asset</button>
+                        <button className="assetDetailsButton" onClick=${buyAsset}>Buy Asset</button>
                         ` : html`
-                            <p>Not for sale</p>
+                        <p>Not for sale</p>
                         `}
                     `}
                      </div>
                     <div className="assetDetailsRightColumnFooter">
-                        <button className="assetDetailsButton assetDetailsFooterButton" onClick=${hideDetailsFunction}>Close</button>
+                        <button className="assetDetailsButton assetDetailsFooterButton" onClick=${hideDetails}>Close</button>
                     </div>
                 </div>
             </div>
@@ -103,4 +164,4 @@ const AssetDetails = ({
     `;
   };
 
-  export default AssetDetails;
+  export  default AssetDetails;
