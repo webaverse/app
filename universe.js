@@ -350,26 +350,26 @@ const update = () => {
 const enterWorld = async () => {
   if (highlightedWorld && !warpMesh.visible /*&& !animation*/) {
     const w = currentWorld ? null : highlightedWorld;
-    const {name} = w;
 
     if (w) {
-      const u = `https://worlds.exokit.org/${name}`;
-      const res = await fetch(u);
-      let j;
-      if (res.status === 404) {
-        const res2 = await fetch(u, {
-          method: 'POST',
-        });
-        j = await res2.json();
-        j = j.result;
-        // console.log('got j1', j2);
-      } else {
-        j = await res.json();
-        j = j.result;
-        // console.log('got j2', res.status, j);
-      }
-      const {publicIp, privateIp, port} = j;
-      await world.connectRoom(name, `${publicIp}:${port}`);
+      (async () => {
+        const {name} = w;
+        const u = `https://worlds.exokit.org/${name}`;
+        const res = await fetch(u);
+        let j;
+        if (res.status === 404) {
+          const res2 = await fetch(u, {
+            method: 'POST',
+          });
+          j = await res2.json();
+          j = j.result;
+        } else {
+          j = await res.json();
+          j = j.result;
+        }
+        const {publicIp, privateIp, port} = j;
+        await world.connectRoom(name, `${publicIp}:${port}`);
+      })();
     }
 
     warpMesh.visible = true;
