@@ -7,7 +7,8 @@ const storageHost = 'https://storage.exokit.org';
 const hdkey = hdkeySpec.default;
 
 
-export const initializeEthereum = async (state) => {
+export const connectWallet = async (state) => {
+  console.log("Connecting wallet");
   if (!window.ethereum)
     return { ...state, networkType: null };
   await window.ethereum.enable();
@@ -15,6 +16,11 @@ export const initializeEthereum = async (state) => {
   let networkType = await web3['main'].eth.net.getNetworkType();
   mainnetAddress = web3['main'].currentProvider?.selectedAddress;
   return mainnetAddress ? { ...state, mainnetAddress, networkType } : state;
+};
+
+export const disconnectWallet = async (state) => {
+  console.warn ("disconnect wallet needs to be handled");
+  return state;
 };
 
 export const checkMainFtApproved = async (amt) => {
@@ -50,17 +56,18 @@ export const checkMainNftApproved = async () => {
 
 };
 
-export const setUsername = (name, state) => {
+export const setName = async (name, state) => {
   console.warn("Setting username in user object, but not to server");
+  await  runSidechainTransaction(state.loginToken.mnemonic)('Account', 'setMetadata', state.address, 'name', name);
   return { ...state, name };
 };
 
 export const getAddress = (state) => {
-  if (!state.loginToken.mnemonic)
-    return null;
+  if (!state.loginToken.mnemonic) return null;
   const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(state.loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
   const address = wallet.getAddressString();
   console.log("Address is", address);
+  
   return { ...state, address };
 };
 
@@ -302,3 +309,5 @@ export const initializeStart = async (state) => {
   console.log("login token is", loginToken);
   return await getAddress(newState);
 };
+
+

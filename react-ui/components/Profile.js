@@ -21,7 +21,7 @@ const Profile = ({ userAddress, isMyProfile }) => {
   }, [])
 
   const updateName = (textFieldInput) =>
-    dispatch({ type: ActionTypes.ChangeName, payload: { name: textFieldInput } });
+    dispatch({ type: ActionTypes.SetName, payload: { name: textFieldInput } });
 
   return html`
     <${React.Suspense} fallback=${html`<div>Loading...</div>`}>

@@ -38,7 +38,7 @@ const SettingsPage = () => {
   };
 
   const updateName = (textFieldInput) =>
-    dispatch({ type: ActionTypes.ChangeName, payload: { name: textFieldInput } });
+    dispatch({ type: ActionTypes.SetName, payload: { name: textFieldInput } });
 
   return html`
       <div className="${styles} settingsPage">
