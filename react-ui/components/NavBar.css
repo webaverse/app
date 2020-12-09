@@ -3,8 +3,11 @@
     height: 4em;
     background: white;
     display: flex;
+    flex-wrap: nowrap;
     align-self: center;
     justify-content: center;
+    margin-bottom: 0.5em;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.24);
 }
 
 a {
@@ -21,13 +24,14 @@ a:hover {
     width: 100%;
     height: 100%;
     display: flex;
-    justify-content: left;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
     align-items: center;
-    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.24);
+    /* box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.24); */
 }
 
 .nav-item {
-    padding: 1.5em;
+    padding: 1.4em;
     cursor: pointer;
 }
 
@@ -35,39 +39,47 @@ a:hover {
     background: rgba(0, 0, 0, 0.04);
 }
 
+.nav-item.active {
+    color: rgba(30, 150, 243, 1);
+    background: rgba(30, 150, 243, 0.16);
+}
+
 .nav-logo {
-    padding-left: 1.5em;
-    padding-right: 1.5em;
+    padding: 0 1.5em;
 }
 
 .nav-logo h1 {
     font-weight: 400;
     display: inline;
+    white-space: nowrap;
 }
 
 .nav-link {
     height: 100%;
-}
-
-.nav-link a {
-    height: 100%;
+    white-space: nowrap;
 }
 
 .loginComponent {
-    text-align: right;
-    top: 0;
-    right: 0;
-    position:absolute;
-    width: 20%;
-    height: 3em;
+    padding: 0 1.5em;
+    display: flex;
+    align-content: center;
 }
 
 .loginComponentNav {
     display: flex;
+    justify-content: space-between;
     align-items: center;
 }
 
 .loginComponentDropdown {
+    position: absolute;
+    width: 17em;
+    height: 20em;
+    top: 4em;
+    right: 0;
+    border: 1px solid black;
+    background-color: white;
+    z-index: 2;
 }
 
 .loginComponentLink {
@@ -75,15 +87,126 @@ a:hover {
 }
 
 .loginUsername {
+    padding: 0 1em;
+}
 
+.loginUsername h1 {
+    font-weight: 400;
+    cursor: pointer;
 }
 
 .loginAvatarPreview {
+    padding: 0 1em;
     height:2em;
     width: 2em;
 }
 
 .loginAvatarPreview img {
+    border-radius: 50%;
     height:2em;
     width: 2em;
+    cursor: pointer;
+}
+
+.loginForm {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 1em 0;
+}
+
+.submit {
+    background: none;
+	border: none;
+	cursor: pointer;
+    outline: inherit;
+    font-size: 1em;
+    font-weight: 400;
+}
+
+.formBtnCopyAdress {
+    align-self: flex-end;
+    padding-right: 1em;
+}
+
+.formBtnCopyAdress:hover::after {
+    content: attr(data-address); 
+    position: absolute;
+    right: 8em;
+    top: 0.5em;
+    z-index: 2;
+    padding: 0.5em;
+    background-color: white;
+    border: 1px solid black;
+}
+
+.formBtnCopyKey {
+    align-self: flex-end;
+    padding-right: 1em;
+    margin-top: 0.5em;
+}
+
+.formBtnCopyKey:hover::after {
+    content: attr(data-key); 
+    position: absolute;
+    right: 9.4em;
+    top: 2.3em;
+    z-index: 2;
+    padding: 0.5em;
+    background-color: white;
+    border: 1px solid black;
+    white-space: nowrap;
+}
+
+.loginFormTitle {
+    text-transform: capitalize;
+    font-weight: 700;
+    font-size: 1.2em;
+    padding: 1em;
+    align-self: flex-end;
+}
+
+.loginFormInput {
+    padding: 0.5em;
+    width: 90%;
+}
+
+.formBtnLogin {
+    width: 12.5em;
+    height: 2.65em;
+    background-color: #7E57C2;
+    padding: 0px;
+    border-radius: 5px;
+    color: white;
+}
+
+.formBtnLogin:active {
+    width: 12em;
+    height: 2.5em;
+}
+
+.formBtnLogout {
+    width: 12.5em;
+    height: 2.65em;
+    background-color: #525252;
+    padding: 0px;
+    border-radius: 5px;
+    color: white;
+}
+
+.formBtnLogout:active {
+    width: 12em;
+    height: 2.5em;
+}
+
+.loginForm div {
+    width: 12.5em;
+    height: 2.65em;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    margin-top: 1em;
 }

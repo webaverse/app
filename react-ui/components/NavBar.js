@@ -2,6 +2,7 @@ import { useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
 import ActionTypes from '../constants/ActionTypes.js';
 import { Context } from '../constants/Context.js';
 import css from '../web_modules/csz.js';
+import { useRouter, Link } from '../web_modules/react-es-router.js'
 
 const styles = css`/components/NavBar.css`
 
@@ -39,15 +40,41 @@ const NavBarUserLoginForm = () => {
     console.log("Copied private key to clipboard", state.loginToken.mnemonic);
   };
 
+  const route = useRouter()
+  console.log(route)
+  // const myComponent = () => {
+  //   console.log('lskjdlkfjsldkjflskjd')
+  //   const route = useRouter()
+  //   console.log(route)
+  // }
+  // myComponent()
+
   return html`
     <div className="loginForm">
-      <input type="text" placeholder="Login with email or private key" onChange=${handleChange}/>
-      <button className="submit" type="submit" onClick="${handleLogin}">Login</button>
-      <button className="submit" type="submit" onClick="${copyAddress}">Copy Address</button>
-
-      <button className="submit" type="submit" onClick="${copyPrivateKey}">Copy Private Key</button>
-
-      <button className="submit" type="submit" onClick="${handleLogout}">Logout</button>
+      <button 
+        className="submit formBtnCopyAdress" 
+        type="submit" 
+        data-address=${state?.address}
+        onClick="${copyAddress}"
+      >
+        ${state.address.slice(0, 10)}...(Copy Address)
+      </button>
+      <button 
+        className="submit formBtnCopyKey" 
+        type="submit" 
+        data-key=${state?.loginToken?.mnemonic}
+        onClick="${copyPrivateKey}"
+      >
+        ${state.loginToken.mnemonic.slice(0, 10)}...(Copy Private Key)
+      </button>
+      <span className="loginFormTitle">connect your account</span>
+      <input className="loginFormInput" type="text" placeholder="Login with email or private key" onChange=${handleChange}/>
+      <div>
+        <button className="submit formBtnLogin" type="submit" onClick="${handleLogin}">Login</button>
+      </div>
+      <div>
+        <button className="submit formBtnLogout" type="submit" onClick="${handleLogout}">Logout</button>
+      </div>
     </div>
   `
 }
@@ -64,7 +91,7 @@ const NavBarUser = () => {
   return html`
         <div className="loginComponent">
             <div className="loginComponentNav" onClick=${toggleLoginComponent}>
-                <span className="loginUsername"> ${name} </span>
+                <span className="loginUsername"><h1> ${name} </h1></span>
                 <span className="loginAvatarPreview"><img src=${avatarPreview} /></span>
             </div>
             ${loginComponentOpen && html`
@@ -79,14 +106,14 @@ const NavBarUser = () => {
 const NavBar = () => {
   return html`
     <div className=${styles}>
-        <nav className="navbar">
+        <nav className="navbar"> 
           <span className='nav-logo'><h1>Ψ Webaverse</h1></span>
           <span className='nav-item'><a href='/profile' className='nav-link'>Profile</a></span>
-          <span className='nav-item'><a href='/gallery' className='nav-link'>Gallery</a></span>
+          <span className='nav-item active'><a href='/gallery' className='nav-link'>Gallery</a></span>
           <span className='nav-item'><a href='/creators' className='nav-link'>Creators</a></span>
           <span className='nav-item'><a href='/mint' className='nav-link'>Mint NFT</a></span>
         </nav>
-      <${NavBarUser}  />
+        <${NavBarUser}  />
     </div>
     `;
 };
