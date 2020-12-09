@@ -37,19 +37,9 @@ const NavBarUserLoginForm = () => {
   
   const copyPrivateKey = (e) => {
     e.preventDefault();
-
     navigator.clipboard.writeText(state.loginToken.mnemonic);
     console.log("Copied private key to clipboard", state.loginToken.mnemonic);
   };
-
-  const route = useRouter()
-  console.log(route)
-  // const myComponent = () => {
-  //   console.log('lskjdlkfjsldkjflskjd')
-  //   const route = useRouter()
-  //   console.log(route)
-  // }
-  // myComponent()
 
   return html`
     <div className="loginForm">
@@ -70,14 +60,16 @@ const NavBarUserLoginForm = () => {
         ${state.loginToken.mnemonic.slice(0, 10)}...(Copy Private Key)
       </button>
       <span className="loginFormTitle">connect your account</span>
-      <input className="loginFormInput" type="text" placeholder="Login with email or private key" onChange=${handleChange}/>
+      <input autoFocus className="loginFormInput" type="text" placeholder="Login with email or private key" onChange=${handleChange}/>
       <div>
         <button className="submit formBtnLogin" type="submit" onClick="${handleLogin}">Login</button>
       </div>
       <div>
         <button className="submit formBtnLogout" type="submit" onClick="${handleLogout}">Logout</button>
       </div>
-      <${Link} to=${'/settings'}>User Settings</Link>
+      <span className="submit formBtnSettings">
+        <${Link} to=${'/settings'}>User Settings</Link>
+      </span>
     </div>
   `
 }
@@ -107,14 +99,20 @@ const NavBarUser = () => {
 }
 
 const NavBar = () => {
+  const toggleActivePage = (current) => {
+    const route = useRouter()
+    if(current === route.route)
+    return 'active'
+  }
+
   return html`
     <div className=${styles}>
         <nav className="navbar"> 
           <span className='nav-logo'><h1>Ψ Webaverse</h1></span>
-          <span className='nav-item'><a href='/profile' className='nav-link'>Profile</a></span>
-          <span className='nav-item active'><a href='/gallery' className='nav-link'>Gallery</a></span>
-          <span className='nav-item'><a href='/creators' className='nav-link'>Creators</a></span>
-          <span className='nav-item'><a href='/mint' className='nav-link'>Mint NFT</a></span>
+          <span className='nav-item ${toggleActivePage('/profile')}'><a href='/profile' className='nav-link'>Profile</a></span>
+          <span className='nav-item ${toggleActivePage('/gallery')}'><a href='/gallery' className='nav-link'>Gallery</a></span>
+          <span className='nav-item ${toggleActivePage('/creators')}'><a href='/creators' className='nav-link'>Creators</a></span>
+          <span className='nav-item ${toggleActivePage('/mint')}'><a href='/mint' className='nav-link'>Mint NFT</a></span>
         </nav>
         <${NavBarUser}  />
     </div>

@@ -27,7 +27,6 @@ a:hover {
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-items: center;
-    /* box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.24); */
 }
 
 .nav-item {
@@ -200,6 +199,14 @@ a:hover {
 .formBtnLogout:active {
     width: 12em;
     height: 2.5em;
+}
+
+.formBtnSettings {
+    text-transform: capitalize;
+    font-weight: 700;
+    font-size: 1.2em;
+    padding-top: 0.5em;
+    align-self: center;
 }
 
 .loginForm div {
