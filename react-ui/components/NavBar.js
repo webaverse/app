@@ -2,12 +2,15 @@ import { useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
 import ActionTypes from '../constants/ActionTypes.js';
 import { Context } from '../constants/Context.js';
 import css from '../web_modules/csz.js';
-
+import { Link, useRouter } from '../web_modules/react-es-router.js';
 const styles = css`/components/NavBar.css`
 
 const defaultAvatarImage = "../images/test.png";
 
 const NavBarUserLoginForm = () => {
+
+  const router = useRouter();
+
   const [inputState, setInputState] = useState("");
 
   const handleChange = (event) => {
@@ -48,6 +51,8 @@ const NavBarUserLoginForm = () => {
       <button className="submit" type="submit" onClick="${copyPrivateKey}">Copy Private Key</button>
 
       <button className="submit" type="submit" onClick="${handleLogout}">Logout</button>
+      <${Link} to=${'/settings'}>User Settings</Link>
+
     </div>
   `
 }

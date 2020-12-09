@@ -11,7 +11,7 @@ const MyProfile = () => {
     return html`
     <div>
         <${React.Suspense} fallback=${html`<div></div>`}>
-            <${Profile} userAddress=${state.address} />
+            <${Profile} userAddress=${state.address} isMyProfile=${true} />
         <//>
     </div>
     `
