@@ -884,7 +884,7 @@ world.addEventListener('trackedobjectadd', async e => {
   const token = await res.json();
 
   const file = await (async () => {
-    if (typeof contentId === 'number' || /^\d+$/.test(contentId)) {
+    if (typeof contentId === 'number') {
       const {hash, filename} = token.properties;
       /* const contractSource = await getContractSource('getNft.cdc');
 
