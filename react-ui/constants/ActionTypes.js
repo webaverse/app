@@ -10,6 +10,7 @@ export const ActionTypes = {
   AddFtToNft: 'AddFtToNft',
   DepositFt: 'DepositFt',
   WithdrawFt: 'WithdrawFt',
+  ConnectMainnetWallet: 'ConnectMainnetWallet',
   GetProfileForCreator: 'GetProfileForCreator',
   GetProfileForCreatorEnd: 'GetProfileForCreatorEnd',
   GetInventoryForCreator: 'GetInventoryForCreator',

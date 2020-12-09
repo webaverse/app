@@ -2,6 +2,7 @@ import CreatorsPage from './CreatorsPage.js';
 import Gallery from './GalleryPage.js';
 import MintPage from './MintPage.js';
 import MyProfile from './MyProfilePage.js';
+import Settings from './SettingsPage.js';
 import LoginGateway from './LoginGateway.js';
 import CreatorProfilePage from './CreatorProfilePage.js';
 import NotFoundPage from './NotFoundPage.js';
@@ -11,6 +12,7 @@ import NavBar from './NavBar.js';
 
 export const PageRouter = () => {
   const myProfile = html`<${MyProfile} />`;
+  const settings = html`<${Settings} />`;
   const loginGateway = html`<${LoginGateway} />`;
   const gallery = html`<${Gallery} />`;
   const mint = html`<${MintPage} />`;
@@ -19,10 +21,11 @@ export const PageRouter = () => {
   const notFound = html`<${NotFoundPage} />`;
   return html`
   <${React.Fragment}>
+  <${Router}>
     <${NavBar} />
-    <${Router}>
       <${Route} path="/" component=${myProfile} />
       <${Route} path="/profile" component=${myProfile} />
+      <${Route} path="/settings" component=${settings} />
       <${Route} path="/gallery" component=${gallery} />
       <${Route} path="/mint" component=${mint} />
       <${Route} path="/creators" component=${creators} />
