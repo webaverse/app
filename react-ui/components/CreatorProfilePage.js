@@ -11,7 +11,7 @@ const CreatorProfilePage = () => {
     <div>
         <${React.Suspense} fallback=${html`<div></div>`}>
         ${address && html`
-            <${Profile} userAddress=${address} />
+            <${Profile} userAddress=${address} isMyProfile=${false} />
             `}
         <//>
     </div>
