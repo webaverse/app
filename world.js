@@ -782,6 +782,20 @@ world.connectRoom = async (roomName, worldURL) => {
   state = channelConnection.state;
   _bindState(state);
 };
+world.disconnectRoom = () => {
+  channelConnection.close();
+
+  for (const object of objects) {
+    world.removeObject(object.instanceId);
+  }
+
+  state = new Y.Doc();
+  _bindState(state);
+};
+
+world.initializeIfEmpty = spec => {
+  console.log('initialize if empty', spec); // XXX
+};
 
 const objects = [];
 world.getObjects = () => objects.slice();
