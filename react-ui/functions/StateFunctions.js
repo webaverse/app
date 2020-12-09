@@ -1,5 +1,10 @@
+import { getAddressFromMnemonic, runSidechainTransaction, web3 } from '../webaverse/blockchain.js';
 import storage from '../webaverse/storage.js';
-import { getAddressFromMnemonic } from '../webaverse/blockchain.js';
+import bip39 from '../libs/bip39.js';
+import hdkeySpec from '../libs/hdkey.js';
+
+const storageHost = 'https://storage.exokit.org';
+const hdkey = hdkeySpec.default;
 
 
 export const initializeEthereum = async (state) => {
@@ -55,6 +60,7 @@ export const getAddress = (state) => {
     return null;
   const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(state.loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
   const address = wallet.getAddressString();
+  console.log("Address is", address);
   return { ...state, address };
 };
 
@@ -168,7 +174,8 @@ export const getBooths = async (page, state) => {
 
 export const getCreators = async (page, state) => {
   // Use cached page
-  if (state.creators[page] !== undefined) return state;
+  if (state.creators[page] !== undefined)
+    return state;
 
   const res = await fetch(`https://accounts.webaverse.com/`);
   const creators = await res.json();
@@ -177,25 +184,23 @@ export const getCreators = async (page, state) => {
   return newState;
 };
 
-export const uploadFile = async (file, state) => {
-  if (!state.loginToken)
-    throw new Error('not logged in');
-  if (!file.name)
-    throw new Error('file has no name');
-
+export const mintNft = async (file, name, description, quantity, successCallback, errorCallback, state) => {
   const { mnemonic, addr } = state.loginToken;
   const res = await fetch(storageHost, { method: 'POST', body: file });
   const { hash } = await res.json();
 
-  const fullAmount = {
-    t: 'uint256',
-    v: new web3.utils.BN(1e9)
-      .mul(new web3.utils.BN(1e9))
-      .mul(new web3.utils.BN(1e9)),
-  };
-
   let status, transactionHash, tokenIds;
+
+
   try {
+
+    const fullAmount = {
+      t: 'uint256',
+      v: new web3.utils.BN(1e9)
+        .mul(new web3.utils.BN(1e9))
+        .mul(new web3.utils.BN(1e9)),
+    };
+
     {
       const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['NFT']._address, fullAmount.v);
       status = result.status;
@@ -203,25 +208,26 @@ export const uploadFile = async (file, state) => {
       tokenIds = [];
     }
     if (status) {
-      const description = '';
-      // console.log('minting', ['NFT', 'mint', addr, '0x' + hash, file.name, description, quantity]);
-      const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', addr, '0x' + hash, file.name, description, quantity);
+      const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', addr, '0x' + hash, name, description, quantity);
       status = result.status;
       transactionHash = result.transactionHash;
       const tokenId = new web3.utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
       tokenIds = [tokenId, tokenId + quantity - 1];
+      successCallback();
     }
   } catch (err) {
     console.warn(err.stack);
     status = false;
     transactionHash = '0x0';
     tokenIds = [];
+    errorCallback();
   }
 
-  return { tokenIds };
+  return await pullUserObject(state);
 };
 
 export const pullUserObject = async (state) => {
+  console.log("Pulling user object");
   const address = getAddressFromMnemonic(state.loginToken.mnemonic);
   const res = await fetch(`https://accounts.webaverse.com/${address}`);
   const result = await res.json();
@@ -237,7 +243,7 @@ export const requestTokenByEmail = async (email) => {
   await fetch(`/gateway?email=${encodeURIComponent(email)}`, {
     method: 'POST',
   });
-  alert(`Code sent to ${loginEmail.value}!`);
+  alert(`Code sent to ${email}!`);
   return state;
 };
 
@@ -256,15 +262,16 @@ export const loginWithEmailCode = async (email, code, state) => {
 };
 
 export const loginWithEmailOrPrivateKey = async (emailOrPrivateKey, state) => {
+  console.log("emailOrPrivateKey is", emailOrPrivateKey);
   const split = emailOrPrivateKey.split(/\s+/).filter(w => !!w);
+
   if (split.length === 12) {
     // Private key
     const mnemonic = split.slice(0, 12).join(' ');
     return await setNewLoginToken(mnemonic);
-
   } else {
     // Email
-    return await requestTokenByEmail(email);
+    return await requestTokenByEmail(emailOrPrivateKey);
   }
 };
 
@@ -275,20 +282,6 @@ export const setNewLoginToken = async (newLoginToken, state) => {
   return await pullUserObject({ ...state, loginToken: newLoginToken });
 };
 
-export const copyAddress = async (state) => {
-  const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(state.loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-  const address = wallet.getAddressString();
-  navigator.clipboard.writeText(address);
-  console.log("Copied address to clipboard", address);
-  return state;
-};
-
-export const copyPrivateKey = async (state) => {
-  navigator.clipboard.writeText(state.loginToken.mnemonic);
-  console.log("Copied private key to clipboard", state.loginToken.mnemonic);
-  return state;
-};
-
 export const logout = async (state) => {
   await storage.remove('loginToken');
   return await initializeStart(state);
@@ -296,10 +289,9 @@ export const logout = async (state) => {
 
 export const initializeStart = async (state) => {
   let loginToken = await storage.get('loginToken');
-
   if (!loginToken) {
     console.log("Generating login token");
-    loginToken = bip39.generateMnemonic();
+    loginToken = await bip39.generateMnemonic();
     await storage.set('loginToken', { mnemonic: loginToken, unregistered: true });
   }
 
@@ -307,6 +299,6 @@ export const initializeStart = async (state) => {
   // newState = await initializeEthereum(newState);
   if (newState.loginToken.unregistered)
     console.warn("Login token is unregistered");
-  return newState;
+  console.log("login token is", loginToken);
+  return await getAddress(newState);
 };
-

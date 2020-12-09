@@ -4,13 +4,14 @@ import AssetCardGrid from './AssetCardGrid.js'
 import csz from '../web_modules/csz.js'
 import { Context } from '../constants/Context.js';
 import ActionTypes from '../constants/ActionTypes.js';
+import { EditableTextField } from './EditableTextField.js';
 
 const styles = csz`/components/Profile.css`
 
 const html = htm.bind(React.createElement)
 
-const Profile = ({userAddress}) => {
-  const {state, dispatch} = useContext(Context);
+const Profile = ({ userAddress, isMyProfile }) => {
+  const { state, dispatch } = useContext(Context);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -19,14 +20,21 @@ const Profile = ({userAddress}) => {
     console.log(state.creatorProfiles);
   }, [])
 
-    return html`
+  const updateName = (textFieldInput) =>
+    dispatch({ type: ActionTypes.ChangeName, payload: { name: textFieldInput } });
+
+  return html`
     <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
     ${userAddress && state.creatorProfiles[userAddress] && html`
     <div className=${styles}>
         <div className="profileHeader">
           <div className="homespaceBannerImage"><img src="${state.creatorProfiles[userAddress].homeSpacePreview}" /></div>
           <div className="avatarImage"><img src="${state.creatorProfiles[userAddress].avatarPreview}" /></div>
-          <div className="username">${state.creatorProfiles[userAddress].username}</div>
+          ${isMyProfile ? html`
+            <${EditableTextField} value=${state.name} valueIfNull=${'<Username>'} className=${`${styles} username settingsNameField`} callback=${updateName} />
+          ` : html`
+            <div className="username">${state.creatorProfiles[userAddress].username}</div>
+          `}
           <div className="userAddress">${userAddress}</div>
           <div className="userGrease">${state.creatorProfiles[userAddress].balance}Ψ</div>
         </div>
@@ -44,6 +52,6 @@ const Profile = ({userAddress}) => {
         `}
         <//>
     `;
-  };
+};
 
-  export default Profile;
+export default Profile;
