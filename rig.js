@@ -159,7 +159,7 @@ class RigManager {
               fingers: true,
               hair: true,
               visemes: true,
-              debug: true //!o,
+              debug: false //!o,
             });
           } else {
             localRig = new Avatar();
