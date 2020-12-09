@@ -288,8 +288,8 @@ export default class RoomClient extends EventTarget
 		if (this._recvTransport)
 			this._recvTransport.close();
 
-		store.dispatch(
-			stateActions.setRoomState('closed'));
+		/* store.dispatch(
+			stateActions.setRoomState('closed')); */
 	}
 
 	join() {
@@ -453,11 +453,11 @@ export default class RoomClient extends EventTarget
 						{
 							logger.error('"newConsumer" request failed:%o', error);
 
-							store.dispatch(requestActions.notify(
+							/* store.dispatch(requestActions.notify(
 								{
 									type : 'error',
 									text : `Error creating a Consumer: ${error}`
-								}));
+								})); */
 
 							throw error;
 						}
