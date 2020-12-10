@@ -599,7 +599,7 @@ world.connectRoom = async (roomName, worldURL) => {
       }
     })(channelConnection.send);
 
-    channelConnection.dataChannel.addEventListener('bufferedamountlow', e => {
+    const _bufferedAmountLow = e => {
       bufferedAmountLow = true;
       if (index < queue.length) {
         /* if (channelConnection.dataChannel.bufferedAmount !== 0) {
@@ -615,7 +615,11 @@ world.connectRoom = async (roomName, worldURL) => {
           index = 0;
         }
       }
-    });
+    };
+    channelConnection.dataChannel.addEventListener('bufferedamountlow', _bufferedAmountLow);
+    channelConnection.addEventListener('close', e => {
+      channelConnection.dataChannel.removeEventListener('bufferedamountlow', _bufferedAmountLow);
+    }, {once: true});
 
     channelConnection.dialogClient.addEventListener('peerEdit', e => {
       console.log(e);
