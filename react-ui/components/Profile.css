@@ -60,14 +60,22 @@
 
 }
 
-.profileBodyNav a {
+.profileNavLink {
     text-decoration: none;
     color: #000000;
     font-size: 1.5em;
     padding:1em;
 }
 
-.profileBodyNav a:hover {
+.profileNavLink.active {
+    text-decoration: none;
+    font-weight: bold;
+    color: #000000;
+    font-size: 1.5em;
+    padding:1em;
+}
+
+.profileNavLink:hover {
     text-decoration: none;
     color: #333333;
     font-size: 1.5em;
