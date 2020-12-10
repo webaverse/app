@@ -554,7 +554,33 @@ class LoginManager extends EventTarget {
           const j = await res.json();
           hash = j.hash;
         }
+        const description = '';
+        const quantity = 1;
+        const fullAmount = {
+          t: 'uint256',
+          v: new web3['sidechain'].utils.BN(1e9)
+            .mul(new web3['sidechain'].utils.BN(1e9))
+            .mul(new web3['sidechain'].utils.BN(1e9)),
+        };
+
+        let status, transactionHash, tokenId;
         {
+          const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['sidechain']['NFT']._address, fullAmount.v);
+          status = result.status;
+          transactionHash = '0x0';
+          tokenId = -1;
+        }
+        if (status) {
+          const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', addr, '0x' + hash, name, description, quantity);
+          status = result.status;
+          transactionHash = result.transactionHash;
+          tokenId = new web3['sidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
+        }
+        return {
+          hash,
+          id,
+        };
+        /* {
           const contractSource = await getContractSource('mintNft.cdc');
 
           const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
@@ -583,7 +609,7 @@ class LoginManager extends EventTarget {
                 id,
               };
           }
-        }
+        } */
       } else {
         throw new Error('file has no name');
       }
