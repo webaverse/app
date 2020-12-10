@@ -80,12 +80,12 @@ inventory.scrollBrowse = async delta => {
 };
 inventory.scrollBrowse(0);
 
-loginManager.addEventListener('inventorychange', async e => {
+/* loginManager.addEventListener('inventorychange', async e => {
   files = await loginManager.getInventory();
   inventory.dispatchEvent(new MessageEvent('ownedfilesupdate', {
     data: files,
   }));
-});
+}); */
 
 /* bindUploadFileButton(document.getElementById('load-package-input'), inventory.uploadFile);
 document.addEventListener('dragover', e => {
