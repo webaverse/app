@@ -4,14 +4,13 @@ import htm from '/web_modules/htm.js';
 
 const html = htm.bind(React.createElement)
 
-const CreatorProfilePage = () => {
-    let address = new URLSearchParams(window.location.search).get('address');
-    console.log("Addres is", address);
+const CreatorProfilePage = (props) => {
+    console.log("Props are", props);
     return html`
     <div>
         <${React.Suspense} fallback=${html`<div></div>`}>
-        ${address && html`
-            <${Profile} userAddress=${address} isMyProfile=${false} />
+        ${props.address && html`
+            <${Profile} creatorAddress=${props.address} view=${props.view} />
             `}
         <//>
     </div>

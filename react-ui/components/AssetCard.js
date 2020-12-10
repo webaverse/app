@@ -38,9 +38,9 @@ const Card = ({
               <span className="cardAssetName cardName ${cardSize}">${assetName}</span>
             </div>
             <div className="upperCardInfoRight upperCardInfoRight ${cardSize}">
-              <img className="networkType networkType ${cardSize}" src='components/AssetCardAdditional/icon-${networkType}.svg' />
+              <img className="networkType networkType ${cardSize}" src='/components/AssetCardAdditional/icon-${networkType}.svg' />
               <div className="itemType ext ${cardSize} ext_${ext}">
-                <img className="itemTypeIcon itemTypeIcon ${cardSize}" src='components/AssetCardAdditional/icon-${ext}.svg' />
+                <img className="itemTypeIcon itemTypeIcon ${cardSize}" src='/components/AssetCardAdditional/icon-${ext}.svg' />
                 <span className="itemTypeExt itemTypeExt ${cardSize}">.${ext}</span> 
               </div>
             </div>

@@ -29,7 +29,7 @@ export const AssetDetails = ({
     minterAddress,
     minterUsername,
     networkType,
-    salePrice,
+    buyPrice,
     hideDetails,
     assetType
 }) => {
@@ -42,7 +42,7 @@ export const AssetDetails = ({
     const userCreatedThisAsset = minterAddress === state.address;    
 
     // Otherwise, is this asset for sale?
-    const isForSale = salePrice !== undefined && salePrice !== null && salePrice !== ""
+    const isForSale = buyPrice !== undefined && buyPrice !== null && buyPrice !== ""
 
     const setAvatar = (e) => {
         e.preventDefault();
@@ -148,7 +148,7 @@ export const AssetDetails = ({
                         
                     ${!userOwnsThisAsset && html`
                         ${isForSale ? html`
-                        <p>Sale price is ${salePrice}</p>
+                        <p>Sale price is ${buyPrice}</p>
                         <button className="assetDetailsButton" onClick=${buyAsset}>Buy Asset</button>
                         ` : html`
                         <p>Not for sale</p>
