@@ -1,10 +1,10 @@
 & {
-    background-color: #cccccc;
-    width: 12em;
-    height: 16em;
+    background-color: #white;
+    width: 18em;
+    height: 22em;
     display: inline-block;
-    padding:2em;
     margin: 2em;
+    cursor: pointer;
 }
 
 & img {
@@ -15,27 +15,56 @@
 
 
 .avatarPreview {
-width: 12em;
-height: 12em;
+    width: 18em;
+    height: 20em;
 }
 
 .creatorInfo {
-    width: 12em;
-    word-wrap: break-word;
+    width: 100%;
+    /* word-wrap: break-word; */
+    height: 3.5em;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-top: 0.5em;
+}
+
+.creatorInfo>div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
 }
 
 .creatorName {
-    width: 6em;
-    display: inline-block;
+    
+    
+    /* display: inline-block; */
+    font-size: 1.5em;
+    font-weight: 700;
+    /* margin-top: 0.3em; */
+
 }
 
 .creatorFtu {
-    width: 6em;
-    display: inline-block;
-    text-align: right;
+    
+    /* display: inline-block; */
+    /* text-align: right; */
+    font-size: 1.1em;
+    font-weight: 700;
 }
 
 .creatorAddress {
-    width:100%;
-    margin: auto;
+    /* width:100%; */
+    /* margin: auto; */
+    
+    font-size: 0.65em;
+    font-weight: 500;
+    
+}
+
+.creatorBtnCopy {
+    color: #29B6F6;
+    font-size: 0.65em;
+    font-weight: 500;
+    text-transform: capitalize;
 }

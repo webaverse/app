@@ -2,10 +2,134 @@
 
 }
 
-.mintpageHeaderNumber.selected {
-  font-weight: bold;
+.mintPageHeader {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 4em;
 }
 
-.mintpageHeaderAction.selected {
-  font-weight: bold;
+.mintPageHeaderTitle {
+  justify-content: center;
+  align-items: center;
+  font-size: 2.1em;
+  font-weight: 700;
+}
+
+.mintPageHeaderTitle+div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 45em;
+}
+
+.mintPageHeaderStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 4em;
+}
+
+.mintPageHeaderNumber {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 2.8em;
+  height: 2.8em;
+  border: 1px solid black;
+  border-radius: 50%;
+  font-size: 2.1em;
+  font-weight: 500;
+  opacity: 30%;
+}
+
+.mintPageHeaderAction {
+  font-size: 1.6em;
+  font-weight: 700;
+  margin-top: 0.5em;
+  opacity: 30%;
+}
+
+.selected {
+  opacity: 1;
+}
+
+/* Page One */
+.mintPageBody {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 6em;
+}
+
+.mintPageBodyFormOne {
+  display: flex;
+  flex-direction: column;
+}
+
+.mintPageBodyTitleOne {
+  font-size: 2.1em;
+  font-weight: 700;
+  padding-right: 0.5em;
+}
+
+.mintPageBodyTitleOne+div {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 3.5em;
+}
+
+.mintNftImageUploadSing {
+  font-size: 1.6em;
+  font-weight: 400;
+  text-transform: capitalize;
+  padding-left: 2em;
+}
+
+.mintNftImageUpload {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 8em;
+  height: 2.65em;
+}
+
+.mintNftImageUpload input {
+  display: none;
+}
+
+.mintNftImageUploadBtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 8em;
+  height: 2.65em;
+  background-color: #525252;
+  border-radius: 5px;
+  color: white;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+
+.mintNftImageUploadBtn:active {
+  width: 7.5em;
+  height: 2.5em;
+}
+
+/* Page Two */
+.mintPageBodyFormTwo {
+  width: 1200px;
+  display: flex;
+}
+
+.mintPageBodyFormTwo>div {
+  display: flex;
+  flex-direction: column;
+}
+
+.mintNftImagePreview {
+  width: 50%;
 }
