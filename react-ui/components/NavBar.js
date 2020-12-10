@@ -1,11 +1,12 @@
-import { useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { useContext, useState } from 'https://unpkg.com/es-react/dev';
 import ActionTypes from '../constants/ActionTypes.js';
 import { Context } from '../constants/Context.js';
 import css from '../web_modules/csz.js';
-import { Link, useRouter } from '../web_modules/react-es-router.js';
+ import { Link, useRouter } from '/web_modules/react-es-router.js';
+
 const styles = css`/components/NavBar.css`
 
-const defaultAvatarImage = "../images/test.png";
+const defaultAvatarImage = "../images/defaultaccount.png";
 
 const NavBarUserLoginForm = () => {
 
@@ -67,9 +68,7 @@ const NavBarUserLoginForm = () => {
       <div>
         <button className="submit formBtnLogout" type="submit" onClick="${handleLogout}">Logout</button>
       </div>
-      <span className="submit formBtnSettings">
-        <${Link} to=${'/settings'}>User Settings</Link>
-      </span>
+        <${Link} to='/settings'>User Settings</span>
     </div>
   `
 }
@@ -86,7 +85,7 @@ const NavBarUser = () => {
   return html`
         <div className="loginComponent">
             <div className="loginComponentNav" onClick=${toggleLoginComponent}>
-                <span className="loginUsername"><h1> ${name} </h1></span>
+                <span className="loginUsername"> ${name} </span>
                 <span className="loginAvatarPreview"><img src=${avatarPreview} /></span>
             </div>
             ${loginComponentOpen && html`

@@ -528,6 +528,7 @@ img {
 
 .assetHash.small {
     font-size: 0.1em;
+    display:none;
 }
 
 .assetHash.medium {

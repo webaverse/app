@@ -1,14 +1,14 @@
+import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
+import Router, { Route } from '/web_modules/react-es-router.js';
+import CreatorProfilePage from './CreatorProfilePage.js';
 import CreatorsPage from './CreatorsPage.js';
 import Gallery from './GalleryPage.js';
+import LoginGateway from './LoginGateway.js';
 import MintPage from './MintPage.js';
 import MyProfile from './MyProfilePage.js';
-import Settings from './SettingsPage.js';
-import LoginGateway from './LoginGateway.js';
-import CreatorProfilePage from './CreatorProfilePage.js';
-import NotFoundPage from './NotFoundPage.js';
-import Router, { Route } from '../web_modules/react-es-router.js';
-import { React, ReactDOM, useEffect, useReducer, useState } from 'https://unpkg.com/es-react/dev';
 import NavBar from './NavBar.js';
+import NotFoundPage from './NotFoundPage.js';
+import Settings from './SettingsPage.js';
 
 export const PageRouter = () => {
   const myProfile = html`<${MyProfile} />`;

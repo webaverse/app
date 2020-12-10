@@ -6,21 +6,33 @@ import hdkeySpec from '../libs/hdkey.js';
 const storageHost = 'https://storage.exokit.org';
 const hdkey = hdkeySpec.default;
 
-
-export const connectWallet = async (state) => {
-  console.log("Connecting wallet");
-  if (!window.ethereum)
-    return { ...state, networkType: null };
+export const connectMetamask = async (state) => {
+  if (!window.ethereum){
+    console.log("Window.ethereum is null");
+    return state;
+  }
   await window.ethereum.enable();
+  const address = web3['main'].currentProvider.selectedAddress;
+  const ftBalance = await contracts['main'].FT.methods.balanceOf(address).call()
+  const res = await fetch(`https://tokens-main.webaverse.com/${address}`);
+  const tokens = await res.json();
 
-  let networkType = await web3['main'].eth.net.getNetworkType();
-  mainnetAddress = web3['main'].currentProvider?.selectedAddress;
-  return mainnetAddress ? { ...state, mainnetAddress, networkType } : state;
+  const newState = {
+    mainnetAddress: address,
+    mainnetFtBalance: ftBalance,
+    mainnetInventory: tokens
+  }
+
+  return { ...state, ...newState }
 };
 
-export const disconnectWallet = async (state) => {
-  console.warn ("disconnect wallet needs to be handled");
-  return state;
+export const disconnectMetamask = async (state) => {
+  const newState = {
+    mainnetAddress: address,
+    mainnetFtBalance: ftBalance,
+    mainnetInventory: tokens
+  }
+  return {...state, ...newState};
 };
 
 export const checkMainFtApproved = async (amt) => {
