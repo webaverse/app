@@ -83,7 +83,6 @@ const MintingPage = () => {
 
   const handleSetName = (e) => { 
     setName(e.target.value)
-    console.log("Setting name to", e.target.value);
   }
 
   const handleSetDescription = (e) => setDescription(e.target.value);
