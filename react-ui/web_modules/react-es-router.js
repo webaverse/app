@@ -9,8 +9,11 @@ export const useRouter = () => {
   const navigate = (route) => {
     if (context.cb && typeof context.cb === "function") {
       const next = context.cb(route);
+      console.log("Callbacking", route)
       if (next) {
         context.history.push(route);
+        console.log("Pushing", route)
+
       }
     } else {
       context.history.push(route);

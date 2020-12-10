@@ -7,31 +7,61 @@ import ActionTypes from '../constants/ActionTypes.js';
 import { EditableTextField } from './EditableTextField.js';
 
 const styles = csz`/components/Profile.css`
+const defaultAvatarImage = "../images/defaultaccount.png";
+const defaultHomespacePreview = "../images/defaulthomespace.png";
 
 const html = htm.bind(React.createElement)
 
 const Profile = ({ userAddress, isMyProfile }) => {
   const { state, dispatch } = useContext(Context);
   const [currentPage, setCurrentPage] = useState(1);
+  let homespacePreview = defaultHomespacePreview;
+  let avatarPreview = defaultAvatarImage;
+  useEffect(() => {
+    // // const homespacePreviewCandidate = isMyProfile ? state.homeSpacePreview : state.creatorProfiles[userAddress].homeSpacePreview;
+    const avatarPreviewCandidate = isMyProfile ? state.avatarPreview : state.creatorProfiles[userAddress].avatarPreview;
+  
+    avatarPreview = avatarPreviewCandidate !== "" &&
+    avatarPreviewCandidate !== null ?
+    avatarPreviewCandidate : defaultAvatarImage;
+  
+    // homespacePreview = homespacePreviewCandidate !== "" &&
+    // homespacePreviewCandidate !== null ?
+    // homespacePreviewCandidate : defaultHomespacePreview;
+  
+  }, [state]);
 
   useEffect(() => {
+
+
+
     console.log("Rendering my profile");
+    console.log("State is", state);
     dispatch({ type: ActionTypes.GetProfileForCreator, payload: { address: userAddress } });
     console.log(state.creatorProfiles);
   }, [])
 
   const updateName = (textFieldInput) =>
-    dispatch({ type: ActionTypes.ChangeName, payload: { name: textFieldInput } });
+    dispatch({ type: ActionTypes.SetName, payload: { name: textFieldInput } });
+
+
+  //   ${isMyProfile ? html`
+  //   <${EditableTextField} value=${state.name} valueIfNull=${'<Username>'} className=${`${styles} username settingsNameField`} callback=${updateName} />
+  // ` : html`
+  //   <div className="username">${state.creatorProfiles[userAddress].username}</div>
+  // `}
+
+  //             <span className="profileLoadout"><a href="#">Loadout</a></span>
 
   return html`
     <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
     ${userAddress && state.creatorProfiles[userAddress] && html`
     <div className=${styles}>
         <div className="profileHeader">
-          <div className="homespaceBannerImage"><img src="${state.creatorProfiles[userAddress].homeSpacePreview}" /></div>
+          <div className="homespaceBannerImage"><img src="${homespacePreview}" /></div>
           <div className="avatarImage"><img src="${state.creatorProfiles[userAddress].avatarPreview}" /></div>
           ${isMyProfile ? html`
-            <${EditableTextField} value=${state.name} valueIfNull=${'<Username>'} className=${`${styles} username settingsNameField`} callback=${updateName} />
+          <div className="username">${state.name}</div>
           ` : html`
             <div className="username">${state.creatorProfiles[userAddress].username}</div>
           `}
@@ -40,8 +70,7 @@ const Profile = ({ userAddress, isMyProfile }) => {
         </div>
         <div className="profileBody">
           <div className="profileBodyNav">
-            <span className="profileLoadout"><a href="#">Loadout</a></span>
-            <span className="profileForSale"><a href="#">For Sale</a></span>
+          <span className="profileForSale"><a href="#">For Sale</a></span>
             <span className="profileInventory"><a href="#">Inventory</a></span>
           </div>
           <div className="profileBodyAssets">

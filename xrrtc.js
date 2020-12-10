@@ -149,9 +149,15 @@ class XRChannelConnection extends EventTarget {
           Y.applyUpdate(this.state, new Uint8Array(e.data));
         }
       });
-      this.state.on('update', b => {
-        dialogClient._protoo._transport._ws.send(b);
+      dialogClient._protoo._transport._ws.addEventListener('close', () => {
+        this.state.off('update', _update);
       });
+      const _update = b => {
+        if (this.open) {
+          dialogClient._protoo._transport._ws.send(b);
+        }
+      };
+      this.state.on('update', _update);
     });
   }
 

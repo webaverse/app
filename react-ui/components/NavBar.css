@@ -38,9 +38,8 @@ a:hover {
     background: rgba(0, 0, 0, 0.04);
 }
 
-.nav-item.active {
-    color: rgba(30, 150, 243, 1);
-    background: rgba(30, 150, 243, 0.16);
+.nav-link.active {
+    font-weight: bold;
 }
 
 .nav-logo {
@@ -87,23 +86,18 @@ a:hover {
 
 .loginUsername {
     padding: 0 1em;
-}
-
-.loginUsername h1 {
-    font-weight: 400;
     cursor: pointer;
 }
 
 .loginAvatarPreview {
-    padding: 0 1em;
-    height:2em;
-    width: 2em;
+    height:2.5em;
+    width: 2.5em;
 }
 
 .loginAvatarPreview img {
     border-radius: 50%;
-    height:2em;
-    width: 2em;
+    height:2.5em;
+    width: 2.5em;
     cursor: pointer;
 }
 

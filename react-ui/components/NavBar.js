@@ -1,15 +1,14 @@
-import { useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { useContext, useState } from 'https://unpkg.com/es-react/dev';
 import ActionTypes from '../constants/ActionTypes.js';
 import { Context } from '../constants/Context.js';
 import css from '../web_modules/csz.js';
-import { Link, useRouter } from '../web_modules/react-es-router.js';
+ import { Link } from '/web_modules/@reach/router.js';
+
 const styles = css`/components/NavBar.css`
 
-const defaultAvatarImage = "../images/test.png";
+const defaultAvatarImage = "../images/defaultaccount.png";
 
 const NavBarUserLoginForm = () => {
-
-  const router = useRouter();
 
   const [inputState, setInputState] = useState("");
 
@@ -67,9 +66,7 @@ const NavBarUserLoginForm = () => {
       <div>
         <button className="submit formBtnLogout" type="submit" onClick="${handleLogout}">Logout</button>
       </div>
-      <span className="submit formBtnSettings">
-        <${Link} to=${'/settings'}>User Settings</Link>
-      </span>
+        <${Link} to='/settings'>User Settings</span>
     </div>
   `
 }
@@ -86,7 +83,7 @@ const NavBarUser = () => {
   return html`
         <div className="loginComponent">
             <div className="loginComponentNav" onClick=${toggleLoginComponent}>
-                <span className="loginUsername"><h1> ${name} </h1></span>
+                <span className="loginUsername"> ${name} </span>
                 <span className="loginAvatarPreview"><img src=${avatarPreview} /></span>
             </div>
             ${loginComponentOpen && html`
@@ -98,21 +95,24 @@ const NavBarUser = () => {
     `
 }
 
-const NavBar = () => {
-  const toggleActivePage = (current) => {
-    const route = useRouter()
-    if(current === route.route)
-    return 'active'
-  }
+const NavLink = props => html`
+  <${Link} to=${props.to} children=${props.children}
+    getProps=${({ isCurrent }) => {
+      return isCurrent ? { className: "nav-link active" } : {className: 'nav-link'}
+    }}
+  />
+`;
 
+
+const NavBar = () => {
   return html`
     <div className=${styles}>
         <nav className="navbar"> 
           <span className='nav-logo'><h1>Ψ Webaverse</h1></span>
-          <span className='nav-item ${toggleActivePage('/profile')}'><a href='/profile' className='nav-link'>Profile</a></span>
-          <span className='nav-item ${toggleActivePage('/gallery')}'><a href='/gallery' className='nav-link'>Gallery</a></span>
-          <span className='nav-item ${toggleActivePage('/creators')}'><a href='/creators' className='nav-link'>Creators</a></span>
-          <span className='nav-item ${toggleActivePage('/mint')}'><a href='/mint' className='nav-link'>Mint NFT</a></span>
+          <span className='nav-item'><${NavLink} to='/' className='nav-link'>Profile</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='/gallery' className='nav-link'>Gallery</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='/creators' className='nav-link'>Creators</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='/mint' className='nav-link'>Mint NFT</${NavLink}></span>
         </nav>
         <${NavBarUser}  />
     </div>
