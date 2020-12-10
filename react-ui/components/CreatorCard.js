@@ -6,7 +6,7 @@ import csz from '../web_modules/csz.js'
 const styles = csz`/components/CreatorCard.css`
 
 const html = htm.bind(React.createElement)
-const defaultAvatarImage = "../images/defaultaccount.png";
+const defaultAvatarImage = "/images/defaultaccount.png";
 
 const Creator = ({
   name,
@@ -17,7 +17,7 @@ const Creator = ({
   address
 }) => {
     return html`
-        <div className="${styles} creator" onClick=${() => window.location = '/creator?address='+address}>
+        <div className="${styles} creator" onClick=${() => window.location = '/creator/'+address}>
           <div className="avatarPreview"><img src="${avatarPreview !== "" ? avatarPreview : defaultAvatarImage}" /></div>
           <div className="creatorInfo">
             <div className="creatorName">${name}</div>

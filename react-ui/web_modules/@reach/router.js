@@ -4400,5 +4400,7 @@ var shouldNavigate = function shouldNavigate(event) {
   return !event.defaultPrevented && event.button === 0 && !(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
 };
 
-export { Link, Location, LocationProvider, Match, Redirect, Router, ServerLocation, createHistory, createMemorySource, globalHistory, isRedirect, navigate, redirectTo };
+export { Link,  Location, LocationProvider, Match, Redirect, Router, ServerLocation, createHistory, createMemorySource, globalHistory, isRedirect, navigate, redirectTo };
 //# sourceMappingURL=router.js.map
+
+
