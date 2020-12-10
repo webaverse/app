@@ -358,10 +358,11 @@ class LoginManager extends EventTarget {
   } */
 
   getAddress() {
-    if (loginToken.mnemonic) {
+    if (loginToken.address) {
+      return loginToken.address;
+    } else if (loginToken.mnemonic) {
       const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-      const address = wallet.getAddressString();
-      return address;
+      loginToken.address = wallet.getAddressString();
     } else {
       return null;
     }
