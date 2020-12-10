@@ -17,7 +17,6 @@ export const PageRouter = () => {
   <${NavBar} />
   <${Router}>
       <${MyProfile} path="/"/>
-      <${MyProfile} path="/profile" />
       <${Settings} path="/settings" />
       <${Gallery} path="/gallery" />
       <${MintPage} path="/mint" />
