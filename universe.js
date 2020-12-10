@@ -6,6 +6,7 @@ import {Sky} from './Sky.js';
 import {world} from './world.js';
 import {GuardianMesh} from './land.js';
 import weaponsManager from './weapons-manager.js';
+import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
 import {makeTextMesh} from './vr-ui.js';
 
@@ -154,6 +155,7 @@ const _makeLabelMesh = text => {
 const worldObjects = universeSpecs.parcels.map(spec => {
   const guardianMesh = GuardianMesh(spec.extents, blueColor);
   guardianMesh.name = spec.name;
+  guardianMesh.extents = spec.extents;
   const worldObject = minimap.addWorld(spec.extents);
   guardianMesh.worldObject = worldObject;
   scene.add(guardianMesh);
@@ -350,11 +352,43 @@ const update = () => {
     warpMesh.material.uniforms.uTime.needsUpdate = true;
   }
 };
+const _invertGeometry = geometry => {
+  for (let i = 0; i < geometry.index.array.length; i += 3) {
+    const tmp = geometry.index.array[i];
+    geometry.index.array[i] = geometry.index.array[i+1];
+    geometry.index.array[i+1] = tmp;
+  }
+  return geometry;
+};
 const canEnterWorld = () => !!highlightedWorld && !warpMesh.visible; /*&& !animation*/
 const enterWorld = async () => {
   const w = currentWorld ? null : highlightedWorld;
 
   warpMesh.visible = true;
+
+  /* var tmp;
+  for (var f = 0; f < geometry.faces.length; f++) {
+    tmp = geometry.faces[f].clone();
+    geometry.faces[f].a = tmp.c;
+    geometry.faces[f].c = tmp.a;
+  } */
+
+  const box = new THREE.Box3(
+    new THREE.Vector3().fromArray(highlightedWorld.extents, 0),
+    new THREE.Vector3().fromArray(highlightedWorld.extents, 3),
+  );
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  // console.log('got center size', center.toArray(), size.toArray());
+
+  const geometry = _invertGeometry(
+    new THREE.BoxBufferGeometry(size.x, size.y, size.z)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(center.x, center.y, center.z))
+  );
+  const mesh = new THREE.Mesh(geometry, new THREE.Material({
+    color: 0x1111111,
+  }));
+  const warpPhysicsId = physicsManager.addGeometry(mesh);
 
   if (w) {
     clearWorld();
@@ -378,13 +412,17 @@ const enterWorld = async () => {
 
     world.initializeIfEmpty(universeSpecs.userObject);
   } else {
-    await world.disconnectRoom();
+    await world.disconnectRoom(warpPhysicsId);
 
     // clearWorld();
     loadDefaultWorld();
   }
 
-  warpMesh.visible = false;
+  setTimeout(() => {
+    warpMesh.visible = false;
+
+    physicsManager.removeGeometry(warpPhysicsId);
+  }, 3000);
 
   currentWorld = w;
 
