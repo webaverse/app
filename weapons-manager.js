@@ -2346,6 +2346,16 @@ const weaponsManager = {
     highlightedWorld = newHighlightedWorld;
     _updateMenu();
   },
+  async destroyWorld() {
+    if (highlightedWorld) {
+      const {name} = highlightedWorld;
+      const res = await fetch(`https://worlds.exokit.org/${name}`, {
+        method: 'DELETE',
+      });
+      await res.blob();
+      console.log('deleted', res.status);
+    }
+  },
   update(timeDiff) {
     _updateWeapons(timeDiff);
   },

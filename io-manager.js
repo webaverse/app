@@ -381,6 +381,14 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
+    case 80: { // P
+      if (weaponsManager.destroyWorld()) {
+        /* e.preventDefault();
+        e.stopPropagation();
+        document.getElementById('key-m').click(); */
+      }
+      break;
+    }
     case 16: { // shift
       if (document.pointerLockElement) {
         ioManager.keys.shift = true;
