@@ -91,48 +91,61 @@ const MintingPage = () => {
 
   const MintPageHeader = () => html`
     <div className="mintPageHeader">
-      <div className="mintPageHeaderStepOne ${currentStep === 1 ? 'selected' : ''}">
-        <span className="mintpageHeaderNumber ${currentStep === 1 ? 'selected' : ''}">1</span>
-        <span className="mintpageHeaderAction ${currentStep === 1 ? 'selected' : ''}">Upload File</span>
-      </div>
-      <div className="mintPageHeaderStepOne ${currentStep === 2 ? 'selected' : ''}">
-        <span className="mintpageHeaderNumber ${currentStep === 2 ? 'selected' : ''}">2</span>
-        <span className="mintpageHeaderAction ${currentStep === 2 ? 'selected' : ''}">Prepare Asset</span>
-      </div>
-      <div className="mintPageHeaderStepOne ${currentStep === 3 || currentStep === 4 ? 'selected' : ''}">
-        <span className="mintpageHeaderNumber ${currentStep === 3 || currentStep === 4 ? 'selected' : ''}">3</span>
-        <span className="mintpageHeaderAction ${currentStep === 3 || currentStep === 4 ? 'selected' : ''}">Mint Token</span>
+      <div className="mintPageHeaderTitle">Create a New Digital Asset</div>
+      <div>
+        <div className="mintPageHeaderStep ${currentStep === 1 ? 'selected' : ''}">
+          <span className="mintPageHeaderNumber ${currentStep === 1 ? 'selected' : ''}">1</span>
+          <span className="mintPageHeaderAction ${currentStep === 1 ? 'selected' : ''}">Upload File</span>
+        </div>
+        <div className="mintPageHeaderStep ${currentStep === 2 ? 'selected' : ''}">
+          <span className="mintPageHeaderNumber ${currentStep === 2 ? 'selected' : ''}">2</span>
+          <span className="mintPageHeaderAction ${currentStep === 2 ? 'selected' : ''}">Prepare Asset</span>
+        </div>
+        <div className="mintPageHeaderStep ${currentStep === 3 || currentStep === 4 ? 'selected' : ''}">
+          <span className="mintPageHeaderNumber ${currentStep === 3 || currentStep === 4 ? 'selected' : ''}">3</span>
+          <span className="mintPageHeaderAction ${currentStep === 3 || currentStep === 4 ? 'selected' : ''}">Mint Token</span>
+        </div>
       </div>
     </div>
   `
 
   const pageOne = html`
     <div className="mintPageBody">
-    <form>
-      <h3>Upload a file to use for your asset</h3>
-      <input type="file" className="mintNftImageUpload" onChange=${handleFileUpload} multiple=${false} />
+      <form className="mintPageBodyFormOne">
+        <h3 className="mintPageBodyTitleOne">Upload a file to use for your asset:</h3>
+        <div>
+          <span className="mintNftImageUploadSing">no file chosen</span>
+          <div className="mintNftImageUpload">
+            <label htmlFor="input-file" className="mintNftImageUploadBtn"><span>choose file</span></label>
+            <input type="file" id="input-file" onChange=${handleFileUpload} multiple=${false} />
+          </div>
+        </div>
       </form>
     </div>
   `
 
   const pageTwo = html`
     <div className="mintPageBody">
-    <form>
-      <h3>Name, Description</h3>
-      <input type="text" className="mintNftName" placeholder="Name" onChange=${handleSetName} />
-      <input type="text" className="mintNftDescription" placeholder="Description" onChange=${handleSetDescription} />
-      <button className="button mintPageContinueButton" onClick=${submitDetails}>Continue</button>
-      <button className="button mintPageBackButton" onClick=${backToUpload}>Upload Again</button>
-      ${imagePreview !== null && html`
-        <img src=${imagePreview} />
-      `}
+      <form className="mintPageBodyFormTwo">
+        <div>
+          ${imagePreview !== null && html`
+            <img src=${imagePreview} className="mintNftImagePreview"/>
+          `}
+        </div>
+        <div>
+          <h3 className="mintPageBodyTitleTwo">Name, Description</h3>
+          <input type="text" className="mintNftName" placeholder="Name" onChange=${handleSetName} />
+          <input type="text" className="mintNftDescription" placeholder="Description" onChange=${handleSetDescription} />
+          <button className="button mintPageContinueButton" onClick=${submitDetails}>Continue</button>
+          <button className="button mintPageBackButton" onClick=${backToUpload}>Upload Again</button>
+        </div>
       </form>
     </div>
     `
   
     const pageThree = html`
     <div className="mintPageBody">
-      <h3>Ready For Minting</h3>
+      <h3 className="mintPageBodyTitleThree">Ready For Minting</h3>
       <input type="number" className="mintNftImageUpload" value=1 onChange=${(e) => setQuantity(e.target.value)} />
       <button className="button mintPageMintButton" onClick=${mintNft}>Mint NFT</button>
       <button className="button mintPageBackButton" onClick=${backToDetails}>Edit Asset</button>
