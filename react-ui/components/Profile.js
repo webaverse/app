@@ -43,10 +43,10 @@ const Profile = (props) => {
       const newStoreAssets = state.creatorInventories[creatorAddress][currentPage].filter((asset) => asset.buyPrice !== null && asset.buyPrice > 0);
       setStoreAssets(newStoreAssets);
       let newView = ""
-      if(view !== 'inventory') return;
-      if(storeAssets.length === 0) newView = 'inventory';
+      if(view === null || view === "") newView = 'booth';
+      else if(newStoreAssets.length === 0) newView = 'inventory';
       else newView = 'booth';
-      console.log("Store assets are", storeAssets);
+      console.log("Store assets are", newStoreAssets);
       setView(newView);
     }, 100)
   }, [])
@@ -85,7 +85,9 @@ const Profile = (props) => {
         </div>
         <div className="profileBody">
           <div className="profileBodyNav">
+          ${storeAssets.length > 0 && html`
             <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onsale' ? 'active' : ''}' to='/creator/${creatorAddress}/booth'>For Sale</${Link}>
+          `}
             <${Link} className='profileNavLink ${view === 'inventory' ? 'active' : ''}' to='/creator/${creatorAddress}/inventory'>Inventory</${Link}>
           </div>
           <div className="profileBodyAssets">
@@ -93,6 +95,9 @@ const Profile = (props) => {
             <${AssetCardGrid} data=${storeAssets} cardSize='medium' />
           ` : html`
             <${AssetCardGrid} data=${state.creatorInventories[creatorAddress][currentPage]} cardSize='medium' />
+          `}
+          ${state.creatorInventories[creatorAddress][currentPage].length === 0 && html `
+            <p>Your inventory is empty</p>
           `}
           </div>
         </div>
