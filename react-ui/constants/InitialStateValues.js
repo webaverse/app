@@ -4,6 +4,8 @@ export const InitialStateValues = {
   loginToken: null,
   name: null,
   mainnetAddress: null,
+  mainnetFtBalance: null,
+  mainnetInventory: null,
   avatarThumbnail: null,
   showUserDropdown: false,
   address: null,

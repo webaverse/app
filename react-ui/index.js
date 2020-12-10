@@ -1,9 +1,9 @@
-import { React, ReactDOM, useEffect, useReducer, useState } from 'https://unpkg.com/es-react/dev';
+import { React, ReactDOM, useEffect, useReducer, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
 import { PageRouter } from './components/PageRouter.js';
 import ActionTypes from './constants/ActionTypes.js';
 import { Context } from './constants/Context.js';
 import htm from './web_modules/htm.js';
-import { initializeStart, getProfileForCreator, getInventoryForCreator, connectWallet, disconnectWallet, getCreators, getBooths, loginWithEmailOrPrivateKey, loginWithEmailCode, logout, mintNft, setName } from './functions/StateFunctions.js';
+import { initializeStart, getProfileForCreator, getInventoryForCreator, disconnectMetamask, getCreators, getBooths, loginWithEmailOrPrivateKey, loginWithEmailCode, logout, mintNft, setName } from './functions/StateFunctions.js';
 import { InitialStateValues } from './constants/InitialStateValues.js';
 
 
@@ -87,13 +87,13 @@ const Application = () => {
         return state;
 
       case ActionTypes.ConnectMainnetWallet:
-        connectWallet().then(newState => {
+        connectMetamask().then(newState => {
           dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
         });
         return state;
 
       case ActionTypes.DisonnectMainnetWallet:
-        disconnectWallet(state).then(newState => {
+        disconnectMetamask(state).then(newState => {
           dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
         });
         return state;
