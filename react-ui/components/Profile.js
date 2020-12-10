@@ -14,11 +14,7 @@ const defaultHomespacePreview = "/images/defaulthomespace.png";
 const html = htm.bind(React.createElement)
 
 const ProfileNavLink = props => html`
-  <${Link} to=${props.to} children=${props.children}
-    getProps=${({ isCurrent }) => {
-      return isCurrent ? { className: "profile-nav-link active" } : {className: 'profile-nav-link'}
-    }}
-  />
+  <${Link} to=${props.to} children=${props.children} />
 `;
 
 const Profile = (props) => {
@@ -100,8 +96,8 @@ const Profile = (props) => {
         </div>
         <div className="profileBody">
           <div className="profileBodyNav">
-         <${ProfileNavLink} to='/creator/${creatorAddress}/booth'>For Sale</${ProfileNavLink}>
-            <${ProfileNavLink} to='/creator/${creatorAddress}/inventory'>Inventory</${ProfileNavLink}>
+            <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onSale' ? 'active' : ''}' to='/creator/${creatorAddress}/booth'>For Sale</${Link}>
+            <${Link} className='profileNavLink ${view === 'inventory' ? 'active' : ''}' to='/creator/${creatorAddress}/inventory'>Inventory</${Link}>
           </div>
           <div className="profileBodyAssets">
           ${view === 'booth' || view === 'store' || view === 'onSale' ? html`
