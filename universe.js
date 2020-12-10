@@ -246,11 +246,8 @@ const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.y),
   Math.floor(p.z),
 );
-const _updateWorld = newWorld => {
-  const objects = world.getObjects();
-  for (const object of objects) {
-    world.removeObject(object.instanceId);
-  }
+/* const _updateWorld = newWorld => {
+  clearWorld();
 
   if (newWorld) {
     loadUserWorld();
@@ -259,6 +256,12 @@ const _updateWorld = newWorld => {
   }
 
   currentWorld = newWorld;
+}; */
+const clearWorld = () => {
+  const objects = world.getObjects();
+  for (const object of objects) {
+    world.removeObject(object.instanceId);
+  }
 };
 const loadDefaultWorld = () => {
   for (const objectSpec of universeSpecs.universeObjects) {
@@ -268,13 +271,13 @@ const loadDefaultWorld = () => {
     world.addObject(objectSpec.start_url, null, position, quaternion);
   }
 };
-const loadUserWorld = () => {
+/* const loadUserWorld = () => {
   const objectSpec = universeSpecs.userObject;
   const position = objectSpec.position ? new THREE.Vector3().fromArray(objectSpec.position) : new THREE.Vector3();
   const quaternion = objectSpec.quaternion ? new THREE.Quaternion().fromArray(objectSpec.quaternion) : new THREE.Quaternion();
   // const scale = objectSpec.scale ? new THREE.Vector3().fromArray(objectSpec.scale) : new THREE.Vector3();
   world.addObject(objectSpec.start_url, null, position, quaternion);
-};
+}; */
 const update = () => {
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
@@ -347,32 +350,59 @@ const update = () => {
     warpMesh.material.uniforms.uTime.needsUpdate = true;
   }
 };
-const enterWorld = () => {
-  if (highlightedWorld && !warpMesh.visible /*&& !animation*/) {
-    const world = currentWorld ? null : highlightedWorld;
-    warpMesh.visible = true;
-    _updateWorld(world);
-    setTimeout(() => {
-      warpMesh.visible = false;
-    }, 3000);
-    /* const now = Date.now();
-    animation = {
-      startTime: now,
-      endTime: now + 1000,
-      startValue: 0,
-      endValue: 1,
-      onmid() {
-        _updateWorld(world);
-      },
-    }; */
-    return true;
+const canEnterWorld = () => !!highlightedWorld && !warpMesh.visible; /*&& !animation*/
+const enterWorld = async () => {
+  const w = currentWorld ? null : highlightedWorld;
+
+  warpMesh.visible = true;
+
+  if (w) {
+    clearWorld();
+
+    const {name} = w;
+    const u = `https://worlds.exokit.org/${name}`;
+    const res = await fetch(u);
+    let j;
+    if (res.status === 404) {
+      const res2 = await fetch(u, {
+        method: 'POST',
+      });
+      j = await res2.json();
+      j = j.result;
+    } else {
+      j = await res.json();
+      j = j.result;
+    }
+    const {publicIp, privateIp, port} = j;
+    await world.connectRoom(name, `${publicIp}:${port}`);
+
+    world.initializeIfEmpty(universeSpecs.userObject);
   } else {
-    return false;
+    await world.disconnectRoom();
+
+    // clearWorld();
+    loadDefaultWorld();
   }
+
+  warpMesh.visible = false;
+
+  currentWorld = w;
+
+  /* const now = Date.now();
+  animation = {
+    startTime: now,
+    endTime: now + 1000,
+    startValue: 0,
+    endValue: 1,
+    onmid() {
+      _updateWorld(world);
+    },
+  }; */
 };
 
 export {
   loadDefaultWorld,
   update,
+  canEnterWorld,
   enterWorld,
 };

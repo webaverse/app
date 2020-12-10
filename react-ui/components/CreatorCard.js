@@ -1,5 +1,4 @@
 import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
-import { useRouter } from '../web_modules/react-es-router.js';
 
 import htm from '/web_modules/htm.js';
 import csz from '../web_modules/csz.js'
@@ -7,6 +6,7 @@ import csz from '../web_modules/csz.js'
 const styles = csz`/components/CreatorCard.css`
 
 const html = htm.bind(React.createElement)
+const defaultAvatarImage = "../images/defaultaccount.png";
 
 const Creator = ({
   name,
@@ -26,7 +26,7 @@ const Creator = ({
 
     return html`
         <div className="${styles} creator" onClick=${() => window.location = '/creator?address='+address}>
-          <div className="avatarPreview"><img src="${avatarPreview}" /></div>
+          <div className="avatarPreview"><img src="${avatarPreview !== "" ? avatarPreview : defaultAvatarImage}" /></div>
           <div className="creatorInfo">
             <div>
               <div className="creatorName">${name || 'default name'}</div>

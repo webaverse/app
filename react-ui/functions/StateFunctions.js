@@ -1,4 +1,4 @@
-import { getAddressFromMnemonic, runSidechainTransaction, web3 } from '../webaverse/blockchain.js';
+import { getAddressFromMnemonic, contracts, runSidechainTransaction, web3 } from '../webaverse/blockchain.js';
 import storage from '../webaverse/storage.js';
 import bip39 from '../libs/bip39.js';
 import hdkeySpec from '../libs/hdkey.js';
@@ -6,15 +6,33 @@ import hdkeySpec from '../libs/hdkey.js';
 const storageHost = 'https://storage.exokit.org';
 const hdkey = hdkeySpec.default;
 
-
-export const initializeEthereum = async (state) => {
-  if (!window.ethereum)
-    return { ...state, networkType: null };
+export const connectMetamask = async (state) => {
+  if (!window.ethereum){
+    console.log("Window.ethereum is null");
+    return state;
+  }
   await window.ethereum.enable();
+  const address = web3['main'].currentProvider.selectedAddress;
+  const ftBalance = await contracts['main'].FT.methods.balanceOf(address).call()
+  const res = await fetch(`https://tokens-main.webaverse.com/${address}`);
+  const tokens = await res.json();
 
-  let networkType = await web3['main'].eth.net.getNetworkType();
-  mainnetAddress = web3['main'].currentProvider?.selectedAddress;
-  return mainnetAddress ? { ...state, mainnetAddress, networkType } : state;
+  const newState = {
+    mainnetAddress: address,
+    mainnetFtBalance: ftBalance,
+    mainnetInventory: tokens
+  }
+
+  return { ...state, ...newState }
+};
+
+export const disconnectMetamask = async (state) => {
+  const newState = {
+    mainnetAddress: address,
+    mainnetFtBalance: ftBalance,
+    mainnetInventory: tokens
+  }
+  return {...state, ...newState};
 };
 
 export const checkMainFtApproved = async (amt) => {
@@ -50,17 +68,18 @@ export const checkMainNftApproved = async () => {
 
 };
 
-export const setUsername = (name, state) => {
+export const setName = async (name, state) => {
   console.warn("Setting username in user object, but not to server");
+  await  runSidechainTransaction(state.loginToken.mnemonic)('Account', 'setMetadata', state.address, 'name', name);
   return { ...state, name };
 };
 
 export const getAddress = (state) => {
-  if (!state.loginToken.mnemonic)
-    return null;
+  if (!state.loginToken.mnemonic) return null;
   const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(state.loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
   const address = wallet.getAddressString();
   console.log("Address is", address);
+  
   return { ...state, address };
 };
 
@@ -184,8 +203,10 @@ export const getCreators = async (page, state) => {
   return newState;
 };
 
+
 export const mintNft = async (file, name, description, quantity, successCallback, errorCallback, state) => {
-  const { mnemonic, addr } = state.loginToken;
+  const { mnemonic } = state.loginToken;
+  const address = state.address;
   const res = await fetch(storageHost, { method: 'POST', body: file });
   const { hash } = await res.json();
 
@@ -196,27 +217,27 @@ export const mintNft = async (file, name, description, quantity, successCallback
 
     const fullAmount = {
       t: 'uint256',
-      v: new web3.utils.BN(1e9)
-        .mul(new web3.utils.BN(1e9))
-        .mul(new web3.utils.BN(1e9)),
+      v: new web3['sidechain'].utils.BN(1e9)
+        .mul(new web3['sidechain'].utils.BN(1e9))
+        .mul(new web3['sidechain'].utils.BN(1e9)),
     };
 
     {
-      const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['NFT']._address, fullAmount.v);
+      const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['sidechain']['NFT']._address, fullAmount.v);
       status = result.status;
       transactionHash = '0x0';
       tokenIds = [];
     }
     if (status) {
-      const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', addr, '0x' + hash, name, description, quantity);
+      const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, name, description, quantity);
       status = result.status;
       transactionHash = result.transactionHash;
-      const tokenId = new web3.utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
+      const tokenId = new web3['sidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
       tokenIds = [tokenId, tokenId + quantity - 1];
       successCallback();
     }
   } catch (err) {
-    console.warn(err.stack);
+    console.warn(err);
     status = false;
     transactionHash = '0x0';
     tokenIds = [];
@@ -302,3 +323,5 @@ export const initializeStart = async (state) => {
   console.log("login token is", loginToken);
   return await getAddress(newState);
 };
+
+
