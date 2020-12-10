@@ -2,15 +2,13 @@ import { useContext, useState } from 'https://unpkg.com/es-react/dev';
 import ActionTypes from '../constants/ActionTypes.js';
 import { Context } from '../constants/Context.js';
 import css from '../web_modules/csz.js';
- import { Link, useRouter } from '/web_modules/react-es-router.js';
+ import { Link } from '/web_modules/@reach/router.js';
 
 const styles = css`/components/NavBar.css`
 
 const defaultAvatarImage = "../images/defaultaccount.png";
 
 const NavBarUserLoginForm = () => {
-
-  const router = useRouter();
 
   const [inputState, setInputState] = useState("");
 
@@ -99,8 +97,8 @@ const NavBarUser = () => {
 
 const NavBar = () => {
   const toggleActivePage = (current) => {
-    const route = useRouter()
-    if(current === route.route)
+    // const route = useRouter()
+    // if(current === route.route)
     return 'active'
   }
 
@@ -108,10 +106,10 @@ const NavBar = () => {
     <div className=${styles}>
         <nav className="navbar"> 
           <span className='nav-logo'><h1>Ψ Webaverse</h1></span>
-          <span className='nav-item ${toggleActivePage('/profile')}'><a href='/profile' className='nav-link'>Profile</a></span>
-          <span className='nav-item ${toggleActivePage('/gallery')}'><a href='/gallery' className='nav-link'>Gallery</a></span>
-          <span className='nav-item ${toggleActivePage('/creators')}'><a href='/creators' className='nav-link'>Creators</a></span>
-          <span className='nav-item ${toggleActivePage('/mint')}'><a href='/mint' className='nav-link'>Mint NFT</a></span>
+          <span className='nav-item ${toggleActivePage('/profile')}'><${Link} to='/profile' className='nav-link'>Profile</${Link}></span>
+          <span className='nav-item ${toggleActivePage('/gallery')}'><${Link} to='/gallery' className='nav-link'>Gallery</${Link}></span>
+          <span className='nav-item ${toggleActivePage('/creators')}'><${Link} to='/creators' className='nav-link'>Creators</${Link}></span>
+          <span className='nav-item ${toggleActivePage('/mint')}'><${Link} to='/mint' className='nav-link'>Mint NFT</${Link}></span>
         </nav>
         <${NavBarUser}  />
     </div>
