@@ -272,7 +272,7 @@ class RigManager {
     ];
   }
 
-  getPeerAvatarPose(peerId) {
+  /* getPeerAvatarPose(peerId) {
     const peerRig = this.peerRigs.get(peerId);
 
     const hmdPosition = peerRig.inputs.hmd.position.toArray();
@@ -289,14 +289,18 @@ class RigManager {
     const rightGamepadGrip = peerRig.inputs.rightGamepad.grip;
 
     const floorHeight = peerRig.getFloorHeight();
+    const topEnabled = peerRig.getTopEnabled();
+    const bottomEnabled = peerRig.getBottomEnabled();
 
     return [
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
       floorHeight,
+      topEnabled,
+      bottomEnabled,
     ];
-  }
+  } */
 
   setLocalAvatarPose(poseArray) {
     const [
