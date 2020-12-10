@@ -332,7 +332,7 @@ const _unlockAll = keys => {
     }
   }
 };
-world.requestRemoteSubparcels = async (keys) => {
+/* world.requestRemoteSubparcels = async (keys) => {
   // XXX return array of subparcel data or null if did not exist
   await _lockAll(keys);
   const promises = keys.map(key => storage.getRaw(`chunks/${key}`));
@@ -384,7 +384,7 @@ world.makeSubparcel = (x = 0, y = 0, z = 0) => {
   subparcel.latchData(data);
   subparcel.writeMetadata();
   return subparcel;
-};
+}; */
 
 const _align4 = n => {
   const d = n % 4;
@@ -621,10 +621,10 @@ world.connectRoom = async (roomName, worldURL) => {
       channelConnection.dataChannel.removeEventListener('bufferedamountlow', _bufferedAmountLow);
     }, {once: true});
 
-    channelConnection.dialogClient.addEventListener('peerEdit', e => {
+    /* channelConnection.dialogClient.addEventListener('peerEdit', e => {
       console.log(e);
       world.onRemoteSubparcelsEdit(e.data.keys);
-    });
+    }); */
   }, {once: true});
   channelConnection.addEventListener('close', e => {
     if (interval) {
