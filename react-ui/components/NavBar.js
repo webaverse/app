@@ -95,21 +95,24 @@ const NavBarUser = () => {
     `
 }
 
-const NavBar = () => {
-  const toggleActivePage = (current) => {
-    // const route = useRouter()
-    // if(current === route.route)
-    return 'active'
-  }
+const NavLink = props => html`
+  <${Link} to=${props.to} children=${props.children}
+    getProps=${({ isCurrent }) => {
+      return isCurrent ? { className: "nav-link active" } : {className: 'nav-link'}
+    }}
+  />
+`;
 
+
+const NavBar = () => {
   return html`
     <div className=${styles}>
         <nav className="navbar"> 
           <span className='nav-logo'><h1>Ψ Webaverse</h1></span>
-          <span className='nav-item ${toggleActivePage('/profile')}'><${Link} to='/profile' className='nav-link'>Profile</${Link}></span>
-          <span className='nav-item ${toggleActivePage('/gallery')}'><${Link} to='/gallery' className='nav-link'>Gallery</${Link}></span>
-          <span className='nav-item ${toggleActivePage('/creators')}'><${Link} to='/creators' className='nav-link'>Creators</${Link}></span>
-          <span className='nav-item ${toggleActivePage('/mint')}'><${Link} to='/mint' className='nav-link'>Mint NFT</${Link}></span>
+          <span className='nav-item'><${NavLink} to='/profile' className='nav-link'>Profile</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='/gallery' className='nav-link'>Gallery</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='/creators' className='nav-link'>Creators</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='/mint' className='nav-link'>Mint NFT</${NavLink}></span>
         </nav>
         <${NavBarUser}  />
     </div>
