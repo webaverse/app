@@ -580,7 +580,7 @@ const _bindState = state => {
   });
 };
 _bindState(state);
-const _connectRoom = async (roomName, worldURL) => {
+world.connectRoom = async (roomName, worldURL) => {
   channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
 
   channelConnection.addEventListener('open', async e => {
@@ -781,6 +781,20 @@ const _connectRoom = async (roomName, worldURL) => {
   }); */
   state = channelConnection.state;
   _bindState(state);
+};
+world.disconnectRoom = () => {
+  channelConnection.close();
+
+  for (const object of objects) {
+    world.removeObject(object.instanceId);
+  }
+
+  state = new Y.Doc();
+  _bindState(state);
+};
+
+world.initializeIfEmpty = spec => {
+  console.log('initialize if empty', spec); // XXX
 };
 
 const objects = [];
@@ -1059,7 +1073,7 @@ const micOnButton = document.getElementById('mic-on-button');
 /* world.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   roomName = rn;
   if (online) {
-    await _connectRoom(roomName, url);
+    await world.connectRoom(roomName, url);
     
     button.innerHTML = `
       <i class="fal fa-wifi-slash"></i>
