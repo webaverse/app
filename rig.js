@@ -263,12 +263,30 @@ class RigManager {
     const rightGamepadGrip = this.localRig.inputs.rightGamepad.grip;
 
     const floorHeight = this.localRig.getFloorHeight();
+    const topEnabled = this.localRig.getTopEnabled();
+    const bottomEnabled = this.localRig.getBottomEnabled();
+    const direction = this.localRig.direction.toArray();
+    const velocity = this.localRig.velocity.toArray();
+    const {
+      jumpState,
+      jumpStartTime,
+      flyState,
+      flyStartTime,
+    } = this.localRig;
 
     return [
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
       floorHeight,
+      topEnabled,
+      bottomEnabled,
+      direction,
+      velocity,
+      jumpState,
+      jumpStartTime,
+      flyState,
+      flyStartTime,
     ];
   }
 
@@ -335,7 +353,15 @@ class RigManager {
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
-      floorHeight
+      floorHeight,
+      topEnabled,
+      bottomEnabled,
+      direction,
+      velocity,
+      jumpState,
+      jumpStartTime,
+      flyState,
+      flyStartTime,
     ] = poseArray;
 
     const peerRig = this.peerRigs.get(peerId);
@@ -355,6 +381,14 @@ class RigManager {
       peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
 
       peerRig.setFloorHeight(floorHeight);
+      peerRig.setTopEnabled(topEnabled);
+      peerRig.setBottomEnabled(bottomEnabled);
+      peerRig.direction.fromArray(direction);
+      peerRig.velocity.fromArray(velocity);
+      peerRig.jumpState = jumpState;
+      peerRig.jumpStartTime = jumpStartTime;
+      peerRig.flyState = flyState;
+      peerRig.flyStartTime = flyStartTime;
 
       peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
       peerRig.textMesh.position.y += 0.5;
