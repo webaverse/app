@@ -32,26 +32,6 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
 
-const pendingMonetizationStart = [];
-setInterval(() => {
-  if (pendingMonetizationStart.length > 0) {
-    pendingMonetizationStart.map(({instanceId, ownerAddress}, i) => {
-      const monetization = document[`monetization${instanceId}`];
-      if (monetization) {
-        const ethereumAddress = loginManager.getAddress();
-
-        if (monetization && ethereumAddress && ethereumAddress == ownerAddress) {
-          monetization.dispatchEvent(new Event('monetizationstart'));
-          pendingMonetizationStart.splice(i, 1);
-        } else if (monetization && document.monetization) {
-          monetization.dispatchEvent(new Event('monetizationstart'));
-          pendingMonetizationStart.splice(i, 1);
-        }
-      }
-    });
-  }
-}, 100);
-
 let pointers = [];
 let currentIndex = 0;
 setInterval(() => {
@@ -929,7 +909,7 @@ world.addEventListener('trackedobjectadd', async e => {
     }
   })();
   if (file) {
-    let mesh = await runtime.loadFile(file, {instanceId: instanceId});
+    let mesh = await runtime.loadFile(file, {instanceId: instanceId, ownerAddress: token.owner.address });
     if (mesh) {
       mesh.position.fromArray(position);
       mesh.quaternion.fromArray(quaternion);
@@ -955,13 +935,6 @@ world.addEventListener('trackedobjectadd', async e => {
         scene.add(mesh);
       }
 
-      if (token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
-        const monetizationPointer = token.owner.monetizationPointer;
-        const ownerAddress = token.owner.address.toLowerCase();
-        pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer, "ownerAddress": ownerAddress });
-        pendingMonetizationStart.push({instanceId, ownerAddress});
-      }
-
     } else {
       console.warn('failed to load object', file);
 
@@ -984,6 +957,12 @@ world.addEventListener('trackedobjectadd', async e => {
     // minimap
     const minimapObject = minimap.addObject(mesh);
     mesh.minimapObject = minimapObject;
+
+    if (token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
+      const monetizationPointer = token.owner.monetizationPointer;
+      const ownerAddress = token.owner.address.toLowerCase();
+      pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer, "ownerAddress": ownerAddress });
+    }
 
     objects.push(mesh);
   }

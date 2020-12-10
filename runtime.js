@@ -10,6 +10,7 @@ import {getExt, mergeMeshes} from './util.js';
 // import {bake} from './bakeUtils.js';
 // import geometryManager from './geometry-manager.js';
 import {rigManager} from './rig.js';
+import {loginManager} from './login.js';
 import {makeIconMesh, makeTextMesh} from './vr-ui.js';
 import {renderer, scene2, appManager} from './app-object.js';
 import wbn from './wbn.js';
@@ -456,7 +457,7 @@ const _makeAppUrl = appId => {
   });
   return URL.createObjectURL(b);
 };
-const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null} = {}) => {
+const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, ownerAddress = null} = {}) => {
   const appId = ++appIds;
   const mesh = new THREE.Object3D();
   /* mesh.geometry = new THREE.BufferGeometry();
@@ -468,7 +469,16 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
   mesh.run = () => {
     import(u)
       .then(() => {
-        // console.log('import returned');
+        const monetization = document[`monetization${instanceId}`];
+        if (monetization) {
+          const ethereumAddress = loginManager.getAddress();
+
+          if (monetization && ethereumAddress && ethereumAddress == ownerAddress) {
+            monetization.dispatchEvent(new Event('monetizationstart'));
+          } else if (monetization && document.monetization) {
+            monetization.dispatchEvent(new Event('monetizationstart'));
+          }
+        }
       }, err => {
         console.warn('import failed', u, err);
       })
@@ -560,7 +570,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
 
   return mesh;
 };
-const _loadManifestJson = async (file, {files = null, instanceId = null} = {}) => {
+const _loadManifestJson = async (file, {files = null, instanceId = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files) {
     srcUrl = files[srcUrl];
@@ -582,6 +592,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null} = {}) =
       files,
       parentUrl: srcUrl,
       instanceId,
+      ownerAddress,
     });
 
     /* const appId = ++appIds;
@@ -692,7 +703,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null} = {}) =
   }
 };
 let appIds = 0;
-const _loadWebBundle = async (file, {instanceId = null}) => {
+const _loadWebBundle = async (file, {instanceId = null, ownerAddress = null}) => {
   let arrayBuffer;
 
   if (file.url) {
@@ -731,6 +742,7 @@ const _loadWebBundle = async (file, {instanceId = null}) => {
   }, {
     files,
     instanceId,
+    ownerAddress,
   });
 };
 const _loadScn = async (file, opts) => {
