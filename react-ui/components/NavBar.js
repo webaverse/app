@@ -109,7 +109,7 @@ const NavBar = () => {
     <div className=${styles}>
         <nav className="navbar"> 
           <span className='nav-logo'><h1>Ψ Webaverse</h1></span>
-          <span className='nav-item'><${NavLink} to='/profile' className='nav-link'>Profile</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='/' className='nav-link'>Profile</${NavLink}></span>
           <span className='nav-item'><${NavLink} to='/gallery' className='nav-link'>Gallery</${NavLink}></span>
           <span className='nav-item'><${NavLink} to='/creators' className='nav-link'>Creators</${NavLink}></span>
           <span className='nav-item'><${NavLink} to='/mint' className='nav-link'>Mint NFT</${NavLink}></span>
