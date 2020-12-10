@@ -34,6 +34,7 @@ const AssetCardGrid = ({
             name=${currentAsset.name}
             description=${currentAsset.description}
             image=${currentAsset.image}
+            buyPrice=${currentAsset.buyPrice}
             hash=${currentAsset.properties.hash}
             external_url=${currentAsset.external_url}
             filename=${currentAsset.properties.filename}

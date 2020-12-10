@@ -101,9 +101,11 @@ export const AssetDetails = ({
                     <${AssetCard}
                         key="${id}"
                         assetName=${name}
-                        assetDescription=${description}
-                        assetImage=${image}
-                        assetHash=${hash}
+                        ext=${ext}
+                        description=${description}
+                        buyPrice=${buyPrice}
+                        image=${image}
+                        hash=${hash}
                         numberInEdition=${numberInEdition}
                         totalSupply=${totalSupply}
                         balance=${balance}
@@ -116,7 +118,7 @@ export const AssetDetails = ({
                         minterUsername=${minterUsername}
                         minterAddress=${minterAddress}
                         cardSize=${CardSize.Large}
-                        networkType=${networkType}
+                        networkType='webaverse'
                     /> 
                 </div>
                 <div className="assetDetailsRightColumn">
