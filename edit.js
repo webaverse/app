@@ -1295,7 +1295,6 @@ const _initializeLogin = async () => {
     const username = loginManager.getUsername() || 'Anonymous';
     const avatarImage = loginManager.getAvatarPreview();
     rigManager.setLocalAvatarName(username);
-    rigManager.setLocalAvatarImage(avatarImage);
 
     loginManager.addEventListener('usernamechange', e => {
       const username = e.data || 'Anonymous';
@@ -1314,11 +1313,15 @@ const _initializeLogin = async () => {
     if (avatar.url) {
       rigManager.setLocalAvatarUrl(avatar.url, avatar.filename);
     }
+    if (avatar.preview) {
+      rigManager.setLocalAvatarImage(avatar.preview);
+    }
     loginManager.addEventListener('avatarchange', e => {
       const avatar = e.data;
       const newAvatarUrl = avatar ? avatar.url : null;
       if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
         rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.filename);
+        rigManager.setLocalAvatarImage(avatar.preview);
 
         const {menu} = getState();
         menu.avatarUrl = avatar.url;
