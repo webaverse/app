@@ -337,7 +337,9 @@ window.addEventListener('keydown', e => {
     }
     case 69: { // E
       // pe.grabdown('right');
-      if (!universe.enterWorld() && document.pointerLockElement) {
+      if (universe.canEnterWorld()) {
+        universe.enterWorld();
+      } else if (document.pointerLockElement) {
         ioManager.currentWeaponGrabs[0] = true;
       }
       break;
