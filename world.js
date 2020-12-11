@@ -625,6 +625,10 @@ world.connectRoom = async (roomName, worldURL) => {
       console.log(e);
       world.onRemoteSubparcelsEdit(e.data.keys);
     }); */
+
+    if (networkMediaStream) {
+      channelConnection.setMicrophoneMediaStream(networkMediaStream);
+    }
   }, {once: true});
   channelConnection.addEventListener('close', e => {
     if (interval) {
@@ -1031,19 +1035,26 @@ world.update = () => {
   _updateObjectsGrab();
 };
 
+let animationMediaStream = null
+let networkMediaStream = null;
 const _latchMediaStream = async () => {
-  const mediaStream = await navigator.mediaDevices.getUserMedia({
+  networkMediaStream = await navigator.mediaDevices.getUserMedia({
     audio: true,
   });
-  const track = mediaStream.getAudioTracks()[0];
-  track.addEventListener('ended', async e => {
-    if (channelConnection) {
-      await channelConnection.setMicrophoneMediaStream(null);
-    }
-  });
   if (channelConnection) {
-    await channelConnection.setMicrophoneMediaStream(mediaStream);
+    await channelConnection.setMicrophoneMediaStream(networkMediaStream);
   }
+};
+const _unlatchMediaStream = async () => {
+  if (channelConnection) {
+    await channelConnection.setMicrophoneMediaStream(null);
+  }
+
+  const tracks = networkMediaStream.getTracks();
+  for (const track of tracks) {
+    track.stop();
+  }
+  networkMediaStream = null;
 };
 
 const micOffButton = document.getElementById('mic-off-button');
@@ -1058,18 +1069,21 @@ const micOnButton = document.getElementById('mic-on-button');
       micOffButton.style.display = null;
       micOnButton.style.display = 'none';
     }
-    const mediaStream = await navigator.mediaDevices.getUserMedia({
+    animationMediaStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
     });
     if (enable) {
-      rigManager.localRig.setMicrophoneMediaStream(mediaStream);
+      rigManager.localRig.setMicrophoneMediaStream(animationMediaStream);
+
       _latchMediaStream();
     } else {
       rigManager.localRig.setMicrophoneMediaStream(null);
-      const tracks = mediaStream.getAudioTracks();
+      const tracks = animationMediaStream.getTracks();
       for (const track of tracks) {
         track.stop();
       }
+
+      _unlatchMediaStream();
     }
   });
 });
