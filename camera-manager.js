@@ -65,7 +65,7 @@ const cameraButton = document.getElementById('key-x');
         nextIndex = cameraModes.length - 1;
       }
     }
-    if (nextIndex === 0) {
+    if (index === 0 || nextIndex === 0) {
       nextIndex = 1;
     }
 
@@ -127,6 +127,11 @@ const selectTool = newSelectedTool => {
         // orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
         ioManager.resetKeys();
         physicsManager.velocity.set(0, 0, 0);
+        break;
+      }
+      case 'firstperson': {
+        camera.rotation.x = 0;
+        camera.updateMatrixWorld();
         break;
       }
       case 'thirdperson': {
