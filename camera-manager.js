@@ -6,7 +6,6 @@ import {rigManager} from './rig.js';
 
 const localVector = new THREE.Vector3();
 
-let selectedTool = 'camera';
 const getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
 const getAvatarHeight = getFullAvatarHeight; // () => getFullAvatarHeight() * 0.9;
 /* const _getMinHeight = () => {
@@ -22,12 +21,6 @@ const getAvatarHeight = getFullAvatarHeight; // () => getFullAvatarHeight() * 0.
 const birdsEyeHeight = 10;
 const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2);
-const tools = [
-  'key-v',
-  'key-b',
-  'key-n',
-  'key-m',
-].map(id => document.getElementById(id));
 
 const _requestPointerLock = () => new Promise((accept, reject) => {
   if (!document.pointerLockElement) {
@@ -50,7 +43,41 @@ const _requestPointerLock = () => new Promise((accept, reject) => {
     accept();
   }
 });
-for (let i = 0; i < tools.length; i++) {
+
+const cameraModes = [
+  'camera',
+  'firstperson',
+  'thirdperson',
+  'isometric',
+  'birdseye',
+];
+let selectedTool = cameraModes[0];
+const cameraButton = document.getElementById('key-x');
+['click', 'keydown'].forEach(event => {
+  cameraButton.addEventListener(event, async e => {
+    const index = cameraModes.indexOf(selectedTool);
+    let nextIndex;
+    if (!e.shiftKey) {
+      nextIndex = (index + 1) % cameraModes.length;
+    } else {
+      nextIndex = index - 1;
+      if (nextIndex <= 0) {
+        nextIndex = cameraModes.length - 1;
+      }
+    }
+    if (nextIndex === 0) {
+      nextIndex = 1;
+    }
+
+    const newSelectedTool = cameraModes[nextIndex];
+    if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
+      await _requestPointerLock();
+    }
+
+    selectTool(newSelectedTool);
+  });
+});
+/* for (let i = 0; i < tools.length; i++) {
   const tool = tools[i]
   tool.addEventListener('click', async e => {
     e.preventDefault();
@@ -63,7 +90,7 @@ for (let i = 0; i < tools.length; i++) {
 
     selectTool(newSelectedTool);
   });
-}
+} */
 const selectTool = newSelectedTool => {
   const oldSelectedTool = selectedTool;
   selectedTool = newSelectedTool;
@@ -139,7 +166,6 @@ const selectTool = newSelectedTool => {
 };
 
 const cameraManager = {
-  tools,
   birdsEyeHeight,
   thirdPersonCameraOffset,
   isometricCameraOffset,
