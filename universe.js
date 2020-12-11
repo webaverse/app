@@ -354,21 +354,61 @@ const update = () => {
   if (warpMesh.visible) {
     warpMesh.material.uniforms.uTime.value = (Date.now() % 2000) / 2000;
     warpMesh.material.uniforms.uTime.needsUpdate = true;
+  }
+};
+const _invertGeometry = geometry => {
+  for (let i = 0; i < geometry.index.array.length; i += 3) {
+    const tmp = geometry.index.array[i];
+    geometry.index.array[i] = geometry.index.array[i+1];
+    geometry.index.array[i+1] = tmp;
+  }
+  return geometry;
+};
+const canEnterWorld = () => !!highlightedWorld && !warpMesh.visible; /*&& !animation*/
+const enterWorld = async () => {
+  const w = currentWorld ? null : highlightedWorld;
 
-    physicsManager.getAvatarWorldObject(localObject);
-    physicsManager.getAvatarCapsule(localVector);
-    localVector.add(localObject.position);
-    const avatarAABB = localBox.set(
-      localVector2.copy(localVector)
-        .add(localVector4.set(-localVector.radius, -localVector.radius - localVector.halfHeight, -localVector.radius)),
-      localVector3.copy(localVector)
-        .add(localVector4.set(localVector.radius, localVector.radius + localVector.halfHeight, localVector.radius)),
-    );
-    const parcelAABB = localBox2.set(
-      localVector2.fromArray(warpMesh.world.extents, 0),
-      localVector3.fromArray(warpMesh.world.extents, 3),
-    );
+  warpMesh.visible = true;
+
+  /* var tmp;
+  for (var f = 0; f < geometry.faces.length; f++) {
+    tmp = geometry.faces[f].clone();
+    geometry.faces[f].a = tmp.c;
+    geometry.faces[f].c = tmp.a;
+  } */
+
+  localBox.set(
+    localVector.fromArray(highlightedWorld.extents, 0),
+    localVector2.fromArray(highlightedWorld.extents, 3),
+  );
+  const center = localBox.getCenter(localVector);
+  const size = localBox.getSize(localVector2);
+  // console.log('got center size', center.toArray(), size.toArray());
+
+  const geometry = _invertGeometry(
+    new THREE.BoxBufferGeometry(size.x, size.y, size.z)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(center.x, center.y, center.z))
+  );
+  const mesh = new THREE.Mesh(geometry, new THREE.Material({
+    color: 0x1111111,
+  }));
+  const warpPhysicsId = physicsManager.addGeometry(mesh);
+
+  if (w) {
     {
+      physicsManager.getAvatarWorldObject(localObject);
+      physicsManager.getAvatarCapsule(localVector);
+      localVector.add(localObject.position);
+      const avatarAABB = localBox.set(
+        localVector2.copy(localVector)
+          .add(localVector4.set(-localVector.radius, -localVector.radius - localVector.halfHeight, -localVector.radius)),
+        localVector3.copy(localVector)
+          .add(localVector4.set(localVector.radius, localVector.radius + localVector.halfHeight, localVector.radius)),
+      );
+      const parcelAABB = localBox2.set(
+        localVector2.fromArray(w.extents, 0),
+        localVector3.fromArray(w.extents, 3),
+      );
       localVector.setScalar(0);
       let changed = false;
       if (avatarAABB.min.x < parcelAABB.min.x) {
@@ -422,48 +462,6 @@ const update = () => {
         }
       }
     }
-  }
-};
-const _invertGeometry = geometry => {
-  for (let i = 0; i < geometry.index.array.length; i += 3) {
-    const tmp = geometry.index.array[i];
-    geometry.index.array[i] = geometry.index.array[i+1];
-    geometry.index.array[i+1] = tmp;
-  }
-  return geometry;
-};
-const canEnterWorld = () => !!highlightedWorld && !warpMesh.visible; /*&& !animation*/
-const enterWorld = async () => {
-  const w = currentWorld ? null : highlightedWorld;
-
-  warpMesh.visible = true;
-
-  /* var tmp;
-  for (var f = 0; f < geometry.faces.length; f++) {
-    tmp = geometry.faces[f].clone();
-    geometry.faces[f].a = tmp.c;
-    geometry.faces[f].c = tmp.a;
-  } */
-
-  localBox.set(
-    localVector.fromArray(highlightedWorld.extents, 0),
-    localVector2.fromArray(highlightedWorld.extents, 3),
-  );
-  const center = localBox.getCenter(localVector);
-  const size = localBox.getSize(localVector2);
-  // console.log('got center size', center.toArray(), size.toArray());
-
-  const geometry = _invertGeometry(
-    new THREE.BoxBufferGeometry(size.x, size.y, size.z)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(center.x, center.y, center.z))
-  );
-  const mesh = new THREE.Mesh(geometry, new THREE.Material({
-    color: 0x1111111,
-  }));
-  const warpPhysicsId = physicsManager.addGeometry(mesh);
-
-  if (w) {
-    warpMesh.world = w;
 
     clearWorld();
 
