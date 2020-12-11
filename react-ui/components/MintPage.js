@@ -131,12 +131,15 @@ const MintingPage = () => {
             <img src=${imagePreview} className="mintNftImagePreview"/>
           `}
         </div>
-        <div>
-          <h3 className="mintPageBodyTitleTwo">Name, Description</h3>
+        <div className="mintPageFormTwoContainer">
+          <h3 className="mintNftNameLabel">Name</h3>
           <input type="text" className="mintNftName" placeholder="Name" onChange=${handleSetName} />
-          <input type="text" className="mintNftDescription" placeholder="Description" onChange=${handleSetDescription} />
-          <button className="button mintPageContinueButton" onClick=${submitDetails}>Continue</button>
-          <button className="button mintPageBackButton" onClick=${backToUpload}>Upload Again</button>
+          <h3 className="mintNftNameLabel">Description</h3>
+          <textarea className="mintNftDescription" rows="2" maxLength="54" placeholder="Description" onChange=${handleSetDescription} />
+          <div>
+            <button className="button mintPageBackButton" onClick=${backToUpload}>Upload Again</button>
+            <button className="button mintPageContinueButton" onClick=${submitDetails}>Continue</button>
+          </div>
         </div>
       </form>
     </div>
@@ -144,10 +147,61 @@ const MintingPage = () => {
   
     const pageThree = html`
     <div className="mintPageBody">
-      <h3 className="mintPageBodyTitleThree">Ready For Minting</h3>
-      <input type="number" className="mintNftImageUpload" value=1 onChange=${(e) => setQuantity(e.target.value)} />
-      <button className="button mintPageMintButton" onClick=${mintNft}>Mint NFT</button>
-      <button className="button mintPageBackButton" onClick=${backToDetails}>Edit Asset</button>
+      <form className="mintPageBodyFormThree flex">
+        <div className="card">
+          <div className="cardTop flex">
+            <div className="flex">
+              <div className="cardTopItemName">my cool item</div>
+              <div className="flex">
+                <div className="cardTopCreator">
+                  <img className="cardTopCreatorIcon" src='components/AssetCardAdditional/tempImageIcon.png' />
+                </div>
+                <div className="cardTopOwner">
+                  <img className="cardTopOwnerIcon" src='components/AssetCardAdditional/tempImageIcon.png' />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="cardAvatar flex">
+            <img className="cardAvatarImg" src='components/AssetCardAdditional/tempImage.png' />
+          </div>
+          <div className="cardMain">
+            <div className="cardMainInfo flex">
+              <div className="cardMainNumber">10/10</div>
+              <div className="cardMainGrease">1208Ψ</div>
+            </div>          
+            <div className="cardMainDescription flex">
+              <p>This is the first avatar I’ve uploaded to the Webaverse.</p>
+            </div>          
+            <div className="cardMainHash flex">
+              <p>0x35ddcd7d8b66f1331f77186af17dbcf231909433</p>
+            </div>          
+          </div>
+        </div>
+        <div className="mintPageFormThreeContainer flex">
+          <h3 className="mintPageBodyTitleThree">Ready For Minting</h3>
+          <div className="flex">  
+            <span className="mintPageBodyWalletSing">This token will be deposited in your Webaverse wallet with the address:</span>
+            <span className="mintPageBodyWalletAdress">0x35ddcd7d8b66f1331f77186af17dbcf231909433</span>
+          </div>
+          <div className="mintPageBodyQuantity flex">
+            <span>quantity</span>
+            <input type="number" className="mintPageBodyQuantitySet" value=1 onChange=${(e) => setQuantity(e.target.value)} />
+          </div>
+          <div className="mintPageBodyMintingFee flex">
+            <span>minting fee:</span>
+            <span className="mintPageBodyMintingFeeValue">2.5Ψ</span>
+          </div>
+          <div className="mintPageBodyYouHave flex unselected">
+            <span>you have:</span>
+            <span className="mintPageBodyYouHaveValue">1208Ψ</span>
+          </div>
+          <div className="mintPageButtons flex">
+            <button className="button mintPageBackButton" onClick=${backToDetails}>Edit Asset</button>
+            <button className="button mintPageMintButton" onClick=${mintNft}>Mint NFT</button>
+          </div>
+        </div>
+      </form>
     </div>
   `
 
