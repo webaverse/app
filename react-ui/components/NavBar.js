@@ -6,7 +6,7 @@ import css from '../web_modules/csz.js';
 
 const styles = css`/components/NavBar.css`
 
-const defaultAvatarImage = "../images/defaultaccount.png";
+const defaultAvatarImage = "/images/defaultaccount.png";
 
 const NavBarUserLoginForm = () => {
 

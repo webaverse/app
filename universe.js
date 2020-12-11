@@ -1,17 +1,23 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {rigManager} from './rig.js';
-import {renderer, scene} from './app-object.js';
+import {renderer, scene, camera, dolly} from './app-object.js';
 import {Sky} from './Sky.js';
 import {world} from './world.js';
 import {GuardianMesh} from './land.js';
 import weaponsManager from './weapons-manager.js';
+import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
+import cameraManager from './camera-manager.js';
 import {makeTextMesh} from './vr-ui.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localBox = new THREE.Box3();
+const localBox2 = new THREE.Box3();
+const localObject = new THREE.Object3D();
 
 const blueColor = 0x42a5f5;
 const greenColor = 0xaed581;
@@ -154,6 +160,7 @@ const _makeLabelMesh = text => {
 const worldObjects = universeSpecs.parcels.map(spec => {
   const guardianMesh = GuardianMesh(spec.extents, blueColor);
   guardianMesh.name = spec.name;
+  guardianMesh.extents = spec.extents;
   const worldObject = minimap.addWorld(spec.extents);
   guardianMesh.worldObject = worldObject;
   scene.add(guardianMesh);
@@ -350,11 +357,120 @@ const update = () => {
     warpMesh.material.uniforms.uTime.needsUpdate = true;
   }
 };
+const _invertGeometry = geometry => {
+  for (let i = 0; i < geometry.index.array.length; i += 3) {
+    const tmp = geometry.index.array[i];
+    geometry.index.array[i] = geometry.index.array[i+1];
+    geometry.index.array[i+1] = tmp;
+  }
+  return geometry;
+};
 const canEnterWorld = () => !!highlightedWorld && !warpMesh.visible; /*&& !animation*/
 const enterWorld = async () => {
   const w = currentWorld ? null : highlightedWorld;
 
   warpMesh.visible = true;
+
+  /* var tmp;
+  for (var f = 0; f < geometry.faces.length; f++) {
+    tmp = geometry.faces[f].clone();
+    geometry.faces[f].a = tmp.c;
+    geometry.faces[f].c = tmp.a;
+  } */
+
+  localBox.set(
+    localVector.fromArray(highlightedWorld.extents, 0),
+    localVector2.fromArray(highlightedWorld.extents, 3),
+  );
+  const center = localBox.getCenter(localVector);
+  const size = localBox.getSize(localVector2);
+  // console.log('got center size', center.toArray(), size.toArray());
+
+  const geometry = _invertGeometry(
+    new THREE.BoxBufferGeometry(size.x, size.y, size.z)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(center.x, center.y, center.z))
+  );
+  const mesh = new THREE.Mesh(geometry, new THREE.Material({
+    color: 0x1111111,
+  }));
+  const warpPhysicsId = physicsManager.addGeometry(mesh);
+
+  const _containAvatar = () => {
+    physicsManager.getAvatarWorldObject(localObject);
+    physicsManager.getAvatarCapsule(localVector);
+    localVector.add(localObject.position);
+    const avatarAABB = localBox.set(
+      localVector2.copy(localVector)
+        .add(localVector4.set(-localVector.radius, -localVector.radius - localVector.halfHeight, -localVector.radius)),
+      localVector3.copy(localVector)
+        .add(localVector4.set(localVector.radius, localVector.radius + localVector.halfHeight, localVector.radius)),
+    );
+    const parcelAABB = localBox2.set(
+      localVector2.fromArray(highlightedWorld.extents, 0),
+      localVector3.fromArray(highlightedWorld.extents, 3),
+    );
+    localVector.setScalar(0);
+    let changed = false;
+    if (avatarAABB.min.x < parcelAABB.min.x) {
+      const dx = parcelAABB.min.x - avatarAABB.min.x;
+      localVector.x += dx;
+      avatarAABB.min.x += dx;
+      avatarAABB.max.x += dx;
+      changed = true;
+    }
+    if (avatarAABB.max.x > parcelAABB.max.x) {
+      const dx = avatarAABB.max.x - parcelAABB.max.x;
+      localVector.x -= dx;
+      avatarAABB.min.x -= dx;
+      avatarAABB.max.x -= dx;
+      changed = true;
+    }
+    if (avatarAABB.min.y < parcelAABB.min.y) {
+      const dy = parcelAABB.min.y - avatarAABB.min.y;
+      localVector.y += dy;
+      avatarAABB.min.y += dy;
+      avatarAABB.max.y += dy;
+      changed = true;
+    }
+    if (avatarAABB.max.y > parcelAABB.max.y) {
+      const dy = avatarAABB.max.y - parcelAABB.max.y;
+      localVector.y -= dy;
+      avatarAABB.min.y -= dy;
+      avatarAABB.max.y -= dy;
+      changed = true;
+    }
+    if (avatarAABB.min.z < parcelAABB.min.z) {
+      const dz = parcelAABB.min.z - avatarAABB.min.z;
+      localVector.z += dz;
+      avatarAABB.min.z += dz;
+      avatarAABB.max.z += dz;
+      changed = true;
+    }
+    if (avatarAABB.max.z > parcelAABB.max.z) {
+      const dz = avatarAABB.max.z - parcelAABB.max.z;
+      localVector.z -= dz;
+      avatarAABB.min.z -= dz;
+      avatarAABB.max.z -= dz;
+      changed = true;
+    }
+    if (changed) {
+      if (renderer.xr.getSession()) {
+        dolly.position.add(localVector);
+      } else {
+        camera.position.add(localVector);
+        localVector.copy(physicsManager.getAvatarCameraOffset());
+
+        const selectedTool = cameraManager.getTool();
+        if (selectedTool !== 'birdseye') {
+          localVector.applyQuaternion(camera.quaternion);
+        }
+
+        camera.position.sub(localVector);
+        camera.updateMatrixWorld();
+      }
+    }
+  };
+  _containAvatar();
 
   if (w) {
     clearWorld();
@@ -374,17 +490,21 @@ const enterWorld = async () => {
       j = j.result;
     }
     const {publicIp, privateIp, port} = j;
-    await world.connectRoom(name, `${publicIp}:${port}`);
+    await world.connectRoom(name, `worlds.exokit.org:${port}`);
 
     world.initializeIfEmpty(universeSpecs.userObject);
   } else {
-    await world.disconnectRoom();
+    await world.disconnectRoom(warpPhysicsId);
 
     // clearWorld();
     loadDefaultWorld();
   }
 
-  warpMesh.visible = false;
+  setTimeout(() => {
+    warpMesh.visible = false;
+
+    physicsManager.removeGeometry(warpPhysicsId);
+  }, 3000);
 
   currentWorld = w;
 

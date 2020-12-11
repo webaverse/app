@@ -381,6 +381,14 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
+    case 80: { // P
+      if (weaponsManager.destroyWorld()) {
+        /* e.preventDefault();
+        e.stopPropagation();
+        document.getElementById('key-m').click(); */
+      }
+      break;
+    }
     case 16: { // shift
       if (document.pointerLockElement) {
         ioManager.keys.shift = true;
@@ -517,7 +525,7 @@ const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
   const selectedTool = cameraManager.getTool();
   if (selectedTool === 'thirdperson') {
-    camera.position.add(localVector.copy(cameraManager.avatarCameraOffset).applyQuaternion(camera.quaternion));
+    camera.position.add(localVector.copy(cameraManager.thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'isometric') {
     camera.position.add(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'birdseye') {
@@ -533,7 +541,7 @@ const _updateMouseMovement = e => {
   }
 
   if (selectedTool === 'thirdperson') {
-    camera.position.sub(localVector.copy(cameraManager.avatarCameraOffset).applyQuaternion(camera.quaternion));
+    camera.position.sub(localVector.copy(cameraManager.thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'isometric') {
     camera.position.sub(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
   }

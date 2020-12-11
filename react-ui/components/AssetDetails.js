@@ -29,7 +29,7 @@ export const AssetDetails = ({
     minterAddress,
     minterUsername,
     networkType,
-    salePrice,
+    buyPrice,
     hideDetails,
     assetType
 }) => {
@@ -42,7 +42,7 @@ export const AssetDetails = ({
     const userCreatedThisAsset = minterAddress === state.address;    
 
     // Otherwise, is this asset for sale?
-    const isForSale = salePrice !== undefined && salePrice !== null && salePrice !== ""
+    const isForSale = buyPrice !== undefined && buyPrice !== null && buyPrice !== ""
 
     const setAvatar = (e) => {
         e.preventDefault();
@@ -101,9 +101,11 @@ export const AssetDetails = ({
                     <${AssetCard}
                         key="${id}"
                         assetName=${name}
-                        assetDescription=${description}
-                        assetImage=${image}
-                        assetHash=${hash}
+                        ext=${ext}
+                        description=${description}
+                        buyPrice=${buyPrice}
+                        image=${image}
+                        hash=${hash}
                         numberInEdition=${numberInEdition}
                         totalSupply=${totalSupply}
                         balance=${balance}
@@ -116,7 +118,7 @@ export const AssetDetails = ({
                         minterUsername=${minterUsername}
                         minterAddress=${minterAddress}
                         cardSize=${CardSize.Large}
-                        networkType=${networkType}
+                        networkType='webaverse'
                     /> 
                 </div>
                 <div className="assetDetailsRightColumn">
@@ -148,7 +150,7 @@ export const AssetDetails = ({
                         
                     ${!userOwnsThisAsset && html`
                         ${isForSale ? html`
-                        <p>Sale price is ${salePrice}</p>
+                        <p>Sale price is ${buyPrice}</p>
                         <button className="assetDetailsButton" onClick=${buyAsset}>Buy Asset</button>
                         ` : html`
                         <p>Not for sale</p>
