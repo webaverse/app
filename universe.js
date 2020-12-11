@@ -489,7 +489,7 @@ const enterWorld = async () => {
       j = j.result;
     }
     const {publicIp, privateIp, port} = j;
-    await world.connectRoom(name, `${publicIp}:${port}`);
+    await world.connectRoom(name, `worlds.exokit.org:${port}`);
 
     world.initializeIfEmpty(universeSpecs.userObject);
   } else {
