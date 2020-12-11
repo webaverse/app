@@ -20,7 +20,7 @@ const getAvatarHeight = getFullAvatarHeight; // () => getFullAvatarHeight() * 0.
   }
 }; */
 const birdsEyeHeight = 10;
-const avatarCameraOffset = new THREE.Vector3(0, 0, -1.5);
+const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2);
 const tools = [
   'key-v',
@@ -74,7 +74,7 @@ const selectTool = newSelectedTool => {
 
     switch (oldSelectedTool) {
       case 'thirdperson': {
-        camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+        camera.position.add(localVector.copy(thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
         camera.updateMatrixWorld();
         // setCamera(camera);
         break;
@@ -103,7 +103,7 @@ const selectTool = newSelectedTool => {
         break;
       }
       case 'thirdperson': {
-        camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+        camera.position.sub(localVector.copy(thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
         camera.updateMatrixWorld();
 
         // decapitate = false;
@@ -141,7 +141,7 @@ const selectTool = newSelectedTool => {
 const cameraManager = {
   tools,
   birdsEyeHeight,
-  avatarCameraOffset,
+  thirdPersonCameraOffset,
   isometricCameraOffset,
   getFullAvatarHeight,
   getAvatarHeight,

@@ -525,7 +525,7 @@ const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
   const selectedTool = cameraManager.getTool();
   if (selectedTool === 'thirdperson') {
-    camera.position.add(localVector.copy(cameraManager.avatarCameraOffset).applyQuaternion(camera.quaternion));
+    camera.position.add(localVector.copy(cameraManager.thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'isometric') {
     camera.position.add(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'birdseye') {
@@ -541,7 +541,7 @@ const _updateMouseMovement = e => {
   }
 
   if (selectedTool === 'thirdperson') {
-    camera.position.sub(localVector.copy(cameraManager.avatarCameraOffset).applyQuaternion(camera.quaternion));
+    camera.position.sub(localVector.copy(cameraManager.thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'isometric') {
     camera.position.sub(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
   }
