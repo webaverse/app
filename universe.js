@@ -417,8 +417,7 @@ const update = () => {
         if (renderer.xr.getSession()) {
           dolly.position.add(localVector);
         } else {
-          camera.position
-            .add(localVector);
+          camera.position.add(localVector);
           camera.updateMatrixWorld();
         }
       }
