@@ -150,11 +150,11 @@ class XRChannelConnection extends EventTarget {
           Y.applyUpdate(this.state, new Uint8Array(e.data));
         }
       });
-      dialogClient._protoo._transport._ws.addEventListener('close', () => {
+      /* dialogClient._protoo._transport._ws.addEventListener('close', () => {
         this.state.off('update', _update);
-      });
+      }); */
       const _update = b => {
-        if (this.open) {
+        if (dialogClient._protoo._transport._ws.readyState === WebSocket.OPEN) {
           dialogClient._protoo._transport._ws.send(b);
         }
       };
