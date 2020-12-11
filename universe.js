@@ -8,6 +8,7 @@ import {GuardianMesh} from './land.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
+import cameraManager from './camera-manager.js';
 import {makeTextMesh} from './vr-ui.js';
 
 const localVector = new THREE.Vector3();
@@ -458,6 +459,14 @@ const enterWorld = async () => {
           dolly.position.add(localVector);
         } else {
           camera.position.add(localVector);
+          localVector.copy(physicsManager.getAvatarCameraOffset());
+
+          const selectedTool = cameraManager.getTool();
+          if (selectedTool !== 'birdseye') {
+            localVector.applyQuaternion(camera.quaternion);
+          }
+
+          camera.position.sub(localVector);
           camera.updateMatrixWorld();
         }
       }
