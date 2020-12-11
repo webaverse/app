@@ -186,7 +186,9 @@ class XRChannelConnection extends EventTarget {
   } */
 
   send(s) {
-    this.dataChannel.send(s);
+    if (this.dataChannel.readyState === 'open') {
+      this.dataChannel.send(s);
+    }
   }
   
   async setMicrophoneMediaStream(mediaStream) {
