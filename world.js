@@ -32,11 +32,26 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
 
+let pendingAnalyticsData = {};
+setInterval(() => {
+  Object.keys(pendingAnalyticsData).map(item => {
+    fetch(item, { method: 'POST', body: JSON.stringify(pendingAnalyticsData[item]) }).then(res => {
+      return res.json();
+    }).then(data => {
+      console.log(data);
+    }).catch(err => {
+      console.error(err);
+    });
+    delete pendingAnalyticsData[item];
+  });
+}, 10000);
+
 let pointers = [];
 let currentIndex = 0;
 setInterval(() => {
   if (pointers.length <= 0 && document.querySelector("meta[name=monetization]")) {
     document.querySelector("meta[name=monetization]").remove();
+    document.monetization.removeEventListener('monetizationprogress', monetizationProgress);
   }
   if (pointers.length <= 0 || !document.monetization) return;
 
@@ -45,6 +60,25 @@ setInterval(() => {
     monetizationTag.name = 'monetization';
     monetizationTag.content = pointers[currentIndex].monetizationPointer;
     document.head.appendChild(monetizationTag);
+    document.monetization.addEventListener('monetizationprogress', function monetizationProgress (e) {
+      const current = pointers[currentIndex];
+      const currentMonetizationPointer = encodeURIComponent(current.monetizationPointer);
+      const apiUrl = `https://api.metaverse.website/monetization/${current.contentId}/${current.ownerAddress}/${currentMonetizationPointer}`;
+      if (pendingAnalyticsData[apiUrl]) {
+        const existing = pendingAnalyticsData[apiUrl];
+        pendingAnalyticsData[apiUrl] = {
+          amount: parseFloat(existing.amount) + parseFloat(e.detail.amount),
+          assetCode: existing.assetCode,
+          assetScale: existing.assetScale
+        };
+      } else {
+        pendingAnalyticsData[apiUrl] = {
+          amount: parseFloat(e.detail.amount),
+          assetCode: e.detail.assetCode,
+          assetScale: e.detail.assetScale
+        };
+      }
+    });
   } else if (document.querySelector("meta[name=monetization]")) {
     document.querySelector("meta[name=monetization]").setAttribute("content", pointers[currentIndex].monetizationPointer);
   }
@@ -958,10 +992,10 @@ world.addEventListener('trackedobjectadd', async e => {
     const minimapObject = minimap.addObject(mesh);
     mesh.minimapObject = minimapObject;
 
-    if (token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
+    if (contentId && instanceId && token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
       const monetizationPointer = token.owner.monetizationPointer;
       const ownerAddress = token.owner.address.toLowerCase();
-      pointers.push({ "instanceId": instanceId, "monetizationPointer": monetizationPointer, "ownerAddress": ownerAddress });
+      pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
     }
 
     objects.push(mesh);
