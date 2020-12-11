@@ -197,21 +197,21 @@ const _applyGravity = timeDiff => {
     physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y);
   }
 };
-const _getAvatarWorldObject = () => {
-  if (renderer.xr.getSession()) {
-    const xrCamera = renderer.xr.getCamera(camera);
-    localObject.matrix.copy(xrCamera.matrix)
-      .premultiply(dolly.matrix)
-      .decompose(localObject.position, localObject.quaternion, localObject.scale);
-    return localObject;
-  } else {
-    localObject.matrix.copy(camera.matrix)
-      .premultiply(dolly.matrix)
-      .decompose(localObject.position, localObject.quaternion, localObject.scale);
-    return localObject;
-  }
+const _getAvatarWorldObject = o => {
+  const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+  o.matrix.copy(camera.matrix)
+    .premultiply(dolly.matrix)
+    .decompose(o.position, o.quaternion, o.scale);
+  return o;
 };
 physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
+const _getAvatarCapsule = v => {
+  v.set(0, -rigManager.localRig.height/2, 0);
+  v.radius = 0.3;
+  v.halfHeight = Math.max(rigManager.localRig.height/2 - v.radius, 0);
+  return v;
+};
+physicsManager.getAvatarCapsule = _getAvatarCapsule;
 const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
   const oldVelocity = localVector3.copy(physicsManager.velocity);
 
@@ -275,11 +275,9 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
 const _collideCapsule = (() => {
   const localVector = new THREE.Vector3();
   return (p, q) => {
-    localVector.copy(p);
-    localVector.y -= rigManager.localRig.height/2;
-    const radius = 0.3;
-    const halfHeight = Math.max(rigManager.localRig.height/2 - radius, 0);
-    return geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, localVector, q, 1);
+    _getAvatarCapsule(localVector);
+    localVector.add(p);
+    return geometryManager.geometryWorker.collidePhysics(geometryManager.physics, localVector.radius, localVector.halfHeight, localVector, q, 1);
   };
 })();
 const applyVelocity = (() => {
@@ -323,7 +321,7 @@ const _copyPQS = (dst, src) => {
   dst.scale.copy(src.scale);
 };
 const _updatePhysics = timeDiff => {
-  const avatarWorldObject = _getAvatarWorldObject();
+  const avatarWorldObject = _getAvatarWorldObject(localObject);
 
   if (renderer.xr.getSession()) {
     _applyGravity(timeDiff);
@@ -338,10 +336,8 @@ const _updatePhysics = timeDiff => {
       );
     } else {
       physicsManager.velocity.y = 0;
-      localMatrix.copy(avatarWorldObject.matrix)
-        .premultiply(dolly.matrix);
-      _collideItems(localMatrix);
-      // _collideChunk(localMatrix);
+      _collideItems(avatarWorldObject.matrix);
+      // _collideChunk(avatarWorldObject.matrix);
       rigManager.setLocalRigMatrix(null);
     }
   } else if (document.pointerLockElement) {
