@@ -789,7 +789,8 @@ world.connectRoom = async (roomName, worldURL) => {
 world.disconnectRoom = () => {
   channelConnection.close();
 
-  for (const object of objects) {
+  const localObjects = objects.slice();
+  for (const object of localObjects) {
     world.removeObject(object.instanceId);
   }
 
