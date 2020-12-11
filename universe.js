@@ -1,7 +1,7 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {rigManager} from './rig.js';
-import {renderer, scene} from './app-object.js';
+import {renderer, scene, camera, dolly} from './app-object.js';
 import {Sky} from './Sky.js';
 import {world} from './world.js';
 import {GuardianMesh} from './land.js';
@@ -12,7 +12,11 @@ import {makeTextMesh} from './vr-ui.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
+const localVector4 = new THREE.Vector3();
 const localBox = new THREE.Box3();
+const localBox2 = new THREE.Box3();
+const localObject = new THREE.Object3D();
 
 const blueColor = 0x42a5f5;
 const greenColor = 0xaed581;
@@ -350,6 +354,75 @@ const update = () => {
   if (warpMesh.visible) {
     warpMesh.material.uniforms.uTime.value = (Date.now() % 2000) / 2000;
     warpMesh.material.uniforms.uTime.needsUpdate = true;
+
+    physicsManager.getAvatarWorldObject(localObject);
+    physicsManager.getAvatarCapsule(localVector);
+    localVector.add(localObject.position);
+    const avatarAABB = localBox.set(
+      localVector2.copy(localVector)
+        .add(localVector4.set(-localVector.radius, -localVector.radius - localVector.halfHeight, -localVector.radius)),
+      localVector3.copy(localVector)
+        .add(localVector4.set(localVector.radius, localVector.radius + localVector.halfHeight, localVector.radius)),
+    );
+    const parcelAABB = localBox2.set(
+      localVector2.fromArray(warpMesh.world.extents, 0),
+      localVector3.fromArray(warpMesh.world.extents, 3),
+    );
+    {
+      localVector.setScalar(0);
+      let changed = false;
+      if (avatarAABB.min.x < parcelAABB.min.x) {
+        const dx = parcelAABB.min.x - avatarAABB.min.x;
+        localVector.x += dx;
+        avatarAABB.min.x += dx;
+        avatarAABB.max.x += dx;
+        changed = true;
+      }
+      if (avatarAABB.max.x > parcelAABB.max.x) {
+        const dx = avatarAABB.max.x - parcelAABB.max.x;
+        localVector.x -= dx;
+        avatarAABB.min.x -= dx;
+        avatarAABB.max.x -= dx;
+        changed = true;
+      }
+      if (avatarAABB.min.y < parcelAABB.min.y) {
+        const dy = parcelAABB.min.y - avatarAABB.min.y;
+        localVector.y += dy;
+        avatarAABB.min.y += dy;
+        avatarAABB.max.y += dy;
+        changed = true;
+      }
+      if (avatarAABB.max.y > parcelAABB.max.y) {
+        const dy = avatarAABB.max.y - parcelAABB.max.y;
+        localVector.y -= dy;
+        avatarAABB.min.y -= dy;
+        avatarAABB.max.y -= dy;
+        changed = true;
+      }
+      if (avatarAABB.min.z < parcelAABB.min.z) {
+        const dz = parcelAABB.min.z - avatarAABB.min.z;
+        localVector.z += dz;
+        avatarAABB.min.z += dz;
+        avatarAABB.max.z += dz;
+        changed = true;
+      }
+      if (avatarAABB.max.z > parcelAABB.max.z) {
+        const dz = avatarAABB.max.z - parcelAABB.max.z;
+        localVector.z -= dz;
+        avatarAABB.min.z -= dz;
+        avatarAABB.max.z -= dz;
+        changed = true;
+      }
+      if (changed) {
+        if (renderer.xr.getSession()) {
+          dolly.position.add(localVector);
+        } else {
+          camera.position
+            .add(localVector);
+          camera.updateMatrixWorld();
+        }
+      }
+    }
   }
 };
 const _invertGeometry = geometry => {
@@ -373,12 +446,12 @@ const enterWorld = async () => {
     geometry.faces[f].c = tmp.a;
   } */
 
-  const box = new THREE.Box3(
-    new THREE.Vector3().fromArray(highlightedWorld.extents, 0),
-    new THREE.Vector3().fromArray(highlightedWorld.extents, 3),
+  localBox.set(
+    localVector.fromArray(highlightedWorld.extents, 0),
+    localVector2.fromArray(highlightedWorld.extents, 3),
   );
-  const center = box.getCenter(new THREE.Vector3());
-  const size = box.getSize(new THREE.Vector3());
+  const center = localBox.getCenter(localVector);
+  const size = localBox.getSize(localVector2);
   // console.log('got center size', center.toArray(), size.toArray());
 
   const geometry = _invertGeometry(
@@ -391,6 +464,8 @@ const enterWorld = async () => {
   const warpPhysicsId = physicsManager.addGeometry(mesh);
 
   if (w) {
+    warpMesh.world = w;
+
     clearWorld();
 
     const {name} = w;
