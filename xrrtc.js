@@ -29,7 +29,7 @@ class XRChannelConnection extends EventTarget {
     this.connectionId = makeId();
     this.peerConnections = [];
     this.dataChannel = null;
-    this.open = true;
+    // this.open = true;
 
     // console.log('local connection id', this.connectionId);
 
@@ -171,7 +171,7 @@ class XRChannelConnection extends EventTarget {
   } */
 
   close() {
-    this.open = false;
+    // this.open = false;
     this.dialogClient.close();
   }
 
