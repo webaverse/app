@@ -29,6 +29,7 @@ class XRChannelConnection extends EventTarget {
     this.connectionId = makeId();
     this.peerConnections = [];
     this.dataChannel = null;
+    // this.open = true;
 
     // console.log('local connection id', this.connectionId);
 
@@ -100,7 +101,7 @@ class XRChannelConnection extends EventTarget {
       });
       _dataChannel.addEventListener('close', e => {
         console.warn('data channel close', e);
-
+        // this.dataChannel = null;
         if (--peerConnection.numStreams <= 0) {
           peerConnection.close();
           this.peerConnections.splice(this.peerConnections.indexOf(peerConnection), 1);
@@ -149,11 +150,11 @@ class XRChannelConnection extends EventTarget {
           Y.applyUpdate(this.state, new Uint8Array(e.data));
         }
       });
-      dialogClient._protoo._transport._ws.addEventListener('close', () => {
+      /* dialogClient._protoo._transport._ws.addEventListener('close', () => {
         this.state.off('update', _update);
-      });
+      }); */
       const _update = b => {
-        if (this.open) {
+        if (dialogClient._protoo._transport._ws.readyState === WebSocket.OPEN) {
           dialogClient._protoo._transport._ws.send(b);
         }
       };
@@ -170,6 +171,7 @@ class XRChannelConnection extends EventTarget {
   } */
 
   close() {
+    // this.open = false;
     this.dialogClient.close();
   }
 
@@ -184,7 +186,9 @@ class XRChannelConnection extends EventTarget {
   } */
 
   send(s) {
-    this.dataChannel.send(s);
+    if (this.dataChannel.readyState === 'open') {
+      this.dataChannel.send(s);
+    }
   }
   
   async setMicrophoneMediaStream(mediaStream) {
@@ -202,10 +206,10 @@ class XRPeerConnection extends EventTarget {
 
     this.connectionId = peerConnectionId;
     this.channelConnection = channelConnection;
-    this.open = true;
+    // this.open = true;
   }
   close() {
-    this.open = false;
+    // this.open = false;
     this.dispatchEvent(new MessageEvent('close', {
       data: {},
     }));

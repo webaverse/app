@@ -16,14 +16,16 @@ export const PageRouter = () => {
   <${React.Fragment}>
   <${NavBar} />
   <${Router}>
-      <${MyProfile} path="/"/>
+      <${MyProfile} path="/profile/:view"/>
       <${Settings} path="/settings" />
       <${Gallery} path="/gallery" />
       <${MintPage} path="/mint" />
       <${CreatorsPage} path="/creators" />
       <${CreatorProfilePage} path="/creator" />
+      <${CreatorProfilePage} path="/creator/:address" />
+      <${CreatorProfilePage} path="/creator/:address/:view" />
       <${LoginGateway} path="/gateway" />
-      <${NotFoundPage} path="*" />
+      <${MyProfile} path="*" />
     </${Router}>
   </${React.Fragment}>
 
