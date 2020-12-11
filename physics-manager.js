@@ -348,7 +348,7 @@ const _updatePhysics = timeDiff => {
       _applyAvatarPhysics(avatarWorldObject, null, false, false, false, timeDiff);
       _copyPQS(camera, avatarWorldObject);
     } else if (selectedTool === 'thirdperson') {
-      _applyAvatarPhysics(avatarWorldObject, cameraManager.avatarCameraOffset, true, false, true, timeDiff);
+      _applyAvatarPhysics(avatarWorldObject, cameraManager.thirdPersonCameraOffset, true, false, true, timeDiff);
       _copyPQS(camera, avatarWorldObject);
     } else if (selectedTool === 'isometric') {
       _applyAvatarPhysics(avatarWorldObject, cameraManager.isometricCameraOffset, true, true, true, timeDiff);
