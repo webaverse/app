@@ -35,9 +35,8 @@ const localRaycaster = new THREE.Raycaster();
 let pendingAnalyticsData = {};
 setInterval(() => {
   Object.keys(pendingAnalyticsData).forEach(item => {
-    fetch(item, { method: 'POST', body: JSON.stringify(pendingAnalyticsData[item]) }).then(res => {
-      return res.json();
-    }).catch(err => {
+    fetch(item, { method: 'POST', body: JSON.stringify(pendingAnalyticsData[item]) })
+    .catch(err => {
       console.error(err);
     });
     delete pendingAnalyticsData[item];
