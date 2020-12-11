@@ -347,6 +347,7 @@ const _updatePhysics = timeDiff => {
     if (selectedTool === 'firstperson') {
       _applyAvatarPhysics(avatarWorldObject, null, false, false, false, timeDiff);
       _copyPQS(camera, avatarWorldObject);
+      camera.updateMatrixWorld();
     } else if (selectedTool === 'thirdperson') {
       _applyAvatarPhysics(avatarWorldObject, cameraManager.thirdPersonCameraOffset, true, false, true, timeDiff);
       _copyPQS(camera, avatarWorldObject);
