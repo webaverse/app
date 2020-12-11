@@ -1057,35 +1057,30 @@ const _unlatchMediaStream = async () => {
   networkMediaStream = null;
 };
 
-const micOffButton = document.getElementById('mic-off-button');
-const micOnButton = document.getElementById('mic-on-button');
-[micOffButton, micOnButton].forEach(button => {
-  button.addEventListener('click', async e => {
-    const enable = button === micOffButton;
-    if (enable) {
-      micOffButton.style.display = 'none';
-      micOnButton.style.display = null;
-    } else {
-      micOffButton.style.display = null;
-      micOnButton.style.display = 'none';
-    }
+const micButton = document.getElementById('key-v');
+micButton.addEventListener('click', async e => {
+  if (!animationMediaStream) {
+    micButton.classList.add('enabled');
+
     animationMediaStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
     });
-    if (enable) {
-      rigManager.localRig.setMicrophoneMediaStream(animationMediaStream);
 
-      _latchMediaStream();
-    } else {
-      rigManager.localRig.setMicrophoneMediaStream(null);
-      const tracks = animationMediaStream.getTracks();
-      for (const track of tracks) {
-        track.stop();
-      }
+    rigManager.localRig.setMicrophoneMediaStream(animationMediaStream);
 
-      _unlatchMediaStream();
+    _latchMediaStream();
+  } else {
+    micButton.classList.remove('enabled');
+
+    rigManager.localRig.setMicrophoneMediaStream(null);
+    const tracks = animationMediaStream.getTracks();
+    for (const track of tracks) {
+      track.stop();
     }
-  });
+    animationMediaStream = null;
+
+    _unlatchMediaStream();
+  }
 });
 
 // const button = document.getElementById('connectButton');
