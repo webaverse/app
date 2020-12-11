@@ -11,8 +11,8 @@ import {getNextPhysicsId} from './util.js';
 const leftQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0));
 
 const localVector = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
