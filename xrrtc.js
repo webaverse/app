@@ -206,10 +206,10 @@ class XRPeerConnection extends EventTarget {
 
     this.connectionId = peerConnectionId;
     this.channelConnection = channelConnection;
-    this.open = true;
+    // this.open = true;
   }
   close() {
-    this.open = false;
+    // this.open = false;
     this.dispatchEvent(new MessageEvent('close', {
       data: {},
     }));
