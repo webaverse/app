@@ -37,8 +37,6 @@ setInterval(() => {
   Object.keys(pendingAnalyticsData).map(item => {
     fetch(item, { method: 'POST', body: JSON.stringify(pendingAnalyticsData[item]) }).then(res => {
       return res.json();
-    }).then(data => {
-      console.log(data);
     }).catch(err => {
       console.error(err);
     });
