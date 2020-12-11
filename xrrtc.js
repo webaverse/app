@@ -102,6 +102,7 @@ class XRChannelConnection extends EventTarget {
       _dataChannel.addEventListener('close', e => {
         console.warn('data channel close', e);
 
+        this.dataChannel = null;
         if (--peerConnection.numStreams <= 0) {
           peerConnection.close();
           this.peerConnections.splice(this.peerConnections.indexOf(peerConnection), 1);
