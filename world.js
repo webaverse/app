@@ -990,7 +990,7 @@ world.addEventListener('trackedobjectadd', async e => {
     const minimapObject = minimap.addObject(mesh);
     mesh.minimapObject = minimapObject;
 
-    if (contentId && instanceId && token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
+    if (token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
       const monetizationPointer = token.owner.monetizationPointer;
       const ownerAddress = token.owner.address.toLowerCase();
       pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
