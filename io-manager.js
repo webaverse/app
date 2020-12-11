@@ -255,7 +255,7 @@ window.addEventListener('keydown', e => {
       weaponsManager.menuDelete();
       break;
     }
-    /* case 38: { // up
+    case 38: { // up
       weaponsManager.menuVertical(-1);
       break;
     }
@@ -263,7 +263,7 @@ window.addEventListener('keydown', e => {
       weaponsManager.menuVertical(1);
       break;
     }
-    case 37: { // left
+    /* case 37: { // left
       weaponsManager.menuHorizontal(-1, e.shiftKey);
       break;
     }

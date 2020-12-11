@@ -827,7 +827,8 @@ scene.add(deployMesh);
 
 const _enter = () => {
   if (deployMesh.visible) {
-    world.addObject(`https://avaer.github.io/lightsaber/index.js`, null, deployMesh.position, deployMesh.quaternion);
+    const itemSpec = itemSpecs[selectedItemIndex];
+    world.addObject(itemSpec.start_url, null, deployMesh.position, deployMesh.quaternion);
 
     weaponsManager.setMenu(false);
   } else if (highlightedObject) {
@@ -1819,7 +1820,114 @@ const _renderWheel = (() => {
   };
 })();
 
-const menuMesh = (() => {
+const itemSpecs = [
+  {
+    "name": "home",
+    "position": [0, 0, 0],
+    "quaternion": [0, 0, 0, 1],
+    "scale": [1, 1, 1],
+    "start_url": "https://avaer.github.io/home/home.glb",
+    "physics": true
+  },
+  {
+    "name": "physicscube",
+    "position": [0, 0, 0],
+    "quaternion": [0, 0, 0, 1],
+    "scale": [1, 1, 1],
+    "start_url": "https://avaer.github.io/physicscube/index.js"
+  },
+  {
+    "name": "weapons",
+    "position": [-4, 0, -2],
+    "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865475],
+    "scale": [1, 1, 1],
+    "start_url": "https://avaer.github.io/weapons/index.js"
+  },
+  {
+    "name": "hookshot",
+    "position": [0, 1, 0],
+    "quaternion": [0, 0, 0, 1],
+    "scale": [1, 1, 1],
+    "start_url": "https://avaer.github.io/hookshot/index.js"
+  },
+  {
+    "name": "lightsaber",
+    "position": [0, 1, 0],
+    "quaternion": [0, 0, 0, 1],
+    "scale": [1, 1, 1],
+    "start_url": "https://avaer.github.io/lightsaber/index.js"
+  },
+  {
+    "name": "cv",
+    "position": [-2, 0, -12],
+    "quaternion": [0, 0, 0, 1],
+    "scale": [1, 1, 1],
+    "filename": "cv.url",
+    "content": "https://cv.webaverse.com/"
+  },
+  {
+    "name": "dcl",
+    "position": [2, 0, -12],
+    "quaternion": [0, 0, 0, 1],
+    "scale": [1, 1, 1],
+    "filename": "cv.url",
+    "content": "https://dcl.webaverse.com/"
+  },
+  {
+    "name": "h",
+    "position": [0, 0, -12],
+    "quaternion": [0, 0, 0, 1],
+    "scale": [1, 1, 1],
+    "filename": "h.url",
+    "content": "https://h.webaverse.com/"
+  },
+  {
+    "name": "camera",
+    "position": [0, 0, 0],
+    "quaternion": [0, 0, 0, 1],
+    "scale": [1, 1, 1],
+    "start_url": "https://avaer.github.io/planet/index.js"
+  },
+  {
+    "name": "land",
+    "position": [-20, 2, 0],
+    "quaternion": [0, 0, 0, 1],
+    "scale": [1, 1, 1],
+    "start_url": "https://avaer.github.io/land/index.js"
+  },
+];
+const itemsEl = document.getElementById('items');
+for (const itemSpec of itemSpecs) {
+  const div = document.createElement('div');
+  div.classList.add('item');
+  div.innerHTML = `
+    <div class=card>
+      <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
+    </div>
+    <div class=name>${itemSpec.name}</div>
+  `;
+  itemsEl.appendChild(div);
+}
+let selectedItemIndex = 0;
+const _selectItemDelta = offset => {
+  let newSelectedItemIndex = selectedItemIndex + offset;
+  if (newSelectedItemIndex >= itemSpecs.length) {
+    newSelectedItemIndex = 0;
+  } else if (newSelectedItemIndex < 0) {
+    newSelectedItemIndex = itemSpecs.length - 1;
+  }
+  _selectItem(newSelectedItemIndex);
+};
+const _selectItem = newSelectedItemIndex => {
+  selectedItemIndex = newSelectedItemIndex;
+
+  for (const childNode of itemsEl.childNodes) {
+    childNode.classList.remove('selected');
+  }
+  itemsEl.childNodes[selectedItemIndex].classList.add('selected');
+};
+
+/* const menuMesh = (() => {
   const object = new THREE.Object3D();
 
   let offset = 0.1;
@@ -2168,7 +2276,7 @@ const menuMesh = (() => {
   return object;
 })();
 menuMesh.visible = false;
-scene.add(menuMesh);
+scene.add(menuMesh); */
 
 const keyTabEl = document.getElementById('key-tab');
 const keyTab2El = document.getElementById('key-tab-2');
@@ -2318,13 +2426,19 @@ const weaponsManager = {
     menuMesh.visible = newOpen; */
     this.menuOpen = newOpen;
     _updateMenu();
+    if (newOpen) {
+      _selectItem(0);
+    }
   },
-  menuVertical(offset, shift) {
-    menuMesh.offsetVertical(offset, shift);
+  menuVertical(offset/*, shift*/) {
+    if (this.menuOpen) {
+      _selectItemDelta(offset);
+      // menuMesh.offsetVertical(offset, shift);
+    }
   },
-  menuHorizontal(offset, shift) {
+  /* menuHorizontal(offset, shift) {
     menuMesh.offsetHorizontal(offset, shift);
-  },
+  }, */
   menuEnter() {
     // menuMesh.enter();
     _enter();
