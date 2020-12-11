@@ -197,6 +197,21 @@ const _applyGravity = timeDiff => {
     physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y);
   }
 };
+const _getAvatarWorldObject = () => {
+  if (renderer.xr.getSession()) {
+    const xrCamera = renderer.xr.getCamera(camera);
+    localObject.matrix.copy(xrCamera.matrix)
+      .premultiply(dolly.matrix)
+      .decompose(localObject.position, localObject.quaternion, localObject.scale);
+    return localObject;
+  } else {
+    localObject.matrix.copy(camera.matrix)
+      .premultiply(dolly.matrix)
+      .decompose(localObject.position, localObject.quaternion, localObject.scale);
+    return localObject;
+  }
+};
+physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
 const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
   const oldVelocity = localVector3.copy(physicsManager.velocity);
 
@@ -255,7 +270,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
 
   _collideItems(localMatrix);
   // _collideChunk(localMatrix);
-  camera.updateMatrixWorld();
+  // camera.updateMatrixWorld();
 };
 const _collideCapsule = (() => {
   const localVector = new THREE.Vector3();
@@ -302,25 +317,28 @@ physicsManager.setGravity = g => {
   }
 };
 
+const _copyPQS = (dst, src) => {
+  dst.position.copy(src.position);
+  dst.quaternion.copy(src.quaternion);
+  dst.scale.copy(src.scale);
+};
 const _updatePhysics = timeDiff => {
-  const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+  const avatarWorldObject = _getAvatarWorldObject();
+
   if (renderer.xr.getSession()) {
     _applyGravity(timeDiff);
 
     if (ioManager.currentWalked || jumpState) {
-      localObject.matrix.copy(xrCamera.matrix)
-        .premultiply(dolly.matrix)
-        .decompose(localObject.position, localObject.quaternion, localObject.scale);
-      const originalPosition = localObject.position.clone();
+      const originalPosition = avatarWorldObject.position.clone();
 
-      _applyAvatarPhysics(localObject, null, false, false, false, timeDiff);
+      _applyAvatarPhysics(avatarWorldObject, null, false, false, false, timeDiff);
 
       dolly.position.add(
-        localObject.position.clone().sub(originalPosition)
+        avatarWorldObject.position.clone().sub(originalPosition)
       );
     } else {
       physicsManager.velocity.y = 0;
-      localMatrix.copy(xrCamera.matrix)
+      localMatrix.copy(avatarWorldObject.matrix)
         .premultiply(dolly.matrix);
       _collideItems(localMatrix);
       // _collideChunk(localMatrix);
@@ -331,21 +349,25 @@ const _updatePhysics = timeDiff => {
 
     const selectedTool = cameraManager.getTool();
     if (selectedTool === 'firstperson') {
-      _applyAvatarPhysics(camera, null, false, false, false, timeDiff);
+      _applyAvatarPhysics(avatarWorldObject, null, false, false, false, timeDiff);
+      _copyPQS(camera, avatarWorldObject);
     } else if (selectedTool === 'thirdperson') {
-      _applyAvatarPhysics(camera, cameraManager.avatarCameraOffset, true, false, true, timeDiff);
+      _applyAvatarPhysics(avatarWorldObject, cameraManager.avatarCameraOffset, true, false, true, timeDiff);
+      _copyPQS(camera, avatarWorldObject);
     } else if (selectedTool === 'isometric') {
-      _applyAvatarPhysics(camera, cameraManager.isometricCameraOffset, true, true, true, timeDiff);
+      _applyAvatarPhysics(avatarWorldObject, cameraManager.isometricCameraOffset, true, true, true, timeDiff);
+      _copyPQS(camera, avatarWorldObject);
     } else if (selectedTool === 'birdseye') {
-      _applyAvatarPhysics(camera, new THREE.Vector3(0, -cameraManager.birdsEyeHeight + cameraManager.getAvatarHeight(), 0), false, true, true, timeDiff);
+      _applyAvatarPhysics(avatarWorldObject, new THREE.Vector3(0, -cameraManager.birdsEyeHeight + cameraManager.getAvatarHeight(), 0), false, true, true, timeDiff);
+      _copyPQS(camera, avatarWorldObject);
     } else {
-      _collideItems(camera.matrix);
-      // _collideChunk(camera.matrix);
+      _collideItems(avatarWorldObject.matrix);
+      // _collideChunk(avatarWorldObject.matrix);
       rigManager.setLocalRigMatrix(null);
     }
   } else {
-    _collideItems(camera.matrix);
-    // _collideChunk(camera.matrix);
+    _collideItems(avatarWorldObject.matrix);
+    // _collideChunk(avatarWorldObject.matrix);
     rigManager.setLocalRigMatrix(null);
   }
 
