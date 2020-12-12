@@ -29,7 +29,7 @@ const Creator = ({
           <div className="avatarPreview"><img src="${avatarPreview !== "" ? avatarPreview : defaultAvatarImage}" /></div>
           <div className="creatorInfo">
             <div>
-              <div className="creatorName">${name || 'default name'}</div>
+              <div className="creatorName">${name || 'Anonymous'}</div>
               <div className="creatorFtu">${ftu}</div>
             </div>
             <div>

@@ -37,6 +37,8 @@ const NavBarUserLoginForm = () => {
   const copyPrivateKey = (e) => {
     e.preventDefault();
     navigator.clipboard.writeText(state.loginToken.mnemonic);
+    console.log("Login token is", state.loginToken);
+    console.log("Copying mneomnic", state.loginToken.mnemonic);
     console.log("Copied private key to clipboard", state.loginToken.mnemonic);
   };
 

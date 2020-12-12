@@ -78,7 +78,6 @@ export const getAddress = (state) => {
   if (!state.loginToken.mnemonic) return state;
   const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(state.loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
   const address = wallet.getAddressString();
-  console.log("Address is", address);
   
   return { ...state, address };
 };
@@ -222,12 +221,13 @@ export const mintNft = async (file, name, description, quantity, successCallback
         .mul(new web3['sidechain'].utils.BN(1e9)),
     };
 
-    {
+
+    
       const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['sidechain']['NFT']._address, fullAmount.v);
       status = result.status;
       transactionHash = '0x0';
       tokenIds = [];
-    }
+    
     if (status) {
       const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, name, description, quantity);
       status = result.status;
@@ -241,14 +241,14 @@ export const mintNft = async (file, name, description, quantity, successCallback
     status = false;
     transactionHash = '0x0';
     tokenIds = [];
-    errorCallback();
+    errorCallback(err);
   }
 
   return await pullUserObject(state);
 };
 
 export const pullUserObject = async (state) => {
-  console.log("Pulling user object");
+
   const address = getAddressFromMnemonic(state.loginToken.mnemonic);
   const res = await fetch(`https://accounts.webaverse.com/${address}`);
   const result = await res.json();
@@ -283,7 +283,6 @@ export const loginWithEmailCode = async (email, code, state) => {
 };
 
 export const loginWithEmailOrPrivateKey = async (emailOrPrivateKey, state) => {
-  console.log("emailOrPrivateKey is", emailOrPrivateKey);
   const split = emailOrPrivateKey.split(/\s+/).filter(w => !!w);
 
   if (split.length === 12) {
@@ -297,12 +296,8 @@ export const loginWithEmailOrPrivateKey = async (emailOrPrivateKey, state) => {
 };
 
 export const setNewLoginToken = async (newLoginToken, state) => {
-  console.log("State before new login token:", state),
-  console.log("Setting new login token");
   await storage.set('loginToken', newLoginToken);
-  console.log("New login token is", newLoginToken);
   const newState = await pullUserObject({ ...state, loginToken: newLoginToken });
-  console.log("State after new login token:", newState)
   return newState;
 
 };
@@ -314,18 +309,18 @@ export const logout = async (state) => {
 
 export const initializeStart = async (state) => {
   let loginToken = await storage.get('loginToken');
-  console.log("Initializing, login token is", loginToken);
   if (!loginToken) {
-    console.log("Generating login token");
-    loginToken = await bip39.generateMnemonic();
-    await storage.set('loginToken', { mnemonic: loginToken, unregistered: true });
+    const mnemonic = await bip39.generateMnemonic();
+    loginToken = {
+      unregistered: true,
+      mnemonic
+    }
+    await storage.set('loginToken', loginToken);
   }
 
   const newState = await pullUserObject({ ...state, loginToken });
   // newState = await initializeEthereum(newState);
-  if (newState.loginToken.unregistered)
-    console.warn("Login token is unregistered");
-  console.log("login token is", loginToken);
+  if (newState.loginToken.unregistered) console.warn("Login token is unregistered");
   return await getAddress(newState);
 };
 
