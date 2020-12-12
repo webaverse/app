@@ -1890,6 +1890,22 @@ for (const itemSpec of itemSpecs) {
   itemsEl.appendChild(div);
 }
 let selectedItemIndex = 0;
+const _selectItem = newSelectedItemIndex => {
+  selectedItemIndex = newSelectedItemIndex;
+
+  for (const childNode of itemsEl.childNodes) {
+    childNode.classList.remove('selected');
+  }
+
+  const itemEl = itemsEl.childNodes[selectedItemIndex];
+  itemEl.classList.add('selected');
+
+  const itemsBoundingRect = itemsEl.getBoundingClientRect();
+  const itemBoundingRect = itemEl.getBoundingClientRect();
+  if (itemBoundingRect.y <= itemsBoundingRect.y || itemBoundingRect.bottom >= itemsBoundingRect.bottom) {
+    itemEl.scrollIntoView();
+  }
+};
 const _selectItemDelta = offset => {
   let newSelectedItemIndex = selectedItemIndex + offset;
   if (newSelectedItemIndex >= itemSpecs.length) {
@@ -1898,14 +1914,6 @@ const _selectItemDelta = offset => {
     newSelectedItemIndex = itemSpecs.length - 1;
   }
   _selectItem(newSelectedItemIndex);
-};
-const _selectItem = newSelectedItemIndex => {
-  selectedItemIndex = newSelectedItemIndex;
-
-  for (const childNode of itemsEl.childNodes) {
-    childNode.classList.remove('selected');
-  }
-  itemsEl.childNodes[selectedItemIndex].classList.add('selected');
 };
 
 /* const menuMesh = (() => {
