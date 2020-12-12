@@ -8,7 +8,7 @@ import runtime from './runtime.js';
 import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
-import {scene, scene3} from './app-object.js';
+import {appManager, scene, scene3} from './app-object.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
@@ -1017,13 +1017,11 @@ world.getClosestObject = (position, maxDistance) => {
   }
   return closestObject;
 };
-world.grabbedObjects = [null, null];
-world.getGrab = side => world.grabbedObjects[side === 'left' ? 1 : 0];
 world.update = () => {
   const _updateObjectsGrab = () => {
     const transforms = rigManager.getRigTransforms();
     for (let i = 0; i < 2; i++) {
-      const grabbedObject = world.grabbedObjects[i];
+      const grabbedObject = appManager.grabbedObjects[i];
       if (grabbedObject) {
         const {position, quaternion} = transforms[0];
         // grabbedObject.position.copy(position);

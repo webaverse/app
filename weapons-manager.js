@@ -9,7 +9,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import {rigManager} from './rig.js';
 import {teleportMeshes} from './teleport.js';
-import {renderer, scene, camera, dolly} from './app-object.js';
+import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 import {
   THING_SHADER,
   makeDrawMaterial,
@@ -1541,7 +1541,7 @@ const _updateWeapons = timeDiff => {
               .invert()
           )
           .decompose(localVector, localQuaternion, localVector2);
-        if (localBox.containsPoint(localVector) && !world.grabbedObjects.includes(candidate)) {
+        if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
           highlightMesh.position.copy(candidate.position);
           highlightMesh.visible = true;
           highlightedObject = candidate;
@@ -1597,16 +1597,16 @@ const _updateWeapons = timeDiff => {
     for (let i = 0; i < 2; i++) {
       if (ioManager.currentWeaponGrabs[i] && !ioManager.lastWeaponGrabs[i]) {
         const {position} = transforms[i];
-        world.grabbedObjects[i] = world.getClosestObject(position, 0.3);
-        if (!world.grabbedObjects[i]) {
-          world.grabbedObjects[i] = highlightedObject;
+        appManager.grabbedObjects[i] = world.getClosestObject(position, 0.3);
+        if (!appManager.grabbedObjects[i]) {
+          appManager.grabbedObjects[i] = highlightedObject;
           highlightedObject = null;
           changed = true;
         }
         // meshComposer.grab(i);
       }
       if (!ioManager.currentWeaponGrabs[i] && ioManager.lastWeaponGrabs[i]) {
-        world.grabbedObjects[i] = null;
+        appManager.grabbedObjects[i] = null;
         // meshComposer.ungrab(i);
         changed = true;
       }
