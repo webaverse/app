@@ -21,7 +21,7 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import {GLTFExporter} from './GLTFExporter.js';
-import {makePromise, downloadFile} from './util.js';
+import {makePromise, downloadFile, convertMeshToPhysicsMesh} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1693,20 +1693,8 @@ bakeFormEl.addEventListener('submit', async e => {
       new GLTFLoader().load(u, accept, function onprogress() {}, reject);
     });
     o = o.scene;
-    o.updateMatrixWorld();
-    let mesh = null;
-    o.traverse(o => {
-      if (!mesh && o.isMesh) {
-        mesh = o;
-      }
-    });
-    mesh.geometry.applyMatrix4(mesh.matrixWorld);
-    mesh.position.set(0, 0, 0);
-    mesh.quaternion.set(0, 0, 0, 1);
-    mesh.scale.set(1, 1, 1);
-    mesh.updateMatrixWorld();
-
-    const physicsBuffer = await geometryWorker.cookGeometryPhysics(physics, mesh);
+    const physicsMesh = convertMeshToPhysicsMesh(o);
+    const physicsBuffer = await geometryWorker.cookGeometryPhysics(physics, physicsMesh);
     const b = new Blob([physicsBuffer], {
       type: 'application/octet-stream',
     });
