@@ -75,7 +75,7 @@ const NavBarUser = () => {
   const { state, dispatch } = useContext(Context);
   const [loginComponentOpen, setLoginComponent] = useState(false);
   const name = state.name !== "" && state.name !== null ? state.name : "Guest";
-  const avatarPreview = state.avatarThumbnail ?? defaultAvatarImage;
+  const avatarPreview = state.avatarPreview ?? defaultAvatarImage;
   const toggleLoginComponent = () => {
     console.log("login component toggle");
     setLoginComponent(!loginComponentOpen);

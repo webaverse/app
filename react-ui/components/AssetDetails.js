@@ -3,6 +3,8 @@ import { Context } from '../constants/Context.js';
 import htm from '/web_modules/htm.js';
 import AssetCard from './AssetCard.js';
 import CardSize from '../constants/CardSize.js';
+import { setAvatar, setHomespace, depositAsset, cancelSale, sellAsset, buyAsset } from '../functions/AssetFunctions.js'
+
 const html = htm.bind(React.createElement)
 import csz from '../web_modules/csz.js';
 import ActionTypes from '../constants/ActionTypes.js';
@@ -33,68 +35,103 @@ export const AssetDetails = ({
     hideDetails,
     assetType
 }) => {
-    const {state, dispatch} = useContext(Context);
+    const { state, dispatch } = useContext(Context);
 
     // Do you own this asset?
     console.log("Owner address is", ownerAddress);
+    console.log("minterAddress address is", minterAddress);
+
     console.log("State address is", state.address);
 
-    const userOwnsThisAsset = ownerAddress.toLowerCase() === state.address.toLowerCase();  
-    
+    const userOwnsThisAsset = ownerAddress.toLowerCase() === state.address.toLowerCase();
+
     // Did you create this asset?
-    const userCreatedThisAsset = minterAddress === state.address;    
+    const userCreatedThisAsset = minterAddress.toLowerCase() === state.address.toLowerCase();
 
     // Otherwise, is this asset for sale?
     const isForSale = buyPrice !== undefined && buyPrice !== null && buyPrice !== ""
 
-    const setAvatar = (e) => {
+    const handleSetAvatar = (e) => {
         e.preventDefault();
-        dispatch({ type: ActionTypes.SetAvatar, payload: { hash }});
+        console.log("Setting avatar, id is", id);
+        setAvatar(id)
     }
 
-    const setHomespace = (e) => {
+    const handleSetHomespace = (e) => {
         e.preventDefault();
-        dispatch({ type: ActionTypes.SetHomespace, payload: { hash }});
+        setHomespace(id, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
     }
 
-    const addToLoadout = (e) => {
-        e.preventDefault();
-        dispatch({ type: ActionTypes.AddToLoadout, payload: { hash }});
-    }
-    
-    const removeFromLoadout = (e) => {
-        e.preventDefault();
-        dispatch({ type: ActionTypes.RemoveFromLoadout, payload: { hash }});
-    }
+    // const addToLoadout = (e) => {
+    //     e.preventDefault();
+    //     addToLoadout(id, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
+    // }
 
-    const depositToMainnet = (e) => {
-        e.preventDefault();
-        dispatch({ type: ActionTypes.WithdrawNft, payload: { hash }});
-    }
+    // const removeFromLoadout = (e) => {
+    //     e.preventDefault();
+    //     removeFromLoadout(id, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
+    // }
 
-    const depositToWebaverse = (e) => {
+    const handleDeposit = (e) => {
         e.preventDefault();
-        dispatch({ type: ActionTypes.DepositNft, payload: { hash }});
+        depositAsset(id, networkType, () => console.log("Deposited", id, "to", networkType, state.mainnetAddress), (err) => console.log("Failed to change homespace", err));
     }
 
     const handleReupload = (e) => {
         e.preventDefault();
-        console.warn ("Handle reuploading image");
+        console.warn("TODO: Handle reuploading image");
     }
 
-    const cancelSale = (e) => {
+    const handleCancelSale = (e) => {
         e.preventDefault();
-        dispatch({ type: ActionTypes.UnsellNft, payload: { hash }});
+        cancelSale(id, networkType, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
     }
 
-    const sellAsset = (e) => {
+    const handleSellAsset = (e) => {
         e.preventDefault();
-        dispatch({ type: ActionTypes.SellNft, payload: { hash }});
+        sellAsset(id, networkType, () => console.log("Selling asset ", id), (err) => console.log("Failed to change homespace", err));
     }
 
-    const buyAsset = (e) => {
+    const handleBuyAsset = (e) => {
         e.preventDefault();
-        dispatch({ type: ActionTypes.BuyNft, payload: { hash }});
+        buyAsset(id, networkType, () => console.log("Buying Asset", id), (err) => console.log("Failed to change homespace", err));
+    }
+
+    const userOwnsThisAssetDetails = () => {
+
+        return html`
+        ${/* TODO: Hide corresponding button if this asset is already avatar, homespace or in loadout, and add option to remove from loadout if is in */''}
+            <button className="assetDetailsButton" onClick=${handleSetAvatar}>Set As Avatar</button>
+        <button className="assetDetailsButton" onClick=${handleSetHomespace}>Set As Homespace</button>
+        ${/* <button className="assetDetailsButton" onClick=${addToLoadout}>Add To Loadout</button>*/''}
+        ${state.mainnetAddress !== null && `
+            <button className="assetDetailsButton" onClick=${handleDeposit}>Deposit To ${networkType === 'webaverse' ? 'Mainnet' : 'Webaverse'}</button>
+        `}
+
+        ${userCreatedThisAsset && html`
+            <button className="assetDetailsButton" onClick=${handleReupload}>Reupload Asset</button>
+        `}
+
+        ${isForSale ? html`
+            <button className="assetDetailsButton" onClick=${handleCancelSale}>Cancel Sale</button>
+        ` : html`
+            <button className="assetDetailsButton" onClick=${handleSellAsset}>Sell Asset</button>
+        `}
+        `
+    }
+
+    const userDoesntOwnThisAssetDetails = () => {
+
+        return html`
+        ${isForSale ? html`
+        <span className="forSale">
+            <p>Sale price is ${buyPrice}</p>
+            <button className="assetDetailsButton" onClick=${handleBuyAsset}>Buy Asset</button>
+            </span>
+            ` : html`
+            <p>Not for sale</p>
+        `}
+        `
     }
 
     return html`
@@ -127,37 +164,10 @@ export const AssetDetails = ({
                 <div className="assetDetailsRightColumn">
                     <div className="assetDetailsRightColumnHeader"> ${userOwnsThisAsset ? 'You Own This Asset' : 'Asset Details'} </div>
                     <div className="assetDetailsRightColumnBody">
-
-                    ${userOwnsThisAsset && html`
-                    ${/* TODO: Hide corresponding button if this asset is already avatar, homespace or in loadout, and add option to remove from loadout if is in */''}
-                        <button className="assetDetailsButton" onClick=${setAvatar}>Set As Avatar</button>
-                        <button className="assetDetailsButton" onClick=${setHomespace}>Set As Homespace</button>
-                        <button className="assetDetailsButton" onClick=${addToLoadout}>Add To Loadout</button>
-
-                        ${networkType == 'webaverse' ? html`
-                        <button className="assetDetailsButton" onClick=${depositToMainnet}>Deposit To Mainnet</button>
+                    ${userOwnsThisAsset ? html`
+                        <${userOwnsThisAssetDetails} />
                         ` : html`
-                        <button className="assetDetailsButton" onClick=${depositToWebaverse}>Deposit To Webaverse</button>
-                        `}
-
-                            ${userCreatedThisAsset && html`
-                            <button className="assetDetailsButton" onClick=${handleReupload}>Reupload Asset</button>
-                            `}
-
-                            ${isForSale ? html`
-                            <button className="assetDetailsButton" onClick=${cancelSale}>Cancel Sale</button>
-                            ` : html `
-                            <button className="assetDetailsButton" onClick=${sellAsset}>Sell Asset</button>
-                            `}
-                        `}
-                        
-                    ${!userOwnsThisAsset && html`
-                        ${isForSale ? html`
-                        <p>Sale price is ${buyPrice}</p>
-                        <button className="assetDetailsButton" onClick=${buyAsset}>Buy Asset</button>
-                        ` : html`
-                        <p>Not for sale</p>
-                        `}
+                        <${userDoesntOwnThisAssetDetails} />
                     `}
                      </div>
                     <div className="assetDetailsRightColumnFooter">
@@ -167,6 +177,6 @@ export const AssetDetails = ({
             </div>
         </div>
     `;
-  };
+};
 
-  export  default AssetDetails;
+export default AssetDetails;

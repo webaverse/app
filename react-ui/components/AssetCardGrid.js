@@ -1,4 +1,4 @@
-import { React, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { React, useState, useEffect } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '../web_modules/htm.js';
 import AssetCard from './AssetCard.js'
 import AssetDetails from './AssetDetails.js'
@@ -24,6 +24,13 @@ const AssetCardGrid = ({
     console.log("Hiding card details");
     setCurrentAsset(null);
   }
+
+  useEffect(() => {
+    if(currentAsset === null) return
+    console.log("**** Current asset is", currentAsset);
+    console.log("Address is", currentAsset.id);
+  }, [currentAsset])
+
 
     return html`
     <${React.Fragment}>
