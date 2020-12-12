@@ -8,7 +8,7 @@ import runtime from './runtime.js';
 import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
-import {scene, scene3} from './app-object.js';
+import {appManager, scene, scene3} from './app-object.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
@@ -625,6 +625,10 @@ world.connectRoom = async (roomName, worldURL) => {
       console.log(e);
       world.onRemoteSubparcelsEdit(e.data.keys);
     }); */
+
+    if (networkMediaStream) {
+      channelConnection.setMicrophoneMediaStream(networkMediaStream);
+    }
   }, {once: true});
   channelConnection.addEventListener('close', e => {
     if (interval) {
@@ -1013,13 +1017,11 @@ world.getClosestObject = (position, maxDistance) => {
   }
   return closestObject;
 };
-world.grabbedObjects = [null, null];
-world.getGrab = side => world.grabbedObjects[side === 'left' ? 1 : 0];
 world.update = () => {
   const _updateObjectsGrab = () => {
     const transforms = rigManager.getRigTransforms();
     for (let i = 0; i < 2; i++) {
-      const grabbedObject = world.grabbedObjects[i];
+      const grabbedObject = appManager.grabbedObjects[i];
       if (grabbedObject) {
         const {position, quaternion} = transforms[0];
         // grabbedObject.position.copy(position);
@@ -1031,47 +1033,52 @@ world.update = () => {
   _updateObjectsGrab();
 };
 
+let animationMediaStream = null
+let networkMediaStream = null;
 const _latchMediaStream = async () => {
-  const mediaStream = await navigator.mediaDevices.getUserMedia({
+  networkMediaStream = await navigator.mediaDevices.getUserMedia({
     audio: true,
   });
-  const track = mediaStream.getAudioTracks()[0];
-  track.addEventListener('ended', async e => {
-    if (channelConnection) {
-      await channelConnection.setMicrophoneMediaStream(null);
-    }
-  });
   if (channelConnection) {
-    await channelConnection.setMicrophoneMediaStream(mediaStream);
+    await channelConnection.setMicrophoneMediaStream(networkMediaStream);
   }
 };
+const _unlatchMediaStream = async () => {
+  if (channelConnection) {
+    await channelConnection.setMicrophoneMediaStream(null);
+  }
 
-const micOffButton = document.getElementById('mic-off-button');
-const micOnButton = document.getElementById('mic-on-button');
-[micOffButton, micOnButton].forEach(button => {
-  button.addEventListener('click', async e => {
-    const enable = button === micOffButton;
-    if (enable) {
-      micOffButton.style.display = 'none';
-      micOnButton.style.display = null;
-    } else {
-      micOffButton.style.display = null;
-      micOnButton.style.display = 'none';
-    }
-    const mediaStream = await navigator.mediaDevices.getUserMedia({
+  const tracks = networkMediaStream.getTracks();
+  for (const track of tracks) {
+    track.stop();
+  }
+  networkMediaStream = null;
+};
+
+const micButton = document.getElementById('key-v');
+micButton.addEventListener('click', async e => {
+  if (!animationMediaStream) {
+    micButton.classList.add('enabled');
+
+    animationMediaStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
     });
-    if (enable) {
-      rigManager.localRig.setMicrophoneMediaStream(mediaStream);
-      _latchMediaStream();
-    } else {
-      rigManager.localRig.setMicrophoneMediaStream(null);
-      const tracks = mediaStream.getAudioTracks();
-      for (const track of tracks) {
-        track.stop();
-      }
+
+    rigManager.localRig.setMicrophoneMediaStream(animationMediaStream);
+
+    _latchMediaStream();
+  } else {
+    micButton.classList.remove('enabled');
+
+    rigManager.localRig.setMicrophoneMediaStream(null);
+    const tracks = animationMediaStream.getTracks();
+    for (const track of tracks) {
+      track.stop();
     }
-  });
+    animationMediaStream = null;
+
+    _unlatchMediaStream();
+  }
 });
 
 // const button = document.getElementById('connectButton');

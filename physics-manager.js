@@ -27,8 +27,9 @@ const physicsManager = new EventTarget();
 const velocity = new THREE.Vector3();
 physicsManager.velocity = velocity;
 
-// const offset = new THREE.Vector3();
-// physicsManager.offset = offset;
+// used for hookshot-style navigation
+const offset = new THREE.Vector3();
+physicsManager.offset = offset;
 
 let jumpState = false;
 let jumpStartTime = 0;
@@ -238,8 +239,8 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
 
   applyVelocity(camera.position, physicsManager.velocity, timeDiff);
 
-  // camera.position.add(physicsManager.offset);
-  // physicsManager.offset.setScalar(0);
+  camera.position.add(physicsManager.offset);
+  physicsManager.offset.setScalar(0);
 
   camera.updateMatrixWorld();
   camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);

@@ -2,8 +2,9 @@ import { React, ReactDOM, useEffect, useReducer, useState } from 'https://unpkg.
 import { PageRouter } from './components/PageRouter.js';
 import ActionTypes from './constants/ActionTypes.js';
 import { Context } from './constants/Context.js';
+
 import htm from './web_modules/htm.js';
-import { initializeStart, getProfileForCreator, getInventoryForCreator, disconnectMetamask, getCreators, getBooths, loginWithEmailOrPrivateKey, loginWithEmailCode, logout, mintNft, setName } from './functions/StateFunctions.js';
+import { initializeStart, clearInventroryForCreator, getProfileForCreator, getInventoryForCreator, disconnectMetamask, getCreators, getBooths, loginWithEmailOrPrivateKey, loginWithEmailCode, logout, setName } from './functions/StateFunctions.js';
 import { InitialStateValues } from './constants/InitialStateValues.js';
 
 
@@ -67,13 +68,9 @@ const Application = () => {
         });
         return state;
 
-      case ActionTypes.MintNft:
-        mintNft(action.payload.file,
-          action.payload.name,
-          action.payload.description,
-          action.payload.quantity,
-          action.payload.successCallback,
-          action.payload.errorCallback,
+      case ActionTypes.UpdateInventory:
+        // TODO: Update inventory
+        clearInventroryForCreator(action.payload.address,
           state
         ).then(newState => {
           dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });

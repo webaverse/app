@@ -2471,7 +2471,8 @@ footer {
   bottom: 0;
   width: 300px;
   height: 100vh;
-  padding: 30px;
+  padding: 20px;
+  padding-bottom: 0;
   flex-direction: column;
   z-index: 1;
   transition: all 0.5s cubic-bezier(0, 1, 0, 1);
@@ -2511,7 +2512,7 @@ footer {
 {
   position: absolute;
   top: 50px;
-  left: 18px;
+  left: 20px;
 }
 
 .tabs {
@@ -2545,4 +2546,39 @@ footer {
 .key-helpers .key-helper .label {
   width: 50px;
   margin-left: auto;
+}
+
+.items {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-top: 65px;
+  overflow: hidden;
+}
+.items .item {
+  display: flex;
+  padding: 5px;
+}
+.items .item.selected {
+  background-color: #111;
+  color: #FFF;
+}
+.items .item .card {
+  --width: 50px;
+  --height: 70px;
+
+  display: flex;
+  width: var(--width);
+  height: var(--height);
+  margin-right: 10px;
+  border-radius: 5px;
+  background-color: #9ccc65;
+}
+.items .item .card img {
+  position: relative;
+  width: calc(var(--width) - 10px);
+  height: calc((var(--width) - 10px) / 4 * 3);
+  margin: 5px;
+  background-color: #FFF;
+  object-fit: contain;
 }

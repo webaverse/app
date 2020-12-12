@@ -2,8 +2,7 @@ import { getAddressFromMnemonic, contracts, runSidechainTransaction, web3 } from
 import storage from '../webaverse/storage.js';
 import bip39 from '../libs/bip39.js';
 import hdkeySpec from '../libs/hdkey.js';
-
-const storageHost = 'https://storage.exokit.org';
+import { storageHost } from '../webaverse/constants.js';
 const hdkey = hdkeySpec.default;
 
 export const connectMetamask = async (state) => {
@@ -75,10 +74,9 @@ export const setName = async (name, state) => {
 };
 
 export const getAddress = (state) => {
-  if (!state.loginToken.mnemonic) return null;
+  if (!state.loginToken.mnemonic) return state;
   const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(state.loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
   const address = wallet.getAddressString();
-  console.log("Address is", address);
   
   return { ...state, address };
 };
@@ -147,10 +145,17 @@ export const setFtu = async (name, avatarUrl, state) => {
   return { ...state, avatarUrl: avatarUrl, avatarFileName: avatarUrl, avatarPreview: avatarPreview };
 };
 
-export const getInventoryForCreator = async (creatorAddress, page, state) => {
+export const clearInventroryForCreator = async (creatorAddress, state) => {
+  let newState = {...state}
   // Use cached page
-  if (state.creatorInventories[creatorAddress] !== undefined &&
-    state.creatorInventories[creatorAddress][page]) {
+    newState.creatorProfiles[creatorAddress] = undefined;
+    newState.creatorInventories[creatorAddress] = undefined;
+  return newState;
+};
+
+export const getInventoryForCreator = async (creatorAddress, page, forceUpdate, state) => {
+  // Use cached page
+  if (forceUpdate !== true && state.creatorInventories[creatorAddress] !== undefined) {
     return state;
   }
 
@@ -176,7 +181,7 @@ export const getProfileForCreator = async (creatorAddress, state) => {
   const creatorProfile = await res.json();
   let newState = { ...state };
   newState.creatorProfiles[creatorAddress] = creatorProfile;
-  return await getInventoryForCreator(creatorAddress, 1, newState);
+  return await getInventoryForCreator(creatorAddress, 1, false, newState);
 };
 
 export const getBooths = async (page, state) => {
@@ -204,51 +209,8 @@ export const getCreators = async (page, state) => {
 };
 
 
-export const mintNft = async (file, name, description, quantity, successCallback, errorCallback, state) => {
-  const { mnemonic } = state.loginToken;
-  const address = state.address;
-  const res = await fetch(storageHost, { method: 'POST', body: file });
-  const { hash } = await res.json();
-
-  let status, transactionHash, tokenIds;
-
-
-  try {
-
-    const fullAmount = {
-      t: 'uint256',
-      v: new web3['sidechain'].utils.BN(1e9)
-        .mul(new web3['sidechain'].utils.BN(1e9))
-        .mul(new web3['sidechain'].utils.BN(1e9)),
-    };
-
-    {
-      const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['sidechain']['NFT']._address, fullAmount.v);
-      status = result.status;
-      transactionHash = '0x0';
-      tokenIds = [];
-    }
-    if (status) {
-      const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, name, description, quantity);
-      status = result.status;
-      transactionHash = result.transactionHash;
-      const tokenId = new web3['sidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
-      tokenIds = [tokenId, tokenId + quantity - 1];
-      successCallback();
-    }
-  } catch (err) {
-    console.warn(err);
-    status = false;
-    transactionHash = '0x0';
-    tokenIds = [];
-    errorCallback();
-  }
-
-  return await pullUserObject(state);
-};
-
 export const pullUserObject = async (state) => {
-  console.log("Pulling user object");
+
   const address = getAddressFromMnemonic(state.loginToken.mnemonic);
   const res = await fetch(`https://accounts.webaverse.com/${address}`);
   const result = await res.json();
@@ -260,7 +222,7 @@ export const pullUserObject = async (state) => {
   return newState;
 };
 
-export const requestTokenByEmail = async (email) => {
+export const requestTokenByEmail = async (email, state) => {
   await fetch(`/gateway?email=${encodeURIComponent(email)}`, {
     method: 'POST',
   });
@@ -283,13 +245,12 @@ export const loginWithEmailCode = async (email, code, state) => {
 };
 
 export const loginWithEmailOrPrivateKey = async (emailOrPrivateKey, state) => {
-  console.log("emailOrPrivateKey is", emailOrPrivateKey);
   const split = emailOrPrivateKey.split(/\s+/).filter(w => !!w);
 
   if (split.length === 12) {
     // Private key
     const mnemonic = split.slice(0, 12).join(' ');
-    return await setNewLoginToken(mnemonic);
+    return await setNewLoginToken(mnemonic, state);
   } else {
     // Email
     return await requestTokenByEmail(emailOrPrivateKey);
@@ -297,10 +258,10 @@ export const loginWithEmailOrPrivateKey = async (emailOrPrivateKey, state) => {
 };
 
 export const setNewLoginToken = async (newLoginToken, state) => {
-  console.log("Setting new login token");
   await storage.set('loginToken', newLoginToken);
+  const newState = await pullUserObject({ ...state, loginToken: newLoginToken });
+  return newState;
 
-  return await pullUserObject({ ...state, loginToken: newLoginToken });
 };
 
 export const logout = async (state) => {
@@ -311,16 +272,17 @@ export const logout = async (state) => {
 export const initializeStart = async (state) => {
   let loginToken = await storage.get('loginToken');
   if (!loginToken) {
-    console.log("Generating login token");
-    loginToken = await bip39.generateMnemonic();
-    await storage.set('loginToken', { mnemonic: loginToken, unregistered: true });
+    const mnemonic = await bip39.generateMnemonic();
+    loginToken = {
+      unregistered: true,
+      mnemonic
+    }
+    await storage.set('loginToken', loginToken);
   }
 
   const newState = await pullUserObject({ ...state, loginToken });
   // newState = await initializeEthereum(newState);
-  if (newState.loginToken.unregistered)
-    console.warn("Login token is unregistered");
-  console.log("login token is", loginToken);
+  if (newState.loginToken.unregistered) console.warn("Login token is unregistered");
   return await getAddress(newState);
 };
 

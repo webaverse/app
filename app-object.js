@@ -89,7 +89,7 @@ class AppManager {
   constructor() {
     this.apps = [];
     this.animationLoops = [];
-    // this.grabs = [null, null];
+    this.grabbedObjects = [null, null];
   }
   createApp(appId) {
     const app = new App(appId);
@@ -125,10 +125,10 @@ class AppManager {
       this.animationLoops.splice(index, 1);
     }
   }
-  /* getGrab(side) {
-    return this.grabs[side === 'left' ? 0 : 1];
+  getGrab(side) {
+    return this.grabbedObjects[side === 'left' ? 1 : 0];
   }
-  grab(side, mesh) {
+  /* grab(side, mesh) {
     this.grabs[side === 'left' ? 0 : 1] = mesh;
   }
   release(side) {
