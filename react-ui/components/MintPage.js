@@ -61,7 +61,7 @@ const MintingPage = () => {
             name,
             description,
             quantity,
-            errorCallback: () => { console.error("Minting failed"); setMintedState('error')},
+            errorCallback: (err) => { console.error("Minting failed", err); setMintedState('error')},
             successCallback: () => { console.log("Success callback!"); setMintedState('success') }
           }});
     setCurrentStep(4);
