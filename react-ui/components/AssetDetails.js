@@ -36,7 +36,10 @@ export const AssetDetails = ({
     const {state, dispatch} = useContext(Context);
 
     // Do you own this asset?
-    const userOwnsThisAsset = ownerAddress === state.address;  
+    console.log("Owner address is", ownerAddress);
+    console.log("State address is", state.address);
+
+    const userOwnsThisAsset = ownerAddress.toLowerCase() === state.address.toLowerCase();  
     
     // Did you create this asset?
     const userCreatedThisAsset = minterAddress === state.address;    
