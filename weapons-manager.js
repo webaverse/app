@@ -1835,76 +1835,45 @@ const _renderWheel = (() => {
 const itemSpecs = [
   {
     "name": "home",
-    "position": [0, 0, 0],
-    "quaternion": [0, 0, 0, 1],
-    "scale": [1, 1, 1],
-    "start_url": "https://avaer.github.io/home/home.glb",
-    "physics": true
+    "start_url": "https://avaer.github.io/home/manifest.json"
   },
   {
     "name": "physicscube",
-    "position": [0, 0, 0],
-    "quaternion": [0, 0, 0, 1],
-    "scale": [1, 1, 1],
     "start_url": "https://avaer.github.io/physicscube/index.js"
   },
   {
     "name": "weapons",
-    "position": [-4, 0, -2],
-    "quaternion": [0, 0.7071067811865475, 0, 0.7071067811865475],
-    "scale": [1, 1, 1],
     "start_url": "https://avaer.github.io/weapons/index.js"
   },
   {
     "name": "hookshot",
-    "position": [0, 1, 0],
-    "quaternion": [0, 0, 0, 1],
-    "scale": [1, 1, 1],
     "start_url": "https://avaer.github.io/hookshot/index.js"
   },
   {
     "name": "lightsaber",
-    "position": [0, 1, 0],
-    "quaternion": [0, 0, 0, 1],
-    "scale": [1, 1, 1],
     "start_url": "https://avaer.github.io/lightsaber/index.js"
   },
   {
     "name": "cv",
-    "position": [-2, 0, -12],
-    "quaternion": [0, 0, 0, 1],
-    "scale": [1, 1, 1],
     "filename": "cv.url",
     "content": "https://cv.webaverse.com/"
   },
   {
     "name": "dcl",
-    "position": [2, 0, -12],
-    "quaternion": [0, 0, 0, 1],
-    "scale": [1, 1, 1],
     "filename": "cv.url",
     "content": "https://dcl.webaverse.com/"
   },
   {
     "name": "h",
-    "position": [0, 0, -12],
-    "quaternion": [0, 0, 0, 1],
-    "scale": [1, 1, 1],
     "filename": "h.url",
     "content": "https://h.webaverse.com/"
   },
   {
     "name": "camera",
-    "position": [0, 0, 0],
-    "quaternion": [0, 0, 0, 1],
-    "scale": [1, 1, 1],
     "start_url": "https://avaer.github.io/planet/index.js"
   },
   {
     "name": "land",
-    "position": [-20, 2, 0],
-    "quaternion": [0, 0, 0, 1],
-    "scale": [1, 1, 1],
     "start_url": "https://avaer.github.io/land/index.js"
   },
 ];
