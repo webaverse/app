@@ -56,7 +56,7 @@ const NavBarUserLoginForm = () => {
         data-key=${state?.loginToken?.mnemonic}
         onClick="${copyPrivateKey}"
       >
-        ${state.loginToken.mnemonic.slice(0, 10)}...(Copy Private Key)
+        ${state.loginToken.mnemonic}...(Copy Private Key)
       </button>
       <span className="loginFormTitle">connect your account</span>
       <input autoFocus className="loginFormInput" type="text" placeholder="Login with email or private key" onChange=${handleChange}/>

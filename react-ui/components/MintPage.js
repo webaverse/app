@@ -135,7 +135,7 @@ const MintingPage = () => {
           <h3 className="mintNftNameLabel">Name</h3>
           <input type="text" className="mintNftName" placeholder="Name" onChange=${handleSetName} />
           <h3 className="mintNftNameLabel">Description</h3>
-          <textarea className="mintNftDescription" rows="2" maxLength="54" placeholder="Description" onChange=${handleSetDescription} />
+          <textarea className="mintNftDescription scroll" rows="2"  placeholder="Description" onChange=${handleSetDescription} />
           <div>
             <button className="button mintPageBackButton" onClick=${backToUpload}>Upload Again</button>
             <button className="button mintPageContinueButton" onClick=${submitDetails}>Continue</button>
