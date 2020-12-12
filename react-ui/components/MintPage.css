@@ -212,6 +212,10 @@
   color: white;
 }
 
+.scroll::-webkit-scrollbar {
+  display: none;
+}
+
 /* Page Three */
 .flex {
   display: flex;
