@@ -1888,6 +1888,10 @@ const itemSpecs = [
     "name": "camera",
     "start_url": "https://avaer.github.io/camera/index.js"
   },
+  {
+    "name": "cityscape",
+    "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
+  },
 ];
 const itemsEl = document.getElementById('items');
 for (const itemSpec of itemSpecs) {
