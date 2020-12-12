@@ -4,6 +4,7 @@ import htm from '/web_modules/htm.js';
 import css from '../web_modules/csz.js';
 import ActionTypes from '../constants/ActionTypes.js';
 import { mintNft } from '../functions/AssetFunctions.js';
+import Card  from './AssetCard.js'
 
 const styles = css`/components/MintPage.css`
 
@@ -152,40 +153,32 @@ const MintingPage = () => {
       </form>
     </div>
     `
-  
+
+    const tempCardData = {
+      id: 1,
+      assetName: 'My Cool Item',
+      description: 'This is the first avatar I’ve uploaded to the Webaverse.',
+      image: '/components/AssetCardAdditional/tempImage.png',
+      hash: '0x35ddcd7d8b66f1331f77186af17dbcf231909433',
+      ext: 'jpg',
+      totalSupply: 1,
+      numberInEdition: 1,
+      balance: 2000,
+      ownerAvatarPreview: '/components/AssetCardAdditional/tempImageIcon.png',
+      ownerUsername: 'Paul',
+      ownerAddress: null,
+      minterAvatarPreview: '/components/AssetCardAdditional/tempImageIcon.png',
+      minterAddress: null,
+      minterUsername: null,
+      cardSize: "large",
+      networkType: 'vrm',
+      onClickFunction: null,
+    }
+
     const pageThree = html`
     <div className="mintPageBody">
       <form className="mintPageBodyFormThree flex">
-        <div className="card">
-          <div className="cardTop flex">
-            <div className="flex">
-              <div className="cardTopItemName">my cool item</div>
-              <div className="flex">
-                <div className="cardTopCreator">
-                  <img className="cardTopCreatorIcon" src='components/AssetCardAdditional/tempImageIcon.png' />
-                </div>
-                <div className="cardTopOwner">
-                  <img className="cardTopOwnerIcon" src='components/AssetCardAdditional/tempImageIcon.png' />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="cardAvatar flex">
-            <img className="cardAvatarImg" src='components/AssetCardAdditional/tempImage.png' />
-          </div>
-          <div className="cardMain">
-            <div className="cardMainInfo flex">
-              <div className="cardMainNumber">10/10</div>
-              <div className="cardMainGrease">1208Ψ</div>
-            </div>          
-            <div className="cardMainDescription flex">
-              <p>This is the first avatar I’ve uploaded to the Webaverse.</p>
-            </div>          
-            <div className="cardMainHash flex">
-              <p>0x35ddcd7d8b66f1331f77186af17dbcf231909433</p>
-            </div>          
-          </div>
-        </div>
+        <${Card} ...${tempCardData} />
         <div className="mintPageFormThreeContainer flex">
           <h3 className="mintPageBodyTitleThree">Ready For Minting</h3>
           <div className="flex">  
