@@ -75,7 +75,7 @@ export const setName = async (name, state) => {
 };
 
 export const getAddress = (state) => {
-  if (!state.loginToken.mnemonic) return null;
+  if (!state.loginToken.mnemonic) return state;
   const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(state.loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
   const address = wallet.getAddressString();
   console.log("Address is", address);
@@ -260,7 +260,7 @@ export const pullUserObject = async (state) => {
   return newState;
 };
 
-export const requestTokenByEmail = async (email) => {
+export const requestTokenByEmail = async (email, state) => {
   await fetch(`/gateway?email=${encodeURIComponent(email)}`, {
     method: 'POST',
   });
@@ -289,7 +289,7 @@ export const loginWithEmailOrPrivateKey = async (emailOrPrivateKey, state) => {
   if (split.length === 12) {
     // Private key
     const mnemonic = split.slice(0, 12).join(' ');
-    return await setNewLoginToken(mnemonic);
+    return await setNewLoginToken(mnemonic, state);
   } else {
     // Email
     return await requestTokenByEmail(emailOrPrivateKey);
@@ -297,10 +297,14 @@ export const loginWithEmailOrPrivateKey = async (emailOrPrivateKey, state) => {
 };
 
 export const setNewLoginToken = async (newLoginToken, state) => {
+  console.log("State before new login token:", state),
   console.log("Setting new login token");
   await storage.set('loginToken', newLoginToken);
+  console.log("New login token is", newLoginToken);
+  const newState = await pullUserObject({ ...state, loginToken: newLoginToken });
+  console.log("State after new login token:", newState)
+  return newState;
 
-  return await pullUserObject({ ...state, loginToken: newLoginToken });
 };
 
 export const logout = async (state) => {
@@ -310,6 +314,7 @@ export const logout = async (state) => {
 
 export const initializeStart = async (state) => {
   let loginToken = await storage.get('loginToken');
+  console.log("Initializing, login token is", loginToken);
   if (!loginToken) {
     console.log("Generating login token");
     loginToken = await bip39.generateMnemonic();
