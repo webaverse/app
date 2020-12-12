@@ -2472,6 +2472,7 @@ footer {
   width: 300px;
   height: 100vh;
   padding: 20px;
+  padding-bottom: 0;
   flex-direction: column;
   z-index: 1;
   transition: all 0.5s cubic-bezier(0, 1, 0, 1);
@@ -2548,9 +2549,11 @@ footer {
 }
 
 .items {
+  position: relative;
   display: flex;
   flex-direction: column;
   margin-top: 65px;
+  overflow: hidden;
 }
 .items .item {
   display: flex;
