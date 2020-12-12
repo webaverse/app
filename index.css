@@ -2557,25 +2557,28 @@ footer {
 }
 .items .item {
   display: flex;
+  padding: 5px;
 }
 .items .item.selected {
   background-color: #111;
   color: #FFF;
 }
 .items .item .card {
-  --width: 60px;
-  --height: 80px;
+  --width: 50px;
+  --height: 70px;
 
   display: flex;
   width: var(--width);
   height: var(--height);
+  margin-right: 10px;
   border-radius: 5px;
-  background-color: #111;
+  background-color: #9ccc65;
 }
 .items .item .card img {
   position: relative;
-  width: var(--width);
-  height: calc(var(--width) / 4 * 3);
+  width: calc(var(--width) - 10px);
+  height: calc((var(--width) - 10px) / 4 * 3);
+  margin: 5px;
+  background-color: #FFF;
   object-fit: contain;
-  overflow: contain;
 }
