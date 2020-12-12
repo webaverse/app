@@ -84,6 +84,11 @@ a:hover {
 
 }
 
+.discordButton {
+    padding:1em;
+    margin:1em;
+}
+
 .loginUsername {
     padding: 0 1em;
     cursor: pointer;

@@ -3,12 +3,14 @@ import { Context } from '../constants/Context.js';
 import htm from '/web_modules/htm.js';
 import css from '../web_modules/csz.js';
 import ActionTypes from '../constants/ActionTypes.js';
+import { mintNft } from '../functions/mintNft.js';
+
 const styles = css`/components/MintPage.css`
 
 const html = htm.bind(React.createElement)
 
 const MintingPage = () => {
-  const { dispatch } = useContext(Context);
+  const { state, dispatch } = useContext(Context);
   let [currentStep, setCurrentStep] = useState(1);
 
   // Current file
@@ -34,7 +36,7 @@ const MintingPage = () => {
     setName("");
     setDescription("");
     setQuantity(1);
-    setMinted(null);
+    setMintedState(null);
     setCurrentStep(1)
   }
 
@@ -53,17 +55,23 @@ const MintingPage = () => {
     setCurrentStep(2)
   }
 
-  const mintNft = (e) => {
+  const handleMintNftButton = (e) => {
+    // TODO: On minted, refresh user's gallery
     e.preventDefault();
-    dispatch({ type: ActionTypes.MintNft,
-        payload:
-          { file,
+    mintNft(file,
             name,
             description,
             quantity,
-            errorCallback: (err) => { console.error("Minting failed", err); setMintedState('error')},
-            successCallback: () => { console.log("Success callback!"); setMintedState('success') }
-          }});
+            (err) => {
+              console.error("Minting failed", err);
+              setMintedState('error')},
+            () => {
+              console.log("Success callback!"); 
+              dispatch({type: ActionTypes.UpdateInventory, payload: {address: state.address }});
+              setMintedState('success')
+          },
+          state
+          );
     setCurrentStep(4);
   }
 
@@ -198,7 +206,7 @@ const MintingPage = () => {
           </div>
           <div className="mintPageButtons flex">
             <button className="button mintPageBackButton" onClick=${backToDetails}>Edit Asset</button>
-            <button className="button mintPageMintButton" onClick=${mintNft}>Mint NFT</button>
+            <button className="button mintPageMintButton" onClick=${handleMintNftButton}>Mint NFT</button>
           </div>
         </div>
       </form>

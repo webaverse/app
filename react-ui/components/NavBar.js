@@ -2,7 +2,8 @@ import { useContext, useState } from 'https://unpkg.com/es-react/dev';
 import ActionTypes from '../constants/ActionTypes.js';
 import { Context } from '../constants/Context.js';
 import css from '../web_modules/csz.js';
- import { Link } from '/web_modules/@reach/router.js';
+import { Link } from '/web_modules/@reach/router.js';
+import { discordOauthUrl } from '../webaverse/constants.js'
 
 const styles = css`/components/NavBar.css`
 
@@ -62,13 +63,10 @@ const NavBarUserLoginForm = () => {
       </button>
       <span className="loginFormTitle">connect your account</span>
       <input autoFocus className="loginFormInput" type="text" placeholder="Login with email or private key" onChange=${handleChange}/>
-      <div>
+        <a className="discordButton" href=${discordOauthUrl}>Login With Discord</a >
         <button className="submit formBtnLogin" type="submit" onClick="${handleLogin}">Login</button>
-      </div>
-      <div>
         <button className="submit formBtnLogout" type="submit" onClick="${handleLogout}">Logout</button>
-      </div>
-        <${Link} to='/settings'>User Settings</span>
+        <${Link} to='/settings'>User Settings</${Link} >
     </div>
   `
 }

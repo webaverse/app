@@ -30,7 +30,7 @@ const LoginGateway = () => {
   }, []);
 
   return html`
-    <div>Loggin In...</div>
+    <div>Logging In...</div>
   `
 }
 

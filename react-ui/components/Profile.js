@@ -13,10 +13,6 @@ const defaultHomespacePreview = "/images/defaulthomespace.png";
 
 const html = htm.bind(React.createElement)
 
-const ProfileNavLink = props => html`
-  <${Link} to=${props.to} children=${props.children} />
-`;
-
 const Profile = (props) => {
   console.log("Profile Props are", props);
   const creatorAddress = props.creatorAddress;
@@ -33,6 +29,7 @@ const Profile = (props) => {
     dispatch({ type: ActionTypes.GetProfileForCreator, payload: { address: creatorAddress } });
     const waitForResponse = setInterval(() => {
       if(state.creatorProfiles[creatorAddress] === undefined || state.creatorInventories[creatorAddress] === undefined) return;
+      
       clearInterval(waitForResponse);
 
       const avatarPreviewCandidate = creatorAddress === state.address ? state.avatarPreview : state.creatorProfiles[creatorAddress].avatarPreview;
@@ -93,10 +90,9 @@ const Profile = (props) => {
           <div className="profileBodyAssets">
           ${view === 'booth' || view === 'store' || view === 'onsale' ? html`
             <${AssetCardGrid} data=${storeAssets} cardSize='medium' />
-          ` : html`
+          ` : state.creatorInventories[creatorAddress] !== undefined ? html`
             <${AssetCardGrid} data=${state.creatorInventories[creatorAddress][currentPage]} cardSize='medium' />
-          `}
-          ${state.creatorInventories[creatorAddress][currentPage].length === 0 && html `
+          ` : state.creatorInventories[creatorAddress] === undefined || state.creatorInventories[creatorAddress][currentPage].length === 0 && html `
             <p>Your inventory is empty</p>
           `}
           </div>
