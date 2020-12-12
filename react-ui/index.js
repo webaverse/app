@@ -3,7 +3,7 @@ import { PageRouter } from './components/PageRouter.js';
 import ActionTypes from './constants/ActionTypes.js';
 import { Context } from './constants/Context.js';
 import { InitialStateValues } from './constants/InitialStateValues.js';
-import { clearInventroryForCreator, disconnectMetamask, getBooths, getCreators, getInventoryForCreator, getProfileForCreator, initializeStart, loginWithEmailCode, loginWithEmailOrPrivateKey, logout, setAvatar, setName } from './functions/StateFunctions.js';
+import { clearInventroryForCreator, getBooths, getCreators, getInventoryForCreator, getProfileForCreator, initializeStart, loginWithEmailCode, loginWithEmailOrPrivateKey, logout } from './functions/UIStateFunctions.js';
 import htm from './web_modules/htm.js';
 
 window.html = htm.bind(React.createElement);
@@ -75,96 +75,6 @@ const Application = () => {
         });
         return state;
 
-      case ActionTypes.SetName:
-        setName(action.payload.name, state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.ConnectMainnetWallet:
-        connectMetamask().then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.DisonnectMainnetWallet:
-        disconnectMetamask(state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.SetAvatar:
-        setAvatar(action.payload.assetId, state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.SetHomespace:
-        setHomespace(action.payload.assetId, state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.AddToLoadout:
-        setLoadoutState(action.payload.assetId, true, state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.RemoveFromLoadout:
-        setLoadoutState(action.payload.assetId, false, state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.SendNft:
-        sendNft(action.payload.receiverAddress, action.payload.assetId, state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.BuyNft:
-        buyNft(action.payload.assetId, state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.SellNft:
-        sellNft(action.payload.assetId, state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.DestroyNft:
-        destroyNft(action.payload.assetId, state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.AddFtToNft:
-        addFtToNft(action.payload.assetId, state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.DepositFt:
-        depositFt(action.payload.amount, state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.WithdrawFt:
-        withdrawFt(action.payload.amount, state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-
-      case ActionTypes.SetFtu:
-        setFtu(state).then(newState => {
-          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
-        });
-        return state;
-        
       default:
         console.warn("Default case in reducer, something is wrong");
         console.warn(action);
