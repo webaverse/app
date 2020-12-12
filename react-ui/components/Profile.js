@@ -82,30 +82,38 @@ const Profile = (props) => {
           ${creatorAddress === state.address ? html`
           <div className="username">${state.name || 'guest'}</div>
           ` : html`
-            <div className="username">${state.creatorProfiles[creatorAddress].name}</div>
+            <div className="username"><span>${state.creatorProfiles[creatorAddress].name}</span></div>
           `}
-          <div className="userAddress">${state.creatorProfiles[creatorAddress].address}</div>
+          <div className="userAddress">
+            <span className="userAddressValue">${state.creatorProfiles[creatorAddress].address}</span>
+          </div>
           <div className="userGrease">
-            <div className="userGreaseArrow"></div>
-            ${state.creatorProfiles[creatorAddress].balance}Ψ
+            <span className="userGreaseSing">$grease</span>
+            <span className="userGreaseValue">${state.creatorProfiles[creatorAddress].balance}Ψ</span>
           </div>
         </div>
-        <div className="profileBody">
-          <div className="profileBodyNav">
-          ${storeAssets.length > 0 && html`
-            <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onsale' ? 'active' : ''}' to='/creator/${creatorAddress}/booth'>For Sale</${Link}>
-          `}
-            <${Link} className='profileNavLink ${view === 'inventory' ? 'active' : ''}' to='/creator/${creatorAddress}/inventory'>Inventory</${Link}>
+        <div className="profileBodyContainer">
+          <div className="profileBodyClear"></div>
+          <div className="profileBody">
+            <div className="profileBodyNav">
+              <div className="profileBodyNavContainer">
+                ${storeAssets.length > 0 && html`
+                  <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onsale' ? 'active' : ''}' to='/creator/${creatorAddress}/booth'>For Sale</${Link}>
+                `}
+                  <${Link} className='profileNavLink ${view === 'inventory' ? 'active' : ''}' to='/creator/${creatorAddress}/inventory'>Inventory</${Link}>
+              </div>
+            </div>
+            <div className="profileBodyAssets">
+            ${view === 'booth' || view === 'store' || view === 'onsale' ? html`
+              <${AssetCardGrid} data=${storeAssets} cardSize='medium' />
+            ` : state.creatorInventories[creatorAddress] !== undefined ? html`
+              <${AssetCardGrid} data=${state.creatorInventories[creatorAddress][currentPage]} cardSize='medium' />
+            ` : state.creatorInventories[creatorAddress] === undefined || state.creatorInventories[creatorAddress][currentPage].length === 0 && html `
+              <p>Your inventory is empty</p>
+            `}
+            </div>
           </div>
-          <div className="profileBodyAssets">
-          ${view === 'booth' || view === 'store' || view === 'onsale' ? html`
-            <${AssetCardGrid} data=${storeAssets} cardSize='medium' />
-          ` : state.creatorInventories[creatorAddress] !== undefined ? html`
-            <${AssetCardGrid} data=${state.creatorInventories[creatorAddress][currentPage]} cardSize='medium' />
-          ` : state.creatorInventories[creatorAddress] === undefined || state.creatorInventories[creatorAddress][currentPage].length === 0 && html `
-            <p>Your inventory is empty</p>
-          `}
-          </div>
+          <div className="profileBodyClear"></div>
         </div>
     </div>
         `}
@@ -114,36 +122,3 @@ const Profile = (props) => {
 };
 
 export default Profile;
-
-
-
-{/* <div className=${styles}>
-    <div className="profileHeader">
-      <div className="homespaceBannerImage"><img src="${homespacePreview}" /></div>
-      <div className="avatarImage"><img src="${avatarPreview}" /></div>
-      ${creatorAddress === state.address ? html`
-      <div className="username">${state.name}</div>
-      ` : html`
-        <div className="username">${state.creatorProfiles[creatorAddress].name}</div>
-      `}
-      <div className="userAddress">${state.creatorProfiles[creatorAddress].address}</div>
-      <div className="userGrease">${state.creatorProfiles[creatorAddress].balance}Ψ</div>
-    </div>
-    <div className="profileBody">
-      <div className="profileBodyNav">
-      ${storeAssets.length > 0 && html`
-        <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onsale' ? 'active' : ''}' to='/creator/${creatorAddress}/booth'>For Sale</${Link}>
-      `}
-        <${Link} className='profileNavLink ${view === 'inventory' ? 'active' : ''}' to='/creator/${creatorAddress}/inventory'>Inventory</${Link}>
-      </div>
-      <div className="profileBodyAssets">
-      ${view === 'booth' || view === 'store' || view === 'onsale' ? html`
-        <${AssetCardGrid} data=${storeAssets} cardSize='medium' />
-      ` : html`
-        <${AssetCardGrid} data=${state.creatorInventories[creatorAddress][currentPage]} cardSize='medium' />
-      `}
-      ${state.creatorInventories[creatorAddress][currentPage].length === 0 && html `
-        <p>Your inventory is empty</p>
-      `}
-      </div>
-    </div> */}
