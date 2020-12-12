@@ -127,6 +127,34 @@ class RigManager {
     this.localRig.textMesh.sync();
   }
 
+  setLocalAvatarImage(avatarImage) {
+    if (this.localRig.textMesh.avatarMesh) {
+      this.localRig.textMesh.remove(this.localRig.textMesh.avatarMesh);
+    }
+    const geometry = new THREE.CircleBufferGeometry(0.1, 32);
+    const img = new Image();
+    img.src = avatarImage;
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      texture.needsUpdate = true;
+    };
+    img.onerror = err => {
+      console.warn(err.stack);
+    };
+    const texture = new THREE.Texture(img);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+    });
+
+    const avatarMesh = new THREE.Mesh(geometry, material);
+    avatarMesh.position.x = -0.5;
+    avatarMesh.position.y = -0.02;
+
+    this.localRig.textMesh.avatarMesh = avatarMesh;
+    this.localRig.textMesh.add(avatarMesh);
+  }
+
   async setLocalAvatarUrl(url, filename) {
     // await this.localRigQueue.lock();
 
