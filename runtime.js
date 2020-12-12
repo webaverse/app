@@ -567,7 +567,7 @@ const _loadManifestJson = async (file, {files = null} = {}) => {
 
   const res = await fetch(srcUrl);
   const j = await res.json();
-  let {start_url, physics_url} = j;
+  let {start_url, physics, physics_url} = j;
   const u = './' + start_url;
 
   if (/\.js$/.test(u)) {
@@ -682,6 +682,7 @@ const _loadManifestJson = async (file, {files = null} = {}) => {
     }, {
       files,
       parentUrl: srcUrl,
+      physics,
       physics_url,
     });
   }
