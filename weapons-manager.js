@@ -1842,6 +1842,14 @@ const itemSpecs = [
     "start_url": "https://avaer.github.io/mirror/index.js"
   },
   {
+    "name": "lightsaber",
+    "start_url": "https://avaer.github.io/lightsaber/index.js"
+  },
+  {
+    "name": "shield",
+    "start_url": "https://avaer.github.io/shield/index.js"
+  },
+  {
     "name": "physicscube",
     "start_url": "https://avaer.github.io/physicscube/index.js"
   },
@@ -1852,10 +1860,6 @@ const itemSpecs = [
   {
     "name": "hookshot",
     "start_url": "https://avaer.github.io/hookshot/index.js"
-  },
-  {
-    "name": "lightsaber",
-    "start_url": "https://avaer.github.io/lightsaber/index.js"
   },
   {
     "name": "cv",
