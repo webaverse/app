@@ -55,6 +55,49 @@ const importMap = {
 const _clone = o => JSON.parse(JSON.stringify(o));
 
 // const thingFiles = {};
+const _convertMeshToPhysicsMesh = mesh => {
+  mesh.updateMatrixWorld();
+
+  const meshes = [];
+  mesh.traverse(o => {
+    if (o.isMesh) {
+      meshes.push(o);
+    }
+  });
+  const newGeometries = meshes.map(mesh => {
+    const {geometry} = mesh;
+    const newGeometry = new THREE.BufferGeometry();
+
+    if (geometry.attributes.position.isInterleavedBufferAttribute) {
+      const positions = new Float32Array(geometry.attributes.position.count * 3);
+      for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
+        localVector
+          .fromArray(geometry.attributes.position.data.array, j)
+          .applyMatrix4(mesh.matrixWorld)
+          .toArray(positions, i);
+      }
+      newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    } else {
+      const positions = new Float32Array(geometry.attributes.position.array.length);
+      for (let i = 0; i < positions.length; i += 3) {
+        localVector
+          .fromArray(geometry.attributes.position.array, i)
+          .applyMatrix4(mesh.matrixWorld)
+          .toArray(positions, i);
+      }
+      newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    }
+    
+    if (geometry.index) {
+      newGeometry.setIndex(geometry.index);
+    }
+    
+    return newGeometry;
+  });
+  const newGeometry = BufferGeometryUtils.mergeBufferGeometries(newGeometries);
+  const physicsMesh = new THREE.Mesh(newGeometry);
+  return physicsMesh;
+};
 const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, files = null, parentUrl = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files) {
@@ -117,62 +160,25 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     }
   })();
 
-  const physicsMeshes = [];
-  const physicsBuffers = [];
+  let physicsMesh = null;
+  let physicsBuffer = null;
   let physicsIds = [];
   if (physics) {
-    mesh.updateMatrixWorld();
-    
-    const meshes = [];
-    mesh.traverse(o => {
-      if (o.isMesh) {
-        meshes.push(o);
-      }
-    });
-    for (const mesh of meshes) {
-      const {geometry} = mesh;
-      const newGeometry = new THREE.BufferGeometry();
-
-      if (geometry.attributes.position.isInterleavedBufferAttribute) {
-        const positions = new Float32Array(geometry.attributes.position.count * 3);
-        for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
-          localVector
-            .fromArray(geometry.attributes.position.data.array, j)
-            .applyMatrix4(mesh.matrixWorld)
-            .toArray(positions, i);
-        }
-        newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      } else {
-        const positions = new Float32Array(geometry.attributes.position.array.length);
-        for (let i = 0; i < positions.length; i += 3) {
-          localVector
-            .fromArray(geometry.attributes.position.array, i)
-            .applyMatrix4(mesh.matrixWorld)
-            .toArray(positions, i);
-        }
-        newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      }
-      
-      if (geometry.index) {
-        newGeometry.setIndex(geometry.index);
-      }
-
-      const physicsMesh = new THREE.Mesh(newGeometry);
-      physicsMeshes.push(physicsMesh);
-    }
+    physicsMesh = _convertMeshToPhysicsMesh(mesh);
   }
   if (physics_url) {
     const res = await fetch(physics_url);
-    let physicsBuffer = await res.arrayBuffer();
-    physicsBuffer = new Uint8Array(physicsBuffer);
-    physicsBuffers.push(physicsBuffer);
+    const arrayBuffer = await res.arrayBuffer();
+    physicsBuffer = new Uint8Array(arrayBuffer);
   }
 
   mesh.run = () => {
-    physicsIds = physicsMeshes.map(physicsMesh => physicsManager.addGeometry(physicsMesh))
-      .concat(physicsBuffers.map(physicsBuffer => {
-        return physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion);
-      }));
+    if (physicsMesh) {
+      physicsIds.push(physicsManager.addGeometry(physicsMesh));
+    }
+    if (physicsBuffer) {
+      physicsIds.push(physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion));
+    }
   };
   mesh.destroy = () => {
     for (const physicsId of physicsIds) {
