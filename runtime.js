@@ -143,7 +143,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
         }
         newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       } else {
-        newGeometry.setAttribute('position', geometry.attribute.position);
+        newGeometry.setAttribute('position', geometry.attributes.position);
       }
       
       if (geometry.index) {
