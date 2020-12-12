@@ -6,6 +6,7 @@ import { Context } from '../constants/Context.js';
 import ActionTypes from '../constants/ActionTypes.js';
 import { EditableTextField } from './EditableTextField.js';
 import { Link } from '/web_modules/@reach/router.js';
+import { setName } from '../functions/UserFunctions.js';
 
 const styles = csz`/components/Profile.css`
 const defaultAvatarImage = "/images/defaultaccount.png";
@@ -19,8 +20,8 @@ const Profile = (props) => {
 
   const { state, dispatch } = useContext(Context);
   const [currentPage, setCurrentPage] = useState(1);
-  let homespacePreview = defaultHomespacePreview;
-  let avatarPreview = defaultAvatarImage;
+  const [homespacePreview, setHomespacePreview] = useState(defaultHomespacePreview);
+  const [avatarPreview, setAvatarPreview] = useState(defaultAvatarImage);
 
   const [ view, setView ] = useState(props.view );
   const [ storeAssets, setStoreAssets ] = useState([]);
@@ -32,10 +33,15 @@ const Profile = (props) => {
       
       clearInterval(waitForResponse);
 
-      const avatarPreviewCandidate = creatorAddress === state.address ? state.avatarPreview : state.creatorProfiles[creatorAddress].avatarPreview;
-      avatarPreview = avatarPreviewCandidate !== "" &&
+      const avatarPreviewCandidate = creatorAddress.toLowerCase() === state.address.toLowerCase() ? state.avatarPreview : state.creatorProfiles[creatorAddress].avatarPreview;
+      setAvatarPreview(avatarPreviewCandidate !== "" &&
       avatarPreviewCandidate !== null ?
-      avatarPreviewCandidate : defaultAvatarImage;
+      avatarPreviewCandidate : defaultAvatarImage);
+
+      const homespacePreviewCandidate = creatorAddress.toLowerCase() === state.address.toLowerCase() ? state.homespacePreview : state.creatorProfiles[creatorAddress].homespacePreview;
+      setHomespacePreview(homespacePreviewCandidate !== "" &&
+      homespacePreviewCandidate !== null ?
+      homespacePreviewCandidate : defaultHomespacePreview);
 
       const newStoreAssets = state.creatorInventories[creatorAddress][currentPage].filter((asset) => asset.buyPrice !== null && asset.buyPrice > 0);
       setStoreAssets(newStoreAssets);
@@ -54,8 +60,9 @@ const Profile = (props) => {
   }, [props.view]);
 
   const updateName = (textFieldInput) =>
-    dispatch({ type: ActionTypes.SetName, payload: { name: textFieldInput } });
-
+  setName(textFieldInput, state, () => {
+    console.log("Success");
+  }, (error) => { console.log("Error", error)})
 
   //   ${userAddress === state.address ? html`
   //   <${EditableTextField} value=${state.name} valueIfNull=${'<Username>'} className=${`${styles} username settingsNameField`} callback=${updateName} />

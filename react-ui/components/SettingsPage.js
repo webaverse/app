@@ -41,7 +41,9 @@ const SettingsPage = () => {
   };
 
   const updateName = (textFieldInput) =>
-    dispatch({ type: ActionTypes.SetName, payload: { name: textFieldInput } });
+  setName(textFieldInput, state, () => {
+    console.log("Success");
+  }, (error) => { console.log("Error", error)})
 
   return html`
       <div className="${styles} settingsPage">
