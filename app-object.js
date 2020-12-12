@@ -89,7 +89,7 @@ class AppManager {
   constructor() {
     this.apps = [];
     this.animationLoops = [];
-    // this.grabs = [null, null];
+    this.grabbedObjects = [null, null];
   }
   createApp(appId) {
     const app = new App(appId);

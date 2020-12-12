@@ -5,7 +5,7 @@ import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
-import {renderer, scene, camera, dolly, appManager} from './app-object.js';
+import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
@@ -508,7 +508,7 @@ class RigManager {
     this.smoothVelocity.lerp(positionDiff, 0.5);
     this.lastPosition.copy(currentPosition);
 
-    this.localRig.setTopEnabled(!!session || /^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()) || physicsManager.getGlideState());
+    this.localRig.setTopEnabled(!!session || !!appManager.grabbedObjects[0] || physicsManager.getGlideState());
     this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
     this.localRig.direction.copy(positionDiff);
     this.localRig.velocity.copy(this.smoothVelocity);
