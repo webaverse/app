@@ -773,8 +773,8 @@ function animate(timestamp, frame) {
 
   const _updateRig = () => {
     let hmdPosition, hmdQuaternion;
-    let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip;
-    let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip;
+    let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
+    let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
 
     if (rigManager.localRigMatrixEnabled) {
       localMatrix.copy(rigManager.localRigMatrix);
@@ -817,6 +817,9 @@ function animate(timestamp, frame) {
           leftGamepadPointer = 0;
           leftGamepadGrip = 0;
         }
+        leftGamepadEnabled = true;
+      } else {
+        leftGamepadEnabled = false;
       }
       if (inputSources[1] && (pose = frame.getPose(inputSources[1].gripSpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
@@ -839,6 +842,9 @@ function animate(timestamp, frame) {
           rightGamepadPointer = 0;
           rightGamepadGrip = 0;
         }
+        rightGamepadEnabled = true;
+      } else {
+        rightGamepadEnabled = false;
       }
 
       /* const _scaleMatrixPQ = (srcMatrixArray, p, q) => {
@@ -953,6 +959,7 @@ function animate(timestamp, frame) {
       }
       leftGamepadPointer = 0;
       leftGamepadGrip = 0;
+      leftGamepadEnabled = false;
     }
     if (!rightGamepadPosition) {
       if (!physicsManager.getGlideState()) {
@@ -970,6 +977,7 @@ function animate(timestamp, frame) {
       }
       rightGamepadPointer = 0;
       rightGamepadGrip = 0;
+      rightGamepadEnabled = false;
     }
 
     /* HANDS.forEach((handedness, i) => {
@@ -989,8 +997,8 @@ function animate(timestamp, frame) {
 
     rigManager.setLocalAvatarPose([
       [localVector.toArray(), localQuaternion.toArray()],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ]);
     rigManager.update();
   };
