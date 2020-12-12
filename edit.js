@@ -33,7 +33,7 @@ import inventory from './inventory.js';
 import minimap from './minimap.js';
 import {App} from './components/App.js';
 import {tryTutorial} from './tutorial.js';
-import {getState, setState} from './state.js';
+// import {getState, setState} from './state.js';
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const pid4 = Math.PI / 4;
@@ -1286,11 +1286,11 @@ const _initializeLogin = async () => {
       if (username !== rigManager.localRig.textMesh.text) {
         rigManager.setLocalAvatarName(username);
 
-        const {menu} = getState();
+        /* const {menu} = getState();
         menu.username = username;
         setState({
           menu,
-        });
+        }); */
       }
     });
 
@@ -1308,24 +1308,24 @@ const _initializeLogin = async () => {
         rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.filename);
         rigManager.setLocalAvatarImage(avatar.preview);
 
-        const {menu} = getState();
+        /* const {menu} = getState();
         menu.avatarUrl = avatar.url;
         menu.avatarFileName = avatar.filename;
         menu.avatarPreview = avatar.preview;
         setState({
           menu,
-        });
+        }); */
       }
     });
 
-    const {menu} = getState();
+    /* const {menu} = getState();
     menu.username = username;
     menu.avatarUrl = avatar.url;
     menu.avatarFileName = avatar.filename;
     menu.avatarPreview = avatar.preview;
     setState({
       menu,
-    });
+    }); */
   };
   _initializeRigUi();
 };
@@ -1338,13 +1338,13 @@ const _initializeXr = () => {
     renderer.xr.setSession(session);
     // renderer.xr.setReferenceSpaceType('local-floor');
     currentSession = session;
-    setState({ isXR: true })
+    // setState({ isXR: true })
   }
   function onSessionEnded() {
     currentSession.removeEventListener('end', onSessionEnded);
     renderer.xr.setSession(null);
     currentSession = null;
-    setState({ isXR: false });
+    // setState({ isXR: false });
   }
   const sessionMode = 'immersive-vr';
   const sessionOpts = {
