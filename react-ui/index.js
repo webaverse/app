@@ -2,11 +2,9 @@ import { React, ReactDOM, useEffect, useReducer, useState } from 'https://unpkg.
 import { PageRouter } from './components/PageRouter.js';
 import ActionTypes from './constants/ActionTypes.js';
 import { Context } from './constants/Context.js';
-
-import htm from './web_modules/htm.js';
-import { initializeStart, clearInventroryForCreator, getProfileForCreator, getInventoryForCreator, disconnectMetamask, getCreators, getBooths, loginWithEmailOrPrivateKey, loginWithEmailCode, logout, setName } from './functions/StateFunctions.js';
 import { InitialStateValues } from './constants/InitialStateValues.js';
-
+import { clearInventroryForCreator, disconnectMetamask, getBooths, getCreators, getInventoryForCreator, getProfileForCreator, initializeStart, loginWithEmailCode, loginWithEmailOrPrivateKey, logout, setAvatar, setName } from './functions/StateFunctions.js';
+import htm from './web_modules/htm.js';
 
 window.html = htm.bind(React.createElement);
 
