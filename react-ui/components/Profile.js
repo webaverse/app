@@ -77,13 +77,11 @@ const Profile = (props) => {
           ` : html`
             <div className="username">${state.creatorProfiles[creatorAddress].name}</div>
           `}
-          <div className="userAddress">
-            <div className="arrow-1"></div>
-            <div className="arrow-2"></div>
-            <div className="arrow-3"></div>
-            <div className="userAddressValue">${state.creatorProfiles[creatorAddress].address}</div>
+          <div className="userAddress">${state.creatorProfiles[creatorAddress].address}</div>
+          <div className="userGrease">
+            <div className="userGreaseArrow"></div>
+            ${state.creatorProfiles[creatorAddress].balance}Ψ
           </div>
-          <div className="userGrease">${state.creatorProfiles[creatorAddress].balance}Ψ</div>
         </div>
         <div className="profileBody">
           <div className="profileBodyNav">
