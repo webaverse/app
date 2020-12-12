@@ -143,7 +143,14 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
         }
         newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       } else {
-        newGeometry.setAttribute('position', geometry.attributes.position);
+        const positions = new Float32Array(geometry.attributes.position.array.length);
+        for (let i = 0; i < positions.length; i += 3) {
+          localVector
+            .fromArray(geometry.attributes.position.array, i)
+            .applyMatrix4(mesh.matrixWorld)
+            .toArray(positions, i);
+        }
+        newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       }
       
       if (geometry.index) {
