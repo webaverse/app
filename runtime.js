@@ -2,12 +2,11 @@ import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
 // import {KTX2Loader} from './KTX2Loader.js';
 import {CSS3DObject} from './CSS3DRenderer.js';
-import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {MeshoptDecoder} from './meshopt_decoder.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {VOXLoader} from './VOXLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
-import {getExt, mergeMeshes} from './util.js';
+import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 // import {bake} from './bakeUtils.js';
 // import geometryManager from './geometry-manager.js';
 import {rigManager} from './rig.js';
@@ -56,49 +55,6 @@ const importMap = {
 const _clone = o => JSON.parse(JSON.stringify(o));
 
 // const thingFiles = {};
-const _convertMeshToPhysicsMesh = mesh => {
-  mesh.updateMatrixWorld();
-
-  const meshes = [];
-  mesh.traverse(o => {
-    if (o.isMesh) {
-      meshes.push(o);
-    }
-  });
-  const newGeometries = meshes.map(mesh => {
-    const {geometry} = mesh;
-    const newGeometry = new THREE.BufferGeometry();
-
-    if (geometry.attributes.position.isInterleavedBufferAttribute) {
-      const positions = new Float32Array(geometry.attributes.position.count * 3);
-      for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
-        localVector
-          .fromArray(geometry.attributes.position.data.array, j)
-          .applyMatrix4(mesh.matrixWorld)
-          .toArray(positions, i);
-      }
-      newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    } else {
-      const positions = new Float32Array(geometry.attributes.position.array.length);
-      for (let i = 0; i < positions.length; i += 3) {
-        localVector
-          .fromArray(geometry.attributes.position.array, i)
-          .applyMatrix4(mesh.matrixWorld)
-          .toArray(positions, i);
-      }
-      newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    }
-    
-    if (geometry.index) {
-      newGeometry.setIndex(geometry.index);
-    }
-    
-    return newGeometry;
-  });
-  const newGeometry = BufferGeometryUtils.mergeBufferGeometries(newGeometries);
-  const physicsMesh = new THREE.Mesh(newGeometry);
-  return physicsMesh;
-};
 const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, files = null, parentUrl = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files) {
@@ -165,7 +121,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   let physicsBuffer = null;
   let physicsIds = [];
   if (physics) {
-    physicsMesh = _convertMeshToPhysicsMesh(mesh);
+    physicsMesh = convertMeshToPhysicsMesh(mesh);
   }
   if (physics_url) {
     const res = await fetch(physics_url);
