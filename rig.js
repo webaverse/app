@@ -284,11 +284,13 @@ class RigManager {
     const leftGamepadQuaternion = this.localRig.inputs.leftGamepad.quaternion.toArray();
     const leftGamepadPointer = this.localRig.inputs.leftGamepad.pointer;
     const leftGamepadGrip = this.localRig.inputs.leftGamepad.grip;
+    const leftGamepadEnabled = this.localRig.inputs.leftGamepad.enabled;
 
     const rightGamepadPosition = this.localRig.inputs.rightGamepad.position.toArray();
     const rightGamepadQuaternion = this.localRig.inputs.rightGamepad.quaternion.toArray();
     const rightGamepadPointer = this.localRig.inputs.rightGamepad.pointer;
     const rightGamepadGrip = this.localRig.inputs.rightGamepad.grip;
+    const rightGamepadEnabled = this.localRig.inputs.rightGamepad.enabled;
 
     const floorHeight = this.localRig.getFloorHeight();
     const topEnabled = this.localRig.getTopEnabled();
@@ -304,8 +306,8 @@ class RigManager {
 
     return [
       [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
       floorHeight,
       topEnabled,
       bottomEnabled,
@@ -351,8 +353,8 @@ class RigManager {
   setLocalAvatarPose(poseArray) {
     const [
       [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ] = poseArray;
 
     this.localRig.inputs.hmd.position.fromArray(hmdPosition);
@@ -362,11 +364,13 @@ class RigManager {
     this.localRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
     this.localRig.inputs.leftGamepad.pointer = leftGamepadPointer;
     this.localRig.inputs.leftGamepad.grip = leftGamepadGrip;
+    this.localRig.inputs.leftGamepad.enabled = leftGamepadEnabled;
 
     this.localRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
     this.localRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
     this.localRig.inputs.rightGamepad.pointer = rightGamepadPointer;
     this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
+    this.localRig.inputs.rightGamepad.enabled = rightGamepadEnabled;
 
     this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
     this.localRig.textMesh.position.y += 0.5;
@@ -379,8 +383,8 @@ class RigManager {
   setPeerAvatarPose(poseArray, peerId) {
     const [
       [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
       floorHeight,
       topEnabled,
       bottomEnabled,

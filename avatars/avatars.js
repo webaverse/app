@@ -1239,6 +1239,7 @@ class Avatar {
       const result = new THREE.Object3D();
       result.pointer = 0;
       result.grip = 0;
+      result.enabled = false;
       return result;
     };
 		this.inputs = {
