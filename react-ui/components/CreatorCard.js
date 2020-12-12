@@ -16,13 +16,26 @@ const Creator = ({
   ftu = 0,
   address
 }) => {
+
+  const copyAddress = (e) => {
+    e.preventDefault();
+    navigator.clipboard.writeText(state.address);
+    console.log("Copied address to clipboard", state.address);
+    e.stopPropagation()
+  };
+
     return html`
         <div className="${styles} creator" onClick=${() => window.location = '/creator/'+address}>
           <div className="avatarPreview"><img src="${avatarPreview !== "" ? avatarPreview : defaultAvatarImage}" /></div>
           <div className="creatorInfo">
-            <div className="creatorName">${name}</div>
-            <div className="creatorFtu">${ftu}</div>
-            <div className="creatorAddress">${address}</div>
+            <div>
+              <div className="creatorName">${name || 'default name'}</div>
+              <div className="creatorFtu">${ftu}</div>
+            </div>
+            <div>
+              <div className="creatorAddress">${address}</div>
+              <div className="creatorBtnCopy" onClick=${copyAddress}> (copy) </div>
+            </div>
           </div>
         </div>
     `;
