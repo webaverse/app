@@ -2,8 +2,7 @@ import { getAddressFromMnemonic, contracts, runSidechainTransaction, web3 } from
 import storage from '../webaverse/storage.js';
 import bip39 from '../libs/bip39.js';
 import hdkeySpec from '../libs/hdkey.js';
-
-const storageHost = 'https://storage.exokit.org';
+import { storageHost } from '../webaverse/constants.js';
 const hdkey = hdkeySpec.default;
 
 export const connectMetamask = async (state) => {
@@ -146,10 +145,17 @@ export const setFtu = async (name, avatarUrl, state) => {
   return { ...state, avatarUrl: avatarUrl, avatarFileName: avatarUrl, avatarPreview: avatarPreview };
 };
 
-export const getInventoryForCreator = async (creatorAddress, page, state) => {
+export const clearInventroryForCreator = async (creatorAddress, state) => {
+  let newState = {...state}
   // Use cached page
-  if (state.creatorInventories[creatorAddress] !== undefined &&
-    state.creatorInventories[creatorAddress][page]) {
+    newState.creatorProfiles[creatorAddress] = undefined;
+    newState.creatorInventories[creatorAddress] = undefined;
+  return newState;
+};
+
+export const getInventoryForCreator = async (creatorAddress, page, forceUpdate, state) => {
+  // Use cached page
+  if (forceUpdate !== true && state.creatorInventories[creatorAddress] !== undefined) {
     return state;
   }
 
@@ -175,7 +181,7 @@ export const getProfileForCreator = async (creatorAddress, state) => {
   const creatorProfile = await res.json();
   let newState = { ...state };
   newState.creatorProfiles[creatorAddress] = creatorProfile;
-  return await getInventoryForCreator(creatorAddress, 1, newState);
+  return await getInventoryForCreator(creatorAddress, 1, false, newState);
 };
 
 export const getBooths = async (page, state) => {
@@ -202,50 +208,6 @@ export const getCreators = async (page, state) => {
   return newState;
 };
 
-
-export const mintNft = async (file, name, description, quantity, successCallback, errorCallback, state) => {
-  const { mnemonic } = state.loginToken;
-  const address = state.address;
-  const res = await fetch(storageHost, { method: 'POST', body: file });
-  const { hash } = await res.json();
-
-  let status, transactionHash, tokenIds;
-
-
-  try {
-
-    const fullAmount = {
-      t: 'uint256',
-      v: new web3['sidechain'].utils.BN(1e9)
-        .mul(new web3['sidechain'].utils.BN(1e9))
-        .mul(new web3['sidechain'].utils.BN(1e9)),
-    };
-
-
-    
-      const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['sidechain']['NFT']._address, fullAmount.v);
-      status = result.status;
-      transactionHash = '0x0';
-      tokenIds = [];
-    
-    if (status) {
-      const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, name, description, quantity);
-      status = result.status;
-      transactionHash = result.transactionHash;
-      const tokenId = new web3['sidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
-      tokenIds = [tokenId, tokenId + quantity - 1];
-      successCallback();
-    }
-  } catch (err) {
-    console.warn(err);
-    status = false;
-    transactionHash = '0x0';
-    tokenIds = [];
-    errorCallback(err);
-  }
-
-  return await pullUserObject(state);
-};
 
 export const pullUserObject = async (state) => {
 
