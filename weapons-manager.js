@@ -1873,12 +1873,16 @@ const itemSpecs = [
     "content": "https://h.webaverse.com/"
   },
   {
-    "name": "camera",
+    "name": "land",
+    "start_url": "https://avaer.github.io/land/index.js"
+  },
+  {
+    "name": "planet",
     "start_url": "https://avaer.github.io/planet/index.js"
   },
   {
-    "name": "land",
-    "start_url": "https://avaer.github.io/land/index.js"
+    "name": "camera",
+    "start_url": "https://avaer.github.io/camera/index.js"
   },
 ];
 const itemsEl = document.getElementById('items');
