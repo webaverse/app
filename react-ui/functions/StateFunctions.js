@@ -2,7 +2,9 @@ import { getAddressFromMnemonic, contracts, runSidechainTransaction, web3 } from
 import storage from '../webaverse/storage.js';
 import bip39 from '../libs/bip39.js';
 import hdkeySpec from '../libs/hdkey.js';
-import { storageHost } from '../webaverse/constants.js';
+import { storageHost, previewHost, previewExt } from '../webaverse/constants.js';
+import {getExt} from '../webaverse/util.js';
+
 const hdkey = hdkeySpec.default;
 
 export const connectMetamask = async (state) => {
@@ -82,15 +84,14 @@ export const getAddress = (state) => {
 };
 
 export const setAvatar = async (id, state) => {
-  if (!state.loginToken)
-    throw new Error('not logged in');
+  if (!state.loginToken)  throw new Error('not logged in');
   const res = await fetch(`https://tokens.webaverse.com/${id}`);
   const token = await res.json();
   const { filename, hash } = token.properties;
   const url = `${storageHost}/${hash.slice(2)}`;
   const ext = getExt(filename);
   const preview = `${previewHost}/${hash.slice(2)}.${ext}/preview.${previewExt}`;
-  const address = state.getAddress();
+  const address = state.address;
   await Promise.all([
     runSidechainTransaction(state.loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarUrl', url),
     runSidechainTransaction(state.loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarFileName', filename),
