@@ -828,7 +828,19 @@ scene.add(deployMesh);
 const _enter = () => {
   if (deployMesh.visible) {
     const itemSpec = itemSpecs[selectedItemIndex];
-    world.addObject(itemSpec.start_url, null, deployMesh.position, deployMesh.quaternion);
+    let {start_url, filename, content} = itemSpec;
+
+    if (start_url) {
+      // start_url = new URL(start_url, srcUrl).href;
+      // filename = start_url;
+    } else if (filename && content) {
+      const blob = new Blob([content], {
+        type: 'application/octet-stream',
+      });
+      start_url = URL.createObjectURL(blob);
+      start_url += '/' + filename;
+    }
+    world.addObject(start_url, null, deployMesh.position, deployMesh.quaternion);
 
     weaponsManager.setMenu(false);
   } else if (highlightedObject) {
