@@ -49,6 +49,7 @@
       <div class="tab">Inventory</div>
       <div class="tab">Scene</div>
     </div>
+    <div class=items id=items></div>
     <!-- <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg" class=profile-picture> -->
   </div>
   <div class="menu secondary" id=world-menu>
@@ -111,21 +112,31 @@
         <div class="row"></div>
         <div class="row">
           <div class="label center">Fly</div>
-          <div class="key" id="key-f" function="firstperson">F</div>
+          <div class="key" id="key-f">F</div>
         </div>
       </div>
       <div class="keys">
         <div class="row"></div>
         <div class="row">
           <div class="label center">Camera</div>
-          <div class="key" id="key-v" function="firstperson">V</div>
-          <div class="key" id="key-b" function="thirdperson">B</div>
+          <div class="key" id="key-x">X</div>
+          <!-- <div class="key" id="key-b" function="thirdperson">B</div>
           <div class="key" id="key-n" function="isometric">N</div>
-          <div class="key" id="key-m" function="birdseye">M</div>
+          <div class="key" id="key-m" function="birdseye">M</div> -->
         </div>
       </div>
-      <nav class="enter-xr-button" id="mic-on-button" style="display: none;">Mic On</nav>
-      <nav class="enter-xr-button disabled" id="mic-off-button">Mic Off</nav>
+      <div class="keys">
+        <div class="row"></div>
+        <div class="row">
+          <div class="label center">Voice</div>
+          <div class="key" id="key-v">V</div>
+          <!-- <div class="key" id="key-b" function="thirdperson">B</div>
+          <div class="key" id="key-n" function="isometric">N</div>
+          <div class="key" id="key-m" function="birdseye">M</div> -->
+        </div>
+      </div>
+      <!-- <nav class="enter-xr-button" id="mic-on-button" style="display: none;">Mic On</nav>
+      <nav class="enter-xr-button disabled" id="mic-off-button">Mic Off</nav> -->
       <nav class="enter-xr-button" id="enter-xr-button" style="display: none;">Enter XR</nav>
       <nav class="enter-xr-button disabled" id="no-xr-button">No XR</nav>
     </div>

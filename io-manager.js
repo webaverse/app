@@ -255,7 +255,7 @@ window.addEventListener('keydown', e => {
       weaponsManager.menuDelete();
       break;
     }
-    /* case 38: { // up
+    case 38: { // up
       weaponsManager.menuVertical(-1);
       break;
     }
@@ -263,7 +263,7 @@ window.addEventListener('keydown', e => {
       weaponsManager.menuVertical(1);
       break;
     }
-    case 37: { // left
+    /* case 37: { // left
       weaponsManager.menuHorizontal(-1, e.shiftKey);
       break;
     }
@@ -346,7 +346,22 @@ window.addEventListener('keydown', e => {
     }
     case 70: { // F
       // pe.grabdown('right');
+      e.preventDefault();
+      e.stopPropagation();
       document.getElementById('key-f').click();
+      break;
+    }
+    case 88: { // X
+      // pe.grabdown('right');
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('key-x').dispatchEvent(new KeyboardEvent('keydown', {
+        which: e.which,
+        shiftKey: e.shiftKey,
+        ctrlKey: e.ctrlKey,
+        altKey: e.altKey,
+        metaKey: e.metaKey,
+      }));
       break;
     }
     case 86: { // V
@@ -357,7 +372,7 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
-    case 66: { // B
+    /* case 66: { // B
       if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
@@ -380,7 +395,7 @@ window.addEventListener('keydown', e => {
         document.getElementById('key-m').click();
       }
       break;
-    }
+    } */
     case 80: { // P
       if (weaponsManager.destroyWorld()) {
         /* e.preventDefault();

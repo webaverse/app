@@ -16,6 +16,7 @@ export const PageRouter = () => {
   <${React.Fragment}>
   <${NavBar} />
   <${Router}>
+    <${MyProfile} path="/"/>
       <${MyProfile} path="/profile/:view"/>
       <${Settings} path="/settings" />
       <${Gallery} path="/gallery" />
@@ -25,7 +26,7 @@ export const PageRouter = () => {
       <${CreatorProfilePage} path="/creator/:address" />
       <${CreatorProfilePage} path="/creator/:address/:view" />
       <${LoginGateway} path="/gateway" />
-      <${MyProfile} path="*" />
+      <${NotFoundPage} path="*" />
     </${Router}>
   </${React.Fragment}>
 

@@ -9,7 +9,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import {rigManager} from './rig.js';
 import {teleportMeshes} from './teleport.js';
-import {renderer, scene, camera, dolly} from './app-object.js';
+import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 import {
   THING_SHADER,
   makeDrawMaterial,
@@ -827,7 +827,20 @@ scene.add(deployMesh);
 
 const _enter = () => {
   if (deployMesh.visible) {
-    world.addObject(`https://avaer.github.io/lightsaber/index.js`, null, deployMesh.position, deployMesh.quaternion);
+    const itemSpec = itemSpecs[selectedItemIndex];
+    let {start_url, filename, content} = itemSpec;
+
+    if (start_url) {
+      // start_url = new URL(start_url, srcUrl).href;
+      // filename = start_url;
+    } else if (filename && content) {
+      const blob = new Blob([content], {
+        type: 'application/octet-stream',
+      });
+      start_url = URL.createObjectURL(blob);
+      start_url += '/' + filename;
+    }
+    world.addObject(start_url, null, deployMesh.position, deployMesh.quaternion);
 
     weaponsManager.setMenu(false);
   } else if (highlightedObject) {
@@ -1528,7 +1541,7 @@ const _updateWeapons = timeDiff => {
               .invert()
           )
           .decompose(localVector, localQuaternion, localVector2);
-        if (localBox.containsPoint(localVector) && !world.grabbedObjects.includes(candidate)) {
+        if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
           highlightMesh.position.copy(candidate.position);
           highlightMesh.visible = true;
           highlightedObject = candidate;
@@ -1584,16 +1597,16 @@ const _updateWeapons = timeDiff => {
     for (let i = 0; i < 2; i++) {
       if (ioManager.currentWeaponGrabs[i] && !ioManager.lastWeaponGrabs[i]) {
         const {position} = transforms[i];
-        world.grabbedObjects[i] = world.getClosestObject(position, 0.3);
-        if (!world.grabbedObjects[i]) {
-          world.grabbedObjects[i] = highlightedObject;
+        appManager.grabbedObjects[i] = world.getClosestObject(position, 0.3);
+        if (!appManager.grabbedObjects[i]) {
+          appManager.grabbedObjects[i] = highlightedObject;
           highlightedObject = null;
           changed = true;
         }
         // meshComposer.grab(i);
       }
       if (!ioManager.currentWeaponGrabs[i] && ioManager.lastWeaponGrabs[i]) {
-        world.grabbedObjects[i] = null;
+        appManager.grabbedObjects[i] = null;
         // meshComposer.ungrab(i);
         changed = true;
       }
@@ -1819,7 +1832,107 @@ const _renderWheel = (() => {
   };
 })();
 
-const menuMesh = (() => {
+const itemSpecs = [
+  {
+    "name": "home",
+    "start_url": "https://avaer.github.io/home/manifest.json"
+  },
+  {
+    "name": "mirror",
+    "start_url": "https://avaer.github.io/mirror/index.js"
+  },
+  {
+    "name": "lightsaber",
+    "start_url": "https://avaer.github.io/lightsaber/index.js"
+  },
+  {
+    "name": "shield",
+    "start_url": "https://avaer.github.io/shield/index.js"
+  },
+  {
+    "name": "physicscube",
+    "start_url": "https://avaer.github.io/physicscube/index.js"
+  },
+  {
+    "name": "weapons",
+    "start_url": "https://avaer.github.io/weapons/index.js"
+  },
+  {
+    "name": "hookshot",
+    "start_url": "https://avaer.github.io/hookshot/index.js"
+  },
+  {
+    "name": "cv",
+    "filename": "cv.url",
+    "content": "https://cv.webaverse.com/"
+  },
+  {
+    "name": "dcl",
+    "filename": "cv.url",
+    "content": "https://dcl.webaverse.com/"
+  },
+  {
+    "name": "h",
+    "filename": "h.url",
+    "content": "https://h.webaverse.com/"
+  },
+  {
+    "name": "land",
+    "start_url": "https://avaer.github.io/land/index.js"
+  },
+  {
+    "name": "planet",
+    "start_url": "https://avaer.github.io/planet/index.js"
+  },
+  {
+    "name": "camera",
+    "start_url": "https://avaer.github.io/camera/index.js"
+  },
+  {
+    "name": "cityscape",
+    "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
+  },
+];
+const itemsEl = document.getElementById('items');
+for (const itemSpec of itemSpecs) {
+  const div = document.createElement('div');
+  div.classList.add('item');
+  div.innerHTML = `
+    <div class=card>
+      <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
+    </div>
+    <div class=name>${itemSpec.name}</div>
+  `;
+  itemsEl.appendChild(div);
+}
+let selectedItemIndex = 0;
+const _selectItem = newSelectedItemIndex => {
+  selectedItemIndex = newSelectedItemIndex;
+
+  for (const childNode of itemsEl.childNodes) {
+    childNode.classList.remove('selected');
+  }
+
+  const itemEl = itemsEl.childNodes[selectedItemIndex];
+  itemEl.classList.add('selected');
+
+  const itemsBoundingRect = itemsEl.getBoundingClientRect();
+  const itemBoundingRect = itemEl.getBoundingClientRect();
+  if (itemBoundingRect.y <= itemsBoundingRect.y || itemBoundingRect.bottom >= itemsBoundingRect.bottom) {
+    itemEl.scrollIntoView();
+  }
+};
+const _selectItemDelta = offset => {
+  let newSelectedItemIndex = selectedItemIndex + offset;
+  if (newSelectedItemIndex >= itemSpecs.length) {
+    newSelectedItemIndex = 0;
+  } else if (newSelectedItemIndex < 0) {
+    newSelectedItemIndex = itemSpecs.length - 1;
+  }
+  _selectItem(newSelectedItemIndex);
+};
+
+/* const menuMesh = (() => {
   const object = new THREE.Object3D();
 
   let offset = 0.1;
@@ -2168,7 +2281,7 @@ const menuMesh = (() => {
   return object;
 })();
 menuMesh.visible = false;
-scene.add(menuMesh);
+scene.add(menuMesh); */
 
 const keyTabEl = document.getElementById('key-tab');
 const keyTab2El = document.getElementById('key-tab-2');
@@ -2318,13 +2431,19 @@ const weaponsManager = {
     menuMesh.visible = newOpen; */
     this.menuOpen = newOpen;
     _updateMenu();
+    if (newOpen) {
+      _selectItem(0);
+    }
   },
-  menuVertical(offset, shift) {
-    menuMesh.offsetVertical(offset, shift);
+  menuVertical(offset/*, shift*/) {
+    if (this.menuOpen) {
+      _selectItemDelta(offset);
+      // menuMesh.offsetVertical(offset, shift);
+    }
   },
-  menuHorizontal(offset, shift) {
+  /* menuHorizontal(offset, shift) {
     menuMesh.offsetHorizontal(offset, shift);
-  },
+  }, */
   menuEnter() {
     // menuMesh.enter();
     _enter();

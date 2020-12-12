@@ -6,7 +6,7 @@ import {MeshoptDecoder} from './meshopt_decoder.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {VOXLoader} from './VOXLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
-import {getExt, mergeMeshes} from './util.js';
+import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 // import {bake} from './bakeUtils.js';
 // import geometryManager from './geometry-manager.js';
 import {rigManager} from './rig.js';
@@ -117,55 +117,25 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     }
   })();
 
-  const physicsMeshes = [];
-  const physicsBuffers = [];
+  let physicsMesh = null;
+  let physicsBuffer = null;
   let physicsIds = [];
   if (physics) {
-    mesh.updateMatrixWorld();
-    
-    const meshes = [];
-    mesh.traverse(o => {
-      if (o.isMesh) {
-        meshes.push(o);
-      }
-    });
-    for (const mesh of meshes) {
-      const {geometry} = mesh;
-      const newGeometry = new THREE.BufferGeometry();
-
-      if (geometry.attributes.position.isInterleavedBufferAttribute) {
-        const positions = new Float32Array(geometry.attributes.position.count * 3);
-        for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
-          localVector
-            .fromArray(geometry.attributes.position.data.array, j)
-            .applyMatrix4(mesh.matrixWorld)
-            .toArray(positions, i);
-        }
-        newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      } else {
-        newGeometry.setAttribute('position', geometry.attribute.position);
-      }
-      
-      if (geometry.index) {
-        newGeometry.setIndex(geometry.index);
-      }
-
-      const physicsMesh = new THREE.Mesh(newGeometry);
-      physicsMeshes.push(physicsMesh);
-    }
+    physicsMesh = convertMeshToPhysicsMesh(mesh);
   }
   if (physics_url) {
     const res = await fetch(physics_url);
-    let physicsBuffer = await res.arrayBuffer();
-    physicsBuffer = new Uint8Array(physicsBuffer);
-    physicsBuffers.push(physicsBuffer);
+    const arrayBuffer = await res.arrayBuffer();
+    physicsBuffer = new Uint8Array(arrayBuffer);
   }
 
   mesh.run = () => {
-    physicsIds = physicsMeshes.map(physicsMesh => physicsManager.addGeometry(physicsMesh))
-      .concat(physicsBuffers.map(physicsBuffer => {
-        return physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion);
-      }));
+    if (physicsMesh) {
+      physicsIds.push(physicsManager.addGeometry(physicsMesh));
+    }
+    if (physicsBuffer) {
+      physicsIds.push(physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion));
+    }
   };
   mesh.destroy = () => {
     for (const physicsId of physicsIds) {
@@ -567,7 +537,7 @@ const _loadManifestJson = async (file, {files = null} = {}) => {
 
   const res = await fetch(srcUrl);
   const j = await res.json();
-  let {start_url, physics_url} = j;
+  let {start_url, physics, physics_url} = j;
   const u = './' + start_url;
 
   if (/\.js$/.test(u)) {
@@ -682,6 +652,7 @@ const _loadManifestJson = async (file, {files = null} = {}) => {
     }, {
       files,
       parentUrl: srcUrl,
+      physics,
       physics_url,
     });
   }
