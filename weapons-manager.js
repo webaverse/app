@@ -1838,6 +1838,10 @@ const itemSpecs = [
     "start_url": "https://avaer.github.io/home/manifest.json"
   },
   {
+    "name": "mirror",
+    "start_url": "https://avaer.github.io/mirror/index.js"
+  },
+  {
     "name": "physicscube",
     "start_url": "https://avaer.github.io/physicscube/index.js"
   },
