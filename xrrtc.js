@@ -28,7 +28,7 @@ class XRChannelConnection extends EventTarget {
 
     this.connectionId = makeId();
     this.peerConnections = [];
-    this.dataChannel = null;
+    // this.dataChannel = null;
     // this.open = true;
 
     // console.log('local connection id', this.connectionId);
@@ -65,7 +65,7 @@ class XRChannelConnection extends EventTarget {
     const dialogClient = new RoomClient({
       url: `${url}?roomId=${roomName}&peerId=${this.connectionId}`
     });
-    dialogClient.addEventListener('addsend', async e => {
+    /* dialogClient.addEventListener('addsend', async e => {
       const {data: {dataProducer: {id, _dataChannel}}} = e;
       // console.log('add send', _dataChannel);
       if (_dataChannel.readyState !== 'open') {
@@ -88,7 +88,7 @@ class XRChannelConnection extends EventTarget {
       const {data: {dataProducer: {id, _dataChannel}}} = e;
       // console.log('remove send', _dataChannel);
       this.dataChannel = null;
-    });
+    }); */
     dialogClient.addEventListener('addreceive', e => {
       const {data: {peerId, label, dataConsumer: {id, _dataChannel}}} = e;
       // console.log('add data receive', peerId, label, _dataChannel);
