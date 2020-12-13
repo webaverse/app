@@ -187,7 +187,7 @@ class XRChannelConnection extends EventTarget {
 
   send(s) {
     if (this.dataChannel.readyState === 'open') {
-      this.dataChannel.send(s);
+      dialogClient._protoo._transport._ws(s);
     }
   }
   
