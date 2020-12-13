@@ -3,7 +3,7 @@ import { PageRouter } from './components/PageRouter.js';
 import ActionTypes from './constants/ActionTypes.js';
 import { Context } from './constants/Context.js';
 import { InitialStateValues } from './constants/InitialStateValues.js';
-import { clearInventroryForCreator, getBooths, getCreators, getInventoryForCreator, getProfileForCreator, initializeStart, loginWithEmailCode, loginWithEmailOrPrivateKey, logout } from './functions/UIStateFunctions.js';
+import { clearInventroryForCreator, getBoothForCreator, getBooths, getCreators, getInventoryForCreator, getProfileForCreator, initializeStart, loginWithEmailCode, loginWithEmailOrPrivateKey, logout } from './functions/UIStateFunctions.js';
 import htm from './web_modules/htm.js';
 
 window.html = htm.bind(React.createElement);
@@ -26,6 +26,12 @@ const Application = () => {
           dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
         });
         return state;
+
+        case ActionTypes.GetBoothForCreator:
+          getBoothForCreator(action.payload.address, action.payload.page, state).then(newState => {
+            dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
+          });
+          return state;
 
       case ActionTypes.GetInventoryForCreator:
         getInventoryForCreator(action.payload.address, action.payload.page, state).then(newState => {
@@ -105,11 +111,7 @@ const Application = () => {
   <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
   ${state.address && html`
   <${Context.Provider} value=${{ state, dispatch }}>  
-    ${!state.useWebXR ? html`
       <${PageRouter} />
-    ` : html`
-      <${WebXRContext} />
-    `}
     </${Context.Provider}>
     `}
   <//>

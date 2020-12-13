@@ -40,16 +40,46 @@ export const getInventoryForCreator = async (creatorAddress, page, forceUpdate, 
   return newState;
 };
 
-export const getProfileForCreator = async (creatorAddress, state) => {
+export const getBoothForCreator = async (creatorAddress, page, forceUpdate, state) => {
   // Use cached page
-  if (state.creatorProfiles[creatorAddress] !== undefined)
+  if (forceUpdate !== true && state.creatorBooths[creatorAddress] !== undefined) {
     return state;
+  }
+
+  const address = `https://store.webaverse.com/${creatorAddress}?page=`;
+  console.log("Addres is", `https://store.webaverse.com/${creatorAddress}?page=`);
+  const res = await fetch(address);
+  const creatorBooth = await res.json();
+  const entries = (creatorBooth[0] === undefined) ? [] : creatorBooth[0].entries;
+  console.log("creatorBooth is", entries);
+  const newState = { ...state };
+  if (newState.creatorBooths[creatorAddress] === undefined) {
+    newState.creatorBooths[creatorAddress] = {};
+  }
+    newState.creatorBooths[creatorAddress][page] = entries;
+
+  return newState;
+};
+
+export const getProfileForCreator = async (creatorAddress, state) => {
+  console.log("Getting profile for creator")
+  // Use cached page
+  if (state.creatorProfiles[creatorAddress] !== undefined &&
+    state.creatorInventories[creatorAddress] !== undefined &&
+    state.creatorBooths[creatorAddress] !== undefined)
+    return state;
+
+    console.log("Got this far")
+
 
   const res = await fetch(`https://accounts.webaverse.com/${creatorAddress}`);
   const creatorProfile = await res.json();
   let newState = { ...state };
   newState.creatorProfiles[creatorAddress] = creatorProfile;
-  return await getInventoryForCreator(creatorAddress, 1, false, newState);
+  const nextState = await getBoothForCreator(creatorAddress, 1, false, newState);
+  const lastState = await getInventoryForCreator(creatorAddress, 1, false, nextState);
+  console.log("Last state is", lastState);
+  return lastState;
 };
 
 export const getBooths = async (page, state) => {

@@ -18,6 +18,7 @@ export const InitialStateValues = {
   inventory: null,
   creatorProfiles: {},
   creatorInventories: {},
+  creatorBooths: {},
   creators: {},
   booths: {},
   lastFileHash: null,
