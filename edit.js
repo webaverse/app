@@ -1084,10 +1084,10 @@ function animate(timestamp, frame) {
     _tickPlanetAnimation(factor);
   } */
 
-  const geometryEnabled = false;
+  /* const geometryEnabled = false;
   if (geometryEnabled) {
     geometryManager.update(timeDiff, frame);
-  }
+  } */
   world.update();
 
   appManager.tick(timestamp, frame);
@@ -1098,15 +1098,15 @@ function animate(timestamp, frame) {
   localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));
   localMatrix3.copy(xrCamera.matrix)
     .premultiply(dolly.matrix)
-    .premultiply(localMatrix2.copy(geometryManager.worldContainer.matrixWorld).invert())
+    // .premultiply(localMatrix2.copy(geometryManager.worldContainer.matrixWorld).invert())
     .decompose(localVector, localQuaternion, localVector2);
 
-  if (geometryEnabled) {
+  /* if (geometryEnabled) {
     const [landGroups, vegetationGroups, thingGroups] = geometryManager.geometryWorker.tickCull(geometryManager.tracker, localVector, localMatrix);
     geometryManager.currentChunkMesh.geometry.groups = landGroups;
     geometryManager.currentVegetationMesh.geometry.groups = vegetationGroups;
     geometryManager.currentThingMesh.geometry.groups = thingGroups;
-  }
+  } */
 
   // high priority render
   renderer.render(scene3, camera);
