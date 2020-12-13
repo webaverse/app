@@ -1135,11 +1135,12 @@ function animate(timestamp, frame) {
 
   if (session && document.visibilityState == 'visible') {
     const {baseLayer} = session.renderState;
-    if (!xrscenetexture) {
-      xrscenetexture = new THREE.DataTexture(null, baseLayer.framebufferWidth, baseLayer.framebufferHeight, THREE.RGBAFormat);
+    if (!xrscenetexture || (xrscenetexture.image.width !== baseLayer.framebufferWidth * renderer.getPixelRatio() / 2) || ((xrscenetexture.image.height !== baseLayer.framebufferHeight * renderer.getPixelRatio()))) {
+      xrscenetexture = new THREE.DataTexture(null, baseLayer.framebufferWidth * renderer.getPixelRatio() / 2, baseLayer.framebufferHeight * renderer.getPixelRatio(), THREE.RGBAFormat);
       xrscenetexture.minFilter = THREE.NearestFilter;
       xrscenetexture.magFilter = THREE.NearestFilter;
-
+    }
+    if (!xrscene) {
       xrscene = new THREE.Scene();
 
       xrsceneplane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), new THREE.MeshBasicMaterial({map: xrscenetexture, /*side: THREE.DoubleSide,*/ color: 0xffffff}));
@@ -1150,12 +1151,12 @@ function animate(timestamp, frame) {
     }
 
     renderer.xr.enabled = false;
-    renderer.copyFramebufferToTexture(localVector2D.set(baseLayer.framebufferWidth / 2, 0), xrscenetexture);
+    renderer.copyFramebufferToTexture(localVector2D.set(0, 0), xrscenetexture);
     renderer.setFramebuffer(null);
 
     const oldOutputEncoding = renderer.outputEncoding;
     renderer.outputEncoding = THREE.LinearEncoding;
-    renderer.setViewport(0, 0, canvas.width * window.devicePixelRatio, canvas.height * window.devicePixelRatio);
+    renderer.setViewport(0, 0, canvas.width, canvas.height);
     renderer.render(xrscene, xrscenecam);
     renderer.xr.enabled = true;
     renderer.outputEncoding = oldOutputEncoding;
