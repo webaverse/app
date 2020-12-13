@@ -6,7 +6,7 @@
 <circle cx="214" cy="214" r="214" fill="#C4C4C4"/>
 </mask>
 <g mask="url(#mask0)">
-<g opacity="0.5">
+<g opacity="0.6">
 <path d="M-9 180L434 180" stroke="#FF7043" stroke-width="4"/>
 <path d="M-9 196L434 196" stroke="#FF7043" stroke-width="4"/>
 <path d="M-9 217L434 217" stroke="#FF7043" stroke-width="4"/>
