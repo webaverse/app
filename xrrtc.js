@@ -93,12 +93,12 @@ class XRChannelConnection extends EventTarget {
       const {data: {peerId, label, dataConsumer: {id, _dataChannel}}} = e;
       // console.log('add data receive', peerId, label, _dataChannel);
       const peerConnection = _addPeerConnection(peerId);
-      _dataChannel.addEventListener('message', e => {
+      /* _dataChannel.addEventListener('message', e => {
         const {data} = e;
         peerConnection.dispatchEvent(new MessageEvent('message', {
           data,
         }));
-      });
+      }); */
       _dataChannel.addEventListener('close', e => {
         console.warn('data channel close', e);
         // this.dataChannel = null;
@@ -148,7 +148,9 @@ class XRChannelConnection extends EventTarget {
       dialogClient._protoo._transport._ws.addEventListener('message', e => {
         if (e.data instanceof ArrayBuffer) {
           Y.applyUpdate(this.state, new Uint8Array(e.data));
-        }
+        } /* else {
+          console.log('got data', e.data);
+        } */
       });
       /* dialogClient._protoo._transport._ws.addEventListener('close', () => {
         this.state.off('update', _update);
@@ -159,6 +161,18 @@ class XRChannelConnection extends EventTarget {
         }
       };
       this.state.on('update', _update);
+    });
+    ['status', 'pose'].forEach(eventType => {
+      dialogClient.addEventListener(eventType, e => {
+        const peerConnection = this.peerConnections.find(peerConnection => peerConnection.connectionId === e.data.peerId);
+        if (peerConnection) {
+          peerConnection.dispatchEvent(new MessageEvent(e.type, {
+            data: e.data,
+          }));
+        } else {
+          console.warn('could not find peer connection for event', e);
+        }
+      });
     });
   }
 
