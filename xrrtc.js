@@ -89,6 +89,19 @@ class XRChannelConnection extends EventTarget {
       // console.log('remove send', _dataChannel);
       this.dataChannel = null;
     }); */
+    dialogClient.addEventListener('peerClosed', e => {
+      const {peerId} = e.data;
+
+      const peerConnection = this.peerConnections.find(peerConnection => peerConnection.connectionId === peerId);
+      if (peerConnection) {
+        if (--peerConnection.numStreams <= 0) {
+          peerConnection.close();
+          this.peerConnections.splice(this.peerConnections.indexOf(peerConnection), 1);
+        }
+      } else {
+        console.warn('cannot find peer connection', peerConnection);
+      }
+    });
     dialogClient.addEventListener('addreceive', e => {
       const {data: {peerId, label, dataConsumer: {id, _dataChannel}}} = e;
       // console.log('add data receive', peerId, label, _dataChannel);
@@ -98,7 +111,7 @@ class XRChannelConnection extends EventTarget {
         peerConnection.dispatchEvent(new MessageEvent('message', {
           data,
         }));
-      }); */
+      });
       _dataChannel.addEventListener('close', e => {
         console.warn('data channel close', e);
         // this.dataChannel = null;
@@ -106,7 +119,7 @@ class XRChannelConnection extends EventTarget {
           peerConnection.close();
           this.peerConnections.splice(this.peerConnections.indexOf(peerConnection), 1);
         }
-      });
+      }); */
     });
     dialogClient.addEventListener('addreceivestream', e => {
       const {data: {peerId, consumer: {id, _track}}} = e;
