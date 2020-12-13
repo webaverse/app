@@ -186,8 +186,8 @@ class XRChannelConnection extends EventTarget {
   } */
 
   send(s) {
-    if (dialogClient._protoo._transport._ws.readyState === WebSocket.OPEN) {
-      dialogClient._protoo._transport._ws(s);
+    if (this.dialogClient._protoo._transport._ws.readyState === WebSocket.OPEN) {
+      this.dialogClient._protoo._transport._ws.send(s);
     }
   }
   
