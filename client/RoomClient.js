@@ -709,6 +709,10 @@ export default class RoomClient extends EventTarget
 
 					case 'peerClosed':
 					{
+                        this.dispatchEvent(new MessageEvent(notification.method, {
+							data: notification.data,
+						}));
+
 						const { peerId } = notification.data;
 
 						store.dispatch(
