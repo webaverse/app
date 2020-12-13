@@ -675,6 +675,8 @@ export default class RoomClient extends EventTarget
 
 			this._protoo.on('notification', (notification) =>
 			{
+				// console.log('got notification', notification, notification.method);
+
 				logger.debug(
 					'proto "notification" event [method:%s, data:%o]',
 					notification.method, notification.data);
@@ -685,34 +687,42 @@ export default class RoomClient extends EventTarget
 					{
 						const { producerId, score } = notification.data;
 
-						store.dispatch(
-							stateActions.setProducerScore(producerId, score));
+						/* store.dispatch(
+							stateActions.setProducerScore(producerId, score)); */
 
 						break;
 					}
 
 					case 'newPeer':
 					{
+                        this.dispatchEvent(new MessageEvent(notification.method, {
+							data: notification.data,
+						}));
+
 						const peer = notification.data;
 
-						store.dispatch(
+						/* store.dispatch(
 							stateActions.addPeer(
 								{ ...peer, consumers: [], dataConsumers: [] }));
 
 						store.dispatch(requestActions.notify(
 							{
 								text : `${peer.displayName} has joined the room`
-							}));
+							})); */
 
 						break;
 					}
 
 					case 'peerClosed':
 					{
+                        this.dispatchEvent(new MessageEvent(notification.method, {
+							data: notification.data,
+						}));
+
 						const { peerId } = notification.data;
 
-						store.dispatch(
-							stateActions.removePeer(peerId));
+						/* store.dispatch(
+							stateActions.removePeer(peerId)); */
 
 						break;
 					}
@@ -721,13 +731,13 @@ export default class RoomClient extends EventTarget
 					{
 						const { peerId, displayName, oldDisplayName } = notification.data;
 
-						store.dispatch(
+						/* store.dispatch(
 							stateActions.setPeerDisplayName(displayName, peerId));
 
 						store.dispatch(requestActions.notify(
 							{
 								text : `${oldDisplayName} is now ${displayName}`
-							}));
+							})); */
 
 						break;
 					}
@@ -752,8 +762,8 @@ export default class RoomClient extends EventTarget
 
 						const { peerId } = consumer.appData;
 
-						store.dispatch(
-							stateActions.removeConsumer(consumerId, peerId));
+						/* store.dispatch(
+							stateActions.removeConsumer(consumerId, peerId)); */
 
 						break;
 					}
@@ -768,8 +778,8 @@ export default class RoomClient extends EventTarget
 
 						consumer.pause();
 
-						store.dispatch(
-							stateActions.setConsumerPaused(consumerId, 'remote'));
+						/* store.dispatch(
+							stateActions.setConsumerPaused(consumerId, 'remote')); */
 
 						break;
 					}
@@ -784,8 +794,8 @@ export default class RoomClient extends EventTarget
 
 						consumer.resume();
 
-						store.dispatch(
-							stateActions.setConsumerResumed(consumerId, 'remote'));
+						/* store.dispatch(
+							stateActions.setConsumerResumed(consumerId, 'remote')); */
 
 						break;
 					}
@@ -798,8 +808,8 @@ export default class RoomClient extends EventTarget
 						if (!consumer)
 							break;
 
-						store.dispatch(stateActions.setConsumerCurrentLayers(
-							consumerId, spatialLayer, temporalLayer));
+						/* store.dispatch(stateActions.setConsumerCurrentLayers(
+							consumerId, spatialLayer, temporalLayer)); */
 
 						break;
 					}
@@ -808,8 +818,8 @@ export default class RoomClient extends EventTarget
 					{
 						const { consumerId, score } = notification.data;
 
-						store.dispatch(
-							stateActions.setConsumerScore(consumerId, score));
+						/* store.dispatch(
+							stateActions.setConsumerScore(consumerId, score)); */
 
 						break;
 					}
@@ -827,8 +837,8 @@ export default class RoomClient extends EventTarget
 
 						const { peerId } = dataConsumer.appData;
 
-						store.dispatch(
-							stateActions.removeDataConsumer(dataConsumerId, peerId));
+						/* store.dispatch(
+							stateActions.removeDataConsumer(dataConsumerId, peerId)); */
 
 						break;
 					}
@@ -837,14 +847,16 @@ export default class RoomClient extends EventTarget
 					{
 						const { peerId } = notification.data;
 
-						store.dispatch(
-							stateActions.setRoomActiveSpeaker(peerId));
+						/* store.dispatch(
+							stateActions.setRoomActiveSpeaker(peerId)); */
 
 						break;
 					}
 
 					case 'initState':
 					case 'updateState':
+					case 'status':
+					case 'pose':
 					{
 						this.dispatchEvent(new MessageEvent(notification.method, {
 							data: notification.data,
