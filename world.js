@@ -587,45 +587,6 @@ world.connectRoom = async (roomName, worldURL) => {
     channelConnectionOpen = true;
     console.log('Channel Open!');
 
-    const queue = [];
-    let index = 0;
-    let bufferedAmountLow = true;
-    channelConnection.send = (_send => function send(a) {
-      if (bufferedAmountLow) {
-        bufferedAmountLow = false;
-        return _send.apply(this, arguments);
-      } else {
-        queue.push(a);
-      }
-    })(channelConnection.send);
-
-    const _bufferedAmountLow = e => {
-      bufferedAmountLow = true;
-      if (index < queue.length) {
-        /* if (channelConnection.dataChannel.bufferedAmount !== 0) {
-          console.log('got buffered amount', channelConnection.dataChannel.bufferedAmount, channelConnection.dataChannel.bufferedAmountLowThreshold);
-          throw new Error('already buffered!');
-        } */
-        const entry = queue[index];
-        queue[index] = null;
-        index++;
-        channelConnection.send(entry);
-        if (index >= queue.length) {
-          queue.length = 0;
-          index = 0;
-        }
-      }
-    };
-    channelConnection.dataChannel.addEventListener('bufferedamountlow', _bufferedAmountLow);
-    channelConnection.addEventListener('close', e => {
-      channelConnection.dataChannel.removeEventListener('bufferedamountlow', _bufferedAmountLow);
-    }, {once: true});
-
-    /* channelConnection.dialogClient.addEventListener('peerEdit', e => {
-      console.log(e);
-      world.onRemoteSubparcelsEdit(e.data.keys);
-    }); */
-
     if (networkMediaStream) {
       channelConnection.setMicrophoneMediaStream(networkMediaStream);
     }
@@ -740,14 +701,14 @@ world.connectRoom = async (roomName, worldURL) => {
     let interval;
     if (live) {
       interval = setInterval(() => {
-        if (channelConnection.dataChannel) {
-          const name = loginManager.getUsername();
-          const avatarSpec = loginManager.getAvatar();
-          const avatarUrl = avatarSpec && avatarSpec.url;
-          const avatarFileName = avatarSpec && avatarSpec.filename;
-          const address = loginManager.getAddress();
-          channelConnection.send(JSON.stringify({
-            method: 'status',
+        const name = loginManager.getUsername();
+        const avatarSpec = loginManager.getAvatar();
+        const avatarUrl = avatarSpec && avatarSpec.url;
+        const avatarFileName = avatarSpec && avatarSpec.filename;
+        const address = loginManager.getAddress();
+        channelConnection.send(JSON.stringify({
+          method: 'status',
+          data: {
             peerId: channelConnection.connectionId,
             status: {
               name,
@@ -755,13 +716,13 @@ world.connectRoom = async (roomName, worldURL) => {
               avatarFileName,
               address
             },
-          }));
-          const pose = rigManager.getLocalAvatarPose();
-          channelConnection.send(JSON.stringify({
-            method: 'pose',
-            pose,
-          }));
-        }
+          },
+        }));
+        const pose = rigManager.getLocalAvatarPose();
+        channelConnection.send(JSON.stringify({
+          method: 'pose',
+          data: pose,
+        }));
       }, 10);
     }
 
