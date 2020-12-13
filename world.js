@@ -619,60 +619,37 @@ world.connectRoom = async (roomName, worldURL) => {
       }));
     });
 
-    peerConnection.addEventListener('message', e => {
-      const {data} = e;
-      if (typeof data === 'string') {
-        const j = JSON.parse(data);
-        const {method} = j;
-        if (method === 'pose') {
-          const {pose} = j;
-          const [head, leftGamepad, rightGamepad, floorHeight] = pose;
-          rigManager.setPeerAvatarPose(pose, peerConnection.connectionId);
-          /*
-          const localEuler = new THREE.Euler();
-          peerRig.textMesh = makeTextMesh();
-          peerRig.textMesh.position.fromArray(head[0]);
-          peerRig.textMesh.position.y += 0.5;
-          peerRig.textMesh.quaternion.fromArray(head[1]);
-          localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.y += Math.PI;
-          localEuler.z = 0;
-          peerRig.textMesh.quaternion.setFromEuler(localEuler); 
-          */
-        } else if (method === 'status') {
-          const {peerId, status: {name, avatarUrl, avatarFileName, address}} = j;
-          const peerRig = rigManager.peerRigs.get(peerId);
-          peerRig.address = address;
-          peerConnection.address = address;
+    peerConnection.addEventListener('status', e => {
+      const {peerId, status: {name, avatarUrl, avatarFileName, address}} = e.data;
+      const peerRig = rigManager.peerRigs.get(peerId);
+      peerRig.address = address;
+      peerConnection.address = address;
 
-          let updated = false;
+      let updated = false;
 
-          const currentPeerName = peerRig.textMesh.text;
-          if (currentPeerName !== name) {
-            rigManager.setPeerAvatarName(name, peerId);
-            updated = true;
-          }
-
-          const newAvatarUrl = avatarUrl || null;
-          const currentAvatarUrl = peerRig.avatarUrl;
-          if (currentAvatarUrl !== newAvatarUrl) {
-            rigManager.setPeerAvatarUrl(newAvatarUrl, avatarFileName, peerId);
-            updated = true;
-          }
-
-          if (updated) {
-            world.dispatchEvent(new MessageEvent('peersupdate', {
-              data: Array.from(rigManager.peerRigs.values()),
-            }));
-          }
-        } else {
-          console.warn('unknown method', method);
-        }
-      } else {
-        console.warn('non-string data', data);
-        throw new Error('non-string data');
+      const currentPeerName = peerRig.textMesh.text;
+      if (currentPeerName !== name) {
+        rigManager.setPeerAvatarName(name, peerId);
+        updated = true;
       }
+
+      const newAvatarUrl = avatarUrl || null;
+      const currentAvatarUrl = peerRig.avatarUrl;
+      if (currentAvatarUrl !== newAvatarUrl) {
+        rigManager.setPeerAvatarUrl(newAvatarUrl, avatarFileName, peerId);
+        updated = true;
+      }
+
+      if (updated) {
+        world.dispatchEvent(new MessageEvent('peersupdate', {
+          data: Array.from(rigManager.peerRigs.values()),
+        }));
+      }
+    });
+    peerConnection.addEventListener('pose', e => {
+      // const [head, leftGamepad, rightGamepad, floorHeight] = e.data;
+      const {pose} = e.data;
+      rigManager.setPeerAvatarPose(pose, peerConnection.connectionId);
     });
     peerConnection.addEventListener('addtrack', e => {
       const track = e.data;
@@ -721,7 +698,9 @@ world.connectRoom = async (roomName, worldURL) => {
         const pose = rigManager.getLocalAvatarPose();
         channelConnection.send(JSON.stringify({
           method: 'pose',
-          data: pose,
+          data: {
+            pose,
+          },
         }));
       }, 10);
     }
