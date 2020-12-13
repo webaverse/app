@@ -30,11 +30,16 @@ a:hover {
 }
 
 .nav-item {
-    padding: 1.4em;
     cursor: pointer;
 }
 
-.nav-item:hover {
+.nav-link {
+    padding: 1.4em;
+    height: 4em;
+    white-space: nowrap;
+}
+
+.nav-link:hover {
     background: rgba(0, 0, 0, 0.04);
 }
 
@@ -49,11 +54,6 @@ a:hover {
 .nav-logo h1 {
     font-weight: 400;
     display: inline;
-    white-space: nowrap;
-}
-
-.nav-link {
-    height: 100%;
     white-space: nowrap;
 }
 
@@ -85,8 +85,7 @@ a:hover {
 }
 
 .discordButton {
-    padding:1em;
-    margin:1em;
+    padding: 0.6em;
 }
 
 .loginUsername {
