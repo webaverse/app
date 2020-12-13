@@ -212,6 +212,10 @@
   color: white;
 }
 
+.scroll::-webkit-scrollbar {
+  display: none;
+}
+
 /* Page Three */
 .flex {
   display: flex;
@@ -222,100 +226,6 @@
   margin-bottom: 2em;
   justify-content: center;
   align-items: flex-start;
-}
-
-.card {
-  flex-direction: column;
-  width: 23em;
-  height: 37em;
-  background-color: #EAEAEA;
-  border: 1px solid #C4C4C4;
-  box-sizing: border-box;
-  border-radius: 15px;
-  padding-left: 1.75em;
-  padding-right: 1.75em;
-  padding-top: 0.5em;
-  margin-right: 4em;
-}
-
-.cardTop>div {
-  width: 23em;
-  justify-content: space-between;
-}
-
-.cardTopItemName {
-  font-size: 1.5em;
-  font-weight: 700;
-  text-transform: capitalize;
-}
-
-.cardTopCreatorIcon {
-  width: 2.1em;
-  height: 2.1em;
-}
-
-.cardTopOwnerIcon {
-  width: 2.1em;
-  height: 2.1em;
-}
-
-.cardAvatar {
-  justify-content: center;
-}
-
-.cardAvatarImg {
-  width: 19.85em;
-  height: 19.5em;
-}
-
-.cardMain {
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
-.cardMainInfo {
-  height: 2.1em;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.cardMainNumber {
-  font-size: 1em;
-  font-weight: 700;
-}
-
-.cardMainGrease {
-  font-size: 1.12em;
-  font-weight: 500;
-}
-
-.cardMainDescription {
-  width: 18em;
-  height: 9.4em;
-  background-color: white;
-  padding: 0.8em;
-}
-
-.cardMainDescription p {
-  font-style: italic;
-  font-weight: 300;
-  font-size: 1.12em;
-  line-height: 1.3em;
-  padding: 0;
-  margin: 0;
-}
-
-.cardMainHash {
-  height: 1.8em;
-  justify-content: center;
-  align-items: center;
-}
-
-.cardMainHash p {
-  margin: 0;
-  padding: 0;
-  font-size: 0.6em;
-  line-height: 12px;
 }
 
 .mintPageFormThreeContainer {

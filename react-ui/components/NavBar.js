@@ -51,7 +51,7 @@ const NavBarUserLoginForm = () => {
         data-address=${state?.address}
         onClick="${copyAddress}"
       >
-        ${state.address.slice(0, 10)}...(Copy Address)
+        ${state.address?.slice(0, 10)}...(Copy Address)
       </button>
       <button 
         className="submit formBtnCopyKey" 
@@ -59,7 +59,7 @@ const NavBarUserLoginForm = () => {
         data-key=${state?.loginToken?.mnemonic}
         onClick="${copyPrivateKey}"
       >
-        ${state.loginToken?.mnemonic?.slice(0, 10)}...(Copy Private Key)
+        ${state.loginToken.mnemonic?.slice(0, 10)}...(Copy Private Key)
       </button>
       <span className="loginFormTitle">connect your account</span>
       <input autoFocus className="loginFormInput" type="text" placeholder="Login with email or private key" onChange=${handleChange}/>
