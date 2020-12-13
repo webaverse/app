@@ -1150,7 +1150,7 @@ function animate(timestamp, frame) {
     }
 
     renderer.xr.enabled = false;
-    renderer.copyFramebufferToTexture(localVector2D.set(baseLayer.framebufferWidth / 2, 0, 0), xrscenetexture);
+    renderer.copyFramebufferToTexture(localVector2D.set(baseLayer.framebufferWidth / 2, 0), xrscenetexture);
     renderer.setFramebuffer(null);
 
     const oldOutputEncoding = renderer.outputEncoding;
