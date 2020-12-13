@@ -2,30 +2,46 @@ import { contracts, runSidechainTransaction, web3 } from '../webaverse/blockchai
 import { previewExt, previewHost, storageHost } from '../webaverse/constants.js';
 import { getExt } from '../webaverse/util.js';
 
-export const buyAsset = async (id, successCallback, errorCallback) => {
+export const buyAsset = async (id, networkType, mnemonic, successCallback, errorCallback) => {
   try {
-    console.log("No buy asset logic");
+    const network = networkType.toLowerCase() === 'mainnet' ? 'mainnet' : 'sidechain';
+    await runSidechainTransaction(mnemonic)('NFT', 'setApprovalForAll', contracts[network]['Trade']._address, true);
+
+    const result = await runSidechainTransaction(mnemonic)('Trade', 'buy', id);
+    if(result) console.log("Result of buy transaction:", result);
+
     if (successCallback)
-      successCallback();
+      successCallback(result);
   } catch (error) {
     if (errorCallback)
       errorCallback(error);
   }
 };
 
-export const sellAsset = async (id, successCallback, errorCallback) => {
+export const sellAsset = async (id, price, networkType, mnemonic, successCallback, errorCallback) => {
+  console.log("Selling asset, price is", price);
   try {
-    console.log("No buy asset logic");
+    const network = networkType.toLowerCase() === 'mainnet' ? 'mainnet' : 'sidechain';
+
+    await runSidechainTransaction(mnemonic)('NFT', 'setApprovalForAll', contracts[network]['Trade']._address, true);
+    const result = await runSidechainTransaction(mnemonic)('Trade', 'addStore', id, price);
+    if(result) console.log("Result of buy transaction:", result);
+
     if (successCallback)
-      successCallback();
+      successCallback(result);
   } catch (error) {
     if (errorCallback)
       errorCallback(error);
   }
 };
 
-export const cancelSale = async (id, successCallback, errorCallback) => {
+export const cancelSale = async (id, networkType, successCallback, errorCallback) => {
   try {
+    const network = networkType.toLowerCase() === 'mainnet' ? 'mainnet' : 'sidechain';
+    await runSidechainTransaction(mnemonic)('NFT', 'setApprovalForAll', contracts[network]['Trade']._address, true);
+
+    await runSidechainTransaction(mnemonic)('Trade', 'removeStore', id);
+
     console.log("No buy asset logic");
     if (successCallback)
       successCallback();

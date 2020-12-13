@@ -1,4 +1,4 @@
-import { React, useContext } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { React, useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
 import { Context } from '../constants/Context.js';
 import htm from '/web_modules/htm.js';
 import AssetCard from './AssetCard.js';
@@ -37,6 +37,9 @@ export const AssetDetails = ({
 }) => {
     const { state, dispatch } = useContext(Context);
 
+    const [sellAssetShowing, setSellAssetShowing] = useState(false);
+    const [salePrice, setSalePrice] = useState(0);
+
     // Do you own this asset?
     console.log("Owner address is", ownerAddress);
     console.log("minterAddress address is", minterAddress);
@@ -50,6 +53,8 @@ export const AssetDetails = ({
 
     // Otherwise, is this asset for sale?
     const isForSale = buyPrice !== undefined && buyPrice !== null && buyPrice !== ""
+
+    console.log("**** Buy price is", buyPrice);
 
     const handleSetAvatar = (e) => {
         e.preventDefault();
@@ -87,51 +92,39 @@ export const AssetDetails = ({
         cancelSale(id, networkType, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
     }
 
+    const handleShowSellAsset = (e) => {
+        e.preventDefault();
+        setSellAssetShowing(true);
+    }
+
+    const handleHideSellAsset = (e) => {
+        e.preventDefault();
+        setSellAssetShowing(false);
+    }
+
     const handleSellAsset = (e) => {
         e.preventDefault();
-        sellAsset(id, networkType, () => console.log("Selling asset ", id), (err) => console.log("Failed to change homespace", err));
+        if(salePrice < 0) return console.error("Sale price can't be less than 0");
+        console.log("Selling id", id, "from login token", state.loginToken.mnemonic);
+        sellAsset(
+            id,
+            salePrice,
+            networkType,
+            state.loginToken.mnemonic,
+            (success) => console.log("Sold asset ", id, success),
+            (err) => console.log("Failed to sell asset", err)
+        );
     }
 
     const handleBuyAsset = (e) => {
         e.preventDefault();
-        buyAsset(id, networkType, () => console.log("Buying Asset", id), (err) => console.log("Failed to change homespace", err));
-    }
-
-    const userOwnsThisAssetDetails = () => {
-
-        return html`
-        ${/* TODO: Hide corresponding button if this asset is already avatar, homespace or in loadout, and add option to remove from loadout if is in */''}
-            <button className="assetDetailsButton" onClick=${handleSetAvatar}>Set As Avatar</button>
-        <button className="assetDetailsButton" onClick=${handleSetHomespace}>Set As Homespace</button>
-        ${/* <button className="assetDetailsButton" onClick=${addToLoadout}>Add To Loadout</button>*/''}
-        ${state.mainnetAddress !== null && `
-            <button className="assetDetailsButton" onClick=${handleDeposit}>Deposit To ${networkType === 'webaverse' ? 'Mainnet' : 'Webaverse'}</button>
-        `}
-
-        ${userCreatedThisAsset && html`
-            <button className="assetDetailsButton" onClick=${handleReupload}>Reupload Asset</button>
-        `}
-
-        ${isForSale ? html`
-            <button className="assetDetailsButton" onClick=${handleCancelSale}>Cancel Sale</button>
-        ` : html`
-            <button className="assetDetailsButton" onClick=${handleSellAsset}>Sell Asset</button>
-        `}
-        `
-    }
-
-    const userDoesntOwnThisAssetDetails = () => {
-
-        return html`
-        ${isForSale ? html`
-        <span className="forSale">
-            <p>Sale price is ${buyPrice}</p>
-            <button className="assetDetailsButton" onClick=${handleBuyAsset}>Buy Asset</button>
-            </span>
-            ` : html`
-            <p>Not for sale</p>
-        `}
-        `
+        buyAsset(
+            id,
+            networkType,
+            state.loginToken.mnemonic,
+            () => console.log("Buying Asset", id),
+            (err) => console.log("Failed to purchase asset", err)
+        );
     }
 
     return html`
@@ -165,9 +158,42 @@ export const AssetDetails = ({
                     <div className="assetDetailsRightColumnHeader"> ${userOwnsThisAsset ? 'You Own This Asset' : 'Asset Details'} </div>
                     <div className="assetDetailsRightColumnBody">
                     ${userOwnsThisAsset ? html`
-                        <${userOwnsThisAssetDetails} />
+                    ${/* USER OWNS THIS ASSET */ ''}
+                        ${/* TODO: Hide corresponding button if this asset is already avatar, homespace or in loadout, and add option to remove from loadout if is in */''}
+                        <button className="assetDetailsButton" onClick=${handleSetAvatar}>Set As Avatar</button>
+                        <button className="assetDetailsButton" onClick=${handleSetHomespace}>Set As Homespace</button>
+                        ${/* <button className="assetDetailsButton" onClick=${addToLoadout}>Add To Loadout</button>*/''}
+                        ${state.mainnetAddress !== null && `
+                            <button className="assetDetailsButton" onClick=${handleDeposit}>Deposit To ${networkType === 'webaverse' ? 'Mainnet' : 'Webaverse'}</button>
+                        `}
+                
+                        ${userCreatedThisAsset && html`
+                            <button className="assetDetailsButton" onClick=${handleReupload}>Reupload Asset</button>
+                        `}
+                
+                        ${isForSale ? html`
+                            <button className="assetDetailsButton" onClick=${handleCancelSale}>Cancel Sale</button>
                         ` : html`
-                        <${userDoesntOwnThisAssetDetails} />
+                            ${!sellAssetShowing ? html`
+                                <button className="assetDetailsButton" onClick=${handleShowSellAsset}>Sell Asset</button>
+                            `: html`
+                                <span className="sellAssetConfirmation">
+                                <input type="text" value=${salePrice} onChange=${(e) => { e.preventDefault(); setSalePrice( e.target.value )}} />
+                                    <button className="assetDetailsButton" onClick=${handleSellAsset}>Sell Asset</button>
+                                    <button className="assetDetailsButton" onClick=${handleHideSellAsset}>Cancel</button>
+                                </span>
+                            `}
+                        `}
+                    ` : html`
+                    ${/* USER DOES NOT OWN THIS ASSET */ ''}
+                            ${isForSale ? html`
+                            <span className="forSale">
+                                <p>Sale price is ${buyPrice}</p>
+                                <button className="assetDetailsButton" onClick=${handleBuyAsset}>Buy Asset</button>
+                                </span>
+                                ` : html`
+                                <p>Not for sale</p>
+                            `}
                     `}
                      </div>
                     <div className="assetDetailsRightColumnFooter">

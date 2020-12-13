@@ -20,6 +20,7 @@ const Profile = (props) => {
 
   const { state, dispatch } = useContext(Context);
   const [currentPage, setCurrentPage] = useState(1);
+
   const [homespacePreview, setHomespacePreview] = useState(defaultHomespacePreview);
   const [avatarPreview, setAvatarPreview] = useState(defaultAvatarImage);
 
@@ -43,19 +44,20 @@ const Profile = (props) => {
       homespacePreviewCandidate !== null ?
       homespacePreviewCandidate : defaultHomespacePreview);
 
-      const newStoreAssets = state.creatorInventories[creatorAddress][currentPage].filter((asset) => asset.buyPrice !== null && asset.buyPrice > 0);
+      // Get store for creator
+
+      console.log("Booths are ", state.creatorBooths);
+
+      const newStoreAssets = state.creatorBooths[creatorAddress][currentPage];
+      console.log(newStoreAssets);
+      console.log(state);
       setStoreAssets(newStoreAssets);
-      let newView = ""
-      if(view === null || view === "") newView = 'booth';
-      else if(newStoreAssets.length === 0) newView = 'inventory';
-      else newView = 'booth';
-      console.log("Store assets are", newStoreAssets);
-      setView(newView);
+      if((view === undefined || view === null || view === "") && newStoreAssets.length > 0) setView('booth');
+
     }, 100)
   }, [])
 
   useEffect(() => {
-    console.log("View");
     setView(props.view);
   }, [props.view]);
 
@@ -100,7 +102,7 @@ const Profile = (props) => {
                 ${storeAssets.length > 0 && html`
                   <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onsale' ? 'active' : ''}' to='/creator/${creatorAddress}/booth'>For Sale</${Link}>
                 `}
-                  <${Link} className='profileNavLink ${view === 'inventory' ? 'active' : ''}' to='/creator/${creatorAddress}/inventory'>Inventory</${Link}>
+                  <${Link} className='profileNavLink ${view === undefined || view === 'inventory' ? 'active' : ''}' to='/creator/${creatorAddress}/inventory'>Inventory</${Link}>
               </div>
             </div>
             <div className="profileBodyAssets">
