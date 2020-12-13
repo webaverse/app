@@ -89,9 +89,12 @@ class XRChannelConnection extends EventTarget {
       // console.log('remove send', _dataChannel);
       this.dataChannel = null;
     }); */
+    dialogClient.addEventListener('newPeer', e => {
+      const {id: peerId} = e.data;
+      const peerConnection = _addPeerConnection(peerId);
+    });
     dialogClient.addEventListener('peerClosed', e => {
       const {peerId} = e.data;
-
       const peerConnection = this.peerConnections.find(peerConnection => peerConnection.connectionId === peerId);
       if (peerConnection) {
         if (--peerConnection.numStreams <= 0) {
@@ -102,11 +105,14 @@ class XRChannelConnection extends EventTarget {
         console.warn('cannot find peer connection', peerConnection);
       }
     });
-    dialogClient.addEventListener('addreceive', e => {
+    /* dialogClient.addEventListener('addreceive', e => {
+      console.log('got recv', e);
+    }); */
+    /* dialogClient.addEventListener('addreceive', e => {
       const {data: {peerId, label, dataConsumer: {id, _dataChannel}}} = e;
       // console.log('add data receive', peerId, label, _dataChannel);
       const peerConnection = _addPeerConnection(peerId);
-      /* _dataChannel.addEventListener('message', e => {
+      _dataChannel.addEventListener('message', e => {
         const {data} = e;
         peerConnection.dispatchEvent(new MessageEvent('message', {
           data,
@@ -119,8 +125,8 @@ class XRChannelConnection extends EventTarget {
           peerConnection.close();
           this.peerConnections.splice(this.peerConnections.indexOf(peerConnection), 1);
         }
-      }); */
-    });
+      });
+    }); */
     dialogClient.addEventListener('addreceivestream', e => {
       const {data: {peerId, consumer: {id, _track}}} = e;
       // console.log('add receive stream', peerId, _track);
@@ -177,14 +183,10 @@ class XRChannelConnection extends EventTarget {
     });
     ['status', 'pose'].forEach(eventType => {
       dialogClient.addEventListener(eventType, e => {
-        const peerConnection = this.peerConnections.find(peerConnection => peerConnection.connectionId === e.data.peerId);
-        if (peerConnection) {
-          peerConnection.dispatchEvent(new MessageEvent(e.type, {
-            data: e.data,
-          }));
-        } else {
-          console.warn('could not find peer connection for event', e);
-        }
+        const peerConnection = _getPeerConnection(e.data.peerId) || _addPeerConnection(e.data.peerId);
+        peerConnection.dispatchEvent(new MessageEvent(e.type, {
+          data: e.data,
+        }));
       });
     });
   }
