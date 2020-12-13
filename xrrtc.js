@@ -28,7 +28,7 @@ class XRChannelConnection extends EventTarget {
 
     this.connectionId = makeId();
     this.peerConnections = [];
-    this.dataChannel = null;
+    // this.dataChannel = null;
     // this.open = true;
 
     // console.log('local connection id', this.connectionId);
@@ -65,7 +65,7 @@ class XRChannelConnection extends EventTarget {
     const dialogClient = new RoomClient({
       url: `${url}?roomId=${roomName}&peerId=${this.connectionId}`
     });
-    dialogClient.addEventListener('addsend', async e => {
+    /* dialogClient.addEventListener('addsend', async e => {
       const {data: {dataProducer: {id, _dataChannel}}} = e;
       // console.log('add send', _dataChannel);
       if (_dataChannel.readyState !== 'open') {
@@ -88,8 +88,27 @@ class XRChannelConnection extends EventTarget {
       const {data: {dataProducer: {id, _dataChannel}}} = e;
       // console.log('remove send', _dataChannel);
       this.dataChannel = null;
+    }); */
+    dialogClient.addEventListener('newPeer', e => {
+      const {id: peerId} = e.data;
+      const peerConnection = _addPeerConnection(peerId);
     });
-    dialogClient.addEventListener('addreceive', e => {
+    dialogClient.addEventListener('peerClosed', e => {
+      const {peerId} = e.data;
+      const peerConnection = this.peerConnections.find(peerConnection => peerConnection.connectionId === peerId);
+      if (peerConnection) {
+        if (--peerConnection.numStreams <= 0) {
+          peerConnection.close();
+          this.peerConnections.splice(this.peerConnections.indexOf(peerConnection), 1);
+        }
+      } else {
+        console.warn('cannot find peer connection', peerConnection);
+      }
+    });
+    /* dialogClient.addEventListener('addreceive', e => {
+      console.log('got recv', e);
+    }); */
+    /* dialogClient.addEventListener('addreceive', e => {
       const {data: {peerId, label, dataConsumer: {id, _dataChannel}}} = e;
       // console.log('add data receive', peerId, label, _dataChannel);
       const peerConnection = _addPeerConnection(peerId);
@@ -107,7 +126,7 @@ class XRChannelConnection extends EventTarget {
           this.peerConnections.splice(this.peerConnections.indexOf(peerConnection), 1);
         }
       });
-    });
+    }); */
     dialogClient.addEventListener('addreceivestream', e => {
       const {data: {peerId, consumer: {id, _track}}} = e;
       // console.log('add receive stream', peerId, _track);
@@ -148,7 +167,9 @@ class XRChannelConnection extends EventTarget {
       dialogClient._protoo._transport._ws.addEventListener('message', e => {
         if (e.data instanceof ArrayBuffer) {
           Y.applyUpdate(this.state, new Uint8Array(e.data));
-        }
+        } /* else {
+          console.log('got data', e.data);
+        } */
       });
       /* dialogClient._protoo._transport._ws.addEventListener('close', () => {
         this.state.off('update', _update);
@@ -159,6 +180,14 @@ class XRChannelConnection extends EventTarget {
         }
       };
       this.state.on('update', _update);
+    });
+    ['status', 'pose'].forEach(eventType => {
+      dialogClient.addEventListener(eventType, e => {
+        const peerConnection = _getPeerConnection(e.data.peerId) || _addPeerConnection(e.data.peerId);
+        peerConnection.dispatchEvent(new MessageEvent(e.type, {
+          data: e.data,
+        }));
+      });
     });
   }
 
@@ -186,8 +215,8 @@ class XRChannelConnection extends EventTarget {
   } */
 
   send(s) {
-    if (this.dataChannel.readyState === 'open') {
-      this.dataChannel.send(s);
+    if (this.dialogClient._protoo._transport._ws.readyState === WebSocket.OPEN) {
+      this.dialogClient._protoo._transport._ws.send(s);
     }
   }
   

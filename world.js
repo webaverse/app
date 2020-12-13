@@ -587,45 +587,6 @@ world.connectRoom = async (roomName, worldURL) => {
     channelConnectionOpen = true;
     console.log('Channel Open!');
 
-    const queue = [];
-    let index = 0;
-    let bufferedAmountLow = true;
-    channelConnection.send = (_send => function send(a) {
-      if (bufferedAmountLow) {
-        bufferedAmountLow = false;
-        return _send.apply(this, arguments);
-      } else {
-        queue.push(a);
-      }
-    })(channelConnection.send);
-
-    const _bufferedAmountLow = e => {
-      bufferedAmountLow = true;
-      if (index < queue.length) {
-        /* if (channelConnection.dataChannel.bufferedAmount !== 0) {
-          console.log('got buffered amount', channelConnection.dataChannel.bufferedAmount, channelConnection.dataChannel.bufferedAmountLowThreshold);
-          throw new Error('already buffered!');
-        } */
-        const entry = queue[index];
-        queue[index] = null;
-        index++;
-        channelConnection.send(entry);
-        if (index >= queue.length) {
-          queue.length = 0;
-          index = 0;
-        }
-      }
-    };
-    channelConnection.dataChannel.addEventListener('bufferedamountlow', _bufferedAmountLow);
-    channelConnection.addEventListener('close', e => {
-      channelConnection.dataChannel.removeEventListener('bufferedamountlow', _bufferedAmountLow);
-    }, {once: true});
-
-    /* channelConnection.dialogClient.addEventListener('peerEdit', e => {
-      console.log(e);
-      world.onRemoteSubparcelsEdit(e.data.keys);
-    }); */
-
     if (networkMediaStream) {
       channelConnection.setMicrophoneMediaStream(networkMediaStream);
     }
@@ -658,60 +619,37 @@ world.connectRoom = async (roomName, worldURL) => {
       }));
     });
 
-    peerConnection.addEventListener('message', e => {
-      const {data} = e;
-      if (typeof data === 'string') {
-        const j = JSON.parse(data);
-        const {method} = j;
-        if (method === 'pose') {
-          const {pose} = j;
-          const [head, leftGamepad, rightGamepad, floorHeight] = pose;
-          rigManager.setPeerAvatarPose(pose, peerConnection.connectionId);
-          /*
-          const localEuler = new THREE.Euler();
-          peerRig.textMesh = makeTextMesh();
-          peerRig.textMesh.position.fromArray(head[0]);
-          peerRig.textMesh.position.y += 0.5;
-          peerRig.textMesh.quaternion.fromArray(head[1]);
-          localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.y += Math.PI;
-          localEuler.z = 0;
-          peerRig.textMesh.quaternion.setFromEuler(localEuler); 
-          */
-        } else if (method === 'status') {
-          const {peerId, status: {name, avatarUrl, avatarFileName, address}} = j;
-          const peerRig = rigManager.peerRigs.get(peerId);
-          peerRig.address = address;
-          peerConnection.address = address;
+    peerConnection.addEventListener('status', e => {
+      const {peerId, status: {name, avatarUrl, avatarFileName, address}} = e.data;
+      const peerRig = rigManager.peerRigs.get(peerId);
+      peerRig.address = address;
+      peerConnection.address = address;
 
-          let updated = false;
+      let updated = false;
 
-          const currentPeerName = peerRig.textMesh.text;
-          if (currentPeerName !== name) {
-            rigManager.setPeerAvatarName(name, peerId);
-            updated = true;
-          }
-
-          const newAvatarUrl = avatarUrl || null;
-          const currentAvatarUrl = peerRig.avatarUrl;
-          if (currentAvatarUrl !== newAvatarUrl) {
-            rigManager.setPeerAvatarUrl(newAvatarUrl, avatarFileName, peerId);
-            updated = true;
-          }
-
-          if (updated) {
-            world.dispatchEvent(new MessageEvent('peersupdate', {
-              data: Array.from(rigManager.peerRigs.values()),
-            }));
-          }
-        } else {
-          console.warn('unknown method', method);
-        }
-      } else {
-        console.warn('non-string data', data);
-        throw new Error('non-string data');
+      const currentPeerName = peerRig.textMesh.text;
+      if (currentPeerName !== name) {
+        rigManager.setPeerAvatarName(name, peerId);
+        updated = true;
       }
+
+      const newAvatarUrl = avatarUrl || null;
+      const currentAvatarUrl = peerRig.avatarUrl;
+      if (currentAvatarUrl !== newAvatarUrl) {
+        rigManager.setPeerAvatarUrl(newAvatarUrl, avatarFileName, peerId);
+        updated = true;
+      }
+
+      if (updated) {
+        world.dispatchEvent(new MessageEvent('peersupdate', {
+          data: Array.from(rigManager.peerRigs.values()),
+        }));
+      }
+    });
+    peerConnection.addEventListener('pose', e => {
+      // const [head, leftGamepad, rightGamepad, floorHeight] = e.data;
+      const {pose} = e.data;
+      rigManager.setPeerAvatarPose(pose, peerConnection.connectionId);
     });
     peerConnection.addEventListener('addtrack', e => {
       const track = e.data;
@@ -740,14 +678,14 @@ world.connectRoom = async (roomName, worldURL) => {
     let interval;
     if (live) {
       interval = setInterval(() => {
-        if (channelConnection.dataChannel) {
-          const name = loginManager.getUsername();
-          const avatarSpec = loginManager.getAvatar();
-          const avatarUrl = avatarSpec && avatarSpec.url;
-          const avatarFileName = avatarSpec && avatarSpec.filename;
-          const address = loginManager.getAddress();
-          channelConnection.send(JSON.stringify({
-            method: 'status',
+        const name = loginManager.getUsername();
+        const avatarSpec = loginManager.getAvatar();
+        const avatarUrl = avatarSpec && avatarSpec.url;
+        const avatarFileName = avatarSpec && avatarSpec.filename;
+        const address = loginManager.getAddress();
+        channelConnection.send(JSON.stringify({
+          method: 'status',
+          data: {
             peerId: channelConnection.connectionId,
             status: {
               name,
@@ -755,13 +693,15 @@ world.connectRoom = async (roomName, worldURL) => {
               avatarFileName,
               address
             },
-          }));
-          const pose = rigManager.getLocalAvatarPose();
-          channelConnection.send(JSON.stringify({
-            method: 'pose',
+          },
+        }));
+        const pose = rigManager.getLocalAvatarPose();
+        channelConnection.send(JSON.stringify({
+          method: 'pose',
+          data: {
             pose,
-          }));
-        }
+          },
+        }));
       }, 10);
     }
 
