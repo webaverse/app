@@ -202,8 +202,8 @@ const _applyGravity = timeDiff => {
 };
 const _getAvatarWorldObject = o => {
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-  o.matrix.copy(camera.matrix)
-    .premultiply(dolly.matrix)
+  o.matrix.copy(camera.matrixWorld)
+    // .premultiply(dolly.matrix)
     .decompose(o.position, o.quaternion, o.scale);
   return o;
 };
