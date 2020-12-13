@@ -1678,6 +1678,9 @@ class Avatar {
       localEuler.y += Math.PI;
       this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
     }
+    if (!this.getTopEnabled()) {
+      this.outputs.hips.updateMatrixWorld();
+    }
 
     this.shoulderTransforms.Update();
     this.legsManager.Update();
