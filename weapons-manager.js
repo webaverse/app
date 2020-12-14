@@ -825,7 +825,7 @@ const deployMesh = _makeTargetMesh();
 deployMesh.visible = false;
 scene.add(deployMesh);
 
-const _enter = () => {
+const _use = () => {
   if (deployMesh.visible) {
     const itemSpec = itemSpecs[selectedItemIndex];
     let {start_url, filename, content} = itemSpec;
@@ -843,10 +843,14 @@ const _enter = () => {
     world.addObject(start_url, null, deployMesh.position, deployMesh.quaternion);
 
     weaponsManager.setMenu(false);
+
+    return true;
   } else if (highlightedObject) {
     movingObject = highlightedObject;
   } else if (movingObject) {
     movingObject = null;
+  } else {
+    return false;
   }
 };
 const _delete = () => {
@@ -1902,6 +1906,12 @@ for (const itemSpec of itemSpecs) {
       <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
     </div>
     <div class=name>${itemSpec.name}</div>
+    <div class="key-helpers">
+      <div class="key-helper">
+        <div class=key>E</div>
+        <div class=label>Spawn</div>
+      </div>
+    </div>
   `;
   itemsEl.appendChild(div);
 }
@@ -2444,9 +2454,9 @@ const weaponsManager = {
   /* menuHorizontal(offset, shift) {
     menuMesh.offsetHorizontal(offset, shift);
   }, */
-  menuEnter() {
+  menuUse() {
     // menuMesh.enter();
-    _enter();
+    _use();
   },
   menuDelete() {
     _delete();

@@ -2507,8 +2507,10 @@ footer {
   left: -300px;
 }
 .menu .tabs,
-.menu .key-helpers,
-.unmenu .key-helpers
+.menu > .key-helpers,
+.menu section > .key-helpers,
+.unmenu > .key-helpers,
+.unmenu section > .key-helpers
 {
   position: absolute;
   top: 50px;
@@ -2540,6 +2542,9 @@ footer {
 .key-helpers .key-helper {
   display: flex;
   align-items: center;
+}
+.key-helpers .key-helper:only-child .key {
+  margin-bottom: 0;
 }
 .key-helpers .key-helper .key {
 
@@ -2582,4 +2587,11 @@ footer {
   margin: 5px;
   background-color: #FFF;
   object-fit: contain;
+}
+.items .item .name {
+  margin-right: auto;
+  line-height: 30px;
+}
+.items .item:not(.selected) .key-helpers {
+  display: none;
 }
