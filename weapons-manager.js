@@ -2393,7 +2393,9 @@ const keyTabEl = document.getElementById('key-tab');
 const keyTab2El = document.getElementById('key-tab-2');
 [keyTabEl, keyTab2El].forEach(el => {
   el.addEventListener('click', e => {
-    weaponsManager.setMenu(!weaponsManager.getMenu());
+    if (!appManager.grabbedObjects[0]) {
+      weaponsManager.setMenu(!weaponsManager.getMenu());
+    }
   });
 });
 
