@@ -175,6 +175,7 @@ class RigManager {
           url,
           name: filename,
         });
+        o.run && o.run();
       }
 
       if (oldRig.url === url) {
@@ -192,9 +193,9 @@ class RigManager {
           } else {
             localRig = new Avatar();
             localRig.model = o;
-            localRig.inputs.hmd = localRig.model;
             localRig.update = () => {
-              // nothing
+              localRig.model.position.copy(localRig.inputs.hmd.position);
+              localRig.model.quaternion.copy(localRig.inputs.hmd.quaternion);
             };
           }
         } else {
