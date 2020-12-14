@@ -2015,21 +2015,13 @@ const _selectItemDelta = offset => {
 };
 
 const tabs = Array.from(document.getElementById('profile-icon').querySelectorAll('.navs > .nav'));
-let selectedTabIndex = 0;
+// let selectedTabIndex = 0;
 const _selectTab = newSelectedTabIndex => {
-  selectedTabIndex = newSelectedTabIndex;
-
-  for (let i = 0; i < tabs.length; i++) {
-    const tab = tabs[i];
-    const childNodes = Array.from(tab.querySelectorAll('.img'))
-      .concat(Array.from(tab.querySelectorAll('.name')));
-    for (const childNode of childNodes) {
-      childNode.classList.toggle('disabled', i !== selectedTabIndex);
-    }
-  }
+  // selectedTabIndex = newSelectedTabIndex;
+  weaponsManager.setMenu(newSelectedTabIndex + 1);
 };
 const _selectTabDelta = offset => {
-  let newSelectedTabIndex = selectedTabIndex + offset;
+  let newSelectedTabIndex = (weaponsManager.getMenu() - 1) + offset;
   if (newSelectedTabIndex >= tabs.length) {
     newSelectedTabIndex = 0;
   } else if (newSelectedTabIndex < 0) {
@@ -2425,6 +2417,16 @@ const _updateMenu = () => {
 
   deployMesh.visible = false;
 
+  const selectedTabIndex = menuOpen - 1;
+  for (let i = 0; i < tabs.length; i++) {
+    const tab = tabs[i];
+    const childNodes = Array.from(tab.querySelectorAll('.img'))
+      .concat(Array.from(tab.querySelectorAll('.name')));
+    for (const childNode of childNodes) {
+      childNode.classList.toggle('disabled', i !== selectedTabIndex);
+    }
+  }
+
   if (menuOpen === 1) {
     menu1El.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
@@ -2576,9 +2578,9 @@ const weaponsManager = {
     menuMesh.visible = newOpen; */
     this.menuOpen = newOpen;
     _updateMenu();
-    if (newOpen) {
+    if (newOpen === 1) {
       _selectItem(0);
-      _selectTab(0);
+      // _selectTab(0);
     }
   },
   menuVertical(offset/*, shift*/) {
