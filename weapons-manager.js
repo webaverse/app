@@ -1518,6 +1518,7 @@ const _updateWeapons = timeDiff => {
   _handleMenu(); */
 
   const maxDistance = 10;
+  const maxGrabDistance = 1.5;
   const transforms = rigManager.getRigTransforms();
   const _snap = (v, n) => v.set(
     Math.round(v.x/n)*n,
@@ -1605,7 +1606,7 @@ const _updateWeapons = timeDiff => {
         if (appManager.grabbedObjects[0]) {
           const {position} = transforms[0];
           const distance = appManager.grabbedObjects[0].position.distanceTo(position);
-          if (distance < 1.5) {
+          if (distance < maxGrabDistance) {
             appManager.grabbedObjectOffsets[0] = 0;
           } else {
             appManager.grabbedObjectOffsets[0] = distance;
@@ -1645,14 +1646,45 @@ const _updateWeapons = timeDiff => {
   _handleGrab();
 
   const _updateGrab = () => {
+    moveMesh.visible = false;
+
     for (let i = 0; i < 2; i++) {
       const grabbedObject = appManager.grabbedObjects[i];
       if (grabbedObject) {
         const {position, quaternion} = transforms[0];
+
         const offset = appManager.grabbedObjectOffsets[i];
-        localVector.copy(position)
-          .add(localVector2.set(0, 0, -offset).applyQuaternion(quaternion));
-        grabbedObject.setPose(localVector, quaternion);
+        /* localVector.copy(position)
+          .add(localVector2.set(0, 0, -offset).applyQuaternion(quaternion)); */
+
+        let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+        if (collision) {
+          const {point} = collision;
+          _snap(localVector.fromArray(point), 1);
+          grabbedObject.position.copy(localVector)
+            .add(localVector2.set(0, 0.01, 0));
+          localEuler.setFromQuaternion(quaternion, 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
+          grabbedObject.quaternion.setFromEuler(localEuler);
+
+          if (grabbedObject.position.distanceTo(position) > offset) {
+            collision = null;
+          }
+        }
+        if (!collision) {
+          grabbedObject.position.copy(position).add(localVector.set(0, 0, -offset).applyQuaternion(quaternion));
+          grabbedObject.quaternion.copy(quaternion);
+        }
+
+        if (grabbedObject.position.distanceTo(position) >= maxGrabDistance) {
+          moveMesh.position.copy(grabbedObject.position);
+          moveMesh.quaternion.copy(grabbedObject.quaternion);
+          moveMesh.visible = true;
+        }
+
+        // grabbedObject.setPose(localVector2, quaternion);
       }
     }
   };
