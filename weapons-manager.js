@@ -865,6 +865,10 @@ const _delete = () => {
   }
 };
 
+const _equip = () => {
+  console.log('menu equip');
+};
+
 /* const _snapBuildPosition = p => {
   p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
   p.y = Math.floor(p.y / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
@@ -2487,6 +2491,10 @@ const weaponsManager = {
   },
   menuDelete() {
     _delete();
+  },
+  menuEquip() {
+    // menuMesh.enter();
+    _equip();
   },
   menuKey(c) {
     menuMesh.key(c);
