@@ -371,13 +371,6 @@ const enterWorld = async () => {
 
   warpMesh.visible = true;
 
-  /* var tmp;
-  for (var f = 0; f < geometry.faces.length; f++) {
-    tmp = geometry.faces[f].clone();
-    geometry.faces[f].a = tmp.c;
-    geometry.faces[f].c = tmp.a;
-  } */
-
   localBox.set(
     localVector.fromArray(highlightedWorld.extents, 0),
     localVector2.fromArray(highlightedWorld.extents, 3),
