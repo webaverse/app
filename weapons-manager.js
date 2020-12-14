@@ -2309,10 +2309,10 @@ const _updateMenu = () => {
   unmenuEl.classList.toggle('closed', false);
   objectMenuEl.classList.toggle('open', false);
   worldMenuEl.classList.toggle('open', false);
-  locationLabel.classList.toggle('open', false);
-  locationLabel.classList.toggle('highlight', false);
-  profileLabel.classList.toggle('open', false);
-  itemLabel.classList.toggle('open', false);
+  // locationLabel.classList.toggle('open', false);
+  // locationLabel.classList.toggle('highlight', false);
+  // profileLabel.classList.toggle('open', false);
+  // itemLabel.classList.toggle('open', false);
   locationIcon.classList.toggle('open', false);
   locationIcon.classList.toggle('highlight', false);
   profileIcon.classList.toggle('open', false);
@@ -2323,7 +2323,7 @@ const _updateMenu = () => {
   if (menuOpen) {
     menuEl.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
-    profileLabel.classList.toggle('open', true);
+    // profileLabel.classList.toggle('open', true);
     profileIcon.classList.toggle('open', true);
 
     profileLabel.innerText = 'parzival';
@@ -2332,23 +2332,23 @@ const _updateMenu = () => {
   } else if (highlightedWorld) {
     unmenuEl.classList.toggle('closed', true);
     objectMenuEl.classList.toggle('open', false);
-    locationLabel.classList.toggle('open', true);
+    // locationLabel.classList.toggle('open', true);
     locationIcon.classList.toggle('open', true);
 
     locationIcon.classList.toggle('highlight', !!highlightedWorld);
-    locationLabel.classList.toggle('highlight', !!highlightedWorld);
+    // locationLabel.classList.toggle('highlight', !!highlightedWorld);
 
     worldMenuEl.classList.toggle('open', true);
   } else if (objectHightlighted) {
     unmenuEl.classList.toggle('closed', true);
     objectMenuEl.classList.toggle('open', true);
-    itemLabel.classList.toggle('open', true);
+    // itemLabel.classList.toggle('open', true);
     itemIcon.classList.toggle('open', true);
 
     itemLabel.innerText = 'lightsaber';
   } else {
     locationIcon.classList.toggle('open', true);
-    locationLabel.classList.toggle('open', true);
+    // locationLabel.classList.toggle('open', true);
   }
 
   locationLabel.innerText = (highlightedWorld ? highlightedWorld.name : 'The Void') + ` @${coord.x},${coord.z}`;

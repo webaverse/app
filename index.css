@@ -89,7 +89,7 @@ img:not([src]) {
   background-color: var(--color);
   border-radius: 100px;
 }
-.header .icon > .img:not(.open)
+.header .icon:not(.open)
 {
   display: none;
 }
@@ -120,9 +120,6 @@ img:not([src]) {
 .header .icon > .name.highlight
 {
   --color: #29b6f6;
-}
-.header .icon > .name:not(.open) {
-  display: none;
 }
 
 .header .nav
