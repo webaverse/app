@@ -2598,8 +2598,11 @@ footer {
   object-fit: contain;
 }
 .items .item .name {
+  max-width: 130px;
   margin-right: auto;
   line-height: 30px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .items .item:not(.selected) .key-helpers {
   display: none;
