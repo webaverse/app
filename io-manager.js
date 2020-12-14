@@ -592,7 +592,7 @@ window.addEventListener('mouseup', e => {
 });
 renderer.domElement.addEventListener('dblclick', e => {
   if (!document.pointerLockElement) {
-    document.getElementById('key-v').click();
+    document.getElementById('key-x').click();
   }
 });
 document.addEventListener('pointerlockchange', e => {
