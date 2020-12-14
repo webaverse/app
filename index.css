@@ -127,7 +127,7 @@ img:not([src]) {
 .header .icon > .img.disabled,
 .header .icon > .name.disabled
 {
-  --color: #CCC;
+  --color: #666;
 }
 
 .header .nav {
