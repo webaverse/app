@@ -73,7 +73,7 @@ const universeSpecs = {
       start_url: 'https://avaer.github.io/shield/index.js',
     },
   ],
-  userObject: {
+  initialScene: {
     position: [0, 0, 0],
     start_url: './home.scn',
   },
@@ -278,13 +278,6 @@ const loadDefaultWorld = () => {
     world.addObject(objectSpec.start_url, null, position, quaternion);
   }
 };
-/* const loadUserWorld = () => {
-  const objectSpec = universeSpecs.userObject;
-  const position = objectSpec.position ? new THREE.Vector3().fromArray(objectSpec.position) : new THREE.Vector3();
-  const quaternion = objectSpec.quaternion ? new THREE.Quaternion().fromArray(objectSpec.quaternion) : new THREE.Quaternion();
-  // const scale = objectSpec.scale ? new THREE.Vector3().fromArray(objectSpec.scale) : new THREE.Vector3();
-  world.addObject(objectSpec.start_url, null, position, quaternion);
-}; */
 const update = () => {
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
@@ -485,7 +478,7 @@ const enterWorld = async () => {
     const {publicIp, privateIp, port} = j;
     await world.connectRoom(name, `worlds.exokit.org:${port}`);
 
-    world.initializeIfEmpty(universeSpecs.userObject);
+    world.initializeIfEmpty(universeSpecs.initialScene);
   } else {
     await world.disconnectRoom(warpPhysicsId);
 
