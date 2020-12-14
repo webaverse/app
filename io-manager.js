@@ -340,9 +340,9 @@ window.addEventListener('keydown', e => {
       // pe.grabdown('right');
       if (universe.canEnterWorld()) {
         universe.enterWorld();
-      } else if (weaponsManager.menuUse()) {
-        // nothing
-      } else if (document.pointerLockElement) {
+      } else if (ioManager.currentWeaponGrabs[0]) {
+        ioManager.currentWeaponGrabs[0] = false;
+      } else if (weaponsManager.canUse()) {
         ioManager.currentWeaponGrabs[0] = true;
       }
       break;
@@ -523,13 +523,13 @@ window.addEventListener('keyup', e => {
         }
         break;
       }
-      case 69: { // E
+      /* case 69: { // E
         // pe.grabup('right');
         if (document.pointerLockElement) {
           ioManager.currentWeaponGrabs[0] = false;
         }
         break;
-      }
+      } */
       /* case 70: { // F
         // pe.grabup('right');
         if (document.pointerLockElement) {

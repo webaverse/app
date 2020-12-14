@@ -819,7 +819,7 @@ let highlightedWorld = null;
 const moveMesh = _makeTargetMesh();
 moveMesh.visible = false;
 scene.add(moveMesh);
-let movingObject = null;
+// let movingObject = null;
 
 const deployMesh = _makeTargetMesh();
 deployMesh.visible = false;
@@ -843,20 +843,12 @@ const _use = () => {
     world.addObject(start_url, null, deployMesh.position, deployMesh.quaternion);
 
     weaponsManager.setMenu(false);
-
-    return true;
-  } else if (highlightedObject) {
-    movingObject = highlightedObject;
-  } else if (movingObject) {
-    movingObject = null;
-  } else {
-    return false;
   }
 };
 const _delete = () => {
-  if (movingObject) {
-    world.removeObject(movingObject.instanceId);
-    movingObject = null;
+  if (appManager.grabbedObjects[0]) {
+    world.removeObject(appManager.grabbedObjects[0].instanceId);
+    appManager.grabbedObjects[0] = null;
     _updateMenu();
   } else if (highlightedObject) {
     world.removeObject(highlightedObject.instanceId);
@@ -866,7 +858,12 @@ const _delete = () => {
 };
 
 const _equip = () => {
-  console.log('menu equip');
+  if (highlightedObject) {
+    const url = highlightedObject.name;
+    const filename = highlightedObject.name;
+    rigManager.setLocalAvatarUrl(url, filename);
+    // console.log('got object', highlightedObject);
+  }
 };
 
 /* const _snapBuildPosition = p => {
@@ -1521,6 +1518,7 @@ const _updateWeapons = timeDiff => {
   _handleMenu(); */
 
   const maxDistance = 10;
+  const transforms = rigManager.getRigTransforms();
   const _snap = (v, n) => v.set(
     Math.round(v.x/n)*n,
     Math.round(v.y/n)*n,
@@ -1538,10 +1536,9 @@ const _updateWeapons = timeDiff => {
     const oldHighlightedObject = highlightedObject;
     highlightedObject = null;
 
-    if (!weaponsManager.getMenu() && !movingObject) {
+    if (!weaponsManager.getMenu() && !appManager.grabbedObjects[0]) {
       const objects = world.getObjects();
       for (const candidate of objects) {
-        const transforms = rigManager.getRigTransforms();
         const {position, quaternion} = transforms[0];
         localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
           .premultiply(
@@ -1563,7 +1560,7 @@ const _updateWeapons = timeDiff => {
   };
   _handleHighlight();
 
-  const _handleMove = () => {
+  /* const _handleMove = () => {
     moveMesh.visible = false;
 
     if (movingObject) {
@@ -1597,12 +1594,34 @@ const _updateWeapons = timeDiff => {
       moveMesh.visible = true;
     }
   };
-  _handleMove();
+  _handleMove(); */
 
   const _handleGrab = () => {
     let changed = false;
-    const transforms = rigManager.getRigTransforms();
-    for (let i = 0; i < 2; i++) {
+
+    if (ioManager.currentWeaponGrabs[0] && !ioManager.lastWeaponGrabs[0]) {
+      if (highlightedObject) {
+        appManager.grabbedObjects[0] = highlightedObject;
+        if (appManager.grabbedObjects[0]) {
+          const {position} = transforms[0];
+          const distance = appManager.grabbedObjects[0].position.distanceTo(position);
+          if (distance < 1.5) {
+            appManager.grabbedObjectOffsets[0] = 0;
+          } else {
+            appManager.grabbedObjectOffsets[0] = distance;
+          }
+        }
+        highlightedObject = null;
+        changed = true;
+      }
+    }
+    if (!ioManager.currentWeaponGrabs[0] && ioManager.lastWeaponGrabs[0]) {
+      appManager.grabbedObjects[0] = null;
+      // meshComposer.ungrab(i);
+      changed = true;
+    }
+
+    /* for (let i = 0; i < 2; i++) {
       if (ioManager.currentWeaponGrabs[i] && !ioManager.lastWeaponGrabs[i]) {
         const {position} = transforms[i];
         appManager.grabbedObjects[i] = world.getClosestObject(position, 0.3);
@@ -1618,16 +1637,29 @@ const _updateWeapons = timeDiff => {
         // meshComposer.ungrab(i);
         changed = true;
       }
-    }
+    } */
     if (changed) {
       _updateMenu();
     }
   };
   _handleGrab();
 
+  const _updateGrab = () => {
+    for (let i = 0; i < 2; i++) {
+      const grabbedObject = appManager.grabbedObjects[i];
+      if (grabbedObject) {
+        const {position, quaternion} = transforms[0];
+        const offset = appManager.grabbedObjectOffsets[i];
+        localVector.copy(position)
+          .add(localVector2.set(0, 0, -offset).applyQuaternion(quaternion));
+        grabbedObject.setPose(localVector, quaternion);
+      }
+    }
+  };
+  _updateGrab();
+
   const _handleDeploy = () => {
     if (deployMesh.visible) {
-      const transforms = rigManager.getRigTransforms();
       const {position, quaternion} = transforms[0];
 
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
@@ -1747,9 +1779,13 @@ const _updateWeapons = timeDiff => {
 
 renderer.domElement.addEventListener('wheel', e => {
   if (document.pointerLockElement) {
-    if (anchorSpecs[0] && [thingsMesh, inventoryMesh].includes(anchorSpecs[0].object)) {
-      anchorSpecs[0].object.scrollY(e.deltaY);
+    // console.log('got wheel', e.deltaY);
+    if (appManager.grabbedObjects[0]) {
+      appManager.grabbedObjectOffsets[0] = Math.max(appManager.grabbedObjectOffsets[0] + e.deltaY * 0.01, 0);
     }
+    /* if (anchorSpecs[0] && [thingsMesh, inventoryMesh].includes(anchorSpecs[0].object)) {
+      anchorSpecs[0].object.scrollY(e.deltaY);
+    } */
   }
 });
 
@@ -2505,6 +2541,9 @@ const weaponsManager = {
   },
   menuPaste(s) {
     menuMesh.paste(s);
+  },
+  canUse() {
+    return !!highlightedObject;
   },
   setWorld(newCoord, newHighlightedWorld) {
     coord.copy(newCoord);

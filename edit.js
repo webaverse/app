@@ -1088,7 +1088,6 @@ function animate(timestamp, frame) {
   if (geometryEnabled) {
     geometryManager.update(timeDiff, frame);
   } */
-  world.update();
 
   appManager.tick(timestamp, frame);
   
