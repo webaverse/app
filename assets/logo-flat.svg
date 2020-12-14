@@ -1,7 +1,6 @@
 <svg width="428" height="428" viewBox="0 0 428 428" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g clip-path="url(#clip0)">
-<rect width="428" height="428" fill="white"/>
-<circle cx="214" cy="214" r="224" fill="url(#paint0_linear)" stroke="white" stroke-width="20"/>
+<circle cx="214" cy="214" r="214" fill="url(#paint0_linear)"/>
 <mask id="mask0" mask-type="alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="428" height="428">
 <circle cx="214" cy="214" r="214" fill="#C4C4C4"/>
 </mask>
