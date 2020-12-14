@@ -957,22 +957,6 @@ world.getClosestObject = (position, maxDistance) => {
   }
   return closestObject;
 };
-world.update = () => {
-  const _updateObjectsGrab = () => {
-    const transforms = rigManager.getRigTransforms();
-    for (let i = 0; i < 2; i++) {
-      const grabbedObject = appManager.grabbedObjects[i];
-      if (grabbedObject) {
-        const {position, quaternion} = transforms[0];
-        const offset = appManager.grabbedObjectOffsets[i];
-        localVector.copy(position)
-          .add(localVector2.set(0, 0, -offset).applyQuaternion(quaternion));
-        grabbedObject.setPose(localVector, quaternion);
-      }
-    }
-  };
-  _updateObjectsGrab();
-};
 
 let animationMediaStream = null
 let networkMediaStream = null;
