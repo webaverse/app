@@ -171,10 +171,10 @@ class RigManager {
 
       let o;
       if (url) {
-        const res = await fetch(url);
-        const blob = await res.blob();
-        blob.name = filename;
-        o = await runtime.loadFile(blob);
+        o = await runtime.loadFile({
+          url,
+          name: filename,
+        });
       }
 
       if (oldRig.url === url) {
