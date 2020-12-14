@@ -844,6 +844,12 @@ const _use = () => {
     world.addObject(start_url, null, deployMesh.position, deployMesh.quaternion);
 
     weaponsManager.setMenu(0);
+  } else if (highlightedObject) {
+    ioManager.currentWeaponGrabs[0] = true;
+    _grab(highlightedObject);
+    highlightedObject = null;
+    
+    weaponsManager.setMenu(0);
   }
 };
 const _delete = () => {
@@ -854,7 +860,12 @@ const _delete = () => {
   } else if (highlightedObject) {
     world.removeObject(highlightedObject.instanceId);
     highlightedObject = null;
-    _updateMenu();
+
+    if (weaponsManager.getMenu() === 4) {
+      _selectItemDelta(1);
+    } else {
+      _updateMenu();
+    }
   }
 };
 
@@ -926,6 +937,22 @@ const _meshEquals = (a, b) => {
     return false;
   }
 }; */
+const maxDistance = 10;
+const maxGrabDistance = 1.5;
+const _grab = object => {
+  const transforms = rigManager.getRigTransforms();
+
+  appManager.grabbedObjects[0] = object;
+  if (object) {
+    const {position} = transforms[0];
+    const distance = object.position.distanceTo(position);
+    if (distance < maxGrabDistance) {
+      appManager.grabbedObjectOffsets[0] = 0;
+    } else {
+      appManager.grabbedObjectOffsets[0] = distance;
+    }
+  }
+};
 const _updateWeapons = timeDiff => {
   /* for (let i = 0; i < 2; i++) {
     anchorSpecs[i] = null;
@@ -1553,8 +1580,6 @@ const _updateWeapons = timeDiff => {
   };
   _handleMenu(); */
 
-  const maxDistance = 10;
-  const maxGrabDistance = 1.5;
   const transforms = rigManager.getRigTransforms();
   const _snap = (v, n) => v.set(
     Math.round(v.x/n)*n,
@@ -1588,6 +1613,17 @@ const _updateWeapons = timeDiff => {
           highlightMesh.visible = true;
           highlightedObject = candidate;
           break;
+        }
+      }
+    } else if (weaponsManager.getMenu() === 4) {
+      const itemEl = items4El.childNodes[selectedItemIndex];
+      if (itemEl) {
+        const instanceId = itemEl.getAttribute('instanceid');
+        const object = world.getObjects().find(o => o.instanceId === instanceId);
+        if (object) {
+          highlightedObject = object;
+          highlightMesh.position.copy(object.position);
+          highlightMesh.visible = true;
         }
       }
     }
@@ -1638,16 +1674,7 @@ const _updateWeapons = timeDiff => {
 
     if (ioManager.currentWeaponGrabs[0] && !ioManager.lastWeaponGrabs[0]) {
       if (highlightedObject) {
-        appManager.grabbedObjects[0] = highlightedObject;
-        if (appManager.grabbedObjects[0]) {
-          const {position} = transforms[0];
-          const distance = appManager.grabbedObjects[0].position.distanceTo(position);
-          if (distance < maxGrabDistance) {
-            appManager.grabbedObjectOffsets[0] = 0;
-          } else {
-            appManager.grabbedObjectOffsets[0] = distance;
-          }
-        }
+        _grab(highlightedObject);
         highlightedObject = null;
         changed = true;
       }
@@ -2457,12 +2484,14 @@ const _updateMenu = () => {
       childNode.classList.remove('selected');
     }
     const itemEl = itemsEl.childNodes[selectedItemIndex];
-    itemEl.classList.add('selected');
+    if (itemEl) {
+      itemEl.classList.add('selected');
 
-    const itemsBoundingRect = itemsEl.getBoundingClientRect();
-    const itemBoundingRect = itemEl.getBoundingClientRect();
-    if (itemBoundingRect.y <= itemsBoundingRect.y || itemBoundingRect.bottom >= itemsBoundingRect.bottom) {
-      itemEl.scrollIntoView();
+      const itemsBoundingRect = itemsEl.getBoundingClientRect();
+      const itemBoundingRect = itemEl.getBoundingClientRect();
+      if (itemBoundingRect.y <= itemsBoundingRect.y || itemBoundingRect.bottom >= itemsBoundingRect.bottom) {
+        itemEl.scrollIntoView();
+      }
     }
   };
 
@@ -2499,9 +2528,11 @@ const _updateMenu = () => {
 
     if (lastCameraFocus !== selectedItemIndex) {
       const itemEl = items4El.childNodes[selectedItemIndex];
-      const instanceId = itemEl.getAttribute('instanceid');
-      const object = world.getObjects().find(o => o.instanceId === instanceId);
-      cameraManager.focusCamera(object.position);
+      if (itemEl) {
+        const instanceId = itemEl.getAttribute('instanceid');
+        const object = world.getObjects().find(o => o.instanceId === instanceId);
+        cameraManager.focusCamera(object.position);
+      }
       lastCameraFocus = selectedItemIndex;
     }
   } else if (highlightedWorld) {
