@@ -814,6 +814,7 @@ scene.add(highlightMesh);
 let highlightedObject = null;
 
 const coord = new THREE.Vector3();
+const lastCoord = coord.clone();
 let highlightedWorld = null;
 
 const moveMesh = _makeTargetMesh();
@@ -2488,6 +2489,11 @@ const _updateMenu = () => {
     profileIcon.classList.toggle('open', true);
 
     _updateSelectedItem(items4El, selectedItemIndex);
+
+    const itemEl = items4El.childNodes[selectedItemIndex];
+    const instanceId = itemEl.getAttribute('instanceid');
+    const object = world.getObjects().find(o => o.instanceId === instanceId);
+    cameraManager.focusCamera(object.position);
   } else if (highlightedWorld) {
     unmenuEl.classList.toggle('closed', true);
     objectMenuEl.classList.toggle('open', false);
@@ -2626,9 +2632,15 @@ const weaponsManager = {
     return !!highlightedObject;
   },
   setWorld(newCoord, newHighlightedWorld) {
+    lastCoord.copy(coord);
     coord.copy(newCoord);
+
+    const lastHighlightedWorld = highlightedWorld;
     highlightedWorld = newHighlightedWorld;
-    _updateMenu();
+
+    if (!coord.equals(lastCoord) || highlightedWorld !== lastHighlightedWorld) {
+      _updateMenu();
+    }
   },
   async destroyWorld() {
     if (highlightedWorld) {
