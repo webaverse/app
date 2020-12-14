@@ -2494,7 +2494,8 @@ footer {
 .menu {
   left: -300px;
   /* background-color: #FFF; */
-  background-color: #FFFFFF10;
+  /* background-color: #FFFFFF10; */
+  background: linear-gradient(to right, #FFFFFFC0, #FFFFFF20);
   /* border-right: 3px solid #000; */
 }
 .menu.open {
