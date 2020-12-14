@@ -964,9 +964,10 @@ world.update = () => {
       const grabbedObject = appManager.grabbedObjects[i];
       if (grabbedObject) {
         const {position, quaternion} = transforms[0];
-        // grabbedObject.position.copy(position);
-        // grabbedObject.quaternion.copy(quaternion);
-        grabbedObject.setPose(position, quaternion);
+        const offset = appManager.grabbedObjectOffsets[i];
+        localVector.copy(position)
+          .add(localVector2.set(0, 0, -offset).applyQuaternion(quaternion));
+        grabbedObject.setPose(localVector, quaternion);
       }
     }
   };
