@@ -2471,6 +2471,7 @@ const weaponsManager = {
     _updateMenu();
     if (newOpen) {
       _selectItem(0);
+      _selectTab(0);
     }
   },
   menuVertical(offset/*, shift*/) {
