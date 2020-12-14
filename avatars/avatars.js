@@ -1813,10 +1813,12 @@ class Avatar {
   decapitate() {
     if (!this.decapitated) {
       this.modelBones.Head.traverse(o => {
-        o.savedPosition.copy(o.position);
-        o.savedMatrixWorld.copy(o.matrixWorld);
-        o.position.set(NaN, NaN, NaN);
-        o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
+        if (o.savedPosition) { // three-vrm adds vrmColliderSphere which will not be saved
+          o.savedPosition.copy(o.position);
+          o.savedMatrixWorld.copy(o.matrixWorld);
+          o.position.set(NaN, NaN, NaN);
+          o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
+        }
       });
       if (this.debugMeshes) {
         [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
@@ -1829,8 +1831,10 @@ class Avatar {
   undecapitate() {
     if (this.decapitated) {
       this.modelBones.Head.traverse(o => {
-        o.position.copy(o.savedPosition);
-        o.matrixWorld.copy(o.savedMatrixWorld);
+        if (o.savedPosition) {
+          o.position.copy(o.savedPosition);
+          o.matrixWorld.copy(o.savedMatrixWorld);
+        }
       });
       if (this.debugMeshes) {
         [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
