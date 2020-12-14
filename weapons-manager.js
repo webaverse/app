@@ -897,7 +897,7 @@ world.addEventListener('trackedobjectremove', async e => {
   const trackedObject = e.data;
   const instanceId = trackedObject.get('instanceId');
 
-  const itemEl = items4El.querySelector(`.item[instanceid=${instanceId}]`);
+  const itemEl = items4El.querySelector(`.item[instanceid="${instanceId}"]`);
   items4El.removeChild(itemEl);
 });
 
