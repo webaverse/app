@@ -342,6 +342,8 @@ window.addEventListener('keydown', e => {
         universe.enterWorld();
       } else if (ioManager.currentWeaponGrabs[0]) {
         ioManager.currentWeaponGrabs[0] = false;
+      } else if (weaponsManager.getMenu()) {
+        weaponsManager.menuUse();
       } else if (weaponsManager.canUse()) {
         ioManager.currentWeaponGrabs[0] = true;
       }
