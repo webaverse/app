@@ -866,6 +866,41 @@ const _equip = () => {
   }
 };
 
+const items4El = document.getElementById('items-4');
+world.addEventListener('trackedobjectadd', async e => {
+  const trackedObject = e.data;
+  const trackedObjectJson = trackedObject.toJSON();
+  const {contentId, instanceId} = trackedObjectJson;
+
+  const div = document.createElement('div');
+  div.classList.add('item');
+  div.setAttribute('instanceid', instanceId);
+  div.innerHTML = `
+    <div class=card>
+      <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
+    </div>
+    <div class=name>${escape(contentId)}</div>
+    <div class="key-helpers">
+      <div class="key-helper">
+        <div class=key>E</div>
+        <div class=label>Grab</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>Backspace</div>
+        <div class=label>Delete</div>
+      </div>
+    </div>
+  `;
+  items4El.appendChild(div);
+});
+world.addEventListener('trackedobjectremove', async e => {
+  const trackedObject = e.data;
+  const instanceId = trackedObject.get('instanceId');
+
+  const itemEl = items4El.querySelector(`.item[instanceid=${instanceId}]`);
+  items4El.removeChild(itemEl);
+});
+
 /* const _snapBuildPosition = p => {
   p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
   p.y = Math.floor(p.y / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
@@ -1969,7 +2004,7 @@ const itemSpecs = [
     "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
   },
 ];
-const itemsEl = document.getElementById('items');
+const items1El = document.getElementById('items-1');
 for (const itemSpec of itemSpecs) {
   const div = document.createElement('div');
   div.classList.add('item');
@@ -1985,31 +2020,21 @@ for (const itemSpec of itemSpecs) {
       </div>
     </div>
   `;
-  itemsEl.appendChild(div);
+  items1El.appendChild(div);
 }
 let selectedItemIndex = 0;
 const _selectItem = newSelectedItemIndex => {
   selectedItemIndex = newSelectedItemIndex;
-
-  for (const childNode of itemsEl.childNodes) {
-    childNode.classList.remove('selected');
-  }
-
-  const itemEl = itemsEl.childNodes[selectedItemIndex];
-  itemEl.classList.add('selected');
-
-  const itemsBoundingRect = itemsEl.getBoundingClientRect();
-  const itemBoundingRect = itemEl.getBoundingClientRect();
-  if (itemBoundingRect.y <= itemsBoundingRect.y || itemBoundingRect.bottom >= itemsBoundingRect.bottom) {
-    itemEl.scrollIntoView();
-  }
+  _updateMenu();
 };
 const _selectItemDelta = offset => {
+  const itemsEl = document.getElementById('items-' + weaponsManager.getMenu());
+
   let newSelectedItemIndex = selectedItemIndex + offset;
-  if (newSelectedItemIndex >= itemSpecs.length) {
+  if (newSelectedItemIndex >= itemsEl.childNodes.length) {
     newSelectedItemIndex = 0;
   } else if (newSelectedItemIndex < 0) {
-    newSelectedItemIndex = itemSpecs.length - 1;
+    newSelectedItemIndex = itemsEl.childNodes.length - 1;
   }
   _selectItem(newSelectedItemIndex);
 };
@@ -2417,15 +2442,32 @@ const _updateMenu = () => {
 
   deployMesh.visible = false;
 
-  const selectedTabIndex = menuOpen - 1;
-  for (let i = 0; i < tabs.length; i++) {
-    const tab = tabs[i];
-    const childNodes = Array.from(tab.querySelectorAll('.img'))
-      .concat(Array.from(tab.querySelectorAll('.name')));
-    for (const childNode of childNodes) {
-      childNode.classList.toggle('disabled', i !== selectedTabIndex);
+  const _updateTabs = () => {
+    const selectedTabIndex = menuOpen - 1;
+    for (let i = 0; i < tabs.length; i++) {
+      const tab = tabs[i];
+      const childNodes = Array.from(tab.querySelectorAll('.img'))
+        .concat(Array.from(tab.querySelectorAll('.name')));
+      for (const childNode of childNodes) {
+        childNode.classList.toggle('disabled', i !== selectedTabIndex);
+      }
     }
-  }
+  };
+  _updateTabs();
+
+  const _updateSelectedItem = (itemsEl, selectedItemIndex) => {
+    for (const childNode of itemsEl.childNodes) {
+      childNode.classList.remove('selected');
+    }
+    const itemEl = itemsEl.childNodes[selectedItemIndex];
+    itemEl.classList.add('selected');
+
+    const itemsBoundingRect = itemsEl.getBoundingClientRect();
+    const itemBoundingRect = itemEl.getBoundingClientRect();
+    if (itemBoundingRect.y <= itemsBoundingRect.y || itemBoundingRect.bottom >= itemsBoundingRect.bottom) {
+      itemEl.scrollIntoView();
+    }
+  };
 
   if (menuOpen === 1) {
     menu1El.classList.toggle('open', true);
@@ -2434,6 +2476,8 @@ const _updateMenu = () => {
     profileIcon.classList.toggle('open', true);
 
     profileLabel.innerText = 'parzival';
+
+    _updateSelectedItem(items1El, selectedItemIndex);
 
     deployMesh.visible = true;
   } else if (menuOpen === 2) {
@@ -2461,6 +2505,8 @@ const _updateMenu = () => {
     profileIcon.classList.toggle('open', true);
 
     // profileLabel.innerText = 'parzival';
+
+    _updateSelectedItem(items4El, selectedItemIndex);
 
     deployMesh.visible = true;
   } else if (highlightedWorld) {
@@ -2577,10 +2623,11 @@ const weaponsManager = {
     }
     menuMesh.visible = newOpen; */
     this.menuOpen = newOpen;
-    _updateMenu();
-    if (newOpen === 1) {
+    if (newOpen === 1 || newOpen === 4) {
       _selectItem(0);
       // _selectTab(0);
+    } else {
+      _updateMenu();
     }
   },
   menuVertical(offset/*, shift*/) {
