@@ -2420,6 +2420,7 @@ const keyTab4El = document.getElementById('key-tab-4');
   });
 });
 
+let lastCameraFocus = -1;
 const _updateMenu = () => {
   const {menuOpen} = weaponsManager;
   const objectHightlighted = !!highlightedObject;
@@ -2475,14 +2476,20 @@ const _updateMenu = () => {
     _updateSelectedItem(items1El, selectedItemIndex);
 
     deployMesh.visible = true;
+    
+    lastCameraFocus = -1;
   } else if (menuOpen === 2) {
     menu2El.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
     profileIcon.classList.toggle('open', true);
+    
+    lastCameraFocus = -1;
   } else if (menuOpen === 3) {
     menu3El.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
     profileIcon.classList.toggle('open', true);
+    
+    lastCameraFocus = -1;
   } else if (menuOpen === 4) {
     menu4El.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
@@ -2490,10 +2497,13 @@ const _updateMenu = () => {
 
     _updateSelectedItem(items4El, selectedItemIndex);
 
-    const itemEl = items4El.childNodes[selectedItemIndex];
-    const instanceId = itemEl.getAttribute('instanceid');
-    const object = world.getObjects().find(o => o.instanceId === instanceId);
-    cameraManager.focusCamera(object.position);
+    if (lastCameraFocus !== selectedItemIndex) {
+      const itemEl = items4El.childNodes[selectedItemIndex];
+      const instanceId = itemEl.getAttribute('instanceid');
+      const object = world.getObjects().find(o => o.instanceId === instanceId);
+      cameraManager.focusCamera(object.position);
+      lastCameraFocus = selectedItemIndex;
+    }
   } else if (highlightedWorld) {
     unmenuEl.classList.toggle('closed', true);
     objectMenuEl.classList.toggle('open', false);
@@ -2502,14 +2512,20 @@ const _updateMenu = () => {
     locationIcon.classList.toggle('highlight', !!highlightedWorld);
 
     worldMenuEl.classList.toggle('open', true);
+    
+    lastCameraFocus = -1;
   } else if (objectHightlighted) {
     unmenuEl.classList.toggle('closed', true);
     objectMenuEl.classList.toggle('open', true);
     itemIcon.classList.toggle('open', true);
 
     itemLabel.innerText = 'lightsaber';
+    
+    lastCameraFocus = -1;
   } else {
     locationIcon.classList.toggle('open', true);
+    
+    lastCameraFocus = -1;
   }
 
   locationLabel.innerText = (highlightedWorld ? highlightedWorld.name : 'The Void') + ` @${coord.x},${coord.z}`;
