@@ -854,13 +854,13 @@ const _use = () => {
   }
 };
 const _delete = () => {
-  if (highlightedObject) {
-    world.removeObject(highlightedObject.instanceId);
-    highlightedObject = null;
-    _updateMenu();
-  } else if (movingObject) {
+  if (movingObject) {
     world.removeObject(movingObject.instanceId);
     movingObject = null;
+    _updateMenu();
+  } else if (highlightedObject) {
+    world.removeObject(highlightedObject.instanceId);
+    highlightedObject = null;
     _updateMenu();
   }
 };
