@@ -842,7 +842,7 @@ const _use = () => {
     }
     world.addObject(start_url, null, deployMesh.position, deployMesh.quaternion);
 
-    weaponsManager.setMenu(false);
+    weaponsManager.setMenu(1);
   }
 };
 const _delete = () => {
@@ -2389,12 +2389,16 @@ const _selectTabDelta = offset => {
 menuMesh.visible = false;
 scene.add(menuMesh); */
 
+
 const keyTabEl = document.getElementById('key-tab');
+const keyTab1El = document.getElementById('key-tab-1');
 const keyTab2El = document.getElementById('key-tab-2');
-[keyTabEl, keyTab2El].forEach(el => {
+const keyTab3El = document.getElementById('key-tab-3');
+const keyTab4El = document.getElementById('key-tab-4');
+[keyTabEl, keyTab1El, keyTab2El, keyTab3El, keyTab4El].forEach((el, i) => {
   el.addEventListener('click', e => {
     if (!appManager.grabbedObjects[0]) {
-      weaponsManager.setMenu(!weaponsManager.getMenu());
+      weaponsManager.setMenu(weaponsManager.getMenu() ? 0 : 1);
     }
   });
 });
@@ -2403,7 +2407,10 @@ const _updateMenu = () => {
   const {menuOpen} = weaponsManager;
   const objectHightlighted = !!highlightedObject;
 
-  menuEl.classList.toggle('open', false);
+  menu1El.classList.toggle('open', false);
+  menu2El.classList.toggle('open', false);
+  menu3El.classList.toggle('open', false);
+  menu4El.classList.toggle('open', false);
   unmenuEl.classList.toggle('closed', false);
   objectMenuEl.classList.toggle('open', false);
   worldMenuEl.classList.toggle('open', false);
@@ -2418,13 +2425,40 @@ const _updateMenu = () => {
 
   deployMesh.visible = false;
 
-  if (menuOpen) {
-    menuEl.classList.toggle('open', true);
+  if (menuOpen === 1) {
+    menu1El.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
     // profileLabel.classList.toggle('open', true);
     profileIcon.classList.toggle('open', true);
 
     profileLabel.innerText = 'parzival';
+
+    deployMesh.visible = true;
+  } else if (menuOpen === 2) {
+    menu2El.classList.toggle('open', true);
+    unmenuEl.classList.toggle('closed', true);
+    // profileLabel.classList.toggle('open', true);
+    profileIcon.classList.toggle('open', true);
+
+    // profileLabel.innerText = 'parzival';
+
+    deployMesh.visible = true;
+  } else if (menuOpen === 3) {
+    menu3El.classList.toggle('open', true);
+    unmenuEl.classList.toggle('closed', true);
+    // profileLabel.classList.toggle('open', true);
+    profileIcon.classList.toggle('open', true);
+
+    // profileLabel.innerText = 'parzival';
+
+    deployMesh.visible = true;
+  } else if (menuOpen === 4) {
+    menu4El.classList.toggle('open', true);
+    unmenuEl.classList.toggle('closed', true);
+    // profileLabel.classList.toggle('open', true);
+    profileIcon.classList.toggle('open', true);
+
+    // profileLabel.innerText = 'parzival';
 
     deployMesh.visible = true;
   } else if (highlightedWorld) {
@@ -2452,7 +2486,10 @@ const _updateMenu = () => {
   locationLabel.innerText = (highlightedWorld ? highlightedWorld.name : 'The Void') + ` @${coord.x},${coord.z}`;
 };
 
-const menuEl = document.getElementById('menu');
+const menu1El = document.getElementById('menu-1');
+const menu2El = document.getElementById('menu-2');
+const menu3El = document.getElementById('menu-3');
+const menu4El = document.getElementById('menu-4');
 const unmenuEl = document.getElementById('unmenu');
 const objectMenuEl = document.getElementById('object-menu');
 const worldMenuEl = document.getElementById('world-menu');
@@ -2463,11 +2500,11 @@ const locationIcon = document.getElementById('location-icon');
 const profileIcon = document.getElementById('profile-icon');
 const itemIcon = document.getElementById('item-icon');
 const weaponsManager = {
-  weapons,
+  // weapons,
   cubeMesh,
-  buildMode: 'wall',
-  buildMat: 'wood',
-  menuOpen: false,
+  /* buildMode: 'wall',
+  buildMat: 'wood', */
+  menuOpen: 0,
   weaponWheel: false,
   getWeapon() {
     return selectedWeapon;
