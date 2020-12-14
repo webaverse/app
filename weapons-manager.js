@@ -2609,48 +2609,33 @@ const weaponsManager = {
     }
   },
   getMenu() {
-    // return menuMesh.visible;
     return this.menuOpen;
   },
   setMenu(newOpen) {
-    /* if (newOpen) {
-      const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-      menuMesh.position.copy(xrCamera.position)
-        .add(localVector.set(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
-      menuMesh.quaternion.copy(xrCamera.quaternion);
-      
-      menuMesh.setVertical(-2);
-    }
-    menuMesh.visible = newOpen; */
     this.menuOpen = newOpen;
     if (newOpen === 1 || newOpen === 4) {
       _selectItem(0);
-      // _selectTab(0);
     } else {
       _updateMenu();
     }
   },
-  menuVertical(offset/*, shift*/) {
+  menuVertical(offset) {
     if (this.menuOpen) {
       _selectItemDelta(offset);
-      // menuMesh.offsetVertical(offset, shift);
     }
   },
-  menuHorizontal(offset/*, shift*/) {
+  menuHorizontal(offset) {
     if (this.menuOpen) {
       _selectTabDelta(offset);
     }
-    // menuMesh.offsetHorizontal(offset, shift);
   },
   menuUse() {
-    // menuMesh.enter();
     _use();
   },
   menuDelete() {
     _delete();
   },
   menuEquip() {
-    // menuMesh.enter();
     _equip();
   },
   menuKey(c) {
