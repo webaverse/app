@@ -842,7 +842,7 @@ const _use = () => {
     }
     world.addObject(start_url, null, deployMesh.position, deployMesh.quaternion);
 
-    weaponsManager.setMenu(1);
+    weaponsManager.setMenu(0);
   }
 };
 const _delete = () => {
