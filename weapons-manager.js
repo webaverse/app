@@ -2488,7 +2488,7 @@ const _updateMenu = () => {
 
     // profileLabel.innerText = 'parzival';
 
-    deployMesh.visible = true;
+    // deployMesh.visible = true;
   } else if (menuOpen === 3) {
     menu3El.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
@@ -2497,7 +2497,7 @@ const _updateMenu = () => {
 
     // profileLabel.innerText = 'parzival';
 
-    deployMesh.visible = true;
+    // deployMesh.visible = true;
   } else if (menuOpen === 4) {
     menu4El.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
@@ -2508,7 +2508,7 @@ const _updateMenu = () => {
 
     _updateSelectedItem(items4El, selectedItemIndex);
 
-    deployMesh.visible = true;
+    // deployMesh.visible = true;
   } else if (highlightedWorld) {
     unmenuEl.classList.toggle('closed', true);
     objectMenuEl.classList.toggle('open', false);
