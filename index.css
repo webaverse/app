@@ -2479,6 +2479,7 @@ footer {
   width: 300px;
   height: 100vh;
   padding: 20px;
+  padding-right: 0;
   padding-bottom: 0;
   flex-direction: column;
   z-index: 1;
@@ -2527,8 +2528,16 @@ footer {
 .tabs {
   display: flex;
 }
-.tabs .tab,
-.key-helpers .key-helper .key
+
+.key-helpers {
+  display: flex;
+  flex-direction: column;
+}
+.key-helper {
+  display: flex;
+  align-items: center;
+}
+.key-helper .key
 {
   display: flex;
   min-width: 24px;
@@ -2541,22 +2550,13 @@ footer {
   border-radius: 7px;
   font-size: 16px;
 }
-
-.key-helpers {
-  display: flex;
-  flex-direction: column;
-}
-.key-helpers .key-helper {
-  display: flex;
-  align-items: center;
-}
-.key-helpers .key-helper:only-child .key {
+.key-helper:only-child .key {
   margin-bottom: 0;
 }
-.key-helpers .key-helper .key {
+.key-helper .key {
 
 }
-.key-helpers .key-helper .label {
+.key-helper .label {
   width: 50px;
   margin-left: auto;
 }
