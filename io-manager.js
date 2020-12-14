@@ -263,14 +263,14 @@ window.addEventListener('keydown', e => {
       weaponsManager.menuVertical(1);
       break;
     }
-    /* case 37: { // left
-      weaponsManager.menuHorizontal(-1, e.shiftKey);
+    case 37: { // left
+      weaponsManager.menuHorizontal(-1);
       break;
     }
     case 39: { // right
-      weaponsManager.menuHorizontal(1, e.shiftKey);
+      weaponsManager.menuHorizontal(1);
       break;
-    } */
+    }
     /* case 13: { // enter
       e.preventDefault();
       e.stopPropagation();
