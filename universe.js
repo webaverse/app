@@ -246,7 +246,6 @@ scene.add(warpMesh);
 
 let currentWorld = null;
 let highlightedWorld = null;
-const lastCoord = new THREE.Vector3(0, 0, 0);
 // let animation = null;
 const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.x),
@@ -317,10 +316,7 @@ const update = () => {
   }
 
   _getCurrentCoord(rigManager.localRig.inputs.hmd.position, localVector);
-  if (!localVector.equals(lastCoord)) {
-    weaponsManager.setWorld(localVector, highlightedWorld);
-    lastCoord.copy(localVector);
-  }
+  weaponsManager.setWorld(localVector, highlightedWorld);
 
   /* if (animation) {
     const now = Date.now();
