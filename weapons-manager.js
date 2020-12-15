@@ -2215,7 +2215,6 @@ const itemsDetails2El = document.getElementById('items-details-2');
 for (const itemSpec of itemSpecs2) {
   const div = document.createElement('div');
   div.classList.add('item');
-  div.classList.add('progress');
   div.innerHTML = `\
     <div class=bar></div>
     <i class="icon fa ${itemSpec.icon}"></i>
