@@ -2057,48 +2057,56 @@ for (const itemSpec of itemSpecs) {
 const itemSpecs2 = [
   {
     name: 'Geometry',
+    icon: 'fa-cube',
     cb() {
       console.log('geometry');
     },
   },
   {
     name: 'Model',
+    icon: 'fa-cube',
     cb() {
       console.log('model');
     },
   },
   {
     name: 'Image',
+    icon: 'fa-cube',
     cb() {
       console.log('image');
     },
   },
   {
     name: 'Audio',
+    icon: 'fa-cube',
     cb() {
       console.log('audio');
     },
   },
   {
     name: 'Voxels',
+    icon: 'fa-cube',
     cb() {
       console.log('voxels');
     },
   },
   {
     name: 'Link',
+    icon: 'fa-cube',
     cb() {
       console.log('link');
     },
   },
   {
     name: 'Web Frame',
+    icon: 'fa-cube',
     cb() {
       console.log('web frame');
     },
   },
   {
     name: 'Media Stream',
+    icon: 'fa-cube',
     cb() {
       console.log('media stream');
     },
@@ -2109,9 +2117,7 @@ for (const itemSpec of itemSpecs2) {
   const div = document.createElement('div');
   div.classList.add('item');
   div.innerHTML = `
-    <div class=card>
-      <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
-    </div>
+    <i class="icon fa ${itemSpec.icon}"></i>
     <div class=name>${itemSpec.name}</div>
     <div class="key-helpers">
       <div class="key-helper">
