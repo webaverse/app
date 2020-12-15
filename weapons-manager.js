@@ -2216,7 +2216,7 @@ for (const itemSpec of itemSpecs2) {
   const div = document.createElement('div');
   div.classList.add('item');
   div.classList.add('progress');
-  div.innerHTML = `
+  div.innerHTML = `\
     <div class=bar></div>
     <i class="icon fa ${itemSpec.icon}"></i>
     <div class=name>${itemSpec.name}</div>
