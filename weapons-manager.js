@@ -871,8 +871,8 @@ const _delete = () => {
 
 const _equip = () => {
   if (highlightedObject) {
-    const url = highlightedObject.name;
-    const filename = highlightedObject.name;
+    const url = highlightedObject.contentId;
+    const filename = highlightedObject.contentId;
     rigManager.setLocalAvatarUrl(url, filename);
     // console.log('got object', highlightedObject);
   }
