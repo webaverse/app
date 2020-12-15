@@ -1835,7 +1835,7 @@ const _updateWeapons = timeDiff => {
   };
   _handleTeleport();
 
-  meshComposer.update();
+  /* meshComposer.update();
   
   explosionMeshes = explosionMeshes.filter(explosionMesh => {
     explosionMesh.material.uniforms.uAnimation.value += timeDiff;
@@ -1872,7 +1872,7 @@ const _updateWeapons = timeDiff => {
       pxMesh.parent.remove(pxMesh);
       return false;
     }
-  });
+  }); */
 };
 
 renderer.domElement.addEventListener('wheel', e => {
