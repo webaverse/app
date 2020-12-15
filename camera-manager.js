@@ -169,6 +169,49 @@ const selectTool = newSelectedTool => {
     } */
   }
 };
+const focusCamera = position => {
+  camera.lookAt(position);
+  camera.updateMatrixWorld();
+  /* switch (selectedTool) {
+    case 'camera': {
+      // document.exitPointerLock();
+      // orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
+      ioManager.resetKeys();
+      physicsManager.velocity.set(0, 0, 0);
+      break;
+    }
+    case 'firstperson': {
+      camera.rotation.x = 0;
+      camera.updateMatrixWorld();
+      break;
+    }
+    case 'thirdperson': {
+      camera.position.sub(localVector.copy(thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
+      camera.updateMatrixWorld();
+
+      // decapitate = false;
+      break;
+    }
+    case 'isometric': {
+      camera.rotation.x = -Math.PI / 6;
+      camera.quaternion.setFromEuler(camera.rotation);
+      camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
+      camera.updateMatrixWorld();
+
+      // decapitate = false;
+      break;
+    }
+    case 'birdseye': {
+      camera.rotation.x = -Math.PI / 2;
+      camera.quaternion.setFromEuler(camera.rotation);
+      camera.position.y -= -birdsEyeHeight + getAvatarHeight();
+      camera.updateMatrixWorld();
+
+      // decapitate = false;
+      break;
+    }
+  } */
+};
 
 const cameraManager = {
   birdsEyeHeight,
@@ -176,6 +219,7 @@ const cameraManager = {
   isometricCameraOffset,
   getFullAvatarHeight,
   getAvatarHeight,
+  focusCamera,
   getTool() {
     return selectedTool;
   },
