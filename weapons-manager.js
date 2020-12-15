@@ -850,7 +850,7 @@ const _use = () => {
     highlightedObject = null;
     
     weaponsManager.setMenu(0);
-  } if (weaponsManager.getMenu() === 2) {
+  } if (weaponsManager.getMenu() === 1) {
     const itemSpec = itemSpecs2[selectedItemIndex];
     itemSpec.cb();
   }
@@ -2232,7 +2232,7 @@ for (const itemSpec of itemSpecs2) {
 
 const itemSpecs3 = [
   {
-    name: 'Prefab',
+    name: 'Inventory item',
     cb() {
       
     },
@@ -2272,13 +2272,12 @@ const _selectItemDelta = offset => {
   } else if (newSelectedItemIndex < 0) {
     newSelectedItemIndex = itemsEl.childNodes.length - 1;
   }
+  console.log('new item', newSelectedItemIndex);
   _selectItem(newSelectedItemIndex);
 };
 
 const tabs = Array.from(document.getElementById('profile-icon').querySelectorAll('.navs > .nav'));
-// let selectedTabIndex = 0;
 const _selectTab = newSelectedTabIndex => {
-  // selectedTabIndex = newSelectedTabIndex;
   weaponsManager.setMenu(newSelectedTabIndex + 1);
 };
 const _selectTabDelta = offset => {
@@ -2705,19 +2704,6 @@ const _updateMenu = () => {
   };
 
   if (menuOpen === 1) {
-    menu1El.classList.toggle('open', true);
-    unmenuEl.classList.toggle('closed', true);
-    profileIcon.classList.toggle('open', true);
-
-    // profileLabel.innerText = 'parzival';
-
-    _updateSelectedItem(items1El, selectedItemIndex);
-
-    deployMesh.visible = true;
-    
-    lastSelectedBuild = -1;
-    lastCameraFocus = -1;
-  } else if (menuOpen === 2) {
     menu2El.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
     profileIcon.classList.toggle('open', true);
@@ -2731,12 +2717,25 @@ const _updateMenu = () => {
     }
     
     lastCameraFocus = -1;
-  } else if (menuOpen === 3) {
+  } else if (menuOpen === 2) {
     menu3El.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
     profileIcon.classList.toggle('open', true);
 
     _updateSelectedItem(items3El, selectedItemIndex);
+    
+    lastSelectedBuild = -1;
+    lastCameraFocus = -1;
+  } else if (menuOpen === 3) {
+    menu1El.classList.toggle('open', true);
+    unmenuEl.classList.toggle('closed', true);
+    profileIcon.classList.toggle('open', true);
+
+    // profileLabel.innerText = 'parzival';
+
+    _updateSelectedItem(items1El, selectedItemIndex);
+
+    deployMesh.visible = true;
     
     lastSelectedBuild = -1;
     lastCameraFocus = -1;
