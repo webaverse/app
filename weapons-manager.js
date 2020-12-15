@@ -2709,7 +2709,7 @@ const _updateMenu = () => {
     unmenuEl.classList.toggle('closed', true);
     profileIcon.classList.toggle('open', true);
 
-    profileLabel.innerText = 'parzival';
+    // profileLabel.innerText = 'parzival';
 
     _updateSelectedItem(items1El, selectedItemIndex);
 
