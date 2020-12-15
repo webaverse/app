@@ -850,6 +850,9 @@ const _use = () => {
     highlightedObject = null;
     
     weaponsManager.setMenu(0);
+  } if (weaponsManager.getMenu() === 2) {
+    const itemSpec = itemSpecs2[selectedItemIndex];
+    itemSpec.cb();
   }
 };
 const _delete = () => {
@@ -2050,6 +2053,111 @@ for (const itemSpec of itemSpecs) {
   `;
   items1El.appendChild(div);
 }
+
+const itemSpecs2 = [
+  {
+    name: 'Geometry',
+    action: 'Create',
+    cb() {
+      console.log('geometry');
+    },
+  },
+  {
+    name: 'Model',
+    action: 'Create',
+    cb() {
+      console.log('model');
+    },
+  },
+  {
+    name: 'Image',
+    action: 'Create',
+    cb() {
+      console.log('image');
+    },
+  },
+  {
+    name: 'Audio',
+    action: 'Create',
+    cb() {
+      console.log('audio');
+    },
+  },
+  {
+    name: 'Voxels',
+    action: 'Create',
+    cb() {
+      console.log('voxels');
+    },
+  },
+  {
+    name: 'Portal Link',
+    action: 'Create',
+    cb() {
+      console.log('portal link');
+    },
+  },
+  {
+    name: 'Web Frame',
+    action: 'Create',
+    cb() {
+      console.log('web frame');
+    },
+  },
+  {
+    name: 'Media Stream',
+    action: 'Create',
+    cb() {
+      console.log('media stream');
+    },
+  },
+];
+const items2El = document.getElementById('items-2');
+for (const itemSpec of itemSpecs2) {
+  const div = document.createElement('div');
+  div.classList.add('item');
+  div.innerHTML = `
+    <div class=card>
+      <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
+    </div>
+    <div class=name>${itemSpec.name}</div>
+    <div class="key-helpers">
+      <div class="key-helper">
+        <div class=key>E</div>
+        <div class=label>${itemSpec.action}</div>
+      </div>
+    </div>
+  `;
+  items2El.appendChild(div);
+}
+
+const itemSpecs3 = [
+  {
+    name: 'Prefab',
+    cb() {
+      
+    },
+  },
+];
+const items3El = document.getElementById('items-3');
+for (const itemSpec of itemSpecs3) {
+  const div = document.createElement('div');
+  div.classList.add('item');
+  div.innerHTML = `
+    <div class=card>
+      <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
+    </div>
+    <div class=name>${itemSpec.name}</div>
+    <div class="key-helpers">
+      <div class="key-helper">
+        <div class=key>E</div>
+        <div class=label>Spawn</div>
+      </div>
+    </div>
+  `;
+  items3El.appendChild(div);
+}
+
 let selectedItemIndex = 0;
 const _selectItem = newSelectedItemIndex => {
   selectedItemIndex = newSelectedItemIndex;
@@ -2511,12 +2619,16 @@ const _updateMenu = () => {
     menu2El.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
     profileIcon.classList.toggle('open', true);
+
+    _updateSelectedItem(items2El, selectedItemIndex);
     
     lastCameraFocus = -1;
   } else if (menuOpen === 3) {
     menu3El.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
     profileIcon.classList.toggle('open', true);
+
+    _updateSelectedItem(items3El, selectedItemIndex);
     
     lastCameraFocus = -1;
   } else if (menuOpen === 4) {
@@ -2641,7 +2753,7 @@ const weaponsManager = {
   },
   setMenu(newOpen) {
     this.menuOpen = newOpen;
-    if (newOpen === 1 || newOpen === 4) {
+    if (newOpen) {
       _selectItem(0);
     } else {
       _updateMenu();

@@ -2559,8 +2559,9 @@ footer {
 
 }
 .key-helper .label {
-  width: 50px;
+  /* width: 50px; */
   margin-left: auto;
+  margin-right: 10px;
 }
 
 .items {
