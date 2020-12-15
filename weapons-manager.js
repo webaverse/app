@@ -2057,56 +2057,48 @@ for (const itemSpec of itemSpecs) {
 const itemSpecs2 = [
   {
     name: 'Geometry',
-    action: 'Create',
     cb() {
       console.log('geometry');
     },
   },
   {
     name: 'Model',
-    action: 'Create',
     cb() {
       console.log('model');
     },
   },
   {
     name: 'Image',
-    action: 'Create',
     cb() {
       console.log('image');
     },
   },
   {
     name: 'Audio',
-    action: 'Create',
     cb() {
       console.log('audio');
     },
   },
   {
     name: 'Voxels',
-    action: 'Create',
     cb() {
       console.log('voxels');
     },
   },
   {
     name: 'Link',
-    action: 'Create',
     cb() {
       console.log('link');
     },
   },
   {
     name: 'Web Frame',
-    action: 'Create',
     cb() {
       console.log('web frame');
     },
   },
   {
     name: 'Media Stream',
-    action: 'Create',
     cb() {
       console.log('media stream');
     },
@@ -2124,7 +2116,7 @@ for (const itemSpec of itemSpecs2) {
     <div class="key-helpers">
       <div class="key-helper">
         <div class=key>E</div>
-        <div class=label>${itemSpec.action}</div>
+        <div class=label>Create</div>
       </div>
     </div>
   `;
