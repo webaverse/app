@@ -227,11 +227,11 @@ img:not([src]) {
   display: none;
 }
 
-.header .bar {
+/* .header .bar {
   margin: 0 3px;
   padding: 10px 0;
   border-left: 1px solid #000;
-}
+} */
 
 .header .selector,
 .header .spacer
@@ -2494,10 +2494,7 @@ footer {
 }
 .menu {
   left: -300px;
-  /* background-color: #FFF; */
-  /* background-color: #FFFFFF10; */
   background: linear-gradient(to right, #FFFFFFC0, #FFFFFF20);
-  /* border-right: 3px solid #000; */
 }
 .menu.wide {
   left: -600px;
@@ -2505,8 +2502,10 @@ footer {
 .menu.open {
   left: 0;
 }
-.menu.secondary {
-  // background-color: #00000010;
+.menu section .key-helpers > .key-helper,
+.menu .key-helpers > .key-helper
+{
+  width: calc(300px - 20px);
 }
 .menu .profile-picture {
   width: 150px;
@@ -2562,8 +2561,8 @@ footer {
 
 }
 .key-helper .label {
-  /* width: 50px; */
-  margin-left: auto;
+  /* width: 50px;
+  margin-left: auto; */
   margin-right: 10px;
 }
 
@@ -2642,4 +2641,20 @@ footer {
 }
 .details .wrap {
   
+}
+
+.progress {
+  position: relative;
+}
+.progress .bar {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: -1;
+}
+.progress.running .bar {
+  display: block;
+  background-color: #42a5f5;
 }

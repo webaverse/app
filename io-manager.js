@@ -430,10 +430,12 @@ window.addEventListener('keydown', e => {
       weaponsManager.setWeaponWheel(true);
       break;
     }
-    /* case 69: { // E
-      weaponsManager.setMenu(true);
+    case 69: { // E
+      if (weaponsManager.canUseHold()) {
+        weaponsManager.menuUseHold();
+      }
       break;
-    } */
+    }
     /* case 90: { // Z
       if (document.pointerLockElement) {
         document.querySelector('.weapon[weapon="build"]').click();
@@ -513,7 +515,8 @@ window.addEventListener('keyup', e => {
         break;
       }
       case 69: { // E
-        // pe.grabdown('right');
+        weaponsManager.menuUseRelease();
+
         if (universe.canEnterWorld()) {
           universe.enterWorld();
         } else if (ioManager.currentWeaponGrabs[0]) {
