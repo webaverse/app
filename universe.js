@@ -64,13 +64,23 @@ const universeSpecs = {
       position: [0, 0, 0],
       start_url: 'https://avaer.github.io/land/index.js',
     },
-    {
+    /* {
       position: [0, 0, -1],
       start_url: 'https://avaer.github.io/mirror/index.js',
-    },
+    }, */
     {
       position: [-10, 0, -10],
       start_url: 'https://avaer.github.io/shield/index.js',
+    },
+    {
+      position: [4, 0, 1],
+      quaternion: [0, 0.7071067811865475, 0, 0.7071067811865476],
+      start_url: 'https://avatar-models.exokit.org/model43.vrm',
+    },
+    {
+      position: [4, 0, 2],
+      quaternion: [0, 0.7071067811865475, 0, 0.7071067811865476],
+      start_url: 'https://webaverse.github.io/assets/male.vrm',
     },
   ],
   initialScene: {
