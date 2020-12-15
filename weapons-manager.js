@@ -1851,7 +1851,6 @@ const _updateWeapons = timeDiff => {
     if (useAnimation) {
       const now = Date.now();
       const f = (now - useAnimation.start) / (useAnimation.end - useAnimation.start);
-      console.log('got bars', progressBars.length, f < 1);
       if (f < 1) {
         for (const progressBar of progressBars) {
           progressBar.classList.add('running');
