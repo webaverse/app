@@ -2057,7 +2057,7 @@ for (const itemSpec of itemSpecs) {
 const itemSpecs2 = [
   {
     name: 'Geometry',
-    icon: 'fa-cube',
+    icon: 'fa-dice-d10',
     detailsHtml: `\
       <video class=video src="./assets/darkbooth.webm"></video>
       <div class=wrap>
@@ -2070,11 +2070,11 @@ const itemSpecs2 = [
   },
   {
     name: 'Model',
-    icon: 'fa-cube',
+    icon: 'fa-alien-monster',
     detailsHtml: `\
       <video class=video src="./assets/darkbooth.webm"></video>
       <div class=wrap>
-        <b>Geometry</b> lets you build walls, floors, and structures.
+        <b>Model</b> lets you place a 3D model in GLTF format.
       </div>
     `,
     cb() {
@@ -2082,12 +2082,25 @@ const itemSpecs2 = [
     },
   },
   {
-    name: 'Image',
-    icon: 'fa-cube',
+    name: 'Avatar',
+    icon: 'fa-user-ninja',
     detailsHtml: `\
       <video class=video src="./assets/darkbooth.webm"></video>
       <div class=wrap>
-        <b>Geometry</b> lets you build walls, floors, and structures.
+        <b>Avatar</b> lets you place an avatar model in VRM format.
+      </div>
+    `,
+    cb() {
+      console.log('avatar');
+    },
+  },
+  {
+    name: 'Image',
+    icon: 'fa-image',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Image</b> lets you place a simple image billboard.
       </div>
     `,
     cb() {
@@ -2096,11 +2109,11 @@ const itemSpecs2 = [
   },
   {
     name: 'Audio',
-    icon: 'fa-cube',
+    icon: 'fa-headphones',
     detailsHtml: `\
       <video class=video src="./assets/darkbooth.webm"></video>
       <div class=wrap>
-        <b>Geometry</b> lets you build walls, floors, and structures.
+        <b>Audio</b> lets you place spatial audio.
       </div>
     `,
     cb() {
@@ -2108,25 +2121,25 @@ const itemSpecs2 = [
     },
   },
   {
-    name: 'Voxels',
+    name: 'Voxel',
     icon: 'fa-cube',
     detailsHtml: `\
       <video class=video src="./assets/darkbooth.webm"></video>
       <div class=wrap>
-        <b>Geometry</b> lets you build walls, floors, and structures.
+        <b>Voxel</b> lets you place a voxel model in VOX format.
       </div>
     `,
     cb() {
-      console.log('voxels');
+      console.log('voxel');
     },
   },
   {
     name: 'Link',
-    icon: 'fa-cube',
+    icon: 'fa-portal-enter',
     detailsHtml: `\
       <video class=video src="./assets/darkbooth.webm"></video>
       <div class=wrap>
-        <b>Geometry</b> lets you build walls, floors, and structures.
+        <b>Link</b> lets you create a web link portal.
       </div>
     `,
     cb() {
@@ -2135,11 +2148,11 @@ const itemSpecs2 = [
   },
   {
     name: 'Web Frame',
-    icon: 'fa-cube',
+    icon: 'fa-browser',
     detailsHtml: `\
       <video class=video src="./assets/darkbooth.webm"></video>
       <div class=wrap>
-        <b>Geometry</b> lets you build walls, floors, and structures.
+        <b>Geometry</b> lets you place a web content iframe.
       </div>
     `,
     cb() {
@@ -2148,7 +2161,7 @@ const itemSpecs2 = [
   },
   {
     name: 'Media Stream',
-    icon: 'fa-cube',
+    icon: 'fa-signal-stream',
     detailsHtml: `\
       <video class=video src="./assets/darkbooth.webm"></video>
       <div class=wrap>
