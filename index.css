@@ -2558,9 +2558,10 @@ footer {
   margin-bottom: 0;
 }
 .key-helper .key {
-
+  position: relative;
 }
 .key-helper .label {
+  position: relative;
   /* width: 50px;
   margin-left: auto; */
   margin-right: 10px;
@@ -2652,7 +2653,6 @@ footer {
   left: 0;
   top: 0;
   bottom: 0;
-  z-index: -1;
 }
 .progress.running .bar {
   display: block;

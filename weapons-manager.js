@@ -906,7 +906,8 @@ world.addEventListener('trackedobjectadd', async e => {
     </div>
     <div class=name>${escape(contentId)}</div>
     <div class="key-helpers">
-      <div class="key-helper">
+      <div class="key-helper progress">
+        <div class=bar></div>
         <div class=key>E</div>
         <div class=label>Grab</div>
       </div>
