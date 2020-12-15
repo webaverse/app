@@ -2058,6 +2058,12 @@ const itemSpecs2 = [
   {
     name: 'Geometry',
     icon: 'fa-cube',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Geometry</b> lets you build walls, floors, and structures.
+      </div>
+    `,
     cb() {
       console.log('geometry');
     },
@@ -2065,6 +2071,12 @@ const itemSpecs2 = [
   {
     name: 'Model',
     icon: 'fa-cube',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Geometry</b> lets you build walls, floors, and structures.
+      </div>
+    `,
     cb() {
       console.log('model');
     },
@@ -2072,6 +2084,12 @@ const itemSpecs2 = [
   {
     name: 'Image',
     icon: 'fa-cube',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Geometry</b> lets you build walls, floors, and structures.
+      </div>
+    `,
     cb() {
       console.log('image');
     },
@@ -2079,6 +2097,12 @@ const itemSpecs2 = [
   {
     name: 'Audio',
     icon: 'fa-cube',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Geometry</b> lets you build walls, floors, and structures.
+      </div>
+    `,
     cb() {
       console.log('audio');
     },
@@ -2086,6 +2110,12 @@ const itemSpecs2 = [
   {
     name: 'Voxels',
     icon: 'fa-cube',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Geometry</b> lets you build walls, floors, and structures.
+      </div>
+    `,
     cb() {
       console.log('voxels');
     },
@@ -2093,6 +2123,12 @@ const itemSpecs2 = [
   {
     name: 'Link',
     icon: 'fa-cube',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Geometry</b> lets you build walls, floors, and structures.
+      </div>
+    `,
     cb() {
       console.log('link');
     },
@@ -2100,6 +2136,12 @@ const itemSpecs2 = [
   {
     name: 'Web Frame',
     icon: 'fa-cube',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Geometry</b> lets you build walls, floors, and structures.
+      </div>
+    `,
     cb() {
       console.log('web frame');
     },
@@ -2107,12 +2149,19 @@ const itemSpecs2 = [
   {
     name: 'Media Stream',
     icon: 'fa-cube',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Geometry</b> lets you build walls, floors, and structures.
+      </div>
+    `,
     cb() {
       console.log('media stream');
     },
   },
 ];
 const items2El = document.getElementById('items-2');
+const itemsDetails2El = document.getElementById('items-details-2');
 for (const itemSpec of itemSpecs2) {
   const div = document.createElement('div');
   div.classList.add('item');
@@ -2553,6 +2602,7 @@ const keyTab4El = document.getElementById('key-tab-4');
   });
 });
 
+let lastSelectedBuild = -1;
 let lastCameraFocus = -1;
 const _updateMenu = () => {
   const {menuOpen} = weaponsManager;
@@ -2612,6 +2662,7 @@ const _updateMenu = () => {
 
     deployMesh.visible = true;
     
+    lastSelectedBuild = -1;
     lastCameraFocus = -1;
   } else if (menuOpen === 2) {
     menu2El.classList.toggle('open', true);
@@ -2619,6 +2670,12 @@ const _updateMenu = () => {
     profileIcon.classList.toggle('open', true);
 
     _updateSelectedItem(items2El, selectedItemIndex);
+
+    if (lastSelectedBuild !== selectedItemIndex) {
+      const itemSpec = itemSpecs2[selectedItemIndex];
+      itemsDetails2El.innerHTML = itemSpec.detailsHtml;
+      lastSelectedBuild = selectedItemIndex;
+    }
     
     lastCameraFocus = -1;
   } else if (menuOpen === 3) {
@@ -2628,6 +2685,7 @@ const _updateMenu = () => {
 
     _updateSelectedItem(items3El, selectedItemIndex);
     
+    lastSelectedBuild = -1;
     lastCameraFocus = -1;
   } else if (menuOpen === 4) {
     menu4El.classList.toggle('open', true);
@@ -2645,6 +2703,8 @@ const _updateMenu = () => {
       }
       lastCameraFocus = selectedItemIndex;
     }
+
+    lastSelectedBuild = -1;
   } else if (highlightedWorld) {
     unmenuEl.classList.toggle('closed', true);
     objectMenuEl.classList.toggle('open', false);
@@ -2653,7 +2713,8 @@ const _updateMenu = () => {
     locationIcon.classList.toggle('highlight', !!highlightedWorld);
 
     worldMenuEl.classList.toggle('open', true);
-    
+
+    lastSelectedBuild = -1;
     lastCameraFocus = -1;
   } else if (objectHightlighted) {
     unmenuEl.classList.toggle('closed', true);
@@ -2661,11 +2722,13 @@ const _updateMenu = () => {
     itemIcon.classList.toggle('open', true);
 
     itemLabel.innerText = 'lightsaber';
-    
+
+    lastSelectedBuild = -1;
     lastCameraFocus = -1;
   } else {
     locationIcon.classList.toggle('open', true);
-    
+
+    lastSelectedBuild = -1;
     lastCameraFocus = -1;
   }
 
