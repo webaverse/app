@@ -336,19 +336,6 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
-    case 69: { // E
-      // pe.grabdown('right');
-      if (universe.canEnterWorld()) {
-        universe.enterWorld();
-      } else if (ioManager.currentWeaponGrabs[0]) {
-        ioManager.currentWeaponGrabs[0] = false;
-      } else if (weaponsManager.getMenu()) {
-        weaponsManager.menuUse();
-      } else if (weaponsManager.canUse()) {
-        ioManager.currentWeaponGrabs[0] = true;
-      }
-      break;
-    }
     case 70: { // F
       // pe.grabdown('right');
       e.preventDefault();
@@ -525,13 +512,19 @@ window.addEventListener('keyup', e => {
         }
         break;
       }
-      /* case 69: { // E
-        // pe.grabup('right');
-        if (document.pointerLockElement) {
+      case 69: { // E
+        // pe.grabdown('right');
+        if (universe.canEnterWorld()) {
+          universe.enterWorld();
+        } else if (ioManager.currentWeaponGrabs[0]) {
           ioManager.currentWeaponGrabs[0] = false;
+        } else if (weaponsManager.getMenu()) {
+          weaponsManager.menuUse();
+        } else if (weaponsManager.canUse()) {
+          ioManager.currentWeaponGrabs[0] = true;
         }
         break;
-      } */
+      }
       /* case 70: { // F
         // pe.grabup('right');
         if (document.pointerLockElement) {
