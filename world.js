@@ -852,8 +852,10 @@ world.addEventListener('trackedobjectadd', async e => {
       mesh.position.fromArray(position);
       mesh.quaternion.fromArray(quaternion);
       
-      mesh.name = file.name;
+      // mesh.name = file.name;
+      mesh.contentId = contentId;
       mesh.instanceId = instanceId;
+      mesh.parentId = parentId;
 
       if (mesh.run) {
         mesh.run();
@@ -864,8 +866,6 @@ world.addEventListener('trackedobjectadd', async e => {
           physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion);
         }
       }
-      mesh.instanceId = instanceId;
-      mesh.parentId = parentId;
 
       if (mesh.renderOrder === -Infinity) {
         scene3.add(mesh);
@@ -956,21 +956,6 @@ world.getClosestObject = (position, maxDistance) => {
     }
   }
   return closestObject;
-};
-world.update = () => {
-  const _updateObjectsGrab = () => {
-    const transforms = rigManager.getRigTransforms();
-    for (let i = 0; i < 2; i++) {
-      const grabbedObject = appManager.grabbedObjects[i];
-      if (grabbedObject) {
-        const {position, quaternion} = transforms[0];
-        // grabbedObject.position.copy(position);
-        // grabbedObject.quaternion.copy(quaternion);
-        grabbedObject.setPose(position, quaternion);
-      }
-    }
-  };
-  _updateObjectsGrab();
 };
 
 let animationMediaStream = null

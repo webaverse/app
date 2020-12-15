@@ -64,16 +64,26 @@ const universeSpecs = {
       position: [0, 0, 0],
       start_url: 'https://avaer.github.io/land/index.js',
     },
-    {
+    /* {
       position: [0, 0, -1],
       start_url: 'https://avaer.github.io/mirror/index.js',
-    },
+    }, */
     {
       position: [-10, 0, -10],
       start_url: 'https://avaer.github.io/shield/index.js',
     },
+    {
+      position: [4, 0, 1],
+      quaternion: [0, 0.7071067811865475, 0, 0.7071067811865476],
+      start_url: 'https://avatar-models.exokit.org/model43.vrm',
+    },
+    {
+      position: [4, 0, 2],
+      quaternion: [0, 0.7071067811865475, 0, 0.7071067811865476],
+      start_url: 'https://webaverse.github.io/assets/male.vrm',
+    },
   ],
-  userObject: {
+  initialScene: {
     position: [0, 0, 0],
     start_url: './home.scn',
   },
@@ -246,7 +256,6 @@ scene.add(warpMesh);
 
 let currentWorld = null;
 let highlightedWorld = null;
-const lastCoord = new THREE.Vector3(0, 0, 0);
 // let animation = null;
 const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.x),
@@ -278,13 +287,6 @@ const loadDefaultWorld = () => {
     world.addObject(objectSpec.start_url, null, position, quaternion);
   }
 };
-/* const loadUserWorld = () => {
-  const objectSpec = universeSpecs.userObject;
-  const position = objectSpec.position ? new THREE.Vector3().fromArray(objectSpec.position) : new THREE.Vector3();
-  const quaternion = objectSpec.quaternion ? new THREE.Quaternion().fromArray(objectSpec.quaternion) : new THREE.Quaternion();
-  // const scale = objectSpec.scale ? new THREE.Vector3().fromArray(objectSpec.scale) : new THREE.Vector3();
-  world.addObject(objectSpec.start_url, null, position, quaternion);
-}; */
 const update = () => {
   skybox.position.copy(rigManager.localRig.inputs.hmd.position);
   skybox.update();
@@ -324,10 +326,7 @@ const update = () => {
   }
 
   _getCurrentCoord(rigManager.localRig.inputs.hmd.position, localVector);
-  if (!localVector.equals(lastCoord)) {
-    weaponsManager.setWorld(localVector, highlightedWorld);
-    lastCoord.copy(localVector);
-  }
+  weaponsManager.setWorld(localVector, highlightedWorld);
 
   /* if (animation) {
     const now = Date.now();
@@ -370,13 +369,6 @@ const enterWorld = async () => {
   const w = currentWorld ? null : highlightedWorld;
 
   warpMesh.visible = true;
-
-  /* var tmp;
-  for (var f = 0; f < geometry.faces.length; f++) {
-    tmp = geometry.faces[f].clone();
-    geometry.faces[f].a = tmp.c;
-    geometry.faces[f].c = tmp.a;
-  } */
 
   localBox.set(
     localVector.fromArray(highlightedWorld.extents, 0),
@@ -492,7 +484,7 @@ const enterWorld = async () => {
     const {publicIp, privateIp, port} = j;
     await world.connectRoom(name, `worlds.exokit.org:${port}`);
 
-    world.initializeIfEmpty(universeSpecs.userObject);
+    world.initializeIfEmpty(universeSpecs.initialScene);
   } else {
     await world.disconnectRoom(warpPhysicsId);
 

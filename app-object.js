@@ -90,6 +90,7 @@ class AppManager {
     this.apps = [];
     this.animationLoops = [];
     this.grabbedObjects = [null, null];
+    this.grabbedObjectOffsets = [0, 0];
   }
   createApp(appId) {
     const app = new App(appId);

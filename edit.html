@@ -14,14 +14,32 @@
 <body>
   <header class=header id=header>
     <div id=progress-bar class=progress-bar></div>
-    <a href="/" class="nav icon">
-      <img class="img primary open" src="assets/logo-circle.svg" id=location-icon>
-      <img class="img secondary" src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg" id=profile-icon>
-      <img class="img tertiary" src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/female.vrm]/preview.jpg" id=item-icon>
-      <div class="name primary open" id=location-label>Unknown @0,0</div>
-      <div class="name secondary" id=profile-label>Anomymous</div>
+    <div class="nav icon openable open" id=location-icon>
+      <img class="img primary" src="assets/logo-circle.svg">
+      <div class="name primary" id=location-label>Unknown @0,0</div>
+    </div>
+    <div class="navs openable" id=profile-icon>
+      <div class="nav icon" tab=features>
+        <img class="img secondary disabled" src="./assets/noun_Blueprint_3313113.svg">
+        <div class="name secondary disabled">Build</div>
+      </div>
+      <div class="nav icon" tab=inventory>
+        <img class="img secondary" src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg">
+        <div class="name secondary">Inventory</div>
+      </div>
+      <div class="nav icon" tab=prefabs>
+        <img class="img secondary disabled" src="./assets/noun_container_3070858.svg">
+        <div class="name secondary disabled">Prefabs</div>
+      </div>
+      <div class="nav icon" tab=scene>
+        <img class="img secondary disabled" src="./assets/noun_Mountains_576433.svg">
+        <div class="name secondary disabled">Scene</div>
+      </div>
+    </div>
+    <div class="nav icon openable" id=item-icon>
+      <img class="img tertiary" src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/female.vrm]/preview.jpg">
       <div class="name tertiary" id=item-label>Object</div>
-    </a>
+    </div>
 
     <div class="buttons right">
       <!-- <div class=bar></div> -->
@@ -42,15 +60,46 @@
     <form id=login-form></form>
   </header>
 
-  <div class="menu primary" id=menu>
+  <div class="menu primary" id=menu-1>
     <div class="tabs">
-      <div class="tab" id=key-tab-2>&lt;</div>
-      <div class="tab">Loadout</div>
-      <div class="tab">Inventory</div>
-      <div class="tab">Scene</div>
+      <div class="key-helper">
+        <div class=key id=key-tab-1>← Tab</div>
+        <div class=label>Close</div>
+      </div>
     </div>
-    <div class=items id=items></div>
-    <!-- <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg" class=profile-picture> -->
+    <div class=items id=items-1></div>
+  </div>
+  <div class="menu wide primary" id=menu-2>
+    <div class="tabs">
+      <div class="key-helper">
+        <div class=key id=key-tab-2>← Tab</div>
+        <div class=label>Close</div>
+      </div>
+      <div class="key-helper">
+        <div class=key id=key-tab-2>U</div>
+        <div class=label>Upload File...</div>
+      </div>
+    </div>
+    <div class=items id=items-2></div>
+    <div class=details id=items-details-2></div>
+  </div>
+  <div class="menu primary" id=menu-3>
+    <div class="tabs">
+      <div class="key-helper">
+        <div class=key id=key-tab-3>← Tab</div>
+        <div class=label>Close</div>
+      </div>
+    </div>
+    <div class=items id=items-3></div>
+  </div>
+  <div class="menu primary" id=menu-4>
+    <div class="tabs">
+      <div class="key-helper">
+        <div class=key id=key-tab-4>← Tab</div>
+        <div class=label>Close</div>
+      </div>
+    </div>
+    <div class=items id=items-4></div>
   </div>
   <div class="menu secondary" id=world-menu>
     <div class="key-helpers">
@@ -63,16 +112,17 @@
   </div>
   <div class="menu secondary" id=object-menu>
     <div class="key-helpers">
-      <div class="key-helper">
+      <div class="key-helper progress">
+        <div class=bar></div>
         <div class=key>E</div>
         <div class=label>Grab</div>
       </div>
       <div class="key-helper">
-        <div class=key>Enter</div>
-        <div class=label>Move</div>
+        <div class=key>R</div>
+        <div class=label>Equip</div>
       </div>
       <div class="key-helper">
-        <div class=key>Backspace</div>
+        <div class=key>←</div>
         <div class=label>Delete</div>
       </div>
     </div>

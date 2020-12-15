@@ -171,10 +171,11 @@ class RigManager {
 
       let o;
       if (url) {
-        const res = await fetch(url);
-        const blob = await res.blob();
-        blob.name = filename;
-        o = await runtime.loadFile(blob);
+        o = await runtime.loadFile({
+          url,
+          name: filename,
+        });
+        o.run && o.run();
       }
 
       if (oldRig.url === url) {
@@ -192,9 +193,9 @@ class RigManager {
           } else {
             localRig = new Avatar();
             localRig.model = o;
-            localRig.inputs.hmd = localRig.model;
             localRig.update = () => {
-              // nothing
+              localRig.model.position.copy(localRig.inputs.hmd.position);
+              localRig.model.quaternion.copy(localRig.inputs.hmd.quaternion);
             };
           }
         } else {

@@ -814,18 +814,19 @@ scene.add(highlightMesh);
 let highlightedObject = null;
 
 const coord = new THREE.Vector3();
+const lastCoord = coord.clone();
 let highlightedWorld = null;
 
 const moveMesh = _makeTargetMesh();
 moveMesh.visible = false;
 scene.add(moveMesh);
-let movingObject = null;
+// let movingObject = null;
 
 const deployMesh = _makeTargetMesh();
 deployMesh.visible = false;
 scene.add(deployMesh);
 
-const _enter = () => {
+const _use = () => {
   if (deployMesh.visible) {
     const itemSpec = itemSpecs[selectedItemIndex];
     let {start_url, filename, content} = itemSpec;
@@ -842,24 +843,89 @@ const _enter = () => {
     }
     world.addObject(start_url, null, deployMesh.position, deployMesh.quaternion);
 
-    weaponsManager.setMenu(false);
+    weaponsManager.setMenu(0);
   } else if (highlightedObject) {
-    movingObject = highlightedObject;
-  } else if (movingObject) {
-    movingObject = null;
+    ioManager.currentWeaponGrabs[0] = true;
+    _grab(highlightedObject);
+    highlightedObject = null;
+    
+    weaponsManager.setMenu(0);
+  } if (weaponsManager.getMenu() === 2) {
+    const itemSpec = itemSpecs2[selectedItemIndex];
+    itemSpec.cb();
   }
+};
+let useAnimation = null;
+const _useHold = () => {
+  const now = Date.now();
+  useAnimation = {
+    start: now,
+    end: now + 1000,
+  };
+};
+const _useRelease = () => {
+  useAnimation = null;
 };
 const _delete = () => {
-  if (highlightedObject) {
+  if (appManager.grabbedObjects[0]) {
+    world.removeObject(appManager.grabbedObjects[0].instanceId);
+    appManager.grabbedObjects[0] = null;
+    _updateMenu();
+  } else if (highlightedObject) {
     world.removeObject(highlightedObject.instanceId);
     highlightedObject = null;
-    _updateMenu();
-  } else if (movingObject) {
-    world.removeObject(movingObject.instanceId);
-    movingObject = null;
-    _updateMenu();
+
+    if (weaponsManager.getMenu() === 4) {
+      _selectItemDelta(1);
+    } else {
+      _updateMenu();
+    }
   }
 };
+
+const _equip = () => {
+  if (highlightedObject) {
+    const url = highlightedObject.contentId;
+    const filename = highlightedObject.contentId;
+    rigManager.setLocalAvatarUrl(url, filename);
+  }
+};
+
+const items4El = document.getElementById('items-4');
+world.addEventListener('trackedobjectadd', async e => {
+  const trackedObject = e.data;
+  const trackedObjectJson = trackedObject.toJSON();
+  const {contentId, instanceId} = trackedObjectJson;
+
+  const div = document.createElement('div');
+  div.classList.add('item');
+  div.setAttribute('instanceid', instanceId);
+  div.innerHTML = `
+    <div class=card>
+      <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
+    </div>
+    <div class=name>${escape(contentId)}</div>
+    <div class="key-helpers">
+      <div class="key-helper progress">
+        <div class=bar></div>
+        <div class=key>E</div>
+        <div class=label>Grab</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>←</div>
+        <div class=label>Delete</div>
+      </div>
+    </div>
+  `;
+  items4El.appendChild(div);
+});
+world.addEventListener('trackedobjectremove', async e => {
+  const trackedObject = e.data;
+  const instanceId = trackedObject.get('instanceId');
+
+  const itemEl = items4El.querySelector(`.item[instanceid="${instanceId}"]`);
+  items4El.removeChild(itemEl);
+});
 
 /* const _snapBuildPosition = p => {
   p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
@@ -885,6 +951,22 @@ const _meshEquals = (a, b) => {
     return false;
   }
 }; */
+const maxDistance = 10;
+const maxGrabDistance = 1.5;
+const _grab = object => {
+  const transforms = rigManager.getRigTransforms();
+
+  appManager.grabbedObjects[0] = object;
+  if (object) {
+    const {position} = transforms[0];
+    const distance = object.position.distanceTo(position);
+    if (distance < maxGrabDistance) {
+      appManager.grabbedObjectOffsets[0] = 0;
+    } else {
+      appManager.grabbedObjectOffsets[0] = distance;
+    }
+  }
+};
 const _updateWeapons = timeDiff => {
   /* for (let i = 0; i < 2; i++) {
     anchorSpecs[i] = null;
@@ -1512,12 +1594,13 @@ const _updateWeapons = timeDiff => {
   };
   _handleMenu(); */
 
-  const maxDistance = 10;
+  const transforms = rigManager.getRigTransforms();
   const _snap = (v, n) => v.set(
     Math.round(v.x/n)*n,
     Math.round(v.y/n)*n,
     Math.round(v.z/n)*n,
   );
+
   const _handleHighlight = () => {
     const width = 1;
     const length = 100;    
@@ -1530,10 +1613,9 @@ const _updateWeapons = timeDiff => {
     const oldHighlightedObject = highlightedObject;
     highlightedObject = null;
 
-    if (!weaponsManager.getMenu() && !movingObject) {
+    if (!weaponsManager.getMenu() && !appManager.grabbedObjects[0]) {
       const objects = world.getObjects();
       for (const candidate of objects) {
-        const transforms = rigManager.getRigTransforms();
         const {position, quaternion} = transforms[0];
         localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
           .premultiply(
@@ -1548,6 +1630,17 @@ const _updateWeapons = timeDiff => {
           break;
         }
       }
+    } else if (weaponsManager.getMenu() === 4) {
+      const itemEl = items4El.childNodes[selectedItemIndex];
+      if (itemEl) {
+        const instanceId = itemEl.getAttribute('instanceid');
+        const object = world.getObjects().find(o => o.instanceId === instanceId);
+        if (object) {
+          highlightedObject = object;
+          highlightMesh.position.copy(object.position);
+          highlightMesh.visible = true;
+        }
+      }
     }
     if (highlightedObject !== oldHighlightedObject) {
       _updateMenu();
@@ -1555,7 +1648,7 @@ const _updateWeapons = timeDiff => {
   };
   _handleHighlight();
 
-  const _handleMove = () => {
+  /* const _handleMove = () => {
     moveMesh.visible = false;
 
     if (movingObject) {
@@ -1589,12 +1682,25 @@ const _updateWeapons = timeDiff => {
       moveMesh.visible = true;
     }
   };
-  _handleMove();
+  _handleMove(); */
 
   const _handleGrab = () => {
     let changed = false;
-    const transforms = rigManager.getRigTransforms();
-    for (let i = 0; i < 2; i++) {
+
+    if (ioManager.currentWeaponGrabs[0] && !ioManager.lastWeaponGrabs[0]) {
+      if (highlightedObject) {
+        _grab(highlightedObject);
+        highlightedObject = null;
+        changed = true;
+      }
+    }
+    if (!ioManager.currentWeaponGrabs[0] && ioManager.lastWeaponGrabs[0]) {
+      appManager.grabbedObjects[0] = null;
+      // meshComposer.ungrab(i);
+      changed = true;
+    }
+
+    /* for (let i = 0; i < 2; i++) {
       if (ioManager.currentWeaponGrabs[i] && !ioManager.lastWeaponGrabs[i]) {
         const {position} = transforms[i];
         appManager.grabbedObjects[i] = world.getClosestObject(position, 0.3);
@@ -1610,16 +1716,60 @@ const _updateWeapons = timeDiff => {
         // meshComposer.ungrab(i);
         changed = true;
       }
-    }
+    } */
     if (changed) {
       _updateMenu();
     }
   };
   _handleGrab();
 
+  const _updateGrab = () => {
+    moveMesh.visible = false;
+
+    for (let i = 0; i < 2; i++) {
+      const grabbedObject = appManager.grabbedObjects[i];
+      if (grabbedObject) {
+        const {position, quaternion} = transforms[0];
+
+        const offset = appManager.grabbedObjectOffsets[i];
+        /* localVector.copy(position)
+          .add(localVector2.set(0, 0, -offset).applyQuaternion(quaternion)); */
+
+        let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+        if (collision) {
+          const {point} = collision;
+          _snap(localVector.fromArray(point), 1);
+          grabbedObject.position.copy(localVector)
+            .add(localVector2.set(0, 0.01, 0));
+          localEuler.setFromQuaternion(quaternion, 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
+          grabbedObject.quaternion.setFromEuler(localEuler);
+
+          if (grabbedObject.position.distanceTo(position) > offset) {
+            collision = null;
+          }
+        }
+        if (!collision) {
+          grabbedObject.position.copy(position).add(localVector.set(0, 0, -offset).applyQuaternion(quaternion));
+          grabbedObject.quaternion.copy(quaternion);
+        }
+
+        if (grabbedObject.position.distanceTo(position) >= maxGrabDistance) {
+          moveMesh.position.copy(grabbedObject.position);
+          moveMesh.quaternion.copy(grabbedObject.quaternion);
+          moveMesh.visible = true;
+        }
+
+        // grabbedObject.setPose(localVector2, quaternion);
+      }
+    }
+  };
+  _updateGrab();
+
   const _handleDeploy = () => {
     if (deployMesh.visible) {
-      const transforms = rigManager.getRigTransforms();
       const {position, quaternion} = transforms[0];
 
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
@@ -1696,8 +1846,34 @@ const _updateWeapons = timeDiff => {
     });
   };
   _handleTeleport();
+  
+  const _handleAnimation = () => {
+    const progressBars = document.querySelectorAll('.progress');
+    if (useAnimation) {
+      const now = Date.now();
+      const f = (now - useAnimation.start) / (useAnimation.end - useAnimation.start);
+      if (f < 1) {
+        for (const progressBar of progressBars) {
+          progressBar.classList.add('running');
+        }
+        const progressBarInners = Array.from(document.querySelectorAll('.progress > .bar'));
+        for (const progressBarInner of progressBarInners) {
+          progressBarInner.style.width = (f * 100) + '%';
+        }
+      } else {
+        useAnimation = null;
+      }
+      
+      return;
+    }
+    
+    for (const progressBar of progressBars) {
+      progressBar.classList.remove('running');
+    }
+  };
+  _handleAnimation();
 
-  meshComposer.update();
+  /* meshComposer.update();
   
   explosionMeshes = explosionMeshes.filter(explosionMesh => {
     explosionMesh.material.uniforms.uAnimation.value += timeDiff;
@@ -1734,14 +1910,18 @@ const _updateWeapons = timeDiff => {
       pxMesh.parent.remove(pxMesh);
       return false;
     }
-  });
+  }); */
 };
 
 renderer.domElement.addEventListener('wheel', e => {
   if (document.pointerLockElement) {
-    if (anchorSpecs[0] && [thingsMesh, inventoryMesh].includes(anchorSpecs[0].object)) {
-      anchorSpecs[0].object.scrollY(e.deltaY);
+    // console.log('got wheel', e.deltaY);
+    if (appManager.grabbedObjects[0]) {
+      appManager.grabbedObjectOffsets[0] = Math.max(appManager.grabbedObjectOffsets[0] + e.deltaY * 0.01, 0);
     }
+    /* if (anchorSpecs[0] && [thingsMesh, inventoryMesh].includes(anchorSpecs[0].object)) {
+      anchorSpecs[0].object.scrollY(e.deltaY);
+    } */
   }
 });
 
@@ -1893,7 +2073,7 @@ const itemSpecs = [
     "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
   },
 ];
-const itemsEl = document.getElementById('items');
+const items1El = document.getElementById('items-1');
 for (const itemSpec of itemSpecs) {
   const div = document.createElement('div');
   div.classList.add('item');
@@ -1902,34 +2082,213 @@ for (const itemSpec of itemSpecs) {
       <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
     </div>
     <div class=name>${itemSpec.name}</div>
+    <div class="key-helpers">
+      <div class="key-helper">
+        <div class=key>E</div>
+        <div class=label>Spawn</div>
+      </div>
+    </div>
   `;
-  itemsEl.appendChild(div);
+  items1El.appendChild(div);
 }
+
+const itemSpecs2 = [
+  {
+    name: 'Geometry',
+    icon: 'fa-dice-d10',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Geometry</b> lets you build walls, floors, and structures.
+      </div>
+    `,
+    cb() {
+      console.log('geometry');
+    },
+  },
+  {
+    name: 'Model',
+    icon: 'fa-alien-monster',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Model</b> lets you place a 3D model in GLTF format.
+      </div>
+    `,
+    cb() {
+      console.log('model');
+    },
+  },
+  {
+    name: 'Avatar',
+    icon: 'fa-user-ninja',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Avatar</b> lets you place an avatar model in VRM format.
+      </div>
+    `,
+    cb() {
+      console.log('avatar');
+    },
+  },
+  {
+    name: 'Image',
+    icon: 'fa-image',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Image</b> lets you place a simple image billboard.
+      </div>
+    `,
+    cb() {
+      console.log('image');
+    },
+  },
+  {
+    name: 'Audio',
+    icon: 'fa-headphones',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Audio</b> lets you place spatial audio.
+      </div>
+    `,
+    cb() {
+      console.log('audio');
+    },
+  },
+  {
+    name: 'Voxel',
+    icon: 'fa-cube',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Voxel</b> lets you place a voxel model in VOX format.
+      </div>
+    `,
+    cb() {
+      console.log('voxel');
+    },
+  },
+  {
+    name: 'Link',
+    icon: 'fa-portal-enter',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Link</b> lets you create a web link portal.
+      </div>
+    `,
+    cb() {
+      console.log('link');
+    },
+  },
+  {
+    name: 'Web Frame',
+    icon: 'fa-browser',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Web Frame</b> lets you place a web content iframe.
+      </div>
+    `,
+    cb() {
+      console.log('web frame');
+    },
+  },
+  {
+    name: 'Media Stream',
+    icon: 'fa-signal-stream',
+    detailsHtml: `\
+      <video class=video src="./assets/darkbooth.webm"></video>
+      <div class=wrap>
+        <b>Media Stream</b> lets you build walls, floors, and structures.
+      </div>
+    `,
+    cb() {
+      console.log('media stream');
+    },
+  },
+];
+const items2El = document.getElementById('items-2');
+const itemsDetails2El = document.getElementById('items-details-2');
+for (const itemSpec of itemSpecs2) {
+  const div = document.createElement('div');
+  div.classList.add('item');
+  div.innerHTML = `\
+    <div class=bar></div>
+    <i class="icon fa ${itemSpec.icon}"></i>
+    <div class=name>${itemSpec.name}</div>
+    <div class="key-helpers">
+      <div class="key-helper">
+        <div class=key>E</div>
+        <div class=label>Create</div>
+      </div>
+    </div>
+  `;
+  items2El.appendChild(div);
+}
+
+const itemSpecs3 = [
+  {
+    name: 'Prefab',
+    cb() {
+      
+    },
+  },
+];
+const items3El = document.getElementById('items-3');
+for (const itemSpec of itemSpecs3) {
+  const div = document.createElement('div');
+  div.classList.add('item');
+  div.innerHTML = `
+    <div class=card>
+      <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
+    </div>
+    <div class=name>${itemSpec.name}</div>
+    <div class="key-helpers">
+      <div class="key-helper">
+        <div class=key>E</div>
+        <div class=label>Spawn</div>
+      </div>
+    </div>
+  `;
+  items3El.appendChild(div);
+}
+
 let selectedItemIndex = 0;
 const _selectItem = newSelectedItemIndex => {
   selectedItemIndex = newSelectedItemIndex;
-
-  for (const childNode of itemsEl.childNodes) {
-    childNode.classList.remove('selected');
-  }
-
-  const itemEl = itemsEl.childNodes[selectedItemIndex];
-  itemEl.classList.add('selected');
-
-  const itemsBoundingRect = itemsEl.getBoundingClientRect();
-  const itemBoundingRect = itemEl.getBoundingClientRect();
-  if (itemBoundingRect.y <= itemsBoundingRect.y || itemBoundingRect.bottom >= itemsBoundingRect.bottom) {
-    itemEl.scrollIntoView();
-  }
+  _updateMenu();
 };
+const _getItemsEl = () => document.getElementById('items-' + weaponsManager.getMenu());
 const _selectItemDelta = offset => {
+  const itemsEl = _getItemsEl();
+
   let newSelectedItemIndex = selectedItemIndex + offset;
-  if (newSelectedItemIndex >= itemSpecs.length) {
+  if (newSelectedItemIndex >= itemsEl.childNodes.length) {
     newSelectedItemIndex = 0;
   } else if (newSelectedItemIndex < 0) {
-    newSelectedItemIndex = itemSpecs.length - 1;
+    newSelectedItemIndex = itemsEl.childNodes.length - 1;
   }
   _selectItem(newSelectedItemIndex);
+};
+
+const tabs = Array.from(document.getElementById('profile-icon').querySelectorAll('.navs > .nav'));
+// let selectedTabIndex = 0;
+const _selectTab = newSelectedTabIndex => {
+  // selectedTabIndex = newSelectedTabIndex;
+  weaponsManager.setMenu(newSelectedTabIndex + 1);
+};
+const _selectTabDelta = offset => {
+  let newSelectedTabIndex = (weaponsManager.getMenu() - 1) + offset;
+  if (newSelectedTabIndex >= tabs.length) {
+    newSelectedTabIndex = 0;
+  } else if (newSelectedTabIndex < 0) {
+    newSelectedTabIndex = tabs.length - 1;
+  }
+  _selectTab(newSelectedTabIndex);
 };
 
 /* const menuMesh = (() => {
@@ -2284,25 +2643,31 @@ menuMesh.visible = false;
 scene.add(menuMesh); */
 
 const keyTabEl = document.getElementById('key-tab');
+const keyTab1El = document.getElementById('key-tab-1');
 const keyTab2El = document.getElementById('key-tab-2');
-[keyTabEl, keyTab2El].forEach(el => {
+const keyTab3El = document.getElementById('key-tab-3');
+const keyTab4El = document.getElementById('key-tab-4');
+[keyTabEl, keyTab1El, keyTab2El, keyTab3El, keyTab4El].forEach((el, i) => {
   el.addEventListener('click', e => {
-    weaponsManager.setMenu(!weaponsManager.getMenu());
+    if (!appManager.grabbedObjects[0]) {
+      weaponsManager.setMenu(weaponsManager.getMenu() ? 0 : 1);
+    }
   });
 });
 
+let lastSelectedBuild = -1;
+let lastCameraFocus = -1;
 const _updateMenu = () => {
   const {menuOpen} = weaponsManager;
   const objectHightlighted = !!highlightedObject;
 
-  menuEl.classList.toggle('open', false);
+  menu1El.classList.toggle('open', false);
+  menu2El.classList.toggle('open', false);
+  menu3El.classList.toggle('open', false);
+  menu4El.classList.toggle('open', false);
   unmenuEl.classList.toggle('closed', false);
   objectMenuEl.classList.toggle('open', false);
   worldMenuEl.classList.toggle('open', false);
-  locationLabel.classList.toggle('open', false);
-  locationLabel.classList.toggle('highlight', false);
-  profileLabel.classList.toggle('open', false);
-  itemLabel.classList.toggle('open', false);
   locationIcon.classList.toggle('open', false);
   locationIcon.classList.toggle('highlight', false);
   profileIcon.classList.toggle('open', false);
@@ -2310,41 +2675,123 @@ const _updateMenu = () => {
 
   deployMesh.visible = false;
 
-  if (menuOpen) {
-    menuEl.classList.toggle('open', true);
+  const _updateTabs = () => {
+    const selectedTabIndex = menuOpen - 1;
+    for (let i = 0; i < tabs.length; i++) {
+      const tab = tabs[i];
+      const childNodes = Array.from(tab.querySelectorAll('.img'))
+        .concat(Array.from(tab.querySelectorAll('.name')));
+      for (const childNode of childNodes) {
+        childNode.classList.toggle('disabled', i !== selectedTabIndex);
+      }
+    }
+  };
+  _updateTabs();
+
+  const _updateSelectedItem = (itemsEl, selectedItemIndex) => {
+    for (const childNode of itemsEl.childNodes) {
+      childNode.classList.remove('selected');
+    }
+    const itemEl = itemsEl.childNodes[selectedItemIndex];
+    if (itemEl) {
+      itemEl.classList.add('selected');
+
+      const itemsBoundingRect = itemsEl.getBoundingClientRect();
+      const itemBoundingRect = itemEl.getBoundingClientRect();
+      if (itemBoundingRect.y <= itemsBoundingRect.y || itemBoundingRect.bottom >= itemsBoundingRect.bottom) {
+        itemEl.scrollIntoView();
+      }
+    }
+  };
+
+  if (menuOpen === 1) {
+    menu1El.classList.toggle('open', true);
     unmenuEl.classList.toggle('closed', true);
-    profileLabel.classList.toggle('open', true);
     profileIcon.classList.toggle('open', true);
 
-    profileLabel.innerText = 'parzival';
+    // profileLabel.innerText = 'parzival';
+
+    _updateSelectedItem(items1El, selectedItemIndex);
 
     deployMesh.visible = true;
+    
+    lastSelectedBuild = -1;
+    lastCameraFocus = -1;
+  } else if (menuOpen === 2) {
+    menu2El.classList.toggle('open', true);
+    unmenuEl.classList.toggle('closed', true);
+    profileIcon.classList.toggle('open', true);
+
+    _updateSelectedItem(items2El, selectedItemIndex);
+
+    if (lastSelectedBuild !== selectedItemIndex) {
+      const itemSpec = itemSpecs2[selectedItemIndex];
+      itemsDetails2El.innerHTML = itemSpec.detailsHtml;
+      lastSelectedBuild = selectedItemIndex;
+    }
+    
+    lastCameraFocus = -1;
+  } else if (menuOpen === 3) {
+    menu3El.classList.toggle('open', true);
+    unmenuEl.classList.toggle('closed', true);
+    profileIcon.classList.toggle('open', true);
+
+    _updateSelectedItem(items3El, selectedItemIndex);
+    
+    lastSelectedBuild = -1;
+    lastCameraFocus = -1;
+  } else if (menuOpen === 4) {
+    menu4El.classList.toggle('open', true);
+    unmenuEl.classList.toggle('closed', true);
+    profileIcon.classList.toggle('open', true);
+
+    _updateSelectedItem(items4El, selectedItemIndex);
+
+    if (lastCameraFocus !== selectedItemIndex) {
+      const itemEl = items4El.childNodes[selectedItemIndex];
+      if (itemEl) {
+        const instanceId = itemEl.getAttribute('instanceid');
+        const object = world.getObjects().find(o => o.instanceId === instanceId);
+        cameraManager.focusCamera(object.position);
+      }
+      lastCameraFocus = selectedItemIndex;
+    }
+
+    lastSelectedBuild = -1;
   } else if (highlightedWorld) {
     unmenuEl.classList.toggle('closed', true);
     objectMenuEl.classList.toggle('open', false);
-    locationLabel.classList.toggle('open', true);
     locationIcon.classList.toggle('open', true);
 
     locationIcon.classList.toggle('highlight', !!highlightedWorld);
-    locationLabel.classList.toggle('highlight', !!highlightedWorld);
 
     worldMenuEl.classList.toggle('open', true);
+
+    lastSelectedBuild = -1;
+    lastCameraFocus = -1;
   } else if (objectHightlighted) {
     unmenuEl.classList.toggle('closed', true);
     objectMenuEl.classList.toggle('open', true);
-    itemLabel.classList.toggle('open', true);
     itemIcon.classList.toggle('open', true);
 
     itemLabel.innerText = 'lightsaber';
+
+    lastSelectedBuild = -1;
+    lastCameraFocus = -1;
   } else {
     locationIcon.classList.toggle('open', true);
-    locationLabel.classList.toggle('open', true);
+
+    lastSelectedBuild = -1;
+    lastCameraFocus = -1;
   }
 
   locationLabel.innerText = (highlightedWorld ? highlightedWorld.name : 'The Void') + ` @${coord.x},${coord.z}`;
 };
 
-const menuEl = document.getElementById('menu');
+const menu1El = document.getElementById('menu-1');
+const menu2El = document.getElementById('menu-2');
+const menu3El = document.getElementById('menu-3');
+const menu4El = document.getElementById('menu-4');
 const unmenuEl = document.getElementById('unmenu');
 const objectMenuEl = document.getElementById('object-menu');
 const worldMenuEl = document.getElementById('world-menu');
@@ -2355,11 +2802,11 @@ const locationIcon = document.getElementById('location-icon');
 const profileIcon = document.getElementById('profile-icon');
 const itemIcon = document.getElementById('item-icon');
 const weaponsManager = {
-  weapons,
+  // weapons,
   cubeMesh,
-  buildMode: 'wall',
-  buildMat: 'wood',
-  menuOpen: false,
+  /* buildMode: 'wall',
+  buildMat: 'wood', */
+  menuOpen: 0,
   weaponWheel: false,
   getWeapon() {
     return selectedWeapon;
@@ -2416,40 +2863,40 @@ const weaponsManager = {
     }
   },
   getMenu() {
-    // return menuMesh.visible;
     return this.menuOpen;
   },
   setMenu(newOpen) {
-    /* if (newOpen) {
-      const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
-      menuMesh.position.copy(xrCamera.position)
-        .add(localVector.set(0, 0, -1.5).applyQuaternion(xrCamera.quaternion));
-      menuMesh.quaternion.copy(xrCamera.quaternion);
-      
-      menuMesh.setVertical(-2);
-    }
-    menuMesh.visible = newOpen; */
     this.menuOpen = newOpen;
-    _updateMenu();
     if (newOpen) {
       _selectItem(0);
+    } else {
+      _updateMenu();
     }
   },
-  menuVertical(offset/*, shift*/) {
+  menuVertical(offset) {
     if (this.menuOpen) {
       _selectItemDelta(offset);
-      // menuMesh.offsetVertical(offset, shift);
     }
   },
-  /* menuHorizontal(offset, shift) {
-    menuMesh.offsetHorizontal(offset, shift);
-  }, */
-  menuEnter() {
-    // menuMesh.enter();
-    _enter();
+  menuHorizontal(offset) {
+    if (this.menuOpen) {
+      _selectTabDelta(offset);
+    }
+  },
+  menuUse() {
+    _use();
+  },
+  menuUseHold() {
+    _useHold();
+  },
+  menuUseRelease() {
+    _useRelease();
   },
   menuDelete() {
     _delete();
+  },
+  menuEquip() {
+    _equip();
   },
   menuKey(c) {
     menuMesh.key(c);
@@ -2460,10 +2907,22 @@ const weaponsManager = {
   menuPaste(s) {
     menuMesh.paste(s);
   },
+  canUse() {
+    return !!highlightedObject;
+  },
+  canUseHold() {
+    return !!highlightedObject;
+  },
   setWorld(newCoord, newHighlightedWorld) {
+    lastCoord.copy(coord);
     coord.copy(newCoord);
+
+    const lastHighlightedWorld = highlightedWorld;
     highlightedWorld = newHighlightedWorld;
-    _updateMenu();
+
+    if (!coord.equals(lastCoord) || highlightedWorld !== lastHighlightedWorld) {
+      _updateMenu();
+    }
   },
   async destroyWorld() {
     if (highlightedWorld) {

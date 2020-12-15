@@ -263,20 +263,20 @@ window.addEventListener('keydown', e => {
       weaponsManager.menuVertical(1);
       break;
     }
-    /* case 37: { // left
-      weaponsManager.menuHorizontal(-1, e.shiftKey);
+    case 37: { // left
+      weaponsManager.menuHorizontal(-1);
       break;
     }
     case 39: { // right
-      weaponsManager.menuHorizontal(1, e.shiftKey);
+      weaponsManager.menuHorizontal(1);
       break;
-    } */
-    case 13: { // enter
+    }
+    /* case 13: { // enter
       e.preventDefault();
       e.stopPropagation();
       weaponsManager.menuEnter();
       break;
-    }
+    } */
     /* case 49: { // 1
       if (document.pointerLockElement) {
         const selectedWeapon = weaponsManager.getWeapon();
@@ -327,6 +327,7 @@ window.addEventListener('keydown', e => {
     }
     case 82: { // R
       if (document.pointerLockElement) {
+        weaponsManager.menuEquip();
         // pe.equip('back');
       /* } else {
         if (selectTarget && selectTarget.control) {
@@ -335,20 +336,18 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
-    case 69: { // E
-      // pe.grabdown('right');
-      if (universe.canEnterWorld()) {
-        universe.enterWorld();
-      } else if (document.pointerLockElement) {
-        ioManager.currentWeaponGrabs[0] = true;
-      }
-      break;
-    }
     case 70: { // F
       // pe.grabdown('right');
       e.preventDefault();
       e.stopPropagation();
       document.getElementById('key-f').click();
+      break;
+    }
+    case 82: { // R
+      // pe.grabdown('right');
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('key-r').click();
       break;
     }
     case 88: { // X
@@ -431,10 +430,12 @@ window.addEventListener('keydown', e => {
       weaponsManager.setWeaponWheel(true);
       break;
     }
-    /* case 69: { // E
-      weaponsManager.setMenu(true);
+    case 69: { // E
+      if (weaponsManager.canUseHold()) {
+        weaponsManager.menuUseHold();
+      }
       break;
-    } */
+    }
     /* case 90: { // Z
       if (document.pointerLockElement) {
         document.querySelector('.weapon[weapon="build"]').click();
@@ -514,9 +515,16 @@ window.addEventListener('keyup', e => {
         break;
       }
       case 69: { // E
-        // pe.grabup('right');
-        if (document.pointerLockElement) {
+        weaponsManager.menuUseRelease();
+
+        if (universe.canEnterWorld()) {
+          universe.enterWorld();
+        } else if (ioManager.currentWeaponGrabs[0]) {
           ioManager.currentWeaponGrabs[0] = false;
+        } else if (weaponsManager.getMenu()) {
+          weaponsManager.menuUse();
+        } else if (weaponsManager.canUse()) {
+          ioManager.currentWeaponGrabs[0] = true;
         }
         break;
       }
@@ -592,7 +600,7 @@ window.addEventListener('mouseup', e => {
 });
 renderer.domElement.addEventListener('dblclick', e => {
   if (!document.pointerLockElement) {
-    document.getElementById('key-v').click();
+    document.getElementById('key-x').click();
   }
 });
 document.addEventListener('pointerlockchange', e => {
