@@ -828,7 +828,7 @@ scene.add(deployMesh);
 
 const _use = () => {
   if (deployMesh.visible) {
-    const itemSpec = itemSpecs[selectedItemIndex];
+    const itemSpec = itemSpecs3[selectedItemIndex];
     let {start_url, filename, content} = itemSpec;
 
     if (start_url) {
@@ -891,7 +891,6 @@ const _equip = () => {
   }
 };
 
-const items4El = document.getElementById('items-4');
 world.addEventListener('trackedobjectadd', async e => {
   const trackedObject = e.data;
   const trackedObjectJson = trackedObject.toJSON();
@@ -2012,7 +2011,16 @@ const _renderWheel = (() => {
   };
 })();
 
-const itemSpecs = [
+const items1El = document.getElementById('items-1');
+const items2El = document.getElementById('items-2');
+const items3El = document.getElementById('items-3');
+const items4El = document.getElementById('items-4');
+const itemsDetails1El = document.getElementById('items-details-1');
+const itemsDetails2El = document.getElementById('items-details-2');
+const itemsDetails3El = document.getElementById('items-details-3');
+const itemsDetails4El = document.getElementById('items-details-4');
+
+const itemSpecs3 = [
   {
     "name": "home",
     "start_url": "https://avaer.github.io/home/manifest.json"
@@ -2073,8 +2081,7 @@ const itemSpecs = [
     "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
   },
 ];
-const items1El = document.getElementById('items-1');
-for (const itemSpec of itemSpecs) {
+for (const itemSpec of itemSpecs3) {
   const div = document.createElement('div');
   div.classList.add('item');
   div.innerHTML = `
@@ -2089,10 +2096,10 @@ for (const itemSpec of itemSpecs) {
       </div>
     </div>
   `;
-  items1El.appendChild(div);
+  items3El.appendChild(div);
 }
 
-const itemSpecs2 = [
+const itemSpecs1 = [
   {
     name: 'Geometry',
     icon: 'fa-dice-d10',
@@ -2211,9 +2218,7 @@ const itemSpecs2 = [
     },
   },
 ];
-const items2El = document.getElementById('items-2');
-const itemsDetails2El = document.getElementById('items-details-2');
-for (const itemSpec of itemSpecs2) {
+for (const itemSpec of itemSpecs1) {
   const div = document.createElement('div');
   div.classList.add('item');
   div.innerHTML = `\
@@ -2227,10 +2232,10 @@ for (const itemSpec of itemSpecs2) {
       </div>
     </div>
   `;
-  items2El.appendChild(div);
+  items1El.appendChild(div);
 }
 
-const itemSpecs3 = [
+const itemSpecs2 = [
   {
     name: 'Inventory item',
     cb() {
@@ -2238,8 +2243,7 @@ const itemSpecs3 = [
     },
   },
 ];
-const items3El = document.getElementById('items-3');
-for (const itemSpec of itemSpecs3) {
+for (const itemSpec of itemSpecs2) {
   const div = document.createElement('div');
   div.classList.add('item');
   div.innerHTML = `
@@ -2254,7 +2258,7 @@ for (const itemSpec of itemSpecs3) {
       </div>
     </div>
   `;
-  items3El.appendChild(div);
+  items2El.appendChild(div);
 }
 
 let selectedItemIndex = 0;
@@ -2262,6 +2266,17 @@ const _selectItem = newSelectedItemIndex => {
   selectedItemIndex = newSelectedItemIndex;
   _updateMenu();
 };
+/* const _getItemsEl = () => {
+  let openMenu = weaponsManager.getMenu();
+  if (openMenu === 1) {
+    openMenu = 3;
+  } else if (openMenu === 2) {
+    openMenu = 1;
+  } else if (openMenu === 3) {
+    openMenu = 2;
+  }
+  return document.getElementById('items-' + openMenu);
+}; */
 const _getItemsEl = () => document.getElementById('items-' + weaponsManager.getMenu());
 const _selectItemDelta = offset => {
   const itemsEl = _getItemsEl();
@@ -2272,7 +2287,10 @@ const _selectItemDelta = offset => {
   } else if (newSelectedItemIndex < 0) {
     newSelectedItemIndex = itemsEl.childNodes.length - 1;
   }
-  console.log('new item', newSelectedItemIndex);
+  if (newSelectedItemIndex < 0) {
+    console.warn('selecting nonexistent zero item index');
+    newSelectedItemIndex = 0;
+  }
   _selectItem(newSelectedItemIndex);
 };
 
@@ -2660,11 +2678,11 @@ const _updateMenu = () => {
   const {menuOpen} = weaponsManager;
   const objectHightlighted = !!highlightedObject;
 
-  menu1El.classList.toggle('open', false);
-  menu2El.classList.toggle('open', false);
-  menu3El.classList.toggle('open', false);
-  menu4El.classList.toggle('open', false);
-  unmenuEl.classList.toggle('closed', false);
+  menu1El.classList.toggle('open', menuOpen === 1);
+  menu2El.classList.toggle('open', menuOpen === 2);
+  menu3El.classList.toggle('open', menuOpen === 3);
+  menu4El.classList.toggle('open', menuOpen === 4);
+  unmenuEl.classList.toggle('closed', menuOpen !== 0);
   objectMenuEl.classList.toggle('open', false);
   worldMenuEl.classList.toggle('open', false);
   locationIcon.classList.toggle('open', false);
@@ -2704,44 +2722,36 @@ const _updateMenu = () => {
   };
 
   if (menuOpen === 1) {
-    menu2El.classList.toggle('open', true);
-    unmenuEl.classList.toggle('closed', true);
     profileIcon.classList.toggle('open', true);
 
-    _updateSelectedItem(items2El, selectedItemIndex);
+    _updateSelectedItem(items1El, selectedItemIndex);
 
     if (lastSelectedBuild !== selectedItemIndex) {
-      const itemSpec = itemSpecs2[selectedItemIndex];
-      itemsDetails2El.innerHTML = itemSpec.detailsHtml;
+      const itemSpec = itemSpecs1[selectedItemIndex];
+      itemsDetails1El.innerHTML = itemSpec.detailsHtml;
       lastSelectedBuild = selectedItemIndex;
     }
     
     lastCameraFocus = -1;
   } else if (menuOpen === 2) {
-    menu3El.classList.toggle('open', true);
-    unmenuEl.classList.toggle('closed', true);
     profileIcon.classList.toggle('open', true);
 
-    _updateSelectedItem(items3El, selectedItemIndex);
+    _updateSelectedItem(items2El, selectedItemIndex);
     
     lastSelectedBuild = -1;
     lastCameraFocus = -1;
   } else if (menuOpen === 3) {
-    menu1El.classList.toggle('open', true);
-    unmenuEl.classList.toggle('closed', true);
     profileIcon.classList.toggle('open', true);
 
     // profileLabel.innerText = 'parzival';
 
-    _updateSelectedItem(items1El, selectedItemIndex);
+    _updateSelectedItem(items3El, selectedItemIndex);
 
     deployMesh.visible = true;
     
     lastSelectedBuild = -1;
     lastCameraFocus = -1;
   } else if (menuOpen === 4) {
-    menu4El.classList.toggle('open', true);
-    unmenuEl.classList.toggle('closed', true);
     profileIcon.classList.toggle('open', true);
 
     _updateSelectedItem(items4El, selectedItemIndex);
@@ -2758,8 +2768,6 @@ const _updateMenu = () => {
 
     lastSelectedBuild = -1;
   } else if (highlightedWorld) {
-    unmenuEl.classList.toggle('closed', true);
-    objectMenuEl.classList.toggle('open', false);
     locationIcon.classList.toggle('open', true);
 
     locationIcon.classList.toggle('highlight', !!highlightedWorld);
@@ -2769,8 +2777,6 @@ const _updateMenu = () => {
     lastSelectedBuild = -1;
     lastCameraFocus = -1;
   } else if (objectHightlighted) {
-    unmenuEl.classList.toggle('closed', true);
-    objectMenuEl.classList.toggle('open', true);
     itemIcon.classList.toggle('open', true);
 
     itemLabel.innerText = 'lightsaber';
