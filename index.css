@@ -2598,10 +2598,19 @@ footer {
   background-color: #FFF;
   object-fit: contain;
 }
+.items .item .icon {
+  display: flex;
+  width: 50px;
+  height: 50px;
+  font-size: 30px;
+  justify-content: center;
+  align-items: center;
+}
 .items .item .name {
   max-width: 130px;
   margin-right: auto;
   line-height: 30px;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
