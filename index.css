@@ -2629,7 +2629,8 @@ footer {
   top: 45px;
   bottom: 0;
   right: -300px;
-  background-image: linear-gradient(to right, #000, #00000080);
+  /* background-image: linear-gradient(to right, #000, #00000080); */
+  background-color: #000;
   color: #FFF;
   flex-direction: column;
 }
