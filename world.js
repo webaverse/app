@@ -852,8 +852,10 @@ world.addEventListener('trackedobjectadd', async e => {
       mesh.position.fromArray(position);
       mesh.quaternion.fromArray(quaternion);
       
-      mesh.name = file.name;
+      // mesh.name = file.name;
+      mesh.contentId = contentId;
       mesh.instanceId = instanceId;
+      mesh.parentId = parentId;
 
       if (mesh.run) {
         mesh.run();
@@ -864,8 +866,6 @@ world.addEventListener('trackedobjectadd', async e => {
           physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion);
         }
       }
-      mesh.instanceId = instanceId;
-      mesh.parentId = parentId;
 
       if (mesh.renderOrder === -Infinity) {
         scene3.add(mesh);
