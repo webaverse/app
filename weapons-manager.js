@@ -2190,7 +2190,7 @@ const itemSpecs2 = [
     detailsHtml: `\
       <video class=video src="./assets/darkbooth.webm"></video>
       <div class=wrap>
-        <b>Geometry</b> lets you place a web content iframe.
+        <b>Web Frame</b> lets you place a web content iframe.
       </div>
     `,
     cb() {
@@ -2203,7 +2203,7 @@ const itemSpecs2 = [
     detailsHtml: `\
       <video class=video src="./assets/darkbooth.webm"></video>
       <div class=wrap>
-        <b>Geometry</b> lets you build walls, floors, and structures.
+        <b>Media Stream</b> lets you build walls, floors, and structures.
       </div>
     `,
     cb() {
