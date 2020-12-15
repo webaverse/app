@@ -855,6 +855,17 @@ const _use = () => {
     itemSpec.cb();
   }
 };
+let useAnimation = null;
+const _useHold = () => {
+  const now = Date.now();
+  useAnimation = {
+    start: now,
+    end: now + 1000,
+  };
+};
+const _useRelease = () => {
+  useAnimation = null;
+};
 const _delete = () => {
   if (appManager.grabbedObjects[0]) {
     world.removeObject(appManager.grabbedObjects[0].instanceId);
@@ -877,7 +888,6 @@ const _equip = () => {
     const url = highlightedObject.contentId;
     const filename = highlightedObject.contentId;
     rigManager.setLocalAvatarUrl(url, filename);
-    // console.log('got object', highlightedObject);
   }
 };
 
@@ -1589,6 +1599,7 @@ const _updateWeapons = timeDiff => {
     Math.round(v.y/n)*n,
     Math.round(v.z/n)*n,
   );
+
   const _handleHighlight = () => {
     const width = 1;
     const length = 100;    
@@ -1834,6 +1845,33 @@ const _updateWeapons = timeDiff => {
     });
   };
   _handleTeleport();
+  
+  const _handleAnimation = () => {
+    const progressBars = document.querySelectorAll('.progress');
+    if (useAnimation) {
+      const now = Date.now();
+      const f = (now - useAnimation.start) / (useAnimation.end - useAnimation.start);
+      console.log('got bars', progressBars.length, f < 1);
+      if (f < 1) {
+        for (const progressBar of progressBars) {
+          progressBar.classList.add('running');
+        }
+        const progressBarInners = Array.from(document.querySelectorAll('.progress > .bar'));
+        for (const progressBarInner of progressBarInners) {
+          progressBarInner.style.width = (f * 100) + '%';
+        }
+      } else {
+        useAnimation = null;
+      }
+      
+      return;
+    }
+    
+    for (const progressBar of progressBars) {
+      progressBar.classList.remove('running');
+    }
+  };
+  _handleAnimation();
 
   /* meshComposer.update();
   
@@ -2178,7 +2216,9 @@ const itemsDetails2El = document.getElementById('items-details-2');
 for (const itemSpec of itemSpecs2) {
   const div = document.createElement('div');
   div.classList.add('item');
+  div.classList.add('progress');
   div.innerHTML = `
+    <div class=bar></div>
     <i class="icon fa ${itemSpec.icon}"></i>
     <div class=name>${itemSpec.name}</div>
     <div class="key-helpers">
@@ -2223,8 +2263,9 @@ const _selectItem = newSelectedItemIndex => {
   selectedItemIndex = newSelectedItemIndex;
   _updateMenu();
 };
+const _getItemsEl = () => document.getElementById('items-' + weaponsManager.getMenu());
 const _selectItemDelta = offset => {
-  const itemsEl = document.getElementById('items-' + weaponsManager.getMenu());
+  const itemsEl = _getItemsEl();
 
   let newSelectedItemIndex = selectedItemIndex + offset;
   if (newSelectedItemIndex >= itemsEl.childNodes.length) {
@@ -2846,6 +2887,12 @@ const weaponsManager = {
   menuUse() {
     _use();
   },
+  menuUseHold() {
+    _useHold();
+  },
+  menuUseRelease() {
+    _useRelease();
+  },
   menuDelete() {
     _delete();
   },
@@ -2862,6 +2909,9 @@ const weaponsManager = {
     menuMesh.paste(s);
   },
   canUse() {
+    return !!highlightedObject;
+  },
+  canUseHold() {
     return !!highlightedObject;
   },
   setWorld(newCoord, newHighlightedWorld) {
