@@ -2091,10 +2091,10 @@ const itemSpecs2 = [
     },
   },
   {
-    name: 'Portal Link',
+    name: 'Link',
     action: 'Create',
     cb() {
-      console.log('portal link');
+      console.log('link');
     },
   },
   {
