@@ -2502,8 +2502,8 @@ footer {
 .menu.open {
   left: 0;
 }
-.menu section .key-helpers > .key-helper,
-.menu .key-helpers > .key-helper
+.menu > section > .key-helpers > .key-helper,
+.menu > .key-helpers > .key-helper
 {
   width: calc(300px - 20px);
 }
