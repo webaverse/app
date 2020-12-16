@@ -2676,15 +2676,14 @@ let lastSelectedBuild = -1;
 let lastCameraFocus = -1;
 const _updateMenu = () => {
   const {menuOpen} = weaponsManager;
-  const objectHightlighted = !!highlightedObject;
 
   menu1El.classList.toggle('open', menuOpen === 1);
   menu2El.classList.toggle('open', menuOpen === 2);
   menu3El.classList.toggle('open', menuOpen === 3);
   menu4El.classList.toggle('open', menuOpen === 4);
-  unmenuEl.classList.toggle('closed', menuOpen !== 0);
-  objectMenuEl.classList.toggle('open', false);
-  worldMenuEl.classList.toggle('open', false);
+  unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!highlightedObject || !!highlightedWorld);
+  objectMenuEl.classList.toggle('open', !!highlightedObject && !highlightedWorld);
+  worldMenuEl.classList.toggle('open', !!highlightedWorld);
   locationIcon.classList.toggle('open', false);
   locationIcon.classList.toggle('highlight', false);
   profileIcon.classList.toggle('open', false);
@@ -2767,19 +2766,19 @@ const _updateMenu = () => {
     }
 
     lastSelectedBuild = -1;
+  } else if (highlightedObject) {
+    itemIcon.classList.toggle('open', true);
+
+    itemLabel.innerText = 'lightsaber';
+
+    lastSelectedBuild = -1;
+    lastCameraFocus = -1;
   } else if (highlightedWorld) {
     locationIcon.classList.toggle('open', true);
 
     locationIcon.classList.toggle('highlight', !!highlightedWorld);
 
     worldMenuEl.classList.toggle('open', true);
-
-    lastSelectedBuild = -1;
-    lastCameraFocus = -1;
-  } else if (objectHightlighted) {
-    itemIcon.classList.toggle('open', true);
-
-    itemLabel.innerText = 'lightsaber';
 
     lastSelectedBuild = -1;
     lastCameraFocus = -1;
