@@ -878,6 +878,15 @@ const _delete = () => {
     world.removeObject(appManager.grabbedObjects[0].instanceId);
     appManager.grabbedObjects[0] = null;
     _updateMenu();
+  } else if (editedObject) {
+    world.removeObject(editedObject.instanceId);
+    editedObject = null;
+
+    if (weaponsManager.getMenu() === 4) {
+      _selectItemDelta(1);
+    } else {
+      _updateMenu();
+    }
   } else if (highlightedObject) {
     world.removeObject(highlightedObject.instanceId);
     highlightedObject = null;
