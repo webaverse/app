@@ -42,7 +42,7 @@ export async function tryTutorial() {
   /* ftuPhase = ftuDone ? 4 : 1;
   ftu.classList.add('phase-' + ftuPhase);
   ftuUsername.focus();
-  ftuUsername.select();
+  ftuUsername.select(); */
 }
 
 ftuUsername.addEventListener('keydown', e => {
