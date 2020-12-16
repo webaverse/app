@@ -2499,6 +2499,10 @@ footer {
 .menu.wide {
   left: -600px;
 }
+.menu.solid {
+  background: #000;
+  color: #FFF;
+}
 .menu.open {
   left: 0;
 }

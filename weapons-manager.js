@@ -813,6 +813,11 @@ highlightMesh.visible = false;
 scene.add(highlightMesh);
 let highlightedObject = null;
 
+const editMesh = _makeTargetMesh();
+editMesh.visible = false;
+scene.add(editMesh);
+let editedObject = null;
+
 const coord = new THREE.Vector3();
 const lastCoord = coord.clone();
 let highlightedWorld = null;
@@ -1647,6 +1652,16 @@ const _updateWeapons = timeDiff => {
   };
   _handleHighlight();
 
+  const _handleEdit = () => {
+    if (editedObject) {
+      editMesh.position.copy(editedObject.position);
+      editMesh.visible = true;
+    } else {
+      editMesh.visible = false;
+    }
+  };
+  _handleEdit();
+
   /* const _handleMove = () => {
     moveMesh.visible = false;
 
@@ -1861,6 +1876,8 @@ const _updateWeapons = timeDiff => {
             progressBarInner.style.width = (f * 100) + '%';
           }
         } else {
+          editedObject = highlightedObject;
+          _updateMenu();
           useAnimation = null;
         }
       } else {
@@ -2667,9 +2684,13 @@ const keyTab1El = document.getElementById('key-tab-1');
 const keyTab2El = document.getElementById('key-tab-2');
 const keyTab3El = document.getElementById('key-tab-3');
 const keyTab4El = document.getElementById('key-tab-4');
+const keyTab5El = document.getElementById('key-tab-5');
 [keyTabEl, keyTab1El, keyTab2El, keyTab3El, keyTab4El].forEach((el, i) => {
   el.addEventListener('click', e => {
-    if (!appManager.grabbedObjects[0]) {
+    if (editedObject) {
+      editedObject = null;
+      _updateMenu();
+    } else {
       weaponsManager.setMenu(weaponsManager.getMenu() ? 0 : 1);
     }
   });
@@ -2684,8 +2705,9 @@ const _updateMenu = () => {
   menu2El.classList.toggle('open', menuOpen === 2);
   menu3El.classList.toggle('open', menuOpen === 3);
   menu4El.classList.toggle('open', menuOpen === 4);
-  unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!highlightedObject || !!highlightedWorld);
-  objectMenuEl.classList.toggle('open', !!highlightedObject && !highlightedWorld && menuOpen !== 4);
+  unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!highlightedObject || !!editedObject || !!highlightedWorld);
+  objectMenuEl.classList.toggle('open', !!highlightedObject && !editedObject && !highlightedWorld && menuOpen !== 4);
+  editMenuEl.classList.toggle('open', !!editedObject);
   worldMenuEl.classList.toggle('open', !!highlightedWorld);
   locationIcon.classList.toggle('open', false);
   locationIcon.classList.toggle('highlight', false);
@@ -2801,6 +2823,7 @@ const menu3El = document.getElementById('menu-3');
 const menu4El = document.getElementById('menu-4');
 const unmenuEl = document.getElementById('unmenu');
 const objectMenuEl = document.getElementById('object-menu');
+const editMenuEl = document.getElementById('edit-menu');
 const worldMenuEl = document.getElementById('world-menu');
 const locationLabel = document.getElementById('location-label');
 const profileLabel = document.getElementById('profile-label');
@@ -2915,10 +2938,10 @@ const weaponsManager = {
     menuMesh.paste(s);
   },
   canUse() {
-    return !!highlightedObject;
+    return !!highlightedObject && !editedObject;
   },
   canUseHold() {
-    return !!highlightedObject;
+    return !!highlightedObject && !editedObject;
   },
   setWorld(newCoord, newHighlightedWorld) {
     lastCoord.copy(coord);
