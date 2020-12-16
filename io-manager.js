@@ -597,7 +597,7 @@ window.addEventListener('mouseup', e => {
   ioManager.currentTeleport = false;
 });
 renderer.domElement.addEventListener('dblclick', e => {
-  if (!document.pointerLockElement) {
+  if (!document.pointerLockElement && e.buttons === 0 && weaponsManager.getMenu() === 0) {
     document.getElementById('key-x').click();
   }
 });
