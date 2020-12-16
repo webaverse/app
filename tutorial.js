@@ -1,5 +1,6 @@
 import {loginManager} from './login.js';
 import {rigManager} from './rig.js';
+import * as notifications from './notifications.js';
 import {parseQuery, bindUploadFileButton, getExt} from './util.js';
 
 const ftu = document.getElementById('ftu');
@@ -9,7 +10,36 @@ let ftuPhase;
 export async function tryTutorial() {
   const ftuQs = parseQuery(location.search)['ftu'];
   const ftuDone = (loginManager.getFtu() || ftuQs === '0') && ftuQs !== '1';
-  ftuPhase = ftuDone ? 4 : 1;
+  if (!ftuDone) {
+    notifications.addNotification(`\
+      <i class="icon fa fa-alien-monster"></i>
+      <div class=wrap>
+        <div class=label>Getting started</div>
+        <div class=text>
+          You don't have an avatar (how embarassing!).<br>
+          Wanna fix that up?<br>
+        </div>
+        <progress value=0.5></progress>
+        <div class=button>Add avatar</div>
+      </div>
+    `, {
+      timeout: Infinity,
+    });
+    /* notifications.addNotification(`\
+      <i class="icon fa fa-user-ninja"></i>
+      <div class=wrap>
+        <div class=label>Getting started</div>
+        <div class=text>
+          You don't have an avatar (how embarassing!).<br>
+          Wanna fix that up?<br>
+          <div class=button>Add avatar</div>
+        </div>
+      </div>
+    `, {
+      timeout: Infinity,
+    }); */
+  }
+  /* ftuPhase = ftuDone ? 4 : 1;
   ftu.classList.add('phase-' + ftuPhase);
   ftuUsername.focus();
   ftuUsername.select();
