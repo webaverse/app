@@ -24,8 +24,6 @@ import {
 // import { setState } from './state.js';
 import FontFaceObserver from './fontfaceobserver.js';
 
-scene.add(geometryTool.mesh);
-
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
@@ -1678,6 +1676,16 @@ const _updateWeapons = timeDiff => {
     }
   };
   _handleEdit();
+
+  const _updateEdit = () => {
+    if (editedObject) {
+      geometryTool.update();
+      geometryTool.mesh.visible = true;
+    } else {
+      geometryTool.mesh.visible = false;
+    }
+  };
+  _updateEdit();
 
   /* const _handleMove = () => {
     moveMesh.visible = false;
