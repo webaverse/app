@@ -2,10 +2,10 @@ import { useContext, useState } from 'https://unpkg.com/es-react/dev';
 import ActionTypes from '../constants/ActionTypes.js';
 import { Context } from '../constants/Context.js';
 import css from '../web_modules/csz.js';
-import { Link } from '/web_modules/@reach/router.js';
+import { Link } from '../web_modules/@reach/router.js';
 import { discordOauthUrl } from '../webaverse/constants.js'
 
-const styles = css`/components/NavBar.css`
+const styles = css`/${window.locationSubdirectory}components/NavBar.css`
 
 const defaultAvatarImage = "/images/defaultaccount.png";
 
@@ -106,7 +106,7 @@ const NavLink = props => html`
 
 const NavBar = () => {
   return html`
-    <div className=${styles}>
+    <div className="navbarWrapper ${styles}">
         <nav className="navbar"> 
           <span className='nav-logo'><h1>Ψ Webaverse</h1></span>
           <span className='nav-item'><${NavLink} to='/' className='nav-link'>Profile</${NavLink}></span>

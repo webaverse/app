@@ -1,4 +1,4 @@
-import csz from '../web_modules/csz.js'
+import css from '../web_modules/csz.js'
 
 export default () => html`
   <div className="NotFoundPage">

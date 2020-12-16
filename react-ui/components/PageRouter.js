@@ -1,5 +1,5 @@
 import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
-import { Router } from '/web_modules/@reach/router.js';
+import { Router } from '../web_modules/@reach/router.js';
 
 import CreatorProfilePage from './CreatorProfilePage.js';
 import CreatorsPage from './CreatorsPage.js';
@@ -15,7 +15,7 @@ export const PageRouter = () => {
   return html`
   <${React.Fragment}>
   <${NavBar} />
-  <${Router}>
+  <${Router} basepath=${window.locationSubdirectory}>
     <${MyProfile} path="/"/>
       <${MyProfile} path="/profile/:view"/>
       <${Settings} path="/settings" />

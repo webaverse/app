@@ -4,7 +4,7 @@ img {
     object-fit: cover;
 }
 
-&.card {
+.card {
     background-color: #ffffff;
     width: 16em;
     height: 26em;
@@ -184,17 +184,17 @@ img {
     font-size: .4em;
 }
 
-&.card.small {
+.card.small {
     width: 12em;
     height: 19em;
     padding: 1em;
 }
 
-&.card.medium {
+.card.medium {
 
 }
 
-&.card.large {
+.card.large {
     width: 22em;
     height: 35em;
 }

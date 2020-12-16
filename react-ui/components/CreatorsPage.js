@@ -1,9 +1,9 @@
 import { React, useEffect, useState, useContext } from 'https://unpkg.com/es-react@16.13.1/dev';
-import htm from '/web_modules/htm.js';
+import htm from '../web_modules/htm.js';
 import ActionTypes from '../constants/ActionTypes.js';
 import css from '../web_modules/csz.js';
 import CreatorCard from './CreatorCard.js';
-const styles = css`/components/CreatorsPage.css`
+const styles = css`/${window.locationSubdirectory}components/CreatorsPage.css`
 import { Context } from '../constants/Context.js';
 
 const html = htm.bind(React.createElement)
@@ -22,7 +22,7 @@ const CreatorsPage = () => {
     return html`
     <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
     ${state.creators[currentPage] && html`
-     <div className=${styles}>
+     <div className="${styles} creatorsPage">
         ${state.creators[currentPage].map(creator => html`
           <${CreatorCard}
               key="${creator.address}"

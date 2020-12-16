@@ -1,14 +1,14 @@
 import { React, useEffect, useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
-import htm from '/web_modules/htm.js';
+import htm from '../web_modules/htm.js';
 import AssetCardGrid from './AssetCardGrid.js'
-import csz from '../web_modules/csz.js'
+import css from '../web_modules/csz.js'
 import { Context } from '../constants/Context.js';
 import ActionTypes from '../constants/ActionTypes.js';
 import { EditableTextField } from './EditableTextField.js';
-import { Link } from '/web_modules/@reach/router.js';
+import { Link } from '../web_modules/@reach/router.js';
 import { setName } from '../functions/UserFunctions.js';
 
-const styles = csz`/components/Profile.css`
+const styles = css`/${window.locationSubdirectory}components/Profile.css`
 const defaultAvatarImage = "/images/defaultaccount.png";
 const defaultHomespacePreview = "/images/defaulthomespace.png";
 
@@ -77,7 +77,7 @@ const Profile = (props) => {
   return html`
     <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
     ${creatorAddress && state.creatorProfiles[creatorAddress] && html`
-    <div className=${styles}>
+    <div className="profileHeaderWrapper ${styles}">
         <div className="profileHeader">
           <div className="homespaceBannerImage"><img src="${homespacePreview}" /></div>
           <div className="avatarImage"><img src="${avatarPreview}" /></div>

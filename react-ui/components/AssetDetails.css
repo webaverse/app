@@ -1,4 +1,5 @@
-& {
+.assetDetails {
+    margin:auto;
     position:fixed;
     top:0;
     width:100vh;
@@ -6,10 +7,6 @@
     margin:0;
     background-color: rgba(255, 255, 255, 0.5);
     z-index:1000;
-}
-
-.assetDetails {
-    margin:auto;
 }
 
 .assetDetailsLeftColumn {
