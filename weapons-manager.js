@@ -2140,7 +2140,9 @@ const itemSpecs1 = [
         <b>Geometry</b> lets you build walls, floors, and structures.
       </div>
     `,
-    cb() {
+    async cb() {
+      weaponsManager.setMenu(0);
+
       const blob = new Blob([''], {
         type: 'application/geometry',
       });
@@ -2151,9 +2153,16 @@ const itemSpecs1 = [
       localVector.copy(position)
         .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
 
+      const p = new Promise((accept, reject) => {
+        world.addEventListener('objectadd', async e => {
+          accept(e.data);
+        }, {once: true});
+      });
+
       world.addObject(u, null, localVector, quaternion);
 
-      weaponsManager.setMenu(0);
+      const object = await p;
+      editedObject = object;
     },
   },
   {
