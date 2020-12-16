@@ -679,7 +679,11 @@ const makeShapeMesh = () => {
     const shapeMesh = new THREE.Mesh(geometry, shapeMaterial);
     shapeMesh.position.copy(mesh.position);
     shapeMesh.quaternion.copy(mesh.quaternion);
-    scene.add(shapeMesh);
+    shapeMesh.updateMatrix();
+    shapeMesh.matrix
+      .premultiply(object.matrixWorld.clone().invert())
+      .decompose(shapeMesh.position, shapeMesh.quaternion, shapeMesh.scale);
+    object.add(shapeMesh);
     
     physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, localVector.set(1, 0.1, 1), false);
   };
