@@ -10,6 +10,7 @@ import {world} from './world.js';
 import {rigManager} from './rig.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, camera, dolly} from './app-object.js';
+import builder from './builder.js';
 import {
   THING_SHADER,
   makeDrawMaterial,
@@ -21,6 +22,8 @@ import {
 } from './constants.js';
 // import { setState } from './state.js';
 import FontFaceObserver from './fontfaceobserver.js';
+
+scene.add(builder.mesh);
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -983,6 +986,8 @@ const _grab = object => {
   }
 };
 const _updateWeapons = timeDiff => {
+  builder.update();
+  
   /* for (let i = 0; i < 2; i++) {
     anchorSpecs[i] = null;
   }
