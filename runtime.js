@@ -939,15 +939,13 @@ const _loadIframe = async (file, opts) => {
 };
 
 const _loadGeo = async (file, opts) => {
-  const object = new THREE.Object3D();
+  const object = geometryTool.makeShapeMesh();
   object.run = () => {
     console.log('run geo');
-    // scene2.add(object);
   };
   object.destroy = () => {
-    // scene2.remove(object);
+    console.log('destroy geo');
   };
-  
   return object;
 };
 

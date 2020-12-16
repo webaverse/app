@@ -900,6 +900,11 @@ const _delete = () => {
     }
   }
 };
+const _click = () => {
+  if (editedObject && editedObject.place) {
+    editedObject.place();
+  }
+};
 
 const _equip = () => {
   if (highlightedObject) {
@@ -2976,6 +2981,9 @@ const weaponsManager = {
   },
   menuDelete() {
     _delete();
+  },
+  menuClick() {
+    _click();
   },
   menuEquip() {
     _equip();
