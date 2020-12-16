@@ -2670,6 +2670,7 @@ footer {
   flex-direction: column;
 }
 .notifications .notification {
+  position: relative;
   display: flex;
   margin: 10px;
   background-color: #FFF;
@@ -2705,9 +2706,17 @@ footer {
 {
   margin-bottom: 5px;
 }
-.notifications .notification .button {
-  display: inline-flex;
+.notifications .notification .close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+/* .notifications .notification .button {
+  display: inline-flex;
+} */
 
 progress {
   width: 100%;
