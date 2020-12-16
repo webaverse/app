@@ -667,6 +667,18 @@ const shapeMaterial = (() => {
   return material;
 })();
 
+const _snap = o => {
+  const p = 0.1;
+  o.position.x = Math.floor(o.position.x/p)*p;
+  o.position.y = Math.floor(o.position.y/p)*p;
+  o.position.z = Math.floor(o.position.z/p)*p;
+
+  const r = Math.PI/10;
+  o.rotation.x = Math.round(o.rotation.x/r)*r;
+  o.rotation.y = Math.round(o.rotation.y/r)*r;
+  o.rotation.z = Math.round(o.rotation.z/r)*r;
+};
+
 const makeShapeMesh = () => {
   const object = new THREE.Object3D();
   const physicsIds = [];
@@ -706,8 +718,9 @@ const update = () => {
   const [{position, quaternion}] = transforms;
 
   mesh.position.copy(position)
-    .add(localVector.set(0, -0.5, -0.5).applyQuaternion(quaternion));
-  mesh.quaternion.copy(quaternion);
+    .add(localVector.set(0, -0.5, -1).applyQuaternion(quaternion));
+  mesh.rotation.setFromQuaternion(quaternion, 'YXZ');
+  _snap(mesh);
 };
 
 const geometryTool = {
