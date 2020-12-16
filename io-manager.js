@@ -519,10 +519,10 @@ window.addEventListener('keyup', e => {
 
         if (ioManager.currentWeaponGrabs[0]) {
           ioManager.currentWeaponGrabs[0] = false;
-        } else if (weaponsManager.getMenu()) {
+        /* } else if (weaponsManager.canGrab()) {
+          ioManager.currentWeaponGrabs[0] = true; */
+        } else {
           weaponsManager.menuUse();
-        } else if (weaponsManager.canUse()) {
-          ioManager.currentWeaponGrabs[0] = true;
         }
         break;
       }
