@@ -1,7 +1,7 @@
 import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
-import htm from '/web_modules/htm.js';
-import csz from '../web_modules/csz.js'
-const styles = csz`/components/AssetCard.css`
+import htm from '../web_modules/htm.js';
+import css from '../web_modules/csz.js'
+const styles = css`${window.locationSubdirectory}/components/AssetCard.css`
 
 const html = htm.bind(React.createElement)
 
@@ -38,9 +38,9 @@ const Card = ({
               <span className="cardAssetName cardName ${cardSize}">${assetName}</span>
             </div>
             <div className="upperCardInfoRight upperCardInfoRight ${cardSize}">
-              <img className="networkType networkType ${cardSize}" src='/components/AssetCardAdditional/icon-${networkType}.svg' />
+              <img className="networkType networkType ${cardSize}" src='${window.locationSubdirectory}/components/AssetCardAdditional/icon-${networkType}.svg' />
               <div className="itemType ext ${cardSize} ext_${ext}">
-                <img className="itemTypeIcon itemTypeIcon ${cardSize}" src='/components/AssetCardAdditional/icon-${ext}.svg' />
+                <img className="itemTypeIcon itemTypeIcon ${cardSize}" src='${window.locationSubdirectory}/components/AssetCardAdditional/icon-${ext}.svg' />
                 <span className="itemTypeExt itemTypeExt ${cardSize}">.${ext}</span> 
               </div>
             </div>

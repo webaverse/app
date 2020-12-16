@@ -7,9 +7,11 @@ import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
+import * as universe from './universe.js';
 import {rigManager} from './rig.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, camera, dolly} from './app-object.js';
+import geometryTool from './geometry-tool.js';
 import {
   THING_SHADER,
   makeDrawMaterial,
@@ -396,7 +398,7 @@ class MeshComposer {
   grab(index) {
     const mesh = this.hoveredMeshes[index];
     if (mesh) {
-      const transforms = _getRigTransforms();
+      const transforms = rigManager.getRigTransforms();
 
       this.placeMeshes[index] = mesh;
       this.placeMeshStates[index] = {
@@ -813,6 +815,11 @@ highlightMesh.visible = false;
 scene.add(highlightMesh);
 let highlightedObject = null;
 
+const editMesh = _makeTargetMesh();
+editMesh.visible = false;
+scene.add(editMesh);
+let editedObject = null;
+
 const coord = new THREE.Vector3();
 const lastCoord = coord.clone();
 let highlightedWorld = null;
@@ -844,15 +851,17 @@ const _use = () => {
     world.addObject(start_url, null, deployMesh.position, deployMesh.quaternion);
 
     weaponsManager.setMenu(0);
-  } else if (highlightedObject) {
+  } else if (highlightedObject && !editedObject) {
     ioManager.currentWeaponGrabs[0] = true;
     _grab(highlightedObject);
     highlightedObject = null;
     
     weaponsManager.setMenu(0);
-  } if (weaponsManager.getMenu() === 1) {
-    const itemSpec = itemSpecs2[selectedItemIndex];
+  } else if (weaponsManager.getMenu() === 1) {
+    const itemSpec = itemSpecs1[selectedItemIndex];
     itemSpec.cb();
+  } else if (highlightedWorld) {
+    universe.enterWorld();
   }
 };
 let useAnimation = null;
@@ -871,6 +880,15 @@ const _delete = () => {
     world.removeObject(appManager.grabbedObjects[0].instanceId);
     appManager.grabbedObjects[0] = null;
     _updateMenu();
+  } else if (editedObject) {
+    world.removeObject(editedObject.instanceId);
+    editedObject = null;
+
+    if (weaponsManager.getMenu() === 4) {
+      _selectItemDelta(1);
+    } else {
+      _updateMenu();
+    }
   } else if (highlightedObject) {
     world.removeObject(highlightedObject.instanceId);
     highlightedObject = null;
@@ -880,6 +898,11 @@ const _delete = () => {
     } else {
       _updateMenu();
     }
+  }
+};
+const _click = () => {
+  if (editedObject && editedObject.place) {
+    editedObject.place();
   }
 };
 
@@ -966,7 +989,7 @@ const _grab = object => {
     }
   }
 };
-const _updateWeapons = timeDiff => {
+const _updateWeapons = timeDiff => {  
   /* for (let i = 0; i < 2; i++) {
     anchorSpecs[i] = null;
   }
@@ -1647,6 +1670,22 @@ const _updateWeapons = timeDiff => {
   };
   _handleHighlight();
 
+  const _handleEdit = () => {
+    editMesh.visible = false;
+    geometryTool.mesh.visible = false;
+
+    if (editedObject) {
+      editMesh.position.copy(editedObject.position);
+      editMesh.visible = true;
+
+      if (editedObject.place) {
+        geometryTool.update();
+        geometryTool.mesh.visible = true;
+      }
+    }
+  };
+  _handleEdit();
+
   /* const _handleMove = () => {
     moveMesh.visible = false;
 
@@ -1861,6 +1900,8 @@ const _updateWeapons = timeDiff => {
             progressBarInner.style.width = (f * 100) + '%';
           }
         } else {
+          editedObject = highlightedObject;
+          weaponsManager.setMenu(0);
           useAnimation = null;
         }
       } else {
@@ -2053,6 +2094,10 @@ const itemSpecs3 = [
     "start_url": "https://avaer.github.io/hookshot/index.js"
   },
   {
+    "name": "voxels",
+    "start_url": "https://avaer.github.io/voxels/index.js"
+  },
+  {
     "name": "cv",
     "filename": "cv.url",
     "content": "https://cv.webaverse.com/"
@@ -2112,8 +2157,29 @@ const itemSpecs1 = [
         <b>Geometry</b> lets you build walls, floors, and structures.
       </div>
     `,
-    cb() {
-      console.log('geometry');
+    async cb() {
+      const blob = new Blob([''], {
+        type: 'application/geometry',
+      });
+      const u = URL.createObjectURL(blob) + '/object.geo';
+
+      const transforms = rigManager.getRigTransforms();
+      const {position, quaternion} = transforms[0];
+      localVector.copy(position)
+        .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
+
+      const p = new Promise((accept, reject) => {
+        world.addEventListener('objectadd', async e => {
+          accept(e.data);
+        }, {once: true});
+      });
+
+      world.addObject(u, null, localVector, quaternion);
+
+      const object = await p;
+      editedObject = object;
+
+      weaponsManager.setMenu(0);
     },
   },
   {
@@ -2667,9 +2733,16 @@ const keyTab1El = document.getElementById('key-tab-1');
 const keyTab2El = document.getElementById('key-tab-2');
 const keyTab3El = document.getElementById('key-tab-3');
 const keyTab4El = document.getElementById('key-tab-4');
+const keyTab5El = document.getElementById('key-tab-5');
 [keyTabEl, keyTab1El, keyTab2El, keyTab3El, keyTab4El].forEach((el, i) => {
   el.addEventListener('click', e => {
-    if (!appManager.grabbedObjects[0]) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (editedObject) {
+      editedObject = null;
+      _updateMenu();
+    } else {
       weaponsManager.setMenu(weaponsManager.getMenu() ? 0 : 1);
     }
   });
@@ -2684,13 +2757,15 @@ const _updateMenu = () => {
   menu2El.classList.toggle('open', menuOpen === 2);
   menu3El.classList.toggle('open', menuOpen === 3);
   menu4El.classList.toggle('open', menuOpen === 4);
-  unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!highlightedObject || !!highlightedWorld);
-  objectMenuEl.classList.toggle('open', !!highlightedObject && !highlightedWorld && menuOpen !== 4);
-  worldMenuEl.classList.toggle('open', !!highlightedWorld);
+  unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!highlightedObject || !!editedObject || !!highlightedWorld);
+  objectMenuEl.classList.toggle('open', !!highlightedObject && !editedObject && !highlightedWorld && menuOpen !== 4);
+  editMenuEl.classList.toggle('open', !!editedObject);
+  worldMenuEl.classList.toggle('open', !!highlightedWorld && !editedObject && menuOpen === 0);
   locationIcon.classList.toggle('open', false);
   locationIcon.classList.toggle('highlight', false);
   profileIcon.classList.toggle('open', false);
   itemIcon.classList.toggle('open', false);
+  editIcon.classList.toggle('open', false);
 
   deployMesh.visible = false;
 
@@ -2769,16 +2844,20 @@ const _updateMenu = () => {
     }
 
     lastSelectedBuild = -1;
+  } else if (editedObject) {
+    editIcon.classList.toggle('open', true);
+    editLabel.innerText = 'Editing';
+
+    lastSelectedBuild = -1;
+    lastCameraFocus = -1;
   } else if (highlightedObject) {
     itemIcon.classList.toggle('open', true);
-
     itemLabel.innerText = 'lightsaber';
 
     lastSelectedBuild = -1;
     lastCameraFocus = -1;
   } else if (highlightedWorld) {
     locationIcon.classList.toggle('open', true);
-
     locationIcon.classList.toggle('highlight', !!highlightedWorld);
 
     worldMenuEl.classList.toggle('open', true);
@@ -2801,13 +2880,16 @@ const menu3El = document.getElementById('menu-3');
 const menu4El = document.getElementById('menu-4');
 const unmenuEl = document.getElementById('unmenu');
 const objectMenuEl = document.getElementById('object-menu');
+const editMenuEl = document.getElementById('edit-menu');
 const worldMenuEl = document.getElementById('world-menu');
 const locationLabel = document.getElementById('location-label');
 const profileLabel = document.getElementById('profile-label');
 const itemLabel = document.getElementById('item-label');
+const editLabel = document.getElementById('edit-label');
 const locationIcon = document.getElementById('location-icon');
 const profileIcon = document.getElementById('profile-icon');
 const itemIcon = document.getElementById('item-icon');
+const editIcon = document.getElementById('edit-icon');
 const weaponsManager = {
   // weapons,
   cubeMesh,
@@ -2902,6 +2984,9 @@ const weaponsManager = {
   menuDelete() {
     _delete();
   },
+  menuClick() {
+    _click();
+  },
   menuEquip() {
     _equip();
   },
@@ -2914,11 +2999,11 @@ const weaponsManager = {
   menuPaste(s) {
     menuMesh.paste(s);
   },
-  canUse() {
-    return !!highlightedObject;
+  canGrab() {
+    return !!highlightedObject && !editedObject;
   },
   canUseHold() {
-    return !!highlightedObject;
+    return !!highlightedObject && !editedObject;
   },
   setWorld(newCoord, newHighlightedWorld) {
     lastCoord.copy(coord);

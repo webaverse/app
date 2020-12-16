@@ -3,7 +3,7 @@ import Profile from "../components/Profile.js";
 import { Context } from '../constants/Context.js';
 import ActionTypes from '../constants/ActionTypes.js';
 
-import htm from '/web_modules/htm.js';
+import htm from '../web_modules/htm.js';
 const html = htm.bind(React.createElement)
 
 const MyProfile = () => {

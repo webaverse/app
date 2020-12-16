@@ -1,12 +1,12 @@
 import { React, useEffect, useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
 import { Context } from '../constants/Context.js';
-import htm from '/web_modules/htm.js';
+import htm from '../web_modules/htm.js';
 import css from '../web_modules/csz.js';
 import ActionTypes from '../constants/ActionTypes.js';
 import { mintNft } from '../functions/AssetFunctions.js';
 import Card  from './AssetCard.js'
 
-const styles = css`/components/MintPage.css`
+const styles = css`${window.locationSubdirectory}/components/MintPage.css`
 
 const html = htm.bind(React.createElement)
 

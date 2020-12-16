@@ -1,12 +1,12 @@
 import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
 
-import htm from '/web_modules/htm.js';
-import csz from '../web_modules/csz.js'
+import htm from '../web_modules/htm.js';
+import css from '../web_modules/csz.js'
 
-const styles = csz`/components/CreatorCard.css`
+const styles = css`${window.locationSubdirectory}/components/CreatorCard.css`
 
 const html = htm.bind(React.createElement)
-const defaultAvatarImage = "/images/defaultaccount.png";
+const defaultAvatarImage = window.locationSubdirectory + "/images/defaultaccount.png";
 
 const Creator = ({
   name,
@@ -25,7 +25,7 @@ const Creator = ({
   };
 
     return html`
-        <div className="${styles} creator" onClick=${() => window.location = '/creator/'+address}>
+        <div className="${styles} creator" onClick=${() => window.location = `${window.locationSubdirectory}/creator/`+address}>
           <div className="avatarPreview"><img src="${avatarPreview !== "" ? avatarPreview : defaultAvatarImage}" /></div>
           <div className="creatorInfo">
             <div>
