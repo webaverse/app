@@ -66,7 +66,7 @@ const NavBarUserLoginForm = () => {
         <a className="discordButton" href=${discordOauthUrl}>Login With Discord</a >
         <button className="submit formBtnLogin" type="submit" onClick="${handleLogin}">Login</button>
         <button className="submit formBtnLogout" type="submit" onClick="${handleLogout}">Logout</button>
-        <${Link} to='/settings'>User Settings</${Link} >
+        <${Link} to='${window.locationSubdirectory}/settings'>User Settings</${Link} >
     </div>
   `
 }
@@ -109,10 +109,10 @@ const NavBar = () => {
     <div className="navbarWrapper ${styles}">
         <nav className="navbar"> 
           <span className='nav-logo'><h1>Ψ Webaverse</h1></span>
-          <span className='nav-item'><${NavLink} to='/' className='nav-link'>Profile</${NavLink}></span>
-          <span className='nav-item'><${NavLink} to='/gallery' className='nav-link'>Gallery</${NavLink}></span>
-          <span className='nav-item'><${NavLink} to='/creators' className='nav-link'>Creators</${NavLink}></span>
-          <span className='nav-item'><${NavLink} to='/mint' className='nav-link'>Mint NFT</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/' className='nav-link'>Profile</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/gallery' className='nav-link'>Gallery</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/creators' className='nav-link'>Creators</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/mint' className='nav-link'>Mint NFT</${NavLink}></span>
         </nav>
         <${NavBarUser}  />
     </div>
