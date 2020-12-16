@@ -667,16 +667,16 @@ const shapeMaterial = (() => {
   return material;
 })();
 
+const positionSnap = 0.1;
+const rotationSnap = Math.PI/10;
 const _snap = o => {
-  const p = 0.1;
-  o.position.x = Math.floor(o.position.x/p)*p;
-  o.position.y = Math.floor(o.position.y/p)*p;
-  o.position.z = Math.floor(o.position.z/p)*p;
+  o.position.x = Math.floor(o.position.x/positionSnap)*positionSnap;
+  o.position.y = Math.floor(o.position.y/positionSnap)*positionSnap;
+  o.position.z = Math.floor(o.position.z/positionSnap)*positionSnap;
 
-  const r = Math.PI/10;
-  o.rotation.x = Math.round(o.rotation.x/r)*r;
-  o.rotation.y = Math.round(o.rotation.y/r)*r;
-  o.rotation.z = Math.round(o.rotation.z/r)*r;
+  o.rotation.x = Math.round(o.rotation.x/rotationSnap)*rotationSnap;
+  o.rotation.y = Math.round(o.rotation.y/rotationSnap)*rotationSnap;
+  o.rotation.z = Math.round(o.rotation.z/rotationSnap)*rotationSnap;
 };
 
 const makeShapeMesh = () => {
