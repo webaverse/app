@@ -2685,7 +2685,7 @@ const _updateMenu = () => {
   menu3El.classList.toggle('open', menuOpen === 3);
   menu4El.classList.toggle('open', menuOpen === 4);
   unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!highlightedObject || !!highlightedWorld);
-  objectMenuEl.classList.toggle('open', !!highlightedObject && !highlightedWorld);
+  objectMenuEl.classList.toggle('open', !!highlightedObject && !highlightedWorld && menuOpen !== 4);
   worldMenuEl.classList.toggle('open', !!highlightedWorld);
   locationIcon.classList.toggle('open', false);
   locationIcon.classList.toggle('highlight', false);
