@@ -2094,6 +2094,10 @@ const itemSpecs3 = [
     "start_url": "https://avaer.github.io/hookshot/index.js"
   },
   {
+    "name": "voxels",
+    "start_url": "https://avaer.github.io/voxels/index.js"
+  },
+  {
     "name": "cv",
     "filename": "cv.url",
     "content": "https://cv.webaverse.com/"
