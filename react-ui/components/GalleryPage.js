@@ -1,10 +1,10 @@
 import { React, useEffect, useState, useContext } from 'https://unpkg.com/es-react@16.13.1/dev';
 import CardSize from '../constants/CardSize.js'
 import Booth from "../components/Booth.js";
-import htm from '/web_modules/htm.js';
+import htm from '../web_modules/htm.js';
 import ActionTypes from '../constants/ActionTypes.js';
 import css from '../web_modules/csz.js';
-const styles = css`/components/CreatorsPage.css`
+const styles = css`${window.locationSubdirectory}/components/GalleryPage.css`
 import { Context } from '../constants/Context.js';
 
 const html = htm.bind(React.createElement)

@@ -9,6 +9,7 @@ import {VOXLoader} from './VOXLoader.js';
 import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 // import {bake} from './bakeUtils.js';
 // import geometryManager from './geometry-manager.js';
+import geometryTool from './geometry-tool.js';
 import {rigManager} from './rig.js';
 import {makeIconMesh, makeTextMesh} from './vr-ui.js';
 import {renderer, scene2, appManager} from './app-object.js';
@@ -937,6 +938,11 @@ const _loadIframe = async (file, opts) => {
   return object2;
 };
 
+const _loadGeo = async (file, opts) => {
+  const object = geometryTool.makeShapeMesh();
+  return object;
+};
+
 runtime.loadFile = async (file, opts) => {
   switch (getExt(file.name)) {
     case 'gltf':
@@ -971,6 +977,9 @@ runtime.loadFile = async (file, opts) => {
     }
     case 'iframe': {
       return await _loadIframe(file, opts);
+    }
+    case 'geo': {
+      return await _loadGeo(file, opts);
     }
     case 'mp3': {
       throw new Error('audio not implemented');

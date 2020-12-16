@@ -55,6 +55,9 @@ let selectedTool = cameraModes[0];
 const cameraButton = document.getElementById('key-x');
 ['click', 'keydown'].forEach(event => {
   cameraButton.addEventListener(event, async e => {
+    e.preventDefault();
+    e.stopPropagation();
+
     const index = cameraModes.indexOf(selectedTool);
     let nextIndex;
     if (!e.shiftKey) {

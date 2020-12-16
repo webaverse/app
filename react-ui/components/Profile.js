@@ -1,16 +1,16 @@
 import { React, useEffect, useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
-import htm from '/web_modules/htm.js';
+import htm from '../web_modules/htm.js';
 import AssetCardGrid from './AssetCardGrid.js'
-import csz from '../web_modules/csz.js'
 import { Context } from '../constants/Context.js';
 import ActionTypes from '../constants/ActionTypes.js';
 import { EditableTextField } from './EditableTextField.js';
-import { Link } from '/web_modules/@reach/router.js';
+import { Link } from '../web_modules/@reach/router.js';
 import { setName } from '../functions/UserFunctions.js';
+import css from '../web_modules/csz.js'
 
-const styles = csz`/components/Profile.css`
-const defaultAvatarImage = "/images/defaultaccount.svg";
-const defaultHomespacePreview = "/images/defaulthomespace.svg";
+const styles = css`${window.locationSubdirectory}/components/Profile.css`
+const defaultAvatarImage = window.locationSubdirectory + "/images/defaultaccount.svg";
+const defaultHomespacePreview = window.locationSubdirectory+"/images/defaulthomespace.svg";
 
 const html = htm.bind(React.createElement)
 
@@ -41,7 +41,7 @@ const Profile = (props) => {
 
       const homespacePreviewCandidate = creatorAddress.toLowerCase() === state.address.toLowerCase() ? state.homespacePreview : state.creatorProfiles[creatorAddress].homespacePreview;
       setHomespacePreview(homespacePreviewCandidate !== "" &&
-      homespacePreviewCandidate !== null ?
+      homespacePreviewCandidate !== null && homespacePreviewCandidate !== undefined ?
       homespacePreviewCandidate : defaultHomespacePreview);
 
       // Get store for creator
@@ -79,7 +79,7 @@ const Profile = (props) => {
   return html`
     <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
     ${creatorAddress && state.creatorProfiles[creatorAddress] && html`
-    <div className=${styles}>
+    <div className="profileHeaderWrapper ${styles}">
         <div className="profileHeader">
           <div className="homespaceBannerImage"><img src="${homespacePreview ?? defaultHomespacePreview}" /></div>
           <div className="avatar"><img className="avatarImage" src="${avatarPreview}" /></div>
@@ -102,9 +102,9 @@ const Profile = (props) => {
             <div className="profileBodyNav">
               <div className="profileBodyNavContainer">
                 ${storeAssets.length > 0 && html`
-                  <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onsale' ? 'active' : ''}' to='/creator/${creatorAddress}/booth'>For Sale</${Link}>
+                  <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onsale' ? 'active' : ''}' to='${window.locationSubdirectory}/creator/${creatorAddress}/booth'>For Sale</${Link}>
                 `}
-                  <${Link} className='profileNavLink ${view === undefined || view === 'inventory' ? 'active' : ''}' to='/creator/${creatorAddress}/inventory'>Inventory</${Link}>
+                  <${Link} className='profileNavLink ${view === undefined || view === 'inventory' ? 'active' : ''}' to='${window.locationSubdirectory}/creator/${creatorAddress}/inventory'>Inventory</${Link}>
               </div>
             </div>
             <div className="profileBodyAssets">

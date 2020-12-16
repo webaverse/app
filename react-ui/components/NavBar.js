@@ -2,12 +2,12 @@ import { useContext, useState } from 'https://unpkg.com/es-react/dev';
 import ActionTypes from '../constants/ActionTypes.js';
 import { Context } from '../constants/Context.js';
 import css from '../web_modules/csz.js';
-import { Link } from '/web_modules/@reach/router.js';
-import { discordOauthUrl } from '../webaverse/constants.js';
+import { Link } from '../web_modules/@reach/router.js';
+import { discordOauthUrl } from '../webaverse/constants.js'
 
-const styles = css`/components/NavBar.css`
+const styles = css`${window.locationSubdirectory}/components/NavBar.css`
 
-const defaultAvatarImage = "/images/defaultaccount.png";
+const defaultAvatarImage = window.locationSubdirectory + "/images/defaultaccount.png";
 
 const NavBarUserLoginForm = () => {
 
@@ -116,7 +116,7 @@ const NavBarUserLoginForm = () => {
       `}
       </div>
       <button className="submit loginFormDiscordButton ${!state?.loginToken?.unregistered ? 'hidden' : ''}" href=${discordOauthUrl}>Log In with Discord</button >
-      <${Link} to='/settings' className="formBtnSettings ${state?.loginToken?.unregistered ? 'hidden' : ''}">Account Settings</${Link} >
+      <${Link} to='${window.locationSubdirectory}/settings' className="formBtnSettings ${state?.loginToken?.unregistered ? 'hidden' : ''}">Account Settings</${Link} >
       <button className="submit formBtnLogout ${state?.loginToken?.unregistered ? 'hidden' : ''}" type="submit" onClick="${handleLogout}">Logout</button>
     </div>
   `
@@ -126,8 +126,8 @@ const NavBarUser = () => {
   const { state, dispatch } = useContext(Context);
   const [loginComponentOpen, setLoginComponent] = useState(false);
   const name = state.name !== "" && state.name !== null ? state.name : "Guest";
-  const avatarPreview = state?.avatarPreview || defaultAvatarImage;
-  
+  //const avatarPreview = state?.avatarPreview || defaultAvatarImage;
+  const avatarPreview = state.avatarPreview !== "" && state.avatarPreview !== null ? state.avatarPreview : defaultAvatarImage;
   const toggleLoginComponent = () => {
     console.log("login component toggle");
     setLoginComponent(!loginComponentOpen);
@@ -158,13 +158,13 @@ const NavLink = props => html`
 
 const NavBar = () => {
   return html`
-    <div className=${styles}>
+    <div className="navbarWrapper ${styles}">
         <nav className="navbar"> 
           <div className='nav-logo'><div className="nav-logo-logo"></div></div>
-          <span className='nav-item'><${NavLink} to='/' className='nav-link'>Profile</${NavLink}></span>
-          <span className='nav-item'><${NavLink} to='/gallery' className='nav-link'>Gallery</${NavLink}></span>
-          <span className='nav-item'><${NavLink} to='/creators' className='nav-link'>Creators</${NavLink}></span>
-          <span className='nav-item'><${NavLink} to='/mint' className='nav-link'>Mint NFT</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/' className='nav-link'>Profile</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/gallery' className='nav-link'>Gallery</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/creators' className='nav-link'>Creators</${NavLink}></span>
+          <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/mint' className='nav-link'>Mint NFT</${NavLink}></span>
         </nav>
         <${NavBarUser}  />
     </div>

@@ -4,9 +4,9 @@ import AssetCard from './AssetCard.js'
 import AssetDetails from './AssetDetails.js'
 
 const html = htm.bind(React.createElement)
-import csz from '../web_modules/csz.js'
+import css from '../web_modules/csz.js'
 
-const styles = csz`/components/AssetCardGrid.css`
+const styles = css`${window.locationSubdirectory}/components/AssetCardGrid.css`
 
 const AssetCardGrid = ({
   data,
