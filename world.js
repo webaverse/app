@@ -896,6 +896,10 @@ world.addEventListener('trackedobjectadd', async e => {
     mesh.minimapObject = minimapObject;
 
     objects.push(mesh);
+
+    world.dispatchEvent(new MessageEvent('objectadd', {
+      data: mesh,
+    }));
   }
 });
 world.addEventListener('trackedobjectremove', async e => {
@@ -911,6 +915,10 @@ world.addEventListener('trackedobjectremove', async e => {
 
     // minimap
     minimap.removeObject(object.minimapObject);
+
+    world.dispatchEvent(new MessageEvent('objectremove', {
+      data: object,
+    }));
   }
 });
 world.isObject = object => objects.includes(object);
