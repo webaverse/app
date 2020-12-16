@@ -3,6 +3,8 @@ import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 
+const texBase = 'vol_2_2';
+
 const localVector = new THREE.Vector3();
 
 const mesh = (() => {
@@ -293,8 +295,6 @@ const mesh = (() => {
   return mesh;
 })();
 const shapeMaterial = (() => {
-  const texBase = 'vol_2_2';
-
   const map = new THREE.Texture();
   map.wrapS = THREE.RepeatWrapping;
   map.wrapT = THREE.RepeatWrapping;
