@@ -940,12 +940,6 @@ const _loadIframe = async (file, opts) => {
 
 const _loadGeo = async (file, opts) => {
   const object = geometryTool.makeShapeMesh();
-  object.run = () => {
-    console.log('run geo');
-  };
-  object.destroy = () => {
-    console.log('destroy geo');
-  };
   return object;
 };
 

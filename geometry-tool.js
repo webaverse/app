@@ -669,6 +669,16 @@ const shapeMaterial = (() => {
 
 const makeShapeMesh = () => {
   const object = new THREE.Object3D();
+  const physicsIds = [];
+  object.run = () => {
+    // nothing
+  };
+  object.destroy = () => {
+    for (const physicsId of physicsIds) {
+      physicsManager.removeGeometry(physicsId);
+    }
+    physicsIds.length = 0;
+  };
   object.place = () => {
     const geometry = new THREE.BoxBufferGeometry(1, 0.1, 1);
     for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
@@ -685,7 +695,8 @@ const makeShapeMesh = () => {
       .decompose(shapeMesh.position, shapeMesh.quaternion, shapeMesh.scale);
     object.add(shapeMesh);
     
-    physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, localVector.set(1, 0.1, 1), false);
+    const physicsId = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, localVector.set(1, 0.1, 1), false);
+    physicsIds.push(physicsId);
   };
   return object;
 };
