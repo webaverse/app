@@ -304,6 +304,7 @@ const shapeMaterial = (() => {
   const map = new THREE.Texture();
   map.wrapS = THREE.RepeatWrapping;
   map.wrapT = THREE.RepeatWrapping;
+  map.anisotropy = 16;
   {
     const img = new Image();
     img.onload = () => {
@@ -319,6 +320,7 @@ const shapeMaterial = (() => {
   const normalMap = new THREE.Texture();
   normalMap.wrapS = THREE.RepeatWrapping;
   normalMap.wrapT = THREE.RepeatWrapping;
+  normalMap.anisotropy = 16;
   {
     const img = new Image();
     img.onload = () => {
@@ -334,6 +336,7 @@ const shapeMaterial = (() => {
   const heightMap = new THREE.Texture();
   heightMap.wrapS = THREE.RepeatWrapping;
   heightMap.wrapT = THREE.RepeatWrapping;
+  heightMap.anisotropy = 16;
   {
     const img = new Image();
     img.onload = () => {
