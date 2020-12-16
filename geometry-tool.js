@@ -686,9 +686,8 @@ window.addEventListener('click', e => {
   }
 });
 
-const builder = {
+const geometryTool = {
   mesh,
   update,
 };
-
-export default builder;
+export default geometryTool;
