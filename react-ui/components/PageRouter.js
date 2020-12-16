@@ -15,18 +15,18 @@ export const PageRouter = () => {
   return html`
   <${React.Fragment}>
   <${NavBar} />
-  <${Router} basepath='${window.locationSubdirectory}' >
-    <${MyProfile} path="/"/>
-      <${MyProfile} path="/profile/:view"/>
-      <${Settings} path="/settings" />
-      <${Gallery} path="/gallery" />
-      <${MintPage} path="/mint" />
-      <${CreatorsPage} path="/creators" />
-      <${CreatorProfilePage} path="/creator" />
-      <${CreatorProfilePage} path="/creator/:address" />
-      <${CreatorProfilePage} path="/creator/:address/:view" />
-      <${LoginGateway} path="/gateway" />
-      <${NotFoundPage} path="*" />
+  <${Router} >
+    <${MyProfile} path="${window.locationSubdirectory}/"/>
+      <${MyProfile} path="${window.locationSubdirectory}/profile/:view"/>
+      <${Settings} path="${window.locationSubdirectory}/settings" />
+      <${Gallery} path="${window.locationSubdirectory}/gallery" />
+      <${MintPage} path="${window.locationSubdirectory}/mint" />
+      <${CreatorsPage} path="${window.locationSubdirectory}/creators" />
+      <${CreatorProfilePage} path="${window.locationSubdirectory}/creator" />
+      <${CreatorProfilePage} path="${window.locationSubdirectory}/creator/:address" />
+      <${CreatorProfilePage} path="${window.locationSubdirectory}/creator/:address/:view" />
+      <${LoginGateway} path="${window.locationSubdirectory}/gateway" />
+      <${NotFoundPage} path="${window.locationSubdirectory}/*" />
     </${Router}>
   </${React.Fragment}>
 
