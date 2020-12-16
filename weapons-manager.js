@@ -856,7 +856,7 @@ const _use = () => {
     
     weaponsManager.setMenu(0);
   } if (weaponsManager.getMenu() === 1) {
-    const itemSpec = itemSpecs2[selectedItemIndex];
+    const itemSpec = itemSpecs1[selectedItemIndex];
     itemSpec.cb();
   }
 };
