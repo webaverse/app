@@ -11,7 +11,7 @@ export async function tryTutorial() {
   const ftuQs = parseQuery(location.search)['ftu'];
   const ftuDone = (loginManager.getFtu() || ftuQs === '0') && ftuQs !== '1';
   if (!ftuDone) {
-    notifications.addNotification(`\
+    const notification = notifications.addNotification(`\
       <i class="icon fa fa-alien-monster"></i>
       <div class=wrap>
         <div class=label>Getting started</div>
@@ -19,11 +19,15 @@ export async function tryTutorial() {
           You don't have an avatar (how embarassing!).<br>
           Wanna fix that up?<br>
         </div>
-        <progress value=0.5></progress>
-        <div class=button>Add avatar</div>
+        <div class=close-button>✕</div>
+        <!-- <progress value=0.5></progress>
+        <div class=button>Add avatar</div> -->
       </div>
     `, {
       timeout: Infinity,
+    });
+    notification.querySelector('.close-button').addEventListener('click', e => {
+      notifications.removeNotification(notification);
     });
     /* notifications.addNotification(`\
       <i class="icon fa fa-user-ninja"></i>
