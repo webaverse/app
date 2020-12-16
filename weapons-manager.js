@@ -1668,24 +1668,20 @@ const _updateWeapons = timeDiff => {
   _handleHighlight();
 
   const _handleEdit = () => {
+    editMesh.visible = false;
+    geometryTool.mesh.visible = false;
+
     if (editedObject) {
       editMesh.position.copy(editedObject.position);
       editMesh.visible = true;
-    } else {
-      editMesh.visible = false;
+
+      if (editedObject.place) {
+        geometryTool.update();
+        geometryTool.mesh.visible = true;
+      }
     }
   };
   _handleEdit();
-
-  const _updateEdit = () => {
-    if (editedObject) {
-      geometryTool.update();
-      geometryTool.mesh.visible = true;
-    } else {
-      geometryTool.mesh.visible = false;
-    }
-  };
-  _updateEdit();
 
   /* const _handleMove = () => {
     moveMesh.visible = false;
