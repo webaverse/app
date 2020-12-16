@@ -8,23 +8,33 @@ const texBase = 'vol_2_2';
 const localVector = new THREE.Vector3();
 
 const mesh = (() => {
-  const geometry = new THREE.BoxBufferGeometry(1, 0.1, 1, 10, 1, 10).toNonIndexed();
-  {
-    const barycentrics = new Float32Array(geometry.attributes.position.array.length);
-    let barycentricIndex = 0;
-    for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
-      barycentrics[barycentricIndex++] = 1;
-      barycentrics[barycentricIndex++] = 0;
-      barycentrics[barycentricIndex++] = 0;
-      barycentrics[barycentricIndex++] = 0;
-      barycentrics[barycentricIndex++] = 1;
-      barycentrics[barycentricIndex++] = 0;
-      barycentrics[barycentricIndex++] = 0;
-      barycentrics[barycentricIndex++] = 0;
-      barycentrics[barycentricIndex++] = 1;
+  let geometry = new THREE.BoxBufferGeometry(1, 0.1, 1, 10, 1, 10);
+  geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.1/2, 0));
+
+  for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
+    if (geometry.attributes.normal.array[i+1] === 0) {
+      geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
     }
-    geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3));
   }
+  geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1/2, 0));
+
+  geometry = geometry.toNonIndexed();
+
+  /* const barycentrics = new Float32Array(geometry.attributes.position.array.length);
+  let barycentricIndex = 0;
+  for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
+    barycentrics[barycentricIndex++] = 1;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 1;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 0;
+    barycentrics[barycentricIndex++] = 1;
+  }
+  geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3)); */
+
   const material = new THREE.ShaderMaterial({
     /* uniforms: {
       uTime: {
@@ -155,14 +165,10 @@ const mesh = (() => {
       varying vec2 vWorldUv;
 
       float edgeFactor() {
-        vec3 d = fwidth(vBarycentric);
-        vec3 a3 = vBarycentric;
-        float p = 0.5;
-        a3.x = pow(a3.x, p);
-        a3.y = pow(a3.y, p);
-        a3.z = pow(a3.z, p);
-        // a3 *= 0.3;
-        return min(min(a3.x, a3.y), a3.z);
+        return min(
+          pow(abs(vUv.x - round(vUv.x/0.1)*0.1), 0.5),
+          pow(abs(vUv.y - round(vUv.y/0.1)*0.1), 0.5)
+        ) * 3.;
       }
 
       vec2 tileSize = vec2(16./2048.);
