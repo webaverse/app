@@ -1877,7 +1877,7 @@ const _updateWeapons = timeDiff => {
           }
         } else {
           editedObject = highlightedObject;
-          _updateMenu();
+          weaponsManager.setMenu(0);
           useAnimation = null;
         }
       } else {
@@ -2713,6 +2713,7 @@ const _updateMenu = () => {
   locationIcon.classList.toggle('highlight', false);
   profileIcon.classList.toggle('open', false);
   itemIcon.classList.toggle('open', false);
+  editIcon.classList.toggle('open', false);
 
   deployMesh.visible = false;
 
@@ -2791,16 +2792,20 @@ const _updateMenu = () => {
     }
 
     lastSelectedBuild = -1;
+  } else if (editedObject) {
+    editIcon.classList.toggle('open', true);
+    editLabel.innerText = 'Editing';
+
+    lastSelectedBuild = -1;
+    lastCameraFocus = -1;
   } else if (highlightedObject) {
     itemIcon.classList.toggle('open', true);
-
     itemLabel.innerText = 'lightsaber';
 
     lastSelectedBuild = -1;
     lastCameraFocus = -1;
   } else if (highlightedWorld) {
     locationIcon.classList.toggle('open', true);
-
     locationIcon.classList.toggle('highlight', !!highlightedWorld);
 
     worldMenuEl.classList.toggle('open', true);
@@ -2828,9 +2833,11 @@ const worldMenuEl = document.getElementById('world-menu');
 const locationLabel = document.getElementById('location-label');
 const profileLabel = document.getElementById('profile-label');
 const itemLabel = document.getElementById('item-label');
+const editLabel = document.getElementById('edit-label');
 const locationIcon = document.getElementById('location-icon');
 const profileIcon = document.getElementById('profile-icon');
 const itemIcon = document.getElementById('item-icon');
+const editIcon = document.getElementById('edit-icon');
 const weaponsManager = {
   // weapons,
   cubeMesh,
