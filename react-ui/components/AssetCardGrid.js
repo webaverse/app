@@ -6,7 +6,7 @@ import AssetDetails from './AssetDetails.js'
 const html = htm.bind(React.createElement)
 import css from '../web_modules/csz.js'
 
-const styles = css`/${window.locationSubdirectory}components/AssetCardGrid.css`
+const styles = css`${window.locationSubdirectory}/components/AssetCardGrid.css`
 
 const AssetCardGrid = ({
   data,

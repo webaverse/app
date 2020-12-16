@@ -1,5 +1,5 @@
-.creator {
-    background-color: '#ffffff';
+& {
+    background-color: #white;
     width: 18em;
     height: 22em;
     display: inline-block;
@@ -7,7 +7,7 @@
     cursor: pointer;
 }
 
-.creator img {
+& img {
     width: 100%;
     height: 100%;
     object-fit: cover;

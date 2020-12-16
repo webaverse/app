@@ -3,7 +3,7 @@ import htm from '../web_modules/htm.js';
 import ActionTypes from '../constants/ActionTypes.js';
 import css from '../web_modules/csz.js';
 import CreatorCard from './CreatorCard.js';
-const styles = css`/${window.locationSubdirectory}components/CreatorsPage.css`
+const styles = css`${window.locationSubdirectory}/components/CreatorsPage.css`
 import { Context } from '../constants/Context.js';
 
 const html = htm.bind(React.createElement)

@@ -6,7 +6,7 @@ import ActionTypes from '../constants/ActionTypes.js';
 import { mintNft } from '../functions/AssetFunctions.js';
 import Card  from './AssetCard.js'
 
-const styles = css`/${window.locationSubdirectory}components/MintPage.css`
+const styles = css`${window.locationSubdirectory}/components/MintPage.css`
 
 const html = htm.bind(React.createElement)
 

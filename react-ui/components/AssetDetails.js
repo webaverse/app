@@ -9,7 +9,7 @@ const html = htm.bind(React.createElement)
 import css from '../web_modules/csz.js';
 import ActionTypes from '../constants/ActionTypes.js';
 
-const styles = css`/${window.locationSubdirectory}components/AssetDetails.css`;
+const styles = css`${window.locationSubdirectory}/components/AssetDetails.css`;
 
 export const AssetDetails = ({
     id,

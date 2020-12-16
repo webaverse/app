@@ -7,7 +7,7 @@ import htm from '../web_modules/htm.js';
 
 export const html = htm.bind(React.createElement)
 
-const styles = css`/${window.locationSubdirectory}components/Profile.css`
+const styles = css`${window.locationSubdirectory}/components/Profile.css`
 
 const SettingsPage = () => {
   const { state, dispatch } = useContext(Context);
