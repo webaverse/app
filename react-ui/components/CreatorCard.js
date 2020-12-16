@@ -25,7 +25,7 @@ const Creator = ({
   };
 
     return html`
-        <div className="${styles} creator" onClick=${() => window.location = '/creator/'+address}>
+        <div className="${styles} creator" onClick=${() => window.location = `${window.locationSubdirectory}/creator/`+address}>
           <div className="avatarPreview"><img src="${avatarPreview !== "" ? avatarPreview : defaultAvatarImage}" /></div>
           <div className="creatorInfo">
             <div>
