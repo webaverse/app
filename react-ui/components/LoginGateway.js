@@ -2,7 +2,7 @@ import { useEffect } from 'https://unpkg.com/es-react@16.13.1/dev';
 import css from '../web_modules/csz.js';
 import storage from '../webaverse/storage.js';
 import { parseQuery } from '../webaverse/util.js';
-const styles = css`/${window.locationSubdirectory}components/CreatorsPage.css`
+const styles = css`${window.locationSubdirectory}/components/CreatorsPage.css`
 
 const LoginGateway = () => {
   const handleLogin = async () => {

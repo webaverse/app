@@ -8,8 +8,8 @@ import { EditableTextField } from './EditableTextField.js';
 import { Link } from '../web_modules/@reach/router.js';
 import { setName } from '../functions/UserFunctions.js';
 
-const styles = css`/${window.locationSubdirectory}components/Profile.css`
-const defaultAvatarImage = "/images/defaultaccount.png";
+const styles = css`${window.locationSubdirectory}/components/Profile.css`
+const defaultAvatarImage = window.locationSubdirectory + "/images/defaultaccount.png";
 const defaultHomespacePreview = "/images/defaulthomespace.png";
 
 const html = htm.bind(React.createElement)

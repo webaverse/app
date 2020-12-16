@@ -3,7 +3,7 @@ import htm from '../web_modules/htm.js';
 import AssetCardGrid from './AssetCardGrid.js'
 import css from '../web_modules/csz.js'
 
-const styles = css`/${window.locationSubdirectory}components/Booth.css`
+const styles = css`${window.locationSubdirectory}/components/Booth.css`
 
 
 const html = htm.bind(React.createElement)

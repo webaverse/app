@@ -5,9 +5,9 @@ import css from '../web_modules/csz.js';
 import { Link } from '../web_modules/@reach/router.js';
 import { discordOauthUrl } from '../webaverse/constants.js'
 
-const styles = css`/${window.locationSubdirectory}components/NavBar.css`
+const styles = css`${window.locationSubdirectory}/components/NavBar.css`
 
-const defaultAvatarImage = "/images/defaultaccount.png";
+const defaultAvatarImage = window.locationSubdirectory + "/images/defaultaccount.png";
 
 const NavBarUserLoginForm = () => {
 
@@ -75,7 +75,7 @@ const NavBarUser = () => {
   const { state, dispatch } = useContext(Context);
   const [loginComponentOpen, setLoginComponent] = useState(false);
   const name = state.name !== "" && state.name !== null ? state.name : "Guest";
-  const avatarPreview = state.avatarPreview ?? defaultAvatarImage;
+  const avatarPreview = state.avatarPreview !== "" && state.avatarPreview !== null ? state.avatarPreview : defaultAvatarImage;
   const toggleLoginComponent = () => {
     console.log("login component toggle");
     setLoginComponent(!loginComponentOpen);

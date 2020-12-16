@@ -3,10 +3,10 @@ import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '../web_modules/htm.js';
 import css from '../web_modules/csz.js'
 
-const styles = css`/${window.locationSubdirectory}components/CreatorCard.css`
+const styles = css`${window.locationSubdirectory}/components/CreatorCard.css`
 
 const html = htm.bind(React.createElement)
-const defaultAvatarImage = "/images/defaultaccount.png";
+const defaultAvatarImage = window.locationSubdirectory + "/images/defaultaccount.png";
 
 const Creator = ({
   name,

@@ -15,7 +15,7 @@ export const PageRouter = () => {
   return html`
   <${React.Fragment}>
   <${NavBar} />
-  <${Router} basepath=${window.locationSubdirectory}>
+  <${Router} basepath='${window.locationSubdirectory}' >
     <${MyProfile} path="/"/>
       <${MyProfile} path="/profile/:view"/>
       <${Settings} path="/settings" />

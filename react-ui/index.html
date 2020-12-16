@@ -7,11 +7,32 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="/index.css">
     <script type="text/javascript">
-    window.locationSubdirectory ='/';
+    if (window.location.href.indexOf("localhost") > -1) {
+      window.locationSubdirectory ='';
+    } else window.locationSubdirectory ='/react-ui';
 </script>
-    <script defer src="index.js" type='module'></script>
+
+<script type="module">
+
+function loadJS(file) {
+    // DOM: Create the script element
+    var jsElm = document.createElement("script");
+    // set the type attribute
+    jsElm.type = "module";
+    // make the script element load file
+    jsElm.src = file;
+    // finally insert the element to the body element in order to load the script
+    document.body.appendChild(jsElm);
+}
+
+if (window.locationSubdirectory === '' && window.location.href.indexOf("localhost") > -1) {
+  loadJS('/index.js')
+} else loadJS(window.locationSubdirectory +'/index.js')
+</script>
+
+    <script defer src="/index.js" type='module'></script>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.

@@ -1,7 +1,7 @@
 import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '../web_modules/htm.js';
 import css from '../web_modules/csz.js'
-const styles = css`/${window.locationSubdirectory}components/AssetCard.css`
+const styles = css`${window.locationSubdirectory}/components/AssetCard.css`
 
 const html = htm.bind(React.createElement)
 

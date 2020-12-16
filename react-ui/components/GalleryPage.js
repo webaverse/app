@@ -4,7 +4,7 @@ import Booth from "../components/Booth.js";
 import htm from '../web_modules/htm.js';
 import ActionTypes from '../constants/ActionTypes.js';
 import css from '../web_modules/csz.js';
-const styles = css`/${window.locationSubdirectory}/components/GalleryPage.css`
+const styles = css`${window.locationSubdirectory}/components/GalleryPage.css`
 import { Context } from '../constants/Context.js';
 
 const html = htm.bind(React.createElement)
