@@ -364,7 +364,7 @@ const _invertGeometry = geometry => {
   }
   return geometry;
 };
-const canEnterWorld = () => !!highlightedWorld && !warpMesh.visible; /*&& !animation*/
+// const canEnterWorld = () => !!highlightedWorld && !warpMesh.visible; /*&& !animation*/
 const enterWorld = async () => {
   const w = currentWorld ? null : highlightedWorld;
 
@@ -515,6 +515,6 @@ const enterWorld = async () => {
 export {
   loadDefaultWorld,
   update,
-  canEnterWorld,
+  // canEnterWorld,
   enterWorld,
 };

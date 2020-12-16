@@ -855,9 +855,11 @@ const _use = () => {
     highlightedObject = null;
     
     weaponsManager.setMenu(0);
-  } if (weaponsManager.getMenu() === 1) {
+  } else if (weaponsManager.getMenu() === 1) {
     const itemSpec = itemSpecs1[selectedItemIndex];
     itemSpec.cb();
+  } else if (highlightedWorld) {
+    universe.enterWorld();
   }
 };
 let useAnimation = null;
@@ -2708,7 +2710,7 @@ const _updateMenu = () => {
   unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!highlightedObject || !!editedObject || !!highlightedWorld);
   objectMenuEl.classList.toggle('open', !!highlightedObject && !editedObject && !highlightedWorld && menuOpen !== 4);
   editMenuEl.classList.toggle('open', !!editedObject);
-  worldMenuEl.classList.toggle('open', !!highlightedWorld);
+  worldMenuEl.classList.toggle('open', !!highlightedWorld && !editedObject && menuOpen === 0);
   locationIcon.classList.toggle('open', false);
   locationIcon.classList.toggle('highlight', false);
   profileIcon.classList.toggle('open', false);

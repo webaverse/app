@@ -517,9 +517,7 @@ window.addEventListener('keyup', e => {
       case 69: { // E
         weaponsManager.menuUseRelease();
 
-        if (universe.canEnterWorld()) {
-          universe.enterWorld();
-        } else if (ioManager.currentWeaponGrabs[0]) {
+        if (ioManager.currentWeaponGrabs[0]) {
           ioManager.currentWeaponGrabs[0] = false;
         } else if (weaponsManager.getMenu()) {
           weaponsManager.menuUse();
