@@ -9,6 +9,7 @@ import {VOXLoader} from './VOXLoader.js';
 import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 // import {bake} from './bakeUtils.js';
 // import geometryManager from './geometry-manager.js';
+import geometryTool from './geometry-tool.js';
 import {rigManager} from './rig.js';
 import {makeIconMesh, makeTextMesh} from './vr-ui.js';
 import {renderer, scene2, appManager} from './app-object.js';

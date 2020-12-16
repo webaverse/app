@@ -300,6 +300,9 @@ const mesh = (() => {
   const mesh = new THREE.Mesh(geometry, material);
   return mesh;
 })();
+mesh.visible = false;
+scene.add(mesh);
+
 const shapeMaterial = (() => {
   const map = new THREE.Texture();
   map.wrapS = THREE.RepeatWrapping;
@@ -664,16 +667,9 @@ const shapeMaterial = (() => {
   return material;
 })();
 
-const update = () => {
-  const transforms = rigManager.getRigTransforms();
-  const [{position, quaternion}] = transforms;
-
-  mesh.position.copy(position)
-    .add(localVector.set(0, -0.5, -0.5).applyQuaternion(quaternion));
-  mesh.quaternion.copy(quaternion);
-};
-window.addEventListener('click', e => {
-  if (document.pointerLockElement) {
+const makeShapeMesh = () => {
+  const object = new THREE.Object3D();
+  object.place = () => {
     const geometry = new THREE.BoxBufferGeometry(1, 0.1, 1);
     for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
       if (geometry.attributes.normal.array[i+1] === 0) {
@@ -686,11 +682,22 @@ window.addEventListener('click', e => {
     scene.add(shapeMesh);
     
     physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, localVector.set(1, 0.1, 1), false);
-  }
-});
+  };
+  return object;
+};
+
+const update = () => {
+  const transforms = rigManager.getRigTransforms();
+  const [{position, quaternion}] = transforms;
+
+  mesh.position.copy(position)
+    .add(localVector.set(0, -0.5, -0.5).applyQuaternion(quaternion));
+  mesh.quaternion.copy(quaternion);
+};
 
 const geometryTool = {
   mesh,
+  makeShapeMesh,
   update,
 };
 export default geometryTool;
