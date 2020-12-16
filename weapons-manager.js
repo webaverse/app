@@ -1849,20 +1849,23 @@ const _updateWeapons = timeDiff => {
   const _handleAnimation = () => {
     const progressBars = document.querySelectorAll('.progress');
     if (useAnimation) {
-      const now = Date.now();
-      const f = (now - useAnimation.start) / (useAnimation.end - useAnimation.start);
-      if (f < 1) {
-        for (const progressBar of progressBars) {
-          progressBar.classList.add('running');
-        }
-        const progressBarInners = Array.from(document.querySelectorAll('.progress > .bar'));
-        for (const progressBarInner of progressBarInners) {
-          progressBarInner.style.width = (f * 100) + '%';
+      if (highlightedObject) {
+        const now = Date.now();
+        const f = (now - useAnimation.start) / (useAnimation.end - useAnimation.start);
+        if (f < 1) {
+          for (const progressBar of progressBars) {
+            progressBar.classList.add('running');
+          }
+          const progressBarInners = Array.from(document.querySelectorAll('.progress > .bar'));
+          for (const progressBarInner of progressBarInners) {
+            progressBarInner.style.width = (f * 100) + '%';
+          }
+        } else {
+          useAnimation = null;
         }
       } else {
         useAnimation = null;
       }
-      
       return;
     }
     
