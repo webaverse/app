@@ -26,16 +26,18 @@ export const EditableTextField = ({ value, valueIfNull, className, callback }) =
   
   return html`
   <${!editingTextField ? html`
-    <span className="${className} editableTextField">
-      ${value !== "" && value !== undefined ? value : valueIfNull} 
+    <div className="${className} editableTextField">
+      <span>${value !== "" && value !== undefined ? value : valueIfNull}</span>
       <button className="button editableTextButton editTextFieldButton" onClick=${editTextField}>Set Name</button>
-    </span>
+    </div>
   ` : html`
-    <span className="${className} editableTextField">
+    <div className="${className} editableTextField editableTextFieldInner">
       <input type="text" value=${textFieldInput} onChange=${(e) => { console.log(e.target.value); setTextFieldInput(e.target.value)}}/>
-      <button className="button settingsBoxButton userInfoButton" onClick=${handleSetText}>Set Name</button>
-      <button className="button settingsBoxButton userInfoButton" onClick=${cancelTextEdit}>Cancel</button>
-    </span>
+      <div>
+        <button className="button settingsBoxButton userInfoButton" onClick=${handleSetText}>Set Name</button>
+        <button className="button settingsBoxButton userInfoButton" onClick=${cancelTextEdit}>Cancel</button>
+      </div>
+    </div>
 `}
   `;
 };

@@ -9,8 +9,8 @@ import { Link } from '/web_modules/@reach/router.js';
 import { setName } from '../functions/UserFunctions.js';
 
 const styles = csz`/components/Profile.css`
-const defaultAvatarImage = "/images/defaultaccount.png";
-const defaultHomespacePreview = "/images/defaulthomespace.png";
+const defaultAvatarImage = "/images/defaultaccount.svg";
+const defaultHomespacePreview = "/images/defaulthomespace.svg";
 
 const html = htm.bind(React.createElement)
 
@@ -74,17 +74,19 @@ const Profile = (props) => {
 
   //             <span className="profileLoadout"><a href="#">Loadout</a></span>
 
+  console.log(homespacePreview)
+
   return html`
     <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
     ${creatorAddress && state.creatorProfiles[creatorAddress] && html`
     <div className=${styles}>
         <div className="profileHeader">
-          <div className="homespaceBannerImage"><img src="${homespacePreview}" /></div>
-          <div className="avatarImage"><img src="${avatarPreview}" /></div>
+          <div className="homespaceBannerImage"><img src="${homespacePreview ?? defaultHomespacePreview}" /></div>
+          <div className="avatar"><img className="avatarImage" src="${avatarPreview}" /></div>
           ${creatorAddress === state.address ? html`
           <div className="username">${state.name || 'guest'}</div>
           ` : html`
-            <div className="username"><span>${state.creatorProfiles[creatorAddress].name}</span></div>
+            <div className="username"><span>${state.creatorProfiles[creatorAddress].name || 'Anonymous'}</span></div>
           `}
           <div className="userAddress">
             <span className="userAddressValue">${state.creatorProfiles[creatorAddress].address}</span>
