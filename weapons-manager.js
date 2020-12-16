@@ -989,9 +989,7 @@ const _grab = object => {
     }
   }
 };
-const _updateWeapons = timeDiff => {
-  geometryTool.update();
-  
+const _updateWeapons = timeDiff => {  
   /* for (let i = 0; i < 2; i++) {
     anchorSpecs[i] = null;
   }
