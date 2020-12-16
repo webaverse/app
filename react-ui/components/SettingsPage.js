@@ -1,13 +1,13 @@
 import { React, useContext, useState, useEffect } from 'https://unpkg.com/es-react@16.13.1/dev';
 import ActionTypes from '../constants/ActionTypes.js';
 import { Context } from '../constants/Context.js';
-import csz from '../web_modules/csz.js';
+import css from '../web_modules/csz.js';
 import { EditableTextField } from './EditableTextField.js';
-import htm from '/web_modules/htm.js';
+import htm from '../web_modules/htm.js';
 
 export const html = htm.bind(React.createElement)
 
-const styles = csz`/components/Profile.css`
+const styles = css`/${window.locationSubdirectory}components/Profile.css`
 
 const SettingsPage = () => {
   const { state, dispatch } = useContext(Context);

@@ -1,5 +1,5 @@
 import { React, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
-import htm from '/web_modules/htm.js';
+import htm from '../web_modules/htm.js';
 
 export const html = htm.bind(React.createElement)
 
