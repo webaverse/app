@@ -1,16 +1,16 @@
 import { React, useEffect, useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '../web_modules/htm.js';
 import AssetCardGrid from './AssetCardGrid.js'
-import css from '../web_modules/csz.js'
 import { Context } from '../constants/Context.js';
 import ActionTypes from '../constants/ActionTypes.js';
 import { EditableTextField } from './EditableTextField.js';
 import { Link } from '../web_modules/@reach/router.js';
 import { setName } from '../functions/UserFunctions.js';
+import css from '../web_modules/csz.js'
 
 const styles = css`${window.locationSubdirectory}/components/Profile.css`
 const defaultAvatarImage = window.locationSubdirectory + "/images/defaultaccount.png";
-const defaultHomespacePreview = "/images/defaulthomespace.png";
+const defaultHomespacePreview = window.locationSubdirectory+"/images/defaulthomespace.png";
 
 const html = htm.bind(React.createElement)
 
