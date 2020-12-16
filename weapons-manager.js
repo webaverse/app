@@ -2141,8 +2141,6 @@ const itemSpecs1 = [
       </div>
     `,
     async cb() {
-      weaponsManager.setMenu(0);
-
       const blob = new Blob([''], {
         type: 'application/geometry',
       });
@@ -2163,6 +2161,8 @@ const itemSpecs1 = [
 
       const object = await p;
       editedObject = object;
+
+      weaponsManager.setMenu(0);
     },
   },
   {
