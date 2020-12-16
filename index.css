@@ -2661,3 +2661,62 @@ footer {
   display: block;
   background-color: #42a5f5;
 }
+
+.notifications {
+  display: flex;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  flex-direction: column;
+}
+.notifications .notification {
+  display: flex;
+  margin: 10px;
+  background-color: #FFF;
+  /* border: 3px solid #000; */
+  /* color: #ffa726; */
+  /* box-shadow: 0 3px 7px #00000060; */
+  opacity: 0.9;
+}
+.notifications .notification .icon {
+  display: flex;
+  width: 80px;
+  /* height: 80px; */
+  margin-right: 10px;
+  background-color: #000;
+  font-size: 30px;
+  color: #ef5350;
+  justify-content: center;
+  align-items: center;
+  /* text-shadow: 0 2px #000; */
+}
+.notifications .notification .wrap {
+  display: flex;
+  padding: 10px;
+  flex-direction: column;
+}
+.notifications .notification .label {
+  /* font-size: 20px; */
+  font-weight: 600;
+}
+.notifications .notification .label,
+.notifications .notification .text,
+.notifications .notification progress
+{
+  margin-bottom: 5px;
+}
+.notifications .notification .button {
+  display: inline-flex;
+}
+
+progress {
+  width: 100%;
+  height: 3px;
+  border-radius: 3px;
+}
+progress::-webkit-progress-bar {
+  background-color: #CCC;
+}
+progress::-webkit-progress-value {
+  background-color: #9ccc65;
+}
