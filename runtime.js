@@ -937,6 +937,19 @@ const _loadIframe = async (file, opts) => {
   return object2;
 };
 
+const _loadGeo = async (file, opts) => {
+  const object = new THREE.Object3D();
+  object.run = () => {
+    console.log('run geo');
+    // scene2.add(object);
+  };
+  object.destroy = () => {
+    // scene2.remove(object);
+  };
+  
+  return object;
+};
+
 runtime.loadFile = async (file, opts) => {
   switch (getExt(file.name)) {
     case 'gltf':
@@ -971,6 +984,9 @@ runtime.loadFile = async (file, opts) => {
     }
     case 'iframe': {
       return await _loadIframe(file, opts);
+    }
+    case 'geo': {
+      return await _loadGeo(file, opts);
     }
     case 'mp3': {
       throw new Error('audio not implemented');

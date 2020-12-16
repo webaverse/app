@@ -396,7 +396,7 @@ class MeshComposer {
   grab(index) {
     const mesh = this.hoveredMeshes[index];
     if (mesh) {
-      const transforms = _getRigTransforms();
+      const transforms = rigManager.getRigTransforms();
 
       this.placeMeshes[index] = mesh;
       this.placeMeshStates[index] = {
@@ -849,7 +849,7 @@ const _use = () => {
     world.addObject(start_url, null, deployMesh.position, deployMesh.quaternion);
 
     weaponsManager.setMenu(0);
-  } else if (highlightedObject) {
+  } else if (highlightedObject && !editedObject) {
     ioManager.currentWeaponGrabs[0] = true;
     _grab(highlightedObject);
     highlightedObject = null;
@@ -2132,7 +2132,19 @@ const itemSpecs1 = [
       </div>
     `,
     cb() {
-      console.log('geometry');
+      const blob = new Blob([''], {
+        type: 'application/geometry',
+      });
+      const u = URL.createObjectURL(blob) + '/object.geo';
+
+      const transforms = rigManager.getRigTransforms();
+      const {position, quaternion} = transforms[0];
+      localVector.copy(position)
+        .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
+
+      world.addObject(u, null, localVector, quaternion);
+
+      weaponsManager.setMenu(0);
     },
   },
   {
@@ -2946,7 +2958,7 @@ const weaponsManager = {
   menuPaste(s) {
     menuMesh.paste(s);
   },
-  canUse() {
+  canGrab() {
     return !!highlightedObject && !editedObject;
   },
   canUseHold() {
