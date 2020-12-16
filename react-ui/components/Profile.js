@@ -41,7 +41,7 @@ const Profile = (props) => {
 
       const homespacePreviewCandidate = creatorAddress.toLowerCase() === state.address.toLowerCase() ? state.homespacePreview : state.creatorProfiles[creatorAddress].homespacePreview;
       setHomespacePreview(homespacePreviewCandidate !== "" &&
-      homespacePreviewCandidate !== null ?
+      homespacePreviewCandidate !== null && homespacePreviewCandidate !== undefined ?
       homespacePreviewCandidate : defaultHomespacePreview);
 
       // Get store for creator
@@ -100,9 +100,9 @@ const Profile = (props) => {
             <div className="profileBodyNav">
               <div className="profileBodyNavContainer">
                 ${storeAssets.length > 0 && html`
-                  <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onsale' ? 'active' : ''}' to='/creator/${creatorAddress}/booth'>For Sale</${Link}>
+                  <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onsale' ? 'active' : ''}' to='${window.locationSubdirectory}/creator/${creatorAddress}/booth'>For Sale</${Link}>
                 `}
-                  <${Link} className='profileNavLink ${view === undefined || view === 'inventory' ? 'active' : ''}' to='/creator/${creatorAddress}/inventory'>Inventory</${Link}>
+                  <${Link} className='profileNavLink ${view === undefined || view === 'inventory' ? 'active' : ''}' to='${window.locationSubdirectory}/creator/${creatorAddress}/inventory'>Inventory</${Link}>
               </div>
             </div>
             <div className="profileBodyAssets">
