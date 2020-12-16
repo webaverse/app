@@ -2710,6 +2710,9 @@ const keyTab4El = document.getElementById('key-tab-4');
 const keyTab5El = document.getElementById('key-tab-5');
 [keyTabEl, keyTab1El, keyTab2El, keyTab3El, keyTab4El].forEach((el, i) => {
   el.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+
     if (editedObject) {
       editedObject = null;
       _updateMenu();
