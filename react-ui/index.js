@@ -111,7 +111,7 @@ const Application = () => {
   <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
   ${state.address && html`
   <${Context.Provider} value=${{ state, dispatch }}>  
-      <${PageRouter} />
+      <${PageRouter} subdirectory=${window.locationSubdirectory } />
     </${Context.Provider}>
     `}
   <//>
