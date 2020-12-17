@@ -891,11 +891,12 @@ world.addEventListener('trackedobjectadd', async e => {
   const trackedObjectJson = trackedObject.toJSON();
   const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
   const options = JSON.parse(optionsString);
-  const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
-  const token = await res.json();
+  let token = null;
 
   const file = await (async () => {
     if (typeof contentId === 'number') {
+      const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
+      token = await res.json();
       const {hash, filename} = token.properties;
       /* const contractSource = await getContractSource('getNft.cdc');
 
@@ -940,7 +941,7 @@ world.addEventListener('trackedobjectadd', async e => {
     }
   })();
   if (file) {
-    let mesh = await runtime.loadFile(file, {instanceId: instanceId, ownerAddress: token.owner.address });
+    let mesh = await runtime.loadFile(file, {instanceId: instanceId, ownerAddress: token ? token.owner.address : '' });
     if (mesh) {
       mesh.position.fromArray(position);
       mesh.quaternion.fromArray(quaternion);
@@ -989,7 +990,7 @@ world.addEventListener('trackedobjectadd', async e => {
     const minimapObject = minimap.addObject(mesh);
     mesh.minimapObject = minimapObject;
 
-    if (token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
+    if (token && token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
       const monetizationPointer = token.owner.monetizationPointer;
       const ownerAddress = token.owner.address.toLowerCase();
       pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
