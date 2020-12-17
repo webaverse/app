@@ -779,6 +779,7 @@ const _loadLink = async file => {
   } else {
     href = await file.text();
   }
+  href = href.replace(/^([\S]*)/, '$1');
 
   const geometry = new THREE.CircleBufferGeometry(1, 32)
     .applyMatrix4(new THREE.Matrix4().makeScale(0.5, 1, 1))
@@ -896,6 +897,7 @@ const _loadIframe = async (file, opts) => {
   } else {
     href = await file.text();
   }
+  href = href.replace(/^([\S]*)/, '$1');
 
   const width = 600;
   const height = 400;
