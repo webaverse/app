@@ -3,6 +3,7 @@ import {renderer, camera/*, orbitControls*/} from './app-object.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
+import * as notifications from './notifications.js';
 
 const localVector = new THREE.Vector3();
 
@@ -32,6 +33,19 @@ const _requestPointerLock = () => new Promise((accept, reject) => {
     const _pointerlockerror = err => {
       reject(err);
       _cleanup();
+      
+      notifications.addNotification(`\
+        <i class="icon fa fa-mouse-pointer"></i>
+        <div class=wrap>
+          <div class=label>Whoa there!</div>
+          <div class=text>
+            Hold up champ! The browser wants you to slow down.
+          </div>
+          <div class=close-button>✕</div>
+        </div>
+      `, {
+        timeout: 3000,
+      });
     };
     document.addEventListener('pointerlockerror', _pointerlockerror);
     const _cleanup = () => {
