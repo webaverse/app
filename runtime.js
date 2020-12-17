@@ -945,6 +945,23 @@ const _loadIframe = async (file, opts) => {
   return object2;
 };
 
+const _loadAudio = async (file, opts) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  
+  const audio = document.createElement('audio');
+  audio.src = srcUrl;
+  audio.loop = true;
+
+  const object = new THREE.Object3D();
+  object.run = () => {
+    audio.play();
+  };
+  object.destroy = () => {
+    audio.pause();
+  };
+  return object;
+};
+
 const _loadGeo = async (file, opts) => {
   const object = geometryTool.makeShapeMesh();
   return object;
@@ -989,7 +1006,7 @@ runtime.loadFile = async (file, opts) => {
       return await _loadGeo(file, opts);
     }
     case 'mp3': {
-      throw new Error('audio not implemented');
+      return await _loadAudio(file, opts);
     }
     case 'video': {
       throw new Error('video not implemented');
