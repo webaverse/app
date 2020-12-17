@@ -475,8 +475,10 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
 
           if (monetization && ethereumAddress && ethereumAddress == ownerAddress) {
             monetization.dispatchEvent(new Event('monetizationstart'));
+            monetization.state = "started";
           } else if (monetization && document.monetization) {
             monetization.dispatchEvent(new Event('monetizationstart'));
+            monetization.state = "started";
           }
         }
       }, err => {
