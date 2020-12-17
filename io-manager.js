@@ -607,7 +607,7 @@ renderer.domElement.addEventListener('click', e => {
     weaponsManager.menuClick();
   }
 });
-renderer.domElement.addEventListener('dblclick', e => {
+renderer.domElement.addEventListener('click', e => {
   if (!document.pointerLockElement && e.buttons === 0 && weaponsManager.getMenu() === 0) {
     document.getElementById('key-x').click();
   }
