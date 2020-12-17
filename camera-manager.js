@@ -24,7 +24,6 @@ const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2);
 
 const requestPointerLock = () => new Promise((accept, reject) => {
-  console.log('pointer lock', cameraManager.getTool(), new Error().stack);
   if (!document.pointerLockElement) {
     const _pointerlockchange = e => {
       accept();
@@ -116,8 +115,6 @@ const cameraButton = document.getElementById('key-x');
 const selectTool = newSelectedTool => {
   const oldSelectedTool = selectedTool;
   selectedTool = newSelectedTool;
-
-  console.log('select', selectedTool, new Error().stack);
 
   if (selectedTool !== oldSelectedTool) {
     // hoverTarget = null;
