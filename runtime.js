@@ -337,6 +337,7 @@ const _loadImg = async file => {
     side: THREE.DoubleSide,
     vertexColors: true,
     transparent: true,
+    alphaTest: 0.5,
   });
   /* const material = meshComposer.material.clone();
   material.uniforms.map.value = texture;
