@@ -1061,6 +1061,12 @@ const _selectItemDelta = offset => {
 };
 
 const tabs = Array.from(document.getElementById('profile-icon').querySelectorAll('.navs > .nav'));
+for (let i = 0; i < tabs.length; i++) {
+  const tab = tabs[i];
+  tab.addEventListener('click', e => {
+    _selectTab(i);
+  });
+}
 const _selectTab = newSelectedTabIndex => {
   weaponsManager.setMenu(newSelectedTabIndex + 1);
 };
