@@ -2123,6 +2123,7 @@ footer {
   display: flex;
   padding-bottom: 10px;
   user-select: none;
+  align-self: flex-end;
 }
 .helper.left {
   padding-left: 10px;
@@ -2132,6 +2133,7 @@ footer {
 .helper.right {
   padding-right: 10px;
 }
+
 #map-canvas {
   position: absolute;
   left: 10px;
@@ -2139,6 +2141,43 @@ footer {
   width: 200px;
   height: 140px;
 }
+.loadout {
+  display: flex;
+  margin-left: calc(300px + 10px);
+}
+.loadout .item {
+  display: flex;
+  flex-direction: column;
+}
+.loadout .item .box {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  margin-right: 2px;
+  background: radial-gradient(#7986cb, #3949ab);
+  border: 2px solid #3949ab;
+  transition: all cubic-bezier(0, 1, 0, 1) 0.3s;
+}
+.loadout .item .label {
+  display: flex;
+  margin: 0 auto;
+  margin-top: 5px;
+  justify-content: center;
+  align-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid;
+  border-radius: 3px;
+  color: #FFFFFF40;
+}
+.loadout .item.selected .box {
+  top: -3px;
+  border-color: #FFF;
+}
+.loadout .item.selected .label {
+  color: #FFF;
+}
+
 .keys {
   position: relative;
   display: flex;

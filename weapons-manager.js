@@ -2899,6 +2899,7 @@ const locationIcon = document.getElementById('location-icon');
 const profileIcon = document.getElementById('profile-icon');
 const itemIcon = document.getElementById('item-icon');
 const editIcon = document.getElementById('edit-icon');
+const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
 const weaponsManager = {
   // weapons,
   cubeMesh,
@@ -3034,6 +3035,13 @@ const weaponsManager = {
       await res.blob();
       console.log('deleted', res.status);
     }
+  },
+  selectLoadout(index) {
+    for (const itemEl of loadoutItems) {
+      itemEl.classList.remove('selected');
+    }
+    const itemEl = loadoutItems[index];
+    itemEl.classList.add('selected');
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);

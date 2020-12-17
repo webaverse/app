@@ -240,14 +240,18 @@ window.addEventListener('keydown', e => {
       document.getElementById('key-tab').click();
       break;
     }
-    /* case 9: { // tab
-        e.preventDefault();
-      e.stopPropagation();
-      weaponsManager.setMenu(false);
-      // uiManager.menuMesh.toggleOpen();
-      // ioManager.menuExpanded = !ioManager.menuExpanded;
+    case 49: // 1
+    case 50: // 2
+    case 51: // 3
+    case 52: // 4
+    case 53: // 5
+    case 54: // 6
+    case 55: // 7
+    case 56: // 8
+    {
+      weaponsManager.selectLoadout(e.which - 49);
       break;
-    } */
+    }
     case 8: // backspace
     case 46: // del
     {
