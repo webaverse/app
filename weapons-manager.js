@@ -853,7 +853,7 @@ const itemSpecs1 = [
     name: 'Geometry',
     icon: 'fa-dice-d10',
     detailsHtml: `\
-      <video class=video src="./assets/darkbooth.webm"></video>
+      <img class=video src="./assets/screenshot.png">
       <div class=wrap>
         <b>Geometry</b> lets you build walls, floors, and structures.
       </div>
@@ -888,7 +888,7 @@ const itemSpecs1 = [
     name: 'Model',
     icon: 'fa-alien-monster',
     detailsHtml: `\
-      <video class=video src="./assets/darkbooth.webm"></video>
+      <img class=video src="./assets/screenshot.png">
       <div class=wrap>
         <b>Model</b> lets you place a 3D model in GLTF format.
       </div>
@@ -901,7 +901,7 @@ const itemSpecs1 = [
     name: 'Avatar',
     icon: 'fa-user-ninja',
     detailsHtml: `\
-      <video class=video src="./assets/darkbooth.webm"></video>
+      <img class=video src="./assets/screenshot.png">
       <div class=wrap>
         <b>Avatar</b> lets you place an avatar model in VRM format.
       </div>
@@ -914,7 +914,7 @@ const itemSpecs1 = [
     name: 'Image',
     icon: 'fa-image',
     detailsHtml: `\
-      <video class=video src="./assets/darkbooth.webm"></video>
+      <img class=video src="./assets/screenshot.png">
       <div class=wrap>
         <b>Image</b> lets you place a simple image billboard.
       </div>
@@ -927,7 +927,7 @@ const itemSpecs1 = [
     name: 'Audio',
     icon: 'fa-headphones',
     detailsHtml: `\
-      <video class=video src="./assets/darkbooth.webm"></video>
+      <img class=video src="./assets/screenshot.png">
       <div class=wrap>
         <b>Audio</b> lets you place spatial audio.
       </div>
@@ -940,7 +940,7 @@ const itemSpecs1 = [
     name: 'Voxel',
     icon: 'fa-cube',
     detailsHtml: `\
-      <video class=video src="./assets/darkbooth.webm"></video>
+      <img class=video src="./assets/screenshot.png">
       <div class=wrap>
         <b>Voxel</b> lets you place a voxel model in VOX format.
       </div>
@@ -953,7 +953,7 @@ const itemSpecs1 = [
     name: 'Link',
     icon: 'fa-portal-enter',
     detailsHtml: `\
-      <video class=video src="./assets/darkbooth.webm"></video>
+      <img class=video src="./assets/screenshot.png">
       <div class=wrap>
         <b>Link</b> lets you create a web link portal.
       </div>
@@ -966,7 +966,7 @@ const itemSpecs1 = [
     name: 'Web Frame',
     icon: 'fa-browser',
     detailsHtml: `\
-      <video class=video src="./assets/darkbooth.webm"></video>
+      <img class=video src="./assets/screenshot.png">
       <div class=wrap>
         <b>Web Frame</b> lets you place a web content iframe.
       </div>
@@ -979,7 +979,7 @@ const itemSpecs1 = [
     name: 'Media Stream',
     icon: 'fa-signal-stream',
     detailsHtml: `\
-      <video class=video src="./assets/darkbooth.webm"></video>
+      <img class=video src="./assets/screenshot.png">
       <div class=wrap>
         <b>Media Stream</b> lets you build walls, floors, and structures.
       </div>
