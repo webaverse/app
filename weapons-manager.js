@@ -167,7 +167,7 @@ const _makeTargetMesh = (() => {
     uniform float uTime;
     // varying vec2 vUv;
     void main() {
-      float f = 1.0 + pow(sin(uTime * M_PI), 0.5) * 0.2;
+      float f = 1.0 + sign(uTime) * pow(sin(abs(uTime) * M_PI), 0.5) * 0.2;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position * f, 1.);
     }
   `;
@@ -178,7 +178,7 @@ const _makeTargetMesh = (() => {
     const vec3 c = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
     
     void main() {
-      float f = max(1.0 - pow(uTime, 0.5), 0.1);
+      float f = max(1.0 - sign(uTime) * pow(abs(uTime), 0.5), 0.1);
       gl_FragColor = vec4(vec3(c * f * uHighlight), 1.0);
     }
   `;
@@ -629,10 +629,16 @@ const _updateWeapons = timeDiff => {
           for (const progressBarInner of progressBarInners) {
             progressBarInner.style.width = (f * 100) + '%';
           }
+          
+          highlightMesh.material.uniforms.uTime.value = -(1-f);
+          highlightMesh.material.uniforms.uTime.needsUpdate = true;
         } else {
           editedObject = highlightedObject;
           weaponsManager.setMenu(0);
           useAnimation = null;
+          
+          highlightMesh.material.uniforms.uTime.value = 0;
+          highlightMesh.material.uniforms.uTime.needsUpdate = true;
         }
       } else {
         useAnimation = null;
