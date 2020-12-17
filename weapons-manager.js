@@ -1241,45 +1241,6 @@ const _updateWeapons = timeDiff => {
   _handleAnimation();
 
   crosshairEl.classList.toggle('visible', ['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getTool()) && !appManager.grabbedObjects[0]);
-
-  /* meshComposer.update();
-  
-  explosionMeshes = explosionMeshes.filter(explosionMesh => {
-    explosionMesh.material.uniforms.uAnimation.value += timeDiff;
-    if (explosionMesh.material.uniforms.uAnimation.value < 1) {
-      return true;
-    } else {
-      scene.remove(explosionMesh);
-      return false;
-    }
-  });
-  pxMeshes = pxMeshes.filter(pxMesh => {
-    if (pxMesh.update()) {
-      if (!pxMesh.velocity.equals(zeroVector)) {
-        localMatrix.copy(pxMesh.matrixWorld)
-          .decompose(localVector, localQuaternion, localVector2);
-        const collision = geometryManager.geometryWorker.collide(geometryManager.tracker, 0.2, 0, localVector, localQuaternion2.set(0, 0, 0, 1), 1);
-
-        if (collision) {
-          localVector3.fromArray(collision.direction)
-            .applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse());
-          pxMesh.position.add(localVector3);
-          pxMesh.velocity.copy(zeroVector);
-          // pxMesh.angularVelocity.copy(zeroVector);
-        } else {
-          physicsManager.applyVelocity(pxMesh.position, pxMesh.velocity, timeDiff);
-          pxMesh.velocity.add(localVector.set(0, -9.8 * timeDiff, 0).applyQuaternion(pxMesh.parent.getWorldQuaternion(localQuaternion).inverse()));
-          pxMesh.rotation.x += pxMesh.angularVelocity.x;
-          pxMesh.rotation.y += pxMesh.angularVelocity.y;
-          pxMesh.rotation.z += pxMesh.angularVelocity.z;
-        }
-      }
-      return true;
-    } else {
-      pxMesh.parent.remove(pxMesh);
-      return false;
-    }
-  }); */
 };
 
 renderer.domElement.addEventListener('wheel', e => {
