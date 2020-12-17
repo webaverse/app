@@ -23,7 +23,8 @@ const birdsEyeHeight = 10;
 const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2);
 
-const _requestPointerLock = () => new Promise((accept, reject) => {
+const requestPointerLock = () => new Promise((accept, reject) => {
+  console.log('pointer lock', cameraManager.getTool(), new Error().stack);
   if (!document.pointerLockElement) {
     const _pointerlockchange = e => {
       accept();
@@ -56,6 +57,10 @@ const _requestPointerLock = () => new Promise((accept, reject) => {
   } else {
     accept();
   }
+}).then(() => {
+  if (cameraManager.getTool() === 'camera') {
+    cameraManager.selectTool('firstperson');
+  }
 });
 
 const cameraModes = [
@@ -87,11 +92,11 @@ const cameraButton = document.getElementById('key-x');
     }
 
     const newSelectedTool = cameraModes[nextIndex];
-    if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
-      await _requestPointerLock();
-    }
-
     selectTool(newSelectedTool);
+
+    /* if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
+      await requestPointerLock();
+    } */
   });
 });
 /* for (let i = 0; i < tools.length; i++) {
@@ -111,6 +116,8 @@ const cameraButton = document.getElementById('key-x');
 const selectTool = newSelectedTool => {
   const oldSelectedTool = selectedTool;
   selectedTool = newSelectedTool;
+
+  console.log('select', selectedTool, new Error().stack);
 
   if (selectedTool !== oldSelectedTool) {
     // hoverTarget = null;
@@ -142,7 +149,6 @@ const selectTool = newSelectedTool => {
       case 'camera': {
         // document.exitPointerLock();
         // orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
-        ioManager.resetKeys();
         physicsManager.velocity.set(0, 0, 0);
         break;
       }
@@ -177,6 +183,7 @@ const selectTool = newSelectedTool => {
         break;
       }
     }
+    
     /* if (rigManager.localRig) {
       if (decapitate) {
         rigManager.localRig.decapitate();
@@ -237,6 +244,7 @@ const cameraManager = {
   getFullAvatarHeight,
   getAvatarHeight,
   focusCamera,
+  requestPointerLock,
   getTool() {
     return selectedTool;
   },

@@ -2756,6 +2756,13 @@ const keyTab5El = document.getElementById('key-tab-5');
       editedObject = null;
       _updateMenu();
     } else {
+      const hasMenu = !!weaponsManager.getMenu();
+      if (hasMenu && !document.pointerLockElement) {
+        cameraManager.requestPointerLock();
+      } else if (!hasMenu && document.pointerLockElement) {
+        document.exitPointerLock();
+      }
+      
       weaponsManager.setMenu(weaponsManager.getMenu() ? 0 : 1);
     }
   });
