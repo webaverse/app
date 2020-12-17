@@ -909,7 +909,7 @@ world.addEventListener('trackedobjectremove', async e => {
   if (index !== -1) {
     const object = objects[index];
     object.destroy && object.destroy();
-    scene.remove(object);
+    object.parent.remove(object);
     objects.splice(index, 1);
     trackedObject.unobserve();
 
