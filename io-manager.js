@@ -599,7 +599,8 @@ renderer.domElement.addEventListener('click', e => {
   if (document.pointerLockElement && e.buttons === 0) {
     weaponsManager.menuClick();
   }
-  if (!document.pointerLockElement && e.buttons === 0 && weaponsManager.getMenu() === 0) {
+  if (!document.pointerLockElement && e.buttons === 0) {
+    weaponsManager.setMenu(0);
     cameraManager.requestPointerLock();
   }
 });
