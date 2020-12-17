@@ -359,7 +359,7 @@ const _updatePhysics = timeDiff => {
       // _collideChunk(avatarWorldObject.matrix);
       rigManager.setLocalRigMatrix(null);
     }
-  } else if (document.pointerLockElement) {
+  } else {
     _applyGravity(timeDiff);
 
     const selectedTool = cameraManager.getTool();
@@ -381,10 +381,6 @@ const _updatePhysics = timeDiff => {
       // _collideChunk(avatarWorldObject.matrix);
       rigManager.setLocalRigMatrix(null);
     }
-  } else {
-    _collideItems(avatarWorldObject.matrix);
-    // _collideChunk(avatarWorldObject.matrix);
-    rigManager.setLocalRigMatrix(null);
   }
 
   /* const _updateAnimals = () => {

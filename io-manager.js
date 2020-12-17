@@ -45,7 +45,11 @@ const resetKeys = () => {
     ioManager.keys[k] = false;
   }
 };
-ioManager.resetKeys = resetKeys;
+// ioManager.resetKeys = resetKeys;
+
+document.addEventListener('pointerlockchange', () => {
+  resetKeys();
+});
 
 const _inputFocused = () => document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.getAttribute('contenteditable') !== null);
 
@@ -470,81 +474,71 @@ window.addEventListener('keydown', e => {
   }
 });
 window.addEventListener('keyup', e => {
-  if (weaponsManager.getMenu() && document.pointerLockElements) {
-    /* if (/^[a-z0-9]$/i.test(e.key)) {
-      // XXX
-    } else {
-      switch (e.which) {
-        
+  switch (e.which) {
+    case 81: { // Q
+      weaponsManager.setWeaponWheel(false);
+      break;
+    }
+    case 87: { // W
+      if (document.pointerLockElement) {
+        ioManager.keys.up = false;
       }
-    } */
-  } else {
-    switch (e.which) {
-      case 81: { // Q
-        weaponsManager.setWeaponWheel(false);
-        break;
+      break;
+    }
+    case 65: { // A
+      if (document.pointerLockElement) {
+        ioManager.keys.left = false;
       }
-      case 87: { // W
-        if (document.pointerLockElement) {
-          ioManager.keys.up = false;
-        }
-        break;
+      break;
+    }
+    case 83: { // S
+      if (document.pointerLockElement) {
+        ioManager.keys.down = false;
       }
-      case 65: { // A
-        if (document.pointerLockElement) {
-          ioManager.keys.left = false;
-        }
-        break;
+      break;
+    }
+    case 68: { // D
+      if (document.pointerLockElement) {
+        ioManager.keys.right = false;
       }
-      case 83: { // S
-        if (document.pointerLockElement) {
-          ioManager.keys.down = false;
-        }
-        break;
+      break;
+    }
+    case 32: { // space
+      if (document.pointerLockElement) {
+        ioManager.keys.space = false;
       }
-      case 68: { // D
-        if (document.pointerLockElement) {
-          ioManager.keys.right = false;
-        }
-        break;
+      break;
+    }
+    case 17: { // ctrl
+      if (document.pointerLockElement) {
+        ioManager.keys.ctrl = false;
       }
-      case 32: { // space
-        if (document.pointerLockElement) {
-          ioManager.keys.space = false;
-        }
-        break;
-      }
-      case 17: { // ctrl
-        if (document.pointerLockElement) {
-          ioManager.keys.ctrl = false;
-        }
-        break;
-      }
-      case 69: { // E
-        weaponsManager.menuUseRelease();
+      break;
+    }
+    case 69: { // E
+      weaponsManager.menuUseRelease();
 
-        if (ioManager.currentWeaponGrabs[0]) {
-          ioManager.currentWeaponGrabs[0] = false;
-        /* } else if (weaponsManager.canGrab()) {
-          ioManager.currentWeaponGrabs[0] = true; */
-        } else {
-          weaponsManager.menuUse();
-        }
-        break;
+      if (ioManager.currentWeaponGrabs[0]) {
+        ioManager.currentWeaponGrabs[0] = false;
+      /* } else if (weaponsManager.canGrab()) {
+        ioManager.currentWeaponGrabs[0] = true; */
+      } else {
+        weaponsManager.menuUse();
       }
-      /* case 70: { // F
-        // pe.grabup('right');
-        if (document.pointerLockElement) {
-          ioManager.currentWeaponGrabs[0] = false;
-        }
-        break;
-      } */
-      case 16: { // shift
-        if (document.pointerLockElement) {
-          ioManager.keys.shift = false;
-        }
-        break;
+      break;
+    }
+    /* case 70: { // F
+      // pe.grabup('right');
+      if (document.pointerLockElement) {
+        ioManager.currentWeaponGrabs[0] = false;
       }
+      break;
+    } */
+    case 16: { // shift
+      if (document.pointerLockElement) {
+        ioManager.keys.shift = false;
+      }
+      break;
     }
   }
 });
@@ -578,8 +572,7 @@ renderer.domElement.addEventListener('mousemove', e => {
   if (weaponsManager.weaponWheel) {
     weaponsManager.updateWeaponWheel(e);
   } else {
-    const selectedTool = cameraManager.getTool();
-    if (selectedTool === 'firstperson' || selectedTool === 'thirdperson' || selectedTool === 'isometric' || selectedTool === 'birdseye') {
+    if (document.pointerLockElement) {
       _updateMouseMovement(e);
     }
   }
@@ -606,19 +599,8 @@ renderer.domElement.addEventListener('click', e => {
   if (document.pointerLockElement && e.buttons === 0) {
     weaponsManager.menuClick();
   }
-});
-renderer.domElement.addEventListener('click', e => {
   if (!document.pointerLockElement && e.buttons === 0 && weaponsManager.getMenu() === 0) {
-    document.getElementById('key-x').click();
-  }
-});
-document.addEventListener('pointerlockchange', e => {
-  if (!document.pointerLockElement) {
-    // setState({ pointerLock: false })
-    cameraManager.selectTool('camera');
-    // document.dispatchEvent(new MouseEvent('mouseup'));
-  } else {
-    // setState({ pointerLock: true })
+    cameraManager.requestPointerLock();
   }
 });
 window.addEventListener('resize', e => {
