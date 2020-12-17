@@ -1001,7 +1001,7 @@ const itemSpecs1 = [
       </div>
     `,
     cb() {
-      console.log('media stream');
+      _loadItemSpec1('./assets/type/object.mediastream');
     },
   },
 ];
