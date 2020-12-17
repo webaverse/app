@@ -53,6 +53,7 @@ const cameraModes = [
 ];
 let selectedTool = cameraModes[0];
 const cameraButton = document.getElementById('key-x');
+const crosshairEl = document.querySelector('.crosshair');
 ['click', 'keydown'].forEach(event => {
   cameraButton.addEventListener(event, async e => {
     e.preventDefault();
@@ -76,6 +77,7 @@ const cameraButton = document.getElementById('key-x');
     if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
       await _requestPointerLock();
     }
+    crosshairEl.classList.toggle('visible', ['camera', 'firstperson', 'thirdperson'].includes(newSelectedTool));
 
     selectTool(newSelectedTool);
   });
