@@ -1004,6 +1004,9 @@ for (let i = 0; i < itemSpecs1.length; i++) {
       </div>
     </div>
   `;
+  div.addEventListener('click', e => {
+    _use();
+  });
   div.addEventListener('mouseenter', e => {
     selectedItemIndex = i;
     _updateMenu();
