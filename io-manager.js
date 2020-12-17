@@ -249,7 +249,7 @@ window.addEventListener('keydown', e => {
       break;
     } */
     case 8: // backspace
-    case 46: // delete
+    case 46: // del
     {
       // weaponsManager.menuKey('\b');
       e.preventDefault();
