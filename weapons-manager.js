@@ -992,6 +992,8 @@ const _grab = object => {
     }
   }
 };
+
+const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = timeDiff => {  
   /* for (let i = 0; i < 2; i++) {
     anchorSpecs[i] = null;
@@ -1918,6 +1920,8 @@ const _updateWeapons = timeDiff => {
     }
   };
   _handleAnimation();
+
+  crosshairEl.classList.toggle('visible', ['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getTool()) && !appManager.grabbedObjects[0]);
 
   /* meshComposer.update();
   
