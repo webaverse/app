@@ -273,19 +273,24 @@ const _loadVrm = async (file, {files = null, parentUrl = null} = {}) => {
   };
   return o;
 };
-const _loadVox = async file => {
-  const u = URL.createObjectURL(file);
+const _loadVox = async (file, {files = null, parentUrl = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  }
+
   let o;
   try {
     o = await new Promise((accept, reject) => {
       new VOXLoader({
         scale: 0.01,
-      }).load(u, accept, function onprogress() {}, reject);
+      }).load(srcUrl, accept, function onprogress() {}, reject);
     });
   } catch(err) {
     console.warn(err);
-  } finally {
-    URL.revokeObjectURL(u);
   }
   return o;
 };
