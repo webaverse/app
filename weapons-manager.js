@@ -341,6 +341,14 @@ world.addEventListener('trackedobjectadd', async e => {
       </div>
     </div>
   `;
+  div.addEventListener('click', e => {
+    _use();
+  });
+  div.addEventListener('mouseenter', e => {
+    const i = Array.from(items4El.childNodes).indexOf(div);
+    selectedItemIndex = i;
+    _updateMenu();
+  });
   items4El.appendChild(div);
 });
 world.addEventListener('trackedobjectremove', async e => {
