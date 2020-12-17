@@ -3,6 +3,7 @@ import {renderer, camera/*, orbitControls*/} from './app-object.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
+import * as notifications from './notifications.js';
 
 const localVector = new THREE.Vector3();
 
@@ -22,7 +23,7 @@ const birdsEyeHeight = 10;
 const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2);
 
-const _requestPointerLock = () => new Promise((accept, reject) => {
+const requestPointerLock = () => new Promise((accept, reject) => {
   if (!document.pointerLockElement) {
     const _pointerlockchange = e => {
       accept();
@@ -32,6 +33,19 @@ const _requestPointerLock = () => new Promise((accept, reject) => {
     const _pointerlockerror = err => {
       reject(err);
       _cleanup();
+      
+      notifications.addNotification(`\
+        <i class="icon fa fa-mouse-pointer"></i>
+        <div class=wrap>
+          <div class=label>Whoa there!</div>
+          <div class=text>
+            Hold up champ! The browser wants you to slow down.
+          </div>
+          <div class=close-button>✕</div>
+        </div>
+      `, {
+        timeout: 3000,
+      });
     };
     document.addEventListener('pointerlockerror', _pointerlockerror);
     const _cleanup = () => {
@@ -41,6 +55,10 @@ const _requestPointerLock = () => new Promise((accept, reject) => {
     renderer.domElement.requestPointerLock();
   } else {
     accept();
+  }
+}).then(() => {
+  if (cameraManager.getTool() === 'camera') {
+    cameraManager.selectTool('firstperson');
   }
 });
 
@@ -73,11 +91,11 @@ const cameraButton = document.getElementById('key-x');
     }
 
     const newSelectedTool = cameraModes[nextIndex];
-    if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
-      await _requestPointerLock();
-    }
-
     selectTool(newSelectedTool);
+
+    /* if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
+      await requestPointerLock();
+    } */
   });
 });
 /* for (let i = 0; i < tools.length; i++) {
@@ -128,7 +146,6 @@ const selectTool = newSelectedTool => {
       case 'camera': {
         // document.exitPointerLock();
         // orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
-        ioManager.resetKeys();
         physicsManager.velocity.set(0, 0, 0);
         break;
       }
@@ -163,6 +180,7 @@ const selectTool = newSelectedTool => {
         break;
       }
     }
+    
     /* if (rigManager.localRig) {
       if (decapitate) {
         rigManager.localRig.decapitate();
@@ -223,6 +241,7 @@ const cameraManager = {
   getFullAvatarHeight,
   getAvatarHeight,
   focusCamera,
+  requestPointerLock,
   getTool() {
     return selectedTool;
   },

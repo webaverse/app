@@ -63,6 +63,91 @@
     <div class=notifications id=notifications></div>
   </header>
 
+  <footer>
+    <div class="helper left">
+      <div class=loadout>
+        <div class="item selected">
+          <div class=box></div>
+          <div class=label>1</div>
+        </div>
+        <div class=item>
+          <div class=box></div>
+          <div class=label>2</div>
+        </div>
+        <div class=item>
+          <div class=box></div>
+          <div class=label>3</div>
+        </div>
+        <div class=item>
+          <div class=box></div>
+          <div class=label>4</div>
+        </div>
+        <div class=item>
+          <div class=box></div>
+          <div class=label>5</div>
+        </div>
+        <div class=item>
+          <div class=box></div>
+          <div class=label>6</div>
+        </div>
+        <div class=item>
+          <div class=box></div>
+          <div class=label>7</div>
+        </div>
+        <div class=item>
+          <div class=box></div>
+          <div class=label>8</div>
+        </div>
+      </div>
+    </div>
+    <div class="helper right">
+      <div class="keys">
+        <div class="label">Move</div>
+        <div class="row">
+          <div class="key"></div>
+          <div class="key">W</div>
+          <div class="key"></div>
+        </div>
+        <div class="row">
+          <div class="key">A</div>
+          <div class="key">S</div>
+          <div class="key">D</div>
+        </div>
+      </div>
+      <div class="keys">
+        <div class="row"></div>
+        <div class="row">
+          <div class="label center">Fly</div>
+          <div class="key" id="key-f">F</div>
+        </div>
+      </div>
+      <div class="keys">
+        <div class="row"></div>
+        <div class="row">
+          <div class="label center">Camera</div>
+          <div class="key" id="key-x">X</div>
+          <!-- <div class="key" id="key-b" function="thirdperson">B</div>
+          <div class="key" id="key-n" function="isometric">N</div>
+          <div class="key" id="key-m" function="birdseye">M</div> -->
+        </div>
+      </div>
+      <div class="keys">
+        <div class="row"></div>
+        <div class="row">
+          <div class="label center">Voice</div>
+          <div class="key" id="key-v">V</div>
+          <!-- <div class="key" id="key-b" function="thirdperson">B</div>
+          <div class="key" id="key-n" function="isometric">N</div>
+          <div class="key" id="key-m" function="birdseye">M</div> -->
+        </div>
+      </div>
+      <!-- <nav class="enter-xr-button" id="mic-on-button" style="display: none;">Mic On</nav>
+      <nav class="enter-xr-button disabled" id="mic-off-button">Mic Off</nav> -->
+      <nav class="enter-xr-button" id="enter-xr-button" style="display: none;">Enter XR</nav>
+      <nav class="enter-xr-button disabled" id="no-xr-button">No XR</nav>
+    </div>
+  </footer>
+
   <div class="menu wide primary" id=menu-1>
     <div class="tabs">
       <div class="key-helper">
@@ -177,56 +262,6 @@
     </section>
   </div>
 
-  <footer>
-    <div class="helper left"></div>
-    <div class="helper right">
-      <div class="keys">
-        <div class="label">Move</div>
-        <div class="row">
-          <div class="key"></div>
-          <div class="key">W</div>
-          <div class="key"></div>
-        </div>
-        <div class="row">
-          <div class="key">A</div>
-          <div class="key">S</div>
-          <div class="key">D</div>
-        </div>
-      </div>
-      <div class="keys">
-        <div class="row"></div>
-        <div class="row">
-          <div class="label center">Fly</div>
-          <div class="key" id="key-f">F</div>
-        </div>
-      </div>
-      <div class="keys">
-        <div class="row"></div>
-        <div class="row">
-          <div class="label center">Camera</div>
-          <div class="key" id="key-x">X</div>
-          <!-- <div class="key" id="key-b" function="thirdperson">B</div>
-          <div class="key" id="key-n" function="isometric">N</div>
-          <div class="key" id="key-m" function="birdseye">M</div> -->
-        </div>
-      </div>
-      <div class="keys">
-        <div class="row"></div>
-        <div class="row">
-          <div class="label center">Voice</div>
-          <div class="key" id="key-v">V</div>
-          <!-- <div class="key" id="key-b" function="thirdperson">B</div>
-          <div class="key" id="key-n" function="isometric">N</div>
-          <div class="key" id="key-m" function="birdseye">M</div> -->
-        </div>
-      </div>
-      <!-- <nav class="enter-xr-button" id="mic-on-button" style="display: none;">Mic On</nav>
-      <nav class="enter-xr-button disabled" id="mic-off-button">Mic Off</nav> -->
-      <nav class="enter-xr-button" id="enter-xr-button" style="display: none;">Enter XR</nav>
-      <nav class="enter-xr-button disabled" id="no-xr-button">No XR</nav>
-    </div>
-  </footer>
-
   <div id=appContainer style="display: none"></div>
   <div class=ftu id=ftu>
     <div class="ftu-phase ftu-phase-1">
@@ -323,6 +358,9 @@
   </div>
 
   <canvas id=canvas></canvas>
+  <div class="crosshair visible">
+    <img src="./assets/crosshair.svg" width=30 height=30>
+  </div>
   <script src="./msc_basis_transcoder.js"></script>
   <script src="./bin/geometry.js"></script>
   <script type=module src="/edit.js"></script>
