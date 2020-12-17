@@ -947,7 +947,7 @@ const itemSpecs1 = [
       </div>
     `,
     cb() {
-      console.log('audio');
+      _loadItemSpec1('./assets/type/br.mp3');
     },
   },
   {
