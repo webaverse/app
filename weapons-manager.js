@@ -989,7 +989,8 @@ const itemSpecs1 = [
     },
   },
 ];
-for (const itemSpec of itemSpecs1) {
+for (let i = 0; i < itemSpecs1.length; i++) {
+  const itemSpec = itemSpecs1[i];
   const div = document.createElement('div');
   div.classList.add('item');
   div.innerHTML = `\
@@ -1003,6 +1004,10 @@ for (const itemSpec of itemSpecs1) {
       </div>
     </div>
   `;
+  div.addEventListener('mouseenter', e => {
+    selectedItemIndex = i;
+    _updateMenu();
+  });
   items1El.appendChild(div);
 }
 
