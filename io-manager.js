@@ -248,7 +248,9 @@ window.addEventListener('keydown', e => {
       // ioManager.menuExpanded = !ioManager.menuExpanded;
       break;
     } */
-    case 8: { // backspace
+    case 8: // backspace
+    case 46: // delete
+    {
       // weaponsManager.menuKey('\b');
       e.preventDefault();
       e.stopPropagation();
