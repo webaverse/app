@@ -1209,7 +1209,7 @@ const _updateWeapons = timeDiff => {
   };
   _handleTeleport();
   
-  const _handleAnimation = () => {
+  const _handleUseAnimation = () => {
     const progressBars = document.querySelectorAll('.progress');
     if (useAnimation) {
       if (highlightedObject) {
@@ -1238,7 +1238,7 @@ const _updateWeapons = timeDiff => {
       progressBar.classList.remove('running');
     }
   };
-  _handleAnimation();
+  _handleUseAnimation();
 
   crosshairEl.classList.toggle('visible', ['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getTool()) && !appManager.grabbedObjects[0]);
 };
