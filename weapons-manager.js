@@ -410,48 +410,50 @@ const _updateWeapons = timeDiff => {
   );
 
   const _handleHighlight = () => {
-    const width = 1;
-    const length = 100;    
-    localBox.setFromCenterAndSize(
-      localVector.set(0, 0, -length/2 - 0.05),
-      localVector2.set(width, width, length)
-    );
+    if (!editedObject) {
+      const width = 1;
+      const length = 100;    
+      localBox.setFromCenterAndSize(
+        localVector.set(0, 0, -length/2 - 0.05),
+        localVector2.set(width, width, length)
+      );
 
-    highlightMesh.visible = false;
-    const oldHighlightedObject = highlightedObject;
-    highlightedObject = null;
+      highlightMesh.visible = false;
+      const oldHighlightedObject = highlightedObject;
+      highlightedObject = null;
 
-    if (!weaponsManager.getMenu() && !appManager.grabbedObjects[0]) {
-      const objects = world.getObjects();
-      for (const candidate of objects) {
-        const {position, quaternion} = transforms[0];
-        localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
-          .premultiply(
-            localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
-              .invert()
-          )
-          .decompose(localVector, localQuaternion, localVector2);
-        if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
-          highlightMesh.position.copy(candidate.position);
-          highlightMesh.visible = true;
-          highlightedObject = candidate;
-          break;
+      if (!weaponsManager.getMenu() && !appManager.grabbedObjects[0]) {
+        const objects = world.getObjects();
+        for (const candidate of objects) {
+          const {position, quaternion} = transforms[0];
+          localMatrix.compose(candidate.position, candidate.quaternion, candidate.scale)
+            .premultiply(
+              localMatrix2.compose(position, quaternion, localVector2.set(1, 1, 1))
+                .invert()
+            )
+            .decompose(localVector, localQuaternion, localVector2);
+          if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
+            highlightMesh.position.copy(candidate.position);
+            highlightMesh.visible = true;
+            highlightedObject = candidate;
+            break;
+          }
+        }
+      } else if (weaponsManager.getMenu() === 4) {
+        const itemEl = items4El.childNodes[selectedItemIndex];
+        if (itemEl) {
+          const instanceId = itemEl.getAttribute('instanceid');
+          const object = world.getObjects().find(o => o.instanceId === instanceId);
+          if (object) {
+            highlightedObject = object;
+            highlightMesh.position.copy(object.position);
+            highlightMesh.visible = true;
+          }
         }
       }
-    } else if (weaponsManager.getMenu() === 4) {
-      const itemEl = items4El.childNodes[selectedItemIndex];
-      if (itemEl) {
-        const instanceId = itemEl.getAttribute('instanceid');
-        const object = world.getObjects().find(o => o.instanceId === instanceId);
-        if (object) {
-          highlightedObject = object;
-          highlightMesh.position.copy(object.position);
-          highlightMesh.visible = true;
-        }
+      if (highlightedObject !== oldHighlightedObject) {
+        _updateMenu();
       }
-    }
-    if (highlightedObject !== oldHighlightedObject) {
-      _updateMenu();
     }
   };
   _handleHighlight();
