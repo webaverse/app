@@ -860,6 +860,9 @@ const _use = () => {
   } else if (weaponsManager.getMenu() === 1) {
     const itemSpec = itemSpecs1[selectedItemIndex];
     itemSpec.cb();
+  } else if (weaponsManager.getMenu() === 2) {
+    const itemSpec = itemSpecs2[selectedItemIndex];
+    itemSpec.cb();
   } else if (highlightedWorld) {
     universe.enterWorld();
   }
@@ -2305,10 +2308,16 @@ for (const itemSpec of itemSpecs1) {
 }
 
 const itemSpecs2 = [
-  {
-    name: 'Inventory item',
+{
+    name: 'Drop grease',
     cb() {
-      
+      console.log('drop grease');
+    },
+  },
+  {
+    name: 'Drop item',
+    cb() {
+      console.log('drop item');
     },
   },
 ];
