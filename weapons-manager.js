@@ -864,6 +864,26 @@ for (let i = 0; i < itemSpecs3.length; i++) {
   items3El.appendChild(div);
 }
 
+const _loadItemSpec1 = async u => {
+  const transforms = rigManager.getRigTransforms();
+  const {position, quaternion} = transforms[0];
+  localVector.copy(position)
+    .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
+
+  const p = new Promise((accept, reject) => {
+    world.addEventListener('objectadd', async e => {
+      accept(e.data);
+    }, {once: true});
+  });
+
+  world.addObject(u, null, localVector, quaternion);
+
+  const object = await p;
+  editedObject = object;
+
+  weaponsManager.setMenu(0);
+  cameraManager.requestPointerLock();
+};
 const itemSpecs1 = [
   {
     name: 'Geometry',
@@ -874,30 +894,8 @@ const itemSpecs1 = [
         <b>Geometry</b> lets you build walls, floors, and structures.
       </div>
     `,
-    async cb() {
-      const blob = new Blob([''], {
-        type: 'application/geometry',
-      });
-      const u = URL.createObjectURL(blob) + '/object.geo';
-
-      const transforms = rigManager.getRigTransforms();
-      const {position, quaternion} = transforms[0];
-      localVector.copy(position)
-        .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
-
-      const p = new Promise((accept, reject) => {
-        world.addEventListener('objectadd', async e => {
-          accept(e.data);
-        }, {once: true});
-      });
-
-      world.addObject(u, null, localVector, quaternion);
-
-      const object = await p;
-      editedObject = object;
-
-      weaponsManager.setMenu(0);
-      cameraManager.requestPointerLock();
+    cb() {
+      _loadItemSpec1('./assets/type/object.geo');
     },
   },
   {
@@ -910,7 +908,7 @@ const itemSpecs1 = [
       </div>
     `,
     cb() {
-      console.log('model');
+      _loadItemSpec1('./assets/type/robot.glb');
     },
   },
   {
@@ -923,7 +921,7 @@ const itemSpecs1 = [
       </div>
     `,
     cb() {
-      console.log('avatar');
+      _loadItemSpec1('./assets/type/37023052771851054.vrm');
     },
   },
   {
@@ -936,7 +934,7 @@ const itemSpecs1 = [
       </div>
     `,
     cb() {
-      console.log('image');
+     _loadItemSpec1('./assets/type/Rainbow_Dash.png');
     },
   },
   {
@@ -962,7 +960,7 @@ const itemSpecs1 = [
       </div>
     `,
     cb() {
-      console.log('voxel');
+      _loadItemSpec1('./assets/type/square_hedge.vox');
     },
   },
   {
