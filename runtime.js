@@ -551,7 +551,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
       return arguments[1] + replacements[index++] + arguments[3];
     });
     if (instanceId) {
-      script = script.replace(/document.monetization/g, `document.monetization${instanceId}`);
+      script = script.replace(/document\.monetization/g, `document.monetization${instanceId}`);
       script = `
         document.monetization${instanceId} = document.createElement('eventTarget');
       ` + script;
