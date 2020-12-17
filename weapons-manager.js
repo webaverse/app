@@ -973,7 +973,7 @@ const itemSpecs1 = [
       </div>
     `,
     cb() {
-      console.log('link');
+      _loadItemSpec1('./assets/type/dcl.url');
     },
   },
   {
@@ -986,7 +986,7 @@ const itemSpecs1 = [
       </div>
     `,
     cb() {
-      console.log('web frame');
+      _loadItemSpec1('./assets/type/deviantart.iframe');
     },
   },
   {
