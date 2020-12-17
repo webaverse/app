@@ -1065,42 +1065,6 @@ const _updateWeapons = timeDiff => {
   };
   _handleEdit();
 
-  /* const _handleMove = () => {
-    moveMesh.visible = false;
-
-    if (movingObject) {
-      const transforms = rigManager.getRigTransforms();
-      const {position, quaternion} = transforms[0];
-
-      let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
-      if (collision) {
-        const {point} = collision;
-        _snap(localVector.fromArray(point), 1);
-        moveMesh.position.copy(localVector)
-          .add(localVector2.set(0, 0.01, 0));
-        localEuler.setFromQuaternion(quaternion, 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
-        moveMesh.quaternion.setFromEuler(localEuler);
-
-        if (moveMesh.position.distanceTo(position) > maxDistance) {
-          collision = null;
-        }
-      }
-      if (!collision) {
-        moveMesh.position.copy(position).add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
-        moveMesh.quaternion.copy(quaternion);
-      }
-
-      movingObject.position.copy(moveMesh.position);
-      movingObject.quaternion.copy(moveMesh.quaternion);
-
-      moveMesh.visible = true;
-    }
-  };
-  _handleMove(); */
-
   const _handleGrab = () => {
     let changed = false;
 
@@ -1113,27 +1077,8 @@ const _updateWeapons = timeDiff => {
     }
     if (!ioManager.currentWeaponGrabs[0] && ioManager.lastWeaponGrabs[0]) {
       appManager.grabbedObjects[0] = null;
-      // meshComposer.ungrab(i);
       changed = true;
     }
-
-    /* for (let i = 0; i < 2; i++) {
-      if (ioManager.currentWeaponGrabs[i] && !ioManager.lastWeaponGrabs[i]) {
-        const {position} = transforms[i];
-        appManager.grabbedObjects[i] = world.getClosestObject(position, 0.3);
-        if (!appManager.grabbedObjects[i]) {
-          appManager.grabbedObjects[i] = highlightedObject;
-          highlightedObject = null;
-          changed = true;
-        }
-        // meshComposer.grab(i);
-      }
-      if (!ioManager.currentWeaponGrabs[i] && ioManager.lastWeaponGrabs[i]) {
-        appManager.grabbedObjects[i] = null;
-        // meshComposer.ungrab(i);
-        changed = true;
-      }
-    } */
     if (changed) {
       _updateMenu();
     }
