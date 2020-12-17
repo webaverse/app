@@ -9,8 +9,8 @@ const ftuUsername = document.getElementById('ftu-username');
 let ftuPhase;
 export async function tryTutorial() {
   const ftuQs = parseQuery(location.search)['ftu'];
-  const ftuDone = (loginManager.getFtu() || ftuQs === '0') && ftuQs !== '1';
-  if (!ftuDone) {
+  const ftuNeeded = ftuQs === '1' || (!loginManager.getAvatar() && ftuQs !== '0');
+  if (ftuNeeded) {
     const notification = notifications.addNotification(`\
       <i class="icon fa fa-alien-monster"></i>
       <div class=wrap>

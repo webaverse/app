@@ -273,19 +273,24 @@ const _loadVrm = async (file, {files = null, parentUrl = null} = {}) => {
   };
   return o;
 };
-const _loadVox = async file => {
-  const u = URL.createObjectURL(file);
+const _loadVox = async (file, {files = null, parentUrl = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  }
+
   let o;
   try {
     o = await new Promise((accept, reject) => {
       new VOXLoader({
         scale: 0.01,
-      }).load(u, accept, function onprogress() {}, reject);
+      }).load(srcUrl, accept, function onprogress() {}, reject);
     });
   } catch(err) {
     console.warn(err);
-  } finally {
-    URL.revokeObjectURL(u);
   }
   return o;
 };
@@ -332,6 +337,7 @@ const _loadImg = async file => {
     side: THREE.DoubleSide,
     vertexColors: true,
     transparent: true,
+    alphaTest: 0.5,
   });
   /* const material = meshComposer.material.clone();
   material.uniforms.map.value = texture;
@@ -774,6 +780,7 @@ const _loadLink = async file => {
   } else {
     href = await file.text();
   }
+  href = href.replace(/^([\S]*)/, '$1');
 
   const geometry = new THREE.CircleBufferGeometry(1, 32)
     .applyMatrix4(new THREE.Matrix4().makeScale(0.5, 1, 1))
@@ -891,6 +898,7 @@ const _loadIframe = async (file, opts) => {
   } else {
     href = await file.text();
   }
+  href = href.replace(/^([\S]*)/, '$1');
 
   const width = 600;
   const height = 400;
@@ -937,6 +945,41 @@ const _loadIframe = async (file, opts) => {
   
   return object2;
 };
+const _loadMediaStream = async (file, opts) => {
+  let spec;
+  if (file.url) {
+    const res = await fetch(file.url);
+    spec = await res.json();
+  } else {
+    spec = await file.json();
+  }
+
+  const object = new THREE.Mesh(
+    new THREE.PlaneBufferGeometry(1, 1),
+    new THREE.MeshBasicMaterial({
+      color: 0xFFFFFF,
+    }),
+  );
+  
+  return object;
+};
+
+const _loadAudio = async (file, opts) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  
+  const audio = document.createElement('audio');
+  audio.src = srcUrl;
+  audio.loop = true;
+
+  const object = new THREE.Object3D();
+  object.run = () => {
+    audio.play();
+  };
+  object.destroy = () => {
+    audio.pause();
+  };
+  return object;
+};
 
 const _loadGeo = async (file, opts) => {
   const object = geometryTool.makeShapeMesh();
@@ -978,11 +1021,14 @@ runtime.loadFile = async (file, opts) => {
     case 'iframe': {
       return await _loadIframe(file, opts);
     }
+    case 'mediastream': {
+      return await _loadMediaStream(file, opts);
+    }
     case 'geo': {
       return await _loadGeo(file, opts);
     }
     case 'mp3': {
-      throw new Error('audio not implemented');
+      return await _loadAudio(file, opts);
     }
     case 'video': {
       throw new Error('video not implemented');
