@@ -945,6 +945,24 @@ const _loadIframe = async (file, opts) => {
   
   return object2;
 };
+const _loadMediaStream = async (file, opts) => {
+  let spec;
+  if (file.url) {
+    const res = await fetch(file.url);
+    spec = await res.json();
+  } else {
+    spec = await file.json();
+  }
+
+  const object = new THREE.Mesh(
+    new THREE.PlaneBufferGeometry(1, 1),
+    new THREE.MeshBasicMaterial({
+      color: 0xFFFFFF,
+    }),
+  );
+  
+  return object;
+};
 
 const _loadAudio = async (file, opts) => {
   let srcUrl = file.url || URL.createObjectURL(file);
@@ -1002,6 +1020,9 @@ runtime.loadFile = async (file, opts) => {
     }
     case 'iframe': {
       return await _loadIframe(file, opts);
+    }
+    case 'mediastream': {
+      return await _loadMediaStream(file, opts);
     }
     case 'geo': {
       return await _loadGeo(file, opts);
