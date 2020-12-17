@@ -830,7 +830,8 @@ const itemSpecs3 = [
     "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
   },
 ];
-for (const itemSpec of itemSpecs3) {
+for (let i = 0; i < itemSpecs3.length; i++) {
+  const itemSpec = itemSpecs3[i];
   const div = document.createElement('div');
   div.classList.add('item');
   div.innerHTML = `
@@ -845,6 +846,13 @@ for (const itemSpec of itemSpecs3) {
       </div>
     </div>
   `;
+  div.addEventListener('click', e => {
+    _use();
+  });
+  div.addEventListener('mouseenter', e => {
+    selectedItemIndex = i;
+    _updateMenu();
+  });
   items3El.appendChild(div);
 }
 
@@ -1028,7 +1036,8 @@ const itemSpecs2 = [
     },
   },
 ];
-for (const itemSpec of itemSpecs2) {
+for (let i = 0; i < itemSpecs2.length; i++) {
+  const itemSpec = itemSpecs2[i];
   const div = document.createElement('div');
   div.classList.add('item');
   div.innerHTML = `
@@ -1043,6 +1052,13 @@ for (const itemSpec of itemSpecs2) {
       </div>
     </div>
   `;
+  div.addEventListener('click', e => {
+    _use();
+  });
+  div.addEventListener('mouseenter', e => {
+    selectedItemIndex = i;
+    _updateMenu();
+  });
   items2El.appendChild(div);
 }
 
