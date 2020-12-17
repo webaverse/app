@@ -248,12 +248,14 @@ const _use = () => {
     world.addObject(start_url, null, deployMesh.position, deployMesh.quaternion);
 
     weaponsManager.setMenu(0);
+    cameraManager.requestPointerLock();
   } else if (highlightedObject && !editedObject) {
     ioManager.currentWeaponGrabs[0] = true;
     _grab(highlightedObject);
     highlightedObject = null;
     
     weaponsManager.setMenu(0);
+    cameraManager.requestPointerLock();
   } else if (weaponsManager.getMenu() === 1) {
     const itemSpec = itemSpecs1[selectedItemIndex];
     itemSpec.cb();
@@ -879,6 +881,7 @@ const itemSpecs1 = [
       editedObject = object;
 
       weaponsManager.setMenu(0);
+      cameraManager.requestPointerLock();
     },
   },
   {
