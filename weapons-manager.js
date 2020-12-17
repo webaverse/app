@@ -997,7 +997,7 @@ const itemSpecs1 = [
     detailsHtml: `\
       <img class=video src="./assets/screenshot.jpg">
       <div class=wrap>
-        <b>Media Stream</b> lets you build walls, floors, and structures.
+        <b>Media Stream</b> lets you stream audio, video, and screenshares.
       </div>
     `,
     cb() {
