@@ -1172,7 +1172,7 @@ const _updateMenu = () => {
   menu3El.classList.toggle('open', menuOpen === 3);
   menu4El.classList.toggle('open', menuOpen === 4);
   unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!appManager.grabbedObjects[0] || !!highlightedObject || !!editedObject || !!highlightedWorld);
-  objectMenuEl.classList.toggle('open', !!highlightedObject && !!appManager.grabbedObjects[0] && !editedObject && !highlightedWorld && menuOpen !== 4);
+  objectMenuEl.classList.toggle('open', !!highlightedObject && !appManager.grabbedObjects[0] && !editedObject && !highlightedWorld && menuOpen !== 4);
   grabMenuEl.classList.toggle('open', !!appManager.grabbedObjects[0]);
   editMenuEl.classList.toggle('open', !!editedObject);
   worldMenuEl.classList.toggle('open', !!highlightedWorld && !editedObject && menuOpen === 0);
