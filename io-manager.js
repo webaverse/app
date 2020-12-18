@@ -378,7 +378,7 @@ window.addEventListener('keydown', e => {
       // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        document.getElementById('key-v').click();
+        weaponsManager.menuGridSnap();
       // }
       break;
     }
@@ -538,10 +538,8 @@ window.addEventListener('keyup', e => {
     case 69: { // E
       weaponsManager.menuUseRelease();
 
-      if (ioManager.currentWeaponGrabs[0]) {
-        ioManager.currentWeaponGrabs[0] = false;
-      /* } else if (weaponsManager.canGrab()) {
-        ioManager.currentWeaponGrabs[0] = true; */
+      if (weaponsManager.canRotate()) {
+        // nothing
       } else {
         weaponsManager.menuUse();
       }
