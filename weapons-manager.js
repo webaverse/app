@@ -1443,6 +1443,9 @@ const weaponsManager = {
   menuRotate(direction) {
     console.log('rotate', direction);
   },
+  menuGridSnap() {
+    console.log('grid snap');
+  },
   setWorld(newCoord, newHighlightedWorld) {
     lastCoord.copy(coord);
     coord.copy(newCoord);
