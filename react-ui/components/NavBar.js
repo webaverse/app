@@ -7,7 +7,9 @@ import { discordOauthUrl } from '../webaverse/constants.js'
 
 const styles = css`${window.locationSubdirectory}/components/NavBar.css`
 
-const defaultAvatarImage = window.locationSubdirectory + "/images/defaultaccount.png";
+const defaultAvatarImage = window.locationSubdirectory + "/images/DefaultUser_SmallCircle.svg";
+
+const webaverseLogo = window.locationSubdirectory + "/images/Webaverse_Logo.svg";
 
 const NavBarUserLoginForm = () => {
 
@@ -108,7 +110,7 @@ const NavBar = () => {
   return html`
     <div className="navbarWrapper ${styles}">
         <nav className="navbar"> 
-          <span className='nav-logo'><h1>Ψ Webaverse</h1></span>
+          <span className='nav-logo'><${Link} to='${window.locationSubdirectory}/'><img src=${webaverseLogo} /></${Link}></span>
           <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/' className='nav-link'>Profile</${NavLink}></span>
           <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/gallery' className='nav-link'>Gallery</${NavLink}></span>
           <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/creators' className='nav-link'>Creators</${NavLink}></span>

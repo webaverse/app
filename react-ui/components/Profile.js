@@ -9,8 +9,11 @@ import { setName } from '../functions/UserFunctions.js';
 import css from '../web_modules/csz.js'
 
 const styles = css`${window.locationSubdirectory}/components/Profile.css`
-const defaultAvatarImage = window.locationSubdirectory + "/images/defaultaccount.png";
-const defaultHomespacePreview = window.locationSubdirectory+"/images/defaulthomespace.png";
+const defaultAvatarImage = window.locationSubdirectory + "/images/DefaultUser.svg";
+const defaultHomespacePreview = window.locationSubdirectory+"/images/Default_Profile_Background.svg";
+const userNameBackground = window.locationSubdirectory+"/images/Profile_Username_Background.svg";
+const userAddressBackground = window.locationSubdirectory+"/images/Profile_Address_Background.svg";
+const userGreaseBackground = window.locationSubdirectory+"/images/Profile_Grease_Background.svg";
 
 const html = htm.bind(React.createElement)
 
@@ -82,14 +85,14 @@ const Profile = (props) => {
           <div className="homespaceBannerImage"><img src="${homespacePreview}" /></div>
           <div className="avatarImage"><img src="${avatarPreview}" /></div>
           ${creatorAddress === state.address ? html`
-          <div className="username">${state.name || 'guest'}</div>
+          <div className="username" style=${{backgroundImage: "url('" + userNameBackground +"')"}}>${state.name || 'guest'}</div>
           ` : html`
             <div className="username"><span>${state.creatorProfiles[creatorAddress].name}</span></div>
           `}
-          <div className="userAddress">
+          <div className="userAddress" style=${{backgroundImage: "url('" + userAddressBackground +"')"}}>
             <span className="userAddressValue">${state.creatorProfiles[creatorAddress].address}</span>
           </div>
-          <div className="userGrease">
+          <div className="userGrease" style=${{backgroundImage: "url('" + userGreaseBackground +"')"}}>
             <span className="userGreaseSing">$grease</span>
             <span className="userGreaseValue">${state.creatorProfiles[creatorAddress].balance}Ψ</span>
           </div>
