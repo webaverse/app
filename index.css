@@ -2633,6 +2633,7 @@ footer {
   flex-direction: column;
   margin-top: 65px;
   overflow: hidden;
+  overflow-y: scroll;
 }
 .items .item {
   display: flex;
