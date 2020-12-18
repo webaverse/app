@@ -1143,7 +1143,10 @@ const keyTab5El = document.getElementById('key-tab-5');
     e.preventDefault();
     e.stopPropagation();
 
-    if (editedObject) {
+    if (appManager.grabbedObjects[0]) {
+      appManager.grabbedObjects[0] = null;
+      _updateMenu();
+    } else if (editedObject) {
       editedObject = null;
       _updateMenu();
     } else {
@@ -1168,8 +1171,9 @@ const _updateMenu = () => {
   menu2El.classList.toggle('open', menuOpen === 2);
   menu3El.classList.toggle('open', menuOpen === 3);
   menu4El.classList.toggle('open', menuOpen === 4);
-  unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!highlightedObject || !!editedObject || !!highlightedWorld);
-  objectMenuEl.classList.toggle('open', !!highlightedObject && !editedObject && !highlightedWorld && menuOpen !== 4);
+  unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!appManager.grabbedObjects[0] || !!highlightedObject || !!editedObject || !!highlightedWorld);
+  objectMenuEl.classList.toggle('open', !!highlightedObject && !!appManager.grabbedObjects[0] && !editedObject && !highlightedWorld && menuOpen !== 4);
+  grabMenuEl.classList.toggle('open', !!appManager.grabbedObjects[0]);
   editMenuEl.classList.toggle('open', !!editedObject);
   worldMenuEl.classList.toggle('open', !!highlightedWorld && !editedObject && menuOpen === 0);
   locationIcon.classList.toggle('open', false);
@@ -1291,6 +1295,7 @@ const menu3El = document.getElementById('menu-3');
 const menu4El = document.getElementById('menu-4');
 const unmenuEl = document.getElementById('unmenu');
 const objectMenuEl = document.getElementById('object-menu');
+const grabMenuEl = document.getElementById('grab-menu');
 const editMenuEl = document.getElementById('edit-menu');
 const worldMenuEl = document.getElementById('world-menu');
 const locationLabel = document.getElementById('location-label');
