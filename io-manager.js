@@ -256,7 +256,7 @@ window.addEventListener('keydown', e => {
       weaponsManager.selectLoadout(e.which - 49);
       break;
     }
-    case 8: // backspace
+    /* case 8: // backspace
     case 46: // del
     {
       // weaponsManager.menuKey('\b');
@@ -264,7 +264,7 @@ window.addEventListener('keydown', e => {
       e.stopPropagation();
       weaponsManager.menuDelete();
       break;
-    }
+    } */
     case 38: { // up
       weaponsManager.menuVertical(-1);
       break;
@@ -374,9 +374,10 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
-    /* case 88: { // X
+    case 88: { // X
+      weaponsManager.menuDelete();
       break
-    } */
+    }
     case 86: { // V
       // if (!_inputFocused()) {
         e.preventDefault();

@@ -356,7 +356,7 @@ world.addEventListener('trackedobjectadd', async e => {
         <div class=label>Grab</div>
       </div>
       <div class="key-helper">
-        <div class=key>Del</div>
+        <div class=key>X</div>
         <div class=label>Delete</div>
       </div>
     </div>
