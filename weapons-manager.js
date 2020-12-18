@@ -1153,6 +1153,9 @@ const keyTab5El = document.getElementById('key-tab-5');
     e.stopPropagation();
 
     if (appManager.grabbedObjects[0]) {
+      appManager.grabbedObjects[0].rotation.x = Math.round(appManager.grabbedObjects[0].rotation.x / rotationSnap) * rotationSnap;
+      appManager.grabbedObjects[0].rotation.y = Math.round(appManager.grabbedObjects[0].rotation.y / rotationSnap) * rotationSnap;
+      appManager.grabbedObjects[0].rotation.z = Math.round(appManager.grabbedObjects[0].rotation.z / rotationSnap) * rotationSnap;
       appManager.grabbedObjects[0] = null;
       _updateMenu();
     } else if (editedObject) {
@@ -1192,7 +1195,6 @@ const _updateMenu = () => {
   itemMonetizedIcon.classList.toggle('open', false);
   grabIcon.classList.toggle('open', false);
   editIcon.classList.toggle('open', false);
-
 
   deployMesh.visible = false;
 
@@ -1311,6 +1313,8 @@ const _updateMenu = () => {
 
   locationLabel.innerText = (highlightedWorld ? highlightedWorld.name : 'The Void') + ` @${coord.x},${coord.z}`;
 };
+
+const rotationSnap = Math.PI/5;
 
 const menu1El = document.getElementById('menu-1');
 const menu2El = document.getElementById('menu-2');
@@ -1458,7 +1462,7 @@ const weaponsManager = {
   },
   menuRotate(direction) {
     const object = appManager.grabbedObjects[0];
-    object.savedRotation.y -= direction * Math.PI/5;
+    object.savedRotation.y -= direction * rotationSnap;
   },
   canPush() {
     return !!appManager.grabbedObjects[0];
