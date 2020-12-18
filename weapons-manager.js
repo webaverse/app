@@ -551,7 +551,7 @@ const _updateWeapons = timeDiff => {
           // grabbedObject.quaternion.copy(quaternion);
         }
 
-        if (grabbedObject.position.distanceTo(position) >= maxGrabDistance || !!collision) {
+        if (appManager.grabbedObjectOffsets[0] >= maxGrabDistance || !!collision) {
           grabbedObject.quaternion.setFromEuler(grabbedObject.savedRotation);
           
           moveMesh.position.copy(grabbedObject.position);
