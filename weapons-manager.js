@@ -1,6 +1,6 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {makeCubeMesh, makeRayMesh, makeTextInput, makeTabs, makeItem, makeScrollbar, intersectUi} from './vr-ui.js';
+import {makeCubeMesh, makeRayMesh, makeTextInput, makeTabs, makeItem} from './vr-ui.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
