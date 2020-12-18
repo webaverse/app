@@ -1453,7 +1453,6 @@ const weaponsManager = {
   canRotate() {
     return !!appManager.grabbedObjects[0];
   },
-    console.log('rotate', direction);
   menuRotate(direction) {
     const object = appManager.grabbedObjects[0];
     object.savedRotation.y -= direction * Math.PI/5;
