@@ -636,36 +636,6 @@ class LoginManager extends EventTarget {
           hash,
           id,
         };
-        /* {
-          const contractSource = await getContractSource('mintNft.cdc');
-
-          const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-            method: 'POST',
-            body: JSON.stringify({
-              address: addr,
-              mnemonic,
-
-              limit: 100,
-              transaction: contractSource
-                .replace(/ARG0/g, hash)
-                .replace(/ARG1/g, name),
-              wait: true,
-            }),
-          });
-          const response2 = await res.json();
-          if (response2?.transaction?.events[0]) {
-            const id = parseInt(response2.transaction.events[0].payload.value.fields.find(field => field.name === 'id').value.value, 10);
-            return {
-              hash,
-              id,
-            };
-          } else {
-              return {
-                hash,
-                id,
-              };
-          }
-        } */
       } else {
         throw new Error('file has no name');
       }
