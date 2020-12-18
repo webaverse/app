@@ -1142,6 +1142,7 @@ const _selectTabDelta = offset => {
   _selectTab(newSelectedTabIndex);
 };
 
+const rotationSnap = Math.PI/6;
 const _snapRotation = o => {
   o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
   o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
@@ -1318,8 +1319,6 @@ const _updateMenu = () => {
 
   locationLabel.innerText = (highlightedWorld ? highlightedWorld.name : 'The Void') + ` @${coord.x},${coord.z}`;
 };
-
-const rotationSnap = Math.PI/5;
 
 const menu1El = document.getElementById('menu-1');
 const menu2El = document.getElementById('menu-2');
