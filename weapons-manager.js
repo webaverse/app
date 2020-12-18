@@ -589,7 +589,8 @@ const _updateWeapons = timeDiff => {
       }
       if (!collision) {
         deployMesh.position.copy(position).add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
-        deployMesh.quaternion.copy(quaternion);
+        deployMesh.rotation.setFromQuaternion(quaternion, 'YXZ');
+        _snapRotation(deployMesh);
       }
 
       deployMesh.material.uniforms.uTime.value = (Date.now()%1000)/1000;
@@ -1141,6 +1142,12 @@ const _selectTabDelta = offset => {
   _selectTab(newSelectedTabIndex);
 };
 
+const _snapRotation = o => {
+  o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
+  o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
+  o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
+};
+
 const keyTabEl = document.getElementById('key-tab');
 const keyTab1El = document.getElementById('key-tab-1');
 const keyTab2El = document.getElementById('key-tab-2');
@@ -1153,9 +1160,7 @@ const keyTab5El = document.getElementById('key-tab-5');
     e.stopPropagation();
 
     if (appManager.grabbedObjects[0]) {
-      appManager.grabbedObjects[0].rotation.x = Math.round(appManager.grabbedObjects[0].rotation.x / rotationSnap) * rotationSnap;
-      appManager.grabbedObjects[0].rotation.y = Math.round(appManager.grabbedObjects[0].rotation.y / rotationSnap) * rotationSnap;
-      appManager.grabbedObjects[0].rotation.z = Math.round(appManager.grabbedObjects[0].rotation.z / rotationSnap) * rotationSnap;
+      _snapRotation(appManager.grabbedObjects[0]);
       appManager.grabbedObjects[0] = null;
       _updateMenu();
     } else if (editedObject) {
