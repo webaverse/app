@@ -42,9 +42,9 @@ img:not([src]) {
   visibility: hidden;
 }
 
-.hidden {
+/* .hidden {
   display: none;
-}
+} */
 
 .progress-bar {
   position: absolute;
@@ -2596,8 +2596,10 @@ footer {
   flex-direction: column;
 }
 .key-helper {
+  position: relative;
   display: flex;
   align-items: center;
+  overflow: hidden;
 }
 .key-helper .key
 {
@@ -2753,6 +2755,7 @@ footer {
 .notifications .notification .wrap {
   display: flex;
   padding: 10px;
+  padding-right: 30px;
   flex-direction: column;
 }
 .notifications .notification .label {
