@@ -265,22 +265,6 @@ window.addEventListener('keydown', e => {
       weaponsManager.menuDelete();
       break;
     } */
-    case 38: { // up
-      weaponsManager.menuVertical(-1);
-      break;
-    }
-    case 40: { // down
-      weaponsManager.menuVertical(1);
-      break;
-    }
-    case 37: { // left
-      weaponsManager.menuHorizontal(-1);
-      break;
-    }
-    case 39: { // right
-      weaponsManager.menuHorizontal(1);
-      break;
-    }
     /* case 13: { // enter
       e.preventDefault();
       e.stopPropagation();
@@ -311,27 +295,54 @@ window.addEventListener('keydown', e => {
       }
       break;
     } */
+
+case 38: { // up
+      
+      break;
+    }
+    case 40: { // down
+      
+      break;
+    }
+    case 37: { // left
+      
+      break;
+    }
+    case 39: { // right
+      
+      break;
+    }
+
+
     case 87: { // W
       if (document.pointerLockElement) {
         ioManager.keys.up = true;
+      } else {
+        weaponsManager.menuVertical(-1);
       }
       break;
     }
     case 65: { // A
       if (document.pointerLockElement) {
         ioManager.keys.left = true;
+      } else {
+        weaponsManager.menuHorizontal(-1);
       }
       break;
     }
     case 83: { // S
       if (document.pointerLockElement) {
         ioManager.keys.down = true;
+      } else {
+        weaponsManager.menuVertical(1);
       }
       break;
     }
     case 68: { // D
       if (document.pointerLockElement) {
         ioManager.keys.right = true;
+      } else {
+        weaponsManager.menuHorizontal(1);
       }
       break;
     }
