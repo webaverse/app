@@ -99,7 +99,7 @@ const MintingPage = () => {
 
   const MintPageHeader = () => html`
     <div className="mintPageHeader">
-      <div className="mintPageHeaderTitle">Create a New Digital Asset</div>
+      <div className="mintPageHeaderTitle">the forge</div>
       <div>
         <div className="mintPageHeaderStep ${currentStep === 1 ? 'selected' : ''}">
           <span className="mintPageHeaderNumber ${currentStep === 1 ? 'selected' : ''}">1</span>
