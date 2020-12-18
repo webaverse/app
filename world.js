@@ -852,7 +852,11 @@ world.addEventListener('trackedobjectadd', async e => {
     }
   })();
   if (file) {
-    let mesh = await runtime.loadFile(file, {instanceId: instanceId, ownerAddress: token ? token.owner.address : '' });
+    let mesh = await runtime.loadFile(file, {
+      instanceId: instanceId,
+      monetizationPointer: token ? token.owner.monetizationPointer : "",
+      ownerAddress: token ? token.owner.address : ""
+    });
     if (mesh) {
       mesh.position.fromArray(position);
       mesh.quaternion.fromArray(quaternion);
