@@ -361,29 +361,30 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 67: { // C
-      // pe.grabdown('right');
-      e.preventDefault();
-      e.stopPropagation();
-      document.getElementById('key-c').dispatchEvent(new KeyboardEvent('click', {
-        which: e.which,
-        shiftKey: e.shiftKey,
-        ctrlKey: e.ctrlKey,
-        altKey: e.altKey,
-        metaKey: e.metaKey,
-      }));
+      if (!(e.shiftKey && (e.altKey || e.metaKey))) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.getElementById('key-c').dispatchEvent(new KeyboardEvent('click', {
+          which: e.which,
+          shiftKey: e.shiftKey,
+          ctrlKey: e.ctrlKey,
+          altKey: e.altKey,
+          metaKey: e.metaKey,
+        }));
+      }
       break;
     }
     /* case 88: { // X
       break
     } */
-    /* case 86: { // V
-      if (!_inputFocused()) {
+    case 86: { // V
+      // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
         document.getElementById('key-v').click();
-      }
+      // }
       break;
-    } */
+    }
     case 84: { // T
       if (!_inputFocused()) {
         e.preventDefault();
