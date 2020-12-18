@@ -225,15 +225,12 @@ geometryManager.waitForLoad().then(() => {
 
     return mesh;
   })();
-  scene.add(hpMesh);
+  // scene.add(hpMesh);
   uiManager.hpMesh = hpMesh;
 
-  const buildsMesh = makeInventoryMesh(weaponsManager.cubeMesh, async scrollFactor => {
+  /* const buildsMesh = makeInventoryMesh(weaponsManager.cubeMesh, async scrollFactor => {
     // nothing
   });
-  /* buildsMesh.inventoryBuildsMesh = _makeInventoryBuildsMesh();
-  buildsMesh.inventoryBuildsMesh.frustumCulled = false;
-  buildsMesh.add(buildsMesh.inventoryBuildsMesh); */
   buildsMesh.handleIconClick = (i, srcIndex) => {
     const dx = srcIndex%3;
     const dy = (srcIndex-dx)/3;
@@ -242,12 +239,12 @@ geometryManager.waitForLoad().then(() => {
   };
   buildsMesh.visible = false;
   scene.add(buildsMesh);
-  uiManager.buildsMesh = buildsMesh;
+  uiManager.buildsMesh = buildsMesh; */
 
-  const queue = new WaitQueue()
+  /* const queue = new WaitQueue()
   const thingsMesh = makeInventoryMesh(weaponsManager.cubeMesh, async scrollFactor => {
     // await loadPromise;
-    /* queue.clearQueue();
+    queue.clearQueue();
     await queue.lock();
 
     const geometryKeys = await geometryManager.geometryWorker.requestGetGeometryKeys(geometryManager.geometrySet);
@@ -285,12 +282,8 @@ geometryManager.waitForLoad().then(() => {
     thingsMesh.geometryKeys = geometryKeys;
     thingsMesh.currentGeometryKeys = currentGeometryKeys;
 
-    queue.unlock(); */
+    queue.unlock();
   });
-  /* thingsMesh.inventoryContentsMesh = _makeInventoryContentsMesh();
-  thingsMesh.inventoryContentsMesh.position.set(-0.1/2, 0, 0);
-  thingsMesh.inventoryContentsMesh.frustumCulled = false;
-  thingsMesh.add(thingsMesh.inventoryContentsMesh); */
   thingsMesh.geometryKeys = null;
   thingsMesh.currentGeometryKeys = null;
   thingsMesh.handleIconClick = (i, srcIndex) => {
@@ -307,9 +300,9 @@ geometryManager.waitForLoad().then(() => {
   };
   thingsMesh.visible = false;
   scene.add(thingsMesh);
-  uiManager.thingsMesh = thingsMesh;
+  uiManager.thingsMesh = thingsMesh; */
 
-  const shapesMesh = makeInventoryMesh(weaponsManager.cubeMesh, async scrollFactor => {
+  /* const shapesMesh = makeInventoryMesh(weaponsManager.cubeMesh, async scrollFactor => {
     // nothing
   });
   shapesMesh.inventoryShapesMesh = _makeInventoryShapesMesh();
@@ -326,7 +319,7 @@ geometryManager.waitForLoad().then(() => {
   };
   shapesMesh.visible = false;
   scene.add(shapesMesh);
-  uiManager.shapesMesh = shapesMesh;
+  uiManager.shapesMesh = shapesMesh; */
 
   /* const inventoryMesh = makeInventoryMesh(weaponsManager.cubeMesh, () => {});
   inventoryMesh.inventoryItemsMesh = _makeInventoryItemsMesh();
@@ -352,7 +345,7 @@ geometryManager.waitForLoad().then(() => {
   scene.add(inventoryMesh);
   uiManager.inventoryMesh = inventoryMesh; */
 
-  let selectedColors;
+  /* let selectedColors;
   const colorsMesh = makeColorsMesh(weaponsManager.cubeMesh, colors, newSelectedColors => {
     selectedColors = newSelectedColors;
     shapesMesh.inventoryShapesMesh.setColors(selectedColors);
@@ -360,9 +353,9 @@ geometryManager.waitForLoad().then(() => {
   });
   colorsMesh.visible = false;
   scene.add(colorsMesh);
-  uiManager.colorsMesh = colorsMesh;
+  uiManager.colorsMesh = colorsMesh; */
 
-  const menuMesh = makeMenuMesh(weaponsManager.cubeMesh, onclickBindings);
+  /* const menuMesh = makeMenuMesh(weaponsManager.cubeMesh, onclickBindings);
   menuMesh.visible = false;
   menuMesh.toggleOpen = () => {
     uiManager.menuMesh.visible = !uiManager.menuMesh.visible;
@@ -374,7 +367,7 @@ geometryManager.waitForLoad().then(() => {
     }
   };
   scene.add(menuMesh);
-  uiManager.menuMesh = menuMesh;
+  uiManager.menuMesh = menuMesh; */
 
   const _bakeAndUploadComposerMesh = async () => {
     const mesh = meshComposer.commit();
@@ -398,7 +391,7 @@ geometryManager.waitForLoad().then(() => {
     const {hash} = await inventory.uploadFile(arrayBuffer);
     return {mesh, hash};
   };
-  const detailsMesh = makeDetailsMesh(weaponsManager.cubeMesh, function onrun(anchorSpec) {
+  /* const detailsMesh = makeDetailsMesh(weaponsManager.cubeMesh, function onrun(anchorSpec) {
     meshComposer.run();
   }, async function onbake(anchorSpec) {
     const {mesh, hash} = await _bakeAndUploadComposerMesh();
@@ -418,18 +411,15 @@ geometryManager.waitForLoad().then(() => {
     world.removeObject(detailsMesh.target);
 
     detailsMesh.visible = false;
-
-    /* meshComposer.cancel();
-    detailsMesh.visible = false; */
   }, function onclose() {
     detailsMesh.visible = false;
   });
   detailsMesh.visible = false;
   detailsMesh.target = null;
   scene.add(detailsMesh);
-  uiManager.detailsMesh = detailsMesh;
+  uiManager.detailsMesh = detailsMesh; */
 
-  const tradeMesh = makeTradeMesh(weaponsManager.cubeMesh, function ontrade(ftAmount) {
+  /* const tradeMesh = makeTradeMesh(weaponsManager.cubeMesh, function ontrade(ftAmount) {
     loginManager.sendFt(loginManager.getAddress(), ftAmount); // XXX
   }, function onclose() {
     tradeMesh.visible = false;
@@ -437,14 +427,14 @@ geometryManager.waitForLoad().then(() => {
   tradeMesh.visible = false;
   tradeMesh.target = null;
   scene.add(tradeMesh);
-  uiManager.tradeMesh = tradeMesh;
+  uiManager.tradeMesh = tradeMesh; */
 
   const popupMesh = makePopupMesh();
   popupMesh.visible = false;
   scene.add(popupMesh);
   uiManager.popupMesh = popupMesh;
 
-  uiManager.toolMenuMeshes = [
+  /* uiManager.toolMenuMeshes = [
     uiManager.buildsMesh,
     uiManager.thingsMesh,
     uiManager.shapesMesh,
@@ -459,7 +449,7 @@ geometryManager.waitForLoad().then(() => {
     uiManager.tradeMesh,
   ];
   uiManager.uiMeshes = uiManager.menuMeshes
-    .concat(uiManager.infoMeshes);
+    .concat(uiManager.infoMeshes); */
 
   /* uiManager.toolsMesh = makeToolsMesh(weaponsManager.weapons.map(weapon => weapon.getAttribute('weapon')), newSelectedWeapon => {
     weaponsManager.setWeapon(newSelectedWeapon);

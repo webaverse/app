@@ -120,12 +120,12 @@ async function tryLogin() {
       <div class=login-error id=login-error></div>
     </div>
     <div class="phase-content phase-1-content">
-      <input type=text placeholder="Email or key" id=login-email>
+      <input type=text placeholder="Email or key" autocomplete="off" id=login-email>
       <input type=submit value="Log in" class="button highlight">
       <input type=button value="Cancel" class="button highlight" id=login-cancel>
     </div>
     <div class="phase-content phase-2-content">
-      <input type=text placeholder="Verification code" id=login-verification-code>
+      <input type=text placeholder="Verification code" autocomplete="off" id=login-verification-code>
       <input type=submit value="Verify" class="button highlight">
     </div>
     <div class="phase-content phase-3-content">
@@ -358,10 +358,11 @@ class LoginManager extends EventTarget {
   } */
 
   getAddress() {
-    if (loginToken.mnemonic) {
+    if (loginToken.address) {
+      return loginToken.address;
+    } else if (loginToken.mnemonic) {
       const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
-      const address = wallet.getAddressString();
-      return address;
+      loginToken.address = wallet.getAddressString();
     } else {
       return null;
     }
@@ -372,6 +373,10 @@ class LoginManager extends EventTarget {
 
   getAvatar() {
     return userObject && userObject.avatar;
+  }
+
+  getAvatarPreview() {
+    return userObject && userObject.avatar.preview;
   }
 
   async setAvatar(id) {
@@ -553,7 +558,33 @@ class LoginManager extends EventTarget {
           const j = await res.json();
           hash = j.hash;
         }
+        const description = '';
+        const quantity = 1;
+        const fullAmount = {
+          t: 'uint256',
+          v: new web3['sidechain'].utils.BN(1e9)
+            .mul(new web3['sidechain'].utils.BN(1e9))
+            .mul(new web3['sidechain'].utils.BN(1e9)),
+        };
+
+        let status, transactionHash, tokenId;
         {
+          const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['sidechain']['NFT']._address, fullAmount.v);
+          status = result.status;
+          transactionHash = '0x0';
+          tokenId = -1;
+        }
+        if (status) {
+          const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', addr, '0x' + hash, name, description, quantity);
+          status = result.status;
+          transactionHash = result.transactionHash;
+          tokenId = new web3['sidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
+        }
+        return {
+          hash,
+          id,
+        };
+        /* {
           const contractSource = await getContractSource('mintNft.cdc');
 
           const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
@@ -582,7 +613,7 @@ class LoginManager extends EventTarget {
                 id,
               };
           }
-        }
+        } */
       } else {
         throw new Error('file has no name');
       }

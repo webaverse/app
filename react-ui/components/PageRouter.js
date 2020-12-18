@@ -1,28 +1,34 @@
+import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { Router } from '../web_modules/@reach/router.js';
+
+import CreatorProfilePage from './CreatorProfilePage.js';
 import CreatorsPage from './CreatorsPage.js';
 import Gallery from './GalleryPage.js';
+import LoginGateway from './LoginGateway.js';
 import MintPage from './MintPage.js';
 import MyProfile from './MyProfilePage.js';
-import CreatorProfilePage from './CreatorProfilePage.js';
+import NavBar from './NavBar.js';
 import NotFoundPage from './NotFoundPage.js';
-import Router, { Route } from '../web_modules/react-es-router.js';
+import Settings from './SettingsPage.js';
 
 export const PageRouter = () => {
-  const myProfile = html`<${MyProfile} />`;
-  const gallery = html`<${Gallery} />`;
-  const mint = html`<${MintPage} />`;
-  const creators = html`<${CreatorsPage} />`;
-  const creatorProfile = html`<${CreatorProfilePage} />`;
-  const notFound = html`<${NotFoundPage} />`;
   return html`
-  <${Router}>
-    <${Route} path="/" component=${myProfile} />
-    <${Route} path="/profile" component=${myProfile} />
-    <${Route} path="/gallery" component=${gallery} />
-    <${Route} path="/mint" component=${mint} />
-    <${Route} path="/creators" component=${creators} />
-    <${Route} path="/creator" component=${creatorProfile} />
-    <${Route} path="/notFound" component=${notFound} />
-    <${Route} path="*" component=${notFound} />
-  </${Router}>
+  <${React.Fragment}>
+  <${NavBar} />
+  <${Router} >
+    <${MyProfile} path="${window.locationSubdirectory}/"/>
+      <${MyProfile} path="${window.locationSubdirectory}/profile/:view"/>
+      <${Settings} path="${window.locationSubdirectory}/settings" />
+      <${Gallery} path="${window.locationSubdirectory}/gallery" />
+      <${MintPage} path="${window.locationSubdirectory}/mint" />
+      <${CreatorsPage} path="${window.locationSubdirectory}/creators" />
+      <${CreatorProfilePage} path="${window.locationSubdirectory}/creator" />
+      <${CreatorProfilePage} path="${window.locationSubdirectory}/creator/:address" />
+      <${CreatorProfilePage} path="${window.locationSubdirectory}/creator/:address/:view" />
+      <${LoginGateway} path="${window.locationSubdirectory}/gateway" />
+      <${NotFoundPage} path="${window.locationSubdirectory}/*" />
+    </${Router}>
+  </${React.Fragment}>
+
   `;
 };

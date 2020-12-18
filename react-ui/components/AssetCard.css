@@ -1,4 +1,3 @@
-
 img {
     width: 100%;
     height: 100%;
@@ -6,37 +5,64 @@ img {
 }
 
 &.card {
-    background-color: #ffffff;
+    background-color: transparent;
     width: 16em;
-    height: 24em;
+    height: 26em;
     display: flex;
     flex-direction: column;
-    padding:2em;
+    margin: 2em;
 }
 
 .upperCardInfo {
-    background: #AAAAAA;
+    background: linear-gradient(90deg, #00C02A 34.8%, #003C02 100%);
+    border-radius: 10px 10px 0px 0px;
     display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .upperCardInfoLeft {
-    background: #999999;
-
+    padding-left: 1em;
 }
 
 .upperCardInfoRight {
-    background: #888888;
-
+    display: flex;
+    padding-right: 1em;
+    align-items: center;
 }
 
 .cardAssetName {
-    background: #777777;
-
+    color: white;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 1em;
 }
 
 .networkType {
-    background: #666666;
+    color: white;
+    width: 1.4em;
+    height: 1.4em;
+}
 
+.itemType {
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 2.5em;
+    padding-left: 0.3em;
+}
+
+.itemTypeIcon {
+    align-self: center;
+    width: 1.3em;
+    height: 1.3em;
+}
+
+.itemTypeExt {
+    line-height: 1.2em;
+    font-size: 0.65em;
+    text-transform: uppercase;
 }
 
 .assetImage {
@@ -46,22 +72,39 @@ img {
 }
 
 .lowerCardInfo {
-    background: #444444;
-
+    background: transparent;
+    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 }
 
-.lowerCardInfoTop {
-    background: #333333;
+.lowerCardInfoTop { 
+    background: linear-gradient(90deg, #00C02A 34.8%, #003C02 100%);
+    display: flex;
+    justify-content: space-between;
+    padding: 0.1em 0.5em 0.1em 0;
+    position: relative;
+}
 
+.lowerCardInfoTopLeft {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 67%;
+}
+
+.lowerCardInfoTopLeftGroup {
+    display: flex;
+    position: absolute;
+    top: 0.35em; 
 }
 
 .creator {
-    background: #222222;
+    background-color: white;
+    padding-left: 0.5em;
 }
 
 .creatorIcon img {
-    width: 1em;
-    height: 1em;
+    width: 1.3em;
+    height: 1.3em;
     border-radius: 50%;
 }
 
@@ -71,59 +114,101 @@ img {
 }
 
 .owner {
-    background: #555555;
+    padding-left: 0.1em;
+    padding-right: 0.5em;
+    background-color: white;
 }
 
 .ownerIcon img {
-    width: 1em;
-    height: 1em;
+    width: 1.3em;
+    height: 1.3em;
     border-radius: 50%;
 }
 
 .ownerName {
     background: #777777;
     display: none;
+}
 
+.arrow-down {
+    background-color: transparent;
+    width:0; 
+    height:0; 
+    border-right: 1.2em solid transparent;
+    border-top: 1.2em solid transparent;
+    border-left: 1.2em solid white;
+    border-bottom: 1.2em solid white;
+}
+
+.lowerCardInfoTopClear {
+    width: 3em;
+    height: 1em;
 }
 
 .edition {
-    background: #888888;
+    color: white;
+    font-weight: 700;
+    font-size: 0.8em;
 }
 
 .greaseLoadedIntoAsset {
-    background: #999999;
+    color: white;
 }
 
 .lowerCardInfoMiddle {
-    background: #AAAAAA;
+    display: flex;
+    justify-content: center;
+    background: white;
 }
 
 .assetDescription {
-    width:12em;
-    background: #CCCCCC;
-    font-size: .5em;
+    width: 80%;
+    height: 6em;
+    padding: 1.4em 2em 2em 2em;
+    background: white;
+    font-size: .7em;
+    font-weight: 300;
+    font-style: italic;
     word-wrap: break-word;
 }
 
 .lowerCardInfoBottom {
-    background: #DDDDDD;
+    background: white;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 0.3em;
+    border-radius: 0px 0px 10px 10px;
 }
 
 .assetHash {
-    background: #CCCCCC;
     font-size: .4em;
 }
 
-.card.small {
+&.card.small {
+    width: 12em;
+    height: 19em;
+    padding: 1em;
+}
+
+&.card.medium {
 
 }
 
-.card.medium {
+&.card.large {
+    width: 22em;
+    height: 35em;
+}
+
+.upperCardInfo.small {
+    border-radius: 9px 9px 0px 0px;
+}
+
+.upperCardInfo.medium {
 
 }
 
-.card.large {
-
+.upperCardInfo.large {
+    border-radius: 11px 11px 0px 0px;
 }
 
 .upperCardInfo.image {
@@ -139,7 +224,8 @@ img {
 }
 
 .upperCardInfoLeft.small {
-
+    padding-left: 0.75em;
+    padding-bottom: 0.2em;
 }
 
 .upperCardInfoLeft.medium {
@@ -147,12 +233,12 @@ img {
 }
 
 .upperCardInfoLeft.large {
-
+    padding-left: 1em;
 }
 
 
 .upperCardInfoRight.small {
-
+    padding-right: 0.75em;
 }
 
 .upperCardInfoRight.medium {
@@ -160,11 +246,12 @@ img {
 }
 
 .upperCardInfoRight.large {
-
+    padding-right: 1em;
 }
 
 .cardAssetName.small {
-
+    font-size: 0.70em;
+    font-weight: 500;
 }
 
 .cardAssetName.medium {
@@ -172,11 +259,12 @@ img {
 }
 
 .cardAssetName.large {
-
+    font-size: 1.1em;
 }
 
 .networkType.small {
-
+    width: 0.9em;
+    height: 0.9em;
 }
 
 .networkType.medium {
@@ -184,11 +272,53 @@ img {
 }
 
 .networkType.large {
+    width: 1.5em;
+    height: 1.5em;
+}
+
+.itemType.small {
+    height: 1.8em;
+}
+
+.itemType.medium {
+    
+}
+
+.itemType.large {
+    height: 2.7em;
+    padding-left: 0.5em;
+}
+
+.itemTypeIcon.small {
+    width: 0.9em;
+    height: 0.9em;
+}
+
+.itemTypeIcon.medium {
 
 }
 
-.assetImage.small {
+.itemTypeIcon.large {
+    width: 1.3em;
+    height: 1.3em;
+}
 
+.itemTypeExt.small {
+    display: none;
+}
+
+.itemTypeExt.medium {
+
+}
+
+.itemTypeExt.large {
+    line-height: 1.5em;
+    font-size: 0.7em;
+}
+
+.assetImage.small {
+    width: 12em;
+    height: 10.5em;
 }
 
 .assetImage.medium {
@@ -196,7 +326,8 @@ img {
 }
 
 .assetImage.large {
-
+    height: 19em;
+    width: 22em;
 }
 .lowerCardInfo.small {
 
@@ -210,7 +341,7 @@ img {
 
 }
 .lowerCardInfoTop.small {
-
+    padding: 0.05em 0.5em 0.05em 0;
 }
 
 .lowerCardInfoTop.medium {
@@ -218,10 +349,23 @@ img {
 }
 
 .lowerCardInfoTop.large {
+    padding: 0.2em 0.5em 0.2em 0;
+}
+
+.lowerCardInfoTopLeft.small {
 
 }
-.creator.small {
 
+.lowerCardInfoTopLeft.medium {
+
+}
+
+.lowerCardInfoTopLeft.large {
+    width: 55%;
+}
+
+.creator.small {
+    padding-left: 0.35em;
 }
 
 .creator.medium {
@@ -231,16 +375,19 @@ img {
 .creator.large {
 
 }
-.creatorIcon.small {
+
+.creatorIcon.small img {
+    width: 1em;
+    height: 1em;
+}
+
+.creatorIcon.medium img {
 
 }
 
-.creatorIcon.medium {
-
-}
-
-.creatorIcon.large {
-
+.creatorIcon.large img {
+    width: 1.8em;
+    height: 1.8em;
 }
 
 .creatorName.small {
@@ -264,19 +411,21 @@ img {
 }
 
 .owner.large {
+    padding-right: 0.9em;
+}
+
+.ownerIcon.small img {
+    width: 1em;
+    height: 1em;
+}
+
+.ownerIcon.medium img {
 
 }
 
-.ownerIcon.small {
-
-}
-
-.ownerIcon.medium {
-
-}
-
-.ownerIcon.large {
-
+.ownerIcon.large img {
+    width: 1.8em;
+    height: 1.8em;
 }
 
 .ownerName.small {
@@ -291,8 +440,30 @@ img {
 
 }
 
-.edition.small {
+.arrow-down.small {
+    border-right: 0.75em solid transparent;
+    border-top: 0.75em solid transparent;
+    border-left: 0.75em solid white;
+    border-bottom: 0.75em solid white;
+}
 
+.arrow-down.medium {
+    border-right: 1.2em solid transparent;
+    border-top: 1.2em solid transparent;
+    border-left: 1.2em solid white;
+    border-bottom: 1.2em solid white;
+}
+
+.arrow-down.large {
+    border-right: 1.5em solid transparent;
+    border-top: 1.5em solid transparent;
+    border-left: 1.5em solid white;
+    border-bottom: 1.5em solid white;
+}
+
+.edition.small {
+    font-size: 0.65em;
+    font-weight: 400;
 }
 
 .edition.medium {
@@ -300,11 +471,13 @@ img {
 }
 
 .edition.large {
-
+    font-size: 1em;
+    font-weight: 600;
 }
 
 .greaseLoadedIntoAsset.small {
-
+    font-weight: 300;
+    font-size: 0.7em;
 }
 
 .greaseLoadedIntoAsset.medium {
@@ -325,7 +498,8 @@ img {
 
 
 .assetDescription.small {
-
+    height: 5em;
+    font-size: 0.6em;
 }
 
 .assetDescription.medium {
@@ -333,12 +507,15 @@ img {
 }
 
 .assetDescription.large {
-
+    height: 10em;
+    font-size: 0.8em;
+    font-weight: 400;
+    padding-top: 2.5em;
 }
 
 
 .lowerCardInfoBottom.small {
-
+    border-radius: 0px 0px 9px 9px;
 }
 
 .lowerCardInfoBottom.medium {
@@ -350,7 +527,8 @@ img {
 }
 
 .assetHash.small {
-
+    font-size: 0.1em;
+    display:none;
 }
 
 .assetHash.medium {
@@ -358,5 +536,101 @@ img {
 }
 
 .assetHash.large {
+    font-size: 0.6em;
+}
 
+/* color schemes */
+.upperCardInfo.scheme-1 {
+    background: linear-gradient(90deg, #E10000 34.8%, #7A0101 100%);
+}
+
+.upperCardInfo.scheme-2 {
+    background: linear-gradient(90deg, #0500FF 34.8%, #010041 100%);
+}
+
+.upperCardInfo.scheme-3 {
+    background: linear-gradient(90deg, #00CE21 34.8%, #00560E 100%);
+}
+
+.upperCardInfo.scheme-4 {
+    background: linear-gradient(90deg, #FFC700 34.8%, #665000 100%);
+}
+
+.upperCardInfo.scheme-5 {
+    background: linear-gradient(90deg, #00B3DB 34.8%, #003743 100%);
+}
+
+.upperCardInfo.scheme-6 {
+    background: linear-gradient(90deg, #AD00EA 34.8%, #32002D 100%);
+}
+
+.upperCardInfo.scheme-7 {
+    background: linear-gradient(90deg, #FF7043 34.8%, #532212 100%);
+}
+
+.upperCardInfo.scheme-8 {
+    background: linear-gradient(90deg, #00FFC2 34.8%, #00372A 100%);
+}
+
+.upperCardInfo.scheme-9 {
+    background: linear-gradient(90deg, #EFC1FF 34.8%, #5D3B69 100%);
+}
+
+.upperCardInfo.scheme-10 {
+    background: linear-gradient(90deg, #83B4FF 34.8%, #002459 100%);
+}
+
+.upperCardInfo.scheme-11 {
+    background: linear-gradient(90deg, #FFD9A0 34.8%, #645134 100%);
+}
+.upperCardInfo.scheme-12 {
+    background: linear-gradient(90deg, #DCDCDC 34.8%, #373737 100%);
+}
+
+.lowerCardInfoTop.scheme-1 {
+    background: linear-gradient(90deg, #E10000 34.8%, #7A0101 100%);
+}
+
+.lowerCardInfoTop.scheme-2 {
+    background: linear-gradient(90deg, #0500FF 34.8%, #010041 100%);
+}
+
+.lowerCardInfoTop.scheme-3 {
+    background: linear-gradient(90deg, #00CE21 34.8%, #00560E 100%);
+}
+
+.lowerCardInfoTop.scheme-4 {
+    background: linear-gradient(90deg, #FFC700 34.8%, #665000 100%);
+}
+
+.lowerCardInfoTop.scheme-5 {
+    background: linear-gradient(90deg, #00B3DB 34.8%, #003743 100%);
+}
+
+.lowerCardInfoTop.scheme-6 {
+    background: linear-gradient(90deg, #AD00EA 34.8%, #32002D 100%);
+}
+
+.lowerCardInfoTop.scheme-7 {
+    background: linear-gradient(90deg, #FF7043 34.8%, #532212 100%);
+}
+
+.lowerCardInfoTop.scheme-8 {
+    background: linear-gradient(90deg, #00FFC2 34.8%, #00372A 100%);
+}
+
+.lowerCardInfoTop.scheme-9 {
+    background: linear-gradient(90deg, #EFC1FF 34.8%, #5D3B69 100%);
+}
+
+.lowerCardInfoTop.scheme-10 {
+    background: linear-gradient(90deg, #83B4FF 34.8%, #002459 100%);
+}
+
+.lowerCardInfoTop.scheme-11 {
+    background: linear-gradient(90deg, #FFD9A0 34.8%, #645134 100%);
+}
+
+.lowerCardInfoTop.scheme-12 {
+    background: linear-gradient(90deg, #DCDCDC 34.8%, #373737 100%);
 }

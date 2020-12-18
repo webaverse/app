@@ -1,35 +1,203 @@
-.assetDetails {
+& {
+    position: fixed;
+    margin: 0;
+    background-color: transparent;
+    z-index: 2;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
 
+&.assetDetails {
+    display: flex;
+    flex-direction: row;
+}
+
+.cardItem {
+    margin: 0;
 }
 
 .assetDetailsLeftColumn {
-
+    
 }
 
 .assetDetailsRightColumn {
-
+    width: 15em;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin-left: 1em;
 }
 
-.assetDetailsRightColumnHeader {
-
-}
-
-.assetDetailsRightColumnBody {
-
+.detailsBlock {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #FF7043;
+    padding-left: 0.5em;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
 }
 
 .assetDetailsButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    outline: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    text-transform: uppercase;
+    color: white;
+    padding: 0.5em;
+}
+
+.assetSubmitButton {
+    width: 11em;
+    height: 2.5em;
+    background-color: #525252;
+    padding: 0px;
+    border-radius: 5px;
+    color: white;
+    font-size: 0.8em;
+}
+
+.assetSubmitButtonSmall {
+    width: 7em;
+}
+
+.detailsBlockSet {
 
 }
 
-.assetDetailsRightColumnBody {
-
+.detailsBlockEdit {
+    margin-top: 1em;
 }
 
-.assetDetailsRightColumnFooter {
-
+.detailsBlockCancelCell {
+    margin-top: 1em;
 }
 
-.assetDetailsFooterButton {
+.detailsBlockSell {
+    margin-top: 1em;
+}
 
+.sellInputDropdown {
+    display: flex;
+    flex-direction: column;
+    width: 13.5em;
+}
+
+.sellInputLine {
+    display: flex;
+    align-items: center;
+    height: 2em;
+    width: 100%;
+    justify-content: space-between;
+    padding-left: 0.5em; 
+}
+
+.sellInputLine input {
+    width: 3.5em;
+    height: 2em;
+    border-radius: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.39);
+    margin-left: 1em;
+    margin-right: 0.5em;
+}
+
+.sellInputLine span {
+    font-size: 0.8em;
+    font-weight: 400;
+    color: white;
+}
+
+.sellConfirmLine {
+    margin-top: 1.5em;
+    display: flex;
+    justify-content: space-between;
+    padding-left: 1em;
+}
+
+.detailsBlockOnSale {
+    margin-top: 1em;
+}
+
+.onSaleWarning {
+    color: white;
+    text-transform: uppercase;
+    font-size: 1em;
+}
+
+.detailsBlockTransferTo {
+    margin-top: 1em;
+}
+
+.transferToDropdown {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.transferToDropdown span {
+    color: white;
+    margin-bottom: 1em;
+    align-self: flex-start;
+    padding-left: 0.5em;
+}
+
+.transferToDropdown div {
+    margin-bottom: 2em;
+    align-self: flex-start;
+}
+
+.Accordion {
+    width: 100%;
+    margin-top: 0.5em;
+}
+
+.accordionTitle {
+    display: flex;
+    justify-content: space-between;
+    padding-left: 0.5em;
+    padding-right: 1em;
+}
+
+.accordionTitleValue {
+    color: white;
+    text-transform: uppercase;
+    font-size: 17px;
+    font-weight: 400;
+}
+
+.accordionIcon {
+    width: 1em;
+    height: 1em;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10.59 0L6 4.58L1.41 0L0 1.41L6 7.41L12 1.41L10.59 0Z' fill='white'/%3E%3C/svg%3E ");
+    background-repeat: no-repeat;
+    background-position: bottom;
+    cursor: pointer;
+    transition: ease-in-out 0.2s;
+}
+
+.reverse {
+    transform: rotate(180deg);
+}
+
+.accordionDropdown {
+    display: flex;
+    justify-content: center;
+    margin-top: 1em;
+}
+
+.assetDetailsCloseButton {
+    position: absolute;
+    top: -3em;
+    right: -1.5em;
+    background-image: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M14 1.41L12.59 0L7 5.59L1.41 0L0 1.41L5.59 7L0 12.59L1.41 14L7 8.41L12.59 14L14 12.59L8.41 7L14 1.41Z' fill='white'/%3E%3C/svg%3E ");
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 2em;
+    height: 2em;
+    background-color: #FF7043;
 }

@@ -1,17 +1,21 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
+import {BufferGeometryUtils} from './BufferGeometryUtils.js';
+// import {MeshLine, MeshLineMaterial} from './MeshLine.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
-import {makePromise, WaitQueue} from './util.js';
-import {renderer, scene, appManager} from './app-object.js';
+import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
+import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
+import physicsManager from './physics-manager.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
+const localEuler2 = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
@@ -31,14 +35,80 @@ class RigManager {
 
     this.localRig.avatarUrl = null;
 
-    this.localRig.textMesh = makeTextMesh('Anonymous', undefined, 0.2, 'center', 'middle');
+    this.localRig.textMesh = makeTextMesh('Anonymous', undefined, 0.15, 'center', 'middle');
+    {
+      const geometry = new THREE.CircleBufferGeometry(0.1, 32);
+      const img = new Image();
+      img.src = `https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg`;
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        texture.needsUpdate = true;
+      };
+      img.onerror = err => {
+        console.warn(err.stack);
+      };
+      const texture = new THREE.Texture(img);
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+      });
+      const avatarMesh = new THREE.Mesh(geometry, material);
+      avatarMesh.position.x = -0.5;
+      avatarMesh.position.y = -0.02;
+      this.localRig.textMesh.add(avatarMesh);
+    }
+    {
+      const w = 1;
+      const h = 0.15;
+      const roundedRectShape = new THREE.Shape();
+      ( function roundedRect( ctx, x, y, width, height, radius ) {
+        ctx.moveTo( x, y + radius );
+        ctx.lineTo( x, y + height - radius );
+        ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
+        /* ctx.lineTo( x + radius + indentWidth, y + height );
+        ctx.lineTo( x + radius + indentWidth + indentHeight, y + height - indentHeight );
+        ctx.lineTo( x + width - radius - indentWidth - indentHeight, y + height - indentHeight );
+        ctx.lineTo( x + width - radius - indentWidth, y + height ); */
+        ctx.lineTo( x + width - radius, y + height );
+        ctx.quadraticCurveTo( x + width, y + height, x + width, y + height - radius );
+        ctx.lineTo( x + width, y + radius );
+        ctx.quadraticCurveTo( x + width, y, x + width - radius, y );
+        ctx.lineTo( x + radius, y );
+        ctx.quadraticCurveTo( x, y, x, y + radius );
+      } )( roundedRectShape, 0, 0, w, h, h/2 );
+
+      const extrudeSettings = {
+        steps: 2,
+        depth: 0,
+        bevelEnabled: false,
+        /* bevelEnabled: true,
+        bevelThickness: 0,
+        bevelSize: 0,
+        bevelOffset: 0,
+        bevelSegments: 0, */
+      };
+      const geometry = BufferGeometryUtils.mergeBufferGeometries([
+        new THREE.CircleBufferGeometry(0.13, 32)
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -0.02, -0.01)).toNonIndexed(),
+        new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.02)),
+      ]);
+      const material2 = new THREE.LineBasicMaterial({
+        color: 0xFFFFFF,
+        transparent: true,
+        opacity: 0.5,
+        side: THREE.DoubleSide,
+      });
+      const nametagMesh2 = new THREE.Mesh(geometry, material2);
+      this.localRig.textMesh.add(nametagMesh2);
+    }
     this.scene.add(this.localRig.textMesh);
 
     this.localRigMatrix = new THREE.Matrix4();
     this.localRigMatrixEnabled = false;
-
-    // this.localRigQueue = new WaitQueue();
-    // this.peerRigQueue = new WaitQueue();
+    
+    this.lastPosition = new THREE.Vector3();
+    this.smoothVelocity = new THREE.Vector3();
 
     this.peerRigs = new Map();
   }
@@ -57,6 +127,34 @@ class RigManager {
     this.localRig.textMesh.sync();
   }
 
+  setLocalAvatarImage(avatarImage) {
+    if (this.localRig.textMesh.avatarMesh) {
+      this.localRig.textMesh.remove(this.localRig.textMesh.avatarMesh);
+    }
+    const geometry = new THREE.CircleBufferGeometry(0.1, 32);
+    const img = new Image();
+    img.src = avatarImage;
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      texture.needsUpdate = true;
+    };
+    img.onerror = err => {
+      console.warn(err.stack);
+    };
+    const texture = new THREE.Texture(img);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+    });
+
+    const avatarMesh = new THREE.Mesh(geometry, material);
+    avatarMesh.position.x = -0.5;
+    avatarMesh.position.y = -0.02;
+
+    this.localRig.textMesh.avatarMesh = avatarMesh;
+    this.localRig.textMesh.add(avatarMesh);
+  }
+
   async setLocalAvatarUrl(url, filename) {
     // await this.localRigQueue.lock();
 
@@ -73,14 +171,15 @@ class RigManager {
 
       let o;
       if (url) {
-        const res = await fetch(url);
-        const blob = await res.blob();
-        blob.name = filename;
-        o = await runtime.loadFile(blob);
+        o = await runtime.loadFile({
+          url,
+          name: filename,
+        });
+        o.run && o.run();
       }
 
       if (oldRig.url === url) {
-        this.scene.remove(oldRig.model);
+        oldRig.model.parent.remove(oldRig.model);
 
         let localRig;
         if (o) {
@@ -94,9 +193,9 @@ class RigManager {
           } else {
             localRig = new Avatar();
             localRig.model = o;
-            localRig.inputs.hmd = localRig.model;
             localRig.update = () => {
-              // nothing
+              localRig.model.position.copy(localRig.inputs.hmd.position);
+              localRig.model.quaternion.copy(localRig.inputs.hmd.quaternion);
             };
           }
         } else {
@@ -107,7 +206,7 @@ class RigManager {
             debug: true,
           });
         }
-        this.scene.add(localRig.model);
+        scene.add(localRig.model);
         localRig.textMesh = oldRig.textMesh;
         localRig.avatarUrl = oldRig.url;
         localRig.rigCapsule = oldRig.rigCapsule;
@@ -150,8 +249,8 @@ class RigManager {
 
   async removePeerRig(peerId) {
     const peerRig = this.peerRigs.get(peerId);
-    this.scene.remove(peerRig.model);
-    this.scene.remove(peerRig.textMesh);
+    peerRig.model.parent.remove(peerRig.model);
+    peerRig.textMesh.parent.remove(peerRig.textMesh);
     this.peerRigs.delete(peerId);
   }
 
@@ -186,23 +285,43 @@ class RigManager {
     const leftGamepadQuaternion = this.localRig.inputs.leftGamepad.quaternion.toArray();
     const leftGamepadPointer = this.localRig.inputs.leftGamepad.pointer;
     const leftGamepadGrip = this.localRig.inputs.leftGamepad.grip;
+    const leftGamepadEnabled = this.localRig.inputs.leftGamepad.enabled;
 
     const rightGamepadPosition = this.localRig.inputs.rightGamepad.position.toArray();
     const rightGamepadQuaternion = this.localRig.inputs.rightGamepad.quaternion.toArray();
     const rightGamepadPointer = this.localRig.inputs.rightGamepad.pointer;
     const rightGamepadGrip = this.localRig.inputs.rightGamepad.grip;
+    const rightGamepadEnabled = this.localRig.inputs.rightGamepad.enabled;
 
     const floorHeight = this.localRig.getFloorHeight();
+    const topEnabled = this.localRig.getTopEnabled();
+    const bottomEnabled = this.localRig.getBottomEnabled();
+    const direction = this.localRig.direction.toArray();
+    const velocity = this.localRig.velocity.toArray();
+    const {
+      jumpState,
+      jumpStartTime,
+      flyState,
+      flyStartTime,
+    } = this.localRig;
 
     return [
       [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
       floorHeight,
+      topEnabled,
+      bottomEnabled,
+      direction,
+      velocity,
+      jumpState,
+      jumpStartTime,
+      flyState,
+      flyStartTime,
     ];
   }
 
-  getPeerAvatarPose(peerId) {
+  /* getPeerAvatarPose(peerId) {
     const peerRig = this.peerRigs.get(peerId);
 
     const hmdPosition = peerRig.inputs.hmd.position.toArray();
@@ -219,20 +338,24 @@ class RigManager {
     const rightGamepadGrip = peerRig.inputs.rightGamepad.grip;
 
     const floorHeight = peerRig.getFloorHeight();
+    const topEnabled = peerRig.getTopEnabled();
+    const bottomEnabled = peerRig.getBottomEnabled();
 
     return [
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
       floorHeight,
+      topEnabled,
+      bottomEnabled,
     ];
-  }
+  } */
 
   setLocalAvatarPose(poseArray) {
     const [
       [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ] = poseArray;
 
     this.localRig.inputs.hmd.position.fromArray(hmdPosition);
@@ -242,18 +365,18 @@ class RigManager {
     this.localRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
     this.localRig.inputs.leftGamepad.pointer = leftGamepadPointer;
     this.localRig.inputs.leftGamepad.grip = leftGamepadGrip;
+    this.localRig.inputs.leftGamepad.enabled = leftGamepadEnabled;
 
     this.localRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
     this.localRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
     this.localRig.inputs.rightGamepad.pointer = rightGamepadPointer;
     this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
+    this.localRig.inputs.rightGamepad.enabled = rightGamepadEnabled;
 
     this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
     this.localRig.textMesh.position.y += 0.5;
     this.localRig.textMesh.quaternion.copy(this.localRig.inputs.hmd.quaternion);
-    localEuler.setFromQuaternion(this.localRig.textMesh.quaternion, 'YXZ');
-    localEuler.x = 0;
-    localEuler.y += Math.PI;
+    localEuler.setFromQuaternion(camera.quaternion, 'YXZ');
     localEuler.z = 0;
     this.localRig.textMesh.quaternion.setFromEuler(localEuler);
   }
@@ -261,9 +384,17 @@ class RigManager {
   setPeerAvatarPose(poseArray, peerId) {
     const [
       [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
-      floorHeight
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
+      floorHeight,
+      topEnabled,
+      bottomEnabled,
+      direction,
+      velocity,
+      jumpState,
+      jumpStartTime,
+      flyState,
+      flyStartTime,
     ] = poseArray;
 
     const peerRig = this.peerRigs.get(peerId);
@@ -283,6 +414,14 @@ class RigManager {
       peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
 
       peerRig.setFloorHeight(floorHeight);
+      peerRig.setTopEnabled(topEnabled);
+      peerRig.setBottomEnabled(bottomEnabled);
+      peerRig.direction.fromArray(direction);
+      peerRig.velocity.fromArray(velocity);
+      peerRig.jumpState = jumpState;
+      peerRig.jumpStartTime = jumpStartTime;
+      peerRig.flyState = flyState;
+      peerRig.flyStartTime = flyStartTime;
 
       peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
       peerRig.textMesh.position.y += 0.5;
@@ -353,17 +492,40 @@ class RigManager {
   }
 
   update() {
+    const session = renderer.xr.getSession();
+    let currentPosition, currentQuaternion;
+    if (!session) {
+      currentPosition = this.localRig.inputs.hmd.position;
+      currentQuaternion = this.localRig.inputs.hmd.quaternion;
+    } else {
+      currentPosition = localVector.copy(dolly.position).multiplyScalar(4);
+      currentQuaternion = this.localRig.inputs.hmd.quaternion;
+    }
+    const positionDiff = localVector2.copy(this.lastPosition)
+      .sub(currentPosition)
+      .multiplyScalar(10);
+    localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    localEuler.y += Math.PI;
+    localEuler2.set(-localEuler.x, -localEuler.y, -localEuler.z, localEuler.order);
+    positionDiff.applyEuler(localEuler2);
+    this.smoothVelocity.lerp(positionDiff, 0.5);
+    this.lastPosition.copy(currentPosition);
+
+    this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || !!appManager.grabbedObjects[0] || physicsManager.getGlideState());
+    this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
+    this.localRig.direction.copy(positionDiff);
+    this.localRig.velocity.copy(this.smoothVelocity);
+    this.localRig.jumpState = physicsManager.getJumpState();
+    this.localRig.jumpStartTime = physicsManager.getJumpStartTime();
+    this.localRig.flyState = physicsManager.getFlyState();
+    this.localRig.flyStartTime = physicsManager.getFlyStartTime();
     this.localRig.update();
     this.peerRigs.forEach(rig => {
       rig.update();
     });
 
-    if (/^(?:camera|firstperson)$/.test(cameraManager.getTool()) || !!renderer.xr.getSession()) {
-      rigManager.localRig.decapitate();
-    } else {
-      rigManager.localRig.undecapitate();
-    }
-    
     /* for (let i = 0; i < appManager.grabs.length; i++) {
       const grab = appManager.grabs[i === 0 ? 1 : 0];
       if (grab) {

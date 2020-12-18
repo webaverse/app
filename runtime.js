@@ -6,9 +6,10 @@ import {MeshoptDecoder} from './meshopt_decoder.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {VOXLoader} from './VOXLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
-import {getExt, mergeMeshes} from './util.js';
+import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 // import {bake} from './bakeUtils.js';
 // import geometryManager from './geometry-manager.js';
+import geometryTool from './geometry-tool.js';
 import {rigManager} from './rig.js';
 import {makeIconMesh, makeTextMesh} from './vr-ui.js';
 import {renderer, scene2, appManager} from './app-object.js';
@@ -29,8 +30,6 @@ runtime.injectDependencies = (newGeometryManager, newPhysicsManager, newWorld) =
   world = newWorld;
 };
 
-let nextPhysicsId = 0;
-
 const textDecoder = new TextDecoder();
 const gltfLoader = new GLTFLoader();
 gltfLoader.setMeshoptDecoder(MeshoptDecoder);
@@ -47,6 +46,7 @@ const importMap = {
   world: _importMapUrl('./world.js'),
   runtime: _importMapUrl('./runtime.js'),
   physicsManager: _importMapUrl('./physics-manager.js'),
+  rig: _importMapUrl('./rig.js'),
   vrUi: _importMapUrl('./vr-ui.js'),
   crypto: _importMapUrl('./crypto.js'),
   BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
@@ -56,17 +56,26 @@ const importMap = {
 const _clone = o => JSON.parse(JSON.stringify(o));
 
 // const thingFiles = {};
-const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false} = {}) => {
-  const u = file.url || URL.createObjectURL(file);
+const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, files = null, parentUrl = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  }
+
   let o;
   try {
     o = await new Promise((accept, reject) => {
-      gltfLoader.load(u, accept, function onprogress() {}, reject);
+      gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
     });
   } catch(err) {
     console.warn(err);
   } finally {
-    URL.revokeObjectURL(u);
+    if (/^blob:/.test(srcUrl)) {
+      URL.revokeObjectURL(srcUrl);
+    }
   }
   o = o.scene;
 
@@ -108,47 +117,34 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       return o;
     }
   })();
-  
+
+  let physicsMesh = null;
+  let physicsBuffer = null;
+  let physicsIds = [];
   if (physics) {
-    mesh.updateMatrixWorld();
-    
-    const meshes = [];
-    mesh.traverse(o => {
-      if (o.isMesh) {
-        meshes.push(o);
-      }
-    });
-    for (const mesh of meshes) {
-      const {geometry} = mesh;
-      const newGeometry = new THREE.BufferGeometry();
-
-      if (geometry.attributes.position.isInterleavedBufferAttribute) {
-        const positions = new Float32Array(geometry.attributes.position.count * 3);
-        for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
-          localVector
-            .fromArray(geometry.attributes.position.data.array, j)
-            .applyMatrix4(mesh.matrixWorld)
-            .toArray(positions, i);
-        }
-        newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      } else {
-        newGeometry.setAttribute('position', geometry.attribute.position);
-      }
-      
-      if (geometry.index) {
-        newGeometry.setIndex(geometry.index);
-      }
-
-      const newMesh = new THREE.Mesh(newGeometry);
-      physicsManager.addGeometry(newMesh);
-    }
+    physicsMesh = convertMeshToPhysicsMesh(mesh);
   }
   if (physics_url) {
     const res = await fetch(physics_url);
-    let physicsBuffer = await res.arrayBuffer();
-    physicsBuffer = new Uint8Array(physicsBuffer);
-    physicsBuffers.push(physicsBuffer);
+    const arrayBuffer = await res.arrayBuffer();
+    physicsBuffer = new Uint8Array(arrayBuffer);
   }
+
+  mesh.run = () => {
+    if (physicsMesh) {
+      physicsIds.push(physicsManager.addGeometry(physicsMesh));
+    }
+    if (physicsBuffer) {
+      physicsIds.push(physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion));
+    }
+  };
+  mesh.destroy = () => {
+    for (const physicsId of physicsIds) {
+      physicsManager.removeGeometry(physicsId);
+    }
+    physicsIds.length = 0;
+  };
+  mesh.getPhysicsIds = () => physicsIds;
   
   return mesh;
 
@@ -244,17 +240,26 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       }, console.warn);
   } */
 };
-const _loadVrm = async file => {
-  const u = file.url || URL.createObjectURL(file);
+const _loadVrm = async (file, {files = null, parentUrl = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  }
+
   let o;
   try {
     o = await new Promise((accept, reject) => {
-      gltfLoader.load(u, accept, function onprogress() {}, reject);
+      gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
     });
   } catch(err) {
     console.warn(err);
   } finally {
-    URL.revokeObjectURL(u);
+    if (/^blob:/.test(srcUrl)) {
+      URL.revokeObjectURL(srcUrl);
+    }
   }
   o.scene.raw = o;
   o = o.scene;
@@ -268,19 +273,24 @@ const _loadVrm = async file => {
   };
   return o;
 };
-const _loadVox = async file => {
-  const u = URL.createObjectURL(file);
+const _loadVox = async (file, {files = null, parentUrl = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  }
+
   let o;
   try {
     o = await new Promise((accept, reject) => {
       new VOXLoader({
         scale: 0.01,
-      }).load(u, accept, function onprogress() {}, reject);
+      }).load(srcUrl, accept, function onprogress() {}, reject);
     });
   } catch(err) {
     console.warn(err);
-  } finally {
-    URL.revokeObjectURL(u);
   }
   return o;
 };
@@ -327,6 +337,7 @@ const _loadImg = async file => {
     side: THREE.DoubleSide,
     vertexColors: true,
     transparent: true,
+    alphaTest: 0.5,
   });
   /* const material = meshComposer.material.clone();
   material.uniforms.map.value = texture;
@@ -338,33 +349,101 @@ const _loadImg = async file => {
 };
 const _makeAppUrl = appId => {
   const s = `\
-    import {renderer as _renderer, scene, camera, orbitControls, appManager} from ${JSON.stringify(importMap.app)};
+    import {renderer as _renderer, scene, camera, appManager} from ${JSON.stringify(importMap.app)};
+    import * as THREE from ${JSON.stringify(importMap.three)};
     import runtime from ${JSON.stringify(importMap.runtime)};
     import {world} from ${JSON.stringify(importMap.world)};
-    import physics from ${JSON.stringify(importMap.physicsManager)};
+    import _physics from ${JSON.stringify(importMap.physicsManager)};
+    import {rigManager} from ${JSON.stringify(importMap.rig)};
     import * as ui from ${JSON.stringify(importMap.vrUi)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
+
     const renderer = Object.create(_renderer);
     renderer.setAnimationLoop = function(fn) {
       appManager.setAnimationLoop(${appId}, fn);
     };
+
+    const physics = {};
+    for (const k in _physics) {
+      physics[k] = _physics[k];
+    }
+    const localVector = new THREE.Vector3();
+    const localVector2 = new THREE.Vector3();
+    const localQuaternion = new THREE.Quaternion();
+    const localMatrix = new THREE.Matrix4();
+    const localMatrix2 = new THREE.Matrix4();
+    physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
+      localMatrix
+        .compose(position, quaternion, localVector2.set(1, 1, 1))
+        .premultiply(app.object.matrixWorld)
+        .decompose(localVector, localQuaternion, localVector2);
+      position = localVector;
+      quaternion = localQuaternion;
+      return addBoxGeometry.call(this, position, quaternion, size, dynamic); // XXX align this
+    })(physics.addBoxGeometry);
+    physics.addGeometry = (addGeometry => function(mesh) {
+      return addGeometry.apply(this, arguments);
+    })(physics.addGeometry);
+    physics.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion) {
+      return addCookedGeometry.apply(this, arguments);
+    })(physics.addCookedGeometry);
+    physics.addConvexGeometry = (addConvexGeometry => function(mesh) {
+      return addConvexGeometry.apply(this, arguments);
+    })(physics.addConvexGeometry);
+    physics.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion) {
+      return addCookedConvexGeometry.apply(this, arguments);
+    })(physics.addCookedConvexGeometry);
+    physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
+      const transform = getPhysicsTransform.apply(this, arguments);
+      const {position, quaternion} = transform;
+      localMatrix
+        .compose(position, quaternion, localVector2.set(1, 1, 1))
+        .premultiply(localMatrix2.copy(app.object.matrixWorld).invert())
+        .decompose(position, quaternion, localVector2);
+      return transform;
+    })(physics.getPhysicsTransform);
+    physics.setPhysicsTransform = (setPhysicsTransform => function(physicsId, position, quaternion) {
+      localMatrix
+        .compose(position, quaternion, localVector2.set(1, 1, 1))
+        .premultiply(app.object.matrixWorld)
+        .decompose(localVector, localQuaternion, localVector2);
+      position = localVector;
+      quaternion = localQuaternion;
+      return setPhysicsTransform.call(this, physicsId, position, quaternion);
+    })(physics.setPhysicsTransform);
+
     const app = appManager.getApp(${appId});
-    export {renderer, scene, camera, orbitControls, runtime, world, physics, ui, crypto, app, appManager};
+    let recursion = 0;
+    app.onBeforeRender = () => {
+      recursion++;
+      if (recursion === 1) {
+        scene.directionalLight.castShadow = false;
+        rigManager.localRig.model.visible = true;
+      }
+    };
+    app.onAfterRender = () => {
+      recursion--;
+      if (recursion === 0) {
+        scene.directionalLight.castShadow = true;
+        rigManager.localRig.model.visible = false;
+      }
+    };
+    export {renderer, scene, camera, runtime, world, physics, ui, crypto, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
   });
   return URL.createObjectURL(b);
 };
-const _loadScript = async file => {
+const _loadScript = async (file, {files = null, parentUrl = null} = {}) => {
   const appId = ++appIds;
-  const mesh = new THREE.Object3D(); // makeIconMesh();
-  mesh.geometry = new THREE.BufferGeometry();
+  const mesh = new THREE.Object3D();
+  /* mesh.geometry = new THREE.BufferGeometry();
   mesh.geometry.boundingBox = new THREE.Box3(
     new THREE.Vector3(-1, -1/2, -0.1),
     new THREE.Vector3(1, 1/2, 0.1),
   );
-  mesh.frustumCulled = false;
+  mesh.frustumCulled = false; */
   mesh.run = () => {
     import(u)
       .then(() => {
@@ -386,7 +465,7 @@ const _loadScript = async file => {
   app.object = mesh;
   const localImportMap = _clone(importMap);
   localImportMap.app = _makeAppUrl(appId);
-  app.files = new Proxy({}, {
+  app.files = files || new Proxy({}, {
     get(target, p) {
       return new URL(p, srcUrl).href;
     },
@@ -428,7 +507,11 @@ const _loadScript = async file => {
     const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
       let u = match[2];
       if (/^\.+\//.test(u)) {
-        u = new URL(u, scriptUrl).href;
+        if (files) {
+          u = files[u];
+        } else {
+          u = new URL(u, scriptUrl).href;
+        }
       }
       return await _mapUrl(u);
     }));
@@ -440,100 +523,165 @@ const _loadScript = async file => {
   };
 
   let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
   if (/^\.+\//.test(srcUrl)) {
-    srcUrl = new URL(srcUrl, location.href).href;
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
   }
   const u = await _mapUrl(srcUrl);
 
   return mesh;
 };
-let appIds = 0;
-const _loadWebBundle = async file => {
-  const arrayBuffer = await new Promise((accept, reject) => {
-    const fr = new FileReader();
-    fr.onload = function() {
-      accept(this.result);
+const _loadManifestJson = async (file, {files = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, location.href).href;
+  }
+
+  const res = await fetch(srcUrl);
+  const j = await res.json();
+  let {start_url, physics, physics_url} = j;
+  const u = './' + start_url;
+
+  if (/\.js$/.test(u)) {
+    return await _loadScript({
+      url: u,
+      name: u,
+    }, {
+      files,
+      parentUrl: srcUrl,
+    });
+
+    /* const appId = ++appIds;
+    const mesh = new THREE.Object3D();
+    mesh.geometry = new THREE.BufferGeometry();
+    mesh.geometry.boundingBox = new THREE.Box3(
+      new THREE.Vector3(-1, -1/2, -0.1),
+      new THREE.Vector3(1, 1/2, 0.1),
+    );
+    mesh.frustumCulled = false;
+    mesh.run = () => {
+      import(u)
+        .then(() => {
+          // console.log('import returned');
+        }, err => {
+          console.warn('import failed', u, err);
+        })
+        .finally(() => {
+          for (const u of cachedUrls) {
+            URL.revokeObjectURL(u);
+          }
+        });
     };
-    fr.onerror = reject;
-    fr.readAsArrayBuffer(file);
-  });
+    mesh.destroy = () => {
+      appManager.destroyApp(appId);
+    };
 
-  const appId = ++appIds;
-  const mesh = makeIconMesh();
-  mesh.geometry.boundingBox = new THREE.Box3(
-    new THREE.Vector3(-1, -1/2, -0.1),
-    new THREE.Vector3(1, 1/2, 0.1),
-  );
-  mesh.frustumCulled = false;
-  mesh.run = () => {
-    import(u)
-      .then(() => {
-        console.log('import returned');
-      }, err => {
-        console.warn('import failed', u, err);
-      })
-      .finally(() => {
-        for (const u of cachedUrls) {
-          URL.revokeObjectURL(u);
-        }
-      });
-  };
-  mesh.destroy = () => {
-    appManager.destroyApp(appId);
-  };
+    const app = appManager.createApp(appId);
+    app.object = mesh;
+    const localImportMap = _clone(importMap);
+    localImportMap.app = _makeAppUrl(appId);
+    app.files = new Proxy({}, {
+      get(target, p) {
+        return new URL(p, srcUrl).href;
+      },
+    });
 
-  const app = appManager.createApp(appId);
-  app.object = mesh;
-  const localImportMap = _clone(importMap);
-  localImportMap.app = _makeAppUrl(appId);
-
-  const cachedUrls = [];
-  const _getUrl = u => {
-    const mappedUrl = URL.createObjectURL(new Blob([u], {
-      type: 'text/javascript',
-    }));
-    cachedUrls.push(mappedUrl);
-    return mappedUrl;
-  };
-  const urlCache = {};
-  const _mapUrl = u => {
-    const importUrl = localImportMap[u];
-    if (importUrl) {
-      return importUrl;
-    } else {
-      const cachedUrl = urlCache[u];
-      if (cachedUrl) {
-        return cachedUrl;
+    const cachedUrls = [];
+    const _getUrl = u => {
+      const mappedUrl = URL.createObjectURL(new Blob([u], {
+        type: 'text/javascript',
+      }));
+      cachedUrls.push(mappedUrl);
+      return mappedUrl;
+    };
+    const urlCache = {};
+    const _mapUrl = async u => {
+      const importUrl = localImportMap[u];
+      if (importUrl) {
+        return importUrl;
       } else {
-        const importUrl = new URL(u, 'https://xrpackage.org/').href;
-        let importResponse;
-        try {
-          importResponse = bundle.getResponse(importUrl);
-        } catch(err) {
-          console.warn(err);
-        }
-        if (importResponse) {
-          const importBody = importResponse.body;
-          let importScript = textDecoder.decode(importBody);
-          importScript = _mapScript(importScript);
-          const cachedUrl = _getUrl(importScript);
-          urlCache[u] = cachedUrl;
+        const cachedUrl = urlCache[u];
+        if (cachedUrl) {
           return cachedUrl;
         } else {
-          throw new Error('failed to find import url: ' + importUrl);
+          const res = await fetch(u);
+          if (res.ok) {
+            let importScript = await res.text();
+            importScript = await _mapScript(importScript, srcUrl);
+            const cachedUrl = _getUrl(importScript);
+            urlCache[u] = cachedUrl;
+            return cachedUrl;
+          } else {
+            throw new Error('failed to load import url: ' + u);
+          }
         }
       }
-    }
-  };
-  const _mapScript = script => {
-    const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
-    script = script.replace(r, function() {
-      const u = _mapUrl(arguments[2]);
-      return arguments[1] + u + arguments[3];
-    });
-    return script;
-  };
+    };
+    const _mapScript = async (script, scriptUrl) => {
+      const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
+      const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
+        let u = match[2];
+        if (/^\.+\//.test(u)) {
+          u = new URL(u, scriptUrl).href;
+        }
+        return await _mapUrl(u);
+      }));
+      let index = 0;
+      script = script.replace(r, function() {
+        return arguments[1] + replacements[index++] + arguments[3];
+      });
+      return script;
+    };
 
+    const u = await _mapUrl(srcUrl);
+
+    return mesh; */
+  } else {
+    if (physics_url) {
+      physics_url = './' + physics_url;
+
+      if (files) {
+        physics_url = files[physics_url];
+      }
+      if (/^\.+\//.test(physics_url)) {
+        physics_url = new URL(physics_url, srcUrl).href;
+      }
+    }
+
+    return await runtime.loadFile({
+      url: u,
+      name: u,
+    }, {
+      files,
+      parentUrl: srcUrl,
+      physics,
+      physics_url,
+    });
+  }
+};
+let appIds = 0;
+const _loadWebBundle = async file => {
+  let arrayBuffer;
+  if (file.url) {
+    const res = await fetch(file.url);
+    arrayBuffer = await res.arrayBuffer();
+  } else {
+    arrayBuffer = await new Promise((accept, reject) => {
+      const fr = new FileReader();
+      fr.onload = function() {
+        accept(this.result);
+      };
+      fr.onerror = reject;
+      fr.readAsArrayBuffer(file);
+    });
+  }
+
+  const files = {};
   const bundle = new wbn.Bundle(arrayBuffer);
   const {urls} = bundle;
   for (const u of urls) {
@@ -545,11 +693,15 @@ const _loadWebBundle = async file => {
     });
     const blobUrl = URL.createObjectURL(b);
     const {pathname} = new URL(u);
-    app.files[pathname] = blobUrl;
+    files['.' + pathname] = blobUrl;
   }
-  const u = _mapUrl(bundle.primaryURL);
-
-  return mesh;
+  const u = './manifest.json';
+  return await runtime.loadFile({
+    url: u,
+    name: u,
+  }, {
+    files,
+  });
 };
 const _loadScn = async (file, opts) => {
   let srcUrl = file.url || URL.createObjectURL(file);
@@ -562,27 +714,29 @@ const _loadScn = async (file, opts) => {
   const {objects} = j;
   
   const scene = new THREE.Object3D();
-  const physicsBuffers = [];
-  let physicsIds = [];
+  /* const physicsBuffers = [];
+  let physicsIds = []; */
 
-  for (const object of objects) {
+  const promises = objects.map(async object => {
     let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, filename, content, physics_url = null, optimize = false, physics = false} = object;
     const parentId = null;
     position = new THREE.Vector3().fromArray(position);
     quaternion = new THREE.Quaternion().fromArray(quaternion);
+    scale = new THREE.Vector3().fromArray(scale);
     if (start_url) {
       start_url = new URL(start_url, srcUrl).href;
+      filename = start_url;
     } else if (filename && content) {
       const blob = new Blob([content], {
         type: 'application/octet-stream',
       });
       start_url = URL.createObjectURL(blob);
-      start_url += '/' + filename;
+      // start_url += '/' + filename;
     } else {
       console.warn('cannot load contentless object', object);
-      continue;
+      return;
     }
-    if (physics_url) {
+    /* if (physics_url) {
       physics_url = new URL(physics_url, srcUrl).href;
     }
 
@@ -590,37 +744,31 @@ const _loadScn = async (file, opts) => {
       optimize,
       physics,
       physics_url,
-    });
+    }); */
 
-    /* const mesh = await runtime.loadFile({
+    const mesh = await runtime.loadFile({
       url: start_url,
-      name: start_url,
+      name: filename,
     }, {
       optimize,
       physics,
+      physics_url,
     });
-    mesh.position.fromArray(position);
-    mesh.quaternion.fromArray(quaternion);
-    mesh.scale.fromArray(scale);
-    scene.add(mesh); */
-  }
+    mesh.position.copy(position);
+    mesh.quaternion.copy(quaternion);
+    mesh.scale.copy(scale);
+    scene.add(mesh);
+  });
+  await Promise.all(promises);
   scene.run = () => {
     for (const child of scene.children) {
       child.run && child.run();
     }
-    physicsIds = physicsBuffers.map(physicsBuffer => {
-      const physicsId = ++nextPhysicsId;
-      geometryManager.geometryWorker.addCookedGeometryPhysics(geometryManager.physics, physicsBuffer, new THREE.Vector3(), new THREE.Quaternion(), physicsId);
-    });
   };
   scene.destroy = () => {
     for (const child of scene.children) {
       child.destroy && child.destroy();
     }
-    for (const physicsId of physicsIds) {
-      geometryManager.geometryWorker.removeGeometryPhysics(geometryManager.physics, physicsId);
-    }
-    physicsIds.length = 0;
   };
   return scene;
 };
@@ -632,6 +780,7 @@ const _loadLink = async file => {
   } else {
     href = await file.text();
   }
+  href = href.replace(/^([\S]*)/, '$1');
 
   const geometry = new THREE.CircleBufferGeometry(1, 32)
     .applyMatrix4(new THREE.Matrix4().makeScale(0.5, 1, 1))
@@ -749,6 +898,7 @@ const _loadIframe = async (file, opts) => {
   } else {
     href = await file.text();
   }
+  href = href.replace(/^([\S]*)/, '$1');
 
   const width = 600;
   const height = 400;
@@ -795,6 +945,46 @@ const _loadIframe = async (file, opts) => {
   
   return object2;
 };
+const _loadMediaStream = async (file, opts) => {
+  let spec;
+  if (file.url) {
+    const res = await fetch(file.url);
+    spec = await res.json();
+  } else {
+    spec = await file.json();
+  }
+
+  const object = new THREE.Mesh(
+    new THREE.PlaneBufferGeometry(1, 1),
+    new THREE.MeshBasicMaterial({
+      color: 0xFFFFFF,
+    }),
+  );
+  
+  return object;
+};
+
+const _loadAudio = async (file, opts) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  
+  const audio = document.createElement('audio');
+  audio.src = srcUrl;
+  audio.loop = true;
+
+  const object = new THREE.Object3D();
+  object.run = () => {
+    audio.play();
+  };
+  object.destroy = () => {
+    audio.pause();
+  };
+  return object;
+};
+
+const _loadGeo = async (file, opts) => {
+  const object = geometryTool.makeShapeMesh();
+  return object;
+};
 
 runtime.loadFile = async (file, opts) => {
   switch (getExt(file.name)) {
@@ -816,6 +1006,9 @@ runtime.loadFile = async (file, opts) => {
     case 'js': {
       return await _loadScript(file, opts);
     }
+    case 'json': {
+      return await _loadManifestJson(file, opts);
+    }
     case 'wbn': {
       return await _loadWebBundle(file, opts);
     }
@@ -828,8 +1021,14 @@ runtime.loadFile = async (file, opts) => {
     case 'iframe': {
       return await _loadIframe(file, opts);
     }
+    case 'mediastream': {
+      return await _loadMediaStream(file, opts);
+    }
+    case 'geo': {
+      return await _loadGeo(file, opts);
+    }
     case 'mp3': {
-      throw new Error('audio not implemented');
+      return await _loadAudio(file, opts);
     }
     case 'video': {
       throw new Error('video not implemented');

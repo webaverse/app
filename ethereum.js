@@ -138,23 +138,23 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       await contracts.main.FT.methods.mint(address, ftAmount.v).send({
         from: address,
       });
-      console.log('minted');
+      // console.log('minted');
       
       // deposit on main
       const receipt0 = await contracts.main.FT.methods.approve(FTProxyAddress, ftAmount.v).send({
         from: address,
       });
-      console.log('got sig 1', receipt0);
+      // console.log('got sig 1', receipt0);
       const receipt = await contracts.main.FTProxy.methods.deposit(sidechainAddress, ftAmount.v).send({
         from: address,
       });
-      console.log('got sig 2', receipt);
+      // console.log('got sig 2', receipt);
 
       const signature = await getTransactionSignature('main', 'FT', receipt.transactionHash);
       const {amount, timestamp, r, s, v} = signature;
 
       // withdraw receipt signature on sidechain
-      console.log('run withdraw', [sidechainAddress, amount, timestamp, r, s, v]);
+      // console.log('run withdraw', [sidechainAddress, amount, timestamp, r, s, v]);
       const receipt2 = await runSidechainTransaction('FTProxy', 'withdraw', sidechainAddress, amount, timestamp, r, s, v);
       
       console.log('FT OK');
@@ -625,7 +625,7 @@ const discordOauthUrl = `https://discord.com/api/oauth2/authorize?client_id=6841
       };
       const hash = {
         t: 'uint256',
-        v: '0x' + web3['main'].utils.padLeft(j.hash, 32),
+        v: '0x' + web3['main'].utils.padLeft(j.hash, 64),
       };
       const count = {
         t: 'uint256',

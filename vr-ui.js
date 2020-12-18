@@ -539,7 +539,7 @@ const makeRigCapsule = () => {
 const uiSize = 2048;
 const uiWorldSize = 0.4;
 
-const uiRenderer = (() => {
+/* const uiRenderer = (() => {
   const loadPromise = Promise.all([
     new Promise((accept, reject) => {
       const iframe = document.createElement('iframe');
@@ -563,14 +563,7 @@ const uiRenderer = (() => {
   let renderIds = 0;
   return {
     async render(htmlString, width, height) {
-      const [iframe/*, interfaceHtml */] = await loadPromise;
-
-      /* if (renderIds > 0) {
-        iframe.contentWindow.postMessage({
-          method: 'cancel',
-          id: renderIds,
-        }, '*');
-      } */
+      const [iframe] = await loadPromise;
 
       const start = Date.now();
       const mc = new MessageChannel();
@@ -602,7 +595,7 @@ const uiRenderer = (() => {
       return result;
     },
   };
-})();
+})(); */
 
 const _makeHtmlString = (label, tiles) => {
   const index = 0;
