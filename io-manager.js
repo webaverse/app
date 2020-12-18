@@ -360,11 +360,11 @@ window.addEventListener('keydown', e => {
       document.getElementById('key-r').click();
       break;
     }
-    case 88: { // X
+    case 67: { // C
       // pe.grabdown('right');
       e.preventDefault();
       e.stopPropagation();
-      document.getElementById('key-x').dispatchEvent(new KeyboardEvent('keydown', {
+      document.getElementById('key-c').dispatchEvent(new KeyboardEvent('click', {
         which: e.which,
         shiftKey: e.shiftKey,
         ctrlKey: e.ctrlKey,
@@ -373,6 +373,9 @@ window.addEventListener('keydown', e => {
       }));
       break;
     }
+    /* case 88: { // X
+      break
+    } */
     /* case 86: { // V
       if (!_inputFocused()) {
         e.preventDefault();
