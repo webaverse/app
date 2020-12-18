@@ -575,8 +575,8 @@ const _updateWeapons = timeDiff => {
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
         const {point} = collision;
-        _snap(localVector.fromArray(point), 1);
-        deployMesh.position.copy(localVector)
+        // _snap(localVector.fromArray(point), 1);
+        deployMesh.position.fromArray(point)
           .add(localVector2.set(0, 0.01, 0));
         localEuler.setFromQuaternion(quaternion, 'YXZ');
         localEuler.x = 0;
