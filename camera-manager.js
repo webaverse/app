@@ -70,34 +70,30 @@ const cameraModes = [
   'birdseye',
 ];
 let selectedTool = cameraModes[0];
-const cameraButton = document.getElementById('key-x');
-['click', 'keydown'].forEach(event => {
-  cameraButton.addEventListener(event, async e => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const index = cameraModes.indexOf(selectedTool);
-    let nextIndex;
-    if (!e.shiftKey) {
-      nextIndex = (index + 1) % cameraModes.length;
-    } else {
-      nextIndex = index - 1;
-      if (nextIndex <= 0) {
-        nextIndex = cameraModes.length - 1;
-      }
+const switchCamera = e => {
+  const index = cameraModes.indexOf(selectedTool);
+  let nextIndex;
+  if (!e.shiftKey) {
+    nextIndex = (index + 1) % cameraModes.length;
+  } else {
+    nextIndex = index - 1;
+    if (nextIndex <= 0) {
+      nextIndex = cameraModes.length - 1;
     }
-    if (index === 0 || nextIndex === 0) {
-      nextIndex = 1;
-    }
+  }
+  if (index === 0 || nextIndex === 0) {
+    nextIndex = 1;
+  }
 
-    const newSelectedTool = cameraModes[nextIndex];
-    selectTool(newSelectedTool);
+  const newSelectedTool = cameraModes[nextIndex];
+  selectTool(newSelectedTool);
 
-    /* if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
-      await requestPointerLock();
-    } */
-  });
-});
+  /* if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
+    await requestPointerLock();
+  } */
+};
+const cameraButton = document.getElementById('key-c');
+cameraButton.addEventListener('click', switchCamera);
 /* for (let i = 0; i < tools.length; i++) {
   const tool = tools[i]
   tool.addEventListener('click', async e => {
@@ -245,6 +241,7 @@ const cameraManager = {
   getTool() {
     return selectedTool;
   },
+  switchCamera,
   selectTool,
 };
 export default cameraManager;
