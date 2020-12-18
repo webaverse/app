@@ -1181,8 +1181,10 @@ const _updateMenu = () => {
   locationIcon.classList.toggle('highlight', false);
   profileIcon.classList.toggle('open', false);
   itemIcon.classList.toggle('open', false);
+  itemMonetizedIcon.classList.toggle('open', false);
   grabIcon.classList.toggle('open', false);
   editIcon.classList.toggle('open', false);
+
 
   deployMesh.visible = false;
 
@@ -1276,6 +1278,9 @@ const _updateMenu = () => {
     lastSelectedBuild = -1;
     lastCameraFocus = -1;
   } else if (highlightedObject) {
+    if (document.monetization.state == 'started') {
+      itemMonetizedIcon.classList.toggle('open', true);
+    }
     itemIcon.classList.toggle('open', true);
     itemLabel.innerText = 'lightsaber';
 
@@ -1316,6 +1321,7 @@ const editLabel = document.getElementById('edit-label');
 const locationIcon = document.getElementById('location-icon');
 const profileIcon = document.getElementById('profile-icon');
 const itemIcon = document.getElementById('item-icon');
+const itemMonetizedIcon = document.getElementById('item-monetized-icon');
 const grabIcon = document.getElementById('grab-icon');
 const editIcon = document.getElementById('edit-icon');
 const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
