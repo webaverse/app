@@ -363,6 +363,7 @@ class LoginManager extends EventTarget {
     } else if (loginToken.mnemonic) {
       const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
       loginToken.address = wallet.getAddressString();
+      return loginToken.address;
     } else {
       return null;
     }
@@ -547,7 +548,8 @@ class LoginManager extends EventTarget {
     if (loginToken) {
       const {name} = file;
       if (name) {
-        const {mnemonic, addr} = loginToken;
+        const {mnemonic} = loginToken;
+        const address = this.getAddress();
 
         let hash;
         {
@@ -575,7 +577,7 @@ class LoginManager extends EventTarget {
           tokenId = -1;
         }
         if (status) {
-          const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', addr, '0x' + hash, name, description, quantity);
+          const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, name, description, quantity);
           status = result.status;
           transactionHash = result.transactionHash;
           tokenId = new web3['sidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
