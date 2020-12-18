@@ -5,7 +5,7 @@ import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
-import {renderer, scene, camera, dolly, appManager} from './app-object.js';
+import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
@@ -96,7 +96,7 @@ class RigManager {
       const material2 = new THREE.LineBasicMaterial({
         color: 0xFFFFFF,
         transparent: true,
-        opacity: 0.1,
+        opacity: 0.5,
         side: THREE.DoubleSide,
       });
       const nametagMesh2 = new THREE.Mesh(geometry, material2);
@@ -127,6 +127,34 @@ class RigManager {
     this.localRig.textMesh.sync();
   }
 
+  setLocalAvatarImage(avatarImage) {
+    if (this.localRig.textMesh.avatarMesh) {
+      this.localRig.textMesh.remove(this.localRig.textMesh.avatarMesh);
+    }
+    const geometry = new THREE.CircleBufferGeometry(0.1, 32);
+    const img = new Image();
+    img.src = avatarImage;
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      texture.needsUpdate = true;
+    };
+    img.onerror = err => {
+      console.warn(err.stack);
+    };
+    const texture = new THREE.Texture(img);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+    });
+
+    const avatarMesh = new THREE.Mesh(geometry, material);
+    avatarMesh.position.x = -0.5;
+    avatarMesh.position.y = -0.02;
+
+    this.localRig.textMesh.avatarMesh = avatarMesh;
+    this.localRig.textMesh.add(avatarMesh);
+  }
+
   async setLocalAvatarUrl(url, filename) {
     // await this.localRigQueue.lock();
 
@@ -143,10 +171,11 @@ class RigManager {
 
       let o;
       if (url) {
-        const res = await fetch(url);
-        const blob = await res.blob();
-        blob.name = filename;
-        o = await runtime.loadFile(blob);
+        o = await runtime.loadFile({
+          url,
+          name: filename,
+        });
+        o.run && o.run();
       }
 
       if (oldRig.url === url) {
@@ -159,14 +188,14 @@ class RigManager {
               fingers: true,
               hair: true,
               visemes: true,
-              debug: true //!o,
+              debug: false //!o,
             });
           } else {
             localRig = new Avatar();
             localRig.model = o;
-            localRig.inputs.hmd = localRig.model;
             localRig.update = () => {
-              // nothing
+              localRig.model.position.copy(localRig.inputs.hmd.position);
+              localRig.model.quaternion.copy(localRig.inputs.hmd.quaternion);
             };
           }
         } else {
@@ -256,23 +285,43 @@ class RigManager {
     const leftGamepadQuaternion = this.localRig.inputs.leftGamepad.quaternion.toArray();
     const leftGamepadPointer = this.localRig.inputs.leftGamepad.pointer;
     const leftGamepadGrip = this.localRig.inputs.leftGamepad.grip;
+    const leftGamepadEnabled = this.localRig.inputs.leftGamepad.enabled;
 
     const rightGamepadPosition = this.localRig.inputs.rightGamepad.position.toArray();
     const rightGamepadQuaternion = this.localRig.inputs.rightGamepad.quaternion.toArray();
     const rightGamepadPointer = this.localRig.inputs.rightGamepad.pointer;
     const rightGamepadGrip = this.localRig.inputs.rightGamepad.grip;
+    const rightGamepadEnabled = this.localRig.inputs.rightGamepad.enabled;
 
     const floorHeight = this.localRig.getFloorHeight();
+    const topEnabled = this.localRig.getTopEnabled();
+    const bottomEnabled = this.localRig.getBottomEnabled();
+    const direction = this.localRig.direction.toArray();
+    const velocity = this.localRig.velocity.toArray();
+    const {
+      jumpState,
+      jumpStartTime,
+      flyState,
+      flyStartTime,
+    } = this.localRig;
 
     return [
       [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
       floorHeight,
+      topEnabled,
+      bottomEnabled,
+      direction,
+      velocity,
+      jumpState,
+      jumpStartTime,
+      flyState,
+      flyStartTime,
     ];
   }
 
-  getPeerAvatarPose(peerId) {
+  /* getPeerAvatarPose(peerId) {
     const peerRig = this.peerRigs.get(peerId);
 
     const hmdPosition = peerRig.inputs.hmd.position.toArray();
@@ -289,20 +338,24 @@ class RigManager {
     const rightGamepadGrip = peerRig.inputs.rightGamepad.grip;
 
     const floorHeight = peerRig.getFloorHeight();
+    const topEnabled = peerRig.getTopEnabled();
+    const bottomEnabled = peerRig.getBottomEnabled();
 
     return [
       [hmdPosition, hmdQuaternion],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
       [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
       floorHeight,
+      topEnabled,
+      bottomEnabled,
     ];
-  }
+  } */
 
   setLocalAvatarPose(poseArray) {
     const [
       [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ] = poseArray;
 
     this.localRig.inputs.hmd.position.fromArray(hmdPosition);
@@ -312,11 +365,13 @@ class RigManager {
     this.localRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
     this.localRig.inputs.leftGamepad.pointer = leftGamepadPointer;
     this.localRig.inputs.leftGamepad.grip = leftGamepadGrip;
+    this.localRig.inputs.leftGamepad.enabled = leftGamepadEnabled;
 
     this.localRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
     this.localRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
     this.localRig.inputs.rightGamepad.pointer = rightGamepadPointer;
     this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
+    this.localRig.inputs.rightGamepad.enabled = rightGamepadEnabled;
 
     this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
     this.localRig.textMesh.position.y += 0.5;
@@ -329,9 +384,17 @@ class RigManager {
   setPeerAvatarPose(poseArray, peerId) {
     const [
       [hmdPosition, hmdQuaternion],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
-      floorHeight
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
+      floorHeight,
+      topEnabled,
+      bottomEnabled,
+      direction,
+      velocity,
+      jumpState,
+      jumpStartTime,
+      flyState,
+      flyStartTime,
     ] = poseArray;
 
     const peerRig = this.peerRigs.get(peerId);
@@ -351,6 +414,14 @@ class RigManager {
       peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
 
       peerRig.setFloorHeight(floorHeight);
+      peerRig.setTopEnabled(topEnabled);
+      peerRig.setBottomEnabled(bottomEnabled);
+      peerRig.direction.fromArray(direction);
+      peerRig.velocity.fromArray(velocity);
+      peerRig.jumpState = jumpState;
+      peerRig.jumpStartTime = jumpStartTime;
+      peerRig.flyState = flyState;
+      peerRig.flyStartTime = flyStartTime;
 
       peerRig.textMesh.position.copy(peerRig.inputs.hmd.position);
       peerRig.textMesh.position.y += 0.5;
@@ -442,7 +513,7 @@ class RigManager {
     this.smoothVelocity.lerp(positionDiff, 0.5);
     this.lastPosition.copy(currentPosition);
 
-    this.localRig.setTopEnabled(!!session || /^(?:firstperson|thirdperson)$/.test(cameraManager.getTool()) || physicsManager.getGlideState());
+    this.localRig.setTopEnabled((!!session && (this.localRig.inputs.leftGamepad.enabled || this.localRig.inputs.rightGamepad.enabled)) || !!appManager.grabbedObjects[0] || physicsManager.getGlideState());
     this.localRig.setBottomEnabled(this.localRig.getTopEnabled() && this.smoothVelocity.length() < 0.001 && !physicsManager.getFlyState());
     this.localRig.direction.copy(positionDiff);
     this.localRig.velocity.copy(this.smoothVelocity);

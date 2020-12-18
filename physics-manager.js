@@ -11,8 +11,8 @@ import {getNextPhysicsId} from './util.js';
 const leftQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0));
 
 const localVector = new THREE.Vector3();
-const localVector3 = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localVector5 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
@@ -20,11 +20,14 @@ const localQuaternion2 = new THREE.Quaternion();
 const localMatrix = new THREE.Matrix4();
 const localObject = new THREE.Object3D();
 
+const zeroVector = new THREE.Vector3(0, 0, 0);
+
 const physicsManager = new EventTarget();
 
 const velocity = new THREE.Vector3();
 physicsManager.velocity = velocity;
 
+// used for hookshot-style navigation
 const offset = new THREE.Vector3();
 physicsManager.offset = offset;
 
@@ -197,6 +200,40 @@ const _applyGravity = timeDiff => {
     physicsManager.velocity.y = _clampToTerminalVelocity(physicsManager.velocity.y);
   }
 };
+const _getAvatarWorldObject = o => {
+  const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+  o.matrix.copy(camera.matrixWorld)
+    // .premultiply(dolly.matrix)
+    .decompose(o.position, o.quaternion, o.scale);
+  return o;
+};
+physicsManager.getAvatarWorldObject = _getAvatarWorldObject;
+const _getAvatarCapsule = v => {
+  v.set(0, -rigManager.localRig.height/2, 0);
+  v.radius = 0.3;
+  v.halfHeight = Math.max(rigManager.localRig.height/2 - v.radius, 0);
+  return v;
+};
+physicsManager.getAvatarCapsule = _getAvatarCapsule;
+const _getAvatarCameraOffset = () => {
+  if (renderer.xr.getSession()) {
+    return zeroVector;
+  } else {
+    const selectedTool = cameraManager.getTool();
+    if (selectedTool === 'firstperson') {
+      return zeroVector;
+    } else if (selectedTool === 'thirdperson') {
+      return cameraManager.thirdPersonCameraOffset;
+    } else if (selectedTool === 'isometric') {
+      return cameraManager.isometricCameraOffset;
+    } else if (selectedTool === 'birdseye') {
+      return new THREE.Vector3(0, -cameraManager.birdsEyeHeight + cameraManager.getAvatarHeight(), 0);
+    } else {
+      return zeroVector;
+    }
+  }
+};
+physicsManager.getAvatarCameraOffset = _getAvatarCameraOffset;
 const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
   const oldVelocity = localVector3.copy(physicsManager.velocity);
 
@@ -207,11 +244,7 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
 
   camera.updateMatrixWorld();
   camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-  if (avatarOffset) {
-    localVector4.copy(avatarOffset);
-  } else {
-    localVector4.set(0, 0, 0);
-  }
+  localVector4.copy(avatarOffset);
   if (cameraBasedOffset) {
     localVector4.applyQuaternion(localQuaternion);
   }
@@ -255,16 +288,14 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
 
   _collideItems(localMatrix);
   // _collideChunk(localMatrix);
-  camera.updateMatrixWorld();
+  // camera.updateMatrixWorld();
 };
 const _collideCapsule = (() => {
   const localVector = new THREE.Vector3();
   return (p, q) => {
-    localVector.copy(p);
-    localVector.y -= rigManager.localRig.height/2;
-    const radius = 0.3;
-    const halfHeight = Math.max(rigManager.localRig.height/2 - radius, 0);
-    return geometryManager.geometryWorker.collidePhysics(geometryManager.physics, radius, halfHeight, localVector, q, 1);
+    _getAvatarCapsule(localVector);
+    localVector.add(p);
+    return geometryManager.geometryWorker.collidePhysics(geometryManager.physics, localVector.radius, localVector.halfHeight, localVector, q, 1);
   };
 })();
 const applyVelocity = (() => {
@@ -302,51 +333,54 @@ physicsManager.setGravity = g => {
   }
 };
 
+const _copyPQS = (dst, src) => {
+  dst.position.copy(src.position);
+  dst.quaternion.copy(src.quaternion);
+  dst.scale.copy(src.scale);
+};
 const _updatePhysics = timeDiff => {
-  const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+  const avatarWorldObject = _getAvatarWorldObject(localObject);
+  const avatarCameraOffset = _getAvatarCameraOffset();
+
   if (renderer.xr.getSession()) {
     _applyGravity(timeDiff);
 
     if (ioManager.currentWalked || jumpState) {
-      localObject.matrix.copy(xrCamera.matrix)
-        .premultiply(dolly.matrix)
-        .decompose(localObject.position, localObject.quaternion, localObject.scale);
-      const originalPosition = localObject.position.clone();
+      const originalPosition = avatarWorldObject.position.clone();
 
-      _applyAvatarPhysics(localObject, null, false, false, false, timeDiff);
+      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, false, false, timeDiff);
 
       dolly.position.add(
-        localObject.position.clone().sub(originalPosition)
+        avatarWorldObject.position.clone().sub(originalPosition)
       );
     } else {
       physicsManager.velocity.y = 0;
-      localMatrix.copy(xrCamera.matrix)
-        .premultiply(dolly.matrix);
-      _collideItems(localMatrix);
-      // _collideChunk(localMatrix);
+      _collideItems(avatarWorldObject.matrix);
+      // _collideChunk(avatarWorldObject.matrix);
       rigManager.setLocalRigMatrix(null);
     }
-  } else if (document.pointerLockElement) {
+  } else {
     _applyGravity(timeDiff);
 
     const selectedTool = cameraManager.getTool();
     if (selectedTool === 'firstperson') {
-      _applyAvatarPhysics(camera, null, false, false, false, timeDiff);
+      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, false, false, timeDiff);
+      _copyPQS(camera, avatarWorldObject);
+      camera.updateMatrixWorld();
     } else if (selectedTool === 'thirdperson') {
-      _applyAvatarPhysics(camera, cameraManager.avatarCameraOffset, true, false, true, timeDiff);
+      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
+      _copyPQS(camera, avatarWorldObject);
     } else if (selectedTool === 'isometric') {
-      _applyAvatarPhysics(camera, cameraManager.isometricCameraOffset, true, true, true, timeDiff);
+      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, true, true, timeDiff);
+      _copyPQS(camera, avatarWorldObject);
     } else if (selectedTool === 'birdseye') {
-      _applyAvatarPhysics(camera, new THREE.Vector3(0, -cameraManager.birdsEyeHeight + cameraManager.getAvatarHeight(), 0), false, true, true, timeDiff);
+      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, true, true, timeDiff);
+      _copyPQS(camera, avatarWorldObject);
     } else {
-      _collideItems(camera.matrix);
-      // _collideChunk(camera.matrix);
+      _collideItems(avatarWorldObject.matrix);
+      // _collideChunk(avatarWorldObject.matrix);
       rigManager.setLocalRigMatrix(null);
     }
-  } else {
-    _collideItems(camera.matrix);
-    // _collideChunk(camera.matrix);
-    rigManager.setLocalRigMatrix(null);
   }
 
   /* const _updateAnimals = () => {
@@ -358,7 +392,10 @@ const _updatePhysics = timeDiff => {
 };
 physicsManager.update = _updatePhysics;
 
-document.getElementById('key-f').addEventListener('click', () => {
+document.getElementById('key-f').addEventListener('click', e => {
+  e.preventDefault();
+  e.stopPropagation();
+
   physicsManager.setFlyState(!physicsManager.getFlyState());
 });
 

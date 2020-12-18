@@ -1,12 +1,12 @@
-import { React, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { React, useState, useEffect } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '../web_modules/htm.js';
 import AssetCard from './AssetCard.js'
 import AssetDetails from './AssetDetails.js'
 
 const html = htm.bind(React.createElement)
-import csz from '../web_modules/csz.js'
+import css from '../web_modules/csz.js'
 
-const styles = csz`/components/AssetCardGrid.css`
+const styles = css`${window.locationSubdirectory}/components/AssetCardGrid.css`
 
 const AssetCardGrid = ({
   data,
@@ -25,6 +25,13 @@ const AssetCardGrid = ({
     setCurrentAsset(null);
   }
 
+  useEffect(() => {
+    if(currentAsset === null) return
+    console.log("**** Current asset is", currentAsset);
+    console.log("Address is", currentAsset.id);
+  }, [currentAsset])
+
+
     return html`
     <${React.Fragment}>
     ${currentAsset !== null && html`
@@ -34,6 +41,7 @@ const AssetCardGrid = ({
             name=${currentAsset.name}
             description=${currentAsset.description}
             image=${currentAsset.image}
+            buyPrice=${currentAsset.buyPrice}
             hash=${currentAsset.properties.hash}
             external_url=${currentAsset.external_url}
             filename=${currentAsset.properties.filename}
@@ -46,7 +54,7 @@ const AssetCardGrid = ({
             minterAvatarPreview=${currentAsset.minter.avatarPreview}
             minterAddress=${currentAsset.minter.address}
             minterUsername=${currentAsset.minter.username}
-            hideDetailsFunction=${hideCardDetails}
+            hideDetails=${hideCardDetails}
             networkType='webaverse'
           />
       `}

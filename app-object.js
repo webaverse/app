@@ -21,8 +21,8 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.autoClear = false;
 renderer.sortObjects = false;
 // renderer.physicallyCorrectLights = true;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFShadowMap;
+// renderer.shadowMap.enabled = true;
+// renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.xr.enabled = true;
 
 const scene = new THREE.Scene();
@@ -54,7 +54,7 @@ const _addDefaultLights = (scene, shadowMap) => {
   scene.directionalLight = directionalLight;
   /* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
   scene.add(directionalLight2); */
-  if (shadowMap) {
+  /* if (shadowMap) {
     const SHADOW_MAP_WIDTH = 1024;
     const SHADOW_MAP_HEIGHT = 1024;
 
@@ -65,7 +65,7 @@ const _addDefaultLights = (scene, shadowMap) => {
 
     directionalLight.shadow.mapSize.width = SHADOW_MAP_WIDTH;
     directionalLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
-  }
+  } */
 };
 _addDefaultLights(scene, true);
 _addDefaultLights(avatarScene, false);
@@ -89,7 +89,8 @@ class AppManager {
   constructor() {
     this.apps = [];
     this.animationLoops = [];
-    // this.grabs = [null, null];
+    this.grabbedObjects = [null, null];
+    this.grabbedObjectOffsets = [0, 0];
   }
   createApp(appId) {
     const app = new App(appId);
@@ -125,10 +126,10 @@ class AppManager {
       this.animationLoops.splice(index, 1);
     }
   }
-  /* getGrab(side) {
-    return this.grabs[side === 'left' ? 0 : 1];
+  getGrab(side) {
+    return this.grabbedObjects[side === 'left' ? 1 : 0];
   }
-  grab(side, mesh) {
+  /* grab(side, mesh) {
     this.grabs[side === 'left' ? 0 : 1] = mesh;
   }
   release(side) {

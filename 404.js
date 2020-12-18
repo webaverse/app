@@ -538,7 +538,7 @@ const _setUrl = async u => {
           };
           const hash = {
             t: 'uint256',
-            v: '0x' + web3['sidechain'].utils.padLeft(j.hash, 32),
+            v: '0x' + web3['sidechain'].utils.padLeft(j.hash, 64),
           };
           const count = {
             t: 'uint256',

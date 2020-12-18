@@ -33,7 +33,7 @@ import inventory from './inventory.js';
 import minimap from './minimap.js';
 import {App} from './components/App.js';
 import {tryTutorial} from './tutorial.js';
-import {getState, setState} from './state.js';
+// import {getState, setState} from './state.js';
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const pid4 = Math.PI / 4;
@@ -274,7 +274,7 @@ const anchorMeshes = [];
 scene.add(rayMesh); */
 
 const q = parseQuery(location.search);
-(async () => {
+/* (async () => {
   if (q.m) { // multiplayer
     await world.connect({
       online: true,
@@ -288,11 +288,13 @@ const q = parseQuery(location.search);
     });
   }
   // new Bot();
-})();
+})(); */
 (async () => {
   await geometryManager.waitForLoad();
 
   runtime.injectDependencies(geometryManager, physicsManager, world);
+
+  universe.loadDefaultWorld();
 
   if (q.o) { // object
     let contentId = parseInt(q.o);
@@ -300,23 +302,6 @@ const q = parseQuery(location.search);
       contentId = q.o;
     }
     world.addObject(contentId);
-  }
-  {
-    const mesh = await runtime.loadFile({
-      name: 'index.js',
-      url: 'https://avaer.github.io/land/index.js',
-    });
-    mesh.run();
-    scene.add(mesh);
-  }
-  {
-    const mesh = await runtime.loadFile({
-      name: 'index.js',
-      url: 'https://avaer.github.io/mirror/index.js',
-    });
-    mesh.position.z = -1;
-    mesh.run();
-    scene.add(mesh);
   }
   /* {
     const mesh = await runtime.loadFile({
@@ -788,8 +773,8 @@ function animate(timestamp, frame) {
 
   const _updateRig = () => {
     let hmdPosition, hmdQuaternion;
-    let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip;
-    let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip;
+    let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
+    let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
 
     if (rigManager.localRigMatrixEnabled) {
       localMatrix.copy(rigManager.localRigMatrix);
@@ -832,6 +817,9 @@ function animate(timestamp, frame) {
           leftGamepadPointer = 0;
           leftGamepadGrip = 0;
         }
+        leftGamepadEnabled = true;
+      } else {
+        leftGamepadEnabled = false;
       }
       if (inputSources[1] && (pose = frame.getPose(inputSources[1].gripSpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
@@ -854,6 +842,9 @@ function animate(timestamp, frame) {
           rightGamepadPointer = 0;
           rightGamepadGrip = 0;
         }
+        rightGamepadEnabled = true;
+      } else {
+        rightGamepadEnabled = false;
       }
 
       /* const _scaleMatrixPQ = (srcMatrixArray, p, q) => {
@@ -968,6 +959,7 @@ function animate(timestamp, frame) {
       }
       leftGamepadPointer = 0;
       leftGamepadGrip = 0;
+      leftGamepadEnabled = false;
     }
     if (!rightGamepadPosition) {
       if (!physicsManager.getGlideState()) {
@@ -985,6 +977,7 @@ function animate(timestamp, frame) {
       }
       rightGamepadPointer = 0;
       rightGamepadGrip = 0;
+      rightGamepadEnabled = false;
     }
 
     /* HANDS.forEach((handedness, i) => {
@@ -1004,8 +997,8 @@ function animate(timestamp, frame) {
 
     rigManager.setLocalAvatarPose([
       [localVector.toArray(), localQuaternion.toArray()],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ]);
     rigManager.update();
   };
@@ -1091,11 +1084,10 @@ function animate(timestamp, frame) {
     _tickPlanetAnimation(factor);
   } */
 
-  const geometryEnabled = false;
+  /* const geometryEnabled = false;
   if (geometryEnabled) {
     geometryManager.update(timeDiff, frame);
-  }
-  world.update();
+  } */
 
   appManager.tick(timestamp, frame);
   
@@ -1105,15 +1097,15 @@ function animate(timestamp, frame) {
   localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));
   localMatrix3.copy(xrCamera.matrix)
     .premultiply(dolly.matrix)
-    .premultiply(localMatrix2.copy(geometryManager.worldContainer.matrixWorld).invert())
+    // .premultiply(localMatrix2.copy(geometryManager.worldContainer.matrixWorld).invert())
     .decompose(localVector, localQuaternion, localVector2);
 
-  if (geometryEnabled) {
+  /* if (geometryEnabled) {
     const [landGroups, vegetationGroups, thingGroups] = geometryManager.geometryWorker.tickCull(geometryManager.tracker, localVector, localMatrix);
     geometryManager.currentChunkMesh.geometry.groups = landGroups;
     geometryManager.currentVegetationMesh.geometry.groups = vegetationGroups;
     geometryManager.currentThingMesh.geometry.groups = thingGroups;
-  }
+  } */
 
   // high priority render
   renderer.render(scene3, camera);
@@ -1142,11 +1134,12 @@ function animate(timestamp, frame) {
 
   if (session && document.visibilityState == 'visible') {
     const {baseLayer} = session.renderState;
-    if (!xrscenetexture) {
-      xrscenetexture = new THREE.DataTexture(null, baseLayer.framebufferWidth, baseLayer.framebufferHeight, THREE.RGBAFormat);
+    if (!xrscenetexture || (xrscenetexture.image.width !== baseLayer.framebufferWidth * renderer.getPixelRatio() / 2) || ((xrscenetexture.image.height !== baseLayer.framebufferHeight * renderer.getPixelRatio()))) {
+      xrscenetexture = new THREE.DataTexture(null, baseLayer.framebufferWidth * renderer.getPixelRatio() / 2, baseLayer.framebufferHeight * renderer.getPixelRatio(), THREE.RGBAFormat);
       xrscenetexture.minFilter = THREE.NearestFilter;
       xrscenetexture.magFilter = THREE.NearestFilter;
-
+    }
+    if (!xrscene) {
       xrscene = new THREE.Scene();
 
       xrsceneplane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), new THREE.MeshBasicMaterial({map: xrscenetexture, /*side: THREE.DoubleSide,*/ color: 0xffffff}));
@@ -1157,12 +1150,12 @@ function animate(timestamp, frame) {
     }
 
     renderer.xr.enabled = false;
-    renderer.copyFramebufferToTexture(localVector2D.set(baseLayer.framebufferWidth / 2, 0, 0), xrscenetexture);
+    renderer.copyFramebufferToTexture(localVector2D.set(0, 0), xrscenetexture);
     renderer.setFramebuffer(null);
 
     const oldOutputEncoding = renderer.outputEncoding;
     renderer.outputEncoding = THREE.LinearEncoding;
-    renderer.setViewport(0, 0, canvas.width * window.devicePixelRatio, canvas.height * window.devicePixelRatio);
+    renderer.setViewport(0, 0, canvas.width, canvas.height);
     renderer.render(xrscene, xrscenecam);
     renderer.xr.enabled = true;
     renderer.outputEncoding = oldOutputEncoding;
@@ -1293,6 +1286,7 @@ const _initializeLogin = async () => {
   _initializeUserUi();
   const _initializeRigUi = () => {
     const username = loginManager.getUsername() || 'Anonymous';
+    const avatarImage = loginManager.getAvatarPreview();
     rigManager.setLocalAvatarName(username);
 
     loginManager.addEventListener('usernamechange', e => {
@@ -1300,11 +1294,11 @@ const _initializeLogin = async () => {
       if (username !== rigManager.localRig.textMesh.text) {
         rigManager.setLocalAvatarName(username);
 
-        const {menu} = getState();
+        /* const {menu} = getState();
         menu.username = username;
         setState({
           menu,
-        });
+        }); */
       }
     });
 
@@ -1312,30 +1306,34 @@ const _initializeLogin = async () => {
     if (avatar.url) {
       rigManager.setLocalAvatarUrl(avatar.url, avatar.filename);
     }
+    if (avatar.preview) {
+      rigManager.setLocalAvatarImage(avatar.preview);
+    }
     loginManager.addEventListener('avatarchange', e => {
       const avatar = e.data;
       const newAvatarUrl = avatar ? avatar.url : null;
       if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
         rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.filename);
+        rigManager.setLocalAvatarImage(avatar.preview);
 
-        const {menu} = getState();
+        /* const {menu} = getState();
         menu.avatarUrl = avatar.url;
         menu.avatarFileName = avatar.filename;
         menu.avatarPreview = avatar.preview;
         setState({
           menu,
-        });
+        }); */
       }
     });
 
-    const {menu} = getState();
+    /* const {menu} = getState();
     menu.username = username;
     menu.avatarUrl = avatar.url;
     menu.avatarFileName = avatar.filename;
     menu.avatarPreview = avatar.preview;
     setState({
       menu,
-    });
+    }); */
   };
   _initializeRigUi();
 };
@@ -1348,13 +1346,13 @@ const _initializeXr = () => {
     renderer.xr.setSession(session);
     // renderer.xr.setReferenceSpaceType('local-floor');
     currentSession = session;
-    setState({ isXR: true })
+    // setState({ isXR: true })
   }
   function onSessionEnded() {
     currentSession.removeEventListener('end', onSessionEnded);
     renderer.xr.setSession(null);
     currentSession = null;
-    setState({ isXR: false });
+    // setState({ isXR: false });
   }
   const sessionMode = 'immersive-vr';
   const sessionOpts = {

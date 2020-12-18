@@ -1,14 +1,17 @@
-import { React, useContext } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { React, useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
 import { Context } from '../constants/Context.js';
-import htm from '/web_modules/htm.js';
+import htm from '../web_modules/htm.js';
 import AssetCard from './AssetCard.js';
 import CardSize from '../constants/CardSize.js';
+import { setAvatar, setHomespace, depositAsset, cancelSale, sellAsset, buyAsset } from '../functions/AssetFunctions.js'
+
 const html = htm.bind(React.createElement)
-import csz from '../web_modules/csz.js';
+import css from '../web_modules/csz.js';
+import ActionTypes from '../constants/ActionTypes.js';
 
-const styles = csz`/components/AssetDetails.css`;
+const styles = css`${window.locationSubdirectory}/components/AssetDetails.css`;
 
-const AssetDetails = ({
+export const AssetDetails = ({
     id,
     name,
     description,
@@ -28,79 +31,333 @@ const AssetDetails = ({
     minterAddress,
     minterUsername,
     networkType,
-    salePrice,
-    hideDetailsFunction,
+    buyPrice,
+    hideDetails,
     assetType
 }) => {
-    const {state, dispatch} = useContext(Context);
+    const { state, dispatch } = useContext(Context);
+
+    const [sellAssetShowing, setSellAssetShowing] = useState(false);
+    const [salePrice, setSalePrice] = useState(0);
+    const [toggleReuploadOpen, setToggleReuploadOpen] = useState(false);
+    const [toggleRenameOpen, setToggleRenameOpen] = useState(false);
+    const [toggleDestroyOpen, setToggleDestroyOpen] = useState(false);
+    const [toggleCancelSaleOpen, setToggleCancelSaleOpen] = useState(false);
+    const [toggleSaleOpen, setToggleSaleOpen] = useState(false);
+    const [toggleOnSaleOpen, setToggleOnSaleOpen] = useState(false);
+    const [toggleTransferToOpen, setToggleTransferToOpen] = useState(false);
 
     // Do you own this asset?
-    const userOwnsThisAsset = ownerAddress === state.address;  
-    
+    console.log("Owner address is", ownerAddress);
+    console.log("minterAddress address is", minterAddress);
+
+    console.log("State address is", state.address);
+
+    const userOwnsThisAsset = ownerAddress.toLowerCase() === state.address.toLowerCase();
+
     // Did you create this asset?
-    const userCreatedThisAsset = minterAddress === state.address;    
+    const userCreatedThisAsset = minterAddress.toLowerCase() === state.address.toLowerCase();
 
     // Otherwise, is this asset for sale?
-    const isForSale = salePrice !== undefined && salePrice !== null && salePrice !== ""
+    const isForSale = buyPrice !== undefined && buyPrice !== null && buyPrice !== ""
+
+    console.log("**** Buy price is", buyPrice);
+
+    const handleSetAvatar = (e) => {
+        e.preventDefault();
+        console.log("Setting avatar, id is", id);
+        setAvatar(id)
+    }
+
+    const handleSetHomespace = (e) => {
+        e.preventDefault();
+        setHomespace(id, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
+    }
+
+    // const addToLoadout = (e) => {
+    //     e.preventDefault();
+    //     addToLoadout(id, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
+    // }
+
+    // const removeFromLoadout = (e) => {
+    //     e.preventDefault();
+    //     removeFromLoadout(id, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
+    // }
+
+    const handleDeposit = (e) => {
+        e.preventDefault();
+        depositAsset(id, networkType, () => console.log("Deposited", id, "to", networkType, state.mainnetAddress), (err) => console.log("Failed to change homespace", err));
+    }
+
+    const handleReupload = (e) => {
+        e.preventDefault();
+        console.warn("TODO: Handle reuploading image");
+    }
+
+    const handleCancelSale = (e) => {
+        e.preventDefault();
+        cancelSale(id, networkType, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
+    }
+
+    const handleShowSellAsset = (e) => {
+        e.preventDefault();
+        setSellAssetShowing(true);
+    }
+
+    const handleHideSellAsset = (e) => {
+        e.preventDefault();
+        setSellAssetShowing(false);
+    }
+
+    const handleSellAsset = (e) => {
+        e.preventDefault();
+        if(salePrice < 0) return console.error("Sale price can't be less than 0");
+        console.log("Selling id", id, "from login token", state.loginToken.mnemonic);
+        sellAsset(
+            id,
+            salePrice,
+            networkType,
+            state.loginToken.mnemonic,
+            (success) => console.log("Sold asset ", id, success),
+            (err) => console.log("Failed to sell asset", err)
+        );
+    }
+
+    const handleBuyAsset = (e) => {
+        e.preventDefault();
+        buyAsset(
+            id,
+            networkType,
+            state.loginToken.mnemonic,
+            () => console.log("Buying Asset", id),
+            (err) => console.log("Failed to purchase asset", err)
+        );
+    }
+
+    const isAlreadyAvatar = false;
+    const isAlreadyHomespace = false;
+    const isAlreadyLoadout = false;
+
+    const toggleReupload = () => {
+        setToggleReuploadOpen(!toggleReuploadOpen);
+    }
+
+    const toggleRename = () => {
+        setToggleRenameOpen(!toggleRenameOpen);
+    }
+   
+    const toggleDestroy = () => {
+        setToggleDestroyOpen(!toggleDestroyOpen);
+    }
+
+    const toggleCancelSale = () => {
+        setToggleCancelSaleOpen(!toggleCancelSaleOpen);
+    }
+
+    const toggleSale = () => {
+        setToggleSaleOpen(!toggleSaleOpen);
+    }
+
+    const toggleOnSale = () => {
+        setToggleOnSaleOpen(!toggleOnSaleOpen);
+    }
+
+    const toggleTransferTo = () => {
+        setToggleTransferToOpen(!toggleTransferToOpen);
+    }
 
     return html`
-        <div className=${styles}>
-            <div className="assetDetails">
-                <div className="assetDetailsLeftColumn">
-                    <${AssetCard}
-                        key="${id}"
-                        assetName=${name}
-                        assetDescription=${description}
-                        assetImage=${image}
-                        assetHash=${hash}
-                        numberInEdition=${numberInEdition}
-                        totalSupply=${totalSupply}
-                        balance=${balance}
-                        totalInEdition=${totalInEdition}
-                        assetType=${assetType}
-                        ownerAvatarPreview=${ownerAvatarPreview}
-                        ownerUsername=${ownerUsername}
-                        ownerAddress=${ownerAddress}
-                        minterAvatarPreview=${minterAvatarPreview}
-                        minterUsername=${minterUsername}
-                        minterAddress=${minterAddress}
-                        cardSize=${CardSize.Large}
-                        networkType=${networkType}
-                    /> 
-                </div>
-                <div className="assetDetailsRightColumn">
-                    <div className="assetDetailsRightColumnHeader"> ${userOwnsThisAsset ? 'You Own This Asset' : 'Asset Details'} </div>
-                    <div className="assetDetailsRightColumnBody">
-                    ${userOwnsThisAsset && html`
-                        <button className="assetDetailsButton">Set As Avatar</button>
-                        <button className="assetDetailsButton">Set As Homespace</button>
-                        <button className="assetDetailsButton">Add To Loadout</button>
-                        <button className="assetDetailsButton">Deposit To Webaverse</button>
-                            ${userCreatedThisAsset && html`
-                            <button className="assetDetailsButton">Reupload Asset</button>
+        <div className="${styles} assetDetails">
+            <div className="assetDetailsLeftColumn">
+                <${AssetCard}
+                    key="${id}"
+                    assetName=${name}
+                    ext=${ext}
+                    description=${description}
+                    buyPrice=${buyPrice}
+                    image=${image}
+                    hash=${hash}
+                    numberInEdition=${numberInEdition}
+                    totalSupply=${totalSupply}
+                    balance=${balance}
+                    totalInEdition=${totalInEdition}
+                    assetType=${assetType}
+                    ownerAvatarPreview=${ownerAvatarPreview}
+                    ownerUsername=${ownerUsername}
+                    ownerAddress=${ownerAddress}
+                    minterAvatarPreview=${minterAvatarPreview}
+                    minterUsername=${minterUsername}
+                    minterAddress=${minterAddress}
+                    cardSize=${CardSize.Large}
+                    networkType='webaverse'
+                /> 
+            </div>
+            <div className="assetDetailsRightColumn">
+                ${userOwnsThisAsset ? html`
+                ${/* USER OWNS THIS ASSET */ ''}
+                    ${/* TODO: Hide corresponding button if this asset is already avatar, homespace or in loadout, and add option to remove from loadout if is in */''}
+                    ${isAlreadyAvatar || isAlreadyHomespace || isAlreadyLoadout ? html `` : html`
+                    <div className="detailsBlock detailsBlockSet">
+                        <button className="assetDetailsButton" onClick=${handleSetAvatar}>Set As Avatar</button>
+                        <button className="assetDetailsButton" onClick=${handleSetHomespace}>Set As Homespace</button>
+                        <button className="assetDetailsButton" onClick=${() => console.log('addToLoadout')}>Add To Loadout</button>
+                    </div>
+                    `}
+                    
+                    <div className="detailsBlock detailsBlockEdit">
+                        ${userCreatedThisAsset && html`
+                        <div className="Accordion">
+                            <div className="accordionTitle" onClick=${toggleReupload}>
+                                <span className="accordionTitleValue">Reupload file</span>
+                                <span className="accordionIcon ${toggleReuploadOpen ? 'reverse' : ''}"></span>
+                            </div>
+                            ${toggleReuploadOpen && html`
+                            <div className="accordionDropdown">
+                                <button className="assetDetailsButton assetSubmitButton" onClick=${handleReupload}>Reupload</button>   
+                            </div>
                             `}
-                            ${isForSale ? html`
-                            <button className="assetDetailsButton">Unsell Asset</button>
-                            ` : html `
-                            <button className="assetDetailsButton">Sell Asset</button>
+                        </div>
+
+                        <div className="Accordion">
+                            <div className="accordionTitle" onClick=${toggleRename}>
+                                <span className="accordionTitleValue">Rename asset</span>
+                                <span className="accordionIcon ${toggleRenameOpen ? 'reverse' : ''}"></span>
+                            </div>
+                            ${toggleRenameOpen && html`
+                            <div className="accordionDropdown">
+                                <button className="assetDetailsButton assetSubmitButton" onClick=${() => console.log('rename asset')}>rename</button>   
+                            </div>
                             `}
+                        </div>
+
+                        <div className="Accordion">
+                            <div className="accordionTitle" onClick=${toggleDestroy}>
+                                <span className="accordionTitleValue">destroy asset</span>
+                                <span className="accordionIcon ${toggleDestroyOpen ? 'reverse' : ''}"></span>
+                            </div>
+                            ${toggleDestroyOpen && html`
+                            <div className="accordionDropdown">
+                                <button className="assetDetailsButton assetSubmitButton" onClick=${() => console.log('destroy')}>destroy</button>   
+                            </div>
+                            `}
+                        </div>
                         `}
-                    ${!userOwnsThisAsset && html`
-                        ${isForSale ? html`
-                        <p>Sale price is ${salePrice}</p>
-                        <button className="assetDetailsButton">Unsell Asset</button>
-                        ` : html`
-                            <p>Not for sale</p>
+                    </div>
+
+                    ${state.mainnetAddress !== null && html`
+                    <div className="detailsBlock detailsBlockTransferTo">
+                        <div className="Accordion">
+                            <div className="accordionTitle" onClick=${toggleTransferTo}>
+                                <span className="accordionTitleValue">TRANSFER TO MAINNET</span>
+                                <span className="accordionIcon ${toggleTransferToOpen ? 'reverse' : ''}"></span>
+                            </div>
+                            ${toggleTransferToOpen && html`
+                            <div className="accordionDropdown transferToDropdown">
+                                <span>Connected Wallet: 0x...038a</span>
+                                <div><span>Transfer Cost:</span><span>.00021ETH</span></div>
+                                <button className="assetDetailsButton assetSubmitButton" onClick=${handleDeposit}>To ${networkType === 'webaverse' ? 'Mainnet' : 'Webaverse'}</button>      
+                            </div>
+                            `}
+                        </div>
+                    </div>
+                    `}
+
+                    ${isForSale ? html`
+                        <div className="detailsBlock detailsBlockCancelSell">
+                            <div className="Accordion">
+                                <div className="accordionTitle" onClick=${toggleCancelSale}>
+                                    <span className="accordionTitleValue">Cancel sell</span>
+                                    <span className="accordionIcon ${toggleCancelSaleOpen ? 'reverse' : ''}"></span>
+                                </div>
+                                ${toggleCancelSaleOpen && html`
+                                <div className="accordionDropdown">
+                                    <button className="assetDetailsButton assetSubmitButton" onClick=${handleCancelSale}>Cancel</button>      
+                                </div>
+                                `}
+                            </div>
+                        </div>
+                    ` : html`
+                        ${!sellAssetShowing ? html`
+                            <div className="detailsBlock detailsBlockSell">
+                                <div className="Accordion">
+                                    <div className="accordionTitle" onClick=${toggleSale}>
+                                        <span className="accordionTitleValue">sell in gallery</span>
+                                        <span className="accordionIcon ${toggleSaleOpen ? 'reverse' : ''}"></span>
+                                    </div>
+                                    ${toggleSaleOpen && html`
+                                    <div className="accordionDropdown">
+                                        <button className="assetDetailsButton assetSubmitButton" onClick=${handleShowSellAsset}>Sell Asset</button>          
+                                    </div>
+                                    `}
+                                </div>
+                            </div>
+                        `: html`
+                            <div className="detailsBlock detailsBlockSell">
+                                <div className="Accordion">
+                                    <div className="accordionTitle" onClick=${toggleSale}>
+                                        <span className="accordionTitleValue">sell in gallery</span>
+                                        <span className="accordionIcon ${toggleSaleOpen ? 'reverse' : ''}"></span>
+                                    </div>
+                                    
+                                    ${toggleSaleOpen && html`
+                                    <div className="accordionDropdown sellInputDropdown">
+                                        <div className="sellInputLine">
+                                            <div>
+                                                <span>PRICE</span>
+                                                <input className="salePrice" type="text" value=${salePrice} onChange=${(e) => { e.preventDefault(); setSalePrice( e.target.value )}} />
+                                            </div>
+                                            <div>
+                                                <span>QTY</span>
+                                                <input type="text" value='1' />
+                                            </div>
+                                        </div>
+                                        <div className="sellConfirmLine">
+                                            <button className="assetDetailsButton assetSubmitButton assetSubmitButtonSmall" onClick=${handleSellAsset}>Sell</button>
+                                            <button className="assetDetailsButton assetSubmitButton assetSubmitButtonSmall" onClick=${handleHideSellAsset}>Cancel</button>             
+                                        </div>
+                                    </div>
+                                    `}
+                                </div>
+                            </div>
                         `}
                     `}
-                     </div>
-                    <div className="assetDetailsRightColumnFooter">
-                        <button className="assetDetailsButton assetDetailsFooterButton" onClick=${hideDetailsFunction}>Close</button>
-                    </div>
-                </div>
+                ` : html`
+                ${/* USER DOES NOT OWN THIS ASSET */ ''}
+                        ${isForSale ? html`
+                        
+                        <div className="detailsBlock detailsBlockOnSale">
+                            <div className="Accordion">
+                                <div className="accordionTitle" onClick=${toggleOnSale}>
+                                    <span className="accordionTitleValue">ON SALE FOR ${buyPrice}Ψ</span>
+                                    <span className="accordionIcon ${toggleOnSaleOpen ? 'reverse' : ''}"></span>
+                                </div>
+                                ${toggleOnSaleOpen && html`
+                                <div className="accordionDropdown">
+                                    <button className="assetDetailsButton assetSubmitButton" onClick=${handleBuyAsset}>Buy Asset</button>         
+                                </div>
+                                `}
+                            </div>
+                        </div>    
+                        ` : html`
+                        <div className="detailsBlock detailsBlockOnSale">
+                            <div className="Accordion">
+                                <div className="accordionTitle" onClick=${toggleOnSale}>
+                                    <span className="accordionTitleValue">ON SALE FOR ${buyPrice}Ψ</span>
+                                    <span className="accordionIcon ${toggleOnSaleOpen ? 'reverse' : ''}"></span>
+                                </div>
+                                ${toggleOnSaleOpen && html`
+                                <div className="accordionDropdown">
+                                    <p className="onSaleWarning">Not for sale</p>            
+                                </div>
+                                `}
+                            </div>
+                        </div>   
+                        `}
+                    `}
+                <button className="assetDetailsButton assetDetailsCloseButton" onClick=${hideDetails}></button>
             </div>
         </div>
     `;
-  };
+};
 
-  export default AssetDetails;
+export default AssetDetails;

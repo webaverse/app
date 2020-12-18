@@ -718,38 +718,38 @@ class Avatar {
 	  const Spine = _findSpine(Chest, Hips);
 	  const Left_shoulder = _findShoulder(tailBones, true);
 	  const Left_wrist = _findHand(Left_shoulder);
-    const Left_thumb2 = _findFinger(Left_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal/i, true);
+    const Left_thumb2 = _findFinger(Left_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02l/i, true);
     const Left_thumb1 = Left_thumb2.parent;
     const Left_thumb0 = Left_thumb1.parent;
-    const Left_indexFinger3 = _findFinger(Left_wrist, /index(?:finger)?3|index_distal/i);
+    const Left_indexFinger3 = _findFinger(Left_wrist, /index(?:finger)?3|index_distal|index02l/i);
     const Left_indexFinger2 = Left_indexFinger3.parent;
     const Left_indexFinger1 = Left_indexFinger2.parent;
-    const Left_middleFinger3 = _findFinger(Left_wrist, /middle(?:finger)?3|middle_distal/i);
+    const Left_middleFinger3 = _findFinger(Left_wrist, /middle(?:finger)?3|middle_distal|middle02l/i);
     const Left_middleFinger2 = Left_middleFinger3.parent;
     const Left_middleFinger1 = Left_middleFinger2.parent;
-    const Left_ringFinger3 = _findFinger(Left_wrist, /ring(?:finger)?3|ring_distal/i);
+    const Left_ringFinger3 = _findFinger(Left_wrist, /ring(?:finger)?3|ring_distal|ring02l/i);
     const Left_ringFinger2 = Left_ringFinger3.parent;
     const Left_ringFinger1 = Left_ringFinger2.parent;
-    const Left_littleFinger3 = _findFinger(Left_wrist, /little(?:finger)?3|pinky3|little_distal/i);
+    const Left_littleFinger3 = _findFinger(Left_wrist, /little(?:finger)?3|pinky3|little_distal|little02l/i);
     const Left_littleFinger2 = Left_littleFinger3.parent;
     const Left_littleFinger1 = Left_littleFinger2.parent;
 	  const Left_elbow = Left_wrist.parent;
 	  const Left_arm = Left_elbow.parent;
 	  const Right_shoulder = _findShoulder(tailBones, false);
 	  const Right_wrist = _findHand(Right_shoulder);
-    const Right_thumb2 = _findFinger(Right_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal/i);
+    const Right_thumb2 = _findFinger(Right_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02r/i);
     const Right_thumb1 = Right_thumb2.parent;
     const Right_thumb0 = Right_thumb1.parent;
-    const Right_indexFinger3 = _findFinger(Right_wrist, /index(?:finger)?3|index_distal/i);
+    const Right_indexFinger3 = _findFinger(Right_wrist, /index(?:finger)?3|index_distal|index02r/i);
     const Right_indexFinger2 = Right_indexFinger3.parent;
     const Right_indexFinger1 = Right_indexFinger2.parent;
-    const Right_middleFinger3 = _findFinger(Right_wrist, /middle(?:finger)?3|middle_distal/i);
+    const Right_middleFinger3 = _findFinger(Right_wrist, /middle(?:finger)?3|middle_distal|middle02r/i);
     const Right_middleFinger2 = Right_middleFinger3.parent;
     const Right_middleFinger1 = Right_middleFinger2.parent;
-    const Right_ringFinger3 = _findFinger(Right_wrist, /ring(?:finger)?3|ring_distal/i);
+    const Right_ringFinger3 = _findFinger(Right_wrist, /ring(?:finger)?3|ring_distal|ring02r/i);
     const Right_ringFinger2 = Right_ringFinger3.parent;
     const Right_ringFinger1 = Right_ringFinger2.parent;
-    const Right_littleFinger3 = _findFinger(Right_wrist, /little(?:finger)?3|pinky3|little_distal/i);
+    const Right_littleFinger3 = _findFinger(Right_wrist, /little(?:finger)?3|pinky3|little_distal|little02r/i);
     const Right_littleFinger2 = Right_littleFinger3.parent;
     const Right_littleFinger1 = Right_littleFinger2.parent;
 	  const Right_elbow = Right_wrist.parent;
@@ -1239,6 +1239,7 @@ class Avatar {
       const result = new THREE.Object3D();
       result.pointer = 0;
       result.grip = 0;
+      result.enabled = false;
       return result;
     };
 		this.inputs = {
@@ -1677,6 +1678,9 @@ class Avatar {
       localEuler.y += Math.PI;
       this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
     }
+    if (!this.getTopEnabled() && this.debugMeshes) {
+      this.outputs.hips.updateMatrixWorld();
+    }
 
     this.shoulderTransforms.Update();
     this.legsManager.Update();
@@ -1809,10 +1813,12 @@ class Avatar {
   decapitate() {
     if (!this.decapitated) {
       this.modelBones.Head.traverse(o => {
-        o.savedPosition.copy(o.position);
-        o.savedMatrixWorld.copy(o.matrixWorld);
-        o.position.set(NaN, NaN, NaN);
-        o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
+        if (o.savedPosition) { // three-vrm adds vrmColliderSphere which will not be saved
+          o.savedPosition.copy(o.position);
+          o.savedMatrixWorld.copy(o.matrixWorld);
+          o.position.set(NaN, NaN, NaN);
+          o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
+        }
       });
       if (this.debugMeshes) {
         [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
@@ -1825,8 +1831,10 @@ class Avatar {
   undecapitate() {
     if (this.decapitated) {
       this.modelBones.Head.traverse(o => {
-        o.position.copy(o.savedPosition);
-        o.matrixWorld.copy(o.savedMatrixWorld);
+        if (o.savedPosition) {
+          o.position.copy(o.savedPosition);
+          o.matrixWorld.copy(o.savedMatrixWorld);
+        }
       });
       if (this.debugMeshes) {
         [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {

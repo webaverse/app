@@ -6,9 +6,10 @@ import {MeshoptDecoder} from './meshopt_decoder.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import {VOXLoader} from './VOXLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
-import {getExt, mergeMeshes} from './util.js';
+import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 // import {bake} from './bakeUtils.js';
 // import geometryManager from './geometry-manager.js';
+import geometryTool from './geometry-tool.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeIconMesh, makeTextMesh} from './vr-ui.js';
@@ -74,7 +75,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     console.warn(err);
   } finally {
     if (/^blob:/.test(srcUrl)) {
-      URL.revokeObjectURL(u);
+      URL.revokeObjectURL(srcUrl);
     }
   }
   o = o.scene;
@@ -118,53 +119,25 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     }
   })();
 
-  const physicsBuffers = [];
+  let physicsMesh = null;
+  let physicsBuffer = null;
   let physicsIds = [];
   if (physics) {
-    mesh.updateMatrixWorld();
-    
-    const meshes = [];
-    mesh.traverse(o => {
-      if (o.isMesh) {
-        meshes.push(o);
-      }
-    });
-    for (const mesh of meshes) {
-      const {geometry} = mesh;
-      const newGeometry = new THREE.BufferGeometry();
-
-      if (geometry.attributes.position.isInterleavedBufferAttribute) {
-        const positions = new Float32Array(geometry.attributes.position.count * 3);
-        for (let i = 0, j = 0; i < positions.length; i += 3, j += geometry.attributes.position.data.stride) {
-          localVector
-            .fromArray(geometry.attributes.position.data.array, j)
-            .applyMatrix4(mesh.matrixWorld)
-            .toArray(positions, i);
-        }
-        newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      } else {
-        newGeometry.setAttribute('position', geometry.attribute.position);
-      }
-      
-      if (geometry.index) {
-        newGeometry.setIndex(geometry.index);
-      }
-
-      const newMesh = new THREE.Mesh(newGeometry);
-      physicsManager.addGeometry(newMesh);
-    }
+    physicsMesh = convertMeshToPhysicsMesh(mesh);
   }
   if (physics_url) {
     const res = await fetch(physics_url);
-    let physicsBuffer = await res.arrayBuffer();
-    physicsBuffer = new Uint8Array(physicsBuffer);
-    physicsBuffers.push(physicsBuffer);
+    const arrayBuffer = await res.arrayBuffer();
+    physicsBuffer = new Uint8Array(arrayBuffer);
   }
 
   mesh.run = () => {
-    physicsIds = physicsBuffers.map(physicsBuffer => {
-      return physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion);
-    });
+    if (physicsMesh) {
+      physicsIds.push(physicsManager.addGeometry(physicsMesh));
+    }
+    if (physicsBuffer) {
+      physicsIds.push(physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion));
+    }
   };
   mesh.destroy = () => {
     for (const physicsId of physicsIds) {
@@ -301,19 +274,24 @@ const _loadVrm = async (file, {files = null, parentUrl = null} = {}) => {
   };
   return o;
 };
-const _loadVox = async file => {
-  const u = URL.createObjectURL(file);
+const _loadVox = async (file, {files = null, parentUrl = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  }
+
   let o;
   try {
     o = await new Promise((accept, reject) => {
       new VOXLoader({
         scale: 0.01,
-      }).load(u, accept, function onprogress() {}, reject);
+      }).load(srcUrl, accept, function onprogress() {}, reject);
     });
   } catch(err) {
     console.warn(err);
-  } finally {
-    URL.revokeObjectURL(u);
   }
   return o;
 };
@@ -360,6 +338,7 @@ const _loadImg = async file => {
     side: THREE.DoubleSide,
     vertexColors: true,
     transparent: true,
+    alphaTest: 0.5,
   });
   /* const material = meshComposer.material.clone();
   material.uniforms.map.value = texture;
@@ -583,7 +562,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, ownerAd
 
   const res = await fetch(srcUrl);
   const j = await res.json();
-  let {start_url, physics_url} = j;
+  let {start_url, physics, physics_url} = j;
   const u = './' + start_url;
 
   if (/\.js$/.test(u)) {
@@ -700,6 +679,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, ownerAd
     }, {
       files,
       parentUrl: srcUrl,
+      physics,
       physics_url,
     });
   }
@@ -758,27 +738,29 @@ const _loadScn = async (file, opts) => {
   const {objects} = j;
   
   const scene = new THREE.Object3D();
-  const physicsBuffers = [];
-  let physicsIds = [];
+  /* const physicsBuffers = [];
+  let physicsIds = []; */
 
-  for (const object of objects) {
+  const promises = objects.map(async object => {
     let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, filename, content, physics_url = null, optimize = false, physics = false} = object;
     const parentId = null;
     position = new THREE.Vector3().fromArray(position);
     quaternion = new THREE.Quaternion().fromArray(quaternion);
+    scale = new THREE.Vector3().fromArray(scale);
     if (start_url) {
       start_url = new URL(start_url, srcUrl).href;
+      filename = start_url;
     } else if (filename && content) {
       const blob = new Blob([content], {
         type: 'application/octet-stream',
       });
       start_url = URL.createObjectURL(blob);
-      start_url += '/' + filename;
+      // start_url += '/' + filename;
     } else {
       console.warn('cannot load contentless object', object);
-      continue;
+      return;
     }
-    if (physics_url) {
+    /* if (physics_url) {
       physics_url = new URL(physics_url, srcUrl).href;
     }
 
@@ -786,36 +768,31 @@ const _loadScn = async (file, opts) => {
       optimize,
       physics,
       physics_url,
-    });
+    }); */
 
-    /* const mesh = await runtime.loadFile({
+    const mesh = await runtime.loadFile({
       url: start_url,
-      name: start_url,
+      name: filename,
     }, {
       optimize,
       physics,
+      physics_url,
     });
-    mesh.position.fromArray(position);
-    mesh.quaternion.fromArray(quaternion);
-    mesh.scale.fromArray(scale);
-    scene.add(mesh); */
-  }
+    mesh.position.copy(position);
+    mesh.quaternion.copy(quaternion);
+    mesh.scale.copy(scale);
+    scene.add(mesh);
+  });
+  await Promise.all(promises);
   scene.run = () => {
     for (const child of scene.children) {
       child.run && child.run();
     }
-    physicsIds = physicsBuffers.map(physicsBuffer => {
-      return physicsManager.addCookedGeometry(physicsBuffer, position, quaternion);
-    });
   };
   scene.destroy = () => {
     for (const child of scene.children) {
       child.destroy && child.destroy();
     }
-    for (const physicsId of physicsIds) {
-      physicsManager.removeGeometry(physicsId);
-    }
-    physicsIds.length = 0;
   };
   return scene;
 };
@@ -827,6 +804,7 @@ const _loadLink = async file => {
   } else {
     href = await file.text();
   }
+  href = href.replace(/^([\S]*)/, '$1');
 
   const geometry = new THREE.CircleBufferGeometry(1, 32)
     .applyMatrix4(new THREE.Matrix4().makeScale(0.5, 1, 1))
@@ -944,6 +922,7 @@ const _loadIframe = async (file, opts) => {
   } else {
     href = await file.text();
   }
+  href = href.replace(/^([\S]*)/, '$1');
 
   const width = 600;
   const height = 400;
@@ -991,6 +970,46 @@ const _loadIframe = async (file, opts) => {
   
   return object2;
 };
+const _loadMediaStream = async (file, opts) => {
+  let spec;
+  if (file.url) {
+    const res = await fetch(file.url);
+    spec = await res.json();
+  } else {
+    spec = await file.json();
+  }
+
+  const object = new THREE.Mesh(
+    new THREE.PlaneBufferGeometry(1, 1),
+    new THREE.MeshBasicMaterial({
+      color: 0xFFFFFF,
+    }),
+  );
+  
+  return object;
+};
+
+const _loadAudio = async (file, opts) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  
+  const audio = document.createElement('audio');
+  audio.src = srcUrl;
+  audio.loop = true;
+
+  const object = new THREE.Object3D();
+  object.run = () => {
+    audio.play();
+  };
+  object.destroy = () => {
+    audio.pause();
+  };
+  return object;
+};
+
+const _loadGeo = async (file, opts) => {
+  const object = geometryTool.makeShapeMesh();
+  return object;
+};
 
 runtime.loadFile = async (file, opts) => {
   switch (getExt(file.name)) {
@@ -1027,8 +1046,14 @@ runtime.loadFile = async (file, opts) => {
     case 'iframe': {
       return await _loadIframe(file, opts);
     }
+    case 'mediastream': {
+      return await _loadMediaStream(file, opts);
+    }
+    case 'geo': {
+      return await _loadGeo(file, opts);
+    }
     case 'mp3': {
-      throw new Error('audio not implemented');
+      return await _loadAudio(file, opts);
     }
     case 'video': {
       throw new Error('video not implemented');
