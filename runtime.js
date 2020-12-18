@@ -40,6 +40,28 @@ basisLoader.detectSupport(renderer);
 gltfLoader.setBasisLoader(basisLoader);
 basisLoader.detectSupport(renderer);
 
+const startMonetization = (instanceId, monetizationPointer, ownerAddress) => {
+  if (!monetizationPointer) {
+    return;
+  }
+
+  let monetization = document[`monetization${instanceId}`];
+  if (!monetization) {
+    document[`monetization${instanceId}`] = document.createElement('eventTarget');
+    monetization = document[`monetization${instanceId}`];
+  }
+
+  const ethereumAddress = loginManager.getAddress();
+  if (ethereumAddress && ethereumAddress == ownerAddress) {
+    monetization.dispatchEvent(new Event('monetizationstart'));
+    monetization.state = "started";
+  } else if (document.monetization && monetizationPointer) {
+    monetization.dispatchEvent(new Event('monetizationstart'));
+    monetization.state = "started";
+  }
+}
+
+
 const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
 const importMap = {
   three: _importMapUrl('./three.module.js'),
@@ -57,7 +79,7 @@ const importMap = {
 const _clone = o => JSON.parse(JSON.stringify(o));
 
 // const thingFiles = {};
-const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, files = null, parentUrl = null} = {}) => {
+const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files) {
     srcUrl = files[srcUrl];
@@ -71,6 +93,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     o = await new Promise((accept, reject) => {
       gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
     });
+    startMonetization(instanceId, monetizationPointer, ownerAddress);
   } catch(err) {
     console.warn(err);
   } finally {
@@ -241,7 +264,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       }, console.warn);
   } */
 };
-const _loadVrm = async (file, {files = null, parentUrl = null} = {}) => {
+const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files) {
     srcUrl = files[srcUrl];
@@ -255,6 +278,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null} = {}) => {
     o = await new Promise((accept, reject) => {
       gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
     });
+    startMonetization(instanceId, monetizationPointer, ownerAddress);
   } catch(err) {
     console.warn(err);
   } finally {
@@ -274,7 +298,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null} = {}) => {
   };
   return o;
 };
-const _loadVox = async (file, {files = null, parentUrl = null} = {}) => {
+const _loadVox = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files) {
     srcUrl = files[srcUrl];
@@ -290,17 +314,19 @@ const _loadVox = async (file, {files = null, parentUrl = null} = {}) => {
         scale: 0.01,
       }).load(srcUrl, accept, function onprogress() {}, reject);
     });
+    startMonetization(instanceId, monetizationPointer, ownerAddress);
   } catch(err) {
     console.warn(err);
   }
   return o;
 };
-const _loadImg = async file => {
+const _loadImg = async (file, {instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   const img = new Image();
   await new Promise((accept, reject) => {
     const u = file.url || URL.createObjectURL(file);
     img.onload = () => {
       accept();
+      startMonetization(instanceId, monetizationPointer, ownerAddress);
       _cleanup();
     };
     img.onerror = err => {
@@ -436,7 +462,7 @@ const _makeAppUrl = appId => {
   });
   return URL.createObjectURL(b);
 };
-const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, ownerAddress = null} = {}) => {
+const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   const appId = ++appIds;
   const mesh = new THREE.Object3D();
   /* mesh.geometry = new THREE.BufferGeometry();
@@ -448,18 +474,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
   mesh.run = () => {
     import(u)
       .then(() => {
-        const monetization = document[`monetization${instanceId}`];
-        if (monetization) {
-          const ethereumAddress = loginManager.getAddress();
-
-          if (monetization && ethereumAddress && ethereumAddress == ownerAddress) {
-            monetization.dispatchEvent(new Event('monetizationstart'));
-            monetization.state = "started";
-          } else if (monetization && document.monetization) {
-            monetization.dispatchEvent(new Event('monetizationstart'));
-            monetization.state = "started";
-          }
-        }
+        startMonetization(instanceId, monetizationPointer, ownerAddress);
       }, err => {
         console.warn('import failed', u, err);
       })
@@ -551,7 +566,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
 
   return mesh;
 };
-const _loadManifestJson = async (file, {files = null, instanceId = null, ownerAddress = null} = {}) => {
+const _loadManifestJson = async (file, {files = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files) {
     srcUrl = files[srcUrl];
@@ -574,6 +589,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, ownerAd
       parentUrl: srcUrl,
       instanceId,
       ownerAddress,
+      monetizationPointer,
     });
 
     /* const appId = ++appIds;
@@ -685,7 +701,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, ownerAd
   }
 };
 let appIds = 0;
-const _loadWebBundle = async (file, {instanceId = null, ownerAddress = null}) => {
+const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = null, ownerAddress = null}) => {
   let arrayBuffer;
 
   if (file.url) {
@@ -725,6 +741,7 @@ const _loadWebBundle = async (file, {instanceId = null, ownerAddress = null}) =>
     files,
     instanceId,
     ownerAddress,
+    monetizationPointer,
   });
 };
 const _loadScn = async (file, opts) => {
@@ -989,7 +1006,7 @@ const _loadMediaStream = async (file, opts) => {
   return object;
 };
 
-const _loadAudio = async (file, opts) => {
+const _loadAudio = async (file, {instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   
   const audio = document.createElement('audio');
@@ -999,6 +1016,7 @@ const _loadAudio = async (file, opts) => {
   const object = new THREE.Object3D();
   object.run = () => {
     audio.play();
+    startMonetization(instanceId, monetizationPointer, ownerAddress);
   };
   object.destroy = () => {
     audio.pause();
