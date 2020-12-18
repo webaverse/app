@@ -5,6 +5,7 @@ import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
+import {loginManager} from './login.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
@@ -12,6 +13,7 @@ import {rigManager} from './rig.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 import geometryTool from './geometry-tool.js';
+import {getExt, bindUploadFileButton} from './util.js';
 import {
   THING_SHADER,
   makeDrawMaterial,
@@ -316,6 +318,24 @@ const _equip = () => {
   }
 };
 
+let uploadFileInput = document.getElementById('upload-file-input');
+bindUploadFileButton(uploadFileInput, async file => {
+  const transforms = rigManager.getRigTransforms();
+  let {position, quaternion} = transforms[0];
+  position = position.clone()
+    .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
+  quaternion = quaternion.clone();
+
+  const {name, hash, id} = await loginManager.uploadFile(file);
+  console.log('uploaded', {name, hash, id});
+
+  const u = `https://storage.exokit.org/${hash}.${getExt(name)}`;
+  world.addObject(u, null, position, quaternion);
+});
+const _upload = () => {
+  uploadFileInput.click();
+};
+
 world.addEventListener('trackedobjectadd', async e => {
   const trackedObject = e.data;
   const trackedObjectJson = trackedObject.toJSON();
@@ -336,7 +356,7 @@ world.addEventListener('trackedobjectadd', async e => {
         <div class=label>Grab</div>
       </div>
       <div class="key-helper">
-        <div class=key>←</div>
+        <div class=key>DEL</div>
         <div class=label>Delete</div>
       </div>
     </div>
@@ -1424,6 +1444,13 @@ const weaponsManager = {
     }
     const itemEl = loadoutItems[index];
     itemEl.classList.add('selected');
+  },
+  canUpload() {
+    console.log('can upload', this.menuOpen);
+    return this.menuOpen === 1;
+  },
+  menuUpload() {
+    _upload();
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);

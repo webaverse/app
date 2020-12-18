@@ -381,6 +381,14 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
+    case 85: { // U
+      if (weaponsManager.canUpload()) {
+        e.preventDefault();
+        e.stopPropagation();
+        weaponsManager.menuUpload();
+      }
+      break;
+    }
     /* case 66: { // B
       if (!_inputFocused()) {
         e.preventDefault();
