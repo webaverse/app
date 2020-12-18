@@ -30,7 +30,7 @@ const Card = ({
 }) => {
     return html`
         <div
-          className="${styles} card ${cardSize}" 
+          className="${styles} card ${cardSize} cardItem" 
             onClick=${onClickFunction}
         >
           <div className="upperCardInfo upperCardInfo ${cardSize} upperCardInfo scheme-${id} upperCardInfo_${(ext ?? "").replace('.','')}">
