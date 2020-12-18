@@ -1416,6 +1416,9 @@ const weaponsManager = {
   menuClick() {
     _click();
   },
+  canEquip() {
+    return highlightMesh.visible;
+  },
   menuEquip() {
     _equip();
   },
@@ -1433,6 +1436,12 @@ const weaponsManager = {
   },
   canUseHold() {
     return !!highlightedObject && !editedObject;
+  },
+  canRotate() {
+    return !!appManager.grabbedObjects[0];
+  },
+  menuRotate(direction) {
+    console.log('rotate', direction);
   },
   setWorld(newCoord, newHighlightedWorld) {
     lastCoord.copy(coord);
