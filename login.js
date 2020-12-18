@@ -590,7 +590,7 @@ class LoginManager extends EventTarget {
         let status, transactionHash, id;
         try {
           notification = notifications.addNotification(`\
-            <i class="icon fa fa-upload"></i>
+            <i class="icon fa fa-layer-plus"></i>
             <div class=wrap>
               <div class=label>Minting ${name}</div>
               <div class=text>Almost there...</div>
