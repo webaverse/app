@@ -1181,6 +1181,7 @@ const _updateMenu = () => {
   locationIcon.classList.toggle('highlight', false);
   profileIcon.classList.toggle('open', false);
   itemIcon.classList.toggle('open', false);
+  grabIcon.classList.toggle('open', false);
   editIcon.classList.toggle('open', false);
 
   deployMesh.visible = false;
@@ -1260,9 +1261,17 @@ const _updateMenu = () => {
     }
 
     lastSelectedBuild = -1;
+
+
+  } else if (appManager.grabbedObjects[0]) {
+    grabIcon.classList.toggle('open', true);
+    // grabLabel.innerText = 'Grabbing';
+
+    lastSelectedBuild = -1;
+    lastCameraFocus = -1;
   } else if (editedObject) {
     editIcon.classList.toggle('open', true);
-    editLabel.innerText = 'Editing';
+    // editLabel.innerText = 'Editing';
 
     lastSelectedBuild = -1;
     lastCameraFocus = -1;
@@ -1302,10 +1311,12 @@ const worldMenuEl = document.getElementById('world-menu');
 const locationLabel = document.getElementById('location-label');
 const profileLabel = document.getElementById('profile-label');
 const itemLabel = document.getElementById('item-label');
+const grabLabel = document.getElementById('grab-label');
 const editLabel = document.getElementById('edit-label');
 const locationIcon = document.getElementById('location-icon');
 const profileIcon = document.getElementById('profile-icon');
 const itemIcon = document.getElementById('item-icon');
+const grabIcon = document.getElementById('grab-icon');
 const editIcon = document.getElementById('edit-icon');
 const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
 const weaponsManager = {
