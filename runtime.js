@@ -11,6 +11,7 @@ import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 // import geometryManager from './geometry-manager.js';
 import geometryTool from './geometry-tool.js';
 import {rigManager} from './rig.js';
+import {loginManager} from './login.js';
 import {makeIconMesh, makeTextMesh} from './vr-ui.js';
 import {renderer, scene2, appManager} from './app-object.js';
 import wbn from './wbn.js';
@@ -435,7 +436,7 @@ const _makeAppUrl = appId => {
   });
   return URL.createObjectURL(b);
 };
-const _loadScript = async (file, {files = null, parentUrl = null} = {}) => {
+const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, ownerAddress = null} = {}) => {
   const appId = ++appIds;
   const mesh = new THREE.Object3D();
   /* mesh.geometry = new THREE.BufferGeometry();
@@ -447,7 +448,18 @@ const _loadScript = async (file, {files = null, parentUrl = null} = {}) => {
   mesh.run = () => {
     import(u)
       .then(() => {
-        // console.log('import returned');
+        const monetization = document[`monetization${instanceId}`];
+        if (monetization) {
+          const ethereumAddress = loginManager.getAddress();
+
+          if (monetization && ethereumAddress && ethereumAddress == ownerAddress) {
+            monetization.dispatchEvent(new Event('monetizationstart'));
+            monetization.state = "started";
+          } else if (monetization && document.monetization) {
+            monetization.dispatchEvent(new Event('monetizationstart'));
+            monetization.state = "started";
+          }
+        }
       }, err => {
         console.warn('import failed', u, err);
       })
@@ -519,6 +531,12 @@ const _loadScript = async (file, {files = null, parentUrl = null} = {}) => {
     script = script.replace(r, function() {
       return arguments[1] + replacements[index++] + arguments[3];
     });
+    if (instanceId) {
+      script = script.replace(/document\.monetization/g, `document.monetization${instanceId}`);
+      script = `
+        document.monetization${instanceId} = document.createElement('eventTarget');
+      ` + script;
+    }
     return script;
   };
 
@@ -533,7 +551,7 @@ const _loadScript = async (file, {files = null, parentUrl = null} = {}) => {
 
   return mesh;
 };
-const _loadManifestJson = async (file, {files = null} = {}) => {
+const _loadManifestJson = async (file, {files = null, instanceId = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files) {
     srcUrl = files[srcUrl];
@@ -554,6 +572,8 @@ const _loadManifestJson = async (file, {files = null} = {}) => {
     }, {
       files,
       parentUrl: srcUrl,
+      instanceId,
+      ownerAddress,
     });
 
     /* const appId = ++appIds;
@@ -665,8 +685,9 @@ const _loadManifestJson = async (file, {files = null} = {}) => {
   }
 };
 let appIds = 0;
-const _loadWebBundle = async file => {
+const _loadWebBundle = async (file, {instanceId = null, ownerAddress = null}) => {
   let arrayBuffer;
+
   if (file.url) {
     const res = await fetch(file.url);
     arrayBuffer = await res.arrayBuffer();
@@ -684,6 +705,7 @@ const _loadWebBundle = async file => {
   const files = {};
   const bundle = new wbn.Bundle(arrayBuffer);
   const {urls} = bundle;
+
   for (const u of urls) {
     const response = bundle.getResponse(u);
     const {headers} = response;
@@ -701,6 +723,8 @@ const _loadWebBundle = async file => {
     name: u,
   }, {
     files,
+    instanceId,
+    ownerAddress,
   });
 };
 const _loadScn = async (file, opts) => {
@@ -905,6 +929,7 @@ const _loadIframe = async (file, opts) => {
 
   const iframe = document.createElement('iframe');
   iframe.src = href;
+  iframe.allow = 'monetization';
   iframe.style.width = width + 'px';
   iframe.style.height = height + 'px';
   // iframe.style.opacity = 0.75;
