@@ -424,11 +424,11 @@ const _grab = object => {
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = timeDiff => {  
   const transforms = rigManager.getRigTransforms();
-  const _snap = (v, n) => v.set(
+  /* const _snap = (v, n) => v.set(
     Math.round(v.x/n)*n,
     Math.round(v.y/n)*n,
     Math.round(v.z/n)*n,
-  );
+  ); */
 
   const _handleHighlight = () => {
     if (!editedObject) {
@@ -533,8 +533,8 @@ const _updateWeapons = timeDiff => {
         let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
         if (collision) {
           const {point} = collision;
-          _snap(localVector.fromArray(point), 1);
-          grabbedObject.position.copy(localVector)
+          // _snap(localVector.fromArray(point), 1);
+          grabbedObject.position.fromArray(point)
             .add(localVector2.set(0, 0.01, 0));
           /* localEuler.setFromQuaternion(quaternion, 'YXZ');
           localEuler.x = 0;
@@ -552,6 +552,7 @@ const _updateWeapons = timeDiff => {
         }
 
         if (appManager.grabbedObjectOffsets[0] >= maxGrabDistance || !!collision) {
+          _snapPosition(grabbedObject, weaponsManager.getGridSnap());
           grabbedObject.quaternion.setFromEuler(grabbedObject.savedRotation);
           
           moveMesh.position.copy(grabbedObject.position);
@@ -588,8 +589,10 @@ const _updateWeapons = timeDiff => {
         }
       }
       if (!collision) {
-        deployMesh.position.copy(position).add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
+        deployMesh.position.copy(position)
+          .add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
         deployMesh.rotation.setFromQuaternion(quaternion, 'YXZ');
+        _snapPosition(deployMesh, weaponsManager.getGridSnap());
         _snapRotation(deployMesh, rotationSnap);
       }
 
@@ -1148,6 +1151,13 @@ const _snapRotation = (o, rotationSnap) => {
   o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
   o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
 };
+const _snapPosition = (o, positionSnap) => {
+  if (positionSnap > 0) {
+    o.position.x = Math.round(o.position.x / positionSnap) * positionSnap;
+    o.position.y = Math.round(o.position.y / positionSnap) * positionSnap;
+    o.position.z = Math.round(o.position.z / positionSnap) * positionSnap;
+  }
+};
 
 const keyTabEl = document.getElementById('key-tab');
 const keyTab1El = document.getElementById('key-tab-1');
@@ -1486,6 +1496,13 @@ const weaponsManager = {
       this.gridSnap = 0;
     }
     gridSnapEl.innerText = this.gridSnap > 0 ? (this.gridSnap + '') : 'off';
+  },
+  getGridSnap() {
+    if (this.gridSnap === 0) {
+      return 0;
+    } else {
+      return 4/this.gridSnap;
+    }
   },
   setWorld(newCoord, newHighlightedWorld) {
     lastCoord.copy(coord);
