@@ -13,7 +13,9 @@ const addNotification = (html, {timeout = 5000} = {}) => {
   return div;
 };
 const removeNotification = div => {
-  notificationsEl.removeChild(div);
+  if (Array.from(notificationsEl.childNodes).includes(div)) {
+    notificationsEl.removeChild(div);
+  }
 };
 
 export {
