@@ -363,6 +363,7 @@ class LoginManager extends EventTarget {
     } else if (loginToken.mnemonic) {
       const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
       loginToken.address = wallet.getAddressString();
+      return loginToken.address;
     } else {
       return null;
     }
