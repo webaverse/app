@@ -590,7 +590,7 @@ const _updateWeapons = timeDiff => {
       if (!collision) {
         deployMesh.position.copy(position).add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
         deployMesh.rotation.setFromQuaternion(quaternion, 'YXZ');
-        _snapRotation(deployMesh);
+        _snapRotation(deployMesh, rotationSnap);
       }
 
       deployMesh.material.uniforms.uTime.value = (Date.now()%1000)/1000;
@@ -1143,7 +1143,7 @@ const _selectTabDelta = offset => {
 };
 
 const rotationSnap = Math.PI/6;
-const _snapRotation = o => {
+const _snapRotation = (o, rotationSnap) => {
   o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
   o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
   o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
@@ -1161,7 +1161,7 @@ const keyTab5El = document.getElementById('key-tab-5');
     e.stopPropagation();
 
     if (appManager.grabbedObjects[0]) {
-      _snapRotation(appManager.grabbedObjects[0]);
+      _snapRotation(appManager.grabbedObjects[0], rotationSnap);
       appManager.grabbedObjects[0] = null;
       _updateMenu();
     } else if (editedObject) {
