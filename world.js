@@ -853,7 +853,7 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
 world.removeObject = removeInstanceId => {
   state.transact(() => {
     const index = pointers.findIndex(x => x.instanceId === removeInstanceId);
-    if (index !== undefined) pointers.splice(index, 1);
+    if (index === -1) pointers.splice(index, 1);
 
     const objects = state.getArray('objects');
     const objectsJson = objects.toJSON();
