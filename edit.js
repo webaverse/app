@@ -4,36 +4,36 @@ import * as THREE from './three.module.js';
 // import {GLTFLoader} from './GLTFLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {TransformControls} from './TransformControls.js';
+// import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {tryLogin, loginManager} from './login.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
 import {makeRayMesh, makeTextMesh, makeHighlightMesh, makeButtonMesh, makeArrowMesh, makeCornersMesh} from './vr-ui.js';
-import {
+/* import {
   THING_SHADER,
   makeDrawMaterial,
-} from './shaders.js';
+} from './shaders.js'; */
 // import {lineMeshes, teleportMeshes} from './teleport.js';
 import geometryManager from './geometry-manager.js';
 import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
-import {
-  SUBPARCEL_SIZE,
-} from './constants.js';
 import {makePromise} from './util.js';
 import {world} from './world.js';
+import * as universe from './universe.js';
 // import {Bot} from './bot.js';
 import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
-import {renderer, scene, camera, dolly, orbitControls, renderer2, scene2, scene3, appManager} from './app-object.js';
+import {renderer, scene, avatarScene, camera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
+import minimap from './minimap.js';
 import {App} from './components/App.js';
 import {tryTutorial} from './tutorial.js';
-import {getState, setState} from './state.js';
+// import {getState, setState} from './state.js';
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
 // const pid4 = Math.PI / 4;
@@ -49,6 +49,7 @@ const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
+const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
@@ -59,6 +60,10 @@ const localRay = new THREE.Ray();
 const localTriangle = new THREE.Triangle();
 
 let skybox = null;
+let xrscenetexture = null;
+let xrsceneplane = null;
+let xrscenecam = null;
+let xrscene = null;
 
 function mod(a, b) {
   return ((a % b) + b) % b;
@@ -128,47 +133,6 @@ const floorMesh = _makeFloorMesh();
 floorMesh.position.y = 0;
 scene.add(floorMesh); */
 
-(() => {
-  const effectController = {
-    turbidity: 2,
-    rayleigh: 3,
-    mieCoefficient: 0.2,
-    mieDirectionalG: 0.9999,
-    inclination: 0, // elevation / inclination
-    azimuth: 0, // Facing front,
-    // exposure: renderer.toneMappingExposure
-  };
-  const sun = new THREE.Vector3();
-  function update() {
-    var uniforms = skybox.material.uniforms;
-    uniforms.turbidity.value = effectController.turbidity;
-    uniforms.rayleigh.value = effectController.rayleigh;
-    uniforms.mieCoefficient.value = effectController.mieCoefficient;
-    uniforms.mieDirectionalG.value = effectController.mieDirectionalG;
-
-    // effectController.azimuth = (0.05 + ((Date.now() / 1000) * 0.1)) % 1;
-    effectController.azimuth = 0.25;
-    var theta = Math.PI * (effectController.inclination - 0.5);
-    var phi = 2 * Math.PI * (effectController.azimuth - 0.5);
-
-    sun.x = Math.cos(phi);
-    sun.y = Math.sin(phi) * Math.sin(theta);
-    sun.z = Math.sin(phi) * Math.cos(theta);
-
-    uniforms.sunPosition.value.copy(sun);
-  }
-  skybox = new Sky();
-  skybox.scale.setScalar(1000);
-  skybox.update = update;
-  skybox.update();
-  scene.add(skybox);
-})();
-(() => {
-  const guardianMesh = GuardianMesh([[
-    0, 0, SUBPARCEL_SIZE, SUBPARCEL_SIZE,
-  ]], 0x42a5f5);
-  scene.add(guardianMesh);
-})();
 /* (async () => {
   const HEIGHTFIELD_SHADER2 = {
     uniforms: {
@@ -306,11 +270,11 @@ const highlightMesh = makeHighlightMesh();
 highlightMesh.visible = false;
 scene.add(highlightMesh);
 const anchorMeshes = [];
-const rayMesh = makeRayMesh();
-scene.add(rayMesh);
+/* const rayMesh = makeRayMesh();
+scene.add(rayMesh); */
 
 const q = parseQuery(location.search);
-(async () => {
+/* (async () => {
   if (q.m) { // multiplayer
     await world.connect({
       online: true,
@@ -324,25 +288,31 @@ const q = parseQuery(location.search);
     });
   }
   // new Bot();
-})();
+})(); */
 (async () => {
   await geometryManager.waitForLoad();
 
   runtime.injectDependencies(geometryManager, physicsManager, world);
 
+  universe.loadDefaultWorld();
+
   if (q.o) { // object
-    world.addObject(q.o);
+    let contentId = parseInt(q.o);
+    if (isNaN(contentId)) {
+      contentId = q.o;
+    }
+    world.addObject(contentId);
   }
-  {
+  /* {
     const mesh = await runtime.loadFile({
       name: 'home.scn',
       url: './home.scn',
     });
     mesh.run();
     scene.add(mesh);
-  }
+  } */
 
-  {
+  /* {
     addItem(new THREE.Vector3(0, 1, 0), new THREE.Quaternion());
   }
   {
@@ -354,7 +324,7 @@ const q = parseQuery(location.search);
     const file = new Blob(['http://lol.com'], {type: 'text/plain'});
     const u = URL.createObjectURL(file) + '/file.iframe';
     world.addObject(u, null, new THREE.Vector3(0, 1, -3), new THREE.Quaternion());
-  }
+  } */
 
   /* rigManager.addPeerRig(-1);
   rigManager.setPeerAvatarUrl('./npc.vrm', -1);
@@ -371,7 +341,7 @@ const q = parseQuery(location.search);
 
   // const floorPhysicsId = physicsManager.addBoxGeometry(new THREE.Vector3(0, -1, 0), new THREE.Quaternion(), new THREE.Vector3(100, 1, 100), false);
 
-  {
+  /* {
     // const makeTextMesh = (text = '', font = './GeosansLight.ttf', fontSize = 1, anchorX = 'left', anchorY = 'middle') => {
     const textMesh = makeTextMesh(`Hootshot\nThis is the best hookshot you'll find.\n`, undefined, 0.2);
     textMesh.position.y = 2;
@@ -398,7 +368,7 @@ const q = parseQuery(location.search);
     cornersMesh.position.y = 1;
     scene.add(cornersMesh);
     anchorMeshes.push(cornersMesh);
-  }
+  } */
 
   /* {
     const u = 'assets/case.glb';
@@ -788,10 +758,10 @@ function animate(timestamp, frame) {
   const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
 
+  const session = renderer.xr.getSession();
   const now = Date.now();
-  skybox.position.copy(rigManager.localRig.inputs.hmd.position);
-  skybox.update();
 
+  universe.update();
   ioManager.update(timeDiff, frame);
   physicsManager.update(timeDiff, frame);
   uiManager.update(timeDiff, frame);
@@ -803,8 +773,8 @@ function animate(timestamp, frame) {
 
   const _updateRig = () => {
     let hmdPosition, hmdQuaternion;
-    let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip;
-    let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip;
+    let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
+    let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
 
     if (rigManager.localRigMatrixEnabled) {
       localMatrix.copy(rigManager.localRigMatrix);
@@ -821,7 +791,6 @@ function animate(timestamp, frame) {
     hmdPosition = localVector.toArray();
     hmdQuaternion = localQuaternion.toArray();
 
-    const session = renderer.xr.getSession();
     if (session) {
       let inputSources = Array.from(session.inputSources);
       inputSources = ['right', 'left']
@@ -848,6 +817,9 @@ function animate(timestamp, frame) {
           leftGamepadPointer = 0;
           leftGamepadGrip = 0;
         }
+        leftGamepadEnabled = true;
+      } else {
+        leftGamepadEnabled = false;
       }
       if (inputSources[1] && (pose = frame.getPose(inputSources[1].gripSpace, renderer.xr.getReferenceSpace()))) {
         localMatrix.fromArray(pose.transform.matrix)
@@ -870,6 +842,9 @@ function animate(timestamp, frame) {
           rightGamepadPointer = 0;
           rightGamepadGrip = 0;
         }
+        rightGamepadEnabled = true;
+      } else {
+        rightGamepadEnabled = false;
       }
 
       /* const _scaleMatrixPQ = (srcMatrixArray, p, q) => {
@@ -984,6 +959,7 @@ function animate(timestamp, frame) {
       }
       leftGamepadPointer = 0;
       leftGamepadGrip = 0;
+      leftGamepadEnabled = false;
     }
     if (!rightGamepadPosition) {
       if (!physicsManager.getGlideState()) {
@@ -1001,6 +977,7 @@ function animate(timestamp, frame) {
       }
       rightGamepadPointer = 0;
       rightGamepadGrip = 0;
+      rightGamepadEnabled = false;
     }
 
     /* HANDS.forEach((handedness, i) => {
@@ -1020,20 +997,20 @@ function animate(timestamp, frame) {
 
     rigManager.setLocalAvatarPose([
       [localVector.toArray(), localQuaternion.toArray()],
-      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip],
-      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip],
+      [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
+      [rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled],
     ]);
     rigManager.update();
   };
   _updateRig();
-  
+
   const _updateAnchors = () => {
     const transforms = rigManager.getRigTransforms();
     const {position, quaternion} = transforms[0];
-    rayMesh.position.copy(position);
+    /* rayMesh.position.copy(position);
     rayMesh.quaternion.copy(quaternion);
-    rayMesh.scale.z = 10;
-    
+    rayMesh.scale.z = 10; */
+
     highlightMesh.visible = false;
     for (const anchorMesh of anchorMeshes) {
       localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1))
@@ -1057,7 +1034,7 @@ function animate(timestamp, frame) {
 
   // const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
 
-  orbitControls.enabled = cameraManager.getTool() === 'camera';
+  // orbitControls.enabled = cameraManager.getTool() === 'camera';
 
   weaponsManager.update(timeDiff, frame);
 
@@ -1107,34 +1084,82 @@ function animate(timestamp, frame) {
     _tickPlanetAnimation(factor);
   } */
 
-  const geometryEnabled = false;
+  /* const geometryEnabled = false;
   if (geometryEnabled) {
     geometryManager.update(timeDiff, frame);
-  }
-  world.update();
+  } */
 
   appManager.tick(timestamp, frame);
   
   ioManager.updatePost(timeDiff);
 
-  const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
+  const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
   localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));
   localMatrix3.copy(xrCamera.matrix)
     .premultiply(dolly.matrix)
-    .premultiply(localMatrix2.copy(geometryManager.worldContainer.matrixWorld).invert())
+    // .premultiply(localMatrix2.copy(geometryManager.worldContainer.matrixWorld).invert())
     .decompose(localVector, localQuaternion, localVector2);
 
-  if (geometryEnabled) {
+  /* if (geometryEnabled) {
     const [landGroups, vegetationGroups, thingGroups] = geometryManager.geometryWorker.tickCull(geometryManager.tracker, localVector, localMatrix);
     geometryManager.currentChunkMesh.geometry.groups = landGroups;
     geometryManager.currentVegetationMesh.geometry.groups = vegetationGroups;
     geometryManager.currentThingMesh.geometry.groups = thingGroups;
-  }
+  } */
 
+  // high priority render
   renderer.render(scene3, camera);
+  // main render
+  scene.add(rigManager.localRig.model);
+  rigManager.localRig.model.visible = false;
   renderer.render(scene, camera);
+  // local avatar render
+  {
+    rigManager.localRig.model.visible = true;
+    avatarScene.add(rigManager.localRig.model);
+    if (/^(?:camera|firstperson)$/.test(cameraManager.getTool()) || !!renderer.xr.getSession()) {
+      rigManager.localRig.decapitate();
+    } else {
+      rigManager.localRig.undecapitate();
+    }
+    renderer.render(avatarScene, camera);
+    rigManager.localRig.undecapitate();
+  }
+  // dom render
   renderer2.render(scene2, camera);
+  // highlight render
   // renderer.render(highlightScene, camera);
+
+  minimap.update();
+
+  if (session && document.visibilityState == 'visible') {
+    const {baseLayer} = session.renderState;
+    if (!xrscenetexture || (xrscenetexture.image.width !== baseLayer.framebufferWidth * renderer.getPixelRatio() / 2) || ((xrscenetexture.image.height !== baseLayer.framebufferHeight * renderer.getPixelRatio()))) {
+      xrscenetexture = new THREE.DataTexture(null, baseLayer.framebufferWidth * renderer.getPixelRatio() / 2, baseLayer.framebufferHeight * renderer.getPixelRatio(), THREE.RGBAFormat);
+      xrscenetexture.minFilter = THREE.NearestFilter;
+      xrscenetexture.magFilter = THREE.NearestFilter;
+    }
+    if (!xrscene) {
+      xrscene = new THREE.Scene();
+
+      xrsceneplane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), new THREE.MeshBasicMaterial({map: xrscenetexture, /*side: THREE.DoubleSide,*/ color: 0xffffff}));
+      xrscene.add(xrsceneplane);
+
+      xrscenecam = new THREE.OrthographicCamera(-1 / 2, 1 / 2, 1 / 2, -1 / 2, -1, 1);
+      xrscene.add(xrscenecam);
+    }
+
+    renderer.xr.enabled = false;
+    renderer.copyFramebufferToTexture(localVector2D.set(0, 0), xrscenetexture);
+    renderer.setFramebuffer(null);
+
+    const oldOutputEncoding = renderer.outputEncoding;
+    renderer.outputEncoding = THREE.LinearEncoding;
+    renderer.setViewport(0, 0, canvas.width, canvas.height);
+    renderer.render(xrscene, xrscenecam);
+    renderer.xr.enabled = true;
+    renderer.outputEncoding = oldOutputEncoding;
+  }
 }
 geometryManager.waitForLoad().then(e => {
   setTimeout(() => {
@@ -1261,6 +1286,7 @@ const _initializeLogin = async () => {
   _initializeUserUi();
   const _initializeRigUi = () => {
     const username = loginManager.getUsername() || 'Anonymous';
+    const avatarImage = loginManager.getAvatarPreview();
     rigManager.setLocalAvatarName(username);
 
     loginManager.addEventListener('usernamechange', e => {
@@ -1268,11 +1294,11 @@ const _initializeLogin = async () => {
       if (username !== rigManager.localRig.textMesh.text) {
         rigManager.setLocalAvatarName(username);
 
-        const {menu} = getState();
+        /* const {menu} = getState();
         menu.username = username;
         setState({
           menu,
-        });
+        }); */
       }
     });
 
@@ -1280,30 +1306,34 @@ const _initializeLogin = async () => {
     if (avatar.url) {
       rigManager.setLocalAvatarUrl(avatar.url, avatar.filename);
     }
+    if (avatar.preview) {
+      rigManager.setLocalAvatarImage(avatar.preview);
+    }
     loginManager.addEventListener('avatarchange', e => {
       const avatar = e.data;
       const newAvatarUrl = avatar ? avatar.url : null;
       if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
         rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.filename);
+        rigManager.setLocalAvatarImage(avatar.preview);
 
-        const {menu} = getState();
+        /* const {menu} = getState();
         menu.avatarUrl = avatar.url;
         menu.avatarFileName = avatar.filename;
         menu.avatarPreview = avatar.preview;
         setState({
           menu,
-        });
+        }); */
       }
     });
 
-    const {menu} = getState();
+    /* const {menu} = getState();
     menu.username = username;
     menu.avatarUrl = avatar.url;
     menu.avatarFileName = avatar.filename;
     menu.avatarPreview = avatar.preview;
     setState({
       menu,
-    });
+    }); */
   };
   _initializeRigUi();
 };
@@ -1316,13 +1346,13 @@ const _initializeXr = () => {
     renderer.xr.setSession(session);
     // renderer.xr.setReferenceSpaceType('local-floor');
     currentSession = session;
-    setState({ isXR: true })
+    // setState({ isXR: true })
   }
   function onSessionEnded() {
     currentSession.removeEventListener('end', onSessionEnded);
     renderer.xr.setSession(null);
     currentSession = null;
-    setState({ isXR: false });
+    // setState({ isXR: false });
   }
   const sessionMode = 'immersive-vr';
   const sessionOpts = {

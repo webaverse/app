@@ -23,6 +23,11 @@ const Helpers = {
     o.matrix.compose(o.position, o.quaternion, o.scale);
     o.matrixWorld.multiplyMatrices(o.parent.matrixWorld, o.matrix);
   },
+  copyTransform(dst, src) {
+    dst.position.copy(src.position);
+    dst.quaternion.copy(src.quaternion);
+    dst.scale.copy(src.scale);
+  }
 };
 
 export {

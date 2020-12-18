@@ -1,5 +1,6 @@
 import {loginManager} from './login.js';
 import {rigManager} from './rig.js';
+import * as notifications from './notifications.js';
 import {parseQuery, bindUploadFileButton, getExt} from './util.js';
 
 const ftu = document.getElementById('ftu');
@@ -7,11 +8,45 @@ const ftuUsername = document.getElementById('ftu-username');
 
 let ftuPhase;
 export async function tryTutorial() {
-  const ftuDone = loginManager.getFtu() && !parseQuery(location.search)['ftu'];
-  ftuPhase = ftuDone ? 4 : 1;
+  const ftuQs = parseQuery(location.search)['ftu'];
+  const ftuNeeded = ftuQs === '1' || (!loginManager.getAvatar() && ftuQs !== '0');
+  if (ftuNeeded) {
+    const notification = notifications.addNotification(`\
+      <i class="icon fa fa-alien-monster"></i>
+      <div class=wrap>
+        <div class=label>Getting started</div>
+        <div class=text>
+          You don't have an avatar (how embarassing!).<br>
+          Wanna fix that up?<br>
+        </div>
+        <div class=close-button>✕</div>
+        <!-- <progress value=0.5></progress>
+        <div class=button>Add avatar</div> -->
+      </div>
+    `, {
+      timeout: Infinity,
+    });
+    notification.querySelector('.close-button').addEventListener('click', e => {
+      notifications.removeNotification(notification);
+    });
+    /* notifications.addNotification(`\
+      <i class="icon fa fa-user-ninja"></i>
+      <div class=wrap>
+        <div class=label>Getting started</div>
+        <div class=text>
+          You don't have an avatar (how embarassing!).<br>
+          Wanna fix that up?<br>
+          <div class=button>Add avatar</div>
+        </div>
+      </div>
+    `, {
+      timeout: Infinity,
+    }); */
+  }
+  /* ftuPhase = ftuDone ? 4 : 1;
   ftu.classList.add('phase-' + ftuPhase);
   ftuUsername.focus();
-  ftuUsername.select();
+  ftuUsername.select(); */
 }
 
 ftuUsername.addEventListener('keydown', e => {

@@ -1,7 +1,16 @@
 & {
     width: 100%;
-    height: 3em;
+    height: 4em;
     background: white;
+    display: flex;
+    flex-wrap: nowrap;
+    align-self: center;
+    justify-content: center;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.24);
+}
+
+.hidden {
+    display: none;
 }
 
 a {
@@ -18,40 +27,68 @@ a:hover {
     width: 100%;
     height: 100%;
     display: flex;
-    justify-content: left;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
 }
 
 .nav-item {
-    padding: 1em;
-}
-
-.nav-logo {
-    padding: 1em;
-}
-
-.nav-logo h1 {
-    display: inline;
+    cursor: pointer;
 }
 
 .nav-link {
-    height: 100%;
+    padding: 1.4em;
+    height: 4em;
+    white-space: nowrap;
 }
 
-.nav-link a {
+.nav-link:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.nav-link.active {
+    font-weight: bold;
+}
+
+.nav-logo {
+    width: 64px;
+    height: 64px;
+    background-image: url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='64' height='64' fill='url(%23paint0_linear)'/%3E%3Cdefs%3E%3ClinearGradient id='paint0_linear' x1='32' y1='0' x2='32' y2='64' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%23E30069'/%3E%3Cstop offset='0.463542' stop-color='%23990357'/%3E%3Cstop offset='1' stop-color='%239F035B'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E%0A");
+}
+
+.nav-logo-logo {
+    width: 100%;
     height: 100%;
+    z-index: 2;
+    background-image: url("data:image/svg+xml,%3Csvg width='31' height='37' viewBox='0 0 31 37' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30.8511 36.6275H28.0459L28.0459 33.9709V9.32617L30.8511 11.0078V33.9709V36.6275Z' fill='white'/%3E%3Cpath d='M2.80521 36.6275H2.79095e-06L0 33.9709V9.32617L2.80521 11.0078V33.9709V36.6275Z' fill='white'/%3E%3Cpath d='M16.7061 33.1043H13.9009L13.9009 30.5569L13.9009 0.816162L16.7061 2.4978L16.7061 30.5569V33.1043Z' fill='white'/%3E%3Crect y='31.1532' width='30.8504' height='2.68264' fill='white'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 .loginComponent {
-    text-align: right;
-    top: 0;
-    right: 0;
-    position:absolute;
-    width: 20%;
-    height: 3em;
+    padding: 0 1.5em;
+    display: flex;
+    align-content: center;
+}
+
+.loginComponentNav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .loginComponentDropdown {
+    position: absolute;
+    width: 16.5em;
+    top: 4em;
+    right: 0;
+    background-color: white;
+    z-index: 2;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
 
+.loginComponentDropdownGuest {
+    width: 18.5em;
 }
 
 .loginComponentLink {
@@ -59,15 +96,307 @@ a:hover {
 }
 
 .loginUsername {
-
+    font-size: 1.5em;
+    font-weight: 500;
+    padding: 0 1em;
+    cursor: pointer;
 }
 
 .loginAvatarPreview {
-    height:2em;
-    width: 2em;
+    height:2.5em;
+    width: 2.5em;
 }
 
 .loginAvatarPreview img {
-    height:2em;
+    border-radius: 50%;
+    height:2.5em;
+    width: 2.5em;
+    cursor: pointer;
+}
+
+.loginForm {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.submit {
+    background: none;
+	border: none;
+	cursor: pointer;
+    outline: inherit;
+    font-size: 1em;
+    font-weight: 400;
+}
+
+.formAddressValue {
+    font-size: 0.65em;
+    font-weight: 400;
+    align-self: flex-end;
+    padding-right: 2em;
+    margin-top: 1em;
+}
+
+.formBtnCopyAdress {
+    font-size: 1em;
+    font-weight: 400;
+    align-self: flex-end;
+    padding-right: 3em;
+    margin-top: 1em;
+}
+
+.formBtnCopyAdress::after {
+    content: '';
+    display: block;
+    position: relative;
+    left: 9.7em;
+    bottom: 0.9em;
+    width: 1em;
+    height: 1em;
+    background-image: url("data:image/svg+xml,%3Csvg width='18' height='10' viewBox='0 0 18 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.4875 3.5C8.8725 1.7525 7.2075 0.5 5.25 0.5C2.7675 0.5 0.75 2.5175 0.75 5C0.75 7.4825 2.7675 9.5 5.25 9.5C7.2075 9.5 8.8725 8.2475 9.4875 6.5H12.75V9.5H15.75V6.5H17.25V3.5H9.4875ZM5.25 6.5C4.425 6.5 3.75 5.825 3.75 5C3.75 4.175 4.425 3.5 5.25 3.5C6.075 3.5 6.75 4.175 6.75 5C6.75 5.825 6.075 6.5 5.25 6.5Z' fill='%237E57C2'/%3E%3C/svg%3E%0A");
+    background-repeat: no-repeat;
+}
+
+.loginFormInfoTitle {
+    align-self: flex-start;
+    padding-left: 2.5em;
+    font-size: 1em;
+    font-weight: 700;
+    text-transform: uppercase;
+    position: relative;
+    padding-top: 1em;
+}
+
+.loginFormInfoTitle::before {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 1em;
+    width: 1em;
+    height: 1em;
+    background-image: url("data:image/svg+xml,%3Csvg width='4' height='11' viewBox='0 0 4 11' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2.76855 6.94434H1.12793L0.895508 0.046875H3.00098L2.76855 6.94434ZM1.94824 8.02441C2.28092 8.02441 2.54753 8.1224 2.74805 8.31836C2.95312 8.51432 3.05566 8.76497 3.05566 9.07031C3.05566 9.37109 2.95312 9.61947 2.74805 9.81543C2.54753 10.0114 2.28092 10.1094 1.94824 10.1094C1.62012 10.1094 1.35352 10.0114 1.14844 9.81543C0.947917 9.61947 0.847656 9.37109 0.847656 9.07031C0.847656 8.76953 0.947917 8.52116 1.14844 8.3252C1.35352 8.12467 1.62012 8.02441 1.94824 8.02441Z' fill='%23FF0000'/%3E%3C/svg%3E%0A");
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 2px solid #FF0000;
+    border-radius: 50%;
+}
+
+.loginFormInfoDescription {
+    padding-top: 1em;
+    padding-left: 1.5em;
+    padding-right: 1.5em;
+    font-size: 0.62em;
+    font-weight: 400;
+}
+
+.loginFormSingIn {
+    width: 100%;
+    margin-top: 1em;
+}
+
+.singIn {
+    display: flex;
+    justify-content: space-between;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+.singInTitle {
+    font-size: 1em;
+    font-weight: 400;
+}
+
+.singInIcon {
+    width: 1em;
+    height: 1em;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10.59 0L6 4.58L1.41 0L0 1.41L6 7.41L12 1.41L10.59 0Z' fill='%23323232'/%3E%3C/svg%3E%0A");
+    background-repeat: no-repeat;
+    background-position: bottom;
+    transition: ease-in-out 0.2s;
+}
+
+.reverse {
+    transform: rotate(180deg);
+}
+
+.singInDropdown {
+    text-align: center;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    padding-bottom: 0.5em;
+}
+
+.loginFormEmailLogin {
+    width: 100%;
+    margin-top: 0.5em;
+}
+
+.loginFormInput {
+    padding: 0.5em;
+    margin: 0.5em;
+    width: 80%;
+}
+
+.emailLogin {
+    display: flex;
+    justify-content: space-between;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+.emailLoginTitle {
+    font-size: 1em;
+    font-weight: 400;
+}
+
+.emailLoginIcon {
+    width: 1em;
+    height: 1em;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10.59 0L6 4.58L1.41 0L0 1.41L6 7.41L12 1.41L10.59 0Z' fill='%23323232'/%3E%3C/svg%3E%0A");
+    background-repeat: no-repeat;
+    background-position: bottom;
+    transition: ease-in-out 0.2s;
+}
+
+.emailLoginDropdown {
+    text-align: center;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    padding-bottom: 0.5em;
+}
+
+.loginFormCopyKey {
+    width: 100%;
+    margin-top: 0.5em;
+}
+
+.copyKey {
+    display: flex;
+    justify-content: space-between;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+.copyKeyTitle {
+    font-size: 1em;
+    font-weight: 400;
+}
+
+.copyKeyIcon {
+    width: 1em;
+    height: 1em;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10.59 0L6 4.58L1.41 0L0 1.41L6 7.41L12 1.41L10.59 0Z' fill='%23323232'/%3E%3C/svg%3E%0A");
+    background-repeat: no-repeat;
+    background-position: bottom;
+    transition: ease-in-out 0.2s;
+}
+
+.copyKeyDropdown {
+    text-align: right;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.formBtnCopyKey {
+    font-size: 1em;
+    font-weight: 400;
+    align-self: flex-end;
+    padding-right: 3em;
+    margin: 0;
+    margin-top: 0.5em;
+}
+
+.formBtnCopyKey::after {
+    content: '';
+    display: block;
+    position: relative;
+    left: 8.5em;
+    bottom: 0.9em;
+    width: 1em;
+    height: 1em;
+    background-image: url("data:image/svg+xml,%3Csvg width='18' height='10' viewBox='0 0 18 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.4875 3.5C8.8725 1.7525 7.2075 0.5 5.25 0.5C2.7675 0.5 0.75 2.5175 0.75 5C0.75 7.4825 2.7675 9.5 5.25 9.5C7.2075 9.5 8.8725 8.2475 9.4875 6.5H12.75V9.5H15.75V6.5H17.25V3.5H9.4875ZM5.25 6.5C4.425 6.5 3.75 5.825 3.75 5C3.75 4.175 4.425 3.5 5.25 3.5C6.075 3.5 6.75 4.175 6.75 5C6.75 5.825 6.075 6.5 5.25 6.5Z' fill='%237E57C2'/%3E%3C/svg%3E%0A");
+    background-repeat: no-repeat;
+}
+
+.formBtnLogin {
+    width: 12.5em;
+    height: 2.65em;
+    background-color: #7E57C2;
+    padding: 0px;
+    border-radius: 5px;
+    color: white;
+}
+
+.formBtnLogin:active {
+    width: 12em;
+    height: 2.5em;
+}
+
+.formBtnLogout {
+    width: 12.5em;
+    height: 2.65em;
+    background-color: #525252;
+    padding: 0px;
+    border-radius: 5px;
+    color: white;
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+}
+
+.formBtnLogout:active {
+    width: 12em;
+    height: 2.5em;
+}
+
+.formBtnSettings {
+    font-size: 1em;
+    font-weight: 400;
+    align-self: flex-end;
+    padding-right: 3em;
+}
+
+.formBtnSettings::after {
+    content: '';
+    display: block;
+    position: relative;
+    left: 8em;
+    bottom: 1.15em;
+    width: 1em;
+    height: 1em;
+    background-image: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.1999 9.82496L15.1916 9.84163C15.2249 9.56663 15.2583 9.28329 15.2583 8.99996C15.2583 8.71663 15.2333 8.44996 15.1999 8.17496L15.2083 8.19163L17.2416 6.59163L15.2166 3.07496L12.8249 4.04163L12.8333 4.04996C12.3999 3.71663 11.9249 3.43329 11.4083 3.21663H11.4166L11.0333 0.666626H6.97493L6.60827 3.22496H6.6166C6.09993 3.44163 5.62493 3.72496 5.1916 4.05829L5.19993 4.04996L2.79993 3.07496L0.766602 6.59163L2.79993 8.19163L2.80827 8.17496C2.77493 8.44996 2.74993 8.71663 2.74993 8.99996C2.74993 9.28329 2.77493 9.56663 2.8166 9.84163L2.80827 9.82496L1.05827 11.2L0.783268 11.4166L2.80827 14.9166L5.20827 13.9583L5.1916 13.925C5.63327 14.2666 6.10827 14.55 6.63327 14.7666H6.60827L6.98327 17.3333H11.0249C11.0249 17.3333 11.0499 17.1833 11.0749 16.9833L11.3916 14.775H11.3833C11.8999 14.5583 12.3833 14.275 12.8249 13.9333L12.8083 13.9666L15.2083 14.925L17.2333 11.425C17.2333 11.425 17.1166 11.325 16.9583 11.2083L15.1999 9.82496V9.82496ZM8.99993 11.9166C7.3916 11.9166 6.08327 10.6083 6.08327 8.99996C6.08327 7.39163 7.3916 6.08329 8.99993 6.08329C10.6083 6.08329 11.9166 7.39163 11.9166 8.99996C11.9166 10.6083 10.6083 11.9166 8.99993 11.9166Z' fill='%237E57C2'/%3E%3C/svg%3E%0A");
+    background-repeat: no-repeat;
+}
+
+.loginFormDiscordButton {
+    font-size: 0.9em;
+    width: 15em;
+    height: 2.65em;
+    background-color: #7289DA;
+    padding: 0px;
+    padding-left: 2.2em;
+    border-radius: 5px;
+    color: white;
+    margin-top: 2.3em;
+    margin-bottom: 1.5em;
+    position: relative;
+}
+
+.loginFormDiscordButton::before {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: 0.5em;
+    left: 2.2em;
     width: 2em;
+    height: 2em;
+    background-image: url("data:image/svg+xml,%3Csvg width='800' height='600' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3C!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ --%3E%3Cg%3E%3Ctitle%3Ebackground%3C/title%3E%3Crect fill='none' id='canvas_background' height='602' width='802' y='-1' x='-1'/%3E%3Cg display='none' overflow='visible' y='0' x='0' height='100%25' width='100%25' id='canvasGrid'%3E%3Crect fill='url(%23gridpattern)' stroke-width='0' y='0' x='0' height='100%25' width='100%25'/%3E%3C/g%3E%3C/g%3E%3Cg%3E%3Ctitle%3ELayer 1%3C/title%3E%3Cimage stroke='null' xlink:href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAD1UlEQVRoQ+2aS6iVVRTHf/+0TE3JTAN7EQmhQkGIk5qklZQFTUKaqCEiBEG+KiqDXjQobCgY9JhEOokoctAwGvSQKMSB2aQHvbMU08r8xzrsI+fuvu+c73L3uffc61nD79vf3uu3/2vvtfY+R0wR0xThoCeI7fOBpcClEwT9C3BI0j/dxu8KYvs1YP0EAeTDvi5pQ50vtSC23wPuGBCIthv7Jd1Z5VMliO0rga8HDKLtzlWSvsl9qwN5BnhiQEGelbSzKcguYMuAgrwkaesQZIDUGSoyQGK0XBkq0lSRn2O2gAPAw8Cqmg8PAeuA64BHgOubDpDa9U2Rw8AtwK1AbNsfA28AnwLfAv8Cp4ELgIXATcBGYDFwXwJ/FVjbEKgvIA8A+4GngJ2SRlUN2A5VHgceTEXpkQYwxUH+lDTb9mxJJxo4UNvE9jxJR22/2UCZ4iCbJe0ZC0D+re1LgF979FkcZLqkiP+iZjsKwiu6dFoU5DNJNxYlSJ3Z3gR0U7ooyN2S3u0TyAzg1HgpMkPS3xUxPhN4Hoh3T0oa4ZDt84CngcuAHZJ+r3LY9jFgTg1MMUVOSLqoAiLONuF45Iuwv4BZks6022bxH89n1kxI5KHIMVVWDOR9SbdXgKwAPsqeL5cUmZ7YYoHfsvdrJe2r6GsNUBe6xUC2SYoMPsJsR6nxefZ4kaTvE0ioeDx7v0ZS3A3kfS0Afuq3IiskfVIT2z+k+I/XX0mKMuSs2Q7FQrmwSKJzJLkCZDpQd/1TTJGFkqJA/J/ZjnVyb6wPSW/XtLktlSN7O9dPBUzkqNgccisGMl/S2Vi3HUXggXyHqgmLyse278q3c9tRaE7rJ8jVeXFoezcQa+AhSb1KjJZvSb17UsW8VNLJttPpXYRWX0EiRyyQFHt9Z/wvA95JYfMWELeUB4E/UqMIu0XASmAzcAPwoqSofkeY7ViDy2tULRZarQmNfV7S3gwmVAnHq2I79+tmSR9m3y8B4lls1XVWFKQ9SCTAl4FXYpcC4jwRh6cmFpMRCs0FVqfT4uUNPuwLSINxizcZghSf0jF2OFRkjBNY/PNzU5HtwAvF57J7h3G3dX+DMUelyMXA0QadlmwSifBR4IMenTYHaaVu+zngsZKe9ujrjKRptqM0idvKut83RweSYOIaM2qmC8cJqFWQ2r4G+HLMRWPutO0AGQ+YuA9oHajS0fhHIH7n77TRKzJOKtQOYzuuhr4D5nc0mnwgSZmopL8A4pgQNjlB2kp0/IFhcoMkdeIkerLxz9MTvTa6jW/7Wklx9hlhPf8dNMhQnb5NGZD/AMegy0LENCMTAAAAAElFTkSuQmCC' id='svg_1' height='695.99994' width='649.00001' y='-49.99996' x='68.00002'/%3E%3C/g%3E%3C/svg%3E%0A");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 2em;
+    z-index: 3;
+}
+
+.loginFormDiscordButton:active {
+    width: 12.5em;
+    height: 2.5em;
 }

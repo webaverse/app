@@ -7,13 +7,250 @@ import ShoulderTransforms from './vrarmik/ShoulderTransforms.js';
 import LegsManager from './vrarmik/LegsManager.js';
 import MicrophoneWorker from './microphone-worker.js';
 import skeletonString from './skeleton.js';
+import easing from '../easing.js';
+import animationsJson from '../animations/animations.js';
+
+/* import {FBXLoader} from '../FBXLoader.js';
+import {downloadFile} from '../util.js'; */
+
+const localVector = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
+const localEuler2 = new THREE.Euler();
+const localMatrix = new THREE.Matrix4();
 
 const upRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI*0.5);
 const leftRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.4);
 const rightRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI*0.4);
+const cubicBezier = easing(0, 1, 0, 1);
 
-const localVector = new THREE.Vector3();
-const localMatrix = new THREE.Matrix4();
+const animationsSelectMap = {
+  'idle.fbx': new THREE.Vector3(0, 0, 0),
+  'jump.fbx': new THREE.Vector3(0, 1, 0),
+
+  'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
+  'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
+  'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
+  'right strafe.fbx': new THREE.Vector3(1, 0, 0),
+
+  'running.fbx': new THREE.Vector3(0, 0, -1),
+  'walking.fbx': new THREE.Vector3(0, 0, -0.5),
+
+  'running backwards.fbx': new THREE.Vector3(0, 0, 1),
+  'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
+
+  /* 'falling.fbx': new THREE.Vector3(0, -1, 0),
+  'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
+  'falling landing.fbx': new THREE.Vector3(0, -2, 0), */
+
+  'left strafe walking reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
+  'left strafe reverse.fbx': new THREE.Vector3(-Infinity, 0, 0),
+  'right strafe walking reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
+  'right strafe reverse.fbx': new THREE.Vector3(Infinity, 0, 0),
+  
+  // 'floating.fbx': new THREE.Vector3(0, Infinity, 0),
+  'treading water.fbx': new THREE.Vector3(0, Infinity, 0),
+};
+const animationsDistanceMap = {
+  'idle.fbx': new THREE.Vector3(0, 0, 0),
+  'jump.fbx': new THREE.Vector3(0, 1, 0),
+
+  'left strafe walking.fbx': new THREE.Vector3(-0.5, 0, 0),
+  'left strafe.fbx': new THREE.Vector3(-1, 0, 0),
+  'right strafe walking.fbx': new THREE.Vector3(0.5, 0, 0),
+  'right strafe.fbx': new THREE.Vector3(1, 0, 0),
+
+  'running.fbx': new THREE.Vector3(0, 0, -1),
+  'walking.fbx': new THREE.Vector3(0, 0, -0.5),
+
+  'running backwards.fbx': new THREE.Vector3(0, 0, 1),
+  'walking backwards.fbx': new THREE.Vector3(0, 0, 0.5),
+
+  /* 'falling.fbx': new THREE.Vector3(0, -1, 0),
+  'falling idle.fbx': new THREE.Vector3(0, -0.5, 0),
+  'falling landing.fbx': new THREE.Vector3(0, -2, 0), */
+
+  'left strafe walking reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(2),
+  'left strafe reverse.fbx': new THREE.Vector3(-1, 0, 1).normalize().multiplyScalar(3),
+  'right strafe walking reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(2),
+  'right strafe reverse.fbx': new THREE.Vector3(1, 0, 1).normalize().multiplyScalar(3),
+  
+  // 'floating.fbx': new THREE.Vector3(0, Infinity, 0),
+  'treading water.fbx': new THREE.Vector3(0, Infinity, 0),
+};
+let animations = animationsJson.map(a => THREE.AnimationClip.parse(a));
+/* // bake animations
+(async () => {
+  animations = [];
+  const fbxLoader = new FBXLoader();
+  const animationFileNames = [
+    `idle.fbx`,
+    `jump.fbx`,
+    `left strafe walking.fbx`,
+    `left strafe.fbx`,
+    // `left turn 90.fbx`,
+    // `left turn.fbx`,
+    `right strafe walking.fbx`,
+    `right strafe.fbx`,
+    // `right turn 90.fbx`,
+    // `right turn.fbx`,
+    `running.fbx`,
+    `walking.fbx`,
+    // `ybot.fbx`,
+    `running backwards.fbx`,
+    `walking backwards.fbx`,
+    // `falling.fbx`,
+    // `falling idle.fbx`,
+    // `falling landing.fbx`,
+    // `floating.fbx`,
+    `treading water.fbx`,
+  ];
+  for (const name of animationFileNames) {
+    const u = './animations/' + name;
+    let o = await new Promise((accept, reject) => {
+      fbxLoader.load(u, accept, function progress() {}, reject);
+    });
+    o = o.animations[0];
+    o.name = name;
+    animations.push(o);
+  }
+  const _reverseAnimation = animation => {
+    animation = animation.clone();
+    const {tracks} = animation;
+    for (const track of tracks) {
+      track.times.reverse();
+      for (let i = 0; i < track.times.length; i++) {
+        track.times[i] = animation.duration - track.times[i];
+      }
+
+      const values2 = new track.values.constructor(track.values.length);
+      const valueSize = track.getValueSize();
+      const numValues = track.values.length / valueSize;
+      for (let i = 0; i < numValues; i++) {
+        const aIndex = i;
+        const bIndex = numValues - 1 - i;
+        for (let j = 0; j < valueSize; j++) {
+          values2[aIndex * valueSize + j] = track.values[bIndex * valueSize + j];
+        }
+      }
+      track.values = values2;
+    }
+    return animation;
+  };
+  const reversibleAnimationNames = [
+    `left strafe walking.fbx`,
+    `left strafe.fbx`,
+    `right strafe walking.fbx`,
+    `right strafe.fbx`,
+  ];
+  for (const name of reversibleAnimationNames) {
+    const animation = animations.find(a => a.name === name);
+    const reverseAnimation = _reverseAnimation(animation);
+    reverseAnimation.name = animation.name.replace(/\.fbx$/, ' reverse.fbx');
+    animations.push(reverseAnimation);
+  }
+  const animationsString = JSON.stringify(animations.map(a => a.toJSON()));
+  animations = JSON.parse(animationsString).map(a => THREE.AnimationClip.parse(a));
+  console.log('exporting', animations);
+  downloadFile(new Blob(['export default ' + animationsString], {
+    type: 'text/javascript',
+  }), 'animations.js');
+})().catch(err => {
+  console.warn(err);
+}); */
+
+const _normalizeAnimationDurations = (animations, baseAnimation) => {
+  for (let i = 1; i < animations.length; i++) {
+    const animation = animations[i];
+    const oldDuration = animation.duration;
+    const newDuration = baseAnimation.duration;
+    for (const track of animation.tracks) {
+      const {times} = track;
+      for (let j = 0; j < times.length; j++) {
+        // times[i] *= newDuration/oldDuration;
+      }
+    }
+    animation.duration = newDuration;
+  }
+};
+const walkingAnimations = [
+  `walking.fbx`,
+  `left strafe walking.fbx`,
+  `right strafe walking.fbx`,
+].map(name => animations.find(a => a.name === name));
+_normalizeAnimationDurations(walkingAnimations, walkingAnimations[0]);
+const walkingBackwardAnimations = [
+  `walking backwards.fbx`,
+  `left strafe walking reverse.fbx`,
+  `right strafe walking reverse.fbx`,
+].map(name => animations.find(a => a.name === name));
+_normalizeAnimationDurations(walkingBackwardAnimations, walkingBackwardAnimations[0]);
+const runningAnimations = [
+  `running.fbx`,
+  `left strafe.fbx`,
+  `right strafe.fbx`,
+].map(name => animations.find(a => a.name === name));
+_normalizeAnimationDurations(runningAnimations, runningAnimations[0]);
+const runningBackwardAnimations = [
+  `running backwards.fbx`,
+  `left strafe reverse.fbx`,
+  `right strafe reverse.fbx`,
+].map(name => animations.find(a => a.name === name));
+_normalizeAnimationDurations(runningBackwardAnimations, runningBackwardAnimations[0]);
+animations.forEach(animation => {
+  animation.direction = (() => {
+    switch (animation.name) {
+      case 'running.fbx':
+      case 'walking.fbx':
+        return 'forward';
+      case 'running backwards.fbx':
+      case 'walking backwards.fbx':
+        return 'backward';
+      case 'left strafe walking.fbx':
+      case 'left strafe.fbx':
+      case 'left strafe walking reverse.fbx':
+      case 'left strafe reverse.fbx':
+        return 'left';
+      case 'right strafe walking.fbx':
+      case 'right strafe.fbx':
+      case 'right strafe walking reverse.fbx':
+      case 'right strafe reverse.fbx':
+        return 'right';
+      case 'jump.fbx':
+      /* case 'falling.fbx':
+      case 'falling idle.fbx':
+      case 'falling landing.fbx': */
+        return 'jump';
+      // case 'floating.fbx':
+      case 'treading water.fbx':
+        return 'float';
+      default:
+        return null;
+    }
+  })();
+  animation.isIdle = /idle/i.test(animation.name);
+  animation.isJump = /jump/i.test(animation.name);
+  // animation.isFalling  = /falling/i.test(animation.name);
+  animation.isFloat  = /treading/i.test(animation.name);
+  animation.isForward = /forward/i.test(animation.name);
+  animation.isBackward = /backward/i.test(animation.name);
+  animation.isLeft = /left/i.test(animation.name);
+  animation.isRight = /right/i.test(animation.name);
+  animation.isRunning = /running|left strafe(?: reverse)?\.|right strafe(?: reverse)?\./i.test(animation.name);
+  animation.isReverse = /reverse/i.test(animation.name);
+  animation.interpolants = {};
+  animation.tracks.forEach(track => {
+    const i = track.createInterpolant();
+    i.name = track.name;
+    animation.interpolants[track.name] = i;
+    return i;
+  });
+  /* for (let i = 0; i < animation.interpolants['mixamorigHips.position'].sampleValues.length; i++) {
+    animation.interpolants['mixamorigHips.position'].sampleValues[i] *= 0.01;
+  } */
+});
+const jumpAnimation = animations.find(a => a.isJump);
+const floatAnimation = animations.find(a => a.isFloat);
 
 const _localizeMatrixWorld = bone => {
   bone.matrix.copy(bone.matrixWorld);
@@ -986,7 +1223,7 @@ class Avatar {
       rightFoot: _getOffset(modelBones.Left_ankle),
     });
 
-    this.height = eyePosition.sub(_averagePoint([modelBones.Left_ankle.getWorldPosition(new THREE.Vector3()), modelBones.Right_ankle.getWorldPosition(new THREE.Vector3())])).y;
+    this.height = eyePosition.clone().sub(_averagePoint([modelBones.Left_ankle.getWorldPosition(new THREE.Vector3()), modelBones.Right_ankle.getWorldPosition(new THREE.Vector3())])).y;
     this.shoulderWidth = modelBones.Left_arm.getWorldPosition(new THREE.Vector3()).distanceTo(modelBones.Right_arm.getWorldPosition(new THREE.Vector3()));
     this.leftArmLength = this.shoulderTransforms.leftArm.armLength;
     this.rightArmLength = this.shoulderTransforms.rightArm.armLength;
@@ -996,11 +1233,13 @@ class Avatar {
       .distanceTo(modelBones.Left_littleFinger1.getWorldPosition(new THREE.Vector3()));
     this.handOffsetLeft = new THREE.Vector3(handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
     this.handOffsetRight = new THREE.Vector3(-handWidth*0.7, -handWidth*0.75, indexDistance*0.5);
+    this.eyeToHipsOffset = modelBones.Hips.getWorldPosition(new THREE.Vector3()).sub(eyePosition);
 
     const _makeInput = () => {
       const result = new THREE.Object3D();
       result.pointer = 0;
       result.grip = 0;
+      result.enabled = false;
       return result;
     };
 		this.inputs = {
@@ -1132,7 +1371,14 @@ class Avatar {
     this.shoulderTransforms.Start();
     this.legsManager.Start();
 
-    this.decapitated = false;
+    if (options.top !== undefined) {
+      this.setTopEnabled(!!options.top);
+    }
+    if (options.bottom !== undefined) {
+      this.setBottomEnabled(!!options.bottom);
+    }
+
+    /* this.decapitated = false;
     if (options.decapitate) {
       if (springBoneManagerPromise) {
         springBoneManagerPromise.then(() => {
@@ -1141,7 +1387,74 @@ class Avatar {
       } else {
         this.decapitate();
       }
-    }
+    } */
+
+    this.animationMapping = {
+      // 'mixamorigHips.position': this.outputs.hips.position,
+      'mixamorigHips.quaternion': this.outputs.hips.quaternion,
+      'mixamorigSpine.quaternion': this.outputs.spine.quaternion,
+      'mixamorigSpine1.quaternion': null,
+      'mixamorigSpine2.quaternion': this.outputs.chest.quaternion,
+      'mixamorigNeck.quaternion': this.outputs.neck.quaternion,
+      'mixamorigHead.quaternion': this.outputs.head.quaternion,
+
+      'mixamorigLeftShoulder.quaternion': this.outputs.rightShoulder.quaternion,
+      'mixamorigLeftArm.quaternion': this.outputs.rightUpperArm.quaternion,
+      'mixamorigLeftForeArm.quaternion': this.outputs.rightLowerArm.quaternion,
+      'mixamorigLeftHand.quaternion': this.outputs.leftHand.quaternion,
+      'mixamorigLeftHandMiddle1.quaternion': this.outputs.leftMiddleFinger1.quaternion,
+      'mixamorigLeftHandMiddle2.quaternion': this.outputs.leftMiddleFinger2.quaternion,
+      'mixamorigLeftHandMiddle3.quaternion': this.outputs.leftMiddleFinger3.quaternion,
+      'mixamorigLeftHandThumb1.quaternion': this.outputs.leftThumb0.quaternion,
+      'mixamorigLeftHandThumb2.quaternion': this.outputs.leftThumb1.quaternion,
+      'mixamorigLeftHandThumb3.quaternion': this.outputs.leftThumb2.quaternion,
+      'mixamorigLeftHandIndex1.quaternion': this.outputs.leftIndexFinger1.quaternion,
+      'mixamorigLeftHandIndex2.quaternion': this.outputs.leftIndexFinger2.quaternion,
+      'mixamorigLeftHandIndex3.quaternion': this.outputs.leftIndexFinger3.quaternion,
+      'mixamorigLeftHandRing1.quaternion': this.outputs.leftRingFinger1.quaternion,
+      'mixamorigLeftHandRing2.quaternion': this.outputs.leftRingFinger2.quaternion,
+      'mixamorigLeftHandRing3.quaternion': this.outputs.leftRingFinger3.quaternion,
+      'mixamorigLeftHandPinky1.quaternion': this.outputs.leftLittleFinger1.quaternion,
+      'mixamorigLeftHandPinky2.quaternion': this.outputs.leftLittleFinger2.quaternion,
+      'mixamorigLeftHandPinky3.quaternion': this.outputs.leftLittleFinger3.quaternion,
+
+      'mixamorigRightShoulder.quaternion': this.outputs.leftShoulder.quaternion,
+      'mixamorigRightArm.quaternion': this.outputs.leftUpperArm.quaternion,
+      'mixamorigRightForeArm.quaternion': this.outputs.leftLowerArm.quaternion,
+      'mixamorigRightHand.quaternion': this.outputs.rightHand.quaternion,
+      'mixamorigRightHandMiddle1.quaternion': this.outputs.rightMiddleFinger1.quaternion,
+      'mixamorigRightHandMiddle2.quaternion': this.outputs.rightMiddleFinger2.quaternion,
+      'mixamorigRightHandMiddle3.quaternion': this.outputs.rightMiddleFinger3.quaternion,
+      'mixamorigRightHandThumb1.quaternion': this.outputs.rightThumb0.quaternion,
+      'mixamorigRightHandThumb2.quaternion': this.outputs.rightThumb1.quaternion,
+      'mixamorigRightHandThumb3.quaternion': this.outputs.rightThumb2.quaternion,
+      'mixamorigRightHandIndex1.quaternion': this.outputs.rightIndexFinger1.quaternion,
+      'mixamorigRightHandIndex2.quaternion': this.outputs.rightIndexFinger2.quaternion,
+      'mixamorigRightHandIndex3.quaternion': this.outputs.rightIndexFinger3.quaternion,
+      'mixamorigRightHandRing1.quaternion': this.outputs.rightRingFinger1.quaternion,
+      'mixamorigRightHandRing2.quaternion': this.outputs.rightRingFinger2.quaternion,
+      'mixamorigRightHandRing3.quaternion': this.outputs.rightRingFinger3.quaternion,
+      'mixamorigRightHandPinky1.quaternion': this.outputs.rightLittleFinger1.quaternion,
+      'mixamorigRightHandPinky2.quaternion': this.outputs.rightLittleFinger2.quaternion,
+      'mixamorigRightHandPinky3.quaternion': this.outputs.rightLittleFinger3.quaternion,
+
+      'mixamorigRightUpLeg.quaternion': this.outputs.leftUpperLeg.quaternion,
+      'mixamorigRightLeg.quaternion': this.outputs.leftLowerLeg.quaternion,
+      'mixamorigRightFoot.quaternion': this.outputs.leftFoot.quaternion,
+      'mixamorigRightToeBase.quaternion': null,
+
+      'mixamorigLeftUpLeg.quaternion': this.outputs.rightUpperLeg.quaternion,
+      'mixamorigLeftLeg.quaternion': this.outputs.rightLowerLeg.quaternion,
+      'mixamorigLeftFoot.quaternion': this.outputs.rightFoot.quaternion,
+      'mixamorigLeftToeBase.quaternion': null,
+    };
+
+    this.direction = new THREE.Vector3();
+    this.velocity = new THREE.Vector3();
+    this.jumpState = false;
+    this.jumpStartTime = 0;
+    this.flyState = false;
+    this.flyStartTime = 0;
 	}
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
@@ -1200,69 +1513,173 @@ class Avatar {
 
     this.shoulderTransforms.hips.updateMatrixWorld();
   }
+  setTopEnabled(enabled) {
+    this.shoulderTransforms.enabled = enabled;
+  }
+  getTopEnabled() {
+    return this.shoulderTransforms.enabled;
+  }
+  setBottomEnabled(enabled) {
+    this.legsManager.enabled = enabled;
+  }
+  getBottomEnabled() {
+    return this.legsManager.enabled;
+  }
 	update() {
-    const wasDecapitated = this.decapitated;
+    /* const wasDecapitated = this.decapitated;
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
-    }
+    } */
 
-    this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
-    this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
-    this.sdkInputs.leftGamepad.position.copy(this.inputs.leftGamepad.position).add(localVector.copy(this.handOffsetLeft).applyQuaternion(this.inputs.leftGamepad.quaternion));
-    this.sdkInputs.leftGamepad.quaternion.copy(this.inputs.leftGamepad.quaternion);
-    this.sdkInputs.leftGamepad.pointer = this.inputs.leftGamepad.pointer;
-    this.sdkInputs.leftGamepad.grip = this.inputs.leftGamepad.grip;
-    this.sdkInputs.rightGamepad.position.copy(this.inputs.rightGamepad.position).add(localVector.copy(this.handOffsetRight).applyQuaternion(this.inputs.rightGamepad.quaternion));
-    this.sdkInputs.rightGamepad.quaternion.copy(this.inputs.rightGamepad.quaternion);
-    this.sdkInputs.rightGamepad.pointer = this.inputs.rightGamepad.pointer;
-    this.sdkInputs.rightGamepad.grip = this.inputs.rightGamepad.grip;
-    
-    window.sdkInputs = this.sdkInputs;
+    const _applyAnimation = () => {
+      const now = Date.now();
+      const _selectAnimations = v => {
+        const selectedAnimations = animations.slice().sort((a, b) => {
+          const targetPosition1 = animationsSelectMap[a.name];
+          const distance1 = targetPosition1.distanceTo(v);
 
-    const modelScaleFactor = this.sdkInputs.hmd.scaleFactor;
-    if (modelScaleFactor !== this.lastModelScaleFactor) {
-      this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
-      this.lastModelScaleFactor = modelScaleFactor;
+          const targetPosition2 = animationsSelectMap[b.name];
+          const distance2 = targetPosition2.distanceTo(v);
 
-      this.springBoneManager && this.springBoneManager.springBoneGroupList.forEach(springBoneGroup => {
-        springBoneGroup.forEach(springBone => {
-          springBone._worldBoneLength = springBone.bone
-            .localToWorld(localVector.copy(springBone._initialLocalChildPosition))
-            .sub(springBone._worldPosition)
-            .length();
+          return distance1 - distance2;
+        }).slice(0, 2);
+        if (selectedAnimations[1].isIdle) {
+          selectedAnimations[1] = selectedAnimations[0];
+        }
+        if (selectedAnimations.some(a => a.isBackward) && selectedAnimations.some(a => a.isLeft)) {
+          if (selectedAnimations.some(a => a.isRunning)) {
+            selectedAnimations[0] = animations.find(a => a.isRight && a.isRunning && a.isReverse);
+            selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+          } else {
+            selectedAnimations[0] = animations.find(a => a.isRight && !a.isRunning && a.isReverse);
+            selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+          }
+        } else if (selectedAnimations.some(a => a.isBackward) && selectedAnimations.some(a => a.isRight)) {
+          if (selectedAnimations.some(a => a.isRunning)) {
+            selectedAnimations[0] = animations.find(a => a.isLeft && a.isRunning && a.isReverse);
+            selectedAnimations[1] = animations.find(a => a.isBackward && a.isRunning);
+          } else {
+            selectedAnimations[0] = animations.find(a => a.isLeft && !a.isRunning && a.isReverse);
+            selectedAnimations[1] = animations.find(a => a.isBackward && !a.isRunning);
+          }
+        }
+        return selectedAnimations;
+      };
+      const selectedAnimations = _selectAnimations(this.velocity);
+
+      const distance1 = animationsDistanceMap[selectedAnimations[0].name].distanceTo(this.direction);
+      const distance2 = animationsDistanceMap[selectedAnimations[1].name].distanceTo(this.direction);
+      const totalDistance = distance1 + distance2;
+      // let factor1 = 1 - distance1/totalDistance;
+      let factor2 = 1 - distance2/totalDistance;
+
+      for (const k in this.animationMapping) {
+        const dst = this.animationMapping[k];
+        if (dst) {
+          const t1 = (Date.now()/1000) % selectedAnimations[0].duration;
+          const src1 = selectedAnimations[0].interpolants[k];
+          const v1 = src1.evaluate(t1);
+
+          const t2 = (Date.now()/1000) % selectedAnimations[1].duration;
+          const src2 = selectedAnimations[1].interpolants[k];
+          const v2 = src2.evaluate(t2);
+
+          dst.fromArray(v1);
+          if (selectedAnimations[0].direction !== selectedAnimations[1].direction) {
+            dst.slerp(localQuaternion.fromArray(v2), factor2);
+          }
+
+          if (this.jumpState) {
+            const t2 = (now - this.jumpStartTime)/1000 * 0.6 + 0.7;
+            const src2 = jumpAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          }
+          const flyTimeDiff = now - this.flyStartTime;
+          if (this.flyState || flyTimeDiff < 1000) {
+            const t2 = (now - this.flyStartTime)/1000;
+            const f = this.flyState ? Math.min(cubicBezier(flyTimeDiff/1000), 1) : (1 - Math.min(cubicBezier(flyTimeDiff/1000), 1));
+            const src2 = floatAnimation.interpolants[k];
+            const v2 = src2.evaluate(t2 % floatAnimation.duration);
+
+            dst.slerp(localQuaternion.fromArray(v2), f);
+          }
+        }
+      }
+    };
+    _applyAnimation();
+
+    if (this.getTopEnabled()) {
+      this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
+      this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
+      this.sdkInputs.leftGamepad.position.copy(this.inputs.leftGamepad.position).add(localVector.copy(this.handOffsetLeft).applyQuaternion(this.inputs.leftGamepad.quaternion));
+      this.sdkInputs.leftGamepad.quaternion.copy(this.inputs.leftGamepad.quaternion);
+      this.sdkInputs.leftGamepad.pointer = this.inputs.leftGamepad.pointer;
+      this.sdkInputs.leftGamepad.grip = this.inputs.leftGamepad.grip;
+      this.sdkInputs.rightGamepad.position.copy(this.inputs.rightGamepad.position).add(localVector.copy(this.handOffsetRight).applyQuaternion(this.inputs.rightGamepad.quaternion));
+      this.sdkInputs.rightGamepad.quaternion.copy(this.inputs.rightGamepad.quaternion);
+      this.sdkInputs.rightGamepad.pointer = this.inputs.rightGamepad.pointer;
+      this.sdkInputs.rightGamepad.grip = this.inputs.rightGamepad.grip;
+
+      const modelScaleFactor = this.sdkInputs.hmd.scaleFactor;
+      if (modelScaleFactor !== this.lastModelScaleFactor) {
+        this.model.scale.set(modelScaleFactor, modelScaleFactor, modelScaleFactor);
+        this.lastModelScaleFactor = modelScaleFactor;
+
+        this.springBoneManager && this.springBoneManager.springBoneGroupList.forEach(springBoneGroup => {
+          springBoneGroup.forEach(springBone => {
+            springBone._worldBoneLength = springBone.bone
+              .localToWorld(localVector.copy(springBone._initialLocalChildPosition))
+              .sub(springBone._worldPosition)
+              .length();
+          });
         });
-      });
+      }
+      
+      if (this.options.fingers) {
+        const _traverse = (o, fn) => {
+          fn(o);
+          for (const child of o.children) {
+            _traverse(child, fn);
+          }
+        };
+        const _processFingerBones = left => {
+          const fingerBones = left ? this.fingerBoneMap.left : this.fingerBoneMap.right;
+          const gamepadInput = left ? this.sdkInputs.leftGamepad : this.sdkInputs.rightGamepad;
+          for (const fingerBone of fingerBones) {
+            // if (fingerBone) {
+              const {bones, finger} = fingerBone;
+              let setter;
+              if (finger === 'thumb') {
+                setter = (q, i) => q.setFromAxisAngle(localVector.set(0, left ? -1 : 1, 0), gamepadInput.grip * Math.PI*(i === 0 ? 0.125 : 0.25));
+              } else if (finger === 'index') {
+                setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.pointer * Math.PI*0.5);
+              } else {
+                setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.grip * Math.PI*0.5);
+              }
+              for (let i = 0; i < bones.length; i++) {
+                setter(bones[i].quaternion, i);
+              }
+            // }
+          }
+        };
+        _processFingerBones(true);
+        _processFingerBones(false);
+      }
     }
-    
-    if (this.options.fingers) {
-      const _traverse = (o, fn) => {
-        fn(o);
-        for (const child of o.children) {
-          _traverse(child, fn);
-        }
-      };
-      const _processFingerBones = left => {
-        const fingerBones = left ? this.fingerBoneMap.left : this.fingerBoneMap.right;
-        const gamepadInput = left ? this.sdkInputs.leftGamepad : this.sdkInputs.rightGamepad;
-        for (const fingerBone of fingerBones) {
-          // if (fingerBone) {
-            const {bones, finger} = fingerBone;
-            let setter;
-            if (finger === 'thumb') {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, left ? -1 : 1, 0), gamepadInput.grip * Math.PI*(i === 0 ? 0.125 : 0.25));
-            } else if (finger === 'index') {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.pointer * Math.PI*0.5);
-            } else {
-              setter = (q, i) => q.setFromAxisAngle(localVector.set(0, 0, left ? 1 : -1), gamepadInput.grip * Math.PI*0.5);
-            }
-            for (let i = 0; i < bones.length; i++) {
-              setter(bones[i].quaternion, i);
-            }
-          // }
-        }
-      };
-      _processFingerBones(true);
-      _processFingerBones(false);
+    if (!this.getBottomEnabled()) {
+      this.outputs.hips.position.copy(this.inputs.hmd.position)
+        .add(this.eyeToHipsOffset);
+
+      localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      localEuler.y += Math.PI;
+      this.outputs.hips.quaternion.premultiply(localQuaternion.setFromEuler(localEuler));
+    }
+    if (!this.getTopEnabled() && this.debugMeshes) {
+      this.outputs.hips.updateMatrixWorld();
     }
 
     this.shoulderTransforms.Update();
@@ -1277,12 +1694,17 @@ class Avatar {
       }
       modelBone.quaternion.multiplyQuaternions(modelBoneOutput.quaternion, modelBone.initialQuaternion)
 
-      if (k === 'Left_ankle' || k === 'Right_ankle') {
-        modelBone.quaternion.multiply(upRotation);
-      } else if (k === 'Left_wrist') {
-        modelBone.quaternion.multiply(leftRotation); // center
-      } else if (k === 'Right_wrist') {
-        modelBone.quaternion.multiply(rightRotation); // center
+      if (this.getTopEnabled()) {
+        if (k === 'Left_wrist') {
+          modelBone.quaternion.multiply(leftRotation); // center
+        } else if (k === 'Right_wrist') {
+          modelBone.quaternion.multiply(rightRotation); // center
+        }
+      }
+      if (this.getBottomEnabled()) {
+        if (k === 'Left_ankle' || k === 'Right_ankle') {
+          modelBone.quaternion.multiply(upRotation);
+        }
       }
       modelBone.updateMatrixWorld();
     }
@@ -1294,9 +1716,9 @@ class Avatar {
     if (this.springBoneManager) {
       this.springBoneManager.lateUpdate(timeDiff / 1000);
     }
-    if (this.springBoneManager && wasDecapitated) {
+    /* if (this.springBoneManager && wasDecapitated) {
       this.decapitate();
-    }
+    } */
 
     if (this.options.visemes) {
       const aaValue = Math.min(this.volume * 10, 1);
@@ -1319,6 +1741,9 @@ class Avatar {
           }
           if (aaMorphTargetIndex === undefined) {
             aaMorphTargetIndex = morphTargetDictionary['29'];
+          }
+          if (aaMorphTargetIndex === undefined) {
+            aaMorphTargetIndex = morphTargetDictionary['target_23'];
           }
           if (aaMorphTargetIndex !== undefined) {
             morphTargetInfluences[aaMorphTargetIndex] = aaValue;
@@ -1350,10 +1775,12 @@ class Avatar {
     }
 
     if (this.debugMeshes) {
-      this.outputs.leftHand.quaternion.multiply(rightRotation); // center
-      this.outputs.leftHand.updateMatrixWorld();
-      this.outputs.rightHand.quaternion.multiply(leftRotation); // center
-      this.outputs.rightHand.updateMatrixWorld();
+      if (this.getTopEnabled()) {
+        this.outputs.leftHand.quaternion.multiply(rightRotation); // center
+        this.outputs.leftHand.updateMatrixWorld();
+        this.outputs.rightHand.quaternion.multiply(leftRotation); // center
+        this.outputs.rightHand.updateMatrixWorld();
+      }
 
       for (const k in this.debugMeshes.attributes) {
         const attribute = this.debugMeshes.attributes[k];
@@ -1386,10 +1813,12 @@ class Avatar {
   decapitate() {
     if (!this.decapitated) {
       this.modelBones.Head.traverse(o => {
-        o.savedPosition.copy(o.position);
-        o.savedMatrixWorld.copy(o.matrixWorld);
-        o.position.set(NaN, NaN, NaN);
-        o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
+        if (o.savedPosition) { // three-vrm adds vrmColliderSphere which will not be saved
+          o.savedPosition.copy(o.position);
+          o.savedMatrixWorld.copy(o.matrixWorld);
+          o.position.set(NaN, NaN, NaN);
+          o.matrixWorld.set(NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN);
+        }
       });
       if (this.debugMeshes) {
         [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {
@@ -1402,8 +1831,10 @@ class Avatar {
   undecapitate() {
     if (this.decapitated) {
       this.modelBones.Head.traverse(o => {
-        o.position.copy(o.savedPosition);
-        o.matrixWorld.copy(o.savedMatrixWorld);
+        if (o.savedPosition) {
+          o.position.copy(o.savedPosition);
+          o.matrixWorld.copy(o.savedMatrixWorld);
+        }
       });
       if (this.debugMeshes) {
         [this.debugMeshes.attributes.eyes, this.debugMeshes.attributes.head].forEach(attribute => {

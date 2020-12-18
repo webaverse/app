@@ -6,7 +6,9 @@ import {loginManager} from './login.js';
 // import {getContractSource} from './blockchain.js';
 import runtime from './runtime.js';
 import {rigManager} from './rig.js';
-import {scene, scene3} from './app-object.js';
+import physicsManager from './physics-manager.js';
+import minimap from './minimap.js';
+import {appManager, scene, scene3} from './app-object.js';
 import {
   PARCEL_SIZE,
   SUBPARCEL_SIZE,
@@ -330,7 +332,7 @@ const _unlockAll = keys => {
     }
   }
 };
-world.requestRemoteSubparcels = async (keys) => {
+/* world.requestRemoteSubparcels = async (keys) => {
   // XXX return array of subparcel data or null if did not exist
   await _lockAll(keys);
   const promises = keys.map(key => storage.getRaw(`chunks/${key}`));
@@ -382,7 +384,7 @@ world.makeSubparcel = (x = 0, y = 0, z = 0) => {
   subparcel.latchData(data);
   subparcel.writeMetadata();
   return subparcel;
-};
+}; */
 
 const _align4 = n => {
   const d = n % 4;
@@ -423,14 +425,14 @@ Subparcel.offsets = (() => {
 })();
 world.Subparcel = Subparcel;
 
-const _loadLiveState = seedString => {
+/* const _loadLiveState = seedString => {
   // world.dispatchEvent(new MessageEvent('unload'));
   world.dispatchEvent(new MessageEvent('load', {
     data: {
       seedString,
     },
   }));
-};
+}; */
 
 /* const _makeVegetations = (() => {
   const numVegetations = 2;
@@ -527,7 +529,6 @@ let roomName = null;
 let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
-let state = null;
 
 world.getTrackedObjects = () => {
   const objects = state.getArray('objects');
@@ -543,6 +544,8 @@ world.getTrackedObject = name => {
 
   return state.getMap('object.' + name);
 };
+
+let state = new Y.Doc();
 const _bindState = state => {
   const objects = state.getArray('objects');
   let lastObjects = [];
@@ -576,76 +579,17 @@ const _bindState = state => {
     lastObjects = nextObjects;
   });
 };
-const _connectRoom = async (roomName, worldURL) => {
+_bindState(state);
+world.connectRoom = async (roomName, worldURL) => {
   channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
 
   channelConnection.addEventListener('open', async e => {
     channelConnectionOpen = true;
     console.log('Channel Open!');
 
-    const queue = [];
-    let index = 0;
-    let bufferedAmountLow = true;
-    channelConnection.send = (_send => function send(a) {
-      if (bufferedAmountLow) {
-        bufferedAmountLow = false;
-        return _send.apply(this, arguments);
-      } else {
-        queue.push(a);
-      }
-    })(channelConnection.send);
-
-    channelConnection.dataChannel.addEventListener('bufferedamountlow', e => {
-      bufferedAmountLow = true;
-      if (index < queue.length) {
-        /* if (channelConnection.dataChannel.bufferedAmount !== 0) {
-          console.log('got buffered amount', channelConnection.dataChannel.bufferedAmount, channelConnection.dataChannel.bufferedAmountLowThreshold);
-          throw new Error('already buffered!');
-        } */
-        const entry = queue[index];
-        queue[index] = null;
-        index++;
-        channelConnection.send(entry);
-        if (index >= queue.length) {
-          queue.length = 0;
-          index = 0;
-        }
-      }
-    });
-
-     const _latchMediaStream = async () => {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-      const track = mediaStream.getAudioTracks()[0];
-      track.addEventListener('ended', async e => {
-        await channelConnection.setMicrophoneMediaStream(null);
-      });
-      await channelConnection.setMicrophoneMediaStream(mediaStream);
-    };
-
-    const micButton = document.getElementById('mic-button');
-    micButton.addEventListener('click', async e => {
-      micButton.classList.toggle('enabled');
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-      if (micButton.classList.contains('enabled')) {
-        rigManager.localRig.setMicrophoneMediaStream(mediaStream);
-        _latchMediaStream();
-      } else {
-        rigManager.localRig.setMicrophoneMediaStream(null);
-        const tracks = mediaStream.getAudioTracks();
-        for (const track of tracks) {
-          track.stop();
-        }
-      }
-    });
-
-    channelConnection.dialogClient.addEventListener('peerEdit', e => {
-      console.log(e);
-      world.onRemoteSubparcelsEdit(e.data.keys);
-    });
+    if (networkMediaStream) {
+      channelConnection.setMicrophoneMediaStream(networkMediaStream);
+    }
   }, {once: true});
   channelConnection.addEventListener('close', e => {
     if (interval) {
@@ -675,60 +619,37 @@ const _connectRoom = async (roomName, worldURL) => {
       }));
     });
 
-    peerConnection.addEventListener('message', e => {
-      const {data} = e;
-      if (typeof data === 'string') {
-        const j = JSON.parse(data);
-        const {method} = j;
-        if (method === 'pose') {
-          const {pose} = j;
-          const [head, leftGamepad, rightGamepad, floorHeight] = pose;
-          rigManager.setPeerAvatarPose(pose, peerConnection.connectionId);
-          /*
-          const localEuler = new THREE.Euler();
-          peerRig.textMesh = makeTextMesh();
-          peerRig.textMesh.position.fromArray(head[0]);
-          peerRig.textMesh.position.y += 0.5;
-          peerRig.textMesh.quaternion.fromArray(head[1]);
-          localEuler.setFromQuaternion(peerRig.textMesh.quaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.y += Math.PI;
-          localEuler.z = 0;
-          peerRig.textMesh.quaternion.setFromEuler(localEuler); 
-          */
-        } else if (method === 'status') {
-          const {peerId, status: {name, avatarUrl, avatarFileName, address}} = j;
-          const peerRig = rigManager.peerRigs.get(peerId);
-          peerRig.address = address;
-          peerConnection.address = address;
+    peerConnection.addEventListener('status', e => {
+      const {peerId, status: {name, avatarUrl, avatarFileName, address}} = e.data;
+      const peerRig = rigManager.peerRigs.get(peerId);
+      peerRig.address = address;
+      peerConnection.address = address;
 
-          let updated = false;
+      let updated = false;
 
-          const currentPeerName = peerRig.textMesh.text;
-          if (currentPeerName !== name) {
-            rigManager.setPeerAvatarName(name, peerId);
-            updated = true;
-          }
-
-          const newAvatarUrl = avatarUrl || null;
-          const currentAvatarUrl = peerRig.avatarUrl;
-          if (currentAvatarUrl !== newAvatarUrl) {
-            rigManager.setPeerAvatarUrl(newAvatarUrl, avatarFileName, peerId);
-            updated = true;
-          }
-
-          if (updated) {
-            world.dispatchEvent(new MessageEvent('peersupdate', {
-              data: Array.from(rigManager.peerRigs.values()),
-            }));
-          }
-        } else {
-          console.warn('unknown method', method);
-        }
-      } else {
-        console.warn('non-string data', data);
-        throw new Error('non-string data');
+      const currentPeerName = peerRig.textMesh.text;
+      if (currentPeerName !== name) {
+        rigManager.setPeerAvatarName(name, peerId);
+        updated = true;
       }
+
+      const newAvatarUrl = avatarUrl || null;
+      const currentAvatarUrl = peerRig.avatarUrl;
+      if (currentAvatarUrl !== newAvatarUrl) {
+        rigManager.setPeerAvatarUrl(newAvatarUrl, avatarFileName, peerId);
+        updated = true;
+      }
+
+      if (updated) {
+        world.dispatchEvent(new MessageEvent('peersupdate', {
+          data: Array.from(rigManager.peerRigs.values()),
+        }));
+      }
+    });
+    peerConnection.addEventListener('pose', e => {
+      // const [head, leftGamepad, rightGamepad, floorHeight] = e.data;
+      const {pose} = e.data;
+      rigManager.setPeerAvatarPose(pose, peerConnection.connectionId);
     });
     peerConnection.addEventListener('addtrack', e => {
       const track = e.data;
@@ -757,14 +678,14 @@ const _connectRoom = async (roomName, worldURL) => {
     let interval;
     if (live) {
       interval = setInterval(() => {
-        if (channelConnection.dataChannel) {
-          const name = loginManager.getUsername();
-          const avatarSpec = loginManager.getAvatar();
-          const avatarUrl = avatarSpec && avatarSpec.url;
-          const avatarFileName = avatarSpec && avatarSpec.filename;
-          const address = loginManager.getAddress();
-          channelConnection.send(JSON.stringify({
-            method: 'status',
+        const name = loginManager.getUsername();
+        const avatarSpec = loginManager.getAvatar();
+        const avatarUrl = avatarSpec && avatarSpec.url;
+        const avatarFileName = avatarSpec && avatarSpec.filename;
+        const address = loginManager.getAddress();
+        channelConnection.send(JSON.stringify({
+          method: 'status',
+          data: {
             peerId: channelConnection.connectionId,
             status: {
               name,
@@ -772,13 +693,15 @@ const _connectRoom = async (roomName, worldURL) => {
               avatarFileName,
               address
             },
-          }));
-          const pose = rigManager.getLocalAvatarPose();
-          channelConnection.send(JSON.stringify({
-            method: 'pose',
+          },
+        }));
+        const pose = rigManager.getLocalAvatarPose();
+        channelConnection.send(JSON.stringify({
+          method: 'pose',
+          data: {
             pose,
-          }));
-        }
+          },
+        }));
       }, 10);
     }
 
@@ -807,9 +730,24 @@ const _connectRoom = async (roomName, worldURL) => {
   state = channelConnection.state;
   _bindState(state);
 };
+world.disconnectRoom = () => {
+  channelConnection.close();
+
+  const localObjects = objects.slice();
+  for (const object of localObjects) {
+    world.removeObject(object.instanceId);
+  }
+
+  state = new Y.Doc();
+  _bindState(state);
+};
+
+world.initializeIfEmpty = spec => {
+  console.log('initialize if empty', spec); // XXX
+};
 
 const objects = [];
-world.getObjects = () => objects;
+world.getObjects = () => objects.slice();
 world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
   state.transact(() => {
     const instanceId = getRandomString();
@@ -909,23 +847,37 @@ world.addEventListener('trackedobjectadd', async e => {
     }
   })();
   if (file) {
-    const mesh = await runtime.loadFile(file, options);
-    mesh.position.fromArray(position);
-    mesh.quaternion.fromArray(quaternion);
-    
-    mesh.name = file.name;
-    mesh.instanceId = instanceId;
+    let mesh = await runtime.loadFile(file, options);
+    if (mesh) {
+      mesh.position.fromArray(position);
+      mesh.quaternion.fromArray(quaternion);
+      
+      // mesh.name = file.name;
+      mesh.contentId = contentId;
+      mesh.instanceId = instanceId;
+      mesh.parentId = parentId;
 
-    mesh.run && mesh.run();
-    mesh.instanceId = instanceId;
-    mesh.parentId = parentId;
+      if (mesh.run) {
+        mesh.run();
+      }
+      if (mesh.getPhysicsIds) {
+        const physicsIds = mesh.getPhysicsIds();
+        for (const physicsId of physicsIds) {
+          physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion);
+        }
+      }
 
-    if (mesh.renderOrder === -Infinity) {
-      scene3.add(mesh);
+      if (mesh.renderOrder === -Infinity) {
+        scene3.add(mesh);
+      } else {
+        scene.add(mesh);
+      }
     } else {
+      console.warn('failed to load object', file);
+
+      mesh = new THREE.Object3D();
       scene.add(mesh);
     }
-    objects.push(mesh);
 
     mesh.setPose = (position, quaternion) => {
       trackedObject.set('position', position.toArray());
@@ -938,6 +890,16 @@ world.addEventListener('trackedobjectadd', async e => {
     };
     trackedObject.observe(_observe);
     trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
+
+    // minimap
+    const minimapObject = minimap.addObject(mesh);
+    mesh.minimapObject = minimapObject;
+
+    objects.push(mesh);
+
+    world.dispatchEvent(new MessageEvent('objectadd', {
+      data: mesh,
+    }));
   }
 });
 world.addEventListener('trackedobjectremove', async e => {
@@ -947,9 +909,16 @@ world.addEventListener('trackedobjectremove', async e => {
   if (index !== -1) {
     const object = objects[index];
     object.destroy && object.destroy();
-    scene.remove(object);
+    object.parent.remove(object);
     objects.splice(index, 1);
     trackedObject.unobserve();
+
+    // minimap
+    minimap.removeObject(object.minimapObject);
+
+    world.dispatchEvent(new MessageEvent('objectremove', {
+      data: object,
+    }));
   }
 });
 world.isObject = object => objects.includes(object);
@@ -996,29 +965,60 @@ world.getClosestObject = (position, maxDistance) => {
   }
   return closestObject;
 };
-world.grabbedObjects = [null, null];
-world.getGrab = side => world.grabbedObjects[side === 'left' ? 1 : 0];
-world.update = () => {
-  const _updateObjectsGrab = () => {
-    const transforms = rigManager.getRigTransforms();
-    for (let i = 0; i < 2; i++) {
-      const grabbedObject = world.grabbedObjects[i];
-      if (grabbedObject) {
-        const {position, quaternion} = transforms[0];
-        // grabbedObject.position.copy(position);
-        // grabbedObject.quaternion.copy(quaternion);
-        grabbedObject.setPose(position, quaternion);
-      }
-    }
-  };
-  _updateObjectsGrab();
+
+let animationMediaStream = null
+let networkMediaStream = null;
+const _latchMediaStream = async () => {
+  networkMediaStream = await navigator.mediaDevices.getUserMedia({
+    audio: true,
+  });
+  if (channelConnection) {
+    await channelConnection.setMicrophoneMediaStream(networkMediaStream);
+  }
+};
+const _unlatchMediaStream = async () => {
+  if (channelConnection) {
+    await channelConnection.setMicrophoneMediaStream(null);
+  }
+
+  const tracks = networkMediaStream.getTracks();
+  for (const track of tracks) {
+    track.stop();
+  }
+  networkMediaStream = null;
 };
 
-const button = document.getElementById('connectButton');
-world.connect = async ({online = true, roomName: rn, url = null} = {}) => {
+const micButton = document.getElementById('key-v');
+micButton.addEventListener('click', async e => {
+  if (!animationMediaStream) {
+    micButton.classList.add('enabled');
+
+    animationMediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    });
+
+    rigManager.localRig.setMicrophoneMediaStream(animationMediaStream);
+
+    _latchMediaStream();
+  } else {
+    micButton.classList.remove('enabled');
+
+    rigManager.localRig.setMicrophoneMediaStream(null);
+    const tracks = animationMediaStream.getTracks();
+    for (const track of tracks) {
+      track.stop();
+    }
+    animationMediaStream = null;
+
+    _unlatchMediaStream();
+  }
+});
+
+// const button = document.getElementById('connectButton');
+/* world.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   roomName = rn;
   if (online) {
-    await _connectRoom(roomName, url);
+    await world.connectRoom(roomName, url);
     
     button.innerHTML = `
       <i class="fal fa-wifi-slash"></i>
@@ -1030,8 +1030,8 @@ world.connect = async ({online = true, roomName: rn, url = null} = {}) => {
   }
   // await _loadStorage(roomName);
   await _loadLiveState(roomName);
-};
-document.getElementById('connectButton').addEventListener('click', async (e) => {
+}; */
+/* document.getElementById('connectButton').addEventListener('click', async (e) => {
   e.preventDefault();
   e.stopPropagation();
   if (channelConnectionOpen) { // disconnect case
@@ -1051,4 +1051,4 @@ document.getElementById('connectButton').addEventListener('click', async (e) => 
       location.search = `?u=${json.id}.worlds.webaverse.com`;
     }
   }
-});
+}); */
