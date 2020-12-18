@@ -4,14 +4,12 @@ import geometryManager from './geometry-manager.js';
 import weaponsManager from './weapons-manager.js';
 import inventory from './inventory.js';
 import runtime from './runtime.js';
-import {onclickBindings} from './components/App.js';
-import {makeInventoryMesh, makeTextMesh} from './vr-ui.js';
+import {makeTextMesh, makePopupMesh} from './vr-ui.js';
 import {renderer, scene, camera} from './app-object.js';
 import {WaitQueue} from './util.js';
 import {makeDrawMaterial} from './shaders.js';
 import {loginManager} from './login.js';
 import {world} from './world.js';
-import {makeColorsMesh, makeMenuMesh, makeDetailsMesh, makeTradeMesh, makePopupMesh, makeToolsMesh} from './vr-ui.js';
 import {colors, storageHost} from './constants.js';
 
 const uiManager = new EventTarget();

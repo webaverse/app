@@ -5,7 +5,8 @@ import * as THREE from './three.module.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {TransformControls} from './TransformControls.js';
 // import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {tryLogin, loginManager} from './login.js';
+import {loginManager} from './login.js';
+import {tryTutorial} from './tutorial.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
@@ -31,8 +32,6 @@ import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
 import minimap from './minimap.js';
-import {App} from './components/App.js';
-import {tryTutorial} from './tutorial.js';
 // import {getState, setState} from './state.js';
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
@@ -290,7 +289,11 @@ const q = parseQuery(location.search);
   // new Bot();
 })(); */
 (async () => {
-  await geometryManager.waitForLoad();
+  await Promise.all([
+    loginManager.waitForLoad()
+      .then(() => tryTutorial()),
+    geometryManager.waitForLoad(),
+  ]);
 
   runtime.injectDependencies(geometryManager, physicsManager, world);
 
@@ -1229,115 +1232,6 @@ const _ensureLoadMesh = p => {
       });
   }
 }; */
-
-const _initializeLogin = async () => {
-  await tryLogin();
-  await tryTutorial();
-
-  const _initializeUserUi = async () => {
-    await geometryManager.waitForLoad();
-
-    /* const _listenBlockchainEvents = async () => {
-      const address = '0x' + loginManager.getAddress();
-
-      const loadPromise = makePromise();
-      loginManager.getBalance()
-        .then(balance => {
-          const {menu} = getState();
-          menu.inventory.balance = balance;
-          setState({menu});
-
-          loadPromise.accept();
-        });
-
-      const s = new WebSocket('wss://events.exokit.org/');
-      s.onopen = () => {
-        s.onmessage = async e => {
-          const s = e.data;
-          const tx = JSON.parse(s);
-          await loadPromise;
-          if (tx.from && tx.to && tx.amount) {
-            const message = uiManager.popupMesh.addMessage(`${tx.from} sent ${tx.to} ${tx.amount}`);
-            setTimeout(() => {
-              uiManager.popupMesh.removeMessage(message);
-            }, 5000);
-          }
-          if (tx.from === address) {
-            const {menu} = getState();
-            menu.inventory.balance -= tx.amount;
-            setState({menu});
-          }
-          if (tx.to === address) {
-            const {menu} = getState();
-            menu.inventory.balance += tx.amount;
-            setState({menu});
-          }
-        };
-      };
-      s.onerror = err => {
-        console.warn('events websocket error', err);
-      };
-      s.onclose = () => {
-        console.warn('events websocket closed');
-      };
-    };
-    _listenBlockchainEvents(); */
-  };
-  _initializeUserUi();
-  const _initializeRigUi = () => {
-    const username = loginManager.getUsername() || 'Anonymous';
-    const avatarImage = loginManager.getAvatarPreview();
-    rigManager.setLocalAvatarName(username);
-
-    loginManager.addEventListener('usernamechange', e => {
-      const username = e.data || 'Anonymous';
-      if (username !== rigManager.localRig.textMesh.text) {
-        rigManager.setLocalAvatarName(username);
-
-        /* const {menu} = getState();
-        menu.username = username;
-        setState({
-          menu,
-        }); */
-      }
-    });
-
-    const avatar = loginManager.getAvatar();
-    if (avatar.url) {
-      rigManager.setLocalAvatarUrl(avatar.url, avatar.filename);
-    }
-    if (avatar.preview) {
-      rigManager.setLocalAvatarImage(avatar.preview);
-    }
-    loginManager.addEventListener('avatarchange', e => {
-      const avatar = e.data;
-      const newAvatarUrl = avatar ? avatar.url : null;
-      if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
-        rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.filename);
-        rigManager.setLocalAvatarImage(avatar.preview);
-
-        /* const {menu} = getState();
-        menu.avatarUrl = avatar.url;
-        menu.avatarFileName = avatar.filename;
-        menu.avatarPreview = avatar.preview;
-        setState({
-          menu,
-        }); */
-      }
-    });
-
-    /* const {menu} = getState();
-    menu.username = username;
-    menu.avatarUrl = avatar.url;
-    menu.avatarFileName = avatar.filename;
-    menu.avatarPreview = avatar.preview;
-    setState({
-      menu,
-    }); */
-  };
-  _initializeRigUi();
-};
-_initializeLogin();
 
 const _initializeXr = () => {
   let currentSession = null;

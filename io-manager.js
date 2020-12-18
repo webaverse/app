@@ -361,7 +361,7 @@ window.addEventListener('keydown', e => {
     case 67: { // C
       if (weaponsManager.canPush()) {
         weaponsManager.menuPush(1);
-      } else if (!(e.shiftKey && (e.altKey || e.metaKey))) {
+      } else if (!(e.shiftKey && (e.ctrlKey || e.metaKey))) {
         e.preventDefault();
         e.stopPropagation();
         document.getElementById('key-c').dispatchEvent(new KeyboardEvent('click', { // camera

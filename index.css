@@ -2621,8 +2621,8 @@ footer {
   position: relative;
 }
 .key-helper .label {
-  position: relative;
   /* width: 50px;
+  position: relative;
   margin-left: auto; */
   margin-right: 10px;
 }
@@ -2635,6 +2635,13 @@ footer {
   margin-left: -20px;
   overflow: hidden;
   overflow-y: scroll;
+}
+.items::-webkit-scrollbar {
+  display: none;
+}
+.items {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 .items .item {
   display: flex;

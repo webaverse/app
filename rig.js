@@ -6,6 +6,7 @@ import cameraManager from './camera-manager.js';
 import {makeTextMesh, makeRigCapsule} from './vr-ui.js';
 import {makePromise, /*WaitQueue, */downloadFile} from './util.js';
 import {appManager, renderer, scene, camera, dolly} from './app-object.js';
+import {loginManager} from './login.js';
 import runtime from './runtime.js';
 import Avatar from './avatars/avatars.js';
 import physicsManager from './physics-manager.js';
@@ -111,6 +112,63 @@ class RigManager {
     this.smoothVelocity = new THREE.Vector3();
 
     this.peerRigs = new Map();
+
+    const _bindLogin = async () => {
+      await loginManager.waitForLoad();
+
+      const username = loginManager.getUsername() || 'Anonymous';
+      const avatarImage = loginManager.getAvatarPreview();
+      rigManager.setLocalAvatarName(username);
+
+      loginManager.addEventListener('usernamechange', e => {
+        const username = e.data || 'Anonymous';
+        if (username !== rigManager.localRig.textMesh.text) {
+          rigManager.setLocalAvatarName(username);
+
+          /* const {menu} = getState();
+          menu.username = username;
+          setState({
+            menu,
+          }); */
+        }
+      });
+
+      const avatar = loginManager.getAvatar();
+      if (avatar.url) {
+        rigManager.setLocalAvatarUrl(avatar.url, avatar.filename);
+      }
+      if (avatar.preview) {
+        rigManager.setLocalAvatarImage(avatar.preview);
+      }
+      loginManager.addEventListener('avatarchange', e => {
+        const avatar = e.data;
+        const newAvatarUrl = avatar ? avatar.url : null;
+        if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
+          rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.filename);
+          rigManager.setLocalAvatarImage(avatar.preview);
+
+          /* const {menu} = getState();
+          menu.avatarUrl = avatar.url;
+          menu.avatarFileName = avatar.filename;
+          menu.avatarPreview = avatar.preview;
+          setState({
+            menu,
+          }); */
+        }
+      });
+
+      /* const {menu} = getState();
+      menu.username = username;
+      menu.avatarUrl = avatar.url;
+      menu.avatarFileName = avatar.filename;
+      menu.avatarPreview = avatar.preview;
+      setState({
+        menu,
+      }); */
+    };
+    _bindLogin().catch(err => {
+      console.warn(err);
+    });
   }
 
   setLocalRigMatrix(rm) {

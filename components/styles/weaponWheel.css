@@ -1,9 +1,0 @@
-.twoD-weaponWheel {
-    background-color: white;
-    height: 80vh;
-    width: 80vw;
-    margin: 0 auto;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    border-radius: 20px;
-    margin-top: 10vh;
-}
