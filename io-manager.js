@@ -343,24 +343,28 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 70: { // F
-      // pe.grabdown('right');
       e.preventDefault();
       e.stopPropagation();
-      document.getElementById('key-f').click();
+      if (weaponsManager.canPush()) {
+        weaponsManager.menuPush(-1);
+      } else {
+        document.getElementById('key-f').click(); // fly
+      }
       break;
     }
     case 82: { // R
-      // pe.grabdown('right');
       e.preventDefault();
       e.stopPropagation();
-      document.getElementById('key-r').click();
+      document.getElementById('key-r').click(); // equip
       break;
     }
     case 67: { // C
-      if (!(e.shiftKey && (e.altKey || e.metaKey))) {
+      if (weaponsManager.canPush()) {
+        weaponsManager.menuPush(1);
+      } else if (!(e.shiftKey && (e.altKey || e.metaKey))) {
         e.preventDefault();
         e.stopPropagation();
-        document.getElementById('key-c').dispatchEvent(new KeyboardEvent('click', {
+        document.getElementById('key-c').dispatchEvent(new KeyboardEvent('click', { // camera
           which: e.which,
           shiftKey: e.shiftKey,
           ctrlKey: e.ctrlKey,

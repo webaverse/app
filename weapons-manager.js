@@ -1443,6 +1443,12 @@ const weaponsManager = {
   menuRotate(direction) {
     console.log('rotate', direction);
   },
+  canPush() {
+    return !!appManager.grabbedObjects[0];
+  },
+  menuPush(direction) {
+    console.log('push', direction);
+  },
   menuGridSnap() {
     console.log('grid snap');
   },
