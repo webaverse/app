@@ -409,6 +409,7 @@ const _grab = object => {
   const transforms = rigManager.getRigTransforms();
 
   appManager.grabbedObjects[0] = object;
+  appManager.grabbedObjects[0].savedRotation.copy(appManager.grabbedObjects[0].rotation);
   if (object) {
     const {position} = transforms[0];
     const distance = object.position.distanceTo(position);
@@ -454,6 +455,7 @@ const _updateWeapons = timeDiff => {
             .decompose(localVector, localQuaternion, localVector2);
           if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
             highlightMesh.position.copy(candidate.position);
+            highlightMesh.quaternion.copy(candidate.quaternion);
             highlightMesh.visible = true;
             highlightedObject = candidate;
             break;
@@ -467,6 +469,7 @@ const _updateWeapons = timeDiff => {
           if (object) {
             highlightedObject = object;
             highlightMesh.position.copy(object.position);
+            highlightMesh.quaternion.copy(object.quaternion);
             highlightMesh.visible = true;
           }
         }
@@ -532,11 +535,11 @@ const _updateWeapons = timeDiff => {
           _snap(localVector.fromArray(point), 1);
           grabbedObject.position.copy(localVector)
             .add(localVector2.set(0, 0.01, 0));
-          localEuler.setFromQuaternion(quaternion, 'YXZ');
+          /* localEuler.setFromQuaternion(quaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.z = 0;
           localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
-          grabbedObject.quaternion.setFromEuler(localEuler);
+          grabbedObject.quaternion.setFromEuler(localEuler); */
 
           if (grabbedObject.position.distanceTo(position) > offset) {
             collision = null;
@@ -544,13 +547,17 @@ const _updateWeapons = timeDiff => {
         }
         if (!collision) {
           grabbedObject.position.copy(position).add(localVector.set(0, 0, -offset).applyQuaternion(quaternion));
-          grabbedObject.quaternion.copy(quaternion);
+          // grabbedObject.quaternion.copy(quaternion);
         }
 
         if (grabbedObject.position.distanceTo(position) >= maxGrabDistance) {
+          grabbedObject.quaternion.setFromEuler(grabbedObject.savedRotation);
+          
           moveMesh.position.copy(grabbedObject.position);
           moveMesh.quaternion.copy(grabbedObject.quaternion);
           moveMesh.visible = true;
+        } else {
+          grabbedObject.quaternion.copy(quaternion);
         }
 
         // grabbedObject.setPose(localVector2, quaternion);
@@ -1446,8 +1453,10 @@ const weaponsManager = {
   canRotate() {
     return !!appManager.grabbedObjects[0];
   },
-  menuRotate(direction) {
     console.log('rotate', direction);
+  menuRotate(direction) {
+    const object = appManager.grabbedObjects[0];
+    object.savedRotation.y -= direction * Math.PI/5;
   },
   canPush() {
     return !!appManager.grabbedObjects[0];

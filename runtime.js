@@ -1012,53 +1012,58 @@ const _loadGeo = async (file, opts) => {
 };
 
 runtime.loadFile = async (file, opts) => {
-  switch (getExt(file.name)) {
-    case 'gltf':
-    case 'glb': {
-      return await _loadGltf(file, opts);
+  const object = await (async () => {
+    switch (getExt(file.name)) {
+      case 'gltf':
+      case 'glb': {
+        return await _loadGltf(file, opts);
+      }
+      case 'vrm': {
+        return await _loadVrm(file, opts);
+      }
+      case 'vox': {
+        return await _loadVox(file, opts);
+      }
+      case 'png':
+      case 'gif':
+      case 'jpg': {
+        return await _loadImg(file, opts);
+      }
+      case 'js': {
+        return await _loadScript(file, opts);
+      }
+      case 'json': {
+        return await _loadManifestJson(file, opts);
+      }
+      case 'wbn': {
+        return await _loadWebBundle(file, opts);
+      }
+      case 'scn': {
+        return await _loadScn(file, opts);
+      }
+      case 'url': {
+        return await _loadLink(file, opts);
+      }
+      case 'iframe': {
+        return await _loadIframe(file, opts);
+      }
+      case 'mediastream': {
+        return await _loadMediaStream(file, opts);
+      }
+      case 'geo': {
+        return await _loadGeo(file, opts);
+      }
+      case 'mp3': {
+        return await _loadAudio(file, opts);
+      }
+      case 'video': {
+        throw new Error('video not implemented');
+      }
     }
-    case 'vrm': {
-      return await _loadVrm(file, opts);
-    }
-    case 'vox': {
-      return await _loadVox(file, opts);
-    }
-    case 'png':
-    case 'gif':
-    case 'jpg': {
-      return await _loadImg(file, opts);
-    }
-    case 'js': {
-      return await _loadScript(file, opts);
-    }
-    case 'json': {
-      return await _loadManifestJson(file, opts);
-    }
-    case 'wbn': {
-      return await _loadWebBundle(file, opts);
-    }
-    case 'scn': {
-      return await _loadScn(file, opts);
-    }
-    case 'url': {
-      return await _loadLink(file, opts);
-    }
-    case 'iframe': {
-      return await _loadIframe(file, opts);
-    }
-    case 'mediastream': {
-      return await _loadMediaStream(file, opts);
-    }
-    case 'geo': {
-      return await _loadGeo(file, opts);
-    }
-    case 'mp3': {
-      return await _loadAudio(file, opts);
-    }
-    case 'video': {
-      throw new Error('video not implemented');
-    }
-  }
+  })();
+  object.rotation.order = 'YXZ';
+  object.savedRotation = object.rotation.clone();
+  return object;
 };
 
 export default runtime;
