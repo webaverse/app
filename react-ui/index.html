@@ -8,9 +8,10 @@
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
     <script type="text/javascript">
-    if (window.location.href.indexOf("localhost") > -1) {
-      window.locationSubdirectory ='';
-    } else window.locationSubdirectory ='/react-ui';
+    // if (window.location.href.indexOf("localhost") > -1) {
+    //   window.locationSubdirectory ='';
+    // } else 
+    window.locationSubdirectory ='/react-ui';
 </script>
 <style>
 body {
@@ -43,7 +44,7 @@ function loadJS(file) {
 }
 
 if (window.locationSubdirectory === '' && window.location.href.indexOf("localhost") > -1) {
-  loadJS('/index.js')
+  loadJS(window.locationSubdirectory +'/index.js')
 } else loadJS(window.locationSubdirectory +'/index.js')
 </script>
     <!--
