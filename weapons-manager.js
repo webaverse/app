@@ -487,6 +487,7 @@ const _updateWeapons = timeDiff => {
 
     if (editedObject) {
       editMesh.position.copy(editedObject.position);
+      editMesh.quaternion.copy(editedObject.quaternion);
       editMesh.visible = true;
 
       if (editedObject.place) {
@@ -1332,6 +1333,7 @@ const itemMonetizedIcon = document.getElementById('item-monetized-icon');
 const grabIcon = document.getElementById('grab-icon');
 const editIcon = document.getElementById('edit-icon');
 const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
+const gridSnapEl = document.getElementById('grid-snap');
 const weaponsManager = {
   // weapons,
   cubeMesh,
@@ -1339,6 +1341,7 @@ const weaponsManager = {
   buildMat: 'wood', */
   menuOpen: 0,
   weaponWheel: false,
+  gridSnap: 0,
   getWeapon() {
     return selectedWeapon;
   },
@@ -1467,7 +1470,14 @@ const weaponsManager = {
     console.log('menu drop');
   },
   menuGridSnap() {
-    console.log('grid snap');
+    if (this.gridSnap === 0) {
+      this.gridSnap = 32;
+    } else if (this.gridSnap > 1) {
+      this.gridSnap /= 2;
+    } else {
+      this.gridSnap = 0;
+    }
+    gridSnapEl.innerText = this.gridSnap > 0 ? (this.gridSnap + '') : 'off';
   },
   setWorld(newCoord, newHighlightedWorld) {
     lastCoord.copy(coord);
