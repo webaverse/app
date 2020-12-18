@@ -5,12 +5,12 @@ img {
 }
 
 &.card {
-    background-color: #ffffff;
+    background-color: transparent;
     width: 16em;
     height: 26em;
     display: flex;
     flex-direction: column;
-    padding: 2em;
+    margin: 2em;
 }
 
 .upperCardInfo {
@@ -528,6 +528,7 @@ img {
 
 .assetHash.small {
     font-size: 0.1em;
+    display:none;
 }
 
 .assetHash.medium {

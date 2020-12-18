@@ -1,12 +1,12 @@
 import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
-import { useRouter } from '../web_modules/react-es-router.js';
 
-import htm from '/web_modules/htm.js';
-import csz from '../web_modules/csz.js'
+import htm from '../web_modules/htm.js';
+import css from '../web_modules/csz.js'
 
-const styles = csz`/components/CreatorCard.css`
+const styles = css`${window.locationSubdirectory}/components/CreatorCard.css`
 
 const html = htm.bind(React.createElement)
+const defaultAvatarImage = window.locationSubdirectory + "/images/DefaultUser.svg";
 
 const Creator = ({
   name,
@@ -16,13 +16,26 @@ const Creator = ({
   ftu = 0,
   address
 }) => {
+
+  const copyAddress = (e) => {
+    e.preventDefault();
+    navigator.clipboard.writeText(state.address);
+    console.log("Copied address to clipboard", state.address);
+    e.stopPropagation()
+  };
+
     return html`
-        <div className="${styles} creator" onClick=${() => window.location = '/creator?address='+address}>
-          <div className="avatarPreview"><img src="${avatarPreview}" /></div>
+        <div className="${styles} creator" onClick=${() => window.location = `${window.locationSubdirectory}/creator/`+address}>
+          <div className="avatarPreview"><img src="${avatarPreview !== "" ? avatarPreview : defaultAvatarImage}" /></div>
           <div className="creatorInfo">
-            <div className="creatorName">${name}</div>
-            <div className="creatorFtu">${ftu}</div>
-            <div className="creatorAddress">${address}</div>
+            <div>
+              <div className="creatorName">${name || 'Anonymous'}</div>
+              <div className="creatorFtu">${ftu}</div>
+            </div>
+            <div>
+              <div className="creatorAddress">${address}</div>
+              <div className="creatorBtnCopy" onClick=${copyAddress}> (copy) </div>
+            </div>
           </div>
         </div>
     `;

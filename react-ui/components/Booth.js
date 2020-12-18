@@ -1,9 +1,9 @@
 import { React } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '../web_modules/htm.js';
 import AssetCardGrid from './AssetCardGrid.js'
-import csz from '../web_modules/csz.js'
+import css from '../web_modules/csz.js'
 
-const styles = csz`/components/Booth.css`
+const styles = css`${window.locationSubdirectory}/components/Booth.css`
 
 
 const html = htm.bind(React.createElement)

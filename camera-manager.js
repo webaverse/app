@@ -3,10 +3,10 @@ import {renderer, camera/*, orbitControls*/} from './app-object.js';
 import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
+import * as notifications from './notifications.js';
 
 const localVector = new THREE.Vector3();
 
-let selectedTool = 'camera';
 const getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
 const getAvatarHeight = getFullAvatarHeight; // () => getFullAvatarHeight() * 0.9;
 /* const _getMinHeight = () => {
@@ -20,16 +20,10 @@ const getAvatarHeight = getFullAvatarHeight; // () => getFullAvatarHeight() * 0.
   }
 }; */
 const birdsEyeHeight = 10;
-const avatarCameraOffset = new THREE.Vector3(0, 0, -1.5);
+const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
 const isometricCameraOffset = new THREE.Vector3(0, 0, -2);
-const tools = [
-  'key-v',
-  'key-b',
-  'key-n',
-  'key-m',
-].map(id => document.getElementById(id));
 
-const _requestPointerLock = () => new Promise((accept, reject) => {
+const requestPointerLock = () => new Promise((accept, reject) => {
   if (!document.pointerLockElement) {
     const _pointerlockchange = e => {
       accept();
@@ -39,6 +33,19 @@ const _requestPointerLock = () => new Promise((accept, reject) => {
     const _pointerlockerror = err => {
       reject(err);
       _cleanup();
+      
+      notifications.addNotification(`\
+        <i class="icon fa fa-mouse-pointer"></i>
+        <div class=wrap>
+          <div class=label>Whoa there!</div>
+          <div class=text>
+            Hold up champ! The browser wants you to slow down.
+          </div>
+          <div class=close-button>✕</div>
+        </div>
+      `, {
+        timeout: 3000,
+      });
     };
     document.addEventListener('pointerlockerror', _pointerlockerror);
     const _cleanup = () => {
@@ -49,8 +56,45 @@ const _requestPointerLock = () => new Promise((accept, reject) => {
   } else {
     accept();
   }
+}).then(() => {
+  if (cameraManager.getTool() === 'camera') {
+    cameraManager.selectTool('firstperson');
+  }
 });
-for (let i = 0; i < tools.length; i++) {
+
+const cameraModes = [
+  'camera',
+  'firstperson',
+  'thirdperson',
+  'isometric',
+  'birdseye',
+];
+let selectedTool = cameraModes[0];
+const switchCamera = e => {
+  const index = cameraModes.indexOf(selectedTool);
+  let nextIndex;
+  if (!e.shiftKey) {
+    nextIndex = (index + 1) % cameraModes.length;
+  } else {
+    nextIndex = index - 1;
+    if (nextIndex <= 0) {
+      nextIndex = cameraModes.length - 1;
+    }
+  }
+  if (index === 0 || nextIndex === 0) {
+    nextIndex = 1;
+  }
+
+  const newSelectedTool = cameraModes[nextIndex];
+  selectTool(newSelectedTool);
+
+  /* if (['firstperson', 'thirdperson', 'isometric', 'birdseye'].includes(newSelectedTool)) {
+    await requestPointerLock();
+  } */
+};
+const cameraButton = document.getElementById('key-c');
+cameraButton.addEventListener('click', switchCamera);
+/* for (let i = 0; i < tools.length; i++) {
   const tool = tools[i]
   tool.addEventListener('click', async e => {
     e.preventDefault();
@@ -63,7 +107,7 @@ for (let i = 0; i < tools.length; i++) {
 
     selectTool(newSelectedTool);
   });
-}
+} */
 const selectTool = newSelectedTool => {
   const oldSelectedTool = selectedTool;
   selectedTool = newSelectedTool;
@@ -74,7 +118,7 @@ const selectTool = newSelectedTool => {
 
     switch (oldSelectedTool) {
       case 'thirdperson': {
-        camera.position.add(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+        camera.position.add(localVector.copy(thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
         camera.updateMatrixWorld();
         // setCamera(camera);
         break;
@@ -98,12 +142,16 @@ const selectTool = newSelectedTool => {
       case 'camera': {
         // document.exitPointerLock();
         // orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
-        ioManager.resetKeys();
         physicsManager.velocity.set(0, 0, 0);
         break;
       }
+      case 'firstperson': {
+        camera.rotation.x = 0;
+        camera.updateMatrixWorld();
+        break;
+      }
       case 'thirdperson': {
-        camera.position.sub(localVector.copy(avatarCameraOffset).applyQuaternion(camera.quaternion));
+        camera.position.sub(localVector.copy(thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
         camera.updateMatrixWorld();
 
         // decapitate = false;
@@ -128,6 +176,7 @@ const selectTool = newSelectedTool => {
         break;
       }
     }
+    
     /* if (rigManager.localRig) {
       if (decapitate) {
         rigManager.localRig.decapitate();
@@ -137,17 +186,62 @@ const selectTool = newSelectedTool => {
     } */
   }
 };
+const focusCamera = position => {
+  camera.lookAt(position);
+  camera.updateMatrixWorld();
+  /* switch (selectedTool) {
+    case 'camera': {
+      // document.exitPointerLock();
+      // orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
+      ioManager.resetKeys();
+      physicsManager.velocity.set(0, 0, 0);
+      break;
+    }
+    case 'firstperson': {
+      camera.rotation.x = 0;
+      camera.updateMatrixWorld();
+      break;
+    }
+    case 'thirdperson': {
+      camera.position.sub(localVector.copy(thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
+      camera.updateMatrixWorld();
+
+      // decapitate = false;
+      break;
+    }
+    case 'isometric': {
+      camera.rotation.x = -Math.PI / 6;
+      camera.quaternion.setFromEuler(camera.rotation);
+      camera.position.sub(localVector.copy(isometricCameraOffset).applyQuaternion(camera.quaternion));
+      camera.updateMatrixWorld();
+
+      // decapitate = false;
+      break;
+    }
+    case 'birdseye': {
+      camera.rotation.x = -Math.PI / 2;
+      camera.quaternion.setFromEuler(camera.rotation);
+      camera.position.y -= -birdsEyeHeight + getAvatarHeight();
+      camera.updateMatrixWorld();
+
+      // decapitate = false;
+      break;
+    }
+  } */
+};
 
 const cameraManager = {
-  tools,
   birdsEyeHeight,
-  avatarCameraOffset,
+  thirdPersonCameraOffset,
   isometricCameraOffset,
   getFullAvatarHeight,
   getAvatarHeight,
+  focusCamera,
+  requestPointerLock,
   getTool() {
     return selectedTool;
   },
+  switchCamera,
   selectTool,
 };
 export default cameraManager;

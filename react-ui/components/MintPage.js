@@ -1,14 +1,17 @@
 import { React, useEffect, useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
 import { Context } from '../constants/Context.js';
-import htm from '/web_modules/htm.js';
+import htm from '../web_modules/htm.js';
 import css from '../web_modules/csz.js';
 import ActionTypes from '../constants/ActionTypes.js';
-const styles = css`/components/MintPage.css`
+import { mintNft } from '../functions/AssetFunctions.js';
+import Card  from './AssetCard.js'
+
+const styles = css`${window.locationSubdirectory}/components/MintPage.css`
 
 const html = htm.bind(React.createElement)
 
 const MintingPage = () => {
-  const { dispatch } = useContext(Context);
+  const { state, dispatch } = useContext(Context);
   let [currentStep, setCurrentStep] = useState(1);
 
   // Current file
@@ -34,7 +37,7 @@ const MintingPage = () => {
     setName("");
     setDescription("");
     setQuantity(1);
-    setMinted(null);
+    setMintedState(null);
     setCurrentStep(1)
   }
 
@@ -53,17 +56,23 @@ const MintingPage = () => {
     setCurrentStep(2)
   }
 
-  const mintNft = (e) => {
+  const handleMintNftButton = (e) => {
+    // TODO: On minted, refresh user's gallery
     e.preventDefault();
-    dispatch({ type: ActionTypes.MintNft,
-        payload:
-          { file,
+    mintNft(file,
             name,
             description,
             quantity,
-            errorCallback: () => { console.error("Minting failed"); setMintedState('error')},
-            successCallback: () => { console.log("Success callback!"); setMintedState('success') }
-          }});
+            (err) => {
+              console.error("Minting failed", err);
+              setMintedState('error')},
+            () => {
+              console.log("Success callback!"); 
+              dispatch({type: ActionTypes.UpdateInventory, payload: {address: state.address }});
+              setMintedState('success')
+          },
+          state
+          );
     setCurrentStep(4);
   }
 
@@ -83,7 +92,6 @@ const MintingPage = () => {
 
   const handleSetName = (e) => { 
     setName(e.target.value)
-    console.log("Setting name to", e.target.value);
   }
 
   const handleSetDescription = (e) => setDescription(e.target.value);
@@ -91,51 +99,110 @@ const MintingPage = () => {
 
   const MintPageHeader = () => html`
     <div className="mintPageHeader">
-      <div className="mintPageHeaderStepOne ${currentStep === 1 ? 'selected' : ''}">
-        <span className="mintpageHeaderNumber ${currentStep === 1 ? 'selected' : ''}">1</span>
-        <span className="mintpageHeaderAction ${currentStep === 1 ? 'selected' : ''}">Upload File</span>
-      </div>
-      <div className="mintPageHeaderStepOne ${currentStep === 2 ? 'selected' : ''}">
-        <span className="mintpageHeaderNumber ${currentStep === 2 ? 'selected' : ''}">2</span>
-        <span className="mintpageHeaderAction ${currentStep === 2 ? 'selected' : ''}">Prepare Asset</span>
-      </div>
-      <div className="mintPageHeaderStepOne ${currentStep === 3 || currentStep === 4 ? 'selected' : ''}">
-        <span className="mintpageHeaderNumber ${currentStep === 3 || currentStep === 4 ? 'selected' : ''}">3</span>
-        <span className="mintpageHeaderAction ${currentStep === 3 || currentStep === 4 ? 'selected' : ''}">Mint Token</span>
+      <div className="mintPageHeaderTitle">the forge</div>
+      <div>
+        <div className="mintPageHeaderStep ${currentStep === 1 ? 'selected' : ''}">
+          <span className="mintPageHeaderNumber ${currentStep === 1 ? 'selected' : ''}">1</span>
+          <span className="mintPageHeaderAction ${currentStep === 1 ? 'selected' : ''}">Upload File</span>
+        </div>
+        <div className="mintPageHeaderStep ${currentStep === 2 ? 'selected' : ''}">
+          <span className="mintPageHeaderNumber ${currentStep === 2 ? 'selected' : ''}">2</span>
+          <span className="mintPageHeaderAction ${currentStep === 2 ? 'selected' : ''}">Prepare Asset</span>
+        </div>
+        <div className="mintPageHeaderStep ${currentStep === 3 || currentStep === 4 ? 'selected' : ''}">
+          <span className="mintPageHeaderNumber ${currentStep === 3 || currentStep === 4 ? 'selected' : ''}">3</span>
+          <span className="mintPageHeaderAction ${currentStep === 3 || currentStep === 4 ? 'selected' : ''}">Mint Token</span>
+        </div>
       </div>
     </div>
   `
 
   const pageOne = html`
     <div className="mintPageBody">
-    <form>
-      <h3>Upload a file to use for your asset</h3>
-      <input type="file" className="mintNftImageUpload" onChange=${handleFileUpload} multiple=${false} />
+      <form className="mintPageBodyFormOne">
+        <h3 className="mintPageBodyTitleOne">Upload a file to use for your asset:</h3>
+        <div>
+          <span className="mintNftImageUploadSing">no file chosen</span>
+          <div className="mintNftImageUpload">
+            <label htmlFor="input-file" className="mintNftImageUploadBtn"><span>choose file</span></label>
+            <input type="file" id="input-file" onChange=${handleFileUpload} multiple=${false} />
+          </div>
+        </div>
       </form>
     </div>
   `
 
   const pageTwo = html`
     <div className="mintPageBody">
-    <form>
-      <h3>Name, Description</h3>
-      <input type="text" className="mintNftName" placeholder="Name" onChange=${handleSetName} />
-      <input type="text" className="mintNftDescription" placeholder="Description" onChange=${handleSetDescription} />
-      <button className="button mintPageContinueButton" onClick=${submitDetails}>Continue</button>
-      <button className="button mintPageBackButton" onClick=${backToUpload}>Upload Again</button>
-      ${imagePreview !== null && html`
-        <img src=${imagePreview} />
-      `}
+      <form className="mintPageBodyFormTwo">
+        <div>
+          ${imagePreview !== null && html`
+            <img src=${imagePreview} className="mintNftImagePreview"/>
+          `}
+        </div>
+        <div className="mintPageFormTwoContainer">
+          <h3 className="mintNftNameLabel">Name</h3>
+          <input type="text" className="mintNftName" placeholder="Name" onChange=${handleSetName} />
+          <h3 className="mintNftNameLabel">Description</h3>
+          <textarea className="mintNftDescription scroll" rows="2"  placeholder="Description" onChange=${handleSetDescription} />
+          <div>
+            <button className="button mintPageBackButton" onClick=${backToUpload}>Upload Again</button>
+            <button className="button mintPageContinueButton" onClick=${submitDetails}>Continue</button>
+          </div>
+        </div>
       </form>
     </div>
     `
-  
+
+    const tempCardData = {
+      id: 1,
+      assetName: 'My Cool Item',
+      description: 'This is the first avatar I’ve uploaded to the Webaverse.',
+      image: '/components/AssetCardAdditional/tempImage.png',
+      hash: '0x35ddcd7d8b66f1331f77186af17dbcf231909433',
+      ext: 'jpg',
+      totalSupply: 1,
+      numberInEdition: 1,
+      balance: 2000,
+      ownerAvatarPreview: '/components/AssetCardAdditional/tempImageIcon.png',
+      ownerUsername: 'Paul',
+      ownerAddress: null,
+      minterAvatarPreview: '/components/AssetCardAdditional/tempImageIcon.png',
+      minterAddress: null,
+      minterUsername: null,
+      cardSize: "large",
+      networkType: 'vrm',
+      onClickFunction: null,
+    }
+
     const pageThree = html`
     <div className="mintPageBody">
-      <h3>Ready For Minting</h3>
-      <input type="number" className="mintNftImageUpload" value=1 onChange=${(e) => setQuantity(e.target.value)} />
-      <button className="button mintPageMintButton" onClick=${mintNft}>Mint NFT</button>
-      <button className="button mintPageBackButton" onClick=${backToDetails}>Edit Asset</button>
+      <form className="mintPageBodyFormThree flex">
+        <${Card} ...${tempCardData} />
+        <div className="mintPageFormThreeContainer flex">
+          <h3 className="mintPageBodyTitleThree">Ready For Minting</h3>
+          <div className="flex">  
+            <span className="mintPageBodyWalletSing">This token will be deposited in your Webaverse wallet with the address:</span>
+            <span className="mintPageBodyWalletAdress">0x35ddcd7d8b66f1331f77186af17dbcf231909433</span>
+          </div>
+          <div className="mintPageBodyQuantity flex">
+            <span>quantity</span>
+            <input type="number" className="mintPageBodyQuantitySet" value=1 onChange=${(e) => setQuantity(e.target.value)} />
+          </div>
+          <div className="mintPageBodyMintingFee flex">
+            <span>minting fee:</span>
+            <span className="mintPageBodyMintingFeeValue">2.5Ψ</span>
+          </div>
+          <div className="mintPageBodyYouHave flex unselected">
+            <span>you have:</span>
+            <span className="mintPageBodyYouHaveValue">1208Ψ</span>
+          </div>
+          <div className="mintPageButtons flex">
+            <button className="button mintPageBackButton" onClick=${backToDetails}>Edit Asset</button>
+            <button className="button mintPageMintButton" onClick=${handleMintNftButton}>Mint NFT</button>
+          </div>
+        </div>
+      </form>
     </div>
   `
 
