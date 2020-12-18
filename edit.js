@@ -5,7 +5,8 @@ import * as THREE from './three.module.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {TransformControls} from './TransformControls.js';
 // import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {tryLogin, loginManager} from './login.js';
+import {loginManager} from './login.js';
+import {tryTutorial} from './tutorial.js';
 import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
@@ -31,7 +32,6 @@ import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 import inventory from './inventory.js';
 import minimap from './minimap.js';
-import {App} from './components/App.js';
 // import {getState, setState} from './state.js';
 
 // const zeroVector = new THREE.Vector3(0, 0, 0);
@@ -290,7 +290,8 @@ const q = parseQuery(location.search);
 })(); */
 (async () => {
   await Promise.all([
-    loginManager.waitForLoad(),
+    loginManager.waitForLoad()
+      .then(() => tryTutorial()),
     geometryManager.waitForLoad(),
   ]);
 

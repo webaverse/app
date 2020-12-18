@@ -10,7 +10,6 @@ const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 const {Transaction, Common} = ethereumJsTx;
 import {web3, contracts, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
-import {tryTutorial} from './tutorial.js';
 import * as notifications from './notifications.js';
 import {makePromise} from './util.js';
 
@@ -333,60 +332,6 @@ class LoginManager extends EventTarget {
 
   async init() {
     await tryLogin();
-    await tryTutorial();
-
-    const _initializeRigUi = () => {
-      const username = loginManager.getUsername() || 'Anonymous';
-      const avatarImage = loginManager.getAvatarPreview();
-      rigManager.setLocalAvatarName(username);
-
-      loginManager.addEventListener('usernamechange', e => {
-        const username = e.data || 'Anonymous';
-        if (username !== rigManager.localRig.textMesh.text) {
-          rigManager.setLocalAvatarName(username);
-
-          /* const {menu} = getState();
-          menu.username = username;
-          setState({
-            menu,
-          }); */
-        }
-      });
-
-      const avatar = loginManager.getAvatar();
-      if (avatar.url) {
-        rigManager.setLocalAvatarUrl(avatar.url, avatar.filename);
-      }
-      if (avatar.preview) {
-        rigManager.setLocalAvatarImage(avatar.preview);
-      }
-      loginManager.addEventListener('avatarchange', e => {
-        const avatar = e.data;
-        const newAvatarUrl = avatar ? avatar.url : null;
-        if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
-          rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.filename);
-          rigManager.setLocalAvatarImage(avatar.preview);
-
-          /* const {menu} = getState();
-          menu.avatarUrl = avatar.url;
-          menu.avatarFileName = avatar.filename;
-          menu.avatarPreview = avatar.preview;
-          setState({
-            menu,
-          }); */
-        }
-      });
-
-      /* const {menu} = getState();
-      menu.username = username;
-      menu.avatarUrl = avatar.url;
-      menu.avatarFileName = avatar.filename;
-      menu.avatarPreview = avatar.preview;
-      setState({
-        menu,
-      }); */
-    };
-    _initializeRigUi();
 
     this.loadPromise.accept();
   }

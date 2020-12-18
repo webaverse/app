@@ -12,7 +12,7 @@ import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 import geometryTool from './geometry-tool.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
-import {makeIconMesh, makeTextMesh} from './vr-ui.js';
+import {makeTextMesh} from './vr-ui.js';
 import {renderer, scene2, appManager} from './app-object.js';
 import wbn from './wbn.js';
 // import {storageHost} from './constants.js';
