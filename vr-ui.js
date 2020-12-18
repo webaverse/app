@@ -5,8 +5,6 @@ import {TextMesh} from './textmesh-standalone.esm.js';
 import {CapsuleGeometry} from './CapsuleGeometry.js';
 import easing from './easing.js';
 import * as icons from './icons.js';
-import Menu from './threeD-components/Menu.js';
-import {getState, setState} from './state.js';
 import {makePromise} from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -1339,7 +1337,7 @@ nav {
 </div>
 `;
 }; */
-const makeIconMesh = () => {
+/* const makeIconMesh = () => {
   const geometry = _flipUvs(
     new THREE.PlaneBufferGeometry(1, 1/2)
       // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0))
@@ -1489,9 +1487,6 @@ const makeMenuMesh = (cubeMesh, onclickBindings) => {
     if (onclick) {
       onclick(anchor);
     }
-    /* const i = parseInt(match[1], 10);
-    const j = parseInt(match[2], 10);
-    onclick(tiles[i][j]); */
   };
   mesh.intersect = localIntersections => {
     highlightMesh.visible = false;
@@ -1526,7 +1521,7 @@ const makeMenuMesh = (cubeMesh, onclickBindings) => {
   mesh.update();
 
   return mesh;
-};
+}; */
 /* const makeUiMesh = (label, tiles, onclick) => {
   const geometry = _flipUvs(
     new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize)
@@ -1733,17 +1728,12 @@ const makeUiFullMesh = cubeMesh => {
     currentMesh && currentMesh.click(currentAnchor);
   };
   return wrap;
-}; */
+};
 const makeToolsMesh = (tools, selectTool, selectMenu) => {
   const canvasWidth = uiSize;
   const canvasHeight = uiSize*uiWorldSize;
   const geometry = _flipUvs(new THREE.PlaneBufferGeometry(1, uiWorldSize));
     // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
-  /* const canvas = document.createElement('canvas');
-  canvas.width = uiSize;
-  canvas.height = uiSize*uiWorldSize;
-  const ctx = canvas.getContext('2d');
-  const imageData = ctx.createImageData(canvas.width, canvas.height); */
   const texture = new THREE.Texture(
     null,
     THREE.UVMapping,
@@ -1765,21 +1755,6 @@ const makeToolsMesh = (tools, selectTool, selectMenu) => {
   const mesh = new THREE.Mesh(geometry, material);
   // mesh.visible = false;
   mesh.frustumCulled = false;
-
-  /* const highlightMesh = (() => {
-    const geometry = new THREE.BoxBufferGeometry(1, 1, 0.001);
-    const material = new THREE.MeshBasicMaterial({
-      color: 0x42a5f5,
-      transparent: true,
-      opacity: 0.5,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.frustumCulled = false;
-    mesh.visible = false;
-    return mesh;
-  })();
-  mesh.add(highlightMesh);
-  mesh.highlightMesh = highlightMesh; */
 
   // let anchors = [];
   let selectedWeapon = null;
@@ -1822,8 +1797,6 @@ const makeToolsMesh = (tools, selectTool, selectMenu) => {
       const htmlString = _makeToolsString(tools, selectedWeapon);
       uiRenderer.render(htmlString, canvasWidth, canvasHeight)
         .then(result => {
-          /* imageData.data.set(result.data);
-          ctx.putImageData(imageData, 0, 0); */
           // ctx.drawImage(result.data, 0, 0);
           texture.image = result.data;
           texture.needsUpdate = true;
@@ -1835,10 +1808,6 @@ const makeToolsMesh = (tools, selectTool, selectMenu) => {
     }
     lastSelectedWeapon = selectedWeapon;
   };
-  /* mesh.getAnchors = () => anchors;
-  mesh.click = anchor => {
-    console.log('got anchor', anchor);
-  }; */
   mesh.update(null);
 
   return mesh;
@@ -1850,11 +1819,6 @@ const makeDetailsMesh = (cubeMesh, onrun, onbake, onadd, onremove, onclose) => {
   const canvasHeight = uiSize*0.5;
   const geometry = _flipUvs(new THREE.PlaneBufferGeometry(worldWidth, worldHeight))
     // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
-  /* const canvas = document.createElement('canvas');
-  canvas.width = canvasWidth;
-  canvas.height = canvasHeight;
-  const ctx = canvas.getContext('2d');
-  const imageData = ctx.createImageData(canvas.width, canvas.height); */
   const texture = new THREE.Texture(
     null,
     THREE.UVMapping,
@@ -1886,8 +1850,6 @@ const makeDetailsMesh = (cubeMesh, onrun, onbake, onadd, onremove, onclose) => {
     const htmlString = _makeDetailsString();
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
-        /* imageData.data.set(result.data);
-        ctx.putImageData(imageData, 0, 0); */
         // ctx.drawImage(result.data, 0, 0);
         texture.image = result.data;
         texture.needsUpdate = true;
@@ -1969,11 +1931,6 @@ const makeTradeMesh = (cubeMesh, ontrade, onclose) => {
   const canvasHeight = uiSize*0.5;
   const geometry = _flipUvs(new THREE.PlaneBufferGeometry(worldWidth, worldHeight))
     // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
-  /* const canvas = document.createElement('canvas');
-  canvas.width = canvasWidth;
-  canvas.height = canvasHeight;
-  const ctx = canvas.getContext('2d');
-  const imageData = ctx.createImageData(canvas.width, canvas.height); */
   const texture = new THREE.Texture(
     null,
     THREE.UVMapping,
@@ -2008,8 +1965,6 @@ const makeTradeMesh = (cubeMesh, ontrade, onclose) => {
     const htmlString = _makeTradeString(ftAmount, ftBalance);
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
-        /* imageData.data.set(result.data);
-        ctx.putImageData(imageData, 0, 0); */
         // ctx.drawImage(result.data, 0, 0);
         texture.image = result.data;
         texture.needsUpdate = true;
@@ -2091,7 +2046,7 @@ const makeTradeMesh = (cubeMesh, ontrade, onclose) => {
   mesh.update();
 
   return mesh;
-};
+}; */
 const makePopupMesh = () => {
   const worldWidth = 1;
   const worldHeight = 0.5;
@@ -2099,11 +2054,6 @@ const makePopupMesh = () => {
   const canvasHeight = uiSize*0.5;
   const geometry = _flipUvs(new THREE.PlaneBufferGeometry(worldWidth, worldHeight))
     // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
-  /* const canvas = document.createElement('canvas');
-  canvas.width = canvasWidth;
-  canvas.height = canvasHeight;
-  const ctx = canvas.getContext('2d');
-  const imageData = ctx.createImageData(canvas.width, canvas.height); */
   const texture = new THREE.Texture(
     null,
     THREE.UVMapping,
@@ -2145,8 +2095,6 @@ const makePopupMesh = () => {
         const htmlString = _makePopupString(text);
         uiRenderer.render(htmlString, canvasWidth, canvasHeight)
           .then(result => {
-            /* imageData.data.set(result.data);
-            ctx.putImageData(imageData, 0, 0); */
             // ctx.drawImage(result.data, 0, 0);
             texture.image = result.data;
             texture.needsUpdate = true;
@@ -2316,27 +2264,19 @@ const makeColorsMesh = (cubeMesh, colors, oncolorchange) => {
       mesh.update();
       oncolorchange(selectedColors);
     }
-    /* if (anchor === 'scrollbar') {
-      console.log('got uv', uv.y);
-    } */
     // currentMesh && currentMesh.click(currentAnchor);
   };
   mesh.update();
 
   return mesh;
 };
-const makeInventoryMesh = (cubeMesh, onscroll) => {
+/* const makeInventoryMesh = (cubeMesh, onscroll) => {
   const worldWidth = 0.2;
   const worldHeight = 0.2/2;
   const canvasWidth = uiSize;
   const canvasHeight = uiSize/2;
   const geometry = _flipUvs(new THREE.PlaneBufferGeometry(worldWidth, worldHeight));
     // .applyMatrix4(new THREE.Matrix4().makeTranslation(0, uiWorldSize / 2, 0));
-  /* const canvas = document.createElement('canvas');
-  canvas.width = canvasWidth;
-  canvas.height = canvasHeight;
-  const ctx = canvas.getContext('2d');
-  const imageData = ctx.createImageData(canvas.width, canvas.height); */
   const texture = new THREE.Texture(
     null,
     THREE.UVMapping,
@@ -2367,9 +2307,6 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
     const fullW = worldWidth/2;
     const arrowW = fullW/10;
     const wrapInnerW = fullW - arrowW*2;
-    /* const margin = fullW/40;
-    const iconW = (wrapInnerW - margin)/3;
-    const innerW = iconW - margin; */
     const scrollbarW = fullW/40;
     const geometry = new THREE.PlaneBufferGeometry(scrollbarW, 1)
       .applyMatrix4(new THREE.Matrix4().makeTranslation(-fullW + scrollbarW/2 + wrapInnerW, -1/2, 0.001));
@@ -2405,8 +2342,6 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
     const htmlString = _makeInventoryString();
     uiRenderer.render(htmlString, canvasWidth, canvasHeight)
       .then(result => {
-        /* imageData.data.set(result.data);
-        ctx.putImageData(imageData, 0, 0); */
         // ctx.drawImage(result.data, 0, 0);
         texture.image = result.data;
         texture.needsUpdate = true;
@@ -2472,8 +2407,8 @@ const makeInventoryMesh = (cubeMesh, onscroll) => {
     }
     // currentMesh && currentMesh.click(currentAnchor);
   };
-  /* Promise.resolve()
-    .then(() => { */
+  // Promise.resolve()
+    // .then(() => {
       mesh.update();
       mesh.updateScroll();
     // });
@@ -2487,16 +2422,6 @@ const intersectUi = (raycaster, meshes) => {
   // mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
   raycaster.intersectObjects(meshes, false, intersects);
   if (intersects.length > 0) {
-    /* const [{distance, point, uv}] = intersects;
-    intersects.length = 0;
-    // if (uv.x >= 1 / 12 && uv.x <= (1 - 1 / 12) && uv.y >= 1 / 12 && uv.y <= (1 - 1 / 12)) {
-      localIntersections.push({
-        distance,
-        point,
-        uv,
-        mesh,
-      });
-    // } */
     const [{object, point, uv}] = intersects;
     const anchor = object.intersect(intersects);
     intersects.length = 0;
@@ -2509,7 +2434,7 @@ const intersectUi = (raycaster, meshes) => {
   } else {
     return null;
   }
-};
+}; */
 
 const blackMaterial = new THREE.MeshBasicMaterial({color: 0x333333});
 const blueMaterial = new THREE.MeshBasicMaterial({color: 0x42a5f5});
@@ -2861,16 +2786,16 @@ export {
   /* makeUiMesh,
   makeUiFullMesh, */
   makeTextMesh,
-  makeToolsMesh,
-  makeDetailsMesh,
-  makeTradeMesh,
+  // makeToolsMesh,
+  // makeDetailsMesh,
+  // makeTradeMesh,
   makePopupMesh,
-  makeInventoryMesh,
+  // makeInventoryMesh,
   makeColorsMesh,
-  makeIconMesh,
-  makeMenuMesh,
-  intersectUi,
-  /* makeWristMenu, */
+  // makeIconMesh,
+  // makeMenuMesh,
+  // intersectUi,
+  // makeWristMenu,
   makeHighlightMesh,
   makeRayMesh,
   makeRigCapsule,

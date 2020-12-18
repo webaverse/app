@@ -324,6 +324,20 @@ async function tryLogin() {
 class LoginManager extends EventTarget {
   constructor() {
     super();
+
+    this.loadPromise = makePromise();
+
+    this.init();
+  }
+
+  async init() {
+    await tryLogin();
+
+    this.loadPromise.accept();
+  }
+
+  waitForLoad() {
+    return this.loadPromise;
   }
 
   isLoggedIn() {
