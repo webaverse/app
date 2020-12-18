@@ -378,6 +378,10 @@ window.addEventListener('keydown', e => {
       weaponsManager.menuDelete();
       break
     }
+    case 71: { // G
+      weaponsManager.menuDrop();
+      break;
+    }
     case 86: { // V
       // if (!_inputFocused()) {
         e.preventDefault();

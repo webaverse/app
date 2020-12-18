@@ -1449,6 +1449,9 @@ const weaponsManager = {
   menuPush(direction) {
     console.log('push', direction);
   },
+  menuDrop() {
+    console.log('menu drop');
+  },
   menuGridSnap() {
     console.log('grid snap');
   },
