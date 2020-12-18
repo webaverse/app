@@ -24,7 +24,7 @@ import {
   colors,
 } from './constants.js';
 // import { setState } from './state.js';
-import FontFaceObserver from './fontfaceobserver.js';
+// import FontFaceObserver from './fontfaceobserver.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -744,13 +744,14 @@ const wheelDotCanvas = (() => {
 })();
 document.body.appendChild(wheelDotCanvas);
 
-let wheelReady = false;
-const loadPromise = Promise.all([
+/* let wheelReady = false;
+Promise.all([
   new FontFaceObserver('Muli').load(null, 10000),
   new FontFaceObserver('Font Awesome 5 Pro').load(weaponIcons.join(''), 10000),
 ]).then(() => {
   wheelReady = true;
-});
+}); */
+let wheelReady = true;
 const _renderWheel = (() => {
   let lastSelectedSlice = 0;
   return selectedSlice => {
