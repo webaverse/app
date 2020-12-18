@@ -988,7 +988,7 @@ const _unlatchMediaStream = async () => {
   networkMediaStream = null;
 };
 
-const micButton = document.getElementById('key-v');
+const micButton = document.getElementById('key-t');
 micButton.addEventListener('click', async e => {
   if (!animationMediaStream) {
     micButton.classList.add('enabled');

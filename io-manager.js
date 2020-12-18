@@ -373,11 +373,19 @@ window.addEventListener('keydown', e => {
       }));
       break;
     }
-    case 86: { // V
+    /* case 86: { // V
       if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
         document.getElementById('key-v').click();
+      }
+      break;
+    } */
+    case 84: { // T
+      if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.getElementById('key-t').click();
       }
       break;
     }
