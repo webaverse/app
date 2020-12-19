@@ -231,7 +231,6 @@ scene.add(moveMesh);
 const deployMesh = _makeTargetMesh();
 deployMesh.visible = false;
 deployMesh.rotation.order = 'YXZ';
-// deployMesh.savedPosition = deployMesh.position.clone();
 deployMesh.savedRotation = deployMesh.rotation.clone();
 scene.add(deployMesh);
 
@@ -413,7 +412,6 @@ const _grab = object => {
 
   appManager.grabbedObjects[0] = object;
 
-  // object.savedPosition.copy(object.position);
   object.savedRotation.copy(object.rotation);
 
   const {position} = transforms[0];
@@ -428,11 +426,6 @@ const _grab = object => {
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = timeDiff => {  
   const transforms = rigManager.getRigTransforms();
-  /* const _snap = (v, n) => v.set(
-    Math.round(v.x/n)*n,
-    Math.round(v.y/n)*n,
-    Math.round(v.z/n)*n,
-  ); */
 
   const _updateGrabbedObject = (o, transform, offset, {collisionEnabled, handSnapEnabled}) => {
     const {position, quaternion} = transform;
@@ -1182,10 +1175,10 @@ const _snapRotation = (o, rotationSnap) => {
   o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
   o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
 };
-const _snap = (o, positionSnap, rotationSnap) => {
+/* const _snap = (o, positionSnap, rotationSnap) => {
   _snapPosition(o, positionSnap);
   _snapRotation(o, rotationSnap);
-};
+}; */
 
 const keyTabEl = document.getElementById('key-tab');
 const keyTab1El = document.getElementById('key-tab-1');
@@ -1514,8 +1507,6 @@ const weaponsManager = {
   },
   menuPush(direction) {
     appManager.grabbedObjectOffsets[0] = Math.max(appManager.grabbedObjectOffsets[0] + direction * 0.1, 0);
-    /* const object = appManager.grabbedObjects[0];
-    object.savedPosition.x += direction * 0.001; */
   },
   menuDrop() {
     console.log('menu drop');
