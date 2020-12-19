@@ -501,6 +501,12 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
   };
   mesh.destroy = () => {
     appManager.destroyApp(appId);
+
+    const localPhysicsIds = app.physicsIds.slice();
+    for (const physicsId of localPhysicsIds) {
+      physicsManager.removeGeometry(physicsId);
+    }
+    app.physicsIds.length = 0;
   };
   mesh.getPhysicsIds = () => app.physicsIds;
 
