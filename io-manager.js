@@ -466,7 +466,10 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 81: { // Q
-      weaponsManager.setWeaponWheel(true);
+      // weaponsManager.setWeaponWheel(true);
+      if (weaponsManager.canToggleAxis()) {
+        weaponsManager.toggleAxis();
+      }
       break;
     }
     case 69: { // E
@@ -507,10 +510,10 @@ window.addEventListener('keydown', e => {
 });
 window.addEventListener('keyup', e => {
   switch (e.which) {
-    case 81: { // Q
+    /* case 81: { // Q
       weaponsManager.setWeaponWheel(false);
       break;
-    }
+    } */
     case 87: { // W
       if (document.pointerLockElement) {
         ioManager.keys.up = false;
