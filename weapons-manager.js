@@ -305,7 +305,7 @@ const _delete = () => {
   }
 };
 const _click = () => {
-  if (editedObject && editedObject.place) {
+  if (editedObject && editedObject.isBuild) {
     editedObject.place();
   }
 };
@@ -519,7 +519,7 @@ const _updateWeapons = timeDiff => {
       editMesh.quaternion.copy(editedObject.quaternion);
       editMesh.visible = true;
 
-      if (editedObject.place) {
+      if (editedObject.isBuild) {
         // buildTool.update();
         _updateGrabbedObject(buildTool.mesh, transforms[0], appManager.grabbedObjectOffsets[0], {
           collisionEnabled: true,
