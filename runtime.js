@@ -47,7 +47,7 @@ const startMonetization = (instanceId, monetizationPointer, ownerAddress) => {
 
   let monetization = document[`monetization${instanceId}`];
   if (!monetization) {
-    document[`monetization${instanceId}`] = document.createElement('eventTarget');
+    document[`monetization${instanceId}`] = new EventTarget();
     monetization = document[`monetization${instanceId}`];
   }
 
@@ -549,7 +549,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     if (instanceId) {
       script = script.replace(/document\.monetization/g, `document.monetization${instanceId}`);
       script = `
-        document.monetization${instanceId} = document.createElement('eventTarget');
+        document.monetization${instanceId} = new EventTarget();
       ` + script;
     }
     return script;
