@@ -430,6 +430,35 @@ const _updateWeapons = timeDiff => {
     Math.round(v.z/n)*n,
   ); */
 
+  const _updateGrabbedObject = (o, transform, offset, {collisionEnabled, handSnap}) => {
+    const {position, quaternion} = transform;
+
+    let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+    if (collision) {
+      const {point} = collision;
+      o.position.fromArray(point)
+        .add(localVector2.set(0, 0.01, 0));
+
+      if (o.position.distanceTo(position) > offset) {
+        collision = null;
+      }
+    }
+    if (!collision) {
+      o.position.copy(position).add(localVector.set(0, 0, -offset).applyQuaternion(quaternion));
+    }
+
+    if (handSnap && (offset >= maxGrabDistance || !!collision)) {
+      _snapPosition(o, weaponsManager.getGridSnap());
+      o.quaternion.setFromEuler(o.savedRotation);
+      
+      moveMesh.position.copy(o.position);
+      moveMesh.quaternion.copy(o.quaternion);
+      moveMesh.visible = true;
+    } else {
+      o.quaternion.copy(quaternion);
+    }
+  };
+
   const _handleHighlight = () => {
     if (!editedObject) {
       const width = 1;
@@ -492,7 +521,11 @@ const _updateWeapons = timeDiff => {
 
       if (editedObject.place) {
         // buildTool.update();
-        _snap(buildTool.mesh, weaponsManager.getGridSnap(), rotationSnap);
+        _updateGrabbedObject(buildTool.mesh, transforms[0], appManager.grabbedObjectOffsets[0], {
+          collisionEnabled: true,
+          handSnap: false,
+        });
+        // _snap(buildTool.mesh, weaponsManager.getGridSnap(), rotationSnap);
         buildTool.mesh.visible = true;
       }
     }
@@ -525,45 +558,10 @@ const _updateWeapons = timeDiff => {
     for (let i = 0; i < 2; i++) {
       const grabbedObject = appManager.grabbedObjects[i];
       if (grabbedObject) {
-        const {position, quaternion} = transforms[0];
-
-        const offset = appManager.grabbedObjectOffsets[i];
-        /* localVector.copy(position)
-          .add(localVector2.set(0, 0, -offset).applyQuaternion(quaternion)); */
-
-        let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
-        if (collision) {
-          const {point} = collision;
-          // _snap(localVector.fromArray(point), 1);
-          grabbedObject.position.fromArray(point)
-            .add(localVector2.set(0, 0.01, 0));
-          /* localEuler.setFromQuaternion(quaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.z = 0;
-          localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
-          grabbedObject.quaternion.setFromEuler(localEuler); */
-
-          if (grabbedObject.position.distanceTo(position) > offset) {
-            collision = null;
-          }
-        }
-        if (!collision) {
-          grabbedObject.position.copy(position).add(localVector.set(0, 0, -offset).applyQuaternion(quaternion));
-          // grabbedObject.quaternion.copy(quaternion);
-        }
-
-        if (appManager.grabbedObjectOffsets[0] >= maxGrabDistance || !!collision) {
-          _snapPosition(grabbedObject, weaponsManager.getGridSnap());
-          grabbedObject.quaternion.setFromEuler(grabbedObject.savedRotation);
-          
-          moveMesh.position.copy(grabbedObject.position);
-          moveMesh.quaternion.copy(grabbedObject.quaternion);
-          moveMesh.visible = true;
-        } else {
-          grabbedObject.quaternion.copy(quaternion);
-        }
-
-        // grabbedObject.setPose(localVector2, quaternion);
+        _updateGrabbedObject(grabbedObject, transforms[0], appManager.grabbedObjectOffsets[i], {
+          collisionEnabled: true,
+          handSnap: true,
+        });
       }
     }
   };
