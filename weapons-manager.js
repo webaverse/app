@@ -1196,8 +1196,8 @@ const keyTab5El = document.getElementById('key-tab-5');
       } else if (!hasMenu && document.pointerLockElement) {
         document.exitPointerLock();
       }
-      
-      weaponsManager.setMenu(weaponsManager.getMenu() ? 0 : 1);
+
+      weaponsManager.setMenu(hasMenu ? 0 : 1);
     }
   });
 });
