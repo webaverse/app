@@ -25,17 +25,14 @@ import {
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
-const localVector4 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
 const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
-const localMatrix3 = new THREE.Matrix4();
 const localColor = new THREE.Color();
 const localRaycaster = new THREE.Raycaster();
-const localRaycaster2 = new THREE.Raycaster();
 const localBox = new THREE.Box3();
 
 const zeroVector = new THREE.Vector3();
