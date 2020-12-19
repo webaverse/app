@@ -256,7 +256,7 @@ window.addEventListener('keydown', e => {
       weaponsManager.selectLoadout(e.which - 49);
       break;
     }
-    case 8: // backspace
+    /* case 8: // backspace
     case 46: // del
     {
       // weaponsManager.menuKey('\b');
@@ -264,23 +264,7 @@ window.addEventListener('keydown', e => {
       e.stopPropagation();
       weaponsManager.menuDelete();
       break;
-    }
-    case 38: { // up
-      weaponsManager.menuVertical(-1);
-      break;
-    }
-    case 40: { // down
-      weaponsManager.menuVertical(1);
-      break;
-    }
-    case 37: { // left
-      weaponsManager.menuHorizontal(-1);
-      break;
-    }
-    case 39: { // right
-      weaponsManager.menuHorizontal(1);
-      break;
-    }
+    } */
     /* case 13: { // enter
       e.preventDefault();
       e.stopPropagation();
@@ -314,30 +298,42 @@ window.addEventListener('keydown', e => {
     case 87: { // W
       if (document.pointerLockElement) {
         ioManager.keys.up = true;
+      } else {
+        weaponsManager.menuVertical(-1);
       }
       break;
     }
     case 65: { // A
       if (document.pointerLockElement) {
         ioManager.keys.left = true;
+      } else {
+        weaponsManager.menuHorizontal(-1);
       }
       break;
     }
     case 83: { // S
       if (document.pointerLockElement) {
         ioManager.keys.down = true;
+      } else {
+        weaponsManager.menuVertical(1);
       }
       break;
     }
     case 68: { // D
       if (document.pointerLockElement) {
         ioManager.keys.right = true;
+      } else {
+        weaponsManager.menuHorizontal(1);
       }
       break;
     }
     case 82: { // R
       if (document.pointerLockElement) {
-        weaponsManager.menuEquip();
+        if (weaponsManager.canEquip()) {
+          weaponsManager.menuEquip();
+        } else if (weaponsManager.canRotate()) {
+          weaponsManager.menuRotate(1);
+        }
         // pe.equip('back');
       /* } else {
         if (selectTarget && selectTarget.control) {
@@ -347,37 +343,66 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 70: { // F
-      // pe.grabdown('right');
       e.preventDefault();
       e.stopPropagation();
-      document.getElementById('key-f').click();
+      if (weaponsManager.canPush()) {
+        weaponsManager.menuPush(-1);
+      } else {
+        document.getElementById('key-f').click(); // fly
+      }
       break;
     }
     case 82: { // R
-      // pe.grabdown('right');
       e.preventDefault();
       e.stopPropagation();
-      document.getElementById('key-r').click();
+      document.getElementById('key-r').click(); // equip
+      break;
+    }
+    case 67: { // C
+      if (weaponsManager.canPush()) {
+        weaponsManager.menuPush(1);
+      } else if (!(e.shiftKey && (e.ctrlKey || e.metaKey))) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.getElementById('key-c').dispatchEvent(new KeyboardEvent('click', { // camera
+          which: e.which,
+          shiftKey: e.shiftKey,
+          ctrlKey: e.ctrlKey,
+          altKey: e.altKey,
+          metaKey: e.metaKey,
+        }));
+      }
       break;
     }
     case 88: { // X
-      // pe.grabdown('right');
-      e.preventDefault();
-      e.stopPropagation();
-      document.getElementById('key-x').dispatchEvent(new KeyboardEvent('keydown', {
-        which: e.which,
-        shiftKey: e.shiftKey,
-        ctrlKey: e.ctrlKey,
-        altKey: e.altKey,
-        metaKey: e.metaKey,
-      }));
+      weaponsManager.menuDelete();
+      break
+    }
+    case 71: { // G
+      weaponsManager.menuDrop();
       break;
     }
     case 86: { // V
+      // if (!_inputFocused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        weaponsManager.menuGridSnap();
+      // }
+      break;
+    }
+    case 84: { // T
       if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        document.getElementById('key-v').click();
+        document.getElementById('key-t').click();
+      }
+      break;
+    }
+    case 85: { // U
+      if (weaponsManager.canUpload()) {
+        e.preventDefault();
+        e.stopPropagation();
+        weaponsManager.menuUpload();
       }
       break;
     }
@@ -443,6 +468,9 @@ window.addEventListener('keydown', e => {
     case 69: { // E
       if (weaponsManager.canUseHold()) {
         weaponsManager.menuUseHold();
+      }
+      if (weaponsManager.canRotate()) {
+        weaponsManager.menuRotate(-1);
       }
       break;
     }
@@ -518,10 +546,8 @@ window.addEventListener('keyup', e => {
     case 69: { // E
       weaponsManager.menuUseRelease();
 
-      if (ioManager.currentWeaponGrabs[0]) {
-        ioManager.currentWeaponGrabs[0] = false;
-      /* } else if (weaponsManager.canGrab()) {
-        ioManager.currentWeaponGrabs[0] = true; */
+      if (weaponsManager.canRotate()) {
+        // nothing
       } else {
         weaponsManager.menuUse();
       }
