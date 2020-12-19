@@ -409,16 +409,24 @@ const _makeAppUrl = appId => {
       return addBoxGeometry.call(this, position, quaternion, size, dynamic); // XXX align this
     })(physics.addBoxGeometry);
     physics.addGeometry = (addGeometry => function(mesh) {
-      return addGeometry.apply(this, arguments);
+      const physicsId = addGeometry.apply(this, arguments);
+      app.physicsIds.push(physicsId);
+      return physicsId;
     })(physics.addGeometry);
     physics.addCookedGeometry = (addCookedGeometry => function(buffer, position, quaternion) {
-      return addCookedGeometry.apply(this, arguments);
+      const physicsId = addCookedGeometry.apply(this, arguments);
+      app.physicsIds.push(physicsId);
+      return physicsId;
     })(physics.addCookedGeometry);
     physics.addConvexGeometry = (addConvexGeometry => function(mesh) {
-      return addConvexGeometry.apply(this, arguments);
+      const physicsId = addConvexGeometry.apply(this, arguments);
+      app.physicsIds.push(physicsId);
+      return physicsId;
     })(physics.addConvexGeometry);
     physics.addCookedConvexGeometry = (addCookedConvexGeometry => function(buffer, position, quaternion) {
-      return addCookedConvexGeometry.apply(this, arguments);
+      const physicsId = addCookedConvexGeometry.apply(this, arguments);
+      app.physicsIds.push(physicsId);
+      return physicsId;
     })(physics.addCookedConvexGeometry);
     physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
       const transform = getPhysicsTransform.apply(this, arguments);
@@ -487,6 +495,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
   mesh.destroy = () => {
     appManager.destroyApp(appId);
   };
+  mesh.getPhysicsIds = () => app.physicsIds;
 
   const app = appManager.createApp(appId);
   app.object = mesh;
