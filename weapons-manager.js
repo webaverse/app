@@ -431,7 +431,7 @@ const _updateWeapons = timeDiff => {
     Math.round(v.z/n)*n,
   ); */
 
-  const _updateGrabbedObject = (o, transform, offset, {collisionEnabled, handSnap}) => {
+  const _updateGrabbedObject = (o, transform, offset, {collisionEnabled, handSnapEnabled}) => {
     const {position, quaternion} = transform;
 
     let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
@@ -448,12 +448,17 @@ const _updateWeapons = timeDiff => {
       o.position.copy(position).add(localVector.set(0, 0, -offset).applyQuaternion(quaternion));
     }
 
-    if (!handSnap || offset >= maxGrabDistance || !!collision) {
+    const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
+    if (handSnap) {
       _snapPosition(o, weaponsManager.getGridSnap());
       o.quaternion.setFromEuler(o.savedRotation);
     } else {
       o.quaternion.copy(quaternion);
     }
+
+    return {
+      handSnap,
+    };
   };
 
   const _handleHighlight = () => {
@@ -520,7 +525,7 @@ const _updateWeapons = timeDiff => {
         // buildTool.update();
         _updateGrabbedObject(buildTool.mesh, transforms[0], appManager.grabbedObjectOffsets[0], {
           collisionEnabled: true,
-          handSnap: false,
+          handSnapEnabled: false,
         });
         // _snap(buildTool.mesh, weaponsManager.getGridSnap(), rotationSnap);
         buildTool.mesh.visible = true;
@@ -555,14 +560,16 @@ const _updateWeapons = timeDiff => {
     for (let i = 0; i < 2; i++) {
       const grabbedObject = appManager.grabbedObjects[i];
       if (grabbedObject) {
-        _updateGrabbedObject(grabbedObject, transforms[0], appManager.grabbedObjectOffsets[i], {
+        const {handSnap} = _updateGrabbedObject(grabbedObject, transforms[0], appManager.grabbedObjectOffsets[i], {
           collisionEnabled: true,
-          handSnap: true,
+          handSnapEnabled: true,
         });
 
-        moveMesh.position.copy(grabbedObject.position);
-        moveMesh.quaternion.copy(grabbedObject.quaternion);
-        moveMesh.visible = true;
+        if (handSnap) {
+          moveMesh.position.copy(grabbedObject.position);
+          moveMesh.quaternion.copy(grabbedObject.quaternion);
+          moveMesh.visible = true;
+        }
       }
     }
   };
@@ -572,7 +579,7 @@ const _updateWeapons = timeDiff => {
     if (deployMesh.visible) {
       _updateGrabbedObject(deployMesh, transforms[0], 1.5, {
         collisionEnabled: true,
-        handSnap: false,
+        handSnapEnabled: false,
       });
 
       /* const {position, quaternion} = transforms[0];
