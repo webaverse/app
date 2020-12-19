@@ -1,6 +1,5 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {makeCubeMesh, makeRayMesh, makeTextInput, makeTabs, makeItem} from './vr-ui.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
@@ -78,14 +77,14 @@ for (let i = 0; i < weapons.length; i++) {
     setState({ selectedWeapon: selectedWeapon })
   });
 } */
-let raycastChunkSpec = null;
-let anchorSpecs = [null, null];
+/* let raycastChunkSpec = null;
+let anchorSpecs = [null, null]; */
 
-let pxMeshes = [];
+// let pxMeshes = [];
 
-const rayMesh = makeRayMesh();
+/* const rayMesh = makeRayMesh();
 rayMesh.visible = false;
-scene.add(rayMesh);
+scene.add(rayMesh); */
 
 /* const cubeMesh = makeCubeMesh();
 scene.add(cubeMesh); */
