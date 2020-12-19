@@ -37,7 +37,7 @@ const localBox = new THREE.Box3();
 
 const zeroVector = new THREE.Vector3();
 
-let selectedWeapon = 'unarmed';
+/* let selectedWeapon = 'unarmed';
 let lastSelectedWeapon = selectedWeapon;
 const weapons = [
   'lol',
@@ -59,7 +59,7 @@ const weaponIcons = [
   '\uf55d',
   '\ue025',
   '\uf245',
-];
+]; */
 /* const weapons = Array.from(document.querySelectorAll('.weapon'));
 for (let i = 0; i < weapons.length; i++) {
   const weapon = document.getElementById('weapon-' + (i + 1));
@@ -87,8 +87,8 @@ const rayMesh = makeRayMesh();
 rayMesh.visible = false;
 scene.add(rayMesh);
 
-const cubeMesh = makeCubeMesh();
-scene.add(cubeMesh);
+/* const cubeMesh = makeCubeMesh();
+scene.add(cubeMesh); */
 
 const addMesh = (() => {
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
@@ -1369,18 +1369,18 @@ const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
 const gridSnapEl = document.getElementById('grid-snap');
 const weaponsManager = {
   // weapons,
-  cubeMesh,
+  // cubeMesh,
   /* buildMode: 'wall',
   buildMat: 'wood', */
   menuOpen: 0,
   // weaponWheel: false,
   gridSnap: 0,
-  getWeapon() {
+  /* getWeapon() {
     return selectedWeapon;
   },
   setWeapon(newSelectedWeapon) {
     selectedWeapon = newSelectedWeapon;
-  },
+  }, */
   /* setWeaponWheel(newOpen) {
     if (newOpen && !weaponsManager.weaponWheel) {
       wheel.style.display = 'flex';
