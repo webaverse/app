@@ -52,7 +52,7 @@ const startMonetization = (instanceId, monetizationPointer, ownerAddress) => {
   }
 
   const ethereumAddress = loginManager.getAddress();
-  if (ethereumAddress && ethereumAddress == ownerAddress) {
+  if (ethereumAddress && ethereumAddress === ownerAddress) {
     monetization.dispatchEvent(new Event('monetizationstart'));
     monetization.state = "started";
   } else if (document.monetization && monetizationPointer) {
