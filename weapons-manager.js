@@ -694,13 +694,9 @@ const _updateWeapons = timeDiff => {
 
 renderer.domElement.addEventListener('wheel', e => {
   if (document.pointerLockElement) {
-    // console.log('got wheel', e.deltaY);
     if (appManager.grabbedObjects[0]) {
       appManager.grabbedObjectOffsets[0] = Math.max(appManager.grabbedObjectOffsets[0] + e.deltaY * 0.01, 0);
     }
-    /* if (anchorSpecs[0] && [thingsMesh, inventoryMesh].includes(anchorSpecs[0].object)) {
-      anchorSpecs[0].object.scrollY(e.deltaY);
-    } */
   }
 });
 
