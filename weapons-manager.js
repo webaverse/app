@@ -12,7 +12,7 @@ import * as universe from './universe.js';
 import {rigManager} from './rig.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, camera, dolly} from './app-object.js';
-import geometryTool from './geometry-tool.js';
+import buildTool from './build-tool.js';
 import {getExt, bindUploadFileButton} from './util.js';
 import {
   THING_SHADER,
@@ -483,7 +483,7 @@ const _updateWeapons = timeDiff => {
 
   const _handleEdit = () => {
     editMesh.visible = false;
-    geometryTool.mesh.visible = false;
+    buildTool.mesh.visible = false;
 
     if (editedObject) {
       editMesh.position.copy(editedObject.position);
@@ -491,8 +491,8 @@ const _updateWeapons = timeDiff => {
       editMesh.visible = true;
 
       if (editedObject.place) {
-        geometryTool.update();
-        geometryTool.mesh.visible = true;
+        buildTool.update();
+        buildTool.mesh.visible = true;
       }
     }
   };
@@ -921,12 +921,12 @@ const _loadItemSpec1 = async u => {
 };
 const itemSpecs1 = [
   {
-    name: 'Geometry',
-    icon: 'fa-dice-d10',
+    name: 'Build',
+    icon: 'assets/noun_wall_3213150.svg',
     detailsHtml: `\
       <img class=video src="./assets/screenshot.jpg">
       <div class=wrap>
-        <b>Geometry</b> lets you build walls, floors, and structures.
+        <b>Build</b> lets you build walls, floors, and structures.
       </div>
     `,
     cb() {
@@ -1044,7 +1044,11 @@ for (let i = 0; i < itemSpecs1.length; i++) {
   div.classList.add('item');
   div.innerHTML = `\
     <div class=bar></div>
-    <i class="icon fa ${itemSpec.icon}"></i>
+    ${/^fa-/.test(itemSpec.icon) ?
+      `<i class="icon fa ${itemSpec.icon}"></i>`
+    :
+      `<img src="${itemSpec.icon}" class=icon>`
+    }
     <div class=name>${itemSpec.name}</div>
     <div class="key-helpers">
       <div class="key-helper">

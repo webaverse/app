@@ -9,7 +9,7 @@ import {VOXLoader} from './VOXLoader.js';
 import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 // import {bake} from './bakeUtils.js';
 // import geometryManager from './geometry-manager.js';
-import geometryTool from './geometry-tool.js';
+import buildTool from './build-tool.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
@@ -1025,7 +1025,7 @@ const _loadAudio = async (file, {instanceId = null, monetizationPointer = null, 
 };
 
 const _loadGeo = async (file, opts) => {
-  const object = geometryTool.makeShapeMesh();
+  const object = buildTool.makeShapeMesh();
   return object;
 };
 
