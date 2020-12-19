@@ -1555,7 +1555,6 @@ const weaponsManager = {
     itemEl.classList.add('selected');
   },
   canUpload() {
-    console.log('can upload', this.menuOpen);
     return this.menuOpen === 1;
   },
   menuUpload() {
