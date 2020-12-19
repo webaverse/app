@@ -446,6 +446,13 @@ const _makeAppUrl = appId => {
       quaternion = localQuaternion;
       return setPhysicsTransform.call(this, physicsId, position, quaternion);
     })(physics.setPhysicsTransform);
+    physics.removeGeometry = (removeGeometry => function(physicsId) {
+      removeGeometry.apply(this, arguments);
+      const index = app.physicsIds.indexOf(physicsId);
+      if (index !== -1) {
+        app.physicsIds.splice(index);
+      }
+    })(physics.removeGeometry);
 
     const app = appManager.getApp(${appId});
     let recursion = 0;
