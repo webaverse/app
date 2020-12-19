@@ -230,7 +230,9 @@ scene.add(moveMesh);
 
 const deployMesh = _makeTargetMesh();
 deployMesh.visible = false;
-deployMesh.savedRotation = new THREE.Euler(0, 0, 0, 'YXZ');
+deployMesh.rotation.order = 'YXZ';
+// deployMesh.savedPosition = deployMesh.position.clone();
+deployMesh.savedRotation = deployMesh.rotation.clone();
 scene.add(deployMesh);
 
 const _use = () => {
@@ -410,15 +412,16 @@ const _grab = object => {
   const transforms = rigManager.getRigTransforms();
 
   appManager.grabbedObjects[0] = object;
-  appManager.grabbedObjects[0].savedRotation.copy(appManager.grabbedObjects[0].rotation);
-  if (object) {
-    const {position} = transforms[0];
-    const distance = object.position.distanceTo(position);
-    if (distance < maxGrabDistance) {
-      appManager.grabbedObjectOffsets[0] = 0;
-    } else {
-      appManager.grabbedObjectOffsets[0] = distance;
-    }
+
+  // object.savedPosition.copy(object.position);
+  object.savedRotation.copy(object.rotation);
+
+  const {position} = transforms[0];
+  const distance = object.position.distanceTo(position);
+  if (distance < maxGrabDistance) {
+    appManager.grabbedObjectOffsets[0] = 0;
+  } else {
+    appManager.grabbedObjectOffsets[0] = distance;
   }
 };
 
@@ -534,6 +537,15 @@ const _updateWeapons = timeDiff => {
   };
   _handleEdit();
 
+  const _handlePush = () => {
+    if (ioManager.keys.forward) {
+      weaponsManager.menuPush(1);
+    } else if (ioManager.keys.backward) {
+      weaponsManager.menuPush(-1);
+    }
+  };
+  _handlePush();
+
   const _handleGrab = () => {
     let changed = false;
 
@@ -577,7 +589,7 @@ const _updateWeapons = timeDiff => {
 
   const _handleDeploy = () => {
     if (deployMesh.visible) {
-      _updateGrabbedObject(deployMesh, transforms[0], 1.5, {
+      _updateGrabbedObject(deployMesh, transforms[0], maxGrabDistance, {
         collisionEnabled: true,
         handSnapEnabled: false,
       });
@@ -924,6 +936,7 @@ const _loadItemSpec1 = async u => {
   editedObject = object;
 
   weaponsManager.setMenu(0);
+  appManager.grabbedObjectOffsets[0] = maxGrabDistance;
   cameraManager.requestPointerLock();
 };
 const itemSpecs1 = [
@@ -1497,10 +1510,12 @@ const weaponsManager = {
     object.savedRotation.y -= direction * rotationSnap;
   },
   canPush() {
-    return !!appManager.grabbedObjects[0];
+    return !!appManager.grabbedObjects[0] || (editedObject && editedObject.isBuild);
   },
   menuPush(direction) {
-    console.log('push', direction);
+    appManager.grabbedObjectOffsets[0] = Math.max(appManager.grabbedObjectOffsets[0] + direction * 0.1, 0);
+    /* const object = appManager.grabbedObjects[0];
+    object.savedPosition.x += direction * 0.001; */
   },
   menuDrop() {
     console.log('menu drop');

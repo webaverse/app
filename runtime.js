@@ -1080,6 +1080,7 @@ runtime.loadFile = async (file, opts) => {
     }
   })();
   object.rotation.order = 'YXZ';
+  object.savedPosition = object.position.clone();
   object.savedRotation = object.rotation.clone();
   return object;
 };
