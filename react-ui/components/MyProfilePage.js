@@ -9,11 +9,9 @@ const html = htm.bind(React.createElement)
 const MyProfile = () => {
     const { state, dispatch } = useContext(Context);
     return html`
-    <div>
         <${React.Suspense} fallback=${html`<div></div>`}>
             <${Profile} creatorAddress=${state.address} />
         <//>
-    </div>
     `
 };
 
