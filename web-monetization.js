@@ -26,7 +26,7 @@ setInterval(() => {
     document.monetization.addEventListener('monetizationprogress', function monetizationProgress (e) {
       const current = pointers[currentIndex];
       const currentMonetizationPointer = encodeURIComponent(current.monetizationPointer);
-      const apiUrl = `https://analytics.webaverse.com/dev/monetization/${current.contentId}/${current.ownerAddress}/${currentMonetizationPointer}`;
+      const apiUrl = `https://analytics.webaverse.com/${current.contentId}/${current.ownerAddress}/${currentMonetizationPointer}`;
       if (pendingAnalyticsData[apiUrl]) {
         const existing = pendingAnalyticsData[apiUrl];
         pendingAnalyticsData[apiUrl] = {
