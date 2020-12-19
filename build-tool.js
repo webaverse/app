@@ -298,6 +298,7 @@ const mesh = (() => {
     transparent: true,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.savedRotation = new THREE.Euler(0, 0, 0, 'YXZ');
   return mesh;
 })();
 mesh.visible = false;
