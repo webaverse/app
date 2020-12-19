@@ -903,18 +903,13 @@ for (let i = 0; i < itemSpecs3.length; i++) {
 }
 
 const _loadItemSpec1 = async u => {
-  const transforms = rigManager.getRigTransforms();
-  const {position, quaternion} = transforms[0];
-  localVector.copy(position)
-    .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
-
   const p = new Promise((accept, reject) => {
     world.addEventListener('objectadd', async e => {
       accept(e.data);
     }, {once: true});
   });
 
-  world.addObject(u, null, localVector, quaternion);
+  world.addObject(u, null, deployMesh.position, deployMesh.quaternion);
 
   const object = await p;
   editedObject = object;
