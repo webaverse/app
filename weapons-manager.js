@@ -448,10 +448,12 @@ const _updateWeapons = timeDiff => {
       o.position.copy(position).add(localVector.set(0, 0, -offset).applyQuaternion(quaternion));
     }
 
-    if (handSnap && (offset >= maxGrabDistance || !!collision)) {
+    if (!handSnap || offset >= maxGrabDistance || !!collision) {
       _snapPosition(o, weaponsManager.getGridSnap());
+      o.quaternion.setFromEuler(o.savedRotation);
+    } else {
+      o.quaternion.copy(quaternion);
     }
-    o.quaternion.setFromEuler(o.savedRotation);
   };
 
   const _handleHighlight = () => {
