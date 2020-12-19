@@ -600,6 +600,13 @@ const _updateWeapons = timeDiff => {
         handSnapEnabled: false,
       });
 
+      localEuler.setFromQuaternion(transforms[0].quaternion, 'YXZ');
+      localEuler.x = 0;
+      localEuler.z = 0;
+      localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
+      localQuaternion.setFromEuler(localEuler);
+      deployMesh.quaternion.premultiply(localQuaternion);
+
       deployMesh.material.uniforms.uTime.value = (Date.now()%1000)/1000;
       deployMesh.material.uniforms.uTime.needsUpdate = true;
     }
