@@ -90,8 +90,6 @@ const SettingsPage = () => {
   }
 
   return html`
-      
-
     <div className="${styles} settingsPage">
       <div className="settingsHeader">
         <h1 className="settingsHeaderTitle">account settings</h1>
@@ -234,7 +232,7 @@ const SettingsPage = () => {
             </div>
             ${toggleEditNameOpen && html`
             <div className="accordionDropdown accountActionsEditNameDropdown">
-              <${EditableTextField} value=${state.name} valueIfNull=${'<Username>'} className=${`${styles} settingsNameField`} callback=${updateName} />
+              <${EditableTextField} value=${state.name} className=${`${styles} settingsNameField`} callback=${updateName} />
             </div>
             `}
           </div>
