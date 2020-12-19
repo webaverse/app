@@ -2,13 +2,6 @@ import * as THREE from './three.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import alea from './alea.js';
 import easing from './easing.js';
-import {
-  LAND_SHADER,
-  WATER_SHADER,
-  VEGETATION_SHADER,
-  THING_SHADER,
-  makeDrawMaterial,
-} from './shaders.js';
 import storage from './storage.js';
 import {world} from './world.js';
 import {makePromise} from './util.js';

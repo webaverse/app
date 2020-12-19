@@ -15,10 +15,6 @@ import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 import buildTool from './build-tool.js';
 import {getExt, bindUploadFileButton} from './util.js';
 import {
-  THING_SHADER,
-  makeDrawMaterial,
-} from './shaders.js';
-import {
   SUBPARCEL_SIZE,
   BUILD_SNAP,
   colors,
@@ -508,6 +504,11 @@ const _updateWeapons = timeDiff => {
     }
   };
   _handleHighlight();
+
+  const _handlePhysicsHighlight = () => {
+    
+  };
+  _handlePhysicsHighlight();
 
   const _handleEdit = () => {
     editMesh.visible = false;

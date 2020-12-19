@@ -7,7 +7,6 @@ import runtime from './runtime.js';
 import {makeTextMesh, makePopupMesh} from './vr-ui.js';
 import {renderer, scene, camera} from './app-object.js';
 import {WaitQueue} from './util.js';
-import {makeDrawMaterial} from './shaders.js';
 import {loginManager} from './login.js';
 import {world} from './world.js';
 import {colors, storageHost} from './constants.js';
@@ -19,7 +18,7 @@ const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localColor = new THREE.Color();
 
-const _makeInventoryContentsMesh = () => {
+/* const _makeInventoryContentsMesh = () => {
   const geometry = new THREE.BufferGeometry();
   const material = geometryManager.currentVegetationMesh.material[0];
   const mesh = new THREE.Mesh(geometry, material);
@@ -119,7 +118,7 @@ const _makeInventoryShapesMesh = () => {
     mesh.material.uniforms.color2.needsUpdate = true;
   };
   return mesh;
-};
+}; */
 /* const _makeInventoryItemsMesh = () => {
   const h = 0.1;
   const arrowW = h/10;

@@ -62,7 +62,7 @@ const universeSpecs = {
   universeObjects: [
     {
       position: [0, 0, 0],
-      start_url: 'https://avaer.github.io/land/index.js',
+      start_url: './land/index.js',
     },
     /* {
       position: [0, 0, -1],
