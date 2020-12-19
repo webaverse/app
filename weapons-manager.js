@@ -1183,6 +1183,10 @@ const keyTab5El = document.getElementById('key-tab-5');
       appManager.grabbedObjects[0] = null;
       _updateMenu();
     } else if (editedObject) {
+      if (editedObject.isBuild && editedObject.getShapes().length === 0) {
+        world.removeObject(editedObject.instanceId);
+      }
+
       editedObject = null;
       _updateMenu();
     } else {
