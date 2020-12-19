@@ -505,11 +505,6 @@ const _updateWeapons = timeDiff => {
   };
   _handleHighlight();
 
-  const _handlePhysicsHighlight = () => {
-    
-  };
-  _handlePhysicsHighlight();
-
   const _handleEdit = () => {
     editMesh.visible = false;
     buildTool.mesh.visible = false;
