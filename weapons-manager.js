@@ -1279,7 +1279,7 @@ const _updateMenu = () => {
     lastCameraFocus = -1;
   } else if (highlightedObject) {
     const monetization = document[`monetization${highlightedObject.instanceId}`];
-    if (monetization && monetization.state == 'started') {
+    if (monetization && monetization.state === 'started') {
       itemMonetizedIcon.classList.toggle('open', true);
     }
     itemIcon.classList.toggle('open', true);
