@@ -480,12 +480,6 @@ const _makeAppUrl = appId => {
 const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   const appId = ++appIds;
   const mesh = new THREE.Object3D();
-  /* mesh.geometry = new THREE.BufferGeometry();
-  mesh.geometry.boundingBox = new THREE.Box3(
-    new THREE.Vector3(-1, -1/2, -0.1),
-    new THREE.Vector3(1, 1/2, 0.1),
-  );
-  mesh.frustumCulled = false; */
   mesh.run = () => {
     import(u)
       .then(() => {
