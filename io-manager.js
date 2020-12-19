@@ -615,7 +615,7 @@ renderer.domElement.addEventListener('mousemove', e => {
     }
   }
 });
-window.addEventListener('mousedown', e => {
+/* window.addEventListener('mousedown', e => {
   const selectedWeapon = weaponsManager.getWeapon();
   if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
     if (e.button === 0) {
@@ -627,7 +627,7 @@ window.addEventListener('mousedown', e => {
       ioManager.currentTeleport = true;
     }
   }
-});
+}); */
 window.addEventListener('mouseup', e => {
   ioManager.currentWeaponDown = false;
   ioManager.currentWeaponValue = 0;
