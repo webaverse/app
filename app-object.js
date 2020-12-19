@@ -150,6 +150,7 @@ class App extends EventTarget {
     this.appId = appId;
     this.files = {};
     this.object = null;
+    this.physicsIds = [];
   }
 }
 
