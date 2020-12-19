@@ -409,12 +409,13 @@ const maxDistance = 10;
 const maxGrabDistance = 1.5;
 const _grab = object => {
   const transforms = rigManager.getRigTransforms();
+  const {position, quaternion} = transforms[0];
 
   appManager.grabbedObjects[0] = object;
 
   object.savedRotation.copy(object.rotation);
+  object.startQuaternion.copy(quaternion);
 
-  const {position} = transforms[0];
   const distance = object.position.distanceTo(position);
   if (distance < maxGrabDistance) {
     appManager.grabbedObjectOffsets[0] = 0;
@@ -518,12 +519,24 @@ const _updateWeapons = timeDiff => {
       editMesh.visible = true;
 
       if (editedObject.isBuild) {
-        // buildTool.update();
         _updateGrabbedObject(buildTool.mesh, transforms[0], appManager.grabbedObjectOffsets[0], {
           collisionEnabled: true,
           handSnapEnabled: false,
         });
-        // _snap(buildTool.mesh, weaponsManager.getGridSnap(), rotationSnap);
+
+        localEuler.setFromQuaternion(buildTool.mesh.startQuaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
+        buildTool.mesh.quaternion.premultiply(localQuaternion.setFromEuler(localEuler).invert());
+
+        localEuler.setFromQuaternion(transforms[0].quaternion, 'YXZ');
+        localEuler.x = 0;
+        localEuler.z = 0;
+        localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
+        localQuaternion.setFromEuler(localEuler);
+        buildTool.mesh.quaternion.premultiply(localQuaternion);
+
         buildTool.mesh.visible = true;
       }
     }
@@ -586,32 +599,6 @@ const _updateWeapons = timeDiff => {
         collisionEnabled: true,
         handSnapEnabled: false,
       });
-
-      /* const {position, quaternion} = transforms[0];
-
-      let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
-      if (collision) {
-        const {point} = collision;
-        // _snap(localVector.fromArray(point), 1);
-        deployMesh.position.fromArray(point)
-          .add(localVector2.set(0, 0.01, 0));
-        localEuler.setFromQuaternion(quaternion, 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
-        deployMesh.quaternion.setFromEuler(localEuler);
-
-        if (deployMesh.position.distanceTo(position) > maxDistance) {
-          collision = null;
-        }
-      }
-      if (!collision) {
-        deployMesh.position.copy(position)
-          .add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
-        deployMesh.rotation.setFromQuaternion(quaternion, 'YXZ');
-        _snapPosition(deployMesh, weaponsManager.getGridSnap());
-        _snapRotation(deployMesh, rotationSnap);
-      } */
 
       deployMesh.material.uniforms.uTime.value = (Date.now()%1000)/1000;
       deployMesh.material.uniforms.uTime.needsUpdate = true;
