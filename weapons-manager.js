@@ -230,10 +230,11 @@ scene.add(moveMesh);
 
 const deployMesh = _makeTargetMesh();
 deployMesh.visible = false;
+deployMesh.savedRotation = new THREE.Euler(0, 0, 0, 'YXZ');
 scene.add(deployMesh);
 
 const _use = () => {
-  if (deployMesh.visible) {
+  if (weaponsManager.getMenu() === 3) {
     const itemSpec = itemSpecs3[selectedItemIndex];
     let {start_url, filename, content} = itemSpec;
 
@@ -449,14 +450,8 @@ const _updateWeapons = timeDiff => {
 
     if (handSnap && (offset >= maxGrabDistance || !!collision)) {
       _snapPosition(o, weaponsManager.getGridSnap());
-      o.quaternion.setFromEuler(o.savedRotation);
-      
-      moveMesh.position.copy(o.position);
-      moveMesh.quaternion.copy(o.quaternion);
-      moveMesh.visible = true;
-    } else {
-      o.quaternion.copy(quaternion);
     }
+    o.quaternion.setFromEuler(o.savedRotation);
   };
 
   const _handleHighlight = () => {
@@ -562,6 +557,10 @@ const _updateWeapons = timeDiff => {
           collisionEnabled: true,
           handSnap: true,
         });
+
+        moveMesh.position.copy(grabbedObject.position);
+        moveMesh.quaternion.copy(grabbedObject.quaternion);
+        moveMesh.visible = true;
       }
     }
   };
@@ -569,7 +568,12 @@ const _updateWeapons = timeDiff => {
 
   const _handleDeploy = () => {
     if (deployMesh.visible) {
-      const {position, quaternion} = transforms[0];
+      _updateGrabbedObject(deployMesh, transforms[0], 1.5, {
+        collisionEnabled: true,
+        handSnap: false,
+      });
+
+      /* const {position, quaternion} = transforms[0];
 
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
@@ -593,7 +597,7 @@ const _updateWeapons = timeDiff => {
         deployMesh.rotation.setFromQuaternion(quaternion, 'YXZ');
         _snapPosition(deployMesh, weaponsManager.getGridSnap());
         _snapRotation(deployMesh, rotationSnap);
-      }
+      } */
 
       deployMesh.material.uniforms.uTime.value = (Date.now()%1000)/1000;
       deployMesh.material.uniforms.uTime.needsUpdate = true;
@@ -1254,6 +1258,8 @@ const _updateMenu = () => {
     profileIcon.classList.toggle('open', true);
 
     _updateSelectedItem(items1El, selectedItemIndex);
+
+    deployMesh.visible = true;
 
     if (lastSelectedBuild !== selectedItemIndex) {
       const itemSpec = itemSpecs1[selectedItemIndex];
