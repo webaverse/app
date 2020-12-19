@@ -1,10 +1,11 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {makeCubeMesh, makeRayMesh, makeTextInput, makeTabs, makeItem, makeScrollbar, intersectUi} from './vr-ui.js';
+import {makeCubeMesh, makeRayMesh, makeTextInput, makeTabs, makeItem} from './vr-ui.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
+import {loginManager} from './login.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
@@ -12,6 +13,7 @@ import {rigManager} from './rig.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 import geometryTool from './geometry-tool.js';
+import {getExt, bindUploadFileButton} from './util.js';
 import {
   THING_SHADER,
   makeDrawMaterial,
@@ -22,7 +24,7 @@ import {
   colors,
 } from './constants.js';
 // import { setState } from './state.js';
-import FontFaceObserver from './fontfaceobserver.js';
+// import FontFaceObserver from './fontfaceobserver.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -316,6 +318,24 @@ const _equip = () => {
   }
 };
 
+let uploadFileInput = document.getElementById('upload-file-input');
+bindUploadFileButton(uploadFileInput, async file => {
+  const transforms = rigManager.getRigTransforms();
+  let {position, quaternion} = transforms[0];
+  position = position.clone()
+    .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
+  quaternion = quaternion.clone();
+
+  const {name, hash, id} = await loginManager.uploadFile(file);
+  console.log('uploaded', {name, hash, id});
+
+  const u = `https://storage.exokit.org/${hash}.${getExt(name)}`;
+  world.addObject(u, null, position, quaternion);
+});
+const _upload = () => {
+  uploadFileInput.click();
+};
+
 world.addEventListener('trackedobjectadd', async e => {
   const trackedObject = e.data;
   const trackedObjectJson = trackedObject.toJSON();
@@ -336,7 +356,7 @@ world.addEventListener('trackedobjectadd', async e => {
         <div class=label>Grab</div>
       </div>
       <div class="key-helper">
-        <div class=key>←</div>
+        <div class=key>X</div>
         <div class=label>Delete</div>
       </div>
     </div>
@@ -389,6 +409,7 @@ const _grab = object => {
   const transforms = rigManager.getRigTransforms();
 
   appManager.grabbedObjects[0] = object;
+  appManager.grabbedObjects[0].savedRotation.copy(appManager.grabbedObjects[0].rotation);
   if (object) {
     const {position} = transforms[0];
     const distance = object.position.distanceTo(position);
@@ -403,11 +424,11 @@ const _grab = object => {
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = timeDiff => {  
   const transforms = rigManager.getRigTransforms();
-  const _snap = (v, n) => v.set(
+  /* const _snap = (v, n) => v.set(
     Math.round(v.x/n)*n,
     Math.round(v.y/n)*n,
     Math.round(v.z/n)*n,
-  );
+  ); */
 
   const _handleHighlight = () => {
     if (!editedObject) {
@@ -434,6 +455,7 @@ const _updateWeapons = timeDiff => {
             .decompose(localVector, localQuaternion, localVector2);
           if (localBox.containsPoint(localVector) && !appManager.grabbedObjects.includes(candidate)) {
             highlightMesh.position.copy(candidate.position);
+            highlightMesh.quaternion.copy(candidate.quaternion);
             highlightMesh.visible = true;
             highlightedObject = candidate;
             break;
@@ -447,6 +469,7 @@ const _updateWeapons = timeDiff => {
           if (object) {
             highlightedObject = object;
             highlightMesh.position.copy(object.position);
+            highlightMesh.quaternion.copy(object.quaternion);
             highlightMesh.visible = true;
           }
         }
@@ -464,6 +487,7 @@ const _updateWeapons = timeDiff => {
 
     if (editedObject) {
       editMesh.position.copy(editedObject.position);
+      editMesh.quaternion.copy(editedObject.quaternion);
       editMesh.visible = true;
 
       if (editedObject.place) {
@@ -509,14 +533,14 @@ const _updateWeapons = timeDiff => {
         let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
         if (collision) {
           const {point} = collision;
-          _snap(localVector.fromArray(point), 1);
-          grabbedObject.position.copy(localVector)
+          // _snap(localVector.fromArray(point), 1);
+          grabbedObject.position.fromArray(point)
             .add(localVector2.set(0, 0.01, 0));
-          localEuler.setFromQuaternion(quaternion, 'YXZ');
+          /* localEuler.setFromQuaternion(quaternion, 'YXZ');
           localEuler.x = 0;
           localEuler.z = 0;
           localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
-          grabbedObject.quaternion.setFromEuler(localEuler);
+          grabbedObject.quaternion.setFromEuler(localEuler); */
 
           if (grabbedObject.position.distanceTo(position) > offset) {
             collision = null;
@@ -524,13 +548,18 @@ const _updateWeapons = timeDiff => {
         }
         if (!collision) {
           grabbedObject.position.copy(position).add(localVector.set(0, 0, -offset).applyQuaternion(quaternion));
-          grabbedObject.quaternion.copy(quaternion);
+          // grabbedObject.quaternion.copy(quaternion);
         }
 
-        if (grabbedObject.position.distanceTo(position) >= maxGrabDistance) {
+        if (appManager.grabbedObjectOffsets[0] >= maxGrabDistance || !!collision) {
+          _snapPosition(grabbedObject, weaponsManager.getGridSnap());
+          grabbedObject.quaternion.setFromEuler(grabbedObject.savedRotation);
+          
           moveMesh.position.copy(grabbedObject.position);
           moveMesh.quaternion.copy(grabbedObject.quaternion);
           moveMesh.visible = true;
+        } else {
+          grabbedObject.quaternion.copy(quaternion);
         }
 
         // grabbedObject.setPose(localVector2, quaternion);
@@ -546,8 +575,8 @@ const _updateWeapons = timeDiff => {
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
         const {point} = collision;
-        _snap(localVector.fromArray(point), 1);
-        deployMesh.position.copy(localVector)
+        // _snap(localVector.fromArray(point), 1);
+        deployMesh.position.fromArray(point)
           .add(localVector2.set(0, 0.01, 0));
         localEuler.setFromQuaternion(quaternion, 'YXZ');
         localEuler.x = 0;
@@ -560,8 +589,11 @@ const _updateWeapons = timeDiff => {
         }
       }
       if (!collision) {
-        deployMesh.position.copy(position).add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
-        deployMesh.quaternion.copy(quaternion);
+        deployMesh.position.copy(position)
+          .add(localVector.set(0, 0, -maxDistance).applyQuaternion(quaternion));
+        deployMesh.rotation.setFromQuaternion(quaternion, 'YXZ');
+        _snapPosition(deployMesh, weaponsManager.getGridSnap());
+        _snapRotation(deployMesh, rotationSnap);
       }
 
       deployMesh.material.uniforms.uTime.value = (Date.now()%1000)/1000;
@@ -724,13 +756,14 @@ const wheelDotCanvas = (() => {
 })();
 document.body.appendChild(wheelDotCanvas);
 
-let wheelReady = false;
-const loadPromise = Promise.all([
+/* let wheelReady = false;
+Promise.all([
   new FontFaceObserver('Muli').load(null, 10000),
   new FontFaceObserver('Font Awesome 5 Pro').load(weaponIcons.join(''), 10000),
 ]).then(() => {
   wheelReady = true;
-});
+}); */
+let wheelReady = true;
 const _renderWheel = (() => {
   let lastSelectedSlice = 0;
   return selectedSlice => {
@@ -1112,6 +1145,20 @@ const _selectTabDelta = offset => {
   _selectTab(newSelectedTabIndex);
 };
 
+const rotationSnap = Math.PI/6;
+const _snapRotation = (o, rotationSnap) => {
+  o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
+  o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
+  o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
+};
+const _snapPosition = (o, positionSnap) => {
+  if (positionSnap > 0) {
+    o.position.x = Math.round(o.position.x / positionSnap) * positionSnap;
+    o.position.y = Math.round(o.position.y / positionSnap) * positionSnap;
+    o.position.z = Math.round(o.position.z / positionSnap) * positionSnap;
+  }
+};
+
 const keyTabEl = document.getElementById('key-tab');
 const keyTab1El = document.getElementById('key-tab-1');
 const keyTab2El = document.getElementById('key-tab-2');
@@ -1123,7 +1170,11 @@ const keyTab5El = document.getElementById('key-tab-5');
     e.preventDefault();
     e.stopPropagation();
 
-    if (editedObject) {
+    if (appManager.grabbedObjects[0]) {
+      _snapRotation(appManager.grabbedObjects[0], rotationSnap);
+      appManager.grabbedObjects[0] = null;
+      _updateMenu();
+    } else if (editedObject) {
       editedObject = null;
       _updateMenu();
     } else {
@@ -1148,14 +1199,17 @@ const _updateMenu = () => {
   menu2El.classList.toggle('open', menuOpen === 2);
   menu3El.classList.toggle('open', menuOpen === 3);
   menu4El.classList.toggle('open', menuOpen === 4);
-  unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!highlightedObject || !!editedObject || !!highlightedWorld);
-  objectMenuEl.classList.toggle('open', !!highlightedObject && !editedObject && !highlightedWorld && menuOpen !== 4);
+  unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!appManager.grabbedObjects[0] || !!highlightedObject || !!editedObject || !!highlightedWorld);
+  objectMenuEl.classList.toggle('open', !!highlightedObject && !appManager.grabbedObjects[0] && !editedObject && !highlightedWorld && menuOpen !== 4);
+  grabMenuEl.classList.toggle('open', !!appManager.grabbedObjects[0]);
   editMenuEl.classList.toggle('open', !!editedObject);
   worldMenuEl.classList.toggle('open', !!highlightedWorld && !editedObject && menuOpen === 0);
   locationIcon.classList.toggle('open', false);
   locationIcon.classList.toggle('highlight', false);
   profileIcon.classList.toggle('open', false);
   itemIcon.classList.toggle('open', false);
+  itemMonetizedIcon.classList.toggle('open', false);
+  grabIcon.classList.toggle('open', false);
   editIcon.classList.toggle('open', false);
 
   deployMesh.visible = false;
@@ -1235,13 +1289,24 @@ const _updateMenu = () => {
     }
 
     lastSelectedBuild = -1;
+
+
+  } else if (appManager.grabbedObjects[0]) {
+    grabIcon.classList.toggle('open', true);
+    // grabLabel.innerText = 'Grabbing';
+
+    lastSelectedBuild = -1;
+    lastCameraFocus = -1;
   } else if (editedObject) {
     editIcon.classList.toggle('open', true);
-    editLabel.innerText = 'Editing';
+    // editLabel.innerText = 'Editing';
 
     lastSelectedBuild = -1;
     lastCameraFocus = -1;
   } else if (highlightedObject) {
+    if (document.monetization && document.monetization.state == 'started') {
+      itemMonetizedIcon.classList.toggle('open', true);
+    }
     itemIcon.classList.toggle('open', true);
     itemLabel.innerText = 'lightsaber';
 
@@ -1271,17 +1336,22 @@ const menu3El = document.getElementById('menu-3');
 const menu4El = document.getElementById('menu-4');
 const unmenuEl = document.getElementById('unmenu');
 const objectMenuEl = document.getElementById('object-menu');
+const grabMenuEl = document.getElementById('grab-menu');
 const editMenuEl = document.getElementById('edit-menu');
 const worldMenuEl = document.getElementById('world-menu');
 const locationLabel = document.getElementById('location-label');
 const profileLabel = document.getElementById('profile-label');
 const itemLabel = document.getElementById('item-label');
+const grabLabel = document.getElementById('grab-label');
 const editLabel = document.getElementById('edit-label');
 const locationIcon = document.getElementById('location-icon');
 const profileIcon = document.getElementById('profile-icon');
 const itemIcon = document.getElementById('item-icon');
+const itemMonetizedIcon = document.getElementById('item-monetized-icon');
+const grabIcon = document.getElementById('grab-icon');
 const editIcon = document.getElementById('edit-icon');
 const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
+const gridSnapEl = document.getElementById('grid-snap');
 const weaponsManager = {
   // weapons,
   cubeMesh,
@@ -1289,6 +1359,7 @@ const weaponsManager = {
   buildMat: 'wood', */
   menuOpen: 0,
   weaponWheel: false,
+  gridSnap: 0,
   getWeapon() {
     return selectedWeapon;
   },
@@ -1379,6 +1450,9 @@ const weaponsManager = {
   menuClick() {
     _click();
   },
+  canEquip() {
+    return highlightMesh.visible;
+  },
   menuEquip() {
     _equip();
   },
@@ -1396,6 +1470,39 @@ const weaponsManager = {
   },
   canUseHold() {
     return !!highlightedObject && !editedObject;
+  },
+  canRotate() {
+    return !!appManager.grabbedObjects[0];
+  },
+  menuRotate(direction) {
+    const object = appManager.grabbedObjects[0];
+    object.savedRotation.y -= direction * rotationSnap;
+  },
+  canPush() {
+    return !!appManager.grabbedObjects[0];
+  },
+  menuPush(direction) {
+    console.log('push', direction);
+  },
+  menuDrop() {
+    console.log('menu drop');
+  },
+  menuGridSnap() {
+    if (this.gridSnap === 0) {
+      this.gridSnap = 32;
+    } else if (this.gridSnap > 1) {
+      this.gridSnap /= 2;
+    } else {
+      this.gridSnap = 0;
+    }
+    gridSnapEl.innerText = this.gridSnap > 0 ? (this.gridSnap + '') : 'off';
+  },
+  getGridSnap() {
+    if (this.gridSnap === 0) {
+      return 0;
+    } else {
+      return 4/this.gridSnap;
+    }
   },
   setWorld(newCoord, newHighlightedWorld) {
     lastCoord.copy(coord);
@@ -1424,6 +1531,13 @@ const weaponsManager = {
     }
     const itemEl = loadoutItems[index];
     itemEl.classList.add('selected');
+  },
+  canUpload() {
+    console.log('can upload', this.menuOpen);
+    return this.menuOpen === 1;
+  },
+  menuUpload() {
+    _upload();
   },
   update(timeDiff) {
     _updateWeapons(timeDiff);

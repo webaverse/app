@@ -11,7 +11,8 @@ import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 // import geometryManager from './geometry-manager.js';
 import geometryTool from './geometry-tool.js';
 import {rigManager} from './rig.js';
-import {makeIconMesh, makeTextMesh} from './vr-ui.js';
+import {loginManager} from './login.js';
+import {makeTextMesh} from './vr-ui.js';
 import {renderer, scene2, appManager} from './app-object.js';
 import wbn from './wbn.js';
 // import {storageHost} from './constants.js';
@@ -435,7 +436,7 @@ const _makeAppUrl = appId => {
   });
   return URL.createObjectURL(b);
 };
-const _loadScript = async (file, {files = null, parentUrl = null} = {}) => {
+const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, ownerAddress = null} = {}) => {
   const appId = ++appIds;
   const mesh = new THREE.Object3D();
   /* mesh.geometry = new THREE.BufferGeometry();
@@ -447,7 +448,18 @@ const _loadScript = async (file, {files = null, parentUrl = null} = {}) => {
   mesh.run = () => {
     import(u)
       .then(() => {
-        // console.log('import returned');
+        const monetization = document[`monetization${instanceId}`];
+        if (monetization) {
+          const ethereumAddress = loginManager.getAddress();
+
+          if (monetization && ethereumAddress && ethereumAddress == ownerAddress) {
+            monetization.dispatchEvent(new Event('monetizationstart'));
+            monetization.state = "started";
+          } else if (monetization && document.monetization) {
+            monetization.dispatchEvent(new Event('monetizationstart'));
+            monetization.state = "started";
+          }
+        }
       }, err => {
         console.warn('import failed', u, err);
       })
@@ -519,6 +531,12 @@ const _loadScript = async (file, {files = null, parentUrl = null} = {}) => {
     script = script.replace(r, function() {
       return arguments[1] + replacements[index++] + arguments[3];
     });
+    if (instanceId) {
+      script = script.replace(/document\.monetization/g, `document.monetization${instanceId}`);
+      script = `
+        document.monetization${instanceId} = document.createElement('eventTarget');
+      ` + script;
+    }
     return script;
   };
 
@@ -533,7 +551,7 @@ const _loadScript = async (file, {files = null, parentUrl = null} = {}) => {
 
   return mesh;
 };
-const _loadManifestJson = async (file, {files = null} = {}) => {
+const _loadManifestJson = async (file, {files = null, instanceId = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files) {
     srcUrl = files[srcUrl];
@@ -554,6 +572,8 @@ const _loadManifestJson = async (file, {files = null} = {}) => {
     }, {
       files,
       parentUrl: srcUrl,
+      instanceId,
+      ownerAddress,
     });
 
     /* const appId = ++appIds;
@@ -665,8 +685,9 @@ const _loadManifestJson = async (file, {files = null} = {}) => {
   }
 };
 let appIds = 0;
-const _loadWebBundle = async file => {
+const _loadWebBundle = async (file, {instanceId = null, ownerAddress = null}) => {
   let arrayBuffer;
+
   if (file.url) {
     const res = await fetch(file.url);
     arrayBuffer = await res.arrayBuffer();
@@ -684,6 +705,7 @@ const _loadWebBundle = async file => {
   const files = {};
   const bundle = new wbn.Bundle(arrayBuffer);
   const {urls} = bundle;
+
   for (const u of urls) {
     const response = bundle.getResponse(u);
     const {headers} = response;
@@ -701,6 +723,8 @@ const _loadWebBundle = async file => {
     name: u,
   }, {
     files,
+    instanceId,
+    ownerAddress,
   });
 };
 const _loadScn = async (file, opts) => {
@@ -905,6 +929,7 @@ const _loadIframe = async (file, opts) => {
 
   const iframe = document.createElement('iframe');
   iframe.src = href;
+  iframe.allow = 'monetization';
   iframe.style.width = width + 'px';
   iframe.style.height = height + 'px';
   // iframe.style.opacity = 0.75;
@@ -987,53 +1012,58 @@ const _loadGeo = async (file, opts) => {
 };
 
 runtime.loadFile = async (file, opts) => {
-  switch (getExt(file.name)) {
-    case 'gltf':
-    case 'glb': {
-      return await _loadGltf(file, opts);
+  const object = await (async () => {
+    switch (getExt(file.name)) {
+      case 'gltf':
+      case 'glb': {
+        return await _loadGltf(file, opts);
+      }
+      case 'vrm': {
+        return await _loadVrm(file, opts);
+      }
+      case 'vox': {
+        return await _loadVox(file, opts);
+      }
+      case 'png':
+      case 'gif':
+      case 'jpg': {
+        return await _loadImg(file, opts);
+      }
+      case 'js': {
+        return await _loadScript(file, opts);
+      }
+      case 'json': {
+        return await _loadManifestJson(file, opts);
+      }
+      case 'wbn': {
+        return await _loadWebBundle(file, opts);
+      }
+      case 'scn': {
+        return await _loadScn(file, opts);
+      }
+      case 'url': {
+        return await _loadLink(file, opts);
+      }
+      case 'iframe': {
+        return await _loadIframe(file, opts);
+      }
+      case 'mediastream': {
+        return await _loadMediaStream(file, opts);
+      }
+      case 'geo': {
+        return await _loadGeo(file, opts);
+      }
+      case 'mp3': {
+        return await _loadAudio(file, opts);
+      }
+      case 'video': {
+        throw new Error('video not implemented');
+      }
     }
-    case 'vrm': {
-      return await _loadVrm(file, opts);
-    }
-    case 'vox': {
-      return await _loadVox(file, opts);
-    }
-    case 'png':
-    case 'gif':
-    case 'jpg': {
-      return await _loadImg(file, opts);
-    }
-    case 'js': {
-      return await _loadScript(file, opts);
-    }
-    case 'json': {
-      return await _loadManifestJson(file, opts);
-    }
-    case 'wbn': {
-      return await _loadWebBundle(file, opts);
-    }
-    case 'scn': {
-      return await _loadScn(file, opts);
-    }
-    case 'url': {
-      return await _loadLink(file, opts);
-    }
-    case 'iframe': {
-      return await _loadIframe(file, opts);
-    }
-    case 'mediastream': {
-      return await _loadMediaStream(file, opts);
-    }
-    case 'geo': {
-      return await _loadGeo(file, opts);
-    }
-    case 'mp3': {
-      return await _loadAudio(file, opts);
-    }
-    case 'video': {
-      throw new Error('video not implemented');
-    }
-  }
+  })();
+  object.rotation.order = 'YXZ';
+  object.savedRotation = object.rotation.clone();
+  return object;
 };
 
 export default runtime;

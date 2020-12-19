@@ -104,7 +104,7 @@ const _makeLabelMesh = text => {
   {
     const geometry = new THREE.CircleBufferGeometry(h/2, 32);
     const img = new Image();
-    img.src = `http://127.0.0.1:3000/assets/logo-circle.svg`;
+    img.src = `assets/logo-circle.svg`;
     img.crossOrigin = 'Anonymous';
     img.onload = () => {
       texture.needsUpdate = true;

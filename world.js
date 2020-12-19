@@ -8,6 +8,7 @@ import runtime from './runtime.js';
 import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
+import { pointers } from './web-monetization.js';
 import {appManager, scene, scene3} from './app-object.js';
 import {
   PARCEL_SIZE,
@@ -762,6 +763,9 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
 };
 world.removeObject = removeInstanceId => {
   state.transact(() => {
+    const index = pointers.findIndex(x => x.instanceId === removeInstanceId);
+    if (index === -1) pointers.splice(index, 1);
+
     const objects = state.getArray('objects');
     const objectsJson = objects.toJSON();
     const removeIndex = objectsJson.indexOf(removeInstanceId);
@@ -798,11 +802,12 @@ world.addEventListener('trackedobjectadd', async e => {
   const trackedObjectJson = trackedObject.toJSON();
   const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
   const options = JSON.parse(optionsString);
+  let token = null;
 
   const file = await (async () => {
     if (typeof contentId === 'number') {
       const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
-      const token = await res.json();
+      token = await res.json();
       const {hash, filename} = token.properties;
       /* const contractSource = await getContractSource('getNft.cdc');
 
@@ -847,7 +852,7 @@ world.addEventListener('trackedobjectadd', async e => {
     }
   })();
   if (file) {
-    let mesh = await runtime.loadFile(file, options);
+    let mesh = await runtime.loadFile(file, {instanceId: instanceId, ownerAddress: token ? token.owner.address : '' });
     if (mesh) {
       mesh.position.fromArray(position);
       mesh.quaternion.fromArray(quaternion);
@@ -872,6 +877,7 @@ world.addEventListener('trackedobjectadd', async e => {
       } else {
         scene.add(mesh);
       }
+
     } else {
       console.warn('failed to load object', file);
 
@@ -894,6 +900,12 @@ world.addEventListener('trackedobjectadd', async e => {
     // minimap
     const minimapObject = minimap.addObject(mesh);
     mesh.minimapObject = minimapObject;
+
+    if (token && token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
+      const monetizationPointer = token.owner.monetizationPointer;
+      const ownerAddress = token.owner.address.toLowerCase();
+      pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
+    }
 
     objects.push(mesh);
 
@@ -988,7 +1000,7 @@ const _unlatchMediaStream = async () => {
   networkMediaStream = null;
 };
 
-const micButton = document.getElementById('key-v');
+const micButton = document.getElementById('key-t');
 micButton.addEventListener('click', async e => {
   if (!animationMediaStream) {
     micButton.classList.add('enabled');
