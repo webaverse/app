@@ -36,6 +36,8 @@ ioManager.keys = {
   down: false,
   left: false,
   right: false,
+  forward: false,
+  backward: false,
   shift: false,
   space: false,
   ctrl: false,
@@ -346,21 +348,17 @@ window.addEventListener('keydown', e => {
       e.preventDefault();
       e.stopPropagation();
       if (weaponsManager.canPush()) {
-        weaponsManager.menuPush(-1);
+        ioManager.keys.forward = true;
+        // weaponsManager.menuPush(-1);
       } else {
         document.getElementById('key-f').click(); // fly
       }
       break;
     }
-    case 82: { // R
-      e.preventDefault();
-      e.stopPropagation();
-      document.getElementById('key-r').click(); // equip
-      break;
-    }
     case 67: { // C
       if (weaponsManager.canPush()) {
-        weaponsManager.menuPush(1);
+        ioManager.keys.backward = true;
+        // weaponsManager.menuPush(1);
       } else if (!(e.shiftKey && (e.ctrlKey || e.metaKey))) {
         e.preventDefault();
         e.stopPropagation();
@@ -372,6 +370,12 @@ window.addEventListener('keydown', e => {
           metaKey: e.metaKey,
         }));
       }
+      break;
+    }
+    case 82: { // R
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('key-r').click(); // equip
       break;
     }
     case 88: { // X
@@ -553,13 +557,18 @@ window.addEventListener('keyup', e => {
       }
       break;
     }
-    /* case 70: { // F
-      // pe.grabup('right');
+    case 70: { // F
       if (document.pointerLockElement) {
-        ioManager.currentWeaponGrabs[0] = false;
+        ioManager.keys.forward = false;
       }
       break;
-    } */
+    }
+    case 67: { // C
+      if (document.pointerLockElement) {
+        ioManager.keys.backward = false;
+      }
+      break;
+    }
     case 16: { // shift
       if (document.pointerLockElement) {
         ioManager.keys.shift = false;
