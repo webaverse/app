@@ -298,7 +298,9 @@ const mesh = (() => {
     transparent: true,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.savedRotation = new THREE.Euler(0, 0, 0, 'YXZ');
+  mesh.rotation.order = 'YXZ';
+  mesh.savedRotation = mesh.rotation.clone();
+  mesh.startQuaternion = mesh.quaternion.clone();
   return mesh;
 })();
 mesh.visible = false;
