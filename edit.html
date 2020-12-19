@@ -37,12 +37,17 @@
       </div>
     </div>
     <div class="nav icon openable" id=item-icon>
+      <img class="img tertiary" src="./assets/dollarsign.jpg" id=item-monetized-icon>
       <img class="img tertiary" src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/female.vrm]/preview.jpg">
       <div class="name tertiary" id=item-label>Object</div>
     </div>
+    <div class="nav icon openable" id=grab-icon>
+      <img class="img secondary" src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg">
+      <div class="name secondary" id=edit-label>Grabbing</div>
+    </div>
     <div class="nav icon openable" id=edit-icon>
       <img class="img secondary" src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg">
-      <div class="name secondary" id=edit-label>Edit</div>
+      <div class="name secondary" id=edit-label>Editing</div>
     </div>
 
     <div class="buttons right">
@@ -125,7 +130,7 @@
         <div class="row"></div>
         <div class="row">
           <div class="label center">Camera</div>
-          <div class="key" id="key-x">X</div>
+          <div class="key" id="key-c">C</div>
           <!-- <div class="key" id="key-b" function="thirdperson">B</div>
           <div class="key" id="key-n" function="isometric">N</div>
           <div class="key" id="key-m" function="birdseye">M</div> -->
@@ -134,8 +139,8 @@
       <div class="keys">
         <div class="row"></div>
         <div class="row">
-          <div class="label center">Voice</div>
-          <div class="key" id="key-v">V</div>
+          <div class="label center">Talk</div>
+          <div class="key" id="key-t">T</div>
           <!-- <div class="key" id="key-b" function="thirdperson">B</div>
           <div class="key" id="key-n" function="isometric">N</div>
           <div class="key" id="key-m" function="birdseye">M</div> -->
@@ -157,6 +162,7 @@
       <div class="key-helper">
         <div class=key>U</div>
         <div class=label>Upload File...</div>
+        <input type=file class=hidden id=upload-file-input>
       </div>
     </div>
     <div class=items id=items-1></div>
@@ -213,13 +219,13 @@
         <div class=label>Equip</div>
       </div>
       <div class="key-helper">
-        <div class=key>←</div>
+        <div class=key>X</div>
         <div class=label>Delete</div>
       </div>
     </div>
     <!-- <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg" class=profile-picture> -->
   </div>
-  <div class="menu solid" id=edit-menu>
+  <div class="menu solid" id=grab-menu>
     <div class="key-helpers">
       <div class="key-helper">
         <div class=key id=key-tab-5>← Tab</div>
@@ -230,20 +236,97 @@
         <div class=label>Place</div>
       </div>
       <div class="key-helper">
-        <div class=key>E</div>
-        <div class=label>Width (Hold)</div>
+        <div class=key>F</div>
+        <div class=label>Push</div>
       </div>
       <div class="key-helper">
-        <div class=key>Q</div>
-        <div class=label>Depth (Hold)</div>
+        <div class=key>C</div>
+        <div class=label>Pull</div>
       </div>
       <div class="key-helper">
         <div class=key>R</div>
-        <div class=label>Rotation (Hold)</div>
+        <div class=label>Rotate Clockwise</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>E</div>
+        <div class=label>Rotate Counter-clockwise</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>G</div>
+        <div class=label>Drops [off]</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>Z</div>
+        <div class=label>Rotation Axis [All]</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>Z</div>
+        <div class=label>Rotation Reset (Hold)</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>V</div>
+        <div class=label>Grid Snap [<span id=grid-snap>off</span>]</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>V</div>
+        <div class=label>Collision (Hold) [on]</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>RMB</div>
+        <div class=label>Resize (Hold) [off]</div>
+      </div>
+    </div>
+    <!-- <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg" class=profile-picture> -->
+  </div>
+  <div class="menu solid" id=edit-menu>
+    <div class="key-helpers">
+      <div class="key-helper">
+        <div class=key id=key-tab-5>← Tab</div>
+        <div class=label>Close</div>
+      </div>
+       <div class="key-helper">
+        <div class=key>LMB</div>
+        <div class=label>Place</div>
       </div>
       <div class="key-helper">
         <div class=key>F</div>
-        <div class=label>Texture (Hold)</div>
+        <div class=label>Push</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>C</div>
+        <div class=label>Pull</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>R</div>
+        <div class=label>Rotate Clockwise</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>E</div>
+        <div class=label>Rotate Counter-clockwise</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>G</div>
+        <div class=label>Drops [off]</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>Z</div>
+        <div class=label>Rotation Axis [All]</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>Z</div>
+        <div class=label>Rotation Reset (Hold)</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>V</div>
+        <div class=label>Grid Snap [off]</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>V</div>
+        <div class=label>Collision (Hold) [on]</div>
+      </div>
+      <div class="key-helper">
+        <div class=key>RMB</div>
+        <div class=label>Resize (Hold) [off]</div>
       </div>
     </div>
     <!-- <img src="https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.jpg" class=profile-picture> -->

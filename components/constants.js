@@ -1,9 +1,0 @@
-export const uiSize = 2048;
-export const uiWorldSize = 0.5;
-export const fullW = uiSize / 2;
-export const arrowW = fullW / 10;
-export const wrapInnerW = fullW - arrowW * 2;
-export const margin = fullW / 40;
-export const iconW = (wrapInnerW - margin) / 3;
-export const innerW = iconW - margin;
-export const scrollbarW = fullW / 40;

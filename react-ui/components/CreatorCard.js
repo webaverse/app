@@ -6,7 +6,7 @@ import css from '../web_modules/csz.js'
 const styles = css`${window.locationSubdirectory}/components/CreatorCard.css`
 
 const html = htm.bind(React.createElement)
-const defaultAvatarImage = window.locationSubdirectory + "/images/defaultaccount.png";
+const defaultAvatarImage = window.locationSubdirectory + "/images/DefaultUser.svg";
 
 const Creator = ({
   name,

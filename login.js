@@ -10,6 +10,7 @@ const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 const {Transaction, Common} = ethereumJsTx;
 import {web3, contracts, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
+import * as notifications from './notifications.js';
 import {makePromise} from './util.js';
 
 // const usersEndpoint = 'https://users.exokit.org';
@@ -323,6 +324,20 @@ async function tryLogin() {
 class LoginManager extends EventTarget {
   constructor() {
     super();
+
+    this.loadPromise = makePromise();
+
+    this.init();
+  }
+
+  async init() {
+    await tryLogin();
+
+    this.loadPromise.accept();
+  }
+
+  waitForLoad() {
+    return this.loadPromise;
   }
 
   isLoggedIn() {
@@ -363,6 +378,7 @@ class LoginManager extends EventTarget {
     } else if (loginToken.mnemonic) {
       const wallet = hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(loginToken.mnemonic)).derivePath(`m/44'/60'/0'/0/0`).getWallet();
       loginToken.address = wallet.getAddressString();
+      return loginToken.address;
     } else {
       return null;
     }
@@ -547,16 +563,34 @@ class LoginManager extends EventTarget {
     if (loginToken) {
       const {name} = file;
       if (name) {
-        const {mnemonic, addr} = loginToken;
+        const {mnemonic} = loginToken;
+        const address = this.getAddress();
 
         let hash;
-        {
+        let notification;
+        try {
+          notification = notifications.addNotification(`\
+            <i class="icon fa fa-upload"></i>
+            <div class=wrap>
+              <div class=label>Uploading ${name}</div>
+              <div class=text>Hold tight...</div>
+              <div class=close-button>✕</div>
+            </div>
+          `, {
+            timeout: Infinity,
+          });
+          notification.querySelector('.close-button').addEventListener('click', e => {
+            notifications.removeNotification(notification);
+          });
+
           const res = await fetch(storageHost, {
             method: 'POST',
             body: file,
           });
           const j = await res.json();
           hash = j.hash;
+        } finally {
+          notifications.removeNotification(notification);
         }
         const description = '';
         const quantity = 1;
@@ -567,53 +601,55 @@ class LoginManager extends EventTarget {
             .mul(new web3['sidechain'].utils.BN(1e9)),
         };
 
-        let status, transactionHash, tokenId;
-        {
-          const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['sidechain']['NFT']._address, fullAmount.v);
-          status = result.status;
-          transactionHash = '0x0';
-          tokenId = -1;
-        }
-        if (status) {
-          const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', addr, '0x' + hash, name, description, quantity);
-          status = result.status;
-          transactionHash = result.transactionHash;
-          tokenId = new web3['sidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
+        let status, transactionHash, id;
+        try {
+          notification = notifications.addNotification(`\
+            <i class="icon fa fa-layer-plus"></i>
+            <div class=wrap>
+              <div class=label>Minting ${name}</div>
+              <div class=text>Almost there...</div>
+              <div class=close-button>✕</div>
+            </div>
+          `, {
+            timeout: Infinity,
+          });
+          notification.querySelector('.close-button').addEventListener('click', e => {
+            notifications.removeNotification(notification);
+          });
+          {
+            const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['sidechain']['NFT']._address, fullAmount.v);
+            status = result.status;
+            transactionHash = '0x0';
+            id = -1;
+          }
+          if (status) {
+            const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, name, description, quantity);
+            status = result.status;
+            transactionHash = result.transactionHash;
+            id = new web3['sidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
+          }
+        } catch (err) {
+          const errorNotification = notifications.addNotification(`\
+            <i class="icon fa fa-exclamation-triangle"></i>
+            <div class=wrap>
+              <div class=label>Minting failed</div>
+              <div class=text>${err + ''}</div>
+              <div class=close-button>✕</div>
+            </div>
+          `/* , {
+            timeout: Infinity,
+          } */);
+          errorNotification.querySelector('.close-button').addEventListener('click', e => {
+            notifications.removeNotification(errorNotification);
+          });
+        } finally {
+          notifications.removeNotification(notification);
         }
         return {
+          name,
           hash,
           id,
         };
-        /* {
-          const contractSource = await getContractSource('mintNft.cdc');
-
-          const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-            method: 'POST',
-            body: JSON.stringify({
-              address: addr,
-              mnemonic,
-
-              limit: 100,
-              transaction: contractSource
-                .replace(/ARG0/g, hash)
-                .replace(/ARG1/g, name),
-              wait: true,
-            }),
-          });
-          const response2 = await res.json();
-          if (response2?.transaction?.events[0]) {
-            const id = parseInt(response2.transaction.events[0].payload.value.fields.find(field => field.name === 'id').value.value, 10);
-            return {
-              hash,
-              id,
-            };
-          } else {
-              return {
-                hash,
-                id,
-              };
-          }
-        } */
       } else {
         throw new Error('file has no name');
       }

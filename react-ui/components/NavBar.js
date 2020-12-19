@@ -7,7 +7,9 @@ import { discordOauthUrl } from '../webaverse/constants.js'
 
 const styles = css`${window.locationSubdirectory}/components/NavBar.css`
 
-const defaultAvatarImage = window.locationSubdirectory + "/images/defaultaccount.png";
+const defaultAvatarImage = window.locationSubdirectory + "/images/DefaultUser_SmallCircle.svg";
+
+const webaverseLogo = window.locationSubdirectory + "/images/Webaverse_Logo.svg";
 
 const NavBarUserLoginForm = () => {
 

@@ -111,7 +111,6 @@ const _makeWorld = extents => {
       .applyMatrix4(new THREE.Matrix4().makeTranslation(center.x - size.x/2, center.y, center.z)),
   ]);
   const material = new THREE.MeshNormalMaterial({
-    color: 0x9ccc65,
     /* transparent: true,
     opacity: 0.5, */
     side: THREE.DoubleSide,

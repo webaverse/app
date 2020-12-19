@@ -193,7 +193,6 @@ export const AssetDetails = ({
                 /> 
             </div>
             <div className="assetDetailsRightColumn">
-                <div className="assetDetailsRightColumn">
                 ${userOwnsThisAsset ? html`
                 ${/* USER OWNS THIS ASSET */ ''}
                     ${/* TODO: Hide corresponding button if this asset is already avatar, homespace or in loadout, and add option to remove from loadout if is in */''}
@@ -355,8 +354,6 @@ export const AssetDetails = ({
                         </div>   
                         `}
                     `}
-
-                    </div>
                 <button className="assetDetailsButton assetDetailsCloseButton" onClick=${hideDetails}></button>
             </div>
         </div>
