@@ -13,11 +13,6 @@ import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 import buildTool from './build-tool.js';
 import {getExt, bindUploadFileButton} from './util.js';
-import {
-  SUBPARCEL_SIZE,
-  BUILD_SNAP,
-  colors,
-} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
