@@ -695,6 +695,7 @@ const makeShapeMesh = () => {
     physicsIds.length = 0;
   };
   object.isBuild = true;
+  const shapes = [];
   object.place = () => {
     const geometry = new THREE.BoxBufferGeometry(1, 0.1, 1);
     for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
@@ -710,10 +711,12 @@ const makeShapeMesh = () => {
       .premultiply(object.matrixWorld.clone().invert())
       .decompose(shapeMesh.position, shapeMesh.quaternion, shapeMesh.scale);
     object.add(shapeMesh);
+    shapes.push(shapeMesh);
     
     const physicsId = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, localVector.set(1, 0.1, 1), false);
     physicsIds.push(physicsId);
   };
+  object.getShapes = () => shapes;
   return object;
 };
 
