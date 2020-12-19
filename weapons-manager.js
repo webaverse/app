@@ -1380,7 +1380,7 @@ const weaponsManager = {
   /* buildMode: 'wall',
   buildMat: 'wood', */
   menuOpen: 0,
-  weaponWheel: false,
+  // weaponWheel: false,
   gridSnap: 0,
   getWeapon() {
     return selectedWeapon;
@@ -1388,7 +1388,7 @@ const weaponsManager = {
   setWeapon(newSelectedWeapon) {
     selectedWeapon = newSelectedWeapon;
   },
-  setWeaponWheel(newOpen) {
+  /* setWeaponWheel(newOpen) {
     if (newOpen && !weaponsManager.weaponWheel) {
       wheel.style.display = 'flex';
       wheelDotCanvas.style.display = null;
@@ -1435,7 +1435,7 @@ const weaponsManager = {
       }
       _renderWheel(selectedSlice);
     }
-  },
+  }, */
   getMenu() {
     return this.menuOpen;
   },
@@ -1553,6 +1553,12 @@ const weaponsManager = {
     }
     const itemEl = loadoutItems[index];
     itemEl.classList.add('selected');
+  },
+  canToggleAxis() {
+    return !!appManager.grabbedObjects[0] || (editedObject && editedObject.isBuild);
+  },
+  toggleAxis() {
+    console.log('toggle axis');
   },
   canUpload() {
     return this.menuOpen === 1;
