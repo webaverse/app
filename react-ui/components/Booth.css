@@ -1,17 +1,24 @@
 &.booth {
+    display: flex;
     flex-wrap: wrap;
-    width:100%;
-    display:flex;
 }
 
-.booth.small {
+& {
+    display: flex;
+    flex-wrap: wrap;
+}
 
+&.booth.small {
+   width: 15em;
+   height: 21em;
 }
 
 .booth.medium {
-
+    width: 19em;
+    height: 32em;
 }
 
 .booth.large {
-
+    width: 26em;
+    height: 38em;
 }
