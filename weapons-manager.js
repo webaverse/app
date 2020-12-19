@@ -692,13 +692,13 @@ const _updateWeapons = timeDiff => {
   crosshairEl.classList.toggle('visible', ['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getTool()) && !appManager.grabbedObjects[0]);
 };
 
-renderer.domElement.addEventListener('wheel', e => {
+/* renderer.domElement.addEventListener('wheel', e => {
   if (document.pointerLockElement) {
     if (appManager.grabbedObjects[0]) {
       appManager.grabbedObjectOffsets[0] = Math.max(appManager.grabbedObjectOffsets[0] + e.deltaY * 0.01, 0);
     }
   }
-});
+}); */
 
 const wheel = document.createElement('div');
 wheel.style.cssText = `
