@@ -491,7 +491,8 @@ const _updateWeapons = timeDiff => {
       editMesh.visible = true;
 
       if (editedObject.place) {
-        buildTool.update();
+        // buildTool.update();
+        _snap(buildTool.mesh, weaponsManager.getGridSnap(), rotationSnap);
         buildTool.mesh.visible = true;
       }
     }
@@ -1149,18 +1150,22 @@ const _selectTabDelta = offset => {
   _selectTab(newSelectedTabIndex);
 };
 
-const rotationSnap = Math.PI/6;
-const _snapRotation = (o, rotationSnap) => {
-  o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
-  o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
-  o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
-};
 const _snapPosition = (o, positionSnap) => {
   if (positionSnap > 0) {
     o.position.x = Math.round(o.position.x / positionSnap) * positionSnap;
     o.position.y = Math.round(o.position.y / positionSnap) * positionSnap;
     o.position.z = Math.round(o.position.z / positionSnap) * positionSnap;
   }
+};
+const rotationSnap = Math.PI/6;
+const _snapRotation = (o, rotationSnap) => {
+  o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
+  o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
+  o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
+};
+const _snap = (o, positionSnap, rotationSnap) => {
+  _snapPosition(o, positionSnap);
+  _snapRotation(o, rotationSnap);
 };
 
 const keyTabEl = document.getElementById('key-tab');
