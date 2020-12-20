@@ -9,6 +9,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 import {rigManager} from './rig.js';
+import {buildMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 import buildTool from './build-tool.js';
@@ -190,11 +191,25 @@ const _makeTargetMesh = (() => {
     return mesh;
   };
 })();
+const _makeHighlightPhysicsMesh = () => {
+  const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+  const material = buildMaterial;
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  mesh.physicsId = 0;
+  return mesh;
+};
 
 const highlightMesh = _makeTargetMesh();
 highlightMesh.visible = false;
 scene.add(highlightMesh);
 let highlightedObject = null;
+
+const highlightPhysicsMesh = _makeHighlightPhysicsMesh();
+highlightPhysicsMesh.visible = false;
+scene.add(highlightPhysicsMesh);
+let highlightedPhysicsObject = null;
+let highlightedPhysicsId = 0;
 
 const editMesh = _makeTargetMesh();
 editMesh.visible = false;
@@ -490,6 +505,56 @@ const _updateWeapons = timeDiff => {
     }
   };
   _handleHighlight();
+
+  const _handlePhysicsHighlight = () => {
+    highlightedPhysicsObject = null;
+
+    if (weaponsManager.editMode) {
+      const {position, quaternion} = transforms[0];
+      let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+      if (collision) {
+        const objects = world.getObjects();
+        for (const object of objects) {
+          if (object.getPhysicsIds) {
+            const physicsIds = object.getPhysicsIds();
+            if (physicsIds.includes(collision.objectId)) {
+              highlightedPhysicsObject = object;
+              highlightedPhysicsId = collision.objectId;
+              break;
+            }
+          }
+        }
+      }
+    }
+  };
+  _handlePhysicsHighlight();
+
+  const _updatePhysicsHighlight = () => {
+    highlightPhysicsMesh.visible = false;
+
+    if (highlightedPhysicsObject) {
+      if (highlightPhysicsMesh.physicsId !== highlightedPhysicsId) {
+        const physics = physicsManager.getGeometry(highlightedPhysicsId);
+
+        if (physics) {
+          let geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(physics.positions, 3));
+          geometry.setIndex(new THREE.BufferAttribute(physics.indices, 1));
+          geometry = geometry.toNonIndexed();
+          geometry.computeVertexNormals();
+
+          highlightPhysicsMesh.geometry.dispose();
+          highlightPhysicsMesh.geometry = geometry;
+          // highlightPhysicsMesh.scale.setScalar(1.05);
+          highlightPhysicsMesh.physicsId = highlightedPhysicsId;
+        }
+      }
+
+      highlightPhysicsMesh.position.copy(highlightedPhysicsObject.position); // XXX
+      highlightPhysicsMesh.visible = true;
+    }
+  };
+  _updatePhysicsHighlight();
 
   const _handleEdit = () => {
     editMesh.visible = false;
@@ -1360,6 +1425,7 @@ const weaponsManager = {
   menuOpen: 0,
   // weaponWheel: false,
   gridSnap: 0,
+  editMode: false,
   /* getWeapon() {
     return selectedWeapon;
   },
@@ -1537,6 +1603,9 @@ const weaponsManager = {
   },
   toggleAxis() {
     console.log('toggle axis');
+  },
+  toggleEditMode() {
+    this.editMode = !this.editMode;
   },
   canUpload() {
     return this.menuOpen === 1;
