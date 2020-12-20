@@ -1542,7 +1542,7 @@ const geometryWorker = (() => {
       grounded: !!scratchStack.u32[18],
     } : null;
   };
-  w.getSubparcelArenaSpec = subparcelOffset => {
+  /* w.getSubparcelArenaSpec = subparcelOffset => {
     const subparcelArenaSpecOffset = scratchStack.u32.byteOffset;
     moduleInstance._getSubparcelArenaSpec(subparcelOffset, subparcelArenaSpecOffset);
     const subparcelArenaSpecOffset32 = subparcelArenaSpecOffset/Uint32Array.BYTES_PER_ELEMENT;
@@ -1660,7 +1660,7 @@ const geometryWorker = (() => {
     }
     return [landCullResults, vegetationCullResults, thingCullResults];
   };
-  /* w.getSubparcel = (tracker, x, y, z) => new Promise((accept, reject) => {
+  w.getSubparcel = (tracker, x, y, z) => new Promise((accept, reject) => {
     callStack.allocRequest(METHODS.getSubparcel, true, offset => {
       callStack.u32[offset] = tracker;
       callStack.u32[offset + 1] = x;
@@ -1679,7 +1679,7 @@ const geometryWorker = (() => {
         console.log('no subparcel');
       }
     });
-  }); */
+  });
   // window.getSubparcel = (x, y, z) => w.getSubparcel(tracker, x, y, z);
   w.requestReleaseSubparcel = (tracker, subparcelSharedPtr) => new Promise((accept, reject) => {
     callStack.allocRequest(METHODS.releaseSubparcel, true, m => {
@@ -2159,7 +2159,7 @@ const geometryWorker = (() => {
       tang,
       bitang,
     };
-  };
+  }; */
 
   w.addGeometryPhysics = (physics, mesh, id) => {
     const {geometry} = mesh;
