@@ -1732,21 +1732,6 @@ const geometryWorker = (() => {
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-        /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
-          const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
-          const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
-          const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-          const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
-          return positions;
-        };
-        const positions = _decodeArenaEntry(vegetationAllocators.positions, positionsFreeEntry, Float32Array);
-        const uvs = _decodeArenaEntry(vegetationAllocators.uvs, uvsFreeEntry, Float32Array);
-        const ids = _decodeArenaEntry(vegetationAllocators.ids, idsFreeEntry, Float32Array);
-        const indices = _decodeArenaEntry(vegetationAllocators.indices, indicesFreeEntry, Uint32Array);
-        const skyLights = _decodeArenaEntry(vegetationAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
-        const torchLights = _decodeArenaEntry(vegetationAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-        console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
-
         geometryManager.currentVegetationMesh.updateGeometry({
           positionsStart,
           uvsStart,
@@ -1813,21 +1798,6 @@ const geometryWorker = (() => {
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-        /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
-          const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
-          const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
-          const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-          const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
-          return positions;
-        };
-        const positions = _decodeArenaEntry(vegetationAllocators.positions, positionsFreeEntry, Float32Array);
-        const uvs = _decodeArenaEntry(vegetationAllocators.uvs, uvsFreeEntry, Float32Array);
-        const ids = _decodeArenaEntry(vegetationAllocators.ids, idsFreeEntry, Float32Array);
-        const indices = _decodeArenaEntry(vegetationAllocators.indices, indicesFreeEntry, Uint32Array);
-        const skyLights = _decodeArenaEntry(vegetationAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
-        const torchLights = _decodeArenaEntry(vegetationAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-        console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
-
         geometryManager.currentVegetationMesh.updateGeometry({
           positionsStart,
           uvsStart,
@@ -1891,21 +1861,6 @@ const geometryWorker = (() => {
         const idsCount = moduleInstance.HEAPU32[idsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-
-        /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
-          const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
-          const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
-          const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-          const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
-          return positions;
-        };
-        const positions = _decodeArenaEntry(landAllocators.positions, positionsFreeEntry, Float32Array);
-        const normals = _decodeArenaEntry(landAllocators.normals, normalsFreeEntry, Float32Array);
-        const uvs = _decodeArenaEntry(landAllocators.uvs, uvsFreeEntry, Float32Array);
-        const aos = _decodeArenaEntry(landAllocators.aos, aosFreeEntry, Uint8Array);
-        const skyLights = _decodeArenaEntry(landAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
-        const torchLights = _decodeArenaEntry(landAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-        console.log('got positions', {positions, normals, uvs, aos, skyLights, torchLights}); */
 
         geometryManager.currentChunkMesh.updateGeometry({
           positionsStart,
@@ -2145,22 +2100,6 @@ const geometryWorker = (() => {
         const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-
-        /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
-          const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
-          const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
-          const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-          const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
-          return positions;
-        };
-        const positions = _decodeArenaEntry(thingAllocators.positions, positionsFreeEntry, Float32Array);
-        const uvs = _decodeArenaEntry(thingAllocators.uvs, uvsFreeEntry, Float32Array);
-        const atlasUvs = _decodeArenaEntry(thingAllocators.atlasUvs, atlasUvsFreeEntry, Float32Array);
-        const ids = _decodeArenaEntry(thingAllocators.ids, idsFreeEntry, Float32Array);
-        const indices = _decodeArenaEntry(thingAllocators.indices, indicesFreeEntry, Uint32Array);
-        const skyLights = _decodeArenaEntry(thingAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
-        const torchLights = _decodeArenaEntry(thingAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-        console.log('got positions', {positions, uvs, atlasUvs, ids, indices, skyLights, torchLights}); */
 
         currentThingMesh.updateGeometry({
           positionsStart,
