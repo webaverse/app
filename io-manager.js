@@ -481,6 +481,10 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
+    case 192: { // tilde
+      weaponsManager.toggleEditMode();
+      break;
+    }
     /* case 90: { // Z
       if (document.pointerLockElement) {
         document.querySelector('.weapon[weapon="build"]').click();
