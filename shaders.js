@@ -527,6 +527,8 @@ const buildMaterial = new THREE.ShaderMaterial({
     varying float vTorchLight;
     varying vec3 vSelectColor;
     varying vec2 vWorldUv;
+    varying vec3 vPos;
+    varying vec3 vNormal;
 
     void main() {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
@@ -581,6 +583,9 @@ const buildMaterial = new THREE.ShaderMaterial({
       vec3 b = normalize(normalMatrix * vert_bitang);
       vec3 n = normalize(normalMatrix * vert_norm);
       mat3 tbn = transpose(mat3(t, b, n));
+
+      vPos = position;
+      vNormal = normal;
     }
   `,
   fragmentShader: `\
@@ -605,139 +610,56 @@ const buildMaterial = new THREE.ShaderMaterial({
     varying float vTorchLight;
     varying vec3 vSelectColor;
     varying vec2 vWorldUv;
+    varying vec3 vPos;
+    varying vec3 vNormal;
 
-    float edgeFactor() {
+    float edgeFactor(vec2 uv) {
+      float divisor = 0.5;
+      float power = 0.5;
       return min(
-        pow(abs(vUv.x - round(vUv.x/0.1)*0.1), 0.5),
-        pow(abs(vUv.y - round(vUv.y/0.1)*0.1), 0.5)
-      ) * 3.;
+        pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
+        pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
+      ) > 0.1 ? 0.0 : 1.0;
+      /* return 1. - pow(abs(uv.x - round(uv.x/divisor)*divisor), power) *
+        pow(abs(uv.y - round(uv.y/divisor)*divisor), power); */
     }
 
-    vec2 tileSize = vec2(16./2048.);
-    vec4 fourTapSample(
-      vec2 tileOffset,
-      vec2 tileUV,
-      sampler2D atlas
-    ) {
-      //Initialize accumulators
-      vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
-      float totalWeight = 0.0;
-
-      for(int dx=0; dx<2; ++dx)
-      for(int dy=0; dy<2; ++dy) {
-        //Compute coordinate in 2x2 tile patch
-        vec2 tileCoord = 2.0 * fract(0.5 * (tileUV + vec2(dx,dy)));
-
-        //Weight sample based on distance to center
-        float w = pow(1.0 - max(abs(tileCoord.x-1.0), abs(tileCoord.y-1.0)), 16.0);
-
-        //Compute atlas coord
-        vec2 atlasUV = tileOffset + tileSize * tileCoord;
-
-        //Sample and accumulate
-        color += w * texture2D(atlas, atlasUV);
-        totalWeight += w;
-      }
-
-      //Return weighted color
-      return color / totalWeight;
-    }
-    float fourTapSample1(
-      vec2 tileOffset,
-      vec2 tileUV,
-      sampler2D atlas
-    ) {
-      //Initialize accumulators
-      float color = 0.0;
-      float totalWeight = 0.0;
-
-      for(int dx=0; dx<2; ++dx)
-      for(int dy=0; dy<2; ++dy) {
-        //Compute coordinate in 2x2 tile patch
-        vec2 tileCoord = 2.0 * fract(0.5 * (tileUV + vec2(dx,dy)));
-
-        //Weight sample based on distance to center
-        float w = pow(1.0 - max(abs(tileCoord.x-1.0), abs(tileCoord.y-1.0)), 16.0);
-
-        //Compute atlas coord
-        vec2 atlasUV = tileOffset + tileSize * tileCoord;
-
-        //Sample and accumulate
-        color += w * texture2D(atlas, atlasUV).r;
-        totalWeight += w;
-      }
-
-      //Return weighted color
-      return color / totalWeight;
-    }
-    vec3 fourTapSample3(
-      vec2 tileOffset,
-      vec2 tileUV,
-      sampler2D atlas
-    ) {
-      //Initialize accumulators
-      vec3 color = vec3(0.0, 0.0, 0.0);
-      float totalWeight = 0.0;
-
-      for(int dx=0; dx<2; ++dx)
-      for(int dy=0; dy<2; ++dy) {
-        //Compute coordinate in 2x2 tile patch
-        vec2 tileCoord = 2.0 * fract(0.5 * (tileUV + vec2(dx,dy)));
-
-        //Weight sample based on distance to center
-        float w = pow(1.0 - max(abs(tileCoord.x-1.0), abs(tileCoord.y-1.0)), 16.0);
-
-        //Compute atlas coord
-        vec2 atlasUV = tileOffset + tileSize * tileCoord;
-
-        //Sample and accumulate
-        color += w * texture2D(atlas, atlasUV).rgb;
-        totalWeight += w;
-      }
-
-      //Return weighted color
-      return color / totalWeight;
-    }
-
-    float sampleHeight(vec2 tileOffset, vec2 uv) {
-      tileOffset.x += 16.*2.*2./2048.;
-      // return fourTapSample1(tileOffset, uv, tex);
-      // vec2 texcoord = tileOffset + uv * tileSize;
-      // return texture2DGradEXT(tex, texcoord, dFdx(texcoord), dFdy(texcoord)).r;
-      uv = mod(uv, 1.0);
-      // uv = floor(uv*16.)/16.;
-      /* if (uv.x < 0.5) {
-        uv.x += 1.;
-      }
-      if (uv.y < 0.5) {
-        uv.y += 1.;
-      } */
-      return texture2D(tex, tileOffset + uv * tileSize).r;
+    vec3 getTriPlanarBlend(vec3 _wNorm){
+      // in wNorm is the world-space normal of the fragment
+      vec3 blending = abs( _wNorm );
+      // blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
+      // float b = (blending.x + blending.y + blending.z);
+      // blending /= vec3(b, b, b);
+      // return min(min(blending.x, blending.y), blending.z);
+      blending = normalize(blending);
+      return blending;
     }
 
     void main() {
-      vec2 worldUv = vWorldUv;
-      worldUv = mod(worldUv, 1.0);
+      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
+      vec3 diffuseColor2 = vec3(${new THREE.Color(0x64b5f6).toArray().join(', ')});
+      float normalRepeat = 1.0;
 
-      // vec3 c = fourTapSample3(vUv, worldUv, tex);
-      vec3 diffuseColor = vec3(${new THREE.Color(0x26c6da).toArray().join(', ')});
-      float f = edgeFactor();
-      /* if (f <= 0.5) {
-        diffuseColor = mix(diffuseColor, vec3(1.0), max(1.0 - abs(pow(length(vViewPosition) - mod(uTime*60., 1.)*5.0, 3.0)), 0.0)*0.5);
-        // diffuseColor *= (0.9 + 0.1*min(gl_FragCoord.z/gl_FragCoord.w/10.0, 1.0));
-      } else {
-        discard;
-      } */
-      /* diffuseColor += vSelectColor;
-      float worldFactor = floor((sunIntensity * vSkyLight + vTorchLight) * 4.0 + 1.9) / 4.0 * vAo;
-      float cameraFactor = floor(8.0 - length(vViewPosition))/8.;
-      diffuseColor *= max(max(worldFactor, cameraFactor), 0.1);
-      diffuseColor = mix(diffuseColor, vec3(0.2 + sunIntensity*0.8), gl_FragCoord.z/gl_FragCoord.w/100.0); */
+      vec3 blending = getTriPlanarBlend(vNormal);
+      float xaxis = edgeFactor(vPos.yz * normalRepeat);
+      float yaxis = edgeFactor(vPos.xz * normalRepeat);
+      float zaxis = edgeFactor(vPos.xy * normalRepeat);
+      float f = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
 
-      gl_FragColor = vec4(diffuseColor, 1.0 - f);
+      // vec2 worldUv = vWorldUv;
+      // worldUv = mod(worldUv, 1.0);
+      // float f = edgeFactor();
+      // float f = max(normalTex.x, normalTex.y, normalTex.z);
+
+      vec3 c = diffuseColor2; // mix(diffuseColor1, diffuseColor2, abs(vPos.y/10.));
+      float f2 = 1. + gl_FragCoord.z/gl_FragCoord.w/10.0;
+      gl_FragColor = vec4(c, max(f, 0.3) * f2);
     }
   `,
   transparent: true,
+  polygonOffset: true,
+  polygonOffsetFactor: -1,
+  // polygonOffsetUnits: 1,
 });
 
 export {
