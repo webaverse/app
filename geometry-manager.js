@@ -2342,6 +2342,42 @@ const geometryWorker = (() => {
     allocator.freeAll();
   };
 
+  w.getGeometryPhysics = (physics, id) => {
+    const allocator = new Allocator();
+    const positionsBuffer = allocator.alloc(Float32Array, 1024 * 1024);
+    const numPositions = allocator.alloc(Uint32Array, 1);
+    const indicesBuffer = allocator.alloc(Uint32Array, 1024 * 1024);
+    const numIndices = allocator.alloc(Uint32Array, 1);
+
+    const ok = moduleInstance._getGeometryPhysics(
+      physics,
+      id,
+      positionsBuffer.byteOffset,
+      numPositions.byteOffset,
+      indicesBuffer.byteOffset,
+      numIndices.byteOffset,
+    );
+    /* const objectId = scratchStack.u32[21];
+    const faceIndex = scratchStack.u32[22];
+    const objectPosition = scratchStack.f32.slice(23, 26);
+    const objectQuaternion = scratchStack.f32.slice(26, 30); */
+
+    if (ok) {
+      const positions = positionsBuffer.slice(0, numPositions[0]);
+      const indices = indicesBuffer.slice(0, numIndices[0]);
+
+      allocator.freeAll();
+
+      return {
+        positions,
+        indices,
+      };
+    } else {
+      allocator.freeAll();
+      return null;
+    }
+  };
+
   w.disableGeometryPhysics = (physics, id) => {
     moduleInstance._disableGeometryPhysics(physics, id);
   };
