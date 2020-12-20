@@ -193,7 +193,7 @@ const _makeTargetMesh = (() => {
 })();
 const _makeHighlightPhysicsMesh = () => {
   const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
-  const material = buildMaterial;
+  const material = buildMaterial.clone();
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   mesh.physicsId = 0;
@@ -550,7 +550,9 @@ const _updateWeapons = timeDiff => {
         }
       }
 
-      highlightPhysicsMesh.position.copy(highlightedPhysicsObject.position); // XXX
+      highlightPhysicsMesh.position.copy(highlightedPhysicsObject.position);
+      highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+      highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
       highlightPhysicsMesh.visible = true;
     }
   };
