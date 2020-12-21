@@ -52,7 +52,12 @@ const Profile = (props) => {
       console.log(newStoreAssets);
       console.log(state);
       setStoreAssets(newStoreAssets);
-      if((view === undefined || view === null || view === "") && newStoreAssets.length > 0) setView('booth');
+      if((view === undefined || view === null || view === "") && newStoreAssets.length > 0) {
+        if(state?.creatorProfiles?.[creatorAddress]?.address === state?.address) {
+          setView('inventory')
+        } else
+        setView('booth')
+      };
 
     }, 100)
   }, [])
@@ -73,8 +78,8 @@ const Profile = (props) => {
   // `}
 
   //             <span className="profileLoadout"><a href="#">Loadout</a></span>
+  // console.log(state?.creatorProfiles?.[creatorAddress]?.address === state.address)
 
-  console.log(homespacePreview)
 
   return html`
     <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
@@ -103,7 +108,7 @@ const Profile = (props) => {
               <div className="profileBodyNavContainer">
                 ${storeAssets.length > 0 && html`
                   <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onsale' ? 'active' : ''}' to='${window.locationSubdirectory}/creator/${creatorAddress}/booth'>For Sale</${Link}>
-                `}
+                  `}
                   <${Link} className='profileNavLink ${view === undefined || view === 'inventory' ? 'active' : ''}' to='${window.locationSubdirectory}/creator/${creatorAddress}/inventory'>Inventory</${Link}>
               </div>
             </div>
@@ -126,3 +131,8 @@ const Profile = (props) => {
 };
 
 export default Profile;
+
+
+
+///////////////////////////// 
+///////////////

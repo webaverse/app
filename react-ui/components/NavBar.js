@@ -162,7 +162,11 @@ const NavBar = () => {
   return html`
     <div className="navbarWrapper ${styles}">
         <nav className="navbar"> 
-          <div className='nav-logo'><div className="nav-logo-logo"></div></div>
+          <div className='nav-logo'>
+            <a href='${window.locationSubdirectory}/' className='nav-link-home'>
+              <div className="nav-logo-logo"></div>
+            </a>
+          </div>
           <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/' className='nav-link'>Profile</${NavLink}></span>
           <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/gallery' className='nav-link'>Gallery</${NavLink}></span>
           <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/creators' className='nav-link'>Creators</${NavLink}></span>
