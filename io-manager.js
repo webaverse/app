@@ -36,6 +36,8 @@ ioManager.keys = {
   down: false,
   left: false,
   right: false,
+  forward: false,
+  backward: false,
   shift: false,
   space: false,
   ctrl: false,
@@ -346,21 +348,17 @@ window.addEventListener('keydown', e => {
       e.preventDefault();
       e.stopPropagation();
       if (weaponsManager.canPush()) {
-        weaponsManager.menuPush(-1);
+        ioManager.keys.forward = true;
+        // weaponsManager.menuPush(-1);
       } else {
         document.getElementById('key-f').click(); // fly
       }
       break;
     }
-    case 82: { // R
-      e.preventDefault();
-      e.stopPropagation();
-      document.getElementById('key-r').click(); // equip
-      break;
-    }
     case 67: { // C
       if (weaponsManager.canPush()) {
-        weaponsManager.menuPush(1);
+        ioManager.keys.backward = true;
+        // weaponsManager.menuPush(1);
       } else if (!(e.shiftKey && (e.ctrlKey || e.metaKey))) {
         e.preventDefault();
         e.stopPropagation();
@@ -372,6 +370,12 @@ window.addEventListener('keydown', e => {
           metaKey: e.metaKey,
         }));
       }
+      break;
+    }
+    case 82: { // R
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('key-r').click(); // equip
       break;
     }
     case 88: { // X
@@ -462,7 +466,10 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 81: { // Q
-      weaponsManager.setWeaponWheel(true);
+      // weaponsManager.setWeaponWheel(true);
+      if (weaponsManager.canToggleAxis()) {
+        weaponsManager.toggleAxis();
+      }
       break;
     }
     case 69: { // E
@@ -472,6 +479,10 @@ window.addEventListener('keydown', e => {
       if (weaponsManager.canRotate()) {
         weaponsManager.menuRotate(-1);
       }
+      break;
+    }
+    case 192: { // tilde
+      weaponsManager.toggleEditMode();
       break;
     }
     /* case 90: { // Z
@@ -503,10 +514,10 @@ window.addEventListener('keydown', e => {
 });
 window.addEventListener('keyup', e => {
   switch (e.which) {
-    case 81: { // Q
+    /* case 81: { // Q
       weaponsManager.setWeaponWheel(false);
       break;
-    }
+    } */
     case 87: { // W
       if (document.pointerLockElement) {
         ioManager.keys.up = false;
@@ -553,13 +564,18 @@ window.addEventListener('keyup', e => {
       }
       break;
     }
-    /* case 70: { // F
-      // pe.grabup('right');
+    case 70: { // F
       if (document.pointerLockElement) {
-        ioManager.currentWeaponGrabs[0] = false;
+        ioManager.keys.forward = false;
       }
       break;
-    } */
+    }
+    case 67: { // C
+      if (document.pointerLockElement) {
+        ioManager.keys.backward = false;
+      }
+      break;
+    }
     case 16: { // shift
       if (document.pointerLockElement) {
         ioManager.keys.shift = false;
@@ -603,7 +619,7 @@ renderer.domElement.addEventListener('mousemove', e => {
     }
   }
 });
-window.addEventListener('mousedown', e => {
+/* window.addEventListener('mousedown', e => {
   const selectedWeapon = weaponsManager.getWeapon();
   if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
     if (e.button === 0) {
@@ -615,7 +631,7 @@ window.addEventListener('mousedown', e => {
       ioManager.currentTeleport = true;
     }
   }
-});
+}); */
 window.addEventListener('mouseup', e => {
   ioManager.currentWeaponDown = false;
   ioManager.currentWeaponValue = 0;
