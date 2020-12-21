@@ -2,13 +2,6 @@ import * as THREE from './three.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
 import alea from './alea.js';
 import easing from './easing.js';
-import {
-  LAND_SHADER,
-  WATER_SHADER,
-  VEGETATION_SHADER,
-  THING_SHADER,
-  makeDrawMaterial,
-} from './shaders.js';
 import storage from './storage.js';
 import {world} from './world.js';
 import {makePromise} from './util.js';
@@ -1549,7 +1542,7 @@ const geometryWorker = (() => {
       grounded: !!scratchStack.u32[18],
     } : null;
   };
-  w.getSubparcelArenaSpec = subparcelOffset => {
+  /* w.getSubparcelArenaSpec = subparcelOffset => {
     const subparcelArenaSpecOffset = scratchStack.u32.byteOffset;
     moduleInstance._getSubparcelArenaSpec(subparcelOffset, subparcelArenaSpecOffset);
     const subparcelArenaSpecOffset32 = subparcelArenaSpecOffset/Uint32Array.BYTES_PER_ELEMENT;
@@ -1667,7 +1660,7 @@ const geometryWorker = (() => {
     }
     return [landCullResults, vegetationCullResults, thingCullResults];
   };
-  /* w.getSubparcel = (tracker, x, y, z) => new Promise((accept, reject) => {
+  w.getSubparcel = (tracker, x, y, z) => new Promise((accept, reject) => {
     callStack.allocRequest(METHODS.getSubparcel, true, offset => {
       callStack.u32[offset] = tracker;
       callStack.u32[offset + 1] = x;
@@ -1686,7 +1679,7 @@ const geometryWorker = (() => {
         console.log('no subparcel');
       }
     });
-  }); */
+  });
   // window.getSubparcel = (x, y, z) => w.getSubparcel(tracker, x, y, z);
   w.requestReleaseSubparcel = (tracker, subparcelSharedPtr) => new Promise((accept, reject) => {
     callStack.allocRequest(METHODS.releaseSubparcel, true, m => {
@@ -1738,21 +1731,6 @@ const geometryWorker = (() => {
         const indicesCount = moduleInstance.HEAPU32[indicesFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-
-        /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
-          const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
-          const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
-          const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-          const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
-          return positions;
-        };
-        const positions = _decodeArenaEntry(vegetationAllocators.positions, positionsFreeEntry, Float32Array);
-        const uvs = _decodeArenaEntry(vegetationAllocators.uvs, uvsFreeEntry, Float32Array);
-        const ids = _decodeArenaEntry(vegetationAllocators.ids, idsFreeEntry, Float32Array);
-        const indices = _decodeArenaEntry(vegetationAllocators.indices, indicesFreeEntry, Uint32Array);
-        const skyLights = _decodeArenaEntry(vegetationAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
-        const torchLights = _decodeArenaEntry(vegetationAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-        console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
 
         geometryManager.currentVegetationMesh.updateGeometry({
           positionsStart,
@@ -1820,21 +1798,6 @@ const geometryWorker = (() => {
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-        /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
-          const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
-          const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
-          const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-          const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
-          return positions;
-        };
-        const positions = _decodeArenaEntry(vegetationAllocators.positions, positionsFreeEntry, Float32Array);
-        const uvs = _decodeArenaEntry(vegetationAllocators.uvs, uvsFreeEntry, Float32Array);
-        const ids = _decodeArenaEntry(vegetationAllocators.ids, idsFreeEntry, Float32Array);
-        const indices = _decodeArenaEntry(vegetationAllocators.indices, indicesFreeEntry, Uint32Array);
-        const skyLights = _decodeArenaEntry(vegetationAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
-        const torchLights = _decodeArenaEntry(vegetationAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-        console.log('got positions', {positions, uvs, ids, indices, skyLights, torchLights}); */
-
         geometryManager.currentVegetationMesh.updateGeometry({
           positionsStart,
           uvsStart,
@@ -1898,21 +1861,6 @@ const geometryWorker = (() => {
         const idsCount = moduleInstance.HEAPU32[idsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
-
-        /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
-          const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
-          const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
-          const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-          const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
-          return positions;
-        };
-        const positions = _decodeArenaEntry(landAllocators.positions, positionsFreeEntry, Float32Array);
-        const normals = _decodeArenaEntry(landAllocators.normals, normalsFreeEntry, Float32Array);
-        const uvs = _decodeArenaEntry(landAllocators.uvs, uvsFreeEntry, Float32Array);
-        const aos = _decodeArenaEntry(landAllocators.aos, aosFreeEntry, Uint8Array);
-        const skyLights = _decodeArenaEntry(landAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
-        const torchLights = _decodeArenaEntry(landAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-        console.log('got positions', {positions, normals, uvs, aos, skyLights, torchLights}); */
 
         geometryManager.currentChunkMesh.updateGeometry({
           positionsStart,
@@ -2153,22 +2101,6 @@ const geometryWorker = (() => {
         const skyLightsCount = moduleInstance.HEAPU32[skyLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
         const torchLightsCount = moduleInstance.HEAPU32[torchLightsFreeEntry / Uint32Array.BYTES_PER_ELEMENT + 1];
 
-        /* const _decodeArenaEntry = (allocator, freeEntry, constructor) => {
-          const positionsBase = new Uint32Array(moduleInstance.HEAP8.buffer, allocator.ptr, 1)[0];
-          const positionsOffset = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry, 1)[0];
-          const positionsLength = new Uint32Array(moduleInstance.HEAP8.buffer, freeEntry + Uint32Array.BYTES_PER_ELEMENT, 1)[0];
-          const positions = new constructor(moduleInstance.HEAP8.buffer, positionsBase + positionsOffset, positionsLength/constructor.BYTES_PER_ELEMENT);
-          return positions;
-        };
-        const positions = _decodeArenaEntry(thingAllocators.positions, positionsFreeEntry, Float32Array);
-        const uvs = _decodeArenaEntry(thingAllocators.uvs, uvsFreeEntry, Float32Array);
-        const atlasUvs = _decodeArenaEntry(thingAllocators.atlasUvs, atlasUvsFreeEntry, Float32Array);
-        const ids = _decodeArenaEntry(thingAllocators.ids, idsFreeEntry, Float32Array);
-        const indices = _decodeArenaEntry(thingAllocators.indices, indicesFreeEntry, Uint32Array);
-        const skyLights = _decodeArenaEntry(thingAllocators.skyLights, skyLightsFreeEntry, Uint8Array);
-        const torchLights = _decodeArenaEntry(thingAllocators.torchLights, torchLightsFreeEntry, Uint8Array);
-        console.log('got positions', {positions, uvs, atlasUvs, ids, indices, skyLights, torchLights}); */
-
         currentThingMesh.updateGeometry({
           positionsStart,
           uvsStart,
@@ -2227,7 +2159,7 @@ const geometryWorker = (() => {
       tang,
       bitang,
     };
-  };
+  }; */
 
   w.addGeometryPhysics = (physics, mesh, id) => {
     const {geometry} = mesh;
@@ -2408,6 +2340,42 @@ const geometryWorker = (() => {
       0,
     );
     allocator.freeAll();
+  };
+
+  w.getGeometryPhysics = (physics, id) => {
+    const allocator = new Allocator();
+    const positionsBuffer = allocator.alloc(Float32Array, 1024 * 1024);
+    const numPositions = allocator.alloc(Uint32Array, 1);
+    const indicesBuffer = allocator.alloc(Uint32Array, 1024 * 1024);
+    const numIndices = allocator.alloc(Uint32Array, 1);
+
+    const ok = moduleInstance._getGeometryPhysics(
+      physics,
+      id,
+      positionsBuffer.byteOffset,
+      numPositions.byteOffset,
+      indicesBuffer.byteOffset,
+      numIndices.byteOffset,
+    );
+    /* const objectId = scratchStack.u32[21];
+    const faceIndex = scratchStack.u32[22];
+    const objectPosition = scratchStack.f32.slice(23, 26);
+    const objectQuaternion = scratchStack.f32.slice(26, 30); */
+
+    if (ok) {
+      const positions = positionsBuffer.slice(0, numPositions[0]);
+      const indices = indicesBuffer.slice(0, numIndices[0]);
+
+      allocator.freeAll();
+
+      return {
+        positions,
+        indices,
+      };
+    } else {
+      allocator.freeAll();
+      return null;
+    }
   };
 
   w.disableGeometryPhysics = (physics, id) => {

@@ -1,6 +1,6 @@
 import * as THREE from './three.module.js';
 
-const _makeHeightfieldShader = land => ({
+/* const _makeHeightfieldShader = land => ({
   uniforms: {
     uTime: {
       type: 'f',
@@ -57,25 +57,6 @@ const _makeHeightfieldShader = land => ({
     varying vec3 vBitang;
     `}
     varying vec2 vWorldUv;
-
-    /* float transpose(float m) {
-      return m;
-    }
-    mat2 transpose(mat2 m) {
-      return mat2(m[0][0], m[1][0],
-                  m[0][1], m[1][1]);
-    }
-    mat3 transpose(mat3 m) {
-      return mat3(m[0][0], m[1][0], m[2][0],
-                  m[0][1], m[1][1], m[2][1],
-                  m[0][2], m[1][2], m[2][2]);
-    }
-    mat4 transpose(mat4 m) {
-      return mat4(m[0][0], m[1][0], m[2][0], m[3][0],
-                  m[0][1], m[1][1], m[2][1], m[3][1],
-                  m[0][2], m[1][2], m[2][2], m[3][2],
-                  m[0][3], m[1][3], m[2][3], m[3][3]);
-    } */
 
     void main() {
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
@@ -268,12 +249,6 @@ const _makeHeightfieldShader = land => ({
       // return texture2DGradEXT(tex, texcoord, dFdx(texcoord), dFdy(texcoord)).r;
       uv = mod(uv, 1.0);
       // uv = floor(uv*16.)/16.;
-      /* if (uv.x < 0.5) {
-        uv.x += 1.;
-      }
-      if (uv.y < 0.5) {
-        uv.y += 1.;
-      } */
       return texture2D(tex, tileOffset + uv * tileSize).r;
     }
 
@@ -345,10 +320,6 @@ ${land ? '' : `\
 
     void main() {
       vec2 worldUv = vWorldUv;
-      /* ${land ? '' : `\
-      vec3 view_dir = normalize(ts_view_pos - ts_frag_pos);
-      worldUv = parallaxMap(vUv, worldUv, view_dir);
-      `} */
       worldUv = mod(worldUv, 1.0);
 
       vec3 c = fourTapSample3(vUv, worldUv, tex);
@@ -467,26 +438,6 @@ const THING_SHADER = {
       value: null,
       needsUpdate: true,
     },
-    /* uHitId: {
-      type: 'f',
-      value: -1,
-      needsUpdate: true,
-    },
-    uHitPosition: {
-      type: 'v3',
-      value: new THREE.Vector3(),
-      needsUpdate: true,
-    },
-    uSelectId: {
-      type: 'f',
-      value: -1,
-      needsUpdate: true,
-    },
-    sunIntensity: {
-      type: 'f',
-      value: 1,
-      needsUpdate: true,
-    }, */
   },
   vertexShader: `\
     attribute vec3 color;
@@ -554,12 +505,180 @@ const makeDrawMaterial = (color1, color2, numPoints) => new THREE.ShaderMaterial
     }
   `,
   side: THREE.DoubleSide,
+}); */
+
+const buildMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    uTime: {
+      type: 'f',
+      value: 0,
+      needsUpdate: true,
+    },
+  },
+  vertexShader: `\
+    precision highp float;
+    precision highp int;
+
+    uniform vec4 uSelectRange;
+
+    // attribute vec3 barycentric;
+    attribute float ao;
+    attribute float skyLight;
+    attribute float torchLight;
+
+    varying vec3 vViewPosition;
+    varying vec2 vUv;
+    varying vec3 vBarycentric;
+    varying float vAo;
+    varying float vSkyLight;
+    varying float vTorchLight;
+    varying vec3 vSelectColor;
+    varying vec2 vWorldUv;
+    varying vec3 vPos;
+    varying vec3 vNormal;
+
+    void main() {
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      gl_Position = projectionMatrix * mvPosition;
+
+      vViewPosition = -mvPosition.xyz;
+      vUv = uv;
+      // vBarycentric = barycentric;
+      float vid = float(gl_VertexID);
+      if (mod(vid, 3.) < 0.5) {
+        vBarycentric = vec3(1., 0., 0.);
+      } else if (mod(vid, 3.) < 1.5) {
+        vBarycentric = vec3(0., 1., 0.);
+      } else {
+        vBarycentric = vec3(0., 0., 1.);
+      }
+      vAo = ao/27.0;
+      vSkyLight = skyLight/8.0;
+      vTorchLight = torchLight/8.0;
+
+      vSelectColor = vec3(0.);
+      if (
+        position.x >= uSelectRange.x &&
+        position.z >= uSelectRange.y &&
+        position.x < uSelectRange.z &&
+        position.z < uSelectRange.w
+      ) {
+        vSelectColor = vec3(${new THREE.Color(0x4fc3f7).toArray().join(', ')});
+      }
+
+      vec3 vert_tang;
+      vec3 vert_bitang;
+      if (abs(normal.y) < 0.05) {
+        if (abs(normal.x) > 0.95) {
+          vert_bitang = vec3(0., 1., 0.);
+          vert_tang = normalize(cross(vert_bitang, normal));
+          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
+        } else {
+          vert_bitang = vec3(0., 1., 0.);
+          vert_tang = normalize(cross(vert_bitang, normal));
+          vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
+        }
+      } else {
+        vert_tang = vec3(1., 0., 0.);
+        vert_bitang = normalize(cross(vert_tang, normal));
+        vWorldUv = vec2(dot(position, vert_tang), dot(position, vert_bitang));
+      }
+      vWorldUv /= 4.0;
+      vec3 vert_norm = normal;
+
+      vec3 t = normalize(normalMatrix * vert_tang);
+      vec3 b = normalize(normalMatrix * vert_bitang);
+      vec3 n = normalize(normalMatrix * vert_norm);
+      mat3 tbn = transpose(mat3(t, b, n));
+
+      vPos = position;
+      vNormal = normal;
+    }
+  `,
+  fragmentShader: `\
+    precision highp float;
+    precision highp int;
+
+    #define PI 3.1415926535897932384626433832795
+
+    uniform float sunIntensity;
+    uniform sampler2D tex;
+    uniform float uTime;
+    uniform vec3 sunDirection;
+    float parallaxScale = 0.3;
+    float parallaxMinLayers = 50.;
+    float parallaxMaxLayers = 50.;
+
+    varying vec3 vViewPosition;
+    varying vec2 vUv;
+    varying vec3 vBarycentric;
+    varying float vAo;
+    varying float vSkyLight;
+    varying float vTorchLight;
+    varying vec3 vSelectColor;
+    varying vec2 vWorldUv;
+    varying vec3 vPos;
+    varying vec3 vNormal;
+
+    float edgeFactor(vec2 uv) {
+      float divisor = 0.5;
+      float power = 0.5;
+      return min(
+        pow(abs(uv.x - round(uv.x/divisor)*divisor), power),
+        pow(abs(uv.y - round(uv.y/divisor)*divisor), power)
+      ) > 0.1 ? 0.0 : 1.0;
+      /* return 1. - pow(abs(uv.x - round(uv.x/divisor)*divisor), power) *
+        pow(abs(uv.y - round(uv.y/divisor)*divisor), power); */
+    }
+
+    vec3 getTriPlanarBlend(vec3 _wNorm){
+      // in wNorm is the world-space normal of the fragment
+      vec3 blending = abs( _wNorm );
+      // blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
+      // float b = (blending.x + blending.y + blending.z);
+      // blending /= vec3(b, b, b);
+      // return min(min(blending.x, blending.y), blending.z);
+      blending = normalize(blending);
+      return blending;
+    }
+
+    void main() {
+      // vec3 diffuseColor1 = vec3(${new THREE.Color(0x1976d2).toArray().join(', ')});
+      vec3 diffuseColor2 = vec3(${new THREE.Color(0x64b5f6).toArray().join(', ')});
+      float normalRepeat = 1.0;
+
+      vec3 blending = getTriPlanarBlend(vNormal);
+      float xaxis = edgeFactor(vPos.yz * normalRepeat);
+      float yaxis = edgeFactor(vPos.xz * normalRepeat);
+      float zaxis = edgeFactor(vPos.xy * normalRepeat);
+      float f = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
+
+      // vec2 worldUv = vWorldUv;
+      // worldUv = mod(worldUv, 1.0);
+      // float f = edgeFactor();
+      // float f = max(normalTex.x, normalTex.y, normalTex.z);
+
+      if (abs(length(vViewPosition) - uTime * 20.) < 0.1) {
+        f = 1.0;
+      }
+
+      float d = gl_FragCoord.z/gl_FragCoord.w;
+      vec3 c = diffuseColor2; // mix(diffuseColor1, diffuseColor2, abs(vPos.y/10.));
+      float f2 = 1. + d/10.0;
+      gl_FragColor = vec4(c, max(f, 0.3) * f2);
+    }
+  `,
+  transparent: true,
+  polygonOffset: true,
+  polygonOffsetFactor: -1,
+  // polygonOffsetUnits: 1,
 });
 
 export {
-  LAND_SHADER,
+  /* LAND_SHADER,
   WATER_SHADER,
   VEGETATION_SHADER,
   THING_SHADER,
-  makeDrawMaterial,
+  makeDrawMaterial, */
+  buildMaterial,
 };
