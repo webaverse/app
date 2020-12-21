@@ -14,6 +14,9 @@ const MintingPage = () => {
   const { state, dispatch } = useContext(Context);
   let [currentStep, setCurrentStep] = useState(1);
 
+  const headerTitleImg = window.locationSubdirectory + "/images/Gallery_Subheader_Background.svg";
+
+
   // Current file
   let [file, setFile] = useState(null);
 
@@ -96,10 +99,13 @@ const MintingPage = () => {
 
   const handleSetDescription = (e) => setDescription(e.target.value);
 
-
+  
   const MintPageHeader = () => html`
     <div className="mintPageHeader">
-      <div className="mintPageHeaderTitle">the forge</div>
+    <div className=" mintHeaderTitle">
+      <span className="headerTitleValue">THE FORGE</span>
+      <img className="headerTitleImg" src="${headerTitleImg}" />
+    </div>
       <div>
         <div className="mintPageHeaderStep ${currentStep === 1 ? 'selected' : ''}">
           <span className="mintPageHeaderNumber ${currentStep === 1 ? 'selected' : ''}">1</span>
@@ -135,7 +141,7 @@ const MintingPage = () => {
   const pageTwo = html`
     <div className="mintPageBody">
       <form className="mintPageBodyFormTwo">
-        <div>
+        <div className="mintNftImageContainer">
           ${imagePreview !== null && html`
             <img src=${imagePreview} className="mintNftImagePreview"/>
           `}
@@ -158,20 +164,20 @@ const MintingPage = () => {
       id: 1,
       assetName: 'My Cool Item',
       description: 'This is the first avatar I’ve uploaded to the Webaverse.',
-      image: '/components/AssetCardAdditional/tempImage.png',
+      image: imagePreview,
       hash: '0x35ddcd7d8b66f1331f77186af17dbcf231909433',
       ext: 'jpg',
       totalSupply: 1,
       numberInEdition: 1,
       balance: 2000,
-      ownerAvatarPreview: '/components/AssetCardAdditional/tempImageIcon.png',
+      ownerAvatarPreview: imagePreview,
       ownerUsername: 'Paul',
       ownerAddress: null,
-      minterAvatarPreview: '/components/AssetCardAdditional/tempImageIcon.png',
+      minterAvatarPreview: imagePreview,
       minterAddress: null,
       minterUsername: null,
       cardSize: "large",
-      networkType: 'vrm',
+      networkType: 'webaverse',
       onClickFunction: null,
     }
 
@@ -187,7 +193,7 @@ const MintingPage = () => {
           </div>
           <div className="mintPageBodyQuantity flex">
             <span>quantity</span>
-            <input type="number" className="mintPageBodyQuantitySet" value=1 onChange=${(e) => setQuantity(e.target.value)} />
+            <input type="number" min=1 className="mintPageBodyQuantitySet" value=${quantity} onChange=${(e) => setQuantity(e.target.value)} />
           </div>
           <div className="mintPageBodyMintingFee flex">
             <span>minting fee:</span>

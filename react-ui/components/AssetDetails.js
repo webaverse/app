@@ -46,6 +46,7 @@ export const AssetDetails = ({
     const [toggleSaleOpen, setToggleSaleOpen] = useState(false);
     const [toggleOnSaleOpen, setToggleOnSaleOpen] = useState(false);
     const [toggleTransferToOpen, setToggleTransferToOpen] = useState(false);
+    const [toggleDropdownConfirmOpen, setToggleDropdownConfirmOpen] = useState(false);
 
     // Do you own this asset?
     console.log("Owner address is", ownerAddress);
@@ -164,6 +165,10 @@ export const AssetDetails = ({
 
     const toggleTransferTo = () => {
         setToggleTransferToOpen(!toggleTransferToOpen);
+    }
+
+    const toggleDropdownConfirm = () => {
+        setToggleDropdownConfirmOpen(!toggleDropdownConfirmOpen)
     }
 
     return html`
@@ -333,7 +338,8 @@ export const AssetDetails = ({
                                 </div>
                                 ${toggleOnSaleOpen && html`
                                 <div className="accordionDropdown">
-                                    <button className="assetDetailsButton assetSubmitButton" onClick=${handleBuyAsset}>Buy Asset</button>         
+                                    <button className="assetDetailsButton assetSubmitButton" onClick=${toggleDropdownConfirm}>Buy Asset</button>         
+                                    
                                 </div>
                                 `}
                             </div>

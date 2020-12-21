@@ -36,6 +36,10 @@ a:hover {
     cursor: pointer;
 }
 
+.nav-link-home {
+    
+}
+
 .nav-link {
     padding: 1.4em;
     height: 4em;
@@ -55,6 +59,7 @@ a:hover {
     height: 64px;
     background-image: url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='64' height='64' fill='url(%23paint0_linear)'/%3E%3Cdefs%3E%3ClinearGradient id='paint0_linear' x1='32' y1='0' x2='32' y2='64' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%23E30069'/%3E%3Cstop offset='0.463542' stop-color='%23990357'/%3E%3Cstop offset='1' stop-color='%239F035B'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E%0A");
 }
+
 
 .nav-logo-logo {
     width: 100%;
