@@ -157,7 +157,7 @@ const NavLink = props => html`
   />
 `;
 
-
+console.log(window.location.href.includes('/creator/'));
 const NavBar = () => {
   return html`
     <div className="navbarWrapper ${styles}">
@@ -169,7 +169,9 @@ const NavBar = () => {
           </div>
           <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/' className='nav-link'>Profile</${NavLink}></span>
           <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/gallery' className='nav-link'>Gallery</${NavLink}></span>
-          <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/creators' className='nav-link'>Creators</${NavLink}></span>
+          <span className='nav-item ${window.location.href.includes('/creator/') ? 'active' : ''}'>
+            <${NavLink} to='${window.locationSubdirectory}/creators' className='nav-link'>Creators</${NavLink}>
+          </span>
           <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/mint' className='nav-link'>Mint NFT</${NavLink}></span>
         </nav>
         <${NavBarUser}  />

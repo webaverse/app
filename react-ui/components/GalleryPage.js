@@ -33,8 +33,8 @@ const mockCardData = {
   ownerAddress: null,
   minterAvatarPreview: `${window.locationSubdirectory}/components/AssetCardAdditional/tempImageIcon.png`,
   minterAddress: null,
-  minterUsername: null,
-  cardSize: "middle",
+  minterUsername: 'Vernigora',
+  cardSize: "medium",
   networkType: 'webaverse',
   onClickFunction: null,
 }

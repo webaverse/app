@@ -14,7 +14,7 @@ export const EditableTextField = ({ className, callback }) => {
   
   return html`
     <div className="${className} editableTextField editableTextFieldInner">
-      <input type="text" value=${textFieldInput} onChange=${(e) => { console.log(e.target.value); setTextFieldInput(e.target.value)}}/>
+      <input type="text" value=${textFieldInput} maxLength=16 onChange=${(e) => { console.log(e.target.value); setTextFieldInput(e.target.value)}}/>
       <div>
         <button className="button settingsBoxButton userInfoButton" onClick=${handleSetText}>Set Name</button>
       </div>
