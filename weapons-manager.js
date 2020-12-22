@@ -1408,9 +1408,6 @@ const itemsEls = Array.from(loadoutEl.querySelectorAll('.item'));
 
     const boxEl = itemEl.querySelector('.box');
     boxEl.innerHTML = item ? `<img src="${item[2]}">` : '';
-
-    /* const labelEl = itemEl.querySelector('.label');
-    labelEl.innerText = item ? item[1] : ''; */
   }
 })();
 
