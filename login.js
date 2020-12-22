@@ -24,7 +24,7 @@ async function pullUserObject() {
   const res = await fetch(`https://accounts.webaverse.com/${address}`);
   const result = await res.json();
   // console.log('pull user object', result);
-  const {name, avatarUrl, avatarFileName, avatarPreview, ftu} = result;
+  const {name, avatarUrl, avatarFileName, avatarPreview, loadout, homeSpaceUrl, homeSpaceFileName, homeSpacePreview, ftu} = result;
 
   /* const {web3} = await blockchain.load();
   const contractSource = await getContractSource('getUserData.cdc');
@@ -49,6 +49,12 @@ async function pullUserObject() {
       url: avatarUrl,
       filename: avatarFileName,
       preview: avatarPreview,
+    },
+    loadout,
+    homespace: {
+      url: homeSpaceUrl,
+      filename: homeSpaceFileName,
+      preview: homeSpacePreview,
     },
     ftu,
   };
@@ -393,6 +399,14 @@ class LoginManager extends EventTarget {
 
   getAvatarPreview() {
     return userObject && userObject.avatar.preview;
+  }
+
+  getLoadout() {
+    return userObject && userObject.avatar;
+  }
+
+  getHomespace() {
+    return userObject && userObject.homespace;
   }
 
   async setAvatar(id) {
