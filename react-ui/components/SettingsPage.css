@@ -112,6 +112,7 @@
     padding: 0px;
     border-radius: 5px;
     color: white;
+    text-transform: uppercase;
 }
 
 .settingsBoxButton:active {

@@ -16,7 +16,6 @@ const MintingPage = () => {
 
   const headerTitleImg = window.locationSubdirectory + "/images/Gallery_Subheader_Background.svg";
 
-
   // Current file
   let [file, setFile] = useState(null);
 
@@ -32,6 +31,8 @@ const MintingPage = () => {
   let [quantity, setQuantity] = useState(1);
 
   let [mintedState, setMintedState] = useState(null);
+
+  let [mintFee, setMintFee] = useState(10);
 
   const mintAnotherNft = (e) => {    
     e.preventDefault();
@@ -148,9 +149,9 @@ const MintingPage = () => {
         </div>
         <div className="mintPageFormTwoContainer">
           <h3 className="mintNftNameLabel">Name</h3>
-          <input type="text" className="mintNftName" placeholder="Name" onChange=${handleSetName} />
+          <input type="text" className="mintNftName" maxLength=24 placeholder="Name" onChange=${handleSetName} />
           <h3 className="mintNftNameLabel">Description</h3>
-          <textarea className="mintNftDescription scroll" rows="2"  placeholder="Description" onChange=${handleSetDescription} />
+          <textarea className="mintNftDescription scroll" rows="2" maxLength=140 placeholder="Description" onChange=${handleSetDescription} />
           <div>
             <button className="button mintPageBackButton" onClick=${backToUpload}>Upload Again</button>
             <button className="button mintPageContinueButton" onClick=${submitDetails}>Continue</button>
@@ -197,7 +198,7 @@ const MintingPage = () => {
           </div>
           <div className="mintPageBodyMintingFee flex">
             <span>minting fee:</span>
-            <span className="mintPageBodyMintingFeeValue">2.5Ψ</span>
+            <span className="mintPageBodyMintingFeeValue">${mintFee}Ψ</span>
           </div>
           <div className="mintPageBodyYouHave flex unselected">
             <span>you have:</span>
@@ -205,14 +206,13 @@ const MintingPage = () => {
           </div>
           <div className="mintPageButtons flex">
             <button className="button mintPageBackButton" onClick=${backToDetails}>Edit Asset</button>
-            <button className="button mintPageMintButton" onClick=${handleMintNftButton}>Mint NFT</button>
+            <button className="button mintPageMintButton" onClick=${handleMintNftButton}>MINT</button>
           </div>
         </div>
       </form>
     </div>
   `
-
-    
+ 
   const pageFour = html`
   ${mintedState === 'success' ? html`
     <div className="mintPageBody">

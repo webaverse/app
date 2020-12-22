@@ -13,6 +13,18 @@
     flex-direction: row;
 }
 
+/* .assetDetailsContainer {
+    position:fixed;
+    display:flex;
+    width:100%;
+    height:100%;
+    justify-content:center;
+    align-items:center;
+    background:rgba(0,0,0,.3);
+    background-color: red;
+    z-index:100;
+} */
+
 .cardItem {
     margin: 0;
 }
@@ -64,6 +76,10 @@
 
 .assetSubmitButtonSmall {
     width: 7em;
+}
+
+.disable {
+    opacity: 0.6;
 }
 
 .detailsBlockSet {
@@ -161,6 +177,7 @@
     justify-content: space-between;
     padding-left: 0.5em;
     padding-right: 1em;
+    cursor: pointer;
 }
 
 .accordionTitleValue {
@@ -188,6 +205,32 @@
     display: flex;
     justify-content: center;
     margin-top: 1em;
+}
+
+.accordionDropdownConfirm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1em;
+}
+
+.dropdownConfirmTitle {
+    align-self: center;
+    text-transform: uppercase;
+    width: 12em;
+    color: white;
+    margin-bottom: 0.5em;
+}
+
+.dropdownConfirmSubmit {
+    display: flex;
+    justify-content: space-between;
+    width: 12em;
+}
+
+.accordionDropdownWithConfirm {
+    flex-direction: column;
+    align-items: center;
 }
 
 .assetDetailsCloseButton {

@@ -43,10 +43,11 @@ export const AssetDetails = ({
     const [toggleRenameOpen, setToggleRenameOpen] = useState(false);
     const [toggleDestroyOpen, setToggleDestroyOpen] = useState(false);
     const [toggleCancelSaleOpen, setToggleCancelSaleOpen] = useState(false);
-    const [toggleSaleOpen, setToggleSaleOpen] = useState(false);
+    // const [toggleSaleOpen, setToggleSaleOpen] = useState(false);
     const [toggleOnSaleOpen, setToggleOnSaleOpen] = useState(false);
     const [toggleTransferToOpen, setToggleTransferToOpen] = useState(false);
     const [toggleDropdownConfirmOpen, setToggleDropdownConfirmOpen] = useState(false);
+    const [quantity, setQuantity] = useState(1);
 
     // Do you own this asset?
     console.log("Owner address is", ownerAddress);
@@ -100,11 +101,6 @@ export const AssetDetails = ({
         cancelSale(id, networkType, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
     }
 
-    const handleShowSellAsset = (e) => {
-        e.preventDefault();
-        setSellAssetShowing(true);
-    }
-
     const handleHideSellAsset = (e) => {
         e.preventDefault();
         setSellAssetShowing(false);
@@ -155,12 +151,8 @@ export const AssetDetails = ({
         setToggleCancelSaleOpen(!toggleCancelSaleOpen);
     }
 
-    const toggleSale = () => {
-        setToggleSaleOpen(!toggleSaleOpen);
-    }
-
-    const toggleOnSale = () => {
-        setToggleOnSaleOpen(!toggleOnSaleOpen);
+    const toggleShowSellAsset = () => {
+        setSellAssetShowing(!sellAssetShowing);
     }
 
     const toggleTransferTo = () => {
@@ -169,6 +161,10 @@ export const AssetDetails = ({
 
     const toggleDropdownConfirm = () => {
         setToggleDropdownConfirmOpen(!toggleDropdownConfirmOpen)
+    }
+
+    const toggleOnSale = () => {
+        setToggleOnSaleOpen(!toggleOnSaleOpen)
     }
 
     return html`
@@ -209,8 +205,8 @@ export const AssetDetails = ({
                     </div>
                     `}
                     
+                    ${userCreatedThisAsset && html`
                     <div className="detailsBlock detailsBlockEdit">
-                        ${userCreatedThisAsset && html`
                         <div className="Accordion">
                             <div className="accordionTitle" onClick=${toggleReupload}>
                                 <span className="accordionTitleValue">Reupload file</span>
@@ -246,8 +242,8 @@ export const AssetDetails = ({
                             </div>
                             `}
                         </div>
-                        `}
                     </div>
+                    `}
 
                     ${state.mainnetAddress !== null && html`
                     <div className="detailsBlock detailsBlockTransferTo">
@@ -285,26 +281,20 @@ export const AssetDetails = ({
                         ${!sellAssetShowing ? html`
                             <div className="detailsBlock detailsBlockSell">
                                 <div className="Accordion">
-                                    <div className="accordionTitle" onClick=${toggleSale}>
+                                    <div className="accordionTitle" onClick=${toggleShowSellAsset}>
                                         <span className="accordionTitleValue">sell in gallery</span>
-                                        <span className="accordionIcon ${toggleSaleOpen ? 'reverse' : ''}"></span>
+                                        <span className="accordionIcon ${sellAssetShowing ? 'reverse' : ''}"></span>
                                     </div>
-                                    ${toggleSaleOpen && html`
-                                    <div className="accordionDropdown">
-                                        <button className="assetDetailsButton assetSubmitButton" onClick=${handleShowSellAsset}>Sell Asset</button>          
-                                    </div>
-                                    `}
+                                    
                                 </div>
                             </div>
                         `: html`
                             <div className="detailsBlock detailsBlockSell">
                                 <div className="Accordion">
-                                    <div className="accordionTitle" onClick=${toggleSale}>
+                                    <div className="accordionTitle" onClick=${toggleShowSellAsset}>
                                         <span className="accordionTitleValue">sell in gallery</span>
-                                        <span className="accordionIcon ${toggleSaleOpen ? 'reverse' : ''}"></span>
+                                        <span className="accordionIcon ${sellAssetShowing ? 'reverse' : ''}"></span>
                                     </div>
-                                    
-                                    ${toggleSaleOpen && html`
                                     <div className="accordionDropdown sellInputDropdown">
                                         <div className="sellInputLine">
                                             <div>
@@ -313,7 +303,7 @@ export const AssetDetails = ({
                                             </div>
                                             <div>
                                                 <span>QTY</span>
-                                                <input type="text" value='1' />
+                                                <input type="text" value=${quantity} onChange=${(e) => setQuantity(e.target.value)} />
                                             </div>
                                         </div>
                                         <div className="sellConfirmLine">
@@ -321,7 +311,7 @@ export const AssetDetails = ({
                                             <button className="assetDetailsButton assetSubmitButton assetSubmitButtonSmall" onClick=${handleHideSellAsset}>Cancel</button>             
                                         </div>
                                     </div>
-                                    `}
+                                    
                                 </div>
                             </div>
                         `}
@@ -329,7 +319,6 @@ export const AssetDetails = ({
                 ` : html`
                 ${/* USER DOES NOT OWN THIS ASSET */ ''}
                         ${isForSale ? html`
-                        
                         <div className="detailsBlock detailsBlockOnSale">
                             <div className="Accordion">
                                 <div className="accordionTitle" onClick=${toggleOnSale}>
@@ -337,9 +326,17 @@ export const AssetDetails = ({
                                     <span className="accordionIcon ${toggleOnSaleOpen ? 'reverse' : ''}"></span>
                                 </div>
                                 ${toggleOnSaleOpen && html`
-                                <div className="accordionDropdown">
-                                    <button className="assetDetailsButton assetSubmitButton" onClick=${toggleDropdownConfirm}>Buy Asset</button>         
-                                    
+                                <div className="accordionDropdown accordionDropdownWithConfirm">
+                                    <button className="assetDetailsButton assetSubmitButton ${toggleDropdownConfirmOpen ? 'disable' : ''}" onClick=${toggleDropdownConfirm}>Buy Asset</button>         
+                                    ${toggleDropdownConfirmOpen && html`
+                                        <div className="accordionDropdownConfirm">
+                                            <span className="dropdownConfirmTitle">A you sure?</span>
+                                            <div className="dropdownConfirmSubmit">
+                                                <button className="assetDetailsButton assetSubmitButton assetSubmitButtonSmall" onClick=${handleBuyAsset}>Buy</button>
+                                                <button className="assetDetailsButton assetSubmitButton assetSubmitButtonSmall" onClick=${toggleDropdownConfirm}>Nope</button>
+                                            </div>
+                                        </div>
+                                    `}
                                 </div>
                                 `}
                             </div>
