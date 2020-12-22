@@ -403,7 +403,7 @@ class LoginManager extends EventTarget {
   }
 
   getLoadout() {
-    return userObject && userObject.avatar;
+    return userObject ? userObject.loadout : Array(8).fill(null);
   }
 
   getHomespace() {
