@@ -128,7 +128,7 @@ const SettingsPage = () => {
             </div>
             ${toggleAddGreaseOpen && html`
             <div className="accordionDropdown">
-              <button className="submit" type="submit" onClick="${() => console.log('Add GREASE')}">Add GREASE to Webaverse Wallet</button>
+              <button className="submit settingsBoxButton" type="submit" onClick="${() => console.log('Add GREASE')}">Add Grease</button>
             </div>
             `}
           </div>
@@ -140,7 +140,7 @@ const SettingsPage = () => {
             </div>
             ${toggleWithdrawGreaseOpen && html`
             <div className="accordionDropdown">
-              <button className="submit" type="submit" onClick="${() => console.log('Withdraw GREASE')}">Withdraw GREASE</button>
+              <button className="submit settingsBoxButton" type="submit" onClick="${() => console.log('Withdraw GREASE')}">Withdraw</button>
             </div>
             `}
           </div>
@@ -152,7 +152,7 @@ const SettingsPage = () => {
             </div>
             ${toggleDepositWithdrawOpen && html`
             <div className="accordionDropdown">
-              <button className="submit" type="submit" onClick="${() => console.log('Deposit / Withdraw NFTs')}">Deposit / Withdraw NFTs</button>
+              <button className="submit settingsBoxButton" type="submit" onClick="${() => console.log('Deposit / Withdraw NFTs')}">D / W  NFTs</button>
             </div>
             `}
           </div>
@@ -165,7 +165,7 @@ const SettingsPage = () => {
             ${toggleDisconnectOpen && html`
             <div className="accordionDropdown">
               <div className="buttonContainer">
-                <button className="submit settingsBoxButton mainnetInfoButton" onClick=${disconnectMainnetWallet}>Disconnect Wallet</button>
+                <button className="submit settingsBoxButton mainnetInfoButton" onClick=${disconnectMainnetWallet}>Disconnect</button>
               </div>
             </div>
             `}
@@ -186,7 +186,7 @@ const SettingsPage = () => {
             ${toggleConnectMetamaskOpen && html`
             <div className="accordionDropdown mainnetNotConnectedDropdown">
               <input type="text" placeholder="Login with email or private key" onChange=${(e) => setMainnetAddressInput({ value: e.target.value })}/>
-              <button className="submit settingsBoxButton mainnetInfoButton" onClick=${connectMainnetWallet}>Connect Wallet</button>
+              <button className="submit settingsBoxButton mainnetInfoButton" onClick=${connectMainnetWallet}>Connect</button>
             </div>
             `}
           </div>
@@ -219,7 +219,7 @@ const SettingsPage = () => {
             ${toggleAccountDeleteOpen && html`
             <div className="accordionDropdown accountActionsSingOutDropdown">
               <div className="buttonContainer">
-                <button className="submit settingsBoxButton singOutButton" onClick=${() => console.log('Account Deleted')}>Delete Account</button>
+                <button className="submit settingsBoxButton singOutButton" onClick=${() => console.log('Account Deleted')}>Delete</button>
               </div>
             </div>
             `}

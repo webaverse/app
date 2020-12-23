@@ -129,7 +129,7 @@
   background-color: #525252;
   border-radius: 5px;
   color: white;
-  text-transform: capitalize;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
@@ -143,6 +143,7 @@
   /* width: 1200px; */
   display: flex;
   margin-bottom: 2em;
+  margin-left: 7em;
 }
 
 .mintPageBodyFormTwo div {
@@ -158,7 +159,6 @@
   width: 22em;
   height: 35em;
   object-fit: contain;
-  /* border: 1px solid #525252; */
   filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
   border-radius: 0px;
 }
@@ -166,7 +166,7 @@
 .mintPageFormTwoContainer {
   padding-left: 2em;
   padding-right: 4em;
-  width: 42em;
+  width: 38em;
 }
 
 .mintNftNameLabel {
@@ -205,7 +205,8 @@
 .mintNftDescription+div {
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: space-between;
+  padding: 0 4.55em;
 }
 
 .button {
@@ -224,6 +225,7 @@
   margin: 2em 1.3em;
   border-radius: 5px;
   color: white;
+  text-transform: uppercase;
 }
 
 .mintPageContinueButton {
@@ -233,6 +235,7 @@
   margin: 2em 1.3em;
   border-radius: 5px;
   color: white;
+  text-transform: uppercase;
 }
 
 .scroll::-webkit-scrollbar {
@@ -245,7 +248,7 @@
 }
 
 .mintPageBodyFormThree {
-  width: 1000px;
+  /* width: 1000px; */
   margin-bottom: 2em;
   justify-content: center;
   align-items: flex-start;
@@ -257,7 +260,7 @@
   align-items: center;
   width: 25em;
   height: 37em;
-  margin-top: 1em;
+  margin-top: 4em;
   margin-left: 4em;
 }
 
@@ -362,12 +365,13 @@
 
 .mintPageButtons>.mintPageBackButton {
   margin: 0;
+  margin-left: 1.3em;
 }
 
 .mintPageButtons>.mintPageMintButton {
   width: 9.5em;
   height: 3em;
-  background-color: #525252;
+  background-color: #FF7043;
   margin: 0;
   border-radius: 5px;
   color: white;
