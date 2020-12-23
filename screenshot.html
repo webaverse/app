@@ -65,7 +65,7 @@
       }));
       scene.add(cubeMesh); */
 
-      const camera = new THREE.PerspectiveCamera(90, width / height, 0.1, 100);
+      const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
       camera.position.copy(cameraPosition);
       camera.lookAt(cameraTarget);
       // camera.quaternion.copy(cameraQuaternion);
@@ -554,7 +554,7 @@
               // .add(new THREE.Vector3(0, size.y / 2, 0))
               .add(
                 new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2))
-                  .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 1.5)
+                  .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 2.2)
               );
             camera.lookAt(center);
             camera.updateMatrixWorld();
@@ -635,7 +635,7 @@
               // .add(new THREE.Vector3(0, size.y / 2, 0))
               .add(
                 new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2))
-                  .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 1.5)
+                  .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 2.2)
               );
             camera.lookAt(center);
             camera.updateMatrixWorld();
