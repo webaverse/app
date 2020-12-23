@@ -54,6 +54,10 @@ a:hover {
     font-weight: bold;
 }
 
+.active {
+    font-weight: bold;
+}
+
 .nav-logo {
     width: 64px;
     height: 64px;
@@ -328,6 +332,7 @@ a:hover {
     padding: 0px;
     border-radius: 5px;
     color: white;
+    text-transform: uppercase;
 }
 
 .formBtnLogin:active {
@@ -344,6 +349,7 @@ a:hover {
     color: white;
     margin-top: 0.5em;
     margin-bottom: 1em;
+    text-transform: uppercase;
 }
 
 .formBtnLogout:active {
@@ -382,6 +388,7 @@ a:hover {
     margin-top: 2.3em;
     margin-bottom: 1.5em;
     position: relative;
+    text-transform: uppercase;
 }
 
 .loginFormDiscordButton::before {
@@ -389,7 +396,7 @@ a:hover {
     display: block;
     position: absolute;
     bottom: 0.5em;
-    left: 2.2em;
+    left: 0.8em;
     width: 2em;
     height: 2em;
     background-image: url("data:image/svg+xml,%3Csvg width='800' height='600' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3C!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ --%3E%3Cg%3E%3Ctitle%3Ebackground%3C/title%3E%3Crect fill='none' id='canvas_background' height='602' width='802' y='-1' x='-1'/%3E%3Cg display='none' overflow='visible' y='0' x='0' height='100%25' width='100%25' id='canvasGrid'%3E%3Crect fill='url(%23gridpattern)' stroke-width='0' y='0' x='0' height='100%25' width='100%25'/%3E%3C/g%3E%3C/g%3E%3Cg%3E%3Ctitle%3ELayer 1%3C/title%3E%3Cimage stroke='null' xlink:href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAD1UlEQVRoQ+2aS6iVVRTHf/+0TE3JTAN7EQmhQkGIk5qklZQFTUKaqCEiBEG+KiqDXjQobCgY9JhEOokoctAwGvSQKMSB2aQHvbMU08r8xzrsI+fuvu+c73L3uffc61nD79vf3uu3/2vvtfY+R0wR0xThoCeI7fOBpcClEwT9C3BI0j/dxu8KYvs1YP0EAeTDvi5pQ50vtSC23wPuGBCIthv7Jd1Z5VMliO0rga8HDKLtzlWSvsl9qwN5BnhiQEGelbSzKcguYMuAgrwkaesQZIDUGSoyQGK0XBkq0lSRn2O2gAPAw8Cqmg8PAeuA64BHgOubDpDa9U2Rw8AtwK1AbNsfA28AnwLfAv8Cp4ELgIXATcBGYDFwXwJ/FVjbEKgvIA8A+4GngJ2SRlUN2A5VHgceTEXpkQYwxUH+lDTb9mxJJxo4UNvE9jxJR22/2UCZ4iCbJe0ZC0D+re1LgF979FkcZLqkiP+iZjsKwiu6dFoU5DNJNxYlSJ3Z3gR0U7ooyN2S3u0TyAzg1HgpMkPS3xUxPhN4Hoh3T0oa4ZDt84CngcuAHZJ+r3LY9jFgTg1MMUVOSLqoAiLONuF45Iuwv4BZks6022bxH89n1kxI5KHIMVVWDOR9SbdXgKwAPsqeL5cUmZ7YYoHfsvdrJe2r6GsNUBe6xUC2SYoMPsJsR6nxefZ4kaTvE0ioeDx7v0ZS3A3kfS0Afuq3IiskfVIT2z+k+I/XX0mKMuSs2Q7FQrmwSKJzJLkCZDpQd/1TTJGFkqJA/J/ZjnVyb6wPSW/XtLktlSN7O9dPBUzkqNgccisGMl/S2Vi3HUXggXyHqgmLyse278q3c9tRaE7rJ8jVeXFoezcQa+AhSb1KjJZvSb17UsW8VNLJttPpXYRWX0EiRyyQFHt9Z/wvA95JYfMWELeUB4E/UqMIu0XASmAzcAPwoqSofkeY7ViDy2tULRZarQmNfV7S3gwmVAnHq2I79+tmSR9m3y8B4lls1XVWFKQ9SCTAl4FXYpcC4jwRh6cmFpMRCs0FVqfT4uUNPuwLSINxizcZghSf0jF2OFRkjBNY/PNzU5HtwAvF57J7h3G3dX+DMUelyMXA0QadlmwSifBR4IMenTYHaaVu+zngsZKe9ujrjKRptqM0idvKut83RweSYOIaM2qmC8cJqFWQ2r4G+HLMRWPutO0AGQ+YuA9oHajS0fhHIH7n77TRKzJOKtQOYzuuhr4D5nc0mnwgSZmopL8A4pgQNjlB2kp0/IFhcoMkdeIkerLxz9MTvTa6jW/7Wklx9hlhPf8dNMhQnb5NGZD/AMegy0LENCMTAAAAAElFTkSuQmCC' id='svg_1' height='695.99994' width='649.00001' y='-49.99996' x='68.00002'/%3E%3C/g%3E%3C/svg%3E%0A");

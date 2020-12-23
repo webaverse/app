@@ -51,12 +51,16 @@ const Card = ({
               <div className="lowerCardInfoTopLeft lowerCardInfoTopLeft ${cardSize}">
                 <div className="lowerCardInfoTopLeftGroup">
                   <span className="creator creator ${cardSize}">
-                    <span className="creatorIcon creatorIcon ${cardSize}"><img src=${minterAvatarPreview} /></span>
-                    <span className="creatorName creatorName ${cardSize}">${minterUsername}></span>
+                    <span className="creatorIcon creatorIcon tooltip ${cardSize}">
+                      <img src=${minterAvatarPreview} />
+                      <span className="creatorName creatorName tooltiptext ${cardSize}">${minterUsername}</span>
+                    </span>
                   </span>
                   <span className="owner owner ${cardSize}">
-                    <span className="ownerIcon ownerIcon ${cardSize}"><img src=${ownerAvatarPreview} /></span>
-                    <span className="ownerName ownerName ${cardSize}">${ownerUsername}></span>
+                    <span className="ownerIcon ownerIcon tooltip ${cardSize}">
+                      <img src=${ownerAvatarPreview} />
+                      <span className="ownerName ownerName tooltiptext ${cardSize}">${ownerUsername}</span>
+                    </span>
                   </span>
                   <span className="arrow-down arrow-down ${cardSize}"></span>
                 </div>
