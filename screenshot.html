@@ -363,10 +363,10 @@
 
                 camera.position.x = 0;
                 camera.position.y = center.y;
-                camera.position.z = -Math.max(
+                camera.position.z = center.z - Math.max(
                   size.y / 2 / Math.tan(Math.PI * camera.fov / 360),
-                  Math.abs(size.x),
-                  Math.abs(size.z)
+                  Math.abs(size.x)/2,
+                  Math.abs(size.z)/2
                 ) * 1.2;
                 camera.lookAt(center);
                 camera.updateMatrixWorld();
@@ -452,6 +452,10 @@
                       .divideScalar(2);
                     camera.position.copy(center)
                       .add(new THREE.Vector3(0, 0, -0.3));
+                    camera.quaternion.setFromUnitVectors(
+                      new THREE.Vector3(0, 0, -1),
+                      new THREE.Vector3(0, 0, 1)
+                    );
                     camera.fov = 60;
                     camera.updateProjectionMatrix();
                   }
