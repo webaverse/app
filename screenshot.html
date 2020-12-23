@@ -551,8 +551,11 @@
           });
           for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.05) {
             camera.position.copy(center)
-              .add(new THREE.Vector3(0, size.y / 2, 0))
-              .add(new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
+              // .add(new THREE.Vector3(0, size.y / 2, 0))
+              .add(
+                new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2))
+                  .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 1.5)
+              );
             camera.lookAt(center);
             camera.updateMatrixWorld();
             renderer.render(scene, camera);
@@ -629,8 +632,11 @@
           const frames = [];
           for (let i = 0; i < Math.PI * 2; i += Math.PI * 0.02) {
             camera.position.copy(center)
-              .add(new THREE.Vector3(0, size.y / 2, 0))
-              .add(new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2)).multiplyScalar(Math.max(size.x, size.z) * 1.2));
+              // .add(new THREE.Vector3(0, size.y / 2, 0))
+              .add(
+                new THREE.Vector3(Math.cos(i + Math.PI / 2), 0, Math.sin(i + Math.PI / 2))
+                  .multiplyScalar(Math.max(size.x / 2, size.z / 2) * 1.5)
+              );
             camera.lookAt(center);
             camera.updateMatrixWorld();
             renderer.render(scene, camera);
