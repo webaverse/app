@@ -14,9 +14,9 @@ const Booth = ({
 }) => {
   console.log("Data is", data);
     return html`
-        <div className="${styles} booth ${cardSize}">
+        <${React.Fragment} className="${styles} booth ${cardSize}">
           <${AssetCardGrid} data=${data.entries} cardSize=${cardSize} />
-        </div>
+        </${React.Fragment}>
     `;
   };
 
