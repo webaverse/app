@@ -320,6 +320,12 @@ img:not([src]) {
   visibility: hidden;
 }
 
+.early-access-label {
+  padding: 3px;
+  background-color: #000;
+  color: #FFF;
+}
+
 .selections {
   display: flex;
   position: absolute;
