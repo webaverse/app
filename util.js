@@ -4,6 +4,13 @@ import atlaspack from './atlaspack.js';
 
 const localVector = new THREE.Vector3();
 
+export function jsonParse(s, d = null) {
+  try {
+    return JSON.parse(s);
+  } catch (err) {
+    return d;
+  }
+}
 export function parseQuery(queryString) {
   var query = {};
   var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');

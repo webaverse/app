@@ -11,7 +11,7 @@ import ethereumJsTx from './ethereumjs-tx.js';
 const {Transaction, Common} = ethereumJsTx;
 import {web3, contracts, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
 import * as notifications from './notifications.js';
-import {makePromise} from './util.js';
+import {makePromise, jsonParse} from './util.js';
 
 // const usersEndpoint = 'https://users.exokit.org';
 
@@ -24,7 +24,8 @@ async function pullUserObject() {
   const res = await fetch(`https://accounts.webaverse.com/${address}`);
   const result = await res.json();
   // console.log('pull user object', result);
-  const {name, avatarUrl, avatarFileName, avatarPreview, ftu} = result;
+  let {name, avatarUrl, avatarFileName, avatarPreview, loadout, homeSpaceUrl, homeSpaceFileName, homeSpacePreview, ftu} = result;
+  loadout = jsonParse(loadout, Array(8).fill(null));
 
   /* const {web3} = await blockchain.load();
   const contractSource = await getContractSource('getUserData.cdc');
@@ -49,6 +50,12 @@ async function pullUserObject() {
       url: avatarUrl,
       filename: avatarFileName,
       preview: avatarPreview,
+    },
+    loadout,
+    homespace: {
+      url: homeSpaceUrl,
+      filename: homeSpaceFileName,
+      preview: homeSpacePreview,
     },
     ftu,
   };
@@ -393,6 +400,14 @@ class LoginManager extends EventTarget {
 
   getAvatarPreview() {
     return userObject && userObject.avatar.preview;
+  }
+
+  getLoadout() {
+    return userObject ? userObject.loadout : Array(8).fill(null);
+  }
+
+  getHomespace() {
+    return userObject && userObject.homespace;
   }
 
   async setAvatar(id) {
