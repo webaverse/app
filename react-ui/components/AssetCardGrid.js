@@ -58,7 +58,7 @@ const AssetCardGrid = ({
             networkType='webaverse'
           />
       `}
-      <div className="${styles} ${cardSize}">
+      <${React.Fragment} className="${styles} ${cardSize}">
         ${data.map(asset => html`
           <${AssetCard}
               key=${asset.properties.hash}
@@ -84,7 +84,7 @@ const AssetCardGrid = ({
               networkType='webaverse'
           />
           `)}
-          </div>
+          </${React.Fragment}>
       </${React.Fragment}>
     `
   };

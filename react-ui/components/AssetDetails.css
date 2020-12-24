@@ -1,29 +1,24 @@
 & {
     position: fixed;
     margin: 0;
-    background-color: transparent;
+    background-color: white;
     z-index: 10;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
 }
 
-&.assetDetails {
+.assetDetails {
     display: flex;
     flex-direction: row;
+    justify-content: center;
+    position: relative;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
 }
-
-/* .assetDetailsContainer {
-    position:fixed;
-    display:flex;
-    width:100%;
-    height:100%;
-    justify-content:center;
-    align-items:center;
-    background:rgba(0,0,0,.3);
-    background-color: red;
-    z-index:100;
-} */
 
 .cardItem {
     margin: 0;
