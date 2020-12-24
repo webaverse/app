@@ -6,6 +6,8 @@ import { Link } from '../web_modules/@reach/router.js';
 import { discordOauthUrl } from '../webaverse/constants.js'
 
 const styles = css`${window.locationSubdirectory}/components/NavBar.css`
+const stylesMediaMedium = css`${window.locationSubdirectory}/components/NavBarMediaMedium.css`
+const stylesMediaSmall = css`${window.locationSubdirectory}/components/NavBarMediaSmall.css`
 
 const defaultAvatarImage = window.locationSubdirectory + "/images/DefaultUser_SmallCircle.svg";
 
@@ -160,7 +162,8 @@ const NavLink = props => html`
 console.log(window.location.href.includes('/creator/'));
 const NavBar = () => {
   return html`
-    <div className="navbarWrapper ${styles}">
+    <div className="${styles} ${stylesMediaMedium} ${stylesMediaSmall}">
+      <div className="navbarWrapper">
         <nav className="navbar"> 
           <div className='nav-logo'>
             <a href='${window.locationSubdirectory}/' className='nav-link-home'>
@@ -175,8 +178,9 @@ const NavBar = () => {
           <span className='nav-item'><${NavLink} to='${window.locationSubdirectory}/mint' className='nav-link'>Mint NFT</${NavLink}></span>
         </nav>
         <${NavBarUser}  />
+      </div>
     </div>
-    `;
+  `;
 };
 
 export default NavBar;
