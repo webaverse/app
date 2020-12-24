@@ -1397,6 +1397,20 @@ const _updateMenu = () => {
   locationLabel.innerText = (highlightedWorld ? highlightedWorld.name : 'The Void') + ` @${coord.x},${coord.z}`;
 };
 
+const loadoutEl = document.getElementById('loadout');
+const itemsEls = Array.from(loadoutEl.querySelectorAll('.item'));
+(async () => {
+  await loginManager.waitForLoad();
+  const loadout = loginManager.getLoadout();
+  for (let i = 0; i < loadout.length; i++) {
+    const item = loadout[i];
+    const itemEl = itemsEls[i];
+
+    const boxEl = itemEl.querySelector('.box');
+    boxEl.innerHTML = item ? `<img src="${item[2]}">` : '';
+  }
+})();
+
 const menu1El = document.getElementById('menu-1');
 const menu2El = document.getElementById('menu-2');
 const menu3El = document.getElementById('menu-3');
