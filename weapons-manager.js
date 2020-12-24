@@ -1394,7 +1394,7 @@ const _updateMenu = () => {
     lastCameraFocus = -1;
   }
 
-  locationLabel.innerText = (highlightedWorld ? highlightedWorld.name : 'The Void') + ` @${coord.x},${coord.z}`;
+  locationLabel.innerText = (highlightedWorld ? highlightedWorld.name : 'Overworld') + ` @${coord.x},${coord.z}`;
 };
 
 const loadoutEl = document.getElementById('loadout');
