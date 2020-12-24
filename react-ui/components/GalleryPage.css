@@ -1,5 +1,5 @@
 & {
-    
+    overflow-x: hidden;
 }
 
 .header {
@@ -215,8 +215,154 @@
     flex-wrap: wrap;
 }
 
-@media (max-width: 1500px) { 
-    .headerCardItem:nth-child(even) {
+@media (max-width: 1590px) { 
+
+    .headerCardItem:nth-child(1) {
         display: none;
     } 
-  }
+
+    .featureNameImg {
+        position: relative;
+        bottom: 3px;
+        width: 48em;
+        object-fit: fill;
+        
+    }
+
+    .featureNameValue {
+        bottom: 9px;
+    }
+
+}
+
+@media (max-width: 1260px) {
+
+    .headerMainContent {
+        
+    }
+
+    .headerCardsTitle {
+        height: 1.5em;
+    }
+
+    .featureNameImg {
+        position: relative;
+        bottom: 10px;
+        width: 30em;
+        object-fit: fill;  
+    }
+
+    .featureNameValue {
+        font-size: 1.5em;
+        bottom: -2px;
+    }
+
+    .headerCardItem:nth-child(2) {
+        display: none;
+    } 
+}
+
+@media (max-width: 950px) {
+
+    .headerCardsMain {
+        margin-right: 0;
+    }
+
+}
+
+@media (max-width: 830px) {
+
+    .headerCardItem:nth-child(3) {
+        display: none;
+    } 
+
+}
+
+@media (max-width: 570px) {
+
+    .headerTitle {
+        font-size: 1.5em;
+    }
+
+    .headerTitleValue {
+            left: 2em;
+    }
+
+    .headerTitleImg {
+            width: 13em;
+    }
+
+    .headerMain {
+        height: 29em; 
+    }
+
+    .featureNameImg {
+        position: relative;
+        bottom: 12px;
+        width: 25em;
+        object-fit: fill;
+    }
+
+    .featureNameValue {
+        font-size: 1.3em;
+        bottom: 2px;
+    }
+
+    .headerMainVisite {
+        width: 20em;
+        top: 26em;
+    }
+
+    .headerCards {
+        height: 29em;
+    }
+
+    .headerMainContent {
+        height: 29em;
+    }
+
+    .homespaceBannerImage {
+        height: 29em;
+    }
+
+    .homespaceBannerImage img {
+
+    }
+
+    .homespaceBannerImage::after {
+
+    }
+
+    .headerMainContent {
+    }
+
+   .avatar {
+        width: 23em;
+        height: 23em;
+   }
+
+   .avatarImageBackground {
+        width: 23em;
+        height: 23em;
+   }
+
+   .avatarImage {
+        width: 23em;
+        height: 23em;
+   }
+
+   .avatarIconsCaurousel {
+        width: 20em;
+        bottom: 3em;
+   }
+
+   .iconsCaurouselItem {
+       width: 2.8em;
+       height: 2.8em;
+   }
+
+   .avatarIconsCaurousel span {
+       padding-top: 1.5em;
+   }
+
+}

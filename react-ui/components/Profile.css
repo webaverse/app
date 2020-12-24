@@ -134,6 +134,12 @@
     justify-content: flex-start;
 }
 
+.profileBodyAssets {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
 .profileBodyClear {
     flex-basis: 1em;
     flex-grow: 1;
