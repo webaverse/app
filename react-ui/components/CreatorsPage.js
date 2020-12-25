@@ -12,6 +12,7 @@ const CreatorsPage = () => {
   const {state, dispatch} = useContext(Context);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const headerTitleImg = window.locationSubdirectory + "/images/Gallery_Subheader_Background.svg";
 
   useEffect(() => {
     console.log("Rendering creators");
@@ -23,6 +24,10 @@ const CreatorsPage = () => {
     <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
     ${state.creators[currentPage] && html`
      <div className="${styles} creatorsPage">
+        <div className=" creatorTitle">
+          <span className="creatorTitleValue">CREATORS</span>
+          <img className="creatorTitleImg" src="${headerTitleImg}" />
+        </div>
         ${state.creators[currentPage].map(creator => html`
           <${CreatorCard}
               key="${creator.address}"

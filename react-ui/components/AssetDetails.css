@@ -178,7 +178,7 @@
 .accordionTitleValue {
     color: white;
     text-transform: uppercase;
-    font-size: 17px;
+    font-size: 1em;
     font-weight: 400;
 }
 
@@ -238,4 +238,59 @@
     width: 2em;
     height: 2em;
     background-color: #FF7043;
+}
+
+@media (max-width: 749px) {
+
+    .assetDetailsRightColumn {
+        font-size: 0.9em;
+    }
+
+    .sellInputLine {
+        height: 2em;
+    }
+
+    .sellInputLine input {
+        width: 2.5em;
+        height: 1.3em;
+        border-radius: 3px;
+    }
+
+    .sellInputLine span {
+
+    }
+
+    .sellInputLine>div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+}
+@media (max-width: 584px) {
+
+    .assetDetailsRightColumn {
+        font-size: 0.6em;
+    }
+
+    .sellInputLine {
+        height: 1.7em;
+    }
+    
+    .sellInputLine input {
+        width: 2em;
+        height: 1.3em;
+        border-radius: 2px;
+    }
+    
+    .sellInputLine span {
+
+    }
+
+    .sellInputLine>div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
 }
