@@ -80,7 +80,8 @@ const Profile = (props) => {
   //             <span className="profileLoadout"><a href="#">Loadout</a></span>
   // console.log(state?.creatorProfiles?.[creatorAddress]?.address === state.address)
 
-
+console.log(state.creatorInventories[creatorAddress]?.[currentPage].length)
+console.log(typeof(currentPage))
   return html`
     <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
     ${creatorAddress && state.creatorProfiles[creatorAddress] && html`
@@ -107,17 +108,17 @@ const Profile = (props) => {
             <div className="profileBodyNav">
               <div className="profileBodyNavContainer">
                 ${storeAssets.length > 0 && html`
-                  <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onsale' ? 'active' : ''}' to='${window.locationSubdirectory}/creator/${creatorAddress}/booth'>For Sale</${Link}>
+                  <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onsale' ? 'active disable' : ''}' to='${window.locationSubdirectory}/creator/${creatorAddress}/booth'>For Sale</${Link}>
                   `}
-                  <${Link} className='profileNavLink ${view === undefined || view === 'inventory' ? 'active' : ''}' to='${window.locationSubdirectory}/creator/${creatorAddress}/inventory'>Inventory</${Link}>
+                  <${Link} className='profileNavLink ${view === undefined || view === 'inventory' ? 'active disable' : ''}' to='${window.locationSubdirectory}/creator/${creatorAddress}/inventory'>Inventory</${Link}>
               </div>
             </div>
             <div className="profileBodyAssets">
             ${view === 'booth' || view === 'store' || view === 'onsale' ? html`
               <${AssetCardGrid} data=${storeAssets} cardSize='medium' />
-            ` : state.creatorInventories[creatorAddress] !== undefined ? html`
+            ` : state.creatorInventories[creatorAddress]?.[currentPage].length > 0 ? html`
               <${AssetCardGrid} data=${state.creatorInventories[creatorAddress][currentPage]} cardSize='medium' />
-            ` : state.creatorInventories[creatorAddress] === undefined || state.creatorInventories[creatorAddress][currentPage].length === 0 && html `
+            ` : state.creatorInventories[creatorAddress] === undefined || state.creatorInventories[creatorAddress]?.[currentPage].length === 0 && html `
               <p>Your inventory is empty</p>
             `}
             </div>
