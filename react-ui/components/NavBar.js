@@ -119,7 +119,7 @@ const NavBarUserLoginForm = () => {
         </div>
       `}
       </div>
-      <button className="submit loginFormDiscordButton ${!state?.loginToken?.unregistered ? 'hidden' : ''}" href=${discordOauthUrl}>Log In with Discord</button >
+      <a className="submit loginFormDiscordButton ${!state?.loginToken?.unregistered ? 'hidden' : ''}" href=${discordOauthUrl}>Log In with Discord</a>
       <${Link} to='${window.locationSubdirectory}/settings' className="formBtnSettings ${state?.loginToken?.unregistered ? 'hidden' : ''}">Account Settings</${Link} >
       <button className="submit formBtnLogout ${state?.loginToken?.unregistered ? 'hidden' : ''}" type="submit" onClick="${handleLogout}">Logout</button>
     </div>
