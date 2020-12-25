@@ -3,10 +3,13 @@ import { PageRouter } from './components/PageRouter.js';
 import ActionTypes from './constants/ActionTypes.js';
 import { Context } from './constants/Context.js';
 import { InitialStateValues } from './constants/InitialStateValues.js';
-import { clearInventroryForCreator, getBoothForCreator, getBooths, getCreators, getInventoryForCreator, getProfileForCreator, initializeStart, loginWithEmailCode, loginWithEmailOrPrivateKey, logout } from './functions/UIStateFunctions.js';
+import { clearInventroryForCreator, getBoothForCreator, getBooths, getCreators, getInventoryForCreator, getProfileForCreator, initializeStart, loginWithEmailCode, loginWithEmailOrPrivateKey, logout, setMainnetAddress } from './functions/UIStateFunctions.js';
 import htm from './web_modules/htm.js';
+import { EthereumManagerFactory } from "./classes/EthereumManager.js";
 
 window.html = htm.bind(React.createElement);
+
+
 
 const Application = () => {
   const [state, dispatch] = useReducer((state, action) => {
@@ -72,6 +75,12 @@ const Application = () => {
         });
         return state;
 
+      case ActionTypes.ConnectMainnetWallet:
+        setMainnetAddress(action.payload.address, state).then(newState => {
+          dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
+        });
+        return state;
+
       case ActionTypes.UpdateInventory:
         // TODO: Update inventory
         clearInventroryForCreator(action.payload.address,
@@ -91,6 +100,12 @@ const Application = () => {
   window.dispatch = dispatch;
   window.state = state;
   const [initState, setInitState] = useState(false);
+
+  const handleEthereumAddressChange = (address) =>
+    dispatch( { type: ActionTypes.ConnectMainnetWallet, payload: { address }});
+
+  // Create an instance of the ethereum manager that can be called from window.ethereumManager or EthereumManager.instance
+  window.ethereumManager = EthereumManagerFactory(handleEthereumAddressChange);
 
   useEffect(() => {
     window.dispatch = dispatch;

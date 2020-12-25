@@ -320,6 +320,12 @@ img:not([src]) {
   visibility: hidden;
 }
 
+.early-access-label {
+  padding: 3px;
+  background-color: #000;
+  color: #FFF;
+}
+
 .selections {
   display: flex;
   position: absolute;
@@ -2175,8 +2181,7 @@ footer {
 }
 .loadout .item .label {
   display: flex;
-  margin: 0 auto;
-  margin-top: 5px;
+  margin: 5px auto;
   justify-content: center;
   align-items: center;
   width: 20px;

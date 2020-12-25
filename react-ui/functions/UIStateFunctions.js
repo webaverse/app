@@ -185,3 +185,6 @@ export const initializeStart = async (state) => {
 };
 
 
+export const setMainnetAddress = async (mainnetAddress, state) => {
+  return { ...state, mainnetAddress }
+}
