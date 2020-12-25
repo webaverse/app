@@ -1,4 +1,4 @@
-import { React, useContext, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { React, useContext, useState, useEffect } from 'https://unpkg.com/es-react@16.13.1/dev';
 import { Context } from '../constants/Context.js';
 import htm from '../web_modules/htm.js';
 import AssetCard from './AssetCard.js';
@@ -48,6 +48,13 @@ export const AssetDetails = ({
     const [toggleTransferToOpen, setToggleTransferToOpen] = useState(false);
     const [toggleDropdownConfirmOpen, setToggleDropdownConfirmOpen] = useState(false);
     const [quantity, setQuantity] = useState(1);
+    const [calculatedCardSize, setCalculatedCardSize] = useState(CardSize.Large)
+
+    useEffect(() => {
+        document.documentElement.clientWidth < 585 ? setCalculatedCardSize(CardSize.Small) :
+        document.documentElement.clientWidth < 750 ? setCalculatedCardSize(CardSize.Medium) : 
+                                                     setCalculatedCardSize(CardSize.Large)
+    },  [document.documentElement.clientWidth])
 
     // Do you own this asset?
     console.log("Owner address is", ownerAddress);
@@ -190,7 +197,7 @@ export const AssetDetails = ({
                         minterAvatarPreview=${minterAvatarPreview}
                         minterUsername=${minterUsername}
                         minterAddress=${minterAddress}
-                        cardSize=${CardSize.Large}
+                        cardSize=${calculatedCardSize}
                         networkType='webaverse'
                     /> 
                 </div>
