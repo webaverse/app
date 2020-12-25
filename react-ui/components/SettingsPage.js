@@ -18,7 +18,7 @@ const SettingsPage = () => {
   const [toggleDepositWithdrawOpen, setToggleDepositWithdrawOpen] = useState(false)
   const [toggleDisconnectOpen, setToggleDisconnectOpen] = useState(false)
   const [toggleConnectMetamaskOpen, setToggleConnectMetamaskOpen] = useState(false)
-  const [toggleSingOutSwitchOpen, setToggleSingOutSwitchOpen] = useState(false)
+  const [toggleSignOutSwitchOpen, setToggleSignOutSwitchOpen] = useState(false)
   const [toggleAccountDeleteOpen, setToggleAccountDeleteOpen] = useState(false)
   const [toggleEditNameOpen, setToggleEditNameOpen] = useState(false)
 
@@ -77,8 +77,8 @@ const SettingsPage = () => {
     setToggleConnectMetamaskOpen(!toggleConnectMetamaskOpen)
   }
 
-  const toggleSingOutSwitch = () => {
-    setToggleSingOutSwitchOpen(!toggleSingOutSwitchOpen)
+  const toggleSignOutSwitch = () => {
+    setToggleSignOutSwitchOpen(!toggleSignOutSwitchOpen)
   }
 
   const toggleAccountDelete = () => {
@@ -197,29 +197,29 @@ const SettingsPage = () => {
           <div className="settingsBoxHeader accountActionsHeader">
             <span className="settingsBoxHeaderTitle accountActionsTitle">Account Actions</span>
           </div>
-          <div className="settingsBoxAccordionItem accountActionsSingOutSwitch">
-            <div className="accordionTitle" onClick=${toggleSingOutSwitch}>
+          <div className="settingsBoxAccordionItem accountActionsSignOutSwitch">
+            <div className="accordionTitle" onClick=${toggleSignOutSwitch}>
               <span className="accordionTitleValue">Sign Out / Switch to Anonymous Account</span>
-              <span className="accordionIcon ${toggleSingOutSwitchOpen ? 'reverse' : ''}"></span>
+              <span className="accordionIcon ${toggleSignOutSwitchOpen ? 'reverse' : ''}"></span>
             </div>
-            ${toggleSingOutSwitchOpen && html`
-            <div className="accordionDropdown accountActionsSingOutDropdown">
+            ${toggleSignOutSwitchOpen && html`
+            <div className="accordionDropdown accountActionsSignOutDropdown">
               <div className="buttonContainer">
-                <button className="submit settingsBoxButton singOutButton" onClick=${() => console.log('sing Out')}>Sing Out</button>
+                <button className="submit settingsBoxButton signOutButton" onClick=${() => console.log('sign Out')}>Sign Out</button>
               </div>
             </div>
             `}
           </div>
           
-          <div className="settingsBoxAccordionItem accountActionsSingOutSwitch">
+          <div className="settingsBoxAccordionItem accountActionsSignOutSwitch">
             <div className="accordionTitle" onClick=${toggleAccountDelete}>
               <span className="accordionTitleValue">Delete Account</span>
               <span className="accordionIcon ${toggleAccountDeleteOpen ? 'reverse' : ''}"></span>
             </div>
             ${toggleAccountDeleteOpen && html`
-            <div className="accordionDropdown accountActionsSingOutDropdown">
+            <div className="accordionDropdown accountActionsSignOutDropdown">
               <div className="buttonContainer">
-                <button className="submit settingsBoxButton singOutButton" onClick=${() => console.log('Account Deleted')}>Delete</button>
+                <button className="submit settingsBoxButton signOutButton" onClick=${() => console.log('Account Deleted')}>Delete</button>
               </div>
             </div>
             `}
