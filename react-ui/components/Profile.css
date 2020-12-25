@@ -181,3 +181,8 @@
 .profileBodyAssets {
 
 }
+
+.disable {
+    pointer-events: none;
+    cursor: default;
+}

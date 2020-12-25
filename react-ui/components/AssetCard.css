@@ -195,13 +195,15 @@ img {
 .lowerCardInfoMiddle {
     display: flex;
     justify-content: center;
+    align-items: center;
     background: white;
+    height: 6.5em;
 }
 
 .assetDescription {
-    width: 80%;
-    height: 6em;
-    padding: 1.4em 2em 2em 2em;
+    width: 100%;
+    /* height: 9.4em; */
+    /* padding: 1.4em 2em 2em 2em; */
     background: white;
     font-size: .7em;
     font-weight: 300;
@@ -530,24 +532,26 @@ img {
 }
 
 .lowerCardInfoMiddle.large {
-
+    height: 10em;
 }
 
+.lowerCardInfoMiddle.small {
+    height: 5em;
+}
 
 .assetDescription.small {
     height: 5em;
     font-size: 0.6em;
+    display: none;
 }
 
 .assetDescription.medium {
-
+    
 }
 
 .assetDescription.large {
-    height: 10em;
     font-size: 0.8em;
     font-weight: 400;
-    padding-top: 2.5em;
 }
 
 
@@ -565,7 +569,7 @@ img {
 
 .assetHash.small {
     font-size: 0.1em;
-    display:none;
+    display: none;
 }
 
 .assetHash.medium {
