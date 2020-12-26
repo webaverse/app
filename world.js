@@ -809,19 +809,6 @@ world.addEventListener('trackedobjectadd', async e => {
       const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
       token = await res.json();
       const {hash, filename} = token.properties;
-      /* const contractSource = await getContractSource('getNft.cdc');
-
-      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-        method: 'POST',
-        body: JSON.stringify({
-          limit: 100,
-          script: contractSource
-            .replace(/ARG0/g, contentId),
-          wait: true,
-        }),
-      });
-      const response2 = await res.json();
-      const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value); */
 
       const res2 = await fetch(`${storageHost}/${hash.slice(2)}`);
       const file = await res2.blob();
