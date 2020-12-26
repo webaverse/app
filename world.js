@@ -808,11 +808,11 @@ world.addEventListener('trackedobjectadd', async e => {
     if (typeof contentId === 'number') {
       const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
       token = await res.json();
-      const {hash, filename} = token.properties;
+      const {hash, name, ext} = token.properties;
 
       const res2 = await fetch(`${storageHost}/${hash.slice(2)}`);
       const file = await res2.blob();
-      file.name = filename;
+      file.name = `${name}.${ext}`;
       return file;
     } else if (typeof contentId === 'string') {
       let url, name;
