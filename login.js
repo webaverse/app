@@ -1,7 +1,7 @@
 import storage from './storage.js';
 // import {createAccount, getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
 // import * as blockchain from './blockchain.js';
-import {storageHost, previewHost, tokensHost, loginEndpoint, previewExt} from './constants.js';
+import {storageHost, previewHost, accountsHost, tokensHost, loginEndpoint, previewExt} from './constants.js';
 import {getExt} from './util.js';
 import Web3 from './web3.min.js';
 import bip39 from './bip39.js';
@@ -21,7 +21,7 @@ let loginToken = null;
 let userObject = null;
 async function pullUserObject() {
   const address = getAddressFromMnemonic(loginToken.mnemonic);
-  const res = await fetch(`https://accounts.webaverse.com/${address}`);
+  const res = await fetch(`${accountsHost}/${address}`);
   const result = await res.json();
   // console.log('pull user object', result);
   let {name, avatarUrl, avatarFileName, avatarPreview, loadout, homeSpaceUrl, homeSpaceFileName, homeSpacePreview, ftu} = result;
