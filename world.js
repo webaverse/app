@@ -21,6 +21,7 @@ import {
 
   storageHost,
   worldsHost,
+  tokensHost,
 } from './constants.js';
 import {makePromise, getRandomString} from './util.js';
 // import * as THREE from './three.module.js';
@@ -806,7 +807,7 @@ world.addEventListener('trackedobjectadd', async e => {
 
   const file = await (async () => {
     if (typeof contentId === 'number') {
-      const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
+      const res = await fetch(`${tokensHost}/${contentId}`);
       token = await res.json();
       const {hash, name, ext} = token.properties;
 
