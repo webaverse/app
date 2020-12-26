@@ -574,7 +574,7 @@ class LoginManager extends EventTarget {
     }
   }
 
-  async uploadFile(file) {
+  async uploadFile(file, {description = ''} = {}) {
     if (loginToken) {
       const {name} = file;
       if (name) {
@@ -607,7 +607,6 @@ class LoginManager extends EventTarget {
         } finally {
           notifications.removeNotification(notification);
         }
-        const description = '';
         const quantity = 1;
         const fullAmount = {
           t: 'uint256',
