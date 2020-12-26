@@ -8,7 +8,7 @@ import runtime from './runtime.js';
 import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
-import { pointers } from './web-monetization.js';
+import {pointers} from './web-monetization.js';
 import {appManager, scene, scene3} from './app-object.js';
 import {
   PARCEL_SIZE,
