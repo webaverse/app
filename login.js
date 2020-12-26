@@ -638,7 +638,10 @@ class LoginManager extends EventTarget {
             id = -1;
           }
           if (status) {
-            const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, name, description, quantity);
+            const extName = getExt(name);
+            const fileName = name.slice(0, -(extName.length + 1));
+            console.log('minting', ['NFT', 'mint', address, '0x' + hash, fileName, extName, description, quantity]);
+            const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, fileName, extName, description, quantity);
             status = result.status;
             transactionHash = result.transactionHash;
             id = new web3['sidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
