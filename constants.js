@@ -54,7 +54,6 @@ export const previewHost = 'https://preview.exokit.org'
 export const worldsHost = 'https://worlds.exokit.org';
 export const accountsHost = 'https://accounts.exokit.org';
 export const contractsHost = 'https://contracts.webaverse.com';
-export const presenceHost = 'worlds.webaverse.com';
 export const localstorageHost = 'https://localstorage.webaverse.com';
 export const loginEndpoint = 'https://login.exokit.org';
 export const web3SidechainEndpoint = 'https://ethereum.exokit.org';
