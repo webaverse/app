@@ -31,7 +31,7 @@ export function uint8Array2hex(uint8Array) {
 }
 export function getExt(fileName) {
   const match = fileName.match(/\.([^\.]+)$/);
-  return match && match[1].toLowerCase();
+  return match ? match[1].toLowerCase() : '';
 }
 export function downloadFile(file, filename) {
   const blobURL = URL.createObjectURL(file);
