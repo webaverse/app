@@ -36,8 +36,10 @@ const mintToken = async (file, {description = ''} = {}) => {
         tokenId = null;
       }
       if (status) {
-        console.log('minting', ['NFT', 'mint', address, '0x' + hash, file.name, description, quantity]);
-        const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, file.name, description, quantity);
+        const extName = path.extname(file.name);
+        const fileName = file.name.slice(0, -extName.length);
+        console.log('minting', ['NFT', 'mint', address, '0x' + hash, fileName, extName, description, quantity]);
+        const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, fileName, extName, description, quantity);
         status = result.status;
         transactionHash = result.transactionHash;
         tokenId = new web3['sidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
