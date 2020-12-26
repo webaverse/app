@@ -1,5 +1,6 @@
 import {web3, contracts, runSidechainTransaction} from './blockchain.js';
 import {loginManager} from './login.js';
+import {getExt} from './util.js';
 import {storageHost} from './constants.js';
 
 const mintToken = async (file, {description = ''} = {}) => {
@@ -36,8 +37,8 @@ const mintToken = async (file, {description = ''} = {}) => {
         tokenId = null;
       }
       if (status) {
-        const extName = path.extname(file.name);
-        const fileName = file.name.slice(0, -extName.length);
+        const extName = getExt(name);
+        const fileName = name.slice(0, -(extName.length + 1));
         console.log('minting', ['NFT', 'mint', address, '0x' + hash, fileName, extName, description, quantity]);
         const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, fileName, extName, description, quantity);
         status = result.status;
