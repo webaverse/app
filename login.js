@@ -27,23 +27,6 @@ async function pullUserObject() {
   let {name, avatarUrl, avatarFileName, avatarPreview, loadout, homeSpaceUrl, homeSpaceFileName, homeSpacePreview, ftu} = result;
   loadout = jsonParse(loadout, Array(8).fill(null));
 
-  /* const {web3} = await blockchain.load();
-  const contractSource = await getContractSource('getUserData.cdc');
-
-  const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-    method: 'POST',
-    body: JSON.stringify({
-      limit: 100,
-      script: contractSource.replace(/ARG0/g, '0x' + loginToken.addr),
-      wait: true,
-    }),
-  });
-  const response = await res.json();
-  const name = response.encodedData.value[0].value ? response.encodedData.value[0].value.value : 'Anonymous';
-  const avatarUrl = response.encodedData.value[1].value && response.encodedData.value[1].value.value;
-  const avatarFileName = response.encodedData.value[2].value && response.encodedData.value[2].value.value;
-  const avatarPreview = response.encodedData.value[3].value && response.encodedData.value[3].value.value;
-  const ftu = !!(response.encodedData.value[4].value && response.encodedData.value[4].value.value); */
   userObject = {
     name,
     avatar: {
