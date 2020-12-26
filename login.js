@@ -1,7 +1,7 @@
 import storage from './storage.js';
 // import {createAccount, getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
 // import * as blockchain from './blockchain.js';
-import {storageHost, previewHost, loginEndpoint, previewExt} from './constants.js';
+import {storageHost, previewHost, tokensHost, loginEndpoint, previewExt} from './constants.js';
 import {getExt} from './util.js';
 import Web3 from './web3.min.js';
 import bip39 from './bip39.js';
@@ -413,7 +413,7 @@ class LoginManager extends EventTarget {
   async setAvatar(id) {
     if (loginToken) {
       // const {mnemonic} = loginToken;
-      const res = await fetch(`https://tokens.webaverse.com/${id}`);
+      const res = await fetch(`${tokensHost}/${id}`);
       const token = await res.json();
       const {filename, hash} = token.properties;
       /* const {filename, hash} = await (async () => {
@@ -543,7 +543,7 @@ class LoginManager extends EventTarget {
   async getInventory() {
     if (loginToken) {
       const address = this.getAddress();
-      const res = await fetch(`https://tokens.webaverse.com/${address}`);
+      const res = await fetch(`${tokensHost}/${address}`);
       const tokens = await res.json();
       /* const contractSource = await getContractSource('getHashes.cdc');
 
