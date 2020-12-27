@@ -398,7 +398,7 @@ class LoginManager extends EventTarget {
       // const {mnemonic} = loginToken;
       const res = await fetch(`${tokensHost}/${id}`);
       const token = await res.json();
-      const {filename, hash} = token.properties;
+      const {name, ext, hash} = token.properties;
       /* const {filename, hash} = await (async () => {
         const contractSource = await getContractSource('getNft.cdc');
 
@@ -415,13 +415,13 @@ class LoginManager extends EventTarget {
         const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
         return {hash, filename};
       })(); */
-      const url = `${storageHost}/${hash.slice(2)}`;
-      const ext = getExt(filename);
-      const preview = `${previewHost}/${hash.slice(2)}.${ext}/preview.${previewExt}`;
+      // const url = `${storageHost}/${hash}`;
+      const preview = `${previewHost}/${hash}.${ext}/preview.${previewExt}`;
       const address = this.getAddress();
       await Promise.all([
-        runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarUrl', url),
-        runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarFileName', filename),
+        runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarId', id),
+        runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarName', name),
+        runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarExt', ext),
         runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarPreview', preview),
       ]);
       /* {
@@ -460,14 +460,18 @@ class LoginManager extends EventTarget {
     return !!(userObject && userObject.ftu);
   }
 
-  async setFtu(name, avatarUrl) {
+  async setFtu(name, avatarId) {
     const address = this.getAddress();
+    const res = await fetch(`${tokensHost}/${avatarId}`);
+    const token = await res.json();
+    const {name: avatarName, ext: avatarExt, hash} = token.properties;
     const avatarPreview = `${previewHost}/[${avatarUrl}]/preview.${previewExt}`;
 
     await Promise.all([
       runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'name', name),
-      runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarUrl', avatarUrl),
-      runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarFileName', avatarUrl),
+      runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarId', avatarId),
+      runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarName', avatarName),
+      runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarExt', avatarExt),
       runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarPreview', avatarPreview),
       runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'ftu', '1'),
     ]);
