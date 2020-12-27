@@ -423,23 +423,6 @@ class LoginManager extends EventTarget {
       runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarPreview', avatarPreview),
       runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'ftu', '1'),
     ]);
-    // console.log('wrote all tx');
-    /* const contractSource = await getContractSource('setUserDataMulti.cdc');
-
-    const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-      method: 'POST',
-      body: JSON.stringify({
-        address: loginToken.addr,
-        mnemonic: loginToken.mnemonic,
-
-        limit: 100,
-        transaction: contractSource
-          .replace(/ARG0/g, JSON.stringify(['name', 'avatarUrl', 'avatarFilename', 'avatarPreview', 'ftu']))
-          .replace(/ARG1/g, JSON.stringify([name, avatarUrl, avatarUrl, avatarPreview, '1'])),
-        wait: true,
-      }),
-    });
-    const response2 = await res.json(); */
 
     this.dispatchEvent(new MessageEvent('usernamechange', {
       data: name,
