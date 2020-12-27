@@ -8,7 +8,7 @@ import runtime from './runtime.js';
 import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
-import { pointers } from './web-monetization.js';
+import {pointers} from './web-monetization.js';
 import {appManager, scene, scene3} from './app-object.js';
 import {
   PARCEL_SIZE,
@@ -21,6 +21,7 @@ import {
 
   storageHost,
   worldsHost,
+  tokensHost,
 } from './constants.js';
 import {makePromise, getRandomString} from './util.js';
 // import * as THREE from './three.module.js';
@@ -806,26 +807,13 @@ world.addEventListener('trackedobjectadd', async e => {
 
   const file = await (async () => {
     if (typeof contentId === 'number') {
-      const res = await fetch(`https://tokens.webaverse.com/${contentId}`);
+      const res = await fetch(`${tokensHost}/${contentId}`);
       token = await res.json();
-      const {hash, filename} = token.properties;
-      /* const contractSource = await getContractSource('getNft.cdc');
-
-      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-        method: 'POST',
-        body: JSON.stringify({
-          limit: 100,
-          script: contractSource
-            .replace(/ARG0/g, contentId),
-          wait: true,
-        }),
-      });
-      const response2 = await res.json();
-      const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value); */
+      const {hash, name, ext} = token.properties;
 
       const res2 = await fetch(`${storageHost}/${hash.slice(2)}`);
       const file = await res2.blob();
-      file.name = filename;
+      file.name = `${name}.${ext}`;
       return file;
     } else if (typeof contentId === 'string') {
       let url, name;

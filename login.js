@@ -1,7 +1,7 @@
 import storage from './storage.js';
 // import {createAccount, getContractSource, hexToWordList, wordListToHex} from './blockchain.js';
 // import * as blockchain from './blockchain.js';
-import {storageHost, previewHost, loginEndpoint, previewExt} from './constants.js';
+import {storageHost, previewHost, accountsHost, tokensHost, loginEndpoint, previewExt} from './constants.js';
 import {getExt} from './util.js';
 import Web3 from './web3.min.js';
 import bip39 from './bip39.js';
@@ -21,29 +21,12 @@ let loginToken = null;
 let userObject = null;
 async function pullUserObject() {
   const address = getAddressFromMnemonic(loginToken.mnemonic);
-  const res = await fetch(`https://accounts.webaverse.com/${address}`);
+  const res = await fetch(`${accountsHost}/${address}`);
   const result = await res.json();
   // console.log('pull user object', result);
   let {name, avatarUrl, avatarFileName, avatarPreview, loadout, homeSpaceUrl, homeSpaceFileName, homeSpacePreview, ftu} = result;
   loadout = jsonParse(loadout, Array(8).fill(null));
 
-  /* const {web3} = await blockchain.load();
-  const contractSource = await getContractSource('getUserData.cdc');
-
-  const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-    method: 'POST',
-    body: JSON.stringify({
-      limit: 100,
-      script: contractSource.replace(/ARG0/g, '0x' + loginToken.addr),
-      wait: true,
-    }),
-  });
-  const response = await res.json();
-  const name = response.encodedData.value[0].value ? response.encodedData.value[0].value.value : 'Anonymous';
-  const avatarUrl = response.encodedData.value[1].value && response.encodedData.value[1].value.value;
-  const avatarFileName = response.encodedData.value[2].value && response.encodedData.value[2].value.value;
-  const avatarPreview = response.encodedData.value[3].value && response.encodedData.value[3].value.value;
-  const ftu = !!(response.encodedData.value[4].value && response.encodedData.value[4].value.value); */
   userObject = {
     name,
     avatar: {
@@ -413,7 +396,7 @@ class LoginManager extends EventTarget {
   async setAvatar(id) {
     if (loginToken) {
       // const {mnemonic} = loginToken;
-      const res = await fetch(`https://tokens.webaverse.com/${id}`);
+      const res = await fetch(`${tokensHost}/${id}`);
       const token = await res.json();
       const {filename, hash} = token.properties;
       /* const {filename, hash} = await (async () => {
@@ -543,7 +526,7 @@ class LoginManager extends EventTarget {
   async getInventory() {
     if (loginToken) {
       const address = this.getAddress();
-      const res = await fetch(`https://tokens.webaverse.com/${address}`);
+      const res = await fetch(`${tokensHost}/${address}`);
       const tokens = await res.json();
       /* const contractSource = await getContractSource('getHashes.cdc');
 
@@ -574,7 +557,7 @@ class LoginManager extends EventTarget {
     }
   }
 
-  async uploadFile(file) {
+  async uploadFile(file, {description = ''} = {}) {
     if (loginToken) {
       const {name} = file;
       if (name) {
@@ -607,7 +590,6 @@ class LoginManager extends EventTarget {
         } finally {
           notifications.removeNotification(notification);
         }
-        const description = '';
         const quantity = 1;
         const fullAmount = {
           t: 'uint256',
@@ -638,7 +620,10 @@ class LoginManager extends EventTarget {
             id = -1;
           }
           if (status) {
-            const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, name, description, quantity);
+            const extName = getExt(name);
+            const fileName = extName ? name.slice(0, -(extName.length + 1)) : name;
+            console.log('minting', ['NFT', 'mint', address, '0x' + hash, fileName, extName, description, quantity]);
+            const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, fileName, extName, description, quantity);
             status = result.status;
             transactionHash = result.transactionHash;
             id = new web3['sidechain'].utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
