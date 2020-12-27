@@ -310,11 +310,10 @@ const _click = () => {
   }
 };
 
-const _equip = () => {
+const _equip = async () => {
   if (highlightedObject) {
-    const url = highlightedObject.contentId;
-    const filename = highlightedObject.contentId;
-    rigManager.setLocalAvatarUrl(url, filename);
+    const {contentId} = highlightedObject;
+    await loginManager.setAvatar(contentId);
   }
 };
 
