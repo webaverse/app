@@ -1,4 +1,4 @@
-export const PARCEL_SIZE = 300;
+/* export const PARCEL_SIZE = 300;
 export const SUBPARCEL_SIZE = 10;
 export const SUBPARCEL_SIZE_P1 = SUBPARCEL_SIZE + 1;
 export const SUBPARCEL_SIZE_P3 = SUBPARCEL_SIZE + 3;
@@ -46,13 +46,13 @@ export const colors = [
   'bdbdbd',
   '78909c',
   '333333',
-];
+]; */
 export const previewExt = 'jpg';
 
-export const storageHost = 'https://storage.exokit.org';
+export const storageHost = 'https://ipfs.exokit.org';
 export const previewHost = 'https://preview.exokit.org'
 export const worldsHost = 'https://worlds.exokit.org';
-export const accountsHost = 'https://accounts.exokit.org';
+export const accountsHost = 'https://accounts.webaverse.com';
 export const contractsHost = 'https://contracts.webaverse.com';
 export const localstorageHost = 'https://localstorage.webaverse.com';
 export const loginEndpoint = 'https://login.exokit.org';

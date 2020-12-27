@@ -9,7 +9,7 @@ import {renderer, scene, camera} from './app-object.js';
 import {WaitQueue} from './util.js';
 import {loginManager} from './login.js';
 import {world} from './world.js';
-import {colors, storageHost} from './constants.js';
+import {/*colors, */storageHost} from './constants.js';
 
 const uiManager = new EventTarget();
 

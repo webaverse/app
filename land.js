@@ -1,8 +1,5 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
-import {
-  SUBPARCEL_SIZE,
-} from './constants.js';
 
 const wallGeometry = (() => {
   const panelGeometries = [];

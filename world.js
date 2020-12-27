@@ -11,13 +11,13 @@ import minimap from './minimap.js';
 import {pointers} from './web-monetization.js';
 import {appManager, scene, scene3} from './app-object.js';
 import {
-  PARCEL_SIZE,
+  /* PARCEL_SIZE,
   SUBPARCEL_SIZE,
   SUBPARCEL_SIZE_P1,
   SUBPARCEL_SIZE_P3,
   MAX_NAME_LENGTH,
   PLANET_OBJECT_SLOTS,
-  PLANET_OBJECT_SIZE,
+  PLANET_OBJECT_SIZE, */
 
   storageHost,
   worldsHost,
@@ -392,7 +392,7 @@ const _align4 = n => {
   const d = n % 4;
   return d ? (n + (4 - d)) : n;
 };
-Subparcel.offsets = (() => {
+/* Subparcel.offsets = (() => {
   let index = 0;
 
   const xyzi = index;
@@ -424,7 +424,7 @@ Subparcel.offsets = (() => {
     objects,
     initialLength,
   };
-})();
+})(); */
 world.Subparcel = Subparcel;
 
 /* const _loadLiveState = seedString => {
