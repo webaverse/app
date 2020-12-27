@@ -2,7 +2,7 @@ import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import geometryManager from './geometry-manager.js';
 import weaponsManager from './weapons-manager.js';
-import inventory from './inventory.js';
+// import inventory from './inventory.js';
 import runtime from './runtime.js';
 import {makeTextMesh, makePopupMesh} from './vr-ui.js';
 import {renderer, scene, camera} from './app-object.js';
@@ -385,7 +385,7 @@ geometryManager.waitForLoad().then(() => {
       });
     });
     arrayBuffer.name = 'object.glb';
-    const {hash} = await inventory.uploadFile(arrayBuffer);
+    const {hash} = await loginManager.uploadFile(arrayBuffer);
     return {mesh, hash};
   };
   /* const detailsMesh = makeDetailsMesh(weaponsManager.cubeMesh, function onrun(anchorSpec) {

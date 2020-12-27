@@ -30,7 +30,7 @@ import {storageHost} from './constants.js';
 import {renderer, scene, avatarScene, camera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
-import inventory from './inventory.js';
+// import inventory from './inventory.js';
 import minimap from './minimap.js';
 // import {getState, setState} from './state.js';
 
