@@ -6,13 +6,13 @@ import storage from './storage.js';
 import {world} from './world.js';
 import {makePromise} from './util.js';
 import {
-  PARCEL_SIZE,
+  /* PARCEL_SIZE,
   SUBPARCEL_SIZE,
   chunkDistance,
   baseHeight,
   thingTextureSize,
   objectTextureSize,
-  MAX_NAME_LENGTH,
+  MAX_NAME_LENGTH, */
 } from './constants.js';
 import {renderer, scene} from './app-object.js';
 
