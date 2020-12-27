@@ -13,6 +13,7 @@ import {buildMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 import buildTool from './build-tool.js';
+import * as notifications from './notifications.js';
 import {getExt, bindUploadFileButton} from './util.js';
 import {storageHost} from './constants.js';
 
@@ -313,7 +314,26 @@ const _click = () => {
 const _equip = async () => {
   if (highlightedObject) {
     const {contentId} = highlightedObject;
-    await loginManager.setAvatar(contentId);
+    
+    const notification = notifications.addNotification(`\
+      <i class="icon fa fa-user-ninja"></i>
+      <div class=wrap>
+        <div class=label>Getting changed</div>
+        <div class=text>
+          The system is updating your avatar...
+        </div>
+        <div class=close-button>✕</div>
+      </div>
+    `, {
+      timeout: Infinity,
+    });
+    try {
+      await loginManager.setAvatar(contentId);
+    } catch(err) {
+      console.warn(err);
+    } finally {
+      notifications.removeNotification(notification);
+    }
   }
 };
 
