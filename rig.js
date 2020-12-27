@@ -146,25 +146,8 @@ class RigManager {
         if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
           rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.filename);
           rigManager.setLocalAvatarImage(avatar.preview);
-
-          /* const {menu} = getState();
-          menu.avatarUrl = avatar.url;
-          menu.avatarFileName = avatar.filename;
-          menu.avatarPreview = avatar.preview;
-          setState({
-            menu,
-          }); */
         }
       });
-
-      /* const {menu} = getState();
-      menu.username = username;
-      menu.avatarUrl = avatar.url;
-      menu.avatarFileName = avatar.filename;
-      menu.avatarPreview = avatar.preview;
-      setState({
-        menu,
-      }); */
     };
     _bindLogin().catch(err => {
       console.warn(err);
