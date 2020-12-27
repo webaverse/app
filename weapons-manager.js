@@ -1407,7 +1407,7 @@ const itemsEls = Array.from(loadoutEl.querySelectorAll('.item'));
     const itemEl = itemsEls[i];
 
     const boxEl = itemEl.querySelector('.box');
-    boxEl.innerHTML = item ? `<img src="${item[2]}">` : '';
+    boxEl.innerHTML = item ? `<img src="${item[3]}">` : '';
   }
 })();
 
