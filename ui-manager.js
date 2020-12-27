@@ -366,7 +366,7 @@ geometryManager.waitForLoad().then(() => {
   scene.add(menuMesh);
   uiManager.menuMesh = menuMesh; */
 
-  const _bakeAndUploadComposerMesh = async () => {
+  /* const _bakeAndUploadComposerMesh = async () => {
     const mesh = meshComposer.commit();
     mesh.material = new THREE.MeshBasicMaterial({
       map: mesh.material.uniforms.map.value,
@@ -387,7 +387,7 @@ geometryManager.waitForLoad().then(() => {
     arrayBuffer.name = 'object.glb';
     const {hash} = await loginManager.uploadFile(arrayBuffer);
     return {mesh, hash};
-  };
+  }; */
   /* const detailsMesh = makeDetailsMesh(weaponsManager.cubeMesh, function onrun(anchorSpec) {
     meshComposer.run();
   }, async function onbake(anchorSpec) {
