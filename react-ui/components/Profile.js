@@ -6,7 +6,7 @@ import ActionTypes from '../constants/ActionTypes.js';
 import { EditableTextField } from './EditableTextField.js';
 import { Link } from '../web_modules/@reach/router.js';
 import { setName } from '../functions/UserFunctions.js';
-import css from '../web_modules/csz.js'
+import css from '../web_modules/csz.js';
 
 const styles = css`${window.locationSubdirectory}/components/Profile.css`
 const defaultAvatarImage = window.locationSubdirectory + "/images/defaultaccount.svg";

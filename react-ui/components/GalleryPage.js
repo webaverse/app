@@ -48,6 +48,26 @@ const GalleryPage = () => {
     dispatch({ type: ActionTypes.GetBooths, payload: { page: currentPage } });
   }, [])
 
+  const responsive = {
+    superLargeDesktop: {
+      // the naming can be any, depends on you.
+      breakpoint: { max: 4000, min: 3000 },
+      items: 5
+    },
+    desktop: {
+      breakpoint: { max: 3000, min: 1024 },
+      items: 3
+    },
+    tablet: {
+      breakpoint: { max: 1024, min: 464 },
+      items: 2
+    },
+    mobile: {
+      breakpoint: { max: 464, min: 0 },
+      items: 1
+    }
+  };
+
   return html`
     <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
     ${state.booths[currentPage] && html`
@@ -71,7 +91,7 @@ const GalleryPage = () => {
                 <img className="iconsCaurouselItem" src="${avatarPreview}" />
                 <span>+3 more</span>
               </div>
-            </div> 
+            </div>
             <div className="headerCards">
               <div className="headerCardsTitle">
                 <img className="featureNameImg" src="${featureNameBackground}" />

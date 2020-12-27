@@ -100,7 +100,28 @@ const MintingPage = () => {
 
   const handleSetDescription = (e) => setDescription(e.target.value);
 
-  
+  const tempCardData = {
+    id: 1,
+    assetName: name,
+    description: description,
+    image: imagePreview,
+    hash: '0x35ddcd7d8b66f1331f77186af17dbcf231909433',
+    ext: 'jpg',
+    totalSupply: 1,
+    numberInEdition: 1,
+    balance: 2000,
+    ownerAvatarPreview: imagePreview,
+    ownerUsername: 'Paul',
+    ownerAddress: null,
+    minterAvatarPreview: imagePreview,
+    minterAddress: null,
+    minterUsername: null,
+    cardSize: "large",
+    networkType: 'webaverse',
+    onClickFunction: null,
+  }
+
+  console.log(state)
   const MintPageHeader = () => html`
     <div className="mintPageHeader">
     <div className=" mintHeaderTitle">
@@ -149,9 +170,9 @@ const MintingPage = () => {
         </div>
         <div className="mintPageFormTwoContainer">
           <h3 className="mintNftNameLabel">Name</h3>
-          <input type="text" className="mintNftName" maxLength=24 placeholder="Name" onChange=${handleSetName} />
+          <input type="text" className="mintNftName" maxLength=24 placeholder="Name" value="${name}" onChange=${handleSetName} />
           <h3 className="mintNftNameLabel">Description</h3>
-          <textarea className="mintNftDescription scroll" rows="2" maxLength=140 placeholder="Description" onChange=${handleSetDescription} />
+          <textarea className="mintNftDescription scroll" rows="2" maxLength=140 placeholder="Description" value="${description}" onChange=${handleSetDescription} />
           <div>
             <button className="button mintPageBackButton" onClick=${backToUpload}>Upload Again</button>
             <button className="button mintPageContinueButton" onClick=${submitDetails}>Continue</button>
@@ -161,26 +182,6 @@ const MintingPage = () => {
     </div>
     `
 
-    const tempCardData = {
-      id: 1,
-      assetName: 'My Cool Item',
-      description: 'This is the first avatar I’ve uploaded to the Webaverse.',
-      image: imagePreview,
-      hash: '0x35ddcd7d8b66f1331f77186af17dbcf231909433',
-      ext: 'jpg',
-      totalSupply: 1,
-      numberInEdition: 1,
-      balance: 2000,
-      ownerAvatarPreview: imagePreview,
-      ownerUsername: 'Paul',
-      ownerAddress: null,
-      minterAvatarPreview: imagePreview,
-      minterAddress: null,
-      minterUsername: null,
-      cardSize: "large",
-      networkType: 'webaverse',
-      onClickFunction: null,
-    }
 
     const pageThree = html`
     <div className="mintPageBody">
