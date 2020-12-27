@@ -408,7 +408,9 @@ class LoginManager extends EventTarget {
     return !!(userObject && userObject.ftu);
   }
 
-  async setFtu(name, avatarId) {
+  /* async setFtu(name, avatarId) {
+    throw new Error('not debugged');
+    
     const address = this.getAddress();
     const res = await fetch(`${tokensHost}/${avatarId}`);
     const token = await res.json();
@@ -427,15 +429,17 @@ class LoginManager extends EventTarget {
     this.dispatchEvent(new MessageEvent('usernamechange', {
       data: name,
     }));
+    const url = avatarUrl;
     userObject.avatar = {
-      url: avatarUrl,
-      filename: avatarUrl,
+      id: avatarId,
+      name: avatarName,
+      ext: avatarExt,
       preview: avatarPreview,
     };
     this.dispatchEvent(new MessageEvent('avatarchange', {
       data: userObject.avatar,
     }));
-  }
+  } */
 
   /* async getBalance() {
     if (loginToken) {
