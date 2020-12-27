@@ -621,7 +621,7 @@ class LoginManager extends EventTarget {
           }
           if (status) {
             const extName = getExt(name);
-            const fileName = name.slice(0, -(extName.length + 1));
+            const fileName = extName ? name.slice(0, -(extName.length + 1)) : name;
             console.log('minting', ['NFT', 'mint', address, '0x' + hash, fileName, extName, description, quantity]);
             const result = await runSidechainTransaction(mnemonic)('NFT', 'mint', address, '0x' + hash, fileName, extName, description, quantity);
             status = result.status;
