@@ -1047,7 +1047,8 @@ const _loadGeo = async (file, opts) => {
 
 runtime.loadFile = async (file, opts) => {
   const object = await (async () => {
-    switch (getExt(file.name)) {
+    const ext = file.ext || getExt(file.name);
+    switch (ext) {
       case 'gltf':
       case 'glb': {
         return await _loadGltf(file, opts);
