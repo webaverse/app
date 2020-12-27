@@ -485,7 +485,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
       .then(() => {
         startMonetization(instanceId, monetizationPointer, ownerAddress);
       }, err => {
-        console.warn('import failed', u, err);
+        console.error('import failed', u, err);
       })
       .finally(() => {
         for (const u of cachedUrls) {
