@@ -124,12 +124,6 @@ class RigManager {
         const username = e.data || 'Anonymous';
         if (username !== rigManager.localRig.textMesh.text) {
           rigManager.setLocalAvatarName(username);
-
-          /* const {menu} = getState();
-          menu.username = username;
-          setState({
-            menu,
-          }); */
         }
       });
 
