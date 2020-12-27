@@ -395,27 +395,9 @@ class LoginManager extends EventTarget {
 
   async setAvatar(id) {
     if (loginToken) {
-      // const {mnemonic} = loginToken;
       const res = await fetch(`${tokensHost}/${id}`);
       const token = await res.json();
       const {name, ext, hash} = token.properties;
-      /* const {filename, hash} = await (async () => {
-        const contractSource = await getContractSource('getNft.cdc');
-
-        const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-          method: 'POST',
-          body: JSON.stringify({
-            limit: 100,
-            script: contractSource
-              .replace(/ARG0/g, id),
-            wait: true,
-          }),
-        });
-        const response2 = await res.json();
-        const [hash, filename] = response2.encodedData.value.map(value => value.value && value.value.value);
-        return {hash, filename};
-      })(); */
-      // const url = `${storageHost}/${hash}`;
       const preview = `${previewHost}/${hash}.${ext}/preview.${previewExt}`;
       const address = this.getAddress();
       await Promise.all([
@@ -424,30 +406,12 @@ class LoginManager extends EventTarget {
         runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarExt', ext),
         runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarPreview', preview),
       ]);
-      /* {
-        const contractSource = await getContractSource('setUserDataMulti.cdc');
 
-        const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-          method: 'POST',
-          body: JSON.stringify({
-            address: loginToken.addr,
-            mnemonic: loginToken.mnemonic,
-
-            limit: 100,
-            transaction: contractSource
-              .replace(/ARG0/g, JSON.stringify(['avatarUrl', 'avatarFilename', 'avatarPreview']))
-              .replace(/ARG1/g, JSON.stringify([url, filename, preview])),
-            wait: true,
-          }),
-        });
-        await res.json();
-      } */
       userObject.avatar = {
         url,
         filename,
         preview,
       };
-      // await pushUserObject();
       this.dispatchEvent(new MessageEvent('avatarchange', {
         data: userObject.avatar,
       }));
