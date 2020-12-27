@@ -14,6 +14,7 @@ import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 import buildTool from './build-tool.js';
 import {getExt, bindUploadFileButton} from './util.js';
+import {storageHost} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -328,7 +329,7 @@ bindUploadFileButton(uploadFileInput, async file => {
   const {name, hash, id} = await loginManager.uploadFile(file);
   console.log('uploaded', {name, hash, id});
 
-  const u = `https://storage.exokit.org/${hash}.${getExt(name)}`;
+  const u = `${storageHost}/${hash}.${getExt(name)}`;
   world.addObject(u, null, position, quaternion);
 });
 const _upload = () => {
