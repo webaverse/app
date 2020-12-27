@@ -200,22 +200,6 @@ async function tryLogin() {
       if (newUserName !== oldUserName) {
         const address = this.getAddress();
         await runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'name', name);
-        /* const contractSource = await getContractSource('setUserData.cdc');
-
-        const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-          method: 'POST',
-          body: JSON.stringify({
-            address: loginToken.addr,
-            mnemonic: loginToken.mnemonic,
-
-            limit: 100,
-            transaction: contractSource
-              .replace(/ARG0/g, 'name')
-              .replace(/ARG1/g, newUserName),
-            wait: true,
-          }),
-        });
-        const response2 = await res.json(); */
       }
     }, {
       once: true,
