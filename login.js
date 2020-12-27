@@ -17,6 +17,18 @@ import {makePromise, jsonParse} from './util.js';
 
 // const _clone = o => JSON.parse(JSON.stringify(o));
 
+async function contentIdToStorageUrl(id) {
+  if (typeof id === 'number') {
+    const res = await fetch(`${tokensHost}/${id}`);
+    const hash = await contracts['sidechain']['NFT'].getHash(id + '');
+    return `${storageHost}/${hash}`;    
+  } else if (typeof id === 'string') {
+    return id;
+  } else {
+    return null;
+  }
+}
+
 let loginToken = null;
 let userObject = null;
 async function pullUserObject() {
@@ -24,21 +36,28 @@ async function pullUserObject() {
   const res = await fetch(`${accountsHost}/${address}`);
   const result = await res.json();
   // console.log('pull user object', result);
-  let {name, avatarUrl, avatarFileName, avatarPreview, loadout, homeSpaceUrl, homeSpaceFileName, homeSpacePreview, ftu} = result;
+  let {name, avatarId, avatarName, avatarExt, avatarPreview, loadout, homeSpaceId, homeSpaceName, homeSpaceExt, homeSpaceFileName, homeSpacePreview, ftu} = result;
   loadout = jsonParse(loadout, Array(8).fill(null));
 
+  const avatarUrl = await contentIdToStorageUrl(avatarId);
+  console.log('get avatar id', avatarId, avatarUrl);
+  const homeSpaceUrl = await contentIdToStorageUrl(homeSpaceId);
   userObject = {
     name,
     avatar: {
-      url: avatarUrl,
-      filename: avatarFileName,
+      id: avatarId,
+      name: avatarName,
+      ext: avatarExt,
       preview: avatarPreview,
+      url: avatarUrl,
     },
     loadout,
     homespace: {
-      url: homeSpaceUrl,
-      filename: homeSpaceFileName,
+      id: homeSpaceId,
+      name: homeSpaceName,
+      ext: homeSpaceExt,
       preview: homeSpacePreview,
+      url: homeSpaceUrl,
     },
     ftu,
   };
@@ -379,26 +398,57 @@ class LoginManager extends EventTarget {
 
   async setAvatar(id) {
     if (loginToken) {
-      const res = await fetch(`${tokensHost}/${id}`);
-      const token = await res.json();
-      const {name, ext, hash} = token.properties;
-      const preview = `${previewHost}/${hash}.${ext}/preview.${previewExt}`;
-      const address = this.getAddress();
-      await Promise.all([
-        runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarId', id),
-        runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarName', name),
-        runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarExt', ext),
-        runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarPreview', preview),
-      ]);
+      if (typeof id === 'number') {
+        const res = await fetch(`${tokensHost}/${id}`);
+        const token = await res.json();
+        const {name, ext, hash} = token.properties;
+        const preview = `${previewHost}/${hash}.${ext}/preview.${previewExt}`;
+        const address = this.getAddress();
+        await Promise.all([
+          runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarId', id + ''),
+          runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarName', name),
+          runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarExt', ext),
+          runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarPreview', preview),
+        ]);
 
-      userObject.avatar = {
-        url,
-        filename,
-        preview,
-      };
-      this.dispatchEvent(new MessageEvent('avatarchange', {
-        data: userObject.avatar,
-      }));
+        const url = `${storageHost}/${hash}`;
+        userObject.avatar = {
+          id: id + '',
+          name,
+          ext,
+          preview,
+          url,
+        };
+        this.dispatchEvent(new MessageEvent('avatarchange', {
+          data: userObject.avatar,
+        }));
+      } else if (typeof id === 'string') {
+        const avatarUrl = id;
+        const ext = getExt(avatarUrl);
+        const name = ext ? avatarUrl.slice(0, -(ext.length + 1)) : avatarUrl;
+        const preview = `${previewHost}/[${avatarUrl}]/preview.${previewExt}`;
+        const address = this.getAddress();
+        await Promise.all([
+          runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarId', avatarUrl),
+          runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarName', name),
+          runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarExt', ext),
+          runSidechainTransaction(loginToken.mnemonic)('Account', 'setMetadata', address, 'avatarPreview', preview),
+        ]);
+
+        const url = avatarUrl;
+        userObject.avatar = {
+          id,
+          name,
+          ext,
+          preview,
+          url,
+        };
+        this.dispatchEvent(new MessageEvent('avatarchange', {
+          data: userObject.avatar,
+        }));
+      } else {
+        throw new Error('invalid avatar content id: ' + JSON.stringify(id));
+      }
     } else {
       throw new Error('not logged in');
     }
@@ -435,6 +485,7 @@ class LoginManager extends EventTarget {
       name: avatarName,
       ext: avatarExt,
       preview: avatarPreview,
+      url: avatarUrl,
     };
     this.dispatchEvent(new MessageEvent('avatarchange', {
       data: userObject.avatar,

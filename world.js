@@ -622,7 +622,7 @@ world.connectRoom = async (roomName, worldURL) => {
     });
 
     peerConnection.addEventListener('status', e => {
-      const {peerId, status: {name, avatarUrl, avatarFileName, address}} = e.data;
+      const {peerId, status: {name, avatarUrl, avatarExt, address}} = e.data;
       const peerRig = rigManager.peerRigs.get(peerId);
       peerRig.address = address;
       peerConnection.address = address;
@@ -638,7 +638,7 @@ world.connectRoom = async (roomName, worldURL) => {
       const newAvatarUrl = avatarUrl || null;
       const currentAvatarUrl = peerRig.avatarUrl;
       if (currentAvatarUrl !== newAvatarUrl) {
-        rigManager.setPeerAvatarUrl(newAvatarUrl, avatarFileName, peerId);
+        rigManager.setPeerAvatarUrl(newAvatarUrl, avatarExt, peerId);
         updated = true;
       }
 
@@ -683,7 +683,7 @@ world.connectRoom = async (roomName, worldURL) => {
         const name = loginManager.getUsername();
         const avatarSpec = loginManager.getAvatar();
         const avatarUrl = avatarSpec && avatarSpec.url;
-        const avatarFileName = avatarSpec && avatarSpec.filename;
+        const avatarExt = avatarSpec && avatarSpec.ext;
         const address = loginManager.getAddress();
         channelConnection.send(JSON.stringify({
           method: 'status',
@@ -692,7 +692,7 @@ world.connectRoom = async (roomName, worldURL) => {
             status: {
               name,
               avatarUrl,
-              avatarFileName,
+              avatarExt,
               address
             },
           },

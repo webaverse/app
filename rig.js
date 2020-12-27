@@ -129,16 +129,17 @@ class RigManager {
 
       const avatar = loginManager.getAvatar();
       if (avatar.url) {
-        rigManager.setLocalAvatarUrl(avatar.url, avatar.filename);
+        rigManager.setLocalAvatarUrl(avatar.url, avatar.ext);
       }
       if (avatar.preview) {
         rigManager.setLocalAvatarImage(avatar.preview);
       }
       loginManager.addEventListener('avatarchange', e => {
         const avatar = e.data;
+        // console.log('got avatar', avatar);
         const newAvatarUrl = avatar ? avatar.url : null;
         if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
-          rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.filename);
+          rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.ext);
           rigManager.setLocalAvatarImage(avatar.preview);
         }
       });
@@ -190,17 +191,17 @@ class RigManager {
     this.localRig.textMesh.add(avatarMesh);
   }
 
-  async setLocalAvatarUrl(url, filename) {
+  async setLocalAvatarUrl(url, ext) {
     // await this.localRigQueue.lock();
 
     await this.setAvatar(this.localRig, newLocalRig => {
       this.localRig = newLocalRig;
-    }, url, filename);
+    }, url, ext);
 
     // await this.localRigQueue.unlock();
   }
 
-  async setAvatar(oldRig, setRig, url, filename) {
+  async setAvatar(oldRig, setRig, url, ext) {
     if (oldRig.url !== url) {
       oldRig.url = url;
 
@@ -208,7 +209,7 @@ class RigManager {
       if (url) {
         o = await runtime.loadFile({
           url,
-          name: filename,
+          ext,
         });
         o.run && o.run();
       }
@@ -295,13 +296,13 @@ class RigManager {
     peerRig.textMesh.sync();
   }
 
-  async setPeerAvatarUrl(url, filename, peerId) {
+  async setPeerAvatarUrl(url, ext, peerId) {
     // await this.peerRigQueue.lock();
 
     const oldPeerRig = this.peerRigs.get(peerId);
     await this.setAvatar(oldPeerRig, newPeerRig => {
       this.peerRigs.set(peerId, newPeerRig);
-    }, url, filename);
+    }, url, ext);
 
     // await this.peerRigQueue.unlock();
   }
