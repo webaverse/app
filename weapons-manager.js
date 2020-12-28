@@ -785,8 +785,8 @@ const _updateWeapons = timeDiff => {
 const popoverMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), new THREE.MeshBasicMaterial({
   color: 0x000000,
 }));
-popoverMesh.width = 800;
-popoverMesh.height = 300;
+popoverMesh.width = 1200;
+popoverMesh.height = 400;
 popoverMesh.position.z = -1;
 popoverMesh.target = new THREE.Object3D();
 popoverMesh.target.position.set(0, 3, -1);
@@ -829,7 +829,12 @@ const _updatePopover = () => {
     const {x, y} = toScreenPosition(popoverMesh.target, camera);
     popoverMesh.position.x = -1 + x/(window.innerWidth*window.devicePixelRatio)*2;
     popoverMesh.position.y = 1 - y/(window.innerHeight*window.devicePixelRatio)*2;
+    const distance = popoverMesh.position.distanceTo(camera.position);
+    const maxDistance = 5;
     popoverMesh.scale.set(popoverMesh.width/(window.innerWidth*window.devicePixelRatio), popoverMesh.height/(window.innerHeight*window.devicePixelRatio), 1);
+    if (distance > maxDistance) {
+      popoverMesh.scale.multiplyScalar(1 / (distance - maxDistance + 1));
+    }
     popoverMesh.visible = true;
   } else {
     popoverMesh.visible = false;
