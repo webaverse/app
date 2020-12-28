@@ -546,7 +546,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     }
   };
   const _mapScript = async (script, scriptUrl) => {
-    const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
+    // const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
+    const r = /(import(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);$/gm;
     const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
       let u = match[2];
       if (/^\.+\//.test(u)) {
