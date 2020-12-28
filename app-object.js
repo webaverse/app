@@ -23,6 +23,8 @@ renderer.sortObjects = false;
 // renderer.physicallyCorrectLights = true;
 // renderer.shadowMap.enabled = true;
 // renderer.shadowMap.type = THREE.PCFShadowMap;
+const gl = renderer.getContext();
+gl.enable(gl.SAMPLE_ALPHA_TO_COVERAGE);
 renderer.xr.enabled = true;
 
 const scene = new THREE.Scene();
