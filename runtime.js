@@ -460,14 +460,14 @@ const _makeAppUrl = appId => {
       recursion++;
       if (recursion === 1) {
         scene.directionalLight.castShadow = false;
-        rigManager.localRig.model.visible = true;
+        rig.localRig.model.visible = true;
       }
     };
     app.onAfterRender = () => {
       recursion--;
       if (recursion === 0) {
         scene.directionalLight.castShadow = true;
-        rigManager.localRig.model.visible = false;
+        rig.localRig.model.visible = false;
       }
     };
     export {renderer, scene, camera, runtime, world, physics, ui, crypto, rig, app, appManager};
