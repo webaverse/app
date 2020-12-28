@@ -785,8 +785,32 @@ const popoverMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), new THRE
   color: 0x000000,
 }));
 popoverMesh.position.z = -1;
+popoverMesh.target = new THREE.Object3D();
+popoverMesh.target.position.set(0, 1, -1);
 orthographicScene.add(popoverMesh);
+const context = renderer.getContext();
+function toScreenPosition(obj, camera) {
+  var vector = new THREE.Vector3();
+
+  var widthHalf = 0.5*context.canvas.width;
+  var heightHalf = 0.5*context.canvas.height;
+
+  obj.updateMatrixWorld();
+  vector.setFromMatrixPosition(obj.matrixWorld);
+  vector.project(camera);
+
+  vector.x = ( vector.x * widthHalf ) + widthHalf;
+  vector.y = - ( vector.y * heightHalf ) + heightHalf;
+
+  return { 
+    x: vector.x,
+    y: vector.y
+  };
+}
 const _updatePopover = () => {
+  const {x, y} = toScreenPosition(popoverMesh.target, camera);
+  popoverMesh.position.x = -1 + x/(window.innerWidth*window.devicePixelRatio)*2;
+  popoverMesh.position.y = 1 - y/(window.innerHeight*window.devicePixelRatio)*2;
   popoverMesh.scale.set(800/(window.innerWidth*window.devicePixelRatio), 400/(window.innerHeight*window.devicePixelRatio), 1);
 };
 
