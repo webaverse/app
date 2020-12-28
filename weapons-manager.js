@@ -11,7 +11,7 @@ import * as universe from './universe.js';
 import {rigManager} from './rig.js';
 import {buildMaterial} from './shaders.js';
 import {teleportMeshes} from './teleport.js';
-import {appManager, renderer, scene, camera, dolly} from './app-object.js';
+import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
 import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
 import {getExt, bindUploadFileButton} from './util.js';
@@ -777,6 +777,17 @@ const _updateWeapons = timeDiff => {
   _handleUseAnimation();
 
   crosshairEl.classList.toggle('visible', ['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getTool()) && !appManager.grabbedObjects[0]);
+  
+  _updatePopover();
+};
+
+const popoverMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), new THREE.MeshBasicMaterial({
+  color: 0x000000,
+}));
+popoverMesh.position.z = -1;
+orthographicScene.add(popoverMesh);
+const _updatePopover = () => {
+  popoverMesh.scale.set(800/(window.innerWidth*window.devicePixelRatio), 400/(window.innerHeight*window.devicePixelRatio), 1);
 };
 
 /* renderer.domElement.addEventListener('wheel', e => {
