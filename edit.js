@@ -27,7 +27,7 @@ import * as universe from './universe.js';
 // import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
-import {renderer, scene, avatarScene, camera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
+import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
 // import inventory from './inventory.js';
@@ -1116,6 +1116,7 @@ function animate(timestamp, frame) {
   scene.add(rigManager.localRig.model);
   rigManager.localRig.model.visible = false;
   renderer.render(scene, camera);
+  renderer.render(orthographicScene, orthographicCamera);
   // local avatar render
   {
     rigManager.localRig.model.visible = true;
