@@ -10,6 +10,7 @@ import {world} from './world.js';
 import * as universe from './universe.js';
 import {rigManager} from './rig.js';
 import {buildMaterial} from './shaders.js';
+import {makeTextMesh} from './vr-ui.js';
 import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
 import buildTool from './build-tool.js';
@@ -784,9 +785,19 @@ const _updateWeapons = timeDiff => {
 const popoverMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), new THREE.MeshBasicMaterial({
   color: 0x000000,
 }));
+popoverMesh.width = 800;
+popoverMesh.height = 300;
 popoverMesh.position.z = -1;
 popoverMesh.target = new THREE.Object3D();
-popoverMesh.target.position.set(0, 1, -1);
+popoverMesh.target.position.set(0, 3, -1);
+popoverMesh.textMesh = (() => {
+  const textMesh = makeTextMesh('This is your mirror. Take a look at yourself!', undefined, 0.3, 'center', 'middle');
+  textMesh.position.z = 0.1;
+  textMesh.scale.x = popoverMesh.height/popoverMesh.width;
+  textMesh.color = 0xFFFFFF;
+  return textMesh;
+})();
+popoverMesh.add(popoverMesh.textMesh);
 orthographicScene.add(popoverMesh);
 const context = renderer.getContext();
 function toScreenPosition(obj, camera) {
@@ -811,7 +822,7 @@ const _updatePopover = () => {
   const {x, y} = toScreenPosition(popoverMesh.target, camera);
   popoverMesh.position.x = -1 + x/(window.innerWidth*window.devicePixelRatio)*2;
   popoverMesh.position.y = 1 - y/(window.innerHeight*window.devicePixelRatio)*2;
-  popoverMesh.scale.set(800/(window.innerWidth*window.devicePixelRatio), 400/(window.innerHeight*window.devicePixelRatio), 1);
+  popoverMesh.scale.set(popoverMesh.width/(window.innerWidth*window.devicePixelRatio), popoverMesh.height/(window.innerHeight*window.devicePixelRatio), 1);
 };
 
 /* renderer.domElement.addEventListener('wheel', e => {
