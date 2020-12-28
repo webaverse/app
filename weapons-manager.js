@@ -819,10 +819,21 @@ function toScreenPosition(obj, camera) {
   };
 }
 const _updatePopover = () => {
-  const {x, y} = toScreenPosition(popoverMesh.target, camera);
-  popoverMesh.position.x = -1 + x/(window.innerWidth*window.devicePixelRatio)*2;
-  popoverMesh.position.y = 1 - y/(window.innerHeight*window.devicePixelRatio)*2;
-  popoverMesh.scale.set(popoverMesh.width/(window.innerWidth*window.devicePixelRatio), popoverMesh.height/(window.innerHeight*window.devicePixelRatio), 1);
+  const n = localVector.set(0, 0, -1)
+    .applyQuaternion(camera.quaternion)
+    .dot(
+      localVector2.copy(popoverMesh.target.position)
+        .sub(camera.position)
+    );
+  if (n > 0) {
+    const {x, y} = toScreenPosition(popoverMesh.target, camera);
+    popoverMesh.position.x = -1 + x/(window.innerWidth*window.devicePixelRatio)*2;
+    popoverMesh.position.y = 1 - y/(window.innerHeight*window.devicePixelRatio)*2;
+    popoverMesh.scale.set(popoverMesh.width/(window.innerWidth*window.devicePixelRatio), popoverMesh.height/(window.innerHeight*window.devicePixelRatio), 1);
+    popoverMesh.visible = true;
+  } else {
+    popoverMesh.visible = false;
+  }
 };
 
 /* renderer.domElement.addEventListener('wheel', e => {
