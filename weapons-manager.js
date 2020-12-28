@@ -572,6 +572,7 @@ const _updateWeapons = timeDiff => {
       }
 
       highlightPhysicsMesh.position.copy(highlightedPhysicsObject.position);
+      highlightPhysicsMesh.quaternion.copy(highlightedPhysicsObject.quaternion);
       highlightPhysicsMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
       highlightPhysicsMesh.material.uniforms.uTime.needsUpdate = true;
       highlightPhysicsMesh.visible = true;
