@@ -381,7 +381,7 @@ const _makeAppUrl = appId => {
     import runtime from ${JSON.stringify(importMap.runtime)};
     import {world} from ${JSON.stringify(importMap.world)};
     import _physics from ${JSON.stringify(importMap.physicsManager)};
-    import {rigManager} from ${JSON.stringify(importMap.rig)};
+    import {rigManager as rig} from ${JSON.stringify(importMap.rig)};
     import * as ui from ${JSON.stringify(importMap.vrUi)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
 
@@ -470,7 +470,7 @@ const _makeAppUrl = appId => {
         rigManager.localRig.model.visible = false;
       }
     };
-    export {renderer, scene, camera, runtime, world, physics, ui, crypto, app, appManager};
+    export {renderer, scene, camera, runtime, world, physics, ui, crypto, rig, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
