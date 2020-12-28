@@ -788,7 +788,7 @@ const popoverMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), new THRE
 }));
 popoverMesh.width = 800;
 popoverMesh.height = 300;
-popoverMesh.position.z = -1;
+popoverMesh.position.z = -2;
 popoverMesh.target = new THREE.Object3D();
 popoverMesh.target.position.set(0, 3, -1);
 popoverMesh.textMesh = (() => {
