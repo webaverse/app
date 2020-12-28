@@ -142,7 +142,7 @@ const worldObjects = universeSpecs.parcels.map(spec => {
   guardianMesh.worldObject = worldObject;
   scene.add(guardianMesh);
 
-  const labelMesh = _makeLabelMesh('Erithor');
+  const labelMesh = _makeLabelMesh(spec.name);
   labelMesh.position.x = (spec.extents[0]+spec.extents[3])/2;
   labelMesh.position.y = spec.extents[4] + 1;
   labelMesh.position.z = (spec.extents[2]+spec.extents[5])/2;
