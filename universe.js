@@ -27,6 +27,10 @@ const universeSpecs = {
       position: [0, 0, 0],
       start_url: 'https://webaverse.github.io/street/index.js',
     },
+    {
+      position: [0, 0, 0],
+      start_url: './skybox/index.js',
+    },
     /* {
       position: [0, 0, -1],
       start_url: 'https://avaer.github.io/mirror/index.js',
