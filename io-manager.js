@@ -236,7 +236,7 @@ const _updateIoPost = () => {
 ioManager.updatePost = _updateIoPost;
 
 window.addEventListener('keydown', e => {
-  if (e.repeat) {
+  if (_inputFocused() || e.repeat) {
     return;
   }
   switch (e.which) {
