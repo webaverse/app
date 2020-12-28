@@ -251,9 +251,6 @@ const loadDefaultWorld = () => {
   }
 };
 const update = () => {
-  skybox.position.copy(rigManager.localRig.inputs.hmd.position);
-  skybox.update();
-
   const oldWorld = highlightedWorld;
 
   const _parseParcelSpec = spec => localBox.set(localVector.fromArray(spec.extents, 0), localVector2.fromArray(spec.extents, 3));
