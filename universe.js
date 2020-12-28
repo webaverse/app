@@ -54,13 +54,22 @@ const universeSpecs = {
     position: [0, 0, 0],
     start_url: './home.scn',
   },
-  parcels: [{
-  	name: 'Erithor',
-    extents: [
-      0, 0, -10 - 4,
-      10, 3, -4,
-    ],
-  }],
+  parcels: [
+    {
+      name: 'Erithor',
+      extents: [
+        5, 0, -14,
+        15, 3, -4,
+      ],
+    },
+    {
+      name: 'Joy',
+      extents: [
+        5, 0, -24,
+        15, 3, -14,
+      ],
+    },
+  ],
 };
 const _makeLabelMesh = text => {
   const w = 2;
