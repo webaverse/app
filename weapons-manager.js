@@ -785,8 +785,8 @@ const _updateWeapons = timeDiff => {
 const popoverMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), new THREE.MeshBasicMaterial({
   color: 0x000000,
 }));
-popoverMesh.width = 1200;
-popoverMesh.height = 400;
+popoverMesh.width = 800;
+popoverMesh.height = 300;
 popoverMesh.position.z = -1;
 popoverMesh.target = new THREE.Object3D();
 popoverMesh.target.position.set(0, 3, -1);
