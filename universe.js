@@ -56,7 +56,7 @@ const universeSpecs = {
     {
       position: [-13, 0, 0],
       quaternion: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0)).toArray(),
-      start_url: 'https://webaverse.github.io/assets/homespace.glb',
+      start_url: 'https://webaverse.github.io/homespace/manifest.json',
     },
   ],
   initialScene: {
