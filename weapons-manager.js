@@ -825,11 +825,11 @@ const _updatePopover = () => {
       localVector2.copy(popoverMesh.target.position)
         .sub(camera.position)
     );
-  if (n > 0) {
+  const distance = popoverMesh.position.distanceTo(camera.position);
+  if (n > 0 && distance < 10) {
     const {x, y} = toScreenPosition(popoverMesh.target, camera);
     popoverMesh.position.x = -1 + x/(window.innerWidth*window.devicePixelRatio)*2;
     popoverMesh.position.y = 1 - y/(window.innerHeight*window.devicePixelRatio)*2;
-    const distance = popoverMesh.position.distanceTo(camera.position);
     const maxDistance = 5;
     popoverMesh.scale.set(popoverMesh.width/(window.innerWidth*window.devicePixelRatio), popoverMesh.height/(window.innerHeight*window.devicePixelRatio), 1);
     if (distance > maxDistance) {
