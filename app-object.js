@@ -28,6 +28,7 @@ gl.enable(gl.SAMPLE_ALPHA_TO_COVERAGE);
 renderer.xr.enabled = true;
 
 const scene = new THREE.Scene();
+const orthographicScene = new THREE.Scene();
 const avatarScene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -45,6 +46,9 @@ dolly.position.set(epsilon, epsilon, epsilon);
 dolly.add(camera);
 dolly.add(avatarCamera);
 scene.add(dolly);
+
+const orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+scene.add(orthographicCamera);
 
 const _addDefaultLights = (scene, shadowMap) => {
   const ambientLight = new THREE.AmbientLight(0xFFFFFF);
@@ -156,4 +160,4 @@ class App extends EventTarget {
   }
 }
 
-export {renderer, scene, avatarScene, camera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager};
+export {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager};
