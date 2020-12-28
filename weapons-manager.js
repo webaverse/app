@@ -800,9 +800,7 @@ popoverMesh.textMesh = (() => {
 popoverMesh.add(popoverMesh.textMesh);
 orthographicScene.add(popoverMesh);
 const context = renderer.getContext();
-function toScreenPosition(obj, camera) {
-  var vector = new THREE.Vector3();
-
+function toScreenPosition(obj, camera, vector) {
   var widthHalf = 0.5*context.canvas.width;
   var heightHalf = 0.5*context.canvas.height;
 
@@ -813,10 +811,7 @@ function toScreenPosition(obj, camera) {
   vector.x = ( vector.x * widthHalf ) + widthHalf;
   vector.y = - ( vector.y * heightHalf ) + heightHalf;
 
-  return { 
-    x: vector.x,
-    y: vector.y
-  };
+  return vector;
 }
 const _updatePopover = () => {
   const n = localVector.set(0, 0, -1)
@@ -825,11 +820,11 @@ const _updatePopover = () => {
       localVector2.copy(popoverMesh.target.position)
         .sub(camera.position)
     );
+  toScreenPosition(popoverMesh.target, camera, localVector);
+  popoverMesh.position.x = -1 + localVector.x/(window.innerWidth*window.devicePixelRatio)*2;
+  popoverMesh.position.y = 1 - localVector.y/(window.innerHeight*window.devicePixelRatio)*2;
   const distance = popoverMesh.position.distanceTo(camera.position);
   if (n > 0 && distance < 10) {
-    const {x, y} = toScreenPosition(popoverMesh.target, camera);
-    popoverMesh.position.x = -1 + x/(window.innerWidth*window.devicePixelRatio)*2;
-    popoverMesh.position.y = 1 - y/(window.innerHeight*window.devicePixelRatio)*2;
     const maxDistance = 5;
     popoverMesh.scale.set(popoverMesh.width/(window.innerWidth*window.devicePixelRatio), popoverMesh.height/(window.innerHeight*window.devicePixelRatio), 1);
     if (distance > maxDistance) {
