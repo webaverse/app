@@ -29,7 +29,7 @@ const universeSpecs = {
     },
     {
       position: [0, 0, 0],
-      start_url: './skybox/index.js',
+      start_url: 'https://webaverse.github.io/skybox/index.js',
     },
     /* {
       position: [0, 0, -1],
