@@ -28,7 +28,7 @@ const universeSpecs = {
       start_url: 'https://webaverse.github.io/street/index.js',
     },
     {
-      position: [-40, 15, -30],
+      position: [-20, 30, -30],
       start_url: 'https://avaer.github.io/land/index.js',
     },
     {
@@ -40,18 +40,23 @@ const universeSpecs = {
       start_url: 'https://avaer.github.io/mirror/index.js',
     },
     {
-      position: [-10, 0, -10],
+      position: [-10, 0, -30],
       start_url: 'https://avaer.github.io/shield/index.js',
     },
     {
       position: [4, 0, 1],
-      quaternion: [0, 0.7071067811865475, 0, 0.7071067811865476],
+      quaternion: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0)).toArray(),
       start_url: 'https://avatar-models.exokit.org/model43.vrm',
     },
     {
       position: [4, 0, 2],
-      quaternion: [0, 0.7071067811865475, 0, 0.7071067811865476],
+      quaternion: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0)).toArray(),
       start_url: 'https://webaverse.github.io/assets/male.vrm',
+    },
+    {
+      position: [-13, 0, 0],
+      quaternion: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0)).toArray(),
+      start_url: 'https://webaverse.github.io/assets/homespace.glb',
     },
   ],
   initialScene: {
