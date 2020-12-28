@@ -395,11 +395,11 @@ window.addEventListener('keydown', e => {
       break;
     }
     case 84: { // T
-      if (!_inputFocused()) {
+      // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
         document.getElementById('key-t').click();
-      }
+      // }
       break;
     }
     case 85: { // U
