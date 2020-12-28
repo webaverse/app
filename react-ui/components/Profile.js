@@ -5,8 +5,10 @@ import { Context } from '../constants/Context.js';
 import ActionTypes from '../constants/ActionTypes.js';
 import { EditableTextField } from './EditableTextField.js';
 import { Link } from '../web_modules/@reach/router.js';
-import { setName } from '../functions/UserFunctions.js';
-import css from '../web_modules/csz.js'
+import { setName } from '../functions/Functions.js';
+import css from '../web_modules/csz.js';
+
+const ITEMS_PER_PAGE = 30;
 
 const styles = css`${window.locationSubdirectory}/components/Profile.css`
 const defaultAvatarImage = window.locationSubdirectory + "/images/defaultaccount.svg";
@@ -21,6 +23,8 @@ const Profile = (props) => {
   const { state, dispatch } = useContext(Context);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const [loadoutAssets, setLoadoutAssets] = useState([]);
+
   const [homespacePreview, setHomespacePreview] = useState(defaultHomespacePreview);
   const [avatarPreview, setAvatarPreview] = useState(defaultAvatarImage);
 
@@ -28,10 +32,9 @@ const Profile = (props) => {
   const [ storeAssets, setStoreAssets ] = useState([]);
 
   useEffect(() => {
-    dispatch({ type: ActionTypes.GetProfileForCreator, payload: { address: creatorAddress } });
+    dispatch({ type: ActionTypes.GetProfileForCreator, payload: { address: creatorAddress, page: currentPage } });
     const waitForResponse = setInterval(() => {
-      if(state.creatorProfiles[creatorAddress] === undefined || state.creatorInventories[creatorAddress] === undefined) return;
-      
+      if(state.creatorProfiles[creatorAddress] === undefined || state.creatorInventories[creatorAddress]?.[currentPage] === undefined) return;
       clearInterval(waitForResponse);
 
       const avatarPreviewCandidate = creatorAddress.toLowerCase() === state.address.toLowerCase() ? state.avatarPreview : state.creatorProfiles[creatorAddress].avatarPreview;
@@ -49,16 +52,29 @@ const Profile = (props) => {
       console.log("Booths are ", state.creatorBooths);
 
       const newStoreAssets = state.creatorBooths[creatorAddress][currentPage];
-      console.log(newStoreAssets);
-      console.log(state);
-      setStoreAssets(newStoreAssets);
-      if((view === undefined || view === null || view === "") && newStoreAssets.length > 0) {
-        if(state?.creatorProfiles?.[creatorAddress]?.address === state?.address) {
-          setView('inventory')
-        } else
-        setView('booth')
-      };
 
+      // Get IDs of items in loadout
+      let ids = []
+      const loadout = state.loadouts[creatorAddress];
+
+      loadout.forEach(loadoutItem => {
+        ids.push(loadoutItem.id);
+      })
+
+        console.log("************ IDS ARE");
+        console.log(ids);
+
+      // Get an array of assets that are in inventory but id of loadout
+
+      // Set loadout state
+
+
+
+      
+      setStoreAssets(newStoreAssets);
+      if(view === undefined || view === null || view === "") {
+          setView('loadout')
+      }
     }, 100)
   }, [])
 
@@ -80,7 +96,9 @@ const Profile = (props) => {
   //             <span className="profileLoadout"><a href="#">Loadout</a></span>
   // console.log(state?.creatorProfiles?.[creatorAddress]?.address === state.address)
 
-console.log(state.creatorInventories[creatorAddress]?.[currentPage].length)
+
+
+console.log(state.creatorInventories[creatorAddress]?.[currentPage]?.length)
 console.log(typeof(currentPage))
   return html`
     <${React.Suspense} fallback=${html`<div>Loading...</div>`}>
@@ -107,6 +125,7 @@ console.log(typeof(currentPage))
           <div className="profileBody">
             <div className="profileBodyNav">
               <div className="profileBodyNavContainer">
+              <${Link} className='profileNavLink ${view === 'loadout' ? 'active disable' : ''}' to='${window.locationSubdirectory}/creator/${creatorAddress}/loadout'>Loadout</${Link}>
                 ${storeAssets.length > 0 && html`
                   <${Link} className='profileNavLink ${view === 'booth' || view === 'store' || view === 'onsale' ? 'active disable' : ''}' to='${window.locationSubdirectory}/creator/${creatorAddress}/booth'>For Sale</${Link}>
                   `}
@@ -114,12 +133,14 @@ console.log(typeof(currentPage))
               </div>
             </div>
             <div className="profileBodyAssets">
-            ${view === 'booth' || view === 'store' || view === 'onsale' ? html`
+            ${/* LOADOUT VIEW */ view === 'loadout' ? html`
+            <${AssetCardGrid} data=${state.loadouts[creatorAddress]} cardSize='medium' />
+            ` : /* FOR SALE VIEW */ view === 'booth' || view === 'store' || view === 'onsale' ? html`
               <${AssetCardGrid} data=${storeAssets} cardSize='medium' />
-            ` : state.creatorInventories[creatorAddress]?.[currentPage].length > 0 ? html`
-              <${AssetCardGrid} data=${state.creatorInventories[creatorAddress][currentPage]} cardSize='medium' />
+            ` : /* INVENTORY VIEW */ state.creatorInventories[creatorAddress]?.[currentPage]?.length > 0 ? html`
+              <${AssetCardGrid} data=${state.creatorInventories[creatorAddress]?.[currentPage]} cardSize='medium' />
             ` : state.creatorInventories[creatorAddress] === undefined || state.creatorInventories[creatorAddress]?.[currentPage].length === 0 && html `
-              <p>Your inventory is empty</p>
+              <p>Inventory is empty</p>
             `}
             </div>
           </div>

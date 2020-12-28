@@ -1,14 +1,14 @@
 import { React, useState, useEffect } from 'https://unpkg.com/es-react@16.13.1/dev';
 import htm from '../web_modules/htm.js';
-import AssetCard from './AssetCard.js'
-import AssetDetails from './AssetDetails.js'
+import LoadoutItem from './LoadoutItem.js'
+import Loadout from './Loadout.js'
 
 const html = htm.bind(React.createElement)
 import css from '../web_modules/csz.js'
 
-const styles = css`${window.locationSubdirectory}/components/AssetCardGrid.css`
+const styles = css`${window.locationSubdirectory}/components/LoadoutItemGrid.css`
 
-const AssetCardGrid = ({
+const Loadout = ({
   data,
   cardSize
 }) => {
@@ -26,16 +26,16 @@ const AssetCardGrid = ({
   }
 
   useEffect(() => {
-    if(currentAsset === null) return
     console.log("**** Current asset is", currentAsset);
     console.log("Address is", currentAsset.id);
+    if(currentAsset === null) return
   }, [currentAsset])
 
 
     return html`
     <div className="${styles} ${cardSize}">
     ${currentAsset !== null && html`
-          <${AssetDetails}
+          <${Loadout}
             id=${currentAsset?.id}
             key=${currentAsset?.id}
             name=${currentAsset?.name}
@@ -59,7 +59,7 @@ const AssetCardGrid = ({
           />
       `}
         ${data?.map(asset => html`
-          <${AssetCard}
+          <${LoadoutItem}
               key=${asset?.properties?.hash}
               id=${asset?.id}
               assetName=${asset?.name}
@@ -87,5 +87,5 @@ const AssetCardGrid = ({
     `
   };
 
-  export default AssetCardGrid;
+  export default LoadoutItemGrid;
 

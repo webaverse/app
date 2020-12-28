@@ -1,15 +1,13 @@
 import { React, ReactDOM, useEffect, useReducer, useState } from 'https://unpkg.com/es-react@16.13.1/dev';
+import { EthereumManagerFactory } from "./classes/EthereumManager.js";
 import { PageRouter } from './components/PageRouter.js';
 import ActionTypes from './constants/ActionTypes.js';
 import { Context } from './constants/Context.js';
 import { InitialStateValues } from './constants/InitialStateValues.js';
-import { clearInventroryForCreator, getBoothForCreator, getBooths, getCreators, getInventoryForCreator, getProfileForCreator, initializeStart, loginWithEmailCode, loginWithEmailOrPrivateKey, logout, setMainnetAddress } from './functions/UIStateFunctions.js';
+import { addToLoadout, clearInventroryForCreator, getBoothForCreator, getBooths, getCreators, getInventoryForCreator, getProfileForCreator, initializeStart, loginWithEmailCode, loginWithEmailOrPrivateKey, logout, setMainnetAddress } from './functions/Functions.js';
 import htm from './web_modules/htm.js';
-import { EthereumManagerFactory } from "./classes/EthereumManager.js";
 
 window.html = htm.bind(React.createElement);
-
-
 
 const Application = () => {
   const [state, dispatch] = useReducer((state, action) => {
@@ -25,7 +23,7 @@ const Application = () => {
         return state;
 
       case ActionTypes.GetProfileForCreator:
-        getProfileForCreator(action.payload.address, state).then(newState => {
+        getProfileForCreator(action.payload.address, action.payload.successCallback, action.payload.errorCallback, state).then(newState => {
           dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
         });
         return state;
@@ -80,6 +78,12 @@ const Application = () => {
           dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
         });
         return state;
+
+        case ActionTypes.AddToLoadout:
+          addToLoadout(action.payload.id, state).then(newState => {
+            dispatch({ type: ActionTypes.ReturnAsyncState, payload: { state: newState } });
+          });
+          return state;
 
       case ActionTypes.UpdateInventory:
         // TODO: Update inventory

@@ -3,7 +3,7 @@ import { Context } from '../constants/Context.js';
 import htm from '../web_modules/htm.js';
 import css from '../web_modules/csz.js';
 import ActionTypes from '../constants/ActionTypes.js';
-import { mintNft } from '../functions/AssetFunctions.js';
+import { mintNft } from '../functions/Functions.js';
 import Card  from './AssetCard.js'
 
 const styles = css`${window.locationSubdirectory}/components/MintPage.css`

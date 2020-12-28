@@ -3,7 +3,7 @@ import { Context } from '../constants/Context.js';
 import htm from '../web_modules/htm.js';
 import AssetCard from './AssetCard.js';
 import CardSize from '../constants/CardSize.js';
-import { setAvatar, setHomespace, depositAsset, cancelSale, sellAsset, buyAsset } from '../functions/AssetFunctions.js'
+import { setAvatar, setHomespace, depositAsset, cancelSale, sellAsset, buyAsset, addToLoadout } from '../functions/Functions.js'
 
 const html = htm.bind(React.createElement)
 import css from '../web_modules/csz.js';
@@ -62,7 +62,7 @@ export const AssetDetails = ({
 
     console.log("State address is", state.address);
 
-    const userOwnsThisAsset = ownerAddress.toLowerCase() === state.address.toLowerCase();
+    const userOwnsThisAsset = ownerAddress?.toLowerCase() === state.address.toLowerCase();
 
     // Did you create this asset?
     const userCreatedThisAsset = minterAddress.toLowerCase() === state.address.toLowerCase();
@@ -83,15 +83,15 @@ export const AssetDetails = ({
         setHomespace(id, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
     }
 
-    // const addToLoadout = (e) => {
-    //     e.preventDefault();
-    //     addToLoadout(id, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
-    // }
+    const handleAddToLoadout = (e) => {
+        e.preventDefault();
+        dispatch({type: ActionTypes.AddToLoadout, payload: { id }})
+    }
 
-    // const removeFromLoadout = (e) => {
-    //     e.preventDefault();
-    //     removeFromLoadout(id, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
-    // }
+    const removeFromLoadout = (e) => {
+        e.preventDefault();
+        removeFromLoadout(id, () => console.log("Changed homespace to ", id), (err) => console.log("Failed to change homespace", err));
+    }
 
     const handleDeposit = (e) => {
         e.preventDefault();
@@ -209,7 +209,7 @@ export const AssetDetails = ({
                         <div className="detailsBlock detailsBlockSet">
                             <button className="assetDetailsButton" onClick=${handleSetAvatar}>Set As Avatar</button>
                             <button className="assetDetailsButton" onClick=${handleSetHomespace}>Set As Homespace</button>
-                            <button className="assetDetailsButton" onClick=${() => console.log('addToLoadout')}>Add To Loadout</button>
+                            <button className="assetDetailsButton" onClick=${handleAddToLoadout}>Add To Loadout</button>
                         </div>
                         `}
                         
@@ -326,7 +326,7 @@ export const AssetDetails = ({
                         `}
                     ` : html`
                     ${/* USER DOES NOT OWN THIS ASSET */ ''}
-                            ${isForSale ? html`
+                            ${isForSale && buyPrice !== undefined && buyPrice !== null && buyPrice !== "" ? html`
                             <div className="detailsBlock detailsBlockOnSale">
                                 <div className="Accordion">
                                     <div className="accordionTitle" onClick=${toggleOnSale}>

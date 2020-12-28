@@ -1,4 +1,3 @@
-
 export const InitialStateValues = {
   useWebXR: false,
   loginToken: null,
@@ -21,6 +20,7 @@ export const InitialStateValues = {
   creatorBooths: {},
   creators: {},
   booths: {},
+  loadouts: {},
   lastFileHash: null,
   lastFileId: null
 };
