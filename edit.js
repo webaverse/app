@@ -24,7 +24,7 @@ import {makePromise} from './util.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 // import {Bot} from './bot.js';
-import {Sky} from './Sky.js';
+// import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
 import {renderer, scene, avatarScene, camera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
@@ -58,7 +58,7 @@ const localMatrix3 = new THREE.Matrix4();
 const localRay = new THREE.Ray();
 const localTriangle = new THREE.Triangle();
 
-let skybox = null;
+// let skybox = null;
 let xrscenetexture = null;
 let xrsceneplane = null;
 let xrscenecam = null;
