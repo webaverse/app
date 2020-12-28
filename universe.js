@@ -26,6 +26,7 @@ const universeSpecs = {
     {
       position: [0, 0, 0],
       start_url: 'https://webaverse.github.io/street/index.js',
+    },
     {
       position: [-40, 15, -30],
       start_url: 'https://avaer.github.io/land/index.js',
