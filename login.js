@@ -19,9 +19,7 @@ import {makePromise, jsonParse} from './util.js';
 
 async function contentIdToStorageUrl(id) {
   if (typeof id === 'number') {
-    const res = await fetch(`${tokensHost}/${id}`);
-    const result = await res.json();
-    const hash = result.properties.hash;
+    const hash = await contracts['sidechain']['NFT'].methods.getHash(id + '').call();
     return `${storageHost}/${hash}`;    
   } else if (typeof id === 'string') {
     return id;
