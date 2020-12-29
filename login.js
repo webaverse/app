@@ -19,8 +19,7 @@ import {makePromise, jsonParse} from './util.js';
 
 async function contentIdToStorageUrl(id) {
   if (typeof id === 'number') {
-    const res = await fetch(`${tokensHost}/${id}`);
-    const hash = await contracts['sidechain']['NFT'].getHash(id + '');
+    const hash = await contracts['sidechain']['NFT'].methods.getHash(id + '').call();
     return `${storageHost}/${hash}`;    
   } else if (typeof id === 'string') {
     return id;
@@ -39,8 +38,7 @@ async function pullUserObject() {
   let {name, avatarId, avatarName, avatarExt, avatarPreview, loadout, homeSpaceId, homeSpaceName, homeSpaceExt, homeSpaceFileName, homeSpacePreview, ftu} = result;
   loadout = jsonParse(loadout, Array(8).fill(null));
 
-  const avatarUrl = await contentIdToStorageUrl(avatarId);
-  console.log('get avatar id', avatarId, avatarUrl);
+  const avatarUrl = await contentIdToStorageUrl(parseInt(avatarId));
   const homeSpaceUrl = await contentIdToStorageUrl(homeSpaceId);
   userObject = {
     name,
