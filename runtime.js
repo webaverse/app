@@ -145,6 +145,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   let physicsMesh = null;
   let physicsBuffer = null;
   let physicsIds = [];
+  let staticPhysicsIds = [];
   if (physics) {
     physicsMesh = convertMeshToPhysicsMesh(mesh);
   }
@@ -156,10 +157,14 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
 
   mesh.run = async () => {
     if (physicsMesh) {
-      physicsIds.push(physicsManager.addGeometry(physicsMesh));
+      const physicsId = physicsManager.addGeometry(physicsMesh);
+      physicsIds.push(physicsId);
+      staticPhysicsIds.push(physicsId);
     }
     if (physicsBuffer) {
-      physicsIds.push(physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion));
+      const physicsId = physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion);
+      physicsIds.push(physicsId);
+      staticPhysicsIds.push(physicsId);
     }
   };
   mesh.destroy = () => {
@@ -167,8 +172,10 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       physicsManager.removeGeometry(physicsId);
     }
     physicsIds.length = 0;
+    staticPhysicsIds.length = 0;
   };
   mesh.getPhysicsIds = () => physicsIds;
+  mesh.getStaticPhysicsIds = () => staticPhysicsIds;
   
   return mesh;
 
