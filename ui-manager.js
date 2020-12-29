@@ -491,10 +491,10 @@ geometryManager.waitForLoad().then(() => {
     uiManager.detailsMesh.target = mesh;
   };
 
-  uiManager.update = () => {
+  /* uiManager.update = () => {
     hpMesh.update();
     popupMesh.update();
-  };
+  }; */
 });
 
 export default uiManager;
