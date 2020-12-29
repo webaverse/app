@@ -786,13 +786,13 @@ const _updateWeapons = timeDiff => {
 const popoverMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), new THREE.MeshBasicMaterial({
   color: 0x000000,
 }));
-popoverMesh.width = 800;
-popoverMesh.height = 300;
-popoverMesh.position.z = -2;
+popoverMesh.width = 600;
+popoverMesh.height = 200;
+popoverMesh.position.z = -1; // needed for othro camera
 popoverMesh.target = new THREE.Object3D();
-popoverMesh.target.position.set(0, 3, -1);
+popoverMesh.target.position.set(0, 2.5, -2);
 popoverMesh.textMesh = (() => {
-  const textMesh = makeTextMesh('This is your mirror. Take a look at yourself!', undefined, 0.3, 'center', 'middle');
+  const textMesh = makeTextMesh('This is your mirror.\nTake a look at yourself!', undefined, 0.5, 'center', 'middle');
   textMesh.position.z = 0.1;
   textMesh.scale.x = popoverMesh.height/popoverMesh.width;
   textMesh.color = 0xFFFFFF;
@@ -825,16 +825,19 @@ const _updatePopover = () => {
   popoverMesh.position.x = -1 + localVector.x/(window.innerWidth*window.devicePixelRatio)*2;
   popoverMesh.position.y = 1 - localVector.y/(window.innerHeight*window.devicePixelRatio)*2;
   const distance = popoverMesh.position.distanceTo(camera.position);
-  if (n > 0 && distance < 10) {
-    const maxDistance = 5;
+  const maxSoftDistance = 3;
+  const maxHardDistance = 8;
+  if (n > 0 && distance < maxHardDistance) {
     const halfWidthFactor = popoverMesh.width/(window.innerWidth*window.devicePixelRatio);
     const halfHeightFactor = popoverMesh.height/(window.innerHeight*window.devicePixelRatio);
-    popoverMesh.position.x = Math.min(Math.max(popoverMesh.position.x, -0.99 + halfWidthFactor), 0.99 - halfWidthFactor);
-    popoverMesh.position.y = Math.min(Math.max(popoverMesh.position.y, -0.99 + halfHeightFactor), 0.99 - halfHeightFactor);
     popoverMesh.scale.set(popoverMesh.width/(window.innerWidth*window.devicePixelRatio), popoverMesh.height/(window.innerHeight*window.devicePixelRatio), 1);
-    if (distance > maxDistance) {
-      popoverMesh.scale.multiplyScalar(1 / (distance - maxDistance + 1));
+    if (distance > maxSoftDistance) {
+      popoverMesh.scale.multiplyScalar(1 / (distance - maxSoftDistance + 1));
     }
+    /* if (distance > maxDistance / 2) {
+      popoverMesh.position.x = Math.min(Math.max(popoverMesh.position.x, -0.99 + halfWidthFactor), 0.99 - halfWidthFactor);
+      popoverMesh.position.y = Math.min(Math.max(popoverMesh.position.y, -0.99 + halfHeightFactor), 0.99 - halfHeightFactor);
+    } */
     popoverMesh.visible = true;
   } else {
     popoverMesh.visible = false;

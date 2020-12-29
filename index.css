@@ -2138,6 +2138,7 @@ footer {
   left: 0;
   right: 0;
   z-index: 1;
+  pointer-events: none;
 }
 .helper {
   position: relative;
@@ -2145,6 +2146,7 @@ footer {
   padding-bottom: 10px;
   user-select: none;
   align-self: flex-end;
+  pointer-events: all;
 }
 .helper.left {
   padding-left: 10px;
