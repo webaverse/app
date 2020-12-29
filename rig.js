@@ -57,6 +57,7 @@ class RigManager {
       avatarMesh.position.x = -0.5;
       avatarMesh.position.y = -0.02;
       this.localRig.textMesh.add(avatarMesh);
+      this.localRig.textMesh.avatarMesh = avatarMesh;
     }
     {
       const w = 1;
@@ -166,6 +167,7 @@ class RigManager {
   setLocalAvatarImage(avatarImage) {
     if (this.localRig.textMesh.avatarMesh) {
       this.localRig.textMesh.remove(this.localRig.textMesh.avatarMesh);
+      this.localRig.textMesh.avatarMesh = null;
     }
     const geometry = new THREE.CircleBufferGeometry(0.1, 32);
     const img = new Image();
@@ -187,8 +189,8 @@ class RigManager {
     avatarMesh.position.x = -0.5;
     avatarMesh.position.y = -0.02;
 
-    this.localRig.textMesh.avatarMesh = avatarMesh;
     this.localRig.textMesh.add(avatarMesh);
+    this.localRig.textMesh.avatarMesh = avatarMesh;
   }
 
   async setLocalAvatarUrl(url, ext) {
