@@ -142,8 +142,8 @@ physicsManager.setPhysicsTransform = (physicsId, position, quaternion) => {
   
   physicsUpdates.push({
     id: physicsId,
-    position: position.clone(),
-    quaternion: quaternion.clone(),
+    position: physicsObject.position,
+    quaternion: physicsObject.quaternion,
   });
 };
 physicsManager.simulatePhysics = timeDiff => {
