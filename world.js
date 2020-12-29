@@ -750,7 +750,7 @@ world.initializeIfEmpty = spec => {
 
 const objects = [];
 world.getObjects = () => objects.slice();
-let pendingTransactionPromise = null;
+let pendingAddPromise = null;
 world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
   const instanceId = getRandomString();
   state.transact(() => {
@@ -762,10 +762,10 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
     trackedObject.set('quaternion', quaternion.toArray());
     trackedObject.set('options', JSON.stringify(options));
   });
-  if (pendingTransactionPromise) {
-    const result = pendingTransactionPromise;
-    pendingTransactionPromise = null;
-    return pendingTransactionPromise;
+  if (pendingAddPromise) {
+    const result = pendingAddPromise;
+    pendingAddPromise = null;
+    return pendingAddPromise;
   }
 };
 world.removeObject = removeInstanceId => {
@@ -806,7 +806,7 @@ world.removeObject = removeInstanceId => {
 };
 world.addEventListener('trackedobjectadd', async e => {
   const p = makePromise();
-  pendingTransactionPromise = p;
+  pendingAddPromise = p;
 
   try {
     const trackedObject = e.data;
