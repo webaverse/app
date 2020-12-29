@@ -750,9 +750,10 @@ world.initializeIfEmpty = spec => {
 
 const objects = [];
 world.getObjects = () => objects.slice();
+let pendingTransactionPromise = null;
 world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
+  const instanceId = getRandomString();
   state.transact(() => {
-    const instanceId = getRandomString();
     const trackedObject = world.getTrackedObject(instanceId);
     trackedObject.set('instanceId', instanceId);
     trackedObject.set('parentId', parentId);
@@ -761,6 +762,11 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
     trackedObject.set('quaternion', quaternion.toArray());
     trackedObject.set('options', JSON.stringify(options));
   });
+  if (pendingTransactionPromise) {
+    const result = pendingTransactionPromise;
+    pendingTransactionPromise = null;
+    return pendingTransactionPromise;
+  }
 };
 world.removeObject = removeInstanceId => {
   state.transact(() => {
@@ -799,111 +805,120 @@ world.removeObject = removeInstanceId => {
   });
 };
 world.addEventListener('trackedobjectadd', async e => {
-  const trackedObject = e.data;
-  const trackedObjectJson = trackedObject.toJSON();
-  const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
-  const options = JSON.parse(optionsString);
-  let token = null;
+  const p = makePromise();
+  pendingTransactionPromise = p;
 
-  const file = await (async () => {
-    if (typeof contentId === 'number') {
-      const res = await fetch(`${tokensHost}/${contentId}`);
-      token = await res.json();
-      const {hash, name, ext} = token.properties;
+  try {
+    const trackedObject = e.data;
+    const trackedObjectJson = trackedObject.toJSON();
+    const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
+    const options = JSON.parse(optionsString);
+    let token = null;
 
-      const res2 = await fetch(`${storageHost}/${hash.slice(2)}`);
-      const file = await res2.blob();
-      file.name = `${name}.${ext}`;
-      return file;
-    } else if (typeof contentId === 'string') {
-      let url, name;
-      if (/blob:/.test(contentId)) {
-        const match = contentId.match(/^(.+)\/([^\/]+)$/);
-        if (match) {
-          url = match[1];
-          name = match[2];
+    const file = await (async () => {
+      if (typeof contentId === 'number') {
+        const res = await fetch(`${tokensHost}/${contentId}`);
+        token = await res.json();
+        const {hash, name, ext} = token.properties;
+
+        const res2 = await fetch(`${storageHost}/${hash.slice(2)}`);
+        const file = await res2.blob();
+        file.name = `${name}.${ext}`;
+        return file;
+      } else if (typeof contentId === 'string') {
+        let url, name;
+        if (/blob:/.test(contentId)) {
+          const match = contentId.match(/^(.+)\/([^\/]+)$/);
+          if (match) {
+            url = match[1];
+            name = match[2];
+          } else {
+            console.warn('blob url not decorated', contentId);
+            return null;
+          }
         } else {
-          console.warn('blob url not decorated', contentId);
-          return null;
+          url = contentId;
+          name = contentId;
         }
+        return {
+          url,
+          name,
+        };
       } else {
-        url = contentId;
-        name = contentId;
+        console.warn('unknown content id type', contentId);
+        return null;
       }
-      return {
-        url,
-        name,
-      };
-    } else {
-      console.warn('unknown content id type', contentId);
-      return null;
-    }
-  })();
-  if (file) {
-    let mesh = await runtime.loadFile(file, {
-      instanceId: instanceId,
-      monetizationPointer: token ? token.owner.monetizationPointer : "",
-      ownerAddress: token ? token.owner.address : ""
-    });
-    if (mesh) {
-      mesh.position.fromArray(position);
-      mesh.quaternion.fromArray(quaternion);
-      
-      // mesh.name = file.name;
-      mesh.contentId = contentId;
-      mesh.instanceId = instanceId;
-      mesh.parentId = parentId;
+    })();
+    if (file) {
+      let mesh = await runtime.loadFile(file, {
+        instanceId: instanceId,
+        monetizationPointer: token ? token.owner.monetizationPointer : "",
+        ownerAddress: token ? token.owner.address : ""
+      });
+      if (mesh) {
+        mesh.position.fromArray(position);
+        mesh.quaternion.fromArray(quaternion);
+        
+        // mesh.name = file.name;
+        mesh.contentId = contentId;
+        mesh.instanceId = instanceId;
+        mesh.parentId = parentId;
 
-      if (mesh.run) {
-        mesh.run();
-      }
-      if (mesh.getPhysicsIds) {
-        const physicsIds = mesh.getPhysicsIds();
-        for (const physicsId of physicsIds) {
-          physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion);
+        if (mesh.run) {
+          mesh.run();
         }
-      }
+        if (mesh.getPhysicsIds) {
+          const physicsIds = mesh.getPhysicsIds();
+          for (const physicsId of physicsIds) {
+            physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion);
+          }
+        }
 
-      if (mesh.renderOrder === -Infinity) {
-        scene3.add(mesh);
+        if (mesh.renderOrder === -Infinity) {
+          scene3.add(mesh);
+        } else {
+          scene.add(mesh);
+        }
+
       } else {
+        console.warn('failed to load object', file);
+
+        mesh = new THREE.Object3D();
         scene.add(mesh);
       }
 
-    } else {
-      console.warn('failed to load object', file);
+      mesh.setPose = (position, quaternion) => {
+        trackedObject.set('position', position.toArray());
+        trackedObject.set('quaternion', quaternion.toArray());
+      };
 
-      mesh = new THREE.Object3D();
-      scene.add(mesh);
+      const _observe = () => {
+        mesh.position.fromArray(trackedObject.get('position'));
+        mesh.quaternion.fromArray(trackedObject.get('quaternion'));
+      };
+      trackedObject.observe(_observe);
+      trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
+
+      // minimap
+      const minimapObject = minimap.addObject(mesh);
+      mesh.minimapObject = minimapObject;
+
+      if (token && token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
+        const monetizationPointer = token.owner.monetizationPointer;
+        const ownerAddress = token.owner.address.toLowerCase();
+        pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
+      }
+
+      objects.push(mesh);
+
+      world.dispatchEvent(new MessageEvent('objectadd', {
+        data: mesh,
+      }));
     }
 
-    mesh.setPose = (position, quaternion) => {
-      trackedObject.set('position', position.toArray());
-      trackedObject.set('quaternion', quaternion.toArray());
-    };
-
-    const _observe = () => {
-      mesh.position.fromArray(trackedObject.get('position'));
-      mesh.quaternion.fromArray(trackedObject.get('quaternion'));
-    };
-    trackedObject.observe(_observe);
-    trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
-
-    // minimap
-    const minimapObject = minimap.addObject(mesh);
-    mesh.minimapObject = minimapObject;
-
-    if (token && token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
-      const monetizationPointer = token.owner.monetizationPointer;
-      const ownerAddress = token.owner.address.toLowerCase();
-      pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
-    }
-
-    objects.push(mesh);
-
-    world.dispatchEvent(new MessageEvent('objectadd', {
-      data: mesh,
-    }));
+    p.accept();
+  } catch (err) {
+    p.reject(err);
   }
 });
 world.addEventListener('trackedobjectremove', async e => {
