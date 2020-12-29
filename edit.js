@@ -314,7 +314,6 @@ let loaded = false;
   } catch (err) {
     console.error(err);
   }
-
   loaded = true;
 
   /* {
@@ -776,8 +775,8 @@ function animate(timestamp, frame) {
   const now = Date.now();
 
   ioManager.update(timeDiff, frame);
+  universe.update();
   if (loaded) {
-    universe.update();
     physicsManager.update(timeDiff, frame);
     // uiManager.update(timeDiff, frame);
     /* for (const itemMesh of itemMeshes) {
