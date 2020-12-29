@@ -765,7 +765,9 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
   if (pendingAddPromise) {
     const result = pendingAddPromise;
     pendingAddPromise = null;
-    return pendingAddPromise;
+    return result;
+  } else {
+    throw new Error('no pending world add object promise');
   }
 };
 world.removeObject = removeInstanceId => {
