@@ -413,7 +413,9 @@ const _makeAppUrl = appId => {
         .decompose(localVector, localQuaternion, localVector2);
       position = localVector;
       quaternion = localQuaternion;
-      return addBoxGeometry.call(this, position, quaternion, size, dynamic); // XXX align this
+      const physicsId = addBoxGeometry.call(this, position, quaternion, size, dynamic);
+      app.physicsIds.push(physicsId);
+      return physicsId;
     })(physics.addBoxGeometry);
     physics.addGeometry = (addGeometry => function(mesh) {
       const physicsId = addGeometry.apply(this, arguments);
