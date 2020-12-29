@@ -38,7 +38,7 @@ async function pullUserObject() {
   let {name, avatarId, avatarName, avatarExt, avatarPreview, loadout, homeSpaceId, homeSpaceName, homeSpaceExt, homeSpaceFileName, homeSpacePreview, ftu} = result;
   loadout = jsonParse(loadout, Array(8).fill(null));
 
-  const avatarUrl = avatarId ? await contentIdToStorageUrl(parseInt(avatarId)) : null;
+  const avatarUrl = avatarId ? await contentIdToStorageUrl(avatarId) : null;
   const homeSpaceUrl = homeSpaceId ? await contentIdToStorageUrl(homeSpaceId) : null;
   userObject = {
     name,
