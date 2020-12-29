@@ -866,9 +866,7 @@ world.addEventListener('trackedobjectadd', async e => {
         mesh.instanceId = instanceId;
         mesh.parentId = parentId;
 
-        if (mesh.run) {
-          mesh.run();
-        }
+        mesh.run && await mesh.run();
         if (mesh.getPhysicsIds) {
           const physicsIds = mesh.getPhysicsIds();
           for (const physicsId of physicsIds) {
