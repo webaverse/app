@@ -441,6 +441,7 @@ const _makeAppUrl = appId => {
     physics.getPhysicsTransform = (getPhysicsTransform => function(physicsId) {
       const transform = getPhysicsTransform.apply(this, arguments);
       const {position, quaternion} = transform;
+      app.object.updateMatrixWorld();
       localMatrix
         .compose(position, quaternion, localVector2.set(1, 1, 1))
         .premultiply(localMatrix2.copy(app.object.matrixWorld).invert())
@@ -448,6 +449,7 @@ const _makeAppUrl = appId => {
       return transform;
     })(physics.getPhysicsTransform);
     physics.setPhysicsTransform = (setPhysicsTransform => function(physicsId, position, quaternion) {
+      app.object.updateMatrixWorld();
       localMatrix
         .compose(position, quaternion, localVector2.set(1, 1, 1))
         .premultiply(app.object.matrixWorld)
