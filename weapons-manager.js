@@ -825,13 +825,14 @@ const _updatePopover = () => {
   popoverMesh.position.x = -1 + localVector.x/(window.innerWidth*window.devicePixelRatio)*2;
   popoverMesh.position.y = 1 - localVector.y/(window.innerHeight*window.devicePixelRatio)*2;
   const distance = popoverMesh.position.distanceTo(camera.position);
-  if (n > 0 && distance < 10) {
-    const maxDistance = 5;
+  const maxSoftDistance = 3;
+  const maxHardDistance = 10;
+  if (n > 0 && distance < maxHardDistance) {
     const halfWidthFactor = popoverMesh.width/(window.innerWidth*window.devicePixelRatio);
     const halfHeightFactor = popoverMesh.height/(window.innerHeight*window.devicePixelRatio);
     popoverMesh.scale.set(popoverMesh.width/(window.innerWidth*window.devicePixelRatio), popoverMesh.height/(window.innerHeight*window.devicePixelRatio), 1);
-    if (distance > maxDistance) {
-      popoverMesh.scale.multiplyScalar(1 / (distance - maxDistance + 1));
+    if (distance > maxSoftDistance) {
+      popoverMesh.scale.multiplyScalar(1 / (distance - maxSoftDistance + 1));
     }
     /* if (distance > maxDistance / 2) {
       popoverMesh.position.x = Math.min(Math.max(popoverMesh.position.x, -0.99 + halfWidthFactor), 0.99 - halfWidthFactor);
