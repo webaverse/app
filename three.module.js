@@ -23514,6 +23514,7 @@ function WebGLRenderer( parameters ) {
 
 	initGLContext();
 
+    // XXX Webaverse hacks
 	this.geometries = geometries;
 	this.state = state;
 
