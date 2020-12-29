@@ -154,7 +154,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     physicsBuffer = new Uint8Array(arrayBuffer);
   }
 
-  mesh.run = () => {
+  mesh.run = async () => {
     if (physicsMesh) {
       physicsIds.push(physicsManager.addGeometry(physicsMesh));
     }
@@ -481,7 +481,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
   const appId = ++appIds;
   const mesh = new THREE.Object3D();
   mesh.run = () => {
-    import(u)
+    return import(u)
       .then(() => {
         startMonetization(instanceId, monetizationPointer, ownerAddress);
       }, err => {
@@ -818,10 +818,10 @@ const _loadScn = async (file, opts) => {
     scene.add(mesh);
   });
   await Promise.all(promises);
-  scene.run = () => {
-    for (const child of scene.children) {
-      child.run && child.run();
-    }
+  scene.run = async () => {
+    await Proimise.all(scene.children.map(async hild => {
+      child.run && await child.run();
+    }));
   };
   scene.destroy = () => {
     for (const child of scene.children) {
@@ -995,7 +995,7 @@ const _loadIframe = async (file, opts) => {
     object.matrix.copy(object2.matrix);
     object.matrixWorld.copy(object2.matrixWorld);
   };
-  object2.run = () => {
+  object2.run = async () => {
     scene2.add(object);
   };
   object2.destroy = () => {
@@ -1031,7 +1031,7 @@ const _loadAudio = async (file, {instanceId = null, monetizationPointer = null, 
   audio.loop = true;
 
   const object = new THREE.Object3D();
-  object.run = () => {
+  object.run = async () => {
     audio.play();
     startMonetization(instanceId, monetizationPointer, ownerAddress);
   };
