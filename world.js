@@ -835,7 +835,7 @@ world.addEventListener('trackedobjectadd', async e => {
             url = match[1];
             name = match[2];
           } else {
-            console.warn('blob url not decorated', contentId);
+            console.warn('blob url not appended with /filename.ext and cannot be interpreted', contentId);
             return null;
           }
         } else {
