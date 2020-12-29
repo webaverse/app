@@ -264,13 +264,13 @@ const clearWorld = () => {
     world.removeObject(object.instanceId);
   }
 };
-const loadDefaultWorld = () => {
-  for (const objectSpec of universeSpecs.universeObjects) {
+const loadDefaultWorld = async () => {
+  await Promise.all(universeSpecs.universeObjects.map(async objectSpec => {
     const position = objectSpec.position ? new THREE.Vector3().fromArray(objectSpec.position) : new THREE.Vector3();
     const quaternion = objectSpec.quaternion ? new THREE.Quaternion().fromArray(objectSpec.quaternion) : new THREE.Quaternion();
     // const scale = objectSpec.scale ? new THREE.Vector3().fromArray(objectSpec.scale) : new THREE.Vector3();
-    world.addObject(objectSpec.start_url, null, position, quaternion);
-  }
+    await world.addObject(objectSpec.start_url, null, position, quaternion);
+  }));
 };
 const update = () => {
   const oldWorld = highlightedWorld;
@@ -470,8 +470,7 @@ const enterWorld = async () => {
   } else {
     await world.disconnectRoom(warpPhysicsId);
 
-    // clearWorld();
-    loadDefaultWorld();
+    await loadDefaultWorld();
   }
 
   setTimeout(() => {
