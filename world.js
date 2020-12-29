@@ -873,9 +873,9 @@ world.addEventListener('trackedobjectadd', async e => {
         }
 
         mesh.run && await mesh.run();
-        if (mesh.getPhysicsIds) {
-          const physicsIds = mesh.getPhysicsIds();
-          for (const physicsId of physicsIds) {
+        if (mesh.getStaticPhysicsIds) {
+          const staticPhysicsIds = mesh.getStaticPhysicsIds();
+          for (const physicsId of staticPhysicsIds) {
             physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion);
           }
         }
