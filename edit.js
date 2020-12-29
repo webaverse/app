@@ -288,6 +288,7 @@ const q = parseQuery(location.search);
   }
   // new Bot();
 })(); */
+let loaded = false;
 (async () => {
   await Promise.all([
     loginManager.waitForLoad()
@@ -297,15 +298,25 @@ const q = parseQuery(location.search);
 
   runtime.injectDependencies(geometryManager, physicsManager, world);
 
-  universe.loadDefaultWorld();
-
-  if (q.o) { // object
-    let contentId = parseInt(q.o);
-    if (isNaN(contentId)) {
-      contentId = q.o;
-    }
-    world.addObject(contentId);
+  try {
+    await Promise.all([
+      universe.loadDefaultWorld(),
+      (async () => {
+        if (q.o) {
+          let contentId = parseInt(q.o);
+          if (isNaN(contentId)) {
+            contentId = q.o;
+          }
+          await world.addObject(contentId);
+        }
+      })(),
+    ]);
+  } catch (err) {
+    console.error(err);
   }
+
+  loaded = true;
+
   /* {
     const mesh = await runtime.loadFile({
       name: 'home.scn',
@@ -764,15 +775,16 @@ function animate(timestamp, frame) {
   const session = renderer.xr.getSession();
   const now = Date.now();
 
-  universe.update();
   ioManager.update(timeDiff, frame);
-  physicsManager.update(timeDiff, frame);
-  uiManager.update(timeDiff, frame);
-
-  for (const itemMesh of itemMeshes) {
-    itemMesh.update();
+  if (loaded) {
+    universe.update();
+    physicsManager.update(timeDiff, frame);
+    // uiManager.update(timeDiff, frame);
+    /* for (const itemMesh of itemMeshes) {
+      itemMesh.update();
+    } */
+    physicsManager.simulatePhysics(timeDiff);
   }
-  physicsManager.simulatePhysics(timeDiff);
 
   const _updateRig = () => {
     let hmdPosition, hmdQuaternion;
