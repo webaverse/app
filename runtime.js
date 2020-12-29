@@ -407,6 +407,7 @@ const _makeAppUrl = appId => {
     const localMatrix = new THREE.Matrix4();
     const localMatrix2 = new THREE.Matrix4();
     physics.addBoxGeometry = (addBoxGeometry => function(position, quaternion, size, dynamic) {
+      app.object.updateMatrixWorld();
       localMatrix
         .compose(position, quaternion, localVector2.set(1, 1, 1))
         .premultiply(app.object.matrixWorld)
