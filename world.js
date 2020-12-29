@@ -866,6 +866,12 @@ world.addEventListener('trackedobjectadd', async e => {
         mesh.instanceId = instanceId;
         mesh.parentId = parentId;
 
+        if (mesh.renderOrder === -Infinity) {
+          scene3.add(mesh);
+        } else {
+          scene.add(mesh);
+        }
+
         mesh.run && await mesh.run();
         if (mesh.getPhysicsIds) {
           const physicsIds = mesh.getPhysicsIds();
@@ -873,13 +879,6 @@ world.addEventListener('trackedobjectadd', async e => {
             physicsManager.setPhysicsTransform(physicsId, mesh.position, mesh.quaternion);
           }
         }
-
-        if (mesh.renderOrder === -Infinity) {
-          scene3.add(mesh);
-        } else {
-          scene.add(mesh);
-        }
-
       } else {
         console.warn('failed to load object', file);
 
