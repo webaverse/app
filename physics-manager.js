@@ -362,26 +362,32 @@ const _updatePhysics = timeDiff => {
       rigManager.setLocalRigMatrix(null);
     }
   } else {
-    _applyGravity(timeDiff);
-
     const selectedTool = cameraManager.getTool();
-    if (selectedTool === 'firstperson') {
+    if (selectedTool === 'camera') {
+      // nothing
+    } else if (selectedTool === 'firstperson') {
+      _applyGravity(timeDiff);
       _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, false, false, timeDiff);
       _copyPQS(camera, avatarWorldObject);
       camera.updateMatrixWorld();
     } else if (selectedTool === 'thirdperson') {
+      _applyGravity(timeDiff);
       _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
       _copyPQS(camera, avatarWorldObject);
     } else if (selectedTool === 'isometric') {
+      _applyGravity(timeDiff);
       _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, true, true, timeDiff);
       _copyPQS(camera, avatarWorldObject);
     } else if (selectedTool === 'birdseye') {
+      _applyGravity(timeDiff);
       _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, true, true, timeDiff);
       _copyPQS(camera, avatarWorldObject);
     } else {
+      throw new Error('invalid camera mode: ' + selectedTool);
+      /* _applyGravity(timeDiff);
       _collideItems(avatarWorldObject.matrix);
       // _collideChunk(avatarWorldObject.matrix);
-      rigManager.setLocalRigMatrix(null);
+      rigManager.setLocalRigMatrix(null); */
     }
   }
 
