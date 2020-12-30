@@ -650,6 +650,7 @@ const _importSkeleton = s => {
 
 class Avatar {
 	constructor(object, options = {}) {
+    this.object = object;
     const model = (() => {
       let o = object;
       if (o && !o.isMesh) {
@@ -1360,6 +1361,42 @@ class Avatar {
 	    Right_ankle: this.outputs.leftFoot,
 	  };
 
+    if (this.options.visemes) {
+      const vrmExtension = this.object && this.object.userData && this.object.userData.gltfExtensions && this.object.userData.gltfExtensions.VRM;
+      const blendShapes = vrmExtension && vrmExtension.blendShapeMaster && vrmExtension.blendShapeMaster.blendShapeGroups;
+      // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
+      const _getVrmBlendShapeIndex = r => {
+        if (Array.isArray(blendShapes)) {
+          const shape = blendShapes.find(blendShape => r.test(blendShape.name));
+          if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
+            return shape.binds[0].index;
+          } else {
+            return null;
+          }
+        } else {
+          return null;
+        }
+      };
+      this.skinnedMeshesVisemeMappings = this.skinnedMeshes.map(o => {
+        const {morphTargetDictionary, morphTargetInfluences} = o;
+        if (morphTargetDictionary && morphTargetInfluences) {
+          const aaIndex = _getVrmBlendShapeIndex(/^a$/i) || morphTargetDictionary['vrc.v_aa'] || null;
+          const blinkLeftIndex = _getVrmBlendShapeIndex(/^(?:blink_l|blinkleft)$/i) || morphTargetDictionary['vrc.blink_left'] || null;
+          const blinkRightIndex = _getVrmBlendShapeIndex(/^(?:blink_r|blinkright)$/i) || morphTargetDictionary['vrc.blink_right'] || null;
+          return [
+            morphTargetInfluences,
+            aaIndex,
+            blinkLeftIndex,
+            blinkRightIndex,
+          ];
+        } else {
+          return null;
+        }
+      });
+    } else {
+      this.skinnedMeshesVisemeMappings = [];
+    }
+
     this.microphoneWorker = null;
     this.volume = 0;
     this.setMicrophoneMediaStream(options.microphoneMediaStream, {
@@ -1732,46 +1769,20 @@ class Avatar {
           return 0;
         }
       })();
-      this.skinnedMeshes.forEach(o => {
-        const {morphTargetDictionary, morphTargetInfluences} = o;
-        if (morphTargetDictionary && morphTargetInfluences) {
-          let aaMorphTargetIndex = morphTargetDictionary['vrc.v_aa'];
-          if (aaMorphTargetIndex === undefined) {
-            aaMorphTargetIndex = morphTargetDictionary['morphTarget26'];
+      for (const visemeMapping of this.skinnedMeshesVisemeMappings) {
+        if (visemeMapping) {
+          const [morphTargetInfluences, aaIndex, blinkLeftIndex, blinkRightIndex] = visemeMapping;
+          if (aaIndex !== null) {
+            morphTargetInfluences[aaIndex] = aaValue;
           }
-          if (aaMorphTargetIndex === undefined) {
-            aaMorphTargetIndex = morphTargetDictionary['29'];
+          if (blinkLeftIndex !== null) {
+            morphTargetInfluences[blinkLeftIndex] = blinkValue;
           }
-          if (aaMorphTargetIndex === undefined) {
-            aaMorphTargetIndex = morphTargetDictionary['target_23'];
-          }
-          if (aaMorphTargetIndex !== undefined) {
-            morphTargetInfluences[aaMorphTargetIndex] = aaValue;
-          }
-
-          let blinkLeftMorphTargetIndex = morphTargetDictionary['vrc.blink_left'];
-          if (blinkLeftMorphTargetIndex === undefined) {
-            blinkLeftMorphTargetIndex = morphTargetDictionary['morphTarget16'];
-          }
-          if (blinkLeftMorphTargetIndex === undefined) {
-            blinkLeftMorphTargetIndex = morphTargetDictionary['12'];
-          }
-          if (blinkLeftMorphTargetIndex !== undefined) {
-            morphTargetInfluences[blinkLeftMorphTargetIndex] = blinkValue;
-          }
-
-          let blinkRightMorphTargetIndex = morphTargetDictionary['vrc.blink_right'];
-          if (blinkRightMorphTargetIndex === undefined) {
-            blinkRightMorphTargetIndex = morphTargetDictionary['morphTarget17'];
-          }
-          if (blinkLeftMorphTargetIndex === undefined) {
-            blinkLeftMorphTargetIndex = morphTargetDictionary['13'];
-          }
-          if (blinkRightMorphTargetIndex !== undefined) {
-            morphTargetInfluences[blinkRightMorphTargetIndex] = blinkValue;
+          if (blinkRightIndex !== null) {
+            morphTargetInfluences[blinkRightIndex] = blinkValue;
           }
         }
-      });
+      }
     }
 
     if (this.debugMeshes) {
