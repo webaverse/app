@@ -1002,6 +1002,19 @@ class Avatar {
       });
     }
 
+    const _recurseBoneAttachments = o => {
+      for (const child of o.children) {
+        if (child.isBone) {
+          _recurseBoneAttachments(child);
+        } else {
+          child.matrix
+            .premultiply(localMatrix.compose(localVector.set(0, 0, 0), preRotations['Hips'], localVector2.set(1, 1, 1)))
+            .decompose(child.position, child.quaternion, child.scale);
+        }
+      }
+    };
+    _recurseBoneAttachments(modelBones['Hips']);
+
     const qrArm = flipZ ? Left_arm : Right_arm;
     const qrElbow = flipZ ? Left_elbow : Right_elbow;
     const qrWrist = flipZ ? Left_wrist : Right_wrist;
