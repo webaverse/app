@@ -2193,7 +2193,6 @@ footer {
   border-radius: 3px;
   color: #FFFFFF80;
   box-shadow: 0px 0px 0px 1px rgb(255 255 255 / 30%);
-  filter: drop-shadow(0px 0px 1.5px black);
 }
 .loadout .item .box img {
   width: 100%;
@@ -2224,7 +2223,6 @@ footer {
   top: 0;
   left: 0;
   width: 100%;
-  filter: drop-shadow(0px 0px 1.5px black);
   color: white;
 }
 .keys .label.center {
@@ -2233,7 +2231,6 @@ footer {
 .keys .key {
   width: 40px;
   height: 30px;
-  filter: drop-shadow(0px 0px 1.5px black);
   color: white;
 }
 .keys .key:empty {
@@ -2250,7 +2247,6 @@ footer {
   border: 2px solid currentColor;
   border-radius: 7px;
   font-size: 16px;
-  filter: drop-shadow(0px 0px 1.5px black);
 }
 .enter-xr-button.disabled {
   color: #FFFFFF;
@@ -2634,7 +2630,6 @@ footer {
   border-radius: 5px;
   font-size: 13px;
   color: #FFFFFF;
-  filter: drop-shadow(0px 0px 1.5px black);
 }
 .key-helper:only-child .key {
   margin-bottom: 0;
@@ -2648,7 +2643,6 @@ footer {
   margin-left: auto; */
   margin-right: 10px;
   color: #FFFFFF;
-  filter: drop-shadow(0px 0px 1.5px black);
 }
 
 .items {
