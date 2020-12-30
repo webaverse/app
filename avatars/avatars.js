@@ -1727,11 +1727,12 @@ class Avatar {
       // ["Neutral", "A", "I", "U", "E", "O", "Blink", "Blink_L", "Blink_R", "Angry", "Fun", "Joy", "Sorrow", "Surprised"]
       const _getVrmBlendShapeIndex = r => {
         if (Array.isArray(blendShapes)) {
-          let index = blendShapes.findIndex(blendShape => r.test(blendShape.name));
-          if (index === -1) {
-            index = null;
+          const shape = blendShapes.find(blendShape => r.test(blendShape.name));
+          if (shape && shape.binds && shape.binds.length > 0 && typeof shape.binds[0].index === 'number') {
+            return shape.binds[0].index;
+          } else {
+            return null;
           }
-          return index;
         } else {
           return null;
         }
@@ -1752,19 +1753,16 @@ class Avatar {
         const {morphTargetDictionary, morphTargetInfluences} = o;
         if (morphTargetDictionary && morphTargetInfluences) {
           let aaMorphTargetIndex = _getVrmBlendShapeIndex(/^a$/i) || morphTargetDictionary['vrc.v_aa'];
-          console.log('got a', _getVrmBlendShapeIndex(/^a$/i), morphTargetDictionary['vrc.v_aa']);
           if (aaMorphTargetIndex !== undefined) {
             morphTargetInfluences[aaMorphTargetIndex] = aaValue;
           }
 
           let blinkLeftMorphTargetIndex = _getVrmBlendShapeIndex(/^(?:blink_l|blinkleft)$/i) || morphTargetDictionary['vrc.blink_left'];
-          console.log('got left', _getVrmBlendShapeIndex(/^(?:blink_l|blinkleft)$/i), morphTargetDictionary['vrc.blink_left']);
           if (blinkLeftMorphTargetIndex !== undefined) {
             morphTargetInfluences[blinkLeftMorphTargetIndex] = blinkValue;
           }
 
           let blinkRightMorphTargetIndex = _getVrmBlendShapeIndex(/^(?:blink_r|blinkright)$/i) || morphTargetDictionary['vrc.blink_right'];
-          console.log('got rigth', _getVrmBlendShapeIndex(/^(?:blink_r|blinkright)$/i), morphTargetDictionary['vrc.blink_right']);
           if (blinkRightMorphTargetIndex !== undefined) {
             morphTargetInfluences[blinkRightMorphTargetIndex] = blinkValue;
           }
