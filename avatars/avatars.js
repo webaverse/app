@@ -1102,7 +1102,9 @@ class Avatar {
 	  model.updateMatrixWorld(true);
 
     Hips.traverse(bone => {
-      bone.initialQuaternion = bone.quaternion.clone();
+      if (bone.isBone) {
+        bone.initialQuaternion = bone.quaternion.clone();
+      }
     });
 
 	  const _averagePoint = points => {
