@@ -261,6 +261,7 @@
           } /* finally {
             URL.revokeObjectURL(u);
           } */
+          console.log('loaded GLTF', o);
           o = o.scene;
           return o;
         };
@@ -355,7 +356,6 @@
                 console.warn(err);
               }
               if (o) {
-                console.log('got model', o);
                 scene.add(o);
 
                 const boundingBox = new THREE.Box3().setFromObject(o);
