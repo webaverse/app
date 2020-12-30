@@ -62,16 +62,17 @@ function setZForward(rootBone, context) {
 
 function calculateAverages(parentBone, worldPos, averagedDirs) {
   var averagedDir = new THREE.Vector3();
-  parentBone.children.forEach((childBone) => {
+  const childBones = parentBone.children.filter(c => c.isBone);
+  childBones.forEach((childBone) => {
     //average the child bone world pos
     var childBonePosWorld = worldPos[childBone.id][0];
     averagedDir.add(childBonePosWorld);
   });
 
-  averagedDir.multiplyScalar(1/(parentBone.children.length));
+  averagedDir.multiplyScalar(1/(childBones.length));
   averagedDirs[parentBone.id] = averagedDir;
 
-  parentBone.children.forEach((childBone) => {
+  childBones.forEach((childBone) => {
     calculateAverages(childBone, worldPos, averagedDirs);
   });
 }
@@ -99,13 +100,14 @@ function updateTransformations(parentBone, worldPos, averagedDirs, preRotations)
     parentBone.updateMatrixWorld();
 
     //set child bone position relative to the new parent matrix.
-    parentBone.children.forEach((childBone) => {
+    const childBones = parentBone.children.filter(c => c.isBone);
+    childBones.forEach((childBone) => {
       var childBonePosWorld = worldPos[childBone.id][0].clone();
       parentBone.worldToLocal(childBonePosWorld);
       childBone.position.copy(childBonePosWorld);
     });
 
-    parentBone.children.forEach((childBone) => {
+    childBones.forEach((childBone) => {
       updateTransformations(childBone, worldPos, averagedDirs, preRotations);
     });
 }
@@ -150,7 +152,7 @@ function getOriginalWorldPositions(rootBone, worldPos) {
   var rootBoneWorldPos = rootBone.getWorldPosition(new THREE.Vector3())
   worldPos[rootBone.id] = [rootBoneWorldPos];
   rootBone.children.forEach((child) => {
-    getOriginalWorldPositions(child, worldPos)
+    child.isBone && getOriginalWorldPositions(child, worldPos)
   })
 }
 
