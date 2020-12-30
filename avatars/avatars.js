@@ -14,6 +14,7 @@ import animationsJson from '../animations/animations.js';
 import {downloadFile} from '../util.js'; */
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localEuler2 = new THREE.Euler();
