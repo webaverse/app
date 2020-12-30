@@ -355,6 +355,7 @@
                 console.warn(err);
               }
               if (o) {
+                console.log('got model', o);
                 scene.add(o);
 
                 const boundingBox = new THREE.Box3().setFromObject(o);
