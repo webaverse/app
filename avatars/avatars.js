@@ -991,14 +991,10 @@ class Avatar {
       return preRotations[boneName];
     };
     if (flipY) {
-      ['Hips'].forEach(k => {
-        _ensurePrerotation(k).premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2));
-      });
+      _ensurePrerotation('Hips').premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2));
     }
     if (flipZ) {
-      ['Hips'].forEach(k => {
-        _ensurePrerotation(k).premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
-      });
+      _ensurePrerotation('Hips').premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI));
     }
     if (flipLeg) {
       ['Left_leg', 'Right_leg'].forEach(k => {
