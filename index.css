@@ -2193,6 +2193,7 @@ footer {
   border-radius: 3px;
   color: #FFFFFF80;
   box-shadow: 0px 0px 0px 1px rgb(255 255 255 / 30%);
+  text-shadow: 1.5px 1.5px black;
 }
 .loadout .item .box img {
   width: 100%;
@@ -2224,6 +2225,7 @@ footer {
   left: 0;
   width: 100%;
   color: white;
+  text-shadow: 1.5px 1.5px black;
 }
 .keys .label.center {
   justify-content: center;
@@ -2232,6 +2234,7 @@ footer {
   width: 40px;
   height: 30px;
   color: white;
+  text-shadow: 1.5px 1.5px black;
 }
 .keys .key:empty {
   visibility: hidden;
@@ -2247,6 +2250,7 @@ footer {
   border: 2px solid currentColor;
   border-radius: 7px;
   font-size: 16px;
+  text-shadow: 1.5px 1.5px black;
 }
 .enter-xr-button.disabled {
   color: #FFFFFF;
@@ -2630,6 +2634,7 @@ footer {
   border-radius: 5px;
   font-size: 13px;
   color: #FFFFFF;
+  text-shadow: 1.5px 1.5px black;
 }
 .key-helper:only-child .key {
   margin-bottom: 0;
@@ -2643,6 +2648,7 @@ footer {
   margin-left: auto; */
   margin-right: 10px;
   color: #FFFFFF;
+  text-shadow: 1.5px 1.5px black;
 }
 
 .items {
