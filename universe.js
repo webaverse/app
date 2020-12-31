@@ -25,7 +25,7 @@ const universeSpecs = {
   universeObjects: [
     {
       position: [0, 0, 0],
-      start_url: 'https://webaverse.github.io/street/index.js',
+      start_url: './street/index.js',
     },
     {
       position: [-20, 30, -30],
@@ -36,8 +36,8 @@ const universeSpecs = {
       start_url: 'https://webaverse.github.io/skybox/index.js',
     },
     {
-      start_url: 'https://avaer.github.io/mirror/index.js',
       position: [0, 0, -2],
+      start_url: './mirror/index.js',
     },
     {
       position: [-10, 0, -30],
@@ -53,6 +53,11 @@ const universeSpecs = {
       quaternion: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0)).toArray(),
       start_url: 'https://webaverse.github.io/assets/male.vrm',
     },
+    /* {
+      position: [4, 0, 0],
+      quaternion: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(-1, 0, 0)).toArray(),
+      start_url: './portal/index.js',
+    }, */
     {
       position: [-13, 0, 0],
       quaternion: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0)).toArray(),
