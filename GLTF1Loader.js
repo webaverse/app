@@ -846,6 +846,7 @@ const GLTFLoader = ( function () {
 		// loader object cache
 		this.cache = new GLTFRegistry();
 
+        this.manager = THREE.DefaultLoadingManager;
 	}
 
 	GLTFParser.prototype._withDependencies = function ( dependencies ) {
@@ -1081,6 +1082,7 @@ const GLTFLoader = ( function () {
 		var json = this.json;
 		var extensions = this.extensions;
 		var options = this.options;
+		const manager = this.manager;
 
 		return this._withDependencies( [
 
@@ -1103,7 +1105,7 @@ const GLTFLoader = ( function () {
 
 						}
 
-						var textureLoader = THREE.Loader.Handlers.get( sourceUri );
+						var textureLoader = manager.getHandler( sourceUri );
 
 						if ( textureLoader === null ) {
 
