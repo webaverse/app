@@ -5,7 +5,9 @@
  * @author Takahiro / https://github.com/takahirox
  */
 
-THREE.GLTFLoader = ( function () {
+import * as THREE from './three.module.js';
+
+const GLTFLoader = ( function () {
 
 	function GLTFLoader( manager ) {
 
@@ -2213,3 +2215,5 @@ THREE.GLTFLoader = ( function () {
 	return GLTFLoader;
 
 } )();
+
+export {GLTFLoader as GLTF1Loader};
