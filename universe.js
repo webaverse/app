@@ -37,7 +37,7 @@ const universeSpecs = {
     },
     {
       position: [0, 0, -2],
-      start_url: './mirror/index.js',
+      start_url: 'https://avaer.github.io/mirror/index.js',
     },
     {
       position: [-10, 0, -30],
