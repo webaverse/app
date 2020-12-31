@@ -74,6 +74,7 @@ const importMap = {
   crypto: _importMapUrl('./crypto.js'),
   BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
   GLTFLoader: _importMapUrl('./GLTFLoader.js'),
+  GLTF1Loader: _importMapUrl('./GLTF1Loader.js'),
 };
 
 const _clone = o => JSON.parse(JSON.stringify(o));
