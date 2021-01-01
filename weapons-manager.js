@@ -265,7 +265,11 @@ const _use = () => {
     itemSpec.cb();
   } else if (weaponsManager.getMenu() === 2) {
     const itemSpec = itemSpecs2[selectedItemIndex];
-    itemSpec.cb();
+
+    world.addObject(itemSpec.id, null, deployMesh.position, deployMesh.quaternion);
+
+    weaponsManager.setMenu(0);
+    cameraManager.requestPointerLock();
   } else if (highlightedWorld) {
     universe.enterWorld();
   }
@@ -1203,46 +1207,7 @@ for (let i = 0; i < itemSpecs1.length; i++) {
   });
   items1El.appendChild(div);
 }
-
-const itemSpecs2 = [
-{
-    name: 'Drop grease',
-    cb() {
-      console.log('drop grease');
-    },
-  },
-  {
-    name: 'Drop item',
-    cb() {
-      console.log('drop item');
-    },
-  },
-];
-for (let i = 0; i < itemSpecs2.length; i++) {
-  const itemSpec = itemSpecs2[i];
-  const div = document.createElement('div');
-  div.classList.add('item');
-  div.innerHTML = `
-    <div class=card>
-      <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
-    </div>
-    <div class=name>${itemSpec.name}</div>
-    <div class="key-helpers">
-      <div class="key-helper">
-        <div class=key>E</div>
-        <div class=label>Spawn</div>
-      </div>
-    </div>
-  `;
-  div.addEventListener('click', e => {
-    _use();
-  });
-  div.addEventListener('mouseenter', e => {
-    selectedItemIndex = i;
-    _updateMenu();
-  });
-  items2El.appendChild(div);
-}
+let itemSpecs2;
 
 let selectedItemIndex = 0;
 const _selectItem = newSelectedItemIndex => {
@@ -1487,6 +1452,35 @@ const itemsEls = Array.from(loadoutEl.querySelectorAll('.item'));
 (async () => {
   await loginManager.waitForLoad();
   const loadout = loginManager.getLoadout();
+
+  itemSpecs2 = await loginManager.getInventory();
+
+  for (let i = 0; i < itemSpecs2.length; i++) {
+    const itemSpec = itemSpecs2[i];
+    const div = document.createElement('div');
+    div.classList.add('item');
+    div.innerHTML = `
+      <div class=card>
+        <img src="${itemSpec.image}">
+      </div>
+      <div class=name>${itemSpec.name}</div>
+      <div class="key-helpers">
+        <div class="key-helper">
+          <div class=key>E</div>
+          <div class=label>Spawn</div>
+        </div>
+      </div>
+    `;
+    div.addEventListener('click', e => {
+      _use();
+    });
+    div.addEventListener('mouseenter', e => {
+      selectedItemIndex = i;
+      _updateMenu();
+    });
+    items2El.appendChild(div);
+  }
+
   for (let i = 0; i < loadout.length; i++) {
     const item = loadout[i];
     const itemEl = itemsEls[i];
