@@ -823,7 +823,7 @@ world.addEventListener('trackedobjectadd', async e => {
         token = await res.json();
         const {hash, name, ext} = token.properties;
 
-        const res2 = await fetch(`${storageHost}/${hash.slice(2)}`);
+        const res2 = await fetch(`${storageHost}/${hash}`);
         const file = await res2.blob();
         file.name = `${name}.${ext}`;
         return file;
