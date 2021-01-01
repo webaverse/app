@@ -55,10 +55,10 @@ const _initMap = () => {
   const planeMesh = (() => {
     const s = 0.1;
     const geometry = BufferGeometryUtils.mergeBufferGeometries([
-      new THREE.BoxBufferGeometry(10, s, s).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -10/2)),
-      new THREE.BoxBufferGeometry(10, s, s).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, 10/2)),
-      new THREE.BoxBufferGeometry(s, s, 10).applyMatrix4(new THREE.Matrix4().makeTranslation(10/2, 0, 0)),
-      new THREE.BoxBufferGeometry(s, s, 10).applyMatrix4(new THREE.Matrix4().makeTranslation(-10/2, 0, 0)),
+      new THREE.BoxBufferGeometry(10, s, s).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -1000/2)),
+      new THREE.BoxBufferGeometry(10, s, s).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, 1000/2)),
+      new THREE.BoxBufferGeometry(s, s, 1000).applyMatrix4(new THREE.Matrix4().makeTranslation(10/2, 0, 0)),
+      new THREE.BoxBufferGeometry(s, s, 1000).applyMatrix4(new THREE.Matrix4().makeTranslation(-10/2, 0, 0)),
     ]);
     const material = new THREE.MeshBasicMaterial({
       color: 0x000000,
