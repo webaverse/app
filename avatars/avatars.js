@@ -708,6 +708,17 @@ class Avatar {
       this.debugMeshes = null;
     }
 
+    const _getOptional = o => o || new THREE.Bone();
+    const _ensureParent = (o, parent) => {
+      if (!o.parent) {
+        if (!parent) {
+          parent = new THREE.Bone();
+        }
+        parent.add(o);
+      }
+      return o.parent;
+    };
+
 	  const tailBones = _getTailBones(skeleton);
     // const tailBones = skeleton.bones.filter(bone => bone.children.length === 0);
 
@@ -720,40 +731,40 @@ class Avatar {
 	  const Spine = _findSpine(Chest, Hips);
 	  const Left_shoulder = _findShoulder(tailBones, true);
 	  const Left_wrist = _findHand(Left_shoulder);
-    const Left_thumb2 = _findFinger(Left_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02l|l_thumb3/i, true);
-    const Left_thumb1 = Left_thumb2.parent;
-    const Left_thumb0 = Left_thumb1.parent;
-    const Left_indexFinger3 = _findFinger(Left_wrist, /index(?:finger)?3|index_distal|index02l/i);
-    const Left_indexFinger2 = Left_indexFinger3.parent;
-    const Left_indexFinger1 = Left_indexFinger2.parent;
-    const Left_middleFinger3 = _findFinger(Left_wrist, /middle(?:finger)?3|middle_distal|middle02l/i);
-    const Left_middleFinger2 = Left_middleFinger3.parent;
-    const Left_middleFinger1 = Left_middleFinger2.parent;
-    const Left_ringFinger3 = _findFinger(Left_wrist, /ring(?:finger)?3|ring_distal|ring02l/i);
-    const Left_ringFinger2 = Left_ringFinger3.parent;
-    const Left_ringFinger1 = Left_ringFinger2.parent;
-    const Left_littleFinger3 = _findFinger(Left_wrist, /little(?:finger)?3|pinky3|little_distal|little02l/i);
-    const Left_littleFinger2 = Left_littleFinger3.parent;
-    const Left_littleFinger1 = Left_littleFinger2.parent;
+    const Left_thumb2 = _ensureParent(_getOptional(_findFinger(Left_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02l|l_thumb3|thumb002l/i, true)));
+    const Left_thumb1 = _ensureParent(Left_thumb2);
+    const Left_thumb0 = _ensureParent(Left_thumb1, Left_wrist);
+    const Left_indexFinger3 = _ensureParent(_getOptional(_findFinger(Left_wrist, /index(?:finger)?3|index_distal|index02l|indexfinger2_l|index002l/i)));
+    const Left_indexFinger2 = _ensureParent(Left_indexFinger3);
+    const Left_indexFinger1 = _ensureParent(Left_indexFinger2, Left_wrist);
+    const Left_middleFinger3 = _ensureParent(_getOptional(_findFinger(Left_wrist, /middle(?:finger)?3|middle_distal|middle02l|middlefinger3_l|middle002l/i)));
+    const Left_middleFinger2 = _ensureParent(Left_middleFinger3);
+    const Left_middleFinger1 = _ensureParent(Left_middleFinger2, Left_wrist);
+    const Left_ringFinger3 = _ensureParent(_getOptional(_findFinger(Left_wrist, /ring(?:finger)?3|ring_distal|ring02l|ringfinger2_l|ring002l/i)));
+    const Left_ringFinger2 = _ensureParent(Left_ringFinger3);
+    const Left_ringFinger1 = _ensureParent(Left_ringFinger2, Left_wrist);
+    const Left_littleFinger3 = _ensureParent(_getOptional(_findFinger(Left_wrist, /little(?:finger)?3|pinky3|little_distal|little02l|lifflefinger2_l|little002l/i)));
+    const Left_littleFinger2 = _ensureParent(Left_littleFinger3);
+    const Left_littleFinger1 = _ensureParent(Left_littleFinger2, Left_wrist);
 	  const Left_elbow = Left_wrist.parent;
 	  const Left_arm = Left_elbow.parent;
 	  const Right_shoulder = _findShoulder(tailBones, false);
 	  const Right_wrist = _findHand(Right_shoulder);
-    const Right_thumb2 = _findFinger(Right_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02r|r_thumb3/i);
-    const Right_thumb1 = Right_thumb2.parent;
-    const Right_thumb0 = Right_thumb1.parent;
-    const Right_indexFinger3 = _findFinger(Right_wrist, /index(?:finger)?3|index_distal|index02r/i);
-    const Right_indexFinger2 = Right_indexFinger3.parent;
-    const Right_indexFinger1 = Right_indexFinger2.parent;
-    const Right_middleFinger3 = _findFinger(Right_wrist, /middle(?:finger)?3|middle_distal|middle02r/i);
-    const Right_middleFinger2 = Right_middleFinger3.parent;
-    const Right_middleFinger1 = Right_middleFinger2.parent;
-    const Right_ringFinger3 = _findFinger(Right_wrist, /ring(?:finger)?3|ring_distal|ring02r/i);
-    const Right_ringFinger2 = Right_ringFinger3.parent;
-    const Right_ringFinger1 = Right_ringFinger2.parent;
-    const Right_littleFinger3 = _findFinger(Right_wrist, /little(?:finger)?3|pinky3|little_distal|little02r/i);
-    const Right_littleFinger2 = Right_littleFinger3.parent;
-    const Right_littleFinger1 = Right_littleFinger2.parent;
+    const Right_thumb2 = _ensureParent(_getOptional(_findFinger(Right_wrist, /thumb3_end|thumb2_|handthumb3|thumb_distal|thumb02r|r_thumb3|thumb002r/i)));
+    const Right_thumb1 = _ensureParent(Right_thumb2);
+    const Right_thumb0 = _ensureParent(Right_thumb1, Right_wrist);
+    const Right_indexFinger3 = _ensureParent(_getOptional(_findFinger(Right_wrist, /index(?:finger)?3|index_distal|index02r|indexfinger2_r|index002r/i)));
+    const Right_indexFinger2 = _ensureParent(Right_indexFinger3);
+    const Right_indexFinger1 = _ensureParent(Right_indexFinger2, Right_wrist);
+    const Right_middleFinger3 = _ensureParent(_getOptional(_findFinger(Right_wrist, /middle(?:finger)?3|middle_distal|middle02r|middlefinger3_r|middle002r/i)));
+    const Right_middleFinger2 = _ensureParent(Right_middleFinger3);
+    const Right_middleFinger1 = _ensureParent(Right_middleFinger2, Right_wrist);
+    const Right_ringFinger3 = _ensureParent(_getOptional(_findFinger(Right_wrist, /ring(?:finger)?3|ring_distal|ring02r|ringfinger2_r|ring002r/i)));
+    const Right_ringFinger2 = _ensureParent(Right_ringFinger3);
+    const Right_ringFinger1 = _ensureParent(Right_ringFinger2, Right_wrist);
+    const Right_littleFinger3 = _ensureParent(_getOptional(_findFinger(Right_wrist, /little(?:finger)?3|pinky3|little_distal|little02r|lifflefinger2_r|little002r/i)));
+    const Right_littleFinger2 = _ensureParent(Right_littleFinger3);
+    const Right_littleFinger1 = _ensureParent(Right_littleFinger2, Right_wrist);
 	  const Right_elbow = Right_wrist.parent;
 	  const Right_arm = Right_elbow.parent;
 	  const Left_ankle = _findFoot(tailBones, true);
