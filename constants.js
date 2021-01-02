@@ -47,7 +47,7 @@ export const colors = [
   '78909c',
   '333333',
 ]; */
-export const previewExt = 'jpg';
+export const previewExt = 'png';
 
 export const storageHost = 'https://ipfs.exokit.org';
 export const previewHost = 'https://preview.exokit.org'
