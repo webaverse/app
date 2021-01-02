@@ -788,23 +788,6 @@ const _updateWeapons = timeDiff => {
   popovers.update();
 };
 
-const popoverWidth = 600;
-const popoverHeight = 200;
-const popoverTextMesh = (() => {
-  const textMesh = makeTextMesh('This is your mirror.\nTake a look at yourself!', undefined, 0.5, 'center', 'middle');
-  textMesh.position.z = 0.1;
-  textMesh.scale.x = popoverHeight / popoverWidth;
-  textMesh.color = 0xFFFFFF;
-  return textMesh;
-})();
-const popoverTarget = new THREE.Object3D();
-popoverTarget.position.set(0, 2.5, -2);
-const popoverMesh = popovers.addPopover(popoverTextMesh, {
-  width: popoverWidth,
-  height: popoverHeight,
-  target: popoverTarget,
-});
-
 /* renderer.domElement.addEventListener('wheel', e => {
   if (document.pointerLockElement) {
     if (appManager.grabbedObjects[0]) {
