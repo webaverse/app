@@ -1009,7 +1009,7 @@ class Avatar {
           _recurseBoneAttachments(child);
         } else {
           child.matrix
-            .premultiply(localMatrix.compose(localVector.set(0, 0, 0), preRotations['Hips'], localVector2.set(1, 1, 1)))
+            .premultiply(localMatrix.compose(localVector.set(0, 0, 0), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI), localVector2.set(1, 1, 1)))
             .decompose(child.position, child.quaternion, child.scale);
         }
       }
