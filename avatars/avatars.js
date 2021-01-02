@@ -1734,7 +1734,7 @@ class Avatar {
     this.shoulderTransforms.Update();
     this.legsManager.Update();
 
-	  for (const k in this.modelBones) {
+    for (const k in this.modelBones) {
       const modelBone = this.modelBones[k];
       const modelBoneOutput = this.modelBoneOutputs[k];
 
