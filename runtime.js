@@ -71,6 +71,8 @@ const importMap = {
   physicsManager: _importMapUrl('./physics-manager.js'),
   rig: _importMapUrl('./rig.js'),
   vrUi: _importMapUrl('./vr-ui.js'),
+  notifications: _importMapUrl('./notifications.js'),
+  popovers: _importMapUrl('./popovers.js'),
   crypto: _importMapUrl('./crypto.js'),
   BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
   GLTFLoader: _importMapUrl('./GLTFLoader.js'),
@@ -391,6 +393,8 @@ const _makeAppUrl = appId => {
     import _physics from ${JSON.stringify(importMap.physicsManager)};
     import {rigManager as rig} from ${JSON.stringify(importMap.rig)};
     import * as ui from ${JSON.stringify(importMap.vrUi)};
+    import * as notifications from ${JSON.stringify(importMap.notifications)};
+    import * as popovers from ${JSON.stringify(importMap.popovers)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
 
     const renderer = Object.create(_renderer);
@@ -483,7 +487,7 @@ const _makeAppUrl = appId => {
         rig.localRig.model.visible = false;
       }
     };
-    export {renderer, scene, camera, runtime, world, physics, ui, crypto, rig, app, appManager};
+    export {renderer, scene, camera, runtime, world, physics, ui, notifications, popovers, crypto, rig, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
