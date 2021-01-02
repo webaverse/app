@@ -15,6 +15,7 @@ import {teleportMeshes} from './teleport.js';
 import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
 import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
+import * as popovers from './popovers.js';
 import {getExt, bindUploadFileButton} from './util.js';
 import {storageHost} from './constants.js';
 
@@ -784,69 +785,25 @@ const _updateWeapons = timeDiff => {
 
   crosshairEl.classList.toggle('visible', ['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getTool()) && !appManager.grabbedObjects[0]);
   
-  _updatePopover();
+  popovers.update();
 };
 
-const popoverMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), new THREE.MeshBasicMaterial({
-  color: 0x000000,
-}));
-popoverMesh.width = 600;
-popoverMesh.height = 200;
-popoverMesh.position.z = -1; // needed for othro camera
-popoverMesh.target = new THREE.Object3D();
-popoverMesh.target.position.set(0, 2.5, -2);
-popoverMesh.textMesh = (() => {
+const popoverWidth = 600;
+const popoverHeight = 200;
+const popoverTextMesh = (() => {
   const textMesh = makeTextMesh('This is your mirror.\nTake a look at yourself!', undefined, 0.5, 'center', 'middle');
   textMesh.position.z = 0.1;
-  textMesh.scale.x = popoverMesh.height/popoverMesh.width;
+  textMesh.scale.x = popoverHeight / popoverWidth;
   textMesh.color = 0xFFFFFF;
   return textMesh;
 })();
-popoverMesh.add(popoverMesh.textMesh);
-orthographicScene.add(popoverMesh);
-const context = renderer.getContext();
-function toScreenPosition(obj, camera, vector) {
-  var widthHalf = 0.5*context.canvas.width;
-  var heightHalf = 0.5*context.canvas.height;
-
-  obj.updateMatrixWorld();
-  vector.setFromMatrixPosition(obj.matrixWorld);
-  vector.project(camera);
-
-  vector.x = ( vector.x * widthHalf ) + widthHalf;
-  vector.y = - ( vector.y * heightHalf ) + heightHalf;
-
-  return vector;
-}
-const _updatePopover = () => {
-  const n = localVector.set(0, 0, -1)
-    .applyQuaternion(camera.quaternion)
-    .dot(
-      localVector2.copy(popoverMesh.target.position)
-        .sub(camera.position)
-    );
-  toScreenPosition(popoverMesh.target, camera, localVector);
-  popoverMesh.position.x = -1 + localVector.x/(window.innerWidth*window.devicePixelRatio)*2;
-  popoverMesh.position.y = 1 - localVector.y/(window.innerHeight*window.devicePixelRatio)*2;
-  const distance = popoverMesh.position.distanceTo(camera.position);
-  const maxSoftDistance = 3;
-  const maxHardDistance = 8;
-  if (n > 0 && distance < maxHardDistance) {
-    const halfWidthFactor = popoverMesh.width/(window.innerWidth*window.devicePixelRatio);
-    const halfHeightFactor = popoverMesh.height/(window.innerHeight*window.devicePixelRatio);
-    popoverMesh.scale.set(popoverMesh.width/(window.innerWidth*window.devicePixelRatio), popoverMesh.height/(window.innerHeight*window.devicePixelRatio), 1);
-    if (distance > maxSoftDistance) {
-      popoverMesh.scale.multiplyScalar(1 / (distance - maxSoftDistance + 1));
-    }
-    /* if (distance > maxDistance / 2) {
-      popoverMesh.position.x = Math.min(Math.max(popoverMesh.position.x, -0.99 + halfWidthFactor), 0.99 - halfWidthFactor);
-      popoverMesh.position.y = Math.min(Math.max(popoverMesh.position.y, -0.99 + halfHeightFactor), 0.99 - halfHeightFactor);
-    } */
-    popoverMesh.visible = true;
-  } else {
-    popoverMesh.visible = false;
-  }
-};
+const popoverTarget = new THREE.Object3D();
+popoverTarget.position.set(0, 2.5, -2);
+const popoverMesh = popovers.addPopover(popoverTextMesh, {
+  width: popoverWidth,
+  height: popoverHeight,
+  target: popoverTarget,
+});
 
 /* renderer.domElement.addEventListener('wheel', e => {
   if (document.pointerLockElement) {
