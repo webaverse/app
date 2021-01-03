@@ -1,10 +1,10 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
 // import {KTX2Loader} from './KTX2Loader.js';
+import {VOXLoader} from './VOXLoader.js';
 import {CSS3DObject} from './CSS3DRenderer.js';
 import {MeshoptDecoder} from './meshopt_decoder.module.js';
 import {BasisTextureLoader} from './BasisTextureLoader.js';
-import {VOXLoader} from './VOXLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 // import {bake} from './bakeUtils.js';
