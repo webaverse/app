@@ -67,6 +67,7 @@ const importMap = {
   three: _importMapUrl('./three.module.js'),
   app: _importMapUrl('./app-object.js'),
   world: _importMapUrl('./world.js'),
+  universe: _importMapUrl('./universe.js'),
   runtime: _importMapUrl('./runtime.js'),
   physicsManager: _importMapUrl('./physics-manager.js'),
   rig: _importMapUrl('./rig.js'),
@@ -390,6 +391,7 @@ const _makeAppUrl = appId => {
     import * as THREE from ${JSON.stringify(importMap.three)};
     import runtime from ${JSON.stringify(importMap.runtime)};
     import {world} from ${JSON.stringify(importMap.world)};
+    import * as universe from ${JSON.stringify(importMap.universe)};
     import _physics from ${JSON.stringify(importMap.physicsManager)};
     import {rigManager as rig} from ${JSON.stringify(importMap.rig)};
     import * as ui from ${JSON.stringify(importMap.vrUi)};
@@ -487,7 +489,7 @@ const _makeAppUrl = appId => {
         rig.localRig.model.visible = false;
       }
     };
-    export {renderer, scene, camera, runtime, world, physics, ui, notifications, popovers, crypto, rig, app, appManager};
+    export {renderer, scene, camera, runtime, world, universe, physics, ui, notifications, popovers, crypto, rig, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
