@@ -1051,25 +1051,6 @@ const _loadPortal = async file => {
   const app = appManager.createApp(appId);
   appManager.setAnimationLoop(appId, () => {
     portalMesh.update();
-
-    /* const distance = rigManager.localRig.inputs.hmd.position.distanceTo(
-      localVector.copy(portalMesh.position)
-        .add(localVector2.set(0, 1, 0).applyQuaternion(portalMesh.quaternion))
-    );
-    if (distance < 1) {
-      const now = Date.now();
-      if (inRangeStart !== null) {
-        const timeDiff = now - inRangeStart;
-        if (timeDiff >= 2000) {
-          renderer.setAnimationLoop(null);
-          window.location.href = href;
-        }
-      } else {
-        inRangeStart = now;
-      }
-    } else {
-      inRangeStart = null;
-    } */
   });
 
   return portalMesh;
