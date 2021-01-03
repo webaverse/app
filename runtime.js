@@ -875,14 +875,13 @@ const _loadScn = async (file, opts) => {
   return scene;
 };
 const _loadPortal = async file => {
-  let href;
+  let json;
   if (file.url) {
     const res = await fetch(file.url);
-    href = await res.text();
+    json = await res.json();
   } else {
-    href = await file.text();
+    json = await file.json();
   }
-  href = href.replace(/^([\S]*)/, '$1');
 
   /* const geometry = new THREE.CircleBufferGeometry(1, 32)
     .applyMatrix4(new THREE.Matrix4().makeScale(0.5, 1, 1))
@@ -1034,6 +1033,8 @@ const _loadPortal = async file => {
     new THREE.Vector3(w/2, w, w/2),
   );
   portalMesh.frustumCulled = false;
+  portalMesh.isPortal = true;
+  portalMesh.json = json;
   portalMesh.update = () => {
     const transforms = rigManager.getRigTransforms();
     const {position} = transforms[0];
