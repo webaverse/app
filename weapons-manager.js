@@ -271,8 +271,8 @@ const _use = () => {
 
     weaponsManager.setMenu(0);
     cameraManager.requestPointerLock();
-  } else if (highlightedWorld) {
-    universe.enterWorld();
+  } else {
+    appManager.use();
   }
 };
 let useAnimation = null;
