@@ -405,14 +405,14 @@ const enterWorld = async worldSpec => {
       await world.connectRoom(name, `worlds.exokit.org:${port}`);
     } else if (objects) {
       await Promise.all(objects.map(async object => {
-        let {contentId, parentId, position, quaternion, options} = object;
+        let {start_url, position, quaternion} = object;
         if (position) {
           position = new THREE.Vector3().fromArray(position);
         }
         if (quaternion) {
           quaternion = new THREE.Quaternion().fromArray(quaternion);
         }
-        await world.addObject(contentId, parentId, position, quaternion, options);
+        await world.addObject(start_url, null, position, quaternion);
       }));
     } else {
       throw new Error('invalid world spec: ' + JSON.stringify(worldSpec));
