@@ -1255,11 +1255,11 @@ const _updateMenu = () => {
   menu2El.classList.toggle('open', menuOpen === 2);
   menu3El.classList.toggle('open', menuOpen === 3);
   menu4El.classList.toggle('open', menuOpen === 4);
-  unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!appManager.grabbedObjects[0] || !!highlightedObject || !!editedObject || !!highlightedWorld);
-  objectMenuEl.classList.toggle('open', !!highlightedObject && !appManager.grabbedObjects[0] && !editedObject && !highlightedWorld && menuOpen !== 4);
+  unmenuEl.classList.toggle('closed', menuOpen !== 0 || !!appManager.grabbedObjects[0] || !!highlightedObject || !!editedObject);
+  objectMenuEl.classList.toggle('open', !!highlightedObject && !appManager.grabbedObjects[0] && !editedObject && menuOpen !== 4);
   grabMenuEl.classList.toggle('open', !!appManager.grabbedObjects[0]);
   editMenuEl.classList.toggle('open', !!editedObject);
-  worldMenuEl.classList.toggle('open', !!highlightedWorld && !editedObject && menuOpen === 0);
+  worldMenuEl.classList.toggle('open', !editedObject && menuOpen === 0);
   locationIcon.classList.toggle('open', false);
   locationIcon.classList.toggle('highlight', false);
   profileIcon.classList.toggle('open', false);
@@ -1371,14 +1371,6 @@ const _updateMenu = () => {
 
     lastSelectedBuild = -1;
     lastCameraFocus = -1;
-  } else if (highlightedWorld) {
-    locationIcon.classList.toggle('open', true);
-    locationIcon.classList.toggle('highlight', !!highlightedWorld);
-
-    worldMenuEl.classList.toggle('open', true);
-
-    lastSelectedBuild = -1;
-    lastCameraFocus = -1;
   } else {
     locationIcon.classList.toggle('open', true);
 
@@ -1386,7 +1378,7 @@ const _updateMenu = () => {
     lastCameraFocus = -1;
   }
 
-  locationLabel.innerText = (highlightedWorld ? highlightedWorld.name : 'Overworld') + ` @${coord.x},${coord.z}`;
+  locationLabel.innerText = `Overworld @${coord.x},${coord.z}`;
 };
 
 const loadoutEl = document.getElementById('loadout');
@@ -1607,7 +1599,7 @@ const weaponsManager = {
       return 4/this.gridSnap;
     }
   },
-  setWorld(newCoord, newHighlightedWorld) {
+  /* setWorld(newCoord, newHighlightedWorld) {
     lastCoord.copy(coord);
     coord.copy(newCoord);
 
@@ -1617,7 +1609,7 @@ const weaponsManager = {
     if (!coord.equals(lastCoord) || highlightedWorld !== lastHighlightedWorld) {
       _updateMenu();
     }
-  },
+  }, */
   async destroyWorld() {
     if (highlightedWorld) {
       const {name} = highlightedWorld;
