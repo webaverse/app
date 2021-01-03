@@ -9,6 +9,7 @@ import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh} from './vr-ui.js';
+import {homeScnUrl} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -197,7 +198,7 @@ const clearWorld = () => {
   }
 };
 const loadDefaultWorld = async () => {
-  const res = await fetch(`https://webaverse.github.io/street/street.scn`);
+  const res = await fetch(homeScnUrl);
   const homeScn = await res.json();
   await Promise.all(homeScn.objects.map(async objectSpec => {
     const position = objectSpec.position ? new THREE.Vector3().fromArray(objectSpec.position) : new THREE.Vector3();
