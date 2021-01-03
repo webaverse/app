@@ -853,8 +853,9 @@ world.addEventListener('trackedobjectadd', async e => {
         return null;
       }
     })();
+    let mesh;
     if (file) {
-      let mesh = await runtime.loadFile(file, {
+      mesh = await runtime.loadFile(file, {
         instanceId: instanceId,
         monetizationPointer: token ? token.owner.monetizationPointer : "",
         ownerAddress: token ? token.owner.address : ""
@@ -915,9 +916,11 @@ world.addEventListener('trackedobjectadd', async e => {
       world.dispatchEvent(new MessageEvent('objectadd', {
         data: mesh,
       }));
+    } else {
+      messh = null;
     }
 
-    p.accept();
+    p.accept(mesh);
   } catch (err) {
     p.reject(err);
   }
