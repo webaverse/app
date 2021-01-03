@@ -85,7 +85,7 @@ const universeSpecs = {
     },
   ],
 };
-const _makeLabelMesh = text => {
+/* const _makeLabelMesh = text => {
   const w = 2;
   const h = 0.3;
   const textMesh = makeTextMesh(text, undefined, h, 'center', 'middle');
@@ -163,7 +163,7 @@ const worldObjects = universeSpecs.parcels.map(spec => {
   guardianMesh.add(labelMesh);
 
   return guardianMesh;
-});
+}); */
 
 const warpMesh = (() => {
   const boxGeometry = new THREE.BoxBufferGeometry(0.1, 0.1, 1);
@@ -236,7 +236,7 @@ warpMesh.visible = false;
 scene.add(warpMesh);
 
 let currentWorld = null;
-let highlightedWorld = null;
+// let highlightedWorld = null;
 // let animation = null;
 const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.x),
@@ -269,7 +269,7 @@ const loadDefaultWorld = async () => {
   }));
 };
 const update = () => {
-  const oldWorld = highlightedWorld;
+  /* const oldWorld = highlightedWorld;
 
   const _parseParcelSpec = spec => localBox.set(localVector.fromArray(spec.extents, 0), localVector2.fromArray(spec.extents, 3));
   const intersectionIndex = universeSpecs.parcels.findIndex(spec =>
@@ -281,7 +281,7 @@ const update = () => {
     highlightedWorld = worldObjects[intersectionIndex];
   } else {
   	highlightedWorld = null;
-  }
+  } */
 
   /* if (highlightedWorld !== oldWorld) {
     const objects = world.getObjects();
@@ -296,15 +296,15 @@ const update = () => {
     }
   } */
 
-  for (const worldObject of worldObjects) {
+  /* for (const worldObject of worldObjects) {
     worldObject.material.uniforms.uColor.value.setHex(blueColor);
   }
   if (highlightedWorld) {
   	highlightedWorld.material.uniforms.uColor.value.setHex(greenColor);
-  }
+  } */
 
-  _getCurrentCoord(rigManager.localRig.inputs.hmd.position, localVector);
-  weaponsManager.setWorld(localVector, highlightedWorld);
+  // _getCurrentCoord(rigManager.localRig.inputs.hmd.position, localVector);
+  // weaponsManager.setWorld(localVector, highlightedWorld);
 
   /* if (animation) {
     const now = Date.now();
@@ -343,14 +343,14 @@ const _invertGeometry = geometry => {
   return geometry;
 };
 // const canEnterWorld = () => !!highlightedWorld && !warpMesh.visible; /*&& !animation*/
-const enterWorld = async () => {
-  const w = currentWorld ? null : highlightedWorld;
+const enterWorld = async worldSpec => {
+  // const w = currentWorld ? null : highlightedWorld;
 
   warpMesh.visible = true;
 
   localBox.set(
-    localVector.fromArray(highlightedWorld.extents, 0),
-    localVector2.fromArray(highlightedWorld.extents, 3),
+    localVector.fromArray(worldSpec.extents[0]),
+    localVector2.fromArray(worldSpec.extents[1]),
   );
   const center = localBox.getCenter(localVector);
   const size = localBox.getSize(localVector2);
@@ -376,8 +376,8 @@ const enterWorld = async () => {
         .add(localVector4.set(localVector.radius, localVector.radius + localVector.halfHeight, localVector.radius)),
     );
     const parcelAABB = localBox2.set(
-      localVector2.fromArray(highlightedWorld.extents, 0),
-      localVector3.fromArray(highlightedWorld.extents, 3),
+      localVector2.fromArray(worldSpec.extents[0]),
+      localVector3.fromArray(worldSpec.extents[1]),
     );
     localVector.setScalar(0);
     let changed = false;
@@ -442,30 +442,45 @@ const enterWorld = async () => {
   };
   _containAvatar();
 
-  if (w) {
+  world.disconnectRoom();
+
+  if (worldSpec) {
     clearWorld();
 
-    const {name} = w;
-    const u = `https://worlds.exokit.org/${name}`;
-    const res = await fetch(u);
-    let j;
-    if (res.status === 404) {
-      const res2 = await fetch(u, {
-        method: 'POST',
-      });
-      j = await res2.json();
-      j = j.result;
+    const {name, objects} = worldSpec;
+    if (name) {
+      const u = `https://worlds.exokit.org/${name}`;
+      const res = await fetch(u);
+      let j;
+      if (res.status === 404) {
+        const res2 = await fetch(u, {
+          method: 'POST',
+        });
+        j = await res2.json();
+        j = j.result;
+      } else {
+        j = await res.json();
+        j = j.result;
+      }
+      const {publicIp, privateIp, port} = j;
+      await world.connectRoom(name, `worlds.exokit.org:${port}`);
+    } else if (objects) {
+      await Promise.all(objects.map(async object => {
+        let {contentId, parentId, position, quaternion, options} = object;
+        if (position) {
+          position = new THREE.Vector3().fromArray(position);
+        }
+        if (quaternion) {
+          quaternion = new THREE.Quaternion().fromArray(quaternion);
+        }
+        await world.addObject(contentId, parentId, position, quaternion, options);
+      }));
     } else {
-      j = await res.json();
-      j = j.result;
+      throw new Error('invalid world spec: ' + JSON.stringify(worldSpec));
     }
-    const {publicIp, privateIp, port} = j;
-    await world.connectRoom(name, `worlds.exokit.org:${port}`);
 
     world.initializeIfEmpty(universeSpecs.initialScene);
   } else {
-    await world.disconnectRoom(warpPhysicsId);
-
     await loadDefaultWorld();
   }
 
@@ -475,7 +490,7 @@ const enterWorld = async () => {
     physicsManager.removeGeometry(warpPhysicsId);
   }, 3000);
 
-  currentWorld = w;
+  currentWorld = worldSpec;
 
   /* const now = Date.now();
   animation = {
