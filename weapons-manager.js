@@ -272,7 +272,6 @@ const _use = () => {
     weaponsManager.setMenu(0);
     cameraManager.requestPointerLock();
   } else {
-    appManager.use();
   }
 };
 let useAnimation = null;
