@@ -156,7 +156,10 @@ class App extends EventTarget {
     this.appId = appId;
     this.files = {};
     this.object = null;
+
+    // cleanup tracking
     this.physicsIds = [];
+    this.popovers = [];
   }
 }
 
