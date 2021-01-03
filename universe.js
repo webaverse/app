@@ -21,70 +21,6 @@ const localObject = new THREE.Object3D();
 const blueColor = 0x42a5f5;
 const greenColor = 0xaed581;
 
-const universeSpecs = {
-  universeObjects: [
-    {
-      position: [0, 0, 0],
-      start_url: 'https://webaverse.github.io/street/index.js',
-    },
-    {
-      position: [-20, 30, -30],
-      start_url: 'https://avaer.github.io/land/index.js',
-    },
-    {
-      position: [0, 0, 0],
-      start_url: 'https://webaverse.github.io/skybox/index.js',
-    },
-    {
-      position: [0, 0, -2],
-      start_url: 'https://avaer.github.io/mirror/index.js',
-    },
-    {
-      position: [-10, 0, -30],
-      start_url: 'https://avaer.github.io/shield/index.js',
-    },
-    {
-      position: [4, 0, 1],
-      quaternion: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0)).toArray(),
-      start_url: 'https://avatar-models.exokit.org/model43.vrm',
-    },
-    {
-      position: [4, 0, 2],
-      quaternion: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0)).toArray(),
-      start_url: 'https://webaverse.github.io/assets/male.vrm',
-    },
-    /* {
-      position: [4, 0, 0],
-      quaternion: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(-1, 0, 0)).toArray(),
-      start_url: './portal/index.js',
-    }, */
-    {
-      position: [-13, 0, 0],
-      quaternion: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0)).toArray(),
-      start_url: 'https://webaverse.github.io/homespace/manifest.json',
-    },
-  ],
-  initialScene: {
-    position: [0, 0, 0],
-    start_url: './home.scn',
-  },
-  parcels: [
-    {
-      name: 'Erithor',
-      extents: [
-        5, 0, -14,
-        15, 3, -4,
-      ],
-    },
-    {
-      name: 'Joy',
-      extents: [
-        5, 0, -24,
-        15, 3, -14,
-      ],
-    },
-  ],
-};
 /* const _makeLabelMesh = text => {
   const w = 2;
   const h = 0.3;
@@ -261,7 +197,9 @@ const clearWorld = () => {
   }
 };
 const loadDefaultWorld = async () => {
-  await Promise.all(universeSpecs.universeObjects.map(async objectSpec => {
+  const res = await fetch(`https://webaverse.github.io/street/street.scn`);
+  const homeScn = await res.json();
+  await Promise.all(homeScn.objects.map(async objectSpec => {
     const position = objectSpec.position ? new THREE.Vector3().fromArray(objectSpec.position) : new THREE.Vector3();
     const quaternion = objectSpec.quaternion ? new THREE.Quaternion().fromArray(objectSpec.quaternion) : new THREE.Quaternion();
     // const scale = objectSpec.scale ? new THREE.Vector3().fromArray(objectSpec.scale) : new THREE.Vector3();
