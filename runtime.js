@@ -872,7 +872,7 @@ const _loadScn = async (file, opts) => {
   };
   return scene;
 };
-const _loadLink = async file => {
+const _loadPortal = async file => {
   let href;
   if (file.url) {
     const res = await fetch(file.url);
@@ -887,44 +887,25 @@ const _loadLink = async file => {
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1, 0));
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      // tex: {type: 't', value: texture, needsUpdate: true},
       iTime: {value: 0, needsUpdate: true},
     },
     vertexShader: `\
-      // uniform float iTime;
       varying vec2 uvs;
-      /* varying vec3 vNormal;
-      varying vec3 vWorldPosition; */
       void main() {
         uvs = uv;
         gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-        // vNormal = normal;
-        // vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-        /// vWorldPosition = worldPosition.xyz;
       }
     `,
     fragmentShader: `\
       #define PI 3.1415926535897932384626433832795
 
       uniform float iTime;
-      // uniform sampler2D tex;
       varying vec2 uvs;
-      /* arying vec3 vNormal;
-      varying vec3 vWorldPosition; */
 
       const vec3 c = vec3(${new THREE.Color(0x1565c0).toArray().join(', ')});
 
       void main() {
         vec2 uv = uvs;
-        /* uv.x *= 1.7320508075688772;
-        uv *= 8.0;
-
-        vec3 direction = vWorldPosition - cameraPosition;
-        float d = dot(vNormal, normalize(direction));
-        float glow = d < 0.0 ? max(1. + d * 2., 0.) : 0.;
-
-        float animationFactor = (1.0 + sin((uvs.y*2. + iTime) * PI*2.))/2.;
-        float a = glow + (1.0 - texture2D(tex, uv).r) * (0.01 + pow(animationFactor, 10.0) * 0.5); */
 
         const vec3 c = vec3(${new THREE.Color(0x29b6f6).toArray().join(', ')});
 
@@ -934,11 +915,7 @@ const _loadLink = async file => {
         float angle = atan(normalizedDistanceVector.y, normalizedDistanceVector.x) + iTime*PI*2.;
         float skirt = pow(sin(angle*50.) * cos(angle*20.), 5.) * 0.2;
         a += skirt;
-        // if (length(f) > 0.8) {
-          gl_FragColor = vec4(c, a);
-        /* } else {
-          discard;
-        } */
+        gl_FragColor = vec4(c, a);
       }
     `,
     side: THREE.DoubleSide,
@@ -1120,7 +1097,7 @@ runtime.loadFile = async (file, opts) => {
         return await _loadScn(file, opts);
       }
       case 'url': {
-        return await _loadLink(file, opts);
+        return await _loadPortal(file, opts);
       }
       case 'iframe': {
         return await _loadIframe(file, opts);
