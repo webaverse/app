@@ -733,15 +733,17 @@ world.connectRoom = async (roomName, worldURL) => {
   _bindState(state);
 };
 world.disconnectRoom = () => {
-  channelConnection.close();
+  if (channelConnection) {
+    channelConnection.close();
 
-  const localObjects = objects.slice();
-  for (const object of localObjects) {
-    world.removeObject(object.instanceId);
+    const localObjects = objects.slice();
+    for (const object of localObjects) {
+      world.removeObject(object.instanceId);
+    }
+
+    state = new Y.Doc();
+    _bindState(state);
   }
-
-  state = new Y.Doc();
-  _bindState(state);
 };
 
 world.initializeIfEmpty = spec => {
