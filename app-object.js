@@ -91,10 +91,8 @@ document.body.insertBefore(renderer2.domElement, canvas);
 const scene2 = new THREE.Scene();
 const scene3 = new THREE.Scene();
 
-class AppManager extends EventTarget {
+class AppManager {
   constructor() {
-    super();
-
     this.apps = [];
     this.animationLoops = [];
     this.grabbedObjects = [null, null];
@@ -143,9 +141,6 @@ class AppManager extends EventTarget {
   release(side) {
     this.grabs[side === 'left' ? 0 : 1] = null;
   } */
-  use() {
-    this.dispatchEvent(new MessageEvent('use'));
-  }
   tick() {
     for (const al of this.animationLoops) {
       al.fn.apply(null, arguments);
