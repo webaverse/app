@@ -418,7 +418,7 @@ const enterWorld = async worldSpec => {
       throw new Error('invalid world spec: ' + JSON.stringify(worldSpec));
     }
 
-    world.initializeIfEmpty(universeSpecs.initialScene);
+    // world.initializeIfEmpty(universeSpecs.initialScene);
   } else {
     await loadDefaultWorld();
   }
