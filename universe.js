@@ -118,10 +118,6 @@ const _makeLabelMesh = text => {
       ctx.moveTo( x, y + radius );
       ctx.lineTo( x, y + height - radius );
       ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
-      /* ctx.lineTo( x + radius + indentWidth, y + height );
-      ctx.lineTo( x + radius + indentWidth + indentHeight, y + height - indentHeight );
-      ctx.lineTo( x + width - radius - indentWidth - indentHeight, y + height - indentHeight );
-      ctx.lineTo( x + width - radius - indentWidth, y + height ); */
       ctx.lineTo( x + width - radius, y + height );
       ctx.quadraticCurveTo( x + width, y + height, x + width, y + height - radius );
       ctx.lineTo( x + width, y + radius );
@@ -134,11 +130,6 @@ const _makeLabelMesh = text => {
       steps: 2,
       depth: 0,
       bevelEnabled: false,
-      /* bevelEnabled: true,
-      bevelThickness: 0,
-      bevelSize: 0,
-      bevelOffset: 0,
-      bevelSegments: 0, */
     };
     const geometry = BufferGeometryUtils.mergeBufferGeometries([
       new THREE.CircleBufferGeometry(0.13, 32)
