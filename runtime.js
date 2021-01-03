@@ -10,6 +10,7 @@ import {getExt, mergeMeshes, convertMeshToPhysicsMesh} from './util.js';
 // import {bake} from './bakeUtils.js';
 // import geometryManager from './geometry-manager.js';
 import buildTool from './build-tool.js';
+import * as popovers from './popovers.js';
 import {rigManager} from './rig.js';
 import {loginManager} from './login.js';
 import {makeTextMesh} from './vr-ui.js';
@@ -396,7 +397,7 @@ const _makeAppUrl = appId => {
     import {rigManager as rig} from ${JSON.stringify(importMap.rig)};
     import * as ui from ${JSON.stringify(importMap.vrUi)};
     import * as notifications from ${JSON.stringify(importMap.notifications)};
-    import * as popovers from ${JSON.stringify(importMap.popovers)};
+    import * as _popovers from ${JSON.stringify(importMap.popovers)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
 
     const renderer = Object.create(_renderer);
@@ -473,6 +474,22 @@ const _makeAppUrl = appId => {
       }
     })(physics.removeGeometry);
 
+    const popovers = {};
+    for (const k in _popovers) {
+      popovers[k] = _popovers[k];
+    }
+    popovers.addPopover = (addPopover => function() {
+      const popover = addPopover.apply(this, arguments);
+      app.popovers.push(popover);
+    })(popovers.addPopover);
+    popovers.removePopover = (removePopover => function() {
+      removePopover.apply(this, arguments);
+      const index = app.popovers.indexOf(physicsId);
+      if (index !== -1) {
+        app.popovers.splice(index);
+      }
+    })(popovers.removePopover);
+
     const app = appManager.getApp(${appId});
     let recursion = 0;
     app.onBeforeRender = () => {
@@ -520,6 +537,12 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
       physicsManager.removeGeometry(physicsId);
     }
     app.physicsIds.length = 0;
+    
+    const localPopovers = app.popovers.slice();
+    for (const popover of localPopovers) {
+      popovers.removePopover(popover);
+    }
+    app.popovers.length = 0;
   };
   mesh.getPhysicsIds = () => app.physicsIds;
 
