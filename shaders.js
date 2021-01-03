@@ -676,6 +676,10 @@ const buildMaterial = new THREE.ShaderMaterial({
 
 const portalMaterial = new THREE.ShaderMaterial({
   uniforms: {
+    uColor: {
+      type: 'c',
+      value: new THREE.Color(0xffa726),
+    },
     uTime: {
       type: 'f',
       value: 0,
@@ -798,10 +802,11 @@ const portalMaterial = new THREE.ShaderMaterial({
 
     #define PI 3.1415926535897932384626433832795
 
-    uniform float sunIntensity;
-    uniform sampler2D tex;
+    // uniform float sunIntensity;
+    // uniform sampler2D tex;
+    uniform vec3 uColor;
     uniform float uTime;
-    uniform vec3 sunDirection;
+    // uniform vec3 sunDirection;
     uniform float uDistance;
     uniform vec3 uUserPosition;
     float parallaxScale = 0.3;
@@ -846,7 +851,7 @@ const portalMaterial = new THREE.ShaderMaterial({
     }
 
     void main() {
-      vec3 diffuseColor2 = vec3(${new THREE.Color(0xffa726).toArray().join(', ')});
+      // vec3 diffuseColor2 = vec3(${new THREE.Color(0xffa726).toArray().join(', ')});
       float normalRepeat = 1.0;
 
       vec3 blending = getTriPlanarBlend(vNormal);
@@ -865,7 +870,7 @@ const portalMaterial = new THREE.ShaderMaterial({
       } */
 
       float d = gl_FragCoord.z/gl_FragCoord.w;
-      vec3 c = diffuseColor2; // mix(diffuseColor1, diffuseColor2, abs(vPos.y/10.));
+      vec3 c = uColor; // diffuseColor2; // mix(diffuseColor1, diffuseColor2, abs(vPos.y/10.));
       // float f2 = 1. + d/10.0;
       float a;
       if (vParticle > 0.) {
