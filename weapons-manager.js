@@ -272,6 +272,23 @@ const _use = () => {
     weaponsManager.setMenu(0);
     cameraManager.requestPointerLock();
   } else {
+    const transforms = rigManager.getRigTransforms();
+    const {position} = transforms[0];
+    
+    const objects = world.getObjects();
+    const portalObjects = objects.filter(object => {
+      const {isPortal, json} = object;
+      if (isPortal) {
+        return localBox.set(localVector.fromArray(json.extents[0]), localVector2.fromArray(json.extents[1])).distanceToPoint(position) === 0;
+      } else {
+        return false;
+      }
+    });
+    const portalObject = portalObjects.length > 0 ? portalObjects[0] : null;
+    if (portalObject) {
+      const {json} = portalObject;
+      universe.enterWorld(json);
+    }
   }
 };
 let useAnimation = null;
