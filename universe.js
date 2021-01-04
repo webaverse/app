@@ -438,7 +438,7 @@ const enterWorld = async worldSpec => {
     warpMesh.visible = false;
 
     physicsManager.removeGeometry(warpPhysicsId);
-  }, 1000);
+  }, 3000);
 
   currentWorld = worldSpec;
 
