@@ -354,6 +354,8 @@ world.addEventListener('trackedobjectadd', async e => {
     if (file) {
       mesh = await runtime.loadFile(file, {
         instanceId: instanceId,
+        physics: options.physics,
+        physics_url: options.physics_url,
         monetizationPointer: token ? token.owner.monetizationPointer : "",
         ownerAddress: token ? token.owner.address : ""
       });
