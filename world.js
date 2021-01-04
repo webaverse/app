@@ -245,6 +245,9 @@ world.getObjects = () => objects.dynamic.slice();
 world.getStaticObjects = () => objects.static.slice();
 let pendingAddPromise = null;
 const _addObject = dynamic => (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
+  if (dynamic) {
+    console.log('add dynamic', contentId);
+  }
   const state = _getState(dynamic);
   const instanceId = getRandomString();
   state.transact(() => {

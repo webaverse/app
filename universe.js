@@ -391,14 +391,20 @@ const enterWorld = async worldSpec => {
     const promises = [];
     if (objects) {
       const ps = objects.map(async object => {
-        let {start_url, position, quaternion} = object;
+        let {start_url, position, quaternion, physics, physics_url, dynamic} = object;
         if (position) {
           position = new THREE.Vector3().fromArray(position);
         }
         if (quaternion) {
           quaternion = new THREE.Quaternion().fromArray(quaternion);
         }
-        await world.addStaticObject(start_url, null, position, quaternion);
+        if (dynamic && room) {
+          dynamic = false;
+        }
+        await world[dynamic ? 'addObject' : 'addStaticObject'](start_url, null, position, quaternion, {
+          physics,
+          physics_url,
+        });
       });
       promises.push.apply(promises, ps);
     }
