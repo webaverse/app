@@ -26,6 +26,11 @@ const states = {
   dynamic: new Y.Doc(),
 };
 const _getState = dynamic => dynamic ? states.dynamic : states.static;
+const objects = {
+  static: [],
+  dynamic: [],
+};
+const _getObjects = dynamic => dynamic ? objects.dynamic : objects.static;
 
 // multiplayer
 let roomName = null;
@@ -236,8 +241,8 @@ world.initializeIfEmpty = spec => {
   console.log('initialize if empty', spec); // XXX
 };
 
-const objects = [];
-world.getObjects = () => objects.slice();
+world.getObjects = () => objects.dynamic.slice();
+world.getStaticObjects = () => objects.static.slice();
 let pendingAddPromise = null;
 const _addObject = dynamic => (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
   const state = _getState(dynamic);
@@ -298,6 +303,8 @@ const _removeObject = dynamic => removeInstanceId => {
 };
 world.addObject = _addObject(true);
 world.removeObject = _removeObject(true);
+world.addStaticObject = _addObject(false);
+world.removeStaticObject = _removeObject(false);
 world.addEventListener('trackedobjectadd', async e => {
   const p = makePromise();
   pendingAddPromise = p;
@@ -401,6 +408,7 @@ world.addEventListener('trackedobjectadd', async e => {
         pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
       }
 
+      const objects = _getObjects(dynamic);
       objects.push(mesh);
 
       world.dispatchEvent(new MessageEvent('objectadd', {
@@ -418,6 +426,7 @@ world.addEventListener('trackedobjectadd', async e => {
 world.addEventListener('trackedobjectremove', async e => {
   const {trackedObject, dynamic} = e.data;
   const instanceId = trackedObject.get('instanceId');
+  const objects = _getObjects(dynamic);
   const index = objects.findIndex(object => object.instanceId === instanceId);
   if (index !== -1) {
     const object = objects[index];
