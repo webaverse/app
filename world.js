@@ -3,7 +3,6 @@ import storage from './storage.js';
 import {XRChannelConnection} from './xrrtc.js';
 import Y from './yjs.js';
 import {loginManager} from './login.js';
-// import {getContractSource} from './blockchain.js';
 import runtime from './runtime.js';
 import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
@@ -11,21 +10,11 @@ import minimap from './minimap.js';
 import {pointers} from './web-monetization.js';
 import {appManager, scene, scene3} from './app-object.js';
 import {
-  /* PARCEL_SIZE,
-  SUBPARCEL_SIZE,
-  SUBPARCEL_SIZE_P1,
-  SUBPARCEL_SIZE_P3,
-  MAX_NAME_LENGTH,
-  PLANET_OBJECT_SLOTS,
-  PLANET_OBJECT_SIZE, */
-
   storageHost,
   worldsHost,
   tokensHost,
 } from './constants.js';
 import {makePromise, getRandomString} from './util.js';
-// import * as THREE from './three.module.js';
-// import { makeTextMesh } from './vr-ui.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
