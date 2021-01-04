@@ -180,17 +180,6 @@ const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.y),
   Math.floor(p.z),
 );
-/* const _updateWorld = newWorld => {
-  clearWorld();
-
-  if (newWorld) {
-    loadUserWorld();
-  } else {
-    loadDefaultWorld();
-  }
-
-  currentWorld = newWorld;
-}; */
 const clearWorld = () => {
   const objects = world.getObjects();
   for (const object of objects) {
