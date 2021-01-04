@@ -378,7 +378,7 @@ const _upload = () => {
 };
 
 world.addEventListener('trackedobjectadd', async e => {
-  const trackedObject = e.data;
+  const {trackedObject, dynamic} = e.data;
   const trackedObjectJson = trackedObject.toJSON();
   const {contentId, instanceId} = trackedObjectJson;
 
@@ -413,7 +413,7 @@ world.addEventListener('trackedobjectadd', async e => {
   items4El.appendChild(div);
 });
 world.addEventListener('trackedobjectremove', async e => {
-  const trackedObject = e.data;
+  const {trackedObject, dynamic} = e.data;
   const instanceId = trackedObject.get('instanceId');
 
   const itemEl = items4El.querySelector(`.item[instanceid="${instanceId}"]`);

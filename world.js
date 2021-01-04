@@ -19,13 +19,22 @@ import {makePromise, getRandomString} from './util.js';
 // world
 export const world = new EventTarget();
 
+// static states are local and non-user editable
+// dyanmic states are multiplayer and user-editable
+const states = {
+  static: new Y.Doc(),
+  dynamic: new Y.Doc(),
+};
+const _getState = dynamic => dynamic ? states.dynamic : states.static;
+
 // multiplayer
 let roomName = null;
 let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
 
-const _getOrCreateTrackedObject = name => {
+const _getOrCreateTrackedObject = (name, dynamic) => {
+  const state = _getState(dynamic);
   const objects = state.getArray('objects');
   const objectsJson = objects.toJSON();
   if (!objectsJson.includes(name)) {
@@ -35,8 +44,7 @@ const _getOrCreateTrackedObject = name => {
   return state.getMap('object.' + name);
 };
 
-let state = new Y.Doc();
-const _bindState = state => {
+const _bindState = (state, dynamic) => {
   const objects = state.getArray('objects');
   let lastObjects = [];
   objects.observe(() => {
@@ -50,9 +58,12 @@ const _bindState = state => {
         /* this.dispatchEvent(new MessageEvent('trackedobjectadd', {
           data: name,
         })); */
-        const trackedObject = _getOrCreateTrackedObject(name);
+        const trackedObject = _getOrCreateTrackedObject(name, dynamic);
         world.dispatchEvent(new MessageEvent('trackedobjectadd', {
-          data: trackedObject,
+          data: {
+            trackedObject,
+            dynamic,
+          },
         }));
       }
     }
@@ -61,7 +72,10 @@ const _bindState = state => {
         // removedObjects.push(name);
         const trackedObject = state.getMap('object.' + name);
         world.dispatchEvent(new MessageEvent('trackedobjectremove', {
-          data: trackedObject,
+          data: {
+            trackedObject,
+            dynamic,
+          },
         }));
       }
     }
@@ -69,7 +83,8 @@ const _bindState = state => {
     lastObjects = nextObjects;
   });
 };
-_bindState(state);
+_bindState(states.static, false);
+_bindState(states.dynamic, true);
 world.connectRoom = async (roomName, worldURL) => {
   channelConnection = new XRChannelConnection(`wss://${worldURL}`, {roomName});
 
@@ -200,8 +215,8 @@ world.connectRoom = async (roomName, worldURL) => {
     }));
   });
 
-  state = channelConnection.state;
-  _bindState(state);
+  states.dynamic = channelConnection.state;
+  _bindState(states.dynamic, true);
 };
 world.disconnectRoom = () => {
   if (channelConnection) {
@@ -212,8 +227,8 @@ world.disconnectRoom = () => {
       world.removeObject(object.instanceId);
     }
 
-    state = new Y.Doc();
-    _bindState(state);
+    states.dynamic = new Y.Doc();
+    _bindState(states.dynamic, true);
   }
 };
 
@@ -224,10 +239,11 @@ world.initializeIfEmpty = spec => {
 const objects = [];
 world.getObjects = () => objects.slice();
 let pendingAddPromise = null;
-world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
+const _addObject = dynamic => (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
+  const state = _getState(dynamic);
   const instanceId = getRandomString();
   state.transact(() => {
-    const trackedObject = _getOrCreateTrackedObject(instanceId);
+    const trackedObject = _getOrCreateTrackedObject(instanceId, dynamic);
     trackedObject.set('instanceId', instanceId);
     trackedObject.set('parentId', parentId);
     trackedObject.set('contentId', contentId);
@@ -243,7 +259,8 @@ world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), q
     throw new Error('no pending world add object promise');
   }
 };
-world.removeObject = removeInstanceId => {
+const _removeObject = dynamic => removeInstanceId => {
+  const state = _getState(dynamic);
   state.transact(() => {
     const index = pointers.findIndex(x => x.instanceId === removeInstanceId);
     if (index === -1) pointers.splice(index, 1);
@@ -279,12 +296,14 @@ world.removeObject = removeInstanceId => {
     }
   });
 };
+world.addObject = _addObject(true);
+world.removeObject = _removeObject(true);
 world.addEventListener('trackedobjectadd', async e => {
   const p = makePromise();
   pendingAddPromise = p;
 
   try {
-    const trackedObject = e.data;
+    const {trackedObject, dynamic} = e.data;
     const trackedObjectJson = trackedObject.toJSON();
     const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
     const options = JSON.parse(optionsString);
@@ -397,7 +416,7 @@ world.addEventListener('trackedobjectadd', async e => {
   }
 });
 world.addEventListener('trackedobjectremove', async e => {
-  const trackedObject = e.data;
+  const {trackedObject, dynamic} = e.data;
   const instanceId = trackedObject.get('instanceId');
   const index = objects.findIndex(object => object.instanceId === instanceId);
   if (index !== -1) {
