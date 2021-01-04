@@ -280,7 +280,12 @@ const _use = () => {
       .filter(object => {
         const {isPortal, json} = object;
         if (isPortal) {
-          return localBox.set(localVector.fromArray(json.extents[0]), localVector2.fromArray(json.extents[1])).distanceToPoint(position) === 0;
+          return localBox.set(
+            localVector.fromArray(json.extents[0]),
+            localVector2.fromArray(json.extents[1])
+          )
+            .applyMatrix4(object.matrixWorld)
+            .distanceToPoint(position) === 0;
         } else {
           return false;
         }
