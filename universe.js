@@ -201,7 +201,7 @@ const loadDefaultWorld = async () => {
     const position = objectSpec.position ? new THREE.Vector3().fromArray(objectSpec.position) : new THREE.Vector3();
     const quaternion = objectSpec.quaternion ? new THREE.Quaternion().fromArray(objectSpec.quaternion) : new THREE.Quaternion();
     // const scale = objectSpec.scale ? new THREE.Vector3().fromArray(objectSpec.scale) : new THREE.Vector3();
-    await world.addObject(objectSpec.start_url, null, position, quaternion);
+    await world.addStaticObject(objectSpec.start_url, null, position, quaternion);
   }));
 };
 const update = () => {
@@ -409,7 +409,7 @@ const enterWorld = async worldSpec => {
         if (quaternion) {
           quaternion = new THREE.Quaternion().fromArray(quaternion);
         }
-        await world.addObject(start_url, null, position, quaternion);
+        await world.addStaticObject(start_url, null, position, quaternion);
       }));
     } else {
       throw new Error('invalid world spec: ' + JSON.stringify(worldSpec));
