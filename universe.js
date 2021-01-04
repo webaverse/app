@@ -383,25 +383,10 @@ const enterWorld = async worldSpec => {
   if (worldSpec) {
     clearWorld();
 
-    const {name, objects} = worldSpec;
-    if (name) {
-      const u = `https://worlds.exokit.org/${name}`;
-      const res = await fetch(u);
-      let j;
-      if (res.status === 404) {
-        const res2 = await fetch(u, {
-          method: 'POST',
-        });
-        j = await res2.json();
-        j = j.result;
-      } else {
-        j = await res.json();
-        j = j.result;
-      }
-      const {publicIp, privateIp, port} = j;
-      await world.connectRoom(name, `worlds.exokit.org:${port}`);
-    } else if (objects) {
-      await Promise.all(objects.map(async object => {
+    const {room, objects} = worldSpec;
+    const promises = [];
+    if (objects) {
+      const ps = objects.map(async object => {
         let {start_url, position, quaternion} = object;
         if (position) {
           position = new THREE.Vector3().fromArray(position);
@@ -410,9 +395,28 @@ const enterWorld = async worldSpec => {
           quaternion = new THREE.Quaternion().fromArray(quaternion);
         }
         await world.addStaticObject(start_url, null, position, quaternion);
-      }));
-    } else {
-      throw new Error('invalid world spec: ' + JSON.stringify(worldSpec));
+      });
+      promises.push.apply(promises, ps);
+    }
+    if (room) {
+      const p = (async () => {
+        const u = `https://worlds.exokit.org/${name}`;
+        const res = await fetch(u);
+        let j;
+        if (res.status === 404) {
+          const res2 = await fetch(u, {
+            method: 'POST',
+          });
+          j = await res2.json();
+          j = j.result;
+        } else {
+          j = await res.json();
+          j = j.result;
+        }
+        const {publicIp, privateIp, port} = j;
+        await world.connectRoom(name, `worlds.exokit.org:${port}`);
+      })();
+      promises.push(p);
     }
 
     // world.initializeIfEmpty(universeSpecs.initialScene);
