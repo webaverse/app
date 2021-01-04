@@ -400,7 +400,7 @@ const enterWorld = async worldSpec => {
     }
     if (room) {
       const p = (async () => {
-        const u = `https://worlds.exokit.org/${name}`;
+        const u = `https://worlds.exokit.org/${room}`;
         const res = await fetch(u);
         let j;
         if (res.status === 404) {
@@ -414,7 +414,7 @@ const enterWorld = async worldSpec => {
           j = j.result;
         }
         const {publicIp, privateIp, port} = j;
-        await world.connectRoom(name, `worlds.exokit.org:${port}`);
+        await world.connectRoom(room, `worlds.exokit.org:${port}`);
       })();
       promises.push(p);
     }
