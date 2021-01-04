@@ -456,7 +456,7 @@ world.addEventListener('trackedobjectremove', async e => {
   }
 });
 world.isObject = object => objects.includes(object);
-world.intersectObjects = raycaster => {
+/* world.intersectObjects = raycaster => {
   let closestMesh = null;
   let closestMeshDistance = Infinity;
   for (const mesh of objects) {
@@ -498,7 +498,7 @@ world.getClosestObject = (position, maxDistance) => {
     }
   }
   return closestObject;
-};
+}; */
 
 let animationMediaStream = null
 let networkMediaStream = null;
