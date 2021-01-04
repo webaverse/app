@@ -16,12 +16,10 @@ import {
 } from './constants.js';
 import {makePromise, getRandomString} from './util.js';
 
-const localVector = new THREE.Vector3();
+/* const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
-const localMatrix = new THREE.Matrix4();
-const localMatrix2 = new THREE.Matrix4();
-const localRaycaster = new THREE.Raycaster();
+const localMatrix = new THREE.Matrix4(); */
 
 // world
 export const world = new EventTarget();
@@ -428,49 +426,6 @@ world.addEventListener('trackedobjectremove', async e => {
   }
 });
 world.isObject = object => objects.includes(object);
-/* world.intersectObjects = raycaster => {
-  let closestMesh = null;
-  let closestMeshDistance = Infinity;
-  for (const mesh of objects) {
-    localMatrix.compose(
-      raycaster.ray.origin,
-      localQuaternion.setFromUnitVectors(
-        localVector2.set(0, 0, -1),
-        raycaster.ray.direction
-      ),
-      localVector2.set(1, 1, 1)
-    )
-      .premultiply(localMatrix2.getInverse(mesh.matrixWorld))
-      .decompose(localVector, localQuaternion, localVector2);
-    localRaycaster.ray.origin.copy(localVector);
-    localRaycaster.ray.direction.set(0, 0, -1).applyQuaternion(localQuaternion);
-    if (mesh.geometry.boundingBox) {
-      const point = localRaycaster.ray.intersectBox(mesh.geometry.boundingBox, localVector);
-      if (point) {
-        point.applyMatrix4(mesh.matrixWorld);
-        return {
-          object: mesh,
-          point: point.clone(),
-          anchor: null,
-          uv: new THREE.Vector2(),
-        };
-      }
-    }
-  }
-  return false; // XXX
-};
-world.getClosestObject = (position, maxDistance) => {
-  let closestObject = null;
-  let closestObjectDistance = Infinity;
-  for (const object of objects) {
-    const distance = position.distanceTo(object.position);
-    if (distance < closestObjectDistance && distance < maxDistance) {
-      closestObject = object;
-      closestObjectDistance = distance;
-    }
-  }
-  return closestObject;
-}; */
 
 let animationMediaStream = null
 let networkMediaStream = null;
