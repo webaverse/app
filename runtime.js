@@ -22,6 +22,7 @@ import {baseUnit} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
+const localBox = new THREE.Box3();
 
 const runtime = {};
 
@@ -1041,7 +1042,9 @@ const _loadPortal = async file => {
 
     const now = Date.now();
     portalMesh.material.uniforms.uTime.value = (now%500)/500;
-    portalMesh.material.uniforms.uDistance.value = portalMesh.boundingBox.distanceToPoint(position);
+    portalMesh.material.uniforms.uDistance.value = localBox.copy(portalMesh.boundingBox)
+      .applyMatrix4(portalMesh.matrixWorld)
+      .distanceToPoint(position);
     portalMesh.material.uniforms.uUserPosition.value.copy(position);
   };
   portalMesh.destroy = () => {
