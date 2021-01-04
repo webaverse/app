@@ -223,23 +223,6 @@ world.connectRoom = async (roomName, worldURL) => {
     }));
   });
 
-  /* channelConnection.addEventListener('initState', async e => {
-    const {data} = e;
-    console.log('got init state', data);
-
-    // _loadLiveState(roomName);
-  });
-  channelConnection.addEventListener('updateState', async e => {
-    const {data} = e;
-    const {key, value} = data;
-    console.log('got update state', key, value);
-    const isSet = value !== undefined;
-    if (isSet) {
-      state[key] = value;
-    } else {
-      delete state[key];
-    }
-  }); */
   state = channelConnection.state;
   _bindState(state);
 };
