@@ -227,7 +227,7 @@ world.disconnectRoom = () => {
   if (channelConnection) {
     channelConnection.close();
 
-    const localObjects = objects.slice();
+    const localObjects = objects.dynamic.slice();
     for (const object of localObjects) {
       world.removeObject(object.instanceId);
     }
