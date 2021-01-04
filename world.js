@@ -30,12 +30,7 @@ let channelConnection = null;
 let channelConnectionOpen = null;
 const peerConnections = [];
 
-const _getTrackedObjects = () => {
-  const objects = state.getArray('objects');
-  const objectsJson = objects.toJSON();
-  return objectsJson.map(name => state.getMap('object.' + name));
-};
-const _getTrackedObject = name => {
+const _getOrCreateTrackedObject = name => {
   const objects = state.getArray('objects');
   const objectsJson = objects.toJSON();
   if (!objectsJson.includes(name)) {
@@ -60,7 +55,7 @@ const _bindState = state => {
         /* this.dispatchEvent(new MessageEvent('trackedobjectadd', {
           data: name,
         })); */
-        const trackedObject = _getTrackedObject(name);
+        const trackedObject = _getOrCreateTrackedObject(name);
         world.dispatchEvent(new MessageEvent('trackedobjectadd', {
           data: trackedObject,
         }));
@@ -237,7 +232,7 @@ let pendingAddPromise = null;
 world.addObject = (contentId, parentId = null, position = new THREE.Vector3(), quaternion = new THREE.Quaternion(), options = {}) => {
   const instanceId = getRandomString();
   state.transact(() => {
-    const trackedObject = _getTrackedObject(instanceId);
+    const trackedObject = _getOrCreateTrackedObject(instanceId);
     trackedObject.set('instanceId', instanceId);
     trackedObject.set('parentId', parentId);
     trackedObject.set('contentId', contentId);
