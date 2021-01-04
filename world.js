@@ -16,11 +16,6 @@ import {
 } from './constants.js';
 import {makePromise, getRandomString} from './util.js';
 
-/* const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-const localQuaternion = new THREE.Quaternion();
-const localMatrix = new THREE.Matrix4(); */
-
 // world
 export const world = new EventTarget();
 
