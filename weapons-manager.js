@@ -1281,7 +1281,6 @@ const _updateMenu = () => {
   objectMenuEl.classList.toggle('open', !!highlightedObject && !appManager.grabbedObjects[0] && !editedObject && menuOpen !== 4);
   grabMenuEl.classList.toggle('open', !!appManager.grabbedObjects[0]);
   editMenuEl.classList.toggle('open', !!editedObject);
-  worldMenuEl.classList.toggle('open', !editedObject && menuOpen === 0);
   locationIcon.classList.toggle('open', false);
   locationIcon.classList.toggle('highlight', false);
   profileIcon.classList.toggle('open', false);
@@ -1454,7 +1453,6 @@ const unmenuEl = document.getElementById('unmenu');
 const objectMenuEl = document.getElementById('object-menu');
 const grabMenuEl = document.getElementById('grab-menu');
 const editMenuEl = document.getElementById('edit-menu');
-const worldMenuEl = document.getElementById('world-menu');
 const locationLabel = document.getElementById('location-label');
 const profileLabel = document.getElementById('profile-label');
 const itemLabel = document.getElementById('item-label');
