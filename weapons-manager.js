@@ -561,7 +561,7 @@ const _updateWeapons = timeDiff => {
       const {position, quaternion} = transforms[0];
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
-        const objects = world.getObjects();
+        const objects = world.getObjects().concat(world.getStaticObjects());
         for (const object of objects) {
           if (object.getPhysicsIds) {
             const physicsIds = object.getPhysicsIds();
