@@ -1590,9 +1590,10 @@ class Avatar {
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
     } */
+    
+    const now = Date.now();
 
     const _applyAnimation = () => {
-      const now = Date.now();
       const _selectAnimations = v => {
         const selectedAnimations = animations.slice().sort((a, b) => {
           const targetPosition1 = animationsSelectMap[a.name];
@@ -1636,11 +1637,11 @@ class Avatar {
       for (const k in this.animationMapping) {
         const dst = this.animationMapping[k];
         if (dst) {
-          const t1 = (Date.now()/1000) % selectedAnimations[0].duration;
+          const t1 = (now/1000) % selectedAnimations[0].duration;
           const src1 = selectedAnimations[0].interpolants[k];
           const v1 = src1.evaluate(t1);
 
-          const t2 = (Date.now()/1000) % selectedAnimations[1].duration;
+          const t2 = (now/1000) % selectedAnimations[1].duration;
           const src2 = selectedAnimations[1].interpolants[k];
           const v2 = src2.evaluate(t2);
 
@@ -1769,7 +1770,6 @@ class Avatar {
       modelBone.updateMatrixWorld();
     }
 
-    const now = Date.now();
     const timeDiff = Math.min(now - this.lastTimestamp, 1000);
     this.lastTimestamp = now;
 
