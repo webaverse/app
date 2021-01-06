@@ -308,6 +308,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null
       o.frustumCulled = false;
     }
   });
+  o.isVrm = true;
   o.run = () => {
     // elide expensive bone updates; this should not be called if wearing the avatar
     o.traverse(o => {
