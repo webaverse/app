@@ -308,6 +308,17 @@ const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null
       o.frustumCulled = false;
     }
   });
+  o.run = () => {
+    // elide expensive bone updates; this should not be called if wearing the avatar
+    o.traverse(o => {
+      if (o.skeleton) {
+        o.skeleton.update = (update => function() {
+          update.apply(this, arguments);
+          o.skeleton.update = () => {};
+        })(o.skeleton.update);
+      }
+    });
+  };
   o.geometry = {
     boundingBox: new THREE.Box3().setFromObject(o),
   };
