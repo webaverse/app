@@ -215,7 +215,9 @@ class RigManager {
           url,
           ext,
         });
-        o.run && o.run();
+        if (!o.isVrm && o.run) {
+          o.run();
+        }
       }
 
       if (oldRig.url === url) {
