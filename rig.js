@@ -548,7 +548,7 @@ class RigManager {
     }
     const positionDiff = localVector2.copy(this.lastPosition)
       .sub(currentPosition)
-      .multiplyScalar(0.08/timeDiff);
+      .multiplyScalar(0.1/timeDiff);
     localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
     localEuler.x = 0;
     localEuler.z = 0;
