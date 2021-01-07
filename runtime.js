@@ -303,6 +303,7 @@ const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null
   }
   o.scene.raw = o;
   o = o.scene;
+  o.isVrm = true;
   o.traverse(o => {
     if (o.isMesh) {
       o.frustumCulled = false;
