@@ -385,45 +385,48 @@ const _upload = () => {
 
 world.addEventListener('trackedobjectadd', async e => {
   const {trackedObject, dynamic} = e.data;
-  const trackedObjectJson = trackedObject.toJSON();
-  const {contentId, instanceId} = trackedObjectJson;
+  if (dynamic) {
+    const trackedObjectJson = trackedObject.toJSON();
+    const {contentId, instanceId} = trackedObjectJson;
 
-  const div = document.createElement('div');
-  div.classList.add('item');
-  div.setAttribute('instanceid', instanceId);
-  div.innerHTML = `
-    <div class=card>
-      <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
-    </div>
-    <div class=name>${escape(contentId)}</div>
-    <div class="key-helpers">
-      <div class="key-helper progress">
-        <div class=bar></div>
-        <div class=key>E</div>
-        <div class=label>Grab</div>
+    const div = document.createElement('div');
+    div.classList.add('item');
+    div.setAttribute('instanceid', instanceId);
+    div.innerHTML = `
+      <div class=card>
+        <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
       </div>
-      <div class="key-helper">
-        <div class=key>X</div>
-        <div class=label>Delete</div>
+      <div class=name>${escape(contentId)}</div>
+      <div class="key-helpers">
+        <div class="key-helper progress">
+          <div class=bar></div>
+          <div class=key>E</div>
+          <div class=label>Grab</div>
+        </div>
+        <div class="key-helper">
+          <div class=key>X</div>
+          <div class=label>Delete</div>
+        </div>
       </div>
-    </div>
-  `;
-  div.addEventListener('click', e => {
-    _use();
-  });
-  div.addEventListener('mouseenter', e => {
-    const i = Array.from(items4El.childNodes).indexOf(div);
-    selectedItemIndex = i;
-    _updateMenu();
-  });
-  items4El.appendChild(div);
+    `;
+    div.addEventListener('click', e => {
+      _use();
+    });
+    div.addEventListener('mouseenter', e => {
+      const i = Array.from(items4El.childNodes).indexOf(div);
+      selectedItemIndex = i;
+      _updateMenu();
+    });
+    items4El.appendChild(div);
+  }
 });
 world.addEventListener('trackedobjectremove', async e => {
   const {trackedObject, dynamic} = e.data;
-  const instanceId = trackedObject.get('instanceId');
-
-  const itemEl = items4El.querySelector(`.item[instanceid="${instanceId}"]`);
-  items4El.removeChild(itemEl);
+  if (dynamic) {
+    const instanceId = trackedObject.get('instanceId');
+    const itemEl = items4El.querySelector(`.item[instanceid="${instanceId}"]`);
+    items4El.removeChild(itemEl);
+  }
 });
 
 /* const _snapBuildPosition = p => {
