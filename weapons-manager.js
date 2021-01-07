@@ -389,14 +389,15 @@ world.addEventListener('trackedobjectadd', async e => {
     const trackedObjectJson = trackedObject.toJSON();
     const {contentId, instanceId} = trackedObjectJson;
 
-    const div = document.createElement('div');
+    const div = document.createElement('a');
     div.classList.add('item');
+    div.setAttribute('href', contentId);
     div.setAttribute('instanceid', instanceId);
     div.innerHTML = `
       <div class=card>
         <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
       </div>
-      <div class=name>${escape(contentId)}</div>
+      <div class=name></div>
       <div class="key-helpers">
         <div class="key-helper progress">
           <div class=bar></div>
@@ -409,6 +410,8 @@ world.addEventListener('trackedobjectadd', async e => {
         </div>
       </div>
     `;
+    const name = div.querySelector('.name');
+    name.innerText = contentId;
     div.addEventListener('click', e => {
       _use();
     });
