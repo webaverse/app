@@ -385,55 +385,62 @@ const enterWorld = async worldSpec => {
 
   world.disconnectRoom();
 
-  if (worldSpec) {
-    clearWorld();
+  const _doLoad = async () => {
+    if (worldSpec) {
+      clearWorld();
 
-    const {room, objects} = worldSpec;
-    const promises = [];
-    if (objects) {
-      const ps = objects.map(async object => {
-        let {start_url, position, quaternion, physics, physics_url, dynamic} = object;
-        if (position) {
-          position = new THREE.Vector3().fromArray(position);
-        }
-        if (quaternion) {
-          quaternion = new THREE.Quaternion().fromArray(quaternion);
-        }
-        if (dynamic && room) {
-          dynamic = false;
-        }
-        await world[dynamic ? 'addObject' : 'addStaticObject'](start_url, null, position, quaternion, {
-          physics,
-          physics_url,
-        });
-      });
-      promises.push.apply(promises, ps);
-    }
-    if (room) {
-      const p = (async () => {
-        const u = `https://worlds.exokit.org/${room}`;
-        const res = await fetch(u);
-        let j;
-        if (res.status === 404) {
-          const res2 = await fetch(u, {
-            method: 'POST',
+      const {room, objects} = worldSpec;
+      const promises = [];
+      if (objects) {
+        const ps = objects.map(async object => {
+          let {start_url, position, quaternion, physics, physics_url, dynamic} = object;
+          if (position) {
+            position = new THREE.Vector3().fromArray(position);
+          }
+          if (quaternion) {
+            quaternion = new THREE.Quaternion().fromArray(quaternion);
+          }
+          if (dynamic && room) {
+            dynamic = false;
+          }
+          await world[dynamic ? 'addObject' : 'addStaticObject'](start_url, null, position, quaternion, {
+            physics,
+            physics_url,
           });
-          j = await res2.json();
-          j = j.result;
-        } else {
-          j = await res.json();
-          j = j.result;
-        }
-        const {publicIp, privateIp, port} = j;
-        await world.connectRoom(room, `worlds.exokit.org:${port}`);
-      })();
-      promises.push(p);
-    }
+        });
+        promises.push.apply(promises, ps);
+      }
+      if (room) {
+        const p = (async () => {
+          const u = `https://worlds.exokit.org/${room}`;
+          const res = await fetch(u);
+          let j;
+          if (res.status === 404) {
+            const res2 = await fetch(u, {
+              method: 'POST',
+            });
+            j = await res2.json();
+            j = j.result;
+          } else if (res.ok) {
+            j = await res.json();
+            j = j.result;
+          } else {
+            throw new Error('failed to connect to server: ' + res.status);
+          }
+          const {publicIp, privateIp, port} = j;
+          await world.connectRoom(room, `worlds.exokit.org:${port}`);
+        })();
+        promises.push(p);
+      }
+      
+      await Promise.all(promises);
 
-    // world.initializeIfEmpty(universeSpecs.initialScene);
-  } else {
-    await loadDefaultWorld();
-  }
+      // world.initializeIfEmpty(universeSpecs.initialScene);
+    } else {
+      await loadDefaultWorld();
+    }
+  };
+  _doLoad().catch(console.warn);
 
   setTimeout(() => {
     warpMesh.visible = false;
