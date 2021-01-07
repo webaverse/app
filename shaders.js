@@ -732,7 +732,8 @@ const portalMaterial = new THREE.ShaderMaterial({
     void main() {
       vec3 p = position;
       if (bar < 1.0) {
-        p.y *= (1.0 + sin(uTime * PI*10.)*0.02) * min(max(1. - uDistance/3., 0.), 1.0);
+        float wobble = uDistance <= 0. ? sin(uTime * PI*10.)*0.02 : 0.;
+        p.y *= (1.0 + wobble) * min(max(1. - uDistance/3., 0.), 1.0);
       }
       p.y += 0.01;
       vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
