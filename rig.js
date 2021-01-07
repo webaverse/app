@@ -113,8 +113,6 @@ class RigManager {
     this.smoothVelocity = new THREE.Vector3();
 
     this.peerRigs = new Map();
-    
-    this.lastTimetamp = Date.now();
 
     const _bindLogin = async () => {
       await loginManager.waitForLoad();
@@ -534,9 +532,6 @@ class RigManager {
   }
 
   update() {
-    const now = Date.now();
-    const timeDiff = (now - this.lastTimetamp) / 1000;
-    
     const session = renderer.xr.getSession();
     let currentPosition, currentQuaternion;
     if (!session) {
@@ -548,7 +543,7 @@ class RigManager {
     }
     const positionDiff = localVector2.copy(this.lastPosition)
       .sub(currentPosition)
-      .multiplyScalar(0.1/timeDiff);
+      .multiplyScalar(10);
     localEuler.setFromQuaternion(currentQuaternion, 'YXZ');
     localEuler.x = 0;
     localEuler.z = 0;
@@ -570,8 +565,6 @@ class RigManager {
     this.peerRigs.forEach(rig => {
       rig.update();
     });
-    
-    this.lastTimetamp = now;
 
     /* for (let i = 0; i < appManager.grabs.length; i++) {
       const grab = appManager.grabs[i === 0 ? 1 : 0];
