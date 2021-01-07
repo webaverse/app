@@ -1008,6 +1008,7 @@ const _loadPortal = async file => {
   ];
   const center = new THREE.Vector3((extents[1][0] + extents[0][0]) / 2, (extents[1][1] + extents[0][1]) / 2, (extents[1][2] + extents[0][2]) / 2);
   const size = new THREE.Vector3(extents[1][0] - extents[0][0], extents[1][1] - extents[0][1], extents[1][2] - extents[0][2]);
+  const color = typeof json.color === 'number' ? json.color : null;
 
   const geometries = [];
 
@@ -1070,6 +1071,9 @@ const _loadPortal = async file => {
 
   const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
   const material = portalMaterial.clone();
+  if (color) {
+    material.uniforms.uColor.value.setHex(color);
+  }
   const portalMesh = new THREE.Mesh(geometry, material);
   portalMesh.boundingBox = new THREE.Box3(
     new THREE.Vector3(extents[0][0], extents[0][1], extents[0][2]),
