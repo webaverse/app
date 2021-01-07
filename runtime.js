@@ -1006,7 +1006,7 @@ const _loadPortal = async file => {
   geometries.push(planeGeometry);
 
   const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
-  const numBars = 10;
+  const numBars = 8;
   // xz
   for (let dx = 1; dx < numBars; dx++) {
     for (let dz = 1; dz < numBars; dz++) {
