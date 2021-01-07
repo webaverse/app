@@ -311,14 +311,27 @@ const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null
   });
   o.run = () => {
     // elide expensive bone updates; this should not be called if wearing the avatar
+    const skinnedMeshes = [];
     o.traverse(o => {
-      if (o.skeleton) {
-        o.skeleton.update = (update => function() {
-          update.apply(this, arguments);
-          o.skeleton.update = () => {};
-        })(o.skeleton.update);
+      if (o instanceof THREE.SkinnedMesh) {
+        skinnedMeshes.push(o);
       }
     });
+    for (const skinnedMesh of skinnedMeshes) {
+      const {geometry, material, position, quaternion, scale, matrix, matrixWorld, visible, parent} = skinnedMesh;
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.copy(position);
+      mesh.quaternion.copy(quaternion);
+      mesh.scale.copy(scale);
+      mesh.matrix.copy(matrix);
+      mesh.matrixWorld.copy(matrixWorld);
+      mesh.visible = visible;
+      mesh.parent = parent;
+      const index = parent ? parent.children.indexOf(skinnedMesh) : -1;
+      if (index !== -1) {
+        parent.children.splice(index, 1, mesh);
+      }
+    }
   };
   o.geometry = {
     boundingBox: new THREE.Box3().setFromObject(o),
