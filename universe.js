@@ -201,7 +201,8 @@ const loadDefaultWorld = async () => {
     const position = objectSpec.position ? new THREE.Vector3().fromArray(objectSpec.position) : new THREE.Vector3();
     const quaternion = objectSpec.quaternion ? new THREE.Quaternion().fromArray(objectSpec.quaternion) : new THREE.Quaternion();
     // const scale = objectSpec.scale ? new THREE.Vector3().fromArray(objectSpec.scale) : new THREE.Vector3();
-    const {physics, physics_url, dynamic} = objectSpec;
+    const {physics, physics_url/* , dynamic */} = objectSpec;
+    const dynamic = true;
     await world[dynamic ? 'addObject' : 'addStaticObject'](objectSpec.start_url, null, position, quaternion, {
       physics,
       physics_url,
