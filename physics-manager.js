@@ -384,19 +384,8 @@ const _updatePhysics = timeDiff => {
       _copyPQS(camera, avatarWorldObject);
     } else {
       throw new Error('invalid camera mode: ' + selectedTool);
-      /* _applyGravity(timeDiff);
-      _collideItems(avatarWorldObject.matrix);
-      // _collideChunk(avatarWorldObject.matrix);
-      rigManager.setLocalRigMatrix(null); */
     }
   }
-
-  /* const _updateAnimals = () => {
-    for (const animal of animals) {
-      animal.update();
-    }
-  };
-  _updateAnimals(); */
 };
 physicsManager.update = _updatePhysics;
 
