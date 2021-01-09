@@ -298,6 +298,8 @@ const _removeObject = dynamic => removeInstanceId => {
           trackedObject.delete(key);
         }
       }
+    } else {
+      console.warn('invalid remove instance id', objectsJson, removeInstanceId);
     }
   });
 };
