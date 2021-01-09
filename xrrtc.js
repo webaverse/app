@@ -137,6 +137,14 @@ class XRChannelConnection extends EventTarget {
       peerConnection.dispatchEvent(new MessageEvent('addtrack', {
         data: _track,
       }));
+      _track.stop = (stop => function () {
+        const {readyState} = _track;
+        const result = stop.apply(this, arguments);
+        if (readyState === 'live') {
+          this.dispatchEvent(new MessageEvent('ended'));
+        }
+        return result;
+      })(_track.stop);
       _track.addEventListener('ended', e => {
         console.warn('receive stream ended', e);
 
