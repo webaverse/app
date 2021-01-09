@@ -55,7 +55,7 @@ document.addEventListener('pointerlockchange', () => {
 
 const _inputFocused = () => document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.getAttribute('contenteditable') !== null);
 
-const _updateIo = (timeDiff, frame) => {
+const _updateIo = timeDiff => {
   const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
   if (renderer.xr.getSession()) {
     ioManager.currentWalked = false;
@@ -174,7 +174,7 @@ const _updateIo = (timeDiff, frame) => {
       uiManager.toolsMesh.visible = false;
     } */
   } else if (document.pointerLockElement) {
-    const speed = 100 * (ioManager.keys.shift ? 3 : 1);
+    const speed = 0.1 * (ioManager.keys.shift ? 3 : 1);
     localVector.set(0, 0, 0);
     const direction = new THREE.Vector3(0, 0, 0);
     if (ioManager.keys.left) {

@@ -476,7 +476,7 @@ const _grab = object => {
 };
 
 const crosshairEl = document.querySelector('.crosshair');
-const _updateWeapons = timeDiff => {  
+const _updateWeapons = () => {  
   const transforms = rigManager.getRigTransforms();
 
   const _updateGrabbedObject = (o, transform, offset, {collisionEnabled, handSnapEnabled}) => {
@@ -1668,8 +1668,8 @@ const weaponsManager = {
   menuUpload() {
     _upload();
   },
-  update(timeDiff) {
-    _updateWeapons(timeDiff);
+  update() {
+    _updateWeapons();
   },
 };
 export default weaponsManager;
