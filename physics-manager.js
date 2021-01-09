@@ -32,38 +32,39 @@ const offset = new THREE.Vector3();
 physicsManager.offset = offset;
 
 let jumpState = false;
-let jumpStartTime = 0;
+let jumpTime = -1;
 const getJumpState = () => jumpState;
 physicsManager.getJumpState = getJumpState;
-const getJumpStartTime = () => jumpStartTime;
-physicsManager.getJumpStartTime = getJumpStartTime;
+const getJumpTime = () => jumpTime;
+physicsManager.getJumpTime = getJumpTime;
 const jump = () => {
   jumpState = true;
-  jumpStartTime = Date.now();
+  jumpTime = 0;
   physicsManager.velocity.y += 5;
 };
 physicsManager.jump = jump;
 
 let flyState = false;
-let flyStartTime = 0;
+let flyTime = -1;
 const getFlyState = () => flyState;
 physicsManager.getFlyState = getFlyState;
 const setFlyState = newFlyState => {
   const now = Date.now();
   flyState = newFlyState;
-  flyStartTime = now;
   if (newFlyState) {
+    flyTime = 0;
     if (!jumpState) {
       jump();
     }
   } else {
-    jumpStartTime = now;
+    flyTime = -1;
+    jumpTime = 0;
   }
   glideState = false;
 };
 physicsManager.setFlyState = setFlyState;
-const getFlyStartTime = () => flyStartTime;
-physicsManager.getFlyStartTime = getFlyStartTime;
+const getFlyTime = () => flyTime;
+physicsManager.getFlyTime = getFlyTime;
 
 let glideState = false;
 const getGlideState = () => glideState;
@@ -263,15 +264,15 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     if (collision.grounded) {
       physicsManager.velocity.y = 0;
       jumpState = false;
-      jumpStartTime = 0;
+      jumpTime = -1;
       glideState = false;
     } else if (!jumpState) {
       jumpState = true;
-      jumpStartTime = Date.now();
+      jumpTime = 0;
     }
   } else if (!jumpState) {
     jumpState = true;
-    jumpStartTime = Date.now();
+    jumpTime = 0;
   }
   localMatrix.compose(localVector, localQuaternion, localVector2);
 
@@ -341,6 +342,15 @@ const _copyPQS = (dst, src) => {
   dst.scale.copy(src.scale);
 };
 const _updatePhysics = timeDiff => {
+  if (jumpState) {
+    jumpTime += timeDiff;
+  }
+  if (flyState) {
+    flyTime += timeDiff;
+  }
+
+  timeDiff /= 1000; // XXX
+
   const avatarWorldObject = _getAvatarWorldObject(localObject);
   const avatarCameraOffset = _getAvatarCameraOffset();
 
