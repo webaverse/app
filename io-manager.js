@@ -174,7 +174,7 @@ const _updateIo = timeDiff => {
       uiManager.toolsMesh.visible = false;
     } */
   } else if (document.pointerLockElement) {
-    const speed = 100 * (ioManager.keys.shift ? 3 : 1);
+    const speed = 0.1 * (ioManager.keys.shift ? 3 : 1);
     localVector.set(0, 0, 0);
     const direction = new THREE.Vector3(0, 0, 0);
     if (ioManager.keys.left) {
