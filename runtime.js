@@ -25,6 +25,14 @@ const localVector2 = new THREE.Vector3();
 const localBox = new THREE.Box3();
 const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
 
+const rarityColors = {
+  common: [0xCACACA, 0x7B7B7B],
+  uncommon: [0x80cf3f, 0x3a7913],
+  rare: [0x2fd5e8, 0x1258a2],
+  epic: [0xbd3ffa, 0x460d7f],
+  legendary: [0xfdae53, 0xff7605],
+};
+
 const runtime = {};
 
 let geometryManager = null;
@@ -1008,7 +1016,7 @@ const _loadPortal = async file => {
   ];
   const center = new THREE.Vector3((extents[1][0] + extents[0][0]) / 2, (extents[1][1] + extents[0][1]) / 2, (extents[1][2] + extents[0][2]) / 2);
   const size = new THREE.Vector3(extents[1][0] - extents[0][0], extents[1][1] - extents[0][1], extents[1][2] - extents[0][2]);
-  const color = typeof json.color === 'number' ? json.color : null;
+  const color = (rarityColors[json.rarity] || rarityColors.legendary)[0];
 
   const geometries = [];
 
