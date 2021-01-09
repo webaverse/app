@@ -291,9 +291,19 @@ const _use = () => {
         }
       });
     const portalObject = portalObjects.length > 0 ? portalObjects[0] : null;
-    if (portalObject) {
-      const {json} = portalObject;
-      universe.enterWorld(json);
+    if (portalObject && portalObject.json) {
+      const u = new URL(location.href);
+      if (typeof portalObject.json.start_url === 'string') {
+        u.searchParams.set('u', portalObject.json.start_url);
+      } else {
+        u.searchParams.delete('u');
+      }
+      if (typeof portalObject.json.room === 'string') {
+        u.searchParams.set('r', portalObject.json.room);
+      } else {
+        u.searchParams.delete('r');
+      }
+      universe.pushUrl(u.href);
     }
   }
 };

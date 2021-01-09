@@ -9,6 +9,7 @@ import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh} from './vr-ui.js';
+import {parseQuery} from './util.js';
 import {homeScnUrl} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -190,21 +191,20 @@ const clearWorld = () => {
     world.removeObject(object.instanceId);
   }
 };
-const loadDefaultWorld = async () => {
+/* const loadDefaultWorld = async () => {
   const res = await fetch(homeScnUrl);
   const homeScn = await res.json();
   await Promise.all(homeScn.objects.map(async objectSpec => {
     const position = objectSpec.position ? new THREE.Vector3().fromArray(objectSpec.position) : new THREE.Vector3();
     const quaternion = objectSpec.quaternion ? new THREE.Quaternion().fromArray(objectSpec.quaternion) : new THREE.Quaternion();
     // const scale = objectSpec.scale ? new THREE.Vector3().fromArray(objectSpec.scale) : new THREE.Vector3();
-    const {physics, physics_url/* , dynamic */} = objectSpec;
-    const dynamic = true;
+    const {physics, physics_url, dynamic} = objectSpec;
     await world[dynamic ? 'addObject' : 'addStaticObject'](objectSpec.start_url, null, position, quaternion, {
       physics,
       physics_url,
     });
   }));
-};
+}; */
 const update = () => {
   /* const oldWorld = highlightedWorld;
 
@@ -285,12 +285,20 @@ const enterWorld = async worldSpec => {
     if (currentWorld) {
       warpMesh.visible = true;
 
-      localBox.set(
-        localVector.fromArray(worldSpec.extents[0]),
-        localVector2.fromArray(worldSpec.extents[1]),
-      );
-      const center = localBox.getCenter(localVector);
-      const size = localBox.getSize(localVector2);
+      if (worldSpec.extents) {
+        localBox.set(
+          localVector.fromArray(worldSpec.extents[0]),
+          localVector2.fromArray(worldSpec.extents[1]),
+        );
+      } else {
+        localBox.set(
+          localVector.set(-2, 0, -2),
+          localVector2.set(2, 4, 2),
+        );
+      }
+      const parcelAABB = localBox;
+      const center = parcelAABB.getCenter(localVector);
+      const size = parcelAABB.getSize(localVector2);
       // console.log('got center size', center.toArray(), size.toArray());
 
       const geometry = _invertGeometry(
@@ -306,15 +314,11 @@ const enterWorld = async worldSpec => {
         physicsManager.getAvatarWorldObject(localObject);
         physicsManager.getAvatarCapsule(localVector);
         localVector.add(localObject.position);
-        const avatarAABB = localBox.set(
+        const avatarAABB = localBox2.set(
           localVector2.copy(localVector)
             .add(localVector4.set(-localVector.radius, -localVector.radius - localVector.halfHeight, -localVector.radius)),
           localVector3.copy(localVector)
             .add(localVector4.set(localVector.radius, localVector.radius + localVector.halfHeight, localVector.radius)),
-        );
-        const parcelAABB = localBox2.set(
-          localVector2.fromArray(worldSpec.extents[0]),
-          localVector3.fromArray(worldSpec.extents[1]),
         );
         localVector.setScalar(0);
         let changed = false;
@@ -385,59 +389,65 @@ const enterWorld = async worldSpec => {
   world.disconnectRoom();
 
   const _doLoad = async () => {
-    if (!worldSpec.default) {
-      clearWorld();
+    clearWorld();
 
-      const {room, objects} = worldSpec;
-      const promises = [];
-      if (objects) {
-        const ps = objects.map(async object => {
-          let {start_url, position, quaternion, physics, physics_url, dynamic} = object;
-          if (position) {
-            position = new THREE.Vector3().fromArray(position);
-          }
-          if (quaternion) {
-            quaternion = new THREE.Quaternion().fromArray(quaternion);
-          }
-          if (dynamic && room) {
-            dynamic = false;
-          }
-          await world[dynamic ? 'addObject' : 'addStaticObject'](start_url, null, position, quaternion, {
-            physics,
-            physics_url,
-          });
-        });
-        promises.push.apply(promises, ps);
-      }
-      if (room) {
-        const p = (async () => {
-          const u = `https://worlds.exokit.org/${room}`;
-          const res = await fetch(u);
-          let j;
-          if (res.status === 404) {
-            const res2 = await fetch(u, {
-              method: 'POST',
-            });
-            j = await res2.json();
-            j = j.result;
-          } else if (res.ok) {
-            j = await res.json();
-            j = j.result;
-          } else {
-            throw new Error('failed to connect to server: ' + res.status);
-          }
-          const {publicIp, privateIp, port} = j;
-          await world.connectRoom(room, `worlds.exokit.org:${port}`);
-        })();
-        promises.push(p);
-      }
-      
-      await Promise.all(promises);
-
-      // world.initializeIfEmpty(universeSpecs.initialScene);
-    } else {
-      await loadDefaultWorld();
+    let {objects, room} = worldSpec;
+    const promises = [];
+    if (worldSpec.default) {
+      const res = await fetch(homeScnUrl);
+      const homeScn = await res.json();
+      objects = homeScn.objects;
     }
+    {
+      const dynamic = !room;
+      for (const object of objects) {
+        if (object.dynamic) {
+          object.dynamic = dynamic;
+        }
+      }
+    }
+    {
+      const ps = objects.map(async object => {
+        let {start_url, position, quaternion, physics, physics_url, dynamic} = object;
+        if (position) {
+          position = new THREE.Vector3().fromArray(position);
+        }
+        if (quaternion) {
+          quaternion = new THREE.Quaternion().fromArray(quaternion);
+        }
+        await world[dynamic ? 'addObject' : 'addStaticObject'](start_url, null, position, quaternion, {
+          physics,
+          physics_url,
+        });
+      });
+      promises.push.apply(promises, ps);
+    }
+    if (room) {
+      const p = (async () => {
+        const u = `https://worlds.exokit.org/${room}`;
+        const res = await fetch(u);
+        let j;
+        if (res.status === 404) {
+          const res2 = await fetch(u, {
+            method: 'POST',
+          });
+          j = await res2.json();
+          j = j.result;
+        } else if (res.ok) {
+          j = await res.json();
+          j = j.result;
+        } else {
+          throw new Error('failed to connect to server: ' + res.status);
+        }
+        const {publicIp, privateIp, port} = j;
+        await world.connectRoom(room, `worlds.exokit.org:${port}`);
+      })();
+      promises.push(p);
+    }
+    
+    await Promise.all(promises);
+
+    // world.initializeIfEmpty(universeSpecs.initialScene);
   };
   _doLoad().catch(console.warn);
 
@@ -454,9 +464,36 @@ const enterWorld = async worldSpec => {
 
   currentWorld = worldSpec;
 };
+const pushUrl = async u => {
+  history.pushState({}, '', u);
+  await handleUrlUpdate();
+};
+const handleUrlUpdate = async () => {
+  let worldJson;
+
+  const q = parseQuery(location.search);
+  if (q.u) {
+    const res = await fetch(q.u);
+    worldJson = await res.json();
+  } else {
+    worldJson = {
+      default: true,
+    };
+  }
+  if (q.r) {
+    worldJson.room = q.r;
+  }
+
+  await enterWorld(worldJson);
+};
+window.addEventListener('popstate', e => {
+  handleUrlUpdate().catch(console.warn);
+});
 
 export {
-  loadDefaultWorld,
+  // loadDefaultWorld,
   update,
   enterWorld,
+  pushUrl,
+  handleUrlUpdate,
 };

@@ -296,13 +296,16 @@ let loaded = false;
       .then(() => tryTutorial()),
     geometryManager.waitForLoad(),
     (async () => {
-      if (q.m) {
-        const res = await fetch(q.m);
+      if (q.u) {
+        const res = await fetch(q.u);
         worldJson = await res.json();
       } else {
         worldJson = {
           default: true,
         };
+      }
+      if (q.r) {
+        worldJson.room = q.r;
       }
     })().catch(console.warn),
   ]);
@@ -313,7 +316,7 @@ let loaded = false;
     await Promise.all([
       universe.enterWorld(worldJson),
       (async () => {
-        if (q.o && !q.m) {
+        if (q.o && !q.u && !q.r) {
           let contentId = parseInt(q.o);
           if (isNaN(contentId)) {
             contentId = q.o;
