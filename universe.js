@@ -283,110 +283,113 @@ const _invertGeometry = geometry => {
   }
   return geometry;
 };
-// const canEnterWorld = () => !!highlightedWorld && !warpMesh.visible; /*&& !animation*/
 const enterWorld = async worldSpec => {
-  // const w = currentWorld ? null : highlightedWorld;
+  let warpPhysicsId;
+  const _pre = () => {
+    if (currentWorld) {
+      warpMesh.visible = true;
 
-  warpMesh.visible = true;
+      localBox.set(
+        localVector.fromArray(worldSpec.extents[0]),
+        localVector2.fromArray(worldSpec.extents[1]),
+      );
+      const center = localBox.getCenter(localVector);
+      const size = localBox.getSize(localVector2);
+      // console.log('got center size', center.toArray(), size.toArray());
 
-  localBox.set(
-    localVector.fromArray(worldSpec.extents[0]),
-    localVector2.fromArray(worldSpec.extents[1]),
-  );
-  const center = localBox.getCenter(localVector);
-  const size = localBox.getSize(localVector2);
-  // console.log('got center size', center.toArray(), size.toArray());
+      const geometry = _invertGeometry(
+        new THREE.BoxBufferGeometry(size.x, size.y, size.z)
+          .applyMatrix4(new THREE.Matrix4().makeTranslation(center.x, center.y, center.z))
+      );
+      const mesh = new THREE.Mesh(geometry, new THREE.Material({
+        color: 0x1111111,
+      }));
+      warpPhysicsId = physicsManager.addGeometry(mesh);
 
-  const geometry = _invertGeometry(
-    new THREE.BoxBufferGeometry(size.x, size.y, size.z)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(center.x, center.y, center.z))
-  );
-  const mesh = new THREE.Mesh(geometry, new THREE.Material({
-    color: 0x1111111,
-  }));
-  const warpPhysicsId = physicsManager.addGeometry(mesh);
-
-  const _containAvatar = () => {
-    physicsManager.getAvatarWorldObject(localObject);
-    physicsManager.getAvatarCapsule(localVector);
-    localVector.add(localObject.position);
-    const avatarAABB = localBox.set(
-      localVector2.copy(localVector)
-        .add(localVector4.set(-localVector.radius, -localVector.radius - localVector.halfHeight, -localVector.radius)),
-      localVector3.copy(localVector)
-        .add(localVector4.set(localVector.radius, localVector.radius + localVector.halfHeight, localVector.radius)),
-    );
-    const parcelAABB = localBox2.set(
-      localVector2.fromArray(worldSpec.extents[0]),
-      localVector3.fromArray(worldSpec.extents[1]),
-    );
-    localVector.setScalar(0);
-    let changed = false;
-    if (avatarAABB.min.x < parcelAABB.min.x) {
-      const dx = parcelAABB.min.x - avatarAABB.min.x;
-      localVector.x += dx;
-      avatarAABB.min.x += dx;
-      avatarAABB.max.x += dx;
-      changed = true;
-    }
-    if (avatarAABB.max.x > parcelAABB.max.x) {
-      const dx = avatarAABB.max.x - parcelAABB.max.x;
-      localVector.x -= dx;
-      avatarAABB.min.x -= dx;
-      avatarAABB.max.x -= dx;
-      changed = true;
-    }
-    if (avatarAABB.min.y < parcelAABB.min.y) {
-      const dy = parcelAABB.min.y - avatarAABB.min.y;
-      localVector.y += dy;
-      avatarAABB.min.y += dy;
-      avatarAABB.max.y += dy;
-      changed = true;
-    }
-    if (avatarAABB.max.y > parcelAABB.max.y) {
-      const dy = avatarAABB.max.y - parcelAABB.max.y;
-      localVector.y -= dy;
-      avatarAABB.min.y -= dy;
-      avatarAABB.max.y -= dy;
-      changed = true;
-    }
-    if (avatarAABB.min.z < parcelAABB.min.z) {
-      const dz = parcelAABB.min.z - avatarAABB.min.z;
-      localVector.z += dz;
-      avatarAABB.min.z += dz;
-      avatarAABB.max.z += dz;
-      changed = true;
-    }
-    if (avatarAABB.max.z > parcelAABB.max.z) {
-      const dz = avatarAABB.max.z - parcelAABB.max.z;
-      localVector.z -= dz;
-      avatarAABB.min.z -= dz;
-      avatarAABB.max.z -= dz;
-      changed = true;
-    }
-    if (changed) {
-      if (renderer.xr.getSession()) {
-        dolly.position.add(localVector);
-      } else {
-        camera.position.add(localVector);
-        localVector.copy(physicsManager.getAvatarCameraOffset());
-
-        const selectedTool = cameraManager.getTool();
-        if (selectedTool !== 'birdseye') {
-          localVector.applyQuaternion(camera.quaternion);
+      const _containAvatar = () => {
+        physicsManager.getAvatarWorldObject(localObject);
+        physicsManager.getAvatarCapsule(localVector);
+        localVector.add(localObject.position);
+        const avatarAABB = localBox.set(
+          localVector2.copy(localVector)
+            .add(localVector4.set(-localVector.radius, -localVector.radius - localVector.halfHeight, -localVector.radius)),
+          localVector3.copy(localVector)
+            .add(localVector4.set(localVector.radius, localVector.radius + localVector.halfHeight, localVector.radius)),
+        );
+        const parcelAABB = localBox2.set(
+          localVector2.fromArray(worldSpec.extents[0]),
+          localVector3.fromArray(worldSpec.extents[1]),
+        );
+        localVector.setScalar(0);
+        let changed = false;
+        if (avatarAABB.min.x < parcelAABB.min.x) {
+          const dx = parcelAABB.min.x - avatarAABB.min.x;
+          localVector.x += dx;
+          avatarAABB.min.x += dx;
+          avatarAABB.max.x += dx;
+          changed = true;
         }
+        if (avatarAABB.max.x > parcelAABB.max.x) {
+          const dx = avatarAABB.max.x - parcelAABB.max.x;
+          localVector.x -= dx;
+          avatarAABB.min.x -= dx;
+          avatarAABB.max.x -= dx;
+          changed = true;
+        }
+        if (avatarAABB.min.y < parcelAABB.min.y) {
+          const dy = parcelAABB.min.y - avatarAABB.min.y;
+          localVector.y += dy;
+          avatarAABB.min.y += dy;
+          avatarAABB.max.y += dy;
+          changed = true;
+        }
+        if (avatarAABB.max.y > parcelAABB.max.y) {
+          const dy = avatarAABB.max.y - parcelAABB.max.y;
+          localVector.y -= dy;
+          avatarAABB.min.y -= dy;
+          avatarAABB.max.y -= dy;
+          changed = true;
+        }
+        if (avatarAABB.min.z < parcelAABB.min.z) {
+          const dz = parcelAABB.min.z - avatarAABB.min.z;
+          localVector.z += dz;
+          avatarAABB.min.z += dz;
+          avatarAABB.max.z += dz;
+          changed = true;
+        }
+        if (avatarAABB.max.z > parcelAABB.max.z) {
+          const dz = avatarAABB.max.z - parcelAABB.max.z;
+          localVector.z -= dz;
+          avatarAABB.min.z -= dz;
+          avatarAABB.max.z -= dz;
+          changed = true;
+        }
+        if (changed) {
+          if (renderer.xr.getSession()) {
+            dolly.position.add(localVector);
+          } else {
+            camera.position.add(localVector);
+            localVector.copy(physicsManager.getAvatarCameraOffset());
 
-        camera.position.sub(localVector);
-        camera.updateMatrixWorld();
-      }
-    }
+            const selectedTool = cameraManager.getTool();
+            if (selectedTool !== 'birdseye') {
+              localVector.applyQuaternion(camera.quaternion);
+            }
+
+            camera.position.sub(localVector);
+            camera.updateMatrixWorld();
+          }
+        }
+      };
+      _containAvatar();
+    };
   };
-  _containAvatar();
+  _pre();
 
   world.disconnectRoom();
 
   const _doLoad = async () => {
-    if (worldSpec) {
+    if (!worldSpec.default) {
       clearWorld();
 
       const {room, objects} = worldSpec;
@@ -442,29 +445,22 @@ const enterWorld = async worldSpec => {
   };
   _doLoad().catch(console.warn);
 
-  setTimeout(() => {
-    warpMesh.visible = false;
+  const _post = () => {
+    if (currentWorld) {
+      setTimeout(() => {
+        warpMesh.visible = false;
 
-    physicsManager.removeGeometry(warpPhysicsId);
-  }, 3000);
+        physicsManager.removeGeometry(warpPhysicsId);
+      }, 3000);
+    }
+  };
+  _post();
 
   currentWorld = worldSpec;
-
-  /* const now = Date.now();
-  animation = {
-    startTime: now,
-    endTime: now + 1000,
-    startValue: 0,
-    endValue: 1,
-    onmid() {
-      _updateWorld(world);
-    },
-  }; */
 };
 
 export {
   loadDefaultWorld,
   update,
-  // canEnterWorld,
   enterWorld,
 };
