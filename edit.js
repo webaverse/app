@@ -1050,7 +1050,7 @@ function animate(timestamp, frame) {
 
   // orbitControls.enabled = cameraManager.getTool() === 'camera';
 
-  weaponsManager.update(timeDiff, frame);
+  weaponsManager.update();
 
   /* const _updateHands = () => {
     const session = renderer.xr.getSession();
