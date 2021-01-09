@@ -774,7 +774,7 @@ function animate(timestamp, frame) {
   const session = renderer.xr.getSession();
   const now = Date.now();
 
-  ioManager.update(timeDiff, frame);
+  ioManager.update(timeDiff);
   universe.update();
   if (loaded) {
     physicsManager.update(timeDiff, frame);
