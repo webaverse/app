@@ -551,11 +551,11 @@ export default class RoomClient extends EventTarget
 							{
 								logger.error('DataConsumer "error" event:%o', error);
 
-								store.dispatch(requestActions.notify(
+								/* store.dispatch(requestActions.notify(
 									{
 										type : 'error',
 										text : `DataConsumer error: ${error}`
-									}));
+									})); */
 							});
 
 							dataConsumer.on('message', (message) =>
@@ -659,11 +659,11 @@ export default class RoomClient extends EventTarget
 						{
 							logger.error('"newDataConsumer" request failed:%o', error);
 
-							store.dispatch(requestActions.notify(
+							/* store.dispatch(requestActions.notify(
 								{
 									type : 'error',
 									text : `Error creating a DataConsumer: ${error}`
-								}));
+								})); */
 
 							throw error;
 						}
@@ -1899,11 +1899,11 @@ export default class RoomClient extends EventTarget
 		{
 			logger.error('enableChatDataProducer() | failed:%o', error);
 
-			store.dispatch(requestActions.notify(
+			/* store.dispatch(requestActions.notify(
 				{
 					type : 'error',
 					text : `Error enabling chat DataProducer: ${error}`
-				}));
+				})); */
 
 			throw error;
 		}
@@ -1932,13 +1932,13 @@ export default class RoomClient extends EventTarget
 					appData           : { info: 'my-bot-DataProducer' }
 				});
 
-			store.dispatch(stateActions.addDataProducer(
+			/* store.dispatch(stateActions.addDataProducer(
 				{
 					id                   : this._botDataProducer.id,
 					sctpStreamParameters : this._botDataProducer.sctpStreamParameters,
 					label                : this._botDataProducer.label,
 					protocol             : this._botDataProducer.protocol
-				}));
+				})); */
 
 			this._botDataProducer.on('transportclose', () =>
 			{
@@ -1956,22 +1956,22 @@ export default class RoomClient extends EventTarget
 
 				this._botDataProducer = null;
 
-				store.dispatch(requestActions.notify(
+				/* store.dispatch(requestActions.notify(
 					{
 						type : 'error',
 						text : 'Bot DataProducer closed'
-					}));
+					})); */
 			});
 
 			this._botDataProducer.on('error', (error) =>
 			{
 				logger.error('bot DataProducer "error" event:%o', error);
 
-				store.dispatch(requestActions.notify(
+				/* store.dispatch(requestActions.notify(
 					{
 						type : 'error',
 						text : `Bot DataProducer error: ${error}`
-					}));
+					})); */
 			});
 
 			this._botDataProducer.on('bufferedamountlow', () =>
@@ -1983,11 +1983,11 @@ export default class RoomClient extends EventTarget
 		{
 			logger.error('enableBotDataProducer() | failed:%o', error);
 
-			store.dispatch(requestActions.notify(
+			/* store.dispatch(requestActions.notify(
 				{
 					type : 'error',
 					text : `Error enabling bot DataProducer: ${error}`
-				}));
+				})); */
 
 			throw error;
 		}
@@ -1999,11 +1999,11 @@ export default class RoomClient extends EventTarget
 
 		if (!this._chatDataProducer)
 		{
-			store.dispatch(requestActions.notify(
+			/* store.dispatch(requestActions.notify(
 				{
 					type : 'error',
 					text : 'No chat DataProducer'
-				}));
+				})); */
 
 			return;
 		}
@@ -2016,11 +2016,11 @@ export default class RoomClient extends EventTarget
 		{
 			logger.error('chat DataProducer.send() failed:%o', error);
 
-			store.dispatch(requestActions.notify(
+			/* store.dispatch(requestActions.notify(
 				{
 					type : 'error',
 					text : `chat DataProducer.send() failed: ${error}`
-				}));
+				})); */
 		}
 	}
 
@@ -2030,11 +2030,11 @@ export default class RoomClient extends EventTarget
 
 		if (!this._botDataProducer)
 		{
-			store.dispatch(requestActions.notify(
+			/* store.dispatch(requestActions.notify(
 				{
 					type : 'error',
 					text : 'No bot DataProducer'
-				}));
+				})); */
 
 			return;
 		}
@@ -2047,11 +2047,11 @@ export default class RoomClient extends EventTarget
 		{
 			logger.error('bot DataProducer.send() failed:%o', error);
 
-			store.dispatch(requestActions.notify(
+			/* store.dispatch(requestActions.notify(
 				{
 					type : 'error',
 					text : `bot DataProducer.send() failed: ${error}`
-				}));
+				})); */
 		}
 	}
 
@@ -2257,11 +2257,11 @@ export default class RoomClient extends EventTarget
 		{
 			logger.error('applyNetworkThrottle() | failed:%o', error);
 
-			store.dispatch(requestActions.notify(
+			/* store.dispatch(requestActions.notify(
 				{
 					type : 'error',
 					text : `Error applying network throttle: ${error}`
-				}));
+				})); */
 		}
 	}
 
@@ -2279,11 +2279,11 @@ export default class RoomClient extends EventTarget
 			{
 				logger.error('resetNetworkThrottle() | failed:%o', error);
 
-				store.dispatch(requestActions.notify(
+				/* store.dispatch(requestActions.notify(
 					{
 						type : 'error',
 						text : `Error resetting network throttle: ${error}`
-					}));
+					})); */
 			}
 		}
 	}
@@ -2550,11 +2550,11 @@ export default class RoomClient extends EventTarget
 		{
 			logger.error('_joinRoom() failed:%o', error);
 
-			store.dispatch(requestActions.notify(
+			/* store.dispatch(requestActions.notify(
 				{
 					type : 'error',
 					text : `Could not join the room: ${error}`
-				}));
+				})); */
 
 			this.close();
 		}
@@ -2622,18 +2622,18 @@ export default class RoomClient extends EventTarget
 
 			consumer.pause();
 
-			store.dispatch(
-				stateActions.setConsumerPaused(consumer.id, 'local'));
+			/* store.dispatch(
+				stateActions.setConsumerPaused(consumer.id, 'local')); */
 		}
 		catch (error)
 		{
 			logger.error('_pauseConsumer() | failed:%o', error);
 
-			store.dispatch(requestActions.notify(
+			/* store.dispatch(requestActions.notify(
 				{
 					type : 'error',
 					text : `Error pausing Consumer: ${error}`
-				}));
+				})); */
 		}
 	}
 
@@ -2648,18 +2648,18 @@ export default class RoomClient extends EventTarget
 
 			consumer.resume();
 
-			store.dispatch(
-				stateActions.setConsumerResumed(consumer.id, 'local'));
+			/* store.dispatch(
+				stateActions.setConsumerResumed(consumer.id, 'local')); */
 		}
 		catch (error)
 		{
 			logger.error('_resumeConsumer() | failed:%o', error);
 
-			store.dispatch(requestActions.notify(
+			/* store.dispatch(requestActions.notify(
 				{
 					type : 'error',
 					text : `Error resuming Consumer: ${error}`
-				}));
+				})); */
 		}
 	}
 
