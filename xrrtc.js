@@ -96,14 +96,14 @@ class XRChannelConnection extends EventTarget {
     dialogClient.addEventListener('peerClosed', e => {
       const {peerId} = e.data;
       const peerConnection = this.peerConnections.find(peerConnection => peerConnection.connectionId === peerId);
-      console.log('peer closed', e.data, peerId, peerConnection);
+      // console.log('peer closed', e.data, peerId, peerConnection);
       if (peerConnection) {
         if (--peerConnection.numStreams <= 0) {
           peerConnection.close();
           this.peerConnections.splice(this.peerConnections.indexOf(peerConnection), 1);
-        } else {
+        } /* else {
           console.warn('keeping disconnected peer due to existing streams', peerConnection, peerConnection.numStreams);
-        }
+        } */
       } else {
         console.warn('cannot find peer connection', peerConnection);
       }
@@ -146,14 +146,14 @@ class XRChannelConnection extends EventTarget {
         return result;
       })(_track.stop);
       _track.addEventListener('ended', e => {
-        console.warn('receive stream ended', e);
+        // console.warn('receive stream ended', e);
 
         if (--peerConnection.numStreams <= 0) {
           peerConnection.close();
           this.peerConnections.splice(this.peerConnections.indexOf(peerConnection), 1);
-        } else {
+        } /* else {
           console.warn('keeping closed stream peer peer due to existing streams', peerConnection, peerConnection.numStreams);
-        }
+        } */
       });
     });
     /* [
