@@ -101,6 +101,8 @@ class XRChannelConnection extends EventTarget {
         if (--peerConnection.numStreams <= 0) {
           peerConnection.close();
           this.peerConnections.splice(this.peerConnections.indexOf(peerConnection), 1);
+        } else {
+          console.warn('keeping disconnected peer due to existing streams', peerConnection, peerConnection.numStreams);
         }
       } else {
         console.warn('cannot find peer connection', peerConnection);
@@ -141,6 +143,8 @@ class XRChannelConnection extends EventTarget {
         if (--peerConnection.numStreams <= 0) {
           peerConnection.close();
           this.peerConnections.splice(this.peerConnections.indexOf(peerConnection), 1);
+        } else {
+          console.warn('keeping closed stream peer peer due to existing streams', peerConnection, peerConnection.numStreams);
         }
       });
     });
