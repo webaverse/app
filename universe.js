@@ -181,17 +181,13 @@ const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.z),
 );
 const clearWorld = () => {
-  {
-    const objects = world.getStaticObjects();
-    for (const object of objects) {
-      world.removeStaticObject(object.instanceId);
-    }
+  const staticObjects = world.getStaticObjects();
+  for (const object of staticObjects) {
+    world.removeStaticObject(object.instanceId);
   }
-  {
-    const objects = world.getObjects();
-    for (const object of objects) {
-      world.removeObject(object.instanceId);
-    }
+  const objects = world.getObjects();
+  for (const object of objects) {
+    world.removeObject(object.instanceId);
   }
 };
 const loadDefaultWorld = async () => {
