@@ -777,11 +777,7 @@ function animate(timestamp, frame) {
   ioManager.update(timeDiff);
   universe.update();
   if (loaded) {
-    physicsManager.update(timeDiff, frame);
-    // uiManager.update(timeDiff, frame);
-    /* for (const itemMesh of itemMeshes) {
-      itemMesh.update();
-    } */
+    physicsManager.update(timeDiff);
     physicsManager.simulatePhysics(timeDiff);
   }
 
