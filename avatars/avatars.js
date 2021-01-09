@@ -1426,7 +1426,7 @@ class Avatar {
       muted: options.muted,
     });
 
-    this.lastTimestamp = Date.now();
+    // this.lastTimestamp = Date.now();
 
     this.shoulderTransforms.Start();
     this.legsManager.Start();
@@ -1512,9 +1512,9 @@ class Avatar {
     this.direction = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
     this.jumpState = false;
-    this.jumpStartTime = 0;
+    this.jumpTime = NaN;
     this.flyState = false;
-    this.flyStartTime = 0;
+    this.flyTime = NaN;
 	}
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
@@ -1585,12 +1585,12 @@ class Avatar {
   getBottomEnabled() {
     return this.legsManager.enabled;
   }
-	update() {
+	update(timeDiff) {
     /* const wasDecapitated = this.decapitated;
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
     } */
-    
+
     const now = Date.now();
 
     const _applyAnimation = () => {
@@ -1651,16 +1651,15 @@ class Avatar {
           }
 
           if (this.jumpState) {
-            const t2 = (now - this.jumpStartTime)/1000 * 0.6 + 0.7;
+            const t2 = this.jumpTime/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
 
             dst.fromArray(v2);
           }
-          const flyTimeDiff = now - this.flyStartTime;
-          if (this.flyState || flyTimeDiff < 1000) {
-            const t2 = (now - this.flyStartTime)/1000;
-            const f = this.flyState ? Math.min(cubicBezier(flyTimeDiff/1000), 1) : (1 - Math.min(cubicBezier(flyTimeDiff/1000), 1));
+          if (this.flyState || (this.flyTime >= 0 && this.flyTime < 1000)) {
+            const t2 = this.flyTime/1000;
+            const f = this.flyState ? Math.min(cubicBezier(t2), 1) : (1 - Math.min(cubicBezier(t2), 1));
             const src2 = floatAnimation.interpolants[k];
             const v2 = src2.evaluate(t2 % floatAnimation.duration);
 
@@ -1770,11 +1769,8 @@ class Avatar {
       modelBone.updateMatrixWorld();
     }
 
-    const timeDiff = Math.min(now - this.lastTimestamp, 1000);
-    this.lastTimestamp = now;
-
     if (this.springBoneManager) {
-      this.springBoneManager.lateUpdate(timeDiff / 1000);
+      this.springBoneManager.lateUpdate(timeDiff);
     }
     /* if (this.springBoneManager && wasDecapitated) {
       this.decapitate();

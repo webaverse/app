@@ -768,20 +768,16 @@ let lastTimestamp = performance.now();
 const startTime = Date.now();
 function animate(timestamp, frame) {
   timestamp = timestamp || performance.now();
-  const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+  const timeDiff = Math.min(Math.max(timestamp - lastTimestamp, 5), 100);
   lastTimestamp = timestamp;
 
   const session = renderer.xr.getSession();
   const now = Date.now();
 
-  ioManager.update(timeDiff, frame);
+  ioManager.update(timeDiff);
   universe.update();
   if (loaded) {
-    physicsManager.update(timeDiff, frame);
-    // uiManager.update(timeDiff, frame);
-    /* for (const itemMesh of itemMeshes) {
-      itemMesh.update();
-    } */
+    physicsManager.update(timeDiff);
     physicsManager.simulatePhysics(timeDiff);
   }
 
@@ -1050,7 +1046,7 @@ function animate(timestamp, frame) {
 
   // orbitControls.enabled = cameraManager.getTool() === 'camera';
 
-  weaponsManager.update(timeDiff, frame);
+  weaponsManager.update();
 
   /* const _updateHands = () => {
     const session = renderer.xr.getSession();
@@ -1105,7 +1101,7 @@ function animate(timestamp, frame) {
 
   appManager.tick(timestamp, frame);
   
-  ioManager.updatePost(timeDiff);
+  ioManager.updatePost();
 
   const xrCamera = session ? renderer.xr.getCamera(camera) : camera;
   localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));
