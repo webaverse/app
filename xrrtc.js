@@ -96,6 +96,7 @@ class XRChannelConnection extends EventTarget {
     dialogClient.addEventListener('peerClosed', e => {
       const {peerId} = e.data;
       const peerConnection = this.peerConnections.find(peerConnection => peerConnection.connectionId === peerId);
+      console.log('peer closed', e.data, peerId, peerConnection);
       if (peerConnection) {
         if (--peerConnection.numStreams <= 0) {
           peerConnection.close();
