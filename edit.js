@@ -768,7 +768,7 @@ let lastTimestamp = performance.now();
 const startTime = Date.now();
 function animate(timestamp, frame) {
   timestamp = timestamp || performance.now();
-  const timeDiff = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+  const timeDiff = Math.min(Math.max(timestamp - lastTimestamp, 5), 100);
   lastTimestamp = timestamp;
 
   const session = renderer.xr.getSession();
