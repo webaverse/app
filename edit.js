@@ -290,19 +290,30 @@ const q = parseQuery(location.search);
 })(); */
 let loaded = false;
 (async () => {
+  let worldJson;
   await Promise.all([
     loginManager.waitForLoad()
       .then(() => tryTutorial()),
     geometryManager.waitForLoad(),
+    (async () => {
+      if (q.m) {
+        const res = await fetch(q.m);
+        worldJson = await res.json();
+      } else {
+        worldJson = {
+          default: true,
+        };
+      }
+    })().catch(console.warn),
   ]);
 
   runtime.injectDependencies(geometryManager, physicsManager, world);
 
   try {
     await Promise.all([
-      universe.loadDefaultWorld(),
+      universe.enterWorld(worldJson),
       (async () => {
-        if (q.o) {
+        if (q.o && !q.m) {
           let contentId = parseInt(q.o);
           if (isNaN(contentId)) {
             contentId = q.o;
