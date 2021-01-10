@@ -47,9 +47,7 @@ const requestPointerLock = () => new Promise((accept, reject) => {
     accept();
   }
 }).then(() => {
-  if (cameraManager.getTool() === 'camera') {
-    cameraManager.selectTool('firstperson');
-  }
+  physicsManager.unlockControls();
 });
 
 const cameraModes = [
