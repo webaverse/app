@@ -156,7 +156,12 @@ const cameraManager = {
     return selectedTool;
   }, */
   getMode() {
-    return 'firstperson';
+    const f = -cameraOffset.z;
+    if (f < 0.5) {
+      return 'firstperson';
+    } else {
+      return 'thirdperson';
+    }
   },
   getCameraOffset() {
     return cameraOffset;
