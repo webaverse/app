@@ -390,11 +390,11 @@ const _updatePhysics = timeDiff => {
         _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, true, true, timeDiff);
         _copyPQS(camera, avatarWorldObject);
         camera.updateMatrixWorld();
-      } else if (selectedTool === 'birdseye') {
+      /* } else if (selectedTool === 'birdseye') {
         _applyGravity(timeDiff);
         _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, true, true, timeDiff);
         _copyPQS(camera, avatarWorldObject);
-        camera.updateMatrixWorld();
+        camera.updateMatrixWorld(); */
       } else {
         throw new Error('invalid camera mode: ' + selectedTool);
       } 
