@@ -222,7 +222,7 @@ const _getAvatarCameraOffset = () => {
   if (renderer.xr.getSession()) {
     return zeroVector;
   } else {
-    const selectedTool = cameraManager.getTool();
+    const selectedTool = cameraManager.getMode();
     if (selectedTool === 'firstperson') {
       return zeroVector;
     } else if (selectedTool === 'thirdperson') {

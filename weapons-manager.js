@@ -823,7 +823,7 @@ const _updateWeapons = () => {
   };
   _handleUseAnimation();
 
-  crosshairEl.classList.toggle('visible', ['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getTool()) && !appManager.grabbedObjects[0]);
+  crosshairEl.classList.toggle('visible', ['camera', 'firstperson', 'thirdperson'].includes(cameraManager.getMode()) && !appManager.grabbedObjects[0]);
   
   popovers.update();
 };
