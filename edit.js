@@ -278,7 +278,7 @@ const q = parseQuery(location.search);
     await world.connect({
       online: true,
       roomName: 'lol',
-      url: q.um,
+      url: q.m,
     });
   } else {
     await world.connect({
