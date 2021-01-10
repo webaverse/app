@@ -359,7 +359,7 @@ window.addEventListener('keydown', e => {
       if (weaponsManager.canPush()) {
         ioManager.keys.backward = true;
         // weaponsManager.menuPush(1);
-      } else if (!(e.shiftKey && (e.ctrlKey || e.metaKey))) {
+      } /* else if (!(e.shiftKey && (e.ctrlKey || e.metaKey))) {
         e.preventDefault();
         e.stopPropagation();
         document.getElementById('key-c').dispatchEvent(new KeyboardEvent('click', { // camera
@@ -369,7 +369,7 @@ window.addEventListener('keydown', e => {
           altKey: e.altKey,
           metaKey: e.metaKey,
         }));
-      }
+      } */
       break;
     }
     case 82: { // R
