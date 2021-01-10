@@ -50,7 +50,7 @@ const requestPointerLock = () => new Promise((accept, reject) => {
   physicsManager.unlockControls();
 });
 
-const cameraModes = [
+/* const cameraModes = [
   'firstperson',
   'thirdperson',
   'isometric',
@@ -74,9 +74,9 @@ const switchCamera = e => {
 
   const newSelectedTool = cameraModes[nextIndex];
   selectTool(newSelectedTool);
-};
-const cameraButton = document.getElementById('key-c');
-cameraButton.addEventListener('click', switchCamera);
+}; */
+// const cameraButton = document.getElementById('key-c');
+// cameraButton.addEventListener('click', switchCamera);
 const selectTool = newSelectedTool => {
   const oldSelectedTool = selectedTool;
   selectedTool = newSelectedTool;
@@ -154,7 +154,7 @@ const cameraManager = {
   getMode() {
     return 'firstperson';
   },
-  switchCamera,
-  selectTool,
+  // switchCamera,
+  // selectTool,
 };
 export default cameraManager;
