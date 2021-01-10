@@ -469,17 +469,8 @@ const pushUrl = async u => {
   await handleUrlUpdate();
 };
 const handleUrlUpdate = async () => {
-  let worldJson;
-
   const q = parseQuery(location.search);
-  if (q.u) {
-    const res = await fetch(q.u);
-    worldJson = await res.json();
-  } else {
-    worldJson = {
-      default: true,
-    };
-  }
+  const worldJson = await world.getWorldJson(q.u);
   if (q.r) {
     worldJson.room = q.r;
   }
