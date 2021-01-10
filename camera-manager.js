@@ -145,8 +145,11 @@ const cameraManager = {
   getAvatarHeight,
   focusCamera,
   requestPointerLock,
-  getTool() {
+  /* getTool() {
     return selectedTool;
+  }, */
+  getMode() {
+    return 'firstperson';
   },
   switchCamera,
   selectTool,

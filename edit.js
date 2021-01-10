@@ -1133,7 +1133,7 @@ function animate(timestamp, frame) {
   {
     rigManager.localRig.model.visible = true;
     avatarScene.add(rigManager.localRig.model);
-    if (/^(?:camera|firstperson)$/.test(cameraManager.getTool()) || !!renderer.xr.getSession()) {
+    if (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession()) {
       rigManager.localRig.decapitate();
     } else {
       rigManager.localRig.undecapitate();

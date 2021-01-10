@@ -586,7 +586,7 @@ window.addEventListener('keyup', e => {
 });
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
-  const selectedTool = cameraManager.getTool();
+  const selectedTool = cameraManager.getMode();
   if (selectedTool === 'thirdperson') {
     camera.position.add(localVector.copy(cameraManager.thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'isometric') {
