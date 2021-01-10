@@ -10,8 +10,9 @@ const localVector = new THREE.Vector3();
 const getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
 const getAvatarHeight = getFullAvatarHeight; // () => getFullAvatarHeight() * 0.9;
 const birdsEyeHeight = 10;
-const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
-const isometricCameraOffset = new THREE.Vector3(0, 0, -2);
+const cameraOffset = new THREE.Vector3();
+/* const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
+const isometricCameraOffset = new THREE.Vector3(0, 0, -2); */
 
 const requestPointerLock = () => new Promise((accept, reject) => {
   if (!document.pointerLockElement) {
@@ -47,13 +48,10 @@ const requestPointerLock = () => new Promise((accept, reject) => {
     accept();
   }
 }).then(() => {
-  if (cameraManager.getTool() === 'camera') {
-    cameraManager.selectTool('firstperson');
-  }
+  physicsManager.unlockControls();
 });
 
-const cameraModes = [
-  'camera',
+/* const cameraModes = [
   'firstperson',
   'thirdperson',
   'isometric',
@@ -77,10 +75,10 @@ const switchCamera = e => {
 
   const newSelectedTool = cameraModes[nextIndex];
   selectTool(newSelectedTool);
-};
-const cameraButton = document.getElementById('key-c');
-cameraButton.addEventListener('click', switchCamera);
-const selectTool = newSelectedTool => {
+}; */
+// const cameraButton = document.getElementById('key-c');
+// cameraButton.addEventListener('click', switchCamera);
+/* const selectTool = newSelectedTool => {
   const oldSelectedTool = selectedTool;
   selectedTool = newSelectedTool;
 
@@ -134,24 +132,45 @@ const selectTool = newSelectedTool => {
       }
     }
   }
-};
+}; */
+window.addEventListener('wheel', e => {
+  camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+  cameraOffset.z = Math.min(cameraOffset.z - e.deltaY * 0.01, 0);
+  camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+  camera.updateMatrixWorld();
+
+  physicsManager.unlockControls();
+});
 const focusCamera = position => {
   camera.lookAt(position);
   camera.updateMatrixWorld();
 };
 
 const cameraManager = {
-  birdsEyeHeight,
+  /* birdsEyeHeight,
   thirdPersonCameraOffset,
-  isometricCameraOffset,
+  isometricCameraOffset, */
   getFullAvatarHeight,
   getAvatarHeight,
   focusCamera,
   requestPointerLock,
-  getTool() {
+  /* getTool() {
     return selectedTool;
+  }, */
+  getMode() {
+    const f = -cameraOffset.z;
+    if (f < 0.5) {
+      return 'firstperson';
+    } else if (f < 2) {
+      return 'thirdperson';
+    } else {
+      return 'isometric';
+    }
   },
-  switchCamera,
-  selectTool,
+  getCameraOffset() {
+    return cameraOffset;
+  },
+  // switchCamera,
+  // selectTool,
 };
 export default cameraManager;

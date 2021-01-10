@@ -222,7 +222,8 @@ const _getAvatarCameraOffset = () => {
   if (renderer.xr.getSession()) {
     return zeroVector;
   } else {
-    const selectedTool = cameraManager.getTool();
+    return cameraManager.getCameraOffset();
+    /* const selectedTool = cameraManager.getMode();
     if (selectedTool === 'firstperson') {
       return zeroVector;
     } else if (selectedTool === 'thirdperson') {
@@ -233,7 +234,7 @@ const _getAvatarCameraOffset = () => {
       return new THREE.Vector3(0, -cameraManager.birdsEyeHeight + cameraManager.getAvatarHeight(), 0);
     } else {
       return zeroVector;
-    }
+    } */
   }
 };
 physicsManager.getAvatarCameraOffset = _getAvatarCameraOffset;
@@ -284,14 +285,9 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     } else {
       rigManager.localRig.setFloorHeight(localVector.y - cameraManager.getAvatarHeight());
     }
-    /* if (glideState) {
-      rigManager.localRig.setGlide(glideState);
-    } */
   }
 
   _collideItems(localMatrix);
-  // _collideChunk(localMatrix);
-  // camera.updateMatrixWorld();
 };
 const _collideCapsule = (() => {
   const localVector = new THREE.Vector3();
@@ -336,6 +332,11 @@ physicsManager.setGravity = g => {
   }
 };
 
+let unlocked = false;
+physicsManager.unlockControls = () => {
+  unlocked = true;
+};
+
 const _copyPQS = (dst, src) => {
   dst.position.copy(src.position);
   dst.quaternion.copy(src.quaternion);
@@ -372,28 +373,31 @@ const _updatePhysics = timeDiff => {
       rigManager.setLocalRigMatrix(null);
     }
   } else {
-    const selectedTool = cameraManager.getTool();
-    if (selectedTool === 'camera') {
-      // nothing
-    } else if (selectedTool === 'firstperson') {
-      _applyGravity(timeDiff);
-      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, false, false, timeDiff);
-      _copyPQS(camera, avatarWorldObject);
-      camera.updateMatrixWorld();
-    } else if (selectedTool === 'thirdperson') {
-      _applyGravity(timeDiff);
-      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
-      _copyPQS(camera, avatarWorldObject);
-    } else if (selectedTool === 'isometric') {
-      _applyGravity(timeDiff);
-      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, true, true, timeDiff);
-      _copyPQS(camera, avatarWorldObject);
-    } else if (selectedTool === 'birdseye') {
-      _applyGravity(timeDiff);
-      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, true, true, timeDiff);
-      _copyPQS(camera, avatarWorldObject);
-    } else {
-      throw new Error('invalid camera mode: ' + selectedTool);
+    if (unlocked) {
+      const selectedTool = cameraManager.getMode();
+      if (selectedTool === 'firstperson') {
+        _applyGravity(timeDiff);
+        _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
+        _copyPQS(camera, avatarWorldObject);
+        camera.updateMatrixWorld();
+      } else if (selectedTool === 'thirdperson') {
+        _applyGravity(timeDiff);
+        _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
+        _copyPQS(camera, avatarWorldObject);
+        camera.updateMatrixWorld();
+      } else if (selectedTool === 'isometric') {
+        _applyGravity(timeDiff);
+        _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, true, true, timeDiff);
+        _copyPQS(camera, avatarWorldObject);
+        camera.updateMatrixWorld();
+      /* } else if (selectedTool === 'birdseye') {
+        _applyGravity(timeDiff);
+        _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, true, true, timeDiff);
+        _copyPQS(camera, avatarWorldObject);
+        camera.updateMatrixWorld(); */
+      } else {
+        throw new Error('invalid camera mode: ' + selectedTool);
+      } 
     }
   }
 };
