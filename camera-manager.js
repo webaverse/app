@@ -132,6 +132,9 @@ const selectTool = newSelectedTool => {
     }
   }
 };
+window.addEventListener('wheel', e => {
+  console.log('got delta', e.deltaY);
+});
 const focusCamera = position => {
   camera.lookAt(position);
   camera.updateMatrixWorld();
