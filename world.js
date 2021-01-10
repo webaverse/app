@@ -11,7 +11,7 @@ import {pointers} from './web-monetization.js';
 import {appManager, scene, scene3} from './app-object.js';
 import {
   storageHost,
-  worldsHost,
+  // worldsHost,
   tokensHost,
 } from './constants.js';
 import {makePromise, getRandomString} from './util.js';
