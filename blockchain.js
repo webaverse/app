@@ -9,10 +9,10 @@ const {Transaction, Common} = ethereumJsTx;
 import addresses from 'https://contracts.webaverse.com/ethereum/address.js';
 import abis from 'https://contracts.webaverse.com/ethereum/abi.js';
 let {
-  main: {Account: AccountAddress, FT: FTAddress, NFT: NFTAddress, FTProxy: FTProxyAddress, NFTProxy: NFTProxyAddress, Trade: TradeAddress},
-  sidechain: {Account: AccountAddressSidechain, FT: FTAddressSidechain, NFT: NFTAddressSidechain, FTProxy: FTProxyAddressSidechain, NFTProxy: NFTProxyAddressSidechain, Trade: TradeAddressSidechain},
+  main: {Account: AccountAddress, FT: FTAddress, NFT: NFTAddress, FTProxy: FTProxyAddress, NFTProxy: NFTProxyAddress, Trade: TradeAddress, LAND: LANDAddress, LANDProxy: LANDProxyAddress},
+  sidechain: {Account: AccountAddressSidechain, FT: FTAddressSidechain, NFT: NFTAddressSidechain, FTProxy: FTProxyAddressSidechain, NFTProxy: NFTProxyAddressSidechain, Trade: TradeAddressSidechain, LAND: LANDAddressSidechain, LANDProxy: LANDProxyAddressSidechain},
 } = addresses;
-let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi, Trade: TradeAbi} = abis;
+let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi, Trade: TradeAbi, LAND: LANDAbi, LANDProxy: LANDProxyAbi} = abis;
 
 const web3 = {
   main: new Web3(window.ethereum),
@@ -27,6 +27,8 @@ const contracts = {
     NFT: new web3['main'].eth.Contract(NFTAbi, NFTAddress),
     NFTProxy: new web3['main'].eth.Contract(NFTProxyAbi, NFTProxyAddress),
     Trade: new web3['main'].eth.Contract(TradeAbi, TradeAddress),
+    LAND: new web3['main'].eth.Contract(LANDAbi, LANDAddress),
+    LANDProxy: new web3['main'].eth.Contract(LANDProxyAbi, LANDProxyAddress),
   },
   sidechain: {
     Account: new web3['sidechain'].eth.Contract(AccountAbi, AccountAddressSidechain),
@@ -35,6 +37,8 @@ const contracts = {
     NFT: new web3['sidechain'].eth.Contract(NFTAbi, NFTAddressSidechain),
     NFTProxy: new web3['sidechain'].eth.Contract(NFTProxyAbi, NFTProxyAddressSidechain),
     Trade: new web3['sidechain'].eth.Contract(TradeAbi, TradeAddressSidechain),
+    LAND: new web3['sidechain'].eth.Contract(LANDAbi, LANDAddressSidechain),
+    LANDProxy: new web3['sidechain'].eth.Contract(LANDProxyAbi, LANDProxyAddressSidechain),
   },
 };
 
