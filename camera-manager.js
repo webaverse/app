@@ -10,8 +10,9 @@ const localVector = new THREE.Vector3();
 const getFullAvatarHeight = () => rigManager.localRig ? rigManager.localRig.height : 1;
 const getAvatarHeight = getFullAvatarHeight; // () => getFullAvatarHeight() * 0.9;
 const birdsEyeHeight = 10;
-const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
-const isometricCameraOffset = new THREE.Vector3(0, 0, -2);
+const cameraOffset = new THREE.Vector3();
+/* const thirdPersonCameraOffset = new THREE.Vector3(0, 0, -1.5);
+const isometricCameraOffset = new THREE.Vector3(0, 0, -2); */
 
 const requestPointerLock = () => new Promise((accept, reject) => {
   if (!document.pointerLockElement) {
@@ -77,7 +78,7 @@ const switchCamera = e => {
 }; */
 // const cameraButton = document.getElementById('key-c');
 // cameraButton.addEventListener('click', switchCamera);
-const selectTool = newSelectedTool => {
+/* const selectTool = newSelectedTool => {
   const oldSelectedTool = selectedTool;
   selectedTool = newSelectedTool;
 
@@ -131,9 +132,11 @@ const selectTool = newSelectedTool => {
       }
     }
   }
-};
+}; */
 window.addEventListener('wheel', e => {
-  console.log('got delta', e.deltaY);
+  // console.log('got delta', e.deltaY);
+  cameraOffset.z = Math.min(cameraOffset.z - e.deltaY, 0);
+  // camera.position.z = -cameraOffset.z;
 });
 const focusCamera = position => {
   camera.lookAt(position);
@@ -141,9 +144,9 @@ const focusCamera = position => {
 };
 
 const cameraManager = {
-  birdsEyeHeight,
+  /* birdsEyeHeight,
   thirdPersonCameraOffset,
-  isometricCameraOffset,
+  isometricCameraOffset, */
   getFullAvatarHeight,
   getAvatarHeight,
   focusCamera,
@@ -153,6 +156,9 @@ const cameraManager = {
   }, */
   getMode() {
     return 'firstperson';
+  },
+  getCameraOffset() {
+    return cameraOffset;
   },
   // switchCamera,
   // selectTool,
