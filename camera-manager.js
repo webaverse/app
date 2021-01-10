@@ -138,6 +138,8 @@ window.addEventListener('wheel', e => {
   cameraOffset.z = Math.min(cameraOffset.z - e.deltaY * 0.01, 0);
   camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
   camera.updateMatrixWorld();
+
+  physicsManager.unlockControls();
 });
 const focusCamera = position => {
   camera.lookAt(position);
