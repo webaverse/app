@@ -899,7 +899,7 @@ const _loadScn = async (file, opts) => {
   });
   await Promise.all(promises);
   scene.run = async () => {
-    await Proimise.all(scene.children.map(async hild => {
+    await Promise.all(scene.children.map(async child => {
       child.run && await child.run();
     }));
   };
