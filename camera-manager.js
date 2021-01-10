@@ -134,9 +134,9 @@ const switchCamera = e => {
   }
 }; */
 window.addEventListener('wheel', e => {
-  // console.log('got delta', e.deltaY);
   cameraOffset.z = Math.min(cameraOffset.z - e.deltaY, 0);
-  // camera.position.z = -cameraOffset.z;
+  camera.position.add(localVector.copy(cameraOffset).multiplyScalar(-1).applyQuaternion(camera.quaternion));
+  camera.updateMatrixWorld();
 });
 const focusCamera = position => {
   camera.lookAt(position);
