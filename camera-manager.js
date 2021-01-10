@@ -159,8 +159,10 @@ const cameraManager = {
     const f = -cameraOffset.z;
     if (f < 0.5) {
       return 'firstperson';
-    } else {
+    } else if (f < 2) {
       return 'thirdperson';
+    } else {
+      return 'isometric';
     }
   },
   getCameraOffset() {
