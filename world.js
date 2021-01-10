@@ -449,6 +449,43 @@ world.addEventListener('trackedobjectremove', async e => {
 });
 world.isObject = object => objects.includes(object);
 
+world.getWorldJson = async u => {
+  if (u) {
+    const id = parseInt(u, 10);
+    if (!isNaN(id)) {
+      const res = await fetch(`${tokensHost}/${id}`);
+      const j = await res.json();
+      const {hash} = j.properties;
+      if (hash) {
+        const {name, ext} = j.properties;
+        return {
+          objects: [
+            {
+              start_url: `${storageHost}/${hash}/${name}.${ext}`,
+            }
+          ],
+        };
+      } else {
+        return {
+          default: true,
+        };
+      }
+    } else {
+      return {
+        objects: [
+          {
+            start_url: u,
+          }
+        ],
+      };
+    }
+  } else {
+    return {
+      default: true,
+    };
+  }
+};
+
 let animationMediaStream = null
 let networkMediaStream = null;
 const _latchMediaStream = async () => {
