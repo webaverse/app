@@ -293,8 +293,8 @@ const _use = () => {
     const portalObject = portalObjects.length > 0 ? portalObjects[0] : null;
     if (portalObject && portalObject.json) {
       const u = new URL(location.href);
-      if (typeof portalObject.json.start_url === 'string') {
-        u.searchParams.set('u', portalObject.json.start_url);
+      if (['string', 'number'].includes(typeof portalObject.json.contentId)) {
+        u.searchParams.set('u', portalObject.json.contentId);
       } else {
         u.searchParams.delete('u');
       }
