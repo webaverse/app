@@ -14,7 +14,7 @@ import {
   worldsHost,
   tokensHost,
 } from './constants.js';
-import {makePromise, getRandomString, getExt} from './util.js';
+import {makePromise, getRandomString} from './util.js';
 
 // world
 export const world = new EventTarget();
@@ -448,24 +448,6 @@ world.addEventListener('trackedobjectremove', async e => {
   }
 });
 world.isObject = object => objects.includes(object);
-
-world.isValidContentId = contentId => {
-  if (!isNaN(parseInt(contentId, 10))) {
-    return true;
-  } else {
-    let u;
-    try {
-      u = new URL(contentId);
-    } catch (err) {
-      u = null;
-    }
-    if (u) {
-      return !!getExt(u.pathname);
-    } else {
-      return false;
-    }
-  }
-};
 
 let animationMediaStream = null
 let networkMediaStream = null;
