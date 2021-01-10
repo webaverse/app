@@ -51,7 +51,6 @@ const requestPointerLock = () => new Promise((accept, reject) => {
 });
 
 const cameraModes = [
-  'camera',
   'firstperson',
   'thirdperson',
   'isometric',
