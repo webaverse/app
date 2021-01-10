@@ -374,7 +374,11 @@ const _updatePhysics = timeDiff => {
     }
   } else {
     if (unlocked) {
-      const selectedTool = cameraManager.getMode();
+      _applyGravity(timeDiff);
+      _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, true, false, true, timeDiff);
+      _copyPQS(camera, avatarWorldObject);
+      camera.updateMatrixWorld();
+      /* const selectedTool = cameraManager.getMode();
       if (selectedTool === 'firstperson') {
         _applyGravity(timeDiff);
         _applyAvatarPhysics(avatarWorldObject, avatarCameraOffset, false, false, false, timeDiff);
@@ -394,7 +398,7 @@ const _updatePhysics = timeDiff => {
         _copyPQS(camera, avatarWorldObject);
       } else {
         throw new Error('invalid camera mode: ' + selectedTool);
-      }
+      } */
     }
   }
 };
