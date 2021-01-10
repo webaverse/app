@@ -290,24 +290,15 @@ const q = parseQuery(location.search);
 })(); */
 let loaded = false;
 (async () => {
-  let worldJson;
-  await Promise.all([
+  const [
+    loginResult,
+    geometryResult,
+    worldJson,
+  ] = await Promise.all([
     loginManager.waitForLoad()
       .then(() => tryTutorial()),
     geometryManager.waitForLoad(),
-    (async () => {
-      if (q.u) {
-        const res = await fetch(q.u);
-        worldJson = await res.json();
-      } else {
-        worldJson = {
-          default: true,
-        };
-      }
-      if (q.r) {
-        worldJson.room = q.r;
-      }
-    })().catch(console.warn),
+    world.getWorldJson(q.u),
   ]);
 
   runtime.injectDependencies(geometryManager, physicsManager, world);
