@@ -134,8 +134,9 @@ const switchCamera = e => {
   }
 }; */
 window.addEventListener('wheel', e => {
-  cameraOffset.z = Math.min(cameraOffset.z - e.deltaY, 0);
-  camera.position.add(localVector.copy(cameraOffset).multiplyScalar(-1).applyQuaternion(camera.quaternion));
+  camera.position.add(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
+  cameraOffset.z = Math.min(cameraOffset.z - e.deltaY * 0.01, 0);
+  camera.position.sub(localVector.copy(cameraOffset).applyQuaternion(camera.quaternion));
   camera.updateMatrixWorld();
 });
 const focusCamera = position => {
