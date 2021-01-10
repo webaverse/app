@@ -284,14 +284,9 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     } else {
       rigManager.localRig.setFloorHeight(localVector.y - cameraManager.getAvatarHeight());
     }
-    /* if (glideState) {
-      rigManager.localRig.setGlide(glideState);
-    } */
   }
 
   _collideItems(localMatrix);
-  // _collideChunk(localMatrix);
-  // camera.updateMatrixWorld();
 };
 const _collideCapsule = (() => {
   const localVector = new THREE.Vector3();
