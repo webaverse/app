@@ -359,7 +359,7 @@ window.addEventListener('keydown', e => {
       if (weaponsManager.canPush()) {
         ioManager.keys.backward = true;
         // weaponsManager.menuPush(1);
-      } else if (!(e.shiftKey && (e.ctrlKey || e.metaKey))) {
+      } /* else if (!(e.shiftKey && (e.ctrlKey || e.metaKey))) {
         e.preventDefault();
         e.stopPropagation();
         document.getElementById('key-c').dispatchEvent(new KeyboardEvent('click', { // camera
@@ -369,7 +369,7 @@ window.addEventListener('keydown', e => {
           altKey: e.altKey,
           metaKey: e.metaKey,
         }));
-      }
+      } */
       break;
     }
     case 82: { // R
@@ -586,7 +586,8 @@ window.addEventListener('keyup', e => {
 });
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
-  const selectedTool = cameraManager.getTool();
+  camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
+  /* const selectedTool = cameraManager.getMode();
   if (selectedTool === 'thirdperson') {
     camera.position.add(localVector.copy(cameraManager.thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'isometric') {
@@ -594,20 +595,21 @@ const _updateMouseMovement = e => {
   } else if (selectedTool === 'birdseye') {
     camera.rotation.x = -Math.PI / 2;
     camera.quaternion.setFromEuler(camera.rotation);
-  }
+  } */
 
   camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
-  if (selectedTool !== 'birdseye') {
+  // if (selectedTool !== 'birdseye') {
     camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
     camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
     camera.quaternion.setFromEuler(camera.rotation);
-  }
+  // }
 
-  if (selectedTool === 'thirdperson') {
+  camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
+  /* if (selectedTool === 'thirdperson') {
     camera.position.sub(localVector.copy(cameraManager.thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
   } else if (selectedTool === 'isometric') {
     camera.position.sub(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
-  }
+  } */
   camera.updateMatrixWorld();
 };
 renderer.domElement.addEventListener('mousemove', e => {
