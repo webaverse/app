@@ -6,18 +6,18 @@
 <body>
   <div id=container></div>
 
-  <script src="./bin/geometry.js"></script>
+<script src="./bin/geometry.js"></script>
 <script type=module>
   import * as THREE from './three.module.js';
   import App from './app.js';
   import {camera, orthographicCamera, renderer} from './app-object.js';
   import {world} from './world.js';
-  // import {homeScnUrl} from './constants.js';
+  import {homeScnUrl} from './constants.js';
 
   const width = 128;
   const height = 128;
   const cameraPosition = new THREE.Vector3(0, 100, -2);
-  const cameraTarget = new THREE.Vector3(cameraPosition.x + 5, 0, cameraPosition.z - 5);
+  const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
 
   /* const renderer = new THREE.WebGLRenderer({
     alpha: true,
@@ -59,7 +59,7 @@
     const app = new App();
     await app.waitForLoad();
 
-    await world.addObject(`https://webaverse.github.io/street/index.js`, null, new THREE.Vector3(), new THREE.Quaternion());
+    await world.addObject(homeScnUrl, null, new THREE.Vector3(), new THREE.Quaternion());
 
     // fixes a glitch where the first render has black opaque
     app.render();
@@ -71,7 +71,7 @@
         for (let z = -h; z < h; z++) {
           const v = new THREE.Vector3(x * s, 0, z * s);
           camera.position.copy(cameraPosition).add(v);
-          camera.lookAt(cameraTarget.clone().add(v));
+          camera.lookAt(cameraTarget.clone().add(v).add(new THREE.Vector3(2, 0, -w/2)));
 
           renderer.clear();
           app.render();
@@ -87,7 +87,7 @@
           document.body.appendChild(canvas);
         }
       }
-    }, 1000);
+    }, 5000);
 
     /* if (dst) {
       fetch(dst, {
