@@ -60,7 +60,7 @@ export default class App {
     return this.loadPromise;
   }
   
-  async loadUrl(urlSpec) {
+  async bootstrapFromUrl(urlSpec) {
     const q = parseQuery(urlSpec.search);
 
     const [
@@ -297,9 +297,6 @@ export default class App {
     renderer.setAnimationLoop(animate);
   }
 }
-const app = new App();
-app.loadUrl(location);
-app.startLoop();
 
 const _initializeXr = () => {
   let currentSession = null;
