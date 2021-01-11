@@ -793,20 +793,6 @@ const _updateWeapons = () => {
   };
   _handleDeploy();
 
-  /* const currentParcel = _getCurrentParcel(localVector);
-  if (!currentParcel.equals(lastParcel)) {
-    if (currentParcel.x !== lastParcel.x) {
-      currentParcel.z = lastParcel.z;
-    } else if (currentParcel.z !== lastParcel.z) {
-      currentParcel.x = lastParcel.x;
-    }
-    planetAnimation && _tickPlanetAnimation(1);
-    const sub = lastParcel.clone().sub(currentParcel);
-    const pivot = currentParcel.clone().add(lastParcel).multiplyScalar(10/2);
-    _animatePlanet(planetContainer.matrix.clone(), pivot, new THREE.Quaternion(), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), sub));
-    lastParcel = currentParcel;
-  } */
-
   const _handleTeleport = () => {
     const _teleportTo = (position, quaternion) => {
       const xrCamera = renderer.xr.getSession() ? renderer.xr.getCamera(camera) : camera;
