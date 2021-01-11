@@ -89,9 +89,12 @@ physicsManager.addBoxGeometry = (position, quaternion, size, dynamic) => {
 };
 
 physicsManager.addGeometry = mesh => {
+  mesh.updateMatrixWorld();
+  mesh.matrixWorld.decompose(localVector, localQuaternion, localVector2);
+  
   const physicsId = getNextPhysicsId();
   geometryManager.geometryWorker.addGeometryPhysics(geometryManager.physics, mesh, physicsId);
-  physicsObjects[physicsId] = _makePhysicsObject(mesh.position, mesh.quaternion);
+  physicsObjects[physicsId] = _makePhysicsObject(localVector, localQuaternion);
   return physicsId;
 };
 physicsManager.cookGeometry = mesh => geometryManager.geometryWorker.cookGeometryPhysics(geometryManager.physics, mesh);
