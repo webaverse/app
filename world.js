@@ -317,41 +317,41 @@ world.addEventListener('trackedobjectadd', async e => {
     const options = JSON.parse(optionsString);
     let token = null;
 
-    const file = await (async () => {
-      if (typeof contentId === 'number') {
-        const res = await fetch(`${tokensHost}/${contentId}`);
-        token = await res.json();
-        const {hash, name, ext} = token.properties;
+    let file;
+    if (typeof contentId === 'number') {
+      const res = await fetch(`${tokensHost}/${contentId}`);
+      token = await res.json();
+      const {hash, name, ext} = token.properties;
 
-        const res2 = await fetch(`${storageHost}/${hash}`);
-        const file = await res2.blob();
-        file.name = `${name}.${ext}`;
-        return file;
-      } else if (typeof contentId === 'string') {
-        let url, name;
-        if (/blob:/.test(contentId)) {
-          const match = contentId.match(/^(.+)\/([^\/]+)$/);
-          if (match) {
-            url = match[1];
-            name = match[2];
-          } else {
-            console.warn('blob url not appended with /filename.ext and cannot be interpreted', contentId);
-            return null;
-          }
+      const res2 = await fetch(`${storageHost}/${hash}`);
+      file = await res2.blob();
+      file.name = `${name}.${ext}`;
+    } else if (typeof contentId === 'string') {
+      let url, name;
+      if (/blob:/.test(contentId)) {
+        const match = contentId.match(/^(.+)\/([^\/]+)$/);
+        if (match) {
+          url = match[1];
+          name = match[2];
         } else {
-          url = contentId;
-          name = contentId;
+          console.warn('blob url not appended with /filename.ext and cannot be interpreted', contentId);
         }
-        return {
+      } else {
+        url = contentId;
+        name = contentId;
+      }
+      if (url && name) {
+        file = {
           url,
           name,
         };
       } else {
-        console.warn('unknown content id type', contentId);
-        return null;
+        file = null;
       }
-    })();
-    let mesh;
+    } else {
+      console.warn('unknown content id type', contentId);
+      file = null;
+    }
     if (file) {
       mesh = await runtime.loadFile(file, {
         instanceId: instanceId,
