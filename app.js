@@ -145,7 +145,7 @@ export default class App {
     }
   }
   
-  render(camera) {
+  render() {
     // high priority render
     renderer.render(scene3, camera);
     // main render
@@ -171,7 +171,7 @@ export default class App {
   renderMinimap() {
     minimap.update();
   }
-  renderDom(camera) {
+  renderDom() {
     // dom render
     renderer2.render(scene2, camera);
   }
@@ -322,9 +322,9 @@ export default class App {
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
-      this.render(camera);
+      this.render();
       this.renderMinimap();
-      this.renderDom(camera);
+      this.renderDom();
 
       const _mirrorRender = () => {
         if (session && document.visibilityState == 'visible') {
