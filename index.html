@@ -433,6 +433,9 @@
 
     app.bootstrapFromUrl(location);
 
+    const uploadFileInput = document.getElementById('upload-file-input');
+    app.bindUploadFileInput(uploadFileInput);
+
     const mapCanvas = document.getElementById('map-canvas')
     app.bindMinimap(mapCanvas);
 
