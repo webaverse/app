@@ -236,6 +236,7 @@ deployMesh.savedRotation = deployMesh.rotation.clone();
 scene.add(deployMesh);
 
 let selectedLoadoutIndex = -1;
+let selectedLoadoutObject = null;
 
 const _use = () => {
   if (weaponsManager.getMenu() === 3) {
@@ -1670,6 +1671,24 @@ const weaponsManager = {
       const itemEl = loadoutItems[i];
       itemEl.classList.toggle('selected', i === selectedLoadoutIndex);
     }
+
+    (async () => {
+      if (selectedLoadoutObject) {
+        world.removeObject(selectedLoadoutObject.instanceId);
+        selectedLoadoutObject = null;
+      }
+
+      const loadout = loginManager.getLoadout();
+      const item = loadout[selectedLoadoutIndex];
+      if (item) {
+        const [contentId] = item;
+        let id = parseInt(contentId, 10);
+        if (isNaN(id)) {
+          id = contentId;
+        }
+        selectedLoadoutObject = await world.addObject(id, null, new THREE.Vector3(), new THREE.Quaternion());
+      }
+    })().catch(console.warn);
   },
   canToggleAxis() {
     return !!appManager.grabbedObjects[0] || (editedObject && editedObject.isBuild);
