@@ -430,8 +430,23 @@
   <script type=module>
     import App from '/app.js';
     const app = new App();
+
     app.bootstrapFromUrl(location);
-    app.startLoop();
+
+    const enterXrButton = document.getElementById('enter-xr-button');
+    const noXrButton = document.getElementById('no-xr-button');
+    app.bindXr({
+      enterXrButton,
+      noXrButton,
+      onSupported(ok) {
+        if (ok) {
+          enterXrButton.style.display = null;
+          noXrButton.style.display = 'none';
+        }
+      },
+    });
+    
+        app.startLoop();
   </script>
 </body>
 
