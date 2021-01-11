@@ -105,7 +105,6 @@ function animate(timestamp, frame) {
   }
 
   const _updateRig = () => {
-    let hmdPosition, hmdQuaternion;
     let leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled;
     let rightGamepadPosition, rightGamepadQuaternion, rightGamepadPointer, rightGamepadGrip, rightGamepadEnabled;
 
@@ -121,8 +120,6 @@ function animate(timestamp, frame) {
     }
     localMatrix // .fromArray(this.xrState.poseMatrix)
       .decompose(localVector, localQuaternion, localVector2);
-    hmdPosition = localVector.toArray();
-    hmdQuaternion = localQuaternion.toArray();
 
     if (session) {
       let inputSources = Array.from(session.inputSources);
