@@ -7,73 +7,70 @@
   <canvas id=canvas></canvas>
 
   <script src="./bin/geometry.js"></script>
-  <script type=module>
-    import * as THREE from './three.module.js';
-    import App from './app.js';
-    import {world} from './world.js';
-    import {homeScnUrl} from './constants.js';
-    /* import {GLTFLoader} from './GLTFLoader.js';
-    import {VOXLoader} from './VOXLoader.js';
-    import {bake, toggleElements} from './bakeUtils.js';
-    import {parseQuery} from './util.js';
-    import * as icons from './icons.js';
-    import './gif.js'; */
+<script type=module>
+  import * as THREE from './three.module.js';
+  import App from './app.js';
+  import {renderer} from './app-object.js';
+  import {world} from './world.js';
+  // import {homeScnUrl} from './constants.js';
 
-    const width = 512;
-    const height = 512;
-    const cameraPosition = new THREE.Vector3(0, 1, -2);
-    const cameraTarget = new THREE.Vector3(0, 0, 0);
+  const width = 512;
+  const height = 512;
+  const cameraPosition = new THREE.Vector3(0, 1, -2);
+  const cameraTarget = new THREE.Vector3(0, 0, 0);
 
-    const renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: true,
-    });
-    renderer.setSize(width, height);
+  /* const renderer = new THREE.WebGLRenderer({
+    alpha: true,
+    antialias: true,
+  });
+  renderer.setSize(width, height);
 
-    const scene = new THREE.Scene();
+  const scene = new THREE.Scene();
 
-    const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
-    camera.position.copy(cameraPosition);
-    camera.lookAt(cameraTarget);
+  const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+  directionalLight.position.set(2, 2, -2);
+  scene.add(directionalLight);
+  const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
+  directionalLight2.position.set(-2, 2, 2);
+  scene.add(directionalLight2); */
+  
+  const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
+  camera.position.copy(cameraPosition);
+  camera.lookAt(cameraTarget);
 
-    const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
-    directionalLight.position.set(2, 2, -2);
-    scene.add(directionalLight);
-    const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
-    directionalLight2.position.set(-2, 2, 2);
-    scene.add(directionalLight2);
+  (async () => {
+    const app = new App();
+    await app.waitForLoad();
+    // app.bootstrapFromUrl(location);
+    // app.startLoop();
 
-    (async () => {
-      const app = new App();
-      await app.waitForLoad();
-      // app.bootstrapFromUrl(location);
-      // app.startLoop();
+    await world.addObject(`https://webaverse.github.io/street/index.js`, null, new THREE.Vector3(), new THREE.Quaternion());
+    
+    const renderer = app.getRenderer();
+    // const camera = new THREE.OrthographicCamera();
 
-      await world.addObject(`https://webaverse.github.io/street/index.js`, null, new THREE.Vector3(), new THREE.Quaternion());
-      
-      const renderer = app.getRenderer();
-      const camera = new THREE.OrthographicCamera();
+    app.render(camera);
 
-      app.render(camera);
+    const canvas = document.getElementById('canvas');
+    canvas.width = width;
+    canvas.height = height;
 
-      const canvas = document.getElementById('canvas');
+    /* if (dst) {
+      fetch(dst, {
+        method: 'POST',
+        headers: {
+          'Content-Type': mimeType,
+        },
+        body: arrayBuffer,
+      }).then(res => res.blob());
+    }
 
-      /* if (dst) {
-        fetch(dst, {
-          method: 'POST',
-          headers: {
-            'Content-Type': mimeType,
-          },
-          body: arrayBuffer,
-        }).then(res => res.blob());
-      }
-
-      window.parent.postMessage({
-        method: 'result',
-        result: arrayBuffer,
-      }, '*', [arrayBuffer]); */
-    })();
-  </script>
+    window.parent.postMessage({
+      method: 'result',
+      result: arrayBuffer,
+    }, '*', [arrayBuffer]); */
+  })();
+</script>
 </body>
 
 </html>
