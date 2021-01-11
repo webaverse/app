@@ -8,6 +8,7 @@
 
   <script type=module>
     import * as THREE from './three.module.js';
+    import App from './app.js';
     import {world} from './world.js';
     import {homeScnUrl} from './constants.js';
     /* import {GLTFLoader} from './GLTFLoader.js';
@@ -21,7 +22,7 @@
     const height = 512;
     const cameraPosition = new THREE.Vector3(0, 1, -2);
     const cameraTarget = new THREE.Vector3(0, 0, 0);
-  
+
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
       antialias: true,
@@ -41,22 +42,29 @@
     directionalLight2.position.set(-2, 2, 2);
     scene.add(directionalLight2);
 
-    world.addObject(`https://webaverse.github.io/street/index.js`, null, new THREE.Vector3(), new THREE.Quaternion());
+    (async () => {
+      const app = new App();
+      await app.waitForLoad();
+      // app.bootstrapFromUrl(location);
+      // app.startLoop();
 
-    /* if (dst) {
-      fetch(dst, {
-        method: 'POST',
-        headers: {
-          'Content-Type': mimeType,
-        },
-        body: arrayBuffer,
-      }).then(res => res.blob());
-    }
+      await world.addObject(`https://webaverse.github.io/street/index.js`, null, new THREE.Vector3(), new THREE.Quaternion());
 
-    window.parent.postMessage({
-      method: 'result',
-      result: arrayBuffer,
-    }, '*', [arrayBuffer]); */
+      /* if (dst) {
+        fetch(dst, {
+          method: 'POST',
+          headers: {
+            'Content-Type': mimeType,
+          },
+          body: arrayBuffer,
+        }).then(res => res.blob());
+      }
+
+      window.parent.postMessage({
+        method: 'result',
+        result: arrayBuffer,
+      }, '*', [arrayBuffer]); */
+    })();
   </script>
 </body>
 
