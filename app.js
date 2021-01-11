@@ -91,6 +91,9 @@ export default class App {
     }
     this.contentLoaded = true;
   }
+  bindInput() {
+    ioManager.bindInput();
+  }
   bindInterface() {
     weaponsManager.bindInterface();
   }
