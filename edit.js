@@ -215,30 +215,6 @@ const wristMenu = makeWristMenu({scene, ray: rayMesh, highlightMesh, addPackage:
 wristMenu.position.y = 1;
 scene.add(wristMenu); */
 
-/* window.downloadTargetMesh = async () => {
-  const {GLTFExporter} = await import('./GLTFExporter.js');
-  const targetMesh = _makeTargetMesh();
-  targetMesh.material = new THREE.MeshBasicMaterial({
-    color: 0x000000,
-  });
-  const data = await new Promise((accept, reject) => {
-    const exporter = new GLTFExporter();
-    const exportScene = new THREE.Scene();
-    exportScene.add(targetMesh);
-    exporter.parse(exportScene, gltf => {
-      accept(gltf);
-    }, {
-      binary: true,
-      includeCustomExtensions: true,
-    });
-  });
-  console.log('got data', data);
-  const b = new Blob([data], {
-    type: 'application/octet-stream',
-  });
-  downloadFile(b, 'target.glb');
-}; */
-
 /* const _getCurrentParcel = p => new THREE.Vector3(
   Math.floor((p.x+5)/10),
   0,
