@@ -433,6 +433,9 @@
 
     app.bootstrapFromUrl(location);
 
+    const mapCanvas = document.getElementById('map-canvas')
+    app.bindMinimap(mapCanvas);
+
     const enterXrButton = document.getElementById('enter-xr-button');
     const noXrButton = document.getElementById('no-xr-button');
     app.bindXr({
@@ -446,7 +449,7 @@
       },
     });
     
-        app.startLoop();
+    app.startLoop();
   </script>
 </body>
 
