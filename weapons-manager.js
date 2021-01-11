@@ -237,6 +237,12 @@ scene.add(deployMesh);
 
 let selectedLoadoutIndex = -1;
 let selectedLoadoutObject = null;
+const _updateLoadout = () => {
+  for (let i = 0; i < loadoutItems.length; i++) {
+    const itemEl = loadoutItems[i];
+    itemEl.classList.toggle('selected', i === selectedLoadoutIndex);
+  }
+};
 
 const _use = () => {
   if (weaponsManager.getMenu() === 3) {
@@ -258,7 +264,7 @@ const _use = () => {
     weaponsManager.setMenu(0);
     cameraManager.requestPointerLock();
   } else if (highlightedObject && !editedObject) {
-    ioManager.currentWeaponGrabs[0] = true;
+    // ioManager.currentWeaponGrabs[0] = true;
     _grab(highlightedObject);
     highlightedObject = null;
     
@@ -487,6 +493,11 @@ const _grab = object => {
   } else {
     appManager.grabbedObjectOffsets[0] = distance;
   }
+};
+const _ungrab = () => {
+  // _snapRotation(appManager.grabbedObjects[0], rotationSnap);
+  appManager.grabbedObjects[0] = null;
+  _updateMenu();
 };
 
 const crosshairEl = document.querySelector('.crosshair');
@@ -1264,9 +1275,13 @@ const keyTab5El = document.getElementById('key-tab-5');
     e.stopPropagation();
 
     if (appManager.grabbedObjects[0]) {
-      _snapRotation(appManager.grabbedObjects[0], rotationSnap);
-      appManager.grabbedObjects[0] = null;
-      _updateMenu();
+      if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
+        selectedLoadoutIndex = -1;
+        selectedLoadoutObject = null;
+        _updateLoadout();
+      }
+
+      _ungrab();
     } else if (editedObject) {
       if (editedObject.isBuild && editedObject.getShapes().length === 0) {
         world.removeObject(editedObject.instanceId);
@@ -1667,18 +1682,12 @@ const weaponsManager = {
     } else {
       selectedLoadoutIndex = -1;
     }
-    for (let i = 0; i < loadoutItems.length; i++) {
-      const itemEl = loadoutItems[i];
-      itemEl.classList.toggle('selected', i === selectedLoadoutIndex);
-    }
+    _updateLoadout();
 
     (async () => {
       if (selectedLoadoutObject) {
-        for (let i = 0; i < appManager.grabbedObjects.length; i++) {
-          if (appManager.grabbedObjects[i] === selectedLoadoutObject) {
-            appManager.grabbedObjects[i] = null;
-            appManager.grabbedObjectOffsets[0] = 0;
-          }
+        if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
+          _ungrab();
         }
         
         world.removeObject(selectedLoadoutObject.instanceId);
@@ -1699,7 +1708,6 @@ const weaponsManager = {
         selectedLoadoutObject.position.copy(position);
         selectedLoadoutObject.quaternion.copy(quaternion);
 
-        ioManager.currentWeaponGrabs[0] = true;
         _grab(selectedLoadoutObject);
 
         weaponsManager.setMenu(0);
