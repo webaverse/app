@@ -867,20 +867,10 @@ const _loadScn = async (file, opts) => {
         type: 'application/octet-stream',
       });
       start_url = URL.createObjectURL(blob);
-      // start_url += '/' + filename;
     } else {
       console.warn('cannot load contentless object', object);
       return;
     }
-    /* if (physics_url) {
-      physics_url = new URL(physics_url, srcUrl).href;
-    }
-
-    world.addObject(start_url, parentId, position, quaternion, {
-      optimize,
-      physics,
-      physics_url,
-    }); */
 
     const mesh = await runtime.loadFile({
       url: start_url,
