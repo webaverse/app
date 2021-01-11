@@ -1674,6 +1674,13 @@ const weaponsManager = {
 
     (async () => {
       if (selectedLoadoutObject) {
+        for (let i = 0; i < appManager.grabbedObjects.length; i++) {
+          if (appManager.grabbedObjects[i] === selectedLoadoutObject) {
+            appManager.grabbedObjects[i] = null;
+            appManager.grabbedObjectOffsets[0] = 0;
+          }
+        }
+        
         world.removeObject(selectedLoadoutObject.instanceId);
         selectedLoadoutObject = null;
       }
@@ -1686,7 +1693,10 @@ const weaponsManager = {
         if (isNaN(id)) {
           id = contentId;
         }
-        selectedLoadoutObject = await world.addObject(id, null, new THREE.Vector3(), new THREE.Quaternion());
+        const transforms = rigManager.getRigTransforms();
+        const {position, quaternion} = transforms[0];
+        selectedLoadoutObject = await world.addObject(id, null, position, quaternion);
+        _grab(selectedLoadoutObject);
       }
     })().catch(console.warn);
   },
