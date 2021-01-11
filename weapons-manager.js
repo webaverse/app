@@ -235,6 +235,8 @@ deployMesh.rotation.order = 'YXZ';
 deployMesh.savedRotation = deployMesh.rotation.clone();
 scene.add(deployMesh);
 
+let selectedLoadoutIndex = -1;
+
 const _use = () => {
   if (weaponsManager.getMenu() === 3) {
     const itemSpec = itemSpecs3[selectedItemIndex];
@@ -1657,11 +1659,15 @@ const weaponsManager = {
     }
   },
   selectLoadout(index) {
-    for (const itemEl of loadoutItems) {
-      itemEl.classList.remove('selected');
+    if (index !== selectedLoadoutIndex) {
+      selectedLoadoutIndex = index;
+    } else {
+      selectedLoadoutIndex = -1;
     }
-    const itemEl = loadoutItems[index];
-    itemEl.classList.add('selected');
+    for (let i = 0; i < loadoutItems.length; i++) {
+      const itemEl = loadoutItems[i];
+      itemEl.classList.toggle('selected', i === selectedLoadoutIndex);
+    }
   },
   canToggleAxis() {
     return !!appManager.grabbedObjects[0] || (editedObject && editedObject.isBuild);
