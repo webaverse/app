@@ -628,10 +628,6 @@ function animate(timestamp, frame) {
   };
   _updateAnchors();
 
-  // const {leftGamepad: rightGamepad, rightGamepad: leftGamepad} = rigManager.localRig.inputs;
-
-  // orbitControls.enabled = cameraManager.getTool() === 'camera';
-
   weaponsManager.update();
 
   /* const _updateHands = () => {
