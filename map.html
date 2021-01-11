@@ -52,10 +52,9 @@
       await world.addObject(`https://webaverse.github.io/street/index.js`, null, new THREE.Vector3(), new THREE.Quaternion());
       
       const renderer = app.getRenderer();
-      const scene = app.getScene();
       const camera = new THREE.OrthographicCamera();
 
-      app.render();
+      app.render(camera);
 
       const canvas = document.getElementById('canvas');
 
