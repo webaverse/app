@@ -1029,6 +1029,23 @@ const _updateMenu = () => {
 
   locationLabel.innerText = `Overworld @${coord.x},${coord.z}`;
 };
+
+const _loadItemSpec1 = async u => {
+  const p = new Promise((accept, reject) => {
+    world.addEventListener('objectadd', async e => {
+      accept(e.data);
+    }, {once: true});
+  });
+
+  world.addObject(u, null, deployMesh.position, deployMesh.quaternion);
+
+  const object = await p;
+  editedObject = object;
+
+  weaponsManager.setMenu(0);
+  appManager.grabbedObjectOffsets[0] = maxGrabDistance;
+  cameraManager.requestPointerLock();
+};
 const itemSpecs3 = [
   {
     "name": "home",
@@ -1240,22 +1257,6 @@ const bindInterface = () => {
     items3El.appendChild(div);
   }
 
-  const _loadItemSpec1 = async u => {
-    const p = new Promise((accept, reject) => {
-      world.addEventListener('objectadd', async e => {
-        accept(e.data);
-      }, {once: true});
-    });
-
-    world.addObject(u, null, deployMesh.position, deployMesh.quaternion);
-
-    const object = await p;
-    editedObject = object;
-
-    weaponsManager.setMenu(0);
-    appManager.grabbedObjectOffsets[0] = maxGrabDistance;
-    cameraManager.requestPointerLock();
-  };
   for (let i = 0; i < itemSpecs1.length; i++) {
     const itemSpec = itemSpecs1[i];
     const div = document.createElement('div');
