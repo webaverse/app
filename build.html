@@ -16,10 +16,6 @@
     <h1>Bake mesh</h1>
     <pre><code>TOKTX_PATH=./bin/toktx ./bin/gltfpack -v -kn -cc -tb -i assets/model.glb -o assets/model2.glb</code></pre>
   </form>
-  <form id=build-map-form>
-    <h1>Render map</h1>
-    <div id=map-container></div>
-  </form>
 <script src="./bin/geometry.js"></script>
 <script type=module>
 import * as THREE from './three.module.js';
@@ -761,16 +757,6 @@ bakeFormEl.addEventListener('submit', async e => {
   });
   downloadFile(b, 'target.glb');
 }; */
-
-const buildMapForm = document.getElementById('build-map-form');
-const mapContainer = document.getElementById('map-container');
-buildMapForm.addEventListener('submit', e => {
-  e.preventDefault();
-  
-  const canvas = document.createElement('canvas');
-
-  mapContainer.appendChild(canvas);
-});
 </script>
 </body>
 </html>
