@@ -1698,7 +1698,11 @@ const weaponsManager = {
         const {position, quaternion} = transforms[0];
         selectedLoadoutObject.position.copy(position);
         selectedLoadoutObject.quaternion.copy(quaternion);
+
+        ioManager.currentWeaponGrabs[0] = true;
         _grab(selectedLoadoutObject);
+
+        weaponsManager.setMenu(0);
       }
     })().catch(console.warn);
   },
