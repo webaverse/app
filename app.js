@@ -89,14 +89,15 @@ export default class App {
     this.contentLoaded = true;
   }
 
+  bindInterface() {
+    weaponsManager.bindInterface();
+  }
   bindUploadFileInput(uploadFileInput) {
     weaponsManager.bindUploadFileInput(uploadFileInput);
   }
-
   bindMinimap(mapCanvas) {
     minimap.init(mapCanvas);
   }
-  
   bindXr({
     enterXrButton,
     noXrButton,

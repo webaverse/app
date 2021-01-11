@@ -393,7 +393,6 @@ const bindUploadFileInput = uploadFileInput => {
   });
 };
 
-const uploadFileInput = document.getElementById('upload-file-input');
 const _upload = () => {
   uploadFileInput.click();
 };
@@ -904,354 +903,36 @@ const itemsDetails1El = document.getElementById('items-details-1');
 const itemsDetails2El = document.getElementById('items-details-2');
 const itemsDetails3El = document.getElementById('items-details-3');
 const itemsDetails4El = document.getElementById('items-details-4');
-
-const itemSpecs3 = [
-  {
-    "name": "home",
-    "start_url": "https://avaer.github.io/home/manifest.json"
-  },
-  {
-    "name": "mirror",
-    "start_url": "https://avaer.github.io/mirror/index.js"
-  },
-  {
-    "name": "lightsaber",
-    "start_url": "https://avaer.github.io/lightsaber/index.js"
-  },
-  {
-    "name": "shield",
-    "start_url": "https://avaer.github.io/shield/index.js"
-  },
-  {
-    "name": "physicscube",
-    "start_url": "https://avaer.github.io/physicscube/index.js"
-  },
-  {
-    "name": "weapons",
-    "start_url": "https://avaer.github.io/weapons/index.js"
-  },
-  {
-    "name": "hookshot",
-    "start_url": "https://avaer.github.io/hookshot/index.js"
-  },
-  {
-    "name": "voxels",
-    "start_url": "https://avaer.github.io/voxels/index.js"
-  },
-  {
-    "name": "cv",
-    "filename": "cv.url",
-    "content": "https://cv.webaverse.com/"
-  },
-  {
-    "name": "dcl",
-    "filename": "cv.url",
-    "content": "https://dcl.webaverse.com/"
-  },
-  {
-    "name": "h",
-    "filename": "h.url",
-    "content": "https://h.webaverse.com/"
-  },
-  {
-    "name": "land",
-    "start_url": "https://avaer.github.io/land/index.js"
-  },
-  {
-    "name": "planet",
-    "start_url": "https://avaer.github.io/planet/index.js"
-  },
-  {
-    "name": "camera",
-    "start_url": "https://avaer.github.io/camera/index.js"
-  },
-  {
-    "name": "cityscape",
-    "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
-  },
-];
-for (let i = 0; i < itemSpecs3.length; i++) {
-  const itemSpec = itemSpecs3[i];
-  const div = document.createElement('div');
-  div.classList.add('item');
-  div.innerHTML = `
-    <div class=card>
-      <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
-    </div>
-    <div class=name>${itemSpec.name}</div>
-    <div class="key-helpers">
-      <div class="key-helper">
-        <div class=key>E</div>
-        <div class=label>Spawn</div>
-      </div>
-    </div>
-  `;
-  div.addEventListener('click', e => {
-    _use();
-  });
-  div.addEventListener('mouseenter', e => {
-    selectedItemIndex = i;
-    _updateMenu();
-  });
-  items3El.appendChild(div);
-}
-
-const _loadItemSpec1 = async u => {
-  const p = new Promise((accept, reject) => {
-    world.addEventListener('objectadd', async e => {
-      accept(e.data);
-    }, {once: true});
-  });
-
-  world.addObject(u, null, deployMesh.position, deployMesh.quaternion);
-
-  const object = await p;
-  editedObject = object;
-
-  weaponsManager.setMenu(0);
-  appManager.grabbedObjectOffsets[0] = maxGrabDistance;
-  cameraManager.requestPointerLock();
-};
-const itemSpecs1 = [
-  {
-    name: 'Build',
-    icon: 'assets/noun_wall_3213150.svg',
-    detailsHtml: `\
-      <img class=video src="./assets/screenshot.jpg">
-      <div class=wrap>
-        <b>Build</b> lets you build walls, floors, and structures.
-      </div>
-    `,
-    cb() {
-      _loadItemSpec1('./assets/type/object.geo');
-    },
-  },
-  {
-    name: 'Model',
-    icon: 'fa-alien-monster',
-    detailsHtml: `\
-      <img class=video src="./assets/screenshot.jpg">
-      <div class=wrap>
-        <b>Model</b> lets you place a 3D model in GLTF format.
-      </div>
-    `,
-    cb() {
-      _loadItemSpec1('./assets/type/robot.glb');
-    },
-  },
-  {
-    name: 'Avatar',
-    icon: 'fa-user-ninja',
-    detailsHtml: `\
-      <img class=video src="./assets/screenshot.jpg">
-      <div class=wrap>
-        <b>Avatar</b> lets you place an avatar model in VRM format.
-      </div>
-    `,
-    cb() {
-      _loadItemSpec1('./assets/type/37023052771851054.vrm');
-    },
-  },
-  {
-    name: 'Image',
-    icon: 'fa-image',
-    detailsHtml: `\
-      <img class=video src="./assets/screenshot.jpg">
-      <div class=wrap>
-        <b>Image</b> lets you place a simple image billboard.
-      </div>
-    `,
-    cb() {
-     _loadItemSpec1('./assets/type/Rainbow_Dash.png');
-    },
-  },
-  {
-    name: 'Audio',
-    icon: 'fa-headphones',
-    detailsHtml: `\
-      <img class=video src="./assets/screenshot.jpg">
-      <div class=wrap>
-        <b>Audio</b> lets you place spatial audio.
-      </div>
-    `,
-    cb() {
-      _loadItemSpec1('./assets/type/br.mp3');
-    },
-  },
-  {
-    name: 'Voxel',
-    icon: 'fa-cube',
-    detailsHtml: `\
-      <img class=video src="./assets/screenshot.jpg">
-      <div class=wrap>
-        <b>Voxel</b> lets you place a voxel model in VOX format.
-      </div>
-    `,
-    cb() {
-      _loadItemSpec1('./assets/type/square_hedge.vox');
-    },
-  },
-  {
-    name: 'Link',
-    icon: 'fa-portal-enter',
-    detailsHtml: `\
-      <img class=video src="./assets/screenshot.jpg">
-      <div class=wrap>
-        <b>Link</b> lets you create a web link portal.
-      </div>
-    `,
-    cb() {
-      _loadItemSpec1('./assets/type/dcl.url');
-    },
-  },
-  {
-    name: 'Web Frame',
-    icon: 'fa-browser',
-    detailsHtml: `\
-      <img class=video src="./assets/screenshot.jpg">
-      <div class=wrap>
-        <b>Web Frame</b> lets you place a web content iframe.
-      </div>
-    `,
-    cb() {
-      _loadItemSpec1('./assets/type/deviantart.iframe');
-    },
-  },
-  {
-    name: 'Media Stream',
-    icon: 'fa-signal-stream',
-    detailsHtml: `\
-      <img class=video src="./assets/screenshot.jpg">
-      <div class=wrap>
-        <b>Media Stream</b> lets you stream audio, video, and screenshares.
-      </div>
-    `,
-    cb() {
-      _loadItemSpec1('./assets/type/object.mediastream');
-    },
-  },
-];
-for (let i = 0; i < itemSpecs1.length; i++) {
-  const itemSpec = itemSpecs1[i];
-  const div = document.createElement('div');
-  div.classList.add('item');
-  div.innerHTML = `\
-    <div class=bar></div>
-    ${/^fa-/.test(itemSpec.icon) ?
-      `<i class="icon fa ${itemSpec.icon}"></i>`
-    :
-      `<img src="${itemSpec.icon}" class=icon>`
-    }
-    <div class=name>${itemSpec.name}</div>
-    <div class="key-helpers">
-      <div class="key-helper">
-        <div class=key>E</div>
-        <div class=label>Create</div>
-      </div>
-    </div>
-  `;
-  div.addEventListener('click', e => {
-    _use();
-  });
-  div.addEventListener('mouseenter', e => {
-    selectedItemIndex = i;
-    _updateMenu();
-  });
-  items1El.appendChild(div);
-}
-
-let selectedItemIndex = 0;
-const _selectItem = newSelectedItemIndex => {
-  selectedItemIndex = newSelectedItemIndex;
-  _updateMenu();
-};
-const _getItemsEl = () => document.getElementById('items-' + weaponsManager.getMenu());
-const _selectItemDelta = offset => {
-  const itemsEl = _getItemsEl();
-
-  let newSelectedItemIndex = selectedItemIndex + offset;
-  if (newSelectedItemIndex >= itemsEl.childNodes.length) {
-    newSelectedItemIndex = 0;
-  } else if (newSelectedItemIndex < 0) {
-    newSelectedItemIndex = itemsEl.childNodes.length - 1;
-  }
-  if (newSelectedItemIndex < 0) {
-    console.warn('selecting nonexistent zero item index');
-    newSelectedItemIndex = 0;
-  }
-  _selectItem(newSelectedItemIndex);
-};
-
-const tabs = Array.from(document.getElementById('profile-icon').querySelectorAll('.navs > .nav'));
-for (let i = 0; i < tabs.length; i++) {
-  const tab = tabs[i];
-  tab.addEventListener('click', e => {
-    _selectTab(i);
-  });
-}
-const _selectTab = newSelectedTabIndex => {
-  weaponsManager.setMenu(newSelectedTabIndex + 1);
-};
-const _selectTabDelta = offset => {
-  let newSelectedTabIndex = (weaponsManager.getMenu() - 1) + offset;
-  if (newSelectedTabIndex >= tabs.length) {
-    newSelectedTabIndex = 0;
-  } else if (newSelectedTabIndex < 0) {
-    newSelectedTabIndex = tabs.length - 1;
-  }
-  _selectTab(newSelectedTabIndex);
-};
-
-const _snapPosition = (o, positionSnap) => {
-  if (positionSnap > 0) {
-    o.position.x = Math.round(o.position.x / positionSnap) * positionSnap;
-    o.position.y = Math.round(o.position.y / positionSnap) * positionSnap;
-    o.position.z = Math.round(o.position.z / positionSnap) * positionSnap;
-  }
-};
-const rotationSnap = Math.PI/6;
-const _snapRotation = (o, rotationSnap) => {
-  o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
-  o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
-  o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
-};
-
 const keyTabEl = document.getElementById('key-tab');
 const keyTab1El = document.getElementById('key-tab-1');
 const keyTab2El = document.getElementById('key-tab-2');
 const keyTab3El = document.getElementById('key-tab-3');
 const keyTab4El = document.getElementById('key-tab-4');
 const keyTab5El = document.getElementById('key-tab-5');
-[keyTabEl, keyTab1El, keyTab2El, keyTab3El, keyTab4El].forEach((el, i) => {
-  el.addEventListener('click', e => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (appManager.grabbedObjects[0]) {
-      if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
-        _deselectLoadout();
-      }
-
-      _ungrab();
-    } else if (editedObject) {
-      if (editedObject.isBuild && editedObject.getShapes().length === 0) {
-        world.removeObject(editedObject.instanceId);
-      }
-
-      editedObject = null;
-      _updateMenu();
-    } else {
-      const hasMenu = !!weaponsManager.getMenu();
-      if (hasMenu && !document.pointerLockElement) {
-        cameraManager.requestPointerLock();
-      } else if (!hasMenu && document.pointerLockElement) {
-        document.exitPointerLock();
-      }
-
-      weaponsManager.setMenu(hasMenu ? 0 : 1);
-    }
-  });
-});
+const loadoutEl = document.getElementById('loadout');
+const menu1El = document.getElementById('menu-1');
+const menu2El = document.getElementById('menu-2');
+const menu3El = document.getElementById('menu-3');
+const menu4El = document.getElementById('menu-4');
+const unmenuEl = document.getElementById('unmenu');
+const objectMenuEl = document.getElementById('object-menu');
+const grabMenuEl = document.getElementById('grab-menu');
+const editMenuEl = document.getElementById('edit-menu');
+const locationLabel = document.getElementById('location-label');
+const profileLabel = document.getElementById('profile-label');
+const itemLabel = document.getElementById('item-label');
+const grabLabel = document.getElementById('grab-label');
+const editLabel = document.getElementById('edit-label');
+const locationIcon = document.getElementById('location-icon');
+const profileIcon = document.getElementById('profile-icon');
+const itemIcon = document.getElementById('item-icon');
+const itemMonetizedIcon = document.getElementById('item-monetized-icon');
+const grabIcon = document.getElementById('grab-icon');
+const editIcon = document.getElementById('edit-icon');
+const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
+const gridSnapEl = document.getElementById('grid-snap');
+const tabs = Array.from(document.querySelectorAll('#profile-icon .navs > .nav'));
+const uploadFileInput = document.getElementById('upload-file-input');
 
 let lastSelectedBuild = -1;
 let lastCameraFocus = -1;
@@ -1386,20 +1067,79 @@ const _updateMenu = () => {
 
   locationLabel.innerText = `Overworld @${coord.x},${coord.z}`;
 };
-
-const loadoutEl = document.getElementById('loadout');
-const itemsEls = Array.from(loadoutEl.querySelectorAll('.item'));
-(async () => {
-  await loginManager.waitForLoad();
-
-  const inventory = loginManager.getInventory();
-  for (let i = 0; i < inventory.length; i++) {
-    const itemSpec = inventory[i];
+const bindInterface = () => {
+  const itemSpecs3 = [
+    {
+      "name": "home",
+      "start_url": "https://avaer.github.io/home/manifest.json"
+    },
+    {
+      "name": "mirror",
+      "start_url": "https://avaer.github.io/mirror/index.js"
+    },
+    {
+      "name": "lightsaber",
+      "start_url": "https://avaer.github.io/lightsaber/index.js"
+    },
+    {
+      "name": "shield",
+      "start_url": "https://avaer.github.io/shield/index.js"
+    },
+    {
+      "name": "physicscube",
+      "start_url": "https://avaer.github.io/physicscube/index.js"
+    },
+    {
+      "name": "weapons",
+      "start_url": "https://avaer.github.io/weapons/index.js"
+    },
+    {
+      "name": "hookshot",
+      "start_url": "https://avaer.github.io/hookshot/index.js"
+    },
+    {
+      "name": "voxels",
+      "start_url": "https://avaer.github.io/voxels/index.js"
+    },
+    {
+      "name": "cv",
+      "filename": "cv.url",
+      "content": "https://cv.webaverse.com/"
+    },
+    {
+      "name": "dcl",
+      "filename": "cv.url",
+      "content": "https://dcl.webaverse.com/"
+    },
+    {
+      "name": "h",
+      "filename": "h.url",
+      "content": "https://h.webaverse.com/"
+    },
+    {
+      "name": "land",
+      "start_url": "https://avaer.github.io/land/index.js"
+    },
+    {
+      "name": "planet",
+      "start_url": "https://avaer.github.io/planet/index.js"
+    },
+    {
+      "name": "camera",
+      "start_url": "https://avaer.github.io/camera/index.js"
+    },
+    {
+      "name": "cityscape",
+      "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
+    },
+  ];
+  for (let i = 0; i < itemSpecs3.length; i++) {
+    const itemSpec = itemSpecs3[i];
     const div = document.createElement('div');
     div.classList.add('item');
     div.innerHTML = `
       <div class=card>
-        <img src="${itemSpec.image}">
+        <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
       </div>
       <div class=name>${itemSpec.name}</div>
       <div class="key-helpers">
@@ -1416,148 +1156,304 @@ const itemsEls = Array.from(loadoutEl.querySelectorAll('.item'));
       selectedItemIndex = i;
       _updateMenu();
     });
-    items2El.appendChild(div);
+    items3El.appendChild(div);
   }
-})();
 
-/* const itemMeshes = [];
-const addItem = async (position, quaternion) => {
-  const u = 'assets/mat.glb';
-  const res = await fetch('./' + u);
-  const file = await res.blob();
-  file.name = u;
-  let mesh = await runtime.loadFile(file, {
-    optimize: false,
-  });
-  for (let i = 0; i < mesh.children.length; i++) {
-    const child = mesh.children[i];
-    child.position.x = -3 + i;
-    child.material = new THREE.MeshBasicMaterial({map: child.material.map});
-  }
-  const s = 0.1;
-  mesh.quaternion.premultiply(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 1, 0)));
-  mesh.scale.set(s, s, s);
-  
-  const itemMesh = (() => {
-    const radius = 0.5;
-    const segments = 12;
-    const color = 0x66bb6a;
-    const opacity = 0.5;
-
-    const object = new THREE.Object3D();
-
-    object.add(mesh);
-
-    const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius / 2, 0));
-    const ys = new Float32Array(skirtGeometry.attributes.position.array.length / 3);
-    for (let i = 0; i < skirtGeometry.attributes.position.array.length / 3; i++) {
-      ys[i] = 1 - skirtGeometry.attributes.position.array[i * 3 + 1] / radius;
-    }
-    skirtGeometry.setAttribute('y', new THREE.BufferAttribute(ys, 1));
-    // skirtGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.5, 0));
-    const skirtMaterial = new THREE.ShaderMaterial({
-      uniforms: {
-        uAnimation: {
-          type: 'f',
-          value: 0,
-        },
-      },
-      vertexShader: `\
-        #define PI 3.1415926535897932384626433832795
-
-        uniform float uAnimation;
-        attribute float y;
-        attribute vec3 barycentric;
-        varying float vY;
-        varying float vUv;
-        varying float vOpacity;
-        void main() {
-          vY = y * ${opacity.toFixed(8)};
-          vUv = uv.x + uAnimation;
-          vOpacity = 0.5 + 0.5 * (sin(uAnimation*20.0*PI*2.0)+1.0)/2.0;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `\
-        #define PI 3.1415926535897932384626433832795
-
-        uniform sampler2D uCameraTex;
-        varying float vY;
-        varying float vUv;
-        varying float vOpacity;
-
-        vec3 c = vec3(${new THREE.Color(color).toArray().join(', ')});
-
-        void main() {
-          float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
-          gl_FragColor = vec4(c, a);
-        }
-      `,
-      side: THREE.DoubleSide,
-      transparent: true,
-      depthWrite: false,
-      // blending: THREE.CustomBlending,
+  const _loadItemSpec1 = async u => {
+    const p = new Promise((accept, reject) => {
+      world.addEventListener('objectadd', async e => {
+        accept(e.data);
+      }, {once: true});
     });
-    const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
-    skirtMesh.frustumCulled = false;
-    skirtMesh.isBuildMesh = true;
-    object.add(skirtMesh);
 
-    let animation = null;
-    object.update = posePosition => {
-      if (!animation) {
-        const now = Date.now();
-        mesh.position.y = 1 + Math.sin(now/1000*Math.PI)*0.1;
-        mesh.rotation.z = (now % 5000) / 5000 * Math.PI * 2;
-        skirtMaterial.uniforms.uAnimation.value = (now % 60000) / 60000;
-      } else {
-        animation.update(posePosition);
+    world.addObject(u, null, deployMesh.position, deployMesh.quaternion);
+
+    const object = await p;
+    editedObject = object;
+
+    weaponsManager.setMenu(0);
+    appManager.grabbedObjectOffsets[0] = maxGrabDistance;
+    cameraManager.requestPointerLock();
+  };
+  const itemSpecs1 = [
+    {
+      name: 'Build',
+      icon: 'assets/noun_wall_3213150.svg',
+      detailsHtml: `\
+        <img class=video src="./assets/screenshot.jpg">
+        <div class=wrap>
+          <b>Build</b> lets you build walls, floors, and structures.
+        </div>
+      `,
+      cb() {
+        _loadItemSpec1('./assets/type/object.geo');
+      },
+    },
+    {
+      name: 'Model',
+      icon: 'fa-alien-monster',
+      detailsHtml: `\
+        <img class=video src="./assets/screenshot.jpg">
+        <div class=wrap>
+          <b>Model</b> lets you place a 3D model in GLTF format.
+        </div>
+      `,
+      cb() {
+        _loadItemSpec1('./assets/type/robot.glb');
+      },
+    },
+    {
+      name: 'Avatar',
+      icon: 'fa-user-ninja',
+      detailsHtml: `\
+        <img class=video src="./assets/screenshot.jpg">
+        <div class=wrap>
+          <b>Avatar</b> lets you place an avatar model in VRM format.
+        </div>
+      `,
+      cb() {
+        _loadItemSpec1('./assets/type/37023052771851054.vrm');
+      },
+    },
+    {
+      name: 'Image',
+      icon: 'fa-image',
+      detailsHtml: `\
+        <img class=video src="./assets/screenshot.jpg">
+        <div class=wrap>
+          <b>Image</b> lets you place a simple image billboard.
+        </div>
+      `,
+      cb() {
+       _loadItemSpec1('./assets/type/Rainbow_Dash.png');
+      },
+    },
+    {
+      name: 'Audio',
+      icon: 'fa-headphones',
+      detailsHtml: `\
+        <img class=video src="./assets/screenshot.jpg">
+        <div class=wrap>
+          <b>Audio</b> lets you place spatial audio.
+        </div>
+      `,
+      cb() {
+        _loadItemSpec1('./assets/type/br.mp3');
+      },
+    },
+    {
+      name: 'Voxel',
+      icon: 'fa-cube',
+      detailsHtml: `\
+        <img class=video src="./assets/screenshot.jpg">
+        <div class=wrap>
+          <b>Voxel</b> lets you place a voxel model in VOX format.
+        </div>
+      `,
+      cb() {
+        _loadItemSpec1('./assets/type/square_hedge.vox');
+      },
+    },
+    {
+      name: 'Link',
+      icon: 'fa-portal-enter',
+      detailsHtml: `\
+        <img class=video src="./assets/screenshot.jpg">
+        <div class=wrap>
+          <b>Link</b> lets you create a web link portal.
+        </div>
+      `,
+      cb() {
+        _loadItemSpec1('./assets/type/dcl.url');
+      },
+    },
+    {
+      name: 'Web Frame',
+      icon: 'fa-browser',
+      detailsHtml: `\
+        <img class=video src="./assets/screenshot.jpg">
+        <div class=wrap>
+          <b>Web Frame</b> lets you place a web content iframe.
+        </div>
+      `,
+      cb() {
+        _loadItemSpec1('./assets/type/deviantart.iframe');
+      },
+    },
+    {
+      name: 'Media Stream',
+      icon: 'fa-signal-stream',
+      detailsHtml: `\
+        <img class=video src="./assets/screenshot.jpg">
+        <div class=wrap>
+          <b>Media Stream</b> lets you stream audio, video, and screenshares.
+        </div>
+      `,
+      cb() {
+        _loadItemSpec1('./assets/type/object.mediastream');
+      },
+    },
+  ];
+  for (let i = 0; i < itemSpecs1.length; i++) {
+    const itemSpec = itemSpecs1[i];
+    const div = document.createElement('div');
+    div.classList.add('item');
+    div.innerHTML = `\
+      <div class=bar></div>
+      ${/^fa-/.test(itemSpec.icon) ?
+        `<i class="icon fa ${itemSpec.icon}"></i>`
+      :
+        `<img src="${itemSpec.icon}" class=icon>`
       }
-    };
-
-    return object;
-  })();
-  itemMesh.position.copy(position)//.applyMatrix4(geometryManager.currentVegetationMesh.matrixWorld);
-  itemMesh.quaternion.copy(quaternion);
-  scene.add(itemMesh);
-  itemMeshes.push(itemMesh);
-}; */
-
-(async () => {
-  await loginManager.waitForLoad();
-
-  const loadout = loginManager.getLoadout();
-  for (let i = 0; i < loadout.length; i++) {
-    const item = loadout[i];
-    const itemEl = itemsEls[i];
-
-    const boxEl = itemEl.querySelector('.box');
-    boxEl.innerHTML = item ? `<img src="${item[3]}">` : '';
+      <div class=name>${itemSpec.name}</div>
+      <div class="key-helpers">
+        <div class="key-helper">
+          <div class=key>E</div>
+          <div class=label>Create</div>
+        </div>
+      </div>
+    `;
+    div.addEventListener('click', e => {
+      _use();
+    });
+    div.addEventListener('mouseenter', e => {
+      selectedItemIndex = i;
+      _updateMenu();
+    });
+    items1El.appendChild(div);
   }
-})();
 
-const menu1El = document.getElementById('menu-1');
-const menu2El = document.getElementById('menu-2');
-const menu3El = document.getElementById('menu-3');
-const menu4El = document.getElementById('menu-4');
-const unmenuEl = document.getElementById('unmenu');
-const objectMenuEl = document.getElementById('object-menu');
-const grabMenuEl = document.getElementById('grab-menu');
-const editMenuEl = document.getElementById('edit-menu');
-const locationLabel = document.getElementById('location-label');
-const profileLabel = document.getElementById('profile-label');
-const itemLabel = document.getElementById('item-label');
-const grabLabel = document.getElementById('grab-label');
-const editLabel = document.getElementById('edit-label');
-const locationIcon = document.getElementById('location-icon');
-const profileIcon = document.getElementById('profile-icon');
-const itemIcon = document.getElementById('item-icon');
-const itemMonetizedIcon = document.getElementById('item-monetized-icon');
-const grabIcon = document.getElementById('grab-icon');
-const editIcon = document.getElementById('edit-icon');
-const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
-const gridSnapEl = document.getElementById('grid-snap');
+  let selectedItemIndex = 0;
+  const _selectItem = newSelectedItemIndex => {
+    selectedItemIndex = newSelectedItemIndex;
+    _updateMenu();
+  };
+  const _getItemsEl = () => document.getElementById('items-' + weaponsManager.getMenu());
+  const _selectItemDelta = offset => {
+    const itemsEl = _getItemsEl();
+
+    let newSelectedItemIndex = selectedItemIndex + offset;
+    if (newSelectedItemIndex >= itemsEl.childNodes.length) {
+      newSelectedItemIndex = 0;
+    } else if (newSelectedItemIndex < 0) {
+      newSelectedItemIndex = itemsEl.childNodes.length - 1;
+    }
+    if (newSelectedItemIndex < 0) {
+      console.warn('selecting nonexistent zero item index');
+      newSelectedItemIndex = 0;
+    }
+    _selectItem(newSelectedItemIndex);
+  };
+
+  for (let i = 0; i < tabs.length; i++) {
+    const tab = tabs[i];
+    tab.addEventListener('click', e => {
+      _selectTab(i);
+    });
+  }
+  const _selectTab = newSelectedTabIndex => {
+    weaponsManager.setMenu(newSelectedTabIndex + 1);
+  };
+  const _selectTabDelta = offset => {
+    let newSelectedTabIndex = (weaponsManager.getMenu() - 1) + offset;
+    if (newSelectedTabIndex >= tabs.length) {
+      newSelectedTabIndex = 0;
+    } else if (newSelectedTabIndex < 0) {
+      newSelectedTabIndex = tabs.length - 1;
+    }
+    _selectTab(newSelectedTabIndex);
+  };
+
+  const _snapPosition = (o, positionSnap) => {
+    if (positionSnap > 0) {
+      o.position.x = Math.round(o.position.x / positionSnap) * positionSnap;
+      o.position.y = Math.round(o.position.y / positionSnap) * positionSnap;
+      o.position.z = Math.round(o.position.z / positionSnap) * positionSnap;
+    }
+  };
+  const rotationSnap = Math.PI/6;
+  const _snapRotation = (o, rotationSnap) => {
+    o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
+    o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
+    o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
+  };
+
+  [keyTabEl, keyTab1El, keyTab2El, keyTab3El, keyTab4El].forEach((el, i) => {
+    el.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (appManager.grabbedObjects[0]) {
+        if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
+          _deselectLoadout();
+        }
+
+        _ungrab();
+      } else if (editedObject) {
+        if (editedObject.isBuild && editedObject.getShapes().length === 0) {
+          world.removeObject(editedObject.instanceId);
+        }
+
+        editedObject = null;
+        _updateMenu();
+      } else {
+        const hasMenu = !!weaponsManager.getMenu();
+        if (hasMenu && !document.pointerLockElement) {
+          cameraManager.requestPointerLock();
+        } else if (!hasMenu && document.pointerLockElement) {
+          document.exitPointerLock();
+        }
+
+        weaponsManager.setMenu(hasMenu ? 0 : 1);
+      }
+    });
+  });
+
+  const itemsEls = Array.from(loadoutEl.querySelectorAll('.item'));
+  (async () => {
+    await loginManager.waitForLoad();
+
+    const inventory = loginManager.getInventory();
+    for (let i = 0; i < inventory.length; i++) {
+      const itemSpec = inventory[i];
+      const div = document.createElement('div');
+      div.classList.add('item');
+      div.innerHTML = `
+        <div class=card>
+          <img src="${itemSpec.image}">
+        </div>
+        <div class=name>${itemSpec.name}</div>
+        <div class="key-helpers">
+          <div class="key-helper">
+            <div class=key>E</div>
+            <div class=label>Spawn</div>
+          </div>
+        </div>
+      `;
+      div.addEventListener('click', e => {
+        _use();
+      });
+      div.addEventListener('mouseenter', e => {
+        selectedItemIndex = i;
+        _updateMenu();
+      });
+      items2El.appendChild(div);
+    }
+  })();
+  (async () => {
+    await loginManager.waitForLoad();
+
+    const loadout = loginManager.getLoadout();
+    for (let i = 0; i < loadout.length; i++) {
+      const item = loadout[i];
+      const itemEl = itemsEls[i];
+
+      const boxEl = itemEl.querySelector('.box');
+      boxEl.innerHTML = item ? `<img src="${item[3]}">` : '';
+    }
+  })();
+};
+
 const weaponsManager = {
   // weapons,
   // cubeMesh,
@@ -1621,6 +1517,7 @@ const weaponsManager = {
       _renderWheel(selectedSlice);
     }
   }, */
+  bindInterface,
   bindUploadFileInput,
   getMenu() {
     return this.menuOpen;
