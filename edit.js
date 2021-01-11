@@ -215,39 +215,6 @@ const wristMenu = makeWristMenu({scene, ray: rayMesh, highlightMesh, addPackage:
 wristMenu.position.y = 1;
 scene.add(wristMenu); */
 
-/* let planetAnimation = null;
-const _animatePlanet = (startMatrix, pivot, startQuaternion, endQuaternion) => {
-  const startTime = Date.now();
-  const endTime = startTime + 300;
-  planetAnimation = {
-    startTime,
-    endTime,
-    startMatrix,
-    pivot,
-    startQuaternion,
-    endQuaternion,
-  };
-  planetAuxContainer.matrix
-    .copy(startMatrix)
-    .premultiply(localMatrix2.makeTranslation(-pivot.x, -pivot.y, -pivot.z))
-    .premultiply(localMatrix2.makeRotationFromQuaternion(localQuaternion.copy(startQuaternion).slerp(endQuaternion, 1)))
-    .premultiply(localMatrix2.makeTranslation(pivot.x, pivot.y, pivot.z))
-    .decompose(planetAuxContainer.position, planetAuxContainer.quaternion, planetAuxContainer.scale)
-  planetAuxContainer.updateMatrixWorld();
-};
-const _tickPlanetAnimation = factor => {
-  const {startTime, endTime, startMatrix, pivot, startQuaternion, endQuaternion} = planetAnimation;
-  planetContainer.matrix
-    .copy(startMatrix)
-    .premultiply(localMatrix2.makeTranslation(-pivot.x, -pivot.y, -pivot.z))
-    .premultiply(localMatrix2.makeRotationFromQuaternion(localQuaternion.copy(startQuaternion).slerp(endQuaternion, factor)))
-    .premultiply(localMatrix2.makeTranslation(pivot.x, pivot.y, pivot.z))
-    .decompose(planetContainer.position, planetContainer.quaternion, planetContainer.scale);
-  if (factor >= 1) {
-    planetAnimation = null;
-  }
-}; */
-
 const itemMeshes = [];
 const addItem = async (position, quaternion) => {
   const u = 'assets/mat.glb';
@@ -668,13 +635,6 @@ function animate(timestamp, frame) {
     }
   };
   _updateHands(); */
-
-  /* if (planetAnimation) {
-    const {startTime, endTime} = planetAnimation;
-    const now = Date.now();
-    const factor = Math.min((now - startTime) / (endTime - startTime), 1);
-    _tickPlanetAnimation(factor);
-  } */
 
   appManager.tick(timestamp, frame);
   
