@@ -46,8 +46,8 @@ const addPopover = (textMesh, {width, height, target} = {}) => {
     const maxSoftDistance = 3;
     const maxHardDistance = 8;
     if (n > 0 && distance < maxHardDistance) {
-      const halfWidthFactor = popoverMesh.width/width;
-      const halfHeightFactor = popoverMesh.height/height;
+      // const halfWidthFactor = popoverMesh.width/width;
+      // const halfHeightFactor = popoverMesh.height/height;
       popoverMesh.scale.set(popoverMesh.width/width, popoverMesh.height/height, 1);
       if (distance > maxSoftDistance) {
         popoverMesh.scale.multiplyScalar(1 / (distance - maxSoftDistance + 1));
