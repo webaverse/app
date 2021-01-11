@@ -109,21 +109,6 @@ scene.add(highlightMesh);
 const anchorMeshes = [];
 
 const q = parseQuery(location.search);
-/* (async () => {
-  if (q.m) { // multiplayer
-    await world.connect({
-      online: true,
-      roomName: 'lol',
-      url: q.m,
-    });
-  } else {
-    await world.connect({
-      online: false,
-      roomName: 'lol',
-    });
-  }
-  // new Bot();
-})(); */
 let loaded = false;
 (async () => {
   const [
