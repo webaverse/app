@@ -69,32 +69,6 @@ const gridSnapEl = document.getElementById('grid-snap');
 const tabs = Array.from(document.querySelectorAll('#profile-icon .navs > .nav'));
 const uploadFileInput = document.getElementById('upload-file-input');
 
-const addMesh = (() => {
-  const geometry = BufferGeometryUtils.mergeBufferGeometries([
-    new THREE.BoxBufferGeometry(0.1, 0.1, 0.1),
-  ]);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x0000FF,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  return mesh;
-})();
-addMesh.visible = false;
-scene.add(addMesh);
-
-const removeMesh = (() => {
-  const geometry = BufferGeometryUtils.mergeBufferGeometries([
-    new THREE.BoxBufferGeometry(0.1, 0.1, 0.1),
-  ]);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0xFF0000,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  return mesh;
-})();
-removeMesh.visible = false;
-scene.add(removeMesh);
-
 const _makeTargetMesh = (() => {
   const targetMeshGeometry = (() => {
     const targetGeometry = BufferGeometryUtils.mergeBufferGeometries([
