@@ -1077,6 +1077,109 @@ export function GuardianMesh(extents, color) {
   return mesh;
 } */
 
+/* const itemMeshes = [];
+const addItem = async (position, quaternion) => {
+  const u = 'assets/mat.glb';
+  const res = await fetch('./' + u);
+  const file = await res.blob();
+  file.name = u;
+  let mesh = await runtime.loadFile(file, {
+    optimize: false,
+  });
+  for (let i = 0; i < mesh.children.length; i++) {
+    const child = mesh.children[i];
+    child.position.x = -3 + i;
+    child.material = new THREE.MeshBasicMaterial({map: child.material.map});
+  }
+  const s = 0.1;
+  mesh.quaternion.premultiply(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 1, 0)));
+  mesh.scale.set(s, s, s);
+  
+  const itemMesh = (() => {
+    const radius = 0.5;
+    const segments = 12;
+    const color = 0x66bb6a;
+    const opacity = 0.5;
+
+    const object = new THREE.Object3D();
+
+    object.add(mesh);
+
+    const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius / 2, 0));
+    const ys = new Float32Array(skirtGeometry.attributes.position.array.length / 3);
+    for (let i = 0; i < skirtGeometry.attributes.position.array.length / 3; i++) {
+      ys[i] = 1 - skirtGeometry.attributes.position.array[i * 3 + 1] / radius;
+    }
+    skirtGeometry.setAttribute('y', new THREE.BufferAttribute(ys, 1));
+    const skirtMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uAnimation: {
+          type: 'f',
+          value: 0,
+        },
+      },
+      vertexShader: `\
+        #define PI 3.1415926535897932384626433832795
+
+        uniform float uAnimation;
+        attribute float y;
+        attribute vec3 barycentric;
+        varying float vY;
+        varying float vUv;
+        varying float vOpacity;
+        void main() {
+          vY = y * ${opacity.toFixed(8)};
+          vUv = uv.x + uAnimation;
+          vOpacity = 0.5 + 0.5 * (sin(uAnimation*20.0*PI*2.0)+1.0)/2.0;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `\
+        #define PI 3.1415926535897932384626433832795
+
+        uniform sampler2D uCameraTex;
+        varying float vY;
+        varying float vUv;
+        varying float vOpacity;
+
+        vec3 c = vec3(${new THREE.Color(color).toArray().join(', ')});
+
+        void main() {
+          float a = vY * (0.9 + 0.1 * (sin(vUv*PI*2.0/0.02) + 1.0)/2.0) * vOpacity;
+          gl_FragColor = vec4(c, a);
+        }
+      `,
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthWrite: false,
+      // blending: THREE.CustomBlending,
+    });
+    const skirtMesh = new THREE.Mesh(skirtGeometry, skirtMaterial);
+    skirtMesh.frustumCulled = false;
+    skirtMesh.isBuildMesh = true;
+    object.add(skirtMesh);
+
+    let animation = null;
+    object.update = posePosition => {
+      if (!animation) {
+        const now = Date.now();
+        mesh.position.y = 1 + Math.sin(now/1000*Math.PI)*0.1;
+        mesh.rotation.z = (now % 5000) / 5000 * Math.PI * 2;
+        skirtMaterial.uniforms.uAnimation.value = (now % 60000) / 60000;
+      } else {
+        animation.update(posePosition);
+      }
+    };
+
+    return object;
+  })();
+  itemMesh.position.copy(position)
+  itemMesh.quaternion.copy(quaternion);
+  scene.add(itemMesh);
+  itemMeshes.push(itemMesh);
+}; */
+
 export {
   /* LAND_SHADER,
   WATER_SHADER,
