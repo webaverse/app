@@ -168,7 +168,9 @@ export default class App {
     // highlight render
     // renderer.render(highlightScene, camera);
   }
-  
+  renderMinimap() {
+    minimap.update();
+  }
   renderDom(camera) {
     // dom render
     renderer2.render(scene2, camera);
@@ -321,9 +323,8 @@ export default class App {
         .decompose(localVector, localQuaternion, localVector2);
 
       this.render(camera);
+      this.renderMinimap();
       this.renderDom(camera);
-
-      minimap.update();
 
       const _mirrorRender = () => {
         if (session && document.visibilityState == 'visible') {
