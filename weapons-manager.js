@@ -1029,72 +1029,191 @@ const _updateMenu = () => {
 
   locationLabel.innerText = `Overworld @${coord.x},${coord.z}`;
 };
+const itemSpecs3 = [
+  {
+    "name": "home",
+    "start_url": "https://avaer.github.io/home/manifest.json"
+  },
+  {
+    "name": "mirror",
+    "start_url": "https://avaer.github.io/mirror/index.js"
+  },
+  {
+    "name": "lightsaber",
+    "start_url": "https://avaer.github.io/lightsaber/index.js"
+  },
+  {
+    "name": "shield",
+    "start_url": "https://avaer.github.io/shield/index.js"
+  },
+  {
+    "name": "physicscube",
+    "start_url": "https://avaer.github.io/physicscube/index.js"
+  },
+  {
+    "name": "weapons",
+    "start_url": "https://avaer.github.io/weapons/index.js"
+  },
+  {
+    "name": "hookshot",
+    "start_url": "https://avaer.github.io/hookshot/index.js"
+  },
+  {
+    "name": "voxels",
+    "start_url": "https://avaer.github.io/voxels/index.js"
+  },
+  {
+    "name": "cv",
+    "filename": "cv.url",
+    "content": "https://cv.webaverse.com/"
+  },
+  {
+    "name": "dcl",
+    "filename": "cv.url",
+    "content": "https://dcl.webaverse.com/"
+  },
+  {
+    "name": "h",
+    "filename": "h.url",
+    "content": "https://h.webaverse.com/"
+  },
+  {
+    "name": "land",
+    "start_url": "https://avaer.github.io/land/index.js"
+  },
+  {
+    "name": "planet",
+    "start_url": "https://avaer.github.io/planet/index.js"
+  },
+  {
+    "name": "camera",
+    "start_url": "https://avaer.github.io/camera/index.js"
+  },
+  {
+    "name": "cityscape",
+    "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
+  },
+];
+const itemSpecs1 = [
+  {
+    name: 'Build',
+    icon: 'assets/noun_wall_3213150.svg',
+    detailsHtml: `\
+      <img class=video src="./assets/screenshot.jpg">
+      <div class=wrap>
+        <b>Build</b> lets you build walls, floors, and structures.
+      </div>
+    `,
+    cb() {
+      _loadItemSpec1('./assets/type/object.geo');
+    },
+  },
+  {
+    name: 'Model',
+    icon: 'fa-alien-monster',
+    detailsHtml: `\
+      <img class=video src="./assets/screenshot.jpg">
+      <div class=wrap>
+        <b>Model</b> lets you place a 3D model in GLTF format.
+      </div>
+    `,
+    cb() {
+      _loadItemSpec1('./assets/type/robot.glb');
+    },
+  },
+  {
+    name: 'Avatar',
+    icon: 'fa-user-ninja',
+    detailsHtml: `\
+      <img class=video src="./assets/screenshot.jpg">
+      <div class=wrap>
+        <b>Avatar</b> lets you place an avatar model in VRM format.
+      </div>
+    `,
+    cb() {
+      _loadItemSpec1('./assets/type/37023052771851054.vrm');
+    },
+  },
+  {
+    name: 'Image',
+    icon: 'fa-image',
+    detailsHtml: `\
+      <img class=video src="./assets/screenshot.jpg">
+      <div class=wrap>
+        <b>Image</b> lets you place a simple image billboard.
+      </div>
+    `,
+    cb() {
+     _loadItemSpec1('./assets/type/Rainbow_Dash.png');
+    },
+  },
+  {
+    name: 'Audio',
+    icon: 'fa-headphones',
+    detailsHtml: `\
+      <img class=video src="./assets/screenshot.jpg">
+      <div class=wrap>
+        <b>Audio</b> lets you place spatial audio.
+      </div>
+    `,
+    cb() {
+      _loadItemSpec1('./assets/type/br.mp3');
+    },
+  },
+  {
+    name: 'Voxel',
+    icon: 'fa-cube',
+    detailsHtml: `\
+      <img class=video src="./assets/screenshot.jpg">
+      <div class=wrap>
+        <b>Voxel</b> lets you place a voxel model in VOX format.
+      </div>
+    `,
+    cb() {
+      _loadItemSpec1('./assets/type/square_hedge.vox');
+    },
+  },
+  {
+    name: 'Link',
+    icon: 'fa-portal-enter',
+    detailsHtml: `\
+      <img class=video src="./assets/screenshot.jpg">
+      <div class=wrap>
+        <b>Link</b> lets you create a web link portal.
+      </div>
+    `,
+    cb() {
+      _loadItemSpec1('./assets/type/dcl.url');
+    },
+  },
+  {
+    name: 'Web Frame',
+    icon: 'fa-browser',
+    detailsHtml: `\
+      <img class=video src="./assets/screenshot.jpg">
+      <div class=wrap>
+        <b>Web Frame</b> lets you place a web content iframe.
+      </div>
+    `,
+    cb() {
+      _loadItemSpec1('./assets/type/deviantart.iframe');
+    },
+  },
+  {
+    name: 'Media Stream',
+    icon: 'fa-signal-stream',
+    detailsHtml: `\
+      <img class=video src="./assets/screenshot.jpg">
+      <div class=wrap>
+        <b>Media Stream</b> lets you stream audio, video, and screenshares.
+      </div>
+    `,
+    cb() {
+      _loadItemSpec1('./assets/type/object.mediastream');
+    },
+  },
+];
 const bindInterface = () => {
-  const itemSpecs3 = [
-    {
-      "name": "home",
-      "start_url": "https://avaer.github.io/home/manifest.json"
-    },
-    {
-      "name": "mirror",
-      "start_url": "https://avaer.github.io/mirror/index.js"
-    },
-    {
-      "name": "lightsaber",
-      "start_url": "https://avaer.github.io/lightsaber/index.js"
-    },
-    {
-      "name": "shield",
-      "start_url": "https://avaer.github.io/shield/index.js"
-    },
-    {
-      "name": "physicscube",
-      "start_url": "https://avaer.github.io/physicscube/index.js"
-    },
-    {
-      "name": "weapons",
-      "start_url": "https://avaer.github.io/weapons/index.js"
-    },
-    {
-      "name": "hookshot",
-      "start_url": "https://avaer.github.io/hookshot/index.js"
-    },
-    {
-      "name": "voxels",
-      "start_url": "https://avaer.github.io/voxels/index.js"
-    },
-    {
-      "name": "cv",
-      "filename": "cv.url",
-      "content": "https://cv.webaverse.com/"
-    },
-    {
-      "name": "dcl",
-      "filename": "cv.url",
-      "content": "https://dcl.webaverse.com/"
-    },
-    {
-      "name": "h",
-      "filename": "h.url",
-      "content": "https://h.webaverse.com/"
-    },
-    {
-      "name": "land",
-      "start_url": "https://avaer.github.io/land/index.js"
-    },
-    {
-      "name": "planet",
-      "start_url": "https://avaer.github.io/planet/index.js"
-    },
-    {
-      "name": "camera",
-      "start_url": "https://avaer.github.io/camera/index.js"
-    },
-    {
-      "name": "cityscape",
-      "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
-    },
-  ];
   for (let i = 0; i < itemSpecs3.length; i++) {
     const itemSpec = itemSpecs3[i];
     const div = document.createElement('div');
@@ -1137,125 +1256,6 @@ const bindInterface = () => {
     appManager.grabbedObjectOffsets[0] = maxGrabDistance;
     cameraManager.requestPointerLock();
   };
-  const itemSpecs1 = [
-    {
-      name: 'Build',
-      icon: 'assets/noun_wall_3213150.svg',
-      detailsHtml: `\
-        <img class=video src="./assets/screenshot.jpg">
-        <div class=wrap>
-          <b>Build</b> lets you build walls, floors, and structures.
-        </div>
-      `,
-      cb() {
-        _loadItemSpec1('./assets/type/object.geo');
-      },
-    },
-    {
-      name: 'Model',
-      icon: 'fa-alien-monster',
-      detailsHtml: `\
-        <img class=video src="./assets/screenshot.jpg">
-        <div class=wrap>
-          <b>Model</b> lets you place a 3D model in GLTF format.
-        </div>
-      `,
-      cb() {
-        _loadItemSpec1('./assets/type/robot.glb');
-      },
-    },
-    {
-      name: 'Avatar',
-      icon: 'fa-user-ninja',
-      detailsHtml: `\
-        <img class=video src="./assets/screenshot.jpg">
-        <div class=wrap>
-          <b>Avatar</b> lets you place an avatar model in VRM format.
-        </div>
-      `,
-      cb() {
-        _loadItemSpec1('./assets/type/37023052771851054.vrm');
-      },
-    },
-    {
-      name: 'Image',
-      icon: 'fa-image',
-      detailsHtml: `\
-        <img class=video src="./assets/screenshot.jpg">
-        <div class=wrap>
-          <b>Image</b> lets you place a simple image billboard.
-        </div>
-      `,
-      cb() {
-       _loadItemSpec1('./assets/type/Rainbow_Dash.png');
-      },
-    },
-    {
-      name: 'Audio',
-      icon: 'fa-headphones',
-      detailsHtml: `\
-        <img class=video src="./assets/screenshot.jpg">
-        <div class=wrap>
-          <b>Audio</b> lets you place spatial audio.
-        </div>
-      `,
-      cb() {
-        _loadItemSpec1('./assets/type/br.mp3');
-      },
-    },
-    {
-      name: 'Voxel',
-      icon: 'fa-cube',
-      detailsHtml: `\
-        <img class=video src="./assets/screenshot.jpg">
-        <div class=wrap>
-          <b>Voxel</b> lets you place a voxel model in VOX format.
-        </div>
-      `,
-      cb() {
-        _loadItemSpec1('./assets/type/square_hedge.vox');
-      },
-    },
-    {
-      name: 'Link',
-      icon: 'fa-portal-enter',
-      detailsHtml: `\
-        <img class=video src="./assets/screenshot.jpg">
-        <div class=wrap>
-          <b>Link</b> lets you create a web link portal.
-        </div>
-      `,
-      cb() {
-        _loadItemSpec1('./assets/type/dcl.url');
-      },
-    },
-    {
-      name: 'Web Frame',
-      icon: 'fa-browser',
-      detailsHtml: `\
-        <img class=video src="./assets/screenshot.jpg">
-        <div class=wrap>
-          <b>Web Frame</b> lets you place a web content iframe.
-        </div>
-      `,
-      cb() {
-        _loadItemSpec1('./assets/type/deviantart.iframe');
-      },
-    },
-    {
-      name: 'Media Stream',
-      icon: 'fa-signal-stream',
-      detailsHtml: `\
-        <img class=video src="./assets/screenshot.jpg">
-        <div class=wrap>
-          <b>Media Stream</b> lets you stream audio, video, and screenshares.
-        </div>
-      `,
-      cb() {
-        _loadItemSpec1('./assets/type/object.mediastream');
-      },
-    },
-  ];
   for (let i = 0; i < itemSpecs1.length; i++) {
     const itemSpec = itemSpecs1[i];
     const div = document.createElement('div');
