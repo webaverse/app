@@ -960,6 +960,21 @@ const _ensureLoadMesh = p => {
   }
 }; */
 
+/* const redBuildMeshMaterial = new THREE.ShaderMaterial({
+  vertexShader: `
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position * 1.05, 1.);
+    }
+  `,
+  fragmentShader: `
+    void main() {
+      gl_FragColor = vec4(${new THREE.Color(0xff7043).toArray().join(', ')}, 0.5);
+    }
+  `,
+  // side: THREE.DoubleSide,
+  transparent: true,
+}); */
+
 export {
   /* LAND_SHADER,
   WATER_SHADER,
