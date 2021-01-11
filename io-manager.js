@@ -5,7 +5,6 @@ import uiManager from './ui-manager.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
 import * as universe from './universe.js';
-// import {setState} from './state.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -47,7 +46,6 @@ const resetKeys = () => {
     ioManager.keys[k] = false;
   }
 };
-// ioManager.resetKeys = resetKeys;
 
 document.addEventListener('pointerlockchange', () => {
   resetKeys();
@@ -149,30 +147,6 @@ const _updateIo = timeDiff => {
         ioManager.lastButtons[index][4] = buttons[4];
       }
     }
-
-    /* if (ioManager.currentMenuDown) {
-      const rightInputSource = inputSources.find(inputSource => inputSource.handedness === 'right');
-      const pose = rightInputSource && frame.getPose(rightInputSource.targetRaySpace, renderer.xr.getReferenceSpace());
-      if (pose) {
-        localMatrix2.fromArray(pose.transform.matrix)
-          .premultiply(dolly.matrix)
-          .decompose(localVector, localQuaternion, localVector2);
-        if (!ioManager.lastMenuDown) {
-          uiManager.toolsMesh.position.copy(localVector);
-          localEuler.setFromQuaternion(localQuaternion, 'YXZ');
-          localEuler.x = 0;
-          localEuler.z = 0;
-          uiManager.toolsMesh.quaternion.setFromEuler(localEuler);
-        }
-        uiManager.toolsMesh.update(localVector);
-        uiManager.toolsMesh.visible = true;
-      } else {
-        uiManager.toolsMesh.visible = false;
-      }
-    } else {
-      uiManager.toolsMesh.update(null);
-      uiManager.toolsMesh.visible = false;
-    } */
   } else if (document.pointerLockElement) {
     const speed = 0.1 * (ioManager.keys.shift ? 3 : 1);
     localVector.set(0, 0, 0);
@@ -258,45 +232,6 @@ window.addEventListener('keydown', e => {
       weaponsManager.selectLoadout(e.which - 49);
       break;
     }
-    /* case 8: // backspace
-    case 46: // del
-    {
-      // weaponsManager.menuKey('\b');
-      e.preventDefault();
-      e.stopPropagation();
-      weaponsManager.menuDelete();
-      break;
-    } */
-    /* case 13: { // enter
-      e.preventDefault();
-      e.stopPropagation();
-      weaponsManager.menuEnter();
-      break;
-    } */
-    /* case 49: { // 1
-      if (document.pointerLockElement) {
-        const selectedWeapon = weaponsManager.getWeapon();
-        let index = weaponsManager.weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
-        index--;
-        if (index < 0) {
-          index = weaponsManager.weapons.length - 1;
-        }
-        weaponsManager.weapons[index].click();
-      }
-      break;
-    }
-    case 50: { // 2
-      if (document.pointerLockElement) {
-        const selectedWeapon = weaponsManager.getWeapon();
-        let index = weaponsManager.weapons.findIndex(weapon => weapon.getAttribute('weapon') === selectedWeapon);
-        index++;
-        if (index >= weaponsManager.weapons.length) {
-          index = 0;
-        }
-        weaponsManager.weapons[index].click();
-      }
-      break;
-    } */
     case 87: { // W
       if (document.pointerLockElement) {
         ioManager.keys.up = true;
@@ -410,30 +345,6 @@ window.addEventListener('keydown', e => {
       }
       break;
     }
-    /* case 66: { // B
-      if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        document.getElementById('key-b').click();
-      }
-      break;
-    }
-    case 78: { // N
-      if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        document.getElementById('key-n').click();
-      }
-      break;
-    }
-    case 77: { // M
-      if (!_inputFocused()) {
-        e.preventDefault();
-        e.stopPropagation();
-        document.getElementById('key-m').click();
-      }
-      break;
-    } */
     case 80: { // P
       if (weaponsManager.destroyWorld()) {
         /* e.preventDefault();
@@ -485,31 +396,6 @@ window.addEventListener('keydown', e => {
       weaponsManager.toggleEditMode();
       break;
     }
-    /* case 90: { // Z
-      if (document.pointerLockElement) {
-        document.querySelector('.weapon[weapon="build"]').click();
-        weaponsManager.buildMode = 'wall';
-      }
-      break;
-    }
-    case 88: { // X
-      if (document.pointerLockElement) {
-        document.querySelector('.weapon[weapon="build"]').click();
-        weaponsManager.buildMode = 'floor';
-      }
-      break;
-    }
-    case 67: { // C
-      if (document.pointerLockElement) {
-        document.querySelector('.weapon[weapon="build"]').click();
-        weaponsManager.buildMode = 'stair';
-      }
-      break;
-    } */
-    /* case 80: { // P
-      physics.resetObjectMesh(physicalMesh);
-      break;
-    } */
   }
 });
 window.addEventListener('keyup', e => {
@@ -587,29 +473,14 @@ window.addEventListener('keyup', e => {
 const _updateMouseMovement = e => {
   const {movementX, movementY} = e;
   camera.position.add(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
-  /* const selectedTool = cameraManager.getMode();
-  if (selectedTool === 'thirdperson') {
-    camera.position.add(localVector.copy(cameraManager.thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
-  } else if (selectedTool === 'isometric') {
-    camera.position.add(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
-  } else if (selectedTool === 'birdseye') {
-    camera.rotation.x = -Math.PI / 2;
-    camera.quaternion.setFromEuler(camera.rotation);
-  } */
 
   camera.rotation.y -= movementX * Math.PI * 2 * 0.001;
-  // if (selectedTool !== 'birdseye') {
-    camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
-    camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
-    camera.quaternion.setFromEuler(camera.rotation);
-  // }
+  camera.rotation.x -= movementY * Math.PI * 2 * 0.001;
+  camera.rotation.x = Math.min(Math.max(camera.rotation.x, -Math.PI / 2), Math.PI / 2);
+  camera.quaternion.setFromEuler(camera.rotation);
 
   camera.position.sub(localVector.copy(cameraManager.getCameraOffset()).applyQuaternion(camera.quaternion));
-  /* if (selectedTool === 'thirdperson') {
-    camera.position.sub(localVector.copy(cameraManager.thirdPersonCameraOffset).applyQuaternion(camera.quaternion));
-  } else if (selectedTool === 'isometric') {
-    camera.position.sub(localVector.copy(cameraManager.isometricCameraOffset).applyQuaternion(camera.quaternion));
-  } */
+
   camera.updateMatrixWorld();
 };
 renderer.domElement.addEventListener('mousemove', e => {
@@ -621,19 +492,6 @@ renderer.domElement.addEventListener('mousemove', e => {
     }
   }
 });
-/* window.addEventListener('mousedown', e => {
-  const selectedWeapon = weaponsManager.getWeapon();
-  if (document.pointerLockElement || ['physics', 'pencil'].includes(selectedWeapon)) {
-    if (e.button === 0) {
-      // pe.grabtriggerdown('right');
-      // pe.grabuse('right');
-      ioManager.currentWeaponDown = true;
-      ioManager.currentWeaponValue = 1;
-    } else if (e.button === 2) {
-      ioManager.currentTeleport = true;
-    }
-  }
-}); */
 window.addEventListener('mouseup', e => {
   ioManager.currentWeaponDown = false;
   ioManager.currentWeaponValue = 0;
@@ -649,24 +507,22 @@ renderer.domElement.addEventListener('click', e => {
   }
 });
 window.addEventListener('resize', e => {
-  // if (!renderer.xr.getSession()) {
-    if (renderer.xr.getSession()) {
-      renderer.xr.isPresenting = false;
-    }
+  if (renderer.xr.getSession()) {
+    renderer.xr.isPresenting = false;
+  }
 
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer2.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer2.setSize(window.innerWidth, window.innerHeight);
 
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
 
-    avatarCamera.aspect = window.innerWidth / window.innerHeight;
-    avatarCamera.updateProjectionMatrix();
-    
-    if (renderer.xr.getSession()) {
-      renderer.xr.isPresenting = true;
-    }
-  // }
+  avatarCamera.aspect = window.innerWidth / window.innerHeight;
+  avatarCamera.updateProjectionMatrix();
+  
+  if (renderer.xr.getSession()) {
+    renderer.xr.isPresenting = true;
+  }
 });
 window.addEventListener('paste', async e => {
   if (!_inputFocused()) {
