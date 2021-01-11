@@ -25,11 +25,12 @@ const addPopover = (textMesh, {width, height, target} = {}) => {
   const popoverMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), new THREE.MeshBasicMaterial({
     color: 0x000000,
   }));
-  popoverMesh.width = width;
-  popoverMesh.height = height;
-  popoverMesh.position.z = -1; // needed for othro camera
   popoverMesh.add(textMesh);
   orthographicScene.add(popoverMesh);
+  popoverMesh.position.z = -1; // needed for othro camera
+  popoverMesh.visible = false;
+  popoverMesh.width = width;
+  popoverMesh.height = height;
   popoverMesh.update = () => {
     const n = localVector.set(0, 0, -1)
       .applyQuaternion(camera.quaternion)
