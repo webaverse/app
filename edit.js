@@ -143,33 +143,6 @@ let loaded = false;
   loaded = true;
 })();
 
-/* const jointGeometry = new THREE.BoxBufferGeometry(0.01, 0.01, 0.01);
-const jointPositions = jointGeometry.attributes.position.array.slice();
-const jointNumPositions = jointPositions.length;
-const jointMaterial = new THREE.MeshBasicMaterial({
-  color: 0xFF0000,
-});
-const handGeometry = (() => {
-  const geometries = Array(25);
-  for (let i = 0; i < geometries.length; i++) {
-    geometries[i] = jointGeometry;
-  }
-  return BufferGeometryUtils.mergeBufferGeometries(geometries);
-})();
-const handMeshes = (() => {
-  const result = Array(2);
-  for (let i = 0; i < result.length; i++) {
-    const mesh = new THREE.Mesh(handGeometry.clone(), jointMaterial);
-    mesh.visible = false;
-    mesh.frustumCulled = false;
-    result[i] = mesh;
-  }
-  return result;
-})();
-for (const handMesh of handMeshes) {
-  scene.add(handMesh);
-} */
-
 const itemMeshes = [];
 const addItem = async (position, quaternion) => {
   const u = 'assets/mat.glb';
@@ -367,100 +340,6 @@ function animate(timestamp, frame) {
       } else {
         rightGamepadEnabled = false;
       }
-
-      /* const _scaleMatrixPQ = (srcMatrixArray, p, q) => {
-        localMatrix.fromArray(srcMatrixArray)
-          .decompose(localVector, localQuaternion, localVector2);
-        localVector.divideScalar(this.scale);
-        localVector.toArray(p);
-        localQuaternion.toArray(q);
-      };
-      const _loadInputSource = i => {
-        const inputSource = inputSources[i];
-        if (inputSource) {
-          let gamepad, pose, hand;
-          if (
-            (gamepad = inputSource.gamepad || gamepads[i]) &&
-            (pose = frame.getPose(inputSource.targetRaySpace, this.referenceSpace))
-          ) {
-            const xrGamepad = xrState.gamepads[inputSource.handedness === 'right' ? 1 : 0];
-            _scaleMatrixPQ(pose.transform.matrix, xrGamepad.position, xrGamepad.orientation);
-
-            for (let j = 0; j < gamepad.buttons.length; j++) {
-              const button = gamepad.buttons[j];
-              const xrButton = xrGamepad.buttons[j];
-              xrButton.pressed[0] = button.pressed;
-              xrButton.touched[0] = button.touched;
-              xrButton.value[0] = button.value;
-            }
-
-            for (let j = 0; j < gamepad.axes.length; j++) {
-              xrGamepad.axes[j] = gamepad.axes[j];
-            }
-
-            xrGamepad.connected[0] = 1;
-          } else if (
-            (hand = inputSource.hand)
-          ) {
-            const xrHand = xrState.hands[inputSource.handedness === 'right' ? 1 : 0];
-            for (let i = 0; i < inputSource.hand.length; i++) {
-              const joint = inputSource.hand[i];
-              const xrHandJoint = xrHand[i];
-
-              const jointPose = joint && frame.getJointPose(joint, this.referenceSpace);
-              if (jointPose) {
-                _scaleMatrixPQ(jointPose.transform.matrix, xrHandJoint.position, xrHandJoint.orientation);
-                xrHandJoint.radius[0] = jointPose.radius;
-                xrHandJoint.visible[0] = 1;
-              } else {
-                xrHandJoint.visible[0] = 0;
-              }
-            }
-            xrHand.visible[0] = 1;
-          }
-        }
-      };
-      for (let i = 0; i < xrState.gamepads.length; i++) {
-        xrState.gamepads[i].connected[0] = 0;
-      }
-      for (let i = 0; i < xrState.hands.length; i++) {
-        xrState.hands[i].visible[0] = 0;
-      }
-      for (let i = 0; i < inputSources.length; i++) {
-        _loadInputSource(i);
-      } */
-
-      /* localMatrix2.copy(this.matrix).invert();
-      localMatrix3
-        .compose(localVector.fromArray(xrState.gamepads[1].position), localQuaternion.fromArray(xrState.gamepads[1].orientation), localVector2.set(1, 1, 1))
-        .premultiply(localMatrix2)
-        .decompose(localVector2, localQuaternion2, localVector3);
-      leftGamepadPosition = localVector2.toArray();
-      leftGamepadQuaternion = localQuaternion2.toArray();
-      leftGamepadPointer = xrState.gamepads[1].buttons[0].value;
-      leftGamepadGrip = xrState.gamepads[1].buttons[1].value;
-
-      localMatrix3
-        .compose(localVector.fromArray(xrState.gamepads[0].position), localQuaternion.fromArray(xrState.gamepads[0].orientation), localVector2.set(1, 1, 1))
-        .premultiply(localMatrix2)
-        .decompose(localVector2, localQuaternion2, localVector3);
-      rightGamepadPosition = localVector2.toArray();
-      rightGamepadQuaternion = localQuaternion2.toArray();
-      rightGamepadPointer = xrState.gamepads[0].buttons[0].value;
-      rightGamepadGrip = xrState.gamepads[0].buttons[1].value;
-
-      if (xrState.hands[1].visible[0]) {
-        for (let i = 0; i < 25; i++) {
-          rig.inputs.leftGamepad.fingers[i].quaternion.fromArray(xrState.hands[1][i].orientation);
-        }
-      }
-      rig.inputs.rightGamepad.pointer = xrState.gamepads[0].buttons[0].value;
-      rig.inputs.rightGamepad.grip = xrState.gamepads[0].buttons[1].value;
-      if (xrState.hands[0].visible[0]) {
-        for (let i = 0; i < 25; i++) {
-          rig.inputs.rightGamepad.fingers[i].quaternion.fromArray(xrState.hands[0][i].orientation);
-        }
-      } */
     }
 
     const handOffsetScale = rigManager.localRig ? rigManager.localRig.height / 1.5 : 1;
@@ -501,21 +380,6 @@ function animate(timestamp, frame) {
       rightGamepadEnabled = false;
     }
 
-    /* HANDS.forEach((handedness, i) => {
-      const grabuse = this.grabuses[handedness];
-      const gamepad = xrState.gamepads[i];
-      const button = gamepad.buttons[0];
-      if (grabuse) {
-        button.touched[0] = 1;
-        button.pressed[0] = 1;
-        button.value[0] = 1;
-      } else {
-        button.touched[0] = 0;
-        button.pressed[0] = 0;
-        button.value[0] = 0;
-      }
-    }); */
-
     rigManager.setLocalAvatarPose([
       [localVector.toArray(), localQuaternion.toArray()],
       [leftGamepadPosition, leftGamepadQuaternion, leftGamepadPointer, leftGamepadGrip, leftGamepadEnabled],
@@ -551,45 +415,6 @@ function animate(timestamp, frame) {
   _updateAnchors();
 
   weaponsManager.update();
-
-  /* const _updateHands = () => {
-    const session = renderer.xr.getSession();
-    if (session) {
-      const inputSource = session.inputSources[1];
-      let pose;
-      const referenceSpace = renderer.xr.getReferenceSpace();
-      if (inputSource && (pose = frame.getPose(inputSource.targetRaySpace, referenceSpace))) {
-        for (const handMesh of handMeshes) {
-          handMesh.visible = false;
-        }
-        for (const inputSource of session.inputSources) {
-          if (inputSource && inputSource.hand) {
-            const handMesh = handMeshes[inputSource.handedness === 'right' ? 1 : 0];
-            const positionAttribute = handMesh.geometry.attributes.position;
-
-            for (let i = 0; i < inputSource.hand.length; i++) {
-              const joint = inputSource.hand[i];
-              const dstPositions = new Float32Array(positionAttribute.array.buffer, positionAttribute.array.byteOffset + i * jointNumPositions * Float32Array.BYTES_PER_ELEMENT, jointNumPositions);
-
-              const jointPose = joint && frame.getJointPose(joint, referenceSpace);
-              if (jointPose) {
-                jointGeometry.attributes.position.array.set(jointPositions);
-                jointGeometry.applyMatrix4(
-                  localMatrix.fromArray(jointPose.transform.matrix),
-                );
-                dstPositions.set(jointGeometry.attributes.position.array);
-              } else {
-                dstPositions.fill(0);
-              }
-            }
-            positionAttribute.needsUpdate = true;
-            handMesh.visible = true;
-          }
-        }
-      }
-    }
-  };
-  _updateHands(); */
 
   appManager.tick(timestamp, frame);
   
