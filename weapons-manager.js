@@ -24,65 +24,11 @@ const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localQuaternion2 = new THREE.Quaternion();
-// const localQuaternion3 = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localColor = new THREE.Color();
 const localBox = new THREE.Box3();
-
-/* let selectedWeapon = 'unarmed';
-let lastSelectedWeapon = selectedWeapon;
-const weapons = [
-  'lol',
-  'zol',
-];
-const weaponIcons = [
-  '\uf256',
-  '\uf710',
-  '\uf1e2',
-  '\uf6b2',
-  '\uf713',
-  '\uf279',
-  '\uf54e',
-  '\uf1b2',
-  '\uf53f',
-  '\uf5d4',
-  '\uf0e7',
-  '\uf040',
-  '\uf55d',
-  '\ue025',
-  '\uf245',
-]; */
-/* const weapons = Array.from(document.querySelectorAll('.weapon'));
-for (let i = 0; i < weapons.length; i++) {
-  const weapon = document.getElementById('weapon-' + (i + 1));
-  weapon.addEventListener('click', e => {
-    const isActive = weapon.classList.contains('selected');
-    for (let i = 0; i < weapons.length; i++) {
-      weapons[i].classList.remove('selected');
-    }
-    if (isActive) {
-      weapon.classList.remove('selected');
-      selectedWeapon = null;
-    } else {
-      weapon.classList.add('selected');
-      selectedWeapon = weapon.getAttribute('weapon');
-    }
-    setState({ selectedWeapon: selectedWeapon })
-  });
-} */
-/* let raycastChunkSpec = null;
-let anchorSpecs = [null, null]; */
-
-// let pxMeshes = [];
-
-/* const rayMesh = makeRayMesh();
-rayMesh.visible = false;
-scene.add(rayMesh); */
-
-/* const cubeMesh = makeCubeMesh();
-scene.add(cubeMesh); */
 
 const addMesh = (() => {
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
@@ -501,30 +447,6 @@ world.addEventListener('trackedobjectremove', async e => {
   }
 });
 
-/* const _snapBuildPosition = p => {
-  p.x = Math.floor(p.x / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
-  p.y = Math.floor(p.y / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
-  p.z = Math.floor(p.z / BUILD_SNAP) * BUILD_SNAP + BUILD_SNAP / 2;
-  return p;
-};
-const _meshEquals = (a, b) => {
-  if (a.position.equals(b.position)) {
-    if (a.type === b.vegetationType) {
-      if (a.type === 'wood_wall') {
-        return Math.floor(a.quaternion.x / pid4) === Math.floor(b.quaternion.x / pid4) &&
-          Math.floor(a.quaternion.y / pid4) === Math.floor(b.quaternion.y / pid4) &&
-          Math.floor(a.quaternion.z / pid4) === Math.floor(b.quaternion.z / pid4) &&
-          Math.floor(a.quaternion.w / pid4) === Math.floor(b.quaternion.w / pid4);
-      } else {
-        return true;
-      }
-    } else {
-      return false;
-    }
-  } else {
-    return false;
-  }
-}; */
 const maxDistance = 10;
 const maxGrabDistance = 1.5;
 const _grab = object => {
