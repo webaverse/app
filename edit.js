@@ -260,34 +260,37 @@ function animate(timestamp, frame) {
 
   minimap.update();
 
-  if (session && document.visibilityState == 'visible') {
-    const {baseLayer} = session.renderState;
-    if (!xrscenetexture || (xrscenetexture.image.width !== baseLayer.framebufferWidth * renderer.getPixelRatio() / 2) || ((xrscenetexture.image.height !== baseLayer.framebufferHeight * renderer.getPixelRatio()))) {
-      xrscenetexture = new THREE.DataTexture(null, baseLayer.framebufferWidth * renderer.getPixelRatio() / 2, baseLayer.framebufferHeight * renderer.getPixelRatio(), THREE.RGBAFormat);
-      xrscenetexture.minFilter = THREE.NearestFilter;
-      xrscenetexture.magFilter = THREE.NearestFilter;
+  const _mirrorRender = () => {
+    if (session && document.visibilityState == 'visible') {
+      const {baseLayer} = session.renderState;
+      if (!xrscenetexture || (xrscenetexture.image.width !== baseLayer.framebufferWidth * renderer.getPixelRatio() / 2) || ((xrscenetexture.image.height !== baseLayer.framebufferHeight * renderer.getPixelRatio()))) {
+        xrscenetexture = new THREE.DataTexture(null, baseLayer.framebufferWidth * renderer.getPixelRatio() / 2, baseLayer.framebufferHeight * renderer.getPixelRatio(), THREE.RGBAFormat);
+        xrscenetexture.minFilter = THREE.NearestFilter;
+        xrscenetexture.magFilter = THREE.NearestFilter;
+      }
+      if (!xrscene) {
+        xrscene = new THREE.Scene();
+
+        xrsceneplane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), new THREE.MeshBasicMaterial({map: xrscenetexture, /*side: THREE.DoubleSide,*/ color: 0xffffff}));
+        xrscene.add(xrsceneplane);
+
+        xrscenecam = new THREE.OrthographicCamera(-1 / 2, 1 / 2, 1 / 2, -1 / 2, -1, 1);
+        xrscene.add(xrscenecam);
+      }
+
+      renderer.xr.enabled = false;
+      renderer.copyFramebufferToTexture(localVector2D.set(0, 0), xrscenetexture);
+      renderer.setFramebuffer(null);
+
+      const oldOutputEncoding = renderer.outputEncoding;
+      renderer.outputEncoding = THREE.LinearEncoding;
+      renderer.setViewport(0, 0, canvas.width, canvas.height);
+      renderer.render(xrscene, xrscenecam);
+      renderer.xr.enabled = true;
+      renderer.outputEncoding = oldOutputEncoding;
     }
-    if (!xrscene) {
-      xrscene = new THREE.Scene();
-
-      xrsceneplane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), new THREE.MeshBasicMaterial({map: xrscenetexture, /*side: THREE.DoubleSide,*/ color: 0xffffff}));
-      xrscene.add(xrsceneplane);
-
-      xrscenecam = new THREE.OrthographicCamera(-1 / 2, 1 / 2, 1 / 2, -1 / 2, -1, 1);
-      xrscene.add(xrscenecam);
-    }
-
-    renderer.xr.enabled = false;
-    renderer.copyFramebufferToTexture(localVector2D.set(0, 0), xrscenetexture);
-    renderer.setFramebuffer(null);
-
-    const oldOutputEncoding = renderer.outputEncoding;
-    renderer.outputEncoding = THREE.LinearEncoding;
-    renderer.setViewport(0, 0, canvas.width, canvas.height);
-    renderer.render(xrscene, xrscenecam);
-    renderer.xr.enabled = true;
-    renderer.outputEncoding = oldOutputEncoding;
-  }
+  };
+  _mirrorRender();
 }
 geometryManager.waitForLoad().then(e => {
   // setTimeout(() => {
