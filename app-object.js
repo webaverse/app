@@ -82,7 +82,9 @@ const renderer2 = new CSS3DRenderer();
 renderer2.setSize(window.innerWidth, window.innerHeight);
 renderer2.domElement.style.position = 'absolute';
 renderer2.domElement.style.top = 0;
-document.body.appendChild(renderer2.domElement);
+if (canvas.parentNode) {
+  document.body.insertBefore(renderer2.domElement, canvas);
+}
 
 const scene2 = new THREE.Scene();
 const scene3 = new THREE.Scene();
