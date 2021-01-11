@@ -22,234 +22,41 @@
     const cameraPosition = new THREE.Vector3(0, 1, -2);
     const cameraTarget = new THREE.Vector3(0, 0, 0);
   
-    const _render = () => {
-      const _makeRenderer = () => {
-        const renderer = new THREE.WebGLRenderer({
-          alpha: true,
-          antialias: true,
-        });
-        renderer.setSize(width, height);
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+    });
+    renderer.setSize(width, height);
 
-        const scene = new THREE.Scene();
+    const scene = new THREE.Scene();
 
-        const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
-        camera.position.copy(cameraPosition);
-        camera.lookAt(cameraTarget);
+    const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
+    camera.position.copy(cameraPosition);
+    camera.lookAt(cameraTarget);
 
-        const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
-        directionalLight.position.set(2, 2, -2);
-        scene.add(directionalLight);
-        const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
-        directionalLight2.position.set(-2, 2, 2);
-        scene.add(directionalLight2);
+    const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+    directionalLight.position.set(2, 2, -2);
+    scene.add(directionalLight);
+    const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
+    directionalLight2.position.set(-2, 2, 2);
+    scene.add(directionalLight2);
 
-        return {renderer, scene, camera};
-      };
-    
-      const canvas = await (async () => {
-        const _renderDefaultCanvas = async () => {
-          const uiRenderer = _makeUiRenderer();
+    world.addObject(`https://webaverse.github.io/street/index.js`, null, new THREE.Vector3(), new THREE.Quaternion());
 
-          const htmlString = _makeIconString(hash, ext);
-          const result = await uiRenderer.render(htmlString, width, height);
-          const {data, anchors} = result;
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(data, 0, 0);
-          return canvas;
-        };
+    /* if (dst) {
+      fetch(dst, {
+        method: 'POST',
+        headers: {
+          'Content-Type': mimeType,
+        },
+        body: arrayBuffer,
+      }).then(res => res.blob());
+    }
 
-        if (['glb', 'vrm', 'vox'].includes(ext)) {
-          const {renderer, scene, camera} = _makeRenderer();
-
-          let o;
-          try {
-            switch (ext) {
-              case 'glb':
-              case 'vrm': {
-                o = await _loadGltf();
-                break;
-              }
-              case 'vox': {
-                o = await _loadVox();
-                break;
-              }
-            }
-          } catch (err) {
-            console.warn(err);
-          }
-          if (o) {
-            scene.add(o);
-
-            const boundingBox = new THREE.Box3().setFromObject(o);
-            const center = boundingBox.getCenter(new THREE.Vector3());
-            const size = boundingBox.getSize(new THREE.Vector3());
-
-            camera.position.x = 0;
-            camera.position.y = center.y;
-            camera.position.z = center.z - Math.max(
-              size.y / 2 / Math.tan(Math.PI * camera.fov / 360),
-              Math.abs(size.x)/2,
-              Math.abs(size.z)/2
-            ) * 1.2;
-            camera.lookAt(center);
-            camera.updateMatrixWorld();
-
-            if (ext === 'vrm') {
-              const _getTailBones = skeleton => {
-                const result = [];
-                const _recurse = bones => {
-                  for (let i = 0; i < bones.length; i++) {
-                    const bone = bones[i];
-                    if (bone.children.length === 0) {
-                      if (!result.includes(bone)) {
-                        result.push(bone);
-                      }
-                    } else {
-                      _recurse(bone.children);
-                    }
-                  }
-                };
-                _recurse(skeleton.bones);
-                return result;
-              };
-              const _findFurthestParentBone = (bone, pred) => {
-                let result = null;
-                for (; bone; bone = bone.parent) {
-                  if (pred(bone)) {
-                    result = bone;
-                  }
-                }
-                return result;
-              };
-              const _countCharacters = (name, regex) => {
-                let result = 0;
-                for (let i = 0; i < name.length; i++) {
-                  if (regex.test(name[i])) {
-                    result++;
-                  }
-                }
-                return result;
-              };
-              const _findEye = (tailBones, left) => {
-                const regexp = left ? /l/i : /r/i;
-                const eyeBones = tailBones.map(tailBone => {
-                  const eyeBone = _findFurthestParentBone(tailBone, bone => /eye/i.test(bone.name) && regexp.test(bone.name.replace(/eye/gi, '')));
-                  if (eyeBone) {
-                    return eyeBone;
-                  } else {
-                    return null;
-                  }
-                }).filter(spec => spec).sort((a, b) => {
-                  const aName = a.name.replace(/shoulder/gi, '');
-                  const aLeftBalance = _countCharacters(aName, /l/i) - _countCharacters(aName, /r/i);
-                  const bName = b.name.replace(/shoulder/gi, '');
-                  const bLeftBalance = _countCharacters(bName, /l/i) - _countCharacters(bName, /r/i);
-                  if (!left) {
-                    return aLeftBalance - bLeftBalance;
-                  } else {
-                    return bLeftBalance - aLeftBalance;
-                  }
-                });
-                const eyeBone = eyeBones.length > 0 ? eyeBones[0] : null;
-                if (eyeBone) {
-                  return eyeBone;
-                } else {
-                  return null;
-                }
-              };
-
-              const skinnedMeshes = [];
-              o.traverse(o => {
-                if (o.isSkinnedMesh) {
-                  skinnedMeshes.push(o);
-                }
-              });
-              skinnedMeshes.sort((a, b) => b.skeleton.bones.length - a.skeleton.bones.length);
-              const skeletonSkinnedMesh = skinnedMeshes.find(o => o.skeleton.bones[0].parent) || null;
-              const skeleton = skeletonSkinnedMesh && skeletonSkinnedMesh.skeleton;
-              const tailBones = _getTailBones(skeleton);
-              const eyes = [_findEye(tailBones, true), _findEye(tailBones, false)];
-              if (eyes[0] && eyes[1]) {
-                const center = eyes[0].getWorldPosition(new THREE.Vector3())
-                  .add(eyes[1].getWorldPosition(new THREE.Vector3()))
-                  .divideScalar(2);
-                camera.position.copy(center)
-                  .add(new THREE.Vector3(0, 0, -0.3));
-                camera.quaternion.setFromUnitVectors(
-                  new THREE.Vector3(0, 0, -1),
-                  new THREE.Vector3(0, 0, 1)
-                );
-                camera.fov = 60;
-                camera.updateProjectionMatrix();
-              }
-              console.log('got eyes', eyes);
-            }
-
-            if (type === 'jpg') {
-              renderer.setClearColor(0xFFFFFF, 1);
-            }
-            renderer.render(scene, camera);
-            return renderer.domElement;
-          } else {
-            return await _renderDefaultCanvas();
-          }
-        } else if (['png', 'jpg', 'gif'].includes(ext)) {
-          const img = await new Promise((accept, reject) => {
-            const img = new Image();
-            img.onload = () => {
-              accept(img);
-            };
-            img.onerror = reject;
-            img.crossOrigin = 'Anonymous';
-            img.src = url;
-          });
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-          return canvas;
-        } else {
-          return await _renderDefaultCanvas();
-        }
-      })();
-
-      const mimeType = `image/${type === 'png' ? 'png' : 'jpeg'}`;
-      const blob = await new Promise((accept, reject) => {
-        canvas.toBlob(accept, mimeType);
-      });
-      const img = new Image();
-      await new Promise((accept, reject) => {
-        img.onload = accept;
-        img.onerror = reject;
-        img.src = URL.createObjectURL(blob);
-      });
-      img.style.width = `${img.width/window.devicePixelRatio}px`;
-      img.style.height = `${img.height/window.devicePixelRatio}px`;
-      screenshotResult.appendChild(img);
-
-      const arrayBuffer = await blob.arrayBuffer();
-
-      // console.log('png blob arrayBuffer', blob.size, arrayBuffer.byteLength);
-
-      if (dst) {
-        fetch(dst, {
-          method: 'POST',
-          headers: {
-            'Content-Type': mimeType,
-          },
-          body: arrayBuffer,
-        }).then(res => res.blob());
-      }
-
-      window.parent.postMessage({
-        method: 'result',
-        result: arrayBuffer,
-      }, '*', [arrayBuffer]);
-    };
+    window.parent.postMessage({
+      method: 'result',
+      result: arrayBuffer,
+    }, '*', [arrayBuffer]); */
   </script>
 </body>
 
