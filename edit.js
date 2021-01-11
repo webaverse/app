@@ -11,11 +11,6 @@ import runtime from './runtime.js';
 import {parseQuery, downloadFile} from './util.js';
 import {rigManager} from './rig.js';
 import {makeRayMesh, makeTextMesh, makeHighlightMesh, makeButtonMesh, makeArrowMesh, makeCornersMesh} from './vr-ui.js';
-/* import {
-  THING_SHADER,
-  makeDrawMaterial,
-} from './shaders.js'; */
-// import {lineMeshes, teleportMeshes} from './teleport.js';
 import geometryManager from './geometry-manager.js';
 import uiManager from './ui-manager.js';
 import ioManager from './io-manager.js';
@@ -24,25 +19,19 @@ import {makePromise} from './util.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 // import {Bot} from './bot.js';
-// import {Sky} from './Sky.js';
 import {GuardianMesh} from './land.js';
 import {storageHost} from './constants.js';
 import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
-// import inventory from './inventory.js';
 import minimap from './minimap.js';
-// import {getState, setState} from './state.js';
 
-// const zeroVector = new THREE.Vector3(0, 0, 0);
-// const pid4 = Math.PI / 4;
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
 const rightHandOffset = new THREE.Vector3(-0.2, -0.2, -0.4);
 const leftHandGlideOffset = new THREE.Vector3(0.6, -0.2, -0.01);
 const rightHandGlideOffset = new THREE.Vector3(-0.6, -0.2, -0.01);
 const leftHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0));
 const rightHandGlideQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0));
-// const redColorHex = new THREE.Color(0xef5350).multiplyScalar(2).getHex();
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -58,7 +47,6 @@ const localMatrix3 = new THREE.Matrix4();
 const localRay = new THREE.Ray();
 const localTriangle = new THREE.Triangle();
 
-// let skybox = null;
 let xrscenetexture = null;
 let xrsceneplane = null;
 let xrscenecam = null;
@@ -115,162 +103,10 @@ const parcelGeometry = (() => {
   geometry.setAttribute('typez', new THREE.BufferAttribute(typesz, 1)); */
   return geometry;
 })();
-/* const _makeFloorMesh = () => {
-  const geometry = parcelGeometry;
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x333333,
-    // opacity: 0.9,
-    side: THREE.DoubleSide,
-    // transparent: true,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.y = -0.01;
-  mesh.frustumCulled = false;
-  return mesh;
-};
-const floorMesh = _makeFloorMesh();
-floorMesh.position.y = 0;
-scene.add(floorMesh); */
-
-/* (async () => {
-  const HEIGHTFIELD_SHADER2 = {
-    uniforms: {
-      map: {
-        type: 't',
-        value: new THREE.Texture(),
-        needsUpdate: true,
-      },
-      normalMap: {
-        type: 't',
-        value: new THREE.Texture(),
-        needsUpdate: true,
-      },
-      bumpMap: {
-        type: 't',
-        value: new THREE.Texture(),
-        needsUpdate: true,
-      },
-      "parallaxScale": { value: 0.5 },
-      "parallaxMinLayers": { value: 20 },
-      "parallaxMaxLayers": { value: 25 },
-    },
-    vertexShader: `\
-      precision highp float;
-      precision highp int;
-
-      uniform sampler2D normalMap;
-      varying vec2 vUv;
-      varying vec3 vViewPosition;
-      // varying vec3 vNormal;
-      varying vec3 eyeVec;
-      void main() {
-        vUv = uv;
-        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-        vViewPosition = -mvPosition.xyz;
-        //vNormal = normalize( normalMatrix * normal );
-        // vNormal = normalize( normalMatrix * texture2D( normalMap, vUv ).rgb );
-        gl_Position = projectionMatrix * mvPosition;
-        eyeVec = vViewPosition.xyz;
-      }
-    `,
-    fragmentShader: `\
-      precision highp float;
-      precision highp int;
-
-      uniform sampler2D bumpMap;
-      uniform sampler2D map;
-      uniform float parallaxScale;
-      uniform float parallaxMinLayers;
-      uniform float parallaxMaxLayers;
-      varying vec2 vUv;
-      varying vec3 vViewPosition;
-      // varying vec3 vNormal;
-      varying vec3 eyeVec;
-
-        vec2 parallaxMap( in vec3 V ) {
-          float numLayers = mix( parallaxMaxLayers, parallaxMinLayers, abs( dot( vec3( 0.0, 0.0, 1.0 ), V ) ) );
-          float layerHeight = 1.0 / numLayers;
-          float currentLayerHeight = 0.0;
-          vec2 dtex = parallaxScale * V.xy / V.z / numLayers;
-          vec2 currentTextureCoords = vUv;
-          float heightFromTexture = texture2D( bumpMap, currentTextureCoords ).r;
-          for ( int i = 0; i < 30; i += 1 ) {
-            if ( heightFromTexture <= currentLayerHeight ) {
-              break;
-            }
-            currentLayerHeight += layerHeight;
-            currentTextureCoords -= dtex;
-            heightFromTexture = texture2D( bumpMap, currentTextureCoords ).r;
-          }
-            vec2 prevTCoords = currentTextureCoords + dtex;
-            float nextH = heightFromTexture - currentLayerHeight;
-            float prevH = texture2D( bumpMap, prevTCoords ).r - currentLayerHeight + layerHeight;
-            float weight = nextH / ( nextH - prevH );
-            return prevTCoords * weight + currentTextureCoords * ( 1.0 - weight );
-        }
-      vec2 perturbUv( vec3 surfPosition, vec3 surfNormal, vec3 viewPosition ) {
-        vec2 texDx = dFdx( vUv );
-        vec2 texDy = dFdy( vUv );
-        vec3 vSigmaX = dFdx( surfPosition );
-        vec3 vSigmaY = dFdy( surfPosition );
-        vec3 vR1 = cross( vSigmaY, surfNormal );
-        vec3 vR2 = cross( surfNormal, vSigmaX );
-        float fDet = dot( vSigmaX, vR1 );
-        vec2 vProjVscr = ( 1.0 / fDet ) * vec2( dot( vR1, viewPosition ), dot( vR2, viewPosition ) );
-        vec3 vProjVtex;
-        vProjVtex.xy = texDx * vProjVscr.x + texDy * vProjVscr.y;
-        vProjVtex.z = dot( surfNormal, viewPosition );
-        return parallaxMap( vProjVtex );
-      }
-      void main() {
-        vec3 vNormal = normalize(cross(dFdx(eyeVec.xyz), dFdy(eyeVec.xyz)));
-        vec2 mapUv = perturbUv( -vViewPosition, normalize( vNormal ), normalize( vViewPosition ) );
-        gl_FragColor = texture2D( map, mapUv );
-      }
-    `,
-  };
-  const geometry = new THREE.SphereBufferGeometry(1, 32, 32);
-  const heightfieldMaterial2 = new THREE.ShaderMaterial({
-    uniforms: THREE.UniformsUtils.clone(HEIGHTFIELD_SHADER2.uniforms),
-    vertexShader: HEIGHTFIELD_SHADER2.vertexShader,
-    fragmentShader: HEIGHTFIELD_SHADER2.fragmentShader,
-    extensions: {
-      derivatives: true,
-    },
-  });
-  heightfieldMaterial2.uniforms.map.value.image = await new Promise((accept, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      accept(img);
-    };
-    img.onerror = reject;
-    img.src = `./land-textures/Vol_21_4_Base_Color.png`;
-  });
-  heightfieldMaterial2.uniforms.map.value.wrapS = THREE.RepeatWrapping;
-  heightfieldMaterial2.uniforms.map.value.wrapT = THREE.RepeatWrapping;
-  heightfieldMaterial2.uniforms.map.value.needsUpdate = true;
-  heightfieldMaterial2.uniforms.bumpMap.value.image = await new Promise((accept, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      accept(img);
-    };
-    img.onerror = reject;
-    img.src = `./land-textures/Vol_21_4_Height.png`;
-  });
-  heightfieldMaterial2.uniforms.bumpMap.value.wrapS = THREE.RepeatWrapping;
-  heightfieldMaterial2.uniforms.bumpMap.value.wrapT = THREE.RepeatWrapping;
-  heightfieldMaterial2.uniforms.bumpMap.value.needsUpdate = true;
-
-  const mesh = new THREE.Mesh(geometry, heightfieldMaterial2);
-  mesh.position.x = -5;
-  scene.add(mesh);
-})(); */
 const highlightMesh = makeHighlightMesh();
 highlightMesh.visible = false;
 scene.add(highlightMesh);
 const anchorMeshes = [];
-/* const rayMesh = makeRayMesh();
-scene.add(rayMesh); */
 
 const q = parseQuery(location.search);
 /* (async () => {
