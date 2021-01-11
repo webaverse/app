@@ -88,7 +88,11 @@ export default class App {
     }
     this.contentLoaded = true;
   }
-  
+
+  bindUploadFileInput(uploadFileInput) {
+    weaponsManager.bindUploadFileInput(uploadFileInput);
+  }
+
   bindMinimap(mapCanvas) {
     minimap.init(mapCanvas);
   }

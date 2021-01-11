@@ -431,20 +431,23 @@ const _equip = async () => {
   }
 };
 
-let uploadFileInput = document.getElementById('upload-file-input');
-bindUploadFileButton(uploadFileInput, async file => {
-  const transforms = rigManager.getRigTransforms();
-  let {position, quaternion} = transforms[0];
-  position = position.clone()
-    .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
-  quaternion = quaternion.clone();
+const bindUploadFileInput = uploadFileInput => {
+  bindUploadFileButton(uploadFileInput, async file => {
+    const transforms = rigManager.getRigTransforms();
+    let {position, quaternion} = transforms[0];
+    position = position.clone()
+      .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
+    quaternion = quaternion.clone();
 
-  const {name, hash, id} = await loginManager.uploadFile(file);
-  console.log('uploaded', {name, hash, id});
+    const {name, hash, id} = await loginManager.uploadFile(file);
+    console.log('uploaded', {name, hash, id});
 
-  const u = `${storageHost}/${hash}.${getExt(name)}`;
-  world.addObject(u, null, position, quaternion);
-});
+    const u = `${storageHost}/${hash}.${getExt(name)}`;
+    world.addObject(u, null, position, quaternion);
+  });
+};
+
+const uploadFileInput = document.getElementById('upload-file-input');
 const _upload = () => {
   uploadFileInput.click();
 };
@@ -1304,6 +1307,10 @@ const _snapRotation = (o, rotationSnap) => {
   o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
   o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
 };
+/* const _snap = (o, positionSnap, rotationSnap) => {
+  _snapPosition(o, positionSnap);
+  _snapRotation(o, rotationSnap);
+}; */
 
 const keyTabEl = document.getElementById('key-tab');
 const keyTab1El = document.getElementById('key-tab-1');
@@ -1710,6 +1717,7 @@ const weaponsManager = {
       _renderWheel(selectedSlice);
     }
   }, */
+  bindUploadFileInput,
   getMenu() {
     return this.menuOpen;
   },
