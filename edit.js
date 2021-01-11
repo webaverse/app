@@ -298,9 +298,9 @@ function animate(timestamp, frame) {
   }
 }
 geometryManager.waitForLoad().then(e => {
-  setTimeout(() => {
+  // setTimeout(() => {
     renderer.setAnimationLoop(animate);
-  });
+  // });
 });
 
 const _initializeXr = () => {
