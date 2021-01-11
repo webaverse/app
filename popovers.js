@@ -38,15 +38,17 @@ const addPopover = (textMesh, {width, height, target} = {}) => {
           .sub(camera.position)
       );
     toScreenPosition(target, camera, localVector);
-    popoverMesh.position.x = -1 + localVector.x/(window.innerWidth*window.devicePixelRatio)*2;
-    popoverMesh.position.y = 1 - localVector.y/(window.innerHeight*window.devicePixelRatio)*2;
+    const width = renderer.domElement.width;
+    const height = renderer.domElement.height;
+    popoverMesh.position.x = -1 + localVector.x/width*2;
+    popoverMesh.position.y = 1 - localVector.y/height*2;
     const distance = target.position.distanceTo(camera.position);
     const maxSoftDistance = 3;
     const maxHardDistance = 8;
     if (n > 0 && distance < maxHardDistance) {
-      const halfWidthFactor = popoverMesh.width/(window.innerWidth*window.devicePixelRatio);
-      const halfHeightFactor = popoverMesh.height/(window.innerHeight*window.devicePixelRatio);
-      popoverMesh.scale.set(popoverMesh.width/(window.innerWidth*window.devicePixelRatio), popoverMesh.height/(window.innerHeight*window.devicePixelRatio), 1);
+      const halfWidthFactor = popoverMesh.width/width;
+      const halfHeightFactor = popoverMesh.height/height;
+      popoverMesh.scale.set(popoverMesh.width/width, popoverMesh.height/height, 1);
       if (distance > maxSoftDistance) {
         popoverMesh.scale.multiplyScalar(1 / (distance - maxSoftDistance + 1));
       }
