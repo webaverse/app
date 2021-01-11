@@ -629,8 +629,6 @@ const addItem = async (position, quaternion) => {
   let mesh = await runtime.loadFile(file, {
     optimize: false,
   });
-  // mesh = mesh.children[0]//.children.find(c => c.name === 'laser_orange_04');
-  // mesh.position.y = 1;
   for (let i = 0; i < mesh.children.length; i++) {
     const child = mesh.children[i];
     child.position.x = -3 + i;
@@ -649,19 +647,6 @@ const addItem = async (position, quaternion) => {
     const object = new THREE.Object3D();
 
     object.add(mesh);
-
-    /* const matMeshes = [
-      geometryManager.woodMesh,
-      geometryManager.stoneMesh,
-      geometryManager.metalMesh,
-    ];
-    const matIndex = Math.floor(Math.random() * matMeshes.length);
-    const matMesh = matMeshes[matIndex];
-    const matMeshClone = matMesh.clone();
-    matMeshClone.position.y = 0.5;
-    matMeshClone.visible = true;
-    matMeshClone.isBuildMesh = true;
-    object.add(matMeshClone); */
 
     const skirtGeometry = new THREE.CylinderBufferGeometry(radius, radius, radius, segments, 1, true)
       .applyMatrix4(new THREE.Matrix4().makeTranslation(0, radius / 2, 0));
