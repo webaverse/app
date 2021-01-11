@@ -414,7 +414,7 @@ world.addEventListener('trackedobjectadd', async e => {
         data: mesh,
       }));
     } else {
-      messh = null;
+      mesh = null;
     }
 
     p.accept(mesh);
