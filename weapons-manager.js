@@ -227,7 +227,6 @@ let highlightedWorld = null;
 const moveMesh = _makeTargetMesh();
 moveMesh.visible = false;
 scene.add(moveMesh);
-// let movingObject = null;
 
 const deployMesh = _makeTargetMesh();
 deployMesh.visible = false;
