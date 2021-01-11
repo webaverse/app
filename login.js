@@ -42,6 +42,13 @@ async function pullUserObject() {
   const avatarUrl = await contentIdToStorageUrl(!isNaN(avatarNumber) ? avatarNumber : avatarId);
   const homeSpaceNumber = parseInt(homeSpaceId);
   const homeSpaceUrl = await contentIdToStorageUrl(!isNaN(homeSpaceNumber) ? homeSpaceNumber : homeSpaceId);
+
+  const inventory = await (async () => {
+    const res = await fetch(`${tokensHost}/${address}`);
+    const tokens = await res.json();
+    return tokens;
+  })();
+  
   userObject = {
     name,
     avatar: {
@@ -52,6 +59,7 @@ async function pullUserObject() {
       url: avatarUrl,
     },
     loadout,
+    inventory,
     homespace: {
       id: homeSpaceId,
       name: homeSpaceName,
@@ -513,15 +521,8 @@ class LoginManager extends EventTarget {
     }
   } */
 
-  async getInventory() {
-    if (loginToken) {
-      const address = this.getAddress();
-      const res = await fetch(`${tokensHost}/${address}`);
-      const tokens = await res.json();
-      return tokens;
-    } else {
-      return [];
-    }
+  getInventory() {
+    return userObject ? userObject.inventory : [];
   }
 
   async uploadFile(file, {description = ''} = {}) {
