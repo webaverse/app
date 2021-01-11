@@ -17,7 +17,7 @@ import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
 import * as popovers from './popovers.js';
 import {getExt, bindUploadFileButton} from './util.js';
-import {storageHost} from './constants.js';
+import {storageHost, worldsHost} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -1623,7 +1623,7 @@ const weaponsManager = {
   async destroyWorld() {
     if (highlightedWorld) {
       const {name} = highlightedWorld;
-      const res = await fetch(`https://worlds.exokit.org/${name}`, {
+      const res = await fetch(`${worldsHost}/${name}`, {
         method: 'DELETE',
       });
       await res.blob();
