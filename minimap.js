@@ -2,7 +2,6 @@ import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {rigManager} from './rig.js';
 import {camera} from './app-object.js';
-import {GuardianMesh} from './land.js';
 
 const localVector = new THREE.Vector3();
 const localEuler = new THREE.Euler();
