@@ -46,6 +46,10 @@ const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localRay = new THREE.Ray();
 const localTriangle = new THREE.Triangle();
+const localArray = Array(4);
+const localArray2 = Array(4);
+const localArray3 = Array(4);
+const localArray4 = Array(4);
 
 let xrscenetexture = null;
 let xrsceneplane = null;
@@ -135,8 +139,8 @@ function animate(timestamp, frame) {
         } else {
           localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), Math.PI*0.5)).multiply(localQuaternion3.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2));
         }
-        leftGamepadPosition = localVector2.toArray();
-        leftGamepadQuaternion = localQuaternion2.toArray();
+        leftGamepadPosition = localVector2.toArray(localArray);
+        leftGamepadQuaternion = localQuaternion2.toArray(localArray2);
 
         const {gamepad} = inputSources[0];
         if (gamepad && gamepad.buttons.length >= 2) {
@@ -160,8 +164,8 @@ function animate(timestamp, frame) {
         } else {
           localQuaternion2.multiply(localQuaternion3.setFromAxisAngle(localVector3.set(0, 0, 1), -Math.PI*0.5)).multiply(localQuaternion3.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI*0.2));
         }
-        rightGamepadPosition = localVector2.toArray();
-        rightGamepadQuaternion = localQuaternion2.toArray();
+        rightGamepadPosition = localVector2.toArray(localArray3);
+        rightGamepadQuaternion = localQuaternion2.toArray(localArray4);
 
         const {gamepad} = inputSources[1];
         if (gamepad && gamepad.buttons.length >= 2) {
