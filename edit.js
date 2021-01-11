@@ -185,25 +185,6 @@ for (const handMesh of handMeshes) {
   scene.add(handMesh);
 } */
 
-/* const tetrehedronGeometry = (() => {
-  const geometry = new THREE.TetrahedronBufferGeometry(0.2, 0);
-  const barycentrics = new Float32Array(geometry.attributes.position.array.length);
-  let barycentricIndex = 0;
-  for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
-    barycentrics[barycentricIndex++] = 1;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 1;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 1;
-  }
-  geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3));
-  return geometry;
-})(); */
-
 const itemMeshes = [];
 const addItem = async (position, quaternion) => {
   const u = 'assets/mat.glb';
