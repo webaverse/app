@@ -191,7 +191,6 @@ const addItem = async (position, quaternion) => {
   itemMeshes.push(itemMesh);
 };
 
-// const timeFactor = 60 * 1000;
 let lastTimestamp = performance.now();
 const startTime = Date.now();
 function animate(timestamp, frame) {
