@@ -7,14 +7,18 @@
     <input type=file id=split-file>
     <input type=submit>
   </form>
-  <form id=bake-form>
+  <form id=bake-physics-form>
     <h1>Bake physics</h1>
-    <input type=file id=bake-file>
+    <input type=file id=bake-physics-file>
     <input type=submit>
   </form>
-  <form>
+  <form id=bake-mesh-form>
     <h1>Bake mesh</h1>
     <pre><code>TOKTX_PATH=./bin/toktx ./bin/gltfpack -v -kn -cc -tb -i assets/model.glb -o assets/model2.glb</code></pre>
+  </form>
+  <form id=build-map-form>
+    <h1>Render map</h1>
+    <div id=map-container></div>
   </form>
 <script src="./bin/geometry.js"></script>
 <script type=module>
@@ -123,8 +127,8 @@ splitFormEl.addEventListener('submit', async e => {
   }
 });
 
-const bakeFormEl = document.getElementById('bake-form');
-const bakeFileEl = document.getElementById('bake-file');
+const bakeFormEl = document.getElementById('bake-physics-form');
+const bakeFileEl = document.getElementById('bake-physics-file');
 bakeFormEl.addEventListener('submit', async e => {
   e.preventDefault();
   e.stopPropagation();
@@ -732,6 +736,16 @@ bakeFormEl.addEventListener('submit', async e => {
     });
     downloadFile(b, 'target.bin');
   }
+});
+
+const buildMapForm = document.getElementById('build-map-form');
+const mapContainer = document.getElementById('map-container');
+buildMapForm.addEventListener('submit', e => {
+  e.preventDefault();
+  
+  const canvas = document.createElement('canvas');
+
+  mapContainer.appendChild(canvas);
 });
 </script>
 </body>
