@@ -1693,9 +1693,11 @@ const weaponsManager = {
         if (isNaN(id)) {
           id = contentId;
         }
+        selectedLoadoutObject = await world.addObject(id, null, new THREE.Vector3(), new THREE.Quaternion());
         const transforms = rigManager.getRigTransforms();
         const {position, quaternion} = transforms[0];
-        selectedLoadoutObject = await world.addObject(id, null, position, quaternion);
+        selectedLoadoutObject.position.copy(position);
+        selectedLoadoutObject.quaternion.copy(quaternion);
         _grab(selectedLoadoutObject);
       }
     })().catch(console.warn);
