@@ -873,6 +873,28 @@ const _snapRotation = (o, rotationSnap) => {
   o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
 };
 
+let selectedItemIndex = 0;
+const _selectItem = newSelectedItemIndex => {
+  selectedItemIndex = newSelectedItemIndex;
+  _updateMenu();
+};
+const _getItemsEl = () => document.getElementById('items-' + weaponsManager.getMenu());
+const _selectItemDelta = offset => {
+  const itemsEl = _getItemsEl();
+
+  let newSelectedItemIndex = selectedItemIndex + offset;
+  if (newSelectedItemIndex >= itemsEl.childNodes.length) {
+    newSelectedItemIndex = 0;
+  } else if (newSelectedItemIndex < 0) {
+    newSelectedItemIndex = itemsEl.childNodes.length - 1;
+  }
+  if (newSelectedItemIndex < 0) {
+    console.warn('selecting nonexistent zero item index');
+    newSelectedItemIndex = 0;
+  }
+  _selectItem(newSelectedItemIndex);
+};
+
 let lastSelectedBuild = -1;
 let lastCameraFocus = -1;
 const _updateMenu = () => {
@@ -1261,28 +1283,6 @@ const bindInterface = () => {
     });
     items1El.appendChild(div);
   }
-
-  let selectedItemIndex = 0;
-  const _selectItem = newSelectedItemIndex => {
-    selectedItemIndex = newSelectedItemIndex;
-    _updateMenu();
-  };
-  const _getItemsEl = () => document.getElementById('items-' + weaponsManager.getMenu());
-  const _selectItemDelta = offset => {
-    const itemsEl = _getItemsEl();
-
-    let newSelectedItemIndex = selectedItemIndex + offset;
-    if (newSelectedItemIndex >= itemsEl.childNodes.length) {
-      newSelectedItemIndex = 0;
-    } else if (newSelectedItemIndex < 0) {
-      newSelectedItemIndex = itemsEl.childNodes.length - 1;
-    }
-    if (newSelectedItemIndex < 0) {
-      console.warn('selecting nonexistent zero item index');
-      newSelectedItemIndex = 0;
-    }
-    _selectItem(newSelectedItemIndex);
-  };
 
   for (let i = 0; i < tabs.length; i++) {
     const tab = tabs[i];
