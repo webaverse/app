@@ -1,8 +1,8 @@
 import * as THREE from './three.module.js';
 import {CSS3DRenderer} from './CSS3DRenderer.js';
 
-const canvas = document.getElementById('canvas');
-const context = canvas.getContext('webgl2', {
+let canvas = document.getElementById('canvas') || undefined;
+let context = canvas && canvas.getContext('webgl2', {
   antialias: true,
   alpha: true,
   preserveDrawingBuffer: false,
@@ -22,6 +22,12 @@ renderer.sortObjects = false;
 // renderer.physicallyCorrectLights = true;
 // renderer.shadowMap.enabled = true;
 // renderer.shadowMap.type = THREE.PCFShadowMap;
+if (!canvas) {
+  canvas = renderer.domElement;
+}
+if (!context) {
+  context = renderer.getContext();
+}
 context.enable(context.SAMPLE_ALPHA_TO_COVERAGE);
 renderer.xr.enabled = true;
 
@@ -76,7 +82,7 @@ const renderer2 = new CSS3DRenderer();
 renderer2.setSize(window.innerWidth, window.innerHeight);
 renderer2.domElement.style.position = 'absolute';
 renderer2.domElement.style.top = 0;
-document.body.insertBefore(renderer2.domElement, canvas);
+document.body.appendChild(renderer2.domElement);
 
 const scene2 = new THREE.Scene();
 const scene3 = new THREE.Scene();
