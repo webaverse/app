@@ -410,57 +410,6 @@ const _upload = () => {
   uploadFileInput.click();
 };
 
-if (items4El) {
-  world.addEventListener('trackedobjectadd', async e => {
-    const {trackedObject, dynamic} = e.data;
-    if (dynamic) {
-      const trackedObjectJson = trackedObject.toJSON();
-      const {contentId, instanceId} = trackedObjectJson;
-
-      const div = document.createElement('a');
-      div.classList.add('item');
-      div.setAttribute('href', contentId);
-      div.setAttribute('instanceid', instanceId);
-      div.innerHTML = `
-        <div class=card>
-          <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
-        </div>
-        <div class=name></div>
-        <div class="key-helpers">
-          <div class="key-helper progress">
-            <div class=bar></div>
-            <div class=key>E</div>
-            <div class=label>Grab</div>
-          </div>
-          <div class="key-helper">
-            <div class=key>X</div>
-            <div class=label>Delete</div>
-          </div>
-        </div>
-      `;
-      const name = div.querySelector('.name');
-      name.innerText = contentId;
-      div.addEventListener('click', e => {
-        _use();
-      });
-      div.addEventListener('mouseenter', e => {
-        const i = Array.from(items4El.childNodes).indexOf(div);
-        selectedItemIndex = i;
-        _updateMenu();
-      });
-      items4El.appendChild(div);
-    }
-  });
-  world.addEventListener('trackedobjectremove', async e => {
-    const {trackedObject, dynamic} = e.data;
-    if (dynamic) {
-      const instanceId = trackedObject.get('instanceId');
-      const itemEl = items4El.querySelector(`.item[instanceid="${instanceId}"]`);
-      items4El.removeChild(itemEl);
-    }
-  });
-}
-
 const maxDistance = 10;
 const maxGrabDistance = 1.5;
 const _grab = object => {
@@ -1428,6 +1377,55 @@ const bindInterface = () => {
       boxEl.innerHTML = item ? `<img src="${item[3]}">` : '';
     }
   })();
+  
+  world.addEventListener('trackedobjectadd', async e => {
+    const {trackedObject, dynamic} = e.data;
+    if (dynamic) {
+      const trackedObjectJson = trackedObject.toJSON();
+      const {contentId, instanceId} = trackedObjectJson;
+
+      const div = document.createElement('a');
+      div.classList.add('item');
+      div.setAttribute('href', contentId);
+      div.setAttribute('instanceid', instanceId);
+      div.innerHTML = `
+        <div class=card>
+          <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
+        </div>
+        <div class=name></div>
+        <div class="key-helpers">
+          <div class="key-helper progress">
+            <div class=bar></div>
+            <div class=key>E</div>
+            <div class=label>Grab</div>
+          </div>
+          <div class="key-helper">
+            <div class=key>X</div>
+            <div class=label>Delete</div>
+          </div>
+        </div>
+      `;
+      const name = div.querySelector('.name');
+      name.innerText = contentId;
+      div.addEventListener('click', e => {
+        _use();
+      });
+      div.addEventListener('mouseenter', e => {
+        const i = Array.from(items4El.childNodes).indexOf(div);
+        selectedItemIndex = i;
+        _updateMenu();
+      });
+      items4El.appendChild(div);
+    }
+  });
+  world.addEventListener('trackedobjectremove', async e => {
+    const {trackedObject, dynamic} = e.data;
+    if (dynamic) {
+      const instanceId = trackedObject.get('instanceId');
+      const itemEl = items4El.querySelector(`.item[instanceid="${instanceId}"]`);
+      items4El.removeChild(itemEl);
+    }
+  });
 };
 
 const weaponsManager = {
