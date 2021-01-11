@@ -1304,10 +1304,6 @@ const _snapRotation = (o, rotationSnap) => {
   o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
   o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
 };
-/* const _snap = (o, positionSnap, rotationSnap) => {
-  _snapPosition(o, positionSnap);
-  _snapRotation(o, rotationSnap);
-}; */
 
 const keyTabEl = document.getElementById('key-tab');
 const keyTab1El = document.getElementById('key-tab-1');
