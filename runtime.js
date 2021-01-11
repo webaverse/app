@@ -852,8 +852,6 @@ const _loadScn = async (file, opts) => {
   const {objects} = j;
   
   const scene = new THREE.Object3D();
-  /* const physicsBuffers = [];
-  let physicsIds = []; */
 
   const promises = objects.map(async object => {
     let {name, position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], start_url, filename, content, physics_url = null, optimize = false, physics = false} = object;
