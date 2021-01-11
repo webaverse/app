@@ -10,7 +10,7 @@
 <script type=module>
   import * as THREE from './three.module.js';
   import App from './app.js';
-  import {renderer} from './app-object.js';
+  import {camera, renderer} from './app-object.js';
   import {world} from './world.js';
   // import {homeScnUrl} from './constants.js';
 
@@ -34,7 +34,10 @@
   directionalLight2.position.set(-2, 2, 2);
   scene.add(directionalLight2); */
   
-  const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(1);
+
+  // const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
   camera.position.copy(cameraPosition);
   camera.lookAt(cameraTarget);
 
@@ -48,7 +51,7 @@
     // const camera = new THREE.OrthographicCamera();
 
     setTimeout(() => {
-      app.render(camera);
+      app.render();
       
       document.body.appendChild(renderer.domElement);
 
@@ -58,7 +61,7 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(renderer.domElement, 0, 0, canvas.width, canvas.height);
       document.body.appendChild(canvas);
-    }, 5000);
+    }, 1000);
 
     /* if (dst) {
       fetch(dst, {
