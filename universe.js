@@ -1,9 +1,7 @@
 import * as THREE from './three.module.js';
-import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {rigManager} from './rig.js';
 import {renderer, scene, camera, dolly} from './app-object.js';
 import {world} from './world.js';
-import {GuardianMesh} from './land.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
