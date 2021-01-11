@@ -45,14 +45,10 @@ let xrscene = null;
 
 export default class App {
   constructor() {
-    this.loadPromise = Promise.all([
-      loginManager.waitForLoad()
-        .then(() => tryTutorial()),
-      geometryManager.waitForLoad()
-        .then(() => {
-          runtime.injectDependencies(geometryManager, physicsManager, world);
-        }),
-    ]).then(() => {});
+    this.loadPromise = geometryManager.waitForLoad()
+      .then(() => {
+        runtime.injectDependencies(geometryManager, physicsManager, world);
+      });
     this.contentLoaded = false;
   }
   
@@ -65,9 +61,12 @@ export default class App {
 
     const [
       waitResult,
+      loginResult,
       worldJson,
     ] = await Promise.all([
       this.waitForLoad(),
+      loginManager.waitForLoad()
+        .then(() => tryTutorial()),
       world.getWorldJson(q.u),
     ]);
 
@@ -88,6 +87,51 @@ export default class App {
       console.error(err);
     }
     this.contentLoaded = true;
+  }
+  
+  bindXr({
+    enterXrButton,
+    noXrButton,
+    onSupported,
+  }) {
+    let currentSession = null;
+    function onSessionStarted(session) {
+      session.addEventListener('end', onSessionEnded);
+      renderer.xr.setSession(session);
+      // renderer.xr.setReferenceSpaceType('local-floor');
+      currentSession = session;
+    }
+    function onSessionEnded() {
+      currentSession.removeEventListener('end', onSessionEnded);
+      renderer.xr.setSession(null);
+      currentSession = null;
+    }
+    const sessionMode = 'immersive-vr';
+    const sessionOpts = {
+      requiredFeatures: [
+        'local-floor',
+        // 'bounded-floor',
+      ],
+      optionalFeatures: [
+        'hand-tracking',
+      ],
+    };
+    enterXrButton.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (currentSession === null) {
+        navigator.xr.requestSession(sessionMode, sessionOpts).then(onSessionStarted);
+      } else {
+        currentSession.end();
+      }
+    });
+    if (navigator.xr) {
+      navigator.xr.isSessionSupported(sessionMode)
+        .then(onSupported)
+        .catch(err => {
+          console.warn(err);
+        });
+    }
   }
   
   startLoop() {
@@ -297,50 +341,3 @@ export default class App {
     renderer.setAnimationLoop(animate);
   }
 }
-
-const _initializeXr = () => {
-  let currentSession = null;
-  function onSessionStarted(session) {
-    session.addEventListener('end', onSessionEnded);
-    renderer.xr.setSession(session);
-    // renderer.xr.setReferenceSpaceType('local-floor');
-    currentSession = session;
-  }
-  function onSessionEnded() {
-    currentSession.removeEventListener('end', onSessionEnded);
-    renderer.xr.setSession(null);
-    currentSession = null;
-  }
-  const sessionMode = 'immersive-vr';
-  const sessionOpts = {
-    requiredFeatures: [
-      'local-floor',
-      // 'bounded-floor',
-    ],
-    optionalFeatures: [
-      'hand-tracking',
-    ],
-  };
-  const enterXrButton = document.getElementById('enter-xr-button');
-  const noXrButton = document.getElementById('no-xr-button');
-  enterXrButton.addEventListener('click', e => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (currentSession === null) {
-      navigator.xr.requestSession(sessionMode, sessionOpts).then(onSessionStarted);
-    } else {
-      currentSession.end();
-    }
-  });
-  if (navigator.xr) {
-    navigator.xr.isSessionSupported(sessionMode).then(ok => {
-      if (ok) {
-        enterXrButton.style.display = null;
-        noXrButton.style.display = 'none';
-      }
-    }).catch(err => {
-      console.warn(err);
-    });
-  }
-};
-_initializeXr();
