@@ -10,9 +10,6 @@ import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
-// import {Bot} from './bot.js';
-// import {GuardianMesh} from './land.js';
-// import {storageHost} from './constants.js';
 import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
@@ -104,15 +101,10 @@ function animate(timestamp, frame) {
 
     if (rigManager.localRigMatrixEnabled) {
       localMatrix.copy(rigManager.localRigMatrix);
-      // .premultiply(localMatrix2.copy(this.matrix).invert())
-      // .toArray(xrState.poseMatrix);
     } else {
       localMatrix.copy(camera.matrixWorld);
-      // .copy(localMatrix).invert()
-      // .premultiply(localMatrix2.copy(this.matrix).invert())
-      // .toArray(xrState.poseMatrix);
     }
-    localMatrix // .fromArray(this.xrState.poseMatrix)
+    localMatrix
       .decompose(localVector, localQuaternion, localVector2);
 
     if (session) {
@@ -229,7 +221,6 @@ function animate(timestamp, frame) {
   localMatrix.multiplyMatrices(xrCamera.projectionMatrix, localMatrix2.multiplyMatrices(xrCamera.matrixWorldInverse, geometryManager.worldContainer.matrixWorld));
   localMatrix3.copy(xrCamera.matrix)
     .premultiply(dolly.matrix)
-    // .premultiply(localMatrix2.copy(geometryManager.worldContainer.matrixWorld).invert())
     .decompose(localVector, localQuaternion, localVector2);
 
   // high priority render
@@ -303,13 +294,11 @@ const _initializeXr = () => {
     renderer.xr.setSession(session);
     // renderer.xr.setReferenceSpaceType('local-floor');
     currentSession = session;
-    // setState({ isXR: true })
   }
   function onSessionEnded() {
     currentSession.removeEventListener('end', onSessionEnded);
     renderer.xr.setSession(null);
     currentSession = null;
-    // setState({ isXR: false });
   }
   const sessionMode = 'immersive-vr';
   const sessionOpts = {
