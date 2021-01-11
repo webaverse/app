@@ -235,6 +235,15 @@ deployMesh.rotation.order = 'YXZ';
 deployMesh.savedRotation = deployMesh.rotation.clone();
 scene.add(deployMesh);
 
+let selectedLoadoutIndex = -1;
+let selectedLoadoutObject = null;
+const _updateLoadout = () => {
+  for (let i = 0; i < loadoutItems.length; i++) {
+    const itemEl = loadoutItems[i];
+    itemEl.classList.toggle('selected', i === selectedLoadoutIndex);
+  }
+};
+
 const _use = () => {
   if (weaponsManager.getMenu() === 3) {
     const itemSpec = itemSpecs3[selectedItemIndex];
@@ -255,7 +264,7 @@ const _use = () => {
     weaponsManager.setMenu(0);
     cameraManager.requestPointerLock();
   } else if (highlightedObject && !editedObject) {
-    ioManager.currentWeaponGrabs[0] = true;
+    // ioManager.currentWeaponGrabs[0] = true;
     _grab(highlightedObject);
     highlightedObject = null;
     
@@ -265,7 +274,8 @@ const _use = () => {
     const itemSpec = itemSpecs1[selectedItemIndex];
     itemSpec.cb();
   } else if (weaponsManager.getMenu() === 2) {
-    const itemSpec = itemSpecs2[selectedItemIndex];
+    const inventory = loginManager.getInventory();
+    const itemSpec = inventory[selectedItemIndex];
 
     world.addObject(itemSpec.id, null, deployMesh.position, deployMesh.quaternion);
 
@@ -483,6 +493,11 @@ const _grab = object => {
   } else {
     appManager.grabbedObjectOffsets[0] = distance;
   }
+};
+const _ungrab = () => {
+  // _snapRotation(appManager.grabbedObjects[0], rotationSnap);
+  appManager.grabbedObjects[0] = null;
+  _updateMenu();
 };
 
 const crosshairEl = document.querySelector('.crosshair');
@@ -1187,7 +1202,6 @@ for (let i = 0; i < itemSpecs1.length; i++) {
   });
   items1El.appendChild(div);
 }
-let itemSpecs2;
 
 let selectedItemIndex = 0;
 const _selectItem = newSelectedItemIndex => {
@@ -1261,9 +1275,13 @@ const keyTab5El = document.getElementById('key-tab-5');
     e.stopPropagation();
 
     if (appManager.grabbedObjects[0]) {
-      _snapRotation(appManager.grabbedObjects[0], rotationSnap);
-      appManager.grabbedObjects[0] = null;
-      _updateMenu();
+      if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
+        selectedLoadoutIndex = -1;
+        selectedLoadoutObject = null;
+        _updateLoadout();
+      }
+
+      _ungrab();
     } else if (editedObject) {
       if (editedObject.isBuild && editedObject.getShapes().length === 0) {
         world.removeObject(editedObject.instanceId);
@@ -1422,12 +1440,10 @@ const loadoutEl = document.getElementById('loadout');
 const itemsEls = Array.from(loadoutEl.querySelectorAll('.item'));
 (async () => {
   await loginManager.waitForLoad();
-  const loadout = loginManager.getLoadout();
 
-  itemSpecs2 = await loginManager.getInventory();
-
-  for (let i = 0; i < itemSpecs2.length; i++) {
-    const itemSpec = itemSpecs2[i];
+  const inventory = loginManager.getInventory();
+  for (let i = 0; i < inventory.length; i++) {
+    const itemSpec = inventory[i];
     const div = document.createElement('div');
     div.classList.add('item');
     div.innerHTML = `
@@ -1451,7 +1467,11 @@ const itemsEls = Array.from(loadoutEl.querySelectorAll('.item'));
     });
     items2El.appendChild(div);
   }
+})();
+(async () => {
+  await loginManager.waitForLoad();
 
+  const loadout = loginManager.getLoadout();
   for (let i = 0; i < loadout.length; i++) {
     const item = loadout[i];
     const itemEl = itemsEls[i];
@@ -1657,11 +1677,42 @@ const weaponsManager = {
     }
   },
   selectLoadout(index) {
-    for (const itemEl of loadoutItems) {
-      itemEl.classList.remove('selected');
+    if (index !== selectedLoadoutIndex) {
+      selectedLoadoutIndex = index;
+    } else {
+      selectedLoadoutIndex = -1;
     }
-    const itemEl = loadoutItems[index];
-    itemEl.classList.add('selected');
+    _updateLoadout();
+
+    (async () => {
+      if (selectedLoadoutObject) {
+        if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
+          _ungrab();
+        }
+        
+        world.removeObject(selectedLoadoutObject.instanceId);
+        selectedLoadoutObject = null;
+      }
+
+      const loadout = loginManager.getLoadout();
+      const item = loadout[selectedLoadoutIndex];
+      if (item) {
+        const [contentId] = item;
+        let id = parseInt(contentId, 10);
+        if (isNaN(id)) {
+          id = contentId;
+        }
+        selectedLoadoutObject = await world.addObject(id, null, new THREE.Vector3(), new THREE.Quaternion());
+        const transforms = rigManager.getRigTransforms();
+        const {position, quaternion} = transforms[0];
+        selectedLoadoutObject.position.copy(position);
+        selectedLoadoutObject.quaternion.copy(quaternion);
+
+        _grab(selectedLoadoutObject);
+
+        weaponsManager.setMenu(0);
+      }
+    })().catch(console.warn);
   },
   canToggleAxis() {
     return !!appManager.grabbedObjects[0] || (editedObject && editedObject.isBuild);
