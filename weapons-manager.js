@@ -45,6 +45,7 @@ const keyTab3El = document.getElementById('key-tab-3');
 const keyTab4El = document.getElementById('key-tab-4');
 const keyTab5El = document.getElementById('key-tab-5');
 const loadoutEl = document.getElementById('loadout');
+const itemsEls = Array.from(document.querySelectorAll('#loadout .item'));
 const menu1El = document.getElementById('menu-1');
 const menu2El = document.getElementById('menu-2');
 const menu3El = document.getElementById('menu-3');
@@ -1334,7 +1335,6 @@ const bindInterface = () => {
     });
   });
 
-  const itemsEls = Array.from(loadoutEl.querySelectorAll('.item'));
   (async () => {
     await loginManager.waitForLoad();
 
