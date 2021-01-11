@@ -204,17 +204,6 @@ for (const handMesh of handMeshes) {
   return geometry;
 })(); */
 
-/* const rayMesh = makeRayMesh();
-scene.add(rayMesh);
-
-const highlightScene = new THREE.Scene();
-const highlightMesh = makeHighlightMesh();
-highlightScene.add(highlightMesh);
-
-const wristMenu = makeWristMenu({scene, ray: rayMesh, highlightMesh, addPackage: _addPackage});
-wristMenu.position.y = 1;
-scene.add(wristMenu); */
-
 const itemMeshes = [];
 const addItem = async (position, quaternion) => {
   const u = 'assets/mat.glb';
