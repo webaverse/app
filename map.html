@@ -41,8 +41,6 @@
   (async () => {
     const app = new App();
     await app.waitForLoad();
-    // app.bootstrapFromUrl(location);
-    // app.startLoop();
 
     await world.addObject(`https://webaverse.github.io/street/index.js`, null, new THREE.Vector3(), new THREE.Quaternion());
     
