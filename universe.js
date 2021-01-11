@@ -20,89 +20,6 @@ const localBox = new THREE.Box3();
 const localBox2 = new THREE.Box3();
 const localObject = new THREE.Object3D();
 
-const blueColor = 0x42a5f5;
-const greenColor = 0xaed581;
-
-/* const _makeLabelMesh = text => {
-  const w = 2;
-  const h = 0.3;
-  const textMesh = makeTextMesh(text, undefined, h, 'center', 'middle');
-  textMesh.color = 0xFFFFFF;
-  textMesh.sync();
-  {
-    const geometry = new THREE.CircleBufferGeometry(h/2, 32);
-    const img = new Image();
-    img.src = `assets/logo-circle.svg`;
-    img.crossOrigin = 'Anonymous';
-    img.onload = () => {
-      texture.needsUpdate = true;
-    };
-    img.onerror = err => {
-      console.warn(err.stack);
-    };
-    const texture = new THREE.Texture(img);
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      side: THREE.DoubleSide,
-    });
-    const avatarMesh = new THREE.Mesh(geometry, material);
-    avatarMesh.position.x = -w/2;
-    avatarMesh.position.y = -0.02;
-    textMesh.add(avatarMesh);
-  }
-  {
-    const roundedRectShape = new THREE.Shape();
-    ( function roundedRect( ctx, x, y, width, height, radius ) {
-      ctx.moveTo( x, y + radius );
-      ctx.lineTo( x, y + height - radius );
-      ctx.quadraticCurveTo( x, y + height, x + radius, y + height );
-      ctx.lineTo( x + width - radius, y + height );
-      ctx.quadraticCurveTo( x + width, y + height, x + width, y + height - radius );
-      ctx.lineTo( x + width, y + radius );
-      ctx.quadraticCurveTo( x + width, y, x + width - radius, y );
-      ctx.lineTo( x + radius, y );
-      ctx.quadraticCurveTo( x, y, x, y + radius );
-    } )( roundedRectShape, 0, 0, w, h, h/2 );
-
-    const extrudeSettings = {
-      steps: 2,
-      depth: 0,
-      bevelEnabled: false,
-    };
-    const geometry = BufferGeometryUtils.mergeBufferGeometries([
-      new THREE.CircleBufferGeometry(0.13, 32)
-        .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -0.02, -0.01)).toNonIndexed(),
-      new THREE.ExtrudeBufferGeometry( roundedRectShape, extrudeSettings )
-        .applyMatrix4(new THREE.Matrix4().makeTranslation(-w/2, -h/2 - 0.02, -0.02)),
-    ]);
-    const material2 = new THREE.LineBasicMaterial({
-      color: 0x000000,
-      transparent: true,
-      opacity: 0.5,
-      side: THREE.DoubleSide,
-    });
-    const nametagMesh2 = new THREE.Mesh(geometry, material2);
-    textMesh.add(nametagMesh2);
-  }
-  return textMesh;
-};
-const worldObjects = universeSpecs.parcels.map(spec => {
-  const guardianMesh = GuardianMesh(spec.extents, blueColor);
-  guardianMesh.name = spec.name;
-  guardianMesh.extents = spec.extents;
-  const worldObject = minimap.addWorld(spec.extents);
-  guardianMesh.worldObject = worldObject;
-  scene.add(guardianMesh);
-
-  const labelMesh = _makeLabelMesh(spec.name);
-  labelMesh.position.x = (spec.extents[0]+spec.extents[3])/2;
-  labelMesh.position.y = spec.extents[4] + 1;
-  labelMesh.position.z = (spec.extents[2]+spec.extents[5])/2;
-  guardianMesh.add(labelMesh);
-
-  return guardianMesh;
-}); */
-
 const warpMesh = (() => {
   const boxGeometry = new THREE.BoxBufferGeometry(0.1, 0.1, 1);
   const numBoxes = 3000;
@@ -174,8 +91,6 @@ warpMesh.visible = false;
 scene.add(warpMesh);
 
 let currentWorld = null;
-// let highlightedWorld = null;
-// let animation = null;
 const _getCurrentCoord = (p, v) => v.set(
   Math.floor(p.x),
   Math.floor(p.y),
@@ -191,81 +106,7 @@ const clearWorld = () => {
     world.removeObject(object.instanceId);
   }
 };
-/* const loadDefaultWorld = async () => {
-  const res = await fetch(homeScnUrl);
-  const homeScn = await res.json();
-  await Promise.all(homeScn.objects.map(async objectSpec => {
-    const position = objectSpec.position ? new THREE.Vector3().fromArray(objectSpec.position) : new THREE.Vector3();
-    const quaternion = objectSpec.quaternion ? new THREE.Quaternion().fromArray(objectSpec.quaternion) : new THREE.Quaternion();
-    // const scale = objectSpec.scale ? new THREE.Vector3().fromArray(objectSpec.scale) : new THREE.Vector3();
-    const {physics, physics_url, dynamic} = objectSpec;
-    await world[dynamic ? 'addObject' : 'addStaticObject'](objectSpec.start_url, null, position, quaternion, {
-      physics,
-      physics_url,
-    });
-  }));
-}; */
 const update = () => {
-  /* const oldWorld = highlightedWorld;
-
-  const _parseParcelSpec = spec => localBox.set(localVector.fromArray(spec.extents, 0), localVector2.fromArray(spec.extents, 3));
-  const intersectionIndex = universeSpecs.parcels.findIndex(spec =>
-  	_parseParcelSpec(spec)
-  	  .containsPoint(rigManager.localRig.inputs.hmd.position)
-  );
-  const intersection = universeSpecs.parcels[intersectionIndex];
-  if (intersection) {
-    highlightedWorld = worldObjects[intersectionIndex];
-  } else {
-  	highlightedWorld = null;
-  } */
-
-  /* if (highlightedWorld !== oldWorld) {
-    const objects = world.getObjects();
-    for (const object of objects) {
-      world.removeObject(object.instanceId);
-    }
-
-    if (highlightedWorld) {
-      const u = `https://avaer.github.io/physicscube/index.js`;
-      const center = _parseUniverseSpec(intersection).getCenter(localVector);
-      world.addObject(u, null, center, new THREE.Quaternion());
-    }
-  } */
-
-  /* for (const worldObject of worldObjects) {
-    worldObject.material.uniforms.uColor.value.setHex(blueColor);
-  }
-  if (highlightedWorld) {
-  	highlightedWorld.material.uniforms.uColor.value.setHex(greenColor);
-  } */
-
-  // _getCurrentCoord(rigManager.localRig.inputs.hmd.position, localVector);
-  // weaponsManager.setWorld(localVector, highlightedWorld);
-
-  /* if (animation) {
-    const now = Date.now();
-    let f = Math.min((now - animation.startTime) / (animation.endTime - animation.startTime), 1);
-    const initialF = f;
-    if (f < 0.5) {
-      f *= 2;
-      f = 1-f;
-    } else {
-      f -= 0.5;
-      f *= 2;
-    }
-    const v = animation.startValue*(1-f) + animation.endValue*f;
-    renderer.domElement.style.filter = `brightness(${v})`;
-    if (initialF >= 0.5 && animation.onmid) {
-      animation.onmid();
-      animation.onmid = null;
-    }
-    if (initialF >= 1) {
-      renderer.domElement.style.filter = null;
-      animation = null;
-    }
-  } */
-
   if (warpMesh.visible) {
     warpMesh.material.uniforms.uTime.value = (Date.now() % 2000) / 2000;
     warpMesh.material.uniforms.uTime.needsUpdate = true;
@@ -482,7 +323,6 @@ window.addEventListener('popstate', e => {
 });
 
 export {
-  // loadDefaultWorld,
   update,
   enterWorld,
   pushUrl,
