@@ -518,29 +518,6 @@ class LoginManager extends EventTarget {
       const address = this.getAddress();
       const res = await fetch(`${tokensHost}/${address}`);
       const tokens = await res.json();
-      /* const contractSource = await getContractSource('getHashes.cdc');
-
-      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-        method: 'POST',
-        body: JSON.stringify({
-          limit: 100,
-          script: contractSource
-            .replace(/ARG0/g, '0x' + loginToken.addr),
-          wait: true,
-        }),
-      });
-      const response2 = await res.json();
-
-      const entries = response2.encodedData.value.map(({value: {fields}}) => {
-        const id = parseInt(fields.find(field => field.name === 'id').value.value, 10);
-        const hash = fields.find(field => field.name === 'hash').value.value;
-        const filename = fields.find(field => field.name === 'filename').value.value;
-        const balance = parseInt(fields.find(field => field.name === 'balance').value.value, 10);
-        const match = filename.match(/\.([^\.]+)$/);
-        const ext = match ? match[1] : 'bin';
-        const preview = `https://preview.exokit.org/${hash.slice(2)}.${ext}/preview.${previewExt}`;
-        return {id, hash, filename, balance, preview};
-      }); */
       return tokens;
     } else {
       return [];
