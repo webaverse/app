@@ -4,7 +4,6 @@ import * as notifications from './notifications.js';
 import {parseQuery, bindUploadFileButton, getExt} from './util.js';
 
 const ftu = document.getElementById('ftu');
-const ftuUsername = document.getElementById('ftu-username');
 
 let ftuPhase;
 export async function tryTutorial() {
@@ -49,6 +48,7 @@ export async function tryTutorial() {
   ftuUsername.select(); */
 }
 
+const ftuUsername = document.getElementById('ftu-username');
 ftuUsername.addEventListener('keydown', e => {
   if (e.which === 13) {
     _nextPhase();
@@ -56,7 +56,7 @@ ftuUsername.addEventListener('keydown', e => {
 });
 
 const avatarGrid = document.getElementById('avatar-grid');
-const avatarGridUpload = avatarGrid.querySelector('.avatar.upload');
+const avatarGridUpload = document.querySelector('#avatar-grid .avatar.upload');
 let selectedAvatar = '';
 const avatarDivs = [
   'male.vrm',
