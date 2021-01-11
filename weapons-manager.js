@@ -900,7 +900,7 @@ const _updateWeapons = () => {
   }
 }); */
 
-const wheel = document.createElement('div');
+/* const wheel = document.createElement('div');
 wheel.style.cssText = `
   display: none;
   position: absolute;
@@ -943,7 +943,7 @@ const wheelDotCanvas = (() => {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   return canvas;
 })();
-document.body.appendChild(wheelDotCanvas);
+document.body.appendChild(wheelDotCanvas); */
 
 /* let wheelReady = false;
 Promise.all([
@@ -952,7 +952,7 @@ Promise.all([
 ]).then(() => {
   wheelReady = true;
 }); */
-let wheelReady = true;
+/* let wheelReady = true;
 const _renderWheel = (() => {
   let lastSelectedSlice = 0;
   return selectedSlice => {
@@ -986,7 +986,7 @@ const _renderWheel = (() => {
       lastSelectedSlice = selectedSlice;
     }
   };
-})();
+})(); */
 
 const items1El = document.getElementById('items-1');
 const items2El = document.getElementById('items-2');
