@@ -52,62 +52,6 @@ let xrsceneplane = null;
 let xrscenecam = null;
 let xrscene = null;
 
-function mod(a, b) {
-  return ((a % b) + b) % b;
-}
-
-const parcelSize = 10;
-const parcelGeometry = (() => {
-  const tileGeometry = new THREE.PlaneBufferGeometry(1, 1)
-    .applyMatrix4(localMatrix.makeScale(0.95, 0.95, 1))
-    .applyMatrix4(localMatrix.makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)))
-    .toNonIndexed();
-  const numCoords = tileGeometry.attributes.position.array.length;
-  const numVerts = numCoords / 3;
-  const positions = new Float32Array(numCoords * parcelSize * parcelSize);
-  const centers = new Float32Array(numCoords * parcelSize * parcelSize);
-  const typesx = new Float32Array(numVerts * parcelSize * parcelSize);
-  const typesz = new Float32Array(numVerts * parcelSize * parcelSize);
-  let i = 0;
-  for (let x = -parcelSize / 2 + 0.5; x < parcelSize / 2; x++) {
-    for (let z = -parcelSize / 2 + 0.5; z < parcelSize / 2; z++) {
-      const newTileGeometry = tileGeometry.clone()
-        .applyMatrix4(localMatrix.makeTranslation(x, 0, z));
-      positions.set(newTileGeometry.attributes.position.array, i * newTileGeometry.attributes.position.array.length);
-      for (let j = 0; j < newTileGeometry.attributes.position.array.length / 3; j++) {
-        localVector.set(x, 0, z).toArray(centers, i * newTileGeometry.attributes.position.array.length + j * 3);
-      }
-      let typex = 0;
-      if (mod((x + parcelSize / 2 - 0.5), parcelSize) === 0) {
-        typex = 1 / 8;
-      } else if (mod((x + parcelSize / 2 - 0.5), parcelSize) === parcelSize - 1) {
-        typex = 2 / 8;
-      }
-      let typez = 0;
-      if (mod((z + parcelSize / 2 - 0.5), parcelSize) === 0) {
-        typez = 1 / 8;
-      } else if (mod((z + parcelSize / 2 - 0.5), parcelSize) === parcelSize - 1) {
-        typez = 2 / 8;
-      }
-      for (let j = 0; j < numVerts; j++) {
-        typesx[i * numVerts + j] = typex;
-        typesz[i * numVerts + j] = typez;
-      }
-      i++;
-    }
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  /* geometry.setAttribute('center', new THREE.BufferAttribute(centers, 3));
-  geometry.setAttribute('typex', new THREE.BufferAttribute(typesx, 1));
-  geometry.setAttribute('typez', new THREE.BufferAttribute(typesz, 1)); */
-  return geometry;
-})();
-const highlightMesh = makeHighlightMesh();
-highlightMesh.visible = false;
-scene.add(highlightMesh);
-const anchorMeshes = [];
-
 const q = parseQuery(location.search);
 let loaded = false;
 (async () => {
@@ -388,31 +332,6 @@ function animate(timestamp, frame) {
     rigManager.update();
   };
   _updateRig();
-
-  const _updateAnchors = () => {
-    const transforms = rigManager.getRigTransforms();
-    const {position, quaternion} = transforms[0];
-
-    highlightMesh.visible = false;
-    for (const anchorMesh of anchorMeshes) {
-      localMatrix.compose(position, quaternion, localVector2.set(1, 1, 1))
-        .premultiply(localMatrix2.copy(anchorMesh.matrixWorld).invert())
-        .decompose(localVector, localQuaternion, localVector2);
-      localVector3.set(0, 0, -1)
-        .applyQuaternion(localQuaternion);
-      localRay.set(localVector, localVector3);
-      const intersection = localRay.intersectBox(anchorMesh.geometry.boundingBox, localVector4);
-      if (intersection) {
-        highlightMesh.position.copy(anchorMesh.position)
-          .add(anchorMesh.geometry.boundingBox.getCenter(localVector4).applyQuaternion(anchorMesh.quaternion));
-        highlightMesh.quaternion.copy(anchorMesh.quaternion);
-        anchorMesh.geometry.boundingBox.getSize(highlightMesh.scale);
-        highlightMesh.visible = true;
-        break;
-      }
-    }
-  };
-  _updateAnchors();
 
   weaponsManager.update();
 
