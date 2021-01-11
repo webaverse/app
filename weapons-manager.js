@@ -30,6 +30,45 @@ const localMatrix2 = new THREE.Matrix4();
 const localColor = new THREE.Color();
 const localBox = new THREE.Box3();
 
+const items1El = document.getElementById('items-1');
+const items2El = document.getElementById('items-2');
+const items3El = document.getElementById('items-3');
+const items4El = document.getElementById('items-4');
+const itemsDetails1El = document.getElementById('items-details-1');
+const itemsDetails2El = document.getElementById('items-details-2');
+const itemsDetails3El = document.getElementById('items-details-3');
+const itemsDetails4El = document.getElementById('items-details-4');
+const keyTabEl = document.getElementById('key-tab');
+const keyTab1El = document.getElementById('key-tab-1');
+const keyTab2El = document.getElementById('key-tab-2');
+const keyTab3El = document.getElementById('key-tab-3');
+const keyTab4El = document.getElementById('key-tab-4');
+const keyTab5El = document.getElementById('key-tab-5');
+const loadoutEl = document.getElementById('loadout');
+const menu1El = document.getElementById('menu-1');
+const menu2El = document.getElementById('menu-2');
+const menu3El = document.getElementById('menu-3');
+const menu4El = document.getElementById('menu-4');
+const unmenuEl = document.getElementById('unmenu');
+const objectMenuEl = document.getElementById('object-menu');
+const grabMenuEl = document.getElementById('grab-menu');
+const editMenuEl = document.getElementById('edit-menu');
+const locationLabel = document.getElementById('location-label');
+const profileLabel = document.getElementById('profile-label');
+const itemLabel = document.getElementById('item-label');
+const grabLabel = document.getElementById('grab-label');
+const editLabel = document.getElementById('edit-label');
+const locationIcon = document.getElementById('location-icon');
+const profileIcon = document.getElementById('profile-icon');
+const itemIcon = document.getElementById('item-icon');
+const itemMonetizedIcon = document.getElementById('item-monetized-icon');
+const grabIcon = document.getElementById('grab-icon');
+const editIcon = document.getElementById('edit-icon');
+const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
+const gridSnapEl = document.getElementById('grid-snap');
+const tabs = Array.from(document.querySelectorAll('#profile-icon .navs > .nav'));
+const uploadFileInput = document.getElementById('upload-file-input');
+
 const addMesh = (() => {
   const geometry = BufferGeometryUtils.mergeBufferGeometries([
     new THREE.BoxBufferGeometry(0.1, 0.1, 0.1),
@@ -397,54 +436,56 @@ const _upload = () => {
   uploadFileInput.click();
 };
 
-world.addEventListener('trackedobjectadd', async e => {
-  const {trackedObject, dynamic} = e.data;
-  if (dynamic) {
-    const trackedObjectJson = trackedObject.toJSON();
-    const {contentId, instanceId} = trackedObjectJson;
+if (items4El) {
+  world.addEventListener('trackedobjectadd', async e => {
+    const {trackedObject, dynamic} = e.data;
+    if (dynamic) {
+      const trackedObjectJson = trackedObject.toJSON();
+      const {contentId, instanceId} = trackedObjectJson;
 
-    const div = document.createElement('a');
-    div.classList.add('item');
-    div.setAttribute('href', contentId);
-    div.setAttribute('instanceid', instanceId);
-    div.innerHTML = `
-      <div class=card>
-        <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
-      </div>
-      <div class=name></div>
-      <div class="key-helpers">
-        <div class="key-helper progress">
-          <div class=bar></div>
-          <div class=key>E</div>
-          <div class=label>Grab</div>
+      const div = document.createElement('a');
+      div.classList.add('item');
+      div.setAttribute('href', contentId);
+      div.setAttribute('instanceid', instanceId);
+      div.innerHTML = `
+        <div class=card>
+          <img src="${'https://preview.exokit.org/[https://raw.githubusercontent.com/avaer/vrm-samples/master/vroid/male.vrm]/preview.png'}">
         </div>
-        <div class="key-helper">
-          <div class=key>X</div>
-          <div class=label>Delete</div>
+        <div class=name></div>
+        <div class="key-helpers">
+          <div class="key-helper progress">
+            <div class=bar></div>
+            <div class=key>E</div>
+            <div class=label>Grab</div>
+          </div>
+          <div class="key-helper">
+            <div class=key>X</div>
+            <div class=label>Delete</div>
+          </div>
         </div>
-      </div>
-    `;
-    const name = div.querySelector('.name');
-    name.innerText = contentId;
-    div.addEventListener('click', e => {
-      _use();
-    });
-    div.addEventListener('mouseenter', e => {
-      const i = Array.from(items4El.childNodes).indexOf(div);
-      selectedItemIndex = i;
-      _updateMenu();
-    });
-    items4El.appendChild(div);
-  }
-});
-world.addEventListener('trackedobjectremove', async e => {
-  const {trackedObject, dynamic} = e.data;
-  if (dynamic) {
-    const instanceId = trackedObject.get('instanceId');
-    const itemEl = items4El.querySelector(`.item[instanceid="${instanceId}"]`);
-    items4El.removeChild(itemEl);
-  }
-});
+      `;
+      const name = div.querySelector('.name');
+      name.innerText = contentId;
+      div.addEventListener('click', e => {
+        _use();
+      });
+      div.addEventListener('mouseenter', e => {
+        const i = Array.from(items4El.childNodes).indexOf(div);
+        selectedItemIndex = i;
+        _updateMenu();
+      });
+      items4El.appendChild(div);
+    }
+  });
+  world.addEventListener('trackedobjectremove', async e => {
+    const {trackedObject, dynamic} = e.data;
+    if (dynamic) {
+      const instanceId = trackedObject.get('instanceId');
+      const itemEl = items4El.querySelector(`.item[instanceid="${instanceId}"]`);
+      items4El.removeChild(itemEl);
+    }
+  });
+}
 
 const maxDistance = 10;
 const maxGrabDistance = 1.5;
@@ -908,45 +949,6 @@ const _snapRotation = (o, rotationSnap) => {
   o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
   o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
 };
-
-const items1El = document.getElementById('items-1');
-const items2El = document.getElementById('items-2');
-const items3El = document.getElementById('items-3');
-const items4El = document.getElementById('items-4');
-const itemsDetails1El = document.getElementById('items-details-1');
-const itemsDetails2El = document.getElementById('items-details-2');
-const itemsDetails3El = document.getElementById('items-details-3');
-const itemsDetails4El = document.getElementById('items-details-4');
-const keyTabEl = document.getElementById('key-tab');
-const keyTab1El = document.getElementById('key-tab-1');
-const keyTab2El = document.getElementById('key-tab-2');
-const keyTab3El = document.getElementById('key-tab-3');
-const keyTab4El = document.getElementById('key-tab-4');
-const keyTab5El = document.getElementById('key-tab-5');
-const loadoutEl = document.getElementById('loadout');
-const menu1El = document.getElementById('menu-1');
-const menu2El = document.getElementById('menu-2');
-const menu3El = document.getElementById('menu-3');
-const menu4El = document.getElementById('menu-4');
-const unmenuEl = document.getElementById('unmenu');
-const objectMenuEl = document.getElementById('object-menu');
-const grabMenuEl = document.getElementById('grab-menu');
-const editMenuEl = document.getElementById('edit-menu');
-const locationLabel = document.getElementById('location-label');
-const profileLabel = document.getElementById('profile-label');
-const itemLabel = document.getElementById('item-label');
-const grabLabel = document.getElementById('grab-label');
-const editLabel = document.getElementById('edit-label');
-const locationIcon = document.getElementById('location-icon');
-const profileIcon = document.getElementById('profile-icon');
-const itemIcon = document.getElementById('item-icon');
-const itemMonetizedIcon = document.getElementById('item-monetized-icon');
-const grabIcon = document.getElementById('grab-icon');
-const editIcon = document.getElementById('edit-icon');
-const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
-const gridSnapEl = document.getElementById('grid-snap');
-const tabs = Array.from(document.querySelectorAll('#profile-icon .navs > .nav'));
-const uploadFileInput = document.getElementById('upload-file-input');
 
 let lastSelectedBuild = -1;
 let lastCameraFocus = -1;
