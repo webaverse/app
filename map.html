@@ -35,9 +35,11 @@
   scene.add(directionalLight2); */
   
   renderer.setSize(width, height);
-  renderer.setPixelRatio(1);
+  renderer.setPixelRatio(2);
 
   // const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
+  camera.aspect = width/height;
+  camera.updateProjectionMatrix();
   camera.position.copy(cameraPosition);
   camera.lookAt(cameraTarget);
 
@@ -53,7 +55,7 @@
     setTimeout(() => {
       app.render();
       
-      document.body.appendChild(renderer.domElement);
+      // document.body.appendChild(renderer.domElement);
 
       const canvas = document.createElement('canvas');
       canvas.width = width;
