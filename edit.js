@@ -215,12 +215,7 @@ const wristMenu = makeWristMenu({scene, ray: rayMesh, highlightMesh, addPackage:
 wristMenu.position.y = 1;
 scene.add(wristMenu); */
 
-/* const _getCurrentParcel = p => new THREE.Vector3(
-  Math.floor((p.x+5)/10),
-  0,
-  Math.floor((p.z+5)/10),
-);
-let planetAnimation = null;
+/* let planetAnimation = null;
 const _animatePlanet = (startMatrix, pivot, startQuaternion, endQuaternion) => {
   const startTime = Date.now();
   const endTime = startTime + 300;
