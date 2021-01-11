@@ -267,7 +267,8 @@ const _use = () => {
     const itemSpec = itemSpecs1[selectedItemIndex];
     itemSpec.cb();
   } else if (weaponsManager.getMenu() === 2) {
-    const itemSpec = itemSpecs2[selectedItemIndex];
+    const inventory = loginManager.getInventory();
+    const itemSpec = inventory[selectedItemIndex];
 
     world.addObject(itemSpec.id, null, deployMesh.position, deployMesh.quaternion);
 
@@ -1189,7 +1190,6 @@ for (let i = 0; i < itemSpecs1.length; i++) {
   });
   items1El.appendChild(div);
 }
-let itemSpecs2;
 
 let selectedItemIndex = 0;
 const _selectItem = newSelectedItemIndex => {
@@ -1424,12 +1424,10 @@ const loadoutEl = document.getElementById('loadout');
 const itemsEls = Array.from(loadoutEl.querySelectorAll('.item'));
 (async () => {
   await loginManager.waitForLoad();
-  const loadout = loginManager.getLoadout();
 
-  itemSpecs2 = await loginManager.getInventory();
-
-  for (let i = 0; i < itemSpecs2.length; i++) {
-    const itemSpec = itemSpecs2[i];
+  const inventory = loginManager.getInventory();
+  for (let i = 0; i < inventory.length; i++) {
+    const itemSpec = inventory[i];
     const div = document.createElement('div');
     div.classList.add('item');
     div.innerHTML = `
@@ -1453,7 +1451,11 @@ const itemsEls = Array.from(loadoutEl.querySelectorAll('.item'));
     });
     items2El.appendChild(div);
   }
+})();
+(async () => {
+  await loginManager.waitForLoad();
 
+  const loadout = loginManager.getLoadout();
   for (let i = 0; i < loadout.length; i++) {
     const item = loadout[i];
     const itemEl = itemsEls[i];
