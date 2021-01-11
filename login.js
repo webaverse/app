@@ -326,18 +326,13 @@ class LoginManager extends EventTarget {
   constructor() {
     super();
 
-    this.loadPromise = makePromise();
-
-    this.init();
-  }
-
-  async init() {
-    await tryLogin();
-
-    this.loadPromise.accept();
+    this.loadPromise = null;
   }
 
   waitForLoad() {
+    if (!this.loadPromise) {
+      this.loadPromise = tryLogin();
+    }
     return this.loadPromise;
   }
 

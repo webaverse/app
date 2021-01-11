@@ -66,7 +66,10 @@ export default class App {
     ] = await Promise.all([
       this.waitForLoad(),
       loginManager.waitForLoad()
-        .then(() => tryTutorial()),
+        .then(() => {
+          tryTutorial();
+          rigManager.init();
+        }),
       world.getWorldJson(q.u),
     ]);
 
@@ -88,7 +91,6 @@ export default class App {
     }
     this.contentLoaded = true;
   }
-
   bindInterface() {
     weaponsManager.bindInterface();
   }

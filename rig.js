@@ -115,40 +115,36 @@ class RigManager {
     this.peerRigs = new Map();
     
     this.lastTimetamp = Date.now();
+  }
+  
+  init() {
+    // await loginManager.waitForLoad();
 
-    const _bindLogin = async () => {
-      await loginManager.waitForLoad();
+    const username = loginManager.getUsername() || 'Anonymous';
+    const avatarImage = loginManager.getAvatarPreview();
+    rigManager.setLocalAvatarName(username);
 
-      const username = loginManager.getUsername() || 'Anonymous';
-      const avatarImage = loginManager.getAvatarPreview();
-      rigManager.setLocalAvatarName(username);
-
-      loginManager.addEventListener('usernamechange', e => {
-        const username = e.data || 'Anonymous';
-        if (username !== rigManager.localRig.textMesh.text) {
-          rigManager.setLocalAvatarName(username);
-        }
-      });
-
-      const avatar = loginManager.getAvatar();
-      if (avatar.url) {
-        rigManager.setLocalAvatarUrl(avatar.url, avatar.ext);
+    loginManager.addEventListener('usernamechange', e => {
+      const username = e.data || 'Anonymous';
+      if (username !== rigManager.localRig.textMesh.text) {
+        rigManager.setLocalAvatarName(username);
       }
-      if (avatar.preview) {
+    });
+
+    const avatar = loginManager.getAvatar();
+    if (avatar.url) {
+      rigManager.setLocalAvatarUrl(avatar.url, avatar.ext);
+    }
+    if (avatar.preview) {
+      rigManager.setLocalAvatarImage(avatar.preview);
+    }
+    loginManager.addEventListener('avatarchange', e => {
+      const avatar = e.data;
+      const newAvatarUrl = avatar ? avatar.url : null;
+      if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
+        rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.ext);
         rigManager.setLocalAvatarImage(avatar.preview);
       }
-      loginManager.addEventListener('avatarchange', e => {
-        const avatar = e.data;
-        // console.log('got avatar', avatar);
-        const newAvatarUrl = avatar ? avatar.url : null;
-        if (newAvatarUrl !== rigManager.localRig.avatarUrl) {
-          rigManager.setLocalAvatarUrl(newAvatarUrl, avatar.ext);
-          rigManager.setLocalAvatarImage(avatar.preview);
-        }
-      });
-    };
-    _bindLogin().catch(err => {
-      console.warn(err);
     });
   }
 
