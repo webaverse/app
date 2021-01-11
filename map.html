@@ -10,14 +10,14 @@
 <script type=module>
   import * as THREE from './three.module.js';
   import App from './app.js';
-  import {camera, renderer} from './app-object.js';
+  import {camera, orthographicCamera, renderer} from './app-object.js';
   import {world} from './world.js';
   // import {homeScnUrl} from './constants.js';
 
   const width = 128;
   const height = 128;
-  const cameraPosition = new THREE.Vector3(0, 10, -2);
-  const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
+  const cameraPosition = new THREE.Vector3(0, 100, -2);
+  const cameraTarget = new THREE.Vector3(cameraPosition.x + 1, 0, cameraPosition.z - 5);
 
   /* const renderer = new THREE.WebGLRenderer({
     alpha: true,
@@ -37,12 +37,18 @@
   renderer.setSize(width, height);
   renderer.setPixelRatio(2);
 
-  // const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
   camera.aspect = width/height;
   camera.updateProjectionMatrix();
   camera.up.set(0, 0, -1);
-  // camera.position.copy(cameraPosition);
-  // camera.lookAt(cameraTarget);
+
+  orthographicCamera.left = -5;
+  orthographicCamera.right = 5;
+  orthographicCamera.top = 5;
+  orthographicCamera.bottom = -5;
+  orthographicCamera.near = 0;
+  orthographicCamera.far = 1000;
+  orthographicCamera.updateProjectionMatrix();
+  camera.projectionMatrix.copy(orthographicCamera.projectionMatrix);
 
   (async () => {
     const app = new App();
