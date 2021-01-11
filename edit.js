@@ -720,35 +720,6 @@ const addItem = async (position, quaternion) => {
     object.add(skirtMesh);
 
     let animation = null;
-    /* object.pickUp = () => {
-      if (!animation) {
-        skirtMesh.visible = false;
-
-        const now = Date.now();
-        const startTime = now;
-        const endTime = startTime + 1000;
-        const startPosition = object.position.clone();
-        animation = {
-          update(posePosition) {
-            const now = Date.now();
-            const factor = Math.min((now - startTime) / (endTime - startTime), 1);
-
-            if (factor < 0.5) {
-              const localFactor = factor / 0.5;
-              object.position.copy(startPosition)
-                .lerp(posePosition, cubicBezier(localFactor));
-            } else if (factor < 1) {
-              const localFactor = (factor - 0.5) / 0.5;
-              object.position.copy(posePosition);
-            } else {
-              object.parent.remove(object);
-              itemMeshes.splice(itemMeshes.indexOf(object), 1);
-              animation = null;
-            }
-          },
-        };
-      }
-    }; */
     object.update = posePosition => {
       if (!animation) {
         const now = Date.now();
