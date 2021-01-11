@@ -16,8 +16,8 @@
 
   const width = 512;
   const height = 512;
-  const cameraPosition = new THREE.Vector3(0, 1, -2);
-  const cameraTarget = new THREE.Vector3(0, 0, 0);
+  const cameraPosition = new THREE.Vector3(0, 10, -2);
+  const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
 
   /* const renderer = new THREE.WebGLRenderer({
     alpha: true,
@@ -40,8 +40,9 @@
   // const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
   camera.aspect = width/height;
   camera.updateProjectionMatrix();
-  camera.position.copy(cameraPosition);
-  camera.lookAt(cameraTarget);
+  camera.up.set(0, 0, -1);
+  // camera.position.copy(cameraPosition);
+  // camera.lookAt(cameraTarget);
 
   (async () => {
     const app = new App();
@@ -53,16 +54,23 @@
     // const camera = new THREE.OrthographicCamera();
 
     setTimeout(() => {
-      app.render();
-      
       // document.body.appendChild(renderer.domElement);
 
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(renderer.domElement, 0, 0, canvas.width, canvas.height);
-      document.body.appendChild(canvas);
+      for (let i = 0; i < 20; i++) {
+        const v = new THREE.Vector3(-100 + i*10, 0, 0);
+        camera.position.copy(cameraPosition).add(v);
+        camera.lookAt(cameraTarget.clone().add(v));
+
+        renderer.clear();
+        app.render();
+      
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(renderer.domElement, 0, 0, canvas.width, canvas.height);
+        document.body.appendChild(canvas);
+      }
     }, 1000);
 
     /* if (dst) {
