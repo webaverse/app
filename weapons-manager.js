@@ -237,7 +237,50 @@ scene.add(deployMesh);
 
 let selectedLoadoutIndex = -1;
 let selectedLoadoutObject = null;
-const _updateLoadout = () => {
+const _selectLoadout = index => {
+  if (index !== selectedLoadoutIndex) {
+    selectedLoadoutIndex = index;
+  } else {
+    selectedLoadoutIndex = -1;
+  }
+  _updateLoadoutInterface();
+
+  (async () => {
+    if (selectedLoadoutObject) {
+      if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
+        _ungrab();
+      }
+      
+      world.removeObject(selectedLoadoutObject.instanceId);
+      selectedLoadoutObject = null;
+    }
+
+    const loadout = loginManager.getLoadout();
+    const item = loadout[selectedLoadoutIndex];
+    if (item) {
+      const [contentId] = item;
+      let id = parseInt(contentId, 10);
+      if (isNaN(id)) {
+        id = contentId;
+      }
+      selectedLoadoutObject = await world.addObject(id, null, new THREE.Vector3(), new THREE.Quaternion());
+      const transforms = rigManager.getRigTransforms();
+      const {position, quaternion} = transforms[0];
+      selectedLoadoutObject.position.copy(position);
+      selectedLoadoutObject.quaternion.copy(quaternion);
+
+      _grab(selectedLoadoutObject);
+
+      weaponsManager.setMenu(0);
+    }
+  })().catch(console.warn);
+};
+const _deselectLoadout = () => {
+  selectedLoadoutIndex = -1;
+  selectedLoadoutObject = null;
+  _updateLoadoutInterface();
+};
+const _updateLoadoutInterface = () => {
   for (let i = 0; i < loadoutItems.length; i++) {
     const itemEl = loadoutItems[i];
     itemEl.classList.toggle('selected', i === selectedLoadoutIndex);
@@ -331,8 +374,12 @@ const _useRelease = () => {
 const _delete = () => {
   if (appManager.grabbedObjects[0]) {
     world.removeObject(appManager.grabbedObjects[0].instanceId);
-    appManager.grabbedObjects[0] = null;
-    _updateMenu();
+
+    if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
+      _deselectLoadout();
+    }
+
+    _ungrab();
   } else if (editedObject) {
     world.removeObject(editedObject.instanceId);
     editedObject = null;
@@ -1276,9 +1323,7 @@ const keyTab5El = document.getElementById('key-tab-5');
 
     if (appManager.grabbedObjects[0]) {
       if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
-        selectedLoadoutIndex = -1;
-        selectedLoadoutObject = null;
-        _updateLoadout();
+        _deselectLoadout();
       }
 
       _ungrab();
@@ -1677,42 +1722,7 @@ const weaponsManager = {
     }
   },
   selectLoadout(index) {
-    if (index !== selectedLoadoutIndex) {
-      selectedLoadoutIndex = index;
-    } else {
-      selectedLoadoutIndex = -1;
-    }
-    _updateLoadout();
-
-    (async () => {
-      if (selectedLoadoutObject) {
-        if (appManager.grabbedObjects[0] === selectedLoadoutObject) {
-          _ungrab();
-        }
-        
-        world.removeObject(selectedLoadoutObject.instanceId);
-        selectedLoadoutObject = null;
-      }
-
-      const loadout = loginManager.getLoadout();
-      const item = loadout[selectedLoadoutIndex];
-      if (item) {
-        const [contentId] = item;
-        let id = parseInt(contentId, 10);
-        if (isNaN(id)) {
-          id = contentId;
-        }
-        selectedLoadoutObject = await world.addObject(id, null, new THREE.Vector3(), new THREE.Quaternion());
-        const transforms = rigManager.getRigTransforms();
-        const {position, quaternion} = transforms[0];
-        selectedLoadoutObject.position.copy(position);
-        selectedLoadoutObject.quaternion.copy(quaternion);
-
-        _grab(selectedLoadoutObject);
-
-        weaponsManager.setMenu(0);
-      }
-    })().catch(console.warn);
+    _selectLoadout(index);
   },
   canToggleAxis() {
     return !!appManager.grabbedObjects[0] || (editedObject && editedObject.isBuild);
