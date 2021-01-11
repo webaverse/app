@@ -2,6 +2,7 @@ import * as THREE from './three.module.js';
 import {renderer, renderer2, camera, avatarCamera, dolly} from './app-object.js';
 import cameraManager from './camera-manager.js';
 import uiManager from './ui-manager.js';
+import {world} from './world.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
 import * as universe from './universe.js';
@@ -286,7 +287,7 @@ window.addEventListener('keydown', e => {
         ioManager.keys.forward = true;
         // weaponsManager.menuPush(-1);
       } else {
-        document.getElementById('key-f').click(); // fly
+        physicsManager.setFlyState(!physicsManager.getFlyState());
       }
       break;
     }
@@ -333,7 +334,8 @@ window.addEventListener('keydown', e => {
       // if (!_inputFocused()) {
         e.preventDefault();
         e.stopPropagation();
-        document.getElementById('key-t').click();
+        
+        world.toggleMic();
       // }
       break;
     }

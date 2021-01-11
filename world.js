@@ -509,7 +509,7 @@ const _unlatchMediaStream = async () => {
 };
 
 const micButton = document.getElementById('key-t');
-micButton.addEventListener('click', async e => {
+world.toggleMic = async () => {
   if (!animationMediaStream) {
     micButton.classList.add('enabled');
 
@@ -532,4 +532,8 @@ micButton.addEventListener('click', async e => {
 
     _unlatchMediaStream();
   }
+};
+micButton && micButton.addEventListener('click', async e => {
+  world.toggleMic()
+    .catch(console.warn);
 });
