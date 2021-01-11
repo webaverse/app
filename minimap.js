@@ -7,8 +7,7 @@ const localVector = new THREE.Vector3();
 const localEuler = new THREE.Euler();
 
 let mapRenderer, mapScene, mapCamera, mapCameraOffset, mapIndicator;
-const _initMap = () => {
-  const mapCanvas = document.getElementById('map-canvas');
+const init = mapCanvas => {
   mapRenderer = new THREE.WebGLRenderer({
     canvas: mapCanvas,
     antialias: true,
@@ -70,7 +69,6 @@ const _initMap = () => {
   })();
   mapScene.add(planeMesh);
 };
-_initMap();
 
 const objectGeometry = new THREE.BoxBufferGeometry(0.5, 0.5, 0.5);
 const objectMaterial = new THREE.MeshBasicMaterial({
@@ -138,6 +136,7 @@ const update = () => {
 
 const minimap = {
   update,
+  init,
   addObject(baseMesh) {
     const object = _makeObject(baseMesh);
     mapScene.add(object);
