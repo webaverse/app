@@ -993,9 +993,6 @@ function animate(timestamp, frame) {
   const _updateAnchors = () => {
     const transforms = rigManager.getRigTransforms();
     const {position, quaternion} = transforms[0];
-    /* rayMesh.position.copy(position);
-    rayMesh.quaternion.copy(quaternion);
-    rayMesh.scale.z = 10; */
 
     highlightMesh.visible = false;
     for (const anchorMesh of anchorMeshes) {
@@ -1070,11 +1067,6 @@ function animate(timestamp, frame) {
     _tickPlanetAnimation(factor);
   } */
 
-  /* const geometryEnabled = false;
-  if (geometryEnabled) {
-    geometryManager.update(timeDiff, frame);
-  } */
-
   appManager.tick(timestamp, frame);
   
   ioManager.updatePost();
@@ -1085,13 +1077,6 @@ function animate(timestamp, frame) {
     .premultiply(dolly.matrix)
     // .premultiply(localMatrix2.copy(geometryManager.worldContainer.matrixWorld).invert())
     .decompose(localVector, localQuaternion, localVector2);
-
-  /* if (geometryEnabled) {
-    const [landGroups, vegetationGroups, thingGroups] = geometryManager.geometryWorker.tickCull(geometryManager.tracker, localVector, localMatrix);
-    geometryManager.currentChunkMesh.geometry.groups = landGroups;
-    geometryManager.currentVegetationMesh.geometry.groups = vegetationGroups;
-    geometryManager.currentThingMesh.geometry.groups = thingGroups;
-  } */
 
   // high priority render
   renderer.render(scene3, camera);
