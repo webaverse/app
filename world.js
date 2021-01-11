@@ -6,7 +6,6 @@ import {loginManager} from './login.js';
 import runtime from './runtime.js';
 import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
-import minimap from './minimap.js';
 import {pointers} from './web-monetization.js';
 import {appManager, scene, scene3} from './app-object.js';
 import {
@@ -402,10 +401,6 @@ world.addEventListener('trackedobjectadd', async e => {
       trackedObject.observe(_observe);
       trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
 
-      // minimap
-      const minimapObject = minimap.addObject(mesh);
-      mesh.minimapObject = minimapObject;
-
       if (token && token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
         const monetizationPointer = token.owner.monetizationPointer;
         const ownerAddress = token.owner.address.toLowerCase();
@@ -438,9 +433,6 @@ world.addEventListener('trackedobjectremove', async e => {
     object.parent.remove(object);
     objects.splice(index, 1);
     trackedObject.unobserve();
-
-    // minimap
-    minimap.removeObject(object.minimapObject);
 
     world.dispatchEvent(new MessageEvent('objectremove', {
       data: object,

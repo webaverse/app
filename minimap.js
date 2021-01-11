@@ -2,6 +2,7 @@ import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {rigManager} from './rig.js';
 import {camera} from './app-object.js';
+import {world} from './world.js';
 
 const localVector = new THREE.Vector3();
 const localEuler = new THREE.Euler();
@@ -68,6 +69,16 @@ const init = mapCanvas => {
     return mesh;
   })();
   mapScene.add(planeMesh);
+  
+  world.addEventListener('objectadd', e => {
+    const mesh = e.data;
+    const minimapObject = minimap.addObject(mesh);
+    mesh.minimapObject = minimapObject;
+  });
+  world.addEventListener('objectremove', e => {
+    const mesh = e.data;
+    minimap.removeObject(mesh.minimapObject);
+  });
 };
 
 const objectGeometry = new THREE.BoxBufferGeometry(0.5, 0.5, 0.5);
