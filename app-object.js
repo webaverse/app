@@ -1,5 +1,4 @@
 import * as THREE from './three.module.js';
-// import {OrbitControls} from './OrbitControls.js';
 import {CSS3DRenderer} from './CSS3DRenderer.js';
 
 const canvas = document.getElementById('canvas');
@@ -58,8 +57,6 @@ const _addDefaultLights = (scene, shadowMap) => {
   directionalLight.position.set(1, 2, 3);
   scene.add(directionalLight);
   scene.directionalLight = directionalLight;
-  /* const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
-  scene.add(directionalLight2); */
   /* if (shadowMap) {
     const SHADOW_MAP_WIDTH = 1024;
     const SHADOW_MAP_HEIGHT = 1024;
@@ -75,12 +72,6 @@ const _addDefaultLights = (scene, shadowMap) => {
 };
 _addDefaultLights(scene, true);
 _addDefaultLights(avatarScene, false);
-
-/* const orbitControls = new OrbitControls(camera, canvas);
-orbitControls.screenSpacePanning = true;
-orbitControls.enableMiddleZoom = false;
-orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, camera.position.y, -3).applyQuaternion(camera.quaternion));
-orbitControls.update(); */
 
 const renderer2 = new CSS3DRenderer();
 renderer2.setSize(window.innerWidth, window.innerHeight);
@@ -135,12 +126,6 @@ class AppManager {
   getGrab(side) {
     return this.grabbedObjects[side === 'left' ? 1 : 0];
   }
-  /* grab(side, mesh) {
-    this.grabs[side === 'left' ? 0 : 1] = mesh;
-  }
-  release(side) {
-    this.grabs[side === 'left' ? 0 : 1] = null;
-  } */
   tick() {
     for (const al of this.animationLoops) {
       al.fn.apply(null, arguments);
