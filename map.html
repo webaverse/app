@@ -4,7 +4,7 @@
   <link rel=stylesheet type='text/css' href="bake.css">
 </head>
 <body>
-  <canvas id=canvas></canvas>
+  <div id=container></div>
 
   <script src="./bin/geometry.js"></script>
 <script type=module>
@@ -47,11 +47,18 @@
     // const renderer = app.getRenderer();
     // const camera = new THREE.OrthographicCamera();
 
-    app.render(camera);
+    setTimeout(() => {
+      app.render(camera);
+      
+      document.body.appendChild(renderer.domElement);
 
-    const canvas = document.getElementById('canvas');
-    canvas.width = width;
-    canvas.height = height;
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(renderer.domElement, 0, 0, canvas.width, canvas.height);
+      document.body.appendChild(canvas);
+    }, 5000);
 
     /* if (dst) {
       fetch(dst, {
