@@ -843,9 +843,6 @@ const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = nu
 };
 const _loadScn = async (file, opts) => {
   let srcUrl = file.url || URL.createObjectURL(file);
-  if (/^\.+\//.test(srcUrl)) {
-    srcUrl = new URL(srcUrl, location.href).href;
-  }
   
   const res = await fetch(srcUrl);
   const j = await res.json();
@@ -860,7 +857,7 @@ const _loadScn = async (file, opts) => {
     quaternion = new THREE.Quaternion().fromArray(quaternion);
     scale = new THREE.Vector3().fromArray(scale);
     if (start_url) {
-      start_url = new URL(start_url, srcUrl).href;
+      start_url = new URL(start_url, location.href).href;
       filename = start_url;
     } else if (filename && content) {
       const blob = new Blob([content], {
