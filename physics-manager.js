@@ -406,11 +406,4 @@ const _updatePhysics = timeDiff => {
 };
 physicsManager.update = _updatePhysics;
 
-document.getElementById('key-f').addEventListener('click', e => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  physicsManager.setFlyState(!physicsManager.getFlyState());
-});
-
 export default physicsManager;
