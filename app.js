@@ -134,6 +134,35 @@ export default class App {
     }
   }
   
+  render(camera) {
+    // high priority render
+    renderer.render(scene3, camera);
+    // main render
+    scene.add(rigManager.localRig.model);
+    rigManager.localRig.model.visible = false;
+    renderer.render(scene, camera);
+    renderer.render(orthographicScene, orthographicCamera);
+    // local avatar render
+    {
+      rigManager.localRig.model.visible = true;
+      avatarScene.add(rigManager.localRig.model);
+      if (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession()) {
+        rigManager.localRig.decapitate();
+      } else {
+        rigManager.localRig.undecapitate();
+      }
+      renderer.render(avatarScene, camera);
+      rigManager.localRig.undecapitate();
+    }
+    // highlight render
+    // renderer.render(highlightScene, camera);
+  }
+  
+  renderDom(camera) {
+    // dom render
+    renderer2.render(scene2, camera);
+  }
+  
   startLoop() {
     let lastTimestamp = performance.now();
     const startTime = Date.now();
@@ -280,29 +309,8 @@ export default class App {
         .premultiply(dolly.matrix)
         .decompose(localVector, localQuaternion, localVector2);
 
-      // high priority render
-      renderer.render(scene3, camera);
-      // main render
-      scene.add(rigManager.localRig.model);
-      rigManager.localRig.model.visible = false;
-      renderer.render(scene, camera);
-      renderer.render(orthographicScene, orthographicCamera);
-      // local avatar render
-      {
-        rigManager.localRig.model.visible = true;
-        avatarScene.add(rigManager.localRig.model);
-        if (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession()) {
-          rigManager.localRig.decapitate();
-        } else {
-          rigManager.localRig.undecapitate();
-        }
-        renderer.render(avatarScene, camera);
-        rigManager.localRig.undecapitate();
-      }
-      // dom render
-      renderer2.render(scene2, camera);
-      // highlight render
-      // renderer.render(highlightScene, camera);
+      this.render(camera);
+      this.renderDom(camera);
 
       minimap.update();
 
