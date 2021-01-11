@@ -41,10 +41,15 @@
   camera.updateProjectionMatrix();
   camera.up.set(0, 0, -1);
 
-  orthographicCamera.left = -5;
-  orthographicCamera.right = 5;
-  orthographicCamera.top = 5;
-  orthographicCamera.bottom = -5;
+  // const w = 4;
+  const s = 16;
+  const w = 10;
+  const h = 12;
+
+  orthographicCamera.left = -s/2;
+  orthographicCamera.right = s/2;
+  orthographicCamera.top = s/2;
+  orthographicCamera.bottom = -s/2;
   orthographicCamera.near = 0;
   orthographicCamera.far = 2000;
   orthographicCamera.updateProjectionMatrix();
@@ -62,9 +67,9 @@
     setTimeout(() => {
       // document.body.appendChild(renderer.domElement);
 
-      for (let x = -10; x < 10; x++) {
-        for (let z = -10; z < 10; z++) {
-          const v = new THREE.Vector3(x * 10, 0, z * 10);
+      for (let x = -w; x < w; x++) {
+        for (let z = -h; z < h; z++) {
+          const v = new THREE.Vector3(x * s, 0, z * s);
           camera.position.copy(cameraPosition).add(v);
           camera.lookAt(cameraTarget.clone().add(v));
 
@@ -75,8 +80,8 @@
           canvas.width = width;
           canvas.height = height;
           canvas.style.position = 'absolute';
-          canvas.style.left = ((10 + x)*width) + 'px';
-          canvas.style.top = ((10 + z)*height) + 'px';
+          canvas.style.left = ((w + x)*width) + 'px';
+          canvas.style.top = ((h + z)*height) + 'px';
           const ctx = canvas.getContext('2d');
           ctx.drawImage(renderer.domElement, 0, 0, canvas.width, canvas.height);
           document.body.appendChild(canvas);
