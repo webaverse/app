@@ -48,7 +48,7 @@ export async function tryTutorial() {
   ftuUsername.select(); */
 }
 
-const ftuUsername = document.getElementById('ftu-username');
+/* const ftuUsername = document.getElementById('ftu-username');
 ftuUsername.addEventListener('keydown', e => {
   if (e.which === 13) {
     _nextPhase();
@@ -98,7 +98,7 @@ bindUploadFileButton(document.getElementById('ftu-upload-avatar-input'), async f
   } else {
     console.warn('uploaded avatar is not .vrm');
   }
-});
+}); */
 
 const _nextPhase = async () => {
   ftu.classList.remove('phase-' + ftuPhase);
