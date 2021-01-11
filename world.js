@@ -19,7 +19,7 @@ import {makePromise, getRandomString} from './util.js';
 export const world = new EventTarget();
 
 // static states are local and non-user editable
-// dyanmic states are multiplayer and user-editable
+// dynamic states are multiplayer and user-editable
 const states = {
   static: new Y.Doc(),
   dynamic: new Y.Doc(),
