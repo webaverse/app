@@ -427,7 +427,12 @@
   </div>
   <!-- <script src="./msc_basis_transcoder.js"></script> -->
   <script src="./bin/geometry.js"></script>
-  <script type=module src="/edit.js"></script>
+  <script type=module>
+    import App from '/app.js';
+    const app = new App();
+    app.bootstrapFromUrl(location);
+    app.startLoop();
+  </script>
 </body>
 
 </html>
