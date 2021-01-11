@@ -895,6 +895,20 @@ const _renderWheel = (() => {
   };
 })(); */
 
+const _snapPosition = (o, positionSnap) => {
+  if (positionSnap > 0) {
+    o.position.x = Math.round(o.position.x / positionSnap) * positionSnap;
+    o.position.y = Math.round(o.position.y / positionSnap) * positionSnap;
+    o.position.z = Math.round(o.position.z / positionSnap) * positionSnap;
+  }
+};
+const rotationSnap = Math.PI/6;
+const _snapRotation = (o, rotationSnap) => {
+  o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
+  o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
+  o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
+};
+
 const items1El = document.getElementById('items-1');
 const items2El = document.getElementById('items-2');
 const items3El = document.getElementById('items-3');
@@ -1362,20 +1376,6 @@ const bindInterface = () => {
       newSelectedTabIndex = tabs.length - 1;
     }
     _selectTab(newSelectedTabIndex);
-  };
-
-  const _snapPosition = (o, positionSnap) => {
-    if (positionSnap > 0) {
-      o.position.x = Math.round(o.position.x / positionSnap) * positionSnap;
-      o.position.y = Math.round(o.position.y / positionSnap) * positionSnap;
-      o.position.z = Math.round(o.position.z / positionSnap) * positionSnap;
-    }
-  };
-  const rotationSnap = Math.PI/6;
-  const _snapRotation = (o, rotationSnap) => {
-    o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
-    o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
-    o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
   };
 
   [keyTabEl, keyTab1El, keyTab2El, keyTab3El, keyTab4El].forEach((el, i) => {
