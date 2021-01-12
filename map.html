@@ -104,6 +104,23 @@
       result: arrayBuffer,
     }, '*', [arrayBuffer]); */
   })();
+  (async () => {
+    const res = await fetch(`https://webaverse.github.io/parcels/parcels.json`);
+    const ps = await res.json();
+    for (const p of ps) {
+      const {extents} = p;
+      const div = document.createElement('div');
+      div.classList.add('parcel');
+      const [[x1, y1, z1], [x2, y2, z2]] = extents;
+      const localWidth = (x2-x1)*width/s;
+      const localHeight = (z2-z1)*height/s;
+      div.style.left = (width*(w+0.5)) - (localWidth/2) + (x1*width/s) + `px`;
+      div.style.top = (height*(h+1)) - (localHeight/2) + (z1*height/s) + `px`;
+      div.style.width = localWidth + `px`;
+      div.style.height = localHeight + `px`;
+      document.body.appendChild(div);
+    }
+  })();
 </script>
 </body>
 
