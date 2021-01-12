@@ -2,8 +2,37 @@ body {
   margin: 0;
   background-color: #000;
 }
+* {
+  box-sizing: border-box;
+}
 .parcel {
   position: absolute;
-  background-color: #FF0000;
+  /* background-color: #FF0000; */
+  background: radial-gradient(#80cf3f, #3a7913);
+  // background: radial-gradient(#fdae53, #ff7605);
+  border: 3px solid #000000C0;
+  text-decoration: none;
+  opacity: 0.5;
   z-index: 1;
+}
+.parcel:hover {
+  opacity: 1;
+  z-index: 2;
+}
+.parcel:not(:hover) .details {
+  display: none;
+}
+.details {
+  position: absolute;
+  display: flex;
+  height: 50px;
+  left: -3px;
+  top: -50px;
+  padding: 10px;
+  background-color: black;
+  font-size: 30px;
+  color: #FFF;
+  justify-content: center;
+  align-items: center;
+  white-space: nowrap;
 }
