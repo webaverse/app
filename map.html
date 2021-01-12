@@ -109,9 +109,18 @@
     const ps = await res.json();
     for (const p of ps) {
       const {extents} = p;
-      const div = document.createElement('div');
-      div.classList.add('parcel');
       const [[x1, y1, z1], [x2, y2, z2]] = extents;
+      const box = new THREE.Box3(
+        new THREE.Vector3(x1, y1, z1),
+        new THREE.Vector3(x2, y2, z2),
+      );
+      const center = box.getCenter(new THREE.Vector3());
+      const div = document.createElement('a');
+      div.href = `https://app.webaverse.com/?c=${JSON.stringify([center.x, center.z])}`;
+      div.classList.add('parcel');
+      div.innerHTML = `\
+        <div class=details>${p.name}</div>
+      `;
       const localWidth = (x2-x1)*width/s;
       const localHeight = (z2-z1)*height/s;
       div.style.left = (width*(w+0.5)) - (localWidth/2) + (x1*width/s) + `px`;
