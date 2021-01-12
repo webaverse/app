@@ -12,7 +12,7 @@ body {
   // background: radial-gradient(#fdae53, #ff7605);
   border: 3px solid #000000C0;
   text-decoration: none;
-  opacity: 0.5;
+  opacity: 0.7;
   z-index: 1;
 }
 .parcel:hover {
