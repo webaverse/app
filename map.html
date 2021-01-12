@@ -116,7 +116,7 @@
       );
       const center = box.getCenter(new THREE.Vector3());
       const div = document.createElement('a');
-      div.href = `https://app.webaverse.com/?c=${JSON.stringify([center.x, center.z])}`;
+      div.href = `https://app.webaverse.com/?c=${JSON.stringify([center.x, center.y, center.z])}`;
       div.classList.add('parcel');
       div.innerHTML = `\
         <div class=details>${p.name}</div>
