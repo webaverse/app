@@ -2,3 +2,8 @@ body {
   margin: 0;
   background-color: #000;
 }
+.parcel {
+  position: absolute;
+  background-color: #FF0000;
+  z-index: 1;
+}
