@@ -226,18 +226,6 @@ const _getAvatarCameraOffset = () => {
     return zeroVector;
   } else {
     return cameraManager.getCameraOffset();
-    /* const selectedTool = cameraManager.getMode();
-    if (selectedTool === 'firstperson') {
-      return zeroVector;
-    } else if (selectedTool === 'thirdperson') {
-      return cameraManager.thirdPersonCameraOffset;
-    } else if (selectedTool === 'isometric') {
-      return cameraManager.isometricCameraOffset;
-    } else if (selectedTool === 'birdseye') {
-      return new THREE.Vector3(0, -cameraManager.birdsEyeHeight + cameraManager.getAvatarHeight(), 0);
-    } else {
-      return zeroVector;
-    } */
   }
 };
 physicsManager.getAvatarCameraOffset = _getAvatarCameraOffset;
