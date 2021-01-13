@@ -136,17 +136,19 @@ const enterWorld = async worldSpec => {
         );
       }
       const parcelAABB = localBox;
-      const center = parcelAABB.getCenter(localVector);
-      const size = parcelAABB.getSize(localVector2);
+      // const center = parcelAABB.getCenter(localVector);
+      // const size = parcelAABB.getSize(localVector2);
       // console.log('got center size', center.toArray(), size.toArray());
 
-      const geometry = _invertGeometry(
+      /* const geometry = _invertGeometry(
         new THREE.BoxBufferGeometry(size.x, size.y, size.z)
           .applyMatrix4(new THREE.Matrix4().makeTranslation(center.x, center.y, center.z))
-      );
+      ); */
+      const geometry = new THREE.BoxBufferGeometry(1000, 1, 1000);
       const mesh = new THREE.Mesh(geometry, new THREE.Material({
         color: 0x1111111,
       }));
+      mesh.position.set(0, -1/2, 0);
       warpPhysicsId = physicsManager.addGeometry(mesh);
 
       const _containAvatar = () => {
