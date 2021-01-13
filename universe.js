@@ -110,14 +110,14 @@ const update = () => {
     warpMesh.material.uniforms.uTime.needsUpdate = true;
   }
 };
-const _invertGeometry = geometry => {
+/* const _invertGeometry = geometry => {
   for (let i = 0; i < geometry.index.array.length; i += 3) {
     const tmp = geometry.index.array[i];
     geometry.index.array[i] = geometry.index.array[i+1];
     geometry.index.array[i+1] = tmp;
   }
   return geometry;
-};
+}; */
 const enterWorld = async worldSpec => {
   let warpPhysicsId;
   const _pre = () => {
