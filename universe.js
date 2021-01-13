@@ -210,10 +210,7 @@ const enterWorld = async worldSpec => {
             camera.position.add(localVector);
             localVector.copy(physicsManager.getAvatarCameraOffset());
 
-            // const selectedTool = cameraManager.getMode();
-            // if (selectedTool !== 'birdseye') {
-              localVector.applyQuaternion(camera.quaternion);
-            // }
+            localVector.applyQuaternion(camera.quaternion);
 
             camera.position.sub(localVector);
             camera.updateMatrixWorld();
