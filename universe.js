@@ -151,7 +151,7 @@ const enterWorld = async worldSpec => {
       mesh.position.set(0, -1/2, 0);
       warpPhysicsId = physicsManager.addGeometry(mesh);
 
-      const _containAvatar = () => {
+      /* const _containAvatar = () => {
         physicsManager.getAvatarWorldObject(localObject);
         physicsManager.getAvatarCapsule(localVector);
         localVector.add(localObject.position);
@@ -219,7 +219,7 @@ const enterWorld = async worldSpec => {
           }
         }
       };
-      _containAvatar();
+      _containAvatar(); */
     };
   };
   _pre();
