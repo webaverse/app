@@ -126,9 +126,11 @@
             startX: e.clientX,
             startY: e.clientY,
           };
+          container.classList.add('dragging');
         };
         const _endDrag = () => {
           dragSpec = null;
+          container.classList.remove('dragging');
           _updateTiles();
         };
         container.addEventListener('mousedown', e => {

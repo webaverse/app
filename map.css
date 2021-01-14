@@ -10,7 +10,11 @@ body {
 }
 .container {
   position: absolute;
+  cursor: grab;
   user-select: none;
+}
+.container.dragging {
+  cursor: grabbing;
 }
 .parcel {
   position: absolute;
