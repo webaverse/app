@@ -70,24 +70,28 @@
 
         // document.body.appendChild(renderer.domElement);
 
+        const _renderParcel = (x, z) => {
+          const offset = new THREE.Vector3(x * tileScale, 0, z * tileScale);
+          camera.position.copy(cameraPosition).add(offset);
+          camera.lookAt(cameraTarget.clone().add(offset).add(new THREE.Vector3(2, 0, -5)));
+
+          renderer.clear();
+          app.render();
+        
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          canvas.style.position = 'absolute';
+          canvas.style.left = ((w + x)*width) + 'px';
+          canvas.style.top = ((h + z)*height) + 'px';
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(renderer.domElement, 0, 0, canvas.width, canvas.height);
+          document.body.appendChild(canvas);
+        };
+
         for (let x = -w; x < w; x++) {
           for (let z = -h; z < h; z++) {
-            const offset = new THREE.Vector3(x * tileScale, 0, z * tileScale);
-            camera.position.copy(cameraPosition).add(offset);
-            camera.lookAt(cameraTarget.clone().add(offset).add(new THREE.Vector3(2, 0, -5)));
-
-            renderer.clear();
-            app.render();
-          
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            canvas.style.position = 'absolute';
-            canvas.style.left = ((w + x)*width) + 'px';
-            canvas.style.top = ((h + z)*height) + 'px';
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(renderer.domElement, 0, 0, canvas.width, canvas.height);
-            document.body.appendChild(canvas);
+            _renderParcel(x, z);
           }
         }
       }, 5000);
