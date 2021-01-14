@@ -19,6 +19,7 @@
   const height = 128;
   const cameraPosition = new THREE.Vector3(0, 100, 0);
   const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
+  const perspectiveOffset = new THREE.Vector3(2, 0, -5);
 
   renderer.setSize(width, height);
   renderer.setPixelRatio(2);
@@ -48,9 +49,6 @@
 
     const {dst} = parseQuery(location.search);
     if (!dst) {
-      // const w = 10;
-      // const h = 12;
-
       setTimeout(() => { // wait for load; should really be a lock
         console.time('render');
       
@@ -69,7 +67,7 @@
         const _renderParcel = (x, z) => {
           const offset = new THREE.Vector3((x+0.5) * tileScale, 0, (z+0.5) * tileScale);
           camera.position.copy(cameraPosition).add(offset);
-          camera.lookAt(cameraTarget.clone().add(offset).add(new THREE.Vector3(2, 0, -5)));
+          camera.lookAt(cameraTarget.clone().add(offset).add(perspectiveOffset));
 
           renderer.clear();
           app.render();
@@ -169,8 +167,8 @@
           });
           const localWidth = (x2-x1)*width/tileScale;
           const localHeight = (z2-z1)*height/tileScale;
-          div.style.left = (containerSize/2) - (localWidth/2) + (x1*width/tileScale) + `px`;
-          div.style.top = (containerSize/2) + localHeight + (z1*height/tileScale) + `px`;
+          div.style.left = (containerSize/2) + (x1*width/tileScale) - (perspectiveOffset.x*width/tileScale) + `px`;
+          div.style.top = (containerSize/2) + (z1*height/tileScale) - (perspectiveOffset.z*height/tileScale) + `px`;
           div.style.width = localWidth + `px`;
           div.style.height = localHeight + `px`;
           container.appendChild(div);
