@@ -384,3 +384,20 @@ export function parseCoord(s) {
     return null;
   }
 }
+
+export function parseExtents(s) {
+  if (s) {
+    const split = s.match(/^\[\[(-?[0-9\.]+),(-?[0-9\.]+),(-?[0-9\.]+)\],\[(-?[0-9\.]+),(-?[0-9\.]+),(-?[0-9\.]+)\]\]$/);
+    let x1, y1, z1, x2, y2, z2;
+    if (split && !isNaN(x1 = parseFloat(split[1])) && !isNaN(y1 = parseFloat(split[2])) && !isNaN(z1 = parseFloat(split[3])) && !isNaN(x2 = parseFloat(split[4])) && !isNaN(y2 = parseFloat(split[5])) && !isNaN(z2 = parseFloat(split[6]))) {
+      return new THREE.Box3(
+        new THREE.Vector3(x1, y1, z1),
+        new THREE.Vector3(x2, y2, z2)
+      );
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+}
