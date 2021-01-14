@@ -47,10 +47,67 @@
       const size = extents.getSize(new THREE.Vector3());
       const geometry = new THREE.PlaneBufferGeometry(size.x, size.z)
         .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2)));
-      const material = new THREE.MeshBasicMaterial({
-        color: rarityColors.legendary[0],
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          /* uColor: {
+            type: 'c',
+            value: new THREE.Vector3(rarityColors.legendary[0]),
+          }, */
+        },
+        vertexShader: `\
+          #define PI 3.1415926535897932384626433832795
+
+          attribute float y;
+          attribute vec3 barycentric;
+          attribute float dynamicPositionY;
+          // uniform float uBeat2;
+          varying float vUv;
+          varying vec3 vBarycentric;
+          varying vec3 vPosition;
+
+          void main() {
+            vUv = uv.x;
+            vBarycentric = barycentric;
+            vPosition = position;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position /* + vec3(0., dynamicPositionY * uBeat2, 0.) */, 1.0);
+          }
+        `,
+        fragmentShader: `\
+          // uniform float uBeat;
+          precision highp float;
+          precision highp int;
+
+          #define PI 3.1415926535897932384626433832795
+
+          varying vec3 vBarycentric;
+          varying vec3 vPosition;
+
+          const vec3 lineColor1 = vec3(${new THREE.Color(rarityColors.legendary[0]).toArray().join(', ')});
+          const vec3 lineColor2 = vec3(${new THREE.Color(rarityColors.legendary[1]).toArray().join(', ')});
+
+          float edgeFactor(vec3 bary, float width) {
+            // vec3 bary = vec3(vBC.x, vBC.y, 1.0 - vBC.x - vBC.y);
+            vec3 d = fwidth(bary);
+            vec3 a3 = smoothstep(d * (width - 0.5), d * (width + 0.5), bary);
+            return min(min(a3.x, a3.y), a3.z);
+          }
+
+          void main() {
+            vec3 c = mix(lineColor1, lineColor2, vPosition.y / 10.);
+            // vec3 p = fwidth(vPosition);
+            vec3 p = vPosition;
+            float f = min(mod(p.x, 1.), mod(p.z, 1.));
+            f = min(f, mod(1.-p.x, 1.));
+            f = min(f, mod(1.-p.z, 1.));
+            // f *= 10.;
+            gl_FragColor = vec4(c /* * uBeat */, /*0.7 + */max(1. - f, 0.));
+          }
+        `,
+        side: THREE.DoubleSide,
         depthTest: false,
+        transparent: true,
       });
+      
       const extentMesh = new THREE.Mesh(geometry, material);
       extentMesh.position.set(center.x, 0, center.z)
       scene.add(extentMesh);
