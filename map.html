@@ -10,9 +10,9 @@
 <script type=module>
   import * as THREE from './three.module.js';
   import App from './app.js';
-  import {camera, orthographicCamera, renderer} from './app-object.js';
+  import {renderer, scene, camera, orthographicCamera} from './app-object.js';
   import {world} from './world.js';
-  import {parseQuery} from './util.js';
+  import {parseQuery, parseExtents} from './util.js';
   import {homeScnUrl, rarityColors} from './constants.js';
 
   const cameraPosition = new THREE.Vector3(0, 100, 0);
@@ -39,6 +39,24 @@
         return j;
       })(),
     ]);
+    
+    const q = parseQuery(location.search);
+    const extents = parseExtents(q.e);
+    if (extents) {
+      const center = extents.getCenter(new THREE.Vector3());
+      const size = extents.getSize(new THREE.Vector3());
+      const geometry = new THREE.PlaneBufferGeometry(size.x, size.z)
+        // .applyMatrix4(new THREE.Matrix4().makeTranslation(size.x/2, -size.y/2, 0));
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2)));
+      const material = new THREE.MeshBasicMaterial({
+        color: rarityColors.legendary[0],
+        depthTest: false,
+      });
+      const extentMesh = new THREE.Mesh(geometry, material);
+      extentMesh.position.set(center.x, 0, center.z)
+        // .sub(perspectiveOffset); // offset by half of the offset since we are halfway to the camera
+      scene.add(extentMesh);
+    }
 
     // fixes a glitch where the first render has black opaque
     app.render();
@@ -47,7 +65,7 @@
 
     const container = document.getElementById('container');
 
-    const {dst} = parseQuery(location.search);
+    const {dst} = q;
     setTimeout(async () => { // wait for load; should really be a lock
       // console.time('render');
       if (!dst) {
@@ -255,7 +273,7 @@
         orthographicCamera.updateProjectionMatrix();
         camera.projectionMatrix.copy(orthographicCamera.projectionMatrix);
 
-        cameraPosition.set(x + sw/2, 100, y + sh/2);
+        cameraPosition.set(x, 100, y);
         cameraTarget.set(cameraPosition.x, 0, cameraPosition.z)
 
         camera.position.copy(cameraPosition);
