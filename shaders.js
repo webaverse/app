@@ -1198,7 +1198,7 @@ const arrowGeometry = (() => {
     bevelSegments: 1,
   };
   const geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings)
-    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, -0.1/2));
   return geometry;
 })();
 const arrowMaterial = new THREE.MeshBasicMaterial({
