@@ -170,7 +170,7 @@
           const localWidth = (x2-x1)*width/tileScale;
           const localHeight = (z2-z1)*height/tileScale;
           div.style.left = (containerSize/2) - (localWidth/2) + (x1*width/tileScale) + `px`;
-          div.style.top = (containerSize/2) - (localHeight/2) + (z1*height/tileScale) + `px`;
+          div.style.top = (containerSize/2) + localHeight + (z1*height/tileScale) + `px`;
           div.style.width = localWidth + `px`;
           div.style.height = localHeight + `px`;
           container.appendChild(div);
