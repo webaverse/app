@@ -79,15 +79,6 @@ export default class App {
       camera.position.copy(coord);
     }
 
-    const material = arrowMaterial.clone();
-    const arrowMesh = new THREE.Mesh(arrowGeometry, material);
-    arrowMesh.frustumCulled = false;
-    if (coord) {
-      arrowMesh.position.copy(coord).add(new THREE.Vector3(0, 2, 0));
-    }
-    scene.add(arrowMesh);
-    this.arrowMesh = arrowMesh;
-
     try {
       await Promise.all([
         universe.enterWorld(worldJson),
@@ -110,6 +101,7 @@ export default class App {
     ioManager.bindInput();
   }
   bindInterface() {
+    universe.bindInterface();
     weaponsManager.bindInterface();
   }
   bindUploadFileInput(uploadFileInput) {
@@ -197,12 +189,7 @@ export default class App {
   startLoop() {
     let lastTimestamp = performance.now();
     const startTime = Date.now();
-    const animate = (timestamp, frame) => {
-      if (this.arrowMesh) {
-        this.arrowMesh.material.uniforms.uTime.value = (Date.now()%2000)/2000;
-        this.arrowMesh.material.uniforms.uTime.needsUpdate = true;
-      }
-      
+    const animate = (timestamp, frame) => {      
       timestamp = timestamp || performance.now();
       const timeDiff = Math.min(Math.max(timestamp - lastTimestamp, 5), 100);
       lastTimestamp = timestamp;
