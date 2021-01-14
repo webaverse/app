@@ -51,13 +51,15 @@
     // fixes a glitch where the first render has black opaque
     app.render();
 
+    const _getContainerMetrics = () => new THREE.Vector2(parseInt(container.style.left || '0', 10), parseInt(container.style.top || '0', 10));
+
     const container = document.getElementById('container');
     const containerSize = 10000;
+    const boundingBox = document.body.getBoundingClientRect();
     container.style.width = `${containerSize}px`;
     container.style.height = `${containerSize}px`;
-    container.style.left = `-${containerSize/2}px`;
-    container.style.top = `-${containerSize/2}px`;
-    const _getContainerMetrics = () => new THREE.Vector2(parseInt(container.style.left || '0', 10), parseInt(container.style.top || '0', 10));
+    container.style.left = `${-containerSize/2 + boundingBox.width/2}px`;
+    container.style.top = `${-containerSize/2 + boundingBox.height/2}px`;
 
     const {dst} = parseQuery(location.search);
     if (!dst) {
