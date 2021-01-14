@@ -60,6 +60,30 @@
       const w = 10;
       const h = 12;
 
+      let dragSpec = null;
+      container.addEventListener('mousedown', e => {
+        dragSpec = {
+          startPosition: new THREE.Vector2(parseInt(container.style.left || '0', 10), parseInt(container.style.top || '0', 10)),
+          startX: e.clientX,
+          startY: e.clientY,
+        };
+      });
+      window.addEventListener('mouseup', e => {
+        dragSpec = null;
+      });
+      container.addEventListener('mousemove', e => {
+        if (dragSpec) {
+          const currentX = e.clientX;
+          const currentY = e.clientY;
+          const diffX = e.clientX - dragSpec.startX;
+          const diffY = e.clientY - dragSpec.startY;
+          const newPosition = dragSpec.startPosition.clone()
+            .add(new THREE.Vector2(diffX, diffY));
+          container.style.left = `${newPosition.x}px`;
+          container.style.top = `${newPosition.y}px`;
+        }
+      });
+
       setTimeout(() => { // wait for load; should really be a lock
         console.time('render');
       
@@ -132,6 +156,9 @@
           div.innerHTML = `\
             <div class=details>${p.name}</div>
           `;
+          div.addEventListener('mousedown', e => {
+            e.stopPropagation();
+          });
           const localWidth = (x2-x1)*width/tileScale;
           const localHeight = (z2-z1)*height/tileScale;
           div.style.left = (width*(w+0.5)) - (localWidth/2) + (x1*width/tileScale) + `px`;
