@@ -18,20 +18,12 @@ import {makeTextMesh} from './vr-ui.js';
 import {renderer, scene2, appManager} from './app-object.js';
 import wbn from './wbn.js';
 import {portalMaterial} from './shaders.js';
-import {baseUnit} from './constants.js';
+import {baseUnit, rarityColors} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localBox = new THREE.Box3();
 const boxGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
-
-const rarityColors = {
-  common: [0xCACACA, 0x7B7B7B],
-  uncommon: [0x80cf3f, 0x3a7913],
-  rare: [0x2fd5e8, 0x1258a2],
-  epic: [0xbd3ffa, 0x460d7f],
-  legendary: [0xfdae53, 0xff7605],
-};
 
 const runtime = {};
 
