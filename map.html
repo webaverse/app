@@ -32,9 +32,20 @@
 
   (async () => {
     const app = new App();
-    await app.waitForLoad();
-
-    await world.addObject(homeScnUrl, null, new THREE.Vector3(), new THREE.Quaternion());
+    const [
+      appResult,
+      parcelsJson,
+    ] = await Promise.all([
+      (async () => {
+        await app.waitForLoad();
+        await world.addObject(homeScnUrl, null, new THREE.Vector3(), new THREE.Quaternion());
+      })(),
+      (async () => {
+        const res = await fetch(`https://webaverse.github.io/parcels/parcels.json`);
+        const j = await res.json();
+        return j;
+      })(),
+    ]);
 
     // fixes a glitch where the first render has black opaque
     app.render();
@@ -158,10 +169,8 @@
         console.timeEnd('render');
       }, 5000);
       
-      (async () => {
-        const res = await fetch(`https://webaverse.github.io/parcels/parcels.json`);
-        const ps = await res.json();
-        for (const p of ps) {
+      const _renderAnchors = () => {
+        for (const p of parcelsJson) {
           const {extents} = p;
           const [[x1, y1, z1], [x2, y2, z2]] = extents;
           const box = new THREE.Box3(
@@ -186,7 +195,8 @@
           div.style.height = localHeight + `px`;
           container.appendChild(div);
         }
-      })();
+      };
+      _renderAnchors();
     } else {
       let {x, y, sw, sh, dw, dh} = parseQuery(location.search);
 
