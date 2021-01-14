@@ -3,6 +3,7 @@ import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {rigManager} from './rig.js';
 import {camera} from './app-object.js';
 import {world} from './world.js';
+import {arrowGeometry} from './shaders.js';
 
 const localVector = new THREE.Vector3();
 const localEuler = new THREE.Euler();
@@ -24,29 +25,12 @@ const init = mapCanvas => {
   mapCamera.lookAt(new THREE.Vector3(0, 0, 0));
 
   {
-    const shape = new THREE.Shape();
-    shape.moveTo( -1, 0 );
-    shape.lineTo( 0, -2 );
-    shape.lineTo( 1, 0 );
-    shape.lineTo( 0, -0.5 );
-    // shape.lineTo( -1, 0 );
-    const extrudeSettings = {
-      steps: 2,
-      depth: 0.1,
-      // bevelEnabled: false,
-      bevelEnabled: true,
-      bevelThickness: 0,
-      bevelSize: 0,
-      bevelOffset: 0,
-      bevelSegments: 1,
-    };
-    const geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings )
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+    const geometry = arrowGeometry;
     const material = new THREE.MeshBasicMaterial({
       color: 0xef5350,
       side: THREE.DoubleSide,
     });
-    mapIndicator = new THREE.Mesh( geometry, material );
+    mapIndicator = new THREE.Mesh(geometry, material);
     mapIndicator.frustumCulled = false;
     mapScene.add(mapIndicator);
   }
