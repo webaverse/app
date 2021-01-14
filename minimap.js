@@ -3,7 +3,7 @@ import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import {rigManager} from './rig.js';
 import {camera} from './app-object.js';
 import {world} from './world.js';
-import {arrowGeometry} from './shaders.js';
+import {arrowGeometry, arrowMaterial} from './shaders.js';
 
 const localVector = new THREE.Vector3();
 const localEuler = new THREE.Euler();
