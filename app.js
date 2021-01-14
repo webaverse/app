@@ -13,7 +13,7 @@ import * as universe from './universe.js';
 import minimap from './minimap.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
-import {arrowGeometry, arrowMaterial} from './shaders.js';
+import {parseCoord} from './util.js';
 import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
@@ -74,19 +74,7 @@ export default class App {
       world.getWorldJson(q.u),
     ]);
     
-    const coord = (() => {
-      if (q.c) {
-        const split = q.c.match(/^\[(-?[0-9\.]+),(-?[0-9\.]+),(-?[0-9\.]+)\]$/);
-        let x, y, z;
-        if (split && !isNaN(x = parseFloat(split[1])) && !isNaN(y = parseFloat(split[2])) && !isNaN(z = parseFloat(split[3]))) {
-          return new THREE.Vector3(x, y, z);
-        } else {
-          return null;
-        }
-      } else {
-        return null;
-      }
-    })();
+    const coord = parseCoord(q.c);
     if (coord) {
       camera.position.copy(coord);
     }
