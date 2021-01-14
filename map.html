@@ -160,6 +160,13 @@
             container.style.left = `${newPosition.x}px`;
             container.style.top = `${newPosition.y}px`;
           }
+          
+          /* const containerMetrics = _getContainerMetrics();
+          const clickPoint = new THREE.Vector2(
+            (-containerMetrics.x - (containerSize/2) + e.clientX)/width*(tileScale*zoom) + perspectiveOffset.x,
+            (-containerMetrics.y - (containerSize/2) + e.clientY)/height*(tileScale*zoom) + perspectiveOffset.z,
+          );
+          console.log(clickPoint.toArray().join(', ')); */
         });
         window.addEventListener('resize', e => {
           _updateTiles();
