@@ -18,8 +18,6 @@ body {
 }
 .parcel {
   position: absolute;
-  background: radial-gradient(#80cf3f, #3a7913);
-  // background: radial-gradient(#fdae53, #ff7605);
   border: 3px solid #000000C0;
   text-decoration: none;
   opacity: 0.7;
