@@ -160,14 +160,29 @@
             container.style.left = `${newPosition.x}px`;
             container.style.top = `${newPosition.y}px`;
           }
+
+          /* const containerMetrics = _getContainerMetrics();
+          const mouseWorldPosition = new THREE.Vector2(
+            (-containerMetrics.x - (containerSize/2) + e.clientX)/width*(tileScale*zoom),
+            (-containerMetrics.y - (containerSize/2) + e.clientY)/height*(tileScale*zoom),
+          ); */
         });
         window.addEventListener('resize', e => {
           _updateTiles();
         });
         container.addEventListener('wheel', e => {
+          const containerMetrics = _getContainerMetrics();
+          const mouseWorldPosition = new THREE.Vector2(
+            (-containerMetrics.x - (containerSize/2) + e.clientX)/width*(tileScale*zoom),
+            (-containerMetrics.y - (containerSize/2) + e.clientY)/height*(tileScale*zoom),
+          );
+
           zoom = Math.min(Math.max(zoom * (1 + e.deltaY * 0.001), 0.01), 100);
           container.innerHTML = '';
           currentTiles = [];
+
+          container.style.left = `${-containerSize/2 + e.clientX - mouseWorldPosition.x*width/(tileScale*zoom)}px`;
+          container.style.top = `${-containerSize/2 + e.clientY - mouseWorldPosition.y*height/(tileScale*zoom)}px`;
 
           _updateTiles();
           _renderAnchors();
