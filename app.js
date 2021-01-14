@@ -90,13 +90,15 @@ export default class App {
     if (coord) {
       camera.position.copy(coord);
     }
-    
-    const arrowMesh = new THREE.Mesh(arrowGeometry, arrowMaterial);
+
+    const material = arrowMaterial.clone();
+    const arrowMesh = new THREE.Mesh(arrowGeometry, material);
     arrowMesh.frustumCulled = false;
     if (coord) {
       arrowMesh.position.copy(coord).add(new THREE.Vector3(0, 2, 0));
     }
     scene.add(arrowMesh);
+    this.arrowMesh = arrowMesh;
 
     try {
       await Promise.all([
@@ -208,6 +210,11 @@ export default class App {
     let lastTimestamp = performance.now();
     const startTime = Date.now();
     const animate = (timestamp, frame) => {
+      if (this.arrowMesh) {
+        this.arrowMesh.material.uniforms.uTime.value = (Date.now()%2000)/2000;
+        this.arrowMesh.material.uniforms.uTime.needsUpdate = true;
+      }
+      
       timestamp = timestamp || performance.now();
       const timeDiff = Math.min(Math.max(timestamp - lastTimestamp, 5), 100);
       lastTimestamp = timestamp;
