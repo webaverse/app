@@ -1180,6 +1180,28 @@ const addItem = async (position, quaternion) => {
   itemMeshes.push(itemMesh);
 }; */
 
+const arrowGeometry = (() => {
+  const shape = new THREE.Shape();
+  shape.moveTo( -1, 0 );
+  shape.lineTo( 0, -2 );
+  shape.lineTo( 1, 0 );
+  shape.lineTo( 0, -0.5 );
+  // shape.lineTo( -1, 0 );
+  const extrudeSettings = {
+    steps: 2,
+    depth: 0.1,
+    // bevelEnabled: false,
+    bevelEnabled: true,
+    bevelThickness: 0,
+    bevelSize: 0,
+    bevelOffset: 0,
+    bevelSegments: 1,
+  };
+  const geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings)
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+  return geometry;
+})();
+
 export {
   /* LAND_SHADER,
   WATER_SHADER,
@@ -1188,4 +1210,5 @@ export {
   makeDrawMaterial, */
   buildMaterial,
   portalMaterial,
+  arrowGeometry,
 };
