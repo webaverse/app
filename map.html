@@ -51,30 +51,6 @@
       // const w = 10;
       // const h = 12;
 
-      let dragSpec = null;
-      container.addEventListener('mousedown', e => {
-        dragSpec = {
-          startPosition: _getContainerMetrics(),
-          startX: e.clientX,
-          startY: e.clientY,
-        };
-      });
-      window.addEventListener('mouseup', e => {
-        dragSpec = null;
-      });
-      container.addEventListener('mousemove', e => {
-        if (dragSpec) {
-          const currentX = e.clientX;
-          const currentY = e.clientY;
-          const diffX = e.clientX - dragSpec.startX;
-          const diffY = e.clientY - dragSpec.startY;
-          const newPosition = dragSpec.startPosition.clone()
-            .add(new THREE.Vector2(diffX, diffY));
-          container.style.left = `${newPosition.x}px`;
-          container.style.top = `${newPosition.y}px`;
-        }
-      });
-
       setTimeout(() => { // wait for load; should really be a lock
         console.time('render');
       
@@ -89,6 +65,7 @@
 
         // document.body.appendChild(renderer.domElement);
 
+        const _getTileId = (x, z) => `tile-${x}-${z}`;
         const _renderParcel = (x, z) => {
           const offset = new THREE.Vector3((x+0.5) * tileScale, 0, (z+0.5) * tileScale);
           camera.position.copy(cameraPosition).add(offset);
@@ -101,6 +78,7 @@
           canvas.width = width;
           canvas.height = height;
           canvas.style.position = 'absolute';
+          canvas.id = _getTileId(x, z);
           const containerMetrics = _getContainerMetrics();
           canvas.style.left = (containerSize/2) + (x*width) + 'px';
           canvas.style.top = (containerSize/2) + (z*height) + 'px';
@@ -119,14 +97,52 @@
           }
           return result;
         };
-
-        const topLeftPosition = _getContainerMetrics().add(new THREE.Vector2(containerSize/2, containerSize/2));
-        const boundingBox = document.body.getBoundingClientRect();
-        const neededCoords = _getNeededCoords(topLeftPosition, boundingBox);
-        for (const v of neededCoords) {
-          const {x, y: z} = v;
-          _renderParcel(x, z);
-        }
+        
+        let currentTiles = [];
+        const _updateTiles = () => {
+          const topLeftPosition = _getContainerMetrics().multiplyScalar(-1).sub(new THREE.Vector2(containerSize/2, containerSize/2));
+          const boundingBox = document.body.getBoundingClientRect();
+          const neededCoords = _getNeededCoords(topLeftPosition, boundingBox);
+          for (const v of neededCoords) {
+            if (!currentTiles.some(t => t.equals(v))) {
+              _renderParcel(v.x, v.y);
+            }
+          }
+          for (const v of currentTiles) {
+            if (!neededCoords.some(t => t.equals(v))) {
+              const tileId = _getTileId(v.x, v.y);
+              const tileEl = document.getElementById(tileId);
+              tileEl.parentNode.removeChild(tileEl);
+            }
+          }
+          currentTiles = neededCoords;
+        };
+        _updateTiles();
+        
+        let dragSpec = null;
+        container.addEventListener('mousedown', e => {
+          dragSpec = {
+            startPosition: _getContainerMetrics(),
+            startX: e.clientX,
+            startY: e.clientY,
+          };
+        });
+        window.addEventListener('mouseup', e => {
+          dragSpec = null;
+          _updateTiles();
+        });
+        container.addEventListener('mousemove', e => {
+          if (dragSpec) {
+            const currentX = e.clientX;
+            const currentY = e.clientY;
+            const diffX = e.clientX - dragSpec.startX;
+            const diffY = e.clientY - dragSpec.startY;
+            const newPosition = dragSpec.startPosition.clone()
+              .add(new THREE.Vector2(diffX, diffY));
+            container.style.left = `${newPosition.x}px`;
+            container.style.top = `${newPosition.y}px`;
+          }
+        });
 
         console.timeEnd('render');
       }, 2000);
