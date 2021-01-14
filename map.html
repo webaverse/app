@@ -151,6 +151,9 @@
             container.style.top = `${newPosition.y}px`;
           }
         });
+        window.addEventListener('resize', e => {
+          _updateTiles();
+        });
 
         console.timeEnd('render');
       }, 5000);
