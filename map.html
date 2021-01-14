@@ -86,8 +86,10 @@
         };
         const _getNeededCoords = (topLeftPosition, boundingBox) => {
           const result = [];
-          for (let x = topLeftPosition.x; x < (topLeftPosition.x + boundingBox.width); x += width) {
-            for (let z = topLeftPosition.y; z < (topLeftPosition.y + boundingBox.height); z += height) {
+          const maxX = Math.ceil((topLeftPosition.x + boundingBox.width)/width)*width;
+          const maxZ = Math.ceil((topLeftPosition.y + boundingBox.height)/height)*height;
+          for (let x = topLeftPosition.x; x < maxX; x += width) {
+            for (let z = topLeftPosition.y; z < maxZ; z += height) {
               const ax = Math.floor(x/width);
               const az = Math.floor(z/height);
               result.push(new THREE.Vector2(ax, az));
