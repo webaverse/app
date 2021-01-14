@@ -120,18 +120,27 @@
         _updateTiles();
         
         let dragSpec = null;
-        container.addEventListener('mousedown', e => {
+        const _startDrag = e => {
           dragSpec = {
             startPosition: _getContainerMetrics(),
             startX: e.clientX,
             startY: e.clientY,
           };
-        });
-        window.addEventListener('mouseup', e => {
+        };
+        const _endDrag = () => {
           dragSpec = null;
           _updateTiles();
+        };
+        container.addEventListener('mousedown', e => {
+          _startDrag(e);
+        });
+        window.addEventListener('mouseup', e => {
+          _endDrag();
         });
         container.addEventListener('mousemove', e => {
+          if (dragSpec && e.buttons === 0) {
+            _endDrag();
+          }
           if (dragSpec) {
             const currentX = e.clientX;
             const currentY = e.clientY;
