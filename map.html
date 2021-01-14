@@ -29,6 +29,7 @@
   camera.up.set(0, 0, -1);
 
   const tileScale = 16;
+  let zoom = 1;
 
   (async () => {
     const app = new App();
@@ -61,22 +62,20 @@
     const {dst} = parseQuery(location.search);
     if (!dst) {
       setTimeout(() => { // wait for load; should really be a lock
-        console.time('render');
-      
-        orthographicCamera.left = -tileScale/2;
-        orthographicCamera.right = tileScale/2;
-        orthographicCamera.top = tileScale/2;
-        orthographicCamera.bottom = -tileScale/2;
-        orthographicCamera.near = 0;
-        orthographicCamera.far = 2000;
-        orthographicCamera.updateProjectionMatrix();
-        camera.projectionMatrix.copy(orthographicCamera.projectionMatrix);
-
-        // document.body.appendChild(renderer.domElement);
+        // console.time('render');
 
         const _getTileId = (x, z) => `tile-${x}-${z}`;
         const _renderParcel = (x, z) => {
-          const offset = new THREE.Vector3((x+0.5) * tileScale, 0, (z+0.5) * tileScale);
+          orthographicCamera.left = -tileScale*zoom/2;
+          orthographicCamera.right = tileScale*zoom/2;
+          orthographicCamera.top = tileScale*zoom/2;
+          orthographicCamera.bottom = -tileScale*zoom/2;
+          orthographicCamera.near = 0;
+          orthographicCamera.far = 2000;
+          orthographicCamera.updateProjectionMatrix();
+          camera.projectionMatrix.copy(orthographicCamera.projectionMatrix);
+        
+          const offset = new THREE.Vector3((x + 0.5) * tileScale * zoom, 0, (z + 0.5) * tileScale * zoom);
           camera.position.copy(cameraPosition).add(offset);
           camera.lookAt(cameraTarget.clone().add(offset).add(perspectiveOffset));
 
@@ -165,6 +164,14 @@
         window.addEventListener('resize', e => {
           _updateTiles();
         });
+        container.addEventListener('wheel', e => {
+          zoom = Math.min(Math.max(zoom * (1 + e.deltaY * 0.001), 0.01), 100);
+          container.innerHTML = '';
+          currentTiles = [];
+
+          _updateTiles();
+          _renderAnchors();
+        });
 
         console.timeEnd('render');
       }, 5000);
@@ -189,10 +196,10 @@
           div.addEventListener('mousedown', e => {
             e.stopPropagation();
           });
-          const localWidth = (x2-x1)*width/tileScale;
-          const localHeight = (z2-z1)*height/tileScale;
-          div.style.left = (containerSize/2) + (x1*width/tileScale) - (perspectiveOffset.x*width/tileScale) + `px`;
-          div.style.top = (containerSize/2) + (z1*height/tileScale) - (perspectiveOffset.z*height/tileScale) + `px`;
+          const localWidth = (x2-x1)*width/(tileScale*zoom);
+          const localHeight = (z2-z1)*height/(tileScale*zoom);
+          div.style.left = (containerSize/2) + (x1*width/(tileScale*zoom)) - (perspectiveOffset.x*width/(tileScale*zoom)) + `px`;
+          div.style.top = (containerSize/2) + (z1*height/(tileScale*zoom)) - (perspectiveOffset.z*height/(tileScale*zoom)) + `px`;
           div.style.width = localWidth + `px`;
           div.style.height = localHeight + `px`;
           container.appendChild(div);
