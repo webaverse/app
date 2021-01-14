@@ -67,7 +67,7 @@ const grabIcon = document.getElementById('grab-icon');
 const editIcon = document.getElementById('edit-icon');
 const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
 const gridSnapEl = document.getElementById('grid-snap');
-const tabs = Array.from(document.querySelectorAll('#profile-icon .navs > .nav'));
+const tabs = Array.from(document.querySelectorAll('#profile-icon > .nav'));
 const uploadFileInput = document.getElementById('upload-file-input');
 
 const _makeTargetMesh = (() => {
