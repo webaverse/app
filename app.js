@@ -13,6 +13,7 @@ import * as universe from './universe.js';
 import minimap from './minimap.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
+import {arrowGeometry, arrowMaterial} from './shaders.js';
 import {renderer, scene, orthographicScene, avatarScene, camera, orthographicCamera, avatarCamera, dolly, /*orbitControls,*/ renderer2, scene2, scene3, appManager} from './app-object.js';
 
 const leftHandOffset = new THREE.Vector3(0.2, -0.2, -0.4);
@@ -89,6 +90,13 @@ export default class App {
     if (coord) {
       camera.position.copy(coord);
     }
+    
+    const arrowMesh = new THREE.Mesh(arrowGeometry, arrowMaterial);
+    arrowMesh.frustumCulled = false;
+    if (coord) {
+      arrowMesh.position.copy(coord).add(new THREE.Vector3(0, 2, 0));
+    }
+    scene.add(arrowMesh);
 
     try {
       await Promise.all([
