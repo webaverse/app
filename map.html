@@ -191,9 +191,9 @@
         container.addEventListener('dblclick', e => {
           const containerMetrics = _getContainerMetrics();
           const clickPoint = new THREE.Vector3(
-            (-containerMetrics.x - (containerSize/2) + e.clientX)/width*(tileScale*zoom),
+            (-containerMetrics.x - (containerSize/2) + e.clientX)/width*(tileScale*zoom) + perspectiveOffset.x,
             2,
-            (-containerMetrics.y - (containerSize/2) + e.clientY)/height*(tileScale*zoom),
+            (-containerMetrics.y - (containerSize/2) + e.clientY)/height*(tileScale*zoom) + perspectiveOffset.z,
           );
 
           const a = document.createElement('a');
