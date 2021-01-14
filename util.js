@@ -369,4 +369,18 @@ export function convertMeshToPhysicsMesh(mesh) {
   const newGeometry = BufferGeometryUtils.mergeBufferGeometries(newGeometries);
   const physicsMesh = new THREE.Mesh(newGeometry);
   return physicsMesh;
-};
+}
+
+export function parseCoord(s) {
+  if (s) {
+    const split = s.match(/^\[(-?[0-9\.]+),(-?[0-9\.]+),(-?[0-9\.]+)\]$/);
+    let x, y, z;
+    if (split && !isNaN(x = parseFloat(split[1])) && !isNaN(y = parseFloat(split[2])) && !isNaN(z = parseFloat(split[3]))) {
+      return new THREE.Vector3(x, y, z);
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+}
