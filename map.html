@@ -17,7 +17,7 @@
 
   const width = 128;
   const height = 128;
-  const cameraPosition = new THREE.Vector3(0, 100, -2);
+  const cameraPosition = new THREE.Vector3(0, 100, 0);
   const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
 
   renderer.setSize(width, height);
@@ -48,8 +48,8 @@
 
     const {dst} = parseQuery(location.search);
     if (!dst) {
-      const w = 10;
-      const h = 12;
+      // const w = 10;
+      // const h = 12;
 
       let dragSpec = null;
       container.addEventListener('mousedown', e => {
@@ -90,7 +90,7 @@
         // document.body.appendChild(renderer.domElement);
 
         const _renderParcel = (x, z) => {
-          const offset = new THREE.Vector3(x * tileScale, 0, z * tileScale);
+          const offset = new THREE.Vector3((x+0.5) * tileScale, 0, (z+0.5) * tileScale);
           camera.position.copy(cameraPosition).add(offset);
           camera.lookAt(cameraTarget.clone().add(offset).add(new THREE.Vector3(2, 0, -5)));
 
@@ -153,8 +153,8 @@
           });
           const localWidth = (x2-x1)*width/tileScale;
           const localHeight = (z2-z1)*height/tileScale;
-          div.style.left = (containerSize/2) + (width*(w+0.5)) - (localWidth/2) + (x1*width/tileScale) + `px`;
-          div.style.top = (containerSize/2) + (height*(h+1)) - (localHeight/2) + (z1*height/tileScale) + `px`;
+          div.style.left = (containerSize/2) - (localWidth/2) + (x1*width/tileScale) + `px`;
+          div.style.top = (containerSize/2) - (localHeight/2) + (z1*height/tileScale) + `px`;
           div.style.width = localWidth + `px`;
           div.style.height = localHeight + `px`;
           container.appendChild(div);
