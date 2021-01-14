@@ -26,10 +26,7 @@ const init = mapCanvas => {
 
   {
     const geometry = arrowGeometry;
-    const material = new THREE.MeshBasicMaterial({
-      color: 0xef5350,
-      side: THREE.DoubleSide,
-    });
+    const material = arrowMaterial;
     mapIndicator = new THREE.Mesh(geometry, material);
     mapIndicator.frustumCulled = false;
     mapScene.add(mapIndicator);
