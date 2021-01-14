@@ -47,12 +47,18 @@
       const size = extents.getSize(new THREE.Vector3());
       const geometry = new THREE.PlaneBufferGeometry(size.x, size.z)
         .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2)));
+      const s = 4;
       const material = new THREE.ShaderMaterial({
         uniforms: {
           /* uColor: {
             type: 'c',
             value: new THREE.Vector3(rarityColors.legendary[0]),
           }, */
+          uTopLeft: {
+            type: 'v3',
+            value: center.clone(),
+            needsUpdate: true,
+          },
         },
         vertexShader: `\
           #define PI 3.1415926535897932384626433832795
@@ -79,6 +85,7 @@
 
           #define PI 3.1415926535897932384626433832795
 
+          uniform vec3 uTopLeft;
           varying vec3 vBarycentric;
           varying vec3 vPosition;
 
@@ -95,7 +102,7 @@
           void main() {
             vec3 c = mix(lineColor1, lineColor2, vPosition.y / 10.);
             // vec3 p = fwidth(vPosition);
-            vec3 p = vPosition;
+            vec3 p = (vPosition-uTopLeft)/${s.toFixed(8)};
             float f = min(mod(p.x, 1.), mod(p.z, 1.));
             f = min(f, mod(1.-p.x, 1.));
             f = min(f, mod(1.-p.z, 1.));
