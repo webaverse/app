@@ -1201,6 +1201,10 @@ const arrowGeometry = (() => {
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
   return geometry;
 })();
+const arrowMaterial = new THREE.MeshBasicMaterial({
+  color: 0xef5350,
+  side: THREE.DoubleSide,
+});
 
 export {
   /* LAND_SHADER,
@@ -1211,4 +1215,5 @@ export {
   buildMaterial,
   portalMaterial,
   arrowGeometry,
+  arrowMaterial,
 };
