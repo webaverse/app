@@ -1201,9 +1201,60 @@ const arrowGeometry = (() => {
     .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.5, -0.1/2));
   return geometry;
 })();
-const arrowMaterial = new THREE.MeshBasicMaterial({
-  color: 0xef5350,
+const arrowVsh = `
+  #define PI 3.1415926535897932384626433832795
+
+  uniform float uTime;
+
+  mat4 rotationMatrix(vec3 axis, float angle)
+  {
+      axis = normalize(axis);
+      float s = sin(angle);
+      float c = cos(angle);
+      float oc = 1.0 - c;
+      
+      return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                  oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                  oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                  0.0,                                0.0,                                0.0,                                1.0);
+  }
+
+  varying float vDepth;
+  void main() {
+    gl_Position = projectionMatrix * modelViewMatrix * rotationMatrix(vec3(0, 1, 0), -uTime * PI * 2.0) * vec4(position + vec3(0., 1., 0.) * (0.5 + sin(uTime * PI * 2.0)*0.5), 1.);
+  }
+`;
+const arrowFsh = `
+  #define PI 3.1415926535897932384626433832795
+
+  // uniform sampler2D uTex;
+  uniform vec3 uColor;
+  uniform float uTime;
+  // varying float vDepth;
+  
+  vec3 grey = vec3(0.5);
+  
+  void main() {
+    gl_FragColor = vec4(mix(grey, uColor, 1.0 - (0.5 + sin(uTime * PI * 2.0)*0.5)), 1.0);
+  }
+`;
+const arrowMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    uColor: {
+      type: 'c',
+      value: new THREE.Color(0xef5350),
+      needsUpdate: true,
+    },
+    uTime: {
+      type: 'f',
+      value: 0,
+      needsUpdate: true,
+    },
+  },
+  vertexShader: arrowVsh,
+  fragmentShader: arrowFsh,
   side: THREE.DoubleSide,
+  // transparent: true,
 });
 
 export {
