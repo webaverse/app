@@ -61,6 +61,8 @@
       const h = 12;
 
       setTimeout(() => { // wait for load; should really be a lock
+        console.time('render');
+      
         orthographicCamera.left = -tileScale/2;
         orthographicCamera.right = tileScale/2;
         orthographicCamera.top = tileScale/2;
@@ -109,7 +111,9 @@
           const {x, y: z} = v;
           _renderParcel(x, z);
         }
-      }, 5000);
+
+        console.timeEnd('render');
+      }, 2000);
       
       (async () => {
         const res = await fetch(`https://webaverse.github.io/parcels/parcels.json`);
