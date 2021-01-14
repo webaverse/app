@@ -75,9 +75,9 @@ export default class App {
     
     const coord = (() => {
       if (q.c) {
-        const split = q.c.match(/^\[(-?[0-9]+),(-?[0-9]+),(-?[0-9]+)\]$/);
+        const split = q.c.match(/^\[(-?[0-9\.]+),(-?[0-9\.]+),(-?[0-9\.]+)\]$/);
         let x, y, z;
-        if (split && !isNaN(x = parseInt(split[1])) && !isNaN(y = parseInt(split[2])) && !isNaN(z = parseInt(split[3]))) {
+        if (split && !isNaN(x = parseFloat(split[1])) && !isNaN(y = parseFloat(split[2])) && !isNaN(z = parseFloat(split[3]))) {
           return new THREE.Vector3(x, y, z);
         } else {
           return null;
