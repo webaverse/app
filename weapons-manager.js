@@ -1230,6 +1230,18 @@ const itemSpecs1 = [
     },
   },
 ];
+const _selectTab = newSelectedTabIndex => {
+  weaponsManager.setMenu(newSelectedTabIndex + 1);
+};
+const _selectTabDelta = offset => {
+  let newSelectedTabIndex = (weaponsManager.getMenu() - 1) + offset;
+  if (newSelectedTabIndex >= tabs.length) {
+    newSelectedTabIndex = 0;
+  } else if (newSelectedTabIndex < 0) {
+    newSelectedTabIndex = tabs.length - 1;
+  }
+  _selectTab(newSelectedTabIndex);
+};
 const bindInterface = () => {
   for (let i = 0; i < itemSpecs3.length; i++) {
     const itemSpec = itemSpecs3[i];
@@ -1292,18 +1304,6 @@ const bindInterface = () => {
       _selectTab(i);
     });
   }
-  const _selectTab = newSelectedTabIndex => {
-    weaponsManager.setMenu(newSelectedTabIndex + 1);
-  };
-  const _selectTabDelta = offset => {
-    let newSelectedTabIndex = (weaponsManager.getMenu() - 1) + offset;
-    if (newSelectedTabIndex >= tabs.length) {
-      newSelectedTabIndex = 0;
-    } else if (newSelectedTabIndex < 0) {
-      newSelectedTabIndex = tabs.length - 1;
-    }
-    _selectTab(newSelectedTabIndex);
-  };
 
   [keyTabEl, keyTab1El, keyTab2El, keyTab3El, keyTab4El].forEach((el, i) => {
     el.addEventListener('click', e => {
