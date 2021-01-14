@@ -15,21 +15,13 @@
   import {parseQuery} from './util.js';
   import {homeScnUrl, rarityColors} from './constants.js';
 
-  const width = 128;
-  const height = 128;
   const cameraPosition = new THREE.Vector3(0, 100, 0);
   const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
   const perspectiveOffset = new THREE.Vector3(2, 0, -5);
+  const loadDelayTime = 5000;
 
-  renderer.setSize(width, height);
   renderer.setPixelRatio(2);
-
-  camera.aspect = width/height;
-  camera.updateProjectionMatrix();
   camera.up.set(0, 0, -1);
-
-  const tileScale = 16;
-  let zoom = 1;
 
   (async () => {
     const app = new App();
@@ -54,17 +46,27 @@
     const _getContainerMetrics = () => new THREE.Vector2(parseInt(container.style.left || '0', 10), parseInt(container.style.top || '0', 10));
 
     const container = document.getElementById('container');
-    const containerSize = 10000;
-    const boundingBox = document.body.getBoundingClientRect();
-    container.style.width = `${containerSize}px`;
-    container.style.height = `${containerSize}px`;
-    container.style.left = `${-containerSize/2 + boundingBox.width/2}px`;
-    container.style.top = `${-containerSize/2 + boundingBox.height/2}px`;
 
     const {dst} = parseQuery(location.search);
-    if (!dst) {
-      setTimeout(() => { // wait for load; should really be a lock
-        // console.time('render');
+    setTimeout(async () => { // wait for load; should really be a lock
+      // console.time('render');
+      if (!dst) {
+      const width = 128;
+        const height = 128;
+        const tileScale = 16;
+        let zoom = 1;
+
+        renderer.setSize(width, height);
+        
+        camera.aspect = width/height;
+        camera.updateProjectionMatrix();
+      
+        const containerSize = 10000;
+        const boundingBox = document.body.getBoundingClientRect();
+        container.style.width = `${containerSize}px`;
+        container.style.height = `${containerSize}px`;
+        container.style.left = `${-containerSize/2 + boundingBox.width/2}px`;
+        container.style.top = `${-containerSize/2 + boundingBox.height/2}px`;
 
         const _getTileId = (x, z) => `tile-${x}-${z}`;
         const _renderParcel = (x, z) => {
@@ -204,89 +206,97 @@
         });
 
         console.timeEnd('render');
-      }, 5000);
-      
-      const _getCoordUrl = c => `https://app.webaverse.com/?c=${JSON.stringify([c.x, c.y, c.z])}`;
-      const _renderAnchors = () => {
-        for (const p of parcelsJson) {
-          const {name, rarity, extents} = p;
-          const [[x1, y1, z1], [x2, y2, z2]] = extents;
-          const box = new THREE.Box3(
-            new THREE.Vector3(x1, y1, z1),
-            new THREE.Vector3(x2, y2, z2),
-          );
-          const center = box.getCenter(new THREE.Vector3());
-          const div = document.createElement('a');
-          div.href = _getCoordUrl(center);
-          div.classList.add('parcel');
-          const colors = (rarityColors[rarity] || rarityColors.legendary).map(c => new THREE.Color(c));
-          div.style.background = `radial-gradient(${colors.map(c => '#' + c.getHexString()).join(', ')})`;
-          div.innerHTML = `\
-            <div class=details>${p.name}</div>
-          `;
-          div.addEventListener('mousedown', e => {
-            e.stopPropagation();
-          });
-          const localWidth = (x2-x1)*width/(tileScale*zoom);
-          const localHeight = (z2-z1)*height/(tileScale*zoom);
-          div.style.left = (containerSize/2) + (x1*width/(tileScale*zoom)) - (perspectiveOffset.x*width/(tileScale*zoom)) + `px`;
-          div.style.top = (containerSize/2) + (z1*height/(tileScale*zoom)) - (perspectiveOffset.z*height/(tileScale*zoom)) + `px`;
-          div.style.width = localWidth + `px`;
-          div.style.height = localHeight + `px`;
-          container.appendChild(div);
-        }
-      };
-      _renderAnchors();
-    } else {
-      let {x, y, sw, sh, dw, dh} = parseQuery(location.search);
+        
+        const _getCoordUrl = c => `https://local.webaverse.com:3001/?c=${JSON.stringify([c.x, c.y, c.z])}`;
+        const _renderAnchors = () => {
+          for (const p of parcelsJson) {
+            const {name, rarity, extents} = p;
+            const [[x1, y1, z1], [x2, y2, z2]] = extents;
+            const box = new THREE.Box3(
+              new THREE.Vector3(x1, y1, z1),
+              new THREE.Vector3(x2, y2, z2),
+            );
+            const center = box.getCenter(new THREE.Vector3());
+            const div = document.createElement('a');
+            div.href = _getCoordUrl(center);
+            div.classList.add('parcel');
+            const colors = (rarityColors[rarity] || rarityColors.legendary).map(c => new THREE.Color(c));
+            div.style.background = `radial-gradient(${colors.map(c => '#' + c.getHexString()).join(', ')})`;
+            div.innerHTML = `<div class=details>${p.name}</div>`;
+            div.addEventListener('mousedown', e => {
+              e.stopPropagation();
+            });
+            const localWidth = (x2-x1)*width/(tileScale*zoom);
+            const localHeight = (z2-z1)*height/(tileScale*zoom);
+            div.style.left = (containerSize/2) + (x1*width/(tileScale*zoom)) - (perspectiveOffset.x*width/(tileScale*zoom)) + `px`;
+            div.style.top = (containerSize/2) + (z1*height/(tileScale*zoom)) - (perspectiveOffset.z*height/(tileScale*zoom)) + `px`;
+            div.style.width = localWidth + `px`;
+            div.style.height = localHeight + `px`;
+            container.appendChild(div);
+          }
+        };
+        _renderAnchors();
+      } else {
+        let {x, y, sw, sh, dw, dh} = parseQuery(location.search);
 
-      x = parseInt(x);
-      y = parseInt(y);
-      sw = parseInt(sw);
-      sh = parseInt(sh);
-      dw = parseInt(dw);
-      dh = parseInt(dh);
+        x = parseInt(x, 10);
+        y = parseInt(y, 10);
+        sw = parseInt(sw, 10);
+        sh = parseInt(sh, 10);
+        dw = parseInt(dw, 10);
+        dh = parseInt(dh, 10);
 
-      orthographicCamera.left = -sw/2;
-      orthographicCamera.right = sw/2;
-      orthographicCamera.top = sh/2;
-      orthographicCamera.bottom = -sh/2;
-      orthographicCamera.near = 0;
-      orthographicCamera.far = 2000;
-      orthographicCamera.updateProjectionMatrix();
-      camera.projectionMatrix.copy(orthographicCamera.projectionMatrix);
+        orthographicCamera.left = -sw/2;
+        orthographicCamera.right = sw/2;
+        orthographicCamera.top = sh/2;
+        orthographicCamera.bottom = -sh/2;
+        orthographicCamera.near = 0;
+        orthographicCamera.far = 2000;
+        orthographicCamera.updateProjectionMatrix();
+        camera.projectionMatrix.copy(orthographicCamera.projectionMatrix);
 
-      cameraTarget.set(x + sw/2, 0, y + sh/2);
+        cameraPosition.set(x + sw/2, 100, y + sh/2);
+        cameraTarget.set(cameraPosition.x, 0, cameraPosition.z)
 
-      const offset = new THREE.Vector3(x * tileScale, 0, y * tileScale);
-      camera.position.copy(cameraPosition).add(offset);
-      camera.lookAt(cameraTarget.clone().add(offset).add(new THREE.Vector3(2, 0, -5)));
+        camera.position.copy(cameraPosition);
+        camera.lookAt(cameraTarget.clone().add(perspectiveOffset));
 
-      renderer.setSize(dw, dh);
+        renderer.setSize(dw, dh);
 
-      renderer.clear();
-      app.render();
+        renderer.clear();
+        app.render();
+        
+        document.body.appendChild(renderer.domElement);
+        console.log('got el', renderer.domElement);
 
-      container.appendChild(renderer.domElement);
+        const boundingBox = document.body.getBoundingClientRect();
+        container.style.left = null;
+        container.style.top = null;
+        renderer.domElement.style.position = 'absolute';
+        renderer.domElement.style.left = `${boundingBox.width/2 - dw/2}px`;
+        renderer.domElement.style.top = `${boundingBox.height/2 - dh/2}px`;
+        container.appendChild(renderer.domElement);
 
-      const blob = await new Promise((accept, reject) => {
-        renderer.domElement.toBlob(accept);
-      });
+        const blob = await new Promise((accept, reject) => {
+          renderer.domElement.toBlob(accept);
+        });
 
-      fetch(dst, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'image/png',
-        },
-        body: blob,
-      }).then(res => res.blob());
+        fetch(dst, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'image/png',
+          },
+          body: blob,
+        }).then(res => res.blob());
 
-      /* const arrayBuffer = await blob.arrayBuffer();
-      window.parent.postMessage({
-        method: 'result',
-        result: arrayBuffer,
-      }, '*', [arrayBuffer]); */
-    }
+        /* const arrayBuffer = await blob.arrayBuffer();
+        window.parent.postMessage({
+          method: 'result',
+          result: arrayBuffer,
+        }, '*', [arrayBuffer]); */
+      }
+    
+    }, loadDelayTime);
   })();
 </script>
 </body>
