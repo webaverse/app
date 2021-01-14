@@ -46,7 +46,6 @@
       const center = extents.getCenter(new THREE.Vector3());
       const size = extents.getSize(new THREE.Vector3());
       const geometry = new THREE.PlaneBufferGeometry(size.x, size.z)
-        // .applyMatrix4(new THREE.Matrix4().makeTranslation(size.x/2, -size.y/2, 0));
         .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2)));
       const material = new THREE.MeshBasicMaterial({
         color: rarityColors.legendary[0],
@@ -54,7 +53,6 @@
       });
       const extentMesh = new THREE.Mesh(geometry, material);
       extentMesh.position.set(center.x, 0, center.z)
-        // .sub(perspectiveOffset); // offset by half of the offset since we are halfway to the camera
       scene.add(extentMesh);
     }
 
