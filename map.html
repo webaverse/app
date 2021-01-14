@@ -180,7 +180,7 @@
             (-containerMetrics.y - (containerSize/2) + e.clientY)/height*(tileScale*zoom),
           );
 
-          zoom = Math.min(Math.max(zoom * (1 + e.deltaY * 0.001), 0.01), 100);
+          zoom = Math.min(Math.max(zoom * (1 + e.deltaY * 0.001), 0.01), 20);
           container.innerHTML = '';
           currentTiles = [];
 
