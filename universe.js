@@ -7,7 +7,8 @@ import physicsManager from './physics-manager.js';
 import minimap from './minimap.js';
 import cameraManager from './camera-manager.js';
 import {makeTextMesh} from './vr-ui.js';
-import {parseQuery} from './util.js';
+import {parseQuery, parseCoord} from './util.js';
+import {arrowGeometry, arrowMaterial} from './shaders.js';
 import {homeScnUrl} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -17,6 +18,18 @@ const localVector4 = new THREE.Vector3();
 const localBox = new THREE.Box3();
 const localBox2 = new THREE.Box3();
 const localObject = new THREE.Object3D();
+
+let arrowMesh = null;
+const bindInterface = () => {
+  arrowMesh = new THREE.Mesh(arrowGeometry, arrowMaterial.clone());
+  arrowMesh.frustumCulled = false;
+  const q = parseQuery(location.search);
+  const coord = parseCoord(q.c);
+  if (coord) {
+    arrowMesh.position.copy(coord).add(new THREE.Vector3(0, 2, 0));
+  }
+  scene.add(arrowMesh);
+};
 
 const warpMesh = (() => {
   const boxGeometry = new THREE.BoxBufferGeometry(0.1, 0.1, 1);
@@ -105,6 +118,10 @@ const clearWorld = () => {
   }
 };
 const update = () => {
+  if (arrowMesh) {
+    arrowMesh.material.uniforms.uTime.value = (Date.now()%1500)/1500;
+    arrowMesh.material.uniforms.uTime.needsUpdate = true;
+  }
   if (warpMesh.visible) {
     warpMesh.material.uniforms.uTime.value = (Date.now() % 2000) / 2000;
     warpMesh.material.uniforms.uTime.needsUpdate = true;
@@ -270,6 +287,7 @@ window.addEventListener('popstate', e => {
 });
 
 export {
+  bindInterface,
   update,
   enterWorld,
   pushUrl,
