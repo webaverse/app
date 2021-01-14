@@ -1182,10 +1182,10 @@ const addItem = async (position, quaternion) => {
 
 const arrowGeometry = (() => {
   const shape = new THREE.Shape();
-  shape.moveTo( -1, 0 );
-  shape.lineTo( 0, -2 );
-  shape.lineTo( 1, 0 );
-  shape.lineTo( 0, -0.5 );
+  shape.moveTo(-0.75, 0);
+  shape.lineTo(0, -2);
+  shape.lineTo(0.75, 0);
+  shape.lineTo(0, -0.5);
   // shape.lineTo( -1, 0 );
   const extrudeSettings = {
     steps: 2,
