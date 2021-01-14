@@ -5,6 +5,14 @@ body {
 * {
   box-sizing: border-box;
 }
+.container {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
 .parcel {
   position: absolute;
   /* background-color: #FF0000; */

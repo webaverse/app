@@ -4,7 +4,7 @@
   <link rel=stylesheet type='text/css' href="map.css">
 </head>
 <body>
-  <div id=container></div>
+  <div id=container class=container></div>
 
 <script src="./bin/geometry.js"></script>
 <script type=module>
@@ -53,6 +53,8 @@
     // fixes a glitch where the first render has black opaque
     app.render();
 
+    const container = document.getElementById('container');
+
     const {dst} = parseQuery(location.search);
     if (!dst) {
       const w = 10;
@@ -82,17 +84,30 @@
           canvas.width = width;
           canvas.height = height;
           canvas.style.position = 'absolute';
-          canvas.style.left = ((w + x)*width) + 'px';
-          canvas.style.top = ((h + z)*height) + 'px';
+          canvas.style.left = (x*width) + 'px';
+          canvas.style.top = (z*height) + 'px';
           const ctx = canvas.getContext('2d');
           ctx.drawImage(renderer.domElement, 0, 0, canvas.width, canvas.height);
-          document.body.appendChild(canvas);
+          container.appendChild(canvas);
+        };
+        const _getNeededCoords = (topLeftPosition, boundingBox) => {
+          const result = [];
+          for (let x = topLeftPosition.x; x < (topLeftPosition.x + boundingBox.width); x += width) {
+            for (let z = topLeftPosition.y; z < (topLeftPosition.y + boundingBox.height); z += height) {
+              const ax = Math.floor(x/width);
+              const az = Math.floor(z/height);
+              result.push(new THREE.Vector2(ax, az));
+            }
+          }
+          return result;
         };
 
-        for (let x = -w; x < w; x++) {
-          for (let z = -h; z < h; z++) {
-            _renderParcel(x, z);
-          }
+        const topLeftPosition = new THREE.Vector2(0, 0);
+        const boundingBox = container.getBoundingClientRect();
+        const neededCoords = _getNeededCoords(topLeftPosition, boundingBox);
+        for (const v of neededCoords) {
+          const {x, y: z} = v;
+          _renderParcel(x, z);
         }
       }, 5000);
       
@@ -119,7 +134,7 @@
           div.style.top = (height*(h+1)) - (localHeight/2) + (z1*height/tileScale) + `px`;
           div.style.width = localWidth + `px`;
           div.style.height = localHeight + `px`;
-          document.body.appendChild(div);
+          container.appendChild(div);
         }
       })();
     } else {
@@ -152,7 +167,7 @@
       renderer.clear();
       app.render();
 
-      document.body.appendChild(renderer.domElement);
+      container.appendChild(renderer.domElement);
 
       const blob = await new Promise((accept, reject) => {
         renderer.domElement.toBlob(accept);
