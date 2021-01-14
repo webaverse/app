@@ -160,12 +160,6 @@
             container.style.left = `${newPosition.x}px`;
             container.style.top = `${newPosition.y}px`;
           }
-
-          /* const containerMetrics = _getContainerMetrics();
-          const mouseWorldPosition = new THREE.Vector2(
-            (-containerMetrics.x - (containerSize/2) + e.clientX)/width*(tileScale*zoom),
-            (-containerMetrics.y - (containerSize/2) + e.clientY)/height*(tileScale*zoom),
-          ); */
         });
         window.addEventListener('resize', e => {
           _updateTiles();
@@ -187,10 +181,23 @@
           _updateTiles();
           _renderAnchors();
         });
+        container.addEventListener('dblclick', e => {
+          const containerMetrics = _getContainerMetrics();
+          const clickPoint = new THREE.Vector3(
+            (-containerMetrics.x - (containerSize/2) + e.clientX)/width*(tileScale*zoom),
+            2,
+            (-containerMetrics.y - (containerSize/2) + e.clientY)/height*(tileScale*zoom),
+          );
+
+          const a = document.createElement('a');
+          a.href = _getCoordUrl(clickPoint);
+          a.click();
+        });
 
         console.timeEnd('render');
       }, 5000);
       
+      const _getCoordUrl = c => `https://app.webaverse.com/?c=${JSON.stringify([c.x, c.y, c.z])}`;
       const _renderAnchors = () => {
         for (const p of parcelsJson) {
           const {name, rarity, extents} = p;
@@ -201,7 +208,7 @@
           );
           const center = box.getCenter(new THREE.Vector3());
           const div = document.createElement('a');
-          div.href = `https://app.webaverse.com/?c=${JSON.stringify([center.x, center.y, center.z])}`;
+          div.href = _getCoordUrl(center);
           div.classList.add('parcel');
           const colors = (rarityColors[rarity] || rarityColors.legendary).map(c => new THREE.Color(c));
           div.style.background = `radial-gradient(${colors.map(c => '#' + c.getHexString()).join(', ')})`;
