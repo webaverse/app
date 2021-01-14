@@ -1,6 +1,9 @@
 body {
+  width: 100vw;
+  height: 100vh;
   margin: 0;
   background-color: #000;
+  overflow: hidden;
 }
 * {
   box-sizing: border-box;
@@ -9,13 +12,11 @@ body {
   position: absolute;
   left: 0;
   top: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
+  min-width: 100%;
+  min-height: 100%;
 }
 .parcel {
   position: absolute;
-  /* background-color: #FF0000; */
   background: radial-gradient(#80cf3f, #3a7913);
   // background: radial-gradient(#fdae53, #ff7605);
   border: 3px solid #000000C0;
