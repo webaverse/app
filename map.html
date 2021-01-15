@@ -297,7 +297,7 @@
 
         console.timeEnd('render');
         
-        const _getCoordUrl = c => `https://local.webaverse.com:3001/?c=${JSON.stringify([c.x, c.y, c.z])}`;
+        const _getCoordUrl = c => `https://app.webaverse.com/?c=${JSON.stringify([c.x, c.y, c.z])}`;
         const _renderAnchors = () => {
           for (const p of parcelsJson) {
             const {name, rarity, extents} = p;
