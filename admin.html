@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<body>
+  <form id=mint-parcels-form>
+    <h1>Mint parcels</h1>
+    <textarea id=parcels-json-input cols=80 rows=16 placeholder="paste parcels.json"></textarea>
+    <input type=submit value="Mint">
+  </form>
+<!-- <script src="./bin/geometry.js"></script> -->
+<script type=module>
+import * as THREE from './three.module.js';
+// import {GLTFLoader} from './GLTFLoader.js';
+// import {GLTFExporter} from './GLTFExporter.js';
+// import {makePromise, downloadFile, convertMeshToPhysicsMesh} from './util.js';
+import * as blockchain from './blockchain.js';
+
+const parcelsJsonInput = document.getElementById('parcels-json-input');
+(async () => {
+  const parcelsJsonString = parcelsJsonInput.value;
+  const parcelsJson = JSON.parse(parcelsJsonString);
+  console.log('got parcels json', parcelsJson, blockchain);
+})();
+
+</script>
+</body>
+</html>
