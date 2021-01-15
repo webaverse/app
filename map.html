@@ -27,7 +27,7 @@
   })();
   const loadDelayTime = 5000;
 
-  renderer.setPixelRatio(2);
+  renderer.setPixelRatio(window.devicePixelRatio);
   camera.up.set(0, 0, -1);
 
   (async () => {
@@ -328,6 +328,8 @@
         };
         _renderAnchors();
       } else {
+        renderer.setPixelRatio(1);
+
         let {x, y, sw, sh, dw, dh} = parseQuery(location.search);
 
         x = parseInt(x, 10);
