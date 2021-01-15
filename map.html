@@ -350,7 +350,7 @@
         cameraTarget.set(cameraPosition.x, 0, cameraPosition.z)
 
         camera.position.copy(cameraPosition);
-        camera.lookAt(cameraTarget.clone().add(perspectiveOffset));
+        camera.lookAt(cameraTarget);
 
         renderer.setSize(dw, dh);
 
