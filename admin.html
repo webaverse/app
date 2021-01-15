@@ -3,6 +3,9 @@
 <body>
   <form id=mint-parcels-form>
     <h1>Mint parcels</h1>
+    <div>
+      <a href="https://webaverse.github.io/parcels/parcels.json">parcels.json on Github</a>
+    </div>
     <textarea id=parcels-json-input cols=80 rows=16 placeholder="paste parcels.json"></textarea>
     <input type=submit value="Mint">
   </form>
@@ -12,14 +15,18 @@ import * as THREE from './three.module.js';
 // import {GLTFLoader} from './GLTFLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {makePromise, downloadFile, convertMeshToPhysicsMesh} from './util.js';
-import * as blockchain from './blockchain.js';
+import {web3} from './blockchain.js';
 
+const mintParcelsForm = document.getElementById('mint-parcels-form');
 const parcelsJsonInput = document.getElementById('parcels-json-input');
-(async () => {
+mintParcelsForm.addEventListener('submit', e => {
+  e.preventDefault();
+  e.stopPropagation();
+
   const parcelsJsonString = parcelsJsonInput.value;
   const parcelsJson = JSON.parse(parcelsJsonString);
-  console.log('got parcels json', parcelsJson, blockchain);
-})();
+  console.log('got parcels json', parcelsJson, web3);
+});
 
 </script>
 </body>
