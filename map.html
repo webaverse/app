@@ -18,6 +18,13 @@
   const cameraPosition = new THREE.Vector3(0, 100, 0);
   const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
   const perspectiveOffset = new THREE.Vector3(2, 0, -5);
+  const isInIframe = (() => {
+    try {
+      return window.self !== window.top;
+    } catch (e) {
+      return true;
+    }
+  })();
   const loadDelayTime = 5000;
 
   renderer.setPixelRatio(2);
@@ -282,12 +289,15 @@
 
           const a = document.createElement('a');
           a.href = _getCoordUrl(clickPoint);
+          if (isInIframe) {
+            a.setAttribute('target', '_blank');
+          }
           a.click();
         });
 
         console.timeEnd('render');
         
-        const _getCoordUrl = c => `https://app.webaverse.com/?c=${JSON.stringify([c.x, c.y, c.z])}`;
+        const _getCoordUrl = c => `https://local.webaverse.com:3001/?c=${JSON.stringify([c.x, c.y, c.z])}`;
         const _renderAnchors = () => {
           for (const p of parcelsJson) {
             const {name, rarity, extents} = p;
