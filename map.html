@@ -53,7 +53,8 @@
       const center = extents.getCenter(new THREE.Vector3());
       const size = extents.getSize(new THREE.Vector3());
       const geometry = new THREE.PlaneBufferGeometry(size.x, size.z)
-        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2)));
+        .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2)))
+        .applyMatrix4(new THREE.Matrix4().makeTranslation(size.x/2, 0, size.z/2));
       const s = 4;
       const material = new THREE.ShaderMaterial({
         uniforms: {
@@ -61,11 +62,11 @@
             type: 'c',
             value: new THREE.Vector3(rarityColors.legendary[0]),
           }, */
-          uTopLeft: {
+          /* uTopLeft: {
             type: 'v3',
-            value: center.clone(),
+            value: extents.min.clone(),
             needsUpdate: true,
-          },
+          }, */
         },
         vertexShader: `\
           #define PI 3.1415926535897932384626433832795
@@ -92,7 +93,7 @@
 
           #define PI 3.1415926535897932384626433832795
 
-          uniform vec3 uTopLeft;
+          // uniform vec3 uTopLeft;
           varying vec3 vBarycentric;
           varying vec3 vPosition;
 
@@ -109,7 +110,7 @@
           void main() {
             vec3 c = mix(lineColor1, lineColor2, vPosition.y / 10.);
             // vec3 p = fwidth(vPosition);
-            vec3 p = (vPosition-uTopLeft)/${s.toFixed(8)};
+            vec3 p = vPosition/${s.toFixed(8)};
             float f = min(mod(p.x, 1.), mod(p.z, 1.));
             f = min(f, mod(1.-p.x, 1.));
             f = min(f, mod(1.-p.z, 1.));
@@ -123,7 +124,7 @@
       });
       
       const extentMesh = new THREE.Mesh(geometry, material);
-      extentMesh.position.set(center.x, 0, center.z)
+      extentMesh.position.set(extents.min.x, 0, extents.min.z)
       scene.add(extentMesh);
     }
 
