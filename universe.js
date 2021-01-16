@@ -9,7 +9,7 @@ import cameraManager from './camera-manager.js';
 import {makeTextMesh} from './vr-ui.js';
 import {parseQuery, parseCoord} from './util.js';
 import {arrowGeometry, arrowMaterial} from './shaders.js';
-import {homeScnUrl} from './constants.js';
+import {landHost, homeScnUrl} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -137,6 +137,15 @@ const update = () => {
   }
   return geometry;
 }; */
+const getParcels = async () => {
+  const res = await fetch(`${landHost}/1-100`);
+  if (res.ok) {
+    const j = await res.json();
+    return j;
+  } else {
+    return [];
+  }
+};
 const enterWorld = async worldSpec => {
   let warpPhysicsId;
   const _pre = () => {
@@ -291,6 +300,7 @@ window.addEventListener('popstate', e => {
 export {
   bindInterface,
   update,
+  getParcels,
   enterWorld,
   pushUrl,
   handleUrlUpdate,
