@@ -13,19 +13,13 @@
   import {renderer, scene, camera, orthographicCamera} from './app-object.js';
   import {world} from './world.js';
   import * as universe from './universe.js';
-  import {parseQuery, parseExtents} from './util.js';
+  import {parseQuery, parseExtents, isInIframe} from './util.js';
   import {homeScnUrl, rarityColors} from './constants.js';
 
   const cameraPosition = new THREE.Vector3(0, 100, 0);
   const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
   const perspectiveOffset = new THREE.Vector3(2, 0, -5);
-  const isInIframe = (() => {
-    try {
-      return window.self !== window.top;
-    } catch (e) {
-      return true;
-    }
-  })();
+  const iframed = isInIframe();
   const loadDelayTime = 5000;
 
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -290,7 +284,7 @@
 
           const a = document.createElement('a');
           a.href = _getCoordUrl(clickPoint);
-          if (isInIframe) {
+          if (iframed) {
             a.setAttribute('target', '_blank');
           }
           a.click();
