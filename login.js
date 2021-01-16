@@ -83,13 +83,17 @@ async function pullUserObject() {
 } */
 function updateUserObject() {
   const userName = document.getElementById('user-name');
-  userName.innerText = userObject.name || 'Anonymous';
+  if (userName) {
+    userName.innerText = userObject.name || 'Anonymous';
+  }
 
   const avatarIcon = document.getElementById('avatar-icon');
-  if (userObject.avatar.preview) {
-    avatarIcon.src = userObject.avatar.preview;
-  } else {
-    delete avatarIcon.src;
+  if (avatarIcon) {
+    if (userObject.avatar.preview) {
+      avatarIcon.src = userObject.avatar.preview;
+    } else {
+      delete avatarIcon.src;
+    }
   }
 
   loginManager.pushUpdate();
@@ -134,10 +138,10 @@ async function tryLogin() {
 
   // const userButton = document.getElementById('user-button');
   const loginForm = document.getElementById('login-form');
-  const loginEmail = document.getElementById('login-email');
-  const loginVerificationCode = document.getElementById('login-verification-code');
-  const loginNotice = document.getElementById('login-notice');
-  const loginError = document.getElementById('login-error');
+  // const loginEmail = document.getElementById('login-email');
+  // const loginVerificationCode = document.getElementById('login-verification-code');
+  // const loginNotice = document.getElementById('login-notice');
+  // const loginError = document.getElementById('login-error');
   /* userButton.addEventListener('click', e => {
     userButton.classList.toggle('open');
   }); */
@@ -149,10 +153,10 @@ async function tryLogin() {
     await pullUserObject();
     updateUserObject();
 
-    loginForm.classList.add('phase-3');
+    loginForm && loginForm.classList.add('phase-3');
 
     if (loginToken.unregistered) {
-      unregisteredWarning.style.display = null;
+      unregisteredWarning && (unregisteredWarning.style.display = null);
     }
   } else {
     const mnemonic = bip39.generateMnemonic();
@@ -161,7 +165,7 @@ async function tryLogin() {
       unregistered: true,
     });
 
-    unregisteredWarning.style.display = null;
+    unregisteredWarning && (unregisteredWarning.style.display = null);
   }
 };
 async function bindLogin() {
