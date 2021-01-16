@@ -97,6 +97,9 @@ export default class App {
     }
     this.contentLoaded = true;
   }
+  bindLogin() {
+    loginManager.bindLogin();
+  }
   bindInput() {
     ioManager.bindInput();
   }
