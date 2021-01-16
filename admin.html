@@ -33,24 +33,29 @@ mintParcelsForm.addEventListener('submit', async e => {
 
   const parcelsJsonString = parcelsJsonInput.value;
   const parcelsJson = JSON.parse(parcelsJsonString);
-  console.log('got parcels json', parcelsJson, address);
+  // console.log('got parcels json', parcelsJson, address);
   if (Array.isArray(parcelsJson)) {
     for (let i = 0; i < parcelsJson.length && i < 1; i++) {
       const parcelJson = parcelsJson[i];
-      const {id, name, rarity, extents} = parcelJson;
+      const {name, rarity, extents} = parcelJson;
 
       let tokenId;
-      {      
+      try {
         const result = await runSidechainTransaction(mnemonic)('LAND', 'mintSingle', address, name);
         console.log('got mint result 1', result);
         tokenId = new web3.sidechain.utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
+      } catch(err) {
+        tokenId = i + 1;
+        console.warn(err);
       }
+      const hash = await contracts.sidechain.LAND.methods.getHash(tokenId).call();
+      console.log('got hash', [tokenId, hash]);
       {
-        const result2 = await runSidechainTransaction(mnemonic)('LAND', 'setMetadata', tokenId, 'rarity', rarity);
+        const result2 = await runSidechainTransaction(mnemonic)('LAND', 'setMetadata', hash, 'rarity', rarity);
         console.log('got mint result 2', result2);
       }
       {
-        const result3 = await runSidechainTransaction(mnemonic)('LAND', 'setMetadata', tokenId, 'extents', extents);
+        const result3 = await runSidechainTransaction(mnemonic)('LAND', 'setMetadata', hash, 'extents', JSON.stringify(extents));
         console.log('got mint result 3', result3);
       }
       /* await contracts.sidechain.LAND.methods.mintSingle(address, name).send({
