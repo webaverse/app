@@ -35,7 +35,7 @@ mintParcelsForm.addEventListener('submit', async e => {
   const parcelsJson = JSON.parse(parcelsJsonString);
   // console.log('got parcels json', parcelsJson, address);
   if (Array.isArray(parcelsJson)) {
-    for (let i = 0; i < parcelsJson.length && i < 1; i++) {
+    for (let i = 0; i < parcelsJson.length; i++) {
       const parcelJson = parcelsJson[i];
       const {name, rarity, extents} = parcelJson;
 
