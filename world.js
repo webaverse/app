@@ -473,26 +473,29 @@ world.getWorldJson = async q => {
       };
     }
   };
-  
+
+  let spec;
   const {u, t} = q;
   if (u) {
-    const spec = await _getSpec(u);
-    return spec;
+    spec = await _getSpec(u);
   } else if (t) {
-    const spec = await _getSpec(t);
+    spec = await _getSpec(t);
     if (!spec.objects) {
       spec.objects = [];
     }
     spec.objects.splice(0, 0, {
-      start_url: `https://webaverse.github.io/pedestal/index.js`,
+      start_url: `./pedestal/index.js`,
     });
     for (const object of spec.objects) {
       object.position = [0, 0, -2];
     }
-    return spec;
   } else {
-    return _getDefault();
+    spec = _getDefault();
   }
+  if (q.r) {
+    spec.room = q.r;
+  }
+  return spec;
 };
 
 let animationMediaStream = null
