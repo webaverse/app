@@ -151,7 +151,7 @@ const _makeInventoryShapesMesh = () => {
   return object;
 }; */
 
-geometryManager.waitForLoad().then(() => {
+/* geometryManager.waitForLoad().then(() => {
   const hpMesh = (() => {
     const mesh = new THREE.Object3D();
 
@@ -224,11 +224,11 @@ geometryManager.waitForLoad().then(() => {
   })();
   // scene.add(hpMesh);
   uiManager.hpMesh = hpMesh;
+}); */
 
-  const popupMesh = makePopupMesh();
+const popupMesh = makePopupMesh();
   popupMesh.visible = false;
   scene.add(popupMesh);
   uiManager.popupMesh = popupMesh;
-});
 
 export default uiManager;
