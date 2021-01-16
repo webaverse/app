@@ -129,6 +129,86 @@ async function doLogin(email, code) {
 }
 async function tryLogin() {
   loginToken = await storage.get('loginToken');
+  
+  const unregisteredWarning = document.getElementById('unregistered-warning');
+
+  // const userButton = document.getElementById('user-button');
+  const loginEmail = document.getElementById('login-email');
+  const loginVerificationCode = document.getElementById('login-verification-code');
+  const loginNotice = document.getElementById('login-notice');
+  const loginError = document.getElementById('login-error');
+  /* userButton.addEventListener('click', e => {
+    userButton.classList.toggle('open');
+  }); */
+  /* userDetails.addEventListener('click', e => {
+    // e.preventDefault();
+    e.stopPropagation();
+  }); */
+  if (loginToken) {
+    await pullUserObject();
+    updateUserObject();
+
+    loginForm.classList.add('phase-3');
+
+    if (loginToken.unregistered) {
+      unregisteredWarning.style.display = null;
+    }
+  } else {
+    const mnemonic = bip39.generateMnemonic();
+    await finishLogin({
+      mnemonic,
+      unregistered: true,
+    });
+
+    unregisteredWarning.style.display = null;
+  }
+  loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    if (loginForm.classList.contains('phase-1') && loginEmail.value) {
+      loginNotice.innerHTML = '';
+      loginError.innerHTML = '';
+      loginForm.classList.remove('phase-1');
+
+      const split = loginEmail.value.split(/\s+/).filter(w => !!w);
+      if (split.length === 12) {
+        const mnemonic = split.slice(0, 12).join(' ');
+
+        await finishLogin({
+          mnemonic,
+        });
+
+        location.reload();
+      } else {
+        const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(loginEmail.value)}`, {
+          method: 'POST',
+        });
+        if (res.status >= 200 && res.status < 300) {
+          loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
+          loginForm.classList.add('phase-2');
+
+          return res.blob();
+        } else {
+          loginError.innerText = 'Invalid email!';
+          loginForm.classList.add('phase-1');
+          throw new Error(`invalid status code: ${res.status}`);
+        }
+      }
+    } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
+      loginNotice.innerHTML = '';
+      loginError.innerHTML = '';
+      loginForm.classList.remove('phase-2');
+
+      const loginOk = await doLogin(loginEmail.value, loginVerificationCode.value);
+      if (loginOk) {
+        location.reload();
+      }
+    } /* else if (loginForm.classList.contains('phase-3')) {
+      await storage.remove('loginToken');
+
+      location.reload();
+    } */
+  });
 };
 async function bindLogin() {
   const loginForm = document.getElementById('login-form');
@@ -241,85 +321,6 @@ async function bindLogin() {
   document.getElementById('logout-button').addEventListener('click', async e => {
     await storage.remove('loginToken');
     window.location.reload();
-  });
-  const unregisteredWarning = document.getElementById('unregistered-warning');
-
-  // const userButton = document.getElementById('user-button');
-  const loginEmail = document.getElementById('login-email');
-  const loginVerificationCode = document.getElementById('login-verification-code');
-  const loginNotice = document.getElementById('login-notice');
-  const loginError = document.getElementById('login-error');
-  /* userButton.addEventListener('click', e => {
-    userButton.classList.toggle('open');
-  }); */
-  /* userDetails.addEventListener('click', e => {
-    // e.preventDefault();
-    e.stopPropagation();
-  }); */
-  if (loginToken) {
-    await pullUserObject();
-    updateUserObject();
-
-    loginForm.classList.add('phase-3');
-
-    if (loginToken.unregistered) {
-      unregisteredWarning.style.display = null;
-    }
-  } else {
-    const mnemonic = bip39.generateMnemonic();
-    await finishLogin({
-      mnemonic,
-      unregistered: true,
-    });
-
-    unregisteredWarning.style.display = null;
-  }
-  loginForm.addEventListener('submit', async e => {
-    e.preventDefault();
-
-    if (loginForm.classList.contains('phase-1') && loginEmail.value) {
-      loginNotice.innerHTML = '';
-      loginError.innerHTML = '';
-      loginForm.classList.remove('phase-1');
-
-      const split = loginEmail.value.split(/\s+/).filter(w => !!w);
-      if (split.length === 12) {
-        const mnemonic = split.slice(0, 12).join(' ');
-
-        await finishLogin({
-          mnemonic,
-        });
-
-        location.reload();
-      } else {
-        const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(loginEmail.value)}`, {
-          method: 'POST',
-        });
-        if (res.status >= 200 && res.status < 300) {
-          loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
-          loginForm.classList.add('phase-2');
-
-          return res.blob();
-        } else {
-          loginError.innerText = 'Invalid email!';
-          loginForm.classList.add('phase-1');
-          throw new Error(`invalid status code: ${res.status}`);
-        }
-      }
-    } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
-      loginNotice.innerHTML = '';
-      loginError.innerHTML = '';
-      loginForm.classList.remove('phase-2');
-
-      const loginOk = await doLogin(loginEmail.value, loginVerificationCode.value);
-      if (loginOk) {
-        location.reload();
-      }
-    } /* else if (loginForm.classList.contains('phase-3')) {
-      await storage.remove('loginToken');
-
-      location.reload();
-    } */
   });
 };
 
