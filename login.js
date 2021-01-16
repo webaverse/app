@@ -133,6 +133,7 @@ async function tryLogin() {
   const unregisteredWarning = document.getElementById('unregistered-warning');
 
   // const userButton = document.getElementById('user-button');
+  const loginForm = document.getElementById('login-form');
   const loginEmail = document.getElementById('login-email');
   const loginVerificationCode = document.getElementById('login-verification-code');
   const loginNotice = document.getElementById('login-notice');
@@ -162,53 +163,6 @@ async function tryLogin() {
 
     unregisteredWarning.style.display = null;
   }
-  loginForm.addEventListener('submit', async e => {
-    e.preventDefault();
-
-    if (loginForm.classList.contains('phase-1') && loginEmail.value) {
-      loginNotice.innerHTML = '';
-      loginError.innerHTML = '';
-      loginForm.classList.remove('phase-1');
-
-      const split = loginEmail.value.split(/\s+/).filter(w => !!w);
-      if (split.length === 12) {
-        const mnemonic = split.slice(0, 12).join(' ');
-
-        await finishLogin({
-          mnemonic,
-        });
-
-        location.reload();
-      } else {
-        const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(loginEmail.value)}`, {
-          method: 'POST',
-        });
-        if (res.status >= 200 && res.status < 300) {
-          loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
-          loginForm.classList.add('phase-2');
-
-          return res.blob();
-        } else {
-          loginError.innerText = 'Invalid email!';
-          loginForm.classList.add('phase-1');
-          throw new Error(`invalid status code: ${res.status}`);
-        }
-      }
-    } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
-      loginNotice.innerHTML = '';
-      loginError.innerHTML = '';
-      loginForm.classList.remove('phase-2');
-
-      const loginOk = await doLogin(loginEmail.value, loginVerificationCode.value);
-      if (loginOk) {
-        location.reload();
-      }
-    } /* else if (loginForm.classList.contains('phase-3')) {
-      await storage.remove('loginToken');
-
-      location.reload();
-    } */
-  });
 };
 async function bindLogin() {
   const loginForm = document.getElementById('login-form');
@@ -321,6 +275,53 @@ async function bindLogin() {
   document.getElementById('logout-button').addEventListener('click', async e => {
     await storage.remove('loginToken');
     window.location.reload();
+  });
+  loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    if (loginForm.classList.contains('phase-1') && loginEmail.value) {
+      loginNotice.innerHTML = '';
+      loginError.innerHTML = '';
+      loginForm.classList.remove('phase-1');
+
+      const split = loginEmail.value.split(/\s+/).filter(w => !!w);
+      if (split.length === 12) {
+        const mnemonic = split.slice(0, 12).join(' ');
+
+        await finishLogin({
+          mnemonic,
+        });
+
+        location.reload();
+      } else {
+        const res = await fetch(loginEndpoint + `?email=${encodeURIComponent(loginEmail.value)}`, {
+          method: 'POST',
+        });
+        if (res.status >= 200 && res.status < 300) {
+          loginNotice.innerText = `Code sent to ${loginEmail.value}!`;
+          loginForm.classList.add('phase-2');
+
+          return res.blob();
+        } else {
+          loginError.innerText = 'Invalid email!';
+          loginForm.classList.add('phase-1');
+          throw new Error(`invalid status code: ${res.status}`);
+        }
+      }
+    } else if (loginForm.classList.contains('phase-2') && loginEmail.value && loginVerificationCode.value) {
+      loginNotice.innerHTML = '';
+      loginError.innerHTML = '';
+      loginForm.classList.remove('phase-2');
+
+      const loginOk = await doLogin(loginEmail.value, loginVerificationCode.value);
+      if (loginOk) {
+        location.reload();
+      }
+    } /* else if (loginForm.classList.contains('phase-3')) {
+      await storage.remove('loginToken');
+
+      location.reload();
+    } */
   });
 };
 
