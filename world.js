@@ -487,7 +487,7 @@ world.getWorldJson = async q => {
       object.position = [0, 0, -1];
     }
     spec.objects.splice(0, 0, {
-      start_url: `https://webaverse.github.io/street/index.js`,
+      start_url: `https://webaverse.github.io/floor/index.js`,
     });
     return spec;
   } else {
