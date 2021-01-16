@@ -298,8 +298,8 @@ physicsManager.applyVelocity = applyVelocity;
 const _collideItems = matrix => {
   matrix.decompose(localVector3, localQuaternion2, localVector4);
 
-  uiManager.hpMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
-  uiManager.hpMesh.quaternion.slerp(localQuaternion2, 0.1);
+  /* uiManager.hpMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, 0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
+  uiManager.hpMesh.quaternion.slerp(localQuaternion2, 0.1); */
 
   if (uiManager.popupMesh.visible) {
     uiManager.popupMesh.position.lerp(localVector4.copy(localVector3).add(localVector5.set(0, -0.25, -1).applyQuaternion(localQuaternion2)), 0.1);
