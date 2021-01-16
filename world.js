@@ -483,12 +483,12 @@ world.getWorldJson = async q => {
     if (!spec.objects) {
       spec.objects = [];
     }
-    for (const object of spec.objects) {
-      object.position = [0, 0, -1];
-    }
     spec.objects.splice(0, 0, {
-      start_url: `https://webaverse.github.io/pedestal/index.js`,
+      start_url: `./pedestal/index.js`,
     });
+    for (const object of spec.objects) {
+      object.position = [0, 0, -2];
+    }
     return spec;
   } else {
     return _getDefault();
