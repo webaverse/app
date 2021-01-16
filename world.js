@@ -108,7 +108,7 @@ world.connectRoom = async (roomName, worldURL) => {
   }, {once: true});
   channelConnection.addEventListener('peerconnection', async e => {
     const peerConnection = e.data;
-    console.log('New Peer', e);
+    console.log('new peer connection', e);
 
     let microphoneMediaStream = null;
     let live = true;
@@ -118,6 +118,7 @@ world.connectRoom = async (roomName, worldURL) => {
     peerRig.peerConnection = peerConnection;
 
     peerConnection.addEventListener('close', async () => {
+      console.log('peer connection close');
       peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
       rigManager.removePeerRig(peerConnection.connectionId);
       live = false;
@@ -217,6 +218,13 @@ world.connectRoom = async (roomName, worldURL) => {
       data: Array.from(rigManager.peerRigs.values()),
     }));
   });
+  channelConnection.close = (close => function() {
+    close.apply(this, arguments);
+    const localPeerConnections = peerConnections.slice();
+    for (const peerConnection of localPeerConnections) {
+      peerConnection.close();
+    }
+  })(channelConnection.close);
 
   states.dynamic = channelConnection.state;
   _bindState(states.dynamic, true);
