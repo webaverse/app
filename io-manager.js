@@ -1,10 +1,11 @@
 import * as THREE from './three.module.js';
-import {renderer, renderer2, camera, avatarCamera, dolly} from './app-object.js';
 import cameraManager from './camera-manager.js';
-import {world} from './world.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
+import {world} from './world.js';
 import * as universe from './universe.js';
+import {isInIframe} from './util.js';
+import {renderer, renderer2, camera, avatarCamera, dolly} from './app-object.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -209,6 +210,12 @@ const _updateIoPost = () => {
 };
 ioManager.updatePost = _updateIoPost;
 
+ioManager.bindInterface = () => {
+  const iframed = isInIframe();
+  if (iframed) {
+    document.body.classList.add('iframed');
+  }
+};
 ioManager.bindInput = () => {
   window.addEventListener('keydown', e => {
     if (_inputFocused() || e.repeat) {
