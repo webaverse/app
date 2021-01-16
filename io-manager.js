@@ -1,7 +1,6 @@
 import * as THREE from './three.module.js';
 import {renderer, renderer2, camera, avatarCamera, dolly} from './app-object.js';
 import cameraManager from './camera-manager.js';
-import uiManager from './ui-manager.js';
 import {world} from './world.js';
 import weaponsManager from './weapons-manager.js';
 import physicsManager from './physics-manager.js';
