@@ -447,6 +447,10 @@ img:not([src]) {
   font-size: inherit;
 }
 
+.body {
+  background-color: var(--color2);
+}
+
 body:not(.loading) .loader,
 body.loading .grid,
 body.loading .pagination
@@ -454,8 +458,12 @@ body.loading .pagination
   display: none;
 }
 
-.body {
-  background-color: var(--color2);
+body.iframed header,
+body.iframed footer,
+body.iframed .menu,
+body.iframed .unmenu
+{
+  display: none;
 }
 
 .hero, .detail {
