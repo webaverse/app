@@ -129,7 +129,8 @@ async function doLogin(email, code) {
 }
 async function tryLogin() {
   loginToken = await storage.get('loginToken');
-
+};
+async function bindLogin() {
   const loginForm = document.getElementById('login-form');
   loginForm.classList.add('login-form');
   loginForm.innerHTML = `
@@ -320,7 +321,7 @@ async function tryLogin() {
       location.reload();
     } */
   });
-}
+};
 
 class LoginManager extends EventTarget {
   constructor() {
@@ -334,6 +335,10 @@ class LoginManager extends EventTarget {
       this.loadPromise = tryLogin();
     }
     return this.loadPromise;
+  }
+  
+  async bindLogin() {
+    await bindLogin();
   }
 
   isLoggedIn() {
