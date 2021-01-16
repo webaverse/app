@@ -458,10 +458,10 @@ body.loading .pagination
   display: none;
 }
 
-body.iframed header,
-body.iframed footer,
-body.iframed .menu,
-body.iframed .unmenu
+body.no-ui header,
+body.no-ui footer,
+body.no-ui .menu,
+body.no-ui .unmenu
 {
   display: none;
 }
