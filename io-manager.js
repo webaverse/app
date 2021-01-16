@@ -212,8 +212,8 @@ ioManager.updatePost = _updateIoPost;
 
 ioManager.bindInterface = () => {
   const iframed = isInIframe();
-  if (iframed) {
-    document.body.classList.add('iframed');
+  if (!iframed) {
+    document.body.classList.remove('no-ui');
   }
 };
 ioManager.bindInput = () => {
