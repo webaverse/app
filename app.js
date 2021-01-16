@@ -71,7 +71,7 @@ export default class App {
           tryTutorial();
           rigManager.init();
         }),
-      world.getWorldJson(q.u),
+      world.getWorldJson(q),
     ]);
     
     const coord = parseCoord(q.c);

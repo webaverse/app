@@ -441,8 +441,11 @@ world.addEventListener('trackedobjectremove', async e => {
 });
 world.isObject = object => objects.includes(object);
 
-world.getWorldJson = async u => {
-  if (u) {
+world.getWorldJson = async q => {
+  const _getDefault = () => ({
+    default: true,
+  });
+  const _getSpec = async u => {
     const id = parseInt(u, 10);
     if (!isNaN(id)) {
       const res = await fetch(`${tokensHost}/${id}`);
@@ -458,9 +461,7 @@ world.getWorldJson = async u => {
           ],
         };
       } else {
-        return {
-          default: true,
-        };
+        return _getDefault();
       }
     } else {
       return {
@@ -471,10 +472,26 @@ world.getWorldJson = async u => {
         ],
       };
     }
+  };
+  
+  const {u, t} = q;
+  if (u) {
+    const spec = await _getSpec(u);
+    return spec;
+  } else if (t) {
+    const spec = await _getSpec(t);
+    if (!spec.objects) {
+      spec.objects = [];
+    }
+    for (const object of spec.objects) {
+      object.position = [0, 0, -1];
+    }
+    spec.objects.splice(0, 0, {
+      start_url: `https://webaverse.github.io/street/index.js`,
+    });
+    return spec;
   } else {
-    return {
-      default: true,
-    };
+    return _getDefault();
   }
 };
 
