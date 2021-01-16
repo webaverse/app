@@ -103,6 +103,7 @@ export default class App {
     ioManager.bindInput();
   }
   bindInterface() {
+    ioManager.bindInterface();
     universe.bindInterface();
     weaponsManager.bindInterface();
   }
