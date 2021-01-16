@@ -401,3 +401,11 @@ export function parseExtents(s) {
     return null;
   }
 }
+
+export function isInIframe {
+  try {
+    return window.self !== window.top;
+  } catch (e) {
+    return true;
+  }
+}
