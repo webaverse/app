@@ -550,6 +550,12 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     return import(u)
       .then(() => {
         startMonetization(instanceId, monetizationPointer, ownerAddress);
+
+        const e = new MessageEvent('activate');
+        e.waitUntil = p => {
+          console.log('wait until', p);
+        };
+        app.dispatchEvent(e);
       }, err => {
         console.error('import failed', u, err);
       })
