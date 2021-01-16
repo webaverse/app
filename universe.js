@@ -27,6 +27,8 @@ const bindInterface = () => {
   const coord = parseCoord(q.c);
   if (coord) {
     arrowMesh.position.copy(coord).add(new THREE.Vector3(0, 2, 0));
+  } else {
+    arrowMesh.visible = false;
   }
   scene.add(arrowMesh);
 };
