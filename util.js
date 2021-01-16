@@ -402,7 +402,7 @@ export function parseExtents(s) {
   }
 }
 
-export function isInIframe {
+export function isInIframe() {
   try {
     return window.self !== window.top;
   } catch (e) {
