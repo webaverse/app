@@ -21,16 +21,14 @@ const localObject = new THREE.Object3D();
 
 let arrowMesh = null;
 const bindInterface = () => {
-  arrowMesh = new THREE.Mesh(arrowGeometry, arrowMaterial.clone());
-  arrowMesh.frustumCulled = false;
   const q = parseQuery(location.search);
   const coord = parseCoord(q.c);
   if (coord) {
+    arrowMesh = new THREE.Mesh(arrowGeometry, arrowMaterial.clone());
     arrowMesh.position.copy(coord).add(new THREE.Vector3(0, 2, 0));
-  } else {
-    arrowMesh.visible = false;
+    arrowMesh.frustumCulled = false;
+    scene.add(arrowMesh);
   }
-  scene.add(arrowMesh);
 };
 
 const warpMesh = (() => {
