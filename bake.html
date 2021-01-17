@@ -37,12 +37,30 @@
       // window.object = object;
       object.updateMatrixWorld();
       // const replacementMeshes = [];
-      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(1, 0, 0), new THREE.Vector3());
+      const w = 30;
+      const box = new THREE.Box3(
+        new THREE.Vector3(-w/2, 0, -w/2),
+        new THREE.Vector3(w/2, w, w/2)
+      );
+      const planes = [
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), box.min),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, -1, 0), box.max),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(1, 0, 0), box.min),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(-1, 0, 0), box.max),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, 1), box.min),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, -1), box.max),
+      ];
       object.traverse(o => {
         if (o.isMesh) {
-          const oldGeometryeometry = new THREE.Geometry().fromBufferGeometry(o.geometry.clone().applyMatrix4(o.matrixWorld));
-          const newGeometry = new THREE.BufferGeometry().fromGeometry(slice(oldGeometryeometry, plane).applyMatrix4(o.matrixWorld.clone().invert()));
-          o.geometry = newGeometry;
+          let geometry = new THREE.Geometry().fromBufferGeometry(o.geometry.clone().applyMatrix4(o.matrixWorld));
+
+          for (const plane of planes) {
+            geometry = slice(geometry, plane);
+          }
+
+          geometry = new THREE.BufferGeometry().fromGeometry(geometry)
+            .applyMatrix4(o.matrixWorld.clone().invert());
+          o.geometry = geometry;
           /* const boxBsp = CSG.fromGeometry(new THREE.BoxBufferGeometry(1, 1));
           const meshBsp = CSG.fromMesh(o);
           console.log('got bsp 1', meshBsp);
