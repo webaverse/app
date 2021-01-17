@@ -185,15 +185,6 @@
       textarea.value = JSON.stringify(statsSpec, null, 2);
       textarea.classList.remove('hidden');
 
-      /* for (const {from, to} of replacementMeshes) {
-        console.log('replacing', from, to);
-        const {parent} = from;
-        const index = parent.children.indexOf(from);
-        parent.remove(from);
-        parent.add(to);
-        parent.children.length -= 1;
-        parent.children.splice(index, 0, to);
-      } */
     }
   })().catch(console.warn);
 </script>
