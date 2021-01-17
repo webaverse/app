@@ -134,6 +134,12 @@
 
       document.body.appendChild(renderer.domElement);
 
+      window.addEventListener('resize', e => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.clear();
+        app.render();
+      });
+
       const oldGeometries = Object.keys(oldGeometryMap).map(k => oldGeometryMap[k]);
       const oldMaterials = Object.keys(oldMaterialMap).map(k => oldMaterialMap[k]);
       const geometries = Object.keys(geometryMap).map(k => geometryMap[k]);
