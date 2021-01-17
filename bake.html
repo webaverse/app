@@ -30,9 +30,11 @@
   const _getNumTriangles = geometry => {
     const {attributes: {position}, index} = geometry;
     if (index) {
-      numTriangles += index.array.length/3;
+      return index.array.length/3;
     } else if (position) {
-      numTriangles += position.array.length/9;
+      return position.array.length/9;
+    } else {
+      return 0;
     }
   };
 
