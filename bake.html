@@ -178,13 +178,6 @@
       });
       const size = arrayBuffer.byteLength;
 
-      const statsSpec = {numOldMeshes, numOldMaterials, numOldTriangles, numOldTextures, numMeshes, numMaterials, numTriangles, numTextures, size};
-      console.log('got', statsSpec, {geometries, materials, arrayBuffer});
-
-      const textarea = document.getElementById('textarea');
-      textarea.value = JSON.stringify(statsSpec, null, 2);
-      textarea.classList.remove('hidden');
-
       const {dst} = q;
       if (dst) {
         fetch(dst, {
@@ -194,6 +187,13 @@
           },
           body: arrayBuffer,
         }).then(res => res.blob());
+      } else {
+        const statsSpec = {numOldMeshes, numOldMaterials, numOldTriangles, numOldTextures, numMeshes, numMaterials, numTriangles, numTextures, size};
+        // console.log('got', statsSpec);
+
+        const textarea = document.getElementById('textarea');
+        textarea.value = JSON.stringify(statsSpec, null, 2);
+        textarea.classList.remove('hidden');
       }
 
       window.parent.postMessage({
