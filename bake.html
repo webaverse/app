@@ -8,7 +8,8 @@
 <script src="./bin/geometry.js"></script>
 <script type=module>
   import * as THREE from './three.module.js';
-  import {CSG} from './three-csg.js';
+  // import {CSG} from './three-csg.js';
+  import slice from './slice.js';
   import App from './app.js';
   import {renderer, scene, camera, orthographicCamera} from './app-object.js';
   import {world} from './world.js';
@@ -17,6 +18,7 @@
   // import {homeScnUrl, rarityColors} from './constants.js';
 
   window.CSG = CSG;
+  window.slice = slice;
 
   const cameraPosition = new THREE.Vector3(0, 100, 0);
   const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
@@ -30,18 +32,20 @@
   (async () => {
     const q = parseQuery(location.search);
     if (q.u) {
-      document.body.appendChild(renderer.domElement);
-
       const app = new App();
 
       await app.waitForLoad();
       const object = await world.addObject(q.u, null, new THREE.Vector3(), new THREE.Quaternion());
       // window.object = object;
       object.updateMatrixWorld();
-      const replacementMeshes = [];
+      // const replacementMeshes = [];
+      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(1, 0, 0), new THREE.Vector3());
       object.traverse(o => {
         if (o.isMesh) {
-          const boxBsp = CSG.fromGeometry(new THREE.BoxBufferGeometry(1, 1));
+          const oldGeometryeometry = new THREE.Geometry().fromBufferGeometry(o.geometry.clone().applyMatrix4(o.matrixWorld));
+          const newGeometry = new THREE.BufferGeometry().fromGeometry(slice(oldGeometryeometry, plane).applyMatrix4(o.matrixWorld.clone().invert()));
+          o.geometry = newGeometry;
+          /* const boxBsp = CSG.fromGeometry(new THREE.BoxBufferGeometry(1, 1));
           const meshBsp = CSG.fromMesh(o);
           console.log('got bsp 1', meshBsp);
           const bspResult = meshBsp.intersect(meshBsp);
@@ -51,10 +55,19 @@
           replacementMeshes.push({
             from: o,
             to: meshResult,
-          });
+          }); */
         }
       });
-      for (const {from, to} of replacementMeshes) {
+
+      camera.position.set(0, 1, 2);
+      camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+      renderer.clear();
+      app.render();
+
+      document.body.appendChild(renderer.domElement);
+
+      /* for (const {from, to} of replacementMeshes) {
         console.log('replacing', from, to);
         const {parent} = from;
         const index = parent.children.indexOf(from);
@@ -62,7 +75,7 @@
         parent.add(to);
         parent.children.length -= 1;
         parent.children.splice(index, 0, to);
-      }
+      } */
     }
   })().catch(console.warn);
 </script>
