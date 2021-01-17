@@ -8,6 +8,7 @@
 <script src="./bin/geometry.js"></script>
 <script type=module>
   import * as THREE from './three.module.js';
+  import {GLTFExporter} from './GLTFExporter.js';
   import slice from './slice.js';
   import App from './app.js';
   import {renderer, scene, camera, orthographicCamera} from './app-object.js';
@@ -21,7 +22,8 @@
   const cameraPosition = new THREE.Vector3(0, 100, 0);
   const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
   const perspectiveOffset = new THREE.Vector3(2, 0, -5);
-  const iframed = isInIframe();
+  // const iframed = isInIframe();
+  const exporter = new GLTFExporter();
   // const loadDelayTime = 5000;
 
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -61,12 +63,18 @@
         new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, 1), box.min),
         new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, -1), box.max),
       ];
+      const oldGeometryMap = {};
+      const oldMaterialMap = {};
       const geometryMap = {};
       const materialMap = {};
+      const removeMeshes = [];
       object.traverse(o => {
         if (o.isMesh) {
           const oldGeometry = o.geometry;
           const oldMaterial = o.material;
+
+          oldGeometryMap[oldGeometry.uuid] = oldGeometry;
+          oldMaterialMap[oldMaterial.uuid] = oldMaterial;
 
           let geometry = geometryMap[oldGeometry.uuid];
           if (!geometry) {
@@ -80,23 +88,19 @@
               .applyMatrix4(o.matrixWorld.clone().invert());
           }
           o.geometry = geometry;
+          o.visible = _getNumTriangles(geometry) > 0;
 
-          geometryMap[oldGeometry.uuid] = geometry;
-          materialMap[oldMaterial.uuid] = oldMaterial;
-
-          /* const boxBsp = CSG.fromGeometry(new THREE.BoxBufferGeometry(1, 1));
-          const meshBsp = CSG.fromMesh(o);
-          console.log('got bsp 1', meshBsp);
-          const bspResult = meshBsp.intersect(meshBsp);
-          console.log('got bsp 2', bspResult);
-          const meshResult = CSG.toMesh(bspResult, o.matrix);
-          meshResult.material = o.material;
-          replacementMeshes.push({
-            from: o,
-            to: meshResult,
-          }); */
+          if (o.visible) {
+            geometryMap[oldGeometry.uuid] = geometry;
+            materialMap[oldMaterial.uuid] = oldMaterial;
+          } else {
+            removeMeshes.push(o);
+          }
         }
       });
+      for (const mesh of removeMeshes) {
+        mesh.parent && mesh.parent.remove(mesh);
+      }
 
       camera.position.set(0, 1, 2);
       camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -104,9 +108,19 @@
       renderer.clear();
       app.render();
 
+      document.body.appendChild(renderer.domElement);
+
+      const oldGeometries = Object.keys(oldGeometryMap).map(k => oldGeometryMap[k]);
+      const oldMaterials = Object.keys(oldMaterialMap).map(k => oldMaterialMap[k]);
       const geometries = Object.keys(geometryMap).map(k => geometryMap[k]);
       const materials = Object.keys(materialMap).map(k => materialMap[k]);
-      document.body.appendChild(renderer.domElement);
+
+      const numOldMeshes = oldGeometries.length;
+      const numOldMaterials = oldMaterials.length;
+      let numOldTriangles = 0;
+      for (const geometry of oldGeometries) {
+        numOldTriangles += _getNumTriangles(geometry);
+      }
 
       const numMeshes = geometries.length;
       const numMaterials = materials.length;
@@ -115,7 +129,15 @@
         numTriangles += _getNumTriangles(geometry);
       }
 
-      console.log('got', {numMeshes, numMaterials, numTriangles}, {geometries, materials});
+      const arrayBuffer = await new Promise((accept, reject) => {
+        exporter.parse(object, accept, {
+          binary: true,
+          includeCustomExtensions: true,
+        });
+      });
+      const size = arrayBuffer.byteLength;
+
+      console.log('got', {numOldMeshes, numOldMaterials, numOldTriangles}, {numMeshes, numMaterials, numTriangles, size}, {geometries, materials, arrayBuffer});
 
       /* for (const {from, to} of replacementMeshes) {
         console.log('replacing', from, to);
