@@ -281,46 +281,7 @@
           return o;
         };
 
-        if (type === 'gltf') {
-          const {renderer, scene, camera} = _makeRenderer();
-
-          const {model, arrayBuffer, file} = await bake(hash, ext, dst);
-          scene.add(model);
-
-          renderer.setPixelRatio(window.devicePixelRatio);
-          renderer.render(scene, camera);
-
-          screenshotResult.appendChild(renderer.domElement);
-
-          renderer.domElement.style.background = '#F00';
-
-          const orbitControls = new OrbitControls(camera, renderer.domElement, document);
-          orbitControls.screenSpacePanning = true;
-          orbitControls.enableMiddleZoom = false;
-          orbitControls.target.copy(cameraTarget);
-          orbitControls.update();
-
-          renderer.setAnimationLoop(() => {
-            orbitControls.update();
-
-            renderer.render(scene, camera);
-          });
-
-          if (dst) {
-            fetch(dst, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'model/gltf-binary',
-              },
-              body: arrayBuffer,
-            }).then(res => res.blob());
-          }
-
-          window.parent.postMessage({
-            method: 'result',
-            result: arrayBuffer,
-          }, '*', [arrayBuffer]);
-        } else if (type === 'png' || type === 'jpg') {
+        if (type === 'png' || type === 'jpg') {
           const canvas = await (async () => {
             const _renderDefaultCanvas = async () => {
               const uiRenderer = _makeUiRenderer();
