@@ -20,7 +20,7 @@
   const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
   const perspectiveOffset = new THREE.Vector3(2, 0, -5);
   const iframed = isInIframe();
-  const loadDelayTime = 5000;
+  // const loadDelayTime = 5000;
 
   renderer.setPixelRatio(window.devicePixelRatio);
   camera.up.set(0, 0, -1);
@@ -130,7 +130,7 @@
     const container = document.getElementById('container');
 
     const {dst} = q;
-    setTimeout(async () => { // wait for load; should really be a lock
+    // setTimeout(async () => { // wait for load; should really be a lock
       // console.time('render');
       if (!dst) {
         const width = 256;
@@ -385,7 +385,7 @@
         }, '*', [arrayBuffer]); */
       }
     
-    }, loadDelayTime);
+    // }, loadDelayTime);
   })();
 </script>
 </body>
