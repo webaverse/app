@@ -185,6 +185,21 @@
       textarea.value = JSON.stringify(statsSpec, null, 2);
       textarea.classList.remove('hidden');
 
+      const {dst} = q;
+      if (dst) {
+        fetch(dst, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain',
+          },
+          body: err.stack,
+        }).then(res => res.blob());
+      }
+
+      window.parent.postMessage({
+        method: 'error',
+        error: err.stack,
+      }, '*');
     }
   })().catch(console.warn);
 </script>
