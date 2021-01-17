@@ -8,12 +8,15 @@
 <script src="./bin/geometry.js"></script>
 <script type=module>
   import * as THREE from './three.module.js';
+  import {CSG} from './three-csg.js';
   import App from './app.js';
   import {renderer, scene, camera, orthographicCamera} from './app-object.js';
   import {world} from './world.js';
   import * as universe from './universe.js';
   import {parseQuery, parseExtents, isInIframe} from './util.js';
   // import {homeScnUrl, rarityColors} from './constants.js';
+
+  // window.CSG = CSG;
 
   const cameraPosition = new THREE.Vector3(0, 100, 0);
   const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
@@ -32,7 +35,14 @@
       const app = new App();
 
       await app.waitForLoad();
-      await world.addObject(q.u, null, new THREE.Vector3(), new THREE.Quaternion());
+      const object = await world.addObject(q.u, null, new THREE.Vector3(), new THREE.Quaternion());
+      // window.object = object;
+      object.traverse(o => {
+        if (o.isMesh) {
+          const bsp = CSG.fromMesh(o);
+          console.log('got bsp', bsp);
+        }
+      });
     }
   })().catch(console.warn);
 </script>
