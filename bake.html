@@ -129,6 +129,9 @@
       camera.position.set(0, 1, 2);
       camera.lookAt(new THREE.Vector3(0, 0, 0));
 
+      // fixes a glitch where the first render has black opaque
+      app.render();
+
       renderer.clear();
       app.render();
 
