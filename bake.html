@@ -192,16 +192,34 @@
           headers: {
             'Content-Type': 'text/plain',
           },
-          body: err.stack,
+          body: arrayBuffer,
         }).then(res => res.blob());
       }
 
       window.parent.postMessage({
-        method: 'error',
-        error: err.stack,
+        method: 'result',
+        result: arrayBuffer,
       }, '*');
     }
-  })().catch(console.warn);
+  })().catch(err => {
+    console.warn(err.stack);
+
+    const {dst} = q;
+    if (dst) {
+      fetch(dst, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+        body: err.stack,
+      }).then(res => res.blob());
+    }
+
+    window.parent.postMessage({
+      method: 'error',
+      error: err.stack,
+    }, '*');
+  });
 </script>
 </body>
 
