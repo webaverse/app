@@ -26,13 +26,14 @@
 
   (async () => {
     const q = parseQuery(location.search);
+    if (q.u) {
+      document.body.appendChild(renderer.domElement);
 
-    document.body.appendChild(renderer.domElement);
+      const app = new App();
 
-    const app = new App();
-
-    await app.waitForLoad();
-    await world.addObject(q.u, null, new THREE.Vector3(), new THREE.Quaternion());
+      await app.waitForLoad();
+      await world.addObject(q.u, null, new THREE.Vector3(), new THREE.Quaternion());
+    }
   })().catch(console.warn);
 </script>
 </body>
