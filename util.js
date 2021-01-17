@@ -30,7 +30,7 @@ export function uint8Array2hex(uint8Array) {
   return Array.prototype.map.call(uint8Array, x => ('00' + x.toString(16)).slice(-2)).join('');
 }
 export function getExt(fileName) {
-  const match = fileName.match(/\.([^\.]+)$/);
+  const match = fileName.match(/\.([^\.]+)(?:\?.*)?$/);
   return match ? match[1].toLowerCase() : '';
 }
 export function downloadFile(file, filename) {
