@@ -50,17 +50,29 @@
         new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, 1), box.min),
         new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, -1), box.max),
       ];
+      const geometryMap = {};
+      const materialMap = {};
       object.traverse(o => {
         if (o.isMesh) {
-          let geometry = new THREE.Geometry().fromBufferGeometry(o.geometry.clone().applyMatrix4(o.matrixWorld));
+          const oldGeometry = o.geometry;
+          const oldMaterial = o.material;
 
-          for (const plane of planes) {
-            geometry = slice(geometry, plane);
+          let geometry = geometryMap[oldGeometry.uuid];
+          if (!geometry) {
+            geometry = new THREE.Geometry().fromBufferGeometry(o.geometry.clone().applyMatrix4(o.matrixWorld));
+
+            for (const plane of planes) {
+              geometry = slice(geometry, plane);
+            }
+
+            geometry = new THREE.BufferGeometry().fromGeometry(geometry)
+              .applyMatrix4(o.matrixWorld.clone().invert());
           }
-
-          geometry = new THREE.BufferGeometry().fromGeometry(geometry)
-            .applyMatrix4(o.matrixWorld.clone().invert());
           o.geometry = geometry;
+
+          geometryMap[oldGeometry.uuid] = geometry;
+          materialMap[oldMaterial.uuid] = oldMaterial;
+
           /* const boxBsp = CSG.fromGeometry(new THREE.BoxBufferGeometry(1, 1));
           const meshBsp = CSG.fromMesh(o);
           console.log('got bsp 1', meshBsp);
@@ -81,7 +93,11 @@
       renderer.clear();
       app.render();
 
+      const geometries = Object.keys(geometryMap).map(k => geometryMap[k]);
+      const materials = Object.keys(materialMap).map(k => materialMap[k]);
       document.body.appendChild(renderer.domElement);
+
+      console.log('got', geometries, materials);
 
       /* for (const {from, to} of replacementMeshes) {
         console.log('replacing', from, to);
