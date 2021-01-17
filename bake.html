@@ -27,6 +27,15 @@
   renderer.setPixelRatio(window.devicePixelRatio);
   camera.up.set(0, 0, -1);
 
+  const _getNumTriangles = geometry => {
+    const {attributes: {position}, index} = geometry;
+    if (index) {
+      numTriangles += index.array.length/3;
+    } else if (position) {
+      numTriangles += position.array.length/9;
+    }
+  };
+
   (async () => {
     const q = parseQuery(location.search);
     if (q.u) {
@@ -97,7 +106,14 @@
       const materials = Object.keys(materialMap).map(k => materialMap[k]);
       document.body.appendChild(renderer.domElement);
 
-      console.log('got', geometries, materials);
+      const numMeshes = geometries.length;
+      const numMaterials = materials.length;
+      let numTriangles = 0;
+      for (const geometry of geometries) {
+        numTriangles += _getNumTriangles(geometry);
+      }
+
+      console.log('got', {numMeshes, numMaterials, numTriangles}, {geometries, materials});
 
       /* for (const {from, to} of replacementMeshes) {
         console.log('replacing', from, to);
