@@ -16,7 +16,7 @@
   import {parseQuery, parseExtents, isInIframe} from './util.js';
   // import {homeScnUrl, rarityColors} from './constants.js';
 
-  // window.CSG = CSG;
+  window.CSG = CSG;
 
   const cameraPosition = new THREE.Vector3(0, 100, 0);
   const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
@@ -37,12 +37,32 @@
       await app.waitForLoad();
       const object = await world.addObject(q.u, null, new THREE.Vector3(), new THREE.Quaternion());
       // window.object = object;
+      object.updateMatrixWorld();
+      const replacementMeshes = [];
       object.traverse(o => {
         if (o.isMesh) {
-          const bsp = CSG.fromMesh(o);
-          console.log('got bsp', bsp);
+          const boxBsp = CSG.fromGeometry(new THREE.BoxBufferGeometry(1, 1));
+          const meshBsp = CSG.fromMesh(o);
+          console.log('got bsp 1', meshBsp);
+          const bspResult = meshBsp.intersect(meshBsp);
+          console.log('got bsp 2', bspResult);
+          const meshResult = CSG.toMesh(bspResult, o.matrix);
+          meshResult.material = o.material;
+          replacementMeshes.push({
+            from: o,
+            to: meshResult,
+          });
         }
       });
+      for (const {from, to} of replacementMeshes) {
+        console.log('replacing', from, to);
+        const {parent} = from;
+        const index = parent.children.indexOf(from);
+        parent.remove(from);
+        parent.add(to);
+        parent.children.length -= 1;
+        parent.children.splice(index, 0, to);
+      }
     }
   })().catch(console.warn);
 </script>
