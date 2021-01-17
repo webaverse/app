@@ -2,8 +2,22 @@
 <head>
   <title>Webaverse Model Baker</title>
   <link rel=stylesheet type='text/css' href="index.css">
+  <style>
+    #textarea {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 400px;
+      height: 200px;
+    }
+    #textarea.hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
+
+<textarea class=hidden id=textarea></textarea>
 
 <script src="./bin/geometry.js"></script>
 <script type=module>
@@ -154,7 +168,12 @@
       });
       const size = arrayBuffer.byteLength;
 
-      console.log('got', {numOldMeshes, numOldMaterials, numOldTriangles, numOldTextures}, {numMeshes, numMaterials, numTriangles, numTextures, size}, {geometries, materials, arrayBuffer});
+      const statsSpec = {numOldMeshes, numOldMaterials, numOldTriangles, numOldTextures, numMeshes, numMaterials, numTriangles, numTextures, size};
+      console.log('got', statsSpec, {geometries, materials, arrayBuffer});
+
+      const textarea = document.getElementById('textarea');
+      textarea.value = JSON.stringify(statsSpec, null, 2);
+      textarea.classList.remove('hidden');
 
       /* for (const {from, to} of replacementMeshes) {
         console.log('replacing', from, to);
