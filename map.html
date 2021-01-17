@@ -229,13 +229,17 @@
           container.classList.remove('dragging');
           _updateTiles();
         };
-        container.addEventListener('mousedown', e => {
+        const _mousedown = e => {
           _startDrag(e);
-        });
-        window.addEventListener('mouseup', e => {
+        };
+        container.addEventListener('mousedown', _mousedown);
+        container.addEventListener('pointerdown', _mousedown);
+        const _mouseup = e => {
           _endDrag();
-        });
-        container.addEventListener('mousemove', e => {
+        };
+        window.addEventListener('mouseup', _mouseup);
+        window.addEventListener('pointerup', _mouseup);
+        const _mousemove = e => {
           if (dragSpec) {
             const currentX = e.clientX;
             const currentY = e.clientY;
@@ -253,7 +257,9 @@
             (-containerMetrics.y - (containerSize/2) + e.clientY)/height*(tileScale*zoom) + perspectiveOffset.z,
           );
           console.log(clickPoint.toArray().join(', ')); */
-        });
+        };
+        container.addEventListener('mousemove', _mousemove);
+        container.addEventListener('pointermove', _mousemove);
         window.addEventListener('resize', e => {
           _updateTiles();
         });
