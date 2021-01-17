@@ -548,18 +548,20 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
   const mesh = new THREE.Object3D();
   mesh.run = () => {
     return import(u)
-      .then(() => {
-        startMonetization(instanceId, monetizationPointer, ownerAddress);
-
+      .then(async () => {
         let userPromise = null;
-        const e = new MessageEvent('activate');
+        const e = new MessageEvent('load');
         e.waitUntil = p => {
           userPromise = p;
         };
         app.dispatchEvent(e);
         await userPromise;
-      }, err => {
-        console.error('import failed', u, err);
+      })
+      .then(() => {
+        startMonetization(instanceId, monetizationPointer, ownerAddress);
+      })
+      .catch(err => {
+        console.error('load script failed', u, err);
       })
       .finally(() => {
         for (const u of cachedUrls) {
