@@ -51,6 +51,12 @@
   (async () => {
     const q = parseQuery(location.search);
     if (q.u) {
+      const w = 30;
+      const extents = parseExtents(q.e) || new THREE.Box3(
+        new THREE.Vector3(-w/2, 0, -w/2),
+        new THREE.Vector3(w/2, w, w/2)
+      );
+
       const app = new App();
 
       await app.waitForLoad();
@@ -58,18 +64,13 @@
       // window.object = object;
       object.updateMatrixWorld();
       // const replacementMeshes = [];
-      const w = 30;
-      const box = new THREE.Box3(
-        new THREE.Vector3(-w/2, 0, -w/2),
-        new THREE.Vector3(w/2, w, w/2)
-      );
       const planes = [
-        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), box.min),
-        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, -1, 0), box.max),
-        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(1, 0, 0), box.min),
-        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(-1, 0, 0), box.max),
-        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, 1), box.min),
-        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, -1), box.max),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), extents.min),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, -1, 0), extents.max),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(1, 0, 0), extents.min),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(-1, 0, 0), extents.max),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, 1), extents.min),
+        new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, -1), extents.max),
       ];
       const oldGeometryMap = {};
       const oldMaterialMap = {};
