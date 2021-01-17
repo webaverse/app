@@ -1,0 +1,39 @@
+<html>
+<head>
+  <title>Webaverse Model Baker</title>
+  <!-- <link rel=stylesheet type='text/css' href="bake.css"> -->
+</head>
+<body>
+
+<script type=module>
+  import * as THREE from './three.module.js';
+  import App from './app.js';
+  import {renderer, scene, camera, orthographicCamera} from './app-object.js';
+  import {world} from './world.js';
+  import * as universe from './universe.js';
+  import {parseQuery, parseExtents, isInIframe} from './util.js';
+  // import {homeScnUrl, rarityColors} from './constants.js';
+
+  const cameraPosition = new THREE.Vector3(0, 100, 0);
+  const cameraTarget = new THREE.Vector3(cameraPosition.x, 0, cameraPosition.z);
+  const perspectiveOffset = new THREE.Vector3(2, 0, -5);
+  const iframed = isInIframe();
+  // const loadDelayTime = 5000;
+
+  renderer.setPixelRatio(window.devicePixelRatio);
+  camera.up.set(0, 0, -1);
+
+  (async () => {
+    const q = parseQuery(location.search);
+
+    document.body.appendChild(renderer.domElement);
+
+    const app = new App();
+
+    await app.waitForLoad();
+    await world.addObject(q.u, null, new THREE.Vector3(), new THREE.Quaternion());
+  })().catch(console.warn);
+</script>
+</body>
+
+</html>
