@@ -1340,6 +1340,22 @@ const bindInterface = () => {
     });
   });
 
+  {
+    const _stopPropagation = e => {
+      e.stopPropagation();
+    };
+    [
+      menu1El,
+      menu2El,
+      menu3El,
+      menu4El,
+      unmenuEl,
+      objectMenuEl,
+    ].forEach(menuEl => {
+      menuEl.addEventListener('wheel', _stopPropagation);
+    });
+  }
+
   (async () => {
     await loginManager.waitForLoad();
 
@@ -1431,7 +1447,7 @@ const bindInterface = () => {
       items4El.removeChild(itemEl);
     }
   });
-  
+
   chatInputEl.addEventListener('keydown', e => {
     switch (e.which) {
       case 13: { // enter
