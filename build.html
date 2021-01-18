@@ -17,9 +17,19 @@
     <pre><code>TOKTX_PATH=./bin/toktx ./bin/gltfpack -v -kn -cc -tb -i assets/model.glb -o assets/model2.glb</code></pre>
   </form>
   <form id=build-xrpk-directory-form>
-    <h1>XRPK from Directory</h1>
+    <h1>XRPK from folder</h1>
     <input type=file id=build-xrpk-directory webkitdirectory directory multiple>
     <input type=submit value="Build">
+  </form>
+  <form id=build-xrpk-file-form>
+    <h1>XRPK from asset file</h1>
+    <input type=file id=build-xrpk-file>
+    <input type=submit value="Build">
+  </form>
+  <form id=build-xrpk-zip-form>
+    <h1>XRPK to ZIP</h1>
+    <input type=file id=build-xrpk-zip>
+    <input type=submit value="Convert">
   </form>
 <script src="./bin/geometry.js"></script>
 <script type=module>
@@ -750,6 +760,36 @@ buildXrpkDirectoryForm.addEventListener('submit', e => {
   e.stopPropagation();
 
   console.log('got files', files);
+});
+
+const buildXrpkFileForm = document.getElementById('build-xrpk-file-form');
+const buildXrpkFile = document.getElementById('build-xrpk-file');
+let file = null;
+buildXrpkFileForm.addEventListener('change', e => {
+  if (buildXrpkFile.files.length === 1) {
+    file = buildXrpkFile.files[0];
+  }
+});
+buildXrpkFileForm.addEventListener('submit', e => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  console.log('got file', file);
+});
+
+const buildXrpkZipForm = document.getElementById('build-xrpk-zip-form');
+const buildXrpkZip = document.getElementById('build-xrpk-zip');
+let xrpkFile = null;
+buildXrpkZipForm.addEventListener('change', e => {
+  if (buildXrpkZip.files.length === 1) {
+    xrpkFile = buildXrpkZip.files[0];
+  }
+});
+buildXrpkZipForm.addEventListener('submit', e => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  console.log('got xrpk file', xrpkFile);
 });
 
 /* window.downloadTargetMesh = async () => {
