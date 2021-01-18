@@ -855,42 +855,44 @@ buildXrpkZipForm.addEventListener('change', async e => {
 buildXrpkZipForm.addEventListener('submit', async e => {
   e.preventDefault();
   e.stopPropagation();
-  
-  const arrayBuffer = await xrpkFile.arrayBuffer();
-  
-  console.log('got ab', arrayBuffer);
 
-  const files = [];
-  const bundle = new wbn.Bundle(arrayBuffer);
-  const {urls} = bundle;
+  if (xrpkFile) {
+    const arrayBuffer = await xrpkFile.arrayBuffer();
+    
+    console.log('got ab', arrayBuffer);
 
-  for (const url of urls) {
-    const u = new URL(url);
-    const response = bundle.getResponse(url);
-    const {headers} = response;
-    const contentType = headers['content-type'] || 'application/octet-stream';
-    files.push({
-      path: u.pathname.slice(1),
-      data: response.body,
+    const files = [];
+    const bundle = new wbn.Bundle(arrayBuffer);
+    const {urls} = bundle;
+
+    for (const url of urls) {
+      const u = new URL(url);
+      const response = bundle.getResponse(url);
+      const {headers} = response;
+      const contentType = headers['content-type'] || 'application/octet-stream';
+      files.push({
+        path: u.pathname.slice(1),
+        data: response.body,
+      });
+    }
+    
+    console.log('got files', files);
+    
+    const zip = new JSZip();
+    for (const file of files) {
+      zip.file(file.path, file.data);
+    }
+    const result = await zip.generate({
+      type: 'uint8array',
     });
+    
+    console.log('got xrpk file 2', result);
+    
+    const b = new Blob([result], {
+      type: 'application/octet-stream',
+    });
+    downloadFile(b, 'asset.zip');
   }
-  
-  console.log('got files', files);
-  
-  const zip = new JSZip();
-  for (const file of files) {
-    zip.file(file.path, file.data);
-  }
-  const result = await zip.generate({
-    type: 'uint8array',
-  });
-  
-  console.log('got xrpk file 2', result);
-  
-  const b = new Blob([result], {
-    type: 'application/octet-stream',
-  });
-  downloadFile(b, 'asset.zip');
 });
 
 /* window.downloadTargetMesh = async () => {
