@@ -802,7 +802,7 @@ buildXrpkDirectoryForm.addEventListener('submit', async e => {
     
       {
         const manifestJson = {
-          start_url: './' + file.webkitRelativePath,
+          start_url: encodeURI(file.webkitRelativePath),
         };
         const manifestJsonString = JSON.stringify(manifestJson, null, 2);
         builder.addExchange(primaryUrl + '/manifest.json', 200, {
