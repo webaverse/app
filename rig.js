@@ -398,18 +398,21 @@ class RigManager {
 
     this.localRig.inputs.hmd.position.fromArray(hmdPosition);
     this.localRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
+    this.localRig.inputs.hmd.needsUpdate = true;
 
     this.localRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition);
     this.localRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
     this.localRig.inputs.leftGamepad.pointer = leftGamepadPointer;
     this.localRig.inputs.leftGamepad.grip = leftGamepadGrip;
     this.localRig.inputs.leftGamepad.enabled = leftGamepadEnabled;
+    this.localRig.inputs.leftGamepad.needsUpdate = true;
 
     this.localRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
     this.localRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
     this.localRig.inputs.rightGamepad.pointer = rightGamepadPointer;
     this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
     this.localRig.inputs.rightGamepad.enabled = rightGamepadEnabled;
+    this.localRig.inputs.rightGamepad.needsUpdate = true;
 
     this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
     this.localRig.textMesh.position.y += 0.5;
@@ -440,16 +443,19 @@ class RigManager {
     if (peerRig) {
       peerRig.inputs.hmd.position.fromArray(hmdPosition);
       peerRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
+      peerRig.inputs.hmd.needsUpdate = true;
 
       peerRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition);
       peerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
       peerRig.inputs.leftGamepad.pointer = leftGamepadPointer;
       peerRig.inputs.leftGamepad.grip = leftGamepadGrip;
+      peerRig.inputs.leftGamepad.needsUpdate = true;
 
       peerRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
       peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
       peerRig.inputs.rightGamepad.pointer = rightGamepadPointer;
       peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
+      peerRig.inputs.rightGamepad.needsUpdate = true;
 
       peerRig.setFloorHeight(floorHeight);
       peerRig.setTopEnabled(topEnabled);
