@@ -1193,60 +1193,44 @@ const _loadAudio = async (file, {instanceId = null, monetizationPointer = null, 
   return object;
 };
 
+const _loadVideo = () => {
+  throw new Error('not implemented');
+};
+
 const _loadGeo = async (file, opts) => {
   const object = buildTool.makeShapeMesh();
   return object;
 };
 
+const typeHandlers = {
+  'gltf': _loadGltf,
+  'glb': _loadGltf,
+  'vrm': _loadVrm,
+  'vox': _loadVox,
+  'png': _loadImg,
+  'gif': _loadImg,
+  'jpg': _loadImg,
+  'js': _loadScript,
+  'json': _loadManifestJson,
+  'wbn': _loadWebBundle,
+  'scn': _loadScn,
+  'url': _loadPortal,
+  'iframe': _loadIframe,
+  'mediastream': _loadMediaStream,
+  'geo': _loadGeo,
+  'mp3': _loadAudio,
+  'mp4': _loadVideo,
+};
+runtime.typeHandlers = typeHandlers;
+
 runtime.loadFile = async (file, opts) => {
   const object = await (async () => {
     const ext = file.ext || getExt(file.name);
-    switch (ext) {
-      case 'gltf':
-      case 'glb': {
-        return await _loadGltf(file, opts);
-      }
-      case 'vrm': {
-        return await _loadVrm(file, opts);
-      }
-      case 'vox': {
-        return await _loadVox(file, opts);
-      }
-      case 'png':
-      case 'gif':
-      case 'jpg': {
-        return await _loadImg(file, opts);
-      }
-      case 'js': {
-        return await _loadScript(file, opts);
-      }
-      case 'json': {
-        return await _loadManifestJson(file, opts);
-      }
-      case 'wbn': {
-        return await _loadWebBundle(file, opts);
-      }
-      case 'scn': {
-        return await _loadScn(file, opts);
-      }
-      case 'url': {
-        return await _loadPortal(file, opts);
-      }
-      case 'iframe': {
-        return await _loadIframe(file, opts);
-      }
-      case 'mediastream': {
-        return await _loadMediaStream(file, opts);
-      }
-      case 'geo': {
-        return await _loadGeo(file, opts);
-      }
-      case 'mp3': {
-        return await _loadAudio(file, opts);
-      }
-      case 'video': {
-        throw new Error('video not implemented');
-      }
+    const handler = typeHandlers[ext];
+    if (handler) {
+      return await handler(file, opts);
+    } else {
+      throw new Error('unknown file type: ' + ext);
     }
   })();
   object.rotation.order = 'YXZ';
