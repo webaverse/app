@@ -1,5 +1,13 @@
 <!doctype html>
 <html>
+<head>
+<style>
+.files {
+  display: flex;
+  flex-direction: column;
+}
+</style>
+</head>
 <body>
   <form id=split-form>
     <h1>Split mesh</h1>
@@ -17,14 +25,15 @@
     <pre><code>TOKTX_PATH=./bin/toktx ./bin/gltfpack -v -kn -cc -tb -i assets/model.glb -o assets/model2.glb</code></pre>
   </form>
   <form id=build-xrpk-directory-form>
-    <h1>XRPK from folder</h1>
+    <h1>XRPK pack from folder</h1>
     <input type=file id=build-xrpk-directory webkitdirectory directory multiple>
     <input type=submit value="Build">
   </form>
   <form id=build-xrpk-zip-form>
-    <h1>XRPK to ZIP</h1>
+    <h1>XRPK unpack files</h1>
     <input type=file id=build-xrpk-zip>
-    <input type=submit value="Convert">
+    <input type=submit value="Convert to .zip">
+    <div class=files id=build-xrpk-zip-files></div>
   </form>
 <script src="./bin/geometry.js"></script>
 <script type=module>
@@ -749,6 +758,7 @@ bakeFormEl.addEventListener('submit', async e => {
   }
 });
 
+const primaryUrl = 'https://xrpk.webaverse.com';
 const _filterCandidateFiles = files => {
   const result = [];
   for (const type in typeHandlers) {
@@ -775,29 +785,27 @@ buildXrpkDirectoryForm.addEventListener('submit', async e => {
   console.log('got files', files);
   
   if (files.length > 0) {
-    const primaryUrl = 'https://xrpk.webaverse.com';
-    const startUrl = 'manifest.json';
-    const primaryExchangeUrl = primaryUrl + '/' + startUrl;
-    const builder = new wbn.BundleBuilder(primaryExchangeUrl);
-    for (const file of files) {
-      const {type, webkitRelativePath} = file;
-      const u = new URL(webkitRelativePath, primaryUrl);
-      const arrayBuffer = await file.arrayBuffer();
-      builder.addExchange(u.href, 200, {
-        'Content-Type': type || '/application/octet-stream',
-      }, new Uint8Array(arrayBuffer));
-    }
-
     console.log('got files', files);
     const candidateFiles = _filterCandidateFiles(files);
     const file = candidateFiles[0];
     if (file) {
+      const primaryExchangeUrl = primaryUrl + '/manifest.json';
+      const builder = new wbn.BundleBuilder(primaryExchangeUrl);
+      for (const file of files) {
+        const {type, webkitRelativePath} = file;
+        const u = new URL(webkitRelativePath, primaryUrl);
+        const arrayBuffer = await file.arrayBuffer();
+        builder.addExchange(u.href, 200, {
+          'Content-Type': type || '/application/octet-stream',
+        }, new Uint8Array(arrayBuffer));
+      }
+    
       {
         const manifestJson = {
           start_url: './' + file.webkitRelativePath,
         };
         const manifestJsonString = JSON.stringify(manifestJson, null, 2);
-        builder.addExchange(primaryExchangeUrl, 200, {
+        builder.addExchange(primaryUrl + '/manifest.json', 200, {
           'Content-Type': 'application/json',
         }, textEncoder.encode(manifestJsonString));
       }
@@ -815,10 +823,33 @@ buildXrpkDirectoryForm.addEventListener('submit', async e => {
 
 const buildXrpkZipForm = document.getElementById('build-xrpk-zip-form');
 const buildXrpkZip = document.getElementById('build-xrpk-zip');
+const buildXrpkFiles = document.getElementById('build-xrpk-zip-files');
 let xrpkFile = null;
-buildXrpkZipForm.addEventListener('change', e => {
+buildXrpkZipForm.addEventListener('change', async e => {
   if (buildXrpkZip.files.length === 1) {
     xrpkFile = buildXrpkZip.files[0];
+    
+    buildXrpkFiles.innerHTML = '';
+
+    const arrayBuffer = await xrpkFile.arrayBuffer();
+    const bundle = new wbn.Bundle(arrayBuffer);
+    const {urls} = bundle;
+    for (const url of urls) {
+      const response = bundle.getResponse(url);
+      const {headers} = response;
+      const contentType = headers['content-type'] || 'application/octet-stream';
+
+      const blob = new Blob([response.body], {
+        type: contentType,
+      });
+      const u = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = u;
+      a.target = '_blank';
+      a.innerText = url.slice(primaryUrl.length + 1);
+      buildXrpkFiles.appendChild(a);
+    }
   }
 });
 buildXrpkZipForm.addEventListener('submit', async e => {
