@@ -233,9 +233,10 @@ class RigManager {
           } else {
             localRig = new Avatar();
             localRig.model = o;
-            localRig.update = () => {
-              localRig.model.position.copy(localRig.inputs.hmd.position);
-              localRig.model.quaternion.copy(localRig.inputs.hmd.quaternion);
+            localRig.update = (timeDiff, now) => {
+              const hmdInput = localRig.inputInterpolators.hmd.get(now);
+              localRig.model.position.copy(hmdInput.position);
+              localRig.model.quaternion.copy(hmdInput.quaternion);
             };
           }
         } else {
