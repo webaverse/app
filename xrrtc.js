@@ -194,7 +194,7 @@ class XRChannelConnection extends EventTarget {
       };
       this.state.on('update', _update);
     });
-    ['status', 'pose'].forEach(eventType => {
+    ['status', 'pose', 'chat'].forEach(eventType => {
       dialogClient.addEventListener(eventType, e => {
         const peerConnection = _getPeerConnection(e.data.peerId) || _addPeerConnection(e.data.peerId);
         peerConnection.dispatchEvent(new MessageEvent(e.type, {
