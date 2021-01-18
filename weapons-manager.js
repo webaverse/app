@@ -990,7 +990,9 @@ const _updateMenu = () => {
       if (itemEl) {
         const instanceId = itemEl.getAttribute('instanceid');
         const object = world.getObjects().find(o => o.instanceId === instanceId);
-        cameraManager.focusCamera(object.position);
+        if (object) {
+          cameraManager.focusCamera(object.position);
+        }
       }
       lastCameraFocus = selectedItemIndex;
     }
