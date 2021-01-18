@@ -2863,6 +2863,12 @@ progress::-webkit-progress-value {
   background-color: #111;
   border-radius: 5px;
 }
+.chat .messages .message .name {
+  font-weight: 600;
+}
+.chat .messages .message .text {
+  opacity: 0.7;
+}
 .chat .messages .message .name,
 .chat .messages .message .text
 {
