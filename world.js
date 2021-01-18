@@ -490,6 +490,9 @@ world.getWorldJson = async q => {
     if (!spec.objects) {
       spec.objects = [];
     }
+    for (const object of spec.objects) {
+      object.dynamic = true;
+    }
     spec.objects.splice(0, 0, {
       start_url: `https://webaverse.github.io/pedestal/index.js`,
     });
