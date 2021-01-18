@@ -21,11 +21,6 @@
     <input type=file id=build-xrpk-directory webkitdirectory directory multiple>
     <input type=submit value="Build">
   </form>
-  <form id=build-xrpk-file-form>
-    <h1>XRPK from asset file</h1>
-    <input type=file id=build-xrpk-file>
-    <input type=submit value="Build">
-  </form>
   <form id=build-xrpk-zip-form>
     <h1>XRPK to ZIP</h1>
     <input type=file id=build-xrpk-zip>
@@ -754,6 +749,19 @@ bakeFormEl.addEventListener('submit', async e => {
   }
 });
 
+const _filterCandidateFiles = files => {
+  const result = [];
+  for (const type in typeHandlers) {
+    for (const file of files) {
+      const ext = getExt(file.webkitRelativePath);
+      if (ext === type) {
+        result.push(file);
+      }
+    }
+  }
+  return result;
+};
+
 const buildXrpkDirectoryForm = document.getElementById('build-xrpk-directory-form');
 const buildXrpkDirectory = document.getElementById('build-xrpk-directory');
 let files = [];
@@ -803,34 +811,6 @@ buildXrpkDirectoryForm.addEventListener('submit', async e => {
       window.alert('This folder does not have any XRPK-able file types.\nAllowed types: ' + Object.keys(typeHandlers).join(', '));
     }
   }
-});
-
-const _filterCandidateFiles = files => {
-  const result = [];
-  for (const type in typeHandlers) {
-    for (const file of files) {
-      const ext = getExt(file.webkitRelativePath);
-      if (ext === type) {
-        result.push(file);
-      }
-    }
-  }
-  return result;
-};
-
-const buildXrpkFileForm = document.getElementById('build-xrpk-file-form');
-const buildXrpkFile = document.getElementById('build-xrpk-file');
-let file = null;
-buildXrpkFileForm.addEventListener('change', e => {
-  if (buildXrpkFile.files.length === 1) {
-    file = buildXrpkFile.files[0];
-  }
-});
-buildXrpkFileForm.addEventListener('submit', async e => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  console.log('got file', file);
 });
 
 const buildXrpkZipForm = document.getElementById('build-xrpk-zip-form');
