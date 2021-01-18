@@ -16,12 +16,17 @@
     <h1>Bake mesh</h1>
     <pre><code>TOKTX_PATH=./bin/toktx ./bin/gltfpack -v -kn -cc -tb -i assets/model.glb -o assets/model2.glb</code></pre>
   </form>
+  <form id=build-xrpk-form>
+    <h1>XRPK from Directory</h1>
+    <input type=file id=build-xrpk-file webkitdirectory directory multiple>
+    <input type=submit value="Build">
+  </form>
 <script src="./bin/geometry.js"></script>
 <script type=module>
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import {GLTFExporter} from './GLTFExporter.js';
-import {makePromise, downloadFile, convertMeshToPhysicsMesh} from './util.js';
+import {makePromise, downloadFile, convertMeshToPhysicsMesh, bindUploadFileButton} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -732,6 +737,20 @@ bakeFormEl.addEventListener('submit', async e => {
     });
     downloadFile(b, 'target.bin');
   }
+});
+
+const buildXrpkForm = document.getElementById('build-xrpk-form');
+const buildXrpkFile = document.getElementById('build-xrpk-file');
+let files = [];
+buildXrpkFile.addEventListener('change', e => {
+  files = Array.from(buildXrpkFile.files);
+});
+buildXrpkForm.addEventListener('submit', e => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  // const files = Array.from(buildXrpkFile.files);
+  console.log('got files', files);
 });
 
 /* window.downloadTargetMesh = async () => {
