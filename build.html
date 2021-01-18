@@ -16,9 +16,9 @@
     <h1>Bake mesh</h1>
     <pre><code>TOKTX_PATH=./bin/toktx ./bin/gltfpack -v -kn -cc -tb -i assets/model.glb -o assets/model2.glb</code></pre>
   </form>
-  <form id=build-xrpk-form>
+  <form id=build-xrpk-directory-form>
     <h1>XRPK from Directory</h1>
-    <input type=file id=build-xrpk-file webkitdirectory directory multiple>
+    <input type=file id=build-xrpk-directory webkitdirectory directory multiple>
     <input type=submit value="Build">
   </form>
 <script src="./bin/geometry.js"></script>
@@ -739,17 +739,16 @@ bakeFormEl.addEventListener('submit', async e => {
   }
 });
 
-const buildXrpkForm = document.getElementById('build-xrpk-form');
-const buildXrpkFile = document.getElementById('build-xrpk-file');
+const buildXrpkDirectoryForm = document.getElementById('build-xrpk-directory-form');
+const buildXrpkDirectory = document.getElementById('build-xrpk-directory');
 let files = [];
-buildXrpkFile.addEventListener('change', e => {
-  files = Array.from(buildXrpkFile.files);
+buildXrpkDirectory.addEventListener('change', e => {
+  files = Array.from(buildXrpkDirectory.files);
 });
-buildXrpkForm.addEventListener('submit', e => {
+buildXrpkDirectoryForm.addEventListener('submit', e => {
   e.preventDefault();
   e.stopPropagation();
 
-  // const files = Array.from(buildXrpkFile.files);
   console.log('got files', files);
 });
 
