@@ -6,6 +6,7 @@ import {loginManager} from './login.js';
 import runtime from './runtime.js';
 import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
+import messages from './messages.js';
 import {pointers} from './web-monetization.js';
 import {appManager, scene, scene3} from './app-object.js';
 import {
@@ -159,6 +160,12 @@ world.connectRoom = async (roomName, worldURL) => {
       // const [head, leftGamepad, rightGamepad, floorHeight] = e.data;
       const {pose} = e.data;
       rigManager.setPeerAvatarPose(pose, peerConnection.connectionId);
+    });
+    peerConnection.addEventListener('chat', e => {
+      const {peerId, username, text} = e.data;
+      messages.addMessage(username, text, {
+        update: false,
+      });
     });
     peerConnection.addEventListener('addtrack', e => {
       const track = e.data;
@@ -558,4 +565,18 @@ world.toggleMic = async () => {
 micButton && micButton.addEventListener('click', async e => {
   world.toggleMic()
     .catch(console.warn);
+});
+
+messages.addEventListener('messageadd', e => {
+  if (channelConnection) {
+    const {username, text} = e.data;
+    channelConnection.send(JSON.stringify({
+      method: 'chat',
+      data: {
+        peerId: channelConnection.connectionId,
+        username,
+        text,
+      },
+    }));
+  }
 });
