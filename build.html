@@ -38,12 +38,14 @@ import {GLTFLoader} from './GLTFLoader.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import {makePromise, downloadFile, convertMeshToPhysicsMesh, bindUploadFileButton} from './util.js';
 import wbn from './wbn.js';
+import {JSZip} from './jszip.module.min.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
 const localVector3 = new THREE.Vector3();
 const localVector4 = new THREE.Vector3();
 const localTriangle = new THREE.Triangle();
+const textEncoder = new TextEncoder();
 
 const splitFormEl = document.getElementById('split-form');
 const splitSizeEl = document.getElementById('split-size');
@@ -762,32 +764,35 @@ buildXrpkDirectoryForm.addEventListener('submit', async e => {
 
   console.log('got files', files);
   
-  const primaryUrl = 'https://xrpk.webaverse.com';
-  const startUrl = 'manifest.js';
-  const primaryExchangeUrl = primaryUrl + '/' + startUrl;
-  const builder = new wbn.BundleBuilder(primaryExchangeUrl);
-  for (const file of files) {
-    const {type, webkitRelativePath} = file;
-    const u = new URL(webkitRelativePath, primaryUrl);
-    const arrayBuffer = await file.arrayBuffer();
-    builder.addExchange(u.href, 200, {
-      'Content-Type': type || '/application/octet-stream',
-    }, arrayBuffer);
+  if (files.length > 0) {
+    const primaryUrl = 'https://xrpk.webaverse.com';
+    const startUrl = 'manifest.json';
+    const primaryExchangeUrl = primaryUrl + '/' + startUrl;
+    const builder = new wbn.BundleBuilder(primaryExchangeUrl);
+    for (const file of files) {
+      const {type, webkitRelativePath} = file;
+      const u = new URL(webkitRelativePath, primaryUrl);
+      const arrayBuffer = await file.arrayBuffer();
+      builder.addExchange(u.href, 200, {
+        'Content-Type': type || '/application/octet-stream',
+      }, new Uint8Array(arrayBuffer));
+    }
+    {
+      const manifestJson = {
+        start_url: './index.js',
+      };
+      const manifestJsonString = JSON.stringify(manifestJson, null, 2);
+      builder.addExchange(primaryExchangeUrl, 200, {
+        'Content-Type': 'application/json',
+      }, textEncoder.encode(manifestJsonString));
+    }
+    const buffer = builder.createBundle();
+    console.log('got buffer', buffer);
+    const blob = new Blob([buffer], {
+      type: 'application/webbundle',
+    });
+    downloadFile(blob, 'asset.wbn');
   }
-  {
-    const manifestJson = {
-      start_url: './index.js',
-    };
-    const manifestJsonString = JSON.stringify(manifestJson);
-    builder.addExchange(primaryExchangeUrl, 200, {
-      'Content-Type': 'application/json',
-    }, manifestJsonString);
-  }
-  const buffer = builder.createBundle();
-  const blob = new Blob([buffer], {
-    type: 'application/webbundle',
-  });
-  downloadFile(blob, 'asset.wbn');
 });
 
 const buildXrpkFileForm = document.getElementById('build-xrpk-file-form');
@@ -816,8 +821,48 @@ buildXrpkZipForm.addEventListener('change', e => {
 buildXrpkZipForm.addEventListener('submit', async e => {
   e.preventDefault();
   e.stopPropagation();
+  
+  const arrayBuffer = await xrpkFile.arrayBuffer();
+  
+  console.log('got ab', arrayBuffer);
 
-  console.log('got xrpk file', xrpkFile);
+  const files = {};
+  const bundle = new wbn.Bundle(arrayBuffer);
+  const {urls} = bundle;
+
+  for (const url of urls) {
+    const u = new URL(url);
+    const response = bundle.getResponse(url);
+    const {headers} = response;
+    const contentType = headers['content-type'] || 'application/octet-stream';
+    // console.log('got u', url, u, response);
+    files[u.pathname.slice(1)] = response.body;
+    /* const b = new Blob([response.body], {
+      type: contentType,
+    });
+    const blobUrl = URL.createObjectURL(b);
+    const {pathname} = new URL(u);
+    files['.' + pathname] = blobUrl; */
+  }
+  // const u = './manifest.json';
+  
+  console.log('got files', files);
+  
+  const zip = new JSZip();
+  for (const p in files) {
+    const file = files[p];
+    zip.file(p, file);
+  }
+  const result = await zip.generate({
+    type: 'uint8array',
+  });
+  
+  console.log('got xrpk file 2', result);
+  
+  const b = new Blob([result], {
+    type: 'application/octet-stream',
+  });
+  downloadFile(b, 'asset.zip');
 });
 
 /* window.downloadTargetMesh = async () => {
