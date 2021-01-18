@@ -69,6 +69,9 @@ const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
 const gridSnapEl = document.getElementById('grid-snap');
 const tabs = Array.from(document.querySelectorAll('#profile-icon > .nav'));
 const uploadFileInput = document.getElementById('upload-file-input');
+const chatEl = document.getElementById('chat');
+const chatInputEl = document.getElementById('chat-input');
+const chatMessagesEl = document.getElementById('chat-messages');
 
 const _makeTargetMesh = (() => {
   const targetMeshGeometry = (() => {
@@ -1427,6 +1430,15 @@ const bindInterface = () => {
       items4El.removeChild(itemEl);
     }
   });
+  
+  chatInputEl.addEventListener('keydown', e => {
+    switch (e.which) {
+      case 13: { // enter
+        weaponsManager.enter();
+        break;
+      }
+    }
+  });
 };
 
 const weaponsManager = {
@@ -1622,6 +1634,30 @@ const weaponsManager = {
   },
   menuUpload() {
     _upload();
+  },
+  enter() {
+    chatInputEl.classList.toggle('open');
+    if (chatInputEl.classList.contains('open')) {
+      chatInputEl.focus();
+    } else {
+      const s = chatInputEl.value;
+      if (s) {
+        chatInputEl.value = '';
+
+        const username = loginManager.getUsername();
+        const message = document.createElement('div');
+        message.classList.add('message');
+        message.innerHTML = `\
+          <div class=name></div>
+          <div class=text></div>
+        `;
+        const nameEl = message.querySelector('.name');
+        nameEl.innerText = `${username}: `;
+        const textEl = message.querySelector('.text');
+        textEl.innerText = s;
+        chatMessagesEl.appendChild(message);
+      }
+    }
   },
   update() {
     _updateWeapons();

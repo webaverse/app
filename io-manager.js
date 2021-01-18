@@ -405,6 +405,10 @@ ioManager.bindInput = () => {
         weaponsManager.toggleEditMode();
         break;
       }
+      case 13: { // enter
+        weaponsManager.enter();
+        break;
+      }
     }
   });
   window.addEventListener('keyup', e => {
