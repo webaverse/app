@@ -1740,6 +1740,13 @@ class Avatar {
     };
     _applyAnimation();
 
+    const _updateInterpolators = () => {
+      this.inputInterpolators.hmd.update(now);
+      this.inputInterpolators.leftGamepad.update(now);
+      this.inputInterpolators.righttGamepad.update(now);
+    };
+    _updateInterpolators();
+
     if (this.getTopEnabled()) {
       const hmdInput = this.inputInterpolators.hmd.get(now);
       this.sdkInputs.hmd.position.copy(hmdInput.position);
