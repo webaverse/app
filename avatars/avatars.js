@@ -1741,16 +1741,23 @@ class Avatar {
     _applyAnimation();
 
     if (this.getTopEnabled()) {
-      this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
-      this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
-      this.sdkInputs.leftGamepad.position.copy(this.inputs.leftGamepad.position).add(localVector.copy(this.handOffsetLeft).applyQuaternion(this.inputs.leftGamepad.quaternion));
-      this.sdkInputs.leftGamepad.quaternion.copy(this.inputs.leftGamepad.quaternion);
-      this.sdkInputs.leftGamepad.pointer = this.inputs.leftGamepad.pointer;
-      this.sdkInputs.leftGamepad.grip = this.inputs.leftGamepad.grip;
-      this.sdkInputs.rightGamepad.position.copy(this.inputs.rightGamepad.position).add(localVector.copy(this.handOffsetRight).applyQuaternion(this.inputs.rightGamepad.quaternion));
-      this.sdkInputs.rightGamepad.quaternion.copy(this.inputs.rightGamepad.quaternion);
-      this.sdkInputs.rightGamepad.pointer = this.inputs.rightGamepad.pointer;
-      this.sdkInputs.rightGamepad.grip = this.inputs.rightGamepad.grip;
+      const hmdInput = this.inputInterpolators.hmd.get(now);
+      this.sdkInputs.hmd.position.copy(hmdInput.position);
+      this.sdkInputs.hmd.quaternion.copy(hmdInput.quaternion);
+
+      const leftGamepadInput = this.inputInterpolators.leftGamepad.get(now);
+      this.sdkInputs.leftGamepad.position.copy(leftGamepadInput.position)
+        .add(localVector.copy(this.handOffsetLeft).applyQuaternion(leftGamepadInput.quaternion));
+      this.sdkInputs.leftGamepad.quaternion.copy(leftGamepadInput.quaternion);
+      this.sdkInputs.leftGamepad.pointer = leftGamepadInput.pointer;
+      this.sdkInputs.leftGamepad.grip = leftGamepadInput.grip;
+
+      const rightGamepadInput = this.inputInterpolators.rightGamepad.get(now);
+      this.sdkInputs.rightGamepad.position.copy(rightGamepadInput.position)
+        .add(localVector.copy(this.handOffsetRight).applyQuaternion(rightGamepadInput.quaternion));
+      this.sdkInputs.rightGamepad.quaternion.copy(rightGamepadInput.quaternion);
+      this.sdkInputs.rightGamepad.pointer = rightGamepadInput.pointer;
+      this.sdkInputs.rightGamepad.grip = rightGamepadInput.grip;
 
       const modelScaleFactor = this.sdkInputs.hmd.scaleFactor;
       if (modelScaleFactor !== this.lastModelScaleFactor) {
@@ -1799,10 +1806,11 @@ class Avatar {
       }
     }
     if (!this.getBottomEnabled()) {
-      this.outputs.hips.position.copy(this.inputs.hmd.position)
+      const hmdInput = this.inputInterpolators.hmd.get(now);
+      this.outputs.hips.position.copy(hmdInput.position)
         .add(this.eyeToHipsOffset);
 
-      localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+      localEuler.setFromQuaternion(hmdInput.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y += Math.PI;
