@@ -36,7 +36,9 @@
 import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import {GLTFExporter} from './GLTFExporter.js';
-import {makePromise, downloadFile, convertMeshToPhysicsMesh, bindUploadFileButton} from './util.js';
+import runtime from './runtime.js';
+const {typeHandlers} = runtime;
+import {makePromise, downloadFile, convertMeshToPhysicsMesh, bindUploadFileButton, getExt} from './util.js';
 import wbn from './wbn.js';
 import {JSZip} from './jszip.module.min.js';
 
@@ -777,23 +779,44 @@ buildXrpkDirectoryForm.addEventListener('submit', async e => {
         'Content-Type': type || '/application/octet-stream',
       }, new Uint8Array(arrayBuffer));
     }
-    {
-      const manifestJson = {
-        start_url: './index.js',
-      };
-      const manifestJsonString = JSON.stringify(manifestJson, null, 2);
-      builder.addExchange(primaryExchangeUrl, 200, {
-        'Content-Type': 'application/json',
-      }, textEncoder.encode(manifestJsonString));
+
+    console.log('got files', files);
+    const candidateFiles = _filterCandidateFiles(files);
+    const file = candidateFiles[0];
+    if (file) {
+      {
+        const manifestJson = {
+          start_url: './' + file.webkitRelativePath,
+        };
+        const manifestJsonString = JSON.stringify(manifestJson, null, 2);
+        builder.addExchange(primaryExchangeUrl, 200, {
+          'Content-Type': 'application/json',
+        }, textEncoder.encode(manifestJsonString));
+      }
+      const buffer = builder.createBundle();
+      console.log('got buffer', buffer);
+      const blob = new Blob([buffer], {
+        type: 'application/webbundle',
+      });
+      downloadFile(blob, 'asset.wbn');
+    } else {
+      window.alert('This folder does not have any XRPK-able file types.\nAllowed types: ' + Object.keys(typeHandlers).join(', '));
     }
-    const buffer = builder.createBundle();
-    console.log('got buffer', buffer);
-    const blob = new Blob([buffer], {
-      type: 'application/webbundle',
-    });
-    downloadFile(blob, 'asset.wbn');
   }
 });
+
+const _filterCandidateFiles = files => {
+  const result = [];
+  for (const type in typeHandlers) {
+    for (const file of files) {
+      const ext = getExt(file.webkitRelativePath);
+      if (ext === type) {
+        result.push(file);
+      }
+    }
+  }
+  return result;
+};
 
 const buildXrpkFileForm = document.getElementById('build-xrpk-file-form');
 const buildXrpkFile = document.getElementById('build-xrpk-file');
@@ -826,7 +849,7 @@ buildXrpkZipForm.addEventListener('submit', async e => {
   
   console.log('got ab', arrayBuffer);
 
-  const files = {};
+  const files = [];
   const bundle = new wbn.Bundle(arrayBuffer);
   const {urls} = bundle;
 
@@ -836,7 +859,10 @@ buildXrpkZipForm.addEventListener('submit', async e => {
     const {headers} = response;
     const contentType = headers['content-type'] || 'application/octet-stream';
     // console.log('got u', url, u, response);
-    files[u.pathname.slice(1)] = response.body;
+    files.push({
+      path: u.pathname.slice(1),
+      data: response.body,
+    });
     /* const b = new Blob([response.body], {
       type: contentType,
     });
@@ -849,9 +875,8 @@ buildXrpkZipForm.addEventListener('submit', async e => {
   console.log('got files', files);
   
   const zip = new JSZip();
-  for (const p in files) {
-    const file = files[p];
-    zip.file(p, file);
+  for (const file of files) {
+    zip.file(file.path, file.data);
   }
   const result = await zip.generate({
     type: 'uint8array',
