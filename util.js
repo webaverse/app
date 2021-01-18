@@ -57,8 +57,10 @@ export function readFile(file) {
 export function bindUploadFileButton(inputFileEl, handleUpload) {
   inputFileEl.addEventListener('change', async e => {
     const {files} = e.target;
-    if (files.length === 1) {
-      const [file] = files;
+    if (inputFileEl.multiple) {
+      handleUpload(Array.from(files));
+    } else {
+      const [file = null] = files;
       handleUpload(file);
     }
 
