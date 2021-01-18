@@ -19,4 +19,4 @@ export const loginEndpoint = 'https://login.exokit.org';
 export const tokensHost = 'https://tokens.webaverse.com';
 export const landHost = 'https://land.webaverse.com';
 export const web3SidechainEndpoint = 'https://ethereums.exokit.org';
-export const homeScnUrl = `./street/street.scn`;
+export const homeScnUrl = `https://webaverse.github.io/street/street.scn`;
