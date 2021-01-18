@@ -16,7 +16,7 @@ import {appManager, renderer, scene, orthographicScene, camera, dolly} from './a
 import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
 import * as popovers from './popovers.js';
-import * as messages from './messages.js';
+import messages from './messages.js';
 import {getExt, bindUploadFileButton} from './util.js';
 import {storageHost, worldsHost} from './constants.js';
 
