@@ -857,6 +857,7 @@ export default class RoomClient extends EventTarget
 					case 'updateState':
 					case 'status':
 					case 'pose':
+					case 'chat':
 					{
 						this.dispatchEvent(new MessageEvent(notification.method, {
 							data: notification.data,
