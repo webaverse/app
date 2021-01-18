@@ -21,6 +21,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
+const interpolationTime = 300;
 
 class RigManager {
   constructor(scene) {
@@ -226,6 +227,7 @@ class RigManager {
               fingers: true,
               hair: true,
               visemes: true,
+              interpolationTime,
               debug: false //!o,
             });
           } else {
@@ -241,6 +243,7 @@ class RigManager {
             fingers: true,
             hair: true,
             visemes: true,
+            interpolationTime,
             debug: true,
           });
         }
@@ -268,6 +271,7 @@ class RigManager {
       fingers: true,
       hair: true,
       visemes: true,
+      interpolationTime,
       debug: true
       // decapitate: selectedTool === 'firstperson',
     });
