@@ -773,15 +773,6 @@ buildXrpkDirectoryForm.addEventListener('submit', async e => {
     builder.addExchange(u.href, 200, {
       'Content-Type': type || '/application/octet-stream',
     }, arrayBuffer);
-    /* const {pathname} = new url.URL(u);
-    if (!except.includes(pathname)) {
-      const res = bundle.getResponse(u);
-      const type = res.headers['content-type'];
-      const data = res.body;
-      builder.addExchange(primaryUrl + pathname, 200, {
-        'Content-Type': type,
-      }, data);
-    } */
   }
   {
     const manifestJson = {
@@ -793,6 +784,10 @@ buildXrpkDirectoryForm.addEventListener('submit', async e => {
     }, manifestJsonString);
   }
   const buffer = builder.createBundle();
+  const blob = new Blob([buffer], {
+    type: 'application/webbundle',
+  });
+  downloadFile(blob, 'asset.wbn');
 });
 
 const buildXrpkFileForm = document.getElementById('build-xrpk-file-form');
