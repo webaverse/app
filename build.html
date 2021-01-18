@@ -838,19 +838,11 @@ buildXrpkZipForm.addEventListener('submit', async e => {
     const response = bundle.getResponse(url);
     const {headers} = response;
     const contentType = headers['content-type'] || 'application/octet-stream';
-    // console.log('got u', url, u, response);
     files.push({
       path: u.pathname.slice(1),
       data: response.body,
     });
-    /* const b = new Blob([response.body], {
-      type: contentType,
-    });
-    const blobUrl = URL.createObjectURL(b);
-    const {pathname} = new URL(u);
-    files['.' + pathname] = blobUrl; */
   }
-  // const u = './manifest.json';
   
   console.log('got files', files);
   
