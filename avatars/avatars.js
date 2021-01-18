@@ -1655,13 +1655,12 @@ class Avatar {
   getBottomEnabled() {
     return this.legsManager.enabled;
   }
-	update(timeDiff) {
+	update(timeDiff, now) {
     /* const wasDecapitated = this.decapitated;
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
     } */
-
-    const now = Date.now();
+    // const now = Date.now();
 
     const _applyAnimation = () => {
       const _selectAnimations = v => {
