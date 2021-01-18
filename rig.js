@@ -568,9 +568,9 @@ class RigManager {
     this.localRig.jumpTime = physicsManager.getJumpTime();
     this.localRig.flyState = physicsManager.getFlyState();
     this.localRig.flyTime = physicsManager.getFlyTime();
-    this.localRig.update(timeDiff);
+    this.localRig.update(timeDiff, now);
     this.peerRigs.forEach(rig => {
-      rig.update(timeDiff);
+      rig.update(timeDiff, now);
     });
     
     this.lastTimetamp = now;
