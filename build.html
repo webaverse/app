@@ -846,14 +846,16 @@ buildXrpkZipForm.addEventListener('change', async e => {
       const response = bundle.getResponse(url);
       const {headers} = response;
       const contentType = headers['content-type'] || 'application/octet-stream';
-
-      const blob = new Blob([response.body], {
-        type: contentType,
-      });
-      const u = URL.createObjectURL(blob);
       
       const a = document.createElement('a');
-      a.href = u;
+      a.href = '#';
+      a.addEventListener('click', e => {
+        const blob = new Blob([response.body], {
+          type: contentType,
+        });
+        const u = URL.createObjectURL(blob);
+        a.href = u;
+      });
       a.target = '_blank';
       a.innerText = url.slice(primaryUrl.length + 1);
       buildXrpkFiles.appendChild(a);
