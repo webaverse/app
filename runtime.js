@@ -362,10 +362,13 @@ const _loadVox = async (file, {files = null, parentUrl = null, instanceId = null
   }
   return o;
 };
-const _loadImg = async (file, {instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadImg = async (file, {files = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   const img = new Image();
   await new Promise((accept, reject) => {
-    const u = file.url || URL.createObjectURL(file);
+    let u = file.url || URL.createObjectURL(file);
+    if (files) {
+      u = files[u];
+    }
     img.onload = () => {
       accept();
       startMonetization(instanceId, monetizationPointer, ownerAddress);
