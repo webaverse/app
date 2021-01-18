@@ -763,7 +763,7 @@ const _filterCandidateFiles = files => {
   const result = [];
   for (const type in typeHandlers) {
     for (const file of files) {
-      const ext = getExt(file.webkitRelativePath);
+      const ext = getExt(file.path);
       if (ext === type) {
         result.push(file);
       }
@@ -786,23 +786,30 @@ buildXrpkDirectoryForm.addEventListener('submit', async e => {
   
   if (files.length > 0) {
     console.log('got files', files);
+    
+    for (const file of files) {
+      const {type, webkitRelativePath} = file;
+      const path = webkitRelativePath.replace(/^[^/]*\//, '');
+      file.path = path;
+    }
     const candidateFiles = _filterCandidateFiles(files);
     const file = candidateFiles[0];
     if (file) {
       const primaryExchangeUrl = primaryUrl + '/manifest.json';
       const builder = new wbn.BundleBuilder(primaryExchangeUrl);
       for (const file of files) {
-        const {type, webkitRelativePath} = file;
-        const u = new URL(webkitRelativePath, primaryUrl);
+        const {type, path} = file;
+        const u = new URL(path, primaryUrl);
         const arrayBuffer = await file.arrayBuffer();
         builder.addExchange(u.href, 200, {
           'Content-Type': type || '/application/octet-stream',
         }, new Uint8Array(arrayBuffer));
       }
-    
-      {
+
+      const hadManifestJson = files.some(file => file.path === 'manifest.json');
+      if (!hadManifestJson) {
         const manifestJson = {
-          start_url: encodeURI(file.webkitRelativePath),
+          start_url: encodeURI(file.path),
         };
         const manifestJsonString = JSON.stringify(manifestJson, null, 2);
         builder.addExchange(primaryUrl + '/manifest.json', 200, {
