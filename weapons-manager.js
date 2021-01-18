@@ -996,8 +996,6 @@ const _updateMenu = () => {
     }
 
     lastSelectedBuild = -1;
-
-
   } else if (appManager.grabbedObjects[0]) {
     grabIcon.classList.toggle('open', true);
     // grabLabel.innerText = 'Grabbing';
