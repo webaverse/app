@@ -1264,7 +1264,7 @@ class Avatar {
       input.pointer = 0;
       input.grip = 0;
       input.enabled = false;
-      input.needsUpdate = true;
+      input.needsUpdate = false;
       input.copy = input2 => {
         input.position.copy(input2.position);
         input.quaternion.copy(input2.quaternion);
