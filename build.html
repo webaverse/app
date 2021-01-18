@@ -37,6 +37,7 @@ import * as THREE from './three.module.js';
 import {GLTFLoader} from './GLTFLoader.js';
 import {GLTFExporter} from './GLTFExporter.js';
 import {makePromise, downloadFile, convertMeshToPhysicsMesh, bindUploadFileButton} from './util.js';
+import wbn from './wbn.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -755,11 +756,43 @@ let files = [];
 buildXrpkDirectory.addEventListener('change', e => {
   files = Array.from(buildXrpkDirectory.files);
 });
-buildXrpkDirectoryForm.addEventListener('submit', e => {
+buildXrpkDirectoryForm.addEventListener('submit', async e => {
   e.preventDefault();
   e.stopPropagation();
 
   console.log('got files', files);
+  
+  const primaryUrl = 'https://xrpk.webaverse.com';
+  const startUrl = 'manifest.js';
+  const primaryExchangeUrl = primaryUrl + '/' + startUrl;
+  const builder = new wbn.BundleBuilder(primaryExchangeUrl);
+  for (const file of files) {
+    const {type, webkitRelativePath} = file;
+    const u = new URL(webkitRelativePath, primaryUrl);
+    const arrayBuffer = await file.arrayBuffer();
+    builder.addExchange(u.href, 200, {
+      'Content-Type': type || '/application/octet-stream',
+    }, arrayBuffer);
+    /* const {pathname} = new url.URL(u);
+    if (!except.includes(pathname)) {
+      const res = bundle.getResponse(u);
+      const type = res.headers['content-type'];
+      const data = res.body;
+      builder.addExchange(primaryUrl + pathname, 200, {
+        'Content-Type': type,
+      }, data);
+    } */
+  }
+  {
+    const manifestJson = {
+      start_url: './index.js',
+    };
+    const manifestJsonString = JSON.stringify(manifestJson);
+    builder.addExchange(primaryExchangeUrl, 200, {
+      'Content-Type': 'application/json',
+    }, manifestJsonString);
+  }
+  const buffer = builder.createBundle();
 });
 
 const buildXrpkFileForm = document.getElementById('build-xrpk-file-form');
@@ -770,7 +803,7 @@ buildXrpkFileForm.addEventListener('change', e => {
     file = buildXrpkFile.files[0];
   }
 });
-buildXrpkFileForm.addEventListener('submit', e => {
+buildXrpkFileForm.addEventListener('submit', async e => {
   e.preventDefault();
   e.stopPropagation();
 
@@ -785,7 +818,7 @@ buildXrpkZipForm.addEventListener('change', e => {
     xrpkFile = buildXrpkZip.files[0];
   }
 });
-buildXrpkZipForm.addEventListener('submit', e => {
+buildXrpkZipForm.addEventListener('submit', async e => {
   e.preventDefault();
   e.stopPropagation();
 
