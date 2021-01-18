@@ -816,6 +816,7 @@ buildXrpkDirectoryForm.addEventListener('submit', async e => {
           'Content-Type': 'application/json',
         }, textEncoder.encode(manifestJsonString));
       }
+
       const buffer = builder.createBundle();
       console.log('got buffer', buffer);
       const blob = new Blob([buffer], {
