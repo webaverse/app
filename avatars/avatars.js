@@ -1742,7 +1742,7 @@ class Avatar {
     const _updateInterpolators = () => {
       this.inputInterpolators.hmd.update(now);
       this.inputInterpolators.leftGamepad.update(now);
-      this.inputInterpolators.righttGamepad.update(now);
+      this.inputInterpolators.rightGamepad.update(now);
     };
     _updateInterpolators();
 
