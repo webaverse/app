@@ -827,11 +827,11 @@ const buildXrpkFiles = document.getElementById('build-xrpk-zip-files');
 let xrpkFile = null;
 buildXrpkZipForm.addEventListener('change', async e => {
   if (buildXrpkZip.files.length === 1) {
-    xrpkFile = buildXrpkZip.files[0];
+    const [file] = buildXrpkZip.files;
     
     buildXrpkFiles.innerHTML = '';
 
-    const arrayBuffer = await xrpkFile.arrayBuffer();
+    const arrayBuffer = await file.arrayBuffer();
     const bundle = new wbn.Bundle(arrayBuffer);
     const {urls} = bundle;
     for (const url of urls) {
@@ -850,6 +850,8 @@ buildXrpkZipForm.addEventListener('change', async e => {
       a.innerText = url.slice(primaryUrl.length + 1);
       buildXrpkFiles.appendChild(a);
     }
+    
+    xrpkFile = file;
   }
 });
 buildXrpkZipForm.addEventListener('submit', async e => {
