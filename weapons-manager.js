@@ -16,6 +16,7 @@ import {appManager, renderer, scene, orthographicScene, camera, dolly} from './a
 import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
 import * as popovers from './popovers.js';
+import * as messages from './messages.js';
 import {getExt, bindUploadFileButton} from './util.js';
 import {storageHost, worldsHost} from './constants.js';
 
@@ -1642,20 +1643,10 @@ const weaponsManager = {
     } else {
       const s = chatInputEl.value;
       if (s) {
-        chatInputEl.value = '';
-
         const username = loginManager.getUsername();
-        const message = document.createElement('div');
-        message.classList.add('message');
-        message.innerHTML = `\
-          <div class=name></div>
-          <div class=text></div>
-        `;
-        const nameEl = message.querySelector('.name');
-        nameEl.innerText = `${username}: `;
-        const textEl = message.querySelector('.text');
-        textEl.innerText = s;
-        chatMessagesEl.appendChild(message);
+        messages.addMessage(username, s);
+        
+        chatInputEl.value = '';
       }
     }
   },
