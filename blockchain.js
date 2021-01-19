@@ -25,21 +25,24 @@ const web3 = {
 };
 let addressFront = null;
 let addressBack = null;
+let networkName = '';
 function _setMainChain(isMainChain) {
   if (isMainChain) {
     web3.front = web3.mainnet;
     web3.back = web3.sidechain;
     addressFront = addresses.mainnet;
     addressBack = addresses.mainnetsidechain;
+    networkName = 'main';
   } else {
     web3.front = web3.rinkeby;
     web3.back = web3.rinkebysidechain;
     addressFront = addresses.rinkeby;
     addressBack = addresses.rinkebysidechain;
+    networkName = 'side';
   }
 }
 // _setMainChain(!/test/.test(location.hostname));
-_setMainChain(false);
+_setMainChain(/main/.test(location.hostname));
 
 const contracts = {
   front: {
@@ -147,9 +150,15 @@ const _getWalletFromMnemonic = mnemonic => hdkey.fromMasterSeed(bip39.mnemonicTo
 const getAddressFromMnemonic = mnemonic => _getWalletFromMnemonic(mnemonic)
   .getAddressString();
 
+const networkNameEl = document.getElementById('network-name');
+const bindInterface = () => {
+  networkNameEl.innerText = networkName;
+};
+
 export {
   web3,
   contracts,
+  bindInterface,
   runSidechainTransaction,
   getTransactionSignature,
   getAddressFromMnemonic,
