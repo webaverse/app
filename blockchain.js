@@ -8,11 +8,6 @@ import {storageHost, web3SidechainEndpoint} from './constants.js';
 const {Transaction, Common} = ethereumJsTx;
 import addresses from 'https://contracts.webaverse.com/config/addresses.js';
 import abis from 'https://contracts.webaverse.com/config/abi.js';
-/* let {
-  mainnet: {Account: AccountAddress, FT: FTAddress, NFT: NFTAddress, FTProxy: FTProxyAddress, NFTProxy: NFTProxyAddress, Trade: TradeAddress, LAND: LANDAddress, LANDProxy: LANDProxyAddress},
-  sidechain: {Account: AccountAddressSidechain, FT: FTAddressSidechain, NFT: NFTAddressSidechain, FTProxy: FTProxyAddressSidechain, NFTProxy: NFTProxyAddressSidechain, Trade: TradeAddressSidechain, LAND: LANDAddressSidechain, LANDProxy: LANDProxyAddressSidechain},
-} = addresses; */
-let {Account: AccountAbi, FT: FTAbi, FTProxy: FTProxyAbi, NFT: NFTAbi, NFTProxy: NFTProxyAbi, Trade: TradeAbi, LAND: LANDAbi, LANDProxy: LANDProxyAbi} = abis;
 
 const injectedWeb3 = new Web3(window.ethereum);
 const web3 = {
@@ -46,14 +41,14 @@ _setMainChain(/main/.test(location.hostname));
 
 const contracts = {
   front: {
-    Account: new web3.front.eth.Contract(AccountAbi, addressFront.Account),
-    FT: new web3.front.eth.Contract(FTAbi, addressFront.FT),
-    FTProxy: new web3.front.eth.Contract(FTProxyAbi, addressFront.FTProxy),
-    NFT: new web3.front.eth.Contract(NFTAbi, addressFront.NFT),
-    NFTProxy: new web3.front.eth.Contract(NFTProxyAbi, addressFront.NFTProxy),
-    Trade: new web3.front.eth.Contract(TradeAbi, addressFront.Trade),
-    LAND: new web3.front.eth.Contract(LANDAbi, addressFront.LAND),
-    LANDProxy: new web3.front.eth.Contract(LANDProxyAbi, addressFront.LANDProxy),
+    Account: new web3.front.eth.Contract(abis.Account, addressFront.Account),
+    FT: new web3.front.eth.Contract(abis.FT, addressFront.FT),
+    FTProxy: new web3.front.eth.Contract(abis.FTProxy, addressFront.FTProxy),
+    NFT: new web3.front.eth.Contract(abis.NFT, addressFront.NFT),
+    NFTProxy: new web3.front.eth.Contract(abis.NFTProxy, addressFront.NFTProxy),
+    Trade: new web3.front.eth.Contract(abis.Trade, addressFront.Trade),
+    LAND: new web3.front.eth.Contract(abis.LAND, addressFront.LAND),
+    LANDProxy: new web3.front.eth.Contract(abis.LANDProxy, addressFront.LANDProxy),
   },
   back: {
     Account: new web3.back.eth.Contract(AccountAbi, addressBack.Account),
