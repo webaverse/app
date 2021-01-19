@@ -19,7 +19,7 @@ import {makePromise, jsonParse} from './util.js';
 
 async function contentIdToStorageUrl(id) {
   if (typeof id === 'number') {
-    const hash = await contracts['sidechain']['NFT'].methods.getHash(id + '').call();
+    const hash = await contracts.back['NFT'].methods.getHash(id + '').call();
     return `${storageHost}/${hash}`;    
   } else if (typeof id === 'string') {
     return id;
@@ -567,7 +567,7 @@ class LoginManager extends EventTarget {
             notifications.removeNotification(notification);
           });
           {
-            const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts['sidechain']['NFT']._address, fullAmount.v);
+            const result = await runSidechainTransaction(mnemonic)('FT', 'approve', contracts.back['NFT']._address, fullAmount.v);
             status = result.status;
             transactionHash = '0x0';
             id = -1;
