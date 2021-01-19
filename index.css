@@ -2857,6 +2857,7 @@ progress::-webkit-progress-value {
 }
 .chat .messages .message {
   display: flex;
+  height: 30px;
   padding: 5px;
   margin-bottom: 5px;
   line-height: 1.6;
