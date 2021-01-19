@@ -51,14 +51,14 @@ const contracts = {
     LANDProxy: new web3.front.eth.Contract(abis.LANDProxy, addressFront.LANDProxy),
   },
   back: {
-    Account: new web3.back.eth.Contract(AccountAbi, addressBack.Account),
-    FT: new web3.back.eth.Contract(FTAbi, addressBack.FT),
-    FTProxy: new web3.back.eth.Contract(FTProxyAbi, addressBack.FTProxy),
-    NFT: new web3.back.eth.Contract(NFTAbi, addressBack.NFT),
-    NFTProxy: new web3.back.eth.Contract(NFTProxyAbi, addressBack.NFTProxy),
-    Trade: new web3.back.eth.Contract(TradeAbi, addressBack.Trade),
-    LAND: new web3.back.eth.Contract(LANDAbi, addressBack.LAND),
-    LANDProxy: new web3.back.eth.Contract(LANDProxyAbi, addressBack.LANDProxy),
+    Account: new web3.back.eth.Contract(abis.Account, addressBack.Account),
+    FT: new web3.back.eth.Contract(abis.FT, addressBack.FT),
+    FTProxy: new web3.back.eth.Contract(abis.FTProxy, addressBack.FTProxy),
+    NFT: new web3.back.eth.Contract(abis.NFT, addressBack.NFT),
+    NFTProxy: new web3.back.eth.Contract(abis.NFTProxy, addressBack.NFTProxy),
+    Trade: new web3.back.eth.Contract(abis.Trade, addressBack.Trade),
+    LAND: new web3.back.eth.Contract(abis.LAND, addressBack.LAND),
+    LANDProxy: new web3.back.eth.Contract(abis.LANDProxy, addressBack.LANDProxy),
   },
 };
 
