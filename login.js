@@ -9,7 +9,7 @@ import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 const {Transaction, Common} = ethereumJsTx;
-import {web3, contracts, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
+import {web3, contracts, getNetworkName, getOtherNetworkName, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
 import * as notifications from './notifications.js';
 import {makePromise, jsonParse} from './util.js';
 
@@ -212,6 +212,10 @@ async function bindLogin() {
             <i class="fal fa-sign-in"></i>
             Switch account
           </nav>
+          <nav class=subbutton id=switch-chain-button>
+            <i class="fal fa-sign-in"></i>
+            <div>Switch to <span id=other-chain-name></span>chain</div>
+          </nav>
           <nav class=subbutton id=logout-button>
             <i class="fal fa-sign-out"></i>
             Log out
@@ -280,6 +284,14 @@ async function bindLogin() {
     await storage.remove('loginToken');
     window.location.reload();
   });
+  document.getElementById('switch-chain-button').addEventListener('click', e => {
+    if (/^main\./.test(location.hostname)) {
+      location.hostname = location.hostname.replace(/^main\./, '');
+    } else {
+      location.hostname = 'main.' + location.hostname;
+    }
+  });
+  document.getElementById('other-chain-name').innerText = getOtherNetworkName();
   loginForm.addEventListener('submit', async e => {
     e.preventDefault();
 
