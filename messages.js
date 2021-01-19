@@ -1,10 +1,16 @@
 import * as THREE from './three.module.js';
 import {appManager, renderer, scene, orthographicScene, camera, dolly} from './app-object.js';
 
+const maxMessages = 8;
 const chatMessagesEl = document.getElementById('chat-messages');
 
 class Messages extends EventTarget {
-  addMessage(username, text, {timeout = 10000, update = true} = {}) {
+  constructor({maxMessages}) {
+    super();
+
+    this.maxMessages = maxMessages;
+  }
+  addMessage(username, text, {/*timeout = 10000, */update = true} = {}) {
     const message = document.createElement('div');
     message.classList.add('message');
     message.innerHTML = `\
@@ -17,13 +23,17 @@ class Messages extends EventTarget {
     textEl.innerText = text;
     chatMessagesEl.appendChild(message);
 
-    message.destroy = () => {
+    while (chatMessagesEl.childNodes.length > this.maxMessages) {
+      chatMessagesEl.removeChild(chatMessagesEl.childNodes[0]);
+    }
+
+    /* message.destroy = () => {
       clearTimeout(localTimeout);
     };
     
     const localTimeout = setTimeout(() => {
       message.parentNode.removeChild(message);
-    }, timeout);
+    }, timeout); */
 
     if (update) {
       this.dispatchEvent(new MessageEvent('messageadd', {
@@ -36,9 +46,11 @@ class Messages extends EventTarget {
   }
   removeMessage(message) {
     message.parentNode.removeChild(message);
-    message.destroy();
+    // message.destroy();
   }
 }
-const messages = new Messages();
+const messages = new Messages({
+  maxMessages,
+});
 
 export default messages;
