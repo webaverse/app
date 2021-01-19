@@ -36,8 +36,8 @@ function _setMainChain(isMainChain) {
     networkName = 'side';
   }
 }
-// _setMainChain(!/^test\./.test(location.hostname));
-_setMainChain(/^main\./.test(location.hostname));
+// _setMainChain(!/^test-/.test(location.hostname));
+_setMainChain(/^main-/.test(location.hostname));
 
 const contracts = {
   front: {
