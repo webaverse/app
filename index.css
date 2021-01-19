@@ -2233,7 +2233,7 @@ footer {
   justify-content: center;
 }
 .keys .key {
-  width: 40px;
+  min-width: 40px;
   height: 30px;
 }
 .keys .key:empty {
