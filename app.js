@@ -9,6 +9,7 @@ import ioManager from './io-manager.js';
 import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
+import * as blockchain from './blockchain.js';
 import minimap from './minimap.js';
 import weaponsManager from './weapons-manager.js';
 import cameraManager from './camera-manager.js';
@@ -104,6 +105,7 @@ export default class App {
   }
   bindInterface() {
     ioManager.bindInterface();
+    blockchain.bindInterface();
     universe.bindInterface();
     weaponsManager.bindInterface();
   }
