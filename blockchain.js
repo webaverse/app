@@ -62,6 +62,9 @@ const contracts = {
   },
 };
 
+const getNetworkName = () => networkName;
+const getOtherNetworkName = () => networkName === 'main' ? 'side' : 'main';
+
 const transactionQueue = {
   running: false,
   queue: [],
@@ -154,6 +157,8 @@ export {
   web3,
   contracts,
   bindInterface,
+  getNetworkName,
+  getOtherNetworkName,
   runSidechainTransaction,
   getTransactionSignature,
   getAddressFromMnemonic,
