@@ -611,7 +611,7 @@ class LoginManager extends EventTarget {
     }
   }
 
-  async sendFt(address, amount) {
+  /* async sendFt(address, amount) {
     if (loginToken) {
       const {mnemonic, addr} = loginToken;
       const contractSource = await getContractSource('transferToken.cdc');
@@ -680,7 +680,7 @@ class LoginManager extends EventTarget {
     } else {
       throw new Error('not logged in');
     }
-  }
+  } */
 
   pushUpdate() {
     this.dispatchEvent(new MessageEvent('usernamechange', {
