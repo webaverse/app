@@ -285,8 +285,8 @@ async function bindLogin() {
     window.location.reload();
   });
   document.getElementById('switch-chain-button').addEventListener('click', e => {
-    if (/^main-/.test(location.hostname)) {
-      location.hostname = location.hostname.replace(/^main-/, '');
+    if (/^main\./.test(location.hostname)) {
+      location.hostname = location.hostname.replace(/^main\./, '');
     } else {
       location.hostname = 'main.' + location.hostname;
     }
