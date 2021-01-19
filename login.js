@@ -506,27 +506,6 @@ class LoginManager extends EventTarget {
     }));
   } */
 
-  /* async getBalance() {
-    if (loginToken) {
-      const contractSource = await getContractSource('getBalance.cdc');
-
-      const res = await fetch(`https://accounts.exokit.org/sendTransaction`, {
-        method: 'POST',
-        body: JSON.stringify({
-          limit: 100,
-          script: contractSource
-            .replace(/ARG0/g, '0x' + loginToken.addr),
-          wait: true,
-        }),
-      });
-      const response2 = await res.json();
-      const balance = parseFloat(response2.encodedData.value);
-      return balance;
-    } else {
-      return 0;
-    }
-  } */
-
   getInventory() {
     return userObject ? userObject.inventory : [];
   }
