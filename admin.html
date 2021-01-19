@@ -48,12 +48,12 @@ const submitButton = document.getElementById('submit-button');
         try {
           const result = await runSidechainTransaction(mnemonic)('LAND', 'mintSingle', address, name);
           console.log('got mint result 1', result);
-          tokenId = new web3.sidechain.utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
+          tokenId = new web3.back.utils.BN(result.logs[0].topics[3].slice(2), 16).toNumber();
         } catch(err) {
           tokenId = i + 1;
           console.warn(err);
         }
-        const hash = await contracts.sidechain.LAND.methods.getHash(tokenId).call();
+        const hash = await contracts.back.LAND.methods.getHash(tokenId).call();
         console.log('got hash', [tokenId, hash]);
         {
           const result2 = await runSidechainTransaction(mnemonic)('LAND', 'setMetadata', hash, 'rarity', rarity);
@@ -63,7 +63,7 @@ const submitButton = document.getElementById('submit-button');
           const result3 = await runSidechainTransaction(mnemonic)('LAND', 'setMetadata', hash, 'extents', JSON.stringify(extents));
           console.log('got mint result 3', result3);
         }
-        /* await contracts.sidechain.LAND.methods.mintSingle(address, name).send({
+        /* await contracts.back.LAND.methods.mintSingle(address, name).send({
           from: address,
         }); */
       }
