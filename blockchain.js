@@ -12,9 +12,9 @@ import abis from 'https://contracts.webaverse.com/config/abi.js';
 const injectedWeb3 = new Web3(window.ethereum);
 const web3 = {
   mainnet: injectedWeb3,
-  sidechain: new Web3(new Web3.providers.HttpProvider(web3SidechainEndpoint)),
+  mainnetsidechain: new Web3(new Web3.providers.HttpProvider(web3MainnetSidechainEndpoint)),
   rinkeby: injectedWeb3,
-  rinkebysidechain: new Web3(new Web3.providers.HttpProvider(web3SidechainEndpoint)),
+  rinkebysidechain: new Web3(new Web3.providers.HttpProvider(web3RinkebySidechainEndpoint)),
   front: null,
   back: null,
 };
@@ -24,7 +24,7 @@ let networkName = '';
 function _setMainChain(isMainChain) {
   if (isMainChain) {
     web3.front = web3.mainnet;
-    web3.back = web3.sidechain;
+    web3.back = web3.mainnetsidechain;
     addressFront = addresses.mainnet;
     addressBack = addresses.mainnetsidechain;
     networkName = 'main';

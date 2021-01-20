@@ -18,5 +18,6 @@ export const localstorageHost = 'https://localstorage.webaverse.com';
 export const loginEndpoint = 'https://login.exokit.org';
 export const tokensHost = 'https://tokens.webaverse.com';
 export const landHost = 'https://land.webaverse.com';
-export const web3SidechainEndpoint = 'https://ethereums.exokit.org';
+export const web3MainnetSidechainEndpoint = 'https://mainnetsidechain.exokit.org';
+export const web3RinkebySidechainEndpoint = 'https://rinkebysidechain.exokit.org';
 export const homeScnUrl = `https://webaverse.github.io/street/street.scn`;
