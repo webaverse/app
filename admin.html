@@ -159,18 +159,20 @@ const submitButton = document.getElementById('submit-button');
       // front
       _addText(tokenName + ' front logs:');
       for (const entry of withdrewEntries) {
-        let {transactionHash, blockNumber, returnValues: {from}} = entry;
+        let {transactionHash, blockNumber, returnValues: {from, tokenId}} = entry;
         from = from.toLowerCase();
+        tokenId = parseInt(tokenId, 10);
         if (from === mainnetAddress) {
-          _addText('Withdrew: ' + transactionHash + ' ' + blockNumber + ' ' + from);
+          _addText('Withdrew: ' + transactionHash + ' @ ' + blockNumber + ' ' + tokenId + ' -> ' + from);
         }
       }
       for (const entry of depositedEntries) {
         // console.log('got entry', entry);
-        let {transactionHash, blockNumber, returnValues: {to}} = entry;
+        let {transactionHash, blockNumber, returnValues: {to, tokenId}} = entry;
         to = to.toLowerCase();
-        if (to === mainnetAddress) {
-          _addText('Deposited: ' + transactionHash + ' ' + blockNumber + ' ' + to);
+        tokenId = parseInt(tokenId, 10);
+        if (to === sidechainAddress) {
+          _addText('Deposited: ' + transactionHash + ' ' + blockNumber + ' ' + tokenId + ' -> ' + to);
           const networkName = getNetworkName();
           const fullChainName = networkName;
 
@@ -190,18 +192,20 @@ const submitButton = document.getElementById('submit-button');
       // back
       _addText(tokenName + ' back logs:');
       for (const entry of otherWithdrewEntries) {
-        let {transactionHash, blockNumber, returnValues: {from}} = entry;
+        let {transactionHash, blockNumber, returnValues: {from, tokenId}} = entry;
         from = from.toLowerCase();
+        tokenId = parseInt(tokenId, 10);
         if (from === sidechainAddress) {
-          _addText('Withdrew: ' + transactionHash + ' ' + blockNumber + ' ' + from);
+          _addText('Withdrew: ' + transactionHash + ' @ ' + blockNumber + ' ' + tokenId + ' -> ' + from);
         }
       }
       for (const entry of otherDepositedEntries) {
         // console.log('got entry', entry);
-        let {transactionHash, blockNumber, returnValues: {to}} = entry;
+        let {transactionHash, blockNumber, returnValues: {to, tokenId}} = entry;
         to = to.toLowerCase();
-        if (to === sidechainAddress) {
-          _addText('Deposited: ' + transactionHash + ' ' + blockNumber + ' ' + to);
+        tokenId = parseInt(tokenId, 10);
+        if (to === mainnetAddress) {
+          _addText('Deposited: ' + transactionHash + ' ' + blockNumber + ' ' + tokenId + ' -> ' + to);
           const networkName = getNetworkName();
           const fullChainName = networkName + 'sidechain';
 
