@@ -11,11 +11,6 @@
   </form>
   <form id=unstick-nft-form>
     <h1>Unstick NFTs</h1>
-    <div>
-      <!-- <input type=text value="back" placeholder="front or back" id=unstick-nft-chainname-input> -->
-      <input type=text value="NFT" placeholder="NFT (NFT|LAND)" id=unstick-nft-tokenname-input>
-      <input type=number value=3 min=1 placeholder="1 (token id)" id=unstick-nft-tokenid-input>
-    </div>
     <input type=submit value="Unstick">
     <div id=unstick-nft-log></div>
   </form>
@@ -26,7 +21,7 @@ import * as THREE from './three.module.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {makePromise, downloadFile, convertMeshToPhysicsMesh} from './util.js';
 import {loginManager} from './login.js';
-import {web3, contracts, getNetworkName, runSidechainTransaction, runMainnetTransaction} from './blockchain.js';
+import {web3, contracts, getNetworkName, getMainnetAddress, runSidechainTransaction, runMainnetTransaction} from './blockchain.js';
 
 const mintParcelsForm = document.getElementById('mint-parcels-form');
 const parcelsJsonInput = document.getElementById('parcels-json-input');
@@ -90,127 +85,138 @@ const submitButton = document.getElementById('submit-button');
   unstickNftForm.addEventListener('submit', async e => {
     e.preventDefault();
     e.stopPropagation();
-  
-    const chainName = 'front';
-    const otherChainName = 'back';
-    const tokenName = unstickNftTokennameInput.value;
-    const tokenId = parseInt(unstickNftTokenidInput.value, 10);
 
-    const contract = contracts[chainName];
-    if (contract) {
+    unstickNftLog.innerHTML = '';
+
+    const sidechainAddress = loginManager.getAddress();
+    const mainnetAddress = await getMainnetAddress();
+
+    for (const tokenName of ['NFT', 'LAND']) {
+      const chainName = 'front';
+      const otherChainName = 'back';
+      // const tokenId = parseInt(unstickNftTokenidInput.value, 10);
+
+      const contract = contracts[chainName];
       const proxyContract = contract[tokenName + 'Proxy'];
-      if (proxyContract) {
-        if (!isNaN(tokenId)) {
-          const otherContract = contracts[otherChainName];
-          const otherProxyContract = otherContract[tokenName + 'Proxy'];
-        
-          const [
-            depositedEntries,
-            withdrewEntries,
-            owner,
-            otherDepositedEntries,
-            otherWithdrewEntries,
-            otherOwner,
-          ] = await Promise.all([
-            proxyContract.getPastEvents('Deposited', {
-              fromBlock: 0,
-              toBlock: 'latest',
-            }),
-            proxyContract.getPastEvents('Withdrew', {
-              fromBlock: 0,
-              toBlock: 'latest',
-            }),
-            contract[tokenName].methods.ownerOf(tokenId).call(),
-            otherProxyContract.getPastEvents('Deposited', {
-              fromBlock: 0,
-              toBlock: 'latest',
-            }),
-            otherProxyContract.getPastEvents('Withdrew', {
-              fromBlock: 0,
-              toBlock: 'latest',
-            }),
-            otherContract[tokenName].methods.ownerOf(tokenId).call(),
-          ]);
+      const otherContract = contracts[otherChainName];
+      const otherProxyContract = otherContract[tokenName + 'Proxy'];
+    
+      const [
+        depositedEntries,
+        withdrewEntries,
+        otherDepositedEntries,
+        otherWithdrewEntries,
+      ] = await Promise.all([
+        proxyContract.getPastEvents('Deposited', {
+          fromBlock: 0,
+          toBlock: 'latest',
+        }),
+        proxyContract.getPastEvents('Withdrew', {
+          fromBlock: 0,
+          toBlock: 'latest',
+        }),
+        otherProxyContract.getPastEvents('Deposited', {
+          fromBlock: 0,
+          toBlock: 'latest',
+        }),
+        otherProxyContract.getPastEvents('Withdrew', {
+          fromBlock: 0,
+          toBlock: 'latest',
+        }),
+      ]);
+
+      console.log('got',
+        depositedEntries,
+        withdrewEntries,
+        otherDepositedEntries,
+        otherWithdrewEntries);
+
+      const _addText = s => {
+        const div = document.createElement('div');
+        div.innerText = s;
+        unstickNftLog.appendChild(div);
+      };
+      const _addButton = (s, fn) => {
+        const a = document.createElement('a');
+        a.href = '#';
+        a.innerText = s;
+        a.addEventListener('click', async e => {
+          e.preventDefault();
+          e.stopPropagation();
           
-          console.log('got', otherDepositedEntries);
+          await fn();
+        });
+        unstickNftLog.appendChild(a);
+      };
 
-          unstickNftLog.innerHTML = '';
-          const _addText = s => {
-            const div = document.createElement('div');
-            div.innerText = s;
-            unstickNftLog.appendChild(div);
-          };
-          const _addButton = (s, fn) => {
-            const a = document.createElement('a');
-            a.href = '#';
-            a.innerText = s;
-            a.addEventListener('click', async e => {
-              e.preventDefault();
-              e.stopPropagation();
-              
-              await fn();
-            });
-            unstickNftLog.appendChild(a);
-          };
-          
-          _addText(`Front owner: ${owner !== contract[tokenName + 'Proxy']._address ? owner : '[deposited]'}`);
-          _addText(`Back owner: ${otherOwner !== otherContract[tokenName + 'Proxy']._address ? otherOwner : '[deposited]'}`);
+      /* contract[tokenName].methods.ownerOf(tokenId).call(),
+      otherContract[tokenName].methods.ownerOf(tokenId).call(),
+      _addText(`Front owner: ${owner !== contract[tokenName + 'Proxy']._address ? owner : '[deposited]'}`);
+      _addText(`Back owner: ${otherOwner !== otherContract[tokenName + 'Proxy']._address ? otherOwner : '[deposited]'}`); */
 
-          _addText('Front logs:');
-          for (const entry of withdrewEntries) {
-            const {transactionHash, blockNumber} = entry;
-            _addText('Withdrew: ' + transactionHash + ' ' + blockNumber);
-          }
-          for (const entry of depositedEntries) {
-            // console.log('got entry', entry);
-            const {transactionHash, blockNumber} = entry;
-            _addText('Deposited: ' + transactionHash + ' ' + blockNumber);
-            const networkName = getNetworkName();
-            const fullChainName = networkName;
+      console.log('got addresses', mainnetAddress, sidechainAddress);
 
-            const res = await fetch(`https://sign.exokit.org/${fullChainName}/${tokenName}/${transactionHash}`);
-            const signatureJson = await res.json();
-            _addText('Signature: ' + JSON.stringify(signatureJson));
-            const {to, timestamp, r, s, v} = signatureJson;
-
-            // console.log('withdraw', {to, tokenId, timestamp, r, s, v});
-
-            _addButton('Resubmit', async () => {
-              await runSidechainTransaction()(tokenName + 'Proxy', 'withdraw', to, tokenId, timestamp, r, s, v);
-            });
-          }
-          
-          _addText('Back logs:');
-          for (const entry of otherWithdrewEntries) {
-            const {transactionHash, blockNumber} = entry;
-            _addText('Withdrew: ' + transactionHash + ' ' + blockNumber);
-          }
-          for (const entry of otherDepositedEntries) {
-            // console.log('got entry', entry);
-            const {transactionHash, blockNumber} = entry;
-            _addText('Deposited: ' + transactionHash + ' ' + blockNumber);
-            const networkName = getNetworkName();
-            const fullChainName = networkName + 'sidechain';
-
-            const res = await fetch(`https://sign.exokit.org/${fullChainName}/${tokenName}/${transactionHash}`);
-            const signatureJson = await res.json();
-            _addText('Signature: ' + JSON.stringify(signatureJson));
-            const {to, timestamp, r, s, v} = signatureJson;
-
-            // console.log('withdraw', {to, tokenId, timestamp, r, s, v});
-
-            _addButton('Resubmit', async () => {
-              await runMainnetTransaction(tokenName + 'Proxy', 'withdraw', to, tokenId, timestamp, r, s, v);
-            });
-          }
-        } else {
-          console.warn('invalid token id', tokenId);
+      // front
+      _addText(tokenName + ' front logs:');
+      for (const entry of withdrewEntries) {
+        let {transactionHash, blockNumber, returnValues: {from}} = entry;
+        from = from.toLowerCase();
+        if (from === mainnetAddress) {
+          _addText('Withdrew: ' + transactionHash + ' ' + blockNumber + ' ' + from);
         }
-      } else {
-        console.warn('no such token: ' + tokenName);
       }
-    } else {
-      console.warn('no such contract: ' + chainName);
+      for (const entry of depositedEntries) {
+        // console.log('got entry', entry);
+        let {transactionHash, blockNumber, returnValues: {to}} = entry;
+        to = to.toLowerCase();
+        if (to === mainnetAddress) {
+          _addText('Deposited: ' + transactionHash + ' ' + blockNumber + ' ' + to);
+          const networkName = getNetworkName();
+          const fullChainName = networkName;
+
+          const res = await fetch(`https://sign.exokit.org/${fullChainName}/${tokenName}/${transactionHash}`);
+          const signatureJson = await res.json();
+          _addText('Signature: ' + JSON.stringify(signatureJson));
+          const {timestamp, r, s, v} = signatureJson;
+
+          // console.log('withdraw', {to, tokenId, timestamp, r, s, v});
+
+          _addButton('Resubmit', async () => {
+            await runSidechainTransaction()(tokenName + 'Proxy', 'withdraw', to, tokenId, timestamp, r, s, v);
+          });
+        }
+      }
+
+      // back
+      _addText(tokenName + ' back logs:');
+      for (const entry of otherWithdrewEntries) {
+        let {transactionHash, blockNumber, returnValues: {from}} = entry;
+        from = from.toLowerCase();
+        if (from === sidechainAddress) {
+          _addText('Withdrew: ' + transactionHash + ' ' + blockNumber + ' ' + from);
+        }
+      }
+      for (const entry of otherDepositedEntries) {
+        // console.log('got entry', entry);
+        let {transactionHash, blockNumber, returnValues: {to}} = entry;
+        to = to.toLowerCase();
+        if (to === sidechainAddress) {
+          _addText('Deposited: ' + transactionHash + ' ' + blockNumber + ' ' + to);
+          const networkName = getNetworkName();
+          const fullChainName = networkName + 'sidechain';
+
+          const res = await fetch(`https://sign.exokit.org/${fullChainName}/${tokenName}/${transactionHash}`);
+          const signatureJson = await res.json();
+          _addText('Signature: ' + JSON.stringify(signatureJson));
+          const {timestamp, r, s, v} = signatureJson;
+
+          // console.log('withdraw', {to, tokenId, timestamp, r, s, v});
+
+          _addButton('Resubmit', async () => {
+            await runMainnetTransaction(tokenName + 'Proxy', 'withdraw', to, tokenId, timestamp, r, s, v);
+          });
+        }
+      }
     }
   });
 })();
