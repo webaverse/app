@@ -91,7 +91,8 @@ const submitButton = document.getElementById('submit-button');
     e.preventDefault();
     e.stopPropagation();
   
-    const chainName = 'front'; // unstickNftChainnameInput.value;
+    const chainName = 'front';
+    const otherChainName = 'back';
     const tokenName = unstickNftTokennameInput.value;
     const tokenId = parseInt(unstickNftTokenidInput.value, 10);
 
@@ -100,7 +101,6 @@ const submitButton = document.getElementById('submit-button');
       const proxyContract = contract[tokenName + 'Proxy'];
       if (proxyContract) {
         if (!isNaN(tokenId)) {
-          const otherChainName = chainName === 'front' ? 'back' : 'front';
           const otherContract = contracts[otherChainName];
           const otherProxyContract = otherContract[tokenName + 'Proxy'];
         
