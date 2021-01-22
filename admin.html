@@ -9,6 +9,16 @@
     <textarea id=parcels-json-input cols=80 rows=16 placeholder="paste parcels.json"></textarea>
     <input type=submit value="Mint" disabled id=submit-button>
   </form>
+  <form id=unstick-nft-form>
+    <h1>Unstick NFTs</h1>
+    <div>
+      <input type=text value="back" placeholder="front or back" id=unstick-nft-chainname-input>
+      <input type=text value="NFT" placeholder="NFT (NFT|LAND)" id=unstick-nft-tokenname-input>
+      <input type=number value=3 min=1 placeholder="1 (token id)" id=unstick-nft-tokenid-input>
+    </div>
+    <input type=submit value="Unstick">
+    <div id=unstick-nft-log></div>
+  </form>
 <!-- <script src="./bin/geometry.js"></script> -->
 <script type=module>
 import * as THREE from './three.module.js';
@@ -16,7 +26,7 @@ import * as THREE from './three.module.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {makePromise, downloadFile, convertMeshToPhysicsMesh} from './util.js';
 import {loginManager} from './login.js';
-import {web3, contracts, runSidechainTransaction} from './blockchain.js';
+import {web3, contracts, getNetworkName, runSidechainTransaction, runMainnetTransaction} from './blockchain.js';
 
 const mintParcelsForm = document.getElementById('mint-parcels-form');
 const parcelsJsonInput = document.getElementById('parcels-json-input');
@@ -69,6 +79,66 @@ const submitButton = document.getElementById('submit-button');
       }
     } else {
       throw new Error('input is not an array', parcelsJson);
+    }
+  });
+  
+  const unstickNftForm = document.getElementById('unstick-nft-form');
+  const unstickNftChainnameInput = document.getElementById('unstick-nft-chainname-input');
+  const unstickNftTokennameInput = document.getElementById('unstick-nft-tokenname-input');
+  const unstickNftTokenidInput = document.getElementById('unstick-nft-tokenid-input');
+  const unstickNftLog = document.getElementById('unstick-nft-log');
+  unstickNftForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+  
+    const chainName = unstickNftChainnameInput.value;
+    const tokenName = unstickNftTokennameInput.value;
+    const tokenId = parseInt(unstickNftTokenidInput.value, 10);
+
+    const contract = contracts[chainName];
+    if (contract) {
+      const proxyContract = contract[tokenName + 'Proxy'];
+      if (proxyContract) {
+        if (!isNaN(tokenId)) {
+          const otherChainName = chainName === 'front' ? 'back' : 'front';
+          const otherProxyContract = contracts[otherChainName][tokenName + 'Proxy'];
+        
+          const depositedEntries = await proxyContract.getPastEvents('Deposited', {
+            fromBlock: 0,
+            toBlock: 'latest',
+          });
+
+          unstickNftLog.innerHTML = '';
+          for (const entry of depositedEntries) {
+            console.log('got entry', entry);
+            const {transactionHash, blockNumber} = entry;
+            unstickNftLog.innerText += 'Entry: ' + transactionHash + '\n';
+            const networkName = getNetworkName();
+            const fullChainName = networkName + (chainName === 'front' ? '' : 'sidechain');
+
+            const res = await fetch(`https://sign.exokit.org/${fullChainName}/${tokenName}/${transactionHash}`);
+            const signatureJson = await res.json();
+            unstickNftLog.innerText += 'Signature: ' + JSON.stringify(signatureJson) + '\n';
+            const {to, timestamp, r, s, v} = signatureJson;
+            // const tokenId = new web3[chainName].utils.BN(signatureJson);
+
+            console.log('withdraw', {to, tokenId, timestamp, r, s, v});
+
+            if (otherChainName === 'front') {
+              await runMainnetTransaction(tokenName + 'Proxy', 'withdraw', to, tokenId, timestamp, r, s, v);
+            } else {
+              debugger;
+              await runSidechainTransaction()(tokenName + 'Proxy', 'withdraw', to, tokenId, timestamp, r, s, v);
+            }
+          }
+        } else {
+          console.warn('invalid token id', tokenId);
+        }
+      } else {
+        console.warn('no such token: ' + tokenName);
+      }
+    } else {
+      console.warn('no such contract: ' + chainName);
     }
   });
 })();
