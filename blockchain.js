@@ -65,6 +65,11 @@ const contracts = {
 const getNetworkName = () => networkName;
 const getOtherNetworkName = () => networkName === 'mainnet' ? 'rinkeby' : 'mainnet';
 
+const getMainnetAddress = async () => {
+  const [address] = await window.ethereum.enable();
+  return address || null;
+};
+
 const transactionQueue = {
   running: false,
   queue: [],
@@ -143,7 +148,7 @@ const getTransactionSignature = async (chainName, contractName, transactionHash)
 };
 
 const runMainnetTransaction = async (contractName, method, ...args) => {
-  const addresses = await window.ethereum.enable();
+  const addresses = await getMainnetAddress();
   if (addresses.length > 0) {
     const [address] = addresses;
     const m = contracts.front[contractName].methods[method];
@@ -172,6 +177,7 @@ export {
   bindInterface,
   getNetworkName,
   getOtherNetworkName,
+  getMainnetAddress,
   runSidechainTransaction,
   runMainnetTransaction,
   getTransactionSignature,
