@@ -109,27 +109,45 @@ const submitButton = document.getElementById('submit-button');
           });
 
           unstickNftLog.innerHTML = '';
+          const _addText = s => {
+            const div = document.createElement('div');
+            div.innerText = s;
+            unstickNftLog.appendChild(div);
+          };
+          const _addButton = (s, fn) => {
+            const a = document.createElement('a');
+            a.href = '#';
+            a.innerText = s;
+            a.addEventListener('click', async e => {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              await fn();
+            });
+            unstickNftLog.appendChild(a);
+          };
           for (const entry of depositedEntries) {
             console.log('got entry', entry);
             const {transactionHash, blockNumber} = entry;
-            unstickNftLog.innerText += 'Entry: ' + transactionHash + '\n';
+            _addText('Entry: ' + transactionHash);
             const networkName = getNetworkName();
             const fullChainName = networkName + (chainName === 'front' ? '' : 'sidechain');
 
             const res = await fetch(`https://sign.exokit.org/${fullChainName}/${tokenName}/${transactionHash}`);
             const signatureJson = await res.json();
-            unstickNftLog.innerText += 'Signature: ' + JSON.stringify(signatureJson) + '\n';
+            _addText('Signature: ' + JSON.stringify(signatureJson));
             const {to, timestamp, r, s, v} = signatureJson;
             // const tokenId = new web3[chainName].utils.BN(signatureJson);
 
             console.log('withdraw', {to, tokenId, timestamp, r, s, v});
 
-            if (otherChainName === 'front') {
-              await runMainnetTransaction(tokenName + 'Proxy', 'withdraw', to, tokenId, timestamp, r, s, v);
-            } else {
-              debugger;
-              await runSidechainTransaction()(tokenName + 'Proxy', 'withdraw', to, tokenId, timestamp, r, s, v);
-            }
+            _addButton('Resubmit', async () => {
+              if (otherChainName === 'front') {
+                await runMainnetTransaction(tokenName + 'Proxy', 'withdraw', to, tokenId, timestamp, r, s, v);
+              } else {
+                await runSidechainTransaction()(tokenName + 'Proxy', 'withdraw', to, tokenId, timestamp, r, s, v);
+              }
+            });
           }
         } else {
           console.warn('invalid token id', tokenId);
