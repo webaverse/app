@@ -103,10 +103,19 @@ const submitButton = document.getElementById('submit-button');
           const otherChainName = chainName === 'front' ? 'back' : 'front';
           const otherProxyContract = contracts[otherChainName][tokenName + 'Proxy'];
         
-          const depositedEntries = await proxyContract.getPastEvents('Deposited', {
-            fromBlock: 0,
-            toBlock: 'latest',
-          });
+          const [
+            depositedEntries,
+            withdrewEntries,
+          ] = await Promise.all([
+            proxyContract.getPastEvents('Deposited', {
+              fromBlock: 0,
+              toBlock: 'latest',
+            }),
+            proxyContract.getPastEvents('Withdrew', {
+              fromBlock: 0,
+              toBlock: 'latest',
+            }),
+          ]);
 
           unstickNftLog.innerHTML = '';
           const _addText = s => {
@@ -126,10 +135,14 @@ const submitButton = document.getElementById('submit-button');
             });
             unstickNftLog.appendChild(a);
           };
-          for (const entry of depositedEntries) {
-            console.log('got entry', entry);
+          for (const entry of withdrewEntries) {
             const {transactionHash, blockNumber} = entry;
-            _addText('Entry: ' + transactionHash);
+            _addText('Withdrew: ' + transactionHash);
+          }
+          for (const entry of depositedEntries) {
+            // console.log('got entry', entry);
+            const {transactionHash, blockNumber} = entry;
+            _addText('Deposited: ' + transactionHash);
             const networkName = getNetworkName();
             const fullChainName = networkName + (chainName === 'front' ? '' : 'sidechain');
 
@@ -137,9 +150,8 @@ const submitButton = document.getElementById('submit-button');
             const signatureJson = await res.json();
             _addText('Signature: ' + JSON.stringify(signatureJson));
             const {to, timestamp, r, s, v} = signatureJson;
-            // const tokenId = new web3[chainName].utils.BN(signatureJson);
 
-            console.log('withdraw', {to, tokenId, timestamp, r, s, v});
+            // console.log('withdraw', {to, tokenId, timestamp, r, s, v});
 
             _addButton('Resubmit', async () => {
               if (otherChainName === 'front') {
