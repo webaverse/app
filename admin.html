@@ -172,7 +172,7 @@ const submitButton = document.getElementById('submit-button');
         to = to.toLowerCase();
         tokenId = parseInt(tokenId, 10);
         if (to === sidechainAddress) {
-          _addText('Deposited: ' + transactionHash + ' ' + blockNumber + ' ' + tokenId + ' -> ' + to);
+          _addText('Deposited: ' + transactionHash + ' @ ' + blockNumber + ' ' + tokenId + ' -> ' + to);
           const networkName = getNetworkName();
           const fullChainName = networkName;
 
@@ -205,7 +205,7 @@ const submitButton = document.getElementById('submit-button');
         to = to.toLowerCase();
         tokenId = parseInt(tokenId, 10);
         if (to === mainnetAddress) {
-          _addText('Deposited: ' + transactionHash + ' ' + blockNumber + ' ' + tokenId + ' -> ' + to);
+          _addText('Deposited: ' + transactionHash + ' @ ' + blockNumber + ' ' + tokenId + ' -> ' + to);
           const networkName = getNetworkName();
           const fullChainName = networkName + 'sidechain';
 
