@@ -9,7 +9,7 @@ import hdkeySpec from './hdkey.js';
 const hdkey = hdkeySpec.default;
 import ethereumJsTx from './ethereumjs-tx.js';
 const {Transaction, Common} = ethereumJsTx;
-import {web3, contracts, getNetworkName, getOtherNetworkName, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
+import {web3, contracts, getOtherNetworkName, getAddressFromMnemonic, runSidechainTransaction} from './blockchain.js';
 import * as notifications from './notifications.js';
 import {makePromise, jsonParse} from './util.js';
 
