@@ -142,6 +142,19 @@ const getTransactionSignature = async (chainName, contractName, transactionHash)
   return null;
 };
 
+const runMainnetTransaction = async (contractName, method, ...args) => {
+  const addresses = await window.ethereum.enable();
+  if (addresses.length > 0) {
+    const [address] = addresses;
+    const m = contracts.front[contractName].methods[method];
+    m.apply(m, args).send({
+      from: address,
+    });
+  } else {
+    throw new Error('no addresses passed by web3');
+  }
+};
+
 const _getWalletFromMnemonic = mnemonic => hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(mnemonic))
   .derivePath(`m/44'/60'/0'/0/0`)
   .getWallet();
@@ -160,6 +173,7 @@ export {
   getNetworkName,
   getOtherNetworkName,
   runSidechainTransaction,
+  runMainnetTransaction,
   getTransactionSignature,
   getAddressFromMnemonic,
 };
