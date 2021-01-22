@@ -101,7 +101,8 @@ const submitButton = document.getElementById('submit-button');
       if (proxyContract) {
         if (!isNaN(tokenId)) {
           const otherChainName = chainName === 'front' ? 'back' : 'front';
-          const otherProxyContract = contracts[otherChainName][tokenName + 'Proxy'];
+          const otherContract = contracts[otherChainName];
+          const otherProxyContract = otherContract[tokenName + 'Proxy'];
         
           const [
             depositedEntries,
@@ -118,7 +119,7 @@ const submitButton = document.getElementById('submit-button');
               toBlock: 'latest',
             }),
             contract[tokenName].methods.ownerOf(tokenId).call(),
-            contracts[otherChainName][tokenName].methods.ownerOf(tokenId).call(),
+            otherContract[tokenName].methods.ownerOf(tokenId).call(),
           ]);
 
           unstickNftLog.innerHTML = '';
@@ -140,7 +141,8 @@ const submitButton = document.getElementById('submit-button');
             unstickNftLog.appendChild(a);
           };
           
-          _addText(`Front owner: ${owner} | Back owner: ${otherOwner}`);
+          _addText(`Front owner: ${owner !== contract[tokenName + 'Proxy']._address ? owner : '[deposited]'}`);
+          _addText(`Back owner: ${otherOwner !== otherContract[tokenName + 'Proxy']._address ? otherOwner : '[deposited]'}`);
           
           for (const entry of withdrewEntries) {
             const {transactionHash, blockNumber} = entry;
