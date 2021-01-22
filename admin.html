@@ -106,6 +106,8 @@ const submitButton = document.getElementById('submit-button');
           const [
             depositedEntries,
             withdrewEntries,
+            owner,
+            otherOwner,
           ] = await Promise.all([
             proxyContract.getPastEvents('Deposited', {
               fromBlock: 0,
@@ -115,6 +117,8 @@ const submitButton = document.getElementById('submit-button');
               fromBlock: 0,
               toBlock: 'latest',
             }),
+            contract[tokenName].methods.ownerOf(tokenId).call(),
+            contracts[otherChainName][tokenName].methods.ownerOf(tokenId).call(),
           ]);
 
           unstickNftLog.innerHTML = '';
@@ -135,6 +139,9 @@ const submitButton = document.getElementById('submit-button');
             });
             unstickNftLog.appendChild(a);
           };
+          
+          _addText(`Front owner: ${owner} | Back owner: ${otherOwner}`);
+          
           for (const entry of withdrewEntries) {
             const {transactionHash, blockNumber} = entry;
             _addText('Withdrew: ' + transactionHash);
