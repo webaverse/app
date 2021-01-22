@@ -214,7 +214,7 @@ async function bindLogin() {
           </nav>
           <nav class=subbutton id=switch-chain-button>
             <i class="fal fa-sign-in"></i>
-            <div>Switch to <span id=other-chain-name></span>chain</div>
+            <div>Switch to <span id=other-chain-name></span></div>
           </nav>
           <nav class=subbutton id=logout-button>
             <i class="fal fa-sign-out"></i>

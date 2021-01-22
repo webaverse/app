@@ -27,13 +27,13 @@ function _setMainChain(isMainChain) {
     web3.back = web3.mainnetsidechain;
     addressFront = addresses.mainnet;
     addressBack = addresses.mainnetsidechain;
-    networkName = 'main';
+    networkName = 'mainnet';
   } else {
     web3.front = web3.rinkeby;
     web3.back = web3.rinkebysidechain;
     addressFront = addresses.rinkeby;
     addressBack = addresses.rinkebysidechain;
-    networkName = 'side';
+    networkName = 'rinkeby';
   }
 }
 // _setMainChain(!/^test\./.test(location.hostname));
@@ -63,7 +63,7 @@ const contracts = {
 };
 
 const getNetworkName = () => networkName;
-const getOtherNetworkName = () => networkName === 'main' ? 'side' : 'main';
+const getOtherNetworkName = () => networkName === 'mainnet' ? 'rinkeby' : 'mainnet';
 
 const transactionQueue = {
   running: false,
