@@ -21,6 +21,7 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localMatrix3 = new THREE.Matrix4();
 const localRaycaster = new THREE.Raycaster();
+const interpolationTime = 300;
 
 class RigManager {
   constructor(scene) {
@@ -226,14 +227,16 @@ class RigManager {
               fingers: true,
               hair: true,
               visemes: true,
+              interpolationTime,
               debug: false //!o,
             });
           } else {
             localRig = new Avatar();
             localRig.model = o;
-            localRig.update = () => {
-              localRig.model.position.copy(localRig.inputs.hmd.position);
-              localRig.model.quaternion.copy(localRig.inputs.hmd.quaternion);
+            localRig.update = (timeDiff, now) => {
+              const hmdInput = localRig.inputInterpolators.hmd.get(now);
+              localRig.model.position.copy(hmdInput.position);
+              localRig.model.quaternion.copy(hmdInput.quaternion);
             };
           }
         } else {
@@ -241,6 +244,7 @@ class RigManager {
             fingers: true,
             hair: true,
             visemes: true,
+            interpolationTime,
             debug: true,
           });
         }
@@ -268,6 +272,7 @@ class RigManager {
       fingers: true,
       hair: true,
       visemes: true,
+      interpolationTime,
       debug: true
       // decapitate: selectedTool === 'firstperson',
     });
@@ -398,18 +403,21 @@ class RigManager {
 
     this.localRig.inputs.hmd.position.fromArray(hmdPosition);
     this.localRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
+    this.localRig.inputs.hmd.needsUpdate = true;
 
     this.localRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition);
     this.localRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
     this.localRig.inputs.leftGamepad.pointer = leftGamepadPointer;
     this.localRig.inputs.leftGamepad.grip = leftGamepadGrip;
     this.localRig.inputs.leftGamepad.enabled = leftGamepadEnabled;
+    this.localRig.inputs.leftGamepad.needsUpdate = true;
 
     this.localRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
     this.localRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
     this.localRig.inputs.rightGamepad.pointer = rightGamepadPointer;
     this.localRig.inputs.rightGamepad.grip = rightGamepadGrip;
     this.localRig.inputs.rightGamepad.enabled = rightGamepadEnabled;
+    this.localRig.inputs.rightGamepad.needsUpdate = true;
 
     this.localRig.textMesh.position.copy(this.localRig.inputs.hmd.position);
     this.localRig.textMesh.position.y += 0.5;
@@ -440,16 +448,19 @@ class RigManager {
     if (peerRig) {
       peerRig.inputs.hmd.position.fromArray(hmdPosition);
       peerRig.inputs.hmd.quaternion.fromArray(hmdQuaternion);
+      peerRig.inputs.hmd.needsUpdate = true;
 
       peerRig.inputs.leftGamepad.position.fromArray(leftGamepadPosition);
       peerRig.inputs.leftGamepad.quaternion.fromArray(leftGamepadQuaternion);
       peerRig.inputs.leftGamepad.pointer = leftGamepadPointer;
       peerRig.inputs.leftGamepad.grip = leftGamepadGrip;
+      peerRig.inputs.leftGamepad.needsUpdate = true;
 
       peerRig.inputs.rightGamepad.position.fromArray(rightGamepadPosition);
       peerRig.inputs.rightGamepad.quaternion.fromArray(rightGamepadQuaternion);
       peerRig.inputs.rightGamepad.pointer = rightGamepadPointer;
       peerRig.inputs.rightGamepad.grip = rightGamepadGrip;
+      peerRig.inputs.rightGamepad.needsUpdate = true;
 
       peerRig.setFloorHeight(floorHeight);
       peerRig.setTopEnabled(topEnabled);
@@ -562,9 +573,9 @@ class RigManager {
     this.localRig.jumpTime = physicsManager.getJumpTime();
     this.localRig.flyState = physicsManager.getFlyState();
     this.localRig.flyTime = physicsManager.getFlyTime();
-    this.localRig.update(timeDiff);
+    this.localRig.update(timeDiff, now);
     this.peerRigs.forEach(rig => {
-      rig.update(timeDiff);
+      rig.update(timeDiff, now);
     });
     
     this.lastTimetamp = now;

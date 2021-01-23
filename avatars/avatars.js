@@ -1260,17 +1260,87 @@ class Avatar {
     this.eyeToHipsOffset = modelBones.Hips.getWorldPosition(new THREE.Vector3()).sub(eyePosition);
 
     const _makeInput = () => {
-      const result = new THREE.Object3D();
-      result.pointer = 0;
-      result.grip = 0;
-      result.enabled = false;
-      return result;
+      const input = new THREE.Object3D();
+      input.pointer = 0;
+      input.grip = 0;
+      input.enabled = false;
+      input.needsUpdate = false;
+      input.copy = input2 => {
+        input.position.copy(input2.position);
+        input.quaternion.copy(input2.quaternion);
+        input.scale.copy(input2.scale);
+        input.matrix.copy(input2.matrix);
+        input.matrixWorld.copy(input2.matrixWorld);
+        input.pointer = input2.pointer;
+        input.grip = input2.grip;
+        input.enabled = input2.enabled;
+
+        return input;
+      };
+      input.lerp = (input2, f) => {
+        input.position.lerp(input2.position, f);
+        input.quaternion.slerp(input2.quaternion, f);
+        input.scale.lerp(input2.scale, f);
+        input.updateMatrixWorld();
+        input.pointer = input.pointer*(1-f) + input2.pointer*f;
+        input.grip = input.grip*(1-f) + input2.grip*f;
+        input.enabled = f < 0.5 ? input.enabled : input2.enabled;
+
+        return input;
+      };
+      return input;
     };
 		this.inputs = {
       hmd: _makeInput(),
 			leftGamepad: _makeInput(),
 			rightGamepad: _makeInput(),
 		};
+    const _makeInterpolator = (input, interpolationTime) => {
+      if (interpolationTime > 0) {
+        const startInput = _makeInput();
+        const endInput = _makeInput();
+        let startInputTime = 0;
+        let endInputTime = 0;
+        const resultInput = _makeInput();
+        return {
+          get(now) {
+            const timeDiff = now - startInputTime;
+            const timeRange = endInputTime - startInputTime;
+            const f = Math.min(Math.max(timeDiff / timeRange, 0), 1);
+            return resultInput.copy(startInput)
+              .lerp(endInput, f);
+          },
+          update(now) {
+            if (input.needsUpdate) {
+              startInput.copy(input);
+              input.needsUpdate = false;
+
+              startInputTime = now;
+              endInputTime = startInputTime + interpolationTime;
+            }
+          },
+        };
+      } else {
+        const localInput = _makeInput();
+        return {
+          get(now) {
+            return localInput;
+          },
+          update(now) {
+            if (input.needsUpdate) {
+              localInput.copy(input);
+              input.needsUpdate = false;
+            }
+          },
+        };
+      }
+    };
+    const {interpolationTime = 0} = options;
+    this.inputInterpolators = {
+      hmd: _makeInterpolator(this.inputs.hmd, interpolationTime),
+      leftGamepad: _makeInterpolator(this.inputs.leftGamepad, interpolationTime),
+      rightGamepad: _makeInterpolator(this.inputs.rightGamepad, interpolationTime),
+    };
     this.sdkInputs = {
       hmd: this.poseManager.vrTransforms.head,
 			leftGamepad: this.poseManager.vrTransforms.leftHand,
@@ -1585,13 +1655,12 @@ class Avatar {
   getBottomEnabled() {
     return this.legsManager.enabled;
   }
-	update(timeDiff) {
+	update(timeDiff, now) {
     /* const wasDecapitated = this.decapitated;
     if (this.springBoneManager && wasDecapitated) {
       this.undecapitate();
     } */
-
-    const now = Date.now();
+    // const now = Date.now();
 
     const _applyAnimation = () => {
       const _selectAnimations = v => {
@@ -1670,17 +1739,31 @@ class Avatar {
     };
     _applyAnimation();
 
+    const _updateInterpolators = () => {
+      this.inputInterpolators.hmd.update(now);
+      this.inputInterpolators.leftGamepad.update(now);
+      this.inputInterpolators.rightGamepad.update(now);
+    };
+    _updateInterpolators();
+
     if (this.getTopEnabled()) {
-      this.sdkInputs.hmd.position.copy(this.inputs.hmd.position);
-      this.sdkInputs.hmd.quaternion.copy(this.inputs.hmd.quaternion);
-      this.sdkInputs.leftGamepad.position.copy(this.inputs.leftGamepad.position).add(localVector.copy(this.handOffsetLeft).applyQuaternion(this.inputs.leftGamepad.quaternion));
-      this.sdkInputs.leftGamepad.quaternion.copy(this.inputs.leftGamepad.quaternion);
-      this.sdkInputs.leftGamepad.pointer = this.inputs.leftGamepad.pointer;
-      this.sdkInputs.leftGamepad.grip = this.inputs.leftGamepad.grip;
-      this.sdkInputs.rightGamepad.position.copy(this.inputs.rightGamepad.position).add(localVector.copy(this.handOffsetRight).applyQuaternion(this.inputs.rightGamepad.quaternion));
-      this.sdkInputs.rightGamepad.quaternion.copy(this.inputs.rightGamepad.quaternion);
-      this.sdkInputs.rightGamepad.pointer = this.inputs.rightGamepad.pointer;
-      this.sdkInputs.rightGamepad.grip = this.inputs.rightGamepad.grip;
+      const hmdInput = this.inputInterpolators.hmd.get(now);
+      this.sdkInputs.hmd.position.copy(hmdInput.position);
+      this.sdkInputs.hmd.quaternion.copy(hmdInput.quaternion);
+
+      const leftGamepadInput = this.inputInterpolators.leftGamepad.get(now);
+      this.sdkInputs.leftGamepad.position.copy(leftGamepadInput.position)
+        .add(localVector.copy(this.handOffsetLeft).applyQuaternion(leftGamepadInput.quaternion));
+      this.sdkInputs.leftGamepad.quaternion.copy(leftGamepadInput.quaternion);
+      this.sdkInputs.leftGamepad.pointer = leftGamepadInput.pointer;
+      this.sdkInputs.leftGamepad.grip = leftGamepadInput.grip;
+
+      const rightGamepadInput = this.inputInterpolators.rightGamepad.get(now);
+      this.sdkInputs.rightGamepad.position.copy(rightGamepadInput.position)
+        .add(localVector.copy(this.handOffsetRight).applyQuaternion(rightGamepadInput.quaternion));
+      this.sdkInputs.rightGamepad.quaternion.copy(rightGamepadInput.quaternion);
+      this.sdkInputs.rightGamepad.pointer = rightGamepadInput.pointer;
+      this.sdkInputs.rightGamepad.grip = rightGamepadInput.grip;
 
       const modelScaleFactor = this.sdkInputs.hmd.scaleFactor;
       if (modelScaleFactor !== this.lastModelScaleFactor) {
@@ -1729,10 +1812,11 @@ class Avatar {
       }
     }
     if (!this.getBottomEnabled()) {
-      this.outputs.hips.position.copy(this.inputs.hmd.position)
+      const hmdInput = this.inputInterpolators.hmd.get(now);
+      this.outputs.hips.position.copy(hmdInput.position)
         .add(this.eyeToHipsOffset);
 
-      localEuler.setFromQuaternion(this.inputs.hmd.quaternion, 'YXZ');
+      localEuler.setFromQuaternion(hmdInput.quaternion, 'YXZ');
       localEuler.x = 0;
       localEuler.z = 0;
       localEuler.y += Math.PI;
