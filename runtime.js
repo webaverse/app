@@ -151,12 +151,12 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     }
   })();
 
-  localBox.setFromObject(o);
+  /* localBox.setFromObject(o);
   const size = localBox.getSize(localVector);
   const maxSizeDim = Math.max(size.x, size.y, size.z);
   if (maxSizeDim > 4) {
     o.scale.divideScalar(maxSizeDim);
-  }
+  } */
 
   let physicsMesh = null;
   let physicsBuffer = null;
