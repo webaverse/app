@@ -118,31 +118,75 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       URL.revokeObjectURL(srcUrl);
     }
   }
-  const {parser} = o;
+  const {parser, animations} = o;
   o = o.scene;
-  const _loadLightmaps = parser => {
-    const _loadLightmap = async (parser, materialIndex) => {
-      const lightmapDef = parser.json.materials[materialIndex].extensions.MOZ_lightmap;
-      const [material, lightMap] = await Promise.all([
-        parser.getDependency("material", materialIndex),
-        parser.getDependency("texture", lightmapDef.index)
-      ]);
-      material.lightMap = lightMap;
-      material.lightMapIntensity = lightmapDef.intensity !== undefined ? lightmapDef.intensity : 1;
-      material.needsUpdate = true;
-      return lightMap;
+  const animationMixers = [];
+  const _loadHubsComponents = () => {
+    const _loadAnimations = () => {
+      o.traverse(o => {
+        if (o.isMesh) {
+          console.log('got o', o, animations);
+          const clip = animations.find(a => a.name === 'idle');
+
+          const mesh = o;
+
+          const mixer = new THREE.AnimationMixer( mesh );
+          // const clips = mesh.animations;
+
+          // Update the mixer on each frame
+          let lastTimestamp = Date.now();
+          function update (delta) {
+            const now = Date.now();
+            const timeDiff = now - lastTimestamp;
+            const deltaSeconds = timeDiff / 1000;
+            mixer.update( deltaSeconds );
+            lastTimestamp = now;
+          }
+
+          // Play a specific animation
+          // const clip = THREE.AnimationClip.findByName( clips, 'idle' );
+          if (clip) {
+            const action = mixer.clipAction( clip );
+            action.play();
+
+            /* // Play all animations
+            clips.forEach( function ( clip ) {
+              mixer.clipAction( clip ).play();
+            } ); */
+            animationMixers.push({
+              update,
+            });
+          }
+        }
+      });
     };
-    for (let i = 0; i < parser.json.materials.length; i++) {
-      const materialNode = parser.json.materials[i];
+    _loadAnimations();
 
-      if (!materialNode.extensions) continue;
+    const _loadLightmaps = () => {
+      const _loadLightmap = async (parser, materialIndex) => {
+        const lightmapDef = parser.json.materials[materialIndex].extensions.MOZ_lightmap;
+        const [material, lightMap] = await Promise.all([
+          parser.getDependency("material", materialIndex),
+          parser.getDependency("texture", lightmapDef.index)
+        ]);
+        material.lightMap = lightMap;
+        material.lightMapIntensity = lightmapDef.intensity !== undefined ? lightmapDef.intensity : 1;
+        material.needsUpdate = true;
+        return lightMap;
+      };
+      for (let i = 0; i < parser.json.materials.length; i++) {
+        const materialNode = parser.json.materials[i];
 
-      if (materialNode.extensions.MOZ_lightmap) {
-        _loadLightmap(parser, i);
+        if (!materialNode.extensions) continue;
+
+        if (materialNode.extensions.MOZ_lightmap) {
+          _loadLightmap(parser, i);
+        }
       }
-    }
+    };
+    _loadLightmaps();
   };
-  _loadLightmaps(parser);
+  _loadHubsComponents();
 
   const mesh = (() => {
     if (optimize) {
@@ -229,6 +273,14 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   };
   mesh.getPhysicsIds = () => physicsIds;
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
+
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  appManager.setAnimationLoop(appId, () => {
+    for (const mixer of animationMixers) {
+      mixer.update();
+    }
+  });
   
   return mesh;
 
