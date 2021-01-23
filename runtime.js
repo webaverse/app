@@ -793,7 +793,7 @@ const _loadScene = async (file, {files = null}) => {
     quaternion = new THREE.Quaternion().fromArray(quaternion);
     scale = new THREE.Vector3().fromArray(scale);
     if (start_url) {
-      start_url = new URL(start_url, location.href).href;
+      // start_url = new URL(start_url, location.href).href;
       filename = start_url;
     } else if (filename && content) {
       const blob = new Blob([content], {
