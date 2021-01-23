@@ -70,6 +70,9 @@ const startMonetization = (instanceId, monetizationPointer, ownerAddress) => {
 const _importMapUrl = u => new URL(u, location.protocol + '//' + location.host).href;
 const importMap = {
   three: _importMapUrl('./three.module.js'),
+  BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
+  GLTFLoader: _importMapUrl('./GLTFLoader.js'),
+  GLTF1Loader: _importMapUrl('./GLTF1Loader.js'),
   app: _importMapUrl('./app-object.js'),
   world: _importMapUrl('./world.js'),
   universe: _importMapUrl('./universe.js'),
@@ -80,9 +83,7 @@ const importMap = {
   notifications: _importMapUrl('./notifications.js'),
   popovers: _importMapUrl('./popovers.js'),
   crypto: _importMapUrl('./crypto.js'),
-  BufferGeometryUtils: _importMapUrl('./BufferGeometryUtils.js'),
-  GLTFLoader: _importMapUrl('./GLTFLoader.js'),
-  GLTF1Loader: _importMapUrl('./GLTF1Loader.js'),
+  constants: _importMapUrl('./constants.js'),
 };
 
 const _clone = o => JSON.parse(JSON.stringify(o));
@@ -451,6 +452,7 @@ const _makeAppUrl = appId => {
     import * as notifications from ${JSON.stringify(importMap.notifications)};
     import * as _popovers from ${JSON.stringify(importMap.popovers)};
     import * as crypto from ${JSON.stringify(importMap.crypto)};
+    import * as constants from ${JSON.stringify(importMap.constants)};
 
     const renderer = Object.create(_renderer);
     renderer.setAnimationLoop = function(fn) {
@@ -558,7 +560,7 @@ const _makeAppUrl = appId => {
         rig.localRig.model.visible = false;
       }
     };
-    export {renderer, scene, camera, runtime, world, universe, physics, ui, notifications, popovers, crypto, rig, app, appManager};
+    export {renderer, scene, camera, runtime, world, universe, physics, ui, notifications, popovers, crypto, constants, rig, app, appManager};
   `;
   const b = new Blob([s], {
     type: 'application/javascript',
