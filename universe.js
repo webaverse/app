@@ -263,7 +263,9 @@ const enterWorld = async worldSpec => {
 
     // world.initializeIfEmpty(universeSpecs.initialScene);
   };
-  _doLoad().catch(console.warn);
+  _doLoad().catch(err => {
+    console.warn(err);
+  });
 
   const _post = () => {
     if (currentWorld) {
