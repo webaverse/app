@@ -125,34 +125,28 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     const _loadAnimations = () => {
       o.traverse(o => {
         if (o.isMesh) {
-          console.log('got o', o, animations);
           const clip = animations.find(a => a.name === 'idle');
-
-          const mesh = o;
-
-          const mixer = new THREE.AnimationMixer( mesh );
-          // const clips = mesh.animations;
-
-          // Update the mixer on each frame
-          let lastTimestamp = Date.now();
-          function update (delta) {
-            const now = Date.now();
-            const timeDiff = now - lastTimestamp;
-            const deltaSeconds = timeDiff / 1000;
-            mixer.update( deltaSeconds );
-            lastTimestamp = now;
-          }
 
           // Play a specific animation
           // const clip = THREE.AnimationClip.findByName( clips, 'idle' );
           if (clip) {
+            const mesh = o;
+
+            const mixer = new THREE.AnimationMixer( mesh );
+            // const clips = mesh.animations;
+
+            // Update the mixer on each frame
+            let lastTimestamp = Date.now();
+            const update = delta => {
+              const now = Date.now();
+              const timeDiff = now - lastTimestamp;
+              const deltaSeconds = timeDiff / 1000;
+              mixer.update( deltaSeconds );
+              lastTimestamp = now;
+            };
+            
             const action = mixer.clipAction( clip );
             action.play();
-
-            /* // Play all animations
-            clips.forEach( function ( clip ) {
-              mixer.clipAction( clip ).play();
-            } ); */
             animationMixers.push({
               update,
             });
