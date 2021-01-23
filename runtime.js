@@ -646,8 +646,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
       let u = match[2];
       if (/^\.+\//.test(u)) {
-        if (files) {
-          u = files[u];
+        if (app.files) {
+          u = app.files[u];
         } else {
           u = new URL(u, scriptUrl).href;
         }
