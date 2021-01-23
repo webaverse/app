@@ -148,9 +148,8 @@ const getTransactionSignature = async (chainName, contractName, transactionHash)
 };
 
 const runMainnetTransaction = async (contractName, method, ...args) => {
-  const addresses = await getMainnetAddress();
-  if (addresses.length > 0) {
-    const [address] = addresses;
+  const address = await getMainnetAddress();
+  if (address) {
     const m = contracts.front[contractName].methods[method];
     m.apply(m, args).send({
       from: address,
