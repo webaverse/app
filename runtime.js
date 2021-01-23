@@ -561,6 +561,18 @@ const _makeAppUrl = appId => {
   return URL.createObjectURL(b);
 };
 const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  /* if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  } */
+  console.log('load script', {file, files});
+  if (/^https?:/.test(srcUrl)) { // if the script is hard-rooted, create a new files context
+    files = null;
+  }
+
   const appId = ++appIds;
   const mesh = new THREE.Object3D();
   mesh.run = () => {
@@ -666,14 +678,6 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     }
     return script;
   };
-
-  let srcUrl = file.url || URL.createObjectURL(file);
-  if (files) {
-    srcUrl = files[srcUrl];
-  }
-  if (/^\.+\//.test(srcUrl)) {
-    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
-  }
   const u = await _mapUrl(srcUrl);
 
   return mesh;
