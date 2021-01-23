@@ -118,7 +118,31 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       URL.revokeObjectURL(srcUrl);
     }
   }
+  const {parser} = o;
   o = o.scene;
+  const _loadLightmaps = parser => {
+    const _loadLightmap = async (parser, materialIndex) => {
+      const lightmapDef = parser.json.materials[materialIndex].extensions.MOZ_lightmap;
+      const [material, lightMap] = await Promise.all([
+        parser.getDependency("material", materialIndex),
+        parser.getDependency("texture", lightmapDef.index)
+      ]);
+      material.lightMap = lightMap;
+      material.lightMapIntensity = lightmapDef.intensity !== undefined ? lightmapDef.intensity : 1;
+      material.needsUpdate = true;
+      return lightMap;
+    };
+    for (let i = 0; i < parser.json.materials.length; i++) {
+      const materialNode = parser.json.materials[i];
+
+      if (!materialNode.extensions) continue;
+
+      if (materialNode.extensions.MOZ_lightmap) {
+        _loadLightmap(parser, i);
+      }
+    }
+  };
+  _loadLightmaps(parser);
 
   const mesh = (() => {
     if (optimize) {
