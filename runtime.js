@@ -125,8 +125,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     const _loadAnimations = () => {
       o.traverse(o => {
         if (o.isMesh) {
-          const clip = animations.find(a => a.name === 'idle');
-
+          const clip = animations.find(a => a.name === 'idle') || animations[0];
           if (clip) {
             const mesh = o;
             const mixer = new THREE.AnimationMixer(mesh);
@@ -163,13 +162,15 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
         material.needsUpdate = true;
         return lightMap;
       };
-      for (let i = 0; i < parser.json.materials.length; i++) {
-        const materialNode = parser.json.materials[i];
+      if (parser.json.materials) {
+        for (let i = 0; i < parser.json.materials.length; i++) {
+          const materialNode = parser.json.materials[i];
 
-        if (!materialNode.extensions) continue;
+          if (!materialNode.extensions) continue;
 
-        if (materialNode.extensions.MOZ_lightmap) {
-          _loadLightmap(parser, i);
+          if (materialNode.extensions.MOZ_lightmap) {
+            _loadLightmap(parser, i);
+          }
         }
       }
     };
