@@ -139,7 +139,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
               lastTimestamp = now;
             };
             
-            const action = mixer.clipAction( clip );
+            const action = mixer.clipAction(clip);
             action.play();
             animationMixers.push({
               update,
