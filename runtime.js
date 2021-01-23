@@ -152,6 +152,9 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
                   action.stop();
                   clip = animations[(animations.indexOf(clip) + 1) % animations.length];
                   _nextAnimation();
+                } else {
+                  action.reset();
+                  _nextAnimation();
                 }
               }
               mixer.addEventListener('finished', finished);
