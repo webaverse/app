@@ -121,8 +121,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   const {parser, animations} = o;
   o = o.scene;
   const animationMixers = [];
-  const textureToData = new Map();
-  const registeredTextures = [];
+  const uvScrolls = [];
   const _loadHubsComponents = () => {
     const _loadAnimations = () => {
       o.traverse(o => {
@@ -198,6 +197,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     _loadLightmaps();
     
     const _loadUvScroll = o => {
+      const textureToData = new Map();
+      const registeredTextures = [];
       o.traverse(o => {
         if (o.isMesh && o?.userData?.gltfExtensions?.MOZ_hubs_components?.['uv-scroll']) {
           const uvScrollSpec = o.userData.gltfExtensions.MOZ_hubs_components['uv-scroll'];
@@ -235,6 +236,28 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
               textureToData.get(spec.map).instances.push(instance);
             }
           }
+          let lastTimestamp = Date.now();
+          const update = now => {
+            const dt = now - lastTimestamp;
+            for (let i = 0; i < registeredTextures.length; i++) {
+              const map = registeredTextures[i];
+              const { offset, instances } = textureToData.get(map);
+              const { component } = instances[0];
+
+              offset.addScaledVector(component.data.speed, dt / 1000);
+
+              offset.x = offset.x % 1.0;
+              offset.y = offset.y % 1.0;
+
+              const increment = component.data.increment;
+              map.offset.x = increment.x ? offset.x - (offset.x % increment.x) : offset.x;
+              map.offset.y = increment.y ? offset.y - (offset.y % increment.y) : offset.y;
+            }
+            lastTimestamp = now;
+          };
+          uvScrolls.push({
+            update,
+          });
         }
       });
     };
@@ -338,20 +361,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       }
     };
     const _updateUvScroll = () => {
-      const dt = now;
-      for (let i = 0; i < registeredTextures.length; i++) {
-        const map = registeredTextures[i];
-        const { offset, instances } = textureToData.get(map);
-        const { component } = instances[0];
-
-        offset.addScaledVector(component.data.speed, dt / 1000);
-
-        offset.x = offset.x % 1.0;
-        offset.y = offset.y % 1.0;
-
-        const increment = component.data.increment;
-        map.offset.x = increment.x ? offset.x - (offset.x % increment.x) : offset.x;
-        map.offset.y = increment.y ? offset.y - (offset.y % increment.y) : offset.y;
+      for (const uvScroll of uvScrolls) {
+        uvScroll.update(now);
       }
     };
     _updateUvScroll();
