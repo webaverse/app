@@ -568,11 +568,10 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
   if (files) {
     srcUrl = files[srcUrl];
   }
-  /* if (/^\.+\//.test(srcUrl)) {
+  if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, parentUrl || location.href).href;
-  } */
-  console.log('load script', {file, files});
-  if (/^https?:/.test(srcUrl)) { // if the script is hard-rooted, create a new files context
+  }
+  if (!_isResolvableUrl(srcUrl)) { // if the script is hard-rooted, create a new files context
     files = null;
   }
 
