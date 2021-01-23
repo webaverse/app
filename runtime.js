@@ -173,6 +173,9 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     physicsMesh = convertMeshToPhysicsMesh(mesh);
   }
   if (physics_url) {
+    if (files) {
+      physics_url = files[physics_url];
+    }
     const res = await fetch(physics_url);
     const arrayBuffer = await res.arrayBuffer();
     physicsBuffer = new Uint8Array(arrayBuffer);
