@@ -793,6 +793,7 @@ const _loadScene = async (file, {files = null}) => {
     scale = new THREE.Vector3().fromArray(scale);
     if (start_url) {
       // start_url = new URL(start_url, location.href).href;
+      // start_url = _dotifyUrl(start_url);
       filename = start_url;
     } else if (filename && content) {
       const blob = new Blob([content], {
