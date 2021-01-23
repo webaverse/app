@@ -858,6 +858,12 @@ const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = nu
 };
 const _loadScene = async (file, {files = null}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
+  if (files) {
+    srcUrl = files[srcUrl];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, location.href).href;
+  }
   
   const res = await fetch(srcUrl);
   const j = await res.json();
