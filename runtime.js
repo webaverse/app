@@ -118,31 +118,125 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       URL.revokeObjectURL(srcUrl);
     }
   }
-  const {parser} = o;
+  const {parser, animations} = o;
   o = o.scene;
-  const _loadLightmaps = parser => {
-    const _loadLightmap = async (parser, materialIndex) => {
-      const lightmapDef = parser.json.materials[materialIndex].extensions.MOZ_lightmap;
-      const [material, lightMap] = await Promise.all([
-        parser.getDependency("material", materialIndex),
-        parser.getDependency("texture", lightmapDef.index)
-      ]);
-      material.lightMap = lightMap;
-      material.lightMapIntensity = lightmapDef.intensity !== undefined ? lightmapDef.intensity : 1;
-      material.needsUpdate = true;
-      return lightMap;
+  const animationMixers = [];
+  const textureToData = new Map();
+  const registeredTextures = [];
+  const _loadHubsComponents = () => {
+    const _loadAnimations = () => {
+      o.traverse(o => {
+        if (o.isMesh) {
+          const idleAnimation = animations.find(a => a.name === 'idle');
+          let clip = idleAnimation || animations[0];
+          if (clip) {
+            const mesh = o;
+            const mixer = new THREE.AnimationMixer(mesh);
+
+            let lastTimestamp = Date.now();
+            const update = delta => {
+              const now = Date.now();
+              const timeDiff = now - lastTimestamp;
+              const deltaSeconds = timeDiff / 1000;
+              mixer.update(deltaSeconds);
+              lastTimestamp = now;
+            };
+ 
+            const _nextAnimation = () => {
+              const action = mixer.clipAction(clip);
+              action.loop = THREE.LoopOnce;
+              action.play();
+
+              function finished(e) {
+                mixer.removeEventListener('finished', finished);
+
+                if (clip !== idleAnimation) {
+                  action.stop();
+                  clip = animations[(animations.indexOf(clip) + 1) % animations.length];
+                  _nextAnimation();
+                } else {
+                  action.reset();
+                  _nextAnimation();
+                }
+              }
+              mixer.addEventListener('finished', finished);
+            };
+            _nextAnimation();
+
+            animationMixers.push({
+              update,
+            });
+          }
+        }
+      });
     };
-    for (let i = 0; i < parser.json.materials.length; i++) {
-      const materialNode = parser.json.materials[i];
+    _loadAnimations();
 
-      if (!materialNode.extensions) continue;
+    const _loadLightmaps = () => {
+      const _loadLightmap = async (parser, materialIndex) => {
+        const lightmapDef = parser.json.materials[materialIndex].extensions.MOZ_lightmap;
+        const [material, lightMap] = await Promise.all([
+          parser.getDependency("material", materialIndex),
+          parser.getDependency("texture", lightmapDef.index)
+        ]);
+        material.lightMap = lightMap;
+        material.lightMapIntensity = lightmapDef.intensity !== undefined ? lightmapDef.intensity : 1;
+        material.needsUpdate = true;
+        return lightMap;
+      };
+      if (parser.json.materials) {
+        for (let i = 0; i < parser.json.materials.length; i++) {
+          const materialNode = parser.json.materials[i];
 
-      if (materialNode.extensions.MOZ_lightmap) {
-        _loadLightmap(parser, i);
+          if (!materialNode.extensions) continue;
+
+          if (materialNode.extensions.MOZ_lightmap) {
+            _loadLightmap(parser, i);
+          }
+        }
       }
-    }
+    };
+    _loadLightmaps();
+    
+    const _loadUvScroll = o => {
+      o.traverse(o => {
+        if (o.isMesh && o?.userData?.gltfExtensions?.MOZ_hubs_components?.['uv-scroll']) {
+          const uvScrollSpec = o.userData.gltfExtensions.MOZ_hubs_components['uv-scroll'];
+          const {increment, speed} = uvScrollSpec;
+          
+          const mesh = o; // this.el.getObject3D("mesh") || this.el.getObject3D("skinnedmesh");
+          const {material} = mesh;
+          if (material) {
+            const spec = {};
+
+            // We store mesh here instead of the material directly because we end up swapping out the material in injectCustomShaderChunks.
+            // We need material in the first place because of MobileStandardMaterial
+            const instance = { component: spec, mesh, data: {increment, speed} };
+
+            spec.instance = instance;
+            spec.map = material.map || material.emissiveMap;
+
+            if (spec.map && !textureToData.has(spec.map)) {
+              textureToData.set(spec.map, {
+                offset: new THREE.Vector2(),
+                instances: [instance]
+              });
+              registeredTextures.push(spec.map);
+            } else if (!spec.map) {
+              console.warn("Ignoring uv-scroll added to mesh with no scrollable texture.");
+            } else {
+              console.warn(
+                "Multiple uv-scroll instances added to objects sharing a texture, only the speed/increment from the first one will have any effect"
+              );
+              textureToData.get(spec.map).instances.push(instance);
+            }
+          }
+        }
+      });
+    };
+    _loadUvScroll(o);
   };
-  _loadLightmaps(parser);
+  _loadHubsComponents();
   
   const textureToData = new Map();
   const registeredTextures = [];
@@ -259,6 +353,23 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       physicsIds.push(physicsId);
       staticPhysicsIds.push(physicsId);
     }
+  };
+  mesh.destroy = () => {
+    for (const physicsId of physicsIds) {
+      physicsManager.removeGeometry(physicsId);
+    }
+    physicsIds.length = 0;
+    staticPhysicsIds.length = 0;
+  };
+  mesh.getPhysicsIds = () => physicsIds;
+  mesh.getStaticPhysicsIds = () => staticPhysicsIds;
+
+  const appId = ++appIds;
+  const app = appManager.createApp(appId);
+  appManager.setAnimationLoop(appId, () => {
+    for (const mixer of animationMixers) {
+      mixer.update();
+    }
     {
       const dt = Date.now();
       for (let i = 0; i < registeredTextures.length; i++) {
@@ -276,16 +387,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
         map.offset.y = increment.y ? offset.y - (offset.y % increment.y) : offset.y;
       }
     }
-  };
-  mesh.destroy = () => {
-    for (const physicsId of physicsIds) {
-      physicsManager.removeGeometry(physicsId);
-    }
-    physicsIds.length = 0;
-    staticPhysicsIds.length = 0;
-  };
-  mesh.getPhysicsIds = () => physicsIds;
-  mesh.getStaticPhysicsIds = () => staticPhysicsIds;
+  });
   
   return mesh;
 
