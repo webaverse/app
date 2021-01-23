@@ -143,6 +143,46 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     }
   };
   _loadLightmaps(parser);
+  
+  const textureToData = new Map();
+  const registeredTextures = [];
+  const _loadUvScroll = o => {
+    o.traverse(o => {
+      if (o.isMesh && o?.userData?.gltfExtensions?.MOZ_hubs_components?.['uv-scroll']) {
+        const uvScrollSpec = o.userData.gltfExtensions.MOZ_hubs_components['uv-scroll'];
+        const {increment, speed} = uvScrollSpec;
+        
+        const mesh = o; // this.el.getObject3D("mesh") || this.el.getObject3D("skinnedmesh");
+        const {material} = mesh;
+        if (material) {
+          const spec = {};
+
+          // We store mesh here instead of the material directly because we end up swapping out the material in injectCustomShaderChunks.
+          // We need material in the first place because of MobileStandardMaterial
+          const instance = { component: spec, mesh, data: {increment, speed} };
+
+          spec.instance = instance;
+          spec.map = material.map || material.emissiveMap;
+
+          if (spec.map && !textureToData.has(spec.map)) {
+            textureToData.set(spec.map, {
+              offset: new THREE.Vector2(),
+              instances: [instance]
+            });
+            registeredTextures.push(spec.map);
+          } else if (!spec.map) {
+            console.warn("Ignoring uv-scroll added to mesh with no scrollable texture.");
+          } else {
+            console.warn(
+              "Multiple uv-scroll instances added to objects sharing a texture, only the speed/increment from the first one will have any effect"
+            );
+            textureToData.get(spec.map).instances.push(instance);
+          }
+        }
+      }
+    });
+  };
+  _loadUvScroll(o);
 
   const mesh = (() => {
     if (optimize) {
@@ -218,6 +258,23 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
       const physicsId = physicsManager.addCookedGeometry(physicsBuffer, mesh.position, mesh.quaternion);
       physicsIds.push(physicsId);
       staticPhysicsIds.push(physicsId);
+    }
+    {
+      const dt = Date.now();
+      for (let i = 0; i < registeredTextures.length; i++) {
+        const map = registeredTextures[i];
+        const { offset, instances } = textureToData.get(map);
+        const { component } = instances[0];
+
+        offset.addScaledVector(component.data.speed, dt / 1000);
+
+        offset.x = offset.x % 1.0;
+        offset.y = offset.y % 1.0;
+
+        const increment = component.data.increment;
+        map.offset.x = increment.x ? offset.x - (offset.x % increment.x) : offset.x;
+        map.offset.y = increment.y ? offset.y - (offset.y % increment.y) : offset.y;
+      }
     }
   };
   mesh.destroy = () => {
