@@ -91,12 +91,14 @@ const _makeFilesProxy = srcUrl => new Proxy({}, {
     return new URL(p, srcUrl).href;
   },
 });
+const _isResolvableUrl = u => !/^[a-z]+:/.test(u);
+const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 
 // const thingFiles = {};
 const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
-  if (files) {
-    srcUrl = files[srcUrl];
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
   }
   if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, parentUrl || location.href).href;
@@ -173,8 +175,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     physicsMesh = convertMeshToPhysicsMesh(mesh);
   }
   if (physics_url) {
-    if (files) {
-      physics_url = files[physics_url];
+    if (files && _isResolvableUrl(physics_url)) {
+      physics_url = files[_dotifyUrl(physics_url)];
     }
     const res = await fetch(physics_url);
     const arrayBuffer = await res.arrayBuffer();
@@ -299,8 +301,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
 };
 const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
-  if (files) {
-    srcUrl = files[srcUrl];
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
   }
   if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, parentUrl || location.href).href;
@@ -359,8 +361,8 @@ const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null
 };
 const _loadVox = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
-  if (files) {
-    srcUrl = files[srcUrl];
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
   }
   if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, parentUrl || location.href).href;
@@ -383,8 +385,8 @@ const _loadImg = async (file, {files = null, instanceId = null, monetizationPoin
   const img = new Image();
   await new Promise((accept, reject) => {
     let u = file.url || URL.createObjectURL(file);
-    if (files) {
-      u = files[u];
+    if (files && _isResolvableUrl(u)) {
+      u = files[_dotifyUrl(u)];
     }
     img.onload = () => {
       accept();
@@ -565,8 +567,8 @@ const _makeAppUrl = appId => {
 };
 const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
-  if (files) {
-    srcUrl = files[srcUrl];
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
   }
   if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, parentUrl || location.href).href;
@@ -660,8 +662,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
       let u = match[2];
       if (/^\.+\//.test(u)) {
-        if (app.files) {
-          u = app.files[u];
+        if (app.files && _isResolvableUrl(u)) {
+          u = app.files[u]; // do not dotify; import statements are used as-is
         } else {
           u = new URL(u, scriptUrl).href;
         }
@@ -686,8 +688,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
 };
 const _loadManifestJson = async (file, {files = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
-  if (files) {
-    srcUrl = files[srcUrl];
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
   }
   if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, location.href).href;
@@ -700,13 +702,11 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
   const res = await fetch(srcUrl);
   const j = await res.json();
   let {start_url, physics, physics_url} = j;
-  const u = './' + start_url;
+  const u = _dotifyUrl(start_url);
 
   if (physics_url) {
-    // physics_url = './' + physics_url;
-
-    if (files) {
-      physics_url = files[physics_url];
+    if (files && _isResolvableUrl(physics_url)) {
+      physics_url = files[_dotifyUrl(physics_url)];
     }
     /* if (/^\.+\//.test(physics_url)) {
       physics_url = new URL(physics_url, srcUrl).href;
@@ -772,8 +772,8 @@ const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = nu
 };
 const _loadScene = async (file, {files = null}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
-  if (files) {
-    srcUrl = files[srcUrl];
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
   }
   if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, location.href).href;
