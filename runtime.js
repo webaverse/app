@@ -812,6 +812,7 @@ const _loadScene = async (file, {files = null}) => {
       optimize,
       physics,
       physics_url,
+      files,
     });
     mesh.position.copy(position);
     mesh.quaternion.copy(quaternion);
