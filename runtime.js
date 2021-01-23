@@ -134,8 +134,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
             const mixer = new THREE.AnimationMixer(mesh);
 
             let lastTimestamp = Date.now();
-            const update = delta => {
-              const now = Date.now();
+            const update = now => {
               const timeDiff = now - lastTimestamp;
               const deltaSeconds = timeDiff / 1000;
               mixer.update(deltaSeconds);
@@ -207,11 +206,16 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
           const mesh = o; // this.el.getObject3D("mesh") || this.el.getObject3D("skinnedmesh");
           const {material} = mesh;
           if (material) {
-            const spec = {};
+            const spec = {
+              data: {
+                increment,
+                speed,
+              },
+            };
 
             // We store mesh here instead of the material directly because we end up swapping out the material in injectCustomShaderChunks.
             // We need material in the first place because of MobileStandardMaterial
-            const instance = { component: spec, mesh, data: {increment, speed} };
+            const instance = { component: spec, mesh };
 
             spec.instance = instance;
             spec.map = material.map || material.emissiveMap;
@@ -327,11 +331,14 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   const appId = ++appIds;
   const app = appManager.createApp(appId);
   appManager.setAnimationLoop(appId, () => {
-    for (const mixer of animationMixers) {
-      mixer.update();
-    }
-    {
-      const dt = Date.now();
+    const now = Date.now();
+    const _updateAnimations = () => {
+      for (const mixer of animationMixers) {
+        mixer.update(now);
+      }
+    };
+    const _updateUvScroll = () => {
+      const dt = now;
       for (let i = 0; i < registeredTextures.length; i++) {
         const map = registeredTextures[i];
         const { offset, instances } = textureToData.get(map);
@@ -346,7 +353,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
         map.offset.x = increment.x ? offset.x - (offset.x % increment.x) : offset.x;
         map.offset.y = increment.y ? offset.y - (offset.y % increment.y) : offset.y;
       }
-    }
+    };
+    _updateUvScroll();
   });
   
   return mesh;
