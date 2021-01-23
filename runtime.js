@@ -856,7 +856,7 @@ const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = nu
     monetizationPointer,
   });
 };
-const _loadScn = async (file, opts) => {
+const _loadScene = async (file, {files = null}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   
   const res = await fetch(srcUrl);
@@ -1226,7 +1226,7 @@ const typeHandlers = {
   'js': _loadScript,
   'json': _loadManifestJson,
   'wbn': _loadWebBundle,
-  'scn': _loadScn,
+  'scn': _loadScene,
   'url': _loadPortal,
   'iframe': _loadIframe,
   'mediastream': _loadMediaStream,
