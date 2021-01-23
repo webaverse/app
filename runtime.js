@@ -86,6 +86,11 @@ const importMap = {
 };
 
 const _clone = o => JSON.parse(JSON.stringify(o));
+const _makeFilesProxy = srcUrl => new Proxy({}, {
+  get(target, p) {
+    return new URL(p, srcUrl).href;
+  },
+});
 
 // const thingFiles = {};
 const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
@@ -602,11 +607,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
   app.object = mesh;
   const localImportMap = _clone(importMap);
   localImportMap.app = _makeAppUrl(appId);
-  app.files = files || new Proxy({}, {
-    get(target, p) {
-      return new URL(p, srcUrl).href;
-    },
-  });
+  app.files = files || _makeFilesProxy(srcUrl);
 
   const cachedUrls = [];
   const _getUrl = u => {
