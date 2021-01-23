@@ -91,12 +91,14 @@ const _makeFilesProxy = srcUrl => new Proxy({}, {
     return new URL(p, srcUrl).href;
   },
 });
+const _isResolvableUrl = u => !/^[a-z]+:/.test(u);
+const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 
 // const thingFiles = {};
 const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
-  if (files) {
-    srcUrl = files[srcUrl];
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
   }
   if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, parentUrl || location.href).href;
@@ -173,6 +175,9 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     physicsMesh = convertMeshToPhysicsMesh(mesh);
   }
   if (physics_url) {
+    if (files && _isResolvableUrl(physics_url)) {
+      physics_url = files[_dotifyUrl(physics_url)];
+    }
     const res = await fetch(physics_url);
     const arrayBuffer = await res.arrayBuffer();
     physicsBuffer = new Uint8Array(arrayBuffer);
@@ -296,8 +301,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
 };
 const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
-  if (files) {
-    srcUrl = files[srcUrl];
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
   }
   if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, parentUrl || location.href).href;
@@ -356,8 +361,8 @@ const _loadVrm = async (file, {files = null, parentUrl = null, instanceId = null
 };
 const _loadVox = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
-  if (files) {
-    srcUrl = files[srcUrl];
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
   }
   if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, parentUrl || location.href).href;
@@ -380,8 +385,8 @@ const _loadImg = async (file, {files = null, instanceId = null, monetizationPoin
   const img = new Image();
   await new Promise((accept, reject) => {
     let u = file.url || URL.createObjectURL(file);
-    if (files) {
-      u = files[u];
+    if (files && _isResolvableUrl(u)) {
+      u = files[_dotifyUrl(u)];
     }
     img.onload = () => {
       accept();
@@ -561,6 +566,17 @@ const _makeAppUrl = appId => {
   return URL.createObjectURL(b);
 };
 const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+  let srcUrl = file.url || URL.createObjectURL(file);
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
+  }
+  if (!_isResolvableUrl(srcUrl)) { // if the script is hard-rooted, create a new files context
+    files = null;
+  }
+
   const appId = ++appIds;
   const mesh = new THREE.Object3D();
   mesh.run = () => {
@@ -646,8 +662,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
       let u = match[2];
       if (/^\.+\//.test(u)) {
-        if (files) {
-          u = files[u];
+        if (app.files && _isResolvableUrl(u)) {
+          u = app.files[u]; // do not dotify; import statements are used as-is
         } else {
           u = new URL(u, scriptUrl).href;
         }
@@ -666,151 +682,49 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     }
     return script;
   };
-
-  let srcUrl = file.url || URL.createObjectURL(file);
-  if (files) {
-    srcUrl = files[srcUrl];
-  }
-  if (/^\.+\//.test(srcUrl)) {
-    srcUrl = new URL(srcUrl, parentUrl || location.href).href;
-  }
   const u = await _mapUrl(srcUrl);
 
   return mesh;
 };
 const _loadManifestJson = async (file, {files = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
-  if (files) {
-    srcUrl = files[srcUrl];
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
   }
   if (/^\.+\//.test(srcUrl)) {
     srcUrl = new URL(srcUrl, location.href).href;
   }
 
+  if (!files && /^https?:/.test(srcUrl)) {
+    files = _makeFilesProxy(srcUrl);
+  }
+
   const res = await fetch(srcUrl);
   const j = await res.json();
   let {start_url, physics, physics_url} = j;
-  const u = './' + start_url;
+  const u = _dotifyUrl(start_url);
 
-  if (/\.js$/.test(u)) {
-    return await _loadScript({
-      url: u,
-      name: u,
-    }, {
-      files,
-      parentUrl: srcUrl,
-      instanceId,
-      ownerAddress,
-      monetizationPointer,
-    });
-
-    /* const appId = ++appIds;
-    const mesh = new THREE.Object3D();
-    mesh.geometry = new THREE.BufferGeometry();
-    mesh.geometry.boundingBox = new THREE.Box3(
-      new THREE.Vector3(-1, -1/2, -0.1),
-      new THREE.Vector3(1, 1/2, 0.1),
-    );
-    mesh.frustumCulled = false;
-    mesh.run = () => {
-      import(u)
-        .then(() => {
-          // console.log('import returned');
-        }, err => {
-          console.warn('import failed', u, err);
-        })
-        .finally(() => {
-          for (const u of cachedUrls) {
-            URL.revokeObjectURL(u);
-          }
-        });
-    };
-    mesh.destroy = () => {
-      appManager.destroyApp(appId);
-    };
-
-    const app = appManager.createApp(appId);
-    app.object = mesh;
-    const localImportMap = _clone(importMap);
-    localImportMap.app = _makeAppUrl(appId);
-    app.files = new Proxy({}, {
-      get(target, p) {
-        return new URL(p, srcUrl).href;
-      },
-    });
-
-    const cachedUrls = [];
-    const _getUrl = u => {
-      const mappedUrl = URL.createObjectURL(new Blob([u], {
-        type: 'text/javascript',
-      }));
-      cachedUrls.push(mappedUrl);
-      return mappedUrl;
-    };
-    const urlCache = {};
-    const _mapUrl = async u => {
-      const importUrl = localImportMap[u];
-      if (importUrl) {
-        return importUrl;
-      } else {
-        const cachedUrl = urlCache[u];
-        if (cachedUrl) {
-          return cachedUrl;
-        } else {
-          const res = await fetch(u);
-          if (res.ok) {
-            let importScript = await res.text();
-            importScript = await _mapScript(importScript, srcUrl);
-            const cachedUrl = _getUrl(importScript);
-            urlCache[u] = cachedUrl;
-            return cachedUrl;
-          } else {
-            throw new Error('failed to load import url: ' + u);
-          }
-        }
-      }
-    };
-    const _mapScript = async (script, scriptUrl) => {
-      const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
-      const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
-        let u = match[2];
-        if (/^\.+\//.test(u)) {
-          u = new URL(u, scriptUrl).href;
-        }
-        return await _mapUrl(u);
-      }));
-      let index = 0;
-      script = script.replace(r, function() {
-        return arguments[1] + replacements[index++] + arguments[3];
-      });
-      return script;
-    };
-
-    const u = await _mapUrl(srcUrl);
-
-    return mesh; */
-  } else {
-    if (physics_url) {
-      physics_url = './' + physics_url;
-
-      if (files) {
-        physics_url = files[physics_url];
-      }
-      if (/^\.+\//.test(physics_url)) {
-        physics_url = new URL(physics_url, srcUrl).href;
-      }
+  if (physics_url) {
+    if (files && _isResolvableUrl(physics_url)) {
+      physics_url = files[_dotifyUrl(physics_url)];
     }
-
-    return await runtime.loadFile({
-      url: u,
-      name: u,
-    }, {
-      files,
-      parentUrl: srcUrl,
-      physics,
-      physics_url,
-    });
+    /* if (/^\.+\//.test(physics_url)) {
+      physics_url = new URL(physics_url, srcUrl).href;
+    } */
   }
+
+  return await runtime.loadFile({
+    url: u,
+    name: u,
+  }, {
+    files,
+    parentUrl: srcUrl,
+    physics,
+    physics_url,
+    instanceId,
+    ownerAddress,
+    monetizationPointer,
+  });
 };
 let appIds = 0;
 const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = null, ownerAddress = null}) => {
@@ -858,6 +772,12 @@ const _loadWebBundle = async (file, {instanceId = null, monetizationPointer = nu
 };
 const _loadScene = async (file, {files = null}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
+  if (files && _isResolvableUrl(srcUrl)) {
+    srcUrl = files[_dotifyUrl(srcUrl)];
+  }
+  if (/^\.+\//.test(srcUrl)) {
+    srcUrl = new URL(srcUrl, location.href).href;
+  }
   
   const res = await fetch(srcUrl);
   const j = await res.json();
@@ -872,7 +792,8 @@ const _loadScene = async (file, {files = null}) => {
     quaternion = new THREE.Quaternion().fromArray(quaternion);
     scale = new THREE.Vector3().fromArray(scale);
     if (start_url) {
-      start_url = new URL(start_url, location.href).href;
+      // start_url = new URL(start_url, location.href).href;
+      // start_url = _dotifyUrl(start_url);
       filename = start_url;
     } else if (filename && content) {
       const blob = new Blob([content], {
@@ -891,6 +812,7 @@ const _loadScene = async (file, {files = null}) => {
       optimize,
       physics,
       physics_url,
+      files,
     });
     mesh.position.copy(position);
     mesh.quaternion.copy(quaternion);
