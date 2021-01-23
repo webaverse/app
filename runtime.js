@@ -88,7 +88,7 @@ const importMap = {
 const _clone = o => JSON.parse(JSON.stringify(o));
 
 // const thingFiles = {};
-const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, dynamic = false, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files) {
     srcUrl = files[srcUrl];
@@ -151,12 +151,14 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     }
   })();
 
-  /* localBox.setFromObject(o);
-  const size = localBox.getSize(localVector);
-  const maxSizeDim = Math.max(size.x, size.y, size.z);
-  if (maxSizeDim > 4) {
-    o.scale.divideScalar(maxSizeDim);
-  } */
+  if (dynamic) {
+    localBox.setFromObject(o);
+    const size = localBox.getSize(localVector);
+    const maxSizeDim = Math.max(size.x, size.y, size.z);
+    if (maxSizeDim > 4) {
+      o.scale.multiplyScalar(4/maxSizeDim);
+    }
+  }
 
   let physicsMesh = null;
   let physicsBuffer = null;
