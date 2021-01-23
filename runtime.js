@@ -694,6 +694,10 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
     srcUrl = new URL(srcUrl, location.href).href;
   }
 
+  if (!files && /^https?:/.test(srcUrl)) {
+    files = _makeFilesProxy(srcUrl);
+  }
+
   const res = await fetch(srcUrl);
   const j = await res.json();
   let {start_url, physics, physics_url} = j;
