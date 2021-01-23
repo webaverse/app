@@ -704,14 +704,11 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
   let {start_url, physics, physics_url} = j;
   const u = _dotifyUrl(start_url);
 
-  if (physics_url) {
+  /* if (physics_url) {
     if (files && _isResolvableUrl(physics_url)) {
       physics_url = files[_dotifyUrl(physics_url)];
     }
-    /* if (/^\.+\//.test(physics_url)) {
-      physics_url = new URL(physics_url, srcUrl).href;
-    } */
-  }
+  } */
 
   return await runtime.loadFile({
     url: u,
