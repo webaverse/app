@@ -125,7 +125,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     const _loadAnimations = () => {
       o.traverse(o => {
         if (o.isMesh) {
-          const clip = animations.find(a => a.name === 'idle') || animations[0];
+          const idleAnimation = animations.find(a => a.name === 'idle');
+          let clip = idleAnimation || animations[0];
           if (clip) {
             const mesh = o;
             const mixer = new THREE.AnimationMixer(mesh);
@@ -138,9 +139,25 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
               mixer.update(deltaSeconds);
               lastTimestamp = now;
             };
-            
-            const action = mixer.clipAction(clip);
-            action.play();
+ 
+            const _nextAnimation = () => {
+              const action = mixer.clipAction(clip);
+              action.loop = THREE.LoopOnce;
+              action.play();
+
+              function finished(e) {
+                mixer.removeEventListener('finished', finished);
+
+                if (clip !== idleAnimation) {
+                  action.stop();
+                  clip = animations[(animations.indexOf(clip) + 1) % animations.length];
+                  _nextAnimation();
+                }
+              }
+              mixer.addEventListener('finished', finished);
+            };
+            _nextAnimation();
+
             animationMixers.push({
               update,
             });
