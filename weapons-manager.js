@@ -444,6 +444,7 @@ const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {  
   const transforms = rigManager.getRigTransforms();
 
+  // returns whether we actually snapped
   const _updateGrabbedObject = (o, transform, offset, {collisionEnabled, handSnapEnabled}) => {
     const {position, quaternion} = transform;
 
