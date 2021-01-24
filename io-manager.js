@@ -298,21 +298,27 @@ ioManager.bindInput = () => {
         }
         break;
       }
+      case 90: { // Z
+        if (weaponsManager.canBuild()) {
+          weaponsManager.setBuildMode('wall');
+        }
+        break;
+      }
+      case 88: { // X
+        if (weaponsManager.canBuild()) {
+          weaponsManager.setBuildMode('floor');
+        } else {
+          weaponsManager.menuDelete();
+        }
+        break
+      }
       case 67: { // C
         if (weaponsManager.canPush()) {
           ioManager.keys.backward = true;
           // weaponsManager.menuPush(1);
-        } /* else if (!(e.shiftKey && (e.ctrlKey || e.metaKey))) {
-          e.preventDefault();
-          e.stopPropagation();
-          document.getElementById('key-c').dispatchEvent(new KeyboardEvent('click', { // camera
-            which: e.which,
-            shiftKey: e.shiftKey,
-            ctrlKey: e.ctrlKey,
-            altKey: e.altKey,
-            metaKey: e.metaKey,
-          }));
-        } */
+        } else if (weaponsManager.canBuild()) {
+          weaponsManager.setBuildMode('stair');
+        }
         break;
       }
       case 82: { // R
@@ -320,10 +326,6 @@ ioManager.bindInput = () => {
         e.stopPropagation();
         document.getElementById('key-r').click(); // equip
         break;
-      }
-      case 88: { // X
-        weaponsManager.menuDelete();
-        break
       }
       case 71: { // G
         weaponsManager.menuDrop();
