@@ -310,7 +310,7 @@ ioManager.bindInput = () => {
         } else {
           weaponsManager.menuDelete();
         }
-        break
+        break;
       }
       case 67: { // C
         if (weaponsManager.canPush()) {
