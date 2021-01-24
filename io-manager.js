@@ -313,11 +313,12 @@ ioManager.bindInput = () => {
         break;
       }
       case 67: { // C
-        if (weaponsManager.canPush()) {
+        if (weaponsManager.canBuild()) {
+          console.log('setting');
+          weaponsManager.setBuildMode('stair');
+        } else if (weaponsManager.canPush()) {
           ioManager.keys.backward = true;
           // weaponsManager.menuPush(1);
-        } else if (weaponsManager.canBuild()) {
-          weaponsManager.setBuildMode('stair');
         }
         break;
       }

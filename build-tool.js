@@ -10,6 +10,8 @@ import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 const texBase = 'vol_2_2';
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 
@@ -50,8 +52,8 @@ const modeMeshes = {
     return mesh;
   })(),
   wall: (() => {
-    let geometry = new THREE.BoxBufferGeometry(baseUnit, baseUnit, 1/baseUnit);
-    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -1/baseUnit/2));
+    let geometry = new THREE.BoxBufferGeometry(baseUnit, 1/baseUnit, baseUnit)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1/baseUnit/2, 0));
 
     for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
       if (geometry.attributes.normal.array[i+1] === 0) {
@@ -79,14 +81,16 @@ const modeMeshes = {
 
     const material = buildMaterial;
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
     mesh.rotation.order = 'YXZ';
     mesh.savedRotation = mesh.rotation.clone();
     mesh.startQuaternion = mesh.quaternion.clone();
     return mesh;
   })(),
   stair: (() => {
-    let geometry = new THREE.BoxBufferGeometry(baseUnit, 1/baseUnit, baseUnit);
-    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1/baseUnit/2, 0));
+    let geometry = new THREE.BoxBufferGeometry(baseUnit, 1/baseUnit, baseUnit)
+      // .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4)))
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1/baseUnit/2, 0));
 
     for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
       if (geometry.attributes.normal.array[i+1] === 0) {
@@ -114,6 +118,7 @@ const modeMeshes = {
 
     const material = buildMaterial;
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4);
     mesh.rotation.order = 'YXZ';
     mesh.savedRotation = mesh.rotation.clone();
     mesh.startQuaternion = mesh.quaternion.clone();
@@ -565,7 +570,7 @@ const makeShapeMesh = () => {
     object.add(shapeMesh);
     shapes.push(shapeMesh);
     
-    const physicsId = physicsManager.addBoxGeometry(modeMesh.position, modeMesh.quaternion, localVector.set(baseUnit/2, 0.1, baseUnit/2), false);
+    const physicsId = physicsManager.addBoxGeometry(localVector.copy(modeMesh.position).add(localVector2.set(0, 1/baseUnit/2, 0).applyQuaternion(modeMesh.quaternion)), modeMesh.quaternion, localVector3.set(baseUnit/2, 1/baseUnit/2, baseUnit/2), false);
     physicsIds.push(physicsId);
   };
   object.getShapes = () => shapes;
