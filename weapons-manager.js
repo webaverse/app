@@ -1467,7 +1467,7 @@ renderer.domElement.addEventListener('drop', async e => {
   
   const files = Array.from(e.dataTransfer.files);
   for (const file of files) {
-    await weaponsManager.menuHandleUpload(file);
+    await _handleUpload(file);
   }
 });
 
@@ -1664,9 +1664,6 @@ const weaponsManager = {
   }, */
   menuUpload() {
     _upload();
-  },
-  async menuHandleUpload(file) {
-    return await _handleUpload(file);
   },
   enter() {
     chatInputEl.classList.toggle('open');
