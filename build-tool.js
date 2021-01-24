@@ -2,49 +2,129 @@ import * as THREE from './three.module.js';
 import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import {buildMaterial} from './shaders.js';
+import geometryManager from './geometry-manager.js';
+import {updateGrabbedObject, snapPosition, snapRotation} from './util.js';
+import {baseUnit} from './constants.js';
 import {appManager, renderer, scene, camera, dolly} from './app-object.js';
 
 const texBase = 'vol_2_2';
 
 const localVector = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localEuler = new THREE.Euler();
 
-const mesh = (() => {
-  let geometry = new THREE.BoxBufferGeometry(1, 0.1, 1, 10, 1, 10);
-  geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.1/2, 0));
+const modeMeshes = {
+  floor: (() => {
+    let geometry = new THREE.BoxBufferGeometry(baseUnit, 0.1, baseUnit)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.1/2, 0));
 
-  for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
-    if (geometry.attributes.normal.array[i+1] === 0) {
-      geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
+    for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
+      if (geometry.attributes.normal.array[i+1] === 0) {
+        geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
+      }
     }
-  }
-  geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1/2, 0));
+    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1/2, 0));
 
-  geometry = geometry.toNonIndexed();
+    geometry = geometry.toNonIndexed();
 
-  /* const barycentrics = new Float32Array(geometry.attributes.position.array.length);
-  let barycentricIndex = 0;
-  for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
-    barycentrics[barycentricIndex++] = 1;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 1;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 0;
-    barycentrics[barycentricIndex++] = 1;
-  }
-  geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3)); */
+    /* const barycentrics = new Float32Array(geometry.attributes.position.array.length);
+    let barycentricIndex = 0;
+    for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
+      barycentrics[barycentricIndex++] = 1;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 1;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 1;
+    }
+    geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3)); */
 
-  const material = buildMaterial;
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.rotation.order = 'YXZ';
-  mesh.savedRotation = mesh.rotation.clone();
-  mesh.startQuaternion = mesh.quaternion.clone();
-  return mesh;
-})();
-mesh.visible = false;
-scene.add(mesh);
+    const material = buildMaterial;
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.rotation.order = 'YXZ';
+    mesh.savedRotation = mesh.rotation.clone();
+    mesh.startQuaternion = mesh.quaternion.clone();
+    return mesh;
+  })(),
+  wall: (() => {
+    let geometry = new THREE.BoxBufferGeometry(baseUnit, baseUnit, 0.1);
+    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -0.1/2));
+
+    for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
+      if (geometry.attributes.normal.array[i+1] === 0) {
+        geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
+      }
+    }
+    // geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1/2, 0));
+
+    geometry = geometry.toNonIndexed();
+
+    /* const barycentrics = new Float32Array(geometry.attributes.position.array.length);
+    let barycentricIndex = 0;
+    for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
+      barycentrics[barycentricIndex++] = 1;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 1;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 1;
+    }
+    geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3)); */
+
+    const material = buildMaterial;
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.rotation.order = 'YXZ';
+    mesh.savedRotation = mesh.rotation.clone();
+    mesh.startQuaternion = mesh.quaternion.clone();
+    return mesh;
+  })(),
+  stair: (() => {
+    let geometry = new THREE.BoxBufferGeometry(baseUnit, 0.1, baseUnit);
+    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.1/2, 0));
+
+    for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
+      if (geometry.attributes.normal.array[i+1] === 0) {
+        geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
+      }
+    }
+    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1/2, 0));
+
+    geometry = geometry.toNonIndexed();
+
+    /* const barycentrics = new Float32Array(geometry.attributes.position.array.length);
+    let barycentricIndex = 0;
+    for (let i = 0; i < geometry.attributes.position.array.length; i += 9) {
+      barycentrics[barycentricIndex++] = 1;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 1;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 0;
+      barycentrics[barycentricIndex++] = 1;
+    }
+    geometry.setAttribute('barycentric', new THREE.BufferAttribute(barycentrics, 3)); */
+
+    const material = buildMaterial;
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.rotation.order = 'YXZ';
+    mesh.savedRotation = mesh.rotation.clone();
+    mesh.startQuaternion = mesh.quaternion.clone();
+    return mesh;
+  })(),
+};
+for (const k in modeMeshes) {
+  const mesh = modeMeshes[k];
+  mesh.visible = false;
+  scene.add(mesh);
+}
 
 const shapeMaterial = (() => {
   const map = new THREE.Texture();
@@ -435,17 +515,49 @@ const makeShapeMesh = () => {
     physicsIds.length = 0;
   };
   object.isBuild = true;
+  let mode = 'floor';
+  object.setMode = newMode => {
+    mode = newMode;
+  };
+  object.update = (transform, gridSnap) => {
+    const modeMesh = modeMeshes[mode];
+    modeMesh.visible = true;
+    
+    updateGrabbedObject(modeMesh, transform, appManager.grabbedObjectOffsets[0], {
+      collisionEnabled: true,
+      handSnapEnabled: false,
+      geometryManager,
+      gridSnap,
+    });
+
+    localEuler.setFromQuaternion(modeMesh.startQuaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
+    modeMesh.quaternion.premultiply(localQuaternion.setFromEuler(localEuler).invert());
+
+    localEuler.setFromQuaternion(transform.quaternion, 'YXZ');
+    localEuler.x = 0;
+    localEuler.z = 0;
+    localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
+    localQuaternion.setFromEuler(localEuler);
+    modeMesh.quaternion.premultiply(localQuaternion);
+
+    modeMesh.visible = true;
+  };
   const shapes = [];
   object.place = () => {
-    const geometry = new THREE.BoxBufferGeometry(1, 0.1, 1);
+    const modeMesh = modeMeshes[mode];
+    
+    const geometry = modeMesh.geometry;
     for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
       if (geometry.attributes.normal.array[i+1] === 0) {
         geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
       }
     }
     const shapeMesh = new THREE.Mesh(geometry, shapeMaterial);
-    shapeMesh.position.copy(mesh.position);
-    shapeMesh.quaternion.copy(mesh.quaternion);
+    shapeMesh.position.copy(modeMesh.position);
+    shapeMesh.quaternion.copy(modeMesh.quaternion);
     shapeMesh.updateMatrix();
     shapeMesh.matrix
       .premultiply(object.matrixWorld.clone().invert())
@@ -453,26 +565,22 @@ const makeShapeMesh = () => {
     object.add(shapeMesh);
     shapes.push(shapeMesh);
     
-    const physicsId = physicsManager.addBoxGeometry(mesh.position, mesh.quaternion, localVector.set(1, 0.1, 1), false);
+    const physicsId = physicsManager.addBoxGeometry(modeMesh.position, modeMesh.quaternion, localVector.set(baseUnit/2, 0.1, baseUnit/2), false);
     physicsIds.push(physicsId);
   };
   object.getShapes = () => shapes;
   return object;
 };
 
-/* const update = () => {
-  const transforms = rigManager.getRigTransforms();
-  const [{position, quaternion}] = transforms;
-
-  mesh.position.copy(position)
-    .add(localVector.set(0, -0.5, -1).applyQuaternion(quaternion));
-  mesh.rotation.setFromQuaternion(quaternion, 'YXZ');
-  // _snap(mesh);
-}; */
+const update = () => {
+  for (const k in modeMeshes) {
+    modeMeshes[k].visible = false;
+  }
+};
 
 const geometryTool = {
-  mesh,
+  // mesh,
   makeShapeMesh,
-  // update,
+  update,
 };
 export default geometryTool;

@@ -3,6 +3,7 @@ import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import atlaspack from './atlaspack.js';
 
 const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 
 export function jsonParse(s, d = null) {
   try {
@@ -78,6 +79,53 @@ export function bindUploadFileButton(inputFileEl, handleUpload) {
     bindUploadFileButton(newInputFileEl, handleUpload);
   }
   inputFileEl.addEventListener('change', change);
+}
+
+// returns whether we actually snapped
+export function updateGrabbedObject(o, transform, offset, {collisionEnabled, handSnapEnabled, geometryManager, gridSnap}) {
+  if (!geometryManager) {
+    debugger;
+  }
+  const {position, quaternion} = transform;
+
+  let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
+  if (collision) {
+    const {point} = collision;
+    o.position.fromArray(point)
+      .add(localVector2.set(0, 0.01, 0));
+
+    if (o.position.distanceTo(position) > offset) {
+      collision = null;
+    }
+  }
+  if (!collision) {
+    o.position.copy(position).add(localVector.set(0, 0, -offset).applyQuaternion(quaternion));
+  }
+
+  const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
+  if (handSnap) {
+    snapPosition(o, gridSnap);
+    o.quaternion.setFromEuler(o.savedRotation);
+  } else {
+    o.quaternion.copy(quaternion);
+  }
+
+  return {
+    handSnap,
+  };
+}
+
+export function snapPosition(o, positionSnap) {
+  if (positionSnap > 0) {
+    o.position.x = Math.round(o.position.x / positionSnap) * positionSnap;
+    o.position.y = Math.round(o.position.y / positionSnap) * positionSnap;
+    o.position.z = Math.round(o.position.z / positionSnap) * positionSnap;
+  }
+}
+export function snapRotation(o, rotationSnap) {
+  o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
+  o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
+  o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
 }
 
 export function makePromise() {
