@@ -363,7 +363,7 @@ const _delete = () => {
   }
 };
 const _click = () => {
-  if (editedObject && editedObject.isBuild) {
+  if (weaponsManager.canBuild()) {
     editedObject.place();
   }
 };
@@ -1621,6 +1621,12 @@ const weaponsManager = {
         chatInputEl.value = '';
       }
     }
+  },
+  canBuild() {
+    return !!editedObject && editedObject.isBuild;
+  },
+  setBuildMode(mode) {
+    editedObject.setMode(mode);
   },
   update() {
     _updateWeapons();
