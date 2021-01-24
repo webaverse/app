@@ -522,7 +522,17 @@ class LoginManager extends EventTarget {
     return userObject ? userObject.inventory : [];
   }
 
-  async uploadFile(file, {description = ''} = {}) {
+  async uploadFile(file) {
+    const res = await fetch(storageHost, {
+      method: 'POST',
+      body: file,
+    });
+    const j = await res.json();
+    j.name = file.name;
+    return j;
+  }
+
+  async uploadAndMintFile(file, {description = ''} = {}) {
     if (loginToken) {
       const {name} = file;
       if (name) {

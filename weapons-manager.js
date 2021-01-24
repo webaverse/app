@@ -395,20 +395,21 @@ const _equip = async () => {
   }
 };
 
+const _handleUpload = async file => {
+  const {name, hash} = await loginManager.uploadFile(file);
+  console.log('uploaded', {name, hash});
+  
+  const transforms = rigManager.getRigTransforms();
+  let {position, quaternion} = transforms[0];
+  position = position.clone()
+    .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
+  quaternion = quaternion.clone();
+
+  const u = `${storageHost}/ipfs/${hash}/${name}`;
+  world.addObject(u, null, position, quaternion);
+};
 const bindUploadFileInput = uploadFileInput => {
-  bindUploadFileButton(uploadFileInput, async file => {
-    const transforms = rigManager.getRigTransforms();
-    let {position, quaternion} = transforms[0];
-    position = position.clone()
-      .add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
-    quaternion = quaternion.clone();
-
-    const {name, hash, id} = await loginManager.uploadFile(file);
-    console.log('uploaded', {name, hash, id});
-
-    const u = `${storageHost}/${hash}.${getExt(name)}`;
-    world.addObject(u, null, position, quaternion);
-  });
+  bindUploadFileButton(uploadFileInput, _handleUpload);
 };
 
 const _upload = () => {
@@ -1458,6 +1459,18 @@ const bindInterface = () => {
   });
 };
 
+renderer.domElement.addEventListener('dragover', e => {
+  e.preventDefault();
+});
+renderer.domElement.addEventListener('drop', async e => {
+  e.preventDefault();
+  
+  const files = Array.from(e.dataTransfer.files);
+  for (const file of files) {
+    await weaponsManager.menuHandleUpload(file);
+  }
+});
+
 const weaponsManager = {
   // weapons,
   // cubeMesh,
@@ -1646,11 +1659,14 @@ const weaponsManager = {
   toggleEditMode() {
     this.editMode = !this.editMode;
   },
-  canUpload() {
+  /* canUpload() {
     return this.menuOpen === 1;
-  },
+  }, */
   menuUpload() {
     _upload();
+  },
+  async menuHandleUpload(file) {
+    return await _handleUpload(file);
   },
   enter() {
     chatInputEl.classList.toggle('open');
