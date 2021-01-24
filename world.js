@@ -8,7 +8,7 @@ import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import messages from './messages.js';
 import {pointers} from './web-monetization.js';
-import {renderer, appManager, scene, scene3} from './app-object.js';
+import {appManager, scene, scene3} from './app-object.js';
 import {
   storageHost,
   // worldsHost,
@@ -505,7 +505,7 @@ world.getWorldJson = async q => {
       object.dynamic = true;
     }
     spec.objects.splice(0, 0, {
-      start_url: `https://webaverse.github.io/pedestal/index.js`,
+      start_url: `./pedestal/index.js`,
     });
     for (const object of spec.objects) {
       object.position = [0, 0, -2];
@@ -582,28 +582,5 @@ messages.addEventListener('messageadd', e => {
         text,
       },
     }));
-  }
-});
-
-renderer.domElement.addEventListener('dragover', e => {
-  e.preventDefault();
-});
-renderer.domElement.addEventListener('drop', async e => {
-  e.preventDefault();
-  
-  const files = Array.from(e.dataTransfer.files);
-  for (const file of files) {
-    const res = await fetch(`${storageHost}`, {
-      method: 'POST',
-      body: file,
-    });
-    const json = await res.json();
-    const {hash} = json;
-    const srcUrl = `${storageHost}/ipfs/${hash}/${file.name}`;
-    
-    const transforms = rigManager.getRigTransforms();
-    const [{position, quaternion}] = transforms;
-    localVector.copy(position).add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
-    await _addObject(true)(srcUrl, null, localVector, quaternion, {});
   }
 });
