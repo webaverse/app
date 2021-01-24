@@ -55,7 +55,9 @@ export function readFile(file) {
   });
 }
 export function bindUploadFileButton(inputFileEl, handleUpload) {
-  inputFileEl.addEventListener('change', async e => {
+  function change(e) {
+    inputFileEl.removeEventListener('change', change);
+    
     const {files} = e.target;
     if (inputFileEl.multiple) {
       handleUpload(Array.from(files));
@@ -68,12 +70,14 @@ export function bindUploadFileButton(inputFileEl, handleUpload) {
     parentNode.removeChild(inputFileEl);
     const newInputFileEl = inputFileEl.ownerDocument.createElement('input');
     newInputFileEl.type = 'file';
+    newInputFileEl.id = inputFileEl.id;
     // newInputFileEl.id = 'upload-file-button';
     // newInputFileEl.style.display = 'none';
     newInputFileEl.classList.add('hidden');
     parentNode.appendChild(newInputFileEl);
     bindUploadFileButton(newInputFileEl, handleUpload);
-  });
+  }
+  inputFileEl.addEventListener('change', change);
 }
 
 export function makePromise() {
