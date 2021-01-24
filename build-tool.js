@@ -15,15 +15,15 @@ const localEuler = new THREE.Euler();
 
 const modeMeshes = {
   floor: (() => {
-    let geometry = new THREE.BoxBufferGeometry(baseUnit, 0.1, baseUnit)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.1/2, 0));
+    let geometry = new THREE.BoxBufferGeometry(baseUnit, 1/baseUnit, baseUnit)
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1/baseUnit/2, 0));
 
     for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
       if (geometry.attributes.normal.array[i+1] === 0) {
         geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
       }
     }
-    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1/2, 0));
+    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -1/baseUnit/2, 0));
 
     geometry = geometry.toNonIndexed();
 
@@ -50,8 +50,8 @@ const modeMeshes = {
     return mesh;
   })(),
   wall: (() => {
-    let geometry = new THREE.BoxBufferGeometry(baseUnit, baseUnit, 0.1);
-    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -0.1/2));
+    let geometry = new THREE.BoxBufferGeometry(baseUnit, baseUnit, 1/baseUnit);
+    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -1/baseUnit/2));
 
     for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
       if (geometry.attributes.normal.array[i+1] === 0) {
@@ -85,15 +85,15 @@ const modeMeshes = {
     return mesh;
   })(),
   stair: (() => {
-    let geometry = new THREE.BoxBufferGeometry(baseUnit, 0.1, baseUnit);
-    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.1/2, 0));
+    let geometry = new THREE.BoxBufferGeometry(baseUnit, 1/baseUnit, baseUnit);
+    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1/baseUnit/2, 0));
 
     for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
       if (geometry.attributes.normal.array[i+1] === 0) {
         geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
       }
     }
-    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1/2, 0));
+    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -1/baseUnit/2, 0));
 
     geometry = geometry.toNonIndexed();
 
