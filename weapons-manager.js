@@ -18,7 +18,7 @@ import * as notifications from './notifications.js';
 import * as popovers from './popovers.js';
 import messages from './messages.js';
 import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
-import {storageHost, worldsHost} from './constants.js';
+import {maxGrabDistance, storageHost, worldsHost} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -416,8 +416,6 @@ const _upload = () => {
   uploadFileInput.click();
 };
 
-const maxDistance = 10;
-const maxGrabDistance = 1.5;
 const _grab = object => {
   const transforms = rigManager.getRigTransforms();
   const {position, quaternion} = transforms[0];
