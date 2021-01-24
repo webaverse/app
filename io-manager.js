@@ -347,11 +347,11 @@ ioManager.bindInput = () => {
         break;
       }
       case 85: { // U
-        if (weaponsManager.canUpload()) {
+        // if (weaponsManager.canUpload()) {
           e.preventDefault();
           e.stopPropagation();
           weaponsManager.menuUpload();
-        }
+        // }
         break;
       }
       case 80: { // P
