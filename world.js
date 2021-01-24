@@ -8,13 +8,16 @@ import {rigManager} from './rig.js';
 import physicsManager from './physics-manager.js';
 import messages from './messages.js';
 import {pointers} from './web-monetization.js';
-import {appManager, scene, scene3} from './app-object.js';
+import {renderer, appManager, scene, scene3} from './app-object.js';
 import {
   storageHost,
   // worldsHost,
   tokensHost,
 } from './constants.js';
 import {makePromise, getRandomString} from './util.js';
+
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
 
 // world
 export const world = new EventTarget();
@@ -579,5 +582,28 @@ messages.addEventListener('messageadd', e => {
         text,
       },
     }));
+  }
+});
+
+renderer.domElement.addEventListener('dragover', e => {
+  e.preventDefault();
+});
+renderer.domElement.addEventListener('drop', async e => {
+  e.preventDefault();
+  
+  const files = Array.from(e.dataTransfer.files);
+  for (const file of files) {
+    const res = await fetch(`${storageHost}`, {
+      method: 'POST',
+      body: file,
+    });
+    const json = await res.json();
+    const {hash} = json;
+    const srcUrl = `${storageHost}/ipfs/${hash}/${file.name}`;
+    
+    const transforms = rigManager.getRigTransforms();
+    const [{position, quaternion}] = transforms;
+    localVector.copy(position).add(localVector2.set(0, 0, -1).applyQuaternion(quaternion));
+    await _addObject(true)(srcUrl, null, localVector, quaternion, {});
   }
 });
