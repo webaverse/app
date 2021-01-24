@@ -505,7 +505,7 @@ world.getWorldJson = async q => {
       object.dynamic = true;
     }
     spec.objects.splice(0, 0, {
-      start_url: `./pedestal/index.js`,
+      start_url: `https://webaverse.github.io/pedestal/index.js`,
     });
     for (const object of spec.objects) {
       object.position = [0, 0, -2];
