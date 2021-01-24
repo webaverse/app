@@ -69,7 +69,6 @@ const editIcon = document.getElementById('edit-icon');
 const loadoutItems = Array.from(document.querySelectorAll('.loadout > .item'));
 const gridSnapEl = document.getElementById('grid-snap');
 const tabs = Array.from(document.querySelectorAll('#profile-icon > .nav'));
-const uploadFileInput = document.getElementById('upload-file-input');
 const chatEl = document.getElementById('chat');
 const chatInputEl = document.getElementById('chat-input');
 const chatMessagesEl = document.getElementById('chat-messages');
@@ -413,6 +412,7 @@ const bindUploadFileInput = uploadFileInput => {
 };
 
 const _upload = () => {
+  const uploadFileInput = document.getElementById('upload-file-input');
   uploadFileInput.click();
 };
 
