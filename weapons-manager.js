@@ -17,7 +17,7 @@ import buildTool from './build-tool.js';
 import * as notifications from './notifications.js';
 import * as popovers from './popovers.js';
 import messages from './messages.js';
-import {getExt, bindUploadFileButton} from './util.js';
+import {getExt, bindUploadFileButton, updateGrabbedObject} from './util.js';
 import {storageHost, worldsHost} from './constants.js';
 
 const localVector = new THREE.Vector3();
@@ -444,37 +444,6 @@ const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {  
   const transforms = rigManager.getRigTransforms();
 
-  // returns whether we actually snapped
-  const _updateGrabbedObject = (o, transform, offset, {collisionEnabled, handSnapEnabled}) => {
-    const {position, quaternion} = transform;
-
-    let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
-    if (collision) {
-      const {point} = collision;
-      o.position.fromArray(point)
-        .add(localVector2.set(0, 0.01, 0));
-
-      if (o.position.distanceTo(position) > offset) {
-        collision = null;
-      }
-    }
-    if (!collision) {
-      o.position.copy(position).add(localVector.set(0, 0, -offset).applyQuaternion(quaternion));
-    }
-
-    const handSnap = !handSnapEnabled || offset >= maxGrabDistance || !!collision;
-    if (handSnap) {
-      _snapPosition(o, weaponsManager.getGridSnap());
-      o.quaternion.setFromEuler(o.savedRotation);
-    } else {
-      o.quaternion.copy(quaternion);
-    }
-
-    return {
-      handSnap,
-    };
-  };
-
   const _handleHighlight = () => {
     if (!editedObject) {
       const width = 1;
@@ -583,7 +552,8 @@ const _updateWeapons = () => {
 
   const _handleEdit = () => {
     editMesh.visible = false;
-    buildTool.mesh.visible = false;
+    
+    buildTool.update();
 
     if (editedObject) {
       editMesh.position.copy(editedObject.position);
@@ -591,25 +561,7 @@ const _updateWeapons = () => {
       editMesh.visible = true;
 
       if (editedObject.isBuild) {
-        _updateGrabbedObject(buildTool.mesh, transforms[0], appManager.grabbedObjectOffsets[0], {
-          collisionEnabled: true,
-          handSnapEnabled: false,
-        });
-
-        localEuler.setFromQuaternion(buildTool.mesh.startQuaternion, 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
-        buildTool.mesh.quaternion.premultiply(localQuaternion.setFromEuler(localEuler).invert());
-
-        localEuler.setFromQuaternion(transforms[0].quaternion, 'YXZ');
-        localEuler.x = 0;
-        localEuler.z = 0;
-        localEuler.y = Math.floor((localEuler.y + Math.PI/4) / (Math.PI/2)) * (Math.PI/2);
-        localQuaternion.setFromEuler(localEuler);
-        buildTool.mesh.quaternion.premultiply(localQuaternion);
-
-        buildTool.mesh.visible = true;
+        editedObject.update(transforms[0], weaponsManager.getGridSnap());
       }
     }
   };
@@ -650,9 +602,11 @@ const _updateWeapons = () => {
     for (let i = 0; i < 2; i++) {
       const grabbedObject = appManager.grabbedObjects[i];
       if (grabbedObject) {
-        const {handSnap} = _updateGrabbedObject(grabbedObject, transforms[0], appManager.grabbedObjectOffsets[i], {
+        const {handSnap} = updateGrabbedObject(grabbedObject, transforms[0], appManager.grabbedObjectOffsets[i], {
           collisionEnabled: true,
           handSnapEnabled: true,
+          geometryManager,
+          gridSnap: weaponsManager.getGridSnap(),
         });
 
         if (handSnap) {
@@ -667,9 +621,11 @@ const _updateWeapons = () => {
 
   const _handleDeploy = () => {
     if (deployMesh.visible) {
-      _updateGrabbedObject(deployMesh, transforms[0], maxGrabDistance, {
+      updateGrabbedObject(deployMesh, transforms[0], maxGrabDistance, {
         collisionEnabled: true,
         handSnapEnabled: false,
+        geometryManager,
+        gridSnap: weaponsManager.getGridSnap(),
       });
 
       localEuler.setFromQuaternion(transforms[0].quaternion, 'YXZ');
@@ -866,19 +822,7 @@ const _renderWheel = (() => {
   };
 })(); */
 
-const _snapPosition = (o, positionSnap) => {
-  if (positionSnap > 0) {
-    o.position.x = Math.round(o.position.x / positionSnap) * positionSnap;
-    o.position.y = Math.round(o.position.y / positionSnap) * positionSnap;
-    o.position.z = Math.round(o.position.z / positionSnap) * positionSnap;
-  }
-};
 const rotationSnap = Math.PI/6;
-const _snapRotation = (o, rotationSnap) => {
-  o.rotation.x = Math.round(o.rotation.x / rotationSnap) * rotationSnap;
-  o.rotation.y = Math.round(o.rotation.y / rotationSnap) * rotationSnap;
-  o.rotation.z = Math.round(o.rotation.z / rotationSnap) * rotationSnap;
-};
 
 let selectedItemIndex = 0;
 const _selectItem = newSelectedItemIndex => {
