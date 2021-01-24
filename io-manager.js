@@ -314,7 +314,6 @@ ioManager.bindInput = () => {
       }
       case 67: { // C
         if (weaponsManager.canBuild()) {
-          console.log('setting');
           weaponsManager.setBuildMode('stair');
         } else if (weaponsManager.canPush()) {
           ioManager.keys.backward = true;
