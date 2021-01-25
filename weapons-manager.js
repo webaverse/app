@@ -1479,6 +1479,7 @@ const _loadDrivable = async () => {
     
     physicsManager.setSitState(true);
     const sitTarget = physicsManager.getSitTarget();
+    physicsManager.setSitController(root);
     
     rigManager.localRig.sitState = true;
     // rigManager.localRig.sitTarget.matrixWorld.decompose(spine.position, spine.quaternion, localVector);
