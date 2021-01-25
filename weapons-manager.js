@@ -1423,7 +1423,7 @@ const weaponsManager = {
   buildMat: 'wood', */
   menuOpen: 0,
   // weaponWheel: false,
-  gridSnap: 0,
+  gridSnap: 1,
   editMode: false,
   /* getWeapon() {
     return selectedWeapon;
