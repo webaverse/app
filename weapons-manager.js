@@ -1460,7 +1460,7 @@ const _loadDrivable = async () => {
   const spineBoneIndex = skeleton.bones.findIndex(b => b.name === 'Spine');
   const spine = skeleton.bones[spineBoneIndex];
   const spineBoneMatrix = skeleton.boneMatrices[spineBoneIndex];
-  console.log('got spine', mesh, skeleton.boneMatrices, spine);
+  // console.log('got spine', mesh, skeleton.boneMatrices, spine);
 
   let lastTimestamp = Date.now();
   const smoothVelocity = new THREE.Vector3();
