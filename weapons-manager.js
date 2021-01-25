@@ -1628,7 +1628,7 @@ const weaponsManager = {
     return !!editedObject && editedObject.isBuild;
   },
   canStartBuild() {
-    return !appManager.grabbedObjects[0];
+    return !appManager.grabbedObjects[0] && !highlightedObject;
   },
   async startBuild(mode) {
     const object = await _loadItemSpec1('./assets/type/object.geo');
