@@ -86,6 +86,14 @@ const sitTarget = new THREE.Object3D();
 const getSitTarget = () => sitTarget;
 physicsManager.getSitTarget = getSitTarget;
 
+let sitController = null;
+const getSitController = () => sitController;
+physicsManager.getSitController = getSitController;
+const setSitController = newSitController => {
+  sitController = newSitController;
+};
+physicsManager.setSitController = setSitController;
+
 const physicsObjects = {};
 const physicsUpdates = [];
 const _makePhysicsObject = (position, quaternion) => ({
@@ -279,6 +287,11 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       jumpTime = 0;
     }
   } else {
+    physicsManager.velocity.y = 0;
+
+    applyVelocity(sitController.position, physicsManager.velocity, timeDiff);
+    // sitController.updateMatrixWorld();
+
     localVector.copy(sitTarget.position);
     localQuaternion.copy(sitTarget.quaternion);
     localVector2.copy(sitTarget.scale);
