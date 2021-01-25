@@ -1432,10 +1432,10 @@ renderer.domElement.addEventListener('drop', async e => {
   }
 });
 
-const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({
+/* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({
   color: 0xFF0000,
 }));
-scene.add(cubeMesh);
+scene.add(cubeMesh); */
 
 const drivables = [];
 const _loadDrivable = async () => {
@@ -1477,27 +1477,19 @@ const _loadDrivable = async () => {
     // spineBone.updateMatrixWorld();
     // const bonePosition = spineBone.getWorldPosition(new THREE.Vector3());
     
+    physicsManager.setSitState(true);
+    const sitTarget = physicsManager.getSitTarget();
+    
     rigManager.localRig.sitState = true;
     // rigManager.localRig.sitTarget.matrixWorld.decompose(spine.position, spine.quaternion, localVector);
     
     localMatrix.copy(spineBone.matrixWorld)
-      /* .multiply(
-        localMatrix2.fromArray(skeleton.boneMatrices, spineBoneIndex * 16)
-      ) */
-      /* .premultiply(
-        localMatrix2.fromArray(skeleton.boneInverses, spineBoneIndex * 16)
-      ) */
-      .decompose(cubeMesh.position, cubeMesh.quaternion, localVector);
-    cubeMesh.position.y += 1;
-
-    physicsManager.setSitState(true);
-    const sitTarget = physicsManager.getSitTarget();
-    sitTarget.position.copy(cubeMesh.position);
-    sitTarget.quaternion.copy(localQuaternion.copy(cubeMesh.quaternion).premultiply(localQuaternion2.setFromAxisAngle(localVector.set(0, 1, 0), Math.PI)));
-    sitTarget.scale.copy(cubeMesh.scale);
+      .decompose(sitTarget.position, sitTarget.quaternion, sitTarget.scale);
+    sitTarget.position.y += 1;
+    sitTarget.quaternion.premultiply(localQuaternion.setFromAxisAngle(localVector.set(0, 1, 0), Math.PI));
 
     const offset = physicsManager.getAvatarCameraOffset();
-    camera.position.copy(cubeMesh.position)
+    camera.position.copy(sitTarget.position)
       .sub(offset.clone().applyQuaternion(camera.quaternion));
     
     // rigManager.localRigMatrix.decompose(localVector, localQuaternion, localVector2);
