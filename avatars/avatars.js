@@ -1520,6 +1520,8 @@ class Avatar {
     this.jumpTime = NaN;
     this.flyState = false;
     this.flyTime = NaN;
+    this.sitState = false;
+    this.sitTarget = new THREE.Object3D();
 	}
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
@@ -1659,6 +1661,11 @@ class Avatar {
             const t2 = this.jumpTime/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          } else if (this.sitState) {
+            const src2 = sittingAnimation.interpolants[k];
+            const v2 = src2.evaluate(1);
 
             dst.fromArray(v2);
           }
