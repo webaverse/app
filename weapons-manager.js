@@ -436,6 +436,7 @@ const _grab = object => {
 const _ungrab = () => {
   // _snapRotation(appManager.grabbedObjects[0], rotationSnap);
   appManager.grabbedObjects[0] = null;
+  editedObject = null
   _updateMenu();
 };
 
