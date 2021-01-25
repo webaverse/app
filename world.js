@@ -374,6 +374,7 @@ world.addEventListener('trackedobjectadd', async e => {
         instanceId: instanceId,
         physics: options.physics,
         physics_url: options.physics_url,
+        autoScale: options.autoScale,
         dynamic,
         monetizationPointer: token ? token.owner.monetizationPointer : "",
         ownerAddress: token ? token.owner.address : ""
