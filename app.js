@@ -88,7 +88,9 @@ export default class App {
             if (isNaN(contentId)) {
               contentId = q.o;
             }
-            await world.addObject(contentId);
+            await world.addObject(contentId, null, undefined, undefined, {
+              autoScale: false,
+            });
           }
         })(),
       ]);
