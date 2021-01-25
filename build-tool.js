@@ -28,8 +28,10 @@ for (let i = 0, j = 0; i < planeGeometry.attributes.position.array.length; i += 
 // planeGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -1/baseUnit/2, 0));
 const modeMeshes = {
   floor: (() => {
-    const offset = new THREE.Vector3(0, 0, 0);
+    const offset = new THREE.Vector3(0, -baseUnit/2, 0);
+    const scaleFactor = new THREE.Vector3(1, 1, 1);
     let geometry = planeGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(scaleFactor.x, scaleFactor.y, scaleFactor.z))
       .applyMatrix4(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z));
 
     geometry = geometry.toNonIndexed();
@@ -52,14 +54,17 @@ const modeMeshes = {
     const material = buildMaterial;
     const mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.order = 'YXZ';
-    // mesh.offset = offset;
+    mesh.offset = offset;
+    mesh.scaleFactor = scaleFactor;
     mesh.savedRotation = mesh.rotation.clone();
     mesh.startQuaternion = mesh.quaternion.clone();
     return mesh;
   })(),
   wall: (() => {
-    const offset = new THREE.Vector3(0, 0, 0);
+    const offset = new THREE.Vector3(0, -baseUnit/2, 0);
+    const scaleFactor = new THREE.Vector3(1, 1, 1);
     let geometry = planeGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(scaleFactor.x, scaleFactor.y, scaleFactor.z))
       .applyMatrix4(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z));
 
     geometry = geometry.toNonIndexed();
@@ -83,14 +88,17 @@ const modeMeshes = {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
     mesh.rotation.order = 'YXZ';
-    // mesh.offset = offset;
+    mesh.offset = offset;
+    mesh.scaleFactor = scaleFactor;
     mesh.savedRotation = mesh.rotation.clone();
     mesh.startQuaternion = mesh.quaternion.clone();
     return mesh;
   })(),
   stair: (() => {
     const offset = new THREE.Vector3(0, 0, 0);
+    const scaleFactor = new THREE.Vector3(1, 1, Math.sqrt(2));
     let geometry = planeGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(scaleFactor.x, scaleFactor.y, scaleFactor.z))
       .applyMatrix4(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z));
 
     geometry = geometry.toNonIndexed();
@@ -114,7 +122,8 @@ const modeMeshes = {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4);
     mesh.rotation.order = 'YXZ';
-    // mesh.offset = offset;
+    mesh.offset = offset;
+    mesh.scaleFactor = scaleFactor;
     mesh.savedRotation = mesh.rotation.clone();
     mesh.startQuaternion = mesh.quaternion.clone();
     return mesh;
@@ -553,9 +562,13 @@ const makeShapeMesh = () => {
         .add(
           localVector2.set(0, 1/baseUnit/2, 0)
             .applyQuaternion(modeMesh.quaternion)
+        )
+        .add(
+          localVector2.copy(modeMesh.offset)
+            .applyQuaternion(modeMesh.quaternion)
         ),
         modeMesh.quaternion,
-        localVector3.set(baseUnit/2, 1/baseUnit/2, baseUnit/2),
+        localVector3.set(baseUnit/2 * modeMesh.scaleFactor.x, 1/baseUnit/2 * modeMesh.scaleFactor.y, baseUnit/2 * modeMesh.scaleFactor.z),
         false
       );
     physicsIds.push(physicsId);
