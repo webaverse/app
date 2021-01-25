@@ -1434,7 +1434,7 @@ renderer.domElement.addEventListener('drop', async e => {
 
 const wearables = [];
 const _loadWearable = async () => {
-  const srcUrl = './cat-in-hat/cat-in-hat.glb';
+  const srcUrl = 'https://avaer.github.io/cat-in-hat/cat-in-hat.glb';
   let o = await new Promise((accept, reject) => {
     gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
   });
