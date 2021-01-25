@@ -92,7 +92,7 @@ const _makeFilesProxy = srcUrl => new Proxy({}, {
     return new URL(p, srcUrl).href;
   },
 });
-const _isResolvableUrl = u => !/^[a-z]+:/.test(u);
+const _isResolvableUrl = u => !/^https?:/.test(u);
 const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 
 // const thingFiles = {};
