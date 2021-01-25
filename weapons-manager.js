@@ -1455,37 +1455,53 @@ const _loadDrivable = async () => {
   action.play();
   
   const mesh = root.getObjectByName('Cube');
-  // const spine = root.getObjectByName('Spine');
   const {skeleton} = mesh;
   const spineBoneIndex = skeleton.bones.findIndex(b => b.name === 'Spine');
-  const spine = skeleton.bones[spineBoneIndex];
-  const spineBoneMatrix = skeleton.boneMatrices[spineBoneIndex];
-  // console.log('got spine', mesh, skeleton.boneMatrices, spine);
+  const spineBone = root.getObjectByName('Spine');
+  // const spine = skeleton.bones[spineBoneIndex];
+  // const spineBoneMatrix = skeleton.boneMatrices[spineBoneIndex];
+  // const spineBoneMatrixInverse = skeleton.boneInverses[spineBoneIndex];
+  // console.log('got spine', mesh, skeleton);
+  // window.THREE = THREE;
 
   let lastTimestamp = Date.now();
   const smoothVelocity = new THREE.Vector3();
   const update = now => {
-    const speed = 0.003;
+    // const speed = 0.003;
     const timeDiff = now - lastTimestamp;
     
     const deltaSeconds = timeDiff / 1000;
     mixer.update(deltaSeconds);
     lastTimestamp = now;
     
+    // spineBone.updateMatrixWorld();
+    // const bonePosition = spineBone.getWorldPosition(new THREE.Vector3());
+    
     rigManager.localRig.sitState = true;
     // rigManager.localRig.sitTarget.matrixWorld.decompose(spine.position, spine.quaternion, localVector);
     
-    physicsManager.setSitState(true);
-    
-    localMatrix.copy(spine.matrixWorld)
-      .multiply(
+    localMatrix.copy(spineBone.matrixWorld)
+      /* .multiply(
         localMatrix2.fromArray(skeleton.boneMatrices, spineBoneIndex * 16)
-      )
+      ) */
+      /* .premultiply(
+        localMatrix2.fromArray(skeleton.boneInverses, spineBoneIndex * 16)
+      ) */
       .decompose(cubeMesh.position, cubeMesh.quaternion, localVector);
-      
+    cubeMesh.position.y += 1;
+
+    physicsManager.setSitState(true);
+    const sitTarget = physicsManager.getSitTarget();
+    sitTarget.position.copy(cubeMesh.position);
+    sitTarget.quaternion.copy(localQuaternion.copy(cubeMesh.quaternion).premultiply(localQuaternion2.setFromAxisAngle(localVector.set(0, 1, 0), Math.PI)));
+    sitTarget.scale.copy(cubeMesh.scale);
+
     const offset = physicsManager.getAvatarCameraOffset();
     camera.position.copy(cubeMesh.position)
       .sub(offset.clone().applyQuaternion(camera.quaternion));
+    
+    // rigManager.localRigMatrix.decompose(localVector, localQuaternion, localVector2);
+    // rigManager.setLocalRigMatrix(rigManager.localRigMatrix.compose(localVector, cubeMesh.quaternion, localVector2));
   };
   drivables.push({
     update,
