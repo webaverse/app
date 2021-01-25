@@ -80,7 +80,8 @@ export default class App {
     }
 
     try {
-      await Promise.all([
+      await universe.enterWorld(worldJson);
+      /* await Promise.all([
         universe.enterWorld(worldJson),
         (async () => {
           if (q.o && !q.u && !q.r) {
@@ -88,12 +89,10 @@ export default class App {
             if (isNaN(contentId)) {
               contentId = q.o;
             }
-            await world.addObject(contentId, null, undefined, undefined, {
-              autoScale: false,
-            });
+            await world.addObject(contentId);
           }
         })(),
-      ]);
+      ]); */
     } catch (err) {
       console.error(err);
     }
