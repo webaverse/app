@@ -74,6 +74,14 @@ const setGlide = newGlideState => {
 };
 physicsManager.setGlide = setGlide;
 
+let sitState = false;
+const getSitState = () => sitState;
+physicsManager.getSitState = getSitState;
+const setSitState = newSitState => {
+  sitState = newSitState;
+};
+physicsManager.setSitState = setSitState;
+
 const physicsObjects = {};
 const physicsUpdates = [];
 const _makePhysicsObject = (position, quaternion) => ({
@@ -258,11 +266,11 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
       jumpState = false;
       jumpTime = -1;
       glideState = false;
-    } else if (!jumpState) {
+    } else if (!jumpState && !sitState) {
       jumpState = true;
       jumpTime = 0;
     }
-  } else if (!jumpState) {
+  } else if (!jumpState && !sitState) {
     jumpState = true;
     jumpTime = 0;
   }
