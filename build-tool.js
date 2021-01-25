@@ -15,17 +15,20 @@ const localVector3 = new THREE.Vector3();
 const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 
+const planeGeometry = new THREE.BoxBufferGeometry(baseUnit, 1/baseUnit, baseUnit, baseUnit, 1, baseUnit)
+  .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1/baseUnit/2, 0));
+for (let i = 0, j = 0; i < planeGeometry.attributes.position.array.length; i += 3, j += 2) {
+  if (planeGeometry.attributes.normal.array[i+1] === 0) {
+    planeGeometry.attributes.uv.array[j+1] = planeGeometry.attributes.position.array[i+1];
+  } else {
+    planeGeometry.attributes.uv.array[j+0] = planeGeometry.attributes.position.array[i+0]/4;
+    planeGeometry.attributes.uv.array[j+2] = planeGeometry.attributes.position.array[i+2]/4;
+  }
+}
+planeGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -1/baseUnit/2, 0));
 const modeMeshes = {
   floor: (() => {
-    let geometry = new THREE.BoxBufferGeometry(baseUnit, 1/baseUnit, baseUnit)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1/baseUnit/2, 0));
-
-    for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
-      if (geometry.attributes.normal.array[i+1] === 0) {
-        geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
-      }
-    }
-    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -1/baseUnit/2, 0));
+    let geometry = planeGeometry.clone();
 
     geometry = geometry.toNonIndexed();
 
@@ -52,15 +55,7 @@ const modeMeshes = {
     return mesh;
   })(),
   wall: (() => {
-    let geometry = new THREE.BoxBufferGeometry(baseUnit, 1/baseUnit, baseUnit)
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1/baseUnit/2, 0));
-
-    for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
-      if (geometry.attributes.normal.array[i+1] === 0) {
-        geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
-      }
-    }
-    // geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -0.1/2, 0));
+    let geometry = planeGeometry.clone();
 
     geometry = geometry.toNonIndexed();
 
@@ -88,16 +83,7 @@ const modeMeshes = {
     return mesh;
   })(),
   stair: (() => {
-    let geometry = new THREE.BoxBufferGeometry(baseUnit, 1/baseUnit, baseUnit)
-      // .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4)))
-      .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1/baseUnit/2, 0));
-
-    for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
-      if (geometry.attributes.normal.array[i+1] === 0) {
-        geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
-      }
-    }
-    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -1/baseUnit/2, 0));
+    let geometry = planeGeometry.clone();
 
     geometry = geometry.toNonIndexed();
 
@@ -554,12 +540,7 @@ const makeShapeMesh = () => {
   object.place = () => {
     const modeMesh = modeMeshes[mode];
     
-    const geometry = modeMesh.geometry;
-    for (let i = 0, j = 0; i < geometry.attributes.position.array.length; i += 3, j += 2) {
-      if (geometry.attributes.normal.array[i+1] === 0) {
-        geometry.attributes.uv.array[j+1] = geometry.attributes.position.array[i+1];
-      }
-    }
+    const geometry = modeMesh.geometry.clone();
     const shapeMesh = new THREE.Mesh(geometry, shapeMaterial);
     shapeMesh.position.copy(modeMesh.position);
     shapeMesh.quaternion.copy(modeMesh.quaternion);

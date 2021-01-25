@@ -993,6 +993,8 @@ const _loadItemSpec1 = async u => {
   weaponsManager.setMenu(0);
   appManager.grabbedObjectOffsets[0] = maxGrabDistance;
   cameraManager.requestPointerLock();
+
+  return object;
 };
 const itemSpecs3 = [
   {
@@ -1624,6 +1626,13 @@ const weaponsManager = {
   },
   canBuild() {
     return !!editedObject && editedObject.isBuild;
+  },
+  canStartBuild() {
+    return !appManager.grabbedObjects[0];
+  },
+  async startBuild(mode) {
+    const object = await _loadItemSpec1('./assets/type/object.geo');
+    object.setMode(mode);
   },
   setBuildMode(mode) {
     editedObject.setMode(mode);
