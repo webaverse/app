@@ -1,4 +1,5 @@
 import * as THREE from './three.module.js';
+import {GLTFLoader} from './GLTFLoader.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
@@ -30,6 +31,8 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localColor = new THREE.Color();
 const localBox = new THREE.Box3();
+
+const gltfLoader = new GLTFLoader();
 
 const items1El = document.getElementById('items-1');
 const items2El = document.getElementById('items-2');
@@ -449,6 +452,11 @@ const _ungrab = () => {
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {  
   const transforms = rigManager.getRigTransforms();
+  const now = Date.now();
+  
+  for (const drivable of drivables) {
+    drivable.update(now);
+  }
 
   const _handleHighlight = () => {
     if (!editedObject) {
@@ -1423,6 +1431,61 @@ renderer.domElement.addEventListener('drop', async e => {
     await _handleUpload(file);
   }
 });
+
+const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({
+  color: 0xFF0000,
+}));
+scene.add(cubeMesh);
+
+const drivables = [];
+const _loadDrivable = async () => {
+  const srcUrl = 'https://avaer.github.io/dragon/dragon.glb';
+  let o = await new Promise((accept, reject) => {
+    gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
+  });
+  const {animations} = o;
+  o = o.scene;
+  // o.scale.multiplyScalar(0.2);
+  scene.add(o);
+  
+  const root = o;
+  const mixer = new THREE.AnimationMixer(root);
+  const [clip] = animations;
+  const action = mixer.clipAction(clip);
+  action.play();
+  
+  const mesh = root.getObjectByName('Cube');
+  // const spine = root.getObjectByName('Spine');
+  const {skeleton} = mesh;
+  const spineBoneIndex = skeleton.bones.findIndex(b => b.name === 'Spine');
+  const spine = skeleton.bones[spineBoneIndex];
+  const spineBoneMatrix = skeleton.boneMatrices[spineBoneIndex];
+  console.log('got spine', mesh, skeleton.boneMatrices, spine);
+
+  let lastTimestamp = Date.now();
+  const smoothVelocity = new THREE.Vector3();
+  const update = now => {
+    const speed = 0.003;
+    const timeDiff = now - lastTimestamp;
+    
+    const deltaSeconds = timeDiff / 1000;
+    mixer.update(deltaSeconds);
+    lastTimestamp = now;
+    
+    rigManager.localRig.sitState = true;
+    // rigManager.localRig.sitTarget.matrixWorld.decompose(spine.position, spine.quaternion, localVector);
+    
+    localMatrix.copy(spine.matrixWorld)
+      .multiply(
+        localMatrix2.fromArray(skeleton.boneMatrices, spineBoneIndex * 16)
+      )
+      .decompose(cubeMesh.position, cubeMesh.quaternion, localVector);
+  };
+  drivables.push({
+    update,
+  });
+};
+_loadDrivable();
 
 const weaponsManager = {
   // weapons,
