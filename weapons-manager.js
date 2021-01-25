@@ -1,4 +1,5 @@
 import * as THREE from './three.module.js';
+import {GLTFLoader} from './GLTFLoader.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
@@ -30,6 +31,8 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localColor = new THREE.Color();
 const localBox = new THREE.Box3();
+
+const gltfLoader = new GLTFLoader();
 
 const items1El = document.getElementById('items-1');
 const items2El = document.getElementById('items-2');
@@ -449,6 +452,11 @@ const _ungrab = () => {
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {  
   const transforms = rigManager.getRigTransforms();
+  const now = Date.now();
+  
+  for (const wearable of wearables) {
+    wearable.update(now);
+  }
 
   const _handleHighlight = () => {
     if (!editedObject) {
@@ -1423,6 +1431,36 @@ renderer.domElement.addEventListener('drop', async e => {
     await _handleUpload(file);
   }
 });
+
+const wearables = [];
+const _loadWearable = async () => {
+  const srcUrl = './cat-in-hat/cat-in-hat.glb';
+  let o = await new Promise((accept, reject) => {
+    gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
+  });
+  const {animations} = o;
+  o = o.scene;
+  o.scale.multiplyScalar(0.1);
+  scene.add(o);
+
+  let lastTimestamp = Date.now();
+  const smoothVelocity = new THREE.Vector3();
+  const update = now => {
+    const timeDiff = now - lastTimestamp;
+    const {localRig} = rigManager;
+    const head = localRig.modelBones.Head;
+
+    head.matrixWorld.decompose(o.position, o.quaternion, localVector);
+    
+    const deltaSeconds = timeDiff / 1000;
+    // mixer.update(deltaSeconds);
+    lastTimestamp = now;
+  };
+  wearables.push({
+    update,
+  });
+};
+_loadWearable();
 
 const weaponsManager = {
   // weapons,
