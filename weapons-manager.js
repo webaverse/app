@@ -365,6 +365,12 @@ const _delete = () => {
 const _click = () => {
   if (weaponsManager.canBuild()) {
     editedObject.place();
+  } else if (appManager.grabbedObjects[0]) {
+    if (appManager.grabbedObjectOffsets[0] < maxGrabDistance) {
+      console.log('use object', appManager.grabbedObjects[0]); // XXX
+    } else {
+      _ungrab();
+    }
   }
 };
 
