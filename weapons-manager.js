@@ -1,4 +1,5 @@
 import * as THREE from './three.module.js';
+import {GLTFLoader} from './GLTFLoader.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import geometryManager from './geometry-manager.js';
 import cameraManager from './camera-manager.js';
@@ -30,6 +31,8 @@ const localMatrix = new THREE.Matrix4();
 const localMatrix2 = new THREE.Matrix4();
 const localColor = new THREE.Color();
 const localBox = new THREE.Box3();
+
+const gltfLoader = new GLTFLoader();
 
 const items1El = document.getElementById('items-1');
 const items2El = document.getElementById('items-2');
@@ -449,6 +452,11 @@ const _ungrab = () => {
 const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {  
   const transforms = rigManager.getRigTransforms();
+  const now = Date.now();
+  
+  for (const action of petAnimationMixers) {
+    action.update(now);
+  }
 
   const _handleHighlight = () => {
     if (!editedObject) {
@@ -1423,6 +1431,59 @@ renderer.domElement.addEventListener('drop', async e => {
     await _handleUpload(file);
   }
 });
+
+const petAnimationMixers = [];
+const _loadPet = async () => {
+  const srcUrl = 'https://avaer.github.io/dragon/dragon.glb';
+  let o = await new Promise((accept, reject) => {
+    gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
+  });
+  const {animations} = o;
+  o = o.scene;
+  o.scale.multiplyScalar(0.2);
+  scene.add(o);
+  
+  const mesh = o;
+  const mixer = new THREE.AnimationMixer(mesh);
+  const [clip] = animations;
+  const action = mixer.clipAction(clip);
+  action.play();
+
+  let lastTimestamp = Date.now();
+  const smoothVelocity = new THREE.Vector3();
+  const update = now => {
+    const speed = 0.003;
+    const timeDiff = now - lastTimestamp;
+    
+    const transforms = rigManager.getRigTransforms();
+    let {position, quaternion} = transforms[0];
+    position = position.clone();
+    position.y = 0;
+    const distance = mesh.position.distanceTo(position);
+    const minDistance = 1;
+    let moveDelta;
+    if (distance > minDistance) {
+      const direction = position.clone().sub(mesh.position).normalize();
+      const maxMoveDistance = distance - minDistance;
+      const moveDistance = Math.min(speed * timeDiff, maxMoveDistance);
+      moveDelta = direction.clone().multiplyScalar(moveDistance);
+      mesh.position.add(moveDelta);
+      mesh.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction), 0.1);
+    } else {
+      moveDelta = new THREE.Vector3();
+    }
+    smoothVelocity.lerp(moveDelta, 0.3);
+    action.weight = smoothVelocity.length() * 100;
+    
+    const deltaSeconds = timeDiff / 1000;
+    mixer.update(deltaSeconds);
+    lastTimestamp = now;
+  };
+  petAnimationMixers.push({
+    update,
+  });
+};
+_loadPet();
 
 const weaponsManager = {
   // weapons,
