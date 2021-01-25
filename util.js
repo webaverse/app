@@ -84,9 +84,6 @@ export function bindUploadFileButton(inputFileEl, handleUpload) {
 
 // returns whether we actually snapped
 export function updateGrabbedObject(o, transform, offset, {collisionEnabled, handSnapEnabled, geometryManager, gridSnap}) {
-  if (!geometryManager) {
-    debugger;
-  }
   const {position, quaternion} = transform;
 
   let collision = collisionEnabled && geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
