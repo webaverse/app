@@ -1475,6 +1475,8 @@ const _loadDrivable = async () => {
     rigManager.localRig.sitState = true;
     // rigManager.localRig.sitTarget.matrixWorld.decompose(spine.position, spine.quaternion, localVector);
     
+    physicsManager.setSitState(true);
+    
     localMatrix.copy(spine.matrixWorld)
       .multiply(
         localMatrix2.fromArray(skeleton.boneMatrices, spineBoneIndex * 16)
