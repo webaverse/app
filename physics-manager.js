@@ -82,6 +82,10 @@ const setSitState = newSitState => {
 };
 physicsManager.setSitState = setSitState;
 
+const sitTarget = new THREE.Object3D();
+const getSitTarget = () => sitTarget;
+physicsManager.getSitTarget = getSitTarget;
+
 const physicsObjects = {};
 const physicsUpdates = [];
 const _makePhysicsObject = (position, quaternion) => ({
