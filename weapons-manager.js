@@ -421,6 +421,7 @@ const _grab = object => {
   const {position, quaternion} = transforms[0];
 
   appManager.grabbedObjects[0] = object;
+  weaponsManager.gridSnap = 0;
 
   object.savedRotation.copy(object.rotation);
   object.startQuaternion.copy(quaternion);
@@ -1423,7 +1424,7 @@ const weaponsManager = {
   buildMat: 'wood', */
   menuOpen: 0,
   // weaponWheel: false,
-  gridSnap: 1,
+  gridSnap: 0,
   editMode: false,
   /* getWeapon() {
     return selectedWeapon;
@@ -1633,6 +1634,7 @@ const weaponsManager = {
   async startBuild(mode) {
     const object = await _loadItemSpec1('./assets/type/object.geo');
     object.setMode(mode);
+    this.gridSnap = 1;
   },
   setBuildMode(mode) {
     editedObject.setMode(mode);
