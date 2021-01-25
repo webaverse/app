@@ -1482,6 +1482,10 @@ const _loadDrivable = async () => {
         localMatrix2.fromArray(skeleton.boneMatrices, spineBoneIndex * 16)
       )
       .decompose(cubeMesh.position, cubeMesh.quaternion, localVector);
+      
+    const offset = physicsManager.getAvatarCameraOffset();
+    camera.position.copy(cubeMesh.position)
+      .sub(offset.clone().applyQuaternion(camera.quaternion));
   };
   drivables.push({
     update,
