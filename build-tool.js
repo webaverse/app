@@ -25,7 +25,7 @@ for (let i = 0, j = 0; i < planeGeometry.attributes.position.array.length; i += 
     planeGeometry.attributes.uv.array[j+2] = planeGeometry.attributes.position.array[i+2]/4;
   }
 }
-planeGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -1/baseUnit/2, 0));
+// planeGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -1/baseUnit/2, 0));
 const modeMeshes = {
   floor: (() => {
     const offset = new THREE.Vector3(0, 0, 0);
