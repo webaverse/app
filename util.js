@@ -115,9 +115,9 @@ export function updateGrabbedObject(o, transform, offset, {collisionEnabled, han
 
 export function snapPosition(o, positionSnap) {
   if (positionSnap > 0) {
-    o.position.x = Math.round(o.position.x / positionSnap) * positionSnap;
-    o.position.y = Math.round(o.position.y / positionSnap) * positionSnap;
-    o.position.z = Math.round(o.position.z / positionSnap) * positionSnap;
+    o.position.x = Math.round((o.position.x + positionSnap/2) / positionSnap) * positionSnap - positionSnap/2;
+    o.position.y = Math.round((o.position.y + positionSnap/2) / positionSnap) * positionSnap - positionSnap/2;
+    o.position.z = Math.round((o.position.z + positionSnap/2) / positionSnap) * positionSnap - positionSnap/2;
   }
 }
 export function snapRotation(o, rotationSnap) {
