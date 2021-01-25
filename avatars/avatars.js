@@ -108,6 +108,7 @@ let animations = animationsJson.map(a => THREE.AnimationClip.parse(a));
     // `falling landing.fbx`,
     // `floating.fbx`,
     `treading water.fbx`,
+    `sitting idle.fbx`,
   ];
   for (const name of animationFileNames) {
     const u = './animations/' + name;
