@@ -28,7 +28,9 @@ for (let i = 0, j = 0; i < planeGeometry.attributes.position.array.length; i += 
 planeGeometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, -1/baseUnit/2, 0));
 const modeMeshes = {
   floor: (() => {
-    let geometry = planeGeometry.clone();
+    const offset = new THREE.Vector3(0, 0, 0);
+    let geometry = planeGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z));
 
     geometry = geometry.toNonIndexed();
 
@@ -50,12 +52,15 @@ const modeMeshes = {
     const material = buildMaterial;
     const mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.order = 'YXZ';
+    // mesh.offset = offset;
     mesh.savedRotation = mesh.rotation.clone();
     mesh.startQuaternion = mesh.quaternion.clone();
     return mesh;
   })(),
   wall: (() => {
-    let geometry = planeGeometry.clone();
+    const offset = new THREE.Vector3(0, 0, 0);
+    let geometry = planeGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z));
 
     geometry = geometry.toNonIndexed();
 
@@ -78,12 +83,15 @@ const modeMeshes = {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
     mesh.rotation.order = 'YXZ';
+    // mesh.offset = offset;
     mesh.savedRotation = mesh.rotation.clone();
     mesh.startQuaternion = mesh.quaternion.clone();
     return mesh;
   })(),
   stair: (() => {
-    let geometry = planeGeometry.clone();
+    const offset = new THREE.Vector3(0, 0, 0);
+    let geometry = planeGeometry.clone()
+      .applyMatrix4(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z));
 
     geometry = geometry.toNonIndexed();
 
@@ -106,6 +114,7 @@ const modeMeshes = {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/4);
     mesh.rotation.order = 'YXZ';
+    // mesh.offset = offset;
     mesh.savedRotation = mesh.rotation.clone();
     mesh.startQuaternion = mesh.quaternion.clone();
     return mesh;
@@ -551,7 +560,16 @@ const makeShapeMesh = () => {
     object.add(shapeMesh);
     shapes.push(shapeMesh);
     
-    const physicsId = physicsManager.addBoxGeometry(localVector.copy(modeMesh.position).add(localVector2.set(0, 1/baseUnit/2, 0).applyQuaternion(modeMesh.quaternion)), modeMesh.quaternion, localVector3.set(baseUnit/2, 1/baseUnit/2, baseUnit/2), false);
+    const physicsId = physicsManager.addBoxGeometry(
+      localVector.copy(modeMesh.position)
+        .add(
+          localVector2.set(0, 1/baseUnit/2, 0)
+            .applyQuaternion(modeMesh.quaternion)
+        ),
+        modeMesh.quaternion,
+        localVector3.set(baseUnit/2, 1/baseUnit/2, baseUnit/2),
+        false
+      );
     physicsIds.push(physicsId);
   };
   object.getShapes = () => shapes;
