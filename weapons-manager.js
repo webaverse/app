@@ -1478,20 +1478,12 @@ const _loadDrivable = async () => {
     // const bonePosition = spineBone.getWorldPosition(new THREE.Vector3());
     
     physicsManager.setSitState(true);
-    const sitTarget = physicsManager.getSitTarget();
+    // const sitTarget = physicsManager.getSitTarget();
     physicsManager.setSitController(root);
+    physicsManager.setSitTarget(spineBone);
     
     rigManager.localRig.sitState = true;
     // rigManager.localRig.sitTarget.matrixWorld.decompose(spine.position, spine.quaternion, localVector);
-    
-    localMatrix.copy(spineBone.matrixWorld)
-      .decompose(sitTarget.position, sitTarget.quaternion, sitTarget.scale);
-    sitTarget.position.y += 1;
-    sitTarget.quaternion.premultiply(localQuaternion.setFromAxisAngle(localVector.set(0, 1, 0), Math.PI));
-
-    const offset = physicsManager.getAvatarCameraOffset();
-    camera.position.copy(sitTarget.position)
-      .sub(offset.clone().applyQuaternion(camera.quaternion));
     
     // rigManager.localRigMatrix.decompose(localVector, localQuaternion, localVector2);
     // rigManager.setLocalRigMatrix(rigManager.localRigMatrix.compose(localVector, cubeMesh.quaternion, localVector2));
