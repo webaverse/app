@@ -150,7 +150,9 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
         }
       });
     };
-    _loadAnimations();
+    if (!components.some(c => c.type === 'sit')) {
+      _loadAnimations();
+    }
 
     const _loadLightmaps = () => {
       const _loadLightmap = async (parser, materialIndex) => {
