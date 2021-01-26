@@ -69,8 +69,6 @@ class RigAux {
           // const spine = skeleton.bones[spineBoneIndex];
           // const spineBoneMatrix = skeleton.boneMatrices[spineBoneIndex];
           // const spineBoneMatrixInverse = skeleton.boneInverses[spineBoneIndex];
-          // console.log('got spine', mesh, skeleton);
-          // window.THREE = THREE;
           
           physicsManager.setSitState(true);
           // const sitTarget = physicsManager.getSitTarget();
