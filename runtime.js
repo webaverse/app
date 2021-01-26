@@ -334,6 +334,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   };
   mesh.getPhysicsIds = () => physicsIds;
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
+  mesh.getAnimations = () => animations;
   mesh.components = components;
   mesh.used = false;
 

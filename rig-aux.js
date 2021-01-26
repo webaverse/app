@@ -33,14 +33,17 @@ class RigAux {
       gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
     }); */
     const root = o;
-    const {animations} = o;
+    const animations = o.getAnimations();
     /* o = o.scene;
     // o.scale.multiplyScalar(0.2);
     scene.add(o); */
     
+    
     const sitComponent = o.components.find(c => c.type === 'sit');
     // console.log('got sit component', sitComponent);
-  	const {sitBone = 'Spine'} = sitComponent;
+  	const {sitBone = 'Spine', walkAnimation = 'walk'} = sitComponent;
+
+    const animation = animations.find(a => a.name === walkAnimation);
 
     // hacks
     {
@@ -48,7 +51,7 @@ class RigAux {
     }
     
     const mixer = new THREE.AnimationMixer(root);
-    const [clip] = animations;
+    const clip = animation;
     const action = mixer.clipAction(clip);
     action.play();
     
