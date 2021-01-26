@@ -74,6 +74,30 @@ const setGlide = newGlideState => {
 };
 physicsManager.setGlide = setGlide;
 
+let sitState = false;
+const getSitState = () => sitState;
+physicsManager.getSitState = getSitState;
+const setSitState = newSitState => {
+  sitState = newSitState;
+};
+physicsManager.setSitState = setSitState;
+
+let sitTarget = null;
+const getSitTarget = () => sitTarget;
+physicsManager.getSitTarget = getSitTarget;
+const setSitTarget = newSitTarget => {
+  sitTarget = newSitTarget;
+};
+physicsManager.setSitTarget = setSitTarget;
+
+let sitController = null;
+const getSitController = () => sitController;
+physicsManager.getSitController = getSitController;
+const setSitController = newSitController => {
+  sitController = newSitController;
+};
+physicsManager.setSitController = setSitController;
+
 const physicsObjects = {};
 const physicsUpdates = [];
 const _makePhysicsObject = (position, quaternion) => ({
@@ -230,41 +254,64 @@ const _getAvatarCameraOffset = () => {
 };
 physicsManager.getAvatarCameraOffset = _getAvatarCameraOffset;
 const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAvatarDirection, updateRig, timeDiff) => {
-  const oldVelocity = localVector3.copy(physicsManager.velocity);
-
-  applyVelocity(camera.position, physicsManager.velocity, timeDiff);
-
   camera.position.add(physicsManager.offset);
   physicsManager.offset.setScalar(0);
+  
+  if (!sitState) {
+    applyVelocity(camera.position, physicsManager.velocity, timeDiff);
 
-  camera.updateMatrixWorld();
-  camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
-  localVector4.copy(avatarOffset);
-  if (cameraBasedOffset) {
-    localVector4.applyQuaternion(localQuaternion);
-  }
-  localVector.add(localVector4);
-  const collision = _collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
-  if (velocityAvatarDirection && oldVelocity.lengthSq() > 0) {
-    localQuaternion.setFromUnitVectors(localVector4.set(0, 0, -1), localVector5.set(oldVelocity.x, 0, oldVelocity.z).normalize());
-  }
+    camera.updateMatrixWorld();
+    camera.matrixWorld.decompose(localVector, localQuaternion, localVector2);
 
-  if (collision) {
-    localVector4.fromArray(collision.direction);
-    camera.position.add(localVector4);
+    localVector4.copy(avatarOffset);
+    if (cameraBasedOffset) {
+      localVector4.applyQuaternion(localQuaternion);
+    }
     localVector.add(localVector4);
-    if (collision.grounded) {
-      physicsManager.velocity.y = 0;
-      jumpState = false;
-      jumpTime = -1;
-      glideState = false;
+    const collision = _collideCapsule(localVector, localQuaternion2.set(0, 0, 0, 1));
+    if (velocityAvatarDirection && physicsManager.velocity.lengthSq() > 0) {
+      localQuaternion.setFromUnitVectors(localVector4.set(0, 0, -1), localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize());
+    }
+
+    if (collision) {
+      localVector4.fromArray(collision.direction);
+      camera.position.add(localVector4);
+      localVector.add(localVector4);
+      if (collision.grounded) {
+        physicsManager.velocity.y = 0;
+        jumpState = false;
+        jumpTime = -1;
+        glideState = false;
+      } else if (!jumpState) {
+        jumpState = true;
+        jumpTime = 0;
+      }
     } else if (!jumpState) {
       jumpState = true;
       jumpTime = 0;
     }
-  } else if (!jumpState) {
-    jumpState = true;
-    jumpTime = 0;
+  } else {
+    physicsManager.velocity.y = 0;
+
+    applyVelocity(sitController.position, physicsManager.velocity, timeDiff);
+    if (velocityAvatarDirection && physicsManager.velocity.lengthSq() > 0) {
+      sitController.quaternion
+        .setFromUnitVectors(
+          localVector4.set(0, 0, -1),
+          localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize()
+        )
+        .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+    }
+    sitController.updateMatrixWorld();
+
+    localMatrix.copy(sitTarget.matrixWorld)
+      .decompose(localVector, localQuaternion, localVector2);
+    localVector.y += 1;
+    localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+    
+    const offset = physicsManager.getAvatarCameraOffset();
+    camera.position.copy(localVector)
+      .sub(offset.clone().applyQuaternion(camera.quaternion));
   }
   localMatrix.compose(localVector, localQuaternion, localVector2);
 
