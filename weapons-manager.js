@@ -370,7 +370,19 @@ const _click = () => {
     editedObject.place();
   } else if (appManager.grabbedObjects[0]) {
     if (appManager.grabbedObjectOffsets[0] < maxGrabDistance) {
-      console.log('use object', appManager.grabbedObjects[0]); // XXX
+      const components = appManager.grabbedObjects[0].components || [];
+      for (const component of components) {
+        switch (component.type) {
+          case 'swing': {
+            console.log('swing', appManager.grabbedObjects[0], component);
+            break;
+          }
+          case 'wear': {
+            console.log('wear', appManager.grabbedObjects[0], component);
+            break;
+          }
+        }
+      }
     } else {
       _ungrab();
     }
