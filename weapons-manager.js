@@ -384,6 +384,13 @@ const _click = () => {
               console.log('wear', o, component);
               _ungrab();
               rigAuxManager.addWearable(o);
+              o.used = true;
+              break;
+            }
+            case 'sit': {
+              _ungrab();
+              rigAuxManager.addSittable(o);
+              o.used = true;
               break;
             }
           }
@@ -471,10 +478,6 @@ const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {  
   const transforms = rigManager.getRigTransforms();
   const now = Date.now();
-  
-  for (const drivable of drivables) {
-    drivable.update(now);
-  }
 
   const _handleHighlight = () => {
     if (!editedObject) {
@@ -1454,65 +1457,6 @@ renderer.domElement.addEventListener('drop', async e => {
   color: 0xFF0000,
 }));
 scene.add(cubeMesh); */
-
-const drivables = [];
-const _loadDrivable = async () => {
-  const srcUrl = 'https://avaer.github.io/dragon-mount/dragon.glb';
-  let o = await new Promise((accept, reject) => {
-    gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
-  });
-  const {animations} = o;
-  o = o.scene;
-  // o.scale.multiplyScalar(0.2);
-  scene.add(o);
-  
-  const root = o;
-  const mixer = new THREE.AnimationMixer(root);
-  const [clip] = animations;
-  const action = mixer.clipAction(clip);
-  action.play();
-  
-  const mesh = root.getObjectByName('Cube');
-  const {skeleton} = mesh;
-  const spineBoneIndex = skeleton.bones.findIndex(b => b.name === 'Spine');
-  const spineBone = root.getObjectByName('Spine');
-  // const spine = skeleton.bones[spineBoneIndex];
-  // const spineBoneMatrix = skeleton.boneMatrices[spineBoneIndex];
-  // const spineBoneMatrixInverse = skeleton.boneInverses[spineBoneIndex];
-  // console.log('got spine', mesh, skeleton);
-  // window.THREE = THREE;
-
-  let lastTimestamp = Date.now();
-  const smoothVelocity = new THREE.Vector3();
-  const update = now => {
-    // const speed = 0.003;
-    const timeDiff = now - lastTimestamp;
-    
-    action.weight = physicsManager.velocity.length() * 10;
-
-    const deltaSeconds = timeDiff / 1000;
-    mixer.update(deltaSeconds);
-    lastTimestamp = now;
-    
-    // spineBone.updateMatrixWorld();
-    // const bonePosition = spineBone.getWorldPosition(new THREE.Vector3());
-    
-    physicsManager.setSitState(true);
-    // const sitTarget = physicsManager.getSitTarget();
-    physicsManager.setSitController(root);
-    physicsManager.setSitTarget(spineBone);
-    
-    rigManager.localRig.sitState = true;
-    // rigManager.localRig.sitTarget.matrixWorld.decompose(spine.position, spine.quaternion, localVector);
-    
-    // rigManager.localRigMatrix.decompose(localVector, localQuaternion, localVector2);
-    // rigManager.setLocalRigMatrix(rigManager.localRigMatrix.compose(localVector, cubeMesh.quaternion, localVector2));
-  };
-  drivables.push({
-    update,
-  });
-};
-_loadDrivable();
 
 const weaponsManager = {
   // weapons,
