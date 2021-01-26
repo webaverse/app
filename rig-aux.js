@@ -1,4 +1,5 @@
 import * as THREE from './three.module.js';
+import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
 
 const localVector = new THREE.Vector3();
@@ -9,6 +10,7 @@ const localMatrix = new THREE.Matrix4();
 class RigAux {
   constructor() {
     this.wearables = [];
+    this.sittables = [];
   }
   addWearable(o) {
   	const wearComponent = o.components.find(c => c.type === 'wear');
@@ -25,9 +27,88 @@ class RigAux {
     });
     o.used = true;
   }
+  addSittable(o) {
+    /* const srcUrl = 'https://avaer.github.io/dragon-mount/dragon.glb';
+    let o = await new Promise((accept, reject) => {
+      gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
+    }); */
+    const root = o;
+    const {animations} = o;
+    /* o = o.scene;
+    // o.scale.multiplyScalar(0.2);
+    scene.add(o); */
+    
+    const sitComponent = o.components.find(c => c.type === 'sit');
+    // console.log('got sit component', sitComponent);
+  	const {sitBone = 'Spine'} = sitComponent;
+
+    // hacks
+    {
+      root.position.y = 0;
+    }
+    
+    const mixer = new THREE.AnimationMixer(root);
+    const [clip] = animations;
+    const action = mixer.clipAction(clip);
+    action.play();
+    
+    let mesh = null;
+    root.traverse(o => {
+      if (o.isSkinnedMesh && !mesh) {
+        mesh = o;
+      }
+    });
+    if (mesh) {
+      const {skeleton} = mesh;
+      const spineBoneIndex = skeleton.bones.findIndex(b => b.name === sitBone);
+      const spineBone = root.getObjectByName(sitBone);
+      // const spine = skeleton.bones[spineBoneIndex];
+      // const spineBoneMatrix = skeleton.boneMatrices[spineBoneIndex];
+      // const spineBoneMatrixInverse = skeleton.boneInverses[spineBoneIndex];
+      // console.log('got spine', mesh, skeleton);
+      // window.THREE = THREE;
+      
+      physicsManager.setSitState(true);
+      // const sitTarget = physicsManager.getSitTarget();
+      physicsManager.setSitController(root);
+      physicsManager.setSitTarget(spineBone);
+      
+      rigManager.localRig.sitState = true;
+
+      let lastTimestamp = Date.now();
+      const smoothVelocity = new THREE.Vector3();
+      const update = now => {
+        // const speed = 0.003;
+        const timeDiff = now - lastTimestamp;
+        
+        // console.log('velocity', physicsManager.velocity.length());
+        
+        action.weight = physicsManager.velocity.length() * 10;
+
+        const deltaSeconds = timeDiff / 1000;
+        mixer.update(deltaSeconds);
+        lastTimestamp = now;
+        
+        // spineBone.updateMatrixWorld();
+        // const bonePosition = spineBone.getWorldPosition(new THREE.Vector3());
+        
+        
+        // rigManager.localRig.sitTarget.matrixWorld.decompose(spine.position, spine.quaternion, localVector);
+        
+        // rigManager.localRigMatrix.decompose(localVector, localQuaternion, localVector2);
+        // rigManager.setLocalRigMatrix(rigManager.localRigMatrix.compose(localVector, cubeMesh.quaternion, localVector2));
+      };
+      this.sittables.push({
+        update,
+      });
+    }
+  }
   update(now) {
     for (const wearable of this.wearables) {
 	    wearable.update(now);
+	  }
+    for (const sittable of this.sittables) {
+	    sittable.update(now);
 	  }
   }
 }
