@@ -57,6 +57,10 @@ class RigAux {
         // hacks
         {
           root.position.y = 0;
+          localEuler.setFromQuaternion(root.quaternion, 'YXZ');
+          localEuler.x = 0;
+          localEuler.z = 0;
+          root.quaternion.setFromEuler(localEuler);
         }
         
         const mixer = new THREE.AnimationMixer(root);
