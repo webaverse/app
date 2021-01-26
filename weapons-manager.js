@@ -381,7 +381,6 @@ const _click = () => {
               break;
             }
             case 'wear': {
-              console.log('wear', o, component);
               _ungrab();
               rigAuxManager.addWearable(o);
               o.used = true;
