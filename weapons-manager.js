@@ -1457,7 +1457,7 @@ scene.add(cubeMesh); */
 
 const drivables = [];
 const _loadDrivable = async () => {
-  const srcUrl = 'https://avaer.github.io/dragon/dragon.glb';
+  const srcUrl = 'https://avaer.github.io/dragon-mount/dragon.glb';
   let o = await new Promise((accept, reject) => {
     gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
   });
