@@ -712,7 +712,7 @@ const _makeAppUrl = appId => {
   });
   return URL.createObjectURL(b);
 };
-const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, use = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, components = [], monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -765,7 +765,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     app.popovers.length = 0;
   };
   mesh.getPhysicsIds = () => app.physicsIds;
-  mesh.use = use;
+  mesh.components = components;
 
   const app = appManager.createApp(appId);
   app.object = mesh;
@@ -849,7 +849,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
 
   const res = await fetch(srcUrl);
   const j = await res.json();
-  let {start_url, physics, physics_url, use} = j;
+  let {start_url, physics, physics_url, components} = j;
   const u = _dotifyUrl(start_url);
 
   /* if (physics_url) {
@@ -866,7 +866,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
     parentUrl: srcUrl,
     physics,
     physics_url,
-    use,
+    components,
     instanceId,
     ownerAddress,
     monetizationPointer,
