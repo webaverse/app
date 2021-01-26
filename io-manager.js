@@ -130,7 +130,8 @@ const _updateIo = timeDiff => {
           if (
             buttons[3] >= 0.5 && ioManager.lastButtons[index][3] < 0.5 &&
             !(Math.abs(axes[0]) > 0.5 || Math.abs(axes[1]) > 0.5 || Math.abs(axes[2]) > 0.5 || Math.abs(axes[3]) > 0.5) &&
-            !physicsManager.getJumpState()
+            !physicsManager.getJumpState() &&
+            !physicsManager.getSitState()
           ) {
             physicsManager.jump();
           }
@@ -379,10 +380,12 @@ ioManager.bindInput = () => {
       case 32: { // space
         if (document.pointerLockElement) {
           ioManager.keys.space = true;
-          if (!physicsManager.getJumpState()) {
-            physicsManager.jump();
-          } else {
-            physicsManager.setGlide(!physicsManager.getGlideState() && !physicsManager.getFlyState());
+          if (!physicsManager.getSitState()) {
+            if (!physicsManager.getJumpState()) {
+              physicsManager.jump();
+            } else {
+              physicsManager.setGlide(!physicsManager.getGlideState() && !physicsManager.getFlyState());
+            }
           }
         }
         break;
