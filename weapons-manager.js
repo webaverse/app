@@ -1470,6 +1470,8 @@ const _loadDrivable = async () => {
     // const speed = 0.003;
     const timeDiff = now - lastTimestamp;
     
+    action.weight = physicsManager.velocity.length() * 10;
+
     const deltaSeconds = timeDiff / 1000;
     mixer.update(deltaSeconds);
     lastTimestamp = now;
