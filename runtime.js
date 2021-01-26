@@ -150,7 +150,7 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
         }
       });
     };
-    if (!components.some(c => c.type === 'sit')) {
+    if (!components.some(c => ['sit', 'pet'].includes(c.type))) {
       _loadAnimations();
     }
 

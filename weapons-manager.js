@@ -381,7 +381,6 @@ const _click = () => {
               break;
             }
             case 'wear': {
-              console.log('wear', o, component);
               _ungrab();
               rigAuxManager.addWearable(o);
               o.used = true;
@@ -390,6 +389,12 @@ const _click = () => {
             case 'sit': {
               _ungrab();
               rigAuxManager.addSittable(o);
+              o.used = true;
+              break;
+            }
+            case 'pet': {
+              _ungrab();
+              rigAuxManager.addPet(o);
               o.used = true;
               break;
             }
