@@ -10,6 +10,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 import {rigManager} from './rig.js';
+import {rigAuxManager} from './rig-aux.js';
 import {buildMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
 import {teleportMeshes} from './teleport.js';
@@ -370,16 +371,21 @@ const _click = () => {
     editedObject.place();
   } else if (appManager.grabbedObjects[0]) {
     if (appManager.grabbedObjectOffsets[0] < maxGrabDistance) {
-      const components = appManager.grabbedObjects[0].components || [];
-      for (const component of components) {
-        switch (component.type) {
-          case 'swing': {
-            console.log('swing', appManager.grabbedObjects[0], component);
-            break;
-          }
-          case 'wear': {
-            console.log('wear', appManager.grabbedObjects[0], component);
-            break;
+      const o = appManager.grabbedObjects[0];
+      if (!o.used) {
+        const components = o.components || [];
+        for (const component of components) {
+          switch (component.type) {
+            case 'swing': {
+              console.log('swing', o, component);
+              break;
+            }
+            case 'wear': {
+              console.log('wear', o, component);
+              _ungrab();
+              rigAuxManager.addWearable(o);
+              break;
+            }
           }
         }
       }
@@ -465,10 +471,6 @@ const crosshairEl = document.querySelector('.crosshair');
 const _updateWeapons = () => {  
   const transforms = rigManager.getRigTransforms();
   const now = Date.now();
-  
-  for (const wearable of wearables) {
-    wearable.update(now);
-  }
 
   const _handleHighlight = () => {
     if (!editedObject) {
@@ -1443,49 +1445,6 @@ renderer.domElement.addEventListener('drop', async e => {
     await _handleUpload(file);
   }
 });
-
-const wearables = [];
-const _loadWearable = async () => {
-  {
-    const srcUrl = 'https://avaer.github.io/cat-in-hat/cat-in-hat.glb';
-    let o = await new Promise((accept, reject) => {
-      gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
-    });
-    // const {animations} = o;
-    o = o.scene;
-    o.scale.multiplyScalar(0.1);
-    scene.add(o);
-
-    const update = now => {
-      const {localRig} = rigManager;
-      const head = localRig.modelBones.Head;
-      head.matrixWorld.decompose(o.position, o.quaternion, localVector);
-    };
-    wearables.push({
-      update,
-    });
-  }
-  {
-    const srcUrl = 'https://avaer.github.io/sword/sword.glb';
-    let o = await new Promise((accept, reject) => {
-      gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
-    });
-    // const {animations} = o;
-    o = o.scene;
-    // o.scale.multiplyScalar(0.1);
-    scene.add(o);
-
-    const update = now => {
-      const {localRig} = rigManager;
-      const chest = localRig.modelBones.Chest;
-      chest.matrixWorld.decompose(o.position, o.quaternion, localVector);
-    };
-    wearables.push({
-      update,
-    });
-  }
-};
-_loadWearable();
 
 const weaponsManager = {
   // weapons,
