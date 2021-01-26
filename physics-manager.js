@@ -294,6 +294,14 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     physicsManager.velocity.y = 0;
 
     applyVelocity(sitController.position, physicsManager.velocity, timeDiff);
+    if (velocityAvatarDirection && physicsManager.velocity.lengthSq() > 0) {
+      sitController.quaternion
+        .setFromUnitVectors(
+          localVector4.set(0, 0, -1),
+          localVector5.set(physicsManager.velocity.x, 0, physicsManager.velocity.z).normalize()
+        )
+        .premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+    }
     sitController.updateMatrixWorld();
 
     localMatrix.copy(sitTarget.matrixWorld)
