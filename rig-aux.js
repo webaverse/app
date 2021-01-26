@@ -37,13 +37,13 @@ class RigAux {
     // o.scale.multiplyScalar(0.2);
     scene.add(o); */
     
-    let mesh = null;
+    let skinnedMesh = null;
     root.traverse(o => {
-      if (o.isSkinnedMesh && !mesh) {
-        mesh = o;
+      if (o.isSkinnedMesh && !skinnedMesh) {
+        skinnedMesh = o;
       }
     });
-    if (mesh) {
+    if (skinnedMesh) {
       const animations = o.getAnimations();
       
       const sitComponent = o.components.find(c => c.type === 'sit');
@@ -62,7 +62,7 @@ class RigAux {
         const action = mixer.clipAction(clip);
         action.play();
 
-        const {skeleton} = mesh;
+        const {skeleton} = skinnedMesh;
         const spineBoneIndex = skeleton.bones.findIndex(b => b.name === sitBone);
         const spineBone = root.getObjectByName(sitBone);
         if (spineBoneIndex !== -1 && spineBone) {
