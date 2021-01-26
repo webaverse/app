@@ -96,7 +96,7 @@ const _isResolvableUrl = u => !/^https?:/.test(u);
 const _dotifyUrl = u => /^(?:[a-z]+:|\.)/.test(u) ? u : ('./' + u);
 
 // const thingFiles = {};
-const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadGltf = async (file, {optimize = false, physics = false, physics_url = false, components = [], dynamic = false, autoScale = true, files = null, parentUrl = null, instanceId = null, monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -332,6 +332,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   };
   mesh.getPhysicsIds = () => physicsIds;
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
+  mesh.components = components;
+  mesh.used = false;
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
@@ -712,7 +714,7 @@ const _makeAppUrl = appId => {
   });
   return URL.createObjectURL(b);
 };
-const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, use = null, monetizationPointer = null, ownerAddress = null} = {}) => {
+const _loadScript = async (file, {files = null, parentUrl = null, instanceId = null, components = [], monetizationPointer = null, ownerAddress = null} = {}) => {
   let srcUrl = file.url || URL.createObjectURL(file);
   if (files && _isResolvableUrl(srcUrl)) {
     srcUrl = files[_dotifyUrl(srcUrl)];
@@ -765,7 +767,8 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
     app.popovers.length = 0;
   };
   mesh.getPhysicsIds = () => app.physicsIds;
-  mesh.use = use;
+  mesh.components = components;
+  mesh.used = false;
 
   const app = appManager.createApp(appId);
   app.object = mesh;
@@ -849,7 +852,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
 
   const res = await fetch(srcUrl);
   const j = await res.json();
-  let {start_url, physics, physics_url, use} = j;
+  let {start_url, physics, physics_url, components} = j;
   const u = _dotifyUrl(start_url);
 
   /* if (physics_url) {
@@ -866,7 +869,7 @@ const _loadManifestJson = async (file, {files = null, instanceId = null, monetiz
     parentUrl: srcUrl,
     physics,
     physics_url,
-    use,
+    components,
     instanceId,
     ownerAddress,
     monetizationPointer,
