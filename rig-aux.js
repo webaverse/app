@@ -12,10 +12,10 @@ class RigAux {
   }
   addWearable(o) {
   	const wearComponent = o.components.find(c => c.type === 'wear');
-  	const {position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1]} = wearComponent;
+  	const {position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], bone = 'Chest'} = wearComponent;
     const update = now => {
       const {localRig} = rigManager;
-      const chest = localRig.modelBones.Chest;
+      const chest = localRig.modelBones[bone];
       localMatrix.compose(localVector.fromArray(position), localQuaternion.fromArray(quaternion), localVector2.fromArray(scale))
         .premultiply(chest.matrixWorld)
         .decompose(o.position, o.quaternion, o.scale);
