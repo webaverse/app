@@ -10,6 +10,7 @@ import physicsManager from './physics-manager.js';
 import {world} from './world.js';
 import * as universe from './universe.js';
 import {rigManager} from './rig.js';
+import {rigAuxManager} from './rig-aux.js';
 import {buildMaterial} from './shaders.js';
 import {makeTextMesh} from './vr-ui.js';
 import {teleportMeshes} from './teleport.js';
@@ -370,7 +371,24 @@ const _click = () => {
     editedObject.place();
   } else if (appManager.grabbedObjects[0]) {
     if (appManager.grabbedObjectOffsets[0] < maxGrabDistance) {
-      console.log('use object', appManager.grabbedObjects[0]); // XXX
+      const o = appManager.grabbedObjects[0];
+      if (!o.used) {
+        const components = o.components || [];
+        for (const component of components) {
+          switch (component.type) {
+            case 'swing': {
+              console.log('swing', o, component);
+              break;
+            }
+            case 'wear': {
+              console.log('wear', o, component);
+              _ungrab();
+              rigAuxManager.addWearable(o);
+              break;
+            }
+          }
+        }
+      }
     } else {
       _ungrab();
     }
