@@ -1434,31 +1434,44 @@ renderer.domElement.addEventListener('drop', async e => {
 
 const wearables = [];
 const _loadWearable = async () => {
-  const srcUrl = 'https://avaer.github.io/cat-in-hat/cat-in-hat.glb';
-  let o = await new Promise((accept, reject) => {
-    gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
-  });
-  const {animations} = o;
-  o = o.scene;
-  o.scale.multiplyScalar(0.1);
-  scene.add(o);
+  {
+    const srcUrl = 'https://avaer.github.io/cat-in-hat/cat-in-hat.glb';
+    let o = await new Promise((accept, reject) => {
+      gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
+    });
+    // const {animations} = o;
+    o = o.scene;
+    o.scale.multiplyScalar(0.1);
+    scene.add(o);
 
-  let lastTimestamp = Date.now();
-  const smoothVelocity = new THREE.Vector3();
-  const update = now => {
-    const timeDiff = now - lastTimestamp;
-    const {localRig} = rigManager;
-    const head = localRig.modelBones.Head;
+    const update = now => {
+      const {localRig} = rigManager;
+      const head = localRig.modelBones.Head;
+      head.matrixWorld.decompose(o.position, o.quaternion, localVector);
+    };
+    wearables.push({
+      update,
+    });
+  }
+  {
+    const srcUrl = 'https://avaer.github.io/sword/sword.glb';
+    let o = await new Promise((accept, reject) => {
+      gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
+    });
+    // const {animations} = o;
+    o = o.scene;
+    // o.scale.multiplyScalar(0.1);
+    scene.add(o);
 
-    head.matrixWorld.decompose(o.position, o.quaternion, localVector);
-    
-    const deltaSeconds = timeDiff / 1000;
-    // mixer.update(deltaSeconds);
-    lastTimestamp = now;
-  };
-  wearables.push({
-    update,
-  });
+    const update = now => {
+      const {localRig} = rigManager;
+      const chest = localRig.modelBones.Chest;
+      chest.matrixWorld.decompose(o.position, o.quaternion, localVector);
+    };
+    wearables.push({
+      update,
+    });
+  }
 };
 _loadWearable();
 
