@@ -384,6 +384,13 @@ const _click = () => {
               console.log('wear', o, component);
               _ungrab();
               rigAuxManager.addWearable(o);
+              o.used = true;
+              break;
+            }
+            case 'sit': {
+              _ungrab();
+              rigAuxManager.addSittable(o);
+              o.used = true;
               break;
             }
           }
@@ -1445,6 +1452,11 @@ renderer.domElement.addEventListener('drop', async e => {
     await _handleUpload(file);
   }
 });
+
+/* const cubeMesh = new THREE.Mesh(new THREE.BoxBufferGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({
+  color: 0xFF0000,
+}));
+scene.add(cubeMesh); */
 
 const weaponsManager = {
   // weapons,
