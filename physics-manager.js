@@ -82,9 +82,13 @@ const setSitState = newSitState => {
 };
 physicsManager.setSitState = setSitState;
 
-const sitTarget = new THREE.Object3D();
+let sitTarget = null;
 const getSitTarget = () => sitTarget;
 physicsManager.getSitTarget = getSitTarget;
+const setSitTarget = newSitTarget => {
+  sitTarget = newSitTarget;
+};
+physicsManager.setSitTarget = setSitTarget;
 
 let sitController = null;
 const getSitController = () => sitController;
@@ -290,11 +294,16 @@ const _applyAvatarPhysics = (camera, avatarOffset, cameraBasedOffset, velocityAv
     physicsManager.velocity.y = 0;
 
     applyVelocity(sitController.position, physicsManager.velocity, timeDiff);
-    // sitController.updateMatrixWorld();
+    sitController.updateMatrixWorld();
 
-    localVector.copy(sitTarget.position);
-    localQuaternion.copy(sitTarget.quaternion);
-    localVector2.copy(sitTarget.scale);
+    localMatrix.copy(sitTarget.matrixWorld)
+      .decompose(localVector, localQuaternion, localVector2);
+    localVector.y += 1;
+    localQuaternion.premultiply(localQuaternion2.setFromAxisAngle(localVector3.set(0, 1, 0), Math.PI));
+    
+    const offset = physicsManager.getAvatarCameraOffset();
+    camera.position.copy(localVector)
+      .sub(offset.clone().applyQuaternion(camera.quaternion));
   }
   localMatrix.compose(localVector, localQuaternion, localVector2);
 
