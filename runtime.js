@@ -311,7 +311,6 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
     physicsBuffer = new Uint8Array(arrayBuffer);
   }
 
-  mesh.components = components;
   mesh.run = async () => {
     if (physicsMesh) {
       const physicsId = physicsManager.addGeometry(physicsMesh);
@@ -333,6 +332,8 @@ const _loadGltf = async (file, {optimize = false, physics = false, physics_url =
   };
   mesh.getPhysicsIds = () => physicsIds;
   mesh.getStaticPhysicsIds = () => staticPhysicsIds;
+  mesh.components = components;
+  mesh.used = false;
 
   const appId = ++appIds;
   const app = appManager.createApp(appId);
@@ -767,6 +768,7 @@ const _loadScript = async (file, {files = null, parentUrl = null, instanceId = n
   };
   mesh.getPhysicsIds = () => app.physicsIds;
   mesh.components = components;
+  mesh.used = false;
 
   const app = appManager.createApp(appId);
   app.object = mesh;
