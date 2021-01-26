@@ -51,6 +51,7 @@ const animationsSelectMap = {
   
   // 'floating.fbx': new THREE.Vector3(0, Infinity, 0),
   'treading water.fbx': new THREE.Vector3(0, Infinity, 0),
+  'sitting idle.fbx': new THREE.Vector3(0, Infinity, 0),
 };
 const animationsDistanceMap = {
   'idle.fbx': new THREE.Vector3(0, 0, 0),
@@ -78,8 +79,10 @@ const animationsDistanceMap = {
   
   // 'floating.fbx': new THREE.Vector3(0, Infinity, 0),
   'treading water.fbx': new THREE.Vector3(0, Infinity, 0),
+  'sitting idle.fbx': new THREE.Vector3(0, Infinity, 0),
 };
 let animations = animationsJson.map(a => THREE.AnimationClip.parse(a));
+
 /* // bake animations
 (async () => {
   animations = [];
@@ -105,6 +108,7 @@ let animations = animationsJson.map(a => THREE.AnimationClip.parse(a));
     // `falling landing.fbx`,
     // `floating.fbx`,
     `treading water.fbx`,
+    `sitting idle.fbx`,
   ];
   for (const name of animationFileNames) {
     const u = './animations/' + name;
@@ -231,6 +235,7 @@ animations.forEach(animation => {
   })();
   animation.isIdle = /idle/i.test(animation.name);
   animation.isJump = /jump/i.test(animation.name);
+  animation.isSitting = /sitting/i.test(animation.name);
   // animation.isFalling  = /falling/i.test(animation.name);
   animation.isFloat  = /treading/i.test(animation.name);
   animation.isForward = /forward/i.test(animation.name);
@@ -251,6 +256,7 @@ animations.forEach(animation => {
   } */
 });
 const jumpAnimation = animations.find(a => a.isJump);
+const sittingAnimation = animations.find(a => a.isSitting);
 const floatAnimation = animations.find(a => a.isFloat);
 
 const _localizeMatrixWorld = bone => {
@@ -1515,6 +1521,8 @@ class Avatar {
     this.jumpTime = NaN;
     this.flyState = false;
     this.flyTime = NaN;
+    this.sitState = false;
+    this.sitTarget = new THREE.Object3D();
 	}
   initializeBonePositions(setups) {
     this.shoulderTransforms.spine.position.copy(setups.spine);
@@ -1654,6 +1662,11 @@ class Avatar {
             const t2 = this.jumpTime/1000 * 0.6 + 0.7;
             const src2 = jumpAnimation.interpolants[k];
             const v2 = src2.evaluate(t2);
+
+            dst.fromArray(v2);
+          } else if (this.sitState) {
+            const src2 = sittingAnimation.interpolants[k];
+            const v2 = src2.evaluate(1);
 
             dst.fromArray(v2);
           }
