@@ -553,7 +553,7 @@ const _updateWeapons = () => {
     highlightedPhysicsObject = null;
 
     if (weaponsManager.editMode) {
-      const {position, quaternion} = transforms[0];
+      const {position, quaternion} = renderer.xr.getSession() ? transforms[0] : camera;
       let collision = geometryManager.geometryWorker.raycastPhysics(geometryManager.physics, position, quaternion);
       if (collision) {
         const objects = world.getObjects().concat(world.getStaticObjects());
