@@ -174,13 +174,19 @@ export default class App {
     {
       rigManager.localRig.model.visible = true;
       avatarScene.add(rigManager.localRig.model);
-      if (/^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession()) {
+      const decapitated = /^(?:camera|firstperson)$/.test(cameraManager.getMode()) || !!renderer.xr.getSession();
+      if (decapitated) {
         rigManager.localRig.decapitate();
+        rigManager.localRig.aux.decapitate();
       } else {
         rigManager.localRig.undecapitate();
+        rigManager.localRig.aux.undecapitate();
       }
       renderer.render(avatarScene, camera);
-      rigManager.localRig.undecapitate();
+      if (decapitated) {
+        rigManager.localRig.undecapitate();
+        rigManager.localRig.aux.undecapitate();
+      }
     }
     // highlight render
     // renderer.render(highlightScene, camera);
