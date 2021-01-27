@@ -111,11 +111,7 @@ export class RigAux {
       local: true,
     });
     avatarScene.add(o);
-    
-    /* const srcUrl = 'https://avaer.github.io/dragon-mount/dragon.glb';
-    let o = await new Promise((accept, reject) => {
-      gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
-    }); */
+
     const root = o;
     
     let skinnedMesh = null;
