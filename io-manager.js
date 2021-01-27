@@ -380,12 +380,13 @@ ioManager.bindInput = () => {
       case 32: { // space
         if (document.pointerLockElement) {
           ioManager.keys.space = true;
-          if (!physicsManager.getSitState()) {
-            if (!physicsManager.getJumpState()) {
-              physicsManager.jump();
-            } else {
-              physicsManager.setGlide(!physicsManager.getGlideState() && !physicsManager.getFlyState());
+          if (!physicsManager.getJumpState()) {
+            if (weaponsManager.canJumpOff()) {
+              weaponsManager.jumpOff();
             }
+            physicsManager.jump();
+          } else {
+            physicsManager.setGlide(!physicsManager.getGlideState() && !physicsManager.getFlyState());
           }
         }
         break;
