@@ -37,7 +37,7 @@ export class RigAux {
     {
       for (const newWearable of wearables) {
         if (!this.wearables.some(w => w.id === newWearable.id)) {
-          this.addWearable(newWearable.contentId, newWearable.component);
+          this.addWearable(newWearable.id, newWearable.contentId, newWearable.component);
         }
       }
       const localWearables = this.wearables.slice();
@@ -51,7 +51,7 @@ export class RigAux {
     {
       for (const newSittable of sittables) {
         if (!this.sittables.some(s => s.id === newSittable.id)) {
-          this.addSittable(newSittable.contentId, newSittable.component);
+          this.addSittable(newSittable.id, newSittable.contentId, newSittable.component);
         }
       }
       const localSittables = this.sittables.slice();
@@ -65,7 +65,7 @@ export class RigAux {
     {
       for (const newPet of pets) {
         if (!this.pets.some(p => p.id === newPet.id)) {
-          this.addPet(newPet.contentId, newPet.component);
+          this.addPet(newPet.id, newPet.contentId, newPet.component);
         }
       }
       const localPets = this.pets.slice();
@@ -76,7 +76,7 @@ export class RigAux {
       }
     }
   }
-  async addWearable(contentId, component) {
+  async addWearable(id, contentId, component) {
     const file = await contentIdToFile(contentId);
     const o = await runtime.loadFile(file, {
       local: true,
@@ -92,7 +92,6 @@ export class RigAux {
         .premultiply(chest.matrixWorld)
         .decompose(o.position, o.quaternion, o.scale);
     };
-    const id = ++this.nextId;
     this.wearables.push({
       id,
       contentId,
@@ -105,7 +104,7 @@ export class RigAux {
     avatarScene.remove(wearable.model);
     this.wearables.splice(this.wearables.indexOf(wearable), 1);
   }
-  async addSittable(contentId, component) {
+  async addSittable(id, contentId, component) {
     const file = await contentIdToFile(contentId);
     const o = await runtime.loadFile(file, {
       local: true,
@@ -159,7 +158,6 @@ export class RigAux {
             const deltaSeconds = timeDiff / 1000;
             mixer.update(deltaSeconds);
           };
-          const id = ++this.nextId;
           this.sittables.push({
             id,
             contentId,
@@ -181,7 +179,7 @@ export class RigAux {
     avatarScene.remove(sittable.model);
     this.sittables.splice(this.sittables.indexOf(sittable), 1);
   }
-  async addPet(contentId, component) {
+  async addPet(id, contentId, component) {
     const file = await contentIdToFile(contentId);
     const o = await runtime.loadFile(file, {
       local: true,
@@ -242,7 +240,6 @@ export class RigAux {
         const deltaSeconds = timeDiff / 1000;
         mixer.update(deltaSeconds);
       };
-      const id = ++this.nextId;
       this.pets.push({
         id,
         contentId,
@@ -257,6 +254,9 @@ export class RigAux {
   removePet(pet) {
     avatarScene.remove(pet.model);
     this.pets.splice(this.pets.indexOf(pet), 1);
+  }
+  getNextId() {
+    return ++this.nextId;
   }
   decapitate() {
     for (const wearable of this.wearables) {
