@@ -117,9 +117,6 @@ export class RigAux {
       gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
     }); */
     const root = o;
-    /* o = o.scene;
-    // o.scale.multiplyScalar(0.2);
-    scene.add(o); */
     
     let skinnedMesh = null;
     root.traverse(o => {
