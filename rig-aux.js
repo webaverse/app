@@ -1,6 +1,9 @@
 import * as THREE from './three.module.js';
+import runtime from './runtime.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
+import {scene} from './app-object.js';
+import {contentIdToFile} from './util.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -11,12 +14,31 @@ const localMatrix = new THREE.Matrix4();
 export class RigAux {
   constructor(rig) {
     this.rig = rig;
+
     this.wearables = [];
     this.sittables = [];
     this.pets = [];
+    
+    this.nextId = 0;
   }
-  addWearable(o) {
-  	const wearComponent = o.components.find(c => c.type === 'wear');
+  getPose() {
+    return {
+      wearables: this.wearables.map(o => o.id),
+      sittables: this.sittables.map(o => o.id),
+      pets: this.pets.map(o => o.id),
+    };
+  }
+  setPose(data) {
+    const {wearables, sittables, pets} = data;
+  }
+  async addWearable(contentId, wearComponent) {
+    const file = await contentIdToFile(contentId);
+    const o = await runtime.loadFile(file, {
+      local: true,
+    });
+    scene.add(o);
+    
+  	// const wearComponent = o.components.find(c => c.type === 'wear');
   	const {position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], bone = 'Chest'} = wearComponent;
     const update = now => {
       const {localRig} = rigManager;
@@ -25,12 +47,20 @@ export class RigAux {
         .premultiply(chest.matrixWorld)
         .decompose(o.position, o.quaternion, o.scale);
     };
+    const id = ++this.nextId;
     this.wearables.push({
+      id,
+      contentId,
       update,
     });
-    o.used = true;
   }
-  addSittable(o) {
+  async addSittable(contentId, sitComponent) {
+    const file = await contentIdToFile(contentId);
+    const o = await runtime.loadFile(file, {
+      local: true,
+    });
+    scene.add(o);
+    
     /* const srcUrl = 'https://avaer.github.io/dragon-mount/dragon.glb';
     let o = await new Promise((accept, reject) => {
       gltfLoader.load(srcUrl, accept, function onprogress() {}, reject);
@@ -49,8 +79,7 @@ export class RigAux {
     if (skinnedMesh) {
       const animations = o.getAnimations();
       
-      const sitComponent = o.components.find(c => c.type === 'sit');
-      // console.log('got sit component', sitComponent);
+      // const sitComponent = o.components.find(c => c.type === 'sit');
       const {sitBone = 'Spine', walkAnimation = 'walk'} = sitComponent;
       const animation = animations.find(a => a.name === walkAnimation);
 
@@ -102,7 +131,10 @@ export class RigAux {
             // rigManager.localRigMatrix.decompose(localVector, localQuaternion, localVector2);
             // rigManager.setLocalRigMatrix(rigManager.localRigMatrix.compose(localVector, cubeMesh.quaternion, localVector2));
           };
+          const id = ++this.nextId;
           this.sittables.push({
+            id,
+            contentId,
             update,
           });
         } else {
@@ -115,11 +147,17 @@ export class RigAux {
       console.warn('no skinned mesh in model');
     }
   }
-  addPet(o) {
+  async addPet(contentId, petComponent) {
+    const file = await contentIdToFile(contentId);
+    const o = await runtime.loadFile(file, {
+      local: true,
+    });
+    scene.add(o);
+
     const mesh = o;
     const animations = mesh.getAnimations();
       
-    const petComponent = mesh.components.find(c => c.type === 'pet');
+    // const petComponent = mesh.components.find(c => c.type === 'pet');
     const {walkAnimation = 'walk'} = petComponent;
     
     const animation = animations.find(a => a.name === walkAnimation);
@@ -166,7 +204,10 @@ export class RigAux {
         const deltaSeconds = timeDiff / 1000;
         mixer.update(deltaSeconds);
       };
+      const id = ++this.nextId;
       this.pets.push({
+        id,
+        contentId,
         update,
       });
     } else {
