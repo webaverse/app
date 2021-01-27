@@ -1,7 +1,7 @@
 import * as THREE from './three.module.js';
 import {BufferGeometryUtils} from './BufferGeometryUtils.js';
 import atlaspack from './atlaspack.js';
-import {maxGrabDistance} from './constants.js';
+import {maxGrabDistance, tokensHost, storageHost} from './constants.js';
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -459,5 +459,40 @@ export function isInIframe() {
     return window.self !== window.top;
   } catch (e) {
     return true;
+  }
+}
+
+export async function contentIdToFile(contentId) {
+  if (typeof contentId === 'number') {
+    const res = await fetch(`${tokensHost}/${contentId}`);
+    token = await res.json();
+    const {hash, name, ext} = token.properties;
+
+    const res2 = await fetch(`${storageHost}/${hash}`);
+    const file = await res2.blob();
+    file.name = `${name}.${ext}`;
+    return file;
+  } else if (typeof contentId === 'string') {
+    let url, name;
+    if (/blob:/.test(contentId)) {
+      const match = contentId.match(/^(.+)\/([^\/]+)$/);
+      if (match) {
+        url = match[1];
+        name = match[2];
+      } else {
+        console.warn('blob url not appended with /filename.ext and cannot be interpreted', contentId);
+        return null;
+      }
+    } else {
+      url = contentId;
+      name = contentId;
+    }
+    return {
+      url,
+      name,
+    };
+  } else {
+    console.warn('unknown content id type', contentId);
+    return null;
   }
 }
