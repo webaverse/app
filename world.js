@@ -127,9 +127,9 @@ world.connectRoom = async (roomName, worldURL) => {
       rigManager.removePeerRig(peerConnection.connectionId);
       live = false;
 
-      world.dispatchEvent(new MessageEvent('peersupdate', {
+      /* world.dispatchEvent(new MessageEvent('peersupdate', {
         data: Array.from(rigManager.peerRigs.values()),
-      }));
+      })); */
     });
 
     peerConnection.addEventListener('status', e => {
@@ -153,11 +153,11 @@ world.connectRoom = async (roomName, worldURL) => {
         updated = true;
       }
 
-      if (updated) {
+      /* if (updated) {
         world.dispatchEvent(new MessageEvent('peersupdate', {
           data: Array.from(rigManager.peerRigs.values()),
         }));
-      }
+      } */
     });
     peerConnection.addEventListener('pose', e => {
       // const [head, leftGamepad, rightGamepad, floorHeight] = e.data;
@@ -224,9 +224,9 @@ world.connectRoom = async (roomName, worldURL) => {
       }, 10);
     }
 
-    world.dispatchEvent(new MessageEvent('peersupdate', {
+    /* world.dispatchEvent(new MessageEvent('peersupdate', {
       data: Array.from(rigManager.peerRigs.values()),
-    }));
+    })); */
   });
   channelConnection.close = (close => function() {
     close.apply(this, arguments);
