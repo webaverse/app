@@ -259,14 +259,14 @@ class RigManager {
     }
   }
   
-  isPeerRig(rig) {
+  /* isPeerRig(rig) {
     for (const peerRig of this.peerRigs.values()) {
       if (peerRig === rig) {
         return true;
       }
     }
     return false;
-  }
+  } */
 
   async addPeerRig(peerId) {
     const peerRig = new Avatar(null, {
