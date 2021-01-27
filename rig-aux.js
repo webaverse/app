@@ -192,9 +192,11 @@ export class RigAux {
     const animations = mesh.getAnimations();
       
     // const component = mesh.components.find(c => c.type === 'pet');
-    const {walkAnimation = 'walk'} = component;
+    const {walkAnimation = 'walk', flyAnimation = 'fly'} = component;
     
-    const animation = animations.find(a => a.name === walkAnimation);
+    const walkAnimationClip = animations.find(a => a.name === walkAnimation);
+    const flyAnimationClip = animations.find(a => a.name === flyAnimation);
+    const animation = walkAnimationClip || flyAnimationClip;
     if (animation) {
       // hacks
       {
@@ -233,8 +235,10 @@ export class RigAux {
           moveDelta = new THREE.Vector3();
         }
         smoothVelocity.lerp(moveDelta, 0.3);
-        action.weight = smoothVelocity.length() * 100;
-        
+        if (animation === walkAnimationClip) {
+          action.weight = smoothVelocity.length() * 100;
+        }
+
         const deltaSeconds = timeDiff / 1000;
         mixer.update(deltaSeconds);
       };
