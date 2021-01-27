@@ -40,6 +40,7 @@ physicsManager.getJumpTime = getJumpTime;
 const jump = () => {
   jumpState = true;
   jumpTime = 0;
+  sitState = false;
   physicsManager.velocity.y += 5;
 };
 physicsManager.jump = jump;
