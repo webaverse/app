@@ -134,25 +134,32 @@ world.connectRoom = async (roomName, worldURL) => {
     });
 
     peerConnection.addEventListener('status', e => {
-      const {peerId, status: {name, avatarUrl, avatarExt, address}} = e.data;
+      const {peerId, status: {name, avatarUrl, avatarExt, address, aux}} = e.data;
       const peerRig = rigManager.peerRigs.get(peerId);
       peerRig.address = address;
       peerConnection.address = address;
 
-      let updated = false;
+      // let updated = false;
 
       const currentPeerName = peerRig.textMesh.text;
       if (currentPeerName !== name) {
         rigManager.setPeerAvatarName(name, peerId);
-        updated = true;
+        // updated = true;
       }
 
       const newAvatarUrl = avatarUrl || null;
       const currentAvatarUrl = peerRig.avatarUrl;
       if (currentAvatarUrl !== newAvatarUrl) {
         rigManager.setPeerAvatarUrl(newAvatarUrl, avatarExt, peerId);
-        updated = true;
+        // updated = true;
       }
+
+      if (currentAvatarUrl !== newAvatarUrl) {
+        rigManager.setPeerAvatarUrl(newAvatarUrl, avatarExt, peerId);
+        // updated = true;
+      }
+      
+      rigManager.setPeerAvatarAux(aux, peerId);
 
       /* if (updated) {
         world.dispatchEvent(new MessageEvent('peersupdate', {
@@ -203,6 +210,7 @@ world.connectRoom = async (roomName, worldURL) => {
         const avatarUrl = avatarSpec && avatarSpec.url;
         const avatarExt = avatarSpec && avatarSpec.ext;
         const address = loginManager.getAddress();
+        const aux = rigManager.localRig.aux.getPose();
         channelConnection.send(JSON.stringify({
           method: 'status',
           data: {
@@ -211,7 +219,8 @@ world.connectRoom = async (roomName, worldURL) => {
               name,
               avatarUrl,
               avatarExt,
-              address
+              address,
+              aux,
             },
           },
         }));
