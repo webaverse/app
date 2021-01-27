@@ -42,7 +42,7 @@ export class RigAux {
       }
       const localWearables = this.wearables.slice();
       for (const oldWearable of localWearables) {
-        if (!wearables.some(w => w.id === newWearable.id)) {
+        if (!wearables.some(w => w.id === oldWearable.id)) {
           this.removeWearable(oldWearable);
         }
       }
@@ -55,9 +55,9 @@ export class RigAux {
         }
       }
       const localSittables = this.sittables.slice();
-      for (const oldSittables of localSittables) {
-        if (!sittables.some(s => s.id === oldSittables.id)) {
-          this.removeSittable(oldSittables);
+      for (const oldSittable of localSittables) {
+        if (!sittables.some(s => s.id === oldSittable.id)) {
+          this.removeSittable(oldSittable);
         }
       }
     }
@@ -69,9 +69,9 @@ export class RigAux {
         }
       }
       const localPets = this.pets.slice();
-      for (const oldPets of localPets) {
-        if (!pets.some(o => o.id === oldPets.id)) {
-          this.removePet(oldPets);
+      for (const oldPet of localPets) {
+        if (!pets.some(o => o.id === oldPet.id)) {
+          this.removePet(oldPet);
         }
       }
     }
