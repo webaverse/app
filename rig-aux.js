@@ -8,8 +8,9 @@ const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localMatrix = new THREE.Matrix4();
 
-class RigAux {
-  constructor() {
+export class RigAux {
+  constructor(rig) {
+    this.rig = rig;
     this.wearables = [];
     this.sittables = [];
     this.pets = [];
@@ -83,19 +84,14 @@ class RigAux {
           
           rigManager.localRig.sitState = true;
 
-          let lastTimestamp = Date.now();
-          const smoothVelocity = new THREE.Vector3();
-          const update = now => {
-            // const speed = 0.003;
-            const timeDiff = now - lastTimestamp;
-            
+          const update = timeDiff => {
+            timeDiff *= 1000;
             // console.log('velocity', physicsManager.velocity.length());
             
             action.weight = physicsManager.velocity.length() * 10;
 
             const deltaSeconds = timeDiff / 1000;
             mixer.update(deltaSeconds);
-            lastTimestamp = now;
             
             // spineBone.updateMatrixWorld();
             // const bonePosition = spineBone.getWorldPosition(new THREE.Vector3());
@@ -142,11 +138,10 @@ class RigAux {
       const action = mixer.clipAction(clip);
       action.play();
 
-      let lastTimestamp = Date.now();
       const smoothVelocity = new THREE.Vector3();
-      const update = now => {
+      const update = timeDiff => {
         const speed = 0.003;
-        const timeDiff = now - lastTimestamp;
+        timeDiff *= 1000;
         
         const transforms = rigManager.getRigTransforms();
         let {position, quaternion} = transforms[0];
@@ -170,7 +165,6 @@ class RigAux {
         
         const deltaSeconds = timeDiff / 1000;
         mixer.update(deltaSeconds);
-        lastTimestamp = now;
       };
       this.pets.push({
         update,
@@ -179,16 +173,15 @@ class RigAux {
       console.warn('could not find walk animation in model: ' + walkAnimation + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
     }
   }
-  update(now) {
+  update(timeDiff) {
     for (const wearable of this.wearables) {
-	    wearable.update(now);
+	    wearable.update(timeDiff);
 	  }
     for (const sittable of this.sittables) {
-	    sittable.update(now);
+	    sittable.update(timeDiff);
 	  }
     for (const pet of this.pets) {
-	    pet.update(now);
+	    pet.update(timeDiff);
 	  }
   }
 }
-export const rigAuxManager = new RigAux();
