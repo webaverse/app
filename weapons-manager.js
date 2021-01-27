@@ -372,6 +372,7 @@ const _click = () => {
   } else if (appManager.grabbedObjects[0]) {
     if (appManager.grabbedObjectOffsets[0] < maxGrabDistance) {
       const o = appManager.grabbedObjects[0];
+      const {contentId} = o;
       const components = o.components || [];
       for (const component of components) {
         switch (component.type) {
@@ -381,17 +382,32 @@ const _click = () => {
           }
           case 'wear': {
             _ungrab();
-            rigManager.localRig.aux.addWearable(o.contentId, component);
+            const auxPose = rigManager.localRig.aux.getPose();
+            auxPose.wearables.push({
+              contentId,
+              component
+            });
+            rigManager.localRig.aux.setPose(auxPose);
             break;
           }
           case 'sit': {
             _ungrab();
-            rigManager.localRig.aux.addSittable(o.contentId, component);
+            const auxPose = rigManager.localRig.aux.getPose();
+            auxPose.sittables.push({
+              contentId,
+              component
+            });
+            rigManager.localRig.aux.setPose(auxPose);
             break;
           }
           case 'pet': {
             _ungrab();
-            rigManager.localRig.aux.addPet(o.contentId, component);
+            const auxPose = rigManager.localRig.aux.getPose();
+            auxPose.pets.push({
+              contentId,
+              component
+            });
+            rigManager.localRig.aux.setPose(auxPose);
             break;
           }
         }
