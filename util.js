@@ -463,6 +463,7 @@ export function isInIframe() {
 }
 
 export async function contentIdToFile(contentId) {
+  let token = null;
   if (typeof contentId === 'number') {
     const res = await fetch(`${tokensHost}/${contentId}`);
     token = await res.json();
@@ -471,6 +472,7 @@ export async function contentIdToFile(contentId) {
     const res2 = await fetch(`${storageHost}/${hash}`);
     const file = await res2.blob();
     file.name = `${name}.${ext}`;
+    file.token = token;
     return file;
   } else if (typeof contentId === 'string') {
     let url, name;
@@ -490,6 +492,7 @@ export async function contentIdToFile(contentId) {
     return {
       url,
       name,
+      token,
     };
   } else {
     console.warn('unknown content id type', contentId);

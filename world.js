@@ -342,7 +342,6 @@ world.addEventListener('trackedobjectadd', async e => {
     const trackedObjectJson = trackedObject.toJSON();
     const {instanceId, parentId, contentId, position, quaternion, options: optionsString} = trackedObjectJson;
     const options = JSON.parse(optionsString);
-    let token = null;
 
     const file = await contentIdToFile(contentId);
     let mesh;
@@ -353,8 +352,8 @@ world.addEventListener('trackedobjectadd', async e => {
         physics_url: options.physics_url,
         autoScale: options.autoScale,
         dynamic,
-        monetizationPointer: token ? token.owner.monetizationPointer : "",
-        ownerAddress: token ? token.owner.address : ""
+        monetizationPointer: file.token ? file.token.owner.monetizationPointer : "",
+        ownerAddress: file.token ? file.token.owner.address : ""
       });
       if (mesh) {
         mesh.position.fromArray(position);
@@ -397,9 +396,9 @@ world.addEventListener('trackedobjectadd', async e => {
       trackedObject.observe(_observe);
       trackedObject.unobserve = trackedObject.unobserve.bind(trackedObject, _observe);
 
-      if (token && token.owner.address && token.owner.monetizationPointer && token.owner.monetizationPointer[0] === "$") {
-        const monetizationPointer = token.owner.monetizationPointer;
-        const ownerAddress = token.owner.address.toLowerCase();
+      if (file.token && file.token.owner.address && file.token.owner.monetizationPointer && file.token.owner.monetizationPointer[0] === "$") {
+        const monetizationPointer = file.token.owner.monetizationPointer;
+        const ownerAddress = file.token.owner.address.toLowerCase();
         pointers.push({ contentId, instanceId, monetizationPointer, ownerAddress });
       }
 
