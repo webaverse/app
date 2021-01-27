@@ -22,24 +22,69 @@ export class RigAux {
     this.nextId = 0;
   }
   getPose() {
+    const _formatAuxObject = o => ({
+      contentId: o.contentId,
+      component: o.component,
+    });
     return {
-      wearables: this.wearables.map(o => o.id),
-      sittables: this.sittables.map(o => o.id),
-      pets: this.pets.map(o => o.id),
+      wearables: this.wearables.map(_formatAuxObject),
+      sittables: this.sittables.map(_formatAuxObject),
+      pets: this.pets.map(_formatAuxObject),
     };
   }
   setPose(data) {
     const {wearables, sittables, pets} = data;
+    {
+      for (const newWearable of wearables) {
+        if (!this.wearables.some(w => w.id === newWearable.id)) {
+          this.addWearable(newWearable.contentId, newWearable.component);
+        }
+      }
+      const localWearables = this.wearables.slice();
+      for (const oldWearable of localWearables) {
+        if (!wearables.some(w => w.id === newWearable.id)) {
+          this.removeWearable(oldWearable);
+        }
+      }
+    }
+
+    {
+      for (const newSittable of sittables) {
+        if (!this.sittables.some(s => s.id === newSittable.id)) {
+          this.addSittable(newSittable.contentId, newSittable.component);
+        }
+      }
+      const localSittables = this.sittables.slice();
+      for (const oldSittables of localSittables) {
+        if (!sittables.some(s => s.id === oldSittables.id)) {
+          this.removeSittable(oldSittables);
+        }
+      }
+    }
+
+    {
+      for (const newPet of pets) {
+        if (!this.pets.some(p => p.id === newPet.id)) {
+          this.addPet(newPet.contentId, newPet.component);
+        }
+      }
+      const localPets = this.pets.slice();
+      for (const oldPets of localPets) {
+        if (!pets.some(o => o.id === oldPets.id)) {
+          this.removePet(oldPets);
+        }
+      }
+    }
   }
-  async addWearable(contentId, wearComponent) {
+  async addWearable(contentId, component) {
     const file = await contentIdToFile(contentId);
     const o = await runtime.loadFile(file, {
       local: true,
     });
     scene.add(o);
     
-  	// const wearComponent = o.components.find(c => c.type === 'wear');
-  	const {position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], bone = 'Chest'} = wearComponent;
+  	// const component = o.components.find(c => c.type === 'wear');
+  	const {position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], bone = 'Chest'} = component;
     const update = now => {
       const {localRig} = rigManager;
       const chest = localRig.modelBones[bone];
@@ -51,10 +96,16 @@ export class RigAux {
     this.wearables.push({
       id,
       contentId,
+      component,
+      model: o,
       update,
     });
   }
-  async addSittable(contentId, sitComponent) {
+  removeWearable(wearable) {
+    scene.remove(wearable);
+    this.wearables.splice(this.wearables.indexOf(wearable), 1);
+  }
+  async addSittable(contentId, component) {
     const file = await contentIdToFile(contentId);
     const o = await runtime.loadFile(file, {
       local: true,
@@ -79,8 +130,8 @@ export class RigAux {
     if (skinnedMesh) {
       const animations = o.getAnimations();
       
-      // const sitComponent = o.components.find(c => c.type === 'sit');
-      const {sitBone = 'Spine', walkAnimation = 'walk'} = sitComponent;
+      // const component = o.components.find(c => c.type === 'sit');
+      const {sitBone = 'Spine', walkAnimation = 'walk'} = component;
       const animation = animations.find(a => a.name === walkAnimation);
 
       if (animation) {
@@ -135,6 +186,8 @@ export class RigAux {
           this.sittables.push({
             id,
             contentId,
+            component,
+            model: o,
             update,
           });
         } else {
@@ -147,7 +200,11 @@ export class RigAux {
       console.warn('no skinned mesh in model');
     }
   }
-  async addPet(contentId, petComponent) {
+  removeSittable(sittable) {
+    scene.remove(sittable);
+    this.sittables.splice(this.sittables.indexOf(sittable), 1);
+  }
+  async addPet(contentId, component) {
     const file = await contentIdToFile(contentId);
     const o = await runtime.loadFile(file, {
       local: true,
@@ -157,8 +214,8 @@ export class RigAux {
     const mesh = o;
     const animations = mesh.getAnimations();
       
-    // const petComponent = mesh.components.find(c => c.type === 'pet');
-    const {walkAnimation = 'walk'} = petComponent;
+    // const component = mesh.components.find(c => c.type === 'pet');
+    const {walkAnimation = 'walk'} = component;
     
     const animation = animations.find(a => a.name === walkAnimation);
     if (animation) {
@@ -208,11 +265,17 @@ export class RigAux {
       this.pets.push({
         id,
         contentId,
+        component,
+        model: o,
         update,
       });
     } else {
       console.warn('could not find walk animation in model: ' + walkAnimation + '; animation available: ' + JSON.stringify(animations.map(a => a.name)));
     }
+  }
+  removePet(pet) {
+    scene.remove(pet);
+    this.pets.splice(this.pets.indexOf(pet), 1);
   }
   update(timeDiff) {
     for (const wearable of this.wearables) {
@@ -224,5 +287,16 @@ export class RigAux {
     for (const pet of this.pets) {
 	    pet.update(timeDiff);
 	  }
+  }
+  destroy() {
+    for (const wearable of this.wearables) {
+      wearable.destroy();
+    }
+    for (const sittable of this.sittables) {
+      sittable.destroy();
+	  }
+    for (const pet of this.pets) {
+      pet.destroy();
+    }
   }
 }
