@@ -1126,6 +1126,10 @@ const itemSpecs3 = [
     "start_url": "https://avaer.github.io/dragon-mount/manifest.json"
   },
   {
+    "name": "dragon-fly",
+    "start_url": "https://avaer.github.io/dragon-fly/manifest.json"
+  },
+  {
     "name": "cityscape",
     "start_url": "https://raw.githubusercontent.com/metavly/cityscape/master/manifest.json"
   },
