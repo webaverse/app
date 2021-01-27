@@ -2,7 +2,7 @@ import * as THREE from './three.module.js';
 import runtime from './runtime.js';
 import physicsManager from './physics-manager.js';
 import {rigManager} from './rig.js';
-import {scene} from './app-object.js';
+import {avatarScene} from './app-object.js';
 import {contentIdToFile} from './util.js';
 
 const localVector = new THREE.Vector3();
@@ -81,7 +81,7 @@ export class RigAux {
     const o = await runtime.loadFile(file, {
       local: true,
     });
-    scene.add(o);
+    avatarScene.add(o);
     
   	// const component = o.components.find(c => c.type === 'wear');
   	const {position = [0, 0, 0], quaternion = [0, 0, 0, 1], scale = [1, 1, 1], bone = 'Chest'} = component;
@@ -102,7 +102,7 @@ export class RigAux {
     });
   }
   removeWearable(wearable) {
-    scene.remove(wearable.model);
+    avatarScene.remove(wearable.model);
     this.wearables.splice(this.wearables.indexOf(wearable), 1);
   }
   async addSittable(contentId, component) {
@@ -110,7 +110,7 @@ export class RigAux {
     const o = await runtime.loadFile(file, {
       local: true,
     });
-    scene.add(o);
+    avatarScene.add(o);
     
     /* const srcUrl = 'https://avaer.github.io/dragon-mount/dragon.glb';
     let o = await new Promise((accept, reject) => {
@@ -185,7 +185,7 @@ export class RigAux {
     }
   }
   removeSittable(sittable) {
-    scene.remove(sittable.model);
+    avatarScene.remove(sittable.model);
     this.sittables.splice(this.sittables.indexOf(sittable), 1);
   }
   async addPet(contentId, component) {
@@ -193,7 +193,7 @@ export class RigAux {
     const o = await runtime.loadFile(file, {
       local: true,
     });
-    scene.add(o);
+    avatarScene.add(o);
 
     const mesh = o;
     const animations = mesh.getAnimations();
@@ -258,7 +258,7 @@ export class RigAux {
     }
   }
   removePet(pet) {
-    scene.remove(pet.model);
+    avatarScene.remove(pet.model);
     this.pets.splice(this.pets.indexOf(pet), 1);
   }
   update(timeDiff) {
