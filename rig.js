@@ -305,14 +305,15 @@ class RigManager {
   }
 
   async setPeerAvatarUrl(url, ext, peerId) {
-    // await this.peerRigQueue.lock();
-
     const oldPeerRig = this.peerRigs.get(peerId);
     await this.setAvatar(oldPeerRig, newPeerRig => {
       this.peerRigs.set(peerId, newPeerRig);
     }, url, ext);
+  }
 
-    // await this.peerRigQueue.unlock();
+  async setPeerAvatarAux(aux, peerId) {
+    const oldPeerRig = this.peerRigs.get(peerId);
+    oldPeerRig.aux.setPose(aux);
   }
 
   setPeerMicMediaStream(mediaStream, peerId) {
